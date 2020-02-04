@@ -1,0 +1,56 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.1;net461</TargetFrameworks>
+    <AssemblyName>Xarial.XCad</AssemblyName>
+    <RootNamespace>Xarial.XCad</RootNamespace>
+    <SignAssembly>false</SignAssembly>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <PackageId>Xarial.XCad</PackageId>
+    <Version>0.1.1</Version>
+    <Authors>Xarial</Authors>
+    <Product>xCAD</Product>
+    <Copyright>© 2020 Xarial Pty Limited</Copyright>
+    <PackageProjectUrl>https://xcad.net</PackageProjectUrl>
+    <AssemblyOriginatorKeyFile></AssemblyOriginatorKeyFile>
+    <Company>Xarial Pty Limited</Company>
+    <RepositoryUrl>https://github.com/xarial/xcad</RepositoryUrl>
+    <PackageTags>cad,solidworks</PackageTags>
+    <Description>Framework for developing CAD applications</Description>
+    <RepositoryType>git</RepositoryType>
+    <PackageIcon>icon.png</PackageIcon>
+    <PackageIconUrl>https://xcad.xarial.com/icon.png</PackageIconUrl>
+    <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.1'">
+    <PackageReference Include="System.Drawing.Common" Version="4.7.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Properties\Resources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\data\icon.png">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
+    <None Include="..\..\LICENSE.md">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,54 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.1;net461</TargetFrameworks>
+    <RootNamespace>Xarial.XCad.SolidWorks</RootNamespace>
+    <AssemblyName>Xarial.XCad.SolidWorks</AssemblyName>
+    <SignAssembly>false</SignAssembly>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <PackageId>Xarial.XCad.SolidWorks</PackageId>
+    <Version>0.1.1</Version>
+    <Authors>Xarial</Authors>
+    <Product>xCAD</Product>
+    <Copyright>© 2020 Xarial Pty Limited</Copyright>
+    <PackageProjectUrl>https://xcad.net</PackageProjectUrl>
+    <AssemblyOriginatorKeyFile></AssemblyOriginatorKeyFile>
+    <Company>Xarial Pty Limited</Company>
+    <RepositoryUrl>https://github.com/xarial/xcad-solidworks</RepositoryUrl>
+    <PackageTags>cad,solidworks</PackageTags>
+    <Description>Framework for developing SOLIDWORKS applications</Description>
+    <RepositoryType>git</RepositoryType>
+    <PackageIcon>icon.png</PackageIcon>
+    <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
+    <PackageIconUrl>https://xcad.xarial.com/icon.png</PackageIconUrl>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Xarial.XCad.SolidWorks.Interops" Version="0.1.0" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.1'">
+    <PackageReference Include="Microsoft.Win32.Registry" Version="4.7.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\build\Xarial.XCad.SolidWorks.targets">
+      <Pack>True</Pack>
+      <PackagePath>build</PackagePath>
+    </None>
+    <None Include="..\..\data\icon.png">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
+    <None Include="..\..\LICENSE.md">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Base\Base.csproj" />
+    <ProjectReference Include="..\Toolkit\Toolkit.csproj" />
+  </ItemGroup>
+
+</Project>
