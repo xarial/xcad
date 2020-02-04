@@ -1,0 +1,41 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.1;net461</TargetFrameworks>
+    <AssemblyName>Xarial.XCad.Toolkit</AssemblyName>
+    <RootNamespace>Xarial.XCad.Toolkit</RootNamespace>
+	  <SignAssembly>false</SignAssembly>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <PackageId>Xarial.XCad.Toolkit</PackageId>
+    <Version>0.2.0</Version>
+    <Authors>Xarial</Authors>
+    <Product>xCAD</Product>
+    <Copyright>© 2020 Xarial Pty Limited</Copyright>
+    <PackageProjectUrl>https://xcad.net</PackageProjectUrl>
+    <AssemblyOriginatorKeyFile></AssemblyOriginatorKeyFile>
+    <Company>Xarial Pty Limited</Company>
+    <RepositoryUrl>https://github.com/xarial/xcad-toolkit</RepositoryUrl>
+    <PackageTags>cad,solidworks</PackageTags>
+    <Description>Framework for developing CAD applications</Description>
+    <RepositoryType>git</RepositoryType>
+    <PackageIcon>icon.png</PackageIcon>
+    <PackageIconUrl>https://xcad.xarial.com/icon.png</PackageIconUrl>
+    <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\data\icon.png">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
+    <None Include="..\..\LICENSE.md">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Base\Base.csproj" />
+  </ItemGroup>
+  
+</Project>
