@@ -77,8 +77,9 @@ stages:
         artifact: 'packages'
 
 - stage: 'PublishPreviewNuGetPackage'
-  displayName: 'Publish Prerelease NuGet Package to xarial nuget feed'
+  displayName: 'Publish Preview NuGet Package to xarial nuget feed'
   dependsOn: 'Build'
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/dev'))
   condition: succeeded()
   jobs:
   - job:
@@ -98,7 +99,30 @@ stages:
         packagesToPush: '$(Pipeline.Workspace)/packages/preview/*.nupkg'
         nuGetFeedType: 'internal'
         publishVstsFeed: 'xarial'
-        allowPackageConflicts: true
+        
+- stage: 'PublishPrerelseNuGetPackage'
+  displayName: 'Publish Prerelease NuGet Package to xarial nuget feed'
+  dependsOn: 'Build'
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
+  condition: succeeded()
+  jobs:
+  - job:
+    pool:
+      vmImage: 'ubuntu-latest'
+
+    steps:
+    - checkout: none
+
+    - download: current
+      artifact: 'packages'
+
+    - task: NuGetCommand@2
+      displayName: 'Push NuGet Package'
+      inputs:
+        command: 'push'
+        packagesToPush: '$(Pipeline.Workspace)/packages/release/*.nupkg'
+        nuGetFeedType: 'internal'
+        publishVstsFeed: 'xarial'
 
 - stage: 'PublishProductionPackage'
   displayName: 'Publish Release NuGet Package to Nuget.org production'
