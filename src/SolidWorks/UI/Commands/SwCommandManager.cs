@@ -15,6 +15,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using Xarial.XCad.SolidWorks.Exceptions;
+using Xarial.XCad.SolidWorks.UI.Commands.Exceptions;
 using Xarial.XCad.SolidWorks.UI.Commands.Toolkit.Enums;
 using Xarial.XCad.SolidWorks.UI.Commands.Toolkit.Structures;
 using Xarial.XCad.SolidWorks.Utils;
@@ -75,7 +76,7 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
         {
             m_App = app;
 
-            CmdMgr = m_App.Application.GetCommandManager(addinCookie);
+            CmdMgr = m_App.Sw.GetCommandManager(addinCookie);
 
             m_Logger = logger;
             m_Commands = new Dictionary<string, CommandInfo>();
@@ -418,7 +419,7 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
 
             //NOTE: if commands are not used, main icon will fail if toolbar commands image list is not specified, so it is required to specify it explicitly
 
-            if (CompatibilityUtils.SupportsHighResIcons(m_App.Application, CompatibilityUtils.HighResIconsScope_e.CommandManager))
+            if (CompatibilityUtils.SupportsHighResIcons(m_App.Sw, CompatibilityUtils.HighResIconsScope_e.CommandManager))
             {
                 var iconsList = iconsConv.ConvertIcon(new CommandGroupHighResIcon(mainIcon));
                 cmdGroup.MainIconList = iconsList;

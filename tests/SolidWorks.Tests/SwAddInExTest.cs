@@ -22,10 +22,11 @@ namespace Sw.Tests
                 () =>
                 {
                     connectCalled = true;
-                }).Returns(true);
+                });
 
             var addInExMock2 = new Mock<SwAddInEx>();
-            addInExMock2.Setup(a => a.OnConnect()).Returns(false);
+            addInExMock2.Setup(a => a.OnConnect())
+                .Callback(() => throw new Exception());
 
             var addInExMock3 = new Mock<SwAddInEx>() { CallBase = true };
 
@@ -48,10 +49,11 @@ namespace Sw.Tests
                 () =>
                 {
                     disconnectCalled = true;
-                }).Returns(true);
+                });
 
             var addInExMock2 = new Mock<SwAddInEx>();
-            addInExMock2.Setup(a => a.OnDisconnect()).Returns(false);
+            addInExMock2.Setup(a => a.OnDisconnect())
+                .Callback(() => throw new Exception());
 
             var swMock = new Mock<SldWorks>();
             swMock.Setup(m => m.GetCommandManager(It.IsAny<int>()))

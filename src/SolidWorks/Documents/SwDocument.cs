@@ -24,14 +24,17 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         internal event Action<IModelDoc2> Destroyed;
 
+        IXFeatureRepository IXDocument.Features => Features;
+
         private readonly ISldWorks m_App;
         private readonly ILogger m_Logger;
+        
         public IModelDoc2 Model { get; }
 
         public string Path => Model.GetPathName();
         public string Title => Model.GetTitle();
 
-        public IXFeatureRepository Features { get; }
+        public SwFeatureManager Features { get; }
 
         internal SwDocument(IModelDoc2 model, ISldWorks app, ILogger logger)
         {

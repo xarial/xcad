@@ -19,7 +19,9 @@ namespace Toolkit.Tests
 
         public class ControlMock : Control<object>
         {
+#pragma warning disable CS0067
             protected override event ControlValueChangedDelegate<object> ValueChanged;
+#pragma warning restore
 
             public ControlMock(int id, object tag) : base(id, tag)
             {

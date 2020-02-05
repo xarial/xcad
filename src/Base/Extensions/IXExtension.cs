@@ -15,9 +15,9 @@ namespace Xarial.XCad.Extensions
 {
     public interface IXExtension
     {
-        bool OnConnect();
+        void OnConnect();
 
-        bool OnDisconnect();
+        void OnDisconnect();
 
         IXApplication Application { get; }
         IXCommandManager CommandManager { get; }

@@ -17,6 +17,7 @@ using Xarial.XCad.Features.CustomFeature.Enums;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Reflection;
 using Xarial.XCad.SolidWorks.Documents;
+using Xarial.XCad.SolidWorks.Features.CustomFeature.Exceptions;
 using Xarial.XCad.SolidWorks.Features.CustomFeature.Toolkit;
 using Xarial.XCad.SolidWorks.Geometry;
 using Xarial.XCad.SolidWorks.Utils;
@@ -67,10 +68,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         protected IFeature InsertComFeatureBase(string[] paramNames, int[] paramTypes, string[] paramValues,
             int[] dimTypes, double[] dimValues, object[] selection, object[] editBodies)
         {
-            if (!typeof(SwMacroFeatureDefinition).IsAssignableFrom(DefinitionType))
-            {
-                throw new InvalidCastException($"{DefinitionType.FullName} must inherit {typeof(SwMacroFeatureDefinition).FullName}");
-            }
+            ValidateDefinitionType();
 
             var options = CustomFeatureOptions_e.Default;
             var provider = "";
@@ -91,7 +89,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             }
 
             var icons = MacroFeatureIconInfo.GetIcons(DefinitionType,
-                CompatibilityUtils.SupportsHighResIcons(SwMacroFeatureDefinition.Application.Application, CompatibilityUtils.HighResIconsScope_e.MacroFeature));
+                CompatibilityUtils.SupportsHighResIcons(SwMacroFeatureDefinition.Application.Sw, CompatibilityUtils.HighResIconsScope_e.MacroFeature));
 
             using (var selSet = new SelectionGroup(m_FeatMgr.Document.ISelectionManager))
             {
@@ -107,6 +105,14 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
                     paramValues, dimTypes, dimValues, editBodies, icons, (int)options) as IFeature;
 
                 return feat;
+            }
+        }
+
+        protected virtual void ValidateDefinitionType()
+        {
+            if (!typeof(SwMacroFeatureDefinition).IsAssignableFrom(DefinitionType))
+            {
+                throw new MacroFeatureDefinitionTypeMismatch(DefinitionType, typeof(SwMacroFeatureDefinition));
             }
         }
     }
@@ -200,6 +206,14 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
                 dimTypes?.Select(d => (int)d)?.ToArray(), dimValues,
                 selection?.Cast<SwSelObject>()?.Select(s => s.Dispatch)?.ToArray(),
                 editBodies?.Cast<SwBody>()?.Select(b => b.Body)?.ToArray());
+        }
+
+        protected override void ValidateDefinitionType()
+        {
+            if (!typeof(SwMacroFeatureDefinition<TParams>).IsAssignableFrom(DefinitionType))
+            {
+                throw new MacroFeatureDefinitionTypeMismatch(DefinitionType, typeof(SwMacroFeatureDefinition<TParams>));
+            }
         }
     }
 }

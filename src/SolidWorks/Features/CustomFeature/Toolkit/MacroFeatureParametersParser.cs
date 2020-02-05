@@ -27,7 +27,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature.Toolkit
     {
         internal IMathUtility MathUtils { get; }
 
-        internal MacroFeatureParametersParser() : this(SwMacroFeatureDefinition.Application.Application)
+        internal MacroFeatureParametersParser() : this(SwMacroFeatureDefinition.Application.Sw)
         {
         }
 
