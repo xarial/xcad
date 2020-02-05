@@ -10,9 +10,9 @@ using System.Linq;
 
 namespace Xarial.XCad.Utils.Reflection
 {
-    internal static class EnumerableExtension
+    public static class EnumerableExtension
     {
-        internal static IEnumerable<T> ValueOrEmpty<T>(this IEnumerable<T> enumer)
+        public static IEnumerable<T> ValueOrEmpty<T>(this IEnumerable<T> enumer)
         {
             if (enumer != null)
             {

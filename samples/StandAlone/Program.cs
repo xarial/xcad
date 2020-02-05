@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Xarial.XCad;
 using Xarial.XCad.Base;
+using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Sketch;
 using Xarial.XCad.SolidWorks;
@@ -21,7 +22,9 @@ namespace StandAlone
 
             var app = SwApplication.FromPointer(sw);
 
-            CreateSketchEntities(app);
+            //CreateSketchEntities(app);
+
+            TraverseSelectedFaces(app);
         }
 
         private static void CreateSketchEntities(IXApplication app)
@@ -38,6 +41,14 @@ namespace StandAlone
             sketch3D.IsEditing = true;
             line.EndPoint.Coordinate = new Point(0.3, 0.3, 0.3);
             sketch3D.IsEditing = false;
+        }
+
+        private static void TraverseSelectedFaces(IXApplication app) 
+        {
+            foreach (var face in app.Documents.Active.Selections.OfType<IXFace>()) 
+            {
+                Console.WriteLine(face.Area);
+            }
         }
     }
 }

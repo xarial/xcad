@@ -27,13 +27,13 @@ namespace Xarial.XCad.SolidWorks.Geometry
             double width, double length, double height)
         {
             var body = CreateBoxBody(center, dir, refDir, width, length, height);
-            return new SwTempBody(body);
+            return (SwBody)SwObject.FromDispatch(body);
         }
 
         public IXBody CreateCylinder(Point center, Vector axis, Vector refDir, double radius, double height)
         {
             var body = CreateCylinderBody(center, axis, refDir, radius, height);
-            return new SwTempBody(body);
+            return (SwBody)SwObject.FromDispatch(body);
         }
 
         /// <param name="refDir">Input or output direction of ref axis which corresponds to X. Specify null to auto calculate</param>

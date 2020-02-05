@@ -32,7 +32,7 @@ namespace Xarial.XCad.SolidWorks.Features
             }
         }
 
-        internal SwFeature(IModelDoc2 model, IFeature feat, bool created) : base(model, feat)
+        internal SwFeature(IFeature feat, bool created) : base(feat)
         {
             m_Creator = new ElementCreator<IFeature>(CreateFeature, feat, created);
         }

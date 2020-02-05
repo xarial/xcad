@@ -9,6 +9,7 @@ using SolidWorks.Interop.sldworks;
 using Xarial.XCad.SolidWorks.Annotations;
 using Xarial.XCad.SolidWorks.Features;
 using Xarial.XCad.SolidWorks.Geometry;
+using Xarial.XCad.SolidWorks.Sketch;
 
 namespace Xarial.XCad.SolidWorks
 {
@@ -20,13 +21,49 @@ namespace Xarial.XCad.SolidWorks
             {
                 //TODO: make this automatic
                 case IEdge edge:
-                    return new SwEdge(edge);
+                    var edgeCurve = edge.IGetCurve();
+                    if (edgeCurve.IsCircle())
+                    {
+                        return new SwCircularEdge(edge);
+                    }
+                    else
+                    {
+                        return new SwEdge(edge);
+                    }
+
+                case IFace2 face:
+                    var faceSurf = face.IGetSurface();
+                    if (faceSurf.IsPlane())
+                    {
+                        return new SwPlanarFace(face);
+                    }
+                    else if (faceSurf.IsCylinder())
+                    {
+                        return new SwCylindricalFace(face);
+                    }
+                    else
+                    {
+                        return new SwFace(face);
+                    }
 
                 case IFeature feat:
-                    return new SwFeature(model, feat, true);
+                    return new SwFeature(feat, true);
 
                 case IBody2 body:
-                    return new SwBody(body);
+                    if (!body.IsTemporaryBody())
+                    {
+                        return new SwBody(body);
+                    }
+                    else 
+                    {
+                        return new SwTempBody(body);
+                    }
+
+                case ISketchLine skLine:
+                    return new SwSketchLine(model, skLine, true);
+
+                case ISketchPoint skPt:
+                    return new SwSketchPoint(model, skPt, true);
 
                 case IDisplayDimension dispDim:
                     return new SwDimension(dispDim);

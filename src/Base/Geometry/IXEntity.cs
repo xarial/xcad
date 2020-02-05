@@ -5,10 +5,13 @@
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
+using System.Collections.Generic;
+
 namespace Xarial.XCad.Geometry
 {
     public interface IXEntity : IXSelObject
     {
         IXBody Body { get; }
+        IEnumerable<IXEntity> AdjacentEntities { get; }
     }
 }
