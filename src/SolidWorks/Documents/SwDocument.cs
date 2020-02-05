@@ -24,14 +24,20 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         internal event Action<IModelDoc2> Destroyed;
 
+        IXFeatureRepository IXDocument.Features => Features;
+        IXSelectionRepository IXDocument.Selections => Selections;
+
         private readonly ISldWorks m_App;
         private readonly ILogger m_Logger;
+        
         public IModelDoc2 Model { get; }
 
         public string Path => Model.GetPathName();
         public string Title => Model.GetTitle();
 
-        public IXFeatureRepository Features { get; }
+        public SwFeatureManager Features { get; }
+
+        public SwSelectionCollection Selections { get; }
 
         internal SwDocument(IModelDoc2 model, ISldWorks app, ILogger logger)
         {
@@ -41,6 +47,8 @@ namespace Xarial.XCad.SolidWorks.Documents
             m_Logger = logger;
 
             Features = new SwFeatureManager(this, model.FeatureManager, m_App);
+            
+            Selections = new SwSelectionCollection(model);
 
             AttachEvents();
         }

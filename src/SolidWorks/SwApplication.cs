@@ -23,18 +23,19 @@ namespace Xarial.XCad.SolidWorks
             return new SwApplication(app, new TraceLogger(""));
         }
 
-        public ISldWorks Application { get; }
+        IXDocumentCollection IXApplication.Documents => Documents;
+        IXGeometryBuilder IXApplication.GeometryBuilder => GeometryBuilder;
 
-        public IXDocumentCollection Documents => SwDocuments;
+        public ISldWorks Sw { get; }
 
-        internal SwDocumentCollection SwDocuments { get; }
-
-        public IXGeometryBuilder GeometryBuilder { get; }
+        public SwDocumentCollection Documents { get; private set; }
+        
+        public SwGeometryBuilder GeometryBuilder { get; private set; }
 
         internal SwApplication(ISldWorks app, ILogger logger)
         {
-            Application = app;
-            SwDocuments = new SwDocumentCollection(app, logger);
+            Sw = app;
+            Documents = new SwDocumentCollection(app, logger);
             GeometryBuilder = new SwGeometryBuilder(app.IGetMathUtility(), app.IGetModeler());
         }
     }
@@ -44,7 +45,7 @@ namespace Xarial.XCad.SolidWorks
         public static bool IsVersionNewerOrEqual(this SwApplication app, SwVersion_e version, 
             int? servicePack = null, int? servicePackRev = null) 
         {
-            return app.Application.IsVersionNewerOrEqual(version, servicePack, servicePackRev);
+            return app.Sw.IsVersionNewerOrEqual(version, servicePack, servicePackRev);
         }
     }
 }

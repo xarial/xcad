@@ -66,12 +66,14 @@ namespace Xarial.XCad.SolidWorks
 
         #endregion Registration
 
-        private readonly ILogger m_Logger;
-        private SwApplication m_Application;
-        private SwCommandManager m_CommandManager;
+        IXApplication IXExtension.Application => Application;
+        IXCommandManager IXExtension.CommandManager => CommandManager;
 
-        public IXApplication Application => m_Application;
-        public IXCommandManager CommandManager => m_CommandManager;
+        private readonly ILogger m_Logger;
+
+        public SwApplication Application { get; private set; }
+
+        public SwCommandManager CommandManager { get; private set; }
 
         /// <summary>
         /// Add-ins cookie (id)
@@ -96,18 +98,20 @@ namespace Xarial.XCad.SolidWorks
 
                 app.SetAddinCallbackInfo(0, this, AddInId);
 
-                m_Application = new SwApplication(app, m_Logger);
+                Application = new SwApplication(app, m_Logger);
 
-                SwMacroFeatureDefinition.Application = m_Application;
+                SwMacroFeatureDefinition.Application = Application;
 
-                m_CommandManager = new SwCommandManager(m_Application, AddInId, m_Logger);
+                CommandManager = new SwCommandManager(Application, AddInId, m_Logger);
 
-                return OnConnect();
+                OnConnect();
+
+                return true;
             }
             catch (Exception ex)
             {
                 m_Logger.Log(ex);
-                throw;
+                return false;
             }
         }
 
@@ -119,14 +123,14 @@ namespace Xarial.XCad.SolidWorks
 
             try
             {
-                var res = OnDisconnect();
+                OnDisconnect();
                 Dispose();
-                return res;
+                return true;
             }
             catch (Exception ex)
             {
                 m_Logger.Log(ex);
-                throw;
+                return false;
             }
         }
 
@@ -143,42 +147,40 @@ namespace Xarial.XCad.SolidWorks
         [EditorBrowsable(EditorBrowsableState.Never)]
         public void OnCommandClick(string cmdId)
         {
-            m_CommandManager.HandleCommandClick(cmdId);
+            CommandManager.HandleCommandClick(cmdId);
         }
 
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         public int OnCommandEnable(string cmdId)
         {
-            return m_CommandManager.HandleCommandEnable(cmdId);
+            return CommandManager.HandleCommandEnable(cmdId);
         }
 
-        public virtual bool OnConnect()
+        public virtual void OnConnect()
         {
-            return true;
         }
 
-        public virtual bool OnDisconnect()
+        public virtual void OnDisconnect()
         {
-            return true;
         }
 
         protected virtual void Dispose(bool disposing)
         {
             if (disposing)
             {
-                m_CommandManager.Dispose();
+                CommandManager.Dispose();
             }
 
-            if (m_Application != null)
+            if (Application != null)
             {
-                if (Marshal.IsComObject(m_Application))
+                if (Marshal.IsComObject(Application))
                 {
-                    Marshal.ReleaseComObject(m_Application);
+                    Marshal.ReleaseComObject(Application);
                 }
             }
 
-            m_Application = null;
+            Application = null;
 
             GC.Collect();
             GC.WaitForPendingFinalizers();
@@ -187,12 +189,17 @@ namespace Xarial.XCad.SolidWorks
             GC.WaitForPendingFinalizers();
         }
 
-        public IXPropertyPage<TData> CreatePage<TData>()
+        IXPropertyPage<TData> IXExtension.CreatePage<TData>()
         {
             return CreatePropertyManagerPage<TData>(typeof(TData));
         }
 
-        public SwPropertyManagerPage<TData> CreatePropertyManagerPage<TData, THandler>()
+        public SwPropertyManagerPage<TData> CreatePage<TData>()
+        {
+            return CreatePropertyManagerPage<TData>(typeof(TData));
+        }
+
+        public SwPropertyManagerPage<TData> CreatePage<TData, THandler>()
             where THandler : SwPropertyManagerPageHandler, new()
         {
             return CreatePropertyManagerPage<TData>(typeof(THandler));
@@ -200,7 +207,7 @@ namespace Xarial.XCad.SolidWorks
 
         private SwPropertyManagerPage<TData> CreatePropertyManagerPage<TData>(Type handlerType)
         {
-            return new SwPropertyManagerPage<TData>(m_Application.Application, m_Logger, handlerType);
+            return new SwPropertyManagerPage<TData>(Application.Sw, m_Logger, handlerType);
         }
 
         public IXCustomFeatureEditor<TData, TPage> CreateCustomFeatureEditor<TData, TPage>(

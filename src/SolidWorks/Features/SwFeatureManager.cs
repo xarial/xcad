@@ -79,7 +79,7 @@ namespace Xarial.XCad.SolidWorks.Features
 
     internal class FeatureEnumerator : IEnumerator<IXFeature>
     {
-        public IXFeature Current => new SwFeature(m_Model, m_CurFeat, true);
+        public IXFeature Current => new SwFeature(m_CurFeat, true);
 
         object IEnumerator.Current => Current;
 

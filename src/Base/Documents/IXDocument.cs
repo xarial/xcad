@@ -20,5 +20,7 @@ namespace Xarial.XCad.Documents
         void Close();
 
         IXFeatureRepository Features { get; }
+
+        IXSelectionRepository Selections { get; }
     }
 }

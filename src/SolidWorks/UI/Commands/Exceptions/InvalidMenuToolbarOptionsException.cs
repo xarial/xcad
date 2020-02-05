@@ -8,7 +8,7 @@
 using System;
 using Xarial.XCad.UI.Commands.Structures;
 
-namespace Xarial.XCad.SolidWorks.Exceptions
+namespace Xarial.XCad.SolidWorks.UI.Commands.Exceptions
 {
     /// <summary>
     /// Indicates that the command doesn't have either menu or toolbar option set

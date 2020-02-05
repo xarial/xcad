@@ -15,6 +15,13 @@ namespace Xarial.XCad.Geometry.Structures
     /// </summary>
     public class Vector : Point
     {
+        public static Vector operator *(Vector vec, double scale)
+        {
+            var res = new Vector(vec);
+            res.Scale(scale);
+            return res;
+        }
+
         /// <inheritdoc cref="Point(double, double, double)"/>
         /// <summary>
         /// Creates vector by 3 coordinates

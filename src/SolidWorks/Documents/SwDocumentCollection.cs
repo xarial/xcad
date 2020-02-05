@@ -23,11 +23,14 @@ namespace Xarial.XCad.SolidWorks.Documents
     {
         public event DocumentCreateDelegate DocumentCreated;
 
+        IXDocument IXDocumentCollection.Active => Active;
+        IXDocument IXDocumentCollection.Open(DocumentOpenArgs args) => Open(args);
+
         private readonly SldWorks m_App;
         private readonly Dictionary<IModelDoc2, SwDocument> m_Documents;
         private readonly ILogger m_Logger;
 
-        public IXDocument Active
+        public SwDocument Active
         {
             get
             {
@@ -58,7 +61,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             m_App.DocumentLoadNotify2 += OnDocumentLoadNotify2;
         }
 
-        internal SwDocument this[IModelDoc2 model]
+        public SwDocument this[IModelDoc2 model]
         {
             get
             {
@@ -85,7 +88,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             return m_Documents.Values.GetEnumerator();
         }
 
-        public IXDocument Open(DocumentOpenArgs args)
+        public SwDocument Open(DocumentOpenArgs args)
         {
             var docSpec = m_App.GetOpenDocSpec(args.Path) as IDocumentSpecification;
 

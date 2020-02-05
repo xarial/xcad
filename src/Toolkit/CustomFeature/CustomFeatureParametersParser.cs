@@ -156,7 +156,21 @@ namespace Xarial.XCad.Utils.CustomFeature
                 prp =>
                 {
                     var paramVal = GetParameterValue(parameters, prp.Name);
-                    var val = Convert.ChangeType(paramVal, prp.PropertyType);
+                    
+                    object val = null;
+
+                    if (paramVal != null)
+                    {
+                        if (prp.PropertyType.IsEnum)
+                        {
+                            val = Enum.Parse(prp.PropertyType, paramVal);
+                        }
+                        else
+                        {
+                            val = Convert.ChangeType(paramVal, prp.PropertyType);
+                        }
+                    }
+                    
                     prp.SetValue(resParams, val, null);
                 });
 

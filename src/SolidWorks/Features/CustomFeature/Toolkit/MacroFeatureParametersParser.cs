@@ -27,7 +27,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature.Toolkit
     {
         internal IMathUtility MathUtils { get; }
 
-        internal MacroFeatureParametersParser() : this(SwMacroFeatureDefinition.Application.Application)
+        internal MacroFeatureParametersParser() : this(SwMacroFeatureDefinition.Application.Sw)
         {
         }
 
@@ -59,7 +59,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature.Toolkit
 
             if (editBodiesObj != null)
             {
-                editBodies = editBodiesObj.Cast<IBody2>().Select(b => new SwBody(b)).ToArray();
+                editBodies = editBodiesObj.Cast<IBody2>().Select(b => (SwBody)SwObject.FromDispatch(b)).ToArray();
             }
             else
             {

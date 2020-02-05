@@ -6,7 +6,10 @@
 //*********************************************************************
 
 using SolidWorks.Interop.sldworks;
+using System.Collections.Generic;
 using Xarial.XCad.Geometry;
+using Xarial.XCad.Geometry.Structures;
+using Xarial.XCad.Utils.Reflection;
 
 namespace Xarial.XCad.SolidWorks.Geometry
 {
@@ -14,11 +17,67 @@ namespace Xarial.XCad.SolidWorks.Geometry
     {
         public IEdge Edge { get; }
 
-        public override IXBody Body => new SwBody(Edge.GetBody());
+        public override SwBody Body => (SwBody)FromDispatch(Edge.GetBody());
+
+        public override IEnumerable<SwEntity> AdjacentEntities 
+        {
+            get 
+            {
+                foreach (IFace2 face in (Edge.GetTwoAdjacentFaces2() as object[]).ValueOrEmpty()) 
+                {
+                    yield return (SwFace)FromDispatch(face);
+                }
+
+                foreach (ICoEdge coEdge in (Edge.GetCoEdges() as ICoEdge[]).ValueOrEmpty())
+                {
+                    var edge = coEdge.GetEdge() as IEdge;
+                    yield return (SwEdge)FromDispatch(edge);
+                }
+
+                //TODO: implement vertices
+            }
+        }
 
         internal SwEdge(IEdge edge) : base(edge as IEntity)
         {
             Edge = edge;
+        }
+    }
+
+    public class SwCircularEdge : SwEdge, IXCircularEdge
+    {
+        internal SwCircularEdge(IEdge edge) : base(edge)
+        {
+        }
+
+        public Point Center 
+        {
+            get 
+            {
+                var circParams = CircleParams;
+
+                return new Point(circParams[0], circParams[1], circParams[2]);
+            }
+        }
+
+        public Vector Axis 
+        {
+            get
+            {
+                var circParams = CircleParams;
+
+                return new Vector(circParams[3], circParams[4], circParams[5]);
+            }
+        }
+
+        public double Radius => CircleParams[6];
+
+        private double[] CircleParams
+        {
+            get
+            {
+                return Edge.IGetCurve().CircleParams as double[];
+            }
         }
     }
 }

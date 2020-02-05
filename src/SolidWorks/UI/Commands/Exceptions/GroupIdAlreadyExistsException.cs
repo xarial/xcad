@@ -9,7 +9,7 @@ using System;
 using Xarial.XCad.UI.Commands.Attributes;
 using Xarial.XCad.UI.Commands.Structures;
 
-namespace Xarial.XCad.SolidWorks.Exceptions
+namespace Xarial.XCad.SolidWorks.UI.Commands.Exceptions
 {
     /// <summary>
     /// Exception indicates that specified group user id is already used

@@ -15,6 +15,10 @@ namespace Xarial.XCad.SolidWorks
     {
         protected readonly IModelDoc2 m_ModelDoc;
 
+        internal SwSelObject(object disp) : this(null, disp)
+        {
+        }
+
         internal SwSelObject(IModelDoc2 model, object disp) : base(disp)
         {
             m_ModelDoc = model;
@@ -22,9 +26,16 @@ namespace Xarial.XCad.SolidWorks
 
         public virtual void Select(bool append)
         {
-            if (m_ModelDoc.Extension.MultiSelect2(new DispatchWrapper[] { new DispatchWrapper(Dispatch) }, append, null) != 1)
+            if (m_ModelDoc != null)
             {
-                throw new Exception("Failed to select");
+                if (m_ModelDoc.Extension.MultiSelect2(new DispatchWrapper[] { new DispatchWrapper(Dispatch) }, append, null) != 1)
+                {
+                    throw new Exception("Failed to select");
+                }
+            }
+            else 
+            {
+                throw new Exception("Model doc is not initialized");
             }
         }
     }

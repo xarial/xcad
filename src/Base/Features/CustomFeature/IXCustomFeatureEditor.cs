@@ -5,6 +5,7 @@
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
+using System.Collections.Generic;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Features.CustomFeature.Delegates;
 using Xarial.XCad.Geometry;

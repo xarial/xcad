@@ -7,15 +7,21 @@
 
 using SolidWorks.Interop.sldworks;
 using System;
+using System.Collections.Generic;
 using Xarial.XCad.Geometry;
 
 namespace Xarial.XCad.SolidWorks.Geometry
 {
     public abstract class SwEntity : SwSelObject, IXEntity
     {
+        IXBody IXEntity.Body => Body;
+        IEnumerable<IXEntity> IXEntity.AdjacentEntities => AdjacentEntities;
+
         public IEntity Entity { get; }
 
-        public abstract IXBody Body { get; }
+        public abstract SwBody Body { get; }
+
+        public abstract IEnumerable<SwEntity> AdjacentEntities { get; }
 
         internal SwEntity(IEntity entity) : base(null, entity)
         {
