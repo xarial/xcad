@@ -47,7 +47,15 @@ namespace Xarial.XCad.SolidWorks
                     }
 
                 case IFeature feat:
-                    return new SwFeature(feat, true);
+                    switch (feat.GetTypeName()) 
+                    {
+                        case "ProfileFeature":
+                            return new SwSketch2D(model, feat, true);
+                        case "3DProfileFeature":
+                            return new SwSketch3D(model, feat, true);
+                        default:
+                            return new SwFeature(feat, true);
+                    }
 
                 case IBody2 body:
                     if (!body.IsTemporaryBody())
