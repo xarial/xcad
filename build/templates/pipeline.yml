@@ -35,10 +35,18 @@ stages:
           secureFile: xarial.snk
 
       - task: VSBuild@1
-        displayName: 'Build and pack project'
+        displayName: 'Build and pack preview version'
         inputs:
           solution: 'src\${{ parameters.projectName }}\*.csproj'
-          msbuildArgs: '/t:pack /p:OutputPath=$(System.DefaultWorkingDirectory)\build;SignAssembly=true;AssemblyOriginatorKeyFile=$(Certificate.secureFilePath);DelaySign=false'
+          msbuildArgs: '/t:pack /p:OutputPath=$(System.DefaultWorkingDirectory)\build\preview;SignAssembly=true;AssemblyOriginatorKeyFile=$(Certificate.secureFilePath);DelaySign=false;VersionSuffix=$(Build.BuildNumber)'
+          platform: '$(BuildPlatform)'
+          configuration: '$(BuildConfiguration)'
+          
+      - task: VSBuild@1
+        displayName: 'Build and pack release version'
+        inputs:
+          solution: 'src\${{ parameters.projectName }}\*.csproj'
+          msbuildArgs: '/t:pack /p:OutputPath=$(System.DefaultWorkingDirectory)\build\release;SignAssembly=true;AssemblyOriginatorKeyFile=$(Certificate.secureFilePath);DelaySign=false'
           platform: '$(BuildPlatform)'
           configuration: '$(BuildConfiguration)'
             
@@ -87,7 +95,7 @@ stages:
       displayName: 'Push NuGet Package'
       inputs:
         command: 'push'
-        packagesToPush: '$(Pipeline.Workspace)/packages/*.nupkg'
+        packagesToPush: '$(Pipeline.Workspace)/packages/preview/*.nupkg'
         nuGetFeedType: 'internal'
         publishVstsFeed: 'xarial'
         allowPackageConflicts: true
@@ -109,6 +117,6 @@ stages:
            displayName: 'Push NuGet Package'
            inputs:
              command: 'push'
-             packagesToPush: '$(Pipeline.Workspace)/packages/*.nupkg'
+             packagesToPush: '$(Pipeline.Workspace)/packages/release/*.nupkg'
              nuGetFeedType: 'external'
              publishFeedCredentials: 'Nuget.org'
