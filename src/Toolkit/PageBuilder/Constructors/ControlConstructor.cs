@@ -6,6 +6,7 @@
 //*********************************************************************
 
 using Xarial.XCad.UI.PropertyPage.Base;
+using Xarial.XCad.UI.PropertyPage.Enums;
 using Xarial.XCad.Utils.PageBuilder.Base;
 
 namespace Xarial.XCad.Utils.PageBuilder.Constructors
@@ -15,5 +16,9 @@ namespace Xarial.XCad.Utils.PageBuilder.Constructors
         where TPage : IPage
         where TGroup : IGroup
     {
+        protected virtual BitmapLabelType_e? GetDefaultBitmapLabel(IAttributeSet atts)
+        {
+            return null;
+        }
     }
 }

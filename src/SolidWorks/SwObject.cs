@@ -6,6 +6,7 @@
 //*********************************************************************
 
 using SolidWorks.Interop.sldworks;
+using System;
 using Xarial.XCad.SolidWorks.Annotations;
 using Xarial.XCad.SolidWorks.Features;
 using Xarial.XCad.SolidWorks.Geometry;
@@ -15,7 +16,17 @@ namespace Xarial.XCad.SolidWorks
 {
     public class SwObject : IXObject
     {
-        public static SwObject FromDispatch(object disp, IModelDoc2 model = null)
+        public static SwObject FromDispatch(object disp)
+        {
+            return FromDispatch(disp, null);
+        }
+
+        public static SwObject FromDispatch(object disp, IModelDoc2 model)
+        {
+            return FromDispatch(disp, model, d => new SwObject(d));
+        }
+
+        internal static SwObject FromDispatch(object disp, IModelDoc2 model, Func<object, SwObject> defaultHandler)
         {
             switch (disp)
             {
@@ -77,7 +88,7 @@ namespace Xarial.XCad.SolidWorks
                     return new SwDimension(dispDim);
 
                 default:
-                    return new SwObject(disp);
+                    return defaultHandler.Invoke(disp);
             }
         }
 

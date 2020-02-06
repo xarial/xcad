@@ -11,10 +11,17 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Xarial.XCad.Base.Enums;
+using Xarial.XCad.Features;
+using Xarial.XCad.Geometry;
+using Xarial.XCad.Sketch;
 using Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls;
 using Xarial.XCad.SolidWorks.Utils;
+using Xarial.XCad.Toolkit.PageBuilder.Constructors;
 using Xarial.XCad.UI.PropertyPage;
 using Xarial.XCad.UI.PropertyPage.Attributes;
+using Xarial.XCad.UI.PropertyPage.Base;
+using Xarial.XCad.UI.PropertyPage.Enums;
 using Xarial.XCad.Utils.Diagnostics;
 using Xarial.XCad.Utils.PageBuilder.Attributes;
 using Xarial.XCad.Utils.PageBuilder.Base;
@@ -48,7 +55,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
 
             ISelectionCustomFilter customFilter = null;
 
-            //TODO: identify filters based on type
+            SelectType_e[] filters = null;
 
             if (atts.Has<SelectionBoxOptionsAttribute>())
             {
@@ -64,7 +71,11 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
                     swCtrl.SetSelectionColor(true, ConvertColor(selAtt.SelectionColor));
                 }
 
-                swCtrl.SetSelectionFilters(selAtt.Filters);
+                if (selAtt.Filters != null)
+                {
+                    filters = selAtt.Filters;
+                }
+
                 swCtrl.Mark = selAtt.SelectionMark;
 
                 if (selAtt.CustomFilter != null)
@@ -78,9 +89,25 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
                     }
                 }
             }
+            else 
+            {
+                filters = GetDefaultFilters(atts, out customFilter);
+            }
+
+            swCtrl.SetSelectionFilters(filters);
 
             return new PropertyManagerPageSelectionBoxControl(m_App, atts.Id, atts.Tag,
                 swCtrl, handler, atts.BoundType, customFilter);
+        }
+
+        protected virtual SelectType_e[] GetDefaultFilters(IAttributeSet atts, out ISelectionCustomFilter customFilter) 
+        {
+            return SelectionBoxConstructorHelper.GetDefaultFilters(atts, out customFilter);
+        }
+
+        protected override BitmapLabelType_e? GetDefaultBitmapLabel(IAttributeSet atts)
+        {
+            return SelectionBoxConstructorHelper.GetDefaultBitmapLabel(atts);
         }
 
         public override void PostProcessControls(IEnumerable<IPropertyManagerPageControlEx> ctrls)

@@ -6,6 +6,8 @@ using Xarial.XCad.UI.PropertyPage.Attributes;
 using Xarial.XCad.Base.Enums;
 using Xarial.XCad.SolidWorks.UI.PropertyPage;
 using Xarial.XCad.SolidWorks;
+using Xarial.XCad.SolidWorks.Geometry;
+using System;
 
 namespace SwAddInExample
 {
@@ -21,12 +23,16 @@ namespace SwAddInExample
         public string Text { get; set; }
 
         [ParameterDimension(CustomFeatureDimensionType_e.Linear)]
-        public double Number { get; set; }
+        [ExcludeControl]
+        public double Number { get; set; } = 0.1;
 
         [OptionBox]
         public Opts Options { get; set; }
 
-        [SelectionBoxOptions(SelectType_e.Faces)]
-        public List<SwSelObject> Selection { get; set; }
+        public SwCircularEdge Selection { get; set; }
+
+        [ParameterDimension(CustomFeatureDimensionType_e.Angular)]
+        [ExcludeControl]
+        public double Angle { get; set; } = Math.PI / 9;
     }
 }
