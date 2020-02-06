@@ -17,6 +17,7 @@ using Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls;
 using Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Icons;
 using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.UI.PropertyPage.Attributes;
+using Xarial.XCad.UI.PropertyPage.Enums;
 using Xarial.XCad.Utils.PageBuilder.Base;
 using Xarial.XCad.Utils.PageBuilder.Constructors;
 using Xarial.XCad.Utils.Reflection;
@@ -199,25 +200,35 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
                 icon = new ControlIcon(commonIcon);
             }
 
+            var hasIcon = false;
+
             if (atts.Has<ControlAttributionAttribute>())
             {
                 var attribution = atts.Get<ControlAttributionAttribute>();
 
                 if (attribution.StandardIcon != 0)
                 {
+                    hasIcon = true;
                     swCtrl.SetStandardPictureLabel((int)attribution.StandardIcon);
                 }
-                //else if (attribution.Icon != null)
-                //{
-                //    icon = attribution.Icon;
-                //}
             }
 
             if (icon != null)
             {
+                hasIcon = true;
                 var icons = m_IconConv.ConvertIcon(icon);
                 var res = swCtrl.SetPictureLabelByName(icons[0], icons[1]);
                 Debug.Assert(res);
+            }
+
+            if (!hasIcon) 
+            {
+                var defIcon = GetDefaultBitmapLabel(atts);
+
+                if (defIcon.HasValue) 
+                {
+                    swCtrl.SetStandardPictureLabel((int)defIcon.Value);
+                }
             }
         }
 

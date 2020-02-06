@@ -6,6 +6,7 @@
 //*********************************************************************
 
 using SolidWorks.Interop.sldworks;
+using SolidWorks.Interop.swconst;
 using SolidWorks.Interop.swpublished;
 using System;
 using System.Collections.Generic;
@@ -346,7 +347,18 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
                 ((SwDimension)dim).Dimension.ExtensionLineDirection = extDirVec;
             }
 
-            ((SwDimension)dim).Dimension.ReferencePoints = refPts;
+            var swDim = ((SwDimension)dim).Dimension;
+
+            swDim.ReferencePoints = refPts;
+
+            var swDispDim = ((SwDimension)dim).DisplayDimension;
+            if (swDispDim.Type2 == (int)swDimensionType_e.swAngularDimension) 
+            {
+                swDispDim.IGetAnnotation().SetPosition2(
+                    (pts[1].X + pts[0].X) / 2,
+                    (pts[1].Y + pts[0].Y) / 2,
+                    (pts[1].Z + pts[0].Z) / 2);
+            }
         }
 
         public abstract CustomFeatureRebuildResult OnRebuild(SwApplication app, SwDocument model, SwMacroFeature feature,

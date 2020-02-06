@@ -64,7 +64,7 @@ namespace Xarial.XCad.Features.CustomFeature
         /// <typeparam name="TParams"></typeparam>
         /// <param name="featDef"></param>
         /// <param name="dim"></param>
-        /// <param name="centerPt">Point at the center of the radiam dimension (fixed point)</param>
+        /// <param name="centerPt">Point at the center of the radial dimension (fixed point)</param>
         /// <param name="refPt">Reference point of the radial dimension (fixed point)</param>
         /// <param name="rotVec">Vector, normal to the radial dimension extension line</param>
         public static void AlignAngularDimension<TParams>(this IXCustomFeatureDefinition<TParams> featDef,

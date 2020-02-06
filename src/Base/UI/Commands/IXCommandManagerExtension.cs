@@ -72,7 +72,7 @@ namespace Xarial.XCad.UI.Commands
                 cmd.HasMenu = true;
                 cmd.HasToolbar = true;
                 cmd.SupportedWorkspace = WorkspaceTypes_e.All;
-                cmd.HasTabBox = false;
+                cmd.HasTabBox = true;
                 cmd.TabBoxStyle = RibbonTabTextDisplay_e.TextBelow;
             }
 
@@ -87,7 +87,7 @@ namespace Xarial.XCad.UI.Commands
             if (!cmdEnum.TryGetAttribute<DescriptionAttribute>(
                 att => cmd.Tooltip = att.Description))
             {
-                cmd.Tooltip = cmd.ToString();
+                cmd.Tooltip = cmdEnum.ToString();
             }
 
             if (!cmdEnum.TryGetAttribute<IconAttribute>(a => cmd.Icon = a.Icon))
@@ -149,12 +149,12 @@ namespace Xarial.XCad.UI.Commands
 
             if (!cmdGroupType.TryGetAttribute<DisplayNameAttribute>(a => bar.Title = a.DisplayName))
             {
-                bar.Title = cmdGroupType.ToString();
+                bar.Title = cmdGroupType.Name;
             }
 
             if (!cmdGroupType.TryGetAttribute<DescriptionAttribute>(a => bar.Tooltip = a.Description))
             {
-                bar.Tooltip = cmdGroupType.ToString();
+                bar.Tooltip = cmdGroupType.Name;
             }
 
             bar.Commands = Enum.GetValues(cmdGroupType).Cast<TCmdEnum>().Select(

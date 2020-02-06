@@ -21,6 +21,7 @@
     <PackageIcon>icon.png</PackageIcon>
     <PackageIconUrl>https://xcad.xarial.com/icon.png</PackageIconUrl>
     <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
+    <Version>0.2.1</Version>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.1'">

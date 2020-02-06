@@ -23,7 +23,16 @@ namespace SwAddInExample
         {
             alignDim = (m, n, d)=> 
             {
-                this.AlignLinearDimension(d, new Point(0, 0, 0), new Vector(0, 1, 0));
+                switch (n) 
+                {
+                    case nameof(PmpData.Number):
+                        this.AlignLinearDimension(d, new Point(0, 0, 0), new Vector(0, 1, 0));
+                        break;
+
+                    case nameof(PmpData.Angle):
+                        this.AlignAngularDimension(d, new Point(0, 0, 0), new Point(-0.1, 0, 0), new Vector(0, 1, 0));
+                        break;
+                }
             };
             var box = app.GeometryBuilder.CreateBox(new Point(0, 0, 0), new Vector(1, 0, 0), 0.1, 0.1, 0.1);
             parameters.Number = parameters.Number + 1;

@@ -55,7 +55,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
         private SwSelObject ToSelObject(object disp)
         {
-            return (SwSelObject)SwObject.FromDispatch(disp, m_App.IActiveDoc2);
+            return (SwSelObject)SwObject.FromDispatch(disp, m_App.IActiveDoc2, d => new SwSelObject(d));
         }
 
         private void OnSubmitSelection(int Id, object Selection, int SelType, ref string ItemText, ref bool res)
