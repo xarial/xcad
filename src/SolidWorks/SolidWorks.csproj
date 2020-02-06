@@ -7,7 +7,7 @@
     <SignAssembly>false</SignAssembly>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <PackageId>Xarial.XCad.SolidWorks</PackageId>
-    <VersionPrefix>0.2.2</VersionPrefix>
+    <VersionPrefix>0.2.3</VersionPrefix>
     <Authors>Xarial</Authors>
     <Product>xCAD</Product>
     <Copyright>© 2020 Xarial Pty Limited</Copyright>
@@ -30,6 +30,10 @@
   <PropertyGroup Condition="'$(TargetFramework)' == 'netstandard2.1'">
     <NoWarn>CS0618</NoWarn>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\build\solidworks-readme.txt" Link="solidworks-readme.txt" pack="true" PackagePath="readme.txt" />
+  </ItemGroup>
   
   <ItemGroup>
     <PackageReference Include="Xarial.XCad.SolidWorks.Interops" Version="0.2.0" />

@@ -52,7 +52,14 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
                 {
                     if (bodies[i] is IDisposable)
                     {
-                        (bodies[i] as IDisposable).Dispose();
+                        try
+                        {
+                            (bodies[i] as IDisposable).Dispose();
+                        }
+                        catch 
+                        {
+                            //TODO: show logger message
+                        }
                     }
 
                     bodies[i] = null;
