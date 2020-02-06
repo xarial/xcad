@@ -8,13 +8,60 @@ using Xarial.XCad.SolidWorks.UI.PropertyPage;
 using Xarial.XCad.SolidWorks;
 using Xarial.XCad.SolidWorks.Geometry;
 using System;
+using Xarial.XCad;
+using Xarial.XCad.SolidWorks.UI.PropertyPage.Services;
 
 namespace SwAddInExample
 {
     public enum Opts
     {
         Opt1,
-        Opt2
+        Opt2,
+        Opt3
+    }
+
+    public class MyItem 
+    {
+        public string Name { get; set; }
+        public int Id { get; set; }
+
+        public override string ToString()
+        {
+            return Name;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj is MyItem) 
+            {
+                return (obj as MyItem).Id == Id;
+            }
+
+            return false;
+        }
+
+        public override int GetHashCode()
+        {
+            return 0;
+        }
+    }
+
+    public class MyCustomItemsProvider : SwCustomItemsProvider<MyItem>
+    {
+        public override IEnumerable<MyItem> ProvideItems(SwApplication app)
+        {
+            yield return new MyItem()
+            {
+                Name = "A",
+                Id = 1
+            };
+
+            yield return new MyItem()
+            {
+                Name = "B",
+                Id = 2
+            };
+        }
     }
 
     [ComVisible(true)]
@@ -26,10 +73,12 @@ namespace SwAddInExample
         [ExcludeControl]
         public double Number { get; set; } = 0.1;
 
-        [OptionBox]
         public Opts Options { get; set; }
 
         public SwCircularEdge Selection { get; set; }
+
+        [CustomItems(typeof(MyCustomItemsProvider))]
+        public MyItem Option2 { get; set; }
 
         [ParameterDimension(CustomFeatureDimensionType_e.Angular)]
         [ExcludeControl]

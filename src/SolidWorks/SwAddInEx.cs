@@ -207,7 +207,7 @@ namespace Xarial.XCad.SolidWorks
 
         private SwPropertyManagerPage<TData> CreatePropertyManagerPage<TData>(Type handlerType)
         {
-            return new SwPropertyManagerPage<TData>(Application.Sw, m_Logger, handlerType);
+            return new SwPropertyManagerPage<TData>(Application, m_Logger, handlerType);
         }
 
         public IXCustomFeatureEditor<TData, TPage> CreateCustomFeatureEditor<TData, TPage>(

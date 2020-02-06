@@ -10,6 +10,7 @@ using System.Drawing;
 using Xarial.XCad.Base.Enums;
 using Xarial.XCad.UI.PropertyPage.Base;
 using Xarial.XCad.UI.PropertyPage.Enums;
+using Xarial.XCad.UI.PropertyPage.Services;
 
 namespace Xarial.XCad.UI.PropertyPage.Attributes
 {
