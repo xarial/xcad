@@ -124,7 +124,7 @@ stages:
 
 - stage: 'PublishProductionPackage'
   displayName: 'Publish Release NuGet Package to Nuget.org production'
-  dependsOn: 'PublishPreviewNuGetPackage'
+  dependsOn: 'PublishPrerelseNuGetPackage'
   condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
   jobs:
   - deployment:
