@@ -12,14 +12,14 @@ using Xarial.XCad.Utils.PageBuilder.PageElements;
 
 namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 {
-    internal class PropertyManagerPageComboBoxControl : PropertyManagerPageBaseControl<Enum, IPropertyManagerPageCombobox>
+    internal class PropertyManagerPageComboBoxControl<TVal> : PropertyManagerPageBaseControl<TVal, IPropertyManagerPageCombobox>
     {
-        protected override event ControlValueChangedDelegate<Enum> ValueChanged;
+        protected override event ControlValueChangedDelegate<TVal> ValueChanged;
 
-        private ReadOnlyCollection<Enum> m_Values;
+        private ReadOnlyCollection<TVal> m_Values;
 
         public PropertyManagerPageComboBoxControl(int id, object tag,
-            IPropertyManagerPageCombobox comboBox, ReadOnlyCollection<Enum> values,
+            IPropertyManagerPageCombobox comboBox, ReadOnlyCollection<TVal> values,
             SwPropertyManagerPageHandler handler) : base(comboBox, id, tag, handler)
         {
             m_Values = values;
@@ -34,7 +34,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             }
         }
 
-        protected override Enum GetSpecificValue()
+        protected override TVal GetSpecificValue()
         {
             var curSelIndex = SwSpecificControl.CurrentSelection;
 
@@ -44,11 +44,11 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             }
             else
             {
-                return null;
+                return default;
             }
         }
 
-        protected override void SetSpecificValue(Enum value)
+        protected override void SetSpecificValue(TVal value)
         {
             SwSpecificControl.CurrentSelection = (short)m_Values.IndexOf(value);
         }

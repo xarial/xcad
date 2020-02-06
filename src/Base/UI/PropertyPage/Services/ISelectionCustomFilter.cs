@@ -8,7 +8,7 @@
 using Xarial.XCad.Base.Enums;
 using Xarial.XCad.UI.PropertyPage.Base;
 
-namespace Xarial.XCad.UI.PropertyPage
+namespace Xarial.XCad.UI.PropertyPage.Services
 {
     public interface ISelectionCustomFilter
     {

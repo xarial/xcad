@@ -49,14 +49,14 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
 
         /// <summary>Creates instance of property manager page</summary>
         /// <param name="app">Pointer to session of SOLIDWORKS where the property manager page to be created</param>
-        public SwPropertyManagerPage(ISldWorks app, ILogger logger, Type handlerType)
+        public SwPropertyManagerPage(SwApplication app, ILogger logger, Type handlerType)
             : this(app, null, logger, handlerType)
         {
         }
 
-        public SwPropertyManagerPage(ISldWorks app, IPageSpec pageSpec, ILogger logger, Type handlerType)
+        public SwPropertyManagerPage(SwApplication app, IPageSpec pageSpec, ILogger logger, Type handlerType)
         {
-            m_App = app;
+            m_App = app.Sw;
 
             Logger = logger;
 
