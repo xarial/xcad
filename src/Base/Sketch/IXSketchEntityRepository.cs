@@ -11,8 +11,8 @@ namespace Xarial.XCad.Sketch
 {
     public interface IXSketchEntityRepository : IXRepository<IXSketchEntity>
     {
-        IXSketchLine NewLine();
+        IXSketchLine PreCreateLine();
 
-        IXSketchPoint NewPoint();
+        IXSketchPoint PreCreatePoint();
     }
 }

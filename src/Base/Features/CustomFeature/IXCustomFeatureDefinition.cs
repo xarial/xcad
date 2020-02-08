@@ -5,11 +5,14 @@
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
+using System;
+using System.Collections.Generic;
 using Xarial.XCad.Annotations;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Features.CustomFeature.Delegates;
 using Xarial.XCad.Features.CustomFeature.Enums;
 using Xarial.XCad.Features.CustomFeature.Structures;
+using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;
 
 namespace Xarial.XCad.Features.CustomFeature
@@ -55,5 +58,16 @@ namespace Xarial.XCad.Features.CustomFeature
             TParams parameters, out AlignDimensionDelegate<TParams> alignDim);
 
         void AlignDimension(IXDimension dim, Point[] pts, Vector dir, Vector extDir);
+    }
+
+    public interface IXCustomFeatureDefinition<TParams, TPage> : IXCustomFeatureDefinition<TParams>
+        where TParams : class, new()
+        where TPage : class, new()
+    {
+        void Insert(IXDocument doc);
+        IXBody[] CreateGeometry(IXApplication app, IXDocument doc, TParams data,
+            bool isPreview, out AlignDimensionDelegate<TParams> alignDim);
+        TPage ConvertParamsToPage(TParams par);
+        TParams ConvertPageToParams(TPage par);
     }
 }

@@ -23,11 +23,5 @@ namespace Xarial.XCad.Extensions
         IXCommandManager CommandManager { get; }
 
         IXPropertyPage<TData> CreatePage<TData>();
-
-        IXCustomFeatureEditor<TData, TPage> CreateCustomFeatureEditor<TData, TPage>(Type defType,
-            DataConverterDelegate<TPage, TData> pageToDataConv, DataConverterDelegate<TData, TPage> dataToPageConv,
-            CreateGeometryDelegate<TData> geomCreator)
-            where TData : class, new()
-            where TPage : class, new();
     }
 }

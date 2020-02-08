@@ -14,26 +14,27 @@ using Xarial.XCad.Features.CustomFeature;
 using Xarial.XCad.Features.CustomFeature.Delegates;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Services;
+using Xarial.XCad.Toolkit.CustomFeature;
 using Xarial.XCad.UI.PropertyPage;
 using Xarial.XCad.UI.PropertyPage.Enums;
 using Xarial.XCad.UI.PropertyPage.Structures;
+using Xarial.XCad.Utils.Diagnostics;
 using Xarial.XCad.Utils.Reflection;
 
 namespace Xarial.XCad.Utils.CustomFeature
 {
-    public abstract class BaseCustomFeatureEditor<TData, TPage> : IXCustomFeatureEditor<TData, TPage>
+    public abstract class BaseCustomFeatureEditor<TData, TPage> 
+        : IXCustomFeatureEditor<TData, TPage>
         where TData : class, new()
         where TPage : class, new()
     {
         protected readonly IXApplication m_App;
+        protected readonly ILogger m_Logger;
 
         private readonly XObjectEqualityComparer<IXBody> m_BodiesComparer;
-        private readonly DataConverterDelegate<TData, TPage> m_DataToPageConv;
-        private readonly Type m_FeatDefType;
-        private readonly CreateGeometryDelegate<TData> m_GeomCreator;
-        private readonly DataConverterDelegate<TPage, TData> m_PageToDataConv;
         private readonly CustomFeatureParametersParser m_ParamsParser;
-        
+        private readonly Type m_DefType;
+
         private TPage m_CurData;
         private IXBody[] m_EditBodies;
         private IXCustomFeature<TData> m_EditingFeature;
@@ -43,28 +44,19 @@ namespace Xarial.XCad.Utils.CustomFeature
 
         protected IXDocument CurModel { get; private set; }
 
-        public BaseCustomFeatureEditor(IXApplication app, IXExtension ext,
+        public BaseCustomFeatureEditor(IXApplication app,
             Type featDefType,
             CustomFeatureParametersParser paramsParser,
-            DataConverterDelegate<TPage, TData> pageToDataConv,
-            DataConverterDelegate<TData, TPage> dataToPageConv,
-            CreateGeometryDelegate<TData> geomCreator)
+            ILogger logger)
         {
             m_App = app;
-            m_FeatDefType = featDefType;
+            m_Logger = logger;
 
-            if (!typeof(IXCustomFeatureDefinition<TData>).IsAssignableFrom(m_FeatDefType))
-            {
-                throw new InvalidCastException($"{m_FeatDefType.FullName} must implement {typeof(IXCustomFeatureDefinition<TData>).FullName}");
-            }
-
-            m_PageToDataConv = pageToDataConv;
-            m_DataToPageConv = dataToPageConv;
-            m_GeomCreator = geomCreator;
+            m_DefType = featDefType;
 
             m_BodiesComparer = new XObjectEqualityComparer<IXBody>();
 
-            m_PmPage = ext.CreatePage<TPage>();
+            m_PmPage = CreatePage();
 
             m_ParamsParser = paramsParser;
 
@@ -73,9 +65,14 @@ namespace Xarial.XCad.Utils.CustomFeature
             m_PmPage.Closed += OnPageClosed;
         }
 
-        public IXBody[] CreateGeometry(IXCustomFeatureDefinition def, TData data, bool isPreview, out AlignDimensionDelegate<TData> alignDim)
+        private IXCustomFeatureDefinition<TData, TPage> m_Definition;
+
+        private IXCustomFeatureDefinition<TData, TPage> Definition 
         {
-            return m_GeomCreator.Invoke(def, data, isPreview, out alignDim);
+            get 
+            {
+                return m_Definition ?? (m_Definition = (IXCustomFeatureDefinition<TData, TPage>)CustomFeatureDefinitionInstanceCache.GetInstance(m_DefType));
+            }
         }
 
         public void Edit(IXDocument model, IXCustomFeature<TData> feature)
@@ -87,7 +84,7 @@ namespace Xarial.XCad.Utils.CustomFeature
             {
                 var featParam = m_EditingFeature.Parameters;
 
-                m_CurData = m_DataToPageConv.Invoke(featParam);
+                m_CurData = Definition.ConvertParamsToPage(featParam);
 
                 m_PmPage.Show(m_CurData);
                 UpdatePreview();
@@ -112,6 +109,8 @@ namespace Xarial.XCad.Utils.CustomFeature
         protected abstract void DisplayPreview(IXBody[] bodies);
 
         protected abstract void HidePreview(IXBody[] bodies);
+
+        protected abstract IXPropertyPage<TPage> CreatePage();
 
         private void HideEditBodies()
         {
@@ -167,9 +166,9 @@ namespace Xarial.XCad.Utils.CustomFeature
             {
                 if (m_EditingFeature == null)
                 {
-                    var feat = CurModel.Features.NewCustomFeature<TData>();
-                    feat.DefinitionType = m_FeatDefType;
-                    feat.Parameters = m_PageToDataConv.Invoke(m_CurData);
+                    var feat = CurModel.Features.PreCreateCustomFeature<TData>();
+                    feat.DefinitionType = m_DefType;
+                    feat.Parameters = Definition.ConvertPageToParams(m_CurData);
                     CurModel.Features.Add(feat);
 
                     if (feat == null)
@@ -179,7 +178,7 @@ namespace Xarial.XCad.Utils.CustomFeature
                 }
                 else
                 {
-                    m_EditingFeature.Parameters = m_PageToDataConv.Invoke(m_CurData);
+                    m_EditingFeature.Parameters = Definition.ConvertPageToParams(m_CurData);
                 }
             }
             else
@@ -208,7 +207,8 @@ namespace Xarial.XCad.Utils.CustomFeature
 
                 HidePreviewBodies();
 
-                m_PreviewBodies = m_GeomCreator.Invoke(null, m_PageToDataConv.Invoke(m_CurData), true, out _);
+                m_PreviewBodies = Definition.CreateGeometry(m_App, CurModel,
+                    Definition.ConvertPageToParams(m_CurData), true, out _);
 
                 HideEditBodies();
 

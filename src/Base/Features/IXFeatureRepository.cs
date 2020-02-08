@@ -12,26 +12,16 @@ namespace Xarial.XCad.Features
 {
     public interface IXFeatureRepository : IXRepository<IXFeature>
     {
-        IXCustomFeature<TParams> NewCustomFeature<TParams>()
+        IXCustomFeature<TParams> PreCreateCustomFeature<TParams>()
             where TParams : class, new();
 
-        IXSketch2D New2DSketch();
-
-        IXSketch3D New3DSketch();
-    }
-
-    public static class IXFeatureRepositoryExtension
-    {
-        public static IXCustomFeature<TParams> CreateCustomFeature<TDef, TParams>(this IXFeatureRepository feats, TParams param)
+        void CreateCustomFeature<TDef, TParams, TPage>()
             where TParams : class, new()
-            where TDef : IXCustomFeatureDefinition<TParams>
-        {
-            var custFeat = feats.NewCustomFeature<TParams>();
-            custFeat.DefinitionType = typeof(TDef);
-            custFeat.Parameters = param;
-            feats.Add(custFeat);
+            where TPage : class, new()
+            where TDef : class, IXCustomFeatureDefinition<TParams, TPage>, new();
 
-            return custFeat;
-        }
+        IXSketch2D PreCreate2DSketch();
+
+        IXSketch3D PreCreate3DSketch();
     }
 }
