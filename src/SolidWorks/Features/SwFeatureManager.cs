@@ -77,6 +77,7 @@ namespace Xarial.XCad.SolidWorks.Features
             //TODO: implement deletion
         }
 
+        /// <inheritdoc/>
         public void CreateCustomFeature<TDef, TParams, TPage>()
             where TParams : class, new()
             where TPage : class, new()

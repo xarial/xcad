@@ -31,6 +31,10 @@
     <NoWarn>CS0618</NoWarn>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DocumentationFile>Xarial.XCad.SolidWorks.xml</DocumentationFile>
+  </PropertyGroup>
+
   <ItemGroup>
     <None Include="..\..\build\solidworks-readme.txt" Link="solidworks-readme.txt" pack="true" PackagePath="readme.txt" />
   </ItemGroup>
