@@ -82,12 +82,12 @@ namespace Xarial.XCad.SolidWorks.Sketch
             }
         }
 
-        public IXSketchLine NewLine()
+        public IXSketchLine PreCreateLine()
         {
             return new SwSketchLine(m_Model, null, false);
         }
 
-        public IXSketchPoint NewPoint()
+        public IXSketchPoint PreCreatePoint()
         {
             return new SwSketchPoint(m_Model, null, false);
         }

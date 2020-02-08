@@ -14,9 +14,11 @@ using Xarial.XCad.Features.CustomFeature;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Features.CustomFeature;
 using Xarial.XCad.SolidWorks.Features.CustomFeature.Toolkit;
+using Xarial.XCad.Toolkit.CustomFeature;
 
 namespace Xarial.XCad.SolidWorks.Features
 {
+    /// <inheritdoc/>
     public class SwFeatureManager : IXFeatureRepository
     {
         private readonly IFeatureManager m_FeatMgr;
@@ -45,12 +47,12 @@ namespace Xarial.XCad.SolidWorks.Features
             }
         }
 
-        public IXSketch2D New2DSketch()
+        public IXSketch2D PreCreate2DSketch()
         {
             return new SwSketch2D(m_Model.Model, null, false);
         }
 
-        public IXSketch3D New3DSketch()
+        public IXSketch3D PreCreate3DSketch()
         {
             return new SwSketch3D(m_Model.Model, null, false);
         }
@@ -65,7 +67,7 @@ namespace Xarial.XCad.SolidWorks.Features
             return GetEnumerator();
         }
 
-        public IXCustomFeature<TParams> NewCustomFeature<TParams>()
+        public IXCustomFeature<TParams> PreCreateCustomFeature<TParams>()
             where TParams : class, new()
         {
             return new SwMacroFeature<TParams>(m_Model, m_FeatMgr, null, m_ParamsParser, false);
@@ -74,6 +76,16 @@ namespace Xarial.XCad.SolidWorks.Features
         public void RemoveRange(IEnumerable<IXFeature> ents)
         {
             //TODO: implement deletion
+        }
+
+        /// <inheritdoc/>
+        public void CreateCustomFeature<TDef, TParams, TPage>()
+            where TParams : class, new()
+            where TPage : class, new()
+            where TDef : class, IXCustomFeatureDefinition<TParams, TPage>, new()
+        {
+            var inst = (TDef)CustomFeatureDefinitionInstanceCache.GetInstance(typeof(TDef));
+            inst.Insert(m_Model);
         }
     }
 

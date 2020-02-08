@@ -13,21 +13,27 @@ using Xarial.XCad.UI.PropertyPage;
 
 namespace Xarial.XCad.Extensions
 {
+    /// <summary>
+    /// Represents the extensibility interface (add-in)
+    /// </summary>
     public interface IXExtension
     {
         void OnConnect();
 
         void OnDisconnect();
 
+        /// <summary>
+        /// Pointer to the main application
+        /// </summary>
         IXApplication Application { get; }
+
         IXCommandManager CommandManager { get; }
 
+        /// <summary>
+        /// Create native property page to manage parameters
+        /// </summary>
+        /// <typeparam name="TData">Type defining the data model of the property page</typeparam>
+        /// <returns>Instance of the proeprty page</returns>
         IXPropertyPage<TData> CreatePage<TData>();
-
-        IXCustomFeatureEditor<TData, TPage> CreateCustomFeatureEditor<TData, TPage>(Type defType,
-            DataConverterDelegate<TPage, TData> pageToDataConv, DataConverterDelegate<TData, TPage> dataToPageConv,
-            CreateGeometryDelegate<TData> geomCreator)
-            where TData : class, new()
-            where TPage : class, new();
     }
 }

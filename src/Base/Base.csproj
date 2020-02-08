@@ -7,7 +7,7 @@
     <SignAssembly>false</SignAssembly>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <PackageId>Xarial.XCad</PackageId>
-    <VersionPrefix>0.2.4</VersionPrefix>
+    <VersionPrefix>0.3.0</VersionPrefix>
     <Authors>Xarial</Authors>
     <Product>xCAD</Product>
     <Copyright>© 2020 Xarial Pty Limited</Copyright>
@@ -21,6 +21,10 @@
     <PackageIcon>icon.png</PackageIcon>
     <PackageIconUrl>https://xcad.xarial.com/icon.png</PackageIconUrl>
     <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)'=='Release'">
+    <DocumentationFile>Xarial.XCad.xml</DocumentationFile>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.1'">

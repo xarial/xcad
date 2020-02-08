@@ -13,17 +13,20 @@ using Xarial.XCad.Features.CustomFeature.Delegates;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Geometry;
+using Xarial.XCad.SolidWorks.UI.PropertyPage;
+using Xarial.XCad.UI.PropertyPage;
 using Xarial.XCad.Utils.CustomFeature;
+using Xarial.XCad.Utils.Diagnostics;
 
 namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 {
-    public class SwMacroFeatureEditor<TData, TPage> : BaseCustomFeatureEditor<TData, TPage>
+    internal class SwMacroFeatureEditor<TData, TPage> : BaseCustomFeatureEditor<TData, TPage>
         where TData : class, new()
         where TPage : class, new()
     {
-        internal SwMacroFeatureEditor(IXApplication app, IXExtension ext, Type defType, CustomFeatureParametersParser paramsParser,
-            DataConverterDelegate<TPage, TData> pageToDataConv, DataConverterDelegate<TData, TPage> dataToPageConv,
-            CreateGeometryDelegate<TData> geomCreator) : base(app, ext, defType, paramsParser, pageToDataConv, dataToPageConv, geomCreator)
+        internal SwMacroFeatureEditor(SwApplication app, Type defType, 
+            CustomFeatureParametersParser paramsParser, ILogger logger) 
+            : base(app, defType, paramsParser, logger)
         {
         }
 
@@ -68,6 +71,12 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 
             //TODO: check if this could be removed as it is causing flickering
             GC.Collect();
+        }
+
+        protected override IXPropertyPage<TPage> CreatePage()
+        {
+            //TODO: add support for other options
+            return new SwPropertyManagerPage<TPage>((SwApplication)m_App, m_Logger, typeof(TPage));
         }
     }
 }

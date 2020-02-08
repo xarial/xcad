@@ -12,7 +12,7 @@ using static Xarial.XCad.UI.Commands.IXCommandManagerExtension;
 
 namespace Xarial.XCad.UI.Commands.Structures
 {
-    public interface IEnumCommandBar<TCmdEnum> : IXCommandGroup
+    public interface IEnumCommandGroup<TCmdEnum> : IXCommandGroup
         where TCmdEnum : Enum
     {
         new event CommandEnumClickDelegate<TCmdEnum> CommandClick;
@@ -20,7 +20,7 @@ namespace Xarial.XCad.UI.Commands.Structures
         new event CommandEnumStateDelegate<TCmdEnum> CommandStateResolve;
     }
 
-    internal class EnumCommandGroup<TCmdEnum> : IEnumCommandBar<TCmdEnum>
+    internal class EnumCommandGroup<TCmdEnum> : IEnumCommandGroup<TCmdEnum>
                 where TCmdEnum : Enum
     {
         [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
@@ -36,7 +36,7 @@ namespace Xarial.XCad.UI.Commands.Structures
             }
         }
 
-        event CommandEnumClickDelegate<TCmdEnum> IEnumCommandBar<TCmdEnum>.CommandClick
+        event CommandEnumClickDelegate<TCmdEnum> IEnumCommandGroup<TCmdEnum>.CommandClick
         {
             add
             {
@@ -61,7 +61,7 @@ namespace Xarial.XCad.UI.Commands.Structures
             }
         }
 
-        event CommandEnumStateDelegate<TCmdEnum> IEnumCommandBar<TCmdEnum>.CommandStateResolve
+        event CommandEnumStateDelegate<TCmdEnum> IEnumCommandGroup<TCmdEnum>.CommandStateResolve
         {
             add
             {

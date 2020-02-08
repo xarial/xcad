@@ -38,6 +38,8 @@ namespace SwAddInExample
 
             [Icon(typeof(Resources), nameof(Resources.xarial))]
             RecordView,
+
+            CreateBox
         }
 
         private IXPropertyPage<PmpData> m_Page;
@@ -91,6 +93,10 @@ namespace SwAddInExample
                         m_ViewTransform = null;
                         Application.Sw.SendMsgToUser("Restored");
                     }
+                    break;
+
+                case Commands_e.CreateBox:
+                    Application.Documents.Active.Features.CreateCustomFeature<BoxMacroFeatureEditor, BoxData, BoxData>();
                     break;
             }
         }

@@ -14,6 +14,7 @@ using Xarial.XCad.SolidWorks.Sketch;
 
 namespace Xarial.XCad.SolidWorks
 {
+    /// <inheritdoc/>
     public class SwObject : IXObject
     {
         public static SwObject FromDispatch(object disp)

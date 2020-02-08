@@ -21,7 +21,7 @@ namespace SwAddInExample
         public override CustomFeatureRebuildResult OnRebuild(SwApplication app, SwDocument model, SwMacroFeature feature, 
             PmpData parameters, out AlignDimensionDelegate<PmpData> alignDim)
         {
-            alignDim = (m, n, d)=> 
+            alignDim = (n, d)=> 
             {
                 switch (n) 
                 {

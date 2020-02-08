@@ -26,6 +26,7 @@ using Xarial.XCad.Utils.Diagnostics;
 
 namespace Xarial.XCad.SolidWorks.UI.Commands
 {
+    /// <inheritdoc/>
     public class SwCommandManager : IXCommandManager, IDisposable
     {
         private class CommandInfo
