@@ -15,7 +15,10 @@ using Xarial.XCad.UI.PropertyPage.Structures;
 
 namespace Xarial.XCad.SolidWorks.UI.PropertyPage
 {
-    /// <inheritdoc/>
+    /// <summary>
+    /// Class which represents the handler of macro feature (system use only)
+    /// </summary>
+    /// <remarks>Class must be COM Visible, public and have parameterless constructor</remarks>
     [ComVisible(true)]
     public abstract class SwPropertyManagerPageHandler : IPropertyManagerPage2Handler9
     {

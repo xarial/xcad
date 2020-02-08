@@ -11,6 +11,7 @@ using System.Runtime.InteropServices;
 
 namespace Xarial.XCad.SolidWorks
 {
+    /// <inheritdoc/>
     public class SwSelObject : SwObject, IXSelObject
     {
         protected readonly IModelDoc2 m_ModelDoc;

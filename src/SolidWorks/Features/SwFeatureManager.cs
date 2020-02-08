@@ -18,6 +18,7 @@ using Xarial.XCad.Toolkit.CustomFeature;
 
 namespace Xarial.XCad.SolidWorks.Features
 {
+    /// <inheritdoc/>
     public class SwFeatureManager : IXFeatureRepository
     {
         private readonly IFeatureManager m_FeatMgr;

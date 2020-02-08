@@ -9,6 +9,12 @@ using Xarial.XCad.Annotations;
 
 namespace Xarial.XCad.Features.CustomFeature.Delegates
 {
-    public delegate void AlignDimensionDelegate<TData>(IXCustomFeatureDefinition<TData> def, string paramName, IXDimension dim)
+    /// <summary>
+    /// Handler function to align specific dimension of <see cref="IXCustomFeatureDefinition{TParams}" within the <see cref="IXCustomFeatureDefinition.OnRebuild(IXApplication, Documents.IXDocument, IXCustomFeature)"/>/>
+    /// </summary>
+    /// <typeparam name="TData">Type of the data</typeparam>
+    /// <param name="paramName">Name of the parameter in the data model which corresponds to this dimension</param>
+    /// <param name="dim">Dimension to align</param>
+    public delegate void AlignDimensionDelegate<TData>(string paramName, IXDimension dim)
         where TData : class, new();
 }

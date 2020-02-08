@@ -13,6 +13,13 @@ namespace Xarial.XCad.Features.CustomFeature
 {
     public static class IXCustomFeatureDefinitionExtension
     {
+        /// <summary>
+        /// Aligns the linear dimension of custom feature
+        /// </summary>
+        /// <typeparam name="TParams">Definition parameters</typeparam>
+        /// <param name="dim">Dimension to align</param>
+        /// <param name="originPt">Fixed point of the dimension</param>
+        /// <param name="normal">Normal of the entity the radial dimension is assigned to</param>
         public static void AlignRadialDimension<TParams>(this IXCustomFeatureDefinition<TParams> featDef, IXDimension dim, Point originPt, Vector normal)
             where TParams : class, new()
         {
@@ -37,6 +44,13 @@ namespace Xarial.XCad.Features.CustomFeature
             featDef.AlignDimension(dim, new Point[] { originPt, endPt }, dir, extDir);
         }
 
+        /// <summary>
+        /// Aligns the linear dimension of custom feature
+        /// </summary>
+        /// <typeparam name="TParams">Definition parameters</typeparam>
+        /// <param name="dim">Dimension to align</param>
+        /// <param name="originPt">Start point of the dimension (fixed point)</param>
+        /// <param name="dir">Direction of the dimnesion, i.e. entity to dimension is along this direction</param>
         public static void AlignLinearDimension<TParams>(this IXCustomFeatureDefinition<TParams> featDef, IXDimension dim, Point originPt, Vector dir)
             where TParams : class, new()
         {
@@ -59,11 +73,11 @@ namespace Xarial.XCad.Features.CustomFeature
         }
 
         /// <summary>
-        ///
+        /// Aligns the angular dimension of custom feature
         /// </summary>
-        /// <typeparam name="TParams"></typeparam>
-        /// <param name="featDef"></param>
-        /// <param name="dim"></param>
+        /// <typeparam name="TParams">Definition parameters</typeparam>
+        /// <param name="featDef">Feature definition to align dimension for</param>
+        /// <param name="dim">Dimension to align</param>
         /// <param name="centerPt">Point at the center of the radial dimension (fixed point)</param>
         /// <param name="refPt">Reference point of the radial dimension (fixed point)</param>
         /// <param name="rotVec">Vector, normal to the radial dimension extension line</param>

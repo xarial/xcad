@@ -25,10 +25,13 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
     /// <inheritdoc/>
     public class SwPropertyManagerPage<TModel> : IXPropertyPage<TModel>, IDisposable
     {
+        /// <inheritdoc/>
         public event PageClosedDelegate Closed;
 
+        /// <inheritdoc/>
         public event PageClosingDelegate Closing;
 
+        /// <inheritdoc/>
         public event PageDataChangedDelegate DataChanged;
 
         private readonly ISldWorks m_App;
@@ -39,8 +42,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
         /// <inheritdoc/>
         public IEnumerable<IPropertyManagerPageControlEx> Controls { get; private set; }
 
-        /// <inheritdoc/>
-        public SwPropertyManagerPageHandler Handler { get; private set; }
+        internal SwPropertyManagerPageHandler Handler { get; private set; }
 
         public ILogger Logger { get; }
 

@@ -9,6 +9,10 @@ using Xarial.XCad.UI.PropertyPage.Delegates;
 
 namespace Xarial.XCad.UI.PropertyPage
 {
+    /// <summary>
+    /// Represents native proeprty page to manage entity parameters
+    /// </summary>
+    /// <typeparam name="TDataModel"></typeparam>
     public interface IXPropertyPage<TDataModel>
     {
         /// <summary>
@@ -26,6 +30,10 @@ namespace Xarial.XCad.UI.PropertyPage
         /// </summary>
         event PageClosedDelegate Closed;
 
+        /// <summary>
+        /// Opens the property page with the specified data model
+        /// </summary>
+        /// <param name="model">Pointer to an instance of the bound data model</param>
         void Show(TDataModel model);
     }
 }

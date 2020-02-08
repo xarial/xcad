@@ -13,15 +13,22 @@ using Xarial.XCad.UI.Commands.Structures;
 
 namespace Xarial.XCad.SolidWorks.UI.Commands
 {
+    /// <inheritdoc/>
     public class SwCommandGroup : IXCommandGroup
     {
+        /// <inheritdoc/>
         public event CommandClickDelegate CommandClick;
 
+        /// <inheritdoc/>
         public event CommandStateDelegate CommandStateResolve;
 
-        private readonly SwApplication m_App;
+        /// <inheritdoc/>
         public CommandGroup CommandGroup { get; }
+
+        /// <inheritdoc/>
         public CommandGroupSpec Spec { get; }
+
+        private readonly SwApplication m_App;
 
         internal SwCommandGroup(SwApplication app, CommandGroupSpec spec, CommandGroup cmdGroup)
         {

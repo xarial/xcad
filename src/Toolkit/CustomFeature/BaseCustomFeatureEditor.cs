@@ -24,7 +24,6 @@ using Xarial.XCad.Utils.Reflection;
 namespace Xarial.XCad.Utils.CustomFeature
 {
     public abstract class BaseCustomFeatureEditor<TData, TPage> 
-        : IXCustomFeatureEditor<TData, TPage>
         where TData : class, new()
         where TPage : class, new()
     {

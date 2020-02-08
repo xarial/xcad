@@ -30,7 +30,14 @@ namespace Xarial.XCad.UI.Commands
             }
         }
 
-        public static IEnumCommandBar<TCmdEnum> AddCommandGroup<TCmdEnum>(this IXCommandManager cmdMgr)
+        /// <summary>
+        /// Adds command group based on the enumeration where each enumeration field represents the command button
+        /// </summary>
+        /// <typeparam name="TCmdEnum">Enumeration with commands</typeparam>
+        /// <param name="cmdMgr">Command manager</param>
+        /// <returns>Created command group</returns>
+        /// <remarks>Decorate enumeration and fields with <see cref="TitleAttribute"/>, <see cref="IconAttribute"/>, <see cref="DescriptionAttribute"/>, <see cref="CommandItemInfoAttribute"/> to customized look and feel of commands</remarks>
+        public static IEnumCommandGroup<TCmdEnum> AddCommandGroup<TCmdEnum>(this IXCommandManager cmdMgr)
             where TCmdEnum : Enum
         {
             int GetNextAvailableGroupId()

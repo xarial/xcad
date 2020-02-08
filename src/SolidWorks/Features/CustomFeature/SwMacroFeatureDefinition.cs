@@ -35,6 +35,7 @@ using Xarial.XCad.Utils.Reflection;
 
 namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 {
+    /// <inheritdoc/>
     public abstract class SwMacroFeatureDefinition : IXCustomFeatureDefinition, ISwComFeature
     {
         private static SwApplication m_Application;
@@ -306,6 +307,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         }
     }
 
+    /// <inheritdoc/>
     public abstract class SwMacroFeatureDefinition<TParams> : SwMacroFeatureDefinition, IXCustomFeatureDefinition<TParams>
         where TParams : class, new()
     {
@@ -387,7 +389,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
                 {
                     for (int i = 0; i < dims.Length; i++)
                     {
-                        alignDimsDel.Invoke(this, dimParamNames[i], dims[i]);
+                        alignDimsDel.Invoke(dimParamNames[i], dims[i]);
 
                         //IMPORTANT: need to dispose otherwise SW will crash once document is closed
                         ((IDisposable)dims[i]).Dispose();
@@ -399,6 +401,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         }
     }
 
+    /// <inheritdoc/>
     public abstract class SwMacroFeatureDefinition<TParams, TPage> : SwMacroFeatureDefinition<TParams>, IXCustomFeatureDefinition<TParams, TPage>
         where TParams : class, new()
         where TPage : class, new()

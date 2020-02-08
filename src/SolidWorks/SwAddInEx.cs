@@ -26,6 +26,7 @@ using Xarial.XCad.Utils.Reflection;
 
 namespace Xarial.XCad.SolidWorks
 {
+    /// <inheritdoc/>
     [ComVisible(true)]
     public abstract class SwAddInEx : IXExtension, ISwAddin, IDisposable
     {

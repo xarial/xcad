@@ -18,6 +18,7 @@ using Xarial.XCad.Utils.Diagnostics;
 
 namespace Xarial.XCad.SolidWorks
 {
+    /// <inheritdoc/>
     public class SwApplication : IXApplication
     {
         public static SwApplication FromPointer(ISldWorks app)
