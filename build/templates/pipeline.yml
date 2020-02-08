@@ -38,7 +38,7 @@ stages:
         displayName: 'Build and pack preview version'
         inputs:
           solution: 'src\${{ parameters.projectName }}\*.csproj'
-          msbuildArgs: '/t:pack /p:OutputPath=$(System.DefaultWorkingDirectory)\build\preview;SignAssembly=true;AssemblyOriginatorKeyFile=$(Certificate.secureFilePath);DelaySign=false;VersionSuffix=$(Build.BuildNumber);DocumentationFile=Xarial.XCad.${{ parameters.projectName }}.xml'
+          msbuildArgs: '/t:pack /p:OutputPath=$(System.DefaultWorkingDirectory)\build\preview;SignAssembly=true;AssemblyOriginatorKeyFile=$(Certificate.secureFilePath);DelaySign=false;VersionSuffix=$(Build.BuildNumber)'
           platform: '$(BuildPlatform)'
           configuration: '$(BuildConfiguration)'
           
@@ -46,7 +46,7 @@ stages:
         displayName: 'Build and pack release version'
         inputs:
           solution: 'src\${{ parameters.projectName }}\*.csproj'
-          msbuildArgs: '/t:pack /p:OutputPath=$(System.DefaultWorkingDirectory)\build\release;SignAssembly=true;AssemblyOriginatorKeyFile=$(Certificate.secureFilePath);DelaySign=false;DocumentationFile=$(ProjectName).xml'
+          msbuildArgs: '/t:pack /p:OutputPath=$(System.DefaultWorkingDirectory)\build\release;SignAssembly=true;AssemblyOriginatorKeyFile=$(Certificate.secureFilePath);DelaySign=false'
           platform: '$(BuildPlatform)'
           configuration: '$(BuildConfiguration)'
             

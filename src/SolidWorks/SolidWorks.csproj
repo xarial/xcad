@@ -31,7 +31,7 @@
     <NoWarn>CS0618</NoWarn>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+  <PropertyGroup Condition="'$(Configuration)'=='Release'">
     <DocumentationFile>Xarial.XCad.SolidWorks.xml</DocumentationFile>
   </PropertyGroup>
 
