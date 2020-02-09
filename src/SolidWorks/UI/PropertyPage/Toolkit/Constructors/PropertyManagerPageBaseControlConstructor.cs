@@ -202,14 +202,14 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
 
             var hasIcon = false;
 
-            if (atts.Has<ControlAttributionAttribute>())
+            if (atts.Has<StandardIconAttribute>())
             {
-                var attribution = atts.Get<ControlAttributionAttribute>();
+                var attribution = atts.Get<StandardIconAttribute>();
 
-                if (attribution.StandardIcon != 0)
+                if (attribution.Label != 0)
                 {
                     hasIcon = true;
-                    swCtrl.SetStandardPictureLabel((int)attribution.StandardIcon);
+                    swCtrl.SetStandardPictureLabel((int)attribution.Label);
                 }
             }
 
