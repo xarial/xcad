@@ -7,14 +7,14 @@
     <SignAssembly>false</SignAssembly>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <PackageId>Xarial.XCad.SolidWorks</PackageId>
-    <VersionPrefix>0.3.0</VersionPrefix>
+    <VersionPrefix>0.3.1</VersionPrefix>
     <Authors>Xarial</Authors>
     <Product>xCAD</Product>
     <Copyright>© 2020 Xarial Pty Limited</Copyright>
     <PackageProjectUrl>https://xcad.net</PackageProjectUrl>
     <AssemblyOriginatorKeyFile></AssemblyOriginatorKeyFile>
     <Company>Xarial Pty Limited</Company>
-    <RepositoryUrl>https://github.com/xarial/xcad-solidworks</RepositoryUrl>
+    <RepositoryUrl>https://github.com/xarial/xcad</RepositoryUrl>
     <PackageTags>cad,solidworks</PackageTags>
     <Description>Framework for developing SOLIDWORKS applications</Description>
     <RepositoryType>git</RepositoryType>

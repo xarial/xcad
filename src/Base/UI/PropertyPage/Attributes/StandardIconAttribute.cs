@@ -15,15 +15,15 @@ namespace Xarial.XCad.UI.PropertyPage.Attributes
     /// Provides additional attribution options (i.e. icons, labels, tooltips etc.) for all controls
     /// </summary>
     /// <remarks>Can be applied to any property which is bound to the property manager page control</remarks>
-    public class ControlAttributionAttribute : Attribute, IAttribute
+    public class StandardIconAttribute : Attribute, IAttribute
     {
-        public BitmapLabelType_e StandardIcon { get; private set; } = 0;
+        public BitmapLabelType_e Label { get; private set; } = 0;
 
         /// <summary>Constructor allowing specify the standard icon</summary>
-        /// <param name="standardIcon">Control label</param>
-        public ControlAttributionAttribute(BitmapLabelType_e standardIcon)
+        /// <param name="label">Control label</param>
+        public StandardIconAttribute(BitmapLabelType_e label)
         {
-            StandardIcon = standardIcon;
+            Label = label;
         }
     }
 }
