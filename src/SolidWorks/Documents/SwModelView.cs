@@ -98,5 +98,18 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
             View.GraphicsRedraw(null);
         }
+
+        /// <inheritdoc/>
+        public void ZoomToBox(Box3D box)
+        {
+            var transform = View.Orientation3;
+
+            var mathPt1 = m_MathUtils.CreatePoint(box.LeftBottomBack.ToArray()) as IMathPoint;
+            var mathPt2 = m_MathUtils.CreatePoint(box.RightTopFront.ToArray()) as IMathPoint;
+            var pt1 = mathPt1.IMultiplyTransform(transform).ArrayData as double[];
+            var pt2 = mathPt2.IMultiplyTransform(transform).ArrayData as double[];
+
+            m_Model.ViewZoomTo2(pt1[0], pt1[1], pt1[2], pt2[0], pt2[1], pt2[2]);
+        }
     }
 }

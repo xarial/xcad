@@ -13,10 +13,15 @@ namespace Xarial.XCad.Documents
     public interface IXView
     {
         void Freeze(bool freeze);
-
         TransformMatrix Transform { get; set; }
         TransformMatrix ScreenTransform { get; }
         Rectangle ScreenRect { get; }
+
+        /// <summary>
+        /// Zooms view to the specified box in XYZ model space
+        /// </summary>
+        /// <param name="box">Box to zoom to</param>
+        void ZoomToBox(Box3D box);
 
         void Update();
     }
