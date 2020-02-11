@@ -1,7 +1,8 @@
 # ![Logo](data/icon.png) xCAD.NET
 ## Never compromise on **U**ser e**X**perience
 
-[![Documentation](https://img.shields.io/badge/-Documentation-green.svg)](https://xcad.xarial.com)
+[![User Guide](https://img.shields.io/badge/-Documentation-green.svg)](https://xcad.xarial.com)
+[![Examples](https://img.shields.io/badge/-Examples-blue.svg)](https://github.com/xarial/xcad-examples)
 
 [xCAD.NET](https://xcad.net) is a framework for building CAD agnostic applications. It allows developers to implement complex functionality with very simple innovative approach. Thus enables for bringing the best user experience to the comsumers of the software.
 
