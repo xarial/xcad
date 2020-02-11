@@ -7,7 +7,7 @@
 	  <SignAssembly>false</SignAssembly>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <PackageId>Xarial.XCad.Toolkit</PackageId>
-    <VersionPrefix>0.3.2</VersionPrefix>
+    <VersionPrefix>0.3.3</VersionPrefix>
     <Authors>Xarial</Authors>
     <Product>xCAD</Product>
     <Copyright>© 2020 Xarial Pty Limited</Copyright>
