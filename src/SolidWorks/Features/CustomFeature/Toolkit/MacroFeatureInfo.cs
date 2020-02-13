@@ -32,18 +32,10 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature.Toolkit
 
             string baseName = "";
 
-            macroFeatType.TryGetAttribute<CustomFeatureOptionsAttribute>(a =>
+            macroFeatType.TryGetAttribute<DisplayNameAttribute>(a =>
             {
-                baseName = a.BaseName;
+                baseName = a.DisplayName;
             });
-
-            if (string.IsNullOrEmpty(baseName))
-            {
-                macroFeatType.TryGetAttribute<DisplayNameAttribute>(a =>
-                {
-                    baseName = a.DisplayName;
-                });
-            }
 
             if (string.IsNullOrEmpty(baseName))
             {

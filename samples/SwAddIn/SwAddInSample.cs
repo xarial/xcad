@@ -48,6 +48,7 @@ namespace SwAddInExample
         public override void OnConnect()
         {
             CommandManager.AddCommandGroup<Commands_e>().CommandClick += OnCommandClick;
+            Application.Documents.RegisterHandler<SwDocHandler>();
             m_Page = this.CreatePage<PmpData>();
             m_Page.Closed += OnClosed;
         }

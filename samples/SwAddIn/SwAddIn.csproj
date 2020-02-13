@@ -69,6 +69,7 @@
     <Compile Include="SampleMacroFeature.cs" />
     <Compile Include="SwAddInSample.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SwDocHandler.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Properties\Resources.resx">

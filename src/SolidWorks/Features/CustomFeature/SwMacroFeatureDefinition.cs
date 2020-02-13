@@ -11,11 +11,13 @@ using SolidWorks.Interop.swpublished;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using Xarial.XCad.Annotations;
 using Xarial.XCad.Base.Attributes;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Features.CustomFeature;
+using Xarial.XCad.Features.CustomFeature.Attributes;
 using Xarial.XCad.Features.CustomFeature.Delegates;
 using Xarial.XCad.Features.CustomFeature.Enums;
 using Xarial.XCad.Features.CustomFeature.Structures;
@@ -46,8 +48,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             {
                 if (m_Application == null)
                 {
-                    throw new NotSupportedException();
-                    //TODO: extract application from current process
+                    m_Application = SwApplication.FromProcess(Process.GetCurrentProcess().Id);
                 }
 
                 return m_Application;
@@ -73,15 +74,14 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 
         public SwMacroFeatureDefinition()
         {
-            //TODO: implement provider
             string provider = "";
-            //this.GetType().TryGetAttribute<OptionsAttribute>(a =>
-            //{
-            //    provider = a.Provider;
-            //});
+            this.GetType().TryGetAttribute<MissingDefinitionErrorMessage>(a =>
+            {
+                provider = a.Message;
+            });
 
             m_Provider = provider;
-            m_Logger = new TraceLogger("xCad.MacroFeature");
+            m_Logger = new TraceLogger($"xCad.MacroFeature.{this.GetType().FullName}");
 
             CustomFeatureDefinitionInstanceCache.RegisterInstance(this);
 

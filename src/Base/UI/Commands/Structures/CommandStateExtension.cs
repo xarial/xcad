@@ -15,9 +15,9 @@ namespace Xarial.XCad.UI.Commands.Structures
     {
         public static void ResolveState(this CommandState state, WorkspaceTypes_e ws, IXApplication app)
         {
-            var curSpace = WorkspaceTypes_e.NoDocuments;
-
             var activeDoc = app.Documents.Active;
+
+            WorkspaceTypes_e curSpace;
 
             if (activeDoc == null)
             {

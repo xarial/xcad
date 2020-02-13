@@ -7,6 +7,7 @@
 
 using System.Collections.Generic;
 using Xarial.XCad.Documents.Delegates;
+using Xarial.XCad.Documents.Services;
 using Xarial.XCad.Documents.Structures;
 
 namespace Xarial.XCad.Documents
@@ -20,5 +21,8 @@ namespace Xarial.XCad.Documents
         IXDocument Open(DocumentOpenArgs args);
 
         int Count { get; }
+
+        void RegisterHandler<THandler>() where THandler : IDocumentHandler, new();
+        THandler GetHandler<THandler>(IXDocument doc) where THandler : IDocumentHandler, new();
     }
 }

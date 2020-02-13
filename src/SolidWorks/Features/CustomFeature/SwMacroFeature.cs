@@ -76,7 +76,11 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             DefinitionType.TryGetAttribute<CustomFeatureOptionsAttribute>(a =>
             {
                 options = a.Flags;
-                provider = a.Provider;
+            });
+
+            DefinitionType.TryGetAttribute<MissingDefinitionErrorMessage>(a =>
+            {
+                provider = a.Message;
             });
 
             var baseName = MacroFeatureInfo.GetBaseName(DefinitionType);

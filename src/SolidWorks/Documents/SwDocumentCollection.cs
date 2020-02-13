@@ -13,13 +13,15 @@ using System.Diagnostics;
 using System.Linq;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Delegates;
+using Xarial.XCad.Documents.Services;
 using Xarial.XCad.Documents.Structures;
+using Xarial.XCad.Toolkit.Services;
 using Xarial.XCad.Utils.Diagnostics;
 
 namespace Xarial.XCad.SolidWorks.Documents
 {
     [DebuggerDisplay("Documents: {" + nameof(Count) + "}")]
-    public class SwDocumentCollection : IXDocumentCollection
+    public class SwDocumentCollection : IXDocumentCollection, IDisposable
     {
         public event DocumentCreateDelegate DocumentCreated;
 
@@ -29,6 +31,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         private readonly SldWorks m_App;
         private readonly Dictionary<IModelDoc2, SwDocument> m_Documents;
         private readonly ILogger m_Logger;
+        private readonly DocumentsHandler m_DocsHandler;
 
         public SwDocument Active
         {
@@ -49,13 +52,13 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public int Count => m_Documents.Count;
 
-        internal SwDocumentCollection(ISldWorks app, ILogger logger)
+        internal SwDocumentCollection(SwApplication app, ILogger logger)
         {
-            m_App = (SldWorks)app;
+            m_App = (SldWorks)app.Sw;
             m_Logger = logger;
 
             m_Documents = new Dictionary<IModelDoc2, SwDocument>();
-
+            m_DocsHandler = new DocumentsHandler(app);
             AttachToAllOpenedDocuments();
 
             m_App.DocumentLoadNotify2 += OnDocumentLoadNotify2;
@@ -103,9 +106,9 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
             m_App.DocumentLoadNotify2 -= OnDocumentLoadNotify2;
 
-            foreach (var docHandler in m_Documents.Values)
+            foreach (var doc in m_Documents.Keys.ToArray())
             {
-                docHandler.Dispose();
+                ReleaseDocument(doc);
             }
 
             m_Documents.Clear();
@@ -153,6 +156,8 @@ namespace Xarial.XCad.SolidWorks.Documents
                 m_Documents.Add(model, doc);
 
                 DocumentCreated?.Invoke(doc);
+
+                m_DocsHandler.InitHandlers(doc);
             }
             else
             {
@@ -189,9 +194,26 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         private void OnDocumentDestroyed(IModelDoc2 model)
         {
+            ReleaseDocument(model);
+        }
+
+        private void ReleaseDocument(IModelDoc2 model)
+        {
             var doc = this[model];
             doc.Destroyed -= OnDocumentDestroyed;
             m_Documents.Remove(model);
+            m_DocsHandler.ReleaseHandlers(doc);
+            doc.Dispose();
+        }
+
+        public void RegisterHandler<THandler>() where THandler : IDocumentHandler, new()
+        {
+            m_DocsHandler.RegisterHandler<THandler>();
+        }
+
+        public THandler GetHandler<THandler>(IXDocument doc) where THandler : IDocumentHandler, new()
+        {
+            return m_DocsHandler.GetHandler<THandler>(doc);
         }
     }
 }
