@@ -171,17 +171,9 @@ namespace Xarial.XCad.SolidWorks
             if (disposing)
             {
                 CommandManager.Dispose();
+                Application.Documents.Dispose();
+                Application.Dispose();
             }
-
-            if (Application != null)
-            {
-                if (Marshal.IsComObject(Application))
-                {
-                    Marshal.ReleaseComObject(Application);
-                }
-            }
-
-            Application = null;
 
             GC.Collect();
             GC.WaitForPendingFinalizers();

@@ -4,7 +4,7 @@ https://xcad.net
 
 --C#--
 
-[ComVisible(true)]
+[System.Runtime.InteropServices.ComVisible(true)]
 public class AddIn : Xarial.XCad.SolidWorks.SwAddInEx
 {
     public override void OnConnect()
@@ -15,7 +15,7 @@ public class AddIn : Xarial.XCad.SolidWorks.SwAddInEx
 
 --VB.NET--
 
-<ComVisible(True)>
+<System.Runtime.InteropServices.ComVisible(True)>
 Public Class AddIn
     Inherits Xarial.XCad.SolidWorks.SwAddInEx
 

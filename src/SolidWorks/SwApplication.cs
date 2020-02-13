@@ -7,6 +7,10 @@
 
 using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
+using System;
+using System.Linq;
+using System.Runtime.InteropServices;
+using System.Runtime.InteropServices.ComTypes;
 using Xarial.XCad.Base.Enums;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Geometry;
@@ -19,17 +23,84 @@ using Xarial.XCad.Utils.Diagnostics;
 namespace Xarial.XCad.SolidWorks
 {
     /// <inheritdoc/>
-    public class SwApplication : IXApplication
+    public class SwApplication : IXApplication, IDisposable
     {
+        [DllImport("ole32.dll")]
+        private static extern int CreateBindCtx(uint reserved, out IBindCtx ppbc);
+
         public static SwApplication FromPointer(ISldWorks app)
         {
-            return new SwApplication(app, new TraceLogger(""));
+            return new SwApplication(app, new TraceLogger("xCAD"));
         }
-        
+
+        public static SwApplication FromProcess(int processId)
+        {
+            var monikerName = "SolidWorks_PID_" + processId.ToString();
+
+            IBindCtx context = null;
+            IRunningObjectTable rot = null;
+            IEnumMoniker monikers = null;
+
+            try
+            {
+                CreateBindCtx(0, out context);
+
+                context.GetRunningObjectTable(out rot);
+                rot.EnumRunning(out monikers);
+
+                var moniker = new IMoniker[1];
+
+                while (monikers.Next(1, moniker, IntPtr.Zero) == 0)
+                {
+                    var curMoniker = moniker.First();
+
+                    string name = null;
+
+                    if (curMoniker != null)
+                    {
+                        try
+                        {
+                            curMoniker.GetDisplayName(context, null, out name);
+                        }
+                        catch (UnauthorizedAccessException)
+                        {
+                        }
+                    }
+
+                    if (string.Equals(monikerName,
+                        name, StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        object app;
+                        rot.GetObject(curMoniker, out app);
+                        return FromPointer(app as ISldWorks);
+                    }
+                }
+            }
+            finally
+            {
+                if (monikers != null)
+                {
+                    Marshal.ReleaseComObject(monikers);
+                }
+
+                if (rot != null)
+                {
+                    Marshal.ReleaseComObject(rot);
+                }
+
+                if (context != null)
+                {
+                    Marshal.ReleaseComObject(context);
+                }
+            }
+
+            return null;
+        }
+
         IXDocumentCollection IXApplication.Documents => Documents;
         IXGeometryBuilder IXApplication.GeometryBuilder => GeometryBuilder;
 
-        public ISldWorks Sw { get; }
+        public ISldWorks Sw { get; private set; }
 
         public SwDocumentCollection Documents { get; private set; }
         
@@ -38,7 +109,7 @@ namespace Xarial.XCad.SolidWorks
         internal SwApplication(ISldWorks app, ILogger logger)
         {
             Sw = app;
-            Documents = new SwDocumentCollection(app, logger);
+            Documents = new SwDocumentCollection(this, logger);
             GeometryBuilder = new SwGeometryBuilder(app.IGetMathUtility(), app.IGetModeler());
         }
 
@@ -104,6 +175,19 @@ namespace Xarial.XCad.SolidWorks
                 default:
                     return 0;
             }
+        }
+
+        public void Dispose()
+        {
+            if (Sw != null)
+            {
+                if (Marshal.IsComObject(Sw))
+                {
+                    Marshal.ReleaseComObject(Sw);
+                }
+            }
+
+            Sw = null;
         }
     }
 

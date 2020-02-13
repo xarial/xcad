@@ -12,7 +12,7 @@ using Xarial.XCad.Utils.Diagnostics;
 
 namespace Xarial.XCad.SolidWorks.Documents
 {
-    public class SwAssembly : SwDocument3D, IXPart
+    public class SwAssembly : SwDocument3D, IXAssembly
     {
         public IAssemblyDoc Assembly { get; }
 
