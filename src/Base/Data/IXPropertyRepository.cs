@@ -5,18 +5,15 @@
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
+using System;
 using System.Collections.Generic;
+using System.Text;
+using Xarial.XCad.Base;
 
-namespace Xarial.XCad.Base
+namespace Xarial.XCad.Data
 {
-    public interface IXRepository<TEnt> : IEnumerable<TEnt>
+    public interface IXPropertyRepository : IXRepository<IXProperty>
     {
-        int Count { get; }
-
-        TEnt this[string name] { get; }
-
-        void AddRange(IEnumerable<TEnt> ents);
-
-        void RemoveRange(IEnumerable<TEnt> ents);
+        IXProperty GetOrPreCreate(string name);
     }
 }

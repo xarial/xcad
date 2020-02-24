@@ -6,6 +6,7 @@
 //*********************************************************************
 
 using Xarial.XCad.Annotations;
+using Xarial.XCad.Data;
 using Xarial.XCad.Documents.Delegates;
 using Xarial.XCad.Features;
 
@@ -24,6 +25,8 @@ namespace Xarial.XCad.Documents
 
         IXSelectionRepository Selections { get; }
 
-        IXDimensionsRepository Dimensions { get; }
+        IXDimensionRepository Dimensions { get; }
+
+        IXPropertyRepository Properties { get; }
     }
 }

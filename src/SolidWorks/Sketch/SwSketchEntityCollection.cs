@@ -18,6 +18,8 @@ namespace Xarial.XCad.SolidWorks.Sketch
     {
         public int Count => m_Sketch.IsCreated ? 0 : m_Cache.Count;
 
+        public IXSketchEntity this[string name] => throw new NotImplementedException();
+
         private readonly SwSketchBase m_Sketch;
 
         private readonly List<IXSketchEntity> m_Cache;

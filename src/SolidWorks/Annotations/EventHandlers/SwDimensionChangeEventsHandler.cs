@@ -60,7 +60,10 @@ namespace Xarial.XCad.SolidWorks.Annotations.EventHandlers
 
         private int OnDimensionChangeNotify(object displayDim)
         {
-            Delegate.Invoke(m_Dim, m_Dim.GetValue());
+            if (m_Dim.DisplayDimension == displayDim)
+            {
+                Delegate.Invoke(m_Dim, m_Dim.GetValue());
+            }
 
             return S_OK;
         }

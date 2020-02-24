@@ -22,7 +22,9 @@ namespace Xarial.XCad.SolidWorks.Documents
         private readonly ISelectionMgr m_SelMgr;
 
         public int Count => m_SelMgr.GetSelectedObjectCount2(-1);
-        
+
+        public IXSelObject this[string name] => throw new NotSupportedException();
+
         internal SwSelectionCollection(IModelDoc2 model) 
         {
             m_Model = model;

@@ -10,10 +10,12 @@ using SolidWorks.Interop.swconst;
 using System;
 using System.Diagnostics;
 using Xarial.XCad.Annotations;
+using Xarial.XCad.Data;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Delegates;
 using Xarial.XCad.Features;
 using Xarial.XCad.SolidWorks.Annotations;
+using Xarial.XCad.SolidWorks.Data;
 using Xarial.XCad.SolidWorks.Features;
 using Xarial.XCad.Utils.Diagnostics;
 
@@ -28,7 +30,8 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         IXFeatureRepository IXDocument.Features => Features;
         IXSelectionRepository IXDocument.Selections => Selections;
-        IXDimensionsRepository IXDocument.Dimensions => Dimensions;
+        IXDimensionRepository IXDocument.Dimensions => Dimensions;
+        IXPropertyRepository IXDocument.Properties => Properties;
 
         private readonly ISldWorks m_App;
         private readonly ILogger m_Logger;
@@ -44,6 +47,10 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public SwDimensionsCollection Dimensions { get; }
 
+        public SwCustomPropertiesCollection Properties { get; }
+
+        internal ISldWorks App => m_App;
+
         internal SwDocument(IModelDoc2 model, ISldWorks app, ILogger logger)
         {
             Model = model;
@@ -56,6 +63,8 @@ namespace Xarial.XCad.SolidWorks.Documents
             Selections = new SwSelectionCollection(model);
 
             Dimensions = new SwDimensionsCollection(this);
+
+            Properties = new SwCustomPropertiesCollection(App, Model, "");
 
             AttachEvents();
         }
@@ -72,6 +81,8 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         protected virtual void Dispose(bool disposing)
         {
+            Properties.Dispose();
+
             if (disposing)
             {
                 DetachEvents();

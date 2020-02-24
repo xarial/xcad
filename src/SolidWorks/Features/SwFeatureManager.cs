@@ -9,6 +9,7 @@ using SolidWorks.Interop.sldworks;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Xarial.XCad.Base;
 using Xarial.XCad.Features;
 using Xarial.XCad.Features.CustomFeature;
 using Xarial.XCad.SolidWorks.Documents;
@@ -27,7 +28,7 @@ namespace Xarial.XCad.SolidWorks.Features
 
         public int Count => m_FeatMgr.GetFeatureCount(false);
 
-        IXFeature IXFeatureRepository.this[string name] => this[name];
+        IXFeature IXRepository<IXFeature>.this[string name] => this[name];
 
         public SwFeature this[string name]
         {

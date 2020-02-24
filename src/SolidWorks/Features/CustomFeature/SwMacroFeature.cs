@@ -48,7 +48,8 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         }
 
         //TODO: check constant context disconnection exception
-        public IXConfiguration Configuration => new SwConfiguration((Feature.GetDefinition() as IMacroFeatureData).CurrentConfiguration);
+        public IXConfiguration Configuration => new SwConfiguration(m_Model.App, m_Model.Model, 
+            (Feature.GetDefinition() as IMacroFeatureData).CurrentConfiguration);
 
         public SwMacroFeature<TParams> ToParameters<TParams>()
             where TParams : class, new()

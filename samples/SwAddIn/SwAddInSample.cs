@@ -20,6 +20,7 @@ using Xarial.XCad.Documents;
 using Xarial.XCad.Base;
 using Xarial.XCad.SolidWorks;
 using Xarial.XCad.SolidWorks.Annotations;
+using Xarial.XCad.SolidWorks.Data;
 
 namespace SwAddInExample
 {
@@ -42,7 +43,9 @@ namespace SwAddInExample
 
             CreateBox,
 
-            WatchDimension
+            WatchDimension,
+
+            WatchCustomProperty
         }
 
         private IXPropertyPage<PmpData> m_Page;
@@ -65,6 +68,7 @@ namespace SwAddInExample
         }
 
         private SwDimension m_WatchedDim;
+        private SwCustomProperty m_WatchedPrp;
 
         private void WatchDimension() 
         {
@@ -72,17 +76,25 @@ namespace SwAddInExample
             {
                 m_WatchedDim = Application.Documents.Active.Dimensions["D1@Sketch1"];
                 m_WatchedDim.ValueChanged += OnDimValueChanged;
-                m_WatchedDim.ValueChanged += OnDimValueChanged;
             }
             else 
             {
-                m_WatchedDim.ValueChanged -= OnDimValueChanged;
                 m_WatchedDim.ValueChanged -= OnDimValueChanged;
                 m_WatchedDim = null;
             }
         }
 
         private void OnDimValueChanged(Xarial.XCad.Annotations.IXDimension dim, double newVal)
+        {
+        }
+
+        private void WatchCustomProperty() 
+        {
+            m_WatchedPrp = Application.Documents.Active.Properties["Test"];
+            m_WatchedPrp.ValueChanged += OnPropertyValueChanged;
+        }
+
+        private void OnPropertyValueChanged(Xarial.XCad.Data.IXProperty prp, object newValue)
         {
         }
 
@@ -127,6 +139,10 @@ namespace SwAddInExample
 
                 case Commands_e.WatchDimension:
                     WatchDimension();
+                    break;
+
+                case Commands_e.WatchCustomProperty:
+                    WatchCustomProperty();
                     break;
             }
         }

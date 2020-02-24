@@ -6,19 +6,31 @@
 //*********************************************************************
 
 using SolidWorks.Interop.sldworks;
+using Xarial.XCad.Data;
 using Xarial.XCad.Documents;
+using Xarial.XCad.SolidWorks.Data;
 
 namespace Xarial.XCad.SolidWorks.Documents
 {
     public class SwConfiguration : IXConfiguration
     {
+        private readonly ISldWorks m_App;
         private readonly IConfiguration m_Conf;
+        private readonly IModelDoc2 m_Model;
 
         public string Name => m_Conf.Name;
 
-        internal SwConfiguration(IConfiguration conf)
+        IXPropertyRepository IXConfiguration.Properties => Properties;
+
+        public SwCustomPropertiesCollection Properties { get; }
+
+        internal SwConfiguration(ISldWorks app, IModelDoc2 model, IConfiguration conf)
         {
+            m_App = app;
+            m_Model = model;
             m_Conf = conf;
+
+            Properties = new SwCustomPropertiesCollection(app, m_Model, Name);
         }
     }
 }
