@@ -27,6 +27,43 @@ namespace Xarial.XCad.SolidWorks.Features
 
         public int Count => m_FeatMgr.GetFeatureCount(false);
 
+        IXFeature IXFeatureRepository.this[string name] => this[name];
+
+        public SwFeature this[string name]
+        {
+            get
+            {
+                IFeature feat;
+
+                switch (m_Model.Model)
+                {
+                    case IPartDoc part:
+                        feat = part.FeatureByName(name) as IFeature;
+                        break;
+
+                    case IAssemblyDoc assm:
+                        feat = assm.FeatureByName(name) as IFeature;
+                        break;
+
+                    case IDrawingDoc drw:
+                        feat = drw.FeatureByName(name) as IFeature;
+                        break;
+
+                    default:
+                        throw new NotSupportedException();
+                }
+
+                if (feat != null)
+                {
+                    return SwObject.FromDispatch<SwFeature>(feat, m_Model.Model);
+                }
+                else
+                {
+                    throw new NullReferenceException("Feature is not found");
+                }
+            }
+        }
+
         internal SwFeatureManager(SwDocument model, IFeatureManager featMgr, ISldWorks app)
         {
             m_Model = model;
@@ -91,7 +128,7 @@ namespace Xarial.XCad.SolidWorks.Features
 
     internal class FeatureEnumerator : IEnumerator<IXFeature>
     {
-        public IXFeature Current => new SwFeature(m_CurFeat, true);
+        public IXFeature Current => SwObject.FromDispatch<SwFeature>(m_CurFeat, m_Model);
 
         object IEnumerator.Current => Current;
 

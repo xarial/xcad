@@ -5,6 +5,7 @@
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
+using Xarial.XCad.Annotations;
 using Xarial.XCad.Documents.Delegates;
 using Xarial.XCad.Features;
 
@@ -22,5 +23,7 @@ namespace Xarial.XCad.Documents
         IXFeatureRepository Features { get; }
 
         IXSelectionRepository Selections { get; }
+
+        IXDimensionsRepository Dimensions { get; }
     }
 }

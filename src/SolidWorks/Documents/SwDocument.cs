@@ -9,9 +9,11 @@ using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
 using System;
 using System.Diagnostics;
+using Xarial.XCad.Annotations;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Delegates;
 using Xarial.XCad.Features;
+using Xarial.XCad.SolidWorks.Annotations;
 using Xarial.XCad.SolidWorks.Features;
 using Xarial.XCad.Utils.Diagnostics;
 
@@ -26,6 +28,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         IXFeatureRepository IXDocument.Features => Features;
         IXSelectionRepository IXDocument.Selections => Selections;
+        IXDimensionsRepository IXDocument.Dimensions => Dimensions;
 
         private readonly ISldWorks m_App;
         private readonly ILogger m_Logger;
@@ -39,6 +42,8 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public SwSelectionCollection Selections { get; }
 
+        public SwDimensionsCollection Dimensions { get; }
+
         internal SwDocument(IModelDoc2 model, ISldWorks app, ILogger logger)
         {
             Model = model;
@@ -49,6 +54,8 @@ namespace Xarial.XCad.SolidWorks.Documents
             Features = new SwFeatureManager(this, model.FeatureManager, m_App);
             
             Selections = new SwSelectionCollection(model);
+
+            Dimensions = new SwDimensionsCollection(this);
 
             AttachEvents();
         }

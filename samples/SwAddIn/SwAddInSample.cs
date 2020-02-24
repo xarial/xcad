@@ -19,6 +19,7 @@ using Xarial.XCad.Documents.Structures;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Base;
 using Xarial.XCad.SolidWorks;
+using Xarial.XCad.SolidWorks.Annotations;
 
 namespace SwAddInExample
 {
@@ -39,7 +40,9 @@ namespace SwAddInExample
             [Icon(typeof(Resources), nameof(Resources.xarial))]
             RecordView,
 
-            CreateBox
+            CreateBox,
+
+            WatchDimension
         }
 
         private IXPropertyPage<PmpData> m_Page;
@@ -59,6 +62,28 @@ namespace SwAddInExample
             {
                 var feat = Application.Documents.Active.Features.CreateCustomFeature<SampleMacroFeature, PmpData>(m_Data);
             }
+        }
+
+        private SwDimension m_WatchedDim;
+
+        private void WatchDimension() 
+        {
+            if (m_WatchedDim == null)
+            {
+                m_WatchedDim = Application.Documents.Active.Dimensions["D1@Sketch1"];
+                m_WatchedDim.ValueChanged += OnDimValueChanged;
+                m_WatchedDim.ValueChanged += OnDimValueChanged;
+            }
+            else 
+            {
+                m_WatchedDim.ValueChanged -= OnDimValueChanged;
+                m_WatchedDim.ValueChanged -= OnDimValueChanged;
+                m_WatchedDim = null;
+            }
+        }
+
+        private void OnDimValueChanged(Xarial.XCad.Annotations.IXDimension dim, double newVal)
+        {
         }
 
         private TransformMatrix m_ViewTransform;
@@ -98,6 +123,10 @@ namespace SwAddInExample
 
                 case Commands_e.CreateBox:
                     Application.Documents.Active.Features.CreateCustomFeature<BoxMacroFeatureEditor, BoxData, BoxData>();
+                    break;
+
+                case Commands_e.WatchDimension:
+                    WatchDimension();
                     break;
             }
         }

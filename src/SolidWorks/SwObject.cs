@@ -17,9 +17,21 @@ namespace Xarial.XCad.SolidWorks
     /// <inheritdoc/>
     public class SwObject : IXObject
     {
+        public static TObj FromDispatch<TObj>(object disp)
+            where TObj : SwObject
+        {
+            return (TObj)FromDispatch(disp, null);
+        }
+
         public static SwObject FromDispatch(object disp)
         {
             return FromDispatch(disp, null);
+        }
+
+        public static TObj FromDispatch<TObj>(object disp, IModelDoc2 model)
+            where TObj : SwObject
+        {
+            return (TObj)FromDispatch(disp, model);
         }
 
         public static SwObject FromDispatch(object disp, IModelDoc2 model)
@@ -66,7 +78,7 @@ namespace Xarial.XCad.SolidWorks
                         case "3DProfileFeature":
                             return new SwSketch3D(model, feat, true);
                         default:
-                            return new SwFeature(feat, true);
+                            return new SwFeature(model, feat, true);
                     }
 
                 case IBody2 body:
@@ -86,7 +98,7 @@ namespace Xarial.XCad.SolidWorks
                     return new SwSketchPoint(model, skPt, true);
 
                 case IDisplayDimension dispDim:
-                    return new SwDimension(dispDim);
+                    return new SwDimension(model, dispDim);
 
                 default:
                     return defaultHandler.Invoke(disp);

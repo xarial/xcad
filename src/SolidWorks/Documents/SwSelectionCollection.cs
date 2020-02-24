@@ -67,7 +67,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
     internal class SwSelObjectEnumerator : IEnumerator<IXSelObject>
     {
-        public IXSelObject Current => (SwSelObject)SwObject.FromDispatch(m_SelMgr.GetSelectedObject6(m_CurSelIndex, -1));
+        public IXSelObject Current => SwObject.FromDispatch<SwSelObject>(m_SelMgr.GetSelectedObject6(m_CurSelIndex, -1));
 
         object IEnumerator.Current => Current;
 

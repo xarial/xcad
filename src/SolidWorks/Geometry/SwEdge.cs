@@ -17,7 +17,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
     {
         public IEdge Edge { get; }
 
-        public override SwBody Body => (SwBody)FromDispatch(Edge.GetBody());
+        public override SwBody Body => FromDispatch<SwBody>(Edge.GetBody());
 
         public override IEnumerable<SwEntity> AdjacentEntities 
         {
@@ -25,13 +25,13 @@ namespace Xarial.XCad.SolidWorks.Geometry
             {
                 foreach (IFace2 face in (Edge.GetTwoAdjacentFaces2() as object[]).ValueOrEmpty()) 
                 {
-                    yield return (SwFace)FromDispatch(face);
+                    yield return FromDispatch<SwFace>(face);
                 }
 
                 foreach (ICoEdge coEdge in (Edge.GetCoEdges() as ICoEdge[]).ValueOrEmpty())
                 {
                     var edge = coEdge.GetEdge() as IEdge;
-                    yield return (SwEdge)FromDispatch(edge);
+                    yield return FromDispatch<SwEdge>(edge);
                 }
 
                 //TODO: implement vertices

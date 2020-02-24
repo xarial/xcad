@@ -59,7 +59,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature.Toolkit
 
             if (editBodiesObj != null)
             {
-                editBodies = editBodiesObj.Cast<IBody2>().Select(b => (SwBody)SwObject.FromDispatch(b)).ToArray();
+                editBodies = editBodiesObj.Cast<IBody2>().Select(b => SwObject.FromDispatch<SwBody>(b)).ToArray();
             }
             else
             {
@@ -87,7 +87,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature.Toolkit
 
             if (selObjects != null)
             {
-                selection = selObjects.Select(s => (SwSelObject)SwObject.FromDispatch(s)).ToArray();
+                selection = selObjects.Select(s => SwObject.FromDispatch<SwSelObject>(s)).ToArray();
             }
             else
             {
@@ -97,7 +97,9 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature.Toolkit
 
         protected override IXDimension[] GetDimensions(IXCustomFeature feat)
         {
-            var dispDimsObj = ((SwMacroFeature)feat).FeatureData.GetDisplayDimensions() as object[];
+            var macroFeat = (SwMacroFeature)feat;
+
+            var dispDimsObj = macroFeat.FeatureData.GetDisplayDimensions() as object[];
 
             if (dispDimsObj != null)
             {
@@ -105,7 +107,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature.Toolkit
 
                 for (int i = 0; i < dispDimsObj.Length; i++)
                 {
-                    dimensions[i] = new SwDimension(dispDimsObj[i] as IDisplayDimension);
+                    dimensions[i] = new SwDimension(macroFeat.Model.Model, dispDimsObj[i] as IDisplayDimension);
                     dispDimsObj[i] = null;
                 }
 

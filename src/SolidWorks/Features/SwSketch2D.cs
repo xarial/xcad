@@ -6,6 +6,7 @@
 //*********************************************************************
 
 using SolidWorks.Interop.sldworks;
+using System;
 using Xarial.XCad.Features;
 
 namespace Xarial.XCad.SolidWorks.Features
@@ -14,6 +15,10 @@ namespace Xarial.XCad.SolidWorks.Features
     {
         public SwSketch2D(IModelDoc2 model, IFeature feat, bool created) : base(model, feat, created)
         {
+            if (model == null) 
+            {
+                throw new ArgumentNullException(nameof(model));
+            }
         }
 
         protected override ISketch CreateSketch()

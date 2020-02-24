@@ -38,8 +38,10 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 
         private readonly IFeatureManager m_FeatMgr;
 
+        internal SwDocument Model => m_Model;
+
         internal SwMacroFeature(SwDocument model, IFeatureManager featMgr, IFeature feat, bool created)
-            : base(feat, created)
+            : base(model.Model, feat, created)
         {
             m_Model = model;
             m_FeatMgr = featMgr;
