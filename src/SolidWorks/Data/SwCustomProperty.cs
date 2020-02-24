@@ -52,7 +52,10 @@ namespace Xarial.XCad.SolidWorks.Data
 
                 var res = (swCustomInfoSetResult_e)m_PrpMgr.Set2(Name, value.ToString());
 
-                throw new Exception($"Failed to set the value of the proeprty. Error code: {res}");
+                if (res != swCustomInfoSetResult_e.swCustomInfoSetResult_OK)
+                {
+                    throw new Exception($"Failed to set the value of the property. Error code: {res}");
+                }
             }
         }
 
