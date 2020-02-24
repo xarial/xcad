@@ -16,9 +16,11 @@ using Xarial.XCad.Features.CustomFeature;
 using Xarial.XCad.Features.CustomFeature.Delegates;
 using Xarial.XCad.SolidWorks.Features.CustomFeature;
 using Xarial.XCad.SolidWorks.Features.CustomFeature.Toolkit;
+using Xarial.XCad.SolidWorks.UI;
 using Xarial.XCad.SolidWorks.UI.Commands;
 using Xarial.XCad.SolidWorks.UI.PropertyPage;
 using Xarial.XCad.SolidWorks.Utils;
+using Xarial.XCad.UI;
 using Xarial.XCad.UI.Commands;
 using Xarial.XCad.UI.PropertyPage;
 using Xarial.XCad.Utils.Diagnostics;
@@ -69,6 +71,7 @@ namespace Xarial.XCad.SolidWorks
 
         IXApplication IXExtension.Application => Application;
         IXCommandManager IXExtension.CommandManager => CommandManager;
+        IXCustomPanel<TControl> IXExtension.CreateDocumentTab<TControl>(XCad.Documents.IXDocument doc) => CreateDocumentTab<TControl>((Documents.SwDocument)doc);
 
         private readonly ILogger m_Logger;
 
@@ -202,5 +205,67 @@ namespace Xarial.XCad.SolidWorks
         {
             return new SwPropertyManagerPage<TData>(Application, m_Logger, handlerType);
         }
+
+        public SwModelViewTab<TControl> CreateDocumentTab<TControl>(Documents.SwDocument doc)
+        {
+#if NET461
+            if (typeof(System.Windows.Forms.Control).IsAssignableFrom(typeof(TControl)))
+            {
+                if (typeof(System.Windows.Forms.UserControl).IsAssignableFrom(typeof(TControl)) && typeof(TControl).IsComVisible())
+                {
+                    //TODO: create COM control
+                    throw new NotImplementedException();
+                }
+                else
+                {
+                    var winCtrl = (System.Windows.Forms.Control)Activator.CreateInstance(typeof(TControl));
+
+                    return CreateTabFromControl<TControl>(winCtrl, doc, (TControl)(object)winCtrl);
+                }
+            }
+            else if (typeof(System.Windows.UIElement).IsAssignableFrom(typeof(TControl)))
+            {
+                var wpfCtrl = (System.Windows.Controls.Control)Activator.CreateInstance(typeof(TControl));
+                var host = new System.Windows.Forms.Integration.ElementHost();
+                host.Child = wpfCtrl;
+
+                return CreateTabFromControl<TControl>(host, doc, (TControl)(object)wpfCtrl);
+            }
+            else 
+            {
+                throw new NotSupportedException($"Only System.Windows.Forms.Control or System.Windows.UIElement are supported");
+            }
+#else
+            throw new NotSupportedException();
+#endif
+        }
+
+#if NET461
+        private SwModelViewTab<TControl> CreateTabFromControl<TControl>(System.Windows.Forms.Control host, Documents.SwDocument doc, TControl ctrl) 
+        {
+            var title = "";
+
+            if (typeof(TControl).TryGetAttribute(out DisplayNameAttribute att)) 
+            {
+                title = att.DisplayName;
+            }
+
+            if (string.IsNullOrEmpty(title)) 
+            {
+                title = typeof(TControl).Name;
+            }
+
+            var mdlViewMgr = doc.Model.ModelViewManager;
+            
+            if (mdlViewMgr.DisplayWindowFromHandlex64(title, host.Handle.ToInt64(), true))
+            {
+                return new SwModelViewTab<TControl>(ctrl, title, mdlViewMgr, doc);
+            }
+            else 
+            {
+                throw new Exception("Failed to create control");
+            }
+        }
+#endif
     }
 }

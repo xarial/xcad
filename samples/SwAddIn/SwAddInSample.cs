@@ -45,7 +45,9 @@ namespace SwAddInExample
 
             WatchDimension,
 
-            WatchCustomProperty
+            WatchCustomProperty,
+
+            CreateModelView
         }
 
         private IXPropertyPage<PmpData> m_Page;
@@ -143,6 +145,10 @@ namespace SwAddInExample
 
                 case Commands_e.WatchCustomProperty:
                     WatchCustomProperty();
+                    break;
+
+                case Commands_e.CreateModelView:
+                    CreateDocumentTab<WpfUserControl>(Application.Documents.Active);
                     break;
             }
         }

@@ -22,7 +22,7 @@
     <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
     <PackageIconUrl>https://xcad.xarial.com/icon.png</PackageIconUrl>
   </PropertyGroup>
-
+  
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netstandard2.1|AnyCPU'">
     <NoWarn>1701;1702</NoWarn>
   </PropertyGroup>
@@ -35,6 +35,13 @@
     <DocumentationFile>Xarial.XCad.SolidWorks.xml</DocumentationFile>
   </PropertyGroup>
 
+  <ItemGroup Condition="'$(TargetFramework)' == 'net461'">
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="PresentationFramework" />
+    <Reference Include="PresentationCore" />
+    <Reference Include="WindowsFormsIntegration" />
+  </ItemGroup>
+    
   <ItemGroup>
     <None Include="..\..\build\solidworks-readme.txt" Link="solidworks-readme.txt" pack="true" PackagePath="readme.txt" />
   </ItemGroup>
