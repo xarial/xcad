@@ -18,6 +18,7 @@ using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Enums;
 using Xarial.XCad.SolidWorks.Geometry;
 using Xarial.XCad.SolidWorks.Utils;
+using Xarial.XCad.Toolkit.Windows;
 using Xarial.XCad.Utils.Diagnostics;
 
 namespace Xarial.XCad.SolidWorks
@@ -25,9 +26,6 @@ namespace Xarial.XCad.SolidWorks
     /// <inheritdoc/>
     public class SwApplication : IXApplication, IDisposable
     {
-        [DllImport("ole32.dll")]
-        private static extern int CreateBindCtx(uint reserved, out IBindCtx ppbc);
-
         public static SwApplication FromPointer(ISldWorks app)
         {
             return new SwApplication(app, new TraceLogger("xCAD"));
@@ -37,64 +35,16 @@ namespace Xarial.XCad.SolidWorks
         {
             var monikerName = "SolidWorks_PID_" + processId.ToString();
 
-            IBindCtx context = null;
-            IRunningObjectTable rot = null;
-            IEnumMoniker monikers = null;
+            var app = RotHelper.GetComObjectByMonikerName<ISldWorks>(monikerName);
 
-            try
+            if (app != null)
             {
-                CreateBindCtx(0, out context);
-
-                context.GetRunningObjectTable(out rot);
-                rot.EnumRunning(out monikers);
-
-                var moniker = new IMoniker[1];
-
-                while (monikers.Next(1, moniker, IntPtr.Zero) == 0)
-                {
-                    var curMoniker = moniker.First();
-
-                    string name = null;
-
-                    if (curMoniker != null)
-                    {
-                        try
-                        {
-                            curMoniker.GetDisplayName(context, null, out name);
-                        }
-                        catch (UnauthorizedAccessException)
-                        {
-                        }
-                    }
-
-                    if (string.Equals(monikerName,
-                        name, StringComparison.CurrentCultureIgnoreCase))
-                    {
-                        object app;
-                        rot.GetObject(curMoniker, out app);
-                        return FromPointer(app as ISldWorks);
-                    }
-                }
+                return FromPointer(app);
             }
-            finally
+            else 
             {
-                if (monikers != null)
-                {
-                    Marshal.ReleaseComObject(monikers);
-                }
-
-                if (rot != null)
-                {
-                    Marshal.ReleaseComObject(rot);
-                }
-
-                if (context != null)
-                {
-                    Marshal.ReleaseComObject(context);
-                }
+                return null;
             }
-
-            return null;
         }
 
         IXDocumentCollection IXApplication.Documents => Documents;
