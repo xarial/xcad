@@ -108,6 +108,22 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         internal ISldWorks App => m_App;
 
+        public bool IsDirty 
+        {
+            get => Model.GetSaveFlag();
+            set
+            {
+                if (value == true)
+                {
+                    Model.SetSaveFlag();
+                }
+                else 
+                {
+                    throw new NotSupportedException("Dirty flag cannot be removed. Save document to remove dirty flag");
+                }
+            }
+        }
+
         internal SwDocument(IModelDoc2 model, ISldWorks app, ILogger logger)
         {
             Model = model;

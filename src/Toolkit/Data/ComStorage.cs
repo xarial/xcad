@@ -100,14 +100,23 @@ namespace Xarial.XCad.Toolkit.Data
 
         public IComStorage Storage { get; private set; }
 
-        public ComStorage(IComStorage storage, bool writable)
+        public ComStorage(IComStorage storage, bool writable) : this(writable)
+        {
+            Load(storage);
+        }
+
+        protected ComStorage(bool writable) 
+        {
+            m_IsWritable = writable;
+        }
+
+        protected void Load(IComStorage storage) 
         {
             if (storage == null)
             {
                 throw new ArgumentNullException(nameof(storage));
             }
 
-            m_IsWritable = writable;
             Storage = storage;
         }
 

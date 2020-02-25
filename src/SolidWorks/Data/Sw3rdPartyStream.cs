@@ -23,11 +23,30 @@ namespace Xarial.XCad.SolidWorks.Data
         private readonly string m_Name;
 
         internal Sw3rdPartyStream(IModelDoc2 model, string name, AccessType_e access) 
-            : base(model.IGet3rdPartyStorage(name, AccessTypeHelper.GetIsWriting(access)) as IStream, AccessTypeHelper.GetIsWriting(access), false)
+            : base(AccessTypeHelper.GetIsWriting(access), false)
         {
             m_Model = model;
 
             m_Name = name;
+
+            try
+            {
+                var stream = model.IGet3rdPartyStorage(name, AccessTypeHelper.GetIsWriting(access)) as IStream;
+
+                if (stream != null)
+                {
+                    Load(stream);
+                }
+                else 
+                {
+                    throw new Exception("Stream doesn't exist");
+                }
+            }
+            catch 
+            {
+                m_Model.IRelease3rdPartyStorage(m_Name);
+                throw;
+            }
 
             Seek(0, SeekOrigin.Begin);
         }

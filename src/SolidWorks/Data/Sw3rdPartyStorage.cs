@@ -21,11 +21,28 @@ namespace Xarial.XCad.SolidWorks.Data
         private readonly string m_Name;
 
         internal Sw3rdPartyStorage(IModelDoc2 model, string name, AccessType_e access) 
-            : base(model.Extension.IGet3rdPartyStorageStore(name, AccessTypeHelper.GetIsWriting(access)) as IComStorage, 
-                  AccessTypeHelper.GetIsWriting(access))
+            : base(AccessTypeHelper.GetIsWriting(access))
         {
             m_Model = model;
             m_Name = name;
+
+            try
+            {
+                var storage = model.Extension.IGet3rdPartyStorageStore(name, AccessTypeHelper.GetIsWriting(access)) as IComStorage;
+
+                if (storage != null)
+                {
+                    Load(storage);
+                }
+                else 
+                {
+                    throw new Exception("Storage doesn't exist");
+                }
+            }
+            catch 
+            {
+                m_Model.Extension.IRelease3rdPartyStorageStore(m_Name);
+            }
         }
 
         public override void Dispose()

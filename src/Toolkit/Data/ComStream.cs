@@ -52,6 +52,18 @@ namespace Xarial.XCad.Toolkit.Data
         }
 
         public ComStream(IStream comStream, bool writable, bool commit = true)
+            : this(writable, commit)
+        {
+            Load(comStream);
+        }
+
+        protected ComStream(bool writable, bool commit = true) 
+        {
+            m_Commit = commit;
+            m_IsWritable = writable;
+        }
+
+        protected void Load(IStream comStream) 
         {
             if (comStream == null)
             {
@@ -59,8 +71,6 @@ namespace Xarial.XCad.Toolkit.Data
             }
 
             Stream = comStream;
-            m_Commit = commit;
-            m_IsWritable = writable;
         }
 
         public override void Flush()

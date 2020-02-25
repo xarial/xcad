@@ -26,6 +26,8 @@ namespace Xarial.XCad.Documents
         string Title { get; }
         string Path { get; }
 
+        bool IsDirty { get; set; }
+
         void Close();
 
         IXFeatureRepository Features { get; }
