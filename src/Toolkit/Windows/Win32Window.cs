@@ -1,4 +1,11 @@
-﻿#if NET461
+﻿//*********************************************************************
+//xCAD
+//Copyright(C) 2020 Xarial Pty Limited
+//Product URL: https://www.xcad.net
+//License: https://xcad.xarial.com/license/
+//*********************************************************************
+
+#if NET461
 using System;
 using System.Windows.Forms;
 

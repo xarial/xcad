@@ -16,6 +16,7 @@ namespace Xarial.XCad.Data
     {
         event PropertyValueChangedDelegate ValueChanged;
 
+        bool Exists { get; }
         string Name { get; set; }
         object Value { get; set; }
     }

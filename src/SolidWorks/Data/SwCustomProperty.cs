@@ -20,6 +20,7 @@ namespace Xarial.XCad.SolidWorks.Data
     public class SwCustomProperty : IXProperty
     {
         private string m_Name;
+        private object m_TempValue;
 
         public string Name 
         {
@@ -43,18 +44,23 @@ namespace Xarial.XCad.SolidWorks.Data
                 }
                 else 
                 {
-                    return null;
+                    return m_TempValue;
                 }
             }
             set
             {
-                //TODO: convert types properly
-
-                var res = (swCustomInfoSetResult_e)m_PrpMgr.Set2(Name, value.ToString());
-
-                if (res != swCustomInfoSetResult_e.swCustomInfoSetResult_OK)
+                if (Exists)
                 {
-                    throw new Exception($"Failed to set the value of the property. Error code: {res}");
+                    var res = (swCustomInfoSetResult_e)m_PrpMgr.Set2(Name, value.ToString());
+
+                    if (res != swCustomInfoSetResult_e.swCustomInfoSetResult_OK)
+                    {
+                        throw new Exception($"Failed to set the value of the property. Error code: {res}");
+                    }
+                }
+                else 
+                {
+                    m_TempValue = value;
                 }
             }
         }
@@ -97,7 +103,10 @@ namespace Xarial.XCad.SolidWorks.Data
 
         public string ConfigurationName { get; }
 
-        internal SwCustomProperty(IModelDoc2 model, ICustomPropertyManager prpMgr, string name, string confName, CustomPropertiesEventsHelper evHelper) 
+        public bool Exists => TryReadProperty(out _, out _);
+
+        internal SwCustomProperty(IModelDoc2 model, ICustomPropertyManager prpMgr, string name, 
+            string confName, CustomPropertiesEventsHelper evHelper) 
         {
             m_Model = model;
             m_PrpMgr = prpMgr;
@@ -118,15 +127,18 @@ namespace Xarial.XCad.SolidWorks.Data
 
         private void RenameProperty(string newName) 
         {
-            //TODO: implement renaming (delete old and add new one)
             m_Name = newName;
-            throw new NotImplementedException();
+
+            if (Exists)
+            {
+                throw new NotImplementedException();
+            }
         }
 
         private bool TryReadProperty(out string val, out object resVal)
         {
             string resValStr;
-
+            
             if (m_PrpMgr.Get4(Name, false, out val, out resValStr))
             {
                 resVal = null;

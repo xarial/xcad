@@ -1,4 +1,11 @@
-﻿using Moq;
+﻿//*********************************************************************
+//xCAD
+//Copyright(C) 2020 Xarial Pty Limited
+//Product URL: https://www.xcad.net
+//License: https://xcad.xarial.com/license/
+//*********************************************************************
+
+using Moq;
 using NUnit.Framework;
 using SolidWorks.Interop.sldworks;
 using System;

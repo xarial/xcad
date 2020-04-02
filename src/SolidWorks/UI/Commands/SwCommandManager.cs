@@ -14,6 +14,7 @@ using System.Drawing;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using Xarial.XCad.Base.Enums;
 using Xarial.XCad.SolidWorks.Exceptions;
 using Xarial.XCad.SolidWorks.UI.Commands.Exceptions;
 using Xarial.XCad.SolidWorks.UI.Commands.Toolkit.Enums;
@@ -87,6 +88,11 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
         public IXCommandGroup AddCommandGroup(CommandGroupSpec cmdBar)
         {
             return AddCommandGroupOrContextMenu(cmdBar, false, 0);
+        }
+
+        public IXCommandGroup AddContextMenu(CommandGroupSpec cmdBar, SelectType_e owner)
+        {
+            return AddCommandGroupOrContextMenu(cmdBar, true, (swSelectType_e)owner);
         }
 
         public void Dispose()

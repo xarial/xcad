@@ -1,4 +1,11 @@
-﻿using System;
+﻿//*********************************************************************
+//xCAD
+//Copyright(C) 2020 Xarial Pty Limited
+//Product URL: https://www.xcad.net
+//License: https://xcad.xarial.com/license/
+//*********************************************************************
+
+using System;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -55,6 +62,14 @@ namespace SwAddInExample
             CreateTaskPane
         }
 
+        [Title("Sample Context Menu")]
+        public enum ContextMenuCommands_e 
+        {
+            Command1,
+
+            Command2
+        }
+
         [Icon(typeof(Resources), nameof(Resources.xarial))]
         [Title("Sample Task Pane")]
         public enum TaskPaneButtons_e 
@@ -75,9 +90,14 @@ namespace SwAddInExample
         public override void OnConnect()
         {
             CommandManager.AddCommandGroup<Commands_e>().CommandClick += OnCommandClick;
+            CommandManager.AddContextMenu<ContextMenuCommands_e>(Xarial.XCad.Base.Enums.SelectType_e.Faces).CommandClick += OnContextMenuCommandClick;
             Application.Documents.RegisterHandler<SwDocHandler>();
             m_Page = this.CreatePage<PmpData>();
             m_Page.Closed += OnClosed;
+        }
+
+        private void OnContextMenuCommandClick(ContextMenuCommands_e spec)
+        {
         }
 
         private void OnClosed(PageCloseReasons_e reason)

@@ -29,7 +29,7 @@ namespace Xarial.XCad.SolidWorks.Data
             {
                 var prp = GetOrPreCreate(name);
 
-                if (prp.Value != null)
+                if (prp.Exists)
                 {
                     return prp;
                 }
@@ -42,7 +42,6 @@ namespace Xarial.XCad.SolidWorks.Data
 
         public int Count => m_PrpMgr.Count;
 
-        private readonly ISldWorks m_App;
         private readonly IModelDoc2 m_Model;
         private readonly ICustomPropertyManager m_PrpMgr;
 
@@ -52,7 +51,6 @@ namespace Xarial.XCad.SolidWorks.Data
 
         internal SwCustomPropertiesCollection(ISldWorks app, IModelDoc2 model, string confName) 
         {
-            m_App = app;
             m_Model = model;
             m_PrpMgr = model.Extension.CustomPropertyManager[confName];
 

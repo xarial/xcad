@@ -1,4 +1,11 @@
-﻿using NUnit.Framework;
+﻿//*********************************************************************
+//xCAD
+//Copyright(C) 2020 Xarial Pty Limited
+//Product URL: https://www.xcad.net
+//License: https://xcad.xarial.com/license/
+//*********************************************************************
+
+using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;

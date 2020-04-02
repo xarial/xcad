@@ -1,4 +1,11 @@
-﻿using System.Runtime.InteropServices;
+﻿//*********************************************************************
+//xCAD
+//Copyright(C) 2020 Xarial Pty Limited
+//Product URL: https://www.xcad.net
+//License: https://xcad.xarial.com/license/
+//*********************************************************************
+
+using System.Runtime.InteropServices;
 using Xarial.XCad;
 using SwAddInExample.Properties;
 using Xarial.XCad.Base.Attributes;
