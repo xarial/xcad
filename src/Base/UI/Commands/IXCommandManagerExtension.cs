@@ -14,6 +14,7 @@ using Xarial.XCad.Reflection;
 using Xarial.XCad.UI.Commands.Attributes;
 using Xarial.XCad.UI.Commands.Enums;
 using Xarial.XCad.UI.Commands.Structures;
+using Xarial.XCad.UI.Structures;
 
 namespace Xarial.XCad.UI.Commands
 {
@@ -64,8 +65,6 @@ namespace Xarial.XCad.UI.Commands
         {
             var cmd = new EnumCommandSpec<TCmdEnum>(cmdEnum);
 
-            cmd.UserId = Convert.ToInt32(cmdEnum);
-
             if (!cmdEnum.TryGetAttribute<CommandItemInfoAttribute>(
                 att =>
                 {
@@ -85,22 +84,7 @@ namespace Xarial.XCad.UI.Commands
 
             cmd.HasSpacer = cmdEnum.TryGetAttribute<CommandSpacerAttribute>(x => { });
 
-            if (!cmdEnum.TryGetAttribute<DisplayNameAttribute>(
-                att => cmd.Title = att.DisplayName))
-            {
-                cmd.Title = cmdEnum.ToString();
-            }
-
-            if (!cmdEnum.TryGetAttribute<DescriptionAttribute>(
-                att => cmd.Tooltip = att.Description))
-            {
-                cmd.Tooltip = cmdEnum.ToString();
-            }
-
-            if (!cmdEnum.TryGetAttribute<IconAttribute>(a => cmd.Icon = a.Icon))
-            {
-                cmd.Icon = Defaults.Icon;
-            }
+            cmd.InitFromEnum(cmdEnum);
 
             return cmd;
         }
@@ -149,20 +133,7 @@ namespace Xarial.XCad.UI.Commands
                 bar.Id = nextGroupId;
             }
 
-            if (!cmdGroupType.TryGetAttribute<IconAttribute>(a => bar.Icon = a.Icon))
-            {
-                bar.Icon = Defaults.Icon;
-            }
-
-            if (!cmdGroupType.TryGetAttribute<DisplayNameAttribute>(a => bar.Title = a.DisplayName))
-            {
-                bar.Title = cmdGroupType.Name;
-            }
-
-            if (!cmdGroupType.TryGetAttribute<DescriptionAttribute>(a => bar.Tooltip = a.Description))
-            {
-                bar.Tooltip = cmdGroupType.Name;
-            }
+            bar.InitFromEnum<TCmdEnum>();
 
             bar.Commands = Enum.GetValues(cmdGroupType).Cast<TCmdEnum>().Select(
                 c => CreateCommand(c)).ToArray();

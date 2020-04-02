@@ -8,6 +8,7 @@
 using Xarial.XCad.UI;
 using Xarial.XCad.UI.Commands;
 using Xarial.XCad.UI.PropertyPage;
+using Xarial.XCad.UI.TaskPane;
 
 namespace Xarial.XCad.Extensions
 {
@@ -35,5 +36,7 @@ namespace Xarial.XCad.Extensions
         IXPropertyPage<TData> CreatePage<TData>();
 
         IXCustomPanel<TControl> CreateDocumentTab<TControl>(Documents.IXDocument doc);
+        IXCustomPanel<TWindow> CreatePopupWindow<TWindow>();
+        IXTaskPane<TControl> CreateTaskPane<TControl>(TaskPaneSpec spec);
     }
 }

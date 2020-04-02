@@ -6,23 +6,32 @@
 //*********************************************************************
 
 using SolidWorks.Interop.sldworks;
+using SolidWorks.Interop.swconst;
 using SolidWorks.Interop.swpublished;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
+using System.Drawing;
+using System.Linq;
 using System.Runtime.InteropServices;
+using Xarial.XCad.Base.Attributes;
 using Xarial.XCad.Extensions;
 using Xarial.XCad.Extensions.Attributes;
 using Xarial.XCad.Features.CustomFeature;
 using Xarial.XCad.Features.CustomFeature.Delegates;
+using Xarial.XCad.SolidWorks.Base;
 using Xarial.XCad.SolidWorks.Features.CustomFeature;
 using Xarial.XCad.SolidWorks.Features.CustomFeature.Toolkit;
 using Xarial.XCad.SolidWorks.UI;
 using Xarial.XCad.SolidWorks.UI.Commands;
+using Xarial.XCad.SolidWorks.UI.Commands.Exceptions;
+using Xarial.XCad.SolidWorks.UI.Commands.Toolkit.Structures;
 using Xarial.XCad.SolidWorks.UI.PropertyPage;
 using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.UI;
 using Xarial.XCad.UI.Commands;
 using Xarial.XCad.UI.PropertyPage;
+using Xarial.XCad.UI.TaskPane;
 using Xarial.XCad.Utils.Diagnostics;
 using Xarial.XCad.Utils.Reflection;
 
@@ -71,7 +80,30 @@ namespace Xarial.XCad.SolidWorks
 
         IXApplication IXExtension.Application => Application;
         IXCommandManager IXExtension.CommandManager => CommandManager;
-        IXCustomPanel<TControl> IXExtension.CreateDocumentTab<TControl>(XCad.Documents.IXDocument doc) => CreateDocumentTab<TControl>((Documents.SwDocument)doc);
+        IXCustomPanel<TControl> IXExtension.CreateDocumentTab<TControl>(XCad.Documents.IXDocument doc)
+        {
+#if NET461
+            return CreateDocumentTab<TControl>((Documents.SwDocument)doc);
+#else
+            throw new NotSupportedException();
+#endif
+        }
+        IXCustomPanel<TWindow> IXExtension.CreatePopupWindow<TWindow>()
+        {
+#if NET461
+            return CreatePopupWindow<TWindow>();
+#else
+            throw new NotSupportedException();
+#endif
+        }
+        IXTaskPane<TControl> IXExtension.CreateTaskPane<TControl>(TaskPaneSpec spec)
+        {
+#if NET461
+            return CreateTaskPane<TControl>(spec);
+#else
+            throw new NotSupportedException();
+#endif
+        }
 
         private readonly ILogger m_Logger;
 
@@ -84,9 +116,13 @@ namespace Xarial.XCad.SolidWorks
         /// </summary>
         protected int AddInId { get; private set; }
 
+        private readonly List<IDisposable> m_DisposableControls;
+
         public SwAddInEx()
         {
             m_Logger = new TraceLogger("XCad.AddIn");
+
+            m_DisposableControls = new List<IDisposable>();
         }
 
         [Browsable(false)]
@@ -176,6 +212,11 @@ namespace Xarial.XCad.SolidWorks
                 CommandManager.Dispose();
                 Application.Documents.Dispose();
                 Application.Dispose();
+
+                foreach (var dispCtrl in m_DisposableControls) 
+                {
+                    dispCtrl.Dispose();
+                }
             }
 
             GC.Collect();
@@ -206,65 +247,230 @@ namespace Xarial.XCad.SolidWorks
             return new SwPropertyManagerPage<TData>(Application, m_Logger, handlerType);
         }
 
+#if NET461
         public SwModelViewTab<TControl> CreateDocumentTab<TControl>(Documents.SwDocument doc)
         {
-#if NET461
-            if (typeof(System.Windows.Forms.Control).IsAssignableFrom(typeof(TControl)))
-            {
-                if (typeof(System.Windows.Forms.UserControl).IsAssignableFrom(typeof(TControl)) && typeof(TControl).IsComVisible())
+            var mdlViewMgr = doc.Model.ModelViewManager;
+
+            return HostControl<TControl, SwModelViewTab<TControl>>(
+                (c, h, t, _) =>
                 {
-                    //TODO: create COM control
-                    throw new NotImplementedException();
+                    if (mdlViewMgr.DisplayWindowFromHandlex64(t, h.Handle.ToInt64(), true))
+                    {
+                        return new SwModelViewTab<TControl>(c, t, mdlViewMgr, doc);
+                    }
+                    else
+                    {
+                        throw new NetControlHostException(h.Handle);
+                    }
+                },
+                (p, t, _) =>
+                {
+                    var ctrl = (TControl)mdlViewMgr.AddControl3(t, p, "", true);
+                    
+                    if (ctrl == null)
+                    {
+                        throw new ComControlHostException(p);
+                    }
+
+                    return new SwModelViewTab<TControl>(ctrl, t, mdlViewMgr, doc);
+                });
+        }
+
+        public SwPopupWindow<TWindow> CreatePopupWindow<TWindow>() 
+        {
+            var parent = (IntPtr)Application.Sw.IFrameObject().GetHWnd();
+
+            if (typeof(System.Windows.Window).IsAssignableFrom(typeof(TWindow)))
+            {
+                return new SwPopupWpfWindow<TWindow>((TWindow)Activator.CreateInstance(typeof(TWindow)), parent);
+            }
+            else if (typeof(System.Windows.Forms.Form).IsAssignableFrom(typeof(TWindow)))
+            {
+                return new SwPopupWinForm<TWindow>((TWindow)Activator.CreateInstance(typeof(TWindow)), parent);
+            }
+            else
+            {
+                throw new NotSupportedException($"Only {typeof(System.Windows.Forms.Form).FullName} or {typeof(System.Windows.Window).FullName} are supported");
+            }
+        }
+
+        public SwTaskPane<TControl> CreateTaskPane<TControl>(TaskPaneSpec spec) 
+        {
+            ITaskpaneView CreateTaskPaneView(IconsConverter iconConv, Image icon, string title) 
+            {
+                if (icon == null) 
+                {
+                    icon = spec.Icon;
+                }
+
+                if (string.IsNullOrEmpty(title)) 
+                {
+                    title = spec.Title;
+                }
+                
+                if (Application.Sw.SupportsHighResIcons(CompatibilityUtils.HighResIconsScope_e.TaskPane))
+                {
+                    var taskPaneIconImages = iconConv.ConvertIcon(new TaskPaneHighResIcon(icon));
+                    return Application.Sw.CreateTaskpaneView3(taskPaneIconImages, title);
                 }
                 else
                 {
-                    var winCtrl = (System.Windows.Forms.Control)Activator.CreateInstance(typeof(TControl));
-
-                    return CreateTabFromControl<TControl>(winCtrl, doc, (TControl)(object)winCtrl);
+                    var taskPaneIconImage = iconConv.ConvertIcon(new TaskPaneIcon(icon)).First();
+                    return Application.Sw.CreateTaskpaneView2(taskPaneIconImage, title);
                 }
             }
-            else if (typeof(System.Windows.UIElement).IsAssignableFrom(typeof(TControl)))
-            {
-                var wpfCtrl = (System.Windows.Controls.Control)Activator.CreateInstance(typeof(TControl));
-                var host = new System.Windows.Forms.Integration.ElementHost();
-                host.Child = wpfCtrl;
 
-                return CreateTabFromControl<TControl>(host, doc, (TControl)(object)wpfCtrl);
-            }
-            else 
+            using (var iconConv = new IconsConverter())
             {
-                throw new NotSupportedException($"Only System.Windows.Forms.Control or System.Windows.UIElement are supported");
+                var taskPane = HostControl<TControl, SwTaskPane<TControl>>(
+                    (c, h, t, i) =>
+                    {
+                        var v = CreateTaskPaneView(iconConv, i, t);
+                        
+                        if (!v.DisplayWindowFromHandle(h.Handle.ToInt32()))
+                        {
+                            throw new NetControlHostException(h.Handle);
+                        }
+
+                        return new SwTaskPane<TControl>(Application.Sw, v, c, spec);
+                    },
+                    (p, t, i) =>
+                    {
+                        var v = CreateTaskPaneView(iconConv, i, t);
+                        var ctrl = (TControl)v.AddControl(p, "");
+
+                        if (ctrl == null)
+                        {
+                            throw new ComControlHostException(p);
+                        }
+
+                        return new SwTaskPane<TControl>(Application.Sw, v, ctrl, spec);
+                    });
+
+                m_DisposableControls.Add(taskPane);
+
+                return taskPane;
             }
-#else
-            throw new NotSupportedException();
-#endif
         }
 
-#if NET461
-        private SwModelViewTab<TControl> CreateTabFromControl<TControl>(System.Windows.Forms.Control host, Documents.SwDocument doc, TControl ctrl) 
+        private TWrapper HostControl<TControl, TWrapper>(
+            Func<TControl, System.Windows.Forms.Control, string, Image, TWrapper> ctrlHost,
+            Func<string, string, Image, TWrapper> comCtrlHost)
         {
             var title = "";
 
-            if (typeof(TControl).TryGetAttribute(out DisplayNameAttribute att)) 
+            if (typeof(TControl).TryGetAttribute(out DisplayNameAttribute att))
             {
                 title = att.DisplayName;
             }
 
-            if (string.IsNullOrEmpty(title)) 
+            if (string.IsNullOrEmpty(title))
             {
                 title = typeof(TControl).Name;
             }
 
-            var mdlViewMgr = doc.Model.ModelViewManager;
-            
-            if (mdlViewMgr.DisplayWindowFromHandlex64(title, host.Handle.ToInt64(), true))
+            Image icon = null;
+
+            if (typeof(TControl).TryGetAttribute(out IconAttribute iconAtt))
             {
-                return new SwModelViewTab<TControl>(ctrl, title, mdlViewMgr, doc);
+                icon = iconAtt.Icon;
             }
-            else 
+
+            if (icon == null)
             {
-                throw new Exception("Failed to create control");
+                icon = Defaults.Icon;
             }
+
+            if (typeof(System.Windows.Forms.Control).IsAssignableFrom(typeof(TControl)))
+            {
+                if (typeof(System.Windows.Forms.UserControl).IsAssignableFrom(typeof(TControl)) && typeof(TControl).IsComVisible())
+                {
+                    return comCtrlHost.Invoke(typeof(TControl).GetProgId(), title, icon);
+                }
+                else 
+                {
+                    var winCtrl = (System.Windows.Forms.Control)Activator.CreateInstance(typeof(TControl));
+                    return ctrlHost.Invoke((TControl)(object)winCtrl, winCtrl, title, icon);
+                }
+            }
+            else if (typeof(System.Windows.UIElement).IsAssignableFrom(typeof(TControl)))
+            {
+                var wpfCtrl = (TControl)Activator.CreateInstance(typeof(TControl));
+                var host = new System.Windows.Forms.Integration.ElementHost();
+                host.Child = (System.Windows.UIElement)(object)wpfCtrl;
+
+                return ctrlHost.Invoke( wpfCtrl, host, title, icon);
+            }
+            else
+            {
+                throw new NotSupportedException($"Only {typeof(System.Windows.Forms.Control).FullName} or {typeof(System.Windows.UIElement).FullName} are supported");
+            }
+        }
+#endif
+    }
+
+    public static class SwAddInExExtension 
+    {
+#if NET461
+        public static SwModelViewTab<TControl> CreateDocumentTabWinForm<TControl>(this SwAddInEx addIn, Documents.SwDocument doc)
+            where TControl : System.Windows.Forms.Control
+        {
+            return addIn.CreateDocumentTab<TControl>(doc);
+        }
+
+        public static SwModelViewTab<TControl> CreateDocumentTabWpf<TControl>(this SwAddInEx addIn, Documents.SwDocument doc)
+            where TControl : System.Windows.UIElement
+        {
+            return addIn.CreateDocumentTab<TControl>(doc);
+        }
+
+        public static SwPopupWpfWindow<TWindow> CreatePopupWpfWindow<TWindow>(this SwAddInEx addIn)
+            where TWindow : System.Windows.Window
+        {
+            return (SwPopupWpfWindow<TWindow>)addIn.CreatePopupWindow<TWindow>();
+        }
+
+        public static SwPopupWinForm<TWindow> CreatePopupWinForm<TWindow>(this SwAddInEx addIn)
+            where TWindow : System.Windows.Forms.Form
+        {
+            return (SwPopupWinForm<TWindow>)addIn.CreatePopupWindow<TWindow>();
+        }
+
+        public static SwTaskPane<TControl> CreateTaskPaneWinForm<TControl>(this SwAddInEx addIn, TaskPaneSpec spec = null)
+            where TControl : System.Windows.Forms.Control
+        {
+            if (spec == null) 
+            {
+                spec = new TaskPaneSpec();
+            }
+
+            return addIn.CreateTaskPane<TControl>(spec);
+        }
+
+        public static SwTaskPane<TControl> CreateTaskPaneWpf<TControl>(this SwAddInEx addIn, TaskPaneSpec spec = null)
+            where TControl : System.Windows.UIElement
+        {
+            if (spec == null)
+            {
+                spec = new TaskPaneSpec();
+            }
+
+            return addIn.CreateTaskPane<TControl>(spec);
+        }
+
+        public static IXEnumTaskPane<TControl, TEnum> CreateTaskPaneWinForm<TControl, TEnum>(this SwAddInEx addIn)
+            where TControl : System.Windows.Forms.Control
+            where TEnum : Enum
+        {
+            return addIn.CreateTaskPane<TControl, TEnum>();
+        }
+
+        public static IXEnumTaskPane<TControl, TEnum> CreateTaskPaneWpf<TControl, TEnum>(this SwAddInEx addIn)
+            where TControl : System.Windows.UIElement
+            where TEnum : Enum
+        {
+            return addIn.CreateTaskPane<TControl, TEnum>();
         }
 #endif
     }

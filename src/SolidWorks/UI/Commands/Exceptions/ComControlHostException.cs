@@ -1,0 +1,14 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace Xarial.XCad.SolidWorks.UI.Commands.Exceptions
+{
+    public class ComControlHostException : Exception
+    {
+        public ComControlHostException(string progId) 
+            : base($"Failed to create COM control from '{progId}'. Make sure that COM component is properly registered") 
+        {
+        }
+    }
+}

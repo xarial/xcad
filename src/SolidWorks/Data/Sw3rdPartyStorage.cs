@@ -20,11 +20,14 @@ namespace Xarial.XCad.SolidWorks.Data
         private readonly IModelDoc2 m_Model;
         private readonly string m_Name;
 
+        private readonly bool m_IsActive;
+
         internal Sw3rdPartyStorage(IModelDoc2 model, string name, AccessType_e access) 
             : base(AccessTypeHelper.GetIsWriting(access))
         {
             m_Model = model;
             m_Name = name;
+            m_IsActive = false;
 
             try
             {
@@ -33,6 +36,7 @@ namespace Xarial.XCad.SolidWorks.Data
                 if (storage != null)
                 {
                     Load(storage);
+                    m_IsActive = true;
                 }
                 else 
                 {
@@ -42,6 +46,7 @@ namespace Xarial.XCad.SolidWorks.Data
             catch 
             {
                 m_Model.Extension.IRelease3rdPartyStorageStore(m_Name);
+                throw;
             }
         }
 
@@ -49,9 +54,12 @@ namespace Xarial.XCad.SolidWorks.Data
         {
             base.Dispose();
 
-            if (!m_Model.Extension.IRelease3rdPartyStorageStore(m_Name))
+            if (m_IsActive)
             {
-                throw new InvalidOperationException("Failed to release 3rd party storage store");
+                if (!m_Model.Extension.IRelease3rdPartyStorageStore(m_Name))
+                {
+                    throw new InvalidOperationException("Failed to release 3rd party storage store");
+                }
             }
         }
     }

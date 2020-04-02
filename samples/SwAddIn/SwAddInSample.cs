@@ -21,6 +21,7 @@ using Xarial.XCad.Base;
 using Xarial.XCad.SolidWorks;
 using Xarial.XCad.SolidWorks.Annotations;
 using Xarial.XCad.SolidWorks.Data;
+using Xarial.XCad.UI.TaskPane.Attributes;
 
 namespace SwAddInExample
 {
@@ -47,7 +48,25 @@ namespace SwAddInExample
 
             WatchCustomProperty,
 
-            CreateModelView
+            CreateModelView,
+
+            CreatePopup,
+
+            CreateTaskPane
+        }
+
+        [Icon(typeof(Resources), nameof(Resources.xarial))]
+        [Title("Sample Task Pane")]
+        public enum TaskPaneButtons_e 
+        {
+            [Icon(typeof(Resources), nameof(Resources.xarial))]
+            Button1,
+
+            [Title("Second Button")]
+            Button2,
+
+            [TaskPaneStandardIcon(Xarial.XCad.UI.TaskPane.Enums.TaskPaneStandardIcons_e.Options)]
+            Button3
         }
 
         private IXPropertyPage<PmpData> m_Page;
@@ -148,9 +167,28 @@ namespace SwAddInExample
                     break;
 
                 case Commands_e.CreateModelView:
-                    CreateDocumentTab<WpfUserControl>(Application.Documents.Active);
+                    this.CreateDocumentTabWpf<WpfUserControl>(Application.Documents.Active);
+                    //this.CreateDocumentTabWinForm<WinUserControl>(Application.Documents.Active);
+                    //this.CreateDocumentTabWinForm<ComUserControl>(Application.Documents.Active);
+                    break;
+
+                case Commands_e.CreatePopup:
+                    var winForm = this.CreatePopupWinForm<WinForm>();
+                    winForm.Modal = true;
+                    winForm.IsActive = true;
+                    break;
+
+                case Commands_e.CreateTaskPane:
+                    var tp = this.CreateTaskPaneWpf<WpfUserControl, TaskPaneButtons_e>();
+                    tp.ButtonClick += OnButtonClick;
+                    //this.CreateTaskPaneWinForm<WinUserControl>();
+                    //this.CreateTaskPaneWinForm<ComUserControl>();
                     break;
             }
+        }
+
+        private void OnButtonClick(TaskPaneButtons_e spec)
+        {
         }
     }
 }

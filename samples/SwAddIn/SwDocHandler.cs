@@ -87,23 +87,26 @@ namespace SwAddInExample
                 {
                     using (var subStorage = storage.TryOpenStorage(path[1], false))
                     {
-                        foreach (var subStreamName in subStorage.GetSubStreamNames())
+                        if (subStorage != null)
                         {
-                            using (var str = subStorage.TryOpenStream(subStreamName, false))
+                            foreach (var subStreamName in subStorage.GetSubStreamNames())
                             {
-                                if (str != null)
+                                using (var str = subStorage.TryOpenStream(subStreamName, false))
                                 {
-                                    var buffer = new byte[str.Length];
+                                    if (str != null)
+                                    {
+                                        var buffer = new byte[str.Length];
 
-                                    str.Read(buffer, 0, buffer.Length);
+                                        str.Read(buffer, 0, buffer.Length);
 
-                                    var timeStamp = Encoding.UTF8.GetString(buffer);
+                                        var timeStamp = Encoding.UTF8.GetString(buffer);
 
-                                    m_App.ShowMessageBox($"Metadata stamp in {subStreamName} of {doc.Title}: {timeStamp}");
-                                }
-                                else
-                                {
-                                    m_App.ShowMessageBox($"No metadata stamp stream in {doc.Title}");
+                                        m_App.ShowMessageBox($"Metadata stamp in {subStreamName} of {doc.Title}: {timeStamp}");
+                                    }
+                                    else
+                                    {
+                                        m_App.ShowMessageBox($"No metadata stamp stream in {doc.Title}");
+                                    }
                                 }
                             }
                         }

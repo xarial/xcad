@@ -5,15 +5,14 @@
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
-using System.Drawing;
+using System;
 using Xarial.XCad.UI.Structures;
+using Xarial.XCad.UI.TaskPane;
 
-namespace Xarial.XCad.UI.Commands.Structures
+namespace Xarial.XCad.UI.TaskPane.Delegates
 {
-    public class CommandGroupSpec : ButtonGroupSpec
-    {
-        public CommandGroupSpec Parent { get; set; }
-        public int Id { get; set; }
-        public CommandSpec[] Commands { get; set; }
-    }
+    public delegate void TaskPaneButtonClickDelegate(TaskPaneButtonSpec spec);
+
+    public delegate void TaskPaneButtonEnumClickDelegate<TCmdEnum>(TCmdEnum spec)
+        where TCmdEnum : Enum;
 }

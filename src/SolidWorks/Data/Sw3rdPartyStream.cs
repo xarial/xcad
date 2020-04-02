@@ -21,13 +21,14 @@ namespace Xarial.XCad.SolidWorks.Data
     {
         private readonly IModelDoc2 m_Model;
         private readonly string m_Name;
+        private readonly bool m_IsActive;
 
         internal Sw3rdPartyStream(IModelDoc2 model, string name, AccessType_e access) 
             : base(AccessTypeHelper.GetIsWriting(access), false)
         {
             m_Model = model;
-
             m_Name = name;
+            m_IsActive = false;
 
             try
             {
@@ -36,6 +37,7 @@ namespace Xarial.XCad.SolidWorks.Data
                 if (stream != null)
                 {
                     Load(stream);
+                    m_IsActive = true;
                 }
                 else 
                 {
@@ -54,7 +56,11 @@ namespace Xarial.XCad.SolidWorks.Data
         protected override void Dispose(bool disposing)
         {
             base.Dispose(disposing);
-            m_Model.IRelease3rdPartyStorage(m_Name);
+
+            if (m_IsActive)
+            {
+                m_Model.IRelease3rdPartyStorage(m_Name);
+            }
         }
     }
 }
