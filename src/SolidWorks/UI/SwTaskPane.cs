@@ -144,6 +144,11 @@ namespace Xarial.XCad.SolidWorks.UI
 
         public void Dispose()
         {
+            Close();
+        }
+
+        public void Close()
+        {
             if (!m_IsDisposed)
             {
                 m_IsDisposed = true;

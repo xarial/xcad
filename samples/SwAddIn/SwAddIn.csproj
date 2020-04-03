@@ -94,6 +94,9 @@
     <Compile Include="WpfUserControl.xaml.cs">
       <DependentUpon>WpfUserControl.xaml</DependentUpon>
     </Compile>
+    <Compile Include="WpfWindow.xaml.cs">
+      <DependentUpon>WpfWindow.xaml</DependentUpon>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="ComUserControl.resx">
@@ -130,6 +133,10 @@
   </ItemGroup>
   <ItemGroup>
     <Page Include="WpfUserControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="WpfWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

@@ -13,22 +13,53 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using Xarial.XCad.Documents;
+using Xarial.XCad.Documents.Delegates;
+using Xarial.XCad.SolidWorks.Documents.EventHandlers;
 
 namespace Xarial.XCad.SolidWorks.Documents
 {
-    public class SwSelectionCollection : IXSelectionRepository
+    public class SwSelectionCollection : IXSelectionRepository, IDisposable
     {
         private readonly IModelDoc2 m_Model;
         private readonly ISelectionMgr m_SelMgr;
+
+        private readonly NewSelectionEventHandler m_NewSelectionEventHandler;
+        private readonly ClearSelectionEventHandler m_ClearSelectionEventHandler;
+
+        public event NewSelectionDelegate NewSelection 
+        {
+            add 
+            {
+                m_NewSelectionEventHandler.Attach(value);
+            }
+            remove 
+            {
+                m_NewSelectionEventHandler.Detach(value);
+            }
+        }
+
+        public event ClearSelectionDelegate ClearSelection
+        {
+            add
+            {
+                m_ClearSelectionEventHandler.Attach(value);
+            }
+            remove
+            {
+                m_ClearSelectionEventHandler.Detach(value);
+            }
+        }
 
         public int Count => m_SelMgr.GetSelectedObjectCount2(-1);
 
         public IXSelObject this[string name] => throw new NotSupportedException();
 
-        internal SwSelectionCollection(IModelDoc2 model) 
+        internal SwSelectionCollection(SwDocument doc) 
         {
-            m_Model = model;
+            m_Model = doc.Model;
             m_SelMgr = m_Model.ISelectionManager;
+            m_NewSelectionEventHandler = new NewSelectionEventHandler(doc);
+            m_ClearSelectionEventHandler = new ClearSelectionEventHandler(doc);
         }
 
         public void AddRange(IEnumerable<IXSelObject> ents)
@@ -65,6 +96,12 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+        public void Dispose()
+        {
+            m_NewSelectionEventHandler.Dispose();
+            m_ClearSelectionEventHandler.Dispose();
+        }
     }
 
     internal class SwSelObjectEnumerator : IEnumerator<IXSelObject>

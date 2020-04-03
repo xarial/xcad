@@ -15,5 +15,6 @@ namespace Xarial.XCad.UI
     {
         bool IsActive { get; set; }
         TControl Control { get; }
+        void Close();
     }
 }

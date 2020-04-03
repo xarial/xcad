@@ -88,7 +88,7 @@ namespace Xarial.XCad.SolidWorks
             throw new NotSupportedException();
 #endif
         }
-        IXCustomPanel<TWindow> IXExtension.CreatePopupWindow<TWindow>()
+        IXPopupWindow<TWindow> IXExtension.CreatePopupWindow<TWindow>()
         {
 #if NET461
             return CreatePopupWindow<TWindow>();

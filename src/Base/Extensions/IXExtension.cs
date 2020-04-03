@@ -36,7 +36,7 @@ namespace Xarial.XCad.Extensions
         IXPropertyPage<TData> CreatePage<TData>();
 
         IXCustomPanel<TControl> CreateDocumentTab<TControl>(Documents.IXDocument doc);
-        IXCustomPanel<TWindow> CreatePopupWindow<TWindow>();
+        IXPopupWindow<TWindow> CreatePopupWindow<TWindow>();
         IXTaskPane<TControl> CreateTaskPane<TControl>(TaskPaneSpec spec);
     }
 }

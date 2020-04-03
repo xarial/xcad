@@ -34,6 +34,8 @@ namespace Xarial.XCad.SolidWorks.UI
 
         private readonly Documents.SwDocument m_Doc;
 
+        private bool m_IsDisposed;
+
         internal SwModelViewTab(TControl ctrl, string title, ModelViewManager mdlViewMgr, Documents.SwDocument doc) 
         {
             Control = ctrl;
@@ -41,6 +43,8 @@ namespace Xarial.XCad.SolidWorks.UI
             m_MdlViewMgr = mdlViewMgr;
             m_Doc = doc;
             m_Doc.Destroyed += OnDestroyed;
+
+            m_IsDisposed = false;
         }
 
         private void OnDestroyed(IModelDoc2 obj)
@@ -50,14 +54,24 @@ namespace Xarial.XCad.SolidWorks.UI
 
         public void Dispose()
         {
-            if (Control is IDisposable) 
+            Close();
+        }
+
+        public void Close()
+        {
+            if (!m_IsDisposed)
             {
-                (Control as IDisposable).Dispose();
+                m_IsDisposed = true;
+
+                if (Control is IDisposable)
+                {
+                    (Control as IDisposable).Dispose();
+                }
+
+                var res = m_MdlViewMgr.DeleteControlTab(m_Title);
+
+                //TODO: log result
             }
-
-            var res = m_MdlViewMgr.DeleteControlTab(m_Title);
-
-            //TODO: log result
         }
     }
 }

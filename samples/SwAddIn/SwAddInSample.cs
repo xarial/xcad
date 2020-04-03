@@ -29,6 +29,7 @@ using Xarial.XCad.SolidWorks;
 using Xarial.XCad.SolidWorks.Annotations;
 using Xarial.XCad.SolidWorks.Data;
 using Xarial.XCad.UI.TaskPane.Attributes;
+using Xarial.XCad.SolidWorks.UI;
 
 namespace SwAddInExample
 {
@@ -59,7 +60,9 @@ namespace SwAddInExample
 
             CreatePopup,
 
-            CreateTaskPane
+            CreateTaskPane,
+
+            HandleSelection
         }
 
         [Title("Sample Context Menu")]
@@ -140,6 +143,7 @@ namespace SwAddInExample
         }
 
         private TransformMatrix m_ViewTransform;
+        private SwPopupWpfWindow<WpfWindow> m_Window;
 
         private void OnCommandClick(Commands_e spec)
         {
@@ -193,9 +197,12 @@ namespace SwAddInExample
                     break;
 
                 case Commands_e.CreatePopup:
-                    var winForm = this.CreatePopupWinForm<WinForm>();
-                    winForm.Modal = true;
-                    winForm.IsActive = true;
+                    //var winForm = this.CreatePopupWinForm<WinForm>();
+                    //winForm.Show(true);
+                    m_Window?.Close();
+                    m_Window = this.CreatePopupWpfWindow<WpfWindow>();
+                    m_Window.Closed += OnWindowClosed;
+                    m_Window.Show();
                     break;
 
                 case Commands_e.CreateTaskPane:
@@ -204,7 +211,24 @@ namespace SwAddInExample
                     //this.CreateTaskPaneWinForm<WinUserControl>();
                     //this.CreateTaskPaneWinForm<ComUserControl>();
                     break;
+
+                case Commands_e.HandleSelection:
+                    Application.Documents.Active.Selections.NewSelection += OnNewSelection;
+                    Application.Documents.Active.Selections.ClearSelection += OnClearSelection;
+                    break;
             }
+        }
+
+        private void OnNewSelection(Xarial.XCad.IXSelObject selObject)
+        {
+        }
+
+        private void OnClearSelection()
+        {
+        }
+
+        private void OnWindowClosed(Xarial.XCad.UI.IXPopupWindow<WpfWindow> sender)
+        {
         }
 
         private void OnButtonClick(TaskPaneButtons_e spec)

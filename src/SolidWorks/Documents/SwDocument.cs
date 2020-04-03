@@ -133,7 +133,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
             Features = new SwFeatureManager(this, model.FeatureManager, m_App);
             
-            Selections = new SwSelectionCollection(model);
+            Selections = new SwSelectionCollection(this);
 
             Dimensions = new SwDimensionsCollection(this);
 
@@ -159,10 +159,16 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         protected virtual void Dispose(bool disposing)
         {
+            Selections.Dispose();
+            Dimensions.Dispose();
             Properties.Dispose();
 
             if (disposing)
             {
+                m_StreamReadAvailableHandler.Dispose();
+                m_StreamWriteAvailableHandler.Dispose();
+                m_StorageReadAvailableHandler.Dispose();
+                m_StorageWriteAvailableHandler.Dispose();
                 DetachEvents();
             }
         }

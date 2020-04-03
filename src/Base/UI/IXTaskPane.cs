@@ -80,5 +80,7 @@ namespace Xarial.XCad.UI
                 (m_TaskPane as IDisposable).Dispose();
             }
         }
+
+        public void Close() => m_TaskPane.Close();
     }
 }

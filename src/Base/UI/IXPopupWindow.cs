@@ -8,15 +8,14 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using Xarial.XCad.Base;
-using Xarial.XCad.Documents.Delegates;
+using Xarial.XCad.UI.PopupWindow.Delegates;
 
-namespace Xarial.XCad.Documents
+namespace Xarial.XCad.UI
 {
-    public interface IXSelectionRepository : IXRepository<IXSelObject>
+    public interface IXPopupWindow<TWindow> : IXCustomPanel<TWindow>
     {
-        event NewSelectionDelegate NewSelection;
-        event ClearSelectionDelegate ClearSelection;
-        void Clear();
+        event PopupWindowClosedDelegate<TWindow> Closed;
+        bool? ShowDialog();
+        void Show();
     }
 }

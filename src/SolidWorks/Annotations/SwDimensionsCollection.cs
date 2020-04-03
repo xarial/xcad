@@ -17,7 +17,7 @@ using Xarial.XCad.SolidWorks.Documents;
 
 namespace Xarial.XCad.SolidWorks.Annotations
 {
-    public class SwDimensionsCollection : IXDimensionRepository
+    public class SwDimensionsCollection : IXDimensionRepository, IDisposable
     {
         private readonly SwDocument m_Doc;
 
@@ -78,6 +78,10 @@ namespace Xarial.XCad.SolidWorks.Annotations
         IEnumerator IEnumerable.GetEnumerator()
         {
             throw new NotImplementedException();
+        }
+
+        public void Dispose()
+        {
         }
     }
 }
