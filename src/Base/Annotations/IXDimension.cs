@@ -16,6 +16,8 @@ namespace Xarial.XCad.Annotations
     {
         event DimensionValueChangedDelegate ValueChanged;
 
+        string Name { get; }
+
         /// <summary>
         /// Gets the value of the dimension in the system units in the specified configuration or default
         /// </summary>
