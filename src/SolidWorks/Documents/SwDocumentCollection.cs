@@ -15,6 +15,7 @@ using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Delegates;
 using Xarial.XCad.Documents.Services;
 using Xarial.XCad.Documents.Structures;
+using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.Toolkit.Services;
 using Xarial.XCad.Utils.Diagnostics;
 
@@ -57,7 +58,8 @@ namespace Xarial.XCad.SolidWorks.Documents
             m_App = (SldWorks)app.Sw;
             m_Logger = logger;
 
-            m_Documents = new Dictionary<IModelDoc2, SwDocument>();
+            m_Documents = new Dictionary<IModelDoc2, SwDocument>(
+                new SwPointerEqualityComparer<IModelDoc2>(m_App));
             m_DocsHandler = new DocumentsHandler(app);
             AttachToAllOpenedDocuments();
 

@@ -38,8 +38,9 @@ namespace Xarial.XCad.SolidWorks.Data
         {
             get
             {
-                if (TryReadProperty(out _, out object resVal))
+                if (Exists)
                 {
+                    TryReadProperty(out _, out object resVal);
                     return resVal;
                 }
                 else 
@@ -51,7 +52,7 @@ namespace Xarial.XCad.SolidWorks.Data
             {
                 if (Exists)
                 {
-                    var res = (swCustomInfoSetResult_e)m_PrpMgr.Set2(Name, value.ToString());
+                    var res = (swCustomInfoSetResult_e)m_PrpMgr.Set2(Name, value?.ToString());
 
                     if (res != swCustomInfoSetResult_e.swCustomInfoSetResult_OK)
                     {
@@ -69,13 +70,14 @@ namespace Xarial.XCad.SolidWorks.Data
         {
             get 
             {
-                if (TryReadProperty(out string val, out _))
+                if (Exists)
                 {
+                    TryReadProperty(out string val, out _);
                     return val;
                 }
                 else
                 {
-                    return null;
+                    return m_TempValue?.ToString();
                 }
             }
             set 
@@ -103,7 +105,14 @@ namespace Xarial.XCad.SolidWorks.Data
 
         public string ConfigurationName { get; }
 
-        public bool Exists => TryReadProperty(out _, out _);
+        public bool Exists
+        {
+            get
+            {
+                //TODO: for older that SW2014 - get all properties
+                return m_PrpMgr.Get5(Name, true, out _, out _, out _) != (int)swCustomInfoGetResult_e.swCustomInfoGetResult_NotPresent;
+            }
+        }
 
         internal SwCustomProperty(IModelDoc2 model, ICustomPropertyManager prpMgr, string name, 
             string confName, CustomPropertiesEventsHelper evHelper) 
@@ -134,8 +143,8 @@ namespace Xarial.XCad.SolidWorks.Data
                 throw new NotImplementedException();
             }
         }
-
-        private bool TryReadProperty(out string val, out object resVal)
+        
+        private void TryReadProperty(out string val, out object resVal)
         {
             string resValStr;
             
@@ -165,13 +174,10 @@ namespace Xarial.XCad.SolidWorks.Data
                         resVal = DateTime.Parse(resValStr);
                         break;
                 }
-
-                return true;
             }
             else
             {
                 resVal = null;
-                return false;
             }
         }
     }

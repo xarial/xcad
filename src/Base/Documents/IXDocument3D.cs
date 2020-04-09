@@ -21,5 +21,7 @@ namespace Xarial.XCad.Documents
         Box3D CalculateBoundingBox();
 
         IXView ActiveView { get; }
+
+        IXConfigurationRepository Configurations { get; }
     }
 }

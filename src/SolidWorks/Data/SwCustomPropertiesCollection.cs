@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Text;
 using Xarial.XCad.Base;
 using Xarial.XCad.Data;
+using Xarial.XCad.SolidWorks.Data.Exceptions;
 using Xarial.XCad.SolidWorks.Data.Helpers;
 
 namespace Xarial.XCad.SolidWorks.Data
@@ -35,7 +36,7 @@ namespace Xarial.XCad.SolidWorks.Data
                 }
                 else 
                 {
-                    throw new Exception("Property doesn't exist");
+                    throw new CustomPropertyMissingException(name);
                 }
             }
         }

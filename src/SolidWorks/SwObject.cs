@@ -114,6 +114,11 @@ namespace Xarial.XCad.SolidWorks
 
         public virtual bool IsSame(IXObject other)
         {
+            if (object.ReferenceEquals(this, other)) 
+            {
+                return true;
+            }
+
             if (other is SwObject)
             {
                 return Dispatch == (other as SwObject).Dispatch;

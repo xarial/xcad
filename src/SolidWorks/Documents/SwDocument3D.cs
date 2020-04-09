@@ -16,13 +16,28 @@ namespace Xarial.XCad.SolidWorks.Documents
     {
         private readonly IMathUtility m_MathUtils;
 
-        public IXView ActiveView => new SwModelView(Model, Model.IActiveView, m_MathUtils);
+        IXView IXDocument3D.ActiveView => ActiveView;
+        IXConfigurationRepository IXDocument3D.Configurations => Configurations;
 
         internal SwDocument3D(IModelDoc2 model, ISldWorks app, ILogger logger) : base(model, app, logger)
         {
             m_MathUtils = app.IGetMathUtility();
+            Configurations = new SwConfigurationCollection(app, model);
         }
 
+        public SwModelView ActiveView => new SwModelView(Model, Model.IActiveView, m_MathUtils);
+        public SwConfigurationCollection Configurations { get; }
+
         public abstract Box3D CalculateBoundingBox();
+
+        protected override void Dispose(bool disposing)
+        {
+            base.Dispose(disposing);
+
+            if (disposing) 
+            {
+                Configurations.Dispose();
+            }
+        }
     }
 }
