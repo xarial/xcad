@@ -50,6 +50,10 @@ namespace Xarial.XCad.SolidWorks
                     {
                         return new SwCircularEdge(edge);
                     }
+                    else if (edgeCurve.IsLine())
+                    {
+                        return new SwLinearEdge(edge);
+                    }
                     else
                     {
                         return new SwEdge(edge);

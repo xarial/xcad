@@ -27,8 +27,6 @@ namespace Xarial.XCad.SolidWorks
     /// <inheritdoc/>
     public class SwApplication : IXApplication, IDisposable
     {
-        IXMacro IXApplication.OpenMacro(string path) => OpenMacro(path);
-
         public static SwApplication FromPointer(ISldWorks app)
         {
             return new SwApplication(app, new TraceLogger("xCAD"));
@@ -52,6 +50,7 @@ namespace Xarial.XCad.SolidWorks
 
         IXDocumentCollection IXApplication.Documents => Documents;
         IXGeometryBuilder IXApplication.GeometryBuilder => GeometryBuilder;
+        IXMacro IXApplication.OpenMacro(string path) => OpenMacro(path);
 
         public ISldWorks Sw { get; private set; }
 

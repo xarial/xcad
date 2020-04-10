@@ -9,7 +9,7 @@ namespace SolidWorks.Tests.Integration
     public class FeaturesTests : IntegrationTests
     {
         [Test]
-        public void IterateFeaturesTest() 
+        public void IterateFeaturesTest()
         {
             var featNames = new List<string>();
 

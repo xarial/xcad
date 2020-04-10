@@ -16,6 +16,8 @@ namespace Xarial.XCad.SolidWorks.Documents
     {
         public IAssemblyDoc Assembly { get; }
 
+        public IXComponentRepository Components => throw new System.NotImplementedException();
+
         internal SwAssembly(IAssemblyDoc assembly, ISldWorks app, ILogger logger)
             : base((IModelDoc2)assembly, app, logger)
         {

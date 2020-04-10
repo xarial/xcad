@@ -9,5 +9,6 @@ namespace Xarial.XCad.Documents
 {
     public interface IXAssembly : IXDocument3D
     {
+        IXComponentRepository Components { get; }
     }
 }

@@ -80,4 +80,39 @@ namespace Xarial.XCad.SolidWorks.Geometry
             }
         }
     }
+
+    public class SwLinearEdge : SwEdge, IXLinearEdge
+    {
+        internal SwLinearEdge(IEdge edge) : base(edge)
+        {
+        }
+
+        public Point RootPoint
+        {
+            get
+            {
+                var lineParams = LineParams;
+
+                return new Point(lineParams[0], lineParams[1], lineParams[2]);
+            }
+        }
+
+        public Vector Direction
+        {
+            get
+            {
+                var lineParams = LineParams;
+
+                return new Vector(lineParams[3], lineParams[4], lineParams[5]);
+            }
+        }
+
+        private double[] LineParams
+        {
+            get
+            {
+                return (double[])Edge.IGetCurve().LineParams;
+            }
+        }
+    }
 }
