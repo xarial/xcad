@@ -72,6 +72,12 @@ namespace Xarial.XCad.SolidWorks.Features
             }
         }
 
+        public string Name 
+        {
+            get => Feature.Name;
+            set => Feature.Name = value;
+        }
+
         public override void Select(bool append)
         {
             if (!Feature.Select2(append, 0))

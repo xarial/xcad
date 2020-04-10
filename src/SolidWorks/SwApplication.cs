@@ -8,6 +8,7 @@
 using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
 using System;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
@@ -26,6 +27,8 @@ namespace Xarial.XCad.SolidWorks
     /// <inheritdoc/>
     public class SwApplication : IXApplication, IDisposable
     {
+        IXMacro IXApplication.OpenMacro(string path) => OpenMacro(path);
+
         public static SwApplication FromPointer(ISldWorks app)
         {
             return new SwApplication(app, new TraceLogger("xCAD"));
@@ -41,9 +44,9 @@ namespace Xarial.XCad.SolidWorks
             {
                 return FromPointer(app);
             }
-            else 
+            else
             {
-                return null;
+                throw new Exception($"Cannot access SOLIDWORKS application at process {processId}");
             }
         }
 
@@ -53,7 +56,7 @@ namespace Xarial.XCad.SolidWorks
         public ISldWorks Sw { get; private set; }
 
         public SwDocumentCollection Documents { get; private set; }
-        
+
         public SwGeometryBuilder GeometryBuilder { get; private set; }
 
         internal SwApplication(ISldWorks app, ILogger logger)
@@ -68,7 +71,7 @@ namespace Xarial.XCad.SolidWorks
             swMessageBoxBtn_e swBtn = 0;
             swMessageBoxIcon_e swIcon = 0;
 
-            switch (icon) 
+            switch (icon)
             {
                 case MessageBoxIcon_e.Info:
                     swIcon = swMessageBoxIcon_e.swMbInformation;
@@ -87,7 +90,7 @@ namespace Xarial.XCad.SolidWorks
                     break;
             }
 
-            switch (buttons) 
+            switch (buttons)
             {
                 case MessageBoxButtons_e.Ok:
                     swBtn = swMessageBoxBtn_e.swMbOk;
@@ -108,7 +111,7 @@ namespace Xarial.XCad.SolidWorks
 
             var swRes = (swMessageBoxResult_e)Sw.SendMsgToUser2(msg, (int)swIcon, (int)swBtn);
 
-            switch (swRes) 
+            switch (swRes)
             {
                 case swMessageBoxResult_e.swMbHitOk:
                     return MessageBoxResult_e.Ok;
@@ -124,6 +127,28 @@ namespace Xarial.XCad.SolidWorks
 
                 default:
                     return 0;
+            }
+        }
+
+        public SwMacro OpenMacro(string path)
+        {
+            const string VSTA_FILE_EXT = ".dll";
+            const string VBA_FILE_EXT = ".swp";
+            const string BASIC_EXT = ".swb";
+
+            var ext = Path.GetExtension(path);
+
+            switch (ext.ToLower()) 
+            {
+                case VSTA_FILE_EXT:
+                    return new SwVstaMacro(Sw, path);
+
+                case VBA_FILE_EXT:
+                case BASIC_EXT:
+                    return new SwVbaMacro(Sw, path);
+
+                default:
+                    throw new NotSupportedException("Specified file is not a SOLIDWORKS macro");
             }
         }
 

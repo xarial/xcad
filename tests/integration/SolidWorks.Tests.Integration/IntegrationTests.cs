@@ -1,8 +1,10 @@
 ﻿using NUnit.Framework;
 using SolidWorks.Interop.sldworks;
+using SolidWorks.Interop.swconst;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using Xarial.XCad.SolidWorks;
 
@@ -34,7 +36,7 @@ namespace SolidWorks.Tests.Integration
             }
         }
 
-        private const int SW_PRC_ID = 18784;
+        private const int SW_PRC_ID = -1;
         private const string DATA_FOLDER = @"C:\Users\artem\OneDrive\xCAD\TestData";
 
         protected SwApplication m_App;
@@ -45,14 +47,23 @@ namespace SolidWorks.Tests.Integration
         [SetUp]
         public void Setup()
         {
-            m_App = SwApplication.FromProcess(SW_PRC_ID);
+            var prcId = SW_PRC_ID;
+
+            if (prcId <= 0) 
+            {
+                prcId = System.Diagnostics.Process.GetProcessesByName("SLDWORKS").First().Id;
+            }
+
+            m_App = SwApplication.FromProcess(prcId);
             m_SwApp = m_App.Sw;
             m_Disposables = new List<IDisposable>();
         }
 
+        protected string GetFilePath(string name) => Path.Combine(DATA_FOLDER, name);
+
         protected IDisposable OpenDataDocument(string name, bool readOnly = true) 
         {
-            var filePath = Path.Combine(DATA_FOLDER, name);
+            var filePath = GetFilePath(name);
 
             var spec = (IDocumentSpecification)m_SwApp.GetOpenDocSpec(filePath);
             spec.ReadOnly = readOnly;
@@ -66,7 +77,47 @@ namespace SolidWorks.Tests.Integration
             }
             else 
             {
-                throw new NullReferenceException($"Failed to open the the data document at {filePath}");
+                throw new NullReferenceException($"Failed to open the the data document at '{filePath}'");
+            }
+        }
+
+        protected IDisposable NewDocument(swDocumentTypes_e docType) 
+        {
+            swUserPreferenceStringValue_e defTemplateType;
+
+            switch (docType) 
+            {
+                case swDocumentTypes_e.swDocPART:
+                    defTemplateType = swUserPreferenceStringValue_e.swDefaultTemplatePart;
+                    break;
+                case swDocumentTypes_e.swDocASSEMBLY:
+                    defTemplateType = swUserPreferenceStringValue_e.swDefaultTemplateAssembly;
+                    break;
+                case swDocumentTypes_e.swDocDRAWING:
+                    defTemplateType = swUserPreferenceStringValue_e.swDefaultTemplateDrawing;
+                    break;
+                default:
+                    throw new NotSupportedException("Document type is not supported");
+            }
+
+            var defTemplatePath = m_SwApp.GetUserPreferenceStringValue((int)defTemplateType);
+
+            if (string.IsNullOrEmpty(defTemplatePath)) 
+            {
+                throw new Exception("Default template is not found");
+            }
+
+            var model = (IModelDoc2)m_SwApp.NewDocument(defTemplatePath, (int)swDwgPaperSizes_e.swDwgPapersUserDefined, 100, 100);
+
+            if (model != null)
+            {
+                var docWrapper = new DocumentWrapper(m_SwApp, model);
+                m_Disposables.Add(docWrapper);
+                return docWrapper;
+            }
+            else
+            {
+                throw new NullReferenceException($"Failed to create new document from '{defTemplatePath}'");
             }
         }
 

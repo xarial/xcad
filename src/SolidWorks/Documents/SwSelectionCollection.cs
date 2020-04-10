@@ -86,7 +86,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public IEnumerator<IXSelObject> GetEnumerator()
         {
-            return new SwSelObjectEnumerator(m_SelMgr);
+            return new SwSelObjectEnumerator(m_Model, m_SelMgr);
         }
 
         public void RemoveRange(IEnumerable<IXSelObject> ents)
@@ -106,17 +106,19 @@ namespace Xarial.XCad.SolidWorks.Documents
 
     internal class SwSelObjectEnumerator : IEnumerator<IXSelObject>
     {
-        public IXSelObject Current => SwObject.FromDispatch<SwSelObject>(m_SelMgr.GetSelectedObject6(m_CurSelIndex, -1));
+        public IXSelObject Current => SwSelObject.FromDispatch(m_SelMgr.GetSelectedObject6(m_CurSelIndex, -1), m_Model);
 
         object IEnumerator.Current => Current;
 
         private int m_CurSelIndex;
 
+        private readonly IModelDoc2 m_Model;
         private readonly ISelectionMgr m_SelMgr;
 
-        internal SwSelObjectEnumerator(ISelectionMgr selMgr) 
+        internal SwSelObjectEnumerator(IModelDoc2 model, ISelectionMgr selMgr) 
         {
             m_CurSelIndex = 0;
+            m_Model = model;
             m_SelMgr = selMgr;
         }
 
