@@ -19,9 +19,7 @@ stages:
 
     steps:
       - task: NuGetToolInstaller@0
-        displayName: 'Use NuGet 4.4.1'
-        inputs:
-          versionSpec: 4.4.1
+        displayName: 'Use NuGet'
 
       - task: NuGetCommand@2
         displayName: 'NuGet restore'
