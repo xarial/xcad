@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using Xarial.XCad.Features;
 using Xarial.XCad.Services;
 using Xarial.XCad.SolidWorks.Annotations;
+using Xarial.XCad.SolidWorks.Documents;
 
 namespace Xarial.XCad.SolidWorks.Features
 {
@@ -34,16 +35,16 @@ namespace Xarial.XCad.SolidWorks.Features
             }
         }
 
-        private readonly IModelDoc2 m_Model;
+        private readonly SwDocument m_Doc;
 
-        internal SwFeature(IModelDoc2 model, IFeature feat, bool created) : base(feat)
+        internal SwFeature(SwDocument doc, IFeature feat, bool created) : base(feat)
         {
-            if (model == null) 
+            if (doc == null) 
             {
-                throw new ArgumentNullException(nameof(model));
+                throw new ArgumentNullException(nameof(doc));
             }
 
-            m_Model = model;
+            m_Doc = doc;
 
             m_Creator = new ElementCreator<IFeature>(CreateFeature, feat, created);
         }
@@ -66,7 +67,7 @@ namespace Xarial.XCad.SolidWorks.Features
 
                 while (dispDim != null) 
                 {
-                    yield return FromDispatch<SwDimension>(dispDim, m_Model);
+                    yield return FromDispatch<SwDimension>(dispDim, m_Doc);
                     dispDim = Feature.GetNextDisplayDimension(dispDim) as IDisplayDimension;
                 }
             }

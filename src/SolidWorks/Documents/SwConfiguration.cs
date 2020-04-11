@@ -12,7 +12,7 @@ using Xarial.XCad.SolidWorks.Data;
 
 namespace Xarial.XCad.SolidWorks.Documents
 {
-    public class SwConfiguration : IXConfiguration
+    public class SwConfiguration : SwObject, IXConfiguration
     {
         private readonly ISldWorks m_App;
         private readonly IConfiguration m_Conf;
@@ -24,7 +24,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public SwCustomPropertiesCollection Properties { get; }
 
-        internal SwConfiguration(ISldWorks app, IModelDoc2 model, IConfiguration conf)
+        internal SwConfiguration(ISldWorks app, IModelDoc2 model, IConfiguration conf) : base(conf)
         {
             m_App = app;
             m_Model = model;

@@ -9,6 +9,7 @@ using SolidWorks.Interop.sldworks;
 using System;
 using Xarial.XCad.Features;
 using Xarial.XCad.Sketch;
+using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Sketch;
 
 namespace Xarial.XCad.SolidWorks.Features
@@ -19,9 +20,9 @@ namespace Xarial.XCad.SolidWorks.Features
 
         public ISketch Sketch => Feature?.GetSpecificFeature2() as ISketch;
 
-        internal SwSketchBase(IModelDoc2 model, IFeature feat, bool created) : base(model, feat, created)
+        internal SwSketchBase(SwDocument doc, IFeature feat, bool created) : base(doc, feat, created)
         {
-            m_SwEntsColl = new SwSketchEntityCollection(model, this, model.SketchManager);
+            m_SwEntsColl = new SwSketchEntityCollection(doc.Model, this, doc.Model.SketchManager);
         }
 
         public IXSketchEntityRepository Entities => m_SwEntsColl;

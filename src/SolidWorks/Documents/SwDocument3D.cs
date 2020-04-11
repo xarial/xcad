@@ -19,10 +19,10 @@ namespace Xarial.XCad.SolidWorks.Documents
         IXView IXDocument3D.ActiveView => ActiveView;
         IXConfigurationRepository IXDocument3D.Configurations => Configurations;
 
-        internal SwDocument3D(IModelDoc2 model, ISldWorks app, ILogger logger) : base(model, app, logger)
+        internal SwDocument3D(IModelDoc2 model, SwApplication app, ILogger logger) : base(model, app, logger)
         {
-            m_MathUtils = app.IGetMathUtility();
-            Configurations = new SwConfigurationCollection(app, model);
+            m_MathUtils = app.Sw.IGetMathUtility();
+            Configurations = new SwConfigurationCollection(app.Sw, this);
         }
 
         public SwModelView ActiveView => new SwModelView(Model, Model.IActiveView, m_MathUtils);

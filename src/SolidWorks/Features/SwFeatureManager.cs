@@ -24,7 +24,7 @@ namespace Xarial.XCad.SolidWorks.Features
     {
         private readonly IFeatureManager m_FeatMgr;
         private readonly MacroFeatureParametersParser m_ParamsParser;
-        private readonly SwDocument m_Model;
+        private readonly SwDocument m_Doc;
 
         public int Count => m_FeatMgr.GetFeatureCount(false);
 
@@ -36,7 +36,7 @@ namespace Xarial.XCad.SolidWorks.Features
             {
                 IFeature feat;
 
-                switch (m_Model.Model)
+                switch (m_Doc.Model)
                 {
                     case IPartDoc part:
                         feat = part.FeatureByName(name) as IFeature;
@@ -56,7 +56,7 @@ namespace Xarial.XCad.SolidWorks.Features
 
                 if (feat != null)
                 {
-                    return SwObject.FromDispatch<SwFeature>(feat, m_Model.Model);
+                    return SwObject.FromDispatch<SwFeature>(feat, m_Doc);
                 }
                 else
                 {
@@ -65,9 +65,9 @@ namespace Xarial.XCad.SolidWorks.Features
             }
         }
 
-        internal SwFeatureManager(SwDocument model, IFeatureManager featMgr, ISldWorks app)
+        internal SwFeatureManager(SwDocument doc, IFeatureManager featMgr, ISldWorks app)
         {
-            m_Model = model;
+            m_Doc = doc;
             m_ParamsParser = new MacroFeatureParametersParser(app);
             m_FeatMgr = featMgr;
         }
@@ -87,17 +87,17 @@ namespace Xarial.XCad.SolidWorks.Features
 
         public IXSketch2D PreCreate2DSketch()
         {
-            return new SwSketch2D(m_Model.Model, null, false);
+            return new SwSketch2D(m_Doc, null, false);
         }
 
         public IXSketch3D PreCreate3DSketch()
         {
-            return new SwSketch3D(m_Model.Model, null, false);
+            return new SwSketch3D(m_Doc, null, false);
         }
 
         public IEnumerator<IXFeature> GetEnumerator()
         {
-            return new FeatureEnumerator(m_Model.Model);
+            return new FeatureEnumerator(m_Doc);
         }
 
         IEnumerator IEnumerable.GetEnumerator()
@@ -108,7 +108,7 @@ namespace Xarial.XCad.SolidWorks.Features
         public IXCustomFeature<TParams> PreCreateCustomFeature<TParams>()
             where TParams : class, new()
         {
-            return new SwMacroFeature<TParams>(m_Model, m_FeatMgr, null, m_ParamsParser, false);
+            return new SwMacroFeature<TParams>(m_Doc, m_FeatMgr, null, m_ParamsParser, false);
         }
 
         public void RemoveRange(IEnumerable<IXFeature> ents)
@@ -123,13 +123,13 @@ namespace Xarial.XCad.SolidWorks.Features
             where TDef : class, IXCustomFeatureDefinition<TParams, TPage>, new()
         {
             var inst = (TDef)CustomFeatureDefinitionInstanceCache.GetInstance(typeof(TDef));
-            inst.Insert(m_Model);
+            inst.Insert(m_Doc);
         }
     }
 
     internal class FeatureEnumerator : IEnumerator<IXFeature>
     {
-        public IXFeature Current => SwObject.FromDispatch<SwFeature>(m_CurFeat, m_Model);
+        public IXFeature Current => SwObject.FromDispatch<SwFeature>(m_CurFeat, m_Doc);
 
         object IEnumerator.Current => Current;
 
@@ -141,10 +141,13 @@ namespace Xarial.XCad.SolidWorks.Features
         private bool m_IsSubFeat;
         private IFeature m_ParentFeat;
 
-        internal FeatureEnumerator(IModelDoc2 model)
+        private readonly SwDocument m_Doc;
+
+        internal FeatureEnumerator(SwDocument doc)
         {
             m_ProcessedFeatures = new List<IFeature>();
-            m_Model = model;
+            m_Doc = doc;
+            m_Model = m_Doc.Model;
             Reset();
         }
 

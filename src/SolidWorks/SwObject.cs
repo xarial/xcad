@@ -8,6 +8,7 @@
 using SolidWorks.Interop.sldworks;
 using System;
 using Xarial.XCad.SolidWorks.Annotations;
+using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Features;
 using Xarial.XCad.SolidWorks.Geometry;
 using Xarial.XCad.SolidWorks.Sketch;
@@ -28,22 +29,21 @@ namespace Xarial.XCad.SolidWorks
             return FromDispatch(disp, null);
         }
 
-        public static TObj FromDispatch<TObj>(object disp, IModelDoc2 model)
+        public static TObj FromDispatch<TObj>(object disp, SwDocument doc)
             where TObj : SwObject
         {
-            return (TObj)FromDispatch(disp, model);
+            return (TObj)FromDispatch(disp, doc);
         }
 
-        public static SwObject FromDispatch(object disp, IModelDoc2 model)
+        public static SwObject FromDispatch(object disp, SwDocument doc)
         {
-            return FromDispatch(disp, model, d => new SwObject(d));
+            return FromDispatch(disp, doc, d => new SwObject(d));
         }
 
-        internal static SwObject FromDispatch(object disp, IModelDoc2 model, Func<object, SwObject> defaultHandler)
+        internal static SwObject FromDispatch(object disp, SwDocument doc, Func<object, SwObject> defaultHandler)
         {
             switch (disp)
             {
-                //TODO: make this automatic
                 case IEdge edge:
                     var edgeCurve = edge.IGetCurve();
                     if (edgeCurve.IsCircle())
@@ -78,11 +78,11 @@ namespace Xarial.XCad.SolidWorks
                     switch (feat.GetTypeName()) 
                     {
                         case "ProfileFeature":
-                            return new SwSketch2D(model, feat, true);
+                            return new SwSketch2D(doc, feat, true);
                         case "3DProfileFeature":
-                            return new SwSketch3D(model, feat, true);
+                            return new SwSketch3D(doc, feat, true);
                         default:
-                            return new SwFeature(model, feat, true);
+                            return new SwFeature(doc, feat, true);
                     }
 
                 case IBody2 body:
@@ -96,13 +96,19 @@ namespace Xarial.XCad.SolidWorks
                     }
 
                 case ISketchLine skLine:
-                    return new SwSketchLine(model, skLine, true);
+                    return new SwSketchLine(doc.Model, skLine, true);
 
                 case ISketchPoint skPt:
-                    return new SwSketchPoint(model, skPt, true);
+                    return new SwSketchPoint(doc.Model, skPt, true);
 
                 case IDisplayDimension dispDim:
-                    return new SwDimension(model, dispDim);
+                    return new SwDimension(doc.Model, dispDim);
+
+                case IConfiguration conf:
+                    return new SwConfiguration(doc.App.Sw, doc.Model, conf);
+
+                case IComponent2 comp:
+                    return new SwComponent(comp, (SwAssembly)doc);
 
                 default:
                     return defaultHandler.Invoke(disp);

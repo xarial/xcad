@@ -8,5 +8,6 @@ namespace Xarial.XCad.Documents
     {
         string Name { get; }
         IXDocument3D Document { get; }
+        IXComponentRepository Children { get; }
     }
 }

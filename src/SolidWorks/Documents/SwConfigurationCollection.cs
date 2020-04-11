@@ -10,19 +10,21 @@ namespace Xarial.XCad.SolidWorks.Documents
     public class SwConfigurationCollection : IXConfigurationRepository, IDisposable
     {
         private readonly ISldWorks m_App;
-        private readonly IModelDoc2 m_Model;
+        private readonly SwDocument3D m_Doc;
 
-        internal SwConfigurationCollection(ISldWorks app, IModelDoc2 model) 
+        internal SwConfigurationCollection(ISldWorks app, SwDocument3D doc) 
         {
             m_App = app;
-            m_Model = model;
+            m_Doc = doc;
         }
 
-        public IXConfiguration this[string name] => new SwConfiguration(m_App, m_Model, (IConfiguration)m_Model.GetConfigurationByName(name));
+        public IXConfiguration this[string name]
+            => SwObject.FromDispatch<SwConfiguration>((IConfiguration)m_Doc.Model.GetConfigurationByName(name), m_Doc);
 
-        public int Count => (m_Model.GetConfigurationNames() as string[]).Length;
+        public int Count => (m_Doc.Model.GetConfigurationNames() as string[]).Length;
 
-        public IXConfiguration Active => new SwConfiguration(m_App, m_Model, m_Model.ConfigurationManager.ActiveConfiguration);
+        public IXConfiguration Active 
+            => SwObject.FromDispatch<SwConfiguration>(m_Doc.Model.ConfigurationManager.ActiveConfiguration, m_Doc);
 
         public void AddRange(IEnumerable<IXConfiguration> ents)
         {
@@ -33,7 +35,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
         }
 
-        public IEnumerator<IXConfiguration> GetEnumerator() => new SwConfigurationEnumerator(m_App, m_Model);
+        public IEnumerator<IXConfiguration> GetEnumerator() => new SwConfigurationEnumerator(m_App, m_Doc);
 
         public void RemoveRange(IEnumerable<IXConfiguration> ents)
         {
@@ -45,25 +47,25 @@ namespace Xarial.XCad.SolidWorks.Documents
 
     internal class SwConfigurationEnumerator : IEnumerator<IXConfiguration>
     {
-        public IXConfiguration Current =>
-            new SwConfiguration(m_App, m_Model, (IConfiguration)m_Model.GetConfigurationByName(m_ConfNames[m_CurConfIndex]));
+        public IXConfiguration Current
+            => SwObject.FromDispatch<SwConfiguration>((IConfiguration) m_Doc.Model.GetConfigurationByName(m_ConfNames[m_CurConfIndex]), m_Doc);
 
         object IEnumerator.Current => Current;
 
         private int m_CurConfIndex;
 
         private readonly ISldWorks m_App;
-        private readonly IModelDoc2 m_Model;
+        private readonly SwDocument3D m_Doc;
 
         private string[] m_ConfNames;
 
-        internal SwConfigurationEnumerator(ISldWorks app, IModelDoc2 model)
+        internal SwConfigurationEnumerator(ISldWorks app, SwDocument3D doc)
         {
             m_App = app;
-            m_Model = model;
+            m_Doc = doc;
 
             m_CurConfIndex = -1;
-            m_ConfNames = (string[])m_Model.GetConfigurationNames();
+            m_ConfNames = (string[])m_Doc.Model.GetConfigurationNames();
         }
 
         public bool MoveNext()

@@ -29,7 +29,8 @@ namespace Xarial.XCad.SolidWorks.Documents
         IXDocument IXDocumentCollection.Active => Active;
         IXDocument IXDocumentCollection.Open(DocumentOpenArgs args) => Open(args);
 
-        private readonly SldWorks m_App;
+        private readonly SwApplication m_App;
+        private readonly SldWorks m_SwApp;
         private readonly Dictionary<IModelDoc2, SwDocument> m_Documents;
         private readonly ILogger m_Logger;
         private readonly DocumentsHandler m_DocsHandler;
@@ -38,7 +39,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
             get
             {
-                var activeDoc = m_App.IActiveDoc2;
+                var activeDoc = m_SwApp.IActiveDoc2;
 
                 if (activeDoc != null)
                 {
@@ -55,15 +56,16 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         internal SwDocumentCollection(SwApplication app, ILogger logger)
         {
-            m_App = (SldWorks)app.Sw;
+            m_App = app;
+            m_SwApp = (SldWorks)m_App.Sw;
             m_Logger = logger;
 
             m_Documents = new Dictionary<IModelDoc2, SwDocument>(
-                new SwPointerEqualityComparer<IModelDoc2>(m_App));
+                new SwPointerEqualityComparer<IModelDoc2>(m_SwApp));
             m_DocsHandler = new DocumentsHandler(app);
             AttachToAllOpenedDocuments();
 
-            m_App.DocumentLoadNotify2 += OnDocumentLoadNotify2;
+            m_SwApp.DocumentLoadNotify2 += OnDocumentLoadNotify2;
         }
 
         public SwDocument this[IModelDoc2 model]
@@ -95,18 +97,18 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public SwDocument Open(DocumentOpenArgs args)
         {
-            var docSpec = m_App.GetOpenDocSpec(args.Path) as IDocumentSpecification;
+            var docSpec = m_SwApp.GetOpenDocSpec(args.Path) as IDocumentSpecification;
 
             docSpec.ReadOnly = args.ReadOnly;
             docSpec.ViewOnly = args.ViewOnly;
-            var model = m_App.OpenDoc7(docSpec);
+            var model = m_SwApp.OpenDoc7(docSpec);
 
             return this[model];
         }
 
         public void Dispose()
         {
-            m_App.DocumentLoadNotify2 -= OnDocumentLoadNotify2;
+            m_SwApp.DocumentLoadNotify2 -= OnDocumentLoadNotify2;
 
             foreach (var doc in m_Documents.Keys.ToArray())
             {
@@ -118,7 +120,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         private void AttachToAllOpenedDocuments()
         {
-            var openDocs = m_App.GetDocuments() as object[];
+            var openDocs = m_SwApp.GetDocuments() as object[];
 
             if (openDocs != null)
             {
@@ -176,11 +178,11 @@ namespace Xarial.XCad.SolidWorks.Documents
 
             if (!string.IsNullOrEmpty(docPath))
             {
-                model = m_App.GetOpenDocumentByName(docPath) as IModelDoc2;
+                model = m_SwApp.GetOpenDocumentByName(docPath) as IModelDoc2;
             }
             else
             {
-                model = (m_App.GetDocuments() as object[])?.FirstOrDefault(
+                model = (m_SwApp.GetDocuments() as object[])?.FirstOrDefault(
                     d => string.Equals((d as IModelDoc2).GetTitle(), docTitle)) as IModelDoc2;
             }
 

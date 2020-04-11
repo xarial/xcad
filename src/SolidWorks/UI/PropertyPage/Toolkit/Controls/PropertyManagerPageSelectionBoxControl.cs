@@ -23,13 +23,13 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
     {
         protected override event ControlValueChangedDelegate<object> ValueChanged;
 
-        private ISldWorks m_App;
+        private SwApplication m_App;
 
         private Type m_ObjType;
 
         private ISelectionCustomFilter m_CustomFilter;
 
-        public PropertyManagerPageSelectionBoxControl(ISldWorks app, int id, object tag,
+        public PropertyManagerPageSelectionBoxControl(SwApplication app, int id, object tag,
             IPropertyManagerPageSelectionbox selBox,
             SwPropertyManagerPageHandler handler, Type objType, ISelectionCustomFilter customFilter = null)
             : base(selBox, id, tag, handler)
@@ -56,7 +56,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
         private SwSelObject ToSelObject(object disp)
         {
-            return SwSelObject.FromDispatch(disp, m_App.IActiveDoc2);
+            return SwSelObject.FromDispatch(disp, m_App.Documents.Active);
         }
 
         private void OnSubmitSelection(int Id, object Selection, int SelType, ref string ItemText, ref bool res)
@@ -81,7 +81,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
         protected override object GetSpecificValue()
         {
-            var selMgr = m_App.IActiveDoc2.ISelectionManager;
+            var selMgr = m_App.Sw.IActiveDoc2.ISelectionManager;
 
             if (SupportsMultiEntities)
             {
@@ -133,12 +133,12 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
                     disps.Add(new DispatchWrapper((value as SwSelObject).Dispatch));
                 }
 
-                var selMgr = m_App.IActiveDoc2.ISelectionManager;
+                var selMgr = m_App.Sw.IActiveDoc2.ISelectionManager;
 
                 var selData = selMgr.CreateSelectData();
                 selData.Mark = SwSpecificControl.Mark;
 
-                m_App.IActiveDoc2.Extension.MultiSelect2(disps.ToArray(), true, selData);
+                m_App.Sw.IActiveDoc2.Extension.MultiSelect2(disps.ToArray(), true, selData);
             }
         }
 

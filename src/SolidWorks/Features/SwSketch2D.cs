@@ -8,16 +8,17 @@
 using SolidWorks.Interop.sldworks;
 using System;
 using Xarial.XCad.Features;
+using Xarial.XCad.SolidWorks.Documents;
 
 namespace Xarial.XCad.SolidWorks.Features
 {
     public class SwSketch2D : SwSketchBase, IXSketch2D
     {
-        public SwSketch2D(IModelDoc2 model, IFeature feat, bool created) : base(model, feat, created)
+        public SwSketch2D(SwDocument doc, IFeature feat, bool created) : base(doc, feat, created)
         {
-            if (model == null) 
+            if (doc == null) 
             {
-                throw new ArgumentNullException(nameof(model));
+                throw new ArgumentNullException(nameof(doc));
             }
         }
 

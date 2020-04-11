@@ -85,7 +85,6 @@ namespace Xarial.XCad.SolidWorks.Documents
         IXDimensionRepository IXDocument.Dimensions => Dimensions;
         IXPropertyRepository IXDocument.Properties => Properties;
 
-        private readonly ISldWorks m_App;
         private readonly ILogger m_Logger;
 
         private readonly StreamReadAvailableEventsHandler m_StreamReadAvailableHandler;
@@ -106,7 +105,8 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public SwCustomPropertiesCollection Properties { get; }
 
-        internal ISldWorks App => m_App;
+        internal SwApplication App { get; }
+        internal ISldWorks SwApp { get; }
 
         public bool IsDirty 
         {
@@ -124,20 +124,22 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        internal SwDocument(IModelDoc2 model, ISldWorks app, ILogger logger)
+        internal SwDocument(IModelDoc2 model, SwApplication app, ILogger logger)
         {
             Model = model;
 
-            m_App = app;
+            App = app;
+            SwApp = app.Sw;
+
             m_Logger = logger;
 
-            Features = new SwFeatureManager(this, model.FeatureManager, m_App);
+            Features = new SwFeatureManager(this, model.FeatureManager, SwApp);
             
             Selections = new SwSelectionCollection(this);
 
             Dimensions = new SwDimensionsCollection(this);
 
-            Properties = new SwCustomPropertiesCollection(App, Model, "");
+            Properties = new SwCustomPropertiesCollection(SwApp, Model, "");
 
             m_StreamReadAvailableHandler = new StreamReadAvailableEventsHandler(this);
             m_StreamWriteAvailableHandler = new StreamWriteAvailableEventsHandler(this);
@@ -149,7 +151,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public void Close()
         {
-            m_App.CloseDoc(Title);
+            SwApp.CloseDoc(Title);
         }
 
         public void Dispose()

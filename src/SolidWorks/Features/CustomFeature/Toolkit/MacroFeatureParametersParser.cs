@@ -107,7 +107,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature.Toolkit
 
                 for (int i = 0; i < dispDimsObj.Length; i++)
                 {
-                    dimensions[i] = new SwDimension(macroFeat.Model.Model, dispDimsObj[i] as IDisplayDimension);
+                    dimensions[i] = new SwDimension(macroFeat.Document.Model, dispDimsObj[i] as IDisplayDimension);
                     dispDimsObj[i] = null;
                 }
 
