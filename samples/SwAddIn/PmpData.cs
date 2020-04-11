@@ -17,6 +17,7 @@ using Xarial.XCad.SolidWorks.Geometry;
 using System;
 using Xarial.XCad;
 using Xarial.XCad.SolidWorks.UI.PropertyPage.Services;
+using Xarial.XCad.SolidWorks.Documents;
 
 namespace SwAddInExample
 {
@@ -79,6 +80,15 @@ namespace SwAddInExample
     [ComVisible(true)]
     public class PmpData : SwPropertyManagerPageHandler
     {
+        [CustomControl(typeof(WpfUserControl))]
+        public CustomControlDataContext CustomControl { get; set; } = new CustomControlDataContext();
+
+        public List<SwComponent> Components { get; set; }
+    }
+
+    [ComVisible(true)]
+    public class PmpMacroFeatData : SwPropertyManagerPageHandler
+    {
         public string Text { get; set; }
 
         [ParameterDimension(CustomFeatureDimensionType_e.Linear)]
@@ -95,8 +105,5 @@ namespace SwAddInExample
         [ParameterDimension(CustomFeatureDimensionType_e.Angular)]
         [ExcludeControl]
         public double Angle { get; set; } = Math.PI / 9;
-
-        [CustomControl(typeof(WpfUserControl))]
-        public CustomControlDataContext CustomControl { get; set; } = new CustomControlDataContext();
     }
 }

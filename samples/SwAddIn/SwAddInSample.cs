@@ -30,6 +30,7 @@ using Xarial.XCad.SolidWorks.Annotations;
 using Xarial.XCad.SolidWorks.Data;
 using Xarial.XCad.UI.TaskPane.Attributes;
 using Xarial.XCad.SolidWorks.UI;
+using Xarial.XCad.SolidWorks.UI.PropertyPage;
 
 namespace SwAddInExample
 {
@@ -42,6 +43,8 @@ namespace SwAddInExample
         {
             [Icon(typeof(Resources), nameof(Resources.xarial))]
             OpenDoc,
+
+            ShowPmPage,
 
             [Icon(typeof(Resources), nameof(Resources.xarial))]
             [CommandItemInfo(WorkspaceTypes_e.Part)]
@@ -87,16 +90,23 @@ namespace SwAddInExample
             Button3
         }
 
-        private IXPropertyPage<PmpData> m_Page;
+        private IXPropertyPage<PmpMacroFeatData> m_MacroFeatPage;
+        private PmpMacroFeatData m_MacroFeatPmpData;
+
+        private SwPropertyManagerPage<PmpData> m_Page;
         private PmpData m_Data;
 
         public override void OnConnect()
         {
             CommandManager.AddCommandGroup<Commands_e>().CommandClick += OnCommandClick;
             CommandManager.AddContextMenu<ContextMenuCommands_e>(Xarial.XCad.Base.Enums.SelectType_e.Faces).CommandClick += OnContextMenuCommandClick;
+            
             Application.Documents.RegisterHandler<SwDocHandler>();
+            
             m_Page = this.CreatePage<PmpData>();
-            m_Page.Closed += OnClosed;
+
+            m_MacroFeatPage = this.CreatePage<PmpMacroFeatData>();
+            m_MacroFeatPage.Closed += OnClosed;
         }
 
         private void OnContextMenuCommandClick(ContextMenuCommands_e spec)
@@ -107,7 +117,7 @@ namespace SwAddInExample
         {
             if (reason == PageCloseReasons_e.Okay) 
             {
-                var feat = Application.Documents.Active.Features.CreateCustomFeature<SampleMacroFeature, PmpData>(m_Data);
+                var feat = Application.Documents.Active.Features.CreateCustomFeature<SampleMacroFeature, PmpMacroFeatData>(m_MacroFeatPmpData);
             }
         }
 
@@ -156,9 +166,14 @@ namespace SwAddInExample
                     });
                     break;
 
-                case Commands_e.ShowPmPageMacroFeature:
-                    m_Data = new PmpData() { Text = "ABC", Number = 0.1 };
+                case Commands_e.ShowPmPage:
+                    m_Data = new PmpData();
                     m_Page.Show(m_Data);
+                    break;
+
+                case Commands_e.ShowPmPageMacroFeature:
+                    m_MacroFeatPmpData = new PmpMacroFeatData() { Text = "ABC", Number = 0.1 };
+                    m_MacroFeatPage.Show(m_MacroFeatPmpData);
                     break;
 
                 case Commands_e.RecordView:
