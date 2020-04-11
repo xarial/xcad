@@ -27,6 +27,11 @@ namespace SwAddInExample
         Opt3
     }
 
+    public class CustomControlDataContext 
+    {
+        public string Value { get; set; }
+    }
+
     public class MyItem 
     {
         public string Name { get; set; }
@@ -90,5 +95,8 @@ namespace SwAddInExample
         [ParameterDimension(CustomFeatureDimensionType_e.Angular)]
         [ExcludeControl]
         public double Angle { get; set; } = Math.PI / 9;
+
+        [CustomControl(typeof(WpfUserControl))]
+        public CustomControlDataContext CustomControl { get; set; } = new CustomControlDataContext();
     }
 }

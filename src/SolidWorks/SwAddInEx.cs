@@ -252,7 +252,7 @@ namespace Xarial.XCad.SolidWorks
         {
             var mdlViewMgr = doc.Model.ModelViewManager;
 
-            return HostControl<TControl, SwModelViewTab<TControl>>(
+            return CustomControlHelper.HostControl<TControl, SwModelViewTab<TControl>>(
                 (c, h, t, _) =>
                 {
                     if (mdlViewMgr.DisplayWindowFromHandlex64(t, h.Handle.ToInt64(), true))
@@ -323,7 +323,7 @@ namespace Xarial.XCad.SolidWorks
 
             using (var iconConv = new IconsConverter())
             {
-                var taskPane = HostControl<TControl, SwTaskPane<TControl>>(
+                var taskPane = CustomControlHelper.HostControl<TControl, SwTaskPane<TControl>>(
                     (c, h, t, i) =>
                     {
                         var v = CreateTaskPaneView(iconConv, i, t);
@@ -351,60 +351,6 @@ namespace Xarial.XCad.SolidWorks
                 m_DisposableControls.Add(taskPane);
 
                 return taskPane;
-            }
-        }
-
-        private TWrapper HostControl<TControl, TWrapper>(
-            Func<TControl, System.Windows.Forms.Control, string, Image, TWrapper> ctrlHost,
-            Func<string, string, Image, TWrapper> comCtrlHost)
-        {
-            var title = "";
-
-            if (typeof(TControl).TryGetAttribute(out DisplayNameAttribute att))
-            {
-                title = att.DisplayName;
-            }
-
-            if (string.IsNullOrEmpty(title))
-            {
-                title = typeof(TControl).Name;
-            }
-
-            Image icon = null;
-
-            if (typeof(TControl).TryGetAttribute(out IconAttribute iconAtt))
-            {
-                icon = iconAtt.Icon;
-            }
-
-            if (icon == null)
-            {
-                icon = Defaults.Icon;
-            }
-
-            if (typeof(System.Windows.Forms.Control).IsAssignableFrom(typeof(TControl)))
-            {
-                if (typeof(System.Windows.Forms.UserControl).IsAssignableFrom(typeof(TControl)) && typeof(TControl).IsComVisible())
-                {
-                    return comCtrlHost.Invoke(typeof(TControl).GetProgId(), title, icon);
-                }
-                else 
-                {
-                    var winCtrl = (System.Windows.Forms.Control)Activator.CreateInstance(typeof(TControl));
-                    return ctrlHost.Invoke((TControl)(object)winCtrl, winCtrl, title, icon);
-                }
-            }
-            else if (typeof(System.Windows.UIElement).IsAssignableFrom(typeof(TControl)))
-            {
-                var wpfCtrl = (TControl)Activator.CreateInstance(typeof(TControl));
-                var host = new System.Windows.Forms.Integration.ElementHost();
-                host.Child = (System.Windows.UIElement)(object)wpfCtrl;
-
-                return ctrlHost.Invoke( wpfCtrl, host, title, icon);
-            }
-            else
-            {
-                throw new NotSupportedException($"Only {typeof(System.Windows.Forms.Control).FullName} or {typeof(System.Windows.UIElement).FullName} are supported");
             }
         }
 #endif
