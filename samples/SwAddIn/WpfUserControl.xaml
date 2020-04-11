@@ -6,7 +6,12 @@
              xmlns:local="clr-namespace:SwAddInExample"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
-    <Grid>
-        <TextBlock FontSize="25" VerticalAlignment="Center" HorizontalAlignment="Center" Text="Hello World"/>
+    <Grid VerticalAlignment="Center" HorizontalAlignment="Center">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <TextBlock FontSize="25" Text="Hello World" Margin="2"/>
+        <TextBox Grid.Row="1" Margin="2" Text="{Binding Path=Value, UpdateSourceTrigger=PropertyChanged}"/>
     </Grid>
 </UserControl>

@@ -75,11 +75,11 @@ namespace SwAddInExample
                 {
                     var xmlSer = new XmlSerializer(typeof(RevData));
                     m_RevData = xmlSer.Deserialize(stream) as RevData;
-                    m_App.ShowMessageBox($"Revision data of {doc.Title}: {m_RevData.Revision} - {m_RevData.RevisionStamp}");
+                    //m_App.ShowMessageBox($"Revision data of {doc.Title}: {m_RevData.Revision} - {m_RevData.RevisionStamp}");
                 }
                 else
                 {
-                    m_App.ShowMessageBox($"No revision data stored in {doc.Title}");
+                    //m_App.ShowMessageBox($"No revision data stored in {doc.Title}");
                 }
             }
         }
@@ -108,11 +108,11 @@ namespace SwAddInExample
 
                                         var timeStamp = Encoding.UTF8.GetString(buffer);
 
-                                        m_App.ShowMessageBox($"Metadata stamp in {subStreamName} of {doc.Title}: {timeStamp}");
+                                        //m_App.ShowMessageBox($"Metadata stamp in {subStreamName} of {doc.Title}: {timeStamp}");
                                     }
                                     else
                                     {
-                                        m_App.ShowMessageBox($"No metadata stamp stream in {doc.Title}");
+                                        //m_App.ShowMessageBox($"No metadata stamp stream in {doc.Title}");
                                     }
                                 }
                             }
@@ -121,7 +121,7 @@ namespace SwAddInExample
                 }
                 else
                 {
-                    m_App.ShowMessageBox($"No metadata storage in {doc.Title}");
+                    //m_App.ShowMessageBox($"No metadata storage in {doc.Title}");
                 }
             }
         }

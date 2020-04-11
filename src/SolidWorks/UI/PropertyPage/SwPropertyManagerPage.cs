@@ -86,7 +86,6 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
         public void Show(TModel model)
         {
             Model = model;
-
             Logger.Log("Opening page");
 
             const int OPTS_DEFAULT = 0;
