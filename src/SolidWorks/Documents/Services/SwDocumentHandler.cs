@@ -22,10 +22,14 @@ namespace Xarial.XCad.SolidWorks.Documents.Services
         protected ISldWorks Application { get; private set; }
         protected IModelDoc2 Model { get; private set; }
 
+        protected SwDocument Document { get; private set; }
+
         public void Init(IXApplication app, IXDocument model)
         {
+            Document = (SwDocument)model;
+
             Application = ((SwApplication)app).Sw;
-            Model = ((SwDocument)model).Model;
+            Model = Document.Model;
 
             switch (Model)
             {
@@ -89,6 +93,12 @@ namespace Xarial.XCad.SolidWorks.Documents.Services
                 default:
                     throw new NotSupportedException("Not a SOLIDWORKS document");
             }
+
+            Dispose(true);
+        }
+
+        protected virtual void Dispose(bool disposing) 
+        {
         }
     }
 }
