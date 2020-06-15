@@ -19,7 +19,7 @@ namespace Xarial.XCad.Toolkit.Windows
         [DllImport("ole32.dll")]
         private static extern int CreateBindCtx(uint reserved, out IBindCtx ppbc);
 
-        public static TComObj GetComObjectByMonikerName<TComObj>(string monikerName)
+        public static TComObj TryGetComObjectByMonikerName<TComObj>(string monikerName)
         {
             IBindCtx context = null;
             IRunningObjectTable rot = null;

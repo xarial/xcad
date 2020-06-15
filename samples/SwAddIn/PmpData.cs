@@ -18,6 +18,7 @@ using System;
 using Xarial.XCad;
 using Xarial.XCad.SolidWorks.UI.PropertyPage.Services;
 using Xarial.XCad.SolidWorks.Documents;
+using System.Collections.ObjectModel;
 
 namespace SwAddInExample
 {
@@ -30,6 +31,13 @@ namespace SwAddInExample
 
     public class CustomControlDataContext 
     {
+        public string Value { get; set; }
+        public ObservableCollection<Item> Items { get; set; } = new ObservableCollection<Item>();
+    }
+
+    public class Item 
+    {
+        public string Name { get; set; }
         public string Value { get; set; }
     }
 
@@ -81,6 +89,7 @@ namespace SwAddInExample
     public class PmpData : SwPropertyManagerPageHandler
     {
         [CustomControl(typeof(WpfUserControl))]
+        [ControlOptions(height: 200)]
         public CustomControlDataContext CustomControl { get; set; } = new CustomControlDataContext();
 
         public List<SwComponent> Components { get; set; }

@@ -10,8 +10,10 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
             <RowDefinition Height="*"/>
+            <RowDefinition Height="100"/>
         </Grid.RowDefinitions>
         <TextBlock FontSize="25" Text="Hello World" Margin="2"/>
         <TextBox Grid.Row="1" Margin="2" Text="{Binding Path=Value, UpdateSourceTrigger=PropertyChanged}"/>
+        <DataGrid Grid.Row="2" Margin="2" ItemsSource="{Binding Path=Items}" CanUserAddRows="True" AutoGenerateColumns="True"/>
     </Grid>
 </UserControl>

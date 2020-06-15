@@ -3,6 +3,7 @@ using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -44,17 +45,27 @@ namespace SolidWorks.Tests.Integration
 
         private List<IDisposable> m_Disposables;
 
+        private bool m_CloseSw;
+
         [SetUp]
         public void Setup()
         {
-            var prcId = SW_PRC_ID;
-
-            if (prcId <= 0) 
+            if (SW_PRC_ID < 0)
             {
-                prcId = System.Diagnostics.Process.GetProcessesByName("SLDWORKS").First().Id;
+                m_App = SwApplication.Start(null, "/b").Result;
+                m_CloseSw = true;
+            }
+            else if (SW_PRC_ID == 0) 
+            {
+                var prc = Process.GetProcessesByName("SLDWORKS").First();
+                m_App = SwApplication.FromProcess(prc);
+            }
+            else
+            {
+                var prc = Process.GetProcessById(SW_PRC_ID);
+                prc = Process.GetProcessById(SW_PRC_ID);
             }
 
-            m_App = SwApplication.FromProcess(prcId);
             m_SwApp = m_App.Sw;
             m_Disposables = new List<IDisposable>();
         }
@@ -133,6 +144,12 @@ namespace SolidWorks.Tests.Integration
                 catch 
                 {
                 }
+            }
+
+            if (m_CloseSw) 
+            {
+                m_App.Close();
+                m_App.Dispose();
             }
         }
     }
