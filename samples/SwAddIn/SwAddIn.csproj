@@ -33,6 +33,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
     <Reference Include="SolidWorks.Interop.sldworks, Version=27.1.0.72, Culture=neutral, PublicKeyToken=7c4797c3e4eeac03, processorArchitecture=MSIL">
       <HintPath>..\..\packages\Xarial.XCad.SolidWorks.Interops.0.2.0\lib\net40\SolidWorks.Interop.sldworks.dll</HintPath>
       <EmbedInteropTypes>False</EmbedInteropTypes>
@@ -50,6 +51,8 @@
     <Reference Include="System.Drawing" />
     <Reference Include="System.Numerics" />
     <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xaml" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -60,6 +63,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BoxMacroFeatureEditor.cs" />
+    <Compile Include="ComUserControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="ComUserControl.Designer.cs">
+      <DependentUpon>ComUserControl.cs</DependentUpon>
+    </Compile>
     <Compile Include="PmpData.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -70,11 +79,38 @@
     <Compile Include="SwAddInSample.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SwDocHandler.cs" />
+    <Compile Include="WinForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="WinForm.Designer.cs">
+      <DependentUpon>WinForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="WinUserControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="WinUserControl.Designer.cs">
+      <DependentUpon>WinUserControl.cs</DependentUpon>
+    </Compile>
+    <Compile Include="WpfUserControl.xaml.cs">
+      <DependentUpon>WpfUserControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="WpfWindow.xaml.cs">
+      <DependentUpon>WpfWindow.xaml</DependentUpon>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="ComUserControl.resx">
+      <DependentUpon>ComUserControl.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Include="WinForm.resx">
+      <DependentUpon>WinForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="WinUserControl.resx">
+      <DependentUpon>WinUserControl.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
@@ -94,6 +130,16 @@
       <Project>{8edff821-4d1b-4ac1-bd32-5da87e693f46}</Project>
       <Name>Toolkit</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Include="WpfUserControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="WpfWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

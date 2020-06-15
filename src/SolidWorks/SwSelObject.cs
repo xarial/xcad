@@ -8,12 +8,16 @@
 using SolidWorks.Interop.sldworks;
 using System;
 using System.Runtime.InteropServices;
+using Xarial.XCad.SolidWorks.Documents;
 
 namespace Xarial.XCad.SolidWorks
 {
     /// <inheritdoc/>
     public class SwSelObject : SwObject, IXSelObject
     {
+        public static new SwSelObject FromDispatch(object disp, SwDocument doc)
+            => (SwSelObject)SwSelObject.FromDispatch(disp, doc, o => new SwSelObject(doc.Model, o));
+        
         protected readonly IModelDoc2 m_ModelDoc;
 
         internal SwSelObject(object disp) : this(null, disp)

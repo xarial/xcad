@@ -9,11 +9,14 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Xarial.XCad.Base;
+using Xarial.XCad.Documents.Delegates;
 
 namespace Xarial.XCad.Documents
 {
     public interface IXSelectionRepository : IXRepository<IXSelObject>
     {
+        event NewSelectionDelegate NewSelection;
+        event ClearSelectionDelegate ClearSelection;
         void Clear();
     }
 }

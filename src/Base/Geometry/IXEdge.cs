@@ -19,4 +19,10 @@ namespace Xarial.XCad.Geometry
         Vector Axis { get; }
         double Radius { get; }
     }
+
+    public interface IXLinearEdge : IXEdge
+    {
+        Point RootPoint { get; }
+        Vector Direction { get; }
+    }
 }

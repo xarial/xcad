@@ -48,7 +48,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             {
                 if (m_Application == null)
                 {
-                    m_Application = SwApplication.FromProcess(Process.GetCurrentProcess().Id);
+                    m_Application = SwApplication.FromProcess(Process.GetCurrentProcess());
                 }
 
                 return m_Application;

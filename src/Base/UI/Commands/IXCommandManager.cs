@@ -6,6 +6,7 @@
 //*********************************************************************
 
 using System.Collections.Generic;
+using Xarial.XCad.Base.Enums;
 using Xarial.XCad.UI.Commands.Structures;
 
 namespace Xarial.XCad.UI.Commands
@@ -15,5 +16,6 @@ namespace Xarial.XCad.UI.Commands
         IEnumerable<IXCommandGroup> CommandGroups { get; }
 
         IXCommandGroup AddCommandGroup(CommandGroupSpec cmdBar);
+        IXCommandGroup AddContextMenu(CommandGroupSpec cmdBar, SelectType_e owner);
     }
 }

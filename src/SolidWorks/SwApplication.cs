@@ -8,6 +8,7 @@
 using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
 using System;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
@@ -18,92 +19,165 @@ using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Enums;
 using Xarial.XCad.SolidWorks.Geometry;
 using Xarial.XCad.SolidWorks.Utils;
+using Xarial.XCad.Toolkit.Windows;
 using Xarial.XCad.Utils.Diagnostics;
+using System.Threading.Tasks;
+using System.Diagnostics;
+using System.Threading;
+using Xarial.XCad.SolidWorks.Exceptions;
 
 namespace Xarial.XCad.SolidWorks
 {
     /// <inheritdoc/>
     public class SwApplication : IXApplication, IDisposable
     {
-        [DllImport("ole32.dll")]
-        private static extern int CreateBindCtx(uint reserved, out IBindCtx ppbc);
-
         public static SwApplication FromPointer(ISldWorks app)
         {
             return new SwApplication(app, new TraceLogger("xCAD"));
         }
 
-        public static SwApplication FromProcess(int processId)
+        public static SwApplication FromProcess(Process process)
         {
-            var monikerName = "SolidWorks_PID_" + processId.ToString();
+            var app = RotHelper.TryGetComObjectByMonikerName<ISldWorks>(GetMonikerName(process));
 
-            IBindCtx context = null;
-            IRunningObjectTable rot = null;
-            IEnumMoniker monikers = null;
+            if (app != null)
+            {
+                return FromPointer(app);
+            }
+            else
+            {
+                throw new Exception($"Cannot access SOLIDWORKS application at process {process.Id}");
+            }
+        }
+
+        private static string GetMonikerName(Process process) => $"SolidWorks_PID_{process.Id}";
+
+        ///<inheritdoc cref="Start(SwVersion_e?, string, CancellationToken?)"/>
+        ///<remarks>Default timeout is 5 minutes. Use different overload of this method to specify custom cancellation token</remarks>
+        public static Task<SwApplication> Start(SwVersion_e? vers = null,
+            string args = "")
+        {
+            return Start(vers, args, new CancellationTokenSource(TimeSpan.FromMinutes(5)).Token);
+        }
+
+        /// <summary>
+        /// Starts new instance of the SOLIDWORKS application
+        /// </summary>
+        /// <param name="vers">Version of SOLIDWORKS to start or null for the latest version</param>
+        /// <param name="cancellationToken">Cancellation token</param>
+        /// <returns>Instance of application</returns>
+        public static async Task<SwApplication> Start(SwVersion_e? vers, 
+            string args, CancellationToken? cancellationToken = null)
+        {
+            var swPath = FindSwAppPath(vers);
+
+            var prc = Process.Start(swPath, args);
 
             try
             {
-                CreateBindCtx(0, out context);
+                ISldWorks app = null;
 
-                context.GetRunningObjectTable(out rot);
-                rot.EnumRunning(out monikers);
-
-                var moniker = new IMoniker[1];
-
-                while (monikers.Next(1, moniker, IntPtr.Zero) == 0)
+                do
                 {
-                    var curMoniker = moniker.First();
-
-                    string name = null;
-
-                    if (curMoniker != null)
+                    if (cancellationToken.HasValue)
                     {
-                        try
+                        if (cancellationToken.Value.IsCancellationRequested)
                         {
-                            curMoniker.GetDisplayName(context, null, out name);
-                        }
-                        catch (UnauthorizedAccessException)
-                        {
+                            throw new AppStartCancelledByUserException();
                         }
                     }
 
-                    if (string.Equals(monikerName,
-                        name, StringComparison.CurrentCultureIgnoreCase))
-                    {
-                        object app;
-                        rot.GetObject(curMoniker, out app);
-                        return FromPointer(app as ISldWorks);
-                    }
+                    app = RotHelper.TryGetComObjectByMonikerName<ISldWorks>(GetMonikerName(prc));
+                    await Task.Delay(100);
                 }
+                while (app == null);
+
+                return FromPointer(app);
             }
-            finally
+            catch 
             {
-                if (monikers != null)
+                if (prc != null)
                 {
-                    Marshal.ReleaseComObject(monikers);
+                    try
+                    {
+                        prc.Kill();
+                    }
+                    catch
+                    {
+                    }
                 }
 
-                if (rot != null)
-                {
-                    Marshal.ReleaseComObject(rot);
-                }
+                throw;
+            }
+        }
 
-                if (context != null)
+        private static string FindSwAppPath(SwVersion_e? vers)
+        {
+            const string PROG_ID_TEMPLATE = "SldWorks.Application.{0}";
+
+            Microsoft.Win32.RegistryKey swAppRegKey = null;
+
+            if (vers.HasValue)
+            {
+                var progId = string.Format(PROG_ID_TEMPLATE, (int)vers);
+                swAppRegKey = Microsoft.Win32.Registry.ClassesRoot.OpenSubKey(progId);
+            }
+            else
+            {
+                foreach (var versCand in Enum.GetValues(typeof(SwVersion_e)).Cast<int>().OrderByDescending(x => x))
                 {
-                    Marshal.ReleaseComObject(context);
+                    var progId = string.Format(PROG_ID_TEMPLATE, versCand);
+                    swAppRegKey = Microsoft.Win32.Registry.ClassesRoot.OpenSubKey(progId);
+
+                    if (swAppRegKey != null) 
+                    {
+                        break;
+                    }
                 }
             }
 
-            return null;
+            if (swAppRegKey != null)
+            {
+                var clsidKey = swAppRegKey.OpenSubKey("CLSID", false);
+
+                if (clsidKey == null)
+                {
+                    throw new NullReferenceException($"Incorrect registry value, CLSID is missing");
+                }
+
+                var clsid = (string)clsidKey.GetValue("");
+
+                var localServerKey = Microsoft.Win32.Registry.ClassesRoot.OpenSubKey(
+                    $"CLSID\\{clsid}\\LocalServer32", false);
+
+                if (clsid == null)
+                {
+                    throw new NullReferenceException($"Incorrect registry value, LocalServer32 is missing");
+                }
+
+                var swAppPath = (string)localServerKey.GetValue("");
+
+                if (!File.Exists(swAppPath))
+                {
+                    throw new FileNotFoundException($"Path to SOLIDWORKS executable does not exist: {swAppPath}");
+                }
+
+                return swAppPath;
+            }
+            else
+            {
+                throw new NullReferenceException("Failed to find the information about the installed SOLIDWORKS applications in the registry");
+            }
         }
 
         IXDocumentCollection IXApplication.Documents => Documents;
         IXGeometryBuilder IXApplication.GeometryBuilder => GeometryBuilder;
+        IXMacro IXApplication.OpenMacro(string path) => OpenMacro(path);
 
         public ISldWorks Sw { get; private set; }
 
         public SwDocumentCollection Documents { get; private set; }
-        
+
         public SwGeometryBuilder GeometryBuilder { get; private set; }
 
         internal SwApplication(ISldWorks app, ILogger logger)
@@ -118,7 +192,7 @@ namespace Xarial.XCad.SolidWorks
             swMessageBoxBtn_e swBtn = 0;
             swMessageBoxIcon_e swIcon = 0;
 
-            switch (icon) 
+            switch (icon)
             {
                 case MessageBoxIcon_e.Info:
                     swIcon = swMessageBoxIcon_e.swMbInformation;
@@ -137,7 +211,7 @@ namespace Xarial.XCad.SolidWorks
                     break;
             }
 
-            switch (buttons) 
+            switch (buttons)
             {
                 case MessageBoxButtons_e.Ok:
                     swBtn = swMessageBoxBtn_e.swMbOk;
@@ -158,7 +232,7 @@ namespace Xarial.XCad.SolidWorks
 
             var swRes = (swMessageBoxResult_e)Sw.SendMsgToUser2(msg, (int)swIcon, (int)swBtn);
 
-            switch (swRes) 
+            switch (swRes)
             {
                 case swMessageBoxResult_e.swMbHitOk:
                     return MessageBoxResult_e.Ok;
@@ -177,6 +251,28 @@ namespace Xarial.XCad.SolidWorks
             }
         }
 
+        public SwMacro OpenMacro(string path)
+        {
+            const string VSTA_FILE_EXT = ".dll";
+            const string VBA_FILE_EXT = ".swp";
+            const string BASIC_EXT = ".swb";
+
+            var ext = Path.GetExtension(path);
+
+            switch (ext.ToLower()) 
+            {
+                case VSTA_FILE_EXT:
+                    return new SwVstaMacro(Sw, path);
+
+                case VBA_FILE_EXT:
+                case BASIC_EXT:
+                    return new SwVbaMacro(Sw, path);
+
+                default:
+                    throw new NotSupportedException("Specified file is not a SOLIDWORKS macro");
+            }
+        }
+
         public void Dispose()
         {
             if (Sw != null)
@@ -188,6 +284,11 @@ namespace Xarial.XCad.SolidWorks
             }
 
             Sw = null;
+        }
+
+        public void Close()
+        {
+            Sw.ExitApp();
         }
     }
 

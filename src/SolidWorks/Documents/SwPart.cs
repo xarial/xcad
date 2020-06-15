@@ -18,7 +18,7 @@ namespace Xarial.XCad.SolidWorks.Documents
     {
         public IPartDoc Part { get; }
 
-        internal SwPart(IPartDoc part, ISldWorks app, ILogger logger)
+        internal SwPart(IPartDoc part, SwApplication app, ILogger logger)
             : base((IModelDoc2)part, app, logger)
         {
             Part = part;

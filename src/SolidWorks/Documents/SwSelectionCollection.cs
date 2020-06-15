@@ -13,20 +13,55 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using Xarial.XCad.Documents;
+using Xarial.XCad.Documents.Delegates;
+using Xarial.XCad.SolidWorks.Documents.EventHandlers;
 
 namespace Xarial.XCad.SolidWorks.Documents
 {
-    public class SwSelectionCollection : IXSelectionRepository
+    public class SwSelectionCollection : IXSelectionRepository, IDisposable
     {
+        private readonly SwDocument m_Doc;
         private readonly IModelDoc2 m_Model;
         private readonly ISelectionMgr m_SelMgr;
 
-        public int Count => m_SelMgr.GetSelectedObjectCount2(-1);
-        
-        internal SwSelectionCollection(IModelDoc2 model) 
+        private readonly NewSelectionEventHandler m_NewSelectionEventHandler;
+        private readonly ClearSelectionEventHandler m_ClearSelectionEventHandler;
+
+        public event NewSelectionDelegate NewSelection 
         {
-            m_Model = model;
+            add 
+            {
+                m_NewSelectionEventHandler.Attach(value);
+            }
+            remove 
+            {
+                m_NewSelectionEventHandler.Detach(value);
+            }
+        }
+
+        public event ClearSelectionDelegate ClearSelection
+        {
+            add
+            {
+                m_ClearSelectionEventHandler.Attach(value);
+            }
+            remove
+            {
+                m_ClearSelectionEventHandler.Detach(value);
+            }
+        }
+
+        public int Count => m_SelMgr.GetSelectedObjectCount2(-1);
+
+        public IXSelObject this[string name] => throw new NotSupportedException();
+
+        internal SwSelectionCollection(SwDocument doc) 
+        {
+            m_Doc = doc;
+            m_Model = m_Doc.Model;
             m_SelMgr = m_Model.ISelectionManager;
+            m_NewSelectionEventHandler = new NewSelectionEventHandler(doc);
+            m_ClearSelectionEventHandler = new ClearSelectionEventHandler(doc);
         }
 
         public void AddRange(IEnumerable<IXSelObject> ents)
@@ -53,7 +88,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public IEnumerator<IXSelObject> GetEnumerator()
         {
-            return new SwSelObjectEnumerator(m_SelMgr);
+            return new SwSelObjectEnumerator(m_Doc, m_SelMgr);
         }
 
         public void RemoveRange(IEnumerable<IXSelObject> ents)
@@ -63,21 +98,29 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+        public void Dispose()
+        {
+            m_NewSelectionEventHandler.Dispose();
+            m_ClearSelectionEventHandler.Dispose();
+        }
     }
 
     internal class SwSelObjectEnumerator : IEnumerator<IXSelObject>
     {
-        public IXSelObject Current => (SwSelObject)SwObject.FromDispatch(m_SelMgr.GetSelectedObject6(m_CurSelIndex, -1));
+        public IXSelObject Current => SwSelObject.FromDispatch(m_SelMgr.GetSelectedObject6(m_CurSelIndex, -1), m_Doc);
 
         object IEnumerator.Current => Current;
 
         private int m_CurSelIndex;
 
+        private readonly SwDocument m_Doc;
         private readonly ISelectionMgr m_SelMgr;
 
-        internal SwSelObjectEnumerator(ISelectionMgr selMgr) 
+        internal SwSelObjectEnumerator(SwDocument doc, ISelectionMgr selMgr) 
         {
             m_CurSelIndex = 0;
+            m_Doc = doc;
             m_SelMgr = selMgr;
         }
 

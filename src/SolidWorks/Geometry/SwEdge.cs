@@ -17,7 +17,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
     {
         public IEdge Edge { get; }
 
-        public override SwBody Body => (SwBody)FromDispatch(Edge.GetBody());
+        public override SwBody Body => FromDispatch<SwBody>(Edge.GetBody());
 
         public override IEnumerable<SwEntity> AdjacentEntities 
         {
@@ -25,13 +25,13 @@ namespace Xarial.XCad.SolidWorks.Geometry
             {
                 foreach (IFace2 face in (Edge.GetTwoAdjacentFaces2() as object[]).ValueOrEmpty()) 
                 {
-                    yield return (SwFace)FromDispatch(face);
+                    yield return FromDispatch<SwFace>(face);
                 }
 
                 foreach (ICoEdge coEdge in (Edge.GetCoEdges() as ICoEdge[]).ValueOrEmpty())
                 {
                     var edge = coEdge.GetEdge() as IEdge;
-                    yield return (SwEdge)FromDispatch(edge);
+                    yield return FromDispatch<SwEdge>(edge);
                 }
 
                 //TODO: implement vertices
@@ -77,6 +77,41 @@ namespace Xarial.XCad.SolidWorks.Geometry
             get
             {
                 return Edge.IGetCurve().CircleParams as double[];
+            }
+        }
+    }
+
+    public class SwLinearEdge : SwEdge, IXLinearEdge
+    {
+        internal SwLinearEdge(IEdge edge) : base(edge)
+        {
+        }
+
+        public Point RootPoint
+        {
+            get
+            {
+                var lineParams = LineParams;
+
+                return new Point(lineParams[0], lineParams[1], lineParams[2]);
+            }
+        }
+
+        public Vector Direction
+        {
+            get
+            {
+                var lineParams = LineParams;
+
+                return new Vector(lineParams[3], lineParams[4], lineParams[5]);
+            }
+        }
+
+        private double[] LineParams
+        {
+            get
+            {
+                return (double[])Edge.IGetCurve().LineParams;
             }
         }
     }

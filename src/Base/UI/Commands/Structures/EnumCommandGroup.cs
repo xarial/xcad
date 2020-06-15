@@ -20,11 +20,10 @@ namespace Xarial.XCad.UI.Commands.Structures
         new event CommandEnumStateDelegate<TCmdEnum> CommandStateResolve;
     }
 
-    internal class EnumCommandGroup<TCmdEnum> : IEnumCommandGroup<TCmdEnum>
+    internal class EnumCommandGroup<TCmdEnum> : IEnumCommandGroup<TCmdEnum>, IDisposable
                 where TCmdEnum : Enum
     {
-        [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
-        public event CommandClickDelegate CommandClick
+        event CommandClickDelegate IXCommandGroup.CommandClick
         {
             add
             {
@@ -48,8 +47,7 @@ namespace Xarial.XCad.UI.Commands.Structures
             }
         }
 
-        [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
-        public event CommandStateDelegate CommandStateResolve
+        event CommandStateDelegate IXCommandGroup.CommandStateResolve
         {
             add
             {
@@ -83,8 +81,8 @@ namespace Xarial.XCad.UI.Commands.Structures
         {
             m_CmdBar = cmdBar;
 
-            CommandClick += OnCommandClick;
-            CommandStateResolve += OnCommandStateResolve;
+            m_CmdBar.CommandClick += OnCommandClick;
+            m_CmdBar.CommandStateResolve += OnCommandStateResolve;
         }
 
         private void OnCommandClick(CommandSpec spec)
@@ -100,6 +98,17 @@ namespace Xarial.XCad.UI.Commands.Structures
             if (spec is EnumCommandSpec<TCmdEnum>)
             {
                 m_CommandState?.Invoke((spec as EnumCommandSpec<TCmdEnum>).Value, ref state);
+            }
+        }
+
+        public void Dispose()
+        {
+            m_CmdBar.CommandClick -= OnCommandClick;
+            m_CmdBar.CommandStateResolve -= OnCommandStateResolve;
+
+            if (m_CmdBar is IDisposable) 
+            {
+                (m_CmdBar as IDisposable).Dispose();
             }
         }
     }

@@ -16,10 +16,14 @@ namespace Xarial.XCad.SolidWorks.Documents
     {
         public IAssemblyDoc Assembly { get; }
 
-        internal SwAssembly(IAssemblyDoc assembly, ISldWorks app, ILogger logger)
+        public IXComponentRepository Components { get; }
+
+        internal SwAssembly(IAssemblyDoc assembly, SwApplication app, ILogger logger)
             : base((IModelDoc2)assembly, app, logger)
         {
             Assembly = assembly;
+            Components = new SwComponentCollection(this, 
+                (Assembly as IModelDoc2).ConfigurationManager.ActiveConfiguration.GetRootComponent3(true));
         }
 
         public override Box3D CalculateBoundingBox()

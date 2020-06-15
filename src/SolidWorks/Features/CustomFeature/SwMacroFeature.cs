@@ -28,7 +28,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 {
     public class SwMacroFeature : SwFeature, IXCustomFeature
     {
-        protected readonly SwDocument m_Model;
+        protected readonly SwDocument m_Doc;
 
         private IMacroFeatureData m_FeatData;
 
@@ -38,15 +38,18 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 
         private readonly IFeatureManager m_FeatMgr;
 
-        internal SwMacroFeature(SwDocument model, IFeatureManager featMgr, IFeature feat, bool created)
-            : base(feat, created)
+        internal SwDocument Document => m_Doc;
+
+        internal SwMacroFeature(SwDocument doc, IFeatureManager featMgr, IFeature feat, bool created)
+            : base(doc, feat, created)
         {
-            m_Model = model;
+            m_Doc = doc;
             m_FeatMgr = featMgr;
         }
 
         //TODO: check constant context disconnection exception
-        public IXConfiguration Configuration => new SwConfiguration((Feature.GetDefinition() as IMacroFeatureData).CurrentConfiguration);
+        public IXConfiguration Configuration 
+            => SwObject.FromDispatch<SwConfiguration>((Feature.GetDefinition() as IMacroFeatureData).CurrentConfiguration, m_Doc);
 
         public SwMacroFeature<TParams> ToParameters<TParams>()
             where TParams : class, new()
@@ -57,7 +60,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         internal SwMacroFeature<TParams> ToParameters<TParams>(MacroFeatureParametersParser paramsParser)
             where TParams : class, new()
         {
-            return new SwMacroFeature<TParams>(m_Model, m_FeatMgr, Feature, paramsParser, IsCreated);
+            return new SwMacroFeature<TParams>(m_Doc, m_FeatMgr, Feature, paramsParser, IsCreated);
         }
 
         protected override IFeature CreateFeature()
@@ -140,9 +143,9 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             {
                 if (IsCreated)
                 {
-                    if (FeatureData.AccessSelections(m_Model.Model, null))
+                    if (FeatureData.AccessSelections(m_Doc.Model, null))
                     {
-                        return (TParams)m_ParamsParser.GetParameters(this, m_Model, typeof(TParams),
+                        return (TParams)m_ParamsParser.GetParameters(this, m_Doc, typeof(TParams),
                             out IXDimension[] _, out string[] _, out IXBody[] _, out IXSelObject[] sels, out CustomFeatureOutdateState_e _);
                     }
                     else
@@ -165,9 +168,9 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
                     }
                     else
                     {
-                        m_ParamsParser.SetParameters(m_Model, this, value, out CustomFeatureOutdateState_e _);
+                        m_ParamsParser.SetParameters(m_Doc, this, value, out CustomFeatureOutdateState_e _);
 
-                        if (!Feature.ModifyDefinition(FeatureData, m_Model.Model, null))
+                        if (!Feature.ModifyDefinition(FeatureData, m_Doc.Model, null))
                         {
                             throw new Exception("Failed to update parameters");
                         }

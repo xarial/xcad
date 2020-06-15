@@ -32,7 +32,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
             {
                 foreach (IEdge edge in (Face.GetEdges() as object[]).ValueOrEmpty())
                 {
-                    yield return (SwEdge)FromDispatch(edge);
+                    yield return FromDispatch<SwEdge>(edge);
                 }
             }
         }

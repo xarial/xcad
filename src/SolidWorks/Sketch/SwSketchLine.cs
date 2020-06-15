@@ -6,6 +6,7 @@
 //*********************************************************************
 
 using SolidWorks.Interop.sldworks;
+using System;
 using Xarial.XCad.Sketch;
 
 namespace Xarial.XCad.SolidWorks.Sketch
@@ -20,6 +21,11 @@ namespace Xarial.XCad.SolidWorks.Sketch
 
         public SwSketchLine(IModelDoc2 model, ISketchLine ent, bool created) : base(model, ent, created)
         {
+            if (model == null)
+            {
+                throw new ArgumentNullException(nameof(model));
+            }
+
             m_StartPoint = new SwSketchPoint(model, ent?.IGetStartPoint2(), created);
             m_EndPoint = new SwSketchPoint(model, ent?.IGetEndPoint2(), created);
         }

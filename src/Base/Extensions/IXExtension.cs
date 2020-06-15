@@ -5,11 +5,10 @@
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
-using System;
-using Xarial.XCad.Features.CustomFeature;
-using Xarial.XCad.Features.CustomFeature.Delegates;
+using Xarial.XCad.UI;
 using Xarial.XCad.UI.Commands;
 using Xarial.XCad.UI.PropertyPage;
+using Xarial.XCad.UI.TaskPane;
 
 namespace Xarial.XCad.Extensions
 {
@@ -35,5 +34,9 @@ namespace Xarial.XCad.Extensions
         /// <typeparam name="TData">Type defining the data model of the property page</typeparam>
         /// <returns>Instance of the proeprty page</returns>
         IXPropertyPage<TData> CreatePage<TData>();
+
+        IXCustomPanel<TControl> CreateDocumentTab<TControl>(Documents.IXDocument doc);
+        IXPopupWindow<TWindow> CreatePopupWindow<TWindow>();
+        IXTaskPane<TControl> CreateTaskPane<TControl>(TaskPaneSpec spec);
     }
 }

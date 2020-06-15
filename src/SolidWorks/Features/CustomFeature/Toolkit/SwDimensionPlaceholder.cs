@@ -16,7 +16,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature.Toolkit
     /// </summary>
     internal class SwDimensionPlaceholder : SwDimension
     {
-        internal SwDimensionPlaceholder() : base(null)
+        internal SwDimensionPlaceholder() : base(null, null)
         {            
         }
 

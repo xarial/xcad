@@ -36,9 +36,12 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
     {
         private readonly ILogger m_Logger;
 
-        public PropertyManagerPageSelectionBoxControlConstructor(ISldWorks app, IconsConverter iconsConv, ILogger logger)
-            : base(app, swPropertyManagerPageControlType_e.swControlType_Selectionbox, iconsConv)
+        private readonly SwApplication m_SwApp;
+
+        public PropertyManagerPageSelectionBoxControlConstructor(SwApplication app, IconsConverter iconsConv, ILogger logger)
+            : base(app.Sw, swPropertyManagerPageControlType_e.swControlType_Selectionbox, iconsConv)
         {
+            m_SwApp = app;
             m_Logger = logger;
         }
 
@@ -97,7 +100,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
 
             swCtrl.SetSelectionFilters(filters);
 
-            return new PropertyManagerPageSelectionBoxControl(m_App, atts.Id, atts.Tag,
+            return new PropertyManagerPageSelectionBoxControl(m_SwApp, atts.Id, atts.Tag,
                 swCtrl, handler, atts.BoundType, customFilter);
         }
 

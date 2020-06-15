@@ -10,19 +10,46 @@ using SolidWorks.Interop.swconst;
 using System;
 using System.Runtime.InteropServices;
 using Xarial.XCad.Annotations;
+using Xarial.XCad.Annotations.Delegates;
+using Xarial.XCad.SolidWorks.Annotations.EventHandlers;
+using Xarial.XCad.Toolkit.Services;
 
 namespace Xarial.XCad.SolidWorks.Annotations
 {
     public class SwDimension : SwSelObject, IXDimension, IDisposable
     {
         private IDimension m_Dimension;
+        
+        private SwDimensionChangeEventsHandler m_ValueChangedHandler;
+
+        public event DimensionValueChangedDelegate ValueChanged 
+        {
+            add 
+            {
+                m_ValueChangedHandler.Attach(value);
+            }
+            remove
+            {
+                m_ValueChangedHandler.Detach(value);
+            }
+        }
+
         public IDimension Dimension => m_Dimension ?? (m_Dimension = DisplayDimension.GetDimension2(0));
         public IDisplayDimension DisplayDimension { get; private set; }
 
-        internal SwDimension(IDisplayDimension dispDim)
+        public string Name => Dimension.FullName;
+
+        internal SwDimension(IModelDoc2 model, IDisplayDimension dispDim)
             : base(null, dispDim)
         {
+            if (model == null) 
+            {
+                throw new ArgumentNullException(nameof(model));
+            }
+
             DisplayDimension = dispDim;
+
+            m_ValueChangedHandler = new SwDimensionChangeEventsHandler(this, model);
         }
 
         public virtual double GetValue(string confName = "")
@@ -49,6 +76,8 @@ namespace Xarial.XCad.SolidWorks.Annotations
 
         public void Dispose()
         {
+            m_ValueChangedHandler.Dispose();
+
             Dispose(true);
 
             //NOTE: releasing the pointers as unreleased pointer might cause crash

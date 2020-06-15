@@ -19,6 +19,10 @@ namespace Xarial.XCad.SolidWorks.Sketch
 
         public SwSketchPoint(IModelDoc2 model, ISketchPoint ent, bool created) : base(model, ent, created)
         {
+            if (model == null)
+            {
+                throw new ArgumentNullException(nameof(model));
+            }
         }
 
         public Point Coordinate

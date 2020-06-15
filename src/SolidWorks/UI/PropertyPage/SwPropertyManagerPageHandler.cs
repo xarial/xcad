@@ -48,6 +48,8 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
 
         internal event Action WhatsNewRequested;
 
+        internal event Action<int, bool> CustomControlCreated;
+
         /// <inheritdoc/>
         internal event Action DataChanged;
 
@@ -83,6 +85,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
         [EditorBrowsable(EditorBrowsableState.Never)]
         public int OnActiveXControlCreated(int Id, bool Status)
         {
+            CustomControlCreated?.Invoke(Id, Status);
             return 0;
         }
 
@@ -333,6 +336,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
         [EditorBrowsable(EditorBrowsableState.Never)]
         public int OnWindowFromHandleControlCreated(int Id, bool Status)
         {
+            CustomControlCreated?.Invoke(Id, Status);
             return 0;
         }
     }

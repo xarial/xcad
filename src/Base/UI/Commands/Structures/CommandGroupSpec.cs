@@ -6,16 +6,13 @@
 //*********************************************************************
 
 using System.Drawing;
+using Xarial.XCad.UI.Structures;
 
 namespace Xarial.XCad.UI.Commands.Structures
 {
-    public class CommandGroupSpec
+    public class CommandGroupSpec : ButtonGroupSpec
     {
         public CommandGroupSpec Parent { get; set; }
-        public string Title { get; set; }
-        public string Tooltip { get; set; }
-        public Image Icon { get; set; }
-
         public int Id { get; set; }
         public CommandSpec[] Commands { get; set; }
     }

@@ -9,5 +9,6 @@ namespace Xarial.XCad.Features
 {
     public interface IXFeature : IXSelObject
     {
+        string Name { get; set; }
     }
 }

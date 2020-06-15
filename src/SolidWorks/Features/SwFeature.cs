@@ -7,8 +7,11 @@
 
 using SolidWorks.Interop.sldworks;
 using System;
+using System.Collections.Generic;
 using Xarial.XCad.Features;
 using Xarial.XCad.Services;
+using Xarial.XCad.SolidWorks.Annotations;
+using Xarial.XCad.SolidWorks.Documents;
 
 namespace Xarial.XCad.SolidWorks.Features
 {
@@ -32,8 +35,17 @@ namespace Xarial.XCad.SolidWorks.Features
             }
         }
 
-        internal SwFeature(IFeature feat, bool created) : base(feat)
+        private readonly SwDocument m_Doc;
+
+        internal SwFeature(SwDocument doc, IFeature feat, bool created) : base(feat)
         {
+            if (doc == null) 
+            {
+                throw new ArgumentNullException(nameof(doc));
+            }
+
+            m_Doc = doc;
+
             m_Creator = new ElementCreator<IFeature>(CreateFeature, feat, created);
         }
 
@@ -45,6 +57,26 @@ namespace Xarial.XCad.SolidWorks.Features
         protected virtual IFeature CreateFeature()
         {
             throw new NotSupportedException("Creation of this feature is not supported");
+        }
+
+        public IEnumerable<SwDimension> Dimensions 
+        {
+            get 
+            {
+                var dispDim = Feature.GetFirstDisplayDimension() as IDisplayDimension;
+
+                while (dispDim != null) 
+                {
+                    yield return FromDispatch<SwDimension>(dispDim, m_Doc);
+                    dispDim = Feature.GetNextDisplayDimension(dispDim) as IDisplayDimension;
+                }
+            }
+        }
+
+        public string Name 
+        {
+            get => Feature.Name;
+            set => Feature.Name = value;
         }
 
         public override void Select(bool append)

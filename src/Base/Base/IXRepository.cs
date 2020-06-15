@@ -13,6 +13,8 @@ namespace Xarial.XCad.Base
     {
         int Count { get; }
 
+        TEnt this[string name] { get; }
+
         void AddRange(IEnumerable<TEnt> ents);
 
         void RemoveRange(IEnumerable<TEnt> ents);

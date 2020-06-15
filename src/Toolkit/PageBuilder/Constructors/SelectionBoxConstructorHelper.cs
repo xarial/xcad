@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Xarial.XCad.Base.Enums;
+using Xarial.XCad.Documents;
 using Xarial.XCad.Features;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Sketch;
@@ -18,6 +19,7 @@ using Xarial.XCad.UI.PropertyPage.Base;
 using Xarial.XCad.UI.PropertyPage.Enums;
 using Xarial.XCad.UI.PropertyPage.Services;
 using Xarial.XCad.Utils.PageBuilder.Base;
+using Xarial.XCad.Utils.Reflection;
 
 namespace Xarial.XCad.Toolkit.PageBuilder.Constructors
 {
@@ -56,6 +58,11 @@ namespace Xarial.XCad.Toolkit.PageBuilder.Constructors
 
             var type = atts.BoundType;
 
+            if (type.IsAssignableToGenericType(typeof(IEnumerable<>))) 
+            {
+                type = type.GetArgumentsOfGenericType(typeof(IEnumerable<>)).First();
+            }
+
             if (IsOfType<IXEdge>(type))
             {
                 filters.Add(SelectType_e.Edges);
@@ -76,20 +83,20 @@ namespace Xarial.XCad.Toolkit.PageBuilder.Constructors
             {
                 filters.Add(SelectType_e.SketchSegments);
             }
+            else if (IsOfType<IXComponent>(type))
+            {
+                filters.Add(SelectType_e.Components);
+            }
             else if (IsOfType<IXBody>(type))
             {
                 filters.Add(SelectType_e.SolidBodies);
                 filters.Add(SelectType_e.SurfaceBodies);
             }
 
-            if (filters.Any())
+            if (!filters.Any())
             {
-                customFilter = new TypeSelectionCustomFilter(type);
-            }
-            else
-            {
-                customFilter = null;
                 filters.Add(SelectType_e.Everything);
+                customFilter = new TypeSelectionCustomFilter(type);
             }
 
             return filters.ToArray();
@@ -99,6 +106,11 @@ namespace Xarial.XCad.Toolkit.PageBuilder.Constructors
         {
             var type = atts.BoundType;
 
+            if (type.IsAssignableToGenericType(typeof(IEnumerable<>)))
+            {
+                type = type.GetArgumentsOfGenericType(typeof(IEnumerable<>)).First();
+            }
+
             if (IsOfType<IXFace>(type))
             {
                 return BitmapLabelType_e.SelectFace;
@@ -106,6 +118,10 @@ namespace Xarial.XCad.Toolkit.PageBuilder.Constructors
             else if (IsOfType<IXEdge>(type))
             {
                 return BitmapLabelType_e.SelectEdge;
+            }
+            else if (IsOfType<IXComponent>(type))
+            {
+                return BitmapLabelType_e.SelectComponent;
             }
 
             return null;

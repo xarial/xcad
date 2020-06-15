@@ -1,4 +1,11 @@
-﻿using SolidWorks.Interop.sldworks;
+﻿//*********************************************************************
+//xCAD
+//Copyright(C) 2020 Xarial Pty Limited
+//Product URL: https://www.xcad.net
+//License: https://xcad.xarial.com/license/
+//*********************************************************************
+
+using SolidWorks.Interop.sldworks;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,14 +24,20 @@ namespace StandAlone
     {
         static void Main(string[] args)
         {
-            var sw = Activator.CreateInstance(Type.GetTypeFromProgID("SldWorks.Application")) as ISldWorks;
-            sw.Visible = true;
+            using (var app = SwApplication.Start(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020).Result) 
+            {
+                app.ShowMessageBox("Hello");
+                app.Close();
+            }
 
-            var app = SwApplication.FromPointer(sw);
+            //var sw = Activator.CreateInstance(Type.GetTypeFromProgID("SldWorks.Application")) as ISldWorks;
+            //sw.Visible = true;
+
+            //var app = SwApplication.FromPointer(sw);
 
             //CreateSketchEntities(app);
 
-            TraverseSelectedFaces(app);
+            //TraverseSelectedFaces(app);
         }
 
         private static void CreateSketchEntities(IXApplication app)

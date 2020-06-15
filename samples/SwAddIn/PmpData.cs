@@ -1,4 +1,11 @@
-﻿using System.Collections.Generic;
+﻿//*********************************************************************
+//xCAD
+//Copyright(C) 2020 Xarial Pty Limited
+//Product URL: https://www.xcad.net
+//License: https://xcad.xarial.com/license/
+//*********************************************************************
+
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using Xarial.XCad.Features.CustomFeature.Attributes;
 using Xarial.XCad.Features.CustomFeature.Enums;
@@ -10,6 +17,8 @@ using Xarial.XCad.SolidWorks.Geometry;
 using System;
 using Xarial.XCad;
 using Xarial.XCad.SolidWorks.UI.PropertyPage.Services;
+using Xarial.XCad.SolidWorks.Documents;
+using System.Collections.ObjectModel;
 
 namespace SwAddInExample
 {
@@ -18,6 +27,18 @@ namespace SwAddInExample
         Opt1,
         Opt2,
         Opt3
+    }
+
+    public class CustomControlDataContext 
+    {
+        public string Value { get; set; }
+        public ObservableCollection<Item> Items { get; set; } = new ObservableCollection<Item>();
+    }
+
+    public class Item 
+    {
+        public string Name { get; set; }
+        public string Value { get; set; }
     }
 
     public class MyItem 
@@ -66,6 +87,16 @@ namespace SwAddInExample
 
     [ComVisible(true)]
     public class PmpData : SwPropertyManagerPageHandler
+    {
+        [CustomControl(typeof(WpfUserControl))]
+        [ControlOptions(height: 200)]
+        public CustomControlDataContext CustomControl { get; set; } = new CustomControlDataContext();
+
+        public List<SwComponent> Components { get; set; }
+    }
+
+    [ComVisible(true)]
+    public class PmpMacroFeatData : SwPropertyManagerPageHandler
     {
         public string Text { get; set; }
 

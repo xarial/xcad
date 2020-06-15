@@ -5,6 +5,8 @@
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
+using Xarial.XCad.Annotations.Delegates;
+
 namespace Xarial.XCad.Annotations
 {
     /// <summary>
@@ -12,11 +14,15 @@ namespace Xarial.XCad.Annotations
     /// </summary>
     public interface IXDimension : IXSelObject
     {
+        event DimensionValueChangedDelegate ValueChanged;
+
+        string Name { get; }
+
         /// <summary>
         /// Gets the value of the dimension in the system units in the specified configuration or default
         /// </summary>
         /// <param name="confName">Name of the configuration</param>
-        /// <returns>Dimension vakue</returns>
+        /// <returns>Dimension value</returns>
         double GetValue(string confName = "");
 
         /// <summary>

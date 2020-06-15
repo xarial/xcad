@@ -22,9 +22,6 @@ namespace Xarial.XCad.SolidWorks.Utils
 
         internal static bool SupportsHighResIcons(this ISldWorks app, HighResIconsScope_e scope)
         {
-            //TODO: rewrite this using the IsVersionNewerOrEqual
-            var majorRev = int.Parse(app.RevisionNumber().Split('.')[0]);
-
             switch (scope)
             {
                 case HighResIconsScope_e.CommandManager:

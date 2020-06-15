@@ -6,6 +6,7 @@
 //*********************************************************************
 
 using SolidWorks.Interop.sldworks;
+using System;
 using Xarial.XCad.Services;
 using Xarial.XCad.Sketch;
 
@@ -36,6 +37,11 @@ namespace Xarial.XCad.SolidWorks.Sketch
 
         internal SwSketchEntity(IModelDoc2 model, TEnt ent, bool created) : base(model, ent)
         {
+            if (model == null)
+            {
+                throw new ArgumentNullException(nameof(model));
+            }
+
             m_SketchMgr = model.SketchManager;
             m_Creator = new ElementCreator<TEnt>(CreateSketchEntity, ent, created);
         }

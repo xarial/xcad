@@ -15,7 +15,7 @@ namespace Xarial.XCad.SolidWorks.Documents
     {
         public IDrawingDoc Drawing { get; }
 
-        internal SwDrawing(IDrawingDoc drawing, ISldWorks app, ILogger logger)
+        internal SwDrawing(IDrawingDoc drawing, SwApplication app, ILogger logger)
             : base((IModelDoc2)drawing, app, logger)
         {
             Drawing = drawing;

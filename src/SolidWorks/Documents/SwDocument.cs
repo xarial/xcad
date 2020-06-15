@@ -9,10 +9,18 @@ using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
 using System;
 using System.Diagnostics;
+using System.IO;
+using Xarial.XCad.Annotations;
+using Xarial.XCad.Data;
+using Xarial.XCad.Data.Enums;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Delegates;
 using Xarial.XCad.Features;
+using Xarial.XCad.SolidWorks.Annotations;
+using Xarial.XCad.SolidWorks.Data;
+using Xarial.XCad.SolidWorks.Data.EventHandlers;
 using Xarial.XCad.SolidWorks.Features;
+using Xarial.XCad.Toolkit.Services;
 using Xarial.XCad.Utils.Diagnostics;
 
 namespace Xarial.XCad.SolidWorks.Documents
@@ -24,12 +32,66 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         internal event Action<IModelDoc2> Destroyed;
 
+        public event DataStoreAvailableDelegate StreamReadAvailable 
+        {
+            add 
+            {
+                m_StreamReadAvailableHandler.Attach(value);
+            }
+            remove 
+            {
+                m_StreamReadAvailableHandler.Detach(value);
+            }
+        }
+
+        public event DataStoreAvailableDelegate StorageReadAvailable
+        {
+            add
+            {
+                m_StorageReadAvailableHandler.Attach(value);
+            }
+            remove
+            {
+                m_StorageReadAvailableHandler.Detach(value);
+            }
+        }
+
+        public event DataStoreAvailableDelegate StreamWriteAvailable
+        {
+            add
+            {
+                m_StreamWriteAvailableHandler.Attach(value);
+            }
+            remove
+            {
+                m_StreamWriteAvailableHandler.Detach(value);
+            }
+        }
+
+        public event DataStoreAvailableDelegate StorageWriteAvailable
+        {
+            add
+            {
+                m_StorageWriteAvailableHandler.Attach(value);
+            }
+            remove
+            {
+                m_StorageWriteAvailableHandler.Detach(value);
+            }
+        }
+
         IXFeatureRepository IXDocument.Features => Features;
         IXSelectionRepository IXDocument.Selections => Selections;
+        IXDimensionRepository IXDocument.Dimensions => Dimensions;
+        IXPropertyRepository IXDocument.Properties => Properties;
 
-        private readonly ISldWorks m_App;
         private readonly ILogger m_Logger;
-        
+
+        private readonly StreamReadAvailableEventsHandler m_StreamReadAvailableHandler;
+        private readonly StorageReadAvailableEventsHandler m_StorageReadAvailableHandler;
+        private readonly StreamWriteAvailableEventsHandler m_StreamWriteAvailableHandler;
+        private readonly StorageWriteAvailableEventsHandler m_StorageWriteAvailableHandler;
+
         public IModelDoc2 Model { get; }
 
         public string Path => Model.GetPathName();
@@ -39,23 +101,57 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public SwSelectionCollection Selections { get; }
 
-        internal SwDocument(IModelDoc2 model, ISldWorks app, ILogger logger)
+        public SwDimensionsCollection Dimensions { get; }
+
+        public SwCustomPropertiesCollection Properties { get; }
+
+        internal SwApplication App { get; }
+        internal ISldWorks SwApp { get; }
+
+        public bool IsDirty 
+        {
+            get => Model.GetSaveFlag();
+            set
+            {
+                if (value == true)
+                {
+                    Model.SetSaveFlag();
+                }
+                else 
+                {
+                    throw new NotSupportedException("Dirty flag cannot be removed. Save document to remove dirty flag");
+                }
+            }
+        }
+
+        internal SwDocument(IModelDoc2 model, SwApplication app, ILogger logger)
         {
             Model = model;
 
-            m_App = app;
+            App = app;
+            SwApp = app.Sw;
+
             m_Logger = logger;
 
-            Features = new SwFeatureManager(this, model.FeatureManager, m_App);
+            Features = new SwFeatureManager(this, model.FeatureManager, SwApp);
             
-            Selections = new SwSelectionCollection(model);
+            Selections = new SwSelectionCollection(this);
+
+            Dimensions = new SwDimensionsCollection(this);
+
+            Properties = new SwCustomPropertiesCollection(SwApp, Model, "");
+
+            m_StreamReadAvailableHandler = new StreamReadAvailableEventsHandler(this);
+            m_StreamWriteAvailableHandler = new StreamWriteAvailableEventsHandler(this);
+            m_StorageReadAvailableHandler = new StorageReadAvailableEventsHandler(this);
+            m_StorageWriteAvailableHandler = new StorageWriteAvailableEventsHandler(this);
 
             AttachEvents();
         }
 
         public void Close()
         {
-            m_App.CloseDoc(Title);
+            SwApp.CloseDoc(Title);
         }
 
         public void Dispose()
@@ -65,8 +161,16 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         protected virtual void Dispose(bool disposing)
         {
+            Selections.Dispose();
+            Dimensions.Dispose();
+            Properties.Dispose();
+
             if (disposing)
             {
+                m_StreamReadAvailableHandler.Dispose();
+                m_StreamWriteAvailableHandler.Dispose();
+                m_StorageReadAvailableHandler.Dispose();
+                m_StorageWriteAvailableHandler.Dispose();
                 DetachEvents();
             }
         }
@@ -130,6 +234,16 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
 
             return S_OK;
+        }
+
+        public Stream OpenStream(string name, AccessType_e access)
+        {
+            return new Sw3rdPartyStream(Model, name, access);
+        }
+
+        public IStorage OpenStorage(string name, AccessType_e access)
+        {
+            return new Sw3rdPartyStorage(Model, name, access);
         }
     }
 }

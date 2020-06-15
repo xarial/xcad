@@ -35,5 +35,9 @@ namespace Xarial.XCad
         /// <param name="buttons">Message box buttons</param>
         /// <returns>Button clicked by the user</returns>
         MessageBoxResult_e ShowMessageBox(string msg, MessageBoxIcon_e icon = MessageBoxIcon_e.Info, MessageBoxButtons_e buttons = MessageBoxButtons_e.Ok);
+
+        IXMacro OpenMacro(string path);
+
+        void Close();
     }
 }

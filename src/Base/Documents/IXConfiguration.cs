@@ -5,10 +5,14 @@
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
+using Xarial.XCad.Data;
+
 namespace Xarial.XCad.Documents
 {
-    public interface IXConfiguration
+    public interface IXConfiguration : IXObject
     {
         string Name { get; }
+
+        IXPropertyRepository Properties { get; }
     }
 }

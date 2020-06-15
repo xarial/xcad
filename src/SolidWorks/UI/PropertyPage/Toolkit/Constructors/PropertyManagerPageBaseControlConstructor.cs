@@ -202,9 +202,9 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
 
             var hasIcon = false;
 
-            if (atts.Has<StandardIconAttribute>())
+            if (atts.Has<StandardControlIconAttribute>())
             {
-                var attribution = atts.Get<StandardIconAttribute>();
+                var attribution = atts.Get<StandardControlIconAttribute>();
 
                 if (attribution.Label != 0)
                 {

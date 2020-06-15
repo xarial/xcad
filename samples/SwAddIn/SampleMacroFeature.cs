@@ -1,4 +1,11 @@
-﻿using System.Runtime.InteropServices;
+﻿//*********************************************************************
+//xCAD
+//Copyright(C) 2020 Xarial Pty Limited
+//Product URL: https://www.xcad.net
+//License: https://xcad.xarial.com/license/
+//*********************************************************************
+
+using System.Runtime.InteropServices;
 using Xarial.XCad;
 using SwAddInExample.Properties;
 using Xarial.XCad.Base.Attributes;
@@ -15,20 +22,20 @@ namespace SwAddInExample
 {
     [ComVisible(true)]
     [Icon(typeof(Resources), nameof(Resources.xarial))]
-    public class SampleMacroFeature : SwMacroFeatureDefinition<PmpData>
+    public class SampleMacroFeature : SwMacroFeatureDefinition<PmpMacroFeatData>
     {
         public override CustomFeatureRebuildResult OnRebuild(SwApplication app, SwDocument model, SwMacroFeature feature, 
-            PmpData parameters, out AlignDimensionDelegate<PmpData> alignDim)
+            PmpMacroFeatData parameters, out AlignDimensionDelegate<PmpMacroFeatData> alignDim)
         {
             alignDim = (n, d)=> 
             {
                 switch (n) 
                 {
-                    case nameof(PmpData.Number):
+                    case nameof(PmpMacroFeatData.Number):
                         this.AlignLinearDimension(d, new Point(0, 0, 0), new Vector(0, 1, 0));
                         break;
 
-                    case nameof(PmpData.Angle):
+                    case nameof(PmpMacroFeatData.Angle):
                         this.AlignAngularDimension(d, new Point(0, 0, 0), new Point(-0.1, 0, 0), new Vector(0, 1, 0));
                         break;
                 }
