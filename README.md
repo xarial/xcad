@@ -6,6 +6,8 @@
 
 [xCAD.NET](https://xcad.net) is a framework for building CAD agnostic applications. It allows developers to implement complex functionality with very simple innovative approach. Thus enables for bringing the best user experience to the comsumers of the software.
 
+Watch the [video demonstration](https://www.youtube.com/watch?v=BuiFfv7-Qig) of xCAD in action.
+
 ## Base
 
 [![NuGet version (xCAD.Base)](https://img.shields.io/nuget/v/Xarial.XCad.svg?style=flat-square)](https://www.nuget.org/packages/Xarial.XCad/)
