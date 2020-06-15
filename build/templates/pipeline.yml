@@ -134,38 +134,38 @@ stages:
       vmImage: 'windows-latest'
     environment: 'nuget-org'
     strategy:
-     runOnce:
-       deploy:
-         steps:
-        - checkout: none
+      runOnce:
+        deploy:
+          steps:
+          - checkout: none
 
-        - download: current
-          artifact: 'packages'
+          - download: current
+            artifact: 'packages'
 
-        - task: DownloadSecureFile@1
-              name: Certificate
-              displayName: 'Download code signing certificate'
-              inputs:
-                secureFile: xarial-code-signing.pfx
+          - task: DownloadSecureFile@1
+                name: Certificate
+                displayName: 'Download code signing certificate'
+                inputs:
+                  secureFile: xarial-code-signing.pfx
 
-        - task: PowerShell@2
-          inputs:
-            targetType: 'inline'
-            script: |
-              $packagePath = (Get-ChildItem -Path "$(Pipeline.Workspace)/packages/release" -Filter "*.nupkg").FullName
-              Write-Host $packagePath
-              Write-Host "##vso[task.setvariable variable=packagePath;]$packagePath"
+          - task: PowerShell@2
+            inputs:
+              targetType: 'inline'
+              script: |
+                $packagePath = (Get-ChildItem -Path "$(Pipeline.Workspace)/packages/release" -Filter "*.nupkg").FullName
+                Write-Host $packagePath
+                Write-Host "##vso[task.setvariable variable=packagePath;]$packagePath"
 
-        - task: NuGetCommand@2
-          displayName: 'Sign NuGet Package'
-          inputs:
-            command: 'custom'
-            arguments: sign "$(PackagePath)" -CertificatePath "$(Certificate.secureFilePath)" -CertificatePassword "$(CODE_SIGN_CERT_PWD)" -Timestamper http://timestamp.comodoca.com
+          - task: NuGetCommand@2
+            displayName: 'Sign NuGet Package'
+            inputs:
+              command: 'custom'
+              arguments: sign "$(PackagePath)" -CertificatePath "$(Certificate.secureFilePath)" -CertificatePassword "$(CODE_SIGN_CERT_PWD)" -Timestamper http://timestamp.comodoca.com
 
-        - task: NuGetCommand@2
-           displayName: 'Push NuGet Package'
-           inputs:
-             command: 'push'
-             packagesToPush: '$(Pipeline.Workspace)/packages/release/*.nupkg'
-             nuGetFeedType: 'external'
-             publishFeedCredentials: 'Nuget.org'
+          - task: NuGetCommand@2
+            displayName: 'Push NuGet Package'
+            inputs:
+              command: 'push'
+              packagesToPush: '$(Pipeline.Workspace)/packages/release/*.nupkg'
+              nuGetFeedType: 'external'
+              publishFeedCredentials: 'Nuget.org'
