@@ -143,10 +143,10 @@ stages:
             artifact: 'packages'
 
           - task: DownloadSecureFile@1
-                name: Certificate
-                displayName: 'Download code signing certificate'
-                inputs:
-                  secureFile: xarial-code-signing.pfx
+            name: Certificate
+            displayName: 'Download code signing certificate'
+            inputs:
+              secureFile: xarial-code-signing.pfx
 
           - task: PowerShell@2
             inputs:
