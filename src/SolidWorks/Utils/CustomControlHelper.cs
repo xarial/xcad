@@ -1,5 +1,4 @@
-﻿#if NET461
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
@@ -75,4 +74,3 @@ namespace Xarial.XCad.SolidWorks.Utils
         }
     }
 }
-#endif

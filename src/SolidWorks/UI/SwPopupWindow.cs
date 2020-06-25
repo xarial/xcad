@@ -6,11 +6,22 @@
 //*********************************************************************
 
 using System;
+using System.Windows.Forms;
 using Xarial.XCad.UI;
 using Xarial.XCad.UI.PopupWindow.Delegates;
 
 namespace Xarial.XCad.SolidWorks.UI
 {
+    public class Win32Window : IWin32Window
+    {
+        public IntPtr Handle { get; }
+
+        public Win32Window(IntPtr handle)
+        {
+            Handle = handle;
+        }
+    }
+
     public abstract class SwPopupWindow<TWindow> : IXPopupWindow<TWindow>, IDisposable
     {
         public abstract bool IsActive { get; set; }
@@ -26,7 +37,6 @@ namespace Xarial.XCad.SolidWorks.UI
         public abstract void Show();
     }
 
-#if NET461
     public class SwPopupWpfWindow<TWindow> : SwPopupWindow<TWindow>
     {
         public override event PopupWindowClosedDelegate<TWindow> Closed;
@@ -117,9 +127,9 @@ namespace Xarial.XCad.SolidWorks.UI
 
         public override TControl Control { get; }
 
-        private readonly System.Windows.Forms.Form m_Form;
+        private readonly Form m_Form;
 
-        private readonly System.Windows.Forms.IWin32Window m_Owner;
+        private readonly IWin32Window m_Owner;
 
         public override event PopupWindowClosedDelegate<TControl> Closed;
 
@@ -128,14 +138,14 @@ namespace Xarial.XCad.SolidWorks.UI
         internal SwPopupWinForm(TControl winForm, IntPtr parent)
         {
             Control = winForm;
-            m_Form = (System.Windows.Forms.Form)(object)winForm;
+            m_Form = (Form)(object)winForm;
             m_Form.FormClosed += OnFormClosed;
-            m_Owner = new Toolkit.Windows.Win32Window(parent);
+            m_Owner = new Win32Window(parent);
 
             m_IsDisposed = false;
         }
 
-        private void OnFormClosed(object sender, System.Windows.Forms.FormClosedEventArgs e)
+        private void OnFormClosed(object sender, FormClosedEventArgs e)
         {
             Closed?.Invoke(this);
         }
@@ -160,10 +170,10 @@ namespace Xarial.XCad.SolidWorks.UI
 
             switch (res) 
             {
-                case System.Windows.Forms.DialogResult.OK:
+                case DialogResult.OK:
                     return true;
 
-                case System.Windows.Forms.DialogResult.Cancel:
+                case DialogResult.Cancel:
                     return false;
 
                 default:
@@ -177,5 +187,4 @@ namespace Xarial.XCad.SolidWorks.UI
             m_Form.BringToFront();
         }
     }
-#endif
 }
