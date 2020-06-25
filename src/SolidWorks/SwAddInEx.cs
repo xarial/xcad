@@ -82,27 +82,15 @@ namespace Xarial.XCad.SolidWorks
         IXCommandManager IXExtension.CommandManager => CommandManager;
         IXCustomPanel<TControl> IXExtension.CreateDocumentTab<TControl>(XCad.Documents.IXDocument doc)
         {
-#if NET461
             return CreateDocumentTab<TControl>((Documents.SwDocument)doc);
-#else
-            throw new NotSupportedException();
-#endif
         }
         IXPopupWindow<TWindow> IXExtension.CreatePopupWindow<TWindow>()
         {
-#if NET461
             return CreatePopupWindow<TWindow>();
-#else
-            throw new NotSupportedException();
-#endif
         }
         IXTaskPane<TControl> IXExtension.CreateTaskPane<TControl>(TaskPaneSpec spec)
         {
-#if NET461
             return CreateTaskPane<TControl>(spec);
-#else
-            throw new NotSupportedException();
-#endif
         }
 
         private readonly ILogger m_Logger;
@@ -246,8 +234,6 @@ namespace Xarial.XCad.SolidWorks
         {
             return new SwPropertyManagerPage<TData>(Application, m_Logger, handlerType);
         }
-
-#if NET461
         public SwModelViewTab<TControl> CreateDocumentTab<TControl>(Documents.SwDocument doc)
         {
             var mdlViewMgr = doc.Model.ModelViewManager;
@@ -353,12 +339,10 @@ namespace Xarial.XCad.SolidWorks
                 return taskPane;
             }
         }
-#endif
     }
 
     public static class SwAddInExExtension 
     {
-#if NET461
         public static SwModelViewTab<TControl> CreateDocumentTabWinForm<TControl>(this SwAddInEx addIn, Documents.SwDocument doc)
             where TControl : System.Windows.Forms.Control
         {
@@ -418,6 +402,5 @@ namespace Xarial.XCad.SolidWorks
         {
             return addIn.CreateTaskPane<TControl, TEnum>();
         }
-#endif
     }
 }

@@ -38,7 +38,6 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
 
             var ctrlType = atts.Get<CustomControlAttribute>().ControlType;
 
-#if NET461
             var ctrl = CustomControlHelper.HostControl(ctrlType,
                 (c, h, t, _) =>
                 {
@@ -69,9 +68,6 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
                 });
 
             return new PropertyManagerPageCustomControl(atts.Id, atts.Tag, swCtrl, handler, ctrl);
-#else
-            throw new NotSupportedException("Windows only is supported");
-#endif
         }
     }
 }
