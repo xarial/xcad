@@ -44,7 +44,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
         {
             if (value == null)
             {
-                value = Defaults.Icon;
+                value = IconsConverter.FromXImage(Defaults.Icon);
             }
 
             var icons = m_IconsConv.ConvertIcon(new ControlIcon(value, m_Size));

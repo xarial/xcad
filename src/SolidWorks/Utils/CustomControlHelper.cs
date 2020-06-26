@@ -39,12 +39,12 @@ namespace Xarial.XCad.SolidWorks.Utils
 
             if (ctrlType.TryGetAttribute(out IconAttribute iconAtt))
             {
-                icon = iconAtt.Icon;
+                icon = IconsConverter.FromXImage(iconAtt.Icon);
             }
 
             if (icon == null)
             {
-                icon = Defaults.Icon;
+                icon = IconsConverter.FromXImage(Defaults.Icon);
             }
 
             if (typeof(System.Windows.Forms.Control).IsAssignableFrom(ctrlType))

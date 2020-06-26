@@ -97,12 +97,12 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 
             this.GetType().TryGetAttribute<IconAttribute>(a =>
             {
-                icon = a.Icon;
+                icon = IconsConverter.FromXImage(a.Icon);
             });
 
             if (icon == null)
             {
-                icon = Defaults.Icon;
+                icon = IconsConverter.FromXImage(Defaults.Icon);
             }
 
             //TODO: create different icons for highlighted and suppressed

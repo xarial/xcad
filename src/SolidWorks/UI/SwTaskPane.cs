@@ -95,7 +95,7 @@ namespace Xarial.XCad.SolidWorks.UI
                             //NOTE: unlike task pane icon, command icons must have the same transparency key as command manager commands
                             if (app.SupportsHighResIcons(CompatibilityUtils.HighResIconsScope_e.TaskPane))
                             {
-                                var imageList = iconsConv.ConvertIcon(new CommandGroupHighResIcon(icon));
+                                var imageList = iconsConv.ConvertIcon(new CommandGroupHighResIcon(IconsConverter.FromXImage(icon)));
                                 if (!TaskPaneView.AddCustomButton2(imageList, tooltip))
                                 {
                                     throw new InvalidOperationException($"Failed to create task pane button for '{tooltip}' with highres icon");
@@ -103,7 +103,7 @@ namespace Xarial.XCad.SolidWorks.UI
                             }
                             else
                             {
-                                var imagePath = iconsConv.ConvertIcon(new CommandGroupIcon(icon)).First();
+                                var imagePath = iconsConv.ConvertIcon(new CommandGroupIcon(IconsConverter.FromXImage(icon))).First();
                                 if (!TaskPaneView.AddCustomButton(imagePath, tooltip))
                                 {
                                     throw new InvalidOperationException($"Failed to create task pane button for {tooltip}");

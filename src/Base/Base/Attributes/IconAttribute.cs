@@ -8,6 +8,7 @@
 using System;
 using System.Drawing;
 using Xarial.XCad.Reflection;
+using Xarial.XCad.UI;
 
 namespace Xarial.XCad.Base.Attributes
 {
@@ -20,13 +21,13 @@ namespace Xarial.XCad.Base.Attributes
         /// <summary>
         /// Image assigned to this icon
         /// </summary>
-        public Image Icon { get; private set; }
+        public IXImage Icon { get; private set; }
 
         /// <param name="resType">Type of the static class (usually Resources)</param>
         /// <param name="masterResName">Resource name of the master icon</param>
         public IconAttribute(Type resType, string masterResName)
         {
-            Icon = ResourceHelper.GetResource<Image>(resType, masterResName);
+            Icon = ResourceHelper.GetResource<IXImage>(resType, masterResName);
         }
     }
 }

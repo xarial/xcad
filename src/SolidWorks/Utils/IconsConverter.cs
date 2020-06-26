@@ -14,11 +14,20 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using Xarial.XCad.SolidWorks.Base;
 using Xarial.XCad.SolidWorks.Exceptions;
+using Xarial.XCad.UI;
 
 namespace Xarial.XCad.SolidWorks.Utils
 {
     internal class IconsConverter : IDisposable
     {
+        internal static Image FromXImage(IXImage img) 
+        {
+            using (var str = new MemoryStream(img.Buffer)) 
+            {
+                return Image.FromStream(str);
+            }
+        }
+
         /// <summary>
         /// Icon data
         /// </summary>

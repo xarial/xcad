@@ -48,7 +48,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
             {
                 if (commIconAtt.Icon != null)
                 {
-                    titleIcon = new TitleIcon(commIconAtt.Icon);
+                    titleIcon = new TitleIcon(IconsConverter.FromXImage(commIconAtt.Icon));
                 }
             }
 

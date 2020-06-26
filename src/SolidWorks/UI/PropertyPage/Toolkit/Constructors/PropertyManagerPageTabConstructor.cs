@@ -67,7 +67,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
 
             if (icon != null)
             {
-                iconPath = m_IconsConv.ConvertIcon(new TabIcon(icon)).First();
+                iconPath = m_IconsConv.ConvertIcon(new TabIcon(IconsConverter.FromXImage(icon))).First();
 
                 //NOTE: tab icon must be in 256 color bitmap, otherwise it is not displayed
                 TryConvertIconTo8bit(iconPath);
