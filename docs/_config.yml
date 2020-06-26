@@ -1,0 +1,7 @@
+﻿theme: user-guide
+^code-syntax-highlighter:
+  embed-style: false
+lang: en
+default-layout: article
+$legal:
+  company: Xarial Pty Limited
