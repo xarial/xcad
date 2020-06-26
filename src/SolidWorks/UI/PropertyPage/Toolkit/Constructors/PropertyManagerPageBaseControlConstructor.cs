@@ -197,7 +197,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
 
             if (commonIcon != null)
             {
-                icon = new ControlIcon(commonIcon);
+                icon = new ControlIcon(IconsConverter.FromXImage(commonIcon));
             }
 
             var hasIcon = false;

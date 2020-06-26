@@ -287,7 +287,7 @@ namespace Xarial.XCad.SolidWorks
             {
                 if (icon == null) 
                 {
-                    icon = spec.Icon;
+                    icon = IconsConverter.FromXImage(spec.Icon);
                 }
 
                 if (string.IsNullOrEmpty(title)) 

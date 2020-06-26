@@ -8,12 +8,13 @@
 using System.Drawing;
 using Xarial.XCad.Properties;
 using Xarial.XCad.Reflection;
+using Xarial.XCad.UI;
 
 namespace Xarial.XCad
 {
     public static class Defaults
     {
-        public static Image Icon
+        public static IXImage Icon
         {
             get
             {

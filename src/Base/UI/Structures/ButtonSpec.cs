@@ -20,7 +20,7 @@ namespace Xarial.XCad.UI.Structures
         public int UserId { get; set; }
         public string Title { get; set; }
         public string Tooltip { get; set; }
-        public Image Icon { get; set; }
+        public IXImage Icon { get; set; }
     }
 
     internal static class ButtonSpecExtension 

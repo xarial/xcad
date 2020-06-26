@@ -421,14 +421,14 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
 
             if (cmdBar.Commands != null)
             {
-                iconList = cmdBar.Commands.Select(c => c.Icon).ToArray();
+                iconList = cmdBar.Commands.Select(c => IconsConverter.FromXImage(c.Icon)).ToArray();
             }
 
             //NOTE: if commands are not used, main icon will fail if toolbar commands image list is not specified, so it is required to specify it explicitly
 
             if (CompatibilityUtils.SupportsHighResIcons(m_App.Sw, CompatibilityUtils.HighResIconsScope_e.CommandManager))
             {
-                var iconsList = iconsConv.ConvertIcon(new CommandGroupHighResIcon(mainIcon));
+                var iconsList = iconsConv.ConvertIcon(new CommandGroupHighResIcon(IconsConverter.FromXImage(mainIcon)));
                 cmdGroup.MainIconList = iconsList;
 
                 if (iconList != null && iconList.Any())
@@ -443,7 +443,7 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
             }
             else
             {
-                var mainIconPath = iconsConv.ConvertIcon(new CommandGroupIcon(mainIcon));
+                var mainIconPath = iconsConv.ConvertIcon(new CommandGroupIcon(IconsConverter.FromXImage(mainIcon)));
 
                 var smallIcon = mainIconPath[0];
                 var largeIcon = mainIconPath[1];

@@ -9,6 +9,7 @@ using System;
 using System.Drawing;
 using System.IO;
 using System.Reflection;
+using Xarial.XCad.UI;
 
 namespace Xarial.XCad.Reflection
 {
@@ -30,7 +31,7 @@ namespace Xarial.XCad.Reflection
         {
             var val = GetValue(null, resType, resName.Split('.'));
 
-            if (val is byte[] && typeof(Image) == typeof(T))
+            if (val is byte[] && typeof(IXImage) == typeof(T))
             {
                 val = FromBytes(val as byte[]);
             }
@@ -38,12 +39,9 @@ namespace Xarial.XCad.Reflection
             return (T)val;
         }
 
-        public static Image FromBytes(byte[] buffer)
+        public static IXImage FromBytes(byte[] buffer)
         {
-            using (var ms = new MemoryStream(buffer))
-            {
-                return Image.FromStream(ms);
-            }
+            return new XImage(buffer);
         }
 
         private static object GetValue(object obj, Type type, string[] prpsPath)

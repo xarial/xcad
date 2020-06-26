@@ -7,7 +7,7 @@
 	  <SignAssembly>false</SignAssembly>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <PackageId>Xarial.XCad.Toolkit</PackageId>
-    <VersionPrefix>0.5.4</VersionPrefix>
+    <VersionPrefix>0.5.5</VersionPrefix>
     <Authors>Xarial</Authors>
     <Product>xCAD</Product>
     <Copyright>© 2020 Xarial Pty Limited</Copyright>
@@ -26,14 +26,6 @@
   <PropertyGroup Condition="'$(Configuration)'=='Release'">
     <DocumentationFile>Xarial.XCad.Toolkit.xml</DocumentationFile>
   </PropertyGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)' == 'net461'">
-    <Reference Include="System.Windows.Forms" />
-    <Reference Include="PresentationFramework" />
-    <Reference Include="PresentationCore" />
-    <Reference Include="WindowsFormsIntegration" />
-    <Reference Include="WindowsBase" />
-  </ItemGroup>
   
   <ItemGroup>
     <None Include="..\..\data\icon.png">
