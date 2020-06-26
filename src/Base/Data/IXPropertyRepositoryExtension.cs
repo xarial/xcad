@@ -7,7 +7,7 @@ namespace Xarial.XCad.Data
 {
     public static class IXPropertyRepositoryExtension
     {
-        public static void SetProperty(this IXPropertyRepository prps, string prpName, object prpVal)
+        public static void Set(this IXPropertyRepository prps, string prpName, object prpVal)
         {
             var prp = prps.GetOrPreCreate(prpName);
             prp.Value = prpVal;

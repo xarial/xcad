@@ -8,6 +8,7 @@
 using System;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using Xarial.XCad.UI;
 
@@ -19,6 +20,9 @@ namespace Xarial.XCad.Reflection
     /// <remarks>Use this method in attributes to provide the reference to the data from the resources (i.e. text and image)</remarks>
     public static class ResourceHelper
     {
+        private static MethodInfo m_ImageSaveMethod;
+        private static object m_ImageFormatPng;
+
         /// <summary>
         /// Gets the specified resource by name
         /// </summary>
@@ -31,11 +35,49 @@ namespace Xarial.XCad.Reflection
         {
             var val = GetValue(null, resType, resName.Split('.'));
 
-            if (val is byte[] && typeof(IXImage) == typeof(T))
+            if (typeof(IXImage) == typeof(T)) 
             {
-                val = FromBytes(val as byte[]);
-            }
+                if (val is byte[])
+                {
+                    val = FromBytes(val as byte[]);
+                }
+                else if (val.GetType().FullName == "System.Drawing.Bitmap") //need some better way to handle this case
+                {
+                    using (var stream = new MemoryStream())
+                    {
+                        if (m_ImageSaveMethod == null) 
+                        {
+                            m_ImageSaveMethod = val.GetType().GetMethods().First(m =>
+                            {
+                                if (m.Name == "Save")
+                                {
+                                    var parameters = m.GetParameters();
 
+                                    if (parameters.Length == 2)
+                                    {
+                                        return parameters[0].ParameterType == typeof(Stream)
+                                            && parameters[1].ParameterType.FullName == "System.Drawing.Imaging.ImageFormat";
+                                    }
+                                }
+
+                                return false;
+                            });
+
+                            var imageFormatType = m_ImageSaveMethod.GetParameters()[1].ParameterType;
+
+                            var pngPrp = imageFormatType.GetProperty("Png", BindingFlags.Public | BindingFlags.Static);
+                            m_ImageFormatPng = pngPrp.GetValue(null, null);
+                        }
+
+                        //img.Save(stream, System.Drawing.Imaging.ImageFormat.Png);
+                        m_ImageSaveMethod.Invoke(val, new object[] { stream, m_ImageFormatPng });
+
+                        stream.Seek(0, SeekOrigin.Begin);
+                        val = FromBytes(stream.ToArray());
+                    }
+                }
+            }
+            
             return (T)val;
         }
 
