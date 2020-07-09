@@ -1,6 +1,11 @@
 ﻿theme: user-guide
 ^code-syntax-highlighter:
   embed-style: false
+^code-snippet:
+  snippets-folder: _src
+  auto-tabs: 
+    cs: C#
+    vb: VB.NET
 lang: en
 default-layout: article
 $legal:

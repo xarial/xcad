@@ -61,7 +61,7 @@ namespace Xarial.XCad.UI.PropertyPage.Attributes
         }
 
         /// <inheritdoc cref="SelectionBoxAttribute(int, SelectType_e[])"/>
-        /// <param name="customFilter">Type of custom filter of <see cref="SelectionCustomFilter{TSelection}"/> for custom logic for filtering selection objects</param>
+        /// <param name="customFilter">Type of custom filter of <see cref="ISelectionCustomFilter"/> for custom logic for filtering selection objects</param>
         /// <exception cref="InvalidCastException"/>
         public SelectionBoxOptionsAttribute(int mark, Type customFilter, SelectionBoxStyle_e style,
             KnownColor selColor, params SelectType_e[] filters)

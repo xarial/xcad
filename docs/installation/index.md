@@ -19,7 +19,7 @@ This will install all required libraries to the project.
 
 ## Updates
 
-SwEx framework is actively developing and new features and bug fixes released very often. 
+xCAD framework is actively developing and new features and bug fixes released very often. 
 
 Nuget provides very simple way of upgrading the library versions. Simply navigate to Nuget Package manager and check for updates:
 
