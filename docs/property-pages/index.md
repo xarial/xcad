@@ -3,7 +3,7 @@ title: Creating native property pages with xCAD framework
 caption: Property Pages
 description: Utilities for advanced development of SOLIDWORKS Property Manager Pages which enables data driven development with data binding
 image: data-model-pmpage.png
-order: 3
+order: 4
 ---
 Inspired by [PropertyGrid Control](https://msdn.microsoft.com/en-us/library/aa302326.aspx) in .NET Framework, xCAD brings the flexibility of data model driven User Interface into SOLIDWORKS API.
 

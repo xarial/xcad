@@ -14,6 +14,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using Xarial.XCad.Annotations;
+using Xarial.XCad.Base;
 using Xarial.XCad.Base.Attributes;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Features.CustomFeature;
@@ -62,9 +63,9 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         #region Initiation
 
         private readonly string m_Provider;
-        protected readonly ILogger m_Logger;
+        protected readonly IXLogger m_Logger;
 
-        public ILogger Logger
+        public IXLogger Logger
         {
             get
             {

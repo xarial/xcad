@@ -73,6 +73,109 @@ namespace Xarial.XCad.Documentation.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap command1 {
+            get {
+                object obj = ResourceManager.GetObject("command1", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap command2 {
+            get {
+                object obj = ResourceManager.GetObject("command2", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap command3 {
+            get {
+                object obj = ResourceManager.GetObject("command3", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap commands {
+            get {
+                object obj = ResourceManager.GetObject("commands", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
+        internal static string CreateMacroFeatureCommandHint {
+            get {
+                return ResourceManager.GetString("CreateMacroFeatureCommandHint", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
+        internal static string CreateMacroFeatureCommandTitle {
+            get {
+                return ResourceManager.GetString("CreateMacroFeatureCommandTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
+        internal static string LocalizedPmPageTitle {
+            get {
+                return ResourceManager.GetString("LocalizedPmPageTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
+        internal static string MacroFeatureBaseName {
+            get {
+                return ResourceManager.GetString("MacroFeatureBaseName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
+        internal static string MacroFeatureError {
+            get {
+                return ResourceManager.GetString("MacroFeatureError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
+        internal static string NumericFieldDescription {
+            get {
+                return ResourceManager.GetString("NumericFieldDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
+        internal static string NumericFieldTitle {
+            get {
+                return ResourceManager.GetString("NumericFieldTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap OffsetImage {
             get {
                 object obj = ResourceManager.GetObject("OffsetImage", resourceCulture);
@@ -96,6 +199,60 @@ namespace Xarial.XCad.Documentation.Properties {
             get {
                 object obj = ResourceManager.GetObject("PageIcon", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
+        internal static string ShowPmpCommandHint {
+            get {
+                return ResourceManager.GetString("ShowPmpCommandHint", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
+        internal static string ShowPmpCommandTitle {
+            get {
+                return ResourceManager.GetString("ShowPmpCommandTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
+        internal static string TextFieldDescription {
+            get {
+                return ResourceManager.GetString("TextFieldDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
+        internal static string TextFieldTitle {
+            get {
+                return ResourceManager.GetString("TextFieldTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
+        internal static string ToolbarHint {
+            get {
+                return ResourceManager.GetString("ToolbarHint", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
+        internal static string ToolbarTitle {
+            get {
+                return ResourceManager.GetString("ToolbarTitle", resourceCulture);
             }
         }
     }

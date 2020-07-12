@@ -14,6 +14,7 @@ using System.Drawing;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using Xarial.XCad.Base;
 using Xarial.XCad.Base.Enums;
 using Xarial.XCad.SolidWorks.Exceptions;
 using Xarial.XCad.SolidWorks.UI.Commands.Exceptions;
@@ -65,7 +66,7 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
 
         private readonly Dictionary<string, CommandInfo> m_Commands;
 
-        private readonly ILogger m_Logger;
+        private readonly IXLogger m_Logger;
 
         /// <summary>
         /// Pointer to command group which holding the add-in commands
@@ -74,7 +75,7 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
 
         public IEnumerable<IXCommandGroup> CommandGroups => m_CommandBars;
 
-        internal SwCommandManager(SwApplication app, int addinCookie, ILogger logger)
+        internal SwCommandManager(SwApplication app, int addinCookie, IXLogger logger)
         {
             m_App = app;
 
@@ -321,7 +322,7 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
 
                 createdCmds.Add(cmd, cmdIndex);
 
-                m_Logger.Log($"Created command {cmdIndex} for {cmd}");
+                m_Logger.Log($"Created command {cmd.Title}:{cmdIndex} for {cmd.UserId}");
             }
 
             cmdGroup.CommandGroup.HasToolbar = true;

@@ -2,7 +2,7 @@
 title: Managing SOLIDWORKS macro feature using xCAD.NET framework
 caption: Custom Features
 description: Framework for simplified development of custom macro features using SOLIDWORKS API
-order: 4
+order: 5
 ---
 xCAD provides utilities for simplified development of SOLIDWORKS macro features based on the data model.
 

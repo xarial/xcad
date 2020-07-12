@@ -5,9 +5,11 @@
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
+using Xarial.XCad.Base;
+
 namespace Xarial.XCad.Utils.Diagnostics
 {
-    public class TraceLogger : ILogger
+    public class TraceLogger : IXLogger
     {
         private readonly string m_Category;
 

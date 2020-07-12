@@ -10,6 +10,7 @@ using SolidWorks.Interop.swconst;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Xarial.XCad.Base;
 using Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit;
 using Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls;
 using Xarial.XCad.SolidWorks.Utils;
@@ -44,19 +45,19 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
 
         internal SwPropertyManagerPageHandler Handler { get; private set; }
 
-        public ILogger Logger { get; }
+        public IXLogger Logger { get; }
 
         /// <inheritdoc/>
         public TModel Model { get; private set; }
 
         /// <summary>Creates instance of property manager page</summary>
         /// <param name="app">Pointer to session of SOLIDWORKS where the property manager page to be created</param>
-        public SwPropertyManagerPage(SwApplication app, ILogger logger, Type handlerType)
+        public SwPropertyManagerPage(SwApplication app, IXLogger logger, Type handlerType)
             : this(app, null, logger, handlerType)
         {
         }
 
-        public SwPropertyManagerPage(SwApplication app, IPageSpec pageSpec, ILogger logger, Type handlerType)
+        public SwPropertyManagerPage(SwApplication app, IPageSpec pageSpec, IXLogger logger, Type handlerType)
         {
             m_App = app.Sw;
 

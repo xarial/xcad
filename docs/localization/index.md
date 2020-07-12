@@ -3,7 +3,7 @@ title: Localizing SOLIDWORKS add-ins using xCAD.NET framework
 caption: Localization
 description: How to support multi language SOLIDWORKS add-ins by using of localized resources in xCAD framework
 image: menu-localized.png
-order: 6
+order: 7
 ---
 xCAD frameworks supports [resources in .NET applications](https://docs.microsoft.com/en-us/dotnet/framework/resources/index) to enable localization of the add-in, e.g. supporting multiple languages.
 
@@ -27,20 +27,7 @@ Two commands in menu are localized for Russian and English versions of the add-i
 
 ![Localized menu commands](menu-localized.png)
 
-~~~ cs
-[Title(typeof(Resources), nameof(Resources.ToolbarTitle))]
-[Summary(typeof(Resources), nameof(Resources.ToolbarHint))]
-public enum Commands_e
-{
-    [Title(typeof(Resources), nameof(Resources.ShowPmpCommandTitle))]
-    [Summary(typeof(Resources), nameof(Resources.ShowPmpCommandHint))]
-    ShowPmp,
-
-    [Title(typeof(Resources), nameof(Resources.CreateMacroFeatureCommandTitle))]
-    [Summary(typeof(Resources), nameof(Resources.CreateMacroFeatureCommandHint))]
-    CreateMacroFeature
-}
-~~~
+{% code-snippet { file-name: ~LocalizationAddIn.*, regions: [Commands] } %}
 
 ## Property Manager Page
 
@@ -48,19 +35,7 @@ Property Manager page title and tooltips for the controls are localized for Russ
 
 ![Localized Property Manager Page](property-page-localized.png)
 
-~~~ cs
-[Title(typeof(Resources), nameof(Resources.LocalizedPmPageTitle))]
-public class LocalizedPmPage
-{
-    [Title(typeof(Resources), nameof(Resources.TextFieldTitle))]
-    [Summary(typeof(Resources), nameof(Resources.TextFieldDescription))]
-    public string TextField { get; set; }
-
-    [Title(typeof(Resources), nameof(Resources.NumericFieldTitle))]
-    [Summary(typeof(Resources), nameof(Resources.NumericFieldDescription))]
-    public double NumericField { get; set; }
-}
-~~~
+{% code-snippet { file-name: ~LocalizationAddIn.*, regions: [PMPage] } %}
 
 ## Macro Feature
 
@@ -74,21 +49,4 @@ In a similar way it is possible to use strings from the resources to return anot
 
 ![Localized macro feature error](macro-feature-error-localized.png)
 
-~~~ cs
-[Title(typeof(Resources), nameof(Resources.MacroFeatureBaseName))]
-[ComVisible(true)]
-public class LocalizedMacroFeature : MacroFeatureEx
-{
-    protected override MacroFeatureRebuildResult OnRebuild(ISldWorks app, IModelDoc2 model, IFeature feature)
-    {
-        if (!string.IsNullOrEmpty(model.GetPathName()))
-        {
-            return MacroFeatureRebuildResult.FromStatus(true);
-        }
-        else
-        {
-            return MacroFeatureRebuildResult.FromStatus(false, Resources.MacroFeatureError);
-        }
-    }
-}
-~~~
+{% code-snippet { file-name: ~LocalizationAddIn.*, regions: [MacroFeature] } %}

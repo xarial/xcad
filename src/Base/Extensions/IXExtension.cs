@@ -5,6 +5,7 @@
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
+using Xarial.XCad.Base;
 using Xarial.XCad.UI;
 using Xarial.XCad.UI.Commands;
 using Xarial.XCad.UI.PropertyPage;
@@ -34,6 +35,8 @@ namespace Xarial.XCad.Extensions
         /// <typeparam name="TData">Type defining the data model of the property page</typeparam>
         /// <returns>Instance of the proeprty page</returns>
         IXPropertyPage<TData> CreatePage<TData>();
+
+        IXLogger Logger { get; }
 
         IXCustomPanel<TControl> CreateDocumentTab<TControl>(Documents.IXDocument doc);
         IXPopupWindow<TWindow> CreatePopupWindow<TWindow>();
