@@ -12,10 +12,6 @@ namespace Xarial.XCad.Features
 {
     public static class IXFeatureRepositoryExtension
     {
-        private class EmptyParams 
-        {
-        }
-
         public static IXCustomFeature<TParams> CreateCustomFeature<TDef, TParams>(this IXFeatureRepository feats, TParams param)
             where TParams : class, new()
             where TDef : IXCustomFeatureDefinition<TParams>
@@ -31,9 +27,8 @@ namespace Xarial.XCad.Features
         public static IXCustomFeature CreateCustomFeature<TDef>(this IXFeatureRepository feats)
             where TDef : IXCustomFeatureDefinition
         {
-            var custFeat = feats.PreCreateCustomFeature<EmptyParams>();
+            var custFeat = feats.PreCreateCustomFeature();
             custFeat.DefinitionType = typeof(TDef);
-            custFeat.Parameters = new EmptyParams();
             feats.Add(custFeat);
 
             return custFeat;

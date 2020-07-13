@@ -88,12 +88,17 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
 
         public IXCommandGroup AddCommandGroup(CommandGroupSpec cmdBar)
         {
-            return AddCommandGroupOrContextMenu(cmdBar, false, 0);
+            return AddCommandGroupOrContextMenu(cmdBar, false, null);
         }
 
-        public IXCommandGroup AddContextMenu(CommandGroupSpec cmdBar, SelectType_e owner)
+        public IXCommandGroup AddContextMenu(CommandGroupSpec cmdBar, SelectType_e? owner)
         {
-            return AddCommandGroupOrContextMenu(cmdBar, true, (swSelectType_e)owner);
+            swSelectType_e? selType = null;
+            if (owner.HasValue) 
+            {
+                selType = (swSelectType_e)owner;
+            }
+            return AddCommandGroupOrContextMenu(cmdBar, true, selType);
         }
 
         public void Dispose()
@@ -102,7 +107,7 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
         }
 
         internal SwCommandGroup AddCommandGroupOrContextMenu(CommandGroupSpec cmdBar,
-            bool isContextMenu, swSelectType_e contextMenuSelectType)
+            bool isContextMenu, swSelectType_e? contextMenuSelectType)
         {
             m_Logger.Log($"Creating command group: {cmdBar.Id}");
 
@@ -241,7 +246,7 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
         }
 
         private CommandGroup CreateCommandGroup(int groupId, string title, string toolTip,
-            int[] knownCmdIDs, bool isContextMenu, swSelectType_e contextMenuSelectType)
+            int[] knownCmdIDs, bool isContextMenu, swSelectType_e? contextMenuSelectType)
         {
             int cmdGroupErr = 0;
 
@@ -261,7 +266,10 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
             if (isContextMenu)
             {
                 cmdGroup = CmdMgr.AddContextMenu(groupId, title);
-                cmdGroup.SelectType = (int)contextMenuSelectType;
+                if (contextMenuSelectType.HasValue)
+                {
+                    cmdGroup.SelectType = (int)contextMenuSelectType;
+                }
             }
             else
             {

@@ -21,6 +21,15 @@ using Xarial.XCad.SolidWorks.Documents;
 namespace SwAddInExample
 {
     [ComVisible(true)]
+    public class SimpleMacroFeature : SwMacroFeatureDefinition 
+    {
+        public override CustomFeatureRebuildResult OnRebuild(SwApplication app, SwDocument model, SwMacroFeature feature)
+        {
+            return base.OnRebuild(app, model, feature);
+        }
+    }
+
+    [ComVisible(true)]
     [Icon(typeof(Resources), nameof(Resources.xarial))]
     public class SampleMacroFeature : SwMacroFeatureDefinition<PmpMacroFeatData>
     {

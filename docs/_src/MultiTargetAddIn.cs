@@ -34,7 +34,7 @@ namespace Xarial.XCad.Documentation
                 prpMgr.Get4(prpName, false, out val, out resVal);
             }
             
-            //Logger.Log($"{prpName} = {resVal} [{val}]");
+            Logger.Log($"{prpName} = {resVal} [{val}]");
         }
         //---
 
