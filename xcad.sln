@@ -29,7 +29,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SolidWorks.Tests.Integratio
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{6D2A43FF-9E49-46B4-BF9C-A9BA87330735}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "docs", "docs\_src\docs.csproj", "{9FA56430-CFCD-4975-AAA9-2C18999DE264}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Docs", "docs\_src\Docs.csproj", "{9FA56430-CFCD-4975-AAA9-2C18999DE264}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

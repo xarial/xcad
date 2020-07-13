@@ -317,6 +317,10 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         CustomFeatureRebuildResult IXCustomFeatureDefinition<TParams>.OnRebuild(IXApplication app, IXDocument model, IXCustomFeature feature, TParams parameters, out AlignDimensionDelegate<TParams> alignDim)
             => OnRebuild((SwApplication)app, (SwDocument)model, (SwMacroFeature)feature, parameters, out alignDim);
 
+        [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
+        public override bool OnEditDefinition(SwApplication app, SwDocument model, SwMacroFeature feature)
+            => OnEditDefinition(app, model, feature.ToParameters<TParams>(m_ParamsParser));
+
         public SwMacroFeatureDefinition() : this(new MacroFeatureParametersParser())
         {
         }
@@ -400,6 +404,11 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 
             return res;
         }
+
+        public virtual bool OnEditDefinition(SwApplication app, SwDocument model, SwMacroFeature<TParams> feature) 
+        {
+            return true;
+        }
     }
 
     /// <inheritdoc/>
@@ -454,9 +463,9 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             m_Editor.Insert(doc);
         }
 
-        public override bool OnEditDefinition(SwApplication app, SwDocument model, SwMacroFeature feature)
+        public override bool OnEditDefinition(SwApplication app, SwDocument model, SwMacroFeature<TParams> feature)
         {
-            m_Editor.Edit(model, feature.ToParameters<TParams>(m_ParamsParser));
+            m_Editor.Edit(model, feature);
             return true;
         }
 
