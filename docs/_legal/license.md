@@ -1,5 +1,5 @@
 ---
-title: xCAD.NET license
+title: xCAD license
 sitemap: false
 toc: false
 ---
