@@ -16,6 +16,6 @@ namespace Xarial.XCad.UI.Commands
         IEnumerable<IXCommandGroup> CommandGroups { get; }
 
         IXCommandGroup AddCommandGroup(CommandGroupSpec cmdBar);
-        IXCommandGroup AddContextMenu(CommandGroupSpec cmdBar, SelectType_e owner);
+        IXCommandGroup AddContextMenu(CommandGroupSpec cmdBar, SelectType_e? owner);
     }
 }

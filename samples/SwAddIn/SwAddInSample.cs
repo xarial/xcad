@@ -119,7 +119,8 @@ namespace SwAddInExample
         {
             if (reason == PageCloseReasons_e.Okay) 
             {
-                var feat = Application.Documents.Active.Features.CreateCustomFeature<SampleMacroFeature, PmpMacroFeatData>(m_MacroFeatPmpData);
+                var feat = Application.Documents.Active.Features.CreateCustomFeature<SimpleMacroFeature>();
+                //var feat = Application.Documents.Active.Features.CreateCustomFeature<SampleMacroFeature, PmpMacroFeatData>(m_MacroFeatPmpData);
             }
         }
 

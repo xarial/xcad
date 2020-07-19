@@ -14,6 +14,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using Xarial.XCad.Annotations;
+using Xarial.XCad.Base;
 using Xarial.XCad.Base.Attributes;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Features.CustomFeature;
@@ -62,9 +63,9 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         #region Initiation
 
         private readonly string m_Provider;
-        protected readonly ILogger m_Logger;
+        protected readonly IXLogger m_Logger;
 
-        public ILogger Logger
+        public IXLogger Logger
         {
             get
             {
@@ -316,6 +317,10 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         CustomFeatureRebuildResult IXCustomFeatureDefinition<TParams>.OnRebuild(IXApplication app, IXDocument model, IXCustomFeature feature, TParams parameters, out AlignDimensionDelegate<TParams> alignDim)
             => OnRebuild((SwApplication)app, (SwDocument)model, (SwMacroFeature)feature, parameters, out alignDim);
 
+        [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
+        public override bool OnEditDefinition(SwApplication app, SwDocument model, SwMacroFeature feature)
+            => OnEditDefinition(app, model, feature.ToParameters<TParams>(m_ParamsParser));
+
         public SwMacroFeatureDefinition() : this(new MacroFeatureParametersParser())
         {
         }
@@ -399,6 +404,11 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 
             return res;
         }
+
+        public virtual bool OnEditDefinition(SwApplication app, SwDocument model, SwMacroFeature<TParams> feature) 
+        {
+            return true;
+        }
     }
 
     /// <inheritdoc/>
@@ -453,9 +463,9 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             m_Editor.Insert(doc);
         }
 
-        public override bool OnEditDefinition(SwApplication app, SwDocument model, SwMacroFeature feature)
+        public override bool OnEditDefinition(SwApplication app, SwDocument model, SwMacroFeature<TParams> feature)
         {
-            m_Editor.Edit(model, feature.ToParameters<TParams>(m_ParamsParser));
+            m_Editor.Edit(model, feature);
             return true;
         }
 

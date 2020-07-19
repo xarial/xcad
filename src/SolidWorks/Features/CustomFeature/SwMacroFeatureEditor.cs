@@ -8,6 +8,7 @@
 using SolidWorks.Interop.swconst;
 using System;
 using System.Drawing;
+using Xarial.XCad.Base;
 using Xarial.XCad.Extensions;
 using Xarial.XCad.Features.CustomFeature.Delegates;
 using Xarial.XCad.Geometry;
@@ -25,7 +26,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         where TPage : class, new()
     {
         internal SwMacroFeatureEditor(SwApplication app, Type defType, 
-            CustomFeatureParametersParser paramsParser, ILogger logger) 
+            CustomFeatureParametersParser paramsParser, IXLogger logger) 
             : base(app, defType, paramsParser, logger)
         {
         }

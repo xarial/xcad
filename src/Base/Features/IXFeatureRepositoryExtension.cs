@@ -23,5 +23,15 @@ namespace Xarial.XCad.Features
 
             return custFeat;
         }
+
+        public static IXCustomFeature CreateCustomFeature<TDef>(this IXFeatureRepository feats)
+            where TDef : IXCustomFeatureDefinition
+        {
+            var custFeat = feats.PreCreateCustomFeature();
+            custFeat.DefinitionType = typeof(TDef);
+            feats.Add(custFeat);
+
+            return custFeat;
+        }
     }
 }

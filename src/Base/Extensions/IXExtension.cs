@@ -5,6 +5,7 @@
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
+using Xarial.XCad.Base;
 using Xarial.XCad.UI;
 using Xarial.XCad.UI.Commands;
 using Xarial.XCad.UI.PropertyPage;

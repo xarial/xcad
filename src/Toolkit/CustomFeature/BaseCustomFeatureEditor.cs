@@ -28,7 +28,7 @@ namespace Xarial.XCad.Utils.CustomFeature
         where TPage : class, new()
     {
         protected readonly IXApplication m_App;
-        protected readonly ILogger m_Logger;
+        protected readonly IXLogger m_Logger;
 
         private readonly XObjectEqualityComparer<IXBody> m_BodiesComparer;
         private readonly CustomFeatureParametersParser m_ParamsParser;
@@ -46,7 +46,7 @@ namespace Xarial.XCad.Utils.CustomFeature
         public BaseCustomFeatureEditor(IXApplication app,
             Type featDefType,
             CustomFeatureParametersParser paramsParser,
-            ILogger logger)
+            IXLogger logger)
         {
             m_App = app;
             m_Logger = logger;

@@ -12,6 +12,8 @@ namespace Xarial.XCad.Features
 {
     public interface IXFeatureRepository : IXRepository<IXFeature>
     {
+        IXCustomFeature PreCreateCustomFeature();
+
         IXCustomFeature<TParams> PreCreateCustomFeature<TParams>()
             where TParams : class, new();
 

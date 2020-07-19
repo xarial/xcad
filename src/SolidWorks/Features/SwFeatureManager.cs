@@ -111,6 +111,11 @@ namespace Xarial.XCad.SolidWorks.Features
             return new SwMacroFeature<TParams>(m_Doc, m_FeatMgr, null, m_ParamsParser, false);
         }
 
+        public IXCustomFeature PreCreateCustomFeature()
+        {
+            return new SwMacroFeature(m_Doc, m_FeatMgr, null, false);
+        }
+
         public void RemoveRange(IEnumerable<IXFeature> ents)
         {
             //TODO: implement deletion

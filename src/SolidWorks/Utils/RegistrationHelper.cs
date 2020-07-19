@@ -8,8 +8,8 @@
 using Microsoft.Win32;
 using System;
 using System.ComponentModel;
+using Xarial.XCad.Base;
 using Xarial.XCad.Reflection;
-using Xarial.XCad.Utils.Diagnostics;
 using Xarial.XCad.Utils.Reflection;
 
 namespace Xarial.XCad.SolidWorks.Utils
@@ -21,9 +21,9 @@ namespace Xarial.XCad.SolidWorks.Utils
         private const string DESCRIPTION_REG_KEY_NAME = "Description";
         private const string TITLE_REG_KEY_NAME = "Title";
 
-        private readonly ILogger m_Logger;
+        private readonly IXLogger m_Logger;
 
-        internal RegistrationHelper(ILogger logger)
+        internal RegistrationHelper(IXLogger logger)
         {
             m_Logger = logger;
         }
@@ -62,19 +62,28 @@ namespace Xarial.XCad.SolidWorks.Utils
             }
         }
 
-        private void RegisterAddIn(Type type)
+        internal string GetTitle(Type type) 
         {
             string title = "";
-            string desc = "";
-            bool loadAtStartup = true;
 
             type.TryGetAttribute<DisplayNameAttribute>(a => title = a.DisplayName);
-            type.TryGetAttribute<DescriptionAttribute>(a => desc = a.Description);
 
             if (string.IsNullOrEmpty(title))
             {
                 title = type.Name;
             }
+
+            return title;
+        }
+
+        private void RegisterAddIn(Type type)
+        {
+            string desc = "";
+            bool loadAtStartup = true;
+
+            type.TryGetAttribute<DescriptionAttribute>(a => desc = a.Description);
+
+            var title = GetTitle(type);
 
             var addInKey = Registry.LocalMachine.CreateSubKey(
                 string.Format(ADDIN_REG_KEY_TEMPLATE, type.GUID));

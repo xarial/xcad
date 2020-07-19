@@ -29,6 +29,9 @@ namespace Xarial.XCad.SolidWorks.Documents.Services
             Document = (SwDocument)model;
 
             Application = ((SwApplication)app).Sw;
+
+            OnInit((SwApplication)app, Document);
+
             Model = Document.Model;
 
             switch (Model)
@@ -48,6 +51,10 @@ namespace Xarial.XCad.SolidWorks.Documents.Services
                 default:
                     throw new NotSupportedException("Not a SOLIDWORKS document");
             }
+        }
+
+        protected virtual void OnInit(SwApplication app, SwDocument doc) 
+        {
         }
 
         protected virtual void AttachPartEvents(PartDoc part) 

@@ -14,6 +14,7 @@ using System.ComponentModel;
 using System.Drawing;
 using System.Linq;
 using System.Runtime.InteropServices;
+using Xarial.XCad.Base;
 using Xarial.XCad.Base.Attributes;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Extensions;
@@ -91,8 +92,6 @@ namespace Xarial.XCad.SolidWorks
         IXCustomPanel<TControl> IXExtension.CreateFeatureManagerTab<TControl>(IXDocument doc) 
             => CreateFeatureManagerTab<TControl>((SwDocument)doc);
 
-        private readonly ILogger m_Logger;
-
         public SwApplication Application { get; private set; }
 
         public SwCommandManager CommandManager { get; private set; }
@@ -102,11 +101,16 @@ namespace Xarial.XCad.SolidWorks
         /// </summary>
         protected int AddInId { get; private set; }
 
+        public IXLogger Logger { get; }
+
         private readonly List<IDisposable> m_DisposableControls;
 
         public SwAddInEx()
         {
-            m_Logger = new TraceLogger("XCad.AddIn");
+            var addInType = this.GetType();
+            var title = GetRegistrationHelper(addInType).GetTitle(addInType);
+
+            Logger = new TraceLogger($"XCad.AddIn.{title}");
 
             m_DisposableControls = new List<IDisposable>();
         }
@@ -115,7 +119,7 @@ namespace Xarial.XCad.SolidWorks
         [EditorBrowsable(EditorBrowsableState.Never)]
         public bool ConnectToSW(object ThisSW, int cookie)
         {
-            m_Logger.Log("Loading add-in");
+            Logger.Log("Loading add-in");
 
             try
             {
@@ -124,11 +128,11 @@ namespace Xarial.XCad.SolidWorks
 
                 app.SetAddinCallbackInfo(0, this, AddInId);
 
-                Application = new SwApplication(app, m_Logger);
+                Application = new SwApplication(app, Logger);
 
                 SwMacroFeatureDefinition.Application = Application;
 
-                CommandManager = new SwCommandManager(Application, AddInId, m_Logger);
+                CommandManager = new SwCommandManager(Application, AddInId, Logger);
 
                 OnConnect();
 
@@ -136,7 +140,7 @@ namespace Xarial.XCad.SolidWorks
             }
             catch (Exception ex)
             {
-                m_Logger.Log(ex);
+                Logger.Log(ex);
                 return false;
             }
         }
@@ -145,7 +149,7 @@ namespace Xarial.XCad.SolidWorks
         [EditorBrowsable(EditorBrowsableState.Never)]
         public bool DisconnectFromSW()
         {
-            m_Logger.Log("Unloading add-in");
+            Logger.Log("Unloading add-in");
 
             try
             {
@@ -155,7 +159,7 @@ namespace Xarial.XCad.SolidWorks
             }
             catch (Exception ex)
             {
-                m_Logger.Log(ex);
+                Logger.Log(ex);
                 return false;
             }
         }
@@ -230,7 +234,7 @@ namespace Xarial.XCad.SolidWorks
 
         private SwPropertyManagerPage<TData> CreatePropertyManagerPage<TData>(Type handlerType)
         {
-            return new SwPropertyManagerPage<TData>(Application, m_Logger, handlerType);
+            return new SwPropertyManagerPage<TData>(Application, Logger, handlerType);
         }
 
         public SwModelViewTab<TControl> CreateDocumentTab<TControl>(Documents.SwDocument doc)

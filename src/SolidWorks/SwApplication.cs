@@ -25,6 +25,7 @@ using System.Threading.Tasks;
 using System.Diagnostics;
 using System.Threading;
 using Xarial.XCad.SolidWorks.Exceptions;
+using Xarial.XCad.Base;
 
 namespace Xarial.XCad.SolidWorks
 {
@@ -180,7 +181,7 @@ namespace Xarial.XCad.SolidWorks
 
         public SwGeometryBuilder GeometryBuilder { get; private set; }
 
-        internal SwApplication(ISldWorks app, ILogger logger)
+        internal SwApplication(ISldWorks app, IXLogger logger)
         {
             Sw = app;
             Documents = new SwDocumentCollection(this, logger);

@@ -11,6 +11,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Delegates;
 using Xarial.XCad.Documents.Services;
@@ -32,7 +33,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         private readonly SwApplication m_App;
         private readonly SldWorks m_SwApp;
         private readonly Dictionary<IModelDoc2, SwDocument> m_Documents;
-        private readonly ILogger m_Logger;
+        private readonly IXLogger m_Logger;
         private readonly DocumentsHandler m_DocsHandler;
 
         public SwDocument Active
@@ -54,7 +55,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public int Count => m_Documents.Count;
 
-        internal SwDocumentCollection(SwApplication app, ILogger logger)
+        internal SwDocumentCollection(SwApplication app, IXLogger logger)
         {
             m_App = app;
             m_SwApp = (SldWorks)m_App.Sw;
