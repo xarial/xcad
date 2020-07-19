@@ -4,7 +4,27 @@
     <TargetFramework>net461</TargetFramework>
     <RootNamespace>Xarial.XCad.Documentation</RootNamespace>
     <AssemblyName>Xarial.XCad.Documentation</AssemblyName>
+    <UseWindowsForms>true</UseWindowsForms>
+    <UseWpf>true</UseWpf>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Extension\Panels\WpfControl.xaml" />
+    <None Remove="Extension\Panels\WpfWindow.xaml" />
+    <None Remove="PropertyPage\Controls\CustomWpfControl.xaml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Page Include="Extension\Panels\WpfControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Extension\Panels\WpfWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="PropertyPage\Controls\CustomWpfControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Base\Base.csproj" />
@@ -13,7 +33,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
     <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xaml" />
+    <Reference Include="WindowsBase" />
   </ItemGroup>
 
   <ItemGroup>
@@ -30,5 +54,9 @@
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
+
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="&quot;C:\Windows\Microsoft.NET\Framework64\v4.0.30319\RegAsm.exe&quot; &quot;$(TargetPath)&quot;  /codebase" />
+  </Target>
 
 </Project>

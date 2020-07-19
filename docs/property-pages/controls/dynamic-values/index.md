@@ -3,7 +3,7 @@ title: Handling dynamic values updated in the controls
 caption: Dynamic Values
 description: Handling dynamic values updated in the controls of the Property Manager Page using xCAD framework
 image: controls-dynamic-values.gif
-order: 13
+order: 14
 ---
 ![Values updated controls](controls-dynamic-values.gif)
 

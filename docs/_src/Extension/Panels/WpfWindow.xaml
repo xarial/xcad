@@ -1,0 +1,12 @@
+﻿<Window x:Class="Xarial.XCad.Documentation.Extension.Panels.WpfWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Xarial.XCad.Documentation.Extension.Panels"
+        mc:Ignorable="d"
+        Title="WpfWindow" Height="450" Width="800" Background="LightCyan">
+    <Grid>
+        <TextBlock Text="WPF Popup" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+    </Grid>
+</Window>

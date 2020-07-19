@@ -4,7 +4,7 @@ caption: Tags And Dependencies
 description: Assigning custom tags and managing SOLIDWORKS Property Manager Page control dependencies (visibility, enable state, etc.) using xCAD framework
 image: cascading-controls.gif
 labels: [cascading,dependencies,tags]
-order: 12
+order: 13
 ---
 It might be required to develop responsive property manager pages whose controls state depending on other control values, e.g. [controls enable state](#controls-enable-state), [cascading lists](#cascading-lists), etc. xCAD framework provides easy to setup and use functionality to implement these requirements and allows to update the states dynamically.
 

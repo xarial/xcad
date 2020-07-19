@@ -265,5 +265,25 @@ namespace Xarial.XCad.Documentation.Properties {
                 return ResourceManager.GetString("ToolbarTitle", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap winforms_icon {
+            get {
+                object obj = ResourceManager.GetObject("winforms_icon", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap wpf_icon {
+            get {
+                object obj = ResourceManager.GetObject("wpf_icon", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
     }
 }
