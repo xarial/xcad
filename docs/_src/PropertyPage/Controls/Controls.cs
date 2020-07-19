@@ -31,7 +31,9 @@ namespace Xarial.XCad.Documentation
             ButtonDataModel,
             TabDataModel,
             BitmapDataModel,
-            DynamicValuesDataModel
+            DynamicValuesDataModel,
+            CustomWpfControl,
+            CustomWinFormsControl
         }
 
         private SwPropertyManagerPage<DataModelCommonOpts> m_DataModelCommonOpts;
@@ -50,6 +52,8 @@ namespace Xarial.XCad.Documentation
         private SwPropertyManagerPage<TabDataModel> m_TabDataModel;
         private SwPropertyManagerPage<BitmapDataModel> m_BitmapDataModel;
         private SwPropertyManagerPage<DynamicValuesDataModel> m_DynamicValuesDataModel;
+        private SwPropertyManagerPage<CustomWpfControlPage> m_CustomWpfControlDataModel;
+        private SwPropertyManagerPage<CustomWinFormsControlPage> m_CustomWinFormsControlDataModel;
 
         public override void OnConnect()
         {
@@ -69,6 +73,8 @@ namespace Xarial.XCad.Documentation
             m_TabDataModel = CreatePage<TabDataModel, MyPMPageHandler>();
             m_BitmapDataModel = CreatePage<BitmapDataModel, MyPMPageHandler>();
             m_DynamicValuesDataModel = CreatePage<DynamicValuesDataModel, MyPMPageHandler>();
+            m_CustomWpfControlDataModel = CreatePage<CustomWpfControlPage, MyPMPageHandler>();
+            m_CustomWinFormsControlDataModel = CreatePage<CustomWinFormsControlPage, MyPMPageHandler>();
 
             this.CommandManager.AddCommandGroup<Pages_e>().CommandClick += OnButtonClick;
         }
@@ -124,6 +130,12 @@ namespace Xarial.XCad.Documentation
                     break;
                 case Pages_e.DynamicValuesDataModel:
                     m_DynamicValuesDataModel.Show(new DynamicValuesDataModel());
+                    break;
+                case Pages_e.CustomWpfControl:
+                    m_CustomWpfControlDataModel.Show(new CustomWpfControlPage());
+                    break;
+                case Pages_e.CustomWinFormsControl:
+                    m_CustomWinFormsControlDataModel.Show(new CustomWinFormsControlPage());
                     break;
             }
         }
