@@ -16,6 +16,8 @@ There are 3 main section of CAD functionality which are covered by framework
 * [Property Pages](property-pages) - building native property pages with data binding
 * [Custom Feature](custom-features) - building parametric native features
 
+Example projects are published in the [GitHub Repository](https://github.com/xarial/xcad-examples).
+
 Framework enables the abstraction layers over the CAD API allowing CAD agnostic development.
 
 * Interfaces defined in the [Xarial.XCad](https://www.nuget.org/packages/Xarial.XCad/) provide highest level of abstraction and completely hide the references to any CAD system, neither reference any interops or namespaces. Use this to develop CAD agnostic applications. All interface names start with *IX*, e.g. IXApplication, IXDocument, IXFace
