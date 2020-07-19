@@ -95,7 +95,7 @@ stages:
         command: 'push'
         packagesToPush: '$(Pipeline.Workspace)/packages/preview/*.nupkg'
         nuGetFeedType: 'internal'
-        publishVstsFeed: 'xarial'
+        publishVstsFeed: 'xcad/xcad-preview'
         
 - stage: 'PublishPreReleaseNuGetPackage'
   displayName: 'Publish Prerelease NuGet Package to xarial nuget feed'
@@ -118,7 +118,7 @@ stages:
         command: 'push'
         packagesToPush: '$(Pipeline.Workspace)/packages/release/*.nupkg'
         nuGetFeedType: 'internal'
-        publishVstsFeed: 'xarial'
+        publishVstsFeed: 'xcad/xcad-preview'
 
 - stage: 'PublishProductionPackage'
   variables:
