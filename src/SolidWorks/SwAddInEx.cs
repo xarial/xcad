@@ -284,28 +284,48 @@ namespace Xarial.XCad.SolidWorks
             }
         }
 
+        public SwTaskPane<TControl> CreateTaskPane<TControl>() => CreateTaskPane<TControl>(new TaskPaneSpec());
+
         public SwTaskPane<TControl> CreateTaskPane<TControl>(TaskPaneSpec spec) 
         {
             ITaskpaneView CreateTaskPaneView(IconsConverter iconConv, Image icon, string title) 
             {
                 if (icon == null) 
                 {
-                    icon = IconsConverter.FromXImage(spec.Icon);
+                    if (spec.Icon != null)
+                    {
+                        icon = IconsConverter.FromXImage(spec.Icon);
+                    }
                 }
 
                 if (string.IsNullOrEmpty(title)) 
                 {
-                    title = spec.Title;
+                    if (spec != null)
+                    {
+                        title = spec.Title;
+                    }
                 }
                 
                 if (Application.Sw.SupportsHighResIcons(CompatibilityUtils.HighResIconsScope_e.TaskPane))
                 {
-                    var taskPaneIconImages = iconConv.ConvertIcon(new TaskPaneHighResIcon(icon));
+                    string[] taskPaneIconImages = null;
+
+                    if (icon != null)
+                    {
+                        taskPaneIconImages = iconConv.ConvertIcon(new TaskPaneHighResIcon(icon));
+                    }
+
                     return Application.Sw.CreateTaskpaneView3(taskPaneIconImages, title);
                 }
                 else
                 {
-                    var taskPaneIconImage = iconConv.ConvertIcon(new TaskPaneIcon(icon)).First();
+                    var taskPaneIconImage = "";
+
+                    if (icon != null)
+                    {
+                        taskPaneIconImage = iconConv.ConvertIcon(new TaskPaneIcon(icon)).First();
+                    }
+
                     return Application.Sw.CreateTaskpaneView2(taskPaneIconImage, title);
                 }
             }
