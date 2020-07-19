@@ -11,6 +11,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using Xarial.XCad.Annotations;
+using Xarial.XCad.Base;
 using Xarial.XCad.Data;
 using Xarial.XCad.Data.Enums;
 using Xarial.XCad.Documents;
@@ -85,7 +86,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         IXDimensionRepository IXDocument.Dimensions => Dimensions;
         IXPropertyRepository IXDocument.Properties => Properties;
 
-        private readonly ILogger m_Logger;
+        private readonly IXLogger m_Logger;
 
         private readonly StreamReadAvailableEventsHandler m_StreamReadAvailableHandler;
         private readonly StorageReadAvailableEventsHandler m_StorageReadAvailableHandler;
@@ -124,7 +125,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        internal SwDocument(IModelDoc2 model, SwApplication app, ILogger logger)
+        internal SwDocument(IModelDoc2 model, SwApplication app, IXLogger logger)
         {
             Model = model;
 

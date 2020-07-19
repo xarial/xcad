@@ -1,0 +1,35 @@
+﻿theme: user-guide
+plugins:
+  - $
+  - files-promoter
+^code-syntax-highlighter:
+  embed-style: false
+^code-snippet:
+  snippets-folder: _src
+  auto-tabs: 
+    cs: C#
+    vb: VB.NET
+lang: en
+default-layout: article
+$legal:
+  company: Xarial Pty Limited
+  links:
+    Terms Of Use: /terms-of-use/
+    Privacy: /privacy-policy/
+    Cookies: /cookies-policy/
+^files-promoter:
+  folders:
+    - _legal
+$cookie-consent:
+  enable: true
+  message: This website uses cookies to ensure you get the best experience on our website. By using our website you agree on the following <a href="/cookies-policy/">Cookie Policy</a>, <a href="/privacy-policy/">Privacy Policy</a>, and <a href="/terms-of-use">Terms Of Use</a>
+$google-analytics:
+  traking-code: UA-160707877-6
+$social-links:
+  linkedin: https://www.linkedin.com/company/xarial
+  youtube: https://www.youtube.com/c/xarial
+  nuget: https://www.nuget.org/profiles/Xarial
+  github: https://github.com/xarial
+  rss: /feed.xml
+  reddit: https://www.reddit.com/r/xCAD/
+  email: info@xarial.com

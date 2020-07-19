@@ -51,7 +51,7 @@ namespace Xarial.XCad.UI.Commands
             return new EnumCommandGroup<TCmdEnum>(cmdGrp);
         }
 
-        public static IEnumCommandGroup<TCmdEnum> AddContextMenu<TCmdEnum>(this IXCommandManager cmdMgr, SelectType_e owner)
+        public static IEnumCommandGroup<TCmdEnum> AddContextMenu<TCmdEnum>(this IXCommandManager cmdMgr, SelectType_e? owner = null)
             where TCmdEnum : Enum
         {
             var enumGrp = CreateEnumCommandGroup<TCmdEnum>(cmdMgr);

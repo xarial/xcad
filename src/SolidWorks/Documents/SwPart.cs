@@ -8,6 +8,7 @@
 using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
 using System.Linq;
+using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Utils.Diagnostics;
@@ -18,7 +19,7 @@ namespace Xarial.XCad.SolidWorks.Documents
     {
         public IPartDoc Part { get; }
 
-        internal SwPart(IPartDoc part, SwApplication app, ILogger logger)
+        internal SwPart(IPartDoc part, SwApplication app, IXLogger logger)
             : base((IModelDoc2)part, app, logger)
         {
             Part = part;

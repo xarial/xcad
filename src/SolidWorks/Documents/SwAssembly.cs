@@ -6,6 +6,7 @@
 //*********************************************************************
 
 using SolidWorks.Interop.sldworks;
+using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Utils.Diagnostics;
@@ -18,7 +19,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public IXComponentRepository Components { get; }
 
-        internal SwAssembly(IAssemblyDoc assembly, SwApplication app, ILogger logger)
+        internal SwAssembly(IAssemblyDoc assembly, SwApplication app, IXLogger logger)
             : base((IModelDoc2)assembly, app, logger)
         {
             Assembly = assembly;

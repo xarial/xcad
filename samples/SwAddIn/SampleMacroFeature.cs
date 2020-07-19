@@ -17,11 +17,23 @@ using Xarial.XCad.Geometry;
 using Xarial.XCad.SolidWorks.Features.CustomFeature;
 using Xarial.XCad.SolidWorks;
 using Xarial.XCad.SolidWorks.Documents;
+using Xarial.XCad.Features.CustomFeature.Attributes;
 
 namespace SwAddInExample
 {
     [ComVisible(true)]
+    [MissingDefinitionErrorMessage("xCAD. Download the add-in")]
+    public class SimpleMacroFeature : SwMacroFeatureDefinition 
+    {
+        public override CustomFeatureRebuildResult OnRebuild(SwApplication app, SwDocument model, SwMacroFeature feature)
+        {
+            return base.OnRebuild(app, model, feature);
+        }
+    }
+
+    [ComVisible(true)]
     [Icon(typeof(Resources), nameof(Resources.xarial))]
+    [MissingDefinitionErrorMessage("xCAD. Download the add-in")]
     public class SampleMacroFeature : SwMacroFeatureDefinition<PmpMacroFeatData>
     {
         public override CustomFeatureRebuildResult OnRebuild(SwApplication app, SwDocument model, SwMacroFeature feature, 

@@ -6,6 +6,7 @@
 //*********************************************************************
 
 using SolidWorks.Interop.sldworks;
+using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Utils.Diagnostics;
 
@@ -15,7 +16,7 @@ namespace Xarial.XCad.SolidWorks.Documents
     {
         public IDrawingDoc Drawing { get; }
 
-        internal SwDrawing(IDrawingDoc drawing, SwApplication app, ILogger logger)
+        internal SwDrawing(IDrawingDoc drawing, SwApplication app, IXLogger logger)
             : base((IModelDoc2)drawing, app, logger)
         {
             Drawing = drawing;

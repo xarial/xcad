@@ -61,6 +61,8 @@ namespace SwAddInExample
 
             CreateModelView,
 
+            CreateFeatMgrView,
+
             CreatePopup,
 
             CreateTaskPane,
@@ -117,7 +119,8 @@ namespace SwAddInExample
         {
             if (reason == PageCloseReasons_e.Okay) 
             {
-                var feat = Application.Documents.Active.Features.CreateCustomFeature<SampleMacroFeature, PmpMacroFeatData>(m_MacroFeatPmpData);
+                var feat = Application.Documents.Active.Features.CreateCustomFeature<SimpleMacroFeature>();
+                //var feat = Application.Documents.Active.Features.CreateCustomFeature<SampleMacroFeature, PmpMacroFeatData>(m_MacroFeatPmpData);
             }
         }
 
@@ -207,6 +210,12 @@ namespace SwAddInExample
 
                 case Commands_e.CreateModelView:
                     this.CreateDocumentTabWpf<WpfUserControl>(Application.Documents.Active);
+                    //this.CreateDocumentTabWinForm<WinUserControl>(Application.Documents.Active);
+                    //this.CreateDocumentTabWinForm<ComUserControl>(Application.Documents.Active);
+                    break;
+
+                case Commands_e.CreateFeatMgrView:
+                    this.CreateFeatureManagerTab<WpfUserControl>(Application.Documents.Active);
                     //this.CreateDocumentTabWinForm<WinUserControl>(Application.Documents.Active);
                     //this.CreateDocumentTabWinForm<ComUserControl>(Application.Documents.Active);
                     break;
