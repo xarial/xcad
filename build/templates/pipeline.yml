@@ -120,6 +120,7 @@ stages:
       inputs:
         command: 'push'
         packagesToPush: '$(Pipeline.Workspace)/packages/release/*.nupkg'
+        allowPackageConflicts: true
         nuGetFeedType: 'internal'
         publishVstsFeed: 'xcad/xcad-preview'
 
