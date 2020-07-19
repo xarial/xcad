@@ -61,6 +61,8 @@ namespace SwAddInExample
 
             CreateModelView,
 
+            CreateFeatMgrView,
+
             CreatePopup,
 
             CreateTaskPane,
@@ -207,6 +209,12 @@ namespace SwAddInExample
 
                 case Commands_e.CreateModelView:
                     this.CreateDocumentTabWpf<WpfUserControl>(Application.Documents.Active);
+                    //this.CreateDocumentTabWinForm<WinUserControl>(Application.Documents.Active);
+                    //this.CreateDocumentTabWinForm<ComUserControl>(Application.Documents.Active);
+                    break;
+
+                case Commands_e.CreateFeatMgrView:
+                    this.CreateFeatureManagerTab<WpfUserControl>(Application.Documents.Active);
                     //this.CreateDocumentTabWinForm<WinUserControl>(Application.Documents.Active);
                     //this.CreateDocumentTabWinForm<ComUserControl>(Application.Documents.Active);
                     break;

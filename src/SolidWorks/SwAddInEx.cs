@@ -15,11 +15,13 @@ using System.Drawing;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Xarial.XCad.Base.Attributes;
+using Xarial.XCad.Documents;
 using Xarial.XCad.Extensions;
 using Xarial.XCad.Extensions.Attributes;
 using Xarial.XCad.Features.CustomFeature;
 using Xarial.XCad.Features.CustomFeature.Delegates;
 using Xarial.XCad.SolidWorks.Base;
+using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Features.CustomFeature;
 using Xarial.XCad.SolidWorks.Features.CustomFeature.Toolkit;
 using Xarial.XCad.SolidWorks.UI;
@@ -80,18 +82,14 @@ namespace Xarial.XCad.SolidWorks
 
         IXApplication IXExtension.Application => Application;
         IXCommandManager IXExtension.CommandManager => CommandManager;
-        IXCustomPanel<TControl> IXExtension.CreateDocumentTab<TControl>(XCad.Documents.IXDocument doc)
-        {
-            return CreateDocumentTab<TControl>((Documents.SwDocument)doc);
-        }
+        IXCustomPanel<TControl> IXExtension.CreateDocumentTab<TControl>(IXDocument doc)
+            => CreateDocumentTab<TControl>((SwDocument)doc);
         IXPopupWindow<TWindow> IXExtension.CreatePopupWindow<TWindow>()
-        {
-            return CreatePopupWindow<TWindow>();
-        }
+            => CreatePopupWindow<TWindow>();
         IXTaskPane<TControl> IXExtension.CreateTaskPane<TControl>(TaskPaneSpec spec)
-        {
-            return CreateTaskPane<TControl>(spec);
-        }
+            => CreateTaskPane<TControl>(spec);
+        IXCustomPanel<TControl> IXExtension.CreateFeatureManagerTab<TControl>(IXDocument doc) 
+            => CreateFeatureManagerTab<TControl>((SwDocument)doc);
 
         private readonly ILogger m_Logger;
 
@@ -234,6 +232,7 @@ namespace Xarial.XCad.SolidWorks
         {
             return new SwPropertyManagerPage<TData>(Application, m_Logger, handlerType);
         }
+
         public SwModelViewTab<TControl> CreateDocumentTab<TControl>(Documents.SwDocument doc)
         {
             var mdlViewMgr = doc.Model.ModelViewManager;
@@ -337,6 +336,53 @@ namespace Xarial.XCad.SolidWorks
                 m_DisposableControls.Add(taskPane);
 
                 return taskPane;
+            }
+        }
+
+        public SwFeatureMgrTab<TControl> CreateFeatureManagerTab<TControl>(SwDocument doc) 
+        {
+            var mdlViewMgr = doc.Model.ModelViewManager;
+
+            using (var iconsConv = new IconsConverter())
+            {
+                return CustomControlHelper.HostControl<TControl, SwFeatureMgrTab<TControl>>(
+                    (c, h, t, i) =>
+                    {
+                        var imgPath = iconsConv.ConvertIcon(new FeatMgrViewIcon(i)).First();
+
+                        var featMgr = mdlViewMgr.CreateFeatureMgrWindowFromHandlex64(
+                            imgPath, h.Handle.ToInt64(), t, (int)swFeatMgrPane_e.swFeatMgrPaneBottom) as IFeatMgrView;
+
+                        if (featMgr != null)
+                        {
+                            return new SwFeatureMgrTab<TControl>(c, featMgr, doc);
+                        }
+                        else
+                        {
+                            throw new NetControlHostException(h.Handle);
+                        }
+                    },
+                    (p, t, i) =>
+                    {
+                        var imgPath = iconsConv.ConvertIcon(new FeatMgrViewIcon(i)).First();
+
+                        var featMgr = mdlViewMgr.CreateFeatureMgrControl3(imgPath, p, "", t,
+                            (int)swFeatMgrPane_e.swFeatMgrPaneBottom) as IFeatMgrView;
+
+                        TControl ctrl = default;
+
+                        if (featMgr != null)
+                        {
+                            ctrl = (TControl)featMgr.GetControl();
+                        }
+
+                        if (ctrl == null)
+                        {
+                            throw new ComControlHostException(p);
+                        }
+
+                        return new SwFeatureMgrTab<TControl>(ctrl, featMgr, doc);
+                    });
             }
         }
     }

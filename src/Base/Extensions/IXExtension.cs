@@ -32,9 +32,12 @@ namespace Xarial.XCad.Extensions
         /// Create native property page to manage parameters
         /// </summary>
         /// <typeparam name="TData">Type defining the data model of the property page</typeparam>
-        /// <returns>Instance of the proeprty page</returns>
+        /// <returns>Instance of the property page</returns>
         IXPropertyPage<TData> CreatePage<TData>();
 
+        IXLogger Logger { get; }
+
+        IXCustomPanel<TControl> CreateFeatureManagerTab<TControl>(Documents.IXDocument doc);
         IXCustomPanel<TControl> CreateDocumentTab<TControl>(Documents.IXDocument doc);
         IXPopupWindow<TWindow> CreatePopupWindow<TWindow>();
         IXTaskPane<TControl> CreateTaskPane<TControl>(TaskPaneSpec spec);
