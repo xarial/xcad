@@ -32,13 +32,14 @@ stages:
         inputs:
           secureFile: xarial.snk
 
-      - task: VSBuild@1
-        displayName: 'Build and pack preview version'
-        inputs:
-          solution: 'src\${{ parameters.projectName }}\*.csproj'
-          msbuildArgs: '/t:pack /p:OutputPath=$(System.DefaultWorkingDirectory)\build\preview;SignAssembly=true;AssemblyOriginatorKeyFile=$(Certificate.secureFilePath);DelaySign=false;VersionSuffix=$(Build.BuildNumber)'
-          platform: '$(BuildPlatform)'
-          configuration: '$(BuildConfiguration)'
+      - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
+        - task: VSBuild@1
+          displayName: 'Build and pack preview version'
+          inputs:
+            solution: 'src\${{ parameters.projectName }}\*.csproj'
+            msbuildArgs: '/t:pack /p:OutputPath=$(System.DefaultWorkingDirectory)\build\preview;SignAssembly=true;AssemblyOriginatorKeyFile=$(Certificate.secureFilePath);DelaySign=false;VersionSuffix=$(Build.BuildNumber)'
+            platform: '$(BuildPlatform)'
+            configuration: '$(BuildConfiguration)'
           
       - task: VSBuild@1
         displayName: 'Build and pack release version'
@@ -63,21 +64,23 @@ stages:
             !**\obj\**
           platform: '$(BuildPlatform)'
           configuration: '$(BuildConfiguration)'
-            
-      - task: CopyFiles@2
-        displayName: 'Copy Nuget Package'
-        inputs:
-          SourceFolder: '$(system.defaultworkingdirectory)/build'
-          Contents: '**\*.nupkg'
-          TargetFolder: '$(Build.ArtifactStagingDirectory)/packages'
       
-      - publish: '$(Build.ArtifactStagingDirectory)/packages'
-        artifact: 'packages'
+      - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
+        - task: CopyFiles@2
+          displayName: 'Copy Nuget Package'
+          inputs:
+            SourceFolder: '$(system.defaultworkingdirectory)/build'
+            Contents: '**\*.nupkg'
+            TargetFolder: '$(Build.ArtifactStagingDirectory)/packages'
+      
+      - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
+        - publish: '$(Build.ArtifactStagingDirectory)/packages'
+          artifact: 'packages'
 
 - stage: 'PublishPreviewNuGetPackage'
   displayName: 'Publish Preview NuGet Package to xarial nuget feed'
   dependsOn: 'Build'
-  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/dev'))
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/dev'), ne(variables['Build.Reason'], 'PullRequest'))
   jobs:
   - job:
     pool:
@@ -95,12 +98,12 @@ stages:
         command: 'push'
         packagesToPush: '$(Pipeline.Workspace)/packages/preview/*.nupkg'
         nuGetFeedType: 'internal'
-        publishVstsFeed: 'xarial'
+        publishVstsFeed: 'xcad/xcad-preview'
         
 - stage: 'PublishPreReleaseNuGetPackage'
   displayName: 'Publish Prerelease NuGet Package to xarial nuget feed'
   dependsOn: 'Build'
-  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'), ne(variables['Build.Reason'], 'PullRequest'))
   jobs:
   - job:
     pool:
@@ -118,7 +121,7 @@ stages:
         command: 'push'
         packagesToPush: '$(Pipeline.Workspace)/packages/release/*.nupkg'
         nuGetFeedType: 'internal'
-        publishVstsFeed: 'xarial'
+        publishVstsFeed: 'xcad/xcad-preview'
 
 - stage: 'PublishProductionPackage'
   variables:
@@ -127,7 +130,7 @@ stages:
       value:
   displayName: 'Publish Release NuGet Package to Nuget.org production'
   dependsOn: 'PublishPreReleaseNuGetPackage'
-  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'), ne(variables['Build.Reason'], 'PullRequest'))
   jobs:
   - deployment:
     pool:

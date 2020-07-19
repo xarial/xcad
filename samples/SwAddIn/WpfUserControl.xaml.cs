@@ -5,6 +5,7 @@
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
+using SwAddInExample.Properties;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,9 +21,12 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using Xarial.XCad.Base.Attributes;
 
 namespace SwAddInExample
 {
+    [Title("WPF User Control")]
+    [Icon(typeof(Resources), nameof(Properties.Resources.xarial))]
     public partial class WpfUserControl : UserControl
     {
         public WpfUserControl()
