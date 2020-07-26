@@ -21,6 +21,8 @@ namespace Xarial.XCad.Documents
         event DataStoreAvailableDelegate StreamWriteAvailable;
         event DataStoreAvailableDelegate StorageWriteAvailable;
 
+        event DocumentRebuildDelegate Rebuild;
+        event DocumentSaveDelegate Saving;
         event DocumentCloseDelegate Closing;
 
         string Title { get; }

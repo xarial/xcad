@@ -15,6 +15,8 @@ namespace Xarial.XCad.Documents
 {
     public interface IXConfigurationRepository : IXRepository<IXConfiguration>
     {
+        event ConfigurationActivatedDelegate ConfigurationActivated;
+
         IXConfiguration Active { get; }
     }
 }

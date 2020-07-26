@@ -20,9 +20,8 @@ using Xarial.XCad.Features;
 using Xarial.XCad.SolidWorks.Annotations;
 using Xarial.XCad.SolidWorks.Data;
 using Xarial.XCad.SolidWorks.Data.EventHandlers;
+using Xarial.XCad.SolidWorks.Documents.EventHandlers;
 using Xarial.XCad.SolidWorks.Features;
-using Xarial.XCad.Toolkit.Services;
-using Xarial.XCad.Utils.Diagnostics;
 
 namespace Xarial.XCad.SolidWorks.Documents
 {
@@ -32,6 +31,30 @@ namespace Xarial.XCad.SolidWorks.Documents
         public event DocumentCloseDelegate Closing;
 
         internal event Action<IModelDoc2> Destroyed;
+
+        public event DocumentRebuildDelegate Rebuild 
+        {
+            add 
+            {
+                m_DocumentRebuildEventHandler.Attach(value);
+            }
+            remove 
+            {
+                m_DocumentRebuildEventHandler.Detach(value);
+            }
+        }
+
+        public event DocumentSaveDelegate Saving
+        {
+            add
+            {
+                m_DocumentSavingEventHandler.Attach(value);
+            }
+            remove
+            {
+                m_DocumentSavingEventHandler.Detach(value);
+            }
+        }
 
         public event DataStoreAvailableDelegate StreamReadAvailable 
         {
@@ -92,6 +115,8 @@ namespace Xarial.XCad.SolidWorks.Documents
         private readonly StorageReadAvailableEventsHandler m_StorageReadAvailableHandler;
         private readonly StreamWriteAvailableEventsHandler m_StreamWriteAvailableHandler;
         private readonly StorageWriteAvailableEventsHandler m_StorageWriteAvailableHandler;
+        private readonly DocumentRebuildEventsHandler m_DocumentRebuildEventHandler;
+        private readonly DocumentSavingEventHandler m_DocumentSavingEventHandler;
 
         public IModelDoc2 Model { get; }
 
@@ -146,6 +171,8 @@ namespace Xarial.XCad.SolidWorks.Documents
             m_StreamWriteAvailableHandler = new StreamWriteAvailableEventsHandler(this);
             m_StorageReadAvailableHandler = new StorageReadAvailableEventsHandler(this);
             m_StorageWriteAvailableHandler = new StorageWriteAvailableEventsHandler(this);
+            m_DocumentRebuildEventHandler = new DocumentRebuildEventsHandler(this);
+            m_DocumentSavingEventHandler = new DocumentSavingEventHandler(this);
 
             AttachEvents();
         }
