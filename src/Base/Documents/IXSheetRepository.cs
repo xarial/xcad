@@ -10,10 +10,10 @@ using Xarial.XCad.Documents.Delegates;
 
 namespace Xarial.XCad.Documents
 {
-    public interface IXConfigurationRepository : IXRepository<IXConfiguration>
+    public interface IXSheetRepository : IXRepository<IXSheet>
     {
-        event ConfigurationActivatedDelegate ConfigurationActivated;
+        event SheetActivatedDelegate SheetActivated;
 
-        IXConfiguration Active { get; }
+        IXSheet Active { get; }
     }
 }

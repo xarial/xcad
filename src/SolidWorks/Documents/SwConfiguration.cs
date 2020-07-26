@@ -14,7 +14,6 @@ namespace Xarial.XCad.SolidWorks.Documents
 {
     public class SwConfiguration : SwObject, IXConfiguration
     {
-        private readonly ISldWorks m_App;
         private readonly IConfiguration m_Conf;
         private readonly IModelDoc2 m_Model;
 
@@ -26,7 +25,6 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         internal SwConfiguration(ISldWorks app, IModelDoc2 model, IConfiguration conf) : base(conf)
         {
-            m_App = app;
             m_Model = model;
             m_Conf = conf;
 
