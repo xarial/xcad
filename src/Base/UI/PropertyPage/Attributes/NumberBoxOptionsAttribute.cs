@@ -36,11 +36,7 @@ namespace Xarial.XCad.UI.PropertyPage.Attributes
         }
 
         /// <inheritdoc cref = "NumberBoxOptionsAttribute(NumberBoxStyle_e)" />
-        /// <param name="units">Number box units</see>
-        /// 0 for not using units. If units are specified corresponding current user unit system
-        /// will be used and the corresponding units marks will be displayed in the number box.
-        /// Regardless of the current unit system the value will be stored in system units (MKS)
-        /// </param>
+        /// <param name="units">Number box units. 0 for not using units. If units are specified corresponding current user unit system will be used and the corresponding units marks will be displayed in the number box. Regardless of the current unit system the value will be stored in system units (MKS)</param>
         /// <param name="minimum">Minimum allowed value for the number box</param>
         /// <param name="maximum">Maximum allowed value for the number box</param>
         /// <param name="increment">Default increment when up or down increment button is clicked</param>

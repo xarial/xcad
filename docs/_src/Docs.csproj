@@ -55,8 +55,11 @@
     </EmbeddedResource>
   </ItemGroup>
 
-  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="&quot;C:\Windows\Microsoft.NET\Framework64\v4.0.30319\RegAsm.exe&quot; &quot;$(TargetPath)&quot;  /codebase" />
+  <Target Name="BeforeClean">
+    <Exec Command="%windir%\Microsoft.NET\Framework64\v4.0.30319\RegAsm.exe &quot;$(TargetPath)&quot; /u" Condition="Exists('$(TargetPath)')" />
+  </Target>
+  <Target Name="AfterBuild">
+    <Exec Command="%windir%\Microsoft.NET\Framework64\v4.0.30319\RegAsm.exe &quot;$(TargetPath)&quot; /codebase" Condition="Exists('$(TargetPath)')" />
   </Target>
 
 </Project>

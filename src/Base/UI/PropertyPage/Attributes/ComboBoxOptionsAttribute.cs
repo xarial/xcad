@@ -22,8 +22,7 @@ namespace Xarial.XCad.UI.PropertyPage.Attributes
         /// <summary>
         /// Constructor for specifying style of combo box
         /// </summary>
-        /// <param name="style">Specific style applied for combo box control.
-        ///
+        /// <param name="style">Specific style applied for combo box control</param>
         public ComboBoxOptionsAttribute(ComboBoxStyle_e style = 0)
         {
             Style = style;
