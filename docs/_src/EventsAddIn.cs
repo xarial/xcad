@@ -35,7 +35,7 @@ namespace Xarial.XCad.Documentation
             //TODO: handle closing
         }
 
-        private void OnNewSelection(IXSelObject selObject)
+        private void OnNewSelection(IXDocument doc, IXSelObject selObject)
         {
             //TODO: handle new selection
         }

@@ -93,11 +93,11 @@ namespace Xarial.XCad.UI.Commands.Structures
             }
         }
 
-        private void OnCommandStateResolve(CommandSpec spec, ref CommandState state)
+        private void OnCommandStateResolve(CommandSpec spec, CommandState state)
         {
             if (spec is EnumCommandSpec<TCmdEnum>)
             {
-                m_CommandState?.Invoke((spec as EnumCommandSpec<TCmdEnum>).Value, ref state);
+                m_CommandState?.Invoke((spec as EnumCommandSpec<TCmdEnum>).Value, state);
             }
         }
 

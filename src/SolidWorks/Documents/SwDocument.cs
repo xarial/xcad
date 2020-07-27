@@ -123,6 +123,12 @@ namespace Xarial.XCad.SolidWorks.Documents
         public string Path => Model.GetPathName();
         public string Title => Model.GetTitle();
 
+        public bool Visible
+        {
+            get => Model.Visible;
+            set => Model.Visible = value; 
+        }
+
         public SwFeatureManager Features { get; }
 
         public SwSelectionCollection Selections { get; }

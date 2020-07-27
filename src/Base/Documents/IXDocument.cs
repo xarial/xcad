@@ -30,6 +30,8 @@ namespace Xarial.XCad.Documents
 
         bool IsDirty { get; set; }
 
+        bool Visible { get; set; }
+
         void Close();
 
         IXFeatureRepository Features { get; }

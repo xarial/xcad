@@ -10,8 +10,8 @@ using Xarial.XCad.UI.Commands.Structures;
 
 namespace Xarial.XCad.UI.Commands.Delegates
 {
-    public delegate void CommandStateDelegate(CommandSpec spec, ref CommandState state);
+    public delegate void CommandStateDelegate(CommandSpec spec, CommandState state);
 
-    public delegate void CommandEnumStateDelegate<TCmdEnum>(TCmdEnum spec, ref CommandState state)
+    public delegate void CommandEnumStateDelegate<TCmdEnum>(TCmdEnum spec, CommandState state)
         where TCmdEnum : Enum;
 }

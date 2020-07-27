@@ -243,11 +243,11 @@ namespace SwAddInExample
             }
         }
 
-        private void OnNewSelection(Xarial.XCad.IXSelObject selObject)
+        private void OnNewSelection(IXDocument doc, Xarial.XCad.IXSelObject selObject)
         {
         }
 
-        private void OnClearSelection()
+        private void OnClearSelection(IXDocument doc)
         {
         }
 
