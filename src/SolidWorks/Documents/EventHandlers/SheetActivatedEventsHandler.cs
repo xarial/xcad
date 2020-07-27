@@ -49,7 +49,7 @@ namespace Xarial.XCad.SolidWorks.Documents.EventHandlers
 
         private int OnActivateSheetPostNotify(string sheetName)
         {
-            Delegate?.Invoke(m_Doc.Sheets[sheetName]);
+            Delegate?.Invoke(m_Doc, m_Doc.Sheets[sheetName]);
             return S_OK;
         }
     }

@@ -53,7 +53,7 @@ namespace Xarial.XCad.SolidWorks.Documents.EventHandlers
 
             if (changeType == POST_NOTIFICATION)
             {
-                Delegate?.Invoke(m_Doc.Configurations[configurationName]);
+                Delegate?.Invoke(m_Doc, m_Doc.Configurations[configurationName]);
             }
 
             return S_OK;

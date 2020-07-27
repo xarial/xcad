@@ -65,7 +65,7 @@ namespace Xarial.XCad.SolidWorks.Documents.EventHandlers
             {
                 var lastSelObj = m_SelMgr.GetSelectedObject6(selIndex, -1);
                 var obj = SwSelObject.FromDispatch(lastSelObj, m_Doc);
-                Delegate?.Invoke(obj);
+                Delegate?.Invoke(m_Doc, obj);
             }
 
             return S_OK;

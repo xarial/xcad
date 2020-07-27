@@ -11,5 +11,5 @@ using System.Text;
 
 namespace Xarial.XCad.Documents.Delegates
 {
-    public delegate void NewSelectionDelegate(IXSelObject selObject);
+    public delegate void NewSelectionDelegate(IXDocument doc, IXSelObject selObject);
 }
