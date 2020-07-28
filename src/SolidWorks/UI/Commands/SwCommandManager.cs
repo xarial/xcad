@@ -351,7 +351,7 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
                 m_Logger.Log("Command group activation failed");
             }
 
-            m_Logger.Log($"Command group-{groupId} Id: {cmdGroup.CommandGroup.ToolbarId}");
+            m_Logger.Log($"Command group-{groupId} Id: {(cmdGroup.CommandGroup.HasToolbar ? cmdGroup.CommandGroup.ToolbarId.ToString() : "No Toolbar")}");
 
             return createdCmds.ToDictionary(p => p.Key, p =>
             {
