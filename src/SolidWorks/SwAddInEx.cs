@@ -126,7 +126,14 @@ namespace Xarial.XCad.SolidWorks
                 var app = ThisSW as ISldWorks;
                 AddInId = cookie;
 
-                app.SetAddinCallbackInfo(0, this, AddInId);
+                if (app.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2015))
+                {
+                    app.SetAddinCallbackInfo2(0, this, AddInId);
+                }
+                else 
+                {
+                    app.SetAddinCallbackInfo(0, this, AddInId);
+                }
 
                 Application = new SwApplication(app, Logger);
 

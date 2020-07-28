@@ -187,7 +187,11 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
                 foreach (var grp in m_CommandBars)
                 {
                     m_Logger.Log($"Removing group: {grp.Spec.Id}");
-                    CmdMgr.RemoveCommandGroup(grp.Spec.Id);
+                    
+                    if (!CmdMgr.RemoveCommandGroup(grp.Spec.Id)) 
+                    {
+                        m_Logger.Log($"Failed to remove group: {grp.Spec.Id}");
+                    }
                 }
 
                 m_CommandBars.Clear();
@@ -217,15 +221,7 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
         }
 
         private bool CompareIDs(IEnumerable<int> storedIDs, IEnumerable<int> addinIDs)
-        {
-            var storedList = storedIDs.ToList();
-            var addinList = addinIDs.ToList();
-
-            addinList.Sort();
-            storedList.Sort();
-
-            return addinList.SequenceEqual(storedIDs);
-        }
+            => storedIDs.OrderBy(x => x).SequenceEqual(addinIDs.OrderBy(x => x));
 
         private swCommandTabButtonTextDisplay_e ConvertTextDisplay(RibbonTabTextDisplay_e style)
         {
