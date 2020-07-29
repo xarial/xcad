@@ -186,7 +186,7 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
             {
                 foreach (var grp in m_CommandBars)
                 {
-                    m_Logger.Log($"Removing group: {grp.Spec.Id}");
+                    m_Logger.Log($"Removing group: {grp.Spec.Id}. Store information: {grp.Spec.StoreGroupInformation}");
 
                     var removeRes = false;
 
@@ -195,7 +195,7 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
                         var res = (swRemoveCommandGroupErrors)CmdMgr.RemoveCommandGroup2(grp.Spec.Id, grp.Spec.StoreGroupInformation);
                         removeRes = res == swRemoveCommandGroupErrors.swRemoveCommandGroup_Success;
                     }
-                    else 
+                    else
                     {
                         removeRes = CmdMgr.RemoveCommandGroup(grp.Spec.Id);
                     }
