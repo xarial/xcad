@@ -31,6 +31,7 @@ using Xarial.XCad.SolidWorks.Data;
 using Xarial.XCad.UI.TaskPane.Attributes;
 using Xarial.XCad.SolidWorks.UI;
 using Xarial.XCad.SolidWorks.UI.PropertyPage;
+using Xarial.XCad.UI.Commands.Structures;
 
 namespace SwAddInExample
 {
@@ -100,11 +101,27 @@ namespace SwAddInExample
 
         public override void OnConnect()
         {
+            CommandManager.AddCommandGroup(new CommandGroupSpec(99)
+            {
+                Title = "Group 1",
+                Commands = new CommandSpec[]
+                {
+                    new CommandSpec(1)
+                    {
+                        Title = "Cmd1",
+                        HasMenu = true, 
+                        HasToolbar = true,
+                        HasTabBox = true,
+                        TabBoxStyle = RibbonTabTextDisplay_e.TextBelow,
+                        SupportedWorkspace = WorkspaceTypes_e.All
+                    }
+                }
+            });
             CommandManager.AddCommandGroup<Commands_e>().CommandClick += OnCommandClick;
             CommandManager.AddContextMenu<ContextMenuCommands_e>(Xarial.XCad.Base.Enums.SelectType_e.Faces).CommandClick += OnContextMenuCommandClick;
-            
+
             Application.Documents.RegisterHandler<SwDocHandler>();
-            
+
             m_Page = this.CreatePage<PmpData>();
 
             m_MacroFeatPage = this.CreatePage<PmpMacroFeatData>();

@@ -192,7 +192,7 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
 
                     if (m_App.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2011))
                     {
-                        var res = (swRemoveCommandGroupErrors)CmdMgr.RemoveCommandGroup2(grp.Spec.Id, true);
+                        var res = (swRemoveCommandGroupErrors)CmdMgr.RemoveCommandGroup2(grp.Spec.Id, grp.Spec.StoreGroupInformation);
                         removeRes = res == swRemoveCommandGroupErrors.swRemoveCommandGroup_Success;
                     }
                     else 
@@ -200,7 +200,7 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
                         removeRes = CmdMgr.RemoveCommandGroup(grp.Spec.Id);
                     }
 
-                    if (!removeRes) 
+                    if (!removeRes)
                     {
                         m_Logger.Log($"Failed to remove group: {grp.Spec.Id}");
                     }
@@ -222,6 +222,8 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
 
         private void ClearCommandTabBox(ICommandTabBox cmdBox)
         {
+            m_Logger.Log($"Clearing Command Tab Box");
+
             object existingCmds;
             object existingTextStyles;
             cmdBox.GetCommands(out existingCmds, out existingTextStyles);

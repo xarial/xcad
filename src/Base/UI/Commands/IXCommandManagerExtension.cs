@@ -28,7 +28,7 @@ namespace Xarial.XCad.UI.Commands
         {
             internal TEnum Value { get; }
 
-            internal EnumCommandSpec(TEnum value)
+            internal EnumCommandSpec(TEnum value, int userId) : base(userId)
             {
                 Value = value;
             }
@@ -64,7 +64,7 @@ namespace Xarial.XCad.UI.Commands
         private static EnumCommandSpec<TCmdEnum> CreateCommand<TCmdEnum>(TCmdEnum cmdEnum)
             where TCmdEnum : Enum
         {
-            var cmd = new EnumCommandSpec<TCmdEnum>(cmdEnum);
+            var cmd = new EnumCommandSpec<TCmdEnum>(cmdEnum, Convert.ToInt32(cmdEnum));
 
             if (!cmdEnum.TryGetAttribute<CommandItemInfoAttribute>(
                 att =>
@@ -104,19 +104,20 @@ namespace Xarial.XCad.UI.Commands
 
             var cmdGroupType = typeof(TCmdEnum);
 
-            var bar = new EnumCommandGroupSpec(cmdGroupType);
-
             CommandGroupInfoAttribute grpInfoAtt = null;
+
+            EnumCommandGroupSpec parent = null;
+            int id = 0;
 
             if (cmdGroupType.TryGetAttribute<CommandGroupInfoAttribute>(x => grpInfoAtt = x))
             {
                 if (grpInfoAtt.UserId != -1)
                 {
-                    bar.Id = grpInfoAtt.UserId;
+                    id = grpInfoAtt.UserId;
                 }
                 else
                 {
-                    bar.Id = nextGroupId;
+                    id = nextGroupId;
                 }
 
                 if (grpInfoAtt.ParentGroupType != null)
@@ -135,13 +136,16 @@ namespace Xarial.XCad.UI.Commands
                         throw new InvalidOperationException("Group cannot be a parent of itself");
                     }
 
-                    bar.Parent = parentGrpSpec;
+                    parent = parentGrpSpec;
                 }
             }
             else
             {
-                bar.Id = nextGroupId;
+                id = nextGroupId;
             }
+
+            var bar = new EnumCommandGroupSpec(cmdGroupType, id);
+            bar.Parent = parent;
 
             bar.InitFromEnum<TCmdEnum>();
 
