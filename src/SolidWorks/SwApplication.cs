@@ -67,7 +67,7 @@ namespace Xarial.XCad.SolidWorks
         /// <param name="vers">Version of SOLIDWORKS to start or null for the latest version</param>
         /// <param name="cancellationToken">Cancellation token</param>
         /// <returns>Instance of application</returns>
-        public static async Task<SwApplication> Start(SwVersion_e? vers, 
+        public static async Task<SwApplication> Start(SwVersion_e? vers,
             string args, CancellationToken? cancellationToken = null)
         {
             var swPath = FindSwAppPath(vers);
@@ -95,7 +95,7 @@ namespace Xarial.XCad.SolidWorks
 
                 return FromPointer(app);
             }
-            catch 
+            catch
             {
                 if (prc != null)
                 {
@@ -130,7 +130,7 @@ namespace Xarial.XCad.SolidWorks
                     var progId = string.Format(PROG_ID_TEMPLATE, versCand);
                     swAppRegKey = Microsoft.Win32.Registry.ClassesRoot.OpenSubKey(progId);
 
-                    if (swAppRegKey != null) 
+                    if (swAppRegKey != null)
                     {
                         break;
                     }
@@ -177,6 +177,8 @@ namespace Xarial.XCad.SolidWorks
 
         public ISldWorks Sw { get; private set; }
 
+        public SwVersion_e Version => Sw.GetVersion();
+        
         public SwDocumentCollection Documents { get; private set; }
 
         public SwGeometryBuilder GeometryBuilder { get; private set; }

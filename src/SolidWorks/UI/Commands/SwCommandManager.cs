@@ -5,6 +5,7 @@
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
+using Microsoft.Win32;
 using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
 using System;
@@ -75,9 +76,12 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
 
         public IEnumerable<IXCommandGroup> CommandGroups => m_CommandBars;
 
-        internal SwCommandManager(SwApplication app, int addinCookie, IXLogger logger)
+        private readonly Guid m_AddInGuid;
+
+        internal SwCommandManager(SwApplication app, int addinCookie, IXLogger logger, Guid addInGuid)
         {
             m_App = app;
+            m_AddInGuid = addInGuid;
 
             CmdMgr = m_App.Sw.GetCommandManager(addinCookie);
 
@@ -184,15 +188,19 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
         {
             if (disposing)
             {
+                var usedGroups = new List<int>();
+
                 foreach (var grp in m_CommandBars)
                 {
-                    m_Logger.Log($"Removing group: {grp.Spec.Id}. Store information: {grp.Spec.StoreGroupInformation}");
+                    usedGroups.Add(grp.CommandGroup.ToolbarId);
+
+                    m_Logger.Log($"Removing group: {grp.Spec.Id}");
 
                     var removeRes = false;
 
                     if (m_App.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2011))
                     {
-                        var res = (swRemoveCommandGroupErrors)CmdMgr.RemoveCommandGroup2(grp.Spec.Id, grp.Spec.StoreGroupInformation);
+                        var res = (swRemoveCommandGroupErrors)CmdMgr.RemoveCommandGroup2(grp.Spec.Id, true);
                         removeRes = res == swRemoveCommandGroupErrors.swRemoveCommandGroup_Success;
                     }
                     else
@@ -206,6 +214,8 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
                     }
                 }
 
+                TryClearDanglingToolbarIds(usedGroups);
+
                 m_CommandBars.Clear();
             }
 
@@ -217,6 +227,44 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
                 }
 
                 CmdMgr = null;
+            }
+        }
+
+        //NOTE: this is a workaround method as ICommandManager::RemoveCommandGroup2 seems to ignore the RuntimeOnly  flag and always keep the group in the registry
+        //furthermore the IgnorePreviousVersion parameter of ICommandManager::CreateCommandGroup2 seems to only work after the restart
+        //this results in the cached toolbar id loaded for the dangling group if its user id reused
+        private void TryClearDanglingToolbarIds(IEnumerable<int> usedGroupIds) 
+        {
+            try
+            {
+                var swVers = m_App.Version.ToString().Substring("Sw".Length);
+
+                var customApiToolbarsRegKey = Registry.CurrentUser.OpenSubKey(
+                    $@"Software\Solidworks\SOLIDWORKS {swVers}\User Interface\Custom API Toolbars", true);
+
+                if (customApiToolbarsRegKey != null)
+                {
+                    var toolbarIds = customApiToolbarsRegKey.GetSubKeyNames();
+
+                    foreach (var toolbarId in toolbarIds)
+                    {
+                        if (!usedGroupIds.Contains(int.Parse(toolbarId)))
+                        {
+                            var toolbarKey = customApiToolbarsRegKey.OpenSubKey(toolbarId, false);
+                            var moduleGuid = Guid.Parse((string)toolbarKey.GetValue("ModuleName"));
+
+                            if (moduleGuid.Equals(m_AddInGuid))
+                            {
+                                m_Logger.Log($"Clearing the registry key: {toolbarId}");
+                                customApiToolbarsRegKey.DeleteSubKey(toolbarId);
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                m_Logger.Log(ex);
             }
         }
 

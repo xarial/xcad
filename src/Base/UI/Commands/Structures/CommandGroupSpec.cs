@@ -15,11 +15,6 @@ namespace Xarial.XCad.UI.Commands.Structures
         public int Id { get; }
         public CommandSpec[] Commands { get; set; }
 
-        /// <summary>
-        /// Indicates if the information about the group (such as tolbar location) should be stored upon application unloading
-        /// </summary>
-        public bool StoreGroupInformation { get; set; } = true;
-
         public CommandGroupSpec(int id) 
         {
             Id = id;

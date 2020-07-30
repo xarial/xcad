@@ -114,9 +114,28 @@ namespace SwAddInExample
                         HasTabBox = true,
                         TabBoxStyle = RibbonTabTextDisplay_e.TextBelow,
                         SupportedWorkspace = WorkspaceTypes_e.All
+                    },
+                    new CommandSpec(4)
+                    {
+                        Title = "Cmd2",
+                        HasMenu = true,
+                        HasToolbar = true,
+                        HasTabBox = true,
+                        TabBoxStyle = RibbonTabTextDisplay_e.TextBelow,
+                        SupportedWorkspace = WorkspaceTypes_e.All
+                    },
+                    new CommandSpec(5)
+                    {
+                        Title = "Cmd3",
+                        HasMenu = true,
+                        HasToolbar = true,
+                        HasTabBox = true,
+                        TabBoxStyle = RibbonTabTextDisplay_e.TextBelow,
+                        SupportedWorkspace = WorkspaceTypes_e.All
                     }
                 }
             });
+
             CommandManager.AddCommandGroup<Commands_e>().CommandClick += OnCommandClick;
             CommandManager.AddContextMenu<ContextMenuCommands_e>(Xarial.XCad.Base.Enums.SelectType_e.Faces).CommandClick += OnContextMenuCommandClick;
 

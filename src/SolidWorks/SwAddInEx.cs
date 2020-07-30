@@ -139,7 +139,7 @@ namespace Xarial.XCad.SolidWorks
 
                 SwMacroFeatureDefinition.Application = Application;
 
-                CommandManager = new SwCommandManager(Application, AddInId, Logger);
+                CommandManager = new SwCommandManager(Application, AddInId, Logger, this.GetType().GUID);
 
                 OnConnect();
 
