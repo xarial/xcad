@@ -15,6 +15,7 @@ using Xarial.XCad.Reflection;
 using Xarial.XCad.UI.Commands.Attributes;
 using Xarial.XCad.UI.Commands.Enums;
 using Xarial.XCad.UI.Commands.Structures;
+using Xarial.XCad.UI.Exceptions;
 using Xarial.XCad.UI.Structures;
 
 namespace Xarial.XCad.UI.Commands
@@ -119,30 +120,51 @@ namespace Xarial.XCad.UI.Commands
                 {
                     id = nextGroupId;
                 }
-
-                if (grpInfoAtt.ParentGroupType != null)
-                {
-                    var parentGrpSpec = groups.OfType<EnumCommandGroupSpec>()
-                        .FirstOrDefault(g => g.CmdGrpEnumType == grpInfoAtt.ParentGroupType);
-
-                    if (parentGrpSpec == null)
-                    {
-                        //TODO: create a specific exception
-                        throw new NullReferenceException("Parent group is not created");
-                    }
-
-                    if (grpInfoAtt.ParentGroupType == cmdGroupType)
-                    {
-                        throw new InvalidOperationException("Group cannot be a parent of itself");
-                    }
-
-                    parent = parentGrpSpec;
-                }
             }
             else
             {
                 id = nextGroupId;
             }
+
+            CommandGroupParentAttribute grpParentAtt = null;
+            
+            if (cmdGroupType.TryGetAttribute<CommandGroupParentAttribute>(x => grpParentAtt = x))
+            {
+                if (grpParentAtt.ParentGroupType != null)
+                {
+                    var parentGrpSpec = groups.OfType<EnumCommandGroupSpec>()
+                        .FirstOrDefault(g => g.CmdGrpEnumType == grpParentAtt.ParentGroupType);
+
+                    if (parentGrpSpec == null)
+                    {
+                        throw new ParentGroupNotFoundException(grpParentAtt.ParentGroupType.FullName, cmdGroupType.FullName);
+                    }
+
+                    if (grpParentAtt.ParentGroupType == cmdGroupType)
+                    {
+                        throw new ParentGroupCircularDependencyException(grpParentAtt.ParentGroupType.FullName);
+                    }
+
+                    parent = parentGrpSpec;
+                }
+                else 
+                {
+                    if (grpParentAtt.ParentGroupUserId == id)
+                    {
+                        throw new ParentGroupCircularDependencyException(grpParentAtt.ParentGroupType.FullName);
+                    }
+
+                    var parentGrpSpec = groups.OfType<EnumCommandGroupSpec>()
+                        .FirstOrDefault(g => g.Id == grpParentAtt.ParentGroupUserId);
+
+                    if (parentGrpSpec == null)
+                    {
+                        throw new ParentGroupNotFoundException(grpParentAtt.ParentGroupUserId.ToString(), cmdGroupType.FullName);
+                    }
+
+                    parent = parentGrpSpec;
+                }
+            }                
 
             var bar = new EnumCommandGroupSpec(cmdGroupType, id);
             bar.Parent = parent;

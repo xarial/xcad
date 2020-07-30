@@ -263,7 +263,7 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
 
                             if (moduleGuid.Equals(m_AddInGuid))
                             {
-                                m_Logger.Log($"Clearing the registry key '{toolbarId}' at '{customApiToolbarsRegKeyName}'");
+                                m_Logger.Log($"Clearing the registry key '{toolbarId}' at 'HKEY_CURRENT_USER\\{customApiToolbarsRegKeyName}'");
                                 customApiToolbarsRegKey.DeleteSubKey(toolbarId);
                             }
                         }

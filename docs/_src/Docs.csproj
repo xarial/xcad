@@ -55,6 +55,9 @@
     </EmbeddedResource>
   </ItemGroup>
 
+  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
+  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
+  
   <Target Name="BeforeClean">
     <Exec Command="%windir%\Microsoft.NET\Framework64\v4.0.30319\RegAsm.exe &quot;$(TargetPath)&quot; /u" Condition="Exists('$(TargetPath)')" />
   </Target>
