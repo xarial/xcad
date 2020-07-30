@@ -188,11 +188,14 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
         {
             if (disposing)
             {
-                var usedGroups = new List<int>();
+                var usedToolbarIds = new List<int>();
 
                 foreach (var grp in m_CommandBars)
                 {
-                    usedGroups.Add(grp.CommandGroup.ToolbarId);
+                    if (grp.CommandGroup.HasToolbar)
+                    {
+                        usedToolbarIds.Add(grp.CommandGroup.ToolbarId);
+                    }
 
                     m_Logger.Log($"Removing group: {grp.Spec.Id}");
 
@@ -214,7 +217,7 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
                     }
                 }
 
-                TryClearDanglingToolbarIds(usedGroups);
+                TryClearDanglingToolbarIds(usedToolbarIds);
 
                 m_CommandBars.Clear();
             }
