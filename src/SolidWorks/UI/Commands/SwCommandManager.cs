@@ -240,10 +240,15 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
         {
             try
             {
-                var swVers = m_App.Version.ToString().Substring("Sw".Length);
+                var rev = m_App.Sw.RevisionNumber().Split('.');
+                var majorRev = int.Parse(rev[0]);
+                const int REV_VERS_OFFSET = 2005 - 13; //SW 2005 corresponds to revions 13 and each major version revision is incremented by 1
 
-                var customApiToolbarsRegKey = Registry.CurrentUser.OpenSubKey(
-                    $@"Software\Solidworks\SOLIDWORKS {swVers}\User Interface\Custom API Toolbars", true);
+                var swVers = majorRev + REV_VERS_OFFSET;
+
+                var customApiToolbarsRegKeyName = $@"Software\Solidworks\SOLIDWORKS {swVers}\User Interface\Custom API Toolbars";
+                
+                var customApiToolbarsRegKey = Registry.CurrentUser.OpenSubKey(customApiToolbarsRegKeyName, true);
 
                 if (customApiToolbarsRegKey != null)
                 {
@@ -258,7 +263,7 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
 
                             if (moduleGuid.Equals(m_AddInGuid))
                             {
-                                m_Logger.Log($"Clearing the registry key: {toolbarId}");
+                                m_Logger.Log($"Clearing the registry key '{toolbarId}' at '{customApiToolbarsRegKeyName}'");
                                 customApiToolbarsRegKey.DeleteSubKey(toolbarId);
                             }
                         }
