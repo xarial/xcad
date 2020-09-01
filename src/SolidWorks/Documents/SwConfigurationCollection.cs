@@ -11,18 +11,35 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using Xarial.XCad.Documents;
+using Xarial.XCad.Documents.Delegates;
+using Xarial.XCad.SolidWorks.Documents.EventHandlers;
 
 namespace Xarial.XCad.SolidWorks.Documents
 {
     public class SwConfigurationCollection : IXConfigurationRepository, IDisposable
     {
+        public event ConfigurationActivatedDelegate ConfigurationActivated 
+        {
+            add 
+            {
+                m_ConfigurationActivatedEventsHandler.Attach(value);
+            }
+            remove 
+            {
+                m_ConfigurationActivatedEventsHandler.Detach(value);
+            }
+        }
+
         private readonly ISldWorks m_App;
         private readonly SwDocument3D m_Doc;
+
+        private readonly ConfigurationActivatedEventsHandler m_ConfigurationActivatedEventsHandler;
 
         internal SwConfigurationCollection(ISldWorks app, SwDocument3D doc) 
         {
             m_App = app;
             m_Doc = doc;
+            m_ConfigurationActivatedEventsHandler = new ConfigurationActivatedEventsHandler(doc);
         }
 
         public IXConfiguration this[string name]
@@ -37,7 +54,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
             throw new NotImplementedException();
         }
-
+        
         public void Dispose()
         {
         }

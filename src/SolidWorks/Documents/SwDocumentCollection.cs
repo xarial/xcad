@@ -26,9 +26,12 @@ namespace Xarial.XCad.SolidWorks.Documents
     public class SwDocumentCollection : IXDocumentCollection, IDisposable
     {
         public event DocumentCreateDelegate DocumentCreated;
+        public event DocumentActivateDelegate DocumentActivated;
 
         IXDocument IXDocumentCollection.Active => Active;
         IXDocument IXDocumentCollection.Open(DocumentOpenArgs args) => Open(args);
+
+        private const int S_OK = 0;
 
         private readonly SwApplication m_App;
         private readonly SldWorks m_SwApp;
@@ -67,6 +70,13 @@ namespace Xarial.XCad.SolidWorks.Documents
             AttachToAllOpenedDocuments();
 
             m_SwApp.DocumentLoadNotify2 += OnDocumentLoadNotify2;
+            m_SwApp.ActiveModelDocChangeNotify += OnActiveModelDocChangeNotify;
+        }
+
+        private int OnActiveModelDocChangeNotify()
+        {
+            DocumentActivated?.Invoke(Active);
+            return S_OK;
         }
 
         public SwDocument this[IModelDoc2 model]
@@ -160,9 +170,9 @@ namespace Xarial.XCad.SolidWorks.Documents
 
                 m_Documents.Add(model, doc);
 
-                DocumentCreated?.Invoke(doc);
-
                 m_DocsHandler.InitHandlers(doc);
+
+                DocumentCreated?.Invoke(doc);
             }
             else
             {
@@ -173,8 +183,6 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         private int OnDocumentLoadNotify2(string docTitle, string docPath)
         {
-            const int S_OK = 0;
-
             IModelDoc2 model;
 
             if (!string.IsNullOrEmpty(docPath))

@@ -23,7 +23,7 @@ namespace Xarial.XCad.Documentation
             this.CommandManager.AddCommandGroup<Commands_e>().CommandStateResolve += OnButtonEnable;
         }
 
-        private void OnButtonEnable(Commands_e cmd, ref CommandState state)
+        private void OnButtonEnable(Commands_e cmd, CommandState state)
         {
             switch (cmd)
             {

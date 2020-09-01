@@ -9,5 +9,6 @@ namespace Xarial.XCad.Documents
 {
     public interface IXDrawing : IXDocument
     {
+        IXSheetRepository Sheets { get; }
     }
 }

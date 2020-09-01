@@ -16,10 +16,13 @@ namespace Xarial.XCad.SolidWorks.Documents
     {
         public IDrawingDoc Drawing { get; }
 
+        public IXSheetRepository Sheets { get; }
+
         internal SwDrawing(IDrawingDoc drawing, SwApplication app, IXLogger logger)
             : base((IModelDoc2)drawing, app, logger)
         {
             Drawing = drawing;
+            Sheets = new SwSheetCollection(this);
         }
     }
 }

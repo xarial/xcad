@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Xarial.XCad;
 using Xarial.XCad.SolidWorks;
 
 namespace SolidWorks.Tests.Integration

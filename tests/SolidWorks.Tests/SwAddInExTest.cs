@@ -37,9 +37,12 @@ namespace Sw.Tests
 
             var addInExMock3 = new Mock<SwAddInEx>() { CallBase = true };
 
-            var res1 = addInExMock1.Object.ConnectToSW(new Mock<SldWorks>().Object, 0);
-            var res2 = addInExMock2.Object.ConnectToSW(new Mock<SldWorks>().Object, 0);
-            var res3 = addInExMock3.Object.ConnectToSW(new Mock<SldWorks>().Object, 0);
+            var swMock = new Mock<SldWorks>();
+            swMock.Setup(x => x.RevisionNumber()).Returns("24.0.0");
+
+            var res1 = addInExMock1.Object.ConnectToSW(swMock.Object, 0);
+            var res2 = addInExMock2.Object.ConnectToSW(swMock.Object, 0);
+            var res3 = addInExMock3.Object.ConnectToSW(swMock.Object, 0);
 
             Assert.IsTrue(connectCalled);
             Assert.IsTrue(res1);
@@ -63,6 +66,8 @@ namespace Sw.Tests
                 .Callback(() => throw new Exception());
 
             var swMock = new Mock<SldWorks>();
+            swMock.Setup(x => x.RevisionNumber()).Returns("24.0.0");
+
             swMock.Setup(m => m.GetCommandManager(It.IsAny<int>()))
                 .Returns(new Mock<CommandManager>().Object);
 

@@ -11,34 +11,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Xarial.XCad.Enums;
 using Xarial.XCad.SolidWorks.Exceptions;
+using Xarial.XCad.Structures;
 
 namespace Xarial.XCad.SolidWorks
 {
-    public class MacroEntryPoint
-    {
-        public string ModuleName { get; }
-        public string ProcedureName { get; }
-
-        internal MacroEntryPoint(string moduleName, string procName) 
-        {
-            ModuleName = moduleName;
-            ProcedureName = procName;
-        }
-
-        public override string ToString()
-        {
-            if (!string.IsNullOrEmpty(ModuleName))
-            {
-                return $"{ModuleName}.{ProcedureName}";
-            }
-            else
-            {
-                return ProcedureName;
-            }
-        }
-    }
-
     public abstract class SwMacro : IXMacro 
     {
         protected readonly ISldWorks m_App;
@@ -50,13 +28,25 @@ namespace Xarial.XCad.SolidWorks
             m_Path = path;
         }
 
-        protected abstract MacroEntryPoint EntryPoint { get; }
-        protected abstract swRunMacroOption_e Options { get; }
-
-        public void Run()
+        public abstract MacroEntryPoint[] EntryPoints { get; }
+        
+        public virtual void Run(MacroEntryPoint entryPoint, MacroRunOptions_e opts)
         {
+            swRunMacroOption_e swOpts = swRunMacroOption_e.swRunMacroDefault;
+
+            switch (opts) 
+            {
+                case MacroRunOptions_e.Default:
+                    swOpts = swRunMacroOption_e.swRunMacroDefault;
+                    break;
+
+                case MacroRunOptions_e.UnloadAfterRun:
+                    swOpts = swRunMacroOption_e.swRunMacroUnloadAfterRun;
+                    break;
+            }
+
             int err;
-            if (!m_App.RunMacro2(m_Path, EntryPoint.ModuleName, EntryPoint.ProcedureName, (int)Options, out err)) 
+            if (!m_App.RunMacro2(m_Path, entryPoint.ModuleName, entryPoint.ProcedureName, (int)swOpts, out err))
             {
                 throw new MacroRunException(m_Path, (swRunMacroError_e)err);
             }
@@ -115,47 +105,25 @@ namespace Xarial.XCad.SolidWorks
             }
         }
 
-        private MacroEntryPoint m_EntryPoint;
-        private swRunMacroOption_e m_Options;
-
-        public MacroEntryPoint[] EntryPoints { get; }
+        public override MacroEntryPoint[] EntryPoints { get; }
 
         internal SwVbaMacro(ISldWorks app, string path) : base(app, path)
         {
-            m_Options = swRunMacroOption_e.swRunMacroDefault;
             EntryPoints = GetEntryPoints();
-            m_EntryPoint = EntryPoints.First();
         }
-
-        public void Run(swRunMacroOption_e options) 
+        
+        public override void Run(MacroEntryPoint entryPoint, MacroRunOptions_e options)
         {
-            Run(EntryPoint, options);
-        }
-
-        public void Run(MacroEntryPoint entryPoint)
-        {
-            Run(entryPoint, m_Options);
-        }
-
-        public void Run(MacroEntryPoint entryPoint, swRunMacroOption_e options)
-        {
-            m_Options = options;
-
             if (EntryPoints.Contains(entryPoint, new MacroEntryPointEqualityComparer()))
             {
-                m_EntryPoint = entryPoint;
-                base.Run();
+                base.Run(entryPoint, options);
             }
             else 
             {
                 throw new Exception($"Entry point '{entryPoint}' is not available in the macro '{m_Path}'");
             }
         }
-
-        protected override swRunMacroOption_e Options => m_Options;
-
-        protected override MacroEntryPoint EntryPoint => m_EntryPoint;
-
+        
         private MacroEntryPoint[] GetEntryPoints()
         {
             var methods = m_App.GetMacroMethods(m_Path,
@@ -178,9 +146,25 @@ namespace Xarial.XCad.SolidWorks
     {
         internal SwVstaMacro(ISldWorks app, string path) : base(app, path)
         {
+            EntryPoints = new MacroEntryPoint[] { new MacroEntryPoint("", "Main") };
         }
 
-        protected override swRunMacroOption_e Options => swRunMacroOption_e.swRunMacroDefault;
-        protected override MacroEntryPoint EntryPoint => new MacroEntryPoint("", "Main");
+        public override MacroEntryPoint[] EntryPoints { get; }
+
+        public override void Run(MacroEntryPoint entryPoint, MacroRunOptions_e opts)
+        {
+            var stopDebugVstaFlag = m_App.GetUserPreferenceToggle((int)swUserPreferenceToggle_e.swStopDebuggingVstaOnExit);
+
+            m_App.SetUserPreferenceToggle((int)swUserPreferenceToggle_e.swStopDebuggingVstaOnExit, opts == MacroRunOptions_e.UnloadAfterRun);
+
+            try
+            {
+                base.Run(entryPoint, MacroRunOptions_e.Default);
+            }
+            finally 
+            {
+                m_App.SetUserPreferenceToggle((int)swUserPreferenceToggle_e.swStopDebuggingVstaOnExit, stopDebugVstaFlag);
+            }
+        }
     }
 }

@@ -21,12 +21,16 @@ namespace Xarial.XCad.Documents
         event DataStoreAvailableDelegate StreamWriteAvailable;
         event DataStoreAvailableDelegate StorageWriteAvailable;
 
+        event DocumentRebuildDelegate Rebuild;
+        event DocumentSaveDelegate Saving;
         event DocumentCloseDelegate Closing;
 
         string Title { get; }
         string Path { get; }
 
         bool IsDirty { get; set; }
+
+        bool Visible { get; set; }
 
         void Close();
 

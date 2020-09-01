@@ -47,7 +47,7 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
             var state = new CommandState();
             state.ResolveState(spec.SupportedWorkspace, m_App);
 
-            CommandStateResolve?.Invoke(spec, ref state);
+            CommandStateResolve?.Invoke(spec, state);
 
             if (state.Enabled)
             {

@@ -19,5 +19,9 @@ namespace Xarial.XCad.UI.Commands.Structures
         public bool HasTabBox { get; set; }
         public RibbonTabTextDisplay_e TabBoxStyle { get; set; }
         public bool HasSpacer { get; set; }
+
+        public CommandSpec(int userId) : base(userId) 
+        {
+        }
     }
 }

@@ -13,7 +13,7 @@ namespace Xarial.XCad.UI.Commands.Structures
     {
         internal Type CmdGrpEnumType { get; }
 
-        internal EnumCommandGroupSpec(Type cmdGrpEnumType)
+        internal EnumCommandGroupSpec(Type cmdGrpEnumType, int id) : base(id)
         {
             CmdGrpEnumType = cmdGrpEnumType;
         }

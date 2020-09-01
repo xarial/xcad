@@ -27,7 +27,7 @@ namespace Xarial.XCad.Extensions
             spec.Buttons = Enum.GetValues(typeof(TEnum)).Cast<TEnum>().Select(
                 c => 
                 {
-                    var btn = new TaskPaneEnumButtonSpec<TEnum>();
+                    var btn = new TaskPaneEnumButtonSpec<TEnum>(Convert.ToInt32(c));
                     btn.InitFromEnum(c);
                     btn.Value = c;
                     c.TryGetAttribute<TaskPaneStandardIconAttribute>(a => btn.StandardIcon = a.StandardIcon);
