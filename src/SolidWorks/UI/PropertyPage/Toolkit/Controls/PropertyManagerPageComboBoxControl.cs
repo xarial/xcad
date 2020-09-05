@@ -8,21 +8,33 @@
 using SolidWorks.Interop.sldworks;
 using System;
 using System.Collections.ObjectModel;
+using System.Linq;
+using Xarial.XCad.UI.PropertyPage.Attributes;
 using Xarial.XCad.Utils.PageBuilder.PageElements;
 
 namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
-{
-    internal class PropertyManagerPageComboBoxControl<TVal> : PropertyManagerPageBaseControl<TVal, IPropertyManagerPageCombobox>
+{   
+    internal class PropertyManagerPageComboBoxControl<TVal> : PropertyManagerPageBaseControl<TVal, IPropertyManagerPageCombobox>, IItemsControl
     {
         protected override event ControlValueChangedDelegate<TVal> ValueChanged;
+        
+        private ItemsControlItem[] m_Items;
 
-        private ReadOnlyCollection<TVal> m_Values;
+        public ItemsControlItem[] Items 
+        {
+            get => m_Items;
+            set
+            {
+                m_Items = value;
+                SwSpecificControl.Clear();
+                SwSpecificControl.AddItems(value.Select(x => x.DisplayName).ToArray());
+            }
+        }
 
         public PropertyManagerPageComboBoxControl(int id, object tag,
-            IPropertyManagerPageCombobox comboBox, ReadOnlyCollection<TVal> values,
+            IPropertyManagerPageCombobox comboBox,
             SwPropertyManagerPageHandler handler) : base(comboBox, id, tag, handler)
         {
-            m_Values = values;
             m_Handler.ComboBoxChanged += OnComboBoxChanged;
         }
 
@@ -30,7 +42,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
         {
             if (Id == id)
             {
-                ValueChanged?.Invoke(this, m_Values[selIndex]);
+                ValueChanged?.Invoke(this, (TVal)m_Items[selIndex].Value);
             }
         }
 
@@ -38,9 +50,9 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
         {
             var curSelIndex = SwSpecificControl.CurrentSelection;
 
-            if (curSelIndex >= 0 && curSelIndex < m_Values.Count)
+            if (curSelIndex >= 0 && curSelIndex < m_Items.Length)
             {
-                return m_Values[curSelIndex];
+                return (TVal)m_Items[curSelIndex].Value;
             }
             else
             {
@@ -50,7 +62,18 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
         protected override void SetSpecificValue(TVal value)
         {
-            SwSpecificControl.CurrentSelection = (short)m_Values.IndexOf(value);
+            short index = -1;
+
+            for (int i = 0; i < m_Items.Length; i++) 
+            {
+                if (object.Equals(m_Items[i].Value, value))
+                {
+                    index = (short)i;
+                    break;
+                }
+            }
+
+            SwSpecificControl.CurrentSelection = index;
         }
 
         protected override void Dispose(bool disposing)

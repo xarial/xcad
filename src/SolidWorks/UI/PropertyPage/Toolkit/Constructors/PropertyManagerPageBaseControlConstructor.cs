@@ -64,7 +64,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
             var opts = GetControlOptions(atts);
 
             TControlSw swCtrl = null;
-
+            
             if (group is PropertyManagerPageGroupControl)
             {
                 swCtrl = CreateSwControlInGroup((group as PropertyManagerPageGroupControl).Group, opts, atts) as TControlSw;

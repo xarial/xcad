@@ -32,13 +32,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
 
         protected override PropertyManagerPageComboBoxControl<TVal> CreateControl(
             IPropertyManagerPageCombobox swCtrl, IAttributeSet atts, SwPropertyManagerPageHandler handler, short height)
-        {
-            ReadOnlyCollection<TVal> itemValues;
-            string[] itemNames;
-            GetItems(atts, out itemNames, out itemValues);
-
-            swCtrl.AddItems(itemNames);
-
+        {   
             if (height != -1)
             {
                 swCtrl.Height = height;
@@ -54,10 +48,12 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
                 }
             }
 
-            return new PropertyManagerPageComboBoxControl<TVal>(atts.Id, atts.Tag, swCtrl, itemValues, handler);
+            var ctrl = new PropertyManagerPageComboBoxControl<TVal>(atts.Id, atts.Tag, swCtrl, handler);
+            ctrl.Items = GetItems(atts);
+            return ctrl;
         }
 
-        protected abstract void GetItems(IAttributeSet atts, out string[] itemNames, out ReadOnlyCollection<TVal> itemValues);
+        protected abstract ItemsControlItem[] GetItems(IAttributeSet atts);
     }
 
     [DefaultType(typeof(SpecialTypes.EnumType))]
@@ -69,11 +65,14 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
         {
         }
         
-        protected override void GetItems(IAttributeSet atts, out string[] itemNames, out ReadOnlyCollection<Enum> itemValues)
+        protected override ItemsControlItem[] GetItems(IAttributeSet atts)
         {
             var items = EnumExtension.GetEnumFields(atts.BoundType);
-            itemNames = items.Values.ToArray();
-            itemValues = items.Keys.ToList().AsReadOnly();
+            return items.Select(i => new ItemsControlItem()
+            {
+                DisplayName = i.Value,
+                Value = i.Key
+            }).ToArray();
         }
     }
 
@@ -88,23 +87,25 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
             m_SwApp = app;
         }
 
-        protected override void GetItems(IAttributeSet atts, out string[] itemNames, out ReadOnlyCollection<object> itemValues)
+        protected override ItemsControlItem[] GetItems(IAttributeSet atts)
         {
             var customItemsAtt = atts.Get<CustomItemsAttribute>();
 
-            var itemsProviderType = customItemsAtt.CustomItemsProviderType;
+            var provider = customItemsAtt.CustomItemsProvider;
 
-            var provider = Activator.CreateInstance(itemsProviderType) as ICustomItemsProvider;
-
-            var items = provider.ProvideItems(m_SwApp).ToList();
+            //TODO: load from dependency manager
+            var items = provider.ProvideItems(m_SwApp, null).ToList();
 
             if (items == null) 
             {
                 items = new List<object>();
             }
 
-            itemNames = items.Select(i => i.ToString()).ToArray();
-            itemValues = items.AsReadOnly();
+            return items.Select(i => new ItemsControlItem() 
+            {
+                DisplayName = i.ToString(), 
+                Value = i 
+            }).ToArray();
         }
     }
 }

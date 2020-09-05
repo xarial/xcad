@@ -8,6 +8,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Xarial.XCad.UI.PropertyPage.Services;
 using Xarial.XCad.Utils.PageBuilder.Base;
 
 namespace Xarial.XCad.Utils.PageBuilder.Core
@@ -29,7 +30,7 @@ namespace Xarial.XCad.Utils.PageBuilder.Core
 
             internal void Update()
             {
-                m_Handler.UpdateState(m_Source, m_Dependencies);
+                m_Handler.UpdateState(m_Source.Control, m_Dependencies.Select(d => d.Control).ToArray());
             }
         }
 
@@ -39,13 +40,13 @@ namespace Xarial.XCad.Utils.PageBuilder.Core
         {
             m_Dependencies = new Dictionary<IBinding, List<UpdateStateData>>();
 
-            var handlersCache = new Dictionary<Type, IDependencyHandler>();
+            //var handlersCache = new Dictionary<Type, IDependencyHandler>();
 
             foreach (var data in depGroup.DependenciesTags)
             {
                 var srcBnd = data.Key;
                 var dependOnTags = data.Value.Item1;
-                var depHandlerType = data.Value.Item2;
+                var handler = data.Value.Item2;
 
                 var dependOnBindings = new IBinding[dependOnTags.Length];
 
@@ -60,14 +61,6 @@ namespace Xarial.XCad.Utils.PageBuilder.Core
                     }
 
                     dependOnBindings[i] = dependOnBinding;
-                }
-
-                IDependencyHandler handler;
-
-                if (!handlersCache.TryGetValue(depHandlerType, out handler))
-                {
-                    handler = Activator.CreateInstance(depHandlerType) as IDependencyHandler;
-                    handlersCache.Add(depHandlerType, handler);
                 }
 
                 foreach (var dependOnBinding in dependOnBindings)

@@ -159,8 +159,12 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
                     if (atts.Has<IDependentOnAttribute>())
                     {
                         var depAtt = atts.Get<IDependentOnAttribute>();
-                        dependencies.RegisterDependency(binding,
-                            depAtt.Dependencies, depAtt.DependencyHandler);
+
+                        if (depAtt.Dependencies?.Any() == true)
+                        {
+                            dependencies.RegisterDependency(binding,
+                                depAtt.Dependencies, depAtt.DependencyHandler);
+                        }
                     }
 
                     var isGroup = ctrl is IGroup;

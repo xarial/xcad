@@ -19,6 +19,7 @@ using Xarial.XCad;
 using Xarial.XCad.SolidWorks.UI.PropertyPage.Services;
 using Xarial.XCad.SolidWorks.Documents;
 using System.Collections.ObjectModel;
+using Xarial.XCad.UI.PropertyPage.Base;
 
 namespace SwAddInExample
 {
@@ -69,7 +70,7 @@ namespace SwAddInExample
 
     public class MyCustomItemsProvider : SwCustomItemsProvider<MyItem>
     {
-        public override IEnumerable<MyItem> ProvideItems(SwApplication app)
+        public override IEnumerable<MyItem> ProvideItems(SwApplication app, IControl[] dependencies)
         {
             yield return new MyItem()
             {
@@ -93,6 +94,10 @@ namespace SwAddInExample
         public CustomControlDataContext CustomControl { get; set; } = new CustomControlDataContext();
 
         public List<SwComponent> Components { get; set; }
+
+        public SwBody Body { get; set; }
+
+        public SwCircularEdge CircEdge { get; set; }
     }
 
     [ComVisible(true)]
