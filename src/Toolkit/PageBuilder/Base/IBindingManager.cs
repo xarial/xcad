@@ -14,6 +14,6 @@ namespace Xarial.XCad.Utils.PageBuilder.Base
         IEnumerable<IBinding> Bindings { get; }
         IDependencyManager Dependency { get; }
 
-        void Load(IEnumerable<IBinding> bindings, IRawDependencyGroup dependencies);
+        void Load(IXApplication app, IEnumerable<IBinding> bindings, IRawDependencyGroup dependencies);
     }
 }

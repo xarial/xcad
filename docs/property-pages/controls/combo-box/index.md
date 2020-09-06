@@ -25,4 +25,12 @@ In some cases items might need to be composed at runtime. In order to dynamicall
 
 Framework will call the provider to resolve the items. Make sure that the type of the target property matches the type of values returned from the provider.
 
+When returning custom class from **ProvideItems** override **ToString** method to provide display name for the item in the combo box.
+
 {% code-snippet { file-name: ~PropertyPage\Controls\ComboBox.*, regions: [CustomItemsProvider] } %}
+
+In order to assign the control dependencies (i.e. controls which affect the list of values in the combobox), provide the corresponding control tags in the second parameter of **CustomItemsAttribute**. IN this case the **ProvideItems** method will be called when values of parent control change. In this case controls wil lbe passed as **dependencies** parameter of **ProvideItems**.
+
+> Note. **dependencies** parameter of **ProvideItems** method will contain null items for the first rendering of the control before the binding is done. This method will be called again once binding is resolved with correct controls.
+
+{% code-snippet { file-name: ~PropertyPage\Controls\ComboBox.*, regions: [CustomItemsProviderDependency] } %}

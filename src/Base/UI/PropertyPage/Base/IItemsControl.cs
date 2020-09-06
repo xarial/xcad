@@ -5,10 +5,15 @@
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
-namespace Xarial.XCad.Utils.PageBuilder.Base
+using System;
+using System.Collections.Generic;
+using System.Text;
+using Xarial.XCad.UI.PropertyPage.Structures;
+
+namespace Xarial.XCad.UI.PropertyPage.Base
 {
-    public interface IDependencyHandler
+    public interface IItemsControl : IControl
     {
-        void UpdateState(IBinding binding, IBinding[] dependencies);
+        ItemsControlItem[] Items { get; set; }
     }
 }

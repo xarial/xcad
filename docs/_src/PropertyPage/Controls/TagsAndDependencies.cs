@@ -7,10 +7,10 @@ using Xarial.XCad.SolidWorks.Geometry;
 using Xarial.XCad.SolidWorks.UI.PropertyPage;
 using Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls;
 using Xarial.XCad.UI.PropertyPage.Attributes;
-using Xarial.XCad.Utils.PageBuilder.Base;
 using Xarial.XCad.UI.Commands;
 using Xarial.XCad.UI.PropertyPage.Enums;
-using Xarial.XCad.Base.Enums;
+using Xarial.XCad.UI.PropertyPage.Base;
+using Xarial.XCad.UI.PropertyPage.Services;
 
 namespace Xarial.XCad.Documentation
 {
@@ -72,11 +72,11 @@ namespace Xarial.XCad.Documentation
 
     public class GroupOptionsVisibilityDepHandler : IDependencyHandler
     {
-        public void UpdateState(IBinding binding, IBinding[] dependencies)
+        public void UpdateState(IXApplication app, IControl source, IControl[] dependencies)
         {
-            var curGrp = (Groups_e)(dependencies.First().Control).GetValue();
+            var curGrp = (Groups_e)(dependencies.First()).GetValue();
 
-            (binding.Control as IPropertyManagerPageControlEx).Visible = (Groups_e)binding.Control.Tag == curGrp;
+            (source as IPropertyManagerPageControlEx).Visible = (Groups_e)source.Tag == curGrp;
         }
     }
     //---
@@ -94,9 +94,9 @@ namespace Xarial.XCad.Documentation
 
     public class EnableDepHandler : IDependencyHandler
     {
-        public void UpdateState(IBinding binding, IBinding[] dependencies)
+        public void UpdateState(IXApplication app, IControl source, IControl[] dependencies)
         {
-            (binding.Control as IPropertyManagerPageControlEx).Enabled = (bool)dependencies.First().Control.GetValue();
+            (source as IPropertyManagerPageControlEx).Enabled = (bool)dependencies.First().GetValue();
         }
     }
     //---

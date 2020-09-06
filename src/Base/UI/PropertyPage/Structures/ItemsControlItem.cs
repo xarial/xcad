@@ -9,11 +9,11 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Xarial.XCad.Documents.Structures
+namespace Xarial.XCad.UI.PropertyPage.Structures
 {
-    public class DocumentSaveArgs
+    public class ItemsControlItem
     {
-        public string FileName { get; set; }
-        public bool Cancel { get; set; }
+        public string DisplayName { get; set; }
+        public object Value { get; set; }
     }
 }
