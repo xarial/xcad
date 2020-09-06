@@ -15,11 +15,11 @@ namespace Xarial.XCad.Utils.PageBuilder.Core
         public IEnumerable<IBinding> Bindings { get; private set; }
         public IDependencyManager Dependency { get; private set; }
 
-        public void Load(IEnumerable<IBinding> bindings, IRawDependencyGroup dependencies)
+        public void Load(IXApplication app, IEnumerable<IBinding> bindings, IRawDependencyGroup dependencies)
         {
             Bindings = bindings;
             Dependency = new DependencyManager();
-            Dependency.Init(dependencies);
+            Dependency.Init(app, dependencies);
         }
     }
 }

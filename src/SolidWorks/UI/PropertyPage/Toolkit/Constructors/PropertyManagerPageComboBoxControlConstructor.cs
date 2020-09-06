@@ -14,7 +14,9 @@ using System.Linq;
 using Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls;
 using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.UI.PropertyPage.Attributes;
+using Xarial.XCad.UI.PropertyPage.Base;
 using Xarial.XCad.UI.PropertyPage.Services;
+using Xarial.XCad.UI.PropertyPage.Structures;
 using Xarial.XCad.Utils.PageBuilder.Attributes;
 using Xarial.XCad.Utils.PageBuilder.Base;
 using Xarial.XCad.Utils.PageBuilder.Core;
@@ -93,8 +95,12 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
 
             var provider = customItemsAtt.CustomItemsProvider;
 
-            //TODO: load from dependency manager
-            var items = provider.ProvideItems(m_SwApp, null).ToList();
+            var depsCount = customItemsAtt.Dependencies?.Length;
+
+            //TODO: dependency controls cannot be loaded at this stage as binding is not yet loaded - need to sort this out
+            //Not very critical at this stage as provide items wil be called as part ResolveState for dependent controls
+            //For now just add a note in the documentation for this behavior
+            var items = provider.ProvideItems(m_SwApp, new IControl[depsCount.Value])?.ToList();
 
             if (items == null) 
             {

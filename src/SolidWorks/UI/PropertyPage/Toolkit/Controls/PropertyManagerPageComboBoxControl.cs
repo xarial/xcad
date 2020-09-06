@@ -10,6 +10,8 @@ using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using Xarial.XCad.UI.PropertyPage.Attributes;
+using Xarial.XCad.UI.PropertyPage.Base;
+using Xarial.XCad.UI.PropertyPage.Structures;
 using Xarial.XCad.Utils.PageBuilder.PageElements;
 
 namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls

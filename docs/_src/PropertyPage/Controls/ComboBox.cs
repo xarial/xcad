@@ -1,5 +1,6 @@
 ﻿using SolidWorks.Interop.swconst;
 using System.Collections.Generic;
+using System.Linq;
 using Xarial.XCad.Base.Attributes;
 using Xarial.XCad.Documentation.Properties;
 using Xarial.XCad.SolidWorks;
@@ -60,7 +61,7 @@ public class ComboBoxDataModel
         public string BaseName { get; }
         public string Name { get; }
 
-        public CustomComboBoxItem(string dep1, int dep2, string name)
+        public CustomComboBoxItem(object dep1, object dep2, string name)
         {
             BaseName = $"{dep1}_{dep2}";
             Name = name;
@@ -76,9 +77,9 @@ public class ComboBoxDataModel
         {
             return new CustomComboBoxItem[]
             {
-                new CustomComboBoxItem(dependencies[0].GetValue().ToString(), (int)dependencies[1].GetValue(), "I1"),
-                new CustomComboBoxItem(dependencies[0].GetValue().ToString(), (int)dependencies[1].GetValue(), "I2"),
-                new CustomComboBoxItem(dependencies[0].GetValue().ToString(), (int)dependencies[1].GetValue(), "I3")
+                new CustomComboBoxItem(dependencies[0]?.GetValue(), dependencies[1]?.GetValue(), "I1"),
+                new CustomComboBoxItem(dependencies[0]?.GetValue(), dependencies[1]?.GetValue(), "I2"),
+                new CustomComboBoxItem(dependencies[0]?.GetValue(), dependencies[1]?.GetValue(), "I3")
             };
         }
     }

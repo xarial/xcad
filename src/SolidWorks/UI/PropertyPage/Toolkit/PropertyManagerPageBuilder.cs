@@ -103,7 +103,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit
         private readonly IPageSpec m_PageSpec;
 
         internal PropertyManagerPageBuilder(SwApplication app, IconsConverter iconsConv, SwPropertyManagerPageHandler handler, IPageSpec pageSpec, IXLogger logger)
-            : this(new PmpTypeDataBinder(),
+            : this(app, new PmpTypeDataBinder(),
                   new PropertyManagerPageConstructor(app.Sw, iconsConv, handler),
                   new PropertyManagerPageGroupControlConstructor(),
                   new PropertyManagerPageTextBoxControlConstructor(app.Sw, iconsConv),
@@ -121,9 +121,9 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit
             m_PageSpec = pageSpec;
         }
 
-        private PropertyManagerPageBuilder(PmpTypeDataBinder dataBinder, PropertyManagerPageConstructor pageConstr,
+        private PropertyManagerPageBuilder(SwApplication app, PmpTypeDataBinder dataBinder, PropertyManagerPageConstructor pageConstr,
             params IPropertyManagerPageElementConstructor[] ctrlsContstrs)
-            : base(dataBinder, pageConstr, ctrlsContstrs)
+            : base(app, dataBinder, pageConstr, ctrlsContstrs)
         {
             m_DataBinder = dataBinder;
             m_CtrlsContstrs = ctrlsContstrs;

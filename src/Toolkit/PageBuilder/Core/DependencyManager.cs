@@ -7,7 +7,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
+using Xarial.XCad.UI.PropertyPage.Base;
 using Xarial.XCad.UI.PropertyPage.Services;
 using Xarial.XCad.Utils.PageBuilder.Base;
 
@@ -17,12 +19,14 @@ namespace Xarial.XCad.Utils.PageBuilder.Core
     {
         private class UpdateStateData
         {
-            private IBinding m_Source;
-            private IBinding[] m_Dependencies;
-            private IDependencyHandler m_Handler;
+            private readonly IBinding m_Source;
+            private readonly IBinding[] m_Dependencies;
+            private readonly IDependencyHandler m_Handler;
+            private readonly IXApplication m_App;
 
-            internal UpdateStateData(IBinding src, IBinding[] deps, IDependencyHandler handler)
+            internal UpdateStateData(IXApplication app, IBinding src, IBinding[] deps, IDependencyHandler handler)
             {
+                m_App = app;
                 m_Source = src;
                 m_Dependencies = deps;
                 m_Handler = handler;
@@ -30,17 +34,19 @@ namespace Xarial.XCad.Utils.PageBuilder.Core
 
             internal void Update()
             {
-                m_Handler.UpdateState(m_Source.Control, m_Dependencies.Select(d => d.Control).ToArray());
+                m_Handler.UpdateState(m_App, m_Source.Control, m_Dependencies.Select(d => d.Control).ToArray());
             }
         }
 
         private Dictionary<IBinding, List<UpdateStateData>> m_Dependencies;
+        private IXApplication m_App;
 
-        public void Init(IRawDependencyGroup depGroup)
+        public ReadOnlyDictionary<IControl, IControl[]> Map { get; private set; }
+        
+        public void Init(IXApplication app, IRawDependencyGroup depGroup)
         {
+            m_App = app;
             m_Dependencies = new Dictionary<IBinding, List<UpdateStateData>>();
-
-            //var handlersCache = new Dictionary<Type, IDependencyHandler>();
 
             foreach (var data in depGroup.DependenciesTags)
             {
@@ -57,7 +63,7 @@ namespace Xarial.XCad.Utils.PageBuilder.Core
                     IBinding dependOnBinding;
                     if (!depGroup.TaggedBindings.TryGetValue(dependOnTag, out dependOnBinding))
                     {
-                        throw new Exception("Dependent on binding is not fond for tag");
+                        throw new Exception("Dependent on binding is not found for tag");
                     }
 
                     dependOnBindings[i] = dependOnBinding;
@@ -74,7 +80,7 @@ namespace Xarial.XCad.Utils.PageBuilder.Core
                         m_Dependencies.Add(dependOnBinding, updates);
                     }
 
-                    updates.Add(new UpdateStateData(srcBnd, dependOnBindings, handler));
+                    updates.Add(new UpdateStateData(m_App, srcBnd, dependOnBindings, handler));
                 }
             }
         }

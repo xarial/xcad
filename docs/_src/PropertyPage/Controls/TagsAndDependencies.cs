@@ -72,7 +72,7 @@ namespace Xarial.XCad.Documentation
 
     public class GroupOptionsVisibilityDepHandler : IDependencyHandler
     {
-        public void UpdateState(IControl source, IControl[] dependencies)
+        public void UpdateState(IXApplication app, IControl source, IControl[] dependencies)
         {
             var curGrp = (Groups_e)(dependencies.First()).GetValue();
 
@@ -94,7 +94,7 @@ namespace Xarial.XCad.Documentation
 
     public class EnableDepHandler : IDependencyHandler
     {
-        public void UpdateState(IControl source, IControl[] dependencies)
+        public void UpdateState(IXApplication app, IControl source, IControl[] dependencies)
         {
             (source as IPropertyManagerPageControlEx).Enabled = (bool)dependencies.First().GetValue();
         }

@@ -11,8 +11,9 @@ namespace Xarial.XCad.UI.PropertyPage.Services
         /// <summary>
         /// Invokes when any of the dependencies controls changed
         /// </summary>
+        /// <param name="app">Main application</param>
         /// <param name="source">This control to update state on</param>
         /// <param name="dependencies">List of dependencies controls</param>
-        void UpdateState(IControl source, IControl[] dependencies);
+        void UpdateState(IXApplication app, IControl source, IControl[] dependencies);
     }
 }

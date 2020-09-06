@@ -12,24 +12,14 @@ using System.Linq;
 using System.Text;
 using Xarial.XCad.UI.PropertyPage.Base;
 using Xarial.XCad.UI.PropertyPage.Services;
+using Xarial.XCad.UI.PropertyPage.Structures;
 
 namespace Xarial.XCad.UI.PropertyPage.Attributes
 {
     public interface ICustomItemsComboBoxControlConstructor
     {
     }
-
-    public class ItemsControlItem 
-    {
-        public string DisplayName { get; set; }
-        public object Value { get; set; }
-    }
-
-    public interface IItemsControl : IControl
-    {
-        ItemsControlItem[] Items { get; set; }
-    }
-
+    
     internal class CustomItemsAttributeDependencyHandler : IDependencyHandler
     {
         private readonly ICustomItemsProvider m_ItemsProvider;
@@ -39,11 +29,11 @@ namespace Xarial.XCad.UI.PropertyPage.Attributes
             m_ItemsProvider = itemsProvider;
         }
 
-        public void UpdateState(IControl source, IControl[] dependencies)
+        public void UpdateState(IXApplication app, IControl source, IControl[] dependencies)
         {
             var itemsCtrl = (IItemsControl)source;
-            //TODO: get app
-            itemsCtrl.Items = m_ItemsProvider.ProvideItems(null, dependencies)
+            
+            itemsCtrl.Items = m_ItemsProvider.ProvideItems(app, dependencies)
                 ?.Select(i => new ItemsControlItem()
                 {
                     DisplayName = i.ToString(),
