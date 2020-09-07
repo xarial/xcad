@@ -116,7 +116,8 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit
                   new PropertyManagerPageButtonControlConstructor(app.Sw, iconsConv),
                   new PropertyManagerPageBitmapControlConstructor(app.Sw, iconsConv),
                   new PropertyManagerPageTabConstructor(iconsConv),
-                  new PropertyManagerPageCustomControlConstructor(app.Sw, iconsConv))
+                  new PropertyManagerPageCustomControlConstructor(app.Sw, iconsConv),
+                  new PropertyManagerPageBitmapButtonConstructor(app.Sw, iconsConv))
         {
             m_PageSpec = pageSpec;
         }
