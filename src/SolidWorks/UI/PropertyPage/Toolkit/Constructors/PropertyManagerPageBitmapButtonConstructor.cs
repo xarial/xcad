@@ -69,17 +69,18 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
             var bmpAtt = atts.Get<BitmapButtonAttribute>();
 
             var icon = IconsConverter.FromXImage(bmpAtt.Icon ?? Defaults.Icon);
+            var scale = bmpAtt.Scale;
 
             if (m_App.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2016))
             {
-                var icons = m_IconsConv.ConvertIcon(new BitmapButtonHighResIcon(icon));
+                var icons = m_IconsConv.ConvertIcon(new BitmapButtonHighResIcon(icon, scale));
                 var imgList = icons.Take(6).ToArray();
                 var maskImgList = icons.Skip(6).ToArray();
                 swCtrl.SetBitmapsByName3(imgList, maskImgList);
             }
             else 
             {
-                var icons = m_IconsConv.ConvertIcon(new BitmapButtonIcon(icon));
+                var icons = m_IconsConv.ConvertIcon(new BitmapButtonIcon(icon, scale));
                 swCtrl.SetBitmapsByName2(icons[0], icons[1]);
             }
 

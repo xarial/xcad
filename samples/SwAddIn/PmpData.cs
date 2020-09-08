@@ -105,8 +105,7 @@ namespace SwAddInExample
         public bool CheckBox { get; set; }
 
         [BitmapButton(typeof(Resources), nameof(Resources.xarial))]
-        [ControlOptions(width: 64, height: 64)]
-        public Action Button { get; set; }
+        public Action Button { get; set; } = new Action(()=> { });
     }
 
     [ComVisible(true)]

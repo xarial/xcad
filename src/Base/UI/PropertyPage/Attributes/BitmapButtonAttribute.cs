@@ -22,14 +22,18 @@ namespace Xarial.XCad.UI.PropertyPage.Attributes
         /// <summary>
         /// Image assigned to this icon
         /// </summary>
-        public IXImage Icon { get; private set; }
+        public IXImage Icon { get; }
+
+        public double Scale { get; }
 
         /// <param name="resType">Type of the static class (usually Resources)</param>
         /// <param name="masterResName">Resource name of the master icon</param>
-        public BitmapButtonAttribute(Type resType, string masterResName)
+        /// <param name="scale">Scale of the button. 1 is a default scale, equivalent to 24x24 pixels button</param>
+        public BitmapButtonAttribute(Type resType, string masterResName, double scale = 1)
         {
             ConstructorType = typeof(IBitmapButtonConstructor);
             Icon = ResourceHelper.GetResource<IXImage>(resType, masterResName);
+            Scale = scale;
         }
     }
 }
