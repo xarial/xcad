@@ -17,7 +17,8 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Icons
         internal Image Icon { get; private set; }
         internal Image Mask { get; private set; }
 
-        private readonly double m_Scale;
+        protected readonly int m_Width;
+        protected readonly int m_Height;
 
         public Color TransparencyKey
         {
@@ -27,10 +28,11 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Icons
             }
         }
 
-        internal BitmapButtonIcon(Image icon, double scale)
+        internal BitmapButtonIcon(Image icon, int width, int height)
             : this(icon, CreateMask(icon))
         {
-            m_Scale = scale;
+            m_Width = width;
+            m_Height = height;
         }
         
         private BitmapButtonIcon(Image icon, Image mask)
@@ -41,11 +43,9 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Icons
 
         public virtual IEnumerable<IconSizeInfo> GetIconSizes()
         {
-            yield return new IconSizeInfo(Icon, new Size(GetSize(24), GetSize(24)));
-            yield return new IconSizeInfo(Mask, new Size(GetSize(24), GetSize(24)));
+            yield return new IconSizeInfo(Icon, new Size(m_Width, m_Height));
+            yield return new IconSizeInfo(Mask, new Size(m_Width, m_Height));
         }
-
-        protected int GetSize(int defSize) => (int)(m_Scale * defSize);
 
         private static Image CreateMask(Image icon)
         {

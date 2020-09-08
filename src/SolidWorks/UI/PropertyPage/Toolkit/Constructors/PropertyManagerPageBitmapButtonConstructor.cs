@@ -8,6 +8,7 @@
 using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
 using System;
+using System.Drawing;
 using System.Linq;
 using Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls;
 using Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Icons;
@@ -68,23 +69,42 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
         {
             var bmpAtt = atts.Get<BitmapButtonAttribute>();
 
-            var icon = IconsConverter.FromXImage(bmpAtt.Icon ?? Defaults.Icon);
-            var scale = bmpAtt.Scale;
+            var bmpWidth = bmpAtt.Width;
+            var bmpHeight = bmpAtt.Height;
+
+            var icon = AdjustIcon(IconsConverter.FromXImage(bmpAtt.Icon ?? Defaults.Icon), bmpWidth, bmpHeight);
 
             if (m_App.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2016))
             {
-                var icons = m_IconsConv.ConvertIcon(new BitmapButtonHighResIcon(icon, scale));
+                var icons = m_IconsConv.ConvertIcon(new BitmapButtonHighResIcon(icon, bmpWidth, bmpHeight));
                 var imgList = icons.Take(6).ToArray();
                 var maskImgList = icons.Skip(6).ToArray();
                 swCtrl.SetBitmapsByName3(imgList, maskImgList);
             }
             else 
             {
-                var icons = m_IconsConv.ConvertIcon(new BitmapButtonIcon(icon, scale));
+                var icons = m_IconsConv.ConvertIcon(new BitmapButtonIcon(icon, bmpWidth, bmpHeight));
                 swCtrl.SetBitmapsByName2(icons[0], icons[1]);
             }
 
             return new PropertyManagerPageBitmapButtonControl(atts.Id, atts.Tag, swCtrl, handler);
+        }
+
+        private Image AdjustIcon(Image icon, int width, int height) 
+        {
+            const int BORDER_SIZE = 5;
+
+            var offsetX = (int)(BORDER_SIZE * (icon.Width / width));
+            var offsetY = (int)(BORDER_SIZE * (icon.Height / height));
+
+            var img = new Bitmap(icon.Width + offsetX * 2, icon.Height + offsetY * 2, icon.PixelFormat);
+            
+            using (var gr = Graphics.FromImage(img))
+            {
+                gr.DrawImage(icon, new Rectangle(new Point(offsetX, offsetY), icon.Size));
+            }
+
+            return img;
         }
     }
 }

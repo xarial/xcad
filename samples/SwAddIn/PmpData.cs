@@ -101,7 +101,7 @@ namespace SwAddInExample
 
         public SwCircularEdge CircEdge { get; set; }
 
-        [BitmapButton(typeof(Resources), nameof(Resources.xarial))]
+        [BitmapButton(typeof(Resources), nameof(Resources.xarial), 48, 48)]
         public bool CheckBox { get; set; }
 
         [BitmapButton(typeof(Resources), nameof(Resources.xarial))]
