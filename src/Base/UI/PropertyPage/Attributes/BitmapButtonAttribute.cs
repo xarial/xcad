@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using Xarial.XCad.Reflection;
 using Xarial.XCad.UI.PropertyPage.Base;
+using Xarial.XCad.UI.PropertyPage.Enums;
 
 namespace Xarial.XCad.UI.PropertyPage.Attributes
 {
@@ -27,17 +28,28 @@ namespace Xarial.XCad.UI.PropertyPage.Attributes
         public int Width { get; }
         public int Height { get; }
 
+        public BitmapButtonLabelType_e? StandardIcon { get; }
+
         /// <param name="resType">Type of the static class (usually Resources)</param>
         /// <param name="masterResName">Resource name of the master icon</param>        
         /// <param name="width">Button width</param>
         /// <param name="height">Button height</param>
-        public BitmapButtonAttribute(Type resType, string masterResName, int width = 24, int height = 24)
+        public BitmapButtonAttribute(Type resType, string masterResName, int width = 24, int height = 24) : this()
         {
-            ConstructorType = typeof(IBitmapButtonConstructor);
             Icon = ResourceHelper.GetResource<IXImage>(resType, masterResName);
             
             Width = width;
             Height = height;
+        }
+
+        public BitmapButtonAttribute(BitmapButtonLabelType_e standardIcon) : this()
+        {
+            StandardIcon = standardIcon;
+        }
+
+        private BitmapButtonAttribute() 
+        {
+            ConstructorType = typeof(IBitmapButtonConstructor);
         }
     }
 }

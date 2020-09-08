@@ -69,22 +69,29 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
         {
             var bmpAtt = atts.Get<BitmapButtonAttribute>();
 
-            var bmpWidth = bmpAtt.Width;
-            var bmpHeight = bmpAtt.Height;
-
-            var icon = AdjustIcon(IconsConverter.FromXImage(bmpAtt.Icon ?? Defaults.Icon), bmpWidth, bmpHeight);
-
-            if (m_App.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2016))
+            if (bmpAtt.StandardIcon.HasValue)
             {
-                var icons = m_IconsConv.ConvertIcon(new BitmapButtonHighResIcon(icon, bmpWidth, bmpHeight));
-                var imgList = icons.Take(6).ToArray();
-                var maskImgList = icons.Skip(6).ToArray();
-                swCtrl.SetBitmapsByName3(imgList, maskImgList);
+                swCtrl.SetStandardBitmaps((int)bmpAtt.StandardIcon.Value);
             }
-            else 
+            else
             {
-                var icons = m_IconsConv.ConvertIcon(new BitmapButtonIcon(icon, bmpWidth, bmpHeight));
-                swCtrl.SetBitmapsByName2(icons[0], icons[1]);
+                var bmpWidth = bmpAtt.Width;
+                var bmpHeight = bmpAtt.Height;
+
+                var icon = AdjustIcon(IconsConverter.FromXImage(bmpAtt.Icon ?? Defaults.Icon), bmpWidth, bmpHeight);
+
+                if (m_App.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2016))
+                {
+                    var icons = m_IconsConv.ConvertIcon(new BitmapButtonHighResIcon(icon, bmpWidth, bmpHeight));
+                    var imgList = icons.Take(6).ToArray();
+                    var maskImgList = icons.Skip(6).ToArray();
+                    swCtrl.SetBitmapsByName3(imgList, maskImgList);
+                }
+                else
+                {
+                    var icons = m_IconsConv.ConvertIcon(new BitmapButtonIcon(icon, bmpWidth, bmpHeight));
+                    swCtrl.SetBitmapsByName2(icons[0], icons[1]);
+                }
             }
 
             return new PropertyManagerPageBitmapButtonControl(atts.Id, atts.Tag, swCtrl, handler);
