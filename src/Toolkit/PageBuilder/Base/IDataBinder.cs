@@ -17,7 +17,7 @@ namespace Xarial.XCad.Utils.PageBuilder.Base
 
     public interface IDataModelBinder
     {
-        void Bind<TDataModel>(TDataModel model, CreateBindingPageDelegate pageCreator,
+        void Bind<TDataModel>(CreateBindingPageDelegate pageCreator,
             CreateBindingControlDelegate ctrlCreator,
             out IEnumerable<IBinding> bindings, out IRawDependencyGroup dependencies);
     }

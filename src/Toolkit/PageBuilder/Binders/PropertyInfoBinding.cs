@@ -22,18 +22,32 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
 
         public PropertyInfo Property { get; private set; }
 
-        internal PropertyInfoBinding(TDataModel dataModel, IControl control,
+        internal PropertyInfoBinding(IControl control,
             PropertyInfo prpInfo, IList<PropertyInfo> parents)
-            : base(control, dataModel)
+            : base(control)
         {
             Property = prpInfo;
             m_Parents = parents;
+        }
 
-            var curModel = GetCurrentModel();
+        protected override TDataModel DataModel 
+        {
+            get => base.DataModel; 
+            set
+            { 
+                var curModel = GetCurrentModel();
 
-            if (curModel is INotifyPropertyChanged)
-            {
-                (curModel as INotifyPropertyChanged).PropertyChanged += OnPropertyChanged;
+                if (curModel is INotifyPropertyChanged) 
+                {
+                    (curModel as INotifyPropertyChanged).PropertyChanged -= OnPropertyChanged;
+                }
+
+                base.DataModel = value;
+
+                if (curModel is INotifyPropertyChanged)
+                {
+                    (curModel as INotifyPropertyChanged).PropertyChanged += OnPropertyChanged;
+                }
             }
         }
 
@@ -64,7 +78,7 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
             }
         }
 
-        private object GetCurrentModel(bool init = true)
+        private object GetCurrentModel()
         {
             object curModel = DataModel;
 
@@ -72,19 +86,17 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
             {
                 foreach (var parent in m_Parents)
                 {
+                    if (curModel == null) 
+                    {
+                        return null;
+                    }
+
                     var nextModel = parent.GetValue(curModel, null);
 
                     if (nextModel == null)
                     {
-                        if (init)
-                        {
-                            nextModel = Activator.CreateInstance(parent.PropertyType);
-                            parent.SetValue(curModel, nextModel, null);
-                        }
-                        else
-                        {
-                            return null;
-                        }
+                        nextModel = Activator.CreateInstance(parent.PropertyType);
+                        parent.SetValue(curModel, nextModel, null);
                     }
 
                     curModel = nextModel;

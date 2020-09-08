@@ -39,7 +39,7 @@ namespace Xarial.XCad.Utils.PageBuilder
             m_ControlConstructors = new ConstructorsContainer<TPage, TGroup>(ctrlsContstrs);
         }
 
-        public virtual TPage CreatePage<TModel>(TModel model)
+        public virtual TPage CreatePage<TModel>()
         {
             var page = default(TPage);
 
@@ -47,7 +47,7 @@ namespace Xarial.XCad.Utils.PageBuilder
 
             IRawDependencyGroup dependencies;
 
-            m_DataBinder.Bind(model,
+            m_DataBinder.Bind<TModel>(
                 atts =>
                 {
                     page = m_PageConstructor.Create(atts);
