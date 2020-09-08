@@ -132,7 +132,7 @@ namespace Toolkit.Tests
         public void CreatePageIdsTest()
         {
             var builder = new PageBuilderMock();
-            var page = builder.CreatePage(new DataModel1());
+            var page = builder.CreatePage<DataModel1>();
 
             Assert.AreEqual(3, page.Controls.Count);
             Assert.AreEqual(0, page.Controls[0].Id);
@@ -156,7 +156,7 @@ namespace Toolkit.Tests
                 ctrlIndex++;
                 return idRange;
             });
-            var page = builder.CreatePage(new DataModel1());
+            var page = builder.CreatePage<DataModel1>();
 
             Assert.AreEqual(3, page.Controls.Count);
             Assert.AreEqual(0, page.Controls[0].Id);

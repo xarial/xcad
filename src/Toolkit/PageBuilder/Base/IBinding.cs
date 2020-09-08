@@ -17,7 +17,7 @@ namespace Xarial.XCad.Utils.PageBuilder.Base
         event Action<IBinding> ControlUpdated;
 
         IControl Control { get; }
-        object Model { get; }
+        object Model { get; set; }
 
         void UpdateControl();
 
