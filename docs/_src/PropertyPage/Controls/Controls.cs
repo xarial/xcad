@@ -23,15 +23,17 @@ namespace Xarial.XCad.Documentation
             DataModelPageOpts,
             DataModelPageAtts,
             DataModelHelpLinks,
-            TextBoxDataModel,
-            OptionBoxDataModel,
-            SelectionBoxDataModel,
-            SelectionBoxListDataModel,
-            SelectionBoxCustomSelectionFilterDataModel,
-            ButtonDataModel,
-            TabDataModel,
-            BitmapDataModel,
-            DynamicValuesDataModel,
+            TextBox,
+            OptionBox,
+            SelectionBox,
+            SelectionBoxList,
+            SelectionBoxCustomSelectionFilter,
+            Button,
+            CheckBox,
+            Tab,
+            Bitmap,
+            BitmapButton,
+            DynamicValues,
             CustomWpfControl,
             CustomWinFormsControl
         }
@@ -49,8 +51,10 @@ namespace Xarial.XCad.Documentation
         private SwPropertyManagerPage<SelectionBoxListDataModel> m_SelectionBoxListDataModel;
         private SwPropertyManagerPage<SelectionBoxCustomSelectionFilterDataModel> m_SelectionBoxCustomSelectionFilterDataModel;
         private SwPropertyManagerPage<ButtonDataModel> m_ButtonDataModel;
+        private SwPropertyManagerPage<CheckBoxDataModel> m_CheckBoxDataModel;
         private SwPropertyManagerPage<TabDataModel> m_TabDataModel;
         private SwPropertyManagerPage<BitmapDataModel> m_BitmapDataModel;
+        private SwPropertyManagerPage<BitmapButtonDataModel> m_BitmapButtonDataModel;
         private SwPropertyManagerPage<DynamicValuesDataModel> m_DynamicValuesDataModel;
         private SwPropertyManagerPage<CustomWpfControlPage> m_CustomWpfControlDataModel;
         private SwPropertyManagerPage<CustomWinFormsControlPage> m_CustomWinFormsControlDataModel;
@@ -70,8 +74,10 @@ namespace Xarial.XCad.Documentation
             m_SelectionBoxListDataModel = CreatePage<SelectionBoxListDataModel, MyPMPageHandler>();
             m_SelectionBoxCustomSelectionFilterDataModel = CreatePage<SelectionBoxCustomSelectionFilterDataModel, MyPMPageHandler>();
             m_ButtonDataModel = CreatePage<ButtonDataModel, MyPMPageHandler>();
+            m_CheckBoxDataModel = CreatePage<CheckBoxDataModel, MyPMPageHandler>();
             m_TabDataModel = CreatePage<TabDataModel, MyPMPageHandler>();
             m_BitmapDataModel = CreatePage<BitmapDataModel, MyPMPageHandler>();
+            m_BitmapButtonDataModel = CreatePage<BitmapButtonDataModel, MyPMPageHandler>();
             m_DynamicValuesDataModel = CreatePage<DynamicValuesDataModel, MyPMPageHandler>();
             m_CustomWpfControlDataModel = CreatePage<CustomWpfControlPage, MyPMPageHandler>();
             m_CustomWinFormsControlDataModel = CreatePage<CustomWinFormsControlPage, MyPMPageHandler>();
@@ -104,31 +110,37 @@ namespace Xarial.XCad.Documentation
                 case Pages_e.DataModelHelpLinks:
                     m_DataModelHelpLinks.Show(new DataModelHelpLinks());
                     break;
-                case Pages_e.TextBoxDataModel:
+                case Pages_e.TextBox:
                     m_TextBoxDataModel.Show(new TextBoxDataModel());
                     break;
-                case Pages_e.OptionBoxDataModel:
+                case Pages_e.OptionBox:
                     m_OptionBoxDataModel.Show(new OptionBoxDataModel());
                     break;
-                case Pages_e.SelectionBoxDataModel:
+                case Pages_e.SelectionBox:
                     m_SelectionBoxDataModel.Show(new SelectionBoxDataModel());
                     break;
-                case Pages_e.SelectionBoxListDataModel:
+                case Pages_e.SelectionBoxList:
                     m_SelectionBoxListDataModel.Show(new SelectionBoxListDataModel());
                     break;
-                case Pages_e.SelectionBoxCustomSelectionFilterDataModel:
+                case Pages_e.SelectionBoxCustomSelectionFilter:
                     m_SelectionBoxCustomSelectionFilterDataModel.Show(new SelectionBoxCustomSelectionFilterDataModel());
                     break;
-                case Pages_e.ButtonDataModel:
+                case Pages_e.Button:
                     m_ButtonDataModel.Show(new ButtonDataModel());
                     break;
-                case Pages_e.TabDataModel:
+                case Pages_e.CheckBox:
+                    m_CheckBoxDataModel.Show(new CheckBoxDataModel());
+                    break;
+                case Pages_e.Tab:
                     m_TabDataModel.Show(new TabDataModel());
                     break;
-                case Pages_e.BitmapDataModel:
+                case Pages_e.Bitmap:
                     m_BitmapDataModel.Show(new BitmapDataModel());
                     break;
-                case Pages_e.DynamicValuesDataModel:
+                case Pages_e.BitmapButton:
+                    m_BitmapButtonDataModel.Show(new BitmapButtonDataModel());
+                    break;
+                case Pages_e.DynamicValues:
                     m_DynamicValuesDataModel.Show(new DynamicValuesDataModel());
                     break;
                 case Pages_e.CustomWpfControl:
