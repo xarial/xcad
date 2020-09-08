@@ -12,6 +12,8 @@ Breaking change is marked with &#x26A0; symbol
 
 * Implemented [#5 - Updating Combobox based on another comboBox selection change](https://github.com/xarial/xcad/issues/5). Refer [help documentation](/property-pages/controls/combo-box#dynamic-items-provider) for more information
 
+* Implemented [#6 - Add Support to Bitmap Button](https://github.com/xarial/xcad/issues/6)
+
 * &#x26A0; Moved **Xarial.XCad.Utils.PageBuilder.Base.IDependencyHandler** to **Xarial.XCad.UI.PropertyPage.Services.IDependencyHandler**
 
 * &#x26A0; Added second parameter **IControl[] dependencies** to **ICustomItemsProvider.ProvideItems** 

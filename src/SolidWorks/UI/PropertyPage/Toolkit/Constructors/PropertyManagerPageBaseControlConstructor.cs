@@ -46,7 +46,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
             }
         }
 
-        private swPropertyManagerPageControlType_e m_Type;
+        protected swPropertyManagerPageControlType_e m_Type;
         private IconsConverter m_IconConv;
 
         protected readonly ISldWorks m_App;

@@ -20,6 +20,8 @@ using Xarial.XCad.SolidWorks.UI.PropertyPage.Services;
 using Xarial.XCad.SolidWorks.Documents;
 using System.Collections.ObjectModel;
 using Xarial.XCad.UI.PropertyPage.Base;
+using Xarial.XCad.Base.Attributes;
+using SwAddInExample.Properties;
 
 namespace SwAddInExample
 {
@@ -98,6 +100,12 @@ namespace SwAddInExample
         public SwBody Body { get; set; }
 
         public SwCircularEdge CircEdge { get; set; }
+
+        [BitmapButton(typeof(Resources), nameof(Resources.xarial), 48, 48)]
+        public bool CheckBox { get; set; }
+
+        [BitmapButton(typeof(Resources), nameof(Resources.xarial))]
+        public Action Button { get; set; } = new Action(()=> { });
     }
 
     [ComVisible(true)]

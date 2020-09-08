@@ -3,7 +3,7 @@ title: Bitmap control in SOLIDWORKS property Manager Page
 caption: Bitmap
 description: Creating bitmap control in the Property Manager Page using xCAD framework
 image: bitmap.png
-order: 11
+order: 12
 ---
 ![Bitmap control](bitmap.png)
 
