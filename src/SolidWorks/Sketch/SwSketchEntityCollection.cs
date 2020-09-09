@@ -20,6 +20,8 @@ namespace Xarial.XCad.SolidWorks.Sketch
 
         public IXSketchEntity this[string name] => throw new NotImplementedException();
 
+        public bool TryGet(string name, out IXSketchEntity ent) => throw new NotImplementedException();
+
         private readonly SwSketchBase m_Sketch;
 
         private readonly List<IXSketchEntity> m_Cache;

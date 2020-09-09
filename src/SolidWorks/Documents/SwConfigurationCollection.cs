@@ -9,7 +9,7 @@ using SolidWorks.Interop.sldworks;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Text;
+using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Delegates;
 using Xarial.XCad.SolidWorks.Documents.EventHandlers;
@@ -42,8 +42,23 @@ namespace Xarial.XCad.SolidWorks.Documents
             m_ConfigurationActivatedEventsHandler = new ConfigurationActivatedEventsHandler(doc);
         }
 
-        public IXConfiguration this[string name]
-            => SwObject.FromDispatch<SwConfiguration>((IConfiguration)m_Doc.Model.GetConfigurationByName(name), m_Doc);
+        public IXConfiguration this[string name] => this.Get(name);
+
+        public bool TryGet(string name, out IXConfiguration ent)
+        {
+            var conf = m_Doc.Model.GetConfigurationByName(name);
+
+            if (conf != null)
+            {
+                ent = SwObject.FromDispatch<SwConfiguration>((IConfiguration)conf, m_Doc);
+                return true;
+            }
+            else 
+            {
+                ent = null;
+                return false;
+            }
+        }
 
         public int Count => (m_Doc.Model.GetConfigurationNames() as string[]).Length;
 

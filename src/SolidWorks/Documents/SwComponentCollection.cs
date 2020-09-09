@@ -20,7 +20,23 @@ namespace Xarial.XCad.SolidWorks.Documents
     {
         IXComponent IXRepository<IXComponent>.this[string name] => this[name];
 
-        public SwComponent this[string name] => SwObject.FromDispatch<SwComponent>(m_Assm.Assembly.GetComponentByName(name), m_Assm);
+        public SwComponent this[string name] => (SwComponent)this.Get(name);
+        
+        public bool TryGet(string name, out IXComponent ent)
+        {
+            var comp = m_Assm.Assembly.GetComponentByName(name);
+
+            if (comp != null)
+            {
+                ent = SwObject.FromDispatch<SwComponent>(comp, m_Assm);
+                return true;
+            }
+            else 
+            {
+                ent = null;
+                return false;
+            }
+        }
 
         public int Count => m_Assm.Assembly.GetComponentCount(false);
 

@@ -34,34 +34,48 @@ namespace Xarial.XCad.SolidWorks.Features
         {
             get
             {
-                IFeature feat;
-
-                switch (m_Doc.Model)
+                if (TryGet(name, out IXFeature ent))
                 {
-                    case IPartDoc part:
-                        feat = part.FeatureByName(name) as IFeature;
-                        break;
-
-                    case IAssemblyDoc assm:
-                        feat = assm.FeatureByName(name) as IFeature;
-                        break;
-
-                    case IDrawingDoc drw:
-                        feat = drw.FeatureByName(name) as IFeature;
-                        break;
-
-                    default:
-                        throw new NotSupportedException();
+                    return (SwFeature)ent;
                 }
-
-                if (feat != null)
+                else 
                 {
-                    return SwObject.FromDispatch<SwFeature>(feat, m_Doc);
+                    throw new NullReferenceException($"Feature '{name}' is not found");
                 }
-                else
-                {
-                    throw new NullReferenceException("Feature is not found");
-                }
+            }
+        }
+
+        public bool TryGet(string name, out IXFeature ent)
+        {
+            IFeature feat;
+
+            switch (m_Doc.Model)
+            {
+                case IPartDoc part:
+                    feat = part.FeatureByName(name) as IFeature;
+                    break;
+
+                case IAssemblyDoc assm:
+                    feat = assm.FeatureByName(name) as IFeature;
+                    break;
+
+                case IDrawingDoc drw:
+                    feat = drw.FeatureByName(name) as IFeature;
+                    break;
+
+                default:
+                    throw new NotSupportedException();
+            }
+
+            if (feat != null)
+            {
+                ent = SwObject.FromDispatch<SwFeature>(feat, m_Doc);
+                return true;
+            }
+            else
+            {
+                ent = null;
+                return false;
             }
         }
 

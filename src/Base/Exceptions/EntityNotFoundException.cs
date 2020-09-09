@@ -5,20 +5,16 @@
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
+using System;
 using System.Collections.Generic;
+using System.Text;
 
-namespace Xarial.XCad.Base
+namespace Xarial.XCad.Exceptions
 {
-    public interface IXRepository<TEnt> : IEnumerable<TEnt>
+    public class EntityNotFoundException : KeyNotFoundException
     {
-        int Count { get; }
-
-        TEnt this[string name] { get; }
-
-        bool TryGet(string name, out TEnt ent);
-
-        void AddRange(IEnumerable<TEnt> ents);
-
-        void RemoveRange(IEnumerable<TEnt> ents);
+        public EntityNotFoundException(string name) : base($"Entity '{name}' is not found in the repository") 
+        {
+        }
     }
 }

@@ -19,12 +19,12 @@ namespace Xarial.XCad.SolidWorks.Annotations
     public class SwDimension : SwSelObject, IXDimension, IDisposable
     {
         private IDimension m_Dimension;
-        
+
         private SwDimensionChangeEventsHandler m_ValueChangedHandler;
 
-        public event DimensionValueChangedDelegate ValueChanged 
+        public event DimensionValueChangedDelegate ValueChanged
         {
-            add 
+            add
             {
                 m_ValueChangedHandler.Attach(value);
             }
@@ -37,7 +37,16 @@ namespace Xarial.XCad.SolidWorks.Annotations
         public IDimension Dimension => m_Dimension ?? (m_Dimension = DisplayDimension.GetDimension2(0));
         public IDisplayDimension DisplayDimension { get; private set; }
 
-        public string Name => Dimension.FullName;
+        public string Name 
+        {
+            get 
+            {
+                var fullName = Dimension.FullName;
+                var nameParts = fullName.Split('@');
+
+                return $"{nameParts[0]}@{nameParts[1]}";
+            }
+        }
 
         internal SwDimension(IModelDoc2 model, IDisplayDimension dispDim)
             : base(null, dispDim)
