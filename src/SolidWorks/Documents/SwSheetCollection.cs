@@ -42,7 +42,35 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
 
         public IXSheet this[string name]
-            => SwObject.FromDispatch<SwSheet>(m_Doc.Drawing.Sheet[name], m_Doc);
+        {
+            get 
+            {
+                if (TryGet(name, out IXSheet sheet))
+                {
+                    return sheet;
+                }
+                else 
+                {
+                    throw new KeyNotFoundException($"Failed to find '{name}'");
+                }
+            }
+        }
+
+        public bool TryGet(string name, out IXSheet ent)
+        {
+            var sheet = m_Doc.Drawing.Sheet[name];
+
+            if (sheet != null)
+            {
+                ent = SwObject.FromDispatch<SwSheet>(sheet, m_Doc);
+                return true;
+            }
+            else 
+            {
+                ent = null;
+                return false;
+            }
+        }
 
         public int Count => (m_Doc.Drawing.GetSheetNames() as string[]).Length;
 

@@ -49,17 +49,5 @@ namespace SolidWorks.Tests.Integration
 
             Assert.That(entryPoints.SequenceEqual(new string[] { "VbaMacro1.main", "VbaMacro1.Func1", "VbaMacro1.Func3", "Module1.Func4" }));
         }
-
-        [Test]
-        public void RunVsta1Macro()
-        {
-            throw new NotImplementedException();
-        }
-
-        [Test]
-        public void RunVsta3Macro()
-        {
-            throw new NotImplementedException();
-        }
     }
 }

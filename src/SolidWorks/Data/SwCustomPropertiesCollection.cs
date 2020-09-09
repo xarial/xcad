@@ -28,16 +28,30 @@ namespace Xarial.XCad.SolidWorks.Data
         {
             get 
             {
-                var prp = GetOrPreCreate(name);
-
-                if (prp.Exists)
+                if (TryGet(name, out IXProperty prp))
                 {
-                    return prp;
+                    return (SwCustomProperty)prp;
                 }
                 else 
                 {
                     throw new CustomPropertyMissingException(name);
                 }
+            }
+        }
+
+        public bool TryGet(string name, out IXProperty ent)
+        {
+            var prp = GetOrPreCreate(name);
+
+            if (prp.Exists)
+            {
+                ent = prp;
+                return true;
+            }
+            else
+            {
+                ent = null;
+                return false;
             }
         }
 

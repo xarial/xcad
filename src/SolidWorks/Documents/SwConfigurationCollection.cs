@@ -43,7 +43,35 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
 
         public IXConfiguration this[string name]
-            => SwObject.FromDispatch<SwConfiguration>((IConfiguration)m_Doc.Model.GetConfigurationByName(name), m_Doc);
+        {
+            get 
+            {
+                if (TryGet(name, out IXConfiguration conf))
+                {
+                    return conf;
+                }
+                else 
+                {
+                    throw new KeyNotFoundException($"Configuration '{name}' doe not exist");
+                }
+            }
+        }
+
+        public bool TryGet(string name, out IXConfiguration ent)
+        {
+            var conf = m_Doc.Model.GetConfigurationByName(name);
+
+            if (conf != null)
+            {
+                ent = SwObject.FromDispatch<SwConfiguration>((IConfiguration)conf, m_Doc);
+                return true;
+            }
+            else 
+            {
+                ent = null;
+                return false;
+            }
+        }
 
         public int Count => (m_Doc.Model.GetConfigurationNames() as string[]).Length;
 

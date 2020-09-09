@@ -169,7 +169,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             
             Selections = new SwSelectionCollection(this);
 
-            Dimensions = new SwDimensionsCollection(this);
+            Dimensions = new SwDocumentDimensionsCollection(this);
 
             Properties = new SwCustomPropertiesCollection(SwApp, Model, "");
 
