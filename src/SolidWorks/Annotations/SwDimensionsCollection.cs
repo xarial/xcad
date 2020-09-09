@@ -77,7 +77,8 @@ namespace Xarial.XCad.SolidWorks.Annotations
             if (m_Doc.Features.TryGet(featName, out IXFeature feat))
             {
                 dim = feat.Dimensions.FirstOrDefault(
-                    d => string.Equals(d.Name, dimName, StringComparison.CurrentCultureIgnoreCase));
+                    d => string.Equals(d.Name, $"{dimName}@{featName}",
+                    StringComparison.CurrentCultureIgnoreCase));
             }
 
             if (dim != null)
