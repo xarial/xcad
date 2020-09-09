@@ -41,20 +41,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             m_SheetActivatedEventsHandler = new SheetActivatedEventsHandler(doc);
         }
 
-        public IXSheet this[string name]
-        {
-            get 
-            {
-                if (TryGet(name, out IXSheet sheet))
-                {
-                    return sheet;
-                }
-                else 
-                {
-                    throw new KeyNotFoundException($"Failed to find '{name}'");
-                }
-            }
-        }
+        public IXSheet this[string name] => this.Get(name);
 
         public bool TryGet(string name, out IXSheet ent)
         {

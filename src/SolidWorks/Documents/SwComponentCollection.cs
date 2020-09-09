@@ -20,21 +20,8 @@ namespace Xarial.XCad.SolidWorks.Documents
     {
         IXComponent IXRepository<IXComponent>.this[string name] => this[name];
 
-        public SwComponent this[string name] 
-        {
-            get 
-            {
-                if (TryGet(name, out IXComponent comp))
-                {
-                    return (SwComponent)comp;
-                }
-                else 
-                {
-                    throw new KeyNotFoundException($"Failed to get the component '{name}'");
-                }
-            }
-        }
-
+        public SwComponent this[string name] => (SwComponent)this.Get(name);
+        
         public bool TryGet(string name, out IXComponent ent)
         {
             var comp = m_Assm.Assembly.GetComponentByName(name);

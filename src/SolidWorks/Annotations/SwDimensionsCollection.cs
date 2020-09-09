@@ -23,20 +23,7 @@ namespace Xarial.XCad.SolidWorks.Annotations
     {
         IXDimension IXRepository<IXDimension>.this[string name] => this[name];
 
-        public SwDimension this[string name]
-        {
-            get
-            {
-                if (TryGet(name, out IXDimension dim))
-                {
-                    return (SwDimension)dim;
-                }
-                else
-                {
-                    throw new Exception($"Failed to find {name}");
-                }
-            }
-        }
+        public SwDimension this[string name]=> (SwDimension)this.Get(name);
 
         public abstract bool TryGet(string name, out IXDimension ent);
 

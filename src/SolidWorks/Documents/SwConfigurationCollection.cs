@@ -9,7 +9,7 @@ using SolidWorks.Interop.sldworks;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Text;
+using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Delegates;
 using Xarial.XCad.SolidWorks.Documents.EventHandlers;
@@ -42,20 +42,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             m_ConfigurationActivatedEventsHandler = new ConfigurationActivatedEventsHandler(doc);
         }
 
-        public IXConfiguration this[string name]
-        {
-            get 
-            {
-                if (TryGet(name, out IXConfiguration conf))
-                {
-                    return conf;
-                }
-                else 
-                {
-                    throw new KeyNotFoundException($"Configuration '{name}' doe not exist");
-                }
-            }
-        }
+        public IXConfiguration this[string name] => this.Get(name);
 
         public bool TryGet(string name, out IXConfiguration ent)
         {
