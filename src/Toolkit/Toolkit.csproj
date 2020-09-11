@@ -5,6 +5,10 @@
     <AssemblyName>Xarial.XCad.Toolkit</AssemblyName>
     <RootNamespace>Xarial.XCad.Toolkit</RootNamespace>
 	  <SignAssembly>false</SignAssembly>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <PackageId>Xarial.XCad.Toolkit</PackageId>
     <VersionPrefix>0.6.0</VersionPrefix>
@@ -21,6 +25,10 @@
     <PackageIcon>icon.png</PackageIcon>
     <PackageIconUrl>https://xcad.xarial.com/icon.png</PackageIconUrl>
     <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TF_BUILD)' == 'true'">
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)'=='Release'">
@@ -40,6 +48,10 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Base\Base.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All"/>
   </ItemGroup>
   
 </Project>
