@@ -15,6 +15,8 @@ namespace Xarial.XCad.Base
 
         TEnt this[string name] { get; }
 
+        bool TryGet(string name, out TEnt ent);
+
         void AddRange(IEnumerable<TEnt> ents);
 
         void RemoveRange(IEnumerable<TEnt> ents);

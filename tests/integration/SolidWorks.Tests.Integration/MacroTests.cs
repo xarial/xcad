@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Xarial.XCad;
 using Xarial.XCad.SolidWorks;
 
 namespace SolidWorks.Tests.Integration
@@ -47,18 +48,6 @@ namespace SolidWorks.Tests.Integration
             var entryPoints = macro.EntryPoints.Select(e => $"{e.ModuleName}.{e.ProcedureName}");
 
             Assert.That(entryPoints.SequenceEqual(new string[] { "VbaMacro1.main", "VbaMacro1.Func1", "VbaMacro1.Func3", "Module1.Func4" }));
-        }
-
-        [Test]
-        public void RunVsta1Macro()
-        {
-            throw new NotImplementedException();
-        }
-
-        [Test]
-        public void RunVsta3Macro()
-        {
-            throw new NotImplementedException();
         }
     }
 }

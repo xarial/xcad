@@ -8,11 +8,14 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Xarial.XCad.Enums;
+using Xarial.XCad.Structures;
 
 namespace Xarial.XCad
 {
     public interface IXMacro
     {
-        void Run();
+        MacroEntryPoint[] EntryPoints { get; }
+        void Run(MacroEntryPoint entryPoint, MacroRunOptions_e opts);
     }
 }

@@ -7,18 +7,28 @@
 
 using System;
 using Xarial.XCad.UI.PropertyPage.Base;
+using Xarial.XCad.UI.PropertyPage.Services;
 
 namespace Xarial.XCad.UI.PropertyPage.Attributes
-{
+{   
+    /// <inheritdoc/>
     public class DependentOnAttribute : Attribute, IDependentOnAttribute
     {
+        /// <inheritdoc/>
         public object[] Dependencies { get; private set; }
 
-        public Type DependencyHandler { get; private set; }
+        /// <inheritdoc/>
+        public IDependencyHandler DependencyHandler { get; private set; }
 
         public DependentOnAttribute(Type dependencyHandler, params object[] dependencies)
         {
-            DependencyHandler = dependencyHandler;
+            if (!typeof(IDependencyHandler).IsAssignableFrom(dependencyHandler)) 
+            {
+                throw new InvalidCastException($"{dependencyHandler.FullName} must be assignable from {typeof(IDependencyHandler).FullName}");
+            }
+
+            DependencyHandler = (IDependencyHandler)Activator.CreateInstance(dependencyHandler);
+
             Dependencies = dependencies;
         }
     }

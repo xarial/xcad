@@ -17,10 +17,15 @@ namespace Xarial.XCad.UI.Structures
 {
     public class ButtonSpec
     {
-        public int UserId { get; set; }
+        public int UserId { get; }
         public string Title { get; set; }
         public string Tooltip { get; set; }
         public IXImage Icon { get; set; }
+
+        public ButtonSpec(int userId) 
+        {
+            UserId = userId;
+        }
     }
 
     internal static class ButtonSpecExtension 
@@ -28,8 +33,6 @@ namespace Xarial.XCad.UI.Structures
         internal static void InitFromEnum<TEnum>(this ButtonSpec btn, TEnum btnEnum)
             where TEnum : Enum
         {
-            btn.UserId = Convert.ToInt32(btnEnum);
-
             if (!btnEnum.TryGetAttribute<DisplayNameAttribute>(
                 att => btn.Title = att.DisplayName))
             {

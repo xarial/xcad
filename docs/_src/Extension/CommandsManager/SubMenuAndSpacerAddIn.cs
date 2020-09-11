@@ -23,7 +23,7 @@ public class SubMenuAndSpacerAddIn : SwAddInEx
 
     [Title("Sub Menu Commands")]
     //--- SubMenu
-    [CommandGroupInfo(typeof(Commands_e))]
+    [CommandGroupParent(typeof(Commands_e))]
     public enum SubCommands_e
     {
         SubCommand1,

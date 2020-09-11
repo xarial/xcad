@@ -70,7 +70,9 @@ stages:
           displayName: 'Copy Nuget Package'
           inputs:
             SourceFolder: '$(system.defaultworkingdirectory)/build'
-            Contents: '**\*.nupkg'
+            Contents: |
+              **\*.nupkg
+              **\*.snupkg
             TargetFolder: '$(Build.ArtifactStagingDirectory)/packages'
       
       - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
@@ -107,7 +109,7 @@ stages:
   jobs:
   - job:
     pool:
-      vmImage: 'ubuntu-latest'
+      vmImage: 'windows-latest'
 
     steps:
     - checkout: none
@@ -120,6 +122,7 @@ stages:
       inputs:
         command: 'push'
         packagesToPush: '$(Pipeline.Workspace)/packages/release/*.nupkg'
+        allowPackageConflicts: true
         nuGetFeedType: 'internal'
         publishVstsFeed: 'xcad/xcad-preview'
 

@@ -10,7 +10,7 @@ using Xarial.XCad.Annotations;
 namespace Xarial.XCad.Features.CustomFeature.Delegates
 {
     /// <summary>
-    /// Handler function to align specific dimension of <see cref="IXCustomFeatureDefinition{TParams}" within the <see cref="IXCustomFeatureDefinition.OnRebuild(IXApplication, Documents.IXDocument, IXCustomFeature)"/>/>
+    /// Handler function to align specific dimension of <see cref="IXCustomFeatureDefinition{TParams}"></see> within the <see cref="IXCustomFeatureDefinition.OnRebuild(IXApplication, Documents.IXDocument, IXCustomFeature)"/>/>
     /// </summary>
     /// <typeparam name="TData">Type of the data</typeparam>
     /// <param name="paramName">Name of the parameter in the data model which corresponds to this dimension</param>

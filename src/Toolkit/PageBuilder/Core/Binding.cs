@@ -25,13 +25,16 @@ namespace Xarial.XCad.Utils.PageBuilder.Core
             {
                 return DataModel;
             }
+            set 
+            {
+                DataModel = (TDataModel)value;
+            }
         }
 
-        protected TDataModel DataModel { get; private set; }
+        protected virtual TDataModel DataModel { get; set; }
 
-        public Binding(IControl control, TDataModel dataModel)
+        public Binding(IControl control)
         {
-            DataModel = dataModel;
             Control = control;
             Control.ValueChanged += OnControlValueChanged;
         }

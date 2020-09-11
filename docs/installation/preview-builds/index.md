@@ -10,7 +10,7 @@ All intermediate preview releases (from the dev branch) are published to the sep
 
 Below are the instructions of settings up the nuget source which points to the preview nuget feed.
 
-## Addin new nuget source
+## Adding new nuget source
 
 * Navigate to the Nuget Package Manager Settings in the Visual Studio
 

@@ -103,7 +103,7 @@ namespace Xarial.XCad.SolidWorks
 
         public IXLogger Logger { get; }
 
-        private readonly List<IDisposable> m_DisposableControls;
+        private readonly List<IDisposable> m_Disposables;
 
         public SwAddInEx()
         {
@@ -112,7 +112,7 @@ namespace Xarial.XCad.SolidWorks
 
             Logger = new TraceLogger($"XCad.AddIn.{title}");
 
-            m_DisposableControls = new List<IDisposable>();
+            m_Disposables = new List<IDisposable>();
         }
 
         [Browsable(false)]
@@ -126,13 +126,20 @@ namespace Xarial.XCad.SolidWorks
                 var app = ThisSW as ISldWorks;
                 AddInId = cookie;
 
-                app.SetAddinCallbackInfo(0, this, AddInId);
+                if (app.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2015))
+                {
+                    app.SetAddinCallbackInfo2(0, this, AddInId);
+                }
+                else 
+                {
+                    app.SetAddinCallbackInfo(0, this, AddInId);
+                }
 
                 Application = new SwApplication(app, Logger);
 
                 SwMacroFeatureDefinition.Application = Application;
 
-                CommandManager = new SwCommandManager(Application, AddInId, Logger);
+                CommandManager = new SwCommandManager(Application, AddInId, Logger, this.GetType().GUID);
 
                 OnConnect();
 
@@ -203,7 +210,7 @@ namespace Xarial.XCad.SolidWorks
                 Application.Documents.Dispose();
                 Application.Dispose();
 
-                foreach (var dispCtrl in m_DisposableControls) 
+                foreach (var dispCtrl in m_Disposables) 
                 {
                     dispCtrl.Dispose();
                 }
@@ -234,7 +241,9 @@ namespace Xarial.XCad.SolidWorks
 
         private SwPropertyManagerPage<TData> CreatePropertyManagerPage<TData>(Type handlerType)
         {
-            return new SwPropertyManagerPage<TData>(Application, Logger, handlerType);
+            var page = new SwPropertyManagerPage<TData>(Application, Logger, handlerType);
+            m_Disposables.Add(page);
+            return page;
         }
 
         public SwModelViewTab<TControl> CreateDocumentTab<TControl>(Documents.SwDocument doc)
@@ -357,7 +366,7 @@ namespace Xarial.XCad.SolidWorks
                         return new SwTaskPane<TControl>(Application.Sw, v, ctrl, spec);
                     });
 
-                m_DisposableControls.Add(taskPane);
+                m_Disposables.Add(taskPane);
 
                 return taskPane;
             }

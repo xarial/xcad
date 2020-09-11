@@ -213,7 +213,7 @@ namespace Xarial.XCad.SolidWorks.Utils
             var height = size.Height;
 
             using (var bmp = new Bitmap(width,
-                                    height, PixelFormat.Format24bppRgb))
+                height, PixelFormat.Format24bppRgb))
             {
                 using (var graph = Graphics.FromImage(bmp))
                 {
@@ -280,7 +280,7 @@ namespace Xarial.XCad.SolidWorks.Utils
                     Directory.CreateDirectory(dir);
                 }
 
-                bmp.Save(targetIcon);
+                bmp.Save(targetIcon, ImageFormat.Bmp);
             }
         }
 

@@ -5,6 +5,7 @@
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
+using Microsoft.Win32;
 using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
 using System;
@@ -75,9 +76,12 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
 
         public IEnumerable<IXCommandGroup> CommandGroups => m_CommandBars;
 
-        internal SwCommandManager(SwApplication app, int addinCookie, IXLogger logger)
+        private readonly Guid m_AddInGuid;
+
+        internal SwCommandManager(SwApplication app, int addinCookie, IXLogger logger, Guid addInGuid)
         {
             m_App = app;
+            m_AddInGuid = addInGuid;
 
             CmdMgr = m_App.Sw.GetCommandManager(addinCookie);
 
@@ -121,7 +125,7 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
             var cmdGroup = CreateCommandGroup(cmdBar.Id, title, cmdBar.Tooltip,
                 cmdBar.Commands.Select(c => c.UserId).ToArray(), isContextMenu,
                 contextMenuSelectType);
-
+            
             var bar = new SwCommandGroup(m_App, cmdBar, cmdGroup);
 
             m_CommandBars.Add(bar);
@@ -184,11 +188,36 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
         {
             if (disposing)
             {
+                var usedToolbarIds = new List<int>();
+
                 foreach (var grp in m_CommandBars)
                 {
+                    if (grp.CommandGroup.HasToolbar)
+                    {
+                        usedToolbarIds.Add(grp.CommandGroup.ToolbarId);
+                    }
+
                     m_Logger.Log($"Removing group: {grp.Spec.Id}");
-                    CmdMgr.RemoveCommandGroup(grp.Spec.Id);
+
+                    var removeRes = false;
+
+                    if (m_App.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2011))
+                    {
+                        var res = (swRemoveCommandGroupErrors)CmdMgr.RemoveCommandGroup2(grp.Spec.Id, true);
+                        removeRes = res == swRemoveCommandGroupErrors.swRemoveCommandGroup_Success;
+                    }
+                    else
+                    {
+                        removeRes = CmdMgr.RemoveCommandGroup(grp.Spec.Id);
+                    }
+
+                    if (!removeRes)
+                    {
+                        m_Logger.Log($"Failed to remove group: {grp.Spec.Id}");
+                    }
                 }
+
+                TryClearDanglingToolbarIds(usedToolbarIds);
 
                 m_CommandBars.Clear();
             }
@@ -204,8 +233,53 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
             }
         }
 
+        //NOTE: this is a workaround method as ICommandManager::RemoveCommandGroup2 seems to ignore the RuntimeOnly  flag and always keep the group in the registry
+        //furthermore the IgnorePreviousVersion parameter of ICommandManager::CreateCommandGroup2 seems to only work after the restart
+        //this results in the cached toolbar id loaded for the dangling group if its user id reused
+        private void TryClearDanglingToolbarIds(IEnumerable<int> usedGroupIds) 
+        {
+            try
+            {
+                var rev = m_App.Sw.RevisionNumber().Split('.');
+                var majorRev = int.Parse(rev[0]);
+                const int REV_VERS_OFFSET = 2005 - 13; //SW 2005 corresponds to revions 13 and each major version revision is incremented by 1
+
+                var swVers = majorRev + REV_VERS_OFFSET;
+
+                var customApiToolbarsRegKeyName = $@"Software\Solidworks\SOLIDWORKS {swVers}\User Interface\Custom API Toolbars";
+                
+                var customApiToolbarsRegKey = Registry.CurrentUser.OpenSubKey(customApiToolbarsRegKeyName, true);
+
+                if (customApiToolbarsRegKey != null)
+                {
+                    var toolbarIds = customApiToolbarsRegKey.GetSubKeyNames();
+
+                    foreach (var toolbarId in toolbarIds)
+                    {
+                        if (!usedGroupIds.Contains(int.Parse(toolbarId)))
+                        {
+                            var toolbarKey = customApiToolbarsRegKey.OpenSubKey(toolbarId, false);
+                            var moduleGuid = Guid.Parse((string)toolbarKey.GetValue("ModuleName"));
+
+                            if (moduleGuid.Equals(m_AddInGuid))
+                            {
+                                m_Logger.Log($"Clearing the registry key '{toolbarId}' at 'HKEY_CURRENT_USER\\{customApiToolbarsRegKeyName}'");
+                                customApiToolbarsRegKey.DeleteSubKey(toolbarId);
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                m_Logger.Log(ex);
+            }
+        }
+
         private void ClearCommandTabBox(ICommandTabBox cmdBox)
         {
+            m_Logger.Log($"Clearing Command Tab Box");
+
             object existingCmds;
             object existingTextStyles;
             cmdBox.GetCommands(out existingCmds, out existingTextStyles);
@@ -217,15 +291,7 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
         }
 
         private bool CompareIDs(IEnumerable<int> storedIDs, IEnumerable<int> addinIDs)
-        {
-            var storedList = storedIDs.ToList();
-            var addinList = addinIDs.ToList();
-
-            addinList.Sort();
-            storedList.Sort();
-
-            return addinList.SequenceEqual(storedIDs);
-        }
+            => storedIDs.OrderBy(x => x).SequenceEqual(addinIDs.OrderBy(x => x));
 
         private swCommandTabButtonTextDisplay_e ConvertTextDisplay(RibbonTabTextDisplay_e style)
         {
@@ -252,10 +318,12 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
 
             object registryIDs;
 
-            var isChanged = true;
+            var isChanged = false;
 
             if (CmdMgr.GetGroupDataFromRegistry(groupId, out registryIDs))
             {
+                m_Logger.Log("Commands cached in the registry");
+
                 isChanged = !CompareIDs(registryIDs as int[], knownCmdIDs);
             }
 
@@ -333,11 +401,22 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
                 m_Logger.Log($"Created command {cmd.Title}:{cmdIndex} for {cmd.UserId}");
             }
 
-            cmdGroup.CommandGroup.HasToolbar = true;
-            cmdGroup.CommandGroup.HasMenu = true;
-            cmdGroup.CommandGroup.Activate();
+            cmdGroup.CommandGroup.HasToolbar = cmds.Any(c => c.HasToolbar);
+            cmdGroup.CommandGroup.HasMenu = cmds.Any(c => c.HasMenu);
 
-            return createdCmds.ToDictionary(p => p.Key, p => cmdGroup.CommandGroup.CommandID[p.Value]);
+            if (!cmdGroup.CommandGroup.Activate()) 
+            {
+                m_Logger.Log("Command group activation failed");
+            }
+
+            m_Logger.Log($"Command group-{groupId} Id: {(cmdGroup.CommandGroup.HasToolbar ? cmdGroup.CommandGroup.ToolbarId.ToString() : "No Toolbar")}");
+
+            return createdCmds.ToDictionary(p => p.Key, p =>
+            {
+                var cmdId = cmdGroup.CommandGroup.CommandID[p.Value];
+                m_Logger.Log($"Command-{p.Value} Id: {cmdId}");
+                return cmdId;
+            });
         }
 
         private void CreateCommandTabBox(CommandGroup cmdGroup, Dictionary<CommandSpec, int> commands)
@@ -426,11 +505,16 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
         {
             var mainIcon = cmdBar.Icon;
 
+            if (mainIcon == null) 
+            {
+                mainIcon = Defaults.Icon;
+            }
+
             Image[] iconList = null;
 
             if (cmdBar.Commands != null)
             {
-                iconList = cmdBar.Commands.Select(c => IconsConverter.FromXImage(c.Icon)).ToArray();
+                iconList = cmdBar.Commands.Select(c => IconsConverter.FromXImage(c.Icon ?? Defaults.Icon)).ToArray();
             }
 
             //NOTE: if commands are not used, main icon will fail if toolbar commands image list is not specified, so it is required to specify it explicitly

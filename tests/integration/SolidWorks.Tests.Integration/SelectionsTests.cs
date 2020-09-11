@@ -49,7 +49,7 @@ namespace SolidWorks.Tests.Integration
             {
                 var part = (IPartDoc)m_App.Sw.IActiveDoc2;
 
-                m_App.Documents.Active.Selections.NewSelection += o => selTypes.Add(o.GetType());
+                m_App.Documents.Active.Selections.NewSelection += (d, o) => selTypes.Add(o.GetType());
 
                 (part.GetEntityByName("Face1", (int)swSelectType_e.swSelFACES) as IEntity).Select4(true, null);
                 (part.GetEntityByName("Edge1", (int)swSelectType_e.swSelEDGES) as IEntity).Select4(true, null);

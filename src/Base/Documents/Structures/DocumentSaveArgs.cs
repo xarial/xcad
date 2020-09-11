@@ -5,10 +5,15 @@
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
-namespace Xarial.XCad.Utils.PageBuilder.Base
+using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace Xarial.XCad.Documents.Structures
 {
-    public interface IDependencyHandler
+    public class DocumentSaveArgs
     {
-        void UpdateState(IBinding binding, IBinding[] dependencies);
+        public string FileName { get; set; }
+        public bool Cancel { get; set; }
     }
 }

@@ -15,7 +15,7 @@ If command tab tab boxes are created for this command group (i.e. *showInCmdTabB
 
 ## Adding sub-menus
 
-Sub-menus for the command groups can be defined by calling the corresponding overload of the **CommandGroupInfoAttribute** attribute and specifying the type of the parent menu group
+Sub-menus for the command groups can be defined by calling the corresponding overload of the **CommandGroupParent** attribute and specifying the type of the parent menu group or the user id
 
 {% code-snippet { file-name: ~Extension\CommandsManager\SubMenuAndSpacerAddIn.*, regions: [SubMenu] } %}
 

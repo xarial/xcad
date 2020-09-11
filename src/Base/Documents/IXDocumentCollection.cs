@@ -14,6 +14,7 @@ namespace Xarial.XCad.Documents
 {
     public interface IXDocumentCollection : IEnumerable<IXDocument>
     {
+        event DocumentActivateDelegate DocumentActivated;
         event DocumentCreateDelegate DocumentCreated;
 
         IXDocument Active { get; }
