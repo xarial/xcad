@@ -2,7 +2,7 @@
 title: Adding commands into the SOLIDWORKS menu and toolbar using xCAD
 caption: Commands
 description: Registering and handling SOLIDWORKS commands in menu, toolbar and context menu using xCAD. Customizing the look of commands by providing custom icons, titles and tooltips.
-order: 4
+order: 5
 ---
 Commands can be defined by creating an enumerations.
 
