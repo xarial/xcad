@@ -7,32 +7,63 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using Xarial.XCad.UI.PropertyPage.Base;
 using Xarial.XCad.UI.PropertyPage.Services;
+using Xarial.XCad.UI.PropertyPage.Structures;
 
 namespace Xarial.XCad.UI.PropertyPage.Attributes
 {
     public interface ICustomItemsComboBoxControlConstructor
     {
     }
+    
+    internal class CustomItemsAttributeDependencyHandler : IDependencyHandler
+    {
+        private readonly ICustomItemsProvider m_ItemsProvider;
 
-    public class CustomItemsAttribute : Attribute, ISpecificConstructorAttribute
+        internal CustomItemsAttributeDependencyHandler(ICustomItemsProvider itemsProvider) 
+        {
+            m_ItemsProvider = itemsProvider;
+        }
+
+        public void UpdateState(IXApplication app, IControl source, IControl[] dependencies)
+        {
+            var itemsCtrl = (IItemsControl)source;
+            
+            itemsCtrl.Items = m_ItemsProvider.ProvideItems(app, dependencies)
+                ?.Select(i => new ItemsControlItem()
+                {
+                    DisplayName = i.ToString(),
+                    Value = i
+                }).ToArray();
+        }
+    }
+
+    public class CustomItemsAttribute : Attribute, ISpecificConstructorAttribute, IDependentOnAttribute
     {
         public Type ConstructorType { get; }
 
-        public Type CustomItemsProviderType { get; }
+        public ICustomItemsProvider CustomItemsProvider { get; }
 
-        public CustomItemsAttribute(Type customItemsProviderType)
+        public IDependencyHandler DependencyHandler { get; }
+
+        public object[] Dependencies { get; }
+
+        public CustomItemsAttribute(Type customItemsProviderType, params object[] dependencies)
         {
             if (!typeof(ICustomItemsProvider).IsAssignableFrom(customItemsProviderType))
             {
                 throw new InvalidCastException($"{customItemsProviderType.FullName} doesn't implement {typeof(ICustomItemsProvider).FullName}");
             }
 
-            CustomItemsProviderType = customItemsProviderType;
+            Dependencies = dependencies;
+
+            CustomItemsProvider = (ICustomItemsProvider)Activator.CreateInstance(customItemsProviderType);
             ConstructorType = typeof(ICustomItemsComboBoxControlConstructor);
+            DependencyHandler = new CustomItemsAttributeDependencyHandler(CustomItemsProvider);
         }
     }
 }

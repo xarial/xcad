@@ -46,7 +46,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
             }
         }
 
-        private swPropertyManagerPageControlType_e m_Type;
+        protected swPropertyManagerPageControlType_e m_Type;
         private IconsConverter m_IconConv;
 
         protected readonly ISldWorks m_App;
@@ -64,7 +64,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
             var opts = GetControlOptions(atts);
 
             TControlSw swCtrl = null;
-
+            
             if (group is PropertyManagerPageGroupControl)
             {
                 swCtrl = CreateSwControlInGroup((group as PropertyManagerPageGroupControl).Group, opts, atts) as TControlSw;

@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Xarial.XCad;
 using Xarial.XCad.Utils.PageBuilder.Attributes;
 using Xarial.XCad.Utils.PageBuilder.Base;
 using Xarial.XCad.Utils.PageBuilder.Binders;
@@ -110,7 +111,10 @@ namespace Toolkit.Tests
         public class PageBuilderMock : Xarial.XCad.Utils.PageBuilder.PageBuilderBase<PageMock, GroupMock, ControlMock>
         {
             public PageBuilderMock(Func<int> idRangeSelector = null)
-                : base(new TypeDataBinder(), new PageMockConstructor(), new ControlMockConstructor(idRangeSelector))
+                : base(new Moq.Mock<IXApplication>().Object,
+                      new TypeDataBinder(), 
+                      new PageMockConstructor(),
+                      new ControlMockConstructor(idRangeSelector))
             {
             }
         }
@@ -128,7 +132,7 @@ namespace Toolkit.Tests
         public void CreatePageIdsTest()
         {
             var builder = new PageBuilderMock();
-            var page = builder.CreatePage(new DataModel1());
+            var page = builder.CreatePage<DataModel1>();
 
             Assert.AreEqual(3, page.Controls.Count);
             Assert.AreEqual(0, page.Controls[0].Id);
@@ -152,7 +156,7 @@ namespace Toolkit.Tests
                 ctrlIndex++;
                 return idRange;
             });
-            var page = builder.CreatePage(new DataModel1());
+            var page = builder.CreatePage<DataModel1>();
 
             Assert.AreEqual(3, page.Controls.Count);
             Assert.AreEqual(0, page.Controls[0].Id);

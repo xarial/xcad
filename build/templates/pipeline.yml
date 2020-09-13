@@ -70,7 +70,9 @@ stages:
           displayName: 'Copy Nuget Package'
           inputs:
             SourceFolder: '$(system.defaultworkingdirectory)/build'
-            Contents: '**\*.nupkg'
+            Contents: |
+              **\*.nupkg
+              **\*.snupkg
             TargetFolder: '$(Build.ArtifactStagingDirectory)/packages'
       
       - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:

@@ -19,11 +19,11 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
 {
     public class TypeDataBinder : IDataModelBinder
     {
-        public void Bind<TDataModel>(TDataModel model, CreateBindingPageDelegate pageCreator,
+        public void Bind<TDataModel>(CreateBindingPageDelegate pageCreator,
             CreateBindingControlDelegate ctrlCreator,
             out IEnumerable<IBinding> bindings, out IRawDependencyGroup dependencies)
         {
-            var type = model.GetType();
+            var type = typeof(TDataModel);
 
             var bindingsList = new List<IBinding>();
             bindings = bindingsList;
@@ -38,12 +38,12 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
 
             dependencies = new RawDependencyGroup();
 
-            TraverseType(model.GetType(), model, new List<PropertyInfo>(),
+            TraverseType<TDataModel>(type, new List<PropertyInfo>(),
                 ctrlCreator, page, bindingsList, dependencies, ref firstCtrlId);
 
             OnBeforeControlsDataLoad(bindings);
 
-            LoadControlsData(bindings);
+            //LoadControlsData(bindings);
         }
 
         protected virtual void OnBeforeControlsDataLoad(IEnumerable<IBinding> bindings)
@@ -106,13 +106,13 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
             return CreateAttributeSet(ctrlId, name, desc, type, typeAtts.ToArray(), tag);
         }
 
-        private void LoadControlsData(IEnumerable<IBinding> bindings)
-        {
-            foreach (var binding in bindings)
-            {
-                binding.UpdateControl();
-            }
-        }
+        //private void LoadControlsData(IEnumerable<IBinding> bindings)
+        //{
+        //    foreach (var binding in bindings)
+        //    {
+        //        binding.UpdateControl();
+        //    }
+        //}
 
         private IEnumerable<IAttribute> ParseAttributes(
             object[] customAtts, out string name, out string desc, out object tag)
@@ -131,7 +131,7 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
             }
         }
 
-        private void TraverseType<TDataModel>(Type type, TDataModel model, List<PropertyInfo> parents,
+        private void TraverseType<TDataModel>(Type type, List<PropertyInfo> parents,
                     CreateBindingControlDelegate ctrlCreator,
             IGroup parentCtrl, List<IBinding> bindings, IRawDependencyGroup dependencies, ref int nextCtrlId)
         {
@@ -147,7 +147,7 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
                     var ctrl = ctrlCreator.Invoke(prpType, atts, parentCtrl, out idRange);
                     nextCtrlId += idRange;
 
-                    var binding = new PropertyInfoBinding<TDataModel>(model, ctrl, prp, parents);
+                    var binding = new PropertyInfoBinding<TDataModel>(ctrl, prp, parents);
                     bindings.Add(binding);
 
                     if (atts.Has<IControlTagAttribute>())
@@ -159,8 +159,12 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
                     if (atts.Has<IDependentOnAttribute>())
                     {
                         var depAtt = atts.Get<IDependentOnAttribute>();
-                        dependencies.RegisterDependency(binding,
-                            depAtt.Dependencies, depAtt.DependencyHandler);
+
+                        if (depAtt.Dependencies?.Any() == true)
+                        {
+                            dependencies.RegisterDependency(binding,
+                                depAtt.Dependencies, depAtt.DependencyHandler);
+                        }
                     }
 
                     var isGroup = ctrl is IGroup;
@@ -169,7 +173,7 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
                     {
                         var grpParents = new List<PropertyInfo>(parents);
                         grpParents.Add(prp);
-                        TraverseType(prpType, model, grpParents, ctrlCreator,
+                        TraverseType<TDataModel>(prpType, grpParents, ctrlCreator,
                             ctrl as IGroup, bindings, dependencies, ref nextCtrlId);
                     }
                 }

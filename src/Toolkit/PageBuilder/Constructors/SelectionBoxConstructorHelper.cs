@@ -8,13 +8,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using Xarial.XCad.Base.Enums;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Features;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Sketch;
-using Xarial.XCad.UI.PropertyPage;
 using Xarial.XCad.UI.PropertyPage.Base;
 using Xarial.XCad.UI.PropertyPage.Enums;
 using Xarial.XCad.UI.PropertyPage.Services;
@@ -96,6 +94,10 @@ namespace Xarial.XCad.Toolkit.PageBuilder.Constructors
             if (!filters.Any())
             {
                 filters.Add(SelectType_e.Everything);
+            }
+
+            if (customFilter == null) 
+            {
                 customFilter = new TypeSelectionCustomFilter(type);
             }
 

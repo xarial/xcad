@@ -9,14 +9,20 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Xarial.XCad.UI.PropertyPage.Base;
 using Xarial.XCad.UI.PropertyPage.Services;
 
 namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Services
 {
     public abstract class SwCustomItemsProvider<TItem> : ICustomItemsProvider
     {
-        IEnumerable<object> ICustomItemsProvider.ProvideItems(IXApplication app) => ProvideItems((SwApplication)app).Cast<object>();
+        IEnumerable<object> ICustomItemsProvider.ProvideItems(IXApplication app, IControl[] dependencies) 
+            => ProvideItems((SwApplication)app, dependencies)?.Cast<object>();
 
-        public abstract IEnumerable<TItem> ProvideItems(SwApplication app);
+        public virtual IEnumerable<TItem> ProvideItems(SwApplication app, IControl[] dependencies)
+            => ProvideItems(app);
+
+        public virtual IEnumerable<TItem> ProvideItems(SwApplication app)
+            => Enumerable.Empty<TItem>();
     }
 }

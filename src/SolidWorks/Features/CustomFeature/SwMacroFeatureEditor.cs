@@ -60,18 +60,15 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
                         {
                             (bodies[i] as IDisposable).Dispose();
                         }
-                        catch 
+                        catch (Exception ex)
                         {
-                            //TODO: show logger message
+                            m_Logger.Log(ex);
                         }
                     }
 
                     bodies[i] = null;
                 }
             }
-
-            //TODO: check if this could be removed as it is causing flickering
-            GC.Collect();
         }
 
         protected override IXPropertyPage<TPage> CreatePage()

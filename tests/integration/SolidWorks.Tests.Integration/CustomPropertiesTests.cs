@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Xarial.XCad.Base;
+using Xarial.XCad.Data;
 using Xarial.XCad.SolidWorks;
 using Xarial.XCad.SolidWorks.Data.Exceptions;
 using Xarial.XCad.SolidWorks.Documents;
@@ -70,12 +71,19 @@ namespace SolidWorks.Tests.Integration
             object val;
             object valConf;
 
+            bool r1;
+            IXProperty prp1;
+
             using (var doc = OpenDataDocument("CustomProps1.SLDPRT"))
             {
+                r1 = m_App.Documents.Active.Properties.TryGet("Prop1", out prp1);
+
                 val = m_App.Documents.Active.Properties["Prop1"].Value;
                 valConf = (m_App.Documents.Active as SwDocument3D).Configurations["Default"].Properties["Prop1"].Value;
             }
 
+            Assert.IsTrue(r1);
+            Assert.IsNotNull(prp1);
             Assert.AreEqual("Prop1Val", val);
             Assert.AreEqual("Prop1ValConf", valConf);
         }
@@ -85,6 +93,11 @@ namespace SolidWorks.Tests.Integration
         {
             using (var doc = OpenDataDocument("CustomProps1.SLDPRT"))
             {
+                var r1 = m_App.Documents.Active.Properties.TryGet("Prop1_", out IXProperty prp1);
+
+                Assert.IsFalse(r1);
+                Assert.IsNull(prp1);
+
                 Assert.Throws<CustomPropertyMissingException>(()=> { var p = m_App.Documents.Active.Properties["Prop1_"]; });
                 Assert.Throws<CustomPropertyMissingException>(() => { var p = (m_App.Documents.Active as SwDocument3D).Configurations["Default"].Properties["Prop1_"]; });
             }

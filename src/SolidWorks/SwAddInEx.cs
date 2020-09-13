@@ -103,7 +103,7 @@ namespace Xarial.XCad.SolidWorks
 
         public IXLogger Logger { get; }
 
-        private readonly List<IDisposable> m_DisposableControls;
+        private readonly List<IDisposable> m_Disposables;
 
         public SwAddInEx()
         {
@@ -112,7 +112,7 @@ namespace Xarial.XCad.SolidWorks
 
             Logger = new TraceLogger($"XCad.AddIn.{title}");
 
-            m_DisposableControls = new List<IDisposable>();
+            m_Disposables = new List<IDisposable>();
         }
 
         [Browsable(false)]
@@ -210,7 +210,7 @@ namespace Xarial.XCad.SolidWorks
                 Application.Documents.Dispose();
                 Application.Dispose();
 
-                foreach (var dispCtrl in m_DisposableControls) 
+                foreach (var dispCtrl in m_Disposables) 
                 {
                     dispCtrl.Dispose();
                 }
@@ -241,7 +241,9 @@ namespace Xarial.XCad.SolidWorks
 
         private SwPropertyManagerPage<TData> CreatePropertyManagerPage<TData>(Type handlerType)
         {
-            return new SwPropertyManagerPage<TData>(Application, Logger, handlerType);
+            var page = new SwPropertyManagerPage<TData>(Application, Logger, handlerType);
+            m_Disposables.Add(page);
+            return page;
         }
 
         public SwModelViewTab<TControl> CreateDocumentTab<TControl>(Documents.SwDocument doc)
@@ -295,6 +297,11 @@ namespace Xarial.XCad.SolidWorks
 
         public SwTaskPane<TControl> CreateTaskPane<TControl>(TaskPaneSpec spec) 
         {
+            if (spec == null)
+            {
+                spec = new TaskPaneSpec();
+            }
+
             ITaskpaneView CreateTaskPaneView(IconsConverter iconConv, Image icon, string title) 
             {
                 if (icon == null) 
@@ -364,7 +371,7 @@ namespace Xarial.XCad.SolidWorks
                         return new SwTaskPane<TControl>(Application.Sw, v, ctrl, spec);
                     });
 
-                m_DisposableControls.Add(taskPane);
+                m_Disposables.Add(taskPane);
 
                 return taskPane;
             }
@@ -420,64 +427,36 @@ namespace Xarial.XCad.SolidWorks
 
     public static class SwAddInExExtension 
     {
-        public static SwModelViewTab<TControl> CreateDocumentTabWinForm<TControl>(this SwAddInEx addIn, Documents.SwDocument doc)
-            where TControl : System.Windows.Forms.Control
-        {
-            return addIn.CreateDocumentTab<TControl>(doc);
-        }
+        public static SwModelViewTab<TControl> CreateDocumentTabWinForm<TControl>(this SwAddInEx addIn, SwDocument doc)
+            where TControl : System.Windows.Forms.Control => addIn.CreateDocumentTab<TControl>(doc);
 
-        public static SwModelViewTab<TControl> CreateDocumentTabWpf<TControl>(this SwAddInEx addIn, Documents.SwDocument doc)
-            where TControl : System.Windows.UIElement
-        {
-            return addIn.CreateDocumentTab<TControl>(doc);
-        }
+        public static SwModelViewTab<TControl> CreateDocumentTabWpf<TControl>(this SwAddInEx addIn, SwDocument doc)
+            where TControl : System.Windows.UIElement => addIn.CreateDocumentTab<TControl>(doc);
 
         public static SwPopupWpfWindow<TWindow> CreatePopupWpfWindow<TWindow>(this SwAddInEx addIn)
-            where TWindow : System.Windows.Window
-        {
-            return (SwPopupWpfWindow<TWindow>)addIn.CreatePopupWindow<TWindow>();
-        }
+            where TWindow : System.Windows.Window => (SwPopupWpfWindow<TWindow>)addIn.CreatePopupWindow<TWindow>();
 
         public static SwPopupWinForm<TWindow> CreatePopupWinForm<TWindow>(this SwAddInEx addIn)
-            where TWindow : System.Windows.Forms.Form
-        {
-            return (SwPopupWinForm<TWindow>)addIn.CreatePopupWindow<TWindow>();
-        }
+            where TWindow : System.Windows.Forms.Form => (SwPopupWinForm<TWindow>)addIn.CreatePopupWindow<TWindow>();
 
         public static SwTaskPane<TControl> CreateTaskPaneWinForm<TControl>(this SwAddInEx addIn, TaskPaneSpec spec = null)
-            where TControl : System.Windows.Forms.Control
-        {
-            if (spec == null) 
-            {
-                spec = new TaskPaneSpec();
-            }
-
-            return addIn.CreateTaskPane<TControl>(spec);
-        }
+            where TControl : System.Windows.Forms.Control => addIn.CreateTaskPane<TControl>(spec);
 
         public static SwTaskPane<TControl> CreateTaskPaneWpf<TControl>(this SwAddInEx addIn, TaskPaneSpec spec = null)
-            where TControl : System.Windows.UIElement
-        {
-            if (spec == null)
-            {
-                spec = new TaskPaneSpec();
-            }
-
-            return addIn.CreateTaskPane<TControl>(spec);
-        }
+            where TControl : System.Windows.UIElement => addIn.CreateTaskPane<TControl>(spec);
 
         public static IXEnumTaskPane<TControl, TEnum> CreateTaskPaneWinForm<TControl, TEnum>(this SwAddInEx addIn)
             where TControl : System.Windows.Forms.Control
-            where TEnum : Enum
-        {
-            return addIn.CreateTaskPane<TControl, TEnum>();
-        }
+            where TEnum : Enum => addIn.CreateTaskPane<TControl, TEnum>();
 
         public static IXEnumTaskPane<TControl, TEnum> CreateTaskPaneWpf<TControl, TEnum>(this SwAddInEx addIn)
             where TControl : System.Windows.UIElement
-            where TEnum : Enum
-        {
-            return addIn.CreateTaskPane<TControl, TEnum>();
-        }
+            where TEnum : Enum => addIn.CreateTaskPane<TControl, TEnum>();
+
+        public static SwFeatureMgrTab<TControl> CreateFeatureManagerTabWpf<TControl>(this SwAddInEx addIn, SwDocument doc)
+            where TControl : System.Windows.UIElement => addIn.CreateFeatureManagerTab<TControl>(doc);
+
+        public static SwFeatureMgrTab<TControl> CreateFeatureManagerTabWinForm<TControl>(this SwAddInEx addIn, SwDocument doc)
+            where TControl : System.Windows.Forms.Control => addIn.CreateFeatureManagerTab<TControl>(doc);
     }
 }

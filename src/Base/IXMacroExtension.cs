@@ -1,4 +1,11 @@
-﻿using System.Linq;
+﻿//*********************************************************************
+//xCAD
+//Copyright(C) 2020 Xarial Pty Limited
+//Product URL: https://www.xcad.net
+//License: https://xcad.xarial.com/license/
+//*********************************************************************
+
+using System.Linq;
 using Xarial.XCad.Enums;
 using Xarial.XCad.Structures;
 

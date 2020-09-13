@@ -20,7 +20,12 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         internal SwTempBody(IBody2 body) : base(null)
         {
-            m_TempBody = ConvertToTempIfNeeded(body);
+            if (!body.IsTemporaryBody()) 
+            {
+                throw new ArgumentException("Body is not temp");
+            }
+
+            m_TempBody = body;
         }
 
         public void Dispose()
@@ -32,22 +37,10 @@ namespace Xarial.XCad.SolidWorks.Geometry
         {
             if (disposing)
             {
-                Marshal.ReleaseComObject(m_TempBody);
+                Marshal.FinalReleaseComObject(m_TempBody);
             }
 
             m_TempBody = null;
-        }
-
-        private IBody2 ConvertToTempIfNeeded(IBody2 body)
-        {
-            if (body.IsTemporaryBody())
-            {
-                return body;
-            }
-            else
-            {
-                return body.ICopy();
-            }
         }
     }
 }

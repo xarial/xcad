@@ -142,9 +142,14 @@ namespace SwAddInExample
             Application.Documents.RegisterHandler<SwDocHandler>();
 
             m_Page = this.CreatePage<PmpData>();
+            m_Page.Closed += OnPage1Closed;
 
             m_MacroFeatPage = this.CreatePage<PmpMacroFeatData>();
             m_MacroFeatPage.Closed += OnClosed;
+        }
+
+        private void OnPage1Closed(PageCloseReasons_e reason)
+        {
         }
 
         private void OnContextMenuCommandClick(ContextMenuCommands_e spec)

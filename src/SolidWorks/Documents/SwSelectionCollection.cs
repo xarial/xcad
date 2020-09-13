@@ -104,6 +104,11 @@ namespace Xarial.XCad.SolidWorks.Documents
             m_NewSelectionEventHandler.Dispose();
             m_ClearSelectionEventHandler.Dispose();
         }
+
+        public bool TryGet(string name, out IXSelObject ent)
+        {
+            throw new NotSupportedException();
+        }
     }
 
     internal class SwSelObjectEnumerator : IEnumerator<IXSelObject>

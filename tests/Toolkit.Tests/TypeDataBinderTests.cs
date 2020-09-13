@@ -52,7 +52,7 @@ namespace Toolkit.Tests
 
             IRawDependencyGroup dependencies;
 
-            binder.Bind(new DataModelMock1(),
+            binder.Bind<DataModelMock1>(
                 a =>
                 {
                     return new Moq.Mock<IPage>().Object;
@@ -80,7 +80,7 @@ namespace Toolkit.Tests
 
             IRawDependencyGroup dependencies;
 
-            binder.Bind(new DataModelMock2(),
+            binder.Bind<DataModelMock2>(
                 a =>
                 {
                     return new Moq.Mock<IPage>().Object;
@@ -129,7 +129,7 @@ namespace Toolkit.Tests
 
             IRawDependencyGroup dependencies;
 
-            binder.Bind(new DataModelMock3(),
+            binder.Bind<DataModelMock3>(
                 a =>
                 {
                     page = new Moq.Mock<IPage>().Object;
@@ -190,7 +190,7 @@ namespace Toolkit.Tests
             
             IRawDependencyGroup dependencies;
 
-            binder.Bind(new DataModelMock1(),
+            binder.Bind<DataModelMock1>(
                 a =>
                 {
                     page = new Moq.Mock<IPage>().Object;

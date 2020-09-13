@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Text;
 using Xarial.XCad.Base;
 using Xarial.XCad.Data;
+using Xarial.XCad.Exceptions;
 using Xarial.XCad.SolidWorks.Data.Exceptions;
 using Xarial.XCad.SolidWorks.Data.Helpers;
 
@@ -28,16 +29,30 @@ namespace Xarial.XCad.SolidWorks.Data
         {
             get 
             {
-                var prp = GetOrPreCreate(name);
-
-                if (prp.Exists)
+                try
                 {
-                    return prp;
+                    return (SwCustomProperty)this.Get(name);
                 }
-                else 
+                catch (EntityNotFoundException) 
                 {
                     throw new CustomPropertyMissingException(name);
                 }
+            }
+        }
+
+        public bool TryGet(string name, out IXProperty ent)
+        {
+            var prp = GetOrPreCreate(name);
+
+            if (prp.Exists)
+            {
+                ent = prp;
+                return true;
+            }
+            else
+            {
+                ent = null;
+                return false;
             }
         }
 

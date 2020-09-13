@@ -1,0 +1,38 @@
+﻿---
+icon-width: 75px
+show-title: true
+---
+@using RazorLight
+@inherits TemplatePage<Xarial.Docify.Base.Context.IContextModel>
+@{ 
+    var logo = Model.Site.MainPage.Data.GetOrDefault<string>("image");
+    if (!string.IsNullOrEmpty(logo) && !logo.StartsWith("/"))
+    {
+        logo = "/" + logo;
+    }
+    
+    var title = Xarial.Docify.Lib.Tools.PageHelper.GetCaption(Model.Site.MainPage, Model.Site.Configuration)?.ToUpper();
+    var description = Model.Site.MainPage.Data.GetOrDefault<string>("description");
+    var iconWidth = Model.Data.Get<string>("icon-width");
+    var showTitle = Model.Data.Get<bool>("show-title");
+    if (!showTitle)
+    {
+        title = "";
+    }
+}
+
+<div class="header">
+    <div class="header-icon">
+        @if (!string.IsNullOrEmpty(logo))
+        {
+            <a href="/"><img src="@logo" width="@iconWidth" alt="@title" /></a>
+        }
+    </div>
+    <div class="header-title">@title</div>
+    <div class="header-description">@description</div>
+</div>
+<div>
+    <a href="mailto:support@xcad.net"><img src="/_assets/images/badge-support.svg" height="20" alt="Get technical support" /></a>
+    <a href="https://github.com/xarial/xcad"><img src="/_assets/images/badge-source-code.svg" height="20" alt="Access source code" /></a>
+    <a href="https://github.com/xarial/xcad-examples"><img src="/_assets/images/badge-examples.svg" height="20" alt="Explore code and application examples" /></a>
+</div>

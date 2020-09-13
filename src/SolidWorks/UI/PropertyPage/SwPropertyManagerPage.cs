@@ -37,8 +37,8 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
 
         private readonly ISldWorks m_App;
         private readonly IconsConverter m_IconsConv;
-        private PropertyManagerPagePage m_ActivePage;
-        private PropertyManagerPageBuilder m_PmpBuilder;
+        private readonly PropertyManagerPagePage m_Page;
+        private readonly PropertyManagerPageBuilder m_PmpBuilder;
 
         /// <inheritdoc/>
         public IEnumerable<IPropertyManagerPageControlEx> Controls { get; private set; }
@@ -72,13 +72,20 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
             Handler.Closed += OnClosed;
             Handler.Closing += OnClosing;
             m_PmpBuilder = new PropertyManagerPageBuilder(app, m_IconsConv, Handler, pageSpec, Logger);
+
+            m_Page = m_PmpBuilder.CreatePage<TModel>();
+            Controls = m_Page.Binding.Bindings.Select(b => b.Control)
+                .OfType<IPropertyManagerPageControlEx>().ToArray();
         }
 
         public void Dispose()
         {
             Logger.Log("Disposing page");
 
-            DisposeActivePage();
+            foreach (var ctrl in m_Page.Binding.Bindings.Select(b => b.Control).OfType<IDisposable>())
+            {
+                ctrl.Dispose();
+            }
 
             m_IconsConv.Dispose();
         }
@@ -91,18 +98,22 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
 
             const int OPTS_DEFAULT = 0;
 
-            DisposeActivePage();
-
             m_App.IActiveDoc2.ClearSelection2(true);
 
-            m_ActivePage = m_PmpBuilder.CreatePage(model);
-            Controls = m_ActivePage.Binding.Bindings.Select(b => b.Control)
-                .OfType<IPropertyManagerPageControlEx>().ToArray();
+            foreach (var binding in m_Page.Binding.Bindings)
+            {
+                binding.Model = model;
+            }
 
-            m_ActivePage.Page.Show2(OPTS_DEFAULT);
+            m_Page.Page.Show2(OPTS_DEFAULT);
+
+            foreach (var binding in m_Page.Binding.Bindings)
+            {
+                binding.UpdateControl();
+            }
 
             //updating control states
-            m_ActivePage.Binding.Dependency.UpdateAll();
+            m_Page.Binding.Dependency.UpdateAll();
         }
 
         private PageCloseReasons_e ConvertReason(swPropertyManagerPageCloseReasons_e reason)
@@ -122,20 +133,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
                     return PageCloseReasons_e.Unknown;
             }
         }
-
-        private void DisposeActivePage()
-        {
-            if (m_ActivePage != null)
-            {
-                foreach (var ctrl in m_ActivePage.Binding.Bindings.Select(b => b.Control).OfType<IDisposable>())
-                {
-                    ctrl.Dispose();
-                }
-
-                m_ActivePage = null;
-            }
-        }
-
+        
         private void OnClosed(swPropertyManagerPageCloseReasons_e reason)
         {
             Closed?.Invoke(ConvertReason(reason));

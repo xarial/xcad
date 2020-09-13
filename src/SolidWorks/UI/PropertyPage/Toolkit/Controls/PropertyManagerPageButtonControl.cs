@@ -32,6 +32,11 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
         {
             if (Id == id)
             {
+                if (m_ButtonClickHandler == null) 
+                {
+                    throw new NullReferenceException("Button click handler is not specified. Set the value of the delegate to the handler method");
+                }
+
                 m_ButtonClickHandler.Invoke();
             }
         }

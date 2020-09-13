@@ -12,3 +12,5 @@ In order to create a button in the property manager page, it is required to decl
 The pointer to void function assigned to this property is a handler of the button:
 
 {% code-snippet { file-name: ~PropertyPage\Controls\Button.* } %}
+
+Visit [bitmap button](../bitmap-button#button) for more information of how to create button with image.

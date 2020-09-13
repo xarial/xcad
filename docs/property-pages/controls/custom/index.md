@@ -3,7 +3,7 @@ title: Custom control (WPF or Windows Forms) in SOLIDWORKS property Manager Page
 caption: Custom (WPF and Windows Forms)
 description: Overview of options of custom controls (WPF and Windows Forms)
 image: custom-wpf-control.png
-order: 12
+order: 14
 ---
 Custom control can be assigned to the property in the data model using the **CustomControlAttribute** and specifying the type of the control to render.
 

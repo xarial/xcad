@@ -6,6 +6,8 @@
     <AssemblyName>Xarial.XCad.Documentation</AssemblyName>
     <UseWindowsForms>true</UseWindowsForms>
     <UseWpf>true</UseWpf>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <OutputPath>bin\$(Configuration)\</OutputPath>
   </PropertyGroup>
 
   <ItemGroup>

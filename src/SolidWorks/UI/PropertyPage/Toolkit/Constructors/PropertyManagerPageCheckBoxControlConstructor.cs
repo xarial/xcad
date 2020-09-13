@@ -27,7 +27,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
             IPropertyManagerPageCheckbox swCtrl, IAttributeSet atts, SwPropertyManagerPageHandler handler, short height)
         {
             swCtrl.Caption = atts.Name;
-
+            
             return new PropertyManagerPageCheckBoxControl(atts.Id, atts.Tag, swCtrl, handler);
         }
     }

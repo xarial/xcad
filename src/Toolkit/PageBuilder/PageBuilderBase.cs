@@ -18,23 +18,28 @@ namespace Xarial.XCad.Utils.PageBuilder
         where TGroup : IGroup
         where TControl : IControl
     {
+
+        private readonly IXApplication m_App;
+
         private readonly IDataModelBinder m_DataBinder;
         private readonly IPageConstructor<TPage> m_PageConstructor;
 
         private readonly ConstructorsContainer<TPage, TGroup> m_ControlConstructors;
 
-        public PageBuilderBase(IDataModelBinder dataBinder,
+        public PageBuilderBase(IXApplication app, IDataModelBinder dataBinder,
             IPageConstructor<TPage> pageConstr,
             params IPageElementConstructor<TGroup, TPage>[]
             ctrlsContstrs)
         {
+            m_App = app;
+
             m_DataBinder = dataBinder;
             m_PageConstructor = pageConstr;
 
             m_ControlConstructors = new ConstructorsContainer<TPage, TGroup>(ctrlsContstrs);
         }
 
-        public virtual TPage CreatePage<TModel>(TModel model)
+        public virtual TPage CreatePage<TModel>()
         {
             var page = default(TPage);
 
@@ -42,7 +47,7 @@ namespace Xarial.XCad.Utils.PageBuilder
 
             IRawDependencyGroup dependencies;
 
-            m_DataBinder.Bind(model,
+            m_DataBinder.Bind<TModel>(
                 atts =>
                 {
                     page = m_PageConstructor.Create(atts);
@@ -55,7 +60,7 @@ namespace Xarial.XCad.Utils.PageBuilder
                 },
                 out bindings, out dependencies);
 
-            page.Binding.Load(bindings, dependencies);
+            page.Binding.Load(m_App, bindings, dependencies);
             UpdatePageDependenciesState(page);
 
             return page;
