@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Windows;
 using Xarial.XCad.SolidWorks.UI.Commands.Toolkit.Structures;
 using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.UI;
@@ -48,9 +49,17 @@ namespace Xarial.XCad.SolidWorks.UI
         public ITaskpaneView TaskPaneView { get; }
         public TControl Control { get; }
 
+        private WpfControlKeystrokePropagator m_KeystrokePropagator;
+
         internal SwTaskPane(ISldWorks app, ITaskpaneView taskPaneView, TControl ctrl, TaskPaneSpec spec)
         {
             Control = ctrl;
+
+            if (ctrl is FrameworkElement)
+            {
+                m_KeystrokePropagator = new WpfControlKeystrokePropagator(ctrl as FrameworkElement);
+            }
+
             TaskPaneView = taskPaneView;
             m_Spec = spec;
 
@@ -152,6 +161,8 @@ namespace Xarial.XCad.SolidWorks.UI
             if (!m_IsDisposed)
             {
                 m_IsDisposed = true;
+
+                m_KeystrokePropagator?.Dispose();
 
                 (TaskPaneView as TaskpaneView).TaskPaneDestroyNotify -= OnTaskPaneDestroyNotify;
                 (TaskPaneView as TaskpaneView).TaskPaneToolbarButtonClicked -= OnTaskPaneToolbarButtonClicked;

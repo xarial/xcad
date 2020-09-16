@@ -58,7 +58,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         public SwTempBody ToTempBody()
         {
-            return new SwTempBody(Body);
+            return FromDispatch<SwTempBody>(Body.ICopy());
         }
 
         private IXBody[] PerformOperation(IXBody other, swBodyOperationType_e op)
@@ -78,7 +78,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
                 if (res?.Any() == true)
                 {
-                    return res.Select(b => new SwTempBody(b as IBody2)).ToArray();
+                    return res.Select(b => FromDispatch<SwBody>(b as IBody2)).ToArray();
                 }
                 else
                 {

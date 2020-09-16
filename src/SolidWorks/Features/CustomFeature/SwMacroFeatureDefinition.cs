@@ -149,11 +149,13 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 
             var doc = Application.Documents[modelDoc as IModelDoc2];
 
-            var res = OnRebuild(Application, doc, new SwMacroFeature(doc, (modelDoc as IModelDoc2).FeatureManager, feature as IFeature, true));
+            var macroFeatInst = new SwMacroFeature(doc, (modelDoc as IModelDoc2).FeatureManager, feature as IFeature, true);
+
+            var res = OnRebuild(Application, doc, macroFeatInst);
 
             if (res != null)
             {
-                return ParseMacroFeatureResult(res, app as ISldWorks, (feature as IFeature).GetDefinition() as IMacroFeatureData);
+                return ParseMacroFeatureResult(res, app as ISldWorks, macroFeatInst.FeatureData);
             }
             else
             {

@@ -219,6 +219,7 @@ namespace Xarial.XCad.Utils.CustomFeature
             catch (Exception ex)
             {
                 HidePreviewBodies();
+                HideEditBodies();
                 m_LastError = ex;
             }
         }

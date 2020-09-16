@@ -297,6 +297,11 @@ namespace Xarial.XCad.SolidWorks
 
         public SwTaskPane<TControl> CreateTaskPane<TControl>(TaskPaneSpec spec) 
         {
+            if (spec == null)
+            {
+                spec = new TaskPaneSpec();
+            }
+
             ITaskpaneView CreateTaskPaneView(IconsConverter iconConv, Image icon, string title) 
             {
                 if (icon == null) 
@@ -422,64 +427,36 @@ namespace Xarial.XCad.SolidWorks
 
     public static class SwAddInExExtension 
     {
-        public static SwModelViewTab<TControl> CreateDocumentTabWinForm<TControl>(this SwAddInEx addIn, Documents.SwDocument doc)
-            where TControl : System.Windows.Forms.Control
-        {
-            return addIn.CreateDocumentTab<TControl>(doc);
-        }
+        public static SwModelViewTab<TControl> CreateDocumentTabWinForm<TControl>(this SwAddInEx addIn, SwDocument doc)
+            where TControl : System.Windows.Forms.Control => addIn.CreateDocumentTab<TControl>(doc);
 
-        public static SwModelViewTab<TControl> CreateDocumentTabWpf<TControl>(this SwAddInEx addIn, Documents.SwDocument doc)
-            where TControl : System.Windows.UIElement
-        {
-            return addIn.CreateDocumentTab<TControl>(doc);
-        }
+        public static SwModelViewTab<TControl> CreateDocumentTabWpf<TControl>(this SwAddInEx addIn, SwDocument doc)
+            where TControl : System.Windows.UIElement => addIn.CreateDocumentTab<TControl>(doc);
 
         public static SwPopupWpfWindow<TWindow> CreatePopupWpfWindow<TWindow>(this SwAddInEx addIn)
-            where TWindow : System.Windows.Window
-        {
-            return (SwPopupWpfWindow<TWindow>)addIn.CreatePopupWindow<TWindow>();
-        }
+            where TWindow : System.Windows.Window => (SwPopupWpfWindow<TWindow>)addIn.CreatePopupWindow<TWindow>();
 
         public static SwPopupWinForm<TWindow> CreatePopupWinForm<TWindow>(this SwAddInEx addIn)
-            where TWindow : System.Windows.Forms.Form
-        {
-            return (SwPopupWinForm<TWindow>)addIn.CreatePopupWindow<TWindow>();
-        }
+            where TWindow : System.Windows.Forms.Form => (SwPopupWinForm<TWindow>)addIn.CreatePopupWindow<TWindow>();
 
         public static SwTaskPane<TControl> CreateTaskPaneWinForm<TControl>(this SwAddInEx addIn, TaskPaneSpec spec = null)
-            where TControl : System.Windows.Forms.Control
-        {
-            if (spec == null) 
-            {
-                spec = new TaskPaneSpec();
-            }
-
-            return addIn.CreateTaskPane<TControl>(spec);
-        }
+            where TControl : System.Windows.Forms.Control => addIn.CreateTaskPane<TControl>(spec);
 
         public static SwTaskPane<TControl> CreateTaskPaneWpf<TControl>(this SwAddInEx addIn, TaskPaneSpec spec = null)
-            where TControl : System.Windows.UIElement
-        {
-            if (spec == null)
-            {
-                spec = new TaskPaneSpec();
-            }
-
-            return addIn.CreateTaskPane<TControl>(spec);
-        }
+            where TControl : System.Windows.UIElement => addIn.CreateTaskPane<TControl>(spec);
 
         public static IXEnumTaskPane<TControl, TEnum> CreateTaskPaneWinForm<TControl, TEnum>(this SwAddInEx addIn)
             where TControl : System.Windows.Forms.Control
-            where TEnum : Enum
-        {
-            return addIn.CreateTaskPane<TControl, TEnum>();
-        }
+            where TEnum : Enum => addIn.CreateTaskPane<TControl, TEnum>();
 
         public static IXEnumTaskPane<TControl, TEnum> CreateTaskPaneWpf<TControl, TEnum>(this SwAddInEx addIn)
             where TControl : System.Windows.UIElement
-            where TEnum : Enum
-        {
-            return addIn.CreateTaskPane<TControl, TEnum>();
-        }
+            where TEnum : Enum => addIn.CreateTaskPane<TControl, TEnum>();
+
+        public static SwFeatureMgrTab<TControl> CreateFeatureManagerTabWpf<TControl>(this SwAddInEx addIn, SwDocument doc)
+            where TControl : System.Windows.UIElement => addIn.CreateFeatureManagerTab<TControl>(doc);
+
+        public static SwFeatureMgrTab<TControl> CreateFeatureManagerTabWinForm<TControl>(this SwAddInEx addIn, SwDocument doc)
+            where TControl : System.Windows.Forms.Control => addIn.CreateFeatureManagerTab<TControl>(doc);
     }
 }

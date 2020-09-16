@@ -140,7 +140,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
                 throw new NullReferenceException("Failed to generate cone body");
             }
 
-            return new SwTempBody(coneBody);
+            return SwBody.FromDispatch<SwBody>(coneBody);
         }
     }
 }

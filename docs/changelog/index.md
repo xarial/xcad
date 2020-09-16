@@ -47,6 +47,7 @@ Breaking change is marked with &#x26A0; symbol
 
 * Added support for tabs and custom controls in property pages
 * Added support for 3rd party storage and 3rd party stream
+* Renamed to **StandardIconAttribute** to **StandardControlIconAttribute**
 
 ## 0.3.1 - February, 9 2020
 
