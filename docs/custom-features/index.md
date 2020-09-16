@@ -59,3 +59,5 @@ User can specify the custom message to be displayed in the *What's Wrong* dialog
 ![Rebuild error message for unregistered macro feature](unregistered-macro-feature.png){ width=650 }
 
 To insert the macro feature use **IXFeatureRepository::PreCreateCustomFeature** or **IXFeatureRepository::CreateCustomFeature** methods.
+
+Refer [Parametric Box](https://github.com/xarial/xcad-examples/tree/master/ParametricBox) example which demonstrates how to create a simple parametric box SOLIDWORKS feature with property page, preview and dimensions.

@@ -34,3 +34,5 @@ In order to assign the control dependencies (i.e. controls which affect the list
 > Note. **dependencies** parameter of **ProvideItems** method will contain null items for the first rendering of the control before the binding is done. This method will be called again once binding is resolved with correct controls.
 
 {% code-snippet { file-name: ~PropertyPage\Controls\ComboBox.*, regions: [CustomItemsProviderDependency] } %}
+
+Refer [Weldment Profiles Selector](https://github.com/xarial/xcad-examples/tree/master/WeldmentProfilesSelector) example which demonstrates how to create dynamic cascading combo boxes.

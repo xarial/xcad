@@ -52,3 +52,5 @@ namespace model_generator
 }
 
 ~~~
+
+Refer [Console Model Generator](https://github.com/xarial/xcad-examples/tree/master/ModelGeneratorConsole) example which demonstrates how to access xCAD.API from .NET Core console.
