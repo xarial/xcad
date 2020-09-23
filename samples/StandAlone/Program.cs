@@ -8,6 +8,7 @@
 using SolidWorks.Interop.sldworks;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -24,6 +25,11 @@ namespace StandAlone
     {
         static void Main(string[] args)
         {
+            foreach (var vers in SwApplication.GetInstalledVersions()) 
+            {
+                Debug.Print(vers.ToString());
+            }
+
             using (var app = SwApplication.Start(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020).Result) 
             {
                 app.ShowMessageBox("Hello");

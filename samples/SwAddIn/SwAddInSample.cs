@@ -213,6 +213,7 @@ namespace SwAddInExample
                 case Commands_e.ShowPmPage:
                     m_Data = new PmpData();
                     m_Page.Show(m_Data);
+                    m_Page.DataChanged += OnPageDataChanged;
                     break;
 
                 case Commands_e.ShowPmPageMacroFeature:
@@ -282,6 +283,10 @@ namespace SwAddInExample
                     Application.Documents.Active.Selections.ClearSelection += OnClearSelection;
                     break;
             }
+        }
+
+        private void OnPageDataChanged()
+        {
         }
 
         private void OnNewSelection(IXDocument doc, Xarial.XCad.IXSelObject selObject)
