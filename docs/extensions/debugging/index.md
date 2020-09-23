@@ -19,3 +19,5 @@ To attach to the running SOLIDWORKS instance use the **Debug->Attach To Process.
 and select **SLDWORKS.exe** process form the list
 
 ![Attaching to SLDWORKS.exe process](sldworks-process.png){ width=600 }
+
+In addition, xCAD.NET framework allows to debug original source code directly from the nuge package via Source Link. See [Debugging xCAD.NET Source Code](/troubleshooting/#debugging-xcad.net-source-code) article for more information of how to enable Source Link.

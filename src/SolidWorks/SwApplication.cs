@@ -26,12 +26,16 @@ using System.Diagnostics;
 using System.Threading;
 using Xarial.XCad.SolidWorks.Exceptions;
 using Xarial.XCad.Base;
+using System.Collections.Generic;
+using Microsoft.Win32;
 
 namespace Xarial.XCad.SolidWorks
 {
     /// <inheritdoc/>
     public class SwApplication : IXApplication, IDisposable
     {
+        private const string PROG_ID_TEMPLATE = "SldWorks.Application.{0}";
+
         public static SwApplication FromPointer(ISldWorks app)
         {
             return new SwApplication(app, new TraceLogger("xCAD"));
@@ -112,23 +116,49 @@ namespace Xarial.XCad.SolidWorks
             }
         }
 
+        public static IEnumerable<SwVersion_e> GetInstalledVersions() 
+        {
+            foreach (var versCand in Enum.GetValues(typeof(SwVersion_e)).Cast<SwVersion_e>())
+            {
+                var progId = string.Format(PROG_ID_TEMPLATE, (int)versCand);
+                var swAppRegKey = Registry.ClassesRoot.OpenSubKey(progId);
+
+                if (swAppRegKey != null)
+                {
+                    var isInstalled = false;
+
+                    try
+                    {
+                        FindSwPathFromRegKey(swAppRegKey);
+                        isInstalled = true;
+                    }
+                    catch 
+                    { 
+                    }
+
+                    if (isInstalled)
+                    {
+                        yield return versCand;
+                    }
+                }
+            }
+        }
+
         private static string FindSwAppPath(SwVersion_e? vers)
         {
-            const string PROG_ID_TEMPLATE = "SldWorks.Application.{0}";
-
-            Microsoft.Win32.RegistryKey swAppRegKey = null;
+            RegistryKey swAppRegKey = null;
 
             if (vers.HasValue)
             {
                 var progId = string.Format(PROG_ID_TEMPLATE, (int)vers);
-                swAppRegKey = Microsoft.Win32.Registry.ClassesRoot.OpenSubKey(progId);
+                swAppRegKey = Registry.ClassesRoot.OpenSubKey(progId);
             }
             else
             {
                 foreach (var versCand in Enum.GetValues(typeof(SwVersion_e)).Cast<int>().OrderByDescending(x => x))
                 {
                     var progId = string.Format(PROG_ID_TEMPLATE, versCand);
-                    swAppRegKey = Microsoft.Win32.Registry.ClassesRoot.OpenSubKey(progId);
+                    swAppRegKey = Registry.ClassesRoot.OpenSubKey(progId);
 
                     if (swAppRegKey != null)
                     {
@@ -139,36 +169,41 @@ namespace Xarial.XCad.SolidWorks
 
             if (swAppRegKey != null)
             {
-                var clsidKey = swAppRegKey.OpenSubKey("CLSID", false);
-
-                if (clsidKey == null)
-                {
-                    throw new NullReferenceException($"Incorrect registry value, CLSID is missing");
-                }
-
-                var clsid = (string)clsidKey.GetValue("");
-
-                var localServerKey = Microsoft.Win32.Registry.ClassesRoot.OpenSubKey(
-                    $"CLSID\\{clsid}\\LocalServer32", false);
-
-                if (clsid == null)
-                {
-                    throw new NullReferenceException($"Incorrect registry value, LocalServer32 is missing");
-                }
-
-                var swAppPath = (string)localServerKey.GetValue("");
-
-                if (!File.Exists(swAppPath))
-                {
-                    throw new FileNotFoundException($"Path to SOLIDWORKS executable does not exist: {swAppPath}");
-                }
-
-                return swAppPath;
+                return FindSwPathFromRegKey(swAppRegKey);
             }
             else
             {
                 throw new NullReferenceException("Failed to find the information about the installed SOLIDWORKS applications in the registry");
             }
+        }
+
+        private static string FindSwPathFromRegKey(RegistryKey swAppRegKey)
+        {
+            var clsidKey = swAppRegKey.OpenSubKey("CLSID", false);
+
+            if (clsidKey == null)
+            {
+                throw new NullReferenceException($"Incorrect registry value, CLSID is missing");
+            }
+
+            var clsid = (string)clsidKey.GetValue("");
+
+            var localServerKey = Microsoft.Win32.Registry.ClassesRoot.OpenSubKey(
+                $"CLSID\\{clsid}\\LocalServer32", false);
+
+            if (clsid == null)
+            {
+                throw new NullReferenceException($"Incorrect registry value, LocalServer32 is missing");
+            }
+
+            var swAppPath = (string)localServerKey.GetValue("");
+
+            if (!File.Exists(swAppPath))
+            {
+                throw new FileNotFoundException($"Path to SOLIDWORKS executable does not exist: {swAppPath}");
+            }
+
+            return swAppPath;
         }
 
         IXDocumentCollection IXApplication.Documents => Documents;
@@ -182,6 +217,8 @@ namespace Xarial.XCad.SolidWorks
         public SwDocumentCollection Documents { get; private set; }
 
         public SwGeometryBuilder GeometryBuilder { get; private set; }
+
+        public IntPtr WindowHandle => new IntPtr(Sw.IFrameObject().GetHWndx64());
 
         internal SwApplication(ISldWorks app, IXLogger logger)
         {

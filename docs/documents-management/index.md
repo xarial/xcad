@@ -17,3 +17,5 @@ Define the document handler either by implementing the **IDocumentHandler** inte
 Override methods of document handler and implement required functionality attached for each specific SOLIDWORKS model (such as handle events, load, write data etc.)
 
 Framework will automatically dispose the handler. Unsubscribe from the custom events within the **Dispose** method. The pointer to the document attached to the handler is assigned to **Model** property of **SwDocumentHandler**.
+
+Refer [Events Handler Example](https://github.com/xarial/xcad-examples/tree/master/EventsHandler) which demonstrates how to subscribe to native SOLIDWORKS events.

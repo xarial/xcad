@@ -5,6 +5,7 @@
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
+using System;
 using Xarial.XCad.Base.Enums;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Geometry;
@@ -16,6 +17,11 @@ namespace Xarial.XCad
     /// </summary>
     public interface IXApplication
     {
+        /// <summary>
+        /// Window handle of the application main window
+        /// </summary>
+        IntPtr WindowHandle { get; }
+
         /// <summary>
         /// Accesses the documents repository
         /// </summary>
@@ -36,8 +42,16 @@ namespace Xarial.XCad
         /// <returns>Button clicked by the user</returns>
         MessageBoxResult_e ShowMessageBox(string msg, MessageBoxIcon_e icon = MessageBoxIcon_e.Info, MessageBoxButtons_e buttons = MessageBoxButtons_e.Ok);
 
+        /// <summary>
+        /// Create instance of the macro
+        /// </summary>
+        /// <param name="path">Full path to the macro</param>
+        /// <returns>Instance of the macro</returns>
         IXMacro OpenMacro(string path);
 
+        /// <summary>
+        /// Close current instance of the application
+        /// </summary>
         void Close();
     }
 }

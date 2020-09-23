@@ -54,6 +54,8 @@ It is also required to change the SDK of the add-in project to *Microsoft.NET.Sd
 
 > Note, .NET Core is a new framework and there were some compatibility issues and conflicts reported with other 3rd party libraries when running as in-process application (i.e. add-in). It is recommended to use .NET Framework for add-ins development where possible until .NET Core is fully supported by SOLIDWORKS host application.
 
+Refer [Accessing SQL database via Entity Framework example](https://github.com/xarial/xcad-examples/tree/master/SqlDbEfNetCore) for the demonstration of the SOLIDWORKS add-in in .NET Core.
+
 ## Unregistering add-in
 
 Add-in will be automatically removed and all COM objects unregistered when project is cleaned in Visual Studio

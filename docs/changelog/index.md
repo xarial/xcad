@@ -8,7 +8,13 @@ This page contains list of the most notable changes in the releases of xCAD.NET.
 
 Breaking change is marked with &#x26A0; symbol
 
-## 0.6.0
+## 0.6.1 - September, 23 2020
+
+* Fixed [#20 - BitmapButton bool not firing propertyManagerPage DataChanged Event](https://github.com/xarial/xcad/issues/20)
+* Implemented [#21 - Add IXApplication::WindowHandle](https://github.com/xarial/xcad/issues/21)
+* Implemented [#22 - Add SwApplication::GetInstalledVersion static method](https://github.com/xarial/xcad/issues/22)
+
+## 0.6.0 - September, 13 2020
 
 * Implemented [#5 - Updating Combobox based on another comboBox selection change](https://github.com/xarial/xcad/issues/5). Refer [help documentation](/property-pages/controls/combo-box#dynamic-items-provider) for more information
 
