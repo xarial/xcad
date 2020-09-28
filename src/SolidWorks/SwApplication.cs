@@ -220,6 +220,8 @@ namespace Xarial.XCad.SolidWorks
 
         public IntPtr WindowHandle => new IntPtr(Sw.IFrameObject().GetHWndx64());
 
+        public Process Process => Process.GetProcessById(Sw.GetProcessID());
+
         internal SwApplication(ISldWorks app, IXLogger logger)
         {
             Sw = app;

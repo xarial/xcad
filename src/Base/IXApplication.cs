@@ -6,6 +6,7 @@
 //*********************************************************************
 
 using System;
+using System.Diagnostics;
 using Xarial.XCad.Base.Enums;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Geometry;
@@ -21,6 +22,11 @@ namespace Xarial.XCad
         /// Window handle of the application main window
         /// </summary>
         IntPtr WindowHandle { get; }
+
+        /// <summary>
+        /// Application process
+        /// </summary>
+        Process Process { get; }
 
         /// <summary>
         /// Accesses the documents repository
