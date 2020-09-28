@@ -9,9 +9,9 @@ namespace Xarial.XCad.Documentation
 {
     class Program
     {
-        static async Task Main(string[] args)
+        static void Main(string[] args)
         {
-            using (var app = await SwApplication.StartAsync(SwVersion_e.Sw2020, "/b"))
+            using (var app = SwApplication.Start(SwVersion_e.Sw2020, "/b"))
             {
                 ISldWorks swApp = app.Sw;
                 Console.WriteLine(swApp.RevisionNumber());

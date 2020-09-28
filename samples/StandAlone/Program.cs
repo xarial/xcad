@@ -30,7 +30,7 @@ namespace StandAlone
                 Debug.Print(vers.ToString());
             }
 
-            using (var app = SwApplication.StartAsync(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020).Result) 
+            using (var app = SwApplication.Start(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020)) 
             {
                 app.ShowMessageBox("Hello");
                 app.Close();

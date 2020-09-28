@@ -52,7 +52,7 @@ namespace SolidWorks.Tests.Integration
         {
             if (SW_PRC_ID < 0)
             {
-                m_App = SwApplication.StartAsync(null, "/b").Result;
+                m_App = SwApplication.Start(null, "/b");
                 m_CloseSw = true;
             }
             else if (SW_PRC_ID == 0) 
