@@ -8,6 +8,11 @@ This page contains list of the most notable changes in the releases of xCAD.NET.
 
 Breaking change is marked with &#x26A0; symbol
 
+## 0.6.2 - September, 28 2020
+
+* Fixed [#24 - Build error when cleaning the solution](https://github.com/xarial/xcad/issues/24)
+* Implemented [#25 - Add IXApplication::Process](https://github.com/xarial/xcad/issues/25)
+
 ## 0.6.1 - September, 23 2020
 
 * Fixed [#20 - BitmapButton bool not firing propertyManagerPage DataChanged Event](https://github.com/xarial/xcad/issues/20)
