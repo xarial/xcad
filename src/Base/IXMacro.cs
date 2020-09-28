@@ -15,6 +15,7 @@ namespace Xarial.XCad
 {
     public interface IXMacro
     {
+        string Path { get; }
         MacroEntryPoint[] EntryPoints { get; }
         void Run(MacroEntryPoint entryPoint, MacroRunOptions_e opts);
     }

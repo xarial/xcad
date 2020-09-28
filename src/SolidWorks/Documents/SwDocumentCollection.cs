@@ -6,6 +6,7 @@
 //*********************************************************************
 
 using SolidWorks.Interop.sldworks;
+using SolidWorks.Interop.swconst;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -14,6 +15,7 @@ using System.Linq;
 using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Delegates;
+using Xarial.XCad.Documents.Exceptions;
 using Xarial.XCad.Documents.Services;
 using Xarial.XCad.Documents.Structures;
 using Xarial.XCad.SolidWorks.Utils;
@@ -113,6 +115,53 @@ namespace Xarial.XCad.SolidWorks.Documents
             docSpec.ReadOnly = args.ReadOnly;
             docSpec.ViewOnly = args.ViewOnly;
             var model = m_SwApp.OpenDoc7(docSpec);
+
+            if (model == null) 
+            {
+                string error = "";
+                
+                switch ((swFileLoadError_e)docSpec.Error) 
+                {
+                    case swFileLoadError_e.swAddinInteruptError:
+                        error = "File opening was interrupted by the user";
+                        break;
+                    case swFileLoadError_e.swApplicationBusy:
+                        error = "Application is busy";
+                        break;
+                    case swFileLoadError_e.swFileCriticalDataRepairError:
+                        error = "File has critical data corruption";
+                        break;
+                    case swFileLoadError_e.swFileNotFoundError:
+                        error = "File not found at the specified path";
+                        break;
+                    case swFileLoadError_e.swFileRequiresRepairError:
+                        error = "File has non-critical custom property data corruption";
+                        break;
+                    case swFileLoadError_e.swFileWithSameTitleAlreadyOpen:
+                        error = "A document with the same name is already open";
+                        break;
+                    case swFileLoadError_e.swFutureVersion:
+                        error = "The document was saved in a future version of SOLIDWORKS";
+                        break;
+                    case swFileLoadError_e.swGenericError:
+                        error = "Unknown error while opening file";
+                        break;
+                    case swFileLoadError_e.swInvalidFileTypeError:
+                        error = "Invalid file type";
+                        break;
+                    case swFileLoadError_e.swLiquidMachineDoc:
+                        error = "File encrypted by Liquid Machines";
+                        break;
+                    case swFileLoadError_e.swLowResourcesError:
+                        error = "File is open and blocked because the system memory is low, or the number of GDI handles has exceeded the allowed maximum";
+                        break;
+                    case swFileLoadError_e.swNoDisplayData:
+                        error = "File contains no display data";
+                        break;
+                }
+
+                throw new OpenDocumentFailedException(args.Path, docSpec.Error, error);
+            }
 
             return this[model];
         }

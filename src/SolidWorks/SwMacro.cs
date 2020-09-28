@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Xarial.XCad.Enums;
+using Xarial.XCad.Exceptions;
 using Xarial.XCad.SolidWorks.Exceptions;
 using Xarial.XCad.Structures;
 
@@ -29,7 +30,9 @@ namespace Xarial.XCad.SolidWorks
         }
 
         public abstract MacroEntryPoint[] EntryPoints { get; }
-        
+
+        public string Path => m_Path;
+
         public virtual void Run(MacroEntryPoint entryPoint, MacroRunOptions_e opts)
         {
             swRunMacroOption_e swOpts = swRunMacroOption_e.swRunMacroDefault;
@@ -48,7 +51,97 @@ namespace Xarial.XCad.SolidWorks
             int err;
             if (!m_App.RunMacro2(m_Path, entryPoint.ModuleName, entryPoint.ProcedureName, (int)swOpts, out err))
             {
-                throw new MacroRunException(m_Path, (swRunMacroError_e)err);
+                string errDesc = "";
+
+                switch ((swRunMacroError_e)err) 
+                {
+                    case swRunMacroError_e.swRunMacroError_InvalidArg:
+                        errDesc = "Invalid argument";
+                        break;
+                    case swRunMacroError_e.swRunMacroError_MacrosAreDisabled:
+                        errDesc = "Macros are disabled";
+                        break;
+                    case swRunMacroError_e.swRunMacroError_NotInDesignMode:
+                        errDesc = "Not in design mode";
+                        break;
+                    case swRunMacroError_e.swRunMacroError_OnlyCodeModules:
+                        errDesc = "Only code modules";
+                        break;
+                    case swRunMacroError_e.swRunMacroError_OutOfMemory:
+                        errDesc = "Out of memory";
+                        break;
+                    case swRunMacroError_e.swRunMacroError_InvalidProcname:
+                        errDesc = "Invalid procedure name";
+                        break;
+                    case swRunMacroError_e.swRunMacroError_InvalidPropertyType:
+                        errDesc = "Invalid property type";
+                        break;
+                    case swRunMacroError_e.swRunMacroError_SuborfuncExpected:
+                        errDesc = "Sub or function expected";
+                        break;
+                    case swRunMacroError_e.swRunMacroError_BadParmCount:
+                        errDesc = "Bad parameter count";
+                        break;
+                    case swRunMacroError_e.swRunMacroError_BadVarType:
+                        errDesc = "Bad variable type";
+                        break;
+                    case swRunMacroError_e.swRunMacroError_UserInterrupt:
+                        errDesc = "User interrupt";
+                        break;
+                    case swRunMacroError_e.swRunMacroError_Exception:
+                        errDesc = "Exception";
+                        break;
+                    case swRunMacroError_e.swRunMacroError_Overflow:
+                        errDesc = "Overflow";
+                        break;
+                    case swRunMacroError_e.swRunMacroError_TypeMismatch:
+                        errDesc = "Type mismatch";
+                        break;
+                    case swRunMacroError_e.swRunMacroError_ParmNotOptional:
+                        errDesc = "Parameter not optional";
+                        break;
+                    case swRunMacroError_e.swRunMacroError_UnknownLcid:
+                        errDesc = "Unknown LCID";
+                        break;
+                    case swRunMacroError_e.swRunMacroError_Busy:
+                        errDesc = "Busy";
+                        break;
+                    case swRunMacroError_e.swRunMacroError_ConnectionTerminated:
+                        errDesc = "Connection terminated";
+                        break;
+                    case swRunMacroError_e.swRunMacroError_CallRejected:
+                        errDesc = "Call rejected";
+                        break;
+                    case swRunMacroError_e.swRunMacroError_CallFailed:
+                        errDesc = "Call failed";
+                        break;
+                    case swRunMacroError_e.swRunMacroError_Zombied:
+                        errDesc = "Zombied";
+                        break;
+                    case swRunMacroError_e.swRunMacroError_Invalidindex:
+                        errDesc = "Invalid index";
+                        break;
+                    case swRunMacroError_e.swRunMacroError_NoPermission:
+                        errDesc = "No permission";
+                        break;
+                    case swRunMacroError_e.swRunMacroError_Reverted:
+                        errDesc = "Reverted";
+                        break;
+                    case swRunMacroError_e.swRunMacroError_TooManyOpenFiles:
+                        errDesc = "Too many open files";
+                        break;
+                    case swRunMacroError_e.swRunMacroError_DiskError:
+                        errDesc = "Disk error";
+                        break;
+                    case swRunMacroError_e.swRunMacroError_CantSave:
+                        errDesc = "Cannot save";
+                        break;
+                    case swRunMacroError_e.swRunMacroError_OpenFileFailed:
+                        errDesc = "Open file failed";
+                        break;
+                }
+
+                throw new MacroRunFailedException(m_Path, err, errDesc);
             }
         }
     }

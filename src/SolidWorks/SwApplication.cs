@@ -57,12 +57,12 @@ namespace Xarial.XCad.SolidWorks
 
         private static string GetMonikerName(Process process) => $"SolidWorks_PID_{process.Id}";
 
-        ///<inheritdoc cref="Start(SwVersion_e?, string, CancellationToken?)"/>
+        ///<inheritdoc cref="StartAsync(SwVersion_e?, string, CancellationToken?)"/>
         ///<remarks>Default timeout is 5 minutes. Use different overload of this method to specify custom cancellation token</remarks>
-        public static Task<SwApplication> Start(SwVersion_e? vers = null,
+        public static Task<SwApplication> StartAsync(SwVersion_e? vers = null,
             string args = "")
         {
-            return Start(vers, args, new CancellationTokenSource(TimeSpan.FromMinutes(5)).Token);
+            return StartAsync(vers, args, new CancellationTokenSource(TimeSpan.FromMinutes(5)).Token);
         }
 
         /// <summary>
@@ -71,7 +71,7 @@ namespace Xarial.XCad.SolidWorks
         /// <param name="vers">Version of SOLIDWORKS to start or null for the latest version</param>
         /// <param name="cancellationToken">Cancellation token</param>
         /// <returns>Instance of application</returns>
-        public static async Task<SwApplication> Start(SwVersion_e? vers,
+        public static async Task<SwApplication> StartAsync(SwVersion_e? vers,
             string args, CancellationToken? cancellationToken = null)
         {
             var swPath = FindSwAppPath(vers);
