@@ -30,7 +30,12 @@ namespace Xarial.XCad.SolidWorks.Documents
         public event DocumentCreateDelegate DocumentCreated;
         public event DocumentActivateDelegate DocumentActivated;
 
-        IXDocument IXDocumentCollection.Active => Active;
+        IXDocument IXDocumentCollection.Active 
+        {
+            get => Active;
+            set => Active = (SwDocument)value;
+        }
+
         IXDocument IXDocumentCollection.Open(DocumentOpenArgs args) => Open(args);
 
         private const int S_OK = 0;
@@ -54,6 +59,16 @@ namespace Xarial.XCad.SolidWorks.Documents
                 else
                 {
                     return null;
+                }
+            }
+            set 
+            {
+                int errors = -1;
+                var doc = m_SwApp.ActivateDoc3(value.Title, true, (int)swRebuildOnActivation_e.swDontRebuildActiveDoc, ref errors);
+
+                if (doc == null) 
+                {
+                    throw new Exception($"Failed to activate the document. Error code: {errors}");
                 }
             }
         }
