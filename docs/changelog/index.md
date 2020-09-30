@@ -8,10 +8,11 @@ This page contains list of the most notable changes in the releases of xCAD.NET.
 
 Breaking change is marked with &#x26A0; symbol
 
-## 0.6.3 - September, 28 2020
+## 0.6.3 - September, 30 2020
 
 * Added exceptions for the macro running and document opening
-* &#x26A0; Renamed SwApplication::Start to SwApplication::StartAsync
+* &#x26A0; Changed SwApplication::Start to be sync
+* Implemented [#29 - IXDocumentRepository::Open should support all file types](https://github.com/xarial/xcad/issues/29) 
 
 ## 0.6.2 - September, 28 2020
 
