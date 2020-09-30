@@ -34,6 +34,24 @@ namespace Xarial.XCad.SolidWorks
     /// <inheritdoc/>
     public class SwApplication : IXApplication, IDisposable
     {
+        public static class CommandLineArguments
+        {
+            /// <summary>
+            /// Bypasses the Tools/Options settings
+            /// </summary>
+            public const string SafeMode = "/SWSafeMode /SWDisableExitApp";
+
+            /// <summary>
+            /// Runs SOLIDWORKS in background model via SOLIDWORKS Task Scheduler (requires SOLIDWORKS Professional or higher)
+            /// </summary>
+            public const string BackgroundMode = "/b";
+
+            /// <summary>
+            /// Suppresses all popup messages, including the splash screen
+            /// </summary>
+            public const string SilentMode = "/r";
+        }
+
         private const string PROG_ID_TEMPLATE = "SldWorks.Application.{0}";
 
         public static SwApplication FromPointer(ISldWorks app)
@@ -59,7 +77,7 @@ namespace Xarial.XCad.SolidWorks
 
         ///<inheritdoc cref="Start(SwVersion_e?, string, CancellationToken?)"/>
         ///<remarks>Default timeout is 5 minutes. Use different overload of this method to specify custom cancellation token</remarks>
-        public static Task<SwApplication> Start(SwVersion_e? vers = null,
+        public static SwApplication Start(SwVersion_e? vers = null,
             string args = "")
         {
             return Start(vers, args, new CancellationTokenSource(TimeSpan.FromMinutes(5)).Token);
@@ -71,13 +89,13 @@ namespace Xarial.XCad.SolidWorks
         /// <param name="vers">Version of SOLIDWORKS to start or null for the latest version</param>
         /// <param name="cancellationToken">Cancellation token</param>
         /// <returns>Instance of application</returns>
-        public static async Task<SwApplication> Start(SwVersion_e? vers,
+        public static SwApplication Start(SwVersion_e? vers,
             string args, CancellationToken? cancellationToken = null)
         {
             var swPath = FindSwAppPath(vers);
 
             var prc = Process.Start(swPath, args);
-
+            
             try
             {
                 ISldWorks app = null;
@@ -93,7 +111,7 @@ namespace Xarial.XCad.SolidWorks
                     }
 
                     app = RotHelper.TryGetComObjectByMonikerName<ISldWorks>(GetMonikerName(prc));
-                    await Task.Delay(100);
+                    Thread.Sleep(100);
                 }
                 while (app == null);
 

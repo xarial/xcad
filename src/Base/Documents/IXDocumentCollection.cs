@@ -17,7 +17,7 @@ namespace Xarial.XCad.Documents
         event DocumentActivateDelegate DocumentActivated;
         event DocumentCreateDelegate DocumentCreated;
 
-        IXDocument Active { get; }
+        IXDocument Active { get; set; }
 
         IXDocument Open(DocumentOpenArgs args);
 

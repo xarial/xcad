@@ -6,14 +6,17 @@
 //*********************************************************************
 
 using SolidWorks.Interop.sldworks;
+using SolidWorks.Interop.swconst;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Delegates;
+using Xarial.XCad.Documents.Exceptions;
 using Xarial.XCad.Documents.Services;
 using Xarial.XCad.Documents.Structures;
 using Xarial.XCad.SolidWorks.Utils;
@@ -28,7 +31,12 @@ namespace Xarial.XCad.SolidWorks.Documents
         public event DocumentCreateDelegate DocumentCreated;
         public event DocumentActivateDelegate DocumentActivated;
 
-        IXDocument IXDocumentCollection.Active => Active;
+        IXDocument IXDocumentCollection.Active 
+        {
+            get => Active;
+            set => Active = (SwDocument)value;
+        }
+
         IXDocument IXDocumentCollection.Open(DocumentOpenArgs args) => Open(args);
 
         private const int S_OK = 0;
@@ -54,12 +62,35 @@ namespace Xarial.XCad.SolidWorks.Documents
                     return null;
                 }
             }
+            set 
+            {
+                int errors = -1;
+                var doc = m_SwApp.ActivateDoc3(value.Title, true, (int)swRebuildOnActivation_e.swDontRebuildActiveDoc, ref errors);
+
+                if (doc == null) 
+                {
+                    throw new Exception($"Failed to activate the document. Error code: {errors}");
+                }
+            }
         }
 
         public int Count => m_Documents.Count;
 
+        private readonly string[] m_NativeFileExts;
+        private readonly string[] m_ExtraNativePartFileExts;
+
         internal SwDocumentCollection(SwApplication app, IXLogger logger)
         {
+            m_NativeFileExts = new string[]
+            {
+                ".sldprt", ".sldasm", ".slddrw"
+            };
+
+            m_ExtraNativePartFileExts = new string[]
+            {
+                ".sldlfp", ".sldblk"
+            };
+
             m_App = app;
             m_SwApp = (SldWorks)m_App.Sw;
             m_Logger = logger;
@@ -108,11 +139,93 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public SwDocument Open(DocumentOpenArgs args)
         {
-            var docSpec = m_SwApp.GetOpenDocSpec(args.Path) as IDocumentSpecification;
+            IModelDoc2 model = null;
+            int errorCode = -1;
 
-            docSpec.ReadOnly = args.ReadOnly;
-            docSpec.ViewOnly = args.ViewOnly;
-            var model = m_SwApp.OpenDoc7(docSpec);
+            if (m_NativeFileExts.Contains(Path.GetExtension(args.Path), StringComparer.CurrentCultureIgnoreCase))
+            {
+                var docSpec = m_SwApp.GetOpenDocSpec(args.Path) as IDocumentSpecification;
+
+                docSpec.ReadOnly = args.ReadOnly;
+                docSpec.ViewOnly = args.ViewOnly;
+                docSpec.Silent = args.Silent;
+
+                model = m_SwApp.OpenDoc7(docSpec);
+                errorCode = docSpec.Error;
+            }
+            else if (m_ExtraNativePartFileExts.Contains(Path.GetExtension(args.Path), StringComparer.CurrentCultureIgnoreCase))
+            {
+                swOpenDocOptions_e opts = 0;
+                
+                if (args.ReadOnly) 
+                {
+                    opts = opts | swOpenDocOptions_e.swOpenDocOptions_ReadOnly;
+                }
+                
+                if (args.ViewOnly)
+                {
+                    opts = opts | swOpenDocOptions_e.swOpenDocOptions_ViewOnly;
+                }
+
+                if (args.Silent)
+                {
+                    opts = opts | swOpenDocOptions_e.swOpenDocOptions_Silent;
+                }
+
+                int warns = -1;
+                model = m_SwApp.OpenDoc6(args.Path, (int)swDocumentTypes_e.swDocPART, (int)opts, "", ref errorCode, ref warns);
+            }
+            else 
+            {
+                model = m_SwApp.LoadFile4(args.Path, "", null, ref errorCode);
+            }
+            
+            if (model == null) 
+            {
+                string error = "";
+                
+                switch ((swFileLoadError_e)errorCode) 
+                {
+                    case swFileLoadError_e.swAddinInteruptError:
+                        error = "File opening was interrupted by the user";
+                        break;
+                    case swFileLoadError_e.swApplicationBusy:
+                        error = "Application is busy";
+                        break;
+                    case swFileLoadError_e.swFileCriticalDataRepairError:
+                        error = "File has critical data corruption";
+                        break;
+                    case swFileLoadError_e.swFileNotFoundError:
+                        error = "File not found at the specified path";
+                        break;
+                    case swFileLoadError_e.swFileRequiresRepairError:
+                        error = "File has non-critical custom property data corruption";
+                        break;
+                    case swFileLoadError_e.swFileWithSameTitleAlreadyOpen:
+                        error = "A document with the same name is already open";
+                        break;
+                    case swFileLoadError_e.swFutureVersion:
+                        error = "The document was saved in a future version of SOLIDWORKS";
+                        break;
+                    case swFileLoadError_e.swGenericError:
+                        error = "Unknown error while opening file";
+                        break;
+                    case swFileLoadError_e.swInvalidFileTypeError:
+                        error = "Invalid file type";
+                        break;
+                    case swFileLoadError_e.swLiquidMachineDoc:
+                        error = "File encrypted by Liquid Machines";
+                        break;
+                    case swFileLoadError_e.swLowResourcesError:
+                        error = "File is open and blocked because the system memory is low, or the number of GDI handles has exceeded the allowed maximum";
+                        break;
+                    case swFileLoadError_e.swNoDisplayData:
+                        error = "File contains no display data";
+                        break;
+                }
+
+                throw new OpenDocumentFailedException(args.Path, errorCode, error);
+            }
 
             return this[model];
         }

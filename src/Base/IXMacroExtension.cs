@@ -7,6 +7,7 @@
 
 using System.Linq;
 using Xarial.XCad.Enums;
+using Xarial.XCad.Exceptions;
 using Xarial.XCad.Structures;
 
 namespace Xarial.XCad
@@ -20,7 +21,14 @@ namespace Xarial.XCad
 
         public static void Run(this IXMacro macro, MacroRunOptions_e opts)
         {
-            macro.Run(macro.EntryPoints.First(), opts);
+            if (macro.EntryPoints?.Any() == true)
+            {
+                macro.Run(macro.EntryPoints.First(), opts);
+            }
+            else 
+            {
+                throw new MacroRunFailedException(macro.Path, -1, "Macro contains no entry points");
+            }
         }
 
         public static void Run(this IXMacro macro, MacroEntryPoint entryPoint)
