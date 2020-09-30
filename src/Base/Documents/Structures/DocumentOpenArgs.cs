@@ -12,5 +12,6 @@ namespace Xarial.XCad.Documents.Structures
         public string Path { get; set; }
         public bool ReadOnly { get; set; }
         public bool ViewOnly { get; set; }
+        public bool Silent { get; set; }
     }
 }

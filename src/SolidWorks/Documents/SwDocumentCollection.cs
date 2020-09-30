@@ -129,6 +129,8 @@ namespace Xarial.XCad.SolidWorks.Documents
 
             docSpec.ReadOnly = args.ReadOnly;
             docSpec.ViewOnly = args.ViewOnly;
+            docSpec.Silent = args.Silent;
+
             var model = m_SwApp.OpenDoc7(docSpec);
 
             if (model == null) 
