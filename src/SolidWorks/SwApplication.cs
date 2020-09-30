@@ -49,7 +49,7 @@ namespace Xarial.XCad.SolidWorks
             /// <summary>
             /// Suppresses all popup messages, including the splash screen
             /// </summary>
-            public const string SuppressPopups = "/r";
+            public const string SilentMode = "/r";
         }
 
         private const string PROG_ID_TEMPLATE = "SldWorks.Application.{0}";
