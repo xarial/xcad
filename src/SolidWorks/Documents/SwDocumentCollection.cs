@@ -11,6 +11,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
@@ -75,8 +76,21 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public int Count => m_Documents.Count;
 
+        private readonly string[] m_NativeFileExts;
+        private readonly string[] m_ExtraNativePartFileExts;
+
         internal SwDocumentCollection(SwApplication app, IXLogger logger)
         {
+            m_NativeFileExts = new string[]
+            {
+                ".sldprt", ".sldasm", ".slddrw"
+            };
+
+            m_ExtraNativePartFileExts = new string[]
+            {
+                ".sldlfp", ".sldblk"
+            };
+
             m_App = app;
             m_SwApp = (SldWorks)m_App.Sw;
             m_Logger = logger;
@@ -125,19 +139,52 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public SwDocument Open(DocumentOpenArgs args)
         {
-            var docSpec = m_SwApp.GetOpenDocSpec(args.Path) as IDocumentSpecification;
+            IModelDoc2 model = null;
+            int errorCode = -1;
 
-            docSpec.ReadOnly = args.ReadOnly;
-            docSpec.ViewOnly = args.ViewOnly;
-            docSpec.Silent = args.Silent;
+            if (m_NativeFileExts.Contains(Path.GetExtension(args.Path), StringComparer.CurrentCultureIgnoreCase))
+            {
+                var docSpec = m_SwApp.GetOpenDocSpec(args.Path) as IDocumentSpecification;
 
-            var model = m_SwApp.OpenDoc7(docSpec);
+                docSpec.ReadOnly = args.ReadOnly;
+                docSpec.ViewOnly = args.ViewOnly;
+                docSpec.Silent = args.Silent;
 
+                model = m_SwApp.OpenDoc7(docSpec);
+                errorCode = docSpec.Error;
+            }
+            else if (m_ExtraNativePartFileExts.Contains(Path.GetExtension(args.Path), StringComparer.CurrentCultureIgnoreCase))
+            {
+                swOpenDocOptions_e opts = 0;
+                
+                if (args.ReadOnly) 
+                {
+                    opts = opts | swOpenDocOptions_e.swOpenDocOptions_ReadOnly;
+                }
+                
+                if (args.ViewOnly)
+                {
+                    opts = opts | swOpenDocOptions_e.swOpenDocOptions_ViewOnly;
+                }
+
+                if (args.Silent)
+                {
+                    opts = opts | swOpenDocOptions_e.swOpenDocOptions_Silent;
+                }
+
+                int warns = -1;
+                model = m_SwApp.OpenDoc6(args.Path, (int)swDocumentTypes_e.swDocPART, (int)opts, "", ref errorCode, ref warns);
+            }
+            else 
+            {
+                model = m_SwApp.LoadFile4(args.Path, "", null, ref errorCode);
+            }
+            
             if (model == null) 
             {
                 string error = "";
                 
-                switch ((swFileLoadError_e)docSpec.Error) 
+                switch ((swFileLoadError_e)errorCode) 
                 {
                     case swFileLoadError_e.swAddinInteruptError:
                         error = "File opening was interrupted by the user";
@@ -177,7 +224,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                         break;
                 }
 
-                throw new OpenDocumentFailedException(args.Path, docSpec.Error, error);
+                throw new OpenDocumentFailedException(args.Path, errorCode, error);
             }
 
             return this[model];
