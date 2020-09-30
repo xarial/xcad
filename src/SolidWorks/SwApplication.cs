@@ -34,6 +34,24 @@ namespace Xarial.XCad.SolidWorks
     /// <inheritdoc/>
     public class SwApplication : IXApplication, IDisposable
     {
+        public static class CommandLineArguments
+        {
+            /// <summary>
+            /// Bypasses the Tools/Options settings
+            /// </summary>
+            public const string SafeMode = "/SWSafeMode /SWDisableExitApp";
+
+            /// <summary>
+            /// Runs SOLIDWORKS in background model via SOLIDWORKS Task Scheduler (requires SOLIDWORKS Professional or higher)
+            /// </summary>
+            public const string BackgroundMode = "/b";
+
+            /// <summary>
+            /// Suppresses all popup messages, including the splash screen
+            /// </summary>
+            public const string SuppressPopups = "/r";
+        }
+
         private const string PROG_ID_TEMPLATE = "SldWorks.Application.{0}";
 
         public static SwApplication FromPointer(ISldWorks app)
