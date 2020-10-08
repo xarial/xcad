@@ -8,6 +8,12 @@ This page contains list of the most notable changes in the releases of xCAD.NET.
 
 Breaking change is marked with &#x26A0; symbol
 
+## 0.6.4 - September, 30 2020
+
+* Implemented [#30 - Add option to open document in rapid mode](https://github.com/xarial/xcad/issues/30)
+* Fixed [#31 - INotifyPropertyChanged is ignored](https://github.com/xarial/xcad/issues/31)
+* Switched SOLIDWORKS Interops to version 2020
+
 ## 0.6.3 - September, 30 2020
 
 * Added exceptions for the macro running and document opening

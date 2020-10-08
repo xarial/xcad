@@ -44,6 +44,8 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
 
                 base.DataModel = value;
 
+                curModel = GetCurrentModel();
+
                 if (curModel is INotifyPropertyChanged)
                 {
                     (curModel as INotifyPropertyChanged).PropertyChanged += OnPropertyChanged;

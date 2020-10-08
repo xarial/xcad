@@ -76,21 +76,19 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public int Count => m_Documents.Count;
 
-        private readonly string[] m_NativeFileExts;
-        private readonly string[] m_ExtraNativePartFileExts;
-
+        private readonly Dictionary<string, swDocumentTypes_e> m_NativeFileExts;
+        
         internal SwDocumentCollection(SwApplication app, IXLogger logger)
         {
-            m_NativeFileExts = new string[]
+            m_NativeFileExts = new Dictionary<string, swDocumentTypes_e>(StringComparer.CurrentCultureIgnoreCase)
             {
-                ".sldprt", ".sldasm", ".slddrw"
+                { ".sldprt", swDocumentTypes_e.swDocPART },
+                { ".sldasm", swDocumentTypes_e.swDocASSEMBLY },
+                { ".slddrw", swDocumentTypes_e.swDocDRAWING },
+                { ".sldlfp", swDocumentTypes_e.swDocPART },
+                { ".sldblk", swDocumentTypes_e.swDocPART }
             };
-
-            m_ExtraNativePartFileExts = new string[]
-            {
-                ".sldlfp", ".sldblk"
-            };
-
+            
             m_App = app;
             m_SwApp = (SldWorks)m_App.Sw;
             m_Logger = logger;
@@ -142,38 +140,49 @@ namespace Xarial.XCad.SolidWorks.Documents
             IModelDoc2 model = null;
             int errorCode = -1;
 
-            if (m_NativeFileExts.Contains(Path.GetExtension(args.Path), StringComparer.CurrentCultureIgnoreCase))
-            {
-                var docSpec = m_SwApp.GetOpenDocSpec(args.Path) as IDocumentSpecification;
-
-                docSpec.ReadOnly = args.ReadOnly;
-                docSpec.ViewOnly = args.ViewOnly;
-                docSpec.Silent = args.Silent;
-
-                model = m_SwApp.OpenDoc7(docSpec);
-                errorCode = docSpec.Error;
-            }
-            else if (m_ExtraNativePartFileExts.Contains(Path.GetExtension(args.Path), StringComparer.CurrentCultureIgnoreCase))
+            if (m_NativeFileExts.TryGetValue(Path.GetExtension(args.Path), out swDocumentTypes_e docType))
             {
                 swOpenDocOptions_e opts = 0;
                 
                 if (args.ReadOnly) 
                 {
-                    opts = opts | swOpenDocOptions_e.swOpenDocOptions_ReadOnly;
+                    opts |= swOpenDocOptions_e.swOpenDocOptions_ReadOnly;
                 }
                 
                 if (args.ViewOnly)
                 {
-                    opts = opts | swOpenDocOptions_e.swOpenDocOptions_ViewOnly;
+                    opts |= swOpenDocOptions_e.swOpenDocOptions_ViewOnly;
                 }
 
                 if (args.Silent)
                 {
-                    opts = opts | swOpenDocOptions_e.swOpenDocOptions_Silent;
+                    opts |= swOpenDocOptions_e.swOpenDocOptions_Silent;
+                }
+
+                if (args.Rapid)
+                {
+                    if (docType == swDocumentTypes_e.swDocDRAWING)
+                    {
+                        if (m_App.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2020))
+                        {
+                            opts |= swOpenDocOptions_e.swOpenDocOptions_OpenDetailingMode;
+                        }
+                    }
+                    else if (docType == swDocumentTypes_e.swDocASSEMBLY)
+                    {
+                        if (m_App.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2020))
+                        {
+                            //TODO: this option should be implemented as 'Large Design Review' (swOpenDocOptions_ViewOnly) with 'Edit Assembly Option'. Later option is not available in API
+                        }
+                    }
+                    else if (docType == swDocumentTypes_e.swDocPART)
+                    {
+                        //There is no rapid option for SOLIDWORKS part document
+                    }
                 }
 
                 int warns = -1;
-                model = m_SwApp.OpenDoc6(args.Path, (int)swDocumentTypes_e.swDocPART, (int)opts, "", ref errorCode, ref warns);
+                model = m_SwApp.OpenDoc6(args.Path, (int)docType, (int)opts, "", ref errorCode, ref warns);
             }
             else 
             {
