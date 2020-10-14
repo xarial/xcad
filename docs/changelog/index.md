@@ -8,6 +8,11 @@ This page contains list of the most notable changes in the releases of xCAD.NET.
 
 Breaking change is marked with &#x26A0; symbol
 
+## 0.6.5 - October, 14 2020
+
+* Implemented [#33 - Add event when extension and host application is fully loaded](https://github.com/xarial/xcad/issues/33)
+* Implemented [#34 - Add WindowRectangle API to find the bounds of the host window](https://github.com/xarial/xcad/issues/34)
+
 ## 0.6.4 - September, 30 2020
 
 * Implemented [#30 - Add option to open document in rapid mode](https://github.com/xarial/xcad/issues/30)

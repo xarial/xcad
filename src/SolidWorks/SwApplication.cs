@@ -28,6 +28,8 @@ using Xarial.XCad.SolidWorks.Exceptions;
 using Xarial.XCad.Base;
 using System.Collections.Generic;
 using Microsoft.Win32;
+using System.Drawing;
+using Xarial.XCad.Delegates;
 
 namespace Xarial.XCad.SolidWorks
 {
@@ -53,6 +55,8 @@ namespace Xarial.XCad.SolidWorks
         }
 
         private const string PROG_ID_TEMPLATE = "SldWorks.Application.{0}";
+
+        public event ApplicationLoadedDelegate Loaded;
 
         public static SwApplication FromPointer(ISldWorks app)
         {
@@ -240,11 +244,15 @@ namespace Xarial.XCad.SolidWorks
 
         public Process Process => Process.GetProcessById(Sw.GetProcessID());
 
+        public Rectangle WindowRectangle => new Rectangle(Sw.FrameLeft, Sw.FrameTop, Sw.FrameWidth, Sw.FrameHeight);
+
         internal SwApplication(ISldWorks app, IXLogger logger)
         {
             Sw = app;
             Documents = new SwDocumentCollection(this, logger);
             GeometryBuilder = new SwGeometryBuilder(app.IGetMathUtility(), app.IGetModeler());
+
+            (Sw as SldWorks).OnIdleNotify += OnLoadFirstIdleNotify;
         }
 
         public MessageBoxResult_e ShowMessageBox(string msg, MessageBoxIcon_e icon = MessageBoxIcon_e.Info, MessageBoxButtons_e buttons = MessageBoxButtons_e.Ok)
@@ -349,6 +357,32 @@ namespace Xarial.XCad.SolidWorks
         public void Close()
         {
             Sw.ExitApp();
+        }
+
+        private int OnLoadFirstIdleNotify()
+        {
+            const int S_OK = 0;
+
+            var continueListening = false;
+
+            if (Loaded != null)
+            {
+                if (Sw.StartupProcessCompleted)
+                {
+                    Loaded?.Invoke(this);
+                }
+                else 
+                {
+                    continueListening = true;
+                }
+            }
+
+            if (!continueListening) 
+            {
+                (Sw as SldWorks).OnIdleNotify -= OnLoadFirstIdleNotify;
+            }
+
+            return S_OK;
         }
     }
 

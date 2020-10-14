@@ -7,7 +7,9 @@
 
 using System;
 using System.Diagnostics;
+using System.Drawing;
 using Xarial.XCad.Base.Enums;
+using Xarial.XCad.Delegates;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Geometry;
 
@@ -18,6 +20,16 @@ namespace Xarial.XCad
     /// </summary>
     public interface IXApplication
     {
+        /// <summary>
+        /// Returns the rectangle of the application window
+        /// </summary>
+        Rectangle WindowRectangle { get; }
+
+        /// <summary>
+        /// Notifies when host application is loaded
+        /// </summary>
+        event ApplicationLoadedDelegate Loaded;
+
         /// <summary>
         /// Window handle of the application main window
         /// </summary>
