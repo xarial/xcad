@@ -369,8 +369,11 @@ namespace Xarial.XCad.SolidWorks
             {
                 if (Sw.StartupProcessCompleted)
                 {
-                    continueListening = false;
                     Loaded?.Invoke(this);
+                }
+                else 
+                {
+                    continueListening = true;
                 }
             }
 
