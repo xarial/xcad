@@ -32,7 +32,6 @@ namespace Xarial.XCad.SolidWorks.Features
         {
             m_ProcessedFeatures = new List<IFeature>();
             m_RootDoc = rootDoc;
-            Reset();
         }
 
         public void Dispose()

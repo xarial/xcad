@@ -56,7 +56,7 @@ namespace Xarial.XCad.SolidWorks.Utils
                 return null;
             }
 
-            return Color.FromArgb(a < 0 ? 1 : (int)(a * 255), 
+            return Color.FromArgb(a < 0 ? 1 : (int)((1 - a) * 255), 
                 (int)(r * 255), (int)(g * 255), (int)(b * 255));
         }
 
@@ -67,7 +67,7 @@ namespace Xarial.XCad.SolidWorks.Utils
                 color.G / 255d,
                 color.B / 255d, 
                 1, 1, 0.5, 0.4, 
-                color.A / 255d, 
+                (255 - color.A) / 255d, 
                 0
             };
 

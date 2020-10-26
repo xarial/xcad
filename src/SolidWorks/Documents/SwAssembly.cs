@@ -23,8 +23,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             : base((IModelDoc2)assembly, app, logger)
         {
             Assembly = assembly;
-            Components = new SwComponentCollection(this, 
-                (Assembly as IModelDoc2).ConfigurationManager.ActiveConfiguration.GetRootComponent3(true));
+            Components = new SwAssemblyComponentCollection(this);
         }
 
         public override Box3D CalculateBoundingBox()
@@ -35,5 +34,19 @@ namespace Xarial.XCad.SolidWorks.Documents
 
             return new Box3D(box[0], box[1], box[2], box[3], box[4], box[5]);
         }
+    }
+
+    internal class SwAssemblyComponentCollection : SwComponentCollection
+    {
+        private readonly SwAssembly m_Assm;
+
+        public SwAssemblyComponentCollection(SwAssembly assm) : base(assm)
+        {
+            m_Assm = assm;
+        }
+
+        protected override IComponent2 GetRootComponent()
+            => (m_Assm.Assembly as IModelDoc2)
+                .ConfigurationManager.ActiveConfiguration.GetRootComponent3(true);
     }
 }

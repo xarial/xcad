@@ -153,6 +153,7 @@ namespace Xarial.XCad.SolidWorks.Features
         public DocumentFeatureEnumerator(SwDocument rootDoc) : base(rootDoc)
         {
             m_Model = rootDoc.Model;
+            Reset();
         }
 
         protected override IFeature GetFirstFeature() => m_Model.IFirstFeature();

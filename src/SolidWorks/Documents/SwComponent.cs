@@ -39,7 +39,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
             m_ParentAssembly = parentAssembly;
             Component = comp;
-            Children = new SwComponentCollection(parentAssembly, comp);
+            Children = new SwChildComponentsCollection(parentAssembly, comp);
             Features = new ComponentFeatureRepository(parentAssembly, comp);
             Bodies = new SwComponentBodyCollection(comp, parentAssembly);
         }
@@ -212,6 +212,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         public ComponentFeatureEnumerator(SwDocument rootDoc, IComponent2 comp) : base(rootDoc)
         {
             m_Comp = comp;
+            Reset();
         }
 
         protected override IFeature GetFirstFeature() => m_Comp.FirstFeature();
@@ -228,5 +229,17 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         protected override IEnumerable<IBody2> GetSwBodies()
             => (m_Comp.GetBodies3((int)swBodyType_e.swAllBodies, out _) as object[])?.Cast<IBody2>();
+    }
+
+    internal class SwChildComponentsCollection : SwComponentCollection
+    {
+        private readonly IComponent2 m_Comp;
+
+        public SwChildComponentsCollection(SwAssembly assm, IComponent2 comp) : base(assm)
+        {
+            m_Comp = comp;
+        }
+
+        protected override IComponent2 GetRootComponent() => m_Comp;
     }
 }
