@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
+using Xarial.XCad;
 using Xarial.XCad.Annotations;
 using Xarial.XCad.Base;
 using Xarial.XCad.Base.Attributes;
@@ -32,6 +33,7 @@ using Xarial.XCad.SolidWorks.Features.CustomFeature.Toolkit;
 using Xarial.XCad.SolidWorks.Features.CustomFeature.Toolkit.Icons;
 using Xarial.XCad.SolidWorks.Geometry;
 using Xarial.XCad.SolidWorks.Utils;
+using Xarial.XCad.Toolkit;
 using Xarial.XCad.Toolkit.CustomFeature;
 using Xarial.XCad.Utils.Diagnostics;
 using Xarial.XCad.Utils.Reflection;
@@ -39,7 +41,7 @@ using Xarial.XCad.Utils.Reflection;
 namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 {
     /// <inheritdoc/>
-    public abstract class SwMacroFeatureDefinition : IXCustomFeatureDefinition, ISwComFeature
+    public abstract class SwMacroFeatureDefinition : IXCustomFeatureDefinition, ISwComFeature, IXServiceConsumer
     {
         private static SwApplication m_Application;
 
@@ -73,6 +75,8 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             }
         }
 
+        private readonly IServiceProvider m_SvcProvider;
+
         public SwMacroFeatureDefinition()
         {
             string provider = "";
@@ -82,7 +86,16 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             });
 
             m_Provider = provider;
-            m_Logger = new TraceLogger($"xCad.MacroFeature.{this.GetType().FullName}");
+            
+            var svcColl = new ServiceCollection();
+            
+            svcColl.AddOrReplace<IXLogger>(() => new TraceLogger($"xCad.MacroFeature.{this.GetType().FullName}"));
+
+            ConfigureServices(svcColl);
+
+            m_SvcProvider = svcColl.CreateProvider();
+
+            m_Logger = m_SvcProvider.GetService<IXLogger>();
 
             CustomFeatureDefinitionInstanceCache.RegisterInstance(this);
 
@@ -307,6 +320,10 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             {
                 throw new ArgumentNullException(nameof(bodies));
             }
+        }
+
+        public virtual void ConfigureServices(IXServiceCollection collection)
+        {
         }
     }
 

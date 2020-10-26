@@ -9,7 +9,7 @@ using Xarial.XCad.Annotations;
 
 namespace Xarial.XCad.Features
 {
-    public interface IXFeature : IXSelObject
+    public interface IXFeature : IXSelObject, IXColorizable
     {
         string Name { get; set; }
         IXDimensionRepository Dimensions { get; }

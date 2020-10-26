@@ -12,7 +12,7 @@ namespace Xarial.XCad.Documents
     /// <summary>
     /// Represents 3D document (assembly or part)
     /// </summary>
-    public interface IXDocument3D : IXDocument
+    public interface IXDocument3D : IXDocument, IXObjectContainer
     {
         /// <summary>
         /// Extracts the 3D bounding box of the document parallel to XYZ coordinate system
@@ -20,8 +20,14 @@ namespace Xarial.XCad.Documents
         /// <returns>Bounding box</returns>
         Box3D CalculateBoundingBox();
 
+        /// <summary>
+        /// Returns the active view of this document
+        /// </summary>
         IXView ActiveView { get; }
 
+        /// <summary>
+        /// Returns configurations of this document
+        /// </summary>
         IXConfigurationRepository Configurations { get; }
     }
 }

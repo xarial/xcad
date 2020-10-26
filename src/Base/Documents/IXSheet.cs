@@ -11,8 +11,19 @@ using System.Text;
 
 namespace Xarial.XCad.Documents
 {
+    /// <summary>
+    /// Represents the drawing sheet
+    /// </summary>
     public interface IXSheet
     {
+        /// <summary>
+        /// Name of the sheet
+        /// </summary>
         string Name { get; set; }
+
+        /// <summary>
+        /// Drawings views on this sheet
+        /// </summary>
+        IXDrawingViewRepository DrawingViews { get; }
     }
 }

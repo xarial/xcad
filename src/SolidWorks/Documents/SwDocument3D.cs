@@ -6,6 +6,7 @@
 //*********************************************************************
 
 using SolidWorks.Interop.sldworks;
+using System;
 using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Geometry.Structures;
@@ -38,6 +39,36 @@ namespace Xarial.XCad.SolidWorks.Documents
             if (disposing) 
             {
                 Configurations.Dispose();
+            }
+        }
+
+        TSelObject IXObjectContainer.ConvertObject<TSelObject>(TSelObject obj) => ConvertObjectBoxed(obj) as TSelObject;
+
+        public TSelObject ConvertObject<TSelObject>(TSelObject obj)
+            where TSelObject : SwSelObject
+        {
+            return (TSelObject)ConvertObjectBoxed(obj);
+        }
+
+        private SwSelObject ConvertObjectBoxed(object obj)
+        {
+            if (obj is SwSelObject)
+            {
+                var disp = (obj as SwSelObject).Dispatch;
+                var corrDisp = Model.Extension.GetCorresponding(disp);
+
+                if (corrDisp != null)
+                {
+                    return SwSelObject.FromDispatch(corrDisp, this);
+                }
+                else
+                {
+                    throw new Exception("Failed to convert the pointer of the object");
+                }
+            }
+            else
+            {
+                throw new InvalidCastException("Object is not SOLIDWORKS object");
             }
         }
     }

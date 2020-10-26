@@ -111,7 +111,7 @@ namespace Xarial.XCad.SolidWorks.Features
 
         public IEnumerator<IXFeature> GetEnumerator()
         {
-            return new FeatureEnumerator(m_Doc);
+            return new DocumentFeatureEnumerator(m_Doc);
         }
 
         IEnumerator IEnumerable.GetEnumerator()
@@ -146,102 +146,15 @@ namespace Xarial.XCad.SolidWorks.Features
         }
     }
 
-    internal class FeatureEnumerator : IEnumerator<IXFeature>
+    internal class DocumentFeatureEnumerator : FeatureEnumerator
     {
-        public IXFeature Current => SwObject.FromDispatch<SwFeature>(m_CurFeat, m_Doc);
-
-        object IEnumerator.Current => Current;
-
         private readonly IModelDoc2 m_Model;
-        private IFeature m_CurFeat;
 
-        private readonly List<IFeature> m_ProcessedFeatures;
-
-        private bool m_IsSubFeat;
-        private IFeature m_ParentFeat;
-
-        private readonly SwDocument m_Doc;
-
-        internal FeatureEnumerator(SwDocument doc)
+        public DocumentFeatureEnumerator(SwDocument rootDoc) : base(rootDoc)
         {
-            m_ProcessedFeatures = new List<IFeature>();
-            m_Doc = doc;
-            m_Model = m_Doc.Model;
-            Reset();
+            m_Model = rootDoc.Model;
         }
 
-        public void Dispose()
-        {
-        }
-
-        private bool AddProcessedFeature()
-        {
-            if (!m_ProcessedFeatures.Contains(m_CurFeat))
-            {
-                m_ProcessedFeatures.Add(m_CurFeat);
-                return true;
-            }
-            else
-            {
-                return MoveNext();
-            }
-        }
-
-        public bool MoveNext()
-        {
-            if (m_IsSubFeat)
-            {
-                var subFeat = m_CurFeat.IGetNextSubFeature();
-
-                if (subFeat != null)
-                {
-                    m_CurFeat = subFeat;
-                    return AddProcessedFeature();
-                }
-                else
-                {
-                    m_IsSubFeat = false;
-                    m_CurFeat = m_ParentFeat;
-                }
-            }
-            else 
-            {
-                var subFeat = m_CurFeat.IGetFirstSubFeature();
-
-                if (subFeat != null) 
-                {
-                    m_ParentFeat = m_CurFeat;
-                    m_IsSubFeat = true;
-                    m_CurFeat = subFeat;
-                    return AddProcessedFeature();
-                }
-            }
-
-            m_CurFeat = m_CurFeat.IGetNextFeature();
-
-            if (m_CurFeat != null)
-            {
-                if (m_CurFeat.GetTypeName2() != "HistoryFolder")
-                {
-                    return AddProcessedFeature();
-                }
-                else 
-                {
-                    return MoveNext();
-                }
-            }
-            else 
-            {
-                return false;
-            }
-        }
-
-        public void Reset()
-        {
-            m_CurFeat = m_Model.IFirstFeature();
-            m_ProcessedFeatures.Clear();
-            m_ProcessedFeatures.Add(m_CurFeat);
-            m_IsSubFeat = false;
-        }
+        protected override IFeature GetFirstFeature() => m_Model.IFirstFeature();
     }
 }

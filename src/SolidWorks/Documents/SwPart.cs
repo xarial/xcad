@@ -7,10 +7,13 @@
 
 using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
+using System.Collections.Generic;
 using System.Linq;
 using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
+using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;
+using Xarial.XCad.SolidWorks.Geometry;
 using Xarial.XCad.Utils.Diagnostics;
 
 namespace Xarial.XCad.SolidWorks.Documents
@@ -19,10 +22,13 @@ namespace Xarial.XCad.SolidWorks.Documents
     {
         public IPartDoc Part { get; }
 
+        public IXBodyRepository Bodies { get; }
+
         internal SwPart(IPartDoc part, SwApplication app, IXLogger logger)
             : base((IModelDoc2)part, app, logger)
         {
             Part = part;
+            Bodies = new SwPartBodyCollection(this);
         }
 
         public override Box3D CalculateBoundingBox()
@@ -90,5 +96,18 @@ namespace Xarial.XCad.SolidWorks.Documents
 
             return new Box3D(minX, minY, minZ, maxX, maxY, maxZ);
         }
+    }
+
+    internal class SwPartBodyCollection : SwBodyCollection
+    {
+        private IPartDoc m_Part;
+
+        public SwPartBodyCollection(SwPart rootDoc) : base(rootDoc)
+        {
+            m_Part = rootDoc.Part;
+        }
+
+        protected override IEnumerable<IBody2> GetSwBodies()
+            => (m_Part.GetBodies2((int)swBodyType_e.swAllBodies, false) as object[])?.Cast<IBody2>();
     }
 }

@@ -111,7 +111,10 @@ namespace Xarial.XCad.SolidWorks
                     return new SwComponent(comp, (SwAssembly)doc);
 
                 case ISheet sheet:
-                    return new SwSheet(doc.Model as IDrawingDoc, sheet);
+                    return new SwSheet((SwDrawing)doc, sheet);
+
+                case IView view:
+                    return new SwDrawingView(view, (SwDrawing)doc);
 
                 default:
                     return defaultHandler.Invoke(disp);

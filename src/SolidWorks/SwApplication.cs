@@ -58,18 +58,24 @@ namespace Xarial.XCad.SolidWorks
 
         public event ApplicationLoadedDelegate Loaded;
 
-        public static SwApplication FromPointer(ISldWorks app)
+        public static SwApplication FromPointer(ISldWorks app) 
+            => FromPointer(app, new TraceLogger("xCAD"));
+        
+        public static SwApplication FromPointer(ISldWorks app, IXLogger logger)
         {
-            return new SwApplication(app, new TraceLogger("xCAD"));
+            return new SwApplication(app, logger);
         }
 
-        public static SwApplication FromProcess(Process process)
+        public static SwApplication FromProcess(Process process) 
+            => FromProcess(process, new TraceLogger("xCAD"));
+
+        public static SwApplication FromProcess(Process process, IXLogger logger)
         {
             var app = RotHelper.TryGetComObjectByMonikerName<ISldWorks>(GetMonikerName(process));
 
             if (app != null)
             {
-                return FromPointer(app);
+                return FromPointer(app, logger);
             }
             else
             {
@@ -82,10 +88,7 @@ namespace Xarial.XCad.SolidWorks
         ///<inheritdoc cref="Start(SwVersion_e?, string, CancellationToken?)"/>
         ///<remarks>Default timeout is 5 minutes. Use different overload of this method to specify custom cancellation token</remarks>
         public static SwApplication Start(SwVersion_e? vers = null,
-            string args = "")
-        {
-            return Start(vers, args, new CancellationTokenSource(TimeSpan.FromMinutes(5)).Token);
-        }
+            string args = "") => Start(vers, args, new CancellationTokenSource(TimeSpan.FromMinutes(5)).Token);
 
         /// <summary>
         /// Starts new instance of the SOLIDWORKS application
@@ -94,7 +97,13 @@ namespace Xarial.XCad.SolidWorks
         /// <param name="cancellationToken">Cancellation token</param>
         /// <returns>Instance of application</returns>
         public static SwApplication Start(SwVersion_e? vers,
-            string args, CancellationToken? cancellationToken = null)
+            string args, CancellationToken? cancellationToken = null) 
+            => Start(vers, args, new TraceLogger("xCAD"), cancellationToken);
+
+        ///<inheritdoc cref="Start(SwVersion_e?, string, CancellationToken?)"/>
+        /// <param name="logger">Logger</param>
+        public static SwApplication Start(SwVersion_e? vers,
+            string args, IXLogger logger, CancellationToken? cancellationToken = null)
         {
             var swPath = FindSwAppPath(vers);
 
@@ -119,7 +128,7 @@ namespace Xarial.XCad.SolidWorks
                 }
                 while (app == null);
 
-                return FromPointer(app);
+                return FromPointer(app, logger);
             }
             catch
             {
