@@ -15,15 +15,15 @@ namespace Xarial.XCad.SolidWorks.Documents
 {
     public class SwSheet : SwObject, IXSheet
     {
-        private readonly ISheet m_Sheet;
+        public ISheet Sheet { get; }
         private readonly SwDrawing m_Drawing;
 
         public string Name
         {
-            get => m_Sheet.GetName();
+            get => Sheet.GetName();
             set 
             {
-                m_Sheet.SetName(value);
+                Sheet.SetName(value);
             }
         }
 
@@ -35,7 +35,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         internal SwSheet(SwDrawing draw, ISheet sheet) : base(sheet)
         {
             m_Drawing = draw;
-            m_Sheet = sheet;
+            Sheet = sheet;
             DrawingViews = new SwDrawingViewsCollection(draw, sheet);
         }
     }

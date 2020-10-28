@@ -7,9 +7,19 @@
 
 namespace Xarial.XCad.Sketch
 {
+    /// <summary>
+    /// Represents the sketch segmetn element
+    /// </summary>
     public interface IXSketchSegment : IXSketchEntity
     {
+        /// <summary>
+        /// Start point of this sketch segment
+        /// </summary>
         IXSketchPoint StartPoint { get; }
+
+        /// <summary>
+        /// End point of this sketch segment
+        /// </summary>
         IXSketchPoint EndPoint { get; }
     }
 }

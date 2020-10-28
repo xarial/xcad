@@ -20,6 +20,8 @@ using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Sketch;
 using Xarial.XCad.SolidWorks;
+using Xarial.XCad.SolidWorks.Documents;
+using Xarial.XCad.Toolkit.Utils;
 
 namespace StandAlone
 {
@@ -29,8 +31,10 @@ namespace StandAlone
         {
             //var app = SwApplication.Start(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020);
             var app = SwApplication.FromProcess(Process.GetProcessesByName("SLDWORKS").First());
+                       
+            //SketchSegmentColors(app);
 
-            CreateDrawingView(app);
+            //CreateDrawingView(app);
 
             //var sw = Activator.CreateInstance(Type.GetTypeFromProgID("SldWorks.Application")) as ISldWorks;
             //sw.Visible = true;
@@ -40,6 +44,13 @@ namespace StandAlone
             //CreateSketchEntities(app);
 
             //TraverseSelectedFaces(app);
+        }
+        
+        private static void SketchSegmentColors(IXApplication app) 
+        {
+            var seg = app.Documents.Active.Selections.First() as IXSketchSegment;
+            var color = seg.Color;
+            seg.Color = System.Drawing.Color.Purple;
         }
 
         private static void CreateDrawingView(IXApplication app) 

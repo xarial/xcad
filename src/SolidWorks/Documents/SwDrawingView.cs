@@ -48,6 +48,16 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public override bool IsCommitted => m_Creator.IsCreated;
 
+        public override void Select(bool append)
+        {
+            const string DRW_VIEW_TYPE_NAME = "DRAWINGVIEW";
+
+            if (!m_ModelDoc.Extension.SelectByID2(DrawingView.Name, DRW_VIEW_TYPE_NAME, 0, 0, 0, append, 0, null, 0)) 
+            {
+                throw new Exception("Failed to select drawing view");
+            }
+        }
+
         private IView CreateDrawingViewElement() 
         {
             var curSheet = m_Drawing.Drawing.GetCurrentSheet() as ISheet;
@@ -179,7 +189,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         protected override IView CreateDrawingView()
         {
             var drwView = m_Drawing.Drawing.CreateDrawViewFromModelView3(
-                m_ModelDoc.GetPathName(), m_BaseModelView.Name, Location.X, Location.Y, Location.Z);
+                m_BaseModelView.Owner.GetPathName(), m_BaseModelView.Name, Location.X, Location.Y, Location.Z);
 
             if (drwView == null)
             {

@@ -72,7 +72,9 @@ namespace Xarial.XCad.SolidWorks.Documents
 
             var disps = ents.Cast<SwSelObject>().Select(e => new DispatchWrapper(e.Dispatch)).ToArray();
 
-            var selCount = Model.Extension.MultiSelect2(disps, true, null);
+            var curSelCount = SelMgr.GetSelectedObjectCount2(-1);
+
+            var selCount = Model.Extension.MultiSelect2(disps, true, null) - curSelCount;
 
             if (selCount != disps.Length) 
             {

@@ -16,6 +16,7 @@ using Xarial.XCad.SolidWorks.Enums;
 using Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls;
 using Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Icons;
 using Xarial.XCad.SolidWorks.Utils;
+using Xarial.XCad.Toolkit.Utils;
 using Xarial.XCad.UI.PropertyPage.Attributes;
 using Xarial.XCad.UI.PropertyPage.Enums;
 using Xarial.XCad.Utils.PageBuilder.Base;
@@ -236,7 +237,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
         {
             var color = Color.FromKnownColor(knownColor);
 
-            return (color.R << 0) | (color.G << 8) | (color.B << 16);
+            return ColorUtils.ToColorRef(color);
         }
 
         public virtual void PostProcessControls(IEnumerable<IPropertyManagerPageControlEx> ctrls)

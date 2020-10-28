@@ -19,7 +19,7 @@ namespace Xarial.XCad.SolidWorks.Documents
     {
         private readonly IMathUtility m_MathUtils;
 
-        private readonly IModelDoc2 m_Model;
+        internal IModelDoc2 Owner { get; }
 
         public virtual Rectangle ScreenRect
         {
@@ -28,7 +28,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                 var box = View.GetVisibleBox() as int[];
 
                 //TODO: potential issue if feature manager is not docked on left
-                var featMgrWidth = m_Model.GetFeatureManagerWidth();
+                var featMgrWidth = Owner.GetFeatureManagerWidth();
 
                 return new Rectangle(box[0] + featMgrWidth, box[1], box[2] - box[0] - featMgrWidth, box[3] - box[1]);
             }
@@ -90,7 +90,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         internal SwModelView(IModelDoc2 model, IModelView view, IMathUtility mathUtils)
         {
             View = view;
-            m_Model = model;
+            Owner = model;
             m_MathUtils = mathUtils;
         }
 
@@ -114,7 +114,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             var pt1 = mathPt1.IMultiplyTransform(transform).ArrayData as double[];
             var pt2 = mathPt2.IMultiplyTransform(transform).ArrayData as double[];
 
-            m_Model.ViewZoomTo2(pt1[0], pt1[1], pt1[2], pt2[0], pt2[1], pt2[2]);
+            Owner.ViewZoomTo2(pt1[0], pt1[1], pt1[2], pt2[0], pt2[1], pt2[2]);
         }
     }
 
