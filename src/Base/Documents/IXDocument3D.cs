@@ -21,9 +21,9 @@ namespace Xarial.XCad.Documents
         Box3D CalculateBoundingBox();
 
         /// <summary>
-        /// Returns the active view of this document
+        /// Returns views collection
         /// </summary>
-        IXView ActiveView { get; }
+        IXViewRepository Views { get; }
 
         /// <summary>
         /// Returns configurations of this document

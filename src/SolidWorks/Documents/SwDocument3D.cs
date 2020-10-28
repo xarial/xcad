@@ -18,17 +18,19 @@ namespace Xarial.XCad.SolidWorks.Documents
     {
         private readonly IMathUtility m_MathUtils;
 
-        IXView IXDocument3D.ActiveView => ActiveView;
         IXConfigurationRepository IXDocument3D.Configurations => Configurations;
+        IXViewRepository IXDocument3D.Views => ModelViews;
 
         internal SwDocument3D(IModelDoc2 model, SwApplication app, IXLogger logger) : base(model, app, logger)
         {
             m_MathUtils = app.Sw.IGetMathUtility();
             Configurations = new SwConfigurationCollection(app.Sw, this);
+            ModelViews = new SwModelViewsCollection(this, m_MathUtils);
         }
 
-        public SwModelView ActiveView => new SwModelView(Model, Model.IActiveView, m_MathUtils);
         public SwConfigurationCollection Configurations { get; }
+
+        public SwModelViewsCollection ModelViews { get; }
 
         public abstract Box3D CalculateBoundingBox();
 
