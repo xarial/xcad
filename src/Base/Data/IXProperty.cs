@@ -8,16 +8,38 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Xarial.XCad.Base;
 using Xarial.XCad.Data.Delegates;
 
 namespace Xarial.XCad.Data
 {
-    public interface IXProperty
+    /// <summary>
+    /// Represents the custom property
+    /// </summary>
+    public interface IXProperty : IXTransaction
     {
         event PropertyValueChangedDelegate ValueChanged;
-
-        bool Exists { get; }
+        
+        /// <summary>
+        /// Name of the property
+        /// </summary>
         string Name { get; set; }
+
+        /// <summary>
+        /// Property value
+        /// </summary>
         object Value { get; set; }
+    }
+
+
+    /// <summary>
+    /// Additional methods for property
+    /// </summary>
+    public static class IXPropertyExtension 
+    {
+        /// <summary>
+        /// True if this property exists
+        /// </summary>
+        public static bool Exists(this IXProperty prp) => prp.IsCommitted;
     }
 }

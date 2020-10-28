@@ -8,6 +8,18 @@ This page contains list of the most notable changes in the releases of xCAD.NET.
 
 Breaking change is marked with &#x26A0; symbol
 
+## 0.6.6 - October, 29 2020
+
+* Implemented [#36 - Add ability to configure services for dependency injection](https://github.com/xarial/xcad/issues/36)
+* Implemented [#37 - Add options to add colors to faces, bodies and features](https://github.com/xarial/xcad/issues/37)
+* Implemented [#38 - Add support for drawing views](https://github.com/xarial/xcad/issues/38)
+* Implemented [#39 - Add ability to read feature tree from IXComponent](https://github.com/xarial/xcad/issues/39)
+* Fixed [#40 - SwAssembly.Components returns empty enumerable in add-in bug](https://github.com/xarial/xcad/issues/40)
+* Fixed [#41 - IXSelectionRepository::Add fails if other objects were preselected bug](https://github.com/xarial/xcad/issues/41)
+* &#x26A0; IXProperty::Exists moved to an extension method instead of property
+* &#x26A0; IXDocument3D::ActiveView moved to IXDocument3D::Views::Active
+* &#x26A0; IXDocumentCollection renamed to IXDocumentRepository
+
 ## 0.6.5 - October, 14 2020
 
 * Implemented [#33 - Add event when extension and host application is fully loaded](https://github.com/xarial/xcad/issues/33)

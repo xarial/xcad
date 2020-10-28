@@ -31,6 +31,7 @@ using Xarial.XCad.SolidWorks.UI.Commands.Exceptions;
 using Xarial.XCad.SolidWorks.UI.Commands.Toolkit.Structures;
 using Xarial.XCad.SolidWorks.UI.PropertyPage;
 using Xarial.XCad.SolidWorks.Utils;
+using Xarial.XCad.Toolkit;
 using Xarial.XCad.UI;
 using Xarial.XCad.UI.Commands;
 using Xarial.XCad.UI.PropertyPage;
@@ -42,7 +43,7 @@ namespace Xarial.XCad.SolidWorks
 {
     /// <inheritdoc/>
     [ComVisible(true)]
-    public abstract class SwAddInEx : IXExtension, ISwAddin, IDisposable
+    public abstract class SwAddInEx : IXExtension, ISwAddin, IXServiceConsumer, IDisposable
     {
         #region Registration
 
@@ -105,13 +106,23 @@ namespace Xarial.XCad.SolidWorks
 
         private readonly List<IDisposable> m_Disposables;
 
+        private readonly IServiceProvider m_SvcProvider;
+
         public SwAddInEx()
         {
             var addInType = this.GetType();
             var title = GetRegistrationHelper(addInType).GetTitle(addInType);
 
-            Logger = new TraceLogger($"XCad.AddIn.{title}");
+            var svcColl = new ServiceCollection();
 
+            svcColl.AddOrReplace<IXLogger>(() => new TraceLogger($"XCad.AddIn.{title}"));
+
+            ConfigureServices(svcColl);
+
+            m_SvcProvider = svcColl.CreateProvider();
+
+            Logger = m_SvcProvider.GetService<IXLogger>();
+            
             m_Disposables = new List<IDisposable>();
         }
 
@@ -422,6 +433,10 @@ namespace Xarial.XCad.SolidWorks
                         return new SwFeatureMgrTab<TControl>(ctrl, featMgr, doc);
                     });
             }
+        }
+
+        public virtual void ConfigureServices(IXServiceCollection collection)
+        {
         }
     }
 

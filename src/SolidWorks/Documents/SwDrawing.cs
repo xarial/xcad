@@ -6,6 +6,7 @@
 //*********************************************************************
 
 using SolidWorks.Interop.sldworks;
+using SolidWorks.Interop.swconst;
 using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Utils.Diagnostics;
@@ -14,15 +15,16 @@ namespace Xarial.XCad.SolidWorks.Documents
 {
     public class SwDrawing : SwDocument, IXDrawing
     {
-        public IDrawingDoc Drawing { get; }
+        public IDrawingDoc Drawing => Model as IDrawingDoc;
 
         public IXSheetRepository Sheets { get; }
 
-        internal SwDrawing(IDrawingDoc drawing, SwApplication app, IXLogger logger)
-            : base((IModelDoc2)drawing, app, logger)
+        internal SwDrawing(IDrawingDoc drawing, SwApplication app, IXLogger logger, bool isCreated)
+            : base((IModelDoc2)drawing, app, logger, isCreated)
         {
-            Drawing = drawing;
             Sheets = new SwSheetCollection(this);
         }
+
+        protected override swUserPreferenceStringValue_e DefaultTemplate => swUserPreferenceStringValue_e.swDefaultTemplateDrawing;
     }
 }

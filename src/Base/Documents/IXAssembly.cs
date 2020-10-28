@@ -7,8 +7,14 @@
 
 namespace Xarial.XCad.Documents
 {
+    /// <summary>
+    /// Represents an assembly document (composition of <see cref="IXPart"/> and other <see cref="IXAssembly"/>)
+    /// </summary>
     public interface IXAssembly : IXDocument3D
     {
+        /// <summary>
+        /// Components in this assembly
+        /// </summary>
         IXComponentRepository Components { get; }
     }
 }

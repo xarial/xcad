@@ -5,9 +5,18 @@
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
+using Xarial.XCad.Geometry;
+
 namespace Xarial.XCad.Documents
 {
+    /// <summary>
+    /// Represents the part document
+    /// </summary>
     public interface IXPart : IXDocument3D
     {
+        /// <summary>
+        /// Bodies in this part document
+        /// </summary>
+        IXBodyRepository Bodies { get; }
     }
 }

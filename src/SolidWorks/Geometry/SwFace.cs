@@ -6,11 +6,14 @@
 //*********************************************************************
 
 using SolidWorks.Interop.sldworks;
+using SolidWorks.Interop.swconst;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Text;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;
+using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.Utils.Reflection;
 
 namespace Xarial.XCad.SolidWorks.Geometry
@@ -38,6 +41,17 @@ namespace Xarial.XCad.SolidWorks.Geometry
         }
 
         public double Area => Face.GetArea();
+
+        private IComponent2 Component => (Face as IEntity).GetComponent() as IComponent2;
+
+        public Color? Color 
+        {
+            get => SwColorHelper.GetColor(Face, Component, 
+                (o, c) => Face.GetMaterialPropertyValues2((int)o, c) as double[]);
+            set => SwColorHelper.SetColor(Face, value, Component,
+                (m, o, c) => Face.SetMaterialPropertyValues2(m, (int)o, c),
+                (o, c) => Face.RemoveMaterialProperty2((int)o, c));
+        }
     }
 
     public class SwPlanarFace : SwFace, IXPlanarFace
@@ -55,13 +69,13 @@ namespace Xarial.XCad.SolidWorks.Geometry
         {
         }
 
-        public Point Origin
+        public XCad.Geometry.Structures.Point Origin
         {
             get
             {
                 var cylParams = CylinderParams;
 
-                return new Point(cylParams[0], cylParams[1], cylParams[2]);
+                return new XCad.Geometry.Structures.Point(cylParams[0], cylParams[1], cylParams[2]);
             }
         }
 

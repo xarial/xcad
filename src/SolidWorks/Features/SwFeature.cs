@@ -8,11 +8,13 @@
 using SolidWorks.Interop.sldworks;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using Xarial.XCad.Annotations;
 using Xarial.XCad.Features;
 using Xarial.XCad.Services;
 using Xarial.XCad.SolidWorks.Annotations;
 using Xarial.XCad.SolidWorks.Documents;
+using Xarial.XCad.SolidWorks.Utils;
 
 namespace Xarial.XCad.SolidWorks.Features
 {
@@ -30,13 +32,7 @@ namespace Xarial.XCad.SolidWorks.Features
             }
         }
 
-        internal bool IsCreated
-        {
-            get
-            {
-                return m_Creator.IsCreated;
-            }
-        }
+        internal bool IsCreated => m_Creator.IsCreated;
 
         private readonly SwDocument m_Doc;
 
@@ -70,7 +66,20 @@ namespace Xarial.XCad.SolidWorks.Features
             get => Feature.Name;
             set => Feature.Name = value;
         }
-        
+
+        private IComponent2 Component => (Feature as IEntity).GetComponent() as IComponent2;
+
+        public Color? Color
+        {
+            get => SwColorHelper.GetColor(Feature, Component,
+                (o, c) => Feature.GetMaterialPropertyValues2((int)o, c) as double[]);
+            set => SwColorHelper.SetColor(Feature, value, Component,
+                (m, o, c) => Feature.SetMaterialPropertyValues2(m, (int)o, c),
+                (o, c) => Feature.RemoveMaterialProperty2((int)o, c));
+        }
+
+        public override bool IsCommitted => IsCreated;
+
         public override void Select(bool append)
         {
             if (!Feature.Select2(append, 0))

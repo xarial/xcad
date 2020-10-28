@@ -105,13 +105,16 @@ namespace Xarial.XCad.SolidWorks
                     return new SwDimension(doc.Model, dispDim);
 
                 case IConfiguration conf:
-                    return new SwConfiguration(doc.App.Sw, doc.Model, conf);
+                    return new SwConfiguration(doc, conf);
 
                 case IComponent2 comp:
                     return new SwComponent(comp, (SwAssembly)doc);
 
                 case ISheet sheet:
-                    return new SwSheet(doc.Model as IDrawingDoc, sheet);
+                    return new SwSheet((SwDrawing)doc, sheet);
+
+                case IView view:
+                    return new SwDrawingView(view, (SwDrawing)doc);
 
                 default:
                     return defaultHandler.Invoke(disp);

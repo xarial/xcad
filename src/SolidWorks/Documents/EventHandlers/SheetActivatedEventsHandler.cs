@@ -19,7 +19,7 @@ namespace Xarial.XCad.SolidWorks.Documents.EventHandlers
     {
         private SwDrawing m_Doc;
 
-        internal SheetActivatedEventsHandler(SwDrawing doc) : base(doc.Model)
+        internal SheetActivatedEventsHandler(SwDrawing doc) : base(doc)
         {
             m_Doc = doc;
         }

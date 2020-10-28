@@ -43,7 +43,7 @@ namespace Xarial.XCad
         /// <summary>
         /// Accesses the documents repository
         /// </summary>
-        IXDocumentCollection Documents { get; }
+        IXDocumentRepository Documents { get; }
 
         /// <summary>
         /// Accesses geometry builder to build primitive geometry

@@ -6,15 +6,35 @@
 //*********************************************************************
 
 using System.Drawing;
+using Xarial.XCad.Base;
 using Xarial.XCad.Geometry.Structures;
 
 namespace Xarial.XCad.Documents
 {
-    public interface IXView
+    /// <summary>
+    /// Represents the model view
+    /// </summary>
+    public interface IXView : IXTransaction
     {
+        /// <summary>
+        /// Freezes all view updates
+        /// </summary>
+        /// <param name="freeze">True to suppress all updates</param>
         void Freeze(bool freeze);
+
+        /// <summary>
+        /// Transformation of this view related to the model origin
+        /// </summary>
         TransformMatrix Transform { get; set; }
+
+        /// <summary>
+        /// Transformation of this view related to the screen coordinates
+        /// </summary>
         TransformMatrix ScreenTransform { get; }
+
+        /// <summary>
+        /// View boundaries
+        /// </summary>
         Rectangle ScreenRect { get; }
 
         /// <summary>
@@ -23,6 +43,82 @@ namespace Xarial.XCad.Documents
         /// <param name="box">Box to zoom to</param>
         void ZoomToBox(Box3D box);
 
+        /// <summary>
+        /// Refreshes the view
+        /// </summary>
         void Update();
+    }
+
+    /// <summary>
+    /// Represents the view which contains name
+    /// </summary>
+    public interface IXNamedView : IXView 
+    {
+        /// <summary>
+        /// Name of the view
+        /// </summary>
+        string Name { get; }
+    }
+
+    /// <summary>
+    /// Represents the one of the standard views
+    /// </summary>
+    public interface IXStandardView : IXView 
+    {
+        /// <summary>
+        /// Type of this standard view
+        /// </summary>
+        StandardViewType_e Type { get; }
+    }
+
+    /// <summary>
+    /// Standard 3D views of the model
+    /// </summary>
+    public enum StandardViewType_e 
+    {
+        /// <summary>
+        /// Front view
+        /// </summary>
+        Front,
+
+        /// <summary>
+        /// Back view
+        /// </summary>
+        Back,
+
+        /// <summary>
+        /// Left view
+        /// </summary>
+        Left,
+
+        /// <summary>
+        /// Right view
+        /// </summary>
+        Right,
+
+        /// <summary>
+        /// Top view
+        /// </summary>
+        Top,
+
+        /// <summary>
+        /// Bottom view
+        /// </summary>
+        Bottom,
+
+        /// <summary>
+        /// Isometric view
+        /// </summary>
+        Isometric,
+
+        /// <summary>
+        /// Trimetric view
+        /// </summary>
+        Trimetric,
+
+        /// <summary>
+        /// Dimetric view
+        /// </summary>
+        Dimetric
     }
 }

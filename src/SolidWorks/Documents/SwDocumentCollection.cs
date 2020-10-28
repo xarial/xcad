@@ -26,18 +26,18 @@ using Xarial.XCad.Utils.Diagnostics;
 namespace Xarial.XCad.SolidWorks.Documents
 {
     [DebuggerDisplay("Documents: {" + nameof(Count) + "}")]
-    public class SwDocumentCollection : IXDocumentCollection, IDisposable
+    public class SwDocumentCollection : IXDocumentRepository, IDisposable
     {
         public event DocumentCreateDelegate DocumentCreated;
         public event DocumentActivateDelegate DocumentActivated;
 
-        IXDocument IXDocumentCollection.Active 
+        IXDocument IXDocumentRepository.Active 
         {
             get => Active;
             set => Active = (SwDocument)value;
         }
 
-        IXDocument IXDocumentCollection.Open(DocumentOpenArgs args) => Open(args);
+        IXDocument IXDocumentRepository.Open(DocumentOpenArgs args) => Open(args);
 
         private const int S_OK = 0;
 
@@ -75,6 +75,21 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
 
         public int Count => m_Documents.Count;
+
+        public IXDocument this[string name] 
+        {
+            get 
+            {
+                if (TryGet(name, out IXDocument doc))
+                {
+                    return doc;
+                }
+                else 
+                {
+                    throw new Exception("Failed to find the document by name");
+                }
+            }
+        }
 
         private readonly Dictionary<string, swDocumentTypes_e> m_NativeFileExts;
         
@@ -273,15 +288,15 @@ namespace Xarial.XCad.SolidWorks.Documents
                 switch (model)
                 {
                     case IPartDoc part:
-                        doc = new SwPart(part, m_App, m_Logger);
+                        doc = new SwPart(part, m_App, m_Logger, true);
                         break;
 
                     case IAssemblyDoc assm:
-                        doc = new SwAssembly(assm, m_App, m_Logger);
+                        doc = new SwAssembly(assm, m_App, m_Logger, true);
                         break;
 
                     case IDrawingDoc drw:
-                        doc = new SwDrawing(drw, m_App, m_Logger);
+                        doc = new SwDrawing(drw, m_App, m_Logger, true);
                         break;
 
                     default:
@@ -349,6 +364,58 @@ namespace Xarial.XCad.SolidWorks.Documents
         public THandler GetHandler<THandler>(IXDocument doc) where THandler : IDocumentHandler, new()
         {
             return m_DocsHandler.GetHandler<THandler>(doc);
+        }
+
+        TDocument IXDocumentRepository.PreCreate<TDocument>()
+        {
+            if (typeof(TDocument).IsAssignableFrom(typeof(SwPart)))
+            {
+                return new SwPart(null, m_App, m_Logger, false) as TDocument;
+            }
+            else if (typeof(TDocument).IsAssignableFrom(typeof(SwAssembly)))
+            {
+                return new SwAssembly(null, m_App, m_Logger, false) as TDocument;
+            }
+            else if (typeof(TDocument).IsAssignableFrom(typeof(SwDrawing)))
+            {
+                return new SwDrawing(null, m_App, m_Logger, false) as TDocument;
+            }
+            else 
+            {
+                throw new NotSupportedException("Creation of this type of document is not supported");
+            }
+        }
+
+        public bool TryGet(string name, out IXDocument ent)
+        {
+            var model = m_SwApp.GetOpenDocumentByName(name) as IModelDoc2;
+            ent = null;
+
+            if (model != null)
+            {
+                SwDocument doc;
+
+                if (m_Documents.TryGetValue(model, out doc))
+                {
+                    ent = doc;
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public void AddRange(IEnumerable<IXDocument> ents)
+        {
+            foreach (SwDocument doc in ents) 
+            {
+                doc.Create();
+            }
+        }
+
+        public void RemoveRange(IEnumerable<IXDocument> ents)
+        {
+            throw new NotImplementedException();
         }
     }
 }

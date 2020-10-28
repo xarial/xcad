@@ -8,8 +8,10 @@
 using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
 using System;
+using System.Drawing;
 using System.Linq;
 using Xarial.XCad.Geometry;
+using Xarial.XCad.SolidWorks.Utils;
 
 namespace Xarial.XCad.SolidWorks.Geometry
 {
@@ -33,6 +35,30 @@ namespace Xarial.XCad.SolidWorks.Geometry
             set
             {
                 Body.HideBody(!value);
+            }
+        }
+
+        public string Name => Body.Name;
+
+        private IComponent2 Component => (Body.IGetFirstFace() as IEntity)?.GetComponent() as IComponent2;
+
+        public Color? Color
+        {
+            get => SwColorHelper.FromMaterialProperties(Body.MaterialPropertyValues2 as double[]);
+            set
+            {
+                if (value.HasValue)
+                {
+                    var matPrps = SwColorHelper.ToMaterialProperties(value.Value);
+                    Body.MaterialPropertyValues2 = matPrps;
+                }
+                else 
+                {
+                    SwColorHelper.GetColorScope(Component, 
+                        out swInConfigurationOpts_e confOpts, out string[] confs);
+
+                    Body.RemoveMaterialProperty((int)confOpts, confs);
+                }
             }
         }
 
