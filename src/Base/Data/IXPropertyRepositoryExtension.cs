@@ -18,7 +18,7 @@ namespace Xarial.XCad.Data
         {
             var prp = prps.GetOrPreCreate(prpName);
             prp.Value = prpVal;
-            if (!prp.Exists)
+            if (!prp.Exists())
             {
                 prps.Add(prp);
             }

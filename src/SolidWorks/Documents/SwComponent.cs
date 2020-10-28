@@ -10,6 +10,7 @@ using SolidWorks.Interop.swconst;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using Xarial.XCad.Base;
@@ -119,69 +120,58 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
     }
 
-    internal class ComponentFeatureRepository : IXFeatureRepository
+    internal class ComponentFeatureRepository : SwFeatureManager
     {
-        IXFeature IXRepository<IXFeature>.this[string name] => this[name];
-
         private readonly SwAssembly m_Assm;
         private readonly IComponent2 m_Comp;
 
         public ComponentFeatureRepository(SwAssembly assm, IComponent2 comp) 
+            : base(assm, assm.Model.FeatureManager)
         {
             m_Assm = assm;
             m_Comp = comp;
         }
-        
-        public int Count => throw new NotImplementedException();
 
-        public void AddRange(IEnumerable<IXFeature> ents)
+        public override void AddRange(IEnumerable<IXFeature> feats)
         {
-            throw new NotImplementedException();
-        }
-
-        public IEnumerator<IXFeature> GetEnumerator() => new ComponentFeatureEnumerator(m_Assm, m_Comp);
-
-        public IXSketch2D PreCreate2DSketch()
-        {
-            throw new NotImplementedException();
-        }
-
-        public IXSketch3D PreCreate3DSketch()
-        {
-            throw new NotImplementedException();
-        }
-
-        public IXCustomFeature PreCreateCustomFeature()
-        {
-            throw new NotImplementedException();
-        }
-
-        public IXCustomFeature<TParams> PreCreateCustomFeature<TParams>() where TParams : class, new()
-        {
-            throw new NotImplementedException();
-        }
-
-        public void RemoveRange(IEnumerable<IXFeature> ents)
-        {
-            throw new NotImplementedException();
-        }
-
-        public SwFeature this[string name]
-        {
-            get
+            try
             {
-                if (TryGet(name, out IXFeature ent))
+                if (m_Comp.Select4(false, null, false))
                 {
-                    return (SwFeature)ent;
+                    var isAssm = string.Equals(Path.GetExtension(m_Comp.GetPathName()),
+                        ".sldasm", StringComparison.CurrentCultureIgnoreCase);
+
+                    if (isAssm)
+                    {
+                        m_Assm.Assembly.EditAssembly();
+                    }
+                    else 
+                    {
+                        int inf = -1;
+                        m_Assm.Assembly.EditPart2(true, false, ref inf);
+                    }
+
+                    base.AddRange(feats);
                 }
-                else
+                else 
                 {
-                    throw new NullReferenceException($"Feature '{name}' is not found");
+                    throw new Exception("Failed to select component to insert features");
                 }
+            }
+            catch 
+            {
+                throw;
+            }
+            finally
+            {
+                m_Assm.Model.ClearSelection2(true);
+                m_Assm.Assembly.EditAssembly();
             }
         }
 
-        public bool TryGet(string name, out IXFeature ent)
+        public override IEnumerator<IXFeature> GetEnumerator() => new ComponentFeatureEnumerator(m_Assm, m_Comp);
+        
+        public override bool TryGet(string name, out IXFeature ent)
         {
             var feat = m_Comp.FeatureByName(name);
 
@@ -196,13 +186,6 @@ namespace Xarial.XCad.SolidWorks.Documents
                 return false;
             }
         }
-
-        void IXFeatureRepository.CreateCustomFeature<TDef, TParams, TPage>()
-        {
-            throw new NotImplementedException();
-        }
-
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
 
     internal class ComponentFeatureEnumerator : FeatureEnumerator

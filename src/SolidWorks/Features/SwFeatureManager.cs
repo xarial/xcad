@@ -45,7 +45,7 @@ namespace Xarial.XCad.SolidWorks.Features
             }
         }
 
-        public bool TryGet(string name, out IXFeature ent)
+        public virtual bool TryGet(string name, out IXFeature ent)
         {
             IFeature feat;
 
@@ -79,14 +79,14 @@ namespace Xarial.XCad.SolidWorks.Features
             }
         }
 
-        internal SwFeatureManager(SwDocument doc, IFeatureManager featMgr, ISldWorks app)
+        internal SwFeatureManager(SwDocument doc, IFeatureManager featMgr)
         {
             m_Doc = doc;
-            m_ParamsParser = new MacroFeatureParametersParser(app);
+            m_ParamsParser = new MacroFeatureParametersParser(doc.SwApp);
             m_FeatMgr = featMgr;
         }
 
-        public void AddRange(IEnumerable<IXFeature> feats)
+        public virtual void AddRange(IEnumerable<IXFeature> feats)
         {
             if (feats == null)
             {
@@ -99,17 +99,23 @@ namespace Xarial.XCad.SolidWorks.Features
             }
         }
 
-        public IXSketch2D PreCreate2DSketch()
+        public TSketch PreCreateSketch<TSketch>() where TSketch : class, IXSketchBase
         {
-            return new SwSketch2D(m_Doc, null, false);
+            if (typeof(TSketch).IsAssignableFrom(typeof(IXSketch2D)))
+            {
+                return new SwSketch2D(m_Doc, null, false) as TSketch;
+            }
+            else if (typeof(TSketch).IsAssignableFrom(typeof(IXSketch3D)))
+            {
+                return new SwSketch3D(m_Doc, null, false) as TSketch;
+            }
+            else 
+            {
+                throw new Exception("Sketch type is not supported");
+            }
         }
 
-        public IXSketch3D PreCreate3DSketch()
-        {
-            return new SwSketch3D(m_Doc, null, false);
-        }
-
-        public IEnumerator<IXFeature> GetEnumerator()
+        public virtual IEnumerator<IXFeature> GetEnumerator()
         {
             return new DocumentFeatureEnumerator(m_Doc);
         }

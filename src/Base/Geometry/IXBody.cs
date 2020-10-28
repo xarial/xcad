@@ -5,12 +5,14 @@
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
+using Xarial.XCad.Base;
+
 namespace Xarial.XCad.Geometry
 {
     /// <summary>
     /// Represents the body object
     /// </summary>
-    public interface IXBody : IXSelObject, IXColorizable
+    public interface IXBody : IXSelObject, IXColorizable, IXTransaction
     {
         /// <summary>
         /// Name of the body

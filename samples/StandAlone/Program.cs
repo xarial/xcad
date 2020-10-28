@@ -14,6 +14,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Xarial.XCad;
 using Xarial.XCad.Base;
+using Xarial.XCad.Features;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Sketch;

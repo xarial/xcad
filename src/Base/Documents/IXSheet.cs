@@ -8,13 +8,14 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Xarial.XCad.Base;
 
 namespace Xarial.XCad.Documents
 {
     /// <summary>
     /// Represents the drawing sheet
     /// </summary>
-    public interface IXSheet
+    public interface IXSheet : IXTransaction
     {
         /// <summary>
         /// Name of the sheet

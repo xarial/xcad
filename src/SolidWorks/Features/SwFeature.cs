@@ -32,13 +32,7 @@ namespace Xarial.XCad.SolidWorks.Features
             }
         }
 
-        internal bool IsCreated
-        {
-            get
-            {
-                return m_Creator.IsCreated;
-            }
-        }
+        internal bool IsCreated=> m_Creator.IsCreated;
 
         private readonly SwDocument m_Doc;
 
@@ -83,6 +77,8 @@ namespace Xarial.XCad.SolidWorks.Features
                 (m, o, c) => Feature.SetMaterialPropertyValues2(m, (int)o, c),
                 (o, c) => Feature.RemoveMaterialProperty2((int)o, c));
         }
+
+        public override bool IsCommitted => IsCreated;
 
         public override void Select(bool append)
         {

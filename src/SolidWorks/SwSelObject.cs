@@ -20,6 +20,8 @@ namespace Xarial.XCad.SolidWorks
         
         protected readonly IModelDoc2 m_ModelDoc;
 
+        public virtual bool IsCommitted => true;
+
         internal SwSelObject(object disp) : this(null, disp)
         {
         }

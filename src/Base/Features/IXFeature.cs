@@ -6,10 +6,11 @@
 //*********************************************************************
 
 using Xarial.XCad.Annotations;
+using Xarial.XCad.Base;
 
 namespace Xarial.XCad.Features
 {
-    public interface IXFeature : IXSelObject, IXColorizable
+    public interface IXFeature : IXSelObject, IXColorizable, IXTransaction
     {
         string Name { get; set; }
         IXDimensionRepository Dimensions { get; }

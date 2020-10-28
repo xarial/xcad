@@ -14,6 +14,8 @@ namespace Xarial.XCad.SolidWorks.Sketch
 {
     public abstract class SwSketchEntity : SwSelObject, IXSketchEntity
     {
+        public abstract bool IsCommitted { get; }
+
         internal abstract void Create();
 
         internal SwSketchEntity(IModelDoc2 model, object ent) : base(model, ent)
@@ -34,6 +36,8 @@ namespace Xarial.XCad.SolidWorks.Sketch
                 return m_Creator.Element;
             }
         }
+
+        public override bool IsCommitted => m_Creator.IsCreated;
 
         internal SwSketchEntity(IModelDoc2 model, TEnt ent, bool created) : base(model, ent)
         {

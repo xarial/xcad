@@ -5,9 +5,14 @@
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
+using Xarial.XCad.Base;
+
 namespace Xarial.XCad.Sketch
 {
-    public interface IXSketchEntity : IXSelObject
+    /// <summary>
+    /// Represents generic sketch entity (e.g. line, point, arc, etc.)
+    /// </summary>
+    public interface IXSketchEntity : IXSelObject, IXTransaction
     {
     }
 }

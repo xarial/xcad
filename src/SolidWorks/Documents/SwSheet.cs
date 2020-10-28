@@ -29,6 +29,9 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public IXDrawingViewRepository DrawingViews { get; }
 
+        //TODO: implement creation of new sheets
+        public bool IsCommitted => true;
+
         internal SwSheet(SwDrawing draw, ISheet sheet) : base(sheet)
         {
             m_Drawing = draw;

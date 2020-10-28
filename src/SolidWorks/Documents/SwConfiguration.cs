@@ -23,6 +23,9 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public SwCustomPropertiesCollection Properties { get; }
 
+        //TODO: implement creation of new configurations
+        public bool IsCommitted => true;
+
         internal SwConfiguration(ISldWorks app, IModelDoc2 model, IConfiguration conf) : base(conf)
         {
             m_Model = model;

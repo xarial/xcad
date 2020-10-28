@@ -165,7 +165,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
             m_Logger = logger;
 
-            Features = new SwFeatureManager(this, model.FeatureManager, SwApp);
+            Features = new SwFeatureManager(this, model.FeatureManager);
             
             Selections = new SwSelectionCollection(this);
 
