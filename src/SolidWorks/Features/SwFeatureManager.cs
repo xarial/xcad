@@ -22,11 +22,12 @@ namespace Xarial.XCad.SolidWorks.Features
     /// <inheritdoc/>
     public class SwFeatureManager : IXFeatureRepository
     {
-        private readonly IFeatureManager m_FeatMgr;
+        private IFeatureManager FeatMgr => m_Doc.Model.FeatureManager;
+
         private readonly MacroFeatureParametersParser m_ParamsParser;
         private readonly SwDocument m_Doc;
 
-        public int Count => m_FeatMgr.GetFeatureCount(false);
+        public int Count => FeatMgr.GetFeatureCount(false);
 
         IXFeature IXRepository<IXFeature>.this[string name] => this[name];
 
@@ -45,7 +46,7 @@ namespace Xarial.XCad.SolidWorks.Features
             }
         }
 
-        public bool TryGet(string name, out IXFeature ent)
+        public virtual bool TryGet(string name, out IXFeature ent)
         {
             IFeature feat;
 
@@ -79,14 +80,13 @@ namespace Xarial.XCad.SolidWorks.Features
             }
         }
 
-        internal SwFeatureManager(SwDocument doc, IFeatureManager featMgr, ISldWorks app)
+        internal SwFeatureManager(SwDocument doc)
         {
             m_Doc = doc;
-            m_ParamsParser = new MacroFeatureParametersParser(app);
-            m_FeatMgr = featMgr;
+            m_ParamsParser = new MacroFeatureParametersParser(doc.SwApp);
         }
 
-        public void AddRange(IEnumerable<IXFeature> feats)
+        public virtual void AddRange(IEnumerable<IXFeature> feats)
         {
             if (feats == null)
             {
@@ -99,19 +99,25 @@ namespace Xarial.XCad.SolidWorks.Features
             }
         }
 
-        public IXSketch2D PreCreate2DSketch()
+        public TSketch PreCreateSketch<TSketch>() where TSketch : class, IXSketchBase
         {
-            return new SwSketch2D(m_Doc, null, false);
+            if (typeof(TSketch).IsAssignableFrom(typeof(IXSketch2D)))
+            {
+                return new SwSketch2D(m_Doc, null, false) as TSketch;
+            }
+            else if (typeof(TSketch).IsAssignableFrom(typeof(IXSketch3D)))
+            {
+                return new SwSketch3D(m_Doc, null, false) as TSketch;
+            }
+            else 
+            {
+                throw new Exception("Sketch type is not supported");
+            }
         }
 
-        public IXSketch3D PreCreate3DSketch()
+        public virtual IEnumerator<IXFeature> GetEnumerator()
         {
-            return new SwSketch3D(m_Doc, null, false);
-        }
-
-        public IEnumerator<IXFeature> GetEnumerator()
-        {
-            return new FeatureEnumerator(m_Doc);
+            return new DocumentFeatureEnumerator(m_Doc);
         }
 
         IEnumerator IEnumerable.GetEnumerator()
@@ -122,12 +128,12 @@ namespace Xarial.XCad.SolidWorks.Features
         public IXCustomFeature<TParams> PreCreateCustomFeature<TParams>()
             where TParams : class, new()
         {
-            return new SwMacroFeature<TParams>(m_Doc, m_FeatMgr, null, m_ParamsParser, false);
+            return new SwMacroFeature<TParams>(m_Doc, FeatMgr, null, m_ParamsParser, false);
         }
 
         public IXCustomFeature PreCreateCustomFeature()
         {
-            return new SwMacroFeature(m_Doc, m_FeatMgr, null, false);
+            return new SwMacroFeature(m_Doc, FeatMgr, null, false);
         }
 
         public void RemoveRange(IEnumerable<IXFeature> ents)
@@ -146,102 +152,16 @@ namespace Xarial.XCad.SolidWorks.Features
         }
     }
 
-    internal class FeatureEnumerator : IEnumerator<IXFeature>
+    internal class DocumentFeatureEnumerator : FeatureEnumerator
     {
-        public IXFeature Current => SwObject.FromDispatch<SwFeature>(m_CurFeat, m_Doc);
-
-        object IEnumerator.Current => Current;
-
         private readonly IModelDoc2 m_Model;
-        private IFeature m_CurFeat;
 
-        private readonly List<IFeature> m_ProcessedFeatures;
-
-        private bool m_IsSubFeat;
-        private IFeature m_ParentFeat;
-
-        private readonly SwDocument m_Doc;
-
-        internal FeatureEnumerator(SwDocument doc)
+        public DocumentFeatureEnumerator(SwDocument rootDoc) : base(rootDoc)
         {
-            m_ProcessedFeatures = new List<IFeature>();
-            m_Doc = doc;
-            m_Model = m_Doc.Model;
+            m_Model = rootDoc.Model;
             Reset();
         }
 
-        public void Dispose()
-        {
-        }
-
-        private bool AddProcessedFeature()
-        {
-            if (!m_ProcessedFeatures.Contains(m_CurFeat))
-            {
-                m_ProcessedFeatures.Add(m_CurFeat);
-                return true;
-            }
-            else
-            {
-                return MoveNext();
-            }
-        }
-
-        public bool MoveNext()
-        {
-            if (m_IsSubFeat)
-            {
-                var subFeat = m_CurFeat.IGetNextSubFeature();
-
-                if (subFeat != null)
-                {
-                    m_CurFeat = subFeat;
-                    return AddProcessedFeature();
-                }
-                else
-                {
-                    m_IsSubFeat = false;
-                    m_CurFeat = m_ParentFeat;
-                }
-            }
-            else 
-            {
-                var subFeat = m_CurFeat.IGetFirstSubFeature();
-
-                if (subFeat != null) 
-                {
-                    m_ParentFeat = m_CurFeat;
-                    m_IsSubFeat = true;
-                    m_CurFeat = subFeat;
-                    return AddProcessedFeature();
-                }
-            }
-
-            m_CurFeat = m_CurFeat.IGetNextFeature();
-
-            if (m_CurFeat != null)
-            {
-                if (m_CurFeat.GetTypeName2() != "HistoryFolder")
-                {
-                    return AddProcessedFeature();
-                }
-                else 
-                {
-                    return MoveNext();
-                }
-            }
-            else 
-            {
-                return false;
-            }
-        }
-
-        public void Reset()
-        {
-            m_CurFeat = m_Model.IFirstFeature();
-            m_ProcessedFeatures.Clear();
-            m_ProcessedFeatures.Add(m_CurFeat);
-            m_IsSubFeat = false;
-        }
+        protected override IFeature GetFirstFeature() => m_Model.IFirstFeature();
     }
 }

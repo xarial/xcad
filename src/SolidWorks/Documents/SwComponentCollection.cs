@@ -16,7 +16,7 @@ using Xarial.XCad.Documents;
 
 namespace Xarial.XCad.SolidWorks.Documents
 {
-    public class SwComponentCollection : IXComponentRepository
+    public abstract class SwComponentCollection : IXComponentRepository
     {
         IXComponent IXRepository<IXComponent>.this[string name] => this[name];
 
@@ -38,16 +38,13 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        public int Count => m_Assm.Assembly.GetComponentCount(false);
+        public int Count => GetRootComponent().IGetChildrenCount();
 
         private readonly SwAssembly m_Assm;
-
-        private readonly IComponent2 m_Parent;
-
-        internal SwComponentCollection(SwAssembly assm, IComponent2 parent) 
+        
+        internal SwComponentCollection(SwAssembly assm) 
         {
             m_Assm = assm;
-            m_Parent = parent;
         }
 
         public void AddRange(IEnumerable<IXComponent> ents)
@@ -55,10 +52,9 @@ namespace Xarial.XCad.SolidWorks.Documents
             throw new NotImplementedException();
         }
 
-        public IEnumerator<IXComponent> GetEnumerator()
-        {
-            return new SwComponentEnumerator(m_Assm, m_Parent);
-        }
+        protected abstract IComponent2 GetRootComponent();
+
+        public IEnumerator<IXComponent> GetEnumerator() => new SwComponentEnumerator(m_Assm, GetRootComponent());
 
         public void RemoveRange(IEnumerable<IXComponent> ents)
         {

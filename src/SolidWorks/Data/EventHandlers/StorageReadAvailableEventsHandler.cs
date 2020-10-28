@@ -22,7 +22,7 @@ namespace Xarial.XCad.SolidWorks.Data.EventHandlers
 
         private bool m_Is3rdPartyStorageLoaded;
 
-        internal StorageReadAvailableEventsHandler(SwDocument doc) : base(doc.Model)
+        internal StorageReadAvailableEventsHandler(SwDocument doc) : base(doc)
         {
             m_Doc = doc;
 

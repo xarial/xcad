@@ -21,7 +21,7 @@ namespace Xarial.XCad.SolidWorks.Documents.EventHandlers
     {
         private readonly SwDocument m_Doc;
 
-        internal DocumentSavingEventHandler(SwDocument doc) : base(doc.Model)
+        internal DocumentSavingEventHandler(SwDocument doc) : base(doc)
         {
             m_Doc = doc;
         }

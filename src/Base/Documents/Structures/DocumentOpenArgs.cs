@@ -8,7 +8,7 @@
 namespace Xarial.XCad.Documents.Structures
 {
     /// <summary>
-    /// Arguments passed to <see cref="IXDocumentCollection.Open(DocumentOpenArgs)"/> method
+    /// Arguments passed to <see cref="IXDocumentRepository.Open(DocumentOpenArgs)"/> method
     /// </summary>
     public class DocumentOpenArgs
     {

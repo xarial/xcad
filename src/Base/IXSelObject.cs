@@ -5,12 +5,14 @@
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
+using Xarial.XCad.Base;
+
 namespace Xarial.XCad
 {
     /// <summary>
     /// Represents objects which can be selected by the user
     /// </summary>
-    public interface IXSelObject : IXObject
+    public interface IXSelObject : IXObject, IXTransaction
     {
         /// <summary>
         /// Selects object in the document

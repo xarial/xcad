@@ -6,6 +6,7 @@
 //*********************************************************************
 
 using System;
+using Xarial.XCad.Toolkit.Exceptions;
 
 namespace Xarial.XCad.Services
 {
@@ -34,7 +35,7 @@ namespace Xarial.XCad.Services
                 }
                 else
                 {
-                    throw new Exception("This is a template feature and has not been created yet. Commit this feature by adding to the feature collection");
+                    throw new NonCommittedElementAccessException();
                 }
             }
         }
@@ -48,7 +49,7 @@ namespace Xarial.XCad.Services
             }
             else
             {
-                throw new Exception("Feature already created");
+                throw new ElementAlreadyCommittedException();
             }
         }
     }

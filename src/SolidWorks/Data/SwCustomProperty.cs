@@ -105,7 +105,7 @@ namespace Xarial.XCad.SolidWorks.Data
 
         public string ConfigurationName { get; }
 
-        public bool Exists
+        internal bool Exists
         {
             get
             {
@@ -113,6 +113,8 @@ namespace Xarial.XCad.SolidWorks.Data
                 return m_PrpMgr.Get5(Name, true, out _, out _, out _) != (int)swCustomInfoGetResult_e.swCustomInfoGetResult_NotPresent;
             }
         }
+
+        public bool IsCommitted => Exists;
 
         internal SwCustomProperty(IModelDoc2 model, ICustomPropertyManager prpMgr, string name, 
             string confName, CustomPropertiesEventsHelper evHelper) 
