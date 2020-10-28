@@ -21,13 +21,13 @@ namespace Xarial.XCad.SolidWorks.Documents
         IXConfigurationRepository IXDocument3D.Configurations => Configurations;
         IXViewRepository IXDocument3D.Views => ModelViews;
 
-        internal SwDocument3D(IModelDoc2 model, SwApplication app, IXLogger logger) : base(model, app, logger)
+        internal SwDocument3D(IModelDoc2 model, SwApplication app, IXLogger logger, bool isCreated) : base(model, app, logger, isCreated)
         {
             m_MathUtils = app.Sw.IGetMathUtility();
             Configurations = new SwConfigurationCollection(app.Sw, this);
             ModelViews = new SwModelViewsCollection(this, m_MathUtils);
         }
-
+        
         public SwConfigurationCollection Configurations { get; }
 
         public SwModelViewsCollection ModelViews { get; }

@@ -126,7 +126,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         private readonly IComponent2 m_Comp;
 
         public ComponentFeatureRepository(SwAssembly assm, IComponent2 comp) 
-            : base(assm, assm.Model.FeatureManager)
+            : base(assm)
         {
             m_Assm = assm;
             m_Comp = comp;

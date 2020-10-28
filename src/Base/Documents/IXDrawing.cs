@@ -7,8 +7,14 @@
 
 namespace Xarial.XCad.Documents
 {
+    /// <summary>
+    /// Represents the drawing (2D draft)
+    /// </summary>
     public interface IXDrawing : IXDocument
     {
+        /// <summary>
+        /// Sheets on this drawing
+        /// </summary>
         IXSheetRepository Sheets { get; }
     }
 }

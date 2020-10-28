@@ -32,7 +32,7 @@ namespace Xarial.XCad.SolidWorks.Features
             }
         }
 
-        internal bool IsCreated=> m_Creator.IsCreated;
+        internal bool IsCreated => m_Creator.IsCreated;
 
         private readonly SwDocument m_Doc;
 

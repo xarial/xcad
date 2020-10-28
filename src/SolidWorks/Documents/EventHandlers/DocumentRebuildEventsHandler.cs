@@ -19,7 +19,7 @@ namespace Xarial.XCad.SolidWorks.Documents.EventHandlers
     {
         private SwDocument m_Doc;
 
-        internal DocumentRebuildEventsHandler(SwDocument doc) : base(doc.Model)
+        internal DocumentRebuildEventsHandler(SwDocument doc) : base(doc)
         {
             m_Doc = doc;
         }

@@ -24,13 +24,13 @@ namespace SolidWorks.Tests.Integration
             using (var doc = OpenDataDocument("CustomProps1.SLDPRT")) 
             {
                 var prp = m_App.Documents.Active.Properties.GetOrPreCreate("AddTestPrp1");
-                exists = prp.Exists;
+                exists = prp.Exists();
                 prp.Value = "AddTestPrp1Value";
                 m_App.Documents.Active.Properties.Add(prp);
                 m_App.Sw.IActiveDoc2.Extension.CustomPropertyManager[""].Get5("AddTestPrp1", false, out val, out _, out _);
 
                 var prpConf = (m_App.Documents.Active as SwDocument3D).Configurations["Default"].Properties.GetOrPreCreate("AddTestPrp1Conf");
-                existsConf = prpConf.Exists;
+                existsConf = prpConf.Exists();
                 prpConf.Value = "AddTestPrp1ValueConf";
                 (m_App.Documents.Active as SwDocument3D).Configurations["Default"].Properties.Add(prpConf);
                 m_App.Sw.IActiveDoc2.Extension.CustomPropertyManager["Default"].Get5("AddTestPrp1Conf", false, out valConf, out _, out _);

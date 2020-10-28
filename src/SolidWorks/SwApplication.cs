@@ -237,7 +237,7 @@ namespace Xarial.XCad.SolidWorks
             return swAppPath;
         }
 
-        IXDocumentCollection IXApplication.Documents => Documents;
+        IXDocumentRepository IXApplication.Documents => Documents;
         IXGeometryBuilder IXApplication.GeometryBuilder => GeometryBuilder;
         IXMacro IXApplication.OpenMacro(string path) => OpenMacro(path);
 

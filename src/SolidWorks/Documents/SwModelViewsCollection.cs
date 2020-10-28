@@ -11,7 +11,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 {
     public class SwModelViewsCollection : IXViewRepository
     {
-        IXStandardView IXViewRepository.this[StandardViewType_e type]=>null;
+        IXStandardView IXViewRepository.this[StandardViewType_e type] => this[type];
         IXView IXRepository<IXView>.this[string name] => this[name];
         IXView IXViewRepository.Active => Active;
 

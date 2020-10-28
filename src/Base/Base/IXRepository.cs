@@ -48,5 +48,7 @@ namespace Xarial.XCad.Base
         /// </summary>
         /// <param name="ents">Entities to remove</param>
         void RemoveRange(IEnumerable<TEnt> ents);
+
+        //TODO: make a T PreCreate<T>() function a part of this interface so it is unified across all repositories
     }
 }

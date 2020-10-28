@@ -17,6 +17,7 @@ using Xarial.XCad.Data.Enums;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Delegates;
 using Xarial.XCad.Features;
+using Xarial.XCad.Services;
 using Xarial.XCad.SolidWorks.Annotations;
 using Xarial.XCad.SolidWorks.Data;
 using Xarial.XCad.SolidWorks.Data.EventHandlers;
@@ -118,10 +119,69 @@ namespace Xarial.XCad.SolidWorks.Documents
         private readonly DocumentRebuildEventsHandler m_DocumentRebuildEventHandler;
         private readonly DocumentSavingEventHandler m_DocumentSavingEventHandler;
 
-        public IModelDoc2 Model { get; }
+        public IModelDoc2 Model => m_Creator.Element;
 
-        public string Path => Model.GetPathName();
-        public string Title => Model.GetTitle();
+        public string Path
+        {
+            get
+            {
+                if (IsCommitted)
+                {
+                    return Model.GetPathName();
+                }
+                else
+                {
+                    return m_CachedPath;
+                }
+            }
+            set
+            {
+                if (IsCommitted)
+                {
+                    throw new NotSupportedException("Path can only be changed for the not commited document");
+                }
+                else
+                {
+                    m_CachedPath = value;
+                }
+            }
+        }
+
+        private string m_CachedPath;
+        private string m_CachedTitle;
+
+        public string Title
+        {
+            get
+            {
+                if (IsCommitted)
+                {
+                    return Model.GetTitle();
+                }
+                else 
+                {
+                    return m_CachedTitle;
+                }
+            }
+            set 
+            {
+                if (IsCommitted)
+                {
+                    if (string.IsNullOrEmpty(Path))
+                    {
+                        Model.SetTitle2(value);
+                    }
+                    else 
+                    {
+                        throw new NotSupportedException("Title can only be changed for new document");
+                    }
+                }
+                else 
+                {
+                    m_CachedTitle = value;
+                }
+            }
+        }
 
         public bool Visible
         {
@@ -155,23 +215,32 @@ namespace Xarial.XCad.SolidWorks.Documents
                 }
             }
         }
+        
+        public bool IsCommitted => m_Creator.IsCreated;
 
-        internal SwDocument(IModelDoc2 model, SwApplication app, IXLogger logger)
+        private readonly ElementCreator<IModelDoc2> m_Creator;
+
+        internal SwDocument(IModelDoc2 model, SwApplication app, IXLogger logger) 
+            : this(model, app, logger, true)
         {
-            Model = model;
+        }
 
+        internal SwDocument(IModelDoc2 model, SwApplication app, IXLogger logger, bool created)
+        {
             App = app;
             SwApp = app.Sw;
 
             m_Logger = logger;
 
-            Features = new SwFeatureManager(this, model.FeatureManager);
+            m_Creator = new ElementCreator<IModelDoc2>(CreateDocument, model, created);
+
+            Features = new SwFeatureManager(this);
             
             Selections = new SwSelectionCollection(this);
 
             Dimensions = new SwDocumentDimensionsCollection(this);
 
-            Properties = new SwCustomPropertiesCollection(SwApp, Model, "");
+            Properties = new SwCustomPropertiesCollection(this, "");
 
             m_StreamReadAvailableHandler = new StreamReadAvailableEventsHandler(this);
             m_StreamWriteAvailableHandler = new StreamWriteAvailableEventsHandler(this);
@@ -180,7 +249,54 @@ namespace Xarial.XCad.SolidWorks.Documents
             m_DocumentRebuildEventHandler = new DocumentRebuildEventsHandler(this);
             m_DocumentSavingEventHandler = new DocumentSavingEventHandler(this);
 
+            if (IsCommitted)
+            {
+                AttachEvents();
+            }
+        }
+
+        internal void Create()
+        {
+            m_Creator.Create();
             AttachEvents();
+        }
+
+        protected IModelDoc2 CreateDocument() 
+        {
+            if (string.IsNullOrEmpty(Path))
+            {
+                return CreateNewDocument();
+            }
+            else 
+            {
+                //TODO: implement opening of the document
+                throw new NotImplementedException("");
+            }
+        }
+
+        protected abstract swUserPreferenceStringValue_e DefaultTemplate { get; }
+
+        private IModelDoc2 CreateNewDocument() 
+        {
+            var docTemplate = SwApp.GetUserPreferenceStringValue((int)DefaultTemplate);
+
+            if (!string.IsNullOrEmpty(docTemplate))
+            {
+                var doc = SwApp.NewDocument(docTemplate, (int)swDwgPaperSizes_e.swDwgPapersUserDefined, 0.1, 0.1) as IModelDoc2;
+
+                if (doc != null)
+                {
+                    return doc;
+                }
+                else 
+                {
+                    throw new Exception($"Failed to create new document from the template: {docTemplate}");
+                }
+            }
+            else 
+            {
+                throw new Exception("Failed to find the location of default document template");
+            }
         }
 
         public void Close()

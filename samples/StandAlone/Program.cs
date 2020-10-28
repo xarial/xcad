@@ -14,6 +14,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Xarial.XCad;
 using Xarial.XCad.Base;
+using Xarial.XCad.Documents;
 using Xarial.XCad.Features;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;
@@ -26,16 +27,10 @@ namespace StandAlone
     {
         static void Main(string[] args)
         {
-            foreach (var vers in SwApplication.GetInstalledVersions()) 
-            {
-                Debug.Print(vers.ToString());
-            }
+            //var app = SwApplication.Start(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020);
+            var app = SwApplication.FromProcess(Process.GetProcessesByName("SLDWORKS").First());
 
-            using (var app = SwApplication.Start(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020)) 
-            {
-                app.ShowMessageBox("Hello");
-                app.Close();
-            }
+            CreateDrawingView(app);
 
             //var sw = Activator.CreateInstance(Type.GetTypeFromProgID("SldWorks.Application")) as ISldWorks;
             //sw.Visible = true;
@@ -45,6 +40,14 @@ namespace StandAlone
             //CreateSketchEntities(app);
 
             //TraverseSelectedFaces(app);
+        }
+
+        private static void CreateDrawingView(IXApplication app) 
+        {
+            var partDoc = app.Documents.Active as IXDocument3D;
+            var view = partDoc.Views[StandardViewType_e.Right];
+            var drw = app.Documents.NewDrawing();
+            var drwView = drw.Sheets.Active.DrawingViews.CreateModelViewBased(view);
         }
 
         private static void CreateSketchEntities(IXApplication app)

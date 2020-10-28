@@ -20,17 +20,16 @@ namespace Xarial.XCad.SolidWorks.Documents
 {
     public class SwPart : SwDocument3D, IXPart
     {
-        public IPartDoc Part { get; }
+        public IPartDoc Part => Model as IPartDoc;
 
         public IXBodyRepository Bodies { get; }
 
-        internal SwPart(IPartDoc part, SwApplication app, IXLogger logger)
-            : base((IModelDoc2)part, app, logger)
+        internal SwPart(IPartDoc part, SwApplication app, IXLogger logger, bool isCreated)
+            : base((IModelDoc2)part, app, logger, isCreated)
         {
-            Part = part;
             Bodies = new SwPartBodyCollection(this);
         }
-
+        
         public override Box3D CalculateBoundingBox()
         {
             var bodies = Part.GetBodies2((int)swBodyType_e.swAllBodies, true) as object[];
@@ -96,6 +95,8 @@ namespace Xarial.XCad.SolidWorks.Documents
 
             return new Box3D(minX, minY, minZ, maxX, maxY, maxZ);
         }
+
+        protected override swUserPreferenceStringValue_e DefaultTemplate => swUserPreferenceStringValue_e.swDefaultTemplatePart;
     }
 
     internal class SwPartBodyCollection : SwBodyCollection

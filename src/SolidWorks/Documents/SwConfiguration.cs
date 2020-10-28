@@ -15,7 +15,8 @@ namespace Xarial.XCad.SolidWorks.Documents
     public class SwConfiguration : SwObject, IXConfiguration
     {
         private readonly IConfiguration m_Conf;
-        private readonly IModelDoc2 m_Model;
+        
+        private readonly SwDocument m_Doc;
 
         public string Name => m_Conf.Name;
 
@@ -26,12 +27,12 @@ namespace Xarial.XCad.SolidWorks.Documents
         //TODO: implement creation of new configurations
         public bool IsCommitted => true;
 
-        internal SwConfiguration(ISldWorks app, IModelDoc2 model, IConfiguration conf) : base(conf)
+        internal SwConfiguration(SwDocument doc, IConfiguration conf) : base(conf)
         {
-            m_Model = model;
+            m_Doc = doc;
             m_Conf = conf;
 
-            Properties = new SwCustomPropertiesCollection(app, m_Model, Name);
+            Properties = new SwCustomPropertiesCollection(m_Doc, Name);
         }
     }
 }

@@ -16,15 +16,13 @@ namespace Xarial.XCad.SolidWorks.Documents.EventHandlers
 {
     internal class NewSelectionEventHandler : SwModelEventsHandler<NewSelectionDelegate>
     {
-        private readonly IModelDoc2 m_Model;
-        private readonly ISelectionMgr m_SelMgr;
+        private IModelDoc2 Model => m_Doc.Model;
+        private ISelectionMgr SelMgr => Model.ISelectionManager;
         private readonly SwDocument m_Doc;
 
-        internal NewSelectionEventHandler(SwDocument doc) : base(doc.Model)
+        internal NewSelectionEventHandler(SwDocument doc) : base(doc)
         {
             m_Doc = doc;
-            m_Model = doc.Model;
-            m_SelMgr = m_Model.ISelectionManager;
         }
 
         protected override void SubscribeAssemblyEvents(AssemblyDoc assm)
@@ -59,11 +57,11 @@ namespace Xarial.XCad.SolidWorks.Documents.EventHandlers
 
         private int OnNewSelection()
         {
-            var selIndex = m_SelMgr.GetSelectedObjectCount2(-1);
+            var selIndex = SelMgr.GetSelectedObjectCount2(-1);
 
             if (selIndex > 0)
             {
-                var lastSelObj = m_SelMgr.GetSelectedObject6(selIndex, -1);
+                var lastSelObj = SelMgr.GetSelectedObject6(selIndex, -1);
                 var obj = SwSelObject.FromDispatch(lastSelObj, m_Doc);
                 Delegate?.Invoke(m_Doc, obj);
             }

@@ -22,11 +22,12 @@ namespace Xarial.XCad.SolidWorks.Features
     /// <inheritdoc/>
     public class SwFeatureManager : IXFeatureRepository
     {
-        private readonly IFeatureManager m_FeatMgr;
+        private IFeatureManager FeatMgr => m_Doc.Model.FeatureManager;
+
         private readonly MacroFeatureParametersParser m_ParamsParser;
         private readonly SwDocument m_Doc;
 
-        public int Count => m_FeatMgr.GetFeatureCount(false);
+        public int Count => FeatMgr.GetFeatureCount(false);
 
         IXFeature IXRepository<IXFeature>.this[string name] => this[name];
 
@@ -79,11 +80,10 @@ namespace Xarial.XCad.SolidWorks.Features
             }
         }
 
-        internal SwFeatureManager(SwDocument doc, IFeatureManager featMgr)
+        internal SwFeatureManager(SwDocument doc)
         {
             m_Doc = doc;
             m_ParamsParser = new MacroFeatureParametersParser(doc.SwApp);
-            m_FeatMgr = featMgr;
         }
 
         public virtual void AddRange(IEnumerable<IXFeature> feats)
@@ -128,12 +128,12 @@ namespace Xarial.XCad.SolidWorks.Features
         public IXCustomFeature<TParams> PreCreateCustomFeature<TParams>()
             where TParams : class, new()
         {
-            return new SwMacroFeature<TParams>(m_Doc, m_FeatMgr, null, m_ParamsParser, false);
+            return new SwMacroFeature<TParams>(m_Doc, FeatMgr, null, m_ParamsParser, false);
         }
 
         public IXCustomFeature PreCreateCustomFeature()
         {
-            return new SwMacroFeature(m_Doc, m_FeatMgr, null, false);
+            return new SwMacroFeature(m_Doc, FeatMgr, null, false);
         }
 
         public void RemoveRange(IEnumerable<IXFeature> ents)
