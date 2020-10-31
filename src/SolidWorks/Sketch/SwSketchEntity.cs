@@ -18,9 +18,7 @@ namespace Xarial.XCad.SolidWorks.Sketch
     {
         public abstract bool IsCommitted { get; }
         public abstract Color? Color { get; set; }
-
-        internal abstract void Create();
-
+        
         internal SwSketchEntity(IModelDoc2 model, object ent) : base(model, ent)
         {
         }
@@ -53,10 +51,7 @@ namespace Xarial.XCad.SolidWorks.Sketch
             m_Creator = new ElementCreator<TEnt>(CreateEntity, ent, created);
         }
 
-        internal override void Create()
-        {
-            m_Creator.Create();
-        }
+        public override void Commit() => m_Creator.Create();
 
         private Color? m_CachedColor;
 

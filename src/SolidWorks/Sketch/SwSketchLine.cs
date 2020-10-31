@@ -7,6 +7,8 @@
 
 using SolidWorks.Interop.sldworks;
 using System;
+using Xarial.XCad.Geometry;
+using Xarial.XCad.Geometry.Wires;
 using Xarial.XCad.Sketch;
 
 namespace Xarial.XCad.SolidWorks.Sketch
@@ -16,10 +18,10 @@ namespace Xarial.XCad.SolidWorks.Sketch
         private readonly SwSketchPoint m_StartPoint;
         private readonly SwSketchPoint m_EndPoint;
 
-        public IXSketchPoint StartPoint => m_StartPoint;
-        public IXSketchPoint EndPoint => m_EndPoint;
+        public IXPoint StartPoint => m_StartPoint;
+        public IXPoint EndPoint => m_EndPoint;
 
-        public SwSketchLine(IModelDoc2 model, ISketchLine ent, bool created) : base(model, ent, created)
+        internal SwSketchLine(IModelDoc2 model, ISketchLine ent, bool created) : base(model, ent, created)
         {
             if (model == null)
             {

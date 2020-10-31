@@ -14,5 +14,7 @@ namespace Xarial.XCad.Base
         /// Identifies if this element is created or a template
         /// </summary>
         bool IsCommitted { get; }
+
+        void Commit();
     }
 }

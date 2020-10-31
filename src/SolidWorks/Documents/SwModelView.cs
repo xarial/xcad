@@ -116,6 +116,11 @@ namespace Xarial.XCad.SolidWorks.Documents
 
             Owner.ViewZoomTo2(pt1[0], pt1[1], pt1[2], pt2[0], pt2[1], pt2[2]);
         }
+
+        public void Commit()
+        {
+            throw new NotImplementedException();
+        }
     }
 
     public class SwNamedView : SwModelView, IXNamedView

@@ -38,7 +38,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
             foreach (SwDrawingView view in ents) 
             {
-                view.Create();
+                view.Commit();
             }
         }
 

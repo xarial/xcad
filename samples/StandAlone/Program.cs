@@ -64,7 +64,7 @@ namespace StandAlone
         private static void CreateSketchEntities(IXApplication app)
         {
             var sketch3D = app.Documents.Active.Features.PreCreate3DSketch();
-            var line = sketch3D.Entities.PreCreateLine();
+            var line = (IXSketchLine)sketch3D.Entities.PreCreateLine();
             line.StartPoint.Coordinate = new Point(0.1, 0.1, 0.1);
             line.EndPoint.Coordinate = new Point(0.2, 0.2, 0.2);
             sketch3D.Entities.AddRange(new IXSketchEntity[] { line });

@@ -38,7 +38,7 @@ namespace Xarial.XCad.SolidWorks.Data
         {
             get
             {
-                if (Exists)
+                if (IsCommitted)
                 {
                     TryReadProperty(out _, out object resVal);
                     return resVal;
@@ -50,7 +50,7 @@ namespace Xarial.XCad.SolidWorks.Data
             }
             set
             {
-                if (Exists)
+                if (IsCommitted)
                 {
                     var res = (swCustomInfoSetResult_e)m_PrpMgr.Set2(Name, value?.ToString());
 
@@ -70,7 +70,7 @@ namespace Xarial.XCad.SolidWorks.Data
         {
             get 
             {
-                if (Exists)
+                if (IsCommitted)
                 {
                     TryReadProperty(out string val, out _);
                     return val;
@@ -104,17 +104,9 @@ namespace Xarial.XCad.SolidWorks.Data
         private ICustomPropertyManager m_PrpMgr;
 
         public string ConfigurationName { get; }
-
-        internal bool Exists
-        {
-            get
-            {
-                //TODO: for older that SW2014 - get all properties
-                return m_PrpMgr.Get5(Name, true, out _, out _, out _) != (int)swCustomInfoGetResult_e.swCustomInfoGetResult_NotPresent;
-            }
-        }
-
-        public bool IsCommitted => Exists;
+        
+        //TODO: for older that SW2014 - get all properties
+        public bool IsCommitted => m_PrpMgr.Get5(Name, true, out _, out _, out _) != (int)swCustomInfoGetResult_e.swCustomInfoGetResult_NotPresent;
 
         internal SwCustomProperty(IModelDoc2 model, ICustomPropertyManager prpMgr, string name, 
             string confName, CustomPropertiesEventsHelper evHelper) 
@@ -140,7 +132,7 @@ namespace Xarial.XCad.SolidWorks.Data
         {
             m_Name = newName;
 
-            if (Exists)
+            if (IsCommitted)
             {
                 throw new NotImplementedException();
             }
@@ -180,6 +172,17 @@ namespace Xarial.XCad.SolidWorks.Data
             else
             {
                 resVal = null;
+            }
+        }
+
+        public void Commit()
+        {
+            const int SUCCESS = 1;
+
+            //TODO: fix type conversion
+            if (m_PrpMgr.Add2(Name, (int)swCustomInfoType_e.swCustomInfoText, Value.ToString()) != SUCCESS)
+            {
+                throw new Exception($"Failed to add {Name}");
             }
         }
     }

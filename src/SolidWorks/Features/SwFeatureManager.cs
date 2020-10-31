@@ -95,26 +95,13 @@ namespace Xarial.XCad.SolidWorks.Features
 
             foreach (SwFeature feat in feats)
             {
-                feat.Create();
+                feat.Commit();
             }
         }
 
-        public TSketch PreCreateSketch<TSketch>() where TSketch : class, IXSketchBase
-        {
-            if (typeof(TSketch).IsAssignableFrom(typeof(IXSketch2D)))
-            {
-                return new SwSketch2D(m_Doc, null, false) as TSketch;
-            }
-            else if (typeof(TSketch).IsAssignableFrom(typeof(IXSketch3D)))
-            {
-                return new SwSketch3D(m_Doc, null, false) as TSketch;
-            }
-            else 
-            {
-                throw new Exception("Sketch type is not supported");
-            }
-        }
-
+        public IXSketch2D PreCreate2DSketch() => new SwSketch2D(m_Doc, null, false);
+        public IXSketch3D PreCreate3DSketch() => new SwSketch3D(m_Doc, null, false);
+        
         public virtual IEnumerator<IXFeature> GetEnumerator()
         {
             return new DocumentFeatureEnumerator(m_Doc);

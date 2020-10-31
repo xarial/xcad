@@ -6,13 +6,11 @@
 //*********************************************************************
 
 using Xarial.XCad.Base;
+using Xarial.XCad.Geometry;
 
 namespace Xarial.XCad.Sketch
 {
-    public interface IXSketchEntityRepository : IXRepository<IXSketchEntity>
+    public interface IXSketchEntityRepository : IXRepository<IXSketchEntity>, IXWireGeometryBuilder
     {
-        IXSketchLine PreCreateLine();
-
-        IXSketchPoint PreCreatePoint();
     }
 }

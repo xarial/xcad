@@ -45,7 +45,7 @@ namespace Xarial.XCad.SolidWorks.Data
         {
             var prp = GetOrPreCreate(name);
 
-            if (prp.Exists)
+            if (prp.IsCommitted)
             {
                 ent = prp;
                 return true;
@@ -80,15 +80,9 @@ namespace Xarial.XCad.SolidWorks.Data
 
         public void AddRange(IEnumerable<IXProperty> ents)
         {
-            const int SUCCESS = 1;
-
             foreach (var prp in ents) 
             {
-                //TODO: fix type conversion
-                if (PrpMgr.Add2(prp.Name, (int)swCustomInfoType_e.swCustomInfoText, prp.Value.ToString()) != SUCCESS)
-                {
-                    throw new Exception($"Failed to add {prp.Name}");
-                }
+                prp.Commit();
             }
         }
 

@@ -34,5 +34,10 @@ namespace Xarial.XCad.SolidWorks.Documents
 
             Properties = new SwCustomPropertiesCollection(m_Doc, Name);
         }
+
+        public void Commit()
+        {
+            throw new System.NotImplementedException();
+        }
     }
 }

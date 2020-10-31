@@ -29,10 +29,15 @@ namespace Xarial.XCad.Features
             where TDef : class, IXCustomFeatureDefinition<TParams, TPage>, new();
 
         /// <summary>
-        /// Pre-creates sketch
+        /// Creates a template for 2D sketch
         /// </summary>
-        /// <typeparam name="TSketch">Type of sketch to precreate</typeparam>
-        /// <returns>Pre-created sketch</returns>
-        TSketch PreCreateSketch<TSketch>() where TSketch : class, IXSketchBase;
+        /// <returns>2D sketch template</returns>
+        IXSketch2D PreCreate2DSketch();
+
+        /// <summary>
+        /// Creates a template for 3D sketch
+        /// </summary>
+        /// <returns>2D sketch template</returns>
+        IXSketch3D PreCreate3DSketch();
     }
 }

@@ -12,9 +12,6 @@ namespace Xarial.XCad.Features
 {
     public static class IXFeatureRepositoryExtension
     {
-        public static IXSketch2D PreCreate2DSketch(this IXFeatureRepository feats) => feats.PreCreateSketch<IXSketch2D>();
-        public static IXSketch3D PreCreate3DSketch(this IXFeatureRepository feats) => feats.PreCreateSketch<IXSketch3D>();
-
         public static IXCustomFeature<TParams> CreateCustomFeature<TDef, TParams>(this IXFeatureRepository feats, TParams param)
             where TParams : class, new()
             where TDef : IXCustomFeatureDefinition<TParams>

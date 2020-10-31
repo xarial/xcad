@@ -36,7 +36,7 @@ namespace Xarial.XCad.SolidWorks.Features
 
         private readonly SwDocument m_Doc;
 
-        internal SwFeature(SwDocument doc, IFeature feat, bool created) : base(feat)
+        internal SwFeature(SwDocument doc, IFeature feat, bool created) : base(doc.Model, feat)
         {
             if (doc == null) 
             {
@@ -49,10 +49,7 @@ namespace Xarial.XCad.SolidWorks.Features
             m_Creator = new ElementCreator<IFeature>(CreateFeature, feat, created);
         }
 
-        internal void Create()
-        {
-            m_Creator.Create();
-        }
+        public override void Commit() => m_Creator.Create();
 
         protected virtual IFeature CreateFeature()
         {

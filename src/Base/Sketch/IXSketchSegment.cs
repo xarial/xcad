@@ -5,21 +5,15 @@
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
+using Xarial.XCad.Geometry;
+using Xarial.XCad.Geometry.Wires;
+
 namespace Xarial.XCad.Sketch
 {
     /// <summary>
     /// Represents the sketch segmetn element
     /// </summary>
-    public interface IXSketchSegment : IXSketchEntity
+    public interface IXSketchSegment : IXSketchEntity, IXSegment
     {
-        /// <summary>
-        /// Start point of this sketch segment
-        /// </summary>
-        IXSketchPoint StartPoint { get; }
-
-        /// <summary>
-        /// End point of this sketch segment
-        /// </summary>
-        IXSketchPoint EndPoint { get; }
     }
 }

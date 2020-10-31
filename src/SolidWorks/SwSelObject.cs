@@ -45,5 +45,9 @@ namespace Xarial.XCad.SolidWorks
                 throw new Exception("Model doc is not initialized");
             }
         }
+
+        public virtual void Commit()
+        {
+        }
     }
 }

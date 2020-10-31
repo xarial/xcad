@@ -41,11 +41,8 @@ namespace Xarial.XCad.SolidWorks.Documents
             m_Sheet = sheet;
         }
 
-        internal void Create()
-        {
-            m_Creator.Create();
-        }
-
+        public override void Commit() => m_Creator.Create();
+        
         public override bool IsCommitted => m_Creator.IsCreated;
 
         public override void Select(bool append)

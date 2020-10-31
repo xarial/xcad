@@ -71,7 +71,7 @@ namespace Xarial.XCad.SolidWorks.Sketch
         internal void SetLinePoint(ISketchPoint pt)
         {
             m_LinePoint = pt;
-            Create();
+            Commit();
         }
     }
 }

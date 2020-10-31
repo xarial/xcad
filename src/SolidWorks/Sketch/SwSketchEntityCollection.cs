@@ -9,6 +9,8 @@ using SolidWorks.Interop.sldworks;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Xarial.XCad.Geometry;
+using Xarial.XCad.Geometry.Wires;
 using Xarial.XCad.Sketch;
 using Xarial.XCad.SolidWorks.Features;
 
@@ -66,7 +68,7 @@ namespace Xarial.XCad.SolidWorks.Sketch
 
             foreach (SwSketchEntity seg in segments)
             {
-                seg.Create();
+                seg.Commit();
             }
 
             m_SkMgr.AddToDB = addToDbOrig;
@@ -86,12 +88,12 @@ namespace Xarial.XCad.SolidWorks.Sketch
             }
         }
 
-        public IXSketchLine PreCreateLine()
+        public IXLine PreCreateLine()
         {
             return new SwSketchLine(m_Model, null, false);
         }
 
-        public IXSketchPoint PreCreatePoint()
+        public IXPoint PreCreatePoint()
         {
             return new SwSketchPoint(m_Model, null, false);
         }
@@ -104,6 +106,11 @@ namespace Xarial.XCad.SolidWorks.Sketch
         public void RemoveRange(IEnumerable<IXSketchEntity> ents)
         {
             //TODO: implement removing of entities
+        }
+
+        public IXArc PreCreateArc()
+        {
+            throw new NotImplementedException();
         }
     }
 }
