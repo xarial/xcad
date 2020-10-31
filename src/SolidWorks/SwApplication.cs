@@ -242,6 +242,10 @@ namespace Xarial.XCad.SolidWorks
         
         IXMacro IXApplication.OpenMacro(string path) => OpenMacro(path);
 
+        IXMemoryWireGeometryBuilder IXApplication.MemoryWireGeometryBuilder => MemoryWireGeometryBuilder;
+        IXMemorySurfaceGeometryBuilder IXApplication.MemorySurfaceGeometryBuilder => MemorySurfaceGeometryBuilder;
+        IXMemorySolidGeometryBuilder IXApplication.MemorySolidGeometryBuilder => MemorySolidGeometryBuilder;
+
         public ISldWorks Sw { get; private set; }
 
         public SwVersion_e Version => Sw.GetVersion();
@@ -254,17 +258,21 @@ namespace Xarial.XCad.SolidWorks
 
         public Rectangle WindowRectangle => new Rectangle(Sw.FrameLeft, Sw.FrameTop, Sw.FrameWidth, Sw.FrameHeight);
 
-        public IXMemoryWireGeometryBuilder MemoryWireGeometryBuilder => throw new NotImplementedException();
-
-        public IXMemorySurfaceGeometryBuilder MemorySurfaceGeometryBuilder => throw new NotImplementedException();
-
-        public IXMemorySolidGeometryBuilder MemorySolidGeometryBuilder => throw new NotImplementedException();
+        public SwMemoryWireGeometryBuilder MemoryWireGeometryBuilder { get; }
+        public SwMemorySurfaceGeometryBuilder MemorySurfaceGeometryBuilder { get; }
+        public SwMemorySolidGeometryBuilder MemorySolidGeometryBuilder { get; }
 
         internal SwApplication(ISldWorks app, IXLogger logger)
         {
             Sw = app;
             Documents = new SwDocumentCollection(this, logger);
-            //GeometryBuilder = new SwGeometryBuilder(app.IGetMathUtility(), app.IGetModeler());
+
+            var mathUtils = Sw.IGetMathUtility();
+            var modeler = Sw.IGetModeler();
+
+            MemorySolidGeometryBuilder = new SwMemorySolidGeometryBuilder(mathUtils, modeler);
+            MemorySurfaceGeometryBuilder = new SwMemorySurfaceGeometryBuilder(mathUtils, modeler);
+            MemoryWireGeometryBuilder = new SwMemoryWireGeometryBuilder(mathUtils, modeler);
 
             (Sw as SldWorks).OnIdleNotify += OnLoadFirstIdleNotify;
         }

@@ -111,6 +111,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
         {
             get
             {
+                //TODO: use curve
                 return (double[])Edge.IGetCurve().LineParams;
             }
         }

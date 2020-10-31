@@ -7,7 +7,8 @@ using Xarial.XCad.Geometry.Wires;
 
 namespace Xarial.XCad.Geometry.Primitives
 {
-    public interface IXPrimitive : IXBody, IXTransaction
+    public interface IXPrimitive : IXTransaction
     {
+        IXBody Body { get; }
     }
 }

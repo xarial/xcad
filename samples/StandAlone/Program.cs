@@ -21,6 +21,7 @@ using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Sketch;
 using Xarial.XCad.SolidWorks;
 using Xarial.XCad.SolidWorks.Documents;
+using Xarial.XCad.SolidWorks.Geometry;
 using Xarial.XCad.Toolkit.Utils;
 
 namespace StandAlone
@@ -31,7 +32,7 @@ namespace StandAlone
         {
             //var app = SwApplication.Start(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020);
             var app = SwApplication.FromProcess(Process.GetProcessesByName("SLDWORKS").First());
-                       
+
             //SketchSegmentColors(app);
 
             //CreateDrawingView(app);
@@ -41,9 +42,11 @@ namespace StandAlone
 
             //var app = SwApplication.FromPointer(sw);
 
-            CreateSketchEntities(app);
+            //CreateSketchEntities(app);
 
             //TraverseSelectedFaces(app);
+
+            CreateTempGeometry(app);
         }
         
         private static void SketchSegmentColors(IXApplication app) 
@@ -83,6 +86,17 @@ namespace StandAlone
             {
                 Console.WriteLine(face.Area);
             }
+        }
+
+        private static void CreateTempGeometry(IXApplication app) 
+        {
+            var cyl = app.MemorySolidGeometryBuilder.CreateCylinder(
+                new Point(0, 0, 0), new Vector(1, 0, 0), 0.1, 0.2,
+                app.MemoryWireGeometryBuilder);
+
+            var body = (cyl.Body as SwBody).Body;
+
+            (app.Documents.Active as SwPart).Part.CreateFeatureFromBody3(body, false, 0);
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SolidWorks.Interop.sldworks;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using Xarial.XCad.Geometry;
@@ -19,11 +20,6 @@ namespace Xarial.XCad.SolidWorks.Geometry
             throw new NotImplementedException();
         }
 
-        public IXPlane PreCreatePlane()
-        {
-            throw new NotImplementedException();
-        }
-
         public IXRevolve PreCreateRevolve()
         {
             throw new NotImplementedException();
@@ -32,6 +28,15 @@ namespace Xarial.XCad.SolidWorks.Geometry
         public IXSweep PreCreateSweep()
         {
             throw new NotImplementedException();
+        }
+
+        protected readonly IModeler m_Modeler;
+        protected readonly IMathUtility m_MathUtils;
+
+        internal SwMemorySurfaceGeometryBuilder(IMathUtility mathUtils, IModeler modeler)
+        {
+            m_MathUtils = mathUtils;
+            m_Modeler = modeler;
         }
     }
 }

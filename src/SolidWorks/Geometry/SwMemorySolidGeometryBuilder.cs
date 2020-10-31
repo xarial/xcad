@@ -1,18 +1,17 @@
-﻿using System;
+﻿using SolidWorks.Interop.sldworks;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Memory;
 using Xarial.XCad.Geometry.Primitives;
+using Xarial.XCad.SolidWorks.Geometry.Primitives;
 
 namespace Xarial.XCad.SolidWorks.Geometry
 {
     public class SwMemorySolidGeometryBuilder : IXMemorySolidGeometryBuilder
     {
-        public IXExtrusion PreCreateExtrusion()
-        {
-            throw new NotImplementedException();
-        }
+        IXExtrusion IX3DGeometryBuilder.PreCreateExtrusion() => PreCreateExtrusion();
 
         public IXLoft PreCreateLoft()
         {
@@ -28,5 +27,16 @@ namespace Xarial.XCad.SolidWorks.Geometry
         {
             throw new NotImplementedException();
         }
+
+        protected readonly IModeler m_Modeler;
+        protected readonly IMathUtility m_MathUtils;
+
+        internal SwMemorySolidGeometryBuilder(IMathUtility mathUtils, IModeler modeler)
+        {
+            m_MathUtils = mathUtils;
+            m_Modeler = modeler;
+        }
+
+        public SwTempExtrusion PreCreateExtrusion() => new SwTempExtrusion(m_MathUtils, m_Modeler, null, false);
     }
 }

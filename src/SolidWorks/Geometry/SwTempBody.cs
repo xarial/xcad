@@ -6,8 +6,12 @@
 //*********************************************************************
 
 using SolidWorks.Interop.sldworks;
+using SolidWorks.Interop.swconst;
 using System;
+using System.Drawing;
 using System.Runtime.InteropServices;
+using Xarial.XCad.SolidWorks.Documents;
+using Xarial.XCad.Toolkit.Utils;
 
 namespace Xarial.XCad.SolidWorks.Geometry
 {
@@ -26,6 +30,15 @@ namespace Xarial.XCad.SolidWorks.Geometry
             }
 
             m_TempBody = body;
+        }
+
+        public void Preview(SwPart part, Color color, bool selectable = false) 
+        {
+            var opts = selectable 
+                ? swTempBodySelectOptions_e.swTempBodySelectable
+                : swTempBodySelectOptions_e.swTempBodySelectOptionNone;
+            
+            Body.Display3(part.Model, ColorUtils.ToColorRef(color), (int)opts);
         }
 
         public void Dispose()

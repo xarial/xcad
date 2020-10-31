@@ -1,27 +1,31 @@
-﻿using System;
+﻿using SolidWorks.Interop.sldworks;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Memory;
 using Xarial.XCad.Geometry.Wires;
+using Xarial.XCad.SolidWorks.Geometry.Curves;
 
 namespace Xarial.XCad.SolidWorks.Geometry
 {
     public class SwMemoryWireGeometryBuilder : IXMemoryWireGeometryBuilder
     {
-        public IXArc PreCreateArc()
-        {
-            throw new NotImplementedException();
-        }
+        IXArc IXWireGeometryBuilder.PreCreateArc() => PreCreateArc();
+        IXLine IXWireGeometryBuilder.PreCreateLine() => PreCreateLine();
+        IXPoint IXWireGeometryBuilder.PreCreatePoint() => PreCreatePoint();
 
-        public IXLine PreCreateLine()
-        {
-            throw new NotImplementedException();
-        }
+        public SwArc PreCreateArc() => new SwArc(m_Modeler, null, false);
+        public SwLine PreCreateLine() => new SwLine(m_Modeler, null, false);
+        public SwPoint PreCreatePoint() => new SwPoint();
 
-        public IXPoint PreCreatePoint()
+        protected readonly IModeler m_Modeler;
+        protected readonly IMathUtility m_MathUtils;
+
+        internal SwMemoryWireGeometryBuilder(IMathUtility mathUtils, IModeler modeler)
         {
-            throw new NotImplementedException();
+            m_MathUtils = mathUtils;
+            m_Modeler = modeler;
         }
     }
 }
