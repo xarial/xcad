@@ -96,10 +96,10 @@ namespace Xarial.XCad.SolidWorks
                     }
 
                 case ISketchLine skLine:
-                    return new SwSketchLine(doc.Model, skLine, true);
+                    return new SwSketchLine(doc, skLine, true);
 
                 case ISketchPoint skPt:
-                    return new SwSketchPoint(doc.Model, skPt, true);
+                    return new SwSketchPoint(doc, skPt, true);
 
                 case IDisplayDimension dispDim:
                     return new SwDimension(doc.Model, dispDim);

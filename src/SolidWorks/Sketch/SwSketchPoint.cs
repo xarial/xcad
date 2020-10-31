@@ -9,6 +9,7 @@ using SolidWorks.Interop.sldworks;
 using System;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Sketch;
+using Xarial.XCad.SolidWorks.Documents;
 
 namespace Xarial.XCad.SolidWorks.Sketch
 {
@@ -17,11 +18,11 @@ namespace Xarial.XCad.SolidWorks.Sketch
         private Point m_CachedCoordinate;
         private ISketchPoint m_LinePoint;
 
-        public SwSketchPoint(IModelDoc2 model, ISketchPoint ent, bool created) : base(model, ent, created)
+        public SwSketchPoint(SwDocument doc, ISketchPoint ent, bool created) : base(doc, ent, created)
         {
-            if (model == null)
+            if (doc == null)
             {
-                throw new ArgumentNullException(nameof(model));
+                throw new ArgumentNullException(nameof(doc));
             }
         }
 
@@ -66,12 +67,6 @@ namespace Xarial.XCad.SolidWorks.Sketch
             {
                 return m_LinePoint;
             }
-        }
-
-        internal void SetLinePoint(ISketchPoint pt)
-        {
-            m_LinePoint = pt;
-            Commit();
         }
     }
 }

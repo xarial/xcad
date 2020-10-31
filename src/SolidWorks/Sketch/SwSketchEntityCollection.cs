@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Wires;
 using Xarial.XCad.Sketch;
+using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Features;
 
 namespace Xarial.XCad.SolidWorks.Sketch
@@ -28,14 +29,14 @@ namespace Xarial.XCad.SolidWorks.Sketch
 
         private readonly List<IXSketchEntity> m_Cache;
 
-        private readonly IModelDoc2 m_Model;
+        private readonly SwDocument m_Doc;
         private readonly ISketchManager m_SkMgr;
 
-        public SwSketchEntityCollection(IModelDoc2 model, SwSketchBase sketch, ISketchManager skMgr)
+        public SwSketchEntityCollection(SwDocument doc, SwSketchBase sketch)
         {
-            m_Model = model;
+            m_Doc = doc;
             m_Sketch = sketch;
-            m_SkMgr = skMgr;
+            m_SkMgr = doc.Model.SketchManager;
             m_Cache = new List<IXSketchEntity>();
         }
 
@@ -90,12 +91,12 @@ namespace Xarial.XCad.SolidWorks.Sketch
 
         public IXLine PreCreateLine()
         {
-            return new SwSketchLine(m_Model, null, false);
+            return new SwSketchLine(m_Doc, null, false);
         }
 
         public IXPoint PreCreatePoint()
         {
-            return new SwSketchPoint(m_Model, null, false);
+            return new SwSketchPoint(m_Doc, null, false);
         }
 
         IEnumerator IEnumerable.GetEnumerator()

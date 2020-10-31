@@ -30,6 +30,7 @@ using System.Collections.Generic;
 using Microsoft.Win32;
 using System.Drawing;
 using Xarial.XCad.Delegates;
+using Xarial.XCad.Geometry.Memory;
 
 namespace Xarial.XCad.SolidWorks
 {
@@ -238,7 +239,7 @@ namespace Xarial.XCad.SolidWorks
         }
 
         IXDocumentRepository IXApplication.Documents => Documents;
-        IXGeometryBuilder IXApplication.GeometryBuilder => GeometryBuilder;
+        
         IXMacro IXApplication.OpenMacro(string path) => OpenMacro(path);
 
         public ISldWorks Sw { get; private set; }
@@ -246,20 +247,24 @@ namespace Xarial.XCad.SolidWorks
         public SwVersion_e Version => Sw.GetVersion();
         
         public SwDocumentCollection Documents { get; private set; }
-
-        public SwGeometryBuilder GeometryBuilder { get; private set; }
-
+        
         public IntPtr WindowHandle => new IntPtr(Sw.IFrameObject().GetHWndx64());
 
         public Process Process => Process.GetProcessById(Sw.GetProcessID());
 
         public Rectangle WindowRectangle => new Rectangle(Sw.FrameLeft, Sw.FrameTop, Sw.FrameWidth, Sw.FrameHeight);
 
+        public IXMemoryWireGeometryBuilder MemoryWireGeometryBuilder => throw new NotImplementedException();
+
+        public IXMemorySurfaceGeometryBuilder MemorySurfaceGeometryBuilder => throw new NotImplementedException();
+
+        public IXMemorySolidGeometryBuilder MemorySolidGeometryBuilder => throw new NotImplementedException();
+
         internal SwApplication(ISldWorks app, IXLogger logger)
         {
             Sw = app;
             Documents = new SwDocumentCollection(this, logger);
-            GeometryBuilder = new SwGeometryBuilder(app.IGetMathUtility(), app.IGetModeler());
+            //GeometryBuilder = new SwGeometryBuilder(app.IGetMathUtility(), app.IGetModeler());
 
             (Sw as SldWorks).OnIdleNotify += OnLoadFirstIdleNotify;
         }

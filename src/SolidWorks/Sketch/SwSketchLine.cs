@@ -8,43 +8,130 @@
 using SolidWorks.Interop.sldworks;
 using System;
 using Xarial.XCad.Geometry;
+using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Geometry.Wires;
 using Xarial.XCad.Sketch;
+using Xarial.XCad.SolidWorks.Documents;
 
 namespace Xarial.XCad.SolidWorks.Sketch
 {
     public class SwSketchLine : SwSketchEntity<ISketchLine>, IXSketchLine
     {
-        private readonly SwSketchPoint m_StartPoint;
-        private readonly SwSketchPoint m_EndPoint;
+        private SwSketchPoint m_StartPoint;
+        private SwSketchPoint m_EndPoint;
 
-        public IXPoint StartPoint => m_StartPoint;
-        public IXPoint EndPoint => m_EndPoint;
-
-        internal SwSketchLine(IModelDoc2 model, ISketchLine ent, bool created) : base(model, ent, created)
+        public IXPoint StartPoint
         {
-            if (model == null)
+            get 
             {
-                throw new ArgumentNullException(nameof(model));
+                if (IsCommitted)
+                {
+                    return m_StartPoint;
+                }
+                else 
+                {
+                    throw new Exception("This property is only available for committed entity");
+                }
+            }
+        }
+
+        public IXPoint EndPoint 
+        {
+            get
+            {
+                if (IsCommitted)
+                {
+                    return m_StartPoint;
+                }
+                else
+                {
+                    throw new Exception("This property is only available for committed entity");
+                }
+            }
+        }
+
+        private Point m_CachedStartCoordinate;
+        private Point m_CachedEndCoordinate;
+
+        public Point StartCoordinate 
+        {
+            get 
+            {
+                if (IsCommitted)
+                {
+                    return StartPoint.Coordinate;
+                }
+                else 
+                {
+                    return m_CachedStartCoordinate;
+                }
+            }
+            set 
+            {
+                if (IsCommitted)
+                {
+                    StartPoint.Coordinate = value;
+                }
+                else 
+                {
+                    m_CachedStartCoordinate = value;
+                }
+            }
+        }
+        
+        public Point EndCoordinate 
+        {
+            get
+            {
+                if (IsCommitted)
+                {
+                    return EndPoint.Coordinate;
+                }
+                else
+                {
+                    return m_CachedEndCoordinate;
+                }
+            }
+            set
+            {
+                if (IsCommitted)
+                {
+                    EndPoint.Coordinate = value;
+                }
+                else
+                {
+                    m_CachedEndCoordinate = value;
+                }
+            }
+        }
+
+        internal SwSketchLine(SwDocument doc, ISketchLine ent, bool created) : base(doc, ent, created)
+        {
+            if (doc == null)
+            {
+                throw new ArgumentNullException(nameof(doc));
             }
 
-            m_StartPoint = new SwSketchPoint(model, ent?.IGetStartPoint2(), created);
-            m_EndPoint = new SwSketchPoint(model, ent?.IGetEndPoint2(), created);
+            if (IsCommitted)
+            {
+                m_StartPoint = SwSelObject.FromDispatch<SwSketchPoint>(ent.IGetStartPoint2(), doc);
+                m_EndPoint = SwSelObject.FromDispatch<SwSketchPoint>(ent.IGetEndPoint2(), doc);
+            }
         }
 
         protected override ISketchLine CreateSketchEntity()
         {
             var line = (ISketchLine)m_SketchMgr.CreateLine(
-                StartPoint.Coordinate.X,
-                StartPoint.Coordinate.Y,
-                StartPoint.Coordinate.Z,
-                EndPoint.Coordinate.X,
-                EndPoint.Coordinate.Y,
-                EndPoint.Coordinate.Z);
+                StartCoordinate.X,
+                StartCoordinate.Y,
+                StartCoordinate.Z,
+                EndCoordinate.X,
+                EndCoordinate.Y,
+                EndCoordinate.Z);
 
-            m_StartPoint.SetLinePoint(line.IGetStartPoint2());
-            m_EndPoint.SetLinePoint(line.IGetEndPoint2());
-
+            m_StartPoint = SwSelObject.FromDispatch<SwSketchPoint>(line.IGetStartPoint2(), m_Doc);
+            m_EndPoint = SwSelObject.FromDispatch<SwSketchPoint>(line.IGetEndPoint2(), m_Doc);
+            
             return line;
         }
     }

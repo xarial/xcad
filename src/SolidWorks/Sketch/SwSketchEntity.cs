@@ -10,6 +10,7 @@ using System;
 using System.Drawing;
 using Xarial.XCad.Services;
 using Xarial.XCad.Sketch;
+using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.Toolkit.Utils;
 
 namespace Xarial.XCad.SolidWorks.Sketch
@@ -18,9 +19,12 @@ namespace Xarial.XCad.SolidWorks.Sketch
     {
         public abstract bool IsCommitted { get; }
         public abstract Color? Color { get; set; }
+
+        protected readonly SwDocument m_Doc;
         
-        internal SwSketchEntity(IModelDoc2 model, object ent) : base(model, ent)
+        internal SwSketchEntity(SwDocument doc, object ent) : base(doc.Model, ent)
         {
+            m_Doc = doc;
         }
     }
 
@@ -40,14 +44,14 @@ namespace Xarial.XCad.SolidWorks.Sketch
 
         public override bool IsCommitted => m_Creator.IsCreated;
 
-        internal SwSketchEntity(IModelDoc2 model, TEnt ent, bool created) : base(model, ent)
+        internal SwSketchEntity(SwDocument doc, TEnt ent, bool created) : base(doc, ent)
         {
-            if (model == null)
+            if (doc == null)
             {
-                throw new ArgumentNullException(nameof(model));
+                throw new ArgumentNullException(nameof(doc));
             }
 
-            m_SketchMgr = model.SketchManager;
+            m_SketchMgr = doc.Model.SketchManager;
             m_Creator = new ElementCreator<TEnt>(CreateEntity, ent, created);
         }
 

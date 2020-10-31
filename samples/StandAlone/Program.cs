@@ -41,7 +41,7 @@ namespace StandAlone
 
             //var app = SwApplication.FromPointer(sw);
 
-            //CreateSketchEntities(app);
+            CreateSketchEntities(app);
 
             //TraverseSelectedFaces(app);
         }
@@ -65,8 +65,8 @@ namespace StandAlone
         {
             var sketch3D = app.Documents.Active.Features.PreCreate3DSketch();
             var line = (IXSketchLine)sketch3D.Entities.PreCreateLine();
-            line.StartPoint.Coordinate = new Point(0.1, 0.1, 0.1);
-            line.EndPoint.Coordinate = new Point(0.2, 0.2, 0.2);
+            line.StartCoordinate = new Point(0.1, 0.1, 0.1);
+            line.EndCoordinate = new Point(0.2, 0.2, 0.2);
             sketch3D.Entities.AddRange(new IXSketchEntity[] { line });
 
             app.Documents.Active.Features.Add(sketch3D);
