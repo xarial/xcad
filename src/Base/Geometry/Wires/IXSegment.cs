@@ -2,7 +2,7 @@
 
 namespace Xarial.XCad.Geometry.Wires
 {
-    public interface IXSegment : IXTransaction
+    public interface IXSegment : IXTransaction, IXObject
     {
         /// <summary>
         /// Start point of this sketch segment

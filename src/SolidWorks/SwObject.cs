@@ -6,11 +6,13 @@
 //*********************************************************************
 
 using SolidWorks.Interop.sldworks;
+using SolidWorks.Interop.swconst;
 using System;
 using Xarial.XCad.SolidWorks.Annotations;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Features;
 using Xarial.XCad.SolidWorks.Geometry;
+using Xarial.XCad.SolidWorks.Geometry.Curves;
 using Xarial.XCad.SolidWorks.Sketch;
 
 namespace Xarial.XCad.SolidWorks
@@ -115,6 +117,17 @@ namespace Xarial.XCad.SolidWorks
 
                 case IView view:
                     return new SwDrawingView(view, (SwDrawing)doc);
+
+                case ICurve curve:
+                    switch ((swCurveTypes_e)curve.Identity()) 
+                    {
+                        case swCurveTypes_e.LINE_TYPE:
+                            return new SwLineCurve(doc.App.Sw.IGetModeler(), curve, true);
+                        case swCurveTypes_e.CIRCLE_TYPE:
+                            return new SwArcCurve(doc.App.Sw.IGetModeler(), curve, true);
+                        default:
+                            return new SwCurve(doc.App.Sw.IGetModeler(), curve, true);
+                    }
 
                 default:
                     return defaultHandler.Invoke(disp);

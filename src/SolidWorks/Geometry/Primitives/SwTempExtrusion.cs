@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 using System.Text;
 using Xarial.XCad.Base;
 using Xarial.XCad.Geometry;
@@ -16,10 +17,10 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
 {
     public class SwTempExtrusion : SwTempPrimitive, IXExtrusion
     {
-        IXSegment IXExtrusion.Profile 
+        IXSegment[] IXExtrusion.Profiles
         {
-            get => Profile;
-            set => Profile = (SwPlanarCurve)value;
+            get => Profiles;
+            set => Profiles = value.Cast<SwPlanarCurve>().ToArray();
         }
 
         public double Depth
@@ -54,9 +55,9 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
             }
         }
 
-        public SwPlanarCurve Profile
+        public SwPlanarCurve[] Profiles
         {
-            get => m_Creator.CachedProperties.Get<SwPlanarCurve>();
+            get => m_Creator.CachedProperties.Get<SwPlanarCurve[]>();
             set
             {
                 if (IsCommitted)
@@ -77,12 +78,24 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
 
         protected override SwTempBody CreateBody()
         {
-            var surf = CreatePlanarSurface(Profile.Plane.Point,
-                Profile.Plane.Normal, Profile.Plane.Direction);
+            var surf = CreatePlanarSurface(Profiles.First().Plane.Point,
+                Profiles.First().Plane.Normal, Profiles.First().Plane.Direction);
 
             var dir = m_MathUtils.CreateVector(Direction.ToArray()) as MathVector;
 
-            var body = Extrude(surf, new ICurve[] { Profile.Curve }, dir, Depth);
+            var boundary = new List<ICurve>();
+
+            for (int i = 0; i < Profiles.Length; i++) 
+            {
+                boundary.AddRange(Profiles[i].Curves);
+
+                if (i != Profiles.Length - 1) 
+                {
+                    boundary.Add(null);
+                }
+            }
+
+            var body = Extrude(surf, boundary.ToArray(), dir, Depth);
 
             return SwSelObject.FromDispatch<SwTempBody>(body);
         }

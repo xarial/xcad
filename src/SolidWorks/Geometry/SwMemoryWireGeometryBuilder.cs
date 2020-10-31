@@ -15,8 +15,8 @@ namespace Xarial.XCad.SolidWorks.Geometry
         IXLine IXWireGeometryBuilder.PreCreateLine() => PreCreateLine();
         IXPoint IXWireGeometryBuilder.PreCreatePoint() => PreCreatePoint();
 
-        public SwArc PreCreateArc() => new SwArc(m_Modeler, null, false);
-        public SwLine PreCreateLine() => new SwLine(m_Modeler, null, false);
+        public SwArcCurve PreCreateArc() => new SwArcCurve(m_Modeler, null, false);
+        public SwLineCurve PreCreateLine() => new SwLineCurve(m_Modeler, null, false);
         public SwPoint PreCreatePoint() => new SwPoint();
 
         protected readonly IModeler m_Modeler;

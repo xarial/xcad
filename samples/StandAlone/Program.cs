@@ -94,7 +94,7 @@ namespace StandAlone
                 new Point(0, 0, 0), new Vector(1, 0, 0), 0.1, 0.2,
                 app.MemoryWireGeometryBuilder);
 
-            var body = (cyl.Body as SwBody).Body;
+            var body = (cyl.Bodies.First() as SwBody).Body;
 
             (app.Documents.Active as SwPart).Part.CreateFeatureFromBody3(body, false, 0);
         }

@@ -24,7 +24,7 @@ namespace Xarial.XCad.Geometry
             var extr = builder.PreCreateExtrusion();
             extr.Depth = height;
             extr.Direction = arc.Axis;
-            extr.Profile = arc;
+            extr.Profiles = new Wires.IXSegment[] { arc };
             extr.Commit();
 
             return extr;

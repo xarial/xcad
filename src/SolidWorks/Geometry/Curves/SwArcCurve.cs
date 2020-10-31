@@ -1,6 +1,7 @@
 ﻿using SolidWorks.Interop.sldworks;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Xarial.XCad.Geometry.Curves;
 using Xarial.XCad.Geometry.Structures;
@@ -8,9 +9,9 @@ using Xarial.XCad.SolidWorks.Geometry.Exceptions;
 
 namespace Xarial.XCad.SolidWorks.Geometry.Curves
 {
-    public class SwArc : SwPlanarCurve, IXArcCurve
+    public class SwArcCurve : SwPlanarCurve, IXArcCurve
     {
-        internal SwArc(IModeler modeler, ICurve curve, bool isCreated) : base(modeler, curve, isCreated)
+        internal SwArcCurve(IModeler modeler, ICurve curve, bool isCreated) : base(modeler, curve, isCreated)
         {
         }
 
@@ -20,7 +21,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Curves
             {
                 if (IsCommitted)
                 {
-                    var circParams = Curve.CircleParams as double[];
+                    var circParams = Curves.First().CircleParams as double[];
                     return circParams[6];
                 }
                 else 
@@ -47,7 +48,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Curves
             {
                 if (IsCommitted)
                 {
-                    var circParams = Curve.CircleParams as double[];
+                    var circParams = Curves.First().CircleParams as double[];
                     return new Point(circParams[0], circParams[1], circParams[2]);
                 }
                 else
@@ -74,7 +75,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Curves
             {
                 if (IsCommitted)
                 {
-                    var circParams = Curve.CircleParams as double[];
+                    var circParams = Curves.First().CircleParams as double[];
                     return new Vector(circParams[3], circParams[4], circParams[5]);
                 }
                 else
@@ -117,7 +118,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Curves
             }
         }
 
-        protected override ICurve Create()
+        protected override ICurve[] Create()
         {
             //TODO: check if this is not closed arc
 
@@ -126,7 +127,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Curves
             var arc = m_Modeler.CreateArc(Center.ToArray(), Axis.ToArray(), Diameter / 2, refPt.ToArray(), refPt.ToArray()) as ICurve;
             arc = arc.CreateTrimmedCurve2(refPt.X, refPt.Y, refPt.Z, refPt.X, refPt.Y, refPt.Z);
 
-            return arc;
+            return new ICurve[] { arc };
         }
 
     }

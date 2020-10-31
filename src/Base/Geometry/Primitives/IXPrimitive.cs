@@ -7,8 +7,14 @@ using Xarial.XCad.Geometry.Wires;
 
 namespace Xarial.XCad.Geometry.Primitives
 {
+    /// <summary>
+    /// Represents the 3D geometry of a primitive
+    /// </summary>
     public interface IXPrimitive : IXTransaction
     {
-        IXBody Body { get; }
+        /// <summary>
+        /// Bodies associated with this primitive
+        /// </summary>
+        IEnumerable<IXBody> Bodies { get; }
     }
 }

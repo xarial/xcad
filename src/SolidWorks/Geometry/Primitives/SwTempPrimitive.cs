@@ -10,7 +10,13 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
 {
     public class SwTempPrimitive : IXPrimitive
     {
-        IXBody IXPrimitive.Body => Body;
+        IEnumerable<IXBody> IXPrimitive.Bodies
+        {
+            get
+            {
+                yield return Body;
+            }
+        }
 
         public SwTempBody Body => m_Creator.Element;
 

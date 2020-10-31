@@ -8,9 +8,9 @@ using Xarial.XCad.SolidWorks.Geometry.Exceptions;
 
 namespace Xarial.XCad.SolidWorks.Geometry.Curves
 {
-    public class SwLine : SwCurve, IXLineCurve
+    public class SwLineCurve : SwCurve, IXLineCurve
     {
-        internal SwLine(IModeler modeler, ICurve curve, bool isCreated) : base(modeler, curve, isCreated)
+        internal SwLineCurve(IModeler modeler, ICurve curve, bool isCreated) : base(modeler, curve, isCreated)
         {
         }
 
@@ -66,12 +66,12 @@ namespace Xarial.XCad.SolidWorks.Geometry.Curves
             }
         }
 
-        protected override ICurve Create()
+        protected override ICurve[] Create()
         {
             var curve = m_Modeler.CreateLine(StartCoordinate.ToArray(), (StartCoordinate - EndCoordinate).ToArray()) as ICurve;
             curve = curve.CreateTrimmedCurve2(StartCoordinate.X, StartCoordinate.Y, StartCoordinate.Z, EndCoordinate.X, EndCoordinate.Y, EndCoordinate.Z);
             
-            return curve;
+            return new ICurve[] { curve };
         }
     }
 }
