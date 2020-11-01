@@ -82,7 +82,7 @@ namespace Xarial.XCad.SolidWorks.Sketch
         {
             if (m_Sketch.IsCreated)
             {
-                throw new NotImplementedException();
+                return new SwSketchEntitiesEnumerator(m_Doc, m_Sketch);
             }
             else
             {
@@ -90,30 +90,17 @@ namespace Xarial.XCad.SolidWorks.Sketch
             }
         }
 
-        public IXLine PreCreateLine()
-        {
-            return new SwSketchLine(m_Doc, null, false);
-        }
+        public IXLine PreCreateLine() => new SwSketchLine(m_Doc, null, false);
+        public IXPoint PreCreatePoint() => new SwSketchPoint(m_Doc, null, false);
 
-        public IXPoint PreCreatePoint()
-        {
-            return new SwSketchPoint(m_Doc, null, false);
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
         public void RemoveRange(IEnumerable<IXSketchEntity> ents)
         {
             //TODO: implement removing of entities
         }
 
-        public IXArc PreCreateArc()
-        {
-            throw new NotImplementedException();
-        }
+        public IXArc PreCreateArc() => new SwSketchArc(m_Doc, null, false);
 
         public IXPolylineCurve PreCreatePolyline()
         {
@@ -123,6 +110,59 @@ namespace Xarial.XCad.SolidWorks.Sketch
         public IXComplexCurve PreCreateComplex()
         {
             throw new NotSupportedException();
+        }
+    }
+
+    public class SwSketchEntitiesEnumerator : IEnumerator<SwSketchEntity>
+    {
+        public SwSketchEntity Current => SwObject.FromDispatch<SwSketchEntity>(m_Entities[m_CurIndex], m_Doc);
+
+        object IEnumerator.Current => Current;
+
+        private readonly SwDocument m_Doc;
+        private readonly SwSketchBase m_Sketch;
+
+        private List<object> m_Entities;
+        private int m_CurIndex;
+
+        internal SwSketchEntitiesEnumerator(SwDocument doc, SwSketchBase sketch) 
+        {
+            m_Doc = doc;
+            m_Sketch = sketch;
+            m_Entities = new List<object>();
+
+            Reset();
+        }
+
+        public void Dispose()
+        {
+        }
+
+        public bool MoveNext()
+        {
+            m_CurIndex++;
+            return m_CurIndex < m_Entities.Count;
+        }
+
+        public void Reset()
+        {
+            m_CurIndex = -1;
+            
+            m_Entities.Clear();
+
+            var segs = m_Sketch.Sketch.GetSketchSegments() as object[];
+
+            if (segs != null) 
+            {
+                m_Entities.AddRange(segs);
+            }
+
+            var pts = m_Sketch.Sketch.GetSketchPoints2() as object[];
+
+            if (pts != null) 
+            {
+                m_Entities.AddRange(pts);
+            }
         }
     }
 }

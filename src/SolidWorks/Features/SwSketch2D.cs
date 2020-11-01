@@ -14,7 +14,7 @@ namespace Xarial.XCad.SolidWorks.Features
 {
     public class SwSketch2D : SwSketchBase, IXSketch2D
     {
-        public SwSketch2D(SwDocument doc, IFeature feat, bool created) : base(doc, feat, created)
+        internal SwSketch2D(SwDocument doc, IFeature feat, bool created) : base(doc, feat, created)
         {
             if (doc == null) 
             {
