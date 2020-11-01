@@ -20,7 +20,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
         IXSegment[] IXExtrusion.Profiles
         {
             get => Profiles;
-            set => Profiles = value.Cast<SwPlanarCurve>().ToArray();
+            set => Profiles = value?.Cast<SwCurve>().ToArray();
         }
 
         public double Depth
@@ -55,9 +55,9 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
             }
         }
 
-        public SwPlanarCurve[] Profiles
+        public SwCurve[] Profiles
         {
-            get => m_Creator.CachedProperties.Get<SwPlanarCurve[]>();
+            get => m_Creator.CachedProperties.Get<SwCurve[]>();
             set
             {
                 if (IsCommitted)
@@ -78,8 +78,13 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
 
         protected override SwTempBody CreateBody()
         {
-            var surf = CreatePlanarSurface(Profiles.First().Plane.Point,
-                Profiles.First().Plane.Normal, Profiles.First().Plane.Direction);
+            if (!Profiles.First().TryGetPlane(out Plane plane)) 
+            {
+                //TODO: validate that all profiles on the same plane
+                throw new Exception("Profiles must be on the same plane");
+            }
+
+            var surf = CreatePlanarSurface(plane.Point, plane.Normal, plane.Direction);
 
             var dir = m_MathUtils.CreateVector(Direction.ToArray()) as MathVector;
 

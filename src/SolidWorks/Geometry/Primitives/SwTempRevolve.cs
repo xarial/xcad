@@ -19,7 +19,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
         IXSegment IXRevolve.Profile 
         {
             get => Profile;
-            set => Profile = (SwPlanarCurve)value; 
+            set => Profile = (SwCurve)value; 
         }
 
         IXLine IXRevolve.Axis
@@ -44,9 +44,9 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
             }
         }
 
-        public SwPlanarCurve Profile
+        public SwCurve Profile
         {
-            get => m_Creator.CachedProperties.Get<SwPlanarCurve>();
+            get => m_Creator.CachedProperties.Get<SwCurve>();
             set
             {
                 if (IsCommitted)

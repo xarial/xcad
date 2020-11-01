@@ -5,8 +5,8 @@ using Xarial.XCad.Geometry.Structures;
 
 namespace Xarial.XCad.Geometry.Curves
 {
-    public interface IXPlanarCurve
+    public interface IXPolylineCurve : IXCurve
     {
-        Plane Plane { get; }
+        Point[] Points { get; set; }
     }
 }

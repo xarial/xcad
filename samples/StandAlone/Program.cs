@@ -22,6 +22,7 @@ using Xarial.XCad.Sketch;
 using Xarial.XCad.SolidWorks;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Geometry;
+using Xarial.XCad.SolidWorks.Geometry.Curves;
 using Xarial.XCad.Toolkit.Utils;
 
 namespace StandAlone
@@ -90,11 +91,31 @@ namespace StandAlone
 
         private static void CreateTempGeometry(IXApplication app) 
         {
+            var polyline = app.MemoryWireGeometryBuilder.PreCreatePolyline();
+            polyline.Points = new Point[] 
+            {
+                new Point(0, 0, 0),
+                new Point(0.1, 0.1, 0),
+                new Point(0.2, 0, 0),
+                new Point(0, 0, 0)
+            };
+            polyline.Commit();
+
+            var extr = app.MemorySolidGeometryBuilder.PreCreateExtrusion();
+            extr.Depth = 0.5;
+            extr.Direction = new Vector(1, 1, 1);
+            extr.Profiles = new Xarial.XCad.Geometry.Wires.IXSegment[] { polyline };
+            extr.Commit();
+
+            var body = (extr.Bodies.First() as SwBody).Body;
+
+            (app.Documents.Active as SwPart).Part.CreateFeatureFromBody3(body, false, 0);
+
             var cyl = app.MemorySolidGeometryBuilder.CreateCylinder(
                 new Point(0, 0, 0), new Vector(1, 0, 0), 0.1, 0.2,
                 app.MemoryWireGeometryBuilder);
 
-            var body = (cyl.Bodies.First() as SwBody).Body;
+            body = (cyl.Bodies.First() as SwBody).Body;
 
             (app.Documents.Active as SwPart).Part.CreateFeatureFromBody3(body, false, 0);
         }

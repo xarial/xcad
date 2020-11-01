@@ -65,5 +65,11 @@ namespace Xarial.XCad.SolidWorks.Geometry.Curves
                 throw new NotSupportedException("Only trimmed curves are supported");
             }
         }
+
+        internal virtual bool TryGetPlane(out Plane plane) 
+        {
+            plane = null;
+            return false;
+        }
     }
 }

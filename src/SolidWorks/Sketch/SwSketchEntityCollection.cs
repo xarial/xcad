@@ -10,6 +10,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using Xarial.XCad.Geometry;
+using Xarial.XCad.Geometry.Curves;
 using Xarial.XCad.Geometry.Wires;
 using Xarial.XCad.Sketch;
 using Xarial.XCad.SolidWorks.Documents;
@@ -112,6 +113,16 @@ namespace Xarial.XCad.SolidWorks.Sketch
         public IXArc PreCreateArc()
         {
             throw new NotImplementedException();
+        }
+
+        public IXPolylineCurve PreCreatePolyline()
+        {
+            throw new NotSupportedException();
+        }
+
+        public IXComplexCurve PreCreateComplex()
+        {
+            throw new NotSupportedException();
         }
     }
 }

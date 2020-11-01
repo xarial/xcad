@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Xarial.XCad.Geometry;
+using Xarial.XCad.Geometry.Curves;
 using Xarial.XCad.Geometry.Memory;
 using Xarial.XCad.Geometry.Wires;
 using Xarial.XCad.SolidWorks.Geometry.Curves;
@@ -14,10 +15,14 @@ namespace Xarial.XCad.SolidWorks.Geometry
         IXArc IXWireGeometryBuilder.PreCreateArc() => PreCreateArc();
         IXLine IXWireGeometryBuilder.PreCreateLine() => PreCreateLine();
         IXPoint IXWireGeometryBuilder.PreCreatePoint() => PreCreatePoint();
+        IXPolylineCurve IXWireGeometryBuilder.PreCreatePolyline() => PreCreatePolyline();
+        IXComplexCurve IXWireGeometryBuilder.PreCreateComplex() => PreCreateComplex();
 
         public SwArcCurve PreCreateArc() => new SwArcCurve(m_Modeler, null, false);
         public SwLineCurve PreCreateLine() => new SwLineCurve(m_Modeler, null, false);
         public SwPoint PreCreatePoint() => new SwPoint();
+        public IXPolylineCurve PreCreatePolyline() => new SwPolylineCurve(m_Modeler, null, false);
+        public IXComplexCurve PreCreateComplex() => new SwComplexCurve(m_Modeler, null, false);
 
         protected readonly IModeler m_Modeler;
         protected readonly IMathUtility m_MathUtils;

@@ -9,9 +9,9 @@ using Xarial.XCad.SolidWorks.Geometry.Exceptions;
 
 namespace Xarial.XCad.SolidWorks.Geometry.Curves
 {
-    public class SwArcCurve : SwPlanarCurve, IXArcCurve
+    public class SwArcCurve : SwCurve, IXArcCurve
     {
-        internal SwArcCurve(IModeler modeler, ICurve curve, bool isCreated) : base(modeler, curve, isCreated)
+        internal SwArcCurve(IModeler modeler, ICurve curve, bool isCreated) : base(modeler, new ICurve[] { curve }, isCreated)
         {
         }
 
@@ -96,8 +96,12 @@ namespace Xarial.XCad.SolidWorks.Geometry.Curves
             }
         }
 
-        public override Plane Plane => new Plane(Center, Axis, ReferenceDirection);
-
+        internal override bool TryGetPlane(out Plane plane)
+        {
+            plane = new Plane(Center, Axis, ReferenceDirection);
+            return true;
+        }
+        
         private Vector ReferenceDirection 
         {
             get 
