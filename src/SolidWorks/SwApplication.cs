@@ -270,7 +270,7 @@ namespace Xarial.XCad.SolidWorks
             var mathUtils = Sw.IGetMathUtility();
             var modeler = Sw.IGetModeler();
 
-            MemorySolidGeometryBuilder = new SwMemorySolidGeometryBuilder(mathUtils, modeler);
+            MemorySolidGeometryBuilder = new SwMemorySolidGeometryBuilder(this);
             MemorySurfaceGeometryBuilder = new SwMemorySurfaceGeometryBuilder(mathUtils, modeler);
             MemoryWireGeometryBuilder = new SwMemoryWireGeometryBuilder(mathUtils, modeler);
 

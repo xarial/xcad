@@ -91,13 +91,33 @@ namespace StandAlone
 
         private static void CreateTempGeometry(IXApplication app) 
         {
+            var sweepArc = app.MemoryWireGeometryBuilder.PreCreateArc();
+            sweepArc.Center = new Point(0, 0, 0);
+            sweepArc.Axis = new Vector(0, 0, 1);
+            sweepArc.Diameter = 0.01;
+            sweepArc.Commit();
+
+            var sweepLine = app.MemoryWireGeometryBuilder.PreCreateLine();
+            sweepLine.StartCoordinate = new Point(0, 0, 0);
+            sweepLine.EndCoordinate = new Point(1, 1, 1);
+            sweepLine.Commit();
+
+            var sweep = app.MemorySolidGeometryBuilder.PreCreateSweep();
+            sweep.Profile = sweepArc;
+            sweep.Path = sweepLine;
+            sweep.Commit();
+
+            var body = (sweep.Bodies.First() as SwBody).Body;
+
+            (app.Documents.Active as SwPart).Part.CreateFeatureFromBody3(body, false, 0);
+
             var cone = app.MemorySolidGeometryBuilder.CreateCone(
                 new Point(0, 0, 0), 
                 new Vector(1, 1, 1), 
                 0.1, 0.05, 0.2, 
                 app.MemoryWireGeometryBuilder);
             
-            var body = (cone.Bodies.First() as SwBody).Body;
+            body = (cone.Bodies.First() as SwBody).Body;
 
             (app.Documents.Active as SwPart).Part.CreateFeatureFromBody3(body, false, 0);
 
