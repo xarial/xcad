@@ -12,17 +12,13 @@ namespace Xarial.XCad.SolidWorks.Geometry
     public class SwMemorySolidGeometryBuilder : IXMemorySolidGeometryBuilder
     {
         IXExtrusion IX3DGeometryBuilder.PreCreateExtrusion() => PreCreateExtrusion();
+        IXRevolve IX3DGeometryBuilder.PreCreateRevolve() => PreCreateRevolve();
 
         public IXLoft PreCreateLoft()
         {
             throw new NotImplementedException();
         }
-
-        public IXRevolve PreCreateRevolve()
-        {
-            throw new NotImplementedException();
-        }
-
+        
         public IXSweep PreCreateSweep()
         {
             throw new NotImplementedException();
@@ -38,5 +34,6 @@ namespace Xarial.XCad.SolidWorks.Geometry
         }
 
         public SwTempExtrusion PreCreateExtrusion() => new SwTempExtrusion(m_MathUtils, m_Modeler, null, false);
+        public SwTempRevolve PreCreateRevolve() => new SwTempRevolve(m_MathUtils, m_Modeler, null, false);
     }
 }

@@ -102,6 +102,11 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
 
             var body = Extrude(surf, boundary.ToArray(), dir, Depth);
 
+            if (body == null) 
+            {
+                throw new Exception("Failed to create extrusion");
+            }
+
             return SwSelObject.FromDispatch<SwTempBody>(body);
         }
 

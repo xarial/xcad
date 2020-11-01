@@ -64,10 +64,15 @@ namespace Xarial.XCad.SolidWorks.Geometry.Curves
 
         private ICurve CreateLine(Point startPt, Point endPt)
         {
-            var curve = m_Modeler.CreateLine(startPt.ToArray(), (startPt - endPt).ToArray()) as ICurve;
-            curve = curve.CreateTrimmedCurve2(startPt.X, startPt.Y, startPt.Z, endPt.X, endPt.Y, endPt.Z);
+            var line = m_Modeler.CreateLine(startPt.ToArray(), (startPt - endPt).ToArray()) as ICurve;
+            line = line.CreateTrimmedCurve2(startPt.X, startPt.Y, startPt.Z, endPt.X, endPt.Y, endPt.Z);
 
-            return curve;
+            if (line == null)
+            {
+                throw new NullReferenceException("Failed to create line");
+            }
+
+            return line;
         }
     }
 }

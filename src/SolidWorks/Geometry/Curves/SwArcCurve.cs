@@ -101,26 +101,8 @@ namespace Xarial.XCad.SolidWorks.Geometry.Curves
             plane = new Plane(Center, Axis, ReferenceDirection);
             return true;
         }
-        
-        private Vector ReferenceDirection 
-        {
-            get 
-            {
-                Vector refDir;
-                var zVec = new Vector(0, 0, 1);
 
-                if (Axis.IsSame(zVec))
-                {
-                    refDir = new Vector(1, 0, 0);
-                }
-                else
-                {
-                    refDir = Axis.Cross(zVec);
-                }
-
-                return refDir;
-            }
-        }
+        private Vector ReferenceDirection => Axis.CreateAnyPerpendicular();
 
         protected override ICurve[] Create()
         {
@@ -130,6 +112,11 @@ namespace Xarial.XCad.SolidWorks.Geometry.Curves
 
             var arc = m_Modeler.CreateArc(Center.ToArray(), Axis.ToArray(), Diameter / 2, refPt.ToArray(), refPt.ToArray()) as ICurve;
             arc = arc.CreateTrimmedCurve2(refPt.X, refPt.Y, refPt.Z, refPt.X, refPt.Y, refPt.Z);
+
+            if (arc == null) 
+            {
+                throw new NullReferenceException("Failed to create arc");
+            }
 
             return new ICurve[] { arc };
         }

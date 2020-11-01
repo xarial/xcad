@@ -91,6 +91,48 @@ namespace StandAlone
 
         private static void CreateTempGeometry(IXApplication app) 
         {
+            var cone = app.MemorySolidGeometryBuilder.CreateCone(
+                new Point(0, 0, 0), 
+                new Vector(1, 1, 1), 
+                0.1, 0.05, 0.2, 
+                app.MemoryWireGeometryBuilder);
+            
+            var body = (cone.Bodies.First() as SwBody).Body;
+
+            (app.Documents.Active as SwPart).Part.CreateFeatureFromBody3(body, false, 0);
+
+            var arc = app.MemoryWireGeometryBuilder.PreCreateArc();
+            arc.Center = new Point(-0.1, 0, 0);
+            arc.Axis = new Vector(0, 0, 1);
+            arc.Diameter = 0.01;
+            arc.Commit();
+
+            var axis = app.MemoryWireGeometryBuilder.PreCreateLine();
+            axis.StartCoordinate = new Point(0, 0, 0);
+            axis.EndCoordinate = new Point(0, 1, 0);
+            axis.Commit();
+
+            var rev = app.MemorySolidGeometryBuilder.PreCreateRevolve();
+            rev.Angle = Math.PI * 2;
+            rev.Axis = axis;
+            rev.Profile = arc;
+            rev.Commit();
+
+            body = (rev.Bodies.First() as SwBody).Body;
+
+            (app.Documents.Active as SwPart).Part.CreateFeatureFromBody3(body, false, 0);
+
+            var box = app.MemorySolidGeometryBuilder.CreateBox(
+                new Point(0, 0, 0), 
+                new Vector(1, 1, 1),
+                new Vector(1, 1, 1).CreateAnyPerpendicular(),
+                0.1, 0.2, 0.3, 
+                app.MemoryWireGeometryBuilder);
+
+            body = (box.Bodies.First() as SwBody).Body;
+
+            (app.Documents.Active as SwPart).Part.CreateFeatureFromBody3(body, false, 0);
+
             var polyline = app.MemoryWireGeometryBuilder.PreCreatePolyline();
             polyline.Points = new Point[] 
             {
@@ -107,7 +149,7 @@ namespace StandAlone
             extr.Profiles = new Xarial.XCad.Geometry.Wires.IXSegment[] { polyline };
             extr.Commit();
 
-            var body = (extr.Bodies.First() as SwBody).Body;
+            body = (extr.Bodies.First() as SwBody).Body;
 
             (app.Documents.Active as SwPart).Part.CreateFeatureFromBody3(body, false, 0);
 
