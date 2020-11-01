@@ -263,7 +263,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             }
         }
 
-        private static object GetBodyResult(ISldWorks app, IEnumerable<IBody2> bodies, IMacroFeatureData featData, bool updateEntityIds)
+        private object GetBodyResult(ISldWorks app, IEnumerable<IBody2> bodies, IMacroFeatureData featData, bool updateEntityIds)
         {
             if (bodies != null)
             {
@@ -313,7 +313,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
                 }
                 else
                 {
-                    return bodies;
+                    return bodies.ToArray();
                 }
             }
             else
