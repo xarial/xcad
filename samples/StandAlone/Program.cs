@@ -21,6 +21,8 @@ using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Sketch;
 using Xarial.XCad.SolidWorks;
 using Xarial.XCad.SolidWorks.Documents;
+using Xarial.XCad.SolidWorks.Geometry;
+using Xarial.XCad.SolidWorks.Geometry.Curves;
 using Xarial.XCad.Toolkit.Utils;
 
 namespace StandAlone
@@ -31,7 +33,7 @@ namespace StandAlone
         {
             //var app = SwApplication.Start(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020);
             var app = SwApplication.FromProcess(Process.GetProcessesByName("SLDWORKS").First());
-                       
+
             //SketchSegmentColors(app);
 
             //CreateDrawingView(app);
@@ -44,6 +46,10 @@ namespace StandAlone
             //CreateSketchEntities(app);
 
             //TraverseSelectedFaces(app);
+
+            //CreateTempGeometry(app);
+
+            CreateSweepFromSelection(app);
         }
         
         private static void SketchSegmentColors(IXApplication app) 
@@ -64,9 +70,10 @@ namespace StandAlone
         private static void CreateSketchEntities(IXApplication app)
         {
             var sketch3D = app.Documents.Active.Features.PreCreate3DSketch();
-            var line = sketch3D.Entities.PreCreateLine();
-            line.StartPoint.Coordinate = new Point(0.1, 0.1, 0.1);
-            line.EndPoint.Coordinate = new Point(0.2, 0.2, 0.2);
+            var line = (IXSketchLine)sketch3D.Entities.PreCreateLine();
+            line.Color = System.Drawing.Color.Green;
+            line.StartCoordinate = new Point(0.1, 0.1, 0.1);
+            line.EndCoordinate = new Point(0.2, 0.2, 0.2);
             sketch3D.Entities.AddRange(new IXSketchEntity[] { line });
 
             app.Documents.Active.Features.Add(sketch3D);
@@ -83,6 +90,117 @@ namespace StandAlone
             {
                 Console.WriteLine(face.Area);
             }
+        }
+
+        private static void CreateSweepFromSelection(IXApplication app) 
+        {
+            var profileSeg = app.Documents.Active.Selections.First() as IXSketchSegment;
+            var pathSeg = app.Documents.Active.Selections.Last() as IXSketchSegment;
+
+            var profileCurve = profileSeg.Definition;
+            var pathCurve = pathSeg.Definition;
+
+            var sweep = app.MemorySolidGeometryBuilder.PreCreateSweep();
+            sweep.Profile = profileCurve;
+            sweep.Path = pathCurve;
+            sweep.Commit();
+
+            var body = (sweep.Bodies.First() as SwBody).Body;
+
+            (app.Documents.Active as SwPart).Part.CreateFeatureFromBody3(body, false, 0);
+        }
+
+        private static void CreateTempGeometry(IXApplication app) 
+        {
+            var sweepArc = app.MemoryWireGeometryBuilder.PreCreateArc();
+            sweepArc.Center = new Point(0, 0, 0);
+            sweepArc.Axis = new Vector(0, 0, 1);
+            sweepArc.Diameter = 0.01;
+            sweepArc.Commit();
+
+            var sweepLine = app.MemoryWireGeometryBuilder.PreCreateLine();
+            sweepLine.StartCoordinate = new Point(0, 0, 0);
+            sweepLine.EndCoordinate = new Point(1, 1, 1);
+            sweepLine.Commit();
+
+            var sweep = app.MemorySolidGeometryBuilder.PreCreateSweep();
+            sweep.Profile = sweepArc;
+            sweep.Path = sweepLine;
+            sweep.Commit();
+
+            var body = (sweep.Bodies.First() as SwBody).Body;
+
+            (app.Documents.Active as SwPart).Part.CreateFeatureFromBody3(body, false, 0);
+
+            var cone = app.MemorySolidGeometryBuilder.CreateCone(
+                new Point(0, 0, 0), 
+                new Vector(1, 1, 1), 
+                0.1, 0.05, 0.2, 
+                app.MemoryWireGeometryBuilder);
+            
+            body = (cone.Bodies.First() as SwBody).Body;
+
+            (app.Documents.Active as SwPart).Part.CreateFeatureFromBody3(body, false, 0);
+
+            var arc = app.MemoryWireGeometryBuilder.PreCreateArc();
+            arc.Center = new Point(-0.1, 0, 0);
+            arc.Axis = new Vector(0, 0, 1);
+            arc.Diameter = 0.01;
+            arc.Commit();
+
+            var axis = app.MemoryWireGeometryBuilder.PreCreateLine();
+            axis.StartCoordinate = new Point(0, 0, 0);
+            axis.EndCoordinate = new Point(0, 1, 0);
+            axis.Commit();
+
+            var rev = app.MemorySolidGeometryBuilder.PreCreateRevolve();
+            rev.Angle = Math.PI * 2;
+            rev.Axis = axis;
+            rev.Profile = arc;
+            rev.Commit();
+
+            body = (rev.Bodies.First() as SwBody).Body;
+
+            (app.Documents.Active as SwPart).Part.CreateFeatureFromBody3(body, false, 0);
+
+            var box = app.MemorySolidGeometryBuilder.CreateBox(
+                new Point(0, 0, 0), 
+                new Vector(1, 1, 1),
+                new Vector(1, 1, 1).CreateAnyPerpendicular(),
+                0.1, 0.2, 0.3, 
+                app.MemoryWireGeometryBuilder);
+
+            body = (box.Bodies.First() as SwBody).Body;
+
+            (app.Documents.Active as SwPart).Part.CreateFeatureFromBody3(body, false, 0);
+
+            var polyline = app.MemoryWireGeometryBuilder.PreCreatePolyline();
+            polyline.Points = new Point[] 
+            {
+                new Point(0, 0, 0),
+                new Point(0.1, 0.1, 0),
+                new Point(0.2, 0, 0),
+                new Point(0, 0, 0)
+            };
+            polyline.Commit();
+
+            var extr = app.MemorySolidGeometryBuilder.PreCreateExtrusion();
+            extr.Depth = 0.5;
+            extr.Direction = new Vector(1, 1, 1);
+            extr.Profiles = new Xarial.XCad.Geometry.Wires.IXSegment[] { polyline };
+            extr.Commit();
+
+            body = (extr.Bodies.First() as SwBody).Body;
+
+            (app.Documents.Active as SwPart).Part.CreateFeatureFromBody3(body, false, 0);
+
+            var cyl = app.MemorySolidGeometryBuilder.CreateCylinder(
+                new Point(0, 0, 0), new Vector(1, 0, 0), 0.1, 0.2,
+                app.MemoryWireGeometryBuilder);
+
+            body = (cyl.Bodies.First() as SwBody).Body;
+
+            (app.Documents.Active as SwPart).Part.CreateFeatureFromBody3(body, false, 0);
         }
     }
 }

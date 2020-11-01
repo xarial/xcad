@@ -409,7 +409,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
             foreach (SwDocument doc in ents) 
             {
-                doc.Create();
+                doc.Commit();
             }
         }
 

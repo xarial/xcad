@@ -254,13 +254,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                 AttachEvents();
             }
         }
-
-        internal void Create()
-        {
-            m_Creator.Create();
-            AttachEvents();
-        }
-
+        
         protected IModelDoc2 CreateDocument() 
         {
             if (string.IsNullOrEmpty(Path))
@@ -394,6 +388,12 @@ namespace Xarial.XCad.SolidWorks.Documents
         public IStorage OpenStorage(string name, AccessType_e access)
         {
             return new Sw3rdPartyStorage(Model, name, access);
+        }
+
+        public void Commit()
+        {
+            m_Creator.Create();
+            AttachEvents();
         }
     }
 }

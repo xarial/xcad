@@ -121,8 +121,10 @@ namespace SwAddInExample
 
         public SwCircularEdge Selection { get; set; }
 
-        [CustomItems(typeof(MyCustomItemsProvider))]
-        public MyItem Option2 { get; set; }
+        //TODO: add attribute to exclude control from binding to macro feature and uncomment the block below
+
+        //[CustomItems(typeof(MyCustomItemsProvider))]
+        //public MyItem Option2 { get; set; }
 
         [ParameterDimension(CustomFeatureDimensionType_e.Angular)]
         [ExcludeControl]

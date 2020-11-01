@@ -22,7 +22,7 @@ namespace Xarial.XCad.SolidWorks.Features
 
         internal SwSketchBase(SwDocument doc, IFeature feat, bool created) : base(doc, feat, created)
         {
-            m_SwEntsColl = new SwSketchEntityCollection(doc.Model, this, doc.Model.SketchManager);
+            m_SwEntsColl = new SwSketchEntityCollection(doc, this);
         }
 
         public IXSketchEntityRepository Entities => m_SwEntsColl;

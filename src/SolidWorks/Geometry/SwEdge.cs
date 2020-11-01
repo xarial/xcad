@@ -9,12 +9,16 @@ using SolidWorks.Interop.sldworks;
 using System.Collections.Generic;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;
+using Xarial.XCad.Geometry.Wires;
+using Xarial.XCad.SolidWorks.Geometry.Curves;
 using Xarial.XCad.Utils.Reflection;
 
 namespace Xarial.XCad.SolidWorks.Geometry
 {
     public class SwEdge : SwEntity, IXEdge
     {
+        IXSegment IXEdge.Definition => Definition;
+
         public IEdge Edge { get; }
 
         public override SwBody Body => FromDispatch<SwBody>(Edge.GetBody());
@@ -37,6 +41,8 @@ namespace Xarial.XCad.SolidWorks.Geometry
                 //TODO: implement vertices
             }
         }
+
+        public SwCurve Definition => FromDispatch<SwCurve>(Edge.IGetCurve());
 
         internal SwEdge(IEdge edge) : base(edge as IEntity)
         {
@@ -111,6 +117,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
         {
             get
             {
+                //TODO: use curve
                 return (double[])Edge.IGetCurve().LineParams;
             }
         }

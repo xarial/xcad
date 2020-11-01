@@ -9,7 +9,7 @@ using System.Numerics;
 
 namespace Xarial.XCad.Geometry.Structures
 {
-    public static class VectorExtension
+    public static class PointExtension
     {
         public static Vector3 ToVector3(this Structures.Point pt)
         {

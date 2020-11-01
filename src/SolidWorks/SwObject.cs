@@ -6,11 +6,13 @@
 //*********************************************************************
 
 using SolidWorks.Interop.sldworks;
+using SolidWorks.Interop.swconst;
 using System;
 using Xarial.XCad.SolidWorks.Annotations;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Features;
 using Xarial.XCad.SolidWorks.Geometry;
+using Xarial.XCad.SolidWorks.Geometry.Curves;
 using Xarial.XCad.SolidWorks.Sketch;
 
 namespace Xarial.XCad.SolidWorks
@@ -95,11 +97,27 @@ namespace Xarial.XCad.SolidWorks
                         return new SwTempBody(body);
                     }
 
-                case ISketchLine skLine:
-                    return new SwSketchLine(doc.Model, skLine, true);
-
+                case ISketchSegment seg:
+                    switch ((swSketchSegments_e)seg.GetType()) 
+                    {
+                        case swSketchSegments_e.swSketchARC:
+                            return new SwSketchArc(doc, seg as ISketchArc, true);
+                        case swSketchSegments_e.swSketchELLIPSE:
+                            return new SwSketchEllipse(doc, seg as ISketchEllipse, true);
+                        case swSketchSegments_e.swSketchLINE:
+                            return new SwSketchLine(doc, seg as ISketchLine, true);
+                        case swSketchSegments_e.swSketchPARABOLA:
+                            return new SwSketchParabola(doc, seg as ISketchParabola, true);
+                        case swSketchSegments_e.swSketchSPLINE:
+                            return new SwSketchSpline(doc, seg as ISketchSpline, true);
+                        case swSketchSegments_e.swSketchTEXT:
+                            return new SwSketchText(doc, seg as ISketchText, true);
+                        default:
+                            throw new NotSupportedException();
+                    }
+                
                 case ISketchPoint skPt:
-                    return new SwSketchPoint(doc.Model, skPt, true);
+                    return new SwSketchPoint(doc, skPt, true);
 
                 case IDisplayDimension dispDim:
                     return new SwDimension(doc.Model, dispDim);
@@ -115,6 +133,17 @@ namespace Xarial.XCad.SolidWorks
 
                 case IView view:
                     return new SwDrawingView(view, (SwDrawing)doc);
+
+                case ICurve curve:
+                    switch ((swCurveTypes_e)curve.Identity()) 
+                    {
+                        case swCurveTypes_e.LINE_TYPE:
+                            return new SwLineCurve(doc.App.Sw.IGetModeler(), curve, true);
+                        case swCurveTypes_e.CIRCLE_TYPE:
+                            return new SwArcCurve(doc.App.Sw.IGetModeler(), curve, true);
+                        default:
+                            return new SwCurve(doc.App.Sw.IGetModeler(), curve, true);
+                    }
 
                 default:
                     return defaultHandler.Invoke(disp);

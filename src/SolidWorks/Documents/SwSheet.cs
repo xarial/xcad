@@ -38,5 +38,10 @@ namespace Xarial.XCad.SolidWorks.Documents
             Sheet = sheet;
             DrawingViews = new SwDrawingViewsCollection(draw, sheet);
         }
+
+        public void Commit()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

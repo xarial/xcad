@@ -5,9 +5,12 @@
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
+using Xarial.XCad.Geometry;
+using Xarial.XCad.Geometry.Wires;
+
 namespace Xarial.XCad.Sketch
 {
-    public interface IXSketchLine : IXSketchSegment
+    public interface IXSketchLine : IXSketchSegment, IXLine
     {
     }
 }
