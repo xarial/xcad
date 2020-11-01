@@ -18,6 +18,7 @@ using Xarial.XCad.SolidWorks.Features.CustomFeature;
 using Xarial.XCad.SolidWorks;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.Features.CustomFeature.Attributes;
+using System.Linq;
 
 namespace SwAddInExample
 {
@@ -53,9 +54,24 @@ namespace SwAddInExample
                 }
             };
 
-            var box = app.GeometryBuilder.CreateBox(new Point(0, 0, 0), new Vector(1, 0, 0), 0.1, 0.1, 0.1);
+            var sweepArc = app.MemoryWireGeometryBuilder.PreCreateArc();
+            sweepArc.Center = new Point(0, 0, 0);
+            sweepArc.Axis = new Vector(0, 0, 1);
+            sweepArc.Diameter = 0.01;
+            sweepArc.Commit();
+
+            var sweepLine = app.MemoryWireGeometryBuilder.PreCreateLine();
+            sweepLine.StartCoordinate = new Point(0, 0, 0);
+            sweepLine.EndCoordinate = new Point(1, 1, 1);
+            sweepLine.Commit();
+
+            var sweep = app.MemorySolidGeometryBuilder.PreCreateSweep();
+            sweep.Profile = sweepArc;
+            sweep.Path = sweepLine;
+            sweep.Commit();
+
             parameters.Number = parameters.Number + 1;
-            return new CustomFeatureBodyRebuildResult() { Bodies = new IXBody[] { box } };
+            return new CustomFeatureBodyRebuildResult() { Bodies = new IXBody[] { sweep.Body } };
         }
     }
 }

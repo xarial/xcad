@@ -37,7 +37,12 @@ namespace SwAddInExample
             BoxData data, bool isPreview, out AlignDimensionDelegate<BoxData> alignDim)
         {
             alignDim = null;
-            return new SwBody[] { (SwBody)app.GeometryBuilder.CreateBox(new Point(0, 0, 0), new Vector(0, 0, 1), data.Width, data.Height, data.Length) };
+
+            var box = (SwBody)app.MemorySolidGeometryBuilder.CreateBox(
+                new Point(0, 0, 0), new Vector(0, 0, 1), new Vector(1, 0, 0).CreateAnyPerpendicular(),
+                data.Width, data.Height, data.Length, app.MemoryWireGeometryBuilder).Bodies.First();
+
+            return new SwBody[] { box };
         }
     }
 }

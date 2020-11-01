@@ -26,11 +26,11 @@ namespace Xarial.XCad.Geometry
             var polyline = wireBuilder.PreCreatePolyline();
             polyline.Points = new Point[]
             {
-                center.Move(refDir, width / 2).Move(secondRefDir, height / 2),
-                center.Move(refDir * -1, width / 2).Move(secondRefDir, height / 2),
-                center.Move(refDir * -1, width / 2).Move(secondRefDir * -1, height / 2),
-                center.Move(refDir, width / 2).Move(secondRefDir * -1, height / 2),
-                center.Move(refDir, width / 2).Move(secondRefDir, height / 2),
+                center.Move(refDir, width / 2).Move(secondRefDir, length / 2),
+                center.Move(refDir * -1, width / 2).Move(secondRefDir, length / 2),
+                center.Move(refDir * -1, width / 2).Move(secondRefDir * -1, length / 2),
+                center.Move(refDir, width / 2).Move(secondRefDir * -1, length / 2),
+                center.Move(refDir, width / 2).Move(secondRefDir, length / 2),
             };
             polyline.Commit();
 
