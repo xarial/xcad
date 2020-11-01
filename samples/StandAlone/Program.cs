@@ -47,7 +47,9 @@ namespace StandAlone
 
             //TraverseSelectedFaces(app);
 
-            CreateTempGeometry(app);
+            //CreateTempGeometry(app);
+
+            CreateSweepFromSelection(app);
         }
         
         private static void SketchSegmentColors(IXApplication app) 
@@ -69,6 +71,7 @@ namespace StandAlone
         {
             var sketch3D = app.Documents.Active.Features.PreCreate3DSketch();
             var line = (IXSketchLine)sketch3D.Entities.PreCreateLine();
+            line.Color = System.Drawing.Color.Green;
             line.StartCoordinate = new Point(0.1, 0.1, 0.1);
             line.EndCoordinate = new Point(0.2, 0.2, 0.2);
             sketch3D.Entities.AddRange(new IXSketchEntity[] { line });
@@ -87,6 +90,24 @@ namespace StandAlone
             {
                 Console.WriteLine(face.Area);
             }
+        }
+
+        private static void CreateSweepFromSelection(IXApplication app) 
+        {
+            var profileSeg = app.Documents.Active.Selections.First() as IXSketchSegment;
+            var pathSeg = app.Documents.Active.Selections.Last() as IXSketchSegment;
+
+            var profileCurve = profileSeg.Definition;
+            var pathCurve = pathSeg.Definition;
+
+            var sweep = app.MemorySolidGeometryBuilder.PreCreateSweep();
+            sweep.Profile = profileCurve;
+            sweep.Path = pathCurve;
+            sweep.Commit();
+
+            var body = (sweep.Bodies.First() as SwBody).Body;
+
+            (app.Documents.Active as SwPart).Part.CreateFeatureFromBody3(body, false, 0);
         }
 
         private static void CreateTempGeometry(IXApplication app) 

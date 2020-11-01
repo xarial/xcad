@@ -97,9 +97,25 @@ namespace Xarial.XCad.SolidWorks
                         return new SwTempBody(body);
                     }
 
-                case ISketchLine skLine:
-                    return new SwSketchLine(doc, skLine, true);
-
+                case ISketchSegment seg:
+                    switch ((swSketchSegments_e)seg.GetType()) 
+                    {
+                        case swSketchSegments_e.swSketchARC:
+                            return new SwSketchArc(doc, seg as ISketchArc, true);
+                        case swSketchSegments_e.swSketchELLIPSE:
+                            return new SwSketchEllipse(doc, seg as ISketchEllipse, true);
+                        case swSketchSegments_e.swSketchLINE:
+                            return new SwSketchLine(doc, seg as ISketchLine, true);
+                        case swSketchSegments_e.swSketchPARABOLA:
+                            return new SwSketchParabola(doc, seg as ISketchParabola, true);
+                        case swSketchSegments_e.swSketchSPLINE:
+                            return new SwSketchSpline(doc, seg as ISketchSpline, true);
+                        case swSketchSegments_e.swSketchTEXT:
+                            return new SwSketchText(doc, seg as ISketchText, true);
+                        default:
+                            throw new NotSupportedException();
+                    }
+                
                 case ISketchPoint skPt:
                     return new SwSketchPoint(doc, skPt, true);
 

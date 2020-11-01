@@ -1,6 +1,7 @@
 ﻿using SolidWorks.Interop.sldworks;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Memory;
@@ -36,6 +37,6 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         public SwTempExtrusion PreCreateExtrusion() => new SwTempExtrusion(m_MathUtils, m_Modeler, null, false);
         public SwTempRevolve PreCreateRevolve() => new SwTempRevolve(m_MathUtils, m_Modeler, null, false);
-        public SwTempSweep PreCreateSweep() => new SwTempSweep((SwPart)m_App.Documents.Active, m_MathUtils, m_Modeler, null, false);
+        public SwTempSweep PreCreateSweep() => new SwTempSweep(m_App.Documents.OfType<SwPart>().First(), m_MathUtils, m_Modeler, null, false);
     }
 }

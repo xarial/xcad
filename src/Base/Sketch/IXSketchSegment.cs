@@ -15,5 +15,9 @@ namespace Xarial.XCad.Sketch
     /// </summary>
     public interface IXSketchSegment : IXSketchEntity, IXSegment
     {
+        /// <summary>
+        /// Underlyining segment defining this sketch segment
+        /// </summary>
+        IXSegment Definition { get; }
     }
 }
