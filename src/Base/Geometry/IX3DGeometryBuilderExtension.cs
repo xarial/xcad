@@ -1,6 +1,7 @@
 ﻿using System;
 using Xarial.XCad.Geometry.Primitives;
 using Xarial.XCad.Geometry.Structures;
+using Xarial.XCad.Geometry.Wires;
 
 namespace Xarial.XCad.Geometry
 {
@@ -112,64 +113,37 @@ namespace Xarial.XCad.Geometry
             return rev;
         }
 
-        //public static IXBody CreateBox(this IX3DGeometryBuilder builder, Point center, Vector dir,
-        //    double width, double length, double height, out Vector refDir)
-        //{
-        //    refDir = FindRefDir(dir);
+        public static IXExtrusion CreateExtrusion(this IX3DGeometryBuilder builder, 
+            double depth, Vector direction, IXSegment[] profiles) 
+        {
+            var extr = builder.PreCreateExtrusion();
+            extr.Depth = depth;
+            extr.Direction = direction;
+            extr.Profiles = profiles;
+            extr.Commit();
 
-        //    return builder.CreateBox(center, dir, refDir, width, length, height);
-        //}
+            return extr;
+        }
 
-        //public static IXBody CreateBox(this IX3DGeometryBuilder builder, Point center, Vector dir,
-        //    double width, double length, double height)
-        //{
-        //    Vector refDir;
-        //    return CreateBox(builder, center, dir, width, length, height, out refDir);
-        //}
+        public static IXRevolve CreateRevolve(this IX3DGeometryBuilder builder, IXSegment profile, IXLine axis, double angle)
+        {
+            var rev = builder.PreCreateRevolve();
+            rev.Angle = angle;
+            rev.Axis = axis;
+            rev.Profile = profile;
+            rev.Commit();
 
-        //public static IXBody CreateCylinder(this IX3DGeometryBuilder builder, Point center, Vector axis,
-        //    double radius, double height, out Vector refDir)
-        //{
-        //    refDir = FindRefDir(axis);
-        //    return builder.CreateCylinder(center, axis, refDir, radius, height);
-        //}
+            return rev;
+        }
 
-        //public static IXBody CreateCylinder(this IX3DGeometryBuilder builder, Point center, Vector axis,
-        //    double radius, double height)
-        //{
-        //    Vector refDir;
-        //    return CreateCylinder(builder, center, axis, radius, height, out refDir);
-        //}
+        public static IXSweep CreateSweep(this IX3DGeometryBuilder builder, IXSegment profile, IXSegment path)
+        {
+            var sweep = builder.PreCreateSweep();
+            sweep.Profile = profile;
+            sweep.Path = path;
+            sweep.Commit();
 
-        //public static IXBody CreateCone(this IX3DGeometryBuilder builder, Point center, Vector axis,
-        //    double baseRadius, double topRadius, double height, out Vector refDir)
-        //{
-        //    refDir = FindRefDir(axis);
-        //    return builder.CreateCone(center, axis, refDir, baseRadius, topRadius, height).Body;
-        //}
-
-        //public static IXBody CreateCone(this IX3DGeometryBuilder builder, Point center, Vector axis,
-        //    double baseRadius, double topRadius, double height)
-        //{
-        //    Vector refDir;
-        //    return CreateCone(builder, center, axis, baseRadius, topRadius, height, out refDir);
-        //}
-
-        //private static Vector FindRefDir(Vector dir)
-        //{
-        //    Vector refDir;
-        //    var zVec = new Vector(0, 0, 1);
-
-        //    if (dir.IsSame(zVec))
-        //    {
-        //        refDir = new Vector(1, 0, 0);
-        //    }
-        //    else
-        //    {
-        //        refDir = dir.Cross(zVec);
-        //    }
-
-        //    return refDir;
-        //}
+            return sweep;
+        }
     }
 }

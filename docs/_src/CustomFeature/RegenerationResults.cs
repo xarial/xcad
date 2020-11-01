@@ -1,4 +1,5 @@
 ﻿using SolidWorks.Interop.sldworks;
+using System.Linq;
 using System.Runtime.InteropServices;
 using Xarial.XCad.Features.CustomFeature.Structures;
 using Xarial.XCad.Geometry;
@@ -42,12 +43,13 @@ namespace Xarial.XCad.Documentation
     {
         public override CustomFeatureRebuildResult OnRebuild(SwApplication app, SwDocument model, SwMacroFeature feature)
         {
-            var body = app.GeometryBuilder.CreateBox(new Point(0, 0, 0),
-                new Vector(1, 0, 0), new Vector(0, 1, 0), 0.1, 0.1, 0.1);
+            var body = app.MemorySolidGeometryBuilder.CreateBox(new Point(0, 0, 0),
+                new Vector(1, 0, 0), new Vector(0, 1, 0),
+                0.1, 0.1, 0.1, app.MemoryWireGeometryBuilder);
 
             return new CustomFeatureBodyRebuildResult()
             {
-                Bodies = new IXBody[] { body }
+                Bodies = body.Bodies.ToArray()
             };
         }
     }
