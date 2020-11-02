@@ -101,14 +101,14 @@ namespace Xarial.XCad.SolidWorks.Documents
 
     internal class SwPartBodyCollection : SwBodyCollection
     {
-        private IPartDoc m_Part;
+        private SwPart m_Part;
 
         public SwPartBodyCollection(SwPart rootDoc) : base(rootDoc)
         {
-            m_Part = rootDoc.Part;
+            m_Part = rootDoc;
         }
 
         protected override IEnumerable<IBody2> GetSwBodies()
-            => (m_Part.GetBodies2((int)swBodyType_e.swAllBodies, false) as object[])?.Cast<IBody2>();
+            => (m_Part.Part.GetBodies2((int)swBodyType_e.swAllBodies, false) as object[])?.Cast<IBody2>();
     }
 }

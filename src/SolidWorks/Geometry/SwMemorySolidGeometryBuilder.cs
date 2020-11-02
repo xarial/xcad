@@ -8,6 +8,7 @@ using Xarial.XCad.Geometry.Memory;
 using Xarial.XCad.Geometry.Primitives;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Geometry.Primitives;
+using Xarial.XCad.SolidWorks.Services;
 
 namespace Xarial.XCad.SolidWorks.Geometry
 {
@@ -27,16 +28,20 @@ namespace Xarial.XCad.SolidWorks.Geometry
         protected readonly IModeler m_Modeler;
         protected readonly IMathUtility m_MathUtils;
 
-        internal SwMemorySolidGeometryBuilder(SwApplication app)
+        private readonly IMemoryGeometryBuilderDocumentProvider m_GeomBuilderDocsProvider;
+
+        internal SwMemorySolidGeometryBuilder(SwApplication app, IMemoryGeometryBuilderDocumentProvider geomBuilderDocsProvider)
         {
             m_App = app;
 
             m_MathUtils = m_App.Sw.IGetMathUtility();
             m_Modeler = m_App.Sw.IGetModeler();
+
+            m_GeomBuilderDocsProvider = geomBuilderDocsProvider;
         }
 
         public SwTempExtrusion PreCreateExtrusion() => new SwTempExtrusion(m_MathUtils, m_Modeler, null, false);
         public SwTempRevolve PreCreateRevolve() => new SwTempRevolve(m_MathUtils, m_Modeler, null, false);
-        public SwTempSweep PreCreateSweep() => new SwTempSweep(m_App.Documents.OfType<SwPart>().First(), m_MathUtils, m_Modeler, null, false);
+        public SwTempSweep PreCreateSweep() => new SwTempSweep((SwPart)m_GeomBuilderDocsProvider.ProvideDocument(typeof(SwTempSweep)), m_MathUtils, m_Modeler, null, false);
     }
 }

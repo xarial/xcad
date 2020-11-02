@@ -31,215 +31,20 @@ using Microsoft.Win32;
 using System.Drawing;
 using Xarial.XCad.Delegates;
 using Xarial.XCad.Geometry.Memory;
+using Xarial.XCad.Toolkit;
+using Xarial.XCad.SolidWorks.Services;
 
 namespace Xarial.XCad.SolidWorks
 {
     /// <inheritdoc/>
-    public class SwApplication : IXApplication, IDisposable
+    public partial class SwApplication : IXApplication, IXServiceConsumer, IDisposable
     {
-        public static class CommandLineArguments
-        {
-            /// <summary>
-            /// Bypasses the Tools/Options settings
-            /// </summary>
-            public const string SafeMode = "/SWSafeMode /SWDisableExitApp";
-
-            /// <summary>
-            /// Runs SOLIDWORKS in background model via SOLIDWORKS Task Scheduler (requires SOLIDWORKS Professional or higher)
-            /// </summary>
-            public const string BackgroundMode = "/b";
-
-            /// <summary>
-            /// Suppresses all popup messages, including the splash screen
-            /// </summary>
-            public const string SilentMode = "/r";
-        }
-
-        private const string PROG_ID_TEMPLATE = "SldWorks.Application.{0}";
-
         public event ApplicationLoadedDelegate Loaded;
-
-        public static SwApplication FromPointer(ISldWorks app) 
-            => FromPointer(app, new TraceLogger("xCAD"));
-        
-        public static SwApplication FromPointer(ISldWorks app, IXLogger logger)
-        {
-            return new SwApplication(app, logger);
-        }
-
-        public static SwApplication FromProcess(Process process) 
-            => FromProcess(process, new TraceLogger("xCAD"));
-
-        public static SwApplication FromProcess(Process process, IXLogger logger)
-        {
-            var app = RotHelper.TryGetComObjectByMonikerName<ISldWorks>(GetMonikerName(process));
-
-            if (app != null)
-            {
-                return FromPointer(app, logger);
-            }
-            else
-            {
-                throw new Exception($"Cannot access SOLIDWORKS application at process {process.Id}");
-            }
-        }
-
-        private static string GetMonikerName(Process process) => $"SolidWorks_PID_{process.Id}";
-
-        ///<inheritdoc cref="Start(SwVersion_e?, string, CancellationToken?)"/>
-        ///<remarks>Default timeout is 5 minutes. Use different overload of this method to specify custom cancellation token</remarks>
-        public static SwApplication Start(SwVersion_e? vers = null,
-            string args = "") => Start(vers, args, new CancellationTokenSource(TimeSpan.FromMinutes(5)).Token);
-
-        /// <summary>
-        /// Starts new instance of the SOLIDWORKS application
-        /// </summary>
-        /// <param name="vers">Version of SOLIDWORKS to start or null for the latest version</param>
-        /// <param name="cancellationToken">Cancellation token</param>
-        /// <returns>Instance of application</returns>
-        public static SwApplication Start(SwVersion_e? vers,
-            string args, CancellationToken? cancellationToken = null) 
-            => Start(vers, args, new TraceLogger("xCAD"), cancellationToken);
-
-        ///<inheritdoc cref="Start(SwVersion_e?, string, CancellationToken?)"/>
-        /// <param name="logger">Logger</param>
-        public static SwApplication Start(SwVersion_e? vers,
-            string args, IXLogger logger, CancellationToken? cancellationToken = null)
-        {
-            var swPath = FindSwAppPath(vers);
-
-            var prc = Process.Start(swPath, args);
-            
-            try
-            {
-                ISldWorks app = null;
-
-                do
-                {
-                    if (cancellationToken.HasValue)
-                    {
-                        if (cancellationToken.Value.IsCancellationRequested)
-                        {
-                            throw new AppStartCancelledByUserException();
-                        }
-                    }
-
-                    app = RotHelper.TryGetComObjectByMonikerName<ISldWorks>(GetMonikerName(prc));
-                    Thread.Sleep(100);
-                }
-                while (app == null);
-
-                return FromPointer(app, logger);
-            }
-            catch
-            {
-                if (prc != null)
-                {
-                    try
-                    {
-                        prc.Kill();
-                    }
-                    catch
-                    {
-                    }
-                }
-
-                throw;
-            }
-        }
-
-        public static IEnumerable<SwVersion_e> GetInstalledVersions() 
-        {
-            foreach (var versCand in Enum.GetValues(typeof(SwVersion_e)).Cast<SwVersion_e>())
-            {
-                var progId = string.Format(PROG_ID_TEMPLATE, (int)versCand);
-                var swAppRegKey = Registry.ClassesRoot.OpenSubKey(progId);
-
-                if (swAppRegKey != null)
-                {
-                    var isInstalled = false;
-
-                    try
-                    {
-                        FindSwPathFromRegKey(swAppRegKey);
-                        isInstalled = true;
-                    }
-                    catch 
-                    { 
-                    }
-
-                    if (isInstalled)
-                    {
-                        yield return versCand;
-                    }
-                }
-            }
-        }
-
-        private static string FindSwAppPath(SwVersion_e? vers)
-        {
-            RegistryKey swAppRegKey = null;
-
-            if (vers.HasValue)
-            {
-                var progId = string.Format(PROG_ID_TEMPLATE, (int)vers);
-                swAppRegKey = Registry.ClassesRoot.OpenSubKey(progId);
-            }
-            else
-            {
-                foreach (var versCand in Enum.GetValues(typeof(SwVersion_e)).Cast<int>().OrderByDescending(x => x))
-                {
-                    var progId = string.Format(PROG_ID_TEMPLATE, versCand);
-                    swAppRegKey = Registry.ClassesRoot.OpenSubKey(progId);
-
-                    if (swAppRegKey != null)
-                    {
-                        break;
-                    }
-                }
-            }
-
-            if (swAppRegKey != null)
-            {
-                return FindSwPathFromRegKey(swAppRegKey);
-            }
-            else
-            {
-                throw new NullReferenceException("Failed to find the information about the installed SOLIDWORKS applications in the registry");
-            }
-        }
-
-        private static string FindSwPathFromRegKey(RegistryKey swAppRegKey)
-        {
-            var clsidKey = swAppRegKey.OpenSubKey("CLSID", false);
-
-            if (clsidKey == null)
-            {
-                throw new NullReferenceException($"Incorrect registry value, CLSID is missing");
-            }
-
-            var clsid = (string)clsidKey.GetValue("");
-
-            var localServerKey = Microsoft.Win32.Registry.ClassesRoot.OpenSubKey(
-                $"CLSID\\{clsid}\\LocalServer32", false);
-
-            if (clsid == null)
-            {
-                throw new NullReferenceException($"Incorrect registry value, LocalServer32 is missing");
-            }
-
-            var swAppPath = (string)localServerKey.GetValue("");
-
-            if (!File.Exists(swAppPath))
-            {
-                throw new FileNotFoundException($"Path to SOLIDWORKS executable does not exist: {swAppPath}");
-            }
-
-            return swAppPath;
-        }
+        internal event Action<Type> PropertyPageOpening;
+        internal event Action<Type> PropertyPageClosed;
 
         IXDocumentRepository IXApplication.Documents => Documents;
-        
+
         IXMacro IXApplication.OpenMacro(string path) => OpenMacro(path);
 
         IXMemoryWireGeometryBuilder IXApplication.MemoryWireGeometryBuilder => MemoryWireGeometryBuilder;
@@ -258,23 +63,63 @@ namespace Xarial.XCad.SolidWorks
 
         public Rectangle WindowRectangle => new Rectangle(Sw.FrameLeft, Sw.FrameTop, Sw.FrameWidth, Sw.FrameHeight);
 
-        public SwMemoryWireGeometryBuilder MemoryWireGeometryBuilder { get; }
-        public SwMemorySurfaceGeometryBuilder MemorySurfaceGeometryBuilder { get; }
-        public SwMemorySolidGeometryBuilder MemorySolidGeometryBuilder { get; }
+        public SwMemoryWireGeometryBuilder MemoryWireGeometryBuilder { get; private set; }
+        public SwMemorySurfaceGeometryBuilder MemorySurfaceGeometryBuilder { get; private set; }
+        public SwMemorySolidGeometryBuilder MemorySolidGeometryBuilder { get; private set; }
 
-        internal SwApplication(ISldWorks app, IXLogger logger)
+        private IXLogger m_Logger;
+
+        private IServiceProvider m_Provider;
+
+        internal SwApplication(ISldWorks app, IXServiceCollection customServices)
         {
             Sw = app;
-            Documents = new SwDocumentCollection(this, logger);
+            Init(customServices);
+        }
+
+        /// <summary>
+        /// Only to be used within SwAddInEx
+        /// </summary>
+        internal SwApplication(ISldWorks app)
+        {
+            Sw = app;
+        }
+
+        internal void Init(IXServiceCollection customServices) 
+        {
+            var services = new ServiceCollection();
+            ConfigureServices(services);
+
+            if (customServices != null)
+            {
+                services.Merge(customServices);
+            }
+
+            m_Provider = services.CreateProvider();
+            m_Logger = m_Provider.GetService<IXLogger>();
+
+            Documents = new SwDocumentCollection(this, m_Logger);
 
             var mathUtils = Sw.IGetMathUtility();
             var modeler = Sw.IGetModeler();
 
-            MemorySolidGeometryBuilder = new SwMemorySolidGeometryBuilder(this);
+            var geomBuilderDocsProvider = m_Provider.GetService<IMemoryGeometryBuilderDocumentProvider>();
+
+            MemorySolidGeometryBuilder = new SwMemorySolidGeometryBuilder(this, geomBuilderDocsProvider);
             MemorySurfaceGeometryBuilder = new SwMemorySurfaceGeometryBuilder(mathUtils, modeler);
             MemoryWireGeometryBuilder = new SwMemoryWireGeometryBuilder(mathUtils, modeler);
 
             (Sw as SldWorks).OnIdleNotify += OnLoadFirstIdleNotify;
+        }
+
+        internal void ReportPropertyPageOpening(Type pmpDataType) 
+        {
+            PropertyPageOpening?.Invoke(pmpDataType);
+        }
+
+        internal void ReportPropertyPageClosed(Type pmpDataType)
+        {
+            PropertyPageClosed?.Invoke(pmpDataType);
         }
 
         public MessageBoxResult_e ShowMessageBox(string msg, MessageBoxIcon_e icon = MessageBoxIcon_e.Info, MessageBoxButtons_e buttons = MessageBoxButtons_e.Ok)
@@ -405,6 +250,12 @@ namespace Xarial.XCad.SolidWorks
             }
 
             return S_OK;
+        }
+
+        public void ConfigureServices(IXServiceCollection collection)
+        {
+            collection.AddOrReplace<IXLogger>(() => new TraceLogger("xCAD.SwApplication"));
+            collection.AddOrReplace<IMemoryGeometryBuilderDocumentProvider>(() => new DefaultMemoryGeometryBuilderDocumentProvider(this));
         }
     }
 
