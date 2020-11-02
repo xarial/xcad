@@ -102,27 +102,14 @@ namespace Xarial.XCad.SolidWorks
         /// </summary>
         protected int AddInId { get; private set; }
 
-        public IXLogger Logger { get; }
+        public IXLogger Logger { get; private set; }
 
         private readonly List<IDisposable> m_Disposables;
 
-        private readonly IServiceProvider m_SvcProvider;
-
+        private IServiceProvider m_SvcProvider;
+        
         public SwAddInEx()
-        {
-            var addInType = this.GetType();
-            var title = GetRegistrationHelper(addInType).GetTitle(addInType);
-
-            var svcColl = new ServiceCollection();
-
-            svcColl.AddOrReplace<IXLogger>(() => new TraceLogger($"XCad.AddIn.{title}"));
-
-            ConfigureServices(svcColl);
-
-            m_SvcProvider = svcColl.CreateProvider();
-
-            Logger = m_SvcProvider.GetService<IXLogger>();
-            
+        {   
             m_Disposables = new List<IDisposable>();
         }
 
@@ -130,8 +117,6 @@ namespace Xarial.XCad.SolidWorks
         [EditorBrowsable(EditorBrowsableState.Never)]
         public bool ConnectToSW(object ThisSW, int cookie)
         {
-            Logger.Log("Loading add-in");
-
             try
             {
                 var app = ThisSW as ISldWorks;
@@ -141,12 +126,24 @@ namespace Xarial.XCad.SolidWorks
                 {
                     app.SetAddinCallbackInfo2(0, this, AddInId);
                 }
-                else 
+                else
                 {
                     app.SetAddinCallbackInfo(0, this, AddInId);
                 }
 
-                Application = new SwApplication(app, Logger);
+                Application = new SwApplication(app);
+
+                var svcCollection = GetServicesCollection();
+
+                ConfigureServices(svcCollection);
+
+                m_SvcProvider = svcCollection.CreateProvider();
+
+                Logger = m_SvcProvider.GetService<IXLogger>();
+
+                Application.Init(svcCollection);
+
+                Logger.Log("Loading add-in");
 
                 SwMacroFeatureDefinition.Application = Application;
 
@@ -161,6 +158,18 @@ namespace Xarial.XCad.SolidWorks
                 Logger.Log(ex);
                 return false;
             }
+        }
+
+        private IXServiceCollection GetServicesCollection()
+        {
+            var svcCollection = new ServiceCollection();
+
+            var addInType = this.GetType();
+            var title = GetRegistrationHelper(addInType).GetTitle(addInType);
+
+            svcCollection.AddOrReplace<IXLogger>(() => new TraceLogger($"XCad.AddIn.{title}"));
+
+            return svcCollection;
         }
 
         [Browsable(false)]

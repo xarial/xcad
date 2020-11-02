@@ -35,7 +35,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
         /// <inheritdoc/>
         public event PageDataChangedDelegate DataChanged;
 
-        private readonly ISldWorks m_App;
+        private readonly SwApplication m_App;
         private readonly IconsConverter m_IconsConv;
         private readonly PropertyManagerPagePage m_Page;
         private readonly PropertyManagerPageBuilder m_PmpBuilder;
@@ -59,7 +59,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
 
         internal SwPropertyManagerPage(SwApplication app, IPageSpec pageSpec, IXLogger logger, Type handlerType)
         {
-            m_App = app.Sw;
+            m_App = app;
 
             Logger = logger;
 
@@ -98,12 +98,14 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
 
             const int OPTS_DEFAULT = 0;
 
-            m_App.IActiveDoc2.ClearSelection2(true);
+            m_App.Sw.IActiveDoc2.ClearSelection2(true);
 
             foreach (var binding in m_Page.Binding.Bindings)
             {
                 binding.Model = model;
             }
+
+            m_App.ReportPropertyPageOpening(typeof(TModel));
 
             m_Page.Page.Show2(OPTS_DEFAULT);
 
@@ -137,6 +139,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
         private void OnClosed(swPropertyManagerPageCloseReasons_e reason)
         {
             Closed?.Invoke(ConvertReason(reason));
+            m_App.ReportPropertyPageClosed(typeof(TModel));
         }
 
         private void OnClosing(swPropertyManagerPageCloseReasons_e reason, PageClosingArg arg)

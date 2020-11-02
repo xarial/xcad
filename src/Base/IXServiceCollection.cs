@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Xarial.XCad
 {
@@ -7,6 +8,11 @@ namespace Xarial.XCad
     /// </summary>
     public interface IXServiceCollection 
     {
+        /// <summary>
+        /// Registered services
+        /// </summary>
+        IReadOnlyDictionary<Type, Func<object>> Services { get; }
+
         /// <summary>
         /// Adds new service or replaces existing one
         /// </summary>
@@ -47,6 +53,19 @@ namespace Xarial.XCad
         public static void AddOrReplace(this IXServiceCollection coll, Type svcType, Func<object> factory)
         {
             coll.AddOrReplace(svcType, factory);
+        }
+
+        /// <summary>
+        /// Merges two service collections
+        /// </summary>
+        /// <param name="svc">Target service</param>
+        /// <param name="other">Service to merge with (will override services if exist)</param>
+        public static void Merge(this IXServiceCollection svc, IXServiceCollection other) 
+        {
+            foreach (var dep in other.Services) 
+            {
+                svc.AddOrReplace(dep.Key, dep.Value);
+            }
         }
     }
 }

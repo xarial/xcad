@@ -71,7 +71,7 @@ namespace Xarial.XCad.Utils.CustomFeature
             IXSelObject[] featSels;
             IXBody[] featBodies;
 
-            ExtractRawParameters(feat, out featRawParams, out featDims, out featSels, out featBodies);
+            ExtractRawParameters(feat, model, out featRawParams, out featDims, out featSels, out featBodies);
 
             var parameters = new Dictionary<string, string>();
 
@@ -301,7 +301,7 @@ namespace Xarial.XCad.Utils.CustomFeature
         }
 
         //TODO: need to spearate to different methods
-        protected abstract void ExtractRawParameters(IXCustomFeature feat,
+        protected abstract void ExtractRawParameters(IXCustomFeature feat, IXDocument doc,
             out Dictionary<string, object> parameters, out IXDimension[] dimensions,
             out IXSelObject[] selection, out IXBody[] editBodies);
 

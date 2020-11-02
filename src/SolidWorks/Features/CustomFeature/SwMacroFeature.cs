@@ -54,7 +54,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         public SwMacroFeature<TParams> ToParameters<TParams>()
             where TParams : class, new()
         {
-            return ToParameters<TParams>(new MacroFeatureParametersParser());
+            return ToParameters<TParams>(new MacroFeatureParametersParser(m_Doc.SwApp));
         }
 
         internal SwMacroFeature<TParams> ToParameters<TParams>(MacroFeatureParametersParser paramsParser)
@@ -102,9 +102,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             {
                 if (selection != null && selection.Any())
                 {
-                    var selRes = selSet.AddRange(selection);
-
-                    Debug.Assert(selRes);
+                    selSet.AddRange(selection);
                 }
 
                 var feat = m_FeatMgr.InsertMacroFeature3(baseName,

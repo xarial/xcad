@@ -129,7 +129,10 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
 
             if (selBoxes.Length == 1)
             {
-                autoAssignSelMarksCtrls[0].SelectionBox.Mark = 0;
+                if (autoAssignSelMarksCtrls.Any())
+                {
+                    autoAssignSelMarksCtrls[0].SelectionBox.Mark = 0;
+                }
             }
             else
             {

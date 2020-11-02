@@ -8,6 +8,8 @@ namespace Xarial.XCad.Toolkit
     {
         private readonly Dictionary<Type, Func<object>> m_Services;
 
+        public IReadOnlyDictionary<Type, Func<object>> Services => m_Services;
+
         public ServiceCollection() 
         {
             m_Services = new Dictionary<Type, Func<object>>();
