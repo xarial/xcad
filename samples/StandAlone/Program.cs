@@ -49,9 +49,9 @@ namespace StandAlone
 
             //TraverseSelectedFaces(app);
 
-            //CreateTempGeometry(app);
+            CreateTempGeometry(app);
 
-            CreateSweepFromSelection(app);
+            //CreateSweepFromSelection(app);
         }
         
         private static void SketchSegmentColors(IXApplication app) 
@@ -103,7 +103,7 @@ namespace StandAlone
             var pathCurve = pathSeg.Definition;
 
             var sweep = app.MemoryGeometryBuilder.SolidBuilder.PreCreateSweep();
-            sweep.Profile = app.MemoryGeometryBuilder.CreatePlanarSurface(new IXSegment[] { profileCurve });
+            sweep.Profiles = new IXRegion[] { app.MemoryGeometryBuilder.CreatePlanarSurface(new IXSegment[] { profileCurve }).Bodies.OfType<IXPlanarSheetBody>().First() };
             sweep.Path = pathCurve;
             sweep.Commit();
 
@@ -126,7 +126,7 @@ namespace StandAlone
             sweepLine.Commit();
 
             var sweep = app.MemoryGeometryBuilder.SolidBuilder.PreCreateSweep();
-            sweep.Profile = app.MemoryGeometryBuilder.CreatePlanarSurface(sweepArc);
+            sweep.Profiles = new IXRegion[] { app.MemoryGeometryBuilder.CreatePlanarSurface(sweepArc).Bodies.OfType<IXPlanarSheetBody>().First() };
             sweep.Path = sweepLine;
             sweep.Commit();
 
@@ -157,7 +157,7 @@ namespace StandAlone
             var rev = app.MemoryGeometryBuilder.SolidBuilder.PreCreateRevolve();
             rev.Angle = Math.PI * 2;
             rev.Axis = axis;
-            rev.Profile = app.MemoryGeometryBuilder.CreatePlanarSurface(arc);
+            rev.Profiles = new IXRegion[] { app.MemoryGeometryBuilder.CreatePlanarSurface(arc).Bodies.OfType<IXPlanarSheetBody>().First() };
             rev.Commit();
 
             body = (rev.Bodies.First() as SwBody).Body;
@@ -187,7 +187,7 @@ namespace StandAlone
             var extr = app.MemoryGeometryBuilder.SolidBuilder.PreCreateExtrusion();
             extr.Depth = 0.5;
             extr.Direction = new Vector(1, 1, 1);
-            extr.Profiles = new IXRegion[] { app.MemoryGeometryBuilder.CreatePlanarSurface(polyline) };
+            extr.Profiles = new IXRegion[] { app.MemoryGeometryBuilder.CreatePlanarSurface(polyline).Bodies.OfType<IXPlanarSheetBody>().First() };
             extr.Commit();
 
             body = (extr.Bodies.First() as SwBody).Body;

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using Xarial.XCad.Geometry.Primitives;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Geometry.Wires;
@@ -37,7 +38,7 @@ namespace Xarial.XCad.Geometry
             var extr = builder.SolidBuilder.PreCreateExtrusion();
             extr.Depth = height;
             extr.Direction = dir;
-            extr.Profiles = new IXRegion[] { builder.CreatePlanarSurface(polyline) };
+            extr.Profiles = new IXRegion[] { builder.CreatePlanarSurface(polyline).Bodies.OfType<IXPlanarSheetBody>().First() };
             extr.Commit();
 
             return extr;
@@ -64,7 +65,7 @@ namespace Xarial.XCad.Geometry
             var extr = builder.SolidBuilder.PreCreateExtrusion();
             extr.Depth = height;
             extr.Direction = arc.Axis;
-            extr.Profiles = new IXRegion[] { builder.CreatePlanarSurface(arc) };
+            extr.Profiles = new IXRegion[] { builder.CreatePlanarSurface(arc).Bodies.OfType<IXPlanarSheetBody>().First() };
             extr.Commit();
 
             return extr;
@@ -104,7 +105,7 @@ namespace Xarial.XCad.Geometry
             var rev = builder.SolidBuilder.PreCreateRevolve();
             rev.Axis = revLine;
             rev.Angle = Math.PI * 2;
-            rev.Profile = builder.CreatePlanarSurface(profile);
+            rev.Profiles = new IXRegion[] { builder.CreatePlanarSurface(profile).Bodies.OfType<IXPlanarSheetBody>().First() };
             rev.Commit();
 
             return rev;
@@ -122,21 +123,21 @@ namespace Xarial.XCad.Geometry
             return extr;
         }
 
-        public static IXRevolve CreateSolidRevolve(this IXGeometryBuilder builder, IXRegion profile, IXLine axis, double angle)
+        public static IXRevolve CreateSolidRevolve(this IXGeometryBuilder builder, IXLine axis, double angle, params IXRegion[] profiles)
         {
             var rev = builder.SolidBuilder.PreCreateRevolve();
             rev.Angle = angle;
             rev.Axis = axis;
-            rev.Profile = profile;
+            rev.Profiles = profiles;
             rev.Commit();
 
             return rev;
         }
 
-        public static IXSweep CreateSolidSweep(this IXGeometryBuilder builder, IXRegion profile, IXSegment path)
+        public static IXSweep CreateSolidSweep(this IXGeometryBuilder builder, IXSegment path, IXRegion[] profiles)
         {
             var sweep = builder.SolidBuilder.PreCreateSweep();
-            sweep.Profile = profile;
+            sweep.Profiles = profiles;
             sweep.Path = path;
             sweep.Commit();
 

@@ -20,6 +20,7 @@ using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.Features.CustomFeature.Attributes;
 using System.Linq;
 using Xarial.XCad.SolidWorks.Geometry.Primitives;
+using Xarial.XCad.Geometry.Primitives;
 
 namespace SwAddInExample
 {
@@ -67,12 +68,12 @@ namespace SwAddInExample
             sweepLine.Commit();
 
             var sweep = (ISwTempSweep)app.MemoryGeometryBuilder.SolidBuilder.PreCreateSweep();
-            sweep.Profile = app.MemoryGeometryBuilder.CreatePlanarSurface(sweepArc);
+            sweep.Profiles = new IXRegion[] { app.MemoryGeometryBuilder.CreatePlanarSurface(sweepArc).Bodies.OfType<IXPlanarSheetBody>().First() };
             sweep.Path = sweepLine;
             sweep.Commit();
 
             parameters.Number = parameters.Number + 1;
-            return new CustomFeatureBodyRebuildResult() { Bodies = new IXBody[] { sweep.Body } };
+            return new CustomFeatureBodyRebuildResult() { Bodies = sweep.Bodies };
         }
     }
 }

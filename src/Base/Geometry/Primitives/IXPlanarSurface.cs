@@ -5,7 +5,7 @@ using Xarial.XCad.Geometry.Wires;
 
 namespace Xarial.XCad.Geometry.Primitives
 {
-    public interface IXPlanarSurface : IXPrimitive, IXRegion
+    public interface IXPlanarSurface : IXPrimitive
     {
         IXSegment[] Boundary { get; set; }
     }

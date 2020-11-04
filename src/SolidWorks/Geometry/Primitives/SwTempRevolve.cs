@@ -14,21 +14,21 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
 {
     public interface ISwTempRevolve : IXRevolve, ISwTempPrimitive
     {
-        new ISwTempRegion Profile { get; set; }
+        new ISwTempRegion[] Profiles { get; set; }
         new ISwLineCurve Axis { get; set; }
     }
 
     internal class SwTempRevolve : SwTempPrimitive, ISwTempRevolve
     {
-        internal SwTempRevolve(IMathUtility mathUtils, IModeler modeler, SwTempBody body, bool isCreated) 
-            : base(mathUtils, modeler, body, isCreated)
+        internal SwTempRevolve(IMathUtility mathUtils, IModeler modeler, SwTempBody[] bodies, bool isCreated) 
+            : base(mathUtils, modeler, bodies, isCreated)
         {
         }
 
-        IXRegion IXRevolve.Profile 
+        IXRegion[] IXRevolve.Profiles 
         {
-            get => Profile;
-            set => Profile = (ISwTempRegion)value; 
+            get => Profiles;
+            set => Profiles = value.Cast<ISwTempRegion>().ToArray();
         }
 
         IXLine IXRevolve.Axis
@@ -53,9 +53,9 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
             }
         }
 
-        public ISwTempRegion Profile
+        public ISwTempRegion[] Profiles
         {
-            get => m_Creator.CachedProperties.Get<ISwTempRegion>();
+            get => m_Creator.CachedProperties.Get<ISwTempRegion[]>();
             set
             {
                 if (IsCommitted)
@@ -85,42 +85,32 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
             }
         }
 
-        protected override SwTempBody CreateBody()
+        protected override SwTempBody[] CreateBodies()
         {
-            var plane = Profile.Plane;
+            var bodies = new List<SwTempBody>();
 
-            //var planarSurf = m_Modeler.CreatePlanarSurface2(
-            //    plane.Point.ToArray(), plane.Normal.ToArray(), plane.Direction.ToArray()) as ISurface;
-
-            //if (planarSurf == null) 
-            //{
-            //    throw new Exception("Failed to create plane");
-            //}
-
-            //var sheetBody = planarSurf.CreateTrimmedSheet4(Profile.Boundary.Curves, true) as Body2;
-
-            //if (sheetBody == null) 
-            //{
-            //    throw new Exception("Failed to create profile sheet body");
-            //}
-
-            var sheetBody = Profile.Body.Body;
-
-            var profileLoop = sheetBody.IGetFirstFace().IGetFirstLoop();
-
-            var axisPt = Axis.StartCoordinate;
-            var axisDir = Axis.EndCoordinate - Axis.StartCoordinate;
-
-            var body = profileLoop.RevolvePlanarLoop(
-                axisPt.X, axisPt.Y, axisPt.Z, 
-                axisDir.X, axisDir.Y, axisDir.Z, Angle) as object[];
-
-            if (body == null || body.FirstOrDefault() == null) 
+            foreach (var profile in Profiles) 
             {
-                throw new Exception("Failed to create revolve body");
-            }
+                var sheetBody = profile.Body;
 
-            return SwSelObject.FromDispatch<SwTempBody>(body.First());
+                var profileLoop = sheetBody.Body.IGetFirstFace().IGetFirstLoop();
+
+                var axisPt = Axis.StartCoordinate;
+                var axisDir = Axis.EndCoordinate - Axis.StartCoordinate;
+
+                var body = profileLoop.RevolvePlanarLoop(
+                    axisPt.X, axisPt.Y, axisPt.Z,
+                    axisDir.X, axisDir.Y, axisDir.Z, Angle) as object[];
+
+                if (body == null || body.FirstOrDefault() == null)
+                {
+                    throw new Exception("Failed to create revolve body");
+                }
+
+                bodies.Add(SwSelObject.FromDispatch<SwTempBody>(body.First()));
+            }
+            
+            return bodies.ToArray();
         }
     }
 }

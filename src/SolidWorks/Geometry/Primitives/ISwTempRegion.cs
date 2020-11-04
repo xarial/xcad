@@ -7,8 +7,9 @@ using Xarial.XCad.SolidWorks.Geometry.Curves;
 
 namespace Xarial.XCad.SolidWorks.Geometry.Primitives
 {
-    public interface ISwTempRegion : ISwTempPrimitive, IXRegion
+    public interface ISwTempRegion : IXRegion
     {
+        SwTempPlanarSheetBody Body { get; }
         new SwCurve[] Boundary { get; }
     }
 }

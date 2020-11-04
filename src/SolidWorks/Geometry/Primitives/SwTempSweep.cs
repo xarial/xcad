@@ -15,15 +15,15 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
 {
     public interface ISwTempSweep : IXSweep, ISwTempPrimitive
     {
-
+        new ISwTempRegion[] Profiles { get; set; }
     }
 
     internal class SwTempSweep : SwTempPrimitive, ISwTempSweep
     {
-        IXRegion IXSweep.Profile
+        IXRegion[] IXSweep.Profiles
         {
-            get => Profile;
-            set => Profile = (ISwTempRegion)value;
+            get => Profiles;
+            set => Profiles = value.Cast<ISwTempRegion>().ToArray();
         }
 
         IXSegment IXSweep.Path
@@ -34,15 +34,15 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
 
         private readonly SwPart m_Part;
 
-        internal SwTempSweep(SwPart part, IMathUtility mathUtils, IModeler modeler, SwTempBody body, bool isCreated)
-            : base(mathUtils, modeler, body, isCreated)
+        internal SwTempSweep(SwPart part, IMathUtility mathUtils, IModeler modeler, SwTempBody[] bodies, bool isCreated)
+            : base(mathUtils, modeler, bodies, isCreated)
         {
             m_Part = part;
         }
 
-        public ISwTempRegion Profile
+        public ISwTempRegion[] Profiles
         {
-            get => m_Creator.CachedProperties.Get<ISwTempRegion>();
+            get => m_Creator.CachedProperties.Get<ISwTempRegion[]>();
             set
             {
                 if (IsCommitted)
@@ -72,39 +72,46 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
             }
         }
 
-        protected override SwTempBody CreateBody()
+        protected override SwTempBody[] CreateBodies()
         {
             var selMgr = m_Part.Model.ISelectionManager;
             var selData = selMgr.CreateSelectData();
 
             IBody2 body = null;
 
-            using (var selGrp = new SelectionGroup(selMgr))
+            var bodies = new List<SwTempBody>();
+
+            foreach (var profile in Profiles)
             {
-                var profileCurve = GetSingleCurve(Profile.Boundary.SelectMany(c => c.Curves).ToArray());
-                var profileBody = profileCurve.CreateWireBody();
-                selData.Mark = 1;
-                selGrp.AddRange(profileBody.GetEdges() as object[], selData);
+                using (var selGrp = new SelectionGroup(selMgr))
+                {
+                    var profileCurve = GetSingleCurve(profile.Boundary.SelectMany(c => c.Curves).ToArray());
+                    var profileBody = profileCurve.CreateWireBody();
+                    selData.Mark = 1;
+                    selGrp.AddRange(profileBody.GetEdges() as object[], selData);
 
-                var pathCurve = GetSingleCurve(Path.Curves);
-                var pathBody = pathCurve.CreateWireBody();
-                selData.Mark = 4;
-                selGrp.AddRange(pathBody.GetEdges() as object[], selData);
+                    var pathCurve = GetSingleCurve(Path.Curves);
+                    var pathBody = pathCurve.CreateWireBody();
+                    selData.Mark = 4;
+                    selGrp.AddRange(pathBody.GetEdges() as object[], selData);
 
-                body = m_Modeler.CreateSweptBody((ModelDoc2)m_Part.Model, true, false,
-                    (int)swTwistControlType_e.swTwistControlFollowPath,
-                    true, false,
-                    (int)swTangencyType_e.swTangencyNone,
-                    (int)swTangencyType_e.swTangencyNone, false, 0, 0,
-                    (int)swThinWallType_e.swThinWallMidPlane, 0, 0, false);
+                    body = m_Modeler.CreateSweptBody((ModelDoc2)m_Part.Model, true, false,
+                        (int)swTwistControlType_e.swTwistControlFollowPath,
+                        true, false,
+                        (int)swTangencyType_e.swTangencyNone,
+                        (int)swTangencyType_e.swTangencyNone, false, 0, 0,
+                        (int)swThinWallType_e.swThinWallMidPlane, 0, 0, false);
+
+                    if (body == null)
+                    {
+                        throw new Exception("Failed to create swept body");
+                    }
+
+                    bodies.Add(SwSelObject.FromDispatch<SwTempBody>(body));
+                }
             }
 
-            if (body == null) 
-            {
-                throw new Exception("Failed to create swept body");
-            }
-
-            return SwSelObject.FromDispatch<SwTempBody>(body);
+            return bodies.ToArray();
         }
 
         private ICurve GetSingleCurve(ICurve[] curves)

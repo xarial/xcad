@@ -93,14 +93,50 @@ namespace Xarial.XCad.SolidWorks
                     }
 
                 case IBody2 body:
-                    if (!body.IsTemporaryBody())
+                    
+                    var bodyType = (swBodyType_e)body.GetType();
+                    var isTemp = body.IsTemporaryBody();
+
+                    switch (bodyType)
                     {
-                        return new SwBody(body);
+                        case swBodyType_e.swSheetBody:
+                            if (body.GetFaceCount() == 1 && body.IGetFirstFace().IGetSurface().IsPlane())
+                            {
+                                if (!isTemp)
+                                {
+                                    return new SwPlanarSheetBody(body, doc);
+                                }
+                                else
+                                {
+                                    return new SwTempPlanarSheetBody(body);
+                                }
+                            }
+                            else
+                            {
+                                if (!isTemp)
+                                {
+                                    return new SwSheetBody(body, doc);
+                                }
+                                else
+                                {
+                                    return new SwTempSheetBody(body);
+                                }
+                            }
+
+                        case swBodyType_e.swSolidBody:
+                            if (!isTemp)
+                            {
+                                return new SwSolidBody(body, doc);
+                            }
+                            else
+                            {
+                                return new SwTempSolidBody(body);
+                            }
+
+                        default:
+                            throw new NotSupportedException();
                     }
-                    else 
-                    {
-                        return new SwTempBody(body);
-                    }
+                    
 
                 case ISketchSegment seg:
                     switch ((swSketchSegments_e)seg.GetType()) 
@@ -143,11 +179,11 @@ namespace Xarial.XCad.SolidWorks
                     switch ((swCurveTypes_e)curve.Identity()) 
                     {
                         case swCurveTypes_e.LINE_TYPE:
-                            return new SwLineCurve(doc.App.Sw.IGetModeler(), curve, true);
+                            return new SwLineCurve(doc?.App.Sw.IGetModeler(), curve, true);
                         case swCurveTypes_e.CIRCLE_TYPE:
-                            return new SwArcCurve(doc.App.Sw.IGetModeler(), curve, true);
+                            return new SwArcCurve(doc?.App.Sw.IGetModeler(), curve, true);
                         default:
-                            return new SwCurve(doc.App.Sw.IGetModeler(), curve, true);
+                            return new SwCurve(doc?.App.Sw.IGetModeler(), curve, true);
                     }
 
                 default:

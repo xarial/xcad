@@ -15,6 +15,6 @@ namespace Xarial.XCad.Geometry.Primitives
         /// <summary>
         /// Bodies associated with this primitive
         /// </summary>
-        IEnumerable<IXBody> Bodies { get; }
+        IXBody[] Bodies { get; }
     }
 }
