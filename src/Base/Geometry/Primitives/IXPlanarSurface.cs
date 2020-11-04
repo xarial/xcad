@@ -7,6 +7,6 @@ namespace Xarial.XCad.Geometry.Primitives
 {
     public interface IXPlanarSurface : IXPrimitive, IXRegion
     {
-        IXSegment Boundary { get; set; }
+        IXSegment[] Boundary { get; set; }
     }
 }

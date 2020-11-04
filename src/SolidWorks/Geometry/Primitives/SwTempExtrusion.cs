@@ -83,25 +83,26 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
 
         protected override SwTempBody CreateBody()
         {
-            var plane = Profiles.First().Plane;
+            //var plane = Profiles.First().Plane;
 
-            var surf = CreatePlanarSurface(plane.Point, plane.Normal, plane.Direction);
+            //var surf = CreatePlanarSurface(plane.Point, plane.Normal, plane.Direction);
 
             var dir = m_MathUtils.CreateVector(Direction.ToArray()) as MathVector;
 
-            var boundary = new List<ICurve>();
+            //var boundary = new List<ICurve>();
 
             for (int i = 0; i < Profiles.Length; i++) 
             {
-                boundary.AddRange(Profiles[i].Boundary.Curves);
+                //boundary.AddRange(Profiles[i].Boundary.Curves);
 
-                if (i != Profiles.Length - 1) 
-                {
-                    boundary.Add(null);
-                }
+                //if (i != Profiles.Length - 1) 
+                //{
+                //    boundary.Add(null);
+                //}
             }
 
-            var body = Extrude(surf, boundary.ToArray(), dir, Depth);
+            //var body = Extrude(surf, boundary.ToArray(), dir, Depth);
+            var body = m_Modeler.CreateExtrudedBody((Body2)Profiles[0].Body.Body, dir, Depth) as IBody2;
 
             if (body == null) 
             {
@@ -111,17 +112,17 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
             return SwSelObject.FromDispatch<SwTempBody>(body);
         }
 
-        private ISurface CreatePlanarSurface(XCad.Geometry.Structures.Point center, Vector dir,
-            Vector refDir)
-        {
-            return m_Modeler.CreatePlanarSurface2(center.ToArray(), dir.ToArray(), refDir.ToArray()) as ISurface;
-        }
+        //private ISurface CreatePlanarSurface(XCad.Geometry.Structures.Point center, Vector dir,
+        //    Vector refDir)
+        //{
+        //    return m_Modeler.CreatePlanarSurface2(center.ToArray(), dir.ToArray(), refDir.ToArray()) as ISurface;
+        //}
 
-        private IBody2 Extrude(ISurface surf, ICurve[] boundary, MathVector dir, double height)
-        {
-            var sheetBody = surf.CreateTrimmedSheet4(boundary, true) as Body2;
+        //private IBody2 Extrude(ISurface surf, ICurve[] boundary, MathVector dir, double height)
+        //{
+        //    var sheetBody = surf.CreateTrimmedSheet4(boundary, true) as Body2;
 
-            return m_Modeler.CreateExtrudedBody(sheetBody, dir, height) as IBody2;
-        }
+        //    return m_Modeler.CreateExtrudedBody(sheetBody, dir, height) as IBody2;
+        //}
     }
 }

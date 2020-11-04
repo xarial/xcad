@@ -81,7 +81,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
 
             using (var selGrp = new SelectionGroup(selMgr))
             {
-                var profileCurve = GetSingleCurve(Profile.Boundary.Curves);
+                var profileCurve = GetSingleCurve(Profile.Boundary.SelectMany(c => c.Curves).ToArray());
                 var profileBody = profileCurve.CreateWireBody();
                 selData.Mark = 1;
                 selGrp.AddRange(profileBody.GetEdges() as object[], selData);

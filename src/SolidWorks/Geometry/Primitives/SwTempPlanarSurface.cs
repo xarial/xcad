@@ -1,6 +1,7 @@
 ﻿using SolidWorks.Interop.sldworks;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Xarial.XCad.Base;
 using Xarial.XCad.Geometry;
@@ -14,27 +15,27 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
 {
     public interface ISwTempPlanarSurface : IXPlanarSurface, ISwTempRegion, ISwTempPrimitive
     {
-        new SwCurve Boundary { get; set; }
+        new SwCurve[] Boundary { get; set; }
     }
 
     internal class SwTempPlanarSurface : SwTempPrimitive, ISwTempPlanarSurface
     {
-        IXSegment IXPlanarSurface.Boundary
+        IXSegment[] IXPlanarSurface.Boundary
         {
             get => Boundary;
-            set => Boundary = (SwCurve)value;
+            set => Boundary = value.Cast<SwCurve>().ToArray();
         }
 
-        IXSegment IXRegion.Boundary => Boundary;
+        IXSegment[] IXRegion.Boundary => Boundary;
 
         internal SwTempPlanarSurface(IMathUtility mathUtils, IModeler modeler, SwTempBody body, bool isCreated)
             : base(mathUtils, modeler, body, isCreated)
         {
         }
 
-        public SwCurve Boundary
+        public SwCurve[] Boundary
         {
-            get => m_Creator.CachedProperties.Get<SwCurve>();
+            get => m_Creator.CachedProperties.Get<SwCurve[]>();
             set
             {
                 if (IsCommitted)
@@ -52,7 +53,9 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
         {
             get 
             {
-                if (Boundary.TryGetPlane(out Plane plane))
+                Plane plane = null;
+
+                if (Boundary.FirstOrDefault()?.TryGetPlane(out plane) == true)
                 {
                     return plane;
                 }
@@ -75,7 +78,19 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
                 throw new Exception("Failed to create plane");
             }
 
-            var sheetBody = planarSurf.CreateTrimmedSheet4(Boundary.Curves, true) as Body2;
+            var boundary = new List<ICurve>();
+
+            for (int i = 0; i < Boundary.Length; i++)
+            {
+                boundary.AddRange(Boundary[i].Curves);
+
+                if (i != Boundary.Length - 1)
+                {
+                    boundary.Add(null);
+                }
+            }
+
+            var sheetBody = planarSurf.CreateTrimmedSheet4(boundary.ToArray(), true) as Body2;
 
             if (sheetBody == null)
             {

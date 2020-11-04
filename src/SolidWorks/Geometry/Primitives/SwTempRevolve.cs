@@ -89,20 +89,22 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
         {
             var plane = Profile.Plane;
 
-            var planarSurf = m_Modeler.CreatePlanarSurface2(
-                plane.Point.ToArray(), plane.Normal.ToArray(), plane.Direction.ToArray()) as ISurface;
-            
-            if (planarSurf == null) 
-            {
-                throw new Exception("Failed to create plane");
-            }
+            //var planarSurf = m_Modeler.CreatePlanarSurface2(
+            //    plane.Point.ToArray(), plane.Normal.ToArray(), plane.Direction.ToArray()) as ISurface;
 
-            var sheetBody = planarSurf.CreateTrimmedSheet4(Profile.Boundary.Curves, true) as Body2;
+            //if (planarSurf == null) 
+            //{
+            //    throw new Exception("Failed to create plane");
+            //}
 
-            if (sheetBody == null) 
-            {
-                throw new Exception("Failed to create profile sheet body");
-            }
+            //var sheetBody = planarSurf.CreateTrimmedSheet4(Profile.Boundary.Curves, true) as Body2;
+
+            //if (sheetBody == null) 
+            //{
+            //    throw new Exception("Failed to create profile sheet body");
+            //}
+
+            var sheetBody = Profile.Body.Body;
 
             var profileLoop = sheetBody.IGetFirstFace().IGetFirstLoop();
 

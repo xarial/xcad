@@ -19,6 +19,7 @@ using Xarial.XCad.Features;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Primitives;
 using Xarial.XCad.Geometry.Structures;
+using Xarial.XCad.Geometry.Wires;
 using Xarial.XCad.Sketch;
 using Xarial.XCad.SolidWorks;
 using Xarial.XCad.SolidWorks.Documents;
@@ -102,7 +103,7 @@ namespace StandAlone
             var pathCurve = pathSeg.Definition;
 
             var sweep = app.MemoryGeometryBuilder.SolidBuilder.PreCreateSweep();
-            sweep.Profile = app.MemoryGeometryBuilder.CreatePlanarSurface(profileCurve);
+            sweep.Profile = app.MemoryGeometryBuilder.CreatePlanarSurface(new IXSegment[] { profileCurve });
             sweep.Path = pathCurve;
             sweep.Commit();
 

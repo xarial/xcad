@@ -9,6 +9,6 @@ namespace Xarial.XCad.Geometry.Primitives
     public interface IXRegion
     {
         Plane Plane { get; }
-        IXSegment Boundary { get; }
+        IXSegment[] Boundary { get; }
     }
 }
