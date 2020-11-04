@@ -30,7 +30,6 @@ using System.Collections.Generic;
 using Microsoft.Win32;
 using System.Drawing;
 using Xarial.XCad.Delegates;
-using Xarial.XCad.Geometry.Memory;
 using Xarial.XCad.Toolkit;
 using Xarial.XCad.SolidWorks.Services;
 
@@ -47,10 +46,8 @@ namespace Xarial.XCad.SolidWorks
 
         IXMacro IXApplication.OpenMacro(string path) => OpenMacro(path);
 
-        IXMemoryWireGeometryBuilder IXApplication.MemoryWireGeometryBuilder => MemoryWireGeometryBuilder;
-        IXMemorySurfaceGeometryBuilder IXApplication.MemorySurfaceGeometryBuilder => MemorySurfaceGeometryBuilder;
-        IXMemorySolidGeometryBuilder IXApplication.MemorySolidGeometryBuilder => MemorySolidGeometryBuilder;
-
+        IXGeometryBuilder IXApplication.MemoryGeometryBuilder => MemoryGeometryBuilder;
+        
         public ISldWorks Sw { get; private set; }
 
         public SwVersion_e Version => Sw.GetVersion();
@@ -63,10 +60,8 @@ namespace Xarial.XCad.SolidWorks
 
         public Rectangle WindowRectangle => new Rectangle(Sw.FrameLeft, Sw.FrameTop, Sw.FrameWidth, Sw.FrameHeight);
 
-        public SwMemoryWireGeometryBuilder MemoryWireGeometryBuilder { get; private set; }
-        public SwMemorySurfaceGeometryBuilder MemorySurfaceGeometryBuilder { get; private set; }
-        public SwMemorySolidGeometryBuilder MemorySolidGeometryBuilder { get; private set; }
-
+        public SwMemoryGeometryBuilder MemoryGeometryBuilder { get; private set; }
+        
         private IXLogger m_Logger;
 
         private IServiceProvider m_Provider;
@@ -100,14 +95,9 @@ namespace Xarial.XCad.SolidWorks
 
             Documents = new SwDocumentCollection(this, m_Logger);
 
-            var mathUtils = Sw.IGetMathUtility();
-            var modeler = Sw.IGetModeler();
-
             var geomBuilderDocsProvider = m_Provider.GetService<IMemoryGeometryBuilderDocumentProvider>();
 
-            MemorySolidGeometryBuilder = new SwMemorySolidGeometryBuilder(this, geomBuilderDocsProvider);
-            MemorySurfaceGeometryBuilder = new SwMemorySurfaceGeometryBuilder(mathUtils, modeler);
-            MemoryWireGeometryBuilder = new SwMemoryWireGeometryBuilder(mathUtils, modeler);
+            MemoryGeometryBuilder = new SwMemoryGeometryBuilder(this, geomBuilderDocsProvider);
 
             (Sw as SldWorks).OnIdleNotify += OnLoadFirstIdleNotify;
         }

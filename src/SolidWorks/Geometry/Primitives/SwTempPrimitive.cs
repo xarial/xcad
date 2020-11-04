@@ -8,7 +8,12 @@ using Xarial.XCad.Services;
 
 namespace Xarial.XCad.SolidWorks.Geometry.Primitives
 {
-    public class SwTempPrimitive : IXPrimitive
+    public interface ISwTempPrimitive 
+    {
+        SwTempBody Body { get; }
+    }
+
+    public class SwTempPrimitive : IXPrimitive, ISwTempPrimitive
     {
         IEnumerable<IXBody> IXPrimitive.Bodies
         {

@@ -17,8 +17,13 @@ using Xarial.XCad.SolidWorks.Sketch;
 
 namespace Xarial.XCad.SolidWorks
 {
+    public interface ISwObject : IXObject
+    {
+        object Dispatch { get; }
+    }
+
     /// <inheritdoc/>
-    public class SwObject : IXObject
+    public class SwObject : ISwObject
     {
         public static TObj FromDispatch<TObj>(object disp)
             where TObj : SwObject

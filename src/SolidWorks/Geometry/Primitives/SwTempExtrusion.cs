@@ -15,12 +15,17 @@ using Xarial.XCad.SolidWorks.Geometry.Exceptions;
 
 namespace Xarial.XCad.SolidWorks.Geometry.Primitives
 {
-    public class SwTempExtrusion : SwTempPrimitive, IXExtrusion
+    public interface ISwTempExtrusion : IXExtrusion, ISwTempPrimitive
     {
-        IXSegment[] IXExtrusion.Profiles
+        new ISwTempRegion[] Profiles { get; set; }
+    }
+
+    internal class SwTempExtrusion : SwTempPrimitive, ISwTempExtrusion
+    {
+        IXRegion[] IXExtrusion.Profiles
         {
             get => Profiles;
-            set => Profiles = value?.Cast<SwCurve>().ToArray();
+            set => Profiles = value?.Cast<ISwTempRegion>().ToArray();
         }
 
         public double Depth
@@ -55,9 +60,9 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
             }
         }
 
-        public SwCurve[] Profiles
+        public ISwTempRegion[] Profiles
         {
-            get => m_Creator.CachedProperties.Get<SwCurve[]>();
+            get => m_Creator.CachedProperties.Get<ISwTempRegion[]>();
             set
             {
                 if (IsCommitted)
@@ -78,11 +83,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
 
         protected override SwTempBody CreateBody()
         {
-            if (!Profiles.First().TryGetPlane(out Plane plane)) 
-            {
-                //TODO: validate that all profiles on the same plane
-                throw new Exception("Profiles must be on the same plane");
-            }
+            var plane = Profiles.First().Plane;
 
             var surf = CreatePlanarSurface(plane.Point, plane.Normal, plane.Direction);
 
@@ -92,7 +93,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
 
             for (int i = 0; i < Profiles.Length; i++) 
             {
-                boundary.AddRange(Profiles[i].Curves);
+                boundary.AddRange(Profiles[i].Boundary.Curves);
 
                 if (i != Profiles.Length - 1) 
                 {

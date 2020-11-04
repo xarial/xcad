@@ -12,7 +12,6 @@ using Xarial.XCad.Base.Enums;
 using Xarial.XCad.Delegates;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Geometry;
-using Xarial.XCad.Geometry.Memory;
 
 namespace Xarial.XCad
 {
@@ -47,23 +46,11 @@ namespace Xarial.XCad
         IXDocumentRepository Documents { get; }
 
         /// <summary>
-        /// Accesses wire geometry builder to build primitive wires (lines, arcs, etc.)
+        /// Accesses memory geometry builder to build primitive wires, surface and solids
         /// </summary>
         /// <remarks>Usually used in the <see cref="Features.CustomFeature.IXCustomFeatureDefinition"/></remarks>
-        IXMemoryWireGeometryBuilder MemoryWireGeometryBuilder { get; }
-
-        /// <summary>
-        /// Access surface geometry builder to build primitive surfaces (e.g. planes, extrudes, lofts etc.)
-        /// </summary>
-        /// <remarks>Usually used in the <see cref="Features.CustomFeature.IXCustomFeatureDefinition"/></remarks>
-        IXMemorySurfaceGeometryBuilder MemorySurfaceGeometryBuilder { get; }
-
-        /// <summary>
-        /// Access solid geometry builder to build primitive solids (e.g. extrusions, revolves, lofts)
-        /// </summary>
-        /// <remarks>Usually used in the <see cref="Features.CustomFeature.IXCustomFeatureDefinition"/></remarks>
-        IXMemorySolidGeometryBuilder MemorySolidGeometryBuilder { get; }
-
+        IXGeometryBuilder MemoryGeometryBuilder { get; }
+        
         /// <summary>
         /// Displays the message box
         /// </summary>

@@ -13,12 +13,17 @@ using Xarial.XCad.SolidWorks.Utils;
 
 namespace Xarial.XCad.SolidWorks.Geometry.Primitives
 {
-    public class SwTempSweep : SwTempPrimitive, IXSweep
+    public interface ISwTempSweep : IXSweep, ISwTempPrimitive
     {
-        IXSegment IXSweep.Profile
+
+    }
+
+    internal class SwTempSweep : SwTempPrimitive, ISwTempSweep
+    {
+        IXRegion IXSweep.Profile
         {
             get => Profile;
-            set => Profile = (SwCurve)value;
+            set => Profile = (ISwTempRegion)value;
         }
 
         IXSegment IXSweep.Path
@@ -35,9 +40,9 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
             m_Part = part;
         }
 
-        public SwCurve Profile
+        public ISwTempRegion Profile
         {
-            get => m_Creator.CachedProperties.Get<SwCurve>();
+            get => m_Creator.CachedProperties.Get<ISwTempRegion>();
             set
             {
                 if (IsCommitted)
@@ -76,7 +81,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
 
             using (var selGrp = new SelectionGroup(selMgr))
             {
-                var profileCurve = GetSingleCurve(Profile.Curves);
+                var profileCurve = GetSingleCurve(Profile.Boundary.Curves);
                 var profileBody = profileCurve.CreateWireBody();
                 selData.Mark = 1;
                 selGrp.AddRange(profileBody.GetEdges() as object[], selData);

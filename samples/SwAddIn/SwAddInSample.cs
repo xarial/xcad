@@ -32,6 +32,8 @@ using Xarial.XCad.UI.TaskPane.Attributes;
 using Xarial.XCad.SolidWorks.UI;
 using Xarial.XCad.SolidWorks.UI.PropertyPage;
 using Xarial.XCad.UI.Commands.Structures;
+using Xarial.XCad.SolidWorks.Services;
+using Xarial.XCad;
 
 namespace SwAddInExample
 {
@@ -283,6 +285,12 @@ namespace SwAddInExample
                     Application.Documents.Active.Selections.ClearSelection += OnClearSelection;
                     break;
             }
+        }
+
+        public override void ConfigureServices(IXServiceCollection collection)
+        {
+            collection.AddOrReplace<IMemoryGeometryBuilderDocumentProvider>(
+                () => new LazyNewDocumentGeometryBuilderDocumentProvider(Application));
         }
 
         private void OnPageDataChanged()

@@ -12,23 +12,29 @@ using Xarial.XCad.SolidWorks.Geometry.Exceptions;
 
 namespace Xarial.XCad.SolidWorks.Geometry.Primitives
 {
-    public class SwTempRevolve : SwTempPrimitive, IXRevolve
+    public interface ISwTempRevolve : IXRevolve, ISwTempPrimitive
+    {
+        new ISwTempRegion Profile { get; set; }
+        new ISwLineCurve Axis { get; set; }
+    }
+
+    internal class SwTempRevolve : SwTempPrimitive, ISwTempRevolve
     {
         internal SwTempRevolve(IMathUtility mathUtils, IModeler modeler, SwTempBody body, bool isCreated) 
             : base(mathUtils, modeler, body, isCreated)
         {
         }
 
-        IXSegment IXRevolve.Profile 
+        IXRegion IXRevolve.Profile 
         {
             get => Profile;
-            set => Profile = (SwCurve)value; 
+            set => Profile = (ISwTempRegion)value; 
         }
 
         IXLine IXRevolve.Axis
         {
             get => Axis;
-            set => Axis = (SwLineCurve)value;
+            set => Axis = (ISwLineCurve)value;
         }
                 
         public double Angle
@@ -47,9 +53,9 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
             }
         }
 
-        public SwCurve Profile
+        public ISwTempRegion Profile
         {
-            get => m_Creator.CachedProperties.Get<SwCurve>();
+            get => m_Creator.CachedProperties.Get<ISwTempRegion>();
             set
             {
                 if (IsCommitted)
@@ -63,7 +69,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
             }
         }
 
-        public SwLineCurve Axis
+        public ISwLineCurve Axis
         {
             get => m_Creator.CachedProperties.Get<SwLineCurve>();
             set
@@ -81,10 +87,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
 
         protected override SwTempBody CreateBody()
         {
-            if (!Profile.TryGetPlane(out Plane plane)) 
-            {
-                throw new Exception("Profile must be planar");
-            }
+            var plane = Profile.Plane;
 
             var planarSurf = m_Modeler.CreatePlanarSurface2(
                 plane.Point.ToArray(), plane.Normal.ToArray(), plane.Direction.ToArray()) as ISurface;
@@ -94,7 +97,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
                 throw new Exception("Failed to create plane");
             }
 
-            var sheetBody = planarSurf.CreateTrimmedSheet4(Profile.Curves, true) as Body2;
+            var sheetBody = planarSurf.CreateTrimmedSheet4(Profile.Boundary.Curves, true) as Body2;
 
             if (sheetBody == null) 
             {

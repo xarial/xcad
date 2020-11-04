@@ -38,9 +38,9 @@ namespace SwAddInExample
         {
             alignDim = null;
 
-            var box = (SwBody)app.MemorySolidGeometryBuilder.CreateBox(
+            var box = (SwBody)app.MemoryGeometryBuilder.CreateSolidBox(
                 new Point(0, 0, 0), new Vector(0, 0, 1), new Vector(1, 0, 0).CreateAnyPerpendicular(),
-                data.Width, data.Height, data.Length, app.MemoryWireGeometryBuilder).Bodies.First();
+                data.Width, data.Height, data.Length).Bodies.First();
 
             return new SwBody[] { box };
         }

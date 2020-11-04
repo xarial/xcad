@@ -19,6 +19,7 @@ using Xarial.XCad.SolidWorks;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.Features.CustomFeature.Attributes;
 using System.Linq;
+using Xarial.XCad.SolidWorks.Geometry.Primitives;
 
 namespace SwAddInExample
 {
@@ -54,19 +55,19 @@ namespace SwAddInExample
                 }
             };
 
-            var sweepArc = app.MemoryWireGeometryBuilder.PreCreateArc();
+            var sweepArc = app.MemoryGeometryBuilder.WireBuilder.PreCreateArc();
             sweepArc.Center = new Point(0, 0, 0);
             sweepArc.Axis = new Vector(0, 0, 1);
             sweepArc.Diameter = 0.01;
             sweepArc.Commit();
 
-            var sweepLine = app.MemoryWireGeometryBuilder.PreCreateLine();
+            var sweepLine = app.MemoryGeometryBuilder.WireBuilder.PreCreateLine();
             sweepLine.StartCoordinate = new Point(0, 0, 0);
             sweepLine.EndCoordinate = new Point(1, 1, 1);
             sweepLine.Commit();
 
-            var sweep = app.MemorySolidGeometryBuilder.PreCreateSweep();
-            sweep.Profile = sweepArc;
+            var sweep = (ISwTempSweep)app.MemoryGeometryBuilder.SolidBuilder.PreCreateSweep();
+            sweep.Profile = app.MemoryGeometryBuilder.CreatePlanarSurface(sweepArc);
             sweep.Path = sweepLine;
             sweep.Commit();
 

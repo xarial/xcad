@@ -3,13 +3,17 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Xarial.XCad.Geometry;
-using Xarial.XCad.Geometry.Memory;
 using Xarial.XCad.Geometry.Primitives;
 using Xarial.XCad.SolidWorks.Geometry.Primitives;
 
 namespace Xarial.XCad.SolidWorks.Geometry
 {
-    public class SwMemorySurfaceGeometryBuilder : IXMemorySurfaceGeometryBuilder
+    public interface ISwMemorySurfaceGeometryBuilder : IXSurfaceGeometryBuilder
+    {
+        new ISwTempPlanarSurface PreCreatePlanarSurface();
+    }
+
+    public class SwMemorySurfaceGeometryBuilder : ISwMemorySurfaceGeometryBuilder
     {
         IXPlanarSurface IXSurfaceGeometryBuilder.PreCreatePlanarSurface() => PreCreatePlanarSurface();
 
@@ -33,7 +37,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
             throw new NotImplementedException();
         }
 
-        public SwTempPlanarSurface PreCreatePlanarSurface() => new SwTempPlanarSurface(m_MathUtils, m_Modeler, null, false);
+        public ISwTempPlanarSurface PreCreatePlanarSurface() => new SwTempPlanarSurface(m_MathUtils, m_Modeler, null, false);
 
         protected readonly IModeler m_Modeler;
         protected readonly IMathUtility m_MathUtils;

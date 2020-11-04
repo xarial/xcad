@@ -4,6 +4,6 @@ namespace Xarial.XCad.Geometry.Primitives
 {
     public interface IXLoft : IXPrimitive
     {
-        IXSegment[] Profiles { get; set; }
+        IXRegion[] Profiles { get; set; }
     }
 }

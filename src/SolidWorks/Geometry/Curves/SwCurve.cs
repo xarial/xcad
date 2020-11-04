@@ -10,7 +10,12 @@ using Xarial.XCad.Services;
 
 namespace Xarial.XCad.SolidWorks.Geometry.Curves
 {
-    public class SwCurve : SwObject, IXCurve
+    public interface ISwCurve 
+    {
+        ICurve[] Curves { get; }
+    }
+
+    public class SwCurve : SwObject, IXCurve, ISwCurve
     {
         public ICurve[] Curves => m_Creator.Element;
 
@@ -66,7 +71,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Curves
             }
         }
 
-        internal virtual bool TryGetPlane(out Plane plane) 
+        internal virtual bool TryGetPlane(out Plane plane)
         {
             plane = null;
             return false;

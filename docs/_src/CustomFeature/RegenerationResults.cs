@@ -43,9 +43,9 @@ namespace Xarial.XCad.Documentation
     {
         public override CustomFeatureRebuildResult OnRebuild(SwApplication app, SwDocument model, SwMacroFeature feature)
         {
-            var body = app.MemorySolidGeometryBuilder.CreateBox(new Point(0, 0, 0),
+            var body = app.MemoryGeometryBuilder.CreateSolidBox(new Point(0, 0, 0),
                 new Vector(1, 0, 0), new Vector(0, 1, 0),
-                0.1, 0.1, 0.1, app.MemoryWireGeometryBuilder);
+                0.1, 0.1, 0.1);
 
             return new CustomFeatureBodyRebuildResult()
             {

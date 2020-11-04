@@ -8,7 +8,11 @@ using Xarial.XCad.SolidWorks.Geometry.Exceptions;
 
 namespace Xarial.XCad.SolidWorks.Geometry.Curves
 {
-    public class SwLineCurve : SwCurve, IXLineCurve
+    public interface ISwLineCurve : IXLineCurve
+    {
+    }
+
+    internal class SwLineCurve : SwCurve, ISwLineCurve
     {
         internal SwLineCurve(IModeler modeler, ICurve curve, bool isCreated) : base(modeler, curve, isCreated)
         {
