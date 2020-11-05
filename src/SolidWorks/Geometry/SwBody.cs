@@ -168,15 +168,8 @@ namespace Xarial.XCad.SolidWorks.Geometry
     {
         internal static Plane GetPlane(this ISwPlanarSheetBody body)
         {
-            var face = body.Body.IGetFirstFace();
-            var surf = face.IGetSurface();
-            var planeParams = surf.PlaneParams as double[];
-
-            var rootPt = new XCad.Geometry.Structures.Point(planeParams[3], planeParams[4], planeParams[5]);
-            var normVec = new Vector(planeParams[0], planeParams[1], planeParams[2]);
-            var refVec = normVec.CreateAnyPerpendicular();
-
-            return new Plane(rootPt, normVec, refVec);
+            var planarFace = SwSelObject.FromDispatch<SwPlanarFace>(body.Body.IGetFirstFace());
+            return planarFace.Definition.Plane;
         }
 
         internal static SwCurve[] GetBoundary(this ISwPlanarSheetBody body)

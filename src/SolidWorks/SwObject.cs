@@ -13,6 +13,7 @@ using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Features;
 using Xarial.XCad.SolidWorks.Geometry;
 using Xarial.XCad.SolidWorks.Geometry.Curves;
+using Xarial.XCad.SolidWorks.Geometry.Surfaces;
 using Xarial.XCad.SolidWorks.Sketch;
 
 namespace Xarial.XCad.SolidWorks
@@ -184,6 +185,19 @@ namespace Xarial.XCad.SolidWorks
                             return new SwArcCurve(doc?.App.Sw.IGetModeler(), curve, true);
                         default:
                             return new SwCurve(doc?.App.Sw.IGetModeler(), curve, true);
+                    }
+
+                case ISurface surf:
+                    switch ((swSurfaceTypes_e)surf.Identity()) 
+                    {
+                        case swSurfaceTypes_e.PLANE_TYPE:
+                            return new SwPlanarSurface(surf);
+
+                        case swSurfaceTypes_e.CYLINDER_TYPE:
+                            return new SwCylindricalSurface(surf);
+
+                        default:
+                            return new SwSurface(surf);
                     }
 
                 default:
