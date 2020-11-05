@@ -8,14 +8,14 @@ using Xarial.XCad.SolidWorks.Geometry.Primitives;
 
 namespace Xarial.XCad.SolidWorks.Geometry
 {
-    public interface ISwMemorySurfaceGeometryBuilder : IXSurfaceGeometryBuilder
+    public interface ISwMemorySheetGeometryBuilder : IXSheetGeometryBuilder
     {
-        new ISwTempPlanarSurface PreCreatePlanarSurface();
+        new ISwTempPlanarSheet PreCreatePlanarSheet();
     }
 
-    public class SwMemorySurfaceGeometryBuilder : ISwMemorySurfaceGeometryBuilder
+    public class SwMemorySheetGeometryBuilder : ISwMemorySheetGeometryBuilder
     {
-        IXPlanarSurface IXSurfaceGeometryBuilder.PreCreatePlanarSurface() => PreCreatePlanarSurface();
+        IXPlanarSheet IXSheetGeometryBuilder.PreCreatePlanarSheet() => PreCreatePlanarSheet();
 
         public IXExtrusion PreCreateExtrusion()
         {
@@ -37,12 +37,12 @@ namespace Xarial.XCad.SolidWorks.Geometry
             throw new NotImplementedException();
         }
 
-        public ISwTempPlanarSurface PreCreatePlanarSurface() => new SwTempPlanarSurface(m_MathUtils, m_Modeler, null, false);
+        public ISwTempPlanarSheet PreCreatePlanarSheet() => new SwTempPlanarSheet(m_MathUtils, m_Modeler, null, false);
 
         protected readonly IModeler m_Modeler;
         protected readonly IMathUtility m_MathUtils;
 
-        internal SwMemorySurfaceGeometryBuilder(IMathUtility mathUtils, IModeler modeler)
+        internal SwMemorySheetGeometryBuilder(IMathUtility mathUtils, IModeler modeler)
         {
             m_MathUtils = mathUtils;
             m_Modeler = modeler;

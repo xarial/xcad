@@ -13,20 +13,20 @@ using Xarial.XCad.SolidWorks.Geometry.Exceptions;
 
 namespace Xarial.XCad.SolidWorks.Geometry.Primitives
 {
-    public interface ISwTempPlanarSurface : IXPlanarSurface, ISwTempPrimitive
+    public interface ISwTempPlanarSheet : IXPlanarSheet, ISwTempPrimitive
     {
         new SwCurve[] Boundary { get; set; }
     }
 
-    internal class SwTempPlanarSurface : SwTempPrimitive, ISwTempPlanarSurface
+    internal class SwTempPlanarSheet : SwTempPrimitive, ISwTempPlanarSheet
     {
-        IXSegment[] IXPlanarSurface.Boundary
+        IXSegment[] IXPlanarSheet.Boundary
         {
             get => Boundary;
             set => Boundary = value.Cast<SwCurve>().ToArray();
         }
         
-        internal SwTempPlanarSurface(IMathUtility mathUtils, IModeler modeler, SwTempBody[] bodies, bool isCreated)
+        internal SwTempPlanarSheet(IMathUtility mathUtils, IModeler modeler, SwTempBody[] bodies, bool isCreated)
             : base(mathUtils, modeler, bodies, isCreated)
         {
         }

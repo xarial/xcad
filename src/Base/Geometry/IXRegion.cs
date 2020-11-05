@@ -4,7 +4,7 @@ using System.Text;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Geometry.Wires;
 
-namespace Xarial.XCad.Geometry.Primitives
+namespace Xarial.XCad.Geometry
 {
     public interface IXRegion
     {

@@ -7,7 +7,7 @@ namespace Xarial.XCad.Geometry
     public interface IXGeometryBuilder
     {
         IXWireGeometryBuilder WireBuilder { get; }
-        IXSurfaceGeometryBuilder SurfaceBuilder { get; }
+        IXSheetGeometryBuilder SheetBuilder { get; }
         IXSolidGeometryBuilder SolidBuilder { get; }
     }
 }

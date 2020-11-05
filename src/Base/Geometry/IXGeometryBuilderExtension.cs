@@ -144,9 +144,9 @@ namespace Xarial.XCad.Geometry
             return sweep;
         }
 
-        public static IXPlanarSurface CreatePlanarSurface(this IXGeometryBuilder builder, params IXSegment[] boundary)
+        public static IXPlanarSheet CreatePlanarSurface(this IXGeometryBuilder builder, params IXSegment[] boundary)
         {
-            var surf = builder.SurfaceBuilder.PreCreatePlanarSurface();
+            var surf = builder.SheetBuilder.PreCreatePlanarSheet();
             surf.Boundary = boundary;
             surf.Commit();
 

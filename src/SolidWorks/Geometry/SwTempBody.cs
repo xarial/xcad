@@ -105,6 +105,6 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         SwTempPlanarSheetBody ISwTempRegion.Body => this;
 
-        SwCurve[] ISwTempRegion.Boundary => this.GetBoundary();
+        SwCurve[] ISwRegion.Boundary => this.GetBoundary();
     }
 }

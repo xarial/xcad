@@ -9,7 +9,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
     public class SwMemoryGeometryBuilder : IXGeometryBuilder
     {
         public IXWireGeometryBuilder WireBuilder { get; }
-        public IXSurfaceGeometryBuilder SurfaceBuilder { get; }
+        public IXSheetGeometryBuilder SheetBuilder { get; }
         public IXSolidGeometryBuilder SolidBuilder { get; }
 
         internal SwMemoryGeometryBuilder(SwApplication app, IMemoryGeometryBuilderDocumentProvider geomBuilderDocsProvider) 
@@ -18,7 +18,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
             var modeler = app.Sw.IGetModeler();
 
             WireBuilder = new SwMemoryWireGeometryBuilder(mathUtils, modeler);
-            SurfaceBuilder = new SwMemorySurfaceGeometryBuilder(mathUtils, modeler);
+            SheetBuilder = new SwMemorySheetGeometryBuilder(mathUtils, modeler);
             SolidBuilder = new SwMemorySolidGeometryBuilder(app, geomBuilderDocsProvider);
         }
     }

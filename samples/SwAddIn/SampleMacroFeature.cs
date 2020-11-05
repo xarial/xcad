@@ -21,6 +21,7 @@ using Xarial.XCad.Features.CustomFeature.Attributes;
 using System.Linq;
 using Xarial.XCad.SolidWorks.Geometry.Primitives;
 using Xarial.XCad.Geometry.Primitives;
+using Xarial.XCad.SolidWorks.Geometry;
 
 namespace SwAddInExample
 {
@@ -68,7 +69,7 @@ namespace SwAddInExample
             sweepLine.Commit();
 
             var sweep = (ISwTempSweep)app.MemoryGeometryBuilder.SolidBuilder.PreCreateSweep();
-            sweep.Profiles = new IXRegion[] { app.MemoryGeometryBuilder.CreatePlanarSurface(sweepArc).Bodies.OfType<IXPlanarSheetBody>().First() };
+            sweep.Profiles = new ISwTempRegion[] { app.MemoryGeometryBuilder.CreatePlanarSurface(sweepArc).Bodies.OfType<ISwTempPlanarSheetBody>().First() };
             sweep.Path = sweepLine;
             sweep.Commit();
 
