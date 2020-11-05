@@ -29,14 +29,14 @@ namespace Xarial.XCad.SolidWorks.Geometry
             throw new NotImplementedException();
         }
 
-        private readonly SwApplication m_App;
+        private readonly ISwApplication m_App;
 
         protected readonly IModeler m_Modeler;
         protected readonly IMathUtility m_MathUtils;
 
         private readonly IMemoryGeometryBuilderDocumentProvider m_GeomBuilderDocsProvider;
 
-        internal SwMemorySolidGeometryBuilder(SwApplication app, IMemoryGeometryBuilderDocumentProvider geomBuilderDocsProvider)
+        internal SwMemorySolidGeometryBuilder(ISwApplication app, IMemoryGeometryBuilderDocumentProvider geomBuilderDocsProvider)
         {
             m_App = app;
 

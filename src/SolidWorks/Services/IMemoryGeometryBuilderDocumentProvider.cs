@@ -8,6 +8,6 @@ namespace Xarial.XCad.SolidWorks.Services
 {
     public interface IMemoryGeometryBuilderDocumentProvider
     {
-        SwDocument ProvideDocument(Type geomType);
+        ISwDocument ProvideDocument(Type geomType);
     }
 }

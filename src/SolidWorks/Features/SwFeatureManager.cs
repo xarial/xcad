@@ -83,7 +83,7 @@ namespace Xarial.XCad.SolidWorks.Features
         internal SwFeatureManager(SwDocument doc)
         {
             m_Doc = doc;
-            m_ParamsParser = new MacroFeatureParametersParser(doc.SwApp);
+            m_ParamsParser = new MacroFeatureParametersParser(doc.App.Sw);
         }
 
         public virtual void AddRange(IEnumerable<IXFeature> feats)

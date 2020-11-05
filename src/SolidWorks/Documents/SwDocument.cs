@@ -8,6 +8,7 @@
 using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
 using System;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using Xarial.XCad.Annotations;
@@ -26,13 +27,24 @@ using Xarial.XCad.SolidWorks.Features;
 
 namespace Xarial.XCad.SolidWorks.Documents
 {
+    public interface ISwDocument : IXDocument, IDisposable
+    {
+        //TODO: think how to remove this
+        [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
+        ISwApplication App { get; }
+
+        IModelDoc2 Model { get; }
+        new SwFeatureManager Features { get; }
+        new SwSelectionCollection Selections { get; }
+        new SwDimensionsCollection Dimensions { get; }
+        new SwCustomPropertiesCollection Properties { get; }
+    }
+
     [DebuggerDisplay("{" + nameof(Title) + "}")]
-    public abstract class SwDocument : IXDocument, IDisposable
+    internal abstract class SwDocument : ISwDocument
     {
         public event DocumentCloseDelegate Closing;
-
-        internal event Action<IModelDoc2> Destroyed;
-
+        
         public event DocumentRebuildDelegate Rebuild 
         {
             add 
@@ -197,9 +209,8 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public SwCustomPropertiesCollection Properties { get; }
 
-        internal SwApplication App { get; }
-        internal ISldWorks SwApp { get; }
-
+        public ISwApplication App { get; }
+        
         public bool IsDirty 
         {
             get => Model.GetSaveFlag();
@@ -220,16 +231,15 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         private readonly ElementCreator<IModelDoc2> m_Creator;
 
-        internal SwDocument(IModelDoc2 model, SwApplication app, IXLogger logger) 
+        internal SwDocument(IModelDoc2 model, ISwApplication app, IXLogger logger) 
             : this(model, app, logger, true)
         {
         }
 
-        internal SwDocument(IModelDoc2 model, SwApplication app, IXLogger logger, bool created)
+        internal SwDocument(IModelDoc2 model, ISwApplication app, IXLogger logger, bool created)
         {
             App = app;
-            SwApp = app.Sw;
-
+            
             m_Logger = logger;
 
             m_Creator = new ElementCreator<IModelDoc2>(CreateDocument, model, created);
@@ -272,11 +282,11 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         private IModelDoc2 CreateNewDocument() 
         {
-            var docTemplate = SwApp.GetUserPreferenceStringValue((int)DefaultTemplate);
+            var docTemplate = App.Sw.GetUserPreferenceStringValue((int)DefaultTemplate);
 
             if (!string.IsNullOrEmpty(docTemplate))
             {
-                var doc = SwApp.NewDocument(docTemplate, (int)swDwgPaperSizes_e.swDwgPapersUserDefined, 0.1, 0.1) as IModelDoc2;
+                var doc = App.Sw.NewDocument(docTemplate, (int)swDwgPaperSizes_e.swDwgPapersUserDefined, 0.1, 0.1) as IModelDoc2;
 
                 if (doc != null)
                 {
@@ -295,7 +305,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public void Close()
         {
-            SwApp.CloseDoc(Title);
+            App.Sw.CloseDoc(Title);
         }
 
         public void Dispose()
@@ -364,8 +374,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                 m_Logger.Log($"Destroying '{Model.GetTitle()}' document");
 
                 Closing?.Invoke(this);
-                Destroyed?.Invoke(Model);
-
+                
                 Dispose();
             }
             else if (destroyType == (int)swDestroyNotifyType_e.swDestroyNotifyHidden)

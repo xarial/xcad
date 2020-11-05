@@ -24,7 +24,7 @@ namespace Xarial.XCad.Documentation
         private StreamData m_StreamData;
 
         //--- StreamLoad
-        private void LoadFromStream(SwDocument model)
+        private void LoadFromStream(ISwDocument model)
         {
             using (var str = model.TryOpenStream(STREAM_NAME, AccessType_e.Read))
             {
@@ -37,7 +37,7 @@ namespace Xarial.XCad.Documentation
         }
         //---
         //--- StreamSave
-        private void SaveToStream(SwDocument model)
+        private void SaveToStream(ISwDocument model)
         {
             using (var str = model.OpenStream(STREAM_NAME, AccessType_e.Write))
             {
@@ -62,7 +62,7 @@ namespace Xarial.XCad.Documentation
         private StorageStreamData m_StorageData;
 
         //--- StorageLoad
-        private void LoadFromStorageStore(SwDocument model)
+        private void LoadFromStorageStore(ISwDocument model)
         {
             using (var storage = model.TryOpenStorage(STORAGE_NAME, AccessType_e.Read))
             {
@@ -98,7 +98,7 @@ namespace Xarial.XCad.Documentation
         }
         //---
         //--- StorageSave
-        private void SaveToStorageStore(SwDocument model)
+        private void SaveToStorageStore(ISwDocument model)
         {
             using (var storage = model.OpenStorage(STORAGE_NAME, AccessType_e.Write))
             {
@@ -131,7 +131,7 @@ namespace Xarial.XCad.Documentation
         }
 
         //--- StreamHandler
-        private void HandleStream(SwDocument doc) 
+        private void HandleStream(ISwDocument doc) 
         {
             doc.StreamReadAvailable += OnStreamReadAvailable;
             doc.StreamWriteAvailable += OnStreamWriteAvailable;
@@ -139,17 +139,17 @@ namespace Xarial.XCad.Documentation
 
         private void OnStreamWriteAvailable(IXDocument doc)
         {
-            SaveToStream(doc as SwDocument);
+            SaveToStream(doc as ISwDocument);
         }
 
         private void OnStreamReadAvailable(IXDocument doc)
         {
-            LoadFromStream(doc as SwDocument);
+            LoadFromStream(doc as ISwDocument);
         }
         //---
 
         //--- StorageHandler
-        private void HandleStorage(SwDocument doc) 
+        private void HandleStorage(ISwDocument doc) 
         {
             doc.StorageReadAvailable += OnStorageReadAvailable;
             doc.StorageWriteAvailable += OnStorageWriteAvailable;
@@ -157,12 +157,12 @@ namespace Xarial.XCad.Documentation
 
         private void OnStorageWriteAvailable(IXDocument doc)
         {
-            SaveToStorageStore(doc as SwDocument);
+            SaveToStorageStore(doc as ISwDocument);
         }
 
         private void OnStorageReadAvailable(IXDocument doc)
         {
-            LoadFromStorageStore(doc as SwDocument);
+            LoadFromStorageStore(doc as ISwDocument);
         }
         //---
     }

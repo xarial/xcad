@@ -23,7 +23,7 @@ namespace Xarial.XCad.Documents
         /// <summary>
         /// Returns views collection
         /// </summary>
-        IXViewRepository Views { get; }
+        IXModelViewRepository ModelViews { get; }
 
         /// <summary>
         /// Returns configurations of this document

@@ -25,7 +25,7 @@ namespace Xarial.XCad.SolidWorks.Sketch
 
         public ISketchPoint Point => m_Creator.Element;
 
-        internal SwSketchPoint(SwDocument doc, ISketchPoint pt, bool created) : base(doc, pt)
+        internal SwSketchPoint(ISwDocument doc, ISketchPoint pt, bool created) : base(doc, pt)
         {
             m_SketchMgr = doc.Model.SketchManager;
             m_Creator = new ElementCreator<ISketchPoint>(CreatePoint, pt, created);

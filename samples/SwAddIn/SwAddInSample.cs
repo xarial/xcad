@@ -224,7 +224,7 @@ namespace SwAddInExample
                     break;
 
                 case Commands_e.RecordView:
-                    var view = (Application.Documents.Active as IXDocument3D).Views.Active;
+                    var view = (Application.Documents.Active as IXDocument3D).ModelViews.Active;
 
                     if (m_ViewTransform == null)
                     {

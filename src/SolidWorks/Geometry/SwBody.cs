@@ -72,9 +72,9 @@ namespace Xarial.XCad.SolidWorks.Geometry
             }
         }
 
-        protected SwDocument m_Document;
+        protected ISwDocument m_Document;
 
-        internal SwBody(IBody2 body, SwDocument doc) : base(doc?.Model, body)
+        internal SwBody(IBody2 body, ISwDocument doc) : base(doc?.Model, body)
         {
             Body = body;
             m_Document = doc;
@@ -145,7 +145,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
     public class SwSheetBody : SwBody, ISwSheetBody
     {
-        internal SwSheetBody(IBody2 body, SwDocument doc) : base(body, doc)
+        internal SwSheetBody(IBody2 body, ISwDocument doc) : base(body, doc)
         {
         }
     }
@@ -156,7 +156,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
     public class SwPlanarSheetBody : SwSheetBody, ISwPlanarSheetBody
     {
-        internal SwPlanarSheetBody(IBody2 body, SwDocument doc) : base(body, doc)
+        internal SwPlanarSheetBody(IBody2 body, ISwDocument doc) : base(body, doc)
         {
         }
 
@@ -194,7 +194,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
     public class SwSolidBody : SwBody, ISwBody, ISwSolidBody
     {
-        internal SwSolidBody(IBody2 body, SwDocument doc) : base(body, doc)
+        internal SwSolidBody(IBody2 body, ISwDocument doc) : base(body, doc)
         {
         }
     }

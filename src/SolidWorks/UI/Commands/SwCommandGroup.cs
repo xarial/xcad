@@ -28,9 +28,9 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
         /// <inheritdoc/>
         public CommandGroupSpec Spec { get; }
 
-        private readonly SwApplication m_App;
+        private readonly ISwApplication m_App;
 
-        internal SwCommandGroup(SwApplication app, CommandGroupSpec spec, CommandGroup cmdGroup)
+        internal SwCommandGroup(ISwApplication app, CommandGroupSpec spec, CommandGroup cmdGroup)
         {
             Spec = spec;
             CommandGroup = cmdGroup;

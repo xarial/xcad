@@ -26,7 +26,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         where TData : class, new()
         where TPage : class, new()
     {
-        internal SwMacroFeatureEditor(SwApplication app, Type defType, 
+        internal SwMacroFeatureEditor(ISwApplication app, Type defType, 
             CustomFeatureParametersParser paramsParser, IXLogger logger) 
             : base(app, defType, paramsParser, logger)
         {
@@ -70,7 +70,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         protected override IXPropertyPage<TPage> CreatePage()
         {
             //TODO: add support for other options
-            return new SwPropertyManagerPage<TPage>((SwApplication)m_App, m_Logger, typeof(TPage));
+            return new SwPropertyManagerPage<TPage>((ISwApplication)m_App, m_Logger, typeof(TPage));
         }
     }
 }

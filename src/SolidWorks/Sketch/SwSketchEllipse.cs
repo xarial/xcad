@@ -15,7 +15,7 @@ namespace Xarial.XCad.SolidWorks.Sketch
         public override IXPoint StartPoint => SwSelObject.FromDispatch<SwSketchPoint>(Ellipse.IGetStartPoint2(), m_Doc);
         public override IXPoint EndPoint => SwSelObject.FromDispatch<SwSketchPoint>(Ellipse.IGetEndPoint2(), m_Doc);
         
-        internal SwSketchEllipse(SwDocument doc, ISketchEllipse ellipse, bool created)
+        internal SwSketchEllipse(ISwDocument doc, ISketchEllipse ellipse, bool created)
             : base(doc, (ISketchSegment)ellipse, created)
         {
             if (doc == null)

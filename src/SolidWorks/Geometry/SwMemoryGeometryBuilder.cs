@@ -6,13 +6,17 @@ using Xarial.XCad.SolidWorks.Services;
 
 namespace Xarial.XCad.SolidWorks.Geometry
 {
-    public class SwMemoryGeometryBuilder : IXGeometryBuilder
+    public interface ISwMemoryGeometryBuilder : IXGeometryBuilder 
+    {
+    }
+
+    internal class SwMemoryGeometryBuilder : ISwMemoryGeometryBuilder
     {
         public IXWireGeometryBuilder WireBuilder { get; }
         public IXSheetGeometryBuilder SheetBuilder { get; }
         public IXSolidGeometryBuilder SolidBuilder { get; }
 
-        internal SwMemoryGeometryBuilder(SwApplication app, IMemoryGeometryBuilderDocumentProvider geomBuilderDocsProvider) 
+        internal SwMemoryGeometryBuilder(ISwApplication app, IMemoryGeometryBuilderDocumentProvider geomBuilderDocsProvider) 
         {
             var mathUtils = app.Sw.IGetMathUtility();
             var modeler = app.Sw.IGetModeler();

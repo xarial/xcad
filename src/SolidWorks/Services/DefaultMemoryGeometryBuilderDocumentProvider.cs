@@ -6,14 +6,14 @@ namespace Xarial.XCad.SolidWorks.Services
 {
     internal class DefaultMemoryGeometryBuilderDocumentProvider : IMemoryGeometryBuilderDocumentProvider
     {
-        private readonly SwApplication m_App;
+        private readonly ISwApplication m_App;
 
-        internal DefaultMemoryGeometryBuilderDocumentProvider(SwApplication app)
+        internal DefaultMemoryGeometryBuilderDocumentProvider(ISwApplication app)
         {
             m_App = app;
         }
 
-        public SwDocument ProvideDocument(Type geomType)
+        public ISwDocument ProvideDocument(Type geomType)
         {
             var part = m_App.Documents.Active as SwPart;
 

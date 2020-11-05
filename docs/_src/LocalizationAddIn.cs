@@ -30,7 +30,7 @@ namespace Xarial.XCad.Documentation
     [ComVisible(true)]
     public class LocalizedMacroFeature : SwMacroFeatureDefinition
     {
-        public override CustomFeatureRebuildResult OnRebuild(SwApplication app, SwDocument model, SwMacroFeature feature)
+        public override CustomFeatureRebuildResult OnRebuild(ISwApplication app, ISwDocument model, SwMacroFeature feature)
         {
             if (!string.IsNullOrEmpty(model.Title))
             {

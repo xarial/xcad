@@ -18,7 +18,11 @@ using Xarial.XCad.Structures;
 
 namespace Xarial.XCad.SolidWorks
 {
-    public abstract class SwMacro : IXMacro 
+    public interface ISwMacro : IXMacro 
+    {
+    }
+
+    public abstract class SwMacro : ISwMacro
     {
         protected readonly ISldWorks m_App;
         protected readonly string m_Path;
@@ -146,7 +150,11 @@ namespace Xarial.XCad.SolidWorks
         }
     }
 
-    public class SwVbaMacro : SwMacro
+    public interface ISwVbaMacro : ISwMacro
+    {
+    }
+
+    internal class SwVbaMacro : SwMacro, ISwVbaMacro
     {
         private class MacroEntryPointComparer : IComparer<MacroEntryPoint>
         {
@@ -235,7 +243,11 @@ namespace Xarial.XCad.SolidWorks
         }
     }
 
-    public class SwVstaMacro : SwMacro
+    public interface ISwVstaMacro : ISwMacro
+    {
+    }
+
+    internal class SwVstaMacro : SwMacro, ISwVstaMacro
     {
         internal SwVstaMacro(ISldWorks app, string path) : base(app, path)
         {

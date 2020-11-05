@@ -20,7 +20,7 @@ using Xarial.XCad.Toolkit;
 
 namespace Xarial.XCad.SolidWorks
 {
-    public partial class SwApplication
+    public class SwApplicationFactory
     {
         public static class CommandLineArguments
         {
@@ -42,18 +42,18 @@ namespace Xarial.XCad.SolidWorks
 
         private const string PROG_ID_TEMPLATE = "SldWorks.Application.{0}";
 
-        public static SwApplication FromPointer(ISldWorks app)
+        public static ISwApplication FromPointer(ISldWorks app)
             => FromPointer(app, new ServiceCollection());
 
-        public static SwApplication FromPointer(ISldWorks app, IXServiceCollection services)
+        public static ISwApplication FromPointer(ISldWorks app, IXServiceCollection services)
         {
             return new SwApplication(app, services);
         }
 
-        public static SwApplication FromProcess(Process process)
+        public static ISwApplication FromProcess(Process process)
             => FromProcess(process, new ServiceCollection());
 
-        public static SwApplication FromProcess(Process process, IXServiceCollection services)
+        public static ISwApplication FromProcess(Process process, IXServiceCollection services)
         {
             var app = RotHelper.TryGetComObjectByMonikerName<ISldWorks>(GetMonikerName(process));
 
@@ -71,7 +71,7 @@ namespace Xarial.XCad.SolidWorks
 
         ///<inheritdoc cref="Start(SwVersion_e?, string, CancellationToken?)"/>
         ///<remarks>Default timeout is 5 minutes. Use different overload of this method to specify custom cancellation token</remarks>
-        public static SwApplication Start(SwVersion_e? vers = null,
+        public static ISwApplication Start(SwVersion_e? vers = null,
             string args = "") => Start(vers, args, new CancellationTokenSource(TimeSpan.FromMinutes(5)).Token);
 
         /// <summary>
@@ -80,13 +80,13 @@ namespace Xarial.XCad.SolidWorks
         /// <param name="vers">Version of SOLIDWORKS to start or null for the latest version</param>
         /// <param name="cancellationToken">Cancellation token</param>
         /// <returns>Instance of application</returns>
-        public static SwApplication Start(SwVersion_e? vers,
+        public static ISwApplication Start(SwVersion_e? vers,
             string args, CancellationToken? cancellationToken = null)
             => Start(vers, args, new ServiceCollection(), cancellationToken);
 
         ///<inheritdoc cref="Start(SwVersion_e?, string, CancellationToken?)"/>
         /// <param name="logger">Logger</param>
-        public static SwApplication Start(SwVersion_e? vers,
+        public static ISwApplication Start(SwVersion_e? vers,
             string args, IXServiceCollection services, CancellationToken? cancellationToken = null)
         {
             var swPath = FindSwAppPath(vers);

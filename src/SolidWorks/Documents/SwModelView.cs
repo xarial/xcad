@@ -15,7 +15,7 @@ using Xarial.XCad.SolidWorks.Utils;
 
 namespace Xarial.XCad.SolidWorks.Documents
 {
-    public class SwModelView : IXView
+    public class SwModelView : IXModelView
     {
         private readonly IMathUtility m_MathUtils;
 

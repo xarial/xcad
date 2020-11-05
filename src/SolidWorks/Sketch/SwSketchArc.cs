@@ -20,7 +20,7 @@ namespace Xarial.XCad.SolidWorks.Sketch
         public Point Center { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public Vector Axis { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
-        internal SwSketchArc(SwDocument doc, ISketchArc arc, bool created)
+        internal SwSketchArc(ISwDocument doc, ISketchArc arc, bool created)
             : base(doc, (ISketchSegment)arc, created)
         {
         }

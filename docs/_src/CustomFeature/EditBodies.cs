@@ -28,7 +28,7 @@ namespace Xarial.XCad.Documentation.CustomFeature
     [ComVisible(true)]
     public class EditBodiesMacroFeature : SwMacroFeatureDefinition<MacroFeatureEditBodiesParams>
     {
-        public override CustomFeatureRebuildResult OnRebuild(SwApplication app, SwDocument model, SwMacroFeature feature, MacroFeatureEditBodiesParams parameters, out AlignDimensionDelegate<MacroFeatureEditBodiesParams> alignDim)
+        public override CustomFeatureRebuildResult OnRebuild(ISwApplication app, ISwDocument model, SwMacroFeature feature, MacroFeatureEditBodiesParams parameters, out AlignDimensionDelegate<MacroFeatureEditBodiesParams> alignDim)
         {
             alignDim = null;
             return new CustomFeatureRebuildResult();

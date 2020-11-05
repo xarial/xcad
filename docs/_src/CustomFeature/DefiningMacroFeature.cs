@@ -23,9 +23,9 @@ namespace Xarial.XCad.Documentation
     [Title("MyMacroFeature")]
     [CustomFeatureOptions(CustomFeatureOptions_e.AlwaysAtEnd)]
     [Icon(typeof(Resources), nameof(Resources.macro_feature_icon))]
-    public class MySimplaeMacroFeature : SwMacroFeatureDefinition<MySimpleMacroFeatureParameters>
+    public class MySimpleMacroFeature : SwMacroFeatureDefinition<MySimpleMacroFeatureParameters>
     {
-        public override CustomFeatureRebuildResult OnRebuild(SwApplication app, SwDocument model, 
+        public override CustomFeatureRebuildResult OnRebuild(ISwApplication app, ISwDocument model, 
             SwMacroFeature feature, MySimpleMacroFeatureParameters parameters,
             out AlignDimensionDelegate<MySimpleMacroFeatureParameters> alignDim)
         {

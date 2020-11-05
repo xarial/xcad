@@ -61,7 +61,7 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
 
         private const string SUB_GROUP_SEPARATOR = "\\";
 
-        private readonly SwApplication m_App;
+        private readonly ISwApplication m_App;
 
         private readonly List<SwCommandGroup> m_CommandBars;
 
@@ -78,7 +78,7 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
 
         private readonly Guid m_AddInGuid;
 
-        internal SwCommandManager(SwApplication app, int addinCookie, IXLogger logger, Guid addInGuid)
+        internal SwCommandManager(ISwApplication app, int addinCookie, IXLogger logger, Guid addInGuid)
         {
             m_App = app;
             m_AddInGuid = addInGuid;

@@ -67,13 +67,13 @@ namespace Xarial.XCad.SolidWorks.Data
 
         private readonly CustomPropertiesEventsHelper m_EventsHelper;
 
-        private SwDocument m_Doc;
+        private ISwDocument m_Doc;
 
-        internal SwCustomPropertiesCollection(SwDocument doc, string confName) 
+        internal SwCustomPropertiesCollection(ISwDocument doc, string confName) 
         {
             m_Doc = doc;
             
-            m_EventsHelper = new CustomPropertiesEventsHelper(doc.SwApp, doc);
+            m_EventsHelper = new CustomPropertiesEventsHelper(doc.App.Sw, doc);
 
             m_ConfName = confName;
         }

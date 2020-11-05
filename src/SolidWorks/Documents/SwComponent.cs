@@ -51,7 +51,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             set => Component.Name2 = value;
         }
 
-        public SwDocument3D Document
+        public ISwDocument3D Document
         {
             get
             {

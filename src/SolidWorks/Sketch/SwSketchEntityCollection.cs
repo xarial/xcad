@@ -30,10 +30,10 @@ namespace Xarial.XCad.SolidWorks.Sketch
 
         private readonly List<IXSketchEntity> m_Cache;
 
-        private readonly SwDocument m_Doc;
+        private readonly ISwDocument m_Doc;
         private readonly ISketchManager m_SkMgr;
 
-        public SwSketchEntityCollection(SwDocument doc, SwSketchBase sketch)
+        internal SwSketchEntityCollection(ISwDocument doc, SwSketchBase sketch)
         {
             m_Doc = doc;
             m_Sketch = sketch;
@@ -119,13 +119,13 @@ namespace Xarial.XCad.SolidWorks.Sketch
 
         object IEnumerator.Current => Current;
 
-        private readonly SwDocument m_Doc;
+        private readonly ISwDocument m_Doc;
         private readonly SwSketchBase m_Sketch;
 
         private List<object> m_Entities;
         private int m_CurIndex;
 
-        internal SwSketchEntitiesEnumerator(SwDocument doc, SwSketchBase sketch) 
+        internal SwSketchEntitiesEnumerator(ISwDocument doc, SwSketchBase sketch) 
         {
             m_Doc = doc;
             m_Sketch = sketch;

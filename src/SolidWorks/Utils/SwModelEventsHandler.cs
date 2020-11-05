@@ -17,10 +17,10 @@ namespace Xarial.XCad.SolidWorks.Utils
     internal abstract class SwModelEventsHandler<TDel> : EventsHandler<TDel>
         where TDel : Delegate
     {
-        private readonly SwDocument m_Doc;
+        private readonly ISwDocument m_Doc;
         private IModelDoc2 m_Model => m_Doc.Model;
 
-        internal SwModelEventsHandler(SwDocument doc) 
+        internal SwModelEventsHandler(ISwDocument doc) 
         {
             m_Doc = doc;
         }

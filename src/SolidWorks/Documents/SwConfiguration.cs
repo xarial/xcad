@@ -16,7 +16,7 @@ namespace Xarial.XCad.SolidWorks.Documents
     {
         private readonly IConfiguration m_Conf;
         
-        private readonly SwDocument m_Doc;
+        private readonly ISwDocument m_Doc;
 
         public string Name => m_Conf.Name;
 
@@ -27,7 +27,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         //TODO: implement creation of new configurations
         public bool IsCommitted => true;
 
-        internal SwConfiguration(SwDocument doc, IConfiguration conf) : base(conf)
+        internal SwConfiguration(ISwDocument doc, IConfiguration conf) : base(conf)
         {
             m_Doc = doc;
             m_Conf = conf;

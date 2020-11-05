@@ -33,8 +33,8 @@ namespace StandAlone
     {
         static void Main(string[] args)
         {
-            //var app = SwApplication.Start(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020);
-            var app = SwApplication.FromProcess(Process.GetProcessesByName("SLDWORKS").First());
+            //var app = SwApplicationFactory.Start(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020);
+            var app = SwApplicationFactory.FromProcess(Process.GetProcessesByName("SLDWORKS").First());
 
             //SketchSegmentColors(app);
 
@@ -64,7 +64,7 @@ namespace StandAlone
         private static void CreateDrawingView(IXApplication app) 
         {
             var partDoc = app.Documents.Active as IXDocument3D;
-            var view = partDoc.Views[StandardViewType_e.Right];
+            var view = partDoc.ModelViews[StandardViewType_e.Right];
             var drw = app.Documents.NewDrawing();
             var drwView = drw.Sheets.Active.DrawingViews.CreateModelViewBased(view);
         }
@@ -109,7 +109,7 @@ namespace StandAlone
 
             var body = (sweep.Bodies.First() as SwBody).Body;
 
-            (app.Documents.Active as SwPart).Part.CreateFeatureFromBody3(body, false, 0);
+            (app.Documents.Active as ISwPart).Part.CreateFeatureFromBody3(body, false, 0);
         }
 
         private static void CreateTempGeometry(IXApplication app) 
@@ -132,7 +132,7 @@ namespace StandAlone
 
             var body = (sweep.Bodies.First() as SwBody).Body;
 
-            (app.Documents.Active as SwPart).Part.CreateFeatureFromBody3(body, false, 0);
+            (app.Documents.Active as ISwPart).Part.CreateFeatureFromBody3(body, false, 0);
 
             var cone = app.MemoryGeometryBuilder.CreateSolidCone(
                 new Point(0, 0, 0), 
@@ -141,7 +141,7 @@ namespace StandAlone
             
             body = (cone.Bodies.First() as SwBody).Body;
 
-            (app.Documents.Active as SwPart).Part.CreateFeatureFromBody3(body, false, 0);
+            (app.Documents.Active as ISwPart).Part.CreateFeatureFromBody3(body, false, 0);
 
             var arc = app.MemoryGeometryBuilder.WireBuilder.PreCreateArc();
             arc.Center = new Point(-0.1, 0, 0);
@@ -162,7 +162,7 @@ namespace StandAlone
 
             body = (rev.Bodies.First() as SwBody).Body;
 
-            (app.Documents.Active as SwPart).Part.CreateFeatureFromBody3(body, false, 0);
+            (app.Documents.Active as ISwPart).Part.CreateFeatureFromBody3(body, false, 0);
 
             var box = app.MemoryGeometryBuilder.CreateSolidBox(
                 new Point(0, 0, 0), 
@@ -172,7 +172,7 @@ namespace StandAlone
 
             body = (box.Bodies.First() as SwBody).Body;
 
-            (app.Documents.Active as SwPart).Part.CreateFeatureFromBody3(body, false, 0);
+            (app.Documents.Active as ISwPart).Part.CreateFeatureFromBody3(body, false, 0);
 
             var polyline = app.MemoryGeometryBuilder.WireBuilder.PreCreatePolyline();
             polyline.Points = new Point[] 
@@ -192,14 +192,14 @@ namespace StandAlone
 
             body = (extr.Bodies.First() as SwBody).Body;
 
-            (app.Documents.Active as SwPart).Part.CreateFeatureFromBody3(body, false, 0);
+            (app.Documents.Active as ISwPart).Part.CreateFeatureFromBody3(body, false, 0);
 
             var cyl = app.MemoryGeometryBuilder.CreateSolidCylinder(
                 new Point(0, 0, 0), new Vector(1, 0, 0), 0.1, 0.2);
 
             body = (cyl.Bodies.First() as SwBody).Body;
 
-            (app.Documents.Active as SwPart).Part.CreateFeatureFromBody3(body, false, 0);
+            (app.Documents.Active as ISwPart).Part.CreateFeatureFromBody3(body, false, 0);
         }
     }
 }

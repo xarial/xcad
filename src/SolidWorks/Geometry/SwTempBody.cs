@@ -21,6 +21,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 {
     public interface ISwTempBody : ISwBody, IDisposable
     {
+        void Preview(ISwPart part, Color color, bool selectable = false);
     }
 
     public class SwTempBody : SwBody, ISwTempBody
@@ -42,7 +43,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
             m_TempBody = body;
         }
 
-        public void Preview(SwPart part, Color color, bool selectable = false) 
+        public void Preview(ISwPart part, Color color, bool selectable = false) 
         {
             var opts = selectable 
                 ? swTempBodySelectOptions_e.swTempBodySelectable

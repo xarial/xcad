@@ -14,14 +14,22 @@ using Xarial.XCad.Utils.Diagnostics;
 
 namespace Xarial.XCad.SolidWorks.Documents
 {
-    public abstract class SwDocument3D : SwDocument, IXDocument3D
+    public interface ISwDocument3D : ISwDocument, IXDocument3D
+    {
+        new SwConfigurationCollection Configurations { get; }
+        new SwModelViewsCollection ModelViews { get; }
+        new TSelObject ConvertObject<TSelObject>(TSelObject obj)
+            where TSelObject : SwSelObject;
+    }
+
+    internal abstract class SwDocument3D : SwDocument, ISwDocument3D
     {
         private readonly IMathUtility m_MathUtils;
 
         IXConfigurationRepository IXDocument3D.Configurations => Configurations;
-        IXViewRepository IXDocument3D.Views => ModelViews;
+        IXModelViewRepository IXDocument3D.ModelViews => ModelViews;
 
-        internal SwDocument3D(IModelDoc2 model, SwApplication app, IXLogger logger, bool isCreated) : base(model, app, logger, isCreated)
+        internal SwDocument3D(IModelDoc2 model, ISwApplication app, IXLogger logger, bool isCreated) : base(model, app, logger, isCreated)
         {
             m_MathUtils = app.Sw.IGetMathUtility();
             Configurations = new SwConfigurationCollection(app.Sw, this);

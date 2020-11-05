@@ -41,9 +41,15 @@ using Xarial.XCad.Utils.Reflection;
 
 namespace Xarial.XCad.SolidWorks
 {
+    public interface ISwAddInEx : IXExtension 
+    {
+        new ISwApplication Application { get; }
+        new SwCommandManager CommandManager { get; }
+    }
+
     /// <inheritdoc/>
     [ComVisible(true)]
-    public abstract class SwAddInEx : IXExtension, ISwAddin, IXServiceConsumer, IDisposable
+    public abstract class SwAddInEx : ISwAddInEx, ISwAddin, IXServiceConsumer, IDisposable
     {
         #region Registration
 
@@ -93,7 +99,7 @@ namespace Xarial.XCad.SolidWorks
         IXCustomPanel<TControl> IXExtension.CreateFeatureManagerTab<TControl>(IXDocument doc) 
             => CreateFeatureManagerTab<TControl>((SwDocument)doc);
 
-        public SwApplication Application { get; private set; }
+        public ISwApplication Application { get; private set; }
 
         public SwCommandManager CommandManager { get; private set; }
 
@@ -131,7 +137,8 @@ namespace Xarial.XCad.SolidWorks
                     app.SetAddinCallbackInfo(0, this, AddInId);
                 }
 
-                Application = new SwApplication(app);
+                var swApp = new SwApplication(app);
+                Application = swApp;
 
                 var svcCollection = GetServicesCollection();
 
@@ -141,7 +148,7 @@ namespace Xarial.XCad.SolidWorks
 
                 Logger = m_SvcProvider.GetService<IXLogger>();
 
-                Application.Init(svcCollection);
+                swApp.Init(svcCollection);
 
                 Logger.Log("Loading add-in");
 
@@ -266,7 +273,7 @@ namespace Xarial.XCad.SolidWorks
             return page;
         }
 
-        public SwModelViewTab<TControl> CreateDocumentTab<TControl>(Documents.SwDocument doc)
+        public SwModelViewTab<TControl> CreateDocumentTab<TControl>(ISwDocument doc)
         {
             var mdlViewMgr = doc.Model.ModelViewManager;
 
@@ -397,7 +404,7 @@ namespace Xarial.XCad.SolidWorks
             }
         }
 
-        public SwFeatureMgrTab<TControl> CreateFeatureManagerTab<TControl>(SwDocument doc) 
+        public SwFeatureMgrTab<TControl> CreateFeatureManagerTab<TControl>(ISwDocument doc) 
         {
             var mdlViewMgr = doc.Model.ModelViewManager;
 
@@ -451,10 +458,10 @@ namespace Xarial.XCad.SolidWorks
 
     public static class SwAddInExExtension 
     {
-        public static SwModelViewTab<TControl> CreateDocumentTabWinForm<TControl>(this SwAddInEx addIn, SwDocument doc)
+        public static SwModelViewTab<TControl> CreateDocumentTabWinForm<TControl>(this SwAddInEx addIn, ISwDocument doc)
             where TControl : System.Windows.Forms.Control => addIn.CreateDocumentTab<TControl>(doc);
 
-        public static SwModelViewTab<TControl> CreateDocumentTabWpf<TControl>(this SwAddInEx addIn, SwDocument doc)
+        public static SwModelViewTab<TControl> CreateDocumentTabWpf<TControl>(this SwAddInEx addIn, ISwDocument doc)
             where TControl : System.Windows.UIElement => addIn.CreateDocumentTab<TControl>(doc);
 
         public static SwPopupWpfWindow<TWindow> CreatePopupWpfWindow<TWindow>(this SwAddInEx addIn)
@@ -477,10 +484,10 @@ namespace Xarial.XCad.SolidWorks
             where TControl : System.Windows.UIElement
             where TEnum : Enum => addIn.CreateTaskPane<TControl, TEnum>();
 
-        public static SwFeatureMgrTab<TControl> CreateFeatureManagerTabWpf<TControl>(this SwAddInEx addIn, SwDocument doc)
+        public static SwFeatureMgrTab<TControl> CreateFeatureManagerTabWpf<TControl>(this SwAddInEx addIn, ISwDocument doc)
             where TControl : System.Windows.UIElement => addIn.CreateFeatureManagerTab<TControl>(doc);
 
-        public static SwFeatureMgrTab<TControl> CreateFeatureManagerTabWinForm<TControl>(this SwAddInEx addIn, SwDocument doc)
+        public static SwFeatureMgrTab<TControl> CreateFeatureManagerTabWinForm<TControl>(this SwAddInEx addIn, ISwDocument doc)
             where TControl : System.Windows.Forms.Control => addIn.CreateFeatureManagerTab<TControl>(doc);
     }
 }

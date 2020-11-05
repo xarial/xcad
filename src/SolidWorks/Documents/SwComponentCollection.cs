@@ -40,9 +40,9 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public int Count => GetRootComponent().IGetChildrenCount();
 
-        private readonly SwAssembly m_Assm;
+        private readonly ISwAssembly m_Assm;
         
-        internal SwComponentCollection(SwAssembly assm) 
+        internal SwComponentCollection(ISwAssembly assm) 
         {
             m_Assm = assm;
         }
@@ -70,7 +70,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         object IEnumerator.Current => Current;
 
-        private readonly SwAssembly m_Assm;
+        private readonly ISwAssembly m_Assm;
 
         private IComponent2 m_CurComp;
 
@@ -79,7 +79,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         private int m_CurChildIndex;
         
-        internal SwComponentEnumerator(SwAssembly assm, IComponent2 parent)
+        internal SwComponentEnumerator(ISwAssembly assm, IComponent2 parent)
         {
             m_CurComp = null;
             m_Assm = assm;

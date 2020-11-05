@@ -20,9 +20,9 @@ namespace Xarial.XCad.SolidWorks.Sketch
         public abstract bool IsCommitted { get; }
         public abstract Color? Color { get; set; }
 
-        protected readonly SwDocument m_Doc;
+        protected readonly ISwDocument m_Doc;
         
-        internal SwSketchEntity(SwDocument doc, object ent) : base(doc.Model, ent)
+        internal SwSketchEntity(ISwDocument doc, object ent) : base(doc.Model, ent)
         {
             m_Doc = doc;
         }

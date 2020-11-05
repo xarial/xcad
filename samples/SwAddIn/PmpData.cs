@@ -72,7 +72,7 @@ namespace SwAddInExample
 
     public class MyCustomItemsProvider : SwCustomItemsProvider<MyItem>
     {
-        public override IEnumerable<MyItem> ProvideItems(SwApplication app, IControl[] dependencies)
+        public override IEnumerable<MyItem> ProvideItems(ISwApplication app, IControl[] dependencies)
         {
             yield return new MyItem()
             {

@@ -13,7 +13,7 @@ namespace Xarial.XCad.Documents
         /// <param name="repo">Views repositry</param>
         /// <param name="view">Model based view to create drawing view from</param>
         /// <returns>Created drawing view</returns>
-        public static IXModelViewBasedDrawingView CreateModelViewBased(this IXDrawingViewRepository repo, IXView view)
+        public static IXModelViewBasedDrawingView CreateModelViewBased(this IXDrawingViewRepository repo, IXModelView view)
         {
             var drwView = repo.PreCreate<IXModelViewBasedDrawingView>();
             drwView.View = view;

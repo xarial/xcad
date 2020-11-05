@@ -37,18 +37,18 @@ namespace Xarial.XCad.SolidWorks
             return FromDispatch(disp, null);
         }
 
-        public static TObj FromDispatch<TObj>(object disp, SwDocument doc)
+        public static TObj FromDispatch<TObj>(object disp, ISwDocument doc)
             where TObj : SwObject
         {
             return (TObj)FromDispatch(disp, doc);
         }
 
-        public static SwObject FromDispatch(object disp, SwDocument doc)
+        public static SwObject FromDispatch(object disp, ISwDocument doc)
         {
             return FromDispatch(disp, doc, d => new SwObject(d));
         }
 
-        internal static SwObject FromDispatch(object disp, SwDocument doc, Func<object, SwObject> defaultHandler)
+        internal static SwObject FromDispatch(object disp, ISwDocument doc, Func<object, SwObject> defaultHandler)
         {
             switch (disp)
             {

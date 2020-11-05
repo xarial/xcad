@@ -34,9 +34,9 @@ namespace Xarial.XCad.SolidWorks.Features
 
         internal bool IsCreated => m_Creator.IsCreated;
 
-        private readonly SwDocument m_Doc;
+        private readonly ISwDocument m_Doc;
 
-        internal SwFeature(SwDocument doc, IFeature feat, bool created) : base(doc.Model, feat)
+        internal SwFeature(ISwDocument doc, IFeature feat, bool created) : base(doc.Model, feat)
         {
             if (doc == null) 
             {

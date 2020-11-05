@@ -33,7 +33,7 @@ namespace SwAddInExample
     [ComVisible(true)]
     public class BoxMacroFeatureEditor : SwMacroFeatureDefinition<BoxData, BoxData>
     {
-        public override SwBody[] CreateGeometry(SwApplication app, SwDocument model, 
+        public override SwBody[] CreateGeometry(ISwApplication app, ISwDocument model, 
             BoxData data, bool isPreview, out AlignDimensionDelegate<BoxData> alignDim)
         {
             alignDim = null;

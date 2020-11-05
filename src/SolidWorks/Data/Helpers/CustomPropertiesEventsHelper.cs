@@ -154,7 +154,7 @@ namespace Xarial.XCad.SolidWorks.Data.Helpers
         #endregion
 
         private readonly SldWorks m_App;
-        private readonly SwDocument m_Doc;
+        private readonly ISwDocument m_Doc;
 
         private IModelDoc2 Model => m_Doc.Model;
 
@@ -162,7 +162,7 @@ namespace Xarial.XCad.SolidWorks.Data.Helpers
 
         private PropertiesSet m_CurPrpsSet;
 
-        public CustomPropertiesEventsHelper(ISldWorks app, SwDocument doc)
+        public CustomPropertiesEventsHelper(ISldWorks app, ISwDocument doc)
         {
             m_App = (SldWorks)app;
             m_Doc = doc;

@@ -35,7 +35,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
         /// <inheritdoc/>
         public event PageDataChangedDelegate DataChanged;
 
-        private readonly SwApplication m_App;
+        private readonly ISwApplication m_App;
         private readonly IconsConverter m_IconsConv;
         private readonly PropertyManagerPagePage m_Page;
         private readonly PropertyManagerPageBuilder m_PmpBuilder;
@@ -52,12 +52,12 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
 
         /// <summary>Creates instance of property manager page</summary>
         /// <param name="app">Pointer to session of SOLIDWORKS where the property manager page to be created</param>
-        internal SwPropertyManagerPage(SwApplication app, IXLogger logger, Type handlerType)
+        internal SwPropertyManagerPage(ISwApplication app, IXLogger logger, Type handlerType)
             : this(app, null, logger, handlerType)
         {
         }
 
-        internal SwPropertyManagerPage(SwApplication app, IPageSpec pageSpec, IXLogger logger, Type handlerType)
+        internal SwPropertyManagerPage(ISwApplication app, IPageSpec pageSpec, IXLogger logger, Type handlerType)
         {
             m_App = app;
 
@@ -105,8 +105,6 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
                 binding.Model = model;
             }
 
-            m_App.ReportPropertyPageOpening(typeof(TModel));
-
             m_Page.Page.Show2(OPTS_DEFAULT);
 
             foreach (var binding in m_Page.Binding.Bindings)
@@ -139,7 +137,6 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
         private void OnClosed(swPropertyManagerPageCloseReasons_e reason)
         {
             Closed?.Invoke(ConvertReason(reason));
-            m_App.ReportPropertyPageClosed(typeof(TModel));
         }
 
         private void OnClosing(swPropertyManagerPageCloseReasons_e reason, PageClosingArg arg)

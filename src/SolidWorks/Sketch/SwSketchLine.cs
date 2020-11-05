@@ -74,7 +74,7 @@ namespace Xarial.XCad.SolidWorks.Sketch
             }
         }
 
-        internal SwSketchLine(SwDocument doc, ISketchLine line, bool created) 
+        internal SwSketchLine(ISwDocument doc, ISketchLine line, bool created) 
             : base(doc, (ISketchSegment)line, created)
         {
         }

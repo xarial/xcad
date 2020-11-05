@@ -15,7 +15,7 @@ namespace Xarial.XCad.SolidWorks
     /// <inheritdoc/>
     public class SwSelObject : SwObject, IXSelObject
     {
-        public static new SwSelObject FromDispatch(object disp, SwDocument doc)
+        public static new SwSelObject FromDispatch(object disp, ISwDocument doc)
             => (SwSelObject)SwSelObject.FromDispatch(disp, doc, o => new SwSelObject(doc.Model, o));
         
         protected readonly IModelDoc2 m_ModelDoc;

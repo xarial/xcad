@@ -15,7 +15,7 @@ namespace Xarial.XCad.SolidWorks.Sketch
         public override IXPoint StartPoint => SwSelObject.FromDispatch<SwSketchPoint>(Parabola.IGetStartPoint2(), m_Doc);
         public override IXPoint EndPoint => SwSelObject.FromDispatch<SwSketchPoint>(Parabola.IGetEndPoint2(), m_Doc);
 
-        internal SwSketchParabola(SwDocument doc, ISketchParabola parabola, bool created)
+        internal SwSketchParabola(ISwDocument doc, ISketchParabola parabola, bool created)
             : base(doc, (ISketchSegment)parabola, created)
         {
         }
