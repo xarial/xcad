@@ -23,14 +23,11 @@ namespace Xarial.XCad.Geometry
 
     public interface IXCircularEdge : IXEdge 
     {
-        Point Center { get; }
-        Vector Axis { get; }
-        double Radius { get; }
+        new IXArc Definition { get; }
     }
 
     public interface IXLinearEdge : IXEdge
     {
-        Point RootPoint { get; }
-        Vector Direction { get; }
+        new IXLine Definition { get; }
     }
 }
