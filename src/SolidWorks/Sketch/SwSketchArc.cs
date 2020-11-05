@@ -9,7 +9,12 @@ using Xarial.XCad.SolidWorks.Documents;
 
 namespace Xarial.XCad.SolidWorks.Sketch
 {
-    public class SwSketchArc : SwSketchSegment, IXSketchArc
+    public interface ISwSketchArc : IXSketchArc 
+    {
+        ISketchArc Arc { get; }
+    }
+
+    internal class SwSketchArc : SwSketchSegment, IXSketchArc
     {
         public ISketchArc Arc => (ISketchArc)Segment;
 

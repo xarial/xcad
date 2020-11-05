@@ -7,11 +7,11 @@ using Xarial.XCad.Geometry.Surfaces;
 
 namespace Xarial.XCad.SolidWorks.Geometry.Surfaces
 {
-    public interface ISwPlanarSurface : IXPlanarSurface 
+    public interface ISwPlanarSurface : ISwSurface, IXPlanarSurface 
     {
     }
 
-    public class SwPlanarSurface : SwSurface, ISwPlanarSurface
+    internal class SwPlanarSurface : SwSurface, ISwPlanarSurface
     {
         internal SwPlanarSurface(ISurface surface) : base(surface)
         {

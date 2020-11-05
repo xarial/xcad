@@ -26,7 +26,7 @@ namespace Xarial.XCad.Documentation
     public class MySimpleMacroFeature : SwMacroFeatureDefinition<MySimpleMacroFeatureParameters>
     {
         public override CustomFeatureRebuildResult OnRebuild(ISwApplication app, ISwDocument model, 
-            SwMacroFeature feature, MySimpleMacroFeatureParameters parameters,
+            ISwMacroFeature feature, MySimpleMacroFeatureParameters parameters,
             out AlignDimensionDelegate<MySimpleMacroFeatureParameters> alignDim)
         {
             alignDim = null;

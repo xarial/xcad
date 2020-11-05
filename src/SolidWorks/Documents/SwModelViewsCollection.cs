@@ -9,7 +9,14 @@ using Xarial.XCad.Documents;
 
 namespace Xarial.XCad.SolidWorks.Documents
 {
-    public class SwModelViewsCollection : IXModelViewRepository
+    public interface ISwModelViewsCollection : IXModelViewRepository 
+    {
+        new ISwModelView Active { get; }
+        new ISwStandardView this[StandardViewType_e type] { get; }
+        new ISwNamedView this[string name] { get; }
+    }
+
+    internal class SwModelViewsCollection : ISwModelViewsCollection
     {
         IXStandardView IXModelViewRepository.this[StandardViewType_e type] => this[type];
         IXModelView IXRepository<IXModelView>.this[string name] => this[name];
@@ -27,9 +34,9 @@ namespace Xarial.XCad.SolidWorks.Documents
         public int Count => throw new NotImplementedException();
 
         //TODO: move the view creation to SwObject.FromDispatch
-        public SwModelView Active => new SwModelView(m_Doc.Model, m_Doc.Model.IActiveView, m_MathUtils);
+        public ISwModelView Active => new SwModelView(m_Doc.Model, m_Doc.Model.IActiveView, m_MathUtils);
         
-        public SwNamedView this[string name] 
+        public ISwNamedView this[string name] 
         {
             get 
             {
@@ -45,7 +52,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        public SwStandardView this[StandardViewType_e type]
+        public ISwStandardView this[StandardViewType_e type]
             => new SwStandardView(m_Doc.Model, null, m_MathUtils, type); //TODO: move the view creation to SwObject.FromDispatch
 
         public void AddRange(IEnumerable<IXModelView> ents)

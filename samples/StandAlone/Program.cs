@@ -107,7 +107,7 @@ namespace StandAlone
             sweep.Path = pathCurve;
             sweep.Commit();
 
-            var body = (sweep.Bodies.First() as SwBody).Body;
+            var body = (sweep.Bodies.First() as ISwBody).Body;
 
             (app.Documents.Active as ISwPart).Part.CreateFeatureFromBody3(body, false, 0);
         }
@@ -130,7 +130,7 @@ namespace StandAlone
             sweep.Path = sweepLine;
             sweep.Commit();
 
-            var body = (sweep.Bodies.First() as SwBody).Body;
+            var body = (sweep.Bodies.First() as ISwBody).Body;
 
             (app.Documents.Active as ISwPart).Part.CreateFeatureFromBody3(body, false, 0);
 
@@ -139,7 +139,7 @@ namespace StandAlone
                 new Vector(1, 1, 1), 
                 0.1, 0.05, 0.2);
             
-            body = (cone.Bodies.First() as SwBody).Body;
+            body = (cone.Bodies.First() as ISwBody).Body;
 
             (app.Documents.Active as ISwPart).Part.CreateFeatureFromBody3(body, false, 0);
 
@@ -160,7 +160,7 @@ namespace StandAlone
             rev.Profiles = new IXRegion[] { app.MemoryGeometryBuilder.CreatePlanarSurface(arc).Bodies.OfType<IXPlanarSheetBody>().First() };
             rev.Commit();
 
-            body = (rev.Bodies.First() as SwBody).Body;
+            body = (rev.Bodies.First() as ISwBody).Body;
 
             (app.Documents.Active as ISwPart).Part.CreateFeatureFromBody3(body, false, 0);
 
@@ -170,7 +170,7 @@ namespace StandAlone
                 new Vector(1, 1, 1).CreateAnyPerpendicular(),
                 0.1, 0.2, 0.3);
 
-            body = (box.Bodies.First() as SwBody).Body;
+            body = (box.Bodies.First() as ISwBody).Body;
 
             (app.Documents.Active as ISwPart).Part.CreateFeatureFromBody3(body, false, 0);
 
@@ -190,14 +190,14 @@ namespace StandAlone
             extr.Profiles = new IXRegion[] { app.MemoryGeometryBuilder.CreatePlanarSurface(polyline).Bodies.OfType<IXPlanarSheetBody>().First() };
             extr.Commit();
 
-            body = (extr.Bodies.First() as SwBody).Body;
+            body = (extr.Bodies.First() as ISwBody).Body;
 
             (app.Documents.Active as ISwPart).Part.CreateFeatureFromBody3(body, false, 0);
 
             var cyl = app.MemoryGeometryBuilder.CreateSolidCylinder(
                 new Point(0, 0, 0), new Vector(1, 0, 0), 0.1, 0.2);
 
-            body = (cyl.Bodies.First() as SwBody).Body;
+            body = (cyl.Bodies.First() as ISwBody).Body;
 
             (app.Documents.Active as ISwPart).Part.CreateFeatureFromBody3(body, false, 0);
         }

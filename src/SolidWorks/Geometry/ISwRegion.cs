@@ -8,6 +8,6 @@ namespace Xarial.XCad.SolidWorks.Geometry
 {
     public interface ISwRegion : IXRegion
     {
-        new SwCurve[] Boundary { get; }
+        new ISwCurve[] Boundary { get; }
     }
 }

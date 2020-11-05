@@ -12,7 +12,11 @@ using Xarial.XCad.SolidWorks.Documents;
 
 namespace Xarial.XCad.SolidWorks.Features
 {
-    public class SwSketch2D : SwSketchBase, IXSketch2D
+    public interface ISwSketch2D : ISwSketchBase, IXSketch2D
+    {
+    }
+
+    internal class SwSketch2D : SwSketchBase, ISwSketch2D
     {
         internal SwSketch2D(ISwDocument doc, IFeature feat, bool created) : base(doc, feat, created)
         {

@@ -33,16 +33,16 @@ namespace SwAddInExample
     [ComVisible(true)]
     public class BoxMacroFeatureEditor : SwMacroFeatureDefinition<BoxData, BoxData>
     {
-        public override SwBody[] CreateGeometry(ISwApplication app, ISwDocument model, 
+        public override ISwBody[] CreateGeometry(ISwApplication app, ISwDocument model, 
             BoxData data, bool isPreview, out AlignDimensionDelegate<BoxData> alignDim)
         {
             alignDim = null;
 
-            var box = (SwBody)app.MemoryGeometryBuilder.CreateSolidBox(
+            var box = (ISwBody)app.MemoryGeometryBuilder.CreateSolidBox(
                 new Point(0, 0, 0), new Vector(0, 0, 1), new Vector(1, 0, 0).CreateAnyPerpendicular(),
                 data.Width, data.Height, data.Length).Bodies.First();
 
-            return new SwBody[] { box };
+            return new ISwBody[] { box };
         }
     }
 }

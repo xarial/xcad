@@ -14,7 +14,7 @@ namespace Xarial.XCad.Documentation
     [ComVisible(true)]
     public class RegenerationNoResultsMacroFeature : SwMacroFeatureDefinition
     {
-        public override CustomFeatureRebuildResult OnRebuild(ISwApplication app, ISwDocument model, SwMacroFeature feature)
+        public override CustomFeatureRebuildResult OnRebuild(ISwApplication app, ISwDocument model, ISwMacroFeature feature)
         {
             return new CustomFeatureRebuildResult()
             {
@@ -27,7 +27,7 @@ namespace Xarial.XCad.Documentation
     [ComVisible(true)]
     public class RegenerationRebuildErrorMacroFeature : SwMacroFeatureDefinition
     {
-        public override CustomFeatureRebuildResult OnRebuild(ISwApplication app, ISwDocument model, SwMacroFeature feature)
+        public override CustomFeatureRebuildResult OnRebuild(ISwApplication app, ISwDocument model, ISwMacroFeature feature)
         {
             return new CustomFeatureRebuildResult()
             {
@@ -41,7 +41,7 @@ namespace Xarial.XCad.Documentation
     [ComVisible(true)]
     public class RegenerationBodyMacroFeature : SwMacroFeatureDefinition
     {
-        public override CustomFeatureRebuildResult OnRebuild(ISwApplication app, ISwDocument model, SwMacroFeature feature)
+        public override CustomFeatureRebuildResult OnRebuild(ISwApplication app, ISwDocument model, ISwMacroFeature feature)
         {
             var body = app.MemoryGeometryBuilder.CreateSolidBox(new Point(0, 0, 0),
                 new Vector(1, 0, 0), new Vector(0, 1, 0),

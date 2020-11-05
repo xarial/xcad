@@ -7,7 +7,12 @@ using Xarial.XCad.Geometry.Curves;
 
 namespace Xarial.XCad.SolidWorks.Geometry.Curves
 {
-    public class SwComplexCurve : SwCurve, IXComplexCurve
+    public interface ISwComplexCurve : ISwCurve, IXComplexCurve 
+    {
+        new ISwCurve[] Composition { get; set; }
+    }
+
+    internal class SwComplexCurve : SwCurve, ISwComplexCurve
     {
         IXCurve[] IXComplexCurve.Composition 
         {
@@ -15,7 +20,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Curves
             set => Composition = value?.Cast<SwCurve>().ToArray();
         }
 
-        public SwCurve[] Composition { get; set; }
+        public ISwCurve[] Composition { get; set; }
 
         internal SwComplexCurve(IModeler modeler, ICurve[] curves, bool isCreated) 
             : base(modeler, curves, isCreated)

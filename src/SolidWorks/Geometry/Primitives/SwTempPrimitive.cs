@@ -10,31 +10,31 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
 {
     public interface ISwTempPrimitive : IXPrimitive
     {
-        new SwTempBody[] Bodies { get; }
+        new ISwTempBody[] Bodies { get; }
     }
 
-    public class SwTempPrimitive : ISwTempPrimitive
+    internal class SwTempPrimitive : ISwTempPrimitive
     {
         IXBody[] IXPrimitive.Bodies => Bodies;
 
-        public SwTempBody[] Bodies => m_Creator.Element;
+        public ISwTempBody[] Bodies => m_Creator.Element;
 
         public bool IsCommitted => m_Creator.IsCreated;
 
         protected readonly IModeler m_Modeler;
         protected readonly IMathUtility m_MathUtils;
 
-        protected readonly ElementCreator<SwTempBody[]> m_Creator;
+        protected readonly ElementCreator<ISwTempBody[]> m_Creator;
         
         internal SwTempPrimitive(IMathUtility mathUtils, IModeler modeler, SwTempBody[] bodies, bool isCreated) 
         {
             m_MathUtils = mathUtils;
             m_Modeler = modeler;
 
-            m_Creator = new ElementCreator<SwTempBody[]>(CreateBodies, bodies, isCreated);
+            m_Creator = new ElementCreator<ISwTempBody[]>(CreateBodies, bodies, isCreated);
         }
 
-        protected virtual SwTempBody[] CreateBodies() 
+        protected virtual ISwTempBody[] CreateBodies() 
         {
             throw new NotSupportedException();
         }

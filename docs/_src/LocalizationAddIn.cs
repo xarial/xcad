@@ -30,7 +30,7 @@ namespace Xarial.XCad.Documentation
     [ComVisible(true)]
     public class LocalizedMacroFeature : SwMacroFeatureDefinition
     {
-        public override CustomFeatureRebuildResult OnRebuild(ISwApplication app, ISwDocument model, SwMacroFeature feature)
+        public override CustomFeatureRebuildResult OnRebuild(ISwApplication app, ISwDocument model, ISwMacroFeature feature)
         {
             if (!string.IsNullOrEmpty(model.Title))
             {
@@ -74,7 +74,7 @@ namespace Xarial.XCad.Documentation
         {
         }
 
-        private SwPropertyManagerPage<LocalizedPmPage> m_Page;
+        private ISwPropertyManagerPage<LocalizedPmPage> m_Page;
 
         public override void OnConnect()
         {

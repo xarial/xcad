@@ -6,7 +6,11 @@ using Xarial.XCad.Geometry.Wires;
 
 namespace Xarial.XCad.SolidWorks.Geometry.Curves
 {
-    public class SwPoint : IXPoint
+    public interface ISwPoint : IXPoint 
+    {
+    }
+
+    internal class SwPoint : ISwPoint
     {
         public Point Coordinate { get; set; }
 

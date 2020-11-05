@@ -16,10 +16,10 @@ namespace Xarial.XCad.SolidWorks.Documents
 {
     public interface ISwDocument3D : ISwDocument, IXDocument3D
     {
-        new SwConfigurationCollection Configurations { get; }
-        new SwModelViewsCollection ModelViews { get; }
+        new ISwConfigurationCollection Configurations { get; }
+        new ISwModelViewsCollection ModelViews { get; }
         new TSelObject ConvertObject<TSelObject>(TSelObject obj)
-            where TSelObject : SwSelObject;
+            where TSelObject : ISwSelObject;
     }
 
     internal abstract class SwDocument3D : SwDocument, ISwDocument3D
@@ -36,9 +36,9 @@ namespace Xarial.XCad.SolidWorks.Documents
             ModelViews = new SwModelViewsCollection(this, m_MathUtils);
         }
         
-        public SwConfigurationCollection Configurations { get; }
+        public ISwConfigurationCollection Configurations { get; }
 
-        public SwModelViewsCollection ModelViews { get; }
+        public ISwModelViewsCollection ModelViews { get; }
 
         public abstract Box3D CalculateBoundingBox();
 
@@ -55,12 +55,12 @@ namespace Xarial.XCad.SolidWorks.Documents
         TSelObject IXObjectContainer.ConvertObject<TSelObject>(TSelObject obj) => ConvertObjectBoxed(obj) as TSelObject;
 
         public TSelObject ConvertObject<TSelObject>(TSelObject obj)
-            where TSelObject : SwSelObject
+            where TSelObject : ISwSelObject
         {
             return (TSelObject)ConvertObjectBoxed(obj);
         }
 
-        private SwSelObject ConvertObjectBoxed(object obj)
+        private ISwSelObject ConvertObjectBoxed(object obj)
         {
             if (obj is SwSelObject)
             {

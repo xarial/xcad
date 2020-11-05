@@ -9,7 +9,12 @@ using Xarial.XCad.SolidWorks.Documents;
 
 namespace Xarial.XCad.SolidWorks.Sketch
 {
-    public class SwSketchSpline : SwSketchSegment, IXSketchSpline
+    public interface ISwSketchSpline : ISwSketchSegment, IXSketchSpline
+    {
+        ISketchSpline Spline { get; }
+    }
+
+    internal class SwSketchSpline : SwSketchSegment, ISwSketchSpline
     {
         public ISketchSpline Spline => (ISketchSpline)Segment;
 

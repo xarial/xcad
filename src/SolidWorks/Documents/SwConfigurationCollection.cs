@@ -16,7 +16,11 @@ using Xarial.XCad.SolidWorks.Documents.EventHandlers;
 
 namespace Xarial.XCad.SolidWorks.Documents
 {
-    public class SwConfigurationCollection : IXConfigurationRepository, IDisposable
+    public interface ISwConfigurationCollection : IXConfigurationRepository, IDisposable
+    {
+    }
+
+    internal class SwConfigurationCollection : ISwConfigurationCollection
     {
         public event ConfigurationActivatedDelegate ConfigurationActivated 
         {

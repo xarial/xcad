@@ -8,7 +8,12 @@ using Xarial.XCad.SolidWorks.Documents;
 
 namespace Xarial.XCad.SolidWorks.Sketch
 {
-    public class SwSketchText : SwSketchSegment, IXSketchText
+    public interface ISwSketchText : ISwSketchSegment, IXSketchText
+    {
+        ISketchText TextSegment { get; }
+    }
+
+    internal class SwSketchText : SwSketchSegment, ISwSketchText
     {
         public ISketchText TextSegment => (ISketchText)Segment;
 

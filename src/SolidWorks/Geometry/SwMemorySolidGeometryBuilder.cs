@@ -18,7 +18,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
         new ISwTempSweep PreCreateSweep();
     }
 
-    public class SwMemorySolidGeometryBuilder : ISwMemorySolidGeometryBuilder
+    internal class SwMemorySolidGeometryBuilder : ISwMemorySolidGeometryBuilder
     {
         IXExtrusion IX3DGeometryBuilder.PreCreateExtrusion() => PreCreateExtrusion();
         IXRevolve IX3DGeometryBuilder.PreCreateRevolve() => PreCreateRevolve();

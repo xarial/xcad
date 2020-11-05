@@ -8,7 +8,12 @@ using Xarial.XCad.SolidWorks.Documents;
 
 namespace Xarial.XCad.SolidWorks.Sketch
 {
-    public class SwSketchEllipse : SwSketchSegment, IXSketchEllipse
+    public interface ISwSketchEllipse : IXSketchEllipse
+    {
+        ISketchEllipse Ellipse { get; }
+    }
+
+    internal class SwSketchEllipse : SwSketchSegment, ISwSketchEllipse
     {
         public ISketchEllipse Ellipse => (ISketchEllipse)Segment;
 

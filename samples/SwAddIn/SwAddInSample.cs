@@ -98,7 +98,7 @@ namespace SwAddInExample
         private IXPropertyPage<PmpMacroFeatData> m_MacroFeatPage;
         private PmpMacroFeatData m_MacroFeatPmpData;
 
-        private SwPropertyManagerPage<PmpData> m_Page;
+        private ISwPropertyManagerPage<PmpData> m_Page;
         private PmpData m_Data;
 
         public override void OnConnect()
@@ -167,8 +167,8 @@ namespace SwAddInExample
             }
         }
 
-        private SwDimension m_WatchedDim;
-        private SwCustomProperty m_WatchedPrp;
+        private ISwDimension m_WatchedDim;
+        private ISwCustomProperty m_WatchedPrp;
 
         private void WatchDimension() 
         {
@@ -199,7 +199,7 @@ namespace SwAddInExample
         }
 
         private TransformMatrix m_ViewTransform;
-        private SwPopupWpfWindow<WpfWindow> m_Window;
+        private ISwPopupWindow<WpfWindow> m_Window;
 
         private void OnCommandClick(Commands_e spec)
         {

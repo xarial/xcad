@@ -26,7 +26,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
         new ISwSurface Definition { get; }
     }
 
-    public class SwFace : SwEntity, ISwFace
+    internal class SwFace : SwEntity, ISwFace
     {
         IXSurface IXFace.Definition => Definition;
 
@@ -37,9 +37,9 @@ namespace Xarial.XCad.SolidWorks.Geometry
             Face = face;
         }
 
-        public override SwBody Body => (SwBody)FromDispatch(Face.GetBody());
+        public override ISwBody Body => (SwBody)FromDispatch(Face.GetBody());
 
-        public override IEnumerable<SwEntity> AdjacentEntities 
+        public override IEnumerable<ISwEntity> AdjacentEntities 
         {
             get 
             {
@@ -66,12 +66,12 @@ namespace Xarial.XCad.SolidWorks.Geometry
         public ISwSurface Definition => SwSelObject.FromDispatch<SwSurface>(Face.IGetSurface());
     }
 
-    public interface ISwPlanarFace : IXPlanarFace
+    public interface ISwPlanarFace : ISwFace, IXPlanarFace
     {
         new ISwPlanarSurface Definition { get; }
     }
 
-    public class SwPlanarFace : SwFace, ISwPlanarFace
+    internal class SwPlanarFace : SwFace, ISwPlanarFace
     {
         IXPlanarSurface IXPlanarFace.Definition => Definition;
 
@@ -82,12 +82,12 @@ namespace Xarial.XCad.SolidWorks.Geometry
         public new ISwPlanarSurface Definition => SwSelObject.FromDispatch<SwPlanarSurface>(Face.IGetSurface());
     }
 
-    public interface ISwCylindricalFace : IXCylindricalFace
+    public interface ISwCylindricalFace : ISwFace, IXCylindricalFace
     {
         new ISwCylindricalSurface Definition { get; }
     }
 
-    public class SwCylindricalFace : SwFace, ISwCylindricalFace
+    internal class SwCylindricalFace : SwFace, ISwCylindricalFace
     {
         IXCylindricalSurface IXCylindricalFace.Definition => Definition;
 

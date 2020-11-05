@@ -81,15 +81,15 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
         {
         }
 
-        protected override SwTempBody[] CreateBodies()
+        protected override ISwTempBody[] CreateBodies()
         {
             var dir = m_MathUtils.CreateVector(Direction.ToArray()) as MathVector;
 
-            var bodies = new List<SwTempBody>();
+            var bodies = new List<ISwTempBody>();
 
             foreach (var profile in Profiles) 
             {
-                var body = m_Modeler.CreateExtrudedBody((Body2)profile.Body.Body, dir, Depth) as IBody2;
+                var body = m_Modeler.CreateExtrudedBody((Body2)profile.PlanarSheetBody.Body, dir, Depth) as IBody2;
 
                 if (body == null)
                 {

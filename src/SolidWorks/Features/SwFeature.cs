@@ -18,7 +18,13 @@ using Xarial.XCad.SolidWorks.Utils;
 
 namespace Xarial.XCad.SolidWorks.Features
 {
-    public class SwFeature : SwSelObject, IXFeature
+    public interface ISwFeature : IXFeature
+    {
+        IFeature Feature { get; }
+        new ISwDimensionsCollection Dimensions { get; }
+    }
+
+    internal class SwFeature : SwSelObject, ISwFeature
     {
         private readonly ElementCreator<IFeature> m_Creator;
 
@@ -31,9 +37,7 @@ namespace Xarial.XCad.SolidWorks.Features
                 return m_Creator.Element;
             }
         }
-
-        internal bool IsCreated => m_Creator.IsCreated;
-
+        
         private readonly ISwDocument m_Doc;
 
         internal SwFeature(ISwDocument doc, IFeature feat, bool created) : base(doc.Model, feat)
@@ -56,7 +60,7 @@ namespace Xarial.XCad.SolidWorks.Features
             throw new NotSupportedException("Creation of this feature is not supported");
         }
 
-        public SwDimensionsCollection Dimensions { get; }
+        public ISwDimensionsCollection Dimensions { get; }
 
         public string Name 
         {
@@ -75,7 +79,7 @@ namespace Xarial.XCad.SolidWorks.Features
                 (o, c) => Feature.RemoveMaterialProperty2((int)o, c));
         }
 
-        public override bool IsCommitted => IsCreated;
+        public override bool IsCommitted => m_Creator.IsCreated;
 
         public override void Select(bool append)
         {

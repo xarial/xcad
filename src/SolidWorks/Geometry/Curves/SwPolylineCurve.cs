@@ -9,7 +9,11 @@ using Xarial.XCad.SolidWorks.Geometry.Exceptions;
 
 namespace Xarial.XCad.SolidWorks.Geometry.Curves
 {
-    public class SwPolylineCurve : SwCurve, IXPolylineCurve
+    public interface ISwPolylineCurve : ISwCurve, IXPolylineCurve
+    {
+    }
+
+    internal class SwPolylineCurve : SwCurve, ISwPolylineCurve
     {
         internal SwPolylineCurve(IModeler modeler, ICurve[] curves, bool isCreated) 
             : base(modeler, curves, isCreated)
@@ -32,7 +36,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Curves
             }
         }
 
-        internal override bool TryGetPlane(out Plane plane)
+        public override bool TryGetPlane(out Plane plane)
         {
             if (Points?.Length > 2)
             {

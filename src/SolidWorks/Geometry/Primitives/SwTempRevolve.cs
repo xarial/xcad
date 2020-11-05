@@ -86,13 +86,13 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
             }
         }
 
-        protected override SwTempBody[] CreateBodies()
+        protected override ISwTempBody[] CreateBodies()
         {
-            var bodies = new List<SwTempBody>();
+            var bodies = new List<ISwTempBody>();
 
             foreach (var profile in Profiles) 
             {
-                var sheetBody = profile.Body;
+                var sheetBody = profile.PlanarSheetBody;
 
                 var profileLoop = sheetBody.Body.IGetFirstFace().IGetFirstLoop();
 

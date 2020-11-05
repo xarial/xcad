@@ -8,7 +8,12 @@ using Xarial.XCad.Services;
 
 namespace Xarial.XCad.SolidWorks.Documents
 {
-    public class SwDrawingView : SwSelObject, IXDrawingView
+    public interface ISwDrawingView : IXDrawingView, ISwSelObject
+    {
+        IView DrawingView { get; }
+    }
+
+    internal class SwDrawingView : SwSelObject, ISwDrawingView
     {
         protected readonly ISwDrawing m_Drawing;
 
@@ -139,18 +144,18 @@ namespace Xarial.XCad.SolidWorks.Documents
         TSelObject IXObjectContainer.ConvertObject<TSelObject>(TSelObject obj) => ConvertObjectBoxed(obj) as TSelObject;
 
         public TSelObject ConvertObject<TSelObject>(TSelObject obj)
-            where TSelObject : SwSelObject
+            where TSelObject : ISwSelObject
         {
             return (TSelObject)ConvertObjectBoxed(obj);
         }
 
-        private SwSelObject ConvertObjectBoxed(object obj)
+        private ISwSelObject ConvertObjectBoxed(object obj)
         {
-            if (obj is SwSelObject)
+            if (obj is ISwSelObject)
             {
                 if (m_Drawing.App.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2018))
                 {
-                    var disp = (obj as SwSelObject).Dispatch;
+                    var disp = (obj as ISwSelObject).Dispatch;
                     var corrDisp = DrawingView.GetCorresponding(disp);
 
                     if (corrDisp != null)
@@ -174,7 +179,11 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
     }
 
-    public class SwModelBasedDrawingView : SwDrawingView, IXModelViewBasedDrawingView
+    public interface ISwModelBasedDrawingView : ISwDrawingView, IXModelViewBasedDrawingView 
+    {
+    }
+
+    internal class SwModelBasedDrawingView : SwDrawingView, ISwModelBasedDrawingView
     {
         private SwNamedView m_BaseModelView;
 

@@ -19,11 +19,16 @@ using Xarial.XCad.SolidWorks.Features;
 
 namespace Xarial.XCad.SolidWorks.Annotations
 {
-    public abstract class SwDimensionsCollection : IXDimensionRepository, IDisposable
+    public interface ISwDimensionsCollection : IXDimensionRepository, IDisposable
+    {
+        new ISwDimension this[string name] { get; }
+    }
+
+    internal abstract class SwDimensionsCollection : ISwDimensionsCollection
     {
         IXDimension IXRepository<IXDimension>.this[string name] => this[name];
 
-        public SwDimension this[string name]=> (SwDimension)this.Get(name);
+        public ISwDimension this[string name] => (SwDimension)this.Get(name);
 
         public abstract bool TryGet(string name, out IXDimension ent);
 

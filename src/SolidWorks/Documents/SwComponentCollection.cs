@@ -16,11 +16,16 @@ using Xarial.XCad.Documents;
 
 namespace Xarial.XCad.SolidWorks.Documents
 {
-    public abstract class SwComponentCollection : IXComponentRepository
+    public interface ISwComponentCollection : IXComponentRepository
+    {
+        new ISwComponent this[string name] { get; }
+    }
+
+    internal abstract class SwComponentCollection : ISwComponentCollection
     {
         IXComponent IXRepository<IXComponent>.this[string name] => this[name];
 
-        public SwComponent this[string name] => (SwComponent)this.Get(name);
+        public ISwComponent this[string name] => (SwComponent)this.Get(name);
         
         public bool TryGet(string name, out IXComponent ent)
         {

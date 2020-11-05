@@ -9,7 +9,7 @@ namespace Xarial.XCad.Documentation
     [ComVisible(true)]
     public class UpdateStateMacroFeature : SwMacroFeatureDefinition
     {
-        public override CustomFeatureState_e OnUpdateState(ISwApplication app, ISwDocument model, SwMacroFeature feature)
+        public override CustomFeatureState_e OnUpdateState(ISwApplication app, ISwDocument model, ISwMacroFeature feature)
         {
             //disallow editing or suppressing of the feature
             return CustomFeatureState_e.CannotBeDeleted 

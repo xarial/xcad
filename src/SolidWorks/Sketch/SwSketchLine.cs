@@ -15,7 +15,12 @@ using Xarial.XCad.SolidWorks.Documents;
 
 namespace Xarial.XCad.SolidWorks.Sketch
 {
-    public class SwSketchLine : SwSketchSegment, IXSketchLine
+    public interface ISwSketchLine : IXSketchLine 
+    {
+        ISketchLine Line { get; }
+    }
+
+    internal class SwSketchLine : SwSketchSegment, ISwSketchLine
     {
         public ISketchLine Line => (ISketchLine)Segment;
 

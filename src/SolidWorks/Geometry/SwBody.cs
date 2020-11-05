@@ -25,7 +25,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
         IBody2 Body { get; }
     }
 
-    public class SwBody : SwSelObject, ISwBody
+    internal class SwBody : SwSelObject, ISwBody
     {
         public static SwBody operator -(SwBody firstBody, SwBody secondBody)
         {
@@ -143,7 +143,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
     {
     }
 
-    public class SwSheetBody : SwBody, ISwSheetBody
+    internal class SwSheetBody : SwBody, ISwSheetBody
     {
         internal SwSheetBody(IBody2 body, ISwDocument doc) : base(body, doc)
         {
@@ -154,7 +154,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
     {
     }
 
-    public class SwPlanarSheetBody : SwSheetBody, ISwPlanarSheetBody
+    internal class SwPlanarSheetBody : SwSheetBody, ISwPlanarSheetBody
     {
         internal SwPlanarSheetBody(IBody2 body, ISwDocument doc) : base(body, doc)
         {
@@ -192,7 +192,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
     {
     }
 
-    public class SwSolidBody : SwBody, ISwBody, ISwSolidBody
+    internal class SwSolidBody : SwBody, ISwBody, ISwSolidBody
     {
         internal SwSolidBody(IBody2 body, ISwDocument doc) : base(body, doc)
         {

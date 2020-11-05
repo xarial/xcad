@@ -12,7 +12,12 @@ using Xarial.XCad.SolidWorks.Data;
 
 namespace Xarial.XCad.SolidWorks.Documents
 {
-    public class SwConfiguration : SwObject, IXConfiguration
+    public interface ISwConfiguration : ISwObject, IXConfiguration 
+    {
+        new ISwCustomPropertiesCollection Properties { get; }
+    }
+
+    internal class SwConfiguration : SwObject, ISwConfiguration
     {
         private readonly IConfiguration m_Conf;
         
@@ -22,7 +27,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         IXPropertyRepository IXConfiguration.Properties => Properties;
 
-        public SwCustomPropertiesCollection Properties { get; }
+        public ISwCustomPropertiesCollection Properties { get; }
 
         //TODO: implement creation of new configurations
         public bool IsCommitted => true;

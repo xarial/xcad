@@ -9,6 +9,6 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
 {
     public interface ISwTempRegion : ISwRegion
     {
-        SwTempPlanarSheetBody Body { get; }
+        ISwTempPlanarSheetBody PlanarSheetBody { get; }
     }
 }

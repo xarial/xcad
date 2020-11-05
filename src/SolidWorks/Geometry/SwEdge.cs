@@ -15,15 +15,21 @@ using Xarial.XCad.Utils.Reflection;
 
 namespace Xarial.XCad.SolidWorks.Geometry
 {
-    public class SwEdge : SwEntity, IXEdge
+    public interface ISwEdge : ISwEntity, IXEdge 
+    {
+        IEdge Edge { get; }
+        new ISwCurve Definition { get; }
+    }
+
+    internal class SwEdge : SwEntity, ISwEdge
     {
         IXSegment IXEdge.Definition => Definition;
 
         public IEdge Edge { get; }
 
-        public override SwBody Body => FromDispatch<SwBody>(Edge.GetBody());
+        public override ISwBody Body => FromDispatch<SwBody>(Edge.GetBody());
 
-        public override IEnumerable<SwEntity> AdjacentEntities 
+        public override IEnumerable<ISwEntity> AdjacentEntities 
         {
             get 
             {
@@ -42,7 +48,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
             }
         }
 
-        public SwCurve Definition => FromDispatch<SwCurve>(Edge.IGetCurve());
+        public ISwCurve Definition => FromDispatch<SwCurve>(Edge.IGetCurve());
 
         internal SwEdge(IEdge edge) : base(edge as IEntity)
         {
@@ -55,7 +61,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
         new ISwArcCurve Definition { get; }
     }
 
-    public class SwCircularEdge : SwEdge, ISwCircularEdge
+    internal class SwCircularEdge : SwEdge, ISwCircularEdge
     {
         IXArc IXCircularEdge.Definition => Definition;
 
@@ -71,7 +77,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
         new ISwLineCurve Definition { get; }
     }
 
-    public class SwLinearEdge : SwEdge, ISwLinearEdge
+    internal class SwLinearEdge : SwEdge, ISwLinearEdge
     {
         IXLine IXLinearEdge.Definition => Definition;
 

@@ -8,7 +8,12 @@ using Xarial.XCad.SolidWorks.Documents;
 
 namespace Xarial.XCad.SolidWorks.Sketch
 {
-    public class SwSketchParabola : SwSketchSegment, IXSketchParabola
+    public interface ISwSketchParabola : IXSketchParabola
+    {
+        ISketchParabola Parabola { get; }
+    }
+
+    internal class SwSketchParabola : SwSketchSegment, ISwSketchParabola
     {
         public ISketchParabola Parabola => (ISketchParabola)Segment;
 

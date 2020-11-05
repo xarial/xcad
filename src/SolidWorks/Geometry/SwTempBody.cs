@@ -24,7 +24,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
         void Preview(ISwPart part, Color color, bool selectable = false);
     }
 
-    public class SwTempBody : SwBody, ISwTempBody
+    internal class SwTempBody : SwBody, ISwTempBody
     {
         private IBody2 m_TempBody;
 
@@ -80,21 +80,21 @@ namespace Xarial.XCad.SolidWorks.Geometry
     {
     }
 
-    public class SwTempSolidBody : SwTempBody, ISwTempSolidBody
+    internal class SwTempSolidBody : SwTempBody, ISwTempSolidBody
     {
         internal SwTempSolidBody(IBody2 body) : base(body)
         {
         }
     }
 
-    public class SwTempSheetBody : SwTempBody, ISwTempSheetBody
+    internal class SwTempSheetBody : SwTempBody, ISwTempSheetBody
     {
         internal SwTempSheetBody(IBody2 body) : base(body)
         {
         }
     }
 
-    public class SwTempPlanarSheetBody : SwTempBody, ISwTempPlanarSheetBody
+    internal class SwTempPlanarSheetBody : SwTempBody, ISwTempPlanarSheetBody
     {
         internal SwTempPlanarSheetBody(IBody2 body) : base(body)
         {
@@ -104,8 +104,8 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         public IXSegment[] Boundary => this.GetBoundary();
 
-        SwTempPlanarSheetBody ISwTempRegion.Body => this;
+        public ISwTempPlanarSheetBody PlanarSheetBody => this;
 
-        SwCurve[] ISwRegion.Boundary => this.GetBoundary();
+        ISwCurve[] ISwRegion.Boundary => this.GetBoundary();
     }
 }

@@ -13,8 +13,12 @@ using Xarial.XCad.UI.Commands.Structures;
 
 namespace Xarial.XCad.SolidWorks.UI.Commands
 {
+    public interface ISwCommandGroup : IXCommandGroup 
+    {
+    }
+
     /// <inheritdoc/>
-    public class SwCommandGroup : IXCommandGroup
+    internal class SwCommandGroup : ISwCommandGroup
     {
         /// <inheritdoc/>
         public event CommandClickDelegate CommandClick;

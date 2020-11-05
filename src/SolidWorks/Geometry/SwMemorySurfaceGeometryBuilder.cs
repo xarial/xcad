@@ -13,7 +13,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
         new ISwTempPlanarSheet PreCreatePlanarSheet();
     }
 
-    public class SwMemorySheetGeometryBuilder : ISwMemorySheetGeometryBuilder
+    internal class SwMemorySheetGeometryBuilder : ISwMemorySheetGeometryBuilder
     {
         IXPlanarSheet IXSheetGeometryBuilder.PreCreatePlanarSheet() => PreCreatePlanarSheet();
 

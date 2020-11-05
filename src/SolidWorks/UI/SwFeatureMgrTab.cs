@@ -12,7 +12,11 @@ using Xarial.XCad.UI;
 
 namespace Xarial.XCad.SolidWorks.UI
 {
-    public class SwFeatureMgrTab<TControl> : IXCustomPanel<TControl>, IDisposable
+    public interface ISwFeatureMgrTab<TControl> : IXCustomPanel<TControl>, IDisposable 
+    {
+    }
+
+    internal class SwFeatureMgrTab<TControl> : ISwFeatureMgrTab<TControl>
     {
         public bool IsActive
         {

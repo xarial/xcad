@@ -12,7 +12,13 @@ using Xarial.XCad.Toolkit.Utils;
 
 namespace Xarial.XCad.SolidWorks.Sketch
 {
-    public abstract class SwSketchSegment : SwSketchEntity, IXSketchSegment
+    public interface ISwSketchSegment : IXSketchSegment
+    {
+        ISketchSegment Segment { get; }
+        new ISwCurve Definition { get; }
+    }
+
+    internal abstract class SwSketchSegment : SwSketchEntity, ISwSketchSegment
     {
         IXSegment IXSketchSegment.Definition => Definition;
 
@@ -20,7 +26,7 @@ namespace Xarial.XCad.SolidWorks.Sketch
 
         protected readonly ISketchManager m_SketchMgr;
 
-        internal ISketchSegment Segment
+        public ISketchSegment Segment
         {
             get
             {
@@ -69,7 +75,7 @@ namespace Xarial.XCad.SolidWorks.Sketch
             }
         }
 
-        public SwCurve Definition 
+        public ISwCurve Definition 
         {
             get 
             {

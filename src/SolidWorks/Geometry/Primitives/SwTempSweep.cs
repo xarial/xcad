@@ -73,7 +73,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
             }
         }
 
-        protected override SwTempBody[] CreateBodies()
+        protected override ISwTempBody[] CreateBodies()
         {
             var selMgr = m_Part.Model.ISelectionManager;
             var selData = selMgr.CreateSelectData();

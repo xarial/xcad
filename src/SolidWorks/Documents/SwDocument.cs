@@ -34,10 +34,10 @@ namespace Xarial.XCad.SolidWorks.Documents
         ISwApplication App { get; }
 
         IModelDoc2 Model { get; }
-        new SwFeatureManager Features { get; }
-        new SwSelectionCollection Selections { get; }
-        new SwDimensionsCollection Dimensions { get; }
-        new SwCustomPropertiesCollection Properties { get; }
+        new ISwFeatureManager Features { get; }
+        new ISwSelectionCollection Selections { get; }
+        new ISwDimensionsCollection Dimensions { get; }
+        new ISwCustomPropertiesCollection Properties { get; }
     }
 
     [DebuggerDisplay("{" + nameof(Title) + "}")]
@@ -201,13 +201,13 @@ namespace Xarial.XCad.SolidWorks.Documents
             set => Model.Visible = value; 
         }
 
-        public SwFeatureManager Features { get; }
+        public ISwFeatureManager Features { get; }
 
-        public SwSelectionCollection Selections { get; }
+        public ISwSelectionCollection Selections { get; }
 
-        public SwDimensionsCollection Dimensions { get; }
+        public ISwDimensionsCollection Dimensions { get; }
 
-        public SwCustomPropertiesCollection Properties { get; }
+        public ISwCustomPropertiesCollection Properties { get; }
 
         public ISwApplication App { get; }
         

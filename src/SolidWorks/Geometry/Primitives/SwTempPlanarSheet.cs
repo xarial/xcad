@@ -15,7 +15,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
 {
     public interface ISwTempPlanarSheet : IXPlanarSheet, ISwTempPrimitive
     {
-        new SwCurve[] Boundary { get; set; }
+        new ISwCurve[] Boundary { get; set; }
     }
 
     internal class SwTempPlanarSheet : SwTempPrimitive, ISwTempPlanarSheet
@@ -31,7 +31,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
         {
         }
 
-        public SwCurve[] Boundary
+        public ISwCurve[] Boundary
         {
             get => m_Creator.CachedProperties.Get<SwCurve[]>();
             set
@@ -64,7 +64,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
             }
         }
 
-        protected override SwTempBody[] CreateBodies()
+        protected override ISwTempBody[] CreateBodies()
         {
             var plane = Plane;
 
@@ -95,7 +95,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
                 throw new Exception("Failed to create profile sheet body");
             }
 
-            return new SwTempBody[] { SwSelObject.FromDispatch<SwTempBody>(sheetBody) };
+            return new ISwTempBody[] { SwSelObject.FromDispatch<SwTempBody>(sheetBody) };
         }
     }
 }

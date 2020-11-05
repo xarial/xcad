@@ -18,22 +18,26 @@ using Xarial.XCad.SolidWorks.Features;
 
 namespace Xarial.XCad.SolidWorks.Sketch
 {
-    public class SwSketchEntityCollection : IXSketchEntityRepository
+    public interface ISwSketchEntityCollection : IXSketchEntityRepository
     {
-        public int Count => m_Sketch.IsCreated ? 0 : m_Cache.Count;
+    }
+
+    internal class SwSketchEntityCollection : ISwSketchEntityCollection
+    {
+        public int Count => m_Sketch.IsCommitted ? 0 : m_Cache.Count;
 
         public IXSketchEntity this[string name] => throw new NotImplementedException();
 
         public bool TryGet(string name, out IXSketchEntity ent) => throw new NotImplementedException();
 
-        private readonly SwSketchBase m_Sketch;
+        private readonly ISwSketchBase m_Sketch;
 
         private readonly List<IXSketchEntity> m_Cache;
 
         private readonly ISwDocument m_Doc;
         private readonly ISketchManager m_SkMgr;
 
-        internal SwSketchEntityCollection(ISwDocument doc, SwSketchBase sketch)
+        internal SwSketchEntityCollection(ISwDocument doc, ISwSketchBase sketch)
         {
             m_Doc = doc;
             m_Sketch = sketch;
@@ -43,7 +47,7 @@ namespace Xarial.XCad.SolidWorks.Sketch
 
         public void AddRange(IEnumerable<IXSketchEntity> segments)
         {
-            if (m_Sketch.IsCreated)
+            if (m_Sketch.IsCommitted)
             {
                 CreateSegments(segments, m_Sketch.Sketch);
             }
@@ -80,7 +84,7 @@ namespace Xarial.XCad.SolidWorks.Sketch
 
         public IEnumerator<IXSketchEntity> GetEnumerator()
         {
-            if (m_Sketch.IsCreated)
+            if (m_Sketch.IsCommitted)
             {
                 return new SwSketchEntitiesEnumerator(m_Doc, m_Sketch);
             }
@@ -113,19 +117,19 @@ namespace Xarial.XCad.SolidWorks.Sketch
         }
     }
 
-    public class SwSketchEntitiesEnumerator : IEnumerator<SwSketchEntity>
+    internal class SwSketchEntitiesEnumerator : IEnumerator<ISwSketchEntity>
     {
-        public SwSketchEntity Current => SwObject.FromDispatch<SwSketchEntity>(m_Entities[m_CurIndex], m_Doc);
+        public ISwSketchEntity Current => SwObject.FromDispatch<SwSketchEntity>(m_Entities[m_CurIndex], m_Doc);
 
         object IEnumerator.Current => Current;
 
         private readonly ISwDocument m_Doc;
-        private readonly SwSketchBase m_Sketch;
+        private readonly ISwSketchBase m_Sketch;
 
         private List<object> m_Entities;
         private int m_CurIndex;
 
-        internal SwSketchEntitiesEnumerator(ISwDocument doc, SwSketchBase sketch) 
+        internal SwSketchEntitiesEnumerator(ISwDocument doc, ISwSketchBase sketch) 
         {
             m_Doc = doc;
             m_Sketch = sketch;

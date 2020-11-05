@@ -13,9 +13,10 @@ namespace Xarial.XCad.SolidWorks.Geometry.Curves
     {
     }
 
-    public class SwArcCurve : SwCurve, ISwArcCurve
+    internal class SwArcCurve : SwCurve, ISwArcCurve
     {
-        internal SwArcCurve(IModeler modeler, ICurve curve, bool isCreated) : base(modeler, new ICurve[] { curve }, isCreated)
+        internal SwArcCurve(IModeler modeler, ICurve curve, bool isCreated) 
+            : base(modeler, new ICurve[] { curve }, isCreated)
         {
         }
 
@@ -100,7 +101,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Curves
             }
         }
 
-        internal override bool TryGetPlane(out Plane plane)
+        public override bool TryGetPlane(out Plane plane)
         {
             plane = new Plane(Center, Axis, ReferenceDirection);
             return true;

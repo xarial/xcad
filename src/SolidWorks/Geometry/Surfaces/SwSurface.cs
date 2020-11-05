@@ -6,12 +6,12 @@ using Xarial.XCad.Geometry.Surfaces;
 
 namespace Xarial.XCad.SolidWorks.Geometry.Surfaces
 {
-    public interface ISwSurface : IXSurface 
+    public interface ISwSurface : IXSurface, ISwObject
     {
         ISurface Surface { get; }
     }
 
-    public class SwSurface : SwObject, ISwSurface
+    internal class SwSurface : SwObject, ISwSurface
     {
         public ISurface Surface { get; }
 

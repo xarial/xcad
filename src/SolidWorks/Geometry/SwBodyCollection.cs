@@ -9,11 +9,15 @@ using Xarial.XCad.SolidWorks.Documents;
 
 namespace Xarial.XCad.SolidWorks.Geometry
 {
-    internal abstract class SwBodyCollection : IXBodyRepository
+    public interface ISwBodyCollection : IXBodyRepository 
     {
-        private readonly SwDocument m_RootDoc;
+    }
 
-        internal SwBodyCollection(SwDocument rootDoc)
+    internal abstract class SwBodyCollection : ISwBodyCollection
+    {
+        private readonly ISwDocument m_RootDoc;
+
+        internal SwBodyCollection(ISwDocument rootDoc)
         {
             m_RootDoc = rootDoc;
         }

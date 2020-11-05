@@ -23,32 +23,38 @@ namespace Xarial.XCad.SolidWorks
         object Dispatch { get; }
     }
 
-    /// <inheritdoc/>
-    public class SwObject : ISwObject
+    public static class SwObjectFactory 
     {
-        public static TObj FromDispatch<TObj>(object disp)
-            where TObj : SwObject
+        public static TObj FromDispatch<TObj>(object disp, ISwDocument doc)
+            where TObj : ISwObject => SwObject.FromDispatch<TObj>(disp, doc);
+    }
+
+    /// <inheritdoc/>
+    internal class SwObject : ISwObject
+    {
+        internal static TObj FromDispatch<TObj>(object disp)
+            where TObj : ISwObject
         {
             return (TObj)FromDispatch(disp, null);
         }
 
-        public static SwObject FromDispatch(object disp)
+        internal static ISwObject FromDispatch(object disp)
         {
             return FromDispatch(disp, null);
         }
 
-        public static TObj FromDispatch<TObj>(object disp, ISwDocument doc)
-            where TObj : SwObject
+        internal static TObj FromDispatch<TObj>(object disp, ISwDocument doc)
+            where TObj : ISwObject
         {
             return (TObj)FromDispatch(disp, doc);
         }
 
-        public static SwObject FromDispatch(object disp, ISwDocument doc)
+        internal static ISwObject FromDispatch(object disp, ISwDocument doc)
         {
             return FromDispatch(disp, doc, d => new SwObject(d));
         }
 
-        internal static SwObject FromDispatch(object disp, ISwDocument doc, Func<object, SwObject> defaultHandler)
+        internal static ISwObject FromDispatch(object disp, ISwDocument doc, Func<object, ISwObject> defaultHandler)
         {
             switch (disp)
             {
@@ -219,9 +225,9 @@ namespace Xarial.XCad.SolidWorks
                 return true;
             }
 
-            if (other is SwObject)
+            if (other is ISwObject)
             {
-                return Dispatch == (other as SwObject).Dispatch;
+                return Dispatch == (other as ISwObject).Dispatch;
             }
             else
             {

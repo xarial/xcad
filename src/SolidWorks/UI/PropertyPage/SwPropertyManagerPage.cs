@@ -23,8 +23,12 @@ using Xarial.XCad.Utils.PageBuilder.Base;
 
 namespace Xarial.XCad.SolidWorks.UI.PropertyPage
 {
+    public interface ISwPropertyManagerPage<TModel> : IXPropertyPage<TModel>, IDisposable 
+    {
+    }
+
     /// <inheritdoc/>
-    public class SwPropertyManagerPage<TModel> : IXPropertyPage<TModel>, IDisposable
+    internal class SwPropertyManagerPage<TModel> : ISwPropertyManagerPage<TModel>
     {
         /// <inheritdoc/>
         public event PageClosedDelegate Closed;

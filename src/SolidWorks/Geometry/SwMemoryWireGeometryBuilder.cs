@@ -14,7 +14,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
         new ISwLineCurve PreCreateLine();
     }
 
-    public class SwMemoryWireGeometryBuilder : ISwMemoryWireGeometryBuilder
+    internal class SwMemoryWireGeometryBuilder : ISwMemoryWireGeometryBuilder
     {
         IXArc IXWireGeometryBuilder.PreCreateArc() => PreCreateArc();
         IXLine IXWireGeometryBuilder.PreCreateLine() => PreCreateLine();
@@ -22,9 +22,9 @@ namespace Xarial.XCad.SolidWorks.Geometry
         IXPolylineCurve IXWireGeometryBuilder.PreCreatePolyline() => PreCreatePolyline();
         IXComplexCurve IXWireGeometryBuilder.PreCreateComplex() => PreCreateComplex();
 
-        public SwArcCurve PreCreateArc() => new SwArcCurve(m_Modeler, null, false);
+        public ISwArcCurve PreCreateArc() => new SwArcCurve(m_Modeler, null, false);
         public ISwLineCurve PreCreateLine() => new SwLineCurve(m_Modeler, null, false);
-        public SwPoint PreCreatePoint() => new SwPoint();
+        public ISwPoint PreCreatePoint() => new SwPoint();
         public IXPolylineCurve PreCreatePolyline() => new SwPolylineCurve(m_Modeler, null, false);
         public IXComplexCurve PreCreateComplex() => new SwComplexCurve(m_Modeler, null, false);
 

@@ -8,7 +8,11 @@ using Xarial.XCad.Documents;
 
 namespace Xarial.XCad.SolidWorks.Documents
 {
-    internal class SwDrawingViewsCollection : IXDrawingViewRepository
+    public interface ISwDrawingViewsCollection : IXDrawingViewRepository 
+    {
+    }
+
+    internal class SwDrawingViewsCollection : ISwDrawingViewsCollection
     {
         private readonly SwDrawing m_Draw;
         private readonly ISheet m_Sheet;

@@ -20,7 +20,7 @@ namespace Xarial.XCad.Documentation
 
         private DataModel m_Data;
 
-        private SwPropertyManagerPage<DataModel> m_Page;
+        private ISwPropertyManagerPage<DataModel> m_Page;
 
         public override void OnConnect()
         {

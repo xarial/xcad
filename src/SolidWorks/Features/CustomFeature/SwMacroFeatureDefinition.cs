@@ -210,22 +210,22 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             => OnEditDefinition((ISwApplication)app, (ISwDocument)model, (SwMacroFeature)feature);
 
         CustomFeatureRebuildResult IXCustomFeatureDefinition.OnRebuild(IXApplication app, IXDocument model, IXCustomFeature feature)
-            => OnRebuild((ISwApplication) app, (ISwDocument) model, (SwMacroFeature) feature);
+            => OnRebuild((ISwApplication) app, (ISwDocument) model, (ISwMacroFeature)feature);
 
         CustomFeatureState_e IXCustomFeatureDefinition.OnUpdateState(IXApplication app, IXDocument model, IXCustomFeature feature) 
             => OnUpdateState((ISwApplication)app, (ISwDocument)model, (SwMacroFeature)feature);
 
-        public virtual bool OnEditDefinition(ISwApplication app, ISwDocument model, SwMacroFeature feature)
+        public virtual bool OnEditDefinition(ISwApplication app, ISwDocument model, ISwMacroFeature feature)
         {
             return true;
         }
 
-        public virtual CustomFeatureRebuildResult OnRebuild(ISwApplication app, ISwDocument model, SwMacroFeature feature)
+        public virtual CustomFeatureRebuildResult OnRebuild(ISwApplication app, ISwDocument model, ISwMacroFeature feature)
         {
             return null;
         }
 
-        public virtual CustomFeatureState_e OnUpdateState(ISwApplication app, ISwDocument model, SwMacroFeature feature)
+        public virtual CustomFeatureState_e OnUpdateState(ISwApplication app, ISwDocument model, ISwMacroFeature feature)
         {
             return CustomFeatureState_e.Default;
         }
@@ -337,8 +337,8 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             => OnRebuild((ISwApplication)app, (ISwDocument)model, (SwMacroFeature)feature, parameters, out alignDim);
 
         [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
-        public override bool OnEditDefinition(ISwApplication app, ISwDocument model, SwMacroFeature feature)
-            => OnEditDefinition(app, model, feature.ToParameters<TParams>(m_ParamsParser));
+        public override bool OnEditDefinition(ISwApplication app, ISwDocument model, ISwMacroFeature feature)
+            => OnEditDefinition(app, model, feature.ToParameters<TParams>());
 
         public SwMacroFeatureDefinition() : this(new MacroFeatureParametersParser())
         {
@@ -392,10 +392,10 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             }
         }
 
-        public abstract CustomFeatureRebuildResult OnRebuild(ISwApplication app, ISwDocument model, SwMacroFeature feature,
+        public abstract CustomFeatureRebuildResult OnRebuild(ISwApplication app, ISwDocument model, ISwMacroFeature feature,
             TParams parameters, out AlignDimensionDelegate<TParams> alignDim);
 
-        public override CustomFeatureRebuildResult OnRebuild(ISwApplication app, ISwDocument model, SwMacroFeature feature)
+        public override CustomFeatureRebuildResult OnRebuild(ISwApplication app, ISwDocument model, ISwMacroFeature feature)
         {
             IXDimension[] dims;
             string[] dimParamNames;
@@ -424,7 +424,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             return res;
         }
 
-        public virtual bool OnEditDefinition(ISwApplication app, ISwDocument model, SwMacroFeature<TParams> feature) 
+        public virtual bool OnEditDefinition(ISwApplication app, ISwDocument model, ISwMacroFeature<TParams> feature) 
         {
             return true;
         }
@@ -471,7 +471,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             throw new Exception($"Override {nameof(ConvertParamsToPage)} to provide the converter");
         }
 
-        public abstract SwBody[] CreateGeometry(ISwApplication app, ISwDocument model, TParams data, bool isPreview, out AlignDimensionDelegate<TParams> alignDim);
+        public abstract ISwBody[] CreateGeometry(ISwApplication app, ISwDocument model, TParams data, bool isPreview, out AlignDimensionDelegate<TParams> alignDim);
 
         IXBody[] IXCustomFeatureDefinition<TParams, TPage>.CreateGeometry(
             IXApplication app, IXDocument doc, TParams data, bool isPreview, out AlignDimensionDelegate<TParams> alignDim) 
@@ -482,14 +482,14 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             m_Editor.Insert(doc);
         }
 
-        public override bool OnEditDefinition(ISwApplication app, ISwDocument model, SwMacroFeature<TParams> feature)
+        public override bool OnEditDefinition(ISwApplication app, ISwDocument model, ISwMacroFeature<TParams> feature)
         {
             m_Editor.Edit(model, feature);
             return true;
         }
 
         public override CustomFeatureRebuildResult OnRebuild(ISwApplication app, ISwDocument model,
-            SwMacroFeature feature, TParams parameters, out AlignDimensionDelegate<TParams> alignDim)
+            ISwMacroFeature feature, TParams parameters, out AlignDimensionDelegate<TParams> alignDim)
         {
             return new CustomFeatureBodyRebuildResult()
             {

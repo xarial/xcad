@@ -14,7 +14,11 @@ using Xarial.XCad.Documents;
 
 namespace Xarial.XCad.SolidWorks.UI
 {
-    public class SwModelViewTab<TControl> : IXCustomPanel<TControl>, IDisposable
+    public interface ISwModelViewTab<TControl> : IXCustomPanel<TControl>, IDisposable 
+    {
+    }
+
+    internal class SwModelViewTab<TControl> : ISwModelViewTab<TControl>
     {
         public bool IsActive
         {

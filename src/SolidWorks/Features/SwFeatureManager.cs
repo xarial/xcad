@@ -19,19 +19,24 @@ using Xarial.XCad.Toolkit.CustomFeature;
 
 namespace Xarial.XCad.SolidWorks.Features
 {
+    public interface ISwFeatureManager : IXFeatureRepository
+    {
+        new ISwFeature this[string name] { get; }
+    }
+
     /// <inheritdoc/>
-    public class SwFeatureManager : IXFeatureRepository
+    internal class SwFeatureManager : ISwFeatureManager
     {
         private IFeatureManager FeatMgr => m_Doc.Model.FeatureManager;
 
         private readonly MacroFeatureParametersParser m_ParamsParser;
-        private readonly SwDocument m_Doc;
+        private readonly ISwDocument m_Doc;
 
         public int Count => FeatMgr.GetFeatureCount(false);
 
         IXFeature IXRepository<IXFeature>.this[string name] => this[name];
 
-        public SwFeature this[string name]
+        public ISwFeature this[string name]
         {
             get
             {
@@ -80,7 +85,7 @@ namespace Xarial.XCad.SolidWorks.Features
             }
         }
 
-        internal SwFeatureManager(SwDocument doc)
+        internal SwFeatureManager(ISwDocument doc)
         {
             m_Doc = doc;
             m_ParamsParser = new MacroFeatureParametersParser(doc.App.Sw);
@@ -143,7 +148,7 @@ namespace Xarial.XCad.SolidWorks.Features
     {
         private readonly IModelDoc2 m_Model;
 
-        public DocumentFeatureEnumerator(SwDocument rootDoc) : base(rootDoc)
+        public DocumentFeatureEnumerator(ISwDocument rootDoc) : base(rootDoc)
         {
             m_Model = rootDoc.Model;
             Reset();

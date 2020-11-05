@@ -20,7 +20,12 @@ using Xarial.XCad.UI.TaskPane.Delegates;
 
 namespace Xarial.XCad.SolidWorks.UI
 {
-    public class SwTaskPane<TControl> : IXTaskPane<TControl>, IDisposable
+    public interface ISwTaskPane<TControl> : IXTaskPane<TControl>, IDisposable 
+    {
+        ITaskpaneView TaskPaneView { get; }
+    }
+
+    internal class SwTaskPane<TControl> : ISwTaskPane<TControl>
     {
         const int S_OK = 0;
 
