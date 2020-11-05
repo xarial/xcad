@@ -10,13 +10,14 @@ using Xarial.XCad.Geometry.Wires;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Geometry.Curves;
 using Xarial.XCad.SolidWorks.Geometry.Exceptions;
+using Xarial.XCad.SolidWorks.Sketch;
 using Xarial.XCad.SolidWorks.Utils;
 
 namespace Xarial.XCad.SolidWorks.Geometry.Primitives
 {
     public interface ISwTempSweep : IXSweep, ISwTempPrimitive
     {
-        new ISwTempRegion[] Profiles { get; set; }
+        new ISwRegion[] Profiles { get; set; }
     }
 
     internal class SwTempSweep : SwTempPrimitive, ISwTempSweep
@@ -24,7 +25,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
         IXRegion[] IXSweep.Profiles
         {
             get => Profiles;
-            set => Profiles = value.Cast<ISwTempRegion>().ToArray();
+            set => Profiles = value.Cast<ISwRegion>().ToArray();
         }
 
         IXSegment IXSweep.Path
@@ -41,9 +42,9 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
             m_Part = part;
         }
 
-        public ISwTempRegion[] Profiles
+        public ISwRegion[] Profiles
         {
-            get => m_Creator.CachedProperties.Get<ISwTempRegion[]>();
+            get => m_Creator.CachedProperties.Get<ISwRegion[]>();
             set
             {
                 if (IsCommitted)
@@ -86,10 +87,22 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
             {
                 using (var selGrp = new SelectionGroup(selMgr))
                 {
-                    var profileCurve = GetSingleCurve(profile.Boundary.SelectMany(c => c.Curves).ToArray());
-                    var profileBody = profileCurve.CreateWireBody();
+                    object[] profileDisps = null;
+
+                    //NOTE: keeping this as temp solution as temp body sweek does not allow to have multi curves
+                    if (profile is ISwSketchRegion)
+                    {
+                        profileDisps = new object[] { (profile as ISwSketchRegion).Region };
+                    }
+                    else 
+                    {
+                        var profileCurve = GetSingleCurve(profile.Boundary.SelectMany(c => c.Curves).ToArray());
+                        var profileBody = profileCurve.CreateWireBody();
+                        profileDisps = profileBody.GetEdges() as object[];
+                    }
+                    
                     selData.Mark = 1;
-                    selGrp.AddRange(profileBody.GetEdges() as object[], selData);
+                    selGrp.AddRange(profileDisps, selData);
 
                     var pathCurve = GetSingleCurve(Path.Curves);
                     var pathBody = pathCurve.CreateWireBody();

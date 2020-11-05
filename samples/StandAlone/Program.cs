@@ -23,6 +23,7 @@ using Xarial.XCad.Geometry.Wires;
 using Xarial.XCad.Sketch;
 using Xarial.XCad.SolidWorks;
 using Xarial.XCad.SolidWorks.Documents;
+using Xarial.XCad.SolidWorks.Features;
 using Xarial.XCad.SolidWorks.Geometry;
 using Xarial.XCad.SolidWorks.Geometry.Curves;
 using Xarial.XCad.Toolkit.Utils;
@@ -49,7 +50,8 @@ namespace StandAlone
 
             //TraverseSelectedFaces(app);
 
-            CreateTempGeometry(app);
+            CreateSweepFromSelection(app);
+            //CreateTempGeometry(app);
 
             //CreateSweepFromSelection(app);
         }
@@ -94,16 +96,19 @@ namespace StandAlone
             }
         }
 
-        private static void CreateSweepFromSelection(IXApplication app) 
+        private static void CreateSweepFromSelection(ISwApplication app) 
         {
-            var profileSeg = app.Documents.Active.Selections.First() as IXSketchSegment;
+            var doc = app.Documents.Active;
+            var feat = doc.Selections.First() as ISwFeature;
+            var sketch = SwObjectFactory.FromDispatch<ISwSketch2D>(feat.Feature.GetSpecificFeature2() as ISketch, doc);
+            var reg = sketch.Regions.First();
+
             var pathSeg = app.Documents.Active.Selections.Last() as IXSketchSegment;
 
-            var profileCurve = profileSeg.Definition;
             var pathCurve = pathSeg.Definition;
 
             var sweep = app.MemoryGeometryBuilder.SolidBuilder.PreCreateSweep();
-            sweep.Profiles = new IXRegion[] { app.MemoryGeometryBuilder.CreatePlanarSurface(new IXSegment[] { profileCurve }).Bodies.OfType<IXPlanarSheetBody>().First() };
+            sweep.Profiles = new IXRegion[] { reg };
             sweep.Path = pathCurve;
             sweep.Commit();
 

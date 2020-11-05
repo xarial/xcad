@@ -18,7 +18,7 @@ using Xarial.XCad.SolidWorks.Utils;
 
 namespace Xarial.XCad.SolidWorks.Features
 {
-    public interface ISwFeature : IXFeature
+    public interface ISwFeature : ISwSelObject, IXFeature
     {
         IFeature Feature { get; }
         new ISwDimensionsCollection Dimensions { get; }

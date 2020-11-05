@@ -163,7 +163,10 @@ namespace Xarial.XCad.SolidWorks
                         default:
                             throw new NotSupportedException();
                     }
-                
+
+                case ISketchRegion skReg:
+                    return new SwSketchRegion(skReg, doc?.Model);
+
                 case ISketchPoint skPt:
                     return new SwSketchPoint(doc, skPt, true);
 

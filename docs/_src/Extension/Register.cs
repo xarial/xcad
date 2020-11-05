@@ -37,13 +37,13 @@ namespace Xarial.XCad.Documentation.Extension
     public class SampleAddIn : SwAddInEx
     {
         [ComRegisterFunction]
-        public static void RegisterFunction(Type t)
+        public new static void RegisterFunction(Type t)
         {
             SwAddInEx.RegisterFunction(t);
         }
 
         [ComUnregisterFunction]
-        public static void UnregisterFunction(Type t)
+        public new static void UnregisterFunction(Type t)
         {
             SwAddInEx.UnregisterFunction(t);
         }
