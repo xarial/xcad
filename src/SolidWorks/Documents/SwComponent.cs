@@ -24,7 +24,15 @@ using Xarial.XCad.SolidWorks.Geometry;
 
 namespace Xarial.XCad.SolidWorks.Documents
 {
-    public class SwComponent : SwSelObject, IXComponent
+    public interface ISwComponent : IXComponent, ISwSelObject 
+    {
+        new ISwComponentCollection Children { get; }
+        new ISwDocument3D Document { get; }
+        new TSelObject ConvertObject<TSelObject>(TSelObject obj)
+            where TSelObject : ISwSelObject;
+    }
+
+    internal class SwComponent : SwSelObject, ISwComponent
     {
         IXDocument3D IXComponent.Document => Document;
         IXComponentRepository IXComponent.Children => Children;
@@ -32,11 +40,11 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public IComponent2 Component { get; }
 
-        private readonly SwAssembly m_ParentAssembly;
+        private readonly ISwAssembly m_ParentAssembly;
 
-        public SwComponentCollection Children { get; }
+        public ISwComponentCollection Children { get; }
 
-        internal SwComponent(IComponent2 comp, SwAssembly parentAssembly) : base(comp)
+        internal SwComponent(IComponent2 comp, ISwAssembly parentAssembly) : base(comp)
         {
             m_ParentAssembly = parentAssembly;
             Component = comp;
@@ -51,7 +59,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             set => Component.Name2 = value;
         }
 
-        public SwDocument3D Document
+        public ISwDocument3D Document
         {
             get
             {
@@ -92,12 +100,12 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
 
         public TSelObject ConvertObject<TSelObject>(TSelObject obj) 
-            where TSelObject : SwSelObject
+            where TSelObject : ISwSelObject
         {
             return (TSelObject)ConvertObjectBoxed(obj);
         }
 
-        private SwSelObject ConvertObjectBoxed(object obj) 
+        private ISwSelObject ConvertObjectBoxed(object obj) 
         {
             if (obj is SwSelObject)
             {
@@ -122,10 +130,10 @@ namespace Xarial.XCad.SolidWorks.Documents
 
     internal class ComponentFeatureRepository : SwFeatureManager
     {
-        private readonly SwAssembly m_Assm;
+        private readonly ISwAssembly m_Assm;
         private readonly IComponent2 m_Comp;
 
-        public ComponentFeatureRepository(SwAssembly assm, IComponent2 comp) 
+        public ComponentFeatureRepository(ISwAssembly assm, IComponent2 comp) 
             : base(assm)
         {
             m_Assm = assm;
@@ -192,7 +200,7 @@ namespace Xarial.XCad.SolidWorks.Documents
     {
         private readonly IComponent2 m_Comp;
 
-        public ComponentFeatureEnumerator(SwDocument rootDoc, IComponent2 comp) : base(rootDoc)
+        public ComponentFeatureEnumerator(ISwDocument rootDoc, IComponent2 comp) : base(rootDoc)
         {
             m_Comp = comp;
             Reset();
@@ -205,7 +213,7 @@ namespace Xarial.XCad.SolidWorks.Documents
     {
         private IComponent2 m_Comp;
 
-        public SwComponentBodyCollection(IComponent2 comp, SwDocument rootDoc) : base(rootDoc)
+        public SwComponentBodyCollection(IComponent2 comp, ISwDocument rootDoc) : base(rootDoc)
         {
             m_Comp = comp;
         }
@@ -218,7 +226,7 @@ namespace Xarial.XCad.SolidWorks.Documents
     {
         private readonly IComponent2 m_Comp;
 
-        public SwChildComponentsCollection(SwAssembly assm, IComponent2 comp) : base(assm)
+        public SwChildComponentsCollection(ISwAssembly assm, IComponent2 comp) : base(assm)
         {
             m_Comp = comp;
         }

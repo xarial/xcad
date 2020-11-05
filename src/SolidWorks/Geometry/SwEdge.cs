@@ -15,15 +15,21 @@ using Xarial.XCad.Utils.Reflection;
 
 namespace Xarial.XCad.SolidWorks.Geometry
 {
-    public class SwEdge : SwEntity, IXEdge
+    public interface ISwEdge : ISwEntity, IXEdge 
+    {
+        IEdge Edge { get; }
+        new ISwCurve Definition { get; }
+    }
+
+    internal class SwEdge : SwEntity, ISwEdge
     {
         IXSegment IXEdge.Definition => Definition;
 
         public IEdge Edge { get; }
 
-        public override SwBody Body => FromDispatch<SwBody>(Edge.GetBody());
+        public override ISwBody Body => FromDispatch<SwBody>(Edge.GetBody());
 
-        public override IEnumerable<SwEntity> AdjacentEntities 
+        public override IEnumerable<ISwEntity> AdjacentEntities 
         {
             get 
             {
@@ -42,7 +48,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
             }
         }
 
-        public SwCurve Definition => FromDispatch<SwCurve>(Edge.IGetCurve());
+        public ISwCurve Definition => FromDispatch<SwCurve>(Edge.IGetCurve());
 
         internal SwEdge(IEdge edge) : base(edge as IEntity)
         {
@@ -50,76 +56,35 @@ namespace Xarial.XCad.SolidWorks.Geometry
         }
     }
 
-    public class SwCircularEdge : SwEdge, IXCircularEdge
+    public interface ISwCircularEdge : IXCircularEdge 
     {
+        new ISwArcCurve Definition { get; }
+    }
+
+    internal class SwCircularEdge : SwEdge, ISwCircularEdge
+    {
+        IXArc IXCircularEdge.Definition => Definition;
+
         internal SwCircularEdge(IEdge edge) : base(edge)
         {
         }
 
-        public Point Center 
-        {
-            get 
-            {
-                var circParams = CircleParams;
-
-                return new Point(circParams[0], circParams[1], circParams[2]);
-            }
-        }
-
-        public Vector Axis 
-        {
-            get
-            {
-                var circParams = CircleParams;
-
-                return new Vector(circParams[3], circParams[4], circParams[5]);
-            }
-        }
-
-        public double Radius => CircleParams[6];
-
-        private double[] CircleParams
-        {
-            get
-            {
-                return Edge.IGetCurve().CircleParams as double[];
-            }
-        }
+        public new ISwArcCurve Definition => SwSelObject.FromDispatch<SwArcCurve>(this.Edge.IGetCurve());
     }
 
-    public class SwLinearEdge : SwEdge, IXLinearEdge
+    public interface ISwLinearEdge : IXLinearEdge 
     {
+        new ISwLineCurve Definition { get; }
+    }
+
+    internal class SwLinearEdge : SwEdge, ISwLinearEdge
+    {
+        IXLine IXLinearEdge.Definition => Definition;
+
         internal SwLinearEdge(IEdge edge) : base(edge)
         {
         }
 
-        public Point RootPoint
-        {
-            get
-            {
-                var lineParams = LineParams;
-
-                return new Point(lineParams[0], lineParams[1], lineParams[2]);
-            }
-        }
-
-        public Vector Direction
-        {
-            get
-            {
-                var lineParams = LineParams;
-
-                return new Vector(lineParams[3], lineParams[4], lineParams[5]);
-            }
-        }
-
-        private double[] LineParams
-        {
-            get
-            {
-                //TODO: use curve
-                return (double[])Edge.IGetCurve().LineParams;
-            }
-        }
+        public new ISwLineCurve Definition => SwSelObject.FromDispatch<SwLineCurve>(this.Edge.IGetCurve());
     }
 }

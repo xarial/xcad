@@ -1,4 +1,11 @@
-﻿using SolidWorks.Interop.sldworks;
+﻿//*********************************************************************
+//xCAD
+//Copyright(C) 2020 Xarial Pty Limited
+//Product URL: https://www.xcad.net
+//License: https://xcad.xarial.com/license/
+//*********************************************************************
+
+using SolidWorks.Interop.sldworks;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -9,7 +16,12 @@ using Xarial.XCad.SolidWorks.Documents;
 
 namespace Xarial.XCad.SolidWorks.Sketch
 {
-    public class SwSketchArc : SwSketchSegment, IXSketchArc
+    public interface ISwSketchArc : IXSketchArc 
+    {
+        ISketchArc Arc { get; }
+    }
+
+    internal class SwSketchArc : SwSketchSegment, IXSketchArc
     {
         public ISketchArc Arc => (ISketchArc)Segment;
 
@@ -20,7 +32,7 @@ namespace Xarial.XCad.SolidWorks.Sketch
         public Point Center { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public Vector Axis { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
-        internal SwSketchArc(SwDocument doc, ISketchArc arc, bool created)
+        internal SwSketchArc(ISwDocument doc, ISketchArc arc, bool created)
             : base(doc, (ISketchSegment)arc, created)
         {
         }

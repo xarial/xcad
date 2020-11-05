@@ -3,6 +3,7 @@ using System;
 using System.Threading.Tasks;
 using Xarial.XCad.Documents.Structures;
 using Xarial.XCad.SolidWorks;
+using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Enums;
 
 namespace Xarial.XCad.Documentation
@@ -11,7 +12,7 @@ namespace Xarial.XCad.Documentation
     {
         static void Main(string[] args)
         {
-            using (var app = SwApplication.Start(SwVersion_e.Sw2020, "/b"))
+            using (var app = SwApplicationFactory.Start(SwVersion_e.Sw2020, "/b"))
             {
                 ISldWorks swApp = app.Sw;
                 Console.WriteLine(swApp.RevisionNumber());
@@ -22,7 +23,7 @@ namespace Xarial.XCad.Documentation
                     ReadOnly = true
                 });
 
-                IModelDoc2 swModel = doc.Model;
+                var swModel = (doc as ISwDocument).Model;
 
                 Console.WriteLine(swModel.GetTitle());
 

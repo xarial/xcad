@@ -1,4 +1,11 @@
-﻿using System;
+﻿//*********************************************************************
+//xCAD
+//Copyright(C) 2020 Xarial Pty Limited
+//Product URL: https://www.xcad.net
+//License: https://xcad.xarial.com/license/
+//*********************************************************************
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,6 +15,6 @@ namespace Xarial.XCad.SolidWorks.Services
 {
     public interface IMemoryGeometryBuilderDocumentProvider
     {
-        SwDocument ProvideDocument(Type geomType);
+        ISwDocument ProvideDocument(Type geomType);
     }
 }

@@ -1,4 +1,11 @@
-﻿using Xarial.XCad.Base;
+﻿//*********************************************************************
+//xCAD
+//Copyright(C) 2020 Xarial Pty Limited
+//Product URL: https://www.xcad.net
+//License: https://xcad.xarial.com/license/
+//*********************************************************************
+
+using Xarial.XCad.Base;
 
 namespace Xarial.XCad.Documents
 {
@@ -13,7 +20,7 @@ namespace Xarial.XCad.Documents
         /// <param name="repo">Views repositry</param>
         /// <param name="view">Model based view to create drawing view from</param>
         /// <returns>Created drawing view</returns>
-        public static IXModelViewBasedDrawingView CreateModelViewBased(this IXDrawingViewRepository repo, IXView view)
+        public static IXModelViewBasedDrawingView CreateModelViewBased(this IXDrawingViewRepository repo, IXModelView view)
         {
             var drwView = repo.PreCreate<IXModelViewBasedDrawingView>();
             drwView.View = view;

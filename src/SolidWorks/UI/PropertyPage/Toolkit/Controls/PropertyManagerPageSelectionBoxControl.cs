@@ -23,13 +23,13 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
     {
         protected override event ControlValueChangedDelegate<object> ValueChanged;
 
-        private SwApplication m_App;
+        private ISwApplication m_App;
 
         private Type m_ObjType;
 
         private ISelectionCustomFilter m_CustomFilter;
 
-        public PropertyManagerPageSelectionBoxControl(SwApplication app, int id, object tag,
+        public PropertyManagerPageSelectionBoxControl(ISwApplication app, int id, object tag,
             IPropertyManagerPageSelectionbox selBox,
             SwPropertyManagerPageHandler handler, Type objType, ISelectionCustomFilter customFilter = null)
             : base(selBox, id, tag, handler)

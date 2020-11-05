@@ -37,7 +37,7 @@ namespace SolidWorks.Tests.Integration
 
             Assert.AreEqual(4, selCount);
             Assert.That(selTypes.SequenceEqual(
-                new Type[] { typeof(SwPlanarFace), typeof(SwCylindricalFace), typeof(SwLinearEdge), typeof(SwSketch2D) }));
+                new Type[] { typeof(ISwPlanarFace), typeof(ISwCylindricalFace), typeof(ISwLinearEdge), typeof(ISwSketch2D) }));
         }
 
         [Test]
@@ -56,7 +56,7 @@ namespace SolidWorks.Tests.Integration
             }
 
             Assert.That(selTypes.SequenceEqual(
-                new Type[] { typeof(SwPlanarFace), typeof(SwLinearEdge) }));
+                new Type[] { typeof(ISwPlanarFace), typeof(ISwLinearEdge) }));
         }
     }
 }

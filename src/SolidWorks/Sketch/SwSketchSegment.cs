@@ -1,4 +1,11 @@
-﻿using SolidWorks.Interop.sldworks;
+﻿//*********************************************************************
+//xCAD
+//Copyright(C) 2020 Xarial Pty Limited
+//Product URL: https://www.xcad.net
+//License: https://xcad.xarial.com/license/
+//*********************************************************************
+
+using SolidWorks.Interop.sldworks;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -12,7 +19,13 @@ using Xarial.XCad.Toolkit.Utils;
 
 namespace Xarial.XCad.SolidWorks.Sketch
 {
-    public abstract class SwSketchSegment : SwSketchEntity, IXSketchSegment
+    public interface ISwSketchSegment : IXSketchSegment
+    {
+        ISketchSegment Segment { get; }
+        new ISwCurve Definition { get; }
+    }
+
+    internal abstract class SwSketchSegment : SwSketchEntity, ISwSketchSegment
     {
         IXSegment IXSketchSegment.Definition => Definition;
 
@@ -20,7 +33,7 @@ namespace Xarial.XCad.SolidWorks.Sketch
 
         protected readonly ISketchManager m_SketchMgr;
 
-        internal ISketchSegment Segment
+        public ISketchSegment Segment
         {
             get
             {
@@ -30,7 +43,7 @@ namespace Xarial.XCad.SolidWorks.Sketch
 
         public override bool IsCommitted => m_Creator.IsCreated;
 
-        protected SwSketchSegment(SwDocument doc, ISketchSegment seg, bool created) : base(doc, seg)
+        protected SwSketchSegment(ISwDocument doc, ISketchSegment seg, bool created) : base(doc, seg)
         {
             if (doc == null)
             {
@@ -69,7 +82,7 @@ namespace Xarial.XCad.SolidWorks.Sketch
             }
         }
 
-        public SwCurve Definition 
+        public ISwCurve Definition 
         {
             get 
             {

@@ -11,11 +11,21 @@ using System;
 using System.Drawing;
 using System.Linq;
 using Xarial.XCad.Geometry;
+using Xarial.XCad.Geometry.Structures;
+using Xarial.XCad.Geometry.Wires;
+using Xarial.XCad.SolidWorks.Documents;
+using Xarial.XCad.SolidWorks.Geometry.Curves;
+using Xarial.XCad.SolidWorks.Geometry.Primitives;
 using Xarial.XCad.SolidWorks.Utils;
 
 namespace Xarial.XCad.SolidWorks.Geometry
 {
-    public class SwBody : SwSelObject, IXBody
+    public interface ISwBody : IXBody
+    {
+        IBody2 Body { get; }
+    }
+
+    internal class SwBody : SwSelObject, ISwBody
     {
         public static SwBody operator -(SwBody firstBody, SwBody secondBody)
         {
@@ -62,9 +72,12 @@ namespace Xarial.XCad.SolidWorks.Geometry
             }
         }
 
-        internal SwBody(IBody2 body) : base(null, body)
+        protected ISwDocument m_Document;
+
+        internal SwBody(IBody2 body, ISwDocument doc) : base(doc?.Model, body)
         {
             Body = body;
+            m_Document = doc;
         }
 
         public IXBody Add(IXBody other)
@@ -123,6 +136,66 @@ namespace Xarial.XCad.SolidWorks.Geometry
             {
                 throw new Exception("Failed to select body");
             }
+        }
+    }
+
+    public interface ISwSheetBody : ISwBody, IXSheetBody
+    {
+    }
+
+    internal class SwSheetBody : SwBody, ISwSheetBody
+    {
+        internal SwSheetBody(IBody2 body, ISwDocument doc) : base(body, doc)
+        {
+        }
+    }
+
+    public interface ISwPlanarSheetBody : ISwSheetBody, IXPlanarSheetBody
+    {
+    }
+
+    internal class SwPlanarSheetBody : SwSheetBody, ISwPlanarSheetBody
+    {
+        internal SwPlanarSheetBody(IBody2 body, ISwDocument doc) : base(body, doc)
+        {
+        }
+
+        public Plane Plane => this.GetPlane();
+        public IXSegment[] Boundary => this.GetBoundary();
+    }
+
+    internal static class ISwPlanarSheetBodyExtension 
+    {
+        internal static Plane GetPlane(this ISwPlanarSheetBody body)
+        {
+            var planarFace = SwSelObject.FromDispatch<SwPlanarFace>(body.Body.IGetFirstFace());
+            return planarFace.Definition.Plane;
+        }
+
+        internal static SwCurve[] GetBoundary(this ISwPlanarSheetBody body)
+        {
+            var face = body.Body.IGetFirstFace();
+            var edges = face.GetEdges() as object[];
+            var segs = new SwCurve[edges.Length];
+
+            for (int i = 0; i < segs.Length; i++)
+            {
+                var curve = (edges[i] as IEdge).IGetCurve();
+                segs[i] = SwSelObject.FromDispatch<SwCurve>(curve);
+            }
+
+            return segs;
+        }
+    }
+
+    public interface ISwSolidBody : ISwBody
+    {
+    }
+
+    internal class SwSolidBody : SwBody, ISwBody, ISwSolidBody
+    {
+        internal SwSolidBody(IBody2 body, ISwDocument doc) : base(body, doc)
+        {
         }
     }
 }

@@ -18,13 +18,18 @@ using Xarial.XCad.Utils.Diagnostics;
 
 namespace Xarial.XCad.SolidWorks.Documents
 {
-    public class SwPart : SwDocument3D, IXPart
+    public interface ISwPart : ISwDocument3D, IXPart 
+    {
+        IPartDoc Part { get; }
+    }
+
+    internal class SwPart : SwDocument3D, ISwPart
     {
         public IPartDoc Part => Model as IPartDoc;
 
         public IXBodyRepository Bodies { get; }
 
-        internal SwPart(IPartDoc part, SwApplication app, IXLogger logger, bool isCreated)
+        internal SwPart(IPartDoc part, ISwApplication app, IXLogger logger, bool isCreated)
             : base((IModelDoc2)part, app, logger, isCreated)
         {
             Bodies = new SwPartBodyCollection(this);

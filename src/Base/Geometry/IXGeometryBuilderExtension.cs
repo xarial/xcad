@@ -1,11 +1,19 @@
-﻿using System;
+﻿//*********************************************************************
+//xCAD
+//Copyright(C) 2020 Xarial Pty Limited
+//Product URL: https://www.xcad.net
+//License: https://xcad.xarial.com/license/
+//*********************************************************************
+
+using System;
+using System.Linq;
 using Xarial.XCad.Geometry.Primitives;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Geometry.Wires;
 
 namespace Xarial.XCad.Geometry
 {
-    public static class IX3DGeometryBuilderExtension
+    public static class IXGeometryBuilderExtension
     {
         /// <summary>
         /// Creates a box body from the specified parameters
@@ -17,14 +25,13 @@ namespace Xarial.XCad.Geometry
         /// <param name="width">Width of the box. This size is parallel to 'refDir' vector</param>
         /// <param name="length">Length of the box</param>
         /// <param name="height">Height of the box. THis size is parallel to 'dir' vector</param>
-        /// <param name="wireBuilder">Wire geometry builder</param>
         /// <returns>Box extrusion</returns>
-        public static IXExtrusion CreateBox(this IX3DGeometryBuilder builder, Point center, Vector dir, Vector refDir,
-            double width, double length, double height, IXWireGeometryBuilder wireBuilder)
+        public static IXExtrusion CreateSolidBox(this IXGeometryBuilder builder, Point center, Vector dir, Vector refDir,
+            double width, double length, double height)
         {
             var secondRefDir = dir.Cross(refDir);
 
-            var polyline = wireBuilder.PreCreatePolyline();
+            var polyline = builder.WireBuilder.PreCreatePolyline();
             polyline.Points = new Point[]
             {
                 center.Move(refDir, width / 2).Move(secondRefDir, length / 2),
@@ -35,10 +42,10 @@ namespace Xarial.XCad.Geometry
             };
             polyline.Commit();
 
-            var extr = builder.PreCreateExtrusion();
+            var extr = builder.SolidBuilder.PreCreateExtrusion();
             extr.Depth = height;
             extr.Direction = dir;
-            extr.Profiles = new Wires.IXSegment[] { polyline };
+            extr.Profiles = new IXRegion[] { builder.CreatePlanarSurface(polyline).Bodies.OfType<IXPlanarSheetBody>().First() };
             extr.Commit();
 
             return extr;
@@ -52,21 +59,20 @@ namespace Xarial.XCad.Geometry
         /// <param name="axis">Direction of the cylinder</param>
         /// <param name="radius">Radius of the cylinder</param>
         /// <param name="height">Height of the cylinder</param>
-        /// <param name="wireBuilder">Wire geometry builder</param>
         /// <returns>Cylindrical extrusion</returns>
-        public static IXExtrusion CreateCylinder(this IX3DGeometryBuilder builder, Point center, Vector axis,
-            double radius, double height, IXWireGeometryBuilder wireBuilder)
+        public static IXExtrusion CreateSolidCylinder(this IXGeometryBuilder builder, Point center, Vector axis,
+            double radius, double height)
         {
-            var arc = wireBuilder.PreCreateArc();
+            var arc = builder.WireBuilder.PreCreateArc();
             arc.Center = center;
             arc.Axis = axis;
             arc.Diameter = radius * 2;
             arc.Commit();
 
-            var extr = builder.PreCreateExtrusion();
+            var extr = builder.SolidBuilder.PreCreateExtrusion();
             extr.Depth = height;
             extr.Direction = arc.Axis;
-            extr.Profiles = new Wires.IXSegment[] { arc };
+            extr.Profiles = new IXRegion[] { builder.CreatePlanarSurface(arc).Bodies.OfType<IXPlanarSheetBody>().First() };
             extr.Commit();
 
             return extr;
@@ -81,14 +87,13 @@ namespace Xarial.XCad.Geometry
         /// <param name="baseRadius">Base radius of the cone</param>
         /// <param name="topRadius">Top radius of the cone</param>
         /// <param name="height">Height of the cone</param>
-        /// <param name="wireBuilder">Wire geometry builder</param>
         /// <returns></returns>
-        public static IXRevolve CreateCone(this IX3DGeometryBuilder builder, Point center, Vector axis,
-            double baseRadius, double topRadius, double height, IXWireGeometryBuilder wireBuilder)
+        public static IXRevolve CreateSolidCone(this IXGeometryBuilder builder, Point center, Vector axis,
+            double baseRadius, double topRadius, double height)
         {
             var refDir = axis.CreateAnyPerpendicular();
 
-            var profile = wireBuilder.PreCreatePolyline();
+            var profile = builder.WireBuilder.PreCreatePolyline();
             profile.Points = new Point[]
             {
                 center,
@@ -99,24 +104,24 @@ namespace Xarial.XCad.Geometry
             };
             profile.Commit();
 
-            var revLine = wireBuilder.PreCreateLine();
+            var revLine = builder.WireBuilder.PreCreateLine();
             revLine.StartCoordinate = center;
             revLine.EndCoordinate = center.Move(axis, 1);
             revLine.Commit();
 
-            var rev = builder.PreCreateRevolve();
+            var rev = builder.SolidBuilder.PreCreateRevolve();
             rev.Axis = revLine;
             rev.Angle = Math.PI * 2;
-            rev.Profile = profile;
+            rev.Profiles = new IXRegion[] { builder.CreatePlanarSurface(profile).Bodies.OfType<IXPlanarSheetBody>().First() };
             rev.Commit();
 
             return rev;
         }
 
-        public static IXExtrusion CreateExtrusion(this IX3DGeometryBuilder builder, 
-            double depth, Vector direction, IXSegment[] profiles) 
+        public static IXExtrusion CreateSolidExtrusion(this IXGeometryBuilder builder, 
+            double depth, Vector direction, IXRegion[] profiles) 
         {
-            var extr = builder.PreCreateExtrusion();
+            var extr = builder.SolidBuilder.PreCreateExtrusion();
             extr.Depth = depth;
             extr.Direction = direction;
             extr.Profiles = profiles;
@@ -125,34 +130,55 @@ namespace Xarial.XCad.Geometry
             return extr;
         }
 
-        public static IXRevolve CreateRevolve(this IX3DGeometryBuilder builder, IXSegment profile, IXLine axis, double angle)
+        public static IXRevolve CreateSolidRevolve(this IXGeometryBuilder builder, IXLine axis, double angle, params IXRegion[] profiles)
         {
-            var rev = builder.PreCreateRevolve();
+            var rev = builder.SolidBuilder.PreCreateRevolve();
             rev.Angle = angle;
             rev.Axis = axis;
-            rev.Profile = profile;
+            rev.Profiles = profiles;
             rev.Commit();
 
             return rev;
         }
 
-        public static IXSweep CreateSweep(this IX3DGeometryBuilder builder, IXSegment profile, IXSegment path)
+        public static IXSweep CreateSolidSweep(this IXGeometryBuilder builder, IXSegment path, IXRegion[] profiles)
         {
-            var sweep = builder.PreCreateSweep();
-            sweep.Profile = profile;
+            var sweep = builder.SolidBuilder.PreCreateSweep();
+            sweep.Profiles = profiles;
             sweep.Path = path;
             sweep.Commit();
 
             return sweep;
         }
 
-        public static IXPlanarSurface CreatePlanarSurface(this IXSurfaceGeometryBuilder builder, IXSegment boundary)
+        public static IXPlanarSheet CreatePlanarSurface(this IXGeometryBuilder builder, params IXSegment[] boundary)
         {
-            var surf = builder.PreCreatePlanarSurface();
+            var surf = builder.SheetBuilder.PreCreatePlanarSheet();
             surf.Boundary = boundary;
             surf.Commit();
 
             return surf;
+        }
+
+        public static IXLine CreateLine(this IXGeometryBuilder builder, Point startPt, Point endPt)
+        {
+            var line = builder.WireBuilder.PreCreateLine();
+            line.StartCoordinate = startPt;
+            line.EndCoordinate = endPt;
+            line.Commit();
+
+            return line;
+        }
+
+        public static IXArc CreateCircle(this IXGeometryBuilder builder, Point centerPt, Vector axis, double diameter)
+        {
+            var circle = builder.WireBuilder.PreCreateArc();
+            circle.Center = centerPt;
+            circle.Axis = axis;
+            circle.Diameter = diameter;
+            circle.Commit();
+
+            return circle;
         }
     }
 }

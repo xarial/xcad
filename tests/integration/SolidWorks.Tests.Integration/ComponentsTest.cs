@@ -19,7 +19,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument(@"Assembly1\TopAssem1.SLDASM"))
             {
-                compNames = ((SwAssembly)m_App.Documents.Active).Components.Select(c => c.Name).ToArray();
+                compNames = ((ISwAssembly)m_App.Documents.Active).Components.Select(c => c.Name).ToArray();
             }
 
             Assert.That(compNames.OrderBy(c => c).SequenceEqual(
@@ -33,7 +33,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument(@"Assembly1\TopAssem1.SLDASM"))
             {
-                var assm = (SwAssembly)m_App.Documents.Active;
+                var assm = (ISwAssembly)m_App.Documents.Active;
                 var comp = assm.Components["SubAssem1-1"];
                 compNames = comp.Children.Select(c => c.Name).ToArray();
             }
@@ -52,7 +52,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument(@"Assembly1\TopAssem1.SLDASM"))
             {
-                var assm = (SwAssembly)m_App.Documents.Active;
+                var assm = (ISwAssembly)m_App.Documents.Active;
 
                 var doc1 = assm.Components["Part1-1"].Document;
                 doc1FileName = Path.GetFileName(doc1.Path);
@@ -78,7 +78,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument(@"Assembly1\TopAssem1.SLDASM"))
             {
-                var comp = ((SwAssembly)m_App.Documents.Active).Components["Part1-1"];
+                var comp = ((ISwAssembly)m_App.Documents.Active).Components["Part1-1"];
 
                 foreach (var feat in comp.Features)
                 {

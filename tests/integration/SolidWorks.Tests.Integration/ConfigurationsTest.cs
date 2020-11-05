@@ -17,7 +17,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("Configs1.SLDPRT"))
             {
-                name = (m_App.Documents.Active as SwDocument3D).Configurations.Active.Name;
+                name = (m_App.Documents.Active as ISwDocument3D).Configurations.Active.Name;
             }
 
             Assert.AreEqual("Conf3", name);
@@ -30,7 +30,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("Configs1.SLDPRT"))
             {
-                confNames = (m_App.Documents.Active as SwDocument3D).Configurations.Select(x => x.Name).ToArray();
+                confNames = (m_App.Documents.Active as ISwDocument3D).Configurations.Select(x => x.Name).ToArray();
             }
 
             Assert.That(confNames.SequenceEqual(new string[] 
@@ -51,7 +51,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("Configs1.SLDPRT"))
             {
-                var confs = (m_App.Documents.Active as SwDocument3D).Configurations;
+                var confs = (m_App.Documents.Active as ISwDocument3D).Configurations;
 
                 conf1 = confs["Conf1"];
                 r1 = confs.TryGet("Conf2", out conf2);

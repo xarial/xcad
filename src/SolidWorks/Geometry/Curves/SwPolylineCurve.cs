@@ -1,4 +1,11 @@
-﻿using SolidWorks.Interop.sldworks;
+﻿//*********************************************************************
+//xCAD
+//Copyright(C) 2020 Xarial Pty Limited
+//Product URL: https://www.xcad.net
+//License: https://xcad.xarial.com/license/
+//*********************************************************************
+
+using SolidWorks.Interop.sldworks;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +16,11 @@ using Xarial.XCad.SolidWorks.Geometry.Exceptions;
 
 namespace Xarial.XCad.SolidWorks.Geometry.Curves
 {
-    public class SwPolylineCurve : SwCurve, IXPolylineCurve
+    public interface ISwPolylineCurve : ISwCurve, IXPolylineCurve
+    {
+    }
+
+    internal class SwPolylineCurve : SwCurve, ISwPolylineCurve
     {
         internal SwPolylineCurve(IModeler modeler, ICurve[] curves, bool isCreated) 
             : base(modeler, curves, isCreated)
@@ -32,7 +43,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Curves
             }
         }
 
-        internal override bool TryGetPlane(out Plane plane)
+        public override bool TryGetPlane(out Plane plane)
         {
             if (Points?.Length > 2)
             {

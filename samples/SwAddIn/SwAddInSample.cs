@@ -32,6 +32,8 @@ using Xarial.XCad.UI.TaskPane.Attributes;
 using Xarial.XCad.SolidWorks.UI;
 using Xarial.XCad.SolidWorks.UI.PropertyPage;
 using Xarial.XCad.UI.Commands.Structures;
+using Xarial.XCad.SolidWorks.Services;
+using Xarial.XCad;
 
 namespace SwAddInExample
 {
@@ -96,7 +98,7 @@ namespace SwAddInExample
         private IXPropertyPage<PmpMacroFeatData> m_MacroFeatPage;
         private PmpMacroFeatData m_MacroFeatPmpData;
 
-        private SwPropertyManagerPage<PmpData> m_Page;
+        private ISwPropertyManagerPage<PmpData> m_Page;
         private PmpData m_Data;
 
         public override void OnConnect()
@@ -165,8 +167,8 @@ namespace SwAddInExample
             }
         }
 
-        private SwDimension m_WatchedDim;
-        private SwCustomProperty m_WatchedPrp;
+        private ISwDimension m_WatchedDim;
+        private ISwCustomProperty m_WatchedPrp;
 
         private void WatchDimension() 
         {
@@ -197,7 +199,7 @@ namespace SwAddInExample
         }
 
         private TransformMatrix m_ViewTransform;
-        private SwPopupWpfWindow<WpfWindow> m_Window;
+        private ISwPopupWindow<WpfWindow> m_Window;
 
         private void OnCommandClick(Commands_e spec)
         {
@@ -222,7 +224,7 @@ namespace SwAddInExample
                     break;
 
                 case Commands_e.RecordView:
-                    var view = (Application.Documents.Active as IXDocument3D).Views.Active;
+                    var view = (Application.Documents.Active as IXDocument3D).ModelViews.Active;
 
                     if (m_ViewTransform == null)
                     {
@@ -283,6 +285,12 @@ namespace SwAddInExample
                     Application.Documents.Active.Selections.ClearSelection += OnClearSelection;
                     break;
             }
+        }
+
+        public override void ConfigureServices(IXServiceCollection collection)
+        {
+            collection.AddOrReplace<IMemoryGeometryBuilderDocumentProvider>(
+                () => new LazyNewDocumentGeometryBuilderDocumentProvider(Application));
         }
 
         private void OnPageDataChanged()

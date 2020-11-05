@@ -13,7 +13,12 @@ using Xarial.XCad.Documents;
 
 namespace Xarial.XCad.SolidWorks.Documents
 {
-    public class SwSheet : SwObject, IXSheet
+    public interface ISwSheet : ISwObject, IXSheet
+    {
+        ISheet Sheet { get; }
+    }
+
+    internal class SwSheet : SwObject, ISwSheet
     {
         public ISheet Sheet { get; }
         private readonly SwDrawing m_Drawing;

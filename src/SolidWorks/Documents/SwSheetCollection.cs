@@ -17,7 +17,11 @@ using Xarial.XCad.SolidWorks.Documents.EventHandlers;
 
 namespace Xarial.XCad.SolidWorks.Documents
 {
-    public class SwSheetCollection : IXSheetRepository, IDisposable
+    public interface ISwSheetCollection : IXSheetRepository, IDisposable 
+    {
+    }
+
+    internal class SwSheetCollection : ISwSheetCollection
     {
         public event SheetActivatedDelegate SheetActivated 
         {

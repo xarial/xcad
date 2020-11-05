@@ -1,4 +1,11 @@
-﻿using System;
+﻿//*********************************************************************
+//xCAD
+//Copyright(C) 2020 Xarial Pty Limited
+//Product URL: https://www.xcad.net
+//License: https://xcad.xarial.com/license/
+//*********************************************************************
+
+using System;
 using System.Collections.Generic;
 using System.Text;
 using Xarial.XCad.Base;
@@ -23,13 +30,13 @@ namespace Xarial.XCad.Documents
     }
 
     /// <summary>
-    /// View created from the <see cref="IXView"/>
+    /// View created from the <see cref="IXModelView"/>
     /// </summary>
     public interface IXModelViewBasedDrawingView : IXDrawingView 
     {
         /// <summary>
         /// Model view this drawing view is based on
         /// </summary>
-        IXView View { get; set; }
+        IXModelView View { get; set; }
     }
 }

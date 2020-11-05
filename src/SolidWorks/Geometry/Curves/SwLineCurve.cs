@@ -1,4 +1,11 @@
-﻿using SolidWorks.Interop.sldworks;
+﻿//*********************************************************************
+//xCAD
+//Copyright(C) 2020 Xarial Pty Limited
+//Product URL: https://www.xcad.net
+//License: https://xcad.xarial.com/license/
+//*********************************************************************
+
+using SolidWorks.Interop.sldworks;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -8,7 +15,11 @@ using Xarial.XCad.SolidWorks.Geometry.Exceptions;
 
 namespace Xarial.XCad.SolidWorks.Geometry.Curves
 {
-    public class SwLineCurve : SwCurve, IXLineCurve
+    public interface ISwLineCurve : IXLineCurve
+    {
+    }
+
+    internal class SwLineCurve : SwCurve, ISwLineCurve
     {
         internal SwLineCurve(IModeler modeler, ICurve curve, bool isCreated) : base(modeler, curve, isCreated)
         {

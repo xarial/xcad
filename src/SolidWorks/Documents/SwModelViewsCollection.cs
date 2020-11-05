@@ -1,4 +1,11 @@
-﻿using SolidWorks.Interop.sldworks;
+﻿//*********************************************************************
+//xCAD
+//Copyright(C) 2020 Xarial Pty Limited
+//Product URL: https://www.xcad.net
+//License: https://xcad.xarial.com/license/
+//*********************************************************************
+
+using SolidWorks.Interop.sldworks;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -9,16 +16,23 @@ using Xarial.XCad.Documents;
 
 namespace Xarial.XCad.SolidWorks.Documents
 {
-    public class SwModelViewsCollection : IXViewRepository
+    public interface ISwModelViewsCollection : IXModelViewRepository 
     {
-        IXStandardView IXViewRepository.this[StandardViewType_e type] => this[type];
-        IXView IXRepository<IXView>.this[string name] => this[name];
-        IXView IXViewRepository.Active => Active;
+        new ISwModelView Active { get; }
+        new ISwStandardView this[StandardViewType_e type] { get; }
+        new ISwNamedView this[string name] { get; }
+    }
 
-        private readonly SwDocument3D m_Doc;
+    internal class SwModelViewsCollection : ISwModelViewsCollection
+    {
+        IXStandardView IXModelViewRepository.this[StandardViewType_e type] => this[type];
+        IXModelView IXRepository<IXModelView>.this[string name] => this[name];
+        IXModelView IXModelViewRepository.Active => Active;
+
+        private readonly ISwDocument3D m_Doc;
         private readonly IMathUtility m_MathUtils;
 
-        public SwModelViewsCollection(SwDocument3D doc, IMathUtility mathUtils) 
+        public SwModelViewsCollection(ISwDocument3D doc, IMathUtility mathUtils) 
         {
             m_Doc = doc;
             m_MathUtils = mathUtils;
@@ -27,13 +41,13 @@ namespace Xarial.XCad.SolidWorks.Documents
         public int Count => throw new NotImplementedException();
 
         //TODO: move the view creation to SwObject.FromDispatch
-        public SwModelView Active => new SwModelView(m_Doc.Model, m_Doc.Model.IActiveView, m_MathUtils);
+        public ISwModelView Active => new SwModelView(m_Doc.Model, m_Doc.Model.IActiveView, m_MathUtils);
         
-        public SwNamedView this[string name] 
+        public ISwNamedView this[string name] 
         {
             get 
             {
-                if (TryGet(name, out IXView view))
+                if (TryGet(name, out IXModelView view))
                 {
                     return (SwNamedView)view;
                 }
@@ -45,25 +59,25 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        public SwStandardView this[StandardViewType_e type]
+        public ISwStandardView this[StandardViewType_e type]
             => new SwStandardView(m_Doc.Model, null, m_MathUtils, type); //TODO: move the view creation to SwObject.FromDispatch
 
-        public void AddRange(IEnumerable<IXView> ents)
+        public void AddRange(IEnumerable<IXModelView> ents)
         {
             throw new NotImplementedException();
         }
 
-        public IEnumerator<IXView> GetEnumerator()
+        public IEnumerator<IXModelView> GetEnumerator()
         {
             throw new NotImplementedException();
         }
 
-        public void RemoveRange(IEnumerable<IXView> ents)
+        public void RemoveRange(IEnumerable<IXModelView> ents)
         {
             throw new NotImplementedException();
         }
 
-        public bool TryGet(string name, out IXView ent)
+        public bool TryGet(string name, out IXModelView ent)
         {
             var viewNames = m_Doc.Model.GetModelViewNames() as string[];
 

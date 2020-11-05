@@ -18,7 +18,11 @@ using Xarial.XCad.SolidWorks.Documents.EventHandlers;
 
 namespace Xarial.XCad.SolidWorks.Documents
 {
-    public class SwSelectionCollection : IXSelectionRepository, IDisposable
+    public interface ISwSelectionCollection : IXSelectionRepository, IDisposable 
+    {
+    }
+
+    internal class SwSelectionCollection : ISwSelectionCollection
     {
         private readonly SwDocument m_Doc;
         private IModelDoc2 Model => m_Doc.Model;

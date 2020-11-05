@@ -1,4 +1,11 @@
-﻿using SolidWorks.Interop.sldworks;
+﻿//*********************************************************************
+//xCAD
+//Copyright(C) 2020 Xarial Pty Limited
+//Product URL: https://www.xcad.net
+//License: https://xcad.xarial.com/license/
+//*********************************************************************
+
+using SolidWorks.Interop.sldworks;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,9 +16,14 @@ using Xarial.XCad.SolidWorks.Geometry.Exceptions;
 
 namespace Xarial.XCad.SolidWorks.Geometry.Curves
 {
-    public class SwArcCurve : SwCurve, IXArcCurve
+    public interface ISwArcCurve : IXArcCurve 
     {
-        internal SwArcCurve(IModeler modeler, ICurve curve, bool isCreated) : base(modeler, new ICurve[] { curve }, isCreated)
+    }
+
+    internal class SwArcCurve : SwCurve, ISwArcCurve
+    {
+        internal SwArcCurve(IModeler modeler, ICurve curve, bool isCreated) 
+            : base(modeler, new ICurve[] { curve }, isCreated)
         {
         }
 
@@ -96,7 +108,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Curves
             }
         }
 
-        internal override bool TryGetPlane(out Plane plane)
+        public override bool TryGetPlane(out Plane plane)
         {
             plane = new Plane(Center, Axis, ReferenceDirection);
             return true;

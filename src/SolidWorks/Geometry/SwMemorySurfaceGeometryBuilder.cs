@@ -1,17 +1,28 @@
-﻿using SolidWorks.Interop.sldworks;
+﻿//*********************************************************************
+//xCAD
+//Copyright(C) 2020 Xarial Pty Limited
+//Product URL: https://www.xcad.net
+//License: https://xcad.xarial.com/license/
+//*********************************************************************
+
+using SolidWorks.Interop.sldworks;
 using System;
 using System.Collections.Generic;
 using System.Text;
 using Xarial.XCad.Geometry;
-using Xarial.XCad.Geometry.Memory;
 using Xarial.XCad.Geometry.Primitives;
 using Xarial.XCad.SolidWorks.Geometry.Primitives;
 
 namespace Xarial.XCad.SolidWorks.Geometry
 {
-    public class SwMemorySurfaceGeometryBuilder : IXMemorySurfaceGeometryBuilder
+    public interface ISwMemorySheetGeometryBuilder : IXSheetGeometryBuilder
     {
-        IXPlanarSurface IXSurfaceGeometryBuilder.PreCreatePlanarSurface() => PreCreatePlanarSurface();
+        new ISwTempPlanarSheet PreCreatePlanarSheet();
+    }
+
+    internal class SwMemorySheetGeometryBuilder : ISwMemorySheetGeometryBuilder
+    {
+        IXPlanarSheet IXSheetGeometryBuilder.PreCreatePlanarSheet() => PreCreatePlanarSheet();
 
         public IXExtrusion PreCreateExtrusion()
         {
@@ -33,12 +44,12 @@ namespace Xarial.XCad.SolidWorks.Geometry
             throw new NotImplementedException();
         }
 
-        public SwTempPlanarSurface PreCreatePlanarSurface() => new SwTempPlanarSurface(m_MathUtils, m_Modeler, null, false);
+        public ISwTempPlanarSheet PreCreatePlanarSheet() => new SwTempPlanarSheet(m_MathUtils, m_Modeler, null, false);
 
         protected readonly IModeler m_Modeler;
         protected readonly IMathUtility m_MathUtils;
 
-        internal SwMemorySurfaceGeometryBuilder(IMathUtility mathUtils, IModeler modeler)
+        internal SwMemorySheetGeometryBuilder(IMathUtility mathUtils, IModeler modeler)
         {
             m_MathUtils = mathUtils;
             m_Modeler = modeler;

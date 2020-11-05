@@ -15,7 +15,12 @@ using Xarial.XCad.Toolkit.Utils;
 
 namespace Xarial.XCad.SolidWorks.Sketch
 {
-    public class SwSketchPoint : SwSketchEntity, IXSketchPoint
+    public interface ISwSketchPoint : IXSketchPoint
+    {
+        ISketchPoint Point { get; }
+    }
+
+    internal class SwSketchPoint : SwSketchEntity, ISwSketchPoint
     {
         protected readonly ElementCreator<ISketchPoint> m_Creator;
 
@@ -25,7 +30,7 @@ namespace Xarial.XCad.SolidWorks.Sketch
 
         public ISketchPoint Point => m_Creator.Element;
 
-        internal SwSketchPoint(SwDocument doc, ISketchPoint pt, bool created) : base(doc, pt)
+        internal SwSketchPoint(ISwDocument doc, ISketchPoint pt, bool created) : base(doc, pt)
         {
             m_SketchMgr = doc.Model.SketchManager;
             m_Creator = new ElementCreator<ISketchPoint>(CreatePoint, pt, created);

@@ -1,4 +1,11 @@
-﻿using System;
+﻿//*********************************************************************
+//xCAD
+//Copyright(C) 2020 Xarial Pty Limited
+//Product URL: https://www.xcad.net
+//License: https://xcad.xarial.com/license/
+//*********************************************************************
+
+using System;
 using System.Collections.Generic;
 using System.Text;
 using Xarial.XCad.Documents;
@@ -8,18 +15,18 @@ namespace Xarial.XCad.SolidWorks.Services
 {
     public class LazyNewDocumentGeometryBuilderDocumentProvider : IMemoryGeometryBuilderDocumentProvider
     {
-        protected readonly SwApplication m_App;
+        protected readonly ISwApplication m_App;
 
-        private SwDocument m_TempDoc;
+        private ISwDocument m_TempDoc;
 
-        public LazyNewDocumentGeometryBuilderDocumentProvider(SwApplication app)
+        public LazyNewDocumentGeometryBuilderDocumentProvider(ISwApplication app)
         {
             m_App = app;
         }
 
-        public SwDocument ProvideDocument(Type geomType) => GetTempDocument();
+        public ISwDocument ProvideDocument(Type geomType) => GetTempDocument();
 
-        protected virtual SwDocument CreateTempDocument()
+        protected virtual ISwDocument CreateTempDocument()
         {
             var activeDoc = m_App.Documents.Active;
 
@@ -36,7 +43,7 @@ namespace Xarial.XCad.SolidWorks.Services
             return doc;
         }
 
-        private SwDocument GetTempDocument()
+        private ISwDocument GetTempDocument()
         {
             if (!IsTempDocAlive())
             {

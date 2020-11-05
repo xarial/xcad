@@ -40,7 +40,7 @@ namespace SolidWorks.Tests.Integration
         private const int SW_PRC_ID = -1;
         private const string DATA_FOLDER = @"C:\Users\artem\OneDrive\xCAD\TestData";
 
-        protected SwApplication m_App;
+        protected ISwApplication m_App;
         private ISldWorks m_SwApp;
 
         private List<IDisposable> m_Disposables;
@@ -52,13 +52,13 @@ namespace SolidWorks.Tests.Integration
         {
             if (SW_PRC_ID < 0)
             {
-                m_App = SwApplication.Start(null, "/b");
+                m_App = SwApplicationFactory.Start(null, "/b");
                 m_CloseSw = true;
             }
             else if (SW_PRC_ID == 0) 
             {
                 var prc = Process.GetProcessesByName("SLDWORKS").First();
-                m_App = SwApplication.FromProcess(prc);
+                m_App = SwApplicationFactory.FromProcess(prc);
             }
             else
             {

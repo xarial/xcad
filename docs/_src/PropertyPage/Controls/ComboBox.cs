@@ -37,13 +37,13 @@ public class ComboBoxDataModel
     //--- CustomItemsProvider
     public class CustomStringItemsProvider : SwCustomItemsProvider<string>
     {
-        public override IEnumerable<string> ProvideItems(SwApplication app, IControl[] dependencies)
+        public override IEnumerable<string> ProvideItems(ISwApplication app, IControl[] dependencies)
             => new string[] { "A", "B", "C" };
     }
 
     public class CustomIntItemsProvider : SwCustomItemsProvider<int>
     {
-        public override IEnumerable<int> ProvideItems(SwApplication app, IControl[] dependencies)
+        public override IEnumerable<int> ProvideItems(ISwApplication app, IControl[] dependencies)
             => new int[] { 1, 2, 3 };
     }
 
@@ -72,7 +72,7 @@ public class ComboBoxDataModel
 
     public class CustomDependencyProvider : SwCustomItemsProvider<CustomComboBoxItem>
     {
-        public override IEnumerable<CustomComboBoxItem> ProvideItems(SwApplication app,
+        public override IEnumerable<CustomComboBoxItem> ProvideItems(ISwApplication app,
             IControl[] dependencies)
         {
             return new CustomComboBoxItem[]

@@ -1,4 +1,11 @@
-﻿using SolidWorks.Interop.sldworks;
+﻿//*********************************************************************
+//xCAD
+//Copyright(C) 2020 Xarial Pty Limited
+//Product URL: https://www.xcad.net
+//License: https://xcad.xarial.com/license/
+//*********************************************************************
+
+using SolidWorks.Interop.sldworks;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -15,12 +22,17 @@ using Xarial.XCad.SolidWorks.Geometry.Exceptions;
 
 namespace Xarial.XCad.SolidWorks.Geometry.Primitives
 {
-    public class SwTempExtrusion : SwTempPrimitive, IXExtrusion
+    public interface ISwTempExtrusion : IXExtrusion, ISwTempPrimitive
     {
-        IXSegment[] IXExtrusion.Profiles
+        new ISwTempRegion[] Profiles { get; set; }
+    }
+
+    internal class SwTempExtrusion : SwTempPrimitive, ISwTempExtrusion
+    {
+        IXRegion[] IXExtrusion.Profiles
         {
             get => Profiles;
-            set => Profiles = value?.Cast<SwCurve>().ToArray();
+            set => Profiles = value?.Cast<ISwTempRegion>().ToArray();
         }
 
         public double Depth
@@ -55,9 +67,9 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
             }
         }
 
-        public SwCurve[] Profiles
+        public ISwTempRegion[] Profiles
         {
-            get => m_Creator.CachedProperties.Get<SwCurve[]>();
+            get => m_Creator.CachedProperties.Get<ISwTempRegion[]>();
             set
             {
                 if (IsCommitted)
@@ -71,56 +83,30 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
             }
         }
 
-        internal SwTempExtrusion(IMathUtility mathUtils, IModeler modeler, SwTempBody body, bool isCreated) 
-            : base(mathUtils, modeler, body, isCreated)
+        internal SwTempExtrusion(IMathUtility mathUtils, IModeler modeler, SwTempBody[] bodies, bool isCreated) 
+            : base(mathUtils, modeler, bodies, isCreated)
         {
         }
 
-        protected override SwTempBody CreateBody()
+        protected override ISwTempBody[] CreateBodies()
         {
-            if (!Profiles.First().TryGetPlane(out Plane plane)) 
-            {
-                //TODO: validate that all profiles on the same plane
-                throw new Exception("Profiles must be on the same plane");
-            }
-
-            var surf = CreatePlanarSurface(plane.Point, plane.Normal, plane.Direction);
-
             var dir = m_MathUtils.CreateVector(Direction.ToArray()) as MathVector;
 
-            var boundary = new List<ICurve>();
+            var bodies = new List<ISwTempBody>();
 
-            for (int i = 0; i < Profiles.Length; i++) 
+            foreach (var profile in Profiles) 
             {
-                boundary.AddRange(Profiles[i].Curves);
+                var body = m_Modeler.CreateExtrudedBody((Body2)profile.PlanarSheetBody.Body, dir, Depth) as IBody2;
 
-                if (i != Profiles.Length - 1) 
+                if (body == null)
                 {
-                    boundary.Add(null);
+                    throw new Exception("Failed to create extrusion");
                 }
+
+                bodies.Add(SwSelObject.FromDispatch<SwTempBody>(body));
             }
 
-            var body = Extrude(surf, boundary.ToArray(), dir, Depth);
-
-            if (body == null) 
-            {
-                throw new Exception("Failed to create extrusion");
-            }
-
-            return SwSelObject.FromDispatch<SwTempBody>(body);
-        }
-
-        private ISurface CreatePlanarSurface(XCad.Geometry.Structures.Point center, Vector dir,
-            Vector refDir)
-        {
-            return m_Modeler.CreatePlanarSurface2(center.ToArray(), dir.ToArray(), refDir.ToArray()) as ISurface;
-        }
-
-        private IBody2 Extrude(ISurface surf, ICurve[] boundary, MathVector dir, double height)
-        {
-            var sheetBody = surf.CreateTrimmedSheet4(boundary, true) as Body2;
-
-            return m_Modeler.CreateExtrudedBody(sheetBody, dir, height) as IBody2;
+            return bodies.ToArray();
         }
     }
 }

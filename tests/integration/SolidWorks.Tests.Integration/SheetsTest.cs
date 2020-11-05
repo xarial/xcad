@@ -17,7 +17,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("Sheets1.SLDDRW"))
             {
-                name = (m_App.Documents.Active as SwDrawing).Sheets.Active.Name;
+                name = (m_App.Documents.Active as ISwDrawing).Sheets.Active.Name;
             }
 
             Assert.AreEqual("Sheet2", name);
@@ -30,7 +30,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("Sheets1.SLDDRW"))
             {
-                confNames = (m_App.Documents.Active as SwDrawing).Sheets.Select(x => x.Name).ToArray();
+                confNames = (m_App.Documents.Active as ISwDrawing).Sheets.Select(x => x.Name).ToArray();
             }
 
             Assert.That(confNames.SequenceEqual(new string[] 
@@ -51,7 +51,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("Sheets1.SLDDRW"))
             {
-                var sheets = (m_App.Documents.Active as SwDrawing).Sheets;
+                var sheets = (m_App.Documents.Active as ISwDrawing).Sheets;
 
                 sheet1 = sheets["Sheet1"];
                 r1 = sheets.TryGet("Sheet2", out sheet2);

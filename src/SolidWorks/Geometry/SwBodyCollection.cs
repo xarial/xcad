@@ -1,4 +1,11 @@
-﻿using SolidWorks.Interop.sldworks;
+﻿//*********************************************************************
+//xCAD
+//Copyright(C) 2020 Xarial Pty Limited
+//Product URL: https://www.xcad.net
+//License: https://xcad.xarial.com/license/
+//*********************************************************************
+
+using SolidWorks.Interop.sldworks;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -9,11 +16,15 @@ using Xarial.XCad.SolidWorks.Documents;
 
 namespace Xarial.XCad.SolidWorks.Geometry
 {
-    internal abstract class SwBodyCollection : IXBodyRepository
+    public interface ISwBodyCollection : IXBodyRepository 
     {
-        private readonly SwDocument m_RootDoc;
+    }
 
-        internal SwBodyCollection(SwDocument rootDoc)
+    internal abstract class SwBodyCollection : ISwBodyCollection
+    {
+        private readonly ISwDocument m_RootDoc;
+
+        internal SwBodyCollection(ISwDocument rootDoc)
         {
             m_RootDoc = rootDoc;
         }

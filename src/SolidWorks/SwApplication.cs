@@ -30,32 +30,36 @@ using System.Collections.Generic;
 using Microsoft.Win32;
 using System.Drawing;
 using Xarial.XCad.Delegates;
-using Xarial.XCad.Geometry.Memory;
 using Xarial.XCad.Toolkit;
 using Xarial.XCad.SolidWorks.Services;
 
 namespace Xarial.XCad.SolidWorks
 {
+    public interface ISwApplication : IXApplication, IDisposable
+    {
+        ISldWorks Sw { get; }
+        SwVersion_e Version { get; }
+        new ISwDocumentCollection Documents { get; }
+        new ISwMemoryGeometryBuilder MemoryGeometryBuilder { get; }
+        new ISwMacro OpenMacro(string path);
+    }
+
     /// <inheritdoc/>
-    public partial class SwApplication : IXApplication, IXServiceConsumer, IDisposable
+    internal class SwApplication : ISwApplication, IXServiceConsumer
     {
         public event ApplicationLoadedDelegate Loaded;
-        internal event Action<Type> PropertyPageOpening;
-        internal event Action<Type> PropertyPageClosed;
-
+        
         IXDocumentRepository IXApplication.Documents => Documents;
 
         IXMacro IXApplication.OpenMacro(string path) => OpenMacro(path);
 
-        IXMemoryWireGeometryBuilder IXApplication.MemoryWireGeometryBuilder => MemoryWireGeometryBuilder;
-        IXMemorySurfaceGeometryBuilder IXApplication.MemorySurfaceGeometryBuilder => MemorySurfaceGeometryBuilder;
-        IXMemorySolidGeometryBuilder IXApplication.MemorySolidGeometryBuilder => MemorySolidGeometryBuilder;
-
+        IXGeometryBuilder IXApplication.MemoryGeometryBuilder => MemoryGeometryBuilder;
+        
         public ISldWorks Sw { get; private set; }
 
         public SwVersion_e Version => Sw.GetVersion();
         
-        public SwDocumentCollection Documents { get; private set; }
+        public ISwDocumentCollection Documents { get; private set; }
         
         public IntPtr WindowHandle => new IntPtr(Sw.IFrameObject().GetHWndx64());
 
@@ -63,10 +67,8 @@ namespace Xarial.XCad.SolidWorks
 
         public Rectangle WindowRectangle => new Rectangle(Sw.FrameLeft, Sw.FrameTop, Sw.FrameWidth, Sw.FrameHeight);
 
-        public SwMemoryWireGeometryBuilder MemoryWireGeometryBuilder { get; private set; }
-        public SwMemorySurfaceGeometryBuilder MemorySurfaceGeometryBuilder { get; private set; }
-        public SwMemorySolidGeometryBuilder MemorySolidGeometryBuilder { get; private set; }
-
+        public ISwMemoryGeometryBuilder MemoryGeometryBuilder { get; private set; }
+        
         private IXLogger m_Logger;
 
         private IServiceProvider m_Provider;
@@ -100,26 +102,11 @@ namespace Xarial.XCad.SolidWorks
 
             Documents = new SwDocumentCollection(this, m_Logger);
 
-            var mathUtils = Sw.IGetMathUtility();
-            var modeler = Sw.IGetModeler();
-
             var geomBuilderDocsProvider = m_Provider.GetService<IMemoryGeometryBuilderDocumentProvider>();
 
-            MemorySolidGeometryBuilder = new SwMemorySolidGeometryBuilder(this, geomBuilderDocsProvider);
-            MemorySurfaceGeometryBuilder = new SwMemorySurfaceGeometryBuilder(mathUtils, modeler);
-            MemoryWireGeometryBuilder = new SwMemoryWireGeometryBuilder(mathUtils, modeler);
+            MemoryGeometryBuilder = new SwMemoryGeometryBuilder(this, geomBuilderDocsProvider);
 
             (Sw as SldWorks).OnIdleNotify += OnLoadFirstIdleNotify;
-        }
-
-        internal void ReportPropertyPageOpening(Type pmpDataType) 
-        {
-            PropertyPageOpening?.Invoke(pmpDataType);
-        }
-
-        internal void ReportPropertyPageClosed(Type pmpDataType)
-        {
-            PropertyPageClosed?.Invoke(pmpDataType);
         }
 
         public MessageBoxResult_e ShowMessageBox(string msg, MessageBoxIcon_e icon = MessageBoxIcon_e.Info, MessageBoxButtons_e buttons = MessageBoxButtons_e.Ok)
@@ -186,7 +173,7 @@ namespace Xarial.XCad.SolidWorks
             }
         }
 
-        public SwMacro OpenMacro(string path)
+        public ISwMacro OpenMacro(string path)
         {
             const string VSTA_FILE_EXT = ".dll";
             const string VBA_FILE_EXT = ".swp";
@@ -261,7 +248,7 @@ namespace Xarial.XCad.SolidWorks
 
     public static class SwApplicationExtension 
     {
-        public static bool IsVersionNewerOrEqual(this SwApplication app, SwVersion_e version, 
+        public static bool IsVersionNewerOrEqual(this ISwApplication app, SwVersion_e version, 
             int? servicePack = null, int? servicePackRev = null) 
         {
             return app.Sw.IsVersionNewerOrEqual(version, servicePack, servicePackRev);

@@ -1,24 +1,38 @@
-﻿using SolidWorks.Interop.sldworks;
+﻿//*********************************************************************
+//xCAD
+//Copyright(C) 2020 Xarial Pty Limited
+//Product URL: https://www.xcad.net
+//License: https://xcad.xarial.com/license/
+//*********************************************************************
+
+using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Primitives;
 using Xarial.XCad.Geometry.Wires;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Geometry.Curves;
 using Xarial.XCad.SolidWorks.Geometry.Exceptions;
+using Xarial.XCad.SolidWorks.Sketch;
 using Xarial.XCad.SolidWorks.Utils;
 
 namespace Xarial.XCad.SolidWorks.Geometry.Primitives
 {
-    public class SwTempSweep : SwTempPrimitive, IXSweep
+    public interface ISwTempSweep : IXSweep, ISwTempPrimitive
     {
-        IXSegment IXSweep.Profile
+        new ISwRegion[] Profiles { get; set; }
+    }
+
+    internal class SwTempSweep : SwTempPrimitive, ISwTempSweep
+    {
+        IXRegion[] IXSweep.Profiles
         {
-            get => Profile;
-            set => Profile = (SwCurve)value;
+            get => Profiles;
+            set => Profiles = value.Cast<ISwRegion>().ToArray();
         }
 
         IXSegment IXSweep.Path
@@ -29,15 +43,15 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
 
         private readonly SwPart m_Part;
 
-        internal SwTempSweep(SwPart part, IMathUtility mathUtils, IModeler modeler, SwTempBody body, bool isCreated)
-            : base(mathUtils, modeler, body, isCreated)
+        internal SwTempSweep(SwPart part, IMathUtility mathUtils, IModeler modeler, SwTempBody[] bodies, bool isCreated)
+            : base(mathUtils, modeler, bodies, isCreated)
         {
             m_Part = part;
         }
 
-        public SwCurve Profile
+        public ISwRegion[] Profiles
         {
-            get => m_Creator.CachedProperties.Get<SwCurve>();
+            get => m_Creator.CachedProperties.Get<ISwRegion[]>();
             set
             {
                 if (IsCommitted)
@@ -67,39 +81,58 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
             }
         }
 
-        protected override SwTempBody CreateBody()
+        protected override ISwTempBody[] CreateBodies()
         {
             var selMgr = m_Part.Model.ISelectionManager;
             var selData = selMgr.CreateSelectData();
 
             IBody2 body = null;
 
-            using (var selGrp = new SelectionGroup(selMgr))
+            var bodies = new List<SwTempBody>();
+
+            foreach (var profile in Profiles)
             {
-                var profileCurve = GetSingleCurve(Profile.Curves);
-                var profileBody = profileCurve.CreateWireBody();
-                selData.Mark = 1;
-                selGrp.AddRange(profileBody.GetEdges() as object[], selData);
+                using (var selGrp = new SelectionGroup(selMgr))
+                {
+                    object[] profileDisps = null;
 
-                var pathCurve = GetSingleCurve(Path.Curves);
-                var pathBody = pathCurve.CreateWireBody();
-                selData.Mark = 4;
-                selGrp.AddRange(pathBody.GetEdges() as object[], selData);
+                    //NOTE: keeping this as temp solution as temp body sweek does not allow to have multi curves
+                    if (profile is ISwSketchRegion)
+                    {
+                        profileDisps = new object[] { (profile as ISwSketchRegion).Region };
+                    }
+                    else 
+                    {
+                        var profileCurve = GetSingleCurve(profile.Boundary.SelectMany(c => c.Curves).ToArray());
+                        var profileBody = profileCurve.CreateWireBody();
+                        profileDisps = profileBody.GetEdges() as object[];
+                    }
+                    
+                    selData.Mark = 1;
+                    selGrp.AddRange(profileDisps, selData);
 
-                body = m_Modeler.CreateSweptBody((ModelDoc2)m_Part.Model, true, false,
-                    (int)swTwistControlType_e.swTwistControlFollowPath,
-                    true, false,
-                    (int)swTangencyType_e.swTangencyNone,
-                    (int)swTangencyType_e.swTangencyNone, false, 0, 0,
-                    (int)swThinWallType_e.swThinWallMidPlane, 0, 0, false);
+                    var pathCurve = GetSingleCurve(Path.Curves);
+                    var pathBody = pathCurve.CreateWireBody();
+                    selData.Mark = 4;
+                    selGrp.AddRange(pathBody.GetEdges() as object[], selData);
+
+                    body = m_Modeler.CreateSweptBody((ModelDoc2)m_Part.Model, true, false,
+                        (int)swTwistControlType_e.swTwistControlFollowPath,
+                        true, false,
+                        (int)swTangencyType_e.swTangencyNone,
+                        (int)swTangencyType_e.swTangencyNone, false, 0, 0,
+                        (int)swThinWallType_e.swThinWallMidPlane, 0, 0, false);
+
+                    if (body == null)
+                    {
+                        throw new Exception("Failed to create swept body");
+                    }
+
+                    bodies.Add(SwSelObject.FromDispatch<SwTempBody>(body));
+                }
             }
 
-            if (body == null) 
-            {
-                throw new Exception("Failed to create swept body");
-            }
-
-            return SwSelObject.FromDispatch<SwTempBody>(body);
+            return bodies.ToArray();
         }
 
         private ICurve GetSingleCurve(ICurve[] curves)

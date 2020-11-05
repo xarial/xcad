@@ -25,8 +25,15 @@ using Xarial.XCad.Utils.Diagnostics;
 
 namespace Xarial.XCad.SolidWorks.Documents
 {
+    public interface ISwDocumentCollection : IXDocumentRepository, IDisposable
+    {
+        new ISwDocument Active { get; set; }
+        new IXDocument this[string name] { get; }
+        ISwDocument this[IModelDoc2 model] { get; }
+    }
+
     [DebuggerDisplay("Documents: {" + nameof(Count) + "}")]
-    public class SwDocumentCollection : IXDocumentRepository, IDisposable
+    internal class SwDocumentCollection : ISwDocumentCollection
     {
         public event DocumentCreateDelegate DocumentCreated;
         public event DocumentActivateDelegate DocumentActivated;
@@ -41,13 +48,13 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         private const int S_OK = 0;
 
-        private readonly SwApplication m_App;
+        private readonly ISwApplication m_App;
         private readonly SldWorks m_SwApp;
         private readonly Dictionary<IModelDoc2, SwDocument> m_Documents;
         private readonly IXLogger m_Logger;
         private readonly DocumentsHandler m_DocsHandler;
 
-        public SwDocument Active
+        public ISwDocument Active
         {
             get
             {
@@ -93,7 +100,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         private readonly Dictionary<string, swDocumentTypes_e> m_NativeFileExts;
         
-        internal SwDocumentCollection(SwApplication app, IXLogger logger)
+        internal SwDocumentCollection(ISwApplication app, IXLogger logger)
         {
             m_NativeFileExts = new Dictionary<string, swDocumentTypes_e>(StringComparer.CurrentCultureIgnoreCase)
             {
@@ -123,7 +130,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             return S_OK;
         }
 
-        public SwDocument this[IModelDoc2 model]
+        public ISwDocument this[IModelDoc2 model]
         {
             get
             {
@@ -150,7 +157,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             return m_Documents.Values.GetEnumerator();
         }
 
-        public SwDocument Open(DocumentOpenArgs args)
+        public ISwDocument Open(DocumentOpenArgs args)
         {
             IModelDoc2 model = null;
             int errorCode = -1;
@@ -303,7 +310,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                         throw new NotSupportedException();
                 }
 
-                doc.Destroyed += OnDocumentDestroyed;
+                doc.Closing += OnDocumentDestroyed;
 
                 m_Documents.Add(model, doc);
 
@@ -342,15 +349,15 @@ namespace Xarial.XCad.SolidWorks.Documents
             return S_OK;
         }
 
-        private void OnDocumentDestroyed(IModelDoc2 model)
+        private void OnDocumentDestroyed(IXDocument model)
         {
-            ReleaseDocument(model);
+            ReleaseDocument(((ISwDocument)model).Model);
         }
 
         private void ReleaseDocument(IModelDoc2 model)
         {
             var doc = this[model];
-            doc.Destroyed -= OnDocumentDestroyed;
+            doc.Closing -= OnDocumentDestroyed;
             m_Documents.Remove(model);
             m_DocsHandler.ReleaseHandlers(doc);
             doc.Dispose();

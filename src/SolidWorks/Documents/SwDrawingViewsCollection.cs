@@ -1,4 +1,11 @@
-﻿using SolidWorks.Interop.sldworks;
+﻿//*********************************************************************
+//xCAD
+//Copyright(C) 2020 Xarial Pty Limited
+//Product URL: https://www.xcad.net
+//License: https://xcad.xarial.com/license/
+//*********************************************************************
+
+using SolidWorks.Interop.sldworks;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -8,7 +15,11 @@ using Xarial.XCad.Documents;
 
 namespace Xarial.XCad.SolidWorks.Documents
 {
-    internal class SwDrawingViewsCollection : IXDrawingViewRepository
+    public interface ISwDrawingViewsCollection : IXDrawingViewRepository 
+    {
+    }
+
+    internal class SwDrawingViewsCollection : ISwDrawingViewsCollection
     {
         private readonly SwDrawing m_Draw;
         private readonly ISheet m_Sheet;

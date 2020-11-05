@@ -1,4 +1,11 @@
-﻿using SolidWorks.Interop.sldworks;
+﻿//*********************************************************************
+//xCAD
+//Copyright(C) 2020 Xarial Pty Limited
+//Product URL: https://www.xcad.net
+//License: https://xcad.xarial.com/license/
+//*********************************************************************
+
+using SolidWorks.Interop.sldworks;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -8,34 +15,33 @@ using Xarial.XCad.Services;
 
 namespace Xarial.XCad.SolidWorks.Geometry.Primitives
 {
-    public class SwTempPrimitive : IXPrimitive
+    public interface ISwTempPrimitive : IXPrimitive
     {
-        IEnumerable<IXBody> IXPrimitive.Bodies
-        {
-            get
-            {
-                yield return Body;
-            }
-        }
+        new ISwTempBody[] Bodies { get; }
+    }
 
-        public SwTempBody Body => m_Creator.Element;
+    internal class SwTempPrimitive : ISwTempPrimitive
+    {
+        IXBody[] IXPrimitive.Bodies => Bodies;
+
+        public ISwTempBody[] Bodies => m_Creator.Element;
 
         public bool IsCommitted => m_Creator.IsCreated;
 
         protected readonly IModeler m_Modeler;
         protected readonly IMathUtility m_MathUtils;
 
-        protected readonly ElementCreator<SwTempBody> m_Creator;
+        protected readonly ElementCreator<ISwTempBody[]> m_Creator;
         
-        internal SwTempPrimitive(IMathUtility mathUtils, IModeler modeler, SwTempBody body, bool isCreated) 
+        internal SwTempPrimitive(IMathUtility mathUtils, IModeler modeler, SwTempBody[] bodies, bool isCreated) 
         {
             m_MathUtils = mathUtils;
             m_Modeler = modeler;
 
-            m_Creator = new ElementCreator<SwTempBody>(CreateBody, body, isCreated);
+            m_Creator = new ElementCreator<ISwTempBody[]>(CreateBodies, bodies, isCreated);
         }
 
-        protected virtual SwTempBody CreateBody() 
+        protected virtual ISwTempBody[] CreateBodies() 
         {
             throw new NotSupportedException();
         }

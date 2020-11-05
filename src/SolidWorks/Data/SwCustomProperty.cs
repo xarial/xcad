@@ -17,7 +17,12 @@ using Xarial.XCad.SolidWorks.Data.Helpers;
 
 namespace Xarial.XCad.SolidWorks.Data
 {
-    public class SwCustomProperty : IXProperty
+    public interface ISwCustomProperty : IXProperty
+    {
+    
+    }
+
+    internal class SwCustomProperty : ISwCustomProperty
     {
         private string m_Name;
         private object m_TempValue;

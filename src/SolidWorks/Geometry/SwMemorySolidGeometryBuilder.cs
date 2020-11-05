@@ -1,10 +1,16 @@
-﻿using SolidWorks.Interop.sldworks;
+﻿//*********************************************************************
+//xCAD
+//Copyright(C) 2020 Xarial Pty Limited
+//Product URL: https://www.xcad.net
+//License: https://xcad.xarial.com/license/
+//*********************************************************************
+
+using SolidWorks.Interop.sldworks;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Xarial.XCad.Geometry;
-using Xarial.XCad.Geometry.Memory;
 using Xarial.XCad.Geometry.Primitives;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Geometry.Primitives;
@@ -12,7 +18,14 @@ using Xarial.XCad.SolidWorks.Services;
 
 namespace Xarial.XCad.SolidWorks.Geometry
 {
-    public class SwMemorySolidGeometryBuilder : IXMemorySolidGeometryBuilder
+    public interface ISwMemorySolidGeometryBuilder : IXSolidGeometryBuilder
+    {
+        new ISwTempExtrusion PreCreateExtrusion();
+        new ISwTempRevolve PreCreateRevolve();
+        new ISwTempSweep PreCreateSweep();
+    }
+
+    internal class SwMemorySolidGeometryBuilder : ISwMemorySolidGeometryBuilder
     {
         IXExtrusion IX3DGeometryBuilder.PreCreateExtrusion() => PreCreateExtrusion();
         IXRevolve IX3DGeometryBuilder.PreCreateRevolve() => PreCreateRevolve();
@@ -23,14 +36,14 @@ namespace Xarial.XCad.SolidWorks.Geometry
             throw new NotImplementedException();
         }
 
-        private readonly SwApplication m_App;
+        private readonly ISwApplication m_App;
 
         protected readonly IModeler m_Modeler;
         protected readonly IMathUtility m_MathUtils;
 
         private readonly IMemoryGeometryBuilderDocumentProvider m_GeomBuilderDocsProvider;
 
-        internal SwMemorySolidGeometryBuilder(SwApplication app, IMemoryGeometryBuilderDocumentProvider geomBuilderDocsProvider)
+        internal SwMemorySolidGeometryBuilder(ISwApplication app, IMemoryGeometryBuilderDocumentProvider geomBuilderDocsProvider)
         {
             m_App = app;
 
@@ -40,8 +53,8 @@ namespace Xarial.XCad.SolidWorks.Geometry
             m_GeomBuilderDocsProvider = geomBuilderDocsProvider;
         }
 
-        public SwTempExtrusion PreCreateExtrusion() => new SwTempExtrusion(m_MathUtils, m_Modeler, null, false);
-        public SwTempRevolve PreCreateRevolve() => new SwTempRevolve(m_MathUtils, m_Modeler, null, false);
-        public SwTempSweep PreCreateSweep() => new SwTempSweep((SwPart)m_GeomBuilderDocsProvider.ProvideDocument(typeof(SwTempSweep)), m_MathUtils, m_Modeler, null, false);
+        public ISwTempExtrusion PreCreateExtrusion() => new SwTempExtrusion(m_MathUtils, m_Modeler, null, false);
+        public ISwTempRevolve PreCreateRevolve() => new SwTempRevolve(m_MathUtils, m_Modeler, null, false);
+        public ISwTempSweep PreCreateSweep() => new SwTempSweep((SwPart)m_GeomBuilderDocsProvider.ProvideDocument(typeof(SwTempSweep)), m_MathUtils, m_Modeler, null, false);
     }
 }

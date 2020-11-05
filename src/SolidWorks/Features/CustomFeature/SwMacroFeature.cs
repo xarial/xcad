@@ -7,6 +7,7 @@
 
 using SolidWorks.Interop.sldworks;
 using System;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using Xarial.XCad.Annotations;
@@ -26,9 +27,19 @@ using Xarial.XCad.Utils.Reflection;
 
 namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 {
-    public class SwMacroFeature : SwFeature, IXCustomFeature
+    public interface ISwMacroFeature : ISwFeature, IXCustomFeature
     {
-        protected readonly SwDocument m_Doc;
+        //TODO: remove this
+        [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
+        ISwDocument Document { get; }
+
+        ISwMacroFeature<TParams> ToParameters<TParams>()
+            where TParams : class, new();
+    }
+
+    internal class SwMacroFeature : SwFeature, ISwMacroFeature
+    {
+        protected readonly ISwDocument m_Doc;
 
         private IMacroFeatureData m_FeatData;
 
@@ -38,9 +49,9 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 
         private readonly IFeatureManager m_FeatMgr;
 
-        internal SwDocument Document => m_Doc;
+        public ISwDocument Document => m_Doc;
 
-        internal SwMacroFeature(SwDocument doc, IFeatureManager featMgr, IFeature feat, bool created)
+        internal SwMacroFeature(ISwDocument doc, IFeatureManager featMgr, IFeature feat, bool created)
             : base(doc, feat, created)
         {
             m_Doc = doc;
@@ -51,16 +62,16 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         public IXConfiguration Configuration 
             => SwObject.FromDispatch<SwConfiguration>(FeatureData.CurrentConfiguration, m_Doc);
 
-        public SwMacroFeature<TParams> ToParameters<TParams>()
+        public ISwMacroFeature<TParams> ToParameters<TParams>()
             where TParams : class, new()
         {
-            return ToParameters<TParams>(new MacroFeatureParametersParser(m_Doc.SwApp));
+            return ToParameters<TParams>(new MacroFeatureParametersParser(m_Doc.App.Sw));
         }
 
-        internal SwMacroFeature<TParams> ToParameters<TParams>(MacroFeatureParametersParser paramsParser)
+        private SwMacroFeature<TParams> ToParameters<TParams>(MacroFeatureParametersParser paramsParser)
             where TParams : class, new()
         {
-            return new SwMacroFeature<TParams>(m_Doc, m_FeatMgr, Feature, paramsParser, IsCreated);
+            return new SwMacroFeature<TParams>(m_Doc, m_FeatMgr, Feature, paramsParser, IsCommitted);
         }
 
         protected override IFeature CreateFeature()
@@ -122,12 +133,17 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         }
     }
 
-    public class SwMacroFeature<TParams> : SwMacroFeature, IXCustomFeature<TParams>
+    public interface ISwMacroFeature<TParams> : ISwMacroFeature, IXCustomFeature<TParams>
+        where TParams : class, new()
+    { 
+    }
+
+    internal class SwMacroFeature<TParams> : SwMacroFeature, ISwMacroFeature<TParams>
         where TParams : class, new()
     {
         private readonly MacroFeatureParametersParser m_ParamsParser;
 
-        internal SwMacroFeature(SwDocument model, IFeatureManager featMgr, IFeature feat, MacroFeatureParametersParser paramsParser, bool created)
+        internal SwMacroFeature(ISwDocument model, IFeatureManager featMgr, IFeature feat, MacroFeatureParametersParser paramsParser, bool created)
             : base(model, featMgr, feat, created)
         {
             m_ParamsParser = paramsParser;
@@ -139,7 +155,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         {
             get
             {
-                if (IsCreated)
+                if (IsCommitted)
                 {
                     if (FeatureData.AccessSelections(m_Doc.Model, null))
                     {
@@ -158,7 +174,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             }
             set
             {
-                if (IsCreated)
+                if (IsCommitted)
                 {
                     if (value == null)
                     {

@@ -15,14 +15,18 @@ using Xarial.XCad.Toolkit.Utils;
 
 namespace Xarial.XCad.SolidWorks.Sketch
 {
-    public abstract class SwSketchEntity : SwSelObject, IXSketchEntity
+    public interface ISwSketchEntity : IXSketchEntity 
+    {
+    }
+
+    internal abstract class SwSketchEntity : SwSelObject, ISwSketchEntity
     {
         public abstract bool IsCommitted { get; }
         public abstract Color? Color { get; set; }
 
-        protected readonly SwDocument m_Doc;
+        protected readonly ISwDocument m_Doc;
         
-        internal SwSketchEntity(SwDocument doc, object ent) : base(doc.Model, ent)
+        internal SwSketchEntity(ISwDocument doc, object ent) : base(doc.Model, ent)
         {
             m_Doc = doc;
         }

@@ -10,19 +10,30 @@ using SolidWorks.Interop.swconst;
 using System;
 using System.Drawing;
 using System.Runtime.InteropServices;
+using Xarial.XCad.Geometry.Structures;
+using Xarial.XCad.Geometry.Wires;
 using Xarial.XCad.SolidWorks.Documents;
+using Xarial.XCad.SolidWorks.Geometry.Curves;
+using Xarial.XCad.SolidWorks.Geometry.Primitives;
 using Xarial.XCad.Toolkit.Utils;
 
 namespace Xarial.XCad.SolidWorks.Geometry
 {
-    public class SwTempBody : SwBody, IDisposable
+    public interface ISwTempBody : ISwBody, IDisposable
+    {
+        void Preview(ISwPart part, Color color, bool selectable = false);
+    }
+
+    internal class SwTempBody : SwBody, ISwTempBody
     {
         private IBody2 m_TempBody;
 
         public override IBody2 Body => m_TempBody;
         public override object Dispatch => m_TempBody;
 
-        internal SwTempBody(IBody2 body) : base(null)
+        //NOTE: keeping the pointer in this class only so it can be properly disposed
+
+        internal SwTempBody(IBody2 body) : base(null, null)
         {
             if (!body.IsTemporaryBody()) 
             {
@@ -32,7 +43,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
             m_TempBody = body;
         }
 
-        public void Preview(SwPart part, Color color, bool selectable = false) 
+        public void Preview(ISwPart part, Color color, bool selectable = false) 
         {
             var opts = selectable 
                 ? swTempBodySelectOptions_e.swTempBodySelectable
@@ -55,5 +66,46 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
             m_TempBody = null;
         }
+    }
+
+    public interface ISwTempSolidBody : ISwTempBody, ISwSolidBody
+    {
+    }
+
+    public interface ISwTempSheetBody : ISwTempBody, ISwSheetBody 
+    {
+    }
+
+    public interface ISwTempPlanarSheetBody : ISwTempSheetBody, ISwPlanarSheetBody, ISwTempRegion
+    {
+    }
+
+    internal class SwTempSolidBody : SwTempBody, ISwTempSolidBody
+    {
+        internal SwTempSolidBody(IBody2 body) : base(body)
+        {
+        }
+    }
+
+    internal class SwTempSheetBody : SwTempBody, ISwTempSheetBody
+    {
+        internal SwTempSheetBody(IBody2 body) : base(body)
+        {
+        }
+    }
+
+    internal class SwTempPlanarSheetBody : SwTempBody, ISwTempPlanarSheetBody
+    {
+        internal SwTempPlanarSheetBody(IBody2 body) : base(body)
+        {
+        }
+
+        public Plane Plane => this.GetPlane();
+
+        public IXSegment[] Boundary => this.GetBoundary();
+
+        public ISwTempPlanarSheetBody PlanarSheetBody => this;
+
+        ISwCurve[] ISwRegion.Boundary => this.GetBoundary();
     }
 }

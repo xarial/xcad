@@ -26,9 +26,9 @@ namespace Xarial.XCad.SolidWorks.Features
         private bool m_IsSubFeat;
         private IFeature m_ParentFeat;
 
-        private readonly SwDocument m_RootDoc;
+        private readonly ISwDocument m_RootDoc;
 
-        internal FeatureEnumerator(SwDocument rootDoc)
+        internal FeatureEnumerator(ISwDocument rootDoc)
         {
             m_ProcessedFeatures = new List<IFeature>();
             m_RootDoc = rootDoc;

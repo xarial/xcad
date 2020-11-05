@@ -10,20 +10,20 @@ using Xarial.XCad.UI.PropertyPage.Services;
 //--- Single
 public class SelectionBoxDataModel
 {
-    public SwBody Body { get; set; }
+    public ISwBody Body { get; set; }
 
     [SelectionBoxOptions(SelectType_e.Edges, SelectType_e.Notes, SelectType_e.CoordinateSystems)]
-    public SwSelObject Dispatch { get; set; }
+    public ISwSelObject Dispatch { get; set; }
 }
 //---
 
 //--- List
 public class SelectionBoxListDataModel
 {
-    public List<SwBody> Bodies { get; set; } = new List<SwBody>();
+    public List<ISwBody> Bodies { get; set; } = new List<ISwBody>();
 
     [SelectionBoxOptions(SelectType_e.Edges, SelectType_e.Notes, SelectType_e.CoordinateSystems)]
-    public List<SwSelObject> Dispatches { get; set; } = new List<SwSelObject>();
+    public List<ISwSelObject> Dispatches { get; set; } = new List<ISwSelObject>();
 }
 //---
 
@@ -33,7 +33,7 @@ public class SelectionBoxCustomSelectionFilterDataModel
     public class DataGroup
     {
         [SelectionBoxOptions(typeof(PlanarFaceFilter), SelectType_e.Faces)] //setting the standard filter to faces and custom filter to only filter planar faces
-        public SwFace PlanarFace { get; set; }
+        public ISwFace PlanarFace { get; set; }
     }
 
     public class PlanarFaceFilter : ISelectionCustomFilter
@@ -42,7 +42,7 @@ public class SelectionBoxCustomSelectionFilterDataModel
         {
             itemText = "Planar Face";
 
-            return (selection as SwFace).Face.IGetSurface().IsPlane(); //validating the selection and only allowing planar face
+            return (selection as ISwFace).Face.IGetSurface().IsPlane(); //validating the selection and only allowing planar face
         }
     }
 }

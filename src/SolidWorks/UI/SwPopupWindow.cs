@@ -22,7 +22,11 @@ namespace Xarial.XCad.SolidWorks.UI
         }
     }
 
-    public abstract class SwPopupWindow<TWindow> : IXPopupWindow<TWindow>, IDisposable
+    public interface ISwPopupWindow<TWindow> : IXPopupWindow<TWindow>, IDisposable 
+    {
+    }
+
+    internal abstract class SwPopupWindow<TWindow> : ISwPopupWindow<TWindow>
     {
         public abstract bool IsActive { get; set; }
         public abstract TWindow Control { get; }
@@ -37,7 +41,7 @@ namespace Xarial.XCad.SolidWorks.UI
         public abstract void Show();
     }
 
-    public class SwPopupWpfWindow<TWindow> : SwPopupWindow<TWindow>
+    internal class SwPopupWpfWindow<TWindow> : SwPopupWindow<TWindow>
     {
         public override event PopupWindowClosedDelegate<TWindow> Closed;
 
@@ -107,7 +111,7 @@ namespace Xarial.XCad.SolidWorks.UI
         }
     }
 
-    public class SwPopupWinForm<TControl> : SwPopupWindow<TControl>
+    internal class SwPopupWinForm<TControl> : SwPopupWindow<TControl>
     {
         public override bool IsActive
         {

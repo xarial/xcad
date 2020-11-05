@@ -42,7 +42,7 @@ namespace Xarial.XCad.Documentation
         //---
 
         //--- CreateInstance
-        private SwPropertyManagerPage<MyPMPageData> m_Page;
+        private ISwPropertyManagerPage<MyPMPageData> m_Page;
         private MyPMPageData m_Data = new MyPMPageData();
 
         private enum Commands_e

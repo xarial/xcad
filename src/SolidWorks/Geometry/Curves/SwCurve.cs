@@ -1,6 +1,14 @@
-﻿using SolidWorks.Interop.sldworks;
+﻿//*********************************************************************
+//xCAD
+//Copyright(C) 2020 Xarial Pty Limited
+//Product URL: https://www.xcad.net
+//License: https://xcad.xarial.com/license/
+//*********************************************************************
+
+using SolidWorks.Interop.sldworks;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using Xarial.XCad.Geometry.Curves;
@@ -10,7 +18,15 @@ using Xarial.XCad.Services;
 
 namespace Xarial.XCad.SolidWorks.Geometry.Curves
 {
-    public class SwCurve : SwObject, IXCurve
+    public interface ISwCurve : IXCurve, ISwObject
+    {
+        [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
+        bool TryGetPlane(out Plane plane);
+
+        ICurve[] Curves { get; }
+    }
+
+    internal class SwCurve : SwObject, ISwCurve
     {
         public ICurve[] Curves => m_Creator.Element;
 
@@ -66,7 +82,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Curves
             }
         }
 
-        internal virtual bool TryGetPlane(out Plane plane) 
+        public virtual bool TryGetPlane(out Plane plane)
         {
             plane = null;
             return false;

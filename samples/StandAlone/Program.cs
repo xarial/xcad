@@ -17,10 +17,13 @@ using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Features;
 using Xarial.XCad.Geometry;
+using Xarial.XCad.Geometry.Primitives;
 using Xarial.XCad.Geometry.Structures;
+using Xarial.XCad.Geometry.Wires;
 using Xarial.XCad.Sketch;
 using Xarial.XCad.SolidWorks;
 using Xarial.XCad.SolidWorks.Documents;
+using Xarial.XCad.SolidWorks.Features;
 using Xarial.XCad.SolidWorks.Geometry;
 using Xarial.XCad.SolidWorks.Geometry.Curves;
 using Xarial.XCad.Toolkit.Utils;
@@ -31,8 +34,8 @@ namespace StandAlone
     {
         static void Main(string[] args)
         {
-            //var app = SwApplication.Start(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020);
-            var app = SwApplication.FromProcess(Process.GetProcessesByName("SLDWORKS").First());
+            //var app = SwApplicationFactory.Start(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020);
+            var app = SwApplicationFactory.FromProcess(Process.GetProcessesByName("SLDWORKS").First());
 
             //SketchSegmentColors(app);
 
@@ -47,9 +50,10 @@ namespace StandAlone
 
             //TraverseSelectedFaces(app);
 
+            CreateSweepFromSelection(app);
             //CreateTempGeometry(app);
 
-            CreateSweepFromSelection(app);
+            //CreateSweepFromSelection(app);
         }
         
         private static void SketchSegmentColors(IXApplication app) 
@@ -62,7 +66,7 @@ namespace StandAlone
         private static void CreateDrawingView(IXApplication app) 
         {
             var partDoc = app.Documents.Active as IXDocument3D;
-            var view = partDoc.Views[StandardViewType_e.Right];
+            var view = partDoc.ModelViews[StandardViewType_e.Right];
             var drw = app.Documents.NewDrawing();
             var drwView = drw.Sheets.Active.DrawingViews.CreateModelViewBased(view);
         }
@@ -92,89 +96,90 @@ namespace StandAlone
             }
         }
 
-        private static void CreateSweepFromSelection(IXApplication app) 
+        private static void CreateSweepFromSelection(ISwApplication app) 
         {
-            var profileSeg = app.Documents.Active.Selections.First() as IXSketchSegment;
+            var doc = app.Documents.Active;
+            var feat = doc.Selections.First() as ISwFeature;
+            var sketch = SwObjectFactory.FromDispatch<ISwSketch2D>(feat.Feature.GetSpecificFeature2() as ISketch, doc);
+            var reg = sketch.Regions.First();
+
             var pathSeg = app.Documents.Active.Selections.Last() as IXSketchSegment;
 
-            var profileCurve = profileSeg.Definition;
             var pathCurve = pathSeg.Definition;
 
-            var sweep = app.MemorySolidGeometryBuilder.PreCreateSweep();
-            sweep.Profile = profileCurve;
+            var sweep = app.MemoryGeometryBuilder.SolidBuilder.PreCreateSweep();
+            sweep.Profiles = new IXRegion[] { reg };
             sweep.Path = pathCurve;
             sweep.Commit();
 
-            var body = (sweep.Bodies.First() as SwBody).Body;
+            var body = (sweep.Bodies.First() as ISwBody).Body;
 
-            (app.Documents.Active as SwPart).Part.CreateFeatureFromBody3(body, false, 0);
+            (app.Documents.Active as ISwPart).Part.CreateFeatureFromBody3(body, false, 0);
         }
 
         private static void CreateTempGeometry(IXApplication app) 
         {
-            var sweepArc = app.MemoryWireGeometryBuilder.PreCreateArc();
+            var sweepArc = app.MemoryGeometryBuilder.WireBuilder.PreCreateArc();
             sweepArc.Center = new Point(0, 0, 0);
             sweepArc.Axis = new Vector(0, 0, 1);
             sweepArc.Diameter = 0.01;
             sweepArc.Commit();
 
-            var sweepLine = app.MemoryWireGeometryBuilder.PreCreateLine();
+            var sweepLine = app.MemoryGeometryBuilder.WireBuilder.PreCreateLine();
             sweepLine.StartCoordinate = new Point(0, 0, 0);
             sweepLine.EndCoordinate = new Point(1, 1, 1);
             sweepLine.Commit();
 
-            var sweep = app.MemorySolidGeometryBuilder.PreCreateSweep();
-            sweep.Profile = sweepArc;
+            var sweep = app.MemoryGeometryBuilder.SolidBuilder.PreCreateSweep();
+            sweep.Profiles = new IXRegion[] { app.MemoryGeometryBuilder.CreatePlanarSurface(sweepArc).Bodies.OfType<IXPlanarSheetBody>().First() };
             sweep.Path = sweepLine;
             sweep.Commit();
 
-            var body = (sweep.Bodies.First() as SwBody).Body;
+            var body = (sweep.Bodies.First() as ISwBody).Body;
 
-            (app.Documents.Active as SwPart).Part.CreateFeatureFromBody3(body, false, 0);
+            (app.Documents.Active as ISwPart).Part.CreateFeatureFromBody3(body, false, 0);
 
-            var cone = app.MemorySolidGeometryBuilder.CreateCone(
+            var cone = app.MemoryGeometryBuilder.CreateSolidCone(
                 new Point(0, 0, 0), 
                 new Vector(1, 1, 1), 
-                0.1, 0.05, 0.2, 
-                app.MemoryWireGeometryBuilder);
+                0.1, 0.05, 0.2);
             
-            body = (cone.Bodies.First() as SwBody).Body;
+            body = (cone.Bodies.First() as ISwBody).Body;
 
-            (app.Documents.Active as SwPart).Part.CreateFeatureFromBody3(body, false, 0);
+            (app.Documents.Active as ISwPart).Part.CreateFeatureFromBody3(body, false, 0);
 
-            var arc = app.MemoryWireGeometryBuilder.PreCreateArc();
+            var arc = app.MemoryGeometryBuilder.WireBuilder.PreCreateArc();
             arc.Center = new Point(-0.1, 0, 0);
             arc.Axis = new Vector(0, 0, 1);
             arc.Diameter = 0.01;
             arc.Commit();
 
-            var axis = app.MemoryWireGeometryBuilder.PreCreateLine();
+            var axis = app.MemoryGeometryBuilder.WireBuilder.PreCreateLine();
             axis.StartCoordinate = new Point(0, 0, 0);
             axis.EndCoordinate = new Point(0, 1, 0);
             axis.Commit();
 
-            var rev = app.MemorySolidGeometryBuilder.PreCreateRevolve();
+            var rev = app.MemoryGeometryBuilder.SolidBuilder.PreCreateRevolve();
             rev.Angle = Math.PI * 2;
             rev.Axis = axis;
-            rev.Profile = arc;
+            rev.Profiles = new IXRegion[] { app.MemoryGeometryBuilder.CreatePlanarSurface(arc).Bodies.OfType<IXPlanarSheetBody>().First() };
             rev.Commit();
 
-            body = (rev.Bodies.First() as SwBody).Body;
+            body = (rev.Bodies.First() as ISwBody).Body;
 
-            (app.Documents.Active as SwPart).Part.CreateFeatureFromBody3(body, false, 0);
+            (app.Documents.Active as ISwPart).Part.CreateFeatureFromBody3(body, false, 0);
 
-            var box = app.MemorySolidGeometryBuilder.CreateBox(
+            var box = app.MemoryGeometryBuilder.CreateSolidBox(
                 new Point(0, 0, 0), 
                 new Vector(1, 1, 1),
                 new Vector(1, 1, 1).CreateAnyPerpendicular(),
-                0.1, 0.2, 0.3, 
-                app.MemoryWireGeometryBuilder);
+                0.1, 0.2, 0.3);
 
-            body = (box.Bodies.First() as SwBody).Body;
+            body = (box.Bodies.First() as ISwBody).Body;
 
-            (app.Documents.Active as SwPart).Part.CreateFeatureFromBody3(body, false, 0);
+            (app.Documents.Active as ISwPart).Part.CreateFeatureFromBody3(body, false, 0);
 
-            var polyline = app.MemoryWireGeometryBuilder.PreCreatePolyline();
+            var polyline = app.MemoryGeometryBuilder.WireBuilder.PreCreatePolyline();
             polyline.Points = new Point[] 
             {
                 new Point(0, 0, 0),
@@ -184,23 +189,22 @@ namespace StandAlone
             };
             polyline.Commit();
 
-            var extr = app.MemorySolidGeometryBuilder.PreCreateExtrusion();
+            var extr = app.MemoryGeometryBuilder.SolidBuilder.PreCreateExtrusion();
             extr.Depth = 0.5;
             extr.Direction = new Vector(1, 1, 1);
-            extr.Profiles = new Xarial.XCad.Geometry.Wires.IXSegment[] { polyline };
+            extr.Profiles = new IXRegion[] { app.MemoryGeometryBuilder.CreatePlanarSurface(polyline).Bodies.OfType<IXPlanarSheetBody>().First() };
             extr.Commit();
 
-            body = (extr.Bodies.First() as SwBody).Body;
+            body = (extr.Bodies.First() as ISwBody).Body;
 
-            (app.Documents.Active as SwPart).Part.CreateFeatureFromBody3(body, false, 0);
+            (app.Documents.Active as ISwPart).Part.CreateFeatureFromBody3(body, false, 0);
 
-            var cyl = app.MemorySolidGeometryBuilder.CreateCylinder(
-                new Point(0, 0, 0), new Vector(1, 0, 0), 0.1, 0.2,
-                app.MemoryWireGeometryBuilder);
+            var cyl = app.MemoryGeometryBuilder.CreateSolidCylinder(
+                new Point(0, 0, 0), new Vector(1, 0, 0), 0.1, 0.2);
 
-            body = (cyl.Bodies.First() as SwBody).Body;
+            body = (cyl.Bodies.First() as ISwBody).Body;
 
-            (app.Documents.Active as SwPart).Part.CreateFeatureFromBody3(body, false, 0);
+            (app.Documents.Active as ISwPart).Part.CreateFeatureFromBody3(body, false, 0);
         }
     }
 }

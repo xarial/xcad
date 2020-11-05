@@ -20,13 +20,19 @@ using Xarial.XCad.SolidWorks.Documents;
 
 namespace Xarial.XCad.SolidWorks.Data
 {
-    public class SwCustomPropertiesCollection : IXPropertyRepository, IDisposable
+    public interface ISwCustomPropertiesCollection : IXPropertyRepository, IDisposable
+    {
+        new ISwCustomProperty this[string name] { get; }
+        new ISwCustomProperty GetOrPreCreate(string name);
+    }
+
+    internal class SwCustomPropertiesCollection : ISwCustomPropertiesCollection
     {
         IXProperty IXPropertyRepository.GetOrPreCreate(string name) => GetOrPreCreate(name);
 
         IXProperty IXRepository<IXProperty>.this[string name] => this[name];
 
-        public SwCustomProperty this[string name] 
+        public ISwCustomProperty this[string name] 
         {
             get 
             {
@@ -67,13 +73,13 @@ namespace Xarial.XCad.SolidWorks.Data
 
         private readonly CustomPropertiesEventsHelper m_EventsHelper;
 
-        private SwDocument m_Doc;
+        private ISwDocument m_Doc;
 
-        internal SwCustomPropertiesCollection(SwDocument doc, string confName) 
+        internal SwCustomPropertiesCollection(ISwDocument doc, string confName) 
         {
             m_Doc = doc;
             
-            m_EventsHelper = new CustomPropertiesEventsHelper(doc.SwApp, doc);
+            m_EventsHelper = new CustomPropertiesEventsHelper(doc.App.Sw, doc);
 
             m_ConfName = confName;
         }
@@ -107,7 +113,7 @@ namespace Xarial.XCad.SolidWorks.Data
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-        public SwCustomProperty GetOrPreCreate(string name)
+        public ISwCustomProperty GetOrPreCreate(string name)
         {
             return new SwCustomProperty(Model, PrpMgr, name, m_ConfName, m_EventsHelper);
         }
