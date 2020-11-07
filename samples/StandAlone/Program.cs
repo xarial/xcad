@@ -36,6 +36,10 @@ namespace StandAlone
         {
             //var app = SwApplicationFactory.Start(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020);
             var app = SwApplicationFactory.FromProcess(Process.GetProcessesByName("SLDWORKS").First());
+            
+            var p = app.Documents.NewPart();
+            var d = app.Documents.NewDrawing();
+            var a = app.Documents.NewAssembly();
 
             //SketchSegmentColors(app);
 
@@ -50,7 +54,7 @@ namespace StandAlone
 
             //TraverseSelectedFaces(app);
 
-            CreateSweepFromSelection(app);
+            //CreateSweepFromSelection(app);
             //CreateTempGeometry(app);
 
             //CreateSweepFromSelection(app);
@@ -99,9 +103,18 @@ namespace StandAlone
         private static void CreateSweepFromSelection(ISwApplication app) 
         {
             var doc = app.Documents.Active;
-            var feat = doc.Selections.First() as ISwFeature;
-            var sketch = SwObjectFactory.FromDispatch<ISwSketch2D>(feat.Feature.GetSpecificFeature2() as ISketch, doc);
-            var reg = sketch.Regions.First();
+            
+            var polyline = app.MemoryGeometryBuilder.WireBuilder.PreCreatePolyline();
+            polyline.Points = new Point[]
+            {
+                new Point(0, 0, 0),
+                new Point(0.01, 0.01, 0),
+                new Point(0.02, 0, 0),
+                new Point(0, 0, 0)
+            };
+            polyline.Commit();
+
+            var reg = app.MemoryGeometryBuilder.CreatePlanarSheet(polyline).Bodies.First();
 
             var pathSeg = app.Documents.Active.Selections.Last() as IXSketchSegment;
 
@@ -131,7 +144,7 @@ namespace StandAlone
             sweepLine.Commit();
 
             var sweep = app.MemoryGeometryBuilder.SolidBuilder.PreCreateSweep();
-            sweep.Profiles = new IXRegion[] { app.MemoryGeometryBuilder.CreatePlanarSurface(sweepArc).Bodies.OfType<IXPlanarSheetBody>().First() };
+            sweep.Profiles = new IXRegion[] { app.MemoryGeometryBuilder.CreatePlanarSheet(sweepArc).Bodies.First() };
             sweep.Path = sweepLine;
             sweep.Commit();
 
@@ -162,7 +175,7 @@ namespace StandAlone
             var rev = app.MemoryGeometryBuilder.SolidBuilder.PreCreateRevolve();
             rev.Angle = Math.PI * 2;
             rev.Axis = axis;
-            rev.Profiles = new IXRegion[] { app.MemoryGeometryBuilder.CreatePlanarSurface(arc).Bodies.OfType<IXPlanarSheetBody>().First() };
+            rev.Profiles = new IXRegion[] { app.MemoryGeometryBuilder.CreatePlanarSheet(arc).Bodies.First() };
             rev.Commit();
 
             body = (rev.Bodies.First() as ISwBody).Body;
@@ -192,7 +205,7 @@ namespace StandAlone
             var extr = app.MemoryGeometryBuilder.SolidBuilder.PreCreateExtrusion();
             extr.Depth = 0.5;
             extr.Direction = new Vector(1, 1, 1);
-            extr.Profiles = new IXRegion[] { app.MemoryGeometryBuilder.CreatePlanarSurface(polyline).Bodies.OfType<IXPlanarSheetBody>().First() };
+            extr.Profiles = new IXRegion[] { app.MemoryGeometryBuilder.CreatePlanarSheet(polyline).Bodies.First() };
             extr.Commit();
 
             body = (extr.Bodies.First() as ISwBody).Body;

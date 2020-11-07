@@ -15,5 +15,6 @@ namespace Xarial.XCad.Geometry.Primitives
     public interface IXPlanarSheet : IXPrimitive
     {
         IXSegment[] Boundary { get; set; }
+        new IXPlanarSheetBody[] Bodies { get; }
     }
 }

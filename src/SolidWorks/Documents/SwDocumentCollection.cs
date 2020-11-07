@@ -43,9 +43,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             get => Active;
             set => Active = (SwDocument)value;
         }
-
-        IXDocument IXDocumentRepository.Open(DocumentOpenArgs args) => Open(args);
-
+        
         private const int S_OK = 0;
 
         private readonly ISwApplication m_App;
@@ -53,6 +51,9 @@ namespace Xarial.XCad.SolidWorks.Documents
         private readonly Dictionary<IModelDoc2, SwDocument> m_Documents;
         private readonly IXLogger m_Logger;
         private readonly DocumentsHandler m_DocsHandler;
+        private readonly List<SwDocument> m_TemplateDocs;
+
+        private object m_Lock;
 
         public ISwDocument Active
         {
@@ -98,26 +99,20 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        private readonly Dictionary<string, swDocumentTypes_e> m_NativeFileExts;
-        
         internal SwDocumentCollection(ISwApplication app, IXLogger logger)
         {
-            m_NativeFileExts = new Dictionary<string, swDocumentTypes_e>(StringComparer.CurrentCultureIgnoreCase)
-            {
-                { ".sldprt", swDocumentTypes_e.swDocPART },
-                { ".sldasm", swDocumentTypes_e.swDocASSEMBLY },
-                { ".slddrw", swDocumentTypes_e.swDocDRAWING },
-                { ".sldlfp", swDocumentTypes_e.swDocPART },
-                { ".sldblk", swDocumentTypes_e.swDocPART }
-            };
-            
+            m_Lock = new object();
+
             m_App = app;
             m_SwApp = (SldWorks)m_App.Sw;
             m_Logger = logger;
 
+            m_TemplateDocs = new List<SwDocument>();
+
             m_Documents = new Dictionary<IModelDoc2, SwDocument>(
                 new SwPointerEqualityComparer<IModelDoc2>(m_SwApp));
             m_DocsHandler = new DocumentsHandler(app);
+            
             AttachToAllOpenedDocuments();
 
             m_SwApp.DocumentLoadNotify2 += OnDocumentLoadNotify2;
@@ -157,110 +152,6 @@ namespace Xarial.XCad.SolidWorks.Documents
             return m_Documents.Values.GetEnumerator();
         }
 
-        public ISwDocument Open(DocumentOpenArgs args)
-        {
-            IModelDoc2 model = null;
-            int errorCode = -1;
-
-            if (m_NativeFileExts.TryGetValue(Path.GetExtension(args.Path), out swDocumentTypes_e docType))
-            {
-                swOpenDocOptions_e opts = 0;
-                
-                if (args.ReadOnly) 
-                {
-                    opts |= swOpenDocOptions_e.swOpenDocOptions_ReadOnly;
-                }
-                
-                if (args.ViewOnly)
-                {
-                    opts |= swOpenDocOptions_e.swOpenDocOptions_ViewOnly;
-                }
-
-                if (args.Silent)
-                {
-                    opts |= swOpenDocOptions_e.swOpenDocOptions_Silent;
-                }
-
-                if (args.Rapid)
-                {
-                    if (docType == swDocumentTypes_e.swDocDRAWING)
-                    {
-                        if (m_App.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2020))
-                        {
-                            opts |= swOpenDocOptions_e.swOpenDocOptions_OpenDetailingMode;
-                        }
-                    }
-                    else if (docType == swDocumentTypes_e.swDocASSEMBLY)
-                    {
-                        if (m_App.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2020))
-                        {
-                            //TODO: this option should be implemented as 'Large Design Review' (swOpenDocOptions_ViewOnly) with 'Edit Assembly Option'. Later option is not available in API
-                        }
-                    }
-                    else if (docType == swDocumentTypes_e.swDocPART)
-                    {
-                        //There is no rapid option for SOLIDWORKS part document
-                    }
-                }
-
-                int warns = -1;
-                model = m_SwApp.OpenDoc6(args.Path, (int)docType, (int)opts, "", ref errorCode, ref warns);
-            }
-            else 
-            {
-                model = m_SwApp.LoadFile4(args.Path, "", null, ref errorCode);
-            }
-            
-            if (model == null) 
-            {
-                string error = "";
-                
-                switch ((swFileLoadError_e)errorCode) 
-                {
-                    case swFileLoadError_e.swAddinInteruptError:
-                        error = "File opening was interrupted by the user";
-                        break;
-                    case swFileLoadError_e.swApplicationBusy:
-                        error = "Application is busy";
-                        break;
-                    case swFileLoadError_e.swFileCriticalDataRepairError:
-                        error = "File has critical data corruption";
-                        break;
-                    case swFileLoadError_e.swFileNotFoundError:
-                        error = "File not found at the specified path";
-                        break;
-                    case swFileLoadError_e.swFileRequiresRepairError:
-                        error = "File has non-critical custom property data corruption";
-                        break;
-                    case swFileLoadError_e.swFileWithSameTitleAlreadyOpen:
-                        error = "A document with the same name is already open";
-                        break;
-                    case swFileLoadError_e.swFutureVersion:
-                        error = "The document was saved in a future version of SOLIDWORKS";
-                        break;
-                    case swFileLoadError_e.swGenericError:
-                        error = "Unknown error while opening file";
-                        break;
-                    case swFileLoadError_e.swInvalidFileTypeError:
-                        error = "Invalid file type";
-                        break;
-                    case swFileLoadError_e.swLiquidMachineDoc:
-                        error = "File encrypted by Liquid Machines";
-                        break;
-                    case swFileLoadError_e.swLowResourcesError:
-                        error = "File is open and blocked because the system memory is low, or the number of GDI handles has exceeded the allowed maximum";
-                        break;
-                    case swFileLoadError_e.swNoDisplayData:
-                        error = "File contains no display data";
-                        break;
-                }
-
-                throw new OpenDocumentFailedException(args.Path, errorCode, error);
-            }
-
-            return this[model];
-        }
-
         public void Dispose()
         {
             m_SwApp.DocumentLoadNotify2 -= OnDocumentLoadNotify2;
@@ -290,24 +181,27 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
             if (!m_Documents.ContainsKey(model))
             {
-                SwDocument doc = null;
+                SwDocument doc;
 
-                switch (model)
+                if (!TryFindPreCreatedTemplate(model, out doc))
                 {
-                    case IPartDoc part:
-                        doc = new SwPart(part, m_App, m_Logger, true);
-                        break;
+                    switch (model)
+                    {
+                        case IPartDoc part:
+                            doc = new SwPart(part, m_App, m_Logger, true);
+                            break;
 
-                    case IAssemblyDoc assm:
-                        doc = new SwAssembly(assm, m_App, m_Logger, true);
-                        break;
+                        case IAssemblyDoc assm:
+                            doc = new SwAssembly(assm, m_App, m_Logger, true);
+                            break;
 
-                    case IDrawingDoc drw:
-                        doc = new SwDrawing(drw, m_App, m_Logger, true);
-                        break;
+                        case IDrawingDoc drw:
+                            doc = new SwDrawing(drw, m_App, m_Logger, true);
+                            break;
 
-                    default:
-                        throw new NotSupportedException();
+                        default:
+                            throw new NotSupportedException();
+                    }
                 }
 
                 doc.Closing += OnDocumentDestroyed;
@@ -323,6 +217,63 @@ namespace Xarial.XCad.SolidWorks.Documents
                 m_Logger.Log($"Conflict. {model.GetTitle()} already registered");
                 Debug.Assert(false, "Document was not unregistered");
             }
+        }
+
+        private bool TryFindPreCreatedTemplate(IModelDoc2 model, out SwDocument doc)
+        {
+            var templateDocIndex = -1;
+            
+            doc = null;
+
+            lock (m_Lock)
+            {
+                templateDocIndex = m_TemplateDocs.FindIndex(d =>
+                {
+                    if (d.IsCommitted)
+                    {
+                        return d.Model == model;
+                    }
+                    else
+                    {
+                        if (!d.DocumentType.HasValue || (int)d.DocumentType.Value == model.GetType()) 
+                        {
+                            var thisDocPath = d.Path ?? "";
+                            var modelPath = model.GetPathName() ?? "";
+
+                            if (string.Equals(thisDocPath, modelPath, StringComparison.CurrentCultureIgnoreCase))
+                            {
+                                return true;
+                            }
+                            else 
+                            {
+                                //Non-native filews will not have path so returnign if type is matched
+                                if (!SwDocument.NativeFileExts.ContainsKey(Path.GetExtension(model.GetPathName()))) 
+                                {
+                                    return true;
+                                }
+                            }
+                        }
+                    }
+
+                    return false;
+                });
+
+                if (templateDocIndex != -1)
+                {
+                    doc = m_TemplateDocs[templateDocIndex];
+                    m_TemplateDocs.RemoveAt(templateDocIndex);
+                    doc.Model = model;
+
+                    if (doc is SwUnknownDocument)
+                    {
+                        doc = (SwDocument)(doc as SwUnknownDocument).GetSpecific();
+                    }
+
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private int OnDocumentLoadNotify2(string docTitle, string docPath)
@@ -373,24 +324,41 @@ namespace Xarial.XCad.SolidWorks.Documents
             return m_DocsHandler.GetHandler<THandler>(doc);
         }
 
-        TDocument IXDocumentRepository.PreCreate<TDocument>()
+        public TDocument PreCreate<TDocument>()
+             where TDocument : class, IXDocument
         {
-            if (typeof(TDocument).IsAssignableFrom(typeof(SwPart)))
+            SwDocument templateDoc = null;
+
+            if (typeof(TDocument).IsAssignableFrom(typeof(ISwPart)))
             {
-                return new SwPart(null, m_App, m_Logger, false) as TDocument;
+                templateDoc = new SwPart(null, m_App, m_Logger, false);
             }
-            else if (typeof(TDocument).IsAssignableFrom(typeof(SwAssembly)))
+            else if (typeof(TDocument).IsAssignableFrom(typeof(ISwAssembly)))
             {
-                return new SwAssembly(null, m_App, m_Logger, false) as TDocument;
+                templateDoc = new SwAssembly(null, m_App, m_Logger, false);
             }
-            else if (typeof(TDocument).IsAssignableFrom(typeof(SwDrawing)))
+            else if (typeof(TDocument).IsAssignableFrom(typeof(ISwDrawing)))
             {
-                return new SwDrawing(null, m_App, m_Logger, false) as TDocument;
+                templateDoc = new SwDrawing(null, m_App, m_Logger, false);
             }
-            else 
+            else if (typeof(TDocument).IsAssignableFrom(typeof(ISwDocument))
+                || typeof(TDocument).IsAssignableFrom(typeof(SwUnknownDocument)))
+            {
+                templateDoc = new SwUnknownDocument(null, m_App, m_Logger, false);
+            }
+            else
             {
                 throw new NotSupportedException("Creation of this type of document is not supported");
             }
+
+            templateDoc.SetCommitCallback(OnCommitTemplate);
+
+            return templateDoc as TDocument;
+        }
+
+        private void OnCommitTemplate(SwDocument templateDoc) 
+        {
+            m_TemplateDocs.Add(templateDoc);
         }
 
         public bool TryGet(string name, out IXDocument ent)

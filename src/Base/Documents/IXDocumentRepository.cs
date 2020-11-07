@@ -34,13 +34,6 @@ namespace Xarial.XCad.Documents
         IXDocument Active { get; set; }
 
         /// <summary>
-        /// Opens existing document
-        /// </summary>
-        /// <param name="args"></param>
-        /// <returns></returns>
-        IXDocument Open(DocumentOpenArgs args); //TODO: implement opening via pre-create
-
-        /// <summary>
         /// Registers document handler
         /// </summary>
         /// <typeparam name="THandler"></typeparam>

@@ -7,6 +7,7 @@
 
 using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Xarial.XCad.Base;
@@ -34,7 +35,11 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
             Bodies = new SwPartBodyCollection(this);
         }
-        
+
+        internal protected override swDocumentTypes_e? DocumentType => swDocumentTypes_e.swDocPART;
+
+        protected override bool IsRapidMode => throw new NotSupportedException();
+
         public override Box3D CalculateBoundingBox()
         {
             var bodies = Part.GetBodies2((int)swBodyType_e.swAllBodies, true) as object[];
@@ -100,8 +105,6 @@ namespace Xarial.XCad.SolidWorks.Documents
 
             return new Box3D(minX, minY, minZ, maxX, maxY, maxZ);
         }
-
-        protected override swUserPreferenceStringValue_e DefaultTemplate => swUserPreferenceStringValue_e.swDefaultTemplatePart;
     }
 
     internal class SwPartBodyCollection : SwBodyCollection

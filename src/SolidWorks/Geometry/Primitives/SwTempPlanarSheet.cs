@@ -22,11 +22,14 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
 {
     public interface ISwTempPlanarSheet : IXPlanarSheet, ISwTempPrimitive
     {
+        new ISwTempPlanarSheetBody[] Bodies { get; }
         new ISwCurve[] Boundary { get; set; }
     }
 
     internal class SwTempPlanarSheet : SwTempPrimitive, ISwTempPlanarSheet
     {
+        IXPlanarSheetBody[] IXPlanarSheet.Bodies => Bodies;
+
         IXSegment[] IXPlanarSheet.Boundary
         {
             get => Boundary;
@@ -66,10 +69,19 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
                 }
                 else 
                 {
-                    throw new Exception("Boundary is not a planar curve");
+                    //TODO: check if not colinear
+                    //TODO: check if all on the same plane
+
+                    var refVec1 = Boundary[0].EndPoint.Coordinate - Boundary[0].StartPoint.Coordinate;
+                    var refVec2 = Boundary[1].EndPoint.Coordinate - Boundary[1].StartPoint.Coordinate;
+                    var normVec = refVec1.Cross(refVec2);
+
+                    return new Plane(Boundary.First().StartPoint.Coordinate, normVec, refVec1);
                 }
             }
         }
+
+        new public ISwTempPlanarSheetBody[] Bodies => base.Bodies.Cast<ISwTempPlanarSheetBody>().ToArray();
 
         protected override ISwTempBody[] CreateBodies()
         {
