@@ -9,6 +9,7 @@ using SolidWorks.Interop.sldworks;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Primitives;
 using Xarial.XCad.Services;
@@ -41,11 +42,11 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
             m_Creator = new ElementCreator<ISwTempBody[]>(CreateBodies, bodies, isCreated);
         }
 
-        protected virtual ISwTempBody[] CreateBodies() 
+        protected virtual ISwTempBody[] CreateBodies(CancellationToken cancellationToken) 
         {
             throw new NotSupportedException();
         }
 
-        public void Commit() => m_Creator.Create();
+        public void Commit(CancellationToken cancellationToken) => m_Creator.Create(cancellationToken);
     }
 }

@@ -8,6 +8,7 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using Xarial.XCad.Toolkit.Exceptions;
 
 namespace Xarial.XCad.Services
@@ -48,11 +49,11 @@ namespace Xarial.XCad.Services
 
         private TElem m_Element;
 
-        private readonly Func<TElem> m_Creator;
+        private readonly Func<CancellationToken, TElem> m_Creator;
 
         public CachedProperties CachedProperties { get; }
 
-        public ElementCreator(Func<TElem> creator, TElem elem, bool created = false)
+        public ElementCreator(Func<CancellationToken,TElem> creator, TElem elem, bool created = false)
         {
             m_Creator = creator;
             IsCreated = created;
@@ -76,11 +77,11 @@ namespace Xarial.XCad.Services
             }
         }
 
-        public void Create()
+        public void Create(CancellationToken cancellationToken)
         {
             if (!IsCreated)
             {
-                m_Element = m_Creator.Invoke();
+                m_Element = m_Creator.Invoke(cancellationToken);
                 Creating?.Invoke(m_Element);
                 IsCreated = true;
             }

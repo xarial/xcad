@@ -7,6 +7,7 @@
 
 using SolidWorks.Interop.sldworks;
 using System;
+using System.Threading;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Services;
 using Xarial.XCad.Sketch;
@@ -36,7 +37,7 @@ namespace Xarial.XCad.SolidWorks.Sketch
             m_Creator = new ElementCreator<ISketchPoint>(CreatePoint, pt, created);
         }
 
-        public override void Commit() => m_Creator.Create();
+        public override void Commit(CancellationToken cancellationToken) => m_Creator.Create(cancellationToken);
 
         public override System.Drawing.Color? Color
         {
@@ -109,7 +110,7 @@ namespace Xarial.XCad.SolidWorks.Sketch
 
         private System.Drawing.Color? GetColor() => ColorUtils.FromColorRef(Point.Color);
 
-        private ISketchPoint CreatePoint()
+        private ISketchPoint CreatePoint(CancellationToken cancellationToken)
         {
             var pt = m_SketchMgr.CreatePoint(Coordinate.X, Coordinate.Y, Coordinate.Z);
 

@@ -10,6 +10,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
+using Xarial.XCad.Base;
 using Xarial.XCad.Geometry.Curves;
 
 namespace Xarial.XCad.SolidWorks.Geometry.Curves
@@ -34,7 +36,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Curves
         {
         }
 
-        protected override ICurve[] Create()
+        protected override ICurve[] Create(CancellationToken cancellationToken)
         {
             var retVal = new List<ICurve>();
 

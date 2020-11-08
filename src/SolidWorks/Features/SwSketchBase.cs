@@ -8,6 +8,7 @@
 using SolidWorks.Interop.sldworks;
 using System;
 using System.ComponentModel;
+using System.Threading;
 using Xarial.XCad.Features;
 using Xarial.XCad.Sketch;
 using Xarial.XCad.SolidWorks.Documents;
@@ -92,7 +93,7 @@ namespace Xarial.XCad.SolidWorks.Features
 
         protected abstract void ToggleEditSketch();
 
-        protected override IFeature CreateFeature()
+        protected override IFeature CreateFeature(CancellationToken cancellationToken)
         {
             var sketch = CreateSketch();
 

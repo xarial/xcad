@@ -11,6 +11,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Primitives;
 using Xarial.XCad.Geometry.Structures;
@@ -93,7 +94,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
             }
         }
 
-        protected override ISwTempBody[] CreateBodies()
+        protected override ISwTempBody[] CreateBodies(CancellationToken cancellationToken)
         {
             var bodies = new List<ISwTempBody>();
 

@@ -9,6 +9,7 @@ using SolidWorks.Interop.sldworks;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Threading;
 using Xarial.XCad.Annotations;
 using Xarial.XCad.Features;
 using Xarial.XCad.Services;
@@ -53,9 +54,9 @@ namespace Xarial.XCad.SolidWorks.Features
             m_Creator = new ElementCreator<IFeature>(CreateFeature, feat, created);
         }
 
-        public override void Commit() => m_Creator.Create();
+        public override void Commit(CancellationToken cancellationToken) => m_Creator.Create(cancellationToken);
 
-        protected virtual IFeature CreateFeature()
+        protected virtual IFeature CreateFeature(CancellationToken cancellationToken)
         {
             throw new NotSupportedException("Creation of this feature is not supported");
         }

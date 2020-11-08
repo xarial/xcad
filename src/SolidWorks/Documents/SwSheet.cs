@@ -9,6 +9,7 @@ using SolidWorks.Interop.sldworks;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
 using Xarial.XCad.Documents;
 
 namespace Xarial.XCad.SolidWorks.Documents
@@ -44,7 +45,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             DrawingViews = new SwDrawingViewsCollection(draw, sheet);
         }
 
-        public void Commit()
+        public void Commit(CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }

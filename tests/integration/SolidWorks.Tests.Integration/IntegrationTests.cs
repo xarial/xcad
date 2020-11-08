@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Xarial.XCad.Enums;
 using Xarial.XCad.SolidWorks;
 
 namespace SolidWorks.Tests.Integration
@@ -53,9 +54,10 @@ namespace SolidWorks.Tests.Integration
         {
             if (SW_PRC_ID < 0)
             {
-                m_App = SwApplicationFactory.Start(null,
-                    SwApplicationFactory.CommandLineArguments.SafeMode 
-                    + " " + SwApplicationFactory.CommandLineArguments.SilentMode);
+                m_App = SwApplicationFactory.Create(0,
+                    ApplicationState_e.Background 
+                    | ApplicationState_e.Safe 
+                    | ApplicationState_e.Silent);
 
                 m_CloseSw = true;
             }

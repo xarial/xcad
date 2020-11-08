@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using Xarial.XCad.Geometry.Curves;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Geometry.Wires;
@@ -50,9 +51,9 @@ namespace Xarial.XCad.SolidWorks.Geometry.Curves
             m_Creator = new ElementCreator<ICurve[]>(Create, curves, isCreated);
         }
 
-        public void Commit() => m_Creator.Create();
+        public void Commit(CancellationToken cancellationToken) => m_Creator.Create(cancellationToken);
 
-        protected virtual ICurve[] Create() 
+        protected virtual ICurve[] Create(CancellationToken cancellationToken) 
         {
             throw new NotSupportedException();
         }

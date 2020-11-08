@@ -15,6 +15,7 @@ using System.Threading.Tasks;
 using Xarial.XCad;
 using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
+using Xarial.XCad.Enums;
 using Xarial.XCad.Features;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Primitives;
@@ -34,31 +35,73 @@ namespace StandAlone
     {
         static void Main(string[] args)
         {
-            //var app = SwApplicationFactory.Start(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020);
-            var app = SwApplicationFactory.FromProcess(Process.GetProcessesByName("SLDWORKS").First());
+            try
+            {
+                //var app1 = Activator.CreateInstance(Type.GetTypeFromProgID("SldWorks.Application"));
 
-            var o = app.Documents.Open(@"C:\Users\artem\OneDrive\xCAD\TestData\foreign.IGS");
-            var p = app.Documents.NewPart();
-            var d = app.Documents.NewDrawing();
-            var a = app.Documents.NewAssembly();
+                ISwApplication app = null;
+                DateTime start;
+                Process prc = null;
 
-            //SketchSegmentColors(app);
+                //var start = DateTime.Now;
+                //var app = SwApplicationFactory.Create(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020);
+                //Console.WriteLine($"Default: {(DateTime.Now - start).TotalMilliseconds}");
+                //var prc = Process.GetProcessById(app.Sw.GetProcessID());
+                //prc.Kill();
 
-            //CreateDrawingView(app);
+                //start = DateTime.Now;
+                //app = SwApplicationFactory.Create(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020, ApplicationState_e.Silent);
+                //Console.WriteLine($"Silent: {(DateTime.Now - start).TotalMilliseconds}");
+                //prc = Process.GetProcessById(app.Sw.GetProcessID());
+                //prc.Kill();
 
-            //var sw = Activator.CreateInstance(Type.GetTypeFromProgID("SldWorks.Application")) as ISldWorks;
-            //sw.Visible = true;
+                //start = DateTime.Now;
+                //app = SwApplicationFactory.Create(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020, ApplicationState_e.Safe);
+                //Console.WriteLine($"Safe: {(DateTime.Now - start).TotalMilliseconds}");
+                //prc = Process.GetProcessById(app.Sw.GetProcessID());
+                //prc.Kill();
 
-            //var app = SwApplication.FromPointer(sw);
+                //start = DateTime.Now;
+                //app = SwApplicationFactory.Create(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020, ApplicationState_e.Hidden);
+                //Console.WriteLine($"Hidden: {(DateTime.Now - start).TotalMilliseconds}");
+                //prc = Process.GetProcessById(app.Sw.GetProcessID());
+                //prc.Kill();
 
-            //CreateSketchEntities(app);
+                start = DateTime.Now;
+                app = SwApplicationFactory.Create(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020, ApplicationState_e.Background);
+                Console.WriteLine($"Background: {(DateTime.Now - start).TotalMilliseconds}");
+                //prc = Process.GetProcessById(app.Sw.GetProcessID());
+                //prc.Kill();
 
-            //TraverseSelectedFaces(app);
+                //var app = SwApplicationFactory.FromProcess(Process.GetProcessesByName("SLDWORKS").First());
+                Console.ReadLine();
+                return;
+                var o = app.Documents.Open(@"C:\Users\artem\OneDrive\xCAD\TestData\foreign.IGS");
+                var p = app.Documents.NewPart();
+                var d = app.Documents.NewDrawing();
+                var a = app.Documents.NewAssembly();
 
-            //CreateSweepFromSelection(app);
-            //CreateTempGeometry(app);
+                //SketchSegmentColors(app);
 
-            //CreateSweepFromSelection(app);
+                //CreateDrawingView(app);
+
+                //var sw = Activator.CreateInstance(Type.GetTypeFromProgID("SldWorks.Application")) as ISldWorks;
+                //sw.Visible = true;
+
+                //var app = SwApplication.FromPointer(sw);
+
+                //CreateSketchEntities(app);
+
+                //TraverseSelectedFaces(app);
+
+                //CreateSweepFromSelection(app);
+                //CreateTempGeometry(app);
+
+                //CreateSweepFromSelection(app);
+            }
+            catch 
+            {
+            }
         }
         
         private static void SketchSegmentColors(IXApplication app) 

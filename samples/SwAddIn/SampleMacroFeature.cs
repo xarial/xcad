@@ -22,6 +22,7 @@ using System.Linq;
 using Xarial.XCad.SolidWorks.Geometry.Primitives;
 using Xarial.XCad.Geometry.Primitives;
 using Xarial.XCad.SolidWorks.Geometry;
+using Xarial.XCad.Base;
 
 namespace SwAddInExample
 {

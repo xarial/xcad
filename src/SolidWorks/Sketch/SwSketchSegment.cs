@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Text;
+using System.Threading;
 using Xarial.XCad.Geometry.Wires;
 using Xarial.XCad.Services;
 using Xarial.XCad.Sketch;
@@ -54,7 +55,7 @@ namespace Xarial.XCad.SolidWorks.Sketch
             m_Creator = new ElementCreator<ISketchSegment>(CreateEntity, seg, created);
         }
 
-        public override void Commit() => m_Creator.Create();
+        public override void Commit(CancellationToken cancellationToken) => m_Creator.Create(cancellationToken);
         
         public override Color? Color
         {
@@ -123,7 +124,7 @@ namespace Xarial.XCad.SolidWorks.Sketch
 
         private Color? GetColor() => ColorUtils.FromColorRef(Segment.Color);
 
-        private ISketchSegment CreateEntity()
+        private ISketchSegment CreateEntity(CancellationToken cancellationToken)
         {
             var ent = CreateSketchEntity();
 
