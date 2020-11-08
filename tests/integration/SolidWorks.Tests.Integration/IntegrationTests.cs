@@ -11,6 +11,7 @@ using Xarial.XCad.SolidWorks;
 
 namespace SolidWorks.Tests.Integration
 {
+    [TestFixture]
     public abstract class IntegrationTests
     {
         private class DocumentWrapper : IDisposable
@@ -47,12 +48,15 @@ namespace SolidWorks.Tests.Integration
 
         private bool m_CloseSw;
 
-        [SetUp]
+        [OneTimeSetUp]
         public void Setup()
         {
             if (SW_PRC_ID < 0)
             {
-                m_App = SwApplicationFactory.Start(null, "/b");
+                m_App = SwApplicationFactory.Start(null,
+                    SwApplicationFactory.CommandLineArguments.SafeMode 
+                    + " " + SwApplicationFactory.CommandLineArguments.SilentMode);
+
                 m_CloseSw = true;
             }
             else if (SW_PRC_ID == 0) 
@@ -63,7 +67,7 @@ namespace SolidWorks.Tests.Integration
             else
             {
                 var prc = Process.GetProcessById(SW_PRC_ID);
-                prc = Process.GetProcessById(SW_PRC_ID);
+                m_App = SwApplicationFactory.FromProcess(prc);
             }
 
             m_SwApp = m_App.Sw;
@@ -100,26 +104,10 @@ namespace SolidWorks.Tests.Integration
 
         protected IDisposable NewDocument(swDocumentTypes_e docType) 
         {
-            swUserPreferenceStringValue_e defTemplateType;
+            var defTemplatePath = m_SwApp.GetDocumentTemplate(
+                (int)docType, "", (int)swDwgPaperSizes_e.swDwgPapersUserDefined, 100, 100);
 
-            switch (docType) 
-            {
-                case swDocumentTypes_e.swDocPART:
-                    defTemplateType = swUserPreferenceStringValue_e.swDefaultTemplatePart;
-                    break;
-                case swDocumentTypes_e.swDocASSEMBLY:
-                    defTemplateType = swUserPreferenceStringValue_e.swDefaultTemplateAssembly;
-                    break;
-                case swDocumentTypes_e.swDocDRAWING:
-                    defTemplateType = swUserPreferenceStringValue_e.swDefaultTemplateDrawing;
-                    break;
-                default:
-                    throw new NotSupportedException("Document type is not supported");
-            }
-
-            var defTemplatePath = m_SwApp.GetUserPreferenceStringValue((int)defTemplateType);
-
-            if (string.IsNullOrEmpty(defTemplatePath)) 
+            if (string.IsNullOrEmpty(defTemplatePath))
             {
                 throw new Exception("Default template is not found");
             }
@@ -139,19 +127,25 @@ namespace SolidWorks.Tests.Integration
         }
 
         [TearDown]
-        public void TearDown()
+        public void TearDown() 
         {
-            foreach (var disp in m_Disposables) 
+            foreach (var disp in m_Disposables)
             {
                 try
                 {
                     disp.Dispose();
                 }
-                catch 
+                catch
                 {
                 }
             }
 
+            m_Disposables.Clear();
+        }
+
+        [OneTimeTearDown]
+        public void FinalTearDown()
+        {
             if (m_CloseSw) 
             {
                 m_App.Close();

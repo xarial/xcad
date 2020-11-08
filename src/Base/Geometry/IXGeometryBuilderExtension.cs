@@ -45,7 +45,7 @@ namespace Xarial.XCad.Geometry
             var extr = builder.SolidBuilder.PreCreateExtrusion();
             extr.Depth = height;
             extr.Direction = dir;
-            extr.Profiles = new IXRegion[] { builder.CreatePlanarSurface(polyline).Bodies.OfType<IXPlanarSheetBody>().First() };
+            extr.Profiles = new IXRegion[] { builder.CreatePlanarSheet(polyline).Bodies.First() };
             extr.Commit();
 
             return extr;
@@ -72,7 +72,7 @@ namespace Xarial.XCad.Geometry
             var extr = builder.SolidBuilder.PreCreateExtrusion();
             extr.Depth = height;
             extr.Direction = arc.Axis;
-            extr.Profiles = new IXRegion[] { builder.CreatePlanarSurface(arc).Bodies.OfType<IXPlanarSheetBody>().First() };
+            extr.Profiles = new IXRegion[] { builder.CreatePlanarSheet(arc).Bodies.First() };
             extr.Commit();
 
             return extr;
@@ -84,12 +84,12 @@ namespace Xarial.XCad.Geometry
         /// <param name="builder">Geometry builder</param>
         /// <param name="center">Center of the cone base</param>
         /// <param name="axis">Cone axis</param>
-        /// <param name="baseRadius">Base radius of the cone</param>
-        /// <param name="topRadius">Top radius of the cone</param>
+        /// <param name="baseDiam">Base diameter of the cone</param>
+        /// <param name="topDiam">Top diameter of the cone</param>
         /// <param name="height">Height of the cone</param>
         /// <returns></returns>
         public static IXRevolve CreateSolidCone(this IXGeometryBuilder builder, Point center, Vector axis,
-            double baseRadius, double topRadius, double height)
+            double baseDiam, double topDiam, double height)
         {
             var refDir = axis.CreateAnyPerpendicular();
 
@@ -98,8 +98,8 @@ namespace Xarial.XCad.Geometry
             {
                 center,
                 center.Move(axis, height),
-                center.Move(axis, height).Move(refDir, topRadius / 2),
-                center.Move(refDir, baseRadius / 2),
+                center.Move(axis, height).Move(refDir, topDiam / 2),
+                center.Move(refDir, baseDiam / 2),
                 center
             };
             profile.Commit();
@@ -112,14 +112,14 @@ namespace Xarial.XCad.Geometry
             var rev = builder.SolidBuilder.PreCreateRevolve();
             rev.Axis = revLine;
             rev.Angle = Math.PI * 2;
-            rev.Profiles = new IXRegion[] { builder.CreatePlanarSurface(profile).Bodies.OfType<IXPlanarSheetBody>().First() };
+            rev.Profiles = new IXRegion[] { builder.CreatePlanarSheet(profile).Bodies.First() };
             rev.Commit();
 
             return rev;
         }
 
         public static IXExtrusion CreateSolidExtrusion(this IXGeometryBuilder builder, 
-            double depth, Vector direction, IXRegion[] profiles) 
+            double depth, Vector direction, params IXRegion[] profiles) 
         {
             var extr = builder.SolidBuilder.PreCreateExtrusion();
             extr.Depth = depth;
@@ -141,7 +141,7 @@ namespace Xarial.XCad.Geometry
             return rev;
         }
 
-        public static IXSweep CreateSolidSweep(this IXGeometryBuilder builder, IXSegment path, IXRegion[] profiles)
+        public static IXSweep CreateSolidSweep(this IXGeometryBuilder builder, IXSegment path, params IXRegion[] profiles)
         {
             var sweep = builder.SolidBuilder.PreCreateSweep();
             sweep.Profiles = profiles;
@@ -151,7 +151,7 @@ namespace Xarial.XCad.Geometry
             return sweep;
         }
 
-        public static IXPlanarSheet CreatePlanarSurface(this IXGeometryBuilder builder, params IXSegment[] boundary)
+        public static IXPlanarSheet CreatePlanarSheet(this IXGeometryBuilder builder, params IXSegment[] boundary)
         {
             var surf = builder.SheetBuilder.PreCreatePlanarSheet();
             surf.Boundary = boundary;

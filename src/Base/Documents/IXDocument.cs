@@ -76,6 +76,27 @@ namespace Xarial.XCad.Documents
         bool Visible { get; set; }
 
         /// <summary>
+        /// Opens document in read-only mode
+        /// </summary>
+        bool ReadOnly { get; set; }
+
+        /// <summary>
+        /// Opens document in view only mode
+        /// </summary>
+        bool ViewOnly { get; set; }
+
+        /// <summary>
+        /// Opens document without displaying any popup messages
+        /// </summary>
+        bool Silent { get; set; }
+
+        /// <summary>
+        /// Opens document in the rapid mode
+        /// </summary>
+        /// <remarks>This mode significantly improves the performance of opening but certain functionality and API migth not be available</remarks>
+        bool Rapid { get; set; }
+
+        /// <summary>
         /// Closes this document
         /// </summary>
         void Close();
@@ -115,5 +136,10 @@ namespace Xarial.XCad.Documents
         /// <param name="access">Access type</param>
         /// <returns>Pointer to the storage</returns>
         IStorage OpenStorage(string name, AccessType_e access);
+    }
+
+    public interface IXUnknownDocument : IXDocument 
+    {
+        IXDocument GetSpecific();
     }
 }

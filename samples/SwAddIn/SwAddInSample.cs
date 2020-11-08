@@ -206,10 +206,7 @@ namespace SwAddInExample
             switch (spec) 
             {
                 case Commands_e.OpenDoc:
-                    var doc = Application.Documents.Open(new DocumentOpenArgs()
-                    {
-                        Path = @"C:\Users\artem\OneDrive\Attribution\SwModels\Annotation.sldprt",
-                    });
+                    var doc = Application.Documents.Open(@"C:\Users\artem\OneDrive\Attribution\SwModels\Annotation.sldprt");
                     break;
 
                 case Commands_e.ShowPmPage:

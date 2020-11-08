@@ -7,6 +7,7 @@
 
 using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
+using System;
 using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Geometry.Structures;
@@ -24,14 +25,16 @@ namespace Xarial.XCad.SolidWorks.Documents
         public IAssemblyDoc Assembly => Model as IAssemblyDoc;
 
         public IXComponentRepository Components { get; }
-
-        protected override swUserPreferenceStringValue_e DefaultTemplate => swUserPreferenceStringValue_e.swDefaultTemplateAssembly;
-
+        
         internal SwAssembly(IAssemblyDoc assembly, ISwApplication app, IXLogger logger, bool isCreated)
             : base((IModelDoc2)assembly, app, logger, isCreated)
         {
             Components = new SwAssemblyComponentCollection(this);
         }
+
+        internal protected override swDocumentTypes_e? DocumentType => swDocumentTypes_e.swDocASSEMBLY;
+
+        protected override bool IsRapidMode => throw new NotSupportedException();
 
         public override Box3D CalculateBoundingBox()
         {

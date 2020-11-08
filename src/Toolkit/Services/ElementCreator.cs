@@ -42,6 +42,8 @@ namespace Xarial.XCad.Services
 
     public class ElementCreator<TElem>
     {
+        public event Action<TElem> Creating;
+
         public bool IsCreated { get; private set; }
 
         private TElem m_Element;
@@ -79,6 +81,7 @@ namespace Xarial.XCad.Services
             if (!IsCreated)
             {
                 m_Element = m_Creator.Invoke();
+                Creating?.Invoke(m_Element);
                 IsCreated = true;
             }
             else

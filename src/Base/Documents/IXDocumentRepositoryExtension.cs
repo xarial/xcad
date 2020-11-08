@@ -43,7 +43,30 @@ namespace Xarial.XCad.Documents
         {
             var doc = repo.PreCreate<TDoc>();
             repo.Add(doc);
+
+            if (doc is IXUnknownDocument) 
+            {
+                doc = (TDoc)(doc as IXUnknownDocument).GetSpecific();
+            }
+
             return doc;
+        }
+
+        public static IXDocument Open(this IXDocumentRepository repo, string path, 
+            bool silent = true, bool viewOnly = false,
+            bool readOnly = false, bool rapid = false)
+        {
+            var doc = repo.PreCreate<IXUnknownDocument>();
+
+            doc.Path = path;
+            doc.Silent = silent;
+            doc.ViewOnly = viewOnly;
+            doc.ReadOnly = readOnly;
+            doc.Rapid = rapid;
+
+            repo.Add(doc);
+
+            return doc.GetSpecific();
         }
     }
 }

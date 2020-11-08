@@ -7,6 +7,7 @@
 
 using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
+using System;
 using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Utils.Diagnostics;
@@ -24,12 +25,27 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public IXSheetRepository Sheets { get; }
 
+        internal protected override swDocumentTypes_e? DocumentType => swDocumentTypes_e.swDocDRAWING;
+
+        protected override bool IsRapidMode 
+        {
+            get 
+            {
+                if (App.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2020))
+                {
+                    return Drawing.IsDetailingMode();
+                }
+                else 
+                {
+                    return false;
+                }
+            }
+        }
+
         internal SwDrawing(IDrawingDoc drawing, ISwApplication app, IXLogger logger, bool isCreated)
             : base((IModelDoc2)drawing, app, logger, isCreated)
         {
             Sheets = new SwSheetCollection(this);
         }
-
-        protected override swUserPreferenceStringValue_e DefaultTemplate => swUserPreferenceStringValue_e.swDefaultTemplateDrawing;
     }
 }

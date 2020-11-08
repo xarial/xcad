@@ -8,6 +8,7 @@
 using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
@@ -17,13 +18,16 @@ using Xarial.XCad.Data;
 using Xarial.XCad.Data.Enums;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Delegates;
+using Xarial.XCad.Documents.Exceptions;
 using Xarial.XCad.Features;
 using Xarial.XCad.Services;
 using Xarial.XCad.SolidWorks.Annotations;
 using Xarial.XCad.SolidWorks.Data;
 using Xarial.XCad.SolidWorks.Data.EventHandlers;
 using Xarial.XCad.SolidWorks.Documents.EventHandlers;
+using Xarial.XCad.SolidWorks.Documents.Services;
 using Xarial.XCad.SolidWorks.Features;
+using Xarial.XCad.SolidWorks.Utils;
 
 namespace Xarial.XCad.SolidWorks.Documents
 {
@@ -43,6 +47,20 @@ namespace Xarial.XCad.SolidWorks.Documents
     [DebuggerDisplay("{" + nameof(Title) + "}")]
     internal abstract class SwDocument : ISwDocument
     {
+        internal static Dictionary<string, swDocumentTypes_e> NativeFileExts { get; }
+
+        static SwDocument() 
+        {
+            NativeFileExts = new Dictionary<string, swDocumentTypes_e>(StringComparer.CurrentCultureIgnoreCase)
+            {
+                { ".sldprt", swDocumentTypes_e.swDocPART },
+                { ".sldasm", swDocumentTypes_e.swDocASSEMBLY },
+                { ".slddrw", swDocumentTypes_e.swDocDRAWING },
+                { ".sldlfp", swDocumentTypes_e.swDocPART },
+                { ".sldblk", swDocumentTypes_e.swDocPART }
+            };
+        }
+
         public event DocumentCloseDelegate Closing;
         
         public event DocumentRebuildDelegate Rebuild 
@@ -122,7 +140,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         IXDimensionRepository IXDocument.Dimensions => Dimensions;
         IXPropertyRepository IXDocument.Properties => Properties;
 
-        private readonly IXLogger m_Logger;
+        protected readonly IXLogger m_Logger;
 
         private readonly StreamReadAvailableEventsHandler m_StreamReadAvailableHandler;
         private readonly StorageReadAvailableEventsHandler m_StorageReadAvailableHandler;
@@ -143,7 +161,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                 }
                 else
                 {
-                    return m_CachedPath;
+                    return m_Creator.CachedProperties.Get<string>();
                 }
             }
             set
@@ -154,13 +172,10 @@ namespace Xarial.XCad.SolidWorks.Documents
                 }
                 else
                 {
-                    m_CachedPath = value;
+                    m_Creator.CachedProperties.Set(value);
                 }
             }
         }
-
-        private string m_CachedPath;
-        private string m_CachedTitle;
 
         public string Title
         {
@@ -172,7 +187,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                 }
                 else 
                 {
-                    return m_CachedTitle;
+                    return m_Creator.CachedProperties.Get<string>();
                 }
             }
             set 
@@ -190,15 +205,141 @@ namespace Xarial.XCad.SolidWorks.Documents
                 }
                 else 
                 {
-                    m_CachedTitle = value;
+                    m_Creator.CachedProperties.Set(value);
                 }
             }
         }
 
         public bool Visible
         {
-            get => Model.Visible;
-            set => Model.Visible = value; 
+            get 
+            {
+                if (IsCommitted)
+                {
+                    return Model.Visible;
+                }
+                else 
+                {
+                    return m_Creator.CachedProperties.Get<bool>();
+                }
+            }
+            set 
+            {
+                if (IsCommitted)
+                {
+                    Model.Visible = value;
+                }
+                else
+                {
+                    m_Creator.CachedProperties.Set(value);
+                }
+            }
+        }
+
+        public bool ReadOnly
+        {
+            get
+            {
+                if (IsCommitted)
+                {
+                    return Model.IsOpenedReadOnly();
+                }
+                else
+                {
+                    return m_Creator.CachedProperties.Get<bool>();
+                }
+            }
+            set
+            {
+                if (IsCommitted)
+                {
+                    throw new Exception("Read-only flag can only be modified for non-commited model");
+                }
+                else
+                {
+                    m_Creator.CachedProperties.Set(value);
+                }
+            }
+        }
+
+        public bool ViewOnly
+        {
+            get
+            {
+                if (IsCommitted)
+                {
+                    return Model.IsOpenedViewOnly();
+                }
+                else
+                {
+                    return m_Creator.CachedProperties.Get<bool>();
+                }
+            }
+            set
+            {
+                if (IsCommitted)
+                {
+                    throw new Exception("View-only flag can only be modified for non-commited model");
+                }
+                else
+                {
+                    m_Creator.CachedProperties.Set(value);
+                }
+            }
+        }
+
+        public bool Silent
+        {
+            get
+            {
+                if (IsCommitted)
+                {
+                    throw new Exception("Silent flag can only be accessed for non-commited model");
+                }
+                else
+                {
+                    return m_Creator.CachedProperties.Get<bool>();
+                }
+            }
+            set
+            {
+                if (IsCommitted)
+                {
+                    throw new Exception("Silent flag can only be modified for non-commited model");
+                }
+                else
+                {
+                    m_Creator.CachedProperties.Set(value);
+                }
+            }
+        }
+
+        protected abstract bool IsRapidMode { get; }
+
+        public bool Rapid
+        {
+            get
+            {
+                if (IsCommitted)
+                {
+                    return IsRapidMode;
+                }
+                else
+                {
+                    return m_Creator.CachedProperties.Get<bool>();
+                }
+            }
+            set
+            {
+                if (IsCommitted)
+                {
+                    throw new Exception("Rapid flag can only be modified for non-commited model");
+                }
+                else
+                {
+                    m_Creator.CachedProperties.Set(value);
+                }
+            }
         }
 
         public ISwFeatureManager Features { get; }
@@ -230,7 +371,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         public bool IsCommitted => m_Creator.IsCreated;
 
         private readonly ElementCreator<IModelDoc2> m_Creator;
-
+        
         internal SwDocument(IModelDoc2 model, ISwApplication app, IXLogger logger) 
             : this(model, app, logger, true)
         {
@@ -243,6 +384,8 @@ namespace Xarial.XCad.SolidWorks.Documents
             m_Logger = logger;
 
             m_Creator = new ElementCreator<IModelDoc2>(CreateDocument, model, created);
+
+            m_Creator.Creating += OnCreating;
 
             Features = new SwFeatureManager(this);
             
@@ -259,30 +402,77 @@ namespace Xarial.XCad.SolidWorks.Documents
             m_DocumentRebuildEventHandler = new DocumentRebuildEventsHandler(this);
             m_DocumentSavingEventHandler = new DocumentSavingEventHandler(this);
 
+            m_Creator.CachedProperties.Set(true, nameof(Visible));
+
             if (IsCommitted)
             {
                 AttachEvents();
             }
         }
-        
-        protected IModelDoc2 CreateDocument() 
+
+        private void OnCreating(IModelDoc2 model)
         {
-            if (string.IsNullOrEmpty(Path))
+            var cachedModel = m_Creator.CachedProperties.Get<IModelDoc2>(nameof(Model));
+
+            Debug.Assert(cachedModel == null 
+                || new SwPointerEqualityComparer<IModelDoc2>(App.Sw)
+                    .Equals(cachedModel, model), "Invalid pointers");
+        }
+
+        private SwDocumentDispatcher m_DocsDispatcher;
+
+        internal void SetDispatcher(SwDocumentDispatcher dispatcher) 
+        {
+            m_DocsDispatcher = dispatcher;
+        }
+
+        protected IModelDoc2 CreateDocument()
+        {
+            var docType = -1;
+
+            if (DocumentType.HasValue)
             {
-                return CreateNewDocument();
+                docType = (int)DocumentType.Value;
             }
-            else 
+
+            var origVisible = true;
+
+            if (docType != -1)
             {
-                //TODO: implement opening of the document
-                throw new NotImplementedException("");
+                origVisible = App.Sw.GetDocumentVisible(docType);
+            }
+
+            try
+            {
+                if (docType != -1)
+                {
+                    App.Sw.DocumentVisible(Visible, docType);
+                }
+
+                if (string.IsNullOrEmpty(Path))
+                {
+                    return CreateNewDocument();
+                }
+                else
+                {
+                    return OpenDocument();
+                }
+            }
+            finally 
+            {
+                if (docType != -1)
+                {
+                    App.Sw.DocumentVisible(origVisible, docType);
+                }
             }
         }
 
-        protected abstract swUserPreferenceStringValue_e DefaultTemplate { get; }
+        internal protected abstract swDocumentTypes_e? DocumentType { get; }
 
         private IModelDoc2 CreateNewDocument() 
         {
-            var docTemplate = App.Sw.GetUserPreferenceStringValue((int)DefaultTemplate);
+            var docTemplate = App.Sw.GetDocumentTemplate(
+                (int)DocumentType.Value, "", (int)swDwgPaperSizes_e.swDwgPapersUserDefined, 0.1, 0.1);
 
             if (!string.IsNullOrEmpty(docTemplate))
             {
@@ -290,6 +480,10 @@ namespace Xarial.XCad.SolidWorks.Documents
 
                 if (doc != null)
                 {
+                    if (!string.IsNullOrEmpty(Title))
+                    {
+                        doc.SetTitle2(Title);
+                    }
                     return doc;
                 }
                 else 
@@ -301,6 +495,110 @@ namespace Xarial.XCad.SolidWorks.Documents
             {
                 throw new Exception("Failed to find the location of default document template");
             }
+        }
+
+        private IModelDoc2 OpenDocument()
+        {
+            IModelDoc2 model = null;
+            int errorCode = -1;
+
+            if (NativeFileExts.TryGetValue(System.IO.Path.GetExtension(Path), out swDocumentTypes_e docType))
+            {
+                swOpenDocOptions_e opts = 0;
+
+                if (ReadOnly)
+                {
+                    opts |= swOpenDocOptions_e.swOpenDocOptions_ReadOnly;
+                }
+
+                if (ViewOnly)
+                {
+                    opts |= swOpenDocOptions_e.swOpenDocOptions_ViewOnly;
+                }
+
+                if (Silent)
+                {
+                    opts |= swOpenDocOptions_e.swOpenDocOptions_Silent;
+                }
+
+                if (Rapid)
+                {
+                    if (docType == swDocumentTypes_e.swDocDRAWING)
+                    {
+                        if (App.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2020))
+                        {
+                            opts |= swOpenDocOptions_e.swOpenDocOptions_OpenDetailingMode;
+                        }
+                    }
+                    else if (docType == swDocumentTypes_e.swDocASSEMBLY)
+                    {
+                        if (App.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2020))
+                        {
+                            //TODO: this option should be implemented as 'Large Design Review' (swOpenDocOptions_ViewOnly) with 'Edit Assembly Option'. Later option is not available in API
+                        }
+                    }
+                    else if (docType == swDocumentTypes_e.swDocPART)
+                    {
+                        //There is no rapid option for SOLIDWORKS part document
+                    }
+                }
+
+                int warns = -1;
+                model = App.Sw.OpenDoc6(Path, (int)docType, (int)opts, "", ref errorCode, ref warns);
+            }
+            else
+            {
+                model = App.Sw.LoadFile4(Path, "", null, ref errorCode);
+            }
+
+            if (model == null)
+            {
+                string error = "";
+
+                switch ((swFileLoadError_e)errorCode)
+                {
+                    case swFileLoadError_e.swAddinInteruptError:
+                        error = "File opening was interrupted by the user";
+                        break;
+                    case swFileLoadError_e.swApplicationBusy:
+                        error = "Application is busy";
+                        break;
+                    case swFileLoadError_e.swFileCriticalDataRepairError:
+                        error = "File has critical data corruption";
+                        break;
+                    case swFileLoadError_e.swFileNotFoundError:
+                        error = "File not found at the specified path";
+                        break;
+                    case swFileLoadError_e.swFileRequiresRepairError:
+                        error = "File has non-critical custom property data corruption";
+                        break;
+                    case swFileLoadError_e.swFileWithSameTitleAlreadyOpen:
+                        error = "A document with the same name is already open";
+                        break;
+                    case swFileLoadError_e.swFutureVersion:
+                        error = "The document was saved in a future version of SOLIDWORKS";
+                        break;
+                    case swFileLoadError_e.swGenericError:
+                        error = "Unknown error while opening file";
+                        break;
+                    case swFileLoadError_e.swInvalidFileTypeError:
+                        error = "Invalid file type";
+                        break;
+                    case swFileLoadError_e.swLiquidMachineDoc:
+                        error = "File encrypted by Liquid Machines";
+                        break;
+                    case swFileLoadError_e.swLowResourcesError:
+                        error = "File is open and blocked because the system memory is low, or the number of GDI handles has exceeded the allowed maximum";
+                        break;
+                    case swFileLoadError_e.swNoDisplayData:
+                        error = "File contains no display data";
+                        break;
+                }
+
+                throw new OpenDocumentFailedException(Path, errorCode, error);
+            }
+
+            return model;
         }
 
         public void Close()
@@ -401,8 +699,79 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public void Commit()
         {
+            m_DocsDispatcher.BeginDispatch(this);
             m_Creator.Create();
-            AttachEvents();
+            m_DocsDispatcher.EndDispatch(this);
+        }
+    }
+
+    internal class SwUnknownDocument : SwDocument, IXUnknownDocument
+    {
+        public SwUnknownDocument(IModelDoc2 model, ISwApplication app, IXLogger logger, bool isCreated) 
+            : base(model, app, logger, isCreated)
+        {
+        }
+
+        protected override bool IsRapidMode => throw new NotImplementedException();
+
+        internal protected override swDocumentTypes_e? DocumentType 
+        {
+            get 
+            {
+                if (IsCommitted)
+                {
+                    return (swDocumentTypes_e)Model.GetType();
+                }
+                else 
+                {
+                    if (NativeFileExts.TryGetValue(
+                        System.IO.Path.GetExtension(Path), out swDocumentTypes_e type))
+                    {
+                        return type;
+                    }
+                    else 
+                    {
+                        return null;
+                    }
+                }
+            }
+        }
+
+        private IXDocument m_SpecificDoc;
+
+        public IXDocument GetSpecific()
+        {
+            if (m_SpecificDoc != null)
+            {
+                return m_SpecificDoc;
+            }
+
+            var model = Model;
+
+            if (model == null) 
+            {
+                throw new Exception("Model is not yet created, cannot get specific document");
+            }
+
+            switch (DocumentType)
+            {
+                case swDocumentTypes_e.swDocPART:
+                    m_SpecificDoc = new SwPart(model as IPartDoc, App, m_Logger, true);
+                    break;
+
+                case swDocumentTypes_e.swDocASSEMBLY:
+                    m_SpecificDoc = new SwAssembly(model as IAssemblyDoc, App, m_Logger, true);
+                    break;
+
+                case swDocumentTypes_e.swDocDRAWING:
+                    m_SpecificDoc = new SwDrawing(model as IDrawingDoc, App, m_Logger, true);
+                    break;
+
+                default:
+                    throw new Exception("Invalid document type");
+            }
+
+            return m_SpecificDoc;
         }
     }
 }
