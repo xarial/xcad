@@ -36,8 +36,10 @@ namespace SolidWorks.Tests.Integration
             }
 
             Assert.AreEqual(4, selCount);
-            Assert.That(selTypes.SequenceEqual(
-                new Type[] { typeof(ISwPlanarFace), typeof(ISwCylindricalFace), typeof(ISwLinearEdge), typeof(ISwSketch2D) }));
+            Assert.That(typeof(ISwPlanarFace).IsAssignableFrom(selTypes[0]));
+            Assert.That(typeof(ISwCylindricalFace).IsAssignableFrom(selTypes[1]));
+            Assert.That(typeof(ISwLinearEdge).IsAssignableFrom(selTypes[2]));
+            Assert.That(typeof(ISwSketch2D).IsAssignableFrom(selTypes[3]));
         }
 
         [Test]
@@ -55,8 +57,8 @@ namespace SolidWorks.Tests.Integration
                 (part.GetEntityByName("Edge1", (int)swSelectType_e.swSelEDGES) as IEntity).Select4(true, null);
             }
 
-            Assert.That(selTypes.SequenceEqual(
-                new Type[] { typeof(ISwPlanarFace), typeof(ISwLinearEdge) }));
+            Assert.That(typeof(ISwPlanarFace).IsAssignableFrom(selTypes[0]));
+            Assert.That(typeof(ISwLinearEdge).IsAssignableFrom(selTypes[1]));
         }
     }
 }

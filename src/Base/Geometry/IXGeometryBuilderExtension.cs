@@ -84,12 +84,12 @@ namespace Xarial.XCad.Geometry
         /// <param name="builder">Geometry builder</param>
         /// <param name="center">Center of the cone base</param>
         /// <param name="axis">Cone axis</param>
-        /// <param name="baseRadius">Base radius of the cone</param>
-        /// <param name="topRadius">Top radius of the cone</param>
+        /// <param name="baseDiam">Base diameter of the cone</param>
+        /// <param name="topDiam">Top diameter of the cone</param>
         /// <param name="height">Height of the cone</param>
         /// <returns></returns>
         public static IXRevolve CreateSolidCone(this IXGeometryBuilder builder, Point center, Vector axis,
-            double baseRadius, double topRadius, double height)
+            double baseDiam, double topDiam, double height)
         {
             var refDir = axis.CreateAnyPerpendicular();
 
@@ -98,8 +98,8 @@ namespace Xarial.XCad.Geometry
             {
                 center,
                 center.Move(axis, height),
-                center.Move(axis, height).Move(refDir, topRadius / 2),
-                center.Move(refDir, baseRadius / 2),
+                center.Move(axis, height).Move(refDir, topDiam / 2),
+                center.Move(refDir, baseDiam / 2),
                 center
             };
             profile.Commit();
