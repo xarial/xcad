@@ -36,7 +36,8 @@ namespace StandAlone
         {
             //var app = SwApplicationFactory.Start(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020);
             var app = SwApplicationFactory.FromProcess(Process.GetProcessesByName("SLDWORKS").First());
-            
+
+            var o = app.Documents.Open(@"C:\Users\artem\OneDrive\xCAD\TestData\foreign.IGS");
             var p = app.Documents.NewPart();
             var d = app.Documents.NewDrawing();
             var a = app.Documents.NewAssembly();

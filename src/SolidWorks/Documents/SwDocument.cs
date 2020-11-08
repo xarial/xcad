@@ -25,6 +25,7 @@ using Xarial.XCad.SolidWorks.Annotations;
 using Xarial.XCad.SolidWorks.Data;
 using Xarial.XCad.SolidWorks.Data.EventHandlers;
 using Xarial.XCad.SolidWorks.Documents.EventHandlers;
+using Xarial.XCad.SolidWorks.Documents.Services;
 using Xarial.XCad.SolidWorks.Features;
 using Xarial.XCad.SolidWorks.Utils;
 
@@ -148,31 +149,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         private readonly DocumentRebuildEventsHandler m_DocumentRebuildEventHandler;
         private readonly DocumentSavingEventHandler m_DocumentSavingEventHandler;
 
-        public IModelDoc2 Model
-        {
-            get
-            {
-                if (IsCommitted)
-                {
-                    return m_Creator.Element;
-                }
-                else
-                {
-                    return m_Creator.CachedProperties.Get<IModelDoc2>();
-                }
-            }
-            internal set
-            {
-                if (IsCommitted)
-                {
-                    throw new NotSupportedException("invalid");
-                }
-                else
-                {
-                    m_Creator.CachedProperties.Set(value);
-                }
-            }
-        }
+        public IModelDoc2 Model => m_Creator.Element;
 
         public string Path
         {
@@ -394,9 +371,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         public bool IsCommitted => m_Creator.IsCreated;
 
         private readonly ElementCreator<IModelDoc2> m_Creator;
-
-        private Action<SwDocument> m_CommitCallback;
-
+        
         internal SwDocument(IModelDoc2 model, ISwApplication app, IXLogger logger) 
             : this(model, app, logger, true)
         {
@@ -444,9 +419,11 @@ namespace Xarial.XCad.SolidWorks.Documents
                     .Equals(cachedModel, model), "Invalid pointers");
         }
 
-        internal void SetCommitCallback(Action<SwDocument> callback) 
+        private SwDocumentDispatcher m_DocsDispatcher;
+
+        internal void SetDispatcher(SwDocumentDispatcher dispatcher) 
         {
-            m_CommitCallback = callback;
+            m_DocsDispatcher = dispatcher;
         }
 
         protected IModelDoc2 CreateDocument()
@@ -722,15 +699,9 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public void Commit()
         {
-            if (!IsCommitted)
-            {
-                Debug.Assert(m_CommitCallback != null, "Callback must be set in the docs collection for all nono-commited documents");
-
-                m_CommitCallback.Invoke(this);
-                m_CommitCallback = null;
-            }
-
+            m_DocsDispatcher.BeginDispatch(this);
             m_Creator.Create();
+            m_DocsDispatcher.EndDispatch(this);
         }
     }
 
@@ -747,11 +718,9 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
             get 
             {
-                var model = Model;
-
-                if (model != null)
+                if (IsCommitted)
                 {
-                    return (swDocumentTypes_e)model.GetType();
+                    return (swDocumentTypes_e)Model.GetType();
                 }
                 else 
                 {

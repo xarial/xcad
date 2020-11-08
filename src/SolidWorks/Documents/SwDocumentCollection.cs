@@ -19,6 +19,7 @@ using Xarial.XCad.Documents.Delegates;
 using Xarial.XCad.Documents.Exceptions;
 using Xarial.XCad.Documents.Services;
 using Xarial.XCad.Documents.Structures;
+using Xarial.XCad.SolidWorks.Documents.Services;
 using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.Toolkit.Services;
 using Xarial.XCad.Utils.Diagnostics;
@@ -51,7 +52,8 @@ namespace Xarial.XCad.SolidWorks.Documents
         private readonly Dictionary<IModelDoc2, SwDocument> m_Documents;
         private readonly IXLogger m_Logger;
         private readonly DocumentsHandler m_DocsHandler;
-        private readonly List<SwDocument> m_TemplateDocs;
+
+        private readonly SwDocumentDispatcher m_DocsDispatcher;
 
         private object m_Lock;
 
@@ -107,7 +109,8 @@ namespace Xarial.XCad.SolidWorks.Documents
             m_SwApp = (SldWorks)m_App.Sw;
             m_Logger = logger;
 
-            m_TemplateDocs = new List<SwDocument>();
+            m_DocsDispatcher = new SwDocumentDispatcher(app, logger);
+            m_DocsDispatcher.Dispatched += OnDocumentDispatched;
 
             m_Documents = new Dictionary<IModelDoc2, SwDocument>(
                 new SwPointerEqualityComparer<IModelDoc2>(m_SwApp));
@@ -181,36 +184,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
             if (!m_Documents.ContainsKey(model))
             {
-                SwDocument doc;
-
-                if (!TryFindPreCreatedTemplate(model, out doc))
-                {
-                    switch (model)
-                    {
-                        case IPartDoc part:
-                            doc = new SwPart(part, m_App, m_Logger, true);
-                            break;
-
-                        case IAssemblyDoc assm:
-                            doc = new SwAssembly(assm, m_App, m_Logger, true);
-                            break;
-
-                        case IDrawingDoc drw:
-                            doc = new SwDrawing(drw, m_App, m_Logger, true);
-                            break;
-
-                        default:
-                            throw new NotSupportedException();
-                    }
-                }
-
-                doc.Closing += OnDocumentDestroyed;
-
-                m_Documents.Add(model, doc);
-
-                m_DocsHandler.InitHandlers(doc);
-
-                DocumentCreated?.Invoke(doc);
+                m_DocsDispatcher.Dispatch(model);
             }
             else
             {
@@ -219,63 +193,28 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        private bool TryFindPreCreatedTemplate(IModelDoc2 model, out SwDocument doc)
+        private void OnDocumentDispatched(SwDocument doc)
         {
-            var templateDocIndex = -1;
-            
-            doc = null;
-
             lock (m_Lock)
             {
-                templateDocIndex = m_TemplateDocs.FindIndex(d =>
+                if (!m_Documents.ContainsKey(doc.Model))
                 {
-                    if (d.IsCommitted)
-                    {
-                        return d.Model == model;
-                    }
-                    else
-                    {
-                        if (!d.DocumentType.HasValue || (int)d.DocumentType.Value == model.GetType()) 
-                        {
-                            var thisDocPath = d.Path ?? "";
-                            var modelPath = model.GetPathName() ?? "";
+                    doc.Closing += OnDocumentDestroyed;
 
-                            if (string.Equals(thisDocPath, modelPath, StringComparison.CurrentCultureIgnoreCase))
-                            {
-                                return true;
-                            }
-                            else 
-                            {
-                                //Non-native filews will not have path so returnign if type is matched
-                                if (!SwDocument.NativeFileExts.ContainsKey(Path.GetExtension(model.GetPathName()))) 
-                                {
-                                    return true;
-                                }
-                            }
-                        }
-                    }
+                    m_Documents.Add(doc.Model, doc);
 
-                    return false;
-                });
+                    m_DocsHandler.InitHandlers(doc);
 
-                if (templateDocIndex != -1)
+                    DocumentCreated?.Invoke(doc);
+                }
+                else 
                 {
-                    doc = m_TemplateDocs[templateDocIndex];
-                    m_TemplateDocs.RemoveAt(templateDocIndex);
-                    doc.Model = model;
-
-                    if (doc is SwUnknownDocument)
-                    {
-                        doc = (SwDocument)(doc as SwUnknownDocument).GetSpecific();
-                    }
-
-                    return true;
+                    m_Logger.Log($"Conflict. {doc.Model.GetTitle()} already dispatched");
+                    Debug.Assert(false, "Document already dispatched");
                 }
             }
-
-            return false;
         }
-
+        
         private int OnDocumentLoadNotify2(string docTitle, string docPath)
         {
             IModelDoc2 model;
@@ -351,16 +290,11 @@ namespace Xarial.XCad.SolidWorks.Documents
                 throw new NotSupportedException("Creation of this type of document is not supported");
             }
 
-            templateDoc.SetCommitCallback(OnCommitTemplate);
+            templateDoc.SetDispatcher(m_DocsDispatcher);
 
             return templateDoc as TDocument;
         }
-
-        private void OnCommitTemplate(SwDocument templateDoc) 
-        {
-            m_TemplateDocs.Add(templateDoc);
-        }
-
+        
         public bool TryGet(string name, out IXDocument ent)
         {
             var model = m_SwApp.GetOpenDocumentByName(name) as IModelDoc2;
