@@ -8,6 +8,11 @@ This page contains list of the most notable changes in the releases of xCAD.NET.
 
 Breaking change is marked with &#x26A0; symbol
 
+## 0.6.8 - November, 10 2020
+
+* Added tags support for IXDocument to store custom user data within the session
+* Added the IXPart::CutListRebuild event
+
 ## 0.6.7 - November, 9 2020
 
 * &#x26A0; All SOLIDWORKS specific classes replaced with corresponding interfaces with I at the start (e.g. SwApplication -> ISwApplication, SwDocument -> ISwDocument)

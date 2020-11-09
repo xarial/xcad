@@ -36,6 +36,34 @@ namespace Xarial.XCad.SolidWorks.Geometry.Curves
         
         public bool IsCommitted => m_Creator.IsCreated;
 
+        public double Length
+        {
+            get
+            {
+                if (Curves != null)
+                {
+                    return Curves.Sum(c =>
+                    {
+                        if (c.IsTrimmedCurve())
+                        {
+                            c.GetEndParams(out double start, out double end, out bool _, out bool _);
+
+                            var length = c.GetLength3(start, end);
+                            return length;
+                        }
+                        else
+                        {
+                            throw new Exception("Only trimmed curves are supported");
+                        }
+                    });
+                }
+                else 
+                {
+                    return double.NaN;
+                }
+            }
+        }
+
         protected readonly ElementCreator<ICurve[]> m_Creator;
 
         protected readonly IModeler m_Modeler;

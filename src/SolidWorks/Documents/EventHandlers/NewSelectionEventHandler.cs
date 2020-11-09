@@ -18,11 +18,9 @@ namespace Xarial.XCad.SolidWorks.Documents.EventHandlers
     {
         private IModelDoc2 Model => m_Doc.Model;
         private ISelectionMgr SelMgr => Model.ISelectionManager;
-        private readonly SwDocument m_Doc;
 
         internal NewSelectionEventHandler(SwDocument doc) : base(doc)
         {
-            m_Doc = doc;
         }
 
         protected override void SubscribeAssemblyEvents(AssemblyDoc assm)

@@ -17,11 +17,8 @@ namespace Xarial.XCad.SolidWorks.Documents.EventHandlers
 {
     internal class DocumentRebuildEventsHandler : SwModelEventsHandler<DocumentRebuildDelegate>
     {
-        private SwDocument m_Doc;
-
         internal DocumentRebuildEventsHandler(SwDocument doc) : base(doc)
         {
-            m_Doc = doc;
         }
 
         protected override void SubscribeAssemblyEvents(AssemblyDoc assm)

@@ -15,28 +15,28 @@ using Xarial.XCad.SolidWorks.Utils;
 
 namespace Xarial.XCad.SolidWorks.Documents.EventHandlers
 {
-    internal class SheetActivatedEventsHandler : SwModelEventsHandler<SheetActivatedDelegate>
+    internal class CutListRebuildEventsHandler : SwModelEventsHandler<CutListRebuildDelegate>
     {
-        private SwDrawing m_Drw;
+        private readonly ISwPart m_Part;
 
-        internal SheetActivatedEventsHandler(SwDrawing drw) : base(drw)
+        internal CutListRebuildEventsHandler(ISwPart part) : base(part)
         {
-            m_Drw = drw;
-        }
-
-        protected override void SubscribeDrawingEvents(DrawingDoc drw)
-        {
-            drw.ActivateSheetPostNotify += OnActivateSheetPostNotify;
-        }
-
-        protected override void UnsubscribeDrawingEvents(DrawingDoc drw)
-        {
-            drw.ActivateSheetPostNotify -= OnActivateSheetPostNotify;
+            m_Part = part;
         }
         
-        private int OnActivateSheetPostNotify(string sheetName)
+        protected override void SubscribePartEvents(PartDoc part)
         {
-            Delegate?.Invoke(m_Drw, m_Drw.Sheets[sheetName]);
+            part.WeldmentCutListUpdatePostNotify += OnWeldmentCutListUpdatePostNotify;
+        }
+        
+        protected override void UnsubscribePartEvents(PartDoc part)
+        {
+            part.WeldmentCutListUpdatePostNotify -= OnWeldmentCutListUpdatePostNotify;
+        }
+
+        private int OnWeldmentCutListUpdatePostNotify()
+        {
+            Delegate?.Invoke(m_Part);
             return S_OK;
         }
     }

@@ -97,6 +97,11 @@ namespace Xarial.XCad.Documents
         bool Rapid { get; set; }
 
         /// <summary>
+        /// Provides an ability to store temp tags in this session
+        /// </summary>
+        ITagsManager Tags { get; }
+
+        /// <summary>
         /// Closes this document
         /// </summary>
         void Close();
