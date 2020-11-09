@@ -7,7 +7,9 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Serialization;
 using Xarial.XCad.Base;
+using Xarial.XCad.Data.Enums;
 using Xarial.XCad.Documents;
 using Xarial.XCad.SolidWorks.Documents;
 
@@ -164,8 +166,7 @@ namespace SolidWorks.Tests.Integration
 
             var activeDocTitle1 = Path.GetFileNameWithoutExtension(m_App.Documents.Active.Title).ToLower();
 
-            doc1.Close();
-            doc2.Close();
+            m_App.Sw.CloseAllDocuments(true);
 
             Assert.That(createdDocs.OrderBy(d => d)
                 .SequenceEqual(new string[] { "part1", "part3", "part4", "foreign", "subsubassem1" }.OrderBy(d => d)));
@@ -225,30 +226,152 @@ namespace SolidWorks.Tests.Integration
             Assert.AreEqual("Conf1", confName);
         }
 
-        [Test]
-        public void DrawingEventsTest()
+        public class TestData 
         {
-            var sheetActiveCount = 0;
-            var sheetName = "";
+            public string Text { get; set; }
+            public int Number { get; set; }
+        }
 
-            using (var doc = OpenDataDocument("Sheets1.SLDDRW"))
+        [Test]
+        public void ThirdPartyStreamTest() 
+        {
+            const string STREAM_NAME = "_xCadIntegrationTestStream_";
+
+            var tempFile = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString() + ".sldprt");
+
+            using (var doc = NewDocument(swDocumentTypes_e.swDocPART)) 
             {
-                var draw = (ISwDrawing)m_App.Documents.Active;
+                var part = m_App.Documents.Active;
 
-                draw.Sheets.SheetActivated += (d, s) =>
-                {
-                    sheetName = s.Name;
-                    sheetActiveCount++;
-                };
+                part.StreamWriteAvailable += (d) =>
+                    {
+                        using (var stream = d.OpenStream(STREAM_NAME, AccessType_e.Write))
+                        {
+                            var xmlSer = new XmlSerializer(typeof(TestData));
 
-                var feat = (IFeature)draw.Drawing.FeatureByName("MySheet");
-                feat.Select2(false, -1);
-                const int swCommands_Activate_Sheet = 1206;
-                m_App.Sw.RunCommand(swCommands_Activate_Sheet, "");
+                            var data = new TestData()
+                            {
+                                Text = "Test1",
+                                Number = 15
+                            };
+
+                            xmlSer.Serialize(stream, data);
+                        }
+                    };
+
+                int errs = -1;
+                int warns = -1;
+
+                part.Model.Extension.SaveAs(tempFile, (int)swSaveAsVersion_e.swSaveAsCurrentVersion,
+                    (int)swSaveAsOptions_e.swSaveAsOptions_Silent, null, ref errs, ref warns);
             }
 
-            Assert.AreEqual(1, sheetActiveCount);
-            Assert.AreEqual("MySheet", sheetName);
+            TestData result = null;
+
+            using (var doc = OpenDataDocument(tempFile))
+            {
+                var part = m_App.Documents.Active;
+
+                using (var stream = part.OpenStream(STREAM_NAME, AccessType_e.Read))
+                {
+                    var xmlSer = new XmlSerializer(typeof(TestData));
+                    result = xmlSer.Deserialize(stream) as TestData;
+                }
+            }
+
+            File.Delete(tempFile);
+
+            Assert.IsNotNull(result);
+            Assert.AreEqual("Test1", result.Text);
+            Assert.AreEqual(15, result.Number);
+        }
+
+        [Test]
+        public void ThirdPartyStorageTest() 
+        {
+            const string SUB_STORAGE_PATH = "_xCadIntegrationTestStorage1_\\SubStorage2";
+            const string STREAM1_NAME = "_xCadIntegrationStream1_";
+            const string STREAM2_NAME = "_xCadIntegrationStream2_";
+
+            var tempFile = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString() + ".sldprt");
+
+            using (var doc = NewDocument(swDocumentTypes_e.swDocPART))
+            {
+                var part = m_App.Documents.Active;
+
+                part.StorageWriteAvailable += (d) =>
+                {
+                    var path = SUB_STORAGE_PATH.Split('\\');
+
+                    using (var storage = part.OpenStorage(path[0], AccessType_e.Write))
+                    {
+                        using (var subStorage = storage.TryOpenStorage(path[1], true))
+                        {
+                            using (var str = subStorage.TryOpenStream(STREAM1_NAME, true))
+                            {
+                                var buffer = Encoding.UTF8.GetBytes("Test2");
+                                str.Write(buffer, 0, buffer.Length);
+                            }
+
+                            using (var str = subStorage.TryOpenStream(STREAM2_NAME, true))
+                            {
+                                using (var binWriter = new BinaryWriter(str)) 
+                                {
+                                    binWriter.Write(25);
+                                }
+                            }
+                        }
+                    }
+                };
+
+                int errs = -1;
+                int warns = -1;
+
+                part.Model.Extension.SaveAs(tempFile, (int)swSaveAsVersion_e.swSaveAsCurrentVersion,
+                    (int)swSaveAsOptions_e.swSaveAsOptions_Silent, null, ref errs, ref warns);
+            }
+
+            var subStreamsCount = 0;
+            var txt = "";
+            var number = 0;
+
+            using (var doc = OpenDataDocument(tempFile))
+            {
+                var part = m_App.Documents.Active;
+
+                var path = SUB_STORAGE_PATH.Split('\\');
+
+                using (var storage = part.TryOpenStorage(path[0], AccessType_e.Read))
+                {
+                    using (var subStorage = storage.TryOpenStorage(path[1], false))
+                    {
+                        subStreamsCount = subStorage.GetSubStreamNames().Length;
+
+                        using (var str = subStorage.TryOpenStream(STREAM1_NAME, false))
+                        {
+                            var buffer = new byte[str.Length];
+
+                            str.Read(buffer, 0, buffer.Length);
+
+                            txt = Encoding.UTF8.GetString(buffer);
+                        }
+
+                        using (var str = subStorage.TryOpenStream(STREAM2_NAME, false))
+                        {
+                            using (var binReader = new BinaryReader(str))
+                            {
+                                number = binReader.ReadInt32();
+                            }
+                        }
+                    }
+                }
+            }
+
+            File.Delete(tempFile);
+
+            Assert.AreEqual(2, subStreamsCount);
+            Assert.AreEqual("Test2", txt);
+            Assert.AreEqual(25, number);
         }
     }
 }
