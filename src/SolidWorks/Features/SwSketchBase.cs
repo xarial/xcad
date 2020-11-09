@@ -7,6 +7,8 @@
 
 using SolidWorks.Interop.sldworks;
 using System;
+using System.ComponentModel;
+using System.Threading;
 using Xarial.XCad.Features;
 using Xarial.XCad.Sketch;
 using Xarial.XCad.SolidWorks.Documents;
@@ -14,15 +16,26 @@ using Xarial.XCad.SolidWorks.Sketch;
 
 namespace Xarial.XCad.SolidWorks.Features
 {
-    public abstract class SwSketchBase : SwFeature, IXSketchBase
+    public interface ISwSketchBase : IXSketchBase, ISwFeature
+    {
+        //TODO: think how to remove the below functions
+        [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
+        bool GetEditMode(ISketch sketch);
+        [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
+        void SetEditMode(ISketch sketch, bool isEditing);
+
+        ISketch Sketch { get; }
+    }
+
+    internal abstract class SwSketchBase : SwFeature, ISwSketchBase
     {
         private readonly SwSketchEntityCollection m_SwEntsColl;
 
         public ISketch Sketch => Feature?.GetSpecificFeature2() as ISketch;
 
-        internal SwSketchBase(SwDocument doc, IFeature feat, bool created) : base(doc, feat, created)
+        internal SwSketchBase(ISwDocument doc, IFeature feat, bool created) : base(doc, feat, created)
         {
-            m_SwEntsColl = new SwSketchEntityCollection(doc.Model, this, doc.Model.SketchManager);
+            m_SwEntsColl = new SwSketchEntityCollection(doc, this);
         }
 
         public IXSketchEntityRepository Entities => m_SwEntsColl;
@@ -31,7 +44,7 @@ namespace Xarial.XCad.SolidWorks.Features
         {
             get
             {
-                if (IsCreated)
+                if (IsCommitted)
                 {
                     return GetEditMode(Sketch);
                 }
@@ -42,7 +55,7 @@ namespace Xarial.XCad.SolidWorks.Features
             }
             set
             {
-                if (IsCreated)
+                if (IsCommitted)
                 {
                     SetEditMode(Sketch, value);
                 }
@@ -53,12 +66,12 @@ namespace Xarial.XCad.SolidWorks.Features
             }
         }
 
-        internal bool GetEditMode(ISketch sketch)
+        public bool GetEditMode(ISketch sketch)
         {
             return m_ModelDoc.SketchManager.ActiveSketch == sketch;
         }
 
-        internal void SetEditMode(ISketch sketch, bool isEditing)
+        public void SetEditMode(ISketch sketch, bool isEditing)
         {
             if (isEditing)
             {
@@ -80,7 +93,7 @@ namespace Xarial.XCad.SolidWorks.Features
 
         protected abstract void ToggleEditSketch();
 
-        protected override IFeature CreateFeature()
+        protected override IFeature CreateFeature(CancellationToken cancellationToken)
         {
             var sketch = CreateSketch();
 

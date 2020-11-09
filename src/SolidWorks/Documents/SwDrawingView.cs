@@ -1,16 +1,29 @@
-﻿using SolidWorks.Interop.sldworks;
+﻿//*********************************************************************
+//xCAD
+//Copyright(C) 2020 Xarial Pty Limited
+//Product URL: https://www.xcad.net
+//License: https://xcad.xarial.com/license/
+//*********************************************************************
+
+using SolidWorks.Interop.sldworks;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Services;
 
 namespace Xarial.XCad.SolidWorks.Documents
 {
-    public class SwDrawingView : SwSelObject, IXDrawingView
+    public interface ISwDrawingView : IXDrawingView, ISwSelObject
     {
-        protected readonly SwDrawing m_Drawing;
+        IView DrawingView { get; }
+    }
+
+    internal class SwDrawingView : SwSelObject, ISwDrawingView
+    {
+        protected readonly ISwDrawing m_Drawing;
 
         public IView DrawingView => m_Creator.Element;
 
@@ -23,7 +36,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
         }
 
-        internal SwDrawingView(IView drwView, SwDrawing drw, ISheet sheet, bool created) 
+        internal SwDrawingView(IView drwView, ISwDrawing drw, ISheet sheet, bool created) 
             : base(drw.Model, drwView)
         {
             m_Drawing = drw;
@@ -41,11 +54,8 @@ namespace Xarial.XCad.SolidWorks.Documents
             m_Sheet = sheet;
         }
 
-        internal void Create()
-        {
-            m_Creator.Create();
-        }
-
+        public override void Commit(CancellationToken cancellationToken) => m_Creator.Create(cancellationToken);
+        
         public override bool IsCommitted => m_Creator.IsCreated;
 
         public override void Select(bool append)
@@ -58,14 +68,14 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        private IView CreateDrawingViewElement() 
+        private IView CreateDrawingViewElement(CancellationToken cancellationToken) 
         {
             var curSheet = m_Drawing.Drawing.GetCurrentSheet() as ISheet;
 
             try
             {
                 m_Drawing.Drawing.ActivateSheet(m_Sheet.GetName());
-                return CreateDrawingView();
+                return CreateDrawingView(cancellationToken);
             }
             catch
             {
@@ -77,7 +87,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        protected virtual IView CreateDrawingView() 
+        protected virtual IView CreateDrawingView(CancellationToken cancellationToken) 
         {
             throw new NotSupportedException("Creation of this drawing view is not supported"); ;
         }
@@ -142,18 +152,18 @@ namespace Xarial.XCad.SolidWorks.Documents
         TSelObject IXObjectContainer.ConvertObject<TSelObject>(TSelObject obj) => ConvertObjectBoxed(obj) as TSelObject;
 
         public TSelObject ConvertObject<TSelObject>(TSelObject obj)
-            where TSelObject : SwSelObject
+            where TSelObject : ISwSelObject
         {
             return (TSelObject)ConvertObjectBoxed(obj);
         }
 
-        private SwSelObject ConvertObjectBoxed(object obj)
+        private ISwSelObject ConvertObjectBoxed(object obj)
         {
-            if (obj is SwSelObject)
+            if (obj is ISwSelObject)
             {
                 if (m_Drawing.App.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2018))
                 {
-                    var disp = (obj as SwSelObject).Dispatch;
+                    var disp = (obj as ISwSelObject).Dispatch;
                     var corrDisp = DrawingView.GetCorresponding(disp);
 
                     if (corrDisp != null)
@@ -177,7 +187,11 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
     }
 
-    public class SwModelBasedDrawingView : SwDrawingView, IXModelViewBasedDrawingView
+    public interface ISwModelBasedDrawingView : ISwDrawingView, IXModelViewBasedDrawingView 
+    {
+    }
+
+    internal class SwModelBasedDrawingView : SwDrawingView, ISwModelBasedDrawingView
     {
         private SwNamedView m_BaseModelView;
 
@@ -186,7 +200,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
         }
 
-        protected override IView CreateDrawingView()
+        protected override IView CreateDrawingView(CancellationToken cancellationToken)
         {
             var drwView = m_Drawing.Drawing.CreateDrawViewFromModelView3(
                 m_BaseModelView.Owner.GetPathName(), m_BaseModelView.Name, Location.X, Location.Y, Location.Z);
@@ -201,7 +215,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             return drwView;
         }
 
-        public IXView View 
+        public IXModelView SourceModelView 
         {
             get => m_BaseModelView;
             set 

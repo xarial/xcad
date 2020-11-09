@@ -81,9 +81,9 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
     internal class PropertyManagerPageCustomItemsComboBoxControlConstructor
         : PropertyManagerPageComboBoxControlConstructorBase<object>, ICustomItemsComboBoxControlConstructor
     {
-        private readonly SwApplication m_SwApp;
+        private readonly ISwApplication m_SwApp;
 
-        public PropertyManagerPageCustomItemsComboBoxControlConstructor(SwApplication app, IconsConverter iconsConv)
+        public PropertyManagerPageCustomItemsComboBoxControlConstructor(ISwApplication app, IconsConverter iconsConv)
             : base(app.Sw, iconsConv)
         {
             m_SwApp = app;

@@ -1,4 +1,11 @@
-﻿using System;
+﻿//*********************************************************************
+//xCAD
+//Copyright(C) 2020 Xarial Pty Limited
+//Product URL: https://www.xcad.net
+//License: https://xcad.xarial.com/license/
+//*********************************************************************
+
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -7,6 +14,8 @@ namespace Xarial.XCad.Toolkit
     public class ServiceCollection : IXServiceCollection
     {
         private readonly Dictionary<Type, Func<object>> m_Services;
+
+        public IReadOnlyDictionary<Type, Func<object>> Services => m_Services;
 
         public ServiceCollection() 
         {

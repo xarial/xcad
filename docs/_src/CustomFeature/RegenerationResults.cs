@@ -1,4 +1,5 @@
 ﻿using SolidWorks.Interop.sldworks;
+using System.Linq;
 using System.Runtime.InteropServices;
 using Xarial.XCad.Features.CustomFeature.Structures;
 using Xarial.XCad.Geometry;
@@ -13,7 +14,7 @@ namespace Xarial.XCad.Documentation
     [ComVisible(true)]
     public class RegenerationNoResultsMacroFeature : SwMacroFeatureDefinition
     {
-        public override CustomFeatureRebuildResult OnRebuild(SwApplication app, SwDocument model, SwMacroFeature feature)
+        public override CustomFeatureRebuildResult OnRebuild(ISwApplication app, ISwDocument model, ISwMacroFeature feature)
         {
             return new CustomFeatureRebuildResult()
             {
@@ -26,7 +27,7 @@ namespace Xarial.XCad.Documentation
     [ComVisible(true)]
     public class RegenerationRebuildErrorMacroFeature : SwMacroFeatureDefinition
     {
-        public override CustomFeatureRebuildResult OnRebuild(SwApplication app, SwDocument model, SwMacroFeature feature)
+        public override CustomFeatureRebuildResult OnRebuild(ISwApplication app, ISwDocument model, ISwMacroFeature feature)
         {
             return new CustomFeatureRebuildResult()
             {
@@ -40,14 +41,15 @@ namespace Xarial.XCad.Documentation
     [ComVisible(true)]
     public class RegenerationBodyMacroFeature : SwMacroFeatureDefinition
     {
-        public override CustomFeatureRebuildResult OnRebuild(SwApplication app, SwDocument model, SwMacroFeature feature)
+        public override CustomFeatureRebuildResult OnRebuild(ISwApplication app, ISwDocument model, ISwMacroFeature feature)
         {
-            var body = app.GeometryBuilder.CreateBox(new Point(0, 0, 0),
-                new Vector(1, 0, 0), new Vector(0, 1, 0), 0.1, 0.1, 0.1);
+            var body = app.MemoryGeometryBuilder.CreateSolidBox(new Point(0, 0, 0),
+                new Vector(1, 0, 0), new Vector(0, 1, 0),
+                0.1, 0.1, 0.1);
 
             return new CustomFeatureBodyRebuildResult()
             {
-                Bodies = new IXBody[] { body }
+                Bodies = body.Bodies.ToArray()
             };
         }
     }

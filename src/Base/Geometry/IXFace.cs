@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Xarial.XCad.Geometry.Structures;
+using Xarial.XCad.Geometry.Surfaces;
 
 namespace Xarial.XCad.Geometry
 {
@@ -21,6 +22,11 @@ namespace Xarial.XCad.Geometry
         /// Area of the face
         /// </summary>
         double Area { get; }
+
+        /// <summary>
+        /// Underlying definition for this face
+        /// </summary>
+        IXSurface Definition { get; }
     }
 
     /// <summary>
@@ -28,10 +34,7 @@ namespace Xarial.XCad.Geometry
     /// </summary>
     public interface IXPlanarFace : IXFace 
     {
-        /// <summary>
-        /// Normal vector of the planar face
-        /// </summary>
-        Vector Normal { get; }
+        new IXPlanarSurface Definition { get; }
     }
 
     /// <summary>
@@ -39,19 +42,6 @@ namespace Xarial.XCad.Geometry
     /// </summary>
     public interface IXCylindricalFace : IXFace 
     {
-        /// <summary>
-        /// Origin of the cylindrical face
-        /// </summary>
-        Point Origin { get; }
-
-        /// <summary>
-        /// Cylinder axis
-        /// </summary>
-        Vector Axis { get; }
-        
-        /// <summary>
-        /// Radius of cylindrical face
-        /// </summary>
-        double Radius { get; }
+        new IXCylindricalSurface Definition { get; }
     }
 }

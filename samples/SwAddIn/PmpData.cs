@@ -72,7 +72,7 @@ namespace SwAddInExample
 
     public class MyCustomItemsProvider : SwCustomItemsProvider<MyItem>
     {
-        public override IEnumerable<MyItem> ProvideItems(SwApplication app, IControl[] dependencies)
+        public override IEnumerable<MyItem> ProvideItems(ISwApplication app, IControl[] dependencies)
         {
             yield return new MyItem()
             {
@@ -95,11 +95,11 @@ namespace SwAddInExample
         [ControlOptions(height: 200)]
         public CustomControlDataContext CustomControl { get; set; } = new CustomControlDataContext();
 
-        public List<SwComponent> Components { get; set; }
+        public List<ISwComponent> Components { get; set; }
 
-        public SwBody Body { get; set; }
+        public ISwBody Body { get; set; }
 
-        public SwCircularEdge CircEdge { get; set; }
+        public ISwCircularEdge CircEdge { get; set; }
 
         [BitmapButton(typeof(Resources), nameof(Resources.xarial), 48, 48)]
         public bool CheckBox { get; set; }
@@ -119,10 +119,12 @@ namespace SwAddInExample
 
         public Opts Options { get; set; }
 
-        public SwCircularEdge Selection { get; set; }
+        public ISwCircularEdge Selection { get; set; }
 
-        [CustomItems(typeof(MyCustomItemsProvider))]
-        public MyItem Option2 { get; set; }
+        //TODO: add attribute to exclude control from binding to macro feature and uncomment the block below
+
+        //[CustomItems(typeof(MyCustomItemsProvider))]
+        //public MyItem Option2 { get; set; }
 
         [ParameterDimension(CustomFeatureDimensionType_e.Angular)]
         [ExcludeControl]

@@ -8,6 +8,18 @@ This page contains list of the most notable changes in the releases of xCAD.NET.
 
 Breaking change is marked with &#x26A0; symbol
 
+## 0.6.7 - November, 9 2020
+
+* &#x26A0; All SOLIDWORKS specific classes replaced with corresponding interfaces with I at the start (e.g. SwApplication -> ISwApplication, SwDocument -> ISwDocument)
+* &#x26A0; IXDocumentRepository::Open is replaced with transaction (also available as extension method) and **DocumentOpenArgs** is retired.
+* &#x26A0; IXModelViewBasedDrawingView::View is renamed to IXModelViewBasedDrawingView::SourceModelView
+* &#x26A0; IXCircularEdge::Center, IXCircularEdge::Axis, IXCircularEdge::Radius are replaced with IXCircularEdge::Definition
+* &#x26A0; IXLinearEdge::RootPoint, IXLinearEdge::Direction are replaced with IXLinearEdge::Definition
+* &#x26A0; IXGeometryBuilder is changed and available via IXApplication::MemoryGeometryBuilder
+* Added support for extrusion, sweep, revolve for memory IXGeometryBuilder
+* Added partial support for surfaces and curves as definitions for edges and faces
+* Added partial support for sketch entities in the sketch
+
 ## 0.6.6 - October, 29 2020
 
 * Implemented [#36 - Add ability to configure services for dependency injection](https://github.com/xarial/xcad/issues/36)

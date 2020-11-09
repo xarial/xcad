@@ -1,4 +1,11 @@
-﻿using System;
+﻿//*********************************************************************
+//xCAD
+//Copyright(C) 2020 Xarial Pty Limited
+//Product URL: https://www.xcad.net
+//License: https://xcad.xarial.com/license/
+//*********************************************************************
+
+using System;
 using System.Collections.Generic;
 using System.Text;
 using Xarial.XCad.Base;
@@ -8,12 +15,12 @@ namespace Xarial.XCad.Documents
     /// <summary>
     /// Represents collection of views in the <see cref="IXDocument3D"/>
     /// </summary>
-    public interface IXViewRepository : IXRepository<IXView>
+    public interface IXModelViewRepository : IXRepository<IXModelView>
     {
         /// <summary>
         /// Gets active view
         /// </summary>
-        IXView Active { get; } //TODO: implement set
+        IXModelView Active { get; } //TODO: implement set
 
         /// <summary>
         /// Returns standard view by type

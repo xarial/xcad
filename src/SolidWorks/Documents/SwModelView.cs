@@ -9,13 +9,19 @@ using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
 using System;
 using System.Drawing;
+using System.Threading;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.SolidWorks.Utils;
 
 namespace Xarial.XCad.SolidWorks.Documents
 {
-    public class SwModelView : IXView
+    public interface ISwModelView : IXModelView, ISwObject
+    {
+        IModelView View { get; }
+    }
+
+    internal class SwModelView : SwObject, ISwModelView
     {
         private readonly IMathUtility m_MathUtils;
 
@@ -87,7 +93,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         //TODO: implement creation of new views
         public bool IsCommitted => true;
 
-        internal SwModelView(IModelDoc2 model, IModelView view, IMathUtility mathUtils)
+        internal SwModelView(IModelDoc2 model, IModelView view, IMathUtility mathUtils) : base(view)
         {
             View = view;
             Owner = model;
@@ -116,9 +122,18 @@ namespace Xarial.XCad.SolidWorks.Documents
 
             Owner.ViewZoomTo2(pt1[0], pt1[1], pt1[2], pt2[0], pt2[1], pt2[2]);
         }
+
+        public void Commit(CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
     }
 
-    public class SwNamedView : SwModelView, IXNamedView
+    public interface ISwNamedView : ISwModelView, IXNamedView
+    {
+    }
+
+    internal class SwNamedView : SwModelView, ISwNamedView
     {
         //TODO: implement overrides for transforms
 
@@ -131,7 +146,11 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
     }
 
-    public class SwStandardView : SwNamedView, IXStandardView
+    public interface ISwStandardView : ISwNamedView, IXStandardView 
+    {
+    }
+
+    internal class SwStandardView : SwNamedView, ISwStandardView
     {
         //TODO: implement overrides for transforms
 

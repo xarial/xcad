@@ -9,6 +9,7 @@ using SolidWorks.Interop.sldworks;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Threading;
 using Xarial.XCad.Annotations;
 using Xarial.XCad.Features;
 using Xarial.XCad.Services;
@@ -18,7 +19,13 @@ using Xarial.XCad.SolidWorks.Utils;
 
 namespace Xarial.XCad.SolidWorks.Features
 {
-    public class SwFeature : SwSelObject, IXFeature
+    public interface ISwFeature : ISwSelObject, IXFeature
+    {
+        IFeature Feature { get; }
+        new ISwDimensionsCollection Dimensions { get; }
+    }
+
+    internal class SwFeature : SwSelObject, ISwFeature
     {
         private readonly ElementCreator<IFeature> m_Creator;
 
@@ -31,12 +38,10 @@ namespace Xarial.XCad.SolidWorks.Features
                 return m_Creator.Element;
             }
         }
+        
+        private readonly ISwDocument m_Doc;
 
-        internal bool IsCreated => m_Creator.IsCreated;
-
-        private readonly SwDocument m_Doc;
-
-        internal SwFeature(SwDocument doc, IFeature feat, bool created) : base(feat)
+        internal SwFeature(ISwDocument doc, IFeature feat, bool created) : base(doc.Model, feat)
         {
             if (doc == null) 
             {
@@ -49,17 +54,14 @@ namespace Xarial.XCad.SolidWorks.Features
             m_Creator = new ElementCreator<IFeature>(CreateFeature, feat, created);
         }
 
-        internal void Create()
-        {
-            m_Creator.Create();
-        }
+        public override void Commit(CancellationToken cancellationToken) => m_Creator.Create(cancellationToken);
 
-        protected virtual IFeature CreateFeature()
+        protected virtual IFeature CreateFeature(CancellationToken cancellationToken)
         {
             throw new NotSupportedException("Creation of this feature is not supported");
         }
 
-        public SwDimensionsCollection Dimensions { get; }
+        public ISwDimensionsCollection Dimensions { get; }
 
         public string Name 
         {
@@ -78,7 +80,7 @@ namespace Xarial.XCad.SolidWorks.Features
                 (o, c) => Feature.RemoveMaterialProperty2((int)o, c));
         }
 
-        public override bool IsCommitted => IsCreated;
+        public override bool IsCommitted => m_Creator.IsCreated;
 
         public override void Select(bool append)
         {

@@ -7,43 +7,94 @@
 
 using SolidWorks.Interop.sldworks;
 using System;
+using Xarial.XCad.Geometry;
+using Xarial.XCad.Geometry.Structures;
+using Xarial.XCad.Geometry.Wires;
 using Xarial.XCad.Sketch;
+using Xarial.XCad.SolidWorks.Documents;
 
 namespace Xarial.XCad.SolidWorks.Sketch
 {
-    public class SwSketchLine : SwSketchEntity<ISketchLine>, IXSketchLine
+    public interface ISwSketchLine : IXSketchLine 
     {
-        private readonly SwSketchPoint m_StartPoint;
-        private readonly SwSketchPoint m_EndPoint;
+        ISketchLine Line { get; }
+    }
 
-        public IXSketchPoint StartPoint => m_StartPoint;
-        public IXSketchPoint EndPoint => m_EndPoint;
+    internal class SwSketchLine : SwSketchSegment, ISwSketchLine
+    {
+        public ISketchLine Line => (ISketchLine)Segment;
 
-        public SwSketchLine(IModelDoc2 model, ISketchLine ent, bool created) : base(model, ent, created)
+        public override IXPoint StartPoint => SwSelObject.FromDispatch<SwSketchPoint>(Line.IGetStartPoint2(), m_Doc);
+        public override IXPoint EndPoint => SwSelObject.FromDispatch<SwSketchPoint>(Line.IGetEndPoint2(), m_Doc);
+
+        public Point StartCoordinate 
         {
-            if (model == null)
+            get 
             {
-                throw new ArgumentNullException(nameof(model));
+                if (IsCommitted)
+                {
+                    return StartPoint.Coordinate;
+                }
+                else 
+                {
+                    return m_Creator.CachedProperties.Get<Point>();
+                }
             }
-
-            m_StartPoint = new SwSketchPoint(model, ent?.IGetStartPoint2(), created);
-            m_EndPoint = new SwSketchPoint(model, ent?.IGetEndPoint2(), created);
+            set 
+            {
+                if (IsCommitted)
+                {
+                    StartPoint.Coordinate = value;
+                }
+                else 
+                {
+                    m_Creator.CachedProperties.Set(value);
+                }
+            }
+        }
+        
+        public Point EndCoordinate 
+        {
+            get
+            {
+                if (IsCommitted)
+                {
+                    return EndPoint.Coordinate;
+                }
+                else
+                {
+                    return m_Creator.CachedProperties.Get<Point>();
+                }
+            }
+            set
+            {
+                if (IsCommitted)
+                {
+                    EndPoint.Coordinate = value;
+                }
+                else
+                {
+                    m_Creator.CachedProperties.Set(value);
+                }
+            }
         }
 
-        protected override ISketchLine CreateSketchEntity()
+        internal SwSketchLine(ISwDocument doc, ISketchLine line, bool created) 
+            : base(doc, (ISketchSegment)line, created)
+        {
+        }
+
+        protected override ISketchSegment CreateSketchEntity()
         {
             var line = (ISketchLine)m_SketchMgr.CreateLine(
-                StartPoint.Coordinate.X,
-                StartPoint.Coordinate.Y,
-                StartPoint.Coordinate.Z,
-                EndPoint.Coordinate.X,
-                EndPoint.Coordinate.Y,
-                EndPoint.Coordinate.Z);
-
-            m_StartPoint.SetLinePoint(line.IGetStartPoint2());
-            m_EndPoint.SetLinePoint(line.IGetEndPoint2());
-
-            return line;
+                StartCoordinate.X,
+                StartCoordinate.Y,
+                StartCoordinate.Z,
+                EndCoordinate.X,
+                EndCoordinate.Y,
+                EndCoordinate.Z);
+            
+            return (ISketchSegment)line;
         }
     }
 }

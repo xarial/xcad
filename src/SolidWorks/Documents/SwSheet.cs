@@ -9,11 +9,17 @@ using SolidWorks.Interop.sldworks;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
 using Xarial.XCad.Documents;
 
 namespace Xarial.XCad.SolidWorks.Documents
 {
-    public class SwSheet : SwObject, IXSheet
+    public interface ISwSheet : ISwObject, IXSheet
+    {
+        ISheet Sheet { get; }
+    }
+
+    internal class SwSheet : SwObject, ISwSheet
     {
         public ISheet Sheet { get; }
         private readonly SwDrawing m_Drawing;
@@ -37,6 +43,11 @@ namespace Xarial.XCad.SolidWorks.Documents
             m_Drawing = draw;
             Sheet = sheet;
             DrawingViews = new SwDrawingViewsCollection(draw, sheet);
+        }
+
+        public void Commit(CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
         }
     }
 }

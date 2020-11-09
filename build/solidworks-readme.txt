@@ -1,4 +1,5 @@
 https://xcad.net
+Check what's new in this version (this may include breaking changes): https://xcad.xarial.com/changelog/
 
 ---Creating Add-Ins---
 

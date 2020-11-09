@@ -12,9 +12,13 @@ using Xarial.XCad.SolidWorks.Documents;
 
 namespace Xarial.XCad.SolidWorks.Features
 {
-    public class SwSketch3D : SwSketchBase, IXSketch3D
+    public interface ISwSketch3D : ISwSketchBase, IXSketch3D
     {
-        public SwSketch3D(SwDocument doc, IFeature feat, bool created) : base(doc, feat, created)
+    }
+
+    internal class SwSketch3D : SwSketchBase, ISwSketch3D
+    {
+        internal SwSketch3D(ISwDocument doc, IFeature feat, bool created) : base(doc, feat, created)
         {
             if (doc == null)
             {

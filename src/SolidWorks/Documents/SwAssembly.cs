@@ -7,6 +7,7 @@
 
 using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
+using System;
 using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Geometry.Structures;
@@ -14,19 +15,26 @@ using Xarial.XCad.Utils.Diagnostics;
 
 namespace Xarial.XCad.SolidWorks.Documents
 {
-    public class SwAssembly : SwDocument3D, IXAssembly
+    public interface ISwAssembly : ISwDocument3D, IXAssembly
+    {
+        IAssemblyDoc Assembly { get; }
+    }
+
+    internal class SwAssembly : SwDocument3D, ISwAssembly
     {
         public IAssemblyDoc Assembly => Model as IAssemblyDoc;
 
         public IXComponentRepository Components { get; }
-
-        protected override swUserPreferenceStringValue_e DefaultTemplate => swUserPreferenceStringValue_e.swDefaultTemplateAssembly;
-
-        internal SwAssembly(IAssemblyDoc assembly, SwApplication app, IXLogger logger, bool isCreated)
+        
+        internal SwAssembly(IAssemblyDoc assembly, ISwApplication app, IXLogger logger, bool isCreated)
             : base((IModelDoc2)assembly, app, logger, isCreated)
         {
             Components = new SwAssemblyComponentCollection(this);
         }
+
+        internal protected override swDocumentTypes_e? DocumentType => swDocumentTypes_e.swDocASSEMBLY;
+
+        protected override bool IsRapidMode => throw new NotSupportedException();
 
         public override Box3D CalculateBoundingBox()
         {
@@ -40,9 +48,9 @@ namespace Xarial.XCad.SolidWorks.Documents
 
     internal class SwAssemblyComponentCollection : SwComponentCollection
     {
-        private readonly SwAssembly m_Assm;
+        private readonly ISwAssembly m_Assm;
 
-        public SwAssemblyComponentCollection(SwAssembly assm) : base(assm)
+        public SwAssemblyComponentCollection(ISwAssembly assm) : base(assm)
         {
             m_Assm = assm;
         }

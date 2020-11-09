@@ -89,7 +89,7 @@ namespace Xarial.XCad.Documentation
         public bool Enable { get; set; }
 
         [DependentOn(typeof(EnableDepHandler), nameof(Enable))]
-        public SwFace Selection { get; set; }
+        public ISwFace Selection { get; set; }
     }
 
     public class EnableDepHandler : IDependencyHandler
@@ -111,10 +111,10 @@ namespace Xarial.XCad.Documentation
             ShowPmpEnable
         }
 
-        private SwPropertyManagerPage<DataModelCascading> m_PmpPageCascading;
+        private ISwPropertyManagerPage<DataModelCascading> m_PmpPageCascading;
         private DataModelCascading m_DataModelCascading;
 
-        private SwPropertyManagerPage<DataModelEnable> m_PmpPageEnable;
+        private ISwPropertyManagerPage<DataModelEnable> m_PmpPageEnable;
         private DataModelEnable m_DataModelEnable;
 
         public override void OnConnect()

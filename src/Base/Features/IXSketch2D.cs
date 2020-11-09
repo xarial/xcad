@@ -5,9 +5,12 @@
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
+using System.Collections.Generic;
+
 namespace Xarial.XCad.Features
 {
     public interface IXSketch2D : IXSketchBase
     {
+        IEnumerable<IXSketchRegion> Regions { get; }
     }
 }

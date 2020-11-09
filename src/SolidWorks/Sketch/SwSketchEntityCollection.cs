@@ -9,37 +9,46 @@ using SolidWorks.Interop.sldworks;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Xarial.XCad.Base;
+using Xarial.XCad.Geometry;
+using Xarial.XCad.Geometry.Curves;
+using Xarial.XCad.Geometry.Wires;
 using Xarial.XCad.Sketch;
+using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Features;
 
 namespace Xarial.XCad.SolidWorks.Sketch
 {
-    public class SwSketchEntityCollection : IXSketchEntityRepository
+    public interface ISwSketchEntityCollection : IXSketchEntityRepository
     {
-        public int Count => m_Sketch.IsCreated ? 0 : m_Cache.Count;
+    }
+
+    internal class SwSketchEntityCollection : ISwSketchEntityCollection
+    {
+        public int Count => m_Sketch.IsCommitted ? 0 : m_Cache.Count;
 
         public IXSketchEntity this[string name] => throw new NotImplementedException();
 
         public bool TryGet(string name, out IXSketchEntity ent) => throw new NotImplementedException();
 
-        private readonly SwSketchBase m_Sketch;
+        private readonly ISwSketchBase m_Sketch;
 
         private readonly List<IXSketchEntity> m_Cache;
 
-        private readonly IModelDoc2 m_Model;
+        private readonly ISwDocument m_Doc;
         private readonly ISketchManager m_SkMgr;
 
-        public SwSketchEntityCollection(IModelDoc2 model, SwSketchBase sketch, ISketchManager skMgr)
+        internal SwSketchEntityCollection(ISwDocument doc, ISwSketchBase sketch)
         {
-            m_Model = model;
+            m_Doc = doc;
             m_Sketch = sketch;
-            m_SkMgr = skMgr;
+            m_SkMgr = doc.Model.SketchManager;
             m_Cache = new List<IXSketchEntity>();
         }
 
         public void AddRange(IEnumerable<IXSketchEntity> segments)
         {
-            if (m_Sketch.IsCreated)
+            if (m_Sketch.IsCommitted)
             {
                 CreateSegments(segments, m_Sketch.Sketch);
             }
@@ -66,7 +75,7 @@ namespace Xarial.XCad.SolidWorks.Sketch
 
             foreach (SwSketchEntity seg in segments)
             {
-                seg.Create();
+                seg.Commit();
             }
 
             m_SkMgr.AddToDB = addToDbOrig;
@@ -76,9 +85,9 @@ namespace Xarial.XCad.SolidWorks.Sketch
 
         public IEnumerator<IXSketchEntity> GetEnumerator()
         {
-            if (m_Sketch.IsCreated)
+            if (m_Sketch.IsCommitted)
             {
-                throw new NotImplementedException();
+                return new SwSketchEntitiesEnumerator(m_Doc, m_Sketch);
             }
             else
             {
@@ -86,24 +95,79 @@ namespace Xarial.XCad.SolidWorks.Sketch
             }
         }
 
-        public IXSketchLine PreCreateLine()
-        {
-            return new SwSketchLine(m_Model, null, false);
-        }
+        public IXLine PreCreateLine() => new SwSketchLine(m_Doc, null, false);
+        public IXPoint PreCreatePoint() => new SwSketchPoint(m_Doc, null, false);
 
-        public IXSketchPoint PreCreatePoint()
-        {
-            return new SwSketchPoint(m_Model, null, false);
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
         public void RemoveRange(IEnumerable<IXSketchEntity> ents)
         {
             //TODO: implement removing of entities
+        }
+
+        public IXArc PreCreateArc() => new SwSketchArc(m_Doc, null, false);
+
+        public IXPolylineCurve PreCreatePolyline()
+        {
+            throw new NotSupportedException();
+        }
+
+        public IXComplexCurve PreCreateComplex()
+        {
+            throw new NotSupportedException();
+        }
+    }
+
+    internal class SwSketchEntitiesEnumerator : IEnumerator<ISwSketchEntity>
+    {
+        public ISwSketchEntity Current => SwObject.FromDispatch<SwSketchEntity>(m_Entities[m_CurIndex], m_Doc);
+
+        object IEnumerator.Current => Current;
+
+        private readonly ISwDocument m_Doc;
+        private readonly ISwSketchBase m_Sketch;
+
+        private List<object> m_Entities;
+        private int m_CurIndex;
+
+        internal SwSketchEntitiesEnumerator(ISwDocument doc, ISwSketchBase sketch) 
+        {
+            m_Doc = doc;
+            m_Sketch = sketch;
+            m_Entities = new List<object>();
+
+            Reset();
+        }
+
+        public void Dispose()
+        {
+        }
+
+        public bool MoveNext()
+        {
+            m_CurIndex++;
+            return m_CurIndex < m_Entities.Count;
+        }
+
+        public void Reset()
+        {
+            m_CurIndex = -1;
+            
+            m_Entities.Clear();
+
+            var segs = m_Sketch.Sketch.GetSketchSegments() as object[];
+
+            if (segs != null) 
+            {
+                m_Entities.AddRange(segs);
+            }
+
+            var pts = m_Sketch.Sketch.GetSketchPoints2() as object[];
+
+            if (pts != null) 
+            {
+                m_Entities.AddRange(pts);
+            }
         }
     }
 }

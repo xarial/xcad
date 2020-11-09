@@ -32,7 +32,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = NewDocument(Interop.swconst.swDocumentTypes_e.swDocPART))
             {
-                var macro = (SwVbaMacro)m_App.OpenMacro(GetFilePath("VbaMacro.swp"));
+                var macro = (ISwVbaMacro)m_App.OpenMacro(GetFilePath("VbaMacro.swp"));
                 var proc = macro.EntryPoints.First(e => e.ProcedureName == "Func1");
                 macro.Run(proc);
                 m_App.Sw.IActiveDoc2.Extension.CustomPropertyManager[""].Get5("Field1", false, out val, out _, out _);
@@ -44,7 +44,7 @@ namespace SolidWorks.Tests.Integration
         [Test]
         public void VbaMacroEntryPoints()
         {
-            var macro = (SwVbaMacro)m_App.OpenMacro(GetFilePath("VbaMacro.swp"));
+            var macro = (ISwVbaMacro)m_App.OpenMacro(GetFilePath("VbaMacro.swp"));
             var entryPoints = macro.EntryPoints.Select(e => $"{e.ModuleName}.{e.ProcedureName}");
 
             Assert.That(entryPoints.SequenceEqual(new string[] { "VbaMacro1.main", "VbaMacro1.Func1", "VbaMacro1.Func3", "Module1.Func4" }));

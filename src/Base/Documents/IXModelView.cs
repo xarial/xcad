@@ -14,7 +14,7 @@ namespace Xarial.XCad.Documents
     /// <summary>
     /// Represents the model view
     /// </summary>
-    public interface IXView : IXTransaction
+    public interface IXModelView : IXTransaction
     {
         /// <summary>
         /// Freezes all view updates
@@ -52,7 +52,7 @@ namespace Xarial.XCad.Documents
     /// <summary>
     /// Represents the view which contains name
     /// </summary>
-    public interface IXNamedView : IXView 
+    public interface IXNamedView : IXModelView 
     {
         /// <summary>
         /// Name of the view
@@ -63,7 +63,7 @@ namespace Xarial.XCad.Documents
     /// <summary>
     /// Represents the one of the standard views
     /// </summary>
-    public interface IXStandardView : IXView 
+    public interface IXStandardView : IXModelView 
     {
         /// <summary>
         /// Type of this standard view

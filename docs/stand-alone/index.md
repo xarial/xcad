@@ -8,13 +8,13 @@ xCAD framework can be used to create out-of-process (stand-alone) applications, 
 
 {% youtube id: 0ubF-INE7bg %}
 
-Call **SwApplication.Start** to connect to SOLIDWORKS instance in one of the following ways:
+Call **SwApplicationFactory.Create** to connect to SOLIDWORKS instance in one of the following ways:
 
 * To the specified SOLIDWORKS version
 * To the latest SOLIDWORKS version (set the value of *vers* parameter to null)
 * By optionally providing additional arguments
 
-In order to connect to existing (running process of SOLIDWORKS) use **SwApplication.FromProcess** method and pass the pointer to [Process](https://docs.microsoft.com/en-us/dotnet/api/system.diagnostics.process?view=netcore-3.1)
+In order to connect to existing (running process of SOLIDWORKS) use **SwApplicationFactory.FromProcess** method and pass the pointer to [Process](https://docs.microsoft.com/en-us/dotnet/api/system.diagnostics.process?view=netcore-3.1)
 
 {% code-snippet { file-name: ~StandAlone.* } %}
 

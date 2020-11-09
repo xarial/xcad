@@ -6,23 +6,28 @@
 //*********************************************************************
 
 using Xarial.XCad.Geometry.Structures;
+using Xarial.XCad.Geometry.Wires;
 
 namespace Xarial.XCad.Geometry
 {
+    /// <summary>
+    /// Represents an edge element of the geometry
+    /// </summary>
     public interface IXEdge : IXEntity
     {
+        /// <summary>
+        /// Underlyining segment defining this edge
+        /// </summary>
+        IXSegment Definition { get; }
     }
 
     public interface IXCircularEdge : IXEdge 
     {
-        Point Center { get; }
-        Vector Axis { get; }
-        double Radius { get; }
+        new IXArc Definition { get; }
     }
 
     public interface IXLinearEdge : IXEdge
     {
-        Point RootPoint { get; }
-        Vector Direction { get; }
+        new IXLine Definition { get; }
     }
 }

@@ -8,14 +8,19 @@
 using SolidWorks.Interop.sldworks;
 using System;
 using System.Runtime.InteropServices;
+using System.Threading;
 using Xarial.XCad.SolidWorks.Documents;
 
 namespace Xarial.XCad.SolidWorks
 {
-    /// <inheritdoc/>
-    public class SwSelObject : SwObject, IXSelObject
+    public interface ISwSelObject : ISwObject, IXSelObject
     {
-        public static new SwSelObject FromDispatch(object disp, SwDocument doc)
+    }
+
+    /// <inheritdoc/>
+    internal class SwSelObject : SwObject, ISwSelObject
+    {
+        internal static new SwSelObject FromDispatch(object disp, ISwDocument doc)
             => (SwSelObject)SwSelObject.FromDispatch(disp, doc, o => new SwSelObject(doc.Model, o));
         
         protected readonly IModelDoc2 m_ModelDoc;
@@ -44,6 +49,10 @@ namespace Xarial.XCad.SolidWorks
             {
                 throw new Exception("Model doc is not initialized");
             }
+        }
+
+        public virtual void Commit(CancellationToken cancellationToken)
+        {
         }
     }
 }

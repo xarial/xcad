@@ -7,6 +7,7 @@
 
 using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Xarial.XCad.Base;
@@ -18,18 +19,27 @@ using Xarial.XCad.Utils.Diagnostics;
 
 namespace Xarial.XCad.SolidWorks.Documents
 {
-    public class SwPart : SwDocument3D, IXPart
+    public interface ISwPart : ISwDocument3D, IXPart 
+    {
+        IPartDoc Part { get; }
+    }
+
+    internal class SwPart : SwDocument3D, ISwPart
     {
         public IPartDoc Part => Model as IPartDoc;
 
         public IXBodyRepository Bodies { get; }
 
-        internal SwPart(IPartDoc part, SwApplication app, IXLogger logger, bool isCreated)
+        internal SwPart(IPartDoc part, ISwApplication app, IXLogger logger, bool isCreated)
             : base((IModelDoc2)part, app, logger, isCreated)
         {
             Bodies = new SwPartBodyCollection(this);
         }
-        
+
+        internal protected override swDocumentTypes_e? DocumentType => swDocumentTypes_e.swDocPART;
+
+        protected override bool IsRapidMode => throw new NotSupportedException();
+
         public override Box3D CalculateBoundingBox()
         {
             var bodies = Part.GetBodies2((int)swBodyType_e.swAllBodies, true) as object[];
@@ -95,20 +105,18 @@ namespace Xarial.XCad.SolidWorks.Documents
 
             return new Box3D(minX, minY, minZ, maxX, maxY, maxZ);
         }
-
-        protected override swUserPreferenceStringValue_e DefaultTemplate => swUserPreferenceStringValue_e.swDefaultTemplatePart;
     }
 
     internal class SwPartBodyCollection : SwBodyCollection
     {
-        private IPartDoc m_Part;
+        private SwPart m_Part;
 
         public SwPartBodyCollection(SwPart rootDoc) : base(rootDoc)
         {
-            m_Part = rootDoc.Part;
+            m_Part = rootDoc;
         }
 
         protected override IEnumerable<IBody2> GetSwBodies()
-            => (m_Part.GetBodies2((int)swBodyType_e.swAllBodies, false) as object[])?.Cast<IBody2>();
+            => (m_Part.Part.GetBodies2((int)swBodyType_e.swAllBodies, false) as object[])?.Cast<IBody2>();
     }
 }

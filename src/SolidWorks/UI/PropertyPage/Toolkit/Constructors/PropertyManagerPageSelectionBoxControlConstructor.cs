@@ -37,9 +37,9 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
     {
         private readonly IXLogger m_Logger;
 
-        private readonly SwApplication m_SwApp;
+        private readonly ISwApplication m_SwApp;
 
-        public PropertyManagerPageSelectionBoxControlConstructor(SwApplication app, IconsConverter iconsConv, IXLogger logger)
+        public PropertyManagerPageSelectionBoxControlConstructor(ISwApplication app, IconsConverter iconsConv, IXLogger logger)
             : base(app.Sw, swPropertyManagerPageControlType_e.swControlType_Selectionbox, iconsConv)
         {
             m_SwApp = app;
@@ -129,7 +129,10 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
 
             if (selBoxes.Length == 1)
             {
-                autoAssignSelMarksCtrls[0].SelectionBox.Mark = 0;
+                if (autoAssignSelMarksCtrls.Any())
+                {
+                    autoAssignSelMarksCtrls[0].SelectionBox.Mark = 0;
+                }
             }
             else
             {

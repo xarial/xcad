@@ -1,8 +1,11 @@
 ﻿using SolidWorks.Interop.sldworks;
 using System;
 using System.Threading.Tasks;
+using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Structures;
+using Xarial.XCad.Enums;
 using Xarial.XCad.SolidWorks;
+using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Enums;
 
 namespace Xarial.XCad.Documentation
@@ -11,18 +14,14 @@ namespace Xarial.XCad.Documentation
     {
         static void Main(string[] args)
         {
-            using (var app = SwApplication.Start(SwVersion_e.Sw2020, "/b"))
+            using (var app = SwApplicationFactory.Create(SwVersion_e.Sw2020, ApplicationState_e.Background))
             {
                 ISldWorks swApp = app.Sw;
                 Console.WriteLine(swApp.RevisionNumber());
 
-                var doc = app.Documents.Open(new DocumentOpenArgs()
-                {
-                    Path = @"D:\model1.SLDPRT",
-                    ReadOnly = true
-                });
+                var doc = app.Documents.Open(@"D:\model1.SLDPRT", readOnly: true);
 
-                IModelDoc2 swModel = doc.Model;
+                var swModel = (doc as ISwDocument).Model;
 
                 Console.WriteLine(swModel.GetTitle());
 

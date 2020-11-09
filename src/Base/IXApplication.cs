@@ -8,9 +8,10 @@
 using System;
 using System.Diagnostics;
 using System.Drawing;
+using Xarial.XCad.Base;
 using Xarial.XCad.Base.Enums;
-using Xarial.XCad.Delegates;
 using Xarial.XCad.Documents;
+using Xarial.XCad.Enums;
 using Xarial.XCad.Geometry;
 
 namespace Xarial.XCad
@@ -18,18 +19,18 @@ namespace Xarial.XCad
     /// <summary>
     /// Top level object in the class hierarchy
     /// </summary>
-    public interface IXApplication
+    public interface IXApplication : IXTransaction
     {
+        /// <summary>
+        /// State of the application
+        /// </summary>
+        ApplicationState_e State { get; set; }
+
         /// <summary>
         /// Returns the rectangle of the application window
         /// </summary>
         Rectangle WindowRectangle { get; }
-
-        /// <summary>
-        /// Notifies when host application is loaded
-        /// </summary>
-        event ApplicationLoadedDelegate Loaded;
-
+        
         /// <summary>
         /// Window handle of the application main window
         /// </summary>
@@ -46,11 +47,11 @@ namespace Xarial.XCad
         IXDocumentRepository Documents { get; }
 
         /// <summary>
-        /// Accesses geometry builder to build primitive geometry
+        /// Accesses memory geometry builder to build primitive wires, surface and solids
         /// </summary>
         /// <remarks>Usually used in the <see cref="Features.CustomFeature.IXCustomFeatureDefinition"/></remarks>
-        IXGeometryBuilder GeometryBuilder { get; }
-
+        IXGeometryBuilder MemoryGeometryBuilder { get; }
+        
         /// <summary>
         /// Displays the message box
         /// </summary>

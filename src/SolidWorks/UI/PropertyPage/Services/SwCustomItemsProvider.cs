@@ -17,12 +17,12 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Services
     public abstract class SwCustomItemsProvider<TItem> : ICustomItemsProvider
     {
         IEnumerable<object> ICustomItemsProvider.ProvideItems(IXApplication app, IControl[] dependencies) 
-            => ProvideItems((SwApplication)app, dependencies)?.Cast<object>();
+            => ProvideItems((ISwApplication)app, dependencies)?.Cast<object>();
 
-        public virtual IEnumerable<TItem> ProvideItems(SwApplication app, IControl[] dependencies)
+        public virtual IEnumerable<TItem> ProvideItems(ISwApplication app, IControl[] dependencies)
             => ProvideItems(app);
 
-        public virtual IEnumerable<TItem> ProvideItems(SwApplication app)
+        public virtual IEnumerable<TItem> ProvideItems(ISwApplication app)
             => Enumerable.Empty<TItem>();
     }
 }

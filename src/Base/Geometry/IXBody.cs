@@ -6,6 +6,7 @@
 //*********************************************************************
 
 using Xarial.XCad.Base;
+using Xarial.XCad.Geometry.Primitives;
 
 namespace Xarial.XCad.Geometry
 {
@@ -44,5 +45,17 @@ namespace Xarial.XCad.Geometry
         /// <param name="other">Body to get common with</param>
         /// <returns>Resulting body</returns>
         IXBody[] Common(IXBody other);
+    }
+
+    public interface IXSheetBody : IXBody
+    {
+    }
+
+    public interface IXPlanarSheetBody : IXSheetBody, IXRegion 
+    {
+    }
+
+    public interface IXSolidBody : IXBody 
+    {
     }
 }

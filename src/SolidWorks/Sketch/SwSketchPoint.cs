@@ -7,21 +7,61 @@
 
 using SolidWorks.Interop.sldworks;
 using System;
+using System.Threading;
 using Xarial.XCad.Geometry.Structures;
+using Xarial.XCad.Services;
 using Xarial.XCad.Sketch;
+using Xarial.XCad.SolidWorks.Documents;
+using Xarial.XCad.Toolkit.Utils;
 
 namespace Xarial.XCad.SolidWorks.Sketch
 {
-    public class SwSketchPoint : SwSketchEntity<ISketchPoint>, IXSketchPoint
+    public interface ISwSketchPoint : IXSketchPoint
     {
-        private Point m_CachedCoordinate;
-        private ISketchPoint m_LinePoint;
+        ISketchPoint Point { get; }
+    }
 
-        public SwSketchPoint(IModelDoc2 model, ISketchPoint ent, bool created) : base(model, ent, created)
+    internal class SwSketchPoint : SwSketchEntity, ISwSketchPoint
+    {
+        protected readonly ElementCreator<ISketchPoint> m_Creator;
+
+        protected readonly ISketchManager m_SketchMgr;
+        
+        public override bool IsCommitted => m_Creator.IsCreated;
+
+        public ISketchPoint Point => m_Creator.Element;
+
+        internal SwSketchPoint(ISwDocument doc, ISketchPoint pt, bool created) : base(doc, pt)
         {
-            if (model == null)
+            m_SketchMgr = doc.Model.SketchManager;
+            m_Creator = new ElementCreator<ISketchPoint>(CreatePoint, pt, created);
+        }
+
+        public override void Commit(CancellationToken cancellationToken) => m_Creator.Create(cancellationToken);
+
+        public override System.Drawing.Color? Color
+        {
+            get
             {
-                throw new ArgumentNullException(nameof(model));
+                if (IsCommitted)
+                {
+                    return GetColor();
+                }
+                else
+                {
+                    return m_Creator.CachedProperties.Get<System.Drawing.Color?>();
+                }
+            }
+            set
+            {
+                if (IsCommitted)
+                {
+                    SetColor(Point, value);
+                }
+                else
+                {
+                    m_Creator.CachedProperties.Set(value);
+                }
             }
         }
 
@@ -31,47 +71,52 @@ namespace Xarial.XCad.SolidWorks.Sketch
             {
                 if (m_Creator.IsCreated)
                 {
-                    return new Point(Element.X, Element.Y, Element.Z);
+                    return new Point(Point.X, Point.Y, Point.Z);
                 }
                 else
                 {
-                    return m_CachedCoordinate ?? (m_CachedCoordinate = new Point(0, 0, 0));
+                    return m_Creator.CachedProperties.Get<Point>();
                 }
             }
             set
             {
                 if (m_Creator.IsCreated)
                 {
-                    if (m_SketchMgr.ActiveSketch != Element.GetSketch())
+                    if (m_SketchMgr.ActiveSketch != Point.GetSketch())
                     {
                         throw new Exception("You must set the sketch into editing mode in order to modify the cooridinate");
                     }
 
-                    Element.SetCoords(value.X, value.Y, value.Z);
+                    Point.SetCoords(value.X, value.Y, value.Z);
                 }
                 else
                 {
-                    m_CachedCoordinate = value;
+                    m_Creator.CachedProperties.Set(value);
                 }
             }
         }
 
-        protected override ISketchPoint CreateSketchEntity()
+        private void SetColor(ISketchPoint pt, System.Drawing.Color? color)
         {
-            if (m_LinePoint == null)
+            int colorRef = 0;
+
+            if (color.HasValue)
             {
-                return m_SketchMgr.CreatePoint(Coordinate.X, Coordinate.Y, Coordinate.Z);
+                colorRef = ColorUtils.ToColorRef(color.Value);
             }
-            else
-            {
-                return m_LinePoint;
-            }
+
+            pt.Color = colorRef;
         }
 
-        internal void SetLinePoint(ISketchPoint pt)
+        private System.Drawing.Color? GetColor() => ColorUtils.FromColorRef(Point.Color);
+
+        private ISketchPoint CreatePoint(CancellationToken cancellationToken)
         {
-            m_LinePoint = pt;
-            Create();
+            var pt = m_SketchMgr.CreatePoint(Coordinate.X, Coordinate.Y, Coordinate.Z);
+
+            SetColor(pt, m_Creator.CachedProperties.Get<System.Drawing.Color?>(nameof(Color)));
+
+            return pt;
         }
     }
 }
