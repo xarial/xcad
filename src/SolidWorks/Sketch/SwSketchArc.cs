@@ -21,7 +21,7 @@ namespace Xarial.XCad.SolidWorks.Sketch
         ISketchArc Arc { get; }
     }
 
-    internal class SwSketchArc : SwSketchSegment, IXSketchArc
+    internal class SwSketchArc : SwSketchSegment, ISwSketchArc
     {
         public ISketchArc Arc => (ISketchArc)Segment;
 

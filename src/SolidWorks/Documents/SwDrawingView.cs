@@ -9,6 +9,7 @@ using SolidWorks.Interop.sldworks;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Services;
@@ -53,7 +54,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             m_Sheet = sheet;
         }
 
-        public override void Commit() => m_Creator.Create();
+        public override void Commit(CancellationToken cancellationToken) => m_Creator.Create(cancellationToken);
         
         public override bool IsCommitted => m_Creator.IsCreated;
 
@@ -67,14 +68,14 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        private IView CreateDrawingViewElement() 
+        private IView CreateDrawingViewElement(CancellationToken cancellationToken) 
         {
             var curSheet = m_Drawing.Drawing.GetCurrentSheet() as ISheet;
 
             try
             {
                 m_Drawing.Drawing.ActivateSheet(m_Sheet.GetName());
-                return CreateDrawingView();
+                return CreateDrawingView(cancellationToken);
             }
             catch
             {
@@ -86,7 +87,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        protected virtual IView CreateDrawingView() 
+        protected virtual IView CreateDrawingView(CancellationToken cancellationToken) 
         {
             throw new NotSupportedException("Creation of this drawing view is not supported"); ;
         }
@@ -199,7 +200,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
         }
 
-        protected override IView CreateDrawingView()
+        protected override IView CreateDrawingView(CancellationToken cancellationToken)
         {
             var drwView = m_Drawing.Drawing.CreateDrawViewFromModelView3(
                 m_BaseModelView.Owner.GetPathName(), m_BaseModelView.Name, Location.X, Location.Y, Location.Z);
@@ -214,7 +215,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             return drwView;
         }
 
-        public IXModelView View 
+        public IXModelView SourceModelView 
         {
             get => m_BaseModelView;
             set 

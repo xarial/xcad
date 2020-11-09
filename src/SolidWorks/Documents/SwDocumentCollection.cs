@@ -268,20 +268,20 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
             SwDocument templateDoc = null;
 
-            if (typeof(TDocument).IsAssignableFrom(typeof(ISwPart)))
+            if (typeof(IXPart).IsAssignableFrom(typeof(TDocument)))
             {
                 templateDoc = new SwPart(null, m_App, m_Logger, false);
             }
-            else if (typeof(TDocument).IsAssignableFrom(typeof(ISwAssembly)))
+            else if (typeof(IXAssembly).IsAssignableFrom(typeof(TDocument)))
             {
                 templateDoc = new SwAssembly(null, m_App, m_Logger, false);
             }
-            else if (typeof(TDocument).IsAssignableFrom(typeof(ISwDrawing)))
+            else if (typeof(IXDrawing).IsAssignableFrom(typeof(TDocument)))
             {
                 templateDoc = new SwDrawing(null, m_App, m_Logger, false);
             }
-            else if (typeof(TDocument).IsAssignableFrom(typeof(ISwDocument))
-                || typeof(TDocument).IsAssignableFrom(typeof(SwUnknownDocument)))
+            else if (typeof(IXDocument).IsAssignableFrom(typeof(TDocument)) 
+                || typeof(IXUnknownDocument).IsAssignableFrom(typeof(TDocument)))
             {
                 templateDoc = new SwUnknownDocument(null, m_App, m_Logger, false);
             }

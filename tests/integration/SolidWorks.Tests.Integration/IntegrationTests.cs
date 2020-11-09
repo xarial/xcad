@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Xarial.XCad.Enums;
 using Xarial.XCad.SolidWorks;
 
 namespace SolidWorks.Tests.Integration
@@ -53,9 +54,19 @@ namespace SolidWorks.Tests.Integration
         {
             if (SW_PRC_ID < 0)
             {
-                m_App = SwApplicationFactory.Start(null,
-                    SwApplicationFactory.CommandLineArguments.SafeMode 
-                    + " " + SwApplicationFactory.CommandLineArguments.SilentMode);
+                List<string> m_DisabledStartupAddIns;
+
+                SwApplicationFactory.DisableAllAddInsStartup(out m_DisabledStartupAddIns);
+
+                m_App = SwApplicationFactory.Create(0,
+                    ApplicationState_e.Background 
+                    | ApplicationState_e.Safe 
+                    | ApplicationState_e.Silent);
+
+                if (m_DisabledStartupAddIns?.Any() == true)
+                {
+                    SwApplicationFactory.EnableAddInsStartup(m_DisabledStartupAddIns);
+                }
 
                 m_CloseSw = true;
             }
@@ -74,7 +85,21 @@ namespace SolidWorks.Tests.Integration
             m_Disposables = new List<IDisposable>();
         }
 
-        protected string GetFilePath(string name) => Path.Combine(DATA_FOLDER, name);
+        protected string GetFilePath(string name)
+        {
+            var filePath = "";
+
+            if (Path.IsPathRooted(name)) 
+            {
+                filePath = name;
+            }
+            else 
+            {
+                filePath = Path.Combine(DATA_FOLDER, name);
+            }
+
+            return filePath;
+        }
 
         protected IDisposable OpenDataDocument(string name, bool readOnly = true) 
         {
@@ -148,8 +173,7 @@ namespace SolidWorks.Tests.Integration
         {
             if (m_CloseSw) 
             {
-                m_App.Close();
-                m_App.Dispose();
+                m_App.Process.Kill();
             }
         }
     }

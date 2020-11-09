@@ -37,6 +37,6 @@ namespace Xarial.XCad.Documents
         /// <summary>
         /// Model view this drawing view is based on
         /// </summary>
-        IXModelView View { get; set; }
+        IXModelView SourceModelView { get; set; }
     }
 }

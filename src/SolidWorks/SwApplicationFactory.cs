@@ -17,12 +17,13 @@ using Xarial.XCad.SolidWorks.Exceptions;
 using System.Collections.Generic;
 using Microsoft.Win32;
 using Xarial.XCad.Toolkit;
+using Xarial.XCad.Enums;
 
 namespace Xarial.XCad.SolidWorks
 {
     public class SwApplicationFactory
     {
-        public static class CommandLineArguments
+        internal static class CommandLineArguments
         {
             /// <summary>
             /// Bypasses the Tools/Options settings
@@ -40,96 +41,56 @@ namespace Xarial.XCad.SolidWorks
             public const string SilentMode = "/r";
         }
 
-        private const string PROG_ID_TEMPLATE = "SldWorks.Application.{0}";
+        internal const string PROG_ID_TEMPLATE = "SldWorks.Application.{0}";
+        
+        private const string ADDINS_STARTUP_REG_KEY = @"Software\SolidWorks\AddInsStartup";
 
-        public static ISwApplication FromPointer(ISldWorks app)
-            => FromPointer(app, new ServiceCollection());
-
-        public static ISwApplication FromPointer(ISldWorks app, IXServiceCollection services)
+        public static void DisableAllAddInsStartup(out List<string> disabledAddInGuids)
         {
-            return new SwApplication(app, services);
-        }
+            const int DISABLE_VAL = 0;
+            const int ENABLE_VAL = 1;
 
-        public static ISwApplication FromProcess(Process process)
-            => FromProcess(process, new ServiceCollection());
+            disabledAddInGuids = new List<string>();
 
-        public static ISwApplication FromProcess(Process process, IXServiceCollection services)
-        {
-            var app = RotHelper.TryGetComObjectByMonikerName<ISldWorks>(GetMonikerName(process));
+            var addinsStartup = Registry.CurrentUser.OpenSubKey(ADDINS_STARTUP_REG_KEY, true);
 
-            if (app != null)
+            if (addinsStartup != null)
             {
-                return FromPointer(app, services);
-            }
-            else
-            {
-                throw new Exception($"Cannot access SOLIDWORKS application at process {process.Id}");
-            }
-        }
+                var addInKeyNames = addinsStartup.GetSubKeyNames();
 
-        private static string GetMonikerName(Process process) => $"SolidWorks_PID_{process.Id}";
-
-        ///<inheritdoc cref="Start(SwVersion_e?, string, CancellationToken?)"/>
-        ///<remarks>Default timeout is 5 minutes. Use different overload of this method to specify custom cancellation token</remarks>
-        public static ISwApplication Start(SwVersion_e? vers = null,
-            string args = "") => Start(vers, args, new CancellationTokenSource(TimeSpan.FromMinutes(5)).Token);
-
-        /// <summary>
-        /// Starts new instance of the SOLIDWORKS application
-        /// </summary>
-        /// <param name="vers">Version of SOLIDWORKS to start or null for the latest version</param>
-        /// <param name="cancellationToken">Cancellation token</param>
-        /// <returns>Instance of application</returns>
-        public static ISwApplication Start(SwVersion_e? vers,
-            string args, CancellationToken? cancellationToken = null)
-            => Start(vers, args, new ServiceCollection(), cancellationToken);
-
-        ///<inheritdoc cref="Start(SwVersion_e?, string, CancellationToken?)"/>
-        /// <param name="logger">Logger</param>
-        public static ISwApplication Start(SwVersion_e? vers,
-            string args, IXServiceCollection services, CancellationToken? cancellationToken = null)
-        {
-            var swPath = FindSwAppPath(vers);
-
-            var prc = Process.Start(swPath, args);
-
-            try
-            {
-                ISldWorks app = null;
-
-                do
+                if (addInKeyNames != null)
                 {
-                    if (cancellationToken.HasValue)
+                    foreach (var addInKeyName in addInKeyNames)
                     {
-                        if (cancellationToken.Value.IsCancellationRequested)
+                        var addInKey = addinsStartup.OpenSubKey(addInKeyName, true);
+
+                        var loadOnStartup = (int)addInKey.GetValue("") == ENABLE_VAL;
+
+                        if (loadOnStartup)
                         {
-                            throw new AppStartCancelledByUserException();
+                            addInKey.SetValue("", DISABLE_VAL);
+                            disabledAddInGuids.Add(addInKeyName);
                         }
                     }
-
-                    app = RotHelper.TryGetComObjectByMonikerName<ISldWorks>(GetMonikerName(prc));
-                    Thread.Sleep(100);
                 }
-                while (app == null);
-
-                return FromPointer(app, services);
-            }
-            catch
-            {
-                if (prc != null)
-                {
-                    try
-                    {
-                        prc.Kill();
-                    }
-                    catch
-                    {
-                    }
-                }
-
-                throw;
             }
         }
+
+        public static void EnableAddInsStartup(List<string> addInGuids)
+        {
+            const int ENABLE_VAL = 1;
+
+            var addinsStartup = Registry.CurrentUser.OpenSubKey(ADDINS_STARTUP_REG_KEY, true);
+
+            foreach (var addInKeyName in addInGuids)
+            {
+                var addInKey = addinsStartup.OpenSubKey(addInKeyName, true);
+
+                addInKey.SetValue("", ENABLE_VAL);
+            }
+        }
+
+        public static ISwApplication PreCreate() => new SwApplication();
 
         public static IEnumerable<SwVersion_e> GetInstalledVersions()
         {
@@ -159,40 +120,62 @@ namespace Xarial.XCad.SolidWorks
             }
         }
 
-        private static string FindSwAppPath(SwVersion_e? vers)
+        public static ISwApplication FromPointer(ISldWorks app)
+            => FromPointer(app, new ServiceCollection());
+
+        public static ISwApplication FromPointer(ISldWorks app, IXServiceCollection services)
         {
-            RegistryKey swAppRegKey = null;
+            return new SwApplication(app, services);
+        }
 
-            if (vers.HasValue)
+        public static ISwApplication FromProcess(Process process)
+            => FromProcess(process, new ServiceCollection());
+
+        public static ISwApplication FromProcess(Process process, IXServiceCollection services)
+        {
+            var app = RotHelper.TryGetComObjectByMonikerName<ISldWorks>(GetMonikerName(process));
+
+            if (app != null)
             {
-                var progId = string.Format(PROG_ID_TEMPLATE, (int)vers);
-                swAppRegKey = Registry.ClassesRoot.OpenSubKey(progId);
+                return FromPointer(app, services);
             }
             else
             {
-                foreach (var versCand in Enum.GetValues(typeof(SwVersion_e)).Cast<int>().OrderByDescending(x => x))
-                {
-                    var progId = string.Format(PROG_ID_TEMPLATE, versCand);
-                    swAppRegKey = Registry.ClassesRoot.OpenSubKey(progId);
-
-                    if (swAppRegKey != null)
-                    {
-                        break;
-                    }
-                }
-            }
-
-            if (swAppRegKey != null)
-            {
-                return FindSwPathFromRegKey(swAppRegKey);
-            }
-            else
-            {
-                throw new NullReferenceException("Failed to find the information about the installed SOLIDWORKS applications in the registry");
+                throw new Exception($"Cannot access SOLIDWORKS application at process {process.Id}");
             }
         }
 
-        private static string FindSwPathFromRegKey(RegistryKey swAppRegKey)
+        /// <summary>
+        /// Starts new application
+        /// </summary>
+        /// <param name="vers">Version or 0 for the latest</param>
+        /// <param name="state">State of the application</param>
+        /// <param name="cancellationToken">Cancellation token</param>
+        /// <returns>Created application</returns>
+        public static ISwApplication Create(SwVersion_e vers = 0,
+            ApplicationState_e state = ApplicationState_e.Default,
+            CancellationToken? cancellationToken = null)
+        {
+            var app = PreCreate();
+            
+            app.Version = vers;
+            app.State = state;
+
+            var token = CancellationToken.None;
+
+            if (cancellationToken.HasValue) 
+            {
+                token = cancellationToken.Value;
+            }
+
+            app.Commit(token);
+
+            return app;
+        }
+
+        internal static string GetMonikerName(Process process) => $"SolidWorks_PID_{process.Id}";
+
+        internal static string FindSwPathFromRegKey(RegistryKey swAppRegKey)
         {
             var clsidKey = swAppRegKey.OpenSubKey("CLSID", false);
 
@@ -203,7 +186,7 @@ namespace Xarial.XCad.SolidWorks
 
             var clsid = (string)clsidKey.GetValue("");
 
-            var localServerKey = Microsoft.Win32.Registry.ClassesRoot.OpenSubKey(
+            var localServerKey = Registry.ClassesRoot.OpenSubKey(
                 $"CLSID\\{clsid}\\LocalServer32", false);
 
             if (clsid == null)

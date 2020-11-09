@@ -6,6 +6,7 @@
 //*********************************************************************
 
 using SolidWorks.Interop.sldworks;
+using System.Threading;
 using Xarial.XCad.Data;
 using Xarial.XCad.Documents;
 using Xarial.XCad.SolidWorks.Data;
@@ -40,7 +41,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             Properties = new SwCustomPropertiesCollection(m_Doc, Name);
         }
 
-        public void Commit()
+        public void Commit(CancellationToken cancellationToken)
         {
             throw new System.NotImplementedException();
         }

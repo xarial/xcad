@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
+using System.Threading;
 using Xarial.XCad.Annotations;
 using Xarial.XCad.Base;
 using Xarial.XCad.Data;
@@ -47,11 +48,11 @@ namespace Xarial.XCad.SolidWorks.Documents
     [DebuggerDisplay("{" + nameof(Title) + "}")]
     internal abstract class SwDocument : ISwDocument
     {
-        internal static Dictionary<string, swDocumentTypes_e> NativeFileExts { get; }
+        protected static Dictionary<string, swDocumentTypes_e> m_NativeFileExts { get; }
 
         static SwDocument() 
         {
-            NativeFileExts = new Dictionary<string, swDocumentTypes_e>(StringComparer.CurrentCultureIgnoreCase)
+            m_NativeFileExts = new Dictionary<string, swDocumentTypes_e>(StringComparer.CurrentCultureIgnoreCase)
             {
                 { ".sldprt", swDocumentTypes_e.swDocPART },
                 { ".sldasm", swDocumentTypes_e.swDocASSEMBLY },
@@ -426,7 +427,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             m_DocsDispatcher = dispatcher;
         }
 
-        protected IModelDoc2 CreateDocument()
+        protected IModelDoc2 CreateDocument(CancellationToken cancellationToken)
         {
             var docType = -1;
 
@@ -502,7 +503,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             IModelDoc2 model = null;
             int errorCode = -1;
 
-            if (NativeFileExts.TryGetValue(System.IO.Path.GetExtension(Path), out swDocumentTypes_e docType))
+            if (m_NativeFileExts.TryGetValue(System.IO.Path.GetExtension(Path), out swDocumentTypes_e docType))
             {
                 swOpenDocOptions_e opts = 0;
 
@@ -697,10 +698,10 @@ namespace Xarial.XCad.SolidWorks.Documents
             return new Sw3rdPartyStorage(Model, name, access);
         }
 
-        public void Commit()
+        public void Commit(CancellationToken cancellationToken)
         {
             m_DocsDispatcher.BeginDispatch(this);
-            m_Creator.Create();
+            m_Creator.Create(cancellationToken);
             m_DocsDispatcher.EndDispatch(this);
         }
     }
@@ -724,7 +725,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                 }
                 else 
                 {
-                    if (NativeFileExts.TryGetValue(
+                    if (m_NativeFileExts.TryGetValue(
                         System.IO.Path.GetExtension(Path), out swDocumentTypes_e type))
                     {
                         return type;

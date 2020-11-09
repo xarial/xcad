@@ -7,6 +7,7 @@
 
 using System;
 using System.Linq;
+using Xarial.XCad.Base;
 using Xarial.XCad.Geometry.Primitives;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Geometry.Wires;

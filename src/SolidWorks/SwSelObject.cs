@@ -8,6 +8,7 @@
 using SolidWorks.Interop.sldworks;
 using System;
 using System.Runtime.InteropServices;
+using System.Threading;
 using Xarial.XCad.SolidWorks.Documents;
 
 namespace Xarial.XCad.SolidWorks
@@ -50,7 +51,7 @@ namespace Xarial.XCad.SolidWorks
             }
         }
 
-        public virtual void Commit()
+        public virtual void Commit(CancellationToken cancellationToken)
         {
         }
     }

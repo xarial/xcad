@@ -1,4 +1,5 @@
 ﻿using NUnit.Framework;
+using SolidWorks.Interop.sldworks;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,7 +9,7 @@ using Xarial.XCad.SolidWorks.Documents;
 
 namespace SolidWorks.Tests.Integration
 {
-    public class SheetsTest : IntegrationTests
+    public class DrawingTest : IntegrationTests
     {
         [Test]
         public void ActiveSheetTest() 
@@ -73,6 +74,56 @@ namespace SolidWorks.Tests.Integration
             Assert.IsTrue(r1);
             Assert.IsFalse(r2);
             Assert.IsNotNull(e1);
+        }
+
+        [Test]
+        public void CreateModelViewBasedTest() 
+        {
+            var refDocPathName = "";
+            var viewOrientName = "";
+
+            using (var doc = OpenDataDocument("Selections1.SLDPRT"))
+            {
+                var partDoc = m_App.Documents.Active as IXDocument3D;
+                var view = partDoc.ModelViews[StandardViewType_e.Right];
+                
+                using(var drw = NewDocument(Interop.swconst.swDocumentTypes_e.swDocDRAWING))
+                {
+                    var drwDoc = m_App.Documents.Active as ISwDrawing;
+                    var drwView = (ISwModelBasedDrawingView)drwDoc.Sheets.Active.DrawingViews.CreateModelViewBased(view);
+                    refDocPathName = drwView.DrawingView.ReferencedDocument.GetPathName();
+                    viewOrientName = drwView.DrawingView.GetOrientationName();
+                }
+            }
+
+            Assert.AreEqual(GetFilePath("Selections1.SLDPRT"), refDocPathName);
+            Assert.AreEqual("*Right", viewOrientName);
+        }
+
+        [Test]
+        public void DrawingEventsTest()
+        {
+            var sheetActiveCount = 0;
+            var sheetName = "";
+
+            using (var doc = OpenDataDocument("Sheets1.SLDDRW"))
+            {
+                var draw = (ISwDrawing)m_App.Documents.Active;
+
+                draw.Sheets.SheetActivated += (d, s) =>
+                {
+                    sheetName = s.Name;
+                    sheetActiveCount++;
+                };
+
+                var feat = (IFeature)draw.Drawing.FeatureByName("MySheet");
+                feat.Select2(false, -1);
+                const int swCommands_Activate_Sheet = 1206;
+                m_App.Sw.RunCommand(swCommands_Activate_Sheet, "");
+            }
+
+            Assert.AreEqual(1, sheetActiveCount);
+            Assert.AreEqual("MySheet", sheetName);
         }
     }
 }

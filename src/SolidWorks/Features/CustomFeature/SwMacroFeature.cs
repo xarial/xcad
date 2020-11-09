@@ -10,6 +10,7 @@ using System;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using Xarial.XCad.Annotations;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Features.CustomFeature;
@@ -74,7 +75,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             return new SwMacroFeature<TParams>(m_Doc, m_FeatMgr, Feature, paramsParser, IsCommitted);
         }
 
-        protected override IFeature CreateFeature()
+        protected override IFeature CreateFeature(CancellationToken cancellationToken)
         {
             return InsertComFeatureBase(null, null, null, null, null, null, null);
         }
@@ -197,7 +198,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             }
         }
 
-        protected override IFeature CreateFeature()
+        protected override IFeature CreateFeature(CancellationToken cancellationToken)
         {
             return InsertComFeatureWithParameters();
         }

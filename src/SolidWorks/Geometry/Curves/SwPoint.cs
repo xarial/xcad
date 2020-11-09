@@ -8,6 +8,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Geometry.Wires;
 
@@ -23,7 +24,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Curves
 
         public bool IsCommitted => true;
 
-        public void Commit()
+        public void Commit(CancellationToken cancellationToken)
         {
         }
     }

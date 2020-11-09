@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using Xarial.XCad.Base;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Primitives;
@@ -83,7 +84,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
 
         new public ISwTempPlanarSheetBody[] Bodies => base.Bodies.Cast<ISwTempPlanarSheetBody>().ToArray();
 
-        protected override ISwTempBody[] CreateBodies()
+        protected override ISwTempBody[] CreateBodies(CancellationToken cancellationToken)
         {
             var plane = Plane;
 

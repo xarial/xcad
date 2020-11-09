@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using Xarial.XCad.Base;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Primitives;
@@ -88,7 +89,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
         {
         }
 
-        protected override ISwTempBody[] CreateBodies()
+        protected override ISwTempBody[] CreateBodies(CancellationToken cancellationToken)
         {
             var dir = m_MathUtils.CreateVector(Direction.ToArray()) as MathVector;
 

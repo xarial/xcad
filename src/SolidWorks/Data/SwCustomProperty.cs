@@ -10,6 +10,7 @@ using SolidWorks.Interop.swconst;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
 using Xarial.XCad.Data;
 using Xarial.XCad.Data.Delegates;
 using Xarial.XCad.SolidWorks.Data.EventHandlers;
@@ -180,7 +181,7 @@ namespace Xarial.XCad.SolidWorks.Data
             }
         }
 
-        public void Commit()
+        public void Commit(CancellationToken cancellationToken)
         {
             const int SUCCESS = 1;
 

@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using Xarial.XCad.Geometry.Curves;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.SolidWorks.Geometry.Exceptions;
@@ -116,7 +117,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Curves
 
         private Vector ReferenceDirection => Axis.CreateAnyPerpendicular();
 
-        protected override ICurve[] Create()
+        protected override ICurve[] Create(CancellationToken cancellationToken)
         {
             //TODO: check if this is not closed arc
 

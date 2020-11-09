@@ -8,6 +8,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
 
 namespace Xarial.XCad.Base
 {
@@ -22,6 +23,18 @@ namespace Xarial.XCad.Base
         /// </summary>
         bool IsCommitted { get; }
 
-        void Commit();
+        /// <summary>
+        /// Commits this transaction
+        /// </summary>
+        /// <param name="cancellationToken">Cancellation token</param>
+        void Commit(CancellationToken cancellationToken);
+    }
+
+    public static class IXTransactionExtension
+    {
+        public static void Commit(this IXTransaction transaction) 
+        {
+            transaction.Commit(CancellationToken.None);
+        }
     }
 }
