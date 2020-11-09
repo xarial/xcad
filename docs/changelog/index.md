@@ -8,7 +8,7 @@ This page contains list of the most notable changes in the releases of xCAD.NET.
 
 Breaking change is marked with &#x26A0; symbol
 
-## 0.6.7
+## 0.6.7 - November, 9 2020
 
 * &#x26A0; All SOLIDWORKS specific classes replaced with corresponding interfaces with I at the start (e.g. SwApplication -> ISwApplication, SwDocument -> ISwDocument)
 * &#x26A0; IXDocumentRepository::Open is replaced with transaction (also available as extension method) and **DocumentOpenArgs** is retired.

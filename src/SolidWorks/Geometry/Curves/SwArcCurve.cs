@@ -35,7 +35,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Curves
                 if (IsCommitted)
                 {
                     var circParams = Curves.First().CircleParams as double[];
-                    return circParams[6];
+                    return circParams[6] * 2;
                 }
                 else 
                 {
