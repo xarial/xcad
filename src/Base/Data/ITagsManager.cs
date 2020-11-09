@@ -9,15 +9,13 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Xarial.XCad.Enums
+namespace Xarial.XCad.Data
 {
-    [Flags]
-    public enum ApplicationState_e
+    public interface ITagsManager
     {
-        Default = 0,
-        Hidden = 1,
-        Background = 2,
-        Silent = 4,
-        Safe = 8
+        bool Contains(string name);
+        void Put<T>(string name, T value);
+        T Get<T>(string name);
+        T Pop<T>(string name);
     }
 }

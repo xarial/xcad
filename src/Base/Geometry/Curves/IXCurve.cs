@@ -14,5 +14,6 @@ namespace Xarial.XCad.Geometry.Curves
 {
     public interface IXCurve : IXSegment
     {
+        double Length { get; }
     }
 }

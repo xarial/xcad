@@ -1,4 +1,11 @@
-﻿using Microsoft.Win32;
+﻿//*********************************************************************
+//xCAD
+//Copyright(C) 2020 Xarial Pty Limited
+//Product URL: https://www.xcad.net
+//License: https://xcad.xarial.com/license/
+//*********************************************************************
+
+using Microsoft.Win32;
 using SolidWorks.Interop.sldworks;
 using System;
 using System.Collections.Generic;

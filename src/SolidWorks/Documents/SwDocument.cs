@@ -29,6 +29,7 @@ using Xarial.XCad.SolidWorks.Documents.EventHandlers;
 using Xarial.XCad.SolidWorks.Documents.Services;
 using Xarial.XCad.SolidWorks.Features;
 using Xarial.XCad.SolidWorks.Utils;
+using Xarial.XCad.Toolkit.Data;
 
 namespace Xarial.XCad.SolidWorks.Documents
 {
@@ -371,6 +372,8 @@ namespace Xarial.XCad.SolidWorks.Documents
         
         public bool IsCommitted => m_Creator.IsCreated;
 
+        public ITagsManager Tags { get; }
+
         private readonly ElementCreator<IModelDoc2> m_Creator;
         
         internal SwDocument(IModelDoc2 model, ISwApplication app, IXLogger logger) 
@@ -383,6 +386,8 @@ namespace Xarial.XCad.SolidWorks.Documents
             App = app;
             
             m_Logger = logger;
+
+            Tags = new TagsManager();
 
             m_Creator = new ElementCreator<IModelDoc2>(CreateDocument, model, created);
 
