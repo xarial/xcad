@@ -215,7 +215,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             return drwView;
         }
 
-        public IXModelView View 
+        public IXModelView SourceModelView 
         {
             get => m_BaseModelView;
             set 

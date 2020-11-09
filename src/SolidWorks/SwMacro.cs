@@ -90,8 +90,7 @@ namespace Xarial.XCad.SolidWorks
                         errDesc = "Bad variable type";
                         break;
                     case swRunMacroError_e.swRunMacroError_UserInterrupt:
-                        errDesc = "User interrupt";
-                        break;
+                        throw new MacroUserInterruptException(m_Path, err);
                     case swRunMacroError_e.swRunMacroError_Exception:
                         errDesc = "Exception";
                         break;
