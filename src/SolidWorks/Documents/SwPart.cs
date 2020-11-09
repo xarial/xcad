@@ -12,8 +12,10 @@ using System.Collections.Generic;
 using System.Linq;
 using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
+using Xarial.XCad.Documents.Delegates;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;
+using Xarial.XCad.SolidWorks.Documents.EventHandlers;
 using Xarial.XCad.SolidWorks.Geometry;
 using Xarial.XCad.Utils.Diagnostics;
 
@@ -30,9 +32,25 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public IXBodyRepository Bodies { get; }
 
+        private readonly CutListRebuildEventsHandler m_CutListRebuild;
+
+        public event CutListRebuildDelegate CutListRebuild 
+        {
+            add
+            {
+                m_CutListRebuild.Attach(value);
+            }
+            remove
+            {
+                m_CutListRebuild.Detach(value);
+            }
+        }
+
         internal SwPart(IPartDoc part, ISwApplication app, IXLogger logger, bool isCreated)
             : base((IModelDoc2)part, app, logger, isCreated)
         {
+            m_CutListRebuild = new CutListRebuildEventsHandler(this);
+
             Bodies = new SwPartBodyCollection(this);
         }
 

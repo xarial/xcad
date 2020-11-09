@@ -150,7 +150,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         private readonly StorageWriteAvailableEventsHandler m_StorageWriteAvailableHandler;
         private readonly DocumentRebuildEventsHandler m_DocumentRebuildEventHandler;
         private readonly DocumentSavingEventHandler m_DocumentSavingEventHandler;
-
+        
         public IModelDoc2 Model => m_Creator.Element;
 
         public string Path

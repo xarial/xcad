@@ -17,7 +17,7 @@ namespace Xarial.XCad.SolidWorks.Utils
     internal abstract class SwModelEventsHandler<TDel> : EventsHandler<TDel>
         where TDel : Delegate
     {
-        private readonly ISwDocument m_Doc;
+        protected readonly ISwDocument m_Doc;
         private IModelDoc2 m_Model => m_Doc.Model;
 
         internal SwModelEventsHandler(ISwDocument doc) 
@@ -61,12 +61,28 @@ namespace Xarial.XCad.SolidWorks.Utils
             }
         }
 
-        protected abstract void SubscribePartEvents(PartDoc part);
-        protected abstract void SubscribeAssemblyEvents(AssemblyDoc assm);
-        protected abstract void SubscribeDrawingEvents(DrawingDoc drw);
+        protected virtual void SubscribePartEvents(PartDoc part)
+        {
+        }
 
-        protected abstract void UnsubscribePartEvents(PartDoc part);
-        protected abstract void UnsubscribeAssemblyEvents(AssemblyDoc assm);
-        protected abstract void UnsubscribeDrawingEvents(DrawingDoc drw);
+        protected virtual void SubscribeAssemblyEvents(AssemblyDoc assm)
+        {
+        }
+
+        protected virtual void SubscribeDrawingEvents(DrawingDoc drw)
+        {
+        }
+
+        protected virtual void UnsubscribePartEvents(PartDoc part) 
+        {
+        }
+
+        protected virtual void UnsubscribeAssemblyEvents(AssemblyDoc assm)
+        {
+        }
+
+        protected virtual void UnsubscribeDrawingEvents(DrawingDoc drw)
+        {
+        }
     }
 }
