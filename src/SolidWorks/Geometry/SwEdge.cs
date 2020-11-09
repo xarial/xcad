@@ -56,7 +56,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
         }
     }
 
-    public interface ISwCircularEdge : IXCircularEdge 
+    public interface ISwCircularEdge : ISwEdge, IXCircularEdge
     {
         new ISwArcCurve Definition { get; }
     }
@@ -72,7 +72,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
         public new ISwArcCurve Definition => SwSelObject.FromDispatch<SwArcCurve>(this.Edge.IGetCurve());
     }
 
-    public interface ISwLinearEdge : IXLinearEdge 
+    public interface ISwLinearEdge : ISwEdge, IXLinearEdge
     {
         new ISwLineCurve Definition { get; }
     }

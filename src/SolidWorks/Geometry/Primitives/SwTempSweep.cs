@@ -30,8 +30,6 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
 
     internal class SwTempSweep : SwTempPrimitive, ISwTempSweep
     {
-        private const string TRACKING_DEF_ID = "__XARIAL_XCAD_TEMP_SWEEP_FACE_TRACKING__";
-
         IXRegion[] IXSweep.Profiles
         {
             get => Profiles;

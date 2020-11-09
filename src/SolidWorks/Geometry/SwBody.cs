@@ -23,10 +23,18 @@ namespace Xarial.XCad.SolidWorks.Geometry
     public interface ISwBody : IXBody
     {
         IBody2 Body { get; }
+
+        new ISwBody Add(ISwBody other);
+        new ISwBody[] Substract(ISwBody other);
+        new ISwBody[] Common(ISwBody other);
     }
 
     internal class SwBody : SwSelObject, ISwBody
     {
+        IXBody IXBody.Add(IXBody other) => Add((ISwBody)other);
+        IXBody[] IXBody.Substract(IXBody other) => Substract((ISwBody)other);
+        IXBody[] IXBody.Common(IXBody other) => Common((ISwBody)other);
+
         public static SwBody operator -(SwBody firstBody, SwBody secondBody)
         {
             return (SwBody)firstBody.Substract(secondBody).First();
@@ -80,56 +88,6 @@ namespace Xarial.XCad.SolidWorks.Geometry
             m_Document = doc;
         }
 
-        public IXBody Add(IXBody other)
-        {
-            return PerformOperation(other, swBodyOperationType_e.SWBODYADD).FirstOrDefault();
-        }
-
-        public IXBody[] Substract(IXBody other)
-        {
-            return PerformOperation(other, swBodyOperationType_e.SWBODYCUT);
-        }
-
-        public IXBody[] Common(IXBody other)
-        {
-            return PerformOperation(other, swBodyOperationType_e.SWBODYINTERSECT);
-        }
-
-        public SwTempBody ToTempBody()
-        {
-            return FromDispatch<SwTempBody>(Body.ICopy());
-        }
-
-        private IXBody[] PerformOperation(IXBody other, swBodyOperationType_e op)
-        {
-            if (other is SwBody)
-            {
-                var thisBody = Body;
-                var otherBody = (other as SwBody).Body;
-
-                int errs;
-                var res = thisBody.Operations2((int)op, otherBody, out errs) as object[];
-
-                if (errs != (int)swBodyOperationError_e.swBodyOperationNoError)
-                {
-                    throw new Exception($"Body boolean operation failed: {(swBodyOperationError_e)errs}");
-                }
-
-                if (res?.Any() == true)
-                {
-                    return res.Select(b => FromDispatch<SwBody>(b as IBody2)).ToArray();
-                }
-                else
-                {
-                    return new IXBody[0];
-                }
-            }
-            else
-            {
-                throw new InvalidCastException();
-            }
-        }
-
         public override void Select(bool append)
         {
             if (!Body.Select2(append, null))
@@ -137,6 +95,44 @@ namespace Xarial.XCad.SolidWorks.Geometry
                 throw new Exception("Failed to select body");
             }
         }
+
+        public ISwBody Add(ISwBody other)
+            => PerformOperation(other, swBodyOperationType_e.SWBODYADD).FirstOrDefault();
+
+        public ISwBody[] Substract(ISwBody other)
+            => PerformOperation(other, swBodyOperationType_e.SWBODYCUT);
+
+        public ISwBody[] Common(ISwBody other)=>
+            PerformOperation(other, swBodyOperationType_e.SWBODYINTERSECT);
+
+        private ISwBody[] PerformOperation(ISwBody other, swBodyOperationType_e op)
+        {
+            var thisBody = Body;
+            var otherBody = (other as SwBody).Body;
+
+            int errs;
+            var res = thisBody.Operations2((int)op, otherBody, out errs) as object[];
+
+            if (errs != (int)swBodyOperationError_e.swBodyOperationNoError)
+            {
+                throw new Exception($"Body boolean operation failed: {(swBodyOperationError_e)errs}");
+            }
+
+            if (res?.Any() == true)
+            {
+                return res.Select(b => FromDispatch<SwBody>(b as IBody2)).ToArray();
+            }
+            else
+            {
+                return new ISwBody[0];
+            }
+        }
+    }
+
+    public static class ISwBodyExtension
+    {
+        public static ISwTempBody ToTempBody(this ISwBody body)
+            => SwObject.FromDispatch<SwTempBody>(body.Body.ICopy());
     }
 
     public interface ISwSheetBody : ISwBody, IXSheetBody
