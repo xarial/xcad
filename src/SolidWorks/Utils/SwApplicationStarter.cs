@@ -21,10 +21,6 @@ namespace Xarial.XCad.SolidWorks.Utils
         static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
         #endregion
 
-        private const string ADDINS_STARTUP_REG_KEY = @"Software\SolidWorks\AddInsStartup";
-
-        private List<string> m_DisabledAddIns;
-
         private readonly ApplicationState_e m_State;
         private readonly SwVersion_e m_Version;
 
@@ -48,15 +44,6 @@ namespace Xarial.XCad.SolidWorks.Utils
             if (m_State.HasFlag(ApplicationState_e.Safe))
             {
                 args.Add(SwApplicationFactory.CommandLineArguments.SafeMode);
-
-                try
-                {
-                    DisableAllAddInsStartup(out m_DisabledAddIns);
-                }
-                catch (Exception ex)
-                {
-                    throw new Exception("Failed to disable add-ins startup", ex);
-                }
             }
 
             if (m_State.HasFlag(ApplicationState_e.Silent))
@@ -138,51 +125,6 @@ namespace Xarial.XCad.SolidWorks.Utils
             }
         }
 
-        private void DisableAllAddInsStartup(out List<string> disabledAddInGuids)
-        {
-            const int DISABLE_VAL = 0;
-            const int ENABLE_VAL = 1;
-
-            disabledAddInGuids = new List<string>();
-
-            var addinsStartup = Registry.CurrentUser.OpenSubKey(ADDINS_STARTUP_REG_KEY, true);
-
-            if (addinsStartup != null)
-            {
-                var addInKeyNames = addinsStartup.GetSubKeyNames();
-
-                if (addInKeyNames != null)
-                {
-                    foreach (var addInKeyName in addInKeyNames)
-                    {
-                        var addInKey = addinsStartup.OpenSubKey(addInKeyName, true);
-
-                        var loadOnStartup = (int)addInKey.GetValue("") == ENABLE_VAL;
-
-                        if (loadOnStartup)
-                        {
-                            addInKey.SetValue("", DISABLE_VAL);
-                            disabledAddInGuids.Add(addInKeyName);
-                        }
-                    }
-                }
-            }
-        }
-
-        private void EnableAddInsStartup(List<string> addInGuids)
-        {
-            const int ENABLE_VAL = 1;
-
-            var addinsStartup = Registry.CurrentUser.OpenSubKey(ADDINS_STARTUP_REG_KEY, true);
-
-            foreach (var addInKeyName in addInGuids)
-            {
-                var addInKey = addinsStartup.OpenSubKey(addInKeyName, true);
-
-                addInKey.SetValue("", ENABLE_VAL);
-            }
-        }
-        
         private string FindSwAppPath(SwVersion_e? vers)
         {
             RegistryKey swAppRegKey = null;
@@ -218,17 +160,7 @@ namespace Xarial.XCad.SolidWorks.Utils
 
         public void Dispose()
         {
-            try
-            {
-                if (m_DisabledAddIns?.Any() == true)
-                {
-                    EnableAddInsStartup(m_DisabledAddIns);
-                }
-            }
-            catch (Exception ex)
-            {
-                throw new Exception("Failed to restore disabled add-ins", ex);
-            }
+            
         }
     }
 }

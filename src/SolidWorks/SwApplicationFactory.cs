@@ -42,6 +42,53 @@ namespace Xarial.XCad.SolidWorks
         }
 
         internal const string PROG_ID_TEMPLATE = "SldWorks.Application.{0}";
+        
+        private const string ADDINS_STARTUP_REG_KEY = @"Software\SolidWorks\AddInsStartup";
+
+        public static void DisableAllAddInsStartup(out List<string> disabledAddInGuids)
+        {
+            const int DISABLE_VAL = 0;
+            const int ENABLE_VAL = 1;
+
+            disabledAddInGuids = new List<string>();
+
+            var addinsStartup = Registry.CurrentUser.OpenSubKey(ADDINS_STARTUP_REG_KEY, true);
+
+            if (addinsStartup != null)
+            {
+                var addInKeyNames = addinsStartup.GetSubKeyNames();
+
+                if (addInKeyNames != null)
+                {
+                    foreach (var addInKeyName in addInKeyNames)
+                    {
+                        var addInKey = addinsStartup.OpenSubKey(addInKeyName, true);
+
+                        var loadOnStartup = (int)addInKey.GetValue("") == ENABLE_VAL;
+
+                        if (loadOnStartup)
+                        {
+                            addInKey.SetValue("", DISABLE_VAL);
+                            disabledAddInGuids.Add(addInKeyName);
+                        }
+                    }
+                }
+            }
+        }
+
+        public static void EnableAddInsStartup(List<string> addInGuids)
+        {
+            const int ENABLE_VAL = 1;
+
+            var addinsStartup = Registry.CurrentUser.OpenSubKey(ADDINS_STARTUP_REG_KEY, true);
+
+            foreach (var addInKeyName in addInGuids)
+            {
+                var addInKey = addinsStartup.OpenSubKey(addInKeyName, true);
+
+                addInKey.SetValue("", ENABLE_VAL);
+            }
+        }
 
         public static ISwApplication PreCreate() => new SwApplication();
 
