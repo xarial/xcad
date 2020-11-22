@@ -180,6 +180,32 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
+        public string Template
+        {
+            get
+            {
+                if (IsCommitted)
+                {
+                    throw new NotSupportedException("Template cannot be retrieved for the created document");
+                }
+                else
+                {
+                    return m_Creator.CachedProperties.Get<string>();
+                }
+            }
+            set
+            {
+                if (IsCommitted)
+                {
+                    throw new NotSupportedException("Template cannot be changed for the committed document");
+                }
+                else
+                {
+                    m_Creator.CachedProperties.Set(value);
+                }
+            }
+        }
+
         public string Title
         {
             get
@@ -418,12 +444,30 @@ namespace Xarial.XCad.SolidWorks.Documents
         
         private IModelDoc2 CreateNewDocument() 
         {
-            var docTemplate = App.Sw.GetDocumentTemplate(
-                (int)DocumentType.Value, "", (int)swDwgPaperSizes_e.swDwgPapersUserDefined, 0.1, 0.1);
+            var docTemplate = Template;
+
+            if (string.IsNullOrEmpty(docTemplate))
+            {
+                docTemplate = App.Sw.GetDocumentTemplate(
+                    (int)DocumentType.Value, "", (int)swDwgPaperSizes_e.swDwgPapersUserDefined, 0.1, 0.1);
+            }
 
             if (!string.IsNullOrEmpty(docTemplate))
             {
-                var doc = App.Sw.NewDocument(docTemplate, (int)swDwgPaperSizes_e.swDwgPapersUserDefined, 0.1, 0.1) as IModelDoc2;
+                var useDefTemplates = App.Sw.GetUserPreferenceToggle((int)swUserPreferenceToggle_e.swAlwaysUseDefaultTemplates);
+
+                App.Sw.SetUserPreferenceToggle((int)swUserPreferenceToggle_e.swAlwaysUseDefaultTemplates, true);
+
+                IModelDoc2 doc = null;
+
+                try
+                {
+                    doc = App.Sw.NewDocument(docTemplate, (int)swDwgPaperSizes_e.swDwgPapersUserDefined, 0.1, 0.1) as IModelDoc2;
+                }
+                finally
+                {
+                    App.Sw.SetUserPreferenceToggle((int)swUserPreferenceToggle_e.swAlwaysUseDefaultTemplates, useDefTemplates);
+                }
 
                 if (doc != null)
                 {

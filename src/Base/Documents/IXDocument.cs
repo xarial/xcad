@@ -63,6 +63,11 @@ namespace Xarial.XCad.Documents
         string Title { get; set; }
 
         /// <summary>
+        /// Document template
+        /// </summary>
+        string Template { get; set; }
+
+        /// <summary>
         /// Path to the document (if saved)
         /// </summary>
         string Path { get; set; }
