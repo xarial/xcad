@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Xarial.XCad.Documents;
+using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.SolidWorks.Documents;
 
 namespace Xarial.XCad.SolidWorks.Services
@@ -38,7 +39,7 @@ namespace Xarial.XCad.SolidWorks.Services
                 m_App.Documents.Active = activeDoc;
             }
 
-            doc.Visible = false;
+            doc.State = DocumentState_e.Silent | DocumentState_e.Hidden;
 
             return doc;
         }

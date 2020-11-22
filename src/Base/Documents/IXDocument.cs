@@ -5,12 +5,14 @@
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
+using System.ComponentModel;
 using System.IO;
 using Xarial.XCad.Annotations;
 using Xarial.XCad.Base;
 using Xarial.XCad.Data;
 using Xarial.XCad.Data.Enums;
 using Xarial.XCad.Documents.Delegates;
+using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Features;
 
 namespace Xarial.XCad.Documents
@@ -71,30 +73,9 @@ namespace Xarial.XCad.Documents
         bool IsDirty { get; set; }
 
         /// <summary>
-        /// Checks if document is visible
+        /// Gets or sets the state of the document
         /// </summary>
-        bool Visible { get; set; }
-
-        /// <summary>
-        /// Opens document in read-only mode
-        /// </summary>
-        bool ReadOnly { get; set; }
-
-        /// <summary>
-        /// Opens document in view only mode
-        /// </summary>
-        bool ViewOnly { get; set; }
-
-        /// <summary>
-        /// Opens document without displaying any popup messages
-        /// </summary>
-        bool Silent { get; set; }
-
-        /// <summary>
-        /// Opens document in the rapid mode
-        /// </summary>
-        /// <remarks>This mode significantly improves the performance of opening but certain functionality and API migth not be available</remarks>
-        bool Rapid { get; set; }
+        DocumentState_e State { get; set; }
 
         /// <summary>
         /// Provides an ability to store temp tags in this session
@@ -143,8 +124,15 @@ namespace Xarial.XCad.Documents
         IStorage OpenStorage(string name, AccessType_e access);
     }
 
+    /// <summary>
+    /// Represents the unknown document type
+    /// </summary>
     public interface IXUnknownDocument : IXDocument 
     {
+        /// <summary>
+        /// Retrieves the specific document from the unknown document
+        /// </summary>
+        /// <returns></returns>
         IXDocument GetSpecific();
     }
 }

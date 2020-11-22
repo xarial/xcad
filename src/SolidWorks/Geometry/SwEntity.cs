@@ -12,7 +12,7 @@ using Xarial.XCad.Geometry;
 
 namespace Xarial.XCad.SolidWorks.Geometry
 {
-    public interface ISwEntity : IXEntity
+    public interface ISwEntity : ISwSelObject, IXEntity
     {
         IEntity Entity { get; }
 

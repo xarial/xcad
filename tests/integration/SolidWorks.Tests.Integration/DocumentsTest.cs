@@ -11,6 +11,7 @@ using System.Xml.Serialization;
 using Xarial.XCad.Base;
 using Xarial.XCad.Data.Enums;
 using Xarial.XCad.Documents;
+using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.SolidWorks.Documents;
 
 namespace SolidWorks.Tests.Integration
@@ -23,8 +24,7 @@ namespace SolidWorks.Tests.Integration
             var doc = m_App.Documents.PreCreate<ISwDocument>();
 
             doc.Path = GetFilePath("Features1.SLDPRT");
-            doc.ReadOnly = true;
-            doc.Silent = true;
+            doc.State = DocumentState_e.ReadOnly | DocumentState_e.Silent;
 
             doc.Commit();
 
@@ -46,7 +46,7 @@ namespace SolidWorks.Tests.Integration
         [Test]
         public void OpenDocumentExtensionTest()
         {
-            var doc1 = (ISwDocument)m_App.Documents.Open(GetFilePath("Assembly1\\TopAssem1.SLDASM"), viewOnly: true);
+            var doc1 = (ISwDocument)m_App.Documents.Open(GetFilePath("Assembly1\\TopAssem1.SLDASM"), DocumentState_e.ViewOnly);
 
             var isViewOnly1 = doc1.Model.IsOpenedViewOnly();
             var isAssm1 = doc1.Model is IAssemblyDoc;
@@ -55,7 +55,7 @@ namespace SolidWorks.Tests.Integration
 
             doc1.Close();
 
-            var doc2 = (ISwDocument)m_App.Documents.Open(GetFilePath("Sheets1.SLDDRW"), rapid: true);
+            var doc2 = (ISwDocument)m_App.Documents.Open(GetFilePath("Sheets1.SLDDRW"), DocumentState_e.Rapid);
 
             var isDrw2 = doc2.Model is IDrawingDoc;
             var isInCollection2 = m_App.Documents.Contains(doc2);
