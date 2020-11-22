@@ -157,6 +157,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public void Dispose()
         {
+            m_DocsDispatcher.Dispatched -= OnDocumentDispatched;
             m_SwApp.DocumentLoadNotify2 -= OnDocumentLoadNotify2;
 
             foreach (var doc in m_Documents.Keys.ToArray())
