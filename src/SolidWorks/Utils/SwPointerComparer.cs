@@ -35,7 +35,14 @@ namespace Xarial.XCad.SolidWorks.Utils
                 return false;
             }
 
-            return m_App.IsSame(x, y) == (int)swObjectEquality.swObjectSame;
+            try
+            {
+                return m_App.IsSame(x, y) == (int)swObjectEquality.swObjectSame;
+            }
+            catch 
+            {
+                return false;
+            }
         }
 
         public int GetHashCode(T obj)

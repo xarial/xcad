@@ -1,24 +1,19 @@
-﻿//*********************************************************************
-//xCAD
-//Copyright(C) 2020 Xarial Pty Limited
-//Product URL: https://www.xcad.net
-//License: https://xcad.xarial.com/license/
-//*********************************************************************
-
-using System;
+﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Text;
 using Xarial.XCad.SolidWorks.Base;
 using Xarial.XCad.SolidWorks.Exceptions;
 using Xarial.XCad.UI;
 
-namespace Xarial.XCad.SolidWorks.Utils
+namespace Xarial.XCad.SolidWorks.Services
 {
-    internal class IconsConverter : IDisposable
+    public class ImageIconsCreator : IIconsCreator
     {
         /// <summary>
         /// Icon data
@@ -51,21 +46,21 @@ namespace Xarial.XCad.SolidWorks.Utils
             }
         }
 
-        private readonly bool m_DisposeIcons;
         private readonly string m_IconsDir;
 
-        internal IconsConverter()
-            : this(Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString()), true)
+        public bool KeepIcons { get; set; }
+
+        public ImageIconsCreator()
+            : this(Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString()))
         {
         }
 
         /// <param name="iconsDir">Directory to store the icons</param>
         /// <param name="disposeIcons">True to remove the icons when class is disposed</param>
-        internal IconsConverter(string iconsDir,
-            bool disposeIcons = true)
+        public ImageIconsCreator(string iconsDir)
         {
             m_IconsDir = iconsDir;
-            m_DisposeIcons = disposeIcons;
+            KeepIcons = false;
 
             if (!Directory.Exists(m_IconsDir))
             {
@@ -114,7 +109,7 @@ namespace Xarial.XCad.SolidWorks.Utils
             return maskImg;
         }
 
-        internal string[] ConvertIcon(IIcon icon)
+        public string[] ConvertIcon(IIcon icon)
         {
             var iconsData = CreateIconData(icon);
 
@@ -129,7 +124,7 @@ namespace Xarial.XCad.SolidWorks.Utils
         }
 
         /// <inheritdoc/>
-        internal string[] ConvertIconsGroup(IIcon[] icons)
+        public string[] ConvertIconsGroup(IIcon[] icons)
         {
             if (icons == null || !icons.Any())
             {
@@ -180,7 +175,7 @@ namespace Xarial.XCad.SolidWorks.Utils
 
         protected virtual void Dispose(bool disposing)
         {
-            if (m_DisposeIcons)
+            if (!KeepIcons)
             {
                 try
                 {
@@ -235,14 +230,14 @@ namespace Xarial.XCad.SolidWorks.Utils
                         var heightScale = (double)(size.Height - offset * 2) / (double)sourceIcon.Height;
                         var scale = Math.Min(widthScale, heightScale);
 
-                        if (scale < 0) 
+                        if (scale < 0)
                         {
                             throw new Exception("Target size of the icon cannot be calculated due to offset constraint");
                         }
 
                         var destX = (int)(size.Width - sourceIcon.Width * scale) / 2;
                         var destY = (int)(size.Height - sourceIcon.Height * scale) / 2;
-                        
+
                         int destWidth = (int)(sourceIcon.Width * scale);
                         int destHeight = (int)(sourceIcon.Height * scale);
 
@@ -280,11 +275,11 @@ namespace Xarial.XCad.SolidWorks.Utils
                 throw new NullReferenceException($"Specified icon '{icon.GetType().FullName}' doesn't provide any sizes");
             }
 
-            var iconsData = sizes.Select(s => 
+            var iconsData = sizes.Select(s =>
             {
                 var src = FromXImage(s.SourceImage);
 
-                if (s.Mask != null) 
+                if (s.Mask != null)
                 {
                     src = ReplaceColor(src, s.Mask);
                 }

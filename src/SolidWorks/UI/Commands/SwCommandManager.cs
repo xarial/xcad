@@ -18,6 +18,7 @@ using System.Text;
 using Xarial.XCad.Base;
 using Xarial.XCad.Base.Enums;
 using Xarial.XCad.SolidWorks.Exceptions;
+using Xarial.XCad.SolidWorks.Services;
 using Xarial.XCad.SolidWorks.UI.Commands.Exceptions;
 using Xarial.XCad.SolidWorks.UI.Commands.Toolkit.Enums;
 using Xarial.XCad.SolidWorks.UI.Commands.Toolkit.Structures;
@@ -27,6 +28,7 @@ using Xarial.XCad.UI.Commands;
 using Xarial.XCad.UI.Commands.Enums;
 using Xarial.XCad.UI.Commands.Structures;
 using Xarial.XCad.Utils.Diagnostics;
+using Xarial.XCad.Toolkit;
 
 namespace Xarial.XCad.SolidWorks.UI.Commands
 {
@@ -82,16 +84,19 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
 
         public IEnumerable<IXCommandGroup> CommandGroups => m_CommandBars;
 
+        private readonly IServiceProvider m_SvcProvider;
         private readonly Guid m_AddInGuid;
 
-        internal SwCommandManager(ISwApplication app, int addinCookie, IXLogger logger, Guid addInGuid)
+        internal SwCommandManager(ISwApplication app, int addinCookie, IServiceProvider svcProvider, Guid addInGuid)
         {
             m_App = app;
             m_AddInGuid = addInGuid;
 
             CmdMgr = m_App.Sw.GetCommandManager(addinCookie);
 
-            m_Logger = logger;
+            m_SvcProvider = svcProvider;
+
+            m_Logger = svcProvider.GetService<IXLogger>();
             m_Commands = new Dictionary<string, CommandInfo>();
             m_CommandBars = new List<SwCommandGroup>();
         }
@@ -104,10 +109,12 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
         public IXCommandGroup AddContextMenu(CommandGroupSpec cmdBar, SelectType_e? owner)
         {
             swSelectType_e? selType = null;
+            
             if (owner.HasValue) 
             {
                 selType = (swSelectType_e)owner;
             }
+
             return AddCommandGroupOrContextMenu(cmdBar, true, selType);
         }
 
@@ -136,7 +143,7 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
 
             m_CommandBars.Add(bar);
 
-            using (var iconsConv = new IconsConverter())
+            using (var iconsConv = m_SvcProvider.GetService<IIconsCreator>())
             {
                 CreateIcons(cmdGroup, cmdBar, iconsConv);
 
@@ -507,7 +514,7 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
             }
         }
 
-        private void CreateIcons(CommandGroup cmdGroup, CommandGroupSpec cmdBar, IconsConverter iconsConv)
+        private void CreateIcons(CommandGroup cmdGroup, CommandGroupSpec cmdBar, IIconsCreator iconsConv)
         {
             var mainIcon = cmdBar.Icon;
 

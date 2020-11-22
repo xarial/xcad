@@ -12,37 +12,62 @@ using Xarial.XCad.UI;
 namespace Xarial.XCad.SolidWorks.Base
 {
     /// <summary>
-    /// Custom handler for the image replace function <see cref="IconsConverter.ReplaceColor(Image, ColorMaskDelegate)"/>
+    /// Custom handler for the image replace function
     /// </summary>
     /// <param name="r">Red component of pixel</param>
     /// <param name="g">Green component of pixel</param>
     /// <param name="b">Blue component of pixel</param>
     /// <param name="a">Alpha component of pixel</param>
-    internal delegate void ColorMaskDelegate(ref byte r, ref byte g, ref byte b, ref byte a);
+    public delegate void ColorMaskDelegate(ref byte r, ref byte g, ref byte b, ref byte a);
 
     /// <summary>
     /// Descriptor for the icon of a specific type
     /// </summary>
-    internal class IconSpec
+    public interface IIconSpec 
     {
         /// <summary>
         /// Base name of the icon
         /// </summary>
-        internal string Name { get; }
+        string Name { get; }
 
         /// <summary>
         /// Original image of the icon
         /// </summary>
-        internal IXImage SourceImage { get; }
+        IXImage SourceImage { get; }
 
         /// <summary>
         /// Required size of the icon
         /// </summary>
-        internal Size TargetSize { get; }
+        Size TargetSize { get; }
 
-        internal ColorMaskDelegate Mask { get; }
+        /// <summary>
+        /// Handler for the mask
+        /// </summary>
+        ColorMaskDelegate Mask { get; }
 
-        internal int Offset { get; }
+        /// <summary>
+        /// Image offset
+        /// </summary>
+        int Offset { get; }
+    }
+
+    /// <inheritdoc/>
+    internal class IconSpec : IIconSpec
+    {
+        /// <inheritdoc/>
+        public string Name { get; }
+
+        /// <inheritdoc/>
+        public IXImage SourceImage { get; }
+
+        /// <inheritdoc/>
+        public Size TargetSize { get; }
+
+        /// <inheritdoc/>
+        public ColorMaskDelegate Mask { get; }
+
+        /// <inheritdoc/>
+        public int Offset { get; }
 
         /// <summary>
         /// Icon size constructor with source image, target size and optional base name

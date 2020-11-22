@@ -7,6 +7,7 @@
 
 using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
+using Xarial.XCad.SolidWorks.Services;
 using Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls;
 using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.UI.PropertyPage.Attributes;
@@ -19,7 +20,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
     internal class PropertyManagerPageTextBoxControlConstructor
         : PropertyManagerPageBaseControlConstructor<PropertyManagerPageTextBoxControl, IPropertyManagerPageTextbox>
     {
-        public PropertyManagerPageTextBoxControlConstructor(ISldWorks app, IconsConverter iconsConv)
+        public PropertyManagerPageTextBoxControlConstructor(ISldWorks app, IIconsCreator iconsConv)
             : base(app, swPropertyManagerPageControlType_e.swControlType_Textbox, iconsConv)
         {
         }

@@ -21,7 +21,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Icons
         {
         }
 
-        public override IEnumerable<IconSpec> GetIconSizes()
+        public override IEnumerable<IIconSpec> GetIconSizes()
         {
             yield return new IconSpec(Icon, new Size(AdjustSize(m_Width, 20), AdjustSize(m_Height, 20)), BORDER_SIZE);
             yield return new IconSpec(Icon, new Size(AdjustSize(m_Width, 32), AdjustSize(m_Height, 32)), BORDER_SIZE);

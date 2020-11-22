@@ -29,7 +29,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Icons
             Icon = icon;
         }
 
-        public IEnumerable<IconSpec> GetIconSizes()
+        public IEnumerable<IIconSpec> GetIconSizes()
         {
             yield return new IconSpec(Icon, new Size(22, 22));
         }

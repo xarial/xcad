@@ -18,7 +18,7 @@ namespace Xarial.XCad.SolidWorks.UI.Commands.Toolkit.Structures
         {
         }
 
-        public override IEnumerable<IconSpec> GetIconSizes()
+        public override IEnumerable<IIconSpec> GetIconSizes()
         {
             yield return new IconSpec(m_Icon, new Size(20, 20));
             yield return new IconSpec(m_Icon, new Size(32, 32));

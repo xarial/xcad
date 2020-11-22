@@ -25,7 +25,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature.Toolkit.Icons
             m_Icon = icon;
         }
 
-        public virtual IEnumerable<IconSpec> GetIconSizes()
+        public virtual IEnumerable<IIconSpec> GetIconSizes()
         {
             yield return new IconSpec(m_Icon, MacroFeatureIconInfo.Size, 0, m_BaseName);
         }

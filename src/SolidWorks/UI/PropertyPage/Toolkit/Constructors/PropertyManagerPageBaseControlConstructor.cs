@@ -13,6 +13,7 @@ using System.Diagnostics;
 using System.Drawing;
 using Xarial.XCad.Base.Attributes;
 using Xarial.XCad.SolidWorks.Enums;
+using Xarial.XCad.SolidWorks.Services;
 using Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls;
 using Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Icons;
 using Xarial.XCad.SolidWorks.Utils;
@@ -48,12 +49,12 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
         }
 
         protected swPropertyManagerPageControlType_e m_Type;
-        private IconsConverter m_IconConv;
+        private IIconsCreator m_IconConv;
 
         protected readonly ISldWorks m_App;
 
         protected PropertyManagerPageBaseControlConstructor(ISldWorks app, swPropertyManagerPageControlType_e type,
-            IconsConverter iconsConv)
+            IIconsCreator iconsConv)
         {
             m_App = app;
             m_IconConv = iconsConv;

@@ -12,11 +12,13 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Windows;
+using Xarial.XCad.SolidWorks.Services;
 using Xarial.XCad.SolidWorks.UI.Commands.Toolkit.Structures;
 using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.UI;
 using Xarial.XCad.UI.TaskPane;
 using Xarial.XCad.UI.TaskPane.Delegates;
+using Xarial.XCad.Toolkit;
 
 namespace Xarial.XCad.SolidWorks.UI
 {
@@ -56,9 +58,13 @@ namespace Xarial.XCad.SolidWorks.UI
 
         private WpfControlKeystrokePropagator m_KeystrokePropagator;
 
-        internal SwTaskPane(ISldWorks app, ITaskpaneView taskPaneView, TControl ctrl, TaskPaneSpec spec)
+        private readonly IServiceProvider m_SvcProvider;
+
+        internal SwTaskPane(ISldWorks app, ITaskpaneView taskPaneView, TControl ctrl, TaskPaneSpec spec, IServiceProvider svcProvider)
         {
             Control = ctrl;
+
+            m_SvcProvider = svcProvider;
 
             if (ctrl is FrameworkElement)
             {
@@ -79,7 +85,7 @@ namespace Xarial.XCad.SolidWorks.UI
         {
             if (m_Spec.Buttons?.Any() == true) 
             {
-                using (var iconsConv = new IconsConverter())
+                using (var iconsConv = m_SvcProvider.GetService<IIconsCreator>())
                 {
                     foreach (var btn in m_Spec.Buttons)
                     {

@@ -9,6 +9,7 @@ using SolidWorks.Interop.sldworks;
 using System.Drawing;
 using System.IO;
 using Xarial.XCad.Reflection;
+using Xarial.XCad.SolidWorks.Services;
 using Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Icons;
 using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.UI;
@@ -24,12 +25,12 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
 #pragma warning restore CS0067
 
-        private readonly IconsConverter m_IconsConv;
+        private readonly IIconsCreator m_IconsConv;
 
         private Image m_Image;
         private readonly Size m_Size;
 
-        public PropertyManagerPageBitmapControl(IconsConverter iconsConv,
+        public PropertyManagerPageBitmapControl(IIconsCreator iconsConv,
             int id, object tag, Size? size,
             IPropertyManagerPageBitmap bitmap,
             SwPropertyManagerPageHandler handler) : base(bitmap, id, tag, handler)

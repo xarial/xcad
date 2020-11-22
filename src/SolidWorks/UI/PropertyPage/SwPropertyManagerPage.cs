@@ -11,6 +11,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Xarial.XCad.Base;
+using Xarial.XCad.SolidWorks.Services;
 using Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit;
 using Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls;
 using Xarial.XCad.SolidWorks.Utils;
@@ -20,6 +21,7 @@ using Xarial.XCad.UI.PropertyPage.Enums;
 using Xarial.XCad.UI.PropertyPage.Structures;
 using Xarial.XCad.Utils.Diagnostics;
 using Xarial.XCad.Utils.PageBuilder.Base;
+using Xarial.XCad.Toolkit;
 
 namespace Xarial.XCad.SolidWorks.UI.PropertyPage
 {
@@ -40,7 +42,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
         public event PageDataChangedDelegate DataChanged;
 
         private readonly ISwApplication m_App;
-        private readonly IconsConverter m_IconsConv;
+        private readonly IIconsCreator m_IconsConv;
         private readonly PropertyManagerPagePage m_Page;
         private readonly PropertyManagerPageBuilder m_PmpBuilder;
 
@@ -49,25 +51,29 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
 
         internal SwPropertyManagerPageHandler Handler { get; private set; }
 
-        public IXLogger Logger { get; }
+        private readonly IXLogger m_Logger;
 
         /// <inheritdoc/>
         public TModel Model { get; private set; }
 
+        private readonly IServiceProvider m_SvcProvider;
+
         /// <summary>Creates instance of property manager page</summary>
         /// <param name="app">Pointer to session of SOLIDWORKS where the property manager page to be created</param>
-        internal SwPropertyManagerPage(ISwApplication app, IXLogger logger, Type handlerType)
-            : this(app, null, logger, handlerType)
+        internal SwPropertyManagerPage(ISwApplication app, IServiceProvider svcProvider, Type handlerType)
+            : this(app, null, svcProvider, handlerType)
         {
         }
 
-        internal SwPropertyManagerPage(ISwApplication app, IPageSpec pageSpec, IXLogger logger, Type handlerType)
+        internal SwPropertyManagerPage(ISwApplication app, IPageSpec pageSpec, IServiceProvider svcProvider, Type handlerType)
         {
             m_App = app;
 
-            Logger = logger;
+            m_SvcProvider = svcProvider;
 
-            m_IconsConv = new IconsConverter();
+            m_Logger = m_SvcProvider.GetService<IXLogger>();
+
+            m_IconsConv = m_SvcProvider.GetService<IIconsCreator>();
 
             //TODO: validate that handlerType inherits PropertyManagerPageHandlerEx and it is COM visible with parameterless constructor
             Handler = (SwPropertyManagerPageHandler)Activator.CreateInstance(handlerType);
@@ -75,7 +81,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
             Handler.DataChanged += OnDataChanged;
             Handler.Closed += OnClosed;
             Handler.Closing += OnClosing;
-            m_PmpBuilder = new PropertyManagerPageBuilder(app, m_IconsConv, Handler, pageSpec, Logger);
+            m_PmpBuilder = new PropertyManagerPageBuilder(app, m_IconsConv, Handler, pageSpec, m_Logger);
 
             m_Page = m_PmpBuilder.CreatePage<TModel>();
             Controls = m_Page.Binding.Bindings.Select(b => b.Control)
@@ -84,7 +90,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
 
         public void Dispose()
         {
-            Logger.Log("Disposing page");
+            m_Logger.Log("Disposing page");
 
             foreach (var ctrl in m_Page.Binding.Bindings.Select(b => b.Control).OfType<IDisposable>())
             {
@@ -98,7 +104,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
         public void Show(TModel model)
         {
             Model = model;
-            Logger.Log("Opening page");
+            m_Logger.Log("Opening page");
 
             const int OPTS_DEFAULT = 0;
 

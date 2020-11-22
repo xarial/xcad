@@ -20,6 +20,7 @@ using Xarial.XCad.UI.PropertyPage.Enums;
 using Xarial.XCad.UI.PropertyPage.Structures;
 using Xarial.XCad.Utils.Diagnostics;
 using Xarial.XCad.Utils.Reflection;
+using Xarial.XCad.Toolkit;
 
 namespace Xarial.XCad.Utils.CustomFeature
 {
@@ -28,6 +29,7 @@ namespace Xarial.XCad.Utils.CustomFeature
         where TPage : class, new()
     {
         protected readonly IXApplication m_App;
+        protected readonly IServiceProvider m_SvcProvider;
         protected readonly IXLogger m_Logger;
 
         private readonly XObjectEqualityComparer<IXBody> m_BodiesComparer;
@@ -46,10 +48,13 @@ namespace Xarial.XCad.Utils.CustomFeature
         public BaseCustomFeatureEditor(IXApplication app,
             Type featDefType,
             CustomFeatureParametersParser paramsParser,
-            IXLogger logger)
+            IServiceProvider svcProvider)
         {
             m_App = app;
-            m_Logger = logger;
+
+            m_SvcProvider = svcProvider;
+
+            m_Logger = svcProvider.GetService<IXLogger>();
 
             m_DefType = featDefType;
 

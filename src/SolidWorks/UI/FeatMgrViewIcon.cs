@@ -32,7 +32,7 @@ namespace Xarial.XCad.SolidWorks.UI
             m_Icon = icon;
         }
 
-        public virtual IEnumerable<IconSpec> GetIconSizes()
+        public virtual IEnumerable<IIconSpec> GetIconSizes()
         {
             yield return new IconSpec(m_Icon, new Size(18, 18));
         }

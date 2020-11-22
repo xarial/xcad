@@ -11,6 +11,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using Xarial.XCad.SolidWorks.Services;
 using Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls;
 using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.UI.PropertyPage.Attributes;
@@ -27,7 +28,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
     internal abstract class PropertyManagerPageComboBoxControlConstructorBase<TVal>
         : PropertyManagerPageBaseControlConstructor<PropertyManagerPageComboBoxControl<TVal>, IPropertyManagerPageCombobox>
     {
-        public PropertyManagerPageComboBoxControlConstructorBase(ISldWorks app, IconsConverter iconsConv)
+        public PropertyManagerPageComboBoxControlConstructorBase(ISldWorks app, IIconsCreator iconsConv)
             : base(app, swPropertyManagerPageControlType_e.swControlType_Combobox, iconsConv)
         {
         }
@@ -62,7 +63,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
     internal class PropertyManagerPageEnumComboBoxControlConstructor
         : PropertyManagerPageComboBoxControlConstructorBase<Enum>
     {
-        public PropertyManagerPageEnumComboBoxControlConstructor(ISldWorks app, IconsConverter iconsConv) 
+        public PropertyManagerPageEnumComboBoxControlConstructor(ISldWorks app, IIconsCreator iconsConv) 
             : base(app, iconsConv)
         {
         }
@@ -83,7 +84,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
     {
         private readonly ISwApplication m_SwApp;
 
-        public PropertyManagerPageCustomItemsComboBoxControlConstructor(ISwApplication app, IconsConverter iconsConv)
+        public PropertyManagerPageCustomItemsComboBoxControlConstructor(ISwApplication app, IIconsCreator iconsConv)
             : base(app.Sw, iconsConv)
         {
             m_SwApp = app;
