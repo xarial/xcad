@@ -78,11 +78,13 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
                 var bmpWidth = bmpAtt.Width;
                 var bmpHeight = bmpAtt.Height;
 
-                var icon = AdjustIcon(IconsConverter.FromXImage(bmpAtt.Icon ?? Defaults.Icon), bmpWidth, bmpHeight);
+                var icon = bmpAtt.Icon ?? Defaults.Icon;
 
                 if (m_App.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2016))
                 {
                     var icons = m_IconsConv.ConvertIcon(new BitmapButtonHighResIcon(icon, bmpWidth, bmpHeight));
+                    AdjustIcons(icons, bmpWidth, bmpHeight);
+
                     var imgList = icons.Take(6).ToArray();
                     var maskImgList = icons.Skip(6).ToArray();
                     swCtrl.SetBitmapsByName3(imgList, maskImgList);
@@ -90,11 +92,28 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
                 else
                 {
                     var icons = m_IconsConv.ConvertIcon(new BitmapButtonIcon(icon, bmpWidth, bmpHeight));
+                    AdjustIcons(icons, bmpWidth, bmpHeight);
+
                     swCtrl.SetBitmapsByName2(icons[0], icons[1]);
                 }
             }
 
             return new PropertyManagerPageBitmapButtonControl(atts.Id, atts.Tag, swCtrl, handler);
+        }
+
+        private void AdjustIcons(string[] icons, int width, int height) 
+        {
+            foreach (var iconPath in icons)
+            {
+                Image adjustedImage = null;
+
+                using (var img = Image.FromFile(iconPath)) 
+                {
+                    adjustedImage = AdjustIcon(img, width, height);
+                }
+
+                adjustedImage.Save(iconPath);
+            }
         }
 
         private Image AdjustIcon(Image icon, int width, int height) 

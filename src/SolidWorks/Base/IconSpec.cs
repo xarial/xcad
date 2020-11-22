@@ -7,28 +7,40 @@
 
 using System;
 using System.Drawing;
+using Xarial.XCad.UI;
 
 namespace Xarial.XCad.SolidWorks.Base
 {
     /// <summary>
+    /// Custom handler for the image replace function <see cref="IconsConverter.ReplaceColor(Image, ColorMaskDelegate)"/>
+    /// </summary>
+    /// <param name="r">Red component of pixel</param>
+    /// <param name="g">Green component of pixel</param>
+    /// <param name="b">Blue component of pixel</param>
+    /// <param name="a">Alpha component of pixel</param>
+    internal delegate void ColorMaskDelegate(ref byte r, ref byte g, ref byte b, ref byte a);
+
+    /// <summary>
     /// Descriptor for the icon of a specific type
     /// </summary>
-    internal class IconSizeInfo
+    internal class IconSpec
     {
         /// <summary>
         /// Base name of the icon
         /// </summary>
-        internal string Name { get; private set; }
+        internal string Name { get; }
 
         /// <summary>
         /// Original image of the icon
         /// </summary>
-        internal Image SourceImage { get; private set; }
+        internal IXImage SourceImage { get; }
 
         /// <summary>
         /// Required size of the icon
         /// </summary>
-        internal Size TargetSize { get; private set; }
+        internal Size TargetSize { get; }
+
+        internal ColorMaskDelegate Mask { get; }
 
         /// <summary>
         /// Icon size constructor with source image, target size and optional base name
@@ -36,12 +48,18 @@ namespace Xarial.XCad.SolidWorks.Base
         /// <param name="srcImage">Source image</param>
         /// <param name="targetSize">Target size of the image</param>
         /// <param name="baseName">Base name of the image</param>
-        internal IconSizeInfo(Image srcImage, Size targetSize, string baseName = "")
+        internal IconSpec(IXImage srcImage, Size targetSize, string baseName = "")
         {
             SourceImage = srcImage;
             TargetSize = targetSize;
 
             Name = CreateFileName(baseName, targetSize);
+        }
+
+        internal IconSpec(IXImage srcImage, Size targetSize, ColorMaskDelegate mask, string baseName = "")
+            : this(srcImage, targetSize, baseName)
+        {
+            Mask = mask;
         }
 
         /// <summary>

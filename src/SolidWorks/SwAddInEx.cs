@@ -343,13 +343,13 @@ namespace Xarial.XCad.SolidWorks
                 spec = new TaskPaneSpec();
             }
 
-            ITaskpaneView CreateTaskPaneView(IconsConverter iconConv, Image icon, string title) 
+            ITaskpaneView CreateTaskPaneView(IconsConverter iconConv, IXImage icon, string title) 
             {
                 if (icon == null) 
                 {
                     if (spec.Icon != null)
                     {
-                        icon = IconsConverter.FromXImage(spec.Icon);
+                        icon = spec.Icon;
                     }
                 }
 

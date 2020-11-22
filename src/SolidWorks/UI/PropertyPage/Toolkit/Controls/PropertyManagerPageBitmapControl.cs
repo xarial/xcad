@@ -7,8 +7,11 @@
 
 using SolidWorks.Interop.sldworks;
 using System.Drawing;
+using System.IO;
+using Xarial.XCad.Reflection;
 using Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Icons;
 using Xarial.XCad.SolidWorks.Utils;
+using Xarial.XCad.UI;
 using Xarial.XCad.Utils.PageBuilder.PageElements;
 
 namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
@@ -35,22 +38,34 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             m_IconsConv = iconsConv;
         }
 
-        protected override Image GetSpecificValue()
-        {
-            return m_Image;
-        }
+        protected override Image GetSpecificValue() => m_Image;
 
         protected override void SetSpecificValue(Image value)
         {
+            IXImage img = null;
+
             if (value == null)
             {
-                value = IconsConverter.FromXImage(Defaults.Icon);
+                img = Defaults.Icon;
+            }
+            else 
+            {
+                img = ResourceHelper.FromBytes(ImageToByteArray(value));
             }
 
-            var icons = m_IconsConv.ConvertIcon(new ControlIcon(value, m_Size));
+            var icons = m_IconsConv.ConvertIcon(new ControlIcon(img, m_Size));
             SwSpecificControl.SetBitmapByName(icons[0], icons[1]);
 
             m_Image = value;
+        }
+
+        private byte[] ImageToByteArray(Image img)
+        {
+            using (var ms = new MemoryStream())
+            {
+                img.Save(ms, img.RawFormat);
+                return ms.ToArray();
+            }
         }
     }
 }

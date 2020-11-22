@@ -10,31 +10,32 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Text;
 using Xarial.XCad.SolidWorks.Base;
+using Xarial.XCad.UI;
 
 namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Icons
 {
     internal class BitmapButtonHighResIcon : BitmapButtonIcon
     {
-        internal BitmapButtonHighResIcon(Image icon, int width, int height)
+        internal BitmapButtonHighResIcon(IXImage icon, int width, int height)
             : base(icon, width, height)
         {
         }
 
-        public override IEnumerable<IconSizeInfo> GetIconSizes()
+        public override IEnumerable<IconSpec> GetIconSizes()
         {
-            yield return new IconSizeInfo(Icon, new Size(AdjustSize(m_Width, 20), AdjustSize(m_Height, 20)));
-            yield return new IconSizeInfo(Icon, new Size(AdjustSize(m_Width, 32), AdjustSize(m_Height, 32)));
-            yield return new IconSizeInfo(Icon, new Size(AdjustSize(m_Width, 40), AdjustSize(m_Height, 40)));
-            yield return new IconSizeInfo(Icon, new Size(AdjustSize(m_Width, 64), AdjustSize(m_Height, 64)));
-            yield return new IconSizeInfo(Icon, new Size(AdjustSize(m_Width, 96), AdjustSize(m_Height, 96)));
-            yield return new IconSizeInfo(Icon, new Size(AdjustSize(m_Width, 128), AdjustSize(m_Height, 128)));
+            yield return new IconSpec(Icon, new Size(AdjustSize(m_Width, 20), AdjustSize(m_Height, 20)));
+            yield return new IconSpec(Icon, new Size(AdjustSize(m_Width, 32), AdjustSize(m_Height, 32)));
+            yield return new IconSpec(Icon, new Size(AdjustSize(m_Width, 40), AdjustSize(m_Height, 40)));
+            yield return new IconSpec(Icon, new Size(AdjustSize(m_Width, 64), AdjustSize(m_Height, 64)));
+            yield return new IconSpec(Icon, new Size(AdjustSize(m_Width, 96), AdjustSize(m_Height, 96)));
+            yield return new IconSpec(Icon, new Size(AdjustSize(m_Width, 128), AdjustSize(m_Height, 128)));
 
-            yield return new IconSizeInfo(Mask, new Size(AdjustSize(m_Width, 20), AdjustSize(m_Height, 20)));
-            yield return new IconSizeInfo(Mask, new Size(AdjustSize(m_Width, 32), AdjustSize(m_Height, 32)));
-            yield return new IconSizeInfo(Mask, new Size(AdjustSize(m_Width, 40), AdjustSize(m_Height, 40)));
-            yield return new IconSizeInfo(Mask, new Size(AdjustSize(m_Width, 64), AdjustSize(m_Height, 64)));
-            yield return new IconSizeInfo(Mask, new Size(AdjustSize(m_Width, 96), AdjustSize(m_Height, 96)));
-            yield return new IconSizeInfo(Mask, new Size(AdjustSize(m_Width, 128), AdjustSize(m_Height, 128)));
+            yield return new IconSpec(Icon, new Size(AdjustSize(m_Width, 20), AdjustSize(m_Height, 20)), CreateMask);
+            yield return new IconSpec(Icon, new Size(AdjustSize(m_Width, 32), AdjustSize(m_Height, 32)), CreateMask);
+            yield return new IconSpec(Icon, new Size(AdjustSize(m_Width, 40), AdjustSize(m_Height, 40)), CreateMask);
+            yield return new IconSpec(Icon, new Size(AdjustSize(m_Width, 64), AdjustSize(m_Height, 64)), CreateMask);
+            yield return new IconSpec(Icon, new Size(AdjustSize(m_Width, 96), AdjustSize(m_Height, 96)), CreateMask);
+            yield return new IconSpec(Icon, new Size(AdjustSize(m_Width, 128), AdjustSize(m_Height, 128)), CreateMask);
         }
 
         /// <summary>

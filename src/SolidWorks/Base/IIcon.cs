@@ -24,6 +24,6 @@ namespace Xarial.XCad.SolidWorks.Base
         /// List of required icon sizes
         /// </summary>
         /// <returns></returns>
-        IEnumerable<IconSizeInfo> GetIconSizes();
+        IEnumerable<IconSpec> GetIconSizes();
     }
 }

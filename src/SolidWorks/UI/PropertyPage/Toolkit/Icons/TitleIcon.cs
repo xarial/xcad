@@ -8,12 +8,13 @@
 using System.Collections.Generic;
 using System.Drawing;
 using Xarial.XCad.SolidWorks.Base;
+using Xarial.XCad.UI;
 
 namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Icons
 {
     internal class TitleIcon : IIcon
     {
-        internal Image Icon { get; private set; }
+        internal IXImage Icon { get; private set; }
 
         public Color TransparencyKey
         {
@@ -23,14 +24,14 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Icons
             }
         }
 
-        internal TitleIcon(Image icon)
+        internal TitleIcon(IXImage icon)
         {
             Icon = icon;
         }
 
-        public IEnumerable<IconSizeInfo> GetIconSizes()
+        public IEnumerable<IconSpec> GetIconSizes()
         {
-            yield return new IconSizeInfo(Icon, new Size(22, 22));
+            yield return new IconSpec(Icon, new Size(22, 22));
         }
     }
 }

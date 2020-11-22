@@ -20,14 +20,6 @@ namespace Xarial.XCad.SolidWorks.Utils
 {
     internal class IconsConverter : IDisposable
     {
-        internal static Image FromXImage(IXImage img) 
-        {
-            using (var str = new MemoryStream(img.Buffer)) 
-            {
-                return Image.FromStream(str);
-            }
-        }
-
         /// <summary>
         /// Icon data
         /// </summary>
@@ -55,15 +47,6 @@ namespace Xarial.XCad.SolidWorks.Utils
                 TargetIconPath = Path.Combine(iconsDir, name);
             }
         }
-
-        /// <summary>
-        /// Custom handler for the image replace function <see cref="IconsConverter.ReplaceColor(Image, ColorReplacerDelegate)"/>
-        /// </summary>
-        /// <param name="r">Red component of pixel</param>
-        /// <param name="g">Green component of pixel</param>
-        /// <param name="b">Blue component of pixel</param>
-        /// <param name="a">Alpha component of pixel</param>
-        internal delegate void ColorReplacerDelegate(ref byte r, ref byte g, ref byte b, ref byte a);
 
         private readonly bool m_DisposeIcons;
         private readonly string m_IconsDir;
@@ -99,9 +82,9 @@ namespace Xarial.XCad.SolidWorks.Utils
         /// Replaces the pixels in the image based on the custom replacer handler
         /// </summary>
         /// <param name="icon">Image to replace</param>
-        /// <param name="replacer">Handler to replace which is called for each pixel</param>
+        /// <param name="mask">Handler to replace which is called for each pixel</param>
         /// <returns>Resulting image</returns>
-        internal static Image ReplaceColor(Image icon, ColorReplacerDelegate replacer)
+        private Image ReplaceColor(Image icon, ColorMaskDelegate mask)
         {
             var maskImg = new Bitmap(icon);
 
@@ -118,7 +101,7 @@ namespace Xarial.XCad.SolidWorks.Utils
 
             for (int i = 0; i < rgba.Length; i += 4)
             {
-                replacer.Invoke(ref rgba[i + 2], ref rgba[i + 1], ref rgba[i], ref rgba[i + 3]);
+                mask.Invoke(ref rgba[i + 2], ref rgba[i + 1], ref rgba[i], ref rgba[i + 3]);
             }
 
             Marshal.Copy(rgba, 0, bmpData.Scan0, rgba.Length);
@@ -229,7 +212,7 @@ namespace Xarial.XCad.SolidWorks.Utils
                     for (int i = 0; i < sourceIcons.Length; i++)
                     {
                         var sourceIcon = ReplaceColor(sourceIcons[i],
-                            new ColorReplacerDelegate((ref byte r, ref byte g, ref byte b, ref byte a) =>
+                            new ColorMaskDelegate((ref byte r, ref byte g, ref byte b, ref byte a) =>
                             {
                                 if (r == background.R && g == background.G && b == background.B && a == background.A)
                                 {
@@ -298,9 +281,28 @@ namespace Xarial.XCad.SolidWorks.Utils
                 throw new NullReferenceException($"Specified icon '{icon.GetType().FullName}' doesn't provide any sizes");
             }
 
-            var iconsData = sizes.Select(s => new IconData(m_IconsDir, s.SourceImage, s.TargetSize, s.Name)).ToArray();
+            var iconsData = sizes.Select(s => 
+            {
+                var src = FromXImage(s.SourceImage);
+
+                if (s.Mask != null) 
+                {
+                    src = ReplaceColor(src, s.Mask);
+                }
+
+                return new IconData(m_IconsDir,
+                    src, s.TargetSize, s.Name);
+            }).ToArray();
 
             return iconsData;
+        }
+
+        private Image FromXImage(IXImage img)
+        {
+            using (var str = new MemoryStream(img.Buffer))
+            {
+                return Image.FromStream(str);
+            }
         }
     }
 }

@@ -8,20 +8,21 @@
 using System.Collections.Generic;
 using System.Drawing;
 using Xarial.XCad.SolidWorks.Base;
+using Xarial.XCad.UI;
 
 namespace Xarial.XCad.SolidWorks.Features.CustomFeature.Toolkit.Icons
 {
     internal class MacroFeatureHighResIcon : MacroFeatureIcon
     {
-        internal MacroFeatureHighResIcon(Image icon, string baseName) : base(icon, baseName)
+        internal MacroFeatureHighResIcon(IXImage icon, string baseName) : base(icon, baseName)
         {
         }
 
-        public override IEnumerable<IconSizeInfo> GetIconSizes()
+        public override IEnumerable<IconSpec> GetIconSizes()
         {
-            yield return new IconSizeInfo(m_Icon, MacroFeatureIconInfo.SizeHighResSmall, m_BaseName);
-            yield return new IconSizeInfo(m_Icon, MacroFeatureIconInfo.SizeHighResMedium, m_BaseName);
-            yield return new IconSizeInfo(m_Icon, MacroFeatureIconInfo.SizeHighResLarge, m_BaseName);
+            yield return new IconSpec(m_Icon, MacroFeatureIconInfo.SizeHighResSmall, m_BaseName);
+            yield return new IconSpec(m_Icon, MacroFeatureIconInfo.SizeHighResMedium, m_BaseName);
+            yield return new IconSpec(m_Icon, MacroFeatureIconInfo.SizeHighResLarge, m_BaseName);
         }
     }
 }

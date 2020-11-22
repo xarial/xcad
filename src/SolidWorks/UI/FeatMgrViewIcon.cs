@@ -8,12 +8,13 @@
 using System.Collections.Generic;
 using System.Drawing;
 using Xarial.XCad.SolidWorks.Base;
+using Xarial.XCad.UI;
 
 namespace Xarial.XCad.SolidWorks.UI
 {
     internal class FeatMgrViewIcon : IIcon
     {
-        protected readonly Image m_Icon;
+        protected readonly IXImage m_Icon;
 
         private static readonly Color m_TransparencyKey
                     = Color.White;
@@ -26,14 +27,14 @@ namespace Xarial.XCad.SolidWorks.UI
             }
         }
 
-        internal FeatMgrViewIcon(Image icon)
+        internal FeatMgrViewIcon(IXImage icon)
         {
             m_Icon = icon;
         }
 
-        public virtual IEnumerable<IconSizeInfo> GetIconSizes()
+        public virtual IEnumerable<IconSpec> GetIconSizes()
         {
-            yield return new IconSizeInfo(m_Icon, new Size(18, 18));
+            yield return new IconSpec(m_Icon, new Size(18, 18));
         }
     }
 }

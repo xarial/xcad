@@ -9,13 +9,13 @@ using System.Collections.Generic;
 using System.Drawing;
 using Xarial.XCad.SolidWorks.Base;
 using Xarial.XCad.SolidWorks.Utils;
+using Xarial.XCad.UI;
 
 namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Icons
 {
     internal class BitmapButtonIcon : IIcon
     {
-        internal Image Icon { get; private set; }
-        internal Image Mask { get; private set; }
+        internal IXImage Icon { get; private set; }
 
         protected readonly int m_Width;
         protected readonly int m_Height;
@@ -28,36 +28,26 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Icons
             }
         }
 
-        internal BitmapButtonIcon(Image icon, int width, int height)
-            : this(icon, CreateMask(icon))
+        internal BitmapButtonIcon(IXImage icon, int width, int height)
         {
+            Icon = icon;
             m_Width = width;
             m_Height = height;
         }
         
-        private BitmapButtonIcon(Image icon, Image mask)
+        public virtual IEnumerable<IconSpec> GetIconSizes()
         {
-            Icon = icon;
-            Mask = mask;
+            yield return new IconSpec(Icon, new Size(m_Width, m_Height));
+            yield return new IconSpec(Icon, new Size(m_Width, m_Height), CreateMask);
         }
 
-        public virtual IEnumerable<IconSizeInfo> GetIconSizes()
+        protected void CreateMask(ref byte r, ref byte g, ref byte b, ref byte a) 
         {
-            yield return new IconSizeInfo(Icon, new Size(m_Width, m_Height));
-            yield return new IconSizeInfo(Mask, new Size(m_Width, m_Height));
-        }
-
-        private static Image CreateMask(Image icon)
-        {
-            return IconsConverter.ReplaceColor(icon,
-                new IconsConverter.ColorReplacerDelegate((ref byte r, ref byte g, ref byte b, ref byte a) =>
-                {
-                    var mask = (byte)(255 - a);
-                    r = mask;
-                    g = mask;
-                    b = mask;
-                    a = 255;
-                }));
+            var mask = (byte)(255 - a);
+            r = mask;
+            g = mask;
+            b = mask;
+            a = 255;
         }
     }
 }

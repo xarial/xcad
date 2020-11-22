@@ -35,6 +35,7 @@ using Xarial.XCad.SolidWorks.Geometry;
 using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.Toolkit;
 using Xarial.XCad.Toolkit.CustomFeature;
+using Xarial.XCad.UI;
 using Xarial.XCad.Utils.Diagnostics;
 using Xarial.XCad.Utils.Reflection;
 
@@ -107,16 +108,16 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             var iconsConverter = new IconsConverter(
                 MacroFeatureIconInfo.GetLocation(this.GetType()), false);
 
-            System.Drawing.Image icon = null;
+            IXImage icon = null;
 
             this.GetType().TryGetAttribute<IconAttribute>(a =>
             {
-                icon = IconsConverter.FromXImage(a.Icon);
+                icon = a.Icon;
             });
 
             if (icon == null)
             {
-                icon = IconsConverter.FromXImage(Defaults.Icon);
+                icon = Defaults.Icon;
             }
 
             //TODO: create different icons for highlighted and suppressed

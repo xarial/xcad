@@ -9,13 +9,14 @@ using System.Collections.Generic;
 using System.Drawing;
 using Xarial.XCad.SolidWorks.Base;
 using Xarial.XCad.SolidWorks.Utils;
+using Xarial.XCad.UI;
 
 namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Icons
 {
     internal class ControlIcon : IIcon
     {
-        internal Image Icon { get; private set; }
-        internal Image Mask { get; private set; }
+        internal IXImage Icon { get; private set; }
+        internal IXImage Mask { get; private set; }
 
         public Color TransparencyKey
         {
@@ -26,46 +27,31 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Icons
         }
 
         private readonly Size m_Size;
-
-        internal ControlIcon(Image icon)
-            : this(icon, CreateMask(icon))
+        
+        internal ControlIcon(IXImage icon)
+            : this(icon, new Size(24, 24))
         {
         }
 
-        internal ControlIcon(Image icon, Size size)
-            : this(icon, CreateMask(icon), size)
-        {
-        }
-
-        internal ControlIcon(Image icon, Image mask)
-            : this(icon, mask, new Size(24, 24))
-        {
-        }
-
-        internal ControlIcon(Image icon, Image mask, Size size)
+        internal ControlIcon(IXImage icon, Size size)
         {
             Icon = icon;
-            Mask = mask;
             m_Size = size;
         }
 
-        public IEnumerable<IconSizeInfo> GetIconSizes()
+        public IEnumerable<IconSpec> GetIconSizes()
         {
-            yield return new IconSizeInfo(Icon, m_Size);
-            yield return new IconSizeInfo(Mask, m_Size);
+            yield return new IconSpec(Icon, m_Size);
+            yield return new IconSpec(Icon, m_Size, CreateMask);
         }
-
-        private static Image CreateMask(Image icon)
+        
+        private void CreateMask(ref byte r, ref byte g, ref byte b, ref byte a)
         {
-            return IconsConverter.ReplaceColor(icon,
-                new IconsConverter.ColorReplacerDelegate((ref byte r, ref byte g, ref byte b, ref byte a) =>
-                {
-                    var mask = (byte)(255 - a);
-                    r = mask;
-                    g = mask;
-                    b = mask;
-                    a = 255;
-                }));
+            var mask = (byte)(255 - a);
+            r = mask;
+            g = mask;
+            b = mask;
+            a = 255;
         }
     }
 }
