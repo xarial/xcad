@@ -94,6 +94,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
         public void OnButtonPress(int Id)
         {
             ButtonPressed?.Invoke(Id);
+            DataChanged?.Invoke();
         }
 
         [Browsable(false)]

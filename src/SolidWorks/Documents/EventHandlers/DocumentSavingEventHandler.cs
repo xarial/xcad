@@ -19,11 +19,8 @@ namespace Xarial.XCad.SolidWorks.Documents.EventHandlers
 {
     internal class DocumentSavingEventHandler : SwModelEventsHandler<DocumentSaveDelegate>
     {
-        private readonly SwDocument m_Doc;
-
-        internal DocumentSavingEventHandler(SwDocument doc) : base(doc.Model)
+        internal DocumentSavingEventHandler(SwDocument doc) : base(doc)
         {
-            m_Doc = doc;
         }
 
         protected override void SubscribeAssemblyEvents(AssemblyDoc assm)

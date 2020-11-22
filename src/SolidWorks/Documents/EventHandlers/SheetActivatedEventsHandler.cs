@@ -17,11 +17,11 @@ namespace Xarial.XCad.SolidWorks.Documents.EventHandlers
 {
     internal class SheetActivatedEventsHandler : SwModelEventsHandler<SheetActivatedDelegate>
     {
-        private SwDrawing m_Doc;
+        private SwDrawing m_Drw;
 
-        internal SheetActivatedEventsHandler(SwDrawing doc) : base(doc.Model)
+        internal SheetActivatedEventsHandler(SwDrawing drw) : base(drw)
         {
-            m_Doc = doc;
+            m_Drw = drw;
         }
 
         protected override void SubscribeDrawingEvents(DrawingDoc drw)
@@ -33,30 +33,10 @@ namespace Xarial.XCad.SolidWorks.Documents.EventHandlers
         {
             drw.ActivateSheetPostNotify -= OnActivateSheetPostNotify;
         }
-
-        protected override void SubscribeAssemblyEvents(AssemblyDoc assm)
-        {
-            throw new NotSupportedException();
-        }
-
-        protected override void SubscribePartEvents(PartDoc part)
-        {
-            throw new NotSupportedException();
-        }
-
-        protected override void UnsubscribeAssemblyEvents(AssemblyDoc assm)
-        {
-            throw new NotSupportedException();
-        }
-
-        protected override void UnsubscribePartEvents(PartDoc part)
-        {
-            throw new NotSupportedException();
-        }
-
+        
         private int OnActivateSheetPostNotify(string sheetName)
         {
-            Delegate?.Invoke(m_Doc, m_Doc.Sheets[sheetName]);
+            Delegate?.Invoke(m_Drw, m_Drw.Sheets[sheetName]);
             return S_OK;
         }
     }

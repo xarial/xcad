@@ -6,17 +6,30 @@
 //*********************************************************************
 
 using SolidWorks.Interop.sldworks;
+using SolidWorks.Interop.swconst;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Text;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;
+using Xarial.XCad.Geometry.Surfaces;
+using Xarial.XCad.SolidWorks.Geometry.Surfaces;
+using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.Utils.Reflection;
 
 namespace Xarial.XCad.SolidWorks.Geometry
 {
-    public class SwFace : SwEntity, IXFace
+    public interface ISwFace : IXFace 
     {
+        IFace2 Face { get; }
+        new ISwSurface Definition { get; }
+    }
+
+    internal class SwFace : SwEntity, ISwFace
+    {
+        IXSurface IXFace.Definition => Definition;
+
         public IFace2 Face { get; }
 
         public SwFace(IFace2 face) : base(face as IEntity)
@@ -24,9 +37,9 @@ namespace Xarial.XCad.SolidWorks.Geometry
             Face = face;
         }
 
-        public override SwBody Body => (SwBody)FromDispatch(Face.GetBody());
+        public override ISwBody Body => (SwBody)FromDispatch(Face.GetBody());
 
-        public override IEnumerable<SwEntity> AdjacentEntities 
+        public override IEnumerable<ISwEntity> AdjacentEntities 
         {
             get 
             {
@@ -38,51 +51,50 @@ namespace Xarial.XCad.SolidWorks.Geometry
         }
 
         public double Area => Face.GetArea();
+
+        private IComponent2 Component => (Face as IEntity).GetComponent() as IComponent2;
+
+        public Color? Color 
+        {
+            get => SwColorHelper.GetColor(Face, Component, 
+                (o, c) => Face.GetMaterialPropertyValues2((int)o, c) as double[]);
+            set => SwColorHelper.SetColor(Face, value, Component,
+                (m, o, c) => Face.SetMaterialPropertyValues2(m, (int)o, c),
+                (o, c) => Face.RemoveMaterialProperty2((int)o, c));
+        }
+
+        public ISwSurface Definition => SwSelObject.FromDispatch<SwSurface>(Face.IGetSurface());
     }
 
-    public class SwPlanarFace : SwFace, IXPlanarFace
+    public interface ISwPlanarFace : ISwFace, IXPlanarFace
     {
+        new ISwPlanarSurface Definition { get; }
+    }
+
+    internal class SwPlanarFace : SwFace, ISwPlanarFace
+    {
+        IXPlanarSurface IXPlanarFace.Definition => Definition;
+
         public SwPlanarFace(IFace2 face) : base(face)
         {
         }
 
-        public Vector Normal => new Vector(Face.Normal as double[]);
+        public new ISwPlanarSurface Definition => SwSelObject.FromDispatch<SwPlanarSurface>(Face.IGetSurface());
     }
 
-    public class SwCylindricalFace : SwFace, IXCylindricalFace
+    public interface ISwCylindricalFace : ISwFace, IXCylindricalFace
     {
+        new ISwCylindricalSurface Definition { get; }
+    }
+
+    internal class SwCylindricalFace : SwFace, ISwCylindricalFace
+    {
+        IXCylindricalSurface IXCylindricalFace.Definition => Definition;
+
         public SwCylindricalFace(IFace2 face) : base(face)
         {
         }
 
-        public Point Origin
-        {
-            get
-            {
-                var cylParams = CylinderParams;
-
-                return new Point(cylParams[0], cylParams[1], cylParams[2]);
-            }
-        }
-
-        public Vector Axis 
-        {
-            get 
-            {
-                var cylParams = CylinderParams;
-
-                return new Vector(cylParams[3], cylParams[4], cylParams[5]);
-            }
-        }
-
-        public double Radius => CylinderParams[6];
-
-        private double[] CylinderParams
-        {
-            get
-            {
-                return Face.IGetSurface().CylinderParams as double[];
-            }
-        }
+        public new ISwCylindricalSurface Definition => SwSelObject.FromDispatch<SwCylindricalSurface>(Face.IGetSurface());
     }
 }

@@ -7,10 +7,12 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Xarial.XCad.Enums;
 using Xarial.XCad.SolidWorks;
 
 namespace SolidWorks.Tests.Integration
 {
+    [TestFixture]
     public abstract class IntegrationTests
     {
         private class DocumentWrapper : IDisposable
@@ -40,37 +42,64 @@ namespace SolidWorks.Tests.Integration
         private const int SW_PRC_ID = -1;
         private const string DATA_FOLDER = @"C:\Users\artem\OneDrive\xCAD\TestData";
 
-        protected SwApplication m_App;
+        protected ISwApplication m_App;
         private ISldWorks m_SwApp;
 
         private List<IDisposable> m_Disposables;
 
         private bool m_CloseSw;
 
-        [SetUp]
+        [OneTimeSetUp]
         public void Setup()
         {
             if (SW_PRC_ID < 0)
             {
-                m_App = SwApplication.Start(null, "/b").Result;
+                List<string> m_DisabledStartupAddIns;
+
+                SwApplicationFactory.DisableAllAddInsStartup(out m_DisabledStartupAddIns);
+
+                m_App = SwApplicationFactory.Create(0,
+                    ApplicationState_e.Background 
+                    | ApplicationState_e.Safe 
+                    | ApplicationState_e.Silent);
+
+                if (m_DisabledStartupAddIns?.Any() == true)
+                {
+                    SwApplicationFactory.EnableAddInsStartup(m_DisabledStartupAddIns);
+                }
+
                 m_CloseSw = true;
             }
             else if (SW_PRC_ID == 0) 
             {
                 var prc = Process.GetProcessesByName("SLDWORKS").First();
-                m_App = SwApplication.FromProcess(prc);
+                m_App = SwApplicationFactory.FromProcess(prc);
             }
             else
             {
                 var prc = Process.GetProcessById(SW_PRC_ID);
-                prc = Process.GetProcessById(SW_PRC_ID);
+                m_App = SwApplicationFactory.FromProcess(prc);
             }
 
             m_SwApp = m_App.Sw;
             m_Disposables = new List<IDisposable>();
         }
 
-        protected string GetFilePath(string name) => Path.Combine(DATA_FOLDER, name);
+        protected string GetFilePath(string name)
+        {
+            var filePath = "";
+
+            if (Path.IsPathRooted(name)) 
+            {
+                filePath = name;
+            }
+            else 
+            {
+                filePath = Path.Combine(DATA_FOLDER, name);
+            }
+
+            return filePath;
+        }
 
         protected IDisposable OpenDataDocument(string name, bool readOnly = true) 
         {
@@ -78,10 +107,16 @@ namespace SolidWorks.Tests.Integration
 
             var spec = (IDocumentSpecification)m_SwApp.GetOpenDocSpec(filePath);
             spec.ReadOnly = readOnly;
+            spec.LightWeight = false;
             var model = m_SwApp.OpenDoc7(spec);
 
             if (model != null)
             {
+                if (model is IAssemblyDoc) 
+                {
+                    (model as IAssemblyDoc).ResolveAllLightWeightComponents(false);
+                }
+
                 var docWrapper = new DocumentWrapper(m_SwApp, model);
                 m_Disposables.Add(docWrapper);
                 return docWrapper;
@@ -94,26 +129,10 @@ namespace SolidWorks.Tests.Integration
 
         protected IDisposable NewDocument(swDocumentTypes_e docType) 
         {
-            swUserPreferenceStringValue_e defTemplateType;
+            var defTemplatePath = m_SwApp.GetDocumentTemplate(
+                (int)docType, "", (int)swDwgPaperSizes_e.swDwgPapersUserDefined, 100, 100);
 
-            switch (docType) 
-            {
-                case swDocumentTypes_e.swDocPART:
-                    defTemplateType = swUserPreferenceStringValue_e.swDefaultTemplatePart;
-                    break;
-                case swDocumentTypes_e.swDocASSEMBLY:
-                    defTemplateType = swUserPreferenceStringValue_e.swDefaultTemplateAssembly;
-                    break;
-                case swDocumentTypes_e.swDocDRAWING:
-                    defTemplateType = swUserPreferenceStringValue_e.swDefaultTemplateDrawing;
-                    break;
-                default:
-                    throw new NotSupportedException("Document type is not supported");
-            }
-
-            var defTemplatePath = m_SwApp.GetUserPreferenceStringValue((int)defTemplateType);
-
-            if (string.IsNullOrEmpty(defTemplatePath)) 
+            if (string.IsNullOrEmpty(defTemplatePath))
             {
                 throw new Exception("Default template is not found");
             }
@@ -133,23 +152,28 @@ namespace SolidWorks.Tests.Integration
         }
 
         [TearDown]
-        public void TearDown()
+        public void TearDown() 
         {
-            foreach (var disp in m_Disposables) 
+            foreach (var disp in m_Disposables)
             {
                 try
                 {
                     disp.Dispose();
                 }
-                catch 
+                catch
                 {
                 }
             }
 
+            m_Disposables.Clear();
+        }
+
+        [OneTimeTearDown]
+        public void FinalTearDown()
+        {
             if (m_CloseSw) 
             {
-                m_App.Close();
-                m_App.Dispose();
+                m_App.Process.Kill();
             }
         }
     }

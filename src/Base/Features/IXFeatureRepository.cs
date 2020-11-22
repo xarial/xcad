@@ -28,8 +28,16 @@ namespace Xarial.XCad.Features
             where TPage : class, new()
             where TDef : class, IXCustomFeatureDefinition<TParams, TPage>, new();
 
+        /// <summary>
+        /// Creates a template for 2D sketch
+        /// </summary>
+        /// <returns>2D sketch template</returns>
         IXSketch2D PreCreate2DSketch();
 
+        /// <summary>
+        /// Creates a template for 3D sketch
+        /// </summary>
+        /// <returns>2D sketch template</returns>
         IXSketch3D PreCreate3DSketch();
     }
 }

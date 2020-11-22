@@ -5,19 +5,16 @@
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
-using Xarial.XCad.Geometry.Structures;
+using System;
+using System.Collections.Generic;
+using System.Text;
 
 namespace Xarial.XCad.Geometry
 {
     public interface IXGeometryBuilder
     {
-        IXBody CreateBox(Point center, Vector dir, Vector refDir,
-            double width, double length, double height);
-
-        IXBody CreateCylinder(Point center, Vector axis, Vector refDir,
-            double radius, double height);
-
-        IXBody CreateCone(Point center, Vector axis, Vector refDir,
-            double baseRadius, double topRadius, double height);
+        IXWireGeometryBuilder WireBuilder { get; }
+        IXSheetGeometryBuilder SheetBuilder { get; }
+        IXSolidGeometryBuilder SolidBuilder { get; }
     }
 }

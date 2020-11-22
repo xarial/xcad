@@ -16,7 +16,13 @@ using Xarial.XCad.Toolkit.Services;
 
 namespace Xarial.XCad.SolidWorks.Annotations
 {
-    public class SwDimension : SwSelObject, IXDimension, IDisposable
+    public interface ISwDimension : IXDimension, IDisposable, ISwSelObject
+    {
+        IDimension Dimension { get; }
+        IDisplayDimension DisplayDimension { get; }
+    }
+
+    internal class SwDimension : SwSelObject, ISwDimension
     {
         private IDimension m_Dimension;
 

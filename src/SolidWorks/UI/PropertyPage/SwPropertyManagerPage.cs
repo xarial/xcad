@@ -23,8 +23,12 @@ using Xarial.XCad.Utils.PageBuilder.Base;
 
 namespace Xarial.XCad.SolidWorks.UI.PropertyPage
 {
+    public interface ISwPropertyManagerPage<TModel> : IXPropertyPage<TModel>, IDisposable 
+    {
+    }
+
     /// <inheritdoc/>
-    public class SwPropertyManagerPage<TModel> : IXPropertyPage<TModel>, IDisposable
+    internal class SwPropertyManagerPage<TModel> : ISwPropertyManagerPage<TModel>
     {
         /// <inheritdoc/>
         public event PageClosedDelegate Closed;
@@ -35,7 +39,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
         /// <inheritdoc/>
         public event PageDataChangedDelegate DataChanged;
 
-        private readonly ISldWorks m_App;
+        private readonly ISwApplication m_App;
         private readonly IconsConverter m_IconsConv;
         private readonly PropertyManagerPagePage m_Page;
         private readonly PropertyManagerPageBuilder m_PmpBuilder;
@@ -52,14 +56,14 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
 
         /// <summary>Creates instance of property manager page</summary>
         /// <param name="app">Pointer to session of SOLIDWORKS where the property manager page to be created</param>
-        public SwPropertyManagerPage(SwApplication app, IXLogger logger, Type handlerType)
+        internal SwPropertyManagerPage(ISwApplication app, IXLogger logger, Type handlerType)
             : this(app, null, logger, handlerType)
         {
         }
 
-        public SwPropertyManagerPage(SwApplication app, IPageSpec pageSpec, IXLogger logger, Type handlerType)
+        internal SwPropertyManagerPage(ISwApplication app, IPageSpec pageSpec, IXLogger logger, Type handlerType)
         {
-            m_App = app.Sw;
+            m_App = app;
 
             Logger = logger;
 
@@ -98,7 +102,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
 
             const int OPTS_DEFAULT = 0;
 
-            m_App.IActiveDoc2.ClearSelection2(true);
+            m_App.Sw.IActiveDoc2.ClearSelection2(true);
 
             foreach (var binding in m_Page.Binding.Bindings)
             {

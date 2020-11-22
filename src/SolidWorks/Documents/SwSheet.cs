@@ -9,28 +9,45 @@ using SolidWorks.Interop.sldworks;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
 using Xarial.XCad.Documents;
 
 namespace Xarial.XCad.SolidWorks.Documents
 {
-    public class SwSheet : SwObject, IXSheet
+    public interface ISwSheet : ISwObject, IXSheet
     {
-        private readonly ISheet m_Sheet;
-        private readonly IDrawingDoc m_Drawing;
+        ISheet Sheet { get; }
+    }
+
+    internal class SwSheet : SwObject, ISwSheet
+    {
+        public ISheet Sheet { get; }
+        private readonly SwDrawing m_Drawing;
 
         public string Name
         {
-            get => m_Sheet.GetName();
+            get => Sheet.GetName();
             set 
             {
-                m_Sheet.SetName(value);
+                Sheet.SetName(value);
             }
         }
 
-        internal SwSheet(IDrawingDoc draw, ISheet sheet) : base(sheet)
+        public IXDrawingViewRepository DrawingViews { get; }
+
+        //TODO: implement creation of new sheets
+        public bool IsCommitted => true;
+
+        internal SwSheet(SwDrawing draw, ISheet sheet) : base(sheet)
         {
             m_Drawing = draw;
-            m_Sheet = sheet;
+            Sheet = sheet;
+            DrawingViews = new SwDrawingViewsCollection(draw, sheet);
+        }
+
+        public void Commit(CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
         }
     }
 }

@@ -16,11 +16,8 @@ namespace Xarial.XCad.SolidWorks.Documents.EventHandlers
 {
     internal class ClearSelectionEventHandler : SwModelEventsHandler<ClearSelectionDelegate>
     {
-        private readonly SwDocument m_Doc;
-
-        internal ClearSelectionEventHandler(SwDocument doc) : base(doc.Model)
-        {
-            m_Doc = doc;
+        internal ClearSelectionEventHandler(SwDocument doc) : base(doc)
+        {            
         }
 
         protected override void SubscribeAssemblyEvents(AssemblyDoc assm)

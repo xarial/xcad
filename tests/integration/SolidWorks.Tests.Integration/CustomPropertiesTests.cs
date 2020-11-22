@@ -24,15 +24,15 @@ namespace SolidWorks.Tests.Integration
             using (var doc = OpenDataDocument("CustomProps1.SLDPRT")) 
             {
                 var prp = m_App.Documents.Active.Properties.GetOrPreCreate("AddTestPrp1");
-                exists = prp.Exists;
+                exists = prp.Exists();
                 prp.Value = "AddTestPrp1Value";
                 m_App.Documents.Active.Properties.Add(prp);
                 m_App.Sw.IActiveDoc2.Extension.CustomPropertyManager[""].Get5("AddTestPrp1", false, out val, out _, out _);
 
-                var prpConf = (m_App.Documents.Active as SwDocument3D).Configurations["Default"].Properties.GetOrPreCreate("AddTestPrp1Conf");
-                existsConf = prpConf.Exists;
+                var prpConf = (m_App.Documents.Active as ISwDocument3D).Configurations["Default"].Properties.GetOrPreCreate("AddTestPrp1Conf");
+                existsConf = prpConf.Exists();
                 prpConf.Value = "AddTestPrp1ValueConf";
-                (m_App.Documents.Active as SwDocument3D).Configurations["Default"].Properties.Add(prpConf);
+                (m_App.Documents.Active as ISwDocument3D).Configurations["Default"].Properties.Add(prpConf);
                 m_App.Sw.IActiveDoc2.Extension.CustomPropertyManager["Default"].Get5("AddTestPrp1Conf", false, out valConf, out _, out _);
             }
 
@@ -51,7 +51,7 @@ namespace SolidWorks.Tests.Integration
             using (var doc = OpenDataDocument("CustomProps1.SLDPRT"))
             {
                 prps = m_App.Documents.Active.Properties.ToDictionary(p => p.Name, p => p.Value);
-                prpsConf = (m_App.Documents.Active as SwDocument3D).Configurations["Default"].Properties.ToDictionary(p => p.Name, p => p.Value);
+                prpsConf = (m_App.Documents.Active as ISwDocument3D).Configurations["Default"].Properties.ToDictionary(p => p.Name, p => p.Value);
             }
 
             Assert.That(prps.ContainsKey("Prop1"));
@@ -79,7 +79,7 @@ namespace SolidWorks.Tests.Integration
                 r1 = m_App.Documents.Active.Properties.TryGet("Prop1", out prp1);
 
                 val = m_App.Documents.Active.Properties["Prop1"].Value;
-                valConf = (m_App.Documents.Active as SwDocument3D).Configurations["Default"].Properties["Prop1"].Value;
+                valConf = (m_App.Documents.Active as ISwDocument3D).Configurations["Default"].Properties["Prop1"].Value;
             }
 
             Assert.IsTrue(r1);
@@ -99,7 +99,7 @@ namespace SolidWorks.Tests.Integration
                 Assert.IsNull(prp1);
 
                 Assert.Throws<CustomPropertyMissingException>(()=> { var p = m_App.Documents.Active.Properties["Prop1_"]; });
-                Assert.Throws<CustomPropertyMissingException>(() => { var p = (m_App.Documents.Active as SwDocument3D).Configurations["Default"].Properties["Prop1_"]; });
+                Assert.Throws<CustomPropertyMissingException>(() => { var p = (m_App.Documents.Active as ISwDocument3D).Configurations["Default"].Properties["Prop1_"]; });
             }
         }
     }

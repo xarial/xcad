@@ -15,6 +15,7 @@ using Xarial.XCad.Geometry;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Geometry;
 using Xarial.XCad.SolidWorks.UI.PropertyPage;
+using Xarial.XCad.Toolkit.Utils;
 using Xarial.XCad.UI.PropertyPage;
 using Xarial.XCad.Utils.CustomFeature;
 using Xarial.XCad.Utils.Diagnostics;
@@ -25,7 +26,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         where TData : class, new()
         where TPage : class, new()
     {
-        internal SwMacroFeatureEditor(SwApplication app, Type defType, 
+        internal SwMacroFeatureEditor(ISwApplication app, Type defType, 
             CustomFeatureParametersParser paramsParser, IXLogger logger) 
             : base(app, defType, paramsParser, logger)
         {
@@ -38,14 +39,9 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
                 var swBody = (body as SwBody).Body;
                 var model = (CurModel as SwDocument).Model;
 
-                swBody.Display3(model, ConvertColor(Color.Yellow),
+                swBody.Display3(model, ColorUtils.ToColorRef(Color.Yellow),
                     (int)swTempBodySelectOptions_e.swTempBodySelectOptionNone);
             }
-        }
-
-        private int ConvertColor(Color color)
-        {
-            return (color.R << 0) | (color.G << 8) | (color.B << 16);
         }
 
         protected override void HidePreview(IXBody[] bodies)
@@ -74,7 +70,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         protected override IXPropertyPage<TPage> CreatePage()
         {
             //TODO: add support for other options
-            return new SwPropertyManagerPage<TPage>((SwApplication)m_App, m_Logger, typeof(TPage));
+            return new SwPropertyManagerPage<TPage>((ISwApplication)m_App, m_Logger, typeof(TPage));
         }
     }
 }

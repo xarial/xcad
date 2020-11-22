@@ -6,13 +6,14 @@
 //*********************************************************************
 
 using Xarial.XCad.Annotations.Delegates;
+using Xarial.XCad.Base;
 
 namespace Xarial.XCad.Annotations
 {
     /// <summary>
     /// Annotation which drives the dimension parameter
     /// </summary>
-    public interface IXDimension : IXSelObject
+    public interface IXDimension : IXSelObject, IXTransaction
     {
         event DimensionValueChangedDelegate ValueChanged;
 

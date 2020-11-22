@@ -5,12 +5,15 @@
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
-namespace Xarial.XCad.Documents.Structures
+using Xarial.XCad.Geometry.Primitives;
+
+namespace Xarial.XCad.Geometry
 {
-    public class DocumentOpenArgs
+    public interface IX3DGeometryBuilder 
     {
-        public string Path { get; set; }
-        public bool ReadOnly { get; set; }
-        public bool ViewOnly { get; set; }
+        IXExtrusion PreCreateExtrusion();
+        IXSweep PreCreateSweep();
+        IXLoft PreCreateLoft();
+        IXRevolve PreCreateRevolve();
     }
 }

@@ -9,23 +9,39 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Xarial.XCad.Geometry.Structures;
+using Xarial.XCad.Geometry.Surfaces;
 
 namespace Xarial.XCad.Geometry
 {
-    public interface IXFace : IXEntity
+    /// <summary>
+    /// Represents face entity
+    /// </summary>
+    public interface IXFace : IXEntity, IXColorizable
     {
+        /// <summary>
+        /// Area of the face
+        /// </summary>
         double Area { get; }
+
+        /// <summary>
+        /// Underlying definition for this face
+        /// </summary>
+        IXSurface Definition { get; }
     }
 
+    /// <summary>
+    /// Represents planar face
+    /// </summary>
     public interface IXPlanarFace : IXFace 
     {
-        Vector Normal { get; }
+        new IXPlanarSurface Definition { get; }
     }
 
+    /// <summary>
+    /// Represents cylindrical face
+    /// </summary>
     public interface IXCylindricalFace : IXFace 
     {
-        Point Origin { get; }
-        Vector Axis { get; }
-        double Radius { get; }
+        new IXCylindricalSurface Definition { get; }
     }
 }

@@ -42,8 +42,6 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
                 ctrlCreator, page, bindingsList, dependencies, ref firstCtrlId);
 
             OnBeforeControlsDataLoad(bindings);
-
-            //LoadControlsData(bindings);
         }
 
         protected virtual void OnBeforeControlsDataLoad(IEnumerable<IBinding> bindings)
@@ -105,14 +103,6 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
 
             return CreateAttributeSet(ctrlId, name, desc, type, typeAtts.ToArray(), tag);
         }
-
-        //private void LoadControlsData(IEnumerable<IBinding> bindings)
-        //{
-        //    foreach (var binding in bindings)
-        //    {
-        //        binding.UpdateControl();
-        //    }
-        //}
 
         private IEnumerable<IAttribute> ParseAttributes(
             object[] customAtts, out string name, out string desc, out object tag)

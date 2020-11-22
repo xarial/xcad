@@ -12,16 +12,24 @@ using Xarial.XCad.Geometry;
 
 namespace Xarial.XCad.SolidWorks.Geometry
 {
-    public abstract class SwEntity : SwSelObject, IXEntity
+    public interface ISwEntity : IXEntity
+    {
+        IEntity Entity { get; }
+
+        new IEnumerable<ISwEntity> AdjacentEntities { get; }
+        new ISwBody Body { get; }
+    }
+
+    internal abstract class SwEntity : SwSelObject, ISwEntity
     {
         IXBody IXEntity.Body => Body;
         IEnumerable<IXEntity> IXEntity.AdjacentEntities => AdjacentEntities;
 
         public IEntity Entity { get; }
 
-        public abstract SwBody Body { get; }
+        public abstract ISwBody Body { get; }
 
-        public abstract IEnumerable<SwEntity> AdjacentEntities { get; }
+        public abstract IEnumerable<ISwEntity> AdjacentEntities { get; }
 
         internal SwEntity(IEntity entity) : base(null, entity)
         {

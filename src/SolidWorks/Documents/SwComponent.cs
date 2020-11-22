@@ -6,41 +6,62 @@
 //*********************************************************************
 
 using SolidWorks.Interop.sldworks;
+using SolidWorks.Interop.swconst;
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Text;
+using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
+using Xarial.XCad.Features;
+using Xarial.XCad.Features.CustomFeature;
+using Xarial.XCad.Geometry;
 using Xarial.XCad.SolidWorks.Documents.Exceptions;
+using Xarial.XCad.SolidWorks.Features;
+using Xarial.XCad.SolidWorks.Geometry;
 
 namespace Xarial.XCad.SolidWorks.Documents
 {
-    public class SwComponent : SwSelObject, IXComponent
+    public interface ISwComponent : IXComponent, ISwSelObject 
+    {
+        new ISwComponentCollection Children { get; }
+        new ISwDocument3D Document { get; }
+        new TSelObject ConvertObject<TSelObject>(TSelObject obj)
+            where TSelObject : ISwSelObject;
+    }
+
+    internal class SwComponent : SwSelObject, ISwComponent
     {
         IXDocument3D IXComponent.Document => Document;
         IXComponentRepository IXComponent.Children => Children;
+        TSelObject IXObjectContainer.ConvertObject<TSelObject>(TSelObject obj) => ConvertObjectBoxed(obj) as TSelObject;
 
         public IComponent2 Component { get; }
 
-        private readonly SwAssembly m_ParentAssembly;
+        private readonly ISwAssembly m_ParentAssembly;
 
-        public SwComponentCollection Children { get; }
+        public ISwComponentCollection Children { get; }
 
-        internal SwComponent(IComponent2 comp, SwAssembly parentAssembly) : base(comp)
+        internal SwComponent(IComponent2 comp, ISwAssembly parentAssembly) : base(comp)
         {
             m_ParentAssembly = parentAssembly;
             Component = comp;
-            Children = new SwComponentCollection(parentAssembly, comp);
+            Children = new SwChildComponentsCollection(parentAssembly, comp);
+            Features = new ComponentFeatureRepository(parentAssembly, comp);
+            Bodies = new SwComponentBodyCollection(comp, parentAssembly);
         }
 
-        public string Name 
+        public string Name
         {
             get => Component.Name2;
             set => Component.Name2 = value;
         }
 
-        public SwDocument3D Document 
+        public ISwDocument3D Document
         {
-            get 
+            get
             {
                 var compModel = Component.IGetModelDoc();
 
@@ -48,12 +69,27 @@ namespace Xarial.XCad.SolidWorks.Documents
                 {
                     return (SwDocument3D)m_ParentAssembly.App.Documents[compModel];
                 }
-                else 
+                else
                 {
                     throw new ComponentNotLoadedException(Name);
                 }
             }
         }
+
+        public bool IsResolved
+        {
+            get 
+            {
+                var state = Component.GetSuppression2();
+
+                return state == (int)swComponentSuppressionState_e.swComponentResolved
+                    || state == (int)swComponentSuppressionState_e.swComponentFullyResolved;
+            } 
+        }
+                          
+        public IXFeatureRepository Features { get; }
+
+        public IXBodyRepository Bodies { get; }
 
         public override void Select(bool append)
         {
@@ -62,5 +98,139 @@ namespace Xarial.XCad.SolidWorks.Documents
                 throw new Exception("Failed to select component");
             }
         }
+
+        public TSelObject ConvertObject<TSelObject>(TSelObject obj) 
+            where TSelObject : ISwSelObject
+        {
+            return (TSelObject)ConvertObjectBoxed(obj);
+        }
+
+        private ISwSelObject ConvertObjectBoxed(object obj) 
+        {
+            if (obj is SwSelObject)
+            {
+                var disp = (obj as SwSelObject).Dispatch;
+                var corrDisp = Component.GetCorresponding(disp);
+
+                if (corrDisp != null)
+                {
+                    return SwSelObject.FromDispatch(corrDisp, m_ParentAssembly);
+                }
+                else
+                {
+                    throw new Exception("Failed to convert the pointer of the object");
+                }
+            }
+            else
+            {
+                throw new InvalidCastException("Object is not SOLIDWORKS object");
+            }
+        }
+    }
+
+    internal class ComponentFeatureRepository : SwFeatureManager
+    {
+        private readonly ISwAssembly m_Assm;
+        private readonly IComponent2 m_Comp;
+
+        public ComponentFeatureRepository(ISwAssembly assm, IComponent2 comp) 
+            : base(assm)
+        {
+            m_Assm = assm;
+            m_Comp = comp;
+        }
+
+        public override void AddRange(IEnumerable<IXFeature> feats)
+        {
+            try
+            {
+                if (m_Comp.Select4(false, null, false))
+                {
+                    var isAssm = string.Equals(Path.GetExtension(m_Comp.GetPathName()),
+                        ".sldasm", StringComparison.CurrentCultureIgnoreCase);
+
+                    if (isAssm)
+                    {
+                        m_Assm.Assembly.EditAssembly();
+                    }
+                    else 
+                    {
+                        int inf = -1;
+                        m_Assm.Assembly.EditPart2(true, false, ref inf);
+                    }
+
+                    base.AddRange(feats);
+                }
+                else 
+                {
+                    throw new Exception("Failed to select component to insert features");
+                }
+            }
+            catch 
+            {
+                throw;
+            }
+            finally
+            {
+                m_Assm.Model.ClearSelection2(true);
+                m_Assm.Assembly.EditAssembly();
+            }
+        }
+
+        public override IEnumerator<IXFeature> GetEnumerator() => new ComponentFeatureEnumerator(m_Assm, m_Comp);
+        
+        public override bool TryGet(string name, out IXFeature ent)
+        {
+            var feat = m_Comp.FeatureByName(name);
+
+            if (feat != null)
+            {
+                ent = SwObject.FromDispatch<SwFeature>(feat, m_Assm);
+                return true;
+            }
+            else
+            {
+                ent = null;
+                return false;
+            }
+        }
+    }
+
+    internal class ComponentFeatureEnumerator : FeatureEnumerator
+    {
+        private readonly IComponent2 m_Comp;
+
+        public ComponentFeatureEnumerator(ISwDocument rootDoc, IComponent2 comp) : base(rootDoc)
+        {
+            m_Comp = comp;
+            Reset();
+        }
+
+        protected override IFeature GetFirstFeature() => m_Comp.FirstFeature();
+    }
+
+    internal class SwComponentBodyCollection : SwBodyCollection
+    {
+        private IComponent2 m_Comp;
+
+        public SwComponentBodyCollection(IComponent2 comp, ISwDocument rootDoc) : base(rootDoc)
+        {
+            m_Comp = comp;
+        }
+
+        protected override IEnumerable<IBody2> GetSwBodies()
+            => (m_Comp.GetBodies3((int)swBodyType_e.swAllBodies, out _) as object[])?.Cast<IBody2>();
+    }
+
+    internal class SwChildComponentsCollection : SwComponentCollection
+    {
+        private readonly IComponent2 m_Comp;
+
+        public SwChildComponentsCollection(ISwAssembly assm, IComponent2 comp) : base(assm)
+        {
+            m_Comp = comp;
+        }
+
+        protected override IComponent2 GetRootComponent() => m_Comp;
     }
 }

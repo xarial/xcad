@@ -12,11 +12,13 @@ namespace Xarial.XCad.Base
     public static class IXRepositoryExtension
     {
         public static void Add<TEnt>(this IXRepository<TEnt> repo, params TEnt[] ents)
+            where TEnt : IXTransaction
         {
             repo.AddRange(ents);
         }
 
-        public static TEnt Get<TEnt>(this IXRepository<TEnt> repo, string name) 
+        public static TEnt Get<TEnt>(this IXRepository<TEnt> repo, string name)
+            where TEnt : IXTransaction
         {
             if (repo.TryGet(name, out TEnt ent))
             {

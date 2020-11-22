@@ -8,13 +8,45 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Xarial.XCad.Base;
+using Xarial.XCad.Features;
+using Xarial.XCad.Geometry;
 
 namespace Xarial.XCad.Documents
 {
-    public interface IXComponent : IXSelObject
+    /// <summary>
+    /// Represents components in the <see cref="IXAssembly"/>
+    /// </summary>
+    public interface IXComponent : IXSelObject, IXObjectContainer, IXTransaction
     {
+        /// <summary>
+        /// Name of the component
+        /// </summary>
         string Name { get; }
+
+        /// <summary>
+        /// Is component loaded into memory
+        /// </summary>
+        bool IsResolved { get; }
+
+        /// <summary>
+        /// Document of the component
+        /// </summary>
         IXDocument3D Document { get; }
+        
+        /// <summary>
+        /// Children components
+        /// </summary>
         IXComponentRepository Children { get; }
+
+        /// <summary>
+        /// Features of this components
+        /// </summary>
+        IXFeatureRepository Features { get; }
+
+        /// <summary>
+        /// Bodies in this component
+        /// </summary>
+        IXBodyRepository Bodies { get; }
     }
 }

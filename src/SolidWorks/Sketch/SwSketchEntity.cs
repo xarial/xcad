@@ -7,50 +7,28 @@
 
 using SolidWorks.Interop.sldworks;
 using System;
+using System.Drawing;
 using Xarial.XCad.Services;
 using Xarial.XCad.Sketch;
+using Xarial.XCad.SolidWorks.Documents;
+using Xarial.XCad.Toolkit.Utils;
 
 namespace Xarial.XCad.SolidWorks.Sketch
 {
-    public abstract class SwSketchEntity : SwSelObject, IXSketchEntity
+    public interface ISwSketchEntity : IXSketchEntity 
     {
-        internal abstract void Create();
-
-        internal SwSketchEntity(IModelDoc2 model, object ent) : base(model, ent)
-        {
-        }
     }
 
-    public abstract class SwSketchEntity<TEnt> : SwSketchEntity
+    internal abstract class SwSketchEntity : SwSelObject, ISwSketchEntity
     {
-        protected readonly ElementCreator<TEnt> m_Creator;
+        public abstract bool IsCommitted { get; }
+        public abstract Color? Color { get; set; }
 
-        protected readonly ISketchManager m_SketchMgr;
-
-        public TEnt Element
+        protected readonly ISwDocument m_Doc;
+        
+        internal SwSketchEntity(ISwDocument doc, object ent) : base(doc.Model, ent)
         {
-            get
-            {
-                return m_Creator.Element;
-            }
+            m_Doc = doc;
         }
-
-        internal SwSketchEntity(IModelDoc2 model, TEnt ent, bool created) : base(model, ent)
-        {
-            if (model == null)
-            {
-                throw new ArgumentNullException(nameof(model));
-            }
-
-            m_SketchMgr = model.SketchManager;
-            m_Creator = new ElementCreator<TEnt>(CreateSketchEntity, ent, created);
-        }
-
-        internal override void Create()
-        {
-            m_Creator.Create();
-        }
-
-        protected abstract TEnt CreateSketchEntity();
     }
 }

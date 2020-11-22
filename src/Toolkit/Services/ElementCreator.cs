@@ -6,22 +6,60 @@
 //*********************************************************************
 
 using System;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+using System.Threading;
+using Xarial.XCad.Toolkit.Exceptions;
 
 namespace Xarial.XCad.Services
 {
+    public class CachedProperties 
+    {
+        private readonly Dictionary<string, object> m_CachedProperties;
+
+        public T Get<T>([CallerMemberName]string prpName = "")
+        {
+            object val;
+
+            if (!m_CachedProperties.TryGetValue(prpName, out val))
+            {
+                val = default(T);
+                m_CachedProperties.Add(prpName, val);
+            }
+
+            return (T)val;
+        }
+
+        public void Set<T>(T val, [CallerMemberName]string prpName = "")
+        {
+            m_CachedProperties[prpName] = val;
+        }
+
+        internal CachedProperties() 
+        {
+            m_CachedProperties = new Dictionary<string, object>();
+        }
+    }
+
     public class ElementCreator<TElem>
     {
+        public event Action<TElem> Creating;
+
         public bool IsCreated { get; private set; }
 
         private TElem m_Element;
 
-        private readonly Func<TElem> m_Creator;
+        private readonly Func<CancellationToken, TElem> m_Creator;
 
-        public ElementCreator(Func<TElem> creator, TElem elem, bool created = false)
+        public CachedProperties CachedProperties { get; }
+
+        public ElementCreator(Func<CancellationToken,TElem> creator, TElem elem, bool created = false)
         {
             m_Creator = creator;
             IsCreated = created;
             m_Element = elem;
+
+            CachedProperties = new CachedProperties();
         }
 
         public TElem Element
@@ -34,21 +72,22 @@ namespace Xarial.XCad.Services
                 }
                 else
                 {
-                    throw new Exception("This is a template feature and has not been created yet. Commit this feature by adding to the feature collection");
+                    throw new NonCommittedElementAccessException();
                 }
             }
         }
 
-        public void Create()
+        public void Create(CancellationToken cancellationToken)
         {
             if (!IsCreated)
             {
-                m_Element = m_Creator.Invoke();
+                m_Element = m_Creator.Invoke(cancellationToken);
+                Creating?.Invoke(m_Element);
                 IsCreated = true;
             }
             else
             {
-                throw new Exception("Feature already created");
+                throw new ElementAlreadyCommittedException();
             }
         }
     }

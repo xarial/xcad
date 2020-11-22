@@ -12,6 +12,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.Toolkit.Services;
 
 namespace Xarial.XCad.SolidWorks.Data.Helpers
@@ -153,27 +154,29 @@ namespace Xarial.XCad.SolidWorks.Data.Helpers
         #endregion
 
         private readonly SldWorks m_App;
-        private readonly IModelDoc2 m_Model;
+        private readonly ISwDocument m_Doc;
+
+        private IModelDoc2 Model => m_Doc.Model;
 
         private IntPtr m_CurrentSummaryHandle;
 
         private PropertiesSet m_CurPrpsSet;
 
-        public CustomPropertiesEventsHelper(ISldWorks app, IModelDoc2 model)
+        public CustomPropertiesEventsHelper(ISldWorks app, ISwDocument doc)
         {
             m_App = (SldWorks)app;
-            m_Model = model;
+            m_Doc = doc;
         }
 
         private int OnIdleNotify()
         {
-            if (m_App.ActiveDoc == m_Model)
+            if (m_App.ActiveDoc == Model)
             {
                 if (m_CurrentSummaryHandle != IntPtr.Zero)
                 {
                     if (!IsWindow(m_CurrentSummaryHandle))
                     {
-                        FindDifferences(m_CurPrpsSet, new PropertiesSet(m_Model));
+                        FindDifferences(m_CurPrpsSet, new PropertiesSet(Model));
                         m_CurrentSummaryHandle = IntPtr.Zero;
                         m_CurPrpsSet = null;
                     }
@@ -219,7 +222,7 @@ namespace Xarial.XCad.SolidWorks.Data.Helpers
 
         private int OnCommandCloseNotify(int Command, int reason)
         {
-            if (m_App.ActiveDoc == m_Model)
+            if (m_App.ActiveDoc == Model)
             {
                 const int swCommands_File_Summaryinfo = 963;
 
@@ -241,7 +244,7 @@ namespace Xarial.XCad.SolidWorks.Data.Helpers
 
             if (handle != IntPtr.Zero)
             {
-                m_CurPrpsSet = new PropertiesSet(m_Model);
+                m_CurPrpsSet = new PropertiesSet(Model);
                 return true;
             }
             else

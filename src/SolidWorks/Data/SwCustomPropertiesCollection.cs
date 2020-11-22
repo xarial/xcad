@@ -16,16 +16,23 @@ using Xarial.XCad.Data;
 using Xarial.XCad.Exceptions;
 using Xarial.XCad.SolidWorks.Data.Exceptions;
 using Xarial.XCad.SolidWorks.Data.Helpers;
+using Xarial.XCad.SolidWorks.Documents;
 
 namespace Xarial.XCad.SolidWorks.Data
 {
-    public class SwCustomPropertiesCollection : IXPropertyRepository, IDisposable
+    public interface ISwCustomPropertiesCollection : IXPropertyRepository, IDisposable
+    {
+        new ISwCustomProperty this[string name] { get; }
+        new ISwCustomProperty GetOrPreCreate(string name);
+    }
+
+    internal class SwCustomPropertiesCollection : ISwCustomPropertiesCollection
     {
         IXProperty IXPropertyRepository.GetOrPreCreate(string name) => GetOrPreCreate(name);
 
         IXProperty IXRepository<IXProperty>.this[string name] => this[name];
 
-        public SwCustomProperty this[string name] 
+        public ISwCustomProperty this[string name] 
         {
             get 
             {
@@ -44,7 +51,7 @@ namespace Xarial.XCad.SolidWorks.Data
         {
             var prp = GetOrPreCreate(name);
 
-            if (prp.Exists)
+            if (prp.IsCommitted)
             {
                 ent = prp;
                 return true;
@@ -56,42 +63,38 @@ namespace Xarial.XCad.SolidWorks.Data
             }
         }
 
-        public int Count => m_PrpMgr.Count;
+        public int Count => PrpMgr.Count;
 
-        private readonly IModelDoc2 m_Model;
-        private readonly ICustomPropertyManager m_PrpMgr;
+        private IModelDoc2 Model => m_Doc.Model;
+
+        private ICustomPropertyManager PrpMgr => Model.Extension.CustomPropertyManager[m_ConfName];
 
         private readonly string m_ConfName;
 
         private readonly CustomPropertiesEventsHelper m_EventsHelper;
 
-        internal SwCustomPropertiesCollection(ISldWorks app, IModelDoc2 model, string confName) 
-        {
-            m_Model = model;
-            m_PrpMgr = model.Extension.CustomPropertyManager[confName];
+        private ISwDocument m_Doc;
 
-            m_EventsHelper = new CustomPropertiesEventsHelper(app, model);
+        internal SwCustomPropertiesCollection(ISwDocument doc, string confName) 
+        {
+            m_Doc = doc;
+            
+            m_EventsHelper = new CustomPropertiesEventsHelper(doc.App.Sw, doc);
 
             m_ConfName = confName;
         }
 
         public void AddRange(IEnumerable<IXProperty> ents)
         {
-            const int SUCCESS = 1;
-
             foreach (var prp in ents) 
             {
-                //TODO: fix type conversion
-                if (m_PrpMgr.Add2(prp.Name, (int)swCustomInfoType_e.swCustomInfoText, prp.Value.ToString()) != SUCCESS)
-                {
-                    throw new Exception($"Failed to add {prp.Name}");
-                }
+                prp.Commit();
             }
         }
 
         public IEnumerator<IXProperty> GetEnumerator()
         {
-            return new SwCustomPropertyEnumerator(m_Model, m_PrpMgr, m_ConfName, m_EventsHelper);
+            return new SwCustomPropertyEnumerator(Model, PrpMgr, m_ConfName, m_EventsHelper);
         }
 
         public void RemoveRange(IEnumerable<IXProperty> ents)
@@ -101,7 +104,7 @@ namespace Xarial.XCad.SolidWorks.Data
             foreach (var prp in ents)
             {
                 //TODO: fix the versions
-                if (m_PrpMgr.Delete(prp.Name) != SUCCESS)
+                if (PrpMgr.Delete(prp.Name) != SUCCESS)
                 {
                     throw new Exception($"Failed to remove {prp.Name}");
                 }
@@ -110,9 +113,9 @@ namespace Xarial.XCad.SolidWorks.Data
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-        public SwCustomProperty GetOrPreCreate(string name)
+        public ISwCustomProperty GetOrPreCreate(string name)
         {
-            return new SwCustomProperty(m_Model, m_PrpMgr, name, m_ConfName, m_EventsHelper);
+            return new SwCustomProperty(Model, PrpMgr, name, m_ConfName, m_EventsHelper);
         }
 
         public void Dispose()

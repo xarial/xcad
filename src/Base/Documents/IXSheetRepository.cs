@@ -10,10 +10,19 @@ using Xarial.XCad.Documents.Delegates;
 
 namespace Xarial.XCad.Documents
 {
+    /// <summary>
+    /// Represents sheets collection
+    /// </summary>
     public interface IXSheetRepository : IXRepository<IXSheet>
     {
+        /// <summary>
+        /// Fired when sheet is activated
+        /// </summary>
         event SheetActivatedDelegate SheetActivated;
 
+        /// <summary>
+        /// Returns an active sheet in this sheets repository
+        /// </summary>
         IXSheet Active { get; }
     }
 }

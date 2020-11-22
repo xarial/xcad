@@ -19,7 +19,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument(@"Assembly1\TopAssem1.SLDASM"))
             {
-                compNames = ((SwAssembly)m_App.Documents.Active).Components.Select(c => c.Name).ToArray();
+                compNames = ((ISwAssembly)m_App.Documents.Active).Components.Select(c => c.Name).ToArray();
             }
 
             Assert.That(compNames.OrderBy(c => c).SequenceEqual(
@@ -33,7 +33,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument(@"Assembly1\TopAssem1.SLDASM"))
             {
-                var assm = (SwAssembly)m_App.Documents.Active;
+                var assm = (ISwAssembly)m_App.Documents.Active;
                 var comp = assm.Components["SubAssem1-1"];
                 compNames = comp.Children.Select(c => c.Name).ToArray();
             }
@@ -52,7 +52,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument(@"Assembly1\TopAssem1.SLDASM"))
             {
-                var assm = (SwAssembly)m_App.Documents.Active;
+                var assm = (ISwAssembly)m_App.Documents.Active;
 
                 var doc1 = assm.Components["Part1-1"].Document;
                 doc1FileName = Path.GetFileName(doc1.Path);
@@ -69,6 +69,25 @@ namespace SolidWorks.Tests.Integration
             Assert.That(doc2FileName.Equals("SubAssem1.sldasm", StringComparison.CurrentCultureIgnoreCase));
             Assert.IsTrue(doc1Contains);
             Assert.IsTrue(doc2Contains);
+        }
+
+        [Test]
+        public void IterateFeaturesTest()
+        {
+            var featNames = new List<string>();
+
+            using (var doc = OpenDataDocument(@"Assembly1\TopAssem1.SLDASM"))
+            {
+                var comp = ((ISwAssembly)m_App.Documents.Active).Components["Part1-1"];
+
+                foreach (var feat in comp.Features)
+                {
+                    featNames.Add(feat.Name);
+                }
+            }
+            
+            Assert.That(featNames.SequenceEqual(
+                new string[] { "Favorites", "Selection Sets", "Sensors", "Design Binder", "Annotations", "Notes", "Notes1___EndTag___", "Surface Bodies", "Solid Bodies", "Lights, Cameras and Scene", "Ambient", "Directional1", "Directional2", "Directional3", "Markups", "Equations", "Material <not specified>", "Front Plane", "Top Plane", "Right Plane", "Origin", "Sketch1", "Boss-Extrude1" }));
         }
     }
 }

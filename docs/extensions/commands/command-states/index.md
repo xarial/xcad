@@ -14,7 +14,7 @@ There are 4 command states supported by SOLIDWORKS:
 
 ![Supported command states](command-states.png)
 
-SwEx framework will assign the appropriate state (enabled or disabled) for the commands based on their supported workspaces if defined in the **CommandItemInfoAttribute**. However user can alter the state to provide more advanced management (for example it might be required to enable command if certain object is selected or if any bodies or components are present in the model). To do this it is required to specify to subscribe to **IXCommandGroup::CommandStateResolve** event. **IXCommandGroup** is created as the result of calling **AddCommandGroup** or **AddContextMenu** methods.
+xCAD.NET framework will assign the appropriate state (enabled or disabled) for the commands based on their supported workspaces if defined in the **CommandItemInfoAttribute**. However user can alter the state to provide more advanced management (for example it might be required to enable command if certain object is selected or if any bodies or components are present in the model). To do this it is required to specify to subscribe to **IXCommandGroup::CommandStateResolve** event. **IXCommandGroup** is created as the result of calling **AddCommandGroup** or **AddContextMenu** methods.
 
 The value of state will be preassigned based on the workspace and can be changed by the user within the method.
 

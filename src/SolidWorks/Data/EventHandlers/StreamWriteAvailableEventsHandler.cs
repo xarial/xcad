@@ -19,7 +19,7 @@ namespace Xarial.XCad.SolidWorks.Data.EventHandlers
     {
         private readonly SwDocument m_Doc;
 
-        internal StreamWriteAvailableEventsHandler(SwDocument doc) : base(doc.Model)
+        internal StreamWriteAvailableEventsHandler(SwDocument doc) : base(doc)
         {
             m_Doc = doc;
         }

@@ -15,13 +15,13 @@ namespace Xarial.XCad.Documentation
     [ComVisible(true)]
     public class EditMacroFeatureDefinition : SwMacroFeatureDefinition<EditMacroFeatureDefinitionParameters>
     {
-        public override CustomFeatureRebuildResult OnRebuild(SwApplication app, SwDocument model, SwMacroFeature feature, EditMacroFeatureDefinitionParameters parameters, out AlignDimensionDelegate<EditMacroFeatureDefinitionParameters> alignDim)
+        public override CustomFeatureRebuildResult OnRebuild(ISwApplication app, ISwDocument model, ISwMacroFeature feature, EditMacroFeatureDefinitionParameters parameters, out AlignDimensionDelegate<EditMacroFeatureDefinitionParameters> alignDim)
         {
             alignDim = null;
             return new CustomFeatureRebuildResult() { Result = true };
         }
 
-        public override bool OnEditDefinition(SwApplication app, SwDocument model, SwMacroFeature<EditMacroFeatureDefinitionParameters> feature)
+        public override bool OnEditDefinition(ISwApplication app, ISwDocument model, ISwMacroFeature<EditMacroFeatureDefinitionParameters> feature)
         {
             if (ShowPage(feature.Parameters, out EditMacroFeatureDefinitionParameters newParams))
             {

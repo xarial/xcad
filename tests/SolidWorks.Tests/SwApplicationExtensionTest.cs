@@ -21,7 +21,7 @@ namespace Sw.Tests
         {
             var sw2017sp23Mock = new Mock<SldWorks>();
             sw2017sp23Mock.Setup(m => m.RevisionNumber()).Returns("25.2.3");
-            var app = SwApplication.FromPointer(sw2017sp23Mock.Object);
+            var app = SwApplicationFactory.FromPointer(sw2017sp23Mock.Object);
 
             var r1 = app.IsVersionNewerOrEqual(SwVersion_e.Sw2017);
             var r2 = app.IsVersionNewerOrEqual(SwVersion_e.Sw2017, 2);

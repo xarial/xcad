@@ -16,11 +16,16 @@ using Xarial.XCad.Documents;
 
 namespace Xarial.XCad.SolidWorks.Documents
 {
-    public class SwComponentCollection : IXComponentRepository
+    public interface ISwComponentCollection : IXComponentRepository
+    {
+        new ISwComponent this[string name] { get; }
+    }
+
+    internal abstract class SwComponentCollection : ISwComponentCollection
     {
         IXComponent IXRepository<IXComponent>.this[string name] => this[name];
 
-        public SwComponent this[string name] => (SwComponent)this.Get(name);
+        public ISwComponent this[string name] => (SwComponent)this.Get(name);
         
         public bool TryGet(string name, out IXComponent ent)
         {
@@ -38,16 +43,13 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        public int Count => m_Assm.Assembly.GetComponentCount(false);
+        public int Count => GetRootComponent().IGetChildrenCount();
 
-        private readonly SwAssembly m_Assm;
-
-        private readonly IComponent2 m_Parent;
-
-        internal SwComponentCollection(SwAssembly assm, IComponent2 parent) 
+        private readonly ISwAssembly m_Assm;
+        
+        internal SwComponentCollection(ISwAssembly assm) 
         {
             m_Assm = assm;
-            m_Parent = parent;
         }
 
         public void AddRange(IEnumerable<IXComponent> ents)
@@ -55,10 +57,9 @@ namespace Xarial.XCad.SolidWorks.Documents
             throw new NotImplementedException();
         }
 
-        public IEnumerator<IXComponent> GetEnumerator()
-        {
-            return new SwComponentEnumerator(m_Assm, m_Parent);
-        }
+        protected abstract IComponent2 GetRootComponent();
+
+        public IEnumerator<IXComponent> GetEnumerator() => new SwComponentEnumerator(m_Assm, GetRootComponent());
 
         public void RemoveRange(IEnumerable<IXComponent> ents)
         {
@@ -74,7 +75,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         object IEnumerator.Current => Current;
 
-        private readonly SwAssembly m_Assm;
+        private readonly ISwAssembly m_Assm;
 
         private IComponent2 m_CurComp;
 
@@ -83,7 +84,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         private int m_CurChildIndex;
         
-        internal SwComponentEnumerator(SwAssembly assm, IComponent2 parent)
+        internal SwComponentEnumerator(ISwAssembly assm, IComponent2 parent)
         {
             m_CurComp = null;
             m_Assm = assm;

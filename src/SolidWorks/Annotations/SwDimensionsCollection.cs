@@ -19,11 +19,16 @@ using Xarial.XCad.SolidWorks.Features;
 
 namespace Xarial.XCad.SolidWorks.Annotations
 {
-    public abstract class SwDimensionsCollection : IXDimensionRepository, IDisposable
+    public interface ISwDimensionsCollection : IXDimensionRepository, IDisposable
+    {
+        new ISwDimension this[string name] { get; }
+    }
+
+    internal abstract class SwDimensionsCollection : ISwDimensionsCollection
     {
         IXDimension IXRepository<IXDimension>.this[string name] => this[name];
 
-        public SwDimension this[string name]=> (SwDimension)this.Get(name);
+        public ISwDimension this[string name] => (SwDimension)this.Get(name);
 
         public abstract bool TryGet(string name, out IXDimension ent);
 
@@ -98,9 +103,9 @@ namespace Xarial.XCad.SolidWorks.Annotations
     {
         private readonly SwFeature m_Feat;
 
-        private readonly SwDocument m_Doc;
+        private readonly ISwDocument m_Doc;
 
-        internal SwFeatureDimensionsCollection(SwDocument doc, SwFeature feat)
+        internal SwFeatureDimensionsCollection(ISwDocument doc, SwFeature feat)
         {
             m_Doc = doc;
             m_Feat = feat;
@@ -149,7 +154,7 @@ namespace Xarial.XCad.SolidWorks.Annotations
 
         object IEnumerator.Current => Current;
 
-        private readonly SwDocument m_Doc;
+        private readonly ISwDocument m_Doc;
 
         private readonly IFeature m_Feat;
 
@@ -157,7 +162,7 @@ namespace Xarial.XCad.SolidWorks.Annotations
 
         private bool m_IsStart;
 
-        internal SwFeatureDimensionsEnumerator(SwDocument doc, IFeature feat) 
+        internal SwFeatureDimensionsEnumerator(ISwDocument doc, IFeature feat) 
         {
             m_Doc = doc;
             m_Feat = feat;

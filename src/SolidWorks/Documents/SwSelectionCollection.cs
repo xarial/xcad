@@ -18,11 +18,15 @@ using Xarial.XCad.SolidWorks.Documents.EventHandlers;
 
 namespace Xarial.XCad.SolidWorks.Documents
 {
-    public class SwSelectionCollection : IXSelectionRepository, IDisposable
+    public interface ISwSelectionCollection : IXSelectionRepository, IDisposable 
+    {
+    }
+
+    internal class SwSelectionCollection : ISwSelectionCollection
     {
         private readonly SwDocument m_Doc;
-        private readonly IModelDoc2 m_Model;
-        private readonly ISelectionMgr m_SelMgr;
+        private IModelDoc2 Model => m_Doc.Model;
+        private ISelectionMgr SelMgr => Model.ISelectionManager;
 
         private readonly NewSelectionEventHandler m_NewSelectionEventHandler;
         private readonly ClearSelectionEventHandler m_ClearSelectionEventHandler;
@@ -51,15 +55,14 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        public int Count => m_SelMgr.GetSelectedObjectCount2(-1);
+        public int Count => SelMgr.GetSelectedObjectCount2(-1);
 
         public IXSelObject this[string name] => throw new NotSupportedException();
 
         internal SwSelectionCollection(SwDocument doc) 
         {
             m_Doc = doc;
-            m_Model = m_Doc.Model;
-            m_SelMgr = m_Model.ISelectionManager;
+
             m_NewSelectionEventHandler = new NewSelectionEventHandler(doc);
             m_ClearSelectionEventHandler = new ClearSelectionEventHandler(doc);
         }
@@ -73,7 +76,9 @@ namespace Xarial.XCad.SolidWorks.Documents
 
             var disps = ents.Cast<SwSelObject>().Select(e => new DispatchWrapper(e.Dispatch)).ToArray();
 
-            var selCount = m_Model.Extension.MultiSelect2(disps, true, null);
+            var curSelCount = SelMgr.GetSelectedObjectCount2(-1);
+
+            var selCount = Model.Extension.MultiSelect2(disps, true, null) - curSelCount;
 
             if (selCount != disps.Length) 
             {
@@ -83,12 +88,12 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public void Clear()
         {
-            m_Model.ClearSelection2(true);
+            Model.ClearSelection2(true);
         }
 
         public IEnumerator<IXSelObject> GetEnumerator()
         {
-            return new SwSelObjectEnumerator(m_Doc, m_SelMgr);
+            return new SwSelObjectEnumerator(m_Doc, SelMgr);
         }
 
         public void RemoveRange(IEnumerable<IXSelObject> ents)

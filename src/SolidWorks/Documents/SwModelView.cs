@@ -6,35 +6,43 @@
 //*********************************************************************
 
 using SolidWorks.Interop.sldworks;
+using SolidWorks.Interop.swconst;
+using System;
 using System.Drawing;
+using System.Threading;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.SolidWorks.Utils;
 
 namespace Xarial.XCad.SolidWorks.Documents
 {
-    public class SwModelView : IXView
+    public interface ISwModelView : IXModelView, ISwObject
+    {
+        IModelView View { get; }
+    }
+
+    internal class SwModelView : SwObject, ISwModelView
     {
         private readonly IMathUtility m_MathUtils;
 
-        private readonly IModelDoc2 m_Model;
+        internal IModelDoc2 Owner { get; }
 
-        public Rectangle ScreenRect
+        public virtual Rectangle ScreenRect
         {
             get
             {
                 var box = View.GetVisibleBox() as int[];
 
                 //TODO: potential issue if feature manager is not docked on left
-                var featMgrWidth = m_Model.GetFeatureManagerWidth();
+                var featMgrWidth = Owner.GetFeatureManagerWidth();
 
                 return new Rectangle(box[0] + featMgrWidth, box[1], box[2] - box[0] - featMgrWidth, box[3] - box[1]);
             }
         }
 
-        public TransformMatrix ScreenTransform => TransformUtils.ToTransformMatrix(View.Transform);
+        public virtual TransformMatrix ScreenTransform => TransformUtils.ToTransformMatrix(View.Transform);
 
-        public TransformMatrix Transform
+        public virtual TransformMatrix Transform
         {
             get
             {
@@ -80,12 +88,15 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        public IModelView View { get; }
+        public virtual IModelView View { get; }
 
-        internal SwModelView(IModelDoc2 model, IModelView view, IMathUtility mathUtils)
+        //TODO: implement creation of new views
+        public bool IsCommitted => true;
+
+        internal SwModelView(IModelDoc2 model, IModelView view, IMathUtility mathUtils) : base(view)
         {
             View = view;
-            m_Model = model;
+            Owner = model;
             m_MathUtils = mathUtils;
         }
 
@@ -109,7 +120,125 @@ namespace Xarial.XCad.SolidWorks.Documents
             var pt1 = mathPt1.IMultiplyTransform(transform).ArrayData as double[];
             var pt2 = mathPt2.IMultiplyTransform(transform).ArrayData as double[];
 
-            m_Model.ViewZoomTo2(pt1[0], pt1[1], pt1[2], pt2[0], pt2[1], pt2[2]);
+            Owner.ViewZoomTo2(pt1[0], pt1[1], pt1[2], pt2[0], pt2[1], pt2[2]);
+        }
+
+        public void Commit(CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    public interface ISwNamedView : ISwModelView, IXNamedView
+    {
+    }
+
+    internal class SwNamedView : SwModelView, ISwNamedView
+    {
+        //TODO: implement overrides for transforms
+
+        public string Name { get; }
+
+        internal SwNamedView(IModelDoc2 model, IModelView view, IMathUtility mathUtils, string name)
+            : base(model, view, mathUtils)
+        {
+            Name = name;
+        }
+    }
+
+    public interface ISwStandardView : ISwNamedView, IXStandardView 
+    {
+    }
+
+    internal class SwStandardView : SwNamedView, ISwStandardView
+    {
+        //TODO: implement overrides for transforms
+
+        public StandardViewType_e Type { get; }
+
+        internal swStandardViews_e SwViewType { get; }
+
+        private static string GetStandardViewName(IModelDoc2 model, StandardViewType_e swViewType) 
+        {
+            var viewNames = model.GetModelViewNames() as string[];
+
+            switch (swViewType)
+            {
+                case StandardViewType_e.Front:
+                    return viewNames[1];
+
+                case StandardViewType_e.Back:
+                    return viewNames[2];
+
+                case StandardViewType_e.Left:
+                    return viewNames[3];
+
+                case StandardViewType_e.Right:
+                    return viewNames[4];
+
+                case StandardViewType_e.Top:
+                    return viewNames[5];
+
+                case StandardViewType_e.Bottom:
+                    return viewNames[6];
+
+                case StandardViewType_e.Isometric:
+                    return viewNames[7];
+
+                case StandardViewType_e.Trimetric:
+                    return viewNames[8];
+
+                case StandardViewType_e.Dimetric:
+                    return viewNames[9];
+
+                default:
+                    throw new NotImplementedException($"{swViewType} is not supported");
+            }
+        }
+
+        internal SwStandardView(IModelDoc2 model, IModelView view, IMathUtility mathUtils, StandardViewType_e type) 
+            : base(model, view, mathUtils, GetStandardViewName(model, type))
+        {
+            Type = type;
+
+            switch (Type) 
+            {
+                case StandardViewType_e.Back:
+                    SwViewType = swStandardViews_e.swBackView;
+                    break;
+
+                case StandardViewType_e.Bottom:
+                    SwViewType = swStandardViews_e.swBottomView;
+                    break;
+
+                case StandardViewType_e.Dimetric:
+                    SwViewType = swStandardViews_e.swDimetricView;
+                    break;
+
+                case StandardViewType_e.Front:
+                    SwViewType = swStandardViews_e.swFrontView;
+                    break;
+
+                case StandardViewType_e.Isometric:
+                    SwViewType = swStandardViews_e.swIsometricView;
+                    break;
+
+                case StandardViewType_e.Left:
+                    SwViewType = swStandardViews_e.swLeftView;
+                    break;
+
+                case StandardViewType_e.Right:
+                    SwViewType = swStandardViews_e.swRightView;
+                    break;
+
+                case StandardViewType_e.Top:
+                    SwViewType = swStandardViews_e.swTopView;
+                    break;
+
+                case StandardViewType_e.Trimetric:
+                    SwViewType = swStandardViews_e.swTrimetricView;
+                    break;
+            }
         }
     }
 }

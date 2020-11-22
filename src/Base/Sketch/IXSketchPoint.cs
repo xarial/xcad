@@ -5,12 +5,13 @@
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
+using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;
+using Xarial.XCad.Geometry.Wires;
 
 namespace Xarial.XCad.Sketch
 {
-    public interface IXSketchPoint : IXSketchEntity
+    public interface IXSketchPoint : IXSketchEntity, IXPoint
     {
-        Point Coordinate { get; set; }
     }
 }

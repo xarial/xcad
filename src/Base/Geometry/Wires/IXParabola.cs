@@ -5,17 +5,13 @@
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
-using SolidWorks.Interop.swconst;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Xarial.XCad.SolidWorks.Exceptions
+namespace Xarial.XCad.Geometry.Wires
 {
-    public class MacroRunException : Exception
+    public interface IXParabola : IXSegment
     {
-        internal MacroRunException(string path, swRunMacroError_e err) : base($"Failed to run macro '{path}'. Error Code: {err}") 
-        {
-        }
     }
 }

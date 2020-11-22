@@ -7,11 +7,16 @@
 
 using SolidWorks.Interop.sldworks;
 using System;
+using Xarial.XCad.Documents;
 using Xarial.XCad.UI;
 
 namespace Xarial.XCad.SolidWorks.UI
 {
-    public class SwFeatureMgrTab<TControl> : IXCustomPanel<TControl>, IDisposable
+    public interface ISwFeatureMgrTab<TControl> : IXCustomPanel<TControl>, IDisposable 
+    {
+    }
+
+    internal class SwFeatureMgrTab<TControl> : ISwFeatureMgrTab<TControl>
     {
         public bool IsActive
         {
@@ -23,21 +28,21 @@ namespace Xarial.XCad.SolidWorks.UI
 
         private readonly IFeatMgrView m_FeatViewMgr;
 
-        private readonly Documents.SwDocument m_Doc;
+        private readonly Documents.ISwDocument m_Doc;
 
         private bool m_IsDisposed;
 
-        internal SwFeatureMgrTab(TControl ctrl, IFeatMgrView featMgrView, Documents.SwDocument doc)
+        internal SwFeatureMgrTab(TControl ctrl, IFeatMgrView featMgrView, Documents.ISwDocument doc)
         {
             Control = ctrl;
             m_FeatViewMgr = featMgrView;
             m_Doc = doc;
-            m_Doc.Destroyed += OnDestroyed;
+            m_Doc.Closing += OnDestroyed;
 
             m_IsDisposed = false;
         }
 
-        private void OnDestroyed(IModelDoc2 obj)
+        private void OnDestroyed(IXDocument doc)
         {
             Dispose();
         }
@@ -51,6 +56,8 @@ namespace Xarial.XCad.SolidWorks.UI
         {
             if (!m_IsDisposed)
             {
+                m_Doc.Closing -= OnDestroyed;
+
                 m_IsDisposed = true;
 
                 if (Control is IDisposable)
