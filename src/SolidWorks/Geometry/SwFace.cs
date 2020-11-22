@@ -20,7 +20,7 @@ using Xarial.XCad.Utils.Reflection;
 
 namespace Xarial.XCad.SolidWorks.Geometry
 {
-    public interface ISwFace : IXFace 
+    public interface ISwFace : ISwEntity, IXFace 
     {
         IFace2 Face { get; }
         new ISwSurface Definition { get; }

@@ -19,7 +19,7 @@ namespace Xarial.XCad.Documentation
                 ISldWorks swApp = app.Sw;
                 Console.WriteLine(swApp.RevisionNumber());
 
-                var doc = app.Documents.Open(@"D:\model1.SLDPRT", readOnly: true);
+                var doc = app.Documents.Open(@"D:\model1.SLDPRT", Documents.Enums.DocumentState_e.ReadOnly);
 
                 var swModel = (doc as ISwDocument).Model;
 

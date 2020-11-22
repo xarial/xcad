@@ -34,7 +34,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         internal protected override swDocumentTypes_e? DocumentType => swDocumentTypes_e.swDocASSEMBLY;
 
-        protected override bool IsRapidMode => throw new NotSupportedException();
+        protected override bool IsRapidMode => Assembly.GetLightWeightComponentCount() > 0;
 
         public override Box3D CalculateBoundingBox()
         {
