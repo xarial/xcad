@@ -56,7 +56,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         internal protected override swDocumentTypes_e? DocumentType => swDocumentTypes_e.swDocPART;
 
-        protected override bool IsRapidMode => throw new NotSupportedException();
+        protected override bool IsRapidMode => false;
 
         public override Box3D CalculateBoundingBox()
         {

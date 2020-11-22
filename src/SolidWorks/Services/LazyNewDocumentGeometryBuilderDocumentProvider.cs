@@ -39,7 +39,12 @@ namespace Xarial.XCad.SolidWorks.Services
                 m_App.Documents.Active = activeDoc;
             }
 
-            doc.State = DocumentState_e.Silent | DocumentState_e.Hidden;
+            var curState = doc.State;
+
+            if (!curState.HasFlag(DocumentState_e.Hidden))
+            {
+                doc.State = curState | DocumentState_e.Hidden;
+            }
 
             return doc;
         }
