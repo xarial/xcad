@@ -28,22 +28,25 @@ namespace Xarial.XCad.SolidWorks.Utils
             /// <summary>
             /// Source image in original format (not scaled, not modified)
             /// </summary>
-            internal Image SourceIcon { get; set; }
+            internal Image SourceIcon { get; }
 
             /// <summary>
             /// Path where the icon needs to be saved
             /// </summary>
-            internal string TargetIconPath { get; private set; }
+            internal string TargetIconPath { get; }
 
             /// <summary>
             /// Required target size for the image
             /// </summary>
-            internal Size TargetSize { get; set; }
+            internal Size TargetSize { get; }
 
-            internal IconData(string iconsDir, Image sourceIcon, Size targetSize, string name)
+            internal int Offset { get; }
+
+            internal IconData(string iconsDir, Image sourceIcon, Size targetSize, int offset, string name)
             {
                 SourceIcon = sourceIcon;
                 TargetSize = targetSize;
+                Offset = offset;
                 TargetIconPath = Path.Combine(iconsDir, name);
             }
         }
@@ -119,7 +122,7 @@ namespace Xarial.XCad.SolidWorks.Utils
             {
                 CreateBitmap(new Image[] { iconData.SourceIcon },
                     iconData.TargetIconPath,
-                    iconData.TargetSize, icon.TransparencyKey);
+                    iconData.TargetSize, iconData.Offset, icon.TransparencyKey);
             }
 
             return iconsData.Select(i => i.TargetIconPath).ToArray();
@@ -169,7 +172,7 @@ namespace Xarial.XCad.SolidWorks.Utils
 
                 iconsPaths[i] = iconsDataGroup[i, 0].TargetIconPath;
                 CreateBitmap(imgs, iconsPaths[i],
-                    iconsDataGroup[i, 0].TargetSize, transparencyKey);
+                    iconsDataGroup[i, 0].TargetSize, iconsDataGroup[i, 0].Offset, transparencyKey);
             }
 
             return iconsPaths;
@@ -190,7 +193,7 @@ namespace Xarial.XCad.SolidWorks.Utils
         }
 
         private void CreateBitmap(Image[] sourceIcons,
-            string targetIcon, Size size, Color background)
+            string targetIcon, Size size, int offset, Color background)
         {
             var width = size.Width * sourceIcons.Length;
             var height = size.Height;
@@ -228,22 +231,18 @@ namespace Xarial.XCad.SolidWorks.Utils
                                 sourceIcon.VerticalResolution);
                         }
 
-                        var widthScale = (double)size.Width / (double)sourceIcon.Width;
-                        var heightScale = (double)size.Height / (double)sourceIcon.Height;
+                        var widthScale = (double)(size.Width - offset * 2) / (double)sourceIcon.Width;
+                        var heightScale = (double)(size.Height - offset * 2) / (double)sourceIcon.Height;
                         var scale = Math.Min(widthScale, heightScale);
 
-                        int destX = 0;
-                        int destY = 0;
-
-                        if (heightScale < widthScale)
+                        if (scale < 0) 
                         {
-                            destX = (int)(size.Width - sourceIcon.Width * scale) / 2;
-                        }
-                        else
-                        {
-                            destY = (int)(size.Height - sourceIcon.Height * scale) / 2;
+                            throw new Exception("Target size of the icon cannot be calculated due to offset constraint");
                         }
 
+                        var destX = (int)(size.Width - sourceIcon.Width * scale) / 2;
+                        var destY = (int)(size.Height - sourceIcon.Height * scale) / 2;
+                        
                         int destWidth = (int)(sourceIcon.Width * scale);
                         int destHeight = (int)(sourceIcon.Height * scale);
 
@@ -290,8 +289,7 @@ namespace Xarial.XCad.SolidWorks.Utils
                     src = ReplaceColor(src, s.Mask);
                 }
 
-                return new IconData(m_IconsDir,
-                    src, s.TargetSize, s.Name);
+                return new IconData(m_IconsDir, src, s.TargetSize, s.Offset, s.Name);
             }).ToArray();
 
             return iconsData;

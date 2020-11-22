@@ -23,19 +23,19 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Icons
 
         public override IEnumerable<IconSpec> GetIconSizes()
         {
-            yield return new IconSpec(Icon, new Size(AdjustSize(m_Width, 20), AdjustSize(m_Height, 20)));
-            yield return new IconSpec(Icon, new Size(AdjustSize(m_Width, 32), AdjustSize(m_Height, 32)));
-            yield return new IconSpec(Icon, new Size(AdjustSize(m_Width, 40), AdjustSize(m_Height, 40)));
-            yield return new IconSpec(Icon, new Size(AdjustSize(m_Width, 64), AdjustSize(m_Height, 64)));
-            yield return new IconSpec(Icon, new Size(AdjustSize(m_Width, 96), AdjustSize(m_Height, 96)));
-            yield return new IconSpec(Icon, new Size(AdjustSize(m_Width, 128), AdjustSize(m_Height, 128)));
+            yield return new IconSpec(Icon, new Size(AdjustSize(m_Width, 20), AdjustSize(m_Height, 20)), BORDER_SIZE);
+            yield return new IconSpec(Icon, new Size(AdjustSize(m_Width, 32), AdjustSize(m_Height, 32)), BORDER_SIZE);
+            yield return new IconSpec(Icon, new Size(AdjustSize(m_Width, 40), AdjustSize(m_Height, 40)), BORDER_SIZE);
+            yield return new IconSpec(Icon, new Size(AdjustSize(m_Width, 64), AdjustSize(m_Height, 64)), BORDER_SIZE);
+            yield return new IconSpec(Icon, new Size(AdjustSize(m_Width, 96), AdjustSize(m_Height, 96)), BORDER_SIZE);
+            yield return new IconSpec(Icon, new Size(AdjustSize(m_Width, 128), AdjustSize(m_Height, 128)), BORDER_SIZE);
 
-            yield return new IconSpec(Icon, new Size(AdjustSize(m_Width, 20), AdjustSize(m_Height, 20)), CreateMask);
-            yield return new IconSpec(Icon, new Size(AdjustSize(m_Width, 32), AdjustSize(m_Height, 32)), CreateMask);
-            yield return new IconSpec(Icon, new Size(AdjustSize(m_Width, 40), AdjustSize(m_Height, 40)), CreateMask);
-            yield return new IconSpec(Icon, new Size(AdjustSize(m_Width, 64), AdjustSize(m_Height, 64)), CreateMask);
-            yield return new IconSpec(Icon, new Size(AdjustSize(m_Width, 96), AdjustSize(m_Height, 96)), CreateMask);
-            yield return new IconSpec(Icon, new Size(AdjustSize(m_Width, 128), AdjustSize(m_Height, 128)), CreateMask);
+            yield return new IconSpec(Icon, new Size(AdjustSize(m_Width, 20), AdjustSize(m_Height, 20)), CreateMask, BORDER_SIZE);
+            yield return new IconSpec(Icon, new Size(AdjustSize(m_Width, 32), AdjustSize(m_Height, 32)), CreateMask, BORDER_SIZE);
+            yield return new IconSpec(Icon, new Size(AdjustSize(m_Width, 40), AdjustSize(m_Height, 40)), CreateMask, BORDER_SIZE);
+            yield return new IconSpec(Icon, new Size(AdjustSize(m_Width, 64), AdjustSize(m_Height, 64)), CreateMask, BORDER_SIZE);
+            yield return new IconSpec(Icon, new Size(AdjustSize(m_Width, 96), AdjustSize(m_Height, 96)), CreateMask, BORDER_SIZE);
+            yield return new IconSpec(Icon, new Size(AdjustSize(m_Width, 128), AdjustSize(m_Height, 128)), CreateMask, BORDER_SIZE);
         }
 
         /// <summary>

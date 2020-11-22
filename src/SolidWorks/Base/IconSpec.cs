@@ -42,22 +42,25 @@ namespace Xarial.XCad.SolidWorks.Base
 
         internal ColorMaskDelegate Mask { get; }
 
+        internal int Offset { get; }
+
         /// <summary>
         /// Icon size constructor with source image, target size and optional base name
         /// </summary>
         /// <param name="srcImage">Source image</param>
         /// <param name="targetSize">Target size of the image</param>
         /// <param name="baseName">Base name of the image</param>
-        internal IconSpec(IXImage srcImage, Size targetSize, string baseName = "")
+        internal IconSpec(IXImage srcImage, Size targetSize, int offset = 0, string baseName = "")
         {
             SourceImage = srcImage;
             TargetSize = targetSize;
+            Offset = offset;
 
             Name = CreateFileName(baseName, targetSize);
         }
 
-        internal IconSpec(IXImage srcImage, Size targetSize, ColorMaskDelegate mask, string baseName = "")
-            : this(srcImage, targetSize, baseName)
+        internal IconSpec(IXImage srcImage, Size targetSize, ColorMaskDelegate mask, int offset = 0, string baseName = "")
+            : this(srcImage, targetSize, offset, baseName)
         {
             Mask = mask;
         }

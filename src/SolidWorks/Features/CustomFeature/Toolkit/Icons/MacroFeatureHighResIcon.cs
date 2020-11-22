@@ -20,9 +20,9 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature.Toolkit.Icons
 
         public override IEnumerable<IconSpec> GetIconSizes()
         {
-            yield return new IconSpec(m_Icon, MacroFeatureIconInfo.SizeHighResSmall, m_BaseName);
-            yield return new IconSpec(m_Icon, MacroFeatureIconInfo.SizeHighResMedium, m_BaseName);
-            yield return new IconSpec(m_Icon, MacroFeatureIconInfo.SizeHighResLarge, m_BaseName);
+            yield return new IconSpec(m_Icon, MacroFeatureIconInfo.SizeHighResSmall, 0, m_BaseName);
+            yield return new IconSpec(m_Icon, MacroFeatureIconInfo.SizeHighResMedium, 0, m_BaseName);
+            yield return new IconSpec(m_Icon, MacroFeatureIconInfo.SizeHighResLarge, 0, m_BaseName);
         }
     }
 }

@@ -83,7 +83,6 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
                 if (m_App.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2016))
                 {
                     var icons = m_IconsConv.ConvertIcon(new BitmapButtonHighResIcon(icon, bmpWidth, bmpHeight));
-                    AdjustIcons(icons, bmpWidth, bmpHeight);
 
                     var imgList = icons.Take(6).ToArray();
                     var maskImgList = icons.Skip(6).ToArray();
@@ -92,45 +91,12 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
                 else
                 {
                     var icons = m_IconsConv.ConvertIcon(new BitmapButtonIcon(icon, bmpWidth, bmpHeight));
-                    AdjustIcons(icons, bmpWidth, bmpHeight);
 
                     swCtrl.SetBitmapsByName2(icons[0], icons[1]);
                 }
             }
 
             return new PropertyManagerPageBitmapButtonControl(atts.Id, atts.Tag, swCtrl, handler);
-        }
-
-        private void AdjustIcons(string[] icons, int width, int height) 
-        {
-            foreach (var iconPath in icons)
-            {
-                Image adjustedImage = null;
-
-                using (var img = Image.FromFile(iconPath)) 
-                {
-                    adjustedImage = AdjustIcon(img, width, height);
-                }
-
-                adjustedImage.Save(iconPath);
-            }
-        }
-
-        private Image AdjustIcon(Image icon, int width, int height) 
-        {
-            const int BORDER_SIZE = 5;
-
-            var offsetX = (int)(BORDER_SIZE * (icon.Width / width));
-            var offsetY = (int)(BORDER_SIZE * (icon.Height / height));
-
-            var img = new Bitmap(icon.Width + offsetX * 2, icon.Height + offsetY * 2, icon.PixelFormat);
-            
-            using (var gr = Graphics.FromImage(img))
-            {
-                gr.DrawImage(icon, new Rectangle(new Point(offsetX, offsetY), icon.Size));
-            }
-
-            return img;
         }
     }
 }

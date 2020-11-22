@@ -15,6 +15,8 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Icons
 {
     internal class BitmapButtonIcon : IIcon
     {
+        protected const int BORDER_SIZE = 3;
+
         internal IXImage Icon { get; private set; }
 
         protected readonly int m_Width;
@@ -37,8 +39,8 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Icons
         
         public virtual IEnumerable<IconSpec> GetIconSizes()
         {
-            yield return new IconSpec(Icon, new Size(m_Width, m_Height));
-            yield return new IconSpec(Icon, new Size(m_Width, m_Height), CreateMask);
+            yield return new IconSpec(Icon, new Size(m_Width, m_Height), BORDER_SIZE);
+            yield return new IconSpec(Icon, new Size(m_Width, m_Height), CreateMask, BORDER_SIZE);
         }
 
         protected void CreateMask(ref byte r, ref byte g, ref byte b, ref byte a) 
