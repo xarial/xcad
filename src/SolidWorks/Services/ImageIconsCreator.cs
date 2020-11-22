@@ -1,33 +1,20 @@
-﻿//*********************************************************************
-//xCAD
-//Copyright(C) 2020 Xarial Pty Limited
-//Product URL: https://www.xcad.net
-//License: https://xcad.xarial.com/license/
-//*********************************************************************
-
-using System;
+﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Text;
 using Xarial.XCad.SolidWorks.Base;
 using Xarial.XCad.SolidWorks.Exceptions;
 using Xarial.XCad.UI;
 
-namespace Xarial.XCad.SolidWorks.Utils
+namespace Xarial.XCad.SolidWorks.Services
 {
-    internal class IconsConverter : IDisposable
+    public class ImageIconsCreator : IIconsCreator
     {
-        internal static Image FromXImage(IXImage img) 
-        {
-            using (var str = new MemoryStream(img.Buffer)) 
-            {
-                return Image.FromStream(str);
-            }
-        }
-
         /// <summary>
         /// Icon data
         /// </summary>
@@ -36,50 +23,44 @@ namespace Xarial.XCad.SolidWorks.Utils
             /// <summary>
             /// Source image in original format (not scaled, not modified)
             /// </summary>
-            internal Image SourceIcon { get; set; }
+            internal Image SourceIcon { get; }
 
             /// <summary>
             /// Path where the icon needs to be saved
             /// </summary>
-            internal string TargetIconPath { get; private set; }
+            internal string TargetIconPath { get; }
 
             /// <summary>
             /// Required target size for the image
             /// </summary>
-            internal Size TargetSize { get; set; }
+            internal Size TargetSize { get; }
 
-            internal IconData(string iconsDir, Image sourceIcon, Size targetSize, string name)
+            internal int Offset { get; }
+
+            internal IconData(string iconsDir, Image sourceIcon, Size targetSize, int offset, string name)
             {
                 SourceIcon = sourceIcon;
                 TargetSize = targetSize;
+                Offset = offset;
                 TargetIconPath = Path.Combine(iconsDir, name);
             }
         }
 
-        /// <summary>
-        /// Custom handler for the image replace function <see cref="IconsConverter.ReplaceColor(Image, ColorReplacerDelegate)"/>
-        /// </summary>
-        /// <param name="r">Red component of pixel</param>
-        /// <param name="g">Green component of pixel</param>
-        /// <param name="b">Blue component of pixel</param>
-        /// <param name="a">Alpha component of pixel</param>
-        internal delegate void ColorReplacerDelegate(ref byte r, ref byte g, ref byte b, ref byte a);
-
-        private readonly bool m_DisposeIcons;
         private readonly string m_IconsDir;
 
-        internal IconsConverter()
-            : this(Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString()), true)
+        public bool KeepIcons { get; set; }
+
+        public ImageIconsCreator()
+            : this(Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString()))
         {
         }
 
         /// <param name="iconsDir">Directory to store the icons</param>
         /// <param name="disposeIcons">True to remove the icons when class is disposed</param>
-        internal IconsConverter(string iconsDir,
-            bool disposeIcons = true)
+        public ImageIconsCreator(string iconsDir)
         {
             m_IconsDir = iconsDir;
-            m_DisposeIcons = disposeIcons;
+            KeepIcons = false;
 
             if (!Directory.Exists(m_IconsDir))
             {
@@ -99,9 +80,9 @@ namespace Xarial.XCad.SolidWorks.Utils
         /// Replaces the pixels in the image based on the custom replacer handler
         /// </summary>
         /// <param name="icon">Image to replace</param>
-        /// <param name="replacer">Handler to replace which is called for each pixel</param>
+        /// <param name="mask">Handler to replace which is called for each pixel</param>
         /// <returns>Resulting image</returns>
-        internal static Image ReplaceColor(Image icon, ColorReplacerDelegate replacer)
+        private Image ReplaceColor(Image icon, ColorMaskDelegate mask)
         {
             var maskImg = new Bitmap(icon);
 
@@ -118,7 +99,7 @@ namespace Xarial.XCad.SolidWorks.Utils
 
             for (int i = 0; i < rgba.Length; i += 4)
             {
-                replacer.Invoke(ref rgba[i + 2], ref rgba[i + 1], ref rgba[i], ref rgba[i + 3]);
+                mask.Invoke(ref rgba[i + 2], ref rgba[i + 1], ref rgba[i], ref rgba[i + 3]);
             }
 
             Marshal.Copy(rgba, 0, bmpData.Scan0, rgba.Length);
@@ -128,7 +109,7 @@ namespace Xarial.XCad.SolidWorks.Utils
             return maskImg;
         }
 
-        internal string[] ConvertIcon(IIcon icon)
+        public string[] ConvertIcon(IIcon icon)
         {
             var iconsData = CreateIconData(icon);
 
@@ -136,14 +117,14 @@ namespace Xarial.XCad.SolidWorks.Utils
             {
                 CreateBitmap(new Image[] { iconData.SourceIcon },
                     iconData.TargetIconPath,
-                    iconData.TargetSize, icon.TransparencyKey);
+                    iconData.TargetSize, iconData.Offset, icon.TransparencyKey);
             }
 
             return iconsData.Select(i => i.TargetIconPath).ToArray();
         }
 
         /// <inheritdoc/>
-        internal string[] ConvertIconsGroup(IIcon[] icons)
+        public string[] ConvertIconsGroup(IIcon[] icons)
         {
             if (icons == null || !icons.Any())
             {
@@ -186,7 +167,7 @@ namespace Xarial.XCad.SolidWorks.Utils
 
                 iconsPaths[i] = iconsDataGroup[i, 0].TargetIconPath;
                 CreateBitmap(imgs, iconsPaths[i],
-                    iconsDataGroup[i, 0].TargetSize, transparencyKey);
+                    iconsDataGroup[i, 0].TargetSize, iconsDataGroup[i, 0].Offset, transparencyKey);
             }
 
             return iconsPaths;
@@ -194,7 +175,7 @@ namespace Xarial.XCad.SolidWorks.Utils
 
         protected virtual void Dispose(bool disposing)
         {
-            if (m_DisposeIcons)
+            if (!KeepIcons)
             {
                 try
                 {
@@ -207,7 +188,7 @@ namespace Xarial.XCad.SolidWorks.Utils
         }
 
         private void CreateBitmap(Image[] sourceIcons,
-            string targetIcon, Size size, Color background)
+            string targetIcon, Size size, int offset, Color background)
         {
             var width = size.Width * sourceIcons.Length;
             var height = size.Height;
@@ -229,7 +210,7 @@ namespace Xarial.XCad.SolidWorks.Utils
                     for (int i = 0; i < sourceIcons.Length; i++)
                     {
                         var sourceIcon = ReplaceColor(sourceIcons[i],
-                            new ColorReplacerDelegate((ref byte r, ref byte g, ref byte b, ref byte a) =>
+                            new ColorMaskDelegate((ref byte r, ref byte g, ref byte b, ref byte a) =>
                             {
                                 if (r == background.R && g == background.G && b == background.B && a == background.A)
                                 {
@@ -245,21 +226,17 @@ namespace Xarial.XCad.SolidWorks.Utils
                                 sourceIcon.VerticalResolution);
                         }
 
-                        var widthScale = (double)size.Width / (double)sourceIcon.Width;
-                        var heightScale = (double)size.Height / (double)sourceIcon.Height;
+                        var widthScale = (double)(size.Width - offset * 2) / (double)sourceIcon.Width;
+                        var heightScale = (double)(size.Height - offset * 2) / (double)sourceIcon.Height;
                         var scale = Math.Min(widthScale, heightScale);
 
-                        int destX = 0;
-                        int destY = 0;
+                        if (scale < 0)
+                        {
+                            throw new Exception("Target size of the icon cannot be calculated due to offset constraint");
+                        }
 
-                        if (heightScale < widthScale)
-                        {
-                            destX = (int)(size.Width - sourceIcon.Width * scale) / 2;
-                        }
-                        else
-                        {
-                            destY = (int)(size.Height - sourceIcon.Height * scale) / 2;
-                        }
+                        var destX = (int)(size.Width - sourceIcon.Width * scale) / 2;
+                        var destY = (int)(size.Height - sourceIcon.Height * scale) / 2;
 
                         int destWidth = (int)(sourceIcon.Width * scale);
                         int destHeight = (int)(sourceIcon.Height * scale);
@@ -298,9 +275,27 @@ namespace Xarial.XCad.SolidWorks.Utils
                 throw new NullReferenceException($"Specified icon '{icon.GetType().FullName}' doesn't provide any sizes");
             }
 
-            var iconsData = sizes.Select(s => new IconData(m_IconsDir, s.SourceImage, s.TargetSize, s.Name)).ToArray();
+            var iconsData = sizes.Select(s =>
+            {
+                var src = FromXImage(s.SourceImage);
+
+                if (s.Mask != null)
+                {
+                    src = ReplaceColor(src, s.Mask);
+                }
+
+                return new IconData(m_IconsDir, src, s.TargetSize, s.Offset, s.Name);
+            }).ToArray();
 
             return iconsData;
+        }
+
+        private Image FromXImage(IXImage img)
+        {
+            using (var str = new MemoryStream(img.Buffer))
+            {
+                return Image.FromStream(str);
+            }
         }
     }
 }

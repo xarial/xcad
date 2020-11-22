@@ -56,8 +56,10 @@ namespace SwAddInExample
             [Icon(typeof(Resources), nameof(Resources.xarial))]
             RecordView,
 
+            [Icon(typeof(Resources), nameof(Resources.horizontal))]
             CreateBox,
 
+            [Icon(typeof(Resources), nameof(Resources.vertical))]
             WatchDimension,
 
             WatchCustomProperty,

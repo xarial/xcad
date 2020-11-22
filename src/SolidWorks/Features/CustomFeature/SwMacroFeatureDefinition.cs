@@ -32,9 +32,11 @@ using Xarial.XCad.SolidWorks.Enums;
 using Xarial.XCad.SolidWorks.Features.CustomFeature.Toolkit;
 using Xarial.XCad.SolidWorks.Features.CustomFeature.Toolkit.Icons;
 using Xarial.XCad.SolidWorks.Geometry;
+using Xarial.XCad.SolidWorks.Services;
 using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.Toolkit;
 using Xarial.XCad.Toolkit.CustomFeature;
+using Xarial.XCad.UI;
 using Xarial.XCad.Utils.Diagnostics;
 using Xarial.XCad.Utils.Reflection;
 
@@ -75,7 +77,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             }
         }
 
-        private readonly IServiceProvider m_SvcProvider;
+        protected readonly IServiceProvider m_SvcProvider;
 
         public SwMacroFeatureDefinition()
         {
@@ -90,6 +92,11 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             var svcColl = new ServiceCollection();
             
             svcColl.AddOrReplace<IXLogger>(() => new TraceLogger($"xCad.MacroFeature.{this.GetType().FullName}"));
+            svcColl.AddOrReplace<IIconsCreator>(() => new ImageIconsCreator(
+                MacroFeatureIconInfo.GetLocation(this.GetType()))
+                {
+                    KeepIcons = true
+                });
 
             ConfigureServices(svcColl);
 
@@ -99,24 +106,21 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 
             CustomFeatureDefinitionInstanceCache.RegisterInstance(this);
 
-            TryCreateIcons();
+            TryCreateIcons(m_SvcProvider.GetService<IIconsCreator>());
         }
 
-        private void TryCreateIcons()
+        private void TryCreateIcons(IIconsCreator iconsConverter)
         {
-            var iconsConverter = new IconsConverter(
-                MacroFeatureIconInfo.GetLocation(this.GetType()), false);
-
-            System.Drawing.Image icon = null;
+            IXImage icon = null;
 
             this.GetType().TryGetAttribute<IconAttribute>(a =>
             {
-                icon = IconsConverter.FromXImage(a.Icon);
+                icon = a.Icon;
             });
 
             if (icon == null)
             {
-                icon = IconsConverter.FromXImage(Defaults.Icon);
+                icon = Defaults.Icon;
             }
 
             //TODO: create different icons for highlighted and suppressed
@@ -448,7 +452,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             m_ParamsParser = parser;
 
             m_Editor = new SwMacroFeatureEditor<TParams, TPage>(
-                Application, this.GetType(), m_ParamsParser, m_Logger);
+                Application, this.GetType(), m_ParamsParser, m_SvcProvider);
         }
 
         public virtual TParams ConvertPageToParams(TPage par)

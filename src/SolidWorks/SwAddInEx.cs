@@ -25,6 +25,7 @@ using Xarial.XCad.SolidWorks.Base;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Features.CustomFeature;
 using Xarial.XCad.SolidWorks.Features.CustomFeature.Toolkit;
+using Xarial.XCad.SolidWorks.Services;
 using Xarial.XCad.SolidWorks.UI;
 using Xarial.XCad.SolidWorks.UI.Commands;
 using Xarial.XCad.SolidWorks.UI.Commands.Exceptions;
@@ -171,7 +172,7 @@ namespace Xarial.XCad.SolidWorks
 
                 SwMacroFeatureDefinition.Application = Application;
 
-                m_CommandManager = new SwCommandManager(Application, AddInId, Logger, this.GetType().GUID);
+                m_CommandManager = new SwCommandManager(Application, AddInId, m_SvcProvider, this.GetType().GUID);
 
                 OnConnect();
 
@@ -192,7 +193,7 @@ namespace Xarial.XCad.SolidWorks
             var title = GetRegistrationHelper(addInType).GetTitle(addInType);
 
             svcCollection.AddOrReplace<IXLogger>(() => new TraceLogger($"XCad.AddIn.{title}"));
-
+            svcCollection.AddOrReplace<IIconsCreator>(() => new ImageIconsCreator());
             return svcCollection;
         }
 
@@ -282,7 +283,7 @@ namespace Xarial.XCad.SolidWorks
 
         private ISwPropertyManagerPage<TData> CreatePropertyManagerPage<TData>(Type handlerType)
         {
-            var page = new SwPropertyManagerPage<TData>(Application, Logger, handlerType);
+            var page = new SwPropertyManagerPage<TData>(Application, m_SvcProvider, handlerType);
             m_Disposables.Add(page);
             return page;
         }
@@ -343,13 +344,13 @@ namespace Xarial.XCad.SolidWorks
                 spec = new TaskPaneSpec();
             }
 
-            ITaskpaneView CreateTaskPaneView(IconsConverter iconConv, Image icon, string title) 
+            ITaskpaneView CreateTaskPaneView(IIconsCreator iconConv, IXImage icon, string title) 
             {
                 if (icon == null) 
                 {
                     if (spec.Icon != null)
                     {
-                        icon = IconsConverter.FromXImage(spec.Icon);
+                        icon = spec.Icon;
                     }
                 }
 
@@ -385,7 +386,7 @@ namespace Xarial.XCad.SolidWorks
                 }
             }
 
-            using (var iconConv = new IconsConverter())
+            using (var iconConv = m_SvcProvider.GetService<IIconsCreator>())
             {
                 var taskPane = CustomControlHelper.HostControl<TControl, SwTaskPane<TControl>>(
                     (c, h, t, i) =>
@@ -397,7 +398,7 @@ namespace Xarial.XCad.SolidWorks
                             throw new NetControlHostException(h.Handle);
                         }
 
-                        return new SwTaskPane<TControl>(Application.Sw, v, c, spec);
+                        return new SwTaskPane<TControl>(Application.Sw, v, c, spec, m_SvcProvider);
                     },
                     (p, t, i) =>
                     {
@@ -409,7 +410,7 @@ namespace Xarial.XCad.SolidWorks
                             throw new ComControlHostException(p);
                         }
 
-                        return new SwTaskPane<TControl>(Application.Sw, v, ctrl, spec);
+                        return new SwTaskPane<TControl>(Application.Sw, v, ctrl, spec, m_SvcProvider);
                     });
 
                 m_Disposables.Add(taskPane);
@@ -422,7 +423,7 @@ namespace Xarial.XCad.SolidWorks
         {
             var mdlViewMgr = doc.Model.ModelViewManager;
 
-            using (var iconsConv = new IconsConverter())
+            using (var iconsConv = m_SvcProvider.GetService<IIconsCreator>())
             {
                 return CustomControlHelper.HostControl<TControl, SwFeatureMgrTab<TControl>>(
                     (c, h, t, i) =>

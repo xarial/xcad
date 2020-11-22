@@ -8,6 +8,7 @@
 using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
 using System;
+using Xarial.XCad.SolidWorks.Services;
 using Xarial.XCad.SolidWorks.UI.Commands.Exceptions;
 using Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls;
 using Xarial.XCad.SolidWorks.Utils;
@@ -21,7 +22,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
     internal class PropertyManagerPageCustomControlConstructor
         : PropertyManagerPageBaseControlConstructor<PropertyManagerPageCustomControl, IPropertyManagerPageWindowFromHandle>, ICustomControlConstructor
     {
-        public PropertyManagerPageCustomControlConstructor(ISldWorks app, IconsConverter iconsConv)
+        public PropertyManagerPageCustomControlConstructor(ISldWorks app, IIconsCreator iconsConv)
             : base(app, swPropertyManagerPageControlType_e.swControlType_WindowFromHandle, iconsConv)
         {
         }

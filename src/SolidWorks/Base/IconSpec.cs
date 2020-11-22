@@ -7,28 +7,67 @@
 
 using System;
 using System.Drawing;
+using Xarial.XCad.UI;
 
 namespace Xarial.XCad.SolidWorks.Base
 {
     /// <summary>
+    /// Custom handler for the image replace function
+    /// </summary>
+    /// <param name="r">Red component of pixel</param>
+    /// <param name="g">Green component of pixel</param>
+    /// <param name="b">Blue component of pixel</param>
+    /// <param name="a">Alpha component of pixel</param>
+    public delegate void ColorMaskDelegate(ref byte r, ref byte g, ref byte b, ref byte a);
+
+    /// <summary>
     /// Descriptor for the icon of a specific type
     /// </summary>
-    internal class IconSizeInfo
+    public interface IIconSpec 
     {
         /// <summary>
         /// Base name of the icon
         /// </summary>
-        internal string Name { get; private set; }
+        string Name { get; }
 
         /// <summary>
         /// Original image of the icon
         /// </summary>
-        internal Image SourceImage { get; private set; }
+        IXImage SourceImage { get; }
 
         /// <summary>
         /// Required size of the icon
         /// </summary>
-        internal Size TargetSize { get; private set; }
+        Size TargetSize { get; }
+
+        /// <summary>
+        /// Handler for the mask
+        /// </summary>
+        ColorMaskDelegate Mask { get; }
+
+        /// <summary>
+        /// Image offset
+        /// </summary>
+        int Offset { get; }
+    }
+
+    /// <inheritdoc/>
+    internal class IconSpec : IIconSpec
+    {
+        /// <inheritdoc/>
+        public string Name { get; }
+
+        /// <inheritdoc/>
+        public IXImage SourceImage { get; }
+
+        /// <inheritdoc/>
+        public Size TargetSize { get; }
+
+        /// <inheritdoc/>
+        public ColorMaskDelegate Mask { get; }
+
+        /// <inheritdoc/>
+        public int Offset { get; }
 
         /// <summary>
         /// Icon size constructor with source image, target size and optional base name
@@ -36,12 +75,19 @@ namespace Xarial.XCad.SolidWorks.Base
         /// <param name="srcImage">Source image</param>
         /// <param name="targetSize">Target size of the image</param>
         /// <param name="baseName">Base name of the image</param>
-        internal IconSizeInfo(Image srcImage, Size targetSize, string baseName = "")
+        internal IconSpec(IXImage srcImage, Size targetSize, int offset = 0, string baseName = "")
         {
             SourceImage = srcImage;
             TargetSize = targetSize;
+            Offset = offset;
 
             Name = CreateFileName(baseName, targetSize);
+        }
+
+        internal IconSpec(IXImage srcImage, Size targetSize, ColorMaskDelegate mask, int offset = 0, string baseName = "")
+            : this(srcImage, targetSize, offset, baseName)
+        {
+            Mask = mask;
         }
 
         /// <summary>

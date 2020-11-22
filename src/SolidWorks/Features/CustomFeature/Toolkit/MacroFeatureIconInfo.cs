@@ -47,24 +47,24 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature.Toolkit
             {
                 return new string[]
                 {
-                    Path.Combine(loc, IconSizeInfo.CreateFileName(RegularName, SizeHighResSmall)),
-                    Path.Combine(loc, IconSizeInfo.CreateFileName(SuppressedName, SizeHighResSmall)),
-                    Path.Combine(loc, IconSizeInfo.CreateFileName(HighlightedName, SizeHighResSmall)),
-                    Path.Combine(loc, IconSizeInfo.CreateFileName(RegularName, SizeHighResMedium)),
-                    Path.Combine(loc, IconSizeInfo.CreateFileName(SuppressedName, SizeHighResMedium)),
-                    Path.Combine(loc, IconSizeInfo.CreateFileName(HighlightedName, SizeHighResMedium)),
-                    Path.Combine(loc, IconSizeInfo.CreateFileName(RegularName, SizeHighResLarge)),
-                    Path.Combine(loc, IconSizeInfo.CreateFileName(SuppressedName, SizeHighResLarge)),
-                    Path.Combine(loc, IconSizeInfo.CreateFileName(HighlightedName, SizeHighResLarge))
+                    Path.Combine(loc, IconSpec.CreateFileName(RegularName, SizeHighResSmall)),
+                    Path.Combine(loc, IconSpec.CreateFileName(SuppressedName, SizeHighResSmall)),
+                    Path.Combine(loc, IconSpec.CreateFileName(HighlightedName, SizeHighResSmall)),
+                    Path.Combine(loc, IconSpec.CreateFileName(RegularName, SizeHighResMedium)),
+                    Path.Combine(loc, IconSpec.CreateFileName(SuppressedName, SizeHighResMedium)),
+                    Path.Combine(loc, IconSpec.CreateFileName(HighlightedName, SizeHighResMedium)),
+                    Path.Combine(loc, IconSpec.CreateFileName(RegularName, SizeHighResLarge)),
+                    Path.Combine(loc, IconSpec.CreateFileName(SuppressedName, SizeHighResLarge)),
+                    Path.Combine(loc, IconSpec.CreateFileName(HighlightedName, SizeHighResLarge))
                 };
             }
             else
             {
                 return new string[]
                 {
-                    Path.Combine(loc, IconSizeInfo.CreateFileName(RegularName, Size)),
-                    Path.Combine(loc, IconSizeInfo.CreateFileName(SuppressedName, Size)),
-                    Path.Combine(loc, IconSizeInfo.CreateFileName(HighlightedName, Size))
+                    Path.Combine(loc, IconSpec.CreateFileName(RegularName, Size)),
+                    Path.Combine(loc, IconSpec.CreateFileName(SuppressedName, Size)),
+                    Path.Combine(loc, IconSpec.CreateFileName(HighlightedName, Size))
                 };
             }
         }

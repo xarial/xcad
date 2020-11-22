@@ -12,11 +12,13 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Windows;
+using Xarial.XCad.SolidWorks.Services;
 using Xarial.XCad.SolidWorks.UI.Commands.Toolkit.Structures;
 using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.UI;
 using Xarial.XCad.UI.TaskPane;
 using Xarial.XCad.UI.TaskPane.Delegates;
+using Xarial.XCad.Toolkit;
 
 namespace Xarial.XCad.SolidWorks.UI
 {
@@ -56,9 +58,13 @@ namespace Xarial.XCad.SolidWorks.UI
 
         private WpfControlKeystrokePropagator m_KeystrokePropagator;
 
-        internal SwTaskPane(ISldWorks app, ITaskpaneView taskPaneView, TControl ctrl, TaskPaneSpec spec)
+        private readonly IServiceProvider m_SvcProvider;
+
+        internal SwTaskPane(ISldWorks app, ITaskpaneView taskPaneView, TControl ctrl, TaskPaneSpec spec, IServiceProvider svcProvider)
         {
             Control = ctrl;
+
+            m_SvcProvider = svcProvider;
 
             if (ctrl is FrameworkElement)
             {
@@ -79,7 +85,7 @@ namespace Xarial.XCad.SolidWorks.UI
         {
             if (m_Spec.Buttons?.Any() == true) 
             {
-                using (var iconsConv = new IconsConverter())
+                using (var iconsConv = m_SvcProvider.GetService<IIconsCreator>())
                 {
                     foreach (var btn in m_Spec.Buttons)
                     {
@@ -109,7 +115,7 @@ namespace Xarial.XCad.SolidWorks.UI
                             //NOTE: unlike task pane icon, command icons must have the same transparency key as command manager commands
                             if (app.SupportsHighResIcons(CompatibilityUtils.HighResIconsScope_e.TaskPane))
                             {
-                                var imageList = iconsConv.ConvertIcon(new CommandGroupHighResIcon(IconsConverter.FromXImage(icon)));
+                                var imageList = iconsConv.ConvertIcon(new CommandGroupHighResIcon(icon));
                                 if (!TaskPaneView.AddCustomButton2(imageList, tooltip))
                                 {
                                     throw new InvalidOperationException($"Failed to create task pane button for '{tooltip}' with highres icon");
@@ -117,7 +123,7 @@ namespace Xarial.XCad.SolidWorks.UI
                             }
                             else
                             {
-                                var imagePath = iconsConv.ConvertIcon(new CommandGroupIcon(IconsConverter.FromXImage(icon))).First();
+                                var imagePath = iconsConv.ConvertIcon(new CommandGroupIcon(icon)).First();
                                 if (!TaskPaneView.AddCustomButton(imagePath, tooltip))
                                 {
                                     throw new InvalidOperationException($"Failed to create task pane button for {tooltip}");
