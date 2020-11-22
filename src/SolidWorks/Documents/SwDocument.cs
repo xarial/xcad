@@ -448,26 +448,24 @@ namespace Xarial.XCad.SolidWorks.Documents
 
             if (string.IsNullOrEmpty(docTemplate))
             {
-                docTemplate = App.Sw.GetDocumentTemplate(
-                    (int)DocumentType.Value, "", (int)swDwgPaperSizes_e.swDwgPapersUserDefined, 0.1, 0.1);
-            }
-
-            if (!string.IsNullOrEmpty(docTemplate))
-            {
                 var useDefTemplates = App.Sw.GetUserPreferenceToggle((int)swUserPreferenceToggle_e.swAlwaysUseDefaultTemplates);
-
-                App.Sw.SetUserPreferenceToggle((int)swUserPreferenceToggle_e.swAlwaysUseDefaultTemplates, true);
-
-                IModelDoc2 doc = null;
 
                 try
                 {
-                    doc = App.Sw.NewDocument(docTemplate, (int)swDwgPaperSizes_e.swDwgPapersUserDefined, 0.1, 0.1) as IModelDoc2;
+                    App.Sw.SetUserPreferenceToggle((int)swUserPreferenceToggle_e.swAlwaysUseDefaultTemplates, true);
+
+                    docTemplate = App.Sw.GetDocumentTemplate(
+                        (int)DocumentType.Value, "", (int)swDwgPaperSizes_e.swDwgPapersUserDefined, 0.1, 0.1);
                 }
                 finally
                 {
                     App.Sw.SetUserPreferenceToggle((int)swUserPreferenceToggle_e.swAlwaysUseDefaultTemplates, useDefTemplates);
                 }
+            }
+
+            if (!string.IsNullOrEmpty(docTemplate))
+            {
+                var doc = App.Sw.NewDocument(docTemplate, (int)swDwgPaperSizes_e.swDwgPapersUserDefined, 0.1, 0.1) as IModelDoc2;
 
                 if (doc != null)
                 {
