@@ -193,7 +193,7 @@ namespace Xarial.XCad.SolidWorks
             var title = GetRegistrationHelper(addInType).GetTitle(addInType);
 
             svcCollection.AddOrReplace<IXLogger>(() => new TraceLogger($"XCad.AddIn.{title}"));
-            svcCollection.AddOrReplace<IIconsCreator>(() => new ImageIconsCreator());
+            svcCollection.AddOrReplace<IIconsCreator>(() => new BaseIconsCreator());
             return svcCollection;
         }
 

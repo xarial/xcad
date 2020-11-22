@@ -13,51 +13,51 @@ using Xarial.XCad.UI;
 
 namespace Xarial.XCad.SolidWorks.Services
 {
-    public class ImageIconsCreator : IIconsCreator
+    public class BaseIconsCreator : IIconsCreator
     {
-        /// <summary>
-        /// Icon data
-        /// </summary>
-        private class IconData
-        {
-            /// <summary>
-            /// Source image in original format (not scaled, not modified)
-            /// </summary>
-            internal Image SourceIcon { get; }
+        ///// <summary>
+        ///// Icon data
+        ///// </summary>
+        //private class IconData
+        //{
+        //    /// <summary>
+        //    /// Source image in original format (not scaled, not modified)
+        //    /// </summary>
+        //    internal IXImage SourceIcon { get; }
 
-            /// <summary>
-            /// Path where the icon needs to be saved
-            /// </summary>
-            internal string TargetIconPath { get; }
+        //    /// <summary>
+        //    /// Path where the icon needs to be saved
+        //    /// </summary>
+        //    internal string TargetIconPath { get; }
 
-            /// <summary>
-            /// Required target size for the image
-            /// </summary>
-            internal Size TargetSize { get; }
+        //    /// <summary>
+        //    /// Required target size for the image
+        //    /// </summary>
+        //    internal Size TargetSize { get; }
 
-            internal int Offset { get; }
+        //    internal int Offset { get; }
 
-            internal IconData(string iconsDir, Image sourceIcon, Size targetSize, int offset, string name)
-            {
-                SourceIcon = sourceIcon;
-                TargetSize = targetSize;
-                Offset = offset;
-                TargetIconPath = Path.Combine(iconsDir, name);
-            }
-        }
+        //    internal IconData(string iconsDir, IXImage sourceIcon, Size targetSize, int offset, string name)
+        //    {
+        //        SourceIcon = sourceIcon;
+        //        TargetSize = targetSize;
+        //        Offset = offset;
+        //        TargetIconPath = Path.Combine(iconsDir, name);
+        //    }
+        //}
 
         private readonly string m_IconsDir;
 
         public bool KeepIcons { get; set; }
 
-        public ImageIconsCreator()
+        public BaseIconsCreator()
             : this(Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString()))
         {
         }
 
         /// <param name="iconsDir">Directory to store the icons</param>
         /// <param name="disposeIcons">True to remove the icons when class is disposed</param>
-        public ImageIconsCreator(string iconsDir)
+        public BaseIconsCreator(string iconsDir)
         {
             m_IconsDir = iconsDir;
             KeepIcons = false;
@@ -82,7 +82,7 @@ namespace Xarial.XCad.SolidWorks.Services
         /// <param name="icon">Image to replace</param>
         /// <param name="mask">Handler to replace which is called for each pixel</param>
         /// <returns>Resulting image</returns>
-        private Image ReplaceColor(Image icon, ColorMaskDelegate mask)
+        protected Image ReplaceColor(Image icon, ColorMaskDelegate mask)
         {
             var maskImg = new Bitmap(icon);
 
@@ -111,16 +111,19 @@ namespace Xarial.XCad.SolidWorks.Services
 
         public string[] ConvertIcon(IIcon icon)
         {
-            var iconsData = CreateIconData(icon);
+            var sizes = icon.GetIconSizes().ToArray();
 
-            foreach (var iconData in iconsData)
+            var bitmapPaths = new string[sizes.Length];
+
+            for(int i = 0; i< sizes.Length; i++)
             {
-                CreateBitmap(new Image[] { iconData.SourceIcon },
-                    iconData.TargetIconPath,
-                    iconData.TargetSize, iconData.Offset, icon.TransparencyKey);
+                bitmapPaths[i] = Path.Combine(m_IconsDir, sizes[i].Name);
+
+                CreateBitmap(new IXImage[] { sizes[i].SourceImage },
+                    bitmapPaths[i], sizes[i].TargetSize, sizes[i].Offset, icon.TransparencyKey, sizes[i].Mask);
             }
 
-            return iconsData.Select(i => i.TargetIconPath).ToArray();
+            return bitmapPaths;
         }
 
         /// <inheritdoc/>
@@ -131,7 +134,7 @@ namespace Xarial.XCad.SolidWorks.Services
                 throw new ArgumentNullException(nameof(icons));
             }
 
-            IconData[,] iconsDataGroup = null;
+            IIconSpec[,] iconsDataGroup = null;
 
             var transparencyKey = icons.First().TransparencyKey;
 
@@ -142,11 +145,11 @@ namespace Xarial.XCad.SolidWorks.Services
                     throw new IconTransparencyMismatchException(i);
                 }
 
-                var data = CreateIconData(icons[i]);
+                var data = icons[i].GetIconSizes().ToArray();
 
                 if (iconsDataGroup == null)
                 {
-                    iconsDataGroup = new IconData[data.Length, icons.Length];
+                    iconsDataGroup = new IIconSpec[data.Length, icons.Length];
                 }
 
                 for (int j = 0; j < data.Length; j++)
@@ -159,15 +162,16 @@ namespace Xarial.XCad.SolidWorks.Services
 
             for (int i = 0; i < iconsDataGroup.GetLength(0); i++)
             {
-                var imgs = new Image[iconsDataGroup.GetLength(1)];
+                var imgs = new IXImage[iconsDataGroup.GetLength(1)];
                 for (int j = 0; j < iconsDataGroup.GetLength(1); j++)
                 {
-                    imgs[j] = iconsDataGroup[i, j].SourceIcon;
+                    imgs[j] = iconsDataGroup[i, j].SourceImage;
                 }
 
-                iconsPaths[i] = iconsDataGroup[i, 0].TargetIconPath;
+                iconsPaths[i] = Path.Combine(m_IconsDir, iconsDataGroup[i, 0].Name);
+
                 CreateBitmap(imgs, iconsPaths[i],
-                    iconsDataGroup[i, 0].TargetSize, iconsDataGroup[i, 0].Offset, transparencyKey);
+                    iconsDataGroup[i, 0].TargetSize, iconsDataGroup[i, 0].Offset, transparencyKey, iconsDataGroup[i, 0].Mask);
             }
 
             return iconsPaths;
@@ -187,8 +191,8 @@ namespace Xarial.XCad.SolidWorks.Services
             }
         }
 
-        private void CreateBitmap(Image[] sourceIcons,
-            string targetIcon, Size size, int offset, Color background)
+        private void CreateBitmap(IXImage[] sourceIcons,
+            string targetIcon, Size size, int offset, Color background, ColorMaskDelegate mask)
         {
             var width = size.Width * sourceIcons.Length;
             var height = size.Height;
@@ -209,14 +213,9 @@ namespace Xarial.XCad.SolidWorks.Services
 
                     for (int i = 0; i < sourceIcons.Length; i++)
                     {
-                        var sourceIcon = ReplaceColor(sourceIcons[i],
-                            new ColorMaskDelegate((ref byte r, ref byte g, ref byte b, ref byte a) =>
-                            {
-                                if (r == background.R && g == background.G && b == background.B && a == background.A)
-                                {
-                                    b = (byte)((b == 0) ? 1 : (b - 1));
-                                }
-                            }));
+                        var targSize = new Size(size.Width - offset * 2, size.Height - offset * 2);
+
+                        var sourceIcon = CreateImage(sourceIcons[i], targSize, mask, background);
 
                         if (bmp.HorizontalResolution != sourceIcon.HorizontalResolution
                             || bmp.VerticalResolution != sourceIcon.VerticalResolution)
@@ -226,8 +225,8 @@ namespace Xarial.XCad.SolidWorks.Services
                                 sourceIcon.VerticalResolution);
                         }
 
-                        var widthScale = (double)(size.Width - offset * 2) / (double)sourceIcon.Width;
-                        var heightScale = (double)(size.Height - offset * 2) / (double)sourceIcon.Height;
+                        var widthScale = (double)targSize.Width / (double)sourceIcon.Width;
+                        var heightScale = (double)targSize.Height / (double)sourceIcon.Height;
                         var scale = Math.Min(widthScale, heightScale);
 
                         if (scale < 0)
@@ -261,33 +260,29 @@ namespace Xarial.XCad.SolidWorks.Services
             }
         }
 
-        private IconData[] CreateIconData(IIcon icon)
+        protected virtual Image CreateImage(IXImage icon, 
+            Size size, ColorMaskDelegate mask, Color background)
         {
-            if (icon == null)
+            var img = FromXImage(icon);
+
+            if (mask != null)
             {
-                throw new ArgumentNullException(nameof(icon));
+                img = ReplaceColor(img, mask);
             }
-
-            var sizes = icon.GetIconSizes();
-
-            if (sizes == null || !sizes.Any())
+            else 
             {
-                throw new NullReferenceException($"Specified icon '{icon.GetType().FullName}' doesn't provide any sizes");
-            }
-
-            var iconsData = sizes.Select(s =>
-            {
-                var src = FromXImage(s.SourceImage);
-
-                if (s.Mask != null)
+                void ConflictingBackgroundPixelMask(ref byte r, ref byte g, ref byte b, ref byte a) 
                 {
-                    src = ReplaceColor(src, s.Mask);
+                    if (r == background.R && g == background.G && b == background.B && a == background.A)
+                    {
+                        b = (byte)((b == 0) ? 1 : (b - 1));
+                    }
                 }
 
-                return new IconData(m_IconsDir, src, s.TargetSize, s.Offset, s.Name);
-            }).ToArray();
+                img = ReplaceColor(img, ConflictingBackgroundPixelMask);
+            }
 
-            return iconsData;
+            return img;
         }
 
         private Image FromXImage(IXImage img)
