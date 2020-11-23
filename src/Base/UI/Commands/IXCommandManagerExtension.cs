@@ -44,8 +44,8 @@ namespace Xarial.XCad.UI.Commands
         /// <remarks>Decorate enumeration and fields with <see cref="TitleAttribute"/>, <see cref="IconAttribute"/>, <see cref="DescriptionAttribute"/>, <see cref="CommandItemInfoAttribute"/> to customized look and feel of commands</remarks>
         public static IEnumCommandGroup<TCmdEnum> AddCommandGroup<TCmdEnum>(this IXCommandManager cmdMgr)
             where TCmdEnum : Enum
-        {   
-            var enumGrp = CreateEnumCommandGroup<TCmdEnum>(cmdMgr);
+        {
+            var enumGrp = CreateEnumCommandGroup<TCmdEnum>(cmdMgr, GetEnumCommandGroupParent(cmdMgr, typeof(TCmdEnum)));
 
             var cmdGrp = cmdMgr.AddCommandGroup(enumGrp);
 
@@ -55,11 +55,115 @@ namespace Xarial.XCad.UI.Commands
         public static IEnumCommandGroup<TCmdEnum> AddContextMenu<TCmdEnum>(this IXCommandManager cmdMgr, SelectType_e? owner = null)
             where TCmdEnum : Enum
         {
-            var enumGrp = CreateEnumCommandGroup<TCmdEnum>(cmdMgr);
+            var enumGrp = CreateEnumCommandGroup<TCmdEnum>(cmdMgr, GetEnumCommandGroupParent(cmdMgr, typeof(TCmdEnum)));
 
             var cmdGrp = cmdMgr.AddContextMenu(enumGrp, owner);
 
             return new EnumCommandGroup<TCmdEnum>(cmdGrp);
+        }
+
+        [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
+        public static CommandGroupSpec CreateSpecFromEnum<TCmdEnum>(this IXCommandManager cmdMgr, CommandGroupSpec parent = null)
+            where TCmdEnum : Enum => CreateEnumCommandGroup<TCmdEnum>(cmdMgr, parent);
+
+        private static EnumCommandGroupSpec CreateEnumCommandGroup<TCmdEnum>(IXCommandManager cmdMgr, CommandGroupSpec parent)
+                                    where TCmdEnum : Enum
+        {
+            var cmdGroupType = typeof(TCmdEnum);
+            var id = GetEnumCommandGroupId(cmdMgr, cmdGroupType);
+
+            if (parent != null)
+            {
+                if (parent.Id == id)
+                {
+                    throw new ParentGroupCircularDependencyException($"{parent.Title} ({parent.Id})");
+                }
+            }
+
+            var bar = new EnumCommandGroupSpec(cmdGroupType, id);
+            bar.Parent = parent;
+
+            bar.InitFromEnum<TCmdEnum>();
+
+            bar.Commands = Enum.GetValues(cmdGroupType).Cast<TCmdEnum>().Select(
+                c => CreateCommand(c)).ToArray();
+
+            return bar;
+        }
+
+        private static CommandGroupSpec GetEnumCommandGroupParent(IXCommandManager cmdMgr, Type cmdGroupType)
+        {
+            CommandGroupSpec parent = null;
+
+            CommandGroupParentAttribute grpParentAtt = null;
+
+            if (cmdGroupType.TryGetAttribute<CommandGroupParentAttribute>(x => grpParentAtt = x))
+            {
+                var groups = cmdMgr.CommandGroups.Select(c => c.Spec);
+
+                if (grpParentAtt.ParentGroupType != null)
+                {
+                    var parentGrpSpec = groups.OfType<EnumCommandGroupSpec>()
+                        .FirstOrDefault(g => g.CmdGrpEnumType == grpParentAtt.ParentGroupType);
+
+                    if (parentGrpSpec == null)
+                    {
+                        throw new ParentGroupNotFoundException(grpParentAtt.ParentGroupType.FullName, cmdGroupType.FullName);
+                    }
+
+                    if (grpParentAtt.ParentGroupType == cmdGroupType)
+                    {
+                        throw new ParentGroupCircularDependencyException(grpParentAtt.ParentGroupType.FullName);
+                    }
+
+                    parent = parentGrpSpec;
+                }
+                else
+                {
+                    var parentGrpSpec = groups.OfType<CommandGroupSpec>()
+                        .FirstOrDefault(g => g.Id == grpParentAtt.ParentGroupUserId);
+
+                    if (parentGrpSpec == null)
+                    {
+                        throw new ParentGroupNotFoundException(grpParentAtt.ParentGroupUserId.ToString(), cmdGroupType.FullName);
+                    }
+                    
+                    parent = parentGrpSpec;
+                }
+            }
+
+            return parent;
+        }
+
+        private static int GetEnumCommandGroupId(IXCommandManager cmdMgr, Type cmdGroupType)
+        {
+            var nextGroupId = 0;
+
+            if (cmdMgr.CommandGroups.Any())
+            {
+                nextGroupId = cmdMgr.CommandGroups.Max(g => g.Spec.Id) + 1;
+            }
+            
+            CommandGroupInfoAttribute grpInfoAtt = null;
+
+            var id = 0;
+            if (cmdGroupType.TryGetAttribute<CommandGroupInfoAttribute>(x => grpInfoAtt = x))
+            {
+                if (grpInfoAtt.UserId != -1)
+                {
+                    id = grpInfoAtt.UserId;
+                }
+                else
+                {
+                    id = nextGroupId;
+                }
+            }
+            else
+            {
+                id = nextGroupId;
+            }
+
+            return id;
         }
 
         private static EnumCommandSpec<TCmdEnum> CreateCommand<TCmdEnum>(TCmdEnum cmdEnum)
@@ -89,92 +193,6 @@ namespace Xarial.XCad.UI.Commands
             cmd.InitFromEnum(cmdEnum);
 
             return cmd;
-        }
-
-        private static EnumCommandGroupSpec CreateEnumCommandGroup<TCmdEnum>(IXCommandManager cmdMgr)
-                                    where TCmdEnum : Enum
-        {
-            var nextGroupId = 0;
-
-            if (cmdMgr.CommandGroups.Any())
-            {
-                nextGroupId = cmdMgr.CommandGroups.Max(g => g.Spec.Id) + 1;
-            }
-
-            var groups = cmdMgr.CommandGroups.Select(c => c.Spec);
-
-            var cmdGroupType = typeof(TCmdEnum);
-
-            CommandGroupInfoAttribute grpInfoAtt = null;
-
-            EnumCommandGroupSpec parent = null;
-            int id = 0;
-
-            if (cmdGroupType.TryGetAttribute<CommandGroupInfoAttribute>(x => grpInfoAtt = x))
-            {
-                if (grpInfoAtt.UserId != -1)
-                {
-                    id = grpInfoAtt.UserId;
-                }
-                else
-                {
-                    id = nextGroupId;
-                }
-            }
-            else
-            {
-                id = nextGroupId;
-            }
-
-            CommandGroupParentAttribute grpParentAtt = null;
-            
-            if (cmdGroupType.TryGetAttribute<CommandGroupParentAttribute>(x => grpParentAtt = x))
-            {
-                if (grpParentAtt.ParentGroupType != null)
-                {
-                    var parentGrpSpec = groups.OfType<EnumCommandGroupSpec>()
-                        .FirstOrDefault(g => g.CmdGrpEnumType == grpParentAtt.ParentGroupType);
-
-                    if (parentGrpSpec == null)
-                    {
-                        throw new ParentGroupNotFoundException(grpParentAtt.ParentGroupType.FullName, cmdGroupType.FullName);
-                    }
-
-                    if (grpParentAtt.ParentGroupType == cmdGroupType)
-                    {
-                        throw new ParentGroupCircularDependencyException(grpParentAtt.ParentGroupType.FullName);
-                    }
-
-                    parent = parentGrpSpec;
-                }
-                else 
-                {
-                    if (grpParentAtt.ParentGroupUserId == id)
-                    {
-                        throw new ParentGroupCircularDependencyException(grpParentAtt.ParentGroupType.FullName);
-                    }
-
-                    var parentGrpSpec = groups.OfType<EnumCommandGroupSpec>()
-                        .FirstOrDefault(g => g.Id == grpParentAtt.ParentGroupUserId);
-
-                    if (parentGrpSpec == null)
-                    {
-                        throw new ParentGroupNotFoundException(grpParentAtt.ParentGroupUserId.ToString(), cmdGroupType.FullName);
-                    }
-
-                    parent = parentGrpSpec;
-                }
-            }                
-
-            var bar = new EnumCommandGroupSpec(cmdGroupType, id);
-            bar.Parent = parent;
-
-            bar.InitFromEnum<TCmdEnum>();
-
-            bar.Commands = Enum.GetValues(cmdGroupType).Cast<TCmdEnum>().Select(
-                c => CreateCommand(c)).ToArray();
-
-            return bar;
         }
     }
 }
