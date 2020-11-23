@@ -6,6 +6,7 @@
 //*********************************************************************
 
 using Xarial.XCad.Base;
+using Xarial.XCad.Extensions.Delegates;
 using Xarial.XCad.UI;
 using Xarial.XCad.UI.Commands;
 using Xarial.XCad.UI.PropertyPage;
@@ -18,8 +19,19 @@ namespace Xarial.XCad.Extensions
     /// </summary>
     public interface IXExtension
     {
+        /// <summary>
+        /// Fired when extension startup is completed and all the components and application fully loaded
+        /// </summary>
+        event ExtensionStartupCompletedDelegate StartupCompleted;
+
+        /// <summary>
+        /// Called when extension is loading
+        /// </summary>
         void OnConnect();
 
+        /// <summary>
+        /// Called when extension is unloading
+        /// </summary>
         void OnDisconnect();
 
         /// <summary>

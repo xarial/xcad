@@ -45,17 +45,22 @@ namespace Xarial.XCad.UI.Commands
         public static IEnumCommandGroup<TCmdEnum> AddCommandGroup<TCmdEnum>(this IXCommandManager cmdMgr)
             where TCmdEnum : Enum
         {
-            var enumGrp = CreateEnumCommandGroup<TCmdEnum>(cmdMgr, GetEnumCommandGroupParent(cmdMgr, typeof(TCmdEnum)));
+            var enumGrp = CreateEnumCommandGroup<TCmdEnum>(cmdMgr, GetEnumCommandGroupParent(cmdMgr, typeof(TCmdEnum)), -1);
 
             var cmdGrp = cmdMgr.AddCommandGroup(enumGrp);
 
             return new EnumCommandGroup<TCmdEnum>(cmdGrp);
         }
 
+        /// <summary>
+        /// Adds context menu based on the enumeration
+        /// </summary>
+        /// <param name="owner">Context menu owner</param>
+        ///<inheritdoc cref="AddCommandGroup{TCmdEnum}(IXCommandManager)"/>
         public static IEnumCommandGroup<TCmdEnum> AddContextMenu<TCmdEnum>(this IXCommandManager cmdMgr, SelectType_e? owner = null)
             where TCmdEnum : Enum
         {
-            var enumGrp = CreateEnumCommandGroup<TCmdEnum>(cmdMgr, GetEnumCommandGroupParent(cmdMgr, typeof(TCmdEnum)));
+            var enumGrp = CreateEnumCommandGroup<TCmdEnum>(cmdMgr, GetEnumCommandGroupParent(cmdMgr, typeof(TCmdEnum)), -1);
 
             var cmdGrp = cmdMgr.AddContextMenu(enumGrp, owner);
 
@@ -63,14 +68,18 @@ namespace Xarial.XCad.UI.Commands
         }
 
         [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
-        public static CommandGroupSpec CreateSpecFromEnum<TCmdEnum>(this IXCommandManager cmdMgr, CommandGroupSpec parent = null)
-            where TCmdEnum : Enum => CreateEnumCommandGroup<TCmdEnum>(cmdMgr, parent);
+        public static CommandGroupSpec CreateSpecFromEnum<TCmdEnum>(this IXCommandManager cmdMgr, int id = -1, CommandGroupSpec parent = null)
+            where TCmdEnum : Enum => CreateEnumCommandGroup<TCmdEnum>(cmdMgr, parent, id);
 
-        private static EnumCommandGroupSpec CreateEnumCommandGroup<TCmdEnum>(IXCommandManager cmdMgr, CommandGroupSpec parent)
+        private static EnumCommandGroupSpec CreateEnumCommandGroup<TCmdEnum>(IXCommandManager cmdMgr, CommandGroupSpec parent, int id)
                                     where TCmdEnum : Enum
         {
             var cmdGroupType = typeof(TCmdEnum);
-            var id = GetEnumCommandGroupId(cmdMgr, cmdGroupType);
+
+            if (id == -1)
+            {
+                id = GetEnumCommandGroupId(cmdMgr, cmdGroupType);
+            }
 
             if (parent != null)
             {

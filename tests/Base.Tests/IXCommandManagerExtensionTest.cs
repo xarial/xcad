@@ -155,7 +155,7 @@ namespace Base.Tests
             Assert.AreEqual(parentSpec, res.Parent);
 
             Assert.Throws<ParentGroupNotFoundException>(() => mock.Object.AddCommandGroup<Commands4_e>());
-            Assert.Throws<ParentGroupCircularDependencyException>(() => mock.Object.CreateSpecFromEnum<Commands5_e>(new CommandGroupSpec(20)));
+            Assert.Throws<ParentGroupCircularDependencyException>(() => mock.Object.CreateSpecFromEnum<Commands5_e>(-1, new CommandGroupSpec(20)));
         }
     }
 }

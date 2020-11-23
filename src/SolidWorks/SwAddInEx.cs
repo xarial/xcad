@@ -19,6 +19,7 @@ using Xarial.XCad.Base.Attributes;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Extensions;
 using Xarial.XCad.Extensions.Attributes;
+using Xarial.XCad.Extensions.Delegates;
 using Xarial.XCad.Features.CustomFeature;
 using Xarial.XCad.Features.CustomFeature.Delegates;
 using Xarial.XCad.SolidWorks.Base;
@@ -104,6 +105,8 @@ namespace Xarial.XCad.SolidWorks
 
         #endregion Registration
 
+        public event ExtensionStartupCompletedDelegate StartupCompleted;
+
         IXApplication IXExtension.Application => Application;
         IXCommandManager IXExtension.CommandManager => CommandManager;
         IXCustomPanel<TControl> IXExtension.CreateDocumentTab<TControl>(IXDocument doc)
@@ -157,6 +160,8 @@ namespace Xarial.XCad.SolidWorks
 
                 var swApp = new SwApplication(app);
                 Application = swApp;
+
+                (Application.Sw as SldWorks).OnIdleNotify += OnLoadFirstIdleNotify;
 
                 var svcCollection = GetServicesCollection();
 
@@ -464,6 +469,32 @@ namespace Xarial.XCad.SolidWorks
                         return new SwFeatureMgrTab<TControl>(ctrl, featMgr, doc);
                     });
             }
+        }
+
+        private int OnLoadFirstIdleNotify()
+        {
+            const int S_OK = 0;
+
+            var continueListening = false;
+
+            if (StartupCompleted != null)
+            {
+                if (Application.Sw.StartupProcessCompleted)
+                {
+                    StartupCompleted?.Invoke(this);
+                }
+                else
+                {
+                    continueListening = true;
+                }
+            }
+
+            if (!continueListening)
+            {
+                (Application.Sw as SldWorks).OnIdleNotify -= OnLoadFirstIdleNotify;
+            }
+
+            return S_OK;
         }
 
         public virtual void ConfigureServices(IXServiceCollection collection)
