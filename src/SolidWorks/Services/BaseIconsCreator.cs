@@ -15,40 +15,13 @@ namespace Xarial.XCad.SolidWorks.Services
 {
     public class BaseIconsCreator : IIconsCreator
     {
-        ///// <summary>
-        ///// Icon data
-        ///// </summary>
-        //private class IconData
-        //{
-        //    /// <summary>
-        //    /// Source image in original format (not scaled, not modified)
-        //    /// </summary>
-        //    internal IXImage SourceIcon { get; }
-
-        //    /// <summary>
-        //    /// Path where the icon needs to be saved
-        //    /// </summary>
-        //    internal string TargetIconPath { get; }
-
-        //    /// <summary>
-        //    /// Required target size for the image
-        //    /// </summary>
-        //    internal Size TargetSize { get; }
-
-        //    internal int Offset { get; }
-
-        //    internal IconData(string iconsDir, IXImage sourceIcon, Size targetSize, int offset, string name)
-        //    {
-        //        SourceIcon = sourceIcon;
-        //        TargetSize = targetSize;
-        //        Offset = offset;
-        //        TargetIconPath = Path.Combine(iconsDir, name);
-        //    }
-        //}
-
-        private readonly string m_IconsDir;
-
         public bool KeepIcons { get; set; }
+        
+        public string IconsFolder 
+        {
+            get;
+            set;
+        }
 
         public BaseIconsCreator()
             : this(Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString()))
@@ -59,13 +32,8 @@ namespace Xarial.XCad.SolidWorks.Services
         /// <param name="disposeIcons">True to remove the icons when class is disposed</param>
         public BaseIconsCreator(string iconsDir)
         {
-            m_IconsDir = iconsDir;
+            IconsFolder = iconsDir;
             KeepIcons = false;
-
-            if (!Directory.Exists(m_IconsDir))
-            {
-                Directory.CreateDirectory(m_IconsDir);
-            }
         }
 
         /// <summary>
@@ -117,7 +85,7 @@ namespace Xarial.XCad.SolidWorks.Services
 
             for(int i = 0; i< sizes.Length; i++)
             {
-                bitmapPaths[i] = Path.Combine(m_IconsDir, sizes[i].Name);
+                bitmapPaths[i] = Path.Combine(IconsFolder, sizes[i].Name);
 
                 CreateBitmap(new IXImage[] { sizes[i].SourceImage },
                     bitmapPaths[i], sizes[i].TargetSize, sizes[i].Offset, icon.TransparencyKey, sizes[i].Mask);
@@ -168,7 +136,7 @@ namespace Xarial.XCad.SolidWorks.Services
                     imgs[j] = iconsDataGroup[i, j].SourceImage;
                 }
 
-                iconsPaths[i] = Path.Combine(m_IconsDir, iconsDataGroup[i, 0].Name);
+                iconsPaths[i] = Path.Combine(IconsFolder, iconsDataGroup[i, 0].Name);
 
                 CreateBitmap(imgs, iconsPaths[i],
                     iconsDataGroup[i, 0].TargetSize, iconsDataGroup[i, 0].Offset, transparencyKey, iconsDataGroup[i, 0].Mask);
@@ -183,7 +151,10 @@ namespace Xarial.XCad.SolidWorks.Services
             {
                 try
                 {
-                    Directory.Delete(m_IconsDir, true);
+                    if (Directory.Exists(IconsFolder))
+                    {
+                        Directory.Delete(IconsFolder, true);
+                    }
                 }
                 catch
                 {
@@ -218,7 +189,7 @@ namespace Xarial.XCad.SolidWorks.Services
                         var sourceIcon = CreateImage(sourceIcons[i], targSize, mask, background);
 
                         if (bmp.HorizontalResolution != sourceIcon.HorizontalResolution
-                            || bmp.VerticalResolution != sourceIcon.VerticalResolution)
+                                || bmp.VerticalResolution != sourceIcon.VerticalResolution)
                         {
                             bmp.SetResolution(
                                 sourceIcon.HorizontalResolution,

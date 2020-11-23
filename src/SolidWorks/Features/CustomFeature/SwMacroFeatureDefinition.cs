@@ -92,11 +92,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             var svcColl = new ServiceCollection();
             
             svcColl.AddOrReplace<IXLogger>(() => new TraceLogger($"xCad.MacroFeature.{this.GetType().FullName}"));
-            svcColl.AddOrReplace<IIconsCreator>(() => new BaseIconsCreator(
-                MacroFeatureIconInfo.GetLocation(this.GetType()))
-                {
-                    KeepIcons = true
-                });
+            svcColl.AddOrReplace<IIconsCreator>(() => new BaseIconsCreator());
 
             ConfigureServices(svcColl);
 
@@ -106,7 +102,10 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 
             CustomFeatureDefinitionInstanceCache.RegisterInstance(this);
 
-            TryCreateIcons(m_SvcProvider.GetService<IIconsCreator>());
+            var iconsConv = m_SvcProvider.GetService<IIconsCreator>();
+            iconsConv.KeepIcons = true;
+            iconsConv.IconsFolder = MacroFeatureIconInfo.GetLocation(this.GetType());
+            TryCreateIcons(iconsConv);
         }
 
         private void TryCreateIcons(IIconsCreator iconsConverter)

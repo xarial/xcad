@@ -7,6 +7,7 @@ namespace Xarial.XCad.SolidWorks.Services
 {
     public interface IIconsCreator : IDisposable
     {
+        string IconsFolder { get; set; }
         bool KeepIcons { get; set; }
         string[] ConvertIcon(IIcon icon);
         string[] ConvertIconsGroup(IIcon[] icons);
