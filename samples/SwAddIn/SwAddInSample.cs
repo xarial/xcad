@@ -286,7 +286,7 @@ namespace SwAddInExample
             }
         }
 
-        public override void ConfigureServices(IXServiceCollection collection)
+        public override void OnConfigureServices(IXServiceCollection collection)
         {
             collection.AddOrReplace<IMemoryGeometryBuilderDocumentProvider>(
                 () => new LazyNewDocumentGeometryBuilderDocumentProvider(Application));

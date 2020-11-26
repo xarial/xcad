@@ -20,6 +20,16 @@ namespace Xarial.XCad.Extensions
     public interface IXExtension
     {
         /// <summary>
+        /// Event for <see cref="OnConnect"/>
+        /// </summary>
+        event ExtensionConnectDelegate Connect;
+
+        /// <summary>
+        /// Event for <see cref="OnDisconnect"/>
+        /// </summary>
+        event ExtensionDisconnectDelegate Disconnect;
+
+        /// <summary>
         /// Fired when extension startup is completed and all the components and application fully loaded
         /// </summary>
         event ExtensionStartupCompletedDelegate StartupCompleted;

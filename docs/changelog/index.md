@@ -11,6 +11,7 @@ Breaking change is marked with &#x26A0; symbol
 ## 0.6.9 - November, ? 2020
 
 * &#x26A0; IXDocument::Visible, IXDocument::ReadOnly, IXDocument::ViewOnly, IXDocument::Rapid, IXDocument::Silent are replaced with IXDocument::State
+* &#x26A0; IXServiceConsumer::ConfigureServices renamed to IXServiceConsumer::OnConfigureServices 
 
 ## 0.6.8 - November, 10 2020
 

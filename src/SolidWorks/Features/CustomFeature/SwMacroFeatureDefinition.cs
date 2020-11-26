@@ -17,6 +17,7 @@ using Xarial.XCad;
 using Xarial.XCad.Annotations;
 using Xarial.XCad.Base;
 using Xarial.XCad.Base.Attributes;
+using Xarial.XCad.Delegates;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Features.CustomFeature;
 using Xarial.XCad.Features.CustomFeature.Attributes;
@@ -45,6 +46,8 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
     /// <inheritdoc/>
     public abstract class SwMacroFeatureDefinition : IXCustomFeatureDefinition, ISwComFeature, IXServiceConsumer
     {
+        public event ConfigureServicesDelegate ConfigureServices;
+
         private static ISwApplication m_Application;
 
         internal static ISwApplication Application
@@ -94,7 +97,8 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             svcColl.AddOrReplace<IXLogger>(() => new TraceLogger($"xCad.MacroFeature.{this.GetType().FullName}"));
             svcColl.AddOrReplace<IIconsCreator>(() => new BaseIconsCreator());
 
-            ConfigureServices(svcColl);
+            ConfigureServices?.Invoke(this, svcColl);
+            OnConfigureServices(svcColl);
 
             m_SvcProvider = svcColl.CreateProvider();
 
@@ -106,6 +110,19 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             iconsConv.KeepIcons = true;
             iconsConv.IconsFolder = MacroFeatureIconInfo.GetLocation(this.GetType());
             TryCreateIcons(iconsConv);
+        }
+
+        event ConfigureServicesDelegate IXServiceConsumer.ConfigureServices
+        {
+            add
+            {
+                throw new NotImplementedException();
+            }
+
+            remove
+            {
+                throw new NotImplementedException();
+            }
         }
 
         private void TryCreateIcons(IIconsCreator iconsConverter)
@@ -324,8 +341,8 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
                 throw new ArgumentNullException(nameof(bodies));
             }
         }
-
-        public virtual void ConfigureServices(IXServiceCollection collection)
+        
+        public virtual void OnConfigureServices(IXServiceCollection collection)
         {
         }
     }

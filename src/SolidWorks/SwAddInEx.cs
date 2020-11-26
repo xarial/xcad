@@ -16,6 +16,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using Xarial.XCad.Base;
 using Xarial.XCad.Base.Attributes;
+using Xarial.XCad.Delegates;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Extensions;
 using Xarial.XCad.Extensions.Attributes;
@@ -105,6 +106,9 @@ namespace Xarial.XCad.SolidWorks
 
         #endregion Registration
 
+        public event ExtensionConnectDelegate Connect;
+        public event ExtensionDisconnectDelegate Disconnect;
+        public event ConfigureServicesDelegate ConfigureServices;
         public event ExtensionStartupCompletedDelegate StartupCompleted;
 
         IXApplication IXExtension.Application => Application;
@@ -165,7 +169,8 @@ namespace Xarial.XCad.SolidWorks
 
                 var svcCollection = GetServicesCollection();
 
-                ConfigureServices(svcCollection);
+                ConfigureServices?.Invoke(this, svcCollection);
+                OnConfigureServices(svcCollection);
 
                 m_SvcProvider = svcCollection.CreateProvider();
 
@@ -179,6 +184,7 @@ namespace Xarial.XCad.SolidWorks
 
                 m_CommandManager = new SwCommandManager(Application, AddInId, m_SvcProvider, this.GetType().GUID);
 
+                Connect?.Invoke(this);
                 OnConnect();
 
                 return true;
@@ -210,6 +216,7 @@ namespace Xarial.XCad.SolidWorks
 
             try
             {
+                Disconnect?.Invoke(this);
                 OnDisconnect();
                 Dispose();
                 return true;
@@ -497,7 +504,7 @@ namespace Xarial.XCad.SolidWorks
             return S_OK;
         }
 
-        public virtual void ConfigureServices(IXServiceCollection collection)
+        public virtual void OnConfigureServices(IXServiceCollection collection)
         {
         }
     }
