@@ -148,6 +148,8 @@ namespace Xarial.XCad.SolidWorks
         [EditorBrowsable(EditorBrowsableState.Never)]
         public bool ConnectToSW(object ThisSW, int cookie)
         {
+            m_IsDisposed = false;
+
             try
             {
                 var app = ThisSW as ISldWorks;
@@ -228,9 +230,15 @@ namespace Xarial.XCad.SolidWorks
             }
         }
 
+        private bool m_IsDisposed;
+
         public void Dispose()
         {
-            Dispose(true);
+            if (!m_IsDisposed)
+            {
+                Dispose(true);
+                m_IsDisposed = true;
+            }
         }
 
         /// <summary>
@@ -263,14 +271,14 @@ namespace Xarial.XCad.SolidWorks
         {
             if (disposing)
             {
-                CommandManager.Dispose();
-                Application.Documents.Dispose();
-                Application.Dispose();
-
                 foreach (var dispCtrl in m_Disposables) 
                 {
                     dispCtrl.Dispose();
                 }
+
+                CommandManager.Dispose();
+                Application.Documents.Dispose();
+                Application.Dispose();
             }
 
             GC.Collect();

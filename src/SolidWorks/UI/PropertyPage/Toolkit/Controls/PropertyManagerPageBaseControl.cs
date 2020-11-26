@@ -38,7 +38,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
         protected TSwControl SwSpecificControl { get; private set; }
 
-        public bool Enabled
+        public override bool Enabled
         {
             get
             {
@@ -50,7 +50,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             }
         }
 
-        public bool Visible
+        public override bool Visible
         {
             get
             {

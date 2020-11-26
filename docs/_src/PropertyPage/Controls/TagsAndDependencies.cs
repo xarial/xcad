@@ -76,7 +76,7 @@ namespace Xarial.XCad.Documentation
         {
             var curGrp = (Groups_e)(dependencies.First()).GetValue();
 
-            (source as IPropertyManagerPageControlEx).Visible = (Groups_e)source.Tag == curGrp;
+            source.Visible = (Groups_e)source.Tag == curGrp;
         }
     }
     //---
@@ -96,7 +96,7 @@ namespace Xarial.XCad.Documentation
     {
         public void UpdateState(IXApplication app, IControl source, IControl[] dependencies)
         {
-            (source as IPropertyManagerPageControlEx).Enabled = (bool)dependencies.First().GetValue();
+            source.Enabled = (bool)dependencies.First().GetValue();
         }
     }
     //---
