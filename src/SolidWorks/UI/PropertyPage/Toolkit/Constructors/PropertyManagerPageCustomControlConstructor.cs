@@ -39,7 +39,8 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
 
             var ctrlType = atts.Get<CustomControlAttribute>().ControlType;
 
-            var ctrl = CustomControlHelper.HostControl(ctrlType,
+            var ctrlFact = new Func<IXCustomControl>(() =>
+                CustomControlHelper.HostControl(ctrlType,
                 (c, h, t, _) =>
                 {
                     if (swCtrl.SetWindowHandlex64(h.Handle.ToInt64()))
@@ -48,11 +49,11 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
                         {
                             return (IXCustomControl)c;
                         }
-                        else 
+                        else
                         {
-                            if (c is System.Windows.FrameworkElement) 
+                            if (c is System.Windows.FrameworkElement)
                             {
-                                return new WpfCustomControl((System.Windows.FrameworkElement)c);
+                                return new WpfCustomControl((System.Windows.FrameworkElement)c, h);
                             }
 
                             throw new NotSupportedException($"'{c.GetType()}' must implement '{typeof(IXCustomControl).FullName}' or inherit '{typeof(System.Windows.FrameworkElement).FullName}'");
@@ -66,9 +67,9 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
                 (p, t, _) =>
                 {
                     throw new NotImplementedException("ActiveX controls are not implemented yet");
-                });
+                }));
 
-            return new PropertyManagerPageCustomControl(atts.Id, atts.Tag, swCtrl, handler, ctrl);
+            return new PropertyManagerPageCustomControl(atts.Id, atts.Tag, swCtrl, handler, ctrlFact);
         }
     }
 }

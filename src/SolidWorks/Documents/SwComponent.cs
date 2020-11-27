@@ -116,7 +116,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
             get 
             {
-                var cachedPath = "";
+                var cachedPath = CachedPath;
 
                 if (IsResolved)
                 {

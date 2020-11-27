@@ -92,6 +92,7 @@ namespace SwAddInExample
     public class PmpData : SwPropertyManagerPageHandler
     {
         [CustomControl(typeof(WpfUserControl))]
+        //[CustomControl(typeof(WinUserControl))]
         [ControlOptions(height: 200)]
         public CustomControlDataContext CustomControl { get; set; } = new CustomControlDataContext();
 

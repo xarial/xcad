@@ -115,6 +115,8 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
                 binding.Model = model;
             }
 
+            Handler.InvokeOpening();
+
             m_Page.Page.Show2(OPTS_DEFAULT);
 
             foreach (var binding in m_Page.Binding.Bindings)

@@ -21,13 +21,15 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
     {
         public event Action<IXCustomControl, object> DataContextChanged;
 
+        private readonly System.Windows.Forms.Control m_Host;
         private readonly FrameworkElement m_Elem;
 
         private readonly WpfControlKeystrokePropagator m_KeystrokePropagator;
 
-        internal WpfCustomControl(FrameworkElement elem) 
+        internal WpfCustomControl(FrameworkElement elem, System.Windows.Forms.Control host) 
         {
             m_Elem = elem;
+            m_Host = host;
             m_KeystrokePropagator = new WpfControlKeystrokePropagator(elem);
         }
 

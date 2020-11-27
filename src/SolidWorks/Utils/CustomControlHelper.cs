@@ -72,7 +72,6 @@ namespace Xarial.XCad.SolidWorks.Utils
                 var wpfCtrl = (System.Windows.UIElement)Activator.CreateInstance(ctrlType);
                 var host = new System.Windows.Forms.Integration.ElementHost();
                 host.Child = wpfCtrl;
-
                 return ctrlHost.Invoke(wpfCtrl, host, title, icon);
             }
             else
