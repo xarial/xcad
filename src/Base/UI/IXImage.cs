@@ -11,8 +11,15 @@ using System.Text;
 
 namespace Xarial.XCad.UI
 {
+    /// <summary>
+    /// Represents the image
+    /// </summary>
+    /// <remarks>This is usually used for icons</remarks>
     public interface IXImage
     {
+        /// <summary>
+        /// Byte data of this image
+        /// </summary>
         byte[] Buffer { get; }
     }
 

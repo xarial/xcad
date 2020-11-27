@@ -19,6 +19,10 @@ namespace Xarial.XCad.Toolkit.Windows
         [DllImport("ole32.dll")]
         private static extern int CreateBindCtx(uint reserved, out IBindCtx ppbc);
 
+        [DllImport("ole32.dll")]
+        private static extern int CreateItemMoniker([MarshalAs(UnmanagedType.LPWStr)] string lpszDelim,
+            [MarshalAs(UnmanagedType.LPWStr)] string lpszItem, out IMoniker ppmk);
+
         public static TComObj TryGetComObjectByMonikerName<TComObj>(string monikerName)
         {
             IBindCtx context = null;
@@ -64,21 +68,95 @@ namespace Xarial.XCad.Toolkit.Windows
             {
                 if (monikers != null)
                 {
-                    Marshal.ReleaseComObject(monikers);
+                    while (Marshal.ReleaseComObject(monikers) > 0) ;
                 }
 
                 if (rot != null)
                 {
-                    Marshal.ReleaseComObject(rot);
+                    while (Marshal.ReleaseComObject(rot) > 0) ;
                 }
 
                 if (context != null)
                 {
-                    Marshal.ReleaseComObject(context);
+                    while (Marshal.ReleaseComObject(context) > 0) ;
                 }
             }
 
             return default(TComObj);
+        }
+
+        public static int RegisterComObject(object obj, string monikerName)
+        {
+            IBindCtx context = null;
+            IRunningObjectTable rot = null;
+            IMoniker moniker = null;
+
+            CreateBindCtx(0, out context);
+            context.GetRunningObjectTable(out rot);
+
+            try
+            {
+                const int ROTFLAGS_REGISTRATIONKEEPSALIVE = 1;
+
+                context.GetRunningObjectTable(out rot);
+
+                const int S_OK = 0;
+
+                if (CreateItemMoniker("", monikerName, out moniker) != S_OK)
+                {
+                    throw new Exception("Failed to create moniker");
+                }
+
+                var id = rot.Register(ROTFLAGS_REGISTRATIONKEEPSALIVE, obj, moniker);
+
+                if (id == 0)
+                {
+                    throw new Exception("Failed to register object in ROT");
+                }
+
+                return id;
+            }
+            finally
+            {
+                if (moniker != null)
+                {
+                    while (Marshal.ReleaseComObject(moniker) > 0) ;
+                }
+                if (rot != null)
+                {
+                    while (Marshal.ReleaseComObject(rot) > 0) ;
+                }
+                if (context != null)
+                {
+                    while (Marshal.ReleaseComObject(context) > 0) ;
+                }
+            }
+        }
+
+        public static void UnregisterComObject(int id)
+        {
+            IBindCtx context = null;
+            IRunningObjectTable rot = null;
+
+            CreateBindCtx(0, out context);
+            context.GetRunningObjectTable(out rot);
+
+            try
+            {
+                rot.Revoke(id);
+            }
+            finally
+            {
+                if (rot != null)
+                {
+                    while (Marshal.ReleaseComObject(rot) > 0);
+                }
+
+                if (context != null)
+                {
+                    while (Marshal.ReleaseComObject(context) > 0);
+                }
+            }
         }
     }
 }

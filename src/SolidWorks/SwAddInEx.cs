@@ -16,15 +16,18 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using Xarial.XCad.Base;
 using Xarial.XCad.Base.Attributes;
+using Xarial.XCad.Delegates;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Extensions;
 using Xarial.XCad.Extensions.Attributes;
+using Xarial.XCad.Extensions.Delegates;
 using Xarial.XCad.Features.CustomFeature;
 using Xarial.XCad.Features.CustomFeature.Delegates;
 using Xarial.XCad.SolidWorks.Base;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Features.CustomFeature;
 using Xarial.XCad.SolidWorks.Features.CustomFeature.Toolkit;
+using Xarial.XCad.SolidWorks.Services;
 using Xarial.XCad.SolidWorks.UI;
 using Xarial.XCad.SolidWorks.UI.Commands;
 using Xarial.XCad.SolidWorks.UI.Commands.Exceptions;
@@ -103,6 +106,11 @@ namespace Xarial.XCad.SolidWorks
 
         #endregion Registration
 
+        public event ExtensionConnectDelegate Connect;
+        public event ExtensionDisconnectDelegate Disconnect;
+        public event ConfigureServicesDelegate ConfigureServices;
+        public event ExtensionStartupCompletedDelegate StartupCompleted;
+
         IXApplication IXExtension.Application => Application;
         IXCommandManager IXExtension.CommandManager => CommandManager;
         IXCustomPanel<TControl> IXExtension.CreateDocumentTab<TControl>(IXDocument doc)
@@ -114,7 +122,9 @@ namespace Xarial.XCad.SolidWorks
         IXCustomPanel<TControl> IXExtension.CreateFeatureManagerTab<TControl>(IXDocument doc) 
             => CreateFeatureManagerTab<TControl>((SwDocument)doc);
 
-        public ISwApplication Application { get; private set; }
+        public ISwApplication Application => m_Application;
+
+        private SwApplication m_Application;
 
         public ISwCommandManager CommandManager => m_CommandManager;
 
@@ -130,7 +140,7 @@ namespace Xarial.XCad.SolidWorks
         private readonly List<IDisposable> m_Disposables;
 
         private IServiceProvider m_SvcProvider;
-        
+
         public SwAddInEx()
         {   
             m_Disposables = new List<IDisposable>();
@@ -140,6 +150,8 @@ namespace Xarial.XCad.SolidWorks
         [EditorBrowsable(EditorBrowsableState.Never)]
         public bool ConnectToSW(object ThisSW, int cookie)
         {
+            m_IsDisposed = false;
+
             try
             {
                 var app = ThisSW as ISldWorks;
@@ -155,11 +167,14 @@ namespace Xarial.XCad.SolidWorks
                 }
 
                 var swApp = new SwApplication(app);
-                Application = swApp;
+                m_Application = swApp;
+
+                (Application.Sw as SldWorks).OnIdleNotify += OnLoadFirstIdleNotify;
 
                 var svcCollection = GetServicesCollection();
 
-                ConfigureServices(svcCollection);
+                ConfigureServices?.Invoke(this, svcCollection);
+                OnConfigureServices(svcCollection);
 
                 m_SvcProvider = svcCollection.CreateProvider();
 
@@ -169,10 +184,11 @@ namespace Xarial.XCad.SolidWorks
 
                 Logger.Log("Loading add-in");
 
-                SwMacroFeatureDefinition.Application = Application;
+                SwMacroFeatureDefinition.Application = m_Application;
 
-                m_CommandManager = new SwCommandManager(Application, AddInId, Logger, this.GetType().GUID);
+                m_CommandManager = new SwCommandManager(Application, AddInId, m_SvcProvider, this.GetType().GUID);
 
+                Connect?.Invoke(this);
                 OnConnect();
 
                 return true;
@@ -192,7 +208,8 @@ namespace Xarial.XCad.SolidWorks
             var title = GetRegistrationHelper(addInType).GetTitle(addInType);
 
             svcCollection.AddOrReplace<IXLogger>(() => new TraceLogger($"XCad.AddIn.{title}"));
-
+            svcCollection.AddOrReplace<IIconsCreator>(() => new BaseIconsCreator());
+            
             return svcCollection;
         }
 
@@ -204,6 +221,7 @@ namespace Xarial.XCad.SolidWorks
 
             try
             {
+                Disconnect?.Invoke(this);
                 OnDisconnect();
                 Dispose();
                 return true;
@@ -215,9 +233,15 @@ namespace Xarial.XCad.SolidWorks
             }
         }
 
+        private bool m_IsDisposed;
+
         public void Dispose()
         {
-            Dispose(true);
+            if (!m_IsDisposed)
+            {
+                Dispose(true);
+                m_IsDisposed = true;
+            }
         }
 
         /// <summary>
@@ -250,14 +274,14 @@ namespace Xarial.XCad.SolidWorks
         {
             if (disposing)
             {
-                CommandManager.Dispose();
-                Application.Documents.Dispose();
-                Application.Dispose();
-
                 foreach (var dispCtrl in m_Disposables) 
                 {
                     dispCtrl.Dispose();
                 }
+
+                CommandManager.Dispose();
+                Application.Documents.Dispose();
+                Application.Dispose();
             }
 
             GC.Collect();
@@ -282,7 +306,7 @@ namespace Xarial.XCad.SolidWorks
 
         private ISwPropertyManagerPage<TData> CreatePropertyManagerPage<TData>(Type handlerType)
         {
-            var page = new SwPropertyManagerPage<TData>(Application, Logger, handlerType);
+            var page = new SwPropertyManagerPage<TData>(Application, m_SvcProvider, handlerType);
             m_Disposables.Add(page);
             return page;
         }
@@ -343,13 +367,13 @@ namespace Xarial.XCad.SolidWorks
                 spec = new TaskPaneSpec();
             }
 
-            ITaskpaneView CreateTaskPaneView(IconsConverter iconConv, Image icon, string title) 
+            ITaskpaneView CreateTaskPaneView(IIconsCreator iconConv, IXImage icon, string title) 
             {
                 if (icon == null) 
                 {
                     if (spec.Icon != null)
                     {
-                        icon = IconsConverter.FromXImage(spec.Icon);
+                        icon = spec.Icon;
                     }
                 }
 
@@ -385,7 +409,7 @@ namespace Xarial.XCad.SolidWorks
                 }
             }
 
-            using (var iconConv = new IconsConverter())
+            using (var iconConv = m_SvcProvider.GetService<IIconsCreator>())
             {
                 var taskPane = CustomControlHelper.HostControl<TControl, SwTaskPane<TControl>>(
                     (c, h, t, i) =>
@@ -397,7 +421,7 @@ namespace Xarial.XCad.SolidWorks
                             throw new NetControlHostException(h.Handle);
                         }
 
-                        return new SwTaskPane<TControl>(Application.Sw, v, c, spec);
+                        return new SwTaskPane<TControl>(Application.Sw, v, c, spec, m_SvcProvider);
                     },
                     (p, t, i) =>
                     {
@@ -409,7 +433,7 @@ namespace Xarial.XCad.SolidWorks
                             throw new ComControlHostException(p);
                         }
 
-                        return new SwTaskPane<TControl>(Application.Sw, v, ctrl, spec);
+                        return new SwTaskPane<TControl>(Application.Sw, v, ctrl, spec, m_SvcProvider);
                     });
 
                 m_Disposables.Add(taskPane);
@@ -422,7 +446,7 @@ namespace Xarial.XCad.SolidWorks
         {
             var mdlViewMgr = doc.Model.ModelViewManager;
 
-            using (var iconsConv = new IconsConverter())
+            using (var iconsConv = m_SvcProvider.GetService<IIconsCreator>())
             {
                 return CustomControlHelper.HostControl<TControl, SwFeatureMgrTab<TControl>>(
                     (c, h, t, i) =>
@@ -465,7 +489,33 @@ namespace Xarial.XCad.SolidWorks
             }
         }
 
-        public virtual void ConfigureServices(IXServiceCollection collection)
+        private int OnLoadFirstIdleNotify()
+        {
+            const int S_OK = 0;
+
+            var continueListening = false;
+
+            if (StartupCompleted != null)
+            {
+                if (Application.Sw.StartupProcessCompleted)
+                {
+                    StartupCompleted?.Invoke(this);
+                }
+                else
+                {
+                    continueListening = true;
+                }
+            }
+
+            if (!continueListening)
+            {
+                (Application.Sw as SldWorks).OnIdleNotify -= OnLoadFirstIdleNotify;
+            }
+
+            return S_OK;
+        }
+
+        public virtual void OnConfigureServices(IXServiceCollection collection)
         {
         }
     }

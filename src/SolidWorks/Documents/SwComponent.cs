@@ -21,6 +21,8 @@ using Xarial.XCad.Geometry;
 using Xarial.XCad.SolidWorks.Documents.Exceptions;
 using Xarial.XCad.SolidWorks.Features;
 using Xarial.XCad.SolidWorks.Geometry;
+using Xarial.XCad.SolidWorks.Services;
+using Xarial.XCad.Toolkit;
 
 namespace Xarial.XCad.SolidWorks.Documents
 {
@@ -30,6 +32,12 @@ namespace Xarial.XCad.SolidWorks.Documents
         new ISwDocument3D Document { get; }
         new TSelObject ConvertObject<TSelObject>(TSelObject obj)
             where TSelObject : ISwSelObject;
+
+        /// <summary>
+        /// Returns the cached path of the component as stored in SOLIDWORKS
+        /// </summary>
+        /// <remarks>This path might not correspond to actual file if component is not resolved or document is opened in view only mode. <see cref="IXComponent.Path"/> will return the resolved path</remarks>
+        string CachedPath { get; }
     }
 
     internal class SwComponent : SwSelObject, ISwComponent
@@ -40,17 +48,21 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public IComponent2 Component { get; }
 
-        private readonly ISwAssembly m_ParentAssembly;
+        private readonly SwAssembly m_ParentAssembly;
 
         public ISwComponentCollection Children { get; }
 
-        internal SwComponent(IComponent2 comp, ISwAssembly parentAssembly) : base(comp)
+        private readonly IFilePathResolver m_FilePathResolver;
+
+        internal SwComponent(IComponent2 comp, SwAssembly parentAssembly) : base(comp)
         {
             m_ParentAssembly = parentAssembly;
             Component = comp;
             Children = new SwChildComponentsCollection(parentAssembly, comp);
             Features = new ComponentFeatureRepository(parentAssembly, comp);
             Bodies = new SwComponentBodyCollection(comp, parentAssembly);
+
+            m_FilePathResolver = m_ParentAssembly.App.Services.GetService<IFilePathResolver>();
         }
 
         public string Name
@@ -80,16 +92,45 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
             get 
             {
-                var state = Component.GetSuppression2();
+                if (m_ParentAssembly.Model.IsOpenedViewOnly()) //Large design review
+                {
+                    return false;
+                }
+                else
+                {
+                    var state = Component.GetSuppression2();
 
-                return state == (int)swComponentSuppressionState_e.swComponentResolved
-                    || state == (int)swComponentSuppressionState_e.swComponentFullyResolved;
+                    return state == (int)swComponentSuppressionState_e.swComponentResolved
+                        || state == (int)swComponentSuppressionState_e.swComponentFullyResolved;
+                }
             } 
         }
                           
         public IXFeatureRepository Features { get; }
 
         public IXBodyRepository Bodies { get; }
+
+        public string CachedPath => Component.GetPathName();
+
+        public string Path 
+        {
+            get 
+            {
+                var cachedPath = CachedPath;
+
+                var needResolve = m_ParentAssembly.Model.IsOpenedViewOnly() 
+                    || Component.GetSuppression2() == (int)swComponentSuppressionState_e.swComponentSuppressed;
+
+                if (needResolve)
+                {
+                    return m_FilePathResolver.ResolvePath(m_ParentAssembly.Path, cachedPath);
+                }
+                else 
+                {
+                    return cachedPath;
+                }
+            }
+        }
 
         public override void Select(bool append)
         {
@@ -130,10 +171,10 @@ namespace Xarial.XCad.SolidWorks.Documents
 
     internal class ComponentFeatureRepository : SwFeatureManager
     {
-        private readonly ISwAssembly m_Assm;
+        private readonly SwAssembly m_Assm;
         private readonly IComponent2 m_Comp;
 
-        public ComponentFeatureRepository(ISwAssembly assm, IComponent2 comp) 
+        public ComponentFeatureRepository(SwAssembly assm, IComponent2 comp) 
             : base(assm)
         {
             m_Assm = assm;
@@ -231,6 +272,9 @@ namespace Xarial.XCad.SolidWorks.Documents
             m_Comp = comp;
         }
 
-        protected override IComponent2 GetRootComponent() => m_Comp;
+        protected override IEnumerable<IComponent2> GetChildren()
+            => (m_Comp.GetChildren() as object[])?.Cast<IComponent2>();
+
+        protected override int GetChildrenCount() => m_Comp.IGetChildrenCount();
     }
 }

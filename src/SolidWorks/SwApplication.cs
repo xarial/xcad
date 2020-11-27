@@ -33,6 +33,7 @@ using Xarial.XCad.Toolkit;
 using Xarial.XCad.SolidWorks.Services;
 using Xarial.XCad.Services;
 using Xarial.XCad.Enums;
+using Xarial.XCad.Delegates;
 
 namespace Xarial.XCad.SolidWorks
 {
@@ -50,7 +51,9 @@ namespace Xarial.XCad.SolidWorks
 
     /// <inheritdoc/>
     internal class SwApplication : ISwApplication, IXServiceConsumer
-    {           
+    {
+        public event ConfigureServicesDelegate ConfigureServices;
+
         IXDocumentRepository IXApplication.Documents => Documents;
 
         IXMacro IXApplication.OpenMacro(string path) => OpenMacro(path);
@@ -170,7 +173,7 @@ namespace Xarial.XCad.SolidWorks
 
         private IXLogger m_Logger;
 
-        private IServiceProvider m_Provider;
+        internal IServiceProvider Services { get; private set; }
 
         private bool m_IsInitialized;
 
@@ -198,6 +201,19 @@ namespace Xarial.XCad.SolidWorks
             m_Creator = new ElementCreator<ISldWorks>(CreateInstance, null, false);
         }
 
+        event ConfigureServicesDelegate IXServiceConsumer.ConfigureServices
+        {
+            add
+            {
+                throw new NotImplementedException();
+            }
+
+            remove
+            {
+                throw new NotImplementedException();
+            }
+        }
+
         internal void Init(IXServiceCollection customServices)
         {
             if (!m_IsInitialized)
@@ -207,19 +223,21 @@ namespace Xarial.XCad.SolidWorks
                 m_IsInitialized = true;
 
                 var services = new ServiceCollection();
-                ConfigureServices(services);
+
+                ConfigureServices?.Invoke(this, services);
+                OnConfigureServices(services);
 
                 if (customServices != null)
                 {
                     services.Merge(customServices);
                 }
 
-                m_Provider = services.CreateProvider();
-                m_Logger = m_Provider.GetService<IXLogger>();
+                Services = services.CreateProvider();
+                m_Logger = Services.GetService<IXLogger>();
 
                 Documents = new SwDocumentCollection(this, m_Logger);
 
-                var geomBuilderDocsProvider = m_Provider.GetService<IMemoryGeometryBuilderDocumentProvider>();
+                var geomBuilderDocsProvider = Services.GetService<IMemoryGeometryBuilderDocumentProvider>();
 
                 MemoryGeometryBuilder = new SwMemoryGeometryBuilder(this, geomBuilderDocsProvider);
             }
@@ -331,12 +349,6 @@ namespace Xarial.XCad.SolidWorks
             Sw.ExitApp();
         }
         
-        public void ConfigureServices(IXServiceCollection collection)
-        {
-            collection.AddOrReplace((Func<IXLogger>)(() => new TraceLogger("xCAD.SwApplication")));
-            collection.AddOrReplace((Func<IMemoryGeometryBuilderDocumentProvider>)(() => new DefaultMemoryGeometryBuilderDocumentProvider(this)));
-        }
-
         public void Commit(CancellationToken cancellationToken)
         {
             m_Creator.Create(cancellationToken);
@@ -355,6 +367,25 @@ namespace Xarial.XCad.SolidWorks
         {
             //TODO: find the state
             return ApplicationState_e.Default;
+        }
+
+        public void OnConfigureServices(IXServiceCollection collection)
+        {
+            collection.AddOrReplace((Func<IXLogger>)(() => new TraceLogger("xCAD.SwApplication")));
+            collection.AddOrReplace((Func<IMemoryGeometryBuilderDocumentProvider>)(() => new DefaultMemoryGeometryBuilderDocumentProvider(this)));
+            collection.AddOrReplace<IFilePathResolver>(() => new SwFilePathResolverNoSearchFolders(this));//TODO: there is some issue with recursive search of folders in search locations - do a test to validate
+        }
+
+        public IXProgress CreateProgress()
+        {
+            if (Sw.GetUserProgressBar(out UserProgressBar prgBar))
+            {
+                return new SwProgress(prgBar);
+            }
+            else 
+            {
+                throw new Exception("Failed to create progress");
+            }
         }
     }
 

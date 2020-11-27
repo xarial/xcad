@@ -6,6 +6,7 @@
 //*********************************************************************
 
 using Xarial.XCad.Base;
+using Xarial.XCad.Documents.Enums;
 
 namespace Xarial.XCad.Documents
 {
@@ -52,17 +53,20 @@ namespace Xarial.XCad.Documents
             return doc;
         }
 
+        /// <summary>
+        /// Opens the specified document
+        /// </summary>
+        /// <param name="repo">Documents repository</param>
+        /// <param name="path">Path to document to open</param>
+        /// <param name="state">State of the document</param>
+        /// <returns>Opened document</returns>
         public static IXDocument Open(this IXDocumentRepository repo, string path, 
-            bool silent = true, bool viewOnly = false,
-            bool readOnly = false, bool rapid = false)
+            DocumentState_e state = DocumentState_e.Default)
         {
             var doc = repo.PreCreate<IXUnknownDocument>();
 
             doc.Path = path;
-            doc.Silent = silent;
-            doc.ViewOnly = viewOnly;
-            doc.ReadOnly = readOnly;
-            doc.Rapid = rapid;
+            doc.State = state;
 
             repo.Add(doc);
 

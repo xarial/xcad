@@ -69,6 +69,12 @@ namespace Xarial.XCad
         IXMacro OpenMacro(string path);
 
         /// <summary>
+        /// Initiates the displaying of progress in the application
+        /// </summary>
+        /// <returns>Pointer to progress manager</returns>
+        IXProgress CreateProgress();
+
+        /// <summary>
         /// Close current instance of the application
         /// </summary>
         void Close();

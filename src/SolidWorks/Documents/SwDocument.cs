@@ -19,6 +19,7 @@ using Xarial.XCad.Data;
 using Xarial.XCad.Data.Enums;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Delegates;
+using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Documents.Exceptions;
 using Xarial.XCad.Features;
 using Xarial.XCad.Services;
@@ -35,10 +36,6 @@ namespace Xarial.XCad.SolidWorks.Documents
 {
     public interface ISwDocument : IXDocument, IDisposable
     {
-        //TODO: think how to remove this
-        [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
-        ISwApplication App { get; }
-
         IModelDoc2 Model { get; }
         new ISwFeatureManager Features { get; }
         new ISwSelectionCollection Selections { get; }
@@ -179,6 +176,32 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
+        public string Template
+        {
+            get
+            {
+                if (IsCommitted)
+                {
+                    throw new NotSupportedException("Template cannot be retrieved for the created document");
+                }
+                else
+                {
+                    return m_Creator.CachedProperties.Get<string>();
+                }
+            }
+            set
+            {
+                if (IsCommitted)
+                {
+                    throw new NotSupportedException("Template cannot be changed for the committed document");
+                }
+                else
+                {
+                    m_Creator.CachedProperties.Set(value);
+                }
+            }
+        }
+
         public string Title
         {
             get
@@ -211,25 +234,42 @@ namespace Xarial.XCad.SolidWorks.Documents
                 }
             }
         }
-
-        public bool Visible
+        
+        public DocumentState_e State 
         {
-            get 
+            get
             {
                 if (IsCommitted)
                 {
-                    return Model.Visible;
+                    return GetDocumentState();
                 }
-                else 
+                else
                 {
-                    return m_Creator.CachedProperties.Get<bool>();
+                    return m_Creator.CachedProperties.Get<DocumentState_e>();
                 }
             }
-            set 
+            set
             {
                 if (IsCommitted)
                 {
-                    Model.Visible = value;
+                    var curState = GetDocumentState();
+
+                    if (curState == value)
+                    {
+                        //do nothing
+                    }
+                    else if (((int)curState - (int)value) == (int)DocumentState_e.Hidden)
+                    {
+                        Model.Visible = true;
+                    }
+                    else if ((int)value - ((int)curState) == (int)DocumentState_e.Hidden)
+                    {
+                        Model.Visible = false;
+                    }
+                    else
+                    {
+                        throw new Exception("Only visibility can changed after the document is loaded");
+                    }
                 }
                 else
                 {
@@ -238,111 +278,34 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        public bool ReadOnly
+        private DocumentState_e GetDocumentState()
         {
-            get
-            {
-                if (IsCommitted)
-                {
-                    return Model.IsOpenedReadOnly();
-                }
-                else
-                {
-                    return m_Creator.CachedProperties.Get<bool>();
-                }
-            }
-            set
-            {
-                if (IsCommitted)
-                {
-                    throw new Exception("Read-only flag can only be modified for non-commited model");
-                }
-                else
-                {
-                    m_Creator.CachedProperties.Set(value);
-                }
-            }
-        }
+            var state = DocumentState_e.Default;
 
-        public bool ViewOnly
-        {
-            get
+            if (IsRapidMode)
             {
-                if (IsCommitted)
-                {
-                    return Model.IsOpenedViewOnly();
-                }
-                else
-                {
-                    return m_Creator.CachedProperties.Get<bool>();
-                }
+                state |= DocumentState_e.Rapid;
             }
-            set
-            {
-                if (IsCommitted)
-                {
-                    throw new Exception("View-only flag can only be modified for non-commited model");
-                }
-                else
-                {
-                    m_Creator.CachedProperties.Set(value);
-                }
-            }
-        }
 
-        public bool Silent
-        {
-            get
+            if (Model.IsOpenedReadOnly())
             {
-                if (IsCommitted)
-                {
-                    throw new Exception("Silent flag can only be accessed for non-commited model");
-                }
-                else
-                {
-                    return m_Creator.CachedProperties.Get<bool>();
-                }
+                state |= DocumentState_e.ReadOnly;
             }
-            set
+
+            if (Model.IsOpenedViewOnly())
             {
-                if (IsCommitted)
-                {
-                    throw new Exception("Silent flag can only be modified for non-commited model");
-                }
-                else
-                {
-                    m_Creator.CachedProperties.Set(value);
-                }
+                state |= DocumentState_e.ViewOnly;
             }
+
+            if (!Model.Visible)
+            {
+                state |= DocumentState_e.Hidden;
+            }
+
+            return state;
         }
 
         protected abstract bool IsRapidMode { get; }
-
-        public bool Rapid
-        {
-            get
-            {
-                if (IsCommitted)
-                {
-                    return IsRapidMode;
-                }
-                else
-                {
-                    return m_Creator.CachedProperties.Get<bool>();
-                }
-            }
-            set
-            {
-                if (IsCommitted)
-                {
-                    throw new Exception("Rapid flag can only be modified for non-commited model");
-                }
-                else
-                {
-                    m_Creator.CachedProperties.Set(value);
-                }
-            }
-        }
 
         public ISwFeatureManager Features { get; }
 
@@ -352,7 +315,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public ISwCustomPropertiesCollection Properties { get; }
 
-        public ISwApplication App { get; }
+        internal SwApplication App { get; }
         
         public bool IsDirty 
         {
@@ -376,12 +339,12 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         private readonly ElementCreator<IModelDoc2> m_Creator;
         
-        internal SwDocument(IModelDoc2 model, ISwApplication app, IXLogger logger) 
+        internal SwDocument(IModelDoc2 model, SwApplication app, IXLogger logger) 
             : this(model, app, logger, true)
         {
         }
 
-        internal SwDocument(IModelDoc2 model, ISwApplication app, IXLogger logger, bool created)
+        internal SwDocument(IModelDoc2 model, SwApplication app, IXLogger logger, bool created)
         {
             App = app;
             
@@ -407,8 +370,6 @@ namespace Xarial.XCad.SolidWorks.Documents
             m_StorageWriteAvailableHandler = new StorageWriteAvailableEventsHandler(this);
             m_DocumentRebuildEventHandler = new DocumentRebuildEventsHandler(this);
             m_DocumentSavingEventHandler = new DocumentSavingEventHandler(this);
-
-            m_Creator.CachedProperties.Set(true, nameof(Visible));
 
             if (IsCommitted)
             {
@@ -452,7 +413,9 @@ namespace Xarial.XCad.SolidWorks.Documents
             {
                 if (docType != -1)
                 {
-                    App.Sw.DocumentVisible(Visible, docType);
+                    var visible = !State.HasFlag(DocumentState_e.Hidden);
+
+                    App.Sw.DocumentVisible(visible, docType);
                 }
 
                 if (string.IsNullOrEmpty(Path))
@@ -474,11 +437,27 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
 
         internal protected abstract swDocumentTypes_e? DocumentType { get; }
-
+        
         private IModelDoc2 CreateNewDocument() 
         {
-            var docTemplate = App.Sw.GetDocumentTemplate(
-                (int)DocumentType.Value, "", (int)swDwgPaperSizes_e.swDwgPapersUserDefined, 0.1, 0.1);
+            var docTemplate = Template;
+
+            if (string.IsNullOrEmpty(docTemplate))
+            {
+                var useDefTemplates = App.Sw.GetUserPreferenceToggle((int)swUserPreferenceToggle_e.swAlwaysUseDefaultTemplates);
+
+                try
+                {
+                    App.Sw.SetUserPreferenceToggle((int)swUserPreferenceToggle_e.swAlwaysUseDefaultTemplates, true);
+
+                    docTemplate = App.Sw.GetDocumentTemplate(
+                        (int)DocumentType.Value, "", (int)swDwgPaperSizes_e.swDwgPapersUserDefined, 0.1, 0.1);
+                }
+                finally
+                {
+                    App.Sw.SetUserPreferenceToggle((int)swUserPreferenceToggle_e.swAlwaysUseDefaultTemplates, useDefTemplates);
+                }
+            }
 
             if (!string.IsNullOrEmpty(docTemplate))
             {
@@ -512,22 +491,22 @@ namespace Xarial.XCad.SolidWorks.Documents
             {
                 swOpenDocOptions_e opts = 0;
 
-                if (ReadOnly)
+                if (State.HasFlag(DocumentState_e.ReadOnly))
                 {
                     opts |= swOpenDocOptions_e.swOpenDocOptions_ReadOnly;
                 }
 
-                if (ViewOnly)
+                if (State.HasFlag(DocumentState_e.ViewOnly))
                 {
                     opts |= swOpenDocOptions_e.swOpenDocOptions_ViewOnly;
                 }
 
-                if (Silent)
+                if (State.HasFlag(DocumentState_e.Silent))
                 {
                     opts |= swOpenDocOptions_e.swOpenDocOptions_Silent;
                 }
 
-                if (Rapid)
+                if (State.HasFlag(DocumentState_e.Rapid))
                 {
                     if (docType == swDocumentTypes_e.swDocDRAWING)
                     {
@@ -538,10 +517,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                     }
                     else if (docType == swDocumentTypes_e.swDocASSEMBLY)
                     {
-                        if (App.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2020))
-                        {
-                            //TODO: this option should be implemented as 'Large Design Review' (swOpenDocOptions_ViewOnly) with 'Edit Assembly Option'. Later option is not available in API
-                        }
+                        opts |= swOpenDocOptions_e.swOpenDocOptions_OverrideDefaultLoadLightweight | swOpenDocOptions_e.swOpenDocOptions_LoadLightweight;
                     }
                     else if (docType == swDocumentTypes_e.swDocPART)
                     {
@@ -713,7 +689,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
     internal class SwUnknownDocument : SwDocument, IXUnknownDocument
     {
-        public SwUnknownDocument(IModelDoc2 model, ISwApplication app, IXLogger logger, bool isCreated) 
+        public SwUnknownDocument(IModelDoc2 model, SwApplication app, IXLogger logger, bool isCreated) 
             : base(model, app, logger, isCreated)
         {
         }

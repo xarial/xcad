@@ -17,6 +17,7 @@ using Xarial.XCad;
 using Xarial.XCad.Annotations;
 using Xarial.XCad.Base;
 using Xarial.XCad.Base.Attributes;
+using Xarial.XCad.Delegates;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Features.CustomFeature;
 using Xarial.XCad.Features.CustomFeature.Attributes;
@@ -32,9 +33,11 @@ using Xarial.XCad.SolidWorks.Enums;
 using Xarial.XCad.SolidWorks.Features.CustomFeature.Toolkit;
 using Xarial.XCad.SolidWorks.Features.CustomFeature.Toolkit.Icons;
 using Xarial.XCad.SolidWorks.Geometry;
+using Xarial.XCad.SolidWorks.Services;
 using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.Toolkit;
 using Xarial.XCad.Toolkit.CustomFeature;
+using Xarial.XCad.UI;
 using Xarial.XCad.Utils.Diagnostics;
 using Xarial.XCad.Utils.Reflection;
 
@@ -43,15 +46,17 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
     /// <inheritdoc/>
     public abstract class SwMacroFeatureDefinition : IXCustomFeatureDefinition, ISwComFeature, IXServiceConsumer
     {
-        private static ISwApplication m_Application;
+        public event ConfigureServicesDelegate ConfigureServices;
 
-        internal static ISwApplication Application
+        private static SwApplication m_Application;
+
+        internal static SwApplication Application
         {
             get
             {
                 if (m_Application == null)
                 {
-                    m_Application = SwApplicationFactory.FromProcess(Process.GetCurrentProcess());
+                    m_Application = (SwApplication)SwApplicationFactory.FromProcess(Process.GetCurrentProcess());
                 }
 
                 return m_Application;
@@ -75,7 +80,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             }
         }
 
-        private readonly IServiceProvider m_SvcProvider;
+        protected readonly IServiceProvider m_SvcProvider;
 
         public SwMacroFeatureDefinition()
         {
@@ -90,8 +95,10 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             var svcColl = new ServiceCollection();
             
             svcColl.AddOrReplace<IXLogger>(() => new TraceLogger($"xCad.MacroFeature.{this.GetType().FullName}"));
+            svcColl.AddOrReplace<IIconsCreator>(() => new BaseIconsCreator());
 
-            ConfigureServices(svcColl);
+            ConfigureServices?.Invoke(this, svcColl);
+            OnConfigureServices(svcColl);
 
             m_SvcProvider = svcColl.CreateProvider();
 
@@ -99,24 +106,37 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 
             CustomFeatureDefinitionInstanceCache.RegisterInstance(this);
 
-            TryCreateIcons();
+            var iconsConv = m_SvcProvider.GetService<IIconsCreator>();
+            iconsConv.KeepIcons = true;
+            iconsConv.IconsFolder = MacroFeatureIconInfo.GetLocation(this.GetType());
+            TryCreateIcons(iconsConv);
         }
 
-        private void TryCreateIcons()
+        event ConfigureServicesDelegate IXServiceConsumer.ConfigureServices
         {
-            var iconsConverter = new IconsConverter(
-                MacroFeatureIconInfo.GetLocation(this.GetType()), false);
+            add
+            {
+                throw new NotImplementedException();
+            }
 
-            System.Drawing.Image icon = null;
+            remove
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        private void TryCreateIcons(IIconsCreator iconsConverter)
+        {
+            IXImage icon = null;
 
             this.GetType().TryGetAttribute<IconAttribute>(a =>
             {
-                icon = IconsConverter.FromXImage(a.Icon);
+                icon = a.Icon;
             });
 
             if (icon == null)
             {
-                icon = IconsConverter.FromXImage(Defaults.Icon);
+                icon = Defaults.Icon;
             }
 
             //TODO: create different icons for highlighted and suppressed
@@ -149,7 +169,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         {
             LogOperation("Editing feature", app as ISldWorks, modelDoc as IModelDoc2, feature as IFeature);
 
-            var doc = Application.Documents[modelDoc as IModelDoc2];
+            var doc = (SwDocument)Application.Documents[modelDoc as IModelDoc2];
             return OnEditDefinition(Application, doc, new SwMacroFeature(doc, (modelDoc as IModelDoc2).FeatureManager, feature as IFeature, true));
         }
 
@@ -160,7 +180,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 
             SetProvider(app as ISldWorks, feature as IFeature);
 
-            var doc = Application.Documents[modelDoc as IModelDoc2];
+            var doc = (SwDocument)Application.Documents[modelDoc as IModelDoc2];
 
             var macroFeatInst = new SwMacroFeature(doc, (modelDoc as IModelDoc2).FeatureManager, feature as IFeature, true);
 
@@ -179,7 +199,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
         public object Security(object app, object modelDoc, object feature)
         {
-            var doc = Application.Documents[modelDoc as IModelDoc2];
+            var doc = (SwDocument)Application.Documents[modelDoc as IModelDoc2];
             return OnUpdateState(Application, doc, new SwMacroFeature(doc, (modelDoc as IModelDoc2).FeatureManager, feature as IFeature, true));
         }
 
@@ -321,8 +341,8 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
                 throw new ArgumentNullException(nameof(bodies));
             }
         }
-
-        public virtual void ConfigureServices(IXServiceCollection collection)
+        
+        public virtual void OnConfigureServices(IXServiceCollection collection)
         {
         }
     }
@@ -448,7 +468,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             m_ParamsParser = parser;
 
             m_Editor = new SwMacroFeatureEditor<TParams, TPage>(
-                Application, this.GetType(), m_ParamsParser, m_Logger);
+                Application, this.GetType(), m_ParamsParser, m_SvcProvider);
         }
 
         public virtual TParams ConvertPageToParams(TPage par)

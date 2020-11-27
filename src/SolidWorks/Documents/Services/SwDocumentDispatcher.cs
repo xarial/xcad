@@ -51,6 +51,8 @@ namespace Xarial.XCad.SolidWorks.Documents.Services
         {
             lock (m_Lock) 
             {
+                m_Logger.Log($"Adding '{model.GetTitle()}' to the dispatch queue");
+
                 m_ModelsDispatchQueue.Add(model);
 
                 if (!m_DocsDispatchQueue.Any())
@@ -75,6 +77,8 @@ namespace Xarial.XCad.SolidWorks.Documents.Services
 
                 if (index != -1) 
                 {
+                    m_Logger.Log($"Removing '{doc.Title}' from the dispatch queue");
+
                     m_ModelsDispatchQueue.RemoveAt(index);
                 }
 
@@ -83,7 +87,7 @@ namespace Xarial.XCad.SolidWorks.Documents.Services
                     doc = (SwDocument)(doc as SwUnknownDocument).GetSpecific();
                 }
 
-                Dispatched?.Invoke(doc);
+                NotifyDispatchedSafe(doc);
 
                 if (!m_DocsDispatchQueue.Any()) 
                 {
@@ -96,32 +100,49 @@ namespace Xarial.XCad.SolidWorks.Documents.Services
         {
             lock (m_Lock) 
             {
-                foreach (var model in m_ModelsDispatchQueue) 
+                m_Logger.Log($"Dispatching all ({m_ModelsDispatchQueue.Count}) models");
+
+                foreach (var model in m_ModelsDispatchQueue)
                 {
                     SwDocument doc;
 
                     switch (model)
                     {
                         case IPartDoc part:
-                            doc = new SwPart(part, m_App, m_Logger, true);
+                            doc = new SwPart(part, (SwApplication)m_App, m_Logger, true);
                             break;
 
                         case IAssemblyDoc assm:
-                            doc = new SwAssembly(assm, m_App, m_Logger, true);
+                            doc = new SwAssembly(assm, (SwApplication)m_App, m_Logger, true);
                             break;
 
                         case IDrawingDoc drw:
-                            doc = new SwDrawing(drw, m_App, m_Logger, true);
+                            doc = new SwDrawing(drw, (SwApplication)m_App, m_Logger, true);
                             break;
 
                         default:
                             throw new NotSupportedException();
                     }
 
-                    Dispatched?.Invoke(doc);
+                    NotifyDispatchedSafe(doc);
                 }
 
                 m_ModelsDispatchQueue.Clear();
+                m_Logger.Log($"Cleared models queue");
+            }
+        }
+
+        private void NotifyDispatchedSafe(SwDocument doc)
+        {
+            try
+            {
+                m_Logger.Log($"Dispatched '{doc.Title}'");
+                Dispatched?.Invoke(doc);
+            }
+            catch (Exception ex)
+            {
+                m_Logger.Log($"Unhandled exception while dispatching the document '{doc.Title}'");
+                m_Logger.Log(ex);
             }
         }
     }

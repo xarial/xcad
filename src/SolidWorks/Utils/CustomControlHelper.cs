@@ -12,6 +12,7 @@ using System.Drawing;
 using System.Text;
 using Xarial.XCad.Base.Attributes;
 using Xarial.XCad.Reflection;
+using Xarial.XCad.UI;
 using Xarial.XCad.Utils.Reflection;
 
 namespace Xarial.XCad.SolidWorks.Utils
@@ -19,16 +20,16 @@ namespace Xarial.XCad.SolidWorks.Utils
     internal static class CustomControlHelper
     {
         internal static TWrapper HostControl<TControl, TWrapper>(
-                Func<TControl, System.Windows.Forms.Control, string, Image, TWrapper> ctrlHost,
-                Func<string, string, Image, TWrapper> comCtrlHost)
+                Func<TControl, System.Windows.Forms.Control, string, IXImage, TWrapper> ctrlHost,
+                Func<string, string, IXImage, TWrapper> comCtrlHost)
         {
             return HostControl<TWrapper>(typeof(TControl), (c, h, t, i) 
                 => ctrlHost.Invoke((TControl)c, h, t, i), comCtrlHost);
         }
 
         internal static TWrapper HostControl<TWrapper>(Type ctrlType,
-                Func<object, System.Windows.Forms.Control, string, Image, TWrapper> ctrlHost,
-                Func<string, string, Image, TWrapper> comCtrlHost)
+                Func<object, System.Windows.Forms.Control, string, IXImage, TWrapper> ctrlHost,
+                Func<string, string, IXImage, TWrapper> comCtrlHost)
         {
             var title = "";
 
@@ -42,16 +43,16 @@ namespace Xarial.XCad.SolidWorks.Utils
                 title = ctrlType.Name;
             }
 
-            Image icon = null;
+            IXImage icon = null;
 
             if (ctrlType.TryGetAttribute(out IconAttribute iconAtt))
             {
-                icon = IconsConverter.FromXImage(iconAtt.Icon);
+                icon = iconAtt.Icon;
             }
 
             if (icon == null)
             {
-                icon = IconsConverter.FromXImage(Defaults.Icon);
+                icon = Defaults.Icon;
             }
 
             if (typeof(System.Windows.Forms.Control).IsAssignableFrom(ctrlType))
@@ -71,7 +72,6 @@ namespace Xarial.XCad.SolidWorks.Utils
                 var wpfCtrl = (System.Windows.UIElement)Activator.CreateInstance(ctrlType);
                 var host = new System.Windows.Forms.Integration.ElementHost();
                 host.Child = wpfCtrl;
-
                 return ctrlHost.Invoke(wpfCtrl, host, title, icon);
             }
             else

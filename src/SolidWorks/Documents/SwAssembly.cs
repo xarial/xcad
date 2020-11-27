@@ -8,6 +8,8 @@
 using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Geometry.Structures;
@@ -26,7 +28,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public IXComponentRepository Components { get; }
         
-        internal SwAssembly(IAssemblyDoc assembly, ISwApplication app, IXLogger logger, bool isCreated)
+        internal SwAssembly(IAssemblyDoc assembly, SwApplication app, IXLogger logger, bool isCreated)
             : base((IModelDoc2)assembly, app, logger, isCreated)
         {
             Components = new SwAssemblyComponentCollection(this);
@@ -34,7 +36,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         internal protected override swDocumentTypes_e? DocumentType => swDocumentTypes_e.swDocASSEMBLY;
 
-        protected override bool IsRapidMode => throw new NotSupportedException();
+        protected override bool IsRapidMode => Assembly.GetLightWeightComponentCount() > 0;
 
         public override Box3D CalculateBoundingBox()
         {
@@ -55,8 +57,10 @@ namespace Xarial.XCad.SolidWorks.Documents
             m_Assm = assm;
         }
 
-        protected override IComponent2 GetRootComponent()
-            => (m_Assm.Assembly as IModelDoc2)
-                .ConfigurationManager.ActiveConfiguration.GetRootComponent3(true);
+        protected override IEnumerable<IComponent2> GetChildren()
+            => (m_Assm.Assembly.GetComponents(true) as object[])?.Cast<IComponent2>();
+
+        protected override int GetChildrenCount() 
+            => m_Assm.Assembly.GetComponentCount(true);
     }
 }

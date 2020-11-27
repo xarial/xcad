@@ -40,7 +40,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 
     internal class SwMacroFeature : SwFeature, ISwMacroFeature
     {
-        protected readonly ISwDocument m_Doc;
+        protected readonly SwDocument m_Doc;
 
         private IMacroFeatureData m_FeatData;
 
@@ -52,7 +52,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 
         public ISwDocument Document => m_Doc;
 
-        internal SwMacroFeature(ISwDocument doc, IFeatureManager featMgr, IFeature feat, bool created)
+        internal SwMacroFeature(SwDocument doc, IFeatureManager featMgr, IFeature feat, bool created)
             : base(doc, feat, created)
         {
             m_Doc = doc;
@@ -144,7 +144,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
     {
         private readonly MacroFeatureParametersParser m_ParamsParser;
 
-        internal SwMacroFeature(ISwDocument model, IFeatureManager featMgr, IFeature feat, MacroFeatureParametersParser paramsParser, bool created)
+        internal SwMacroFeature(SwDocument model, IFeatureManager featMgr, IFeature feat, MacroFeatureParametersParser paramsParser, bool created)
             : base(model, featMgr, feat, created)
         {
             m_ParamsParser = paramsParser;

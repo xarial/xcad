@@ -9,6 +9,7 @@ using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
 using System.Linq;
 using Xarial.XCad.SolidWorks.Enums;
+using Xarial.XCad.SolidWorks.Services;
 using Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls;
 using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.UI.PropertyPage.Attributes;
@@ -22,7 +23,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
     {
         private delegate IPropertyManagerPageOption ControlCreatorDelegate(int id, short controlType, string caption, short leftAlign, int options, string tip);
 
-        public PropertyManagerPageOptionBoxConstructor(ISldWorks app, IconsConverter iconsConv)
+        public PropertyManagerPageOptionBoxConstructor(ISldWorks app, IIconsCreator iconsConv)
             : base(app, swPropertyManagerPageControlType_e.swControlType_Option, iconsConv)
         {
         }

@@ -20,13 +20,13 @@ using Xarial.XCad.SolidWorks.Utils;
 
 namespace Xarial.XCad.SolidWorks.Geometry
 {
-    public interface ISwBody : IXBody
+    public interface ISwBody : ISwSelObject, IXBody
     {
         IBody2 Body { get; }
 
-        new ISwBody Add(ISwBody other);
-        new ISwBody[] Substract(ISwBody other);
-        new ISwBody[] Common(ISwBody other);
+        ISwBody Add(ISwBody other);
+        ISwBody[] Substract(ISwBody other);
+        ISwBody[] Common(ISwBody other);
     }
 
     internal class SwBody : SwSelObject, ISwBody

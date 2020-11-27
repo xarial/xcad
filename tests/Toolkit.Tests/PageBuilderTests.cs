@@ -27,6 +27,9 @@ namespace Toolkit.Tests
 
         public class ControlMock : Control<object>
         {
+            public override bool Enabled { get; set; }
+            public override bool Visible { get; set; }
+
 #pragma warning disable CS0067
             protected override event ControlValueChangedDelegate<object> ValueChanged;
 #pragma warning restore
@@ -50,11 +53,17 @@ namespace Toolkit.Tests
             public GroupMock(int id, object tag) : base(id, tag)
             {
             }
+
+            public override bool Enabled { get; set; }
+            public override bool Visible { get; set; }
         }
 
         public class PageMock : Page
         {
             public List<ControlMock> Controls { get; } = new List<ControlMock>();
+
+            public override bool Enabled { get; set; }
+            public override bool Visible { get; set; }
         }
 
         [DefaultType(typeof(SpecialTypes.AnyType))]

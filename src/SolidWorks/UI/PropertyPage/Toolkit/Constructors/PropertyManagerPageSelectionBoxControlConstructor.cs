@@ -16,6 +16,7 @@ using Xarial.XCad.Base.Enums;
 using Xarial.XCad.Features;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Sketch;
+using Xarial.XCad.SolidWorks.Services;
 using Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls;
 using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.Toolkit.PageBuilder.Constructors;
@@ -39,7 +40,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
 
         private readonly ISwApplication m_SwApp;
 
-        public PropertyManagerPageSelectionBoxControlConstructor(ISwApplication app, IconsConverter iconsConv, IXLogger logger)
+        public PropertyManagerPageSelectionBoxControlConstructor(ISwApplication app, IIconsCreator iconsConv, IXLogger logger)
             : base(app.Sw, swPropertyManagerPageControlType_e.swControlType_Selectionbox, iconsConv)
         {
             m_SwApp = app;

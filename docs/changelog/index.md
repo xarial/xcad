@@ -8,6 +8,17 @@ This page contains list of the most notable changes in the releases of xCAD.NET.
 
 Breaking change is marked with &#x26A0; symbol
 
+## 0.6.9 - November, 27 2020
+
+* &#x26A0; IXDocument::Visible, IXDocument::ReadOnly, IXDocument::ViewOnly, IXDocument::Rapid, IXDocument::Silent are replaced with IXDocument::State
+* &#x26A0; IXServiceConsumer::ConfigureServices renamed to IXServiceConsumer::OnConfigureServices 
+* Implemented [#46 - Add IXComponent::Path](https://github.com/xarial/xcad/issues/46)
+* Fixed [#47 - Custom controls added to Property Page are not loaded after page is closed](https://github.com/xarial/xcad/issues/47)
+* Implemented [#48 - Add support for progress bar in application](https://github.com/xarial/xcad/issues/48)
+* Implemented [#49 - Allow to specify template when creating new document](https://github.com/xarial/xcad/issues/49)
+* Fixed [#50 - Document management breaks if custom doc handler has an unhandled exception](https://github.com/xarial/xcad/issues/50)
+* Fixed [#51 - IXAssembly::Components empty for the LDR assembly](https://github.com/xarial/xcad/issues/51)
+
 ## 0.6.8 - November, 10 2020
 
 * Added tags support for IXDocument to store custom user data within the session

@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Xarial.XCad.Base;
+using Xarial.XCad.SolidWorks.Services;
 using Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors;
 using Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls;
 using Xarial.XCad.SolidWorks.Utils;
@@ -102,7 +103,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit
         private readonly PmpTypeDataBinder m_DataBinder;
         private readonly IPageSpec m_PageSpec;
 
-        internal PropertyManagerPageBuilder(ISwApplication app, IconsConverter iconsConv, SwPropertyManagerPageHandler handler, IPageSpec pageSpec, IXLogger logger)
+        internal PropertyManagerPageBuilder(ISwApplication app, IIconsCreator iconsConv, SwPropertyManagerPageHandler handler, IPageSpec pageSpec, IXLogger logger)
             : this(app, new PmpTypeDataBinder(),
                   new PropertyManagerPageConstructor(app.Sw, iconsConv, handler),
                   new PropertyManagerPageGroupControlConstructor(),

@@ -12,6 +12,7 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.Linq;
 using Xarial.XCad.Base.Attributes;
+using Xarial.XCad.SolidWorks.Services;
 using Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls;
 using Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Icons;
 using Xarial.XCad.SolidWorks.Utils;
@@ -34,9 +35,9 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
             }
         }
 
-        private readonly IconsConverter m_IconsConv;
+        private readonly IIconsCreator m_IconsConv;
 
-        public PropertyManagerPageTabConstructor(IconsConverter iconsConv)
+        public PropertyManagerPageTabConstructor(IIconsCreator iconsConv)
         {
             m_IconsConv = iconsConv;
         }
@@ -67,7 +68,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
 
             if (icon != null)
             {
-                iconPath = m_IconsConv.ConvertIcon(new TabIcon(IconsConverter.FromXImage(icon))).First();
+                iconPath = m_IconsConv.ConvertIcon(new TabIcon(icon)).First();
 
                 //NOTE: tab icon must be in 256 color bitmap, otherwise it is not displayed
                 TryConvertIconTo8bit(iconPath);

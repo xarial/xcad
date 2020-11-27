@@ -37,49 +37,14 @@ namespace StandAlone
         {
             try
             {
-                //var app1 = Activator.CreateInstance(Type.GetTypeFromProgID("SldWorks.Application"));
+                //var app = SwApplicationFactory.Create(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020,
+                //    ApplicationState_e.Default);
 
-                ISwApplication app = null;
-                DateTime start;
-                Process prc = null;
+                var app = SwApplicationFactory.FromProcess(Process.GetProcessesByName("SLDWORKS").First());
 
-                //var start = DateTime.Now;
-                //var app = SwApplicationFactory.Create(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020);
-                //Console.WriteLine($"Default: {(DateTime.Now - start).TotalMilliseconds}");
-                //var prc = Process.GetProcessById(app.Sw.GetProcessID());
-                //prc.Kill();
+                var allComps = (app.Documents.Active as ISwAssembly).Components.Flatten().ToArray();
 
-                //start = DateTime.Now;
-                //app = SwApplicationFactory.Create(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020, ApplicationState_e.Silent);
-                //Console.WriteLine($"Silent: {(DateTime.Now - start).TotalMilliseconds}");
-                //prc = Process.GetProcessById(app.Sw.GetProcessID());
-                //prc.Kill();
-
-                //start = DateTime.Now;
-                //app = SwApplicationFactory.Create(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020, ApplicationState_e.Safe);
-                //Console.WriteLine($"Safe: {(DateTime.Now - start).TotalMilliseconds}");
-                //prc = Process.GetProcessById(app.Sw.GetProcessID());
-                //prc.Kill();
-
-                //start = DateTime.Now;
-                //app = SwApplicationFactory.Create(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020, ApplicationState_e.Hidden);
-                //Console.WriteLine($"Hidden: {(DateTime.Now - start).TotalMilliseconds}");
-                //prc = Process.GetProcessById(app.Sw.GetProcessID());
-                //prc.Kill();
-
-                start = DateTime.Now;
-                app = SwApplicationFactory.Create(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020, ApplicationState_e.Background);
-                Console.WriteLine($"Background: {(DateTime.Now - start).TotalMilliseconds}");
-                //prc = Process.GetProcessById(app.Sw.GetProcessID());
-                //prc.Kill();
-
-                //var app = SwApplicationFactory.FromProcess(Process.GetProcessesByName("SLDWORKS").First());
-                Console.ReadLine();
-                return;
-                var o = app.Documents.Open(@"C:\Users\artem\OneDrive\xCAD\TestData\foreign.IGS");
-                var p = app.Documents.NewPart();
-                var d = app.Documents.NewDrawing();
-                var a = app.Documents.NewAssembly();
+                //Progress(app);
 
                 //SketchSegmentColors(app);
 
@@ -103,7 +68,20 @@ namespace StandAlone
             {
             }
         }
-        
+
+        private static void Progress(IXApplication app) 
+        {
+            using (var prg = app.CreateProgress())
+            {
+                for (int i = 0; i < 100; i++) 
+                {
+                    prg.Report((double)i / 100);
+                    prg.SetStatus(i.ToString());
+                    System.Threading.Thread.Sleep(100);
+                }
+            }
+        }
+
         private static void SketchSegmentColors(IXApplication app) 
         {
             var seg = app.Documents.Active.Selections.First() as IXSketchSegment;

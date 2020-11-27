@@ -17,25 +17,37 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
     {
         protected override event ControlValueChangedDelegate<object> ValueChanged;
 
-        private readonly IXCustomControl m_Control;
+        private readonly Func<IXCustomControl> m_ControlFact;
+        private IXCustomControl m_CurrentControl;
 
         internal PropertyManagerPageCustomControl(int id, object tag,
             IPropertyManagerPageWindowFromHandle wndFromHandler,
-            SwPropertyManagerPageHandler handler, IXCustomControl control) : base(wndFromHandler, id, tag, handler)
+            SwPropertyManagerPageHandler handler, Func<IXCustomControl> controlFact) : base(wndFromHandler, id, tag, handler)
         {
             m_Handler.CustomControlCreated += OnCustomControlCreated;
-            m_Control = control;
-            m_Control.DataContextChanged += OnDataContextChanged;
+            m_Handler.Opening += OnPageOpening;
+            m_ControlFact = controlFact;
+        }
+
+        private void OnPageOpening()
+        {
+            if (m_CurrentControl != null)
+            {
+                m_CurrentControl.DataContextChanged -= OnDataContextChanged;
+            }
+            
+            m_CurrentControl = m_ControlFact.Invoke();
+            m_CurrentControl.DataContextChanged += OnDataContextChanged;
         }
 
         protected override object GetSpecificValue()
         {
-            return m_Control.DataContext;
+            return m_CurrentControl.DataContext;
         }
 
         protected override void SetSpecificValue(object value)
         {
-            m_Control.DataContext = value;
+            m_CurrentControl.DataContext = value;
         }
 
         private void OnCustomControlCreated(int id, bool status)

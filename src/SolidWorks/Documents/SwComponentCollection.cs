@@ -43,7 +43,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        public int Count => GetRootComponent().IGetChildrenCount();
+        public int Count => GetChildrenCount();
 
         private readonly ISwAssembly m_Assm;
         
@@ -57,9 +57,12 @@ namespace Xarial.XCad.SolidWorks.Documents
             throw new NotImplementedException();
         }
 
-        protected abstract IComponent2 GetRootComponent();
+        protected abstract IEnumerable<IComponent2> GetChildren();
+        protected abstract int GetChildrenCount();
 
-        public IEnumerator<IXComponent> GetEnumerator() => new SwComponentEnumerator(m_Assm, GetRootComponent());
+        public IEnumerator<IXComponent> GetEnumerator() => 
+            (GetChildren() ?? new IComponent2[0])
+            .Select(c => SwSelObject.FromDispatch<SwComponent>(c, m_Assm)).GetEnumerator();
 
         public void RemoveRange(IEnumerable<IXComponent> ents)
         {
@@ -67,65 +70,5 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-    }
-
-    internal class SwComponentEnumerator : IEnumerator<IXComponent>
-    {
-        public IXComponent Current => SwSelObject.FromDispatch<SwComponent>(m_CurComp, m_Assm);
-
-        object IEnumerator.Current => Current;
-
-        private readonly ISwAssembly m_Assm;
-
-        private IComponent2 m_CurComp;
-
-        private readonly IComponent2 m_Parent;
-        private IComponent2[] m_Children;
-
-        private int m_CurChildIndex;
-        
-        internal SwComponentEnumerator(ISwAssembly assm, IComponent2 parent)
-        {
-            m_CurComp = null;
-            m_Assm = assm;
-            m_Parent = parent;
-            Reset();
-        }
-
-        public bool MoveNext()
-        {
-            if (m_CurChildIndex == -1)
-            {
-                m_Children = (m_Parent.GetChildren() as object[])?.Cast<IComponent2>().ToArray();
-
-                if (m_Children == null) 
-                {
-                    m_Children = new IComponent2[0];
-                }
-            }
-
-            m_CurChildIndex++;
-
-            if (m_CurChildIndex < m_Children.Length)
-            {
-                m_CurComp = m_Children[m_CurChildIndex];
-                return true;
-            }
-            else 
-            {
-                return false;
-            }
-        }
-
-        public void Reset()
-        {
-            m_CurComp = null;
-            m_CurChildIndex = -1;
-            m_Children = null;
-        }
-
-        public void Dispose()
-        {
-        }
     }
 }

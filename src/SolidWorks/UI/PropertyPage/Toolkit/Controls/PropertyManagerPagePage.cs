@@ -7,6 +7,7 @@
 
 using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
+using System;
 using Xarial.XCad.Utils.PageBuilder.PageElements;
 
 namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
@@ -16,6 +17,18 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
         internal IPropertyManagerPage2 Page { get; private set; }
         internal SwPropertyManagerPageHandler Handler { get; private set; }
         internal ISldWorks App { get; private set; }
+        
+        public override bool Enabled 
+        {
+            get => throw new NotSupportedException(); 
+            set => throw new NotSupportedException(); 
+        }
+
+        public override bool Visible
+        {
+            get => throw new NotSupportedException();
+            set => throw new NotSupportedException();
+        }
 
         private string m_HelpLink;
         private string m_WhatsNewLink;

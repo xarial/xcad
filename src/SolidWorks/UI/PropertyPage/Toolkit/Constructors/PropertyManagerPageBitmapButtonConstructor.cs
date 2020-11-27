@@ -10,6 +10,7 @@ using SolidWorks.Interop.swconst;
 using System;
 using System.Drawing;
 using System.Linq;
+using Xarial.XCad.SolidWorks.Services;
 using Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls;
 using Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Icons;
 using Xarial.XCad.SolidWorks.Utils;
@@ -22,9 +23,9 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
     internal class PropertyManagerPageBitmapButtonConstructor
         : PropertyManagerPageBaseControlConstructor<PropertyManagerPageBitmapButtonControl, IPropertyManagerPageBitmapButton>, IBitmapButtonConstructor
     {
-        private readonly IconsConverter m_IconsConv;
+        private readonly IIconsCreator m_IconsConv;
 
-        public PropertyManagerPageBitmapButtonConstructor(ISldWorks app, IconsConverter iconsConv)
+        public PropertyManagerPageBitmapButtonConstructor(ISldWorks app, IIconsCreator iconsConv)
             : base(app, swPropertyManagerPageControlType_e.swControlType_BitmapButton, iconsConv)
         {
             m_IconsConv = iconsConv;
@@ -78,11 +79,12 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
                 var bmpWidth = bmpAtt.Width;
                 var bmpHeight = bmpAtt.Height;
 
-                var icon = AdjustIcon(IconsConverter.FromXImage(bmpAtt.Icon ?? Defaults.Icon), bmpWidth, bmpHeight);
+                var icon = bmpAtt.Icon ?? Defaults.Icon;
 
                 if (m_App.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2016))
                 {
                     var icons = m_IconsConv.ConvertIcon(new BitmapButtonHighResIcon(icon, bmpWidth, bmpHeight));
+
                     var imgList = icons.Take(6).ToArray();
                     var maskImgList = icons.Skip(6).ToArray();
                     swCtrl.SetBitmapsByName3(imgList, maskImgList);
@@ -90,28 +92,12 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
                 else
                 {
                     var icons = m_IconsConv.ConvertIcon(new BitmapButtonIcon(icon, bmpWidth, bmpHeight));
+
                     swCtrl.SetBitmapsByName2(icons[0], icons[1]);
                 }
             }
 
             return new PropertyManagerPageBitmapButtonControl(atts.Id, atts.Tag, swCtrl, handler);
-        }
-
-        private Image AdjustIcon(Image icon, int width, int height) 
-        {
-            const int BORDER_SIZE = 5;
-
-            var offsetX = (int)(BORDER_SIZE * (icon.Width / width));
-            var offsetY = (int)(BORDER_SIZE * (icon.Height / height));
-
-            var img = new Bitmap(icon.Width + offsetX * 2, icon.Height + offsetY * 2, icon.PixelFormat);
-            
-            using (var gr = Graphics.FromImage(img))
-            {
-                gr.DrawImage(icon, new Rectangle(new Point(offsetX, offsetY), icon.Size));
-            }
-
-            return img;
         }
     }
 }
