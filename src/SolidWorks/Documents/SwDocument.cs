@@ -36,10 +36,6 @@ namespace Xarial.XCad.SolidWorks.Documents
 {
     public interface ISwDocument : IXDocument, IDisposable
     {
-        //TODO: think how to remove this
-        [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
-        ISwApplication App { get; }
-
         IModelDoc2 Model { get; }
         new ISwFeatureManager Features { get; }
         new ISwSelectionCollection Selections { get; }
@@ -319,7 +315,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public ISwCustomPropertiesCollection Properties { get; }
 
-        public ISwApplication App { get; }
+        internal SwApplication App { get; }
         
         public bool IsDirty 
         {
@@ -343,12 +339,12 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         private readonly ElementCreator<IModelDoc2> m_Creator;
         
-        internal SwDocument(IModelDoc2 model, ISwApplication app, IXLogger logger) 
+        internal SwDocument(IModelDoc2 model, SwApplication app, IXLogger logger) 
             : this(model, app, logger, true)
         {
         }
 
-        internal SwDocument(IModelDoc2 model, ISwApplication app, IXLogger logger, bool created)
+        internal SwDocument(IModelDoc2 model, SwApplication app, IXLogger logger, bool created)
         {
             App = app;
             
@@ -693,7 +689,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
     internal class SwUnknownDocument : SwDocument, IXUnknownDocument
     {
-        public SwUnknownDocument(IModelDoc2 model, ISwApplication app, IXLogger logger, bool isCreated) 
+        public SwUnknownDocument(IModelDoc2 model, SwApplication app, IXLogger logger, bool isCreated) 
             : base(model, app, logger, isCreated)
         {
         }

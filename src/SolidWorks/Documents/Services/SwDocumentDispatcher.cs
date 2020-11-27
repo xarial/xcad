@@ -109,15 +109,15 @@ namespace Xarial.XCad.SolidWorks.Documents.Services
                     switch (model)
                     {
                         case IPartDoc part:
-                            doc = new SwPart(part, m_App, m_Logger, true);
+                            doc = new SwPart(part, (SwApplication)m_App, m_Logger, true);
                             break;
 
                         case IAssemblyDoc assm:
-                            doc = new SwAssembly(assm, m_App, m_Logger, true);
+                            doc = new SwAssembly(assm, (SwApplication)m_App, m_Logger, true);
                             break;
 
                         case IDrawingDoc drw:
-                            doc = new SwDrawing(drw, m_App, m_Logger, true);
+                            doc = new SwDrawing(drw, (SwApplication)m_App, m_Logger, true);
                             break;
 
                         default:

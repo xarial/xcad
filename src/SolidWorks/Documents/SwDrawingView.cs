@@ -23,7 +23,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
     internal class SwDrawingView : SwSelObject, ISwDrawingView
     {
-        protected readonly ISwDrawing m_Drawing;
+        protected readonly SwDrawing m_Drawing;
 
         public IView DrawingView => m_Creator.Element;
 
@@ -36,7 +36,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
         }
 
-        internal SwDrawingView(IView drwView, ISwDrawing drw, ISheet sheet, bool created) 
+        internal SwDrawingView(IView drwView, SwDrawing drw, ISheet sheet, bool created) 
             : base(drw.Model, drwView)
         {
             m_Drawing = drw;

@@ -25,6 +25,11 @@ namespace Xarial.XCad.Documents
         string Name { get; }
 
         /// <summary>
+        /// Gets the path of this component
+        /// </summary>
+        string Path { get; }
+
+        /// <summary>
         /// Is component loaded into memory
         /// </summary>
         bool IsResolved { get; }
