@@ -37,10 +37,14 @@ namespace StandAlone
         {
             try
             {
-                var app = SwApplicationFactory.Create(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020, 
-                    ApplicationState_e.Default);
+                //var app = SwApplicationFactory.Create(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020,
+                //    ApplicationState_e.Default);
 
-                Progress(app);
+                var app = SwApplicationFactory.FromProcess(Process.GetProcessesByName("SLDWORKS").First());
+
+                var allComps = (app.Documents.Active as ISwAssembly).Components.Flatten().ToArray();
+
+                //Progress(app);
 
                 //SketchSegmentColors(app);
 

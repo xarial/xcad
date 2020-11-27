@@ -373,7 +373,7 @@ namespace Xarial.XCad.SolidWorks
         {
             collection.AddOrReplace((Func<IXLogger>)(() => new TraceLogger("xCAD.SwApplication")));
             collection.AddOrReplace((Func<IMemoryGeometryBuilderDocumentProvider>)(() => new DefaultMemoryGeometryBuilderDocumentProvider(this)));
-            collection.AddOrReplace<IFilePathResolver>(() => new SwFilePathResolver(this));
+            collection.AddOrReplace<IFilePathResolver>(() => new SwFilePathResolverNoSearchFolders(this));//TODO: there is some issue with recursive search of folders in search locations - do a test to validate
         }
 
         public IXProgress CreateProgress()

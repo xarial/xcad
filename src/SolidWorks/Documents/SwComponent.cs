@@ -118,13 +118,16 @@ namespace Xarial.XCad.SolidWorks.Documents
             {
                 var cachedPath = CachedPath;
 
-                if (IsResolved)
+                var needResolve = m_ParentAssembly.Model.IsOpenedViewOnly() 
+                    || Component.GetSuppression2() == (int)swComponentSuppressionState_e.swComponentSuppressed;
+
+                if (needResolve)
                 {
-                    return cachedPath;
+                    return m_FilePathResolver.ResolvePath(m_ParentAssembly.Path, cachedPath);
                 }
                 else 
                 {
-                    return m_FilePathResolver.ResolvePath(m_ParentAssembly.Path, cachedPath);
+                    return cachedPath;
                 }
             }
         }
@@ -269,6 +272,9 @@ namespace Xarial.XCad.SolidWorks.Documents
             m_Comp = comp;
         }
 
-        protected override IComponent2 GetRootComponent() => m_Comp;
+        protected override IEnumerable<IComponent2> GetChildren()
+            => (m_Comp.GetChildren() as object[])?.Cast<IComponent2>();
+
+        protected override int GetChildrenCount() => m_Comp.IGetChildrenCount();
     }
 }

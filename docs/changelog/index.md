@@ -17,6 +17,7 @@ Breaking change is marked with &#x26A0; symbol
 * Implemented [#48 - Add support for progress bar in application](https://github.com/xarial/xcad/issues/48)
 * Implemented [#49 - Allow to specify template when creating new document](https://github.com/xarial/xcad/issues/49)
 * Fixed [#50 - Document management breaks if custom doc handler has an unhandled exception](https://github.com/xarial/xcad/issues/50)
+* Fixed [#51 - IXAssembly::Components empty for the LDR assembly](https://github.com/xarial/xcad/issues/51)
 
 ## 0.6.8 - November, 10 2020
 

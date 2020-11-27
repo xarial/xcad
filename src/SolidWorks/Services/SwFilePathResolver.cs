@@ -153,4 +153,13 @@ namespace Xarial.XCad.SolidWorks.Services
 
         protected override bool IsReferenceExists(string path) => File.Exists(path);
     }
+
+    public class SwFilePathResolverNoSearchFolders : SwFilePathResolver
+    {
+        public SwFilePathResolverNoSearchFolders(ISwApplication app) : base(app)
+        {
+        }
+
+        protected override string[] GetSearchFolders() => new string[0];
+    }
 }
