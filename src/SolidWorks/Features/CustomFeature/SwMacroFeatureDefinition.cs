@@ -48,15 +48,15 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
     {
         public event ConfigureServicesDelegate ConfigureServices;
 
-        private static ISwApplication m_Application;
+        private static SwApplication m_Application;
 
-        internal static ISwApplication Application
+        internal static SwApplication Application
         {
             get
             {
                 if (m_Application == null)
                 {
-                    m_Application = SwApplicationFactory.FromProcess(Process.GetCurrentProcess());
+                    m_Application = (SwApplication)SwApplicationFactory.FromProcess(Process.GetCurrentProcess());
                 }
 
                 return m_Application;
@@ -169,7 +169,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         {
             LogOperation("Editing feature", app as ISldWorks, modelDoc as IModelDoc2, feature as IFeature);
 
-            var doc = Application.Documents[modelDoc as IModelDoc2];
+            var doc = (SwDocument)Application.Documents[modelDoc as IModelDoc2];
             return OnEditDefinition(Application, doc, new SwMacroFeature(doc, (modelDoc as IModelDoc2).FeatureManager, feature as IFeature, true));
         }
 
@@ -180,7 +180,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 
             SetProvider(app as ISldWorks, feature as IFeature);
 
-            var doc = Application.Documents[modelDoc as IModelDoc2];
+            var doc = (SwDocument)Application.Documents[modelDoc as IModelDoc2];
 
             var macroFeatInst = new SwMacroFeature(doc, (modelDoc as IModelDoc2).FeatureManager, feature as IFeature, true);
 
@@ -199,7 +199,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
         public object Security(object app, object modelDoc, object feature)
         {
-            var doc = Application.Documents[modelDoc as IModelDoc2];
+            var doc = (SwDocument)Application.Documents[modelDoc as IModelDoc2];
             return OnUpdateState(Application, doc, new SwMacroFeature(doc, (modelDoc as IModelDoc2).FeatureManager, feature as IFeature, true));
         }
 

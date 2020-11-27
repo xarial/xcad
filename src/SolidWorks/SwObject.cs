@@ -174,7 +174,7 @@ namespace Xarial.XCad.SolidWorks
                     return new SwDimension(doc.Model, dispDim);
 
                 case IConfiguration conf:
-                    return new SwConfiguration(doc, conf);
+                    return new SwConfiguration((SwDocument)doc, conf);
 
                 case IComponent2 comp:
                     return new SwComponent(comp, (SwAssembly)doc);
@@ -189,11 +189,11 @@ namespace Xarial.XCad.SolidWorks
                     switch ((swCurveTypes_e)curve.Identity()) 
                     {
                         case swCurveTypes_e.LINE_TYPE:
-                            return new SwLineCurve(doc?.App.Sw.IGetModeler(), curve, true);
+                            return new SwLineCurve(((SwDocument)doc)?.App.Sw.IGetModeler(), curve, true);
                         case swCurveTypes_e.CIRCLE_TYPE:
-                            return new SwArcCurve(doc?.App.Sw.IGetModeler(), curve, true);
+                            return new SwArcCurve(((SwDocument)doc)?.App.Sw.IGetModeler(), curve, true);
                         default:
-                            return new SwCurve(doc?.App.Sw.IGetModeler(), curve, true);
+                            return new SwCurve(((SwDocument)doc)?.App.Sw.IGetModeler(), curve, true);
                     }
 
                 case ISurface surf:

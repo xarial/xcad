@@ -30,7 +30,7 @@ namespace Xarial.XCad.SolidWorks.Features
         private IFeatureManager FeatMgr => m_Doc.Model.FeatureManager;
 
         private readonly MacroFeatureParametersParser m_ParamsParser;
-        private readonly ISwDocument m_Doc;
+        private readonly SwDocument m_Doc;
 
         public int Count => FeatMgr.GetFeatureCount(false);
 
@@ -85,7 +85,7 @@ namespace Xarial.XCad.SolidWorks.Features
             }
         }
 
-        internal SwFeatureManager(ISwDocument doc)
+        internal SwFeatureManager(SwDocument doc)
         {
             m_Doc = doc;
             m_ParamsParser = new MacroFeatureParametersParser(doc.App.Sw);

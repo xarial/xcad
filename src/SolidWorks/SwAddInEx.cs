@@ -122,7 +122,9 @@ namespace Xarial.XCad.SolidWorks
         IXCustomPanel<TControl> IXExtension.CreateFeatureManagerTab<TControl>(IXDocument doc) 
             => CreateFeatureManagerTab<TControl>((SwDocument)doc);
 
-        public ISwApplication Application { get; private set; }
+        public ISwApplication Application => m_Application;
+
+        private SwApplication m_Application;
 
         public ISwCommandManager CommandManager => m_CommandManager;
 
@@ -138,7 +140,7 @@ namespace Xarial.XCad.SolidWorks
         private readonly List<IDisposable> m_Disposables;
 
         private IServiceProvider m_SvcProvider;
-        
+
         public SwAddInEx()
         {   
             m_Disposables = new List<IDisposable>();
@@ -165,7 +167,7 @@ namespace Xarial.XCad.SolidWorks
                 }
 
                 var swApp = new SwApplication(app);
-                Application = swApp;
+                m_Application = swApp;
 
                 (Application.Sw as SldWorks).OnIdleNotify += OnLoadFirstIdleNotify;
 
@@ -182,7 +184,7 @@ namespace Xarial.XCad.SolidWorks
 
                 Logger.Log("Loading add-in");
 
-                SwMacroFeatureDefinition.Application = Application;
+                SwMacroFeatureDefinition.Application = m_Application;
 
                 m_CommandManager = new SwCommandManager(Application, AddInId, m_SvcProvider, this.GetType().GUID);
 
@@ -207,6 +209,7 @@ namespace Xarial.XCad.SolidWorks
 
             svcCollection.AddOrReplace<IXLogger>(() => new TraceLogger($"XCad.AddIn.{title}"));
             svcCollection.AddOrReplace<IIconsCreator>(() => new BaseIconsCreator());
+            
             return svcCollection;
         }
 

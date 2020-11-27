@@ -173,7 +173,7 @@ namespace Xarial.XCad.SolidWorks
 
         private IXLogger m_Logger;
 
-        private IServiceProvider m_Provider;
+        internal IServiceProvider Services { get; private set; }
 
         private bool m_IsInitialized;
 
@@ -232,12 +232,12 @@ namespace Xarial.XCad.SolidWorks
                     services.Merge(customServices);
                 }
 
-                m_Provider = services.CreateProvider();
-                m_Logger = m_Provider.GetService<IXLogger>();
+                Services = services.CreateProvider();
+                m_Logger = Services.GetService<IXLogger>();
 
                 Documents = new SwDocumentCollection(this, m_Logger);
 
-                var geomBuilderDocsProvider = m_Provider.GetService<IMemoryGeometryBuilderDocumentProvider>();
+                var geomBuilderDocsProvider = Services.GetService<IMemoryGeometryBuilderDocumentProvider>();
 
                 MemoryGeometryBuilder = new SwMemoryGeometryBuilder(this, geomBuilderDocsProvider);
             }
@@ -373,6 +373,7 @@ namespace Xarial.XCad.SolidWorks
         {
             collection.AddOrReplace((Func<IXLogger>)(() => new TraceLogger("xCAD.SwApplication")));
             collection.AddOrReplace((Func<IMemoryGeometryBuilderDocumentProvider>)(() => new DefaultMemoryGeometryBuilderDocumentProvider(this)));
+            collection.AddOrReplace<IFilePathResolver>(() => new SwFilePathResolver(this));
         }
     }
 

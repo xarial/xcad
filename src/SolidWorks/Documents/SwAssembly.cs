@@ -26,7 +26,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public IXComponentRepository Components { get; }
         
-        internal SwAssembly(IAssemblyDoc assembly, ISwApplication app, IXLogger logger, bool isCreated)
+        internal SwAssembly(IAssemblyDoc assembly, SwApplication app, IXLogger logger, bool isCreated)
             : base((IModelDoc2)assembly, app, logger, isCreated)
         {
             Components = new SwAssemblyComponentCollection(this);

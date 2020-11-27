@@ -73,9 +73,9 @@ namespace Xarial.XCad.SolidWorks.Data
 
         private readonly CustomPropertiesEventsHelper m_EventsHelper;
 
-        private ISwDocument m_Doc;
+        private SwDocument m_Doc;
 
-        internal SwCustomPropertiesCollection(ISwDocument doc, string confName) 
+        internal SwCustomPropertiesCollection(SwDocument doc, string confName) 
         {
             m_Doc = doc;
             

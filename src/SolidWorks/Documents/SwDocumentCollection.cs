@@ -47,7 +47,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         
         private const int S_OK = 0;
 
-        private readonly ISwApplication m_App;
+        private readonly SwApplication m_App;
         private readonly SldWorks m_SwApp;
         private readonly Dictionary<IModelDoc2, SwDocument> m_Documents;
         private readonly IXLogger m_Logger;
@@ -101,7 +101,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        internal SwDocumentCollection(ISwApplication app, IXLogger logger)
+        internal SwDocumentCollection(SwApplication app, IXLogger logger)
         {
             m_Lock = new object();
 

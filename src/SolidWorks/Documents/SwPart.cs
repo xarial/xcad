@@ -46,7 +46,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        internal SwPart(IPartDoc part, ISwApplication app, IXLogger logger, bool isCreated)
+        internal SwPart(IPartDoc part, SwApplication app, IXLogger logger, bool isCreated)
             : base((IModelDoc2)part, app, logger, isCreated)
         {
             m_CutListRebuild = new CutListRebuildEventsHandler(this);
