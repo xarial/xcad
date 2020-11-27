@@ -517,7 +517,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                     }
                     else if (docType == swDocumentTypes_e.swDocASSEMBLY)
                     {
-                        opts |= swOpenDocOptions_e.swOpenDocOptions_LoadLightweight;
+                        opts |= swOpenDocOptions_e.swOpenDocOptions_OverrideDefaultLoadLightweight | swOpenDocOptions_e.swOpenDocOptions_LoadLightweight;
                     }
                     else if (docType == swDocumentTypes_e.swDocPART)
                     {
