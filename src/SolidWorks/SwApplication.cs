@@ -374,6 +374,18 @@ namespace Xarial.XCad.SolidWorks
             collection.AddOrReplace((Func<IXLogger>)(() => new TraceLogger("xCAD.SwApplication")));
             collection.AddOrReplace((Func<IMemoryGeometryBuilderDocumentProvider>)(() => new DefaultMemoryGeometryBuilderDocumentProvider(this)));
         }
+
+        public IXProgress CreateProgress()
+        {
+            if (Sw.GetUserProgressBar(out UserProgressBar prgBar))
+            {
+                return new SwProgress(prgBar);
+            }
+            else 
+            {
+                throw new Exception("Failed to create progress");
+            }
+        }
     }
 
     public static class SwApplicationExtension 
