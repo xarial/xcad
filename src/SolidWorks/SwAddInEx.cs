@@ -166,10 +166,9 @@ namespace Xarial.XCad.SolidWorks
                     app.SetAddinCallbackInfo(0, this, AddInId);
                 }
 
-                var swApp = new SwApplication(app);
-                m_Application = swApp;
+                m_Application = new SwApplication(app);
 
-                (Application.Sw as SldWorks).OnIdleNotify += OnLoadFirstIdleNotify;
+                m_Application.FirstStartupCompleted += OnStartupCompleted;
 
                 var svcCollection = GetServicesCollection();
 
@@ -180,7 +179,7 @@ namespace Xarial.XCad.SolidWorks
 
                 Logger = m_SvcProvider.GetService<IXLogger>();
 
-                swApp.Init(svcCollection);
+                m_Application.Init(svcCollection);
 
                 Logger.Log("Loading add-in");
 
@@ -198,6 +197,12 @@ namespace Xarial.XCad.SolidWorks
                 Logger.Log(ex);
                 return false;
             }
+        }
+
+        private void OnStartupCompleted(SwApplication app)
+        {
+            m_Application.FirstStartupCompleted -= OnStartupCompleted;
+            StartupCompleted?.Invoke(this);
         }
 
         private IXServiceCollection GetServicesCollection()
@@ -488,33 +493,7 @@ namespace Xarial.XCad.SolidWorks
                     });
             }
         }
-
-        private int OnLoadFirstIdleNotify()
-        {
-            const int S_OK = 0;
-
-            var continueListening = false;
-
-            if (StartupCompleted != null)
-            {
-                if (Application.Sw.StartupProcessCompleted)
-                {
-                    StartupCompleted?.Invoke(this);
-                }
-                else
-                {
-                    continueListening = true;
-                }
-            }
-
-            if (!continueListening)
-            {
-                (Application.Sw as SldWorks).OnIdleNotify -= OnLoadFirstIdleNotify;
-            }
-
-            return S_OK;
-        }
-
+        
         public virtual void OnConfigureServices(IXServiceCollection collection)
         {
         }

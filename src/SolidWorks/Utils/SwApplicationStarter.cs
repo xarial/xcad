@@ -23,11 +23,6 @@ namespace Xarial.XCad.SolidWorks.Utils
 {
     internal class SwApplicationStarter : IDisposable
     {
-        #region WinApi
-        [DllImport("user32.dll")]
-        static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
-        #endregion
-
         private readonly ApplicationState_e m_State;
         private readonly SwVersion_e m_Version;
 
@@ -94,23 +89,6 @@ namespace Xarial.XCad.SolidWorks.Utils
                 if (m_State.HasFlag(ApplicationState_e.Hidden)) 
                 {
                     app.Visible = false;
-                }
-
-                do
-                {
-                    if (cancellationToken.IsCancellationRequested)
-                    {
-                        throw new AppStartCancelledByUserException();
-                    }
-
-                    Thread.Sleep(100);
-                }
-                while (!app.StartupProcessCompleted);
-
-                if (m_State.HasFlag(ApplicationState_e.Hidden))
-                {
-                    const int HIDE = 0;
-                    ShowWindow(new IntPtr(app.IFrameObject().GetHWnd()), HIDE);
                 }
 
                 return app;

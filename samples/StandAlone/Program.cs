@@ -37,12 +37,12 @@ namespace StandAlone
         {
             try
             {
-                //var app = SwApplicationFactory.Create(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020,
-                //    ApplicationState_e.Default);
+                var app = SwApplicationFactory.Create(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020,
+                    ApplicationState_e.Default | ApplicationState_e.Hidden);
 
-                var app = SwApplicationFactory.FromProcess(Process.GetProcessesByName("SLDWORKS").First());
+                //var app = SwApplicationFactory.FromProcess(Process.GetProcessesByName("SLDWORKS").First());
 
-                var allComps = (app.Documents.Active as ISwAssembly).Components.Flatten().ToArray();
+                //var allComps = (app.Documents.Active as ISwAssembly).Components.Flatten().ToArray();
 
                 //Progress(app);
 
@@ -67,6 +67,8 @@ namespace StandAlone
             catch 
             {
             }
+
+            Console.ReadLine();
         }
 
         private static void Progress(IXApplication app) 

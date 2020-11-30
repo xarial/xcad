@@ -52,7 +52,14 @@ namespace Xarial.XCad.SolidWorks
     /// <inheritdoc/>
     internal class SwApplication : ISwApplication, IXServiceConsumer
     {
+        #region WinApi
+        [DllImport("user32.dll")]
+        static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+        #endregion
+
         public event ConfigureServicesDelegate ConfigureServices;
+
+        internal event Action<SwApplication> FirstStartupCompleted;
 
         IXDocumentRepository IXApplication.Documents => Documents;
 
@@ -177,6 +184,10 @@ namespace Xarial.XCad.SolidWorks
 
         private bool m_IsInitialized;
 
+        private bool m_HideOnStartup;
+        
+        private bool m_IsStartupNotified;
+
         private ElementCreator<ISldWorks> m_Creator;
 
         internal SwApplication(ISldWorks app, IXServiceCollection customServices) 
@@ -190,7 +201,10 @@ namespace Xarial.XCad.SolidWorks
         /// </summary>
         internal SwApplication(ISldWorks app)
         {
+            m_IsStartupNotified = false;
+
             m_Creator = new ElementCreator<ISldWorks>(CreateInstance, app, true);
+            WatchStartupCompleted((SldWorks)app);
         }
 
         /// <summary>
@@ -198,22 +212,13 @@ namespace Xarial.XCad.SolidWorks
         /// </summary>
         internal SwApplication()
         {
+            m_IsStartupNotified = false;
+
             m_Creator = new ElementCreator<ISldWorks>(CreateInstance, null, false);
+
+            m_Creator.CachedProperties.Set(new ServiceCollection(), nameof(CustomServices));
         }
-
-        event ConfigureServicesDelegate IXServiceConsumer.ConfigureServices
-        {
-            add
-            {
-                throw new NotImplementedException();
-            }
-
-            remove
-            {
-                throw new NotImplementedException();
-            }
-        }
-
+        
         internal void Init(IXServiceCollection customServices)
         {
             if (!m_IsInitialized)
@@ -357,10 +362,64 @@ namespace Xarial.XCad.SolidWorks
 
         private ISldWorks CreateInstance(CancellationToken cancellationToken)
         {
+            m_HideOnStartup = State.HasFlag(ApplicationState_e.Hidden);
+
             using (var appStarter = new SwApplicationStarter(State, Version)) 
             {
-                return appStarter.Start(cancellationToken);
+                var app = appStarter.Start(cancellationToken);
+                WatchStartupCompleted((SldWorks)app);
+                return app;
             }
+        }
+
+        private void WatchStartupCompleted(SldWorks sw) 
+        {
+            sw.OnIdleNotify += OnLoadFirstIdleNotify;
+        }
+
+        private int OnLoadFirstIdleNotify()
+        {
+            const int S_OK = 0;
+
+            Debug.Assert(!m_IsStartupNotified, "This event shoud only be fired once");
+            
+            if (!m_IsStartupNotified)
+            {
+                m_IsStartupNotified = true;
+
+                var continueListening = false;
+
+                if (Sw?.StartupProcessCompleted == true)
+                {
+                    if (m_HideOnStartup)
+                    {
+                        const int HIDE = 0;
+                        ShowWindow(new IntPtr(Sw.IFrameObject().GetHWnd()), HIDE);
+
+                        Sw.Visible = false;
+                    }
+
+                    FirstStartupCompleted?.Invoke(this);
+                }
+                else
+                {
+                    continueListening = true;
+                }
+
+                if (!continueListening)
+                {
+                    if (Sw != null)
+                    {
+                        (Sw as SldWorks).OnIdleNotify -= OnLoadFirstIdleNotify;
+                    }
+                }
+            }
+            else
+            {
+                (Sw as SldWorks).OnIdleNotify -= OnLoadFirstIdleNotify;
+            }
+
+            return S_OK;
         }
 
         private ApplicationState_e GetApplicationState() 

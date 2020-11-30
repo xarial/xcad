@@ -148,17 +148,17 @@ namespace Xarial.XCad.SolidWorks
         /// <summary>
         /// Starts new application
         /// </summary>
-        /// <param name="vers">Version or 0 for the latest</param>
+        /// <param name="vers">Version or null for the latest</param>
         /// <param name="state">State of the application</param>
         /// <param name="cancellationToken">Cancellation token</param>
         /// <returns>Created application</returns>
-        public static ISwApplication Create(SwVersion_e vers = 0,
+        public static ISwApplication Create(SwVersion_e? vers = null,
             ApplicationState_e state = ApplicationState_e.Default,
             CancellationToken? cancellationToken = null)
         {
             var app = PreCreate();
-            
-            app.Version = vers;
+
+            app.Version = vers.HasValue ? vers.Value : 0;
             app.State = state;
 
             var token = CancellationToken.None;
@@ -186,12 +186,17 @@ namespace Xarial.XCad.SolidWorks
 
             var clsid = (string)clsidKey.GetValue("");
 
-            var localServerKey = Registry.ClassesRoot.OpenSubKey(
-                $"CLSID\\{clsid}\\LocalServer32", false);
-
             if (clsid == null)
             {
                 throw new NullReferenceException($"Incorrect registry value, LocalServer32 is missing");
+            }
+
+            var localServerKey = Registry.ClassesRoot.OpenSubKey(
+                $"CLSID\\{clsid}\\LocalServer32", false);
+
+            if (localServerKey == null) 
+            {
+                throw new Exception("Failed to find the class id in the registry. Make sure that application is running as x64 bit process (including 'Prefer 32-bit' option is unchecked in the project settings)");
             }
 
             var swAppPath = (string)localServerKey.GetValue("");
