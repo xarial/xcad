@@ -8,7 +8,7 @@ This page contains list of the most notable changes in the releases of xCAD.NET.
 
 Breaking change is marked with &#x26A0; symbol
 
-## 0.6.10 - November 30, 2020
+## 0.6.10 - December 1, 2020
 
 * &#x26A0; IXComponent::IsResolved replaced with IXComponent::State
 
