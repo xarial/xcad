@@ -267,7 +267,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         public TDocument PreCreate<TDocument>()
              where TDocument : class, IXDocument
         {
-            SwDocument templateDoc = null;
+            SwDocument templateDoc;
 
             if (typeof(IXPart).IsAssignableFrom(typeof(TDocument)))
             {
@@ -294,6 +294,32 @@ namespace Xarial.XCad.SolidWorks.Documents
             templateDoc.SetDispatcher(m_DocsDispatcher);
 
             return templateDoc as TDocument;
+        }
+
+        internal ISwDocument PreCreateFromPath(string path) 
+        {
+            var ext = Path.GetExtension(path);
+
+            ISwDocument doc = null;
+
+            switch (ext.ToLower())
+            {
+                case ".sldprt":
+                    doc = PreCreate<ISwPart>();
+                    break;
+
+                case ".sldasm":
+                    doc = PreCreate<ISwAssembly>();
+                    break;
+
+                case ".slddrw":
+                    doc = PreCreate<ISwDrawing>();
+                    break;
+            }
+
+            doc.Path = path;
+
+            return doc;
         }
         
         public bool TryGet(string name, out IXDocument ent)
@@ -326,6 +352,14 @@ namespace Xarial.XCad.SolidWorks.Documents
         public void RemoveRange(IEnumerable<IXDocument> ents)
         {
             throw new NotImplementedException();
+        }
+
+        internal bool TryFindExistingDocumentByPath(string path, out SwDocument doc)
+        {
+            doc = (SwDocument)this.FirstOrDefault(
+                d => string.Equals(d.Path, path, StringComparison.CurrentCultureIgnoreCase));
+
+            return doc != null;
         }
     }
 }

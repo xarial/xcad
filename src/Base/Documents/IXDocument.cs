@@ -127,6 +127,12 @@ namespace Xarial.XCad.Documents
         /// <param name="access">Access type</param>
         /// <returns>Pointer to the storage</returns>
         IStorage OpenStorage(string name, AccessType_e access);
+
+        /// <summary>
+        /// Returns dependencies of this document
+        /// </summary>
+        /// <remarks>Dependencies might be uncommited if document is loaded view only or in the rapid mode. Use <see cref="IXTransaction.IsCommitted"/> to check the state and call <see cref="IXTransaction.Commit(System.Threading.CancellationToken)"/> to load document if needed</remarks>
+        IXDocument[] Dependencies { get; }
     }
 
     /// <summary>

@@ -6,7 +6,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Xarial.XCad.SolidWorks.Documents;
-using Xarial.XCad.SolidWorks.Documents.Exceptions;
 
 namespace SolidWorks.Tests.Integration
 {
@@ -62,13 +61,48 @@ namespace SolidWorks.Tests.Integration
                 doc2FileName = Path.GetFileName(doc2.Path);
                 doc2Contains = m_App.Documents.Contains(doc2);
 
-                Assert.Throws<ComponentNotLoadedException>(() => { var d = assm.Components["Part1-2"].Document; });
+                var d = assm.Components["Part1-2"].Document;
+
+                Assert.IsTrue(doc1.IsCommitted);
+                Assert.IsTrue(doc2.IsCommitted);
+                Assert.IsTrue(d.IsCommitted);
+                Assert.That(string.Equals(Path.Combine(Path.GetDirectoryName(assm.Path), "Part1.sldprt"), 
+                    d.Path, StringComparison.CurrentCultureIgnoreCase));
             }
 
             Assert.That(doc1FileName.Equals("Part1.sldprt", StringComparison.CurrentCultureIgnoreCase));
             Assert.That(doc2FileName.Equals("SubAssem1.sldasm", StringComparison.CurrentCultureIgnoreCase));
             Assert.IsTrue(doc1Contains);
             Assert.IsTrue(doc2Contains);
+        }
+
+        [Test]
+        public void GetDocumentUncommittedTest() 
+        {
+            using (var doc = OpenDataDocument(@"Assembly2\TopAssem.SLDASM"))
+            {
+                var assm = (ISwAssembly)m_App.Documents.Active;
+
+                var doc1 = assm.Components["Part1-1"].Document;
+                var doc2 = assm.Components["Assem2-1"].Document;
+                var doc3 = assm.Components["Assem2-1"].Children["Part2-1"].Document;
+                var doc4 = assm.Components["Assem2-1"].Children["Part3-1"].Document;
+                var doc5 = assm.Components["Assem1-1"].Document;
+
+                Assert.IsTrue(doc1.IsCommitted);
+                Assert.IsTrue(doc2.IsCommitted);
+                Assert.IsFalse(doc3.IsCommitted);
+                Assert.IsTrue(doc4.IsCommitted);
+                Assert.IsFalse(doc5.IsCommitted);
+
+                Assert.That(doc3 is ISwPart);
+                Assert.That(string.Equals(Path.Combine(Path.GetDirectoryName(assm.Path), "Part2.sldprt"),
+                    doc3.Path, StringComparison.CurrentCultureIgnoreCase));
+
+                Assert.That(doc5 is ISwAssembly);
+                Assert.That(string.Equals(Path.Combine(Path.GetDirectoryName(assm.Path), "Assem1.sldasm"),
+                    doc5.Path, StringComparison.CurrentCultureIgnoreCase));
+            }
         }
 
         [Test]

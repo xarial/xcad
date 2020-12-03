@@ -19,7 +19,6 @@ using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Features;
 using Xarial.XCad.Features.CustomFeature;
 using Xarial.XCad.Geometry;
-using Xarial.XCad.SolidWorks.Documents.Exceptions;
 using Xarial.XCad.SolidWorks.Features;
 using Xarial.XCad.SolidWorks.Geometry;
 using Xarial.XCad.SolidWorks.Services;
@@ -84,7 +83,14 @@ namespace Xarial.XCad.SolidWorks.Documents
                 }
                 else
                 {
-                    throw new ComponentNotLoadedException(Name);
+                    if (((SwDocumentCollection)m_ParentAssembly.App.Documents).TryFindExistingDocumentByPath(Path, out SwDocument doc))
+                    {
+                        return (ISwDocument3D)doc;
+                    }
+                    else 
+                    {
+                        return (ISwDocument3D)((SwDocumentCollection)m_ParentAssembly.App.Documents).PreCreateFromPath(Path);
+                    }
                 }
             }
         }

@@ -34,10 +34,11 @@ namespace Xarial.XCad.Documents
         /// State of this component
         /// </summary>
         ComponentState_e State { get; }
-        
+
         /// <summary>
         /// Document of the component
         /// </summary>
+        /// <remarks>If component is rapid, view only or suppressed document migth not be loaded into the memory. Use <see cref="IXTransaction.IsCommitted"/> to check the state and call <see cref="IXTransaction.Commit(System.Threading.CancellationToken)"/> to load document if needed</remarks>
         IXDocument3D Document { get; }
         
         /// <summary>

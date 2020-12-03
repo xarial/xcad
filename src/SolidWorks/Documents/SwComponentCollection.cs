@@ -26,7 +26,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         IXComponent IXRepository<IXComponent>.this[string name] => this[name];
 
         public ISwComponent this[string name] => (SwComponent)this.Get(name);
-        
+
         public bool TryGet(string name, out IXComponent ent)
         {
             var comp = m_Assm.Assembly.GetComponentByName(name);
@@ -36,7 +36,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                 ent = SwObject.FromDispatch<SwComponent>(comp, m_Assm);
                 return true;
             }
-            else 
+            else
             {
                 ent = null;
                 return false;
@@ -46,8 +46,8 @@ namespace Xarial.XCad.SolidWorks.Documents
         public int Count => GetChildrenCount();
 
         private readonly ISwAssembly m_Assm;
-        
-        internal SwComponentCollection(ISwAssembly assm) 
+
+        internal SwComponentCollection(ISwAssembly assm)
         {
             m_Assm = assm;
         }
@@ -60,9 +60,23 @@ namespace Xarial.XCad.SolidWorks.Documents
         protected abstract IEnumerable<IComponent2> GetChildren();
         protected abstract int GetChildrenCount();
 
-        public IEnumerator<IXComponent> GetEnumerator() => 
-            (GetChildren() ?? new IComponent2[0])
-            .Select(c => SwSelObject.FromDispatch<SwComponent>(c, m_Assm)).GetEnumerator();
+        public IEnumerator<IXComponent> GetEnumerator()
+        {
+            if (m_Assm.IsCommitted)
+            {
+                if (m_Assm.Model.IsOpenedViewOnly())
+                {
+                    throw new Exception("Components cannot be extracted for the Large Design Review assembly");
+                }
+
+                return (GetChildren() ?? new IComponent2[0])
+                    .Select(c => SwSelObject.FromDispatch<SwComponent>(c, m_Assm)).GetEnumerator();
+            }
+            else 
+            {
+                throw new Exception("Assembly is not committed");
+            }
+        }
 
         public void RemoveRange(IEnumerable<IXComponent> ents)
         {

@@ -62,6 +62,12 @@ namespace Xarial.XCad.Services
             CachedProperties = new CachedProperties();
         }
 
+        public void Reset(TElem elem, bool created) 
+        {
+            m_Element = elem;
+            IsCreated = created;
+        }
+
         public TElem Element
         {
             get

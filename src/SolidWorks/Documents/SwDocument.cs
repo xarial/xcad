@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using Xarial.XCad.Annotations;
 using Xarial.XCad.Base;
@@ -138,6 +139,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         IXSelectionRepository IXDocument.Selections => Selections;
         IXDimensionRepository IXDocument.Dimensions => Dimensions;
         IXPropertyRepository IXDocument.Properties => Properties;
+        IXDocument[] IXDocument.Dependencies => Dependencies;
 
         protected readonly IXLogger m_Logger;
 
@@ -337,7 +339,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public ITagsManager Tags { get; }
 
-        private readonly ElementCreator<IModelDoc2> m_Creator;
+        protected readonly ElementCreator<IModelDoc2> m_Creator;
         
         internal SwDocument(IModelDoc2 model, SwApplication app, IXLogger logger) 
             : this(model, app, logger, true)
@@ -437,7 +439,45 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
 
         internal protected abstract swDocumentTypes_e? DocumentType { get; }
-        
+
+        public ISwDocument[] Dependencies 
+        {
+            get 
+            {
+                if (!string.IsNullOrEmpty(Path))
+                {
+                    var depsData = App.Sw.GetDocumentDependencies2(Path, true, true, false) as string[];
+
+                    if (depsData?.Any() == true)
+                    {
+                        var deps = new ISwDocument[depsData.Length / 2];
+
+                        for (int i = 1; i < depsData.Length; i += 2) 
+                        {
+                            var path = depsData[i];
+
+                            if (!((SwDocumentCollection)App.Documents).TryFindExistingDocumentByPath(path, out SwDocument refDoc))
+                            {
+                                refDoc = (SwDocument)((SwDocumentCollection)App.Documents).PreCreateFromPath(path);
+                            }
+
+                            deps[(i - 1) / 2] = refDoc;
+                        }
+
+                        return deps;
+                    }
+                    else 
+                    {
+                        return new ISwDocument[0];
+                    }
+                }
+                else 
+                {
+                    throw new Exception("Dependencies can only be extracted for the document with specified path");
+                }
+            }
+        }
+
         private IModelDoc2 CreateNewDocument() 
         {
             var docTemplate = Template;
@@ -524,7 +564,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                         //There is no rapid option for SOLIDWORKS part document
                     }
                 }
-
+                
                 int warns = -1;
                 model = App.Sw.OpenDoc6(Path, (int)docType, (int)opts, "", ref errorCode, ref warns);
             }
@@ -679,8 +719,13 @@ namespace Xarial.XCad.SolidWorks.Documents
             return new Sw3rdPartyStorage(Model, name, access);
         }
 
-        public void Commit(CancellationToken cancellationToken)
+        public virtual void Commit(CancellationToken cancellationToken)
         {
+            if (((SwDocumentCollection)App.Documents).TryFindExistingDocumentByPath(Path, out _)) 
+            {
+                throw new DocumentAlreadyOpenedException(Path);
+            }
+
             m_DocsDispatcher.BeginDispatch(this);
             m_Creator.Create(cancellationToken);
             m_DocsDispatcher.EndDispatch(this);
@@ -716,6 +761,19 @@ namespace Xarial.XCad.SolidWorks.Documents
                         return null;
                     }
                 }
+            }
+        }
+
+        public override void Commit(CancellationToken cancellationToken)
+        {
+            if (((SwDocumentCollection)App.Documents).TryFindExistingDocumentByPath(Path, out SwDocument curDoc))
+            {
+                m_SpecificDoc = curDoc;
+                m_Creator.Reset(curDoc.Model, true);
+            }
+            else
+            {
+                base.Commit(cancellationToken);
             }
         }
 

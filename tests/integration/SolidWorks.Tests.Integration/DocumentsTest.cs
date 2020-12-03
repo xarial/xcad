@@ -373,5 +373,72 @@ namespace SolidWorks.Tests.Integration
             Assert.AreEqual("Test2", txt);
             Assert.AreEqual(25, number);
         }
+
+        [Test]
+        public void DocumentDependenciesUnloadedTest() 
+        {
+            var assm = m_App.Documents.PreCreate<ISwAssembly>();
+            assm.Path = GetFilePath(@"Assembly2\TopAssem.SLDASM");
+
+            var deps = assm.Dependencies;
+
+            var dir = Path.GetDirectoryName(assm.Path);
+
+            Assert.AreEqual(6, deps.Length);
+            Assert.That(deps.All(d => !d.IsCommitted));
+            Assert.That(deps.Any(d => string.Equals(d.Path, Path.Combine(dir, "Part2.SLDPRT"))));
+            Assert.That(deps.Any(d => string.Equals(d.Path, Path.Combine(dir, "Part3.SLDPRT"))));
+            Assert.That(deps.Any(d => string.Equals(d.Path, Path.Combine(dir, "Part4-1 (XYZ).SLDPRT"))));
+            Assert.That(deps.Any(d => string.Equals(d.Path, Path.Combine(dir, "Assem1.SLDASM"))));
+            Assert.That(deps.Any(d => string.Equals(d.Path, Path.Combine(dir, "Assem2.SLDASM"))));
+            Assert.That(deps.Any(d => string.Equals(d.Path, Path.Combine(dir, "Part1.SLDPRT"))));
+        }
+
+        [Test]
+        public void DocumentDependenciesLoadedTest()
+        {
+            string dir = "";
+            Dictionary<string, bool> depsData;
+
+            using (var assm = OpenDataDocument(@"Assembly2\TopAssem.SLDASM")) 
+            {
+                var deps = m_App.Documents.Active.Dependencies;
+                depsData = deps.ToDictionary(d => d.Path, d => d.IsCommitted, StringComparer.CurrentCultureIgnoreCase);
+
+                dir = Path.GetDirectoryName(m_App.Documents.Active.Path);
+            }
+            
+            Assert.AreEqual(6, depsData.Count);
+            Assert.IsFalse(depsData[Path.Combine(dir, "Part2.SLDPRT")]);
+            Assert.IsTrue(depsData[Path.Combine(dir, "Part3.SLDPRT")]);
+            Assert.IsTrue(depsData[Path.Combine(dir, "Part4-1 (XYZ).SLDPRT")]);
+            Assert.IsFalse(depsData[Path.Combine(dir, "Assem1.SLDASM")]);
+            Assert.IsTrue(depsData[Path.Combine(dir, "Assem2.SLDASM")]);
+            Assert.IsTrue(depsData[Path.Combine(dir, "Part1.SLDPRT")]);
+        }
+
+        [Test]
+        public void OpenConflictTest()
+        {
+            var filePath = GetFilePath(@"Assembly1\Part1.SLDPRT");
+
+            using (var doc = OpenDataDocument(filePath))
+            {
+                var p0 = m_App.Documents.Active;
+
+                var p1 = m_App.Documents.PreCreate<ISwPart>();
+                p1.Path = filePath;
+
+                Assert.Throws<DocumentAlreadyOpenedException>(() => p1.Commit());
+
+                var p2 = m_App.Documents.PreCreate<IXUnknownDocument>();
+                p2.Path = filePath;
+                p2.Commit();
+
+                var p3 = p2.GetSpecific();
+
+                Assert.AreEqual(p0, p3);
+            }
+        }
     }
 }
