@@ -83,13 +83,24 @@ namespace Xarial.XCad.SolidWorks.Documents
                 }
                 else
                 {
-                    if (((SwDocumentCollection)m_ParentAssembly.App.Documents).TryFindExistingDocumentByPath(Path, out SwDocument doc))
+                    string path;
+
+                    try
+                    {
+                        path = Path;
+                    }
+                    catch 
+                    {
+                        path = CachedPath;
+                    }
+
+                    if (((SwDocumentCollection)m_ParentAssembly.App.Documents).TryFindExistingDocumentByPath(path, out SwDocument doc))
                     {
                         return (ISwDocument3D)doc;
                     }
                     else 
                     {
-                        return (ISwDocument3D)((SwDocumentCollection)m_ParentAssembly.App.Documents).PreCreateFromPath(Path);
+                        return (ISwDocument3D)((SwDocumentCollection)m_ParentAssembly.App.Documents).PreCreateFromPath(path);
                     }
                 }
             }
