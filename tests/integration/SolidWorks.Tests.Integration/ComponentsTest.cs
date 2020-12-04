@@ -123,5 +123,19 @@ namespace SolidWorks.Tests.Integration
             Assert.That(featNames.SequenceEqual(
                 new string[] { "Favorites", "Selection Sets", "Sensors", "Design Binder", "Annotations", "Notes", "Notes1___EndTag___", "Surface Bodies", "Solid Bodies", "Lights, Cameras and Scene", "Ambient", "Directional1", "Directional2", "Directional3", "Markups", "Equations", "Material <not specified>", "Front Plane", "Top Plane", "Right Plane", "Origin", "Sketch1", "Boss-Extrude1" }));
         }
+
+        [Test]
+        public void VirtualComponentsTest() 
+        {
+            string[] compNames;
+
+            using (var doc = OpenDataDocument(@"VirtAssem1.SLDASM"))
+            {
+                compNames = ((ISwAssembly)m_App.Documents.Active).Components.Select(c => c.Name).ToArray();
+            }
+
+            Assert.That(compNames.OrderBy(c => c).SequenceEqual(
+                new string[] { "Part1^VirtAssem1-1", "Assem2^VirtAssem1-1" }.OrderBy(c => c)));
+        }
     }
 }

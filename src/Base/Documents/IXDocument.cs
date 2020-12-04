@@ -93,6 +93,17 @@ namespace Xarial.XCad.Documents
         void Close();
 
         /// <summary>
+        /// Saves this document
+        /// </summary>
+        void Save();
+
+        /// <summary>
+        /// Saves this document to a new location
+        /// </summary>
+        /// <param name="filePath"></param>
+        void SaveAs(string filePath);
+
+        /// <summary>
         /// Collection of features of this document
         /// </summary>
         IXFeatureRepository Features { get; }

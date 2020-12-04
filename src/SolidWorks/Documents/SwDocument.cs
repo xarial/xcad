@@ -28,6 +28,7 @@ using Xarial.XCad.SolidWorks.Annotations;
 using Xarial.XCad.SolidWorks.Data;
 using Xarial.XCad.SolidWorks.Data.EventHandlers;
 using Xarial.XCad.SolidWorks.Documents.EventHandlers;
+using Xarial.XCad.SolidWorks.Documents.Exceptions;
 using Xarial.XCad.SolidWorks.Documents.Services;
 using Xarial.XCad.SolidWorks.Features;
 using Xarial.XCad.SolidWorks.Utils;
@@ -446,7 +447,16 @@ namespace Xarial.XCad.SolidWorks.Documents
             {
                 if (!string.IsNullOrEmpty(Path))
                 {
-                    var depsData = App.Sw.GetDocumentDependencies2(Path, true, true, false) as string[];
+                    string[] depsData;
+
+                    if (IsCommitted)
+                    {
+                        depsData = Model.Extension.GetDependencies(true, true, false, true, true) as string[];
+                    }
+                    else 
+                    {
+                        depsData = App.Sw.GetDocumentDependencies2(Path, true, true, false) as string[];
+                    }
 
                     if (depsData?.Any() == true)
                     {
@@ -729,6 +739,48 @@ namespace Xarial.XCad.SolidWorks.Documents
             m_DocsDispatcher.BeginDispatch(this);
             m_Creator.Create(cancellationToken);
             m_DocsDispatcher.EndDispatch(this);
+        }
+
+        public void Save()
+        {
+            if (!string.IsNullOrEmpty(Path))
+            {
+                int errs = -1;
+                int warns = -1;
+
+                if (!Model.Save3((int)swSaveAsOptions_e.swSaveAsOptions_Silent, ref errs, ref warns))
+                {
+                    throw new SaveDocumentFailedException((swFileSaveError_e)errs);
+                }
+            }
+            else 
+            {
+                throw new SaveNeverSavedDocumentException();
+            }
+        }
+
+        public void SaveAs(string filePath)
+        {
+            int errs = -1;
+            int warns = -1;
+
+            bool res;
+
+            if (App.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2019, 1))
+            {
+                res = Model.Extension.SaveAs2(filePath, (int)swSaveAsVersion_e.swSaveAsCurrentVersion,
+                    (int)swSaveAsOptions_e.swSaveAsOptions_Silent, null, "", false, ref errs, ref warns);
+            }
+            else 
+            {
+                res = Model.Extension.SaveAs(filePath, (int)swSaveAsVersion_e.swSaveAsCurrentVersion,
+                    (int)swSaveAsOptions_e.swSaveAsOptions_Silent, null, ref errs, ref warns);
+            }
+
+            if (!res)
+            {
+                throw new SaveDocumentFailedException((swFileSaveError_e)errs);
+            }
         }
     }
 

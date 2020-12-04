@@ -49,5 +49,23 @@ namespace SolidWorks.Tests.Integration
 
             Assert.That(entryPoints.SequenceEqual(new string[] { "VbaMacro1.main", "VbaMacro1.Func1", "VbaMacro1.Func3", "Module1.Func4" }));
         }
+
+        [Test]
+        public void RunVsta1Macro() 
+        {
+            string val;
+
+            using (var doc = NewDocument(Interop.swconst.swDocumentTypes_e.swDocPART))
+            {
+                var macro = (ISwVstaMacro)m_App.OpenMacro(GetFilePath(@"VstaMacro\Vsta1Macro\SwMacro\bin\Debug\Vsta1Macro.dll"));
+                macro.Version = VstaMacroVersion_e.Vsta1;
+
+                var proc = macro.EntryPoints.First();
+                macro.Run(proc, Xarial.XCad.Enums.MacroRunOptions_e.UnloadAfterRun);
+                m_App.Sw.IActiveDoc2.Extension.CustomPropertyManager[""].Get5("Field1", false, out val, out _, out _);
+            }
+
+            Assert.AreEqual("VstaMacroText", val);
+        }
     }
 }

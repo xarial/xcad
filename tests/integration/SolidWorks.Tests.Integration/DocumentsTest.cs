@@ -13,6 +13,7 @@ using Xarial.XCad.Data.Enums;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.SolidWorks.Documents;
+using Xarial.XCad.SolidWorks.Documents.Exceptions;
 
 namespace SolidWorks.Tests.Integration
 {
@@ -439,6 +440,87 @@ namespace SolidWorks.Tests.Integration
 
                 Assert.AreEqual(p0, p3);
             }
+        }
+
+        [Test]
+        public void SaveAsTest() 
+        {
+            var tempFilePath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString() + ".sldprt");
+
+            var curDocFilePath = "";
+
+            using (var doc = NewDocument(swDocumentTypes_e.swDocPART)) 
+            {
+                var part = m_App.Documents.Active;
+                part.SaveAs(tempFilePath);
+
+                curDocFilePath = m_App.Sw.IActiveDoc2.GetPathName();
+            }
+
+            var exists = File.Exists(tempFilePath);
+
+            File.Delete(tempFilePath);
+
+            Assert.IsTrue(exists);
+            Assert.That(string.Equals(tempFilePath, curDocFilePath, StringComparison.CurrentCultureIgnoreCase));
+        }
+
+        [Test]
+        public void SaveTest() 
+        {
+            var tempFilePath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString() + ".sldprt");
+
+            File.Copy(GetFilePath("Configs1.SLDPRT"), tempFilePath);
+
+            bool isDirty;
+
+            using (var doc = OpenDataDocument(tempFilePath, false))
+            {
+                var part = m_App.Documents.Active;
+
+                part.Model.SetSaveFlag();
+
+                part.Save();
+
+                isDirty = part.Model.GetSaveFlag();
+            }
+
+            Exception saveEx1 = null;
+
+            using (var doc = NewDocument(swDocumentTypes_e.swDocPART))
+            {
+                var part = m_App.Documents.Active;
+                try
+                {
+                    part.Save();
+                }
+                catch (Exception ex)
+                {
+                    saveEx1 = ex;
+                }
+            }
+
+            Exception saveEx2 = null;
+
+            using (var doc = OpenDataDocument(tempFilePath, true))
+            {
+                var part = m_App.Documents.Active;
+                try
+                {
+                    part.Save();
+                }
+                catch (Exception ex)
+                {
+                    saveEx2 = ex;
+                }
+            }
+
+            File.Delete(tempFilePath);
+
+            Assert.IsFalse(isDirty);
+            Assert.That(saveEx1 is SaveNeverSavedDocumentException);
+            Assert.That(saveEx2 is SaveDocumentFailedException);
+            Assert.That((saveEx2 as SaveDocumentFailedException).ErrorCode.HasFlag(swFileSaveError_e.swReadOnlySaveError));
         }
     }
 }
