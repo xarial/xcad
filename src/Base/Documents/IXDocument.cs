@@ -23,6 +23,11 @@ namespace Xarial.XCad.Documents
     public interface IXDocument : IXTransaction
     {
         /// <summary>
+        /// Current version of the document
+        /// </summary>
+        IXVersion Version { get; }
+
+        /// <summary>
         /// Fired when user data stream is available for reading
         /// </summary>
         event DataStoreAvailableDelegate StreamReadAvailable;

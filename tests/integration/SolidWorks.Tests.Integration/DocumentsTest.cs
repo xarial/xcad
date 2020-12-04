@@ -12,15 +12,17 @@ using Xarial.XCad.Base;
 using Xarial.XCad.Data.Enums;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Enums;
+using Xarial.XCad.SolidWorks;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Documents.Exceptions;
+using Xarial.XCad.SolidWorks.Enums;
 
 namespace SolidWorks.Tests.Integration
 {
     public class DocumentsTest : IntegrationTests
     {
         [Test]
-        public void OpenDocumentPreCreateTest()
+        public void OpenDocumentPreCreateUnknownTest()
         {
             var doc = m_App.Documents.PreCreate<ISwDocument>();
 
@@ -35,13 +37,36 @@ namespace SolidWorks.Tests.Integration
             var isPart = doc.Model is IPartDoc;
             var isInCollection = m_App.Documents.Contains(doc);
             var type = doc.GetType();
+            var contains1 = m_App.Documents.Contains(doc);
 
             doc.Close();
+
+            var contains2 = m_App.Documents.Contains(doc);
 
             Assert.That(isReadOnly);
             Assert.That(isPart);
             Assert.That(isInCollection);
             Assert.That(typeof(ISwPart).IsAssignableFrom(type));
+            Assert.IsTrue(contains1);
+            Assert.IsFalse(contains2);
+        }
+
+        [Test]
+        public void OpenDocumentPreCreateTest()
+        {
+            var doc = m_App.Documents.PreCreate<ISwPart>();
+            doc.Path = GetFilePath("Features1.SLDPRT");
+            
+            doc.Commit();
+
+            var contains1 = m_App.Documents.Contains(doc);
+
+            doc.Close();
+
+            var contains2 = m_App.Documents.Contains(doc);
+
+            Assert.IsTrue(contains1);
+            Assert.IsFalse(contains2);
         }
 
         [Test]
@@ -521,6 +546,94 @@ namespace SolidWorks.Tests.Integration
             Assert.That(saveEx1 is SaveNeverSavedDocumentException);
             Assert.That(saveEx2 is SaveDocumentFailedException);
             Assert.That((saveEx2 as SaveDocumentFailedException).ErrorCode.HasFlag(swFileSaveError_e.swReadOnlySaveError));
+        }
+
+        [Test]
+        public void NewDocumentTest() 
+        {
+            var part1 = m_App.Documents.PreCreate<ISwPart>();
+            part1.Template = GetFilePath("Template_2020.prtdot");
+            part1.Commit();
+
+            var contains1 = m_App.Documents.Contains(part1);
+
+            var featName = part1.Model.Extension.GetLastFeatureAdded().Name;
+
+            part1.Close();
+
+            var contains2 = m_App.Documents.Contains(part1);
+
+            var part2 = m_App.Documents.PreCreate<ISwPart>();
+            part2.Commit();
+
+            var contains3 = m_App.Documents.Contains(part2);
+
+            var model = part2.Model;
+
+            part2.Close();
+
+            var contains4 = m_App.Documents.Contains(part2);
+
+            var part3unk = m_App.Documents.PreCreate<IXUnknownDocument>();
+            part3unk.Template = GetFilePath("Template_2020.prtdot");
+            part3unk.Commit();
+            var part3 = part3unk.GetSpecific();
+
+            var contains5 = m_App.Documents.Contains(part3);
+
+            part3.Close();
+
+            var contains6 = m_App.Documents.Contains(part3);
+
+            Assert.AreEqual("__TemplateSketch__", featName);
+            Assert.IsNotNull(model);
+            Assert.IsTrue(contains1);
+            Assert.IsFalse(contains2);
+            Assert.IsTrue(contains3);
+            Assert.IsFalse(contains4);
+            Assert.IsTrue(contains5);
+            Assert.IsFalse(contains6);
+        }
+
+        [Test]
+        public void VersionTest() 
+        {
+            var part1 = m_App.Documents.PreCreate<ISwPart>();
+            part1.Path = GetFilePath("Part_2020.sldprt");
+
+            var v1 = part1.Version;
+            ISwVersion v2;
+            ISwVersion v3;
+            ISwVersion v4;
+            ISwVersion v5;
+
+            using (var doc = OpenDataDocument("Part_2020.sldprt")) 
+            {
+                var part2 = m_App.Documents.Active;
+                v2 = part2.Version;
+            }
+
+            using (var doc = NewDocument(swDocumentTypes_e.swDocPART)) 
+            {
+                var part3 = m_App.Documents.Active;
+                v3 = part3.Version;
+            }
+
+            using (var doc = OpenDataDocument("Part_2019.sldprt"))
+            {
+                var part4 = m_App.Documents.Active;
+                v4 = part4.Version;
+            }
+
+            var part5 = m_App.Documents.PreCreate<ISwPart>();
+            part5.Path = GetFilePath("Part_2019.sldprt");
+            v5 = part5.Version;
+
+            Assert.AreEqual(SwVersion_e.Sw2020, v1.Major);
+            Assert.AreEqual(SwVersion_e.Sw2020, v2.Major);
+            Assert.AreEqual(SwVersion_e.Sw2020, v3.Major);
+            Assert.AreEqual(SwVersion_e.Sw2019, v4.Major);
+            Assert.AreEqual(SwVersion_e.Sw2019, v5.Major);
         }
     }
 }

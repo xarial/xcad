@@ -82,9 +82,13 @@ namespace Xarial.XCad.SolidWorks.Documents.Services
                     m_ModelsDispatchQueue.RemoveAt(index);
                 }
 
-                if (doc is SwUnknownDocument) 
+                if (doc is SwUnknownDocument)
                 {
                     doc = (SwDocument)(doc as SwUnknownDocument).GetSpecific();
+                }
+                else 
+                {
+                    doc.AttachEvents();
                 }
 
                 NotifyDispatchedSafe(doc);

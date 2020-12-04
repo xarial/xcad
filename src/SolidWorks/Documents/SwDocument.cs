@@ -30,6 +30,7 @@ using Xarial.XCad.SolidWorks.Data.EventHandlers;
 using Xarial.XCad.SolidWorks.Documents.EventHandlers;
 using Xarial.XCad.SolidWorks.Documents.Exceptions;
 using Xarial.XCad.SolidWorks.Documents.Services;
+using Xarial.XCad.SolidWorks.Enums;
 using Xarial.XCad.SolidWorks.Features;
 using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.Toolkit.Data;
@@ -43,6 +44,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         new ISwSelectionCollection Selections { get; }
         new ISwDimensionsCollection Dimensions { get; }
         new ISwCustomPropertiesCollection Properties { get; }
+        new ISwVersion Version { get; }
     }
 
     [DebuggerDisplay("{" + nameof(Title) + "}")]
@@ -58,7 +60,10 @@ namespace Xarial.XCad.SolidWorks.Documents
                 { ".sldasm", swDocumentTypes_e.swDocASSEMBLY },
                 { ".slddrw", swDocumentTypes_e.swDocDRAWING },
                 { ".sldlfp", swDocumentTypes_e.swDocPART },
-                { ".sldblk", swDocumentTypes_e.swDocPART }
+                { ".sldblk", swDocumentTypes_e.swDocPART },
+                { ".prtdot", swDocumentTypes_e.swDocPART },
+                { ".asmdot", swDocumentTypes_e.swDocASSEMBLY },
+                { ".drwdot", swDocumentTypes_e.swDocDRAWING }
             };
         }
 
@@ -141,6 +146,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         IXDimensionRepository IXDocument.Dimensions => Dimensions;
         IXPropertyRepository IXDocument.Properties => Properties;
         IXDocument[] IXDocument.Dependencies => Dependencies;
+        IXVersion IXDocument.Version => Version;
 
         protected readonly IXLogger m_Logger;
 
@@ -341,7 +347,9 @@ namespace Xarial.XCad.SolidWorks.Documents
         public ITagsManager Tags { get; }
 
         protected readonly ElementCreator<IModelDoc2> m_Creator;
-        
+
+        private bool m_AreEventsAttached;
+
         internal SwDocument(IModelDoc2 model, SwApplication app, IXLogger logger) 
             : this(model, app, logger, true)
         {
@@ -373,6 +381,8 @@ namespace Xarial.XCad.SolidWorks.Documents
             m_StorageWriteAvailableHandler = new StorageWriteAvailableEventsHandler(this);
             m_DocumentRebuildEventHandler = new DocumentRebuildEventsHandler(this);
             m_DocumentSavingEventHandler = new DocumentSavingEventHandler(this);
+
+            m_AreEventsAttached = false;
 
             if (IsCommitted)
             {
@@ -488,12 +498,117 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
+        public ISwVersion Version 
+        {
+            get 
+            {
+                string[] versHistory;
+
+                if (!string.IsNullOrEmpty(Path))
+                {
+                    versHistory = App.Sw.VersionHistory(Path) as string[];
+                }
+                else
+                {
+                    if (IsCommitted)
+                    {
+                        versHistory = Model.VersionHistory() as string[];
+                    }
+                    else
+                    {
+                        throw new Exception("Path is not specified");
+                    }
+                }
+
+                var vers = GetVersion(versHistory);
+
+                return SwApplicationFactory.CreateVersion(vers);
+            }
+        }
+
+        private SwVersion_e GetVersion(string[] versHistory)
+        {
+            if (versHistory?.Any() == true)
+            {
+                var latestVers = versHistory.Last();
+
+                var majorRev = int.Parse(latestVers.Substring(0, latestVers.IndexOf('[')));
+
+                switch (majorRev)
+                {
+                    case 44:
+                    case 243:
+                    case 483:
+                    case 629:
+                    case 822:
+                    case 1008:
+                    case 1137:
+                        return SwVersion_e.SwPrior2000;
+                    case 1500:
+                        return SwVersion_e.Sw2000;
+                    case 1750:
+                        return SwVersion_e.Sw2001;
+                    case 1950:
+                        return SwVersion_e.Sw2001Plus;
+                    case 2200:
+                        return SwVersion_e.Sw2003;
+                    case 2500:
+                        return SwVersion_e.Sw2004;
+                    case 2800:
+                        return SwVersion_e.Sw2005;
+                    case 3100:
+                        return SwVersion_e.Sw2006;
+                    case 3400:
+                        return SwVersion_e.Sw2007;
+                    case 3800:
+                        return SwVersion_e.Sw2008;
+                    case 4100:
+                        return SwVersion_e.Sw2009;
+                    case 4400:
+                        return SwVersion_e.Sw2010;
+                    case 4700:
+                        return SwVersion_e.Sw2011;
+                    case 5000:
+                        return SwVersion_e.Sw2012;
+                    case 6000:
+                        return SwVersion_e.Sw2013;
+                    case 7000:
+                        return SwVersion_e.Sw2014;
+                    case 8000:
+                        return SwVersion_e.Sw2015;
+                    case 9000:
+                        return SwVersion_e.Sw2016;
+                    case 10000:
+                        return SwVersion_e.Sw2017;
+                    case 11000:
+                        return SwVersion_e.Sw2018;
+                    case 12000:
+                        return SwVersion_e.Sw2019;
+                    case 13000:
+                        return SwVersion_e.Sw2020;
+                    case 14000:
+                        return SwVersion_e.Sw2021;
+                    default:
+                        throw new NotSupportedException($"'{latestVers}' version is not recognized");
+                }
+            }
+            else
+            {
+                throw new NullReferenceException($"Version information is not found");
+            }
+        }
+
         private IModelDoc2 CreateNewDocument() 
         {
             var docTemplate = Template;
 
             if (string.IsNullOrEmpty(docTemplate))
             {
+                if (!DocumentType.HasValue) 
+                {
+                    throw new Exception("Cannot find the default template for unknown document type");
+                }
+
                 var useDefTemplates = App.Sw.GetUserPreferenceToggle((int)swUserPreferenceToggle_e.swAlwaysUseDefaultTemplates);
 
                 try
@@ -655,25 +770,35 @@ namespace Xarial.XCad.SolidWorks.Documents
                 m_StreamWriteAvailableHandler.Dispose();
                 m_StorageReadAvailableHandler.Dispose();
                 m_StorageWriteAvailableHandler.Dispose();
+
                 DetachEvents();
             }
         }
 
-        private void AttachEvents()
+        internal void AttachEvents()
         {
-            switch (Model)
+            if (!m_AreEventsAttached)
             {
-                case PartDoc part:
-                    part.DestroyNotify2 += OnDestroyNotify;
-                    break;
+                m_AreEventsAttached = true;
 
-                case AssemblyDoc assm:
-                    assm.DestroyNotify2 += OnDestroyNotify;
-                    break;
+                switch (Model)
+                {
+                    case PartDoc part:
+                        part.DestroyNotify2 += OnDestroyNotify;
+                        break;
 
-                case DrawingDoc drw:
-                    drw.DestroyNotify2 += OnDestroyNotify;
-                    break;
+                    case AssemblyDoc assm:
+                        assm.DestroyNotify2 += OnDestroyNotify;
+                        break;
+
+                    case DrawingDoc drw:
+                        drw.DestroyNotify2 += OnDestroyNotify;
+                        break;
+                }
+            }
+            else 
+            {
+                Debug.Assert(false, "Events already attached");
             }
         }
 
@@ -803,10 +928,29 @@ namespace Xarial.XCad.SolidWorks.Documents
                 }
                 else 
                 {
-                    if (m_NativeFileExts.TryGetValue(
-                        System.IO.Path.GetExtension(Path), out swDocumentTypes_e type))
+                    if (!string.IsNullOrEmpty(Path))
                     {
-                        return type;
+                        if (m_NativeFileExts.TryGetValue(
+                            System.IO.Path.GetExtension(Path), out swDocumentTypes_e type))
+                        {
+                            return type;
+                        }
+                        else
+                        {
+                            return null;
+                        }
+                    }
+                    else if (!string.IsNullOrEmpty(Template))
+                    {
+                        if (m_NativeFileExts.TryGetValue(
+                            System.IO.Path.GetExtension(Template), out swDocumentTypes_e type))
+                        {
+                            return type;
+                        }
+                        else
+                        {
+                            return null;
+                        }
                     }
                     else 
                     {

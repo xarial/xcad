@@ -24,9 +24,9 @@ namespace Xarial.XCad.SolidWorks.Utils
     internal class SwApplicationStarter : IDisposable
     {
         private readonly ApplicationState_e m_State;
-        private readonly SwVersion_e m_Version;
+        private readonly ISwVersion m_Version;
 
-        internal SwApplicationStarter(ApplicationState_e state, SwVersion_e version) 
+        internal SwApplicationStarter(ApplicationState_e state, ISwVersion version) 
         {
             m_State = state;
             m_Version = version;
@@ -36,9 +36,9 @@ namespace Xarial.XCad.SolidWorks.Utils
         {
             SwVersion_e? vers = null;
 
-            if (m_Version != 0)
+            if (m_Version != null)
             {
-                vers = m_Version;
+                vers = m_Version.Major;
             }
 
             var args = new List<string>();

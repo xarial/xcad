@@ -40,7 +40,7 @@ namespace Xarial.XCad.SolidWorks
     public interface ISwApplication : IXApplication, IDisposable
     {
         ISldWorks Sw { get; }
-        SwVersion_e Version { get; set; }
+        new ISwVersion Version { get; set; }
 
         IXServiceCollection CustomServices { get; set; }
 
@@ -62,26 +62,29 @@ namespace Xarial.XCad.SolidWorks
         internal event Action<SwApplication> FirstStartupCompleted;
 
         IXDocumentRepository IXApplication.Documents => Documents;
-
         IXMacro IXApplication.OpenMacro(string path) => OpenMacro(path);
-
         IXGeometryBuilder IXApplication.MemoryGeometryBuilder => MemoryGeometryBuilder;
+        IXVersion IXApplication.Version 
+        {
+            get => Version;
+            set => Version = (ISwVersion)value;
+        }
 
         private IXServiceCollection m_CustomServices;
 
         public ISldWorks Sw => m_Creator.Element;
 
-        public SwVersion_e Version 
+        public ISwVersion Version 
         {
             get 
             {
                 if (IsCommitted)
                 {
-                    return Sw.GetVersion();
+                    return new SwVersion(Sw.GetVersion());
                 }
                 else 
                 {
-                    return m_Creator.CachedProperties.Get<SwVersion_e>();
+                    return m_Creator.CachedProperties.Get<SwVersion>();
                 }
             }
             set 

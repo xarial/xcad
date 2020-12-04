@@ -158,7 +158,7 @@ namespace Xarial.XCad.SolidWorks
         {
             var app = PreCreate();
 
-            app.Version = vers.HasValue ? vers.Value : 0;
+            app.Version = vers.HasValue ? CreateVersion(vers.Value) : null;
             app.State = state;
 
             var token = CancellationToken.None;
@@ -172,6 +172,8 @@ namespace Xarial.XCad.SolidWorks
 
             return app;
         }
+
+        public static ISwVersion CreateVersion(SwVersion_e vers) => new SwVersion(vers);
 
         internal static string GetMonikerName(Process process) => $"SolidWorks_PID_{process.Id}";
 
