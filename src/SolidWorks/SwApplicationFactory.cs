@@ -92,7 +92,7 @@ namespace Xarial.XCad.SolidWorks
 
         public static ISwApplication PreCreate() => new SwApplication();
 
-        public static IEnumerable<SwVersion_e> GetInstalledVersions()
+        public static IEnumerable<ISwVersion> GetInstalledVersions()
         {
             foreach (var versCand in Enum.GetValues(typeof(SwVersion_e)).Cast<SwVersion_e>())
             {
@@ -114,7 +114,7 @@ namespace Xarial.XCad.SolidWorks
 
                     if (isInstalled)
                     {
-                        yield return versCand;
+                        yield return CreateVersion(versCand);
                     }
                 }
             }

@@ -12,6 +12,7 @@ Breaking change is marked with &#x26A0; symbol
 
 * &#x26A0; IXComponent::IsResolved replaced with IXComponent::State
 * &#x26A0; ISwApplication::Version is changed from SwVersion_e to SwVersion class
+* &#x26A0; SwApplicationFactory::GetInstalledVersions returns IEnumerable of ISwVersion instead of IEnumerable of SwVersion_e
 * Implemented [#55 - Add option to extract all dependencies from the document](https://github.com/xarial/xcad/issues/55)
 * Implemented [#56 - Add APIs to save document](https://github.com/xarial/xcad/issues/56)
 * Implemented [#57 - Add support for version on IXDocument and IXApplication enhancement](https://github.com/xarial/xcad/issues/57)
