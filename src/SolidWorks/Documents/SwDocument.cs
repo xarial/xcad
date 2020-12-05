@@ -459,7 +459,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                 {
                     string[] depsData;
 
-                    if (IsCommitted)
+                    if (IsCommitted && !Model.IsOpenedViewOnly())
                     {
                         depsData = Model.Extension.GetDependencies(true, true, false, true, true) as string[];
                     }

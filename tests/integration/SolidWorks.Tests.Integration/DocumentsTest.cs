@@ -444,6 +444,35 @@ namespace SolidWorks.Tests.Integration
         }
 
         [Test]
+        public void DocumentDependenciesViewOnlyTest()
+        {
+            string dir = "";
+            Dictionary<string, bool> depsData;
+
+            var spec = m_App.Sw.GetOpenDocSpec(GetFilePath(@"Assembly2\TopAssem.SLDASM")) as IDocumentSpecification;
+            spec.ViewOnly = true;
+            var model = m_App.Sw.OpenDoc7(spec);
+
+            var doc = m_App.Documents[model];
+
+            var deps = doc.Dependencies;
+            depsData = deps.ToDictionary(d => d.Path, d => d.IsCommitted, StringComparer.CurrentCultureIgnoreCase);
+
+            dir = Path.GetDirectoryName(doc.Path);
+
+            doc.Close();
+
+            Assert.AreEqual(6, depsData.Count);
+            Assert.That(depsData.All(d => !d.Value));
+            depsData.ContainsKey(Path.Combine(dir, "Part2.SLDPRT"));
+            depsData.ContainsKey(Path.Combine(dir, "Part3.SLDPRT"));
+            depsData.ContainsKey(Path.Combine(dir, "Part4-1 (XYZ).SLDPRT"));
+            depsData.ContainsKey(Path.Combine(dir, "Assem1.SLDASM"));
+            depsData.ContainsKey(Path.Combine(dir, "Assem2.SLDASM"));
+            depsData.ContainsKey(Path.Combine(dir, "Part1.SLDPRT"));
+        }
+
+        [Test]
         public void OpenConflictTest()
         {
             var filePath = GetFilePath(@"Assembly1\Part1.SLDPRT");
