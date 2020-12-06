@@ -8,7 +8,7 @@ This page contains list of the most notable changes in the releases of xCAD.NET.
 
 Breaking change is marked with &#x26A0; symbol
 
-## 0.6.10 - December 4, 2020
+## 0.6.10 - December 6, 2020
 
 * &#x26A0; IXComponent::IsResolved replaced with IXComponent::State
 * &#x26A0; ISwApplication::Version is changed from SwVersion_e to SwVersion class
@@ -17,6 +17,7 @@ Breaking change is marked with &#x26A0; symbol
 * Implemented [#56 - Add APIs to save document](https://github.com/xarial/xcad/issues/56)
 * Implemented [#57 - Add support for version on IXDocument and IXApplication enhancement](https://github.com/xarial/xcad/issues/57)
 * Fixed [#58 - Document events are not attached for pre-created templates](https://github.com/xarial/xcad/issues/58)
+* Fixed [#58 - Error when opening documents breaks IXDocumentRepository](https://github.com/xarial/xcad/issues/59)
 
 ## 0.6.9 - November 27, 2020
 

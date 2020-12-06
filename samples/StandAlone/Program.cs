@@ -43,41 +43,14 @@ namespace StandAlone
     {
         static void Main(string[] args)
         {
-            //CustomServices();
-
             try
             {
                 var app = SwApplicationFactory.Create(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020,
                     ApplicationState_e.Default);
-
-                Console.ReadLine();
-
-                var deps = app.Documents.Active.Dependencies;
-
-                foreach (var dep in deps) 
-                {
-                    dep.State = Xarial.XCad.Documents.Enums.DocumentState_e.Hidden;
-                    dep.Commit();
-                    dep.Close();
-                }
-
-                Console.ReadLine();
-
+                                
                 //var app = SwApplicationFactory.FromProcess(Process.GetProcessesByName("SLDWORKS").First());
-
-                var d0 = app.Documents.PreCreate<ISwPart>();
-                d0.Path = @"C:\Users\artem\OneDrive\xCAD\TestData\Assembly2\Part1___.SLDPRT";
-                d0.Commit();
-
-                var d1 = app.Documents.Open(@"C:\Users\artem\OneDrive\xCAD\TestData\Assembly2\Part1.SLDPRT");
-
-                var d2 = app.Documents.Open(@"C:\Users\artem\OneDrive\xCAD\TestData\Assembly2\Part1.SLDPRT");
-
-                var x = d1 == d2;
-
-                //var app = SwApplicationFactory.FromProcess(Process.GetProcessesByName("SLDWORKS").First());
-
-                //var allComps = (app.Documents.Active as ISwAssembly).Components.Flatten().ToArray();
+                
+                //CustomServices();
 
                 //Progress(app);
 

@@ -189,8 +189,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
             else
             {
-                m_Logger.Log($"Conflict. {model.GetTitle()} already registered");
-                Debug.Assert(false, "Document was not unregistered");
+                m_Logger.Log($"Skipping dispatching. {model.GetTitle()} already registered");
             }
         }
 

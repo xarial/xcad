@@ -45,6 +45,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         new ISwDimensionsCollection Dimensions { get; }
         new ISwCustomPropertiesCollection Properties { get; }
         new ISwVersion Version { get; }
+        new ISwDocument[] Dependencies { get; }
     }
 
     [DebuggerDisplay("{" + nameof(Title) + "}")]
