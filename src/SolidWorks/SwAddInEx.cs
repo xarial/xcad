@@ -285,7 +285,6 @@ namespace Xarial.XCad.SolidWorks
                 }
 
                 CommandManager.Dispose();
-                Application.Documents.Dispose();
                 Application.Dispose();
             }
 

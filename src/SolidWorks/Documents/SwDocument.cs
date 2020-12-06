@@ -316,13 +316,15 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         protected abstract bool IsRapidMode { get; }
 
-        public ISwFeatureManager Features { get; }
+        private Lazy<ISwFeatureManager> m_FeaturesLazy;
+        private Lazy<ISwSelectionCollection> m_SelectionsLazy;
+        private Lazy<ISwDimensionsCollection> m_DimensionsLazy;
+        private Lazy<ISwCustomPropertiesCollection> m_PropertiesLazy;
 
-        public ISwSelectionCollection Selections { get; }
-
-        public ISwDimensionsCollection Dimensions { get; }
-
-        public ISwCustomPropertiesCollection Properties { get; }
+        public ISwFeatureManager Features => m_FeaturesLazy.Value;
+        public ISwSelectionCollection Selections => m_SelectionsLazy.Value;
+        public ISwDimensionsCollection Dimensions => m_DimensionsLazy.Value;
+        public ISwCustomPropertiesCollection Properties => m_PropertiesLazy.Value;
 
         internal SwApplication App { get; }
         
@@ -367,13 +369,10 @@ namespace Xarial.XCad.SolidWorks.Documents
 
             m_Creator.Creating += OnCreating;
 
-            Features = new SwFeatureManager(this);
-            
-            Selections = new SwSelectionCollection(this);
-
-            Dimensions = new SwDocumentDimensionsCollection(this);
-
-            Properties = new SwCustomPropertiesCollection(this, "");
+            m_FeaturesLazy = new Lazy<ISwFeatureManager>(() => new SwFeatureManager(this));
+            m_SelectionsLazy = new Lazy<ISwSelectionCollection>(() => new SwSelectionCollection(this));
+            m_DimensionsLazy = new Lazy<ISwDimensionsCollection>(() => new SwDocumentDimensionsCollection(this));
+            m_PropertiesLazy = new Lazy<ISwCustomPropertiesCollection>(() => new SwCustomPropertiesCollection(this, ""));
 
             m_StreamReadAvailableHandler = new StreamReadAvailableEventsHandler(this);
             m_StreamWriteAvailableHandler = new StreamWriteAvailableEventsHandler(this);
@@ -778,9 +777,20 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         protected virtual void Dispose(bool disposing)
         {
-            Selections.Dispose();
-            Dimensions.Dispose();
-            Properties.Dispose();
+            if (m_SelectionsLazy.IsValueCreated)
+            {
+                m_SelectionsLazy.Value.Dispose();
+            }
+
+            if (m_DimensionsLazy.IsValueCreated)
+            {
+                m_DimensionsLazy.Value.Dispose();
+            }
+
+            if (m_PropertiesLazy.IsValueCreated) 
+            {
+                m_PropertiesLazy.Value.Dispose();
+            }
 
             if (disposing)
             {
@@ -880,8 +890,15 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
 
             m_DocsDispatcher.BeginDispatch(this);
-            m_Creator.Create(cancellationToken);
-            m_DocsDispatcher.EndDispatch(this);
+            
+            try
+            {
+                m_Creator.Create(cancellationToken);
+            }
+            finally 
+            {
+                m_DocsDispatcher.EndDispatch(this);
+            }
         }
 
         public void Save()

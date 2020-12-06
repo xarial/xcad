@@ -27,23 +27,46 @@ using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Features;
 using Xarial.XCad.SolidWorks.Geometry;
 using Xarial.XCad.SolidWorks.Geometry.Curves;
+using Xarial.XCad.Toolkit;
 using Xarial.XCad.Toolkit.Utils;
 
 namespace StandAlone
 {
+    public class MyLogger : IXLogger
+    {
+        public void Log(string msg)
+        {
+        }
+    }
+
     class Program
     {
         static void Main(string[] args)
         {
+            //CustomServices();
+
             try
             {
-                //var app = SwApplicationFactory.Create(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020,
-                //    ApplicationState_e.Default);
+                var app = SwApplicationFactory.Create(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020,
+                    ApplicationState_e.Default);
 
-                var app = SwApplicationFactory.FromProcess(Process.GetProcessesByName("SLDWORKS").First());
+                Console.ReadLine();
+
+                var deps = app.Documents.Active.Dependencies;
+
+                foreach (var dep in deps) 
+                {
+                    dep.State = Xarial.XCad.Documents.Enums.DocumentState_e.Hidden;
+                    dep.Commit();
+                    dep.Close();
+                }
+
+                Console.ReadLine();
+
+                //var app = SwApplicationFactory.FromProcess(Process.GetProcessesByName("SLDWORKS").First());
 
                 var d0 = app.Documents.PreCreate<ISwPart>();
-                d0.Path = @"C:\Users\artem\OneDrive\xCAD\TestData\Assembly2\Part1.SLDPRT";
+                d0.Path = @"C:\Users\artem\OneDrive\xCAD\TestData\Assembly2\Part1___.SLDPRT";
                 d0.Commit();
 
                 var d1 = app.Documents.Open(@"C:\Users\artem\OneDrive\xCAD\TestData\Assembly2\Part1.SLDPRT");
@@ -81,6 +104,15 @@ namespace StandAlone
             }
 
             Console.ReadLine();
+        }
+
+        private static void CustomServices() 
+        {
+            var app = SwApplicationFactory.PreCreate();
+            var svcColl = new ServiceCollection();
+            svcColl.AddOrReplace<IXLogger, MyLogger>();
+            app.CustomServices = svcColl;
+            app.Commit();
         }
 
         private static void Progress(IXApplication app) 
