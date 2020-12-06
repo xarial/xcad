@@ -39,7 +39,7 @@ namespace Xarial.XCad.SolidWorks.Documents.Services
             m_App = app;
             m_Logger = logger;
 
-            m_Comparer = new SwPointerEqualityComparer<IModelDoc2>(app.Sw);
+            m_Comparer = new SwModelPointerEqualityComparer(app.Sw);
 
             m_DocsDispatchQueue = new List<SwDocument>();
             m_ModelsDispatchQueue = new List<IModelDoc2>();

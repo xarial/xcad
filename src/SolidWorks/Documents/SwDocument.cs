@@ -395,7 +395,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             var cachedModel = m_Creator.CachedProperties.Get<IModelDoc2>(nameof(Model));
 
             Debug.Assert(cachedModel == null 
-                || new SwPointerEqualityComparer<IModelDoc2>(App.Sw)
+                || new SwModelPointerEqualityComparer(App.Sw)
                     .Equals(cachedModel, model), "Invalid pointers");
         }
 
@@ -523,6 +523,24 @@ namespace Xarial.XCad.SolidWorks.Documents
                 var vers = GetVersion(versHistory);
 
                 return SwApplicationFactory.CreateVersion(vers);
+            }
+        }
+
+        public bool IsAlive 
+        {
+            get 
+            {
+                var model = Model;
+
+                try
+                {
+                    var title = model.GetTitle();
+                    return true;
+                }
+                catch 
+                {
+                    return false;
+                }
             }
         }
 
@@ -750,7 +768,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public void Close()
         {
-            App.Sw.CloseDoc(Title);
+            App.Sw.CloseDoc(Model.GetTitle());
         }
 
         public void Dispose()
