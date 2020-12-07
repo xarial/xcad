@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Services;
 
@@ -21,9 +22,13 @@ namespace Xarial.XCad.Toolkit.Services
         private readonly List<Type> m_Handlers;
         private readonly Dictionary<IXDocument, List<IDocumentHandler>> m_DocsMap;
 
-        public DocumentsHandler(IXApplication app) 
+        private readonly IXLogger m_Logger;
+
+        public DocumentsHandler(IXApplication app, IXLogger logger) 
         {
             m_App = app;
+            m_Logger = logger;
+
             m_Handlers = new List<Type>();
             m_DocsMap = new Dictionary<IXDocument, List<IDocumentHandler>>();
         }
@@ -56,9 +61,22 @@ namespace Xarial.XCad.Toolkit.Services
             return (THandler)handlers.First(h => h.GetType() == typeof(THandler));
         }
 
-        public void InitHandlers(IXDocument doc) 
+        public void TryInitHandlers(IXDocument doc) 
         {
-            var handlers = m_Handlers.Select(t => CreateHandler(doc, t)).ToList();
+            var handlers = new List<IDocumentHandler>();
+
+            foreach (var type in m_Handlers) 
+            {
+                try
+                {
+                    var handler = CreateHandler(doc, type);
+                    handlers.Add(handler);
+                }
+                catch (Exception ex)
+                {
+                    m_Logger.Log(ex);
+                }
+            }
 
             m_DocsMap.Add(doc, handlers);
         }
@@ -67,7 +85,14 @@ namespace Xarial.XCad.Toolkit.Services
         {
             foreach (var handler in m_DocsMap[doc])
             {
-                handler.Dispose();
+                try
+                {
+                    handler.Dispose();
+                }
+                catch (Exception ex)
+                {
+                    m_Logger.Log(ex);
+                }
             }
 
             m_DocsMap[doc].Clear();

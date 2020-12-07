@@ -11,6 +11,8 @@ using System.Text;
 using Xarial.XCad.UI;
 using SolidWorks.Interop.sldworks;
 using Xarial.XCad.Documents;
+using Xarial.XCad.SolidWorks.Documents;
+using Xarial.XCad.Base;
 
 namespace Xarial.XCad.SolidWorks.UI
 {
@@ -37,24 +39,34 @@ namespace Xarial.XCad.SolidWorks.UI
         private readonly string m_Title;
         private readonly ModelViewManager m_MdlViewMgr;
 
-        private readonly Documents.ISwDocument m_Doc;
+        private readonly SwDocument m_Doc;
+        private readonly IXLogger m_Logger;
 
         private bool m_IsDisposed;
 
-        internal SwModelViewTab(TControl ctrl, string title, ModelViewManager mdlViewMgr, Documents.ISwDocument doc) 
+        internal SwModelViewTab(TControl ctrl, string title, ModelViewManager mdlViewMgr, SwDocument doc, IXLogger logger) 
         {
             Control = ctrl;
             m_Title = title;
             m_MdlViewMgr = mdlViewMgr;
             m_Doc = doc;
-            m_Doc.Closing += OnDestroyed;
+            m_Logger = logger;
+
+            m_Doc.Destroyed += OnDestroyed;
 
             m_IsDisposed = false;
         }
 
         private void OnDestroyed(IXDocument doc)
         {
-            Dispose();
+            try
+            {
+                Dispose();
+            }
+            catch (Exception ex)
+            {
+                m_Logger.Log(ex);
+            }
         }
 
         public void Dispose()
@@ -66,18 +78,26 @@ namespace Xarial.XCad.SolidWorks.UI
         {
             if (!m_IsDisposed)
             {
-                m_Doc.Closing -= OnDestroyed;
+                m_Doc.Destroyed -= OnDestroyed;
 
                 m_IsDisposed = true;
 
-                if (Control is IDisposable)
+                try
                 {
-                    (Control as IDisposable).Dispose();
+                    if (Control is IDisposable)
+                    {
+                        (Control as IDisposable).Dispose();
+                    }
                 }
+                finally 
+                {
+                    var res = m_MdlViewMgr.DeleteControlTab(m_Title);
 
-                var res = m_MdlViewMgr.DeleteControlTab(m_Title);
-
-                //TODO: log result
+                    if (!res) 
+                    {
+                        m_Logger.Log("Failed to delete model view tab");
+                    }
+                }
             }
         }
     }

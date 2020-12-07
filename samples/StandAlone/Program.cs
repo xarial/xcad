@@ -27,22 +27,30 @@ using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Features;
 using Xarial.XCad.SolidWorks.Geometry;
 using Xarial.XCad.SolidWorks.Geometry.Curves;
+using Xarial.XCad.Toolkit;
 using Xarial.XCad.Toolkit.Utils;
 
 namespace StandAlone
 {
+    public class MyLogger : IXLogger
+    {
+        public void Log(string msg)
+        {
+        }
+    }
+
     class Program
     {
         static void Main(string[] args)
         {
             try
             {
-                //var app = SwApplicationFactory.Create(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020,
-                //    ApplicationState_e.Default);
-
-                var app = SwApplicationFactory.FromProcess(Process.GetProcessesByName("SLDWORKS").First());
-
-                var allComps = (app.Documents.Active as ISwAssembly).Components.Flatten().ToArray();
+                var app = SwApplicationFactory.Create(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020,
+                    ApplicationState_e.Default);
+                                
+                //var app = SwApplicationFactory.FromProcess(Process.GetProcessesByName("SLDWORKS").First());
+                
+                //CustomServices();
 
                 //Progress(app);
 
@@ -67,6 +75,17 @@ namespace StandAlone
             catch 
             {
             }
+
+            Console.ReadLine();
+        }
+
+        private static void CustomServices() 
+        {
+            var app = SwApplicationFactory.PreCreate();
+            var svcColl = new ServiceCollection();
+            svcColl.AddOrReplace<IXLogger, MyLogger>();
+            app.CustomServices = svcColl;
+            app.Commit();
         }
 
         private static void Progress(IXApplication app) 

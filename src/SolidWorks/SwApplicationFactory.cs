@@ -92,7 +92,7 @@ namespace Xarial.XCad.SolidWorks
 
         public static ISwApplication PreCreate() => new SwApplication();
 
-        public static IEnumerable<SwVersion_e> GetInstalledVersions()
+        public static IEnumerable<ISwVersion> GetInstalledVersions()
         {
             foreach (var versCand in Enum.GetValues(typeof(SwVersion_e)).Cast<SwVersion_e>())
             {
@@ -114,7 +114,7 @@ namespace Xarial.XCad.SolidWorks
 
                     if (isInstalled)
                     {
-                        yield return versCand;
+                        yield return CreateVersion(versCand);
                     }
                 }
             }
@@ -148,17 +148,17 @@ namespace Xarial.XCad.SolidWorks
         /// <summary>
         /// Starts new application
         /// </summary>
-        /// <param name="vers">Version or 0 for the latest</param>
+        /// <param name="vers">Version or null for the latest</param>
         /// <param name="state">State of the application</param>
         /// <param name="cancellationToken">Cancellation token</param>
         /// <returns>Created application</returns>
-        public static ISwApplication Create(SwVersion_e vers = 0,
+        public static ISwApplication Create(SwVersion_e? vers = null,
             ApplicationState_e state = ApplicationState_e.Default,
             CancellationToken? cancellationToken = null)
         {
             var app = PreCreate();
-            
-            app.Version = vers;
+
+            app.Version = vers.HasValue ? CreateVersion(vers.Value) : null;
             app.State = state;
 
             var token = CancellationToken.None;
@@ -173,6 +173,8 @@ namespace Xarial.XCad.SolidWorks
             return app;
         }
 
+        public static ISwVersion CreateVersion(SwVersion_e vers) => new SwVersion(vers);
+
         internal static string GetMonikerName(Process process) => $"SolidWorks_PID_{process.Id}";
 
         internal static string FindSwPathFromRegKey(RegistryKey swAppRegKey)
@@ -186,12 +188,17 @@ namespace Xarial.XCad.SolidWorks
 
             var clsid = (string)clsidKey.GetValue("");
 
-            var localServerKey = Registry.ClassesRoot.OpenSubKey(
-                $"CLSID\\{clsid}\\LocalServer32", false);
-
             if (clsid == null)
             {
                 throw new NullReferenceException($"Incorrect registry value, LocalServer32 is missing");
+            }
+
+            var localServerKey = Registry.ClassesRoot.OpenSubKey(
+                $"CLSID\\{clsid}\\LocalServer32", false);
+
+            if (localServerKey == null) 
+            {
+                throw new Exception("Failed to find the class id in the registry. Make sure that application is running as x64 bit process (including 'Prefer 32-bit' option is unchecked in the project settings)");
             }
 
             var swAppPath = (string)localServerKey.GetValue("");

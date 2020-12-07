@@ -22,6 +22,11 @@ namespace Xarial.XCad
     public interface IXApplication : IXTransaction
     {
         /// <summary>
+        /// Version of the application
+        /// </summary>
+        IXVersion Version { get; set; }
+
+        /// <summary>
         /// State of the application
         /// </summary>
         ApplicationState_e State { get; set; }

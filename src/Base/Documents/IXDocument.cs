@@ -23,6 +23,11 @@ namespace Xarial.XCad.Documents
     public interface IXDocument : IXTransaction
     {
         /// <summary>
+        /// Current version of the document
+        /// </summary>
+        IXVersion Version { get; }
+
+        /// <summary>
         /// Fired when user data stream is available for reading
         /// </summary>
         event DataStoreAvailableDelegate StreamReadAvailable;
@@ -93,6 +98,22 @@ namespace Xarial.XCad.Documents
         void Close();
 
         /// <summary>
+        /// Saves this document
+        /// </summary>
+        void Save();
+
+        /// <summary>
+        /// Identifies if the pointer to the document is still valid
+        /// </summary>
+        bool IsAlive { get; }
+
+        /// <summary>
+        /// Saves this document to a new location
+        /// </summary>
+        /// <param name="filePath"></param>
+        void SaveAs(string filePath);
+
+        /// <summary>
         /// Collection of features of this document
         /// </summary>
         IXFeatureRepository Features { get; }
@@ -127,6 +148,12 @@ namespace Xarial.XCad.Documents
         /// <param name="access">Access type</param>
         /// <returns>Pointer to the storage</returns>
         IStorage OpenStorage(string name, AccessType_e access);
+
+        /// <summary>
+        /// Returns dependencies of this document
+        /// </summary>
+        /// <remarks>Dependencies might be uncommited if document is loaded view only or in the rapid mode. Use <see cref="IXTransaction.IsCommitted"/> to check the state and call <see cref="IXTransaction.Commit(System.Threading.CancellationToken)"/> to load document if needed</remarks>
+        IXDocument[] Dependencies { get; }
     }
 
     /// <summary>

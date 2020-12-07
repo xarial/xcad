@@ -9,6 +9,12 @@ namespace Xarial.XCad.SolidWorks.Enums
 {
     public enum SwVersion_e
     {
+        SwPrior2000 = 1,
+        Sw2000 = 8,
+        Sw2001 = 9,
+        Sw2001Plus = 10,
+        Sw2003 = 11,
+        Sw2004 = 12,
         Sw2005 = 13,
         Sw2006 = 14,
         Sw2007 = 15,

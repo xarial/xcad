@@ -21,7 +21,14 @@ namespace Xarial.XCad.Base.Attributes
         /// <summary>
         /// Image assigned to this icon
         /// </summary>
-        public IXImage Icon { get; private set; }
+        public virtual IXImage Icon { get; }
+
+        /// <summary>
+        /// Constructor without icon initialization
+        /// </summary>
+        protected IconAttribute() 
+        {
+        }
 
         /// <param name="resType">Type of the static class (usually Resources)</param>
         /// <param name="masterResName">Resource name of the master icon</param>

@@ -15,10 +15,10 @@ using System.Linq;
 using System.Text;
 using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
+using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Features;
 using Xarial.XCad.Features.CustomFeature;
 using Xarial.XCad.Geometry;
-using Xarial.XCad.SolidWorks.Documents.Exceptions;
 using Xarial.XCad.SolidWorks.Features;
 using Xarial.XCad.SolidWorks.Geometry;
 using Xarial.XCad.SolidWorks.Services;
@@ -83,26 +83,53 @@ namespace Xarial.XCad.SolidWorks.Documents
                 }
                 else
                 {
-                    throw new ComponentNotLoadedException(Name);
+                    string path;
+
+                    try
+                    {
+                        path = Path;
+                    }
+                    catch 
+                    {
+                        path = CachedPath;
+                    }
+
+                    if (((SwDocumentCollection)m_ParentAssembly.App.Documents).TryFindExistingDocumentByPath(path, out SwDocument doc))
+                    {
+                        return (ISwDocument3D)doc;
+                    }
+                    else 
+                    {
+                        return (ISwDocument3D)((SwDocumentCollection)m_ParentAssembly.App.Documents).PreCreateFromPath(path);
+                    }
                 }
             }
         }
 
-        public bool IsResolved
+        public ComponentState_e State
         {
             get 
             {
+                var state = ComponentState_e.Default;
+
+                var swState = Component.GetSuppression2();
+
+                if (swState == (int)swComponentSuppressionState_e.swComponentLightweight
+                    || swState == (int)swComponentSuppressionState_e.swComponentFullyLightweight)
+                {
+                    state |= ComponentState_e.Rapid;
+                }
+                else if (swState == (int)swComponentSuppressionState_e.swComponentSuppressed) 
+                {
+                    state |= ComponentState_e.Suppressed;
+                }
+                
                 if (m_ParentAssembly.Model.IsOpenedViewOnly()) //Large design review
                 {
-                    return false;
+                    state |= ComponentState_e.ViewOnly;
                 }
-                else
-                {
-                    var state = Component.GetSuppression2();
 
-                    return state == (int)swComponentSuppressionState_e.swComponentResolved
-                        || state == (int)swComponentSuppressionState_e.swComponentFullyResolved;
-                }
+                return state;
             } 
         }
                           

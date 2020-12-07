@@ -39,7 +39,7 @@ namespace Xarial.XCad.SolidWorks.Documents.Services
             m_App = app;
             m_Logger = logger;
 
-            m_Comparer = new SwPointerEqualityComparer<IModelDoc2>(app.Sw);
+            m_Comparer = new SwModelPointerEqualityComparer(app.Sw);
 
             m_DocsDispatchQueue = new List<SwDocument>();
             m_ModelsDispatchQueue = new List<IModelDoc2>();
@@ -82,12 +82,19 @@ namespace Xarial.XCad.SolidWorks.Documents.Services
                     m_ModelsDispatchQueue.RemoveAt(index);
                 }
 
-                if (doc is SwUnknownDocument) 
+                if (doc.IsCommitted)
                 {
-                    doc = (SwDocument)(doc as SwUnknownDocument).GetSpecific();
-                }
+                    if (doc is SwUnknownDocument)
+                    {
+                        doc = (SwDocument)(doc as SwUnknownDocument).GetSpecific();
+                    }
+                    else
+                    {
+                        doc.AttachEvents();
+                    }
 
-                NotifyDispatchedSafe(doc);
+                    NotifyDispatchedSafe(doc);
+                }
 
                 if (!m_DocsDispatchQueue.Any()) 
                 {

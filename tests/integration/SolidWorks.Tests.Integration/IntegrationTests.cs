@@ -9,6 +9,7 @@ using System.Linq;
 using System.Text;
 using Xarial.XCad.Enums;
 using Xarial.XCad.SolidWorks;
+using Xarial.XCad.SolidWorks.Enums;
 
 namespace SolidWorks.Tests.Integration
 {
@@ -58,7 +59,7 @@ namespace SolidWorks.Tests.Integration
 
                 SwApplicationFactory.DisableAllAddInsStartup(out m_DisabledStartupAddIns);
 
-                m_App = SwApplicationFactory.Create(0,
+                m_App = SwApplicationFactory.Create(null,
                     ApplicationState_e.Background 
                     | ApplicationState_e.Safe 
                     | ApplicationState_e.Silent);

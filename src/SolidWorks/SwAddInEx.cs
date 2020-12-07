@@ -166,10 +166,9 @@ namespace Xarial.XCad.SolidWorks
                     app.SetAddinCallbackInfo(0, this, AddInId);
                 }
 
-                var swApp = new SwApplication(app);
-                m_Application = swApp;
+                m_Application = new SwApplication(app);
 
-                (Application.Sw as SldWorks).OnIdleNotify += OnLoadFirstIdleNotify;
+                m_Application.FirstStartupCompleted += OnStartupCompleted;
 
                 var svcCollection = GetServicesCollection();
 
@@ -180,7 +179,7 @@ namespace Xarial.XCad.SolidWorks
 
                 Logger = m_SvcProvider.GetService<IXLogger>();
 
-                swApp.Init(svcCollection);
+                m_Application.Init(svcCollection);
 
                 Logger.Log("Loading add-in");
 
@@ -198,6 +197,12 @@ namespace Xarial.XCad.SolidWorks
                 Logger.Log(ex);
                 return false;
             }
+        }
+
+        private void OnStartupCompleted(SwApplication app)
+        {
+            m_Application.FirstStartupCompleted -= OnStartupCompleted;
+            StartupCompleted?.Invoke(this);
         }
 
         private IXServiceCollection GetServicesCollection()
@@ -280,7 +285,6 @@ namespace Xarial.XCad.SolidWorks
                 }
 
                 CommandManager.Dispose();
-                Application.Documents.Dispose();
                 Application.Dispose();
             }
 
@@ -320,7 +324,7 @@ namespace Xarial.XCad.SolidWorks
                 {
                     if (mdlViewMgr.DisplayWindowFromHandlex64(t, h.Handle.ToInt64(), true))
                     {
-                        return new SwModelViewTab<TControl>(c, t, mdlViewMgr, doc);
+                        return new SwModelViewTab<TControl>(c, t, mdlViewMgr, (SwDocument)doc, Logger);
                     }
                     else
                     {
@@ -336,7 +340,7 @@ namespace Xarial.XCad.SolidWorks
                         throw new ComControlHostException(p);
                     }
 
-                    return new SwModelViewTab<TControl>(ctrl, t, mdlViewMgr, doc);
+                    return new SwModelViewTab<TControl>(ctrl, t, mdlViewMgr, (SwDocument)doc, Logger);
                 });
         }
 
@@ -458,7 +462,7 @@ namespace Xarial.XCad.SolidWorks
 
                         if (featMgr != null)
                         {
-                            return new SwFeatureMgrTab<TControl>(c, featMgr, doc);
+                            return new SwFeatureMgrTab<TControl>(c, featMgr, (SwDocument)doc, Logger);
                         }
                         else
                         {
@@ -484,37 +488,11 @@ namespace Xarial.XCad.SolidWorks
                             throw new ComControlHostException(p);
                         }
 
-                        return new SwFeatureMgrTab<TControl>(ctrl, featMgr, doc);
+                        return new SwFeatureMgrTab<TControl>(ctrl, featMgr, (SwDocument)doc, Logger);
                     });
             }
         }
-
-        private int OnLoadFirstIdleNotify()
-        {
-            const int S_OK = 0;
-
-            var continueListening = false;
-
-            if (StartupCompleted != null)
-            {
-                if (Application.Sw.StartupProcessCompleted)
-                {
-                    StartupCompleted?.Invoke(this);
-                }
-                else
-                {
-                    continueListening = true;
-                }
-            }
-
-            if (!continueListening)
-            {
-                (Application.Sw as SldWorks).OnIdleNotify -= OnLoadFirstIdleNotify;
-            }
-
-            return S_OK;
-        }
-
+        
         public virtual void OnConfigureServices(IXServiceCollection collection)
         {
         }

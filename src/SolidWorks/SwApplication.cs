@@ -40,7 +40,7 @@ namespace Xarial.XCad.SolidWorks
     public interface ISwApplication : IXApplication, IDisposable
     {
         ISldWorks Sw { get; }
-        SwVersion_e Version { get; set; }
+        new ISwVersion Version { get; set; }
 
         IXServiceCollection CustomServices { get; set; }
 
@@ -52,29 +52,39 @@ namespace Xarial.XCad.SolidWorks
     /// <inheritdoc/>
     internal class SwApplication : ISwApplication, IXServiceConsumer
     {
+        #region WinApi
+        [DllImport("user32.dll")]
+        static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+        #endregion
+
         public event ConfigureServicesDelegate ConfigureServices;
 
+        internal event Action<SwApplication> FirstStartupCompleted;
+
         IXDocumentRepository IXApplication.Documents => Documents;
-
         IXMacro IXApplication.OpenMacro(string path) => OpenMacro(path);
-
         IXGeometryBuilder IXApplication.MemoryGeometryBuilder => MemoryGeometryBuilder;
+        IXVersion IXApplication.Version 
+        {
+            get => Version;
+            set => Version = (ISwVersion)value;
+        }
 
         private IXServiceCollection m_CustomServices;
 
         public ISldWorks Sw => m_Creator.Element;
 
-        public SwVersion_e Version 
+        public ISwVersion Version 
         {
             get 
             {
                 if (IsCommitted)
                 {
-                    return Sw.GetVersion();
+                    return new SwVersion(Sw.GetVersion());
                 }
                 else 
                 {
-                    return m_Creator.CachedProperties.Get<SwVersion_e>();
+                    return m_Creator.CachedProperties.Get<SwVersion>();
                 }
             }
             set 
@@ -89,8 +99,10 @@ namespace Xarial.XCad.SolidWorks
                 }
             }
         }
-        
-        public ISwDocumentCollection Documents { get; private set; }
+
+        private Lazy<ISwDocumentCollection> m_DocumentsLazy;
+
+        public ISwDocumentCollection Documents => m_DocumentsLazy.Value;
         
         public IntPtr WindowHandle => new IntPtr(Sw.IFrameObject().GetHWndx64());
 
@@ -147,22 +159,12 @@ namespace Xarial.XCad.SolidWorks
 
         public IXServiceCollection CustomServices 
         {
-            get 
-            {
-                if (IsCommitted)
-                {
-                    return m_CustomServices;
-                }
-                else 
-                {
-                    return m_Creator.CachedProperties.Get<IXServiceCollection>();
-                }
-            }
+            get => m_CustomServices;
             set 
             {
                 if (!IsCommitted)
                 {
-                    m_Creator.CachedProperties.Set(value);
+                    m_CustomServices = value;
                 }
                 else 
                 {
@@ -177,6 +179,10 @@ namespace Xarial.XCad.SolidWorks
 
         private bool m_IsInitialized;
 
+        private bool m_HideOnStartup;
+        
+        private bool m_IsStartupNotified;
+
         private ElementCreator<ISldWorks> m_Creator;
 
         internal SwApplication(ISldWorks app, IXServiceCollection customServices) 
@@ -190,7 +196,10 @@ namespace Xarial.XCad.SolidWorks
         /// </summary>
         internal SwApplication(ISldWorks app)
         {
+            m_IsStartupNotified = false;
+
             m_Creator = new ElementCreator<ISldWorks>(CreateInstance, app, true);
+            WatchStartupCompleted((SldWorks)app);
         }
 
         /// <summary>
@@ -198,22 +207,13 @@ namespace Xarial.XCad.SolidWorks
         /// </summary>
         internal SwApplication()
         {
+            m_IsStartupNotified = false;
+
             m_Creator = new ElementCreator<ISldWorks>(CreateInstance, null, false);
+
+            m_Creator.CachedProperties.Set(new ServiceCollection(), nameof(CustomServices));
         }
-
-        event ConfigureServicesDelegate IXServiceConsumer.ConfigureServices
-        {
-            add
-            {
-                throw new NotImplementedException();
-            }
-
-            remove
-            {
-                throw new NotImplementedException();
-            }
-        }
-
+        
         internal void Init(IXServiceCollection customServices)
         {
             if (!m_IsInitialized)
@@ -235,7 +235,7 @@ namespace Xarial.XCad.SolidWorks
                 Services = services.CreateProvider();
                 m_Logger = Services.GetService<IXLogger>();
 
-                Documents = new SwDocumentCollection(this, m_Logger);
+                m_DocumentsLazy = new Lazy<ISwDocumentCollection>(() => new SwDocumentCollection(this, m_Logger));
 
                 var geomBuilderDocsProvider = Services.GetService<IMemoryGeometryBuilderDocumentProvider>();
 
@@ -335,6 +335,11 @@ namespace Xarial.XCad.SolidWorks
 
         public void Dispose()
         {
+            if (m_DocumentsLazy.IsValueCreated) 
+            {
+                m_DocumentsLazy.Value.Dispose();
+            }
+
             if (Sw != null)
             {
                 if (Marshal.IsComObject(Sw))
@@ -357,10 +362,64 @@ namespace Xarial.XCad.SolidWorks
 
         private ISldWorks CreateInstance(CancellationToken cancellationToken)
         {
+            m_HideOnStartup = State.HasFlag(ApplicationState_e.Hidden);
+
             using (var appStarter = new SwApplicationStarter(State, Version)) 
             {
-                return appStarter.Start(cancellationToken);
+                var app = appStarter.Start(cancellationToken);
+                WatchStartupCompleted((SldWorks)app);
+                return app;
             }
+        }
+
+        private void WatchStartupCompleted(SldWorks sw) 
+        {
+            sw.OnIdleNotify += OnLoadFirstIdleNotify;
+        }
+
+        private int OnLoadFirstIdleNotify()
+        {
+            const int S_OK = 0;
+
+            Debug.Assert(!m_IsStartupNotified, "This event shoud only be fired once");
+            
+            if (!m_IsStartupNotified)
+            {
+                m_IsStartupNotified = true;
+
+                var continueListening = false;
+
+                if (Sw?.StartupProcessCompleted == true)
+                {
+                    if (m_HideOnStartup)
+                    {
+                        const int HIDE = 0;
+                        ShowWindow(new IntPtr(Sw.IFrameObject().GetHWnd()), HIDE);
+
+                        Sw.Visible = false;
+                    }
+
+                    FirstStartupCompleted?.Invoke(this);
+                }
+                else
+                {
+                    continueListening = true;
+                }
+
+                if (!continueListening)
+                {
+                    if (Sw != null)
+                    {
+                        (Sw as SldWorks).OnIdleNotify -= OnLoadFirstIdleNotify;
+                    }
+                }
+            }
+            else
+            {
+                (Sw as SldWorks).OnIdleNotify -= OnLoadFirstIdleNotify;
+            }
+
+            return S_OK;
         }
 
         private ApplicationState_e GetApplicationState() 
