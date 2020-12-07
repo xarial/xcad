@@ -13,6 +13,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using Xarial.XCad.Annotations;
 using Xarial.XCad.Base;
@@ -911,7 +912,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
                 if (!Model.Save3((int)swSaveAsOptions_e.swSaveAsOptions_Silent, ref errs, ref warns))
                 {
-                    throw new SaveDocumentFailedException((swFileSaveError_e)errs);
+                    throw new SaveDocumentFailedException(errs, ParseSaveError((swFileSaveError_e)errs));
                 }
             }
             else 
@@ -927,7 +928,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
             bool res;
 
-            if (App.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2019, 1))
+            if (App.IsVersionNewerOrEqual(SwVersion_e.Sw2019, 1))
             {
                 res = Model.Extension.SaveAs2(filePath, (int)swSaveAsVersion_e.swSaveAsCurrentVersion,
                     (int)swSaveAsOptions_e.swSaveAsOptions_Silent, null, "", false, ref errs, ref warns);
@@ -940,8 +941,80 @@ namespace Xarial.XCad.SolidWorks.Documents
 
             if (!res)
             {
-                throw new SaveDocumentFailedException((swFileSaveError_e)errs);
+                throw new SaveDocumentFailedException(errs, ParseSaveError((swFileSaveError_e)errs));
             }
+        }
+
+        private static string ParseSaveError(swFileSaveError_e err)
+        {
+            var errors = new List<string>();
+
+            if (err.HasFlag(swFileSaveError_e.swFileLockError))
+            {
+                errors.Add("File lock error");
+            }
+
+            if (err.HasFlag(swFileSaveError_e.swFileNameContainsAtSign))
+            {
+                errors.Add("File name cannot contain the at symbol(@)");
+            }
+
+            if (err.HasFlag(swFileSaveError_e.swFileNameEmpty))
+            {
+                errors.Add("File name cannot be empty");
+            }
+
+            if (err.HasFlag(swFileSaveError_e.swFileSaveAsBadEDrawingsVersion))
+            {
+                errors.Add("Bad eDrawings data");
+            }
+
+            if (err.HasFlag(swFileSaveError_e.swFileSaveAsDoNotOverwrite))
+            {
+                errors.Add("Cannot overwrite an existing file");
+            }
+
+            if (err.HasFlag(swFileSaveError_e.swFileSaveAsInvalidFileExtension))
+            {
+                errors.Add("File name extension does not match the SOLIDWORKS document type");
+            }
+
+            if (err.HasFlag(swFileSaveError_e.swFileSaveAsNameExceedsMaxPathLength))
+            {
+                errors.Add("File name cannot exceed 255 characters");
+            }
+
+            if (err.HasFlag(swFileSaveError_e.swFileSaveAsNotSupported))
+            {
+                errors.Add("Save As operation is not supported in this environment");
+            }
+
+            if (err.HasFlag(swFileSaveError_e.swFileSaveFormatNotAvailable))
+            {
+                errors.Add("Save As file type is not valid");
+            }
+
+            if (err.HasFlag(swFileSaveError_e.swFileSaveRequiresSavingReferences))
+            {
+                errors.Add("Saving an assembly with renamed components requires saving the references");
+            }
+
+            if (err.HasFlag(swFileSaveError_e.swGenericSaveError))
+            {
+                errors.Add("Generic error");
+            }
+
+            if (err.HasFlag(swFileSaveError_e.swReadOnlySaveError))
+            {
+                errors.Add("File is readonly");
+            }
+
+            if (errors.Count == 0)
+            {
+                errors.Add("Unknown error");
+            }
+
+            return string.Join("; ", errors);
         }
     }
 

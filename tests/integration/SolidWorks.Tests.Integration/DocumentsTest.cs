@@ -12,6 +12,7 @@ using Xarial.XCad.Base;
 using Xarial.XCad.Data.Enums;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Enums;
+using Xarial.XCad.Documents.Exceptions;
 using Xarial.XCad.SolidWorks;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Documents.Exceptions;
@@ -574,7 +575,7 @@ namespace SolidWorks.Tests.Integration
             Assert.IsFalse(isDirty);
             Assert.That(saveEx1 is SaveNeverSavedDocumentException);
             Assert.That(saveEx2 is SaveDocumentFailedException);
-            Assert.That((saveEx2 as SaveDocumentFailedException).ErrorCode.HasFlag(swFileSaveError_e.swReadOnlySaveError));
+            Assert.That(((swFileSaveError_e)(saveEx2 as SaveDocumentFailedException).ErrorCode).HasFlag(swFileSaveError_e.swReadOnlySaveError));
         }
 
         [Test]
