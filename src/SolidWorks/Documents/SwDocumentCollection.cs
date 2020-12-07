@@ -114,7 +114,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
             m_Documents = new Dictionary<IModelDoc2, SwDocument>(
                 new SwModelPointerEqualityComparer(m_SwApp));
-            m_DocsHandler = new DocumentsHandler(app);
+            m_DocsHandler = new DocumentsHandler(app, m_Logger);
             
             AttachToAllOpenedDocuments();
 
@@ -203,9 +203,16 @@ namespace Xarial.XCad.SolidWorks.Documents
 
                     m_Documents.Add(doc.Model, doc);
 
-                    m_DocsHandler.InitHandlers(doc);
+                    m_DocsHandler.TryInitHandlers(doc);
 
-                    DocumentCreated?.Invoke(doc);
+                    try
+                    {
+                        DocumentCreated?.Invoke(doc);
+                    }
+                    catch (Exception ex)
+                    {
+                        m_Logger.Log(ex);
+                    }
                 }
                 else 
                 {

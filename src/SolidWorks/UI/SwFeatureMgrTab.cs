@@ -7,6 +7,7 @@
 
 using SolidWorks.Interop.sldworks;
 using System;
+using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.UI;
@@ -28,24 +29,33 @@ namespace Xarial.XCad.SolidWorks.UI
         public TControl Control { get; }
 
         private readonly IFeatMgrView m_FeatViewMgr;
-
         private readonly SwDocument m_Doc;
+        private readonly IXLogger m_Logger;
 
         private bool m_IsDisposed;
 
-        internal SwFeatureMgrTab(TControl ctrl, IFeatMgrView featMgrView, SwDocument doc)
+        internal SwFeatureMgrTab(TControl ctrl, IFeatMgrView featMgrView, SwDocument doc, IXLogger logger)
         {
             Control = ctrl;
             m_FeatViewMgr = featMgrView;
             m_Doc = doc;
             m_Doc.Destroyed += OnDestroyed;
 
+            m_Logger = logger;
+
             m_IsDisposed = false;
         }
 
         private void OnDestroyed(IXDocument doc)
         {
-            Dispose();
+            try
+            {
+                Dispose();
+            }
+            catch (Exception ex)
+            {
+                m_Logger.Log(ex);
+            }
         }
 
         public void Dispose()
@@ -63,12 +73,17 @@ namespace Xarial.XCad.SolidWorks.UI
 
                 if (Control is IDisposable)
                 {
-                    (Control as IDisposable).Dispose();
-                }
-
-                if (!m_FeatViewMgr.DeleteView()) 
-                {
-                    //TODO: log result
+                    try
+                    {
+                        (Control as IDisposable).Dispose();
+                    }
+                    finally 
+                    {
+                        if (!m_FeatViewMgr.DeleteView())
+                        {
+                            m_Logger.Log("Failed to delete feature manager view");
+                        }
+                    }
                 }
             }
         }

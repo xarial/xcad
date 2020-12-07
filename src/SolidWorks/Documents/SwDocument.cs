@@ -860,7 +860,14 @@ namespace Xarial.XCad.SolidWorks.Documents
             {
                 m_Logger.Log($"Destroying '{Model.GetTitle()}' document");
 
-                Closing?.Invoke(this);
+                try
+                {
+                    Closing?.Invoke(this);
+                }
+                catch (Exception ex)
+                {
+                    m_Logger.Log(ex);
+                }
 
                 Destroyed?.Invoke(this);
                 
