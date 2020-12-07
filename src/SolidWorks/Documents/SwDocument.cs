@@ -69,6 +69,8 @@ namespace Xarial.XCad.SolidWorks.Documents
             };
         }
 
+        internal event Action<SwDocument> Destroyed;
+
         public event DocumentCloseDelegate Closing;
         
         public event DocumentRebuildDelegate Rebuild 
@@ -859,6 +861,8 @@ namespace Xarial.XCad.SolidWorks.Documents
                 m_Logger.Log($"Destroying '{Model.GetTitle()}' document");
 
                 Closing?.Invoke(this);
+
+                Destroyed?.Invoke(this);
                 
                 Dispose();
             }

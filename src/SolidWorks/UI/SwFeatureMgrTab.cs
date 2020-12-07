@@ -8,6 +8,7 @@
 using SolidWorks.Interop.sldworks;
 using System;
 using Xarial.XCad.Documents;
+using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.UI;
 
 namespace Xarial.XCad.SolidWorks.UI
@@ -28,16 +29,16 @@ namespace Xarial.XCad.SolidWorks.UI
 
         private readonly IFeatMgrView m_FeatViewMgr;
 
-        private readonly Documents.ISwDocument m_Doc;
+        private readonly SwDocument m_Doc;
 
         private bool m_IsDisposed;
 
-        internal SwFeatureMgrTab(TControl ctrl, IFeatMgrView featMgrView, Documents.ISwDocument doc)
+        internal SwFeatureMgrTab(TControl ctrl, IFeatMgrView featMgrView, SwDocument doc)
         {
             Control = ctrl;
             m_FeatViewMgr = featMgrView;
             m_Doc = doc;
-            m_Doc.Closing += OnDestroyed;
+            m_Doc.Destroyed += OnDestroyed;
 
             m_IsDisposed = false;
         }
@@ -56,7 +57,7 @@ namespace Xarial.XCad.SolidWorks.UI
         {
             if (!m_IsDisposed)
             {
-                m_Doc.Closing -= OnDestroyed;
+                m_Doc.Destroyed -= OnDestroyed;
 
                 m_IsDisposed = true;
 

@@ -324,7 +324,7 @@ namespace Xarial.XCad.SolidWorks
                 {
                     if (mdlViewMgr.DisplayWindowFromHandlex64(t, h.Handle.ToInt64(), true))
                     {
-                        return new SwModelViewTab<TControl>(c, t, mdlViewMgr, doc);
+                        return new SwModelViewTab<TControl>(c, t, mdlViewMgr, (SwDocument)doc);
                     }
                     else
                     {
@@ -340,7 +340,7 @@ namespace Xarial.XCad.SolidWorks
                         throw new ComControlHostException(p);
                     }
 
-                    return new SwModelViewTab<TControl>(ctrl, t, mdlViewMgr, doc);
+                    return new SwModelViewTab<TControl>(ctrl, t, mdlViewMgr, (SwDocument)doc);
                 });
         }
 
@@ -462,7 +462,7 @@ namespace Xarial.XCad.SolidWorks
 
                         if (featMgr != null)
                         {
-                            return new SwFeatureMgrTab<TControl>(c, featMgr, doc);
+                            return new SwFeatureMgrTab<TControl>(c, featMgr, (SwDocument)doc);
                         }
                         else
                         {
@@ -488,7 +488,7 @@ namespace Xarial.XCad.SolidWorks
                             throw new ComControlHostException(p);
                         }
 
-                        return new SwFeatureMgrTab<TControl>(ctrl, featMgr, doc);
+                        return new SwFeatureMgrTab<TControl>(ctrl, featMgr, (SwDocument)doc);
                     });
             }
         }

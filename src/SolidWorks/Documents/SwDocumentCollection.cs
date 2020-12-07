@@ -160,7 +160,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             m_DocsDispatcher.Dispatched -= OnDocumentDispatched;
             m_SwApp.DocumentLoadNotify2 -= OnDocumentLoadNotify2;
 
-            foreach (var doc in m_Documents.Keys.ToArray())
+            foreach (var doc in m_Documents.Values.ToArray())
             {
                 ReleaseDocument(doc);
             }
@@ -199,7 +199,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             {
                 if (!m_Documents.ContainsKey(doc.Model))
                 {
-                    doc.Closing += OnDocumentDestroyed;
+                    doc.Destroyed += OnDocumentDestroyed;
 
                     m_Documents.Add(doc.Model, doc);
 
@@ -239,16 +239,15 @@ namespace Xarial.XCad.SolidWorks.Documents
             return S_OK;
         }
 
-        private void OnDocumentDestroyed(IXDocument model)
+        private void OnDocumentDestroyed(SwDocument doc)
         {
-            ReleaseDocument(((ISwDocument)model).Model);
+            ReleaseDocument(doc);
         }
 
-        private void ReleaseDocument(IModelDoc2 model)
+        private void ReleaseDocument(SwDocument doc)
         {
-            var doc = this[model];
-            doc.Closing -= OnDocumentDestroyed;
-            m_Documents.Remove(model);
+            doc.Destroyed -= OnDocumentDestroyed;
+            m_Documents.Remove(doc.Model);
             m_DocsHandler.ReleaseHandlers(doc);
             doc.Dispose();
         }

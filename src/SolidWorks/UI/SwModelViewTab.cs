@@ -11,6 +11,7 @@ using System.Text;
 using Xarial.XCad.UI;
 using SolidWorks.Interop.sldworks;
 using Xarial.XCad.Documents;
+using Xarial.XCad.SolidWorks.Documents;
 
 namespace Xarial.XCad.SolidWorks.UI
 {
@@ -37,17 +38,17 @@ namespace Xarial.XCad.SolidWorks.UI
         private readonly string m_Title;
         private readonly ModelViewManager m_MdlViewMgr;
 
-        private readonly Documents.ISwDocument m_Doc;
+        private readonly SwDocument m_Doc;
 
         private bool m_IsDisposed;
 
-        internal SwModelViewTab(TControl ctrl, string title, ModelViewManager mdlViewMgr, Documents.ISwDocument doc) 
+        internal SwModelViewTab(TControl ctrl, string title, ModelViewManager mdlViewMgr, SwDocument doc) 
         {
             Control = ctrl;
             m_Title = title;
             m_MdlViewMgr = mdlViewMgr;
             m_Doc = doc;
-            m_Doc.Closing += OnDestroyed;
+            m_Doc.Destroyed += OnDestroyed;
 
             m_IsDisposed = false;
         }
@@ -66,7 +67,7 @@ namespace Xarial.XCad.SolidWorks.UI
         {
             if (!m_IsDisposed)
             {
-                m_Doc.Closing -= OnDestroyed;
+                m_Doc.Destroyed -= OnDestroyed;
 
                 m_IsDisposed = true;
 

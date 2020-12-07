@@ -8,7 +8,7 @@ This page contains list of the most notable changes in the releases of xCAD.NET.
 
 Breaking change is marked with &#x26A0; symbol
 
-## 0.6.10 - December 6, 2020
+## 0.6.10 - December 7, 2020
 
 * &#x26A0; IXComponent::IsResolved replaced with IXComponent::State
 * &#x26A0; ISwApplication::Version is changed from SwVersion_e to SwVersion class
