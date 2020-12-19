@@ -181,21 +181,21 @@ namespace Xarial.XCad.SolidWorks
         {
             get
             {
-                if (Process == null || Process.HasExited || !Process.Responding)
+                try
                 {
-                    return false;
-                }
-                else
-                {
-                    try
-                    {
-                        var testWnd = WindowHandle;
-                        return true;
-                    }
-                    catch
+                    if (Process == null || Process.HasExited || !Process.Responding)
                     {
                         return false;
                     }
+                    else
+                    {
+                        var testCall = Sw.RevisionNumber();
+                        return true;
+                    }
+                }
+                catch 
+                {
+                    return false;
                 }
             }
         }
