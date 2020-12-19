@@ -32,6 +32,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         new ISwDocument3D Document { get; }
         new TSelObject ConvertObject<TSelObject>(TSelObject obj)
             where TSelObject : ISwSelObject;
+        IComponent2 Component { get; }
 
         /// <summary>
         /// Returns the cached path of the component as stored in SOLIDWORKS

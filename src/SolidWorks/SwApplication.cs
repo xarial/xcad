@@ -177,6 +177,29 @@ namespace Xarial.XCad.SolidWorks
 
         internal IServiceProvider Services { get; private set; }
 
+        public bool IsAlive 
+        {
+            get
+            {
+                if (Process == null || Process.HasExited || !Process.Responding)
+                {
+                    return false;
+                }
+                else
+                {
+                    try
+                    {
+                        var testWnd = WindowHandle;
+                        return true;
+                    }
+                    catch
+                    {
+                        return false;
+                    }
+                }
+            }
+        }
+
         private bool m_IsInitialized;
 
         private bool m_HideOnStartup;

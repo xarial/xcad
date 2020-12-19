@@ -53,9 +53,10 @@ namespace Xarial.XCad.SolidWorks
             }
 
             int err;
+            
             if (!m_App.RunMacro2(m_Path, entryPoint.ModuleName, entryPoint.ProcedureName, (int)swOpts, out err))
             {
-                string errDesc = "";
+                string errDesc;
 
                 switch ((swRunMacroError_e)err) 
                 {
@@ -142,6 +143,8 @@ namespace Xarial.XCad.SolidWorks
                     case swRunMacroError_e.swRunMacroError_OpenFileFailed:
                         errDesc = "Open file failed";
                         break;
+                    default:
+                        throw new UnknownMacroRunFailedException(m_Path);
                 }
 
                 throw new MacroRunFailedException(m_Path, err, errDesc);

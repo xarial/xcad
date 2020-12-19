@@ -32,6 +32,11 @@ namespace Xarial.XCad
         ApplicationState_e State { get; set; }
 
         /// <summary>
+        /// Checks if this application is alive
+        /// </summary>
+        bool IsAlive { get; }
+
+        /// <summary>
         /// Returns the rectangle of the application window
         /// </summary>
         Rectangle WindowRectangle { get; }
