@@ -10,10 +10,14 @@ using Xarial.XCad.Data;
 
 namespace Xarial.XCad.Documents
 {
-    public interface IXConfiguration : IXObject, IXTransaction
+    /// <summary>
+    /// Represents the configiration (variant) of the document
+    /// </summary>
+    public interface IXConfiguration : IXObject, IXTransaction, IPropertiesOwner
     {
+        /// <summary>
+        /// Name of the configuration
+        /// </summary>
         string Name { get; }
-
-        IXPropertyRepository Properties { get; }
     }
 }

@@ -148,7 +148,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         IXFeatureRepository IXDocument.Features => Features;
         IXSelectionRepository IXDocument.Selections => Selections;
         IXDimensionRepository IXDocument.Dimensions => Dimensions;
-        IXPropertyRepository IXDocument.Properties => Properties;
+        IXPropertyRepository IPropertiesOwner.Properties => Properties;
         IXDocument[] IXDocument.Dependencies => Dependencies;
         IXVersion IXDocument.Version => Version;
 

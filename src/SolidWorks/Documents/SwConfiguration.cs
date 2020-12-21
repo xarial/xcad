@@ -26,7 +26,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public string Name => m_Conf.Name;
 
-        IXPropertyRepository IXConfiguration.Properties => Properties;
+        IXPropertyRepository IPropertiesOwner.Properties => Properties;
 
         public ISwCustomPropertiesCollection Properties { get; }
 

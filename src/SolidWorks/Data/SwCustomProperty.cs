@@ -20,7 +20,7 @@ namespace Xarial.XCad.SolidWorks.Data
 {
     public interface ISwCustomProperty : IXProperty
     {
-    
+        string Expression { get; set; }
     }
 
     internal class SwCustomProperty : ISwCustomProperty
@@ -106,8 +106,8 @@ namespace Xarial.XCad.SolidWorks.Data
 
         private readonly CustomPropertyChangeEventsHandler m_CustomPropertyChangeEventsHandler;
 
-        private IModelDoc2 m_Model;
-        private ICustomPropertyManager m_PrpMgr;
+        private readonly IModelDoc2 m_Model;
+        private readonly ICustomPropertyManager m_PrpMgr;
 
         public string ConfigurationName { get; }
         
