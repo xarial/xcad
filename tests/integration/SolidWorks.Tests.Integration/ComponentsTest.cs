@@ -1,10 +1,12 @@
 ﻿using NUnit.Framework;
+using SolidWorks.Interop.sldworks;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Xarial.XCad.SolidWorks;
 using Xarial.XCad.SolidWorks.Documents;
 
 namespace SolidWorks.Tests.Integration
@@ -103,6 +105,31 @@ namespace SolidWorks.Tests.Integration
                 Assert.That(string.Equals(Path.Combine(Path.GetDirectoryName(assm.Path), "Assem1.sldasm"),
                     doc5.Path, StringComparison.CurrentCultureIgnoreCase));
             }
+        }
+
+        [Test]
+        public void GetDocumentLdrTest()
+        {
+            string doc1FileName;
+            bool doc1IsCommitted;
+
+            using (var doc = OpenDataDocument(@"Assembly1\TopAssem1.SLDASM", false, s => s.ViewOnly = true))
+            {
+                var assm = (ISwAssembly)m_App.Documents.Active;
+
+                assm.Model.Extension.SelectByID2("Part1-1@TopAssem1", "COMPONENT", 0, 0, 0, false, 0, null, 0);
+
+                var swComp = assm.Model.ISelectionManager.GetSelectedObject6(1, -1) as IComponent2;
+
+                var comp = SwObjectFactory.FromDispatch<ISwComponent>(swComp, assm);
+
+                var doc1 = comp.Document;
+                doc1FileName = Path.GetFileName(doc1.Path);
+                doc1IsCommitted = doc1.IsCommitted;
+            }
+
+            Assert.That(doc1FileName.Equals("Part1.sldprt", StringComparison.CurrentCultureIgnoreCase));
+            Assert.IsFalse(doc1IsCommitted);
         }
 
         [Test]

@@ -184,7 +184,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
         }
     }
 
-    public interface ISwSolidBody : ISwBody
+    public interface ISwSolidBody : IXSolidBody, ISwBody
     {
     }
 

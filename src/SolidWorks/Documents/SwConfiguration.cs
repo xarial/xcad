@@ -6,9 +6,11 @@
 //*********************************************************************
 
 using SolidWorks.Interop.sldworks;
+using System;
 using System.Threading;
 using Xarial.XCad.Data;
 using Xarial.XCad.Documents;
+using Xarial.XCad.Features;
 using Xarial.XCad.SolidWorks.Data;
 
 namespace Xarial.XCad.SolidWorks.Documents
@@ -28,17 +30,22 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         IXPropertyRepository IPropertiesOwner.Properties => Properties;
 
-        public ISwCustomPropertiesCollection Properties { get; }
+        public ISwCustomPropertiesCollection Properties => m_PropertiesLazy.Value;
+
+        private readonly Lazy<ISwCustomPropertiesCollection> m_PropertiesLazy;
 
         //TODO: implement creation of new configurations
         public bool IsCommitted => true;
+
+        public IXCutListItem[] CutLists => throw new NotImplementedException();
 
         internal SwConfiguration(SwDocument doc, IConfiguration conf) : base(conf)
         {
             m_Doc = doc;
             m_Conf = conf;
 
-            Properties = new SwCustomPropertiesCollection(m_Doc, Name);
+            m_PropertiesLazy = new Lazy<ISwCustomPropertiesCollection>(
+                () => new SwCustomPropertiesCollection(m_Doc, Name));
         }
 
         public void Commit(CancellationToken cancellationToken)

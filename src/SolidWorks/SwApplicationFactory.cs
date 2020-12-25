@@ -64,12 +64,17 @@ namespace Xarial.XCad.SolidWorks
                     {
                         var addInKey = addinsStartup.OpenSubKey(addInKeyName, true);
 
-                        var loadOnStartup = (int)addInKey.GetValue("") == ENABLE_VAL;
+                        int enableVal;
 
-                        if (loadOnStartup)
+                        if (int.TryParse(addInKey.GetValue("")?.ToString(), out enableVal))
                         {
-                            addInKey.SetValue("", DISABLE_VAL);
-                            disabledAddInGuids.Add(addInKeyName);
+                            var loadOnStartup = enableVal == ENABLE_VAL;
+
+                            if (loadOnStartup)
+                            {
+                                addInKey.SetValue("", DISABLE_VAL);
+                                disabledAddInGuids.Add(addInKeyName);
+                            }
                         }
                     }
                 }

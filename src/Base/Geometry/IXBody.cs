@@ -47,14 +47,23 @@ namespace Xarial.XCad.Geometry
         IXBody[] Common(IXBody other);
     }
 
+    /// <summary>
+    /// Represents sheet (surface) body
+    /// </summary>
     public interface IXSheetBody : IXBody
     {
     }
 
+    /// <summary>
+    /// Subtype of <see cref="IXSheetBody"/> which is planar
+    /// </summary>
     public interface IXPlanarSheetBody : IXSheetBody, IXRegion 
     {
     }
 
+    /// <summary>
+    /// Represents solid body geometry
+    /// </summary>
     public interface IXSolidBody : IXBody 
     {
     }

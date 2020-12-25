@@ -106,7 +106,6 @@ namespace Xarial.XCad.SolidWorks.Data
 
         private readonly CustomPropertyChangeEventsHandler m_CustomPropertyChangeEventsHandler;
 
-        private readonly IModelDoc2 m_Model;
         private readonly ICustomPropertyManager m_PrpMgr;
 
         public string ConfigurationName { get; }
@@ -117,7 +116,6 @@ namespace Xarial.XCad.SolidWorks.Data
         internal SwCustomProperty(IModelDoc2 model, ICustomPropertyManager prpMgr, string name, 
             string confName, CustomPropertiesEventsHelper evHelper) 
         {
-            m_Model = model;
             m_PrpMgr = prpMgr;
             m_Name = name;
             ConfigurationName = confName;

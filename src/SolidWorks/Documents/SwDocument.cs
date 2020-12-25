@@ -320,10 +320,10 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         protected abstract bool IsRapidMode { get; }
 
-        private Lazy<ISwFeatureManager> m_FeaturesLazy;
-        private Lazy<ISwSelectionCollection> m_SelectionsLazy;
-        private Lazy<ISwDimensionsCollection> m_DimensionsLazy;
-        private Lazy<ISwCustomPropertiesCollection> m_PropertiesLazy;
+        private readonly Lazy<ISwFeatureManager> m_FeaturesLazy;
+        private readonly Lazy<ISwSelectionCollection> m_SelectionsLazy;
+        private readonly Lazy<ISwDimensionsCollection> m_DimensionsLazy;
+        private readonly Lazy<ISwCustomPropertiesCollection> m_PropertiesLazy;
 
         public ISwFeatureManager Features => m_FeaturesLazy.Value;
         public ISwSelectionCollection Selections => m_SelectionsLazy.Value;
