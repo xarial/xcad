@@ -6,27 +6,54 @@
 //*********************************************************************
 
 using SolidWorks.Interop.sldworks;
+using SolidWorks.Interop.swconst;
 using System;
 using System.Threading;
 using Xarial.XCad.Data;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Features;
+using Xarial.XCad.Services;
 using Xarial.XCad.SolidWorks.Data;
 
 namespace Xarial.XCad.SolidWorks.Documents
 {
     public interface ISwConfiguration : ISwObject, IXConfiguration, IDisposable
     {
+        IConfiguration Configuration { get; }
         new ISwCustomPropertiesCollection Properties { get; }
     }
 
     internal class SwConfiguration : SwObject, ISwConfiguration
     {
-        private readonly IConfiguration m_Conf;
-        
+        public IConfiguration Configuration => m_Creator.Element;
+
         private readonly SwDocument m_Doc;
 
-        public string Name => m_Conf.Name;
+        public string Name 
+        {
+            get 
+            {
+                if (m_Creator.IsCreated)
+                {
+                    return Configuration.Name;
+                }
+                else 
+                {
+                    return m_Creator.CachedProperties.Get<string>();
+                }
+            }
+            set 
+            {
+                if (m_Creator.IsCreated)
+                {
+                    Configuration.Name = value;
+                }
+                else 
+                {
+                    m_Creator.CachedProperties.Set(value);
+                }
+            }
+        }
 
         IXPropertyRepository IPropertiesOwner.Properties => Properties;
 
@@ -34,23 +61,43 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         private readonly Lazy<ISwCustomPropertiesCollection> m_PropertiesLazy;
 
-        //TODO: implement creation of new configurations
-        public bool IsCommitted => true;
+        public bool IsCommitted => m_Creator.IsCreated;
 
         public IXCutListItem[] CutLists => throw new NotImplementedException();
 
-        internal SwConfiguration(SwDocument doc, IConfiguration conf) : base(conf)
+        private readonly ElementCreator<IConfiguration> m_Creator;
+
+        internal SwConfiguration(SwDocument doc, IConfiguration conf, bool created) : base(conf)
         {
             m_Doc = doc;
-            m_Conf = conf;
+
+            m_Creator = new ElementCreator<IConfiguration>(Create, conf, created);
 
             m_PropertiesLazy = new Lazy<ISwCustomPropertiesCollection>(
                 () => new SwConfigurationCustomPropertiesCollection(m_Doc, Name));
         }
 
-        public void Commit(CancellationToken cancellationToken)
+        public void Commit(CancellationToken cancellationToken) => m_Creator.Create(cancellationToken);
+
+        private IConfiguration Create(CancellationToken cancellationToken) 
         {
-            throw new System.NotImplementedException();
+            IConfiguration conf;
+
+            if (m_Doc.App.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2018))
+            {
+                conf = m_Doc.Model.ConfigurationManager.AddConfiguration2(Name, "", "", (int)swConfigurationOptions2_e.swConfigOption_DontActivate, "", "", false);
+            }
+            else 
+            {
+                conf = m_Doc.Model.ConfigurationManager.AddConfiguration(Name, "", "", (int)swConfigurationOptions2_e.swConfigOption_DontActivate, "", "");
+            }
+
+            if (conf == null) 
+            {
+                throw new Exception("Failed to create configuration");
+            }
+
+            return conf;
         }
 
         public void Dispose()

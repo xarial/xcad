@@ -4,20 +4,28 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Xarial.XCad.Data;
+using Xarial.XCad.Data.Delegates;
 using Xarial.XCad.Features;
 using Xarial.XCad.Geometry;
+using Xarial.XCad.SolidWorks.Data;
+using Xarial.XCad.SolidWorks.Data.EventHandlers;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Geometry;
+using Xarial.XCad.Toolkit.Services;
 
 namespace Xarial.XCad.SolidWorks.Features
 {
-    public interface ISwCutListItem : IXCutListItem, ISwFeature 
+    public interface ISwCutListItem : IXCutListItem, ISwFeature, IDisposable
     {
         IBodyFolder CutListBodyFolder { get; }
     }
 
     internal class SwCutListItem : SwFeature, ISwCutListItem
     {
+        private readonly Lazy<ISwCustomPropertiesCollection> m_Properties;
+
+        IXPropertyRepository IPropertiesOwner.Properties => Properties;
+
         internal SwCutListItem(ISwDocument doc, IFeature feat, bool created) : base(doc, feat, created)
         {
             if (feat.GetTypeName2() != "CutListFolder") 
@@ -26,6 +34,9 @@ namespace Xarial.XCad.SolidWorks.Features
             }
 
             CutListBodyFolder = (IBodyFolder)feat.GetSpecificFeature2();
+
+            m_Properties = new Lazy<ISwCustomPropertiesCollection>(
+                () => new SwCutListCustomPropertiesCollection(m_Doc, Feature.CustomPropertyManager));
         }
 
         public IBodyFolder CutListBodyFolder { get; }
@@ -47,6 +58,40 @@ namespace Xarial.XCad.SolidWorks.Features
             }
         }
 
-        public IXPropertyRepository Properties => throw new NotImplementedException();
+        public ISwCustomPropertiesCollection Properties => m_Properties.Value;
+
+        public void Dispose()
+        {
+            if (m_Properties.IsValueCreated) 
+            {
+                m_Properties.Value.Dispose();
+            }
+        }
+    }
+
+    internal class SwCutListCustomPropertiesCollection : SwCustomPropertiesCollection
+    {
+        internal SwCutListCustomPropertiesCollection(ISwDocument doc, CustomPropertyManager prpMgr) : base(doc)
+        {
+            PrpMgr = prpMgr;
+        }
+
+        protected override CustomPropertyManager PrpMgr { get; }
+
+        protected override EventsHandler<PropertyValueChangedDelegate> CreateEventsHandler(SwCustomProperty prp)
+            => new CutListCustomPropertyChangeEventsHandler();
+    }
+
+    public class CutListCustomPropertyChangeEventsHandler : EventsHandler<PropertyValueChangedDelegate>
+    {
+        protected override void SubscribeEvents()
+        {
+            throw new NotImplementedException();
+        }
+
+        protected override void UnsubscribeEvents()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

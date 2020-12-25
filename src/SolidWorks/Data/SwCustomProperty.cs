@@ -15,6 +15,7 @@ using Xarial.XCad.Data;
 using Xarial.XCad.Data.Delegates;
 using Xarial.XCad.SolidWorks.Data.EventHandlers;
 using Xarial.XCad.SolidWorks.Data.Helpers;
+using Xarial.XCad.Toolkit.Services;
 
 namespace Xarial.XCad.SolidWorks.Data
 {
@@ -104,7 +105,7 @@ namespace Xarial.XCad.SolidWorks.Data
             }
         }
 
-        private CustomPropertyChangeEventsHandler m_CustomPropertyChangeEventsHandler;
+        private EventsHandler<PropertyValueChangedDelegate> m_CustomPropertyChangeEventsHandler;
 
         private readonly ICustomPropertyManager m_PrpMgr;
         
@@ -117,7 +118,7 @@ namespace Xarial.XCad.SolidWorks.Data
             m_Name = name;
         }
 
-        internal void SetEventsHandler(CustomPropertyChangeEventsHandler eventsHandler) 
+        internal void SetEventsHandler(EventsHandler<PropertyValueChangedDelegate> eventsHandler) 
         {
             m_CustomPropertyChangeEventsHandler = eventsHandler;
         }

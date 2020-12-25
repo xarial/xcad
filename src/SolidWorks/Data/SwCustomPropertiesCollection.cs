@@ -13,11 +13,13 @@ using System.Collections.Generic;
 using System.Text;
 using Xarial.XCad.Base;
 using Xarial.XCad.Data;
+using Xarial.XCad.Data.Delegates;
 using Xarial.XCad.Exceptions;
 using Xarial.XCad.SolidWorks.Data.EventHandlers;
 using Xarial.XCad.SolidWorks.Data.Exceptions;
 using Xarial.XCad.SolidWorks.Data.Helpers;
 using Xarial.XCad.SolidWorks.Documents;
+using Xarial.XCad.Toolkit.Services;
 
 namespace Xarial.XCad.SolidWorks.Data
 {
@@ -70,9 +72,9 @@ namespace Xarial.XCad.SolidWorks.Data
 
         protected abstract CustomPropertyManager PrpMgr { get; }
 
-        protected SwDocument m_Doc;
+        protected ISwDocument m_Doc;
 
-        protected SwCustomPropertiesCollection(SwDocument doc)
+        protected SwCustomPropertiesCollection(ISwDocument doc)
         {
             m_Doc = doc;
         }
@@ -104,7 +106,7 @@ namespace Xarial.XCad.SolidWorks.Data
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-        protected abstract CustomPropertyChangeEventsHandler CreateEventsHandler(SwCustomProperty prp);
+        protected abstract EventsHandler<PropertyValueChangedDelegate> CreateEventsHandler(SwCustomProperty prp);
 
         public ISwCustomProperty GetOrPreCreate(string name)
         {
@@ -124,7 +126,7 @@ namespace Xarial.XCad.SolidWorks.Data
         private readonly string m_ConfName;
 
         private readonly CustomPropertiesEventsHelper m_EventsHelper;
-        private readonly List<CustomPropertyChangeEventsHandler> m_EventsHandlers;
+        private readonly List<EventsHandler<PropertyValueChangedDelegate>> m_EventsHandlers;
 
         internal SwConfigurationCustomPropertiesCollection(SwDocument doc, string confName) : base(doc)
         {
@@ -132,16 +134,16 @@ namespace Xarial.XCad.SolidWorks.Data
 
             m_ConfName = confName;
 
-            m_EventsHandlers = new List<CustomPropertyChangeEventsHandler>();
+            m_EventsHandlers = new List<EventsHandler<PropertyValueChangedDelegate>>();
         }
 
         protected override CustomPropertyManager PrpMgr => Model.Extension.CustomPropertyManager[m_ConfName];
                 
-        protected override CustomPropertyChangeEventsHandler CreateEventsHandler(SwCustomProperty prp)
+        protected override EventsHandler<PropertyValueChangedDelegate> CreateEventsHandler(SwCustomProperty prp)
         {
             var isBugPresent = true; //TODO: find version when the issue is starter
 
-            CustomPropertyChangeEventsHandler evHandler = null;
+            EventsHandler<PropertyValueChangedDelegate> evHandler = null;
 
             if (isBugPresent)
             {
@@ -196,10 +198,10 @@ namespace Xarial.XCad.SolidWorks.Data
         private readonly string[] m_PrpNames;
         private int m_CurPrpIndex;
 
-        private readonly Func<SwCustomProperty, CustomPropertyChangeEventsHandler> m_EventsHandlerFact;
+        private readonly Func<SwCustomProperty, EventsHandler<PropertyValueChangedDelegate>> m_EventsHandlerFact;
 
         internal SwCustomPropertyEnumerator(CustomPropertyManager prpMgr, 
-            Func<SwCustomProperty, CustomPropertyChangeEventsHandler> eventsHandlerFact) 
+            Func<SwCustomProperty, EventsHandler<PropertyValueChangedDelegate>> eventsHandlerFact) 
         {
             m_PrpMgr = prpMgr;
 

@@ -174,7 +174,7 @@ namespace Xarial.XCad.SolidWorks
                     return new SwDimension(doc.Model, dispDim);
 
                 case IConfiguration conf:
-                    return new SwConfiguration((SwDocument)doc, conf);
+                    return new SwConfiguration((SwDocument)doc, conf, true);
 
                 case IComponent2 comp:
                     return new SwComponent(comp, (SwAssembly)doc);

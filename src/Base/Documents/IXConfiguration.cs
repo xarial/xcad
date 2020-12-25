@@ -19,7 +19,7 @@ namespace Xarial.XCad.Documents
         /// <summary>
         /// Name of the configuration
         /// </summary>
-        string Name { get; }
+        string Name { get; set; }
 
         /// <summary>
         /// Cut-list items in this configuration (if available)
