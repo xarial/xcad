@@ -15,7 +15,7 @@ using Xarial.XCad.SolidWorks.Data;
 
 namespace Xarial.XCad.SolidWorks.Documents
 {
-    public interface ISwConfiguration : ISwObject, IXConfiguration 
+    public interface ISwConfiguration : ISwObject, IXConfiguration, IDisposable
     {
         new ISwCustomPropertiesCollection Properties { get; }
     }
@@ -45,12 +45,20 @@ namespace Xarial.XCad.SolidWorks.Documents
             m_Conf = conf;
 
             m_PropertiesLazy = new Lazy<ISwCustomPropertiesCollection>(
-                () => new SwCustomPropertiesCollection(m_Doc, Name));
+                () => new SwConfigurationCustomPropertiesCollection(m_Doc, Name));
         }
 
         public void Commit(CancellationToken cancellationToken)
         {
             throw new System.NotImplementedException();
+        }
+
+        public void Dispose()
+        {
+            if (m_PropertiesLazy.IsValueCreated) 
+            {
+                m_PropertiesLazy.Value.Dispose();
+            }
         }
     }
 }

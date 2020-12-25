@@ -102,5 +102,32 @@ namespace SolidWorks.Tests.Integration
                 Assert.Throws<CustomPropertyMissingException>(() => { var p = (m_App.Documents.Active as ISwDocument3D).Configurations["Default"].Properties["Prop1_"]; });
             }
         }
+
+        [Test]
+        public void TestPropertyEvents() 
+        {
+            string newVal = null;
+            string newConfVal = null;
+
+            using (var doc = NewDocument(Interop.swconst.swDocumentTypes_e.swDocPART)) 
+            {
+                var part = (ISwDocument3D)m_App.Documents.Active;
+                var p1 = part.Properties.GetOrPreCreate("P1");
+                p1.Value = "A";
+                p1.Commit();
+                p1.ValueChanged += (IXProperty prp, object newValue) => { newVal += (string)newValue; };
+
+                var p2 = part.Configurations.Active.Properties.GetOrPreCreate("P2");
+                p2.ValueChanged += (IXProperty prp, object newValue) => { newConfVal += (string)newValue; };
+                p2.Value = "B";
+                p2.Commit();
+
+                part.Model.Extension.CustomPropertyManager[""].Set("P1", "A1");
+                part.Model.ConfigurationManager.ActiveConfiguration.CustomPropertyManager.Set("P2", "B1");
+            }
+
+            Assert.AreEqual("A1", newVal);
+            Assert.AreEqual("B1", newConfVal);
+        }
     }
 }

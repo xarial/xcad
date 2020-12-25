@@ -20,11 +20,13 @@ namespace Xarial.XCad.SolidWorks.Data.EventHandlers
     {
         private readonly IModelDoc2 m_Model;
         private readonly SwCustomProperty m_Prp;
-        
-        internal CustomPropertyChangeEventsHandler(IModelDoc2 model, SwCustomProperty prp) 
+        private readonly string m_ConfName;
+
+        internal CustomPropertyChangeEventsHandler(IModelDoc2 model, SwCustomProperty prp, string confName) 
         {
             m_Model = model;
             m_Prp = prp;
+            m_ConfName = confName;
         }
 
         protected override void SubscribeEvents()
@@ -73,7 +75,7 @@ namespace Xarial.XCad.SolidWorks.Data.EventHandlers
         protected void Filter(string prpName, string confName, string newValue)
         {
             if (string.Equals(prpName, m_Prp.Name, StringComparison.CurrentCultureIgnoreCase)
-                            && string.Equals(confName, m_Prp.ConfigurationName, StringComparison.CurrentCultureIgnoreCase))
+                            && string.Equals(confName, m_ConfName, StringComparison.CurrentCultureIgnoreCase))
             {
                 Delegate?.Invoke(m_Prp, newValue);
             }
@@ -84,19 +86,22 @@ namespace Xarial.XCad.SolidWorks.Data.EventHandlers
     {
         private CustomPropertiesEventsHelper m_EventsHelper;
 
-        internal CustomPropertyChangeEventsHandlerFromSw2017(CustomPropertiesEventsHelper eventsHelper, IModelDoc2 model, SwCustomProperty prp) 
-            : base(model, prp)
+        internal CustomPropertyChangeEventsHandlerFromSw2017(
+            CustomPropertiesEventsHelper eventsHelper, IModelDoc2 model, SwCustomProperty prp, string confName) 
+            : base(model, prp, confName)
         {
             m_EventsHelper = eventsHelper;
         }
 
         protected override void SubscribeEvents()
         {
+            base.SubscribeEvents();
             m_EventsHelper.CustomPropertiesModified += OnCustomPropertiesModified;
         }
 
         protected override void UnsubscribeEvents()
         {
+            base.UnsubscribeEvents();
             m_EventsHelper.CustomPropertiesModified -= OnCustomPropertiesModified;
         }
 

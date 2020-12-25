@@ -104,32 +104,22 @@ namespace Xarial.XCad.SolidWorks.Data
             }
         }
 
-        private readonly CustomPropertyChangeEventsHandler m_CustomPropertyChangeEventsHandler;
+        private CustomPropertyChangeEventsHandler m_CustomPropertyChangeEventsHandler;
 
         private readonly ICustomPropertyManager m_PrpMgr;
-
-        public string ConfigurationName { get; }
         
         //TODO: for older that SW2014 - get all properties
         public bool IsCommitted => m_PrpMgr.Get5(Name, true, out _, out _, out _) != (int)swCustomInfoGetResult_e.swCustomInfoGetResult_NotPresent;
 
-        internal SwCustomProperty(IModelDoc2 model, ICustomPropertyManager prpMgr, string name, 
-            string confName, CustomPropertiesEventsHelper evHelper) 
+        internal SwCustomProperty(CustomPropertyManager prpMgr, string name) 
         {
             m_PrpMgr = prpMgr;
             m_Name = name;
-            ConfigurationName = confName;
+        }
 
-            var isBugPresent = true; //TODO: find version when the issue is starter
-
-            if (isBugPresent)
-            {
-                m_CustomPropertyChangeEventsHandler = new CustomPropertyChangeEventsHandlerFromSw2017(evHelper, model, this);
-            }
-            else 
-            {
-                m_CustomPropertyChangeEventsHandler = new CustomPropertyChangeEventsHandler(model, this);
-            }
+        internal void SetEventsHandler(CustomPropertyChangeEventsHandler eventsHandler) 
+        {
+            m_CustomPropertyChangeEventsHandler = eventsHandler;
         }
 
         private void RenameProperty(string newName) 
