@@ -9,6 +9,7 @@ using SolidWorks.Interop.sldworks;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Delegates;
@@ -18,6 +19,8 @@ namespace Xarial.XCad.SolidWorks.Documents
 {
     public interface ISwConfigurationCollection : IXConfigurationRepository, IDisposable
     {
+        new ISwConfiguration PreCreate();
+        new ISwConfiguration Active { get; set; }
     }
 
     internal class SwConfigurationCollection : ISwConfigurationCollection
@@ -33,6 +36,14 @@ namespace Xarial.XCad.SolidWorks.Documents
                 m_ConfigurationActivatedEventsHandler.Detach(value);
             }
         }
+
+        IXConfiguration IXConfigurationRepository.Active 
+        {
+            get => Active;
+            set => Active = (ISwConfiguration)value;
+        }
+
+        IXConfiguration IXConfigurationRepository.PreCreate() => PreCreate();
 
         private readonly ISldWorks m_App;
         private readonly SwDocument3D m_Doc;
@@ -64,14 +75,31 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        public int Count => (m_Doc.Model.GetConfigurationNames() as string[]).Length;
+        public int Count => m_Doc.Model.GetConfigurationCount();
 
-        public IXConfiguration Active 
-            => SwObject.FromDispatch<SwConfiguration>(m_Doc.Model.ConfigurationManager.ActiveConfiguration, m_Doc);
+        public ISwConfiguration Active
+        {
+            get => SwObject.FromDispatch<SwConfiguration>(m_Doc.Model.ConfigurationManager.ActiveConfiguration, m_Doc);
+            set 
+            {
+                if (m_Doc.Model.ConfigurationManager.ActiveConfiguration != value.Configuration)
+                {
+                    if (!m_Doc.Model.ShowConfiguration2(value.Name))
+                    {
+                        throw new Exception($"Failed to activate configuration '{value.Name}'");
+                    }
+                }
+            }
+        }
+
+        public ISwConfiguration PreCreate() => new SwConfiguration(m_Doc, null, false);
 
         public void AddRange(IEnumerable<IXConfiguration> ents)
         {
-            throw new NotImplementedException();
+            foreach (var conf in ents) 
+            {
+                conf.Commit();
+            }
         }
         
         public void Dispose()
@@ -82,7 +110,30 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public void RemoveRange(IEnumerable<IXConfiguration> ents)
         {
-            throw new NotImplementedException();
+            foreach (var conf in ents) 
+            {
+                if (conf.IsCommitted)
+                {
+                    if (Count == 1) 
+                    {
+                        throw new Exception("Cannot delete the last configuration");
+                    }
+
+                    if (string.Equals(Active.Name, conf.Name)) 
+                    {
+                        Active = (ISwConfiguration)this.First(c => !string.Equals(c.Name, conf.Name, StringComparison.CurrentCultureIgnoreCase));
+                    }
+
+                    if (!m_Doc.Model.DeleteConfiguration2(conf.Name)) 
+                    {
+                        throw new Exception($"Failed to delete configuration '{conf.Name}'");
+                    }
+                }
+                else 
+                {
+                    throw new Exception($"Cannot delete uncommited configuration '{conf.Name}'");
+                }
+            }
         }
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();

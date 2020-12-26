@@ -14,15 +14,19 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using Xarial.XCad.Base;
+using Xarial.XCad.Data;
+using Xarial.XCad.Data.Delegates;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Features;
 using Xarial.XCad.Features.CustomFeature;
 using Xarial.XCad.Geometry;
+using Xarial.XCad.SolidWorks.Data;
 using Xarial.XCad.SolidWorks.Features;
 using Xarial.XCad.SolidWorks.Geometry;
 using Xarial.XCad.SolidWorks.Services;
 using Xarial.XCad.Toolkit;
+using Xarial.XCad.Toolkit.Services;
 
 namespace Xarial.XCad.SolidWorks.Documents
 {
@@ -33,6 +37,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         new TSelObject ConvertObject<TSelObject>(TSelObject obj)
             where TSelObject : ISwSelObject;
         IComponent2 Component { get; }
+        new ISwFeatureManager Features { get; }
 
         /// <summary>
         /// Returns the cached path of the component as stored in SOLIDWORKS
@@ -45,6 +50,7 @@ namespace Xarial.XCad.SolidWorks.Documents
     {
         IXDocument3D IXComponent.Document => Document;
         IXComponentRepository IXComponent.Children => Children;
+        IXFeatureRepository IXComponent.Features => Features;
         TSelObject IXObjectContainer.ConvertObject<TSelObject>(TSelObject obj) => ConvertObjectBoxed(obj) as TSelObject;
 
         public IComponent2 Component { get; }
@@ -55,12 +61,14 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         private readonly IFilePathResolver m_FilePathResolver;
 
+        private readonly Lazy<ISwFeatureManager> m_Features;
+
         internal SwComponent(IComponent2 comp, SwAssembly parentAssembly) : base(comp)
         {
             m_ParentAssembly = parentAssembly;
             Component = comp;
             Children = new SwChildComponentsCollection(parentAssembly, comp);
-            Features = new ComponentFeatureRepository(parentAssembly, comp);
+            m_Features = new Lazy<ISwFeatureManager>(() => new ComponentFeatureRepository(parentAssembly, comp));
             Bodies = new SwComponentBodyCollection(comp, parentAssembly);
 
             m_FilePathResolver = m_ParentAssembly.App.Services.GetService<IFilePathResolver>();
@@ -78,7 +86,8 @@ namespace Xarial.XCad.SolidWorks.Documents
             {
                 var compModel = Component.IGetModelDoc();
 
-                if (compModel != null)
+                //Note: for LDR assembly IGetModelDoc returns the pointer to root assembly
+                if (compModel != null && !m_ParentAssembly.Model.IsOpenedViewOnly())
                 {
                     return (SwDocument3D)m_ParentAssembly.App.Documents[compModel];
                 }
@@ -133,8 +142,8 @@ namespace Xarial.XCad.SolidWorks.Documents
                 return state;
             } 
         }
-                          
-        public IXFeatureRepository Features { get; }
+
+        public ISwFeatureManager Features => m_Features.Value;
 
         public IXBodyRepository Bodies { get; }
 
@@ -156,6 +165,26 @@ namespace Xarial.XCad.SolidWorks.Documents
                 else 
                 {
                     return cachedPath;
+                }
+            }
+        }
+
+        public IXConfiguration ReferencedConfiguration 
+        {
+            get 
+            {
+                var doc = Document;
+
+                if (doc.IsCommitted)
+                {
+                    return doc.Configurations[Component.ReferencedConfiguration];
+                }
+                else 
+                {
+                    return new SwConfiguration((SwDocument3D)doc, null, false)
+                    {
+                        Name = Component.ReferencedConfiguration
+                    };
                 }
             }
         }
@@ -196,7 +225,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
     }
-
+    
     internal class ComponentFeatureRepository : SwFeatureManager
     {
         private readonly SwAssembly m_Assm;

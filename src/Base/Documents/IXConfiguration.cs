@@ -7,6 +7,7 @@
 
 using Xarial.XCad.Base;
 using Xarial.XCad.Data;
+using Xarial.XCad.Features;
 
 namespace Xarial.XCad.Documents
 {
@@ -18,6 +19,11 @@ namespace Xarial.XCad.Documents
         /// <summary>
         /// Name of the configuration
         /// </summary>
-        string Name { get; }
+        string Name { get; set; }
+
+        /// <summary>
+        /// Cut-list items in this configuration (if available)
+        /// </summary>
+        IXCutListItem[] CutLists { get; }
     }
 }

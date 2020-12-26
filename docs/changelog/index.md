@@ -8,6 +8,10 @@ This page contains list of the most notable changes in the releases of xCAD.NET.
 
 Breaking change is marked with &#x26A0; symbol
 
+## 0.6.11 - 
+
+* &#x26A0; IXPropertyRepository::GetOrPreCreate moved to extension method
+
 ## 0.6.10 - December 7, 2020
 
 * &#x26A0; IXComponent::IsResolved replaced with IXComponent::State

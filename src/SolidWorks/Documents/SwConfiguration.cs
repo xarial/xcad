@@ -6,44 +6,124 @@
 //*********************************************************************
 
 using SolidWorks.Interop.sldworks;
+using SolidWorks.Interop.swconst;
+using System;
 using System.Threading;
 using Xarial.XCad.Data;
 using Xarial.XCad.Documents;
+using Xarial.XCad.Features;
+using Xarial.XCad.Services;
 using Xarial.XCad.SolidWorks.Data;
+using Xarial.XCad.SolidWorks.Features;
 
 namespace Xarial.XCad.SolidWorks.Documents
 {
-    public interface ISwConfiguration : ISwObject, IXConfiguration 
+    public interface ISwConfiguration : ISwObject, IXConfiguration, IDisposable
     {
+        IConfiguration Configuration { get; }
         new ISwCustomPropertiesCollection Properties { get; }
     }
 
     internal class SwConfiguration : SwObject, ISwConfiguration
     {
-        private readonly IConfiguration m_Conf;
-        
-        private readonly SwDocument m_Doc;
+        public IConfiguration Configuration => m_Creator.Element;
 
-        public string Name => m_Conf.Name;
+        private readonly SwDocument3D m_Doc;
+
+        public string Name
+        {
+            get
+            {
+                if (m_Creator.IsCreated)
+                {
+                    return Configuration.Name;
+                }
+                else
+                {
+                    return m_Creator.CachedProperties.Get<string>();
+                }
+            }
+            set
+            {
+                if (m_Creator.IsCreated)
+                {
+                    Configuration.Name = value;
+                }
+                else
+                {
+                    m_Creator.CachedProperties.Set(value);
+                }
+            }
+        }
 
         IXPropertyRepository IPropertiesOwner.Properties => Properties;
 
-        public ISwCustomPropertiesCollection Properties { get; }
+        public ISwCustomPropertiesCollection Properties => m_PropertiesLazy.Value;
 
-        //TODO: implement creation of new configurations
-        public bool IsCommitted => true;
+        private readonly Lazy<ISwCustomPropertiesCollection> m_PropertiesLazy;
 
-        internal SwConfiguration(SwDocument doc, IConfiguration conf) : base(conf)
+        public bool IsCommitted => m_Creator.IsCreated;
+
+        public IXCutListItem[] CutLists
         {
-            m_Doc = doc;
-            m_Conf = conf;
+            get
+            {
+                var activeConf = m_Doc.Configurations.Active;
 
-            Properties = new SwCustomPropertiesCollection(m_Doc, Name);
+                if (activeConf.Configuration != this.Configuration) 
+                {
+                    m_Doc.Configurations.Active = this;
+                }
+
+                var cutLists = m_Doc.Features.GetCutLists();
+
+                m_Doc.Configurations.Active = activeConf;
+
+                return cutLists;
+            }
         }
 
-        public void Commit(CancellationToken cancellationToken)
+        private readonly ElementCreator<IConfiguration> m_Creator;
+
+        internal SwConfiguration(SwDocument3D doc, IConfiguration conf, bool created) : base(conf)
         {
-            throw new System.NotImplementedException();
+            m_Doc = doc;
+
+            m_Creator = new ElementCreator<IConfiguration>(Create, conf, created);
+
+            m_PropertiesLazy = new Lazy<ISwCustomPropertiesCollection>(
+                () => new SwConfigurationCustomPropertiesCollection(m_Doc, Name));
+        }
+
+        public void Commit(CancellationToken cancellationToken) => m_Creator.Create(cancellationToken);
+
+        private IConfiguration Create(CancellationToken cancellationToken) 
+        {
+            IConfiguration conf;
+
+            if (m_Doc.App.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2018))
+            {
+                conf = m_Doc.Model.ConfigurationManager.AddConfiguration2(Name, "", "", (int)swConfigurationOptions2_e.swConfigOption_DontActivate, "", "", false);
+            }
+            else 
+            {
+                conf = m_Doc.Model.ConfigurationManager.AddConfiguration(Name, "", "", (int)swConfigurationOptions2_e.swConfigOption_DontActivate, "", "");
+            }
+
+            if (conf == null) 
+            {
+                throw new Exception("Failed to create configuration");
+            }
+
+            return conf;
+        }
+
+        public void Dispose()
+        {
+            if (m_PropertiesLazy.IsValueCreated) 
+            {
+                m_PropertiesLazy.Value.Dispose();
+            }
         }
     }
 }

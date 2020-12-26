@@ -95,6 +95,8 @@ namespace Xarial.XCad.SolidWorks
                             return new SwSketch2D(doc, feat, true);
                         case "3DProfileFeature":
                             return new SwSketch3D(doc, feat, true);
+                        case "CutListFolder":
+                            return new SwCutListItem(doc, feat, true);
                         default:
                             return new SwFeature(doc, feat, true);
                     }
@@ -174,7 +176,7 @@ namespace Xarial.XCad.SolidWorks
                     return new SwDimension(doc.Model, dispDim);
 
                 case IConfiguration conf:
-                    return new SwConfiguration((SwDocument)doc, conf);
+                    return new SwConfiguration((SwDocument3D)doc, conf, true);
 
                 case IComponent2 comp:
                     return new SwComponent(comp, (SwAssembly)doc);

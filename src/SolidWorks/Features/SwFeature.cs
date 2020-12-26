@@ -39,7 +39,7 @@ namespace Xarial.XCad.SolidWorks.Features
             }
         }
         
-        private readonly ISwDocument m_Doc;
+        protected readonly ISwDocument m_Doc;
 
         internal SwFeature(ISwDocument doc, IFeature feat, bool created) : base(doc.Model, feat)
         {

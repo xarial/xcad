@@ -15,6 +15,7 @@ using Xarial.XCad.Data;
 using Xarial.XCad.Data.Delegates;
 using Xarial.XCad.SolidWorks.Data.EventHandlers;
 using Xarial.XCad.SolidWorks.Data.Helpers;
+using Xarial.XCad.Toolkit.Services;
 
 namespace Xarial.XCad.SolidWorks.Data
 {
@@ -58,12 +59,7 @@ namespace Xarial.XCad.SolidWorks.Data
             {
                 if (IsCommitted)
                 {
-                    var res = (swCustomInfoSetResult_e)m_PrpMgr.Set2(Name, value?.ToString());
-
-                    if (res != swCustomInfoSetResult_e.swCustomInfoSetResult_OK)
-                    {
-                        throw new Exception($"Failed to set the value of the property. Error code: {res}");
-                    }
+                    SetProperty(m_PrpMgr, Name, value);
                 }
                 else 
                 {
@@ -104,34 +100,26 @@ namespace Xarial.XCad.SolidWorks.Data
             }
         }
 
-        private readonly CustomPropertyChangeEventsHandler m_CustomPropertyChangeEventsHandler;
+        private EventsHandler<PropertyValueChangedDelegate> m_CustomPropertyChangeEventsHandler;
 
-        private readonly IModelDoc2 m_Model;
         private readonly ICustomPropertyManager m_PrpMgr;
-
-        public string ConfigurationName { get; }
         
-        //TODO: for older that SW2014 - get all properties
-        public bool IsCommitted => m_PrpMgr.Get5(Name, true, out _, out _, out _) != (int)swCustomInfoGetResult_e.swCustomInfoGetResult_NotPresent;
-
-        internal SwCustomProperty(IModelDoc2 model, ICustomPropertyManager prpMgr, string name, 
-            string confName, CustomPropertiesEventsHelper evHelper) 
+        public bool IsCommitted 
         {
-            m_Model = model;
+            get;
+            private set;
+        }
+
+        internal SwCustomProperty(CustomPropertyManager prpMgr, string name, bool isCommited)
+        {
             m_PrpMgr = prpMgr;
             m_Name = name;
-            ConfigurationName = confName;
+            IsCommitted = isCommited;
+        }
 
-            var isBugPresent = true; //TODO: find version when the issue is starter
-
-            if (isBugPresent)
-            {
-                m_CustomPropertyChangeEventsHandler = new CustomPropertyChangeEventsHandlerFromSw2017(evHelper, model, this);
-            }
-            else 
-            {
-                m_CustomPropertyChangeEventsHandler = new CustomPropertyChangeEventsHandler(model, this);
-            }
+        internal void SetEventsHandler(EventsHandler<PropertyValueChangedDelegate> eventsHandler) 
+        {
+            m_CustomPropertyChangeEventsHandler = eventsHandler;
         }
 
         private void RenameProperty(string newName) 
@@ -183,12 +171,36 @@ namespace Xarial.XCad.SolidWorks.Data
 
         public void Commit(CancellationToken cancellationToken)
         {
+            if (!IsCommitted)
+            {
+                AddProperty(m_PrpMgr, Name, Value);
+
+                IsCommitted = true;
+            }
+            else 
+            {
+                throw new Exception("Property already committed");
+            }
+        }
+
+        protected virtual void AddProperty(ICustomPropertyManager prpMgr, string name, object value)
+        {
             const int SUCCESS = 1;
 
             //TODO: fix type conversion
-            if (m_PrpMgr.Add2(Name, (int)swCustomInfoType_e.swCustomInfoText, Value.ToString()) != SUCCESS)
+            if (prpMgr.Add2(name, (int)swCustomInfoType_e.swCustomInfoText, value?.ToString()) != SUCCESS)
             {
                 throw new Exception($"Failed to add {Name}");
+            }
+        }
+
+        protected virtual void SetProperty(ICustomPropertyManager prpMgr, string name, object value) 
+        {
+            var res = (swCustomInfoSetResult_e)prpMgr.Set2(name, value?.ToString());
+
+            if (res != swCustomInfoSetResult_e.swCustomInfoSetResult_OK)
+            {
+                throw new Exception($"Failed to set the value of the property. Error code: {res}");
             }
         }
     }
