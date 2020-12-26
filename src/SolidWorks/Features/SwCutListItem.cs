@@ -71,7 +71,7 @@ namespace Xarial.XCad.SolidWorks.Features
 
     internal class SwCutListCustomPropertiesCollection : SwCustomPropertiesCollection
     {
-        internal SwCutListCustomPropertiesCollection(ISwDocument doc, CustomPropertyManager prpMgr) : base(doc)
+        internal SwCutListCustomPropertiesCollection(ISwDocument doc, CustomPropertyManager prpMgr) : base((SwDocument)doc)
         {
             PrpMgr = prpMgr;
         }

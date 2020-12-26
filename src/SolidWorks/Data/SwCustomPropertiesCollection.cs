@@ -10,6 +10,7 @@ using SolidWorks.Interop.swconst;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Xarial.XCad.Base;
 using Xarial.XCad.Data;
@@ -26,12 +27,12 @@ namespace Xarial.XCad.SolidWorks.Data
     public interface ISwCustomPropertiesCollection : IXPropertyRepository, IDisposable
     {
         new ISwCustomProperty this[string name] { get; }
-        new ISwCustomProperty GetOrPreCreate(string name);
+        new ISwCustomProperty PreCreate();
     }
 
     internal abstract class SwCustomPropertiesCollection : ISwCustomPropertiesCollection
     {
-        IXProperty IXPropertyRepository.GetOrPreCreate(string name) => GetOrPreCreate(name);
+        IXProperty IXPropertyRepository.PreCreate() => PreCreate();
 
         IXProperty IXRepository<IXProperty>.this[string name] => this[name];
 
@@ -52,14 +53,14 @@ namespace Xarial.XCad.SolidWorks.Data
 
         public bool TryGet(string name, out IXProperty ent)
         {
-            var prp = GetOrPreCreate(name);
-
-            if (prp.IsCommitted)
+            if (Exists(name))
             {
+                var prp = new SwCustomProperty(PrpMgr, name, true);
+                prp.SetEventsHandler(CreateEventsHandler(prp));
                 ent = prp;
                 return true;
             }
-            else
+            else 
             {
                 ent = null;
                 return false;
@@ -72,11 +73,26 @@ namespace Xarial.XCad.SolidWorks.Data
 
         protected abstract CustomPropertyManager PrpMgr { get; }
 
-        protected ISwDocument m_Doc;
+        protected SwDocument m_Doc;
 
-        protected SwCustomPropertiesCollection(ISwDocument doc)
+        protected SwCustomPropertiesCollection(SwDocument doc)
         {
             m_Doc = doc;
+        }
+
+        private bool Exists(string name) 
+        {
+            //TODO: for older that SW2014 - get all properties
+            if (m_Doc.App.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2014))
+            {
+                return PrpMgr.Get5(name, true, out _, out _, out _)
+                    != (int)swCustomInfoGetResult_e.swCustomInfoGetResult_NotPresent;
+            }
+            else 
+            {
+                var prpNames = PrpMgr.GetNames() as string[] ?? new string[0];
+                return prpNames.Contains(name, StringComparer.CurrentCultureIgnoreCase);
+            }
         }
 
         public void AddRange(IEnumerable<IXProperty> ents)
@@ -108,11 +124,10 @@ namespace Xarial.XCad.SolidWorks.Data
 
         protected abstract EventsHandler<PropertyValueChangedDelegate> CreateEventsHandler(SwCustomProperty prp);
 
-        public ISwCustomProperty GetOrPreCreate(string name)
+        public ISwCustomProperty PreCreate()
         {
-            var prp = new SwCustomProperty(PrpMgr, name);
+            var prp = new SwCustomProperty(PrpMgr, "", false);
             prp.SetEventsHandler(CreateEventsHandler(prp));
-
             return prp;
         }
 
@@ -185,7 +200,7 @@ namespace Xarial.XCad.SolidWorks.Data
         {
             get
             {
-                var prp = new SwCustomProperty(m_PrpMgr, m_PrpNames[m_CurPrpIndex]);
+                var prp = new SwCustomProperty(m_PrpMgr, m_PrpNames[m_CurPrpIndex], true);
                 prp.SetEventsHandler(m_EventsHandlerFact.Invoke(prp));
                 return prp;
             }

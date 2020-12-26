@@ -345,7 +345,7 @@ namespace Xarial.XCad.SolidWorks
             switch (ext.ToLower()) 
             {
                 case VSTA_FILE_EXT:
-                    return new SwVstaMacro(Sw, path);
+                    return new SwVstaMacro(this, path);
 
                 case VBA_FILE_EXT:
                 case BASIC_EXT:

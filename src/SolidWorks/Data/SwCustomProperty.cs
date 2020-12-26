@@ -109,13 +109,17 @@ namespace Xarial.XCad.SolidWorks.Data
 
         private readonly ICustomPropertyManager m_PrpMgr;
         
-        //TODO: for older that SW2014 - get all properties
-        public bool IsCommitted => m_PrpMgr.Get5(Name, true, out _, out _, out _) != (int)swCustomInfoGetResult_e.swCustomInfoGetResult_NotPresent;
+        public bool IsCommitted 
+        {
+            get;
+            private set;
+        }
 
-        internal SwCustomProperty(CustomPropertyManager prpMgr, string name) 
+        internal SwCustomProperty(CustomPropertyManager prpMgr, string name, bool isCommited)
         {
             m_PrpMgr = prpMgr;
             m_Name = name;
+            IsCommitted = isCommited;
         }
 
         internal void SetEventsHandler(EventsHandler<PropertyValueChangedDelegate> eventsHandler) 
@@ -172,12 +176,21 @@ namespace Xarial.XCad.SolidWorks.Data
 
         public void Commit(CancellationToken cancellationToken)
         {
-            const int SUCCESS = 1;
-
-            //TODO: fix type conversion
-            if (m_PrpMgr.Add2(Name, (int)swCustomInfoType_e.swCustomInfoText, Value.ToString()) != SUCCESS)
+            if (!IsCommitted)
             {
-                throw new Exception($"Failed to add {Name}");
+                const int SUCCESS = 1;
+
+                //TODO: fix type conversion
+                if (m_PrpMgr.Add2(Name, (int)swCustomInfoType_e.swCustomInfoText, Value.ToString()) != SUCCESS)
+                {
+                    throw new Exception($"Failed to add {Name}");
+                }
+
+                IsCommitted = true;
+            }
+            else 
+            {
+                throw new Exception("Property already committed");
             }
         }
     }

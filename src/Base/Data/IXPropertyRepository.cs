@@ -18,10 +18,9 @@ namespace Xarial.XCad.Data
     public interface IXPropertyRepository : IXRepository<IXProperty>
     {
         /// <summary>
-        /// Gets or pre creates property
+        /// Pre-creates new property
         /// </summary>
-        /// <param name="name">Nameo of the property</param>
-        /// <returns>Existing proeprty or non-commited property</returns>
-        IXProperty GetOrPreCreate(string name);
+        /// <returns>Property template</returns>
+        IXProperty PreCreate();
     }
 }

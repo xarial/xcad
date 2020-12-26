@@ -684,7 +684,7 @@ namespace SolidWorks.Tests.Integration
 
             Assert.AreEqual(SwVersion_e.Sw2020, v1.Major);
             Assert.AreEqual(SwVersion_e.Sw2020, v2.Major);
-            Assert.AreEqual(SwVersion_e.Sw2020, v3.Major);
+            Assert.AreEqual(m_App.Version.Major, v3.Major);
             Assert.AreEqual(SwVersion_e.Sw2019, v4.Major);
             Assert.AreEqual(SwVersion_e.Sw2019, v5.Major);
         }
