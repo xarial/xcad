@@ -40,7 +40,7 @@ namespace Xarial.XCad.SolidWorks.Features
         }
 
         protected virtual SwCutListCustomPropertiesCollection CreatePropertiesCollection() 
-            => new SwCutListCustomPropertiesCollection(m_Doc, Feature.CustomPropertyManager);
+            => new SwCutListCustomPropertiesCollection(m_Doc, Feature);
 
         public IBodyFolder CutListBodyFolder { get; }
 
@@ -74,9 +74,9 @@ namespace Xarial.XCad.SolidWorks.Features
 
     internal class SwCutListCustomPropertiesCollection : SwCustomPropertiesCollection
     {
-        internal SwCutListCustomPropertiesCollection(ISwDocument doc, CustomPropertyManager prpMgr) : base((SwDocument)doc)
+        internal SwCutListCustomPropertiesCollection(ISwDocument doc, IFeature feat) : base((SwDocument)doc)
         {
-            PrpMgr = prpMgr;
+            PrpMgr = feat.CustomPropertyManager;
         }
 
         protected override CustomPropertyManager PrpMgr { get; }

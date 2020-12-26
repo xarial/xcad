@@ -61,10 +61,5 @@ namespace Xarial.XCad.Documents
         /// Bodies in this component
         /// </summary>
         IXBodyRepository Bodies { get; }
-
-        /// <summary>
-        /// Cut-list items in this component (if available)
-        /// </summary>
-        IXCutListItem[] CutLists { get; }
     }
 }

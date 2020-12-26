@@ -170,11 +170,11 @@ namespace SolidWorks.Tests.Integration
             {
                 var assm = (ISwAssembly)m_App.Documents.Active;
 
-                conf1Prps = assm.Components["CutListConfs1-2"].CutLists
+                conf1Prps = assm.Components["CutListConfs1-2"].ReferencedConfiguration.CutLists
                     .First(c => c.Name == "Cut-List-Item1").Properties
                     .ToDictionary(p => p.Name, p => p.Value);
 
-                defPrps = assm.Components["CutListConfs1-1"].CutLists
+                defPrps = assm.Components["CutListConfs1-1"].ReferencedConfiguration.CutLists
                     .First(c => c.Name == "Cut-List-Item1").Properties
                     .ToDictionary(p => p.Name, p => p.Value);
             }
@@ -230,12 +230,12 @@ namespace SolidWorks.Tests.Integration
             {
                 var assm = (ISwAssembly)m_App.Documents.Active;
 
-                var prp1 = assm.Components["CutListConfs1-2"].CutLists
+                var prp1 = assm.Components["CutListConfs1-2"].ReferencedConfiguration.CutLists
                     .First(c => c.Name == "Cut-List-Item1").Properties.GetOrPreCreate("Prp3");
                 prp1.Value = "NewValueConf1";
                 prp1.Commit();
 
-                var prp2 = assm.Components["CutListConfs1-1"].CutLists
+                var prp2 = assm.Components["CutListConfs1-1"].ReferencedConfiguration.CutLists
                     .First(c => c.Name == "Cut-List-Item1").Properties.GetOrPreCreate("Prp3");
                 prp2.Value = "NewValueDefaultConf";
 
