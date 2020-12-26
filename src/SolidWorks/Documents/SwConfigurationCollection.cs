@@ -82,9 +82,12 @@ namespace Xarial.XCad.SolidWorks.Documents
             get => SwObject.FromDispatch<SwConfiguration>(m_Doc.Model.ConfigurationManager.ActiveConfiguration, m_Doc);
             set 
             {
-                if (!m_Doc.Model.ShowConfiguration2(value.Name)) 
+                if (m_Doc.Model.ConfigurationManager.ActiveConfiguration != value.Configuration)
                 {
-                    throw new Exception($"Failed to activate configuration '{value.Name}'");
+                    if (!m_Doc.Model.ShowConfiguration2(value.Name))
+                    {
+                        throw new Exception($"Failed to activate configuration '{value.Name}'");
+                    }
                 }
             }
         }

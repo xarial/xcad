@@ -108,6 +108,33 @@ namespace SolidWorks.Tests.Integration
         }
 
         [Test]
+        public void GetComponentRefConfigTest()
+        {
+            using (var doc = OpenDataDocument(@"Assembly2\TopAssem.SLDASM"))
+            {
+                var assm = (ISwAssembly)m_App.Documents.Active;
+
+                var conf1 = assm.Components["Part1-1"].ReferencedConfiguration;
+                var conf2 = assm.Components["Assem2-1"].ReferencedConfiguration;
+                var conf3 = assm.Components["Assem2-1"].Children["Part2-1"].ReferencedConfiguration;
+                var conf4 = assm.Components["Part4-1 (XYZ)-2"].ReferencedConfiguration;
+                var conf5 = assm.Components["Assem1-1"].ReferencedConfiguration;
+
+                Assert.IsTrue(conf1.IsCommitted);
+                Assert.IsTrue(conf2.IsCommitted);
+                Assert.IsFalse(conf3.IsCommitted);
+                Assert.IsTrue(conf4.IsCommitted);
+                Assert.IsFalse(conf5.IsCommitted);
+
+                Assert.AreEqual("Default", conf1.Name);
+                Assert.AreEqual("Default", conf2.Name);
+                Assert.AreEqual("Default", conf3.Name);
+                Assert.AreEqual("1-1", conf4.Name);
+                Assert.AreEqual("Default", conf5.Name);
+            }
+        }
+
+        [Test]
         public void GetDocumentLdrTest()
         {
             string doc1FileName;

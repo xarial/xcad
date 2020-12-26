@@ -156,4 +156,26 @@ namespace Xarial.XCad.SolidWorks.Features
 
         protected override IFeature GetFirstFeature() => m_Model.IFirstFeature();
     }
+
+    internal static class SwFeatureManagerExtension 
+    {
+        internal static ISwCutListItem[] GetCutLists(this ISwFeatureManager featMgr) 
+        {
+            var cutLists = new List<ISwCutListItem>();
+
+            foreach (ISwFeature feat in featMgr) 
+            {
+                if (feat is ISwCutListItem) 
+                {
+                    cutLists.Add(feat as ISwCutListItem);
+                }
+                else if (feat.Feature.GetTypeName2() == "RefPlane")
+                {
+                    break;
+                }
+            }
+
+            return cutLists.ToArray();
+        }
+    }
 }

@@ -129,5 +129,132 @@ namespace SolidWorks.Tests.Integration
             Assert.AreEqual("A1", newVal);
             Assert.AreEqual("B1", newConfVal);
         }
+
+        [Test]
+        public void GetWeldmentCutListPropertiesTest() 
+        {
+            Dictionary<string, object> conf1Prps;
+            Dictionary<string, object> defPrps;
+
+            using (var doc = OpenDataDocument("CutListConfs1.SLDPRT")) 
+            {
+                var part = (ISwDocument3D)m_App.Documents.Active;
+
+                conf1Prps = part.Configurations["Conf1"].CutLists
+                    .First(c => c.Name == "Cut-List-Item1").Properties
+                    .ToDictionary(p => p.Name, p => p.Value);
+
+                defPrps = part.Configurations["Default"].CutLists
+                    .First(c => c.Name == "Cut-List-Item1").Properties
+                    .ToDictionary(p => p.Name, p => p.Value);
+            }
+
+            Assert.AreEqual(4, conf1Prps.Count);
+            Assert.That(conf1Prps.ContainsKey("Prp1"));
+            Assert.AreEqual("Conf1Val", conf1Prps["Prp1"]);
+            Assert.AreEqual("Gen1Val", conf1Prps["Prp2"]);
+
+            Assert.AreEqual(4, defPrps.Count);
+            Assert.That(defPrps.ContainsKey("Prp1"));
+            Assert.AreEqual("ConfDefVal", defPrps["Prp1"]);
+            Assert.AreEqual("Gen1Val", defPrps["Prp2"]);
+        }
+
+        [Test]
+        public void GetComponentWeldmentCutListPropertiesTest()
+        {
+            Dictionary<string, object> conf1Prps;
+            Dictionary<string, object> defPrps;
+
+            using (var doc = OpenDataDocument("AssmCutLists1.SLDASM"))
+            {
+                var assm = (ISwAssembly)m_App.Documents.Active;
+
+                conf1Prps = assm.Components["CutListConfs1-2"].CutLists
+                    .First(c => c.Name == "Cut-List-Item1").Properties
+                    .ToDictionary(p => p.Name, p => p.Value);
+
+                defPrps = assm.Components["CutListConfs1-1"].CutLists
+                    .First(c => c.Name == "Cut-List-Item1").Properties
+                    .ToDictionary(p => p.Name, p => p.Value);
+            }
+
+            Assert.AreEqual(4, conf1Prps.Count);
+            Assert.That(conf1Prps.ContainsKey("Prp1"));
+            Assert.AreEqual("Conf1Val", conf1Prps["Prp1"]);
+            Assert.AreEqual("Gen1Val", conf1Prps["Prp2"]);
+
+            Assert.AreEqual(4, defPrps.Count);
+            Assert.That(defPrps.ContainsKey("Prp1"));
+            Assert.AreEqual("ConfDefVal", defPrps["Prp1"]);
+            Assert.AreEqual("Gen1Val", defPrps["Prp2"]);
+        }
+
+        [Test]
+        public void SetWeldmentCutListPropertiesTest()
+        {
+            var conf1Val = "";
+            var confDefVal = "";
+
+            using (var doc = OpenDataDocument("CutListConfs1.SLDPRT"))
+            {
+                var part = (ISwPart)m_App.Documents.Active;
+
+                var prp1 = part.Configurations["Conf1<As Machined>"].CutLists
+                    .First(c => c.Name == "Cut-List-Item1").Properties.GetOrPreCreate("Prp3");
+                prp1.Value = "NewValueConf1";
+                prp1.Commit();
+
+                var prp2 = part.Configurations["Default<As Machined>"].CutLists
+                    .First(c => c.Name == "Cut-List-Item1").Properties.GetOrPreCreate("Prp3");
+                prp2.Value = "NewValueDefaultConf";
+
+                part.Model.ShowConfiguration2("Conf1<As Machined>");
+                part.Part.IFeatureByName("Cut-List-Item1").CustomPropertyManager.Get5("Prp3", false, out _, out conf1Val, out _);
+
+                part.Model.ShowConfiguration2("Default<As Machined>");
+                part.Part.IFeatureByName("Cut-List-Item1").CustomPropertyManager.Get5("Prp3", false, out _, out confDefVal, out _);
+            }
+
+            Assert.AreEqual("NewValueConf1", conf1Val);
+            Assert.AreEqual("NewValueDefaultConf", confDefVal);
+        }
+
+        [Test]
+        public void SetComponentWeldmentCutListPropertiesTest()
+        {
+            var conf1Val = "";
+            var confDefVal = "";
+
+            using (var doc = OpenDataDocument("AssmCutLists1.SLDASM"))
+            {
+                var assm = (ISwAssembly)m_App.Documents.Active;
+
+                var prp1 = assm.Components["CutListConfs1-2"].CutLists
+                    .First(c => c.Name == "Cut-List-Item1").Properties.GetOrPreCreate("Prp3");
+                prp1.Value = "NewValueConf1";
+                prp1.Commit();
+
+                var prp2 = assm.Components["CutListConfs1-1"].CutLists
+                    .First(c => c.Name == "Cut-List-Item1").Properties.GetOrPreCreate("Prp3");
+                prp2.Value = "NewValueDefaultConf";
+
+                if (!prp2.IsCommitted)
+                {
+                    prp2.Commit();
+                }
+
+                var part = (ISwPart)assm.Components["CutListConfs1-1"].Document;
+
+                part.Model.ShowConfiguration2("Conf1<As Machined>");
+                part.Part.IFeatureByName("Cut-List-Item1").CustomPropertyManager.Get5("Prp3", false, out _, out conf1Val, out _);
+
+                part.Model.ShowConfiguration2("Default<As Machined>");
+                part.Part.IFeatureByName("Cut-List-Item1").CustomPropertyManager.Get5("Prp3", false, out _, out confDefVal, out _);
+            }
+
+            Assert.AreEqual("NewValueConf1", conf1Val);
+            Assert.AreEqual("NewValueDefaultConf", confDefVal);
+        }
     }
 }

@@ -30,8 +30,15 @@ namespace Xarial.XCad.Base
         void Commit(CancellationToken cancellationToken);
     }
 
+    /// <summary>
+    /// Additional methods for <see cref="IXTransaction"/>
+    /// </summary>
     public static class IXTransactionExtension
     {
+        /// <summary>
+        /// Commits the transaction with default cancellation token
+        /// </summary>
+        /// <param name="transaction">Transaction to commit</param>
         public static void Commit(this IXTransaction transaction) 
         {
             transaction.Commit(CancellationToken.None);

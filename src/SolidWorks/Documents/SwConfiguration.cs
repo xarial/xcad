@@ -14,6 +14,7 @@ using Xarial.XCad.Documents;
 using Xarial.XCad.Features;
 using Xarial.XCad.Services;
 using Xarial.XCad.SolidWorks.Data;
+using Xarial.XCad.SolidWorks.Features;
 
 namespace Xarial.XCad.SolidWorks.Documents
 {
@@ -27,28 +28,28 @@ namespace Xarial.XCad.SolidWorks.Documents
     {
         public IConfiguration Configuration => m_Creator.Element;
 
-        private readonly SwDocument m_Doc;
+        private readonly SwDocument3D m_Doc;
 
-        public string Name 
+        public string Name
         {
-            get 
+            get
             {
                 if (m_Creator.IsCreated)
                 {
                     return Configuration.Name;
                 }
-                else 
+                else
                 {
                     return m_Creator.CachedProperties.Get<string>();
                 }
             }
-            set 
+            set
             {
                 if (m_Creator.IsCreated)
                 {
                     Configuration.Name = value;
                 }
-                else 
+                else
                 {
                     m_Creator.CachedProperties.Set(value);
                 }
@@ -63,11 +64,28 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public bool IsCommitted => m_Creator.IsCreated;
 
-        public IXCutListItem[] CutLists => throw new NotImplementedException();
+        public IXCutListItem[] CutLists
+        {
+            get
+            {
+                var activeConf = m_Doc.Configurations.Active;
+
+                if (activeConf.Configuration != this.Configuration) 
+                {
+                    m_Doc.Configurations.Active = this;
+                }
+
+                var cutLists = m_Doc.Features.GetCutLists();
+
+                m_Doc.Configurations.Active = activeConf;
+
+                return cutLists;
+            }
+        }
 
         private readonly ElementCreator<IConfiguration> m_Creator;
 
-        internal SwConfiguration(SwDocument doc, IConfiguration conf, bool created) : base(conf)
+        internal SwConfiguration(SwDocument3D doc, IConfiguration conf, bool created) : base(conf)
         {
             m_Doc = doc;
 

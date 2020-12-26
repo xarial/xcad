@@ -33,6 +33,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         new TSelObject ConvertObject<TSelObject>(TSelObject obj)
             where TSelObject : ISwSelObject;
         IComponent2 Component { get; }
+        new ISwFeatureManager Features { get; }
 
         /// <summary>
         /// Returns the cached path of the component as stored in SOLIDWORKS
@@ -45,6 +46,7 @@ namespace Xarial.XCad.SolidWorks.Documents
     {
         IXDocument3D IXComponent.Document => Document;
         IXComponentRepository IXComponent.Children => Children;
+        IXFeatureRepository IXComponent.Features => Features;
         TSelObject IXObjectContainer.ConvertObject<TSelObject>(TSelObject obj) => ConvertObjectBoxed(obj) as TSelObject;
 
         public IComponent2 Component { get; }
@@ -55,12 +57,14 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         private readonly IFilePathResolver m_FilePathResolver;
 
+        private readonly Lazy<ISwFeatureManager> m_Features;
+
         internal SwComponent(IComponent2 comp, SwAssembly parentAssembly) : base(comp)
         {
             m_ParentAssembly = parentAssembly;
             Component = comp;
             Children = new SwChildComponentsCollection(parentAssembly, comp);
-            Features = new ComponentFeatureRepository(parentAssembly, comp);
+            m_Features = new Lazy<ISwFeatureManager>(() => new ComponentFeatureRepository(parentAssembly, comp));
             Bodies = new SwComponentBodyCollection(comp, parentAssembly);
 
             m_FilePathResolver = m_ParentAssembly.App.Services.GetService<IFilePathResolver>();
@@ -134,8 +138,8 @@ namespace Xarial.XCad.SolidWorks.Documents
                 return state;
             } 
         }
-                          
-        public IXFeatureRepository Features { get; }
+
+        public ISwFeatureManager Features => m_Features.Value;
 
         public IXBodyRepository Bodies { get; }
 
@@ -157,6 +161,28 @@ namespace Xarial.XCad.SolidWorks.Documents
                 else 
                 {
                     return cachedPath;
+                }
+            }
+        }
+
+        public IXCutListItem[] CutLists => Features.GetCutLists();
+
+        public IXConfiguration ReferencedConfiguration 
+        {
+            get 
+            {
+                var doc = Document;
+
+                if (doc.IsCommitted)
+                {
+                    return doc.Configurations[Component.ReferencedConfiguration];
+                }
+                else 
+                {
+                    return new SwConfiguration((SwDocument3D)doc, null, false)
+                    {
+                        Name = Component.ReferencedConfiguration
+                    };
                 }
             }
         }
