@@ -55,9 +55,7 @@ namespace Xarial.XCad.SolidWorks.Data
         {
             if (Exists(name))
             {
-                var prp = new SwCustomProperty(PrpMgr, name, true);
-                prp.SetEventsHandler(CreateEventsHandler(prp));
-                ent = prp;
+                ent = CreatePropertyInstance(PrpMgr, name, true);
                 return true;
             }
             else 
@@ -104,7 +102,7 @@ namespace Xarial.XCad.SolidWorks.Data
         }
 
         public IEnumerator<IXProperty> GetEnumerator()
-            => new SwCustomPropertyEnumerator(PrpMgr, CreateEventsHandler);
+            => new SwCustomPropertyEnumerator(PrpMgr, CreateEventsHandler, CreatePropertyInstance);
 
         public void RemoveRange(IEnumerable<IXProperty> ents)
         {
@@ -124,9 +122,11 @@ namespace Xarial.XCad.SolidWorks.Data
 
         protected abstract EventsHandler<PropertyValueChangedDelegate> CreateEventsHandler(SwCustomProperty prp);
 
-        public ISwCustomProperty PreCreate()
+        public ISwCustomProperty PreCreate() => CreatePropertyInstance(PrpMgr, "", false);
+
+        protected virtual SwCustomProperty CreatePropertyInstance(CustomPropertyManager prpMgr, string name, bool isCreated)
         {
-            var prp = new SwCustomProperty(PrpMgr, "", false);
+            var prp = new SwCustomProperty(prpMgr, name, isCreated);
             prp.SetEventsHandler(CreateEventsHandler(prp));
             return prp;
         }
@@ -196,29 +196,24 @@ namespace Xarial.XCad.SolidWorks.Data
 
     internal class SwCustomPropertyEnumerator : IEnumerator<IXProperty>
     {
-        public IXProperty Current
-        {
-            get
-            {
-                var prp = new SwCustomProperty(m_PrpMgr, m_PrpNames[m_CurPrpIndex], true);
-                prp.SetEventsHandler(m_EventsHandlerFact.Invoke(prp));
-                return prp;
-            }
-        }
-            
+        public IXProperty Current => m_PrpFact.Invoke(m_PrpMgr, m_PrpNames[m_CurPrpIndex], true);
+        
         object IEnumerator.Current => Current;
 
-        private readonly CustomPropertyManager m_PrpMgr;
+        protected readonly CustomPropertyManager m_PrpMgr;
 
         private readonly string[] m_PrpNames;
         private int m_CurPrpIndex;
 
         private readonly Func<SwCustomProperty, EventsHandler<PropertyValueChangedDelegate>> m_EventsHandlerFact;
+        private readonly Func<CustomPropertyManager, string, bool, SwCustomProperty> m_PrpFact;
 
         internal SwCustomPropertyEnumerator(CustomPropertyManager prpMgr, 
-            Func<SwCustomProperty, EventsHandler<PropertyValueChangedDelegate>> eventsHandlerFact) 
+            Func<SwCustomProperty, EventsHandler<PropertyValueChangedDelegate>> eventsHandlerFact,
+            Func<CustomPropertyManager, string, bool, SwCustomProperty> prpFact) 
         {
             m_PrpMgr = prpMgr;
+            m_PrpFact = prpFact;
 
             m_EventsHandlerFact = eventsHandlerFact;
 

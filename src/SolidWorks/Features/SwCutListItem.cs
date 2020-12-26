@@ -36,8 +36,11 @@ namespace Xarial.XCad.SolidWorks.Features
             CutListBodyFolder = (IBodyFolder)feat.GetSpecificFeature2();
 
             m_Properties = new Lazy<ISwCustomPropertiesCollection>(
-                () => new SwCutListCustomPropertiesCollection(m_Doc, Feature.CustomPropertyManager));
+                () => CreatePropertiesCollection());
         }
+
+        protected virtual SwCutListCustomPropertiesCollection CreatePropertiesCollection() 
+            => new SwCutListCustomPropertiesCollection(m_Doc, Feature.CustomPropertyManager);
 
         public IBodyFolder CutListBodyFolder { get; }
 

@@ -59,12 +59,7 @@ namespace Xarial.XCad.SolidWorks.Data
             {
                 if (IsCommitted)
                 {
-                    var res = (swCustomInfoSetResult_e)m_PrpMgr.Set2(Name, value?.ToString());
-
-                    if (res != swCustomInfoSetResult_e.swCustomInfoSetResult_OK)
-                    {
-                        throw new Exception($"Failed to set the value of the property. Error code: {res}");
-                    }
+                    SetProperty(m_PrpMgr, Name, value);
                 }
                 else 
                 {
@@ -178,19 +173,34 @@ namespace Xarial.XCad.SolidWorks.Data
         {
             if (!IsCommitted)
             {
-                const int SUCCESS = 1;
-
-                //TODO: fix type conversion
-                if (m_PrpMgr.Add2(Name, (int)swCustomInfoType_e.swCustomInfoText, Value.ToString()) != SUCCESS)
-                {
-                    throw new Exception($"Failed to add {Name}");
-                }
+                AddProperty(m_PrpMgr, Name, Value);
 
                 IsCommitted = true;
             }
             else 
             {
                 throw new Exception("Property already committed");
+            }
+        }
+
+        protected virtual void AddProperty(ICustomPropertyManager prpMgr, string name, object value)
+        {
+            const int SUCCESS = 1;
+
+            //TODO: fix type conversion
+            if (prpMgr.Add2(name, (int)swCustomInfoType_e.swCustomInfoText, value?.ToString()) != SUCCESS)
+            {
+                throw new Exception($"Failed to add {Name}");
+            }
+        }
+
+        protected virtual void SetProperty(ICustomPropertyManager prpMgr, string name, object value) 
+        {
+            var res = (swCustomInfoSetResult_e)prpMgr.Set2(name, value?.ToString());
+
+            if (res != swCustomInfoSetResult_e.swCustomInfoSetResult_OK)
+            {
+                throw new Exception($"Failed to set the value of the property. Error code: {res}");
             }
         }
     }

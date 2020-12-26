@@ -14,15 +14,19 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using Xarial.XCad.Base;
+using Xarial.XCad.Data;
+using Xarial.XCad.Data.Delegates;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Features;
 using Xarial.XCad.Features.CustomFeature;
 using Xarial.XCad.Geometry;
+using Xarial.XCad.SolidWorks.Data;
 using Xarial.XCad.SolidWorks.Features;
 using Xarial.XCad.SolidWorks.Geometry;
 using Xarial.XCad.SolidWorks.Services;
 using Xarial.XCad.Toolkit;
+using Xarial.XCad.Toolkit.Services;
 
 namespace Xarial.XCad.SolidWorks.Documents
 {
@@ -165,7 +169,8 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        public IXCutListItem[] CutLists => Features.GetCutLists();
+        public IXCutListItem[] CutLists => Features.GetCutLists()
+            .Select(c => new SwComponentCutListItem(Document, c.Feature, true)).ToArray();
 
         public IXConfiguration ReferencedConfiguration 
         {
@@ -223,7 +228,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
     }
-
+    
     internal class ComponentFeatureRepository : SwFeatureManager
     {
         private readonly SwAssembly m_Assm;
@@ -331,5 +336,99 @@ namespace Xarial.XCad.SolidWorks.Documents
             => (m_Comp.GetChildren() as object[])?.Cast<IComponent2>();
 
         protected override int GetChildrenCount() => m_Comp.IGetChildrenCount();
+    }
+
+    internal class SwComponentCutListItem : SwCutListItem
+    {
+        private ICustomPropertyManager m_ConfigSpecificPrpMgr;
+        private string m_CachedConfigPrpRefConfName;
+
+        private ICustomPropertyManager GetConfigSpecificPrpMgr()
+        {
+            var comp = (Feature as IEntity).GetComponent() as IComponent2;
+            var refConfName = comp.ReferencedConfiguration;
+
+            if (m_ConfigSpecificPrpMgr == null
+                || !string.Equals(m_CachedConfigPrpRefConfName,
+                refConfName, StringComparison.CurrentCultureIgnoreCase))
+            {
+                var refDoc = comp.GetModelDoc2() as IModelDoc2;
+
+                if (refDoc == null)
+                {
+                    throw new NullReferenceException("Component reference document is null");
+                }
+
+                var activeConf = refDoc.ConfigurationManager.ActiveConfiguration.Name;
+
+                IFeature corrFeat;
+
+                if (!string.Equals(activeConf,
+                    refConfName, StringComparison.CurrentCultureIgnoreCase))
+                {
+                    var featName = Feature.Name;
+
+                    if (!refDoc.ShowConfiguration2(refConfName))
+                    {
+                        throw new Exception("Failed to activate referenced configuration");
+                    }
+
+                    corrFeat = (refDoc as IPartDoc).FeatureByName(featName) as IFeature;
+
+                    refDoc.ShowConfiguration2(activeConf);
+                }
+                else
+                {
+                    corrFeat = (refDoc as IPartDoc).FeatureByName(Feature.Name) as IFeature;
+                }
+
+                m_ConfigSpecificPrpMgr = corrFeat.CustomPropertyManager;
+                m_CachedConfigPrpRefConfName = refConfName;
+            }
+
+            return m_ConfigSpecificPrpMgr;
+        }
+
+        internal SwComponentCutListItem(ISwDocument doc, IFeature feat, bool created) 
+            : base(doc, feat, created)
+        {
+        }
+
+        protected override SwCutListCustomPropertiesCollection CreatePropertiesCollection()
+            => new SwComponentCutListCustomPropertiesCollection(
+                m_Doc, Feature.CustomPropertyManager, GetConfigSpecificPrpMgr);
+    }
+
+    internal class SwComponentCutListCustomPropertiesCollection : SwCutListCustomPropertiesCollection
+    {
+        private readonly Func<ICustomPropertyManager> m_ConfigSpecificPrpsMgrFact;
+
+        internal SwComponentCutListCustomPropertiesCollection(ISwDocument doc, CustomPropertyManager prpMgr,
+            Func<ICustomPropertyManager> configSpecificPrpsMgrFact) 
+            : base(doc, prpMgr)
+        {
+            m_ConfigSpecificPrpsMgrFact = configSpecificPrpsMgrFact;
+        }
+
+        protected override SwCustomProperty CreatePropertyInstance(CustomPropertyManager prpMgr, string name, bool isCreated)
+            => new SwComponentCutListCustomProperty(prpMgr, name, isCreated, m_ConfigSpecificPrpsMgrFact);
+    }
+    
+    internal class SwComponentCutListCustomProperty : SwCustomProperty
+    {
+        private readonly Func<ICustomPropertyManager> m_ConfigSpecificPrpsMgrFact;
+
+        internal SwComponentCutListCustomProperty(CustomPropertyManager prpMgr, string name, bool isCommited,
+            Func<ICustomPropertyManager> configSpecificPrpsMgrFact) 
+            : base(prpMgr, name, isCommited)
+        {
+            m_ConfigSpecificPrpsMgrFact = configSpecificPrpsMgrFact;
+        }
+
+        protected override void AddProperty(ICustomPropertyManager prpMgr, string name, object value)
+            => base.AddProperty(m_ConfigSpecificPrpsMgrFact.Invoke(), name, value);
+
+        protected override void SetProperty(ICustomPropertyManager prpMgr, string name, object value)
+            => base.SetProperty(m_ConfigSpecificPrpsMgrFact.Invoke(), name, value);
     }
 }
