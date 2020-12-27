@@ -8,12 +8,14 @@
 using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
 using System;
+using System.Linq;
 using System.Threading;
 using Xarial.XCad.Data;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Features;
 using Xarial.XCad.Services;
 using Xarial.XCad.SolidWorks.Data;
+using Xarial.XCad.SolidWorks.Documents.Exceptions;
 using Xarial.XCad.SolidWorks.Features;
 
 namespace Xarial.XCad.SolidWorks.Documents
@@ -72,14 +74,10 @@ namespace Xarial.XCad.SolidWorks.Documents
 
                 if (activeConf.Configuration != this.Configuration) 
                 {
-                    m_Doc.Configurations.Active = this;
-                }
+                    throw new InactiveConfigurationCutListPropertiesNotSupportedException();
+                };
 
-                var cutLists = m_Doc.Features.GetCutLists();
-
-                m_Doc.Configurations.Active = activeConf;
-
-                return cutLists;
+                return m_Doc.Features.GetCutLists();
             }
         }
 

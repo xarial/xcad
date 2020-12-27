@@ -7,6 +7,7 @@ using Xarial.XCad.Data;
 using Xarial.XCad.SolidWorks;
 using Xarial.XCad.SolidWorks.Data.Exceptions;
 using Xarial.XCad.SolidWorks.Documents;
+using Xarial.XCad.SolidWorks.Documents.Exceptions;
 
 namespace SolidWorks.Tests.Integration
 {
@@ -134,7 +135,6 @@ namespace SolidWorks.Tests.Integration
         public void GetWeldmentCutListPropertiesTest() 
         {
             Dictionary<string, object> conf1Prps;
-            Dictionary<string, object> defPrps;
 
             using (var doc = OpenDataDocument("CutListConfs1.SLDPRT")) 
             {
@@ -144,27 +144,20 @@ namespace SolidWorks.Tests.Integration
                     .First(c => c.Name == "Cut-List-Item1").Properties
                     .ToDictionary(p => p.Name, p => p.Value);
 
-                defPrps = part.Configurations["Default"].CutLists
-                    .First(c => c.Name == "Cut-List-Item1").Properties
-                    .ToDictionary(p => p.Name, p => p.Value);
+                Assert.Throws<InactiveConfigurationCutListPropertiesNotSupportedException>(
+                    () => { var cl = part.Configurations["Default"].CutLists; });
             }
 
             Assert.AreEqual(4, conf1Prps.Count);
             Assert.That(conf1Prps.ContainsKey("Prp1"));
             Assert.AreEqual("Conf1Val", conf1Prps["Prp1"]);
             Assert.AreEqual("Gen1Val", conf1Prps["Prp2"]);
-
-            Assert.AreEqual(4, defPrps.Count);
-            Assert.That(defPrps.ContainsKey("Prp1"));
-            Assert.AreEqual("ConfDefVal", defPrps["Prp1"]);
-            Assert.AreEqual("Gen1Val", defPrps["Prp2"]);
         }
 
         [Test]
         public void GetComponentWeldmentCutListPropertiesTest()
         {
             Dictionary<string, object> conf1Prps;
-            Dictionary<string, object> defPrps;
 
             using (var doc = OpenDataDocument("AssmCutLists1.SLDASM"))
             {
@@ -174,20 +167,14 @@ namespace SolidWorks.Tests.Integration
                     .First(c => c.Name == "Cut-List-Item1").Properties
                     .ToDictionary(p => p.Name, p => p.Value);
 
-                defPrps = assm.Components["CutListConfs1-1"].ReferencedConfiguration.CutLists
-                    .First(c => c.Name == "Cut-List-Item1").Properties
-                    .ToDictionary(p => p.Name, p => p.Value);
+                Assert.Throws<InactiveConfigurationCutListPropertiesNotSupportedException>(
+                    ()=> { var cl = assm.Components["CutListConfs1-1"].ReferencedConfiguration.CutLists; });
             }
 
             Assert.AreEqual(4, conf1Prps.Count);
             Assert.That(conf1Prps.ContainsKey("Prp1"));
             Assert.AreEqual("Conf1Val", conf1Prps["Prp1"]);
             Assert.AreEqual("Gen1Val", conf1Prps["Prp2"]);
-
-            Assert.AreEqual(4, defPrps.Count);
-            Assert.That(defPrps.ContainsKey("Prp1"));
-            Assert.AreEqual("ConfDefVal", defPrps["Prp1"]);
-            Assert.AreEqual("Gen1Val", defPrps["Prp2"]);
         }
 
         [Test]
@@ -205,10 +192,9 @@ namespace SolidWorks.Tests.Integration
                 prp1.Value = "NewValueConf1";
                 prp1.Commit();
 
-                var prp2 = part.Configurations["Default<As Machined>"].CutLists
-                    .First(c => c.Name == "Cut-List-Item1").Properties.GetOrPreCreate("Prp3");
-                prp2.Value = "NewValueDefaultConf";
-
+                Assert.Throws<InactiveConfigurationCutListPropertiesNotSupportedException>(
+                    () => { var cl = part.Configurations["Default<As Machined>"].CutLists; });
+                
                 part.Model.ShowConfiguration2("Conf1<As Machined>");
                 part.Part.IFeatureByName("Cut-List-Item1").CustomPropertyManager.Get5("Prp3", false, out _, out conf1Val, out _);
 
@@ -217,9 +203,9 @@ namespace SolidWorks.Tests.Integration
             }
 
             Assert.AreEqual("NewValueConf1", conf1Val);
-            Assert.AreEqual("NewValueDefaultConf", confDefVal);
+            Assert.AreEqual("NewValueConf1", confDefVal);
         }
-
+        
         [Test]
         public void SetComponentWeldmentCutListPropertiesTest()
         {
@@ -235,15 +221,9 @@ namespace SolidWorks.Tests.Integration
                 prp1.Value = "NewValueConf1";
                 prp1.Commit();
 
-                var prp2 = assm.Components["CutListConfs1-1"].ReferencedConfiguration.CutLists
-                    .First(c => c.Name == "Cut-List-Item1").Properties.GetOrPreCreate("Prp3");
-                prp2.Value = "NewValueDefaultConf";
-
-                if (!prp2.IsCommitted)
-                {
-                    prp2.Commit();
-                }
-
+                Assert.Throws<InactiveConfigurationCutListPropertiesNotSupportedException>(
+                    () => { var cl = assm.Components["CutListConfs1-1"].ReferencedConfiguration.CutLists; });
+                
                 var part = (ISwPart)assm.Components["CutListConfs1-1"].Document;
 
                 part.Model.ShowConfiguration2("Conf1<As Machined>");
@@ -254,7 +234,7 @@ namespace SolidWorks.Tests.Integration
             }
 
             Assert.AreEqual("NewValueConf1", conf1Val);
-            Assert.AreEqual("NewValueDefaultConf", confDefVal);
+            Assert.AreEqual("NewValueConf1", confDefVal);
         }
     }
 }

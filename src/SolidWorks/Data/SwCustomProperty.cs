@@ -59,7 +59,7 @@ namespace Xarial.XCad.SolidWorks.Data
             {
                 if (IsCommitted)
                 {
-                    SetProperty(m_PrpMgr, Name, value);
+                    SetProperty(PrpMgr, Name, value);
                 }
                 else 
                 {
@@ -102,7 +102,7 @@ namespace Xarial.XCad.SolidWorks.Data
 
         private EventsHandler<PropertyValueChangedDelegate> m_CustomPropertyChangeEventsHandler;
 
-        private readonly ICustomPropertyManager m_PrpMgr;
+        protected virtual ICustomPropertyManager PrpMgr { get; }
         
         public bool IsCommitted 
         {
@@ -112,7 +112,7 @@ namespace Xarial.XCad.SolidWorks.Data
 
         internal SwCustomProperty(CustomPropertyManager prpMgr, string name, bool isCommited)
         {
-            m_PrpMgr = prpMgr;
+            PrpMgr = prpMgr;
             m_Name = name;
             IsCommitted = isCommited;
         }
@@ -136,11 +136,11 @@ namespace Xarial.XCad.SolidWorks.Data
         {
             string resValStr;
             
-            if (m_PrpMgr.Get4(Name, false, out val, out resValStr))
+            if (PrpMgr.Get4(Name, false, out val, out resValStr))
             {
                 resVal = null;
 
-                switch ((swCustomInfoType_e)m_PrpMgr.GetType2(Name))
+                switch ((swCustomInfoType_e)PrpMgr.GetType2(Name))
                 {
                     case swCustomInfoType_e.swCustomInfoText:
                         resVal = resValStr;
@@ -173,7 +173,7 @@ namespace Xarial.XCad.SolidWorks.Data
         {
             if (!IsCommitted)
             {
-                AddProperty(m_PrpMgr, Name, Value);
+                AddProperty(PrpMgr, Name, Value);
 
                 IsCommitted = true;
             }

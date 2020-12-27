@@ -159,15 +159,15 @@ namespace Xarial.XCad.SolidWorks.Features
 
     internal static class SwFeatureManagerExtension 
     {
-        internal static ISwCutListItem[] GetCutLists(this ISwFeatureManager featMgr) 
+        internal static SwCutListItem[] GetCutLists(this ISwFeatureManager featMgr) 
         {
-            var cutLists = new List<ISwCutListItem>();
+            var cutLists = new List<SwCutListItem>();
 
             foreach (ISwFeature feat in featMgr) 
             {
-                if (feat is ISwCutListItem) 
+                if (feat is SwCutListItem) 
                 {
-                    cutLists.Add(feat as ISwCutListItem);
+                    cutLists.Add(feat as SwCutListItem);
                 }
                 else if (feat.Feature.GetTypeName2() == "RefPlane")
                 {
