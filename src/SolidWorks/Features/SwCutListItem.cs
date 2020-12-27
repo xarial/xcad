@@ -20,6 +20,71 @@ namespace Xarial.XCad.SolidWorks.Features
         IBodyFolder CutListBodyFolder { get; }
     }
 
+    internal class SafeFeatureProvider
+    {
+        private Dictionary<SwCutListItem, IFeature> m_FeaturesMap;
+        private Dictionary<int, SwCutListItem> m_FeatureIdsMap;
+
+        private readonly SwDocument3D m_Doc;
+        private readonly SwConfiguration m_Conf;
+
+        internal SafeFeatureProvider(SwCutListItem[] cutLists, SwDocument3D doc, SwConfiguration conf) 
+        {
+            m_FeaturesMap = cutLists.ToDictionary(x => x, x => x.Feature);
+            m_FeatureIdsMap = cutLists.ToDictionary(x => x.Feature.GetID(), x => x);
+            m_Doc = doc;
+            m_Conf = conf;
+        }
+
+        internal IFeature ProvideFeature(SwCutListItem cutListItem) 
+        {
+            var feat = m_FeaturesMap[cutListItem];
+
+            if (!IsFeatureAlive(feat)/* || m_Conf.Configuration.IsDirty()*/)
+            {
+                RelinkAllFeatures();
+                feat = m_FeaturesMap[cutListItem];
+            }
+
+            return feat;
+        }
+
+        private void RelinkAllFeatures()
+        {
+            var activeConf = m_Doc.Configurations.Active;
+
+            m_Doc.Configurations.Active = m_Conf;
+
+            foreach (ISwFeature feat in m_Doc.Features)
+            {
+                if (m_FeatureIdsMap.TryGetValue(feat.Feature.GetID(), out SwCutListItem cutListItem))
+                {
+                    m_FeaturesMap[cutListItem] = feat.Feature;
+                }
+
+                if (feat.Feature.GetTypeName2() == "RefPlane")
+                {
+                    break;
+                }
+            }
+
+            m_Doc.Configurations.Active = activeConf;
+        }
+
+        private bool IsFeatureAlive(IFeature feat) 
+        {
+            try
+            {
+                var name = feat.Name;
+                return true;
+            }
+            catch 
+            {
+                return false;
+            }
+        }
+    }
+
     internal class SwCutListItem : SwFeature, ISwCutListItem
     {
         private readonly Lazy<ISwCustomPropertiesCollection> m_Properties;
@@ -39,8 +104,27 @@ namespace Xarial.XCad.SolidWorks.Features
                 () => CreatePropertiesCollection());
         }
 
-        protected virtual SwCutListCustomPropertiesCollection CreatePropertiesCollection() 
-            => new SwCutListCustomPropertiesCollection(m_Doc, Feature);
+        private SafeFeatureProvider m_SafeFeatureProvider;
+
+        public override IFeature Feature
+        {
+            get 
+            {
+                if (m_SafeFeatureProvider != null)
+                {
+                    return m_SafeFeatureProvider.ProvideFeature(this);
+                }
+                else
+                {
+                    return base.Feature;
+                }
+            }
+        }
+
+        internal void SetSafeFeatureProvider(SafeFeatureProvider provider) => m_SafeFeatureProvider = provider;
+
+        protected virtual SwCutListCustomPropertiesCollection CreatePropertiesCollection()
+            => new SwCutListCustomPropertiesCollection(m_Doc, () => m_SafeFeatureProvider.ProvideFeature(this));
 
         public IBodyFolder CutListBodyFolder { get; }
 
@@ -74,15 +158,35 @@ namespace Xarial.XCad.SolidWorks.Features
 
     internal class SwCutListCustomPropertiesCollection : SwCustomPropertiesCollection
     {
-        internal SwCutListCustomPropertiesCollection(ISwDocument doc, IFeature feat) : base((SwDocument)doc)
+        private readonly Func<IFeature> m_FeatProvider;
+
+        internal SwCutListCustomPropertiesCollection(ISwDocument doc, Func<IFeature> featProvider) 
+            : base((SwDocument)doc)
         {
-            PrpMgr = feat.CustomPropertyManager;
+            m_FeatProvider = featProvider;
         }
 
-        protected override CustomPropertyManager PrpMgr { get; }
+        protected override CustomPropertyManager PrpMgr 
+            => m_FeatProvider.Invoke().CustomPropertyManager;
 
         protected override EventsHandler<PropertyValueChangedDelegate> CreateEventsHandler(SwCustomProperty prp)
             => new CutListCustomPropertyChangeEventsHandler();
+
+        protected override SwCustomProperty CreatePropertyInstance(CustomPropertyManager prpMgr, string name, bool isCreated)
+            => new SwCutListCustomProperty(m_FeatProvider, name, isCreated);
+    }
+
+    internal class SwCutListCustomProperty : SwCustomProperty
+    {
+        private readonly Func<IFeature> m_FeatProvider;
+
+        internal SwCutListCustomProperty(Func<IFeature> featProvider, string name, bool isCommited) 
+            : base(featProvider.Invoke().CustomPropertyManager, name, isCommited)
+        {
+            m_FeatProvider = featProvider;
+        }
+
+        protected override ICustomPropertyManager PrpMgr => m_FeatProvider.Invoke().CustomPropertyManager;
     }
 
     public class CutListCustomPropertyChangeEventsHandler : EventsHandler<PropertyValueChangedDelegate>

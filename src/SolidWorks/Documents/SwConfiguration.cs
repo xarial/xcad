@@ -8,6 +8,7 @@
 using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
 using System;
+using System.Linq;
 using System.Threading;
 using Xarial.XCad.Data;
 using Xarial.XCad.Documents;
@@ -78,6 +79,16 @@ namespace Xarial.XCad.SolidWorks.Documents
                 var cutLists = m_Doc.Features.GetCutLists();
 
                 m_Doc.Configurations.Active = activeConf;
+
+                if (cutLists.Any())
+                {
+                    var safeFeatProvider = new SafeFeatureProvider(cutLists, m_Doc, this);
+
+                    foreach (var cutList in cutLists)
+                    {
+                        cutList.SetSafeFeatureProvider(safeFeatProvider);
+                    }
+                }
 
                 return cutLists;
             }

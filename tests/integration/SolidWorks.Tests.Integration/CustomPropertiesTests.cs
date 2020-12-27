@@ -221,6 +221,79 @@ namespace SolidWorks.Tests.Integration
         }
 
         [Test]
+        public void SetWeldmentCutListPropertiesCachedTest()
+        {
+            var conf1Val1 = "";
+            var confDefVal1 = "";
+            var confDefP3Val1 = "";
+            var conf1P3Val1 = "";
+
+            var conf1Val2 = "";
+            var confDefVal2 = "";
+            var confDefP3Val2 = "";
+            var conf1P3Val2 = "";
+
+            using (var doc = OpenDataDocument("CutListConfs1.SLDPRT"))
+            {
+                var part = (ISwPart)m_App.Documents.Active;
+
+                var conf1CutLists = part.Configurations["Conf1<As Machined>"].CutLists;
+                var defaultConfCutLists = part.Configurations["Default<As Machined>"].CutLists;
+
+                var prp1 = conf1CutLists
+                    .First(c => c.Name == "Cut-List-Item1").Properties.GetOrPreCreate("Prp1");
+                prp1.Value = "NewValueConf1";
+                //prp1.Commit();
+
+                var prp2 = defaultConfCutLists
+                    .First(c => c.Name == "Cut-List-Item1").Properties.GetOrPreCreate("Prp1");
+                prp2.Value = "NewValueDefaultConf";
+
+                var prp3 = conf1CutLists.First(c => c.Name == "Cut-List-Item1").Properties.GetOrPreCreate("Prp3");
+                prp3.Value = "P3Conf1";
+                prp3.Commit();
+
+                var prp4 = defaultConfCutLists.First(c => c.Name == "Cut-List-Item1").Properties.GetOrPreCreate("Prp3");
+                prp4.Value = "P3Def";
+                prp4.Commit();
+                //if (!prp2.IsCommitted) 
+                //{
+                //    prp2.Commit();
+                //}
+
+                part.Model.ShowConfiguration2("Conf1<As Machined>");
+                part.Part.IFeatureByName("Cut-List-Item1").CustomPropertyManager.Get5("Prp1", true, out _, out conf1Val1, out _);
+                part.Part.IFeatureByName("Cut-List-Item1").CustomPropertyManager.Get5("Prp3", true, out _, out conf1P3Val1, out _);
+
+                part.Model.ShowConfiguration2("Default<As Machined>");
+                part.Part.IFeatureByName("Cut-List-Item1").CustomPropertyManager.Get5("Prp1", true, out _, out confDefVal1, out _);
+                part.Part.IFeatureByName("Cut-List-Item1").CustomPropertyManager.Get5("Prp3", true, out _, out confDefP3Val1, out _);
+
+                prp1.Value = "NewValueConf1-1";
+                prp2.Value = "NewValueDefaultConf-1";
+                prp3.Value = "NewP3Conf1";
+                prp4.Value = "NewP3Def";
+
+                part.Model.ShowConfiguration2("Conf1<As Machined>");
+                part.Part.IFeatureByName("Cut-List-Item1").CustomPropertyManager.Get5("Prp1", true, out _, out conf1Val2, out _);
+                part.Part.IFeatureByName("Cut-List-Item1").CustomPropertyManager.Get5("Prp3", true, out _, out conf1P3Val2, out _);
+
+                part.Model.ShowConfiguration2("Default<As Machined>");
+                part.Part.IFeatureByName("Cut-List-Item1").CustomPropertyManager.Get5("Prp1", true, out _, out confDefVal2, out _);
+                part.Part.IFeatureByName("Cut-List-Item1").CustomPropertyManager.Get5("Prp3", true, out _, out confDefP3Val2, out _);
+            }
+
+            Assert.AreEqual("NewValueConf1", conf1Val1);
+            Assert.AreEqual("NewValueDefaultConf", confDefVal1);
+            Assert.AreEqual("NewValueConf1-1", conf1Val2);
+            Assert.AreEqual("NewValueDefaultConf-1", confDefVal2);
+            Assert.AreEqual("P3Conf1", conf1P3Val1);
+            Assert.AreEqual("P3Def", confDefP3Val1);
+            Assert.AreEqual("NewP3Conf1", conf1P3Val2);
+            Assert.AreEqual("NewP3Def", confDefP3Val1);
+        }
+
+        [Test]
         public void SetComponentWeldmentCutListPropertiesTest()
         {
             var conf1Val = "";

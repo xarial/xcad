@@ -31,7 +31,7 @@ namespace Xarial.XCad.SolidWorks.Features
 
         IXDimensionRepository IXFeature.Dimensions => Dimensions;
 
-        public IFeature Feature
+        public virtual IFeature Feature
         {
             get
             {
