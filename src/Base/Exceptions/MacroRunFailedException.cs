@@ -14,7 +14,7 @@ namespace Xarial.XCad.Exceptions
     /// <summary>
     /// Error thrown when macro cannot be run
     /// </summary>
-    public class MacroRunFailedException : Exception
+    public class MacroRunFailedException : Exception, IUserException
     {
         /// <summary>
         /// Macro file path

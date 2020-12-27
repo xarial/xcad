@@ -11,7 +11,7 @@ using System.Text;
 
 namespace Xarial.XCad.Base
 {
-    public static class ILoggerException
+    public static class ILoggerExtension
     {
         /// <summary>
         /// Logs error

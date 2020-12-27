@@ -15,6 +15,7 @@ using Xarial.XCad.Documents;
 using Xarial.XCad.Features;
 using Xarial.XCad.Services;
 using Xarial.XCad.SolidWorks.Data;
+using Xarial.XCad.SolidWorks.Documents.Exceptions;
 using Xarial.XCad.SolidWorks.Features;
 
 namespace Xarial.XCad.SolidWorks.Documents
@@ -73,24 +74,10 @@ namespace Xarial.XCad.SolidWorks.Documents
 
                 if (activeConf.Configuration != this.Configuration) 
                 {
-                    m_Doc.Configurations.Active = this;
-                }
+                    throw new InactiveConfigurationCutListPropertiesNotSupportedException();
+                };
 
-                var cutLists = m_Doc.Features.GetCutLists();
-
-                m_Doc.Configurations.Active = activeConf;
-
-                if (cutLists.Any())
-                {
-                    var safeFeatProvider = new SafeFeatureProvider(cutLists, m_Doc, this);
-
-                    foreach (var cutList in cutLists)
-                    {
-                        cutList.SetSafeFeatureProvider(safeFeatProvider);
-                    }
-                }
-
-                return cutLists;
+                return m_Doc.Features.GetCutLists();
             }
         }
 

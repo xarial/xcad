@@ -9,7 +9,7 @@ namespace Xarial.XCad.SolidWorks.Exceptions
     /// This error indicates that macro failed to run with unknown reason
     /// </summary>
     /// <remarks>This error migth indicate that the process now is corrupted</remarks>
-    public class UnknownMacroRunFailedException : MacroRunFailedException, ICriticalException
+    public class UnknownMacroRunFailedException : MacroRunFailedException, ICriticalException, IUserException
     {
         /// <summary>
         /// Default constructor
