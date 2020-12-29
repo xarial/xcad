@@ -88,7 +88,7 @@ namespace SolidWorks.Tests.Integration
 
         protected string GetFilePath(string name)
         {
-            var filePath = "";
+            string filePath;
 
             if (Path.IsPathRooted(name)) 
             {
