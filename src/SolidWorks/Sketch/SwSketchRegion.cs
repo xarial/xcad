@@ -14,6 +14,7 @@ using Xarial.XCad.Features;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Geometry.Wires;
+using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Geometry;
 using Xarial.XCad.SolidWorks.Geometry.Curves;
 
@@ -28,7 +29,7 @@ namespace Xarial.XCad.SolidWorks.Sketch
     {
         IXSegment[] IXRegion.Boundary => Boundary;
 
-        internal SwSketchRegion(ISketchRegion region, IModelDoc2 model) : base(model, region)
+        internal SwSketchRegion(ISketchRegion region, ISwDocument doc) : base(region, doc)
         {
             Region = region;
         }

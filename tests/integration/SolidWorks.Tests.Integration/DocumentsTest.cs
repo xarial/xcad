@@ -17,6 +17,7 @@ using Xarial.XCad.SolidWorks;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Documents.Exceptions;
 using Xarial.XCad.SolidWorks.Enums;
+using Xarial.XCad.SolidWorks.Geometry;
 
 namespace SolidWorks.Tests.Integration
 {
@@ -687,6 +688,39 @@ namespace SolidWorks.Tests.Integration
             Assert.AreEqual(m_App.Version.Major, v3.Major);
             Assert.AreEqual(SwVersion_e.Sw2019, v4.Major);
             Assert.AreEqual(SwVersion_e.Sw2019, v5.Major);
+        }
+
+        [Test]
+        public void SerializationTest() 
+        {
+            var isCylFace = false;
+            var areEqual = false;
+
+            using (var doc = OpenDataDocument("Selections1.SLDPRT"))
+            {
+                var part = (ISwPart)m_App.Documents.Active;
+
+                var face = SwObjectFactory.FromDispatch<ISwFace>(
+                    part.Part.GetEntityByName("Face2", (int)swSelectType_e.swSelFACES) as IFace2, part);
+
+                byte[] bytes;
+
+                using (var memStr = new MemoryStream()) 
+                {
+                    face.Serialize(memStr);
+                    bytes = memStr.ToArray();
+                }
+
+                using (var memStr = new MemoryStream(bytes))
+                {
+                    var face1 = part.DeserializeObject(memStr);
+                    isCylFace = face is ISwCylindricalFace;
+                    areEqual = face1.Dispatch == face.Dispatch;
+                }
+            }
+
+            Assert.IsTrue(isCylFace);
+            Assert.IsTrue(areEqual);
         }
     }
 }

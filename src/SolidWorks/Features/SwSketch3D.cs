@@ -29,14 +29,14 @@ namespace Xarial.XCad.SolidWorks.Features
         protected override ISketch CreateSketch()
         {
             //TODO: try to use API only selection
-            m_ModelDoc.ClearSelection2(true);
-            m_ModelDoc.Insert3DSketch2(true);
-            return m_ModelDoc.SketchManager.ActiveSketch;
+            ModelDoc.ClearSelection2(true);
+            ModelDoc.Insert3DSketch2(true);
+            return ModelDoc.SketchManager.ActiveSketch;
         }
 
         protected override void ToggleEditSketch()
         {
-            m_ModelDoc.Insert3DSketch2(true);
+            ModelDoc.Insert3DSketch2(true);
         }
     }
 }

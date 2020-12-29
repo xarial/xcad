@@ -93,6 +93,8 @@ namespace Xarial.XCad.SolidWorks.Documents
         //TODO: implement creation of new views
         public bool IsCommitted => true;
 
+        public override object Dispatch => View;
+
         internal SwModelView(IModelDoc2 model, IModelView view, IMathUtility mathUtils) : base(view)
         {
             View = view;

@@ -38,6 +38,8 @@ namespace Xarial.XCad.SolidWorks.Documents
         //TODO: implement creation of new sheets
         public bool IsCommitted => true;
 
+        public override object Dispatch => Sheet;
+
         internal SwSheet(SwDrawing draw, ISheet sheet) : base(sheet)
         {
             m_Drawing = draw;

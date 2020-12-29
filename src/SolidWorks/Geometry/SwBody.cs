@@ -47,6 +47,8 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         public virtual IBody2 Body { get; }
 
+        public override object Dispatch => Body;
+
         public bool Visible
         {
             get => Body.Visible;
@@ -82,7 +84,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         protected ISwDocument m_Document;
 
-        internal SwBody(IBody2 body, ISwDocument doc) : base(doc?.Model, body)
+        internal SwBody(IBody2 body, ISwDocument doc) : base(body, doc)
         {
             Body = body;
             m_Document = doc;

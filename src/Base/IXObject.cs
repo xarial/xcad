@@ -5,6 +5,8 @@
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
+using System.IO;
+
 namespace Xarial.XCad
 {
     /// <summary>
@@ -18,5 +20,11 @@ namespace Xarial.XCad
         /// <param name="other">Other object to compare</param>
         /// <returns>True if underlying objects are same, False if not</returns>
         bool IsSame(IXObject other);
+
+        /// <summary>
+        /// Saves this object into a stream
+        /// </summary>
+        /// <param name="stream">Target stream</param>
+        void Serialize(Stream stream);
     }
 }

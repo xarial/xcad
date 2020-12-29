@@ -8,6 +8,7 @@
 using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
 using System;
+using System.IO;
 using Xarial.XCad.SolidWorks.Annotations;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Features;
@@ -32,6 +33,10 @@ namespace Xarial.XCad.SolidWorks
     /// <inheritdoc/>
     internal class SwObject : ISwObject
     {
+        protected IModelDoc2 ModelDoc => m_Doc.Model;
+
+        protected readonly ISwDocument m_Doc;
+
         internal static TObj FromDispatch<TObj>(object disp)
             where TObj : ISwObject
         {
@@ -51,7 +56,7 @@ namespace Xarial.XCad.SolidWorks
 
         internal static ISwObject FromDispatch(object disp, ISwDocument doc)
         {
-            return FromDispatch(disp, doc, d => new SwObject(d));
+            return FromDispatch(disp, doc, d => new SwObject(d, doc));
         }
 
         internal static ISwObject FromDispatch(object disp, ISwDocument doc, Func<object, ISwObject> defaultHandler)
@@ -62,30 +67,30 @@ namespace Xarial.XCad.SolidWorks
                     var edgeCurve = edge.IGetCurve();
                     if (edgeCurve.IsCircle())
                     {
-                        return new SwCircularEdge(edge);
+                        return new SwCircularEdge(edge, doc);
                     }
                     else if (edgeCurve.IsLine())
                     {
-                        return new SwLinearEdge(edge);
+                        return new SwLinearEdge(edge, doc);
                     }
                     else
                     {
-                        return new SwEdge(edge);
+                        return new SwEdge(edge, doc);
                     }
 
                 case IFace2 face:
                     var faceSurf = face.IGetSurface();
                     if (faceSurf.IsPlane())
                     {
-                        return new SwPlanarFace(face);
+                        return new SwPlanarFace(face, doc);
                     }
                     else if (faceSurf.IsCylinder())
                     {
-                        return new SwCylindricalFace(face);
+                        return new SwCylindricalFace(face, doc);
                     }
                     else
                     {
-                        return new SwFace(face);
+                        return new SwFace(face, doc);
                     }
 
                 case IFeature feat:
@@ -167,13 +172,13 @@ namespace Xarial.XCad.SolidWorks
                     }
 
                 case ISketchRegion skReg:
-                    return new SwSketchRegion(skReg, doc?.Model);
+                    return new SwSketchRegion(skReg, doc);
 
                 case ISketchPoint skPt:
                     return new SwSketchPoint(doc, skPt, true);
 
                 case IDisplayDimension dispDim:
-                    return new SwDimension(doc.Model, dispDim);
+                    return new SwDimension(doc, dispDim);
 
                 case IConfiguration conf:
                     return new SwConfiguration((SwDocument3D)doc, conf, true);
@@ -223,6 +228,11 @@ namespace Xarial.XCad.SolidWorks
             Dispatch = dispatch;
         }
 
+        internal SwObject(object dispatch, ISwDocument doc) : this(dispatch)
+        {
+            m_Doc = doc;
+        }
+
         public virtual bool IsSame(IXObject other)
         {
             if (object.ReferenceEquals(this, other)) 
@@ -239,5 +249,8 @@ namespace Xarial.XCad.SolidWorks
                 return false;
             }
         }
+
+        public virtual void Serialize(Stream stream) 
+            => throw new NotSupportedException("This object cannot be serialized");
     }
 }

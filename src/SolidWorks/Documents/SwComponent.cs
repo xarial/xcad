@@ -63,6 +63,8 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         private readonly Lazy<ISwFeatureManager> m_Features;
 
+        public override object Dispatch => Component;
+
         internal SwComponent(IComponent2 comp, SwAssembly parentAssembly) : base(comp)
         {
             m_ParentAssembly = parentAssembly;

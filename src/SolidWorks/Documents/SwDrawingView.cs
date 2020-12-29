@@ -36,8 +36,10 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
         }
 
+        public override object Dispatch => DrawingView;
+
         internal SwDrawingView(IView drwView, SwDrawing drw, ISheet sheet, bool created) 
-            : base(drw.Model, drwView)
+            : base(drwView, drw)
         {
             m_Drawing = drw;
             m_Creator = new ElementCreator<IView>(CreateDrawingView, drwView, created);
@@ -62,7 +64,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
             const string DRW_VIEW_TYPE_NAME = "DRAWINGVIEW";
 
-            if (!m_ModelDoc.Extension.SelectByID2(DrawingView.Name, DRW_VIEW_TYPE_NAME, 0, 0, 0, append, 0, null, 0)) 
+            if (!ModelDoc.Extension.SelectByID2(DrawingView.Name, DRW_VIEW_TYPE_NAME, 0, 0, 0, append, 0, null, 0)) 
             {
                 throw new Exception("Failed to select drawing view");
             }

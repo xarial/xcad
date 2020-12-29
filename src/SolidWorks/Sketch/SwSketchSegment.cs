@@ -44,6 +44,8 @@ namespace Xarial.XCad.SolidWorks.Sketch
 
         public override bool IsCommitted => m_Creator.IsCreated;
 
+        public override object Dispatch => Segment;
+
         protected SwSketchSegment(ISwDocument doc, ISketchSegment seg, bool created) : base(doc, seg)
         {
             if (doc == null)

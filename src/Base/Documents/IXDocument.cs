@@ -148,7 +148,14 @@ namespace Xarial.XCad.Documents
         /// Returns dependencies of this document
         /// </summary>
         /// <remarks>Dependencies might be uncommited if document is loaded view only or in the rapid mode. Use <see cref="IXTransaction.IsCommitted"/> to check the state and call <see cref="IXTransaction.Commit(System.Threading.CancellationToken)"/> to load document if needed</remarks>
-        IXDocument[] Dependencies { get; }
+        IXDocument3D[] Dependencies { get; }
+
+        /// <summary>
+        /// Deserializes specific object from stream
+        /// </summary>
+        /// <param name="stream">Input stream with the serialized object</param>
+        /// <returns>Deserialized object</returns>
+        IXObject DeserializeObject(Stream stream);
     }
 
     /// <summary>

@@ -39,16 +39,15 @@ namespace Xarial.XCad.SolidWorks.Features
             }
         }
         
-        protected readonly ISwDocument m_Doc;
+        public override object Dispatch => Feature;
 
-        internal SwFeature(ISwDocument doc, IFeature feat, bool created) : base(doc.Model, feat)
+        internal SwFeature(ISwDocument doc, IFeature feat, bool created) : base(feat, doc)
         {
             if (doc == null) 
             {
                 throw new ArgumentNullException(nameof(doc));
             }
 
-            m_Doc = doc;
             Dimensions = new SwFeatureDimensionsCollection(m_Doc, this);
 
             m_Creator = new ElementCreator<IFeature>(CreateFeature, feat, created);

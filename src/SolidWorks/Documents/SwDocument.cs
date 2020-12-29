@@ -13,6 +13,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Threading;
 using Xarial.XCad.Annotations;
@@ -23,6 +24,7 @@ using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Delegates;
 using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Documents.Exceptions;
+using Xarial.XCad.Exceptions;
 using Xarial.XCad.Features;
 using Xarial.XCad.Services;
 using Xarial.XCad.SolidWorks.Annotations;
@@ -46,7 +48,8 @@ namespace Xarial.XCad.SolidWorks.Documents
         new ISwDimensionsCollection Dimensions { get; }
         new ISwCustomPropertiesCollection Properties { get; }
         new ISwVersion Version { get; }
-        new ISwDocument[] Dependencies { get; }
+        new ISwDocument3D[] Dependencies { get; }
+        new ISwObject DeserializeObject(Stream stream);
     }
 
     [DebuggerDisplay("{" + nameof(Title) + "}")]
@@ -149,8 +152,9 @@ namespace Xarial.XCad.SolidWorks.Documents
         IXSelectionRepository IXDocument.Selections => Selections;
         IXDimensionRepository IXDocument.Dimensions => Dimensions;
         IXPropertyRepository IPropertiesOwner.Properties => Properties;
-        IXDocument[] IXDocument.Dependencies => Dependencies;
+        IXDocument3D[] IXDocument.Dependencies => Dependencies;
         IXVersion IXDocument.Version => Version;
+        IXObject IXDocument.DeserializeObject(Stream stream) => DeserializeObject(stream);
 
         protected readonly IXLogger m_Logger;
 
@@ -454,7 +458,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         internal protected abstract swDocumentTypes_e? DocumentType { get; }
 
-        public ISwDocument[] Dependencies 
+        public ISwDocument3D[] Dependencies 
         {
             get 
             {
@@ -473,7 +477,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
                     if (depsData?.Any() == true)
                     {
-                        var deps = new ISwDocument[depsData.Length / 2];
+                        var deps = new ISwDocument3D[depsData.Length / 2];
 
                         for (int i = 1; i < depsData.Length; i += 2) 
                         {
@@ -481,17 +485,17 @@ namespace Xarial.XCad.SolidWorks.Documents
 
                             if (!((SwDocumentCollection)App.Documents).TryFindExistingDocumentByPath(path, out SwDocument refDoc))
                             {
-                                refDoc = (SwDocument)((SwDocumentCollection)App.Documents).PreCreateFromPath(path);
+                                refDoc = (SwDocument3D)((SwDocumentCollection)App.Documents).PreCreateFromPath(path);
                             }
 
-                            deps[(i - 1) / 2] = refDoc;
+                            deps[(i - 1) / 2] = (ISwDocument3D)refDoc;
                         }
 
                         return deps;
                     }
                     else 
                     {
-                        return new ISwDocument[0];
+                        return new ISwDocument3D[0];
                     }
                 }
                 else 
@@ -1026,6 +1030,51 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
 
             return string.Join("; ", errors);
+        }
+
+        public ISwObject DeserializeObject(Stream stream)
+        {
+            stream.Seek(0, SeekOrigin.Begin);
+
+            byte[] buffer;
+
+            using (var memoryStream = new MemoryStream())
+            {
+                stream.CopyTo(memoryStream);
+                buffer = memoryStream.ToArray();
+            }
+
+            var obj = Model.Extension.GetObjectByPersistReference3(buffer, out int err);
+
+            if (obj != null)
+            {
+                return SwObjectFactory.FromDispatch<SwObject>(obj, this);
+            }
+            else 
+            {
+                string reason = "";
+
+                switch ((swPersistReferencedObjectStates_e)err) 
+                {
+                    case swPersistReferencedObjectStates_e.swPersistReferencedObject_Deleted:
+                        reason = "Object is deleted";
+                        break;
+
+                    case swPersistReferencedObjectStates_e.swPersistReferencedObject_Invalid:
+                        reason = "Object is invalid";
+                        break;
+
+                    case swPersistReferencedObjectStates_e.swPersistReferencedObject_Suppressed:
+                        reason = "Object is suppressed";
+                        break;
+
+                    default:
+                        reason = "Unknown reason";
+                        break;
+                }
+
+                throw new ObjectSerializationException($"Failed to serialize object: {reason}", err);
+            }
         }
     }
 

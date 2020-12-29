@@ -93,6 +93,8 @@ namespace Xarial.XCad.SolidWorks.Documents
                 () => new SwConfigurationCustomPropertiesCollection(m_Doc, Name));
         }
 
+        public override object Dispatch => Configuration;
+
         public void Commit(CancellationToken cancellationToken) => m_Creator.Create(cancellationToken);
 
         private IConfiguration Create(CancellationToken cancellationToken) 
