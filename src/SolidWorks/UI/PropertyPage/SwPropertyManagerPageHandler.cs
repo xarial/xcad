@@ -181,7 +181,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
         [EditorBrowsable(EditorBrowsableState.Never)]
         public bool OnKeystroke(int Wparam, int Message, int Lparam, int Id)
         {
-            return true;
+            return false;
         }
 
         [Browsable(false)]

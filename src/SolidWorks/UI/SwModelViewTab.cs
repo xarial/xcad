@@ -81,7 +81,7 @@ namespace Xarial.XCad.SolidWorks.UI
                 m_Doc.Destroyed -= OnDestroyed;
 
                 m_IsDisposed = true;
-
+                
                 try
                 {
                     if (Control is IDisposable)
@@ -91,6 +91,11 @@ namespace Xarial.XCad.SolidWorks.UI
                 }
                 finally 
                 {
+                    if (IsActive) 
+                    {
+                        m_MdlViewMgr.ActivateModelTab();
+                    }
+
                     var res = m_MdlViewMgr.DeleteControlTab(m_Title);
 
                     if (!res) 
