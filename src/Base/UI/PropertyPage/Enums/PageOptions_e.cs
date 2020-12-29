@@ -18,7 +18,6 @@ namespace Xarial.XCad.UI.PropertyPage.Enums
         CloseDialogButton = 8,
         MultiplePages = 16,
         PushpinButton = 32,
-        AllowHorizontalResize = 64,
         PreviewButton = 128,
         DisableSelection = 256,
         AbortCommands = 1024,
