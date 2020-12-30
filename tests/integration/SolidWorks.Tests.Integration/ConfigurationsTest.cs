@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
+using Xarial.XCad.Exceptions;
 using Xarial.XCad.SolidWorks.Documents;
 
 namespace SolidWorks.Tests.Integration
@@ -140,7 +141,7 @@ namespace SolidWorks.Tests.Integration
                 {
                     var conf4 = confs["Conf5"];
                 }
-                catch (Exception ex)
+                catch (EntityNotFoundException ex)
                 {
                     e1 = ex;
                 }

@@ -19,6 +19,7 @@ using Xarial.XCad.Documents.Delegates;
 using Xarial.XCad.Documents.Exceptions;
 using Xarial.XCad.Documents.Services;
 using Xarial.XCad.Documents.Structures;
+using Xarial.XCad.Exceptions;
 using Xarial.XCad.SolidWorks.Documents.Services;
 using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.Toolkit.Services;
@@ -96,7 +97,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                 }
                 else 
                 {
-                    throw new Exception("Failed to find the document by name");
+                    throw new EntityNotFoundException(name);
                 }
             }
         }

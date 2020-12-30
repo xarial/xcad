@@ -16,4 +16,17 @@ namespace Xarial.XCad.Features
         /// </summary>
         IXSolidBody[] Bodies { get; }
     }
+
+    /// <summary>
+    /// Additional methods of <see cref="IXCutListItem"/>
+    /// </summary>
+    public static class IXCutListItemExtension 
+    {
+        /// <summary>
+        /// Gets the quantity of this cut-list-item
+        /// </summary>
+        /// <param name="item">Input item</param>
+        /// <returns>Quantity</returns>
+        public static int Quantity(this IXCutListItem item) => item.Bodies.Length;
+    }
 }
