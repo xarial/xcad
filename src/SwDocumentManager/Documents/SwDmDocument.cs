@@ -151,7 +151,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         protected readonly ElementCreator<ISwDMDocument> m_Creator;
 
-        protected readonly ISwDmApplication m_SwDmApp;
+        internal protected ISwDmApplication SwDmApp { get; }
 
         protected readonly Action<ISwDmDocument> m_CreateHandler;
         protected readonly Action<ISwDmDocument> m_CloseHandler;
@@ -159,7 +159,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         internal SwDmDocument(ISwDmApplication dmApp, ISwDMDocument doc, bool isCreated, 
             Action<ISwDmDocument> createHandler, Action<ISwDmDocument> closeHandler)
         {
-            m_SwDmApp = dmApp;
+            SwDmApp = dmApp;
 
             m_CreateHandler = createHandler;
             m_CloseHandler = closeHandler;
@@ -200,7 +200,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         {
             m_IsReadOnly = State.HasFlag(DocumentState_e.ReadOnly);
 
-            var doc = m_SwDmApp.SwDocMgr.GetDocument(Path, DocumentType, 
+            var doc = SwDmApp.SwDocMgr.GetDocument(Path, DocumentType, 
                 m_IsReadOnly.Value, out SwDmDocumentOpenError err);
 
             if (doc != null)
@@ -368,15 +368,15 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             switch (DocumentType)
             {
                 case SwDmDocumentType.swDmDocumentPart:
-                    m_SpecificDoc = new SwDmPart(m_SwDmApp, model, true, m_CreateHandler, m_CloseHandler);
+                    m_SpecificDoc = new SwDmPart(SwDmApp, model, true, m_CreateHandler, m_CloseHandler);
                     break;
 
                 case SwDmDocumentType.swDmDocumentAssembly:
-                    m_SpecificDoc = new SwDmAssembly(m_SwDmApp, model, true, m_CreateHandler, m_CloseHandler);
+                    m_SpecificDoc = new SwDmAssembly(SwDmApp, model, true, m_CreateHandler, m_CloseHandler);
                     break;
 
                 case SwDmDocumentType.swDmDocumentDrawing:
-                    m_SpecificDoc = new SwDmDrawing(m_SwDmApp, model, true, m_CreateHandler, m_CloseHandler);
+                    m_SpecificDoc = new SwDmDrawing(SwDmApp, model, true, m_CreateHandler, m_CloseHandler);
                     break;
 
                 default:

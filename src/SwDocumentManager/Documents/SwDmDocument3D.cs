@@ -9,6 +9,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 {
     public interface ISwDmDocument3D : ISwDmDocument, IXDocument3D
     {
+        new ISwDmConfigurationCollection Configurations { get; }
     }
 
     internal class SwDmDocument3D : SwDmDocument, ISwDmDocument3D
@@ -21,12 +22,17 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         #endregion
 
-        public IXConfigurationRepository Configurations => throw new NotImplementedException();
+        IXConfigurationRepository IXDocument3D.Configurations => Configurations;
+
+        public ISwDmConfigurationCollection Configurations => m_Configurations.Value;
+
+        private readonly Lazy<ISwDmConfigurationCollection> m_Configurations;
 
         public SwDmDocument3D(ISwDmApplication dmApp, ISwDMDocument doc, bool isCreated,
             Action<ISwDmDocument> createHandler, Action<ISwDmDocument> closeHandler)
             : base(dmApp, doc, isCreated, createHandler, closeHandler)
         {
+            m_Configurations = new Lazy<ISwDmConfigurationCollection>(() => new SwDmConfigurationCollection(this));
         }
     }
 }
