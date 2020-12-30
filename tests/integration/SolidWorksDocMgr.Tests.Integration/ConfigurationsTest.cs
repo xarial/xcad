@@ -76,5 +76,27 @@ namespace SolidWorksDocMgr.Tests.Integration
             Assert.IsFalse(r2);
             Assert.IsNotNull(e1);
         }
+
+        [Test]
+        public void DeleteConfsTest()
+        {
+            int count;
+            string name;
+
+            using (var doc = OpenDataDocument("Configs1.SLDPRT"))
+            {
+                var confsToDelete
+                    = (m_App.Documents.Active as ISwDmDocument3D).Configurations
+                    .Where(c => c.Name != "Conf3").ToArray();
+
+                (m_App.Documents.Active as ISwDmDocument3D).Configurations.RemoveRange(confsToDelete);
+
+                count = m_App.Documents.Active.Document.ConfigurationManager.GetConfigurationCount();
+                name = m_App.Documents.Active.Document.ConfigurationManager.GetActiveConfigurationName();
+            }
+
+            Assert.AreEqual(1, count);
+            Assert.AreEqual("Conf3", name);
+        }
     }
 }

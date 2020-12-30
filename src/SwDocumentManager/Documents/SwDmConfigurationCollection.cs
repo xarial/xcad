@@ -26,7 +26,6 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         public void AddRange(IEnumerable<IXConfiguration> ents) => throw new NotSupportedException();
         public IXConfiguration PreCreate() => throw new NotSupportedException();
-        public void RemoveRange(IEnumerable<IXConfiguration> ents) => throw new NotSupportedException();
 
         #endregion
 
@@ -118,6 +117,21 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
             ent = SwDmObjectFactory.FromDispatch<ISwDmConfiguration>(conf);
             return true;
+        }
+
+        public void RemoveRange(IEnumerable<IXConfiguration> ents) 
+        {
+            var activeConfName = m_Doc.Document.ConfigurationManager.GetActiveConfigurationName();
+
+            foreach (ISwDmConfiguration conf in ents) 
+            {
+                if (string.Equals(conf.Name, activeConfName, StringComparison.CurrentCultureIgnoreCase)) 
+                {
+                    throw new Exception("Cannot delete active configuration");
+                }
+
+                ((ISwDMConfiguration7)conf.Configuration).Delete = true;
+            }
         }
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();

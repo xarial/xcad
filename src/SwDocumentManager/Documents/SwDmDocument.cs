@@ -14,6 +14,7 @@ using Xarial.XCad.Documents.Exceptions;
 using Xarial.XCad.Documents.Structures;
 using Xarial.XCad.Features;
 using Xarial.XCad.Services;
+using Xarial.XCad.SwDocumentManager.Data;
 using Xarial.XCad.Toolkit.Data;
 
 namespace Xarial.XCad.SwDocumentManager.Documents
@@ -22,6 +23,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
     {
         ISwDMDocument Document { get; }
         new ISwDmVersion Version { get; }
+        new ISwDmCustomPropertiesCollection Properties { get; }
     }
 
     internal abstract class SwDmDocument : ISwDmDocument
@@ -37,9 +39,10 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         #endregion
 
-        public ISwDMDocument Document => m_Creator.Element;
-
         IXVersion IXDocument.Version => Version;
+        IXPropertyRepository IPropertiesOwner.Properties => Properties;
+
+        public ISwDMDocument Document => m_Creator.Element;
 
         public ISwDmVersion Version => SwDmApplicationFactory.CreateVersion((SwDmVersion_e)Document.GetVersion());
 
@@ -139,7 +142,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         public bool IsCommitted => m_Creator.IsCreated;
 
-        public IXPropertyRepository Properties => throw new NotImplementedException();
+        public ISwDmCustomPropertiesCollection Properties => m_Properties.Value;
 
         public event DataStoreAvailableDelegate StreamReadAvailable;
         public event DataStoreAvailableDelegate StorageReadAvailable;
@@ -156,6 +159,8 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         protected readonly Action<ISwDmDocument> m_CreateHandler;
         protected readonly Action<ISwDmDocument> m_CloseHandler;
 
+        private readonly Lazy<ISwDmCustomPropertiesCollection> m_Properties;
+
         internal SwDmDocument(ISwDmApplication dmApp, ISwDMDocument doc, bool isCreated, 
             Action<ISwDmDocument> createHandler, Action<ISwDmDocument> closeHandler)
         {
@@ -166,6 +171,8 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
             Tags = new TagsManager();
             m_Creator = new ElementCreator<ISwDMDocument>(OpenDocument, doc, isCreated);
+
+            m_Properties = new Lazy<ISwDmCustomPropertiesCollection>(() => new SwDmDocumentCustomPropertiesCollection(this));
         }
 
         protected SwDmDocumentType DocumentType 
