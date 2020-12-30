@@ -1,4 +1,11 @@
-﻿using SolidWorks.Interop.swdocumentmgr;
+﻿//*********************************************************************
+//xCAD
+//Copyright(C) 2020 Xarial Pty Limited
+//Product URL: https://www.xcad.net
+//License: https://xcad.xarial.com/license/
+//*********************************************************************
+
+using SolidWorks.Interop.swdocumentmgr;
 using System;
 using System.Collections.Generic;
 using System.IO;
