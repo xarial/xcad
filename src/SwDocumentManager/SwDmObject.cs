@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using Xarial.XCad.SwDocumentManager.Documents;
+using Xarial.XCad.SwDocumentManager.Features;
 
 namespace Xarial.XCad.SwDocumentManager
 {
@@ -41,18 +42,21 @@ namespace Xarial.XCad.SwDocumentManager
 
     public static class SwDmObjectFactory 
     {
-        public static TObj FromDispatch<TObj>(object disp)
+        public static TObj FromDispatch<TObj>(object disp, ISwDmDocument doc)
             where TObj : ISwDmObject
         {
-            return (TObj)FromDispatch(disp);
+            return (TObj)FromDispatch(disp, doc);
         }
 
-        public static ISwDmObject FromDispatch(object disp)
+        public static ISwDmObject FromDispatch(object disp, ISwDmDocument doc)
         {
             switch (disp) 
             {
                 case ISwDMConfiguration conf:
-                    return new SwDmConfiguration(conf);
+                    return new SwDmConfiguration(conf, (SwDmDocument3D)doc);
+
+                case ISwDMCutListItem2 cutList:
+                    return new SwDmCutListItem(cutList);
 
                 default:
                     return new SwDmObject(disp);

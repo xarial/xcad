@@ -115,7 +115,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                 conf = m_Doc.Document.ConfigurationManager.GetConfigurationByName(name);
             }
 
-            ent = SwDmObjectFactory.FromDispatch<ISwDmConfiguration>(conf);
+            ent = SwDmObjectFactory.FromDispatch<ISwDmConfiguration>(conf, m_Doc);
             return true;
         }
 

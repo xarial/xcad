@@ -2,12 +2,14 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using Xarial.XCad.Data;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Features;
 using Xarial.XCad.SwDocumentManager.Data;
+using Xarial.XCad.SwDocumentManager.Features;
 
 namespace Xarial.XCad.SwDocumentManager.Documents
 {
@@ -15,11 +17,13 @@ namespace Xarial.XCad.SwDocumentManager.Documents
     {
         ISwDMConfiguration Configuration { get; }
         new ISwDmCustomPropertiesCollection Properties { get; }
+        new ISwDmCutListItem[] CutLists { get; }
     }
 
     internal class SwDmConfiguration : SwDmObject, ISwDmConfiguration
     {
         IXPropertyRepository IPropertiesOwner.Properties => Properties;
+        IXCutListItem[] IXConfiguration.CutLists => CutLists;
 
         private readonly Lazy<ISwDmCustomPropertiesCollection> m_Properties;
 
@@ -27,9 +31,13 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         public ISwDmCustomPropertiesCollection Properties => m_Properties.Value;
 
-        internal SwDmConfiguration(ISwDMConfiguration conf) : base(conf)
+        private readonly SwDmDocument3D m_Doc;
+
+        internal SwDmConfiguration(ISwDMConfiguration conf, SwDmDocument3D doc) : base(conf)
         {
             Configuration = conf;
+            m_Doc = doc;
+
             m_Properties = new Lazy<ISwDmCustomPropertiesCollection>(
                 () => new SwDmConfigurationCustomPropertiesCollection(this));
         }
@@ -40,7 +48,41 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             set => throw new NotSupportedException("Property is read-only"); 
         }
 
-        public IXCutListItem[] CutLists => throw new NotImplementedException();
+        public ISwDmCutListItem[] CutLists 
+        {
+            get 
+            {
+                object[] cutListItems = null;
+
+                if (m_Doc.SwDmApp.IsVersionNewerOrEqual(SwDmVersion_e.Sw2019)
+                    && m_Doc.Version.Major >= SwDmVersion_e.Sw2019)
+                {
+                    cutListItems = ((ISwDMConfiguration16)Configuration).GetCutListItems() as object[];
+                }
+                else 
+                {
+                    if (Configuration == m_Doc.Configurations.Active.Configuration)
+                    {
+                        cutListItems = ((ISwDMDocument13)m_Doc.Document).GetCutListItems2() as object[];
+                    }
+                    else 
+                    {
+                        throw new Exception(
+                            "Cut-lists can only be extracted from the active configuration for files saved in 2018 or older");
+                    }
+                }
+
+                if (cutListItems != null)
+                {
+                    return cutListItems.Cast<ISwDMCutListItem2>()
+                        .Select(c => new SwDmCutListItem(c)).ToArray();
+                }
+                else 
+                {
+                    return new ISwDmCutListItem[0];
+                }
+            }
+        }
 
         public bool IsCommitted => true;
 
