@@ -104,7 +104,7 @@ namespace SolidWorksDocMgr.Tests.Integration
                 var dir = Path.GetDirectoryName(assm.Path);
 
                 Assert.AreEqual(6, deps.Length);
-                Assert.That(deps.All(d => d.IsCommitted));
+                Assert.That(deps.All(d => !d.IsCommitted));
                 Assert.That(deps.Any(d => string.Equals(d.Path, Path.Combine(dir, "Part2.SLDPRT"))));
                 Assert.That(deps.Any(d => string.Equals(d.Path, Path.Combine(dir, "Part3.SLDPRT"))));
                 Assert.That(deps.Any(d => string.Equals(d.Path, Path.Combine(dir, "Part4-1 (XYZ).SLDPRT"))));

@@ -223,15 +223,30 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                 {
                     if (File.Exists(dep))
                     {
-                        var doc = (ISwDmDocument3D)SwDmApp.Documents.Open(dep);
-                        yield return doc;
+                        yield return (ISwDmDocument3D)SwDmApp.Documents.PreCreateFromPath(dep);
 
-                        foreach (var childDoc in TraverseDependencies(doc, searchOpts)) 
+                        ISwDmDocument3D doc = null;
+
+                        try
                         {
-                            yield return childDoc;
+                            doc = (ISwDmDocument3D)SwDmApp.Documents.Open(dep, DocumentState_e.ReadOnly);
                         }
+                        catch
+                        {
+                        }
+
+                        if (doc != null)
+                        {
+                            foreach (var childDoc in TraverseDependencies(doc, searchOpts))
+                            {
+                                yield return (ISwDmDocument3D)SwDmApp.Documents.PreCreateFromPath(childDoc.Path);
+                            }
+                        }
+
+                        doc?.Close();
+
                     }
-                    else 
+                    else
                     {
                         var doc = (ISwDmDocument3D)SwDmApp.Documents.PreCreateFromPath(dep);
                         yield return doc;
