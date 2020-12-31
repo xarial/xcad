@@ -5,6 +5,7 @@
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
+using System;
 using System.IO;
 
 namespace Xarial.XCad
@@ -12,15 +13,8 @@ namespace Xarial.XCad
     /// <summary>
     /// Wrapper inteface over the specific object
     /// </summary>
-    public interface IXObject
+    public interface IXObject : IEquatable<IXObject>
     {
-        /// <summary>
-        /// Method to compare the wrappers
-        /// </summary>
-        /// <param name="other">Other object to compare</param>
-        /// <returns>True if underlying objects are same, False if not</returns>
-        bool IsSame(IXObject other);
-
         /// <summary>
         /// Saves this object into a stream
         /// </summary>

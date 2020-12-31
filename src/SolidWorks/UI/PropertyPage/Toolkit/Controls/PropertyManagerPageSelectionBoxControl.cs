@@ -10,6 +10,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Runtime.InteropServices;
 using Xarial.XCad.Base.Enums;
 using Xarial.XCad.UI.PropertyPage;
@@ -23,11 +24,9 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
     {
         protected override event ControlValueChangedDelegate<object> ValueChanged;
 
-        private ISwApplication m_App;
-
-        private Type m_ObjType;
-
-        private ISelectionCustomFilter m_CustomFilter;
+        private readonly ISwApplication m_App;
+        private readonly Type m_ObjType;
+        private readonly ISelectionCustomFilter m_CustomFilter;
 
         public PropertyManagerPageSelectionBoxControl(ISwApplication app, int id, object tag,
             IPropertyManagerPageSelectionbox selBox,
@@ -46,18 +45,9 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             }
         }
 
-        internal IPropertyManagerPageSelectionbox SelectionBox
-        {
-            get
-            {
-                return SwSpecificControl;
-            }
-        }
+        internal IPropertyManagerPageSelectionbox SelectionBox => SwSpecificControl;
 
-        private SwSelObject ToSelObject(object disp)
-        {
-            return SwSelObject.FromDispatch(disp, m_App.Documents.Active);
-        }
+        private SwSelObject ToSelObject(object disp) => SwSelObject.FromDispatch(disp, m_App.Documents.Active);
 
         private void OnSubmitSelection(int Id, object Selection, int SelType, ref string ItemText, ref bool res)
         {
@@ -117,10 +107,10 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
         {
             SwSpecificControl.SetSelectionFocus();
 
+            var disps = new List<DispatchWrapper>();
+
             if (value != null)
             {
-                var disps = new List<DispatchWrapper>();
-
                 if (SupportsMultiEntities)
                 {
                     foreach (SwSelObject item in value as IList)
@@ -132,9 +122,45 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
                 {
                     disps.Add(new DispatchWrapper((value as SwSelObject).Dispatch));
                 }
+            }
 
-                var selMgr = m_App.Sw.IActiveDoc2.ISelectionManager;
+            var selMgr = m_App.Sw.IActiveDoc2.ISelectionManager;
 
+            var indicesToDeselect = new List<int>();
+
+            for (int i = 0; i < SwSpecificControl.ItemCount; i++)
+            {
+                var selIndex = SwSpecificControl.SelectionIndex[i];
+                var obj = selMgr.GetSelectedObject6(selIndex, -1);
+
+                var objIndex = disps.FindIndex(d => d.WrappedObject == obj);
+
+                if (objIndex == -1)
+                {
+                    indicesToDeselect.Add(selIndex);
+                }
+                else 
+                {
+                    disps.RemoveAt(objIndex);
+                }
+            }
+
+            if (indicesToDeselect.Any())
+            {
+                int SUCCESS = 1;
+
+                m_Handler.SuspendSelectionRaise(Id, true);
+                
+                if (selMgr.DeSelect2(indicesToDeselect.ToArray(), -1) != SUCCESS)
+                {
+                    //TODO: add log
+                }
+
+                m_Handler.SuspendSelectionRaise(Id, false);
+            }
+
+            if (disps.Any())
+            {
                 var selData = selMgr.CreateSelectData();
                 selData.Mark = SwSpecificControl.Mark;
 

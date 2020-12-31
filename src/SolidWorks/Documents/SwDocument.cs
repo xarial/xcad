@@ -40,7 +40,7 @@ using Xarial.XCad.Toolkit.Data;
 
 namespace Xarial.XCad.SolidWorks.Documents
 {
-    public interface ISwDocument : IXDocument, IDisposable
+    public interface ISwDocument : ISwObject, IXDocument, IDisposable
     {
         IModelDoc2 Model { get; }
         new ISwFeatureManager Features { get; }
@@ -53,7 +53,7 @@ namespace Xarial.XCad.SolidWorks.Documents
     }
 
     [DebuggerDisplay("{" + nameof(Title) + "}")]
-    internal abstract class SwDocument : ISwDocument
+    internal abstract class SwDocument : SwObject, ISwDocument
     {
         protected static Dictionary<string, swDocumentTypes_e> m_NativeFileExts { get; }
 
@@ -360,12 +360,14 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         private bool m_AreEventsAttached;
 
+        private bool? m_IsClosed;
+
         internal SwDocument(IModelDoc2 model, SwApplication app, IXLogger logger) 
             : this(model, app, logger, true)
         {
         }
 
-        internal SwDocument(IModelDoc2 model, SwApplication app, IXLogger logger, bool created)
+        internal SwDocument(IModelDoc2 model, SwApplication app, IXLogger logger, bool created) : base(model)
         {
             App = app;
             
@@ -396,6 +398,8 @@ namespace Xarial.XCad.SolidWorks.Documents
                 AttachEvents();
             }
         }
+
+        public override object Dispatch => Model;
 
         private void OnCreating(IModelDoc2 model)
         {
@@ -533,20 +537,42 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
+        public override bool Equals(IXObject other)
+        {
+            if (!object.ReferenceEquals(this, other) 
+                && other is ISwDocument 
+                && !IsCommitted && !((ISwDocument)other).IsCommitted)
+            {
+                return !string.IsNullOrEmpty(Path) && !string.IsNullOrEmpty(((ISwDocument)other).Path)
+                    && string.Equals(Path, ((ISwDocument)other).Path, StringComparison.CurrentCultureIgnoreCase);
+            }
+            else
+            {
+                return base.Equals(other);
+            }
+        }
+
         public bool IsAlive 
         {
             get 
             {
-                var model = Model;
-
-                try
+                if (m_IsClosed.HasValue)
                 {
-                    var title = model.GetTitle();
-                    return true;
+                    return !m_IsClosed.Value;
                 }
-                catch 
+                else
                 {
-                    return false;
+                    var model = Model;
+
+                    try
+                    {
+                        var title = model.GetTitle();
+                        return true;
+                    }
+                    catch
+                    {
+                        return false;
+                    }
                 }
             }
         }
@@ -776,6 +802,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         public void Close()
         {
             App.Sw.CloseDoc(Model.GetTitle());
+            m_IsClosed = true;
         }
 
         public void Dispose()

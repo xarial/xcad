@@ -26,14 +26,14 @@ using Xarial.XCad.Toolkit.Data;
 
 namespace Xarial.XCad.SwDocumentManager.Documents
 {
-    public interface ISwDmDocument : IXDocument
+    public interface ISwDmDocument : ISwDmObject, IXDocument
     {
         ISwDMDocument Document { get; }
         new ISwDmVersion Version { get; }
         new ISwDmCustomPropertiesCollection Properties { get; }
     }
 
-    internal abstract class SwDmDocument : ISwDmDocument
+    internal abstract class SwDmDocument : SwDmObject, ISwDmDocument
     {
         #region Not Supported
         
@@ -129,18 +129,29 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         public ITagsManager Tags { get; }
 
+        private bool? m_IsClosed;
+
         public bool IsAlive 
         {
             get 
             {
-                try
+                if (m_IsClosed.HasValue)
                 {
-                    var testVers = Document.GetVersion();
-                    return true;
+                    return !m_IsClosed.Value;
                 }
-                catch
+                else
                 {
-                    return false;
+                    try
+                    {
+                        //This not causing exception - so does not work - keeping as placeholder for future
+                        var testVers = Document.GetVersion();
+
+                        return true;
+                    }
+                    catch
+                    {
+                        return false;
+                    }
                 }
             }
         }
@@ -169,7 +180,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         private readonly Lazy<ISwDmCustomPropertiesCollection> m_Properties;
 
         internal SwDmDocument(ISwDmApplication dmApp, ISwDMDocument doc, bool isCreated, 
-            Action<ISwDmDocument> createHandler, Action<ISwDmDocument> closeHandler)
+            Action<ISwDmDocument> createHandler, Action<ISwDmDocument> closeHandler) : base(doc)
         {
             SwDmApp = dmApp;
 
@@ -180,6 +191,23 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             m_Creator = new ElementCreator<ISwDMDocument>(OpenDocument, doc, isCreated);
 
             m_Properties = new Lazy<ISwDmCustomPropertiesCollection>(() => new SwDmDocumentCustomPropertiesCollection(this));
+        }
+
+        public override object Dispatch => Document;
+
+        public override bool Equals(IXObject other)
+        {
+            if (!object.ReferenceEquals(this, other)
+                && other is ISwDmDocument
+                && !IsCommitted && !((ISwDmDocument)other).IsCommitted)
+            {
+                return !string.IsNullOrEmpty(Path) && !string.IsNullOrEmpty(((ISwDmDocument)other).Path)
+                    && string.Equals(Path, ((ISwDmDocument)other).Path, StringComparison.CurrentCultureIgnoreCase);
+            }
+            else
+            {
+                return base.Equals(other);
+            }
         }
 
         protected SwDmDocumentType DocumentType 
@@ -269,6 +297,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             Closing?.Invoke(this);
 
             m_CloseHandler.Invoke(this);
+            m_IsClosed = true;
         }
 
         public virtual void Commit(CancellationToken cancellationToken)

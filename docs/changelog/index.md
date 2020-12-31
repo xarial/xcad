@@ -11,6 +11,7 @@ Breaking change is marked with &#x26A0; symbol
 ## 0.6.11 - 
 
 * &#x26A0; IXPropertyRepository::GetOrPreCreate moved to extension method
+* &#x26A0; IXObject::IsSame replaced with IEquatable<IXObject>.Equals
 
 ## 0.6.10 - December 7, 2020
 

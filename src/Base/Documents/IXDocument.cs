@@ -20,7 +20,7 @@ namespace Xarial.XCad.Documents
     /// <summary>
     /// Represents the base interface of all document types
     /// </summary>
-    public interface IXDocument : IXTransaction, IPropertiesOwner
+    public interface IXDocument : IXObject, IXTransaction, IPropertiesOwner
     {
         /// <summary>
         /// Current version of the document

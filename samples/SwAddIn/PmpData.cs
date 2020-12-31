@@ -22,6 +22,8 @@ using System.Collections.ObjectModel;
 using Xarial.XCad.UI.PropertyPage.Base;
 using Xarial.XCad.Base.Attributes;
 using SwAddInExample.Properties;
+using System.Linq;
+using System.ComponentModel;
 
 namespace SwAddInExample
 {
@@ -89,8 +91,10 @@ namespace SwAddInExample
     }
 
     [ComVisible(true)]
-    public class PmpData : SwPropertyManagerPageHandler
+    public class PmpData : SwPropertyManagerPageHandler, INotifyPropertyChanged
     {
+        public event PropertyChangedEventHandler PropertyChanged;
+
         [CustomControl(typeof(WpfUserControl))]
         //[CustomControl(typeof(WinUserControl))]
         [ControlOptions(height: 200)]
@@ -109,7 +113,21 @@ namespace SwAddInExample
         public bool CheckBox { get; set; }
 
         [BitmapButton(typeof(Resources), nameof(Resources.xarial))]
-        public Action Button { get; set; } = new Action(()=> { });
+        public Action Button { get; }
+
+        private void ReduceComponents() 
+        {
+            if (Components?.Any() == true) 
+            {
+                Components.RemoveAt(Components.Count - 1);
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Components)));
+            }
+        }
+
+        public PmpData() 
+        {
+            Button = ReduceComponents;
+        }
     }
 
     [ComVisible(true)]

@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Xarial.XCad.Documents;
 using Xarial.XCad.SwDocumentManager;
+using Xarial.XCad.SwDocumentManager.Documents;
 
 namespace SolidWorksDocMgr.Tests.Integration
 {
@@ -67,6 +68,27 @@ namespace SolidWorksDocMgr.Tests.Integration
             Assert.IsTrue(activeIsDoc21);
             Assert.AreEqual(0, c5);
             Assert.IsTrue(activeIsNull1);
+        }
+
+        [Test]
+        public void IsAliveTest() 
+        {
+            bool r1;
+            bool r2;
+            //bool r3;
+            
+            var doc1 = m_App.Documents.Open(GetFilePath("Part_2020.sldprt"), Xarial.XCad.Documents.Enums.DocumentState_e.ReadOnly);
+            r1 = doc1.IsAlive;
+            doc1.Close();
+            r2 = doc1.IsAlive;
+
+            //doc1 = m_App.Documents.Open(GetFilePath("Part_2020.sldprt"), Xarial.XCad.Documents.Enums.DocumentState_e.ReadOnly);
+            //((ISwDmDocument)doc1).Document.CloseDoc();
+            //r3 = doc1.IsAlive;
+
+            Assert.IsTrue(r1);
+            Assert.IsFalse(r2);
+            //Assert.IsFalse(r3);
         }
     }
 }
