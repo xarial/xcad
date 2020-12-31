@@ -200,11 +200,16 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                     | SwDmSearchFilters.SwDmSearchSubfolders 
                     | SwDmSearchFilters.SwDmSearchInContextReference);
 
-                return TraverseDependencies(this, searchOpts).ToArray();
+                var processed = new List<string>();
+
+                processed.Add(Path);
+
+                return TraverseDependencies(this, searchOpts, processed).ToArray();
             }
         }
 
-        private IEnumerable<ISwDmDocument3D> TraverseDependencies(ISwDmDocument parent, SwDMSearchOption searchOpts) 
+        private IEnumerable<ISwDmDocument3D> TraverseDependencies(
+            ISwDmDocument parent, SwDMSearchOption searchOpts, List<string> processed) 
         {
             string[] deps;
 
@@ -221,35 +226,40 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             {
                 foreach(var dep in deps)
                 {
-                    if (File.Exists(dep))
+                    if (!processed.Contains(dep, StringComparer.CurrentCultureIgnoreCase))
                     {
-                        yield return (ISwDmDocument3D)SwDmApp.Documents.PreCreateFromPath(dep);
+                        processed.Add(dep);
 
-                        ISwDmDocument3D doc = null;
+                        if (File.Exists(dep))
+                        {
+                            yield return (ISwDmDocument3D)SwDmApp.Documents.PreCreateFromPath(dep);
 
-                        try
-                        {
-                            doc = (ISwDmDocument3D)SwDmApp.Documents.Open(dep, DocumentState_e.ReadOnly);
-                        }
-                        catch
-                        {
-                        }
+                            ISwDmDocument3D doc = null;
 
-                        if (doc != null)
-                        {
-                            foreach (var childDoc in TraverseDependencies(doc, searchOpts))
+                            try
                             {
-                                yield return (ISwDmDocument3D)SwDmApp.Documents.PreCreateFromPath(childDoc.Path);
+                                doc = (ISwDmDocument3D)SwDmApp.Documents.Open(dep, DocumentState_e.ReadOnly);
                             }
+                            catch
+                            {
+                            }
+
+                            if (doc != null)
+                            {
+                                foreach (var childDoc in TraverseDependencies(doc, searchOpts, processed))
+                                {
+                                    yield return (ISwDmDocument3D)SwDmApp.Documents.PreCreateFromPath(childDoc.Path);
+                                }
+                            }
+
+                            doc?.Close();
+
                         }
-
-                        doc?.Close();
-
-                    }
-                    else
-                    {
-                        var doc = (ISwDmDocument3D)SwDmApp.Documents.PreCreateFromPath(dep);
-                        yield return doc;
+                        else
+                        {
+                            var doc = (ISwDmDocument3D)SwDmApp.Documents.PreCreateFromPath(dep);
+                            yield return doc;
+                        }
                     }
                 }
             }
