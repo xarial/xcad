@@ -1,6 +1,7 @@
 ﻿using NUnit.Framework;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -89,6 +90,28 @@ namespace SolidWorksDocMgr.Tests.Integration
             Assert.IsTrue(r1);
             Assert.IsFalse(r2);
             //Assert.IsFalse(r3);
+        }
+
+        [Test]
+        public void DocumentDependenciesTest()
+        {
+            using (var doc = OpenDataDocument(@"Assembly2\TopAssem.SLDASM"))
+            {
+                var assm = m_App.Documents.Active;
+
+                var deps = assm.Dependencies;
+
+                var dir = Path.GetDirectoryName(assm.Path);
+
+                Assert.AreEqual(6, deps.Length);
+                Assert.That(deps.All(d => d.IsCommitted));
+                Assert.That(deps.Any(d => string.Equals(d.Path, Path.Combine(dir, "Part2.SLDPRT"))));
+                Assert.That(deps.Any(d => string.Equals(d.Path, Path.Combine(dir, "Part3.SLDPRT"))));
+                Assert.That(deps.Any(d => string.Equals(d.Path, Path.Combine(dir, "Part4-1 (XYZ).SLDPRT"))));
+                Assert.That(deps.Any(d => string.Equals(d.Path, Path.Combine(dir, "Assem1.SLDASM"))));
+                Assert.That(deps.Any(d => string.Equals(d.Path, Path.Combine(dir, "Assem2.SLDASM"))));
+                Assert.That(deps.Any(d => string.Equals(d.Path, Path.Combine(dir, "Part1.SLDPRT"))));
+            }
         }
     }
 }

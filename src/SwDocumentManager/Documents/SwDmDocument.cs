@@ -9,6 +9,7 @@ using SolidWorks.Interop.swdocumentmgr;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using Xarial.XCad.Annotations;
@@ -188,7 +189,56 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             }
         }
 
-        public IXDocument3D[] Dependencies => throw new NotImplementedException();
+        public IXDocument3D[] Dependencies 
+        {
+            get 
+            {
+                var searchOpts = SwDmApp.SwDocMgr.GetSearchOptionObject();
+                searchOpts.SearchFilters = (int)(
+                    SwDmSearchFilters.SwDmSearchExternalReference 
+                    | SwDmSearchFilters.SwDmSearchRootAssemblyFolder 
+                    | SwDmSearchFilters.SwDmSearchSubfolders 
+                    | SwDmSearchFilters.SwDmSearchInContextReference);
+
+                return TraverseDependencies(this, searchOpts).ToArray();
+            }
+        }
+
+        private IEnumerable<ISwDmDocument3D> TraverseDependencies(ISwDmDocument parent, SwDMSearchOption searchOpts) 
+        {
+            string[] deps;
+
+            if (SwDmApp.IsVersionNewerOrEqual(SwDmVersion_e.Sw2017))
+            {
+                deps = ((ISwDMDocument21)parent.Document).GetAllExternalReferences5(searchOpts, out _, out _, out _, out _) as string[];
+            }
+            else
+            {
+                deps = ((ISwDMDocument21)parent.Document).GetAllExternalReferences4(searchOpts, out _, out _, out _) as string[];
+            }
+
+            if (deps != null)
+            {
+                foreach(var dep in deps)
+                {
+                    if (File.Exists(dep))
+                    {
+                        var doc = (ISwDmDocument3D)SwDmApp.Documents.Open(dep);
+                        yield return doc;
+
+                        foreach (var childDoc in TraverseDependencies(doc, searchOpts)) 
+                        {
+                            yield return childDoc;
+                        }
+                    }
+                    else 
+                    {
+                        var doc = (ISwDmDocument3D)SwDmApp.Documents.PreCreateFromPath(dep);
+                        yield return doc;
+                    }
+                }
+            }
+        }
 
         public bool IsCommitted => m_Creator.IsCreated;
 
