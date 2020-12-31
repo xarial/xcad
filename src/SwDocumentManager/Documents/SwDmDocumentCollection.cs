@@ -5,6 +5,7 @@
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
+using SolidWorks.Interop.swdocumentmgr;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -186,6 +187,27 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             foreach (var doc in m_Documents) 
             {
                 doc.Close();
+            }
+        }
+    }
+
+    public static class ISwDmDocumentCollectionExtension 
+    {
+        public static ISwDmDocument PreCreateFromPath(this ISwDmDocumentCollection docs, string path) 
+        {
+            switch (SwDmDocument.GetDocumentType(path)) 
+            {
+                case SwDmDocumentType.swDmDocumentPart:
+                    return docs.PreCreate<ISwDmPart>();
+
+                case SwDmDocumentType.swDmDocumentAssembly:
+                    return docs.PreCreate<ISwDmAssembly>();
+
+                case SwDmDocumentType.swDmDocumentDrawing:
+                    return docs.PreCreate<ISwDmDrawing>();
+
+                default:
+                    throw new NotSupportedException("Document type is not supported");
             }
         }
     }

@@ -30,9 +30,9 @@ namespace Xarial.XCad.SolidWorks.Documents
     {
         public IConfiguration Configuration => m_Creator.Element;
 
-        private readonly SwDocument3D m_Doc;
+        private readonly new SwDocument3D m_Doc;
 
-        public string Name
+        public virtual string Name
         {
             get
             {
@@ -60,13 +60,13 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         IXPropertyRepository IPropertiesOwner.Properties => Properties;
 
-        public ISwCustomPropertiesCollection Properties => m_PropertiesLazy.Value;
+        public virtual ISwCustomPropertiesCollection Properties => m_PropertiesLazy.Value;
 
         private readonly Lazy<ISwCustomPropertiesCollection> m_PropertiesLazy;
 
         public bool IsCommitted => m_Creator.IsCreated;
 
-        public IXCutListItem[] CutLists
+        public virtual IXCutListItem[] CutLists
         {
             get
             {
@@ -95,7 +95,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public override object Dispatch => Configuration;
 
-        public void Commit(CancellationToken cancellationToken) => m_Creator.Create(cancellationToken);
+        public virtual void Commit(CancellationToken cancellationToken) => m_Creator.Create(cancellationToken);
 
         private IConfiguration Create(CancellationToken cancellationToken) 
         {
@@ -125,5 +125,27 @@ namespace Xarial.XCad.SolidWorks.Documents
                 m_PropertiesLazy.Value.Dispose();
             }
         }
+    }
+
+    internal class SwLdrUnloadedConfiguration : SwConfiguration
+    {
+        public override string Name 
+        {
+            get => m_LdrConfName;
+            set => throw new NotSupportedException("Name of inactive LDR configuration cannot be changed");
+        }
+
+        private string m_LdrConfName;
+
+        internal SwLdrUnloadedConfiguration(SwDocument3D doc, string confName) 
+            : base(doc, null, false)
+        {
+            m_LdrConfName = confName;
+        }
+
+        public override void Commit(CancellationToken cancellationToken) => throw new InactiveLdrConfgurationNotSupportedException();
+        public override IXCutListItem[] CutLists => throw new InactiveLdrConfgurationNotSupportedException();
+        public override object Dispatch => throw new InactiveLdrConfgurationNotSupportedException();
+        public override ISwCustomPropertiesCollection Properties => throw new InactiveLdrConfgurationNotSupportedException();
     }
 }

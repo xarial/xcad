@@ -35,8 +35,40 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
     internal abstract class SwDmDocument : SwDmObject, ISwDmDocument
     {
+        internal static SwDmDocumentType GetDocumentType(string path)
+        {
+            SwDmDocumentType docType;
+
+            if (!string.IsNullOrEmpty(path))
+            {
+                switch (System.IO.Path.GetExtension(path).ToLower())
+                {
+                    case ".sldprt":
+                        docType = SwDmDocumentType.swDmDocumentPart;
+                        break;
+
+                    case ".sldasm":
+                        docType = SwDmDocumentType.swDmDocumentAssembly;
+                        break;
+
+                    case ".slddrw":
+                        docType = SwDmDocumentType.swDmDocumentDrawing;
+                        break;
+
+                    default:
+                        throw new NotSupportedException("Only native SOLIDWORKS files can be opened");
+                }
+            }
+            else
+            {
+                throw new NotSupportedException("Cannot extract document type when path is not specified");
+            }
+
+            return docType;
+        }
+
         #region Not Supported
-        
+
         public string Template { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
         public IXFeatureRepository Features => throw new NotImplementedException();
         public IXSelectionRepository Selections => throw new NotSupportedException();
@@ -210,39 +242,11 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             }
         }
 
-        protected SwDmDocumentType DocumentType 
-        {
-            get 
-            {
-                SwDmDocumentType docType;
-
-                switch (System.IO.Path.GetExtension(Path).ToLower())
-                {
-                    case ".sldprt":
-                        docType = SwDmDocumentType.swDmDocumentPart;
-                        break;
-
-                    case ".sldasm":
-                        docType = SwDmDocumentType.swDmDocumentAssembly;
-                        break;
-
-                    case ".slddrw":
-                        docType = SwDmDocumentType.swDmDocumentDrawing;
-                        break;
-
-                    default:
-                        throw new NotSupportedException("Only native SOLIDWORKS files can be opened");
-                }
-
-                return docType;
-            }
-        }
-
         private ISwDMDocument OpenDocument(CancellationToken cancellationToken) 
         {
             m_IsReadOnly = State.HasFlag(DocumentState_e.ReadOnly);
 
-            var doc = SwDmApp.SwDocMgr.GetDocument(Path, DocumentType, 
+            var doc = SwDmApp.SwDocMgr.GetDocument(Path, GetDocumentType(Path), 
                 m_IsReadOnly.Value, out SwDmDocumentOpenError err);
 
             if (doc != null)
@@ -408,7 +412,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                 throw new Exception("Model is not yet created, cannot get specific document");
             }
 
-            switch (DocumentType)
+            switch (GetDocumentType(Path))
             {
                 case SwDmDocumentType.swDmDocumentPart:
                     m_SpecificDoc = new SwDmPart(SwDmApp, model, true, m_CreateHandler, m_CloseHandler);
