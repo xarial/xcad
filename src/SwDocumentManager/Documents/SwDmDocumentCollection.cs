@@ -195,20 +195,28 @@ namespace Xarial.XCad.SwDocumentManager.Documents
     {
         public static ISwDmDocument PreCreateFromPath(this ISwDmDocumentCollection docs, string path) 
         {
+            ISwDmDocument doc;
+
             switch (SwDmDocument.GetDocumentType(path)) 
             {
                 case SwDmDocumentType.swDmDocumentPart:
-                    return docs.PreCreate<ISwDmPart>();
+                    doc = docs.PreCreate<ISwDmPart>();
+                    break;
 
                 case SwDmDocumentType.swDmDocumentAssembly:
-                    return docs.PreCreate<ISwDmAssembly>();
+                    doc = docs.PreCreate<ISwDmAssembly>();
+                    break;
 
                 case SwDmDocumentType.swDmDocumentDrawing:
-                    return docs.PreCreate<ISwDmDrawing>();
+                    doc = docs.PreCreate<ISwDmDrawing>();
+                    break;
 
                 default:
                     throw new NotSupportedException("Document type is not supported");
             }
+
+            doc.Path = path;
+            return doc;
         }
     }
 }
