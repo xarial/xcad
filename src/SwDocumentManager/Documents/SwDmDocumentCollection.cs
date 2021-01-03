@@ -98,7 +98,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             throw new NotImplementedException();
         }
 
-        public void RegisterHandler<THandler>() where THandler : IDocumentHandler, new()
+        public void RegisterHandler<THandler>(Func<THandler> handlerFact) where THandler : IDocumentHandler
         {
             throw new NotImplementedException();
         }

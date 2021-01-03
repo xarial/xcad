@@ -260,9 +260,10 @@ namespace Xarial.XCad.SolidWorks.Documents
             doc.Dispose();
         }
 
-        public void RegisterHandler<THandler>() where THandler : IDocumentHandler, new()
+        public void RegisterHandler<THandler>(Func<THandler> handlerFact) 
+            where THandler : IDocumentHandler
         {
-            m_DocsHandler.RegisterHandler<THandler>();
+            m_DocsHandler.RegisterHandler<THandler>(handlerFact);
         }
 
         public THandler GetHandler<THandler>(IXDocument doc) where THandler : IDocumentHandler, new()

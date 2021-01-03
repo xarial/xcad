@@ -26,7 +26,23 @@ namespace Xarial.XCad.SolidWorks
             => (SwSelObject)SwSelObject.FromDispatch(disp, doc, o => new SwSelObject(o, doc));
         
         public virtual bool IsCommitted => true;
-        
+
+        public bool IsSelected
+        {
+            get 
+            {
+                for (int i = 1; i < ModelDoc.ISelectionManager.GetSelectedObjectCount2(-1) + 1; i++)
+                {
+                    if (ModelDoc.ISelectionManager.GetSelectedObject6(i, -1) == Dispatch) 
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+        }
+
         internal SwSelObject(object disp) : this(disp, null)
         {
         }
