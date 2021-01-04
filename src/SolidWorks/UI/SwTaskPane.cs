@@ -19,6 +19,8 @@ using Xarial.XCad.UI;
 using Xarial.XCad.UI.TaskPane;
 using Xarial.XCad.UI.TaskPane.Delegates;
 using Xarial.XCad.Toolkit;
+using Xarial.XCad.SolidWorks.UI.Toolkit;
+using Xarial.XCad.Base;
 
 namespace Xarial.XCad.SolidWorks.UI
 {
@@ -29,7 +31,7 @@ namespace Xarial.XCad.SolidWorks.UI
 
     internal class SwTaskPane<TControl> : ISwTaskPane<TControl>
     {
-        const int S_OK = 0;
+        private const int S_OK = 0;
 
         public event TaskPaneButtonClickDelegate ButtonClick;
         public event ControlCreatedDelegate<TControl> ControlCreated;
@@ -59,89 +61,40 @@ namespace Xarial.XCad.SolidWorks.UI
 
         private WpfControlKeystrokePropagator m_KeystrokePropagator;
 
-        private readonly IServiceProvider m_SvcProvider;
+        private readonly TaskPaneTabCreator<TControl> m_Creator;
+        private readonly IXLogger m_Logger;
 
-        internal SwTaskPane(ISldWorks app, ITaskpaneView taskPaneView, TControl ctrl, TaskPaneSpec spec, IServiceProvider svcProvider)
+        internal SwTaskPane(TaskPaneTabCreator<TControl> creator, IXLogger logger)
         {
+            m_Creator = creator;
+
+            TControl ctrl;
+            TaskPaneView = m_Creator.CreateControl(typeof(TControl), out ctrl);
             Control = ctrl;
 
-            m_SvcProvider = svcProvider;
+            m_Logger = logger;
 
             if (ctrl is FrameworkElement)
             {
                 m_KeystrokePropagator = new WpfControlKeystrokePropagator(ctrl as FrameworkElement);
             }
 
-            TaskPaneView = taskPaneView;
-            m_Spec = spec;
+            m_Spec = m_Creator.Spec;
 
             (TaskPaneView as TaskpaneView).TaskPaneDestroyNotify += OnTaskPaneDestroyNotify;
 
-            LoadButtons(app);
-
+            if (m_Spec.Buttons?.Any() == true)
+            {
+                (TaskPaneView as TaskpaneView).TaskPaneToolbarButtonClicked += OnTaskPaneToolbarButtonClicked;
+            }
+            
             m_IsDisposed = false;
             ControlCreated?.Invoke(Control);
         }
 
-        private void LoadButtons(ISldWorks app) 
-        {
-            if (m_Spec.Buttons?.Any() == true) 
-            {
-                using (var iconsConv = m_SvcProvider.GetService<IIconsCreator>())
-                {
-                    foreach (var btn in m_Spec.Buttons)
-                    {
-                        var tooltip = btn.Tooltip;
-
-                        if (string.IsNullOrEmpty(tooltip)) 
-                        {
-                            tooltip = btn.Title;
-                        }
-
-                        if (btn.StandardIcon.HasValue)
-                        {
-                            if (!TaskPaneView.AddStandardButton((int)btn.StandardIcon, tooltip))
-                            {
-                                throw new InvalidOperationException($"Failed to add standard button for '{tooltip}'");
-                            }
-                        }
-                        else
-                        {
-                            var icon = btn.Icon;
-
-                            if (icon == null) 
-                            {
-                                icon = Defaults.Icon;
-                            }
-
-                            //NOTE: unlike task pane icon, command icons must have the same transparency key as command manager commands
-                            if (app.SupportsHighResIcons(CompatibilityUtils.HighResIconsScope_e.TaskPane))
-                            {
-                                var imageList = iconsConv.ConvertIcon(new CommandGroupHighResIcon(icon));
-                                if (!TaskPaneView.AddCustomButton2(imageList, tooltip))
-                                {
-                                    throw new InvalidOperationException($"Failed to create task pane button for '{tooltip}' with highres icon");
-                                }
-                            }
-                            else
-                            {
-                                var imagePath = iconsConv.ConvertIcon(new CommandGroupIcon(icon)).First();
-                                if (!TaskPaneView.AddCustomButton(imagePath, tooltip))
-                                {
-                                    throw new InvalidOperationException($"Failed to create task pane button for {tooltip}");
-                                }
-                            }
-                        }
-                    }
-                }
-
-                (TaskPaneView as TaskpaneView).TaskPaneToolbarButtonClicked += OnTaskPaneToolbarButtonClicked;
-            }
-        }
-
         private int OnTaskPaneToolbarButtonClicked(int buttonIndex)
         {
-            //m_Logger.Log($"Task pane button clicked: {buttonIndex}");
+            m_Logger.Log($"Task pane button clicked: {buttonIndex}");
 
             if (m_Spec.Buttons?.Length > buttonIndex)
             {
@@ -149,7 +102,7 @@ namespace Xarial.XCad.SolidWorks.UI
             }
             else
             {
-                //m_Logger.Log($"Invalid task pane button id is clicked: {buttonIndex}");
+                m_Logger.Log($"Invalid task pane button id is clicked: {buttonIndex}");
                 Debug.Assert(false, "Invalid command id");
             }
 
@@ -158,7 +111,7 @@ namespace Xarial.XCad.SolidWorks.UI
 
         private int OnTaskPaneDestroyNotify()
         {
-            //m_Logger.Log("Destroying task pane");
+            m_Logger.Log("Destroying task pane");
 
             Dispose();
             return S_OK;
@@ -180,14 +133,19 @@ namespace Xarial.XCad.SolidWorks.UI
                 (TaskPaneView as TaskpaneView).TaskPaneDestroyNotify -= OnTaskPaneDestroyNotify;
                 (TaskPaneView as TaskpaneView).TaskPaneToolbarButtonClicked -= OnTaskPaneToolbarButtonClicked;
 
-                if (Control is IDisposable)
+                try
                 {
-                    (Control as IDisposable).Dispose();
+                    if (Control is IDisposable)
+                    {
+                        (Control as IDisposable).Dispose();
+                    }
                 }
-
-                if (!TaskPaneView.DeleteView())
+                finally 
                 {
-                    throw new InvalidOperationException("Failed to remove TaskPane");
+                    if (!TaskPaneView.DeleteView())
+                    {
+                        throw new InvalidOperationException("Failed to remove TaskPane");
+                    }
                 }
             }
         }

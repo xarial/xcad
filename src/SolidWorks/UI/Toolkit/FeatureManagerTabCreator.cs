@@ -48,7 +48,7 @@ namespace Xarial.XCad.SolidWorks.UI.Toolkit
             }
         }
 
-        protected override IFeatMgrView HostNetControl(Control winCtrlHost,
+        protected override IFeatMgrView HostNetControl(Control winCtrlHost, TControl ctrl,
             string title, IXImage image)
         {
             using (var iconsConv = m_SvcProvider.GetService<IIconsCreator>())

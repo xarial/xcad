@@ -20,12 +20,28 @@ namespace Xarial.XCad.SolidWorks.UI
 {
     public interface ISwModelViewTab<TControl> : IXCustomPanel<TControl>, IDisposable 
     {
+        string TabName { get; }
     }
 
     internal class SwModelViewTab<TControl> : DocumentAttachedCustomPanel<TControl>, ISwModelViewTab<TControl>
     {
         private readonly ModelViewTabCreator<TControl> m_CtrlCreator;
         private readonly ModelViewManager m_ModelViewMgr;
+
+        public string TabName 
+        {
+            get 
+            {
+                if (IsControlCreated)
+                {
+                    return m_CurTabTitle;
+                }
+                else 
+                {
+                    throw new CustomPanelControlNotCreatedException();
+                }
+            }
+        }
 
         private string m_CurTabTitle;
 

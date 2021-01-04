@@ -42,7 +42,7 @@ namespace Xarial.XCad.SolidWorks.UI.Toolkit
             }
         }
 
-        protected override string HostNetControl(Control winCtrlHost,
+        protected override string HostNetControl(Control winCtrlHost, TControl ctrl,
             string title, IXImage image)
         {
             using (var iconsConv = m_SvcProvider.GetService<IIconsCreator>())
