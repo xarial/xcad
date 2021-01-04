@@ -28,8 +28,8 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         #endregion
 
         public SwDmPart(ISwDmApplication dmApp, ISwDMDocument doc, bool isCreated,
-            Action<ISwDmDocument> createHandler, Action<ISwDmDocument> closeHandler)
-            : base(dmApp, doc, isCreated, createHandler, closeHandler)
+            Action<ISwDmDocument> createHandler, Action<ISwDmDocument> closeHandler, bool? isReadOnly = null)
+            : base(dmApp, doc, isCreated, createHandler, closeHandler, isReadOnly)
         {
         }
 

@@ -5,6 +5,8 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Serialization;
+using Xarial.XCad.Data.Enums;
 using Xarial.XCad.Documents;
 using Xarial.XCad.SwDocumentManager;
 using Xarial.XCad.SwDocumentManager.Documents;
@@ -112,6 +114,150 @@ namespace SolidWorksDocMgr.Tests.Integration
                 Assert.That(deps.Any(d => string.Equals(d.Path, Path.Combine(dir, "Assem2.SLDASM"))));
                 Assert.That(deps.Any(d => string.Equals(d.Path, Path.Combine(dir, "Part1.SLDPRT"))));
             }
+        }
+
+        public class TestData
+        {
+            public string Text { get; set; }
+            public int Number { get; set; }
+        }
+
+        [Test]
+        public void ThirdPartyStreamTest()
+        {
+            const string STREAM_NAME = "_xCadIntegrationTestStream_";
+
+            var tempFile = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString() + ".sldprt");
+
+            File.Copy(GetFilePath("EmptyPart1.sldprt"), tempFile);
+
+            using (var doc = OpenDataDocument(tempFile, false))
+            {
+                var part = m_App.Documents.Active;
+
+                part.StreamWriteAvailable += (d) =>
+                {
+                    using (var stream = d.OpenStream(STREAM_NAME, AccessType_e.Write))
+                    {
+                        var xmlSer = new XmlSerializer(typeof(TestData));
+
+                        var data = new TestData()
+                        {
+                            Text = "Test1",
+                            Number = 15
+                        };
+
+                        xmlSer.Serialize(stream, data);
+                    }
+                };
+
+                part.Save();
+            }
+
+            TestData result = null;
+
+            using (var doc = OpenDataDocument(tempFile))
+            {
+                var part = m_App.Documents.Active;
+
+                using (var stream = part.OpenStream(STREAM_NAME, AccessType_e.Read))
+                {
+                    var xmlSer = new XmlSerializer(typeof(TestData));
+                    result = xmlSer.Deserialize(stream) as TestData;
+                }
+            }
+
+            File.Delete(tempFile);
+
+            Assert.IsNotNull(result);
+            Assert.AreEqual("Test1", result.Text);
+            Assert.AreEqual(15, result.Number);
+        }
+
+        [Test]
+        public void ThirdPartyStorageTest()
+        {
+            const string SUB_STORAGE_PATH = "_xCadIntegrationTestStorage1_\\SubStorage2";
+            const string STREAM1_NAME = "_xCadIntegrationStream1_";
+            const string STREAM2_NAME = "_xCadIntegrationStream2_";
+
+            var tempFile = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString() + ".sldprt");
+
+            File.Copy(GetFilePath("EmptyPart1.sldprt"), tempFile);
+
+            using (var doc = OpenDataDocument(tempFile, false))
+            {
+                var part = m_App.Documents.Active;
+
+                part.StorageWriteAvailable += (d) =>
+                {
+                    var path = SUB_STORAGE_PATH.Split('\\');
+
+                    using (var storage = part.OpenStorage(path[0], AccessType_e.Write))
+                    {
+                        using (var subStorage = storage.TryOpenStorage(path[1], true))
+                        {
+                            using (var str = subStorage.TryOpenStream(STREAM1_NAME, true))
+                            {
+                                var buffer = Encoding.UTF8.GetBytes("Test2");
+                                str.Write(buffer, 0, buffer.Length);
+                            }
+
+                            using (var str = subStorage.TryOpenStream(STREAM2_NAME, true))
+                            {
+                                using (var binWriter = new BinaryWriter(str))
+                                {
+                                    binWriter.Write(25);
+                                }
+                            }
+                        }
+                    }
+                };
+
+                part.Save();
+            }
+
+            var subStreamsCount = 0;
+            var txt = "";
+            var number = 0;
+
+            using (var doc = OpenDataDocument(tempFile))
+            {
+                var part = m_App.Documents.Active;
+
+                var path = SUB_STORAGE_PATH.Split('\\');
+
+                using (var storage = part.TryOpenStorage(path[0], AccessType_e.Read))
+                {
+                    using (var subStorage = storage.TryOpenStorage(path[1], false))
+                    {
+                        subStreamsCount = subStorage.GetSubStreamNames().Length;
+
+                        using (var str = subStorage.TryOpenStream(STREAM1_NAME, false))
+                        {
+                            var buffer = new byte[str.Length];
+
+                            str.Read(buffer, 0, buffer.Length);
+
+                            txt = Encoding.UTF8.GetString(buffer);
+                        }
+
+                        using (var str = subStorage.TryOpenStream(STREAM2_NAME, false))
+                        {
+                            using (var binReader = new BinaryReader(str))
+                            {
+                                number = binReader.ReadInt32();
+                            }
+                        }
+                    }
+                }
+            }
+
+            File.Delete(tempFile);
+
+            Assert.AreEqual(2, subStreamsCount);
+            Assert.AreEqual("Test2", txt);
+            Assert.AreEqual(25, number);
         }
     }
 }

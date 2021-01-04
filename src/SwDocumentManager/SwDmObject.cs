@@ -65,6 +65,9 @@ namespace Xarial.XCad.SwDocumentManager
                 case ISwDMCutListItem2 cutList:
                     return new SwDmCutListItem(cutList);
 
+                case ISwDMComponent comp:
+                    return new SwDmComponent((SwDmAssembly)doc, comp);
+
                 default:
                     return new SwDmObject(disp);
             }

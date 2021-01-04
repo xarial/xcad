@@ -98,5 +98,28 @@ namespace SolidWorksDocMgr.Tests.Integration
             Assert.AreEqual(1, count);
             Assert.AreEqual("Conf3", name);
         }
+
+        [Test]
+        public void PartNumberTest()
+        {
+            string p1;
+            string p2;
+            string p3;
+            string p4;
+
+            using (var doc = OpenDataDocument("PartNumber1.SLDPRT"))
+            {
+                var confs = (m_App.Documents.Active as ISwDmDocument3D).Configurations;
+                p1 = confs["Default"].PartNumber;
+                p2 = confs["Conf1"].PartNumber;
+                p3 = confs["Conf4"].PartNumber;
+                p4 = confs["Conf5"].PartNumber;
+            }
+
+            Assert.AreEqual("PartNumber1", System.IO.Path.GetFileNameWithoutExtension(p1));
+            Assert.AreEqual("Conf1", p2);
+            Assert.AreEqual("Conf3", p3);
+            Assert.AreEqual("ABC", p4);
+        }
     }
 }

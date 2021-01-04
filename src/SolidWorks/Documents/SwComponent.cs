@@ -141,6 +141,16 @@ namespace Xarial.XCad.SolidWorks.Documents
                     state |= ComponentState_e.ViewOnly;
                 }
 
+                if (Component.IsHidden(false)) 
+                {
+                    state |= ComponentState_e.Hidden;
+                }
+
+                if (Component.ExcludeFromBOM) 
+                {
+                    state |= ComponentState_e.ExcludedFromBom;
+                }
+
                 return state;
             } 
         }

@@ -22,6 +22,7 @@ using Xarial.XCad.Documents.Exceptions;
 using Xarial.XCad.Documents.Structures;
 using Xarial.XCad.Features;
 using Xarial.XCad.Services;
+using Xarial.XCad.SolidWorks.Data;
 using Xarial.XCad.SwDocumentManager.Data;
 using Xarial.XCad.Toolkit.Data;
 
@@ -287,9 +288,12 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         private readonly Lazy<ISwDmCustomPropertiesCollection> m_Properties;
 
         internal SwDmDocument(ISwDmApplication dmApp, ISwDMDocument doc, bool isCreated, 
-            Action<ISwDmDocument> createHandler, Action<ISwDmDocument> closeHandler) : base(doc)
+            Action<ISwDmDocument> createHandler, Action<ISwDmDocument> closeHandler,
+            bool? isReadOnly = null) : base(doc)
         {
             SwDmApp = dmApp;
+
+            m_IsReadOnly = isReadOnly;
 
             m_CreateHandler = createHandler;
             m_CloseHandler = closeHandler;
@@ -387,12 +391,26 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         public IStorage OpenStorage(string name, AccessType_e access)
         {
-            throw new NotImplementedException();
+            if (SwDmApp.IsVersionNewerOrEqual(SwDmVersion_e.Sw2015)) 
+            {
+                return new SwDm3rdPartyStorage((ISwDMDocument19)Document, name, access);
+            }
+            else 
+            {
+                throw new NotSupportedException("This API is only available in SOLIDWORKS 2015 or newer");
+            }
         }
 
         public Stream OpenStream(string name, AccessType_e access)
         {
-            throw new NotImplementedException();
+            if (SwDmApp.IsVersionNewerOrEqual(SwDmVersion_e.Sw2015))
+            {
+                return new SwDm3rdPartyStream((ISwDMDocument19)Document, name, access);
+            }
+            else
+            {
+                throw new NotSupportedException("This API is only available in SOLIDWORKS 2015 or newer");
+            }
         }
 
         public void Save()
@@ -420,7 +438,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         public void SaveAs(string filePath)
         {
             var saveArgs = new DocumentSaveArgs();
-            saveArgs.FileName = Path;
+            saveArgs.FileName = filePath;
 
             Saving?.Invoke(this, DocumentSaveType_e.SaveAs, saveArgs);
 
@@ -459,12 +477,16 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
     internal class SwDmUnknownDocument : SwDmDocument, IXUnknownDocument
     {
-        private IXDocument m_SpecificDoc;
+        private SwDmDocument m_SpecificDoc;
 
         public SwDmUnknownDocument(ISwDmApplication dmApp, SwDMDocument doc, bool isCreated,
-            Action<ISwDmDocument> createHandler, Action<ISwDmDocument> closeHandler) 
-            : base(dmApp, doc, isCreated, createHandler, closeHandler)
+            Action<ISwDmDocument> createHandler, Action<ISwDmDocument> closeHandler, bool? isReadOnly = null) 
+            : base(dmApp, doc, isCreated, createHandler, closeHandler, isReadOnly)
         {
+            if (isCreated)
+            {
+                m_CreateHandler.Invoke((ISwDmDocument)GetSpecific());
+            }
         }
 
         public override void Commit(CancellationToken cancellationToken)
@@ -487,18 +509,20 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                 throw new Exception("Model is not yet created, cannot get specific document");
             }
 
+            var isReadOnly = State.HasFlag(DocumentState_e.ReadOnly);
+
             switch (GetDocumentType(Path))
             {
                 case SwDmDocumentType.swDmDocumentPart:
-                    m_SpecificDoc = new SwDmPart(SwDmApp, model, true, m_CreateHandler, m_CloseHandler);
+                    m_SpecificDoc = new SwDmPart(SwDmApp, model, true, m_CreateHandler, m_CloseHandler, isReadOnly);
                     break;
 
                 case SwDmDocumentType.swDmDocumentAssembly:
-                    m_SpecificDoc = new SwDmAssembly(SwDmApp, model, true, m_CreateHandler, m_CloseHandler);
+                    m_SpecificDoc = new SwDmAssembly(SwDmApp, model, true, m_CreateHandler, m_CloseHandler, isReadOnly);
                     break;
 
                 case SwDmDocumentType.swDmDocumentDrawing:
-                    m_SpecificDoc = new SwDmDrawing(SwDmApp, model, true, m_CreateHandler, m_CloseHandler);
+                    m_SpecificDoc = new SwDmDrawing(SwDmApp, model, true, m_CreateHandler, m_CloseHandler, isReadOnly);
                     break;
 
                 default:

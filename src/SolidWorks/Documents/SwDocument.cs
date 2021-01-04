@@ -919,14 +919,10 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
 
         public Stream OpenStream(string name, AccessType_e access)
-        {
-            return new Sw3rdPartyStream(Model, name, access);
-        }
+            => new Sw3rdPartyStream(Model, name, access);
 
         public IStorage OpenStorage(string name, AccessType_e access)
-        {
-            return new Sw3rdPartyStorage(Model, name, access);
-        }
+            => new Sw3rdPartyStorage(Model, name, access);
 
         public virtual void Commit(CancellationToken cancellationToken)
         {
