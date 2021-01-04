@@ -22,6 +22,7 @@ using Xarial.XCad.Documents.Exceptions;
 using Xarial.XCad.Documents.Structures;
 using Xarial.XCad.Features;
 using Xarial.XCad.Services;
+using Xarial.XCad.SolidWorks.Data;
 using Xarial.XCad.SwDocumentManager.Data;
 using Xarial.XCad.Toolkit.Data;
 
@@ -387,12 +388,26 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         public IStorage OpenStorage(string name, AccessType_e access)
         {
-            throw new NotImplementedException();
+            if (SwDmApp.IsVersionNewerOrEqual(SwDmVersion_e.Sw2015)) 
+            {
+                return new SwDm3rdPartyStorage((ISwDMDocument19)Document, name, access);
+            }
+            else 
+            {
+                throw new NotSupportedException("This API is only available in SOLIDWORKS 2015 or newer");
+            }
         }
 
         public Stream OpenStream(string name, AccessType_e access)
         {
-            throw new NotImplementedException();
+            if (SwDmApp.IsVersionNewerOrEqual(SwDmVersion_e.Sw2015))
+            {
+                return new SwDm3rdPartyStream((ISwDMDocument19)Document, name, access);
+            }
+            else
+            {
+                throw new NotSupportedException("This API is only available in SOLIDWORKS 2015 or newer");
+            }
         }
 
         public void Save()
@@ -420,7 +435,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         public void SaveAs(string filePath)
         {
             var saveArgs = new DocumentSaveArgs();
-            saveArgs.FileName = Path;
+            saveArgs.FileName = filePath;
 
             Saving?.Invoke(this, DocumentSaveType_e.SaveAs, saveArgs);
 
