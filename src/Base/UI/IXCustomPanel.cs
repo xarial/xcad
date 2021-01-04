@@ -11,10 +11,25 @@ using System.Text;
 
 namespace Xarial.XCad.UI
 {
+    /// <summary>
+    /// Represents the panel with custom User Control
+    /// </summary>
+    /// <typeparam name="TControl">Type of user control</typeparam>
     public interface IXCustomPanel<TControl>
     {
+        /// <summary>
+        /// Checks if this panel is active
+        /// </summary>
         bool IsActive { get; set; }
+
+        /// <summary>
+        /// Returns the specific User Control of this panel
+        /// </summary>
         TControl Control { get; }
+        
+        /// <summary>
+        /// Closes current panel
+        /// </summary>
         void Close();
     }
 }

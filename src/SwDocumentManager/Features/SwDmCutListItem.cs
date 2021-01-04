@@ -28,7 +28,7 @@ namespace Xarial.XCad.SwDocumentManager.Features
         ISwDMCutListItem2 CutListItem { get; }
     }
 
-    internal class SwDmCutListItem : SwDmObject, ISwDmCutListItem
+    internal class SwDmCutListItem : SwDmSelObject, ISwDmCutListItem
     {
         #region Not Supported
         
@@ -39,9 +39,6 @@ namespace Xarial.XCad.SwDocumentManager.Features
             get => throw new NotSupportedException();
             set => throw new NotSupportedException();
         }
-
-        public void Commit(CancellationToken cancellationToken) => throw new NotSupportedException();
-        public void Select(bool append) => throw new NotSupportedException();
 
         #endregion
 
@@ -79,8 +76,6 @@ namespace Xarial.XCad.SwDocumentManager.Features
             set => CutListItem.Name = value; 
         }
 
-        public bool IsCommitted => true;
-                
         public ISwDmCustomPropertiesCollection Properties => m_Properties.Value;
     }
 }

@@ -70,8 +70,16 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
             else 
             {
-                ent = null;
-                return false;
+                if (m_Doc.Model.IsOpenedViewOnly())
+                {
+                    ent = new SwLdrUnloadedConfiguration(m_Doc, name);
+                    return true;
+                }
+                else
+                {
+                    ent = null;
+                    return false;
+                }
             }
         }
 
@@ -142,7 +150,30 @@ namespace Xarial.XCad.SolidWorks.Documents
     internal class SwConfigurationEnumerator : IEnumerator<IXConfiguration>
     {
         public IXConfiguration Current
-            => SwObject.FromDispatch<SwConfiguration>((IConfiguration) m_Doc.Model.GetConfigurationByName(m_ConfNames[m_CurConfIndex]), m_Doc);
+        {
+            get 
+            {
+                var confName = m_ConfNames[m_CurConfIndex];
+
+                var conf = (IConfiguration)m_Doc.Model.GetConfigurationByName(confName);
+
+                if (conf == null)
+                {
+                    if (m_Doc.Model.IsOpenedViewOnly())
+                    {
+                        return new SwLdrUnloadedConfiguration(m_Doc, confName);
+                    }
+                    else
+                    {
+                        throw new Exception("Failed to get the configuration by name");
+                    }
+                }
+                else 
+                {
+                    return SwObject.FromDispatch<SwConfiguration>(conf, m_Doc);
+                }
+            }
+        }
 
         object IEnumerator.Current => Current;
 

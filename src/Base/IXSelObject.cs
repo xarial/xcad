@@ -15,6 +15,11 @@ namespace Xarial.XCad
     public interface IXSelObject : IXObject, IXTransaction
     {
         /// <summary>
+        /// Identifies if this object is currently selected
+        /// </summary>
+        bool IsSelected { get; }
+
+        /// <summary>
         /// Selects object in the document
         /// </summary>
         /// <param name="append">True to add selection to the current list, false to clear existing selection</param>

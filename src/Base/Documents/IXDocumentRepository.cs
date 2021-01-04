@@ -5,6 +5,7 @@
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
+using System;
 using System.Collections.Generic;
 using Xarial.XCad.Base;
 using Xarial.XCad.Documents.Delegates;
@@ -36,8 +37,10 @@ namespace Xarial.XCad.Documents
         /// <summary>
         /// Registers document handler
         /// </summary>
+        /// <param name="handlerFact">Handler factory</param>
         /// <typeparam name="THandler"></typeparam>
-        void RegisterHandler<THandler>() where THandler : IDocumentHandler, new();
+        void RegisterHandler<THandler>(Func<THandler> handlerFact)
+            where THandler : IDocumentHandler;
 
         /// <summary>
         /// Returns the handler for this document

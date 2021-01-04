@@ -145,20 +145,15 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
                     return PageCloseReasons_e.Unknown;
             }
         }
-        
+
         private void OnClosed(swPropertyManagerPageCloseReasons_e reason)
-        {
-            Closed?.Invoke(ConvertReason(reason));
-        }
+            => Closed?.Invoke(ConvertReason(reason));
 
         private void OnClosing(swPropertyManagerPageCloseReasons_e reason, PageClosingArg arg)
-        {
-            Closing?.Invoke(ConvertReason(reason), arg);
-        }
+            => Closing?.Invoke(ConvertReason(reason), arg);
 
-        private void OnDataChanged()
-        {
-            DataChanged?.Invoke();
-        }
+        private void OnDataChanged() => DataChanged?.Invoke();
+
+        public void Close(bool cancel) => m_Page.Page.Close(!cancel);
     }
 }

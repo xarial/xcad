@@ -8,6 +8,7 @@ using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Exceptions;
 using Xarial.XCad.SolidWorks.Documents;
+using Xarial.XCad.SolidWorks.Documents.Exceptions;
 
 namespace SolidWorks.Tests.Integration
 {
@@ -153,6 +154,43 @@ namespace SolidWorks.Tests.Integration
             Assert.IsTrue(r1);
             Assert.IsFalse(r2);
             Assert.IsNotNull(e1);
+        }
+
+        [Test]
+        public void LdrConfsTest()
+        {
+            string[] confNames;
+            bool r1;
+            bool r2;
+            bool r3;
+            bool[] r;
+
+            using (var doc = OpenDataDocument(@"LdrAssembly1\TopAssem.SLDASM", true, s => { s.ViewOnly = true; }))
+            {
+                var confs = (m_App.Documents.Active as ISwDocument3D).Configurations;
+                confNames = confs.Select(x => x.Name).ToArray();
+                r = confs.Select(x => x.IsCommitted).ToArray();
+                r1 = confs["Default"].IsCommitted;
+                r2 = confs["Conf1"].IsCommitted;
+                r3 = confs["Conf2"].IsCommitted;
+                Assert.Throws<InactiveLdrConfgurationNotSupportedException>(() => { var p1 = confs["Conf1"].Properties; });
+                var p2 = confs["Default"].Properties;
+                var p3 = confs.First().Properties;
+            }
+
+            Assert.That(confNames.SequenceEqual(new string[]
+            {
+                "Default", "Conf1", "Conf2"
+            }));
+
+            Assert.That(r.SequenceEqual(new bool[]
+            {
+                true, false, false
+            }));
+
+            Assert.IsTrue(r1);
+            Assert.IsFalse(r2);
+            Assert.IsFalse(r3);
         }
     }
 }

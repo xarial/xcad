@@ -1,11 +1,13 @@
 ﻿using NUnit.Framework;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Xarial.XCad.Documents;
 using Xarial.XCad.SwDocumentManager;
+using Xarial.XCad.SwDocumentManager.Documents;
 
 namespace SolidWorksDocMgr.Tests.Integration
 {
@@ -67,6 +69,49 @@ namespace SolidWorksDocMgr.Tests.Integration
             Assert.IsTrue(activeIsDoc21);
             Assert.AreEqual(0, c5);
             Assert.IsTrue(activeIsNull1);
+        }
+
+        [Test]
+        public void IsAliveTest() 
+        {
+            bool r1;
+            bool r2;
+            //bool r3;
+            
+            var doc1 = m_App.Documents.Open(GetFilePath("Part_2020.sldprt"), Xarial.XCad.Documents.Enums.DocumentState_e.ReadOnly);
+            r1 = doc1.IsAlive;
+            doc1.Close();
+            r2 = doc1.IsAlive;
+
+            //doc1 = m_App.Documents.Open(GetFilePath("Part_2020.sldprt"), Xarial.XCad.Documents.Enums.DocumentState_e.ReadOnly);
+            //((ISwDmDocument)doc1).Document.CloseDoc();
+            //r3 = doc1.IsAlive;
+
+            Assert.IsTrue(r1);
+            Assert.IsFalse(r2);
+            //Assert.IsFalse(r3);
+        }
+
+        [Test]
+        public void DocumentDependenciesTest()
+        {
+            using (var doc = OpenDataDocument(@"Assembly2\TopAssem.SLDASM"))
+            {
+                var assm = m_App.Documents.Active;
+
+                var deps = assm.Dependencies;
+
+                var dir = Path.GetDirectoryName(assm.Path);
+
+                Assert.AreEqual(6, deps.Length);
+                Assert.That(deps.All(d => !d.IsCommitted));
+                Assert.That(deps.Any(d => string.Equals(d.Path, Path.Combine(dir, "Part2.SLDPRT"))));
+                Assert.That(deps.Any(d => string.Equals(d.Path, Path.Combine(dir, "Part3.SLDPRT"))));
+                Assert.That(deps.Any(d => string.Equals(d.Path, Path.Combine(dir, "Part4-1 (XYZ).SLDPRT"))));
+                Assert.That(deps.Any(d => string.Equals(d.Path, Path.Combine(dir, "Assem1.SLDASM"))));
+                Assert.That(deps.Any(d => string.Equals(d.Path, Path.Combine(dir, "Assem2.SLDASM"))));
+                Assert.That(deps.Any(d => string.Equals(d.Path, Path.Combine(dir, "Part1.SLDPRT"))));
+            }
         }
     }
 }

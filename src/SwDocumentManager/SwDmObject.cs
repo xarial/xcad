@@ -27,9 +27,9 @@ namespace Xarial.XCad.SwDocumentManager
             Dispatch = disp;
         }
 
-        public object Dispatch { get; }
+        public virtual object Dispatch { get; }
 
-        public bool IsSame(IXObject other)
+        public virtual bool Equals(IXObject other)
         {
             if (other is ISwDmObject)
             {

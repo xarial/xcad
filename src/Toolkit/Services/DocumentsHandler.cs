@@ -19,7 +19,7 @@ namespace Xarial.XCad.Toolkit.Services
     {
         private readonly IXApplication m_App;
 
-        private readonly List<Type> m_Handlers;
+        private readonly Dictionary<Type, Delegate> m_Handlers;
         private readonly Dictionary<IXDocument, List<IDocumentHandler>> m_DocsMap;
 
         private readonly IXLogger m_Logger;
@@ -29,17 +29,17 @@ namespace Xarial.XCad.Toolkit.Services
             m_App = app;
             m_Logger = logger;
 
-            m_Handlers = new List<Type>();
+            m_Handlers = new Dictionary<Type, Delegate>();
             m_DocsMap = new Dictionary<IXDocument, List<IDocumentHandler>>();
         }
 
-        public void RegisterHandler<THandler>() where THandler : IDocumentHandler, new() 
+        public void RegisterHandler<THandler>(Func<THandler> handlerFact) where THandler : IDocumentHandler
         {
             var type = typeof(THandler);
 
-            if (!m_Handlers.Contains(type))
+            if (!m_Handlers.ContainsKey(type))
             {
-                m_Handlers.Add(type);
+                m_Handlers.Add(type, handlerFact);
 
                 foreach (var map in m_DocsMap) 
                 {
@@ -65,7 +65,7 @@ namespace Xarial.XCad.Toolkit.Services
         {
             var handlers = new List<IDocumentHandler>();
 
-            foreach (var type in m_Handlers) 
+            foreach (var type in m_Handlers.Keys) 
             {
                 try
                 {
@@ -101,7 +101,7 @@ namespace Xarial.XCad.Toolkit.Services
 
         private IDocumentHandler CreateHandler(IXDocument doc, Type type)
         {
-            var handler = (IDocumentHandler)Activator.CreateInstance(type);
+            var handler = (IDocumentHandler)m_Handlers[type].DynamicInvoke();
             handler.Init(m_App, doc);
             return handler;
         }

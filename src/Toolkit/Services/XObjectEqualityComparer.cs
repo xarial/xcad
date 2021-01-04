@@ -24,7 +24,7 @@ namespace Xarial.XCad.Services
                 return false;
             }
 
-            return x.IsSame(y);
+            return x.Equals(y);
         }
 
         public int GetHashCode(TObj obj)

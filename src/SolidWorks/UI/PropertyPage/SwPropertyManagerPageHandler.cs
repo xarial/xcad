@@ -9,6 +9,7 @@ using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
 using SolidWorks.Interop.swpublished;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
 using Xarial.XCad.UI.PropertyPage.Structures;
@@ -35,7 +36,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
         internal event Action<int, double> NumberChanged;
 
         internal event Action<int, bool> CheckChanged;
-
+        
         internal event Action<int, int> SelectionChanged;
 
         internal event Action<int, int> ComboBoxChanged;
@@ -65,9 +66,34 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
 
         private ISldWorks m_App;
 
+        private readonly List<int> m_SuspendedSelIds;
+
+        public SwPropertyManagerPageHandler() 
+        {
+            m_SuspendedSelIds = new List<int>();
+        }
+
         internal void Init(ISldWorks app)
         {
             m_App = app;
+        }
+
+        internal void SuspendSelectionRaise(int selBoxId, bool suspend) 
+        {
+            if (suspend)
+            {
+                if (!m_SuspendedSelIds.Contains(selBoxId))
+                {
+                    m_SuspendedSelIds.Add(selBoxId);
+                }
+            }
+            else 
+            {
+                if (m_SuspendedSelIds.Contains(selBoxId))
+                {
+                    m_SuspendedSelIds.Remove(selBoxId);
+                }
+            }
         }
 
         [Browsable(false)]
@@ -285,8 +311,11 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
         [EditorBrowsable(EditorBrowsableState.Never)]
         public void OnSelectionboxListChanged(int Id, int Count)
         {
-            SelectionChanged?.Invoke(Id, Count);
-            DataChanged?.Invoke();
+            if (!m_SuspendedSelIds.Contains(Id))
+            {
+                SelectionChanged?.Invoke(Id, Count);
+                DataChanged?.Invoke();
+            }
         }
 
         [Browsable(false)]

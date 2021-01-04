@@ -8,6 +8,7 @@
 using System.Linq;
 using Xarial.XCad.Base;
 using Xarial.XCad.Documents.Enums;
+using Xarial.XCad.Documents.Services;
 
 namespace Xarial.XCad.Documents
 {
@@ -72,6 +73,17 @@ namespace Xarial.XCad.Documents
             repo.Add(doc);
 
             return doc.GetSpecific();
+        }
+
+        /// <summary>
+        /// Registers document handler with the default constructor
+        /// </summary>
+        /// <typeparam name="THandler">Handler type</typeparam>
+        /// <param name="repo">Documents repository</param>
+        public static void RegisterHandler<THandler>(this IXDocumentRepository repo)
+            where THandler : IDocumentHandler, new()
+        {
+            repo.RegisterHandler<THandler>(() => new THandler());
         }
     }
 }

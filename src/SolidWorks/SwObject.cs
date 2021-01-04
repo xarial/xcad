@@ -9,6 +9,7 @@ using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
 using System;
 using System.IO;
+using Xarial.XCad.Base;
 using Xarial.XCad.SolidWorks.Annotations;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Features;
@@ -61,6 +62,15 @@ namespace Xarial.XCad.SolidWorks
 
         internal static ISwObject FromDispatch(object disp, ISwDocument doc, Func<object, ISwObject> defaultHandler)
         {
+            if (disp is IEntity) 
+            {
+                var safeEnt = (disp as IEntity).GetSafeEntity();
+                if (safeEnt != null) 
+                {
+                    disp = safeEnt;
+                }
+            }
+
             switch (disp)
             {
                 case IEdge edge:
@@ -233,7 +243,7 @@ namespace Xarial.XCad.SolidWorks
             m_Doc = doc;
         }
 
-        public virtual bool IsSame(IXObject other)
+        public virtual bool Equals(IXObject other)
         {
             if (object.ReferenceEquals(this, other)) 
             {
@@ -242,6 +252,16 @@ namespace Xarial.XCad.SolidWorks
 
             if (other is ISwObject)
             {
+                if (this is IXTransaction && !((IXTransaction)this).IsCommitted) 
+                {
+                    return false;
+                }
+
+                if (other is IXTransaction && !((IXTransaction)other).IsCommitted)
+                {
+                    return false;
+                }
+
                 return Dispatch == (other as ISwObject).Dispatch;
             }
             else

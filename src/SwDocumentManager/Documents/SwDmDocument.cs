@@ -9,6 +9,7 @@ using SolidWorks.Interop.swdocumentmgr;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using Xarial.XCad.Annotations;
@@ -26,17 +27,49 @@ using Xarial.XCad.Toolkit.Data;
 
 namespace Xarial.XCad.SwDocumentManager.Documents
 {
-    public interface ISwDmDocument : IXDocument
+    public interface ISwDmDocument : ISwDmObject, IXDocument
     {
         ISwDMDocument Document { get; }
         new ISwDmVersion Version { get; }
         new ISwDmCustomPropertiesCollection Properties { get; }
     }
 
-    internal abstract class SwDmDocument : ISwDmDocument
+    internal abstract class SwDmDocument : SwDmObject, ISwDmDocument
     {
+        internal static SwDmDocumentType GetDocumentType(string path)
+        {
+            SwDmDocumentType docType;
+
+            if (!string.IsNullOrEmpty(path))
+            {
+                switch (System.IO.Path.GetExtension(path).ToLower())
+                {
+                    case ".sldprt":
+                        docType = SwDmDocumentType.swDmDocumentPart;
+                        break;
+
+                    case ".sldasm":
+                        docType = SwDmDocumentType.swDmDocumentAssembly;
+                        break;
+
+                    case ".slddrw":
+                        docType = SwDmDocumentType.swDmDocumentDrawing;
+                        break;
+
+                    default:
+                        throw new NotSupportedException("Only native SOLIDWORKS files can be opened");
+                }
+            }
+            else
+            {
+                throw new NotSupportedException("Cannot extract document type when path is not specified");
+            }
+
+            return docType;
+        }
+
         #region Not Supported
-        
+
         public string Template { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
         public IXFeatureRepository Features => throw new NotImplementedException();
         public IXSelectionRepository Selections => throw new NotSupportedException();
@@ -129,23 +162,108 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         public ITagsManager Tags { get; }
 
+        private bool? m_IsClosed;
+
         public bool IsAlive 
         {
             get 
             {
-                try
+                if (m_IsClosed.HasValue)
                 {
-                    var testVers = Document.GetVersion();
-                    return true;
+                    return !m_IsClosed.Value;
                 }
-                catch
+                else
                 {
-                    return false;
+                    try
+                    {
+                        //This not causing exception - so does not work - keeping as placeholder for future
+                        var testVers = Document.GetVersion();
+
+                        return true;
+                    }
+                    catch
+                    {
+                        return false;
+                    }
                 }
             }
         }
 
-        public IXDocument3D[] Dependencies => throw new NotImplementedException();
+        public IXDocument3D[] Dependencies 
+        {
+            get 
+            {
+                var searchOpts = SwDmApp.SwDocMgr.GetSearchOptionObject();
+                searchOpts.SearchFilters = (int)(
+                    SwDmSearchFilters.SwDmSearchExternalReference 
+                    | SwDmSearchFilters.SwDmSearchRootAssemblyFolder 
+                    | SwDmSearchFilters.SwDmSearchSubfolders 
+                    | SwDmSearchFilters.SwDmSearchInContextReference);
+
+                var processed = new List<string>();
+
+                processed.Add(Path);
+
+                return TraverseDependencies(this, searchOpts, processed).ToArray();
+            }
+        }
+
+        private IEnumerable<ISwDmDocument3D> TraverseDependencies(
+            ISwDmDocument parent, SwDMSearchOption searchOpts, List<string> processed) 
+        {
+            string[] deps;
+
+            if (SwDmApp.IsVersionNewerOrEqual(SwDmVersion_e.Sw2017))
+            {
+                deps = ((ISwDMDocument21)parent.Document).GetAllExternalReferences5(searchOpts, out _, out _, out _, out _) as string[];
+            }
+            else
+            {
+                deps = ((ISwDMDocument21)parent.Document).GetAllExternalReferences4(searchOpts, out _, out _, out _) as string[];
+            }
+
+            if (deps != null)
+            {
+                foreach(var dep in deps)
+                {
+                    if (!processed.Contains(dep, StringComparer.CurrentCultureIgnoreCase))
+                    {
+                        processed.Add(dep);
+
+                        if (File.Exists(dep))
+                        {
+                            yield return (ISwDmDocument3D)SwDmApp.Documents.PreCreateFromPath(dep);
+
+                            ISwDmDocument3D doc = null;
+
+                            try
+                            {
+                                doc = (ISwDmDocument3D)SwDmApp.Documents.Open(dep, DocumentState_e.ReadOnly);
+                            }
+                            catch
+                            {
+                            }
+
+                            if (doc != null)
+                            {
+                                foreach (var childDoc in TraverseDependencies(doc, searchOpts, processed))
+                                {
+                                    yield return (ISwDmDocument3D)SwDmApp.Documents.PreCreateFromPath(childDoc.Path);
+                                }
+                            }
+
+                            doc?.Close();
+
+                        }
+                        else
+                        {
+                            var doc = (ISwDmDocument3D)SwDmApp.Documents.PreCreateFromPath(dep);
+                            yield return doc;
+                        }
+                    }
+                }
+            }
+        }
 
         public bool IsCommitted => m_Creator.IsCreated;
 
@@ -169,7 +287,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         private readonly Lazy<ISwDmCustomPropertiesCollection> m_Properties;
 
         internal SwDmDocument(ISwDmApplication dmApp, ISwDMDocument doc, bool isCreated, 
-            Action<ISwDmDocument> createHandler, Action<ISwDmDocument> closeHandler)
+            Action<ISwDmDocument> createHandler, Action<ISwDmDocument> closeHandler) : base(doc)
         {
             SwDmApp = dmApp;
 
@@ -182,31 +300,20 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             m_Properties = new Lazy<ISwDmCustomPropertiesCollection>(() => new SwDmDocumentCustomPropertiesCollection(this));
         }
 
-        protected SwDmDocumentType DocumentType 
+        public override object Dispatch => Document;
+
+        public override bool Equals(IXObject other)
         {
-            get 
+            if (!object.ReferenceEquals(this, other)
+                && other is ISwDmDocument
+                && !IsCommitted && !((ISwDmDocument)other).IsCommitted)
             {
-                SwDmDocumentType docType;
-
-                switch (System.IO.Path.GetExtension(Path).ToLower())
-                {
-                    case ".sldprt":
-                        docType = SwDmDocumentType.swDmDocumentPart;
-                        break;
-
-                    case ".sldasm":
-                        docType = SwDmDocumentType.swDmDocumentAssembly;
-                        break;
-
-                    case ".slddrw":
-                        docType = SwDmDocumentType.swDmDocumentDrawing;
-                        break;
-
-                    default:
-                        throw new NotSupportedException("Only native SOLIDWORKS files can be opened");
-                }
-
-                return docType;
+                return !string.IsNullOrEmpty(Path) && !string.IsNullOrEmpty(((ISwDmDocument)other).Path)
+                    && string.Equals(Path, ((ISwDmDocument)other).Path, StringComparison.CurrentCultureIgnoreCase);
+            }
+            else
+            {
+                return base.Equals(other);
             }
         }
 
@@ -214,7 +321,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         {
             m_IsReadOnly = State.HasFlag(DocumentState_e.ReadOnly);
 
-            var doc = SwDmApp.SwDocMgr.GetDocument(Path, DocumentType, 
+            var doc = SwDmApp.SwDocMgr.GetDocument(Path, GetDocumentType(Path), 
                 m_IsReadOnly.Value, out SwDmDocumentOpenError err);
 
             if (doc != null)
@@ -269,6 +376,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             Closing?.Invoke(this);
 
             m_CloseHandler.Invoke(this);
+            m_IsClosed = true;
         }
 
         public virtual void Commit(CancellationToken cancellationToken)
@@ -379,7 +487,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                 throw new Exception("Model is not yet created, cannot get specific document");
             }
 
-            switch (DocumentType)
+            switch (GetDocumentType(Path))
             {
                 case SwDmDocumentType.swDmDocumentPart:
                     m_SpecificDoc = new SwDmPart(SwDmApp, model, true, m_CreateHandler, m_CloseHandler);
