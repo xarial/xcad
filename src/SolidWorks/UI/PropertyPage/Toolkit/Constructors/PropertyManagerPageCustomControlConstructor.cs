@@ -40,7 +40,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
             var ctrlType = atts.Get<CustomControlAttribute>().ControlType;
 
             var ctrlFact = new Func<IXCustomControl>(() =>
-                CustomControlHelper.HostControl(ctrlType,
+                CustomControlHelperOld.HostControl(ctrlType,
                 (c, h, t, _) =>
                 {
                     if (swCtrl.SetWindowHandlex64(h.Handle.ToInt64()))

@@ -72,6 +72,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             };
         }
 
+        internal event Action<SwDocument> Hidden;
         internal event Action<SwDocument> Destroyed;
 
         public event DocumentCloseDelegate Closing;
@@ -906,6 +907,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
             else if (destroyType == (int)swDestroyNotifyType_e.swDestroyNotifyHidden)
             {
+                Hidden?.Invoke(this);
                 m_Logger.Log($"Hiding '{Model.GetTitle()}' document");
             }
             else

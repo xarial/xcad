@@ -48,7 +48,7 @@ namespace Xarial.XCad.Documents
         /// <typeparam name="THandler">Handler type</typeparam>
         /// <param name="doc">Document to get handler from</param>
         /// <returns>Instance of the handler</returns>
-        THandler GetHandler<THandler>(IXDocument doc) where THandler : IDocumentHandler, new();
+        THandler GetHandler<THandler>(IXDocument doc) where THandler : IDocumentHandler;
 
         /// <summary>
         /// Pre-creates a document template

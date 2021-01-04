@@ -13,6 +13,8 @@ using SolidWorks.Interop.sldworks;
 using Xarial.XCad.Documents;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.Base;
+using Xarial.XCad.SolidWorks.UI.Toolkit;
+using Xarial.XCad.UI.Exceptions;
 
 namespace Xarial.XCad.SolidWorks.UI
 {
@@ -20,89 +22,49 @@ namespace Xarial.XCad.SolidWorks.UI
     {
     }
 
-    internal class SwModelViewTab<TControl> : ISwModelViewTab<TControl>
+    internal class SwModelViewTab<TControl> : DocumentAttachedCustomPanel<TControl>, ISwModelViewTab<TControl>
     {
-        public bool IsActive
+        private readonly ModelViewTabCreator<TControl> m_CtrlCreator;
+        private readonly ModelViewManager m_ModelViewMgr;
+
+        private string m_CurTabTitle;
+
+        internal SwModelViewTab(ModelViewTabCreator<TControl> ctrlCreator, 
+            ModelViewManager modelViewManager, SwDocument doc, IXLogger logger) : base(doc, logger)
         {
-            get => m_MdlViewMgr.IsControlTabActive(m_Title);
-            set
+            m_CtrlCreator = ctrlCreator;
+
+            m_ModelViewMgr = modelViewManager;
+        }
+
+        protected override TControl CreateControl()
+        {
+            m_CurTabTitle = m_CtrlCreator.CreateControl(typeof(TControl), out TControl ctrl);
+            return ctrl;
+        }
+
+        protected override void DeleteControl()
+        {
+            if (IsActive)
             {
-                if (!m_MdlViewMgr.ActivateControlTab(m_Title)) 
-                {
-                    throw new Exception("Failed to activate the model view tab");
-                }
+                m_ModelViewMgr.ActivateModelTab();
+            }
+
+            var res = m_ModelViewMgr.DeleteControlTab(m_CurTabTitle);
+
+            if (!res)
+            {
+                m_Logger.Log("Failed to delete model view tab");
             }
         }
 
-        public TControl Control { get; }
+        protected override bool GetIsActive() => m_ModelViewMgr.IsControlTabActive(m_CurTabTitle);
 
-        private readonly string m_Title;
-        private readonly ModelViewManager m_MdlViewMgr;
-
-        private readonly SwDocument m_Doc;
-        private readonly IXLogger m_Logger;
-
-        private bool m_IsDisposed;
-
-        internal SwModelViewTab(TControl ctrl, string title, ModelViewManager mdlViewMgr, SwDocument doc, IXLogger logger) 
+        protected override void SetIsActive(bool active)
         {
-            Control = ctrl;
-            m_Title = title;
-            m_MdlViewMgr = mdlViewMgr;
-            m_Doc = doc;
-            m_Logger = logger;
-
-            m_Doc.Destroyed += OnDestroyed;
-
-            m_IsDisposed = false;
-        }
-
-        private void OnDestroyed(IXDocument doc)
-        {
-            try
+            if (!m_ModelViewMgr.ActivateControlTab(m_CurTabTitle))
             {
-                Dispose();
-            }
-            catch (Exception ex)
-            {
-                m_Logger.Log(ex);
-            }
-        }
-
-        public void Dispose()
-        {
-            Close();
-        }
-
-        public void Close()
-        {
-            if (!m_IsDisposed)
-            {
-                m_Doc.Destroyed -= OnDestroyed;
-
-                m_IsDisposed = true;
-                
-                try
-                {
-                    if (Control is IDisposable)
-                    {
-                        (Control as IDisposable).Dispose();
-                    }
-                }
-                finally 
-                {
-                    if (IsActive) 
-                    {
-                        m_MdlViewMgr.ActivateModelTab();
-                    }
-
-                    var res = m_MdlViewMgr.DeleteControlTab(m_Title);
-
-                    if (!res) 
-                    {
-                        m_Logger.Log("Failed to delete model view tab");
-                    }
-                }
+                throw new Exception("Failed to activate the model view tab");
             }
         }
     }

@@ -32,6 +32,7 @@ namespace Xarial.XCad.SolidWorks.UI
         const int S_OK = 0;
 
         public event TaskPaneButtonClickDelegate ButtonClick;
+        public event ControlCreatedDelegate<TControl> ControlCreated;
 
         private readonly TaskPaneSpec m_Spec;
 
@@ -79,6 +80,7 @@ namespace Xarial.XCad.SolidWorks.UI
             LoadButtons(app);
 
             m_IsDisposed = false;
+            ControlCreated?.Invoke(Control);
         }
 
         private void LoadButtons(ISldWorks app) 

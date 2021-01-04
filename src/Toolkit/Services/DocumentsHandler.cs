@@ -54,7 +54,7 @@ namespace Xarial.XCad.Toolkit.Services
         }
 
         public THandler GetHandler<THandler>(IXDocument doc) 
-            where THandler : IDocumentHandler, new()
+            where THandler : IDocumentHandler
         {
             var handlers = m_DocsMap[doc];
 
