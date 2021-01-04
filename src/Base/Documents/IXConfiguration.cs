@@ -22,6 +22,11 @@ namespace Xarial.XCad.Documents
         string Name { get; set; }
 
         /// <summary>
+        /// Returns part number of this configuration
+        /// </summary>
+        string PartNumber { get; }
+
+        /// <summary>
         /// Cut-list items in this configuration (if available)
         /// </summary>
         IXCutListItem[] CutLists { get; }

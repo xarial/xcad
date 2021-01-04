@@ -49,15 +49,15 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                 () => new SwDmConfigurationCustomPropertiesCollection(this));
         }
 
-        public virtual string Name 
+        public virtual string Name
         {
-            get => Configuration.Name; 
-            set => throw new NotSupportedException("Property is read-only"); 
+            get => Configuration.Name;
+            set => throw new NotSupportedException("Property is read-only");
         }
 
-        public ISwDmCutListItem[] CutLists 
+        public ISwDmCutListItem[] CutLists
         {
-            get 
+            get
             {
                 object[] cutListItems = null;
 
@@ -66,13 +66,13 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                 {
                     cutListItems = ((ISwDMConfiguration16)Configuration).GetCutListItems() as object[];
                 }
-                else 
+                else
                 {
                     if (Configuration == m_Doc.Configurations.Active.Configuration)
                     {
                         cutListItems = ((ISwDMDocument13)m_Doc.Document).GetCutListItems2() as object[];
                     }
-                    else 
+                    else
                     {
                         throw new Exception(
                             "Cut-lists can only be extracted from the active configuration for files saved in 2018 or older");
@@ -84,7 +84,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                     return cutListItems.Cast<ISwDMCutListItem2>()
                         .Select(c => new SwDmCutListItem(c)).ToArray();
                 }
-                else 
+                else
                 {
                     return new ISwDmCutListItem[0];
                 }
@@ -92,6 +92,25 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         }
 
         public virtual bool IsCommitted => true;
+
+        public string PartNumber => GetPartNumber(this);
+
+        private string GetPartNumber(ISwDmConfiguration conf) 
+        {
+            switch ((swDmBOMPartNumberSource)((ISwDMConfiguration11)(conf.Configuration)).BOMPartNoSource)
+            {
+                case swDmBOMPartNumberSource.swDmBOMPartNumber_ConfigurationName:
+                    return conf.Name;
+                case swDmBOMPartNumberSource.swDmBOMPartNumber_DocumentName:
+                    return m_Doc.Title;
+                case swDmBOMPartNumberSource.swDmBOMPartNumber_ParentName:
+                    return GetPartNumber(m_Doc.Configurations[conf.Configuration.GetParentConfigurationName()]);
+                case swDmBOMPartNumberSource.swDmBOMPartNumber_UserSpecified:
+                    return ((ISwDMConfiguration7)conf.Configuration).AlternateName2;
+                default:
+                    throw new NotSupportedException();
+            }
+        }
 
         public virtual void Commit(CancellationToken cancellationToken) => throw new NotSupportedException();
     }

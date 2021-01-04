@@ -95,6 +95,25 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public override object Dispatch => Configuration;
 
+        public string PartNumber => GetPartNumber(Configuration);
+
+        private string GetPartNumber(IConfiguration conf) 
+        {
+            switch ((swBOMPartNumberSource_e)conf.BOMPartNoSource)
+            {
+                case swBOMPartNumberSource_e.swBOMPartNumber_ConfigurationName:
+                    return conf.Name;
+                case swBOMPartNumberSource_e.swBOMPartNumber_DocumentName:
+                    return m_Doc.Title;
+                case swBOMPartNumberSource_e.swBOMPartNumber_ParentName:
+                    return GetPartNumber(conf.GetParent());
+                case swBOMPartNumberSource_e.swBOMPartNumber_UserSpecified:
+                    return conf.AlternateName;
+                default:
+                    throw new NotSupportedException();
+            }
+        }
+
         public virtual void Commit(CancellationToken cancellationToken) => m_Creator.Create(cancellationToken);
 
         private IConfiguration Create(CancellationToken cancellationToken) 
