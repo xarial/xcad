@@ -34,6 +34,8 @@ namespace Xarial.XCad.SolidWorks.UI
         public abstract event PopupWindowClosedDelegate<TWindow> Closed;
         public abstract event ControlCreatedDelegate<TWindow> ControlCreated;
 
+        public bool IsControlCreated { get; protected set; }
+
         public abstract void Close();
 
         public abstract void Dispose();
@@ -87,11 +89,13 @@ namespace Xarial.XCad.SolidWorks.UI
         {
             m_WpfWindow.Activated -= OnWindowActivated;
             ControlCreated?.Invoke(Control);
+            IsControlCreated = true;
         }
 
         private void OnWpfWindowClosed(object sender, EventArgs e)
         {
             Closed?.Invoke(this);
+            IsControlCreated = false;
         }
 
         public override void Dispose()

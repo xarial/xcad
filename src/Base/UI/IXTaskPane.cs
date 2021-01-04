@@ -51,6 +51,8 @@ namespace Xarial.XCad.UI
 
         public event ControlCreatedDelegate<TControl> ControlCreated;
 
+        public bool IsControlCreated => m_TaskPane.IsControlCreated;
+
         private TaskPaneButtonEnumClickDelegate<TBtnEnum> m_ButtonClick;
         private readonly IXTaskPane<TControl> m_TaskPane;
 

@@ -59,6 +59,8 @@ namespace Xarial.XCad.SolidWorks.UI
         public ITaskpaneView TaskPaneView { get; }
         public TControl Control { get; }
 
+        public bool IsControlCreated => true;
+
         private WpfControlKeystrokePropagator m_KeystrokePropagator;
 
         private readonly TaskPaneTabCreator<TControl> m_Creator;

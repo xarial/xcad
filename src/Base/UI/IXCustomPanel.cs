@@ -31,6 +31,11 @@ namespace Xarial.XCad.UI
         event ControlCreatedDelegate<TControl> ControlCreated;
 
         /// <summary>
+        /// Identifies if the control for this panel is created and it is safe to access <see cref="Control"/> property, otherwise subscribe to <see cref="ControlCreated"/> notification
+        /// </summary>
+        bool IsControlCreated { get; }
+
+        /// <summary>
         /// Checks if this panel is active
         /// </summary>
         bool IsActive { get; set; }
