@@ -5,7 +5,7 @@ using System.Threading;
 
 namespace Xarial.XCad.SwDocumentManager
 {
-    public interface ISwDmSelObject : IXSelObject 
+    public interface ISwDmSelObject : ISwDmObject, IXSelObject 
     {
     
     }

@@ -36,8 +36,9 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         private readonly Lazy<ISwDmConfigurationCollection> m_Configurations;
 
         public SwDmDocument3D(ISwDmApplication dmApp, ISwDMDocument doc, bool isCreated,
-            Action<ISwDmDocument> createHandler, Action<ISwDmDocument> closeHandler)
-            : base(dmApp, doc, isCreated, createHandler, closeHandler)
+            Action<ISwDmDocument> createHandler, Action<ISwDmDocument> closeHandler,
+            bool? isReadOnly = null)
+            : base(dmApp, doc, isCreated, createHandler, closeHandler, isReadOnly)
         {
             m_Configurations = new Lazy<ISwDmConfigurationCollection>(() => new SwDmConfigurationCollection(this));
         }

@@ -34,7 +34,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         private readonly Lazy<ISwDmCustomPropertiesCollection> m_Properties;
 
-        public ISwDMConfiguration Configuration { get; }
+        public virtual ISwDMConfiguration Configuration { get; }
 
         public ISwDmCustomPropertiesCollection Properties => m_Properties.Value;
 
@@ -49,7 +49,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                 () => new SwDmConfigurationCustomPropertiesCollection(this));
         }
 
-        public string Name 
+        public virtual string Name 
         {
             get => Configuration.Name; 
             set => throw new NotSupportedException("Property is read-only"); 
@@ -91,8 +91,8 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             }
         }
 
-        public bool IsCommitted => true;
+        public virtual bool IsCommitted => true;
 
-        public void Commit(CancellationToken cancellationToken) => throw new NotSupportedException();
+        public virtual void Commit(CancellationToken cancellationToken) => throw new NotSupportedException();
     }
 }

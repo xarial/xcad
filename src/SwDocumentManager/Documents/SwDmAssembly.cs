@@ -20,11 +20,11 @@ namespace Xarial.XCad.SwDocumentManager.Documents
     internal class SwDmAssembly : SwDmDocument3D, ISwDmAssembly
     {
         public SwDmAssembly(ISwDmApplication dmApp, ISwDMDocument doc, bool isCreated,
-            Action<ISwDmDocument> createHandler, Action<ISwDmDocument> closeHandler)
-            : base(dmApp, doc, isCreated, createHandler, closeHandler)
+            Action<ISwDmDocument> createHandler, Action<ISwDmDocument> closeHandler, bool? isReadOnly = null)
+            : base(dmApp, doc, isCreated, createHandler, closeHandler, isReadOnly)
         {
         }
 
-        public IXComponentRepository Components => throw new NotImplementedException();
+        public IXComponentRepository Components => new SwDmComponentCollection(this, Configurations.Active);
     }
 }

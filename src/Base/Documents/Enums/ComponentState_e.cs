@@ -35,6 +35,16 @@ namespace Xarial.XCad.Documents.Enums
         /// <summary>
         /// Component is loaded in view-only mode
         /// </summary>
-        ViewOnly = 4
+        ViewOnly = 4,
+
+        /// <summary>
+        /// Component is hidden
+        /// </summary>
+        Hidden = 8,
+
+        /// <summary>
+        /// Component is excluded from Bill Of Materials
+        /// </summary>
+        ExcludedFromBom = 16
     }
 }

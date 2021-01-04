@@ -170,13 +170,13 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             return templateDoc as TDocument;
         }
 
-        private void OnDocumentCreated(ISwDmDocument doc)
+        internal void OnDocumentCreated(ISwDmDocument doc)
         {
             m_Documents.Add(doc);
             Active = doc;
         }
 
-        private void OnDocumentClosed(ISwDmDocument doc)
+        internal void OnDocumentClosed(ISwDmDocument doc)
         {
             m_Documents.Remove(doc);
             Active = m_Documents.FirstOrDefault();
