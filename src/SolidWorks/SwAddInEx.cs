@@ -14,6 +14,7 @@ using System.ComponentModel;
 using System.Drawing;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Windows.Forms;
 using Xarial.XCad.Base;
 using Xarial.XCad.Base.Attributes;
 using Xarial.XCad.Delegates;
@@ -33,6 +34,7 @@ using Xarial.XCad.SolidWorks.UI.Commands;
 using Xarial.XCad.SolidWorks.UI.Commands.Exceptions;
 using Xarial.XCad.SolidWorks.UI.Commands.Toolkit.Structures;
 using Xarial.XCad.SolidWorks.UI.PropertyPage;
+using Xarial.XCad.SolidWorks.UI.Toolkit;
 using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.Toolkit;
 using Xarial.XCad.UI;
@@ -317,33 +319,15 @@ namespace Xarial.XCad.SolidWorks
 
         public ISwModelViewTab<TControl> CreateDocumentTab<TControl>(ISwDocument doc)
         {
-            var mdlViewMgr = doc.Model.ModelViewManager;
+            var tab = new SwModelViewTab<TControl>(
+                new ModelViewTabCreator<TControl>(doc.Model.ModelViewManager, m_SvcProvider),
+                doc.Model.ModelViewManager, (SwDocument)doc, Logger);
+            
+            tab.InitControl();
 
-            return CustomControlHelper.HostControl<TControl, SwModelViewTab<TControl>>(
-                (c, h, t, _) =>
-                {
-                    if (mdlViewMgr.DisplayWindowFromHandlex64(t, h.Handle.ToInt64(), true))
-                    {
-                        return new SwModelViewTab<TControl>(c, t, mdlViewMgr, (SwDocument)doc, Logger);
-                    }
-                    else
-                    {
-                        throw new NetControlHostException(h.Handle);
-                    }
-                },
-                (p, t, _) =>
-                {
-                    var ctrl = (TControl)mdlViewMgr.AddControl3(t, p, "", true);
-                    
-                    if (ctrl == null)
-                    {
-                        throw new ComControlHostException(p);
-                    }
-
-                    return new SwModelViewTab<TControl>(ctrl, t, mdlViewMgr, (SwDocument)doc, Logger);
-                });
+            return tab;
         }
-
+        
         public ISwPopupWindow<TWindow> CreatePopupWindow<TWindow>() 
         {
             var parent = (IntPtr)Application.Sw.IFrameObject().GetHWnd();
@@ -371,128 +355,20 @@ namespace Xarial.XCad.SolidWorks
                 spec = new TaskPaneSpec();
             }
 
-            ITaskpaneView CreateTaskPaneView(IIconsCreator iconConv, IXImage icon, string title) 
-            {
-                if (icon == null) 
-                {
-                    if (spec.Icon != null)
-                    {
-                        icon = spec.Icon;
-                    }
-                }
-
-                if (string.IsNullOrEmpty(title)) 
-                {
-                    if (spec != null)
-                    {
-                        title = spec.Title;
-                    }
-                }
-                
-                if (Application.Sw.SupportsHighResIcons(CompatibilityUtils.HighResIconsScope_e.TaskPane))
-                {
-                    string[] taskPaneIconImages = null;
-
-                    if (icon != null)
-                    {
-                        taskPaneIconImages = iconConv.ConvertIcon(new TaskPaneHighResIcon(icon));
-                    }
-
-                    return Application.Sw.CreateTaskpaneView3(taskPaneIconImages, title);
-                }
-                else
-                {
-                    var taskPaneIconImage = "";
-
-                    if (icon != null)
-                    {
-                        taskPaneIconImage = iconConv.ConvertIcon(new TaskPaneIcon(icon)).First();
-                    }
-
-                    return Application.Sw.CreateTaskpaneView2(taskPaneIconImage, title);
-                }
-            }
-
-            using (var iconConv = m_SvcProvider.GetService<IIconsCreator>())
-            {
-                var taskPane = CustomControlHelper.HostControl<TControl, SwTaskPane<TControl>>(
-                    (c, h, t, i) =>
-                    {
-                        var v = CreateTaskPaneView(iconConv, i, t);
-                        
-                        if (!v.DisplayWindowFromHandle(h.Handle.ToInt32()))
-                        {
-                            throw new NetControlHostException(h.Handle);
-                        }
-
-                        return new SwTaskPane<TControl>(Application.Sw, v, c, spec, m_SvcProvider);
-                    },
-                    (p, t, i) =>
-                    {
-                        var v = CreateTaskPaneView(iconConv, i, t);
-                        var ctrl = (TControl)v.AddControl(p, "");
-
-                        if (ctrl == null)
-                        {
-                            throw new ComControlHostException(p);
-                        }
-
-                        return new SwTaskPane<TControl>(Application.Sw, v, ctrl, spec, m_SvcProvider);
-                    });
-
-                m_Disposables.Add(taskPane);
-
-                return taskPane;
-            }
+            return new SwTaskPane<TControl>(new TaskPaneTabCreator<TControl>(Application, m_SvcProvider, spec), Logger);
         }
 
-        public ISwFeatureMgrTab<TControl> CreateFeatureManagerTab<TControl>(ISwDocument doc) 
+        public ISwFeatureMgrTab<TControl> CreateFeatureManagerTab<TControl>(ISwDocument doc)
         {
-            var mdlViewMgr = doc.Model.ModelViewManager;
+            var tab = new SwFeatureMgrTab<TControl>(
+                new FeatureManagerTabCreator<TControl>(doc.Model.ModelViewManager, m_SvcProvider),
+                (SwDocument)doc, Logger);
 
-            using (var iconsConv = m_SvcProvider.GetService<IIconsCreator>())
-            {
-                return CustomControlHelper.HostControl<TControl, SwFeatureMgrTab<TControl>>(
-                    (c, h, t, i) =>
-                    {
-                        var imgPath = iconsConv.ConvertIcon(new FeatMgrViewIcon(i)).First();
+            tab.InitControl();
 
-                        var featMgr = mdlViewMgr.CreateFeatureMgrWindowFromHandlex64(
-                            imgPath, h.Handle.ToInt64(), t, (int)swFeatMgrPane_e.swFeatMgrPaneBottom) as IFeatMgrView;
-
-                        if (featMgr != null)
-                        {
-                            return new SwFeatureMgrTab<TControl>(c, featMgr, (SwDocument)doc, Logger);
-                        }
-                        else
-                        {
-                            throw new NetControlHostException(h.Handle);
-                        }
-                    },
-                    (p, t, i) =>
-                    {
-                        var imgPath = iconsConv.ConvertIcon(new FeatMgrViewIcon(i)).First();
-
-                        var featMgr = mdlViewMgr.CreateFeatureMgrControl3(imgPath, p, "", t,
-                            (int)swFeatMgrPane_e.swFeatMgrPaneBottom) as IFeatMgrView;
-
-                        TControl ctrl = default;
-
-                        if (featMgr != null)
-                        {
-                            ctrl = (TControl)featMgr.GetControl();
-                        }
-
-                        if (ctrl == null)
-                        {
-                            throw new ComControlHostException(p);
-                        }
-
-                        return new SwFeatureMgrTab<TControl>(ctrl, featMgr, (SwDocument)doc, Logger);
-                    });
-            }
+            return tab;
         }
-        
+
         public virtual void OnConfigureServices(IXServiceCollection collection)
         {
         }

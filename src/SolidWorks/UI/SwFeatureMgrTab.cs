@@ -9,82 +9,73 @@ using SolidWorks.Interop.sldworks;
 using System;
 using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
+using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.SolidWorks.Documents;
+using Xarial.XCad.SolidWorks.UI.Toolkit;
 using Xarial.XCad.UI;
+using Xarial.XCad.UI.Exceptions;
 
 namespace Xarial.XCad.SolidWorks.UI
 {
     public interface ISwFeatureMgrTab<TControl> : IXCustomPanel<TControl>, IDisposable 
     {
+        IFeatMgrView FeatureManagerView { get; }
     }
-
-    internal class SwFeatureMgrTab<TControl> : ISwFeatureMgrTab<TControl>
+    
+    internal class SwFeatureMgrTab<TControl> : DocumentAttachedCustomPanel<TControl>, ISwFeatureMgrTab<TControl> 
     {
-        public bool IsActive
+        public IFeatMgrView FeatureManagerView
         {
-            get => throw new NotSupportedException();
-            set => m_FeatViewMgr.ActivateView();
-        }
-
-        public TControl Control { get; }
-
-        private readonly IFeatMgrView m_FeatViewMgr;
-        private readonly SwDocument m_Doc;
-        private readonly IXLogger m_Logger;
-
-        private bool m_IsDisposed;
-
-        internal SwFeatureMgrTab(TControl ctrl, IFeatMgrView featMgrView, SwDocument doc, IXLogger logger)
-        {
-            Control = ctrl;
-            m_FeatViewMgr = featMgrView;
-            m_Doc = doc;
-            m_Doc.Destroyed += OnDestroyed;
-
-            m_Logger = logger;
-
-            m_IsDisposed = false;
-        }
-
-        private void OnDestroyed(IXDocument doc)
-        {
-            try
+            get
             {
-                Dispose();
-            }
-            catch (Exception ex)
-            {
-                m_Logger.Log(ex);
-            }
-        }
-
-        public void Dispose()
-        {
-            Close();
-        }
-
-        public void Close()
-        {
-            if (!m_IsDisposed)
-            {
-                m_Doc.Destroyed -= OnDestroyed;
-
-                m_IsDisposed = true;
-
-                if (Control is IDisposable)
+                if (IsControlCreated)
                 {
-                    try
-                    {
-                        (Control as IDisposable).Dispose();
-                    }
-                    finally 
-                    {
-                        if (!m_FeatViewMgr.DeleteView())
-                        {
-                            m_Logger.Log("Failed to delete feature manager view");
-                        }
-                    }
+                    return m_CurFeatMgrView;
                 }
+                else
+                {
+                    throw new CustomPanelControlNotCreatedException();
+                }
+            }
+        }
+
+        private IFeatMgrView m_CurFeatMgrView;
+        private readonly FeatureManagerTabCreator<TControl> m_CtrlCreator;
+
+        internal SwFeatureMgrTab(FeatureManagerTabCreator<TControl> ctrlCreator, SwDocument doc, IXLogger logger)
+            : base(doc, logger)
+        {
+            m_CtrlCreator = ctrlCreator;
+        }
+
+        protected override bool GetIsActive() => throw new NotSupportedException();
+
+        protected override void SetIsActive(bool active)
+        {
+            if (active)
+            {
+                m_CurFeatMgrView.ActivateView();
+            }
+            else 
+            {
+                if (!m_CurFeatMgrView.DeActivateView()) 
+                {
+                    m_Logger.Log("Failed to deactivate view");
+                }
+            }
+        }
+
+        protected override TControl CreateControl()
+        {
+            m_CurFeatMgrView = m_CtrlCreator.CreateControl(typeof(TControl), out TControl ctrl);
+            return ctrl;
+        }
+
+        protected override void DeleteControl()
+        {
+            if (!FeatureManagerView.DeleteView())
+            {
+                m_Logger.Log("Failed to delete feature manager view");
             }
         }
     }

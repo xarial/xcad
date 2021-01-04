@@ -93,7 +93,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         public IEnumerator<IXDocument> GetEnumerator() => m_Documents.GetEnumerator();
 
-        public THandler GetHandler<THandler>(IXDocument doc) where THandler : IDocumentHandler, new()
+        public THandler GetHandler<THandler>(IXDocument doc) where THandler : IDocumentHandler
         {
             throw new NotImplementedException();
         }

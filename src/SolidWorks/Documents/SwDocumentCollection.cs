@@ -266,7 +266,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             m_DocsHandler.RegisterHandler<THandler>(handlerFact);
         }
 
-        public THandler GetHandler<THandler>(IXDocument doc) where THandler : IDocumentHandler, new()
+        public THandler GetHandler<THandler>(IXDocument doc) where THandler : IDocumentHandler
         {
             return m_DocsHandler.GetHandler<THandler>(doc);
         }

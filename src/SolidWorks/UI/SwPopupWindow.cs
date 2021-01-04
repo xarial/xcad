@@ -32,6 +32,9 @@ namespace Xarial.XCad.SolidWorks.UI
         public abstract TWindow Control { get; }
 
         public abstract event PopupWindowClosedDelegate<TWindow> Closed;
+        public abstract event ControlCreatedDelegate<TWindow> ControlCreated;
+
+        public bool IsControlCreated { get; protected set; }
 
         public abstract void Close();
 
@@ -44,6 +47,7 @@ namespace Xarial.XCad.SolidWorks.UI
     internal class SwPopupWpfWindow<TWindow> : SwPopupWindow<TWindow>
     {
         public override event PopupWindowClosedDelegate<TWindow> Closed;
+        public override event ControlCreatedDelegate<TWindow> ControlCreated;
 
         public override bool IsActive
         {
@@ -73,6 +77,7 @@ namespace Xarial.XCad.SolidWorks.UI
         {
             Control = wpfWindow;
             m_WpfWindow = (System.Windows.Window)(object)wpfWindow;
+            m_WpfWindow.Activated += OnWindowActivated;
             m_WpfWindow.Closed += OnWpfWindowClosed;
             m_Owner = new System.Windows.Interop.WindowInteropHelper(m_WpfWindow);
             m_Owner.Owner = parent;
@@ -80,9 +85,17 @@ namespace Xarial.XCad.SolidWorks.UI
             m_IsDisposed = false;
         }
 
+        private void OnWindowActivated(object sender, EventArgs e)
+        {
+            m_WpfWindow.Activated -= OnWindowActivated;
+            ControlCreated?.Invoke(Control);
+            IsControlCreated = true;
+        }
+
         private void OnWpfWindowClosed(object sender, EventArgs e)
         {
             Closed?.Invoke(this);
+            IsControlCreated = false;
         }
 
         public override void Dispose()
@@ -136,6 +149,7 @@ namespace Xarial.XCad.SolidWorks.UI
         private readonly IWin32Window m_Owner;
 
         public override event PopupWindowClosedDelegate<TControl> Closed;
+        public override event ControlCreatedDelegate<TControl> ControlCreated;
 
         private bool m_IsDisposed;
 
@@ -143,10 +157,16 @@ namespace Xarial.XCad.SolidWorks.UI
         {
             Control = winForm;
             m_Form = (Form)(object)winForm;
+            m_Form.Shown += OnFormShown;
             m_Form.FormClosed += OnFormClosed;
             m_Owner = new Win32Window(parent);
 
             m_IsDisposed = false;
+        }
+
+        private void OnFormShown(object sender, EventArgs e)
+        {
+            ControlCreated?.Invoke(Control);
         }
 
         private void OnFormClosed(object sender, FormClosedEventArgs e)
