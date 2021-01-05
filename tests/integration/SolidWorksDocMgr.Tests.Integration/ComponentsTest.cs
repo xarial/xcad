@@ -89,12 +89,6 @@ namespace SolidWorksDocMgr.Tests.Integration
                 var conf4 = assm.Components["Part4-1 (XYZ)-2"].ReferencedConfiguration;
                 var conf5 = assm.Components["Assem1-1"].ReferencedConfiguration;
 
-                Assert.IsFalse(conf1.IsCommitted);
-                Assert.IsFalse(conf2.IsCommitted);
-                Assert.IsFalse(conf3.IsCommitted);
-                Assert.IsFalse(conf4.IsCommitted);
-                Assert.IsFalse(conf5.IsCommitted);
-
                 Assert.AreEqual("Default", conf1.Name);
                 Assert.AreEqual("Default", conf2.Name);
                 Assert.AreEqual("Default", conf3.Name);

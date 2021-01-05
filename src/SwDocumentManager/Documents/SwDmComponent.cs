@@ -64,7 +64,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         //TODO: check - this migth be a cached path
         public string Path => ((ISwDMComponent6)Component).PathName;
 
-        public ISwDmConfiguration ReferencedConfiguration => new SwDmComponentConfiguration(this, m_CachedDocument);
+        public ISwDmConfiguration ReferencedConfiguration => new SwDmComponentConfiguration(this);
 
         public ComponentState_e State
         {
@@ -143,33 +143,24 @@ namespace Xarial.XCad.SwDocumentManager.Documents
     {
         private readonly ISwDmComponent m_Comp;
 
-        private readonly ElementCreator<ISwDMConfiguration> m_Creator;
-
-        internal SwDmComponentConfiguration(ISwDmComponent comp, ISwDmDocument3D doc) : base(null, null)
+        internal SwDmComponentConfiguration(ISwDmComponent comp) : base(null, null)
         {
             m_Comp = comp;
-
-            var conf = doc != null ? CreateConfiguration(default) : null;
-            m_Creator = new ElementCreator<ISwDMConfiguration>(CreateConfiguration, conf, conf != null);
         }
-
-        private ISwDMConfiguration CreateConfiguration(CancellationToken cancellationToken)
-            => (ISwDMConfiguration)m_Comp.Document.Configurations[Name].Configuration;
-
+        
         public override string Name 
         {
             get => m_Comp.Component.ConfigurationName;
             set => throw new NotSupportedException();
         }
 
-        public override ISwDMConfiguration Configuration => m_Creator.Element;
+        protected override SwDmDocument3D Document => (SwDmDocument3D)m_Comp.Document;
 
-        public override object Dispatch => m_Creator.Element;
+        public override ISwDMConfiguration Configuration => Document.Configurations[Name].Configuration;
 
-        public override bool IsCommitted => m_Creator.IsCreated;
+        public override object Dispatch => Configuration;
 
-        public override void Commit(CancellationToken cancellationToken)
-            => m_Creator.Create(cancellationToken);
+        public override bool IsCommitted => true;
     }
 
     internal class SwDmSubComponentCollection : SwDmComponentCollection

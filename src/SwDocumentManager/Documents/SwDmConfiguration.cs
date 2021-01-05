@@ -37,13 +37,11 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         public virtual ISwDMConfiguration Configuration { get; }
 
         public ISwDmCustomPropertiesCollection Properties => m_Properties.Value;
-
-        private readonly SwDmDocument3D m_Doc;
-
+        
         internal SwDmConfiguration(ISwDMConfiguration conf, SwDmDocument3D doc) : base(conf)
         {
             Configuration = conf;
-            m_Doc = doc;
+            Document = doc;
 
             m_Properties = new Lazy<ISwDmCustomPropertiesCollection>(
                 () => new SwDmConfigurationCustomPropertiesCollection(this));
@@ -61,16 +59,16 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             {
                 object[] cutListItems = null;
 
-                if (m_Doc.SwDmApp.IsVersionNewerOrEqual(SwDmVersion_e.Sw2019)
-                    && m_Doc.Version.Major >= SwDmVersion_e.Sw2019)
+                if (Document.SwDmApp.IsVersionNewerOrEqual(SwDmVersion_e.Sw2019)
+                    && Document.Version.Major >= SwDmVersion_e.Sw2019)
                 {
                     cutListItems = ((ISwDMConfiguration16)Configuration).GetCutListItems() as object[];
                 }
                 else
                 {
-                    if (Configuration == m_Doc.Configurations.Active.Configuration)
+                    if (Configuration == Document.Configurations.Active.Configuration)
                     {
-                        cutListItems = ((ISwDMDocument13)m_Doc.Document).GetCutListItems2() as object[];
+                        cutListItems = ((ISwDMDocument13)Document.Document).GetCutListItems2() as object[];
                     }
                     else
                     {
@@ -95,6 +93,8 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         public string PartNumber => GetPartNumber(this);
 
+        protected virtual SwDmDocument3D Document { get; }
+
         private string GetPartNumber(ISwDmConfiguration conf) 
         {
             switch ((swDmBOMPartNumberSource)((ISwDMConfiguration11)(conf.Configuration)).BOMPartNoSource)
@@ -102,9 +102,9 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                 case swDmBOMPartNumberSource.swDmBOMPartNumber_ConfigurationName:
                     return conf.Name;
                 case swDmBOMPartNumberSource.swDmBOMPartNumber_DocumentName:
-                    return m_Doc.Title;
+                    return Document.Title;
                 case swDmBOMPartNumberSource.swDmBOMPartNumber_ParentName:
-                    return GetPartNumber(m_Doc.Configurations[conf.Configuration.GetParentConfigurationName()]);
+                    return GetPartNumber(Document.Configurations[conf.Configuration.GetParentConfigurationName()]);
                 case swDmBOMPartNumberSource.swDmBOMPartNumber_UserSpecified:
                     return ((ISwDMConfiguration7)conf.Configuration).AlternateName2;
                 default:
