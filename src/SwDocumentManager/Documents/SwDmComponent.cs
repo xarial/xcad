@@ -106,15 +106,29 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                         | SwDmSearchFilters.SwDmSearchSubfolders
                         | SwDmSearchFilters.SwDmSearchInContextReference);
 
+                    if (RootAssembly != null) 
+                    {
+                        searchOpts.AddSearchPath(System.IO.Path.GetDirectoryName(RootAssembly.Path));
+                    }
+
                     var isReadOnly = m_ParentAssm.State.HasFlag(DocumentState_e.ReadOnly);
 
                     var doc = ((ISwDMComponent4)Component).GetDocument2(isReadOnly,
                         searchOpts, out SwDmDocumentOpenError err) ;
 
-                    m_CachedDocument = (ISwDmDocument3D)new SwDmUnknownDocument(m_ParentAssm.SwDmApp, doc,
-                        true,
-                        ((SwDmDocumentCollection)m_ParentAssm.SwDmApp.Documents).OnDocumentCreated,
-                        ((SwDmDocumentCollection)m_ParentAssm.SwDmApp.Documents).OnDocumentClosed, isReadOnly).GetSpecific();
+                    var isFound = doc != null;
+
+                    var unknownDoc = new SwDmUnknownDocument(m_ParentAssm.SwDmApp, doc,
+                            isFound,
+                            ((SwDmDocumentCollection)m_ParentAssm.SwDmApp.Documents).OnDocumentCreated,
+                            ((SwDmDocumentCollection)m_ParentAssm.SwDmApp.Documents).OnDocumentClosed, isReadOnly);
+
+                    if (!isFound) 
+                    {
+                        unknownDoc.Path = Path;
+                    }
+
+                    m_CachedDocument = (ISwDmDocument3D)unknownDoc.GetSpecific();
                 }
 
                 return m_CachedDocument;
@@ -136,7 +150,8 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             }
         }
 
-        public SwDmComponent Parent { get; internal set; }
+        internal SwDmComponent Parent { get; set; }
+        internal ISwDmAssembly RootAssembly { get; set; }
     }
 
     internal class SwDmComponentConfiguration : SwDmConfiguration

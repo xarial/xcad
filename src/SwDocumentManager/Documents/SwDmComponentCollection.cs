@@ -26,17 +26,17 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         #endregion
 
         private readonly ISwDmConfiguration m_Conf;
-        private readonly SwDmAssembly m_ParentAssm;
+        private readonly SwDmAssembly m_RootAssm;
 
-        internal SwDmComponentCollection(SwDmAssembly parentAssm, ISwDmConfiguration conf) 
+        internal SwDmComponentCollection(SwDmAssembly rootAssm, ISwDmConfiguration conf) 
         {
-            m_ParentAssm = parentAssm;
+            m_RootAssm = rootAssm;
             m_Conf = conf;
         }
 
         public IXComponent this[string name] => this.Get(name);
 
-        public int Count => ((ISwDMDocument8)m_ParentAssm).GetComponentCount();
+        public int Count => ((ISwDMDocument8)m_RootAssm).GetComponentCount();
 
         private IEnumerable<ISwDMComponent> IterateDmComponents() 
         {
@@ -52,7 +52,8 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         protected virtual SwDmComponent CreateComponentInstance(ISwDMComponent dmComp) 
         {
-            var comp = SwDmObjectFactory.FromDispatch<SwDmComponent>(dmComp, m_ParentAssm);
+            var comp = SwDmObjectFactory.FromDispatch<SwDmComponent>(dmComp, m_RootAssm);
+            comp.RootAssembly = m_RootAssm;
             return comp;
         }
 

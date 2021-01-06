@@ -116,6 +116,24 @@ namespace SolidWorksDocMgr.Tests.Integration
             }
         }
 
+        [Test]
+        public void DocumentDependenciesCachedTest()
+        {
+            using (var doc = OpenDataDocument(@"MovedNonOpenedAssembly1\TopAssembly.SLDASM"))
+            {
+                var assm = m_App.Documents.Active;
+
+                var deps = assm.Dependencies;
+
+                var dir = Path.GetDirectoryName(assm.Path);
+
+                Assert.AreEqual(2, deps.Length);
+                Assert.That(deps.All(d => !d.IsCommitted));
+                Assert.That(deps.Any(d => string.Equals(d.Path, Path.Combine(dir, "Assemblies\\Assem1.SLDASM"), StringComparison.CurrentCultureIgnoreCase)));
+                Assert.That(deps.Any(d => string.Equals(d.Path, Path.Combine(dir, "Parts\\Part1.SLDPRT"), StringComparison.CurrentCultureIgnoreCase)));
+            }
+        }
+
         public class TestData
         {
             public string Text { get; set; }

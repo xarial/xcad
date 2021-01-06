@@ -502,31 +502,32 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                 return m_SpecificDoc;
             }
 
-            var model = Document;
-
-            if (model == null)
-            {
-                throw new Exception("Model is not yet created, cannot get specific document");
-            }
+            var model = IsCommitted ? Document : null;
 
             var isReadOnly = State.HasFlag(DocumentState_e.ReadOnly);
 
             switch (GetDocumentType(Path))
             {
                 case SwDmDocumentType.swDmDocumentPart:
-                    m_SpecificDoc = new SwDmPart(SwDmApp, model, true, m_CreateHandler, m_CloseHandler, isReadOnly);
+                    m_SpecificDoc = new SwDmPart(SwDmApp, model, IsCommitted, m_CreateHandler, m_CloseHandler, isReadOnly);
                     break;
 
                 case SwDmDocumentType.swDmDocumentAssembly:
-                    m_SpecificDoc = new SwDmAssembly(SwDmApp, model, true, m_CreateHandler, m_CloseHandler, isReadOnly);
+                    m_SpecificDoc = new SwDmAssembly(SwDmApp, model, IsCommitted, m_CreateHandler, m_CloseHandler, isReadOnly);
                     break;
 
                 case SwDmDocumentType.swDmDocumentDrawing:
-                    m_SpecificDoc = new SwDmDrawing(SwDmApp, model, true, m_CreateHandler, m_CloseHandler, isReadOnly);
+                    m_SpecificDoc = new SwDmDrawing(SwDmApp, model, IsCommitted, m_CreateHandler, m_CloseHandler, isReadOnly);
                     break;
 
                 default:
                     throw new Exception("Invalid document type");
+            }
+
+            if (!IsCommitted) 
+            {
+                //TODO: implement copy cache on ElementCreator
+                m_SpecificDoc.Path = Path;
             }
 
             return m_SpecificDoc;

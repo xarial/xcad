@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Xarial.XCad.Documents;
 using Xarial.XCad.SwDocumentManager.Documents;
 
 namespace SolidWorksDocMgr.Tests.Integration
@@ -109,6 +110,27 @@ namespace SolidWorksDocMgr.Tests.Integration
 
             Assert.That(compNames.OrderBy(c => c).SequenceEqual(
                 new string[] { "Part1^VirtAssem1-1", "Assem2^VirtAssem1-1" }.OrderBy(c => c)));
+        }
+
+        [Test]
+        public void MovedCachedRefsAssemblyTest()
+        {
+            string[] paths;
+            bool[] isCommitted;
+
+            using (var doc = OpenDataDocument(@"MovedNonOpenedAssembly1\TopAssembly.SLDASM"))
+            {
+                var comps = ((ISwDmAssembly)m_App.Documents.Active).Components.Flatten().ToArray();
+                paths = comps.Select(c => c.Path).ToArray();
+                isCommitted = comps.Select(c => c.Document.IsCommitted).ToArray();
+            }
+
+            var dir = Path.GetDirectoryName(GetFilePath(@"MovedNonOpenedAssembly1\TopAssembly.SLDASM"));
+
+            Assert.AreEqual(2, paths.Length);
+            Assert.That(isCommitted.All(d => d));
+            Assert.That(paths.Any(d => string.Equals(d, Path.Combine(dir, "Assemblies\\Assem1.SLDASM"), StringComparison.CurrentCultureIgnoreCase)));
+            Assert.That(paths.Any(d => string.Equals(d, Path.Combine(dir, "Parts\\Part1.SLDPRT"), StringComparison.CurrentCultureIgnoreCase)));
         }
     }
 }
