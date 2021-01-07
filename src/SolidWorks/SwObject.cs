@@ -62,15 +62,6 @@ namespace Xarial.XCad.SolidWorks
 
         internal static ISwObject FromDispatch(object disp, ISwDocument doc, Func<object, ISwObject> defaultHandler)
         {
-            if (disp is IEntity) 
-            {
-                var safeEnt = (disp as IEntity).GetSafeEntity();
-                if (safeEnt != null) 
-                {
-                    disp = safeEnt;
-                }
-            }
-
             switch (disp)
             {
                 case IEdge edge:
