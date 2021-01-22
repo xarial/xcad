@@ -17,6 +17,7 @@ using Xarial.XCad.Services;
 using Xarial.XCad.SolidWorks.Data;
 using Xarial.XCad.SolidWorks.Documents.Exceptions;
 using Xarial.XCad.SolidWorks.Features;
+using Xarial.XCad.UI;
 
 namespace Xarial.XCad.SolidWorks.Documents
 {
@@ -28,6 +29,8 @@ namespace Xarial.XCad.SolidWorks.Documents
 
     internal class SwConfiguration : SwObject, ISwConfiguration
     {
+        public IXImage Preview => throw new NotSupportedException();
+
         public IConfiguration Configuration => m_Creator.Element;
 
         private readonly new SwDocument3D m_Doc;

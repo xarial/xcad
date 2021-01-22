@@ -15,8 +15,10 @@ using System.Threading;
 using Xarial.XCad.Data;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Features;
+using Xarial.XCad.Reflection;
 using Xarial.XCad.SwDocumentManager.Data;
 using Xarial.XCad.SwDocumentManager.Features;
+using Xarial.XCad.UI;
 
 namespace Xarial.XCad.SwDocumentManager.Documents
 {
@@ -94,6 +96,25 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         public string PartNumber => GetPartNumber(this);
 
         protected virtual SwDmDocument3D Document { get; }
+
+        public IXImage Preview 
+        {
+            get 
+            {
+                SwDmPreviewError previewErr;
+                var imgBytes = ((ISwDMConfiguration9)Configuration)
+                    .GetPreviewPNGBitmapBytes(out previewErr) as byte[];
+
+                if (previewErr == SwDmPreviewError.swDmPreviewErrorNone)
+                {
+                    return ResourceHelper.FromBytes(imgBytes);
+                }
+                else
+                {
+                    throw new Exception($"Failed to extract preview from the configuration: {previewErr}");
+                }
+            }
+        }
 
         private string GetPartNumber(ISwDmConfiguration conf) 
         {

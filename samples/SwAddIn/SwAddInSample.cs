@@ -34,6 +34,7 @@ using Xarial.XCad.SolidWorks.UI.PropertyPage;
 using Xarial.XCad.UI.Commands.Structures;
 using Xarial.XCad.SolidWorks.Services;
 using Xarial.XCad;
+using Xarial.XCad.SolidWorks.Documents;
 
 namespace SwAddInExample
 {
@@ -259,6 +260,12 @@ namespace SwAddInExample
 
                 case Commands_e.CreateFeatMgrView:
                     this.CreateFeatureManagerTab<WpfUserControl>(Application.Documents.Active);
+
+                    foreach (var comp in Application.Documents.Active.Selections.OfType<IXComponent>()) 
+                    {
+                        this.CreateFeatureManagerTab<WpfUserControl>((ISwDocument)comp.Document);
+                    }
+
                     //this.CreateDocumentTabWinForm<WinUserControl>(Application.Documents.Active);
                     //this.CreateDocumentTabWinForm<ComUserControl>(Application.Documents.Active);
                     break;

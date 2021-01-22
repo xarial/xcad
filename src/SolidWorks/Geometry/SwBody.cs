@@ -8,6 +8,7 @@
 using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using Xarial.XCad.Geometry;
@@ -82,12 +83,23 @@ namespace Xarial.XCad.SolidWorks.Geometry
             }
         }
 
-        protected ISwDocument m_Document;
+        public IEnumerable<IXFace> Faces 
+        {
+            get 
+            {
+                var face = Body.IGetFirstFace();
+
+                while (face != null) 
+                {
+                    yield return SwObjectFactory.FromDispatch<ISwFace>(face, m_Doc);
+                    face = face.IGetNextFace();
+                }
+            }
+        }
 
         internal SwBody(IBody2 body, ISwDocument doc) : base(body, doc)
         {
             Body = body;
-            m_Document = doc;
         }
 
         public override void Select(bool append)

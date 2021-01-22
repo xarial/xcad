@@ -5,6 +5,7 @@
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
+using System.Collections.Generic;
 using Xarial.XCad.Base;
 using Xarial.XCad.Geometry.Primitives;
 
@@ -45,6 +46,11 @@ namespace Xarial.XCad.Geometry
         /// <param name="other">Body to get common with</param>
         /// <returns>Resulting body</returns>
         IXBody[] Common(IXBody other);
+
+        /// <summary>
+        /// Enumerates all faces of this body
+        /// </summary>
+        IEnumerable<IXFace> Faces { get; }
     }
 
     /// <summary>
