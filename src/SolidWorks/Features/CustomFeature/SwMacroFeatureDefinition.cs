@@ -469,6 +469,9 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 
             m_Editor = new SwMacroFeatureEditor<TParams, TPage>(
                 Application, this.GetType(), m_ParamsParser, m_SvcProvider);
+
+            m_Editor.EditingStarted += OnEditingStarted;
+            m_Editor.EditingCompleted += OnEditingCompleted;
         }
 
         public virtual TParams ConvertPageToParams(TPage par)
@@ -515,6 +518,14 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             {
                 Bodies = CreateGeometry(app, model, parameters, false, out alignDim).ToArray()
             };
+        }
+
+        protected virtual void OnEditingStarted(IXApplication app, IXDocument doc, IXCustomFeature feat)
+        {
+        }
+
+        protected virtual void OnEditingCompleted(IXApplication app, IXDocument doc, IXCustomFeature feat)
+        {
         }
     }
 }

@@ -28,6 +28,9 @@ namespace Xarial.XCad.Utils.CustomFeature
         where TData : class, new()
         where TPage : class, new()
     {
+        public event Action<IXApplication, IXDocument, IXCustomFeature> EditingStarted;
+        public event Action<IXApplication, IXDocument, IXCustomFeature> EditingCompleted;
+
         protected readonly IXApplication m_App;
         protected readonly IServiceProvider m_SvcProvider;
         protected readonly IXLogger m_Logger;
@@ -91,6 +94,8 @@ namespace Xarial.XCad.Utils.CustomFeature
                 m_CurData = Definition.ConvertParamsToPage(featParam);
 
                 m_PmPage.Show(m_CurData);
+                EditingStarted?.Invoke(m_App, model, feature);
+
                 UpdatePreview();
             }
             catch
@@ -107,6 +112,7 @@ namespace Xarial.XCad.Utils.CustomFeature
 
             m_EditingFeature = null;
 
+            EditingStarted?.Invoke(m_App, model, null);
             m_PmPage.Show(m_CurData);
         }
 
@@ -156,6 +162,8 @@ namespace Xarial.XCad.Utils.CustomFeature
 
         private void OnPageClosed(PageCloseReasons_e reason)
         {
+            EditingCompleted?.Invoke(m_App, CurModel, m_EditingFeature);
+
             foreach (var body in m_EditBodies.ValueOrEmpty())
             {
                 body.Visible = true;
