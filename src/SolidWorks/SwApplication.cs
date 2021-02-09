@@ -57,10 +57,11 @@ namespace Xarial.XCad.SolidWorks
         static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
         #endregion
 
+        public event ApplicationStartingDelegate Starting;
         public event ConfigureServicesDelegate ConfigureServices;
 
         internal event Action<SwApplication> FirstStartupCompleted;
-
+        
         IXDocumentRepository IXApplication.Documents => Documents;
         IXMacro IXApplication.OpenMacro(string path) => OpenMacro(path);
         IXGeometryBuilder IXApplication.MemoryGeometryBuilder => MemoryGeometryBuilder;
@@ -389,7 +390,7 @@ namespace Xarial.XCad.SolidWorks
 
             using (var appStarter = new SwApplicationStarter(State, Version)) 
             {
-                var app = appStarter.Start(cancellationToken);
+                var app = appStarter.Start(p => Starting?.Invoke(this, p), cancellationToken);
                 WatchStartupCompleted((SldWorks)app);
                 return app;
             }

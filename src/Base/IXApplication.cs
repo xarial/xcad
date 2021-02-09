@@ -10,6 +10,7 @@ using System.Diagnostics;
 using System.Drawing;
 using Xarial.XCad.Base;
 using Xarial.XCad.Base.Enums;
+using Xarial.XCad.Delegates;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Enums;
 using Xarial.XCad.Geometry;
@@ -21,6 +22,11 @@ namespace Xarial.XCad
     /// </summary>
     public interface IXApplication : IXTransaction
     {
+        /// <summary>
+        /// Fires when application is starting
+        /// </summary>
+        event ApplicationStartingDelegate Starting;
+
         /// <summary>
         /// Version of the application
         /// </summary>

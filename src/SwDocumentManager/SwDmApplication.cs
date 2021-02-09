@@ -15,6 +15,7 @@ using System.Security;
 using System.Text;
 using System.Threading;
 using Xarial.XCad.Base.Enums;
+using Xarial.XCad.Delegates;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Enums;
 using Xarial.XCad.Geometry;
@@ -34,7 +35,8 @@ namespace Xarial.XCad.SwDocumentManager
     internal class SwDmApplication : ISwDmApplication
     {
         #region Not Supported        
-        
+
+        public event ApplicationStartingDelegate Starting;
         public ApplicationState_e State { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
         public bool IsAlive => throw new NotSupportedException();
         public Rectangle WindowRectangle => throw new NotSupportedException();
