@@ -41,17 +41,21 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
                 swCtrl.Height = height;
             }
 
+            var selDefVal = false;
+
             if (atts.Has<ComboBoxOptionsAttribute>())
             {
-                var style = atts.Get<ComboBoxOptionsAttribute>();
+                var opts = atts.Get<ComboBoxOptionsAttribute>();
 
-                if (style.Style != 0)
+                if (opts.Style != 0)
                 {
-                    swCtrl.Style = (int)style.Style;
+                    swCtrl.Style = (int)opts.Style;
                 }
+
+                selDefVal = opts.SelectDefaultValue;
             }
 
-            var ctrl = new PropertyManagerPageComboBoxControl<TVal>(atts.Id, atts.Tag, swCtrl, handler);
+            var ctrl = new PropertyManagerPageComboBoxControl<TVal>(atts.Id, atts.Tag, selDefVal, swCtrl, handler);
             ctrl.Items = GetItems(atts);
             return ctrl;
         }

@@ -78,15 +78,35 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
             //TODO: validate that handlerType inherits PropertyManagerPageHandlerEx and it is COM visible with parameterless constructor
             Handler = (SwPropertyManagerPageHandler)Activator.CreateInstance(handlerType);
 
-            Handler.DataChanged += OnDataChanged;
             Handler.Closed += OnClosed;
             Handler.Closing += OnClosing;
             m_PmpBuilder = new PropertyManagerPageBuilder(app, m_IconsConv, Handler, pageSpec, m_Logger);
 
             m_Page = m_PmpBuilder.CreatePage<TModel>();
-            Controls = m_Page.Binding.Bindings.Select(b => b.Control)
-                .OfType<IPropertyManagerPageControlEx>().ToArray();
+
+            var ctrls = new List<IPropertyManagerPageControlEx>();
+
+            foreach (var binding in m_Page.Binding.Bindings) 
+            {
+                binding.Changed += OnBindingValueChanged;
+                
+                var ctrl = binding.Control;
+
+                if (ctrl is IPropertyManagerPageControlEx)
+                {
+                    ctrls.Add((IPropertyManagerPageControlEx)ctrl);
+                }
+                else 
+                {
+                    m_Logger.Log($"Unrecognized control type: {ctrl?.GetType().FullName}");
+                }
+            }
+
+            Controls = ctrls.ToArray();
         }
+
+        private void OnBindingValueChanged(IBinding binding)
+            => DataChanged?.Invoke();
 
         public void Dispose()
         {
@@ -151,8 +171,6 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
 
         private void OnClosing(swPropertyManagerPageCloseReasons_e reason, PageClosingArg arg)
             => Closing?.Invoke(ConvertReason(reason), arg);
-
-        private void OnDataChanged() => DataChanged?.Invoke();
 
         public void Close(bool cancel) => m_Page.Page.Close(!cancel);
     }

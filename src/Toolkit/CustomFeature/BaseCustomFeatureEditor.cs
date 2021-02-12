@@ -114,6 +114,7 @@ namespace Xarial.XCad.Utils.CustomFeature
 
             EditingStarted?.Invoke(m_App, model, null);
             m_PmPage.Show(m_CurData);
+            UpdatePreview();
         }
 
         protected abstract void DisplayPreview(IXBody[] bodies);

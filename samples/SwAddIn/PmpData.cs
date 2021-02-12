@@ -48,6 +48,20 @@ namespace SwAddInExample
 
     public class MyItem 
     {
+        public static MyItem[] All { get; } = new MyItem[]
+        {
+            new MyItem()
+            {
+                Name = "A",
+                Id = 1
+            },
+            new MyItem()
+            {
+                Name = "B",
+                Id = 2
+            }
+        };
+
         public string Name { get; set; }
         public int Id { get; set; }
 
@@ -75,19 +89,7 @@ namespace SwAddInExample
     public class MyCustomItemsProvider : SwCustomItemsProvider<MyItem>
     {
         public override IEnumerable<MyItem> ProvideItems(ISwApplication app, IControl[] dependencies)
-        {
-            yield return new MyItem()
-            {
-                Name = "A",
-                Id = 1
-            };
-
-            yield return new MyItem()
-            {
-                Name = "B",
-                Id = 2
-            };
-        }
+            => MyItem.All;
     }
 
     [ComVisible(true)]
@@ -142,14 +144,18 @@ namespace SwAddInExample
         public Opts Options { get; set; }
 
         public ISwCircularEdge Selection { get; set; }
-
-        //TODO: add attribute to exclude control from binding to macro feature and uncomment the block below
-
-        //[CustomItems(typeof(MyCustomItemsProvider))]
-        //public MyItem Option2 { get; set; }
+        
+        [ParameterExclude]
+        [CustomItems(typeof(MyCustomItemsProvider))]
+        public MyItem Option2 { get; set; }
 
         [ParameterDimension(CustomFeatureDimensionType_e.Angular)]
         [ExcludeControl]
         public double Angle { get; set; } = Math.PI / 9;
+
+        public PmpMacroFeatData() 
+        {
+            //Option2 = MyItem.All.Last();
+        }
     }
 }

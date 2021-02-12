@@ -54,9 +54,6 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
         internal event Action<int, bool> CustomControlCreated;
 
         /// <inheritdoc/>
-        internal event Action DataChanged;
-
-        /// <inheritdoc/>
         internal event PropertyManagerPageClosingDelegate Closing;
 
         /// <inheritdoc/>
@@ -122,7 +119,6 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
         public void OnButtonPress(int Id)
         {
             ButtonPressed?.Invoke(Id);
-            DataChanged?.Invoke();
         }
 
         [Browsable(false)]
@@ -130,7 +126,6 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
         public void OnCheckboxCheck(int Id, bool Checked)
         {
             CheckChanged?.Invoke(Id, Checked);
-            DataChanged?.Invoke();
         }
 
         [Browsable(false)]
@@ -174,7 +169,6 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
         public void OnComboboxSelectionChanged(int Id, int Item)
         {
             ComboBoxChanged?.Invoke(Id, Item);
-            DataChanged?.Invoke();
         }
 
         [Browsable(false)]
@@ -240,7 +234,6 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
         public void OnNumberboxChanged(int Id, double Value)
         {
             NumberChanged?.Invoke(Id, Value);
-            DataChanged?.Invoke();
         }
 
         [Browsable(false)]
@@ -254,7 +247,6 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
         public void OnOptionCheck(int Id)
         {
             OptionChecked?.Invoke(Id);
-            DataChanged?.Invoke();
         }
 
         [Browsable(false)]
@@ -314,7 +306,6 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
             if (!m_SuspendedSelIds.Contains(Id))
             {
                 SelectionChanged?.Invoke(Id, Count);
-                DataChanged?.Invoke();
             }
         }
 
@@ -353,7 +344,6 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
         public void OnTextboxChanged(int Id, string Text)
         {
             TextChanged?.Invoke(Id, Text);
-            DataChanged?.Invoke();
         }
 
         [Browsable(false)]

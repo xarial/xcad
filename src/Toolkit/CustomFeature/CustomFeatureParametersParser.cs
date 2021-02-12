@@ -551,35 +551,38 @@ namespace Xarial.XCad.Utils.CustomFeature
         {
             foreach (var prp in paramsType.GetProperties())
             {
-                var prpType = prp.PropertyType;
+                if (prp.TryGetAttribute<ParameterExcludeAttribute>() == null)
+                {
+                    var prpType = prp.PropertyType;
 
-                var dimAtt = prp.TryGetAttribute<ParameterDimensionAttribute>();
-                var editBodyAtt = prp.TryGetAttribute<ParameterEditBodyAttribute>();
+                    var dimAtt = prp.TryGetAttribute<ParameterDimensionAttribute>();
+                    var editBodyAtt = prp.TryGetAttribute<ParameterEditBodyAttribute>();
 
-                if (dimAtt != null)
-                {
-                    var dimType = dimAtt.DimensionType;
-                    dimParamHandler.Invoke(dimType, prp);
-                }
-                else if (editBodyAtt != null)
-                {
-                    editBodyHandler.Invoke(prp);
-                }
-                else if (typeof(IXSelObject).IsAssignableFrom(prpType)
-                    || typeof(IEnumerable<IXSelObject>).IsAssignableFrom(prpType))
-                {
-                    selParamHandler.Invoke(prp);
-                }
-                else
-                {
-                    if (typeof(IConvertible).IsAssignableFrom(prpType))
+                    if (dimAtt != null)
                     {
-                        dataParamHandler.Invoke(prp);
+                        var dimType = dimAtt.DimensionType;
+                        dimParamHandler.Invoke(dimType, prp);
+                    }
+                    else if (editBodyAtt != null)
+                    {
+                        editBodyHandler.Invoke(prp);
+                    }
+                    else if (typeof(IXSelObject).IsAssignableFrom(prpType)
+                        || typeof(IEnumerable<IXSelObject>).IsAssignableFrom(prpType))
+                    {
+                        selParamHandler.Invoke(prp);
                     }
                     else
                     {
-                        throw new NotSupportedException(
-                            $"{prp.Name} is not supported as the parameter of macro feature. Currently only types implementing IConvertible are supported (e.g. primitive types, string, DateTime, decimal)");
+                        if (typeof(IConvertible).IsAssignableFrom(prpType))
+                        {
+                            dataParamHandler.Invoke(prp);
+                        }
+                        else
+                        {
+                            throw new NotSupportedException(
+                                $"{prp.Name} is not supported as the parameter of macro feature. Currently only types implementing IConvertible are supported (e.g. primitive types, string, DateTime, decimal)");
+                        }
                     }
                 }
             }

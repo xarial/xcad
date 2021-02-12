@@ -113,6 +113,7 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
             if (e.PropertyName == Property.Name)
             {
                 SetUserControlValue();
+                RaiseChangedEvent();
             }
         }
     }

@@ -33,10 +33,13 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             }
         }
 
-        public PropertyManagerPageComboBoxControl(int id, object tag,
+        private readonly bool m_SelectDefaultValue;
+
+        public PropertyManagerPageComboBoxControl(int id, object tag, bool selDefVal,
             IPropertyManagerPageCombobox comboBox,
             SwPropertyManagerPageHandler handler) : base(comboBox, id, tag, handler)
         {
+            m_SelectDefaultValue = selDefVal;
             m_Handler.ComboBoxChanged += OnComboBoxChanged;
         }
 
@@ -73,6 +76,12 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
                     index = (short)i;
                     break;
                 }
+            }
+
+            if (index == -1 && m_SelectDefaultValue && m_Items.Any())
+            {
+                index = 0;
+                ValueChanged?.Invoke(this, (TVal)m_Items[index].Value);
             }
 
             SwSpecificControl.CurrentSelection = index;
