@@ -10,8 +10,11 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
+using Xarial.XCad.Toolkit.PageBuilder.Binders;
+using Xarial.XCad.UI.Exceptions;
 using Xarial.XCad.UI.PropertyPage.Attributes;
 using Xarial.XCad.UI.PropertyPage.Base;
+using Xarial.XCad.UI.PropertyPage.Delegates;
 using Xarial.XCad.Utils.PageBuilder.Base;
 using Xarial.XCad.Utils.PageBuilder.Core;
 
@@ -20,7 +23,7 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
     public class TypeDataBinder : IDataModelBinder
     {
         public void Bind<TDataModel>(CreateBindingPageDelegate pageCreator,
-            CreateBindingControlDelegate ctrlCreator,
+            CreateBindingControlDelegate ctrlCreator, CreateDynamicControlsDelegate dynCtrlDescCreator,
             out IEnumerable<IBinding> bindings, out IRawDependencyGroup dependencies)
         {
             var type = typeof(TDataModel);
@@ -39,7 +42,7 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
             dependencies = new RawDependencyGroup();
 
             TraverseType<TDataModel>(type, new List<IControlDescriptor>(),
-                ctrlCreator, page, bindingsList, dependencies, ref firstCtrlId);
+                ctrlCreator, dynCtrlDescCreator, page, bindingsList, dependencies, ref firstCtrlId);
 
             OnBeforeControlsDataLoad(bindings);
         }
@@ -78,7 +81,7 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
 
             var typeAtts = (type.GetCustomAttributes(true) ?? new object[0]).OfType<IAttribute>();
 
-            var prpAtts = prp.Attributes;
+            var prpAtts = prp.Attributes ?? new IAttribute[0];
 
             name = prp.Name;
             desc = prp.Description;
@@ -111,51 +114,77 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
         }
 
         private void TraverseType<TDataModel>(Type type, List<IControlDescriptor> parents,
-                    CreateBindingControlDelegate ctrlCreator,
-            IGroup parentCtrl, List<IBinding> bindings, IRawDependencyGroup dependencies, ref int nextCtrlId)
+                    CreateBindingControlDelegate ctrlCreator, CreateDynamicControlsDelegate dynCtrlDescCreator,
+                    IGroup parentCtrl, List<IBinding> bindings, IRawDependencyGroup dependencies, ref int nextCtrlId)
         {
             foreach (var prp in type.GetProperties())
             {
-                var ctrlDesc = new PropertyInfoControlDescriptor(prp);
+                IControlDescriptor[] ctrlDescriptors;
 
-                var prpType = ctrlDesc.DataType;
+                var dynCtrlAtt = prp.GetCustomAttribute<DynamicControlsAttribute>();
 
-                var atts = GetAttributeSet(ctrlDesc, nextCtrlId);
-
-                if (!atts.Has<IIgnoreBindingAttribute>())
+                if (dynCtrlAtt != null)
                 {
-                    int idRange;
-                    var ctrl = ctrlCreator.Invoke(prpType, atts, parentCtrl, out idRange);
-                    nextCtrlId += idRange;
-
-                    var binding = new PropertyInfoBinding<TDataModel>(ctrl, ctrlDesc, parents);
-                    bindings.Add(binding);
-
-                    if (atts.Has<IControlTagAttribute>())
+                    if (dynCtrlDescCreator != null)
                     {
-                        var tag = atts.Get<IControlTagAttribute>().Tag;
-                        dependencies.RegisterBindingTag(binding, tag);
+                        ctrlDescriptors = dynCtrlDescCreator.Invoke(dynCtrlAtt.Tag) ?? new IControlDescriptor[0];
+                    }
+                    else 
+                    {
+                        throw new DynamicControlHandlerMissingException(prp);
                     }
 
-                    if (atts.Has<IDependentOnAttribute>())
+                    ctrlDescriptors = ctrlDescriptors.Select(d => new ControlDescriptorWrapper(d, prp)).ToArray();
+                }
+                else 
+                {
+                    ctrlDescriptors = new IControlDescriptor[] 
                     {
-                        var depAtt = atts.Get<IDependentOnAttribute>();
+                        new PropertyInfoControlDescriptor(prp) 
+                    };
+                }
+                
+                foreach(var ctrlDesc in ctrlDescriptors) 
+                {
+                    var prpType = ctrlDesc.DataType;
 
-                        if (depAtt.Dependencies?.Any() == true)
+                    var atts = GetAttributeSet(ctrlDesc, nextCtrlId);
+
+                    if (!atts.Has<IIgnoreBindingAttribute>())
+                    {
+                        int idRange;
+                        var ctrl = ctrlCreator.Invoke(prpType, atts, parentCtrl, out idRange);
+                        nextCtrlId += idRange;
+
+                        var binding = new PropertyInfoBinding<TDataModel>(ctrl, ctrlDesc, parents);
+                        bindings.Add(binding);
+
+                        if (atts.Has<IControlTagAttribute>())
                         {
-                            dependencies.RegisterDependency(binding,
-                                depAtt.Dependencies, depAtt.DependencyHandler);
+                            var tag = atts.Get<IControlTagAttribute>().Tag;
+                            dependencies.RegisterBindingTag(binding, tag);
                         }
-                    }
 
-                    var isGroup = ctrl is IGroup;
+                        if (atts.Has<IDependentOnAttribute>())
+                        {
+                            var depAtt = atts.Get<IDependentOnAttribute>();
 
-                    if (isGroup)
-                    {
-                        var grpParents = new List<IControlDescriptor>(parents);
-                        grpParents.Add(ctrlDesc);
-                        TraverseType<TDataModel>(prpType, grpParents, ctrlCreator,
-                            ctrl as IGroup, bindings, dependencies, ref nextCtrlId);
+                            if (depAtt.Dependencies?.Any() == true)
+                            {
+                                dependencies.RegisterDependency(binding,
+                                    depAtt.Dependencies, depAtt.DependencyHandler);
+                            }
+                        }
+
+                        var isGroup = ctrl is IGroup;
+
+                        if (isGroup)
+                        {
+                            var grpParents = new List<IControlDescriptor>(parents);
+                            grpParents.Add(ctrlDesc);
+                            TraverseType<TDataModel>(prpType, grpParents, ctrlCreator, dynCtrlDescCreator,
+                                ctrl as IGroup, bindings, dependencies, ref nextCtrlId);
+                        }
                     }
                 }
             }

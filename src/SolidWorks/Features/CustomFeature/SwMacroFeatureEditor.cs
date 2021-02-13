@@ -17,6 +17,7 @@ using Xarial.XCad.SolidWorks.Geometry;
 using Xarial.XCad.SolidWorks.UI.PropertyPage;
 using Xarial.XCad.Toolkit.Utils;
 using Xarial.XCad.UI.PropertyPage;
+using Xarial.XCad.UI.PropertyPage.Delegates;
 using Xarial.XCad.Utils.CustomFeature;
 using Xarial.XCad.Utils.Diagnostics;
 
@@ -27,8 +28,9 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         where TPage : class, new()
     {
         internal SwMacroFeatureEditor(ISwApplication app, Type defType, 
-            CustomFeatureParametersParser paramsParser, IServiceProvider svcProvider) 
-            : base(app, defType, paramsParser, svcProvider)
+            CustomFeatureParametersParser paramsParser, IServiceProvider svcProvider,
+            CreateDynamicControlsDelegate createDynCtrlHandler) 
+            : base(app, defType, paramsParser, svcProvider, createDynCtrlHandler)
         {
         }
 
@@ -67,10 +69,10 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             }
         }
 
-        protected override IXPropertyPage<TPage> CreatePage()
+        protected override IXPropertyPage<TPage> CreatePage(CreateDynamicControlsDelegate createDynCtrlHandler)
         {
             //TODO: add support for other options
-            return new SwPropertyManagerPage<TPage>((ISwApplication)m_App, m_SvcProvider, typeof(TPage));
+            return new SwPropertyManagerPage<TPage>((ISwApplication)m_App, m_SvcProvider, typeof(TPage), createDynCtrlHandler);
         }
     }
 }

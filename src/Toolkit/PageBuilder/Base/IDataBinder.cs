@@ -8,6 +8,7 @@
 using System;
 using System.Collections.Generic;
 using Xarial.XCad.UI.PropertyPage.Base;
+using Xarial.XCad.UI.PropertyPage.Delegates;
 
 namespace Xarial.XCad.Utils.PageBuilder.Base
 {
@@ -18,7 +19,7 @@ namespace Xarial.XCad.Utils.PageBuilder.Base
     public interface IDataModelBinder
     {
         void Bind<TDataModel>(CreateBindingPageDelegate pageCreator,
-            CreateBindingControlDelegate ctrlCreator,
+            CreateBindingControlDelegate ctrlCreator, CreateDynamicControlsDelegate dynCtrlDescCreator,
             out IEnumerable<IBinding> bindings, out IRawDependencyGroup dependencies);
     }
 }

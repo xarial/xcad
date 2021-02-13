@@ -22,6 +22,8 @@ using Xarial.XCad.UI.PropertyPage.Structures;
 using Xarial.XCad.Utils.Diagnostics;
 using Xarial.XCad.Utils.PageBuilder.Base;
 using Xarial.XCad.Toolkit;
+using Xarial.XCad.UI.PropertyPage.Base;
+using Xarial.XCad.UI.Exceptions;
 
 namespace Xarial.XCad.SolidWorks.UI.PropertyPage
 {
@@ -40,7 +42,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
 
         /// <inheritdoc/>
         public event PageDataChangedDelegate DataChanged;
-
+        
         private readonly ISwApplication m_App;
         private readonly IIconsCreator m_IconsConv;
         private readonly PropertyManagerPagePage m_Page;
@@ -60,12 +62,14 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
 
         /// <summary>Creates instance of property manager page</summary>
         /// <param name="app">Pointer to session of SOLIDWORKS where the property manager page to be created</param>
-        internal SwPropertyManagerPage(ISwApplication app, IServiceProvider svcProvider, Type handlerType)
-            : this(app, null, svcProvider, handlerType)
+        internal SwPropertyManagerPage(ISwApplication app, IServiceProvider svcProvider, Type handlerType,
+            CreateDynamicControlsDelegate createDynCtrlHandler)
+            : this(app, null, svcProvider, handlerType, createDynCtrlHandler)
         {
         }
 
-        internal SwPropertyManagerPage(ISwApplication app, IPageSpec pageSpec, IServiceProvider svcProvider, Type handlerType)
+        internal SwPropertyManagerPage(ISwApplication app, IPageSpec pageSpec, IServiceProvider svcProvider, Type handlerType,
+            CreateDynamicControlsDelegate createDynCtrlHandler)
         {
             m_App = app;
 
@@ -82,7 +86,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
             Handler.Closing += OnClosing;
             m_PmpBuilder = new PropertyManagerPageBuilder(app, m_IconsConv, Handler, pageSpec, m_Logger);
 
-            m_Page = m_PmpBuilder.CreatePage<TModel>();
+            m_Page = m_PmpBuilder.CreatePage<TModel>(createDynCtrlHandler);
 
             var ctrls = new List<IPropertyManagerPageControlEx>();
 

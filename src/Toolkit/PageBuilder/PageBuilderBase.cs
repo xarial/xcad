@@ -8,6 +8,7 @@
 using System;
 using System.Collections.Generic;
 using Xarial.XCad.UI.PropertyPage.Base;
+using Xarial.XCad.UI.PropertyPage.Delegates;
 using Xarial.XCad.Utils.PageBuilder.Base;
 using Xarial.XCad.Utils.PageBuilder.Internal;
 
@@ -18,7 +19,6 @@ namespace Xarial.XCad.Utils.PageBuilder
         where TGroup : IGroup
         where TControl : IControl
     {
-
         private readonly IXApplication m_App;
 
         private readonly IDataModelBinder m_DataBinder;
@@ -39,7 +39,7 @@ namespace Xarial.XCad.Utils.PageBuilder
             m_ControlConstructors = new ConstructorsContainer<TPage, TGroup>(ctrlsContstrs);
         }
 
-        public virtual TPage CreatePage<TModel>()
+        public virtual TPage CreatePage<TModel>(CreateDynamicControlsDelegate dynCtrlsHandler)
         {
             var page = default(TPage);
 
@@ -57,8 +57,7 @@ namespace Xarial.XCad.Utils.PageBuilder
                 {
                     idRange = 1;
                     return m_ControlConstructors.CreateElement(type, parent, atts, ref idRange);
-                },
-                out bindings, out dependencies);
+                }, dynCtrlsHandler, out bindings, out dependencies);
 
             page.Binding.Load(m_App, bindings, dependencies);
             UpdatePageDependenciesState(page);

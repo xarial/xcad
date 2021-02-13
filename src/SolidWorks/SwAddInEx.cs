@@ -40,6 +40,7 @@ using Xarial.XCad.Toolkit;
 using Xarial.XCad.UI;
 using Xarial.XCad.UI.Commands;
 using Xarial.XCad.UI.PropertyPage;
+using Xarial.XCad.UI.PropertyPage.Delegates;
 using Xarial.XCad.UI.TaskPane;
 using Xarial.XCad.Utils.Diagnostics;
 using Xarial.XCad.Utils.Reflection;
@@ -51,9 +52,9 @@ namespace Xarial.XCad.SolidWorks
         new ISwApplication Application { get; }
         new ISwCommandManager CommandManager { get; }
 
-        new ISwPropertyManagerPage<TData> CreatePage<TData>();
+        new ISwPropertyManagerPage<TData> CreatePage<TData>(CreateDynamicControlsDelegate createDynCtrlHandler = null);
         
-        ISwPropertyManagerPage<TData> CreatePage<TData, THandler>()
+        ISwPropertyManagerPage<TData> CreatePage<TData, THandler>(CreateDynamicControlsDelegate createDynCtrlHandler = null)
                 where THandler : SwPropertyManagerPageHandler, new();
         
         ISwModelViewTab<TControl> CreateDocumentTab<TControl>(ISwDocument doc);
@@ -297,22 +298,20 @@ namespace Xarial.XCad.SolidWorks
             GC.WaitForPendingFinalizers();
         }
 
-        IXPropertyPage<TData> IXExtension.CreatePage<TData>() => CreatePropertyManagerPage<TData>(typeof(TData));
+        IXPropertyPage<TData> IXExtension.CreatePage<TData>(CreateDynamicControlsDelegate createDynCtrlHandler)
+            => CreatePropertyManagerPage<TData>(typeof(TData), createDynCtrlHandler);
 
-        public ISwPropertyManagerPage<TData> CreatePage<TData>()
-        {
-            return CreatePropertyManagerPage<TData>(typeof(TData));
-        }
+        public ISwPropertyManagerPage<TData> CreatePage<TData>(CreateDynamicControlsDelegate createDynCtrlHandler = null)
+            => CreatePropertyManagerPage<TData>(typeof(TData), createDynCtrlHandler);
 
-        public ISwPropertyManagerPage<TData> CreatePage<TData, THandler>()
+        public ISwPropertyManagerPage<TData> CreatePage<TData, THandler>(CreateDynamicControlsDelegate createDynCtrlHandler = null)
             where THandler : SwPropertyManagerPageHandler, new()
-        {
-            return CreatePropertyManagerPage<TData>(typeof(THandler));
-        }
+            => CreatePropertyManagerPage<TData>(typeof(THandler), createDynCtrlHandler);
 
-        private ISwPropertyManagerPage<TData> CreatePropertyManagerPage<TData>(Type handlerType)
+        private ISwPropertyManagerPage<TData> CreatePropertyManagerPage<TData>(Type handlerType, 
+            CreateDynamicControlsDelegate createDynCtrlHandler)
         {
-            var page = new SwPropertyManagerPage<TData>(Application, m_SvcProvider, handlerType);
+            var page = new SwPropertyManagerPage<TData>(Application, m_SvcProvider, handlerType, createDynCtrlHandler);
             m_Disposables.Add(page);
             return page;
         }
