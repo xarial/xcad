@@ -21,6 +21,7 @@ using Xarial.XCad.UI.PropertyPage.Structures;
 using Xarial.XCad.Utils.Diagnostics;
 using Xarial.XCad.Utils.Reflection;
 using Xarial.XCad.Toolkit;
+using Xarial.XCad.UI.PropertyPage.Delegates;
 
 namespace Xarial.XCad.Utils.CustomFeature
 {
@@ -51,7 +52,7 @@ namespace Xarial.XCad.Utils.CustomFeature
         public BaseCustomFeatureEditor(IXApplication app,
             Type featDefType,
             CustomFeatureParametersParser paramsParser,
-            IServiceProvider svcProvider)
+            IServiceProvider svcProvider, CreateDynamicControlsDelegate createDynCtrlHandler)
         {
             m_App = app;
 
@@ -63,7 +64,7 @@ namespace Xarial.XCad.Utils.CustomFeature
 
             m_BodiesComparer = new XObjectEqualityComparer<IXBody>();
 
-            m_PmPage = CreatePage();
+            m_PmPage = CreatePage(createDynCtrlHandler);
 
             m_ParamsParser = paramsParser;
 
@@ -121,7 +122,7 @@ namespace Xarial.XCad.Utils.CustomFeature
 
         protected abstract void HidePreview(IXBody[] bodies);
 
-        protected abstract IXPropertyPage<TPage> CreatePage();
+        protected abstract IXPropertyPage<TPage> CreatePage(CreateDynamicControlsDelegate createDynCtrlHandler);
 
         private void HideEditBodies()
         {

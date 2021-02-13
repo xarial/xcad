@@ -57,11 +57,11 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
         {
             const int OPTIONS_NOT_USED = 0;
 
-            var icon = atts.BoundMemberInfo?.TryGetAttribute<IconAttribute>()?.Icon;
+            var icon = atts.ControlDescriptor?.Icon;
 
             if (icon == null)
             {
-                icon = atts.BoundType?.TryGetAttribute<IconAttribute>()?.Icon;
+                icon = atts.ContextType?.TryGetAttribute<IconAttribute>()?.Icon;
             }
 
             string iconPath = "";

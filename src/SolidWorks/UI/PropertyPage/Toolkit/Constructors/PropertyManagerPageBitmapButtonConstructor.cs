@@ -51,11 +51,11 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
 
         private void SetButtonSpecificType(IAttributeSet atts) 
         {
-            if (atts.BoundType == typeof(bool))
+            if (atts.ContextType == typeof(bool))
             {
                 m_Type = swPropertyManagerPageControlType_e.swControlType_CheckableBitmapButton;
             }
-            else if (atts.BoundType == typeof(Action))
+            else if (atts.ContextType == typeof(Action))
             {
                 m_Type = swPropertyManagerPageControlType_e.swControlType_BitmapButton;
             }

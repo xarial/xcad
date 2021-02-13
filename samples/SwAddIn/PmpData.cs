@@ -117,6 +117,9 @@ namespace SwAddInExample
         [BitmapButton(typeof(Resources), nameof(Resources.xarial))]
         public Action Button { get; }
 
+        [DynamicControls("_Test_")]
+        public Dictionary<string, object> DynamicControls { get; }
+
         private void ReduceComponents() 
         {
             if (Components?.Any() == true) 
@@ -129,6 +132,10 @@ namespace SwAddInExample
         public PmpData() 
         {
             Button = ReduceComponents;
+            DynamicControls = new Dictionary<string, object>()
+            {
+                { "A", "Hello" }
+            };
         }
     }
 
@@ -147,6 +154,7 @@ namespace SwAddInExample
         
         [ParameterExclude]
         [CustomItems(typeof(MyCustomItemsProvider))]
+        [ComboBoxOptions(selectDefaultValue: true)]
         public MyItem Option2 { get; set; }
 
         [ParameterDimension(CustomFeatureDimensionType_e.Angular)]
@@ -155,7 +163,7 @@ namespace SwAddInExample
 
         public PmpMacroFeatData() 
         {
-            //Option2 = MyItem.All.Last();
+            Option2 = MyItem.All.Last();
         }
     }
 }

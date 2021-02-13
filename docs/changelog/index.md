@@ -12,6 +12,8 @@ Breaking change is marked with &#x26A0; symbol
 
 * &#x26A0; IXPropertyRepository::GetOrPreCreate moved to extension method
 * &#x26A0; IXObject::IsSame replaced with IEquatable<IXObject>.Equals
+* &#x26A0; IXCustomControl::DataContextChanged replaced with IXCustomControl::ValueChanged
+* &#x26A0; IXCustomControl::DataContext replaced with IXCustomControl::Value
 
 ## 0.6.10 - December 7, 2020
 

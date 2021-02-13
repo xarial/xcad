@@ -38,6 +38,7 @@ using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.Toolkit;
 using Xarial.XCad.Toolkit.CustomFeature;
 using Xarial.XCad.UI;
+using Xarial.XCad.UI.PropertyPage.Base;
 using Xarial.XCad.Utils.Diagnostics;
 using Xarial.XCad.Utils.Reflection;
 
@@ -468,7 +469,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             m_ParamsParser = parser;
 
             m_Editor = new SwMacroFeatureEditor<TParams, TPage>(
-                Application, this.GetType(), m_ParamsParser, m_SvcProvider);
+                Application, this.GetType(), m_ParamsParser, m_SvcProvider, CreateDynamicControls);
 
             m_Editor.EditingStarted += OnEditingStarted;
             m_Editor.EditingCompleted += OnEditingCompleted;
@@ -527,5 +528,8 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         protected virtual void OnEditingCompleted(IXApplication app, IXDocument doc, IXCustomFeature feat)
         {
         }
+
+        protected virtual IControlDescriptor[] CreateDynamicControls(object tag)
+            => null;
     }
 }

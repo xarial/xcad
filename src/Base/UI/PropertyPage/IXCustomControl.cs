@@ -19,11 +19,11 @@ namespace Xarial.XCad.UI.PropertyPage
         /// <summary>
         /// Raised when data context of this control is changed
         /// </summary>
-        event Action<IXCustomControl, object> DataContextChanged;
+        event Action<IXCustomControl, object> ValueChanged;
 
         /// <summary>
         /// Returns the data context of this control
         /// </summary>
-        object DataContext { get; set; }
+        object Value { get; set; }
     }
 }

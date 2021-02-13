@@ -45,7 +45,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
             TitleIcon titleIcon = null;
 
             IconAttribute commIconAtt;
-            if (atts.BoundType.TryGetAttribute(out commIconAtt))
+            if (atts.ContextType.TryGetAttribute(out commIconAtt))
             {
                 if (commIconAtt.Icon != null)
                 {

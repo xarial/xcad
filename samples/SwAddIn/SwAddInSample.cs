@@ -35,6 +35,11 @@ using Xarial.XCad.UI.Commands.Structures;
 using Xarial.XCad.SolidWorks.Services;
 using Xarial.XCad;
 using Xarial.XCad.SolidWorks.Documents;
+using Xarial.XCad.UI.PropertyPage.Base;
+using Xarial.XCad.UI;
+using System.Collections.Generic;
+using Xarial.XCad.Reflection;
+using Xarial.XCad.UI.PropertyPage.Attributes;
 
 namespace SwAddInExample
 {
@@ -42,6 +47,34 @@ namespace SwAddInExample
     [Guid("3078E7EF-780E-4A70-9359-172D90FAAED2")]
     public class SwAddInSample : SwAddInEx
     {
+        public class DictionaryControl : IControlDescriptor
+        {
+            public string DisplayName { get; set; }
+            public string Description { get; set; }
+            public string Name { get; set; }
+            public IXImage Icon { get; set; }
+            public Type DataType { get; set; }
+            public Xarial.XCad.UI.PropertyPage.Base.IAttribute[] Attributes { get; set; }
+
+            public object GetValue(object context)
+            {
+                var dict = context as Dictionary<string, object>;
+                
+                if (!dict.TryGetValue(Name, out object val)) 
+                {
+                    val = Activator.CreateInstance(DataType);
+                }
+
+                return val;
+            }
+
+            public void SetValue(object context, object value)
+            {
+                var dict = context as Dictionary<string, object>;
+                dict[Name] = value;
+            }
+        }
+
         [Icon(typeof(Resources), nameof(Resources.xarial))]
         public enum Commands_e 
         {
@@ -146,11 +179,39 @@ namespace SwAddInExample
 
             Application.Documents.RegisterHandler<SwDocHandler>();
 
-            m_Page = this.CreatePage<PmpData>();
+            m_Page = this.CreatePage<PmpData>(OnCreateDynamicControls);
             m_Page.Closed += OnPage1Closed;
-
+            
             m_MacroFeatPage = this.CreatePage<PmpMacroFeatData>();
             m_MacroFeatPage.Closed += OnClosed;
+        }
+
+        private IControlDescriptor[] OnCreateDynamicControls(object tag)
+        {
+            return new IControlDescriptor[]
+            {
+                new DictionaryControl()
+                {
+                    DataType = typeof(string),
+                    Name = "A",
+                    Attributes = new Xarial.XCad.UI.PropertyPage.Base.IAttribute[]
+                    {
+                        new ControlOptionsAttribute(backgroundColor: System.Drawing.KnownColor.Yellow)
+                    }
+                },
+                new DictionaryControl()
+                {
+                    DataType = typeof(ContextMenuCommands_e),
+                    Name = "B"
+                },
+                new DictionaryControl()
+                {
+                    DataType = typeof(int),
+                    Name = "C",
+                    Icon = ResourceHelper.GetResource<IXImage>(typeof(Resources), nameof(Resources.xarial)),
+                    Description = ""
+                }
+            };
         }
 
         private void OnPage1Closed(PageCloseReasons_e reason)

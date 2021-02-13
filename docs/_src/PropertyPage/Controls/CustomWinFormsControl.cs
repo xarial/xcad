@@ -6,7 +6,7 @@ namespace Xarial.XCad.Documentation.PropertyPage.Controls
 {
     public partial class CustomWinFormsControl : UserControl, IXCustomControl
     {
-        public event Action<IXCustomControl, object> DataContextChanged;
+        public event Action<IXCustomControl, object> ValueChanged;
 
         private CustomControlWinFormsModel m_Model;
 
@@ -15,7 +15,7 @@ namespace Xarial.XCad.Documentation.PropertyPage.Controls
             InitializeComponent();
         }
 
-        public object DataContext 
+        public object Value 
         {
             get
             {
@@ -29,7 +29,7 @@ namespace Xarial.XCad.Documentation.PropertyPage.Controls
             {
                 m_Model = (CustomControlWinFormsModel)value;
                 lblMessage.Text = m_Model.Text;
-                DataContextChanged?.Invoke(this, m_Model);
+                ValueChanged?.Invoke(this, m_Model);
             }
         }
     }

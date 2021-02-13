@@ -16,6 +16,7 @@ using Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors;
 using Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls;
 using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.UI.PropertyPage.Attributes;
+using Xarial.XCad.UI.PropertyPage.Base;
 using Xarial.XCad.Utils.Diagnostics;
 using Xarial.XCad.Utils.PageBuilder;
 using Xarial.XCad.Utils.PageBuilder.Base;
@@ -48,14 +49,13 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit
         private class PmpAttributeSet : IAttributeSet
         {
             private readonly IAttributeSet m_BaseAttSet;
-            private readonly string m_Title;
 
-            public Type BoundType => m_BaseAttSet.BoundType;
+            public Type ContextType => m_BaseAttSet.ContextType;
             public string Description => m_BaseAttSet.Description;
             public int Id => m_BaseAttSet.Id;
-            public string Name => m_Title;
+            public string Name { get; }
             public object Tag => m_BaseAttSet.Tag;
-            public MemberInfo BoundMemberInfo => m_BaseAttSet.BoundMemberInfo;
+            public IControlDescriptor ControlDescriptor => m_BaseAttSet.ControlDescriptor;
 
             public void Add<TAtt>(TAtt att) where TAtt : XCad.UI.PropertyPage.Base.IAttribute
             {
@@ -88,13 +88,13 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit
                 }
 
                 if (string.IsNullOrEmpty(baseAttSet.Name)
-                    || baseAttSet.Name == BoundType.Name)
+                    || baseAttSet.Name == ContextType.Name)
                 {
-                    m_Title = pageSpec.Title;
+                    Name = pageSpec.Title;
                 }
                 else
                 {
-                    m_Title = baseAttSet.Name;
+                    Name = baseAttSet.Name;
                 }
             }
         }
