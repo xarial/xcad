@@ -54,7 +54,7 @@ namespace Xarial.XCad.Toolkit.PageBuilder.Constructors
                 throw new ArgumentNullException(nameof(atts));
             }
 
-            var type = atts.BoundType;
+            var type = atts.ContextType;
 
             if (type.IsAssignableToGenericType(typeof(IEnumerable<>))) 
             {
@@ -106,7 +106,7 @@ namespace Xarial.XCad.Toolkit.PageBuilder.Constructors
 
         public static BitmapLabelType_e? GetDefaultBitmapLabel(IAttributeSet atts)
         {
-            var type = atts.BoundType;
+            var type = atts.ContextType;
 
             if (type.IsAssignableToGenericType(typeof(IEnumerable<>)))
             {

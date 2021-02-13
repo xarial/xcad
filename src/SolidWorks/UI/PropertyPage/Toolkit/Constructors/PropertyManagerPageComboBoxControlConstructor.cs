@@ -74,7 +74,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
         
         protected override ItemsControlItem[] GetItems(IAttributeSet atts)
         {
-            var items = EnumExtension.GetEnumFields(atts.BoundType);
+            var items = EnumExtension.GetEnumFields(atts.ContextType);
             return items.Select(i => new ItemsControlItem()
             {
                 DisplayName = i.Value,

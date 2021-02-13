@@ -195,7 +195,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
 
             ControlIcon icon = null;
 
-            var commonIcon = atts.BoundMemberInfo?.TryGetAttribute<IconAttribute>()?.Icon;
+            var commonIcon = atts.ControlDescriptor?.Icon;
 
             if (commonIcon != null)
             {

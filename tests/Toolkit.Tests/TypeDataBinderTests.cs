@@ -65,11 +65,11 @@ namespace Toolkit.Tests
 
             Assert.AreEqual(3, bindings.Count());
             Assert.AreEqual(typeof(DataModelMock1).GetProperty("Field1"),
-                (bindings.ElementAt(0) as PropertyInfoBinding<DataModelMock1>).Property);
+                (bindings.ElementAt(0) as PropertyInfoBinding<DataModelMock1>).ControlDescriptor);
             Assert.AreEqual(typeof(DataModelMock1).GetProperty("Field2"),
-                (bindings.ElementAt(1) as PropertyInfoBinding<DataModelMock1>).Property);
+                (bindings.ElementAt(1) as PropertyInfoBinding<DataModelMock1>).ControlDescriptor);
             Assert.AreEqual(typeof(DataModelMock1).GetProperty("Field3"),
-                (bindings.ElementAt(2) as PropertyInfoBinding<DataModelMock1>).Property);
+                (bindings.ElementAt(2) as PropertyInfoBinding<DataModelMock1>).ControlDescriptor);
         }
 
         [Test]
@@ -100,19 +100,19 @@ namespace Toolkit.Tests
 
             Assert.AreEqual(7, bindings.Count());
             Assert.AreEqual(typeof(DataModelMock2).GetProperty("Field1"),
-                (bindings.ElementAt(0) as PropertyInfoBinding<DataModelMock2>).Property);
+                (bindings.ElementAt(0) as PropertyInfoBinding<DataModelMock2>).ControlDescriptor);
             Assert.AreEqual(typeof(DataModelMock2).GetProperty("Field2"),
-                (bindings.ElementAt(1) as PropertyInfoBinding<DataModelMock2>).Property);
+                (bindings.ElementAt(1) as PropertyInfoBinding<DataModelMock2>).ControlDescriptor);
             Assert.AreEqual(typeof(DataModelMock2).GetProperty("Field3"),
-                (bindings.ElementAt(2) as PropertyInfoBinding<DataModelMock2>).Property);
+                (bindings.ElementAt(2) as PropertyInfoBinding<DataModelMock2>).ControlDescriptor);
             Assert.AreEqual(typeof(DataModelMock2).GetProperty("Group1"),
-                (bindings.ElementAt(3) as PropertyInfoBinding<DataModelMock2>).Property);
+                (bindings.ElementAt(3) as PropertyInfoBinding<DataModelMock2>).ControlDescriptor);
             Assert.AreEqual(typeof(DataModelMock1).GetProperty("Field1"),
-                (bindings.ElementAt(4) as PropertyInfoBinding<DataModelMock2>).Property);
+                (bindings.ElementAt(4) as PropertyInfoBinding<DataModelMock2>).ControlDescriptor);
             Assert.AreEqual(typeof(DataModelMock1).GetProperty("Field2"),
-                (bindings.ElementAt(5) as PropertyInfoBinding<DataModelMock2>).Property);
+                (bindings.ElementAt(5) as PropertyInfoBinding<DataModelMock2>).ControlDescriptor);
             Assert.AreEqual(typeof(DataModelMock1).GetProperty("Field3"),
-                (bindings.ElementAt(6) as PropertyInfoBinding<DataModelMock2>).Property);
+                (bindings.ElementAt(6) as PropertyInfoBinding<DataModelMock2>).ControlDescriptor);
         }
 
         [Test]

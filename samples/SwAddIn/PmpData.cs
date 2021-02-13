@@ -147,6 +147,7 @@ namespace SwAddInExample
         
         [ParameterExclude]
         [CustomItems(typeof(MyCustomItemsProvider))]
+        [ComboBoxOptions(selectDefaultValue: true)]
         public MyItem Option2 { get; set; }
 
         [ParameterDimension(CustomFeatureDimensionType_e.Angular)]

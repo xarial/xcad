@@ -50,7 +50,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
         protected override PropertyManagerPageSelectionBoxControl CreateControl(
             IPropertyManagerPageSelectionbox swCtrl, IAttributeSet atts, SwPropertyManagerPageHandler handler, short height)
         {
-            swCtrl.SingleEntityOnly = !(typeof(IList).IsAssignableFrom(atts.BoundType));
+            swCtrl.SingleEntityOnly = !(typeof(IList).IsAssignableFrom(atts.ContextType));
 
             if (height == -1)
             {
@@ -103,7 +103,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
             swCtrl.SetSelectionFilters(filters);
 
             return new PropertyManagerPageSelectionBoxControl(m_SwApp, atts.Id, atts.Tag,
-                swCtrl, handler, atts.BoundType, customFilter);
+                swCtrl, handler, atts.ContextType, customFilter);
         }
 
         protected virtual SelectType_e[] GetDefaultFilters(IAttributeSet atts, out ISelectionCustomFilter customFilter) 

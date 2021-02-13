@@ -30,20 +30,20 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
 
         protected override PropertyManagerPageOptionBoxControl Create(PropertyManagerPagePage page, IAttributeSet atts, ref int idRange)
         {
-            idRange = EnumExtension.GetEnumFields(atts.BoundType).Count;
+            idRange = EnumExtension.GetEnumFields(atts.ContextType).Count;
             return base.Create(page, atts);
         }
 
         protected override PropertyManagerPageOptionBoxControl Create(PropertyManagerPageGroupBase group, IAttributeSet atts, ref int idRange)
         {
-            idRange = EnumExtension.GetEnumFields(atts.BoundType).Count;
+            idRange = EnumExtension.GetEnumFields(atts.ContextType).Count;
             return base.Create(group, atts);
         }
 
         protected override PropertyManagerPageOptionBoxControl CreateControl(
             PropertyManagerPageOptionBox swCtrl, IAttributeSet atts, SwPropertyManagerPageHandler handler, short height)
         {
-            var options = EnumExtension.GetEnumFields(atts.BoundType);
+            var options = EnumExtension.GetEnumFields(atts.ContextType);
 
             if (atts.Has<OptionBoxOptionsAttribute>())
             {
@@ -111,7 +111,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
         private PropertyManagerPageOptionBox CreateOptionBoxControl(ControlOptionsAttribute opts, IAttributeSet atts,
             ControlCreatorDelegate creator)
         {
-            var options = EnumExtension.GetEnumFields(atts.BoundType);
+            var options = EnumExtension.GetEnumFields(atts.ContextType);
 
             var ctrls = new IPropertyManagerPageOption[options.Count];
 

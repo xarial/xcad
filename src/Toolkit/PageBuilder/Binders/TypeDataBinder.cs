@@ -38,7 +38,7 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
 
             dependencies = new RawDependencyGroup();
 
-            TraverseType<TDataModel>(type, new List<PropertyInfo>(),
+            TraverseType<TDataModel>(type, new List<IControlDescriptor>(),
                 ctrlCreator, page, bindingsList, dependencies, ref firstCtrlId);
 
             OnBeforeControlsDataLoad(bindings);
@@ -53,9 +53,9 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
         }
 
         private IAttributeSet CreateAttributeSet(int ctrlId, string ctrlName,
-            string desc, Type boundType, IAttribute[] atts, object tag, MemberInfo boundMemberInfo = null)
+            string desc, Type boundType, IAttribute[] atts, object tag, IControlDescriptor ctrlDescriptor = null)
         {
-            var attsSet = new AttributeSet(ctrlId, ctrlName, desc, boundType, tag, boundMemberInfo);
+            var attsSet = new AttributeSet(ctrlId, ctrlName, desc, boundType, tag, ctrlDescriptor);
 
             if (atts?.Any() == true)
             {
@@ -68,17 +68,21 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
             return attsSet;
         }
 
-        private IAttributeSet GetAttributeSet(PropertyInfo prp, int ctrlId)
+        private IAttributeSet GetAttributeSet(IControlDescriptor prp, int ctrlId)
         {
             string name;
             string desc;
             object tag;
 
-            var type = prp.PropertyType;
+            var type = prp.DataType;
 
-            var typeAtts = ParseAttributes(type.GetCustomAttributes(true), out name, out desc, out tag);
+            var typeAtts = (type.GetCustomAttributes(true) ?? new object[0]).OfType<IAttribute>();
 
-            var prpAtts = ParseAttributes(prp.GetCustomAttributes(true), out name, out desc, out tag);
+            var prpAtts = prp.Attributes;
+
+            name = prp.Name;
+            desc = prp.Description;
+            tag = prpAtts.OfType<IControlTagAttribute>().FirstOrDefault()?.Tag;
 
             if (string.IsNullOrEmpty(name))
             {
@@ -90,11 +94,13 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
 
         private IAttributeSet GetAttributeSet(Type type, int ctrlId)
         {
-            string name;
-            string desc;
-            object tag;
+            var customAtts = type.GetCustomAttributes(true) ?? new object[0];
 
-            var typeAtts = ParseAttributes(type.GetCustomAttributes(true), out name, out desc, out tag);
+            var typeAtts = customAtts.OfType<IAttribute>();
+
+            var name = customAtts.OfType<DisplayNameAttribute>().FirstOrDefault()?.DisplayName;
+            var desc = customAtts.OfType<DescriptionAttribute>().FirstOrDefault()?.Description;
+            var tag = customAtts.OfType<IControlTagAttribute>().FirstOrDefault()?.Tag;
 
             if (string.IsNullOrEmpty(name))
             {
@@ -104,32 +110,17 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
             return CreateAttributeSet(ctrlId, name, desc, type, typeAtts.ToArray(), tag);
         }
 
-        private IEnumerable<IAttribute> ParseAttributes(
-            object[] customAtts, out string name, out string desc, out object tag)
-        {
-            name = customAtts?.OfType<DisplayNameAttribute>()?.FirstOrDefault()?.DisplayName;
-            desc = customAtts?.OfType<DescriptionAttribute>()?.FirstOrDefault()?.Description;
-            tag = customAtts?.OfType<ControlTagAttribute>()?.FirstOrDefault()?.Tag;
-
-            if (customAtts == null)
-            {
-                return Enumerable.Empty<IAttribute>();
-            }
-            else
-            {
-                return customAtts.OfType<IAttribute>();
-            }
-        }
-
-        private void TraverseType<TDataModel>(Type type, List<PropertyInfo> parents,
+        private void TraverseType<TDataModel>(Type type, List<IControlDescriptor> parents,
                     CreateBindingControlDelegate ctrlCreator,
             IGroup parentCtrl, List<IBinding> bindings, IRawDependencyGroup dependencies, ref int nextCtrlId)
         {
             foreach (var prp in type.GetProperties())
             {
-                var prpType = prp.PropertyType;
+                var ctrlDesc = new PropertyInfoControlDescriptor(prp);
 
-                var atts = GetAttributeSet(prp, nextCtrlId);
+                var prpType = ctrlDesc.DataType;
+
+                var atts = GetAttributeSet(ctrlDesc, nextCtrlId);
 
                 if (!atts.Has<IIgnoreBindingAttribute>())
                 {
@@ -137,7 +128,7 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
                     var ctrl = ctrlCreator.Invoke(prpType, atts, parentCtrl, out idRange);
                     nextCtrlId += idRange;
 
-                    var binding = new PropertyInfoBinding<TDataModel>(ctrl, prp, parents);
+                    var binding = new PropertyInfoBinding<TDataModel>(ctrl, ctrlDesc, parents);
                     bindings.Add(binding);
 
                     if (atts.Has<IControlTagAttribute>())
@@ -161,8 +152,8 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
 
                     if (isGroup)
                     {
-                        var grpParents = new List<PropertyInfo>(parents);
-                        grpParents.Add(prp);
+                        var grpParents = new List<IControlDescriptor>(parents);
+                        grpParents.Add(ctrlDesc);
                         TraverseType<TDataModel>(prpType, grpParents, ctrlCreator,
                             ctrl as IGroup, bindings, dependencies, ref nextCtrlId);
                     }

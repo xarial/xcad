@@ -41,11 +41,11 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
         {
             if (m_CurrentControl != null)
             {
-                m_CurrentControl.DataContextChanged -= OnDataContextChanged;
+                m_CurrentControl.ValueChanged -= OnDataContextChanged;
             }
 
             m_CurrentControl = m_Creator.CreateControl(m_CtrlType, out _);
-            m_CurrentControl.DataContextChanged += OnDataContextChanged;
+            m_CurrentControl.ValueChanged += OnDataContextChanged;
         }
 
         private void OnPageClosed(swPropertyManagerPageCloseReasons_e reason)
@@ -57,10 +57,10 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
         }
 
         protected override object GetSpecificValue()
-            => m_CurrentControl.DataContext;
+            => m_CurrentControl.Value;
 
         protected override void SetSpecificValue(object value)
-            => m_CurrentControl.DataContext = value;
+            => m_CurrentControl.Value = value;
 
         private void OnCustomControlCreated(int id, bool status)
         {
