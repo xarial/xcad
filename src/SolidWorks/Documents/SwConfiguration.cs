@@ -8,11 +8,15 @@
 using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
 using System;
+using System.Drawing;
+using System.Drawing.Imaging;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using Xarial.XCad.Data;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Features;
+using Xarial.XCad.Reflection;
 using Xarial.XCad.Services;
 using Xarial.XCad.SolidWorks.Data;
 using Xarial.XCad.SolidWorks.Documents.Exceptions;
@@ -29,8 +33,6 @@ namespace Xarial.XCad.SolidWorks.Documents
 
     internal class SwConfiguration : SwObject, ISwConfiguration
     {
-        public IXImage Preview => throw new NotSupportedException();
-
         public IConfiguration Configuration => m_Creator.Element;
 
         private readonly new SwDocument3D m_Doc;
@@ -98,6 +100,26 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public override object Dispatch => Configuration;
 
+        public IXImage Preview
+        {
+            get
+            {
+                var getPictureFromIPictureFund = typeof(System.Windows.Forms.AxHost)
+                    .GetMethod("GetPictureFromIPicture", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+
+                var pictDisp = m_Doc.App.Sw.GetPreviewBitmap(m_Doc.Path, Name);
+
+                if (pictDisp == null)
+                {
+                    throw new NullReferenceException("Failed to extract IPictureDisp from the document");
+                }
+
+                var bmp = getPictureFromIPictureFund.Invoke(null, new object[] { pictDisp }) as Bitmap;
+
+                return ResourceHelper.FromBytes(BitmapToByteArray(bmp));
+            }
+        }
+
         public string PartNumber => GetPartNumber(Configuration);
 
         private string GetPartNumber(IConfiguration conf) 
@@ -138,6 +160,15 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
 
             return conf;
+        }
+
+        private byte[] BitmapToByteArray(Bitmap bmp)
+        {
+            using (var ms = new MemoryStream())
+            {
+                bmp.Save(ms, ImageFormat.Png);
+                return ms.ToArray();
+            }
         }
 
         public void Dispose()

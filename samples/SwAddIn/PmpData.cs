@@ -117,6 +117,10 @@ namespace SwAddInExample
         [BitmapButton(typeof(Resources), nameof(Resources.xarial))]
         public Action Button { get; }
 
+        [Title("Action Button")]
+        [Description("Sample button")]
+        public Action Button1 { get; }
+
         [DynamicControls("_Test_")]
         public Dictionary<string, object> DynamicControls { get; }
 

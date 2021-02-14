@@ -83,7 +83,7 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
 
             var prpAtts = prp.Attributes ?? new IAttribute[0];
 
-            name = prp.Name;
+            name = prp.DisplayName;
             desc = prp.Description;
             tag = prpAtts.OfType<IControlTagAttribute>().FirstOrDefault()?.Tag;
 
