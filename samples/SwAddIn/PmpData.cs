@@ -124,6 +124,11 @@ namespace SwAddInExample
         [DynamicControls("_Test_")]
         public Dictionary<string, object> DynamicControls { get; }
 
+        //public List<string> List { get; set; }
+
+        [ComboBoxItemsSource(1, 2, 3, 4, 5)]
+        public int StaticComboBox { get; set; }
+
         private void ReduceComponents() 
         {
             if (Components?.Any() == true) 
@@ -157,7 +162,7 @@ namespace SwAddInExample
         public ISwCircularEdge Selection { get; set; }
         
         [ParameterExclude]
-        [CustomItems(typeof(MyCustomItemsProvider))]
+        [ComboBoxItemsSource(typeof(MyCustomItemsProvider))]
         [ComboBoxOptions(selectDefaultValue: true)]
         public MyItem Option2 { get; set; }
 

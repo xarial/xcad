@@ -51,7 +51,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             }
             else 
             {
-                img = ResourceHelper.FromBytes(ImageToByteArray(value));
+                img = new BaseImage(ImageToByteArray(value));
             }
 
             var icons = m_IconsConv.ConvertIcon(new ControlIcon(img, m_Size));

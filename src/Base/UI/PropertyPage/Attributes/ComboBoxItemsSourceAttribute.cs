@@ -42,7 +42,7 @@ namespace Xarial.XCad.UI.PropertyPage.Attributes
         }
     }
 
-    public class CustomItemsAttribute : Attribute, ISpecificConstructorAttribute, IDependentOnAttribute
+    public class ComboBoxItemsSourceAttribute : Attribute, ISpecificConstructorAttribute, IDependentOnAttribute
     {
         public Type ConstructorType { get; }
 
@@ -52,7 +52,14 @@ namespace Xarial.XCad.UI.PropertyPage.Attributes
 
         public object[] Dependencies { get; }
 
-        public CustomItemsAttribute(Type customItemsProviderType, params object[] dependencies)
+        public object[] StaticItems { get; }
+
+        private ComboBoxItemsSourceAttribute() 
+        {
+            ConstructorType = typeof(ICustomItemsComboBoxControlConstructor);
+        }
+
+        public ComboBoxItemsSourceAttribute(Type customItemsProviderType, params object[] dependencies) : this()
         {
             if (!typeof(ICustomItemsProvider).IsAssignableFrom(customItemsProviderType))
             {
@@ -62,8 +69,12 @@ namespace Xarial.XCad.UI.PropertyPage.Attributes
             Dependencies = dependencies;
 
             CustomItemsProvider = (ICustomItemsProvider)Activator.CreateInstance(customItemsProviderType);
-            ConstructorType = typeof(ICustomItemsComboBoxControlConstructor);
             DependencyHandler = new CustomItemsAttributeDependencyHandler(CustomItemsProvider);
+        }
+
+        public ComboBoxItemsSourceAttribute(params object[] items) : this()
+        {
+            StaticItems = items;
         }
     }
 }

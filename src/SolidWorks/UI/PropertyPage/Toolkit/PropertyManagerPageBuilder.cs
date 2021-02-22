@@ -106,6 +106,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit
         internal PropertyManagerPageBuilder(ISwApplication app, IIconsCreator iconsConv, SwPropertyManagerPageHandler handler, IPageSpec pageSpec, IXLogger logger)
             : this(app, new PmpTypeDataBinder(),
                   new PropertyManagerPageConstructor(app.Sw, iconsConv, handler),
+                  new PropertyManagerPageListBoxControlConstructor(app.Sw, iconsConv),
                   new PropertyManagerPageGroupControlConstructor(),
                   new PropertyManagerPageTextBoxControlConstructor(app.Sw, iconsConv),
                   new PropertyManagerPageNumberBoxConstructor(app.Sw, iconsConv),

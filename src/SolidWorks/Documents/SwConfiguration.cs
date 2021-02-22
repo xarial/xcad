@@ -116,7 +116,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
                 var bmp = getPictureFromIPictureFund.Invoke(null, new object[] { pictDisp }) as Bitmap;
 
-                return ResourceHelper.FromBytes(BitmapToByteArray(bmp));
+                return new BaseImage(BitmapToByteArray(bmp));
             }
         }
 

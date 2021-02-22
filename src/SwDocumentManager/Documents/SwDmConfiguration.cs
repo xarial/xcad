@@ -107,7 +107,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
                 if (previewErr == SwDmPreviewError.swDmPreviewErrorNone)
                 {
-                    return ResourceHelper.FromBytes(imgBytes);
+                    return new BaseImage(imgBytes);
                 }
                 else
                 {

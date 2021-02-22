@@ -96,16 +96,25 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
 
         protected override ItemsControlItem[] GetItems(IAttributeSet atts)
         {
-            var customItemsAtt = atts.Get<CustomItemsAttribute>();
+            var customItemsAtt = atts.Get<ComboBoxItemsSourceAttribute>();
 
-            var provider = customItemsAtt.CustomItemsProvider;
+            List<object> items = null;
 
-            var depsCount = customItemsAtt.Dependencies?.Length;
+            if (customItemsAtt.StaticItems != null)
+            {
+                items = customItemsAtt.StaticItems.ToList();
+            }
+            else 
+            {
+                var provider = customItemsAtt.CustomItemsProvider;
 
-            //TODO: dependency controls cannot be loaded at this stage as binding is not yet loaded - need to sort this out
-            //Not very critical at this stage as provide items wil be called as part ResolveState for dependent controls
-            //For now just add a note in the documentation for this behavior
-            var items = provider.ProvideItems(m_SwApp, new IControl[depsCount.Value])?.ToList();
+                var depsCount = customItemsAtt.Dependencies?.Length;
+
+                //TODO: dependency controls cannot be loaded at this stage as binding is not yet loaded - need to sort this out
+                //Not very critical at this stage as provide items wil be called as part ResolveState for dependent controls
+                //For now just add a note in the documentation for this behavior
+                items = provider.ProvideItems(m_SwApp, new IControl[depsCount.Value])?.ToList();
+            }
 
             if (items == null) 
             {

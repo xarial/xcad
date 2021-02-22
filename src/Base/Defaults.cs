@@ -12,14 +12,17 @@ using Xarial.XCad.UI;
 
 namespace Xarial.XCad
 {
+    /// <summary>
+    /// Collection of default objects
+    /// </summary>
     public static class Defaults
     {
+        /// <summary>
+        /// Default icon
+        /// </summary>
         public static IXImage Icon
         {
-            get
-            {
-                return ResourceHelper.FromBytes(Resources.default_icon);
-            }
+            get => new BaseImage(Resources.default_icon);
         }
     }
 }
