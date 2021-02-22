@@ -42,7 +42,7 @@ namespace Xarial.XCad.UI.PropertyPage.Attributes
         }
     }
 
-    public class ComboBoxItemsSourceAttribute : Attribute, ISpecificConstructorAttribute, IDependentOnAttribute
+    public class ComboBoxItemsSourceAttribute : Attribute, ISpecificConstructorAttribute, IDependentOnAttribute, IHasMetadataAttribute
     {
         public Type ConstructorType { get; }
 
@@ -53,6 +53,10 @@ namespace Xarial.XCad.UI.PropertyPage.Attributes
         public object[] Dependencies { get; }
 
         public object[] StaticItems { get; }
+
+        public object MetadataTag => Source;
+
+        public object Source { get; set; }
 
         private ComboBoxItemsSourceAttribute() 
         {

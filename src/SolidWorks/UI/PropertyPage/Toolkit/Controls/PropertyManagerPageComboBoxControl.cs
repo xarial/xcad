@@ -7,6 +7,8 @@
 
 using SolidWorks.Interop.sldworks;
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using Xarial.XCad.UI.PropertyPage.Attributes;
@@ -35,12 +37,43 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
         private readonly bool m_SelectDefaultValue;
 
+        private readonly IMetadata m_Metadata;
+
         public PropertyManagerPageComboBoxControl(int id, object tag, bool selDefVal,
             IPropertyManagerPageCombobox comboBox,
-            SwPropertyManagerPageHandler handler) : base(comboBox, id, tag, handler)
+            SwPropertyManagerPageHandler handler, IMetadata metadata) : base(comboBox, id, tag, handler)
         {
+            m_Metadata = metadata;
+            if (m_Metadata != null)
+            {
+                m_Metadata.Changed += OnMetadataChanged;
+            }
+
             m_SelectDefaultValue = selDefVal;
             m_Handler.ComboBoxChanged += OnComboBoxChanged;
+        }
+
+        private void OnMetadataChanged(IMetadata metadata, object value)
+        {
+            var items = new List<ItemsControlItem>();
+
+            if (value is IEnumerable)
+            {
+                foreach (var item in value as IEnumerable) 
+                {
+                    items.Add(new ItemsControlItem()
+                    {
+                        Value = item,
+                        DisplayName = item?.ToString()
+                    });
+                }
+            }
+            else 
+            {
+                throw new NotSupportedException("Source property must be enumerable");
+            }
+
+            Items = items.ToArray();
         }
 
         private void OnComboBoxChanged(int id, int selIndex)

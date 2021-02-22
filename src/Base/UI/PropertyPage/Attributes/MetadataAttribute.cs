@@ -10,12 +10,13 @@ using Xarial.XCad.UI.PropertyPage.Base;
 
 namespace Xarial.XCad.UI.PropertyPage.Attributes
 {
-    public class ControlTagAttribute : Attribute, IControlTagAttribute
-    {   
+    /// <inheritdoc/>
+    public class MetadataAttribute : Attribute, IMetadataAttribute
+    {
         /// <inheritdoc/>
         public object Tag { get; }
 
-        public ControlTagAttribute(object tag)
+        public MetadataAttribute(object tag)
         {
             Tag = tag;
         }

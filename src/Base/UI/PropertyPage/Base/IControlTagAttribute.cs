@@ -9,6 +9,9 @@ namespace Xarial.XCad.UI.PropertyPage.Base
 {
     public interface IControlTagAttribute : IAttribute
     {
+        /// <summary>
+        /// Tag associated with the control
+        /// </summary>
         object Tag { get; }
     }
 }

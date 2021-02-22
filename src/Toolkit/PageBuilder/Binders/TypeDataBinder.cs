@@ -6,11 +6,13 @@
 //*********************************************************************
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
 using Xarial.XCad.Toolkit.PageBuilder.Binders;
+using Xarial.XCad.Toolkit.PageBuilder.Exceptions;
 using Xarial.XCad.UI.Exceptions;
 using Xarial.XCad.UI.PropertyPage.Attributes;
 using Xarial.XCad.UI.PropertyPage.Base;
@@ -117,6 +119,9 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
                     CreateBindingControlDelegate ctrlCreator, CreateDynamicControlsDelegate dynCtrlDescCreator,
                     IGroup parentCtrl, List<IBinding> bindings, IRawDependencyGroup dependencies, ref int nextCtrlId)
         {
+            var metadata = new Dictionary<object, PropertyInfoMetadata>();
+            CollectMetadata(type, metadata, new PropertyInfo[0]);
+
             foreach (var prp in type.GetProperties())
             {
                 IControlDescriptor[] ctrlDescriptors;
@@ -150,13 +155,28 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
 
                     var atts = GetAttributeSet(ctrlDesc, nextCtrlId);
 
-                    if (!atts.Has<IIgnoreBindingAttribute>())
+                    if (!atts.Has<IIgnoreBindingAttribute>() && !atts.Has<IMetadataAttribute>())
                     {
+                        PropertyInfoMetadata prpMetadata = null;
+
+                        if (atts.Has<IHasMetadataAttribute>())
+                        {
+                            var metadataTag = atts.Get<IHasMetadataAttribute>().MetadataTag;
+
+                            if (metadataTag != null)
+                            {
+                                if (!metadata.TryGetValue(metadataTag, out prpMetadata))
+                                {
+                                    throw new MissingMetadataException(metadataTag, ctrlDesc);
+                                }
+                            }
+                        }
+
                         int idRange;
-                        var ctrl = ctrlCreator.Invoke(prpType, atts, parentCtrl, out idRange);
+                        var ctrl = ctrlCreator.Invoke(prpType, atts, parentCtrl, prpMetadata, out idRange);
                         nextCtrlId += idRange;
 
-                        var binding = new PropertyInfoBinding<TDataModel>(ctrl, ctrlDesc, parents);
+                        var binding = new PropertyInfoBinding<TDataModel>(ctrl, ctrlDesc, parents, prpMetadata);
                         bindings.Add(binding);
 
                         if (atts.Has<IControlTagAttribute>())
@@ -186,6 +206,38 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
                                 ctrl as IGroup, bindings, dependencies, ref nextCtrlId);
                         }
                     }
+                }
+            }
+        }
+
+        private void CollectMetadata(Type type, Dictionary<object, PropertyInfoMetadata> metadata, PropertyInfo[] parents)
+        {
+            foreach (var prp in type.GetProperties())
+            {
+                var metadataAtt = prp.GetCustomAttribute<MetadataAttribute>();
+
+                if (metadataAtt != null)
+                {
+                    if (!metadata.ContainsKey(metadataAtt.Tag))
+                    {
+                        metadata.Add(metadataAtt.Tag, new PropertyInfoMetadata(prp, parents));
+                    }
+                    else
+                    {
+                        throw new DuplicateMetadataTagException(metadataAtt.Tag);
+                    }
+                }
+
+                var prpType = prp.PropertyType;
+
+                if (!prpType.IsPrimitive
+                    && !prpType.IsEnum
+                    && !prpType.IsArray
+                    && !typeof(Delegate).IsAssignableFrom(prpType)
+                    && !typeof(IEnumerable).IsAssignableFrom(prpType)
+                    && !typeof(IXObject).IsAssignableFrom(prpType))
+                {
+                    CollectMetadata(prpType, metadata, parents.Union(new PropertyInfo[] { prp }).ToArray());
                 }
             }
         }

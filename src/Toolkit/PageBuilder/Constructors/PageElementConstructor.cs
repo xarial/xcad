@@ -15,28 +15,28 @@ namespace Xarial.XCad.Utils.PageBuilder.Constructors
             where TPage : IPage
             where TElem : IControl
     {
-        protected abstract TElem Create(TPage page, IAttributeSet atts);
+        protected abstract TElem Create(TPage page, IAttributeSet atts, IMetadata metadata);
 
-        protected abstract TElem Create(TGroup group, IAttributeSet atts);
+        protected abstract TElem Create(TGroup group, IAttributeSet atts, IMetadata metadata);
 
-        protected virtual TElem Create(TPage page, IAttributeSet atts, ref int idRange)
+        protected virtual TElem Create(TPage page, IAttributeSet atts, IMetadata metadata, ref int idRange)
         {
-            return Create(page, atts);
+            return Create(page, atts, metadata);
         }
 
-        protected virtual TElem Create(TGroup group, IAttributeSet atts, ref int idRange)
+        protected virtual TElem Create(TGroup group, IAttributeSet atts, IMetadata metadata, ref int idRange)
         {
-            return Create(group, atts);
+            return Create(group, atts, metadata);
         }
 
-        IControl IPageElementConstructor<TGroup, TPage>.Create(TPage page, IAttributeSet atts, ref int idRange)
+        IControl IPageElementConstructor<TGroup, TPage>.Create(TPage page, IAttributeSet atts, IMetadata metadata, ref int idRange)
         {
-            return Create(page, atts, ref idRange);
+            return Create(page, atts, metadata, ref idRange);
         }
 
-        IControl IPageElementConstructor<TGroup, TPage>.Create(TGroup group, IAttributeSet atts, ref int idRange)
+        IControl IPageElementConstructor<TGroup, TPage>.Create(TGroup group, IAttributeSet atts, IMetadata metadata, ref int idRange)
         {
-            return Create(group, atts, ref idRange);
+            return Create(group, atts, metadata, ref idRange);
         }
     }
 }
