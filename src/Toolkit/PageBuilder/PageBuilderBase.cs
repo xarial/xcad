@@ -53,10 +53,10 @@ namespace Xarial.XCad.Utils.PageBuilder
                     page = m_PageConstructor.Create(atts);
                     return page;
                 },
-                (Type type, IAttributeSet atts, IGroup parent, out int idRange) =>
+                (Type type, IAttributeSet atts, IGroup parent, IMetadata metadata, out int idRange) =>
                 {
                     idRange = 1;
-                    return m_ControlConstructors.CreateElement(type, parent, atts, ref idRange);
+                    return m_ControlConstructors.CreateElement(type, parent, atts, metadata, ref idRange);
                 }, dynCtrlsHandler, out bindings, out dependencies);
 
             page.Binding.Load(m_App, bindings, dependencies);

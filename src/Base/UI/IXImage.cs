@@ -23,11 +23,19 @@ namespace Xarial.XCad.UI
         byte[] Buffer { get; }
     }
 
-    internal class XImage : IXImage
+    /// <summary>
+    /// Represents base image
+    /// </summary>
+    public class BaseImage : IXImage
     {
+        /// <inheritdoc/>
         public byte[] Buffer { get; }
 
-        internal XImage(byte[] buffer) 
+        /// <summary>
+        /// Base image constructor
+        /// </summary>
+        /// <param name="buffer">Image buffer</param>
+        public BaseImage(byte[] buffer) 
         {
             Buffer = buffer;
         }

@@ -12,6 +12,7 @@ using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using Xarial.XCad.Base.Attributes;
+using Xarial.XCad.Toolkit.PageBuilder.Binders;
 using Xarial.XCad.UI;
 using Xarial.XCad.UI.PropertyPage.Base;
 using Xarial.XCad.Utils.PageBuilder.Core;
@@ -25,36 +26,43 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
 
         public IControlDescriptor ControlDescriptor { get; }
 
+        private readonly PropertyInfoMetadata m_Metadata;
+
+        private object m_CurrentDataModel;
+
         internal PropertyInfoBinding(IControl control,
-            IControlDescriptor prpInfo, IList<IControlDescriptor> parents)
+            IControlDescriptor ctrlDesc, IList<IControlDescriptor> parents, PropertyInfoMetadata metadata)
             : base(control)
         {
-            ControlDescriptor = prpInfo;
+            ControlDescriptor = ctrlDesc;
             m_Parents = parents;
+            m_Metadata = metadata;
         }
 
         protected override TDataModel DataModel 
         {
             get => base.DataModel; 
             set
-            { 
-                var curModel = GetCurrentModel();
-
-                if (curModel is INotifyPropertyChanged) 
+            {
+                if (m_CurrentDataModel is INotifyPropertyChanged) 
                 {
-                    (curModel as INotifyPropertyChanged).PropertyChanged -= OnPropertyChanged;
+                    (m_CurrentDataModel as INotifyPropertyChanged).PropertyChanged -= OnPropertyChanged;
                 }
 
                 base.DataModel = value;
 
-                curModel = GetCurrentModel();
+                m_CurrentDataModel = GetCurrentModel();
 
-                if (curModel is INotifyPropertyChanged)
+                if (m_CurrentDataModel is INotifyPropertyChanged)
                 {
-                    (curModel as INotifyPropertyChanged).PropertyChanged += OnPropertyChanged;
+                    (m_CurrentDataModel as INotifyPropertyChanged).PropertyChanged += OnPropertyChanged;
                 }
+
+                m_Metadata?.SetDataModel(value);
             }
         }
+
+        public override IMetadata Metadata => m_Metadata;
 
         protected override void SetDataModelValue()
         {

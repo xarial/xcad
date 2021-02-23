@@ -57,7 +57,7 @@ namespace Toolkit.Tests
                 {
                     return new Moq.Mock<IPage>().Object;
                 },
-                (Type t, IAttributeSet a, IGroup p, out int r) =>
+                (Type t, IAttributeSet a, IGroup p, IMetadata md, out int r) =>
                 {
                     r = 1;
                     return new Moq.Mock<IControl>().Object;
@@ -92,7 +92,7 @@ namespace Toolkit.Tests
                 {
                     return new Moq.Mock<IPage>().Object;
                 },
-                (Type t, IAttributeSet a, IGroup p, out int r) =>
+                (Type t, IAttributeSet a, IGroup p, IMetadata md, out int r) =>
                 {
                     r = 1;
                     if (t == typeof(DataModelMock1))
@@ -157,7 +157,7 @@ namespace Toolkit.Tests
                     page = new Moq.Mock<IPage>().Object;
                     return page;
                 },
-                (Type t, IAttributeSet a, IGroup p, out int r) =>
+                (Type t, IAttributeSet a, IGroup p, IMetadata md, out int r) =>
                 {
                     r = 1;
                     if (t == typeof(DataModelMock1))
@@ -218,7 +218,7 @@ namespace Toolkit.Tests
                     page = new Moq.Mock<IPage>().Object;
                     return page;
                 },
-                (Type t, IAttributeSet a, IGroup p, out int r) =>
+                (Type t, IAttributeSet a, IGroup p, IMetadata md, out int r) =>
                 {
                     r = 1;
                     var ctrlMock = new Moq.Mock<IControl>();

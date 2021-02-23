@@ -34,6 +34,15 @@ namespace SwAddInExample
         Opt3
     }
 
+    [Flags]
+    public enum OptsFlag 
+    {
+        Opt1 = 1,
+        Opt2 = 2,
+        Opt3 = 4,
+        Opt4 = 8
+    }
+
     public class CustomControlDataContext 
     {
         public string Value { get; set; }
@@ -124,6 +133,32 @@ namespace SwAddInExample
         [DynamicControls("_Test_")]
         public Dictionary<string, object> DynamicControls { get; }
 
+        //public List<string> List { get; set; }
+
+        [ComboBox(1, 2, 3, 4, 5)]
+        public int StaticComboBox { get; set; }
+
+        [Metadata("_SRC_")]
+        public string[] Source => new string[] { "X", "Y", "Z" };
+
+        [ComboBox(ItemsSource = "_SRC_")]
+        public string ItemsSourceComboBox { get; set; }
+
+        [ListBox(ItemsSource = "_SRC_")]
+        public string ListBox1 { get; set; }
+
+        [ListBox("A1", "A2", "A3")]
+        public string ListBox2 { get; set; }
+
+        [ListBox(1, 2, 3, 4)]
+        public List<int> ListBox3 { get; set; }
+
+        [ListBox]
+        public Opts ListBox4 { get; set; }
+
+        [ListBox]
+        public OptsFlag ListBox5 { get; set; } = OptsFlag.Opt1 | OptsFlag.Opt3;
+
         private void ReduceComponents() 
         {
             if (Components?.Any() == true) 
@@ -157,7 +192,7 @@ namespace SwAddInExample
         public ISwCircularEdge Selection { get; set; }
         
         [ParameterExclude]
-        [CustomItems(typeof(MyCustomItemsProvider))]
+        [ComboBox(typeof(MyCustomItemsProvider))]
         [ComboBoxOptions(selectDefaultValue: true)]
         public MyItem Option2 { get; set; }
 

@@ -15,6 +15,7 @@ using Xarial.XCad.SolidWorks.UI.Toolkit;
 using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.UI.PropertyPage;
 using Xarial.XCad.UI.PropertyPage.Attributes;
+using Xarial.XCad.UI.PropertyPage.Base;
 using Xarial.XCad.Utils.PageBuilder.Attributes;
 using Xarial.XCad.Utils.PageBuilder.Base;
 
@@ -29,7 +30,8 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
         }
 
         protected override PropertyManagerPageCustomControl CreateControl(
-            IPropertyManagerPageWindowFromHandle swCtrl, IAttributeSet atts, SwPropertyManagerPageHandler handler, short height)
+            IPropertyManagerPageWindowFromHandle swCtrl, IAttributeSet atts, IMetadata metadata, 
+            SwPropertyManagerPageHandler handler, short height)
         {
             if (height <= 0)
             {

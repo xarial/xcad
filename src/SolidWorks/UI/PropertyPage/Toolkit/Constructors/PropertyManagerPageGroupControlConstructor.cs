@@ -10,6 +10,7 @@ using SolidWorks.Interop.swconst;
 using System;
 using System.Collections.Generic;
 using Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls;
+using Xarial.XCad.UI.PropertyPage.Base;
 using Xarial.XCad.Utils.PageBuilder.Attributes;
 using Xarial.XCad.Utils.PageBuilder.Base;
 using Xarial.XCad.Utils.PageBuilder.Constructors;
@@ -36,7 +37,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
         }
 
         protected override PropertyManagerPageGroupBase Create(
-            PropertyManagerPageGroupBase group, IAttributeSet atts)
+            PropertyManagerPageGroupBase group, IAttributeSet atts, IMetadata metadata)
         {
             if (group is PropertyManagerPageTabControl)
             {
@@ -50,7 +51,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
             //NOTE: nested groups are not supported in SOLIDWORKS, creating the group in page instead
             else if (group is PropertyManagerPageGroupControl)
             {
-                return Create(group.ParentPage, atts);
+                return Create(group.ParentPage, atts, metadata);
             }
             else
             {
@@ -58,7 +59,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
             }
         }
 
-        protected override PropertyManagerPageGroupBase Create(PropertyManagerPagePage page, IAttributeSet atts)
+        protected override PropertyManagerPageGroupBase Create(PropertyManagerPagePage page, IAttributeSet atts, IMetadata metadata)
         {
             var grp = page.Page.AddGroupBox(atts.Id, atts.Name,
                 (int)(swAddGroupBoxOptions_e.swGroupBoxOptions_Expanded

@@ -12,7 +12,8 @@ using Xarial.XCad.UI.PropertyPage.Delegates;
 
 namespace Xarial.XCad.Utils.PageBuilder.Base
 {
-    public delegate IControl CreateBindingControlDelegate(Type dataType, IAttributeSet atts, IGroup parent, out int idRange);
+    public delegate IControl CreateBindingControlDelegate(Type dataType, IAttributeSet atts,
+        IGroup parent, IMetadata metadata, out int idRange);
 
     public delegate IPage CreateBindingPageDelegate(IAttributeSet atts);
 
