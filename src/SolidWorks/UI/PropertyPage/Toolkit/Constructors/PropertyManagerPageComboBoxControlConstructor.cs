@@ -49,7 +49,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
             }
 
             var selDefVal = false;
-
+            
             if (atts.Has<ComboBoxOptionsAttribute>())
             {
                 var opts = atts.Get<ComboBoxOptionsAttribute>();

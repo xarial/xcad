@@ -32,25 +32,16 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
         internal event Action Opening;
 
         internal event Action<int, string> TextChanged;
-
         internal event Action<int, double> NumberChanged;
-
         internal event Action<int, bool> CheckChanged;
-        
         internal event Action<int, int> SelectionChanged;
-
         internal event Action<int, int> ComboBoxChanged;
-
+        internal event Action<int, int> ListBoxChanged;
         internal event Action<int> OptionChecked;
-
         internal event Action<int> ButtonPressed;
-
         internal event SubmitSelectionDelegate SubmitSelection;
-
         internal event Action HelpRequested;
-
         internal event Action WhatsNewRequested;
-
         internal event Action<int, bool> CustomControlCreated;
 
         /// <inheritdoc/>
@@ -102,9 +93,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         public void AfterClose()
-        {
-            Closed?.Invoke(m_CloseReason);
-        }
+            => Closed?.Invoke(m_CloseReason);
 
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]
@@ -117,16 +106,12 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         public void OnButtonPress(int Id)
-        {
-            ButtonPressed?.Invoke(Id);
-        }
+            => ButtonPressed?.Invoke(Id);
 
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         public void OnCheckboxCheck(int Id, bool Checked)
-        {
-            CheckChanged?.Invoke(Id, Checked);
-        }
+            => CheckChanged?.Invoke(Id, Checked);
 
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]
@@ -154,9 +139,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
         }
 
         internal void InvokeOpening()
-        {
-            Opening?.Invoke();
-        }
+            => Opening?.Invoke();
 
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]
@@ -167,9 +150,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         public void OnComboboxSelectionChanged(int Id, int Item)
-        {
-            ComboBoxChanged?.Invoke(Id, Item);
-        }
+            => ComboBoxChanged?.Invoke(Id, Item);
 
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]
@@ -213,8 +194,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         public void OnListboxSelectionChanged(int Id, int Item)
-        {
-        }
+            => ListBoxChanged?.Invoke(Id, Item);
 
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]
@@ -232,9 +212,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         public void OnNumberboxChanged(int Id, double Value)
-        {
-            NumberChanged?.Invoke(Id, Value);
-        }
+            => NumberChanged?.Invoke(Id, Value);
 
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]
@@ -245,9 +223,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         public void OnOptionCheck(int Id)
-        {
-            OptionChecked?.Invoke(Id);
-        }
+            => OptionChecked?.Invoke(Id);
 
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]
@@ -342,9 +318,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         public void OnTextboxChanged(int Id, string Text)
-        {
-            TextChanged?.Invoke(Id, Text);
-        }
+            => TextChanged?.Invoke(Id, Text);
 
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]
@@ -355,9 +329,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         public void OnWhatsNew()
-        {
-            WhatsNewRequested?.Invoke();
-        }
+            => WhatsNewRequested?.Invoke();
 
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]

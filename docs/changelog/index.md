@@ -15,7 +15,7 @@ Breaking change is marked with &#x26A0; symbol
 * &#x26A0; IXCustomControl::DataContextChanged replaced with IXCustomControl::ValueChanged
 * &#x26A0; IXCustomControl::DataContext replaced with IXCustomControl::Value
 * &#x26A0; ResourceHelper::FromBytes replaced with BaseImage class
-* &#x26A0; CustomItemsAttribute is renamed to ComboBoxItemsSourceAttribute
+* &#x26A0; CustomItemsAttribute is renamed to ComboBoxAttribute
 
 ## 0.6.10 - December 7, 2020
 

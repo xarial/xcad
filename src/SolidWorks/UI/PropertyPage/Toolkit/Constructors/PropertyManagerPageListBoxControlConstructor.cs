@@ -7,7 +7,9 @@
 
 using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
+using System;
 using System.Collections;
+using System.Reflection;
 using Xarial.XCad.SolidWorks.Services;
 using Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls;
 using Xarial.XCad.SolidWorks.Utils;
@@ -35,26 +37,37 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
             IPropertyManagerPageListbox swCtrl, IAttributeSet atts, IMetadata metadata, 
             SwPropertyManagerPageHandler handler, short height)
         {
-            if (height != -1)
+            if (height <= 0)
             {
-                swCtrl.Height = height;
+                height = 50;
             }
 
-            //var selDefVal = false;
+            swCtrl.Height = height;
 
-            //if (atts.Has<ComboBoxOptionsAttribute>())
-            //{
-            //    var opts = atts.Get<ComboBoxOptionsAttribute>();
+            int style = 0;
 
-            //    if (opts.Style != 0)
-            //    {
-            //        swCtrl.Style = (int)opts.Style;
-            //    }
+            if (atts.Has<ListBoxOptionsAttribute>())
+            {
+                var opts = atts.Get<ListBoxOptionsAttribute>();
 
-            //    selDefVal = opts.SelectDefaultValue;
-            //}
+                if (opts.Style != 0)
+                {
+                    style = (int)opts.Style;
+                }
+            }
 
-            var ctrl = new PropertyManagerPageListBoxControl(atts.Id, atts.Tag, swCtrl, handler);
+            var isMultiSelect = (atts.ContextType.IsEnum
+                && atts.ContextType.GetCustomAttribute<FlagsAttribute>() != null)
+                || typeof(IList).IsAssignableFrom(atts.ContextType);
+
+            if (isMultiSelect) 
+            {
+                style = style + (int)swPropMgrPageListBoxStyle_e.swPropMgrPageListBoxStyle_MultipleItemSelect;
+            }
+
+            swCtrl.Style = style;
+
+            var ctrl = new PropertyManagerPageListBoxControl(atts.Id, atts.Tag, swCtrl, atts.ContextType, isMultiSelect, handler, metadata);
             ctrl.Items = m_Helper.GetItems(m_SwApp, atts);
             return ctrl;
         }
