@@ -7,13 +7,17 @@
 
 using SolidWorks.Interop.sldworks;
 using System.Collections;
+using Xarial.XCad.UI.PropertyPage.Base;
+using Xarial.XCad.UI.PropertyPage.Structures;
 using Xarial.XCad.Utils.PageBuilder.PageElements;
 
 namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 {
-    internal class PropertyManagerPageListBoxControl : PropertyManagerPageBaseControl<IEnumerable, IPropertyManagerPageListbox>
+    internal class PropertyManagerPageListBoxControl : PropertyManagerPageBaseControl<object, IPropertyManagerPageListbox>, IItemsControl
     {
-        protected override event ControlValueChangedDelegate<IEnumerable> ValueChanged;
+        public ItemsControlItem[] Items { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
+
+        protected override event ControlValueChangedDelegate<object> ValueChanged;
 
         public PropertyManagerPageListBoxControl(int id, object tag,
             IPropertyManagerPageListbox listBox,
@@ -30,12 +34,12 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
         //    }
         //}
 
-        protected override IEnumerable GetSpecificValue()
+        protected override object GetSpecificValue()
         {
             return null;
         }
 
-        protected override void SetSpecificValue(IEnumerable value)
+        protected override void SetSpecificValue(object value)
         {
             //SwSpecificControl.Checked = value;
         }

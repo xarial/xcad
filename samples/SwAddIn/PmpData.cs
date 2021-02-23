@@ -126,13 +126,13 @@ namespace SwAddInExample
 
         //public List<string> List { get; set; }
 
-        [ComboBoxItemsSource(1, 2, 3, 4, 5)]
+        [ComboBox(1, 2, 3, 4, 5)]
         public int StaticComboBox { get; set; }
 
         [Metadata("_SRC_")]
         public string[] Source => new string[] { "X", "Y", "Z" };
 
-        [ComboBoxItemsSource(Source = "_SRC_")]
+        [ComboBox(ItemsSource = "_SRC_")]
         public string ItemsSourceComboBox { get; set; }
 
         private void ReduceComponents() 
@@ -168,7 +168,7 @@ namespace SwAddInExample
         public ISwCircularEdge Selection { get; set; }
         
         [ParameterExclude]
-        [ComboBoxItemsSource(typeof(MyCustomItemsProvider))]
+        [ComboBox(typeof(MyCustomItemsProvider))]
         [ComboBoxOptions(selectDefaultValue: true)]
         public MyItem Option2 { get; set; }
 

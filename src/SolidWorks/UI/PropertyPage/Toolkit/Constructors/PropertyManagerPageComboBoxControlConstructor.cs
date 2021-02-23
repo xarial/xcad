@@ -28,9 +28,15 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
     internal abstract class PropertyManagerPageComboBoxControlConstructorBase<TVal>
         : PropertyManagerPageBaseControlConstructor<PropertyManagerPageComboBoxControl<TVal>, IPropertyManagerPageCombobox>
     {
-        public PropertyManagerPageComboBoxControlConstructorBase(ISldWorks app, IIconsCreator iconsConv)
-            : base(app, swPropertyManagerPageControlType_e.swControlType_Combobox, iconsConv)
+        protected readonly ISwApplication m_SwApp;
+
+        private readonly PropertyManagerPageItemsControlConstructorHelper m_Helper;
+
+        public PropertyManagerPageComboBoxControlConstructorBase(ISwApplication app, IIconsCreator iconsConv)
+            : base(app.Sw, swPropertyManagerPageControlType_e.swControlType_Combobox, iconsConv)
         {
+            m_SwApp = app;
+            m_Helper = new PropertyManagerPageItemsControlConstructorHelper();
         }
 
         protected override PropertyManagerPageComboBoxControl<TVal> CreateControl(
@@ -57,81 +63,27 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
             }
 
             var ctrl = new PropertyManagerPageComboBoxControl<TVal>(atts.Id, atts.Tag, selDefVal, swCtrl, handler, metadata);
-            ctrl.Items = GetItems(atts);
+            ctrl.Items = m_Helper.GetItems(m_SwApp, atts);
             return ctrl;
         }
-
-        protected abstract ItemsControlItem[] GetItems(IAttributeSet atts);
     }
 
     [DefaultType(typeof(SpecialTypes.EnumType))]
     internal class PropertyManagerPageEnumComboBoxControlConstructor
         : PropertyManagerPageComboBoxControlConstructorBase<Enum>
     {
-        public PropertyManagerPageEnumComboBoxControlConstructor(ISldWorks app, IIconsCreator iconsConv) 
+        public PropertyManagerPageEnumComboBoxControlConstructor(ISwApplication app, IIconsCreator iconsConv) 
             : base(app, iconsConv)
         {
-        }
-        
-        protected override ItemsControlItem[] GetItems(IAttributeSet atts)
-        {
-            var items = EnumExtension.GetEnumFields(atts.ContextType);
-            return items.Select(i => new ItemsControlItem()
-            {
-                DisplayName = i.Value,
-                Value = i.Key
-            }).ToArray();
         }
     }
 
     internal class PropertyManagerPageCustomItemsComboBoxControlConstructor
         : PropertyManagerPageComboBoxControlConstructorBase<object>, ICustomItemsComboBoxControlConstructor
     {
-        private readonly ISwApplication m_SwApp;
-
         public PropertyManagerPageCustomItemsComboBoxControlConstructor(ISwApplication app, IIconsCreator iconsConv)
-            : base(app.Sw, iconsConv)
+            : base(app, iconsConv)
         {
-            m_SwApp = app;
-        }
-
-        protected override ItemsControlItem[] GetItems(IAttributeSet atts)
-        {
-            var customItemsAtt = atts.Get<ComboBoxItemsSourceAttribute>();
-
-            List<object> items = null;
-
-            if (customItemsAtt.StaticItems != null)
-            {
-                items = customItemsAtt.StaticItems.ToList();
-            }
-            else if (customItemsAtt.Source != null) 
-            {
-                //this will be resolved dynamically
-                items = new List<object>();
-            }
-            else
-            {
-                var provider = customItemsAtt.CustomItemsProvider;
-
-                var depsCount = customItemsAtt.Dependencies?.Length;
-
-                //TODO: dependency controls cannot be loaded at this stage as binding is not yet loaded - need to sort this out
-                //Not very critical at this stage as provide items wil be called as part ResolveState for dependent controls
-                //For now just add a note in the documentation for this behavior
-                items = provider.ProvideItems(m_SwApp, new IControl[depsCount.Value])?.ToList();
-            }
-
-            if (items == null) 
-            {
-                items = new List<object>();
-            }
-
-            return items.Select(i => new ItemsControlItem() 
-            {
-                DisplayName = i.ToString(), 
-                Value = i 
-            }).ToArray();
         }
     }
 }

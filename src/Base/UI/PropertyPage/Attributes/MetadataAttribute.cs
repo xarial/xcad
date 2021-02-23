@@ -11,11 +11,16 @@ using Xarial.XCad.UI.PropertyPage.Base;
 namespace Xarial.XCad.UI.PropertyPage.Attributes
 {
     /// <inheritdoc/>
+    [AttributeUsage(AttributeTargets.Property)]
     public class MetadataAttribute : Attribute, IMetadataAttribute
     {
         /// <inheritdoc/>
         public object Tag { get; }
 
+        /// <summary>
+        /// Marks this property as metadata
+        /// </summary>
+        /// <param name="tag">Tag of the metadata</param>
         public MetadataAttribute(object tag)
         {
             Tag = tag;
