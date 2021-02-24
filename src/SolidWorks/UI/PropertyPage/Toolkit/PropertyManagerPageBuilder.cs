@@ -29,6 +29,10 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit
     {
         private class PmpTypeDataBinder : TypeDataBinder
         {
+            public PmpTypeDataBinder(IXLogger logger) : base(logger)
+            {
+            }
+
             internal event Action<IEnumerable<IBinding>> BeforeControlsDataLoad;
 
             internal event Func<IAttributeSet, IAttributeSet> GetPageAttributeSet;
@@ -104,7 +108,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit
         private readonly IPageSpec m_PageSpec;
 
         internal PropertyManagerPageBuilder(ISwApplication app, IIconsCreator iconsConv, SwPropertyManagerPageHandler handler, IPageSpec pageSpec, IXLogger logger)
-            : this(app, new PmpTypeDataBinder(),
+            : this(app, new PmpTypeDataBinder(logger),
                   new PropertyManagerPageConstructor(app.Sw, iconsConv, handler),
                   new PropertyManagerPageGroupControlConstructor(),
                   new PropertyManagerPageTextBoxControlConstructor(app.Sw, iconsConv),

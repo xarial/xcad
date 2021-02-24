@@ -49,7 +49,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
         private readonly PropertyManagerPageBuilder m_PmpBuilder;
 
         /// <inheritdoc/>
-        public IEnumerable<IPropertyManagerPageControlEx> Controls { get; private set; }
+        public IEnumerable<IPropertyManagerPageElementEx> Controls { get; private set; }
 
         internal SwPropertyManagerPageHandler Handler { get; private set; }
 
@@ -88,7 +88,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
 
             m_Page = m_PmpBuilder.CreatePage<TModel>(createDynCtrlHandler);
 
-            var ctrls = new List<IPropertyManagerPageControlEx>();
+            var ctrls = new List<IPropertyManagerPageElementEx>();
 
             foreach (var binding in m_Page.Binding.Bindings) 
             {
@@ -96,9 +96,9 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
                 
                 var ctrl = binding.Control;
 
-                if (ctrl is IPropertyManagerPageControlEx)
+                if (ctrl is IPropertyManagerPageElementEx)
                 {
-                    ctrls.Add((IPropertyManagerPageControlEx)ctrl);
+                    ctrls.Add((IPropertyManagerPageElementEx)ctrl);
                 }
                 else 
                 {

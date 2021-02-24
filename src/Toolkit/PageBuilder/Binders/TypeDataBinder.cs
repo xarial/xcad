@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
+using Xarial.XCad.Base;
 using Xarial.XCad.Toolkit.PageBuilder.Binders;
 using Xarial.XCad.Toolkit.PageBuilder.Exceptions;
 using Xarial.XCad.UI.Exceptions;
@@ -24,6 +25,13 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
 {
     public class TypeDataBinder : IDataModelBinder
     {
+        private readonly IXLogger m_Logger;
+
+        public TypeDataBinder(IXLogger logger) 
+        {
+            m_Logger = logger;
+        }
+
         public void Bind<TDataModel>(CreateBindingPageDelegate pageCreator,
             CreateBindingControlDelegate ctrlCreator, CreateDynamicControlsDelegate dynCtrlDescCreator,
             out IEnumerable<IBinding> bindings, out IRawDependencyGroup dependencies)
@@ -120,7 +128,7 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
                     IGroup parentCtrl, List<IBinding> bindings, IRawDependencyGroup dependencies, ref int nextCtrlId)
         {
             var metadata = new Dictionary<object, PropertyInfoMetadata>();
-            CollectMetadata(type, metadata, new PropertyInfo[0]);
+            CollectMetadata(type, metadata, new PropertyInfo[0], new List<Type>());
 
             foreach (var prp in type.GetProperties())
             {
@@ -210,7 +218,8 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
             }
         }
 
-        private void CollectMetadata(Type type, Dictionary<object, PropertyInfoMetadata> metadata, PropertyInfo[] parents)
+        private void CollectMetadata(Type type, Dictionary<object, PropertyInfoMetadata> metadata,
+            PropertyInfo[] parents, List<Type> processedTypes)
         {
             foreach (var prp in type.GetProperties())
             {
@@ -230,14 +239,22 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
 
                 var prpType = prp.PropertyType;
 
-                if (!prpType.IsPrimitive
-                    && !prpType.IsEnum
-                    && !prpType.IsArray
-                    && !typeof(Delegate).IsAssignableFrom(prpType)
-                    && !typeof(IEnumerable).IsAssignableFrom(prpType)
-                    && !typeof(IXObject).IsAssignableFrom(prpType))
+                if (!processedTypes.Contains(prpType))
                 {
-                    CollectMetadata(prpType, metadata, parents.Union(new PropertyInfo[] { prp }).ToArray());
+                    if (!prpType.IsPrimitive
+                        && !prpType.IsEnum
+                        && !prpType.IsArray
+                        && !typeof(Delegate).IsAssignableFrom(prpType)
+                        && !typeof(IEnumerable).IsAssignableFrom(prpType)
+                        && !typeof(IXObject).IsAssignableFrom(prpType))
+                    {
+                        processedTypes.Add(prpType);
+                        CollectMetadata(prpType, metadata, parents.Union(new PropertyInfo[] { prp }).ToArray(), processedTypes);
+                    }
+                }
+                else
+                {
+                    m_Logger.Log($"Type '{prpType.FullName}' is skipped as it was already processed while extracting metadata");
                 }
             }
         }

@@ -5,10 +5,12 @@
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
+using Moq;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Xarial.XCad.Base;
 using Xarial.XCad.UI.PropertyPage.Base;
 using Xarial.XCad.Utils.PageBuilder.Base;
 using Xarial.XCad.Utils.PageBuilder.Binders;
@@ -47,7 +49,7 @@ namespace Toolkit.Tests
         [Test]
         public void TestBindSimple()
         {
-            var binder = new TypeDataBinder();
+            var binder = new TypeDataBinder(new Mock<IXLogger>().Object);
             IEnumerable<IBinding> bindings;
 
             IRawDependencyGroup dependencies;
@@ -82,7 +84,7 @@ namespace Toolkit.Tests
         [Test]
         public void TestBindGroup()
         {
-            var binder = new TypeDataBinder();
+            var binder = new TypeDataBinder(new Mock<IXLogger>().Object);
             IEnumerable<IBinding> bindings;
 
             IRawDependencyGroup dependencies;
@@ -140,7 +142,7 @@ namespace Toolkit.Tests
         [Test]
         public void TestBindParent()
         {
-            var binder = new TypeDataBinder();
+            var binder = new TypeDataBinder(new Mock<IXLogger>().Object);
             IEnumerable<IBinding> bindings;
 
             IPage page = null;
@@ -205,7 +207,7 @@ namespace Toolkit.Tests
         [Test]
         public void TestBindIds()
         {
-            var binder = new TypeDataBinder();
+            var binder = new TypeDataBinder(new Mock<IXLogger>().Object);
             IEnumerable<IBinding> bindings;
 
             IPage page = null;

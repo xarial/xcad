@@ -5,6 +5,7 @@
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
+using Moq;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
@@ -12,6 +13,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Xarial.XCad;
+using Xarial.XCad.Base;
 using Xarial.XCad.UI.PropertyPage.Base;
 using Xarial.XCad.Utils.PageBuilder.Attributes;
 using Xarial.XCad.Utils.PageBuilder.Base;
@@ -122,7 +124,7 @@ namespace Toolkit.Tests
         {
             public PageBuilderMock(Func<int> idRangeSelector = null)
                 : base(new Moq.Mock<IXApplication>().Object,
-                      new TypeDataBinder(), 
+                      new TypeDataBinder(new Mock<IXLogger>().Object), 
                       new PageMockConstructor(),
                       new ControlMockConstructor(idRangeSelector))
             {
