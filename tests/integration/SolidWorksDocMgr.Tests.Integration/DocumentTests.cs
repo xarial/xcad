@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.Xml.Serialization;
 using Xarial.XCad.Data.Enums;
 using Xarial.XCad.Documents;
+using Xarial.XCad.Documents.Extensions;
 using Xarial.XCad.SwDocumentManager;
 using Xarial.XCad.SwDocumentManager.Documents;
 
@@ -107,6 +108,28 @@ namespace SolidWorksDocMgr.Tests.Integration
 
                 Assert.AreEqual(4, deps.Length);
                 Assert.That(deps.All(d => !d.IsCommitted));
+                Assert.That(deps.Any(d => string.Equals(d.Path, Path.Combine(dir, "Part4-1 (XYZ).SLDPRT"))));
+                Assert.That(deps.Any(d => string.Equals(d.Path, Path.Combine(dir, "Assem1.SLDASM"))));
+                Assert.That(deps.Any(d => string.Equals(d.Path, Path.Combine(dir, "Assem2.SLDASM"))));
+                Assert.That(deps.Any(d => string.Equals(d.Path, Path.Combine(dir, "Part1.SLDPRT"))));
+            }
+        }
+
+        [Test]
+        public void DocumentAllDependenciesTest()
+        {
+            using (var doc = OpenDataDocument(@"Assembly2\TopAssem.SLDASM"))
+            {
+                var assm = m_App.Documents.Active;
+
+                var deps = assm.GetAllDependencies().ToArray();
+
+                var dir = Path.GetDirectoryName(assm.Path);
+
+                Assert.AreEqual(6, deps.Length);
+                Assert.That(deps.All(d => !d.IsCommitted));
+                Assert.That(deps.Any(d => string.Equals(d.Path, Path.Combine(dir, "Part2.SLDPRT"))));
+                Assert.That(deps.Any(d => string.Equals(d.Path, Path.Combine(dir, "Part3.SLDPRT"))));
                 Assert.That(deps.Any(d => string.Equals(d.Path, Path.Combine(dir, "Part4-1 (XYZ).SLDPRT"))));
                 Assert.That(deps.Any(d => string.Equals(d.Path, Path.Combine(dir, "Assem1.SLDASM"))));
                 Assert.That(deps.Any(d => string.Equals(d.Path, Path.Combine(dir, "Assem2.SLDASM"))));

@@ -194,26 +194,49 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         {
             get 
             {
-                var searchOpts = SwDmApp.SwDocMgr.GetSearchOptionObject();
-                searchOpts.SearchFilters = (int)(
-                    SwDmSearchFilters.SwDmSearchExternalReference 
-                    | SwDmSearchFilters.SwDmSearchRootAssemblyFolder 
-                    | SwDmSearchFilters.SwDmSearchSubfolders 
-                    | SwDmSearchFilters.SwDmSearchInContextReference);
+                ISwDMDocument doc = null;
 
-                string[] deps;
-
-                if (SwDmApp.IsVersionNewerOrEqual(SwDmVersion_e.Sw2017))
+                try
                 {
-                    deps = ((ISwDMDocument21)Document).GetAllExternalReferences5(searchOpts, out _, out _, out _, out _) as string[];
-                }
-                else
-                {
-                    deps = ((ISwDMDocument21)Document).GetAllExternalReferences4(searchOpts, out _, out _, out _) as string[];
-                }
+                    if (IsCommitted)
+                    {
+                        doc = Document;
+                    }
+                    else
+                    {
+                        doc = OpenDocument(Path, DocumentState_e.ReadOnly);
+                    }
 
-                return (deps ?? new string[0])
-                    .Select(d => (ISwDmDocument3D)SwDmApp.Documents.PreCreateFromPath(d)).ToArray();
+                    var searchOpts = SwDmApp.SwDocMgr.GetSearchOptionObject();
+                    searchOpts.SearchFilters = (int)(
+                        SwDmSearchFilters.SwDmSearchExternalReference
+                        | SwDmSearchFilters.SwDmSearchRootAssemblyFolder
+                        | SwDmSearchFilters.SwDmSearchSubfolders
+                        | SwDmSearchFilters.SwDmSearchInContextReference);
+
+                    string[] deps;
+
+                    if (SwDmApp.IsVersionNewerOrEqual(SwDmVersion_e.Sw2017))
+                    {
+                        deps = ((ISwDMDocument21)doc).GetAllExternalReferences5(searchOpts, out _, out _, out _, out _) as string[];
+                    }
+                    else
+                    {
+                        deps = ((ISwDMDocument13)doc).GetAllExternalReferences4(searchOpts, out _, out _, out _) as string[];
+                    }
+
+                    var depDocs = (deps ?? new string[0])
+                        .Select(d => (ISwDmDocument3D)SwDmApp.Documents.PreCreateFromPath(d)).ToArray();
+
+                    return depDocs;
+                }
+                finally 
+                {
+                    if (!IsCommitted && doc != null) 
+                    {
+                        doc.CloseDoc();
+                    }
+                }
             }
         }
 
@@ -276,21 +299,30 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         {
             m_IsReadOnly = State.HasFlag(DocumentState_e.ReadOnly);
 
-            var doc = SwDmApp.SwDocMgr.GetDocument(Path, GetDocumentType(Path), 
-                m_IsReadOnly.Value, out SwDmDocumentOpenError err);
+            var doc = OpenDocument(Path, State);
+
+            StreamReadAvailable?.Invoke(this);
+            StorageReadAvailable?.Invoke(this);
+
+            return doc;
+        }
+
+        private ISwDMDocument OpenDocument(string path, DocumentState_e state)
+        {
+            var isReadOnly = state.HasFlag(DocumentState_e.ReadOnly);
+
+            var doc = SwDmApp.SwDocMgr.GetDocument(path, GetDocumentType(path),
+                isReadOnly, out SwDmDocumentOpenError err);
 
             if (doc != null)
             {
-                StreamReadAvailable?.Invoke(this);
-                StorageReadAvailable?.Invoke(this);
-
                 return doc;
             }
             else
             {
                 string errDesc;
 
-                switch (err) 
+                switch (err)
                 {
                     case SwDmDocumentOpenError.swDmDocumentOpenErrorFail:
                         errDesc = "Generic error";
@@ -321,7 +353,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                         break;
                 }
 
-                throw new OpenDocumentFailedException(Path, (int)err, errDesc);
+                throw new OpenDocumentFailedException(path, (int)err, errDesc);
             }
         }
 

@@ -145,9 +145,10 @@ namespace Xarial.XCad.Documents
         IStorage OpenStorage(string name, AccessType_e access);
 
         /// <summary>
-        /// Returns dependencies of this document
+        /// Returns top level dependencies of this document
         /// </summary>
-        /// <remarks>Dependencies might be uncommited if document is loaded view only or in the rapid mode. Use <see cref="IXTransaction.IsCommitted"/> to check the state and call <see cref="IXTransaction.Commit(System.Threading.CancellationToken)"/> to load document if needed</remarks>
+        /// <remarks>Dependencies might be uncommited if document is loaded view only or in the rapid mode. Use <see cref="IXTransaction.IsCommitted"/> to check the state and call <see cref="IXTransaction.Commit(System.Threading.CancellationToken)"/> to load document if needed.
+        /// In most CADs this method wil lwork with uncommitted documents</remarks>
         IXDocument3D[] Dependencies { get; }
 
         /// <summary>
