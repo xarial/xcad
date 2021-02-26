@@ -105,10 +105,8 @@ namespace SolidWorksDocMgr.Tests.Integration
 
                 var dir = Path.GetDirectoryName(assm.Path);
 
-                Assert.AreEqual(6, deps.Length);
+                Assert.AreEqual(4, deps.Length);
                 Assert.That(deps.All(d => !d.IsCommitted));
-                Assert.That(deps.Any(d => string.Equals(d.Path, Path.Combine(dir, "Part2.SLDPRT"))));
-                Assert.That(deps.Any(d => string.Equals(d.Path, Path.Combine(dir, "Part3.SLDPRT"))));
                 Assert.That(deps.Any(d => string.Equals(d.Path, Path.Combine(dir, "Part4-1 (XYZ).SLDPRT"))));
                 Assert.That(deps.Any(d => string.Equals(d.Path, Path.Combine(dir, "Assem1.SLDASM"))));
                 Assert.That(deps.Any(d => string.Equals(d.Path, Path.Combine(dir, "Assem2.SLDASM"))));
@@ -127,10 +125,9 @@ namespace SolidWorksDocMgr.Tests.Integration
 
                 var dir = Path.GetDirectoryName(assm.Path);
 
-                Assert.AreEqual(2, deps.Length);
+                Assert.AreEqual(1, deps.Length);
                 Assert.That(deps.All(d => !d.IsCommitted));
                 Assert.That(deps.Any(d => string.Equals(d.Path, Path.Combine(dir, "Assemblies\\Assem1.SLDASM"), StringComparison.CurrentCultureIgnoreCase)));
-                Assert.That(deps.Any(d => string.Equals(d.Path, Path.Combine(dir, "Parts\\Part1.SLDPRT"), StringComparison.CurrentCultureIgnoreCase)));
             }
         }
 

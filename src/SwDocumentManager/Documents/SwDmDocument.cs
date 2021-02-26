@@ -201,68 +201,19 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                     | SwDmSearchFilters.SwDmSearchSubfolders 
                     | SwDmSearchFilters.SwDmSearchInContextReference);
 
-                var processed = new List<string>();
+                string[] deps;
 
-                processed.Add(Path);
-
-                return TraverseDependencies(this, searchOpts, processed).ToArray();
-            }
-        }
-
-        private IEnumerable<ISwDmDocument3D> TraverseDependencies(
-            ISwDmDocument parent, SwDMSearchOption searchOpts, List<string> processed) 
-        {
-            string[] deps;
-
-            if (SwDmApp.IsVersionNewerOrEqual(SwDmVersion_e.Sw2017))
-            {
-                deps = ((ISwDMDocument21)parent.Document).GetAllExternalReferences5(searchOpts, out _, out _, out _, out _) as string[];
-            }
-            else
-            {
-                deps = ((ISwDMDocument21)parent.Document).GetAllExternalReferences4(searchOpts, out _, out _, out _) as string[];
-            }
-
-            if (deps != null)
-            {
-                foreach(var dep in deps)
+                if (SwDmApp.IsVersionNewerOrEqual(SwDmVersion_e.Sw2017))
                 {
-                    if (!processed.Contains(dep, StringComparer.CurrentCultureIgnoreCase))
-                    {
-                        processed.Add(dep);
-
-                        if (File.Exists(dep))
-                        {
-                            yield return (ISwDmDocument3D)SwDmApp.Documents.PreCreateFromPath(dep);
-
-                            ISwDmDocument3D doc = null;
-
-                            try
-                            {
-                                doc = (ISwDmDocument3D)SwDmApp.Documents.Open(dep, DocumentState_e.ReadOnly);
-                            }
-                            catch
-                            {
-                            }
-
-                            if (doc != null)
-                            {
-                                foreach (var childDoc in TraverseDependencies(doc, searchOpts, processed))
-                                {
-                                    yield return (ISwDmDocument3D)SwDmApp.Documents.PreCreateFromPath(childDoc.Path);
-                                }
-                            }
-
-                            doc?.Close();
-
-                        }
-                        else
-                        {
-                            var doc = (ISwDmDocument3D)SwDmApp.Documents.PreCreateFromPath(dep);
-                            yield return doc;
-                        }
-                    }
+                    deps = ((ISwDMDocument21)Document).GetAllExternalReferences5(searchOpts, out _, out _, out _, out _) as string[];
                 }
+                else
+                {
+                    deps = ((ISwDMDocument21)Document).GetAllExternalReferences4(searchOpts, out _, out _, out _) as string[];
+                }
+
+                return (deps ?? new string[0])
+                    .Select(d => (ISwDmDocument3D)SwDmApp.Documents.PreCreateFromPath(d)).ToArray();
             }
         }
 

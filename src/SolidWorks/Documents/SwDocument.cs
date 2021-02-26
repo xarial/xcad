@@ -473,11 +473,11 @@ namespace Xarial.XCad.SolidWorks.Documents
 
                     if (IsCommitted && !Model.IsOpenedViewOnly())
                     {
-                        depsData = Model.Extension.GetDependencies(true, true, false, true, true) as string[];
+                        depsData = Model.Extension.GetDependencies(false, true, false, true, true) as string[];
                     }
                     else 
                     {
-                        depsData = App.Sw.GetDocumentDependencies2(Path, true, true, false) as string[];
+                        depsData = App.Sw.GetDocumentDependencies2(Path, false, true, false) as string[];
                     }
 
                     if (depsData?.Any() == true)

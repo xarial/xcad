@@ -412,10 +412,8 @@ namespace SolidWorks.Tests.Integration
 
             var dir = Path.GetDirectoryName(assm.Path);
 
-            Assert.AreEqual(6, deps.Length);
+            Assert.AreEqual(4, deps.Length);
             Assert.That(deps.All(d => !d.IsCommitted));
-            Assert.That(deps.Any(d => string.Equals(d.Path, Path.Combine(dir, "Part2.SLDPRT"))));
-            Assert.That(deps.Any(d => string.Equals(d.Path, Path.Combine(dir, "Part3.SLDPRT"))));
             Assert.That(deps.Any(d => string.Equals(d.Path, Path.Combine(dir, "Part4-1 (XYZ).SLDPRT"))));
             Assert.That(deps.Any(d => string.Equals(d.Path, Path.Combine(dir, "Assem1.SLDASM"))));
             Assert.That(deps.Any(d => string.Equals(d.Path, Path.Combine(dir, "Assem2.SLDASM"))));
@@ -436,9 +434,7 @@ namespace SolidWorks.Tests.Integration
                 dir = Path.GetDirectoryName(m_App.Documents.Active.Path);
             }
             
-            Assert.AreEqual(6, depsData.Count);
-            Assert.IsFalse(depsData[Path.Combine(dir, "Part2.SLDPRT")]);
-            Assert.IsTrue(depsData[Path.Combine(dir, "Part3.SLDPRT")]);
+            Assert.AreEqual(4, depsData.Count);
             Assert.IsTrue(depsData[Path.Combine(dir, "Part4-1 (XYZ).SLDPRT")]);
             Assert.IsFalse(depsData[Path.Combine(dir, "Assem1.SLDASM")]);
             Assert.IsTrue(depsData[Path.Combine(dir, "Assem2.SLDASM")]);
@@ -464,10 +460,8 @@ namespace SolidWorks.Tests.Integration
 
             doc.Close();
 
-            Assert.AreEqual(6, depsData.Count);
+            Assert.AreEqual(4, depsData.Count);
             Assert.That(depsData.All(d => !d.Value));
-            depsData.ContainsKey(Path.Combine(dir, "Part2.SLDPRT"));
-            depsData.ContainsKey(Path.Combine(dir, "Part3.SLDPRT"));
             depsData.ContainsKey(Path.Combine(dir, "Part4-1 (XYZ).SLDPRT"));
             depsData.ContainsKey(Path.Combine(dir, "Assem1.SLDASM"));
             depsData.ContainsKey(Path.Combine(dir, "Assem2.SLDASM"));
@@ -484,10 +478,9 @@ namespace SolidWorks.Tests.Integration
 
             var dir = Path.GetDirectoryName(assm.Path);
 
-            Assert.AreEqual(2, deps.Length);
+            Assert.AreEqual(1, deps.Length);
             Assert.That(deps.All(d => !d.IsCommitted));
             Assert.That(deps.Any(d => string.Equals(d.Path, Path.Combine(dir, "Assemblies\\Assem1.SLDASM"), StringComparison.CurrentCultureIgnoreCase)));
-            Assert.That(deps.Any(d => string.Equals(d.Path, Path.Combine(dir, "Parts\\Part1.SLDPRT"), StringComparison.CurrentCultureIgnoreCase)));
         }
 
         [Test]
