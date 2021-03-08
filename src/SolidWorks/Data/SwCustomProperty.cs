@@ -21,7 +21,6 @@ namespace Xarial.XCad.SolidWorks.Data
 {
     public interface ISwCustomProperty : IXProperty
     {
-        string Expression { get; set; }
     }
 
     internal class SwCustomProperty : ISwCustomProperty
@@ -84,7 +83,14 @@ namespace Xarial.XCad.SolidWorks.Data
             }
             set 
             {
-                Value = value;
+                if (IsCommitted)
+                {
+                    Value = value;
+                }
+                else 
+                {
+                    m_TempValue = value;
+                }
             }
         }
 

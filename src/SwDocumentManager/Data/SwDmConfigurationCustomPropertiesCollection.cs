@@ -60,10 +60,19 @@ namespace Xarial.XCad.SwDocumentManager.Data
             }
         }
 
-        protected override object ReadValue()
+        protected override object ReadValue(out string exp)
         {
             //TODO: parse type
-            return m_Conf.Configuration.GetCustomProperty(Name, out SwDmCustomInfoType type);
+
+            var val = ((ISwDMConfiguration5)m_Conf.Configuration)
+                .GetCustomPropertyValues(Name, out SwDmCustomInfoType type, out exp);
+
+            if (string.IsNullOrEmpty(exp)) 
+            {
+                exp = val;
+            }
+
+            return val;
         }
 
         protected override void SetValue(object value) 

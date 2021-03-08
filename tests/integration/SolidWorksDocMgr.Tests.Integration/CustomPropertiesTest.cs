@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Xarial.XCad.Base;
 using Xarial.XCad.Data;
+using Xarial.XCad.Documents;
 using Xarial.XCad.Exceptions;
 using Xarial.XCad.SwDocumentManager.Documents;
 
@@ -193,6 +194,50 @@ namespace SolidWorksDocMgr.Tests.Integration
 
             Assert.AreEqual("NewValueConf1", conf1Val);
             Assert.AreEqual("NewValueDefault", confDefVal);
+        }
+
+        [Test]
+        public void GetExpressionCustomPropertiesTest()
+        {
+            string exp1;
+            object val1;
+            string exp2;
+            object val2;
+            string exp3;
+            object val3;
+
+            string exp4;
+            string exp5;
+            string exp6;
+
+            using (var doc = OpenDataDocument("CustomPropsExpression1.SLDPRT"))
+            {
+                var part = (IXPart)m_App.Documents.Active;
+
+                exp1 = part.Properties["Material"].Expression;
+                val1 = part.Properties["Material"].Value;
+                exp4 = part.Properties["Prp1"].Expression;
+
+                exp2 = part.Configurations.Active.Properties["Volume"].Expression;
+                val2 = part.Configurations.Active.Properties["Volume"].Value;
+                exp5 = part.Configurations.Active.Properties["Prp2"].Expression;
+
+                exp3 = part.Configurations.Active.CutLists.First().Properties["QUANTITY"].Expression;
+                val3 = part.Configurations.Active.CutLists.First().Properties["QUANTITY"].Value;
+                exp6 = part.Configurations.Active.CutLists.First().Properties["Prp3"].Expression;
+            }
+
+            Assert.AreEqual("\"SW-Material@CustomPropsExpression1.SLDPRT\"", exp1);
+            Assert.AreEqual("Brass", val1);
+            Assert.AreEqual("ABC", exp4);
+
+            Assert.AreEqual("\"SW-Volume@@Default<As Machined>@CustomPropsExpression1.SLDPRT\"", exp2);
+            Assert.AreEqual("160597.86", val2);
+            Assert.AreEqual("XYZ", exp5);
+
+            Assert.AreEqual("\"QUANTITY@@@ C CHANNEL, 76.20 X 5<1>@CustomPropsExpression1.SLDPRT\"", exp3);
+            Assert.AreEqual("1", val3);
+            Assert.AreEqual("IJK", exp6);
         }
     }
 }

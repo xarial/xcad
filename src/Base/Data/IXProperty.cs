@@ -32,6 +32,11 @@ namespace Xarial.XCad.Data
         /// Property value
         /// </summary>
         object Value { get; set; }
+
+        /// <summary>
+        /// Property equation
+        /// </summary>
+        string Expression { get; set; }
     }
 
 

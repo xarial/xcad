@@ -61,10 +61,18 @@ namespace Xarial.XCad.SwDocumentManager.Data
             }
         }
 
-        protected override object ReadValue()
+        protected override object ReadValue(out string exp)
         {
             //TODO: parse type
-            return m_CutList.CutListItem.GetCustomPropertyValue2(Name, out SwDmCustomInfoType type, out string expr);
+
+            var val = m_CutList.CutListItem.GetCustomPropertyValue2(Name, out SwDmCustomInfoType type, out exp);
+
+            if (string.IsNullOrEmpty(exp)) 
+            {
+                exp = val;
+            }
+
+            return val;
         }
 
         protected override void SetValue(object value) 

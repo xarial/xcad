@@ -17,6 +17,7 @@ using Xarial.XCad.Documents;
 using Xarial.XCad.Features;
 using Xarial.XCad.Reflection;
 using Xarial.XCad.SwDocumentManager.Data;
+using Xarial.XCad.SwDocumentManager.Exceptions;
 using Xarial.XCad.SwDocumentManager.Features;
 using Xarial.XCad.UI;
 
@@ -74,8 +75,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                     }
                     else
                     {
-                        throw new Exception(
-                            "Cut-lists can only be extracted from the active configuration for files saved in 2018 or older");
+                        throw new ConfigurationCutListIsNotSupported();
                     }
                 }
 
