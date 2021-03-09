@@ -64,7 +64,7 @@ namespace Xarial.XCad.SolidWorks
         
         IXDocumentRepository IXApplication.Documents => Documents;
         IXMacro IXApplication.OpenMacro(string path) => OpenMacro(path);
-        IXGeometryBuilder IXApplication.MemoryGeometryBuilder => MemoryGeometryBuilder;
+        IXMemoryGeometryBuilder IXApplication.MemoryGeometryBuilder => MemoryGeometryBuilder;
         IXVersion IXApplication.Version 
         {
             get => Version;

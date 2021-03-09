@@ -42,7 +42,7 @@ namespace Xarial.XCad.SwDocumentManager
         public Rectangle WindowRectangle => throw new NotSupportedException();
         public IntPtr WindowHandle => throw new NotSupportedException();
         public Process Process => throw new NotSupportedException();
-        public IXGeometryBuilder MemoryGeometryBuilder => throw new NotSupportedException();
+        public IXMemoryGeometryBuilder MemoryGeometryBuilder => throw new NotSupportedException();
         public IXProgress CreateProgress() => throw new NotSupportedException();
         public IXMacro OpenMacro(string path) => throw new NotSupportedException();
         public void Close() => throw new NotSupportedException();

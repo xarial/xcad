@@ -66,7 +66,7 @@ namespace Xarial.XCad
         /// Accesses memory geometry builder to build primitive wires, surface and solids
         /// </summary>
         /// <remarks>Usually used in the <see cref="Features.CustomFeature.IXCustomFeatureDefinition"/></remarks>
-        IXGeometryBuilder MemoryGeometryBuilder { get; }
+        IXMemoryGeometryBuilder MemoryGeometryBuilder { get; }
         
         /// <summary>
         /// Displays the message box

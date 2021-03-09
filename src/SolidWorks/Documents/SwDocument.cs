@@ -1077,7 +1077,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
             else 
             {
-                string reason = "";
+                string reason;
 
                 switch ((swPersistReferencedObjectStates_e)err) 
                 {
