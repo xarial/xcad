@@ -53,20 +53,27 @@ namespace Xarial.XCad.Utils.CustomFeature
             Type featDefType,
             CustomFeatureParametersParser paramsParser,
             IServiceProvider svcProvider, CreateDynamicControlsDelegate createDynCtrlHandler)
+            : this(app, featDefType, paramsParser, svcProvider)
+        {
+            InitPage(createDynCtrlHandler);
+        }
+
+        protected BaseCustomFeatureEditor(IXApplication app,
+            Type featDefType,
+            CustomFeatureParametersParser paramsParser,
+            IServiceProvider svcProvider)
         {
             m_App = app;
-
             m_SvcProvider = svcProvider;
-
             m_Logger = svcProvider.GetService<IXLogger>();
-
             m_DefType = featDefType;
-
             m_BodiesComparer = new XObjectEqualityComparer<IXBody>();
-
-            m_PmPage = CreatePage(createDynCtrlHandler);
-
             m_ParamsParser = paramsParser;
+        }
+
+        protected void InitPage(CreateDynamicControlsDelegate createDynCtrlHandler)
+        {
+            m_PmPage = CreatePage(createDynCtrlHandler);
 
             m_PmPage.Closing += OnPageClosing;
             m_PmPage.DataChanged += OnDataChanged;

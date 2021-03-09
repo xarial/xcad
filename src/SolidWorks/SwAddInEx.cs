@@ -311,7 +311,9 @@ namespace Xarial.XCad.SolidWorks
         private ISwPropertyManagerPage<TData> CreatePropertyManagerPage<TData>(Type handlerType, 
             CreateDynamicControlsDelegate createDynCtrlHandler)
         {
-            var page = new SwPropertyManagerPage<TData>(Application, m_SvcProvider, handlerType, createDynCtrlHandler);
+            var handler = (SwPropertyManagerPageHandler)Activator.CreateInstance(handlerType);
+
+            var page = new SwPropertyManagerPage<TData>(Application, m_SvcProvider, handler, createDynCtrlHandler);
             m_Disposables.Add(page);
             return page;
         }

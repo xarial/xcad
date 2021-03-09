@@ -62,13 +62,13 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
 
         /// <summary>Creates instance of property manager page</summary>
         /// <param name="app">Pointer to session of SOLIDWORKS where the property manager page to be created</param>
-        internal SwPropertyManagerPage(ISwApplication app, IServiceProvider svcProvider, Type handlerType,
+        internal SwPropertyManagerPage(ISwApplication app, IServiceProvider svcProvider, SwPropertyManagerPageHandler handler,
             CreateDynamicControlsDelegate createDynCtrlHandler)
-            : this(app, null, svcProvider, handlerType, createDynCtrlHandler)
+            : this(app, null, svcProvider, handler, createDynCtrlHandler)
         {
         }
 
-        internal SwPropertyManagerPage(ISwApplication app, IPageSpec pageSpec, IServiceProvider svcProvider, Type handlerType,
+        internal SwPropertyManagerPage(ISwApplication app, IPageSpec pageSpec, IServiceProvider svcProvider, SwPropertyManagerPageHandler handler,
             CreateDynamicControlsDelegate createDynCtrlHandler)
         {
             m_App = app;
@@ -79,8 +79,8 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
 
             m_IconsConv = m_SvcProvider.GetService<IIconsCreator>();
 
-            //TODO: validate that handlerType inherits PropertyManagerPageHandlerEx and it is COM visible with parameterless constructor
-            Handler = (SwPropertyManagerPageHandler)Activator.CreateInstance(handlerType);
+            //TODO: validate that handler is COM visible
+            Handler = handler;
 
             Handler.Closed += OnClosed;
             Handler.Closing += OnClosing;

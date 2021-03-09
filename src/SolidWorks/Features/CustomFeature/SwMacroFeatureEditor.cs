@@ -27,14 +27,16 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         where TData : class, new()
         where TPage : class, new()
     {
-        private readonly Type m_HandlerType;
+        private readonly SwPropertyManagerPageHandler m_Handler;
 
-        internal SwMacroFeatureEditor(ISwApplication app, Type defType, Type handlerType,
+        internal SwMacroFeatureEditor(ISwApplication app, Type defType, SwPropertyManagerPageHandler handler,
             CustomFeatureParametersParser paramsParser, IServiceProvider svcProvider,
             CreateDynamicControlsDelegate createDynCtrlHandler) 
-            : base(app, defType, paramsParser, svcProvider, createDynCtrlHandler)
+            : base(app, defType, paramsParser, svcProvider)
         {
-            m_HandlerType = handlerType;
+            m_Handler = handler;
+
+            InitPage(createDynCtrlHandler);
         }
 
         protected override void DisplayPreview(IXBody[] bodies)
@@ -75,7 +77,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         protected override IXPropertyPage<TPage> CreatePage(CreateDynamicControlsDelegate createDynCtrlHandler)
         {
             //TODO: add support for other options
-            return new SwPropertyManagerPage<TPage>((ISwApplication)m_App, m_SvcProvider, m_HandlerType, createDynCtrlHandler);
+            return new SwPropertyManagerPage<TPage>((ISwApplication)m_App, m_SvcProvider, m_Handler, createDynCtrlHandler);
         }
     }
 }

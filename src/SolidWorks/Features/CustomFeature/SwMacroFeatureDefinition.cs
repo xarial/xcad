@@ -34,6 +34,7 @@ using Xarial.XCad.SolidWorks.Features.CustomFeature.Toolkit;
 using Xarial.XCad.SolidWorks.Features.CustomFeature.Toolkit.Icons;
 using Xarial.XCad.SolidWorks.Geometry;
 using Xarial.XCad.SolidWorks.Services;
+using Xarial.XCad.SolidWorks.UI.PropertyPage;
 using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.Toolkit;
 using Xarial.XCad.Toolkit.CustomFeature;
@@ -469,14 +470,15 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             m_ParamsParser = parser;
 
             m_Editor = new SwMacroFeatureEditor<TParams, TPage>(
-                Application, this.GetType(), PropertyPageHandlerType,
+                Application, this.GetType(), CreatePageHandler(),
                 m_ParamsParser, m_SvcProvider, CreateDynamicControls);
 
             m_Editor.EditingStarted += OnEditingStarted;
             m_Editor.EditingCompleted += OnEditingCompleted;
         }
 
-        protected virtual Type PropertyPageHandlerType => typeof(TPage);
+        protected virtual SwPropertyManagerPageHandler CreatePageHandler() 
+            => (SwPropertyManagerPageHandler)Activator.CreateInstance(typeof(TPage));
 
         public virtual TParams ConvertPageToParams(TPage par)
         {
