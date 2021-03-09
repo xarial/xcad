@@ -469,11 +469,14 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             m_ParamsParser = parser;
 
             m_Editor = new SwMacroFeatureEditor<TParams, TPage>(
-                Application, this.GetType(), m_ParamsParser, m_SvcProvider, CreateDynamicControls);
+                Application, this.GetType(), PropertyPageHandlerType,
+                m_ParamsParser, m_SvcProvider, CreateDynamicControls);
 
             m_Editor.EditingStarted += OnEditingStarted;
             m_Editor.EditingCompleted += OnEditingCompleted;
         }
+
+        protected virtual Type PropertyPageHandlerType => typeof(TPage);
 
         public virtual TParams ConvertPageToParams(TPage par)
         {
