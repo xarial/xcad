@@ -7,11 +7,13 @@
 
 using System;
 using System.Collections;
+using System.ComponentModel;
 using Xarial.XCad.UI.PropertyPage.Base;
 using Xarial.XCad.UI.PropertyPage.Services;
 
 namespace Xarial.XCad.UI.PropertyPage.Attributes
 {
+    [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
     public abstract class ItemsSourceControlAttribute : Attribute, IDependentOnAttribute, IHasMetadataAttribute
     {
         public ICustomItemsProvider CustomItemsProvider { get; }

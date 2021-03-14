@@ -280,6 +280,8 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         public override object Dispatch => Document;
 
+        public int UpdateStamp => Document.GetLastUpdateStamp();
+
         public override bool Equals(IXObject other)
         {
             if (!object.ReferenceEquals(this, other)

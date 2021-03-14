@@ -66,7 +66,11 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
         protected override void SetItemsToControl(ItemsControlItem[] items)
         {
             SwSpecificControl.Clear();
-            SwSpecificControl.AddItems(items.Select(x => x.DisplayName).ToArray());
+
+            if (items?.Any() == true)
+            {
+                SwSpecificControl.AddItems(items.Select(x => x.DisplayName).ToArray());
+            }
         }
     }
 }

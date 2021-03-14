@@ -578,6 +578,8 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
+        public int UpdateStamp => Model.GetUpdateStamp();
+
         private SwVersion_e GetVersion(string[] versHistory)
         {
             if (versHistory?.Any() == true)

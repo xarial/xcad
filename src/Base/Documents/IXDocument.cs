@@ -157,6 +157,11 @@ namespace Xarial.XCad.Documents
         /// <param name="stream">Input stream with the serialized object</param>
         /// <returns>Deserialized object</returns>
         IXObject DeserializeObject(Stream stream);
+
+        /// <summary>
+        /// Returns the time stamp of the change of the current model
+        /// </summary>
+        int UpdateStamp { get; }
     }
 
     /// <summary>
