@@ -70,6 +70,12 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             if (items?.Any() == true)
             {
                 SwSpecificControl.AddItems(items.Select(x => x.DisplayName).ToArray());
+
+                if (m_SelectDefaultValue)
+                {
+                    SwSpecificControl.CurrentSelection = 0;
+                    ValueChanged?.Invoke(this, (TVal)items.First().Value);
+                }
             }
         }
     }
