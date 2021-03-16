@@ -24,7 +24,17 @@ namespace Xarial.XCad.Documents.Extensions
 
         private static IEnumerable<IXDocument3D> EnumerateDependencies(IXDocument doc, List<string> usedPaths) 
         {
-            foreach (var dep in doc.Dependencies ?? new IXDocument3D[0])
+            IXDocument3D[] deps = null;
+
+            try
+            {
+                deps = doc.Dependencies;
+            }
+            catch 
+            {
+            }
+
+            foreach (var dep in deps ?? new IXDocument3D[0])
             {
                 if (!usedPaths.Contains(dep.Path, StringComparer.CurrentCultureIgnoreCase))
                 {
