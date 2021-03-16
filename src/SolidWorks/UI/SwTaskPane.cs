@@ -35,6 +35,7 @@ namespace Xarial.XCad.SolidWorks.UI
 
         public event TaskPaneButtonClickDelegate ButtonClick;
         public event ControlCreatedDelegate<TControl> ControlCreated;
+        public event PanelActivatedDelegate<TControl> Activated;
 
         private readonly TaskPaneSpec m_Spec;
 
@@ -73,7 +74,7 @@ namespace Xarial.XCad.SolidWorks.UI
             TControl ctrl;
             TaskPaneView = m_Creator.CreateControl(typeof(TControl), out ctrl);
             Control = ctrl;
-
+            
             m_Logger = logger;
 
             if (ctrl is FrameworkElement)
@@ -85,6 +86,8 @@ namespace Xarial.XCad.SolidWorks.UI
 
             (TaskPaneView as TaskpaneView).TaskPaneDestroyNotify += OnTaskPaneDestroyNotify;
 
+            (TaskPaneView as TaskpaneView).TaskPaneActivateNotify += OnTaskPaneViewActivate;
+
             if (m_Spec.Buttons?.Any() == true)
             {
                 (TaskPaneView as TaskpaneView).TaskPaneToolbarButtonClicked += OnTaskPaneToolbarButtonClicked;
@@ -92,6 +95,12 @@ namespace Xarial.XCad.SolidWorks.UI
             
             m_IsDisposed = false;
             ControlCreated?.Invoke(Control);
+        }
+
+        private int OnTaskPaneViewActivate()
+        {
+            Activated?.Invoke(this);
+            return 0;
         }
 
         private int OnTaskPaneToolbarButtonClicked(int buttonIndex)
@@ -132,6 +141,7 @@ namespace Xarial.XCad.SolidWorks.UI
 
                 m_KeystrokePropagator?.Dispose();
 
+                (TaskPaneView as TaskpaneView).TaskPaneActivateNotify -= OnTaskPaneViewActivate;
                 (TaskPaneView as TaskpaneView).TaskPaneDestroyNotify -= OnTaskPaneDestroyNotify;
                 (TaskPaneView as TaskpaneView).TaskPaneToolbarButtonClicked -= OnTaskPaneToolbarButtonClicked;
 

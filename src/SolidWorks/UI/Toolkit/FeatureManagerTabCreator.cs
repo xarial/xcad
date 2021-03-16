@@ -18,7 +18,7 @@ using System.Linq;
 
 namespace Xarial.XCad.SolidWorks.UI.Toolkit
 {
-    internal class FeatureManagerTabCreator<TControl> : CustomControlCreator<IFeatMgrView, TControl>
+    internal class FeatureManagerTabCreator<TControl> : CustomControlCreator<Tuple<IFeatMgrView, string>, TControl>
     {
         private readonly IServiceProvider m_SvcProvider;
         private readonly ModelViewManager m_ModelViewMgr;
@@ -29,7 +29,7 @@ namespace Xarial.XCad.SolidWorks.UI.Toolkit
             m_SvcProvider = svcProvider;
         }
 
-        protected override IFeatMgrView HostComControl(string progId, string title, IXImage image,
+        protected override Tuple<IFeatMgrView, string> HostComControl(string progId, string title, IXImage image,
             out TControl specCtrl)
         {
             using (var iconsConv = m_SvcProvider.GetService<IIconsCreator>())
@@ -51,11 +51,11 @@ namespace Xarial.XCad.SolidWorks.UI.Toolkit
                     throw new ComControlHostException(progId);
                 }
 
-                return featMgrView;
+                return new Tuple<IFeatMgrView, string>(featMgrView, title);
             }
         }
 
-        protected override IFeatMgrView HostNetControl(Control winCtrlHost, TControl ctrl,
+        protected override Tuple<IFeatMgrView, string> HostNetControl(Control winCtrlHost, TControl ctrl,
             string title, IXImage image)
         {
             using (var iconsConv = m_SvcProvider.GetService<IIconsCreator>())
@@ -69,7 +69,7 @@ namespace Xarial.XCad.SolidWorks.UI.Toolkit
 
                 if (featMgrView != null)
                 {
-                    return featMgrView;
+                    return new Tuple<IFeatMgrView, string>(featMgrView, title);
                 }
                 else
                 {

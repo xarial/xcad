@@ -50,6 +50,18 @@ namespace Xarial.XCad.UI
         }
 
         public event ControlCreatedDelegate<TControl> ControlCreated;
+        
+        public event PanelActivatedDelegate<TControl> Activated
+        {
+            add
+            {
+                m_TaskPane.Activated += value;
+            }
+            remove
+            {
+                m_TaskPane.Activated -= value;
+            }
+        }
 
         public bool IsControlCreated => m_TaskPane.IsControlCreated;
 

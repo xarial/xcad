@@ -20,6 +20,7 @@ namespace Xarial.XCad.SolidWorks.UI.Toolkit
     internal abstract class DocumentAttachedCustomPanel<TControl> : IXCustomPanel<TControl>
     {
         public event ControlCreatedDelegate<TControl> ControlCreated;
+        public event PanelActivatedDelegate<TControl> Activated;
 
         public bool IsActive
         {
@@ -114,6 +115,11 @@ namespace Xarial.XCad.SolidWorks.UI.Toolkit
 
         protected abstract TControl CreateControl();
         protected abstract void DeleteControl();
+
+        protected void RaiseActivated() 
+        {
+            Activated?.Invoke(this);
+        }
 
         private void OnDocumentActivated(IXDocument doc)
         {

@@ -33,6 +33,7 @@ namespace Xarial.XCad.SolidWorks.UI
 
         public abstract event PopupWindowClosedDelegate<TWindow> Closed;
         public abstract event ControlCreatedDelegate<TWindow> ControlCreated;
+        public abstract event PanelActivatedDelegate<TWindow> Activated;
 
         public bool IsControlCreated { get; protected set; }
 
@@ -48,6 +49,7 @@ namespace Xarial.XCad.SolidWorks.UI
     {
         public override event PopupWindowClosedDelegate<TWindow> Closed;
         public override event ControlCreatedDelegate<TWindow> ControlCreated;
+        public override event PanelActivatedDelegate<TWindow> Activated;
 
         public override bool IsActive
         {
@@ -89,6 +91,7 @@ namespace Xarial.XCad.SolidWorks.UI
         {
             m_WpfWindow.Activated -= OnWindowActivated;
             ControlCreated?.Invoke(Control);
+            Activated?.Invoke(this);
             IsControlCreated = true;
         }
 
@@ -150,6 +153,7 @@ namespace Xarial.XCad.SolidWorks.UI
 
         public override event PopupWindowClosedDelegate<TControl> Closed;
         public override event ControlCreatedDelegate<TControl> ControlCreated;
+        public override event PanelActivatedDelegate<TControl> Activated;
 
         private bool m_IsDisposed;
 
@@ -167,6 +171,7 @@ namespace Xarial.XCad.SolidWorks.UI
         private void OnFormShown(object sender, EventArgs e)
         {
             ControlCreated?.Invoke(Control);
+            Activated?.Invoke(this);
         }
 
         private void OnFormClosed(object sender, FormClosedEventArgs e)

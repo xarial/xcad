@@ -19,11 +19,23 @@ namespace Xarial.XCad.UI
     public delegate void ControlCreatedDelegate<TControl>(TControl ctrl);
 
     /// <summary>
+    /// Delegate of <see cref="IXCustomPanel{TControl}.Activated"/> event
+    /// </summary>
+    /// <typeparam name="TControl">Type of control</typeparam>
+    /// <param name="sender">Activated tab</param>
+    public delegate void PanelActivatedDelegate<TControl>(IXCustomPanel<TControl> sender);
+
+    /// <summary>
     /// Represents the panel with custom User Control
     /// </summary>
     /// <typeparam name="TControl">Type of user control</typeparam>
     public interface IXCustomPanel<TControl>
     {
+        /// <summary>
+        /// Raised when tab is activated
+        /// </summary>
+        event PanelActivatedDelegate<TControl> Activated;
+
         /// <summary>
         /// Raised when control is created
         /// </summary>

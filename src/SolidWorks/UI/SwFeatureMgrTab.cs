@@ -14,6 +14,7 @@ using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.UI.Toolkit;
 using Xarial.XCad.UI;
 using Xarial.XCad.UI.Exceptions;
+using System.Linq;
 
 namespace Xarial.XCad.SolidWorks.UI
 {
@@ -39,16 +40,35 @@ namespace Xarial.XCad.SolidWorks.UI
             }
         }
 
+        private IModelViewManager m_ModelViewMgr;
         private IFeatMgrView m_CurFeatMgrView;
         private readonly FeatureManagerTabCreator<TControl> m_CtrlCreator;
+        private string m_Title;
+        private int m_TabIndex;
 
         internal SwFeatureMgrTab(FeatureManagerTabCreator<TControl> ctrlCreator, SwDocument doc, IXLogger logger)
             : base(doc, logger)
         {
+            m_ModelViewMgr = doc.Model.ModelViewManager;
             m_CtrlCreator = ctrlCreator;
+
+            switch (doc.Model) 
+            {
+                case PartDoc part:
+                    part.FeatureManagerTabActivatedNotify += OnFeatureManagerTabActivated;
+                    break;
+
+                case AssemblyDoc assm:
+                    assm.FeatureManagerTabActivatedNotify += OnFeatureManagerTabActivated;
+                    break;
+
+                case DrawingDoc drw:
+                    drw.FeatureManagerTabActivatedNotify += OnFeatureManagerTabActivated;
+                    break;
+            }
         }
 
-        protected override bool GetIsActive() => throw new NotSupportedException();
+        protected override bool GetIsActive() => m_ModelViewMgr.ActiveFeatureManagerTabIndex == m_TabIndex;
 
         protected override void SetIsActive(bool active)
         {
@@ -64,10 +84,16 @@ namespace Xarial.XCad.SolidWorks.UI
                 }
             }
         }
-
+        
         protected override TControl CreateControl()
         {
-            m_CurFeatMgrView = m_CtrlCreator.CreateControl(typeof(TControl), out TControl ctrl);
+            var ctrlData = m_CtrlCreator.CreateControl(typeof(TControl), out TControl ctrl);
+            
+            m_CurFeatMgrView = ctrlData.Item1;
+            m_Title = ctrlData.Item2;
+
+            m_TabIndex = Array.LastIndexOf(m_Doc.Model.ModelViewManager.GetFeatureManagerTabs() as string[], m_Title);
+
             return ctrl;
         }
 
@@ -77,6 +103,31 @@ namespace Xarial.XCad.SolidWorks.UI
             {
                 m_Logger.Log("Failed to delete feature manager view");
             }
+
+            switch (m_Doc.Model)
+            {
+                case PartDoc part:
+                    part.FeatureManagerTabActivatedNotify -= OnFeatureManagerTabActivated;
+                    break;
+
+                case AssemblyDoc assm:
+                    assm.FeatureManagerTabActivatedNotify -= OnFeatureManagerTabActivated;
+                    break;
+
+                case DrawingDoc drw:
+                    drw.FeatureManagerTabActivatedNotify -= OnFeatureManagerTabActivated;
+                    break;
+            }
+        }
+
+        private int OnFeatureManagerTabActivated(int commandIndex, string commandTabName)
+        {
+            if (commandIndex == m_TabIndex) 
+            {
+                RaiseActivated();
+            }
+
+            return 0;
         }
     }
 }

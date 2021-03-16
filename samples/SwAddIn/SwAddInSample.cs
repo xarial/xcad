@@ -264,6 +264,7 @@ namespace SwAddInExample
 
         private TransformMatrix m_ViewTransform;
         private ISwPopupWindow<WpfWindow> m_Window;
+        private IXCustomPanel<WpfUserControl> m_FeatMgrTab;
 
         private void OnCommandClick(Commands_e spec)
         {
@@ -320,7 +321,8 @@ namespace SwAddInExample
                     break;
 
                 case Commands_e.CreateFeatMgrView:
-                    this.CreateFeatureManagerTab<WpfUserControl>(Application.Documents.Active);
+                    m_FeatMgrTab = this.CreateFeatureManagerTab<WpfUserControl>(Application.Documents.Active);
+                    m_FeatMgrTab.Activated += OnFeatureManagerTabActivated;
 
                     foreach (var comp in Application.Documents.Active.Selections.OfType<IXComponent>()) 
                     {
@@ -352,6 +354,10 @@ namespace SwAddInExample
                     Application.Documents.Active.Selections.ClearSelection += OnClearSelection;
                     break;
             }
+        }
+
+        private void OnFeatureManagerTabActivated(IXCustomPanel<WpfUserControl> sender)
+        {
         }
 
         public override void OnConfigureServices(IXServiceCollection collection)
