@@ -10,6 +10,7 @@ using SolidWorks.Interop.swconst;
 using System;
 using System.Collections.Generic;
 using Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls;
+using Xarial.XCad.UI.PropertyPage.Attributes;
 using Xarial.XCad.UI.PropertyPage.Base;
 using Xarial.XCad.Utils.PageBuilder.Attributes;
 using Xarial.XCad.Utils.PageBuilder.Base;
@@ -42,11 +43,10 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
             if (group is PropertyManagerPageTabControl)
             {
                 var grp = (group as PropertyManagerPageTabControl).Tab.AddGroupBox(atts.Id, atts.Name,
-                    (int)(swAddGroupBoxOptions_e.swGroupBoxOptions_Expanded
-                    | swAddGroupBoxOptions_e.swGroupBoxOptions_Visible)) as IPropertyManagerPageGroup;
-
+                    (int)GetGroupOptions(atts)) as IPropertyManagerPageGroup;
+                
                 return new PropertyManagerPageGroupControl(atts.Id, atts.Tag,
-                    group.Handler, grp, group.App, group.ParentPage);
+                    group.Handler, grp, group.App, group.ParentPage, metadata);
             }
             //NOTE: nested groups are not supported in SOLIDWORKS, creating the group in page instead
             else if (group is PropertyManagerPageGroupControl)
@@ -62,11 +62,34 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
         protected override PropertyManagerPageGroupBase Create(PropertyManagerPagePage page, IAttributeSet atts, IMetadata metadata)
         {
             var grp = page.Page.AddGroupBox(atts.Id, atts.Name,
-                (int)(swAddGroupBoxOptions_e.swGroupBoxOptions_Expanded
-                | swAddGroupBoxOptions_e.swGroupBoxOptions_Visible)) as IPropertyManagerPageGroup;
+                (int)GetGroupOptions(atts)) as IPropertyManagerPageGroup;
 
             return new PropertyManagerPageGroupControl(atts.Id, atts.Tag,
-                page.Handler, grp, page.App, page);
+                page.Handler, grp, page.App, page, metadata);
+        }
+
+        private swAddGroupBoxOptions_e GetGroupOptions(IAttributeSet atts) 
+        {
+            GroupBoxOptions_e opts = 0;
+
+            if (atts.Has<IGroupBoxOptionsAttribute>()) 
+            {
+                opts = atts.Get<IGroupBoxOptionsAttribute>().Options;
+            }
+
+            var swOpts = swAddGroupBoxOptions_e.swGroupBoxOptions_Visible;
+
+            if (!opts.HasFlag(GroupBoxOptions_e.Collapsed)) 
+            {
+                swOpts |= swAddGroupBoxOptions_e.swGroupBoxOptions_Expanded;
+            }
+
+            if (atts.Has<ICheckableGroupBoxAttribute>()) 
+            {
+                swOpts |= swAddGroupBoxOptions_e.swGroupBoxOptions_Checkbox;
+            }
+
+            return swOpts;
         }
     }
 }

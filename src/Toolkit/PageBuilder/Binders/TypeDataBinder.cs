@@ -51,8 +51,11 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
 
             dependencies = new RawDependencyGroup();
 
+            var metadata = new Dictionary<object, PropertyInfoMetadata>();
+            CollectMetadata(type, metadata, new PropertyInfo[0], new List<Type>());
+
             TraverseType<TDataModel>(type, new List<IControlDescriptor>(),
-                ctrlCreator, dynCtrlDescCreator, page, bindingsList, dependencies, ref firstCtrlId);
+                ctrlCreator, dynCtrlDescCreator, page, metadata, bindingsList, dependencies, ref firstCtrlId);
 
             OnBeforeControlsDataLoad(bindings);
         }
@@ -125,11 +128,9 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
 
         private void TraverseType<TDataModel>(Type type, List<IControlDescriptor> parents,
                     CreateBindingControlDelegate ctrlCreator, CreateDynamicControlsDelegate dynCtrlDescCreator,
-                    IGroup parentCtrl, List<IBinding> bindings, IRawDependencyGroup dependencies, ref int nextCtrlId)
+                    IGroup parentCtrl, IReadOnlyDictionary<object, PropertyInfoMetadata> metadata,
+                    List<IBinding> bindings, IRawDependencyGroup dependencies, ref int nextCtrlId)
         {
-            var metadata = new Dictionary<object, PropertyInfoMetadata>();
-            CollectMetadata(type, metadata, new PropertyInfo[0], new List<Type>());
-
             foreach (var prp in type.GetProperties())
             {
                 IControlDescriptor[] ctrlDescriptors;
@@ -204,6 +205,23 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
                             }
                         }
 
+                        if (atts.Has<IDependentOnMetadataAttribute>())
+                        {
+                            var depAtt = atts.Get<IDependentOnMetadataAttribute>();
+                            
+                            var depMds = depAtt.Dependencies.Select(t => 
+                            {
+                                if (!metadata.TryGetValue(t, out PropertyInfoMetadata md)) 
+                                {
+                                    throw new MissingMetadataException(t, ctrlDesc);
+                                }
+
+                                return md;
+                            }).ToArray();
+
+                            dependencies.RegisterMetadataDependency(ctrl, depMds, depAtt.DependencyHandler);
+                        }
+
                         var isGroup = ctrl is IGroup;
 
                         if (isGroup)
@@ -211,7 +229,7 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
                             var grpParents = new List<IControlDescriptor>(parents);
                             grpParents.Add(ctrlDesc);
                             TraverseType<TDataModel>(prpType, grpParents, ctrlCreator, dynCtrlDescCreator,
-                                ctrl as IGroup, bindings, dependencies, ref nextCtrlId);
+                                ctrl as IGroup, metadata, bindings, dependencies, ref nextCtrlId);
                         }
                     }
                 }

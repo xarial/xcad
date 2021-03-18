@@ -23,6 +23,12 @@ namespace Xarial.XCad.Toolkit.PageBuilder.Binders
 
         private object m_CurrentModel;
 
+        public object Value 
+        {
+            get => GetValue();
+            set => m_PrpInfo.SetValue(m_CurrentModel, value);
+        }
+
         public PropertyInfoMetadata(PropertyInfo prpInfo, PropertyInfo[] parents)
         {
             m_PrpInfo = prpInfo;

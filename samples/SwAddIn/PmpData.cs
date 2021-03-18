@@ -24,6 +24,7 @@ using Xarial.XCad.Base.Attributes;
 using SwAddInExample.Properties;
 using System.Linq;
 using System.ComponentModel;
+using Xarial.XCad.UI.PropertyPage.Services;
 
 namespace SwAddInExample
 {
@@ -203,6 +204,58 @@ namespace SwAddInExample
         public PmpMacroFeatData() 
         {
             Option2 = MyItem.All.Last();
+        }
+    }
+
+    [ComVisible(true)]
+    public class ToggleGroupPmpData : SwPropertyManagerPageHandler
+    {
+        public class IsCheckedDepHandler : IMetadataDependencyHandler
+        {
+            public void UpdateState(IXApplication app, IControl source, IMetadata[] metadata)
+            {
+                source.Enabled = !((bool)metadata.First().Value);
+            }
+        }
+
+        public class Group : INotifyPropertyChanged
+        {
+            public event PropertyChangedEventHandler PropertyChanged;
+
+            private bool m_IsChecked;
+
+            [Metadata(nameof(IsChecked))]
+            public bool IsChecked 
+            {
+                get => m_IsChecked;
+                set 
+                {
+                    m_IsChecked = value;
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsChecked)));
+                }
+            }
+
+            public string TextBox { get; set; }
+            public int Number { get; set; }
+            public Action Button { get; }
+
+            public Group() 
+            {
+                m_IsChecked = true;
+                Button = new Action(() => IsChecked = !IsChecked);
+            }
+        }
+
+        [CheckableGroupBox(nameof(Group.IsChecked))]
+        [GroupBoxOptions(GroupBoxOptions_e.Collapsed)]
+        public Group Grp { get; set; }
+
+        [DependentOnMetadata(typeof(IsCheckedDepHandler), nameof(Group.IsChecked))]
+        public double Number1 { get; set; }
+
+        public ToggleGroupPmpData() 
+        {
+            Grp = new Group();
         }
     }
 }

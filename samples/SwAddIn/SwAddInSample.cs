@@ -83,6 +83,8 @@ namespace SwAddInExample
 
             ShowPmPage,
 
+            ShowToggleGroupPage,
+
             [Icon(typeof(Resources), nameof(Resources.xarial))]
             [CommandItemInfo(WorkspaceTypes_e.Part)]
             ShowPmPageMacroFeature,
@@ -135,6 +137,9 @@ namespace SwAddInExample
         private PmpMacroFeatData m_MacroFeatPmpData;
 
         private ISwPropertyManagerPage<PmpData> m_Page;
+        private ISwPropertyManagerPage<ToggleGroupPmpData> m_ToggleGroupPage;
+        private ToggleGroupPmpData m_TogglePageData;
+
         private PmpData m_Data;
 
         public override void OnConnect()
@@ -181,9 +186,16 @@ namespace SwAddInExample
 
             m_Page = this.CreatePage<PmpData>(OnCreateDynamicControls);
             m_Page.Closed += OnPage1Closed;
-            
+
+            m_ToggleGroupPage = this.CreatePage<ToggleGroupPmpData>();
+            m_ToggleGroupPage.Closed += OnToggleGroupPageClosed;
+
             m_MacroFeatPage = this.CreatePage<PmpMacroFeatData>();
             m_MacroFeatPage.Closed += OnClosed;
+        }
+
+        private void OnToggleGroupPageClosed(PageCloseReasons_e reason)
+        {
         }
 
         private IControlDescriptor[] OnCreateDynamicControls(object tag)
@@ -278,6 +290,11 @@ namespace SwAddInExample
                     m_Data = new PmpData();
                     m_Page.Show(m_Data);
                     m_Page.DataChanged += OnPageDataChanged;
+                    break;
+
+                case Commands_e.ShowToggleGroupPage:
+                    m_TogglePageData = new ToggleGroupPmpData();
+                    m_ToggleGroupPage.Show(m_TogglePageData);
                     break;
 
                 case Commands_e.ShowPmPageMacroFeature:

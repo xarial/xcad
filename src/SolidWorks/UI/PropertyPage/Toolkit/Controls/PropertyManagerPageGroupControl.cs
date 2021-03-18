@@ -7,6 +7,7 @@
 
 using SolidWorks.Interop.sldworks;
 using System.ComponentModel;
+using Xarial.XCad.UI.PropertyPage.Base;
 
 namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 {
@@ -53,11 +54,34 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             }
         }
 
+        private IMetadata m_ToggleMetadata;
+
         internal PropertyManagerPageGroupControl(int id, object tag, SwPropertyManagerPageHandler handler,
             IPropertyManagerPageGroup group,
-            ISldWorks app, PropertyManagerPagePage parentPage) : base(id, tag, handler, app, parentPage)
+            ISldWorks app, PropertyManagerPagePage parentPage, IMetadata metadata) : base(id, tag, handler, app, parentPage)
         {
             Group = group;
+            m_ToggleMetadata = metadata;
+            
+            Handler.GroupChecked += OnGroupChecked;
+            
+            if (m_ToggleMetadata != null) 
+            {
+                m_ToggleMetadata.Changed += OnToggleChanged;
+            }
+        }
+
+        private void OnGroupChecked(int id, bool val)
+        {
+            if (id == Id) 
+            {
+                m_ToggleMetadata.Value = val;
+            }
+        }
+
+        private void OnToggleChanged(IMetadata data, object value)
+        {
+            Group.Checked = (bool)value;
         }
     }
 }

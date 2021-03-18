@@ -43,6 +43,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
         internal event Action HelpRequested;
         internal event Action WhatsNewRequested;
         internal event Action<int, bool> CustomControlCreated;
+        internal event Action<int, bool> GroupChecked;
 
         /// <inheritdoc/>
         internal event PropertyManagerPageClosingDelegate Closing;
@@ -161,8 +162,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         public void OnGroupCheck(int Id, bool Checked)
-        {
-        }
+            => GroupChecked?.Invoke(Id, Checked);
 
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]

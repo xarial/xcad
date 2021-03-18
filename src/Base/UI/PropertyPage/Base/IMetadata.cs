@@ -17,6 +17,11 @@ namespace Xarial.XCad.UI.PropertyPage.Base
     public interface IMetadata
     {
         /// <summary>
+        /// Value associated with the metadata
+        /// </summary>
+        object Value { get; set; }
+
+        /// <summary>
         /// Notifies when metadata is changed
         /// </summary>
         event Action<IMetadata, object> Changed;

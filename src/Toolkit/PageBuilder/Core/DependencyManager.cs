@@ -17,14 +17,14 @@ namespace Xarial.XCad.Utils.PageBuilder.Core
 {
     public class DependencyManager : IDependencyManager
     {
-        private class UpdateStateData
+        private class ControlUpdateStateData
         {
             private readonly IBinding m_Source;
             private readonly IBinding[] m_Dependencies;
             private readonly IDependencyHandler m_Handler;
             private readonly IXApplication m_App;
 
-            internal UpdateStateData(IXApplication app, IBinding src, IBinding[] deps, IDependencyHandler handler)
+            internal ControlUpdateStateData(IXApplication app, IBinding src, IBinding[] deps, IDependencyHandler handler)
             {
                 m_App = app;
                 m_Source = src;
@@ -38,7 +38,30 @@ namespace Xarial.XCad.Utils.PageBuilder.Core
             }
         }
 
-        private Dictionary<IBinding, List<UpdateStateData>> m_Dependencies;
+        private class MetadataUpdateStateData
+        {
+            private readonly IControl m_Ctrl;
+            private readonly IMetadata[] m_Dependencies;
+            private readonly IMetadataDependencyHandler m_Handler;
+            private readonly IXApplication m_App;
+
+            internal MetadataUpdateStateData(IXApplication app, IControl ctrl, IMetadata[] deps, IMetadataDependencyHandler handler)
+            {
+                m_App = app;
+                m_Ctrl = ctrl;
+                m_Dependencies = deps;
+                m_Handler = handler;
+            }
+
+            internal void Update()
+            {
+                m_Handler.UpdateState(m_App, m_Ctrl, m_Dependencies);
+            }
+        }
+
+        private Dictionary<IBinding, List<ControlUpdateStateData>> m_ControlDependencies;
+        private Dictionary<IMetadata, List<MetadataUpdateStateData>> m_MetadataDependencies;
+
         private IXApplication m_App;
 
         public ReadOnlyDictionary<IControl, IControl[]> Map { get; private set; }
@@ -46,7 +69,8 @@ namespace Xarial.XCad.Utils.PageBuilder.Core
         public void Init(IXApplication app, IRawDependencyGroup depGroup)
         {
             m_App = app;
-            m_Dependencies = new Dictionary<IBinding, List<UpdateStateData>>();
+            m_ControlDependencies = new Dictionary<IBinding, List<ControlUpdateStateData>>();
+            m_MetadataDependencies = new Dictionary<IMetadata, List<MetadataUpdateStateData>>();
 
             foreach (var data in depGroup.DependenciesTags)
             {
@@ -71,23 +95,53 @@ namespace Xarial.XCad.Utils.PageBuilder.Core
 
                 foreach (var dependOnBinding in dependOnBindings)
                 {
-                    List<UpdateStateData> updates;
-                    if (!m_Dependencies.TryGetValue(dependOnBinding, out updates))
+                    List<ControlUpdateStateData> updates;
+                    if (!m_ControlDependencies.TryGetValue(dependOnBinding, out updates))
                     {
                         dependOnBinding.ModelUpdated += OnModelUpdated;
 
-                        updates = new List<UpdateStateData>();
-                        m_Dependencies.Add(dependOnBinding, updates);
+                        updates = new List<ControlUpdateStateData>();
+                        m_ControlDependencies.Add(dependOnBinding, updates);
                     }
 
-                    updates.Add(new UpdateStateData(m_App, srcBnd, dependOnBindings, handler));
+                    updates.Add(new ControlUpdateStateData(m_App, srcBnd, dependOnBindings, handler));
                 }
+            }
+
+            foreach (var data in depGroup.MetadataDependencies) 
+            {
+                var state = new MetadataUpdateStateData(m_App, data.Key, data.Value.Item1, data.Value.Item2);
+
+                foreach (var md in data.Value.Item1) 
+                {
+                    if (!m_MetadataDependencies.TryGetValue(md, out List<MetadataUpdateStateData> states))
+                    {
+                        md.Changed += OnMetadataChanged;
+                        states = new List<MetadataUpdateStateData>();
+                        m_MetadataDependencies.Add(md, states);
+                    }
+
+                    states.Add(state);
+                }
+            }
+        }
+
+        private void OnMetadataChanged(IMetadata metadata, object val)
+        {
+            foreach (var state in m_MetadataDependencies[metadata]) 
+            {
+                state.Update();
             }
         }
 
         public void UpdateAll()
         {
-            foreach (var state in m_Dependencies.SelectMany(b => b.Value))
+            foreach (var state in m_ControlDependencies.SelectMany(b => b.Value))
+            {
+                state.Update();
+            }
+
+            foreach (var state in m_MetadataDependencies.SelectMany(b => b.Value))
             {
                 state.Update();
             }
@@ -95,7 +149,7 @@ namespace Xarial.XCad.Utils.PageBuilder.Core
 
         private void OnModelUpdated(IBinding binding)
         {
-            m_Dependencies[binding].ForEach(u => u.Update());
+            m_ControlDependencies[binding].ForEach(u => u.Update());
         }
     }
 }
