@@ -19,12 +19,35 @@ namespace Xarial.XCad.UI.PropertyPage.Attributes
     /// </summary>
     public class SelectionBoxOptionsAttribute : Attribute, IAttribute
     {
-        public SelectionBoxStyle_e Style { get; private set; }
-        public KnownColor SelectionColor { get; private set; }
+        /// <summary>
+        /// Style of this selection box
+        /// </summary>
+        public SelectionBoxStyle_e Style { get; set; }
 
-        public SelectType_e[] Filters { get; private set; }
-        public int SelectionMark { get; private set; }
-        public Type CustomFilter { get; private set; }
+        /// <summary>
+        /// Color of selection box
+        /// </summary>
+        public KnownColor SelectionColor { get; set; }
+
+        /// <summary>
+        /// Allowed entities filter for the selection
+        /// </summary>
+        public SelectType_e[] Filters { get; set; }
+
+        /// <summary>
+        /// Selection mark associated with this selection box
+        /// </summary>
+        public int SelectionMark { get; set; }
+
+        /// <summary>
+        /// Custom filter for this selection box
+        /// </summary>
+        public Type CustomFilter { get; set; }
+
+        /// <summary>
+        /// Sets teh current selection box as default focus
+        /// </summary>
+        public bool Focused { get; set; }
 
         /// <summary>
         /// Constructor for selection box options
@@ -46,7 +69,7 @@ namespace Xarial.XCad.UI.PropertyPage.Attributes
         {
         }
 
-        /// <inheritdoc cref="SelectionBoxAttribute(SelectType_e[])"/>
+        /// <inheritdoc cref="SelectionBoxOptionsAttribute(SelectType_e[])"/>
         /// <param name="mark">Selection mark. If multiple selections box are used - use different selection marks for each of them
         /// to differentiate the selections</param>
         public SelectionBoxOptionsAttribute(int mark, params SelectType_e[] filters)
@@ -54,13 +77,13 @@ namespace Xarial.XCad.UI.PropertyPage.Attributes
         {
         }
 
-        /// <inheritdoc cref="SelectionBoxAttribute(int, Type, SelectType_e[])"/>
+        /// <inheritdoc cref="SelectionBoxOptionsAttribute(int, Type, SelectionBoxStyle_e, int, SelectType_e[])"/>
         public SelectionBoxOptionsAttribute(Type customFilter, params SelectType_e[] filters)
             : this(-1, customFilter, SelectionBoxStyle_e.None, 0, filters)
         {
         }
 
-        /// <inheritdoc cref="SelectionBoxAttribute(int, SelectType_e[])"/>
+        /// <inheritdoc cref="SelectionBoxOptionsAttribute(int, SelectType_e[])"/>
         /// <param name="customFilter">Type of custom filter of <see cref="ISelectionCustomFilter"/> for custom logic for filtering selection objects</param>
         /// <exception cref="InvalidCastException"/>
         public SelectionBoxOptionsAttribute(int mark, Type customFilter, SelectionBoxStyle_e style,

@@ -59,7 +59,7 @@ namespace SolidWorks.Tests.Integration
 
                 SwApplicationFactory.DisableAllAddInsStartup(out m_DisabledStartupAddIns);
 
-                m_App = SwApplicationFactory.Create(null,
+                m_App = SwApplicationFactory.Create(SwVersion_e.Sw2020,
                     ApplicationState_e.Background 
                     | ApplicationState_e.Safe 
                     | ApplicationState_e.Silent);

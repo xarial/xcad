@@ -114,6 +114,7 @@ namespace SwAddInExample
 
         public List<ISwComponent> Components { get; set; }
 
+        [SelectionBoxOptions(Focused = true)]
         public ISwBody Body { get; set; }
 
         public ISwCircularEdge CircEdge { get; set; }

@@ -30,6 +30,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
         internal delegate void PropertyManagerPageClosedDelegate(swPropertyManagerPageCloseReasons_e reason);
 
         internal event Action Opening;
+        internal event Action Opened;
 
         internal event Action<int, string> TextChanged;
         internal event Action<int, double> NumberChanged;
@@ -141,6 +142,9 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
 
         internal void InvokeOpening()
             => Opening?.Invoke();
+
+        internal void InvokeOpened()
+            => Opened?.Invoke();
 
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]

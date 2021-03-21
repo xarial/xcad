@@ -22,6 +22,15 @@ namespace Xarial.XCad.SwDocumentManager
 
     internal class SwDmObject : ISwDmObject
     {
+        #region NotSuppoted
+
+        public bool IsAlive => throw new NotSupportedException();
+
+        public virtual void Serialize(Stream stream)
+            => throw new NotSupportedException();
+
+        #endregion
+
         public SwDmObject(object disp)
         {
             Dispatch = disp;
@@ -39,11 +48,6 @@ namespace Xarial.XCad.SwDocumentManager
             {
                 return false;
             }
-        }
-
-        public virtual void Serialize(Stream stream)
-        {
-            throw new NotSupportedException();
         }
     }
 

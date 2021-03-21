@@ -150,6 +150,8 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
 
             //updating control states
             m_Page.Binding.Dependency.UpdateAll();
+
+            Handler.InvokeOpened();
         }
 
         private PageCloseReasons_e ConvertReason(swPropertyManagerPageCloseReasons_e reason)

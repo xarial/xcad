@@ -15,6 +15,7 @@ using Xarial.XCad.Data;
 using Xarial.XCad.Data.Delegates;
 using Xarial.XCad.SolidWorks.Data.EventHandlers;
 using Xarial.XCad.SolidWorks.Data.Helpers;
+using Xarial.XCad.SolidWorks.Enums;
 using Xarial.XCad.Toolkit.Services;
 
 namespace Xarial.XCad.SolidWorks.Data
@@ -116,11 +117,14 @@ namespace Xarial.XCad.SolidWorks.Data
             private set;
         }
 
-        internal SwCustomProperty(CustomPropertyManager prpMgr, string name, bool isCommited)
+        private readonly ISwApplication m_App;
+
+        internal SwCustomProperty(CustomPropertyManager prpMgr, string name, bool isCommited, ISwApplication app)
         {
             PrpMgr = prpMgr;
             m_Name = name;
             IsCommitted = isCommited;
+            m_App = app;
         }
 
         internal void SetEventsHandler(EventsHandler<PropertyValueChangedDelegate> eventsHandler) 
@@ -141,8 +145,23 @@ namespace Xarial.XCad.SolidWorks.Data
         private void TryReadProperty(out string val, out object resVal)
         {
             string resValStr;
-            
-            if (PrpMgr.Get4(Name, false, out val, out resValStr))
+
+            var prpExist = false;
+
+            if (m_App.IsVersionNewerOrEqual(SwVersion_e.Sw2018))
+            {
+                prpExist = PrpMgr.Get6(Name, false, out val, out resValStr, out _, out _) != (int)swCustomInfoGetResult_e.swCustomInfoGetResult_NotPresent;
+            }
+            else if (m_App.IsVersionNewerOrEqual(SwVersion_e.Sw2014))
+            {
+                prpExist = PrpMgr.Get5(Name, false, out val, out resValStr, out _) != (int)swCustomInfoGetResult_e.swCustomInfoGetResult_NotPresent;
+            }
+            else
+            {
+                prpExist = PrpMgr.Get4(Name, false, out val, out resValStr);
+            }
+
+            if (prpExist)
             {
                 resVal = null;
 

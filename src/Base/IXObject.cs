@@ -16,6 +16,11 @@ namespace Xarial.XCad
     public interface IXObject : IEquatable<IXObject>
     {
         /// <summary>
+        /// Identifies if current object is valid
+        /// </summary>
+        bool IsAlive { get; }
+
+        /// <summary>
         /// Saves this object into a stream
         /// </summary>
         /// <param name="stream">Target stream</param>

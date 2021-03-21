@@ -297,5 +297,32 @@ namespace SolidWorksDocMgr.Tests.Integration
             Assert.AreEqual("Test2", txt);
             Assert.AreEqual(25, number);
         }
+
+        [Test]
+        public void QuantityTest()
+        {
+            double q1;
+            double q2;
+            double q3;
+            double q4;
+            double q5;
+
+            using (var doc = OpenDataDocument("PartQty.SLDPRT"))
+            {
+                var part = (IXDocument3D)m_App.Documents.Active;
+                
+                q1 = part.Configurations["Conf1"].Quantity;
+                q2 = part.Configurations["Conf2"].Quantity;
+                q3 = part.Configurations["Conf3"].Quantity;
+                q4 = part.Configurations["Conf4"].Quantity;
+                q5 = part.Configurations["Conf5"].Quantity;
+            }
+
+            Assert.AreEqual(2, q1);
+            Assert.AreEqual(1, q2);
+            Assert.AreEqual(3, q3);
+            Assert.AreEqual(2, q4);
+            Assert.AreEqual(1, q5);
+        }
     }
 }

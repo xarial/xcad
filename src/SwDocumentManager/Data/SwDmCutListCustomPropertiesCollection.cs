@@ -30,6 +30,7 @@ namespace Xarial.XCad.SwDocumentManager.Data
         public override IEnumerator<IXProperty> GetEnumerator()
         {
             var prpNames = m_CutList.CutListItem.GetCustomPropertyNames() as string[] ?? new string[0];
+            prpNames = prpNames.Except(new string[] { SwDmConfiguration.QTY_PROPERTY }).ToArray();
             return prpNames.Select(p => CreatePropertyInstance(p, true)).GetEnumerator();
         }
 

@@ -32,6 +32,8 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
     internal class SwDmConfiguration : SwDmObject, ISwDmConfiguration
     {
+        internal const string QTY_PROPERTY = "UNIT_OF_MEASURE";
+
         IXPropertyRepository IPropertiesOwner.Properties => Properties;
         IXCutListItem[] IXConfiguration.CutLists => CutLists;
 
@@ -40,7 +42,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         public virtual ISwDMConfiguration Configuration { get; }
 
         public ISwDmCustomPropertiesCollection Properties => m_Properties.Value;
-        
+
         internal SwDmConfiguration(ISwDMConfiguration conf, SwDmDocument3D doc) : base(conf)
         {
             Configuration = conf;
@@ -97,9 +99,9 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         protected virtual SwDmDocument3D Document { get; }
 
-        public IXImage Preview 
+        public IXImage Preview
         {
-            get 
+            get
             {
                 SwDmPreviewError previewErr;
                 var imgBytes = ((ISwDMConfiguration9)Configuration)
@@ -113,6 +115,80 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                 {
                     throw new Exception($"Failed to extract preview from the configuration: {previewErr}");
                 }
+            }
+        }
+
+        public double Quantity
+        {
+            get
+            {
+                var qtyPrp = TryGetConfigurationPropertyValue(QTY_PROPERTY);
+
+                if (string.IsNullOrEmpty(qtyPrp))
+                {
+                    qtyPrp = TryGetDocumentPropertyValue(QTY_PROPERTY);
+                }
+
+                if (!string.IsNullOrEmpty(qtyPrp))
+                {
+                    var qtyStr = TryGetConfigurationPropertyValue(qtyPrp);
+
+                    double qty;
+
+                    if (!string.IsNullOrEmpty(qtyStr))
+                    {
+                        if (double.TryParse(qtyStr, out qty))
+                        {
+                            return qty;
+                        }
+                        else 
+                        {
+                            return 1;
+                        }
+                    }
+                    else
+                    {
+                        qtyStr = TryGetDocumentPropertyValue(qtyPrp);
+
+                        if (double.TryParse(qtyStr, out qty))
+                        {
+                            return qty;
+                        }
+                        else
+                        {
+                            return 1;
+                        }
+                    }
+                }
+                else
+                {
+                    return 1;
+                }
+            }
+        }
+
+        private string TryGetDocumentPropertyValue(string prpName)
+        {
+            try
+            {
+                return ((ISwDMDocument5)Document.Document).GetCustomPropertyValues(prpName, out _, out _);
+            }
+            catch
+            {
+                return "";
+            }
+        }
+
+        private string TryGetConfigurationPropertyValue(string prpName)
+        {
+            try
+            {
+                return ((ISwDMConfiguration5)Configuration)
+                    .GetCustomPropertyValues(prpName, out _, out _);
+            }
+            catch 
+            {
+                return "";
             }
         }
 

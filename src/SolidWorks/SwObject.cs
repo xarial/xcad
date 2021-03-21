@@ -233,6 +233,28 @@ namespace Xarial.XCad.SolidWorks
 
         public virtual object Dispatch { get; }
 
+        public bool IsAlive 
+        {
+            get 
+            {
+                try
+                {
+                    if (Dispatch != null)
+                    {
+                        if (ModelDoc.Extension.GetPersistReference3(Dispatch) != null)
+                        {
+                            return true;
+                        }
+                    }
+                }
+                catch 
+                {
+                }
+
+                return false;
+            }
+        }
+
         internal SwObject(object dispatch)
         {
             Dispatch = dispatch;

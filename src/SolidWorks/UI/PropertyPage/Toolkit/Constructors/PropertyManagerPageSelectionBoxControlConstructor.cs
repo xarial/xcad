@@ -64,6 +64,8 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
 
             SelectType_e[] filters = null;
 
+            bool focusOnOpen = false;
+
             if (atts.Has<SelectionBoxOptionsAttribute>())
             {
                 var selAtt = atts.Get<SelectionBoxOptionsAttribute>();
@@ -85,6 +87,8 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
 
                 swCtrl.Mark = selAtt.SelectionMark;
 
+                focusOnOpen = selAtt.Focused;
+
                 if (selAtt.CustomFilter != null)
                 {
                     customFilter = Activator.CreateInstance(selAtt.CustomFilter) as ISelectionCustomFilter;
@@ -104,7 +108,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
             swCtrl.SetSelectionFilters(filters);
 
             return new PropertyManagerPageSelectionBoxControl(m_SwApp, atts.Id, atts.Tag,
-                swCtrl, handler, atts.ContextType, customFilter);
+                swCtrl, handler, atts.ContextType, customFilter, focusOnOpen);
         }
 
         protected virtual SelectType_e[] GetDefaultFilters(IAttributeSet atts, out ISelectionCustomFilter customFilter) 

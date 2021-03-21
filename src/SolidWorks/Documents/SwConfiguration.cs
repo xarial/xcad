@@ -20,6 +20,7 @@ using Xarial.XCad.Reflection;
 using Xarial.XCad.Services;
 using Xarial.XCad.SolidWorks.Data;
 using Xarial.XCad.SolidWorks.Documents.Exceptions;
+using Xarial.XCad.SolidWorks.Enums;
 using Xarial.XCad.SolidWorks.Features;
 using Xarial.XCad.UI;
 
@@ -33,6 +34,8 @@ namespace Xarial.XCad.SolidWorks.Documents
 
     internal class SwConfiguration : SwObject, ISwConfiguration
     {
+        internal const string QTY_PROPERTY = "UNIT_OF_MEASURE";
+
         public IConfiguration Configuration => m_Creator.Element;
 
         private readonly new SwDocument3D m_Doc;
@@ -121,6 +124,75 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
 
         public string PartNumber => GetPartNumber(Configuration);
+
+        public double Quantity 
+        {
+            get 
+            {
+                var qtyPrp = GetPropertyValue(Configuration.CustomPropertyManager, QTY_PROPERTY);
+
+                if (string.IsNullOrEmpty(qtyPrp))
+                {
+                    qtyPrp = GetPropertyValue(m_Doc.Model.Extension.CustomPropertyManager[""], QTY_PROPERTY);
+                }
+
+                if (!string.IsNullOrEmpty(qtyPrp))
+                {
+                    var qtyStr = GetPropertyValue(Configuration.CustomPropertyManager, qtyPrp);
+
+                    double qty;
+
+                    if (!string.IsNullOrEmpty(qtyStr))
+                    {
+                        if (double.TryParse(qtyStr, out qty))
+                        {
+                            return qty;
+                        }
+                        else
+                        {
+                            return 1;
+                        }
+                    }
+                    else
+                    {
+                        qtyStr = GetPropertyValue(m_Doc.Model.Extension.CustomPropertyManager[""], qtyPrp);
+
+                        if (double.TryParse(qtyStr, out qty))
+                        {
+                            return qty;
+                        }
+                        else
+                        {
+                            return 1;
+                        }
+                    }
+                }
+                else
+                {
+                    return 1;
+                }
+            }
+        }
+
+        private string GetPropertyValue(ICustomPropertyManager prpMgr, string prpName) 
+        {
+            string resVal;
+
+            if (m_Doc.App.IsVersionNewerOrEqual(SwVersion_e.Sw2018))
+            {
+                prpMgr.Get6(prpName, false, out _, out resVal, out _, out _);
+            }
+            else if (m_Doc.App.IsVersionNewerOrEqual(SwVersion_e.Sw2014))
+            {
+                prpMgr.Get5(prpName, false, out _, out resVal, out _);
+            }
+            else
+            {
+                prpMgr.Get4(prpName, false, out _, out resVal);
+            }
+
+            return resVal;
+        }
 
         private string GetPartNumber(IConfiguration conf) 
         {

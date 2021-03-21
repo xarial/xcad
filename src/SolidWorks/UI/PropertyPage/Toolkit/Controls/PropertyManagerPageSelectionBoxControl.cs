@@ -28,20 +28,37 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
         private readonly Type m_ObjType;
         private readonly ISelectionCustomFilter m_CustomFilter;
 
+        private readonly bool m_DefaultFocus;
+
         public PropertyManagerPageSelectionBoxControl(ISwApplication app, int id, object tag,
             IPropertyManagerPageSelectionbox selBox,
-            SwPropertyManagerPageHandler handler, Type objType, ISelectionCustomFilter customFilter = null)
+            SwPropertyManagerPageHandler handler, Type objType, ISelectionCustomFilter customFilter, bool defaultFocus)
             : base(selBox, id, tag, handler)
         {
             m_App = app;
             m_ObjType = objType;
             m_CustomFilter = customFilter;
 
+            m_DefaultFocus = defaultFocus;
+
             m_Handler.SelectionChanged += OnSelectionChanged;
+
+            if (m_DefaultFocus)
+            {
+                m_Handler.Opened += OnPageOpened;
+            }
 
             if (m_CustomFilter != null)
             {
                 m_Handler.SubmitSelection += OnSubmitSelection;
+            }
+        }
+
+        private void OnPageOpened()
+        {
+            if (m_DefaultFocus) 
+            {
+                SwSpecificControl.SetSelectionFocus();
             }
         }
 
