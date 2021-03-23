@@ -107,10 +107,15 @@ namespace Xarial.XCad.SwDocumentManager
             Documents = new SwDmDocumentCollection(this);
         }
 
-        private ISwDMApplication CreateApplication(CancellationToken cancellationToke)
-            => SwDmApplicationFactory.ConnectToDm(LicenseKey);
+        private ISwDMApplication CreateApplication(CancellationToken cancellationToken)
+        {
+            var licKey = LicenseKey;
+            LicenseKey = null;
+            return SwDmApplicationFactory.ConnectToDm(licKey);
+        }
 
-        public void Commit(CancellationToken cancellationToken) => m_Creator.Create(cancellationToken);
+        public void Commit(CancellationToken cancellationToken) 
+            => m_Creator.Create(cancellationToken);
     }
 
     public static class SwApplicationExtension

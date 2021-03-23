@@ -81,12 +81,17 @@ namespace Xarial.XCad.SolidWorks.Documents
             {
                 var activeConf = m_Doc.Configurations.Active;
 
-                if (activeConf.Configuration != this.Configuration) 
-                {
-                    throw new InactiveConfigurationCutListPropertiesNotSupportedException();
-                };
+                var cutLists = ((SwFeatureManager)m_Doc.Features).GetCutLists();
 
-                return m_Doc.Features.GetCutLists();
+                if (cutLists.Any())
+                {
+                    if (activeConf.Configuration != this.Configuration)
+                    {
+                        throw new InactiveConfigurationCutListPropertiesNotSupportedException();
+                    };
+                }
+
+                return cutLists;
             }
         }
 
