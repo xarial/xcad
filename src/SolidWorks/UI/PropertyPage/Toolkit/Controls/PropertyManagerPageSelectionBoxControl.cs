@@ -58,7 +58,10 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
         {
             if (m_DefaultFocus) 
             {
-                SwSpecificControl.SetSelectionFocus();
+                if (Visible)
+                {
+                    SwSpecificControl.SetSelectionFocus();
+                }
             }
         }
 

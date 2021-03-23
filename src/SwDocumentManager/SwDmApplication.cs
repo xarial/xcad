@@ -49,6 +49,8 @@ namespace Xarial.XCad.SwDocumentManager
         public MessageBoxResult_e ShowMessageBox(string msg,
             MessageBoxIcon_e icon = MessageBoxIcon_e.Info, MessageBoxButtons_e buttons = MessageBoxButtons_e.Ok)
             => throw new NotSupportedException();
+        public void ShowTooltip(string tooltip, string msg, Point pos, TooltipArrowPosition_e arrPos = TooltipArrowPosition_e.LeftOrRight, MessageBoxIcon_e icon = MessageBoxIcon_e.Info)
+            => throw new NotSupportedException();
 
         #endregion
 

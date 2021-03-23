@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
+using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Exceptions;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Documents.Exceptions;
@@ -214,6 +215,26 @@ namespace SolidWorks.Tests.Integration
             Assert.AreEqual("Conf1", p2);
             Assert.AreEqual("Conf3", p3);
             Assert.AreEqual("ABC", p4);
+        }
+
+        [Test]
+        public void BomChildrenDisplayTest()
+        {
+            BomChildrenSolving_e s1;
+            BomChildrenSolving_e s2;
+            BomChildrenSolving_e s3;
+
+            using (var doc = OpenDataDocument("BomChildrenDisplay.SLDASM"))
+            {
+                var confs = (m_App.Documents.Active as IXDocument3D).Configurations;
+                s1 = confs["Conf1"].BomChildrenSolving;
+                s2 = confs["Conf2"].BomChildrenSolving;
+                s3 = confs["Conf3"].BomChildrenSolving;
+            }
+
+            Assert.AreEqual(BomChildrenSolving_e.Show, s1);
+            Assert.AreEqual(BomChildrenSolving_e.Hide, s2);
+            Assert.AreEqual(BomChildrenSolving_e.Promote, s3);
         }
     }
 }

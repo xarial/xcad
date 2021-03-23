@@ -9,6 +9,7 @@ using Xarial.XCad.Base;
 using Xarial.XCad.Data;
 using Xarial.XCad.Features;
 using Xarial.XCad.UI;
+using Xarial.XCad.Documents.Enums;
 
 namespace Xarial.XCad.Documents
 {
@@ -31,6 +32,11 @@ namespace Xarial.XCad.Documents
         /// Returns part number of this configuration
         /// </summary>
         string PartNumber { get; }
+
+        /// <summary>
+        /// Options for displaying this configuration in BOM
+        /// </summary>
+        BomChildrenSolving_e BomChildrenSolving { get; }
 
         /// <summary>
         /// Cut-list items in this configuration (if available)

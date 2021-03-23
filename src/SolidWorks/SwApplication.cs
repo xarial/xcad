@@ -470,6 +470,26 @@ namespace Xarial.XCad.SolidWorks
                 throw new Exception("Failed to create progress");
             }
         }
+
+        public void ShowTooltip(string title, string msg, Point pos,
+            TooltipArrowPosition_e arrPos = TooltipArrowPosition_e.LeftOrRight,
+            MessageBoxIcon_e icon = MessageBoxIcon_e.Info)
+        {
+            //TODO: support other icon types
+            swBitMaps bmpType = swBitMaps.swBitMapNone;
+            string bmp = "";
+
+            switch (icon) 
+            {
+                case MessageBoxIcon_e.Error:
+                    bmpType = swBitMaps.swBitMapTreeError;
+                    break;
+            }
+
+            Sw.ShowBubbleTooltipAt2(pos.X, pos.Y, (int)arrPos,
+                        title, msg, (int)bmpType,
+                        bmp, "", 0, (int)swLinkString.swLinkStringNone, "", "");
+        }
     }
 
     public static class SwApplicationExtension 

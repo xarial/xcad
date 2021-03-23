@@ -78,6 +78,18 @@ namespace Xarial.XCad
         MessageBoxResult_e ShowMessageBox(string msg, MessageBoxIcon_e icon = MessageBoxIcon_e.Info, MessageBoxButtons_e buttons = MessageBoxButtons_e.Ok);
 
         /// <summary>
+        /// Displays the modeless tooltip
+        /// </summary>
+        /// <param name="title">Title of tooltip</param>
+        /// <param name="msg">Message to show in tooltip</param>
+        /// <param name="pos">Tooltip position</param>
+        /// <param name="arrPos">Position of tooltip arrow</param>
+        /// <param name="icon">Tooltip icon</param>
+        void ShowTooltip(string title, string msg, Point pos,
+            TooltipArrowPosition_e arrPos = TooltipArrowPosition_e.LeftOrRight,
+            MessageBoxIcon_e icon = MessageBoxIcon_e.Info);
+
+        /// <summary>
         /// Create instance of the macro
         /// </summary>
         /// <param name="path">Full path to the macro</param>

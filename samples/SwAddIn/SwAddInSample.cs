@@ -293,8 +293,7 @@ namespace SwAddInExample
                     break;
 
                 case Commands_e.ShowToggleGroupPage:
-                    m_TogglePageData = new ToggleGroupPmpData();
-                    m_ToggleGroupPage.Show(m_TogglePageData);
+                    m_ToggleGroupPage.Show(m_TogglePageData ?? (m_TogglePageData = new ToggleGroupPmpData()));
                     break;
 
                 case Commands_e.ShowPmPageMacroFeature:

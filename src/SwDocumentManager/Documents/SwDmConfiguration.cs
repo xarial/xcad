@@ -14,6 +14,7 @@ using System.Text;
 using System.Threading;
 using Xarial.XCad.Data;
 using Xarial.XCad.Documents;
+using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Features;
 using Xarial.XCad.Reflection;
 using Xarial.XCad.SwDocumentManager.Data;
@@ -163,6 +164,38 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                 else
                 {
                     return 1;
+                }
+            }
+        }
+
+        public BomChildrenSolving_e BomChildrenSolving 
+        {
+            get 
+            {
+                swDmShowChildComponentsInBOMResult childBomShowType;
+
+                if (Document.SwDmApp.IsVersionNewerOrEqual(SwDmVersion_e.Sw2018))
+                {
+                    childBomShowType = (swDmShowChildComponentsInBOMResult)((ISwDMConfiguration15)Configuration).ShowChildComponentsInBOM2;
+                }
+                else 
+                {
+                    childBomShowType = (swDmShowChildComponentsInBOMResult)((ISwDMConfiguration11)Configuration).ShowChildComponentsInBOM;
+                }
+
+                switch (childBomShowType) 
+                {
+                    case swDmShowChildComponentsInBOMResult.swDmShowChildComponentsInBOM_TRUE:
+                        return BomChildrenSolving_e.Show;
+
+                    case swDmShowChildComponentsInBOMResult.swDmShowChildComponentsInBOM_FALSE:
+                        return BomChildrenSolving_e.Hide;
+
+                    case swDmShowChildComponentsInBOMResult.swDmShowChildComponentsInBOM_Promote:
+                        return BomChildrenSolving_e.Promote;
+
+                    default:
+                        throw new NotSupportedException();
                 }
             }
         }

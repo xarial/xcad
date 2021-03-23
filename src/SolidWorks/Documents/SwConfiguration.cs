@@ -15,6 +15,7 @@ using System.Linq;
 using System.Threading;
 using Xarial.XCad.Data;
 using Xarial.XCad.Documents;
+using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Features;
 using Xarial.XCad.Reflection;
 using Xarial.XCad.Services;
@@ -170,6 +171,27 @@ namespace Xarial.XCad.SolidWorks.Documents
                 else
                 {
                     return 1;
+                }
+            }
+        }
+
+        public BomChildrenSolving_e BomChildrenSolving 
+        {
+            get 
+            {
+                switch ((swChildComponentInBOMOption_e)Configuration.ChildComponentDisplayInBOM) 
+                {
+                    case swChildComponentInBOMOption_e.swChildComponent_Show:
+                        return BomChildrenSolving_e.Show;
+
+                    case swChildComponentInBOMOption_e.swChildComponent_Hide:
+                        return BomChildrenSolving_e.Hide;
+
+                    case swChildComponentInBOMOption_e.swChildComponent_Promote:
+                        return BomChildrenSolving_e.Promote;
+
+                    default:
+                        throw new NotSupportedException();
                 }
             }
         }

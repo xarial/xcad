@@ -42,11 +42,14 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
         {
             if (group is PropertyManagerPageTabControl)
             {
+                var opts = GetGroupOptions(atts);
                 var grp = (group as PropertyManagerPageTabControl).Tab.AddGroupBox(atts.Id, atts.Name,
-                    (int)GetGroupOptions(atts)) as IPropertyManagerPageGroup;
+                    (int)opts) as IPropertyManagerPageGroup;
                 
                 return new PropertyManagerPageGroupControl(atts.Id, atts.Tag,
-                    group.Handler, grp, group.App, group.ParentPage, metadata);
+                    group.Handler, grp, group.App, group.ParentPage, metadata,
+                    opts.HasFlag(swAddGroupBoxOptions_e.swGroupBoxOptions_Checkbox), 
+                    !opts.HasFlag(swAddGroupBoxOptions_e.swGroupBoxOptions_Expanded));
             }
             //NOTE: nested groups are not supported in SOLIDWORKS, creating the group in page instead
             else if (group is PropertyManagerPageGroupControl)
@@ -59,13 +62,18 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
             }
         }
 
-        protected override PropertyManagerPageGroupBase Create(PropertyManagerPagePage page, IAttributeSet atts, IMetadata metadata)
+        protected override PropertyManagerPageGroupBase Create(PropertyManagerPagePage page, IAttributeSet atts,
+            IMetadata metadata)
         {
+            var opts = GetGroupOptions(atts);
+
             var grp = page.Page.AddGroupBox(atts.Id, atts.Name,
-                (int)GetGroupOptions(atts)) as IPropertyManagerPageGroup;
+                (int)opts) as IPropertyManagerPageGroup;
 
             return new PropertyManagerPageGroupControl(atts.Id, atts.Tag,
-                page.Handler, grp, page.App, page, metadata);
+                page.Handler, grp, page.App, page, metadata,
+                opts.HasFlag(swAddGroupBoxOptions_e.swGroupBoxOptions_Checkbox),
+                !opts.HasFlag(swAddGroupBoxOptions_e.swGroupBoxOptions_Expanded));
         }
 
         private swAddGroupBoxOptions_e GetGroupOptions(IAttributeSet atts) 

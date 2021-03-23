@@ -56,18 +56,42 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
         private IMetadata m_ToggleMetadata;
 
+        private readonly bool m_IsCheckable;
+        private readonly bool m_Collapse;
+
         internal PropertyManagerPageGroupControl(int id, object tag, SwPropertyManagerPageHandler handler,
             IPropertyManagerPageGroup group,
-            ISldWorks app, PropertyManagerPagePage parentPage, IMetadata metadata) : base(id, tag, handler, app, parentPage)
+            ISldWorks app, PropertyManagerPagePage parentPage, IMetadata metadata, bool isCheckable, bool collapse)
+            : base(id, tag, handler, app, parentPage)
         {
             Group = group;
             m_ToggleMetadata = metadata;
+
+            m_IsCheckable = isCheckable;
+            m_Collapse = collapse;
             
             Handler.GroupChecked += OnGroupChecked;
             
             if (m_ToggleMetadata != null) 
             {
                 m_ToggleMetadata.Changed += OnToggleChanged;
+            }
+
+            Handler.Opened += OnPageOpened;
+        }
+
+        private void OnPageOpened()
+        {
+            if (m_IsCheckable) 
+            {
+                if (m_Collapse)
+                {
+                    Group.Expanded = false;
+                }
+                else 
+                {
+                    Group.Expanded = Group.Checked;
+                }
             }
         }
 

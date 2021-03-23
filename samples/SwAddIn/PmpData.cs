@@ -248,7 +248,7 @@ namespace SwAddInExample
         }
 
         [CheckableGroupBox(nameof(Group.IsChecked))]
-        [GroupBoxOptions(GroupBoxOptions_e.Collapsed)]
+        //[GroupBoxOptions(GroupBoxOptions_e.Collapsed)]
         public Group Grp { get; set; }
 
         [DependentOnMetadata(typeof(IsCheckedDepHandler), nameof(Group.IsChecked))]
