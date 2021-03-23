@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Xarial.XCad.Data;
+using Xarial.XCad.Enums;
 using Xarial.XCad.Geometry;
 
 namespace Xarial.XCad.Features
@@ -18,6 +19,11 @@ namespace Xarial.XCad.Features
     /// </summary>
     public interface IXCutListItem : IXFeature, IPropertiesOwner
     {
+        /// <summary>
+        /// State of this cut-list item
+        /// </summary>
+        CutListState_e State { get; }
+
         /// <summary>
         /// Bodies of this cut-list item
         /// </summary>

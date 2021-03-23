@@ -12,6 +12,7 @@ using System.Linq;
 using System.Text;
 using Xarial.XCad.Data;
 using Xarial.XCad.Data.Delegates;
+using Xarial.XCad.Enums;
 using Xarial.XCad.Features;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.SolidWorks.Data;
@@ -69,6 +70,21 @@ namespace Xarial.XCad.SolidWorks.Features
         }
 
         public ISwCustomPropertiesCollection Properties => m_Properties.Value;
+
+        public CutListState_e State 
+        {
+            get 
+            {
+                if (Feature.ExcludeFromCutList)
+                {
+                    return CutListState_e.ExcludeFromBom;
+                }
+                else 
+                {
+                    return 0;
+                }
+            }
+        }
 
         public void Dispose()
         {

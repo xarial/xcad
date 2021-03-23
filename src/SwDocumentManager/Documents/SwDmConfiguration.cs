@@ -85,7 +85,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                 if (cutListItems != null)
                 {
                     return cutListItems.Cast<ISwDMCutListItem2>()
-                        .Select(c => new SwDmCutListItem(c)).ToArray();
+                        .Select(c => new SwDmCutListItem(c, Document)).ToArray();
                 }
                 else
                 {
