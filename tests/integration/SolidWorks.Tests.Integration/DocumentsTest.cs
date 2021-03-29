@@ -13,6 +13,7 @@ using Xarial.XCad.Data.Enums;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Documents.Exceptions;
+using Xarial.XCad.Geometry;
 using Xarial.XCad.SolidWorks;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Documents.Exceptions;
@@ -757,6 +758,21 @@ namespace SolidWorks.Tests.Integration
             Assert.AreEqual(3, q3);
             Assert.AreEqual(2, q4);
             Assert.AreEqual(1, q5);
+        }
+
+        [Test]
+        public void BodyVolumeTest()
+        {
+            double v1;
+
+            using (var doc = OpenDataDocument("Features1.SLDPRT"))
+            {
+                var part = (IXPart)m_App.Documents.Active;
+
+                v1 = ((IXSolidBody)part.Bodies["Boss-Extrude2"]).Volume;
+            }
+
+            Assert.That(2.3851693679806192E-05, Is.EqualTo(v1).Within(0.001).Percent);
         }
     }
 }

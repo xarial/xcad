@@ -34,6 +34,10 @@ using Xarial.XCad.SolidWorks.Services;
 using Xarial.XCad.Services;
 using Xarial.XCad.Enums;
 using Xarial.XCad.Delegates;
+using Xarial.XCad.Base.Attributes;
+using Xarial.XCad.UI;
+using Xarial.XCad.SolidWorks.UI;
+using Xarial.XCad.Reflection;
 
 namespace Xarial.XCad.SolidWorks
 {
@@ -471,24 +475,29 @@ namespace Xarial.XCad.SolidWorks
             }
         }
 
-        public void ShowTooltip(string title, string msg, Point pos,
-            TooltipArrowPosition_e arrPos = TooltipArrowPosition_e.LeftOrRight,
-            MessageBoxIcon_e icon = MessageBoxIcon_e.Info)
+        public void ShowTooltip(ITooltipSpec spec)
         {
-            //TODO: support other icon types
-            swBitMaps bmpType = swBitMaps.swBitMapNone;
-            string bmp = "";
+            var bmp = "";
+            IXImage icon = null;
 
-            switch (icon) 
+            spec.GetType().TryGetAttribute<IconAttribute>(a => icon = a.Icon);
+
+            var bmpType = icon != null ? swBitMaps.swBitMapUserDefined : swBitMaps.swBitMapNone;
+
+            IIconsCreator iconsCreator = null;
+
+            if (icon != null)
             {
-                case MessageBoxIcon_e.Error:
-                    bmpType = swBitMaps.swBitMapTreeError;
-                    break;
+                iconsCreator = Services.GetService<IIconsCreator>();
+
+                bmp = iconsCreator.ConvertIcon(new TooltipIcon(icon)).First();
             }
 
-            Sw.ShowBubbleTooltipAt2(pos.X, pos.Y, (int)arrPos,
-                        title, msg, (int)bmpType,
+            Sw.ShowBubbleTooltipAt2(spec.Position.X, spec.Position.Y, (int)spec.ArrowPosition,
+                        spec.Title, spec.Message, (int)bmpType,
                         bmp, "", 0, (int)swLinkString.swLinkStringNone, "", "");
+
+            iconsCreator?.Dispose();
         }
     }
 

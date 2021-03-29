@@ -33,10 +33,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             {
                 var box = View.GetVisibleBox() as int[];
 
-                //TODO: potential issue if feature manager is not docked on left
-                var featMgrWidth = Owner.GetFeatureManagerWidth();
-
-                return new Rectangle(box[0] + featMgrWidth, box[1], box[2] - box[0] - featMgrWidth, box[3] - box[1]);
+                return new Rectangle(box[0], box[1], box[2] - box[0], box[3] - box[1]);
             }
         }
 

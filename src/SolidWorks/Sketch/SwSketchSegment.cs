@@ -109,6 +109,11 @@ namespace Xarial.XCad.SolidWorks.Sketch
             }
         }
 
+        public double Length
+        {
+            get => Definition.Length;
+        }
+
         public abstract IXPoint StartPoint { get; }
         public abstract IXPoint EndPoint { get; }
         

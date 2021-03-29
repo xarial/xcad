@@ -21,5 +21,6 @@ namespace Xarial.XCad.SwDocumentManager.Geometry
 
     internal class SwDmSolidBody : SwDmBody, ISwDmSolidBody
     {
+        public double Volume => throw new NotSupportedException();
     }
 }

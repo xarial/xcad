@@ -182,21 +182,30 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public BomChildrenSolving_e BomChildrenSolving 
         {
-            get 
+            get
             {
-                switch ((swChildComponentInBOMOption_e)Configuration.ChildComponentDisplayInBOM) 
+                if (m_Doc is ISwAssembly)
                 {
-                    case swChildComponentInBOMOption_e.swChildComponent_Show:
-                        return BomChildrenSolving_e.Show;
+                    var bomDispOpt = Configuration.ChildComponentDisplayInBOM;
 
-                    case swChildComponentInBOMOption_e.swChildComponent_Hide:
-                        return BomChildrenSolving_e.Hide;
+                    switch ((swChildComponentInBOMOption_e)bomDispOpt)
+                    {
+                        case swChildComponentInBOMOption_e.swChildComponent_Show:
+                            return BomChildrenSolving_e.Show;
 
-                    case swChildComponentInBOMOption_e.swChildComponent_Promote:
-                        return BomChildrenSolving_e.Promote;
+                        case swChildComponentInBOMOption_e.swChildComponent_Hide:
+                            return BomChildrenSolving_e.Hide;
 
-                    default:
-                        throw new NotSupportedException();
+                        case swChildComponentInBOMOption_e.swChildComponent_Promote:
+                            return BomChildrenSolving_e.Promote;
+
+                        default:
+                            throw new NotSupportedException($"Not supported BOM display option: {bomDispOpt}");
+                    }
+                }
+                else 
+                {
+                    return BomChildrenSolving_e.Show;
                 }
             }
         }

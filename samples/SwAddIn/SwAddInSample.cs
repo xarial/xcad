@@ -40,6 +40,9 @@ using Xarial.XCad.UI;
 using System.Collections.Generic;
 using Xarial.XCad.Reflection;
 using Xarial.XCad.UI.PropertyPage.Attributes;
+using Xarial.XCad.Extensions;
+using Xarial.XCad.Enums;
+using System.Drawing;
 
 namespace SwAddInExample
 {
@@ -108,7 +111,26 @@ namespace SwAddInExample
 
             CreateTaskPane,
 
-            HandleSelection
+            HandleSelection,
+
+            ShowTooltip
+        }
+
+        [Icon(typeof(Resources), nameof(Resources.xarial))]
+        public class MyTooltipSpec : ITooltipSpec
+        {
+            public string Title { get; }
+            public string Message { get; }
+            public System.Drawing.Point Position { get; }
+            public TooltipArrowPosition_e ArrowPosition { get; }
+
+            internal MyTooltipSpec(string title, string msg, System.Drawing.Point pt, TooltipArrowPosition_e arrPos)
+            {
+                Title = title;
+                Message = msg;
+                Position = pt;
+                ArrowPosition = arrPos;
+            }
         }
 
         [Title("Sample Context Menu")]
@@ -283,6 +305,7 @@ namespace SwAddInExample
             switch (spec) 
             {
                 case Commands_e.OpenDoc:
+                    (Application.Documents.Active.Model as AssemblyDoc).FileDropPreNotify += SwAddInSample_FileDropPreNotify;
                     var doc = Application.Documents.Open(@"C:\Users\artem\OneDrive\Attribution\SwModels\Annotation.sldprt");
                     break;
 
@@ -369,7 +392,22 @@ namespace SwAddInExample
                     Application.Documents.Active.Selections.NewSelection += OnNewSelection;
                     Application.Documents.Active.Selections.ClearSelection += OnClearSelection;
                     break;
+
+                case Commands_e.ShowTooltip:
+                    var modelView = (Application.Documents.Active as IXDocument3D).ModelViews.Active;
+                    var pt = new System.Drawing.Point(modelView.ScreenRect.Left, modelView.ScreenRect.Top);
+                    Application.ShowTooltip(new MyTooltipSpec("xCAD", "Test Message", pt, TooltipArrowPosition_e.LeftTop));
+                    break;
             }
+        }
+
+        private int SwAddInSample_FileDropPreNotify(string FileName)
+        {
+            var res = 0;
+            var fileName = @"D:\Temp\Part1.SLDPRT";
+            var x = (Application.Documents.Active.Model as IAssemblyDoc).SetDroppedFileName(fileName);
+
+            return res;
         }
 
         private void OnFeatureManagerTabActivated(IXCustomPanel<WpfUserControl> sender)

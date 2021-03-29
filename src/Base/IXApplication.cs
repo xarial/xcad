@@ -80,14 +80,8 @@ namespace Xarial.XCad
         /// <summary>
         /// Displays the modeless tooltip
         /// </summary>
-        /// <param name="title">Title of tooltip</param>
-        /// <param name="msg">Message to show in tooltip</param>
-        /// <param name="pos">Tooltip position</param>
-        /// <param name="arrPos">Position of tooltip arrow</param>
-        /// <param name="icon">Tooltip icon</param>
-        void ShowTooltip(string title, string msg, Point pos,
-            TooltipArrowPosition_e arrPos = TooltipArrowPosition_e.LeftOrRight,
-            MessageBoxIcon_e icon = MessageBoxIcon_e.Info);
+        /// <param name="spec">Specification of the tooltip</param>
+        void ShowTooltip(ITooltipSpec spec);
 
         /// <summary>
         /// Create instance of the macro

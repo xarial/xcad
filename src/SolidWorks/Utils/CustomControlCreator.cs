@@ -51,8 +51,11 @@ namespace Xarial.XCad.SolidWorks.Utils
 
         protected abstract TSpecificHost HostNetControl(
             System.Windows.Forms.Control winCtrlHost, TControl ctrl, string title, IXImage image);
-        
-        public TSpecificHost CreateControl(Type ctrlType, out TControl specCtrl) 
+
+        public TSpecificHost CreateControl(Type ctrlType, out TControl specCtrl)
+            => CreateControl(ctrlType, out specCtrl, out _);
+
+        public TSpecificHost CreateControl(Type ctrlType, out TControl specCtrl, out System.Windows.Forms.Control winCtrl)
         {
             string title;
             IXImage icon;
@@ -63,11 +66,12 @@ namespace Xarial.XCad.SolidWorks.Utils
             {
                 if (typeof(System.Windows.Forms.UserControl).IsAssignableFrom(ctrlType) && ctrlType.IsComVisible())
                 {
+                    winCtrl = null;
                     return HostComControl(ctrlType.GetProgId(), title, icon, out specCtrl);
                 }
                 else
                 {
-                    var winCtrl = (System.Windows.Forms.Control)Activator.CreateInstance(ctrlType);
+                    winCtrl = (System.Windows.Forms.Control)Activator.CreateInstance(ctrlType);
                     specCtrl = (TControl)(object)winCtrl;
                     return HostNetControl(winCtrl, specCtrl, title, icon);
                 }
@@ -78,6 +82,7 @@ namespace Xarial.XCad.SolidWorks.Utils
                 var host = new System.Windows.Forms.Integration.ElementHost();
                 host.Child = wpfCtrl;
                 specCtrl = (TControl)(object)wpfCtrl;
+                winCtrl = host;
                 return HostNetControl(host, specCtrl, title, icon);
             }
             else

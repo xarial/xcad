@@ -97,6 +97,22 @@ namespace Xarial.XCad.SolidWorks.Geometry
             }
         }
 
+        public IEnumerable<IXEdge> Edges
+        {
+            get
+            {
+                var edges = Body.GetEdges() as object[];
+
+                if (edges != null) 
+                {
+                    foreach (IEdge edge in edges) 
+                    {
+                        yield return SwObjectFactory.FromDispatch<ISwEdge>(edge, m_Doc);
+                    }
+                }
+            }
+        }
+
         internal SwBody(IBody2 body, ISwDocument doc) : base(body, doc)
         {
             Body = body;
@@ -147,6 +163,12 @@ namespace Xarial.XCad.SolidWorks.Geometry
     {
         public static ISwTempBody ToTempBody(this ISwBody body)
             => SwObject.FromDispatch<SwTempBody>(body.Body.ICopy());
+
+        public static double GetVolume(this ISwBody body) 
+        {
+            var massPrps = body.Body.GetMassProperties(0) as double[];
+            return massPrps[3];
+        }
     }
 
     public interface ISwSheetBody : ISwBody, IXSheetBody
@@ -207,5 +229,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
         internal SwSolidBody(IBody2 body, ISwDocument doc) : base(body, doc)
         {
         }
+
+        public double Volume => this.GetVolume();
     }
 }

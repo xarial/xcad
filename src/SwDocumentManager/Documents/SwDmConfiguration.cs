@@ -172,30 +172,37 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         {
             get 
             {
-                swDmShowChildComponentsInBOMResult childBomShowType;
-
-                if (Document.SwDmApp.IsVersionNewerOrEqual(SwDmVersion_e.Sw2018))
+                if (Document is ISwDmAssembly)
                 {
-                    childBomShowType = (swDmShowChildComponentsInBOMResult)((ISwDMConfiguration15)Configuration).ShowChildComponentsInBOM2;
+                    swDmShowChildComponentsInBOMResult childBomShowType;
+
+                    if (Document.SwDmApp.IsVersionNewerOrEqual(SwDmVersion_e.Sw2018))
+                    {
+                        childBomShowType = (swDmShowChildComponentsInBOMResult)((ISwDMConfiguration15)Configuration).ShowChildComponentsInBOM2;
+                    }
+                    else
+                    {
+                        childBomShowType = (swDmShowChildComponentsInBOMResult)((ISwDMConfiguration11)Configuration).ShowChildComponentsInBOM;
+                    }
+
+                    switch (childBomShowType)
+                    {
+                        case swDmShowChildComponentsInBOMResult.swDmShowChildComponentsInBOM_TRUE:
+                            return BomChildrenSolving_e.Show;
+
+                        case swDmShowChildComponentsInBOMResult.swDmShowChildComponentsInBOM_FALSE:
+                            return BomChildrenSolving_e.Hide;
+
+                        case swDmShowChildComponentsInBOMResult.swDmShowChildComponentsInBOM_Promote:
+                            return BomChildrenSolving_e.Promote;
+
+                        default:
+                            throw new NotSupportedException();
+                    }
                 }
                 else 
                 {
-                    childBomShowType = (swDmShowChildComponentsInBOMResult)((ISwDMConfiguration11)Configuration).ShowChildComponentsInBOM;
-                }
-
-                switch (childBomShowType) 
-                {
-                    case swDmShowChildComponentsInBOMResult.swDmShowChildComponentsInBOM_TRUE:
-                        return BomChildrenSolving_e.Show;
-
-                    case swDmShowChildComponentsInBOMResult.swDmShowChildComponentsInBOM_FALSE:
-                        return BomChildrenSolving_e.Hide;
-
-                    case swDmShowChildComponentsInBOMResult.swDmShowChildComponentsInBOM_Promote:
-                        return BomChildrenSolving_e.Promote;
-
-                    default:
-                        throw new NotSupportedException();
+                    return BomChildrenSolving_e.Show;
                 }
             }
         }

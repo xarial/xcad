@@ -26,6 +26,7 @@ namespace Xarial.XCad.SwDocumentManager.Geometry
         public bool Visible { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
         public Color? Color { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
         public IEnumerable<IXFace> Faces => throw new NotSupportedException();
+        public IEnumerable<IXEdge> Edges => throw new NotSupportedException();
 
         public SwDmBody() : base(null)
         {

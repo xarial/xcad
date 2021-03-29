@@ -51,6 +51,11 @@ namespace Xarial.XCad.Geometry
         /// Enumerates all faces of this body
         /// </summary>
         IEnumerable<IXFace> Faces { get; }
+
+        /// <summary>
+        /// Enumerates all edges of this body
+        /// </summary>
+        IEnumerable<IXEdge> Edges { get; }
     }
 
     /// <summary>
@@ -72,5 +77,9 @@ namespace Xarial.XCad.Geometry
     /// </summary>
     public interface IXSolidBody : IXBody 
     {
+        /// <summary>
+        /// Volume of this solid body
+        /// </summary>
+        double Volume { get; }
     }
 }

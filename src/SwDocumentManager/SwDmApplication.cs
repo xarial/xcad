@@ -118,7 +118,7 @@ namespace Xarial.XCad.SwDocumentManager
             => m_Creator.Create(cancellationToken);
     }
 
-    public static class SwApplicationExtension
+    public static class SwDmApplicationExtension
     {
         public static bool IsVersionNewerOrEqual(this ISwDmApplication app, SwDmVersion_e version)
             => app.Version.Major >= version;
