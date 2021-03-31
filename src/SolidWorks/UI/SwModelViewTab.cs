@@ -70,7 +70,7 @@ namespace Xarial.XCad.SolidWorks.UI
 
             if (!res)
             {
-                m_Logger.Log("Failed to delete model view tab");
+                m_Logger.Log("Failed to delete model view tab", XCad.Base.Enums.LoggerMessageSeverity_e.Error);
             }
         }
 

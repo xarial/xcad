@@ -295,7 +295,7 @@ namespace Xarial.XCad.SolidWorks.UI
 
         private int OnTaskPaneToolbarButtonClicked(int buttonIndex)
         {
-            m_Logger.Log($"Task pane button clicked: {buttonIndex}");
+            m_Logger.Log($"Task pane button clicked: {buttonIndex}", XCad.Base.Enums.LoggerMessageSeverity_e.Debug);
 
             if (m_Spec.Buttons?.Length > buttonIndex)
             {
@@ -303,7 +303,7 @@ namespace Xarial.XCad.SolidWorks.UI
             }
             else
             {
-                m_Logger.Log($"Invalid task pane button id is clicked: {buttonIndex}");
+                m_Logger.Log($"Invalid task pane button id is clicked: {buttonIndex}", XCad.Base.Enums.LoggerMessageSeverity_e.Error);
                 Debug.Assert(false, "Invalid command id");
             }
 
@@ -312,7 +312,7 @@ namespace Xarial.XCad.SolidWorks.UI
 
         private int OnTaskPaneDestroyNotify()
         {
-            m_Logger.Log("Destroying task pane");
+            m_Logger.Log("Destroying task pane", XCad.Base.Enums.LoggerMessageSeverity_e.Debug);
 
             Dispose();
             return S_OK;

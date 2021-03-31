@@ -272,7 +272,7 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
                 }
                 else
                 {
-                    m_Logger.Log($"Type '{prpType.FullName}' is skipped as it was already processed while extracting metadata");
+                    m_Logger.Log($"Type '{prpType.FullName}' is skipped as it was already processed while extracting metadata", XCad.Base.Enums.LoggerMessageSeverity_e.Debug);
                 }
             }
         }

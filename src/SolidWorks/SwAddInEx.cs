@@ -184,7 +184,7 @@ namespace Xarial.XCad.SolidWorks
 
                 m_Application.Init(svcCollection);
 
-                Logger.Log("Loading add-in");
+                Logger.Log("Loading add-in", XCad.Base.Enums.LoggerMessageSeverity_e.Debug);
 
                 SwMacroFeatureDefinition.Application = m_Application;
 
@@ -225,7 +225,7 @@ namespace Xarial.XCad.SolidWorks
         [EditorBrowsable(EditorBrowsableState.Never)]
         public bool DisconnectFromSW()
         {
-            Logger.Log("Unloading add-in");
+            Logger.Log("Unloading add-in", XCad.Base.Enums.LoggerMessageSeverity_e.Debug);
 
             try
             {

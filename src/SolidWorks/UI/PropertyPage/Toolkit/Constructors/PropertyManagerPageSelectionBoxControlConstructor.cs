@@ -157,7 +157,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
                 });
             }
 
-            m_Logger.Log($"Assigned selection box marks: {string.Join(", ", selBoxes.Select(s => s.SelectionBox.Mark).ToArray())}");
+            m_Logger.Log($"Assigned selection box marks: {string.Join(", ", selBoxes.Select(s => s.SelectionBox.Mark).ToArray())}", LoggerMessageSeverity_e.Debug);
         }
 
         private void ValidateMarks(List<int> assignedMarks)
@@ -168,19 +168,19 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
 
                 if (dups.Any())
                 {
-                    m_Logger.Log($"Potential issue for selection boxes as there are duplicate selection marks: {string.Join(", ", dups.ToArray())}");
+                    m_Logger.Log($"Potential issue for selection boxes as there are duplicate selection marks: {string.Join(", ", dups.ToArray())}", LoggerMessageSeverity_e.Warning);
                 }
 
                 var joinedMarks = assignedMarks.Where(m => m != 0 && !IsPowerOfTwo(m));
 
                 if (joinedMarks.Any())
                 {
-                    m_Logger.Log($"Potential issue for selection boxes as not all marks are power of 2: {string.Join(", ", joinedMarks.ToArray())}");
+                    m_Logger.Log($"Potential issue for selection boxes as not all marks are power of 2: {string.Join(", ", joinedMarks.ToArray())}", LoggerMessageSeverity_e.Warning);
                 }
 
                 if (assignedMarks.Any(m => m == 0))
                 {
-                    m_Logger.Log($"Potential issue for selection boxes as some of the marks is 0 which means that all selections allowed");
+                    m_Logger.Log($"Potential issue for selection boxes as some of the marks is 0 which means that all selections allowed", LoggerMessageSeverity_e.Warning);
                 }
             }
         }

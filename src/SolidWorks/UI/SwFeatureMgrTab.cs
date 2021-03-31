@@ -80,7 +80,7 @@ namespace Xarial.XCad.SolidWorks.UI
             {
                 if (!m_CurFeatMgrView.DeActivateView()) 
                 {
-                    m_Logger.Log("Failed to deactivate view");
+                    m_Logger.Log("Failed to deactivate view", XCad.Base.Enums.LoggerMessageSeverity_e.Error);
                 }
             }
         }
@@ -101,7 +101,7 @@ namespace Xarial.XCad.SolidWorks.UI
         {
             if (!FeatureManagerView.DeleteView())
             {
-                m_Logger.Log("Failed to delete feature manager view");
+                m_Logger.Log("Failed to delete feature manager view", XCad.Base.Enums.LoggerMessageSeverity_e.Error);
             }
 
             switch (m_Doc.Model)

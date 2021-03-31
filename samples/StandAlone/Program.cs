@@ -14,6 +14,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Xarial.XCad;
 using Xarial.XCad.Base;
+using Xarial.XCad.Base.Enums;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Enums;
 using Xarial.XCad.Features;
@@ -34,7 +35,7 @@ namespace StandAlone
 {
     public class MyLogger : IXLogger
     {
-        public void Log(string msg)
+        public void Log(string msg, LoggerMessageSeverity_e severity = LoggerMessageSeverity_e.Information)
         {
         }
     }

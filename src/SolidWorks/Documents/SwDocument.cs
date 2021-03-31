@@ -892,7 +892,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
             if (destroyType == (int)swDestroyNotifyType_e.swDestroyNotifyDestroy)
             {
-                m_Logger.Log($"Destroying '{Model.GetTitle()}' document");
+                m_Logger.Log($"Destroying '{Model.GetTitle()}' document", XCad.Base.Enums.LoggerMessageSeverity_e.Debug);
 
                 try
                 {
@@ -910,7 +910,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             else if (destroyType == (int)swDestroyNotifyType_e.swDestroyNotifyHidden)
             {
                 Hidden?.Invoke(this);
-                m_Logger.Log($"Hiding '{Model.GetTitle()}' document");
+                m_Logger.Log($"Hiding '{Model.GetTitle()}' document", XCad.Base.Enums.LoggerMessageSeverity_e.Debug);
             }
             else
             {

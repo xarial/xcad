@@ -190,7 +190,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
             else
             {
-                m_Logger.Log($"Skipping dispatching. {model.GetTitle()} already registered");
+                m_Logger.Log($"Skipping dispatching. {model.GetTitle()} already registered", XCad.Base.Enums.LoggerMessageSeverity_e.Debug);
             }
         }
 
@@ -217,7 +217,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                 }
                 else 
                 {
-                    m_Logger.Log($"Conflict. {doc.Model.GetTitle()} already dispatched");
+                    m_Logger.Log($"Conflict. {doc.Model.GetTitle()} already dispatched", XCad.Base.Enums.LoggerMessageSeverity_e.Warning);
                     Debug.Assert(false, "Document already dispatched");
                 }
             }

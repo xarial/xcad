@@ -51,7 +51,7 @@ namespace Xarial.XCad.SolidWorks.Documents.Services
         {
             lock (m_Lock) 
             {
-                m_Logger.Log($"Adding '{model.GetTitle()}' to the dispatch queue");
+                m_Logger.Log($"Adding '{model.GetTitle()}' to the dispatch queue", XCad.Base.Enums.LoggerMessageSeverity_e.Debug);
 
                 m_ModelsDispatchQueue.Add(model);
 
@@ -77,7 +77,7 @@ namespace Xarial.XCad.SolidWorks.Documents.Services
 
                 if (index != -1) 
                 {
-                    m_Logger.Log($"Removing '{doc.Title}' from the dispatch queue");
+                    m_Logger.Log($"Removing '{doc.Title}' from the dispatch queue", XCad.Base.Enums.LoggerMessageSeverity_e.Debug);
 
                     m_ModelsDispatchQueue.RemoveAt(index);
                 }
@@ -107,7 +107,7 @@ namespace Xarial.XCad.SolidWorks.Documents.Services
         {
             lock (m_Lock) 
             {
-                m_Logger.Log($"Dispatching all ({m_ModelsDispatchQueue.Count}) models");
+                m_Logger.Log($"Dispatching all ({m_ModelsDispatchQueue.Count}) models", XCad.Base.Enums.LoggerMessageSeverity_e.Debug);
 
                 foreach (var model in m_ModelsDispatchQueue)
                 {
@@ -135,7 +135,7 @@ namespace Xarial.XCad.SolidWorks.Documents.Services
                 }
 
                 m_ModelsDispatchQueue.Clear();
-                m_Logger.Log($"Cleared models queue");
+                m_Logger.Log($"Cleared models queue", XCad.Base.Enums.LoggerMessageSeverity_e.Debug);
             }
         }
 
@@ -143,12 +143,12 @@ namespace Xarial.XCad.SolidWorks.Documents.Services
         {
             try
             {
-                m_Logger.Log($"Dispatched '{doc.Title}'");
+                m_Logger.Log($"Dispatched '{doc.Title}'", XCad.Base.Enums.LoggerMessageSeverity_e.Debug);
                 Dispatched?.Invoke(doc);
             }
             catch (Exception ex)
             {
-                m_Logger.Log($"Unhandled exception while dispatching the document '{doc.Title}'");
+                m_Logger.Log($"Unhandled exception while dispatching the document '{doc.Title}'", XCad.Base.Enums.LoggerMessageSeverity_e.Error);
                 m_Logger.Log(ex);
             }
         }

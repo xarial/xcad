@@ -102,7 +102,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
                 }
                 else 
                 {
-                    m_Logger.Log($"Unrecognized control type: {ctrl?.GetType().FullName}");
+                    m_Logger.Log($"Unrecognized control type: {ctrl?.GetType().FullName}", XCad.Base.Enums.LoggerMessageSeverity_e.Error);
                 }
             }
 
@@ -114,7 +114,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
 
         public void Dispose()
         {
-            m_Logger.Log("Disposing page");
+            m_Logger.Log("Disposing page", XCad.Base.Enums.LoggerMessageSeverity_e.Debug);
 
             foreach (var ctrl in m_Page.Binding.Bindings.Select(b => b.Control).OfType<IDisposable>())
             {
@@ -128,7 +128,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
         public void Show(TModel model)
         {
             Model = model;
-            m_Logger.Log("Opening page");
+            m_Logger.Log("Opening page", XCad.Base.Enums.LoggerMessageSeverity_e.Debug);
 
             const int OPTS_DEFAULT = 0;
 
