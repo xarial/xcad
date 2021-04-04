@@ -25,12 +25,17 @@ namespace Xarial.XCad.SolidWorks.UI.Toolkit
     {
         private readonly ISwApplication m_App;
         private readonly IServiceProvider m_SvcProvider;
+        private readonly ITaskPaneControlProvider m_ControlProvider;
+
         internal TaskPaneSpec Spec { get; }
 
         internal TaskPaneTabCreator(ISwApplication app, IServiceProvider svcProvider, TaskPaneSpec spec) 
         {
             m_App = app;
             m_SvcProvider = svcProvider;
+
+            m_ControlProvider = m_SvcProvider.GetService<ITaskPaneControlProvider>();
+
             Spec = spec ?? new TaskPaneSpec();
         }
 
@@ -40,7 +45,8 @@ namespace Xarial.XCad.SolidWorks.UI.Toolkit
             using (var iconsConv = m_SvcProvider.GetService<IIconsCreator>())
             {
                 var taskPaneView = CreateTaskPaneView(iconsConv, image, title);
-                specCtrl = (TControl)taskPaneView.AddControl(progId, "");
+
+                specCtrl = (TControl)m_ControlProvider.ProvideComControl(taskPaneView, progId);
 
                 if (specCtrl == null)
                 {
@@ -57,7 +63,7 @@ namespace Xarial.XCad.SolidWorks.UI.Toolkit
             {
                 var taskPaneView = CreateTaskPaneView(iconsConv, image, title);
 
-                if (!taskPaneView.DisplayWindowFromHandle(winCtrlHost.Handle.ToInt32()))
+                if (!m_ControlProvider.ProvideNetControl(taskPaneView, winCtrlHost))
                 {
                     throw new NetControlHostException(winCtrlHost.Handle);
                 }

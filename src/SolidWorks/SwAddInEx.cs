@@ -143,7 +143,7 @@ namespace Xarial.XCad.SolidWorks
         private readonly List<IDisposable> m_Disposables;
 
         private IServiceProvider m_SvcProvider;
-
+        
         public SwAddInEx()
         {   
             m_Disposables = new List<IDisposable>();
@@ -216,8 +216,12 @@ namespace Xarial.XCad.SolidWorks
             var title = GetRegistrationHelper(addInType).GetTitle(addInType);
 
             svcCollection.AddOrReplace<IXLogger>(() => new TraceLogger($"XCad.AddIn.{title}"));
-            svcCollection.AddOrReplace<IIconsCreator>(() => new BaseIconsCreator());
-            
+            svcCollection.AddOrReplace<IIconsCreator, BaseIconsCreator>();
+            svcCollection.AddOrReplace<IPropertyPageHandlerProvider, PropertyPageHandlerProvider>();
+            svcCollection.AddOrReplace<IFeatureManagerTabControlProvider, FeatureManagerTabControlProvider>();
+            svcCollection.AddOrReplace<ITaskPaneControlProvider, TaskPaneControlProvider>();
+            svcCollection.AddOrReplace<IModelViewControlProvider, ModelViewControlProvider>();
+
             return svcCollection;
         }
 
@@ -311,7 +315,7 @@ namespace Xarial.XCad.SolidWorks
         private ISwPropertyManagerPage<TData> CreatePropertyManagerPage<TData>(Type handlerType, 
             CreateDynamicControlsDelegate createDynCtrlHandler)
         {
-            var handler = (SwPropertyManagerPageHandler)Activator.CreateInstance(handlerType);
+            var handler = m_SvcProvider.GetService<IPropertyPageHandlerProvider>().CreateHandler(Application.Sw, handlerType);
 
             var page = new SwPropertyManagerPage<TData>(Application, m_SvcProvider, handler, createDynCtrlHandler);
             m_Disposables.Add(page);
@@ -337,13 +341,13 @@ namespace Xarial.XCad.SolidWorks
             {
                 return new SwPopupWpfWindow<TWindow>((TWindow)Activator.CreateInstance(typeof(TWindow)), parent);
             }
-            else if (typeof(System.Windows.Forms.Form).IsAssignableFrom(typeof(TWindow)))
+            else if (typeof(Form).IsAssignableFrom(typeof(TWindow)))
             {
                 return new SwPopupWinForm<TWindow>((TWindow)Activator.CreateInstance(typeof(TWindow)), parent);
             }
             else
             {
-                throw new NotSupportedException($"Only {typeof(System.Windows.Forms.Form).FullName} or {typeof(System.Windows.Window).FullName} are supported");
+                throw new NotSupportedException($"Only {typeof(Form).FullName} or {typeof(System.Windows.Window).FullName} are supported");
             }
         }
 
@@ -378,7 +382,7 @@ namespace Xarial.XCad.SolidWorks
     public static class SwAddInExExtension 
     {
         public static ISwModelViewTab<TControl> CreateDocumentTabWinForm<TControl>(this ISwAddInEx addIn, ISwDocument doc)
-            where TControl : System.Windows.Forms.Control => addIn.CreateDocumentTab<TControl>(doc);
+            where TControl : Control => addIn.CreateDocumentTab<TControl>(doc);
 
         public static ISwModelViewTab<TControl> CreateDocumentTabWpf<TControl>(this ISwAddInEx addIn, ISwDocument doc)
             where TControl : System.Windows.UIElement => addIn.CreateDocumentTab<TControl>(doc);
@@ -387,16 +391,16 @@ namespace Xarial.XCad.SolidWorks
             where TWindow : System.Windows.Window => (SwPopupWpfWindow<TWindow>)addIn.CreatePopupWindow<TWindow>();
 
         public static ISwPopupWindow<TWindow> CreatePopupWinForm<TWindow>(this ISwAddInEx addIn)
-            where TWindow : System.Windows.Forms.Form => (SwPopupWinForm<TWindow>)addIn.CreatePopupWindow<TWindow>();
+            where TWindow : Form => (SwPopupWinForm<TWindow>)addIn.CreatePopupWindow<TWindow>();
 
         public static ISwTaskPane<TControl> CreateTaskPaneWinForm<TControl>(this ISwAddInEx addIn, TaskPaneSpec spec = null)
-            where TControl : System.Windows.Forms.Control => addIn.CreateTaskPane<TControl>(spec);
+            where TControl : Control => addIn.CreateTaskPane<TControl>(spec);
 
         public static ISwTaskPane<TControl> CreateTaskPaneWpf<TControl>(this ISwAddInEx addIn, TaskPaneSpec spec = null)
             where TControl : System.Windows.UIElement => addIn.CreateTaskPane<TControl>(spec);
 
         public static IXEnumTaskPane<TControl, TEnum> CreateTaskPaneWinForm<TControl, TEnum>(this ISwAddInEx addIn)
-            where TControl : System.Windows.Forms.Control
+            where TControl : Control
             where TEnum : Enum => addIn.CreateTaskPane<TControl, TEnum>();
 
         public static IXEnumTaskPane<TControl, TEnum> CreateTaskPaneWpf<TControl, TEnum>(this ISwAddInEx addIn)
@@ -407,6 +411,6 @@ namespace Xarial.XCad.SolidWorks
             where TControl : System.Windows.UIElement => addIn.CreateFeatureManagerTab<TControl>(doc);
 
         public static ISwFeatureMgrTab<TControl> CreateFeatureManagerTabWinForm<TControl>(this ISwAddInEx addIn, ISwDocument doc)
-            where TControl : System.Windows.Forms.Control => addIn.CreateFeatureManagerTab<TControl>(doc);
+            where TControl : Control => addIn.CreateFeatureManagerTab<TControl>(doc);
     }
 }

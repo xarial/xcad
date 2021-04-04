@@ -23,11 +23,13 @@ namespace Xarial.XCad.SolidWorks.UI.Toolkit
     {
         private readonly IServiceProvider m_SvcProvider;
         private readonly ModelViewManager m_ModelViewMgr;
+        private readonly IModelViewControlProvider m_CtrlProvider;
 
         internal ModelViewTabCreator(ModelViewManager modelViewMgr, IServiceProvider svcProvider)
         {
             m_ModelViewMgr = modelViewMgr;
             m_SvcProvider = svcProvider;
+            m_CtrlProvider = m_SvcProvider.GetService<IModelViewControlProvider>();
         }
 
         protected override string HostComControl(string progId, string title, IXImage image,
@@ -36,7 +38,8 @@ namespace Xarial.XCad.SolidWorks.UI.Toolkit
             using (var iconsConv = m_SvcProvider.GetService<IIconsCreator>())
             {
                 var imgPath = iconsConv.ConvertIcon(new FeatMgrViewIcon(image)).First();
-                specCtrl = (TControl)m_ModelViewMgr.AddControl3(title, progId, "", true);
+
+                specCtrl = (TControl)m_CtrlProvider.ProvideComControl(m_ModelViewMgr, progId, title);
 
                 if (specCtrl != null)
                 {
@@ -56,7 +59,7 @@ namespace Xarial.XCad.SolidWorks.UI.Toolkit
             {
                 var imgPath = iconsConv.ConvertIcon(new FeatMgrViewIcon(image)).First();
 
-                if (m_ModelViewMgr.DisplayWindowFromHandlex64(title, winCtrlHost.Handle.ToInt64(), true))
+                if (m_CtrlProvider.ProvideNetControl(m_ModelViewMgr, winCtrlHost, title))
                 {
                     return title;
                 }

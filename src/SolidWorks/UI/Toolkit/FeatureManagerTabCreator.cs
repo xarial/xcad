@@ -22,11 +22,13 @@ namespace Xarial.XCad.SolidWorks.UI.Toolkit
     {
         private readonly IServiceProvider m_SvcProvider;
         private readonly ModelViewManager m_ModelViewMgr;
+        private readonly IFeatureManagerTabControlProvider m_TabProvider;
 
         internal FeatureManagerTabCreator(ModelViewManager modelViewMgr, IServiceProvider svcProvider)
         {
             m_ModelViewMgr = modelViewMgr;
             m_SvcProvider = svcProvider;
+            m_TabProvider = m_SvcProvider.GetService<IFeatureManagerTabControlProvider>();
         }
 
         protected override Tuple<IFeatMgrView, string> HostComControl(string progId, string title, IXImage image,
@@ -36,8 +38,7 @@ namespace Xarial.XCad.SolidWorks.UI.Toolkit
             {
                 var imgPath = iconsConv.ConvertIcon(new FeatMgrViewIcon(image)).First();
 
-                var featMgrView = m_ModelViewMgr.CreateFeatureMgrControl3(imgPath, progId, "", title,
-                    (int)swFeatMgrPane_e.swFeatMgrPaneBottom) as IFeatMgrView;
+                var featMgrView = m_TabProvider.ProvideComControl(m_ModelViewMgr, imgPath, progId, title);
 
                 specCtrl = default;
 
@@ -62,11 +63,8 @@ namespace Xarial.XCad.SolidWorks.UI.Toolkit
             {
                 var imgPath = iconsConv.ConvertIcon(new FeatMgrViewIcon(image)).First();
 
-                var featMgrView = m_ModelViewMgr.CreateFeatureMgrWindowFromHandlex64(
-                    imgPath, winCtrlHost.Handle.ToInt64(),
-                    title,
-                    (int)swFeatMgrPane_e.swFeatMgrPaneBottom) as IFeatMgrView;
-
+                var featMgrView = m_TabProvider.ProvideNetControl(m_ModelViewMgr, winCtrlHost, imgPath, title);
+                
                 if (featMgrView != null)
                 {
                     return new Tuple<IFeatMgrView, string>(featMgrView, title);
