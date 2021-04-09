@@ -103,11 +103,6 @@ namespace Xarial.XCad.Documents
         void Save();
 
         /// <summary>
-        /// Identifies if the pointer to the document is still valid
-        /// </summary>
-        bool IsAlive { get; }
-
-        /// <summary>
         /// Saves this document to a new location
         /// </summary>
         /// <param name="filePath"></param>

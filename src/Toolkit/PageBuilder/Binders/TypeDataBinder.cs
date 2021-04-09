@@ -196,12 +196,13 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
 
                         if (atts.Has<IDependentOnAttribute>())
                         {
-                            var depAtt = atts.Get<IDependentOnAttribute>();
-
-                            if (depAtt.Dependencies?.Any() == true)
+                            foreach (var depAtt in atts.GetAll<IDependentOnAttribute>()) 
                             {
-                                dependencies.RegisterDependency(binding,
-                                    depAtt.Dependencies, depAtt.DependencyHandler);
+                                if (depAtt.Dependencies?.Any() == true)
+                                {
+                                    dependencies.RegisterDependency(binding,
+                                        depAtt.Dependencies, depAtt.DependencyHandler);
+                                }
                             }
                         }
 

@@ -57,6 +57,10 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
                     items.Add(new ItemsControlItem(item));
                 }
             }
+            else if (value is null) 
+            {
+                //return empty
+            }
             else
             {
                 throw new NotSupportedException("Source property must be enumerable");

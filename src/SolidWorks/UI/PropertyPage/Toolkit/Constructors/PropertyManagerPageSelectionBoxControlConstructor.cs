@@ -105,7 +105,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
                 filters = GetDefaultFilters(atts, out customFilter);
             }
 
-            swCtrl.SetSelectionFilters(filters);
+            swCtrl.SetSelectionFilters(filters.Select(f => (swSelectType_e)f).ToArray());
 
             return new PropertyManagerPageSelectionBoxControl(m_SwApp, atts.Id, atts.Tag,
                 swCtrl, handler, atts.ContextType, customFilter, focusOnOpen);
