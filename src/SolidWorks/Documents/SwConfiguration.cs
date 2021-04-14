@@ -23,6 +23,7 @@ using Xarial.XCad.SolidWorks.Data;
 using Xarial.XCad.SolidWorks.Documents.Exceptions;
 using Xarial.XCad.SolidWorks.Enums;
 using Xarial.XCad.SolidWorks.Features;
+using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.UI;
 
 namespace Xarial.XCad.SolidWorks.Documents
@@ -110,24 +111,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         public override object Dispatch => Configuration;
 
         public IXImage Preview
-        {
-            get
-            {
-                var getPictureFromIPictureFund = typeof(System.Windows.Forms.AxHost)
-                    .GetMethod("GetPictureFromIPicture", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
-
-                var pictDisp = m_Doc.App.Sw.GetPreviewBitmap(m_Doc.Path, Name);
-
-                if (pictDisp == null)
-                {
-                    throw new NullReferenceException("Failed to extract IPictureDisp from the document");
-                }
-
-                var bmp = getPictureFromIPictureFund.Invoke(null, new object[] { pictDisp }) as Bitmap;
-
-                return new BaseImage(BitmapToByteArray(bmp));
-            }
-        }
+            => PictureDispUtils.PictureDispToXImage(m_Doc.App.Sw.GetPreviewBitmap(m_Doc.Path, Name));
 
         public string PartNumber => GetPartNumber(Configuration);
 
@@ -268,15 +252,6 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
 
             return conf;
-        }
-
-        private byte[] BitmapToByteArray(Bitmap bmp)
-        {
-            using (var ms = new MemoryStream())
-            {
-                bmp.Save(ms, ImageFormat.Png);
-                return ms.ToArray();
-            }
         }
 
         public void Dispose()

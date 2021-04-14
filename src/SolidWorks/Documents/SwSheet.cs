@@ -11,6 +11,8 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 using Xarial.XCad.Documents;
+using Xarial.XCad.SolidWorks.Utils;
+using Xarial.XCad.UI;
 
 namespace Xarial.XCad.SolidWorks.Documents
 {
@@ -40,7 +42,10 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public override object Dispatch => Sheet;
 
-        internal SwSheet(SwDrawing draw, ISheet sheet) : base(sheet)
+        public IXImage Preview
+            => PictureDispUtils.PictureDispToXImage(m_Drawing.App.Sw.GetPreviewBitmap(m_Doc.Path, Name));
+
+        internal SwSheet(SwDrawing draw, ISheet sheet) : base(sheet, draw)
         {
             m_Drawing = draw;
             Sheet = sheet;

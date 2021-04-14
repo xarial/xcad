@@ -146,19 +146,21 @@ namespace Xarial.XCad.SolidWorks.Data
         {
             string resValStr;
 
-            var prpExist = false;
+            bool prpExist;
+
+            var useCached = true;
 
             if (m_App.IsVersionNewerOrEqual(SwVersion_e.Sw2018))
             {
-                prpExist = PrpMgr.Get6(Name, false, out val, out resValStr, out _, out _) != (int)swCustomInfoGetResult_e.swCustomInfoGetResult_NotPresent;
+                prpExist = PrpMgr.Get6(Name, useCached, out val, out resValStr, out _, out _) != (int)swCustomInfoGetResult_e.swCustomInfoGetResult_NotPresent;
             }
             else if (m_App.IsVersionNewerOrEqual(SwVersion_e.Sw2014))
             {
-                prpExist = PrpMgr.Get5(Name, false, out val, out resValStr, out _) != (int)swCustomInfoGetResult_e.swCustomInfoGetResult_NotPresent;
+                prpExist = PrpMgr.Get5(Name, useCached, out val, out resValStr, out _) != (int)swCustomInfoGetResult_e.swCustomInfoGetResult_NotPresent;
             }
             else
             {
-                prpExist = PrpMgr.Get4(Name, false, out val, out resValStr);
+                prpExist = PrpMgr.Get4(Name, useCached, out val, out resValStr);
             }
 
             if (prpExist)
