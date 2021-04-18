@@ -8,6 +8,7 @@
 using SolidWorks.Interop.sldworks;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using Xarial.XCad.Documents;
@@ -147,6 +148,57 @@ namespace Xarial.XCad.SolidWorks.Documents
                 else
                 {
                     m_CachedLocation = value;
+                }
+            }
+        }
+
+        public IXDocument3D Document 
+        {
+            get 
+            {
+                var refDoc = DrawingView.ReferencedDocument;
+
+                if (refDoc != null)
+                {
+                    return (IXDocument3D)((SwDocumentCollection)m_Drawing.App.Documents)[refDoc];
+                }
+                else 
+                {
+                    var refDocPath = DrawingView.GetReferencedModelName();
+
+                    if (!string.IsNullOrEmpty(refDocPath))
+                    {
+
+                        if (((SwDocumentCollection)m_Drawing.App.Documents).TryFindExistingDocumentByPath(refDocPath, out SwDocument doc))
+                        {
+                            return (ISwDocument3D)doc;
+                        }
+                        else
+                        {
+                            return (ISwDocument3D)((SwDocumentCollection)m_Drawing.App.Documents).PreCreateFromPath(refDocPath);
+                        }
+                    }
+                    else 
+                    {
+                        return null;
+                    }
+                }
+            }
+        }
+
+        public IXConfiguration ReferencedConfiguration 
+        {
+            get 
+            {
+                var refConfName = DrawingView.ReferencedConfiguration;
+
+                if (!string.IsNullOrEmpty(refConfName))
+                {
+                    return Document.Configurations.First(c => string.Equals(c.Name, refConfName, StringComparison.CurrentCultureIgnoreCase));
+                }
+                else 
+                {
+                    return null;
                 }
             }
         }

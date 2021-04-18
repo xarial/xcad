@@ -23,9 +23,11 @@ namespace Xarial.XCad.SolidWorks.Documents
     {
         public IDrawingDoc Drawing => Model as IDrawingDoc;
 
-        public IXSheetRepository Sheets { get; }
+        public IXSheetRepository Sheets => m_SheetsLazy.Value;
 
         internal protected override swDocumentTypes_e? DocumentType => swDocumentTypes_e.swDocDRAWING;
+
+        private readonly Lazy<IXSheetRepository> m_SheetsLazy;
 
         protected override bool IsRapidMode 
         {
@@ -45,7 +47,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         internal SwDrawing(IDrawingDoc drawing, SwApplication app, IXLogger logger, bool isCreated)
             : base((IModelDoc2)drawing, app, logger, isCreated)
         {
-            Sheets = new SwSheetCollection(this);
+            m_SheetsLazy = new Lazy<IXSheetRepository>(() => new SwSheetCollection(this));
         }
     }
 }

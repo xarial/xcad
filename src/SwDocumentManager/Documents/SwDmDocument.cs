@@ -165,7 +165,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         private bool? m_IsClosed;
 
-        public bool IsAlive 
+        public override bool IsAlive 
         {
             get 
             {

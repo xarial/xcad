@@ -113,7 +113,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                         | SwDmSearchFilters.SwDmSearchSubfolders
                         | SwDmSearchFilters.SwDmSearchInContextReference);
 
-                    if (RootAssembly != null) 
+                    if (RootAssembly != null)
                     {
                         searchOpts.AddSearchPath(System.IO.Path.GetDirectoryName(RootAssembly.Path));
                     }
@@ -121,7 +121,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                     var isReadOnly = m_ParentAssm.State.HasFlag(DocumentState_e.ReadOnly);
 
                     var doc = ((ISwDMComponent4)Component).GetDocument2(isReadOnly,
-                        searchOpts, out SwDmDocumentOpenError err) ;
+                        searchOpts, out SwDmDocumentOpenError err);
 
                     var isFound = doc != null;
 

@@ -1,24 +1,24 @@
 ﻿using NUnit.Framework;
-using SolidWorks.Interop.sldworks;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using Xarial.XCad.Documents;
-using Xarial.XCad.SolidWorks.Documents;
+using Xarial.XCad.SwDocumentManager.Documents;
 
-namespace SolidWorks.Tests.Integration
+namespace SolidWorksDocMgr.Tests.Integration
 {
     public class DrawingTest : IntegrationTests
     {
         [Test]
-        public void ActiveSheetTest() 
+        public void ActiveSheetTest()
         {
             string name;
 
             using (var doc = OpenDataDocument("Sheets1.SLDDRW"))
             {
-                name = (m_App.Documents.Active as ISwDrawing).Sheets.Active.Name;
+                name = (m_App.Documents.Active as ISwDmDrawing).Sheets.Active.Name;
             }
 
             Assert.AreEqual("Sheet2", name);
@@ -31,13 +31,13 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("Sheets1.SLDDRW"))
             {
-                confNames = (m_App.Documents.Active as ISwDrawing).Sheets.Select(x => x.Name).ToArray();
+                confNames = (m_App.Documents.Active as ISwDmDrawing).Sheets.Select(x => x.Name).ToArray();
             }
 
-            Assert.That(confNames.SequenceEqual(new string[] 
+            CollectionAssert.AreEquivalent(confNames, new string[]
             {
                 "Sheet1", "Sheet2", "MySheet", "Sheet3"
-            }));
+            });
         }
 
         [Test]
@@ -52,7 +52,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("Sheets1.SLDDRW"))
             {
-                var sheets = (m_App.Documents.Active as ISwDrawing).Sheets;
+                var sheets = (m_App.Documents.Active as ISwDmDrawing).Sheets;
 
                 sheet1 = sheets["Sheet1"];
                 r1 = sheets.TryGet("Sheet2", out sheet2);
@@ -77,70 +77,20 @@ namespace SolidWorks.Tests.Integration
         }
 
         [Test]
-        public void CreateModelViewBasedTest() 
-        {
-            var refDocPathName = "";
-            var viewOrientName = "";
-
-            using (var doc = OpenDataDocument("Selections1.SLDPRT"))
-            {
-                var partDoc = m_App.Documents.Active as IXDocument3D;
-                var view = partDoc.ModelViews[StandardViewType_e.Right];
-                
-                using(var drw = NewDocument(Interop.swconst.swDocumentTypes_e.swDocDRAWING))
-                {
-                    var drwDoc = m_App.Documents.Active as ISwDrawing;
-                    var drwView = (ISwModelBasedDrawingView)drwDoc.Sheets.Active.DrawingViews.CreateModelViewBased(view);
-                    refDocPathName = drwView.DrawingView.ReferencedDocument.GetPathName();
-                    viewOrientName = drwView.DrawingView.GetOrientationName();
-                }
-            }
-
-            Assert.AreEqual(GetFilePath("Selections1.SLDPRT"), refDocPathName);
-            Assert.AreEqual("*Right", viewOrientName);
-        }
-
-        [Test]
-        public void DrawingEventsTest()
-        {
-            var sheetActiveCount = 0;
-            var sheetName = "";
-
-            using (var doc = OpenDataDocument("Sheets1.SLDDRW"))
-            {
-                var draw = (ISwDrawing)m_App.Documents.Active;
-
-                draw.Sheets.SheetActivated += (d, s) =>
-                {
-                    sheetName = s.Name;
-                    sheetActiveCount++;
-                };
-
-                var feat = (IFeature)draw.Drawing.FeatureByName("MySheet");
-                feat.Select2(false, -1);
-                const int swCommands_Activate_Sheet = 1206;
-                m_App.Sw.RunCommand(swCommands_Activate_Sheet, "");
-            }
-
-            Assert.AreEqual(1, sheetActiveCount);
-            Assert.AreEqual("MySheet", sheetName);
-        }
-
-        [Test]
-        public void DrawingViewIterateTest() 
+        public void DrawingViewIterateTest()
         {
             string[] sheet1Views;
             string[] sheet2Views;
 
             using (var doc = OpenDataDocument("Drawing1\\Drawing1.SLDDRW"))
             {
-                var sheets = (m_App.Documents.Active as ISwDrawing).Sheets;
+                var sheets = (m_App.Documents.Active as ISwDmDrawing).Sheets;
                 sheet1Views = sheets["Sheet1"].DrawingViews.Select(v => v.Name).ToArray();
                 sheet2Views = sheets["Sheet2"].DrawingViews.Select(v => v.Name).ToArray();
             }
 
-            CollectionAssert.AreEqual(sheet1Views, new string[] { "Drawing View1", "Drawing View2", "Drawing View3" });
-            CollectionAssert.AreEqual(sheet2Views, new string[] { "Drawing View4", "Drawing View5" });
+            CollectionAssert.AreEquivalent(sheet1Views, new string[] { "Drawing View1", "Drawing View2", "Drawing View3" });
+            CollectionAssert.AreEquivalent(sheet2Views, new string[] { "Drawing View4", "Drawing View5" });
         }
 
         [Test]
@@ -160,8 +110,8 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("Drawing1\\Drawing1.SLDDRW"))
             {
-                var sheets = (m_App.Documents.Active as ISwDrawing).Sheets;
-                
+                var sheets = (m_App.Documents.Active as ISwDmDrawing).Sheets;
+
                 var v1 = sheets["Sheet1"].DrawingViews["Drawing View1"];
                 var v2 = sheets["Sheet1"].DrawingViews["Drawing View2"];
                 var v3 = sheets["Sheet1"].DrawingViews["Drawing View3"];

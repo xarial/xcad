@@ -24,7 +24,7 @@ namespace Xarial.XCad.SwDocumentManager
     {
         #region NotSuppoted
 
-        public bool IsAlive => throw new NotSupportedException();
+        public virtual bool IsAlive => throw new NotSupportedException();
 
         public virtual void Serialize(Stream stream)
             => throw new NotSupportedException();
@@ -66,11 +66,17 @@ namespace Xarial.XCad.SwDocumentManager
                 case ISwDMConfiguration conf:
                     return new SwDmConfiguration(conf, (SwDmDocument3D)doc);
 
-                case ISwDMCutListItem2 cutList:
-                    return new SwDmCutListItem(cutList, (SwDmDocument)doc);
+                case ISwDMCutListItem cutList:
+                    return new SwDmCutListItem((ISwDMCutListItem2)cutList, (SwDmDocument)doc);
 
                 case ISwDMComponent comp:
                     return new SwDmComponent((SwDmAssembly)doc, comp);
+
+                case ISwDMSheet sheet:
+                    return new SwDmSheet(sheet, (SwDmDrawing)doc);
+
+                case ISwDMView view:
+                    return new SwDmDrawingView(view, (SwDmDrawing)doc);
 
                 default:
                     return new SwDmObject(disp);

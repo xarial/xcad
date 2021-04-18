@@ -155,22 +155,35 @@ namespace Xarial.XCad.SolidWorks.Documents
             {
                 var confName = m_ConfNames[m_CurConfIndex];
 
-                var conf = (IConfiguration)m_Doc.Model.GetConfigurationByName(confName);
+                IConfiguration conf = null;
 
-                if (conf == null)
+                if (m_Doc.IsCommitted)
                 {
-                    if (m_Doc.Model.IsOpenedViewOnly())
+                    conf = (IConfiguration)m_Doc.Model.GetConfigurationByName(confName);
+
+                    if (conf == null)
                     {
-                        return new SwLdrUnloadedConfiguration(m_Doc, confName);
+                        if (m_Doc.Model.IsOpenedViewOnly())
+                        {
+                            return new SwLdrUnloadedConfiguration(m_Doc, confName);
+                        }
+                        else
+                        {
+                            throw new Exception("Failed to get the configuration by name");
+
+                        }
                     }
                     else
                     {
-                        throw new Exception("Failed to get the configuration by name");
+                        return SwObject.FromDispatch<SwConfiguration>(conf, m_Doc);
                     }
                 }
-                else 
+                else
                 {
-                    return SwObject.FromDispatch<SwConfiguration>(conf, m_Doc);
+                    return new SwConfiguration(m_Doc, null, false)
+                    {
+                        Name = confName
+                    };
                 }
             }
         }
@@ -190,7 +203,15 @@ namespace Xarial.XCad.SolidWorks.Documents
             m_Doc = doc;
 
             m_CurConfIndex = -1;
-            m_ConfNames = (string[])m_Doc.Model.GetConfigurationNames();
+
+            if (doc.IsCommitted)
+            {
+                m_ConfNames = (string[])m_Doc.Model.GetConfigurationNames();
+            }
+            else 
+            {
+                m_ConfNames = (string[])m_App.GetConfigurationNames(m_Doc.Path);
+            }
         }
 
         public bool MoveNext()

@@ -122,6 +122,19 @@ namespace SolidWorks.Tests.Integration
         }
 
         [Test]
+        public void IterateConfsUnloadedTest()
+        {
+            var part = m_App.Documents.PreCreate<IXPart>();
+            part.Path = GetFilePath("Configs1.SLDPRT");
+            var confNames = part.Configurations.Select(x => x.Name).ToArray();
+
+            Assert.That(confNames.SequenceEqual(new string[]
+            {
+                "Conf1", "Conf2", "SubConf1", "SubSubConf1", "SubConf2", "Conf3"
+            }));
+        }
+
+        [Test]
         public void GetConfigByNameTest()
         {
             IXConfiguration conf1;
