@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 using Xarial.XCad.Documents;
+using Xarial.XCad.SolidWorks.Documents.Exceptions;
 using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.UI;
 
@@ -56,5 +57,29 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
             throw new NotImplementedException();
         }
+    }
+
+    internal class UncommittedPreviewOnlySheet : IXSheet 
+    {
+        #region Not Supported
+        
+        public string Name { get => throw new UnloadedDocumentPreviewOnlySheetException(); set => throw new UnloadedDocumentPreviewOnlySheetException(); }
+        public IXDrawingViewRepository DrawingViews => throw new UnloadedDocumentPreviewOnlySheetException();
+        public void Commit(CancellationToken cancellationToken)
+            => throw new UnloadedDocumentPreviewOnlySheetException();
+
+        #endregion
+
+        private readonly SwDrawing m_Drw;
+
+        internal UncommittedPreviewOnlySheet(SwDrawing drw) 
+        {
+            m_Drw = drw;
+        }
+
+        public IXImage Preview
+            => PictureDispUtils.PictureDispToXImage(m_Drw.App.Sw.GetPreviewBitmap(m_Drw.Path, ""));
+
+        public bool IsCommitted => false;
     }
 }

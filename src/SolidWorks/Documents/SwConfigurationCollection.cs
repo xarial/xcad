@@ -87,7 +87,21 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public ISwConfiguration Active
         {
-            get => SwObject.FromDispatch<SwConfiguration>(m_Doc.Model.ConfigurationManager.ActiveConfiguration, m_Doc);
+            get 
+            {
+                if (m_Doc.IsCommitted)
+                {
+                    return SwObject.FromDispatch<SwConfiguration>(m_Doc.Model.ConfigurationManager.ActiveConfiguration, m_Doc);
+                }
+                else 
+                {
+                    var activeConfName = m_Doc.App.Sw.GetActiveConfigurationName(m_Doc.Path);
+                    return new SwConfiguration(m_Doc, null, false)
+                    {
+                        Name = activeConfName
+                    };
+                }
+            } 
             set 
             {
                 if (m_Doc.Model.ConfigurationManager.ActiveConfiguration != value.Configuration)

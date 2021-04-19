@@ -35,13 +35,13 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        private readonly SwDrawing m_Doc;
+        private readonly SwDrawing m_Drawing;
 
         private readonly SheetActivatedEventsHandler m_SheetActivatedEventsHandler;
 
         internal SwSheetCollection(SwDrawing doc)
         {
-            m_Doc = doc;
+            m_Drawing = doc;
             m_SheetActivatedEventsHandler = new SheetActivatedEventsHandler(doc);
         }
 
@@ -49,11 +49,11 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public bool TryGet(string name, out IXSheet ent)
         {
-            var sheet = m_Doc.Drawing.Sheet[name];
+            var sheet = m_Drawing.Drawing.Sheet[name];
 
             if (sheet != null)
             {
-                ent = SwObject.FromDispatch<SwSheet>(sheet, m_Doc);
+                ent = SwObject.FromDispatch<SwSheet>(sheet, m_Drawing);
                 return true;
             }
             else 
@@ -63,10 +63,22 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        public int Count => (m_Doc.Drawing.GetSheetNames() as string[]).Length;
+        public int Count => (m_Drawing.Drawing.GetSheetNames() as string[]).Length;
 
         public IXSheet Active
-            => SwObject.FromDispatch<SwSheet>((ISheet)m_Doc.Drawing.GetCurrentSheet(), m_Doc);
+        {
+            get 
+            {
+                if (m_Drawing.IsCommitted)
+                {
+                    return SwObject.FromDispatch<SwSheet>((ISheet)m_Drawing.Drawing.GetCurrentSheet(), m_Drawing);
+                }
+                else 
+                {
+                    return new UncommittedPreviewOnlySheet(m_Drawing);
+                }
+            }
+        }
         
         public void AddRange(IEnumerable<IXConfiguration> ents)
         {
@@ -94,7 +106,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-        public IEnumerator<IXSheet> GetEnumerator() => new SwSheetEnumerator(m_Doc);
+        public IEnumerator<IXSheet> GetEnumerator() => new SwSheetEnumerator(m_Drawing);
     }
 
     internal class SwSheetEnumerator : IEnumerator<IXSheet>
