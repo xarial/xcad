@@ -27,6 +27,9 @@ namespace Xarial.XCad.Documents.Exceptions
         /// </summary>
         public int ErrorCode { get; }
 
+        /// <summary>
+        /// Default constructor
+        /// </summary>
         public OpenDocumentFailedException(string path, int errorCode, string err) : base(err)
         {
             Path = path;

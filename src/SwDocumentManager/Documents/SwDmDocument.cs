@@ -339,8 +339,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                         break;
 
                     case SwDmDocumentOpenError.swDmDocumentOpenErrorFileReadOnly:
-                        errDesc = "File is read-only and cannot be opened for write access";
-                        break;
+                        throw new DocumentWriteAccessDeniedException(path, (int)err);
 
                     case SwDmDocumentOpenError.swDmDocumentOpenErrorNoLicense:
                         errDesc = "No Document Manager license found";
