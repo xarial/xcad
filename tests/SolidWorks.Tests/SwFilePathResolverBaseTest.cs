@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Xarial.XCad.Documents.Exceptions;
 using Xarial.XCad.SolidWorks.Exceptions;
 using Xarial.XCad.SolidWorks.Services;
 
@@ -87,7 +88,7 @@ namespace SolidWorks.Tests
             };
 
             Assert.Throws<FilePathResolveFailedException>(() => res.ResolvePath(@"D:\ss\tt\a1.sldasm", @"C:\zz\yy\xx\p2.sldprt"));
-            Assert.That(expPaths.SequenceEqual(paths));
+            CollectionAssert.AreEqual(expPaths, paths);
         }
 
         [Test]

@@ -155,6 +155,23 @@ namespace SolidWorksDocMgr.Tests.Integration
             }
         }
 
+        [Test]
+        public void DocumentDependenciesCachedExtFolderTest()
+        {
+            using (var doc = OpenDataDocument(@"Assembly3\Assemblies\Assem1.SLDASM"))
+            {
+                var assm = m_App.Documents.Active;
+
+                var deps = assm.Dependencies;
+
+                var dir = GetFilePath(@"Assembly3");
+
+                Assert.AreEqual(1, deps.Length);
+                Assert.That(deps.All(d => !d.IsCommitted));
+                Assert.That(deps.Any(d => string.Equals(d.Path, Path.Combine(dir, "Parts\\Part1.SLDPRT"), StringComparison.CurrentCultureIgnoreCase)));
+            }
+        }
+
         public class TestData
         {
             public string Text { get; set; }

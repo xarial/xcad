@@ -14,6 +14,7 @@ using Xarial.XCad.SolidWorks.Documents;
 using System.Linq;
 using SolidWorks.Interop.swconst;
 using Xarial.XCad.SolidWorks.Exceptions;
+using Xarial.XCad.Documents.Exceptions;
 
 namespace Xarial.XCad.SolidWorks.Services
 {
@@ -30,7 +31,7 @@ namespace Xarial.XCad.SolidWorks.Services
                 return loadedPath;
             }
 
-            var resolvedPath = "";
+            string resolvedPath;
 
             foreach (var searchFolder in GetSearchFolders()) 
             {
@@ -53,57 +54,49 @@ namespace Xarial.XCad.SolidWorks.Services
             throw new FilePathResolveFailedException(path);
         }
 
-        private bool TrySearchRecursively(string targetDir, string searchPath, out string resultPath) 
+        private bool TrySearchRecursively(string targetDirPath, string searchPath, out string resultPath) 
         {
+            var targetDir = new DirectoryInfo(targetDirPath);
+            var searchDir = new DirectoryInfo(Path.GetDirectoryName(searchPath));
+
             var fileName = Path.GetFileName(searchPath);
-            var fileDir = Path.GetDirectoryName(searchPath);
 
-            var targetDirInfo = new DirectoryInfo(targetDir);
+            var pathToCheck = Path.Combine(targetDirPath, fileName);
 
-            var isFirst = true;
-
-            while (targetDirInfo != null) 
+            if (IsReferenceExists(pathToCheck))
             {
-                var relDirs = ReverseDirectory(fileDir);
+                resultPath = pathToCheck;
+                return true;
+            }
 
-                if (isFirst) 
-                {
-                    relDirs = new string[] { "" }.Union(relDirs);
-                    isFirst = false;
-                }
+            var parentDir = targetDir;
 
-                foreach (var curRelDir in relDirs)
+            while (parentDir != null)
+            {
+                var compSubDir = new DirectoryInfo(searchDir.FullName);
+
+                var curSubPath = "";
+
+                while (compSubDir.Parent != null)
                 {
-                    var pathToCheck = Path.Combine(targetDirInfo.FullName, curRelDir, fileName);
-                    
-                    if (IsReferenceExists(pathToCheck)) 
+                    curSubPath = Path.Combine(compSubDir.Name, curSubPath);
+
+                    pathToCheck = Path.Combine(parentDir.FullName, curSubPath, fileName);
+
+                    if (IsReferenceExists(pathToCheck))
                     {
                         resultPath = pathToCheck;
                         return true;
                     }
+
+                    compSubDir = compSubDir.Parent;
                 }
 
-                targetDirInfo = targetDirInfo.Parent;
+                parentDir = parentDir.Parent;
             }
 
             resultPath = "";
             return false;
-        }
-
-        private IEnumerable<string> ReverseDirectory(string dir)
-        {
-            var dirInfo = new DirectoryInfo(dir);
-
-            var thisDir = "";
-
-            while (dirInfo.Parent != null)
-            {
-                thisDir = Path.Combine(dirInfo.Name, thisDir);
-
-                yield return thisDir;
-
-                dirInfo = dirInfo.Parent;
-            }
         }
 
         protected abstract bool TryGetLoadedDocumentPath(string path, out string loadedPath);

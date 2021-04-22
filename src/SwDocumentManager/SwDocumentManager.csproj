@@ -50,9 +50,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="..\..\build\solidworks-dm-init.ps1" pack="true" PackagePath="tools\init.ps1"/>
-    <None Include="..\..\data\icon.png" pack="true" PackagePath=""/>
-    <None Include="..\..\LICENSE.md" pack="true" PackagePath=""/>
+    <None Include="..\..\build\solidworks-dm-init.ps1" pack="true" PackagePath="tools\init.ps1" />
+    <None Include="..\..\data\icon.png" pack="true" PackagePath="" />
+    <None Include="..\..\LICENSE.md" pack="true" PackagePath="" />
   </ItemGroup>
   
   <ItemGroup>

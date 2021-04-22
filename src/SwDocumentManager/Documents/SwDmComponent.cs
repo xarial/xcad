@@ -12,11 +12,13 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Text;
 using System.Threading;
+using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Features;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Services;
+using Xarial.XCad.SwDocumentManager.Services;
 
 namespace Xarial.XCad.SwDocumentManager.Documents
 {
@@ -44,10 +46,13 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         private SwDmAssembly m_ParentAssm;
 
+        private IFilePathResolver m_FilePathResolver;
+
         internal SwDmComponent(SwDmAssembly parentAssm, ISwDMComponent comp) : base(comp)
         {
             Component = comp;
             m_ParentAssm = parentAssm;
+            m_FilePathResolver = new SwDmFilePathResolver();
         }
 
         public string Name
@@ -68,8 +73,17 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             }
         }
 
-        //TODO: check - this migth be a cached path
-        public string Path => ((ISwDMComponent6)Component).PathName;
+        public string CachedPath => ((ISwDMComponent6)Component).PathName;
+
+        public string Path 
+        {
+            get 
+            {
+                var rootDir = System.IO.Path.GetDirectoryName(RootAssembly.Path);
+
+                return m_FilePathResolver.ResolvePath(rootDir, CachedPath);
+            }
+        }
 
         public ISwDmConfiguration ReferencedConfiguration => new SwDmComponentConfiguration(this);
 
@@ -106,42 +120,36 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             {
                 if (m_CachedDocument == null || !m_CachedDocument.IsAlive)
                 {
-                    var searchOpts = m_ParentAssm.SwDmApp.SwDocMgr.GetSearchOptionObject();
-                    searchOpts.SearchFilters = (int)(
-                        SwDmSearchFilters.SwDmSearchExternalReference
-                        | SwDmSearchFilters.SwDmSearchRootAssemblyFolder
-                        | SwDmSearchFilters.SwDmSearchSubfolders
-                        | SwDmSearchFilters.SwDmSearchInContextReference);
-
-                    if (RootAssembly != null)
-                    {
-                        searchOpts.AddSearchPath(System.IO.Path.GetDirectoryName(RootAssembly.Path));
-                    }
-
                     var isReadOnly = m_ParentAssm.State.HasFlag(DocumentState_e.ReadOnly);
 
-                    var doc = ((ISwDMComponent4)Component).GetDocument2(isReadOnly,
-                        searchOpts, out SwDmDocumentOpenError err);
-
-                    var isFound = doc != null;
-
-                    var unknownDoc = new SwDmUnknownDocument(m_ParentAssm.SwDmApp, doc,
-                            isFound,
-                            ((SwDmDocumentCollection)m_ParentAssm.SwDmApp.Documents).OnDocumentCreated,
-                            ((SwDmDocumentCollection)m_ParentAssm.SwDmApp.Documents).OnDocumentClosed, isReadOnly);
-
-                    if (!isFound) 
+                    try
                     {
-                        unknownDoc.Path = Path;
+                        var doc = (ISwDmDocument3D)m_ParentAssm.SwDmApp.Documents.PreCreateFromPath(Path);
+                        doc.State = isReadOnly ? DocumentState_e.ReadOnly : DocumentState_e.Default;
+
+                        doc.Commit();
+
+                        m_CachedDocument = doc;
+                    }
+                    catch 
+                    {
+                        var unknownDoc = new SwDmUnknownDocument(m_ParentAssm.SwDmApp, null,
+                                false,
+                                ((SwDmDocumentCollection)m_ParentAssm.SwDmApp.Documents).OnDocumentCreated,
+                                ((SwDmDocumentCollection)m_ParentAssm.SwDmApp.Documents).OnDocumentClosed, isReadOnly);
+
+                        unknownDoc.Path = CachedPath;
+
+                        m_CachedDocument = (ISwDmDocument3D)unknownDoc.GetSpecific();
                     }
 
-                    m_CachedDocument = (ISwDmDocument3D)unknownDoc.GetSpecific();
+                    return m_CachedDocument;
                 }
 
                 return m_CachedDocument;
             }
         }
-
+        
         public IXComponentRepository Children
         {
             get

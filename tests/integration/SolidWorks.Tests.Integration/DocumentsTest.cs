@@ -485,6 +485,21 @@ namespace SolidWorks.Tests.Integration
         }
 
         [Test]
+        public void DocumentDependenciesCachedExtFolderTest()
+        {
+            var assm = m_App.Documents.PreCreate<ISwAssembly>();
+            assm.Path = GetFilePath(@"Assembly3\Assemblies\Assem1.SLDASM");
+
+            var deps = assm.Dependencies;
+
+            var dir = GetFilePath("Assembly3");
+
+            Assert.AreEqual(1, deps.Length);
+            Assert.That(deps.All(d => !d.IsCommitted));
+            Assert.That(deps.Any(d => string.Equals(d.Path, Path.Combine(dir, "Parts\\Part1.SLDPRT"), StringComparison.CurrentCultureIgnoreCase)));
+        }
+
+        [Test]
         public void OpenConflictTest()
         {
             var filePath = GetFilePath(@"Assembly1\Part1.SLDPRT");

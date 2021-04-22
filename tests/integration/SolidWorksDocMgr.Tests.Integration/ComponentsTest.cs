@@ -132,5 +132,25 @@ namespace SolidWorksDocMgr.Tests.Integration
             Assert.That(paths.Any(d => string.Equals(d, Path.Combine(dir, "Assemblies\\Assem1.SLDASM"), StringComparison.CurrentCultureIgnoreCase)));
             Assert.That(paths.Any(d => string.Equals(d, Path.Combine(dir, "Parts\\Part1.SLDPRT"), StringComparison.CurrentCultureIgnoreCase)));
         }
+
+        [Test]
+        public void MovedCachedRefsAssemblyExtFolderTest()
+        {
+            string[] paths;
+            bool[] isCommitted;
+
+            using (var doc = OpenDataDocument(@"Assembly3\Assemblies\Assem1.SLDASM"))
+            {
+                var comps = ((ISwDmAssembly)m_App.Documents.Active).Components.Flatten().ToArray();
+                paths = comps.Select(c => c.Path).ToArray();
+                isCommitted = comps.Select(c => c.Document.IsCommitted).ToArray();
+            }
+
+            var dir = GetFilePath(@"Assembly3");
+
+            Assert.AreEqual(1, paths.Length);
+            Assert.That(isCommitted.All(d => d));
+            Assert.That(paths.Any(d => string.Equals(d, Path.Combine(dir, "Parts\\Part1.SLDPRT"), StringComparison.CurrentCultureIgnoreCase)));
+        }
     }
 }
