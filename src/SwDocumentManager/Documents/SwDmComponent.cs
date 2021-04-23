@@ -48,11 +48,20 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         private IFilePathResolver m_FilePathResolver;
 
+        private readonly Lazy<string> m_PathLazy;
+
         internal SwDmComponent(SwDmAssembly parentAssm, ISwDMComponent comp) : base(comp)
         {
             Component = comp;
             m_ParentAssm = parentAssm;
             m_FilePathResolver = new SwDmFilePathResolver();
+
+            m_PathLazy = new Lazy<string>(() => 
+            {
+                var rootDir = System.IO.Path.GetDirectoryName(RootAssembly.Path);
+
+                return m_FilePathResolver.ResolvePath(rootDir, CachedPath);
+            });
         }
 
         public string Name
@@ -75,15 +84,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         public string CachedPath => ((ISwDMComponent6)Component).PathName;
 
-        public string Path 
-        {
-            get 
-            {
-                var rootDir = System.IO.Path.GetDirectoryName(RootAssembly.Path);
-
-                return m_FilePathResolver.ResolvePath(rootDir, CachedPath);
-            }
-        }
+        public string Path => m_PathLazy.Value;
 
         public ISwDmConfiguration ReferencedConfiguration => new SwDmComponentConfiguration(this);
 
@@ -118,7 +119,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         {
             get
             {
-                if (m_CachedDocument == null || !m_CachedDocument.IsAlive)
+                if (m_CachedDocument == null || (m_CachedDocument.IsCommitted && !m_CachedDocument.IsAlive))
                 {
                     var isReadOnly = m_ParentAssm.State.HasFlag(DocumentState_e.ReadOnly);
 
