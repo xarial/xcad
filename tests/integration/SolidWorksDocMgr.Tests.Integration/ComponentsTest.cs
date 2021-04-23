@@ -152,5 +152,23 @@ namespace SolidWorksDocMgr.Tests.Integration
             Assert.That(isCommitted.All(d => d));
             Assert.That(paths.Any(d => string.Equals(d, Path.Combine(dir, "Parts\\Part1.SLDPRT"), StringComparison.CurrentCultureIgnoreCase)));
         }
+
+        [Test]
+        public void ComponentCountTest()
+        {
+            int count;
+            int totalCount;
+
+            using (var doc = OpenDataDocument(@"Assembly1\TopAssem1.SLDASM"))
+            {
+                var assm = (ISwDmAssembly)m_App.Documents.Active;
+
+                count = assm.Components.Count;
+                totalCount = assm.Components.TotalCount;
+            }
+
+            Assert.AreEqual(6, count);
+            Assert.AreEqual(17, totalCount);
+        }
     }
 }

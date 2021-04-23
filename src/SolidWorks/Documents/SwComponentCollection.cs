@@ -45,6 +45,8 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public int Count => GetChildrenCount();
 
+        public abstract int TotalCount { get; }
+
         private readonly ISwAssembly m_Assm;
 
         internal SwComponentCollection(ISwAssembly assm)

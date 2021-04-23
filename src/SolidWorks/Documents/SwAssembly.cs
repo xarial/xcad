@@ -57,6 +57,8 @@ namespace Xarial.XCad.SolidWorks.Documents
             m_Assm = assm;
         }
 
+        public override int TotalCount => m_Assm.Assembly.GetComponentCount(false);
+
         protected override IEnumerable<IComponent2> GetChildren()
             => (m_Assm.Assembly.GetComponents(true) as object[])?.Cast<IComponent2>();
 

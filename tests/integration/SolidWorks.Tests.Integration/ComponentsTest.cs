@@ -191,5 +191,22 @@ namespace SolidWorks.Tests.Integration
             Assert.That(compNames.OrderBy(c => c).SequenceEqual(
                 new string[] { "Part1^VirtAssem1-1", "Assem2^VirtAssem1-1" }.OrderBy(c => c)));
         }
+
+        [Test]
+        public void ComponentCountTest()
+        {
+            int count;
+            int totalCount;
+
+            using (var doc = OpenDataDocument(@"Assembly1\TopAssem1.SLDASM"))
+            {
+                var assm = (ISwAssembly)m_App.Documents.Active;
+                count = assm.Components.Count;
+                totalCount = assm.Components.TotalCount;
+            }
+
+            Assert.AreEqual(6, count);
+            Assert.AreEqual(17, totalCount);
+        }
     }
 }

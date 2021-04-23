@@ -7,6 +7,7 @@
 
 using SolidWorks.Interop.swdocumentmgr;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
@@ -58,7 +59,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
             m_PathLazy = new Lazy<string>(() => 
             {
-                var rootDir = System.IO.Path.GetDirectoryName(RootAssembly.Path);
+                var rootDir = System.IO.Path.GetDirectoryName(OwnerAssembly.Path);
 
                 return m_FilePathResolver.ResolvePath(rootDir, CachedPath);
             });
@@ -155,19 +156,26 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         {
             get
             {
-                var refConf = ReferencedConfiguration;
-                
-                if (!refConf.IsCommitted) 
+                if (!Component.IsSuppressed() && Document is SwDmAssembly)
                 {
-                    refConf.Commit(default);
-                }
+                    var refConf = ReferencedConfiguration;
 
-                return new SwDmSubComponentCollection(this, m_ParentAssm, refConf);
+                    if (!refConf.IsCommitted)
+                    {
+                        refConf.Commit(default);
+                    }
+
+                    return new SwDmSubComponentCollection(this, Document as SwDmAssembly, refConf);
+                }
+                else 
+                {
+                    return new EmptyComponentCollection();
+                }
             }
         }
 
         internal SwDmComponent Parent { get; set; }
-        internal ISwDmAssembly RootAssembly { get; set; }
+        internal ISwDmAssembly OwnerAssembly { get; set; }
     }
 
     internal class SwDmComponentConfiguration : SwDmConfiguration
@@ -191,7 +199,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         public override object Dispatch => Configuration;
 
-        public override bool IsCommitted => true;
+        public override bool IsCommitted => Document.IsCommitted;
     }
 
     internal class SwDmSubComponentCollection : SwDmComponentCollection
@@ -199,8 +207,8 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         private readonly SwDmComponent m_ParentComp;
 
         internal SwDmSubComponentCollection(SwDmComponent parentComp,
-            SwDmAssembly parentAssm, ISwDmConfiguration conf) 
-            : base(parentAssm, conf)
+            SwDmAssembly ownerAssm, ISwDmConfiguration conf) 
+            : base(ownerAssm, conf)
         {
             m_ParentComp = parentComp;
         }
@@ -211,5 +219,35 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             comp.Parent = m_ParentComp;
             return comp;
         }
+    }
+
+    internal class EmptyComponentCollection : IXComponentRepository
+    {
+        #region Not Supported
+        
+        public void AddRange(IEnumerable<IXComponent> ents)
+            => throw new NotSupportedException();
+
+        public void RemoveRange(IEnumerable<IXComponent> ents)
+            => throw new NotSupportedException();
+
+        #endregion
+
+        public IXComponent this[string name] => throw new Exception("No components");
+
+        public int TotalCount => 0;
+
+        public int Count => 0;
+
+        public IEnumerator<IXComponent> GetEnumerator()
+        {
+            yield break; 
+        }
+
+        public bool TryGet(string name, out IXComponent ent)
+            => throw new Exception("No components");
+
+        IEnumerator IEnumerable.GetEnumerator()
+            => GetEnumerator();
     }
 }

@@ -39,41 +39,41 @@ namespace SolidWorksDocMgr.Tests.Integration
         }
 
         //This test fails when run in a group
-        //[Test]
-        //public void DocumentsTest() 
-        //{
-        //    var c1 = m_App.Documents.Count;
-        //    var activeIsNull = m_App.Documents.Active == null;
+        [Test]
+        public void DocumentsTest()
+        {
+            var c1 = m_App.Documents.Count;
+            var activeIsNull = m_App.Documents.Active == null;
 
-        //    var doc1 = m_App.Documents.Open(GetFilePath("Part_2020.sldprt"), Xarial.XCad.Documents.Enums.DocumentState_e.ReadOnly);
+            var doc1 = m_App.Documents.Open(GetFilePath("Part_2020.sldprt"), Xarial.XCad.Documents.Enums.DocumentState_e.ReadOnly);
 
-        //    var c2 = m_App.Documents.Count;
-        //    var activeIsDoc1 = m_App.Documents.Active == doc1;
+            var c2 = m_App.Documents.Count;
+            var activeIsDoc1 = m_App.Documents.Active == doc1;
 
-        //    var doc2 = m_App.Documents.Open(GetFilePath("Part_2019.sldprt"), Xarial.XCad.Documents.Enums.DocumentState_e.ReadOnly);
+            var doc2 = m_App.Documents.Open(GetFilePath("Part_2019.sldprt"), Xarial.XCad.Documents.Enums.DocumentState_e.ReadOnly);
 
-        //    var c3 = m_App.Documents.Count;
-        //    var activeIsDoc2 = m_App.Documents.Active == doc2;
+            var c3 = m_App.Documents.Count;
+            var activeIsDoc2 = m_App.Documents.Active == doc2;
 
-        //    doc1.Close();
-        //    var c4 = m_App.Documents.Count;
-        //    var activeIsDoc21 = m_App.Documents.Active == doc2;
+            doc1.Close();
+            var c4 = m_App.Documents.Count;
+            var activeIsDoc21 = m_App.Documents.Active == doc2;
 
-        //    doc2.Close();
-        //    var c5 = m_App.Documents.Count;
-        //    var activeIsNull1 = m_App.Documents.Active == null;
+            doc2.Close();
+            var c5 = m_App.Documents.Count;
+            var activeIsNull1 = m_App.Documents.Active == null;
 
-        //    Assert.AreEqual(0, c1);
-        //    Assert.IsTrue(activeIsNull);
-        //    Assert.AreEqual(1, c2);
-        //    Assert.IsTrue(activeIsDoc1);
-        //    Assert.AreEqual(2, c3);
-        //    Assert.IsTrue(activeIsDoc2);
-        //    Assert.AreEqual(1, c4);
-        //    Assert.IsTrue(activeIsDoc21);
-        //    Assert.AreEqual(0, c5);
-        //    Assert.IsTrue(activeIsNull1);
-        //}
+            Assert.AreEqual(0, c1);
+            Assert.IsTrue(activeIsNull);
+            Assert.AreEqual(1, c2);
+            Assert.IsTrue(activeIsDoc1);
+            Assert.AreEqual(2, c3);
+            Assert.IsTrue(activeIsDoc2);
+            Assert.AreEqual(1, c4);
+            Assert.IsTrue(activeIsDoc21);
+            Assert.AreEqual(0, c5);
+            Assert.IsTrue(activeIsNull1);
+        }
 
         [Test]
         public void IsAliveTest() 

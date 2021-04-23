@@ -341,8 +341,45 @@ namespace Xarial.XCad.SolidWorks.Documents
             m_Comp = comp;
         }
 
+        public override int TotalCount 
+        {
+            get 
+            {
+                if (!!m_Comp.IsSuppressed())
+                {
+                    var refModel = m_Comp.GetModelDoc2();
+
+                    if (refModel is IAssemblyDoc)
+                    {
+                        return (refModel as IAssemblyDoc).GetComponentCount(false);
+                    }
+                    else if (refModel == null)
+                    {
+                        throw new Exception("Cannot retrieve the total count of chidren of the unloaded document");
+                    }
+                    else
+                    {
+                        return 0;
+                    }
+                }
+                else 
+                {
+                    return 0;
+                }
+            }
+        }
+
         protected override IEnumerable<IComponent2> GetChildren()
-            => (m_Comp.GetChildren() as object[])?.Cast<IComponent2>();
+        {
+            if (!m_Comp.IsSuppressed())
+            {
+                return (m_Comp.GetChildren() as object[])?.Cast<IComponent2>();
+            }
+            else 
+            {
+                return Enumerable.Empty<IComponent2>();
+            }
+        }
 
         protected override int GetChildrenCount() => m_Comp.IGetChildrenCount();
     }
