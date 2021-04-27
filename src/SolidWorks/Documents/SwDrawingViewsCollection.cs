@@ -44,7 +44,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        public int Count => GetDrawingViews().Count();
+        public int Count => GetSwViews().Count();
 
         public void AddRange(IEnumerable<IXDrawingView> ents)
         {
@@ -63,8 +63,17 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public bool TryGet(string name, out IXDrawingView ent)
         {
-            ent = GetDrawingViews().FirstOrDefault(
+            var view = GetSwViews().FirstOrDefault(
                 x => string.Equals(x.Name, name, StringComparison.CurrentCultureIgnoreCase));
+
+            if (view != null)
+            {
+                ent = SwSelObject.FromDispatch<SwDrawingView>(view, m_Draw);
+            }
+            else 
+            {
+                ent = null;
+            }
 
             return ent != null;
         }
@@ -73,13 +82,37 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         private IEnumerable<SwDrawingView> GetDrawingViews() 
         {
-            var views = m_Sheet.GetViews() as object[];
-
-            if (views != null)
+            foreach (IView view in GetSwViews())
             {
-                foreach (IView view in views)
+                yield return SwSelObject.FromDispatch<SwDrawingView>(view, m_Draw);
+            }
+        }
+
+        private IEnumerable<IView> GetSwViews() 
+        {
+            var isSheetFound = false;
+
+            foreach (object[] sheet in m_Draw.Drawing.GetViews() as object[]) 
+            {
+                foreach (IView view in sheet) 
                 {
-                    yield return SwSelObject.FromDispatch<SwDrawingView>(view, m_Draw);
+                    if (string.Equals(view.Name, m_Sheet.GetName(), StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        isSheetFound = true;
+                    }
+                    else if (isSheetFound) 
+                    {
+                        yield return view;
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+
+                if (isSheetFound) 
+                {
+                    break;
                 }
             }
         }

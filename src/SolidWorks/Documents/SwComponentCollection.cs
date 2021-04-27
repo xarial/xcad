@@ -43,9 +43,45 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        public int Count => GetChildrenCount();
+        public int Count
+        {
+            get 
+            {
+                if (m_Assm.IsCommitted)
+                {
+                    if (m_Assm.Model.IsOpenedViewOnly())
+                    {
+                        throw new Exception("Components count is inaccurate in Large Design Review assembly");
+                    }
 
-        public abstract int TotalCount { get; }
+                    return GetChildrenCount();
+                }
+                else
+                {
+                    throw new Exception("Assembly is not committed");
+                }
+            }
+        }
+
+        public int TotalCount 
+        {
+            get 
+            {
+                if (m_Assm.IsCommitted)
+                {
+                    if (m_Assm.Model.IsOpenedViewOnly())
+                    {
+                        throw new Exception("Total components count is inaccurate in Large Design Review assembly");
+                    }
+
+                    return GetTotalChildrenCount();
+                }
+                else
+                {
+                    throw new Exception("Assembly is not committed");
+                }
+            }
+        }
 
         private readonly ISwAssembly m_Assm;
 
@@ -61,6 +97,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         protected abstract IEnumerable<IComponent2> GetChildren();
         protected abstract int GetChildrenCount();
+        protected abstract int GetTotalChildrenCount();
 
         public IEnumerator<IXComponent> GetEnumerator()
         {

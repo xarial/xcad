@@ -17,12 +17,12 @@ using Xarial.XCad.UI;
 
 namespace Xarial.XCad.SolidWorks.Documents
 {
-    public interface ISwSheet : ISwObject, IXSheet
+    public interface ISwSheet : ISwSelObject, IXSheet
     {
         ISheet Sheet { get; }
     }
 
-    internal class SwSheet : SwObject, ISwSheet
+    internal class SwSheet : SwSelObject, ISwSheet
     {
         public ISheet Sheet { get; }
         private readonly SwDrawing m_Drawing;
@@ -39,7 +39,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         public IXDrawingViewRepository DrawingViews { get; }
 
         //TODO: implement creation of new sheets
-        public bool IsCommitted => true;
+        public override bool IsCommitted => true;
 
         public override object Dispatch => Sheet;
 
@@ -53,7 +53,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             DrawingViews = new SwDrawingViewsCollection(draw, sheet);
         }
 
-        public void Commit(CancellationToken cancellationToken)
+        public override void Commit(CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
