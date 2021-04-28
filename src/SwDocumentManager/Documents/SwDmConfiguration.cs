@@ -251,4 +251,18 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         public virtual void Commit(CancellationToken cancellationToken) => throw new NotSupportedException();
     }
+
+    public interface ISwDmAssemblyConfiguration : ISwDmConfiguration, IXAssemblyConfiguration
+    {
+    }
+
+    internal class SwDmAssemblyConfiguration : SwDmConfiguration, ISwDmAssemblyConfiguration
+    {
+        internal SwDmAssemblyConfiguration(ISwDMConfiguration conf, SwDmAssembly assm) : base(conf, assm)
+        {
+            Components = new SwDmComponentCollection(assm, this);
+        }
+
+        public IXComponentRepository Components { get; }
+    }
 }

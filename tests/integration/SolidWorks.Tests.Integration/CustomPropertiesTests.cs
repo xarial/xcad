@@ -164,12 +164,12 @@ namespace SolidWorks.Tests.Integration
             {
                 var assm = (ISwAssembly)m_App.Documents.Active;
 
-                conf1Prps = assm.Components["CutListConfs1-2"].ReferencedConfiguration.CutLists
+                conf1Prps = assm.Configurations.Active.Components["CutListConfs1-2"].ReferencedConfiguration.CutLists
                     .First(c => c.Name == "Cut-List-Item1").Properties
                     .ToDictionary(p => p.Name, p => p.Value);
 
                 Assert.Throws<InactiveConfigurationCutListPropertiesNotSupportedException>(
-                    ()=> { var cl = assm.Components["CutListConfs1-1"].ReferencedConfiguration.CutLists; });
+                    ()=> { var cl = assm.Configurations.Active.Components["CutListConfs1-1"].ReferencedConfiguration.CutLists; });
             }
 
             Assert.AreEqual(4, conf1Prps.Count);
@@ -217,15 +217,15 @@ namespace SolidWorks.Tests.Integration
             {
                 var assm = (ISwAssembly)m_App.Documents.Active;
 
-                var prp1 = assm.Components["CutListConfs1-2"].ReferencedConfiguration.CutLists
+                var prp1 = assm.Configurations.Active.Components["CutListConfs1-2"].ReferencedConfiguration.CutLists
                     .First(c => c.Name == "Cut-List-Item1").Properties.GetOrPreCreate("Prp3");
                 prp1.Value = "NewValueConf1";
                 prp1.Commit();
 
                 Assert.Throws<InactiveConfigurationCutListPropertiesNotSupportedException>(
-                    () => { var cl = assm.Components["CutListConfs1-1"].ReferencedConfiguration.CutLists; });
+                    () => { var cl = assm.Configurations.Active.Components["CutListConfs1-1"].ReferencedConfiguration.CutLists; });
                 
-                var part = (ISwPart)assm.Components["CutListConfs1-1"].Document;
+                var part = (ISwPart)assm.Configurations.Active.Components["CutListConfs1-1"].Document;
 
                 part.Model.ShowConfiguration2("Conf1<As Machined>");
                 part.Part.IFeatureByName("Cut-List-Item1").CustomPropertyManager.Get5("Prp3", false, out _, out conf1Val, out _);

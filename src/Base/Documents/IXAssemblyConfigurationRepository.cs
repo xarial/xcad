@@ -5,14 +5,19 @@
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
+using Xarial.XCad.Base;
+
 namespace Xarial.XCad.Documents
 {
     /// <summary>
-    /// Represents an assembly document (composition of <see cref="IXPart"/> and other <see cref="IXAssembly"/>)
+    /// Represents the collection of configurations in <see cref="IXAssembly"/>
     /// </summary>
-    public interface IXAssembly : IXDocument3D
+    public interface IXAssemblyConfigurationRepository : IXConfigurationRepository, IXRepository<IXAssemblyConfiguration> 
     {
         /// <inheritdoc/>
-        new IXAssemblyConfigurationRepository Configurations { get; }
+        new IXAssemblyConfiguration Active { get; set; }
+
+        /// <inheritdoc/>
+        new IXAssemblyConfiguration PreCreate();
     }
 }

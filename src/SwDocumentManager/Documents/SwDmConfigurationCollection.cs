@@ -78,13 +78,16 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         }
 
         public IEnumerator<IXConfiguration> GetEnumerator()
+            => GetConfigurationNames().Select(n => this[n]).GetEnumerator();
+
+        protected string[] GetConfigurationNames()
         {
             string[] confNames;
 
             if (m_Doc.SwDmApp.IsVersionNewerOrEqual(SwDmVersion_e.Sw2019))
             {
                 confNames = (string[])((ISwDMConfigurationMgr2)m_Doc.Document.ConfigurationManager).GetConfigurationNames2(out SwDMConfigurationError err);
-                
+
                 if (err != SwDMConfigurationError.SwDMConfigurationError_None)
                 {
                     throw new InvalidConfigurationsException(err);
@@ -95,7 +98,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                 confNames = (string[])m_Doc.Document.ConfigurationManager.GetConfigurationNames();
             }
 
-            return confNames.Select(n => this[n]).GetEnumerator();
+            return confNames;
         }
 
         public bool TryGet(string name, out IXConfiguration ent)
@@ -142,5 +145,56 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         }
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+    }
+
+    public interface ISwDmAssemblyConfigurationCollection : ISwDmConfigurationCollection, IXAssemblyConfigurationRepository 
+    {
+        new ISwDmAssemblyConfiguration this[string name] { get; }
+        new ISwDmAssemblyConfiguration Active { get; set; }
+    }
+
+    internal class SwDmAssemblyConfigurationCollection : SwDmConfigurationCollection, ISwDmAssemblyConfigurationCollection
+    {
+        private readonly SwDmAssembly m_Assm;
+
+        internal SwDmAssemblyConfigurationCollection(SwDmAssembly assm) : base(assm)
+        {
+            m_Assm = assm;
+        }
+
+        IXAssemblyConfiguration IXRepository<IXAssemblyConfiguration>.this[string name] => (this as ISwDmAssemblyConfigurationCollection)[name];
+
+        ISwDmAssemblyConfiguration ISwDmAssemblyConfigurationCollection.this[string name] => (ISwDmAssemblyConfiguration)base[name];
+
+        IXAssemblyConfiguration IXAssemblyConfigurationRepository.Active 
+        {
+            get => (ISwDmAssemblyConfiguration)base.Active;
+            set => (this as IXConfigurationRepository).Active = value;
+        }
+        
+        ISwDmAssemblyConfiguration ISwDmAssemblyConfigurationCollection.Active 
+        {
+            get => (ISwDmAssemblyConfiguration)base.Active;
+            set => (this as IXConfigurationRepository).Active = value;
+        }
+
+        public void AddRange(IEnumerable<IXAssemblyConfiguration> ents)
+            => base.AddRange(ents);
+
+        public void RemoveRange(IEnumerable<IXAssemblyConfiguration> ents)
+            => base.RemoveRange(ents);
+
+        public bool TryGet(string name, out IXAssemblyConfiguration ent)
+        {
+            var res = base.TryGet(name, out IXConfiguration conf);
+            ent = (IXAssemblyConfiguration)conf;
+            return res;
+        }
+
+        IEnumerator<IXAssemblyConfiguration> IEnumerable<IXAssemblyConfiguration>.GetEnumerator()
+            => GetConfigurationNames().Select(n => (IXAssemblyConfiguration)this[n]).GetEnumerator();
+
+        IXAssemblyConfiguration IXAssemblyConfigurationRepository.PreCreate()
+            => new SwDmAssemblyConfiguration(null, m_Assm);
     }
 }

@@ -29,7 +29,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public bool TryGet(string name, out IXComponent ent)
         {
-            var comp = m_Assm.Assembly.GetComponentByName(name);
+            var comp = GetChildren().FirstOrDefault(c => string.Equals(GetRelativeName(c), name, StringComparison.CurrentCultureIgnoreCase));
 
             if (comp != null)
             {
@@ -123,5 +123,26 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+        private string GetRelativeName(IComponent2 comp)
+        {
+            var parentComp = comp.GetParent();
+
+            if (parentComp == null)
+            {
+                return comp.Name2;
+            }
+            else
+            {
+                if (comp.Name2.StartsWith(parentComp.Name2, StringComparison.CurrentCultureIgnoreCase))
+                {
+                    return comp.Name2.Substring(parentComp.Name2.Length + 1);
+                }
+                else
+                {
+                    throw new Exception("Invalid component name");
+                }
+            }
+        }
     }
 }

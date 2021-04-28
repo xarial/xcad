@@ -10,6 +10,7 @@ using SolidWorks.Interop.swconst;
 using System;
 using System.IO;
 using Xarial.XCad.Base;
+using Xarial.XCad.Documents;
 using Xarial.XCad.SolidWorks.Annotations;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Features;
@@ -191,7 +192,17 @@ namespace Xarial.XCad.SolidWorks
                     return new SwDimension(doc, dispDim);
 
                 case IConfiguration conf:
-                    return new SwConfiguration((SwDocument3D)doc, conf, true);
+                    switch (doc) 
+                    {
+                        case SwAssembly assm:
+                            return new SwAssemblyConfiguration(assm, conf, true);
+
+                        case SwDocument3D doc3D:
+                            return new SwConfiguration(doc3D, conf, true);
+
+                        default:
+                            throw new Exception("Owner document must be 3D document or assembly");
+                    }
 
                 case IComponent2 comp:
                     return new SwComponent(comp, (SwAssembly)doc);

@@ -15,16 +15,22 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 {
     public interface ISwDmAssembly : ISwDmDocument3D, IXAssembly
     {
+        new ISwDmAssemblyConfigurationCollection Configurations { get; }
     }
 
     internal class SwDmAssembly : SwDmDocument3D, ISwDmAssembly
     {
+        private readonly Lazy<SwDmAssemblyConfigurationCollection> m_LazyConfigurations;
+
         public SwDmAssembly(ISwDmApplication dmApp, ISwDMDocument doc, bool isCreated,
             Action<ISwDmDocument> createHandler, Action<ISwDmDocument> closeHandler, bool? isReadOnly = null)
             : base(dmApp, doc, isCreated, createHandler, closeHandler, isReadOnly)
         {
+            m_LazyConfigurations = new Lazy<SwDmAssemblyConfigurationCollection>(() => new SwDmAssemblyConfigurationCollection(this));
         }
 
-        public IXComponentRepository Components => new SwDmComponentCollection(this, Configurations.Active);
+        IXAssemblyConfigurationRepository IXAssembly.Configurations => (this as ISwDmAssembly).Configurations;
+
+        ISwDmAssemblyConfigurationCollection ISwDmAssembly.Configurations => m_LazyConfigurations.Value;
     }
 }

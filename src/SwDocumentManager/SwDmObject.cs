@@ -64,7 +64,17 @@ namespace Xarial.XCad.SwDocumentManager
             switch (disp) 
             {
                 case ISwDMConfiguration conf:
-                    return new SwDmConfiguration(conf, (SwDmDocument3D)doc);
+                    switch (doc) 
+                    {
+                        case SwDmAssembly assm:
+                            return new SwDmAssemblyConfiguration(conf, assm);
+
+                        case SwDmDocument3D doc3D:
+                            return new SwDmConfiguration(conf, doc3D);
+
+                        default:
+                            throw new NotSupportedException("This document type is not supported for configuration");
+                    }
 
                 case ISwDMCutListItem cutList:
                     return new SwDmCutListItem((ISwDMCutListItem2)cutList, (SwDmDocument)doc);

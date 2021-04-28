@@ -263,7 +263,29 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
     }
 
-    internal class SwLdrUnloadedConfiguration : SwConfiguration
+    internal class SwViewOnlyUnloadedConfiguration : SwConfiguration
+    {
+        public override string Name
+        {
+            get => m_ViewOnlyConfName;
+            set => throw new NotSupportedException("Name of view-only configuration cannot be changed");
+        }
+
+        private string m_ViewOnlyConfName;
+
+        internal SwViewOnlyUnloadedConfiguration(SwDocument3D doc, string confName)
+            : base(doc, null, false)
+        {
+            m_ViewOnlyConfName = confName;
+        }
+
+        public override void Commit(CancellationToken cancellationToken) => throw new InactiveLdrConfgurationNotSupportedException();
+        public override IXCutListItem[] CutLists => throw new InactiveLdrConfgurationNotSupportedException();
+        public override object Dispatch => throw new InactiveLdrConfgurationNotSupportedException();
+        public override ISwCustomPropertiesCollection Properties => throw new InactiveLdrConfgurationNotSupportedException();
+    }
+
+    internal class SwLdrUnloadedConfiguration : SwAssemblyConfiguration
     {
         public override string Name 
         {
@@ -273,8 +295,8 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         private string m_LdrConfName;
 
-        internal SwLdrUnloadedConfiguration(SwDocument3D doc, string confName) 
-            : base(doc, null, false)
+        internal SwLdrUnloadedConfiguration(SwAssembly assm, string confName) 
+            : base(assm, null, false)
         {
             m_LdrConfName = confName;
         }
