@@ -23,27 +23,22 @@ namespace Xarial.XCad.SolidWorks.Utils
 {
     internal class SwApplicationStarter : IDisposable
     {
-        #region WinApi
-        [DllImport("user32.dll")]
-        static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
-        #endregion
-
         private readonly ApplicationState_e m_State;
-        private readonly SwVersion_e m_Version;
+        private readonly ISwVersion m_Version;
 
-        internal SwApplicationStarter(ApplicationState_e state, SwVersion_e version) 
+        internal SwApplicationStarter(ApplicationState_e state, ISwVersion version) 
         {
             m_State = state;
             m_Version = version;
         }
 
-        internal ISldWorks Start(CancellationToken cancellationToken) 
+        internal ISldWorks Start(Action<Process> startHandler, CancellationToken cancellationToken) 
         {
             SwVersion_e? vers = null;
 
-            if (m_Version != 0)
+            if (m_Version != null)
             {
-                vers = m_Version;
+                vers = m_Version.Major;
             }
 
             var args = new List<string>();
@@ -75,6 +70,7 @@ namespace Xarial.XCad.SolidWorks.Utils
             }
 
             var prc = Process.Start(prcInfo);
+            startHandler.Invoke(prc);
 
             try
             {
@@ -94,23 +90,6 @@ namespace Xarial.XCad.SolidWorks.Utils
                 if (m_State.HasFlag(ApplicationState_e.Hidden)) 
                 {
                     app.Visible = false;
-                }
-
-                do
-                {
-                    if (cancellationToken.IsCancellationRequested)
-                    {
-                        throw new AppStartCancelledByUserException();
-                    }
-
-                    Thread.Sleep(100);
-                }
-                while (!app.StartupProcessCompleted);
-
-                if (m_State.HasFlag(ApplicationState_e.Hidden))
-                {
-                    const int HIDE = 0;
-                    ShowWindow(new IntPtr(app.IFrameObject().GetHWnd()), HIDE);
                 }
 
                 return app;

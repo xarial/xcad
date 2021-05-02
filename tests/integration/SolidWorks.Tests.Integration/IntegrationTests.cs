@@ -9,6 +9,7 @@ using System.Linq;
 using System.Text;
 using Xarial.XCad.Enums;
 using Xarial.XCad.SolidWorks;
+using Xarial.XCad.SolidWorks.Enums;
 
 namespace SolidWorks.Tests.Integration
 {
@@ -58,7 +59,7 @@ namespace SolidWorks.Tests.Integration
 
                 SwApplicationFactory.DisableAllAddInsStartup(out m_DisabledStartupAddIns);
 
-                m_App = SwApplicationFactory.Create(0,
+                m_App = SwApplicationFactory.Create(null,
                     ApplicationState_e.Background 
                     | ApplicationState_e.Safe 
                     | ApplicationState_e.Silent);
@@ -87,7 +88,7 @@ namespace SolidWorks.Tests.Integration
 
         protected string GetFilePath(string name)
         {
-            var filePath = "";
+            string filePath;
 
             if (Path.IsPathRooted(name)) 
             {
@@ -101,13 +102,15 @@ namespace SolidWorks.Tests.Integration
             return filePath;
         }
 
-        protected IDisposable OpenDataDocument(string name, bool readOnly = true) 
+        protected IDisposable OpenDataDocument(string name, bool readOnly = true, Action<IDocumentSpecification> specEditor = null) 
         {
             var filePath = GetFilePath(name);
 
             var spec = (IDocumentSpecification)m_SwApp.GetOpenDocSpec(filePath);
             spec.ReadOnly = readOnly;
             spec.LightWeight = false;
+            specEditor?.Invoke(spec);
+
             var model = m_SwApp.OpenDoc7(spec);
 
             if (model != null)

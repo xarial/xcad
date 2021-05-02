@@ -39,7 +39,7 @@ namespace Xarial.XCad.SolidWorks.Documents.Services
             m_App = app;
             m_Logger = logger;
 
-            m_Comparer = new SwPointerEqualityComparer<IModelDoc2>(app.Sw);
+            m_Comparer = new SwModelPointerEqualityComparer(app.Sw);
 
             m_DocsDispatchQueue = new List<SwDocument>();
             m_ModelsDispatchQueue = new List<IModelDoc2>();
@@ -51,6 +51,8 @@ namespace Xarial.XCad.SolidWorks.Documents.Services
         {
             lock (m_Lock) 
             {
+                m_Logger.Log($"Adding '{model.GetTitle()}' to the dispatch queue", XCad.Base.Enums.LoggerMessageSeverity_e.Debug);
+
                 m_ModelsDispatchQueue.Add(model);
 
                 if (!m_DocsDispatchQueue.Any())
@@ -75,15 +77,24 @@ namespace Xarial.XCad.SolidWorks.Documents.Services
 
                 if (index != -1) 
                 {
+                    m_Logger.Log($"Removing '{doc.Title}' from the dispatch queue", XCad.Base.Enums.LoggerMessageSeverity_e.Debug);
+
                     m_ModelsDispatchQueue.RemoveAt(index);
                 }
 
-                if (doc is SwUnknownDocument) 
+                if (doc.IsCommitted)
                 {
-                    doc = (SwDocument)(doc as SwUnknownDocument).GetSpecific();
-                }
+                    if (doc is SwUnknownDocument)
+                    {
+                        doc = (SwDocument)(doc as SwUnknownDocument).GetSpecific();
+                    }
+                    else
+                    {
+                        doc.AttachEvents();
+                    }
 
-                Dispatched?.Invoke(doc);
+                    NotifyDispatchedSafe(doc);
+                }
 
                 if (!m_DocsDispatchQueue.Any()) 
                 {
@@ -96,32 +107,49 @@ namespace Xarial.XCad.SolidWorks.Documents.Services
         {
             lock (m_Lock) 
             {
-                foreach (var model in m_ModelsDispatchQueue) 
+                m_Logger.Log($"Dispatching all ({m_ModelsDispatchQueue.Count}) models", XCad.Base.Enums.LoggerMessageSeverity_e.Debug);
+
+                foreach (var model in m_ModelsDispatchQueue)
                 {
                     SwDocument doc;
 
                     switch (model)
                     {
                         case IPartDoc part:
-                            doc = new SwPart(part, m_App, m_Logger, true);
+                            doc = new SwPart(part, (SwApplication)m_App, m_Logger, true);
                             break;
 
                         case IAssemblyDoc assm:
-                            doc = new SwAssembly(assm, m_App, m_Logger, true);
+                            doc = new SwAssembly(assm, (SwApplication)m_App, m_Logger, true);
                             break;
 
                         case IDrawingDoc drw:
-                            doc = new SwDrawing(drw, m_App, m_Logger, true);
+                            doc = new SwDrawing(drw, (SwApplication)m_App, m_Logger, true);
                             break;
 
                         default:
                             throw new NotSupportedException();
                     }
 
-                    Dispatched?.Invoke(doc);
+                    NotifyDispatchedSafe(doc);
                 }
 
                 m_ModelsDispatchQueue.Clear();
+                m_Logger.Log($"Cleared models queue", XCad.Base.Enums.LoggerMessageSeverity_e.Debug);
+            }
+        }
+
+        private void NotifyDispatchedSafe(SwDocument doc)
+        {
+            try
+            {
+                m_Logger.Log($"Dispatched '{doc.Title}'", XCad.Base.Enums.LoggerMessageSeverity_e.Debug);
+                Dispatched?.Invoke(doc);
+            }
+            catch (Exception ex)
+            {
+                m_Logger.Log($"Unhandled exception while dispatching the document '{doc.Title}'", XCad.Base.Enums.LoggerMessageSeverity_e.Error);
+                m_Logger.Log(ex);
             }
         }
     }

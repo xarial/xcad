@@ -2,6 +2,7 @@
 using SolidWorks.Interop.sldworks;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -220,6 +221,34 @@ namespace SolidWorks.Tests.Integration
             Assert.That(0, Is.EqualTo(massPrps[2]).Within(0.001).Percent);
             Assert.That(0.0062831853071795875, Is.EqualTo(massPrps[3]).Within(0.001).Percent);
             Assert.That(0.18849555921538758, Is.EqualTo(massPrps[4]).Within(0.001).Percent);
+        }
+
+        [Test]
+        public void SerializeDeserializeTest()
+        {
+            double mass;
+
+            using (var doc = OpenDataDocument("Features1.SLDPRT")) 
+            {
+                var part = (ISwPart)m_App.Documents.Active;
+
+                byte[] buffer;
+
+                using (var memStr = new MemoryStream()) 
+                {
+                    var body = part.Bodies.First();
+                    m_App.MemoryGeometryBuilder.SerializeBody(body, memStr);
+                    buffer = memStr.ToArray();
+                }
+
+                using (var memStr = new MemoryStream(buffer))
+                {
+                    var body = (ISwBody)m_App.MemoryGeometryBuilder.DeserializeBody(memStr);
+                    mass = (body.Body.GetMassProperties(0) as double[])[3];
+                }
+
+                Assert.That(2.3851693679806192E-05, Is.EqualTo(mass).Within(0.001).Percent);
+            }
         }
     }
 }

@@ -12,8 +12,10 @@ using Xarial.XCad.Geometry.Wires;
 
 namespace Xarial.XCad.Geometry.Curves
 {
+    /// <summary>
+    /// Represents the curve
+    /// </summary>
     public interface IXCurve : IXSegment
     {
-        double Length { get; }
     }
 }

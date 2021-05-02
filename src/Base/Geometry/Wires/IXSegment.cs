@@ -9,6 +9,9 @@ using Xarial.XCad.Base;
 
 namespace Xarial.XCad.Geometry.Wires
 {
+    /// <summary>
+    /// Segment represents the definition of any wire body
+    /// </summary>
     public interface IXSegment : IXTransaction, IXObject
     {
         /// <summary>
@@ -20,5 +23,10 @@ namespace Xarial.XCad.Geometry.Wires
         /// End point of this sketch segment
         /// </summary>
         IXPoint EndPoint { get; }
+
+        /// <summary>
+        /// Length of the segment
+        /// </summary>
+        double Length { get; }
     }
 }

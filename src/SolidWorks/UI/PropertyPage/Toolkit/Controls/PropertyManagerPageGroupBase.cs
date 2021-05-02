@@ -17,9 +17,6 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
         internal PropertyManagerPagePage ParentPage { get; private set; }
 
-        public abstract bool Enabled { get; set; }
-        public abstract bool Visible { get; set; }
-
         internal PropertyManagerPageGroupBase(int id, object tag, SwPropertyManagerPageHandler handler,
             ISldWorks app, PropertyManagerPagePage parentPage) : base(id, tag)
         {

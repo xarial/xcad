@@ -14,6 +14,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Xarial.XCad;
 using Xarial.XCad.Base;
+using Xarial.XCad.Base.Enums;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Enums;
 using Xarial.XCad.Features;
@@ -27,59 +28,32 @@ using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Features;
 using Xarial.XCad.SolidWorks.Geometry;
 using Xarial.XCad.SolidWorks.Geometry.Curves;
+using Xarial.XCad.Toolkit;
 using Xarial.XCad.Toolkit.Utils;
 
 namespace StandAlone
 {
+    public class MyLogger : IXLogger
+    {
+        public void Log(string msg, LoggerMessageSeverity_e severity = LoggerMessageSeverity_e.Information)
+        {
+        }
+    }
+
     class Program
     {
         static void Main(string[] args)
         {
             try
             {
-                //var app1 = Activator.CreateInstance(Type.GetTypeFromProgID("SldWorks.Application"));
-
-                ISwApplication app = null;
-                DateTime start;
-                Process prc = null;
-
-                //var start = DateTime.Now;
-                //var app = SwApplicationFactory.Create(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020);
-                //Console.WriteLine($"Default: {(DateTime.Now - start).TotalMilliseconds}");
-                //var prc = Process.GetProcessById(app.Sw.GetProcessID());
-                //prc.Kill();
-
-                //start = DateTime.Now;
-                //app = SwApplicationFactory.Create(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020, ApplicationState_e.Silent);
-                //Console.WriteLine($"Silent: {(DateTime.Now - start).TotalMilliseconds}");
-                //prc = Process.GetProcessById(app.Sw.GetProcessID());
-                //prc.Kill();
-
-                //start = DateTime.Now;
-                //app = SwApplicationFactory.Create(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020, ApplicationState_e.Safe);
-                //Console.WriteLine($"Safe: {(DateTime.Now - start).TotalMilliseconds}");
-                //prc = Process.GetProcessById(app.Sw.GetProcessID());
-                //prc.Kill();
-
-                //start = DateTime.Now;
-                //app = SwApplicationFactory.Create(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020, ApplicationState_e.Hidden);
-                //Console.WriteLine($"Hidden: {(DateTime.Now - start).TotalMilliseconds}");
-                //prc = Process.GetProcessById(app.Sw.GetProcessID());
-                //prc.Kill();
-
-                start = DateTime.Now;
-                app = SwApplicationFactory.Create(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020, ApplicationState_e.Background);
-                Console.WriteLine($"Background: {(DateTime.Now - start).TotalMilliseconds}");
-                //prc = Process.GetProcessById(app.Sw.GetProcessID());
-                //prc.Kill();
-
+                var app = SwApplicationFactory.Create(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020,
+                    ApplicationState_e.Default);
+                                
                 //var app = SwApplicationFactory.FromProcess(Process.GetProcessesByName("SLDWORKS").First());
-                Console.ReadLine();
-                return;
-                var o = app.Documents.Open(@"C:\Users\artem\OneDrive\xCAD\TestData\foreign.IGS");
-                var p = app.Documents.NewPart();
-                var d = app.Documents.NewDrawing();
-                var a = app.Documents.NewAssembly();
+                
+                //CustomServices();
+
+                //Progress(app);
 
                 //SketchSegmentColors(app);
 
@@ -102,8 +76,32 @@ namespace StandAlone
             catch 
             {
             }
+
+            Console.ReadLine();
         }
-        
+
+        private static void CustomServices() 
+        {
+            var app = SwApplicationFactory.PreCreate();
+            var svcColl = new ServiceCollection();
+            svcColl.AddOrReplace<IXLogger, MyLogger>();
+            app.CustomServices = svcColl;
+            app.Commit();
+        }
+
+        private static void Progress(IXApplication app) 
+        {
+            using (var prg = app.CreateProgress())
+            {
+                for (int i = 0; i < 100; i++) 
+                {
+                    prg.Report((double)i / 100);
+                    prg.SetStatus(i.ToString());
+                    System.Threading.Thread.Sleep(100);
+                }
+            }
+        }
+
         private static void SketchSegmentColors(IXApplication app) 
         {
             var seg = app.Documents.Active.Selections.First() as IXSketchSegment;

@@ -11,8 +11,16 @@ using System.Text;
 
 namespace Xarial.XCad.Geometry.Structures
 {
+    /// <summary>
+    /// Additional methods for the vector
+    /// </summary>
     public static class VectorExtension
     {
+        /// <summary>
+        /// Creates perpendicular vector
+        /// </summary>
+        /// <param name="dir">Vector to base on</param>
+        /// <returns></returns>
         public static Vector CreateAnyPerpendicular(this Vector dir)
         {
             Vector refDir;

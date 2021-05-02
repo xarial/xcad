@@ -12,6 +12,7 @@ using System.Text;
 using Xarial.XCad.Data.Enums;
 using Xarial.XCad.SolidWorks.Data.Helpers;
 using Xarial.XCad.Toolkit.Data;
+using Xarial.XCad.Toolkit.Utils;
 
 namespace Xarial.XCad.SolidWorks.Data
 {

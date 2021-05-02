@@ -13,7 +13,7 @@ namespace Xarial.XCad.SolidWorks.Base
     /// <summary>
     /// Represents the specific icon descriptor
     /// </summary>
-    internal interface IIcon
+    public interface IIcon
     {
         /// <summary>
         /// Transparency key to be applied to transparent color
@@ -24,6 +24,6 @@ namespace Xarial.XCad.SolidWorks.Base
         /// List of required icon sizes
         /// </summary>
         /// <returns></returns>
-        IEnumerable<IconSizeInfo> GetIconSizes();
+        IEnumerable<IIconSpec> GetIconSizes();
     }
 }

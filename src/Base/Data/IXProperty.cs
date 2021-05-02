@@ -18,6 +18,9 @@ namespace Xarial.XCad.Data
     /// </summary>
     public interface IXProperty : IXTransaction
     {
+        /// <summary>
+        /// Raised when the value of this property is changed
+        /// </summary>
         event PropertyValueChangedDelegate ValueChanged;
         
         /// <summary>
@@ -29,6 +32,11 @@ namespace Xarial.XCad.Data
         /// Property value
         /// </summary>
         object Value { get; set; }
+
+        /// <summary>
+        /// Property equation
+        /// </summary>
+        string Expression { get; set; }
     }
 
 

@@ -29,16 +29,18 @@ namespace Xarial.XCad.SolidWorks.Documents
         IXConfigurationRepository IXDocument3D.Configurations => Configurations;
         IXModelViewRepository IXDocument3D.ModelViews => ModelViews;
 
-        internal SwDocument3D(IModelDoc2 model, ISwApplication app, IXLogger logger, bool isCreated) : base(model, app, logger, isCreated)
+        internal SwDocument3D(IModelDoc2 model, SwApplication app, IXLogger logger, bool isCreated) : base(model, app, logger, isCreated)
         {
             m_MathUtils = app.Sw.IGetMathUtility();
-            Configurations = new SwConfigurationCollection(app.Sw, this);
-            ModelViews = new SwModelViewsCollection(this, m_MathUtils);
+            m_Configurations = new Lazy<ISwConfigurationCollection>(() => new SwConfigurationCollection(app.Sw, this));
+            m_ModelViews = new Lazy<ISwModelViewsCollection>(() => new SwModelViewsCollection(this, m_MathUtils));
         }
-        
-        public ISwConfigurationCollection Configurations { get; }
 
-        public ISwModelViewsCollection ModelViews { get; }
+        private Lazy<ISwConfigurationCollection> m_Configurations;
+        private Lazy<ISwModelViewsCollection> m_ModelViews;
+
+        public ISwConfigurationCollection Configurations => m_Configurations.Value;
+        public ISwModelViewsCollection ModelViews => m_ModelViews.Value;
 
         public abstract Box3D CalculateBoundingBox();
 
@@ -48,7 +50,10 @@ namespace Xarial.XCad.SolidWorks.Documents
 
             if (disposing) 
             {
-                Configurations.Dispose();
+                if (m_Configurations.IsValueCreated)
+                {
+                    m_Configurations.Value.Dispose();
+                }
             }
         }
 

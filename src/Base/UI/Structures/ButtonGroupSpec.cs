@@ -15,10 +15,24 @@ using Xarial.XCad.Reflection;
 
 namespace Xarial.XCad.UI.Structures
 {
+    /// <summary>
+    /// Defines the group of buttons
+    /// </summary>
     public class ButtonGroupSpec
     {
+        /// <summary>
+        /// Title of the group
+        /// </summary>
         public string Title { get; set; }
+
+        /// <summary>
+        /// Help text (tooltip) of the group
+        /// </summary>
         public string Tooltip { get; set; }
+
+        /// <summary>
+        /// Group icon
+        /// </summary>
         public IXImage Icon { get; set; }
     }
 

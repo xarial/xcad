@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Xarial.XCad.Base;
+using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Features;
 using Xarial.XCad.Geometry;
 
@@ -25,13 +26,25 @@ namespace Xarial.XCad.Documents
         string Name { get; }
 
         /// <summary>
-        /// Is component loaded into memory
+        /// Gets the path of this component
         /// </summary>
-        bool IsResolved { get; }
+        string Path { get; }
+
+        /// <summary>
+        /// Returns the referenced configuration of this component
+        /// </summary>
+        /// <remarks>For unloaded or rapid components this configuration may be uncommitted</remarks>
+        IXConfiguration ReferencedConfiguration { get; }
+
+        /// <summary>
+        /// State of this component
+        /// </summary>
+        ComponentState_e State { get; }
 
         /// <summary>
         /// Document of the component
         /// </summary>
+        /// <remarks>If component is rapid, view only or suppressed document migth not be loaded into the memory. Use <see cref="IXTransaction.IsCommitted"/> to check the state and call <see cref="IXTransaction.Commit(System.Threading.CancellationToken)"/> to load document if needed</remarks>
         IXDocument3D Document { get; }
         
         /// <summary>

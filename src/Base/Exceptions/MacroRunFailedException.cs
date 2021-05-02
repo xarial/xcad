@@ -14,7 +14,7 @@ namespace Xarial.XCad.Exceptions
     /// <summary>
     /// Error thrown when macro cannot be run
     /// </summary>
-    public class MacroRunFailedException : Exception
+    public class MacroRunFailedException : Exception, IUserException
     {
         /// <summary>
         /// Macro file path
@@ -26,6 +26,12 @@ namespace Xarial.XCad.Exceptions
         /// </summary>
         public int ErrorCode { get; }
 
+        /// <summary>
+        /// Default constructor
+        /// </summary>
+        /// <param name="path">Path to the macro</param>
+        /// <param name="errorCode">Application specific error code</param>
+        /// <param name="err">User friendly error description</param>
         public MacroRunFailedException(string path, int errorCode, string err) : base(err)
         {
             Path = path;

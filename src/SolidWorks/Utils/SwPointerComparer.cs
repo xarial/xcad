@@ -35,12 +35,50 @@ namespace Xarial.XCad.SolidWorks.Utils
                 return false;
             }
 
-            return m_App.IsSame(x, y) == (int)swObjectEquality.swObjectSame;
+            try
+            {
+                //Note: ISldWorks::IsSame can crash if pointer is disconnected
+
+                if (IsAlive(x) && IsAlive(y))
+                {
+                    return m_App.IsSame(x, y) == (int)swObjectEquality.swObjectSame;
+                }
+                else 
+                {
+                    return false;
+                }
+            }
+            catch 
+            {
+                return false;
+            }
         }
+
+        protected virtual bool IsAlive(T obj) => true;
 
         public int GetHashCode(T obj)
         {
             return 0;
+        }
+    }
+
+    internal class SwModelPointerEqualityComparer : SwPointerEqualityComparer<IModelDoc2>
+    {
+        internal SwModelPointerEqualityComparer(ISldWorks app) : base(app)
+        {
+        }
+
+        protected override bool IsAlive(IModelDoc2 model)
+        {
+            try
+            {
+                var title = model.GetTitle();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
     }
 }

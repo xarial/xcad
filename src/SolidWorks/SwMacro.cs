@@ -24,12 +24,12 @@ namespace Xarial.XCad.SolidWorks
 
     public abstract class SwMacro : ISwMacro
     {
-        protected readonly ISldWorks m_App;
+        protected readonly ISldWorks m_SwApp;
         protected readonly string m_Path;
 
         internal SwMacro(ISldWorks app, string path)
         {
-            m_App = app;
+            m_SwApp = app;
             m_Path = path;
         }
 
@@ -53,9 +53,10 @@ namespace Xarial.XCad.SolidWorks
             }
 
             int err;
-            if (!m_App.RunMacro2(m_Path, entryPoint.ModuleName, entryPoint.ProcedureName, (int)swOpts, out err))
+            
+            if (!m_SwApp.RunMacro2(m_Path, entryPoint.ModuleName, entryPoint.ProcedureName, (int)swOpts, out err))
             {
-                string errDesc = "";
+                string errDesc;
 
                 switch ((swRunMacroError_e)err) 
                 {
@@ -142,6 +143,8 @@ namespace Xarial.XCad.SolidWorks
                     case swRunMacroError_e.swRunMacroError_OpenFileFailed:
                         errDesc = "Open file failed";
                         break;
+                    default:
+                        throw new UnknownMacroRunFailedException(m_Path);
                 }
 
                 throw new MacroRunFailedException(m_Path, err, errDesc);
@@ -226,7 +229,7 @@ namespace Xarial.XCad.SolidWorks
         
         private MacroEntryPoint[] GetEntryPoints()
         {
-            var methods = m_App.GetMacroMethods(m_Path,
+            var methods = m_SwApp.GetMacroMethods(m_Path,
                 (int)swMacroMethods_e.swMethodsWithoutArguments) as string[];
 
             if (methods != null)
@@ -242,14 +245,28 @@ namespace Xarial.XCad.SolidWorks
         }
     }
 
+    public enum VstaMacroVersion_e 
+    {
+        Vsta1,
+        Vsta3
+    }
+
     public interface ISwVstaMacro : ISwMacro
     {
+        VstaMacroVersion_e? Version { get; set; }
     }
 
     internal class SwVstaMacro : SwMacro, ISwVstaMacro
     {
-        internal SwVstaMacro(ISldWorks app, string path) : base(app, path)
+        public VstaMacroVersion_e? Version { get; set; }
+
+        private readonly ISwApplication m_App;
+
+        internal SwVstaMacro(ISwApplication app, string path) : base(app.Sw, path)
         {
+            m_App = app;
+
+            Version = null; //TODO: identify version of VSTA macro
             EntryPoints = new MacroEntryPoint[] { new MacroEntryPoint("", "Main") };
         }
 
@@ -257,9 +274,22 @@ namespace Xarial.XCad.SolidWorks
 
         public override void Run(MacroEntryPoint entryPoint, MacroRunOptions_e opts)
         {
-            var stopDebugVstaFlag = m_App.GetUserPreferenceToggle((int)swUserPreferenceToggle_e.swStopDebuggingVstaOnExit);
+            var stopDebugVstaFlag = m_SwApp.GetUserPreferenceToggle((int)swUserPreferenceToggle_e.swStopDebuggingVstaOnExit);
 
-            m_App.SetUserPreferenceToggle((int)swUserPreferenceToggle_e.swStopDebuggingVstaOnExit, opts == MacroRunOptions_e.UnloadAfterRun);
+            bool? isVsta3 = null;
+
+            if (Version.HasValue) 
+            {
+                if (Version == VstaMacroVersion_e.Vsta1 && m_App.Version.Major >= Enums.SwVersion_e.Sw2021) 
+                {
+                    throw new NotSupportedException("VSTA1 is not supported in Sw2021 or newer");
+                }
+
+                isVsta3 = m_SwApp.GetUserPreferenceToggle((int)swUserPreferenceToggle_e.swEnableVSTAVersion3);
+                m_SwApp.SetUserPreferenceToggle((int)swUserPreferenceToggle_e.swEnableVSTAVersion3, Version == VstaMacroVersion_e.Vsta3);
+            }
+
+            m_SwApp.SetUserPreferenceToggle((int)swUserPreferenceToggle_e.swStopDebuggingVstaOnExit, opts == MacroRunOptions_e.UnloadAfterRun);
 
             try
             {
@@ -267,7 +297,12 @@ namespace Xarial.XCad.SolidWorks
             }
             finally 
             {
-                m_App.SetUserPreferenceToggle((int)swUserPreferenceToggle_e.swStopDebuggingVstaOnExit, stopDebugVstaFlag);
+                m_SwApp.SetUserPreferenceToggle((int)swUserPreferenceToggle_e.swStopDebuggingVstaOnExit, stopDebugVstaFlag);
+
+                if (isVsta3.HasValue) 
+                {
+                    m_SwApp.SetUserPreferenceToggle((int)swUserPreferenceToggle_e.swEnableVSTAVersion3, isVsta3.Value);
+                }
             }
         }
     }

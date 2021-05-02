@@ -13,10 +13,10 @@ namespace Xarial.XCad.Utils.PageBuilder.Core
 {
     public abstract class Binding<TDataModel> : IBinding
     {
+        public event Action<IBinding> Changed;
         public event Action<IBinding> ControlUpdated;
-
         public event Action<IBinding> ModelUpdated;
-
+        
         public IControl Control { get; private set; }
 
         object IBinding.Model
@@ -32,6 +32,8 @@ namespace Xarial.XCad.Utils.PageBuilder.Core
         }
 
         protected virtual TDataModel DataModel { get; set; }
+
+        public abstract IMetadata Metadata { get; }
 
         public Binding(IControl control)
         {
@@ -51,6 +53,9 @@ namespace Xarial.XCad.Utils.PageBuilder.Core
             ModelUpdated?.Invoke(this);
         }
 
+        protected void RaiseChangedEvent() 
+            => Changed?.Invoke(this);
+
         protected abstract void SetDataModelValue();
 
         protected abstract void SetUserControlValue();
@@ -58,6 +63,7 @@ namespace Xarial.XCad.Utils.PageBuilder.Core
         private void OnControlValueChanged(IControl sender, object newValue)
         {
             UpdateDataModel();
+            RaiseChangedEvent();
         }
     }
 }

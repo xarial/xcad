@@ -15,10 +15,10 @@ namespace Xarial.XCad.UI.PropertyPage.Attributes
     public class DependentOnAttribute : Attribute, IDependentOnAttribute
     {
         /// <inheritdoc/>
-        public object[] Dependencies { get; private set; }
+        public object[] Dependencies { get; }
 
         /// <inheritdoc/>
-        public IDependencyHandler DependencyHandler { get; private set; }
+        public IDependencyHandler DependencyHandler { get; }
 
         public DependentOnAttribute(Type dependencyHandler, params object[] dependencies)
         {

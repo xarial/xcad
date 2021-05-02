@@ -12,8 +12,10 @@ namespace Xarial.XCad.Utils.PageBuilder.Base
 {
     public interface IBinding
     {
-        event Action<IBinding> ModelUpdated;
+        IMetadata Metadata { get; }
+        event Action<IBinding> Changed;
 
+        event Action<IBinding> ModelUpdated;
         event Action<IBinding> ControlUpdated;
 
         IControl Control { get; }

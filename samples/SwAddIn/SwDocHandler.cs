@@ -46,7 +46,7 @@ namespace SwAddInExample
             m_Model.StorageReadAvailable += LoadFromStorage;
             m_Model.StorageWriteAvailable += SaveToStorage;
 
-            m_App.ShowMessageBox($"Opened {model.Title}");
+            //m_App.ShowMessageBox($"Opened {model.Title}");
         }
 
         private void SaveToStream(IXDocument doc)

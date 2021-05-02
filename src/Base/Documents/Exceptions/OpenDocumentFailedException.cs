@@ -8,13 +8,14 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Xarial.XCad.Exceptions;
 
 namespace Xarial.XCad.Documents.Exceptions
 {
     /// <summary>
     /// Exception thrown when file cannot be opened
     /// </summary>
-    public class OpenDocumentFailedException : Exception
+    public class OpenDocumentFailedException : Exception, IUserException
     {
         /// <summary>
         /// Path to the file
@@ -26,6 +27,9 @@ namespace Xarial.XCad.Documents.Exceptions
         /// </summary>
         public int ErrorCode { get; }
 
+        /// <summary>
+        /// Default constructor
+        /// </summary>
         public OpenDocumentFailedException(string path, int errorCode, string err) : base(err)
         {
             Path = path;

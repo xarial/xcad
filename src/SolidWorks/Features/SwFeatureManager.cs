@@ -6,9 +6,11 @@
 //*********************************************************************
 
 using SolidWorks.Interop.sldworks;
+using SolidWorks.Interop.swconst;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Xarial.XCad.Base;
 using Xarial.XCad.Features;
 using Xarial.XCad.Features.CustomFeature;
@@ -27,10 +29,10 @@ namespace Xarial.XCad.SolidWorks.Features
     /// <inheritdoc/>
     internal class SwFeatureManager : ISwFeatureManager
     {
-        private IFeatureManager FeatMgr => m_Doc.Model.FeatureManager;
+        private IFeatureManager FeatMgr => Document.Model.FeatureManager;
 
         private readonly MacroFeatureParametersParser m_ParamsParser;
-        private readonly ISwDocument m_Doc;
+        internal SwDocument Document { get; }
 
         public int Count => FeatMgr.GetFeatureCount(false);
 
@@ -55,7 +57,7 @@ namespace Xarial.XCad.SolidWorks.Features
         {
             IFeature feat;
 
-            switch (m_Doc.Model)
+            switch (Document.Model)
             {
                 case IPartDoc part:
                     feat = part.FeatureByName(name) as IFeature;
@@ -75,7 +77,7 @@ namespace Xarial.XCad.SolidWorks.Features
 
             if (feat != null)
             {
-                ent = SwObject.FromDispatch<SwFeature>(feat, m_Doc);
+                ent = SwObject.FromDispatch<SwFeature>(feat, Document);
                 return true;
             }
             else
@@ -85,9 +87,9 @@ namespace Xarial.XCad.SolidWorks.Features
             }
         }
 
-        internal SwFeatureManager(ISwDocument doc)
+        internal SwFeatureManager(SwDocument doc)
         {
-            m_Doc = doc;
+            Document = doc;
             m_ParamsParser = new MacroFeatureParametersParser(doc.App.Sw);
         }
 
@@ -104,12 +106,12 @@ namespace Xarial.XCad.SolidWorks.Features
             }
         }
 
-        public IXSketch2D PreCreate2DSketch() => new SwSketch2D(m_Doc, null, false);
-        public IXSketch3D PreCreate3DSketch() => new SwSketch3D(m_Doc, null, false);
+        public IXSketch2D PreCreate2DSketch() => new SwSketch2D(Document, null, false);
+        public IXSketch3D PreCreate3DSketch() => new SwSketch3D(Document, null, false);
         
         public virtual IEnumerator<IXFeature> GetEnumerator()
         {
-            return new DocumentFeatureEnumerator(m_Doc);
+            return new DocumentFeatureEnumerator(Document);
         }
 
         IEnumerator IEnumerable.GetEnumerator()
@@ -120,12 +122,12 @@ namespace Xarial.XCad.SolidWorks.Features
         public IXCustomFeature<TParams> PreCreateCustomFeature<TParams>()
             where TParams : class, new()
         {
-            return new SwMacroFeature<TParams>(m_Doc, FeatMgr, null, m_ParamsParser, false);
+            return new SwMacroFeature<TParams>(Document, FeatMgr, null, m_ParamsParser, false);
         }
 
         public IXCustomFeature PreCreateCustomFeature()
         {
-            return new SwMacroFeature(m_Doc, FeatMgr, null, false);
+            return new SwMacroFeature(Document, FeatMgr, null, false);
         }
 
         public void RemoveRange(IEnumerable<IXFeature> ents)
@@ -140,7 +142,7 @@ namespace Xarial.XCad.SolidWorks.Features
             where TDef : class, IXCustomFeatureDefinition<TParams, TPage>, new()
         {
             var inst = (TDef)CustomFeatureDefinitionInstanceCache.GetInstance(typeof(TDef));
-            inst.Insert(m_Doc);
+            inst.Insert(Document);
         }
     }
 
@@ -155,5 +157,37 @@ namespace Xarial.XCad.SolidWorks.Features
         }
 
         protected override IFeature GetFirstFeature() => m_Model.IFirstFeature();
+    }
+
+    internal static class SwFeatureManagerExtension 
+    {
+        internal static SwCutListItem[] GetCutLists(this SwFeatureManager featMgr) 
+        {
+            var cutLists = new List<SwCutListItem>();
+
+            if (featMgr.Document.DocumentType == swDocumentTypes_e.swDocPART)
+            {
+                var part = featMgr.Document.Model as IPartDoc;
+
+                if (part.IsWeldment()
+                    || (part.GetBodies2((int)swBodyType_e.swSolidBody, false) as object[] ?? new object[0])
+                    .Any(b => ((IBody2)b).IsSheetMetal()))
+                {
+                    foreach (ISwFeature feat in featMgr)
+                    {
+                        if (feat is SwCutListItem)
+                        {
+                            cutLists.Add(feat as SwCutListItem);
+                        }
+                        else if (feat.Feature.GetTypeName2() == "RefPlane")
+                        {
+                            break;
+                        }
+                    }
+                }
+            }
+
+            return cutLists.ToArray();
+        }
     }
 }

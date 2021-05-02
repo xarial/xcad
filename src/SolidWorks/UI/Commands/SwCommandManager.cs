@@ -18,14 +18,17 @@ using System.Text;
 using Xarial.XCad.Base;
 using Xarial.XCad.Base.Enums;
 using Xarial.XCad.SolidWorks.Exceptions;
+using Xarial.XCad.SolidWorks.Services;
 using Xarial.XCad.SolidWorks.UI.Commands.Exceptions;
 using Xarial.XCad.SolidWorks.UI.Commands.Toolkit.Enums;
 using Xarial.XCad.SolidWorks.UI.Commands.Toolkit.Structures;
 using Xarial.XCad.SolidWorks.Utils;
+using Xarial.XCad.UI;
 using Xarial.XCad.UI.Commands;
 using Xarial.XCad.UI.Commands.Enums;
 using Xarial.XCad.UI.Commands.Structures;
 using Xarial.XCad.Utils.Diagnostics;
+using Xarial.XCad.Toolkit;
 
 namespace Xarial.XCad.SolidWorks.UI.Commands
 {
@@ -81,16 +84,19 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
 
         public IEnumerable<IXCommandGroup> CommandGroups => m_CommandBars;
 
+        private readonly IServiceProvider m_SvcProvider;
         private readonly Guid m_AddInGuid;
 
-        internal SwCommandManager(ISwApplication app, int addinCookie, IXLogger logger, Guid addInGuid)
+        internal SwCommandManager(ISwApplication app, int addinCookie, IServiceProvider svcProvider, Guid addInGuid)
         {
             m_App = app;
             m_AddInGuid = addInGuid;
 
             CmdMgr = m_App.Sw.GetCommandManager(addinCookie);
 
-            m_Logger = logger;
+            m_SvcProvider = svcProvider;
+
+            m_Logger = svcProvider.GetService<IXLogger>();
             m_Commands = new Dictionary<string, CommandInfo>();
             m_CommandBars = new List<SwCommandGroup>();
         }
@@ -103,10 +109,12 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
         public IXCommandGroup AddContextMenu(CommandGroupSpec cmdBar, SelectType_e? owner)
         {
             swSelectType_e? selType = null;
+            
             if (owner.HasValue) 
             {
                 selType = (swSelectType_e)owner;
             }
+
             return AddCommandGroupOrContextMenu(cmdBar, true, selType);
         }
 
@@ -118,7 +126,7 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
         internal SwCommandGroup AddCommandGroupOrContextMenu(CommandGroupSpec cmdBar,
             bool isContextMenu, swSelectType_e? contextMenuSelectType)
         {
-            m_Logger.Log($"Creating command group: {cmdBar.Id}");
+            m_Logger.Log($"Creating command group: {cmdBar.Id}", XCad.Base.Enums.LoggerMessageSeverity_e.Debug);
 
             if (m_CommandBars.FirstOrDefault(b => b.Spec.Id == cmdBar.Id) != null)
             {
@@ -135,7 +143,7 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
 
             m_CommandBars.Add(bar);
 
-            using (var iconsConv = new IconsConverter())
+            using (var iconsConv = m_SvcProvider.GetService<IIconsCreator>())
             {
                 CreateIcons(cmdGroup, cmdBar, iconsConv);
 
@@ -159,7 +167,7 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
 
         internal void HandleCommandClick(string cmdId)
         {
-            m_Logger.Log($"Command clicked: {cmdId}");
+            m_Logger.Log($"Command clicked: {cmdId}", XCad.Base.Enums.LoggerMessageSeverity_e.Debug);
 
             CommandInfo cmd;
 
@@ -202,7 +210,7 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
                         usedToolbarIds.Add(grp.CommandGroup.ToolbarId);
                     }
 
-                    m_Logger.Log($"Removing group: {grp.Spec.Id}");
+                    m_Logger.Log($"Removing group: {grp.Spec.Id}", XCad.Base.Enums.LoggerMessageSeverity_e.Debug);
 
                     var removeRes = false;
 
@@ -218,7 +226,7 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
 
                     if (!removeRes)
                     {
-                        m_Logger.Log($"Failed to remove group: {grp.Spec.Id}");
+                        m_Logger.Log($"Failed to remove group: {grp.Spec.Id}", LoggerMessageSeverity_e.Warning);
                     }
                 }
 
@@ -268,7 +276,7 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
 
                             if (moduleGuid.Equals(m_AddInGuid))
                             {
-                                m_Logger.Log($"Clearing the registry key '{toolbarId}' at 'HKEY_CURRENT_USER\\{customApiToolbarsRegKeyName}'");
+                                m_Logger.Log($"Clearing the registry key '{toolbarId}' at 'HKEY_CURRENT_USER\\{customApiToolbarsRegKeyName}'", XCad.Base.Enums.LoggerMessageSeverity_e.Debug);
                                 customApiToolbarsRegKey.DeleteSubKey(toolbarId);
                             }
                         }
@@ -283,7 +291,7 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
 
         private void ClearCommandTabBox(ICommandTabBox cmdBox)
         {
-            m_Logger.Log($"Clearing Command Tab Box");
+            m_Logger.Log($"Clearing Command Tab Box", XCad.Base.Enums.LoggerMessageSeverity_e.Debug);
 
             object existingCmds;
             object existingTextStyles;
@@ -327,12 +335,12 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
 
             if (CmdMgr.GetGroupDataFromRegistry(groupId, out registryIDs))
             {
-                m_Logger.Log("Commands cached in the registry");
+                m_Logger.Log("Commands cached in the registry", LoggerMessageSeverity_e.Debug);
 
                 isChanged = !CompareIDs(registryIDs as int[], knownCmdIDs);
             }
 
-            m_Logger.Log($"Command ids changed: {isChanged}");
+            m_Logger.Log($"Command ids changed: {isChanged}", LoggerMessageSeverity_e.Debug);
 
             CommandGroup cmdGroup;
 
@@ -349,7 +357,7 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
                 cmdGroup = CmdMgr.CreateCommandGroup2(groupId, title, toolTip,
                     toolTip, -1, isChanged, ref cmdGroupErr);
 
-                m_Logger.Log($"Command group creation result: {(swCreateCommandGroupErrors)cmdGroupErr}");
+                m_Logger.Log($"Command group creation result: {(swCreateCommandGroupErrors)cmdGroupErr}", LoggerMessageSeverity_e.Debug);
 
                 Debug.Assert(cmdGroupErr == (int)swCreateCommandGroupErrors.swCreateCommandGroup_Success);
             }
@@ -403,7 +411,7 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
 
                 createdCmds.Add(cmd, cmdIndex);
 
-                m_Logger.Log($"Created command {cmd.Title}:{cmdIndex} for {cmd.UserId}");
+                m_Logger.Log($"Created command {cmd.Title}:{cmdIndex} for {cmd.UserId}", LoggerMessageSeverity_e.Debug);
             }
 
             cmdGroup.CommandGroup.HasToolbar = cmds.Any(c => c.HasToolbar);
@@ -411,22 +419,22 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
 
             if (!cmdGroup.CommandGroup.Activate()) 
             {
-                m_Logger.Log("Command group activation failed");
+                m_Logger.Log("Command group activation failed", LoggerMessageSeverity_e.Error);
             }
 
-            m_Logger.Log($"Command group-{groupId} Id: {(cmdGroup.CommandGroup.HasToolbar ? cmdGroup.CommandGroup.ToolbarId.ToString() : "No Toolbar")}");
+            m_Logger.Log($"Command group-{groupId} Id: {(cmdGroup.CommandGroup.HasToolbar ? cmdGroup.CommandGroup.ToolbarId.ToString() : "No Toolbar")}", LoggerMessageSeverity_e.Debug);
 
             return createdCmds.ToDictionary(p => p.Key, p =>
             {
                 var cmdId = cmdGroup.CommandGroup.CommandID[p.Value];
-                m_Logger.Log($"Command-{p.Value} Id: {cmdId}");
+                m_Logger.Log($"Command-{p.Value} Id: {cmdId}", LoggerMessageSeverity_e.Debug);
                 return cmdId;
             });
         }
 
         private void CreateCommandTabBox(CommandGroup cmdGroup, Dictionary<CommandSpec, int> commands)
         {
-            m_Logger.Log($"Creating command tab box");
+            m_Logger.Log($"Creating command tab box", LoggerMessageSeverity_e.Debug);
 
             var tabCommands = new List<TabCommandInfo>();
 
@@ -506,7 +514,7 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
             }
         }
 
-        private void CreateIcons(CommandGroup cmdGroup, CommandGroupSpec cmdBar, IconsConverter iconsConv)
+        private void CreateIcons(CommandGroup cmdGroup, CommandGroupSpec cmdBar, IIconsCreator iconsConv)
         {
             var mainIcon = cmdBar.Icon;
 
@@ -515,18 +523,18 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
                 mainIcon = Defaults.Icon;
             }
 
-            Image[] iconList = null;
+            IXImage[] iconList = null;
 
             if (cmdBar.Commands != null)
             {
-                iconList = cmdBar.Commands.Select(c => IconsConverter.FromXImage(c.Icon ?? Defaults.Icon)).ToArray();
+                iconList = cmdBar.Commands.Select(c => c.Icon ?? Defaults.Icon).ToArray();
             }
 
             //NOTE: if commands are not used, main icon will fail if toolbar commands image list is not specified, so it is required to specify it explicitly
 
             if (CompatibilityUtils.SupportsHighResIcons(m_App.Sw, CompatibilityUtils.HighResIconsScope_e.CommandManager))
             {
-                var iconsList = iconsConv.ConvertIcon(new CommandGroupHighResIcon(IconsConverter.FromXImage(mainIcon)));
+                var iconsList = iconsConv.ConvertIcon(new CommandGroupHighResIcon(mainIcon));
                 cmdGroup.MainIconList = iconsList;
 
                 if (iconList != null && iconList.Any())
@@ -541,7 +549,7 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
             }
             else
             {
-                var mainIconPath = iconsConv.ConvertIcon(new CommandGroupIcon(IconsConverter.FromXImage(mainIcon)));
+                var mainIconPath = iconsConv.ConvertIcon(new CommandGroupIcon(mainIcon));
 
                 var smallIcon = mainIconPath[0];
                 var largeIcon = mainIconPath[1];

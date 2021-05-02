@@ -11,11 +11,9 @@ using Xarial.XCad.UI.PropertyPage.Base;
 namespace Xarial.XCad.UI.PropertyPage.Attributes
 {
     public class ControlTagAttribute : Attribute, IControlTagAttribute
-    {
-        /// <summary>
-        /// Tag associated with the control
-        /// </summary>
-        public object Tag { get; private set; }
+    {   
+        /// <inheritdoc/>
+        public object Tag { get; }
 
         public ControlTagAttribute(object tag)
         {

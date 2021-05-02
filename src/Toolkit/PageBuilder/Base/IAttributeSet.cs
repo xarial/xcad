@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using Xarial.XCad.UI.PropertyPage.Base;
+using Xarial.XCad.Utils.PageBuilder.Binders;
 
 namespace Xarial.XCad.Utils.PageBuilder.Base
 {
@@ -18,8 +19,8 @@ namespace Xarial.XCad.Utils.PageBuilder.Base
         object Tag { get; }
         string Name { get; }
         string Description { get; }
-        Type BoundType { get; }
-        MemberInfo BoundMemberInfo { get; }
+        Type ContextType { get; }
+        IControlDescriptor ControlDescriptor { get; }
 
         bool Has<TAtt>() where TAtt : IAttribute;
 

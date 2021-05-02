@@ -13,11 +13,13 @@ using System.Diagnostics;
 using System.Drawing;
 using Xarial.XCad.Base.Attributes;
 using Xarial.XCad.SolidWorks.Enums;
+using Xarial.XCad.SolidWorks.Services;
 using Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls;
 using Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Icons;
 using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.Toolkit.Utils;
 using Xarial.XCad.UI.PropertyPage.Attributes;
+using Xarial.XCad.UI.PropertyPage.Base;
 using Xarial.XCad.UI.PropertyPage.Enums;
 using Xarial.XCad.Utils.PageBuilder.Base;
 using Xarial.XCad.Utils.PageBuilder.Constructors;
@@ -48,19 +50,19 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
         }
 
         protected swPropertyManagerPageControlType_e m_Type;
-        private IconsConverter m_IconConv;
+        private IIconsCreator m_IconConv;
 
         protected readonly ISldWorks m_App;
 
         protected PropertyManagerPageBaseControlConstructor(ISldWorks app, swPropertyManagerPageControlType_e type,
-            IconsConverter iconsConv)
+            IIconsCreator iconsConv)
         {
             m_App = app;
             m_IconConv = iconsConv;
             m_Type = type;
         }
 
-        protected override TControl Create(PropertyManagerPageGroupBase group, IAttributeSet atts)
+        protected override TControl Create(PropertyManagerPageGroupBase group, IAttributeSet atts, IMetadata metadata)
         {
             var opts = GetControlOptions(atts);
 
@@ -81,10 +83,10 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
 
             AssignControlAttributes(swCtrl, opts, atts);
 
-            return CreateControl(swCtrl, atts, group.Handler, opts.Height);
+            return CreateControl(swCtrl, atts, metadata, group.Handler, opts.Height);
         }
 
-        protected override TControl Create(PropertyManagerPagePage page, IAttributeSet atts)
+        protected override TControl Create(PropertyManagerPagePage page, IAttributeSet atts, IMetadata metadata)
         {
             var opts = GetControlOptions(atts);
 
@@ -92,7 +94,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
 
             AssignControlAttributes(swCtrl, opts, atts);
 
-            return CreateControl(swCtrl, atts, page.Handler, opts.Height);
+            return CreateControl(swCtrl, atts, metadata, page.Handler, opts.Height);
         }
 
         protected virtual TControlSw CreateSwControlInPage(IPropertyManagerPage2 page,
@@ -140,7 +142,8 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
             }
         }
 
-        protected abstract TControl CreateControl(TControlSw swCtrl, IAttributeSet atts, SwPropertyManagerPageHandler handler, short height);
+        protected abstract TControl CreateControl(TControlSw swCtrl, IAttributeSet atts,
+            IMetadata metadata, SwPropertyManagerPageHandler handler, short height);
 
         private ControlOptionsAttribute GetControlOptions(IAttributeSet atts)
         {
@@ -194,11 +197,11 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
 
             ControlIcon icon = null;
 
-            var commonIcon = atts.BoundMemberInfo?.TryGetAttribute<IconAttribute>()?.Icon;
+            var commonIcon = atts.ControlDescriptor?.Icon;
 
             if (commonIcon != null)
             {
-                icon = new ControlIcon(IconsConverter.FromXImage(commonIcon));
+                icon = new ControlIcon(commonIcon);
             }
 
             var hasIcon = false;

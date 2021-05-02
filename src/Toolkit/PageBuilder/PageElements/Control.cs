@@ -37,6 +37,9 @@ namespace Xarial.XCad.Utils.PageBuilder.PageElements
         public int Id { get; private set; }
 
         public object Tag { get; private set; }
+        
+        public abstract bool Enabled { get; set; }
+        public abstract bool Visible { get; set; }
 
         protected Control(int id, object tag)
         {

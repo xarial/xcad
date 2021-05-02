@@ -19,6 +19,7 @@ using Xarial.XCad.Documents.Delegates;
 using Xarial.XCad.Documents.Exceptions;
 using Xarial.XCad.Documents.Services;
 using Xarial.XCad.Documents.Structures;
+using Xarial.XCad.Exceptions;
 using Xarial.XCad.SolidWorks.Documents.Services;
 using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.Toolkit.Services;
@@ -47,7 +48,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         
         private const int S_OK = 0;
 
-        private readonly ISwApplication m_App;
+        private readonly SwApplication m_App;
         private readonly SldWorks m_SwApp;
         private readonly Dictionary<IModelDoc2, SwDocument> m_Documents;
         private readonly IXLogger m_Logger;
@@ -96,12 +97,12 @@ namespace Xarial.XCad.SolidWorks.Documents
                 }
                 else 
                 {
-                    throw new Exception("Failed to find the document by name");
+                    throw new EntityNotFoundException(name);
                 }
             }
         }
 
-        internal SwDocumentCollection(ISwApplication app, IXLogger logger)
+        internal SwDocumentCollection(SwApplication app, IXLogger logger)
         {
             m_Lock = new object();
 
@@ -113,8 +114,8 @@ namespace Xarial.XCad.SolidWorks.Documents
             m_DocsDispatcher.Dispatched += OnDocumentDispatched;
 
             m_Documents = new Dictionary<IModelDoc2, SwDocument>(
-                new SwPointerEqualityComparer<IModelDoc2>(m_SwApp));
-            m_DocsHandler = new DocumentsHandler(app);
+                new SwModelPointerEqualityComparer(m_SwApp));
+            m_DocsHandler = new DocumentsHandler(app, m_Logger);
             
             AttachToAllOpenedDocuments();
 
@@ -157,9 +158,10 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public void Dispose()
         {
+            m_DocsDispatcher.Dispatched -= OnDocumentDispatched;
             m_SwApp.DocumentLoadNotify2 -= OnDocumentLoadNotify2;
 
-            foreach (var doc in m_Documents.Keys.ToArray())
+            foreach (var doc in m_Documents.Values.ToArray())
             {
                 ReleaseDocument(doc);
             }
@@ -188,8 +190,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
             else
             {
-                m_Logger.Log($"Conflict. {model.GetTitle()} already registered");
-                Debug.Assert(false, "Document was not unregistered");
+                m_Logger.Log($"Skipping dispatching. {model.GetTitle()} already registered", XCad.Base.Enums.LoggerMessageSeverity_e.Debug);
             }
         }
 
@@ -199,17 +200,24 @@ namespace Xarial.XCad.SolidWorks.Documents
             {
                 if (!m_Documents.ContainsKey(doc.Model))
                 {
-                    doc.Closing += OnDocumentDestroyed;
+                    doc.Destroyed += OnDocumentDestroyed;
 
                     m_Documents.Add(doc.Model, doc);
 
-                    m_DocsHandler.InitHandlers(doc);
+                    m_DocsHandler.TryInitHandlers(doc);
 
-                    DocumentCreated?.Invoke(doc);
+                    try
+                    {
+                        DocumentCreated?.Invoke(doc);
+                    }
+                    catch (Exception ex)
+                    {
+                        m_Logger.Log(ex);
+                    }
                 }
                 else 
                 {
-                    m_Logger.Log($"Conflict. {doc.Model.GetTitle()} already dispatched");
+                    m_Logger.Log($"Conflict. {doc.Model.GetTitle()} already dispatched", XCad.Base.Enums.LoggerMessageSeverity_e.Warning);
                     Debug.Assert(false, "Document already dispatched");
                 }
             }
@@ -239,26 +247,26 @@ namespace Xarial.XCad.SolidWorks.Documents
             return S_OK;
         }
 
-        private void OnDocumentDestroyed(IXDocument model)
+        private void OnDocumentDestroyed(SwDocument doc)
         {
-            ReleaseDocument(((ISwDocument)model).Model);
+            ReleaseDocument(doc);
         }
 
-        private void ReleaseDocument(IModelDoc2 model)
+        private void ReleaseDocument(SwDocument doc)
         {
-            var doc = this[model];
-            doc.Closing -= OnDocumentDestroyed;
-            m_Documents.Remove(model);
+            doc.Destroyed -= OnDocumentDestroyed;
+            m_Documents.Remove(doc.Model);
             m_DocsHandler.ReleaseHandlers(doc);
             doc.Dispose();
         }
 
-        public void RegisterHandler<THandler>() where THandler : IDocumentHandler, new()
+        public void RegisterHandler<THandler>(Func<THandler> handlerFact) 
+            where THandler : IDocumentHandler
         {
-            m_DocsHandler.RegisterHandler<THandler>();
+            m_DocsHandler.RegisterHandler<THandler>(handlerFact);
         }
 
-        public THandler GetHandler<THandler>(IXDocument doc) where THandler : IDocumentHandler, new()
+        public THandler GetHandler<THandler>(IXDocument doc) where THandler : IDocumentHandler
         {
             return m_DocsHandler.GetHandler<THandler>(doc);
         }
@@ -266,7 +274,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         public TDocument PreCreate<TDocument>()
              where TDocument : class, IXDocument
         {
-            SwDocument templateDoc = null;
+            SwDocument templateDoc;
 
             if (typeof(IXPart).IsAssignableFrom(typeof(TDocument)))
             {
@@ -293,6 +301,32 @@ namespace Xarial.XCad.SolidWorks.Documents
             templateDoc.SetDispatcher(m_DocsDispatcher);
 
             return templateDoc as TDocument;
+        }
+
+        internal ISwDocument PreCreateFromPath(string path) 
+        {
+            var ext = Path.GetExtension(path);
+
+            ISwDocument doc = null;
+
+            switch (ext.ToLower())
+            {
+                case ".sldprt":
+                    doc = PreCreate<ISwPart>();
+                    break;
+
+                case ".sldasm":
+                    doc = PreCreate<ISwAssembly>();
+                    break;
+
+                case ".slddrw":
+                    doc = PreCreate<ISwDrawing>();
+                    break;
+            }
+
+            doc.Path = path;
+
+            return doc;
         }
         
         public bool TryGet(string name, out IXDocument ent)
@@ -325,6 +359,14 @@ namespace Xarial.XCad.SolidWorks.Documents
         public void RemoveRange(IEnumerable<IXDocument> ents)
         {
             throw new NotImplementedException();
+        }
+
+        internal bool TryFindExistingDocumentByPath(string path, out SwDocument doc)
+        {
+            doc = (SwDocument)this.FirstOrDefault(
+                d => string.Equals(d.Path, path, StringComparison.CurrentCultureIgnoreCase));
+
+            return doc != null;
         }
     }
 }

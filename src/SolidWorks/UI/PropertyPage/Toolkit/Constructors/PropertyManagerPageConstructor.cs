@@ -9,6 +9,7 @@ using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
 using System.Linq;
 using Xarial.XCad.Base.Attributes;
+using Xarial.XCad.SolidWorks.Services;
 using Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls;
 using Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Icons;
 using Xarial.XCad.SolidWorks.Utils;
@@ -23,10 +24,10 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
     internal class PropertyManagerPageConstructor : PageConstructor<PropertyManagerPagePage>
     {
         private readonly ISldWorks m_App;
-        private readonly IconsConverter m_IconsConv;
+        private readonly IIconsCreator m_IconsConv;
         private readonly SwPropertyManagerPageHandler m_Handler;
 
-        internal PropertyManagerPageConstructor(ISldWorks app, IconsConverter iconsConv, SwPropertyManagerPageHandler handler)
+        internal PropertyManagerPageConstructor(ISldWorks app, IIconsCreator iconsConv, SwPropertyManagerPageHandler handler)
         {
             m_App = app;
             m_IconsConv = iconsConv;
@@ -44,11 +45,11 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
             TitleIcon titleIcon = null;
 
             IconAttribute commIconAtt;
-            if (atts.BoundType.TryGetAttribute(out commIconAtt))
+            if (atts.ContextType.TryGetAttribute(out commIconAtt))
             {
                 if (commIconAtt.Icon != null)
                 {
-                    titleIcon = new TitleIcon(IconsConverter.FromXImage(commIconAtt.Icon));
+                    titleIcon = new TitleIcon(commIconAtt.Icon);
                 }
             }
 

@@ -12,9 +12,7 @@ namespace Xarial.XCad.Documents
     /// </summary>
     public interface IXAssembly : IXDocument3D
     {
-        /// <summary>
-        /// Components in this assembly
-        /// </summary>
-        IXComponentRepository Components { get; }
+        /// <inheritdoc/>
+        new IXAssemblyConfigurationRepository Configurations { get; }
     }
 }

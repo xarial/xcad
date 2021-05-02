@@ -10,6 +10,7 @@ using System.Diagnostics;
 using System.Drawing;
 using Xarial.XCad.Base;
 using Xarial.XCad.Base.Enums;
+using Xarial.XCad.Delegates;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Enums;
 using Xarial.XCad.Geometry;
@@ -22,9 +23,24 @@ namespace Xarial.XCad
     public interface IXApplication : IXTransaction
     {
         /// <summary>
+        /// Fires when application is starting
+        /// </summary>
+        event ApplicationStartingDelegate Starting;
+
+        /// <summary>
+        /// Version of the application
+        /// </summary>
+        IXVersion Version { get; set; }
+
+        /// <summary>
         /// State of the application
         /// </summary>
         ApplicationState_e State { get; set; }
+
+        /// <summary>
+        /// Checks if this application is alive
+        /// </summary>
+        bool IsAlive { get; }
 
         /// <summary>
         /// Returns the rectangle of the application window
@@ -50,7 +66,7 @@ namespace Xarial.XCad
         /// Accesses memory geometry builder to build primitive wires, surface and solids
         /// </summary>
         /// <remarks>Usually used in the <see cref="Features.CustomFeature.IXCustomFeatureDefinition"/></remarks>
-        IXGeometryBuilder MemoryGeometryBuilder { get; }
+        IXMemoryGeometryBuilder MemoryGeometryBuilder { get; }
         
         /// <summary>
         /// Displays the message box
@@ -62,11 +78,23 @@ namespace Xarial.XCad
         MessageBoxResult_e ShowMessageBox(string msg, MessageBoxIcon_e icon = MessageBoxIcon_e.Info, MessageBoxButtons_e buttons = MessageBoxButtons_e.Ok);
 
         /// <summary>
+        /// Displays the modeless tooltip
+        /// </summary>
+        /// <param name="spec">Specification of the tooltip</param>
+        void ShowTooltip(ITooltipSpec spec);
+
+        /// <summary>
         /// Create instance of the macro
         /// </summary>
         /// <param name="path">Full path to the macro</param>
         /// <returns>Instance of the macro</returns>
         IXMacro OpenMacro(string path);
+
+        /// <summary>
+        /// Initiates the displaying of progress in the application
+        /// </summary>
+        /// <returns>Pointer to progress manager</returns>
+        IXProgress CreateProgress();
 
         /// <summary>
         /// Close current instance of the application

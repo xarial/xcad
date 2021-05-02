@@ -8,6 +8,7 @@
 using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using Xarial.XCad.Geometry;
@@ -47,6 +48,8 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         public virtual IBody2 Body { get; }
 
+        public override object Dispatch => Body;
+
         public bool Visible
         {
             get => Body.Visible;
@@ -80,12 +83,39 @@ namespace Xarial.XCad.SolidWorks.Geometry
             }
         }
 
-        protected ISwDocument m_Document;
+        public IEnumerable<IXFace> Faces 
+        {
+            get 
+            {
+                var face = Body.IGetFirstFace();
 
-        internal SwBody(IBody2 body, ISwDocument doc) : base(doc?.Model, body)
+                while (face != null) 
+                {
+                    yield return SwObjectFactory.FromDispatch<ISwFace>(face, m_Doc);
+                    face = face.IGetNextFace();
+                }
+            }
+        }
+
+        public IEnumerable<IXEdge> Edges
+        {
+            get
+            {
+                var edges = Body.GetEdges() as object[];
+
+                if (edges != null) 
+                {
+                    foreach (IEdge edge in edges) 
+                    {
+                        yield return SwObjectFactory.FromDispatch<ISwEdge>(edge, m_Doc);
+                    }
+                }
+            }
+        }
+
+        internal SwBody(IBody2 body, ISwDocument doc) : base(body, doc)
         {
             Body = body;
-            m_Document = doc;
         }
 
         public override void Select(bool append)
@@ -133,6 +163,12 @@ namespace Xarial.XCad.SolidWorks.Geometry
     {
         public static ISwTempBody ToTempBody(this ISwBody body)
             => SwObject.FromDispatch<SwTempBody>(body.Body.ICopy());
+
+        public static double GetVolume(this ISwBody body) 
+        {
+            var massPrps = body.Body.GetMassProperties(0) as double[];
+            return massPrps[3];
+        }
     }
 
     public interface ISwSheetBody : ISwBody, IXSheetBody
@@ -184,7 +220,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
         }
     }
 
-    public interface ISwSolidBody : ISwBody
+    public interface ISwSolidBody : IXSolidBody, ISwBody
     {
     }
 
@@ -193,5 +229,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
         internal SwSolidBody(IBody2 body, ISwDocument doc) : base(body, doc)
         {
         }
+
+        public double Volume => this.GetVolume();
     }
 }

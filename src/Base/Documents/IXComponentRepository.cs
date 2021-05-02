@@ -17,6 +17,10 @@ namespace Xarial.XCad.Documents
     /// </summary>
     public interface IXComponentRepository : IXRepository<IXComponent>
     {
+        /// <summary>
+        /// Returns the total count of components including all nested components
+        /// </summary>
+        int TotalCount { get; }
     }
 
     /// <summary>
@@ -33,9 +37,22 @@ namespace Xarial.XCad.Documents
         {
             foreach (var comp in repo) 
             {
-                foreach (var subComp in Flatten(comp.Children)) 
+                IXComponentRepository children = null;
+
+                try
                 {
-                    yield return subComp;
+                    children = comp.Children;
+                }
+                catch 
+                {
+                }
+
+                if (children != null)
+                {
+                    foreach (var subComp in Flatten(children))
+                    {
+                        yield return subComp;
+                    }
                 }
 
                 yield return comp;

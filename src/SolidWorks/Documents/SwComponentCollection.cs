@@ -26,28 +26,66 @@ namespace Xarial.XCad.SolidWorks.Documents
         IXComponent IXRepository<IXComponent>.this[string name] => this[name];
 
         public ISwComponent this[string name] => (SwComponent)this.Get(name);
-        
+
         public bool TryGet(string name, out IXComponent ent)
         {
-            var comp = m_Assm.Assembly.GetComponentByName(name);
+            var comp = GetChildren().FirstOrDefault(c => string.Equals(GetRelativeName(c), name, StringComparison.CurrentCultureIgnoreCase));
 
             if (comp != null)
             {
                 ent = SwObject.FromDispatch<SwComponent>(comp, m_Assm);
                 return true;
             }
-            else 
+            else
             {
                 ent = null;
                 return false;
             }
         }
 
-        public int Count => GetRootComponent().IGetChildrenCount();
+        public int Count
+        {
+            get 
+            {
+                if (m_Assm.IsCommitted)
+                {
+                    if (m_Assm.Model.IsOpenedViewOnly())
+                    {
+                        throw new Exception("Components count is inaccurate in Large Design Review assembly");
+                    }
+
+                    return GetChildrenCount();
+                }
+                else
+                {
+                    throw new Exception("Assembly is not committed");
+                }
+            }
+        }
+
+        public int TotalCount 
+        {
+            get 
+            {
+                if (m_Assm.IsCommitted)
+                {
+                    if (m_Assm.Model.IsOpenedViewOnly())
+                    {
+                        throw new Exception("Total components count is inaccurate in Large Design Review assembly");
+                    }
+
+                    return GetTotalChildrenCount();
+                }
+                else
+                {
+                    throw new Exception("Assembly is not committed");
+                }
+            }
+        }
 
         private readonly ISwAssembly m_Assm;
-        
-        internal SwComponentCollection(ISwAssembly assm) 
+
+        internal SwComponentCollection(ISwAssembly assm)
         {
             m_Assm = assm;
         }
@@ -57,9 +95,27 @@ namespace Xarial.XCad.SolidWorks.Documents
             throw new NotImplementedException();
         }
 
-        protected abstract IComponent2 GetRootComponent();
+        protected abstract IEnumerable<IComponent2> GetChildren();
+        protected abstract int GetChildrenCount();
+        protected abstract int GetTotalChildrenCount();
 
-        public IEnumerator<IXComponent> GetEnumerator() => new SwComponentEnumerator(m_Assm, GetRootComponent());
+        public IEnumerator<IXComponent> GetEnumerator()
+        {
+            if (m_Assm.IsCommitted)
+            {
+                if (m_Assm.Model.IsOpenedViewOnly())
+                {
+                    throw new Exception("Components cannot be extracted for the Large Design Review assembly");
+                }
+
+                return (GetChildren() ?? new IComponent2[0])
+                    .Select(c => SwSelObject.FromDispatch<SwComponent>(c, m_Assm)).GetEnumerator();
+            }
+            else 
+            {
+                throw new Exception("Assembly is not committed");
+            }
+        }
 
         public void RemoveRange(IEnumerable<IXComponent> ents)
         {
@@ -67,65 +123,26 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-    }
 
-    internal class SwComponentEnumerator : IEnumerator<IXComponent>
-    {
-        public IXComponent Current => SwSelObject.FromDispatch<SwComponent>(m_CurComp, m_Assm);
-
-        object IEnumerator.Current => Current;
-
-        private readonly ISwAssembly m_Assm;
-
-        private IComponent2 m_CurComp;
-
-        private readonly IComponent2 m_Parent;
-        private IComponent2[] m_Children;
-
-        private int m_CurChildIndex;
-        
-        internal SwComponentEnumerator(ISwAssembly assm, IComponent2 parent)
+        private string GetRelativeName(IComponent2 comp)
         {
-            m_CurComp = null;
-            m_Assm = assm;
-            m_Parent = parent;
-            Reset();
-        }
+            var parentComp = comp.GetParent();
 
-        public bool MoveNext()
-        {
-            if (m_CurChildIndex == -1)
+            if (parentComp == null)
             {
-                m_Children = (m_Parent.GetChildren() as object[])?.Cast<IComponent2>().ToArray();
-
-                if (m_Children == null) 
+                return comp.Name2;
+            }
+            else
+            {
+                if (comp.Name2.StartsWith(parentComp.Name2, StringComparison.CurrentCultureIgnoreCase))
                 {
-                    m_Children = new IComponent2[0];
+                    return comp.Name2.Substring(parentComp.Name2.Length + 1);
+                }
+                else
+                {
+                    throw new Exception("Invalid component name");
                 }
             }
-
-            m_CurChildIndex++;
-
-            if (m_CurChildIndex < m_Children.Length)
-            {
-                m_CurComp = m_Children[m_CurChildIndex];
-                return true;
-            }
-            else 
-            {
-                return false;
-            }
-        }
-
-        public void Reset()
-        {
-            m_CurComp = null;
-            m_CurChildIndex = -1;
-            m_Children = null;
-        }
-
-        public void Dispose()
-        {
         }
     }
 }

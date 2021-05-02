@@ -8,6 +8,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Xarial.XCad.Delegates;
 
 namespace Xarial.XCad
 {
@@ -17,9 +18,14 @@ namespace Xarial.XCad
     public interface IXServiceConsumer
     {
         /// <summary>
+        /// Event for <see cref="OnConfigureServices(IXServiceCollection)"/>
+        /// </summary>
+        event ConfigureServicesDelegate ConfigureServices;
+
+        /// <summary>
         /// Allows to configure services of the object
         /// </summary>
         /// <param name="collection">Collection of services</param>
-        void ConfigureServices(IXServiceCollection collection);
+        void OnConfigureServices(IXServiceCollection collection);
     }
 }

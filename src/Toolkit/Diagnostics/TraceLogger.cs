@@ -6,6 +6,7 @@
 //*********************************************************************
 
 using Xarial.XCad.Base;
+using Xarial.XCad.Base.Enums;
 
 namespace Xarial.XCad.Utils.Diagnostics
 {
@@ -18,9 +19,9 @@ namespace Xarial.XCad.Utils.Diagnostics
             m_Category = category;
         }
 
-        public void Log(string msg)
+        public void Log(string msg, LoggerMessageSeverity_e severity = LoggerMessageSeverity_e.Information)
         {
-            System.Diagnostics.Trace.WriteLine(msg, m_Category);
+            System.Diagnostics.Trace.WriteLine($"[{severity}]{msg}", m_Category);
         }
     }
 }
