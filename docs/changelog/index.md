@@ -17,6 +17,7 @@ Breaking change is marked with &#x26A0; symbol
 * &#x26A0; ResourceHelper::FromBytes replaced with BaseImage class
 * &#x26A0; CustomItemsAttribute is renamed to ComboBoxAttribute
 * &#x26A0; IXAssembly::Components is moved to IXAssemblyConfiguration::Components
+* &#x26A0; SelectionBoxOptionsAttribute::SelectionColor changed from KnownColor to StandardSelectionColor_e
 
 ## 0.6.10 - December 7, 2020
 

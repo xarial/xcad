@@ -23,7 +23,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
     [ComVisible(true)]
     public abstract class SwPropertyManagerPageHandler : IPropertyManagerPage2Handler9
     {
-        internal delegate void SubmitSelectionDelegate(int Id, object Selection, int SelType, ref string ItemText, ref bool res);
+        internal delegate void SubmitSelectionDelegate(int id, object selection, int selType, ref string itemText, ref bool res);
 
         internal delegate void PropertyManagerPageClosingDelegate(swPropertyManagerPageCloseReasons_e reason, PageClosingArg arg);
 

@@ -35,7 +35,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SwDocumentManager", "src\Sw
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SolidWorksDocMgr.Tests.Integration", "tests\integration\SolidWorksDocMgr.Tests.Integration\SolidWorksDocMgr.Tests.Integration.csproj", "{1F231B39-C8DB-4A70-AF1B-022DEC24E9D9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SwDocumentManager.Tests", "tests\SwDocumentManager.Tests\SwDocumentManager.Tests.csproj", "{4D164ACD-3CA3-4866-B184-4B2442DD5307}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SwDocumentManager.Tests", "tests\SwDocumentManager.Tests\SwDocumentManager.Tests.csproj", "{4D164ACD-3CA3-4866-B184-4B2442DD5307}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

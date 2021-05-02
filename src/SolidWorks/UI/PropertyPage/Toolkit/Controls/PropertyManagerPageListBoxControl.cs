@@ -105,7 +105,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
                         }
                     }
                 }
-
+                
                 for (int i = 0; i < SwSpecificControl.ItemCount; i++) 
                 {
                     SwSpecificControl.SetSelectedItem((short)i, selIndices.Contains(i));

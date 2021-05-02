@@ -14,7 +14,11 @@ namespace Xarial.XCad.UI.PropertyPage.Enums
     [Flags]
     public enum ListBoxStyle_e
     {
+        /// <summary>
+        /// Sorts items in the ascending order
+        /// </summary>
         Sorted = 1,
+
         NoIntegralHeight = 2
     }
 }

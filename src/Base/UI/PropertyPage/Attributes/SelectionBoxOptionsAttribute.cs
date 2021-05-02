@@ -15,6 +15,27 @@ using Xarial.XCad.UI.PropertyPage.Services;
 namespace Xarial.XCad.UI.PropertyPage.Attributes
 {
     /// <summary>
+    /// Represents the standard selection colors
+    /// </summary>
+    public enum StandardSelectionColor_e 
+    {
+        /// <summary>
+        /// Primary standard selection color
+        /// </summary>
+        Primary = 104,
+
+        /// <summary>
+        /// Secondary standard selection color
+        /// </summary>
+        Secondary = 105,
+
+        /// <summary>
+        /// Tertiary standard selection color
+        /// </summary>
+        Tertiary = 106,
+    }
+
+    /// <summary>
     /// Additional options for selection box control
     /// </summary>
     public class SelectionBoxOptionsAttribute : Attribute, IAttribute
@@ -25,9 +46,9 @@ namespace Xarial.XCad.UI.PropertyPage.Attributes
         public SelectionBoxStyle_e Style { get; set; }
 
         /// <summary>
-        /// Color of selection box
+        /// Standard color of selection box
         /// </summary>
-        public KnownColor SelectionColor { get; set; }
+        public StandardSelectionColor_e SelectionColor { get; set; }
 
         /// <summary>
         /// Allowed entities filter for the selection
@@ -56,7 +77,7 @@ namespace Xarial.XCad.UI.PropertyPage.Attributes
         /// <param name="selColor">Color of the selections in this selection box</param>
         public SelectionBoxOptionsAttribute(
             SelectionBoxStyle_e style = SelectionBoxStyle_e.None,
-            KnownColor selColor = 0) : this(-1, null, style, selColor)
+            StandardSelectionColor_e selColor = 0) : this(-1, null, style, selColor)
         {
         }
 
@@ -87,7 +108,7 @@ namespace Xarial.XCad.UI.PropertyPage.Attributes
         /// <param name="customFilter">Type of custom filter of <see cref="ISelectionCustomFilter"/> for custom logic for filtering selection objects</param>
         /// <exception cref="InvalidCastException"/>
         public SelectionBoxOptionsAttribute(int mark, Type customFilter, SelectionBoxStyle_e style,
-            KnownColor selColor, params SelectType_e[] filters)
+            StandardSelectionColor_e selColor, params SelectType_e[] filters)
         {
             Style = style;
             SelectionColor = selColor;

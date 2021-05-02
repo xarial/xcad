@@ -62,7 +62,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
 
             ISelectionCustomFilter customFilter = null;
 
-            SelectType_e[] filters = null;
+            var filters = SelectionBoxConstructorHelper.GetDefaultFilters(atts);
 
             bool focusOnOpen = false;
 
@@ -77,10 +77,10 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
 
                 if (selAtt.SelectionColor != 0)
                 {
-                    swCtrl.SetSelectionColor(true, ConvertColor(selAtt.SelectionColor));
+                    swCtrl.SetSelectionColor(true, (int)selAtt.SelectionColor);
                 }
 
-                if (selAtt.Filters != null)
+                if (selAtt.Filters?.Any() == true)
                 {
                     filters = selAtt.Filters;
                 }
@@ -100,22 +100,13 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
                     }
                 }
             }
-            else 
-            {
-                filters = GetDefaultFilters(atts, out customFilter);
-            }
-
+            
             swCtrl.SetSelectionFilters(filters.Select(f => (swSelectType_e)f).ToArray());
 
             return new PropertyManagerPageSelectionBoxControl(m_SwApp, atts.Id, atts.Tag,
                 swCtrl, handler, atts.ContextType, customFilter, focusOnOpen);
         }
-
-        protected virtual SelectType_e[] GetDefaultFilters(IAttributeSet atts, out ISelectionCustomFilter customFilter) 
-        {
-            return SelectionBoxConstructorHelper.GetDefaultFilters(atts, out customFilter);
-        }
-
+        
         protected override BitmapLabelType_e? GetDefaultBitmapLabel(IAttributeSet atts)
         {
             return SelectionBoxConstructorHelper.GetDefaultBitmapLabel(atts);

@@ -13,6 +13,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Xarial.XCad.Base.Enums;
+using Xarial.XCad.Toolkit.PageBuilder.Constructors;
 using Xarial.XCad.UI.PropertyPage;
 using Xarial.XCad.UI.PropertyPage.Services;
 using Xarial.XCad.Utils.PageBuilder.PageElements;
@@ -26,6 +27,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
         private readonly ISwApplication m_App;
         private readonly Type m_ObjType;
+        private readonly Type m_ElementType;
         private readonly ISelectionCustomFilter m_CustomFilter;
 
         private readonly bool m_DefaultFocus;
@@ -37,6 +39,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
         {
             m_App = app;
             m_ObjType = objType;
+            m_ElementType = SelectionBoxConstructorHelper.GetElementType(m_ObjType);
             m_CustomFilter = customFilter;
 
             m_DefaultFocus = defaultFocus;
@@ -48,10 +51,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
                 m_Handler.Opened += OnPageOpened;
             }
 
-            if (m_CustomFilter != null)
-            {
-                m_Handler.SubmitSelection += OnSubmitSelection;
-            }
+            m_Handler.SubmitSelection += OnSubmitSelection;
         }
 
         private void OnPageOpened()
@@ -69,15 +69,24 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
         private SwSelObject ToSelObject(object disp) => SwSelObject.FromDispatch(disp, m_App.Documents.Active);
 
-        private void OnSubmitSelection(int Id, object Selection, int SelType, ref string ItemText, ref bool res)
+        private void OnSubmitSelection(int id, object selection, int selType, ref string itemText, ref bool res)
         {
-            if (Id == this.Id)
+            if (id == this.Id)
             {
-                Debug.Assert(m_CustomFilter != null, "This event must not be attached if custom filter is not specified");
+                var selObj = ToSelObject(selection);
 
-                //TODO: implement conversion
-                res = m_CustomFilter.Filter(this, ToSelObject(Selection),
-                    (SelectType_e)SelType, ref ItemText);
+                if (m_ElementType.IsAssignableFrom(selObj.GetType()))
+                {
+                    if (m_CustomFilter != null)
+                    {
+                        res = m_CustomFilter.Filter(this, selObj,
+                            (SelectType_e)selType, ref itemText);
+                    }
+                }
+                else 
+                {
+                    res = false;
+                }
             }
         }
 

@@ -141,12 +141,12 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
 
             Handler.InvokeOpening();
 
-            m_Page.Page.Show2(OPTS_DEFAULT);
-
             foreach (var binding in m_Page.Binding.Bindings)
             {
                 binding.UpdateControl();
             }
+
+            m_Page.Page.Show2(OPTS_DEFAULT);
 
             //updating control states
             m_Page.Binding.Dependency.UpdateAll();

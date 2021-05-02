@@ -9,12 +9,14 @@ using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
 using System;
 using System.Collections;
+using System.Linq;
 using System.Reflection;
 using Xarial.XCad.SolidWorks.Services;
 using Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls;
 using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.UI.PropertyPage.Attributes;
 using Xarial.XCad.UI.PropertyPage.Base;
+using Xarial.XCad.UI.PropertyPage.Enums;
 using Xarial.XCad.Utils.PageBuilder.Attributes;
 using Xarial.XCad.Utils.PageBuilder.Base;
 
@@ -45,6 +47,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
             swCtrl.Height = height;
 
             int style = 0;
+            bool sortItems = false;
 
             if (atts.Has<ListBoxOptionsAttribute>())
             {
@@ -53,6 +56,12 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
                 if (opts.Style != 0)
                 {
                     style = (int)opts.Style;
+
+                    if (opts.Style.HasFlag(ListBoxStyle_e.Sorted))
+                    {
+                        sortItems = true;
+                        style -= (int)ListBoxStyle_e.Sorted;
+                    }
                 }
             }
 
@@ -68,7 +77,14 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
             swCtrl.Style = style;
 
             var ctrl = new PropertyManagerPageListBoxControl(atts.Id, atts.Tag, swCtrl, atts.ContextType, isMultiSelect, handler, metadata);
-            ctrl.Items = m_Helper.GetItems(m_SwApp, atts);
+            var items = m_Helper.GetItems(m_SwApp, atts);
+            
+            if (sortItems) 
+            {
+                items = items.OrderBy(i => i.DisplayName).ToArray();
+            }
+
+            ctrl.Items = items;
             return ctrl;
         }
     }

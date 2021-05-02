@@ -42,7 +42,19 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
             var customAtts = m_PrpInfo.GetCustomAttributes(true) ?? new object[0];
 
             DisplayName = customAtts.OfType<DisplayNameAttribute>().FirstOrDefault()?.DisplayName;
+
+            if (string.IsNullOrEmpty(DisplayName)) 
+            {
+                DisplayName = m_PrpInfo.PropertyType.GetCustomAttribute<DisplayNameAttribute>(true)?.DisplayName;
+            }
+
             Description = customAtts.OfType<DescriptionAttribute>().FirstOrDefault()?.Description;
+
+            if (string.IsNullOrEmpty(Description))
+            {
+                Description = m_PrpInfo.PropertyType.GetCustomAttribute<DescriptionAttribute>(true)?.Description;
+            }
+
             Icon = customAtts.OfType<IconAttribute>().FirstOrDefault()?.Icon;
             Attributes = customAtts?.OfType<IAttribute>().ToArray();
         }

@@ -55,7 +55,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public IComponent2 Component { get; }
 
-        private readonly SwAssembly m_ParentAssembly;
+        private readonly SwAssembly m_RootAssembly;
 
         public ISwComponentCollection Children { get; }
 
@@ -65,15 +65,15 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public override object Dispatch => Component;
 
-        internal SwComponent(IComponent2 comp, SwAssembly parentAssembly) : base(comp)
+        internal SwComponent(IComponent2 comp, SwAssembly rootAssembly) : base(comp)
         {
-            m_ParentAssembly = parentAssembly;
+            m_RootAssembly = rootAssembly;
             Component = comp;
-            Children = new SwChildComponentsCollection(parentAssembly, comp);
-            m_Features = new Lazy<ISwFeatureManager>(() => new ComponentFeatureRepository(parentAssembly, comp));
-            Bodies = new SwComponentBodyCollection(comp, parentAssembly);
+            Children = new SwChildComponentsCollection(rootAssembly, comp);
+            m_Features = new Lazy<ISwFeatureManager>(() => new ComponentFeatureRepository(rootAssembly, comp));
+            Bodies = new SwComponentBodyCollection(comp, rootAssembly);
 
-            m_FilePathResolver = m_ParentAssembly.App.Services.GetService<IFilePathResolver>();
+            m_FilePathResolver = m_RootAssembly.App.Services.GetService<IFilePathResolver>();
         }
 
         public string Name
@@ -89,9 +89,9 @@ namespace Xarial.XCad.SolidWorks.Documents
                 var compModel = Component.IGetModelDoc();
 
                 //Note: for LDR assembly IGetModelDoc returns the pointer to root assembly
-                if (compModel != null && !m_ParentAssembly.Model.IsOpenedViewOnly())
+                if (compModel != null && !m_RootAssembly.Model.IsOpenedViewOnly())
                 {
-                    return (SwDocument3D)m_ParentAssembly.App.Documents[compModel];
+                    return (SwDocument3D)m_RootAssembly.App.Documents[compModel];
                 }
                 else
                 {
@@ -106,13 +106,13 @@ namespace Xarial.XCad.SolidWorks.Documents
                         path = CachedPath;
                     }
 
-                    if (((SwDocumentCollection)m_ParentAssembly.App.Documents).TryFindExistingDocumentByPath(path, out SwDocument doc))
+                    if (((SwDocumentCollection)m_RootAssembly.App.Documents).TryFindExistingDocumentByPath(path, out SwDocument doc))
                     {
                         return (ISwDocument3D)doc;
                     }
                     else 
                     {
-                        return (ISwDocument3D)((SwDocumentCollection)m_ParentAssembly.App.Documents).PreCreateFromPath(path);
+                        return (ISwDocument3D)((SwDocumentCollection)m_RootAssembly.App.Documents).PreCreateFromPath(path);
                     }
                 }
             }
@@ -136,7 +136,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                     state |= ComponentState_e.Suppressed;
                 }
                 
-                if (m_ParentAssembly.Model.IsOpenedViewOnly()) //Large design review
+                if (m_RootAssembly.Model.IsOpenedViewOnly()) //Large design review
                 {
                     state |= ComponentState_e.ViewOnly;
                 }
@@ -167,12 +167,12 @@ namespace Xarial.XCad.SolidWorks.Documents
             {
                 var cachedPath = CachedPath;
 
-                var needResolve = m_ParentAssembly.Model.IsOpenedViewOnly() 
+                var needResolve = m_RootAssembly.Model.IsOpenedViewOnly() 
                     || Component.GetSuppression2() == (int)swComponentSuppressionState_e.swComponentSuppressed;
 
                 if (needResolve)
                 {
-                    return m_FilePathResolver.ResolvePath(m_ParentAssembly.Path, cachedPath);
+                    return m_FilePathResolver.ResolvePath(m_RootAssembly.Path, cachedPath);
                 }
                 else 
                 {
@@ -224,7 +224,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
                 if (corrDisp != null)
                 {
-                    return SwSelObject.FromDispatch(corrDisp, m_ParentAssembly);
+                    return SwSelObject.FromDispatch(corrDisp, m_RootAssembly);
                 }
                 else
                 {
@@ -336,7 +336,7 @@ namespace Xarial.XCad.SolidWorks.Documents
     {
         private readonly IComponent2 m_Comp;
 
-        public SwChildComponentsCollection(ISwAssembly assm, IComponent2 comp) : base(assm)
+        public SwChildComponentsCollection(ISwAssembly rootAssm, IComponent2 comp) : base(rootAssm)
         {
             m_Comp = comp;
         }

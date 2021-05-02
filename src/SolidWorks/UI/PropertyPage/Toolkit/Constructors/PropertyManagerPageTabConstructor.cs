@@ -77,7 +77,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
 
             var tab = page.Page.AddTab(atts.Id, atts.Name,
                 iconPath, OPTIONS_NOT_USED) as IPropertyManagerPageTab;
-
+            
             return new PropertyManagerPageTabControl(atts.Id, atts.Tag,
                 page.Handler, tab, page.App, page);
         }
