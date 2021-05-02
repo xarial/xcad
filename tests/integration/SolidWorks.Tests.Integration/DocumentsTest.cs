@@ -13,10 +13,12 @@ using Xarial.XCad.Data.Enums;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Documents.Exceptions;
+using Xarial.XCad.Geometry;
 using Xarial.XCad.SolidWorks;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Documents.Exceptions;
 using Xarial.XCad.SolidWorks.Enums;
+using Xarial.XCad.SolidWorks.Geometry;
 
 namespace SolidWorks.Tests.Integration
 {
@@ -411,10 +413,8 @@ namespace SolidWorks.Tests.Integration
 
             var dir = Path.GetDirectoryName(assm.Path);
 
-            Assert.AreEqual(6, deps.Length);
+            Assert.AreEqual(4, deps.Length);
             Assert.That(deps.All(d => !d.IsCommitted));
-            Assert.That(deps.Any(d => string.Equals(d.Path, Path.Combine(dir, "Part2.SLDPRT"))));
-            Assert.That(deps.Any(d => string.Equals(d.Path, Path.Combine(dir, "Part3.SLDPRT"))));
             Assert.That(deps.Any(d => string.Equals(d.Path, Path.Combine(dir, "Part4-1 (XYZ).SLDPRT"))));
             Assert.That(deps.Any(d => string.Equals(d.Path, Path.Combine(dir, "Assem1.SLDASM"))));
             Assert.That(deps.Any(d => string.Equals(d.Path, Path.Combine(dir, "Assem2.SLDASM"))));
@@ -435,9 +435,7 @@ namespace SolidWorks.Tests.Integration
                 dir = Path.GetDirectoryName(m_App.Documents.Active.Path);
             }
             
-            Assert.AreEqual(6, depsData.Count);
-            Assert.IsFalse(depsData[Path.Combine(dir, "Part2.SLDPRT")]);
-            Assert.IsTrue(depsData[Path.Combine(dir, "Part3.SLDPRT")]);
+            Assert.AreEqual(4, depsData.Count);
             Assert.IsTrue(depsData[Path.Combine(dir, "Part4-1 (XYZ).SLDPRT")]);
             Assert.IsFalse(depsData[Path.Combine(dir, "Assem1.SLDASM")]);
             Assert.IsTrue(depsData[Path.Combine(dir, "Assem2.SLDASM")]);
@@ -463,14 +461,42 @@ namespace SolidWorks.Tests.Integration
 
             doc.Close();
 
-            Assert.AreEqual(6, depsData.Count);
+            Assert.AreEqual(4, depsData.Count);
             Assert.That(depsData.All(d => !d.Value));
-            depsData.ContainsKey(Path.Combine(dir, "Part2.SLDPRT"));
-            depsData.ContainsKey(Path.Combine(dir, "Part3.SLDPRT"));
             depsData.ContainsKey(Path.Combine(dir, "Part4-1 (XYZ).SLDPRT"));
             depsData.ContainsKey(Path.Combine(dir, "Assem1.SLDASM"));
             depsData.ContainsKey(Path.Combine(dir, "Assem2.SLDASM"));
             depsData.ContainsKey(Path.Combine(dir, "Part1.SLDPRT"));
+        }
+
+        [Test]
+        public void DocumentDependenciesCachedTest()
+        {
+            var assm = m_App.Documents.PreCreate<ISwAssembly>();
+            assm.Path = GetFilePath(@"MovedNonOpenedAssembly1\TopAssembly.SLDASM");
+
+            var deps = assm.Dependencies;
+
+            var dir = Path.GetDirectoryName(assm.Path);
+
+            Assert.AreEqual(1, deps.Length);
+            Assert.That(deps.All(d => !d.IsCommitted));
+            Assert.That(deps.Any(d => string.Equals(d.Path, Path.Combine(dir, "Assemblies\\Assem1.SLDASM"), StringComparison.CurrentCultureIgnoreCase)));
+        }
+
+        [Test]
+        public void DocumentDependenciesCachedExtFolderTest()
+        {
+            var assm = m_App.Documents.PreCreate<ISwAssembly>();
+            assm.Path = GetFilePath(@"Assembly3\Assemblies\Assem1.SLDASM");
+
+            var deps = assm.Dependencies;
+
+            var dir = GetFilePath("Assembly3");
+
+            Assert.AreEqual(1, deps.Length);
+            Assert.That(deps.All(d => !d.IsCommitted));
+            Assert.That(deps.Any(d => string.Equals(d.Path, Path.Combine(dir, "Parts\\Part1.SLDPRT"), StringComparison.CurrentCultureIgnoreCase)));
         }
 
         [Test]
@@ -684,9 +710,84 @@ namespace SolidWorks.Tests.Integration
 
             Assert.AreEqual(SwVersion_e.Sw2020, v1.Major);
             Assert.AreEqual(SwVersion_e.Sw2020, v2.Major);
-            Assert.AreEqual(SwVersion_e.Sw2020, v3.Major);
+            Assert.AreEqual(m_App.Version.Major, v3.Major);
             Assert.AreEqual(SwVersion_e.Sw2019, v4.Major);
             Assert.AreEqual(SwVersion_e.Sw2019, v5.Major);
+        }
+
+        [Test]
+        public void SerializationTest() 
+        {
+            var isCylFace = false;
+            var areEqual = false;
+
+            using (var doc = OpenDataDocument("Selections1.SLDPRT"))
+            {
+                var part = (ISwPart)m_App.Documents.Active;
+
+                var face = SwObjectFactory.FromDispatch<ISwFace>(
+                    part.Part.GetEntityByName("Face2", (int)swSelectType_e.swSelFACES) as IFace2, part);
+
+                byte[] bytes;
+
+                using (var memStr = new MemoryStream()) 
+                {
+                    face.Serialize(memStr);
+                    bytes = memStr.ToArray();
+                }
+
+                using (var memStr = new MemoryStream(bytes))
+                {
+                    var face1 = part.DeserializeObject(memStr);
+                    isCylFace = face is ISwCylindricalFace;
+                    areEqual = face1.Dispatch == face.Dispatch;
+                }
+            }
+
+            Assert.IsTrue(isCylFace);
+            Assert.IsTrue(areEqual);
+        }
+
+        [Test]
+        public void QuantityTest()
+        {
+            double q1;
+            double q2;
+            double q3;
+            double q4;
+            double q5;
+
+            using (var doc = OpenDataDocument("PartQty.SLDPRT"))
+            {
+                var part = (IXDocument3D)m_App.Documents.Active;
+
+                q1 = part.Configurations["Conf1"].Quantity;
+                q2 = part.Configurations["Conf2"].Quantity;
+                q3 = part.Configurations["Conf3"].Quantity;
+                q4 = part.Configurations["Conf4"].Quantity;
+                q5 = part.Configurations["Conf5"].Quantity;
+            }
+
+            Assert.AreEqual(2, q1);
+            Assert.AreEqual(1, q2);
+            Assert.AreEqual(3, q3);
+            Assert.AreEqual(2, q4);
+            Assert.AreEqual(1, q5);
+        }
+
+        [Test]
+        public void BodyVolumeTest()
+        {
+            double v1;
+
+            using (var doc = OpenDataDocument("Features1.SLDPRT"))
+            {
+                var part = (IXPart)m_App.Documents.Active;
+
+                v1 = ((IXSolidBody)part.Bodies["Boss-Extrude2"]).Volume;
+            }
+
+            Assert.That(2.3851693679806192E-05, Is.EqualTo(v1).Within(0.001).Percent);
         }
     }
 }

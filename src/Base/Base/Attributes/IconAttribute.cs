@@ -30,6 +30,15 @@ namespace Xarial.XCad.Base.Attributes
         {
         }
 
+        /// <summary>
+        /// Constructor to be used in dynamic controls
+        /// </summary>
+        /// <param name="icon"></param>
+        public IconAttribute(IXImage icon) 
+        {
+            Icon = icon;
+        }
+
         /// <param name="resType">Type of the static class (usually Resources)</param>
         /// <param name="masterResName">Resource name of the master icon</param>
         public IconAttribute(Type resType, string masterResName)

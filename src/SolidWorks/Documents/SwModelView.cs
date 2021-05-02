@@ -33,10 +33,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             {
                 var box = View.GetVisibleBox() as int[];
 
-                //TODO: potential issue if feature manager is not docked on left
-                var featMgrWidth = Owner.GetFeatureManagerWidth();
-
-                return new Rectangle(box[0] + featMgrWidth, box[1], box[2] - box[0] - featMgrWidth, box[3] - box[1]);
+                return new Rectangle(box[0], box[1], box[2] - box[0], box[3] - box[1]);
             }
         }
 
@@ -92,6 +89,8 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         //TODO: implement creation of new views
         public bool IsCommitted => true;
+
+        public override object Dispatch => View;
 
         internal SwModelView(IModelDoc2 model, IModelView view, IMathUtility mathUtils) : base(view)
         {

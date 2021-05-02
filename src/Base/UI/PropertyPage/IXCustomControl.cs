@@ -11,9 +11,19 @@ using System.Text;
 
 namespace Xarial.XCad.UI.PropertyPage
 {
+    /// <summary>
+    /// Represents the custom control hosted in the page
+    /// </summary>
     public interface IXCustomControl
     {
-        event Action<IXCustomControl, object> DataContextChanged;
-        object DataContext { get; set; }
+        /// <summary>
+        /// Raised when data context of this control is changed
+        /// </summary>
+        event Action<IXCustomControl, object> ValueChanged;
+
+        /// <summary>
+        /// Returns the data context of this control
+        /// </summary>
+        object Value { get; set; }
     }
 }

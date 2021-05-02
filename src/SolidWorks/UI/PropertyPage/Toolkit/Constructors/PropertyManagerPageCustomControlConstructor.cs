@@ -11,9 +11,11 @@ using System;
 using Xarial.XCad.SolidWorks.Services;
 using Xarial.XCad.SolidWorks.UI.Commands.Exceptions;
 using Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls;
+using Xarial.XCad.SolidWorks.UI.Toolkit;
 using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.UI.PropertyPage;
 using Xarial.XCad.UI.PropertyPage.Attributes;
+using Xarial.XCad.UI.PropertyPage.Base;
 using Xarial.XCad.Utils.PageBuilder.Attributes;
 using Xarial.XCad.Utils.PageBuilder.Base;
 
@@ -28,7 +30,8 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
         }
 
         protected override PropertyManagerPageCustomControl CreateControl(
-            IPropertyManagerPageWindowFromHandle swCtrl, IAttributeSet atts, SwPropertyManagerPageHandler handler, short height)
+            IPropertyManagerPageWindowFromHandle swCtrl, IAttributeSet atts, IMetadata metadata, 
+            SwPropertyManagerPageHandler handler, short height)
         {
             if (height <= 0)
             {
@@ -39,37 +42,38 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
 
             var ctrlType = atts.Get<CustomControlAttribute>().ControlType;
 
-            var ctrlFact = new Func<IXCustomControl>(() =>
-                CustomControlHelper.HostControl(ctrlType,
-                (c, h, t, _) =>
-                {
-                    if (swCtrl.SetWindowHandlex64(h.Handle.ToInt64()))
-                    {
-                        if (c is IXCustomControl)
-                        {
-                            return (IXCustomControl)c;
-                        }
-                        else
-                        {
-                            if (c is System.Windows.FrameworkElement)
-                            {
-                                return new WpfCustomControl((System.Windows.FrameworkElement)c, h);
-                            }
+            //var ctrlFact = new Func<IXCustomControl>(() =>
+            //    CustomControlHelperOld.HostControl(ctrlType,
+            //    (c, h, t, _) =>
+            //    {
+            //        if (swCtrl.SetWindowHandlex64(h.Handle.ToInt64()))
+            //        {
+            //            if (c is IXCustomControl)
+            //            {
+            //                return (IXCustomControl)c;
+            //            }
+            //            else
+            //            {
+            //                if (c is System.Windows.FrameworkElement)
+            //                {
+            //                    return new WpfCustomControl((System.Windows.FrameworkElement)c, h);
+            //                }
 
-                            throw new NotSupportedException($"'{c.GetType()}' must implement '{typeof(IXCustomControl).FullName}' or inherit '{typeof(System.Windows.FrameworkElement).FullName}'");
-                        }
-                    }
-                    else
-                    {
-                        throw new NetControlHostException(h.Handle);
-                    }
-                },
-                (p, t, _) =>
-                {
-                    throw new NotImplementedException("ActiveX controls are not implemented yet");
-                }));
+            //                throw new NotSupportedException($"'{c.GetType()}' must implement '{typeof(IXCustomControl).FullName}' or inherit '{typeof(System.Windows.FrameworkElement).FullName}'");
+            //            }
+            //        }
+            //        else
+            //        {
+            //            throw new NetControlHostException(h.Handle);
+            //        }
+            //    },
+            //    (p, t, _) =>
+            //    {
+            //        throw new NotImplementedException("ActiveX controls are not implemented yet");
+            //    }));
 
-            return new PropertyManagerPageCustomControl(atts.Id, atts.Tag, swCtrl, handler, ctrlFact);
+            return new PropertyManagerPageCustomControl(ctrlType, atts.Id, atts.Tag,
+                swCtrl, handler, new PropertyPageControlCreator<object>(swCtrl));
         }
     }
 }

@@ -11,6 +11,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
 using System.Text;
+using Xarial.XCad.Base;
 
 namespace Xarial.XCad.Toolkit.Windows
 {
@@ -23,7 +24,7 @@ namespace Xarial.XCad.Toolkit.Windows
         private static extern int CreateItemMoniker([MarshalAs(UnmanagedType.LPWStr)] string lpszDelim,
             [MarshalAs(UnmanagedType.LPWStr)] string lpszItem, out IMoniker ppmk);
 
-        public static TComObj TryGetComObjectByMonikerName<TComObj>(string monikerName)
+        public static TComObj TryGetComObjectByMonikerName<TComObj>(string monikerName, IXLogger logger = null)
         {
             IBindCtx context = null;
             IRunningObjectTable rot = null;
@@ -50,8 +51,9 @@ namespace Xarial.XCad.Toolkit.Windows
                         {
                             curMoniker.GetDisplayName(context, null, out name);
                         }
-                        catch (UnauthorizedAccessException)
+                        catch (UnauthorizedAccessException ex)
                         {
+                            logger?.Log(ex);
                         }
                     }
 
@@ -63,6 +65,11 @@ namespace Xarial.XCad.Toolkit.Windows
                         return (TComObj)app;
                     }
                 }
+            }
+            catch (Exception ex)
+            {
+                logger?.Log(ex);
+                throw;
             }
             finally
             {
@@ -82,10 +89,10 @@ namespace Xarial.XCad.Toolkit.Windows
                 }
             }
 
-            return default(TComObj);
+            return default;
         }
 
-        public static int RegisterComObject(object obj, string monikerName)
+        public static int RegisterComObject(object obj, string monikerName, bool keepAlive = true, bool allowAnyClient = false, IXLogger logger = null)
         {
             IBindCtx context = null;
             IRunningObjectTable rot = null;
@@ -97,6 +104,7 @@ namespace Xarial.XCad.Toolkit.Windows
             try
             {
                 const int ROTFLAGS_REGISTRATIONKEEPSALIVE = 1;
+                const int ROTFLAGS_ALLOWANYCLIENT = 2;
 
                 context.GetRunningObjectTable(out rot);
 
@@ -107,14 +115,35 @@ namespace Xarial.XCad.Toolkit.Windows
                     throw new Exception("Failed to create moniker");
                 }
 
-                var id = rot.Register(ROTFLAGS_REGISTRATIONKEEPSALIVE, obj, moniker);
+                var opts = 0;
+
+                if (keepAlive) 
+                {
+                    opts += ROTFLAGS_REGISTRATIONKEEPSALIVE;
+                }
+
+                if (allowAnyClient) 
+                {
+                    opts += ROTFLAGS_ALLOWANYCLIENT;
+                }
+
+                logger?.Log($"Registering object in ROT with {opts} option", XCad.Base.Enums.LoggerMessageSeverity_e.Debug);
+
+                var id = rot.Register(opts, obj, moniker);
 
                 if (id == 0)
                 {
                     throw new Exception("Failed to register object in ROT");
                 }
 
+                logger?.Log($"Object id in ROT: {id}", XCad.Base.Enums.LoggerMessageSeverity_e.Debug);
+
                 return id;
+            }
+            catch (Exception ex)
+            {
+                logger?.Log(ex);
+                throw;
             }
             finally
             {
@@ -133,7 +162,7 @@ namespace Xarial.XCad.Toolkit.Windows
             }
         }
 
-        public static void UnregisterComObject(int id)
+        public static void UnregisterComObject(int id, IXLogger logger = null)
         {
             IBindCtx context = null;
             IRunningObjectTable rot = null;
@@ -145,16 +174,20 @@ namespace Xarial.XCad.Toolkit.Windows
             {
                 rot.Revoke(id);
             }
+            catch (Exception ex)
+            {
+                logger?.Log(ex);
+            }
             finally
             {
                 if (rot != null)
                 {
-                    while (Marshal.ReleaseComObject(rot) > 0);
+                    while (Marshal.ReleaseComObject(rot) > 0) ;
                 }
 
                 if (context != null)
                 {
-                    while (Marshal.ReleaseComObject(context) > 0);
+                    while (Marshal.ReleaseComObject(context) > 0) ;
                 }
             }
         }

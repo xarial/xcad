@@ -12,6 +12,7 @@ using System.Runtime.InteropServices;
 using Xarial.XCad.Annotations;
 using Xarial.XCad.Annotations.Delegates;
 using Xarial.XCad.SolidWorks.Annotations.EventHandlers;
+using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.Toolkit.Services;
 
 namespace Xarial.XCad.SolidWorks.Annotations
@@ -54,17 +55,17 @@ namespace Xarial.XCad.SolidWorks.Annotations
             }
         }
 
-        internal SwDimension(IModelDoc2 model, IDisplayDimension dispDim)
-            : base(null, dispDim)
+        internal SwDimension(ISwDocument doc, IDisplayDimension dispDim)
+            : base(dispDim)
         {
-            if (model == null) 
+            if (doc == null) 
             {
-                throw new ArgumentNullException(nameof(model));
+                throw new ArgumentNullException(nameof(doc));
             }
 
             DisplayDimension = dispDim;
 
-            m_ValueChangedHandler = new SwDimensionChangeEventsHandler(this, model);
+            m_ValueChangedHandler = new SwDimensionChangeEventsHandler(this, doc);
         }
 
         public virtual double GetValue(string confName = "")

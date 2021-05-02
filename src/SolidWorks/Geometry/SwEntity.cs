@@ -9,6 +9,7 @@ using SolidWorks.Interop.sldworks;
 using System;
 using System.Collections.Generic;
 using Xarial.XCad.Geometry;
+using Xarial.XCad.SolidWorks.Documents;
 
 namespace Xarial.XCad.SolidWorks.Geometry
 {
@@ -27,11 +28,13 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         public IEntity Entity { get; }
 
+        public override object Dispatch => Entity;
+
         public abstract ISwBody Body { get; }
 
         public abstract IEnumerable<ISwEntity> AdjacentEntities { get; }
 
-        internal SwEntity(IEntity entity) : base(null, entity)
+        internal SwEntity(IEntity entity, ISwDocument doc) : base(entity, doc)
         {
             Entity = entity;
         }

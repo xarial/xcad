@@ -13,6 +13,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Threading;
 using Xarial.XCad.Annotations;
@@ -23,6 +24,7 @@ using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Delegates;
 using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Documents.Exceptions;
+using Xarial.XCad.Exceptions;
 using Xarial.XCad.Features;
 using Xarial.XCad.Services;
 using Xarial.XCad.SolidWorks.Annotations;
@@ -38,7 +40,7 @@ using Xarial.XCad.Toolkit.Data;
 
 namespace Xarial.XCad.SolidWorks.Documents
 {
-    public interface ISwDocument : IXDocument, IDisposable
+    public interface ISwDocument : ISwObject, IXDocument, IDisposable
     {
         IModelDoc2 Model { get; }
         new ISwFeatureManager Features { get; }
@@ -46,11 +48,12 @@ namespace Xarial.XCad.SolidWorks.Documents
         new ISwDimensionsCollection Dimensions { get; }
         new ISwCustomPropertiesCollection Properties { get; }
         new ISwVersion Version { get; }
-        new ISwDocument[] Dependencies { get; }
+        new ISwDocument3D[] Dependencies { get; }
+        new ISwObject DeserializeObject(Stream stream);
     }
 
     [DebuggerDisplay("{" + nameof(Title) + "}")]
-    internal abstract class SwDocument : ISwDocument
+    internal abstract class SwDocument : SwObject, ISwDocument
     {
         protected static Dictionary<string, swDocumentTypes_e> m_NativeFileExts { get; }
 
@@ -69,6 +72,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             };
         }
 
+        internal event Action<SwDocument> Hidden;
         internal event Action<SwDocument> Destroyed;
 
         public event DocumentCloseDelegate Closing;
@@ -148,9 +152,10 @@ namespace Xarial.XCad.SolidWorks.Documents
         IXFeatureRepository IXDocument.Features => Features;
         IXSelectionRepository IXDocument.Selections => Selections;
         IXDimensionRepository IXDocument.Dimensions => Dimensions;
-        IXPropertyRepository IXDocument.Properties => Properties;
-        IXDocument[] IXDocument.Dependencies => Dependencies;
+        IXPropertyRepository IPropertiesOwner.Properties => Properties;
+        IXDocument3D[] IXDocument.Dependencies => Dependencies;
         IXVersion IXDocument.Version => Version;
+        IXObject IXDocument.DeserializeObject(Stream stream) => DeserializeObject(stream);
 
         protected readonly IXLogger m_Logger;
 
@@ -320,10 +325,10 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         protected abstract bool IsRapidMode { get; }
 
-        private Lazy<ISwFeatureManager> m_FeaturesLazy;
-        private Lazy<ISwSelectionCollection> m_SelectionsLazy;
-        private Lazy<ISwDimensionsCollection> m_DimensionsLazy;
-        private Lazy<ISwCustomPropertiesCollection> m_PropertiesLazy;
+        private readonly Lazy<ISwFeatureManager> m_FeaturesLazy;
+        private readonly Lazy<ISwSelectionCollection> m_SelectionsLazy;
+        private readonly Lazy<ISwDimensionsCollection> m_DimensionsLazy;
+        private readonly Lazy<ISwCustomPropertiesCollection> m_PropertiesLazy;
 
         public ISwFeatureManager Features => m_FeaturesLazy.Value;
         public ISwSelectionCollection Selections => m_SelectionsLazy.Value;
@@ -356,12 +361,14 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         private bool m_AreEventsAttached;
 
+        private bool? m_IsClosed;
+
         internal SwDocument(IModelDoc2 model, SwApplication app, IXLogger logger) 
             : this(model, app, logger, true)
         {
         }
 
-        internal SwDocument(IModelDoc2 model, SwApplication app, IXLogger logger, bool created)
+        internal SwDocument(IModelDoc2 model, SwApplication app, IXLogger logger, bool created) : base(model)
         {
             App = app;
             
@@ -376,7 +383,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             m_FeaturesLazy = new Lazy<ISwFeatureManager>(() => new SwFeatureManager(this));
             m_SelectionsLazy = new Lazy<ISwSelectionCollection>(() => new SwSelectionCollection(this));
             m_DimensionsLazy = new Lazy<ISwDimensionsCollection>(() => new SwDocumentDimensionsCollection(this));
-            m_PropertiesLazy = new Lazy<ISwCustomPropertiesCollection>(() => new SwCustomPropertiesCollection(this, ""));
+            m_PropertiesLazy = new Lazy<ISwCustomPropertiesCollection>(() => new SwFileCustomPropertiesCollection(this));
 
             m_StreamReadAvailableHandler = new StreamReadAvailableEventsHandler(this);
             m_StreamWriteAvailableHandler = new StreamWriteAvailableEventsHandler(this);
@@ -392,6 +399,8 @@ namespace Xarial.XCad.SolidWorks.Documents
                 AttachEvents();
             }
         }
+
+        public override object Dispatch => Model;
 
         private void OnCreating(IModelDoc2 model)
         {
@@ -454,7 +463,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         internal protected abstract swDocumentTypes_e? DocumentType { get; }
 
-        public ISwDocument[] Dependencies 
+        public ISwDocument3D[] Dependencies 
         {
             get 
             {
@@ -464,16 +473,16 @@ namespace Xarial.XCad.SolidWorks.Documents
 
                     if (IsCommitted && !Model.IsOpenedViewOnly())
                     {
-                        depsData = Model.Extension.GetDependencies(true, true, false, true, true) as string[];
+                        depsData = Model.Extension.GetDependencies(false, true, false, true, true) as string[];
                     }
                     else 
                     {
-                        depsData = App.Sw.GetDocumentDependencies2(Path, true, true, false) as string[];
+                        depsData = App.Sw.GetDocumentDependencies2(Path, false, true, false) as string[];
                     }
 
                     if (depsData?.Any() == true)
                     {
-                        var deps = new ISwDocument[depsData.Length / 2];
+                        var deps = new ISwDocument3D[depsData.Length / 2];
 
                         for (int i = 1; i < depsData.Length; i += 2) 
                         {
@@ -481,17 +490,17 @@ namespace Xarial.XCad.SolidWorks.Documents
 
                             if (!((SwDocumentCollection)App.Documents).TryFindExistingDocumentByPath(path, out SwDocument refDoc))
                             {
-                                refDoc = (SwDocument)((SwDocumentCollection)App.Documents).PreCreateFromPath(path);
+                                refDoc = (SwDocument3D)((SwDocumentCollection)App.Documents).PreCreateFromPath(path);
                             }
 
-                            deps[(i - 1) / 2] = refDoc;
+                            deps[(i - 1) / 2] = (ISwDocument3D)refDoc;
                         }
 
                         return deps;
                     }
                     else 
                     {
-                        return new ISwDocument[0];
+                        return new ISwDocument3D[0];
                     }
                 }
                 else 
@@ -529,23 +538,47 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
+        public override bool Equals(IXObject other)
+        {
+            if (!object.ReferenceEquals(this, other) 
+                && other is ISwDocument 
+                && !IsCommitted && !((ISwDocument)other).IsCommitted)
+            {
+                return !string.IsNullOrEmpty(Path) && !string.IsNullOrEmpty(((ISwDocument)other).Path)
+                    && string.Equals(Path, ((ISwDocument)other).Path, StringComparison.CurrentCultureIgnoreCase);
+            }
+            else
+            {
+                return base.Equals(other);
+            }
+        }
+
         public bool IsAlive 
         {
             get 
             {
-                var model = Model;
-
-                try
+                if (m_IsClosed.HasValue)
                 {
-                    var title = model.GetTitle();
-                    return true;
+                    return !m_IsClosed.Value;
                 }
-                catch 
+                else
                 {
-                    return false;
+                    var model = Model;
+
+                    try
+                    {
+                        var title = model.GetTitle();
+                        return true;
+                    }
+                    catch
+                    {
+                        return false;
+                    }
                 }
             }
         }
+
+        public int UpdateStamp => Model.GetUpdateStamp();
 
         private SwVersion_e GetVersion(string[] versHistory)
         {
@@ -772,6 +805,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         public void Close()
         {
             App.Sw.CloseDoc(Model.GetTitle());
+            m_IsClosed = true;
         }
 
         public void Dispose()
@@ -858,7 +892,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
             if (destroyType == (int)swDestroyNotifyType_e.swDestroyNotifyDestroy)
             {
-                m_Logger.Log($"Destroying '{Model.GetTitle()}' document");
+                m_Logger.Log($"Destroying '{Model.GetTitle()}' document", XCad.Base.Enums.LoggerMessageSeverity_e.Debug);
 
                 try
                 {
@@ -875,7 +909,8 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
             else if (destroyType == (int)swDestroyNotifyType_e.swDestroyNotifyHidden)
             {
-                m_Logger.Log($"Hiding '{Model.GetTitle()}' document");
+                Hidden?.Invoke(this);
+                m_Logger.Log($"Hiding '{Model.GetTitle()}' document", XCad.Base.Enums.LoggerMessageSeverity_e.Debug);
             }
             else
             {
@@ -886,14 +921,10 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
 
         public Stream OpenStream(string name, AccessType_e access)
-        {
-            return new Sw3rdPartyStream(Model, name, access);
-        }
+            => new Sw3rdPartyStream(Model, name, access);
 
         public IStorage OpenStorage(string name, AccessType_e access)
-        {
-            return new Sw3rdPartyStorage(Model, name, access);
-        }
+            => new Sw3rdPartyStorage(Model, name, access);
 
         public virtual void Commit(CancellationToken cancellationToken)
         {
@@ -1026,6 +1057,51 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
 
             return string.Join("; ", errors);
+        }
+
+        public ISwObject DeserializeObject(Stream stream)
+        {
+            stream.Seek(0, SeekOrigin.Begin);
+
+            byte[] buffer;
+
+            using (var memoryStream = new MemoryStream())
+            {
+                stream.CopyTo(memoryStream);
+                buffer = memoryStream.ToArray();
+            }
+
+            var obj = Model.Extension.GetObjectByPersistReference3(buffer, out int err);
+
+            if (obj != null)
+            {
+                return SwObjectFactory.FromDispatch<SwObject>(obj, this);
+            }
+            else 
+            {
+                string reason;
+
+                switch ((swPersistReferencedObjectStates_e)err) 
+                {
+                    case swPersistReferencedObjectStates_e.swPersistReferencedObject_Deleted:
+                        reason = "Object is deleted";
+                        break;
+
+                    case swPersistReferencedObjectStates_e.swPersistReferencedObject_Invalid:
+                        reason = "Object is invalid";
+                        break;
+
+                    case swPersistReferencedObjectStates_e.swPersistReferencedObject_Suppressed:
+                        reason = "Object is suppressed";
+                        break;
+
+                    default:
+                        reason = "Unknown reason";
+                        break;
+                }
+
+                throw new ObjectSerializationException($"Failed to serialize object: {reason}", err);
+            }
         }
     }
 

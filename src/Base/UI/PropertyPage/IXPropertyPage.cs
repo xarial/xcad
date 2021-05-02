@@ -35,5 +35,11 @@ namespace Xarial.XCad.UI.PropertyPage
         /// </summary>
         /// <param name="model">Pointer to an instance of the bound data model</param>
         void Show(TDataModel model);
+
+        /// <summary>
+        /// Closes the current page
+        /// </summary>
+        /// <param name="cancel">Cancel the current page or OK</param>
+        void Close(bool cancel);
     }
 }

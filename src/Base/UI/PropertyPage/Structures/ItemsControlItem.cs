@@ -15,5 +15,15 @@ namespace Xarial.XCad.UI.PropertyPage.Structures
     {
         public string DisplayName { get; set; }
         public object Value { get; set; }
+
+        public ItemsControlItem() 
+        {
+        }
+
+        public ItemsControlItem(object item)
+        {
+            Value = item;
+            DisplayName = item?.ToString();
+        }
     }
 }

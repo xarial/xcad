@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Geometry.Wires;
+using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Geometry.Curves;
 using Xarial.XCad.Utils.Reflection;
 
@@ -50,7 +51,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         public ISwCurve Definition => FromDispatch<SwCurve>(Edge.IGetCurve());
 
-        internal SwEdge(IEdge edge) : base(edge as IEntity)
+        internal SwEdge(IEdge edge, ISwDocument doc) : base(edge as IEntity, doc)
         {
             Edge = edge;
         }
@@ -65,7 +66,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
     {
         IXArc IXCircularEdge.Definition => Definition;
 
-        internal SwCircularEdge(IEdge edge) : base(edge)
+        internal SwCircularEdge(IEdge edge, ISwDocument doc) : base(edge, doc)
         {
         }
 
@@ -81,7 +82,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
     {
         IXLine IXLinearEdge.Definition => Definition;
 
-        internal SwLinearEdge(IEdge edge) : base(edge)
+        internal SwLinearEdge(IEdge edge, ISwDocument doc) : base(edge, doc)
         {
         }
 

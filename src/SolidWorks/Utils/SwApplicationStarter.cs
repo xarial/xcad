@@ -32,7 +32,7 @@ namespace Xarial.XCad.SolidWorks.Utils
             m_Version = version;
         }
 
-        internal ISldWorks Start(CancellationToken cancellationToken) 
+        internal ISldWorks Start(Action<Process> startHandler, CancellationToken cancellationToken) 
         {
             SwVersion_e? vers = null;
 
@@ -70,6 +70,7 @@ namespace Xarial.XCad.SolidWorks.Utils
             }
 
             var prc = Process.Start(prcInfo);
+            startHandler.Invoke(prc);
 
             try
             {

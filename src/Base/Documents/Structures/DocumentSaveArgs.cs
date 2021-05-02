@@ -11,9 +11,19 @@ using System.Text;
 
 namespace Xarial.XCad.Documents.Structures
 {
+    /// <summary>
+    /// Argument passed with <see cref="IXDocument.Saving"/> event
+    /// </summary>
     public class DocumentSaveArgs
     {
+        /// <summary>
+        /// Overrides the save as file name
+        /// </summary>
         public string FileName { get; set; }
+
+        /// <summary>
+        /// Specifies if saving operation needs to be cancelled
+        /// </summary>
         public bool Cancel { get; set; }
     }
 }

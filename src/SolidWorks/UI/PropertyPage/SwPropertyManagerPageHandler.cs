@@ -9,6 +9,7 @@ using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
 using SolidWorks.Interop.swpublished;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
 using Xarial.XCad.UI.PropertyPage.Structures;
@@ -22,38 +23,28 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
     [ComVisible(true)]
     public abstract class SwPropertyManagerPageHandler : IPropertyManagerPage2Handler9
     {
-        internal delegate void SubmitSelectionDelegate(int Id, object Selection, int SelType, ref string ItemText, ref bool res);
+        internal delegate void SubmitSelectionDelegate(int id, object selection, int selType, ref string itemText, ref bool res);
 
         internal delegate void PropertyManagerPageClosingDelegate(swPropertyManagerPageCloseReasons_e reason, PageClosingArg arg);
 
         internal delegate void PropertyManagerPageClosedDelegate(swPropertyManagerPageCloseReasons_e reason);
 
         internal event Action Opening;
+        internal event Action Opened;
 
         internal event Action<int, string> TextChanged;
-
         internal event Action<int, double> NumberChanged;
-
         internal event Action<int, bool> CheckChanged;
-
         internal event Action<int, int> SelectionChanged;
-
         internal event Action<int, int> ComboBoxChanged;
-
+        internal event Action<int, int> ListBoxChanged;
         internal event Action<int> OptionChecked;
-
         internal event Action<int> ButtonPressed;
-
         internal event SubmitSelectionDelegate SubmitSelection;
-
         internal event Action HelpRequested;
-
         internal event Action WhatsNewRequested;
-
         internal event Action<int, bool> CustomControlCreated;
-
-        /// <inheritdoc/>
-        internal event Action DataChanged;
+        internal event Action<int, bool> GroupChecked;
 
         /// <inheritdoc/>
         internal event PropertyManagerPageClosingDelegate Closing;
@@ -65,9 +56,34 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
 
         private ISldWorks m_App;
 
+        private readonly List<int> m_SuspendedSelIds;
+
+        public SwPropertyManagerPageHandler() 
+        {
+            m_SuspendedSelIds = new List<int>();
+        }
+
         internal void Init(ISldWorks app)
         {
             m_App = app;
+        }
+
+        internal void SuspendSelectionRaise(int selBoxId, bool suspend) 
+        {
+            if (suspend)
+            {
+                if (!m_SuspendedSelIds.Contains(selBoxId))
+                {
+                    m_SuspendedSelIds.Add(selBoxId);
+                }
+            }
+            else 
+            {
+                if (m_SuspendedSelIds.Contains(selBoxId))
+                {
+                    m_SuspendedSelIds.Remove(selBoxId);
+                }
+            }
         }
 
         [Browsable(false)]
@@ -79,9 +95,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         public void AfterClose()
-        {
-            Closed?.Invoke(m_CloseReason);
-        }
+            => Closed?.Invoke(m_CloseReason);
 
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]
@@ -94,18 +108,12 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         public void OnButtonPress(int Id)
-        {
-            ButtonPressed?.Invoke(Id);
-            DataChanged?.Invoke();
-        }
+            => ButtonPressed?.Invoke(Id);
 
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         public void OnCheckboxCheck(int Id, bool Checked)
-        {
-            CheckChanged?.Invoke(Id, Checked);
-            DataChanged?.Invoke();
-        }
+            => CheckChanged?.Invoke(Id, Checked);
 
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]
@@ -133,9 +141,10 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
         }
 
         internal void InvokeOpening()
-        {
-            Opening?.Invoke();
-        }
+            => Opening?.Invoke();
+
+        internal void InvokeOpened()
+            => Opened?.Invoke();
 
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]
@@ -146,10 +155,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         public void OnComboboxSelectionChanged(int Id, int Item)
-        {
-            ComboBoxChanged?.Invoke(Id, Item);
-            DataChanged?.Invoke();
-        }
+            => ComboBoxChanged?.Invoke(Id, Item);
 
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]
@@ -160,8 +166,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         public void OnGroupCheck(int Id, bool Checked)
-        {
-        }
+            => GroupChecked?.Invoke(Id, Checked);
 
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]
@@ -193,8 +198,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         public void OnListboxSelectionChanged(int Id, int Item)
-        {
-        }
+            => ListBoxChanged?.Invoke(Id, Item);
 
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]
@@ -212,10 +216,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         public void OnNumberboxChanged(int Id, double Value)
-        {
-            NumberChanged?.Invoke(Id, Value);
-            DataChanged?.Invoke();
-        }
+            => NumberChanged?.Invoke(Id, Value);
 
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]
@@ -226,10 +227,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         public void OnOptionCheck(int Id)
-        {
-            OptionChecked?.Invoke(Id);
-            DataChanged?.Invoke();
-        }
+            => OptionChecked?.Invoke(Id);
 
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]
@@ -285,8 +283,10 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
         [EditorBrowsable(EditorBrowsableState.Never)]
         public void OnSelectionboxListChanged(int Id, int Count)
         {
-            SelectionChanged?.Invoke(Id, Count);
-            DataChanged?.Invoke();
+            if (!m_SuspendedSelIds.Contains(Id))
+            {
+                SelectionChanged?.Invoke(Id, Count);
+            }
         }
 
         [Browsable(false)]
@@ -322,10 +322,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         public void OnTextboxChanged(int Id, string Text)
-        {
-            TextChanged?.Invoke(Id, Text);
-            DataChanged?.Invoke();
-        }
+            => TextChanged?.Invoke(Id, Text);
 
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]
@@ -336,9 +333,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         public void OnWhatsNew()
-        {
-            WhatsNewRequested?.Invoke();
-        }
+            => WhatsNewRequested?.Invoke();
 
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]

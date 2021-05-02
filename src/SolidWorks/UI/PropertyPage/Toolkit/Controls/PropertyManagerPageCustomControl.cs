@@ -6,7 +6,9 @@
 //*********************************************************************
 
 using SolidWorks.Interop.sldworks;
+using SolidWorks.Interop.swconst;
 using System;
+using Xarial.XCad.SolidWorks.UI.Toolkit;
 using Xarial.XCad.UI.PropertyPage;
 using Xarial.XCad.Utils.PageBuilder.PageElements;
 
@@ -17,38 +19,48 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
     {
         protected override event ControlValueChangedDelegate<object> ValueChanged;
 
-        private readonly Func<IXCustomControl> m_ControlFact;
         private IXCustomControl m_CurrentControl;
 
-        internal PropertyManagerPageCustomControl(int id, object tag,
+        private readonly PropertyPageControlCreator<object> m_Creator;
+
+        private readonly Type m_CtrlType;
+
+        internal PropertyManagerPageCustomControl(Type ctrlType, int id, object tag,
             IPropertyManagerPageWindowFromHandle wndFromHandler,
-            SwPropertyManagerPageHandler handler, Func<IXCustomControl> controlFact) : base(wndFromHandler, id, tag, handler)
+            SwPropertyManagerPageHandler handler,
+            PropertyPageControlCreator<object> creator) : base(wndFromHandler, id, tag, handler)
         {
+            m_CtrlType = ctrlType;
             m_Handler.CustomControlCreated += OnCustomControlCreated;
             m_Handler.Opening += OnPageOpening;
-            m_ControlFact = controlFact;
+            m_Handler.Closed += OnPageClosed;
+            m_Creator = creator;
         }
 
         private void OnPageOpening()
         {
             if (m_CurrentControl != null)
             {
-                m_CurrentControl.DataContextChanged -= OnDataContextChanged;
+                m_CurrentControl.ValueChanged -= OnDataContextChanged;
             }
-            
-            m_CurrentControl = m_ControlFact.Invoke();
-            m_CurrentControl.DataContextChanged += OnDataContextChanged;
+
+            m_CurrentControl = m_Creator.CreateControl(m_CtrlType, out _);
+            m_CurrentControl.ValueChanged += OnDataContextChanged;
+        }
+
+        private void OnPageClosed(swPropertyManagerPageCloseReasons_e reason)
+        {
+            if (m_CurrentControl is IDisposable) 
+            {
+                (m_CurrentControl as IDisposable).Dispose();
+            }
         }
 
         protected override object GetSpecificValue()
-        {
-            return m_CurrentControl.DataContext;
-        }
+            => m_CurrentControl.Value;
 
         protected override void SetSpecificValue(object value)
-        {
-            m_CurrentControl.DataContext = value;
-        }
+            => m_CurrentControl.Value = value;
 
         private void OnCustomControlCreated(int id, bool status)
         {

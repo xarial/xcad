@@ -22,6 +22,8 @@ namespace Xarial.XCad.SolidWorks.Geometry.Surfaces
     {
         public ISurface Surface { get; }
 
+        public override object Dispatch => Surface;
+
         internal SwSurface(ISurface surface) : base(surface)
         {
             Surface = surface;

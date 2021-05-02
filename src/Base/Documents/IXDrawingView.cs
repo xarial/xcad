@@ -19,6 +19,16 @@ namespace Xarial.XCad.Documents
     public interface IXDrawingView : IXSelObject, IXObjectContainer, IXTransaction
     {
         /// <summary>
+        /// Contains the document referenced by this drawing view
+        /// </summary>
+        IXDocument3D Document { get; }
+
+        /// <summary>
+        /// Contains the configuration this drawing view is created from
+        /// </summary>
+        IXConfiguration ReferencedConfiguration { get; }
+
+        /// <summary>
         /// Name of this drawing view
         /// </summary>
         string Name { get; set; }

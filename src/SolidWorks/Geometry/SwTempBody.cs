@@ -85,6 +85,8 @@ namespace Xarial.XCad.SolidWorks.Geometry
         internal SwTempSolidBody(IBody2 body) : base(body)
         {
         }
+
+        public double Volume => this.GetVolume();
     }
 
     internal class SwTempSheetBody : SwTempBody, ISwTempSheetBody

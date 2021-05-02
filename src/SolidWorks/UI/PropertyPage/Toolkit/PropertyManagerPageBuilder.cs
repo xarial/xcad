@@ -16,6 +16,7 @@ using Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors;
 using Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls;
 using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.UI.PropertyPage.Attributes;
+using Xarial.XCad.UI.PropertyPage.Base;
 using Xarial.XCad.Utils.Diagnostics;
 using Xarial.XCad.Utils.PageBuilder;
 using Xarial.XCad.Utils.PageBuilder.Base;
@@ -28,6 +29,10 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit
     {
         private class PmpTypeDataBinder : TypeDataBinder
         {
+            public PmpTypeDataBinder(IXLogger logger) : base(logger)
+            {
+            }
+
             internal event Action<IEnumerable<IBinding>> BeforeControlsDataLoad;
 
             internal event Func<IAttributeSet, IAttributeSet> GetPageAttributeSet;
@@ -48,14 +53,13 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit
         private class PmpAttributeSet : IAttributeSet
         {
             private readonly IAttributeSet m_BaseAttSet;
-            private readonly string m_Title;
 
-            public Type BoundType => m_BaseAttSet.BoundType;
+            public Type ContextType => m_BaseAttSet.ContextType;
             public string Description => m_BaseAttSet.Description;
             public int Id => m_BaseAttSet.Id;
-            public string Name => m_Title;
+            public string Name { get; }
             public object Tag => m_BaseAttSet.Tag;
-            public MemberInfo BoundMemberInfo => m_BaseAttSet.BoundMemberInfo;
+            public IControlDescriptor ControlDescriptor => m_BaseAttSet.ControlDescriptor;
 
             public void Add<TAtt>(TAtt att) where TAtt : XCad.UI.PropertyPage.Base.IAttribute
             {
@@ -88,13 +92,13 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit
                 }
 
                 if (string.IsNullOrEmpty(baseAttSet.Name)
-                    || baseAttSet.Name == BoundType.Name)
+                    || baseAttSet.Name == ContextType.Name)
                 {
-                    m_Title = pageSpec.Title;
+                    Name = pageSpec.Title;
                 }
                 else
                 {
-                    m_Title = baseAttSet.Name;
+                    Name = baseAttSet.Name;
                 }
             }
         }
@@ -104,14 +108,15 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit
         private readonly IPageSpec m_PageSpec;
 
         internal PropertyManagerPageBuilder(ISwApplication app, IIconsCreator iconsConv, SwPropertyManagerPageHandler handler, IPageSpec pageSpec, IXLogger logger)
-            : this(app, new PmpTypeDataBinder(),
+            : this(app, new PmpTypeDataBinder(logger),
                   new PropertyManagerPageConstructor(app.Sw, iconsConv, handler),
                   new PropertyManagerPageGroupControlConstructor(),
                   new PropertyManagerPageTextBoxControlConstructor(app.Sw, iconsConv),
                   new PropertyManagerPageNumberBoxConstructor(app.Sw, iconsConv),
                   new PropertyManagerPageCheckBoxControlConstructor(app.Sw, iconsConv),
-                  new PropertyManagerPageEnumComboBoxControlConstructor(app.Sw, iconsConv),
+                  new PropertyManagerPageEnumComboBoxControlConstructor(app, iconsConv),
                   new PropertyManagerPageCustomItemsComboBoxControlConstructor(app, iconsConv),
+                  new PropertyManagerPageListBoxControlConstructor(app, iconsConv),
                   new PropertyManagerPageSelectionBoxControlConstructor(app, iconsConv, logger),
                   new PropertyManagerPageOptionBoxConstructor(app.Sw, iconsConv),
                   new PropertyManagerPageButtonControlConstructor(app.Sw, iconsConv),

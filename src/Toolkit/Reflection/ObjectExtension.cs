@@ -13,7 +13,14 @@ namespace Xarial.XCad.Utils.Reflection
     {
         internal static TVal Cast<TVal>(this object obj)
         {
-            return (TVal)obj.Cast(typeof(TVal));
+            if (obj != null)
+            {
+                return (TVal)obj.Cast(typeof(TVal));
+            }
+            else 
+            {
+                return default;
+            }
         }
 
         internal static object Cast(this object value, Type type)

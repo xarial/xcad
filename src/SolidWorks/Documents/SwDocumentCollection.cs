@@ -19,6 +19,7 @@ using Xarial.XCad.Documents.Delegates;
 using Xarial.XCad.Documents.Exceptions;
 using Xarial.XCad.Documents.Services;
 using Xarial.XCad.Documents.Structures;
+using Xarial.XCad.Exceptions;
 using Xarial.XCad.SolidWorks.Documents.Services;
 using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.Toolkit.Services;
@@ -96,7 +97,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                 }
                 else 
                 {
-                    throw new Exception("Failed to find the document by name");
+                    throw new EntityNotFoundException(name);
                 }
             }
         }
@@ -189,7 +190,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
             else
             {
-                m_Logger.Log($"Skipping dispatching. {model.GetTitle()} already registered");
+                m_Logger.Log($"Skipping dispatching. {model.GetTitle()} already registered", XCad.Base.Enums.LoggerMessageSeverity_e.Debug);
             }
         }
 
@@ -216,7 +217,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                 }
                 else 
                 {
-                    m_Logger.Log($"Conflict. {doc.Model.GetTitle()} already dispatched");
+                    m_Logger.Log($"Conflict. {doc.Model.GetTitle()} already dispatched", XCad.Base.Enums.LoggerMessageSeverity_e.Warning);
                     Debug.Assert(false, "Document already dispatched");
                 }
             }
@@ -259,12 +260,13 @@ namespace Xarial.XCad.SolidWorks.Documents
             doc.Dispose();
         }
 
-        public void RegisterHandler<THandler>() where THandler : IDocumentHandler, new()
+        public void RegisterHandler<THandler>(Func<THandler> handlerFact) 
+            where THandler : IDocumentHandler
         {
-            m_DocsHandler.RegisterHandler<THandler>();
+            m_DocsHandler.RegisterHandler<THandler>(handlerFact);
         }
 
-        public THandler GetHandler<THandler>(IXDocument doc) where THandler : IDocumentHandler, new()
+        public THandler GetHandler<THandler>(IXDocument doc) where THandler : IDocumentHandler
         {
             return m_DocsHandler.GetHandler<THandler>(doc);
         }

@@ -125,5 +125,73 @@ namespace SolidWorks.Tests.Integration
             Assert.AreEqual(1, sheetActiveCount);
             Assert.AreEqual("MySheet", sheetName);
         }
+
+        [Test]
+        public void DrawingViewIterateTest() 
+        {
+            string[] sheet1Views;
+            string[] sheet2Views;
+
+            using (var doc = OpenDataDocument("Drawing1\\Drawing1.SLDDRW"))
+            {
+                var sheets = (m_App.Documents.Active as ISwDrawing).Sheets;
+                sheet1Views = sheets["Sheet1"].DrawingViews.Select(v => v.Name).ToArray();
+                sheet2Views = sheets["Sheet2"].DrawingViews.Select(v => v.Name).ToArray();
+            }
+
+            CollectionAssert.AreEqual(sheet1Views, new string[] { "Drawing View1", "Drawing View2", "Drawing View3" });
+            CollectionAssert.AreEqual(sheet2Views, new string[] { "Drawing View4", "Drawing View5" });
+        }
+
+        [Test]
+        public void DrawingViewDocumentTest()
+        {
+            string view1DocPath;
+            string view2DocPath;
+            string view3DocPath;
+            string view4DocPath;
+            string view5DocPath;
+
+            string view1Conf;
+            string view2Conf;
+            string view3Conf;
+            string view4Conf;
+            string view5Conf;
+
+            using (var doc = OpenDataDocument("Drawing1\\Drawing1.SLDDRW"))
+            {
+                var sheets = (m_App.Documents.Active as ISwDrawing).Sheets;
+                
+                var v1 = sheets["Sheet1"].DrawingViews["Drawing View1"];
+                var v2 = sheets["Sheet1"].DrawingViews["Drawing View2"];
+                var v3 = sheets["Sheet1"].DrawingViews["Drawing View3"];
+                var v4 = sheets["Sheet2"].DrawingViews["Drawing View4"];
+                var v5 = sheets["Sheet2"].DrawingViews["Drawing View5"];
+
+                view1DocPath = v1.Document.Path;
+                view2DocPath = v2.Document.Path;
+                view3DocPath = v3.Document.Path;
+                view4DocPath = v4.Document.Path;
+                view5DocPath = v5.Document != null ? v5.Document.Path : "";
+
+                view1Conf = v1.ReferencedConfiguration.Name;
+                view2Conf = v2.ReferencedConfiguration.Name;
+                view3Conf = v3.ReferencedConfiguration.Name;
+                view4Conf = v4.ReferencedConfiguration.Name;
+                view5Conf = v5.ReferencedConfiguration != null ? v5.ReferencedConfiguration.Name : "";
+            }
+
+            Assert.That(string.Equals(view1DocPath, GetFilePath("Drawing1\\Part1.sldprt"), StringComparison.CurrentCultureIgnoreCase));
+            Assert.That(string.Equals(view2DocPath, GetFilePath("Drawing1\\Part1.sldprt"), StringComparison.CurrentCultureIgnoreCase));
+            Assert.That(string.Equals(view3DocPath, GetFilePath("Drawing1\\Part1.sldprt"), StringComparison.CurrentCultureIgnoreCase));
+            Assert.That(string.Equals(view4DocPath, GetFilePath("Drawing1\\Part2.sldprt"), StringComparison.CurrentCultureIgnoreCase));
+            Assert.That(string.IsNullOrEmpty(view5DocPath));
+
+            Assert.That(string.Equals(view1Conf, "Conf1", StringComparison.CurrentCultureIgnoreCase));
+            Assert.That(string.Equals(view2Conf, "Conf1", StringComparison.CurrentCultureIgnoreCase));
+            Assert.That(string.Equals(view3Conf, "Default", StringComparison.CurrentCultureIgnoreCase));
+            Assert.That(string.Equals(view4Conf, "Default", StringComparison.CurrentCultureIgnoreCase));
+            Assert.That(string.IsNullOrEmpty(view5Conf));
+        }
     }
 }

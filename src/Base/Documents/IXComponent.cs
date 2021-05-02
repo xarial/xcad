@@ -31,6 +31,12 @@ namespace Xarial.XCad.Documents
         string Path { get; }
 
         /// <summary>
+        /// Returns the referenced configuration of this component
+        /// </summary>
+        /// <remarks>For unloaded or rapid components this configuration may be uncommitted</remarks>
+        IXConfiguration ReferencedConfiguration { get; }
+
+        /// <summary>
         /// State of this component
         /// </summary>
         ComponentState_e State { get; }

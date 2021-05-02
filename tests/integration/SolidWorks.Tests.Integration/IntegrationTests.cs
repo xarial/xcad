@@ -88,7 +88,7 @@ namespace SolidWorks.Tests.Integration
 
         protected string GetFilePath(string name)
         {
-            var filePath = "";
+            string filePath;
 
             if (Path.IsPathRooted(name)) 
             {
@@ -102,13 +102,15 @@ namespace SolidWorks.Tests.Integration
             return filePath;
         }
 
-        protected IDisposable OpenDataDocument(string name, bool readOnly = true) 
+        protected IDisposable OpenDataDocument(string name, bool readOnly = true, Action<IDocumentSpecification> specEditor = null) 
         {
             var filePath = GetFilePath(name);
 
             var spec = (IDocumentSpecification)m_SwApp.GetOpenDocSpec(filePath);
             spec.ReadOnly = readOnly;
             spec.LightWeight = false;
+            specEditor?.Invoke(spec);
+
             var model = m_SwApp.OpenDoc7(spec);
 
             if (model != null)

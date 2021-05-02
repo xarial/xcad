@@ -12,8 +12,15 @@ using Xarial.XCad.Base;
 
 namespace Xarial.XCad.Data
 {
+    /// <summary>
+    /// Represents the collection of properties
+    /// </summary>
     public interface IXPropertyRepository : IXRepository<IXProperty>
     {
-        IXProperty GetOrPreCreate(string name);
+        /// <summary>
+        /// Pre-creates new property
+        /// </summary>
+        /// <returns>Property template</returns>
+        IXProperty PreCreate();
     }
 }

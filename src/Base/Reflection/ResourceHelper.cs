@@ -39,7 +39,7 @@ namespace Xarial.XCad.Reflection
             {
                 if (val is byte[])
                 {
-                    val = FromBytes(val as byte[]);
+                    val = ImageFromBytes(val as byte[]);
                 }
                 else if (val is string) 
                 {
@@ -51,7 +51,7 @@ namespace Xarial.XCad.Reflection
                         }
 
                         memStr.Seek(0, SeekOrigin.Begin);
-                        val = FromBytes(memStr.ToArray());
+                        val = ImageFromBytes(memStr.ToArray());
                     }
                 }
                 else if (val.GetType().FullName == "System.Drawing.Bitmap") //need some better way to handle this case
@@ -86,7 +86,7 @@ namespace Xarial.XCad.Reflection
                         m_ImageSaveMethod.Invoke(val, new object[] { stream, m_ImageFormatPng });
 
                         stream.Seek(0, SeekOrigin.Begin);
-                        val = FromBytes(stream.ToArray());
+                        val = ImageFromBytes(stream.ToArray());
                     }
                 }
             }
@@ -94,10 +94,8 @@ namespace Xarial.XCad.Reflection
             return (T)val;
         }
 
-        public static IXImage FromBytes(byte[] buffer)
-        {
-            return new XImage(buffer);
-        }
+        private static IXImage ImageFromBytes(byte[] buffer)
+            => new BaseImage(buffer);
 
         private static object GetValue(object obj, Type type, string[] prpsPath)
         {

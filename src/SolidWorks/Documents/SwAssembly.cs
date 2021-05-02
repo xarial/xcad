@@ -20,23 +20,27 @@ namespace Xarial.XCad.SolidWorks.Documents
     public interface ISwAssembly : ISwDocument3D, IXAssembly
     {
         IAssemblyDoc Assembly { get; }
+        new ISwAssemblyConfigurationCollection Configurations { get; }
     }
 
     internal class SwAssembly : SwDocument3D, ISwAssembly
     {
         public IAssemblyDoc Assembly => Model as IAssemblyDoc;
 
-        public IXComponentRepository Components { get; }
-        
+        private readonly Lazy<SwAssemblyConfigurationCollection> m_LazyConfigurations;
+
         internal SwAssembly(IAssemblyDoc assembly, SwApplication app, IXLogger logger, bool isCreated)
             : base((IModelDoc2)assembly, app, logger, isCreated)
         {
-            Components = new SwAssemblyComponentCollection(this);
+            m_LazyConfigurations = new Lazy<SwAssemblyConfigurationCollection>(() => new SwAssemblyConfigurationCollection(app.Sw, this));
         }
 
         internal protected override swDocumentTypes_e? DocumentType => swDocumentTypes_e.swDocASSEMBLY;
 
         protected override bool IsRapidMode => Assembly.GetLightWeightComponentCount() > 0;
+
+        ISwAssemblyConfigurationCollection ISwAssembly.Configurations => m_LazyConfigurations.Value;
+        IXAssemblyConfigurationRepository IXAssembly.Configurations => (this as ISwAssembly).Configurations;
 
         public override Box3D CalculateBoundingBox()
         {
@@ -52,13 +56,19 @@ namespace Xarial.XCad.SolidWorks.Documents
     {
         private readonly ISwAssembly m_Assm;
 
-        public SwAssemblyComponentCollection(ISwAssembly assm) : base(assm)
+        private readonly IConfiguration m_Conf;
+
+        public SwAssemblyComponentCollection(ISwAssembly assm, IConfiguration conf) : base(assm)
         {
             m_Assm = assm;
+            m_Conf = conf;
         }
 
+        protected override int GetTotalChildrenCount()
+            => m_Assm.Assembly.GetComponentCount(false);
+        
         protected override IEnumerable<IComponent2> GetChildren()
-            => (m_Assm.Assembly.GetComponents(true) as object[])?.Cast<IComponent2>();
+            => (m_Conf.GetRootComponent3(m_Assm.Model.GetActiveConfiguration() != m_Conf).GetChildren() as object[])?.Cast<IComponent2>();
 
         protected override int GetChildrenCount() 
             => m_Assm.Assembly.GetComponentCount(true);

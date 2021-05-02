@@ -5,6 +5,7 @@
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
+using System.Collections.Generic;
 using Xarial.XCad.Base;
 using Xarial.XCad.Geometry.Primitives;
 
@@ -45,17 +46,40 @@ namespace Xarial.XCad.Geometry
         /// <param name="other">Body to get common with</param>
         /// <returns>Resulting body</returns>
         IXBody[] Common(IXBody other);
+
+        /// <summary>
+        /// Enumerates all faces of this body
+        /// </summary>
+        IEnumerable<IXFace> Faces { get; }
+
+        /// <summary>
+        /// Enumerates all edges of this body
+        /// </summary>
+        IEnumerable<IXEdge> Edges { get; }
     }
 
+    /// <summary>
+    /// Represents sheet (surface) body
+    /// </summary>
     public interface IXSheetBody : IXBody
     {
     }
 
+    /// <summary>
+    /// Subtype of <see cref="IXSheetBody"/> which is planar
+    /// </summary>
     public interface IXPlanarSheetBody : IXSheetBody, IXRegion 
     {
     }
 
+    /// <summary>
+    /// Represents solid body geometry
+    /// </summary>
     public interface IXSolidBody : IXBody 
     {
+        /// <summary>
+        /// Volume of this solid body
+        /// </summary>
+        double Volume { get; }
     }
 }

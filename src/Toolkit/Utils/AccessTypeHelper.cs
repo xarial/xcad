@@ -10,11 +10,11 @@ using System.Collections.Generic;
 using System.Text;
 using Xarial.XCad.Data.Enums;
 
-namespace Xarial.XCad.SolidWorks.Data.Helpers
+namespace Xarial.XCad.Toolkit.Utils
 {
-    internal static class AccessTypeHelper
+    public static class AccessTypeHelper
     {
-        internal static bool GetIsWriting(AccessType_e type)
+        public static bool GetIsWriting(AccessType_e type)
         {
             switch (type)
             {

@@ -1,13 +1,21 @@
-﻿using System;
+﻿//*********************************************************************
+//xCAD
+//Copyright(C) 2020 Xarial Pty Limited
+//Product URL: https://www.xcad.net
+//License: https://xcad.xarial.com/license/
+//*********************************************************************
+
+using System;
 using System.Collections.Generic;
 using System.Text;
+using Xarial.XCad.Exceptions;
 
 namespace Xarial.XCad.Documents.Exceptions
 {
     /// <summary>
     /// Exception indicates that document failed to save
     /// </summary>
-    public class SaveDocumentFailedException : Exception
+    public class SaveDocumentFailedException : Exception, IUserException
     {
         /// <summary>
         /// CAD specific error code

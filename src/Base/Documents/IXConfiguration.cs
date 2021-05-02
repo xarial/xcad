@@ -7,13 +7,45 @@
 
 using Xarial.XCad.Base;
 using Xarial.XCad.Data;
+using Xarial.XCad.Features;
+using Xarial.XCad.UI;
+using Xarial.XCad.Documents.Enums;
 
 namespace Xarial.XCad.Documents
 {
-    public interface IXConfiguration : IXObject, IXTransaction
+    /// <summary>
+    /// Represents the configiration (variant) of the document
+    /// </summary>
+    public interface IXConfiguration : IXObject, IXTransaction, IPropertiesOwner
     {
-        string Name { get; }
+        /// <summary>
+        /// BOM quantity value
+        /// </summary>
+        double Quantity { get; }
 
-        IXPropertyRepository Properties { get; }
+        /// <summary>
+        /// Name of the configuration
+        /// </summary>
+        string Name { get; set; }
+
+        /// <summary>
+        /// Returns part number of this configuration
+        /// </summary>
+        string PartNumber { get; }
+
+        /// <summary>
+        /// Options for displaying this configuration in BOM
+        /// </summary>
+        BomChildrenSolving_e BomChildrenSolving { get; }
+
+        /// <summary>
+        /// Cut-list items in this configuration (if available)
+        /// </summary>
+        IXCutListItem[] CutLists { get; }
+
+        /// <summary>
+        /// Preview image of this configuration
+        /// </summary>
+        IXImage Preview { get; }
     }
 }

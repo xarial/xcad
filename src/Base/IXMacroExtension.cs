@@ -12,13 +12,25 @@ using Xarial.XCad.Structures;
 
 namespace Xarial.XCad
 {
+    /// <summary>
+    /// Additional methods of <see cref="IXMacro"/>
+    /// </summary>
     public static class IXMacroExtension
     {
+        /// <summary>
+        /// Run macro with default entry point and default options
+        /// </summary>
+        /// <param name="macro">Macro to run</param>
         public static void Run(this IXMacro macro) 
         {
             Run(macro, MacroRunOptions_e.Default);
         }
 
+        /// <summary>
+        /// Run macro with default entry point and specified options
+        /// </summary>
+        /// <param name="macro">Macro to run</param>
+        /// <param name="opts">macro options</param>
         public static void Run(this IXMacro macro, MacroRunOptions_e opts)
         {
             if (macro.EntryPoints?.Any() == true)
@@ -31,6 +43,11 @@ namespace Xarial.XCad
             }
         }
 
+        /// <summary>
+        /// Run macro with specirfied entry point and default options
+        /// </summary>
+        /// <param name="macro">Macro to run</param>
+        /// <param name="entryPoint">Entry point</param>
         public static void Run(this IXMacro macro, MacroEntryPoint entryPoint)
         {
             macro.Run(entryPoint, MacroRunOptions_e.Default);

@@ -72,6 +72,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
                 {
                     //TODO: check if not colinear
                     //TODO: check if all on the same plane
+                    //TODO: fix if a single curve
 
                     var refVec1 = Boundary[0].EndPoint.Coordinate - Boundary[0].StartPoint.Coordinate;
                     var refVec2 = Boundary[1].EndPoint.Coordinate - Boundary[1].StartPoint.Coordinate;

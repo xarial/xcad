@@ -51,13 +51,13 @@ namespace Xarial.XCad.SolidWorks.Features
         protected override ISketch CreateSketch()
         {
             //TODO: select the plane or face
-            m_ModelDoc.InsertSketch2(true);
-            return m_ModelDoc.SketchManager.ActiveSketch;
+            ModelDoc.InsertSketch2(true);
+            return ModelDoc.SketchManager.ActiveSketch;
         }
 
         protected override void ToggleEditSketch()
         {
-            m_ModelDoc.InsertSketch2(true);
+            ModelDoc.InsertSketch2(true);
         }
     }
 }

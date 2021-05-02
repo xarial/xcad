@@ -8,6 +8,9 @@
 using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
 using System;
+using System.IO;
+using Xarial.XCad.Base;
+using Xarial.XCad.Documents;
 using Xarial.XCad.SolidWorks.Annotations;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Features;
@@ -32,6 +35,10 @@ namespace Xarial.XCad.SolidWorks
     /// <inheritdoc/>
     internal class SwObject : ISwObject
     {
+        protected IModelDoc2 ModelDoc => m_Doc.Model;
+
+        protected readonly ISwDocument m_Doc;
+
         internal static TObj FromDispatch<TObj>(object disp)
             where TObj : ISwObject
         {
@@ -51,41 +58,50 @@ namespace Xarial.XCad.SolidWorks
 
         internal static ISwObject FromDispatch(object disp, ISwDocument doc)
         {
-            return FromDispatch(disp, doc, d => new SwObject(d));
+            return FromDispatch(disp, doc, d => new SwObject(d, doc));
         }
 
         internal static ISwObject FromDispatch(object disp, ISwDocument doc, Func<object, ISwObject> defaultHandler)
         {
+            if (disp is IEntity) 
+            {
+                var safeEnt = (disp as IEntity).GetSafeEntity();
+                if (safeEnt != null) 
+                {
+                    disp = safeEnt;
+                }
+            }
+
             switch (disp)
             {
                 case IEdge edge:
                     var edgeCurve = edge.IGetCurve();
                     if (edgeCurve.IsCircle())
                     {
-                        return new SwCircularEdge(edge);
+                        return new SwCircularEdge(edge, doc);
                     }
                     else if (edgeCurve.IsLine())
                     {
-                        return new SwLinearEdge(edge);
+                        return new SwLinearEdge(edge, doc);
                     }
                     else
                     {
-                        return new SwEdge(edge);
+                        return new SwEdge(edge, doc);
                     }
 
                 case IFace2 face:
                     var faceSurf = face.IGetSurface();
                     if (faceSurf.IsPlane())
                     {
-                        return new SwPlanarFace(face);
+                        return new SwPlanarFace(face, doc);
                     }
                     else if (faceSurf.IsCylinder())
                     {
-                        return new SwCylindricalFace(face);
+                        return new SwCylindricalFace(face, doc);
                     }
                     else
                     {
-                        return new SwFace(face);
+                        return new SwFace(face, doc);
                     }
 
                 case IFeature feat:
@@ -95,6 +111,8 @@ namespace Xarial.XCad.SolidWorks
                             return new SwSketch2D(doc, feat, true);
                         case "3DProfileFeature":
                             return new SwSketch3D(doc, feat, true);
+                        case "CutListFolder":
+                            return new SwCutListItem(doc, feat, true);
                         default:
                             return new SwFeature(doc, feat, true);
                     }
@@ -165,16 +183,26 @@ namespace Xarial.XCad.SolidWorks
                     }
 
                 case ISketchRegion skReg:
-                    return new SwSketchRegion(skReg, doc?.Model);
+                    return new SwSketchRegion(skReg, doc);
 
                 case ISketchPoint skPt:
                     return new SwSketchPoint(doc, skPt, true);
 
                 case IDisplayDimension dispDim:
-                    return new SwDimension(doc.Model, dispDim);
+                    return new SwDimension(doc, dispDim);
 
                 case IConfiguration conf:
-                    return new SwConfiguration((SwDocument)doc, conf);
+                    switch (doc) 
+                    {
+                        case SwAssembly assm:
+                            return new SwAssemblyConfiguration(assm, conf, true);
+
+                        case SwDocument3D doc3D:
+                            return new SwConfiguration(doc3D, conf, true);
+
+                        default:
+                            throw new Exception("Owner document must be 3D document or assembly");
+                    }
 
                 case IComponent2 comp:
                     return new SwComponent(comp, (SwAssembly)doc);
@@ -216,12 +244,39 @@ namespace Xarial.XCad.SolidWorks
 
         public virtual object Dispatch { get; }
 
+        public bool IsAlive 
+        {
+            get 
+            {
+                try
+                {
+                    if (Dispatch != null)
+                    {
+                        if (ModelDoc.Extension.GetPersistReference3(Dispatch) != null)
+                        {
+                            return true;
+                        }
+                    }
+                }
+                catch 
+                {
+                }
+
+                return false;
+            }
+        }
+
         internal SwObject(object dispatch)
         {
             Dispatch = dispatch;
         }
 
-        public virtual bool IsSame(IXObject other)
+        internal SwObject(object dispatch, ISwDocument doc) : this(dispatch)
+        {
+            m_Doc = doc;
+        }
+
+        public virtual bool Equals(IXObject other)
         {
             if (object.ReferenceEquals(this, other)) 
             {
@@ -230,6 +285,16 @@ namespace Xarial.XCad.SolidWorks
 
             if (other is ISwObject)
             {
+                if (this is IXTransaction && !((IXTransaction)this).IsCommitted) 
+                {
+                    return false;
+                }
+
+                if (other is IXTransaction && !((IXTransaction)other).IsCommitted)
+                {
+                    return false;
+                }
+
                 return Dispatch == (other as ISwObject).Dispatch;
             }
             else
@@ -237,5 +302,8 @@ namespace Xarial.XCad.SolidWorks
                 return false;
             }
         }
+
+        public virtual void Serialize(Stream stream) 
+            => throw new NotSupportedException("This object cannot be serialized");
     }
 }

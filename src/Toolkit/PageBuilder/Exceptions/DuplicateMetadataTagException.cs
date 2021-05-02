@@ -9,11 +9,11 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Xarial.XCad.SolidWorks.Exceptions
+namespace Xarial.XCad.Toolkit.PageBuilder.Exceptions
 {
-    public class FilePathResolveFailedException : Exception
+    public class DuplicateMetadataTagException : Exception
     {
-        internal FilePathResolveFailedException(string inputPath) : base($"Failed to resolve file path for {inputPath}")
+        public DuplicateMetadataTagException(object tag) : base($"'{tag?.ToString()}' tag already assigned to metadata") 
         {
         }
     }

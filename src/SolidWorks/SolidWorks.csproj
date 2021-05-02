@@ -11,10 +11,10 @@
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <PackageId>Xarial.XCad.SolidWorks</PackageId>
-    <VersionPrefix>0.6.10</VersionPrefix>
+    <VersionPrefix>0.7.0</VersionPrefix>
     <Authors>Xarial</Authors>
     <Product>xCAD</Product>
-    <Copyright>© 2020 Xarial Pty Limited</Copyright>
+    <Copyright>© 2021 Xarial Pty Limited</Copyright>
     <PackageProjectUrl>https://xcad.net</PackageProjectUrl>
     <AssemblyOriginatorKeyFile></AssemblyOriginatorKeyFile>
     <Company>Xarial Pty Limited</Company>
@@ -62,22 +62,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="..\..\build\Xarial.XCad.SolidWorks.targets">
-      <Pack>True</Pack>
-      <PackagePath>build</PackagePath>
-    </None>
-    <None Include="..\..\build\init.ps1">
-      <Pack>True</Pack>
-      <PackagePath>tools</PackagePath>
-    </None>
-    <None Include="..\..\data\icon.png">
-      <Pack>True</Pack>
-      <PackagePath></PackagePath>
-    </None>
-    <None Include="..\..\LICENSE.md">
-      <Pack>True</Pack>
-      <PackagePath></PackagePath>
-    </None>
+    <None Include="..\..\build\Xarial.XCad.SolidWorks.targets" pack="true" PackagePath="build" />
+    <None Include="..\..\build\solidworks-init.ps1" pack="true" PackagePath="tools\init.ps1" />
+    <None Include="..\..\data\icon.png" pack="true" PackagePath="" />
+    <None Include="..\..\LICENSE.md" pack="true" PackagePath="" />
   </ItemGroup>
 
   <ItemGroup>

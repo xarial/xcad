@@ -34,6 +34,10 @@ using Xarial.XCad.SolidWorks.Services;
 using Xarial.XCad.Services;
 using Xarial.XCad.Enums;
 using Xarial.XCad.Delegates;
+using Xarial.XCad.Base.Attributes;
+using Xarial.XCad.UI;
+using Xarial.XCad.SolidWorks.UI;
+using Xarial.XCad.Reflection;
 
 namespace Xarial.XCad.SolidWorks
 {
@@ -57,13 +61,14 @@ namespace Xarial.XCad.SolidWorks
         static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
         #endregion
 
+        public event ApplicationStartingDelegate Starting;
         public event ConfigureServicesDelegate ConfigureServices;
 
         internal event Action<SwApplication> FirstStartupCompleted;
-
+        
         IXDocumentRepository IXApplication.Documents => Documents;
         IXMacro IXApplication.OpenMacro(string path) => OpenMacro(path);
-        IXGeometryBuilder IXApplication.MemoryGeometryBuilder => MemoryGeometryBuilder;
+        IXMemoryGeometryBuilder IXApplication.MemoryGeometryBuilder => MemoryGeometryBuilder;
         IXVersion IXApplication.Version 
         {
             get => Version;
@@ -176,6 +181,29 @@ namespace Xarial.XCad.SolidWorks
         private IXLogger m_Logger;
 
         internal IServiceProvider Services { get; private set; }
+
+        public bool IsAlive 
+        {
+            get
+            {
+                try
+                {
+                    if (Process == null || Process.HasExited || !Process.Responding)
+                    {
+                        return false;
+                    }
+                    else
+                    {
+                        var testCall = Sw.RevisionNumber();
+                        return true;
+                    }
+                }
+                catch 
+                {
+                    return false;
+                }
+            }
+        }
 
         private bool m_IsInitialized;
 
@@ -322,7 +350,7 @@ namespace Xarial.XCad.SolidWorks
             switch (ext.ToLower()) 
             {
                 case VSTA_FILE_EXT:
-                    return new SwVstaMacro(Sw, path);
+                    return new SwVstaMacro(this, path);
 
                 case VBA_FILE_EXT:
                 case BASIC_EXT:
@@ -366,7 +394,7 @@ namespace Xarial.XCad.SolidWorks
 
             using (var appStarter = new SwApplicationStarter(State, Version)) 
             {
-                var app = appStarter.Start(cancellationToken);
+                var app = appStarter.Start(p => Starting?.Invoke(this, p), cancellationToken);
                 WatchStartupCompleted((SldWorks)app);
                 return app;
             }
@@ -445,6 +473,31 @@ namespace Xarial.XCad.SolidWorks
             {
                 throw new Exception("Failed to create progress");
             }
+        }
+
+        public void ShowTooltip(ITooltipSpec spec)
+        {
+            var bmp = "";
+            IXImage icon = null;
+
+            spec.GetType().TryGetAttribute<IconAttribute>(a => icon = a.Icon);
+
+            var bmpType = icon != null ? swBitMaps.swBitMapUserDefined : swBitMaps.swBitMapNone;
+
+            IIconsCreator iconsCreator = null;
+
+            if (icon != null)
+            {
+                iconsCreator = Services.GetService<IIconsCreator>();
+
+                bmp = iconsCreator.ConvertIcon(new TooltipIcon(icon)).First();
+            }
+
+            Sw.ShowBubbleTooltipAt2(spec.Position.X, spec.Position.Y, (int)spec.ArrowPosition,
+                        spec.Title, spec.Message, (int)bmpType,
+                        bmp, "", 0, (int)swLinkString.swLinkStringNone, "", "");
+
+            iconsCreator?.Dispose();
         }
     }
 

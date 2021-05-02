@@ -1,0 +1,67 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>netcoreapp3.1;net461</TargetFrameworks>
+    <RootNamespace>Xarial.XCad.SwDocumentManager</RootNamespace>
+    <AssemblyName>Xarial.XCad.SwDocumentManager</AssemblyName>
+    <SignAssembly>false</SignAssembly>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <PackageId>Xarial.XCad.SwDocumentManager</PackageId>
+    <VersionPrefix>0.7.0</VersionPrefix>
+    <Authors>Xarial</Authors>
+    <Product>xCAD</Product>
+    <Copyright>© 2021 Xarial Pty Limited</Copyright>
+    <PackageProjectUrl>https://xcad.net</PackageProjectUrl>
+    <AssemblyOriginatorKeyFile></AssemblyOriginatorKeyFile>
+    <Company>Xarial Pty Limited</Company>
+    <RepositoryUrl>https://github.com/xarial/xcad</RepositoryUrl>
+    <PackageTags>cad,solidworks,document manager</PackageTags>
+    <Description>Framework for developing SOLIDWORKS applications using Document Manager</Description>
+    <RepositoryType>git</RepositoryType>
+    <PackageIcon>icon.png</PackageIcon>
+    <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
+    <PackageIconUrl>https://xcad.xarial.com/icon.png</PackageIconUrl>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TF_BUILD)' == 'true'">
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netcoreapp3.1|AnyCPU'">
+    <NoWarn>1701;1702</NoWarn>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TargetFramework)' == 'netcoreapp3.1'">
+    <NoWarn>CS0618</NoWarn>
+    <UseWpf>true</UseWpf>
+    <UseWindowsForms>true</UseWindowsForms>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)'=='Release'">
+    <DocumentationFile>Xarial.XCad.SwDocumentManager.xml</DocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Xarial.XCad.SolidWorks.DocumentManager.Interops" Version="0.1.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\build\solidworks-dm-init.ps1" pack="true" PackagePath="tools\init.ps1" />
+    <None Include="..\..\data\icon.png" pack="true" PackagePath="" />
+    <None Include="..\..\LICENSE.md" pack="true" PackagePath="" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <ProjectReference Include="..\Base\Base.csproj" />
+    <ProjectReference Include="..\Toolkit\Toolkit.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
+  </ItemGroup>
+
+</Project>

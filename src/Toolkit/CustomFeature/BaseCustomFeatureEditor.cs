@@ -21,6 +21,7 @@ using Xarial.XCad.UI.PropertyPage.Structures;
 using Xarial.XCad.Utils.Diagnostics;
 using Xarial.XCad.Utils.Reflection;
 using Xarial.XCad.Toolkit;
+using Xarial.XCad.UI.PropertyPage.Delegates;
 
 namespace Xarial.XCad.Utils.CustomFeature
 {
@@ -28,6 +29,9 @@ namespace Xarial.XCad.Utils.CustomFeature
         where TData : class, new()
         where TPage : class, new()
     {
+        public event Action<IXApplication, IXDocument, IXCustomFeature> EditingStarted;
+        public event Action<IXApplication, IXDocument, IXCustomFeature> EditingCompleted;
+
         protected readonly IXApplication m_App;
         protected readonly IServiceProvider m_SvcProvider;
         protected readonly IXLogger m_Logger;
@@ -48,21 +52,28 @@ namespace Xarial.XCad.Utils.CustomFeature
         public BaseCustomFeatureEditor(IXApplication app,
             Type featDefType,
             CustomFeatureParametersParser paramsParser,
+            IServiceProvider svcProvider, CreateDynamicControlsDelegate createDynCtrlHandler)
+            : this(app, featDefType, paramsParser, svcProvider)
+        {
+            InitPage(createDynCtrlHandler);
+        }
+
+        protected BaseCustomFeatureEditor(IXApplication app,
+            Type featDefType,
+            CustomFeatureParametersParser paramsParser,
             IServiceProvider svcProvider)
         {
             m_App = app;
-
             m_SvcProvider = svcProvider;
-
             m_Logger = svcProvider.GetService<IXLogger>();
-
             m_DefType = featDefType;
-
             m_BodiesComparer = new XObjectEqualityComparer<IXBody>();
-
-            m_PmPage = CreatePage();
-
             m_ParamsParser = paramsParser;
+        }
+
+        protected void InitPage(CreateDynamicControlsDelegate createDynCtrlHandler)
+        {
+            m_PmPage = CreatePage(createDynCtrlHandler);
 
             m_PmPage.Closing += OnPageClosing;
             m_PmPage.DataChanged += OnDataChanged;
@@ -91,6 +102,8 @@ namespace Xarial.XCad.Utils.CustomFeature
                 m_CurData = Definition.ConvertParamsToPage(featParam);
 
                 m_PmPage.Show(m_CurData);
+                EditingStarted?.Invoke(m_App, model, feature);
+
                 UpdatePreview();
             }
             catch
@@ -107,14 +120,16 @@ namespace Xarial.XCad.Utils.CustomFeature
 
             m_EditingFeature = null;
 
+            EditingStarted?.Invoke(m_App, model, null);
             m_PmPage.Show(m_CurData);
+            UpdatePreview();
         }
 
         protected abstract void DisplayPreview(IXBody[] bodies);
 
         protected abstract void HidePreview(IXBody[] bodies);
 
-        protected abstract IXPropertyPage<TPage> CreatePage();
+        protected abstract IXPropertyPage<TPage> CreatePage(CreateDynamicControlsDelegate createDynCtrlHandler);
 
         private void HideEditBodies()
         {
@@ -156,6 +171,8 @@ namespace Xarial.XCad.Utils.CustomFeature
 
         private void OnPageClosed(PageCloseReasons_e reason)
         {
+            EditingCompleted?.Invoke(m_App, CurModel, m_EditingFeature);
+
             foreach (var body in m_EditBodies.ValueOrEmpty())
             {
                 body.Visible = true;

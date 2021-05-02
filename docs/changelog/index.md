@@ -8,6 +8,17 @@ This page contains list of the most notable changes in the releases of xCAD.NET.
 
 Breaking change is marked with &#x26A0; symbol
 
+## 0.7.0 - 
+
+* &#x26A0; IXPropertyRepository::GetOrPreCreate moved to extension method
+* &#x26A0; IXObject::IsSame replaced with IEquatable<IXObject>.Equals
+* &#x26A0; IXCustomControl::DataContextChanged replaced with IXCustomControl::ValueChanged
+* &#x26A0; IXCustomControl::DataContext replaced with IXCustomControl::Value
+* &#x26A0; ResourceHelper::FromBytes replaced with BaseImage class
+* &#x26A0; CustomItemsAttribute is renamed to ComboBoxAttribute
+* &#x26A0; IXAssembly::Components is moved to IXAssemblyConfiguration::Components
+* &#x26A0; SelectionBoxOptionsAttribute::SelectionColor changed from KnownColor to StandardSelectionColor_e
+
 ## 0.6.10 - December 7, 2020
 
 * &#x26A0; IXComponent::IsResolved replaced with IXComponent::State

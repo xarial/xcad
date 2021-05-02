@@ -22,6 +22,8 @@ using Xarial.XCad.UI.PropertyPage.Structures;
 using Xarial.XCad.Utils.Diagnostics;
 using Xarial.XCad.Utils.PageBuilder.Base;
 using Xarial.XCad.Toolkit;
+using Xarial.XCad.UI.PropertyPage.Base;
+using Xarial.XCad.UI.Exceptions;
 
 namespace Xarial.XCad.SolidWorks.UI.PropertyPage
 {
@@ -40,14 +42,14 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
 
         /// <inheritdoc/>
         public event PageDataChangedDelegate DataChanged;
-
+        
         private readonly ISwApplication m_App;
         private readonly IIconsCreator m_IconsConv;
         private readonly PropertyManagerPagePage m_Page;
         private readonly PropertyManagerPageBuilder m_PmpBuilder;
 
         /// <inheritdoc/>
-        public IEnumerable<IPropertyManagerPageControlEx> Controls { get; private set; }
+        public IEnumerable<IPropertyManagerPageElementEx> Controls { get; private set; }
 
         internal SwPropertyManagerPageHandler Handler { get; private set; }
 
@@ -60,12 +62,14 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
 
         /// <summary>Creates instance of property manager page</summary>
         /// <param name="app">Pointer to session of SOLIDWORKS where the property manager page to be created</param>
-        internal SwPropertyManagerPage(ISwApplication app, IServiceProvider svcProvider, Type handlerType)
-            : this(app, null, svcProvider, handlerType)
+        internal SwPropertyManagerPage(ISwApplication app, IServiceProvider svcProvider, SwPropertyManagerPageHandler handler,
+            CreateDynamicControlsDelegate createDynCtrlHandler)
+            : this(app, null, svcProvider, handler, createDynCtrlHandler)
         {
         }
 
-        internal SwPropertyManagerPage(ISwApplication app, IPageSpec pageSpec, IServiceProvider svcProvider, Type handlerType)
+        internal SwPropertyManagerPage(ISwApplication app, IPageSpec pageSpec, IServiceProvider svcProvider, SwPropertyManagerPageHandler handler,
+            CreateDynamicControlsDelegate createDynCtrlHandler)
         {
             m_App = app;
 
@@ -75,22 +79,42 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
 
             m_IconsConv = m_SvcProvider.GetService<IIconsCreator>();
 
-            //TODO: validate that handlerType inherits PropertyManagerPageHandlerEx and it is COM visible with parameterless constructor
-            Handler = (SwPropertyManagerPageHandler)Activator.CreateInstance(handlerType);
+            //TODO: validate that handler is COM visible
+            Handler = handler;
 
-            Handler.DataChanged += OnDataChanged;
             Handler.Closed += OnClosed;
             Handler.Closing += OnClosing;
             m_PmpBuilder = new PropertyManagerPageBuilder(app, m_IconsConv, Handler, pageSpec, m_Logger);
 
-            m_Page = m_PmpBuilder.CreatePage<TModel>();
-            Controls = m_Page.Binding.Bindings.Select(b => b.Control)
-                .OfType<IPropertyManagerPageControlEx>().ToArray();
+            m_Page = m_PmpBuilder.CreatePage<TModel>(createDynCtrlHandler);
+
+            var ctrls = new List<IPropertyManagerPageElementEx>();
+
+            foreach (var binding in m_Page.Binding.Bindings) 
+            {
+                binding.Changed += OnBindingValueChanged;
+                
+                var ctrl = binding.Control;
+
+                if (ctrl is IPropertyManagerPageElementEx)
+                {
+                    ctrls.Add((IPropertyManagerPageElementEx)ctrl);
+                }
+                else 
+                {
+                    m_Logger.Log($"Unrecognized control type: {ctrl?.GetType().FullName}", XCad.Base.Enums.LoggerMessageSeverity_e.Error);
+                }
+            }
+
+            Controls = ctrls.ToArray();
         }
+
+        private void OnBindingValueChanged(IBinding binding)
+            => DataChanged?.Invoke();
 
         public void Dispose()
         {
-            m_Logger.Log("Disposing page");
+            m_Logger.Log("Disposing page", XCad.Base.Enums.LoggerMessageSeverity_e.Debug);
 
             foreach (var ctrl in m_Page.Binding.Bindings.Select(b => b.Control).OfType<IDisposable>())
             {
@@ -104,7 +128,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
         public void Show(TModel model)
         {
             Model = model;
-            m_Logger.Log("Opening page");
+            m_Logger.Log("Opening page", XCad.Base.Enums.LoggerMessageSeverity_e.Debug);
 
             const int OPTS_DEFAULT = 0;
 
@@ -117,15 +141,17 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
 
             Handler.InvokeOpening();
 
-            m_Page.Page.Show2(OPTS_DEFAULT);
-
             foreach (var binding in m_Page.Binding.Bindings)
             {
                 binding.UpdateControl();
             }
 
+            m_Page.Page.Show2(OPTS_DEFAULT);
+
             //updating control states
             m_Page.Binding.Dependency.UpdateAll();
+
+            Handler.InvokeOpened();
         }
 
         private PageCloseReasons_e ConvertReason(swPropertyManagerPageCloseReasons_e reason)
@@ -145,20 +171,13 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
                     return PageCloseReasons_e.Unknown;
             }
         }
-        
+
         private void OnClosed(swPropertyManagerPageCloseReasons_e reason)
-        {
-            Closed?.Invoke(ConvertReason(reason));
-        }
+            => Closed?.Invoke(ConvertReason(reason));
 
         private void OnClosing(swPropertyManagerPageCloseReasons_e reason, PageClosingArg arg)
-        {
-            Closing?.Invoke(ConvertReason(reason), arg);
-        }
+            => Closing?.Invoke(ConvertReason(reason), arg);
 
-        private void OnDataChanged()
-        {
-            DataChanged?.Invoke();
-        }
+        public void Close(bool cancel) => m_Page.Page.Close(!cancel);
     }
 }

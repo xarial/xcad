@@ -12,6 +12,7 @@ using Xarial.XCad.SolidWorks.Services;
 using Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls;
 using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.UI.PropertyPage.Attributes;
+using Xarial.XCad.UI.PropertyPage.Base;
 using Xarial.XCad.Utils.PageBuilder.Attributes;
 using Xarial.XCad.Utils.PageBuilder.Base;
 
@@ -30,7 +31,8 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
         }
 
         protected override PropertyManagerPageBitmapControl CreateControl(
-            IPropertyManagerPageBitmap swCtrl, IAttributeSet atts, SwPropertyManagerPageHandler handler, short height)
+            IPropertyManagerPageBitmap swCtrl, IAttributeSet atts, IMetadata metadata, 
+            SwPropertyManagerPageHandler handler, short height)
         {
             Size? size = null;
 

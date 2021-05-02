@@ -20,7 +20,7 @@ namespace Xarial.XCad.Documents
     /// <summary>
     /// Represents the base interface of all document types
     /// </summary>
-    public interface IXDocument : IXTransaction
+    public interface IXDocument : IXObject, IXTransaction, IPropertiesOwner
     {
         /// <summary>
         /// Current version of the document
@@ -103,11 +103,6 @@ namespace Xarial.XCad.Documents
         void Save();
 
         /// <summary>
-        /// Identifies if the pointer to the document is still valid
-        /// </summary>
-        bool IsAlive { get; }
-
-        /// <summary>
         /// Saves this document to a new location
         /// </summary>
         /// <param name="filePath"></param>
@@ -127,12 +122,7 @@ namespace Xarial.XCad.Documents
         /// Collection of dimensions of this document
         /// </summary>
         IXDimensionRepository Dimensions { get; }
-
-        /// <summary>
-        /// Collection of proeprties of this document
-        /// </summary>
-        IXPropertyRepository Properties { get; }
-
+        
         /// <summary>
         /// Opens the user data stream from this document
         /// </summary>
@@ -150,10 +140,23 @@ namespace Xarial.XCad.Documents
         IStorage OpenStorage(string name, AccessType_e access);
 
         /// <summary>
-        /// Returns dependencies of this document
+        /// Returns top level dependencies of this document
         /// </summary>
-        /// <remarks>Dependencies might be uncommited if document is loaded view only or in the rapid mode. Use <see cref="IXTransaction.IsCommitted"/> to check the state and call <see cref="IXTransaction.Commit(System.Threading.CancellationToken)"/> to load document if needed</remarks>
-        IXDocument[] Dependencies { get; }
+        /// <remarks>Dependencies might be uncommited if document is loaded view only or in the rapid mode. Use <see cref="IXTransaction.IsCommitted"/> to check the state and call <see cref="IXTransaction.Commit(System.Threading.CancellationToken)"/> to load document if needed.
+        /// In most CADs this method wil lwork with uncommitted documents</remarks>
+        IXDocument3D[] Dependencies { get; }
+
+        /// <summary>
+        /// Deserializes specific object from stream
+        /// </summary>
+        /// <param name="stream">Input stream with the serialized object</param>
+        /// <returns>Deserialized object</returns>
+        IXObject DeserializeObject(Stream stream);
+
+        /// <summary>
+        /// Returns the time stamp of the change of the current model
+        /// </summary>
+        int UpdateStamp { get; }
     }
 
     /// <summary>

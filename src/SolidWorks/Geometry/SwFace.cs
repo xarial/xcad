@@ -14,6 +14,7 @@ using System.Text;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Geometry.Surfaces;
+using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Geometry.Surfaces;
 using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.Utils.Reflection;
@@ -32,7 +33,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         public IFace2 Face { get; }
 
-        public SwFace(IFace2 face) : base(face as IEntity)
+        public SwFace(IFace2 face, ISwDocument doc) : base(face as IEntity, doc)
         {
             Face = face;
         }
@@ -75,7 +76,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
     {
         IXPlanarSurface IXPlanarFace.Definition => Definition;
 
-        public SwPlanarFace(IFace2 face) : base(face)
+        public SwPlanarFace(IFace2 face, ISwDocument doc) : base(face, doc)
         {
         }
 
@@ -91,7 +92,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
     {
         IXCylindricalSurface IXCylindricalFace.Definition => Definition;
 
-        public SwCylindricalFace(IFace2 face) : base(face)
+        public SwCylindricalFace(IFace2 face, ISwDocument doc) : base(face, doc)
         {
         }
 
