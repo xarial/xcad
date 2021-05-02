@@ -15,6 +15,8 @@ Property pages can be defined by data model and all controls will be automatical
 
 ![Property Manager Page driven by data model](data-model-pmpage.png){ width=250 }
 
+Explore [Property Manager Page complete example](https://github.com/xarial/xcad-examples/tree/master/PMPage) for the source code of the features of the property manager pages.
+
 ## Data model
 
 Start by defining the data model required to be filled by property manager page.
