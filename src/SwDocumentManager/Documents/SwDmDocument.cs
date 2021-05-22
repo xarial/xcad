@@ -46,14 +46,19 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                 switch (System.IO.Path.GetExtension(path).ToLower())
                 {
                     case ".sldprt":
+                    case ".sldblk":
+                    case ".prtdot":
+                    case ".sldlfp":
                         docType = SwDmDocumentType.swDmDocumentPart;
                         break;
 
                     case ".sldasm":
+                    case ".asmdot":
                         docType = SwDmDocumentType.swDmDocumentAssembly;
                         break;
 
                     case ".slddrw":
+                    case ".drwdot":
                         docType = SwDmDocumentType.swDmDocumentDrawing;
                         break;
 

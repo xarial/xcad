@@ -11,6 +11,7 @@ using System;
 using System.IO;
 using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
+using Xarial.XCad.Exceptions;
 using Xarial.XCad.SolidWorks.Annotations;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Features;
@@ -41,25 +42,17 @@ namespace Xarial.XCad.SolidWorks
 
         internal static TObj FromDispatch<TObj>(object disp)
             where TObj : ISwObject
-        {
-            return (TObj)FromDispatch(disp, null);
-        }
+            => (TObj)FromDispatch(disp, null);
 
         internal static ISwObject FromDispatch(object disp)
-        {
-            return FromDispatch(disp, null);
-        }
+            => FromDispatch(disp, null);
 
         internal static TObj FromDispatch<TObj>(object disp, ISwDocument doc)
             where TObj : ISwObject
-        {
-            return (TObj)FromDispatch(disp, doc);
-        }
+            => (TObj)FromDispatch(disp, doc);
 
         internal static ISwObject FromDispatch(object disp, ISwDocument doc)
-        {
-            return FromDispatch(disp, doc, d => new SwObject(d, doc));
-        }
+            => FromDispatch(disp, doc, d => new SwObject(d, doc));
 
         internal static ISwObject FromDispatch(object disp, ISwDocument doc, Func<object, ISwObject> defaultHandler)
         {
@@ -303,7 +296,29 @@ namespace Xarial.XCad.SolidWorks
             }
         }
 
-        public virtual void Serialize(Stream stream) 
-            => throw new NotSupportedException("This object cannot be serialized");
+        public virtual void Serialize(Stream stream)
+        {
+            if (ModelDoc != null)
+            {
+                var disp = Dispatch;
+
+                if (disp != null)
+                {
+                    var persRef = ModelDoc.Extension.GetPersistReference3(disp) as byte[];
+
+                    if (persRef == null)
+                    {
+                        throw new ObjectSerializationException("Failed to serialize the object", -1);
+                    }
+
+                    stream.Write(persRef, 0, persRef.Length);
+                    return;
+                }
+            }
+            else 
+            {
+                throw new ObjectSerializationException("Model is not set for this object", -1);
+            }
+        }
     }
 }

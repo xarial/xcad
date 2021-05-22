@@ -45,6 +45,11 @@ namespace Xarial.XCad.Documents.Enums
         /// <summary>
         /// Component is excluded from Bill Of Materials
         /// </summary>
-        ExcludedFromBom = 16
+        ExcludedFromBom = 16,
+
+        /// <summary>
+        /// Components is created as envelope
+        /// </summary>
+        Envelope
     }
 }

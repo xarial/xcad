@@ -6,8 +6,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
+using Xarial.XCad.Base;
 using Xarial.XCad.Data.Enums;
 using Xarial.XCad.Documents;
+using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Documents.Extensions;
 using Xarial.XCad.SwDocumentManager;
 using Xarial.XCad.SwDocumentManager.Documents;
@@ -341,6 +343,85 @@ namespace SolidWorksDocMgr.Tests.Integration
             Assert.AreEqual(3, q3);
             Assert.AreEqual(2, q4);
             Assert.AreEqual(1, q5);
+        }
+
+        [Test]
+        public void OpenNativeTest() 
+        {
+            bool r1;
+            bool r2;
+            bool r3;
+            bool r4;
+            bool r5;
+            bool r6;
+            bool r7;
+            bool r8;
+
+            var a1 = m_App.Documents.PreCreateFromPath(GetFilePath(@"Native\Assembly.SLDASM"));
+            a1.State = DocumentState_e.ReadOnly;
+            a1.Commit();
+            r1 = a1.IsAlive;
+            a1.Close();
+
+            var b1 = m_App.Documents.PreCreateFromPath(GetFilePath(@"Native\Block.SLDBLK"));
+            b1.State = DocumentState_e.ReadOnly;
+            b1.Commit();
+            r2 = b1.IsAlive;
+            b1.Close();
+
+            var d1 = m_App.Documents.PreCreateFromPath(GetFilePath(@"Native\Drawing.SLDDRW"));
+            d1.State = DocumentState_e.ReadOnly;
+            d1.Commit();
+            r3 = d1.IsAlive;
+            d1.Close();
+
+            var l1 = m_App.Documents.PreCreateFromPath(GetFilePath(@"Native\LibFeatPart.SLDLFP"));
+            l1.State = DocumentState_e.ReadOnly;
+            l1.Commit();
+            r4 = l1.IsAlive;
+            l1.Close();
+
+            var p1 = m_App.Documents.PreCreateFromPath(GetFilePath(@"Native\Part.SLDPRT"));
+            p1.State = DocumentState_e.ReadOnly;
+            p1.Commit();
+            r5 = p1.IsAlive;
+            p1.Close();
+
+            var at1 = m_App.Documents.PreCreateFromPath(GetFilePath(@"Native\TemplateAssembly.ASMDOT"));
+            at1.State = DocumentState_e.ReadOnly;
+            at1.Commit();
+            r6 = at1.IsAlive;
+            at1.Close();
+
+            var dt1 = m_App.Documents.PreCreateFromPath(GetFilePath(@"Native\TemplateDrawing.DRWDOT"));
+            dt1.State = DocumentState_e.ReadOnly;
+            dt1.Commit();
+            r7 = dt1.IsAlive;
+            dt1.Close();
+
+            var pt1 = m_App.Documents.PreCreateFromPath(GetFilePath(@"Native\TemplatePart.PRTDOT"));
+            pt1.State = DocumentState_e.ReadOnly;
+            pt1.Commit();
+            r8 = pt1.IsAlive;
+            pt1.Close();
+
+            Assert.IsInstanceOf<IXAssembly>(a1);
+            Assert.IsInstanceOf<IXPart>(b1);
+            Assert.IsInstanceOf<IXDrawing>(d1);
+            Assert.IsInstanceOf<IXPart>(l1);
+            Assert.IsInstanceOf<IXPart>(p1);
+            Assert.IsInstanceOf<IXAssembly>(at1);
+            Assert.IsInstanceOf<IXDrawing>(dt1);
+            Assert.IsInstanceOf<IXPart>(pt1);
+
+            Assert.IsTrue(r1);
+            Assert.IsTrue(r2);
+            Assert.IsTrue(r3);
+            Assert.IsTrue(r4);
+            Assert.IsTrue(r5);
+            Assert.IsTrue(r6);
+            Assert.IsTrue(r7);
+            Assert.IsTrue(r8);
         }
     }
 }

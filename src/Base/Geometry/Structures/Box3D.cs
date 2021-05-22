@@ -7,6 +7,9 @@
 
 namespace Xarial.XCad.Geometry.Structures
 {
+    /// <summary>
+    /// Represents the 3D bounding box
+    /// </summary>
     public class Box3D
     {
         public Point LeftBottomFront { get; set; }

@@ -95,19 +95,27 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             {
                 var state = ComponentState_e.Default;
 
-                if (Component.IsHidden())
-                {
-                    state |= ComponentState_e.Hidden;
-                }
-
                 if (Component.IsSuppressed())
                 {
                     state |= ComponentState_e.Suppressed;
                 }
 
+                if (Component.IsHidden())
+                {
+                    if (!state.HasFlag(ComponentState_e.Suppressed))//Document Manager reports suppressed as hidden as well
+                    {
+                        state |= ComponentState_e.Hidden;
+                    }
+                }
+
                 if (((ISwDMComponent5)Component).ExcludeFromBOM == (int)swDmExcludeFromBOMResult.swDmExcludeFromBOM_TRUE)
                 {
                     state |= ComponentState_e.ExcludedFromBom;
+                }
+
+                if (((ISwDMComponent5)Component).IsEnvelope())
+                {
+                    state |= ComponentState_e.Envelope;
                 }
 
                 return state;

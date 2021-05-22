@@ -365,7 +365,14 @@ namespace Xarial.XCad.SolidWorks
         {
             if (m_DocumentsLazy.IsValueCreated) 
             {
-                m_DocumentsLazy.Value.Dispose();
+                try
+                {
+                    m_DocumentsLazy.Value.Dispose();
+                }
+                catch (Exception ex)
+                {
+                    m_Logger.Log(ex);
+                }
             }
 
             if (Sw != null)

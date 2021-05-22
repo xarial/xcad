@@ -288,11 +288,33 @@ namespace Xarial.XCad.SolidWorks
             {
                 foreach (var dispCtrl in m_Disposables) 
                 {
-                    dispCtrl.Dispose();
+                    try
+                    {
+                        dispCtrl.Dispose();
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(ex);
+                    }
                 }
 
-                CommandManager.Dispose();
-                Application.Dispose();
+                try
+                {
+                    CommandManager.Dispose();
+                }
+                catch (Exception ex)
+                {
+                    Logger.Log(ex);
+                }
+
+                try
+                {
+                    Application.Dispose();
+                }
+                catch (Exception ex)
+                {
+                    Logger.Log(ex);
+                }
             }
 
             GC.Collect();

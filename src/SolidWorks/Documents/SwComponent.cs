@@ -151,6 +151,11 @@ namespace Xarial.XCad.SolidWorks.Documents
                     state |= ComponentState_e.ExcludedFromBom;
                 }
 
+                if (Component.IsEnvelope()) 
+                {
+                    state |= ComponentState_e.Envelope;
+                }
+
                 return state;
             } 
         }
