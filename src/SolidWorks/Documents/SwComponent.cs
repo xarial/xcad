@@ -148,7 +148,10 @@ namespace Xarial.XCad.SolidWorks.Documents
 
                 if (Component.ExcludeFromBOM) 
                 {
-                    state |= ComponentState_e.ExcludedFromBom;
+                    if (!Component.IsEnvelope())
+                    {
+                        state |= ComponentState_e.ExcludedFromBom;
+                    }
                 }
 
                 if (Component.IsEnvelope()) 

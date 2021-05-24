@@ -22,15 +22,41 @@ using Xarial.XCad.SolidWorks.Sketch;
 
 namespace Xarial.XCad.SolidWorks
 {
+    /// <summary>
+    /// Represents base interface for all SOLIDWORKS objects
+    /// </summary>
     public interface ISwObject : IXObject
     {
+        /// <summary>
+        /// SOLIDWORKS specific dispatch
+        /// </summary>
         object Dispatch { get; }
     }
 
+    /// <summary>
+    /// Factory for xCAD objects
+    /// </summary>
     public static class SwObjectFactory 
     {
+        /// <summary>
+        /// Wraps the SOLIDWORKS specific dispatch to xCAD object
+        /// </summary>
+        /// <typeparam name="TObj">Type of the object</typeparam>
+        /// <param name="disp">SOLIDWORKS specific dispatch</param>
+        /// <param name="doc">Owner document</param>
+        /// <returns>xCAD specific object</returns>
         public static TObj FromDispatch<TObj>(object disp, ISwDocument doc)
-            where TObj : ISwObject => SwObject.FromDispatch<TObj>(disp, doc);
+            where TObj : ISwObject
+        {
+            if (typeof(ISwSelObject).IsAssignableFrom(typeof(TObj))) 
+            {
+                return (TObj)SwObject.FromDispatch(disp, doc, d => new SwSelObject(disp, doc));
+            }
+            else
+            {
+                return (TObj)SwObject.FromDispatch(disp, doc, d => new SwObject(disp, doc));
+            }
+        }
     }
 
     /// <inheritdoc/>
