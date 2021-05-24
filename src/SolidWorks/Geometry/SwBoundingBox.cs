@@ -97,9 +97,11 @@ namespace Xarial.XCad.SolidWorks.Geometry
             {
                 IXBody[] bodies;
 
-                if (Scope != null)
+                var scope = Scope;
+
+                if (scope != null)
                 {
-                    bodies = Scope;
+                    bodies = scope;
                 }
                 else 
                 {
@@ -210,13 +212,13 @@ namespace Xarial.XCad.SolidWorks.Geometry
                             throw new Exception("Failed to apply relative to coordinate");
                         }
 
-                        return SwObject.FromDispatch<SwTempBody>(swBody);
+                        return SwObject.FromDispatch<SwBody>(swBody);
                     }).ToArray();
                 }
 
                 foreach (var body in bodies)
                 {
-                    var swBody = ((ISwBody)body).Body;
+                    var swBody = GetSwBody(body);
 
                     double x;
                     double y;
@@ -269,17 +271,17 @@ namespace Xarial.XCad.SolidWorks.Geometry
             return CreateBoxFromData(minX, minY, minZ, maxX, maxY, maxZ, mathTransform);
         }
 
-        private Body2 GetSwBody(IXBody srcBody)
+        private IBody2 GetSwBody(IXBody srcBody)
         {
-            var body = (ISwBody)srcBody;
-
-            var swBody = body.Body.ICopy();
+            var swBody = ((ISwBody)srcBody).Body;
 
             var comp = (IComponent2)(swBody.IGetFirstFace() as IEntity).GetComponent();
 
             if (comp != null)
             {
-                if (swBody.ApplyTransform(comp.Transform2))
+                swBody = swBody.ICopy();
+
+                if (!swBody.ApplyTransform(comp.Transform2))
                 {
                     throw new Exception("Failed to apply component's transform");
                 }
@@ -373,12 +375,12 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         IXComponent[] IXAssemblyBoundingBox.Scope
         {
-            get => m_Creator.CachedProperties.Get<IXComponent[]>();
+            get => m_Creator.CachedProperties.Get<IXComponent[]>(nameof(Scope) + "_Components");
             set
             {
                 if (!IsCommitted)
                 {
-                    m_Creator.CachedProperties.Set(value);
+                    m_Creator.CachedProperties.Set(value, nameof(Scope) + "_Components");
                 }
                 else
                 {
@@ -391,7 +393,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
         {
             if (!VisibleOnly) 
             {
-                throw new NotSupportedException("Only visible components can be considered when performing approximate bounding box calculation");
+                throw new NotSupportedException("Only avisible components can be considered when performing approximate bounding box calculation");
             }
 
             var comps = (this as IXAssemblyBoundingBox).Scope;
@@ -453,6 +455,11 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         protected override double[] ComputeFullApproximateBoundingBox()
         {
+            if (!VisibleOnly)
+            {
+                throw new NotSupportedException("Only avisible components can be considered when performing approximate bounding box calculation");
+            }
+
             swBoundingBoxOptions_e bboxOptionsDefault = 0;
 
             return (double[])m_Assm.Assembly.GetBox((int)bboxOptionsDefault);

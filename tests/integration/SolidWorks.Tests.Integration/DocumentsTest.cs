@@ -872,7 +872,7 @@ namespace SolidWorks.Tests.Integration
         }
 
         [Test]
-        public void BoundingBoxPartScopedTest() 
+        public void BoundingBoxPartScopedPreceiseAndApproximateTest() 
         {
             Box3D b1;
             Box3D b2;
@@ -996,7 +996,7 @@ namespace SolidWorks.Tests.Integration
         }
 
         [Test]
-        public void BoundingBoxPartFullTest()
+        public void BoundingBoxPartApproximateFullTest()
         {
             Box3D b1;
 
@@ -1025,6 +1025,248 @@ namespace SolidWorks.Tests.Integration
             AssertCompareDoubles(b1.CenterPoint.X, -0.00240485);
             AssertCompareDoubles(b1.CenterPoint.Y, -0.02222718);
             AssertCompareDoubles(b1.CenterPoint.Z, 0.03624369);
+        }
+
+        [Test]
+        public void BoundingBoxAssemblyScopedPreciseTest() 
+        {
+            Box3D b1;
+
+            using (var doc = OpenDataDocument(@"BBoxAssembly1\Assem1.SLDASM"))
+            {
+                var assm = (IXAssembly)m_App.Documents.Active;
+
+                var bbox = assm.PreCreateBoundingBox();
+                bbox.Precise = true;
+                bbox.Scope = new IXComponent[]
+                {
+                    assm.Configurations.Active.Components["Part1-1"],
+                    assm.Configurations.Active.Components["Part1-2"],
+                    assm.Configurations.Active.Components["SubAssem1-2"].Children["SubSubAssem1-1"].Children["Part1-1"]
+                };
+                bbox.Commit();
+                b1 = bbox.Box;
+            }
+
+            AssertCompareDoubles(b1.Width, 0.75545085, 5);
+            AssertCompareDoubles(b1.Height, 0.17649638, 5);
+            AssertCompareDoubles(b1.Length, 0.54968753, 5);
+            Assert.That(b1.AxisX.X, Is.EqualTo(1).Within(0.00000000001).Percent);
+            Assert.That(b1.AxisX.Y, Is.EqualTo(0).Within(0.00000000001).Percent);
+            Assert.That(b1.AxisX.Z, Is.EqualTo(0).Within(0.00000000001).Percent);
+            Assert.That(b1.AxisY.X, Is.EqualTo(0).Within(0.00000000001).Percent);
+            Assert.That(b1.AxisY.Y, Is.EqualTo(1).Within(0.00000000001).Percent);
+            Assert.That(b1.AxisY.Z, Is.EqualTo(0).Within(0.00000000001).Percent);
+            Assert.That(b1.AxisZ.X, Is.EqualTo(0).Within(0.00000000001).Percent);
+            Assert.That(b1.AxisZ.Y, Is.EqualTo(0).Within(0.00000000001).Percent);
+            Assert.That(b1.AxisZ.Z, Is.EqualTo(1).Within(0.00000000001).Percent);
+            AssertCompareDoubles(b1.CenterPoint.X, 0.20224695, 5);
+            AssertCompareDoubles(b1.CenterPoint.Y, 0.06324819, 5);
+            AssertCompareDoubles(b1.CenterPoint.Z, 0.17320367, 5);
+        }
+
+        [Test]
+        public void BoundingBoxRelativeAssemblyScopedTest()
+        {
+            Box3D b1;
+            Exception b2 = null;
+
+            using (var doc = OpenDataDocument(@"BBoxAssembly4\Assem1.SLDASM"))
+            {
+                var assm = (ISwAssembly)m_App.Documents.Active;
+
+                var comps = assm.Configurations.Active.Components.ToArray();
+
+                var matrix = TransformConverter.ToTransformMatrix(
+                    assm.Model.Extension.GetCoordinateSystemTransformByName("Coordinate System1"));
+
+                var bbox = assm.PreCreateBoundingBox();
+                bbox.Precise = true;
+                bbox.RelativeTo = matrix;
+                bbox.Scope = comps;
+                bbox.Commit();
+                b1 = bbox.Box;
+
+                bbox = assm.PreCreateBoundingBox();
+                bbox.Precise = false;
+                bbox.RelativeTo = matrix;
+                bbox.Scope = comps;
+                try
+                {
+                    bbox.Commit();
+                }
+                catch (Exception ex)
+                {
+                    b2 = ex;
+                }
+            }
+
+            AssertCompareDoubles(b1.Width, 0.06);
+            AssertCompareDoubles(b1.Height, 0.05);
+            AssertCompareDoubles(b1.Length, 0.075);
+
+            var normX = b1.AxisX.Normalize();
+            var expNormX = new Vector(-0.06468049 - -0.01782764, 0.16547951 - 0.13826241, 0.3872723 - 0.36150332).Normalize();
+            var normY = b1.AxisY.Normalize();
+            var expNormY = new Vector(-0.01717473 - -0.01782764, 0.1732238 - 0.13826241, 0.32576434 - 0.36150332).Normalize();
+            var normZ = b1.AxisZ.Normalize();
+            var expNormZ = new Vector(-0.06466841 - -0.01782764, 0.0968212 - 0.13826241, 0.32010804 - 0.36150332).Normalize();
+
+            AssertCompareDoubles(normX.X, expNormX.X, 5);
+            AssertCompareDoubles(normX.Y, expNormX.Y, 5);
+            AssertCompareDoubles(normX.Z, expNormX.Z, 5);
+
+            AssertCompareDoubles(normY.X, expNormY.X, 5);
+            AssertCompareDoubles(normY.Y, expNormY.Y, 5);
+            AssertCompareDoubles(normY.Z, expNormY.Z, 5);
+
+            AssertCompareDoubles(normZ.X, expNormZ.X, 5);
+            AssertCompareDoubles(normZ.Y, expNormZ.Y, 5);
+            AssertCompareDoubles(normZ.Z, expNormZ.Z, 5);
+
+            AssertCompareDoubles(b1.CenterPoint.X, -0.06434799);
+            AssertCompareDoubles(b1.CenterPoint.Y, 0.14863105);
+            AssertCompareDoubles(b1.CenterPoint.Z, 0.33582068);
+
+            Assert.IsAssignableFrom<NotSupportedException>(b2);
+        }
+
+        [Test]
+        public void BoundingBoxAssemblyFullTest()
+        {
+            Box3D b1;
+            Exception b2 = null;
+
+            using (var doc = OpenDataDocument(@"BBoxAssembly2\Assem1.SLDASM"))
+            {
+                var assm = (IXAssembly)m_App.Documents.Active;
+
+                var bbox = assm.PreCreateBoundingBox();
+                bbox.Precise = false;
+                bbox.Commit();
+                b1 = bbox.Box;
+
+                try
+                {
+                    bbox = assm.PreCreateBoundingBox();
+                    bbox.VisibleOnly = false;
+                    bbox.Commit();
+                }
+                catch (Exception ex)
+                {
+                    b2 = ex;
+                }
+            }
+
+            AssertCompareDoubles(b1.Width, 0.2, 7);
+            AssertCompareDoubles(b1.Height, 0.05, 7);
+            AssertCompareDoubles(b1.Length, 0.01, 7);
+            Assert.That(b1.AxisX.X, Is.EqualTo(1).Within(0.00000000001).Percent);
+            Assert.That(b1.AxisX.Y, Is.EqualTo(0).Within(0.00000000001).Percent);
+            Assert.That(b1.AxisX.Z, Is.EqualTo(0).Within(0.00000000001).Percent);
+            Assert.That(b1.AxisY.X, Is.EqualTo(0).Within(0.00000000001).Percent);
+            Assert.That(b1.AxisY.Y, Is.EqualTo(1).Within(0.00000000001).Percent);
+            Assert.That(b1.AxisY.Z, Is.EqualTo(0).Within(0.00000000001).Percent);
+            Assert.That(b1.AxisZ.X, Is.EqualTo(0).Within(0.00000000001).Percent);
+            Assert.That(b1.AxisZ.Y, Is.EqualTo(0).Within(0.00000000001).Percent);
+            Assert.That(b1.AxisZ.Z, Is.EqualTo(1).Within(0.00000000001).Percent);
+            AssertCompareDoubles(b1.CenterPoint.X, 0);
+            AssertCompareDoubles(b1.CenterPoint.Y, 0.025);
+            AssertCompareDoubles(b1.CenterPoint.Z, 0.005);
+
+            Assert.IsAssignableFrom<NotSupportedException>(b2);
+        }
+
+        [Test]
+        public void BoundingBoxAssemblyScopedApproximateFullTest()
+        {
+            Box3D b1;
+            Exception b2 = null;
+
+            using (var doc = OpenDataDocument(@"BBoxAssembly3\Assem1.SLDASM"))
+            {
+                var assm = (IXAssembly)m_App.Documents.Active;
+
+                var comps = new IXComponent[]
+                {
+                    assm.Configurations.Active.Components["SubAssem1-1"],
+                    assm.Configurations.Active.Components["SubAssem1-2"]
+                };
+
+                var bbox = assm.PreCreateBoundingBox();
+                bbox.Scope = comps;
+                bbox.Precise = false;
+                bbox.Commit();
+                b1 = bbox.Box;
+
+                try
+                {
+                    bbox = assm.PreCreateBoundingBox();
+                    bbox.VisibleOnly = false;
+                    bbox.Scope = comps;
+                    bbox.Commit();
+                }
+                catch (Exception ex)
+                {
+                    b2 = ex;
+                }
+            }
+
+            AssertCompareDoubles(b1.Width, 0.2, 7);
+            AssertCompareDoubles(b1.Height, 0.05, 7);
+            AssertCompareDoubles(b1.Length, 0.07, 7);
+            Assert.That(b1.AxisX.X, Is.EqualTo(1).Within(0.00000000001).Percent);
+            Assert.That(b1.AxisX.Y, Is.EqualTo(0).Within(0.00000000001).Percent);
+            Assert.That(b1.AxisX.Z, Is.EqualTo(0).Within(0.00000000001).Percent);
+            Assert.That(b1.AxisY.X, Is.EqualTo(0).Within(0.00000000001).Percent);
+            Assert.That(b1.AxisY.Y, Is.EqualTo(1).Within(0.00000000001).Percent);
+            Assert.That(b1.AxisY.Z, Is.EqualTo(0).Within(0.00000000001).Percent);
+            Assert.That(b1.AxisZ.X, Is.EqualTo(0).Within(0.00000000001).Percent);
+            Assert.That(b1.AxisZ.Y, Is.EqualTo(0).Within(0.00000000001).Percent);
+            Assert.That(b1.AxisZ.Z, Is.EqualTo(1).Within(0.00000000001).Percent);
+            AssertCompareDoubles(b1.CenterPoint.X, 0);
+            AssertCompareDoubles(b1.CenterPoint.Y, 0.025);
+            AssertCompareDoubles(b1.CenterPoint.Z, 0.035);
+
+            Assert.IsAssignableFrom<NotSupportedException>(b2);
+        }
+
+        [Test]
+        public void BoundingBoxAssemblyCustomBodyTest()
+        {
+            Box3D b1;
+
+            using (var doc = OpenDataDocument(@"BBoxAssembly1\Assem1.SLDASM"))
+            {
+                var assm = (IXAssembly)m_App.Documents.Active;
+
+                var bbox = assm.PreCreateBoundingBox();
+                bbox.Precise = true;
+                var swBody = (assm.Configurations.Active.Components["SubAssem1-2"].Children["SubSubAssem1-1"].Children["Part1-1"]
+                    .Bodies.First() as ISwBody).Body.ICopy();
+                (bbox as IXBoundingBox).Scope = new IXBody[]
+                {
+                    SwObjectFactory.FromDispatch<ISwBody>(swBody, null)
+                };
+                bbox.Commit();
+                b1 = bbox.Box;
+            }
+
+            AssertCompareDoubles(b1.Width, 0.15);
+            AssertCompareDoubles(b1.Height, 0.05);
+            AssertCompareDoubles(b1.Length, 0.075);
+            Assert.That(b1.AxisX.X, Is.EqualTo(1).Within(0.00000000001).Percent);
+            Assert.That(b1.AxisX.Y, Is.EqualTo(0).Within(0.00000000001).Percent);
+            Assert.That(b1.AxisX.Z, Is.EqualTo(0).Within(0.00000000001).Percent);
+            Assert.That(b1.AxisY.X, Is.EqualTo(0).Within(0.00000000001).Percent);
+            Assert.That(b1.AxisY.Y, Is.EqualTo(1).Within(0.00000000001).Percent);
+            Assert.That(b1.AxisY.Z, Is.EqualTo(0).Within(0.00000000001).Percent);
+            Assert.That(b1.AxisZ.X, Is.EqualTo(0).Within(0.00000000001).Percent);
+            Assert.That(b1.AxisZ.Y, Is.EqualTo(0).Within(0.00000000001).Percent);
+            Assert.That(b1.AxisZ.Z, Is.EqualTo(1).Within(0.00000000001).Percent);
+            AssertCompareDoubles(b1.CenterPoint.X, 0, 5);
+            AssertCompareDoubles(b1.CenterPoint.Y, 0, 5);
+            AssertCompareDoubles(b1.CenterPoint.Z, 0.0375, 5);
         }
     }
 }
