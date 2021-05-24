@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -365,7 +365,14 @@ namespace Xarial.XCad.SolidWorks
         {
             if (m_DocumentsLazy.IsValueCreated) 
             {
-                m_DocumentsLazy.Value.Dispose();
+                try
+                {
+                    m_DocumentsLazy.Value.Dispose();
+                }
+                catch (Exception ex)
+                {
+                    m_Logger.Log(ex);
+                }
             }
 
             if (Sw != null)

@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -64,29 +64,6 @@ namespace Xarial.XCad.SolidWorks
             {
                 throw new Exception("Model doc is not initialized");
             }
-        }
-
-        public override void Serialize(Stream stream)
-        {
-            if (ModelDoc != null) 
-            {
-                var disp = Dispatch;
-
-                if (disp != null) 
-                {
-                    var persRef = ModelDoc.Extension.GetPersistReference3(disp) as byte[];
-
-                    if (persRef == null) 
-                    {
-                        throw new ObjectSerializationException("Failed to serialize the object", -1);
-                    }
-
-                    stream.Write(persRef, 0, persRef.Length);
-                    return;
-                }
-            }
-
-            base.Serialize(stream);
         }
 
         public virtual void Commit(CancellationToken cancellationToken)

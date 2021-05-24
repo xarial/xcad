@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -37,7 +37,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        public virtual TransformMatrix ScreenTransform => TransformUtils.ToTransformMatrix(View.Transform);
+        public virtual TransformMatrix ScreenTransform => TransformConverter.ToTransformMatrix(View.Transform);
 
         public virtual TransformMatrix Transform
         {
@@ -57,7 +57,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
                 data[12] = origScale;
 
-                return TransformUtils.ToTransformMatrix(data);
+                return TransformConverter.ToTransformMatrix(data);
             }
             set
             {
@@ -114,8 +114,8 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
             var transform = View.Orientation3;
 
-            var mathPt1 = m_MathUtils.CreatePoint(box.LeftBottomBack.ToArray()) as IMathPoint;
-            var mathPt2 = m_MathUtils.CreatePoint(box.RightTopFront.ToArray()) as IMathPoint;
+            var mathPt1 = m_MathUtils.CreatePoint(box.GetLeftBottomBack().ToArray()) as IMathPoint;
+            var mathPt2 = m_MathUtils.CreatePoint(box.GetRightTopFront().ToArray()) as IMathPoint;
             var pt1 = mathPt1.IMultiplyTransform(transform).ArrayData as double[];
             var pt2 = mathPt2.IMultiplyTransform(transform).ArrayData as double[];
 

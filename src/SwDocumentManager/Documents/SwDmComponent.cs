@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -95,14 +95,17 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             {
                 var state = ComponentState_e.Default;
 
-                if (Component.IsHidden())
-                {
-                    state |= ComponentState_e.Hidden;
-                }
-
                 if (Component.IsSuppressed())
                 {
                     state |= ComponentState_e.Suppressed;
+                }
+
+                if (Component.IsHidden())
+                {
+                    if (!state.HasFlag(ComponentState_e.Suppressed))//Document Manager reports suppressed as hidden as well
+                    {
+                        state |= ComponentState_e.Hidden;
+                    }
                 }
 
                 if (((ISwDMComponent5)Component).ExcludeFromBOM == (int)swDmExcludeFromBOMResult.swDmExcludeFromBOM_TRUE)
@@ -110,7 +113,20 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                     state |= ComponentState_e.ExcludedFromBom;
                 }
 
+                if (((ISwDMComponent5)Component).IsEnvelope())
+                {
+                    state |= ComponentState_e.Envelope;
+                }
+
                 return state;
+            }
+            set 
+            {
+                if (((ISwDMComponent5)Component).ExcludeFromBOM == (int)swDmExcludeFromBOMResult.swDmExcludeFromBOM_TRUE
+                    && !value.HasFlag(ComponentState_e.ExcludedFromBom))
+                {
+                    ((ISwDMComponent5)Component).ExcludeFromBOM = (int)swDmExcludeFromBOMResult.swDmExcludeFromBOM_TRUE;
+                }
             }
         }
 

@@ -8,7 +8,14 @@ This page contains list of the most notable changes in the releases of xCAD.NET.
 
 Breaking change is marked with &#x26A0; symbol
 
-## 0.7.0 - 
+## 0.7.1 - May 25, 2021
+
+* &#x26A0; IXDocument3D::CalculateBoundingBox is replaced with IXDocument3D::PreCreateBoundingBox
+* &#x26A0; ComponentState_e::Rapid is renamed to ComponentState_e::Lightweight
+* Implemented [Add option to calculate bounding box relative to coordinate system](https://github.com/xarial/xcad/issues/75)
+* Implemented [Add support for Mass properties](https://github.com/xarial/xcad/issues/74)
+
+## 0.7.0 - May 2, 2021
 
 * &#x26A0; IXPropertyRepository::GetOrPreCreate moved to extension method
 * &#x26A0; IXObject::IsSame replaced with IEquatable<IXObject>.Equals
@@ -16,8 +23,20 @@ Breaking change is marked with &#x26A0; symbol
 * &#x26A0; IXCustomControl::DataContext replaced with IXCustomControl::Value
 * &#x26A0; ResourceHelper::FromBytes replaced with BaseImage class
 * &#x26A0; CustomItemsAttribute is renamed to ComboBoxAttribute
-* &#x26A0; IXAssembly::Components is moved to IXAssemblyConfiguration::Components
-* &#x26A0; SelectionBoxOptionsAttribute::SelectionColor changed from KnownColor to StandardSelectionColor_e
+* Implemented [Implement xCAD for SOLIDWORKS Document Manager](https://github.com/xarial/xcad/issues/17)
+* Implemented [Add support for cut-list custom properties enhancement](https://github.com/xarial/xcad/issues/18)
+* Implemented [Add support for List control in the property page enhancement](https://github.com/xarial/xcad/issues/27)
+* Implemented [Add support for checkbox in group enhancement](https://github.com/xarial/xcad/issues/54)
+* Implemented [Add attribute to exclude the property from the macro feature binding enhancement](https://github.com/xarial/xcad/issues/61)
+* Implemented [Add ability to serialize and deserialize pointers for SW objects enhancement](https://github.com/xarial/xcad/issues/62)
+* Implemented [Add ability to add controls dynamically to property manager page enhancement](https://github.com/xarial/xcad/issues/63)
+* Implemented [Add options to specify items source based on the property for ComboBox control enhancement](https://github.com/xarial/xcad/issues/64)
+* Implemented [Add support for expressions for custom properties enhancement](https://github.com/xarial/xcad/issues/65)
+* Implemented [Add support for quantity for the configuration enhancement](https://github.com/xarial/xcad/issues/66)
+* Fixed [API returns named view from the sheet (when not inserted) bug](https://github.com/xarial/xcad/issues/67)
+* Fixed [Bitmap button displays incorrect size on first opening the page bug](https://github.com/xarial/xcad/issues/68)
+* &#x26A0; Implemented [Components should be returned from IXConfiguration not IXAssembly enhancement](https://github.com/xarial/xcad/issues/69)
+* &#x26A0; Fixed [Selection color is ignored in SelectionBoxOption attribute bug](https://github.com/xarial/xcad/issues/70)
 
 ## 0.6.10 - December 7, 2020
 

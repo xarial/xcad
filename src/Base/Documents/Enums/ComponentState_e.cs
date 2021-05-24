@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -28,9 +28,9 @@ namespace Xarial.XCad.Documents.Enums
         Suppressed = 1,
 
         /// <summary>
-        /// Component is loaded in the rapid mode
+        /// Component is loaded in the lightweight mode
         /// </summary>
-        Rapid = 2,
+        Lightweight = 2,
 
         /// <summary>
         /// Component is loaded in view-only mode
@@ -45,6 +45,11 @@ namespace Xarial.XCad.Documents.Enums
         /// <summary>
         /// Component is excluded from Bill Of Materials
         /// </summary>
-        ExcludedFromBom = 16
+        ExcludedFromBom = 16,
+
+        /// <summary>
+        /// Components is created as envelope
+        /// </summary>
+        Envelope = 32
     }
 }
