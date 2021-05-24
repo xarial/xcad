@@ -24,6 +24,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         #region Not Supported
         
         IXAssemblyBoundingBox IXAssembly.PreCreateBoundingBox() => throw new NotSupportedException();
+        IXAssemblyMassProperty IXAssembly.PreCreateMassProperty() => throw new NotSupportedException();
 
         #endregion
 

@@ -22,5 +22,11 @@ namespace Xarial.XCad.Documents
         /// </summary>
         /// <returns>Bounding box</returns>
         new IXAssemblyBoundingBox PreCreateBoundingBox();
+
+        /// <summary>
+        /// Pre creates mass properties of the assembly
+        /// </summary>
+        /// <returns>Mass property</returns>
+        new IXAssemblyMassProperty PreCreateMassProperty();
     }
 }

@@ -23,6 +23,12 @@ namespace Xarial.XCad.Documents
         IXBoundingBox PreCreateBoundingBox();
 
         /// <summary>
+        /// Pre creates the mass property evaluator for the document
+        /// </summary>
+        /// <returns>Mass property</returns>
+        IXMassProperty PreCreateMassProperty();
+
+        /// <summary>
         /// Returns views collection
         /// </summary>
         IXModelViewRepository ModelViews { get; }

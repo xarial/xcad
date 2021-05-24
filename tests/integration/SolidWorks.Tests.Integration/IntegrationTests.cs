@@ -40,7 +40,7 @@ namespace SolidWorks.Tests.Integration
             }
         }
 
-        private const int SW_PRC_ID = -1;
+        private const int SW_PRC_ID = 0;
         private const string DATA_FOLDER = @"C:\Users\artem\OneDrive\xCAD\TestData";
 
         protected ISwApplication m_App;

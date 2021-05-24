@@ -90,5 +90,17 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
 
         public abstract IXBoundingBox PreCreateBoundingBox();
+
+        public virtual IXMassProperty PreCreateMassProperty()
+        {
+            if (App.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2020))
+            {
+                return new SwMassProperty(this, m_MathUtils);
+            }
+            else
+            {
+                return new SwLegacyMassProperty(this, m_MathUtils);
+            }
+        }
     }
 }

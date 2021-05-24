@@ -49,6 +49,21 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         IXAssemblyBoundingBox IXAssembly.PreCreateBoundingBox()
             => new SwAssemblyBoundingBox(this, m_MathUtils);
+
+        public override IXMassProperty PreCreateMassProperty()
+            => (this as IXAssembly).PreCreateMassProperty();
+
+        IXAssemblyMassProperty IXAssembly.PreCreateMassProperty()
+        {
+            if (App.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2020))
+            {
+                return new SwAssemblyMassProperty(this, m_MathUtils);
+            }
+            else
+            {
+                return new SwAssemblyLegacyMassProperty(this, m_MathUtils);
+            }
+        }
     }
 
     internal class SwAssemblyComponentCollection : SwComponentCollection
