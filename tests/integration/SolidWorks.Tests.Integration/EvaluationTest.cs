@@ -33,6 +33,62 @@ namespace SolidWorks.Tests.Integration
         }
 
         [Test]
+        public void BoundingBoxUserUnitTest()
+        {
+            Box3D b1;
+            Box3D b2;
+
+            using (var doc = OpenDataDocument("BBox2.SLDPRT"))
+            {
+                var part = (IXPart)m_App.Documents.Active;
+
+                var bbox = part.PreCreateBoundingBox();
+                bbox.Precise = true;
+                bbox.UserUnits = true;
+                bbox.Commit();
+                b1 = bbox.Box;
+
+                bbox = part.PreCreateBoundingBox();
+                bbox.Precise = false;
+                bbox.UserUnits = true;
+                bbox.Commit();
+                b2 = bbox.Box;
+            }
+
+            Assert.That(b1.Width, Is.EqualTo(3.0).Within(0.00000000001).Percent);
+            Assert.That(b1.Height, Is.EqualTo(1.5).Within(0.00000000001).Percent);
+            Assert.That(b1.Length, Is.EqualTo(2.0).Within(0.00000000001).Percent);
+            Assert.That(b1.AxisX.X, Is.EqualTo(1).Within(0.00000000001).Percent);
+            Assert.That(b1.AxisX.Y, Is.EqualTo(0).Within(0.00000000001).Percent);
+            Assert.That(b1.AxisX.Z, Is.EqualTo(0).Within(0.00000000001).Percent);
+            Assert.That(b1.AxisY.X, Is.EqualTo(0).Within(0.00000000001).Percent);
+            Assert.That(b1.AxisY.Y, Is.EqualTo(1).Within(0.00000000001).Percent);
+            Assert.That(b1.AxisY.Z, Is.EqualTo(0).Within(0.00000000001).Percent);
+            Assert.That(b1.AxisZ.X, Is.EqualTo(0).Within(0.00000000001).Percent);
+            Assert.That(b1.AxisZ.Y, Is.EqualTo(0).Within(0.00000000001).Percent);
+            Assert.That(b1.AxisZ.Z, Is.EqualTo(1).Within(0.00000000001).Percent);
+            Assert.That(b1.CenterPoint.X, Is.EqualTo(2.5).Within(0.00000000001).Percent);
+            Assert.That(b1.CenterPoint.Y, Is.EqualTo(2.75).Within(0.00000000001).Percent);
+            Assert.That(b1.CenterPoint.Z, Is.EqualTo(1.0).Within(0.00000000001).Percent);
+
+            Assert.That(b2.Width, Is.EqualTo(3.0).Within(10).Percent);
+            Assert.That(b2.Height, Is.EqualTo(1.5).Within(30).Percent);
+            Assert.That(b2.Length, Is.EqualTo(2.0).Within(10).Percent);
+            Assert.That(b2.AxisX.X, Is.EqualTo(1).Within(0.00000000001).Percent);
+            Assert.That(b2.AxisX.Y, Is.EqualTo(0).Within(0.00000000001).Percent);
+            Assert.That(b2.AxisX.Z, Is.EqualTo(0).Within(0.00000000001).Percent);
+            Assert.That(b2.AxisY.X, Is.EqualTo(0).Within(0.00000000001).Percent);
+            Assert.That(b2.AxisY.Y, Is.EqualTo(1).Within(0.00000000001).Percent);
+            Assert.That(b2.AxisY.Z, Is.EqualTo(0).Within(0.00000000001).Percent);
+            Assert.That(b2.AxisZ.X, Is.EqualTo(0).Within(0.00000000001).Percent);
+            Assert.That(b2.AxisZ.Y, Is.EqualTo(0).Within(0.00000000001).Percent);
+            Assert.That(b2.AxisZ.Z, Is.EqualTo(1).Within(0.00000000001).Percent);
+            Assert.That(b2.CenterPoint.X, Is.EqualTo(2.5).Within(10).Percent);
+            Assert.That(b2.CenterPoint.Y, Is.EqualTo(2.75).Within(30).Percent);
+            Assert.That(b2.CenterPoint.Z, Is.EqualTo(1.0).Within(10).Percent);
+        }
+
+        [Test]
         public void BoundingBoxPartScopedPreceiseAndApproximateTest()
         {
             Box3D b1;
@@ -449,7 +505,7 @@ namespace SolidWorks.Tests.Integration
                 using (var massPrps = part.PreCreateMassProperty())
                 {
                     massPrps.Scope = new IXBody[] { part.Bodies["Sweep1"] };
-                    massPrps.SystemUnits = true;
+                    massPrps.UserUnits = false;
                     massPrps.Commit();
 
                     density = massPrps.Density;
@@ -511,7 +567,7 @@ namespace SolidWorks.Tests.Integration
 
                 using (var massPrps = part.PreCreateMassProperty())
                 {
-                    massPrps.SystemUnits = true;
+                    massPrps.UserUnits = false;
                     massPrps.Commit();
 
                     density = massPrps.Density;
@@ -573,7 +629,7 @@ namespace SolidWorks.Tests.Integration
 
                 using (var massPrps = part.PreCreateMassProperty())
                 {
-                    massPrps.SystemUnits = false;
+                    massPrps.UserUnits = true;
                     massPrps.Commit();
 
                     density = massPrps.Density;
@@ -636,7 +692,7 @@ namespace SolidWorks.Tests.Integration
                 using (var massPrps = part.PreCreateMassProperty())
                 {
                     massPrps.Scope = new IXBody[] { part.Bodies["Sweep1"] };
-                    massPrps.SystemUnits = false;
+                    massPrps.UserUnits = true;
                     massPrps.RelativeTo = TransformConverter.ToTransformMatrix(
                         part.Model.Extension.GetCoordinateSystemTransformByName("Coordinate System1"));
                     massPrps.Commit();
@@ -701,7 +757,7 @@ namespace SolidWorks.Tests.Integration
                 using (var massPrps = assm.PreCreateMassProperty())
                 {
                     massPrps.Scope = new IXComponent[] { assm.Configurations.Active.Components["Part1-1"] };
-                    massPrps.SystemUnits = true;
+                    massPrps.UserUnits = false;
                     massPrps.Commit();
 
                     density = massPrps.Density;
@@ -763,7 +819,7 @@ namespace SolidWorks.Tests.Integration
 
                 using (var massPrps = assm.PreCreateMassProperty())
                 {
-                    massPrps.SystemUnits = true;
+                    massPrps.UserUnits = false;
                     massPrps.Commit();
 
                     density = massPrps.Density;
@@ -826,7 +882,7 @@ namespace SolidWorks.Tests.Integration
                 using (var massPrps = assm.PreCreateMassProperty())
                 {
                     massPrps.Scope = new IXComponent[] { assm.Configurations.Active.Components["SubAssem1-1"].Children["Part2-1"] };
-                    massPrps.SystemUnits = false;
+                    massPrps.UserUnits = true;
                     massPrps.Commit();
 
                     density = massPrps.Density;
@@ -888,8 +944,8 @@ namespace SolidWorks.Tests.Integration
 
                 using (var massPrps = assm.PreCreateMassProperty())
                 {
-                    massPrps.SystemUnits = true;
-                    massPrps.IncludeHidden = true;
+                    massPrps.UserUnits = false;
+                    massPrps.VisibleOnly = false;
                     massPrps.Commit();
 
                     density = massPrps.Density;
@@ -952,7 +1008,7 @@ namespace SolidWorks.Tests.Integration
                 using (var massPrps = assm.PreCreateMassProperty())
                 {
                     massPrps.Scope = new IXComponent[] { assm.Configurations.Active.Components["Part1-1"] };
-                    massPrps.SystemUnits = true;
+                    massPrps.UserUnits = false;
                     massPrps.RelativeTo = TransformConverter.ToTransformMatrix(
                         assm.Model.Extension.GetCoordinateSystemTransformByName("Coordinate System1"));
 

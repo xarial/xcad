@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;
@@ -87,7 +88,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
             }
         }
 
-        public bool SystemUnits
+        public bool UserUnits
         {
             get => m_Creator.CachedProperties.Get<bool>();
             set
@@ -119,14 +120,14 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
             m_Creator = new ElementCreator<IMassProperty2>(CreateMassProperty, null, false);
 
-            SystemUnits = true;
+            UserUnits = false;
         }
 
         private IMassProperty2 CreateMassProperty(CancellationToken cancellationToken)
         {
             var massPrps = (IMassProperty2)m_Doc.Model.Extension.CreateMassProperty2();
 
-            massPrps.UseSystemUnits = SystemUnits;
+            massPrps.UseSystemUnits = !UserUnits;
 
             m_IncludeHiddenBodiesDefault = massPrps.IncludeHiddenBodiesOrComponents;
 
@@ -236,7 +237,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
             }
         }
 
-        public bool SystemUnits
+        public bool UserUnits
         {
             get => m_Creator.CachedProperties.Get<bool>();
             set
@@ -266,14 +267,14 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
             m_Creator = new ElementCreator<IMassProperty>(CreateMassProperty, null, false);
 
-            SystemUnits = true;
+            UserUnits = false;
         }
 
         private IMassProperty CreateMassProperty(CancellationToken cancellationToken)
         {
             var massPrps = (IMassProperty)m_Doc.Model.Extension.CreateMassProperty();
 
-            massPrps.UseSystemUnits = SystemUnits;
+            massPrps.UseSystemUnits = !UserUnits;
 
             if (RelativeTo != null)
             {
@@ -308,9 +309,10 @@ namespace Xarial.XCad.SolidWorks.Geometry
     {
         internal SwAssemblyMassProperty(ISwAssembly assm, IMathUtility mathUtils) : base(assm, mathUtils)
         {
+            VisibleOnly = true;
         }
 
-        public bool IncludeHidden
+        public bool VisibleOnly
         {
             get => m_Creator.CachedProperties.Get<bool>();
             set
@@ -326,7 +328,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
             }
         }
 
-        IXComponent[] IXAssemblyMassProperty.Scope
+        IXComponent[] IAssemblyEvaluation.Scope
         {
             get => m_Creator.CachedProperties.Get<IXComponent[]>();
             set
@@ -351,7 +353,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
                 massPrps.SelectedItems = scope.Select(x => ((ISwComponent)x).Component).ToArray();
             }
 
-            massPrps.IncludeHiddenBodiesOrComponents = IncludeHidden;
+            massPrps.IncludeHiddenBodiesOrComponents = !VisibleOnly;
         }
     }
 
@@ -361,7 +363,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
         {
         }
 
-        public bool IncludeHidden
+        public bool VisibleOnly
         {
             get => m_Creator.CachedProperties.Get<bool>();
             set
@@ -389,7 +391,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
                 }
                 else
                 {
-                    return comps.SelectMany(c => c.IterateBodies(IncludeHidden).Select(b =>
+                    return comps.SelectMany(c => c.IterateBodies(!VisibleOnly).Select(b =>
                     {
                         var swBody = (b as ISwBody).Body;
                         var ent = swBody.GetFirstFace() as IEntity;
@@ -407,7 +409,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
             set => base.Scope = value;
         }
 
-        IXComponent[] IXAssemblyMassProperty.Scope
+        IXComponent[] IAssemblyEvaluation.Scope
         {
             get => m_Creator.CachedProperties.Get<IXComponent[]>(nameof(Scope) + "_Components");
             set

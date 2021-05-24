@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;
@@ -29,11 +30,17 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         protected readonly ElementCreator<Box3D> m_Creator;
 
-        internal SwBoundingBox(IMathUtility mathUtils) 
+        private readonly ISwDocument m_Doc;
+
+        internal SwBoundingBox(ISwDocument doc, IMathUtility mathUtils) 
         {
+            m_Doc = doc;
+
             m_MathUtils = mathUtils;
 
             m_Creator = new ElementCreator<Box3D>(CreateBox, null, false);
+
+            UserUnits = false;
         }
 
         public Box3D Box => m_Creator.Element;
@@ -133,6 +140,22 @@ namespace Xarial.XCad.SolidWorks.Geometry
         }
 
         protected virtual bool IsScoped => Scope != null;
+
+        public bool UserUnits
+        {
+            get => m_Creator.CachedProperties.Get<bool>();
+            set
+            {
+                if (!IsCommitted)
+                {
+                    m_Creator.CachedProperties.Set(value);
+                }
+                else
+                {
+                    throw new CommittedElementPropertyChangeNotSupported();
+                }
+            }
+        }
 
         protected abstract IXBody[] GetAllBodies();
         protected abstract double[] ComputeFullApproximateBoundingBox();
@@ -293,6 +316,19 @@ namespace Xarial.XCad.SolidWorks.Geometry
         private Box3D CreateBoxFromData(double minX, double minY, double minZ, double maxX, double maxY, double maxZ,
             IMathTransform mathTransform = null)
         {
+            if (UserUnits)
+            {
+                var userUnit = m_Doc.Model.IGetUserUnit((int)swUserUnitsType_e.swLengthUnit);
+                var unitConvFactor = userUnit.GetConversionFactor();
+
+                minX = minX * unitConvFactor;
+                minY = minY * unitConvFactor;
+                minZ = minZ * unitConvFactor;
+                maxX = maxX * unitConvFactor;
+                maxY = maxY * unitConvFactor;
+                maxZ = maxZ * unitConvFactor;
+            }
+
             var width = maxX - minX;
             var height = maxY - minY;
             var length = maxZ - minZ;
@@ -324,13 +360,17 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
             return new Box3D(width, height, length, centerPt, dirX, dirY, dirZ);
         }
+
+        public void Dispose()
+        {
+        }
     }
 
     internal class SwAssemblyBoundingBox : SwBoundingBox, ISwAssemblyBoundingBox
     {
         private readonly ISwAssembly m_Assm;
 
-        internal SwAssemblyBoundingBox(ISwAssembly assm, IMathUtility mathUtils) : base(mathUtils)
+        internal SwAssemblyBoundingBox(ISwAssembly assm, IMathUtility mathUtils) : base(assm, mathUtils)
         {
             m_Assm = assm;
             VisibleOnly = true;
@@ -373,7 +413,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
             }
         }
 
-        IXComponent[] IXAssemblyBoundingBox.Scope
+        IXComponent[] IAssemblyEvaluation.Scope
         {
             get => m_Creator.CachedProperties.Get<IXComponent[]>(nameof(Scope) + "_Components");
             set
@@ -470,7 +510,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
     {
         private readonly ISwPart m_Part;
 
-        internal SwPartBoundingBox(ISwPart part, IMathUtility mathUtils) : base(mathUtils)
+        internal SwPartBoundingBox(ISwPart part, IMathUtility mathUtils) : base(part, mathUtils)
         {
             m_Part = part;
         }

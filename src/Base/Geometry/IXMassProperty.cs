@@ -7,25 +7,56 @@ using Xarial.XCad.Geometry.Structures;
 
 namespace Xarial.XCad.Geometry
 {
-    public interface IXMassProperty : IXTransaction, IDisposable
+    /// <summary>
+    /// Evaluates mass properties of the document
+    /// </summary>
+    public interface IXMassProperty : IEvaluation
     {
+        /// <summary>
+        /// Center of Gravity
+        /// </summary>
         Point CenterOfGravity { get; }
-        double SurfaceArea { get; }
-        double Volume { get; }
-        double Mass { get; }
-        double Density { get; }
-        PrincipalAxesOfInertia PrincipalAxesOfInertia { get; }
-        PrincipalMomentOfInertia PrincipalMomentOfInertia { get; }
-        MomentOfInertia MomentOfInertia { get; }
 
-        TransformMatrix RelativeTo { get; set; }
-        IXBody[] Scope { get; set; }
-        bool SystemUnits { get; set; }
+        /// <summary>
+        /// Surface area
+        /// </summary>
+        double SurfaceArea { get; }
+
+        /// <summary>
+        /// Volume
+        /// </summary>
+        double Volume { get; }
+
+        /// <summary>
+        /// Mass
+        /// </summary>
+        double Mass { get; }
+
+        /// <summary>
+        /// Density
+        /// </summary>
+        double Density { get; }
+
+        /// <summary>
+        /// Principal axes of inertia
+        /// </summary>
+        PrincipalAxesOfInertia PrincipalAxesOfInertia { get; }
+
+        /// <summary>
+        /// Principal moment of inertia
+        /// </summary>
+        PrincipalMomentOfInertia PrincipalMomentOfInertia { get; }
+
+        /// <summary>
+        /// Moment of inertia
+        /// </summary>
+        MomentOfInertia MomentOfInertia { get; }
     }
 
-    public interface IXAssemblyMassProperty : IXMassProperty 
+    /// <summary>
+    /// Evaluates mass properties of the assembly
+    /// </summary>
+    public interface IXAssemblyMassProperty : IXMassProperty, IAssemblyEvaluation
     {
-        new IXComponent[] Scope { get; set; }
-        bool IncludeHidden { get; set; }
     }
 }
