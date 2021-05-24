@@ -8,6 +8,13 @@ This page contains list of the most notable changes in the releases of xCAD.NET.
 
 Breaking change is marked with &#x26A0; symbol
 
+## 0.7.1 - May 25, 2021
+
+* &#x26A0; IXDocument3D::CalculateBoundingBox is replaced with IXDocument3D::PreCreateBoundingBox
+* &#x26A0; ComponentState_e::Rapid is renamed to ComponentState_e::Lightweight
+* Implemented [Add option to calculate bounding box relative to coordinate system](https://github.com/xarial/xcad/issues/75)
+* Implemented [Add support for Mass properties](https://github.com/xarial/xcad/issues/74)
+
 ## 0.7.0 - May 2, 2021
 
 * &#x26A0; IXPropertyRepository::GetOrPreCreate moved to extension method
