@@ -5,8 +5,10 @@
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
+using System;
 using System.Collections.Generic;
 using Xarial.XCad.Base;
+using Xarial.XCad.Documents;
 using Xarial.XCad.Geometry.Primitives;
 
 namespace Xarial.XCad.Geometry

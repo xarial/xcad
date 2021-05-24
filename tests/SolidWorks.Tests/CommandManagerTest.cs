@@ -19,7 +19,7 @@ using Xarial.XCad.SolidWorks;
 using Xarial.XCad.UI.Commands;
 using Xarial.XCad.UI.Commands.Attributes;
 
-namespace Sw.Tests
+namespace SolidWorks.Tests
 {
     public class CommandManagerTest
     {

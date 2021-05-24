@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Xarial.XCad.Documents;
+using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;
 
 namespace Xarial.XCad.SwDocumentManager.Documents
@@ -24,7 +25,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         #region Not Supported
 
         public IXModelViewRepository ModelViews => throw new NotSupportedException();
-        public Box3D CalculateBoundingBox() => throw new NotSupportedException();
+        public IXBoundingBox PreCreateBoundingBox() => throw new NotSupportedException();
         TSelObject IXObjectContainer.ConvertObject<TSelObject>(TSelObject obj) => throw new NotSupportedException();
 
         #endregion

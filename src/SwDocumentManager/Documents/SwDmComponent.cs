@@ -120,6 +120,14 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
                 return state;
             }
+            set 
+            {
+                if (((ISwDMComponent5)Component).ExcludeFromBOM == (int)swDmExcludeFromBOMResult.swDmExcludeFromBOM_TRUE
+                    && !value.HasFlag(ComponentState_e.ExcludedFromBom))
+                {
+                    ((ISwDMComponent5)Component).ExcludeFromBOM = (int)swDmExcludeFromBOMResult.swDmExcludeFromBOM_TRUE;
+                }
+            }
         }
 
         private ISwDmDocument3D m_CachedDocument;

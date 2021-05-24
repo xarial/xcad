@@ -40,7 +40,7 @@ namespace SolidWorks.Tests.Integration
             }
         }
 
-        private const int SW_PRC_ID = -1;
+        private const int SW_PRC_ID = 0;
         private const string DATA_FOLDER = @"C:\Users\artem\OneDrive\xCAD\TestData";
 
         protected ISwApplication m_App;
@@ -153,6 +153,9 @@ namespace SolidWorks.Tests.Integration
                 throw new NullReferenceException($"Failed to create new document from '{defTemplatePath}'");
             }
         }
+
+        protected void AssertCompareDoubles(double actual, double expected, int digits = 8)
+            => Assert.That(Math.Round(expected, digits), Is.EqualTo(Math.Round(actual, digits)).Within(0.000001).Percent);
 
         [TearDown]
         public void TearDown() 

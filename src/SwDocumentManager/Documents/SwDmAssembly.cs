@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Xarial.XCad.Documents;
+using Xarial.XCad.Geometry;
 
 namespace Xarial.XCad.SwDocumentManager.Documents
 {
@@ -20,6 +21,12 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
     internal class SwDmAssembly : SwDmDocument3D, ISwDmAssembly
     {
+        #region Not Supported
+        
+        IXAssemblyBoundingBox IXAssembly.PreCreateBoundingBox() => throw new NotSupportedException();
+
+        #endregion
+
         private readonly Lazy<SwDmAssemblyConfigurationCollection> m_LazyConfigurations;
 
         public SwDmAssembly(ISwDmApplication dmApp, ISwDMDocument doc, bool isCreated,

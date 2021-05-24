@@ -14,11 +14,13 @@ using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Documents.Exceptions;
 using Xarial.XCad.Geometry;
+using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.SolidWorks;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Documents.Exceptions;
 using Xarial.XCad.SolidWorks.Enums;
 using Xarial.XCad.SolidWorks.Geometry;
+using Xarial.XCad.SolidWorks.Utils;
 
 namespace SolidWorks.Tests.Integration
 {
@@ -867,6 +869,162 @@ namespace SolidWorks.Tests.Integration
             Assert.IsTrue(r6);
             Assert.IsTrue(r7);
             Assert.IsTrue(r8);
+        }
+
+        [Test]
+        public void BoundingBoxPartScopedTest() 
+        {
+            Box3D b1;
+            Box3D b2;
+
+            using (var doc = OpenDataDocument("BBox1.SLDPRT"))
+            {
+                var part = (IXPart)m_App.Documents.Active;
+
+                var body = (IXSolidBody)part.Bodies["Boss-Extrude1"];
+
+                var bbox = part.PreCreateBoundingBox();
+                bbox.Precise = true;
+                bbox.Scope = new IXBody[] { body };
+                bbox.Commit();
+                b1 = bbox.Box;
+
+                bbox = part.PreCreateBoundingBox();
+                bbox.Precise = false;
+                bbox.Scope = new IXBody[] { body };
+                bbox.Commit();
+                b2 = bbox.Box;
+            }
+
+            Assert.That(b1.Width, Is.EqualTo(0.1).Within(0.00000000001).Percent);
+            Assert.That(b1.Height, Is.EqualTo(0.05).Within(0.00000000001).Percent);
+            Assert.That(b1.Length, Is.EqualTo(0.15).Within(0.00000000001).Percent);
+            Assert.That(b1.AxisX.X, Is.EqualTo(1).Within(0.00000000001).Percent);
+            Assert.That(b1.AxisX.Y, Is.EqualTo(0).Within(0.00000000001).Percent);
+            Assert.That(b1.AxisX.Z, Is.EqualTo(0).Within(0.00000000001).Percent);
+            Assert.That(b1.AxisY.X, Is.EqualTo(0).Within(0.00000000001).Percent);
+            Assert.That(b1.AxisY.Y, Is.EqualTo(1).Within(0.00000000001).Percent);
+            Assert.That(b1.AxisY.Z, Is.EqualTo(0).Within(0.00000000001).Percent);
+            Assert.That(b1.AxisZ.X, Is.EqualTo(0).Within(0.00000000001).Percent);
+            Assert.That(b1.AxisZ.Y, Is.EqualTo(0).Within(0.00000000001).Percent);
+            Assert.That(b1.AxisZ.Z, Is.EqualTo(1).Within(0.00000000001).Percent);
+            Assert.That(b1.CenterPoint.X, Is.EqualTo(0.05).Within(0.00000000001).Percent);
+            Assert.That(b1.CenterPoint.Y, Is.EqualTo(0.025).Within(0.00000000001).Percent);
+            Assert.That(b1.CenterPoint.Z, Is.EqualTo(-0.075).Within(0.00000000001).Percent);
+
+            Assert.That(b2.Width, Is.EqualTo(0.1).Within(0.00000000001).Percent);
+            Assert.That(b2.Height, Is.EqualTo(0.05).Within(0.00000000001).Percent);
+            Assert.That(b2.Length, Is.EqualTo(0.15).Within(0.00000000001).Percent);
+            Assert.That(b2.AxisX.X, Is.EqualTo(1).Within(0.00000000001).Percent);
+            Assert.That(b2.AxisX.Y, Is.EqualTo(0).Within(0.00000000001).Percent);
+            Assert.That(b2.AxisX.Z, Is.EqualTo(0).Within(0.00000000001).Percent);
+            Assert.That(b2.AxisY.X, Is.EqualTo(0).Within(0.00000000001).Percent);
+            Assert.That(b2.AxisY.Y, Is.EqualTo(1).Within(0.00000000001).Percent);
+            Assert.That(b2.AxisY.Z, Is.EqualTo(0).Within(0.00000000001).Percent);
+            Assert.That(b2.AxisZ.X, Is.EqualTo(0).Within(0.00000000001).Percent);
+            Assert.That(b2.AxisZ.Y, Is.EqualTo(0).Within(0.00000000001).Percent);
+            Assert.That(b2.AxisZ.Z, Is.EqualTo(1).Within(0.00000000001).Percent);
+            Assert.That(b2.CenterPoint.X, Is.EqualTo(0.05).Within(0.00000000001).Percent);
+            Assert.That(b2.CenterPoint.Y, Is.EqualTo(0.025).Within(0.00000000001).Percent);
+            Assert.That(b2.CenterPoint.Z, Is.EqualTo(-0.075).Within(0.00000000001).Percent);
+        }
+
+        [Test]
+        public void BoundingBoxRelativePartScopedTest()
+        {
+            Box3D b1;
+            Exception b2 = null;
+
+            using (var doc = OpenDataDocument("BBox1.SLDPRT"))
+            {
+                var part = (ISwPart)m_App.Documents.Active;
+
+                var body = (IXSolidBody)part.Bodies["Body-Move/Copy1"];
+
+                var matrix = TransformConverter.ToTransformMatrix(
+                    part.Model.Extension.GetCoordinateSystemTransformByName("Coordinate System1"));
+
+                var bbox = part.PreCreateBoundingBox();
+                bbox.Precise = true;
+                bbox.RelativeTo = matrix;
+                bbox.Scope = new IXBody[] { body };
+                bbox.Commit();
+                b1 = bbox.Box;
+
+                bbox = part.PreCreateBoundingBox();
+                bbox.Precise = false;
+                bbox.RelativeTo = matrix;
+                bbox.Scope = new IXBody[] { body };
+                try
+                {
+                    bbox.Commit();
+                }
+                catch (Exception ex) 
+                {
+                    b2 = ex;
+                }
+            }
+
+            Assert.That(b1.Width, Is.EqualTo(0.1).Within(0.00000000001).Percent);
+            Assert.That(b1.Height, Is.EqualTo(0.05).Within(0.00000000001).Percent);
+            Assert.That(b1.Length, Is.EqualTo(0.15).Within(0.00000000001).Percent);
+            
+            var normX = b1.AxisX.Normalize();
+            var expNormX = new Vector(-0.04748737 - -0.09748737, -0.02248737 - -0.07248737, 0.0517767 - 0.12248737).Normalize();
+            var normY = b1.AxisY.Normalize();
+            var expNormY = new Vector(-0.1048097 - -0.09748737, -0.0298097 - -0.07248737, 0.14748737 - 0.12248737).Normalize();
+            var normZ = b1.AxisZ.Normalize();
+            var expNormZ = new Vector(0.03054564 - -0.09748737, -0.09445436 - -0.07248737, 0.19748737 - 0.12248737).Normalize();
+            
+            AssertCompareDoubles(normX.X, expNormX.X, 5);
+            AssertCompareDoubles(normX.Y, expNormX.Y, 5);
+            AssertCompareDoubles(normX.Z, expNormX.Z, 5);
+
+            AssertCompareDoubles(normY.X, expNormY.X, 5);
+            AssertCompareDoubles(normY.Y, expNormY.Y, 5);
+            AssertCompareDoubles(normY.Z, expNormY.Z, 5);
+
+            AssertCompareDoubles(normZ.X, expNormZ.X, 5);
+            AssertCompareDoubles(normZ.Y, expNormZ.Y, 5);
+            AssertCompareDoubles(normZ.Z, expNormZ.Z, 5);
+
+            AssertCompareDoubles(b1.CenterPoint.X, -0.01213203);
+            AssertCompareDoubles(b1.CenterPoint.Y, -0.03713203);
+            AssertCompareDoubles(b1.CenterPoint.Z, 0.13713203);
+
+            Assert.IsAssignableFrom<NotSupportedException>(b2);
+        }
+
+        [Test]
+        public void BoundingBoxPartFullTest()
+        {
+            Box3D b1;
+
+            using (var doc = OpenDataDocument("BBox1.SLDPRT"))
+            {
+                var part = (IXPart)m_App.Documents.Active;
+
+                var bbox = part.PreCreateBoundingBox();
+                bbox.Precise = false;
+                bbox.Commit();
+                b1 = bbox.Box;
+            }
+
+            AssertCompareDoubles(b1.Width, 0.2048097, 7);
+            AssertCompareDoubles(b1.Height, 0.14445436, 7);
+            AssertCompareDoubles(b1.Length, 0.37248737, 7);
+            Assert.That(b1.AxisX.X, Is.EqualTo(1).Within(0.00000000001).Percent);
+            Assert.That(b1.AxisX.Y, Is.EqualTo(0).Within(0.00000000001).Percent);
+            Assert.That(b1.AxisX.Z, Is.EqualTo(0).Within(0.00000000001).Percent);
+            Assert.That(b1.AxisY.X, Is.EqualTo(0).Within(0.00000000001).Percent);
+            Assert.That(b1.AxisY.Y, Is.EqualTo(1).Within(0.00000000001).Percent);
+            Assert.That(b1.AxisY.Z, Is.EqualTo(0).Within(0.00000000001).Percent);
+            Assert.That(b1.AxisZ.X, Is.EqualTo(0).Within(0.00000000001).Percent);
+            Assert.That(b1.AxisZ.Y, Is.EqualTo(0).Within(0.00000000001).Percent);
+            Assert.That(b1.AxisZ.Z, Is.EqualTo(1).Within(0.00000000001).Percent);
+            AssertCompareDoubles(b1.CenterPoint.X, -0.00240485);
+            AssertCompareDoubles(b1.CenterPoint.Y, -0.02222718);
+            AssertCompareDoubles(b1.CenterPoint.Z, 0.03624369);
         }
     }
 }

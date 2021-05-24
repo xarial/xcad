@@ -12,38 +12,115 @@ namespace Xarial.XCad.Geometry.Structures
     /// </summary>
     public class Box3D
     {
-        public Point LeftBottomFront { get; set; }
-        public Point LeftBottomBack { get; set; }
-        public Point LeftTopFront { get; set; }
-        public Point LeftTopBack { get; set; }
-        public Point RightBottomFront { get; set; }
-        public Point RightBottomBack { get; set; }
-        public Point RightTopFront { get; set; }
-        public Point RightTopBack { get; set; }
+        /// <summary>
+        /// Width of the bounding box relative to X axis
+        /// </summary>
+        public double Width { get; }
 
-        public Point[] Points => new Point[]
+        /// <summary>
+        /// Width of the bounding box relative to Y axis
+        /// </summary>
+        public double Height { get; }
+
+        /// <summary>
+        /// Width of the bounding box relative to Z axis
+        /// </summary>
+        public double Length { get; }
+
+        /// <summary>
+        /// Center point of the bounding box
+        /// </summary>
+        /// <remarks>This is the center point of the diagonal</remarks>
+        public Point CenterPoint { get; }
+        
+        /// <summary>
+        /// X axis of the bounding box
+        /// </summary>
+        public Vector AxisX { get; }
+
+        /// <summary>
+        /// Y axis of the bounding box
+        /// </summary>
+        public Vector AxisY { get; }
+
+        /// <summary>
+        /// Z axis of the bounding box
+        /// </summary>
+        public Vector AxisZ { get; }
+
+        /// <summary>
+        /// Default constructor
+        /// </summary>
+        public Box3D(double width, double height, double length, Point centerPt, Vector axisX, Vector axisY , Vector axisZ)
         {
-            LeftBottomFront,
-            LeftBottomBack,
-            LeftTopFront,
-            LeftTopBack,
-            RightBottomFront,
-            RightBottomBack,
-            RightTopFront,
-            RightTopBack
-        };
+            Width = width;
+            Height = height;
+            Length = length;
 
-        public Box3D(double minX, double minY, double minZ, double maxX, double maxY, double maxZ)
-        {
-            LeftBottomBack = new Point(minX, minY, minZ);
-            LeftBottomFront = new Point(minX, minY, maxZ);
-            LeftTopFront = new Point(minX, maxY, maxZ);
-            LeftTopBack = new Point(minX, maxY, minZ);
-
-            RightBottomBack = new Point(maxX, minY, minZ);
-            RightBottomFront = new Point(maxX, minY, maxZ);
-            RightTopFront = new Point(maxX, maxY, maxZ);
-            RightTopBack = new Point(maxX, maxY, minZ);
+            CenterPoint = centerPt;
+            AxisX = axisX;
+            AxisY = axisY;
+            AxisZ = axisZ;
         }
+    }
+
+    /// <summary>
+    /// Additional methods for <see cref="Box3D"/>
+    /// </summary>
+    public static class Box3DExtension 
+    {
+        /// <summary>
+        /// Left-Bottom-Front point of the bounding box
+        /// </summary>
+        public static Point GetLeftBottomFront(this Box3D box)
+            => GetEndPoint(box, false, false, true);
+
+        /// <summary>
+        /// Left-Bottom-Back point of the bounding box
+        /// </summary>
+        public static Point GetLeftBottomBack(this Box3D box)
+            => GetEndPoint(box, false, false, false);
+
+        /// <summary>
+        /// Left-Top-Front point of the bounding box
+        /// </summary>
+        public static Point GetLeftTopFront(this Box3D box)
+            => GetEndPoint(box, false, true, true);
+
+        /// <summary>
+        /// Left-Top-Back point of the bounding box
+        /// </summary>
+        public static Point GetLeftTopBack(this Box3D box)
+            => GetEndPoint(box, false, true, false);
+
+        /// <summary>
+        /// Right-Bottom-Front point of the bounding box
+        /// </summary>
+        public static Point GetRightBottomFront(this Box3D box)
+            => GetEndPoint(box, true, false, true);
+
+        /// <summary>
+        /// Right-Bottom-Back point of the bounding box
+        /// </summary>
+        public static Point GetRightBottomBack(this Box3D box)
+            => GetEndPoint(box, true, false, false);
+
+        /// <summary>
+        /// Right-Top-Front point of the bounding box
+        /// </summary>
+        public static Point GetRightTopFront(this Box3D box)
+            => GetEndPoint(box, true, true, true);
+
+        /// <summary>
+        /// Right-Top-Back point of the bounding box
+        /// </summary>
+        public static Point GetRightTopBack(this Box3D box)
+            => GetEndPoint(box, true, true, false);
+
+        private static Point GetEndPoint(Box3D box, bool dirX, bool dirY, bool dirZ)
+            => box.CenterPoint
+                .Move(box.AxisX * (dirX ? 1 : -1), box.Width / 2)
+                .Move(box.AxisY * (dirY ? 1 : -1), box.Height / 2)
+                .Move(box.AxisZ * (dirZ ? 1 : -1), box.Length / 2);
     }
 }

@@ -129,7 +129,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                 if (swState == (int)swComponentSuppressionState_e.swComponentLightweight
                     || swState == (int)swComponentSuppressionState_e.swComponentFullyLightweight)
                 {
-                    state |= ComponentState_e.Rapid;
+                    state |= ComponentState_e.Lightweight;
                 }
                 else if (swState == (int)swComponentSuppressionState_e.swComponentSuppressed) 
                 {
@@ -155,9 +155,44 @@ namespace Xarial.XCad.SolidWorks.Documents
                 {
                     state |= ComponentState_e.Envelope;
                 }
-
+                               
                 return state;
-            } 
+            }
+            set 
+            {
+                var swState = Component.GetSuppression2();
+
+                if ((swState == (int)swComponentSuppressionState_e.swComponentSuppressed && !value.HasFlag(ComponentState_e.Suppressed))
+                    || (swState == (int)swComponentSuppressionState_e.swComponentLightweight
+                        || swState == (int)swComponentSuppressionState_e.swComponentFullyLightweight
+                        && !value.HasFlag(ComponentState_e.Lightweight)))
+                {
+                    if (Component.SetSuppression2((int)swComponentSuppressionState_e.swComponentFullyResolved) != (int)swSuppressionError_e.swSuppressionChangeOk) 
+                    {
+                        throw new Exception("Failed to resovle component state");
+                    }
+                }
+
+                if (m_RootAssembly.Model.IsOpenedViewOnly() && !value.HasFlag(ComponentState_e.ViewOnly)) //Large design review
+                {
+                    throw new Exception("Component cannot be resolved when opened as view only");
+                }
+
+                if (Component.IsHidden(false) && !value.HasFlag(ComponentState_e.Hidden))
+                {
+                    Component.Visible = (int)swComponentVisibilityState_e.swComponentVisible;
+                }
+
+                if (Component.ExcludeFromBOM && !value.HasFlag(ComponentState_e.ExcludedFromBom))
+                {
+                    Component.ExcludeFromBOM = false;
+                }
+
+                if (Component.IsEnvelope() && !value.HasFlag(ComponentState_e.Envelope))
+                {
+                    throw new Exception("Envelope state cannot be changed");
+                }
+            }
         }
 
         public ISwFeatureManager Features => m_Features.Value;

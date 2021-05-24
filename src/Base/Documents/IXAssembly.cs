@@ -5,6 +5,8 @@
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
+using Xarial.XCad.Geometry;
+
 namespace Xarial.XCad.Documents
 {
     /// <summary>
@@ -14,5 +16,11 @@ namespace Xarial.XCad.Documents
     {
         /// <inheritdoc/>
         new IXAssemblyConfigurationRepository Configurations { get; }
+
+        /// <summary>
+        /// Pre creates the 3D bounding box of the assembly
+        /// </summary>
+        /// <returns>Bounding box</returns>
+        new IXAssemblyBoundingBox PreCreateBoundingBox();
     }
 }

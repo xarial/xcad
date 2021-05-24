@@ -12,7 +12,9 @@ using System.Collections.Generic;
 using System.Linq;
 using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
+using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;
+using Xarial.XCad.SolidWorks.Geometry;
 using Xarial.XCad.Utils.Diagnostics;
 
 namespace Xarial.XCad.SolidWorks.Documents
@@ -42,14 +44,11 @@ namespace Xarial.XCad.SolidWorks.Documents
         ISwAssemblyConfigurationCollection ISwAssembly.Configurations => m_LazyConfigurations.Value;
         IXAssemblyConfigurationRepository IXAssembly.Configurations => (this as ISwAssembly).Configurations;
 
-        public override Box3D CalculateBoundingBox()
-        {
-            const int NO_REF_GEOM = 0;
+        public override IXBoundingBox PreCreateBoundingBox()
+            => (this as IXAssembly).PreCreateBoundingBox();
 
-            var box = Assembly.GetBox(NO_REF_GEOM) as double[];
-
-            return new Box3D(box[0], box[1], box[2], box[3], box[4], box[5]);
-        }
+        IXAssemblyBoundingBox IXAssembly.PreCreateBoundingBox()
+            => new SwAssemblyBoundingBox(this, m_MathUtils);
     }
 
     internal class SwAssemblyComponentCollection : SwComponentCollection

@@ -28,9 +28,9 @@ namespace Xarial.XCad.Documents.Enums
         Suppressed = 1,
 
         /// <summary>
-        /// Component is loaded in the rapid mode
+        /// Component is loaded in the lightweight mode
         /// </summary>
-        Rapid = 2,
+        Lightweight = 2,
 
         /// <summary>
         /// Component is loaded in view-only mode
@@ -50,6 +50,6 @@ namespace Xarial.XCad.Documents.Enums
         /// <summary>
         /// Components is created as envelope
         /// </summary>
-        Envelope
+        Envelope = 32
     }
 }

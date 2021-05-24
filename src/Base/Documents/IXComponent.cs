@@ -7,6 +7,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Xarial.XCad.Base;
 using Xarial.XCad.Documents.Enums;
@@ -39,7 +40,7 @@ namespace Xarial.XCad.Documents
         /// <summary>
         /// State of this component
         /// </summary>
-        ComponentState_e State { get; }
+        ComponentState_e State { get; set; }
 
         /// <summary>
         /// Document of the component
@@ -61,5 +62,69 @@ namespace Xarial.XCad.Documents
         /// Bodies in this component
         /// </summary>
         IXBodyRepository Bodies { get; }
+    }
+
+    /// <summary>
+    /// Additional methods for <see cref="IXComponent"/>
+    /// </summary>
+    public static class IXComponentExtension 
+    {
+        /// <summary>
+        /// Gets all bodies from the components
+        /// </summary>
+        /// <param name="comp">Component</param>
+        /// <param name="includeHidden">True to include all bodies, false to only include visible</param>
+        /// <returns>Bodies</returns>
+        public static IEnumerable<IXBody> IterateBodies(this IXComponent comp, bool includeHidden = false)
+        {
+            IEnumerable<IXComponent> SelectComponents(IXComponent parent)
+            {
+                var state = parent.State;
+
+                if (!state.HasFlag(ComponentState_e.Suppressed))
+                {
+                    if (includeHidden || !state.HasFlag(ComponentState_e.Hidden))
+                    {
+                        yield return parent;
+
+                        if (state.HasFlag(ComponentState_e.Lightweight))
+                        {
+                            if (parent.Document is IXAssembly)
+                            {
+                                comp.State = (ComponentState_e)(state - ComponentState_e.Lightweight);
+                            }
+                        }
+
+                        foreach (var child in parent.Children.SelectMany(c => SelectComponents(c)))
+                        {
+                            yield return child;
+                        }
+                    }
+                }
+            }
+
+            IXBody[] GetComponentBodies(IXComponent srcComp)
+                => srcComp.Bodies.Where(b => includeHidden || b.Visible).ToArray();
+
+            if (comp.Document is IXPart)
+            {
+                foreach (var body in GetComponentBodies(comp))
+                {
+                    yield return body;
+                }
+            }
+            else if (comp.Document is IXAssembly)
+            {
+                foreach (var body in SelectComponents(comp)
+                    .SelectMany(GetComponentBodies))
+                {
+                    yield return body;
+                }
+            }
+            else
+            {
+                throw new NotSupportedException();
+            }
+        }
     }
 }

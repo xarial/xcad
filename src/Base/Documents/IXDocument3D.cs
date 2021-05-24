@@ -5,6 +5,8 @@
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
+using Xarial.XCad.Base;
+using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;
 
 namespace Xarial.XCad.Documents
@@ -15,10 +17,10 @@ namespace Xarial.XCad.Documents
     public interface IXDocument3D : IXDocument, IXObjectContainer
     {
         /// <summary>
-        /// Extracts the 3D bounding box of the document parallel to XYZ coordinate system
+        /// Pre creates the 3D bounding box of the document
         /// </summary>
         /// <returns>Bounding box</returns>
-        Box3D CalculateBoundingBox();
+        IXBoundingBox PreCreateBoundingBox();
 
         /// <summary>
         /// Returns views collection

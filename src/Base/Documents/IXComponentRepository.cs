@@ -7,8 +7,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Xarial.XCad.Base;
+using Xarial.XCad.Documents.Enums;
+using Xarial.XCad.Geometry;
 
 namespace Xarial.XCad.Documents
 {

@@ -46,7 +46,6 @@ namespace Xarial.XCad.SwDocumentManager
         public IXMemoryGeometryBuilder MemoryGeometryBuilder => throw new NotSupportedException();
         public IXProgress CreateProgress() => throw new NotSupportedException();
         public IXMacro OpenMacro(string path) => throw new NotSupportedException();
-        public void Close() => throw new NotSupportedException();
         public MessageBoxResult_e ShowMessageBox(string msg,
             MessageBoxIcon_e icon = MessageBoxIcon_e.Info, MessageBoxButtons_e buttons = MessageBoxButtons_e.Ok)
             => throw new NotSupportedException();
@@ -113,6 +112,21 @@ namespace Xarial.XCad.SwDocumentManager
             var licKey = LicenseKey;
             LicenseKey = null;
             return SwDmApplicationFactory.ConnectToDm(licKey);
+        }
+
+        public void Close() 
+        {
+            foreach (var doc in Documents) 
+            {
+                if (doc.IsCommitted && doc.IsAlive) 
+                {
+                    doc.Close();
+                }
+            }
+
+            Marshal.ReleaseComObject(m_Creator.Element);
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
         }
 
         public void Commit(CancellationToken cancellationToken) 
