@@ -1,4 +1,11 @@
-﻿using SolidWorks.Interop.sldworks;
+﻿//*********************************************************************
+//xCAD
+//Copyright(C) 2021 Xarial Pty Limited
+//Product URL: https://www.xcad.net
+//License: https://xcad.xarial.com/license/
+//*********************************************************************
+
+using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
 using System;
 using System.Collections.Generic;
