@@ -88,7 +88,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                 {
                     if (activeConf.Configuration != this.Configuration)
                     {
-                        throw new InactiveConfigurationCutListPropertiesNotSupportedException();
+                        throw new ConfigurationSpecificCutListNotSupportedException();
                     };
                 }
 
@@ -261,6 +261,41 @@ namespace Xarial.XCad.SolidWorks.Documents
                 m_PropertiesLazy.Value.Dispose();
             }
         }
+    }
+
+    internal class SwComponentConfiguration : SwConfiguration
+    {
+        private static IConfiguration GetConfiguration(SwComponent comp) 
+        {
+            var doc = comp.Document;
+
+            if (doc.IsCommitted)
+            {
+                return (IConfiguration)doc.Model.GetConfigurationByName(comp.Component.ReferencedConfiguration);
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        private readonly SwComponent m_Comp;
+
+        internal SwComponentConfiguration(SwComponent comp) 
+            : this((SwDocument3D)comp.Document, GetConfiguration(comp), comp.Component.ReferencedConfiguration)
+        {
+            m_Comp = comp;
+        }
+
+        private SwComponentConfiguration(SwDocument3D doc, IConfiguration conf, string name) : base(doc, conf, conf != null)
+        {
+            if (conf == null) 
+            {
+                Name = name;
+            }
+        }
+
+        public override IXCutListItem[] CutLists => ((SwComponentFeatureManager)m_Comp.Features).GetCutLists();
     }
 
     internal class SwViewOnlyUnloadedConfiguration : SwConfiguration

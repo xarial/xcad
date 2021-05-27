@@ -10,12 +10,12 @@ using System.Collections.Generic;
 using System.Text;
 using Xarial.XCad.Exceptions;
 
-namespace Xarial.XCad.SwDocumentManager.Exceptions
+namespace Xarial.XCad.SolidWorks.Documents.Exceptions
 {
-    public class ConfigurationCutListIsNotSupported : NotSupportedException, IUserException
+    public class ConfigurationSpecificCutListNotSupportedException : NotSupportedException, IUserException
     {
-        public ConfigurationCutListIsNotSupported() 
-            : base("Cut-lists can only be extracted from the active configuration for files saved in 2018 or older") 
+        public ConfigurationSpecificCutListNotSupportedException() 
+            : base("Configuration specific cut-lists are not supported") 
         {
         }
     }

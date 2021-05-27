@@ -12,10 +12,10 @@ using Xarial.XCad.Exceptions;
 
 namespace Xarial.XCad.SolidWorks.Documents.Exceptions
 {
-    public class InactiveConfigurationCutListPropertiesNotSupportedException : Exception, IUserException
+    public class ConfigurationSpecificCutListPropertiesWriteNotSupportedException : NotSupportedException, IUserException
     {
-        public InactiveConfigurationCutListPropertiesNotSupportedException() 
-            : base("Due to current limitations cut-lists are only supported in the active configuration") 
+        public ConfigurationSpecificCutListPropertiesWriteNotSupportedException() 
+            : base("Modifying configuration specific cut-list properties is not supported") 
         {
         }
     }

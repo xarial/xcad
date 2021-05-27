@@ -70,7 +70,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             m_RootAssembly = rootAssembly;
             Component = comp;
             Children = new SwChildComponentsCollection(rootAssembly, comp);
-            m_Features = new Lazy<ISwFeatureManager>(() => new ComponentFeatureRepository(rootAssembly, comp));
+            m_Features = new Lazy<ISwFeatureManager>(() => new SwComponentFeatureManager(rootAssembly, this));
             Bodies = new SwComponentBodyCollection(comp, rootAssembly);
 
             m_FilePathResolver = m_RootAssembly.App.Services.GetService<IFilePathResolver>();
@@ -224,25 +224,8 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        public IXConfiguration ReferencedConfiguration 
-        {
-            get 
-            {
-                var doc = Document;
-
-                if (doc.IsCommitted)
-                {
-                    return doc.Configurations[Component.ReferencedConfiguration];
-                }
-                else 
-                {
-                    return new SwConfiguration((SwDocument3D)doc, null, false)
-                    {
-                        Name = Component.ReferencedConfiguration
-                    };
-                }
-            }
-        }
+        public IXConfiguration ReferencedConfiguration
+            => new SwComponentConfiguration(this);
 
         public override void Select(bool append)
         {
@@ -281,25 +264,25 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
     }
     
-    internal class ComponentFeatureRepository : SwFeatureManager
+    internal class SwComponentFeatureManager : SwFeatureManager
     {
         private readonly SwAssembly m_Assm;
-        private readonly IComponent2 m_Comp;
+        internal SwComponent Component { get; }
 
-        public ComponentFeatureRepository(SwAssembly assm, IComponent2 comp) 
+        public SwComponentFeatureManager(SwAssembly assm, SwComponent comp) 
             : base(assm)
         {
             m_Assm = assm;
-            m_Comp = comp;
+            Component = comp;
         }
 
         public override void AddRange(IEnumerable<IXFeature> feats)
         {
             try
             {
-                if (m_Comp.Select4(false, null, false))
+                if (Component.Component.Select4(false, null, false))
                 {
-                    var isAssm = string.Equals(Path.GetExtension(m_Comp.GetPathName()),
+                    var isAssm = string.Equals(Path.GetExtension(Component.Component.GetPathName()),
                         ".sldasm", StringComparison.CurrentCultureIgnoreCase);
 
                     if (isAssm)
@@ -330,11 +313,11 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        public override IEnumerator<IXFeature> GetEnumerator() => new ComponentFeatureEnumerator(m_Assm, m_Comp);
+        public override IEnumerator<IXFeature> GetEnumerator() => new ComponentFeatureEnumerator(m_Assm, Component.Component);
         
         public override bool TryGet(string name, out IXFeature ent)
         {
-            var feat = m_Comp.FeatureByName(name);
+            var feat = Component.Component.FeatureByName(name);
 
             if (feat != null)
             {

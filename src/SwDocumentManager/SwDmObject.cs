@@ -77,7 +77,7 @@ namespace Xarial.XCad.SwDocumentManager
                     }
 
                 case ISwDMCutListItem cutList:
-                    return new SwDmCutListItem((ISwDMCutListItem2)cutList, (SwDmDocument)doc);
+                    return new SwDmCutListItem((ISwDMCutListItem2)cutList, (SwDmDocument3D)doc);
 
                 case ISwDMComponent comp:
                     return new SwDmComponent((SwDmAssembly)doc, comp);

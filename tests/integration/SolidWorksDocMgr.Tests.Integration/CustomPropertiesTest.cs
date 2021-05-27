@@ -10,6 +10,7 @@ using Xarial.XCad.Data;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Exceptions;
 using Xarial.XCad.SwDocumentManager.Documents;
+using Xarial.XCad.SwDocumentManager.Exceptions;
 
 namespace SolidWorksDocMgr.Tests.Integration
 {
@@ -169,7 +170,6 @@ namespace SolidWorksDocMgr.Tests.Integration
         public void SetWeldmentCutListPropertiesTest()
         {
             var conf1Val = "";
-            var confDefVal = "";
 
             using (var doc = OpenDataDocument("CutListConfs1.SLDPRT"))
             {
@@ -183,17 +183,13 @@ namespace SolidWorksDocMgr.Tests.Integration
                 var prp2 = part.Configurations["Default<As Machined>"].CutLists
                     .First(c => c.Name == "Cut-List-Item1").Properties.GetOrPreCreate("Prp3");
                 prp2.Value = "NewValueDefault";
-                prp2.Commit();
+                Assert.Throws<ConfigurationSpecificCutListPropertiesWriteNotSupportedException>(() => prp2.Commit());
 
                 conf1Val = part.Configurations["Conf1<As Machined>"].CutLists
-                    .First(c => c.Name == "Cut-List-Item1").CutListItem.GetCustomPropertyValue("Prp3", out _, out _);
-
-                confDefVal = part.Configurations["Default<As Machined>"].CutLists
                     .First(c => c.Name == "Cut-List-Item1").CutListItem.GetCustomPropertyValue("Prp3", out _, out _);
             }
 
             Assert.AreEqual("NewValueConf1", conf1Val);
-            Assert.AreEqual("NewValueDefault", confDefVal);
         }
 
         [Test]
@@ -238,6 +234,32 @@ namespace SolidWorksDocMgr.Tests.Integration
             Assert.AreEqual("\"QUANTITY@@@ C CHANNEL, 76.20 X 5<1>@CustomPropsExpression1.SLDPRT\"", exp3);
             Assert.AreEqual("1", val3);
             Assert.AreEqual("IJK", exp6);
+        }
+
+        [Test]
+        public void NotUpdatedConfPrpsCustomPropertiesTest()
+        {
+            object val1Def;
+            object val2Def;
+
+            object val1Conf1;
+            object val2Conf1;
+
+            using (var doc = OpenDataDocument("MultiConfNotUpdatePartPrps.SLDPRT"))
+            {
+                var part = (IXPart)m_App.Documents.Active;
+
+                val1Def = part.Configurations["Default"].Properties["Prp1"].Value;
+                val2Def = part.Configurations["Default"].Properties["Prp2"].Value;
+
+                val1Conf1 = part.Configurations["Conf1"].Properties["Prp1"].Value;
+                val2Conf1 = part.Configurations["Conf1"].Properties["Prp2"].Value;
+            }
+
+            Assert.AreEqual("115.72", val1Def);
+            Assert.AreEqual("200.00", val2Def);
+            Assert.AreEqual("0.00", val1Conf1); //non resolved value
+            Assert.AreEqual("100.00", val2Conf1);
         }
     }
 }

@@ -116,11 +116,13 @@ namespace Xarial.XCad.SolidWorks.Data
             get;
             private set;
         }
+        public bool UseCached { get; set; }
 
         private readonly ISwApplication m_App;
 
         internal SwCustomProperty(CustomPropertyManager prpMgr, string name, bool isCommited, ISwApplication app)
         {
+            UseCached = true;
             PrpMgr = prpMgr;
             m_Name = name;
             IsCommitted = isCommited;
@@ -147,20 +149,18 @@ namespace Xarial.XCad.SolidWorks.Data
             string resValStr;
 
             bool prpExist;
-
-            var useCached = true;
-
+            
             if (m_App.IsVersionNewerOrEqual(SwVersion_e.Sw2018))
             {
-                prpExist = PrpMgr.Get6(Name, useCached, out val, out resValStr, out _, out _) != (int)swCustomInfoGetResult_e.swCustomInfoGetResult_NotPresent;
+                prpExist = PrpMgr.Get6(Name, UseCached, out val, out resValStr, out _, out _) != (int)swCustomInfoGetResult_e.swCustomInfoGetResult_NotPresent;
             }
             else if (m_App.IsVersionNewerOrEqual(SwVersion_e.Sw2014))
             {
-                prpExist = PrpMgr.Get5(Name, useCached, out val, out resValStr, out _) != (int)swCustomInfoGetResult_e.swCustomInfoGetResult_NotPresent;
+                prpExist = PrpMgr.Get5(Name, UseCached, out val, out resValStr, out _) != (int)swCustomInfoGetResult_e.swCustomInfoGetResult_NotPresent;
             }
             else
             {
-                prpExist = PrpMgr.Get4(Name, useCached, out val, out resValStr);
+                prpExist = PrpMgr.Get4(Name, UseCached, out val, out resValStr);
             }
 
             if (prpExist)
@@ -224,7 +224,7 @@ namespace Xarial.XCad.SolidWorks.Data
         protected virtual void SetProperty(ICustomPropertyManager prpMgr, string name, object value) 
         {
             var res = (swCustomInfoSetResult_e)prpMgr.Set2(name, value?.ToString());
-
+            
             if (res != swCustomInfoSetResult_e.swCustomInfoSetResult_OK)
             {
                 throw new Exception($"Failed to set the value of the property. Error code: {res}");

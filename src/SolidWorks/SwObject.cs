@@ -131,7 +131,7 @@ namespace Xarial.XCad.SolidWorks
                         case "3DProfileFeature":
                             return new SwSketch3D(doc, feat, true);
                         case "CutListFolder":
-                            return new SwCutListItem(doc, feat, true);
+                            return new SwCutListItem((ISwDocument3D)doc, feat, true);
                         default:
                             return new SwFeature(doc, feat, true);
                     }
