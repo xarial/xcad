@@ -169,7 +169,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         protected virtual double[] ComputeScopedApproximateBoundingBox()
         {
-            var bodies = Scope.Select(b => GetSwBody(b)).ToArray();
+            var bodies = Scope.Select(b => GetSwBody(b, out _)).ToArray();
 
             var minX = double.MaxValue;
             var minY = double.MaxValue;
