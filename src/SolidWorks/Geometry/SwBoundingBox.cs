@@ -235,7 +235,12 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
                     bodies = bodies.Select(b =>
                     {
-                        var swBody = GetSwBody(b);
+                        var swBody = GetSwBody(b, out bool isCopy);
+
+                        if (!isCopy) 
+                        {
+                            swBody = swBody.ICopy();
+                        }
 
                         if (!swBody.ApplyTransform(mathTransform.IInverse()))
                         {
@@ -248,7 +253,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
                 foreach (var body in bodies)
                 {
-                    var swBody = GetSwBody(body);
+                    var swBody = GetSwBody(body, out _);
 
                     double x;
                     double y;
@@ -301,7 +306,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
             return CreateBoxFromData(minX, minY, minZ, maxX, maxY, maxZ, mathTransform);
         }
 
-        private IBody2 GetSwBody(IXBody srcBody)
+        private IBody2 GetSwBody(IXBody srcBody, out bool isCopy)
         {
             var swBody = ((ISwBody)srcBody).Body;
 
@@ -311,10 +316,16 @@ namespace Xarial.XCad.SolidWorks.Geometry
             {
                 swBody = swBody.ICopy();
 
+                isCopy = true;
+
                 if (!swBody.ApplyTransform(comp.Transform2))
                 {
                     throw new Exception("Failed to apply component's transform");
                 }
+            }
+            else 
+            {
+                isCopy = false;
             }
 
             return swBody;
