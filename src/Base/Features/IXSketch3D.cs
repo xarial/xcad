@@ -7,6 +7,9 @@
 
 namespace Xarial.XCad.Features
 {
+    /// <summary>
+    /// Represents specific 3D sketch
+    /// </summary>
     public interface IXSketch3D : IXSketchBase
     {
     }

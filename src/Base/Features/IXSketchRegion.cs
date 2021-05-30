@@ -12,6 +12,9 @@ using Xarial.XCad.Geometry;
 
 namespace Xarial.XCad.Features
 {
+    /// <summary>
+    /// Represents sketch region (closed contour)
+    /// </summary>
     public interface IXSketchRegion : IXRegion, IXSelObject
     {
     }

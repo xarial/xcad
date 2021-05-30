@@ -34,6 +34,7 @@ namespace Xarial.XCad.Geometry
     /// </summary>
     public interface IXPlanarFace : IXFace 
     {
+        /// <inheritdoc/>
         new IXPlanarSurface Definition { get; }
     }
 
@@ -42,6 +43,7 @@ namespace Xarial.XCad.Geometry
     /// </summary>
     public interface IXCylindricalFace : IXFace 
     {
+        /// <inheritdoc/>
         new IXCylindricalSurface Definition { get; }
     }
 }

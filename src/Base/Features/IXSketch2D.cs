@@ -9,8 +9,14 @@ using System.Collections.Generic;
 
 namespace Xarial.XCad.Features
 {
+    /// <summary>
+    /// Represents specific 2D sketch
+    /// </summary>
     public interface IXSketch2D : IXSketchBase
     {
+        /// <summary>
+        /// Regions in this 2D sketch
+        /// </summary>
         IEnumerable<IXSketchRegion> Regions { get; }
     }
 }

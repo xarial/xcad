@@ -108,5 +108,13 @@ namespace Xarial.XCad.Geometry.Structures
                 + Math.Pow(Y, 2)
                 + Math.Pow(Z, 2));
         }
+
+        /// <summary>
+        /// Calculates the dot product between vectors
+        /// </summary>
+        /// <param name="vector">Other vector</param>
+        /// <returns>Scalar dot product</returns>
+        public double Dot(Vector vector)
+            => X * vector.X + Y * vector.Y + Z * vector.Z;
     }
 }

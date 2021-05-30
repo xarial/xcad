@@ -21,7 +21,7 @@ namespace Xarial.XCad.SolidWorks.Utils
         /// </summary>
         /// <param name="transform">Matrix to transform</param>
         /// <returns>Transformed matrix</returns>
-        public static TransformMatrix ToTransformMatrix(IMathTransform transform)
+        public static TransformMatrix ToTransformMatrix(this IMathTransform transform)
             => ToTransformMatrix(transform.ArrayData as double[]);
 
         /// <summary>

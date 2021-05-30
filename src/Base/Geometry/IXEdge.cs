@@ -21,13 +21,21 @@ namespace Xarial.XCad.Geometry
         IXSegment Definition { get; }
     }
 
+    /// <summary>
+    /// Represents specific circular edge
+    /// </summary>
     public interface IXCircularEdge : IXEdge 
     {
+        /// <inheritdoc/>
         new IXArc Definition { get; }
     }
 
+    /// <summary>
+    /// Represents specific linear edge
+    /// </summary>
     public interface IXLinearEdge : IXEdge
     {
+        /// <inheritdoc/>
         new IXLine Definition { get; }
     }
 }

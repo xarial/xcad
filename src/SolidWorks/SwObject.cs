@@ -132,6 +132,10 @@ namespace Xarial.XCad.SolidWorks
                             return new SwSketch3D(doc, feat, true);
                         case "CutListFolder":
                             return new SwCutListItem((ISwDocument3D)doc, feat, true);
+                        case "CoordSys":
+                            return new SwCoordinateSystem(doc, feat, true);
+                        case "RefPlane":
+                            return new SwPlane(doc, feat, true);
                         default:
                             return new SwFeature(doc, feat, true);
                     }
