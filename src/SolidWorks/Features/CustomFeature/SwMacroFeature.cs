@@ -23,6 +23,7 @@ using Xarial.XCad.SolidWorks.Features.CustomFeature.Exceptions;
 using Xarial.XCad.SolidWorks.Features.CustomFeature.Toolkit;
 using Xarial.XCad.SolidWorks.Geometry;
 using Xarial.XCad.SolidWorks.Utils;
+using Xarial.XCad.Toolkit.Exceptions;
 using Xarial.XCad.Utils.CustomFeature;
 using Xarial.XCad.Utils.Reflection;
 
@@ -40,11 +41,41 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 
     internal class SwMacroFeature : SwFeature, ISwMacroFeature
     {
-        protected readonly SwDocument m_Doc;
-
         private IMacroFeatureData m_FeatData;
 
-        public Type DefinitionType { get; set; }
+        private Type m_DefinitionType;
+
+        public Type DefinitionType 
+        {
+            get 
+            {
+                if (IsCommitted) 
+                {
+                    if (m_DefinitionType == null) 
+                    {
+                        var progId = FeatureData.GetProgId();
+
+                        if (!string.IsNullOrEmpty(progId))
+                        {
+                            m_DefinitionType = Type.GetTypeFromProgID(progId);
+                        }
+                    }
+                }
+
+                return m_DefinitionType;
+            }
+            set 
+            {
+                if (!IsCommitted)
+                {
+                    m_DefinitionType = value;
+                }
+                else
+                {
+                    throw new CommittedElementPropertyChangeNotSupported();
+                }
+            }
+        }
 
         public IMacroFeatureData FeatureData => m_FeatData ?? (m_FeatData = Feature.GetDefinition() as IMacroFeatureData);
 
@@ -55,7 +86,6 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         internal SwMacroFeature(SwDocument doc, IFeatureManager featMgr, IFeature feat, bool created)
             : base(doc, feat, created)
         {
-            m_Doc = doc;
             m_FeatMgr = featMgr;
         }
 
@@ -66,13 +96,13 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         public ISwMacroFeature<TParams> ToParameters<TParams>()
             where TParams : class, new()
         {
-            return ToParameters<TParams>(new MacroFeatureParametersParser(m_Doc.App.Sw));
+            return ToParameters<TParams>(new MacroFeatureParametersParser(((SwDocument)m_Doc).App.Sw));
         }
 
         private SwMacroFeature<TParams> ToParameters<TParams>(MacroFeatureParametersParser paramsParser)
             where TParams : class, new()
         {
-            return new SwMacroFeature<TParams>(m_Doc, m_FeatMgr, Feature, paramsParser, IsCommitted);
+            return new SwMacroFeature<TParams>((SwDocument)m_Doc, m_FeatMgr, Feature, paramsParser, IsCommitted);
         }
 
         protected override IFeature CreateFeature(CancellationToken cancellationToken)

@@ -6,6 +6,7 @@
 //*********************************************************************
 
 using System.Collections.Generic;
+using Xarial.XCad.Geometry.Structures;
 
 namespace Xarial.XCad.Features
 {
@@ -18,5 +19,10 @@ namespace Xarial.XCad.Features
         /// Regions in this 2D sketch
         /// </summary>
         IEnumerable<IXSketchRegion> Regions { get; }
+
+        /// <summary>
+        /// Returns the plane of this sketch
+        /// </summary>
+        Plane Plane { get; }
     }
 }

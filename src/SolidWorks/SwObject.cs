@@ -15,6 +15,7 @@ using Xarial.XCad.Exceptions;
 using Xarial.XCad.SolidWorks.Annotations;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Features;
+using Xarial.XCad.SolidWorks.Features.CustomFeature;
 using Xarial.XCad.SolidWorks.Geometry;
 using Xarial.XCad.SolidWorks.Geometry.Curves;
 using Xarial.XCad.SolidWorks.Geometry.Surfaces;
@@ -136,6 +137,8 @@ namespace Xarial.XCad.SolidWorks
                             return new SwCoordinateSystem(doc, feat, true);
                         case "RefPlane":
                             return new SwPlane(doc, feat, true);
+                        case "MacroFeature":
+                            return new SwMacroFeature((SwDocument)doc, doc.Model.FeatureManager, feat, true);
                         default:
                             return new SwFeature(doc, feat, true);
                     }

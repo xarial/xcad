@@ -32,13 +32,8 @@ namespace Xarial.XCad.SolidWorks.Features
         IXDimensionRepository IXFeature.Dimensions => Dimensions;
 
         public virtual IFeature Feature
-        {
-            get
-            {
-                return m_Creator.Element;
-            }
-        }
-        
+            => m_Creator.Element;
+
         public override object Dispatch => Feature;
 
         internal SwFeature(ISwDocument doc, IFeature feat, bool created) : base(feat, doc)
