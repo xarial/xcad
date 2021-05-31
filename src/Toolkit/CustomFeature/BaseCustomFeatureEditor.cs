@@ -25,12 +25,15 @@ using Xarial.XCad.UI.PropertyPage.Delegates;
 
 namespace Xarial.XCad.Utils.CustomFeature
 {
+    public delegate void CustomFeatureStateChangedDelegate(IXApplication app, IXDocument doc, IXCustomFeature feat);
+
     public abstract class BaseCustomFeatureEditor<TData, TPage> 
         where TData : class, new()
         where TPage : class, new()
     {
-        public event Action<IXApplication, IXDocument, IXCustomFeature> EditingStarted;
-        public event Action<IXApplication, IXDocument, IXCustomFeature> EditingCompleted;
+        public event CustomFeatureStateChangedDelegate EditingStarted;
+        public event CustomFeatureStateChangedDelegate EditingCompleted;
+        public event CustomFeatureStateChangedDelegate FeatureInserted;
 
         protected readonly IXApplication m_App;
         protected readonly IServiceProvider m_SvcProvider;
@@ -41,7 +44,7 @@ namespace Xarial.XCad.Utils.CustomFeature
         private readonly Type m_DefType;
 
         private TPage m_CurData;
-        private IXBody[] m_EditBodies;
+        private IXBody[] m_HiddenEditBodies;
         private IXCustomFeature<TData> m_EditingFeature;
         private Exception m_LastError;
         private IXPropertyPage<TPage> m_PmPage;
@@ -137,21 +140,21 @@ namespace Xarial.XCad.Utils.CustomFeature
 
             m_ParamsParser.Parse(m_CurData, out _, out _, out _, out _, out editBodies);
 
-            var bodiesToShow = m_EditBodies.ValueOrEmpty().Except(editBodies.ValueOrEmpty(), m_BodiesComparer);
+            var bodiesToShow = m_HiddenEditBodies.ValueOrEmpty().Except(editBodies.ValueOrEmpty(), m_BodiesComparer);
 
             foreach (var body in bodiesToShow)
             {
                 body.Visible = true;
             }
 
-            var bodiesToHide = editBodies.ValueOrEmpty().Except(m_EditBodies.ValueOrEmpty(), m_BodiesComparer);
+            var bodiesToHide = editBodies.ValueOrEmpty().Except(m_HiddenEditBodies.ValueOrEmpty(), m_BodiesComparer);
 
             foreach (var body in bodiesToHide)
             {
                 body.Visible = false;
             }
 
-            m_EditBodies = editBodies;
+            m_HiddenEditBodies = editBodies;
         }
 
         private void HidePreviewBodies()
@@ -173,14 +176,10 @@ namespace Xarial.XCad.Utils.CustomFeature
         {
             EditingCompleted?.Invoke(m_App, CurModel, m_EditingFeature);
 
-            foreach (var body in m_EditBodies.ValueOrEmpty())
-            {
-                body.Visible = true;
-            }
+            ShowEditBodies();
 
             HidePreviewBodies();
 
-            m_EditBodies = null;
             m_PreviewBodies = null;
 
             if (reason == PageCloseReasons_e.Okay)
@@ -196,6 +195,8 @@ namespace Xarial.XCad.Utils.CustomFeature
                     {
                         throw new NullReferenceException("Failed to create custom feature");
                     }
+
+                    FeatureInserted?.Invoke(m_App, CurModel, feat);
                 }
                 else
                 {
@@ -209,6 +210,16 @@ namespace Xarial.XCad.Utils.CustomFeature
                     m_EditingFeature.Parameters = null;
                 }
             }
+        }
+
+        private void ShowEditBodies()
+        {
+            foreach (var body in m_HiddenEditBodies.ValueOrEmpty())
+            {
+                body.Visible = true;
+            }
+
+            m_HiddenEditBodies = null;
         }
 
         private void OnPageClosing(PageCloseReasons_e reason, PageClosingArg arg)
@@ -241,7 +252,7 @@ namespace Xarial.XCad.Utils.CustomFeature
             catch (Exception ex)
             {
                 HidePreviewBodies();
-                HideEditBodies();
+                ShowEditBodies();
                 m_LastError = ex;
             }
         }

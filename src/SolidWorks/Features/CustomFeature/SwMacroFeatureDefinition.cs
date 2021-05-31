@@ -17,8 +17,10 @@ using Xarial.XCad;
 using Xarial.XCad.Annotations;
 using Xarial.XCad.Base;
 using Xarial.XCad.Base.Attributes;
+using Xarial.XCad.Base.Enums;
 using Xarial.XCad.Delegates;
 using Xarial.XCad.Documents;
+using Xarial.XCad.Exceptions;
 using Xarial.XCad.Features.CustomFeature;
 using Xarial.XCad.Features.CustomFeature.Attributes;
 using Xarial.XCad.Features.CustomFeature.Delegates;
@@ -45,6 +47,12 @@ using Xarial.XCad.Utils.Reflection;
 
 namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 {
+    public class MacroFeatureEntityId 
+    {
+        public int FirstId { get; set; }
+        public int SecondId { get; set; }
+    }
+
     /// <inheritdoc/>
     public abstract class SwMacroFeatureDefinition : IXCustomFeatureDefinition, ISwComFeature, IXServiceConsumer
     {
@@ -178,23 +186,39 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
         public object Regenerate(object app, object modelDoc, object feature)
         {
-            LogOperation("Regenerating feature", app as ISldWorks, modelDoc as IModelDoc2, feature as IFeature);
-
-            SetProvider(app as ISldWorks, feature as IFeature);
-
-            var doc = (SwDocument)Application.Documents[modelDoc as IModelDoc2];
-
-            var macroFeatInst = new SwMacroFeature(doc, (modelDoc as IModelDoc2).FeatureManager, feature as IFeature, true);
-
-            var res = OnRebuild(Application, doc, macroFeatInst);
-
-            if (res != null)
+            try
             {
-                return ParseMacroFeatureResult(res, app as ISldWorks, macroFeatInst.FeatureData);
+                LogOperation("Regenerating feature", app as ISldWorks, modelDoc as IModelDoc2, feature as IFeature);
+
+                SetProvider(app as ISldWorks, feature as IFeature);
+
+                var doc = (SwDocument)Application.Documents[modelDoc as IModelDoc2];
+
+                var macroFeatInst = new SwMacroFeature(doc, (modelDoc as IModelDoc2).FeatureManager, feature as IFeature, true);
+
+                var res = OnRebuild(Application, doc, macroFeatInst);
+
+                if (res != null)
+                {
+                    return ParseMacroFeatureResult(res, app as ISldWorks, macroFeatInst.FeatureData);
+                }
+                else
+                {
+                    return null;
+                }
             }
-            else
+            catch (Exception ex)
             {
-                return null;
+                m_Logger.Log(ex);
+
+                if (ex is IUserException)
+                {
+                    return ex.Message;
+                }
+                else 
+                {
+                    return "Unknown regeneration error";
+                }
             }
         }
 
@@ -222,9 +246,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         }
 
         private void LogOperation(string operName, ISldWorks app, IModelDoc2 modelDoc, IFeature feature)
-        {
-            Logger.Log($"{operName}: {feature?.Name} in {modelDoc?.GetTitle()} of SOLIDWORKS session: {app?.GetProcessID()}");
-        }
+            => Logger.Log($"{operName}: {feature?.Name} in {modelDoc?.GetTitle()} of SOLIDWORKS session: {app?.GetProcessID()}", LoggerMessageSeverity_e.Debug);
 
         #endregion Overrides
 
@@ -309,21 +331,25 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 
                         if (faces is object[])
                         {
-                            int nextId = 0;
+                            var faceIds = (faces as object[]).ToDictionary(x => (Face2)x, x => new MacroFeatureEntityId());
+                            
+                            AssignFaceIds(faceIds);
 
-                            foreach (Face2 face in faces as object[])
+                            foreach (var faceId in faceIds)
                             {
-                                featData.SetFaceUserId(face, nextId++, 0);
+                                featData.SetFaceUserId(faceId.Key, faceId.Value.FirstId, faceId.Value.SecondId);
                             }
                         }
 
                         if (edges is object[])
                         {
-                            int nextId = 0;
+                            var edgeIds = (edges as object[]).ToDictionary(x => (Edge)x, x => new MacroFeatureEntityId());
 
-                            foreach (Edge edge in edges as object[])
+                            AssignEdgeIds(edgeIds);
+
+                            foreach (var edgeId in edgeIds)
                             {
-                                featData.SetEdgeUserId(edge, nextId++, 0);
+                                featData.SetEdgeUserId(edgeId.Key, edgeId.Value.FirstId, edgeId.Value.SecondId);
                             }
                         }
                     }
@@ -343,7 +369,29 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
                 throw new ArgumentNullException(nameof(bodies));
             }
         }
-        
+
+        protected virtual void AssignFaceIds(IReadOnlyDictionary<Face2, MacroFeatureEntityId> faces) 
+        {
+            int nextId = 0;
+
+            foreach (var face in faces)
+            {
+                face.Value.FirstId = nextId++;
+                face.Value.SecondId = 0;
+            }
+        }
+
+        protected virtual void AssignEdgeIds(IReadOnlyDictionary<Edge, MacroFeatureEntityId> edges)
+        {
+            int nextId = 0;
+
+            foreach (var edge in edges)
+            {
+                edge.Value.FirstId = nextId++;
+                edge.Value.SecondId = 0;
+            }
+        }
+
         public virtual void OnConfigureServices(IXServiceCollection collection)
         {
         }
@@ -475,6 +523,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 
             m_Editor.EditingStarted += OnEditingStarted;
             m_Editor.EditingCompleted += OnEditingCompleted;
+            m_Editor.FeatureInserted += OnFeatureInserted;
         }
 
         protected virtual SwPropertyManagerPageHandler CreatePageHandler() 
@@ -526,11 +575,33 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             };
         }
 
+        /// <summary>
+        /// Called when macro feature is about to be edited before Property Manager Page is opened
+        /// </summary>
+        /// <param name="app">Application</param>
+        /// <param name="doc">Document</param>
+        /// <param name="feat">Feature being edited</param>
         protected virtual void OnEditingStarted(IXApplication app, IXDocument doc, IXCustomFeature feat)
         {
         }
 
+        /// <summary>
+        /// Called when macro feature is finished editing and Property Manager Page is closed
+        /// </summary>
+        /// <param name="app">Application</param>
+        /// <param name="doc">Document</param>
+        /// <param name="feat">Feature being edited</param>
         protected virtual void OnEditingCompleted(IXApplication app, IXDocument doc, IXCustomFeature feat)
+        {
+        }
+
+        /// <summary>
+        /// Called when macro feature is created
+        /// </summary>
+        /// <param name="app">Application</param>
+        /// <param name="doc">Document</param>
+        /// <param name="feat">Feature which is created</param>
+        protected virtual void OnFeatureInserted(IXApplication app, IXDocument doc, IXCustomFeature feat)
         {
         }
 
