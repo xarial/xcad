@@ -200,7 +200,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 
                 if (res != null)
                 {
-                    return ParseMacroFeatureResult(res, app as ISldWorks, macroFeatInst.FeatureData);
+                    return ParseMacroFeatureResult(res, app as ISldWorks, modelDoc as IModelDoc2, macroFeatInst.FeatureData);
                 }
                 else
                 {
@@ -274,14 +274,14 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             return CustomFeatureState_e.Default;
         }
 
-        private object ParseMacroFeatureResult(CustomFeatureRebuildResult res, ISldWorks app, IMacroFeatureData featData)
+        private object ParseMacroFeatureResult(CustomFeatureRebuildResult res, ISldWorks app, IModelDoc2 model, IMacroFeatureData featData)
         {
             switch (res)
             {
                 case CustomFeatureBodyRebuildResult bodyRes:
                     //TODO: validate if any non SwBody in the array
                     //TODO: get updateEntityIds from the parameters
-                    return GetBodyResult(app, bodyRes.Bodies?.OfType<SwBody>().Select(b => b.Body), featData, true);
+                    return GetBodyResult(app, model, bodyRes.Bodies?.OfType<SwBody>().Select(b => b.Body), featData, true);
 
                 default:
                     return GetStatusResult(res.Result, res.ErrorMessage);
@@ -307,7 +307,8 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             }
         }
 
-        private object GetBodyResult(ISldWorks app, IEnumerable<IBody2> bodies, IMacroFeatureData featData, bool updateEntityIds)
+        private object GetBodyResult(ISldWorks app, IModelDoc2 model, IEnumerable<IBody2> bodies,
+            IMacroFeatureData featData, bool updateEntityIds)
         {
             if (bodies != null)
             {
@@ -333,7 +334,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
                         {
                             var faceIds = (faces as object[]).ToDictionary(x => (Face2)x, x => new MacroFeatureEntityId());
                             
-                            AssignFaceIds(faceIds);
+                            AssignFaceIds(app, model, faceIds);
 
                             foreach (var faceId in faceIds)
                             {
@@ -345,7 +346,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
                         {
                             var edgeIds = (edges as object[]).ToDictionary(x => (Edge)x, x => new MacroFeatureEntityId());
 
-                            AssignEdgeIds(edgeIds);
+                            AssignEdgeIds(app, model, edgeIds);
 
                             foreach (var edgeId in edgeIds)
                             {
@@ -370,7 +371,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             }
         }
 
-        protected virtual void AssignFaceIds(IReadOnlyDictionary<Face2, MacroFeatureEntityId> faces) 
+        protected virtual void AssignFaceIds(ISldWorks app, IModelDoc2 model, IReadOnlyDictionary<Face2, MacroFeatureEntityId> faces) 
         {
             int nextId = 0;
 
@@ -381,7 +382,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             }
         }
 
-        protected virtual void AssignEdgeIds(IReadOnlyDictionary<Edge, MacroFeatureEntityId> edges)
+        protected virtual void AssignEdgeIds(ISldWorks app, IModelDoc2 model, IReadOnlyDictionary<Edge, MacroFeatureEntityId> edges)
         {
             int nextId = 0;
 

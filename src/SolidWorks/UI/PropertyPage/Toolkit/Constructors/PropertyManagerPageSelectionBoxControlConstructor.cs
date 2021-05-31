@@ -101,10 +101,29 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
                 }
             }
             
-            swCtrl.SetSelectionFilters(filters.Select(f => (swSelectType_e)f).ToArray());
+            swCtrl.SetSelectionFilters(ConvertToSwSelFilters(filters));
 
             return new PropertyManagerPageSelectionBoxControl(m_SwApp, atts.Id, atts.Tag,
                 swCtrl, handler, atts.ContextType, customFilter, focusOnOpen);
+        }
+
+        private swSelectType_e[] ConvertToSwSelFilters(SelectType_e[] selFilters) 
+        {
+            var swSelFilters = selFilters.Select(f => (swSelectType_e)f).ToList();
+
+            if (swSelFilters.Contains(swSelectType_e.swSelSKETCHSEGS) 
+                && !swSelFilters.Contains(swSelectType_e.swSelEXTSKETCHSEGS)) 
+            {
+                swSelFilters.Add(swSelectType_e.swSelEXTSKETCHSEGS);
+            }
+
+            if (swSelFilters.Contains(swSelectType_e.swSelSKETCHPOINTS)
+                && !swSelFilters.Contains(swSelectType_e.swSelEXTSKETCHPOINTS))
+            {
+                swSelFilters.Add(swSelectType_e.swSelEXTSKETCHPOINTS);
+            }
+
+            return swSelFilters.ToArray();
         }
         
         protected override BitmapLabelType_e? GetDefaultBitmapLabel(IAttributeSet atts)
