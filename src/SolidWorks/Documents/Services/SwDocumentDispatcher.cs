@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Xarial.XCad.Base;
+using Xarial.XCad.Base.Enums;
 using Xarial.XCad.SolidWorks.Utils;
 
 namespace Xarial.XCad.SolidWorks.Documents.Services
@@ -25,24 +26,24 @@ namespace Xarial.XCad.SolidWorks.Documents.Services
         internal event Action<SwDocument> Dispatched;
 
         private readonly List<SwDocument> m_DocsDispatchQueue;
-        private readonly List<IModelDoc2> m_ModelsDispatchQueue;
+        private readonly HashSet<IModelDoc2> m_ModelsDispatchQueue;
 
         private readonly object m_Lock;
 
         private readonly ISwApplication m_App;
         private readonly IXLogger m_Logger;
 
-        private readonly IEqualityComparer<IModelDoc2> m_Comparer;
+        //private readonly IEqualityComparer<IModelDoc2> m_Comparer;
                 
         internal SwDocumentDispatcher(ISwApplication app, IXLogger logger)
         {
             m_App = app;
             m_Logger = logger;
 
-            m_Comparer = new SwModelPointerEqualityComparer(app.Sw);
+            //m_Comparer = new SwModelPointerEqualityComparer();
 
             m_DocsDispatchQueue = new List<SwDocument>();
-            m_ModelsDispatchQueue = new List<IModelDoc2>();
+            m_ModelsDispatchQueue = new HashSet<IModelDoc2>();
 
             m_Lock = new object();
         }
@@ -51,7 +52,7 @@ namespace Xarial.XCad.SolidWorks.Documents.Services
         {
             lock (m_Lock) 
             {
-                m_Logger.Log($"Adding '{model.GetTitle()}' to the dispatch queue", XCad.Base.Enums.LoggerMessageSeverity_e.Debug);
+                m_Logger.Log($"Adding '{model.GetTitle()}' to the dispatch queue", LoggerMessageSeverity_e.Debug);
 
                 m_ModelsDispatchQueue.Add(model);
 
@@ -64,7 +65,10 @@ namespace Xarial.XCad.SolidWorks.Documents.Services
 
         internal void BeginDispatch(SwDocument doc) 
         {
-            m_DocsDispatchQueue.Add(doc);
+            lock (m_Lock)
+            {
+                m_DocsDispatchQueue.Add(doc);
+            }
         }
 
         internal void EndDispatch(SwDocument doc) 
@@ -73,13 +77,13 @@ namespace Xarial.XCad.SolidWorks.Documents.Services
             {
                 m_DocsDispatchQueue.Remove(doc);
 
-                var index = m_ModelsDispatchQueue.FindIndex(d => m_Comparer.Equals(d, doc.Model));
+                //var index = m_ModelsDispatchQueue.FindIndex(d => m_Comparer.Equals(d, doc.Model));
 
-                if (index != -1) 
+                if (m_ModelsDispatchQueue.Contains(doc.Model)) 
                 {
-                    m_Logger.Log($"Removing '{doc.Title}' from the dispatch queue", XCad.Base.Enums.LoggerMessageSeverity_e.Debug);
+                    m_Logger.Log($"Removing '{doc.Title}' from the dispatch queue", LoggerMessageSeverity_e.Debug);
 
-                    m_ModelsDispatchQueue.RemoveAt(index);
+                    m_ModelsDispatchQueue.Remove(doc.Model);
                 }
 
                 if (doc.IsCommitted)
@@ -105,50 +109,47 @@ namespace Xarial.XCad.SolidWorks.Documents.Services
 
         private void DispatchAllModels() 
         {
-            lock (m_Lock) 
+            m_Logger.Log($"Dispatching all ({m_ModelsDispatchQueue.Count}) models", LoggerMessageSeverity_e.Debug);
+
+            foreach (var model in m_ModelsDispatchQueue)
             {
-                m_Logger.Log($"Dispatching all ({m_ModelsDispatchQueue.Count}) models", XCad.Base.Enums.LoggerMessageSeverity_e.Debug);
+                SwDocument doc;
 
-                foreach (var model in m_ModelsDispatchQueue)
+                switch (model)
                 {
-                    SwDocument doc;
+                    case IPartDoc part:
+                        doc = new SwPart(part, (SwApplication)m_App, m_Logger, true);
+                        break;
 
-                    switch (model)
-                    {
-                        case IPartDoc part:
-                            doc = new SwPart(part, (SwApplication)m_App, m_Logger, true);
-                            break;
+                    case IAssemblyDoc assm:
+                        doc = new SwAssembly(assm, (SwApplication)m_App, m_Logger, true);
+                        break;
 
-                        case IAssemblyDoc assm:
-                            doc = new SwAssembly(assm, (SwApplication)m_App, m_Logger, true);
-                            break;
+                    case IDrawingDoc drw:
+                        doc = new SwDrawing(drw, (SwApplication)m_App, m_Logger, true);
+                        break;
 
-                        case IDrawingDoc drw:
-                            doc = new SwDrawing(drw, (SwApplication)m_App, m_Logger, true);
-                            break;
-
-                        default:
-                            throw new NotSupportedException();
-                    }
-
-                    NotifyDispatchedSafe(doc);
+                    default:
+                        throw new NotSupportedException();
                 }
 
-                m_ModelsDispatchQueue.Clear();
-                m_Logger.Log($"Cleared models queue", XCad.Base.Enums.LoggerMessageSeverity_e.Debug);
+                NotifyDispatchedSafe(doc);
             }
+
+            m_ModelsDispatchQueue.Clear();
+            m_Logger.Log($"Cleared models queue", LoggerMessageSeverity_e.Debug);
         }
 
         private void NotifyDispatchedSafe(SwDocument doc)
         {
             try
             {
-                m_Logger.Log($"Dispatched '{doc.Title}'", XCad.Base.Enums.LoggerMessageSeverity_e.Debug);
+                m_Logger.Log($"Dispatched '{doc.Title}'", LoggerMessageSeverity_e.Debug);
                 Dispatched?.Invoke(doc);
             }
             catch (Exception ex)
             {
-                m_Logger.Log($"Unhandled exception while dispatching the document '{doc.Title}'", XCad.Base.Enums.LoggerMessageSeverity_e.Error);
+                m_Logger.Log($"Unhandled exception while dispatching the document '{doc.Title}'", LoggerMessageSeverity_e.Error);
                 m_Logger.Log(ex);
             }
         }

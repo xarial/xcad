@@ -46,11 +46,27 @@ namespace StandAlone
         {
             try
             {
-                var app = SwApplicationFactory.Create(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020,
-                    ApplicationState_e.Default);
-                                
+                var app = SwApplicationFactory.FromProcess(Process.GetProcessesByName("SLDWORKS").First());
+
+                var start = DateTime.Now;
+
+                var assm = app.Documents.PreCreate<IXAssembly>();
+                assm.State = Xarial.XCad.Documents.Enums.DocumentState_e.ReadOnly;
+                assm.Path = @"D:\Demo\CAD+\_Industry Robot Arm\Industry Robot Arm.SLDASM";
+                assm.Commit();
+
+                //var spec = (IDocumentSpecification)app.Sw.GetOpenDocSpec(@"D:\Demo\CAD+\_Industry Robot Arm\Industry Robot Arm.SLDASM");
+                //spec.ReadOnly = true;
+                //var model = app.Sw.OpenDoc7(spec);
+
+                var elapsed = (DateTime.Now - start).TotalMilliseconds;
+                System.Diagnostics.Debug.Print(elapsed.ToString());
+
+                //var app = SwApplicationFactory.Create(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020,
+                //    ApplicationState_e.Default);
+
                 //var app = SwApplicationFactory.FromProcess(Process.GetProcessesByName("SLDWORKS").First());
-                
+
                 //CustomServices();
 
                 //Progress(app);

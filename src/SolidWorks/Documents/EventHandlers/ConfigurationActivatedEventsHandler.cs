@@ -17,9 +17,9 @@ namespace Xarial.XCad.SolidWorks.Documents.EventHandlers
 {
     internal class ConfigurationActivatedEventsHandler : SwModelEventsHandler<ConfigurationActivatedDelegate>
     {
-        private readonly ISwDocument3D m_Doc3D;
+        private readonly SwDocument3D m_Doc3D;
 
-        internal ConfigurationActivatedEventsHandler(ISwDocument3D doc) : base(doc)
+        internal ConfigurationActivatedEventsHandler(SwDocument3D doc) : base(doc)
         {
             m_Doc3D = doc;
         }

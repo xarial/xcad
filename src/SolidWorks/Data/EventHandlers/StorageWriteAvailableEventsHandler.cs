@@ -17,11 +17,8 @@ namespace Xarial.XCad.SolidWorks.Data.EventHandlers
 {
     internal class StorageWriteAvailableEventsHandler : SwModelEventsHandler<DataStoreAvailableDelegate>
     {
-        private readonly SwDocument m_Doc;
-
         internal StorageWriteAvailableEventsHandler(SwDocument doc) : base(doc)
         {
-            m_Doc = doc;
         }
 
         protected override void SubscribeAssemblyEvents(AssemblyDoc assm)

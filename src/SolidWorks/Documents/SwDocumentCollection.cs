@@ -50,13 +50,13 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         private readonly SwApplication m_App;
         private readonly SldWorks m_SwApp;
-        private readonly Dictionary<IModelDoc2, SwDocument> m_Documents;
+        private readonly Hashtable m_Documents;
         private readonly IXLogger m_Logger;
         private readonly DocumentsHandler m_DocsHandler;
 
         private readonly SwDocumentDispatcher m_DocsDispatcher;
 
-        private object m_Lock;
+        //private object m_Lock;
 
         public ISwDocument Active
         {
@@ -102,9 +102,11 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
+        private readonly Func<string, string, IModelDoc2> m_X;
+
         internal SwDocumentCollection(SwApplication app, IXLogger logger)
         {
-            m_Lock = new object();
+            //m_Lock = new object();
 
             m_App = app;
             m_SwApp = (SldWorks)m_App.Sw;
@@ -113,14 +115,20 @@ namespace Xarial.XCad.SolidWorks.Documents
             m_DocsDispatcher = new SwDocumentDispatcher(app, logger);
             m_DocsDispatcher.Dispatched += OnDocumentDispatched;
 
-            m_Documents = new Dictionary<IModelDoc2, SwDocument>(
-                new SwModelPointerEqualityComparer(m_SwApp));
+            m_Documents = Hashtable.Synchronized(new Hashtable());
             m_DocsHandler = new DocumentsHandler(app, m_Logger);
             
             AttachToAllOpenedDocuments();
 
             m_SwApp.DocumentLoadNotify2 += OnDocumentLoadNotify2;
             m_SwApp.ActiveModelDocChangeNotify += OnActiveModelDocChangeNotify;
+
+            m_X = new Func<string, string, IModelDoc2>(GetModel);
+        }
+
+        private IModelDoc2 GetModel(string title, string filePath) 
+        {
+            return null;
         }
 
         private int OnActiveModelDocChangeNotify()
@@ -132,12 +140,10 @@ namespace Xarial.XCad.SolidWorks.Documents
         public ISwDocument this[IModelDoc2 model]
         {
             get
-            {
-                SwDocument doc;
-
-                if (m_Documents.TryGetValue(model, out doc))
+            {   
+                if (m_Documents.Contains(model))
                 {
-                    return doc;
+                    return (SwDocument)m_Documents[model];
                 }
                 else
                 {
@@ -147,21 +153,19 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
 
         public IEnumerator<IXDocument> GetEnumerator()
-        {
-            return m_Documents.Values.GetEnumerator();
-        }
+            => m_Documents.Values.Cast<IXDocument>().GetEnumerator();
 
         IEnumerator IEnumerable.GetEnumerator()
-        {
-            return m_Documents.Values.GetEnumerator();
-        }
+            => m_Documents.Values.GetEnumerator();
 
         public void Dispose()
         {
             m_DocsDispatcher.Dispatched -= OnDocumentDispatched;
             m_SwApp.DocumentLoadNotify2 -= OnDocumentLoadNotify2;
 
-            foreach (var doc in m_Documents.Values.ToArray())
+            var docs = new object[m_Documents.Count];
+            m_Documents.Values.CopyTo(docs, 0);
+            foreach (SwDocument doc in docs)
             {
                 ReleaseDocument(doc);
             }
@@ -196,7 +200,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         private void OnDocumentDispatched(SwDocument doc)
         {
-            lock (m_Lock)
+            lock (m_Documents.SyncRoot)
             {
                 if (!m_Documents.ContainsKey(doc.Model))
                 {
@@ -225,24 +229,25 @@ namespace Xarial.XCad.SolidWorks.Documents
         
         private int OnDocumentLoadNotify2(string docTitle, string docPath)
         {
-            IModelDoc2 model;
+            var doc = m_X.Invoke(docTitle, docPath);
+            //IModelDoc2 model;
 
-            if (!string.IsNullOrEmpty(docPath))
-            {
-                model = m_SwApp.GetOpenDocumentByName(docPath) as IModelDoc2;
-            }
-            else
-            {
-                model = (m_SwApp.GetDocuments() as object[])?.FirstOrDefault(
-                    d => string.Equals((d as IModelDoc2).GetTitle(), docTitle)) as IModelDoc2;
-            }
+            //if (!string.IsNullOrEmpty(docPath))
+            //{
+            //    model = m_SwApp.GetOpenDocumentByName(docPath) as IModelDoc2;
+            //}
+            //else
+            //{
+            //    model = (m_SwApp.GetDocuments() as object[])?.FirstOrDefault(
+            //        d => string.Equals((d as IModelDoc2).GetTitle(), docTitle)) as IModelDoc2;
+            //}
 
-            if (model == null)
-            {
-                throw new NullReferenceException($"Failed to find the loaded model: {docTitle} ({docPath})");
-            }
+            //if (model == null)
+            //{
+            //    throw new NullReferenceException($"Failed to find the loaded model: {docTitle} ({docPath})");
+            //}
 
-            AttachDocument(model);
+            //AttachDocument(model);
 
             return S_OK;
         }
@@ -310,11 +315,9 @@ namespace Xarial.XCad.SolidWorks.Documents
 
             if (model != null)
             {
-                SwDocument doc;
-
-                if (m_Documents.TryGetValue(model, out doc))
+                if (m_Documents.Contains(model))
                 {
-                    ent = doc;
+                    ent = (IXDocument)m_Documents[model];
                     return true;
                 }
             }

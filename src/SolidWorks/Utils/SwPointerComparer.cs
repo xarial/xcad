@@ -9,6 +9,7 @@ using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 
 namespace Xarial.XCad.SolidWorks.Utils
@@ -62,23 +63,29 @@ namespace Xarial.XCad.SolidWorks.Utils
         }
     }
 
-    internal class SwModelPointerEqualityComparer : SwPointerEqualityComparer<IModelDoc2>
+    internal class SwModelPointerEqualityComparer : IEqualityComparer<IModelDoc2>
     {
-        internal SwModelPointerEqualityComparer(ISldWorks app) : base(app)
+        public bool Equals(IModelDoc2 x, IModelDoc2 y)
         {
-        }
+            if (object.ReferenceEquals(x, y))
+            {
+                return true;
+            }
 
-        protected override bool IsAlive(IModelDoc2 model)
-        {
             try
             {
-                var title = model.GetTitle();
-                return true;
+                return string.Equals(
+                    x.GetTitle(),
+                    y.GetTitle(),
+                    StringComparison.CurrentCultureIgnoreCase);
             }
             catch
             {
                 return false;
             }
         }
+
+        public int GetHashCode(IModelDoc2 obj)
+            => 0;
     }
 }
