@@ -11,6 +11,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using Xarial.XCad.Base;
@@ -118,6 +119,11 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                     state |= ComponentState_e.Envelope;
                 }
 
+                if (((ISwDMComponent3)Component).IsVirtual)
+                {
+                    state |= ComponentState_e.Embedded;
+                }
+
                 return state;
             }
             set 
@@ -140,12 +146,56 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                 {
                     var isReadOnly = m_ParentAssm.State.HasFlag(DocumentState_e.ReadOnly);
 
+                    var docsColl = (SwDmDocumentCollection)m_ParentAssm.SwDmApp.Documents;
+
                     try
                     {
-                        var doc = (ISwDmDocument3D)m_ParentAssm.SwDmApp.Documents.PreCreateFromPath(Path);
-                        doc.State = isReadOnly ? DocumentState_e.ReadOnly : DocumentState_e.Default;
+                        var searchOpts = m_ParentAssm.SwDmApp.SwDocMgr.GetSearchOptionObject();
+                        searchOpts.SearchFilters = (int)(
+                            SwDmSearchFilters.SwDmSearchExternalReference
+                            | SwDmSearchFilters.SwDmSearchRootAssemblyFolder
+                            | SwDmSearchFilters.SwDmSearchSubfolders
+                            | SwDmSearchFilters.SwDmSearchInContextReference);
 
-                        doc.Commit();
+                        var dmDoc = ((ISwDMComponent4)Component).GetDocument2(isReadOnly, searchOpts, out SwDmDocumentOpenError err);
+
+                        ISwDmDocument3D doc;
+
+                        if (dmDoc != null)
+                        {
+                            doc = (ISwDmDocument3D)m_ParentAssm.SwDmApp.Documents
+                                    .FirstOrDefault(d => ((ISwDmDocument)d).Document == d);
+
+                            if (doc == null)
+                            {
+                                var docType = ((ISwDMComponent2)Component).DocumentType;
+
+                                switch (docType)
+                                {
+                                    case SwDmDocumentType.swDmDocumentPart:
+                                        doc = new SwDmPart(m_ParentAssm.SwDmApp, dmDoc, true,
+                                            docsColl.OnDocumentCreated,
+                                            docsColl.OnDocumentClosed);
+                                        break;
+                                    case SwDmDocumentType.swDmDocumentAssembly:
+                                        doc = new SwDmAssembly(m_ParentAssm.SwDmApp, dmDoc, true,
+                                            docsColl.OnDocumentCreated,
+                                            docsColl.OnDocumentClosed);
+                                        break;
+                                    default:
+                                        throw new NotSupportedException($"Document type '{docType}' of the component is not supported");
+                                }
+
+                                docsColl.OnDocumentCreated(doc);
+                            }
+                        }
+                        else 
+                        {
+                            doc = (ISwDmDocument3D)m_ParentAssm.SwDmApp.Documents.PreCreateFromPath(Path);
+                            doc.State = isReadOnly ? DocumentState_e.ReadOnly : DocumentState_e.Default;
+
+                            doc.Commit();
+                        }
 
                         m_CachedDocument = doc;
                     }
@@ -153,8 +203,8 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                     {
                         var unknownDoc = new SwDmUnknownDocument(m_ParentAssm.SwDmApp, null,
                                 false,
-                                ((SwDmDocumentCollection)m_ParentAssm.SwDmApp.Documents).OnDocumentCreated,
-                                ((SwDmDocumentCollection)m_ParentAssm.SwDmApp.Documents).OnDocumentClosed, isReadOnly);
+                                docsColl.OnDocumentCreated,
+                                docsColl.OnDocumentClosed, isReadOnly);
 
                         unknownDoc.Path = CachedPath;
 

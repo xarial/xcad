@@ -158,6 +158,11 @@ namespace Xarial.XCad.SolidWorks.Documents
                 {
                     state |= ComponentState_e.Envelope;
                 }
+
+                if (Component.IsVirtual) 
+                {
+                    state |= ComponentState_e.Embedded;
+                }
                                
                 return state;
             }

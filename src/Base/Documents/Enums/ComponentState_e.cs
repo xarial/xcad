@@ -50,6 +50,11 @@ namespace Xarial.XCad.Documents.Enums
         /// <summary>
         /// Components is created as envelope
         /// </summary>
-        Envelope = 32
+        Envelope = 32,
+
+        /// <summary>
+        /// Component is embedded (virtual) into the assembly
+        /// </summary>
+        Embedded = 64
     }
 }
