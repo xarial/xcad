@@ -6,6 +6,7 @@
 //*********************************************************************
 
 using SolidWorks.Interop.sldworks;
+using SolidWorks.Interop.swconst;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -32,18 +33,14 @@ namespace Xarial.XCad.SolidWorks.Documents.Services
 
         private readonly ISwApplication m_App;
         private readonly IXLogger m_Logger;
-
-        //private readonly IEqualityComparer<IModelDoc2> m_Comparer;
                 
         internal SwDocumentDispatcher(ISwApplication app, IXLogger logger)
         {
             m_App = app;
             m_Logger = logger;
 
-            //m_Comparer = new SwModelPointerEqualityComparer();
-
             m_DocsDispatchQueue = new List<SwDocument>();
-            m_ModelsDispatchQueue = new HashSet<IModelDoc2>();
+            m_ModelsDispatchQueue = new HashSet<IModelDoc2>(new SwModelEqualityComparer());
 
             m_Lock = new object();
         }
@@ -77,14 +74,9 @@ namespace Xarial.XCad.SolidWorks.Documents.Services
             {
                 m_DocsDispatchQueue.Remove(doc);
 
-                //var index = m_ModelsDispatchQueue.FindIndex(d => m_Comparer.Equals(d, doc.Model));
+                m_Logger.Log($"Removing '{doc.Title}' from the dispatch queue", LoggerMessageSeverity_e.Debug);
 
-                if (m_ModelsDispatchQueue.Contains(doc.Model)) 
-                {
-                    m_Logger.Log($"Removing '{doc.Title}' from the dispatch queue", LoggerMessageSeverity_e.Debug);
-
-                    m_ModelsDispatchQueue.Remove(doc.Model);
-                }
+                m_ModelsDispatchQueue.Remove(doc.Model);
 
                 if (doc.IsCommitted)
                 {

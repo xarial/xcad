@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Delegates;
@@ -50,13 +51,13 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         private readonly SwApplication m_App;
         private readonly SldWorks m_SwApp;
-        private readonly Hashtable m_Documents;
+        private readonly Dictionary<IModelDoc2, SwDocument> m_Documents;
         private readonly IXLogger m_Logger;
         private readonly DocumentsHandler m_DocsHandler;
 
         private readonly SwDocumentDispatcher m_DocsDispatcher;
 
-        //private object m_Lock;
+        private object m_Lock;
 
         public ISwDocument Active
         {
@@ -104,7 +105,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         internal SwDocumentCollection(SwApplication app, IXLogger logger)
         {
-            //m_Lock = new object();
+            m_Lock = new object();
 
             m_App = app;
             m_SwApp = (SldWorks)m_App.Sw;
@@ -113,7 +114,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             m_DocsDispatcher = new SwDocumentDispatcher(app, logger);
             m_DocsDispatcher.Dispatched += OnDocumentDispatched;
 
-            m_Documents = Hashtable.Synchronized(new Hashtable());
+            m_Documents = new Dictionary<IModelDoc2, SwDocument>(new SwModelEqualityComparer());
             m_DocsHandler = new DocumentsHandler(app, m_Logger);
             
             AttachToAllOpenedDocuments();
@@ -132,9 +133,9 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
             get
             {   
-                if (m_Documents.Contains(model))
+                if (m_Documents.TryGetValue(model, out SwDocument doc))
                 {
-                    return (SwDocument)m_Documents[model];
+                    return doc;
                 }
                 else
                 {
@@ -144,19 +145,17 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
 
         public IEnumerator<IXDocument> GetEnumerator()
-            => m_Documents.Values.Cast<IXDocument>().GetEnumerator();
+            => m_Documents.Values.GetEnumerator();
 
         IEnumerator IEnumerable.GetEnumerator()
-            => m_Documents.Values.GetEnumerator();
+            => GetEnumerator();
 
         public void Dispose()
         {
             m_DocsDispatcher.Dispatched -= OnDocumentDispatched;
             m_SwApp.DocumentLoadNotify2 -= OnDocumentLoadNotify2;
 
-            var docs = new object[m_Documents.Count];
-            m_Documents.Values.CopyTo(docs, 0);
-            foreach (SwDocument doc in docs)
+            foreach (var doc in m_Documents.Values.ToArray())
             {
                 ReleaseDocument(doc);
             }
@@ -191,7 +190,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         private void OnDocumentDispatched(SwDocument doc)
         {
-            lock (m_Documents.SyncRoot)
+            lock (m_Lock)
             {
                 if (!m_Documents.ContainsKey(doc.Model))
                 {
@@ -305,9 +304,9 @@ namespace Xarial.XCad.SolidWorks.Documents
 
             if (model != null)
             {
-                if (m_Documents.Contains(model))
+                if (m_Documents.TryGetValue(model, out SwDocument doc))
                 {
-                    ent = (IXDocument)m_Documents[model];
+                    ent = doc;
                     return true;
                 }
             }

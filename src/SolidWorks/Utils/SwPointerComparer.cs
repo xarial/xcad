@@ -10,6 +10,7 @@ using SolidWorks.Interop.swconst;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Text;
 
 namespace Xarial.XCad.SolidWorks.Utils
@@ -63,7 +64,7 @@ namespace Xarial.XCad.SolidWorks.Utils
         }
     }
 
-    internal class SwModelPointerEqualityComparer : IEqualityComparer<IModelDoc2>
+    internal class SwModelEqualityComparer : IEqualityComparer<IModelDoc2>
     {
         public bool Equals(IModelDoc2 x, IModelDoc2 y)
         {
@@ -86,6 +87,23 @@ namespace Xarial.XCad.SolidWorks.Utils
         }
 
         public int GetHashCode(IModelDoc2 obj)
-            => 0;
+        {
+            if (obj is IPartDoc)
+            {
+                return 1;
+            }
+            else if (obj is IAssemblyDoc)
+            {
+                return 2;
+            }
+            else if (obj is IDrawingDoc)
+            {
+                return 3;
+            }
+            else 
+            {
+                return 0;
+            }
+        }
     }
 }

@@ -377,9 +377,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             Tags = new TagsManager();
 
             m_Creator = new ElementCreator<IModelDoc2>(CreateDocument, model, created);
-
-            m_Creator.Creating += OnCreating;
-
+            
             m_FeaturesLazy = new Lazy<ISwFeatureManager>(() => new SwFeatureManager(this));
             m_SelectionsLazy = new Lazy<ISwSelectionCollection>(() => new SwSelectionCollection(this));
             m_DimensionsLazy = new Lazy<ISwDimensionsCollection>(() => new SwDocumentDimensionsCollection(this));
@@ -401,15 +399,6 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
 
         public override object Dispatch => Model;
-
-        private void OnCreating(IModelDoc2 model)
-        {
-            var cachedModel = m_Creator.CachedProperties.Get<IModelDoc2>(nameof(Model));
-
-            Debug.Assert(cachedModel == null 
-                || new SwModelPointerEqualityComparer()
-                    .Equals(cachedModel, model), "Invalid pointers");
-        }
 
         private SwDocumentDispatcher m_DocsDispatcher;
 
