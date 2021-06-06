@@ -15,11 +15,9 @@ namespace Xarial.XCad.SolidWorks.Data.EventHandlers
     internal class StreamReadAvailableEventsHandler : SwModelEventsHandler<DataStoreAvailableDelegate>
     {
         private bool m_Is3rdPartyStreamLoaded;
-        private readonly SwDocument m_Doc;
 
         internal StreamReadAvailableEventsHandler(SwDocument doc) : base(doc)
         {
-            m_Doc = doc;
             m_Is3rdPartyStreamLoaded = false;
         }
 

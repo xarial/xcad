@@ -114,7 +114,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             m_DocsDispatcher.Dispatched += OnDocumentDispatched;
 
             m_Documents = new Dictionary<IModelDoc2, SwDocument>(
-                new SwModelPointerEqualityComparer(m_SwApp));
+                new SwModelPointerEqualityComparer());
             m_DocsHandler = new DocumentsHandler(app, m_Logger);
             
             AttachToAllOpenedDocuments();

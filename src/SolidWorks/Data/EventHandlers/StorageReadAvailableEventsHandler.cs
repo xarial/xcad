@@ -18,14 +18,10 @@ namespace Xarial.XCad.SolidWorks.Data.EventHandlers
 {
     internal class StorageReadAvailableEventsHandler : SwModelEventsHandler<DataStoreAvailableDelegate>
     {
-        private readonly SwDocument m_Doc;
-
         private bool m_Is3rdPartyStorageLoaded;
 
         internal StorageReadAvailableEventsHandler(SwDocument doc) : base(doc)
         {
-            m_Doc = doc;
-
             m_Is3rdPartyStorageLoaded = false;
         }
 

@@ -407,7 +407,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             var cachedModel = m_Creator.CachedProperties.Get<IModelDoc2>(nameof(Model));
 
             Debug.Assert(cachedModel == null 
-                || new SwModelPointerEqualityComparer(App.Sw)
+                || new SwModelPointerEqualityComparer()
                     .Equals(cachedModel, model), "Invalid pointers");
         }
 
