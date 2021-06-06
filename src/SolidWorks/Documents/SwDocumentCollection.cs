@@ -102,8 +102,6 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        private readonly Func<string, string, IModelDoc2> m_X;
-
         internal SwDocumentCollection(SwApplication app, IXLogger logger)
         {
             //m_Lock = new object();
@@ -122,13 +120,6 @@ namespace Xarial.XCad.SolidWorks.Documents
 
             m_SwApp.DocumentLoadNotify2 += OnDocumentLoadNotify2;
             m_SwApp.ActiveModelDocChangeNotify += OnActiveModelDocChangeNotify;
-
-            m_X = new Func<string, string, IModelDoc2>(GetModel);
-        }
-
-        private IModelDoc2 GetModel(string title, string filePath) 
-        {
-            return null;
         }
 
         private int OnActiveModelDocChangeNotify()
@@ -229,25 +220,24 @@ namespace Xarial.XCad.SolidWorks.Documents
         
         private int OnDocumentLoadNotify2(string docTitle, string docPath)
         {
-            var doc = m_X.Invoke(docTitle, docPath);
-            //IModelDoc2 model;
+            IModelDoc2 model;
 
-            //if (!string.IsNullOrEmpty(docPath))
-            //{
-            //    model = m_SwApp.GetOpenDocumentByName(docPath) as IModelDoc2;
-            //}
-            //else
-            //{
-            //    model = (m_SwApp.GetDocuments() as object[])?.FirstOrDefault(
-            //        d => string.Equals((d as IModelDoc2).GetTitle(), docTitle)) as IModelDoc2;
-            //}
+            if (!string.IsNullOrEmpty(docPath))
+            {
+                model = m_SwApp.GetOpenDocumentByName(docPath) as IModelDoc2;
+            }
+            else
+            {
+                model = (m_SwApp.GetDocuments() as object[])?.FirstOrDefault(
+                    d => string.Equals((d as IModelDoc2).GetTitle(), docTitle)) as IModelDoc2;
+            }
 
-            //if (model == null)
-            //{
-            //    throw new NullReferenceException($"Failed to find the loaded model: {docTitle} ({docPath})");
-            //}
+            if (model == null)
+            {
+                throw new NullReferenceException($"Failed to find the loaded model: {docTitle} ({docPath})");
+            }
 
-            //AttachDocument(model);
+            AttachDocument(model);
 
             return S_OK;
         }
