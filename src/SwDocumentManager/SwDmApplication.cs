@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Text;
@@ -116,7 +117,7 @@ namespace Xarial.XCad.SwDocumentManager
 
         public void Close() 
         {
-            foreach (var doc in Documents) 
+            foreach (var doc in Documents.ToArray()) 
             {
                 if (doc.IsCommitted && doc.IsAlive) 
                 {
