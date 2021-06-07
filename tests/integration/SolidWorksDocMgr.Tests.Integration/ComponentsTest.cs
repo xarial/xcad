@@ -51,12 +51,15 @@ namespace SolidWorksDocMgr.Tests.Integration
             bool doc2Contains;
             string doc1FileName;
             string doc2FileName;
+            DocumentState_e state1;
 
             using (var doc = OpenDataDocument(@"Assembly1\TopAssem1.SLDASM"))
             {
                 var assm = (ISwDmAssembly)m_App.Documents.Active;
 
                 var doc1 = assm.Configurations.Active.Components["Part1-1"].Document;
+                state1 = doc1.State;
+
                 doc1FileName = Path.GetFileName(doc1.Path);
                 doc1Contains = m_App.Documents.Contains(doc1);
 
@@ -75,6 +78,7 @@ namespace SolidWorksDocMgr.Tests.Integration
 
             Assert.That(doc1FileName.Equals("Part1.sldprt", StringComparison.CurrentCultureIgnoreCase));
             Assert.That(doc2FileName.Equals("SubAssem1.sldasm", StringComparison.CurrentCultureIgnoreCase));
+            Assert.AreEqual(DocumentState_e.ReadOnly, state1);
             Assert.IsTrue(doc1Contains);
             Assert.IsTrue(doc2Contains);
         }

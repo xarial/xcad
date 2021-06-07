@@ -175,12 +175,12 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                                     case SwDmDocumentType.swDmDocumentPart:
                                         doc = new SwDmPart(m_ParentAssm.SwDmApp, dmDoc, true,
                                             docsColl.OnDocumentCreated,
-                                            docsColl.OnDocumentClosed);
+                                            docsColl.OnDocumentClosed, isReadOnly);
                                         break;
                                     case SwDmDocumentType.swDmDocumentAssembly:
                                         doc = new SwDmAssembly(m_ParentAssm.SwDmApp, dmDoc, true,
                                             docsColl.OnDocumentCreated,
-                                            docsColl.OnDocumentClosed);
+                                            docsColl.OnDocumentClosed, isReadOnly);
                                         break;
                                     default:
                                         throw new NotSupportedException($"Document type '{docType}' of the component is not supported");
