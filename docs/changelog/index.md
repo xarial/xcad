@@ -8,7 +8,7 @@ This page contains list of the most notable changes in the releases of xCAD.NET.
 
 Breaking change is marked with &#x26A0; symbol
 
-## 0.7.1 - May 25, 2021
+## 0.7.1 - June 8, 2021
 
 * &#x26A0; IXDocument3D::CalculateBoundingBox is replaced with IXDocument3D::PreCreateBoundingBox
 * &#x26A0; ComponentState_e::Rapid is renamed to ComponentState_e::Lightweight
