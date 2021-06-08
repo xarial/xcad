@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -12,10 +12,10 @@ using Xarial.XCad.Exceptions;
 
 namespace Xarial.XCad.SolidWorks.Documents.Exceptions
 {
-    public class InactiveConfigurationCutListPropertiesNotSupportedException : Exception, IUserException
+    public class ConfigurationSpecificCutListNotSupportedException : NotSupportedException, IUserException
     {
-        public InactiveConfigurationCutListPropertiesNotSupportedException() 
-            : base("Due to current limitations cut-lists are only supported in the active configuration") 
+        public ConfigurationSpecificCutListNotSupportedException() 
+            : base("Configuration specific cut-lists are not supported. Instead modify the properties in active configuration only") 
         {
         }
     }

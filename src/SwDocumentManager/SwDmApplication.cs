@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Text;
@@ -46,7 +47,6 @@ namespace Xarial.XCad.SwDocumentManager
         public IXMemoryGeometryBuilder MemoryGeometryBuilder => throw new NotSupportedException();
         public IXProgress CreateProgress() => throw new NotSupportedException();
         public IXMacro OpenMacro(string path) => throw new NotSupportedException();
-        public void Close() => throw new NotSupportedException();
         public MessageBoxResult_e ShowMessageBox(string msg,
             MessageBoxIcon_e icon = MessageBoxIcon_e.Info, MessageBoxButtons_e buttons = MessageBoxButtons_e.Ok)
             => throw new NotSupportedException();
@@ -113,6 +113,21 @@ namespace Xarial.XCad.SwDocumentManager
             var licKey = LicenseKey;
             LicenseKey = null;
             return SwDmApplicationFactory.ConnectToDm(licKey);
+        }
+
+        public void Close() 
+        {
+            foreach (var doc in Documents.ToArray()) 
+            {
+                if (doc.IsCommitted && doc.IsAlive) 
+                {
+                    doc.Close();
+                }
+            }
+
+            Marshal.ReleaseComObject(m_Creator.Element);
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
         }
 
         public void Commit(CancellationToken cancellationToken) 

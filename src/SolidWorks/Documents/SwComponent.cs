@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -70,7 +70,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             m_RootAssembly = rootAssembly;
             Component = comp;
             Children = new SwChildComponentsCollection(rootAssembly, comp);
-            m_Features = new Lazy<ISwFeatureManager>(() => new ComponentFeatureRepository(rootAssembly, comp));
+            m_Features = new Lazy<ISwFeatureManager>(() => new SwComponentFeatureManager(rootAssembly, this));
             Bodies = new SwComponentBodyCollection(comp, rootAssembly);
 
             m_FilePathResolver = m_RootAssembly.App.Services.GetService<IFilePathResolver>();
@@ -129,7 +129,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                 if (swState == (int)swComponentSuppressionState_e.swComponentLightweight
                     || swState == (int)swComponentSuppressionState_e.swComponentFullyLightweight)
                 {
-                    state |= ComponentState_e.Rapid;
+                    state |= ComponentState_e.Lightweight;
                 }
                 else if (swState == (int)swComponentSuppressionState_e.swComponentSuppressed) 
                 {
@@ -148,11 +148,59 @@ namespace Xarial.XCad.SolidWorks.Documents
 
                 if (Component.ExcludeFromBOM) 
                 {
-                    state |= ComponentState_e.ExcludedFromBom;
+                    if (!Component.IsEnvelope())
+                    {
+                        state |= ComponentState_e.ExcludedFromBom;
+                    }
                 }
 
+                if (Component.IsEnvelope()) 
+                {
+                    state |= ComponentState_e.Envelope;
+                }
+
+                if (Component.IsVirtual) 
+                {
+                    state |= ComponentState_e.Embedded;
+                }
+                               
                 return state;
-            } 
+            }
+            set 
+            {
+                var swState = Component.GetSuppression2();
+
+                if ((swState == (int)swComponentSuppressionState_e.swComponentSuppressed && !value.HasFlag(ComponentState_e.Suppressed))
+                    || (swState == (int)swComponentSuppressionState_e.swComponentLightweight
+                        || swState == (int)swComponentSuppressionState_e.swComponentFullyLightweight
+                        && !value.HasFlag(ComponentState_e.Lightweight)))
+                {
+                    if (Component.SetSuppression2((int)swComponentSuppressionState_e.swComponentFullyResolved) != (int)swSuppressionError_e.swSuppressionChangeOk) 
+                    {
+                        throw new Exception("Failed to resovle component state");
+                    }
+                }
+
+                if (m_RootAssembly.Model.IsOpenedViewOnly() && !value.HasFlag(ComponentState_e.ViewOnly)) //Large design review
+                {
+                    throw new Exception("Component cannot be resolved when opened as view only");
+                }
+
+                if (Component.IsHidden(false) && !value.HasFlag(ComponentState_e.Hidden))
+                {
+                    Component.Visible = (int)swComponentVisibilityState_e.swComponentVisible;
+                }
+
+                if (Component.ExcludeFromBOM && !value.HasFlag(ComponentState_e.ExcludedFromBom))
+                {
+                    Component.ExcludeFromBOM = false;
+                }
+
+                if (Component.IsEnvelope() && !value.HasFlag(ComponentState_e.Envelope))
+                {
+                    throw new Exception("Envelope state cannot be changed");
+                }
+            }
         }
 
         public ISwFeatureManager Features => m_Features.Value;
@@ -181,25 +229,8 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        public IXConfiguration ReferencedConfiguration 
-        {
-            get 
-            {
-                var doc = Document;
-
-                if (doc.IsCommitted)
-                {
-                    return doc.Configurations[Component.ReferencedConfiguration];
-                }
-                else 
-                {
-                    return new SwConfiguration((SwDocument3D)doc, null, false)
-                    {
-                        Name = Component.ReferencedConfiguration
-                    };
-                }
-            }
-        }
+        public IXConfiguration ReferencedConfiguration
+            => new SwComponentConfiguration(this);
 
         public override void Select(bool append)
         {
@@ -238,25 +269,25 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
     }
     
-    internal class ComponentFeatureRepository : SwFeatureManager
+    internal class SwComponentFeatureManager : SwFeatureManager
     {
         private readonly SwAssembly m_Assm;
-        private readonly IComponent2 m_Comp;
+        internal SwComponent Component { get; }
 
-        public ComponentFeatureRepository(SwAssembly assm, IComponent2 comp) 
+        public SwComponentFeatureManager(SwAssembly assm, SwComponent comp) 
             : base(assm)
         {
             m_Assm = assm;
-            m_Comp = comp;
+            Component = comp;
         }
 
         public override void AddRange(IEnumerable<IXFeature> feats)
         {
             try
             {
-                if (m_Comp.Select4(false, null, false))
+                if (Component.Component.Select4(false, null, false))
                 {
-                    var isAssm = string.Equals(Path.GetExtension(m_Comp.GetPathName()),
+                    var isAssm = string.Equals(Path.GetExtension(Component.Component.GetPathName()),
                         ".sldasm", StringComparison.CurrentCultureIgnoreCase);
 
                     if (isAssm)
@@ -287,11 +318,11 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        public override IEnumerator<IXFeature> GetEnumerator() => new ComponentFeatureEnumerator(m_Assm, m_Comp);
+        public override IEnumerator<IXFeature> GetEnumerator() => new ComponentFeatureEnumerator(m_Assm, Component.Component);
         
         public override bool TryGet(string name, out IXFeature ent)
         {
-            var feat = m_Comp.FeatureByName(name);
+            var feat = Component.Component.FeatureByName(name);
 
             if (feat != null)
             {

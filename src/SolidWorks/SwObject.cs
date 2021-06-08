@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -11,9 +11,11 @@ using System;
 using System.IO;
 using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
+using Xarial.XCad.Exceptions;
 using Xarial.XCad.SolidWorks.Annotations;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Features;
+using Xarial.XCad.SolidWorks.Features.CustomFeature;
 using Xarial.XCad.SolidWorks.Geometry;
 using Xarial.XCad.SolidWorks.Geometry.Curves;
 using Xarial.XCad.SolidWorks.Geometry.Surfaces;
@@ -21,15 +23,41 @@ using Xarial.XCad.SolidWorks.Sketch;
 
 namespace Xarial.XCad.SolidWorks
 {
+    /// <summary>
+    /// Represents base interface for all SOLIDWORKS objects
+    /// </summary>
     public interface ISwObject : IXObject
     {
+        /// <summary>
+        /// SOLIDWORKS specific dispatch
+        /// </summary>
         object Dispatch { get; }
     }
 
+    /// <summary>
+    /// Factory for xCAD objects
+    /// </summary>
     public static class SwObjectFactory 
     {
+        /// <summary>
+        /// Wraps the SOLIDWORKS specific dispatch to xCAD object
+        /// </summary>
+        /// <typeparam name="TObj">Type of the object</typeparam>
+        /// <param name="disp">SOLIDWORKS specific dispatch</param>
+        /// <param name="doc">Owner document</param>
+        /// <returns>xCAD specific object</returns>
         public static TObj FromDispatch<TObj>(object disp, ISwDocument doc)
-            where TObj : ISwObject => SwObject.FromDispatch<TObj>(disp, doc);
+            where TObj : ISwObject
+        {
+            if (typeof(ISwSelObject).IsAssignableFrom(typeof(TObj))) 
+            {
+                return (TObj)SwObject.FromDispatch(disp, doc, d => new SwSelObject(disp, doc));
+            }
+            else
+            {
+                return (TObj)SwObject.FromDispatch(disp, doc, d => new SwObject(disp, doc));
+            }
+        }
     }
 
     /// <inheritdoc/>
@@ -41,25 +69,17 @@ namespace Xarial.XCad.SolidWorks
 
         internal static TObj FromDispatch<TObj>(object disp)
             where TObj : ISwObject
-        {
-            return (TObj)FromDispatch(disp, null);
-        }
+            => (TObj)FromDispatch(disp, null);
 
         internal static ISwObject FromDispatch(object disp)
-        {
-            return FromDispatch(disp, null);
-        }
+            => FromDispatch(disp, null);
 
         internal static TObj FromDispatch<TObj>(object disp, ISwDocument doc)
             where TObj : ISwObject
-        {
-            return (TObj)FromDispatch(disp, doc);
-        }
+            => (TObj)FromDispatch(disp, doc);
 
         internal static ISwObject FromDispatch(object disp, ISwDocument doc)
-        {
-            return FromDispatch(disp, doc, d => new SwObject(d, doc));
-        }
+            => FromDispatch(disp, doc, d => new SwObject(d, doc));
 
         internal static ISwObject FromDispatch(object disp, ISwDocument doc, Func<object, ISwObject> defaultHandler)
         {
@@ -112,7 +132,13 @@ namespace Xarial.XCad.SolidWorks
                         case "3DProfileFeature":
                             return new SwSketch3D(doc, feat, true);
                         case "CutListFolder":
-                            return new SwCutListItem(doc, feat, true);
+                            return new SwCutListItem((ISwDocument3D)doc, feat, true);
+                        case "CoordSys":
+                            return new SwCoordinateSystem(doc, feat, true);
+                        case "RefPlane":
+                            return new SwPlane(doc, feat, true);
+                        case "MacroFeature":
+                            return new SwMacroFeature((SwDocument)doc, doc.Model.FeatureManager, feat, true);
                         default:
                             return new SwFeature(doc, feat, true);
                     }
@@ -244,7 +270,7 @@ namespace Xarial.XCad.SolidWorks
 
         public virtual object Dispatch { get; }
 
-        public bool IsAlive 
+        public virtual bool IsAlive 
         {
             get 
             {
@@ -303,7 +329,29 @@ namespace Xarial.XCad.SolidWorks
             }
         }
 
-        public virtual void Serialize(Stream stream) 
-            => throw new NotSupportedException("This object cannot be serialized");
+        public virtual void Serialize(Stream stream)
+        {
+            if (ModelDoc != null)
+            {
+                var disp = Dispatch;
+
+                if (disp != null)
+                {
+                    var persRef = ModelDoc.Extension.GetPersistReference3(disp) as byte[];
+
+                    if (persRef == null)
+                    {
+                        throw new ObjectSerializationException("Failed to serialize the object", -1);
+                    }
+
+                    stream.Write(persRef, 0, persRef.Length);
+                    return;
+                }
+            }
+            else 
+            {
+                throw new ObjectSerializationException("Model is not set for this object", -1);
+            }
+        }
     }
 }

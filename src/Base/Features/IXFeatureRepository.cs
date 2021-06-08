@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -10,10 +10,22 @@ using Xarial.XCad.Features.CustomFeature;
 
 namespace Xarial.XCad.Features
 {
+    /// <summary>
+    /// Represents collection of features in the document
+    /// </summary>
     public interface IXFeatureRepository : IXRepository<IXFeature>
     {
+        /// <summary>
+        /// Pre-creates custom feature
+        /// </summary>
+        /// <returns>Instance of custom feature</returns>
         IXCustomFeature PreCreateCustomFeature();
 
+        /// <summary>
+        /// Pre-creates custom feature with specific parameters
+        /// </summary>
+        /// <typeparam name="TParams">Type of parameters managed by this custom feature</typeparam>
+        /// <returns>Instance of custom feature</returns>
         IXCustomFeature<TParams> PreCreateCustomFeature<TParams>()
             where TParams : class, new();
 

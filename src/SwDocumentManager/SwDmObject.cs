@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -77,7 +77,7 @@ namespace Xarial.XCad.SwDocumentManager
                     }
 
                 case ISwDMCutListItem cutList:
-                    return new SwDmCutListItem((ISwDMCutListItem2)cutList, (SwDmDocument)doc);
+                    return new SwDmCutListItem((ISwDMCutListItem2)cutList, (SwDmDocument3D)doc);
 
                 case ISwDMComponent comp:
                     return new SwDmComponent((SwDmAssembly)doc, comp);

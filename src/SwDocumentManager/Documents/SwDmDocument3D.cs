@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Xarial.XCad.Documents;
+using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;
 
 namespace Xarial.XCad.SwDocumentManager.Documents
@@ -24,8 +25,9 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         #region Not Supported
 
         public IXModelViewRepository ModelViews => throw new NotSupportedException();
-        public Box3D CalculateBoundingBox() => throw new NotSupportedException();
+        public IXBoundingBox PreCreateBoundingBox() => throw new NotSupportedException();
         TSelObject IXObjectContainer.ConvertObject<TSelObject>(TSelObject obj) => throw new NotSupportedException();
+        public IXMassProperty PreCreateMassProperty() => throw new NotSupportedException();
 
         #endregion
 
@@ -37,7 +39,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         public SwDmDocument3D(ISwDmApplication dmApp, ISwDMDocument doc, bool isCreated,
             Action<ISwDmDocument> createHandler, Action<ISwDmDocument> closeHandler,
-            bool? isReadOnly = null)
+            bool? isReadOnly)
             : base(dmApp, doc, isCreated, createHandler, closeHandler, isReadOnly)
         {
             m_Configurations = new Lazy<ISwDmConfigurationCollection>(() => new SwDmConfigurationCollection(this));

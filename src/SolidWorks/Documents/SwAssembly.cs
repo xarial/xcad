@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -12,7 +12,9 @@ using System.Collections.Generic;
 using System.Linq;
 using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
+using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;
+using Xarial.XCad.SolidWorks.Geometry;
 using Xarial.XCad.Utils.Diagnostics;
 
 namespace Xarial.XCad.SolidWorks.Documents
@@ -42,13 +44,25 @@ namespace Xarial.XCad.SolidWorks.Documents
         ISwAssemblyConfigurationCollection ISwAssembly.Configurations => m_LazyConfigurations.Value;
         IXAssemblyConfigurationRepository IXAssembly.Configurations => (this as ISwAssembly).Configurations;
 
-        public override Box3D CalculateBoundingBox()
+        public override IXBoundingBox PreCreateBoundingBox()
+            => (this as IXAssembly).PreCreateBoundingBox();
+
+        IXAssemblyBoundingBox IXAssembly.PreCreateBoundingBox()
+            => new SwAssemblyBoundingBox(this, m_MathUtils);
+
+        public override IXMassProperty PreCreateMassProperty()
+            => (this as IXAssembly).PreCreateMassProperty();
+
+        IXAssemblyMassProperty IXAssembly.PreCreateMassProperty()
         {
-            const int NO_REF_GEOM = 0;
-
-            var box = Assembly.GetBox(NO_REF_GEOM) as double[];
-
-            return new Box3D(box[0], box[1], box[2], box[3], box[4], box[5]);
+            if (App.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2020))
+            {
+                return new SwAssemblyMassProperty(this, m_MathUtils);
+            }
+            else
+            {
+                return new SwAssemblyLegacyMassProperty(this, m_MathUtils);
+            }
         }
     }
 

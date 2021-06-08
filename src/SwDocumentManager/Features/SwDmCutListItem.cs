@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -49,14 +49,21 @@ namespace Xarial.XCad.SwDocumentManager.Features
         public ISwDMCutListItem2 CutListItem { get; }
 
         private readonly Lazy<ISwDmCustomPropertiesCollection> m_Properties;
-        private readonly SwDmDocument m_Doc;
+        private readonly SwDmDocument3D m_Doc;
+        private readonly SwDmConfiguration m_Conf;
 
-        internal SwDmCutListItem(ISwDMCutListItem2 cutListItem, SwDmDocument doc) : base(cutListItem)
+        internal SwDmCutListItem(ISwDMCutListItem2 cutListItem, SwDmDocument3D doc) : base(cutListItem)
         {
-            m_Doc = doc;
             CutListItem = cutListItem;
+            m_Doc = doc;
+            
             m_Properties = new Lazy<ISwDmCustomPropertiesCollection>(
-                () => new SwDmCutListCustomPropertiesCollection(this));
+                () => new SwDmCutListCustomPropertiesCollection(this, m_Doc, m_Conf));
+        }
+
+        internal SwDmCutListItem(ISwDMCutListItem2 cutListItem, SwDmDocument3D doc, SwDmConfiguration conf) : this(cutListItem, doc)
+        {
+            m_Conf = conf;
         }
 
         public IXSolidBody[] Bodies 

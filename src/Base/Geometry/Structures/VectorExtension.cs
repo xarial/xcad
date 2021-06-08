@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -37,5 +37,14 @@ namespace Xarial.XCad.Geometry.Structures
 
             return refDir;
         }
+
+        /// <summary>
+        /// Finds the angle between vectors
+        /// </summary>
+        /// <param name="thisVec">First vector</param>
+        /// <param name="otherVec">Other vector</param>
+        /// <returns>Angle in radians</returns>
+        public static double GetAngle(this Vector thisVec, Vector otherVec)
+            => Math.Acos(thisVec.Dot(otherVec) / (thisVec.GetLength() * otherVec.GetLength()));
     }
 }

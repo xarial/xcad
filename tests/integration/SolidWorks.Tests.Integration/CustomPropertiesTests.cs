@@ -1,4 +1,5 @@
 using NUnit.Framework;
+using SolidWorks.Interop.swconst;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -145,7 +146,7 @@ namespace SolidWorks.Tests.Integration
                     .First(c => c.Name == "Cut-List-Item1").Properties
                     .ToDictionary(p => p.Name, p => p.Value);
 
-                Assert.Throws<InactiveConfigurationCutListPropertiesNotSupportedException>(
+                Assert.Throws<ConfigurationSpecificCutListNotSupportedException>(
                     () => { var cl = part.Configurations["Default"].CutLists; });
             }
 
@@ -159,6 +160,7 @@ namespace SolidWorks.Tests.Integration
         public void GetComponentWeldmentCutListPropertiesTest()
         {
             Dictionary<string, object> conf1Prps;
+            Dictionary<string, object> defPrps;
 
             using (var doc = OpenDataDocument("AssmCutLists1.SLDASM"))
             {
@@ -168,14 +170,20 @@ namespace SolidWorks.Tests.Integration
                     .First(c => c.Name == "Cut-List-Item1").Properties
                     .ToDictionary(p => p.Name, p => p.Value);
 
-                Assert.Throws<InactiveConfigurationCutListPropertiesNotSupportedException>(
-                    ()=> { var cl = assm.Configurations.Active.Components["CutListConfs1-1"].ReferencedConfiguration.CutLists; });
+                defPrps = assm.Configurations.Active.Components["CutListConfs1-1"].ReferencedConfiguration.CutLists
+                    .First(c => c.Name == "Cut-List-Item1").Properties
+                    .ToDictionary(p => p.Name, p => p.Value);
             }
 
             Assert.AreEqual(4, conf1Prps.Count);
             Assert.That(conf1Prps.ContainsKey("Prp1"));
             Assert.AreEqual("Conf1Val", conf1Prps["Prp1"]);
             Assert.AreEqual("Gen1Val", conf1Prps["Prp2"]);
+
+            Assert.AreEqual(4, defPrps.Count);
+            Assert.That(defPrps.ContainsKey("Prp1"));
+            Assert.AreEqual("ConfDefVal", defPrps["Prp1"]);
+            Assert.AreEqual("Gen1Val", defPrps["Prp2"]);
         }
 
         [Test]
@@ -193,7 +201,7 @@ namespace SolidWorks.Tests.Integration
                 prp1.Value = "NewValueConf1";
                 prp1.Commit();
 
-                Assert.Throws<InactiveConfigurationCutListPropertiesNotSupportedException>(
+                Assert.Throws<ConfigurationSpecificCutListNotSupportedException>(
                     () => { var cl = part.Configurations["Default<As Machined>"].CutLists; });
                 
                 part.Model.ShowConfiguration2("Conf1<As Machined>");
@@ -222,9 +230,17 @@ namespace SolidWorks.Tests.Integration
                 prp1.Value = "NewValueConf1";
                 prp1.Commit();
 
-                Assert.Throws<InactiveConfigurationCutListPropertiesNotSupportedException>(
-                    () => { var cl = assm.Configurations.Active.Components["CutListConfs1-1"].ReferencedConfiguration.CutLists; });
-                
+                var prp2 = assm.Configurations.Active.Components["CutListConfs1-1"].ReferencedConfiguration.CutLists
+                    .First(c => c.Name == "Cut-List-Item1").Properties.GetOrPreCreate("Prp1");
+                Assert.Throws<ConfigurationSpecificCutListPropertiesWriteNotSupportedException>(
+                    () => { prp2.Value = "NewValue1Def1"; });
+
+                var prp3 = assm.Configurations.Active.Components["CutListConfs1-1"].ReferencedConfiguration.CutLists
+                    .First(c => c.Name == "Cut-List-Item1").Properties.GetOrPreCreate("Prp4");
+                prp3.Value = "NewValue1Def1";
+                Assert.Throws<ConfigurationSpecificCutListPropertiesWriteNotSupportedException>(
+                    () => { prp3.Commit(); });
+
                 var part = (ISwPart)assm.Configurations.Active.Components["CutListConfs1-1"].Document;
 
                 part.Model.ShowConfiguration2("Conf1<As Machined>");
@@ -303,6 +319,57 @@ namespace SolidWorks.Tests.Integration
 
             Assert.AreEqual("\"D1@Sketch2\"", val);
             Assert.AreEqual("25.00", resVal);
+        }
+
+        [Test]
+        public void NotUpdatedConfPrpsCustomPropertiesTest()
+        {
+            object val1Def;
+            object val2Def;
+
+            object val1Conf1;
+            object val2Conf1;
+
+            object val1Def_1;
+            object val2Def_1;
+
+            object val1Conf1_1;
+            object val2Conf1_1;
+
+            using (var doc = OpenDataDocument("MultiConfNotUpdatePartPrps.SLDPRT"))
+            {
+                var part = (IXPart)m_App.Documents.Active;
+
+                val1Def = part.Configurations["Default"].Properties["Prp1"].Value;
+                val2Def = part.Configurations["Default"].Properties["Prp2"].Value;
+
+                val1Conf1 = part.Configurations["Conf1"].Properties["Prp1"].Value;
+                val2Conf1 = part.Configurations["Conf1"].Properties["Prp2"].Value;
+
+                using (var assmDoc = NewDocument(swDocumentTypes_e.swDocASSEMBLY)) 
+                {
+                    var assm = (ISwAssembly)m_App.Documents.Active;
+                    assm.Assembly.AddComponent5(part.Path, (int)swAddComponentConfigOptions_e.swAddComponentConfigOptions_CurrentSelectedConfig, "", true, "Conf1", 0, 0, 0);
+                    assm.Assembly.AddComponent5(part.Path, (int)swAddComponentConfigOptions_e.swAddComponentConfigOptions_CurrentSelectedConfig, "", true, "Default", 0, 0, 0);
+                    assm.Model.EditRebuild3();
+
+                    val1Def_1 = part.Configurations["Default"].Properties["Prp1"].Value;
+                    val2Def_1 = part.Configurations["Default"].Properties["Prp2"].Value;
+
+                    val1Conf1_1 = part.Configurations["Conf1"].Properties["Prp1"].Value;
+                    val2Conf1_1 = part.Configurations["Conf1"].Properties["Prp2"].Value;
+                }
+            }
+
+            Assert.AreEqual("115.72", val1Def);
+            Assert.AreEqual("200.00", val2Def);
+            Assert.AreEqual("0.00", val1Conf1); //not resolved
+            Assert.AreEqual("100.00", val2Conf1);
+
+            Assert.AreEqual("115.72", val1Def_1);
+            Assert.AreEqual("200.00", val2Def_1);
+            Assert.AreEqual("57.86", val1Conf1_1); //not resolved
+            Assert.AreEqual("100.00", val2Conf1_1);
         }
     }
 }

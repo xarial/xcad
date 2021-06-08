@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -114,7 +114,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             m_DocsDispatcher.Dispatched += OnDocumentDispatched;
 
             m_Documents = new Dictionary<IModelDoc2, SwDocument>(
-                new SwModelPointerEqualityComparer(m_SwApp));
+                new SwModelPointerEqualityComparer());
             m_DocsHandler = new DocumentsHandler(app, m_Logger);
             
             AttachToAllOpenedDocuments();
@@ -303,32 +303,6 @@ namespace Xarial.XCad.SolidWorks.Documents
             return templateDoc as TDocument;
         }
 
-        internal ISwDocument PreCreateFromPath(string path) 
-        {
-            var ext = Path.GetExtension(path);
-
-            ISwDocument doc = null;
-
-            switch (ext.ToLower())
-            {
-                case ".sldprt":
-                    doc = PreCreate<ISwPart>();
-                    break;
-
-                case ".sldasm":
-                    doc = PreCreate<ISwAssembly>();
-                    break;
-
-                case ".slddrw":
-                    doc = PreCreate<ISwDrawing>();
-                    break;
-            }
-
-            doc.Path = path;
-
-            return doc;
-        }
-        
         public bool TryGet(string name, out IXDocument ent)
         {
             var model = m_SwApp.GetOpenDocumentByName(name) as IModelDoc2;
@@ -367,6 +341,52 @@ namespace Xarial.XCad.SolidWorks.Documents
                 d => string.Equals(d.Path, path, StringComparison.CurrentCultureIgnoreCase));
 
             return doc != null;
+        }
+    }
+
+    /// <summary>
+    /// Additional methods for documents collections
+    /// </summary>
+    public static class SwDocumentCollectionExtension 
+    {
+        /// <summary>
+        /// Pre creates new document from path
+        /// </summary>
+        /// <param name="docsColl">Documents collection</param>
+        /// <param name="path"></param>
+        /// <returns>Pre-created document</returns>
+        public static ISwDocument PreCreateFromPath(this ISwDocumentCollection docsColl, string path)
+        {
+            var ext = Path.GetExtension(path);
+
+            ISwDocument doc;
+
+            switch (ext.ToLower())
+            {
+                case ".sldprt":
+                case ".sldblk":
+                case ".prtdot":
+                case ".sldlfp":
+                    doc = docsColl.PreCreate<ISwPart>();
+                    break;
+
+                case ".sldasm":
+                case ".asmdot":
+                    doc = docsColl.PreCreate<ISwAssembly>();
+                    break;
+
+                case ".slddrw":
+                case ".drwdot":
+                    doc = docsColl.PreCreate<ISwDrawing>();
+                    break;
+
+                default:
+                    throw new NotSupportedException("Only native documents are supported");
+            }
+
+            doc.Path = path;
+
+            return doc;
         }
     }
 }

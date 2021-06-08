@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -106,14 +106,30 @@ namespace Xarial.XCad.SolidWorks.Data
 
         public void RemoveRange(IEnumerable<IXProperty> ents)
         {
-            const int SUCCESS = 0;
-
             foreach (var prp in ents)
             {
-                //TODO: fix the versions
+                DeleteProperty(prp);
+            }
+        }
+
+        protected virtual void DeleteProperty(IXProperty prp)
+        {
+            if (m_Doc.App.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2014))
+            {
+                var delRes = (swCustomInfoDeleteResult_e)PrpMgr.Delete2(prp.Name);
+
+                if (delRes != swCustomInfoDeleteResult_e.swCustomInfoDeleteResult_OK)
+                {
+                    throw new Exception($"Failed to remove property '{prp.Name}'. Error code: {delRes}");
+                }
+            }
+            else
+            {
+                const int SUCCESS = 0;
+
                 if (PrpMgr.Delete(prp.Name) != SUCCESS)
                 {
-                    throw new Exception($"Failed to remove {prp.Name}");
+                    throw new Exception($"Failed to remove property '{prp.Name}'");
                 }
             }
         }

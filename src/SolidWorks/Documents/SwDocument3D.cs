@@ -1,15 +1,19 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
 using SolidWorks.Interop.sldworks;
 using System;
+using System.Linq;
 using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
+using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;
+using Xarial.XCad.SolidWorks.Geometry;
+using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.Utils.Diagnostics;
 
 namespace Xarial.XCad.SolidWorks.Documents
@@ -24,7 +28,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
     internal abstract class SwDocument3D : SwDocument, ISwDocument3D
     {
-        private readonly IMathUtility m_MathUtils;
+        protected readonly IMathUtility m_MathUtils;
 
         IXConfigurationRepository IXDocument3D.Configurations => Configurations;
         IXModelViewRepository IXDocument3D.ModelViews => ModelViews;
@@ -41,8 +45,6 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public ISwConfigurationCollection Configurations => m_Configurations.Value;
         public ISwModelViewsCollection ModelViews => m_ModelViews.Value;
-
-        public abstract Box3D CalculateBoundingBox();
 
         protected override void Dispose(bool disposing)
         {
@@ -84,6 +86,20 @@ namespace Xarial.XCad.SolidWorks.Documents
             else
             {
                 throw new InvalidCastException("Object is not SOLIDWORKS object");
+            }
+        }
+
+        public abstract IXBoundingBox PreCreateBoundingBox();
+
+        public virtual IXMassProperty PreCreateMassProperty()
+        {
+            if (App.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2020))
+            {
+                return new SwMassProperty(this, m_MathUtils);
+            }
+            else
+            {
+                return new SwLegacyMassProperty(this, m_MathUtils);
             }
         }
     }

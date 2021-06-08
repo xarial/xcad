@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -32,13 +32,8 @@ namespace Xarial.XCad.SolidWorks.Features
         IXDimensionRepository IXFeature.Dimensions => Dimensions;
 
         public virtual IFeature Feature
-        {
-            get
-            {
-                return m_Creator.Element;
-            }
-        }
-        
+            => m_Creator.Element;
+
         public override object Dispatch => Feature;
 
         internal SwFeature(ISwDocument doc, IFeature feat, bool created) : base(feat, doc)

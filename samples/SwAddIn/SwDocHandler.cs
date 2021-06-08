@@ -156,7 +156,9 @@ namespace SwAddInExample
             m_Model.StorageReadAvailable -= LoadFromStorage;
             m_Model.StorageWriteAvailable -= SaveToStorage;
 
-            m_App.ShowMessageBox($"Closed {m_Model.Title}");
+            System.Diagnostics.Debug.Print($"Closed {m_Model.Title}");
+
+            //m_App.ShowMessageBox($"Closed {m_Model.Title}");
         }
     }
 }

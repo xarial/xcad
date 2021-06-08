@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -46,14 +46,19 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                 switch (System.IO.Path.GetExtension(path).ToLower())
                 {
                     case ".sldprt":
+                    case ".sldblk":
+                    case ".prtdot":
+                    case ".sldlfp":
                         docType = SwDmDocumentType.swDmDocumentPart;
                         break;
 
                     case ".sldasm":
+                    case ".asmdot":
                         docType = SwDmDocumentType.swDmDocumentAssembly;
                         break;
 
                     case ".slddrw":
+                    case ".drwdot":
                         docType = SwDmDocumentType.swDmDocumentDrawing;
                         break;
 

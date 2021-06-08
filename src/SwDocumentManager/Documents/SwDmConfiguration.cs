@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -85,7 +85,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                 if (cutListItems != null)
                 {
                     return cutListItems.Cast<ISwDMCutListItem2>()
-                        .Select(c => new SwDmCutListItem(c, Document)).ToArray();
+                        .Select(c => new SwDmCutListItem(c, Document, this)).ToArray();
                 }
                 else
                 {

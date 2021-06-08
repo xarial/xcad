@@ -6,6 +6,8 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Xarial.XCad.Base;
+using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.SolidWorks;
 using Xarial.XCad.SolidWorks.Documents;
@@ -183,14 +185,33 @@ namespace SolidWorks.Tests.Integration
         public void VirtualComponentsTest() 
         {
             string[] compNames;
+            bool[] isCommitted;
+            bool[] isAlive;
+            bool[] isVirtual;
 
             using (var doc = OpenDataDocument(@"VirtAssem1.SLDASM"))
             {
-                compNames = ((ISwAssembly)m_App.Documents.Active).Configurations.Active.Components.Select(c => c.Name).ToArray();
+                var comps = ((ISwAssembly)m_App.Documents.Active).Configurations.Active.Components;
+                compNames = comps.Select(c => c.Name).ToArray();
+                var docs = comps.Select(c => c.Document).ToArray();
+                foreach (var compDoc in docs) 
+                {
+                    if (!compDoc.IsCommitted) 
+                    {
+                        compDoc.Commit();
+                    }
+                }
+
+                isCommitted = docs.Select(d => d.IsCommitted).ToArray();
+                isAlive = docs.Select(d => d.IsAlive).ToArray();
+                isVirtual = comps.Select(c => c.State.HasFlag(ComponentState_e.Embedded)).ToArray();
             }
 
             Assert.That(compNames.OrderBy(c => c).SequenceEqual(
                 new string[] { "Part1^VirtAssem1-1", "Assem2^VirtAssem1-1" }.OrderBy(c => c)));
+            Assert.That(isCommitted.All(x => x == true));
+            Assert.That(isAlive.All(x => x == true));
+            Assert.That(isVirtual.All(x => x == true));
         }
 
         [Test]
@@ -270,6 +291,33 @@ namespace SolidWorks.Tests.Integration
             Assert.IsFalse(s3_conf1);
             Assert.AreEqual("Conf1", c4_conf1);
             Assert.IsTrue(s4_conf1);
+        }
+
+        [Test]
+        public void ComponentStateTest()
+        {
+            ComponentState_e s1;
+            ComponentState_e s2;
+            ComponentState_e s3;
+            ComponentState_e s4;
+            ComponentState_e s5;
+
+            using (var doc = OpenDataDocument(@"Assembly5\Assem1.SLDASM"))
+            {
+                var assm = (ISwAssembly)m_App.Documents.Active;
+
+                s1 = assm.Configurations.Active.Components["Part1-1"].State;
+                s2 = assm.Configurations.Active.Components["Part1-2"].State;
+                s3 = assm.Configurations.Active.Components["Part1-3"].State;
+                s4 = assm.Configurations.Active.Components["Part1-4"].State;
+                s5 = assm.Configurations.Active.Components["Part1-5"].State;
+            }
+
+            Assert.AreEqual(ComponentState_e.Default, s1);
+            Assert.AreEqual(ComponentState_e.Suppressed, s2);
+            Assert.AreEqual(ComponentState_e.Envelope, s3);
+            Assert.AreEqual(ComponentState_e.ExcludedFromBom, s4);
+            Assert.AreEqual(ComponentState_e.Hidden, s5);
         }
     }
 }

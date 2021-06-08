@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -18,14 +18,10 @@ namespace Xarial.XCad.SolidWorks.Data.EventHandlers
 {
     internal class StorageReadAvailableEventsHandler : SwModelEventsHandler<DataStoreAvailableDelegate>
     {
-        private readonly SwDocument m_Doc;
-
         private bool m_Is3rdPartyStorageLoaded;
 
         internal StorageReadAvailableEventsHandler(SwDocument doc) : base(doc)
         {
-            m_Doc = doc;
-
             m_Is3rdPartyStorageLoaded = false;
         }
 

@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -15,11 +15,9 @@ namespace Xarial.XCad.SolidWorks.Data.EventHandlers
     internal class StreamReadAvailableEventsHandler : SwModelEventsHandler<DataStoreAvailableDelegate>
     {
         private bool m_Is3rdPartyStreamLoaded;
-        private readonly SwDocument m_Doc;
 
         internal StreamReadAvailableEventsHandler(SwDocument doc) : base(doc)
         {
-            m_Doc = doc;
             m_Is3rdPartyStreamLoaded = false;
         }
 

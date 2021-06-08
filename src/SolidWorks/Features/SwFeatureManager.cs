@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -12,6 +12,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Xarial.XCad.Base;
+using Xarial.XCad.Documents;
 using Xarial.XCad.Features;
 using Xarial.XCad.Features.CustomFeature;
 using Xarial.XCad.SolidWorks.Documents;
@@ -165,19 +166,51 @@ namespace Xarial.XCad.SolidWorks.Features
         {
             var cutLists = new List<SwCutListItem>();
 
-            if (featMgr.Document.DocumentType == swDocumentTypes_e.swDocPART)
+            ISwConfiguration refConf;
+
+            SwDocument3D doc;
+
+            if (featMgr is SwComponentFeatureManager)
             {
-                var part = featMgr.Document.Model as IPartDoc;
+                var comp = (featMgr as SwComponentFeatureManager).Component;
+                refConf = (ISwConfiguration)comp.ReferencedConfiguration;
+                doc = (SwDocument3D)comp.Document;
+            }
+            else 
+            {
+                doc = (SwDocument3D)featMgr.Document;
+                refConf = doc.Configurations.Active;
+            }
+
+            if (doc.DocumentType == swDocumentTypes_e.swDocPART)
+            {
+                var part = doc.Model as IPartDoc;
+
+                IEnumerable<IBody2> IterateBodies()
+                {
+                    object bodies;
+                    if (featMgr is SwComponentFeatureManager)
+                    {
+                        bodies = ((SwComponentFeatureManager)featMgr).Component.Component.GetBodies3((int)swBodyType_e.swSolidBody, out _);
+                    }
+                    else 
+                    {
+                        bodies = part.GetBodies2((int)swBodyType_e.swSolidBody, false);
+                    }
+
+                    return (bodies as object[] ?? new object[0]).Cast<IBody2>();
+                }
 
                 if (part.IsWeldment()
-                    || (part.GetBodies2((int)swBodyType_e.swSolidBody, false) as object[] ?? new object[0])
-                    .Any(b => ((IBody2)b).IsSheetMetal()))
+                    || IterateBodies().Any(b => b.IsSheetMetal()))
                 {
                     foreach (ISwFeature feat in featMgr)
                     {
                         if (feat is SwCutListItem)
                         {
-                            cutLists.Add(feat as SwCutListItem);
+                            var cutList = (SwCutListItem)feat;
+                            cutList.SetOwner(doc, refConf);
+                            cutLists.Add(cutList);
                         }
                         else if (feat.Feature.GetTypeName2() == "RefPlane")
                         {

@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -21,13 +21,21 @@ namespace Xarial.XCad.Geometry
         IXSegment Definition { get; }
     }
 
+    /// <summary>
+    /// Represents specific circular edge
+    /// </summary>
     public interface IXCircularEdge : IXEdge 
     {
+        /// <inheritdoc/>
         new IXArc Definition { get; }
     }
 
+    /// <summary>
+    /// Represents specific linear edge
+    /// </summary>
     public interface IXLinearEdge : IXEdge
     {
+        /// <inheritdoc/>
         new IXLine Definition { get; }
     }
 }

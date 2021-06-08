@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Xarial.XCad.Features;
+using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Sketch;
 
@@ -45,6 +46,28 @@ namespace Xarial.XCad.SolidWorks.Features
                         yield return SwObject.FromDispatch<ISwSketchRegion>(reg);
                     }
                 }
+            }
+        }
+        
+        public Plane Plane 
+        {
+            get
+            {
+                var mathUtils = ((SwDocument)m_Doc).App.Sw.IGetMathUtility();
+
+                var transform = Sketch.ModelToSketchTransform.IInverse();
+
+                var x = (IMathVector)mathUtils.CreateVector(new double[] { 1, 0, 0 });
+                var z = (IMathVector)mathUtils.CreateVector(new double[] { 0, 0, 1 });
+                var origin = (IMathPoint)mathUtils.CreatePoint(new double[] { 0, 0, 0 });
+
+                x = (IMathVector)x.MultiplyTransform(transform);
+                z = (IMathVector)z.MultiplyTransform(transform);
+                origin = (IMathPoint)origin.MultiplyTransform(transform);
+
+                return new Plane(new Point((double[])origin.ArrayData),
+                    new Vector((double[])z.ArrayData),
+                    new Vector((double[])x.ArrayData));
             }
         }
 

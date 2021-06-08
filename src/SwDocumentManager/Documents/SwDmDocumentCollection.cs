@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -147,15 +147,15 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
             if (typeof(IXPart).IsAssignableFrom(typeof(TDocument)))
             {
-                templateDoc = new SwDmPart(m_DmApp, null, false, OnDocumentCreated, OnDocumentClosed);
+                templateDoc = new SwDmPart(m_DmApp, null, false, OnDocumentCreated, OnDocumentClosed, null);
             }
             else if (typeof(IXAssembly).IsAssignableFrom(typeof(TDocument)))
             {
-                templateDoc = new SwDmAssembly(m_DmApp, null, false, OnDocumentCreated, OnDocumentClosed);
+                templateDoc = new SwDmAssembly(m_DmApp, null, false, OnDocumentCreated, OnDocumentClosed, null);
             }
             else if (typeof(IXDrawing).IsAssignableFrom(typeof(TDocument)))
             {
-                templateDoc = new SwDmDrawing(m_DmApp, null, false, OnDocumentCreated, OnDocumentClosed);
+                templateDoc = new SwDmDrawing(m_DmApp, null, false, OnDocumentCreated, OnDocumentClosed, null);
             }
             else if (typeof(IXDocument).IsAssignableFrom(typeof(TDocument))
                 || typeof(IXUnknownDocument).IsAssignableFrom(typeof(TDocument)))

@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -407,7 +407,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             var cachedModel = m_Creator.CachedProperties.Get<IModelDoc2>(nameof(Model));
 
             Debug.Assert(cachedModel == null 
-                || new SwModelPointerEqualityComparer(App.Sw)
+                || new SwModelPointerEqualityComparer()
                     .Equals(cachedModel, model), "Invalid pointers");
         }
 
@@ -553,7 +553,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        public bool IsAlive 
+        public override bool IsAlive 
         {
             get 
             {

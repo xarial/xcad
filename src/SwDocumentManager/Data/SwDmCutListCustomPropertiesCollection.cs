@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -13,6 +13,7 @@ using Xarial.XCad.Data;
 using Xarial.XCad.SwDocumentManager.Documents;
 using System.Linq;
 using Xarial.XCad.SwDocumentManager.Features;
+using Xarial.XCad.SwDocumentManager.Exceptions;
 
 namespace Xarial.XCad.SwDocumentManager.Data
 {
@@ -21,10 +22,14 @@ namespace Xarial.XCad.SwDocumentManager.Data
         public override int Count => (m_CutList.CutListItem.GetCustomPropertyNames() as string[])?.Length ?? 0;
 
         private readonly ISwDmCutListItem m_CutList;
+        private readonly SwDmDocument3D m_Doc;
+        private readonly SwDmConfiguration m_Conf;
 
-        internal SwDmCutListCustomPropertiesCollection(ISwDmCutListItem cutList)
+        internal SwDmCutListCustomPropertiesCollection(ISwDmCutListItem cutList, SwDmDocument3D doc, SwDmConfiguration conf)
         {
             m_CutList = cutList;
+            m_Doc = doc;
+            m_Conf = conf;
         }
 
         public override IEnumerator<IXProperty> GetEnumerator()
@@ -35,7 +40,7 @@ namespace Xarial.XCad.SwDocumentManager.Data
         }
 
         protected override ISwDmCustomProperty CreatePropertyInstance(string name, bool isCreated)
-            => new SwDmCutListCustomProperty(m_CutList, name, isCreated);
+            => new SwDmCutListCustomProperty(m_CutList, m_Doc, m_Conf, name, isCreated);
 
         protected override bool Exists(string name)
             => (m_CutList.CutListItem.GetCustomPropertyNames() as string[])?
@@ -45,20 +50,31 @@ namespace Xarial.XCad.SwDocumentManager.Data
     internal class SwDmCutListCustomProperty : SwDmCustomProperty
     {
         private readonly ISwDmCutListItem m_CutList;
+        private readonly SwDmDocument3D m_Doc;
+        private readonly SwDmConfiguration m_Conf;
 
-        public SwDmCutListCustomProperty(ISwDmCutListItem cutList, string name, bool isCreated) 
+        public SwDmCutListCustomProperty(ISwDmCutListItem cutList, SwDmDocument3D doc, SwDmConfiguration conf, string name, bool isCreated) 
             : base(name, isCreated)
         {
             m_CutList = cutList;
+            m_Doc = doc;
+            m_Conf = conf;
         }
 
         protected override void AddValue(object value)
         {
-            SwDmCustomInfoType type = GetPropertyType(value);
-
-            if (!m_CutList.CutListItem.AddCustomProperty(Name, type, value?.ToString()))
+            if (m_Conf == null || m_Conf.Configuration == m_Doc.Configurations.Active.Configuration)
             {
-                throw new Exception("Failed to add custom property");
+                SwDmCustomInfoType type = GetPropertyType(value);
+
+                if (!m_CutList.CutListItem.AddCustomProperty(Name, type, value?.ToString()))
+                {
+                    throw new Exception("Failed to add custom property");
+                }
+            }
+            else
+            {
+                throw new ConfigurationSpecificCutListPropertiesWriteNotSupportedException();
             }
         }
 
@@ -76,14 +92,30 @@ namespace Xarial.XCad.SwDocumentManager.Data
             return val;
         }
 
-        protected override void SetValue(object value) 
-            => m_CutList.CutListItem.SetCustomProperty(Name, value?.ToString());
+        protected override void SetValue(object value)
+        {
+            if (m_Conf == null || m_Conf.Configuration == m_Doc.Configurations.Active.Configuration)
+            {
+                m_CutList.CutListItem.SetCustomProperty(Name, value?.ToString());
+            }
+            else 
+            {
+                throw new ConfigurationSpecificCutListPropertiesWriteNotSupportedException();
+            }
+        }
 
         internal override void Delete()
         {
-            if (!m_CutList.CutListItem.DeleteCustomProperty(Name))
+            if (m_Conf == null || m_Conf.Configuration == m_Doc.Configurations.Active.Configuration)
             {
-                throw new Exception("Failed to delete property");
+                if (!m_CutList.CutListItem.DeleteCustomProperty(Name))
+                {
+                    throw new Exception("Failed to delete property");
+                }
+            }
+            else
+            {
+                throw new ConfigurationSpecificCutListPropertiesWriteNotSupportedException();
             }
         }
     }
