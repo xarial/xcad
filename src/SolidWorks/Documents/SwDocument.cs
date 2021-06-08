@@ -553,7 +553,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        public bool IsAlive 
+        public override bool IsAlive 
         {
             get 
             {

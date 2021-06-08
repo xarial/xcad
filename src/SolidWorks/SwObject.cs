@@ -270,7 +270,7 @@ namespace Xarial.XCad.SolidWorks
 
         public virtual object Dispatch { get; }
 
-        public bool IsAlive 
+        public virtual bool IsAlive 
         {
             get 
             {

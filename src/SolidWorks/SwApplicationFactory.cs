@@ -129,9 +129,7 @@ namespace Xarial.XCad.SolidWorks
             => FromPointer(app, new ServiceCollection());
 
         public static ISwApplication FromPointer(ISldWorks app, IXServiceCollection services)
-        {
-            return new SwApplication(app, services);
-        }
+            => new SwApplication(app, services);
 
         public static ISwApplication FromProcess(Process process)
             => FromProcess(process, new ServiceCollection());

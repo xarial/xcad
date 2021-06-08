@@ -70,6 +70,7 @@ namespace Xarial.XCad.SolidWorks.Utils
             }
 
             var prc = Process.Start(prcInfo);
+
             startHandler.Invoke(prc);
 
             try
