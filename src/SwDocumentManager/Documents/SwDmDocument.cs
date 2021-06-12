@@ -46,21 +46,19 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                 switch (System.IO.Path.GetExtension(path).ToLower())
                 {
                     case ".sldprt":
+                        docType = SwDmDocumentType.swDmDocumentPart;
+                        break;
                     case ".sldblk":
                     case ".prtdot":
                     case ".sldlfp":
-                        docType = SwDmDocumentType.swDmDocumentPart;
-                        break;
-
                     case ".sldasm":
-                    case ".asmdot":
                         docType = SwDmDocumentType.swDmDocumentAssembly;
                         break;
-
+                    case ".asmdot":
                     case ".slddrw":
-                    case ".drwdot":
                         docType = SwDmDocumentType.swDmDocumentDrawing;
                         break;
+                    case ".drwdot":
 
                     default:
                         throw new NotSupportedException("Only native SOLIDWORKS files can be opened");
@@ -92,32 +90,32 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         public ISwDmVersion Version => SwDmApplicationFactory.CreateVersion((SwDmVersion_e)Document.GetVersion());
 
-        public string Title 
+        public string Title
         {
             get => System.IO.Path.GetFileName(Path);
             set => throw new NotSupportedException("This property is read-only");
         }
-        
-        public string Path 
+
+        public string Path
         {
-            get 
+            get
             {
                 if (IsCommitted)
                 {
                     return Document.FullName;
                 }
-                else 
+                else
                 {
                     return m_Creator.CachedProperties.Get<string>();
                 }
             }
-            set 
+            set
             {
                 if (IsCommitted)
                 {
                     throw new NotSupportedException("Path cannot be changed for an opened document");
                 }
-                else 
+                else
                 {
                     m_Creator.CachedProperties.Set(value);
                 }
@@ -128,9 +126,9 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         private bool? m_IsReadOnly;
 
-        public DocumentState_e State 
+        public DocumentState_e State
         {
-            get 
+            get
             {
                 if (IsCommitted)
                 {
@@ -138,25 +136,25 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                     {
                         return DocumentState_e.ReadOnly;
                     }
-                    else 
+                    else
                     {
                         return DocumentState_e.Default;
                     }
                 }
-                else 
+                else
                 {
                     return m_Creator.CachedProperties.Get<DocumentState_e>();
                 }
             }
-            set 
+            set
             {
                 if (IsCommitted)
                 {
                     throw new Exception("This property is read-only");
                 }
-                else 
+                else
                 {
-                    if (value != DocumentState_e.Default && value != DocumentState_e.ReadOnly) 
+                    if (value != DocumentState_e.Default && value != DocumentState_e.ReadOnly)
                     {
                         throw new NotSupportedException("Only default and read-only states are supported");
                     }
@@ -170,9 +168,9 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         private bool? m_IsClosed;
 
-        public override bool IsAlive 
+        public override bool IsAlive
         {
-            get 
+            get
             {
                 if (m_IsClosed.HasValue)
                 {
@@ -195,9 +193,9 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             }
         }
 
-        public IXDocument3D[] Dependencies 
+        public IXDocument3D[] Dependencies
         {
-            get 
+            get
             {
                 ISwDMDocument doc = null;
 
@@ -235,9 +233,9 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
                     return depDocs;
                 }
-                finally 
+                finally
                 {
-                    if (!IsCommitted && doc != null) 
+                    if (!IsCommitted && doc != null)
                     {
                         doc.CloseDoc();
                     }
@@ -253,7 +251,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         public event DataStoreAvailableDelegate StorageReadAvailable;
         public event DataStoreAvailableDelegate StreamWriteAvailable;
         public event DataStoreAvailableDelegate StorageWriteAvailable;
-        
+
         public event DocumentSaveDelegate Saving;
         public event DocumentCloseDelegate Closing;
 
@@ -266,7 +264,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         private readonly Lazy<ISwDmCustomPropertiesCollection> m_Properties;
 
-        internal SwDmDocument(ISwDmApplication dmApp, ISwDMDocument doc, bool isCreated, 
+        internal SwDmDocument(ISwDmApplication dmApp, ISwDMDocument doc, bool isCreated,
             Action<ISwDmDocument> createHandler, Action<ISwDmDocument> closeHandler,
             bool? isReadOnly = null) : base(doc)
         {
@@ -302,7 +300,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             }
         }
 
-        private ISwDMDocument OpenDocument(CancellationToken cancellationToken) 
+        private ISwDMDocument OpenDocument(CancellationToken cancellationToken)
         {
             m_IsReadOnly = State.HasFlag(DocumentState_e.ReadOnly);
 
@@ -380,11 +378,11 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         public IStorage OpenStorage(string name, AccessType_e access)
         {
-            if (SwDmApp.IsVersionNewerOrEqual(SwDmVersion_e.Sw2015)) 
+            if (SwDmApp.IsVersionNewerOrEqual(SwDmVersion_e.Sw2015))
             {
                 return new SwDm3rdPartyStorage((ISwDMDocument19)Document, name, access);
             }
-            else 
+            else
             {
                 throw new NotSupportedException("This API is only available in SOLIDWORKS 2015 or newer");
             }
@@ -469,7 +467,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         private SwDmDocument m_SpecificDoc;
 
         public SwDmUnknownDocument(ISwDmApplication dmApp, SwDMDocument doc, bool isCreated,
-            Action<ISwDmDocument> createHandler, Action<ISwDmDocument> closeHandler, bool? isReadOnly = null) 
+            Action<ISwDmDocument> createHandler, Action<ISwDmDocument> closeHandler, bool? isReadOnly = null)
             : base(dmApp, doc, isCreated, createHandler, closeHandler, isReadOnly)
         {
             if (isCreated)
@@ -513,7 +511,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                     throw new Exception("Invalid document type");
             }
 
-            if (!IsCommitted) 
+            if (!IsCommitted)
             {
                 //TODO: implement copy cache on ElementCreator
                 m_SpecificDoc.Path = Path;
