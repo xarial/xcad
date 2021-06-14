@@ -43,7 +43,7 @@ namespace Xarial.XCad.Utils.CustomFeature
         private readonly CustomFeatureParametersParser m_ParamsParser;
         private readonly Type m_DefType;
 
-        private TPage m_CurData;
+        private TPage m_CurPageData;
         private IXBody[] m_HiddenEditBodies;
         private IXCustomFeature<TData> m_EditingFeature;
         private Exception m_LastError;
@@ -102,9 +102,9 @@ namespace Xarial.XCad.Utils.CustomFeature
             {
                 var featParam = m_EditingFeature.Parameters;
 
-                m_CurData = Definition.ConvertParamsToPage(featParam);
+                m_CurPageData = Definition.ConvertParamsToPage(featParam);
 
-                m_PmPage.Show(m_CurData);
+                m_PmPage.Show(m_CurPageData);
                 EditingStarted?.Invoke(m_App, model, feature);
 
                 UpdatePreview();
@@ -117,14 +117,14 @@ namespace Xarial.XCad.Utils.CustomFeature
 
         public void Insert(IXDocument model)
         {
-            m_CurData = new TPage();
+            m_CurPageData = new TPage();
 
             CurModel = model;
 
             m_EditingFeature = null;
 
             EditingStarted?.Invoke(m_App, model, null);
-            m_PmPage.Show(m_CurData);
+            m_PmPage.Show(m_CurPageData);
             UpdatePreview();
         }
 
@@ -138,7 +138,7 @@ namespace Xarial.XCad.Utils.CustomFeature
         {
             IXBody[] editBodies;
 
-            m_ParamsParser.Parse(m_CurData, out _, out _, out _, out _, out editBodies);
+            m_ParamsParser.Parse(Definition.ConvertPageToParams(m_CurPageData), out _, out _, out _, out _, out editBodies);
 
             var bodiesToShow = m_HiddenEditBodies.ValueOrEmpty().Except(editBodies.ValueOrEmpty(), m_BodiesComparer);
 
@@ -188,7 +188,7 @@ namespace Xarial.XCad.Utils.CustomFeature
                 {
                     var feat = CurModel.Features.PreCreateCustomFeature<TData>();
                     feat.DefinitionType = m_DefType;
-                    feat.Parameters = Definition.ConvertPageToParams(m_CurData);
+                    feat.Parameters = Definition.ConvertPageToParams(m_CurPageData);
                     CurModel.Features.Add(feat);
 
                     if (feat == null)
@@ -200,7 +200,7 @@ namespace Xarial.XCad.Utils.CustomFeature
                 }
                 else
                 {
-                    m_EditingFeature.Parameters = Definition.ConvertPageToParams(m_CurData);
+                    m_EditingFeature.Parameters = Definition.ConvertPageToParams(m_CurPageData);
                 }
             }
             else
@@ -240,7 +240,7 @@ namespace Xarial.XCad.Utils.CustomFeature
                 HidePreviewBodies();
 
                 m_PreviewBodies = Definition.CreateGeometry(m_App, CurModel,
-                    Definition.ConvertPageToParams(m_CurData), true, out _);
+                    Definition.ConvertPageToParams(m_CurPageData), true, out _);
 
                 HideEditBodies();
 

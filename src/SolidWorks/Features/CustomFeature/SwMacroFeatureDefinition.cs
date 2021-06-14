@@ -149,20 +149,15 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
                 icon = Defaults.Icon;
             }
 
-            //TODO: create different icons for highlighted and suppressed
-            var regular = icon;
-            var highlighted = icon;
-            var suppressed = icon;
-
             //Creation of icons may fail if user doesn't have write permissions or icon is locked
             try
             {
                 iconsConverter.ConvertIcon(new MacroFeatureIcon(icon, MacroFeatureIconInfo.RegularName));
-                iconsConverter.ConvertIcon(new MacroFeatureIcon(highlighted, MacroFeatureIconInfo.HighlightedName));
-                iconsConverter.ConvertIcon(new MacroFeatureIcon(suppressed, MacroFeatureIconInfo.SuppressedName));
+                iconsConverter.ConvertIcon(new MacroFeatureIcon(icon, MacroFeatureIconInfo.HighlightedName));
+                iconsConverter.ConvertIcon(new MacroFeatureSuppressedIcon(icon, MacroFeatureIconInfo.SuppressedName));
                 iconsConverter.ConvertIcon(new MacroFeatureHighResIcon(icon, MacroFeatureIconInfo.RegularName));
-                iconsConverter.ConvertIcon(new MacroFeatureHighResIcon(highlighted, MacroFeatureIconInfo.HighlightedName));
-                iconsConverter.ConvertIcon(new MacroFeatureHighResIcon(suppressed, MacroFeatureIconInfo.SuppressedName));
+                iconsConverter.ConvertIcon(new MacroFeatureHighResIcon(icon, MacroFeatureIconInfo.HighlightedName));
+                iconsConverter.ConvertIcon(new MacroFeatureSuppressedHighResIcon(icon, MacroFeatureIconInfo.SuppressedName));
             }
             catch (Exception ex)
             {

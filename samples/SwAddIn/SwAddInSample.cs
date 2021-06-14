@@ -342,7 +342,7 @@ namespace SwAddInExample
                     break;
 
                 case Commands_e.CreateBox:
-                    Application.Documents.Active.Features.CreateCustomFeature<BoxMacroFeatureEditor, BoxData, BoxData>();
+                    Application.Documents.Active.Features.CreateCustomFeature<BoxMacroFeatureEditor, BoxMacroFeatureData, BoxData>();
                     break;
 
                 case Commands_e.WatchDimension:
