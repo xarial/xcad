@@ -206,6 +206,8 @@ namespace SwAddInExample
 
             Application.Documents.RegisterHandler<SwDocHandler>();
 
+            Application.Documents.DocumentActivated += OnDocumentActivated;
+
             m_Page = this.CreatePage<PmpData>(OnCreateDynamicControls);
             m_Page.Closed += OnPage1Closed;
 
@@ -214,6 +216,10 @@ namespace SwAddInExample
 
             m_MacroFeatPage = this.CreatePage<PmpMacroFeatData>();
             m_MacroFeatPage.Closed += OnClosed;
+        }
+
+        private void OnDocumentActivated(IXDocument doc)
+        {
         }
 
         private void OnToggleGroupPageClosed(PageCloseReasons_e reason)

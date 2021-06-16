@@ -64,7 +64,7 @@ namespace Xarial.XCad.SolidWorks.Utils
 
     internal class SwModelPointerEqualityComparer : IEqualityComparer<IModelDoc2>
     {
-        public bool Equals(IModelDoc2 x, IModelDoc2 y)
+        internal static bool AreEqual(IModelDoc2 x, IModelDoc2 y) 
         {
             if (object.ReferenceEquals(x, y))
             {
@@ -83,6 +83,9 @@ namespace Xarial.XCad.SolidWorks.Utils
                 return false;
             }
         }
+
+        public bool Equals(IModelDoc2 x, IModelDoc2 y)
+            => AreEqual(x, y);
 
         public int GetHashCode(IModelDoc2 obj)
         {

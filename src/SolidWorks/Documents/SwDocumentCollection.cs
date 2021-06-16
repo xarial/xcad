@@ -123,9 +123,29 @@ namespace Xarial.XCad.SolidWorks.Documents
             m_SwApp.ActiveModelDocChangeNotify += OnActiveModelDocChangeNotify;
         }
 
+        private IModelDoc2 m_WaitActivateDocument;
+
         private int OnActiveModelDocChangeNotify()
         {
-            DocumentActivated?.Invoke(Active);
+            var activeDoc = m_SwApp.IActiveDoc2;
+
+            if (m_Documents.TryGetValue(activeDoc, out SwDocument doc))
+            {
+                try
+                {
+                    DocumentActivated?.Invoke(doc);
+                }
+                catch (Exception ex)
+                {
+                    m_Logger.Log(ex);
+                }
+            }
+            else 
+            {
+                //activate event can happen before the loading event, so the document is not yet registered
+                m_WaitActivateDocument = activeDoc;
+            }
+            
             return S_OK;
         }
 
@@ -147,19 +167,16 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
 
         public IEnumerator<IXDocument> GetEnumerator()
-        {
-            return m_Documents.Values.GetEnumerator();
-        }
+            => m_Documents.Values.GetEnumerator();
 
         IEnumerator IEnumerable.GetEnumerator()
-        {
-            return m_Documents.Values.GetEnumerator();
-        }
+            => GetEnumerator();
 
         public void Dispose()
         {
             m_DocsDispatcher.Dispatched -= OnDocumentDispatched;
             m_SwApp.DocumentLoadNotify2 -= OnDocumentLoadNotify2;
+            m_SwApp.ActiveModelDocChangeNotify -= OnActiveModelDocChangeNotify;
 
             foreach (var doc in m_Documents.Values.ToArray())
             {
@@ -213,6 +230,21 @@ namespace Xarial.XCad.SolidWorks.Documents
                     catch (Exception ex)
                     {
                         m_Logger.Log(ex);
+                    }
+
+                    if (m_WaitActivateDocument != null 
+                        && SwModelPointerEqualityComparer.AreEqual(m_WaitActivateDocument, doc.Model) )
+                    {
+                        try
+                        {
+                            DocumentActivated?.Invoke(doc);
+                        }
+                        catch (Exception ex)
+                        {
+                            m_Logger.Log(ex);
+                        }
+
+                        m_WaitActivateDocument = null;
                     }
                 }
                 else 
