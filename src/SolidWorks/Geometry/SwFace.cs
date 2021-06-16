@@ -33,7 +33,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         public IFace2 Face { get; }
 
-        public SwFace(IFace2 face, ISwDocument doc) : base(face as IEntity, doc)
+        public SwFace(IFace2 face, ISwDocument doc) : base((IEntity)face, doc)
         {
             Face = face;
         }

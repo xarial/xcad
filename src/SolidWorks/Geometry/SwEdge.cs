@@ -51,7 +51,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         public ISwCurve Definition => FromDispatch<SwCurve>(Edge.IGetCurve());
 
-        internal SwEdge(IEdge edge, ISwDocument doc) : base(edge as IEntity, doc)
+        internal SwEdge(IEdge edge, ISwDocument doc) : base((IEntity)edge, doc)
         {
             Edge = edge;
         }

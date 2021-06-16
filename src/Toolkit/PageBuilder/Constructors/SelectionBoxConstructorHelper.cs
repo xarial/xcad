@@ -8,6 +8,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Xarial.XCad.Annotations;
 using Xarial.XCad.Base.Enums;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Features;
@@ -75,6 +76,10 @@ namespace Xarial.XCad.Toolkit.PageBuilder.Constructors
                 filters.Add(SelectType_e.SolidBodies);
                 filters.Add(SelectType_e.SurfaceBodies);
             }
+            else if (IsOfType<IXDimension>(type)) 
+            {
+                filters.Add(SelectType_e.Dimensions);
+            }
 
             if (!filters.Any())
             {
@@ -104,6 +109,10 @@ namespace Xarial.XCad.Toolkit.PageBuilder.Constructors
             else if (IsOfType<IXComponent>(type))
             {
                 return BitmapLabelType_e.SelectComponent;
+            }
+            else if (IsOfType<IXDimension>(type))
+            {
+                return BitmapLabelType_e.LinearDistance;
             }
 
             return null;

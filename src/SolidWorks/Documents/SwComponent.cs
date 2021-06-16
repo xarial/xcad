@@ -65,7 +65,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public override object Dispatch => Component;
 
-        internal SwComponent(IComponent2 comp, SwAssembly rootAssembly) : base(comp)
+        internal SwComponent(IComponent2 comp, SwAssembly rootAssembly) : base(comp, rootAssembly)
         {
             m_RootAssembly = rootAssembly;
             Component = comp;
