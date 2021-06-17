@@ -131,7 +131,19 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
                     IGroup parentCtrl, IReadOnlyDictionary<object, PropertyInfoMetadata> metadata,
                     List<IBinding> bindings, IRawDependencyGroup dependencies, ref int nextCtrlId)
         {
-            foreach (var prp in type.GetProperties())
+            foreach (var prp in type.GetProperties().OrderBy(p => 
+            {
+                var orderAtt = p.GetCustomAttribute<OrderAttribute>();
+
+                if (orderAtt != null)
+                {
+                    return orderAtt.Order;
+                }
+                else 
+                {
+                    return 0;
+                }
+            }))
             {
                 IControlDescriptor[] ctrlDescriptors;
 
