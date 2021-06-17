@@ -29,13 +29,25 @@ namespace Xarial.XCad.Toolkit.PageBuilder.Binders
             set => m_PrpInfo.SetValue(m_CurrentModel, value);
         }
 
+        private object m_Model;
+
+        public object Model 
+        {
+            get => m_Model;
+            set 
+            {
+                m_Model = value;
+                SetDataModel(value);
+            }
+        }
+
         public PropertyInfoMetadata(PropertyInfo prpInfo, PropertyInfo[] parents)
         {
             m_PrpInfo = prpInfo;
             m_Parents = parents;
         }
 
-        internal void SetDataModel(object model) 
+        private void SetDataModel(object model) 
         {
             if (m_CurrentModel is INotifyPropertyChanged)
             {

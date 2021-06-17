@@ -57,8 +57,6 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
                 {
                     (m_CurrentDataModel as INotifyPropertyChanged).PropertyChanged += OnPropertyChanged;
                 }
-
-                m_Metadata?.SetDataModel(value);
             }
         }
 

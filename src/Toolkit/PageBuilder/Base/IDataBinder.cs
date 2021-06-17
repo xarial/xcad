@@ -21,6 +21,6 @@ namespace Xarial.XCad.Utils.PageBuilder.Base
     {
         void Bind<TDataModel>(CreateBindingPageDelegate pageCreator,
             CreateBindingControlDelegate ctrlCreator, CreateDynamicControlsDelegate dynCtrlDescCreator,
-            out IEnumerable<IBinding> bindings, out IRawDependencyGroup dependencies);
+            out IEnumerable<IBinding> bindings, out IRawDependencyGroup dependencies, out IMetadata[] metadata);
     }
 }

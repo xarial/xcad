@@ -6,6 +6,7 @@
 //*********************************************************************
 
 using System.Collections.Generic;
+using Xarial.XCad.UI.PropertyPage.Base;
 using Xarial.XCad.Utils.PageBuilder.Base;
 
 namespace Xarial.XCad.Utils.PageBuilder.Core
@@ -14,11 +15,15 @@ namespace Xarial.XCad.Utils.PageBuilder.Core
     {
         public IEnumerable<IBinding> Bindings { get; private set; }
         public IDependencyManager Dependency { get; private set; }
+        public IMetadata[] Metadata { get; private set; }
 
-        public void Load(IXApplication app, IEnumerable<IBinding> bindings, IRawDependencyGroup dependencies)
+        public void Load(IXApplication app, IEnumerable<IBinding> bindings,
+            IRawDependencyGroup dependencies, IMetadata[] metadata)
         {
             Bindings = bindings;
             Dependency = new DependencyManager();
+            Metadata = metadata;
+
             Dependency.Init(app, dependencies);
         }
     }
