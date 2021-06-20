@@ -49,9 +49,10 @@ namespace Xarial.XCad.SolidWorks.Documents
         new ISwCustomPropertiesCollection Properties { get; }
         new ISwVersion Version { get; }
         new ISwDocument3D[] Dependencies { get; }
-        new ISwObject DeserializeObject(Stream stream);
+        new TSwObj DeserializeObject<TSwObj>(Stream stream)
+            where TSwObj : ISwObject;
     }
-
+    
     [DebuggerDisplay("{" + nameof(Title) + "}")]
     internal abstract class SwDocument : SwObject, ISwDocument
     {
@@ -155,7 +156,9 @@ namespace Xarial.XCad.SolidWorks.Documents
         IXPropertyRepository IPropertiesOwner.Properties => Properties;
         IXDocument3D[] IXDocument.Dependencies => Dependencies;
         IXVersion IXDocument.Version => Version;
-        IXObject IXDocument.DeserializeObject(Stream stream) => DeserializeObject(stream);
+
+        TObj IXDocument.DeserializeObject<TObj>(Stream stream)
+            => DeserializeBaseObject<TObj>(stream);
 
         protected readonly IXLogger m_Logger;
 
@@ -1059,7 +1062,12 @@ namespace Xarial.XCad.SolidWorks.Documents
             return string.Join("; ", errors);
         }
 
-        public ISwObject DeserializeObject(Stream stream)
+        public TSwObj DeserializeObject<TSwObj>(Stream stream)
+            where TSwObj : ISwObject
+            => DeserializeBaseObject<TSwObj>(stream);
+
+        private TObj DeserializeBaseObject<TObj>(Stream stream)
+            where TObj : IXObject
         {
             stream.Seek(0, SeekOrigin.Begin);
 
@@ -1075,13 +1083,13 @@ namespace Xarial.XCad.SolidWorks.Documents
 
             if (obj != null)
             {
-                return SwObjectFactory.FromDispatch<SwObject>(obj, this);
+                return SwObjectFactory.FromDispatch<TObj>(obj, this);
             }
-            else 
+            else
             {
                 string reason;
 
-                switch ((swPersistReferencedObjectStates_e)err) 
+                switch ((swPersistReferencedObjectStates_e)err)
                 {
                     case swPersistReferencedObjectStates_e.swPersistReferencedObject_Deleted:
                         reason = "Object is deleted";

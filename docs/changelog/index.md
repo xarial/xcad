@@ -8,6 +8,11 @@ This page contains list of the most notable changes in the releases of xCAD.NET.
 
 Breaking change is marked with &#x26A0; symbol
 
+## 0.7.2
+
+* &#x26A0; IXDocument::DeserializeObject changed to use generic parameter to specify return type
+* Fixed the IXDocumentRepository::Active error
+
 ## 0.7.1 - June 8, 2021
 
 * &#x26A0; IXDocument3D::CalculateBoundingBox is replaced with IXDocument3D::PreCreateBoundingBox

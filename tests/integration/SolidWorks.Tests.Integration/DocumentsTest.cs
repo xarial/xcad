@@ -777,7 +777,7 @@ namespace SolidWorks.Tests.Integration
 
                 using (var memStr = new MemoryStream(bytes))
                 {
-                    var face1 = part.DeserializeObject(memStr);
+                    var face1 = part.DeserializeObject<ISwFace>(memStr);
                     isCylFace = face is ISwCylindricalFace;
                     areEqual = face1.Dispatch == face.Dispatch;
                 }
