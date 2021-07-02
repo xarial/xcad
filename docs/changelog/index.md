@@ -8,7 +8,7 @@ This page contains list of the most notable changes in the releases of xCAD.NET.
 
 Breaking change is marked with &#x26A0; symbol
 
-## 0.7.2 - July 2, 2021
+## 0.7.3 - July 2, 2021
 
 * &#x26A0; IXDocument::DeserializeObject changed to use generic parameter to specify return type
 * Fixed the IXDocumentRepository::Active error
