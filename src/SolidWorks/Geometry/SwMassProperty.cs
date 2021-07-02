@@ -84,6 +84,20 @@ namespace Xarial.XCad.SolidWorks.Geometry
             get => m_Creator.CachedProperties.Get<IXBody[]>();
             set
             {
+                m_Creator.CachedProperties.Set(value);
+
+                if (IsCommitted)
+                {
+                    SetScope(m_Creator.Element);
+                }
+            }
+        }
+
+        public bool UserUnits
+        {
+            get => m_Creator.CachedProperties.Get<bool>();
+            set
+            {
                 if (!IsCommitted)
                 {
                     m_Creator.CachedProperties.Set(value);
@@ -95,7 +109,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
             }
         }
 
-        public bool UserUnits
+        public bool VisibleOnly
         {
             get => m_Creator.CachedProperties.Get<bool>();
             set
@@ -148,6 +162,8 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
             SetScope(massPrps);
 
+            massPrps.IncludeHiddenBodiesOrComponents = !VisibleOnly;
+
             if (!massPrps.Recalculate())
             {
                 throw new Exception($"Failed to recalculate mass properties");
@@ -164,8 +180,10 @@ namespace Xarial.XCad.SolidWorks.Geometry
             {
                 massPrps.SelectedItems = scope.Select(x => ((ISwBody)x).Body).ToArray();
             }
-
-            massPrps.IncludeHiddenBodiesOrComponents = false;
+            else 
+            {
+                massPrps.SelectedItems = null;
+            }
         }
 
         public void Commit(CancellationToken cancellationToken)
@@ -233,6 +251,20 @@ namespace Xarial.XCad.SolidWorks.Geometry
             get => m_Creator.CachedProperties.Get<IXBody[]>();
             set
             {
+                m_Creator.CachedProperties.Set(value);
+
+                if (IsCommitted) 
+                {
+                    SetScope(m_Creator.Element);
+                }
+            }
+        }
+
+        public bool UserUnits
+        {
+            get => m_Creator.CachedProperties.Get<bool>();
+            set
+            {
                 if (!IsCommitted)
                 {
                     m_Creator.CachedProperties.Set(value);
@@ -244,7 +276,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
             }
         }
 
-        public bool UserUnits
+        public bool VisibleOnly
         {
             get => m_Creator.CachedProperties.Get<bool>();
             set
@@ -291,6 +323,13 @@ namespace Xarial.XCad.SolidWorks.Geometry
                 }
             }
 
+            SetScope(massPrps);
+
+            return massPrps;
+        }
+
+        protected virtual void SetScope(IMassProperty massPrps)
+        {
             var scope = Scope;
 
             if (scope != null)
@@ -300,10 +339,8 @@ namespace Xarial.XCad.SolidWorks.Geometry
                     throw new Exception("Failed to add bodies to the scope");
                 }
             }
-
-            return massPrps;
         }
-        
+
         public void Commit(CancellationToken cancellationToken)
             => m_Creator.Create(cancellationToken);
 
@@ -319,34 +356,16 @@ namespace Xarial.XCad.SolidWorks.Geometry
             VisibleOnly = true;
         }
 
-        public bool VisibleOnly
-        {
-            get => m_Creator.CachedProperties.Get<bool>();
-            set
-            {
-                if (!IsCommitted)
-                {
-                    m_Creator.CachedProperties.Set(value);
-                }
-                else
-                {
-                    throw new CommittedElementPropertyChangeNotSupported();
-                }
-            }
-        }
-
         IXComponent[] IAssemblyEvaluation.Scope
         {
             get => m_Creator.CachedProperties.Get<IXComponent[]>();
             set
             {
-                if (!IsCommitted)
+                m_Creator.CachedProperties.Set(value);
+
+                if (IsCommitted)
                 {
-                    m_Creator.CachedProperties.Set(value);
-                }
-                else
-                {
-                    throw new CommittedElementPropertyChangeNotSupported();
+                    SetScope(m_Creator.Element);
                 }
             }
         }
@@ -368,22 +387,6 @@ namespace Xarial.XCad.SolidWorks.Geometry
     {
         internal SwAssemblyLegacyMassProperty(ISwAssembly assm, IMathUtility mathUtils) : base(assm, mathUtils)
         {
-        }
-
-        public bool VisibleOnly
-        {
-            get => m_Creator.CachedProperties.Get<bool>();
-            set
-            {
-                if (!IsCommitted)
-                {
-                    m_Creator.CachedProperties.Set(value);
-                }
-                else
-                {
-                    throw new CommittedElementPropertyChangeNotSupported();
-                }
-            }
         }
 
         public override IXBody[] Scope
@@ -421,13 +424,11 @@ namespace Xarial.XCad.SolidWorks.Geometry
             get => m_Creator.CachedProperties.Get<IXComponent[]>(nameof(Scope) + "_Components");
             set
             {
-                if (!IsCommitted)
+                m_Creator.CachedProperties.Set(value, nameof(Scope) + "_Components");
+
+                if (IsCommitted)
                 {
-                    m_Creator.CachedProperties.Set(value, nameof(Scope) + "_Components");
-                }
-                else
-                {
-                    throw new CommittedElementPropertyChangeNotSupported();
+                    SetScope(m_Creator.Element);
                 }
             }
         }

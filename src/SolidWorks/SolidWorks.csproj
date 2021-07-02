@@ -11,7 +11,7 @@
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <PackageId>Xarial.XCad.SolidWorks</PackageId>
-    <VersionPrefix>0.7.3</VersionPrefix>
+    <VersionPrefix>0.7.4</VersionPrefix>
     <Authors>Xarial</Authors>
     <Product>xCAD</Product>
     <Copyright>© 2021 Xarial Pty Limited</Copyright>

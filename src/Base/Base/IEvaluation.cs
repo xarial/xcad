@@ -30,6 +30,11 @@ namespace Xarial.XCad.Base
         bool UserUnits { get; set; }
 
         /// <summary>
+        /// True to only use visible bodies or components
+        /// </summary>
+        bool VisibleOnly { get; set; }
+
+        /// <summary>
         /// Bodies to include into the evaluation
         /// </summary>
         IXBody[] Scope { get; set; }
@@ -44,10 +49,5 @@ namespace Xarial.XCad.Base
         /// Components to include into the evaluation
         /// </summary>
         new IXComponent[] Scope { get; set; }
-
-        /// <summary>
-        /// True to only use visible bodies or components
-        /// </summary>
-        bool VisibleOnly { get; set; }
     }
 }
