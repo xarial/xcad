@@ -140,11 +140,11 @@ namespace Xarial.XCad.SolidWorks.Data
 
         public ISwCustomProperty PreCreate() => CreatePropertyInstance(PrpMgr, "", false);
 
-        protected virtual SwCustomProperty CreatePropertyInstance(CustomPropertyManager prpMgr, string name, bool isCreated)
+        protected abstract SwCustomProperty CreatePropertyInstance(CustomPropertyManager prpMgr, string name, bool isCreated);
+
+        protected void InitProperty(SwCustomProperty prp)
         {
-            var prp = new SwCustomProperty(prpMgr, name, isCreated, m_Doc.App);
             prp.SetEventsHandler(CreateEventsHandler(prp));
-            return prp;
         }
 
         public virtual void Dispose()
@@ -169,7 +169,14 @@ namespace Xarial.XCad.SolidWorks.Data
         }
 
         protected override CustomPropertyManager PrpMgr => Model.Extension.CustomPropertyManager[m_ConfName];
-                
+
+        protected override SwCustomProperty CreatePropertyInstance(CustomPropertyManager prpMgr, string name, bool isCreated)
+        {
+            var prp = new SwConfigurationCustomProperty(prpMgr, name, isCreated, m_Doc, m_ConfName, m_Doc.App);
+            InitProperty(prp);
+            return prp;
+        }
+
         protected override EventsHandler<PropertyValueChangedDelegate> CreateEventsHandler(SwCustomProperty prp)
         {
             var isBugPresent = true; //TODO: find version when the issue is starter
@@ -207,6 +214,13 @@ namespace Xarial.XCad.SolidWorks.Data
     {
         internal SwFileCustomPropertiesCollection(SwDocument doc) : base(doc, "")
         {
+        }
+
+        protected override SwCustomProperty CreatePropertyInstance(CustomPropertyManager prpMgr, string name, bool isCreated)
+        {
+            var prp = new SwCustomProperty(prpMgr, name, isCreated, m_Doc.App);
+            InitProperty(prp);
+            return prp;
         }
     }
 

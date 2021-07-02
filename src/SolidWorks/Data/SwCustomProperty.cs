@@ -9,12 +9,15 @@ using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using Xarial.XCad.Data;
 using Xarial.XCad.Data.Delegates;
 using Xarial.XCad.SolidWorks.Data.EventHandlers;
+using Xarial.XCad.SolidWorks.Data.Exceptions;
 using Xarial.XCad.SolidWorks.Data.Helpers;
+using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Enums;
 using Xarial.XCad.Toolkit.Services;
 
@@ -118,7 +121,7 @@ namespace Xarial.XCad.SolidWorks.Data
         }
         public bool UseCached { get; set; }
 
-        private readonly ISwApplication m_App;
+        protected readonly ISwApplication m_App;
 
         internal SwCustomProperty(CustomPropertyManager prpMgr, string name, bool isCommited, ISwApplication app)
         {
@@ -212,22 +215,73 @@ namespace Xarial.XCad.SolidWorks.Data
 
         protected virtual void AddProperty(ICustomPropertyManager prpMgr, string name, object value)
         {
-            const int SUCCESS = 1;
-
-            //TODO: fix type conversion
-            if (prpMgr.Add2(name, (int)swCustomInfoType_e.swCustomInfoText, value?.ToString()) != SUCCESS)
+            if (m_App.IsVersionNewerOrEqual(SwVersion_e.Sw2014))
             {
-                throw new Exception($"Failed to add {Name}");
+                var res = (swCustomInfoAddResult_e)prpMgr.Add3(name, (int)swCustomInfoType_e.swCustomInfoText, 
+                    value?.ToString(), (int)swCustomPropertyAddOption_e.swCustomPropertyOnlyIfNew);
+
+                if (res != swCustomInfoAddResult_e.swCustomInfoAddResult_AddedOrChanged)
+                {
+                    throw new Exception($"Failed to add {Name}. Error code: {res}");
+                }
+            }
+            else 
+            {
+                const int SUCCESS = 1;
+
+                if (prpMgr.Add2(name, (int)swCustomInfoType_e.swCustomInfoText, value?.ToString()) != SUCCESS)
+                {
+                    throw new Exception($"Failed to add {Name}");
+                }
             }
         }
 
         protected virtual void SetProperty(ICustomPropertyManager prpMgr, string name, object value) 
         {
-            var res = (swCustomInfoSetResult_e)prpMgr.Set2(name, value?.ToString());
-            
-            if (res != swCustomInfoSetResult_e.swCustomInfoSetResult_OK)
+            if (m_App.IsVersionNewerOrEqual(SwVersion_e.Sw2014))
             {
-                throw new Exception($"Failed to set the value of the property. Error code: {res}");
+                var res = (swCustomInfoSetResult_e)prpMgr.Set2(name, value?.ToString());
+
+                if (res != swCustomInfoSetResult_e.swCustomInfoSetResult_OK)
+                {
+                    throw new Exception($"Failed to set the value of the property '{name}'. Error code: {res}");
+                }
+            }
+            else 
+            {
+                const int SUCCESS = 0;
+
+                if (prpMgr.Set(name, value?.ToString()) != SUCCESS) 
+                {
+                    throw new Exception($"Failed to set the value of the property '{name}'");
+                }
+            }
+        }
+    }
+
+    internal class SwConfigurationCustomProperty : SwCustomProperty
+    {
+        private readonly IConfiguration m_Conf;
+        
+        internal SwConfigurationCustomProperty(CustomPropertyManager prpMgr, string name, bool isCommited, SwDocument doc, string confName, ISwApplication app)
+            : base(prpMgr, name, isCommited, app)
+        {
+            m_Conf = (IConfiguration)doc.Model.GetConfigurationByName(confName);
+        }
+
+        protected override void AddProperty(ICustomPropertyManager prpMgr, string name, object value)
+        {
+            base.AddProperty(prpMgr, name, value);
+
+            if (m_App.Version.Major == SwVersion_e.Sw2021) //regression bug in SW 2021 where property cannot be added to unloaded configuration
+            {
+                if (!m_Conf.IsLoaded())
+                {
+                    if (!((string[])prpMgr.GetNames() ?? new string[0]).Contains(name, StringComparer.CurrentCultureIgnoreCase))
+                    {
+                        throw new CustomPropertyUnloadedConfigException();
+                    }
+                }
             }
         }
     }

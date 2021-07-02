@@ -8,10 +8,16 @@ This page contains list of the most notable changes in the releases of xCAD.NET.
 
 Breaking change is marked with &#x26A0; symbol
 
-## 0.7.2
+## 0.7.2 - July 2, 2021
 
 * &#x26A0; IXDocument::DeserializeObject changed to use generic parameter to specify return type
 * Fixed the IXDocumentRepository::Active error
+* Fixed the issue with macro feature editor not using the converted parameters correctly if different from the page data
+* Added suppressed icon for the macro feature
+* [Dispose objects in IXExtension safely one-by-one](https://github.com/xarial/xcad/issues/72)
+* [Add option to specify the order of controls in Property Page](https://github.com/xarial/xcad/issues/73)
+* [Add support for Mass properties](https://github.com/xarial/xcad/issues/74)
+* &#x26A0; [Add option to calculate bounding box relative to coordinate system](https://github.com/xarial/xcad/issues/75)
 
 ## 0.7.1 - June 8, 2021
 

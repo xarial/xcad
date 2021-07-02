@@ -131,7 +131,7 @@ namespace Xarial.XCad.SolidWorks.Features
         protected override SwCustomProperty CreatePropertyInstance(CustomPropertyManager prpMgr, string name, bool isCreated)
         {
             var prp = new SwCutListCustomProperty(prpMgr, name, m_OwnerDoc, m_OwnerConf, isCreated, m_Doc.App);
-            prp.SetEventsHandler(CreateEventsHandler(prp));
+            InitProperty(prp);
             return prp;
         }
 
