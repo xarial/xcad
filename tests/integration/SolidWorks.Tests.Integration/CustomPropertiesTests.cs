@@ -46,6 +46,88 @@ namespace SolidWorks.Tests.Integration
         }
 
         [Test]
+        public void TestAddUnloadConfProperty()
+        {
+            object val1;
+            string val2;
+
+            using (var doc = OpenDataDocument("UnloadedConfPart.SLDPRT"))
+            {
+                var part = (IXPart)m_App.Documents.Active;
+                
+                var prp1 = part.Configurations["Default"].Properties.PreCreate();
+                prp1.Name = "Test1";
+                prp1.Value = "Val1";
+                try
+                {
+                    prp1.Commit();
+                    m_App.Sw.IActiveDoc2.Extension.CustomPropertyManager["Default"].Get5("Test1", false, out string val1Str, out _, out _);
+                    val1 = val1Str;
+                }
+                catch (CustomPropertyUnloadedConfigException ex)
+                {
+                    val1 = ex;
+                }
+
+                var prp2 = part.Configurations["Conf1"].Properties.PreCreate();
+                prp2.Name = "Test2";
+                prp2.Value = "Val2";
+                prp2.Commit();
+                m_App.Sw.IActiveDoc2.Extension.CustomPropertyManager["Conf1"].Get5("Test2", false, out val2, out _, out _);
+            }
+
+            if (m_App.Version.Major == Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2021)
+            {
+                Assert.IsInstanceOf<CustomPropertyUnloadedConfigException>(val1);
+            }
+            else 
+            {
+                Assert.AreEqual("Val1", val1);
+            }
+            
+            Assert.AreEqual("Val2", val2);
+        }
+
+        [Test]
+        public void TestGetUnloadConfProperty()
+        {
+            object val1;
+            object val2;
+            
+            using (var doc = OpenDataDocument("UnloadedConfPart.SLDPRT"))
+            {
+                var part = (ISwPart)m_App.Documents.Active;
+
+                val1 = part.Configurations["Default"].Properties["Prp1"].Value;
+                val2 = part.Configurations["Conf1"].Properties["Prp1"].Value;
+            }
+
+            Assert.AreEqual("DefaultVal1", val1);
+            Assert.AreEqual("Conf1Val1", val2);
+        }
+
+        [Test]
+        public void TestSetUnloadConfProperty()
+        {
+            string val1;
+            string val2;
+
+            using (var doc = OpenDataDocument("UnloadedConfPart.SLDPRT"))
+            {
+                var part = (ISwPart)m_App.Documents.Active;
+
+                part.Configurations["Default"].Properties["Prp1"].Value = "_DefaultVal1_";
+                part.Configurations["Conf1"].Properties["Prp1"].Value = "_Conf1Val1_";
+
+                m_App.Sw.IActiveDoc2.Extension.CustomPropertyManager["Default"].Get5("Prp1", false, out val1, out _, out _);
+                m_App.Sw.IActiveDoc2.Extension.CustomPropertyManager["Conf1"].Get5("Prp1", false, out val2, out _, out _);
+            }
+
+            Assert.AreEqual("_DefaultVal1_", val1);
+            Assert.AreEqual("_Conf1Val1_", val2);
+        }
+
+        [Test]
         public void TestReadAllProperties()
         {
             Dictionary<string, object> prps;

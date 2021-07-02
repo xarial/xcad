@@ -15,8 +15,14 @@ namespace Xarial.XCad.Annotations
     /// </summary>
     public interface IXDimension : IXSelObject, IXTransaction
     {
+        /// <summary>
+        /// Fired when the value of this dimension is changed
+        /// </summary>
         event DimensionValueChangedDelegate ValueChanged;
 
+        /// <summary>
+        /// Name of the dimension
+        /// </summary>
         string Name { get; }
 
         /// <summary>

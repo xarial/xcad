@@ -132,25 +132,36 @@ namespace SolidWorks.Tests.Integration
 
         protected IDisposable NewDocument(swDocumentTypes_e docType) 
         {
-            var defTemplatePath = m_SwApp.GetDocumentTemplate(
-                (int)docType, "", (int)swDwgPaperSizes_e.swDwgPapersUserDefined, 100, 100);
+            var useDefTemplates = m_SwApp.GetUserPreferenceToggle((int)swUserPreferenceToggle_e.swAlwaysUseDefaultTemplates);
 
-            if (string.IsNullOrEmpty(defTemplatePath))
+            try
             {
-                throw new Exception("Default template is not found");
+                m_SwApp.SetUserPreferenceToggle((int)swUserPreferenceToggle_e.swAlwaysUseDefaultTemplates, true);
+                
+                var defTemplatePath = m_SwApp.GetDocumentTemplate(
+                    (int)docType, "", (int)swDwgPaperSizes_e.swDwgPapersUserDefined, 100, 100);
+
+                if (string.IsNullOrEmpty(defTemplatePath))
+                {
+                    throw new Exception("Default template is not found");
+                }
+
+                var model = (IModelDoc2)m_SwApp.NewDocument(defTemplatePath, (int)swDwgPaperSizes_e.swDwgPapersUserDefined, 100, 100);
+
+                if (model != null)
+                {
+                    var docWrapper = new DocumentWrapper(m_SwApp, model);
+                    m_Disposables.Add(docWrapper);
+                    return docWrapper;
+                }
+                else
+                {
+                    throw new NullReferenceException($"Failed to create new document from '{defTemplatePath}'");
+                }
             }
-
-            var model = (IModelDoc2)m_SwApp.NewDocument(defTemplatePath, (int)swDwgPaperSizes_e.swDwgPapersUserDefined, 100, 100);
-
-            if (model != null)
+            finally
             {
-                var docWrapper = new DocumentWrapper(m_SwApp, model);
-                m_Disposables.Add(docWrapper);
-                return docWrapper;
-            }
-            else
-            {
-                throw new NullReferenceException($"Failed to create new document from '{defTemplatePath}'");
+                m_SwApp.SetUserPreferenceToggle((int)swUserPreferenceToggle_e.swAlwaysUseDefaultTemplates, useDefTemplates);
             }
         }
 

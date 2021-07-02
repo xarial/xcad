@@ -318,6 +318,43 @@ namespace SolidWorks.Tests.Integration
         }
 
         [Test]
+        public void ActivateDocumentTest()
+        {
+            var activateDocsList = new List<string>();
+
+            m_App.Documents.DocumentActivated += (IXDocument doc)=> 
+            {
+                activateDocsList.Add(Path.GetFileName(doc.Path));
+            };
+
+            var results = new List<bool>();
+
+            try
+            {
+                var spec1 = (IDocumentSpecification)m_App.Sw.GetOpenDocSpec(GetFilePath(@"Configs1.SLDPRT"));
+                spec1.ReadOnly = true;
+                var model1 = m_App.Sw.OpenDoc7(spec1);
+                var spec2 = (IDocumentSpecification)m_App.Sw.GetOpenDocSpec(GetFilePath(@"AssmCutLists1.SLDASM"));
+                spec1.ReadOnly = true;
+                var model2 = m_App.Sw.OpenDoc7(spec2);
+                NewDocument(swDocumentTypes_e.swDocDRAWING);
+                var model3 = m_App.Sw.IActiveDoc2;
+                m_App.Sw.CloseDoc(model3.GetTitle());
+                m_App.Sw.CloseDoc(model1.GetTitle());
+            }
+            finally 
+            {
+                m_App.Sw.CloseAllDocuments(true);
+            }
+
+            Assert.AreEqual(4, activateDocsList.Count);
+            Assert.AreEqual("Configs1.SLDPRT", activateDocsList[0]);
+            Assert.AreEqual("AssmCutLists1.SLDASM", activateDocsList[1]);
+            Assert.AreEqual("", activateDocsList[2]);
+            Assert.AreEqual("AssmCutLists1.SLDASM", activateDocsList[3]);
+        }
+
+        [Test]
         public void ThirdPartyStorageTest() 
         {
             const string SUB_STORAGE_PATH = "_xCadIntegrationTestStorage1_\\SubStorage2";
@@ -740,7 +777,7 @@ namespace SolidWorks.Tests.Integration
 
                 using (var memStr = new MemoryStream(bytes))
                 {
-                    var face1 = part.DeserializeObject(memStr);
+                    var face1 = part.DeserializeObject<ISwFace>(memStr);
                     isCylFace = face is ISwCylindricalFace;
                     areEqual = face1.Dispatch == face.Dispatch;
                 }

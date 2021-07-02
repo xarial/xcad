@@ -1,5 +1,6 @@
 ﻿using NUnit.Framework;
 using SolidWorks.Interop.sldworks;
+using SolidWorks.Interop.swconst;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -221,6 +222,42 @@ namespace SolidWorks.Tests.Integration
             Assert.That(0, Is.EqualTo(massPrps[2]).Within(0.001).Percent);
             Assert.That(0.0062831853071795875, Is.EqualTo(massPrps[3]).Within(0.001).Percent);
             Assert.That(0.18849555921538758, Is.EqualTo(massPrps[4]).Within(0.001).Percent);
+        }
+
+        [Test]
+        public void PlanarSheetTest() 
+        {
+            bool isPlanar;
+            bool isCircular;
+            int edgeCount;
+            double[] normal;
+            double[] circleParams;
+
+            using (var doc = NewDocument(Interop.swconst.swDocumentTypes_e.swDocPART))
+            {
+                var arc = m_App.MemoryGeometryBuilder.WireBuilder.PreCreateArc();
+                arc.Center = new Point(0.75, 0.5, 0.15);
+                arc.Axis = new Vector(Math.Round(1E-16d, 15), 0, 1);
+                arc.Diameter = 2.5;
+                arc.Commit();
+                var face = m_App.MemoryGeometryBuilder.CreatePlanarSheet(arc).Bodies.First().Faces.First();
+                isPlanar = face is IXPlanarFace;
+                edgeCount = (face as ISwFace).Face.GetEdgeCount();
+                isCircular = (((face as ISwFace).Face.GetEdges() as object[]).First() as IEdge).IGetCurve().IsCircle();
+                circleParams = (double[])(((face as ISwFace).Face.GetEdges() as object[]).First() as IEdge).IGetCurve().CircleParams;
+                normal = (face as ISwFace).Face.Normal as double[];
+            }
+
+            Assert.AreEqual(true, isPlanar);
+            Assert.AreEqual(true, isCircular);
+            Assert.AreEqual(1, edgeCount);
+            Assert.That(0, Is.EqualTo(normal[0]).Within(0.001).Percent);
+            Assert.That(0, Is.EqualTo(normal[1]).Within(0.001).Percent);
+            Assert.That(1, Is.EqualTo(normal[2]).Within(0.001).Percent);
+            Assert.That(0.75, Is.EqualTo(circleParams[0]).Within(0.001).Percent);
+            Assert.That(0.5, Is.EqualTo(circleParams[1]).Within(0.001).Percent);
+            Assert.That(0.15, Is.EqualTo(circleParams[2]).Within(0.001).Percent);
+            Assert.That(1.25, Is.EqualTo(circleParams[6]).Within(0.001).Percent);
         }
 
         [Test]

@@ -56,7 +56,7 @@ namespace Xarial.XCad.SolidWorks.Annotations
         }
 
         internal SwDimension(ISwDocument doc, IDisplayDimension dispDim)
-            : base(dispDim)
+            : base(dispDim, doc)
         {
             if (doc == null) 
             {

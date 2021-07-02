@@ -17,8 +17,11 @@ namespace Xarial.XCad.UI.PropertyPage.Attributes
     /// <remarks>Applied to property of type <see cref="Image"/></remarks>
     public class BitmapOptionsAttribute : Attribute, IAttribute
     {
-        public Size Size { get; private set; }
-
+        /// <summary>
+        /// Size of the bitmap
+        /// </summary>
+        public Size Size { get; }
+        
         /// <summary>
         /// Constructor for bitmap options
         /// </summary>

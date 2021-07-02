@@ -34,7 +34,7 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
 
         public void Bind<TDataModel>(CreateBindingPageDelegate pageCreator,
             CreateBindingControlDelegate ctrlCreator, CreateDynamicControlsDelegate dynCtrlDescCreator,
-            out IEnumerable<IBinding> bindings, out IRawDependencyGroup dependencies)
+            out IEnumerable<IBinding> bindings, out IRawDependencyGroup dependencies, out IMetadata[] metadata)
         {
             var type = typeof(TDataModel);
 
@@ -51,11 +51,13 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
 
             dependencies = new RawDependencyGroup();
 
-            var metadata = new Dictionary<object, PropertyInfoMetadata>();
-            CollectMetadata(type, metadata, new PropertyInfo[0], new List<Type>());
+            var metadataMap = new Dictionary<object, PropertyInfoMetadata>();
+            CollectMetadata(type, metadataMap, new PropertyInfo[0], new List<Type>());
 
             TraverseType<TDataModel>(type, new List<IControlDescriptor>(),
-                ctrlCreator, dynCtrlDescCreator, page, metadata, bindingsList, dependencies, ref firstCtrlId);
+                ctrlCreator, dynCtrlDescCreator, page, metadataMap, bindingsList, dependencies, ref firstCtrlId);
+
+            metadata = metadataMap.Values.ToArray();
 
             OnBeforeControlsDataLoad(bindings);
         }
@@ -131,7 +133,19 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
                     IGroup parentCtrl, IReadOnlyDictionary<object, PropertyInfoMetadata> metadata,
                     List<IBinding> bindings, IRawDependencyGroup dependencies, ref int nextCtrlId)
         {
-            foreach (var prp in type.GetProperties())
+            foreach (var prp in type.GetProperties().OrderBy(p => 
+            {
+                var orderAtt = p.GetCustomAttribute<OrderAttribute>();
+
+                if (orderAtt != null)
+                {
+                    return orderAtt.Order;
+                }
+                else 
+                {
+                    return 0;
+                }
+            }))
             {
                 IControlDescriptor[] ctrlDescriptors;
 

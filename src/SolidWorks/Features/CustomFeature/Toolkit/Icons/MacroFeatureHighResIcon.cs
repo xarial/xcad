@@ -25,4 +25,18 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature.Toolkit.Icons
             yield return new IconSpec(m_Icon, MacroFeatureIconInfo.SizeHighResLarge, 0, m_BaseName);
         }
     }
+
+    internal class MacroFeatureSuppressedHighResIcon : MacroFeatureSuppressedIcon
+    {
+        internal MacroFeatureSuppressedHighResIcon(IXImage icon, string baseName) : base(icon, baseName)
+        {
+        }
+
+        public override IEnumerable<IIconSpec> GetIconSizes()
+        {
+            yield return new IconSpec(m_Icon, MacroFeatureIconInfo.SizeHighResSmall, ConvertPixelToGrayscale, 0, m_BaseName);
+            yield return new IconSpec(m_Icon, MacroFeatureIconInfo.SizeHighResMedium, ConvertPixelToGrayscale, 0, m_BaseName);
+            yield return new IconSpec(m_Icon, MacroFeatureIconInfo.SizeHighResLarge, ConvertPixelToGrayscale, 0, m_BaseName);
+        }
+    }
 }

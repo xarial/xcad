@@ -134,14 +134,19 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
 
             m_App.Sw.IActiveDoc2.ClearSelection2(true);
 
-            foreach (var binding in m_Page.Binding.Bindings)
+            foreach (var md in m_Page.Binding.Metadata ?? Enumerable.Empty<IMetadata>()) 
+            {
+                md.Model = model;
+            }
+
+            foreach (var binding in m_Page.Binding.Bindings ?? Enumerable.Empty<IBinding>())
             {
                 binding.Model = model;
             }
 
             Handler.InvokeOpening();
 
-            foreach (var binding in m_Page.Binding.Bindings)
+            foreach (var binding in m_Page.Binding.Bindings ?? Enumerable.Empty<IBinding>())
             {
                 binding.UpdateControl();
             }

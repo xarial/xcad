@@ -81,7 +81,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         public IXSelectionRepository Selections => throw new NotSupportedException();
         public IXDimensionRepository Dimensions => throw new NotSupportedException();
         public event DocumentRebuildDelegate Rebuild;
-        public IXObject DeserializeObject(Stream stream) => throw new NotSupportedException();
+        public TObj DeserializeObject<TObj>(Stream stream) where TObj : IXObject => throw new NotSupportedException();
 
         #endregion
 

@@ -25,16 +25,47 @@ namespace SwAddInExample
     [ComVisible(true)]
     public class BoxData : SwPropertyManagerPageHandler
     {
+        public BoxParameters Parameters { get; set; }
+    }
+
+    public class BoxParameters 
+    {
         public double Width { get; set; } = 0.1;
         public double Height { get; set; } = 0.2;
         public double Length { get; set; } = 0.3;
     }
 
-    [ComVisible(true)]
-    public class BoxMacroFeatureEditor : SwMacroFeatureDefinition<BoxData, BoxData>
+    public class BoxMacroFeatureData : SwPropertyManagerPageHandler
     {
-        public override ISwBody[] CreateGeometry(ISwApplication app, ISwDocument model, 
-            BoxData data, bool isPreview, out AlignDimensionDelegate<BoxData> alignDim)
+        public double Width { get; set; }
+        public double Height { get; set; }
+        public double Length { get; set; }
+    }
+
+    [ComVisible(true)]
+    public class BoxMacroFeatureEditor : SwMacroFeatureDefinition<BoxMacroFeatureData, BoxData>
+    {
+        public override BoxMacroFeatureData ConvertPageToParams(BoxData par)
+            => new BoxMacroFeatureData()
+            {
+                Height = par.Parameters.Height,
+                Length = par.Parameters.Length,
+                Width = par.Parameters.Width
+            };
+
+        public override BoxData ConvertParamsToPage(BoxMacroFeatureData par)
+            => new BoxData()
+            {
+                Parameters = new BoxParameters()
+                {
+                    Height = par.Height,
+                    Length = par.Length,
+                    Width = par.Width,
+                }
+            };
+
+        public override ISwBody[] CreateGeometry(ISwApplication app, ISwDocument model,
+            BoxMacroFeatureData data, bool isPreview, out AlignDimensionDelegate<BoxMacroFeatureData> alignDim)
         {
             alignDim = null;
 

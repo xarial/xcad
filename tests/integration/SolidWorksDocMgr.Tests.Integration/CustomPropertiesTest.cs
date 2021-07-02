@@ -49,6 +49,72 @@ namespace SolidWorksDocMgr.Tests.Integration
         }
 
         [Test]
+        public void TestAddUnloadConfProperty()
+        {
+            string val1;
+            string val2;
+
+            using (var doc = OpenDataDocument("UnloadedConfPart.SLDPRT"))
+            {
+                var part = (IXPart)m_App.Documents.Active;
+
+                var prp1 = part.Configurations["Default"].Properties.PreCreate();
+                prp1.Name = "Test1";
+                prp1.Value = "Val1";
+                prp1.Commit();
+                val1 = (m_App.Documents.Active as ISwDmDocument3D).Configurations["Default"].Configuration.GetCustomProperty("Test1", out _);
+
+                var prp2 = part.Configurations["Conf1"].Properties.PreCreate();
+                prp2.Name = "Test2";
+                prp2.Value = "Val2";
+                prp2.Commit();
+                val2 = (m_App.Documents.Active as ISwDmDocument3D).Configurations["Conf1"].Configuration.GetCustomProperty("Test2", out _);
+            }
+
+            Assert.AreEqual("Val1", val1);
+            Assert.AreEqual("Val2", val2);
+        }
+
+        [Test]
+        public void TestGetUnloadConfProperty()
+        {
+            object val1;
+            object val2;
+
+            using (var doc = OpenDataDocument("UnloadedConfPart.SLDPRT"))
+            {
+                var part = (ISwDmPart)m_App.Documents.Active;
+
+                val1 = part.Configurations["Default"].Properties["Prp1"].Value;
+                val2 = part.Configurations["Conf1"].Properties["Prp1"].Value;
+            }
+
+            Assert.AreEqual("DefaultVal1", val1);
+            Assert.AreEqual("Conf1Val1", val2);
+        }
+
+        [Test]
+        public void TestSetUnloadConfProperty()
+        {
+            string val1;
+            string val2;
+
+            using (var doc = OpenDataDocument("UnloadedConfPart.SLDPRT"))
+            {
+                var part = (ISwDmPart)m_App.Documents.Active;
+
+                part.Configurations["Default"].Properties["Prp1"].Value = "_DefaultVal1_";
+                part.Configurations["Conf1"].Properties["Prp1"].Value = "_Conf1Val1_";
+
+                val1 = (m_App.Documents.Active as ISwDmDocument3D).Configurations["Default"].Configuration.GetCustomProperty("Prp1", out _);
+                val2 = (m_App.Documents.Active as ISwDmDocument3D).Configurations["Conf1"].Configuration.GetCustomProperty("Prp1", out _);
+            }
+
+            Assert.AreEqual("_DefaultVal1_", val1);
+            Assert.AreEqual("_Conf1Val1_", val2);
+        }
+
+        [Test]
         public void TestReadAllProperties()
         {
             Dictionary<string, object> prps;

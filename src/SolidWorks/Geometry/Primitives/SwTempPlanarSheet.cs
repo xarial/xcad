@@ -115,7 +115,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
             {
                 throw new Exception("Failed to create profile sheet body");
             }
-
+            
             return new ISwTempBody[] { SwSelObject.FromDispatch<SwTempBody>(sheetBody) };
         }
     }

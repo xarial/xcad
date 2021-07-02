@@ -43,10 +43,6 @@ namespace Xarial.XCad.Utils.PageBuilder
         {
             var page = default(TPage);
 
-            IEnumerable<IBinding> bindings;
-
-            IRawDependencyGroup dependencies;
-
             m_DataBinder.Bind<TModel>(
                 atts =>
                 {
@@ -57,9 +53,12 @@ namespace Xarial.XCad.Utils.PageBuilder
                 {
                     idRange = 1;
                     return m_ControlConstructors.CreateElement(type, parent, atts, metadata, ref idRange);
-                }, dynCtrlsHandler, out bindings, out dependencies);
+                }, dynCtrlsHandler,
+                    out IEnumerable<IBinding> bindings,
+                    out IRawDependencyGroup dependencies,
+                    out IMetadata[] allMetadata);
 
-            page.Binding.Load(m_App, bindings, dependencies);
+            page.Binding.Load(m_App, bindings, dependencies, allMetadata);
             UpdatePageDependenciesState(page);
 
             return page;

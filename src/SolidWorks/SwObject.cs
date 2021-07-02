@@ -34,32 +34,6 @@ namespace Xarial.XCad.SolidWorks
         object Dispatch { get; }
     }
 
-    /// <summary>
-    /// Factory for xCAD objects
-    /// </summary>
-    public static class SwObjectFactory 
-    {
-        /// <summary>
-        /// Wraps the SOLIDWORKS specific dispatch to xCAD object
-        /// </summary>
-        /// <typeparam name="TObj">Type of the object</typeparam>
-        /// <param name="disp">SOLIDWORKS specific dispatch</param>
-        /// <param name="doc">Owner document</param>
-        /// <returns>xCAD specific object</returns>
-        public static TObj FromDispatch<TObj>(object disp, ISwDocument doc)
-            where TObj : ISwObject
-        {
-            if (typeof(ISwSelObject).IsAssignableFrom(typeof(TObj))) 
-            {
-                return (TObj)SwObject.FromDispatch(disp, doc, d => new SwSelObject(disp, doc));
-            }
-            else
-            {
-                return (TObj)SwObject.FromDispatch(disp, doc, d => new SwObject(disp, doc));
-            }
-        }
-    }
-
     /// <inheritdoc/>
     internal class SwObject : ISwObject
     {
@@ -188,7 +162,6 @@ namespace Xarial.XCad.SolidWorks
                             throw new NotSupportedException();
                     }
                     
-
                 case ISketchSegment seg:
                     switch ((swSketchSegments_e)seg.GetType()) 
                     {
@@ -216,6 +189,20 @@ namespace Xarial.XCad.SolidWorks
 
                 case IDisplayDimension dispDim:
                     return new SwDimension(doc, dispDim);
+
+                case INote note:
+                    return new SwNote(note, doc);
+
+                case IAnnotation ann:
+                    switch ((swAnnotationType_e)ann.GetType()) 
+                    {
+                        case swAnnotationType_e.swDisplayDimension:
+                            return new SwDimension(doc, (IDisplayDimension)ann.GetSpecificAnnotation());
+                        case swAnnotationType_e.swNote:
+                            return new SwNote((INote)ann.GetSpecificAnnotation(), doc);
+                        default:
+                            return defaultHandler.Invoke(ann);
+                    }
 
                 case IConfiguration conf:
                     switch (doc) 

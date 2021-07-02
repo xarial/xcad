@@ -5,6 +5,7 @@
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using Xarial.XCad.SolidWorks.Base;
@@ -28,6 +29,27 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature.Toolkit.Icons
         public virtual IEnumerable<IIconSpec> GetIconSizes()
         {
             yield return new IconSpec(m_Icon, MacroFeatureIconInfo.Size, 0, m_BaseName);
+        }
+    }
+
+    internal class MacroFeatureSuppressedIcon : MacroFeatureIcon
+    {
+        internal MacroFeatureSuppressedIcon(IXImage icon, string baseName) : base(icon, baseName)
+        {
+        }
+
+        public override IEnumerable<IIconSpec> GetIconSizes()
+        {
+            yield return new IconSpec(m_Icon, MacroFeatureIconInfo.Size, ConvertPixelToGrayscale, 0, m_BaseName);
+        }
+
+        protected void ConvertPixelToGrayscale(ref byte r, ref byte g, ref byte b, ref byte a)
+        {
+            var pixel = (byte)((r + g + b) / 3);
+
+            r = pixel;
+            g = pixel;
+            b = pixel;
         }
     }
 }
