@@ -33,26 +33,53 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
     internal class SwMassProperty : ISwMassProperty
     {
-        public Point CenterOfGravity => new Point((double[])m_Creator.Element.CenterOfMass);
-        public double SurfaceArea => m_Creator.Element.SurfaceArea;
-        public double Volume => m_Creator.Element.Volume;
-        public double Mass => m_Creator.Element.Mass;
-        public double Density => m_Creator.Element.Density;
+        public Point CenterOfGravity => new Point((double[])MassProperty.CenterOfMass);
+        public double SurfaceArea => MassProperty.SurfaceArea;
+        public double Volume => MassProperty.Volume;
+        public double Mass => MassProperty.Mass;
+        public double Density => MassProperty.Density;
 
         public PrincipalAxesOfInertia PrincipalAxesOfInertia
-            => new PrincipalAxesOfInertia(
-                new Vector((double[])m_Creator.Element.PrincipalAxesOfInertia[0]),
-                new Vector((double[])m_Creator.Element.PrincipalAxesOfInertia[1]),
-                new Vector((double[])m_Creator.Element.PrincipalAxesOfInertia[2]));
+        {
+            get
+            {
+                if (m_Doc is ISwPart)
+                {
+                    return new PrincipalAxesOfInertia(
+                        new Vector((double[])MassPropertyLegacy.PrincipleAxesOfInertia[0]),
+                        new Vector((double[])MassPropertyLegacy.PrincipleAxesOfInertia[1]),
+                        new Vector((double[])MassPropertyLegacy.PrincipleAxesOfInertia[2]));
+                }
+                else 
+                {
+                    return new PrincipalAxesOfInertia(
+                        new Vector((double[])MassProperty.PrincipalAxesOfInertia[0]),
+                        new Vector((double[])MassProperty.PrincipalAxesOfInertia[1]),
+                        new Vector((double[])MassProperty.PrincipalAxesOfInertia[2]));
+                }
+            }
+        }
 
         public PrincipalMomentOfInertia PrincipalMomentOfInertia
-            => new PrincipalMomentOfInertia((double[])m_Creator.Element.PrincipalMomentsOfInertia);
+        {
+            get 
+            {
+                if (m_Doc is ISwPart)
+                {
+                    return new PrincipalMomentOfInertia((double[])MassPropertyLegacy.PrincipleMomentsOfInertia);
+                }
+                else 
+                {
+                    return new PrincipalMomentOfInertia((double[])MassProperty.PrincipalMomentsOfInertia);
+                }
+            }
+        }
 
         public MomentOfInertia MomentOfInertia
         {
             get
             {
-                var moi = (double[])m_Creator.Element.GetMomentOfInertia(RelativeTo != null
+                var moi = (double[])MassProperty.GetMomentOfInertia(RelativeTo != null
                     ? (int)swMassPropertyMoment_e.swMassPropertyMomentAboutCoordSys
                     : (int)swMassPropertyMoment_e.swMassPropertyMomentAboutCenterOfMass);
 
@@ -88,7 +115,12 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
                 if (IsCommitted)
                 {
-                    SetScope(m_Creator.Element);
+                    SetScope(m_Creator.Element.Item1);
+
+                    if (m_Doc is ISwPart)
+                    {
+                        SetPartScope((ISwPart)m_Doc, m_Creator.Element.Item2);
+                    }
                 }
             }
         }
@@ -132,21 +164,32 @@ namespace Xarial.XCad.SolidWorks.Geometry
         private readonly ISwDocument3D m_Doc;
         private readonly IMathUtility m_MathUtils;
 
-        protected readonly ElementCreator<IMassProperty2> m_Creator;
+        protected readonly ElementCreator<Tuple<IMassProperty2, IMassProperty>> m_Creator;
+
+        protected IMassProperty2 MassProperty => m_Creator.Element.Item1;
+        protected IMassProperty MassPropertyLegacy => m_Creator.Element.Item2;
 
         internal SwMassProperty(ISwDocument3D doc, IMathUtility mathUtils) 
         {
             m_Doc = doc;
             m_MathUtils = mathUtils;
 
-            m_Creator = new ElementCreator<IMassProperty2>(CreateMassProperty, null, false);
+            m_Creator = new ElementCreator<Tuple<IMassProperty2, IMassProperty>>(CreateMassProperty, null, false);
 
             UserUnits = false;
         }
 
-        private IMassProperty2 CreateMassProperty(CancellationToken cancellationToken)
+        private Tuple<IMassProperty2, IMassProperty> CreateMassProperty(CancellationToken cancellationToken)
         {
             var massPrps = (IMassProperty2)m_Doc.Model.Extension.CreateMassProperty2();
+
+            IMassProperty partMassPrps = null;
+
+            if (m_Doc is ISwPart)
+            {
+                partMassPrps = m_Doc.Model.Extension.CreateMassProperty();
+                partMassPrps.UseSystemUnits = !UserUnits;
+            }
 
             massPrps.UseSystemUnits = !UserUnits;
 
@@ -157,6 +200,14 @@ namespace Xarial.XCad.SolidWorks.Geometry
                 if (!massPrps.SetCoordinateSystem(m_MathUtils.ToMathTransform(RelativeTo)))
                 {
                     throw new Exception("Failed to set coordinate system");
+                }
+
+                if (m_Doc is ISwPart)
+                {
+                    if (!partMassPrps.SetCoordinateSystem((MathTransform)m_MathUtils.ToMathTransform(RelativeTo)))
+                    {
+                        throw new Exception("Failed to set coordinate system");
+                    }
                 }
             }
 
@@ -169,7 +220,12 @@ namespace Xarial.XCad.SolidWorks.Geometry
                 throw new Exception($"Failed to recalculate mass properties");
             }
 
-            return massPrps;
+            if (m_Doc is ISwPart)
+            {
+                SetPartScope((ISwPart)m_Doc, partMassPrps);
+            }
+
+            return new Tuple<IMassProperty2, IMassProperty>(massPrps, partMassPrps);
         }
 
         protected virtual void SetScope(IMassProperty2 massPrps)
@@ -182,8 +238,36 @@ namespace Xarial.XCad.SolidWorks.Geometry
             }
             else 
             {
-                massPrps.SelectedItems = null;
+                if (massPrps.SelectedItems != null)
+                {
+                    massPrps.SelectedItems = null;
+                }
             }
+        }
+
+        protected virtual void SetPartScope(ISwPart part, IMassProperty massPrps)
+        {
+            var scope = Scope;
+
+            if (scope == null)
+            {
+                var bodies = part.Bodies.OfType<ISwSolidBody>();
+
+                if (VisibleOnly)
+                {
+                    bodies = bodies.Where(b => b.Visible);
+                }
+
+                scope = bodies.ToArray();
+            }
+
+            if (!massPrps.AddBodies(scope.Cast<ISwSolidBody>().Select(b => b.Body).ToArray())) 
+            {
+                throw new Exception("Failed to add bodies to mass property scope");
+            }
+
+            //IMPORTANT: if this property is not called then the principal moment of intertia and principal axes will not be calculated correctly
+            var testRefreshCall = massPrps.OverrideCenterOfMass;
         }
 
         public void Commit(CancellationToken cancellationToken)
@@ -193,159 +277,8 @@ namespace Xarial.XCad.SolidWorks.Geometry
         {
             if (m_Creator.IsCreated) 
             {
-                m_Creator.Element.IncludeHiddenBodiesOrComponents = m_IncludeHiddenBodiesDefault;
+                m_Creator.Element.Item1.IncludeHiddenBodiesOrComponents = m_IncludeHiddenBodiesDefault;
             }
-        }
-    }
-
-    internal class SwLegacyMassProperty : ISwMassProperty
-    {
-        public Point CenterOfGravity => new Point((double[])m_Creator.Element.CenterOfMass);
-        public double SurfaceArea => m_Creator.Element.SurfaceArea;
-        public double Volume => m_Creator.Element.Volume;
-        public double Mass => m_Creator.Element.Mass;
-        public double Density => m_Creator.Element.Density;
-
-        public PrincipalAxesOfInertia PrincipalAxesOfInertia
-            => new PrincipalAxesOfInertia(
-                new Vector((double[])m_Creator.Element.PrincipleAxesOfInertia[0]),
-                new Vector((double[])m_Creator.Element.PrincipleAxesOfInertia[1]),
-                new Vector((double[])m_Creator.Element.PrincipleAxesOfInertia[2]));
-
-        public PrincipalMomentOfInertia PrincipalMomentOfInertia
-            => new PrincipalMomentOfInertia((double[])m_Creator.Element.PrincipleMomentsOfInertia);
-
-        public MomentOfInertia MomentOfInertia
-        {
-            get
-            {
-                var moi = (double[])m_Creator.Element.GetMomentOfInertia(RelativeTo != null
-                    ? (int)swMassPropertyMoment_e.swMassPropertyMomentAboutCoordSys
-                    : (int)swMassPropertyMoment_e.swMassPropertyMomentAboutCenterOfMass);
-
-                return new MomentOfInertia(
-                    new Vector(moi[0], moi[1], moi[2]),
-                    new Vector(moi[3], moi[4], moi[5]),
-                    new Vector(moi[6], moi[7], moi[8]));
-            }
-        }
-
-        public TransformMatrix RelativeTo
-        {
-            get => m_Creator.CachedProperties.Get<TransformMatrix>();
-            set
-            {
-                if (!IsCommitted)
-                {
-                    m_Creator.CachedProperties.Set(value);
-                }
-                else
-                {
-                    throw new CommittedElementPropertyChangeNotSupported();
-                }
-            }
-        }
-
-        public virtual IXBody[] Scope
-        {
-            get => m_Creator.CachedProperties.Get<IXBody[]>();
-            set
-            {
-                m_Creator.CachedProperties.Set(value);
-
-                if (IsCommitted) 
-                {
-                    SetScope(m_Creator.Element);
-                }
-            }
-        }
-
-        public bool UserUnits
-        {
-            get => m_Creator.CachedProperties.Get<bool>();
-            set
-            {
-                if (!IsCommitted)
-                {
-                    m_Creator.CachedProperties.Set(value);
-                }
-                else
-                {
-                    throw new CommittedElementPropertyChangeNotSupported();
-                }
-            }
-        }
-
-        public bool VisibleOnly
-        {
-            get => m_Creator.CachedProperties.Get<bool>();
-            set
-            {
-                if (!IsCommitted)
-                {
-                    m_Creator.CachedProperties.Set(value);
-                }
-                else
-                {
-                    throw new CommittedElementPropertyChangeNotSupported();
-                }
-            }
-        }
-
-        public bool IsCommitted => m_Creator.IsCreated;
-
-        protected readonly ISwDocument3D m_Doc;
-        private readonly IMathUtility m_MathUtils;
-
-        protected readonly ElementCreator<IMassProperty> m_Creator;
-
-        internal SwLegacyMassProperty(ISwDocument3D doc, IMathUtility mathUtils)
-        {
-            m_Doc = doc;
-            m_MathUtils = mathUtils;
-
-            m_Creator = new ElementCreator<IMassProperty>(CreateMassProperty, null, false);
-
-            UserUnits = false;
-        }
-
-        private IMassProperty CreateMassProperty(CancellationToken cancellationToken)
-        {
-            var massPrps = (IMassProperty)m_Doc.Model.Extension.CreateMassProperty();
-
-            massPrps.UseSystemUnits = !UserUnits;
-
-            if (RelativeTo != null)
-            {
-                if (!massPrps.SetCoordinateSystem((MathTransform)m_MathUtils.ToMathTransform(RelativeTo)))
-                {
-                    throw new Exception("Failed to set coordinate system");
-                }
-            }
-
-            SetScope(massPrps);
-
-            return massPrps;
-        }
-
-        protected virtual void SetScope(IMassProperty massPrps)
-        {
-            var scope = Scope;
-
-            if (scope != null)
-            {
-                if (!massPrps.AddBodies(scope.Select(x => ((ISwBody)x).Body).ToArray()))
-                {
-                    throw new Exception("Failed to add bodies to the scope");
-                }
-            }
-        }
-
-        public void Commit(CancellationToken cancellationToken)
-            => m_Creator.Create(cancellationToken);
-
-        public void Dispose()
-        {
         }
     }
 
@@ -365,7 +298,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
                 if (IsCommitted)
                 {
-                    SetScope(m_Creator.Element);
+                    SetScope(MassProperty);
                 }
             }
         }
@@ -378,59 +311,15 @@ namespace Xarial.XCad.SolidWorks.Geometry
             {
                 massPrps.SelectedItems = scope.Select(x => ((ISwComponent)x).Component).ToArray();
             }
+            else 
+            {
+                if (massPrps.SelectedItems != null)
+                {
+                    massPrps.SelectedItems = null;
+                }
+            }
 
             massPrps.IncludeHiddenBodiesOrComponents = !VisibleOnly;
-        }
-    }
-
-    internal class SwAssemblyLegacyMassProperty : SwLegacyMassProperty, ISwAssemblyMassProperty
-    {
-        internal SwAssemblyLegacyMassProperty(ISwAssembly assm, IMathUtility mathUtils) : base(assm, mathUtils)
-        {
-        }
-
-        public override IXBody[] Scope
-        {
-            get
-            {
-                var comps = (this as IXAssemblyMassProperty).Scope;
-
-                if (comps == null)
-                {
-                    return base.Scope;
-                }
-                else
-                {
-                    return comps.SelectMany(c => c.IterateBodies(!VisibleOnly).Select(b =>
-                    {
-                        var swBody = (b as ISwBody).Body;
-                        var ent = swBody.GetFirstFace() as IEntity;
-                        var comp = (IComponent2)ent.GetComponent();
-                        
-                        if (comp != null) 
-                        {
-                            swBody = swBody.ICopy();
-                            swBody.ApplyTransform(comp.Transform2);
-                        }
-                        return SwObjectFactory.FromDispatch<ISwBody>(swBody, m_Doc);
-                    })).ToArray();
-                }
-            }
-            set => base.Scope = value;
-        }
-
-        IXComponent[] IAssemblyEvaluation.Scope
-        {
-            get => m_Creator.CachedProperties.Get<IXComponent[]>(nameof(Scope) + "_Components");
-            set
-            {
-                m_Creator.CachedProperties.Set(value, nameof(Scope) + "_Components");
-
-                if (IsCommitted)
-                {
-                    SetScope(m_Creator.Element);
-                }
-            }
         }
     }
 }

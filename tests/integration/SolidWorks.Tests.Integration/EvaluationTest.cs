@@ -533,18 +533,18 @@ namespace SolidWorks.Tests.Integration
             AssertCompareDoubles(moi.Lz.X, 0.00000000);
             AssertCompareDoubles(moi.Lz.Y, 0.00000000);
             AssertCompareDoubles(moi.Lz.Z, 0.00278864);
-            //AssertCompareDoubles(pai.Ix.X, 0.70710678);
-            //AssertCompareDoubles(pai.Ix.Y, 0.70710678);
-            //AssertCompareDoubles(pai.Ix.Z, 0.00000000);
-            //AssertCompareDoubles(pai.Iy.X, -0.70710678);
-            //AssertCompareDoubles(pai.Iy.Y, 0.70710678);
-            //AssertCompareDoubles(pai.Iy.Z, 0.00000000);
-            //AssertCompareDoubles(pai.Iz.X, 0.00000000);
-            //AssertCompareDoubles(pai.Iz.Y, 0.00000000);
-            //AssertCompareDoubles(pai.Iz.Z, 1.00000000);
-            //AssertCompareDoubles(pmoi.Px, 0.00015641);
-            //AssertCompareDoubles(pmoi.Py, 0.00278864);
-            //AssertCompareDoubles(pmoi.Pz, 0.00278864);
+            AssertCompareDoubles(pai.Ix.X, 0.70710678);
+            AssertCompareDoubles(pai.Ix.Y, 0.70710678);
+            AssertCompareDoubles(pai.Ix.Z, 0.00000000);
+            AssertCompareDoubles(pai.Iy.X, -0.70710678);
+            AssertCompareDoubles(pai.Iy.Y, 0.70710678);
+            AssertCompareDoubles(pai.Iy.Z, 0.00000000);
+            AssertCompareDoubles(pai.Iz.X, 0.00000000);
+            AssertCompareDoubles(pai.Iz.Y, 0.00000000);
+            AssertCompareDoubles(pai.Iz.Z, 1.00000000);
+            AssertCompareDoubles(pmoi.Px, 0.00015641);
+            AssertCompareDoubles(pmoi.Py, 0.00278864);
+            AssertCompareDoubles(pmoi.Pz, 0.00278864);
             AssertCompareDoubles(area, 0.04396907);
             AssertCompareDoubles(volume, 0.00050053);
         }
@@ -564,10 +564,11 @@ namespace SolidWorks.Tests.Integration
             using (var doc = OpenDataDocument(@"MassPrpPart1.SLDPRT"))
             {
                 var part = (ISwPart)m_App.Documents.Active;
-
+                
                 using (var massPrps = part.PreCreateMassProperty())
                 {
                     massPrps.UserUnits = false;
+                    massPrps.VisibleOnly = true;
                     massPrps.Commit();
 
                     density = massPrps.Density;
@@ -595,18 +596,18 @@ namespace SolidWorks.Tests.Integration
             AssertCompareDoubles(moi.Lz.X, 0.00045888);
             AssertCompareDoubles(moi.Lz.Y, 0.00000325);
             AssertCompareDoubles(moi.Lz.Z, 0.00603085);
-            //AssertCompareDoubles(pai.Ix.X, 0.93305248);
-            //AssertCompareDoubles(pai.Ix.Y, 0.34902187);
-            //AssertCompareDoubles(pai.Ix.Z, 0.08715970);
-            //AssertCompareDoubles(pai.Iy.X, -0.33108391);
-            //AssertCompareDoubles(pai.Iy.Y, 0.92790273);
-            //AssertCompareDoubles(pai.Iy.Z, -0.17140585);
-            //AssertCompareDoubles(pai.Iz.X, -0.14070011);
-            //AssertCompareDoubles(pai.Iz.Y, 0.13107348);
-            //AssertCompareDoubles(pai.Iz.Z, 0.98133747);
-            //AssertCompareDoubles(pmoi.Px, 0.00110545);
-            //AssertCompareDoubles(pmoi.Py, 0.00516210);
-            //AssertCompareDoubles(pmoi.Pz, 0.00609621);
+            AssertCompareDoubles(pai.Ix.X, 0.93305248);
+            AssertCompareDoubles(pai.Ix.Y, 0.34902187);
+            AssertCompareDoubles(pai.Ix.Z, 0.08715970);
+            AssertCompareDoubles(pai.Iy.X, -0.33108391);
+            AssertCompareDoubles(pai.Iy.Y, 0.92790273);
+            AssertCompareDoubles(pai.Iy.Z, -0.17140585);
+            AssertCompareDoubles(pai.Iz.X, -0.14070011);
+            AssertCompareDoubles(pai.Iz.Y, 0.13107348);
+            AssertCompareDoubles(pai.Iz.Z, 0.98133747);
+            AssertCompareDoubles(pmoi.Px, 0.00110545);
+            AssertCompareDoubles(pmoi.Py, 0.00516210);
+            AssertCompareDoubles(pmoi.Pz, 0.00609621);
             AssertCompareDoubles(area, 0.05933487);
             AssertCompareDoubles(volume, 0.00060125);
         }
@@ -630,6 +631,7 @@ namespace SolidWorks.Tests.Integration
                 using (var massPrps = part.PreCreateMassProperty())
                 {
                     massPrps.UserUnits = true;
+                    massPrps.VisibleOnly = true;
                     massPrps.Commit();
 
                     density = massPrps.Density;
@@ -657,18 +659,18 @@ namespace SolidWorks.Tests.Integration
             AssertCompareDoubles(moi.Lz.X, 458881.21232608);
             AssertCompareDoubles(moi.Lz.Y, 3254.31155824);
             AssertCompareDoubles(moi.Lz.Z, 6030848.94700435);
-            //AssertCompareDoubles(pai.Ix.X, 0.93305248);
-            //AssertCompareDoubles(pai.Ix.Y, 0.34902187);
-            //AssertCompareDoubles(pai.Ix.Z, 0.08715970);
-            //AssertCompareDoubles(pai.Iy.X, -0.33108391);
-            //AssertCompareDoubles(pai.Iy.Y, 0.92790273);
-            //AssertCompareDoubles(pai.Iy.Z, -0.17140585);
-            //AssertCompareDoubles(pai.Iz.X, -0.14070011);
-            //AssertCompareDoubles(pai.Iz.Y, 0.13107348);
-            //AssertCompareDoubles(pai.Iz.Z, 0.98133747);
-            //AssertCompareDoubles(pmoi.Px, 1105452.34207252);
-            //AssertCompareDoubles(pmoi.Py, 5162100.87963526);
-            //AssertCompareDoubles(pmoi.Pz, 6096206.77343175);
+            AssertCompareDoubles(pai.Ix.X, 0.93305248);
+            AssertCompareDoubles(pai.Ix.Y, 0.34902187);
+            AssertCompareDoubles(pai.Ix.Z, 0.08715970);
+            AssertCompareDoubles(pai.Iy.X, -0.33108391);
+            AssertCompareDoubles(pai.Iy.Y, 0.92790273);
+            AssertCompareDoubles(pai.Iy.Z, -0.17140585);
+            AssertCompareDoubles(pai.Iz.X, -0.14070011);
+            AssertCompareDoubles(pai.Iz.Y, 0.13107348);
+            AssertCompareDoubles(pai.Iz.Z, 0.98133747);
+            AssertCompareDoubles(pmoi.Px, 1105452.34207252);
+            AssertCompareDoubles(pmoi.Py, 5162100.87963526);
+            AssertCompareDoubles(pmoi.Pz, 6096206.77343175);
             AssertCompareDoubles(area, 59334.87176312);
             AssertCompareDoubles(volume, 601250.17421272);
         }
@@ -731,9 +733,9 @@ namespace SolidWorks.Tests.Integration
             //AssertCompareDoubles(pai.Iz.X, 0.00000000);
             //AssertCompareDoubles(pai.Iz.Y, 0.00000000);
             //AssertCompareDoubles(pai.Iz.Z, 1.00000000);
-            //AssertCompareDoubles(pmoi.Px, 156414.37701816);
-            //AssertCompareDoubles(pmoi.Py, 2788641.68845234);
-            //AssertCompareDoubles(pmoi.Pz, 2788641.68845234);
+            AssertCompareDoubles(pmoi.Px, 156414.37701816);
+            AssertCompareDoubles(pmoi.Py, 2788641.68845234);
+            AssertCompareDoubles(pmoi.Pz, 2788641.68845234);
             AssertCompareDoubles(area, 43969.07133364);
             AssertCompareDoubles(volume, 500526.00645810);
         }
@@ -820,6 +822,7 @@ namespace SolidWorks.Tests.Integration
                 using (var massPrps = assm.PreCreateMassProperty())
                 {
                     massPrps.UserUnits = false;
+                    massPrps.VisibleOnly = true;
                     massPrps.Commit();
 
                     density = massPrps.Density;
@@ -883,6 +886,7 @@ namespace SolidWorks.Tests.Integration
                 {
                     massPrps.Scope = new IXComponent[] { assm.Configurations.Active.Components["SubAssem1-1"].Children["Part2-1"] };
                     massPrps.UserUnits = true;
+                    massPrps.VisibleOnly = true;
                     massPrps.Commit();
 
                     density = massPrps.Density;

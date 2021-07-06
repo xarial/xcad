@@ -689,18 +689,20 @@ namespace Xarial.XCad.SolidWorks.Documents
                 {
                     if (!string.IsNullOrEmpty(Title))
                     {
+                        //TODO: need to communicate exception if title is not set, do not throw it from heer as the doc won't be registered
                         doc.SetTitle2(Title);
                     }
+
                     return doc;
                 }
                 else 
                 {
-                    throw new Exception($"Failed to create new document from the template: {docTemplate}");
+                    throw new NewDocumentCreateException(docTemplate);
                 }
             }
             else 
             {
-                throw new Exception("Failed to find the location of default document template");
+                throw new DefaultTemplateNotFoundException();
             }
         }
 
