@@ -76,6 +76,13 @@ namespace Xarial.XCad.Documents
         /// <param name="includeHidden">True to include all bodies, false to only include visible</param>
         /// <returns>Bodies</returns>
         public static IEnumerable<IXBody> IterateBodies(this IXComponent comp, bool includeHidden = false)
+            => IterateComponentBodies(new IXComponent[] { comp }, includeHidden);
+
+        /// <inheritdoc cref="IterateBodies(IXComponent, bool)"/>
+        public static IEnumerable<IXBody> IterateBodies(this IXComponentRepository comps, bool includeHidden = false)
+            => IterateComponentBodies(comps, includeHidden);
+
+        private static IEnumerable<IXBody> IterateComponentBodies(IEnumerable<IXComponent> comps, bool includeHidden)
         {
             IEnumerable<IXComponent> SelectComponents(IXComponent parent)
             {
@@ -91,7 +98,7 @@ namespace Xarial.XCad.Documents
                         {
                             if (parent.Document is IXAssembly)
                             {
-                                comp.State = (ComponentState_e)(state - ComponentState_e.Lightweight);
+                                parent.State = (ComponentState_e)(state - ComponentState_e.Lightweight);
                             }
                         }
 
@@ -106,24 +113,13 @@ namespace Xarial.XCad.Documents
             IXBody[] GetComponentBodies(IXComponent srcComp)
                 => srcComp.Bodies.Where(b => includeHidden || b.Visible).ToArray();
 
-            if (comp.Document is IXPart)
-            {
-                foreach (var body in GetComponentBodies(comp))
-                {
-                    yield return body;
-                }
-            }
-            else if (comp.Document is IXAssembly)
+            foreach (var comp in comps)
             {
                 foreach (var body in SelectComponents(comp)
                     .SelectMany(GetComponentBodies))
                 {
                     yield return body;
                 }
-            }
-            else
-            {
-                throw new NotSupportedException();
             }
         }
     }

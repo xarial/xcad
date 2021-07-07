@@ -42,6 +42,7 @@ namespace SolidWorks.Tests.Integration
 
         private const int SW_PRC_ID = -1;
         private const string DATA_FOLDER = @"C:\Users\artem\OneDrive\xCAD\TestData";
+        private SwVersion_e? SW_VERSION = null;
 
         protected ISwApplication m_App;
         private ISldWorks m_SwApp;
@@ -59,7 +60,7 @@ namespace SolidWorks.Tests.Integration
 
                 SwApplicationFactory.DisableAllAddInsStartup(out m_DisabledStartupAddIns);
 
-                m_App = SwApplicationFactory.Create(null,
+                m_App = SwApplicationFactory.Create(SW_VERSION,
                     ApplicationState_e.Background 
                     | ApplicationState_e.Safe 
                     | ApplicationState_e.Silent);

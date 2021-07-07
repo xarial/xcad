@@ -705,7 +705,7 @@ namespace SolidWorks.Tests.Integration
             var part2 = m_App.Documents.PreCreate<ISwPart>();
             part2.Commit();
             isAlive2 = part2.IsAlive;
-            
+
             Assert.Throws<KeyNotFoundException>(() => { var doc = m_App.Documents[part1.Model]; });
             Assert.IsFalse(isAlive1);
             Assert.IsTrue(isAlive2);

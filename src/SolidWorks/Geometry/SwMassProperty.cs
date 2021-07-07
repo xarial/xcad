@@ -243,8 +243,11 @@ namespace Xarial.XCad.SolidWorks.Geometry
                     massPrps.SelectedItems = null;
                 }
             }
+
+            var testRefreshCall = massPrps.GetOverrideOptions();
         }
 
+        //IMPORTANT: IMassProperty2 returns invalid results for PrincipalAxesOfInertia and PrincipalMomentOfInertia for parts
         protected virtual void SetPartScope(ISwPart part, IMassProperty massPrps)
         {
             var scope = Scope;
