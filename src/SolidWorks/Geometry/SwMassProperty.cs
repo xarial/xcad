@@ -161,7 +161,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         private bool m_IncludeHiddenBodiesDefault;
 
-        private readonly ISwDocument3D m_Doc;
+        protected readonly ISwDocument3D m_Doc;
         private readonly IMathUtility m_MathUtils;
 
         protected readonly ElementCreator<Tuple<IMassProperty2, IMassProperty>> m_Creator;
@@ -179,7 +179,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
             UserUnits = false;
         }
 
-        private Tuple<IMassProperty2, IMassProperty> CreateMassProperty(CancellationToken cancellationToken)
+        protected Tuple<IMassProperty2, IMassProperty> CreateMassProperty(CancellationToken cancellationToken)
         {
             var massPrps = (IMassProperty2)m_Doc.Model.Extension.CreateMassProperty2();
 
@@ -211,14 +211,9 @@ namespace Xarial.XCad.SolidWorks.Geometry
                 }
             }
 
-            SetScope(massPrps);
-
             massPrps.IncludeHiddenBodiesOrComponents = !VisibleOnly;
 
-            if (!massPrps.Recalculate())
-            {
-                throw new Exception($"Failed to recalculate mass properties");
-            }
+            SetScope(massPrps);
 
             if (m_Doc is ISwPart)
             {
@@ -240,11 +235,14 @@ namespace Xarial.XCad.SolidWorks.Geometry
             {
                 if (massPrps.SelectedItems != null)
                 {
-                    massPrps.SelectedItems = null;
+                    m_Doc.Selections.Clear();
                 }
             }
 
-            var testRefreshCall = massPrps.GetOverrideOptions();
+            if (!massPrps.Recalculate())
+            {
+                throw new Exception($"Failed to recalculate mass properties");
+            }
         }
 
         //IMPORTANT: IMassProperty2 returns invalid results for PrincipalAxesOfInertia and PrincipalMomentOfInertia for parts
@@ -318,11 +316,14 @@ namespace Xarial.XCad.SolidWorks.Geometry
             {
                 if (massPrps.SelectedItems != null)
                 {
-                    massPrps.SelectedItems = null;
+                    m_Doc.Selections.Clear();
                 }
             }
 
-            massPrps.IncludeHiddenBodiesOrComponents = !VisibleOnly;
+            if (!massPrps.Recalculate())
+            {
+                throw new Exception($"Failed to recalculate mass properties");
+            }
         }
     }
 }

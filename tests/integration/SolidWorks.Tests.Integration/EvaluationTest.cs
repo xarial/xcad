@@ -1058,5 +1058,71 @@ namespace SolidWorks.Tests.Integration
             AssertCompareDoubles(area, 0.03850408);
             AssertCompareDoubles(volume, 0.00030905);
         }
+
+        [Test]
+        public void MassPropertyAssemblyChangeScopeTest()
+        {
+            double mass1;
+            PrincipalMomentOfInertia pmoi1;
+
+            double mass2;
+            PrincipalMomentOfInertia pmoi2;
+
+            double mass3;
+            PrincipalMomentOfInertia pmoi3;
+
+            double mass4;
+            PrincipalMomentOfInertia pmoi4;
+
+            using (var doc = OpenDataDocument(@"MassPrpsAssembly1\Assem1.SLDASM"))
+            {
+                var assm = (ISwAssembly)m_App.Documents.Active;
+
+                using (var massPrps = assm.PreCreateMassProperty())
+                {
+                    massPrps.UserUnits = false;
+                    massPrps.VisibleOnly = false;
+                    massPrps.Commit();
+
+                    mass1 = massPrps.Mass;
+                    pmoi1 = massPrps.PrincipalMomentOfInertia;
+
+                    massPrps.Scope = new IXComponent[] { assm.Configurations.Active.Components["Part1-1"] };
+
+                    mass2 = massPrps.Mass;
+                    pmoi2 = massPrps.PrincipalMomentOfInertia;
+
+                    massPrps.Scope = new IXComponent[] { assm.Configurations.Active.Components["SubAssem1-1"] };
+
+                    mass3 = massPrps.Mass;
+                    pmoi3 = massPrps.PrincipalMomentOfInertia;
+
+                    massPrps.Scope = null;
+
+                    mass4 = massPrps.Mass;
+                    pmoi4 = massPrps.PrincipalMomentOfInertia;
+                }
+            }
+
+            AssertCompareDoubles(mass1, 8.71280826);
+            AssertCompareDoubles(pmoi1.Px, 0.03690704);
+            AssertCompareDoubles(pmoi1.Py, 0.74230130);
+            AssertCompareDoubles(pmoi1.Pz, 0.76510851);
+
+            AssertCompareDoubles(mass2, 2.25609306);
+            AssertCompareDoubles(pmoi2.Px, 0.00085128);
+            AssertCompareDoubles(pmoi2.Py, 0.00793613);
+            AssertCompareDoubles(pmoi2.Pz, 0.00856881);
+
+            AssertCompareDoubles(mass3, 3.22835760);
+            AssertCompareDoubles(pmoi3.Px, 0.01081765);
+            AssertCompareDoubles(pmoi3.Py, 0.01357870);
+            AssertCompareDoubles(pmoi3.Pz, 0.02074788);
+
+            AssertCompareDoubles(mass4, 8.71280826);
+            AssertCompareDoubles(pmoi4.Px, 0.03690704);
+            AssertCompareDoubles(pmoi4.Py, 0.74230130);
+            AssertCompareDoubles(pmoi4.Pz, 0.76510851);
+        }
     }
 }

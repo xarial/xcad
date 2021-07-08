@@ -77,11 +77,9 @@ namespace Xarial.XCad.SolidWorks.Geometry
             get => m_Creator.CachedProperties.Get<IXBody[]>();
             set
             {
-                if (!IsCommitted)
-                {
-                    m_Creator.CachedProperties.Set(value);
-                }
-                else
+                m_Creator.CachedProperties.Set(value);
+
+                if (IsCommitted)
                 {
                     SetScope(m_Creator.Element);
                 }
@@ -156,7 +154,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
             return massPrps;
         }
 
-        private void SetScope(IMassProperty massPrps)
+        protected void SetScope(IMassProperty massPrps)
         {
             var scope = Scope;
 
@@ -229,13 +227,11 @@ namespace Xarial.XCad.SolidWorks.Geometry
             get => m_Creator.CachedProperties.Get<IXComponent[]>(nameof(Scope) + "_Components");
             set
             {
-                if (!IsCommitted)
+                m_Creator.CachedProperties.Set(value, nameof(Scope) + "_Components");
+
+                if (IsCommitted)
                 {
-                    m_Creator.CachedProperties.Set(value, nameof(Scope) + "_Components");
-                }
-                else
-                {
-                    throw new CommittedElementPropertyChangeNotSupported();
+                    SetScope(m_Creator.Element);
                 }
             }
         }
