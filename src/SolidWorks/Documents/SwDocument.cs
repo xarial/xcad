@@ -358,8 +358,6 @@ namespace Xarial.XCad.SolidWorks.Documents
         
         public bool IsCommitted => m_Creator.IsCreated;
 
-        public ITagsManager Tags { get; }
-
         protected readonly ElementCreator<IModelDoc2> m_Creator;
 
         private bool m_AreEventsAttached;
@@ -376,8 +374,6 @@ namespace Xarial.XCad.SolidWorks.Documents
             App = app;
             
             m_Logger = logger;
-
-            Tags = new TagsManager();
 
             m_Creator = new ElementCreator<IModelDoc2>(CreateDocument, model, created);
 

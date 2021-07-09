@@ -88,11 +88,6 @@ namespace Xarial.XCad.Documents
         DocumentState_e State { get; set; }
 
         /// <summary>
-        /// Provides an ability to store temp tags in this session
-        /// </summary>
-        ITagsManager Tags { get; }
-
-        /// <summary>
         /// Closes this document
         /// </summary>
         void Close();

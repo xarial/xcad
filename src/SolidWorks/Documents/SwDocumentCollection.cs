@@ -257,24 +257,32 @@ namespace Xarial.XCad.SolidWorks.Documents
         
         private int OnDocumentLoadNotify2(string docTitle, string docPath)
         {
-            IModelDoc2 model;
-
-            if (!string.IsNullOrEmpty(docPath))
+            try
             {
-                model = m_SwApp.GetOpenDocumentByName(docPath) as IModelDoc2;
-            }
-            else
-            {
-                model = (m_SwApp.GetDocuments() as object[])?.FirstOrDefault(
-                    d => string.Equals((d as IModelDoc2).GetTitle(), docTitle)) as IModelDoc2;
-            }
+                IModelDoc2 model;
 
-            if (model == null)
-            {
-                throw new NullReferenceException($"Failed to find the loaded model: {docTitle} ({docPath})");
-            }
+                if (!string.IsNullOrEmpty(docPath))
+                {
+                    model = m_SwApp.GetOpenDocumentByName(docPath) as IModelDoc2;
+                }
+                else
+                {
+                    model = (m_SwApp.GetDocuments() as object[])?.FirstOrDefault(
+                        d => string.Equals((d as IModelDoc2).GetTitle(), docTitle)) as IModelDoc2;
+                }
 
-            AttachDocument(model);
+                if (model == null)
+                {
+                    throw new NullReferenceException($"Failed to find the loaded model: {docTitle} ({docPath})");
+                }
+
+                AttachDocument(model);
+            }
+            catch (Exception ex)
+            {
+                m_Logger.Log(ex);
+                Debug.Assert(false, "Document is not initiated");
+            }
 
             return S_OK;
         }
