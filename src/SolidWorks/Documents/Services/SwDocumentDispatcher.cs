@@ -6,11 +6,13 @@
 //*********************************************************************
 
 using SolidWorks.Interop.sldworks;
+using SolidWorks.Interop.swconst;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Xarial.XCad.Base;
+using Xarial.XCad.SolidWorks.Documents.Exceptions;
 using Xarial.XCad.SolidWorks.Utils;
 
 namespace Xarial.XCad.SolidWorks.Documents.Services
@@ -51,7 +53,7 @@ namespace Xarial.XCad.SolidWorks.Documents.Services
         {
             lock (m_Lock) 
             {
-                m_Logger.Log($"Adding '{model.GetTitle()}' to the dispatch queue", XCad.Base.Enums.LoggerMessageSeverity_e.Debug);
+                m_Logger.Log($"Adding '{model.GetTitle()}' to the dispatch queue from thread: {System.Threading.Thread.CurrentThread.ManagedThreadId}", XCad.Base.Enums.LoggerMessageSeverity_e.Debug);
 
                 m_ModelsDispatchQueue.Add(model);
 
@@ -77,7 +79,7 @@ namespace Xarial.XCad.SolidWorks.Documents.Services
 
                 if (index != -1) 
                 {
-                    m_Logger.Log($"Removing '{doc.Title}' from the dispatch queue", XCad.Base.Enums.LoggerMessageSeverity_e.Debug);
+                    m_Logger.Log($"Removing '{doc.Title}' from the dispatch queue from thread: {System.Threading.Thread.CurrentThread.ManagedThreadId}", XCad.Base.Enums.LoggerMessageSeverity_e.Debug);
 
                     m_ModelsDispatchQueue.RemoveAt(index);
                 }
@@ -107,7 +109,9 @@ namespace Xarial.XCad.SolidWorks.Documents.Services
         {
             lock (m_Lock) 
             {
-                m_Logger.Log($"Dispatching all ({m_ModelsDispatchQueue.Count}) models", XCad.Base.Enums.LoggerMessageSeverity_e.Debug);
+                m_Logger.Log($"Dispatching all ({m_ModelsDispatchQueue.Count}) models from thread: {System.Threading.Thread.CurrentThread.ManagedThreadId}", XCad.Base.Enums.LoggerMessageSeverity_e.Debug);
+
+                var errors = new List<Exception>();
 
                 foreach (var model in m_ModelsDispatchQueue)
                 {
@@ -127,8 +131,13 @@ namespace Xarial.XCad.SolidWorks.Documents.Services
                             doc = new SwDrawing(drw, (SwApplication)m_App, m_Logger, true);
                             break;
 
+                        case null:
+                            errors.Add(new NullReferenceException("Model is null"));
+                            continue;
+
                         default:
-                            throw new NotSupportedException();
+                            errors.Add(new NotSupportedException($"Invalid cast of '{model.GetPathName()}' [{model.GetTitle()}] of type '{((object)model).GetType().FullName}'. Specific document type: {(swDocumentTypes_e)model.GetType()}"));
+                            continue;
                     }
 
                     NotifyDispatchedSafe(doc);
@@ -136,6 +145,11 @@ namespace Xarial.XCad.SolidWorks.Documents.Services
 
                 m_ModelsDispatchQueue.Clear();
                 m_Logger.Log($"Cleared models queue", XCad.Base.Enums.LoggerMessageSeverity_e.Debug);
+
+                if (errors.Any()) 
+                {
+                    throw new DocumentsQueueDispatchException(errors.ToArray());
+                }
             }
         }
 

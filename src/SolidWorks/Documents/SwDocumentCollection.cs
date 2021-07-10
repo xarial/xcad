@@ -14,6 +14,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using Xarial.XCad.Base;
+using Xarial.XCad.Base.Enums;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Delegates;
 using Xarial.XCad.Documents.Exceptions;
@@ -249,7 +250,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                 }
                 else 
                 {
-                    m_Logger.Log($"Conflict. {doc.Model.GetTitle()} already dispatched", XCad.Base.Enums.LoggerMessageSeverity_e.Warning);
+                    m_Logger.Log($"Conflict. {doc.Model.GetTitle()} already dispatched", LoggerMessageSeverity_e.Warning);
                     Debug.Assert(false, "Document already dispatched");
                 }
             }
@@ -271,17 +272,18 @@ namespace Xarial.XCad.SolidWorks.Documents
                         d => string.Equals((d as IModelDoc2).GetTitle(), docTitle)) as IModelDoc2;
                 }
 
-                if (model == null)
+                if (model != null)
                 {
-                    throw new NullReferenceException($"Failed to find the loaded model: {docTitle} ({docPath})");
+                    AttachDocument(model);
                 }
-
-                AttachDocument(model);
+                else
+                {
+                    m_Logger.Log($"Failed to find the loaded model: {docTitle} ({docPath}). This may be due to the external reference which is not loaded", LoggerMessageSeverity_e.Error);
+                }
             }
             catch (Exception ex)
             {
                 m_Logger.Log(ex);
-                Debug.Assert(false, "Document is not initiated");
             }
 
             return S_OK;
@@ -302,14 +304,11 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public void RegisterHandler<THandler>(Func<THandler> handlerFact) 
             where THandler : IDocumentHandler
-        {
-            m_DocsHandler.RegisterHandler<THandler>(handlerFact);
-        }
+            => m_DocsHandler.RegisterHandler(handlerFact);
 
-        public THandler GetHandler<THandler>(IXDocument doc) where THandler : IDocumentHandler
-        {
-            return m_DocsHandler.GetHandler<THandler>(doc);
-        }
+        public THandler GetHandler<THandler>(IXDocument doc) 
+            where THandler : IDocumentHandler
+            => m_DocsHandler.GetHandler<THandler>(doc);
 
         public TDocument PreCreate<TDocument>()
              where TDocument : class, IXDocument
