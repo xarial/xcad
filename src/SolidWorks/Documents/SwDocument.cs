@@ -362,8 +362,6 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         private bool m_AreEventsAttached;
 
-        private bool? m_IsClosed;
-
         internal SwDocument(IModelDoc2 model, SwApplication app, IXLogger logger) 
             : this(model, app, logger, true)
         {
@@ -555,23 +553,16 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
             get 
             {
-                if (m_IsClosed.HasValue)
-                {
-                    return !m_IsClosed.Value;
-                }
-                else
-                {
-                    var model = Model;
+                var model = Model;
 
-                    try
-                    {
-                        var title = model.GetTitle();
-                        return true;
-                    }
-                    catch
-                    {
-                        return false;
-                    }
+                try
+                {
+                    var title = model.GetTitle();
+                    return true;
+                }
+                catch
+                {
+                    return false;
                 }
             }
         }
@@ -805,7 +796,6 @@ namespace Xarial.XCad.SolidWorks.Documents
         public void Close()
         {
             App.Sw.CloseDoc(Model.GetTitle());
-            m_IsClosed = true;
         }
 
         public void Dispose()

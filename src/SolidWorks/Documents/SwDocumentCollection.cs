@@ -103,6 +103,8 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
+        private bool m_IsAttached;
+
         internal SwDocumentCollection(SwApplication app, IXLogger logger)
         {
             m_Lock = new object();
@@ -112,18 +114,29 @@ namespace Xarial.XCad.SolidWorks.Documents
             m_Logger = logger;
 
             m_DocsDispatcher = new SwDocumentDispatcher(app, logger);
-            m_DocsDispatcher.Dispatched += OnDocumentDispatched;
-
+            
             m_Documents = new Dictionary<IModelDoc2, SwDocument>(
                 new SwModelPointerEqualityComparer());
             m_DocsHandler = new DocumentsHandler(app, m_Logger);
-            
-            AttachToAllOpenedDocuments();
 
-            m_SwApp.DocumentLoadNotify2 += OnDocumentLoadNotify2;
-            m_SwApp.ActiveModelDocChangeNotify += OnActiveModelDocChangeNotify;
+            m_IsAttached = false;
         }
 
+        internal void Attach() 
+        {
+            if (!m_IsAttached)
+            {
+                m_IsAttached = true;
+
+                m_DocsDispatcher.Dispatched += OnDocumentDispatched;
+
+                AttachToAllOpenedDocuments();
+
+                m_SwApp.DocumentLoadNotify2 += OnDocumentLoadNotify2;
+                m_SwApp.ActiveModelDocChangeNotify += OnActiveModelDocChangeNotify;
+            }
+        }
+        
         private IModelDoc2 m_WaitActivateDocument;
 
         private int OnActiveModelDocChangeNotify()
@@ -141,12 +154,12 @@ namespace Xarial.XCad.SolidWorks.Documents
                     m_Logger.Log(ex);
                 }
             }
-            else 
+            else
             {
                 //activate event can happen before the loading event, so the document is not yet registered
                 m_WaitActivateDocument = activeDoc;
             }
-            
+
             return S_OK;
         }
 
@@ -175,16 +188,19 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public void Dispose()
         {
-            m_DocsDispatcher.Dispatched -= OnDocumentDispatched;
-            m_SwApp.DocumentLoadNotify2 -= OnDocumentLoadNotify2;
-            m_SwApp.ActiveModelDocChangeNotify -= OnActiveModelDocChangeNotify;
-
-            foreach (var doc in m_Documents.Values.ToArray())
+            if (m_IsAttached)
             {
-                ReleaseDocument(doc);
-            }
+                m_DocsDispatcher.Dispatched -= OnDocumentDispatched;
+                m_SwApp.DocumentLoadNotify2 -= OnDocumentLoadNotify2;
+                m_SwApp.ActiveModelDocChangeNotify -= OnActiveModelDocChangeNotify;
 
-            m_Documents.Clear();
+                foreach (var doc in m_Documents.Values.ToArray())
+                {
+                    ReleaseDocument(doc);
+                }
+
+                m_Documents.Clear();
+            }
         }
 
         private void AttachToAllOpenedDocuments()
@@ -331,7 +347,10 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public void RemoveRange(IEnumerable<IXDocument> ents)
         {
-            throw new NotImplementedException();
+            foreach (var doc in ents.ToArray()) 
+            {
+                doc.Close();
+            }
         }
 
         internal bool TryFindExistingDocumentByPath(string path, out SwDocument doc)

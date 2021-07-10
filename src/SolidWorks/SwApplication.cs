@@ -105,9 +105,16 @@ namespace Xarial.XCad.SolidWorks
             }
         }
 
-        private Lazy<ISwDocumentCollection> m_DocumentsLazy;
+        private SwDocumentCollection m_Documents;
 
-        public ISwDocumentCollection Documents => m_DocumentsLazy.Value;
+        public ISwDocumentCollection Documents 
+        {
+            get 
+            {
+                m_Documents.Attach();
+                return m_Documents;
+            }
+        }
         
         public IntPtr WindowHandle => new IntPtr(Sw.IFrameObject().GetHWndx64());
 
@@ -263,7 +270,7 @@ namespace Xarial.XCad.SolidWorks
                 Services = services.CreateProvider();
                 m_Logger = Services.GetService<IXLogger>();
 
-                m_DocumentsLazy = new Lazy<ISwDocumentCollection>(() => new SwDocumentCollection(this, m_Logger));
+                m_Documents = new SwDocumentCollection(this, m_Logger);
 
                 var geomBuilderDocsProvider = Services.GetService<IMemoryGeometryBuilderDocumentProvider>();
 
@@ -363,16 +370,13 @@ namespace Xarial.XCad.SolidWorks
 
         public void Dispose()
         {
-            if (m_DocumentsLazy.IsValueCreated) 
+            try
             {
-                try
-                {
-                    m_DocumentsLazy.Value.Dispose();
-                }
-                catch (Exception ex)
-                {
-                    m_Logger.Log(ex);
-                }
+                m_Documents.Dispose();
+            }
+            catch (Exception ex)
+            {
+                m_Logger.Log(ex);
             }
 
             if (Sw != null)
