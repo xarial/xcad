@@ -195,20 +195,8 @@ namespace Xarial.XCad.SolidWorks.Documents
             {
                 foreach (IModelDoc2 model in openDocs)
                 {
-                    AttachDocument(model);
+                    m_DocsDispatcher.Dispatch(model.GetTitle(), model.GetPathName());
                 }
-            }
-        }
-
-        private void AttachDocument(IModelDoc2 model)
-        {
-            if (!m_Documents.ContainsKey(model))
-            {
-                m_DocsDispatcher.Dispatch(model);
-            }
-            else
-            {
-                m_Logger.Log($"Skipping dispatching. {model.GetTitle()} already registered", XCad.Base.Enums.LoggerMessageSeverity_e.Debug);
             }
         }
 
@@ -258,41 +246,13 @@ namespace Xarial.XCad.SolidWorks.Documents
         
         private int OnDocumentLoadNotify2(string docTitle, string docPath)
         {
-            try
-            {
-                IModelDoc2 model;
-
-                if (!string.IsNullOrEmpty(docPath))
-                {
-                    model = m_SwApp.GetOpenDocumentByName(docPath) as IModelDoc2;
-                }
-                else
-                {
-                    model = (m_SwApp.GetDocuments() as object[])?.FirstOrDefault(
-                        d => string.Equals((d as IModelDoc2).GetTitle(), docTitle)) as IModelDoc2;
-                }
-
-                if (model != null)
-                {
-                    AttachDocument(model);
-                }
-                else
-                {
-                    m_Logger.Log($"Failed to find the loaded model: {docTitle} ({docPath}). This may be due to the external reference which is not loaded", LoggerMessageSeverity_e.Error);
-                }
-            }
-            catch (Exception ex)
-            {
-                m_Logger.Log(ex);
-            }
-
+            m_DocsDispatcher.Dispatch(docTitle, docPath);
+            
             return S_OK;
         }
 
         private void OnDocumentDestroyed(SwDocument doc)
-        {
-            ReleaseDocument(doc);
-        }
+            => ReleaseDocument(doc);
 
         private void ReleaseDocument(SwDocument doc)
         {

@@ -337,10 +337,10 @@ namespace SolidWorks.Tests.Integration
                 var spec2 = (IDocumentSpecification)m_App.Sw.GetOpenDocSpec(GetFilePath(@"AssmCutLists1.SLDASM"));
                 spec1.ReadOnly = true;
                 var model2 = m_App.Sw.OpenDoc7(spec2);
-                NewDocument(swDocumentTypes_e.swDocDRAWING);
+                var newDoc = NewDocument(swDocumentTypes_e.swDocDRAWING);
                 var model3 = m_App.Sw.IActiveDoc2;
-                m_App.Sw.CloseDoc(model3.GetTitle());
                 m_App.Sw.CloseDoc(model1.GetTitle());
+                newDoc.Dispose();
             }
             finally 
             {
