@@ -8,6 +8,11 @@ This page contains list of the most notable changes in the releases of xCAD.NET.
 
 Breaking change is marked with &#x26A0; symbol
 
+## 0.7.4 - July 11, 2021
+
+* Fixed the incorrect mass properties for SOLIDWORKS 2019 and older
+* Fixed invalid principle moment of inertia and principle axis of inertia calculation for Part file
+
 ## 0.7.3 - July 2, 2021
 
 * &#x26A0; IXDocument::DeserializeObject changed to use generic parameter to specify return type
