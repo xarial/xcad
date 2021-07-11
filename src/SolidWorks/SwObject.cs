@@ -10,6 +10,7 @@ using SolidWorks.Interop.swconst;
 using System;
 using System.IO;
 using Xarial.XCad.Base;
+using Xarial.XCad.Data;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Exceptions;
 using Xarial.XCad.SolidWorks.Annotations;
@@ -20,6 +21,7 @@ using Xarial.XCad.SolidWorks.Geometry;
 using Xarial.XCad.SolidWorks.Geometry.Curves;
 using Xarial.XCad.SolidWorks.Geometry.Surfaces;
 using Xarial.XCad.SolidWorks.Sketch;
+using Xarial.XCad.Toolkit.Data;
 
 namespace Xarial.XCad.SolidWorks
 {
@@ -279,9 +281,14 @@ namespace Xarial.XCad.SolidWorks
             }
         }
 
+        public ITagsManager Tags => m_TagsLazy.Value;
+
+        private readonly Lazy<ITagsManager> m_TagsLazy;
+
         internal SwObject(object dispatch)
         {
             Dispatch = dispatch;
+            m_TagsLazy = new Lazy<ITagsManager>(() => new TagsManager());
         }
 
         internal SwObject(object dispatch, ISwDocument doc) : this(dispatch)

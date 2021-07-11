@@ -10,8 +10,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using Xarial.XCad.Data;
 using Xarial.XCad.SwDocumentManager.Documents;
 using Xarial.XCad.SwDocumentManager.Features;
+using Xarial.XCad.Toolkit.Data;
 
 namespace Xarial.XCad.SwDocumentManager
 {
@@ -31,9 +33,14 @@ namespace Xarial.XCad.SwDocumentManager
 
         #endregion
 
+        public ITagsManager Tags => m_TagsLazy.Value;
+
+        private readonly Lazy<ITagsManager> m_TagsLazy;
+
         public SwDmObject(object disp)
         {
             Dispatch = disp;
+            m_TagsLazy = new Lazy<ITagsManager>(() => new TagsManager());
         }
 
         public virtual object Dispatch { get; }

@@ -27,14 +27,18 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         where TData : class, new()
         where TPage : class, new()
     {
+        internal delegate void AssignPreviewBodyColorDelegate(IXBody body, out Color color);
+
         private readonly SwPropertyManagerPageHandler m_Handler;
+        private readonly AssignPreviewBodyColorDelegate m_AssignBodyColorFunc;
 
         internal SwMacroFeatureEditor(ISwApplication app, Type defType, SwPropertyManagerPageHandler handler,
             CustomFeatureParametersParser paramsParser, IServiceProvider svcProvider,
-            CreateDynamicControlsDelegate createDynCtrlHandler) 
+            CreateDynamicControlsDelegate createDynCtrlHandler, AssignPreviewBodyColorDelegate assignPreviewBodyColorDelegateFunc) 
             : base(app, defType, paramsParser, svcProvider)
         {
             m_Handler = handler;
+            m_AssignBodyColorFunc = assignPreviewBodyColorDelegateFunc;
 
             InitPage(createDynCtrlHandler);
         }
@@ -46,7 +50,9 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
                 var swBody = (body as SwBody).Body;
                 var model = (CurModel as SwDocument).Model;
 
-                swBody.Display3(model, ColorUtils.ToColorRef(Color.Yellow),
+                m_AssignBodyColorFunc.Invoke(body, out Color color);
+
+                swBody.Display3(model, ColorUtils.ToColorRef(color),
                     (int)swTempBodySelectOptions_e.swTempBodySelectOptionNone);
             }
         }

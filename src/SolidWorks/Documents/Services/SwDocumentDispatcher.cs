@@ -6,11 +6,14 @@
 //*********************************************************************
 
 using SolidWorks.Interop.sldworks;
+using SolidWorks.Interop.swconst;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Xarial.XCad.Base;
+using Xarial.XCad.Base.Enums;
+using Xarial.XCad.SolidWorks.Documents.Exceptions;
 using Xarial.XCad.SolidWorks.Utils;
 
 namespace Xarial.XCad.SolidWorks.Documents.Services
@@ -22,39 +25,46 @@ namespace Xarial.XCad.SolidWorks.Documents.Services
     /// DocumentLoadNotify2 even is fired async so it is not ensured that it is raised before or after OpenDoc6 or NewDocument APIs. This services is respnsibel for handlign the race conditions</remarks>
     internal class SwDocumentDispatcher
     {
+        private class ModelInfo 
+        {
+            internal string Title { get; set; }
+            internal string Path { get; set; }
+        }
+
         internal event Action<SwDocument> Dispatched;
 
         private readonly List<SwDocument> m_DocsDispatchQueue;
-        private readonly List<IModelDoc2> m_ModelsDispatchQueue;
+        private readonly List<ModelInfo> m_ModelsDispatchQueue;
 
         private readonly object m_Lock;
 
-        private readonly ISwApplication m_App;
+        private readonly SwApplication m_App;
         private readonly IXLogger m_Logger;
-
-        private readonly IEqualityComparer<IModelDoc2> m_Comparer;
-                
-        internal SwDocumentDispatcher(ISwApplication app, IXLogger logger)
+        
+        internal SwDocumentDispatcher(SwApplication app, IXLogger logger)
         {
             m_App = app;
             m_Logger = logger;
 
-            m_Comparer = new SwModelPointerEqualityComparer();
-
             m_DocsDispatchQueue = new List<SwDocument>();
-            m_ModelsDispatchQueue = new List<IModelDoc2>();
+            m_ModelsDispatchQueue = new List<ModelInfo>();
 
             m_Lock = new object();
         }
 
-        internal void Dispatch(IModelDoc2 model) 
+        //NOTE: it is not safe to dispatch the pointer to IModelDoc2 as for assembly documents it can cause RPC_E_WRONG_THREAD when retrieved on EndDispatch
+        internal void Dispatch(string title, string path) 
         {
             lock (m_Lock) 
             {
-                m_Logger.Log($"Adding '{model.GetTitle()}' to the dispatch queue", XCad.Base.Enums.LoggerMessageSeverity_e.Debug);
+                m_Logger.Log($"Adding '{title}' to the dispatch queue", LoggerMessageSeverity_e.Debug);
 
-                m_ModelsDispatchQueue.Add(model);
-
+                m_ModelsDispatchQueue.Add(new ModelInfo() 
+                {
+                    Title = title,
+                    Path = path 
+                });
+                
                 if (!m_DocsDispatchQueue.Any())
                 {
                     DispatchAllModels();
@@ -63,9 +73,7 @@ namespace Xarial.XCad.SolidWorks.Documents.Services
         }
 
         internal void BeginDispatch(SwDocument doc) 
-        {
-            m_DocsDispatchQueue.Add(doc);
-        }
+            => m_DocsDispatchQueue.Add(doc);
 
         internal void EndDispatch(SwDocument doc) 
         {
@@ -73,13 +81,19 @@ namespace Xarial.XCad.SolidWorks.Documents.Services
             {
                 m_DocsDispatchQueue.Remove(doc);
 
-                var index = m_ModelsDispatchQueue.FindIndex(d => m_Comparer.Equals(d, doc.Model));
+                var index = m_ModelsDispatchQueue.FindIndex(
+                    d => string.Equals(d.Path, doc.Path, StringComparison.CurrentCultureIgnoreCase)
+                        || string.Equals(d.Title, doc.Title, StringComparison.CurrentCultureIgnoreCase));
 
-                if (index != -1) 
+                if (index != -1)
                 {
-                    m_Logger.Log($"Removing '{doc.Title}' from the dispatch queue", XCad.Base.Enums.LoggerMessageSeverity_e.Debug);
+                    m_Logger.Log($"Removing '{doc.Title}' from the dispatch queue", LoggerMessageSeverity_e.Debug);
 
                     m_ModelsDispatchQueue.RemoveAt(index);
+                }
+                else 
+                {
+                    m_Logger.Log($"Document '{doc.Title}' is not in the dispatch queue", LoggerMessageSeverity_e.Warning);
                 }
 
                 if (doc.IsCommitted)
@@ -103,39 +117,73 @@ namespace Xarial.XCad.SolidWorks.Documents.Services
             }
         }
 
+        private bool TryFindModel(ModelInfo info, out IModelDoc2 model) 
+        {
+            if (!string.IsNullOrEmpty(info.Path))
+            {
+                model = m_App.Sw.GetOpenDocumentByName(info.Path) as IModelDoc2;
+            }
+            else
+            {
+                model = (m_App.Sw.GetDocuments() as object[])?.FirstOrDefault(
+                    d => string.Equals((d as IModelDoc2).GetTitle(), info.Title)) as IModelDoc2;
+            }
+
+            return model != null;
+        }
+
         private void DispatchAllModels() 
         {
             lock (m_Lock) 
             {
-                m_Logger.Log($"Dispatching all ({m_ModelsDispatchQueue.Count}) models", XCad.Base.Enums.LoggerMessageSeverity_e.Debug);
+                m_Logger.Log($"Dispatching all ({m_ModelsDispatchQueue.Count}) models", LoggerMessageSeverity_e.Debug);
 
-                foreach (var model in m_ModelsDispatchQueue)
+                var errors = new List<Exception>();
+
+                foreach (var modelInfo in m_ModelsDispatchQueue)
                 {
                     SwDocument doc;
 
-                    switch (model)
+                    if (TryFindModel(modelInfo, out IModelDoc2 model))
                     {
-                        case IPartDoc part:
-                            doc = new SwPart(part, (SwApplication)m_App, m_Logger, true);
-                            break;
+                        switch (model)
+                        {
+                            case IPartDoc part:
+                                doc = new SwPart(part, m_App, m_Logger, true);
+                                break;
 
-                        case IAssemblyDoc assm:
-                            doc = new SwAssembly(assm, (SwApplication)m_App, m_Logger, true);
-                            break;
+                            case IAssemblyDoc assm:
+                                doc = new SwAssembly(assm, m_App, m_Logger, true);
+                                break;
 
-                        case IDrawingDoc drw:
-                            doc = new SwDrawing(drw, (SwApplication)m_App, m_Logger, true);
-                            break;
+                            case IDrawingDoc drw:
+                                doc = new SwDrawing(drw, m_App, m_Logger, true);
+                                break;
 
-                        default:
-                            throw new NotSupportedException();
+                            case null:
+                                errors.Add(new NullReferenceException("Model is null"));
+                                continue;
+
+                            default:
+                                errors.Add(new NotSupportedException($"Invalid cast of '{modelInfo.Path}' [{modelInfo.Title}] of type '{((object)model).GetType().FullName}'. Specific document type: {(swDocumentTypes_e)model.GetType()}"));
+                                continue;
+                        }
+
+                        NotifyDispatchedSafe(doc);
                     }
-
-                    NotifyDispatchedSafe(doc);
+                    else 
+                    {
+                        m_Logger.Log($"Failed to find the loaded model: {modelInfo.Title} ({modelInfo.Path}). This may be due to the external reference which is not loaded", LoggerMessageSeverity_e.Error);
+                    }
                 }
 
                 m_ModelsDispatchQueue.Clear();
-                m_Logger.Log($"Cleared models queue", XCad.Base.Enums.LoggerMessageSeverity_e.Debug);
+                m_Logger.Log($"Cleared models queue",LoggerMessageSeverity_e.Debug);
+
+                if (errors.Any()) 
+                {
+                    throw new DocumentsQueueDispatchException(errors.ToArray());
+                }
             }
         }
 
@@ -143,12 +191,12 @@ namespace Xarial.XCad.SolidWorks.Documents.Services
         {
             try
             {
-                m_Logger.Log($"Dispatched '{doc.Title}'", XCad.Base.Enums.LoggerMessageSeverity_e.Debug);
+                m_Logger.Log($"Dispatched '{doc.Title}'", LoggerMessageSeverity_e.Debug);
                 Dispatched?.Invoke(doc);
             }
             catch (Exception ex)
             {
-                m_Logger.Log($"Unhandled exception while dispatching the document '{doc.Title}'", XCad.Base.Enums.LoggerMessageSeverity_e.Error);
+                m_Logger.Log($"Unhandled exception while dispatching the document '{doc.Title}'", LoggerMessageSeverity_e.Error);
                 m_Logger.Log(ex);
             }
         }

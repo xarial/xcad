@@ -40,6 +40,14 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
 
         private readonly ISwApplication m_SwApp;
 
+        private static readonly int[] m_AllFilters;
+
+        static PropertyManagerPageSelectionBoxControlConstructor() 
+        {
+            m_AllFilters = Enum.GetValues(typeof(swSelectType_e))
+                .Cast<int>().Where(f => f > 0).ToArray();
+        }
+
         public PropertyManagerPageSelectionBoxControlConstructor(ISwApplication app, IIconsCreator iconsConv, IXLogger logger)
             : base(app.Sw, swPropertyManagerPageControlType_e.swControlType_Selectionbox, iconsConv)
         {
@@ -100,8 +108,15 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
                     }
                 }
             }
-            
-            swCtrl.SetSelectionFilters(ConvertToSwSelFilters(filters));
+
+            if (filters != null && !filters.Contains(SelectType_e.Everything))
+            {
+                swCtrl.SetSelectionFilters(ConvertToSwSelFilters(filters));
+            }
+            else 
+            {
+                swCtrl.SetSelectionFilters(m_AllFilters);
+            }
 
             return new PropertyManagerPageSelectionBoxControl(m_SwApp, atts.Id, atts.Tag,
                 swCtrl, handler, atts.ContextType, customFilter, focusOnOpen);

@@ -13,6 +13,7 @@ using Xarial.XCad.SwDocumentManager.Documents;
 namespace SolidWorksDocMgr.Tests.Integration
 {
     [TestFixture]
+    [RequiresThread(System.Threading.ApartmentState.STA)]
     public abstract class IntegrationTests
     {
         private class DocumentWrapper : IDisposable

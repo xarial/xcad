@@ -105,6 +105,87 @@ namespace SolidWorks.Tests.Integration
         }
 
         [Test]
+        public void OpenDocumentWithReferencesTest()
+        {
+            if (m_App.Documents.Count > 0)
+            {
+                throw new Exception("Documents already opened");
+            }
+
+            string[] paths;
+            bool r1;
+            int r2;
+            int r3;
+
+            var doc = m_App.Documents.PreCreateFromPath(GetFilePath(@"Assembly2\TopAssem.SLDASM"));
+            doc.State = DocumentState_e.Silent | DocumentState_e.ReadOnly;
+            doc.Commit();
+            
+            paths = m_App.Documents.Select(d => d.Path).ToArray();
+            
+            var part = m_App.Documents[GetFilePath(@"Assembly2\Part1.SLDPRT")];
+            part.Close();
+            
+            r1 = part.IsAlive;
+            r2 = m_App.Documents.Count;
+
+            doc.Close();
+            r3 = m_App.Documents.Count;
+
+            Assert.AreEqual(5, paths.Length);
+
+            CollectionAssert.AreEquivalent(new string[] 
+            {
+                GetFilePath(@"Assembly2\TopAssem.SLDASM"),
+                GetFilePath(@"Assembly2\Part4-1 (XYZ).SLDPRT"),
+                GetFilePath(@"Assembly2\Part3.SLDPRT"),
+                GetFilePath(@"Assembly2\Assem2.SLDASM"),
+                GetFilePath(@"Assembly2\Part1.SLDPRT")
+            }, paths);
+
+            Assert.IsTrue(r1);
+            Assert.AreEqual(5, r2);
+            Assert.AreEqual(0, r3);
+        }
+
+        [Test]
+        public void OpenUserDocumentWithReferencesTest()
+        {
+            if (m_App.Documents.Count > 0) 
+            {
+                throw new Exception("Documents already opened");
+            }
+
+            string[] paths;
+            int r1;
+            int r2;
+
+            var spec1 = (IDocumentSpecification)m_App.Sw.GetOpenDocSpec(GetFilePath(@"AssmCutLists1.SLDASM"));
+            spec1.ReadOnly = true;
+            var model1 = m_App.Sw.OpenDoc7(spec1);
+
+            var doc = m_App.Documents[model1];
+
+            paths = m_App.Documents.Select(d => d.Path).ToArray();
+
+            r1 = m_App.Documents.Count;
+            doc.Close();
+            
+            r2 = m_App.Documents.Count;
+
+            Assert.AreEqual(2, paths.Length);
+
+            CollectionAssert.AreEquivalent(new string[]
+            {
+                GetFilePath(@"AssmCutLists1.SLDASM"),
+                GetFilePath(@"CutListConfs1.SLDPRT")
+            }, paths);
+
+            Assert.AreEqual(2, r1);
+            Assert.AreEqual(0, r2);
+        }
+        
+        [Test]
         public void OpenForeignDocumentTest()
         {
             var doc = (ISwDocument)m_App.Documents.Open(GetFilePath("foreign.IGS"));
@@ -322,31 +403,25 @@ namespace SolidWorks.Tests.Integration
         {
             var activateDocsList = new List<string>();
 
-            m_App.Documents.DocumentActivated += (IXDocument doc)=> 
+            m_App.Documents.DocumentActivated += (IXDocument doc) =>
             {
                 activateDocsList.Add(Path.GetFileName(doc.Path));
             };
 
             var results = new List<bool>();
 
-            try
-            {
-                var spec1 = (IDocumentSpecification)m_App.Sw.GetOpenDocSpec(GetFilePath(@"Configs1.SLDPRT"));
-                spec1.ReadOnly = true;
-                var model1 = m_App.Sw.OpenDoc7(spec1);
-                var spec2 = (IDocumentSpecification)m_App.Sw.GetOpenDocSpec(GetFilePath(@"AssmCutLists1.SLDASM"));
-                spec1.ReadOnly = true;
-                var model2 = m_App.Sw.OpenDoc7(spec2);
-                NewDocument(swDocumentTypes_e.swDocDRAWING);
-                var model3 = m_App.Sw.IActiveDoc2;
-                m_App.Sw.CloseDoc(model3.GetTitle());
-                m_App.Sw.CloseDoc(model1.GetTitle());
-            }
-            finally 
-            {
-                m_App.Sw.CloseAllDocuments(true);
-            }
-
+            var spec1 = (IDocumentSpecification)m_App.Sw.GetOpenDocSpec(GetFilePath(@"Configs1.SLDPRT"));
+            spec1.ReadOnly = true;
+            var model1 = m_App.Sw.OpenDoc7(spec1);
+            var spec2 = (IDocumentSpecification)m_App.Sw.GetOpenDocSpec(GetFilePath(@"AssmCutLists1.SLDASM"));
+            spec2.ReadOnly = true;
+            var model2 = m_App.Sw.OpenDoc7(spec2);
+            var newDoc = NewDocument(swDocumentTypes_e.swDocDRAWING);
+            var model3 = m_App.Sw.IActiveDoc2;
+            newDoc.Dispose();
+            m_App.Sw.CloseDoc(model1.GetTitle());
+            m_App.Sw.CloseDoc(model2.GetTitle());
+            
             Assert.AreEqual(4, activateDocsList.Count);
             Assert.AreEqual("Configs1.SLDPRT", activateDocsList[0]);
             Assert.AreEqual("AssmCutLists1.SLDASM", activateDocsList[1]);
@@ -705,7 +780,7 @@ namespace SolidWorks.Tests.Integration
             var part2 = m_App.Documents.PreCreate<ISwPart>();
             part2.Commit();
             isAlive2 = part2.IsAlive;
-            
+
             Assert.Throws<KeyNotFoundException>(() => { var doc = m_App.Documents[part1.Model]; });
             Assert.IsFalse(isAlive1);
             Assert.IsTrue(isAlive2);

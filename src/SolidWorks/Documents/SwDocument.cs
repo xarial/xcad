@@ -358,13 +358,9 @@ namespace Xarial.XCad.SolidWorks.Documents
         
         public bool IsCommitted => m_Creator.IsCreated;
 
-        public ITagsManager Tags { get; }
-
         protected readonly ElementCreator<IModelDoc2> m_Creator;
 
         private bool m_AreEventsAttached;
-
-        private bool? m_IsClosed;
 
         internal SwDocument(IModelDoc2 model, SwApplication app, IXLogger logger) 
             : this(model, app, logger, true)
@@ -376,8 +372,6 @@ namespace Xarial.XCad.SolidWorks.Documents
             App = app;
             
             m_Logger = logger;
-
-            Tags = new TagsManager();
 
             m_Creator = new ElementCreator<IModelDoc2>(CreateDocument, model, created);
 
@@ -410,8 +404,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             var cachedModel = m_Creator.CachedProperties.Get<IModelDoc2>(nameof(Model));
 
             Debug.Assert(cachedModel == null 
-                || new SwModelPointerEqualityComparer()
-                    .Equals(cachedModel, model), "Invalid pointers");
+                || SwModelPointerEqualityComparer.AreEqual(cachedModel, model), "Invalid pointers");
         }
 
         private SwDocumentDispatcher m_DocsDispatcher;
@@ -560,23 +553,16 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
             get 
             {
-                if (m_IsClosed.HasValue)
-                {
-                    return !m_IsClosed.Value;
-                }
-                else
-                {
-                    var model = Model;
+                var model = Model;
 
-                    try
-                    {
-                        var title = model.GetTitle();
-                        return true;
-                    }
-                    catch
-                    {
-                        return false;
-                    }
+                try
+                {
+                    var title = model.GetTitle();
+                    return true;
+                }
+                catch
+                {
+                    return false;
                 }
             }
         }
@@ -689,18 +675,20 @@ namespace Xarial.XCad.SolidWorks.Documents
                 {
                     if (!string.IsNullOrEmpty(Title))
                     {
+                        //TODO: need to communicate exception if title is not set, do not throw it from heer as the doc won't be registered
                         doc.SetTitle2(Title);
                     }
+
                     return doc;
                 }
                 else 
                 {
-                    throw new Exception($"Failed to create new document from the template: {docTemplate}");
+                    throw new NewDocumentCreateException(docTemplate);
                 }
             }
             else 
             {
-                throw new Exception("Failed to find the location of default document template");
+                throw new DefaultTemplateNotFoundException();
             }
         }
 
@@ -808,7 +796,6 @@ namespace Xarial.XCad.SolidWorks.Documents
         public void Close()
         {
             App.Sw.CloseDoc(Model.GetTitle());
-            m_IsClosed = true;
         }
 
         public void Dispose()

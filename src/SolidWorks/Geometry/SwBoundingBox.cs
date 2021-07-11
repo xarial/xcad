@@ -84,6 +84,22 @@ namespace Xarial.XCad.SolidWorks.Geometry
             }
         }
 
+        public bool VisibleOnly
+        {
+            get => m_Creator.CachedProperties.Get<bool>();
+            set
+            {
+                if (!IsCommitted)
+                {
+                    m_Creator.CachedProperties.Set(value);
+                }
+                else
+                {
+                    throw new CommittedElementPropertyChangeNotSupported();
+                }
+            }
+        }
+
         public virtual IXBody[] Scope
         {
             get => m_Creator.CachedProperties.Get<IXBody[]>();
@@ -415,22 +431,6 @@ namespace Xarial.XCad.SolidWorks.Geometry
             set => base.Scope = value; 
         }
 
-        public bool VisibleOnly
-        {
-            get => m_Creator.CachedProperties.Get<bool>();
-            set
-            {
-                if (!IsCommitted)
-                {
-                    m_Creator.CachedProperties.Set(value);
-                }
-                else
-                {
-                    throw new CommittedElementPropertyChangeNotSupported();
-                }
-            }
-        }
-
         IXComponent[] IAssemblyEvaluation.Scope
         {
             get => m_Creator.CachedProperties.Get<IXComponent[]>(nameof(Scope) + "_Components");
@@ -538,6 +538,6 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         protected override IXBody[] GetAllBodies()
             => m_Part.Bodies.OfType<IXSolidBody>()
-                .Where(b => b.Visible).ToArray();
+                .Where(b => !VisibleOnly || b.Visible).ToArray();
     }
 }

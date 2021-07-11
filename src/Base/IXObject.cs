@@ -7,6 +7,7 @@
 
 using System;
 using System.IO;
+using Xarial.XCad.Data;
 
 namespace Xarial.XCad
 {
@@ -19,6 +20,11 @@ namespace Xarial.XCad
         /// Identifies if current object is valid
         /// </summary>
         bool IsAlive { get; }
+
+        /// <summary>
+        /// Provides an ability to store temp tags in this session
+        /// </summary>
+        ITagsManager Tags { get; }
 
         /// <summary>
         /// Saves this object into a stream

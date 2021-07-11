@@ -165,9 +165,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                 }
             }
         }
-
-        public ITagsManager Tags { get; }
-
+        
         private bool? m_IsClosed;
 
         public override bool IsAlive 
@@ -277,7 +275,6 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             m_CreateHandler = createHandler;
             m_CloseHandler = closeHandler;
 
-            Tags = new TagsManager();
             m_Creator = new ElementCreator<ISwDMDocument>(OpenDocument, doc, isCreated);
 
             m_Properties = new Lazy<ISwDmCustomPropertiesCollection>(() => new SwDmDocumentCustomPropertiesCollection(this));

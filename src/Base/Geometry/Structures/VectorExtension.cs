@@ -45,6 +45,35 @@ namespace Xarial.XCad.Geometry.Structures
         /// <param name="otherVec">Other vector</param>
         /// <returns>Angle in radians</returns>
         public static double GetAngle(this Vector thisVec, Vector otherVec)
-            => Math.Acos(thisVec.Dot(otherVec) / (thisVec.GetLength() * otherVec.GetLength()));
+        {
+            var TOL = 1E-12;
+
+            var cosine = thisVec.Dot(otherVec) / (thisVec.GetLength() * otherVec.GetLength());
+
+            if (cosine > 1)
+            {
+                if (Math.Abs(cosine - 1) < TOL)
+                {
+                    cosine = 1;
+                }
+                else
+                {
+                    throw new Exception("Invalid value");
+                }
+            }
+            else if (cosine < -1)
+            {
+                if (Math.Abs(cosine + 1) < TOL)
+                {
+                    cosine = -1;
+                }
+                else
+                {
+                    throw new Exception("Invalid value");
+                }
+            }
+
+            return Math.Acos(cosine);
+        }
     }
 }

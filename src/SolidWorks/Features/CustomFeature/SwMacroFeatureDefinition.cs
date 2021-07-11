@@ -515,12 +515,15 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 
             m_Editor = new SwMacroFeatureEditor<TParams, TPage>(
                 Application, this.GetType(), CreatePageHandler(),
-                m_ParamsParser, m_SvcProvider, CreateDynamicControls);
+                m_ParamsParser, m_SvcProvider, CreateDynamicControls, AssignPreviewBodyColor);
 
             m_Editor.EditingStarted += OnEditingStarted;
             m_Editor.EditingCompleted += OnEditingCompleted;
             m_Editor.FeatureInserted += OnFeatureInserted;
         }
+
+        protected virtual void AssignPreviewBodyColor(IXBody body, out System.Drawing.Color color)
+            => color = System.Drawing.Color.Yellow;
 
         protected virtual SwPropertyManagerPageHandler CreatePageHandler() 
             => (SwPropertyManagerPageHandler)Activator.CreateInstance(typeof(TPage));

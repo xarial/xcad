@@ -81,12 +81,14 @@ namespace Xarial.XCad.Toolkit.PageBuilder.Constructors
                 filters.Add(SelectType_e.Dimensions);
             }
 
-            if (!filters.Any())
+            if (filters.Any())
             {
-                filters.Add(SelectType_e.Everything);
+                return filters.ToArray();
             }
-
-            return filters.ToArray();
+            else
+            {
+                return null;
+            }
         }
 
         public static BitmapLabelType_e? GetDefaultBitmapLabel(IAttributeSet atts)

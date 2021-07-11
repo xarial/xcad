@@ -112,6 +112,8 @@ namespace SwAddInExample
         [ControlOptions(height: 200)]
         public CustomControlDataContext CustomControl { get; set; } = new CustomControlDataContext();
 
+        public ISwSelObject AnyObject { get; set; }
+
         public List<ISwComponent> Components { get; set; }
 
         [SelectionBoxOptions(Focused = true)]
