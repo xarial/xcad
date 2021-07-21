@@ -122,14 +122,10 @@ namespace Xarial.XCad.SolidWorks.Features
 
         public IXCustomFeature<TParams> PreCreateCustomFeature<TParams>()
             where TParams : class, new()
-        {
-            return new SwMacroFeature<TParams>(Document, FeatMgr, null, m_ParamsParser, false);
-        }
+            => new SwMacroFeature<TParams>(Document, FeatMgr, null, m_ParamsParser, false);
 
         public IXCustomFeature PreCreateCustomFeature()
-        {
-            return new SwMacroFeature(Document, FeatMgr, null, false);
-        }
+            => new SwMacroFeature(Document, FeatMgr, null, false);
 
         public void RemoveRange(IEnumerable<IXFeature> ents)
         {

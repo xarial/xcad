@@ -9,6 +9,7 @@ using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
 using System;
 using System.IO;
+using System.Linq;
 using Xarial.XCad.Base;
 using Xarial.XCad.Data;
 using Xarial.XCad.Documents;
@@ -22,6 +23,7 @@ using Xarial.XCad.SolidWorks.Geometry.Curves;
 using Xarial.XCad.SolidWorks.Geometry.Surfaces;
 using Xarial.XCad.SolidWorks.Sketch;
 using Xarial.XCad.Toolkit.Data;
+using Xarial.XCad.Utils.Reflection;
 
 namespace Xarial.XCad.SolidWorks
 {
@@ -114,7 +116,14 @@ namespace Xarial.XCad.SolidWorks
                         case "RefPlane":
                             return new SwPlane(doc, feat, true);
                         case "MacroFeature":
-                            return new SwMacroFeature((SwDocument)doc, doc.Model.FeatureManager, feat, true);
+                            if (TryGetParameterType(feat, out Type paramType))
+                            {
+                                return SwMacroFeature<object>.CreateSpecificInstance((SwDocument)doc, feat, paramType);
+                            }
+                            else
+                            {
+                                return new SwMacroFeature((SwDocument)doc, doc.Model.FeatureManager, feat, true);
+                            }
                         default:
                             return new SwFeature(doc, feat, true);
                     }
@@ -255,6 +264,29 @@ namespace Xarial.XCad.SolidWorks
                 default:
                     return defaultHandler.Invoke(disp);
             }
+        }
+
+        private static bool TryGetParameterType(IFeature feat, out Type paramType)
+        {
+            var featData = feat.GetDefinition() as IMacroFeatureData;
+            var progId = featData.GetProgId();
+
+            if (!string.IsNullOrEmpty(progId))
+            {
+                var type = Type.GetTypeFromProgID(progId);
+
+                if (type != null)
+                {
+                    if (type.IsAssignableToGenericType(typeof(SwMacroFeatureDefinition<>)))
+                    {
+                        paramType = type.GetArgumentsOfGenericType(typeof(SwMacroFeatureDefinition<>)).First();
+                        return true;
+                    }
+                }
+            }
+
+            paramType = null;
+            return false;
         }
 
         public virtual object Dispatch { get; }

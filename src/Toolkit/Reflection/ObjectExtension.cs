@@ -30,7 +30,7 @@ namespace Xarial.XCad.Utils.Reflection
             if (value != null)
             {
                 if (!type.IsAssignableFrom(value.GetType())
-                    && (typeof(IConvertible)).IsAssignableFrom(type))
+                    && typeof(IConvertible).IsAssignableFrom(type))
                 {
                     try
                     {
