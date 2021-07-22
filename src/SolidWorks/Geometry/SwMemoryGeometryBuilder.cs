@@ -100,8 +100,31 @@ namespace Xarial.XCad.SolidWorks.Geometry
             }
         }
 
-        public Point FindClosestPoint(IXFace face, Point point)
-            => new Point(((double[])((ISwFace)face).Face.GetClosestPointOn(point.X, point.Y, point.Z)).Take(3).ToArray());
+        public Point FindClosestPoint(IXEntity entity, Point point)
+        {
+            double[] pos;
+
+            switch (entity) 
+            {
+                case ISwFace face:
+                    pos = (double[])face.Face.GetClosestPointOn(point.X, point.Y, point.Z);
+                    break;
+
+                case ISwEdge edge:
+                    pos = (double[])edge.Edge.GetClosestPointOn(point.X, point.Y, point.Z);
+                    break;
+
+                case ISwVertex vertex:
+                    pos = (double[])vertex.Vertex.GetClosestPointOn(point.X, point.Y, point.Z);
+                    break;
+
+                default:
+                    throw new NotSupportedException("Only face, edge and vertex are supported");
+            }
+
+            return new Point(pos.Take(3).ToArray());
+        }
+        
 
         public Point FindClosestPoint(IXSurface surface, Point point)
             => new Point(((double[])((ISwSurface)surface).Surface.GetClosestPointOn(point.X, point.Y, point.Z)).Take(3).ToArray());

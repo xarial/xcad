@@ -59,13 +59,13 @@ namespace Xarial.XCad.Geometry
         /// <summary>
         /// Finds the closes point on the specified face
         /// </summary>
-        /// <param name="face">Face to find closest point on</param>
+        /// <param name="entity">Entity (Face, Edge or Vertex) to find closest point on</param>
         /// <param name="point">Input point</param>
         /// <returns>Closest point</returns>
-        Point FindClosestPoint(IXFace face, Point point);
+        Point FindClosestPoint(IXEntity entity, Point point);
 
         /// <param name="surface">Input surface</param>
-        /// <inheritdoc cref="FindClosestPoint(IXFace, Point)"/>
+        /// <inheritdoc cref="FindClosestPoint(IXEntity, Point)"/>
         Point FindClosestPoint(IXSurface surface, Point point);
     }
 

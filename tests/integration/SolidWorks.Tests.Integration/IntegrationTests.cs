@@ -192,6 +192,7 @@ namespace SolidWorks.Tests.Integration
         {
             if (m_CloseSw) 
             {
+                Debug.Print("Unit Tests: Closing SOLIDWORKS instance");
                 m_App.Process.Kill();
             }
         }

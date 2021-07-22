@@ -37,7 +37,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         public IFace2 Face { get; }
 
-        public SwFace(IFace2 face, ISwDocument doc) : base((IEntity)face, doc)
+        internal SwFace(IFace2 face, ISwDocument doc) : base((IEntity)face, doc)
         {
             Face = face;
         }
@@ -50,7 +50,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
             {
                 foreach (IEdge edge in (Face.GetEdges() as object[]).ValueOrEmpty())
                 {
-                    yield return FromDispatch<SwEdge>(edge);
+                    yield return FromDispatch<SwEdge>(edge, m_Doc);
                 }
             }
         }

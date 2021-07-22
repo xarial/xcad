@@ -10,16 +10,16 @@ using System.Collections.Generic;
 using System.Text;
 using Xarial.XCad.Geometry.Structures;
 
-namespace Xarial.XCad.Features
+namespace Xarial.XCad.Geometry
 {
     /// <summary>
-    /// Represents the plane reference geometry
+    /// Represents the vertex
     /// </summary>
-    public interface IXPlane : IXFeature
+    public interface IXVertex : IXEntity
     {
         /// <summary>
-        /// Definition of this plane
+        /// Coordinate of the vertex
         /// </summary>
-        Plane Definition { get; }
+        Point Coordinate { get; }
     }
 }

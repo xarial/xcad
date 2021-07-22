@@ -36,16 +36,17 @@ namespace Xarial.XCad.SolidWorks.Geometry
             {
                 foreach (IFace2 face in (Edge.GetTwoAdjacentFaces2() as object[]).ValueOrEmpty()) 
                 {
-                    yield return FromDispatch<SwFace>(face);
+                    yield return FromDispatch<SwFace>(face, m_Doc);
                 }
 
                 foreach (ICoEdge coEdge in (Edge.GetCoEdges() as ICoEdge[]).ValueOrEmpty())
                 {
                     var edge = coEdge.GetEdge() as IEdge;
-                    yield return FromDispatch<SwEdge>(edge);
+                    yield return FromDispatch<SwEdge>(edge, m_Doc);
                 }
 
-                //TODO: implement vertices
+                yield return FromDispatch<ISwVertex>(Edge.IGetStartVertex(), m_Doc);
+                yield return FromDispatch<ISwVertex>(Edge.IGetEndVertex(), m_Doc);
             }
         }
 
