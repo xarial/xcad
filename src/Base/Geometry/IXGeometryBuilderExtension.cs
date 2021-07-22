@@ -155,7 +155,7 @@ namespace Xarial.XCad.Geometry
         public static IXPlanarSheet CreatePlanarSheet(this IXGeometryBuilder builder, IXRegion boundary)
         {
             var surf = builder.SheetBuilder.PreCreatePlanarSheet();
-            surf.Boundary = boundary;
+            surf.Region = boundary;
             surf.Commit();
 
             return surf;

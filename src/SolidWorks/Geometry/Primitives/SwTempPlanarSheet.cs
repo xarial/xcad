@@ -24,17 +24,17 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
     public interface ISwTempPlanarSheet : IXPlanarSheet, ISwTempPrimitive
     {
         new ISwTempPlanarSheetBody[] Bodies { get; }
-        new ISwRegion Boundary { get; set; }
+        new ISwRegion Region { get; set; }
     }
 
     internal class SwTempPlanarSheet : SwTempPrimitive, ISwTempPlanarSheet
     {
         IXPlanarSheetBody[] IXPlanarSheet.Bodies => Bodies;
 
-        IXRegion IXPlanarSheet.Boundary
+        IXRegion IXPlanarSheet.Region
         {
-            get => Boundary;
-            set => Boundary = (ISwRegion)value;
+            get => Region;
+            set => Region = (ISwRegion)value;
         }
         
         internal SwTempPlanarSheet(IMathUtility mathUtils, IModeler modeler, SwTempBody[] bodies, bool isCreated)
@@ -42,7 +42,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
         {
         }
 
-        public ISwRegion Boundary
+        public ISwRegion Region
         {
             get => m_Creator.CachedProperties.Get<ISwRegion>();
             set
@@ -64,13 +64,13 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
         {
             Body2 sheetBody;
 
-            if (Boundary is ISwFace)
+            if (Region is ISwFace)
             {
-                sheetBody = ((ISwFace)Boundary).Face.ICreateSheetBody();
+                sheetBody = ((ISwFace)Region).Face.ICreateSheetBody();
             }
             else 
             {
-                var plane = Boundary.Plane;
+                var plane = Region.Plane;
 
                 var planarSurf = m_Modeler.CreatePlanarSurface2(
                         plane.Point.ToArray(), plane.Normal.ToArray(), plane.Direction.ToArray()) as ISurface;
@@ -82,11 +82,11 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
 
                 var boundary = new List<ICurve>();
 
-                for (int i = 0; i < Boundary.Boundary.Length; i++)
+                for (int i = 0; i < Region.Boundary.Length; i++)
                 {
-                    boundary.AddRange(Boundary.Boundary[i].Curves);
+                    boundary.AddRange(Region.Boundary[i].Curves);
 
-                    if (i != Boundary.Boundary.Length - 1)
+                    if (i != Region.Boundary.Length - 1)
                     {
                         boundary.Add(null);
                     }

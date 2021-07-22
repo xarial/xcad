@@ -13,6 +13,7 @@ Breaking change is marked with &#x26A0; symbol
 * &#x26A0; ISwMacroFeature::ToParameters is removed. Now SwObjectFactory::FromDispatch will create a specific instance from IFeature
 * &#x26A0; ISwBodyExtension::ToTempBody is replace with IXBody::Copy
 * &#x26A0; IXPlanarSheet::Boundary type is changed from IXSegment[] to IXRegion. Use IXGeometryBuilder::CreateRegionFromSegments to create region from array of segments
+* &#x26A0; IXPlanarSheet::Boundary is renamed to IXPlanarSheet::Region
 
 ## 0.7.4 - July 11, 2021
 
