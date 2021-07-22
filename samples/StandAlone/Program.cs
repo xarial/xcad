@@ -156,7 +156,8 @@ namespace StandAlone
             };
             polyline.Commit();
 
-            var reg = app.MemoryGeometryBuilder.CreatePlanarSheet(polyline).Bodies.First();
+            var reg = app.MemoryGeometryBuilder.CreatePlanarSheet(
+                app.MemoryGeometryBuilder.CreateRegionFromSegments(polyline)).Bodies.First();
 
             var pathSeg = app.Documents.Active.Selections.Last() as IXSketchSegment;
 
@@ -186,7 +187,8 @@ namespace StandAlone
             sweepLine.Commit();
 
             var sweep = app.MemoryGeometryBuilder.SolidBuilder.PreCreateSweep();
-            sweep.Profiles = new IXRegion[] { app.MemoryGeometryBuilder.CreatePlanarSheet(sweepArc).Bodies.First() };
+            sweep.Profiles = new IXRegion[] { app.MemoryGeometryBuilder.CreatePlanarSheet(
+                app.MemoryGeometryBuilder.CreateRegionFromSegments(sweepArc)).Bodies.First() };
             sweep.Path = sweepLine;
             sweep.Commit();
 
@@ -217,7 +219,8 @@ namespace StandAlone
             var rev = app.MemoryGeometryBuilder.SolidBuilder.PreCreateRevolve();
             rev.Angle = Math.PI * 2;
             rev.Axis = axis;
-            rev.Profiles = new IXRegion[] { app.MemoryGeometryBuilder.CreatePlanarSheet(arc).Bodies.First() };
+            rev.Profiles = new IXRegion[] { app.MemoryGeometryBuilder.CreatePlanarSheet(
+                app.MemoryGeometryBuilder.CreateRegionFromSegments(arc)).Bodies.First() };
             rev.Commit();
 
             body = (rev.Bodies.First() as ISwBody).Body;
@@ -247,7 +250,8 @@ namespace StandAlone
             var extr = app.MemoryGeometryBuilder.SolidBuilder.PreCreateExtrusion();
             extr.Depth = 0.5;
             extr.Direction = new Vector(1, 1, 1);
-            extr.Profiles = new IXRegion[] { app.MemoryGeometryBuilder.CreatePlanarSheet(polyline).Bodies.First() };
+            extr.Profiles = new IXRegion[] { app.MemoryGeometryBuilder.CreatePlanarSheet(
+                app.MemoryGeometryBuilder.CreateRegionFromSegments(polyline)).Bodies.First() };
             extr.Commit();
 
             body = (extr.Bodies.First() as ISwBody).Body;

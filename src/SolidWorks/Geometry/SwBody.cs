@@ -157,18 +157,12 @@ namespace Xarial.XCad.SolidWorks.Geometry
                 return new ISwBody[0];
             }
         }
-    }
 
-    public static class ISwBodyExtension
-    {
-        public static ISwTempBody ToTempBody(this ISwBody body)
-            => SwObject.FromDispatch<SwTempBody>(body.Body.ICopy());
+        public IXBody Copy()
+            => SwObject.FromDispatch<SwTempBody>(Body.ICopy());
 
-        public static double GetVolume(this ISwBody body) 
-        {
-            var massPrps = body.Body.GetMassProperties(0) as double[];
-            return massPrps[3];
-        }
+        public virtual void Move(TransformMatrix transform)
+            => throw new NotSupportedException($"Only temp bodies are supported. Use {nameof(Copy)} method");
     }
 
     public interface ISwSheetBody : ISwBody, IXSheetBody
@@ -231,5 +225,14 @@ namespace Xarial.XCad.SolidWorks.Geometry
         }
 
         public double Volume => this.GetVolume();
+    }
+
+    internal static class ISwBodyExtension
+    { 
+        public static double GetVolume(this ISwBody body)
+        {
+            var massPrps = body.Body.GetMassProperties(0) as double[];
+            return massPrps[3];
+        }
     }
 }

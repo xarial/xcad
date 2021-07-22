@@ -9,6 +9,7 @@ using SolidWorks.Interop.sldworks;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Xarial.XCad.Base;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Curves;
@@ -16,6 +17,8 @@ using Xarial.XCad.Geometry.Wires;
 using Xarial.XCad.Sketch;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Features;
+using Xarial.XCad.SolidWorks.Geometry;
+using Xarial.XCad.SolidWorks.Geometry.Curves;
 
 namespace Xarial.XCad.SolidWorks.Sketch
 {

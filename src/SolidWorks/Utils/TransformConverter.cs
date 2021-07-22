@@ -54,7 +54,7 @@ namespace Xarial.XCad.SolidWorks.Utils
         /// </summary>
         /// <param name="matrix">Matrix to transform</param>
         /// <returns>SOLIDWORKS transform data</returns>
-        public static double[] ToMathTransformData(TransformMatrix matrix)
+        public static double[] ToMathTransformData(this TransformMatrix matrix)
         {
             var transX = matrix.M14;
             var transY = matrix.M24;

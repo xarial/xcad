@@ -13,6 +13,9 @@ using Xarial.XCad.Geometry.Wires;
 
 namespace Xarial.XCad.Geometry.Surfaces
 {
+    /// <summary>
+    /// Represents the specific cylindrical surface
+    /// </summary>
     public interface IXCylindricalSurface : IXSurface
     {
         /// <summary>

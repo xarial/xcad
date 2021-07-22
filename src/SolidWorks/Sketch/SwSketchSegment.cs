@@ -116,7 +116,9 @@ namespace Xarial.XCad.SolidWorks.Sketch
 
         public abstract IXPoint StartPoint { get; }
         public abstract IXPoint EndPoint { get; }
-        
+
+        public bool IsConstruction => Segment.ConstructionGeometry;
+
         private void SetColor(ISketchSegment seg, Color? color)
         {
             int colorRef = 0;

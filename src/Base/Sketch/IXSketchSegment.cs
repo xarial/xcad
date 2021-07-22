@@ -19,5 +19,10 @@ namespace Xarial.XCad.Sketch
         /// Underlyining segment defining this sketch segment
         /// </summary>
         IXSegment Definition { get; }
+
+        /// <summary>
+        /// Identifies if this sketch segment is construction geometry
+        /// </summary>
+        bool IsConstruction { get; }
     }
 }

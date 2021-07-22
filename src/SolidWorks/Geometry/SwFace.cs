@@ -10,11 +10,15 @@ using SolidWorks.Interop.swconst;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 using System.Text;
+using Xarial.XCad.Features;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Geometry.Surfaces;
+using Xarial.XCad.Geometry.Wires;
 using Xarial.XCad.SolidWorks.Documents;
+using Xarial.XCad.SolidWorks.Features;
 using Xarial.XCad.SolidWorks.Geometry.Surfaces;
 using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.Utils.Reflection;
@@ -65,6 +69,26 @@ namespace Xarial.XCad.SolidWorks.Geometry
         }
 
         public ISwSurface Definition => SwSelObject.FromDispatch<SwSurface>(Face.IGetSurface());
+
+        public IXFeature Feature 
+        {
+            get 
+            {
+                var feat = Face.IGetFeature();
+
+                if (feat != null)
+                {
+                    return SwObject.FromDispatch<ISwFeature>(feat, m_Doc);
+                }
+                else 
+                {
+                    return null;
+                }
+            }
+        }
+
+        public IXEdge[] Edges => (Face.GetEdges() as object[])
+            .Select(f => SwObject.FromDispatch<ISwEdge>(f, m_Doc)).ToArray();
     }
 
     public interface ISwPlanarFace : ISwFace, IXPlanarFace
@@ -81,6 +105,9 @@ namespace Xarial.XCad.SolidWorks.Geometry
         }
 
         public new ISwPlanarSurface Definition => SwSelObject.FromDispatch<SwPlanarSurface>(Face.IGetSurface());
+
+        public Plane Plane => Definition.Plane;
+        public IXSegment[] Boundary => Edges.Select(e => e.Definition).ToArray();
     }
 
     public interface ISwCylindricalFace : ISwFace, IXCylindricalFace

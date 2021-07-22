@@ -16,12 +16,39 @@ using Xarial.XCad.Geometry.Wires;
 
 namespace Xarial.XCad.Geometry
 {
+    /// <summary>
+    /// Builds wire (1-dimensional) geometry
+    /// </summary>
     public interface IXWireGeometryBuilder
     {
+        /// <summary>
+        /// Creates a line template
+        /// </summary>
+        /// <returns></returns>
         IXLine PreCreateLine();
+
+        /// <summary>
+        /// Creates an arc template
+        /// </summary>
+        /// <returns></returns>
         IXArc PreCreateArc();
+
+        /// <summary>
+        /// Creates a point template
+        /// </summary>
+        /// <returns></returns>
         IXPoint PreCreatePoint();
+
+        /// <summary>
+        /// Creates a polyline template
+        /// </summary>
+        /// <returns></returns>
         IXPolylineCurve PreCreatePolyline();
+
+        /// <summary>
+        /// Creates compltex curve template
+        /// </summary>
+        /// <returns></returns>
         IXComplexCurve PreCreateComplex();
     }
 }

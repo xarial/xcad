@@ -8,6 +8,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Xarial.XCad.Features;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Geometry.Surfaces;
 
@@ -27,12 +28,22 @@ namespace Xarial.XCad.Geometry
         /// Underlying definition for this face
         /// </summary>
         IXSurface Definition { get; }
+
+        /// <summary>
+        /// Returns the feature which owns this face
+        /// </summary>
+        IXFeature Feature { get; }
+
+        /// <summary>
+        /// Edges of this face
+        /// </summary>
+        IXEdge[] Edges { get; }
     }
 
     /// <summary>
     /// Represents planar face
     /// </summary>
-    public interface IXPlanarFace : IXFace 
+    public interface IXPlanarFace : IXFace, IXRegion
     {
         /// <inheritdoc/>
         new IXPlanarSurface Definition { get; }

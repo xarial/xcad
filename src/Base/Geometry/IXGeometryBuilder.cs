@@ -9,6 +9,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using Xarial.XCad.Geometry.Structures;
+using Xarial.XCad.Geometry.Surfaces;
+using Xarial.XCad.Geometry.Wires;
 
 namespace Xarial.XCad.Geometry
 {
@@ -31,6 +34,39 @@ namespace Xarial.XCad.Geometry
         /// Provides an access to solid geometry builder functions
         /// </summary>
         IXSolidGeometryBuilder SolidBuilder { get; }
+
+        /// <summary>
+        /// Creates region from the specified list of segments
+        /// </summary>
+        /// <param name="segments">Segments</param>
+        /// <returns>Created region</returns>
+        IXRegion CreateRegionFromSegments(params IXSegment[] segments);
+
+        /// <summary>
+        /// Projects the specified point onto face
+        /// </summary>
+        /// <param name="face">Face to project point on</param>
+        /// <param name="point">Input point</param>
+        /// <param name="direction">Projection direction</param>
+        /// <param name="projectedPoint">Projected point or null</param>
+        /// <returns>True if projected point is found, false - if not</returns>
+        bool TryProjectPoint(IXFace face, Point point, Vector direction, out Point projectedPoint);
+
+        /// <param name="surface">Input surface</param>
+        /// <inheritdoc cref="TryProjectPoint(IXFace, Point, Vector, out Point)"/>
+        bool TryProjectPoint(IXSurface surface, Point point, Vector direction, out Point projectedPoint);
+
+        /// <summary>
+        /// Finds the closes point on the specified face
+        /// </summary>
+        /// <param name="face">Face to find closest point on</param>
+        /// <param name="point">Input point</param>
+        /// <returns>Closest point</returns>
+        Point FindClosestPoint(IXFace face, Point point);
+
+        /// <param name="surface">Input surface</param>
+        /// <inheritdoc cref="FindClosestPoint(IXFace, Point)"/>
+        Point FindClosestPoint(IXSurface surface, Point point);
     }
 
     /// <summary>

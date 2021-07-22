@@ -37,7 +37,8 @@ namespace SolidWorks.Tests.Integration
                 sweepLine.Commit();
 
                 var sweep = m_App.MemoryGeometryBuilder.SolidBuilder.PreCreateSweep();
-                sweep.Profiles = new IXRegion[] { m_App.MemoryGeometryBuilder.CreatePlanarSheet(sweepArc).Bodies.First() };
+                sweep.Profiles = new IXRegion[] { m_App.MemoryGeometryBuilder.CreatePlanarSheet(
+                    m_App.MemoryGeometryBuilder.CreateRegionFromSegments(sweepArc)).Bodies.First() };
                 sweep.Path = sweepLine;
                 sweep.Commit();
 
@@ -108,7 +109,8 @@ namespace SolidWorks.Tests.Integration
                 var rev = m_App.MemoryGeometryBuilder.SolidBuilder.PreCreateRevolve();
                 rev.Angle = Math.PI * 2;
                 rev.Axis = axis;
-                rev.Profiles = new IXRegion[] { m_App.MemoryGeometryBuilder.CreatePlanarSheet(arc).Bodies.First() };
+                rev.Profiles = new IXRegion[] { m_App.MemoryGeometryBuilder.CreatePlanarSheet(
+                    m_App.MemoryGeometryBuilder.CreateRegionFromSegments(arc)).Bodies.First() };
                 rev.Commit();
 
                 var body = (rev.Bodies.First() as ISwBody).Body;
@@ -178,7 +180,8 @@ namespace SolidWorks.Tests.Integration
                 var extr = m_App.MemoryGeometryBuilder.SolidBuilder.PreCreateExtrusion();
                 extr.Depth = 0.5;
                 extr.Direction = new Vector(1, 1, 1);
-                extr.Profiles = new IXRegion[] { m_App.MemoryGeometryBuilder.CreatePlanarSheet(polyline).Bodies.First() };
+                extr.Profiles = new IXRegion[] { m_App.MemoryGeometryBuilder.CreatePlanarSheet(
+                    m_App.MemoryGeometryBuilder.CreateRegionFromSegments(polyline)).Bodies.First() };
                 extr.Commit();
 
                 var body = (extr.Bodies.First() as ISwBody).Body;
@@ -240,7 +243,8 @@ namespace SolidWorks.Tests.Integration
                 arc.Axis = new Vector(Math.Round(1E-16d, 15), 0, 1);
                 arc.Diameter = 2.5;
                 arc.Commit();
-                var face = m_App.MemoryGeometryBuilder.CreatePlanarSheet(arc).Bodies.First().Faces.First();
+                var face = m_App.MemoryGeometryBuilder.CreatePlanarSheet(
+                    m_App.MemoryGeometryBuilder.CreateRegionFromSegments(arc)).Bodies.First().Faces.First();
                 isPlanar = face is IXPlanarFace;
                 edgeCount = (face as ISwFace).Face.GetEdgeCount();
                 isCircular = (((face as ISwFace).Face.GetEdges() as object[]).First() as IEdge).IGetCurve().IsCircle();
