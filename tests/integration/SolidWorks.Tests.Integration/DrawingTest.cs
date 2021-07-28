@@ -168,11 +168,11 @@ namespace SolidWorks.Tests.Integration
                 var v4 = sheets["Sheet2"].DrawingViews["Drawing View4"];
                 var v5 = sheets["Sheet2"].DrawingViews["Drawing View5"];
 
-                view1DocPath = v1.Document.Path;
-                view2DocPath = v2.Document.Path;
-                view3DocPath = v3.Document.Path;
-                view4DocPath = v4.Document.Path;
-                view5DocPath = v5.Document != null ? v5.Document.Path : "";
+                view1DocPath = v1.ReferencedDocument.Path;
+                view2DocPath = v2.ReferencedDocument.Path;
+                view3DocPath = v3.ReferencedDocument.Path;
+                view4DocPath = v4.ReferencedDocument.Path;
+                view5DocPath = v5.ReferencedDocument != null ? v5.ReferencedDocument.Path : "";
 
                 view1Conf = v1.ReferencedConfiguration.Name;
                 view2Conf = v2.ReferencedConfiguration.Name;

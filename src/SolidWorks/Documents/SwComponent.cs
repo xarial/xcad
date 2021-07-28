@@ -33,7 +33,7 @@ namespace Xarial.XCad.SolidWorks.Documents
     public interface ISwComponent : IXComponent, ISwSelObject 
     {
         new ISwComponentCollection Children { get; }
-        new ISwDocument3D Document { get; }
+        new ISwDocument3D ReferencedDocument { get; }
         new TSelObject ConvertObject<TSelObject>(TSelObject obj)
             where TSelObject : ISwSelObject;
         IComponent2 Component { get; }
@@ -48,7 +48,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
     internal class SwComponent : SwSelObject, ISwComponent
     {
-        IXDocument3D IXComponent.Document => Document;
+        IXDocument3D IXComponent.ReferencedDocument => ReferencedDocument;
         IXComponentRepository IXComponent.Children => Children;
         IXFeatureRepository IXComponent.Features => Features;
         TSelObject IXObjectContainer.ConvertObject<TSelObject>(TSelObject obj) => ConvertObjectBoxed(obj) as TSelObject;
@@ -65,15 +65,15 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public override object Dispatch => Component;
 
-        internal SwComponent(IComponent2 comp, SwAssembly rootAssembly) : base(comp, rootAssembly)
+        internal SwComponent(IComponent2 comp, SwAssembly rootAssembly, ISwApplication app) : base(comp, rootAssembly, app)
         {
             m_RootAssembly = rootAssembly;
             Component = comp;
             Children = new SwChildComponentsCollection(rootAssembly, comp);
-            m_Features = new Lazy<ISwFeatureManager>(() => new SwComponentFeatureManager(rootAssembly, this));
+            m_Features = new Lazy<ISwFeatureManager>(() => new SwComponentFeatureManager(this, rootAssembly, app));
             Bodies = new SwComponentBodyCollection(comp, rootAssembly);
 
-            m_FilePathResolver = m_RootAssembly.App.Services.GetService<IFilePathResolver>();
+            m_FilePathResolver = ((SwApplication)OwnerApplication).Services.GetService<IFilePathResolver>();
         }
 
         public string Name
@@ -82,7 +82,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             set => Component.Name2 = value;
         }
 
-        public ISwDocument3D Document
+        public ISwDocument3D ReferencedDocument
         {
             get
             {
@@ -91,7 +91,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                 //Note: for LDR assembly IGetModelDoc returns the pointer to root assembly
                 if (compModel != null && !m_RootAssembly.Model.IsOpenedViewOnly())
                 {
-                    return (SwDocument3D)m_RootAssembly.App.Documents[compModel];
+                    return (ISwDocument3D)OwnerApplication.Documents[compModel];
                 }
                 else
                 {
@@ -106,13 +106,13 @@ namespace Xarial.XCad.SolidWorks.Documents
                         path = CachedPath;
                     }
 
-                    if (((SwDocumentCollection)m_RootAssembly.App.Documents).TryFindExistingDocumentByPath(path, out SwDocument doc))
+                    if (((SwDocumentCollection)OwnerApplication.Documents).TryFindExistingDocumentByPath(path, out SwDocument doc))
                     {
                         return (ISwDocument3D)doc;
                     }
                     else 
                     {
-                        return (ISwDocument3D)((SwDocumentCollection)m_RootAssembly.App.Documents).PreCreateFromPath(path);
+                        return (ISwDocument3D)((SwDocumentCollection)OwnerApplication.Documents).PreCreateFromPath(path);
                     }
                 }
             }
@@ -230,7 +230,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
 
         public IXConfiguration ReferencedConfiguration
-            => new SwComponentConfiguration(this);
+            => new SwComponentConfiguration(this, OwnerApplication);
 
         public override void Select(bool append)
         {
@@ -255,7 +255,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
                 if (corrDisp != null)
                 {
-                    return SwSelObject.FromDispatch(corrDisp, m_RootAssembly);
+                    return m_RootAssembly.CreateObjectFromDispatch<ISwSelObject>(corrDisp);
                 }
                 else
                 {
@@ -274,8 +274,8 @@ namespace Xarial.XCad.SolidWorks.Documents
         private readonly SwAssembly m_Assm;
         internal SwComponent Component { get; }
 
-        public SwComponentFeatureManager(SwAssembly assm, SwComponent comp) 
-            : base(assm)
+        public SwComponentFeatureManager(SwComponent comp, SwAssembly assm, ISwApplication app) 
+            : base(assm, app)
         {
             m_Assm = assm;
             Component = comp;
@@ -326,7 +326,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
             if (feat != null)
             {
-                ent = SwObject.FromDispatch<SwFeature>(feat, m_Assm);
+                ent = m_Assm.CreateObjectFromDispatch<SwFeature>(feat);
                 return true;
             }
             else

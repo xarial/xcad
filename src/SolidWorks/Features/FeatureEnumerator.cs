@@ -15,7 +15,7 @@ namespace Xarial.XCad.SolidWorks.Features
 {
     internal abstract class FeatureEnumerator : IEnumerator<IXFeature>
     {
-        public IXFeature Current => SwObject.FromDispatch<SwFeature>(m_CurFeat, m_RootDoc);
+        public IXFeature Current => m_RootDoc.CreateObjectFromDispatch<SwFeature>(m_CurFeat);
 
         object IEnumerator.Current => Current;
 

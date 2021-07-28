@@ -323,7 +323,7 @@ namespace SolidWorks.Tests.Integration
                 Assert.Throws<ConfigurationSpecificCutListPropertiesWriteNotSupportedException>(
                     () => { prp3.Commit(); });
 
-                var part = (ISwPart)assm.Configurations.Active.Components["CutListConfs1-1"].Document;
+                var part = (ISwPart)assm.Configurations.Active.Components["CutListConfs1-1"].ReferencedDocument;
 
                 part.Model.ShowConfiguration2("Conf1<As Machined>");
                 part.Part.IFeatureByName("Cut-List-Item1").CustomPropertyManager.Get5("Prp3", false, out _, out conf1Val, out _);

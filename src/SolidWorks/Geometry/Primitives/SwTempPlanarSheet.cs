@@ -16,6 +16,7 @@ using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Primitives;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Geometry.Wires;
+using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Geometry.Curves;
 using Xarial.XCad.SolidWorks.Geometry.Exceptions;
 
@@ -37,8 +38,8 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
             set => Region = (ISwRegion)value;
         }
         
-        internal SwTempPlanarSheet(IMathUtility mathUtils, IModeler modeler, SwTempBody[] bodies, bool isCreated)
-            : base(mathUtils, modeler, bodies, isCreated)
+        internal SwTempPlanarSheet(SwTempBody[] bodies, ISwApplication app, bool isCreated)
+            : base(bodies, app, isCreated)
         {
         }
 
@@ -100,7 +101,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
                 throw new Exception("Failed to create profile sheet body");
             }
 
-            return new ISwTempBody[] { SwSelObject.FromDispatch<SwTempBody>(sheetBody) };
+            return new ISwTempBody[] { m_App.CreateObjectFromDispatch<SwTempBody>(sheetBody, null) };
         }
     }
 }

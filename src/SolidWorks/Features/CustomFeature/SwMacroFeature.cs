@@ -77,17 +77,15 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 
         private readonly IFeatureManager m_FeatMgr;
 
-        internal ISwDocument Document => m_Doc;
-
-        internal SwMacroFeature(SwDocument doc, IFeatureManager featMgr, IFeature feat, bool created)
-            : base(doc, feat, created)
+        internal SwMacroFeature(IFeature feat, SwDocument doc, ISwApplication app, bool created)
+            : base(feat, doc, app, created)
         {
-            m_FeatMgr = featMgr;
+            m_FeatMgr = doc.Model.FeatureManager;
         }
 
         //TODO: check constant context disconnection exception
         public IXConfiguration Configuration 
-            => SwObject.FromDispatch<SwConfiguration>(FeatureData.CurrentConfiguration, m_Doc);
+            => OwnerDocument.CreateObjectFromDispatch<SwConfiguration>(FeatureData.CurrentConfiguration);
 
         protected override IFeature CreateFeature(CancellationToken cancellationToken)
             => InsertComFeatureBase(null, null, null, null, null, null, null);
@@ -161,25 +159,24 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         private readonly MacroFeatureParametersParser m_ParamsParser;
         private TParams m_ParametersCache;
 
-        internal static SwMacroFeature CreateSpecificInstance(SwDocument doc, IFeature feat, Type paramType) 
+        internal static SwMacroFeature CreateSpecificInstance(IFeature feat, SwDocument doc, ISwApplication app, Type paramType) 
         {
             var macroFeatType = typeof(SwMacroFeature<>).MakeGenericType(paramType);
-            var featMgr = doc.Model.FeatureManager;
-            var paramsParser = new MacroFeatureParametersParser(doc.App.Sw);
+            var paramsParser = new MacroFeatureParametersParser(app);
 
 #if DEBUG
             //NOTE: this is a test to ensure that if constructor is changed the reflection will not be broken and this call will fail at compile time
-            var test = new SwMacroFeature<object>(doc, featMgr, feat, paramsParser, true);
+            var test = new SwMacroFeature<object>(feat, doc, app, paramsParser, true);
 #endif
             var constr = macroFeatType.GetConstructor(BindingFlags.Instance | BindingFlags.NonPublic, null,
-                new Type[] { typeof(SwDocument), typeof(IFeatureManager), typeof(IFeature), typeof(MacroFeatureParametersParser), typeof(bool) }, null);
+                new Type[] { typeof(IFeature), typeof(SwDocument), typeof(ISwApplication), typeof(MacroFeatureParametersParser), typeof(bool) }, null);
 
-            return (SwMacroFeature)constr.Invoke(new object[] { doc, featMgr, feat, paramsParser, true });
+            return (SwMacroFeature)constr.Invoke(new object[] { feat, doc, app, paramsParser, true });
         }
 
         //NOTE: this constructor is used in the reflection of SwObjectFactory
-        internal SwMacroFeature(SwDocument model, IFeatureManager featMgr, IFeature feat, MacroFeatureParametersParser paramsParser, bool created)
-            : base(model, featMgr, feat, created)
+        internal SwMacroFeature(IFeature feat, SwDocument doc, ISwApplication app, MacroFeatureParametersParser paramsParser, bool created)
+            : base(feat, doc, app, created)
         {
             m_ParamsParser = paramsParser;
         }
@@ -190,9 +187,9 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             {
                 if (IsCommitted)
                 {
-                    if (FeatureData.AccessSelections(m_Doc.Model, null))
+                    if (FeatureData.AccessSelections(OwnerModelDoc, null))
                     {
-                        return (TParams)m_ParamsParser.GetParameters(this, m_Doc, typeof(TParams),
+                        return (TParams)m_ParamsParser.GetParameters(this, OwnerDocument, typeof(TParams),
                             out _, out _, out _, out _, out _);
                     }
                     else
@@ -215,9 +212,9 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
                     }
                     else
                     {
-                        m_ParamsParser.SetParameters(m_Doc, this, value, out _);
+                        m_ParamsParser.SetParameters(OwnerDocument, this, value, out _);
 
-                        if (!Feature.ModifyDefinition(FeatureData, m_Doc.Model, null))
+                        if (!Feature.ModifyDefinition(FeatureData, OwnerModelDoc, null))
                         {
                             throw new Exception("Failed to update parameters");
                         }
@@ -231,7 +228,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         }
 
         public TParams CachedParameters =>
-            (TParams)m_ParamsParser.GetParameters(this, m_Doc, typeof(TParams),
+            (TParams)m_ParamsParser.GetParameters(this, OwnerDocument, typeof(TParams),
                 out _, out _, out _, out _, out _);
 
         protected override IFeature CreateFeature(CancellationToken cancellationToken)

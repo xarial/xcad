@@ -35,18 +35,18 @@ namespace Xarial.XCad.SolidWorks.Features
 
         IXPropertyRepository IPropertiesOwner.Properties => Properties;
 
-        private ISwDocument3D m_OwnerDoc;
-        private ISwConfiguration m_OwnerConf;
-
-        internal SwCutListItem(ISwDocument3D doc, IFeature feat, bool created) : base(doc, feat, created)
+        private ISwDocument3D m_ParentDoc;
+        private ISwConfiguration m_ParentConf;
+        
+        internal SwCutListItem(IFeature feat, ISwDocument3D doc, ISwApplication app, bool created) : base(feat, doc, app, created)
         {
             if (feat.GetTypeName2() != "CutListFolder") 
             {
                 throw new InvalidCastException("Specified feature is not a cut-list feature");
             }
 
-            m_OwnerDoc = doc;
-            m_OwnerConf = doc.Configurations.Active;
+            m_ParentDoc = doc;
+            m_ParentConf = doc.Configurations.Active;
 
             CutListBodyFolder = (IBodyFolder)feat.GetSpecificFeature2();
 
@@ -55,7 +55,7 @@ namespace Xarial.XCad.SolidWorks.Features
         }
 
         protected virtual SwCutListCustomPropertiesCollection CreatePropertiesCollection()
-            => new SwCutListCustomPropertiesCollection(m_Doc, Feature.CustomPropertyManager, m_OwnerDoc, m_OwnerConf);
+            => new SwCutListCustomPropertiesCollection(Feature.CustomPropertyManager, m_ParentDoc, m_ParentConf, OwnerApplication);
 
         public IBodyFolder CutListBodyFolder { get; }
 
@@ -67,7 +67,7 @@ namespace Xarial.XCad.SolidWorks.Features
 
                 if (bodies != null)
                 {
-                    return bodies.Select(b => SwObjectFactory.FromDispatch<ISwSolidBody>(b, m_Doc)).ToArray();
+                    return bodies.Select(b => OwnerDocument.CreateObjectFromDispatch<ISwSolidBody>(b)).ToArray();
                 }
                 else 
                 {
@@ -93,10 +93,10 @@ namespace Xarial.XCad.SolidWorks.Features
             }
         }
 
-        internal void SetOwner(ISwDocument3D doc, ISwConfiguration conf) 
+        internal void SetParent(ISwDocument3D doc, ISwConfiguration conf) 
         {
-            m_OwnerDoc = doc;
-            m_OwnerConf = conf;
+            m_ParentDoc = doc;
+            m_ParentConf = conf;
         }
 
         public void Dispose()
@@ -110,17 +110,17 @@ namespace Xarial.XCad.SolidWorks.Features
 
     internal class SwCutListCustomPropertiesCollection : SwCustomPropertiesCollection
     {
-        private readonly ISwDocument3D m_OwnerDoc;
-        private readonly ISwConfiguration m_OwnerConf;
+        private readonly ISwDocument3D m_ParentDoc;
+        private readonly ISwConfiguration m_ParentConf;
 
-        internal SwCutListCustomPropertiesCollection(ISwDocument doc, CustomPropertyManager prpsMgr,
-            ISwDocument3D ownerDoc, ISwConfiguration ownerConf) 
-            : base((SwDocument)doc)
+        internal SwCutListCustomPropertiesCollection(CustomPropertyManager prpsMgr,
+            ISwDocument3D parentDoc, ISwConfiguration parentConf, ISwApplication app) 
+            : base((SwDocument)parentDoc, app)
         {
             PrpMgr = prpsMgr;
 
-            m_OwnerDoc = ownerDoc;
-            m_OwnerConf = ownerConf;
+            m_ParentDoc = parentDoc;
+            m_ParentConf = parentConf;
         }
 
         protected override CustomPropertyManager PrpMgr { get; }
@@ -130,14 +130,14 @@ namespace Xarial.XCad.SolidWorks.Features
 
         protected override SwCustomProperty CreatePropertyInstance(CustomPropertyManager prpMgr, string name, bool isCreated)
         {
-            var prp = new SwCutListCustomProperty(prpMgr, name, m_OwnerDoc, m_OwnerConf, isCreated, m_Doc.App);
+            var prp = new SwCutListCustomProperty(prpMgr, name, m_ParentDoc, m_ParentConf, isCreated, m_App);
             InitProperty(prp);
             return prp;
         }
 
         protected override void DeleteProperty(IXProperty prp)
         {
-            if (m_OwnerDoc.Configurations.Active.Configuration != m_OwnerConf.Configuration)
+            if (m_ParentDoc.Configurations.Active.Configuration != m_ParentConf.Configuration)
             {
                 throw new ConfigurationSpecificCutListPropertiesWriteNotSupportedException();
             }

@@ -26,8 +26,8 @@ namespace SolidWorks.Tests.Integration
             {
                 var part = (ISwPart)m_App.Documents.Active;
 
-                var sketch = SwObjectFactory.FromDispatch<ISwSketch2D>(
-                    part.Features["Sketch1"].Feature.GetSpecificFeature2() as ISketch, part);
+                var sketch = part.CreateObjectFromDispatch<ISwSketch2D>(
+                    part.Features["Sketch1"].Feature.GetSpecificFeature2() as ISketch);
 
                 entTypes = sketch.Entities.Where(e => !(e is ISwSketchPoint)).Select(e => e.GetType()).ToArray();
             }
@@ -101,8 +101,8 @@ namespace SolidWorks.Tests.Integration
             {
                 var part = (ISwPart)m_App.Documents.Active;
 
-                var sketch = SwObjectFactory.FromDispatch<ISwSketch2D>(
-                    part.Features["Sketch1"].Feature.GetSpecificFeature2() as ISketch, part);
+                var sketch = part.CreateObjectFromDispatch<ISwSketch2D>(
+                    part.Features["Sketch1"].Feature.GetSpecificFeature2() as ISketch);
 
                 var segs = sketch.Entities.OfType<IXSketchSegment>().ToArray();
 

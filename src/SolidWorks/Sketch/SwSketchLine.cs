@@ -24,8 +24,8 @@ namespace Xarial.XCad.SolidWorks.Sketch
     {
         public ISketchLine Line => (ISketchLine)Segment;
 
-        public override IXPoint StartPoint => SwSelObject.FromDispatch<SwSketchPoint>(Line.IGetStartPoint2(), m_Doc);
-        public override IXPoint EndPoint => SwSelObject.FromDispatch<SwSketchPoint>(Line.IGetEndPoint2(), m_Doc);
+        public override IXPoint StartPoint => OwnerDocument.CreateObjectFromDispatch<SwSketchPoint>(Line.IGetStartPoint2());
+        public override IXPoint EndPoint => OwnerDocument.CreateObjectFromDispatch<SwSketchPoint>(Line.IGetEndPoint2());
 
         public Point StartCoordinate 
         {
@@ -79,8 +79,8 @@ namespace Xarial.XCad.SolidWorks.Sketch
             }
         }
 
-        internal SwSketchLine(ISwDocument doc, ISketchLine line, bool created) 
-            : base(doc, (ISketchSegment)line, created)
+        internal SwSketchLine(ISketchLine line, ISwDocument doc, ISwApplication app, bool created) 
+            : base((ISketchSegment)line, doc, app, created)
         {
         }
 

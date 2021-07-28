@@ -30,18 +30,18 @@ namespace Xarial.XCad.SolidWorks.Documents
         IXModelView IXModelViewRepository.Active => Active;
 
         private readonly ISwDocument3D m_Doc;
-        private readonly IMathUtility m_MathUtils;
+        private readonly ISwApplication m_App;
 
-        public SwModelViewsCollection(ISwDocument3D doc, IMathUtility mathUtils) 
+        public SwModelViewsCollection(ISwDocument3D doc, ISwApplication app) 
         {
             m_Doc = doc;
-            m_MathUtils = mathUtils;
+            m_App = app;
         }
 
         public int Count => throw new NotImplementedException();
 
         //TODO: move the view creation to SwObject.FromDispatch
-        public ISwModelView Active => new SwModelView(m_Doc.Model, m_Doc.Model.IActiveView, m_MathUtils);
+        public ISwModelView Active => new SwModelView(m_Doc.Model.IActiveView, m_Doc, m_App);
         
         public ISwNamedView this[string name] 
         {
@@ -60,7 +60,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
 
         public ISwStandardView this[StandardViewType_e type]
-            => new SwStandardView(m_Doc.Model, null, m_MathUtils, type); //TODO: move the view creation to SwObject.FromDispatch
+            => new SwStandardView(null, m_Doc, m_App, type); //TODO: move the view creation to SwObject.FromDispatch
 
         public void AddRange(IEnumerable<IXModelView> ents)
         {
@@ -84,7 +84,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             if (viewNames.Contains(name, StringComparer.CurrentCultureIgnoreCase))
             {
                 //TODO: move the view creation to SwObject.FromDispatch
-                ent = new SwNamedView(m_Doc.Model, null, m_MathUtils, name);
+                ent = new SwNamedView(null, m_Doc, m_App, name);
                 return true;
             }
             else 

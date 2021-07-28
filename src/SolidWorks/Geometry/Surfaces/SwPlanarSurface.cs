@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Text;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Geometry.Surfaces;
+using Xarial.XCad.SolidWorks.Documents;
 
 namespace Xarial.XCad.SolidWorks.Geometry.Surfaces
 {
@@ -20,7 +21,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Surfaces
 
     internal class SwPlanarSurface : SwSurface, ISwPlanarSurface
     {
-        internal SwPlanarSurface(ISurface surface) : base(surface)
+        internal SwPlanarSurface(ISurface surface, ISwDocument doc, ISwApplication app) : base(surface, doc, app)
         {
         }
 

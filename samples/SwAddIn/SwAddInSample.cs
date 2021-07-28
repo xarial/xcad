@@ -371,7 +371,7 @@ namespace SwAddInExample
 
                     foreach (var comp in Application.Documents.Active.Selections.OfType<IXComponent>()) 
                     {
-                        this.CreateFeatureManagerTab<WpfUserControl>((ISwDocument)comp.Document);
+                        this.CreateFeatureManagerTab<WpfUserControl>((ISwDocument)comp.ReferencedDocument);
                     }
 
                     //this.CreateDocumentTabWinForm<WinUserControl>(Application.Documents.Active);

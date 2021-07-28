@@ -58,15 +58,15 @@ namespace SolidWorks.Tests.Integration
             {
                 var assm = (ISwAssembly)m_App.Documents.Active;
 
-                var doc1 = assm.Configurations.Active.Components["Part1-1"].Document;
+                var doc1 = assm.Configurations.Active.Components["Part1-1"].ReferencedDocument;
                 doc1FileName = Path.GetFileName(doc1.Path);
                 doc1Contains = m_App.Documents.Contains(doc1);
 
-                var doc2 = assm.Configurations.Active.Components["SubAssem1-1"].Document;
+                var doc2 = assm.Configurations.Active.Components["SubAssem1-1"].ReferencedDocument;
                 doc2FileName = Path.GetFileName(doc2.Path);
                 doc2Contains = m_App.Documents.Contains(doc2);
 
-                var d = assm.Configurations.Active.Components["Part1-2"].Document;
+                var d = assm.Configurations.Active.Components["Part1-2"].ReferencedDocument;
 
                 Assert.IsTrue(doc1.IsCommitted);
                 Assert.IsTrue(doc2.IsCommitted);
@@ -88,11 +88,11 @@ namespace SolidWorks.Tests.Integration
             {
                 var assm = (ISwAssembly)m_App.Documents.Active;
 
-                var doc1 = assm.Configurations.Active.Components["Part1-1"].Document;
-                var doc2 = assm.Configurations.Active.Components["Assem2-1"].Document;
-                var doc3 = assm.Configurations.Active.Components["Assem2-1"].Children["Part2-1"].Document;
-                var doc4 = assm.Configurations.Active.Components["Assem2-1"].Children["Part3-1"].Document;
-                var doc5 = assm.Configurations.Active.Components["Assem1-1"].Document;
+                var doc1 = assm.Configurations.Active.Components["Part1-1"].ReferencedDocument;
+                var doc2 = assm.Configurations.Active.Components["Assem2-1"].ReferencedDocument;
+                var doc3 = assm.Configurations.Active.Components["Assem2-1"].Children["Part2-1"].ReferencedDocument;
+                var doc4 = assm.Configurations.Active.Components["Assem2-1"].Children["Part3-1"].ReferencedDocument;
+                var doc5 = assm.Configurations.Active.Components["Assem1-1"].ReferencedDocument;
 
                 Assert.IsTrue(doc1.IsCommitted);
                 Assert.IsTrue(doc2.IsCommitted);
@@ -151,9 +151,9 @@ namespace SolidWorks.Tests.Integration
 
                 var swComp = assm.Model.ISelectionManager.GetSelectedObject6(1, -1) as IComponent2;
 
-                var comp = SwObjectFactory.FromDispatch<ISwComponent>(swComp, assm);
+                var comp = assm.CreateObjectFromDispatch<ISwComponent>(swComp);
 
-                var doc1 = comp.Document;
+                var doc1 = comp.ReferencedDocument;
                 doc1FileName = Path.GetFileName(doc1.Path);
                 doc1IsCommitted = doc1.IsCommitted;
             }
@@ -193,7 +193,7 @@ namespace SolidWorks.Tests.Integration
             {
                 var comps = ((ISwAssembly)m_App.Documents.Active).Configurations.Active.Components;
                 compNames = comps.Select(c => c.Name).ToArray();
-                var docs = comps.Select(c => c.Document).ToArray();
+                var docs = comps.Select(c => c.ReferencedDocument).ToArray();
                 foreach (var compDoc in docs) 
                 {
                     if (!compDoc.IsCommitted) 

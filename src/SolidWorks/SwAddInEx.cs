@@ -286,7 +286,7 @@ namespace Xarial.XCad.SolidWorks
         {
             if (disposing)
             {
-                foreach (var dispCtrl in m_Disposables) 
+                foreach (var dispCtrl in m_Disposables.ToArray()) 
                 {
                     try
                     {
@@ -340,6 +340,7 @@ namespace Xarial.XCad.SolidWorks
             var handler = m_SvcProvider.GetService<IPropertyPageHandlerProvider>().CreateHandler(Application.Sw, handlerType);
 
             var page = new SwPropertyManagerPage<TData>(Application, m_SvcProvider, handler, createDynCtrlHandler);
+            page.Disposed += OnItemDisposed;
             m_Disposables.Add(page);
             return page;
         }
@@ -348,9 +349,13 @@ namespace Xarial.XCad.SolidWorks
         {
             var tab = new SwModelViewTab<TControl>(
                 new ModelViewTabCreator<TControl>(doc.Model.ModelViewManager, m_SvcProvider),
-                doc.Model.ModelViewManager, (SwDocument)doc, Logger);
+                doc.Model.ModelViewManager, (SwDocument)doc, Application, Logger);
             
             tab.InitControl();
+            
+            tab.Disposed += OnItemDisposed;
+
+            m_Disposables.Add(tab);
 
             return tab;
         }
@@ -382,22 +387,43 @@ namespace Xarial.XCad.SolidWorks
                 spec = new TaskPaneSpec();
             }
 
-            return new SwTaskPane<TControl>(new TaskPaneTabCreator<TControl>(Application, m_SvcProvider, spec), Logger);
+            var taskPane = new SwTaskPane<TControl>(new TaskPaneTabCreator<TControl>(Application, m_SvcProvider, spec), Logger);
+            taskPane.Disposed += OnItemDisposed;
+
+            m_Disposables.Add(taskPane);
+
+            return taskPane;
         }
 
         public ISwFeatureMgrTab<TControl> CreateFeatureManagerTab<TControl>(ISwDocument doc)
         {
             var tab = new SwFeatureMgrTab<TControl>(
                 new FeatureManagerTabCreator<TControl>(doc.Model.ModelViewManager, m_SvcProvider),
-                (SwDocument)doc, Logger);
+                (SwDocument)doc, Application, Logger);
 
             tab.InitControl();
+            tab.Disposed += OnItemDisposed;
+            m_Disposables.Add(tab);
 
             return tab;
         }
-
+        
         public virtual void OnConfigureServices(IXServiceCollection collection)
         {
+        }
+
+        private void OnItemDisposed(IAutoDisposable item)
+        {
+            item.Disposed -= OnItemDisposed;
+
+            if (m_Disposables.Contains(item))
+            {
+                m_Disposables.Remove(item);
+            }
+            else
+            {
+                System.Diagnostics.Debug.Assert(false, "Disposable is not registered");
+            }
         }
     }
 

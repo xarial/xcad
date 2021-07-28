@@ -38,6 +38,15 @@ namespace Xarial.XCad.Geometry
         /// Edges of this face
         /// </summary>
         IXEdge[] Edges { get; }
+
+        /// <summary>
+        /// Projects the specified point onto the surface
+        /// </summary>
+        /// <param name="point">Input point</param>
+        /// <param name="direction">Projection direction</param>
+        /// <param name="projectedPoint">Projected point or null</param>
+        /// <returns>True if projected point is found, false - if not</returns>
+        bool TryProjectPoint(Point point, Vector direction, out Point projectedPoint);
     }
 
     /// <summary>

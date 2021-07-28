@@ -25,11 +25,11 @@ namespace Xarial.XCad.SolidWorks.Features
 
         private readonly IMathUtility m_MathUtils;
 
-        internal SwPlane(ISwDocument doc, IFeature feat, bool created) : base(doc, feat, created)
+        internal SwPlane(IFeature feat, ISwDocument doc, ISwApplication app, bool created) : base(feat, doc, app, created)
         {
             m_RefPlane = feat.GetSpecificFeature2() as IRefPlane;
 
-            m_MathUtils = ((SwDocument)doc).App.Sw.IGetMathUtility();
+            m_MathUtils = OwnerApplication.Sw.IGetMathUtility();
         }
 
         public Plane Definition 

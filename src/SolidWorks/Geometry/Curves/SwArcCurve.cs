@@ -13,6 +13,7 @@ using System.Text;
 using System.Threading;
 using Xarial.XCad.Geometry.Curves;
 using Xarial.XCad.Geometry.Structures;
+using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Geometry.Exceptions;
 
 namespace Xarial.XCad.SolidWorks.Geometry.Curves
@@ -23,8 +24,8 @@ namespace Xarial.XCad.SolidWorks.Geometry.Curves
 
     internal class SwArcCurve : SwCurve, ISwArcCurve
     {
-        internal SwArcCurve(IModeler modeler, ICurve curve, bool isCreated) 
-            : base(modeler, new ICurve[] { curve }, isCreated)
+        internal SwArcCurve(ICurve curve, ISwDocument doc, ISwApplication app, bool isCreated) 
+            : base(new ICurve[] { curve }, doc, app, isCreated)
         {
         }
 

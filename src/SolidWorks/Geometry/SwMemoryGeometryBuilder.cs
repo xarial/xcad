@@ -31,16 +31,20 @@ namespace Xarial.XCad.SolidWorks.Geometry
         public IXSheetGeometryBuilder SheetBuilder { get; }
         public IXSolidGeometryBuilder SolidBuilder { get; }
 
+        private readonly ISwApplication m_App;
+
         private readonly IModeler m_Modeler;
         private readonly IMathUtility m_MathUtils;
 
         internal SwMemoryGeometryBuilder(ISwApplication app, IMemoryGeometryBuilderDocumentProvider geomBuilderDocsProvider) 
         {
+            m_App = app;
+
             m_MathUtils = app.Sw.IGetMathUtility();
             m_Modeler = app.Sw.IGetModeler();
 
-            WireBuilder = new SwMemoryWireGeometryBuilder(m_MathUtils, m_Modeler);
-            SheetBuilder = new SwMemorySheetGeometryBuilder(m_MathUtils, m_Modeler);
+            WireBuilder = new SwMemoryWireGeometryBuilder(app);
+            SheetBuilder = new SwMemorySheetGeometryBuilder(app);
             SolidBuilder = new SwMemorySolidGeometryBuilder(app, geomBuilderDocsProvider);
         }
 
@@ -48,7 +52,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
         {
             var comStr = new StreamWrapper(stream);
             var body = (IBody2)m_Modeler.Restore(comStr);
-            return SwObjectFactory.FromDispatch<ISwTempBody>(body, null);
+            return m_App.CreateObjectFromDispatch<ISwTempBody>(body, null);
         }
 
         public void SerializeBody(IXBody body, Stream stream)
@@ -59,74 +63,5 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         public IXRegion CreateRegionFromSegments(params IXSegment[] segments)
             => new SwRegion(segments);
-
-        public bool TryProjectPoint(IXFace face, Point point, Vector direction, out Point projectedPoint)
-        {
-            var swFace = ((ISwFace)face).Face;
-            var dirVec = (MathVector)m_MathUtils.CreateVector(direction.ToArray());
-            var startPt = (MathPoint)m_MathUtils.CreatePoint(point.ToArray());
-
-            var resPt = swFace.GetProjectedPointOn(startPt, dirVec);
-
-            if (resPt != null)
-            {
-                projectedPoint = new Point((double[])resPt.ArrayData);
-                return true;
-            }
-            else
-            {
-                projectedPoint = null;
-                return false;
-            }
-        }
-
-        public bool TryProjectPoint(IXSurface surface, Point point, Vector direction, out Point projectedPoint)
-        {
-            var swSurf = ((ISwSurface)surface).Surface;
-            var dirVec = (MathVector)m_MathUtils.CreateVector(direction.ToArray());
-            var startPt = (MathPoint)m_MathUtils.CreatePoint(point.ToArray());
-
-            var resPt = swSurf.GetProjectedPointOn(startPt, dirVec);
-
-            if (resPt != null)
-            {
-                projectedPoint = new Point((double[])resPt.ArrayData);
-                return true;
-            }
-            else
-            {
-                projectedPoint = null;
-                return false;
-            }
-        }
-
-        public Point FindClosestPoint(IXEntity entity, Point point)
-        {
-            double[] pos;
-
-            switch (entity) 
-            {
-                case ISwFace face:
-                    pos = (double[])face.Face.GetClosestPointOn(point.X, point.Y, point.Z);
-                    break;
-
-                case ISwEdge edge:
-                    pos = (double[])edge.Edge.GetClosestPointOn(point.X, point.Y, point.Z);
-                    break;
-
-                case ISwVertex vertex:
-                    pos = (double[])vertex.Vertex.GetClosestPointOn(point.X, point.Y, point.Z);
-                    break;
-
-                default:
-                    throw new NotSupportedException("Only face, edge and vertex are supported");
-            }
-
-            return new Point(pos.Take(3).ToArray());
-        }
-        
-
-        public Point FindClosestPoint(IXSurface surface, Point point)
-            => new Point(((double[])((ISwSurface)surface).Surface.GetClosestPointOn(point.X, point.Y, point.Z)).Take(3).ToArray());
     }
 }

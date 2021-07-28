@@ -20,8 +20,11 @@ namespace Xarial.XCad.SolidWorks.Utils
         protected readonly SwDocument m_Doc;
         private IModelDoc2 m_Model => m_Doc.Model;
 
-        internal SwModelEventsHandler(SwDocument doc) 
+        protected readonly ISwApplication m_App;
+
+        internal SwModelEventsHandler(SwDocument doc, ISwApplication app) 
         {
+            m_App = app;
             m_Doc = doc;
         }
 

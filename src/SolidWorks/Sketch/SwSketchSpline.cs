@@ -25,11 +25,11 @@ namespace Xarial.XCad.SolidWorks.Sketch
     {
         public ISketchSpline Spline => (ISketchSpline)Segment;
 
-        public override IXPoint StartPoint => SwSelObject.FromDispatch<SwSketchPoint>((Spline.GetPoints2() as object[]).First(), m_Doc);
-        public override IXPoint EndPoint => SwSelObject.FromDispatch<SwSketchPoint>((Spline.GetPoints2() as object[]).Last(), m_Doc);
+        public override IXPoint StartPoint => OwnerDocument.CreateObjectFromDispatch<SwSketchPoint>((Spline.GetPoints2() as object[]).First());
+        public override IXPoint EndPoint => OwnerDocument.CreateObjectFromDispatch<SwSketchPoint>((Spline.GetPoints2() as object[]).Last());
 
-        internal SwSketchSpline(ISwDocument doc, ISketchSpline spline, bool created)
-            : base(doc, (ISketchSegment)spline, created)
+        internal SwSketchSpline(ISketchSpline spline, ISwDocument doc, ISwApplication app, bool created)
+            : base((ISketchSegment)spline, doc, app, created)
         {
         }
 

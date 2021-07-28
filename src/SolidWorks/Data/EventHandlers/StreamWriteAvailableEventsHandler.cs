@@ -17,7 +17,7 @@ namespace Xarial.XCad.SolidWorks.Data.EventHandlers
 {
     internal class StreamWriteAvailableEventsHandler : SwModelEventsHandler<DataStoreAvailableDelegate>
     {
-        internal StreamWriteAvailableEventsHandler(SwDocument doc) : base(doc)
+        internal StreamWriteAvailableEventsHandler(SwDocument doc, ISwApplication app) : base(doc, app)
         {
         }
 

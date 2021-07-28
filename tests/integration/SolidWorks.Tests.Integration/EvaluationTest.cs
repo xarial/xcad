@@ -455,7 +455,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument(@"BBoxAssembly1\Assem1.SLDASM"))
             {
-                var assm = (IXAssembly)m_App.Documents.Active;
+                var assm = (ISwAssembly)m_App.Documents.Active;
 
                 var bbox = assm.PreCreateBoundingBox();
                 bbox.Precise = true;
@@ -463,7 +463,7 @@ namespace SolidWorks.Tests.Integration
                     .Bodies.First() as ISwBody).Body.ICopy();
                 (bbox as IXBoundingBox).Scope = new IXBody[]
                 {
-                    SwObjectFactory.FromDispatch<ISwBody>(swBody, null)
+                    assm.CreateObjectFromDispatch<ISwBody>(swBody)
                 };
                 bbox.Commit();
                 b1 = bbox.Box;

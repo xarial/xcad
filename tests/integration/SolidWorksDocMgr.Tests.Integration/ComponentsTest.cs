@@ -57,17 +57,17 @@ namespace SolidWorksDocMgr.Tests.Integration
             {
                 var assm = (ISwDmAssembly)m_App.Documents.Active;
 
-                var doc1 = assm.Configurations.Active.Components["Part1-1"].Document;
+                var doc1 = assm.Configurations.Active.Components["Part1-1"].ReferencedDocument;
                 state1 = doc1.State;
 
                 doc1FileName = Path.GetFileName(doc1.Path);
                 doc1Contains = m_App.Documents.Contains(doc1);
 
-                var doc2 = assm.Configurations.Active.Components["SubAssem1-1"].Document;
+                var doc2 = assm.Configurations.Active.Components["SubAssem1-1"].ReferencedDocument;
                 doc2FileName = Path.GetFileName(doc2.Path);
                 doc2Contains = m_App.Documents.Contains(doc2);
 
-                var d = assm.Configurations.Active.Components["Part1-2"].Document;
+                var d = assm.Configurations.Active.Components["Part1-2"].ReferencedDocument;
 
                 Assert.IsTrue(doc1.IsCommitted);
                 Assert.IsTrue(doc2.IsCommitted);
@@ -116,7 +116,7 @@ namespace SolidWorksDocMgr.Tests.Integration
             {
                 var comps = ((ISwDmAssembly)m_App.Documents.Active).Configurations.Active.Components;
                 compNames = comps.Select(c => c.Name).ToArray();
-                var docs = comps.Select(c => c.Document).ToArray();
+                var docs = comps.Select(c => c.ReferencedDocument).ToArray();
                 foreach (var compDoc in docs)
                 {
                     if (!compDoc.IsCommitted)
@@ -147,7 +147,7 @@ namespace SolidWorksDocMgr.Tests.Integration
             {
                 var comps = ((ISwDmAssembly)m_App.Documents.Active).Configurations.Active.Components.Flatten().ToArray();
                 paths = comps.Select(c => c.Path).ToArray();
-                isCommitted = comps.Select(c => c.Document.IsCommitted).ToArray();
+                isCommitted = comps.Select(c => c.ReferencedDocument.IsCommitted).ToArray();
             }
 
             var dir = Path.GetDirectoryName(GetFilePath(@"MovedNonOpenedAssembly1\TopAssembly.SLDASM"));
@@ -168,7 +168,7 @@ namespace SolidWorksDocMgr.Tests.Integration
             {
                 var comps = ((ISwDmAssembly)m_App.Documents.Active).Configurations.Active.Components.Flatten().ToArray();
                 paths = comps.Select(c => c.Path).ToArray();
-                isCommitted = comps.Select(c => c.Document.IsCommitted).ToArray();
+                isCommitted = comps.Select(c => c.ReferencedDocument.IsCommitted).ToArray();
             }
 
             var dir = GetFilePath(@"Assembly3");

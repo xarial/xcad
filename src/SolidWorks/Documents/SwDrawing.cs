@@ -33,7 +33,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
             get 
             {
-                if (App.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2020))
+                if (OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2020))
                 {
                     return Drawing.IsDetailingMode();
                 }
@@ -44,10 +44,10 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        internal SwDrawing(IDrawingDoc drawing, SwApplication app, IXLogger logger, bool isCreated)
+        internal SwDrawing(IDrawingDoc drawing, ISwApplication app, IXLogger logger, bool isCreated)
             : base((IModelDoc2)drawing, app, logger, isCreated)
         {
-            m_SheetsLazy = new Lazy<IXSheetRepository>(() => new SwSheetCollection(this));
+            m_SheetsLazy = new Lazy<IXSheetRepository>(() => new SwSheetCollection(this, OwnerApplication));
         }
     }
 }

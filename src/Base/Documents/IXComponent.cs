@@ -46,7 +46,7 @@ namespace Xarial.XCad.Documents
         /// Document of the component
         /// </summary>
         /// <remarks>If component is rapid, view only or suppressed document migth not be loaded into the memory. Use <see cref="IXTransaction.IsCommitted"/> to check the state and call <see cref="IXTransaction.Commit(System.Threading.CancellationToken)"/> to load document if needed</remarks>
-        IXDocument3D Document { get; }
+        IXDocument3D ReferencedDocument { get; }
         
         /// <summary>
         /// Children components
@@ -96,7 +96,7 @@ namespace Xarial.XCad.Documents
 
                         if (state.HasFlag(ComponentState_e.Lightweight))
                         {
-                            if (parent.Document is IXAssembly)
+                            if (parent.ReferencedDocument is IXAssembly)
                             {
                                 parent.State = (ComponentState_e)(state - ComponentState_e.Lightweight);
                             }

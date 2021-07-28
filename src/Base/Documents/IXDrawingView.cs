@@ -21,7 +21,7 @@ namespace Xarial.XCad.Documents
         /// <summary>
         /// Contains the document referenced by this drawing view
         /// </summary>
-        IXDocument3D Document { get; }
+        IXDocument3D ReferencedDocument { get; }
 
         /// <summary>
         /// Contains the configuration this drawing view is created from

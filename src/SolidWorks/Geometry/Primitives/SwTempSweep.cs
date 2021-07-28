@@ -44,8 +44,8 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
 
         private readonly SwPart m_Part;
 
-        internal SwTempSweep(SwPart part, IMathUtility mathUtils, IModeler modeler, SwTempBody[] bodies, bool isCreated)
-            : base(mathUtils, modeler, bodies, isCreated)
+        internal SwTempSweep(SwTempBody[] bodies, SwPart part, ISwApplication app, bool isCreated)
+            : base(bodies, app, isCreated)
         {
             m_Part = part;
         }
@@ -116,7 +116,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
                         throw new Exception("Failed to create swept body");
                     }
 
-                    bodies.Add(SwSelObject.FromDispatch<SwTempBody>(body));
+                    bodies.Add(m_App.CreateObjectFromDispatch<SwTempBody>(body, null));
                 }
             }
 

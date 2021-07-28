@@ -24,6 +24,8 @@ using Xarial.XCad.Utils.PageBuilder.Base;
 using Xarial.XCad.Toolkit;
 using Xarial.XCad.UI.PropertyPage.Base;
 using Xarial.XCad.UI.Exceptions;
+using Xarial.XCad.SolidWorks.UI.Toolkit;
+using System.ComponentModel;
 
 namespace Xarial.XCad.SolidWorks.UI.PropertyPage
 {
@@ -32,7 +34,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
     }
 
     /// <inheritdoc/>
-    internal class SwPropertyManagerPage<TModel> : ISwPropertyManagerPage<TModel>
+    internal class SwPropertyManagerPage<TModel> : ISwPropertyManagerPage<TModel>, IAutoDisposable
     {
         /// <inheritdoc/>
         public event PageClosedDelegate Closed;
@@ -42,7 +44,10 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
 
         /// <inheritdoc/>
         public event PageDataChangedDelegate DataChanged;
-        
+
+        [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
+        public event Action<IAutoDisposable> Disposed;
+
         private readonly ISwApplication m_App;
         private readonly IIconsCreator m_IconsConv;
         private readonly PropertyManagerPagePage m_Page;
@@ -54,6 +59,8 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
         internal SwPropertyManagerPageHandler Handler { get; private set; }
 
         private readonly IXLogger m_Logger;
+
+        private bool m_IsDisposed;
 
         /// <inheritdoc/>
         public TModel Model { get; private set; }
@@ -72,6 +79,8 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
             CreateDynamicControlsDelegate createDynCtrlHandler)
         {
             m_App = app;
+
+            m_IsDisposed = false;
 
             m_SvcProvider = svcProvider;
 
@@ -114,14 +123,28 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
 
         public void Dispose()
         {
-            m_Logger.Log("Disposing page", XCad.Base.Enums.LoggerMessageSeverity_e.Debug);
-
-            foreach (var ctrl in m_Page.Binding.Bindings.Select(b => b.Control).OfType<IDisposable>())
+            if (!m_IsDisposed)
             {
-                ctrl.Dispose();
-            }
+                m_Logger.Log("Disposing page", XCad.Base.Enums.LoggerMessageSeverity_e.Debug);
 
-            m_IconsConv.Dispose();
+                foreach (var ctrl in m_Page.Binding.Bindings.Select(b => b.Control).OfType<IDisposable>())
+                {
+                    try
+                    {
+                        ctrl.Dispose();
+                    }
+                    catch (Exception ex)
+                    {
+                        m_Logger.Log(ex);
+                    }
+                }
+
+                m_IconsConv.Dispose();
+
+                m_IsDisposed = true;
+
+                Disposed?.Invoke(this);
+            }
         }
 
         /// <inheritdoc/>

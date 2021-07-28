@@ -16,6 +16,7 @@ using Xarial.XCad.Geometry.Curves;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Geometry.Wires;
 using Xarial.XCad.Services;
+using Xarial.XCad.SolidWorks.Documents;
 
 namespace Xarial.XCad.SolidWorks.Geometry.Curves
 {
@@ -70,14 +71,14 @@ namespace Xarial.XCad.SolidWorks.Geometry.Curves
 
         protected readonly IModeler m_Modeler;
 
-        internal SwCurve(IModeler modeler, ICurve curve, bool isCreated) 
-            : this(modeler, new ICurve[] { curve }, isCreated)
+        internal SwCurve(ICurve curve, ISwDocument doc, ISwApplication app, bool isCreated) 
+            : this(new ICurve[] { curve }, doc, app, isCreated)
         { 
         }
 
-        internal SwCurve(IModeler modeler, ICurve[] curves, bool isCreated) : base(curves)
+        internal SwCurve(ICurve[] curves, ISwDocument doc, ISwApplication app, bool isCreated) : base(curves, doc, app)
         {
-            m_Modeler = modeler;
+            m_Modeler = app.Sw.IGetModeler();
             m_Creator = new ElementCreator<ICurve[]>(Create, curves, isCreated);
         }
 

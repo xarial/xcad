@@ -19,7 +19,7 @@ namespace Xarial.XCad.SolidWorks.Documents.EventHandlers
     {
         private readonly ISwPart m_Part;
 
-        internal CutListRebuildEventsHandler(SwPart part) : base(part)
+        internal CutListRebuildEventsHandler(SwPart part, ISwApplication app) : base(part, app)
         {
             m_Part = part;
         }

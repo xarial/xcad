@@ -46,7 +46,7 @@ namespace Xarial.XCad.SolidWorks.Sketch
 
         public override object Dispatch => Segment;
 
-        protected SwSketchSegment(ISwDocument doc, ISketchSegment seg, bool created) : base(doc, seg)
+        protected SwSketchSegment(ISketchSegment seg, ISwDocument doc, ISwApplication app, bool created) : base(seg, doc, app)
         {
             if (doc == null)
             {
@@ -105,7 +105,7 @@ namespace Xarial.XCad.SolidWorks.Sketch
 
                 curve.ApplyTransform(transform);
 
-                return FromDispatch<SwCurve>(curve, m_Doc);
+                return OwnerDocument.CreateObjectFromDispatch<SwCurve>(curve);
             }
         }
 
