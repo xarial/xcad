@@ -365,6 +365,8 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         internal override ISwDocument OwnerDocument => this;
 
+        private bool m_IsDisposed;
+
         internal SwDocument(IModelDoc2 model, ISwApplication app, IXLogger logger) 
             : this(model, app, logger, true)
         {
@@ -396,6 +398,8 @@ namespace Xarial.XCad.SolidWorks.Documents
             {
                 AttachEvents();
             }
+
+            m_IsDisposed = false;
         }
 
         public override object Dispatch => Model;
@@ -694,10 +698,10 @@ namespace Xarial.XCad.SolidWorks.Documents
                 throw new DefaultTemplateNotFoundException();
             }
         }
-
+        
         private IModelDoc2 OpenDocument()
         {
-            IModelDoc2 model = null;
+            IModelDoc2 model;
             int errorCode = -1;
 
             if (m_NativeFileExts.TryGetValue(System.IO.Path.GetExtension(Path), out swDocumentTypes_e docType))
@@ -737,7 +741,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                         //There is no rapid option for SOLIDWORKS part document
                     }
                 }
-                
+
                 int warns = -1;
                 model = OwnerApplication.Sw.OpenDoc6(Path, (int)docType, (int)opts, "", ref errorCode, ref warns);
             }
@@ -803,7 +807,11 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public void Dispose()
         {
-            Dispose(true);
+            if (!m_IsDisposed)
+            {
+                Dispose(true);
+                m_IsDisposed = true;
+            }
         }
 
         protected virtual void Dispose(bool disposing)
@@ -818,7 +826,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                 m_DimensionsLazy.Value.Dispose();
             }
 
-            if (m_PropertiesLazy.IsValueCreated) 
+            if (m_PropertiesLazy.IsValueCreated)
             {
                 m_PropertiesLazy.Value.Dispose();
             }

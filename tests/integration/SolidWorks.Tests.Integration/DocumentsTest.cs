@@ -421,7 +421,7 @@ namespace SolidWorks.Tests.Integration
             newDoc.Dispose();
             m_App.Sw.CloseDoc(model1.GetTitle());
             m_App.Sw.CloseDoc(model2.GetTitle());
-            
+
             Assert.AreEqual(4, activateDocsList.Count);
             Assert.AreEqual("Configs1.SLDPRT", activateDocsList[0]);
             Assert.AreEqual("AssmCutLists1.SLDASM", activateDocsList[1]);

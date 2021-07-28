@@ -50,7 +50,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
             base.Dispose(disposing);
 
-            if (disposing) 
+            if (disposing)
             {
                 if (m_Configurations.IsValueCreated)
                 {
