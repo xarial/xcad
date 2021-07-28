@@ -53,7 +53,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             where TSwObj : ISwObject;
 
         TObj CreateObjectFromDispatch<TObj>(object disp)
-            where TObj : IXObject;
+            where TObj : ISwObject;
     }
     
     [DebuggerDisplay("{" + nameof(Title) + "}")]
@@ -632,6 +632,8 @@ namespace Xarial.XCad.SolidWorks.Documents
                         return SwVersion_e.Sw2020;
                     case 14000:
                         return SwVersion_e.Sw2021;
+                    case 15000:
+                        return SwVersion_e.Sw2022;
                     default:
                         throw new NotSupportedException($"'{latestVers}' version is not recognized");
                 }
@@ -1071,7 +1073,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
             if (obj != null)
             {
-                return CreateObjectFromDispatch<TObj>(obj);
+                return (TObj)CreateObjectFromDispatch<ISwObject>(obj);
             }
             else
             {
@@ -1100,7 +1102,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        public TObj CreateObjectFromDispatch<TObj>(object disp) where TObj : IXObject
+        public TObj CreateObjectFromDispatch<TObj>(object disp) where TObj : ISwObject
             => SwObjectFactory.FromDispatch<TObj>(disp, this, OwnerApplication);
     }
 

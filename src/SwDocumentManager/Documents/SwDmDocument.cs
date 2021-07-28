@@ -33,6 +33,9 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         ISwDMDocument Document { get; }
         new ISwDmVersion Version { get; }
         new ISwDmCustomPropertiesCollection Properties { get; }
+
+        TObj CreateObjectFromDispatch<TObj>(object disp)
+            where TObj : ISwDmObject;
     }
 
     internal abstract class SwDmDocument : SwDmObject, ISwDmDocument
@@ -459,6 +462,9 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                 throw new SaveDocumentFailedException((int)res, errDesc);
             }
         }
+
+        public TObj CreateObjectFromDispatch<TObj>(object disp) where TObj : ISwDmObject
+            => SwDmObjectFactory.FromDispatch<TObj>(disp, this);
     }
 
     internal class SwDmUnknownDocument : SwDmDocument, IXUnknownDocument

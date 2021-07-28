@@ -53,7 +53,7 @@ namespace Xarial.XCad.SolidWorks
         new ISwMacro OpenMacro(string path);
 
         TObj CreateObjectFromDispatch<TObj>(object disp, ISwDocument doc)
-            where TObj : IXObject;
+            where TObj : ISwObject;
     }
 
     /// <inheritdoc/>
@@ -515,7 +515,7 @@ namespace Xarial.XCad.SolidWorks
         }
 
         public TObj CreateObjectFromDispatch<TObj>(object disp, ISwDocument doc)
-            where TObj : IXObject
+            where TObj : ISwObject
             => SwObjectFactory.FromDispatch<TObj>(disp, doc, this);
     }
 
