@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Text;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Geometry.Surfaces;
+using Xarial.XCad.SolidWorks.Documents;
 
 namespace Xarial.XCad.SolidWorks.Geometry.Surfaces
 {
@@ -20,7 +21,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Surfaces
 
     internal class SwCylindricalSurface : SwSurface, ISwCylindricalSurface
     {
-        internal SwCylindricalSurface(ISurface surface) : base(surface)
+        internal SwCylindricalSurface(ISurface surface, ISwDocument doc) : base(surface, doc)
         {
         }
 

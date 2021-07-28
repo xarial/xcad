@@ -34,6 +34,8 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         //NOTE: keeping the pointer in this class only so it can be properly disposed
 
+        private readonly Lazy<SwMathUtilsProvider> m_MathUtilsProvider;
+
         internal SwTempBody(IBody2 body) : base(null, null)
         {
             if (!body.IsTemporaryBody()) 
@@ -42,6 +44,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
             }
 
             m_TempBody = body;
+            m_MathUtilsProvider = new Lazy<SwMathUtilsProvider>(() => new SwMathUtilsProvider(this));
         }
 
         public void Preview(ISwPart part, Color color, bool selectable = false) 
@@ -70,11 +73,8 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         public override void Move(TransformMatrix transform)
         {
-            //get instance of an empty transform
-            Body.GetCoincidenceTransform2(Body, out MathTransform mathTransform);
-
-            mathTransform.ArrayData = transform.ToMathTransformData();
-
+            var mathTransform = (MathTransform)m_MathUtilsProvider.Value.CreateTransform(transform);
+            
             if (!Body.ApplyTransform(mathTransform))
             {
                 throw new Exception("Failed to apply transform to the body");

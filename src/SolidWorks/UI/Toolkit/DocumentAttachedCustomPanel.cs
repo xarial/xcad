@@ -7,6 +7,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Text;
 using Xarial.XCad.Base;
@@ -17,8 +18,11 @@ using Xarial.XCad.UI.Exceptions;
 
 namespace Xarial.XCad.SolidWorks.UI.Toolkit
 {
-    internal abstract class DocumentAttachedCustomPanel<TControl> : IXCustomPanel<TControl>
+    internal abstract class DocumentAttachedCustomPanel<TControl> : IXCustomPanel<TControl>, ISessionAttachedItem
     {
+        [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
+        public event Action<ISessionAttachedItem> Disposed;
+
         public event ControlCreatedDelegate<TControl> ControlCreated;
         public event PanelActivatedDelegate<TControl> Activated;
 
@@ -165,9 +169,7 @@ namespace Xarial.XCad.SolidWorks.UI.Toolkit
         }
 
         public void Dispose()
-        {
-            Close();
-        }
+            => Close();
 
         public void Close()
         {
@@ -179,6 +181,8 @@ namespace Xarial.XCad.SolidWorks.UI.Toolkit
 
                 m_IsDisposed = true;
                 DisposeControl();
+
+                Disposed?.Invoke(this);
             }
         }
 

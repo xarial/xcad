@@ -2,7 +2,7 @@
 title: List of changes in the releases of xCAD.NET framework
 caption: Changelog
 description: Information about releases (new features, bug fixes breaking changes) of xCAD.NET framework for developing CAD applications
-order: 8
+order: 99
 ---
 This page contains list of the most notable changes in the releases of xCAD.NET.
 

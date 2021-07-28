@@ -9,6 +9,7 @@ using SolidWorks.Interop.sldworks;
 using System;
 using System.Collections.Generic;
 using Xarial.XCad.Geometry;
+using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.SolidWorks.Documents;
 
 namespace Xarial.XCad.SolidWorks.Geometry
@@ -46,5 +47,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
                 throw new Exception("Failed to select entity");
             }
         }
+
+        public abstract Point FindClosestPoint(Point point);
     }
 }

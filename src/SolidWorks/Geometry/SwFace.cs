@@ -9,7 +9,6 @@ using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
 using System.Text;
 using Xarial.XCad.Features;
@@ -40,9 +39,12 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         public IFace2 Face { get; }
 
+        private readonly Lazy<SwMathUtilsProvider> m_MathUtilsProvider;
+
         internal SwFace(IFace2 face, ISwDocument doc) : base((IEntity)face, doc)
         {
             Face = face;
+            m_MathUtilsProvider = new Lazy<SwMathUtilsProvider>(() => new SwMathUtilsProvider(this));
         }
 
         public override ISwBody Body => (SwBody)FromDispatch(Face.GetBody());
@@ -62,7 +64,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         private IComponent2 Component => (Face as IEntity).GetComponent() as IComponent2;
 
-        public Color? Color 
+        public System.Drawing.Color? Color 
         {
             get => SwColorHelper.GetColor(Face, Component, 
                 (o, c) => Face.GetMaterialPropertyValues2((int)o, c) as double[]);
@@ -92,6 +94,28 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         public ISwEdge[] Edges => (Face.GetEdges() as object[])
             .Select(f => SwObject.FromDispatch<ISwEdge>(f, m_Doc)).ToArray();
+
+        public override Point FindClosestPoint(Point point)
+            => new Point(((double[])Face.GetClosestPointOn(point.X, point.Y, point.Z)).Take(3).ToArray());
+
+        public bool TryProjectPoint(Point point, Vector direction, out Point projectedPoint)
+        {
+            var dirVec = (MathVector)m_MathUtilsProvider.Value.CreateVector(direction);
+            var startPt = (MathPoint)m_MathUtilsProvider.Value.CreatePoint(point);
+
+            var resPt = Face.GetProjectedPointOn(startPt, dirVec);
+
+            if (resPt != null)
+            {
+                projectedPoint = new Point((double[])resPt.ArrayData);
+                return true;
+            }
+            else
+            {
+                projectedPoint = null;
+                return false;
+            }
+        }
     }
 
     public interface ISwPlanarFace : ISwFace, IXPlanarFace, ISwRegion

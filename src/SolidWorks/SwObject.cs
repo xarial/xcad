@@ -43,6 +43,8 @@ namespace Xarial.XCad.SolidWorks
     {
         protected IModelDoc2 ModelDoc => m_Doc.Model;
 
+        internal ISwDocument Document => m_Doc;
+
         protected readonly ISwDocument m_Doc;
 
         internal static TObj FromDispatch<TObj>(object disp)
@@ -252,13 +254,13 @@ namespace Xarial.XCad.SolidWorks
                     switch ((swSurfaceTypes_e)surf.Identity()) 
                     {
                         case swSurfaceTypes_e.PLANE_TYPE:
-                            return new SwPlanarSurface(surf);
+                            return new SwPlanarSurface(surf, doc);
 
                         case swSurfaceTypes_e.CYLINDER_TYPE:
-                            return new SwCylindricalSurface(surf);
+                            return new SwCylindricalSurface(surf, doc);
 
                         default:
-                            return new SwSurface(surf);
+                            return new SwSurface(surf, doc);
                     }
 
                 default:

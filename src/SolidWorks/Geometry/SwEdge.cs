@@ -7,6 +7,7 @@
 
 using SolidWorks.Interop.sldworks;
 using System.Collections.Generic;
+using System.Linq;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Geometry.Wires;
@@ -51,6 +52,9 @@ namespace Xarial.XCad.SolidWorks.Geometry
         }
 
         public ISwCurve Definition => FromDispatch<SwCurve>(Edge.IGetCurve());
+
+        public override Point FindClosestPoint(Point point)
+            => new Point(((double[])Edge.GetClosestPointOn(point.X, point.Y, point.Z)).Take(3).ToArray());
 
         internal SwEdge(IEdge edge, ISwDocument doc) : base((IEntity)edge, doc)
         {
