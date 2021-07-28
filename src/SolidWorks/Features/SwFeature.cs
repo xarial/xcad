@@ -43,7 +43,7 @@ namespace Xarial.XCad.SolidWorks.Features
                 throw new ArgumentNullException(nameof(doc));
             }
 
-            Dimensions = new SwFeatureDimensionsCollection(this, Document, Application);
+            Dimensions = new SwFeatureDimensionsCollection(this, OwnerDocument, OwnerApplication);
 
             m_Creator = new ElementCreator<IFeature>(CreateFeature, feat, created);
         }

@@ -105,7 +105,7 @@ namespace Xarial.XCad.SolidWorks.Sketch
 
                 curve.ApplyTransform(transform);
 
-                return Document.CreateObjectFromDispatch<SwCurve>(curve);
+                return OwnerDocument.CreateObjectFromDispatch<SwCurve>(curve);
             }
         }
 

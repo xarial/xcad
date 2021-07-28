@@ -28,9 +28,9 @@ namespace Xarial.XCad.SolidWorks
         {
             get 
             {
-                for (int i = 1; i < ModelDoc.ISelectionManager.GetSelectedObjectCount2(-1) + 1; i++)
+                for (int i = 1; i < OwnerModelDoc.ISelectionManager.GetSelectedObjectCount2(-1) + 1; i++)
                 {
-                    if (ModelDoc.ISelectionManager.GetSelectedObject6(i, -1) == Dispatch) 
+                    if (OwnerModelDoc.ISelectionManager.GetSelectedObject6(i, -1) == Dispatch) 
                     {
                         return true;
                     }
@@ -46,9 +46,9 @@ namespace Xarial.XCad.SolidWorks
 
         public virtual void Select(bool append)
         {
-            if (ModelDoc != null)
+            if (OwnerModelDoc != null)
             {
-                if (ModelDoc.Extension.MultiSelect2(new DispatchWrapper[] { new DispatchWrapper(Dispatch) }, append, null) != 1)
+                if (OwnerModelDoc.Extension.MultiSelect2(new DispatchWrapper[] { new DispatchWrapper(Dispatch) }, append, null) != 1)
                 {
                     throw new Exception("Failed to select");
                 }

@@ -93,7 +93,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public virtual IXMassProperty PreCreateMassProperty()
         {
-            if (Application.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2020))
+            if (OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2020))
             {
                 return new SwMassProperty(this, m_MathUtils);
             }

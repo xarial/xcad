@@ -46,7 +46,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
             m_MathUtils = app.Sw.IGetMathUtility();
         }
 
-        public override ISwBody Body => Application.CreateObjectFromDispatch<ISwBody>(Face.GetBody(), Document);
+        public override ISwBody Body => OwnerApplication.CreateObjectFromDispatch<ISwBody>(Face.GetBody(), OwnerDocument);
 
         public override IEnumerable<ISwEntity> AdjacentEntities 
         {
@@ -54,7 +54,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
             {
                 foreach (IEdge edge in (Face.GetEdges() as object[]).ValueOrEmpty())
                 {
-                    yield return Application.CreateObjectFromDispatch<ISwEdge>(edge, Document);
+                    yield return OwnerApplication.CreateObjectFromDispatch<ISwEdge>(edge, OwnerDocument);
                 }
             }
         }
@@ -72,7 +72,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
                 (o, c) => Face.RemoveMaterialProperty2((int)o, c));
         }
 
-        public ISwSurface Definition => Application.CreateObjectFromDispatch<SwSurface>(Face.IGetSurface(), Document);
+        public ISwSurface Definition => OwnerApplication.CreateObjectFromDispatch<SwSurface>(Face.IGetSurface(), OwnerDocument);
 
         public IXFeature Feature 
         {
@@ -82,7 +82,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
                 if (feat != null)
                 {
-                    return Application.CreateObjectFromDispatch<ISwFeature>(feat, Document);
+                    return OwnerDocument.CreateObjectFromDispatch<ISwFeature>(feat);
                 }
                 else 
                 {
@@ -92,7 +92,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
         }
 
         public ISwEdge[] Edges => (Face.GetEdges() as object[])
-            .Select(f => Application.CreateObjectFromDispatch<ISwEdge>(f, Document)).ToArray();
+            .Select(f => OwnerApplication.CreateObjectFromDispatch<ISwEdge>(f, OwnerDocument)).ToArray();
 
         public override Point FindClosestPoint(Point point)
             => new Point(((double[])Face.GetClosestPointOn(point.X, point.Y, point.Z)).Take(3).ToArray());
@@ -131,7 +131,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
         {
         }
 
-        public new ISwPlanarSurface Definition => Application.CreateObjectFromDispatch<SwPlanarSurface>(Face.IGetSurface(), Document);
+        public new ISwPlanarSurface Definition => OwnerApplication.CreateObjectFromDispatch<SwPlanarSurface>(Face.IGetSurface(), OwnerDocument);
 
         public Plane Plane => Definition.Plane;
 
@@ -151,6 +151,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
         {
         }
 
-        public new ISwCylindricalSurface Definition => Application.CreateObjectFromDispatch<SwCylindricalSurface>(Face.IGetSurface(), Document);
+        public new ISwCylindricalSurface Definition => OwnerApplication.CreateObjectFromDispatch<SwCylindricalSurface>(
+            Face.IGetSurface(), OwnerDocument);
     }
 }

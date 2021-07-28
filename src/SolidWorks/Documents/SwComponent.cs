@@ -73,7 +73,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             m_Features = new Lazy<ISwFeatureManager>(() => new SwComponentFeatureManager(this, rootAssembly, app));
             Bodies = new SwComponentBodyCollection(comp, rootAssembly);
 
-            m_FilePathResolver = ((SwApplication)Application).Services.GetService<IFilePathResolver>();
+            m_FilePathResolver = ((SwApplication)OwnerApplication).Services.GetService<IFilePathResolver>();
         }
 
         public string Name
@@ -91,7 +91,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                 //Note: for LDR assembly IGetModelDoc returns the pointer to root assembly
                 if (compModel != null && !m_RootAssembly.Model.IsOpenedViewOnly())
                 {
-                    return (ISwDocument3D)Application.Documents[compModel];
+                    return (ISwDocument3D)OwnerApplication.Documents[compModel];
                 }
                 else
                 {
@@ -106,13 +106,13 @@ namespace Xarial.XCad.SolidWorks.Documents
                         path = CachedPath;
                     }
 
-                    if (((SwDocumentCollection)Application.Documents).TryFindExistingDocumentByPath(path, out SwDocument doc))
+                    if (((SwDocumentCollection)OwnerApplication.Documents).TryFindExistingDocumentByPath(path, out SwDocument doc))
                     {
                         return (ISwDocument3D)doc;
                     }
                     else 
                     {
-                        return (ISwDocument3D)((SwDocumentCollection)Application.Documents).PreCreateFromPath(path);
+                        return (ISwDocument3D)((SwDocumentCollection)OwnerApplication.Documents).PreCreateFromPath(path);
                     }
                 }
             }
@@ -230,7 +230,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
 
         public IXConfiguration ReferencedConfiguration
-            => new SwComponentConfiguration(this, Application);
+            => new SwComponentConfiguration(this, OwnerApplication);
 
         public override void Select(bool append)
         {

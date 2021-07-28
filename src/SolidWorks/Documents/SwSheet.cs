@@ -44,7 +44,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         public override object Dispatch => Sheet;
 
         public IXImage Preview
-            => PictureDispUtils.PictureDispToXImage(Application.Sw.GetPreviewBitmap(Document.Path, Name));
+            => PictureDispUtils.PictureDispToXImage(OwnerApplication.Sw.GetPreviewBitmap(m_Drawing.Path, Name));
 
         internal SwSheet(ISheet sheet, SwDrawing draw, ISwApplication app) : base(sheet, draw, app)
         {

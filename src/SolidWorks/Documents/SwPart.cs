@@ -59,7 +59,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         protected override bool IsRapidMode => false;
 
         public override IXBoundingBox PreCreateBoundingBox()
-            => new SwPartBoundingBox(this, Application);
+            => new SwPartBoundingBox(this, OwnerApplication);
     }
 
     internal class SwPartBodyCollection : SwBodyCollection

@@ -25,8 +25,8 @@ namespace Xarial.XCad.SolidWorks.Sketch
     {
         public ISketchArc Arc => (ISketchArc)Segment;
 
-        public override IXPoint StartPoint => Document.CreateObjectFromDispatch<SwSketchPoint>(Arc.IGetStartPoint2());
-        public override IXPoint EndPoint => Document.CreateObjectFromDispatch<SwSketchPoint>(Arc.IGetEndPoint2());
+        public override IXPoint StartPoint => OwnerDocument.CreateObjectFromDispatch<SwSketchPoint>(Arc.IGetStartPoint2());
+        public override IXPoint EndPoint => OwnerDocument.CreateObjectFromDispatch<SwSketchPoint>(Arc.IGetEndPoint2());
 
         public double Diameter { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public Point Center { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }

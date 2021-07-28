@@ -40,7 +40,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         public override object Dispatch => DrawingView;
 
         internal SwDrawingView(IView drwView, SwDrawing drw, ISheet sheet, bool created) 
-            : base(drwView, drw, drw?.Application)
+            : base(drwView, drw, drw?.OwnerApplication)
         {
             m_Drawing = drw;
             m_Creator = new ElementCreator<IView>(CreateDrawingView, drwView, created);
@@ -65,7 +65,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
             const string DRW_VIEW_TYPE_NAME = "DRAWINGVIEW";
 
-            if (!ModelDoc.Extension.SelectByID2(DrawingView.Name, DRW_VIEW_TYPE_NAME, 0, 0, 0, append, 0, null, 0)) 
+            if (!OwnerModelDoc.Extension.SelectByID2(DrawingView.Name, DRW_VIEW_TYPE_NAME, 0, 0, 0, append, 0, null, 0)) 
             {
                 throw new Exception("Failed to select drawing view");
             }
@@ -160,7 +160,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
                 if (refDoc != null)
                 {
-                    return (IXDocument3D)((SwDocumentCollection)Application.Documents)[refDoc];
+                    return (IXDocument3D)((SwDocumentCollection)OwnerApplication.Documents)[refDoc];
                 }
                 else 
                 {
@@ -169,13 +169,13 @@ namespace Xarial.XCad.SolidWorks.Documents
                     if (!string.IsNullOrEmpty(refDocPath))
                     {
 
-                        if (((SwDocumentCollection)Application.Documents).TryFindExistingDocumentByPath(refDocPath, out SwDocument doc))
+                        if (((SwDocumentCollection)OwnerApplication.Documents).TryFindExistingDocumentByPath(refDocPath, out SwDocument doc))
                         {
                             return (ISwDocument3D)doc;
                         }
                         else
                         {
-                            return (ISwDocument3D)((SwDocumentCollection)Application.Documents).PreCreateFromPath(refDocPath);
+                            return (ISwDocument3D)((SwDocumentCollection)OwnerApplication.Documents).PreCreateFromPath(refDocPath);
                         }
                     }
                     else 
@@ -216,7 +216,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
             if (obj is ISwSelObject)
             {
-                if (Application.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2018))
+                if (OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2018))
                 {
                     var disp = (obj as ISwSelObject).Dispatch;
                     var corrDisp = DrawingView.GetCorresponding(disp);

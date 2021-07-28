@@ -44,7 +44,7 @@ namespace Xarial.XCad.SolidWorks.Features
                 {
                     foreach (ISketchRegion reg in regs) 
                     {
-                        yield return Document.CreateObjectFromDispatch<ISwSketchRegion>(reg);
+                        yield return OwnerDocument.CreateObjectFromDispatch<ISwSketchRegion>(reg);
                     }
                 }
             }
@@ -54,7 +54,7 @@ namespace Xarial.XCad.SolidWorks.Features
         {
             get
             {
-                var mathUtils = Application.Sw.IGetMathUtility();
+                var mathUtils = OwnerApplication.Sw.IGetMathUtility();
 
                 var transform = Sketch.ModelToSketchTransform.IInverse();
 
@@ -75,13 +75,13 @@ namespace Xarial.XCad.SolidWorks.Features
         protected override ISketch CreateSketch()
         {
             //TODO: select the plane or face
-            ModelDoc.InsertSketch2(true);
-            return ModelDoc.SketchManager.ActiveSketch;
+            OwnerModelDoc.InsertSketch2(true);
+            return OwnerModelDoc.SketchManager.ActiveSketch;
         }
 
         protected override void ToggleEditSketch()
         {
-            ModelDoc.InsertSketch2(true);
+            OwnerModelDoc.InsertSketch2(true);
         }
     }
 }

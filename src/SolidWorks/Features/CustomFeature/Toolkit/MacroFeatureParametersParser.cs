@@ -119,7 +119,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature.Toolkit
 
                 for (int i = 0; i < dispDimsObj.Length; i++)
                 {
-                    dimensions[i] = new SwDimension(dispDimsObj[i] as IDisplayDimension, macroFeat.Document, m_App);
+                    dimensions[i] = new SwDimension(dispDimsObj[i] as IDisplayDimension, macroFeat.OwnerDocument, m_App);
                     dispDimsObj[i] = null;
                 }
 

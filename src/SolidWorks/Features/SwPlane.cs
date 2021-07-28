@@ -29,7 +29,7 @@ namespace Xarial.XCad.SolidWorks.Features
         {
             m_RefPlane = feat.GetSpecificFeature2() as IRefPlane;
 
-            m_MathUtils = Application.Sw.IGetMathUtility();
+            m_MathUtils = OwnerApplication.Sw.IGetMathUtility();
         }
 
         public Plane Definition 

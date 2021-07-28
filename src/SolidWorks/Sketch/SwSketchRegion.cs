@@ -40,7 +40,7 @@ namespace Xarial.XCad.SolidWorks.Sketch
         
         public ISwCurve[] Boundary => (Region.GetEdges() as object[])
                                         .Cast<IEdge>()
-                                        .Select(e => Application.CreateObjectFromDispatch<ISwCurve>(e.IGetCurve(), Document))
+                                        .Select(e => OwnerApplication.CreateObjectFromDispatch<ISwCurve>(e.IGetCurve(), OwnerDocument))
                                         .ToArray();
     }
 }

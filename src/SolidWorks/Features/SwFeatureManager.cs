@@ -208,7 +208,7 @@ namespace Xarial.XCad.SolidWorks.Features
                         if (feat is SwCutListItem)
                         {
                             var cutList = (SwCutListItem)feat;
-                            cutList.SetOwner(doc, refConf);
+                            cutList.SetParent(doc, refConf);
                             cutLists.Add(cutList);
                         }
                         else if (feat.Feature.GetTypeName2() == "RefPlane")

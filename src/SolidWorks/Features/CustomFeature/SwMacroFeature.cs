@@ -85,7 +85,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 
         //TODO: check constant context disconnection exception
         public IXConfiguration Configuration 
-            => Document.CreateObjectFromDispatch<SwConfiguration>(FeatureData.CurrentConfiguration);
+            => OwnerDocument.CreateObjectFromDispatch<SwConfiguration>(FeatureData.CurrentConfiguration);
 
         protected override IFeature CreateFeature(CancellationToken cancellationToken)
             => InsertComFeatureBase(null, null, null, null, null, null, null);
@@ -187,9 +187,9 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             {
                 if (IsCommitted)
                 {
-                    if (FeatureData.AccessSelections(Document.Model, null))
+                    if (FeatureData.AccessSelections(OwnerModelDoc, null))
                     {
-                        return (TParams)m_ParamsParser.GetParameters(this, Document, typeof(TParams),
+                        return (TParams)m_ParamsParser.GetParameters(this, OwnerDocument, typeof(TParams),
                             out _, out _, out _, out _, out _);
                     }
                     else
@@ -212,9 +212,9 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
                     }
                     else
                     {
-                        m_ParamsParser.SetParameters(Document, this, value, out _);
+                        m_ParamsParser.SetParameters(OwnerDocument, this, value, out _);
 
-                        if (!Feature.ModifyDefinition(FeatureData, Document.Model, null))
+                        if (!Feature.ModifyDefinition(FeatureData, OwnerModelDoc, null))
                         {
                             throw new Exception("Failed to update parameters");
                         }
@@ -228,7 +228,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         }
 
         public TParams CachedParameters =>
-            (TParams)m_ParamsParser.GetParameters(this, Document, typeof(TParams),
+            (TParams)m_ParamsParser.GetParameters(this, OwnerDocument, typeof(TParams),
                 out _, out _, out _, out _, out _);
 
         protected override IFeature CreateFeature(CancellationToken cancellationToken)

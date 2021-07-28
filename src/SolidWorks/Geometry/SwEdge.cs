@@ -29,7 +29,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         public IEdge Edge { get; }
 
-        public override ISwBody Body => Application.CreateObjectFromDispatch<SwBody>(Edge.GetBody(), Document);
+        public override ISwBody Body => OwnerApplication.CreateObjectFromDispatch<SwBody>(Edge.GetBody(), OwnerDocument);
 
         public override IEnumerable<ISwEntity> AdjacentEntities 
         {
@@ -37,21 +37,21 @@ namespace Xarial.XCad.SolidWorks.Geometry
             {
                 foreach (IFace2 face in (Edge.GetTwoAdjacentFaces2() as object[]).ValueOrEmpty()) 
                 {
-                    yield return Application.CreateObjectFromDispatch<SwFace>(face, Document);
+                    yield return OwnerApplication.CreateObjectFromDispatch<SwFace>(face, OwnerDocument);
                 }
 
                 foreach (ICoEdge coEdge in (Edge.GetCoEdges() as ICoEdge[]).ValueOrEmpty())
                 {
                     var edge = coEdge.GetEdge() as IEdge;
-                    yield return Application.CreateObjectFromDispatch<SwEdge>(edge, Document);
+                    yield return OwnerApplication.CreateObjectFromDispatch<SwEdge>(edge, OwnerDocument);
                 }
 
-                yield return Application.CreateObjectFromDispatch<ISwVertex>(Edge.IGetStartVertex(), Document);
-                yield return Application.CreateObjectFromDispatch<ISwVertex>(Edge.IGetEndVertex(), Document);
+                yield return OwnerApplication.CreateObjectFromDispatch<ISwVertex>(Edge.IGetStartVertex(), OwnerDocument);
+                yield return OwnerApplication.CreateObjectFromDispatch<ISwVertex>(Edge.IGetEndVertex(), OwnerDocument);
             }
         }
 
-        public ISwCurve Definition => Application.CreateObjectFromDispatch<SwCurve>(Edge.IGetCurve(), Document);
+        public ISwCurve Definition => OwnerApplication.CreateObjectFromDispatch<SwCurve>(Edge.IGetCurve(), OwnerDocument);
 
         public override Point FindClosestPoint(Point point)
             => new Point(((double[])Edge.GetClosestPointOn(point.X, point.Y, point.Z)).Take(3).ToArray());
@@ -75,7 +75,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
         {
         }
 
-        public new ISwArcCurve Definition => Application.CreateObjectFromDispatch<SwArcCurve>(this.Edge.IGetCurve(), Document);
+        public new ISwArcCurve Definition => OwnerApplication.CreateObjectFromDispatch<SwArcCurve>(this.Edge.IGetCurve(), OwnerDocument);
     }
 
     public interface ISwLinearEdge : ISwEdge, IXLinearEdge
@@ -91,6 +91,6 @@ namespace Xarial.XCad.SolidWorks.Geometry
         {
         }
 
-        public new ISwLineCurve Definition => Application.CreateObjectFromDispatch<SwLineCurve>(this.Edge.IGetCurve(), Document);
+        public new ISwLineCurve Definition => OwnerApplication.CreateObjectFromDispatch<SwLineCurve>(this.Edge.IGetCurve(), OwnerDocument);
     }
 }

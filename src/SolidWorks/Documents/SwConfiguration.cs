@@ -105,13 +105,13 @@ namespace Xarial.XCad.SolidWorks.Documents
             m_Creator = new ElementCreator<IConfiguration>(Create, conf, created);
 
             m_PropertiesLazy = new Lazy<ISwCustomPropertiesCollection>(
-                () => new SwConfigurationCustomPropertiesCollection(Name, m_Doc, Application));
+                () => new SwConfigurationCustomPropertiesCollection(Name, m_Doc, OwnerApplication));
         }
 
         public override object Dispatch => Configuration;
 
         public IXImage Preview
-            => PictureDispUtils.PictureDispToXImage(Application.Sw.GetPreviewBitmap(m_Doc.Path, Name));
+            => PictureDispUtils.PictureDispToXImage(OwnerApplication.Sw.GetPreviewBitmap(m_Doc.Path, Name));
 
         public string PartNumber => GetPartNumber(Configuration);
 
@@ -198,11 +198,11 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
             string resVal;
 
-            if (Application.IsVersionNewerOrEqual(SwVersion_e.Sw2018))
+            if (OwnerApplication.IsVersionNewerOrEqual(SwVersion_e.Sw2018))
             {
                 prpMgr.Get6(prpName, false, out _, out resVal, out _, out _);
             }
-            else if (Application.IsVersionNewerOrEqual(SwVersion_e.Sw2014))
+            else if (OwnerApplication.IsVersionNewerOrEqual(SwVersion_e.Sw2014))
             {
                 prpMgr.Get5(prpName, false, out _, out resVal, out _);
             }
@@ -237,7 +237,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
             IConfiguration conf;
 
-            if (Application.IsVersionNewerOrEqual(SwVersion_e.Sw2018))
+            if (OwnerApplication.IsVersionNewerOrEqual(SwVersion_e.Sw2018))
             {
                 conf = m_Doc.Model.ConfigurationManager.AddConfiguration2(Name, "", "", (int)swConfigurationOptions2_e.swConfigOption_DontActivate, "", "", false);
             }

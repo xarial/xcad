@@ -28,8 +28,8 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         public Point Coordinate => new Point((double[])Vertex.GetPoint());
 
-        public override ISwBody Body => Application.CreateObjectFromDispatch<ISwBody>(
-            ((Vertex.GetEdges() as object[]).First() as IEdge).GetBody(), Document);
+        public override ISwBody Body => OwnerApplication.CreateObjectFromDispatch<ISwBody>(
+            ((Vertex.GetEdges() as object[]).First() as IEdge).GetBody(), OwnerDocument);
 
         public override IEnumerable<ISwEntity> AdjacentEntities
         {
@@ -37,12 +37,12 @@ namespace Xarial.XCad.SolidWorks.Geometry
             {
                 foreach (IEdge edge in (Vertex.GetEdges() as object[]).ValueOrEmpty())
                 {
-                    yield return Application.CreateObjectFromDispatch<SwEdge>(edge, Document);
+                    yield return OwnerApplication.CreateObjectFromDispatch<SwEdge>(edge, OwnerDocument);
                 }
 
                 foreach (IFace2 face in (Vertex.GetAdjacentFaces() as object[]).ValueOrEmpty())
                 {
-                    yield return Application.CreateObjectFromDispatch<SwFace>(face, Document);
+                    yield return OwnerApplication.CreateObjectFromDispatch<SwFace>(face, OwnerDocument);
                 }
             }
         }

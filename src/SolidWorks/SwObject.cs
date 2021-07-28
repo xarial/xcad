@@ -30,10 +30,10 @@ namespace Xarial.XCad.SolidWorks
     /// <inheritdoc/>
     internal class SwObject : ISwObject
     {
-        protected IModelDoc2 ModelDoc => Document.Model;
+        protected IModelDoc2 OwnerModelDoc => OwnerDocument.Model;
 
-        internal ISwApplication Application { get; }
-        internal virtual ISwDocument Document { get; }
+        internal ISwApplication OwnerApplication { get; }
+        internal virtual ISwDocument OwnerDocument { get; }
 
         public virtual object Dispatch { get; }
 
@@ -45,7 +45,7 @@ namespace Xarial.XCad.SolidWorks
                 {
                     if (Dispatch != null)
                     {
-                        if (ModelDoc.Extension.GetPersistReference3(Dispatch) != null)
+                        if (OwnerModelDoc.Extension.GetPersistReference3(Dispatch) != null)
                         {
                             return true;
                         }
@@ -67,8 +67,8 @@ namespace Xarial.XCad.SolidWorks
         {
             Dispatch = disp;
             m_TagsLazy = new Lazy<ITagsManager>(() => new TagsManager());
-            Document = doc;
-            Application = app;
+            OwnerDocument = doc;
+            OwnerApplication = app;
         }
 
         public virtual bool Equals(IXObject other)
@@ -100,13 +100,13 @@ namespace Xarial.XCad.SolidWorks
 
         public virtual void Serialize(Stream stream)
         {
-            if (ModelDoc != null)
+            if (OwnerModelDoc != null)
             {
                 var disp = Dispatch;
 
                 if (disp != null)
                 {
-                    var persRef = ModelDoc.Extension.GetPersistReference3(disp) as byte[];
+                    var persRef = OwnerModelDoc.Extension.GetPersistReference3(disp) as byte[];
 
                     if (persRef == null)
                     {

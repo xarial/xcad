@@ -48,14 +48,14 @@ namespace Xarial.XCad.SolidWorks.Documents
             => (this as IXAssembly).PreCreateBoundingBox();
 
         IXAssemblyBoundingBox IXAssembly.PreCreateBoundingBox()
-            => new SwAssemblyBoundingBox(this, Application);
+            => new SwAssemblyBoundingBox(this, OwnerApplication);
 
         public override IXMassProperty PreCreateMassProperty()
             => (this as IXAssembly).PreCreateMassProperty();
 
         IXAssemblyMassProperty IXAssembly.PreCreateMassProperty()
         {
-            if (Application.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2020))
+            if (OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2020))
             {
                 return new SwAssemblyMassProperty(this, m_MathUtils);
             }
