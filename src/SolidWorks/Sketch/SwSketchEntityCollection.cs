@@ -38,12 +38,14 @@ namespace Xarial.XCad.SolidWorks.Sketch
 
         private readonly List<IXSketchEntity> m_Cache;
 
+        private readonly ISwApplication m_App;
         private readonly ISwDocument m_Doc;
         private readonly ISketchManager m_SkMgr;
 
-        internal SwSketchEntityCollection(ISwDocument doc, ISwSketchBase sketch)
+        internal SwSketchEntityCollection(ISwSketchBase sketch, ISwDocument doc, ISwApplication app)
         {
             m_Doc = doc;
+            m_App = app;
             m_Sketch = sketch;
             m_SkMgr = doc.Model.SketchManager;
             m_Cache = new List<IXSketchEntity>();
@@ -98,8 +100,8 @@ namespace Xarial.XCad.SolidWorks.Sketch
             }
         }
 
-        public IXLine PreCreateLine() => new SwSketchLine(m_Doc, null, false);
-        public IXPoint PreCreatePoint() => new SwSketchPoint(m_Doc, null, false);
+        public IXLine PreCreateLine() => new SwSketchLine(null, m_Doc, m_App, false);
+        public IXPoint PreCreatePoint() => new SwSketchPoint(null, m_Doc, m_App, false);
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
@@ -108,7 +110,7 @@ namespace Xarial.XCad.SolidWorks.Sketch
             //TODO: implement removing of entities
         }
 
-        public IXArc PreCreateArc() => new SwSketchArc(m_Doc, null, false);
+        public IXArc PreCreateArc() => new SwSketchArc(null, m_Doc, m_App, false);
 
         public IXPolylineCurve PreCreatePolyline()
         {
@@ -123,7 +125,7 @@ namespace Xarial.XCad.SolidWorks.Sketch
 
     internal class SwSketchEntitiesEnumerator : IEnumerator<ISwSketchEntity>
     {
-        public ISwSketchEntity Current => SwObject.FromDispatch<SwSketchEntity>(m_Entities[m_CurIndex], m_Doc);
+        public ISwSketchEntity Current => m_Doc.CreateObjectFromDispatch<SwSketchEntity>(m_Entities[m_CurIndex]);
 
         object IEnumerator.Current => Current;
 

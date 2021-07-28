@@ -33,7 +33,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
             if (comp != null)
             {
-                ent = SwObject.FromDispatch<SwComponent>(comp, m_Assm);
+                ent = m_Assm.CreateObjectFromDispatch<SwComponent>(comp);
                 return true;
             }
             else
@@ -109,7 +109,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                 }
 
                 return (GetChildren() ?? new IComponent2[0])
-                    .Select(c => SwSelObject.FromDispatch<SwComponent>(c, m_Assm)).GetEnumerator();
+                    .Select(c => m_Assm.CreateObjectFromDispatch<SwComponent>(c)).GetEnumerator();
             }
             else 
             {

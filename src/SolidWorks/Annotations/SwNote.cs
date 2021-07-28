@@ -23,7 +23,7 @@ namespace Xarial.XCad.SolidWorks.Annotations
     {
         public INote Note { get; }
 
-        internal SwNote(INote note, ISwDocument doc) : base(note, doc)
+        internal SwNote(INote note, ISwDocument doc, ISwApplication app) : base(note, doc, app)
         {
             Note = note;
         }

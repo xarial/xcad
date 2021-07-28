@@ -29,7 +29,7 @@ namespace Xarial.XCad.SolidWorks.Sketch
     {
         IXSegment[] IXRegion.Boundary => Boundary;
 
-        internal SwSketchRegion(ISketchRegion region, ISwDocument doc) : base(region, doc)
+        internal SwSketchRegion(ISketchRegion region, ISwDocument doc, ISwApplication app) : base(region, doc, app)
         {
             Region = region;
         }
@@ -40,7 +40,7 @@ namespace Xarial.XCad.SolidWorks.Sketch
         
         public ISwCurve[] Boundary => (Region.GetEdges() as object[])
                                         .Cast<IEdge>()
-                                        .Select(e => SwObject.FromDispatch<ISwCurve>(e.IGetCurve()))
+                                        .Select(e => Application.CreateObjectFromDispatch<ISwCurve>(e.IGetCurve(), Document))
                                         .ToArray();
     }
 }

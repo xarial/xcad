@@ -44,9 +44,9 @@ namespace Xarial.XCad.SolidWorks.Documents
         public override object Dispatch => Sheet;
 
         public IXImage Preview
-            => PictureDispUtils.PictureDispToXImage(m_Drawing.App.Sw.GetPreviewBitmap(m_Doc.Path, Name));
+            => PictureDispUtils.PictureDispToXImage(Application.Sw.GetPreviewBitmap(Document.Path, Name));
 
-        internal SwSheet(SwDrawing draw, ISheet sheet) : base(sheet, draw)
+        internal SwSheet(ISheet sheet, SwDrawing draw, ISwApplication app) : base(sheet, draw, app)
         {
             m_Drawing = draw;
             Sheet = sheet;
@@ -70,15 +70,17 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         #endregion
 
+        private readonly ISwApplication m_App;
         private readonly SwDrawing m_Drw;
 
-        internal UncommittedPreviewOnlySheet(SwDrawing drw) 
+        internal UncommittedPreviewOnlySheet(SwDrawing drw, ISwApplication app) 
         {
             m_Drw = drw;
+            m_App = app;
         }
 
         public IXImage Preview
-            => PictureDispUtils.PictureDispToXImage(m_Drw.App.Sw.GetPreviewBitmap(m_Drw.Path, ""));
+            => PictureDispUtils.PictureDispToXImage(m_App.Sw.GetPreviewBitmap(m_Drw.Path, ""));
 
         public bool IsCommitted => false;
     }

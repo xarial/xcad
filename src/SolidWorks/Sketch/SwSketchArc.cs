@@ -25,15 +25,15 @@ namespace Xarial.XCad.SolidWorks.Sketch
     {
         public ISketchArc Arc => (ISketchArc)Segment;
 
-        public override IXPoint StartPoint => SwSelObject.FromDispatch<SwSketchPoint>(Arc.IGetStartPoint2(), m_Doc);
-        public override IXPoint EndPoint => SwSelObject.FromDispatch<SwSketchPoint>(Arc.IGetEndPoint2(), m_Doc);
+        public override IXPoint StartPoint => Document.CreateObjectFromDispatch<SwSketchPoint>(Arc.IGetStartPoint2());
+        public override IXPoint EndPoint => Document.CreateObjectFromDispatch<SwSketchPoint>(Arc.IGetEndPoint2());
 
         public double Diameter { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public Point Center { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public Vector Axis { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
-        internal SwSketchArc(ISwDocument doc, ISketchArc arc, bool created)
-            : base(doc, (ISketchSegment)arc, created)
+        internal SwSketchArc(ISketchArc arc, ISwDocument doc, ISwApplication app, bool created)
+            : base((ISketchSegment)arc, doc, app, created)
         {
         }
 

@@ -27,7 +27,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
     public interface ISwDmComponent : IXComponent, ISwDmSelObject
     {
         ISwDMComponent Component { get; }
-        new ISwDmDocument3D Document { get; }
+        new ISwDmDocument3D ReferencedDocument { get; }
         new ISwDmConfiguration ReferencedConfiguration { get; }
     }
 
@@ -41,7 +41,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         #endregion
 
-        IXDocument3D IXComponent.Document => Document;
+        IXDocument3D IXComponent.ReferencedDocument => ReferencedDocument;
         IXConfiguration IXComponent.ReferencedConfiguration => ReferencedConfiguration;
 
         public ISwDMComponent Component { get; }
@@ -138,7 +138,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         private ISwDmDocument3D m_CachedDocument;
 
-        public ISwDmDocument3D Document
+        public ISwDmDocument3D ReferencedDocument
         {
             get
             {
@@ -222,7 +222,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         {
             get
             {
-                if (!Component.IsSuppressed() && Document is SwDmAssembly)
+                if (!Component.IsSuppressed() && ReferencedDocument is SwDmAssembly)
                 {
                     var refConf = ReferencedConfiguration;
 
@@ -231,7 +231,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                         refConf.Commit(default);
                     }
 
-                    return new SwDmSubComponentCollection(this, Document as SwDmAssembly, refConf);
+                    return new SwDmSubComponentCollection(this, ReferencedDocument as SwDmAssembly, refConf);
                 }
                 else 
                 {
@@ -259,7 +259,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             set => throw new NotSupportedException();
         }
 
-        protected override SwDmDocument3D Document => (SwDmDocument3D)m_Comp.Document;
+        protected override SwDmDocument3D Document => (SwDmDocument3D)m_Comp.ReferencedDocument;
 
         public override ISwDMConfiguration Configuration => Document.Configurations[Name].Configuration;
 

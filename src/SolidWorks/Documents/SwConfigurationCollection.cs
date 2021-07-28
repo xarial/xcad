@@ -52,16 +52,16 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         IXConfiguration IXConfigurationRepository.PreCreate() => PreCreate();
 
-        protected readonly ISldWorks m_App;
+        protected readonly ISwApplication m_App;
         private readonly SwDocument3D m_Doc;
 
         private readonly ConfigurationActivatedEventsHandler m_ConfigurationActivatedEventsHandler;
 
-        internal SwConfigurationCollection(ISldWorks app, SwDocument3D doc) 
+        internal SwConfigurationCollection(SwDocument3D doc, ISwApplication app) 
         {
             m_App = app;
             m_Doc = doc;
-            m_ConfigurationActivatedEventsHandler = new ConfigurationActivatedEventsHandler(doc);
+            m_ConfigurationActivatedEventsHandler = new ConfigurationActivatedEventsHandler(doc, app);
         }
 
         public IXConfiguration this[string name] => this.Get(name);
@@ -72,7 +72,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
             if (conf != null)
             {
-                ent = SwObject.FromDispatch<SwConfiguration>((IConfiguration)conf, m_Doc);
+                ent = m_Doc.CreateObjectFromDispatch<SwConfiguration>((IConfiguration)conf);
                 return true;
             }
             else 
@@ -91,7 +91,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
 
         protected virtual ISwConfiguration CreateViewOnlyConfiguration(string name)
-            => new SwViewOnlyUnloadedConfiguration(m_Doc, name);
+            => new SwViewOnlyUnloadedConfiguration(name, m_Doc, m_App);
 
         public int Count => m_Doc.Model.GetConfigurationCount();
 
@@ -101,12 +101,12 @@ namespace Xarial.XCad.SolidWorks.Documents
             {
                 if (m_Doc.IsCommitted)
                 {
-                    return SwObject.FromDispatch<SwConfiguration>(m_Doc.Model.ConfigurationManager.ActiveConfiguration, m_Doc);
+                    return m_Doc.CreateObjectFromDispatch<SwConfiguration>(m_Doc.Model.ConfigurationManager.ActiveConfiguration);
                 }
                 else 
                 {
-                    var activeConfName = m_Doc.App.Sw.GetActiveConfigurationName(m_Doc.Path);
-                    return new SwConfiguration(m_Doc, null, false)
+                    var activeConfName = m_App.Sw.GetActiveConfigurationName(m_Doc.Path);
+                    return new SwConfiguration(null, m_Doc, m_App, false)
                     {
                         Name = activeConfName
                     };
@@ -124,7 +124,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        public ISwConfiguration PreCreate() => new SwConfiguration(m_Doc, null, false);
+        public ISwConfiguration PreCreate() => new SwConfiguration(null, m_Doc, m_App, false);
 
         public void AddRange(IEnumerable<IXConfiguration> ents)
         {
@@ -173,15 +173,15 @@ namespace Xarial.XCad.SolidWorks.Documents
 
     internal class SwConfigurationEnumerator : SwConfigurationEnumeratorBase<SwConfiguration>
     {
-        public SwConfigurationEnumerator(ISldWorks app, SwDocument3D doc) : base(app, doc)
+        public SwConfigurationEnumerator(ISwApplication app, SwDocument3D doc) : base(app, doc)
         {
         }
 
         protected override SwConfiguration CreateViewOnlyConfiguration(string confName)
-            => new SwViewOnlyUnloadedConfiguration(m_Doc, confName);
+            => new SwViewOnlyUnloadedConfiguration(confName, m_Doc, m_App);
 
         protected override SwConfiguration PreCreateNewConfiguration()
-            => new SwConfiguration(m_Doc, null, false);
+            => new SwConfiguration(null, m_Doc, m_App, false);
     }
 
     internal abstract class SwConfigurationEnumeratorBase<TConf> : IEnumerator<TConf>
@@ -211,7 +211,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                     }
                     else
                     {
-                        return SwObject.FromDispatch<TConf>(conf, m_Doc);
+                        return m_Doc.CreateObjectFromDispatch<TConf>(conf);
                     }
                 }
                 else
@@ -227,12 +227,12 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         private int m_CurConfIndex;
 
-        protected readonly ISldWorks m_App;
+        protected readonly ISwApplication m_App;
         protected readonly SwDocument3D m_Doc;
 
         private string[] m_ConfNames;
 
-        internal SwConfigurationEnumeratorBase(ISldWorks app, SwDocument3D doc)
+        internal SwConfigurationEnumeratorBase(ISwApplication app, SwDocument3D doc)
         {
             m_App = app;
             m_Doc = doc;
@@ -245,7 +245,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
             else 
             {
-                m_ConfNames = (string[])m_App.GetConfigurationNames(m_Doc.Path);
+                m_ConfNames = (string[])m_App.Sw.GetConfigurationNames(m_Doc.Path);
             }
         }
 
@@ -279,7 +279,7 @@ namespace Xarial.XCad.SolidWorks.Documents
     {
         private readonly SwAssembly m_Assm;
 
-        internal SwAssemblyConfigurationCollection(ISldWorks app, SwAssembly assm) : base(app, assm)
+        internal SwAssemblyConfigurationCollection(SwAssembly assm, ISwApplication app) : base(assm, app)
         {
             m_Assm = assm;
         }
@@ -314,13 +314,13 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
 
         protected override ISwConfiguration CreateViewOnlyConfiguration(string name)
-            => new SwLdrUnloadedConfiguration(m_Assm, name);
+            => new SwLdrUnloadedConfiguration(m_Assm, m_App, name);
 
         IEnumerator<IXAssemblyConfiguration> IEnumerable<IXAssemblyConfiguration>.GetEnumerator()
             => new SwAssemblyConfigurationEnumerator(m_App, m_Assm);
 
         ISwAssemblyConfiguration ISwAssemblyConfigurationCollection.PreCreate()
-            => new SwAssemblyConfiguration(m_Assm, null, false);
+            => new SwAssemblyConfiguration(null, m_Assm, m_App, false);
 
         IXAssemblyConfiguration IXAssemblyConfigurationRepository.PreCreate()
             => (this as ISwAssemblyConfigurationCollection).PreCreate();
@@ -330,15 +330,15 @@ namespace Xarial.XCad.SolidWorks.Documents
     {
         private readonly SwAssembly m_Assm;
 
-        public SwAssemblyConfigurationEnumerator(ISldWorks app, SwAssembly assm) : base(app, assm)
+        public SwAssemblyConfigurationEnumerator(ISwApplication app, SwAssembly assm) : base(app, assm)
         {
             m_Assm = assm;
         }
 
         protected override SwAssemblyConfiguration CreateViewOnlyConfiguration(string confName)
-            => new SwLdrUnloadedConfiguration(m_Assm, confName);
+            => new SwLdrUnloadedConfiguration(m_Assm, m_App, confName);
 
         protected override SwAssemblyConfiguration PreCreateNewConfiguration()
-            => new SwAssemblyConfiguration(m_Assm, null, false);
+            => new SwAssemblyConfiguration(null, m_Assm, m_App, false);
     }
 }

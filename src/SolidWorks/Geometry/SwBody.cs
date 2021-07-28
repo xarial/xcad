@@ -91,7 +91,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
                 while (face != null) 
                 {
-                    yield return SwObjectFactory.FromDispatch<ISwFace>(face, m_Doc);
+                    yield return Application.CreateObjectFromDispatch<ISwFace>(face, Document);
                     face = face.IGetNextFace();
                 }
             }
@@ -107,13 +107,14 @@ namespace Xarial.XCad.SolidWorks.Geometry
                 {
                     foreach (IEdge edge in edges) 
                     {
-                        yield return SwObjectFactory.FromDispatch<ISwEdge>(edge, m_Doc);
+                        yield return Application.CreateObjectFromDispatch<ISwEdge>(edge, Document);
                     }
                 }
             }
         }
 
-        internal SwBody(IBody2 body, ISwDocument doc) : base(body, doc)
+        internal SwBody(IBody2 body, ISwDocument doc, ISwApplication app) 
+            : base(body, doc, app ?? ((SwDocument)doc)?.Application)
         {
             Body = body;
         }
@@ -150,7 +151,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
             if (res?.Any() == true)
             {
-                return res.Select(b => FromDispatch<SwBody>(b as IBody2)).ToArray();
+                return res.Select(b => Application.CreateObjectFromDispatch<SwBody>(b as IBody2, Document)).ToArray();
             }
             else
             {
@@ -159,7 +160,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
         }
 
         public IXBody Copy()
-            => SwObject.FromDispatch<SwTempBody>(Body.ICopy());
+            => Application.CreateObjectFromDispatch<SwTempBody>(Body.ICopy(), Document);
 
         public virtual void Move(TransformMatrix transform)
             => throw new NotSupportedException($"Only temp bodies are supported. Use {nameof(Copy)} method");
@@ -171,7 +172,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
     internal class SwSheetBody : SwBody, ISwSheetBody
     {
-        internal SwSheetBody(IBody2 body, ISwDocument doc) : base(body, doc)
+        internal SwSheetBody(IBody2 body, ISwDocument doc, ISwApplication app) : base(body, doc, app)
         {
         }
     }
@@ -182,7 +183,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
     internal class SwPlanarSheetBody : SwSheetBody, ISwPlanarSheetBody
     {
-        internal SwPlanarSheetBody(IBody2 body, ISwDocument doc) : base(body, doc)
+        internal SwPlanarSheetBody(IBody2 body, ISwDocument doc, ISwApplication app) : base(body, doc, app)
         {
         }
 
@@ -194,7 +195,9 @@ namespace Xarial.XCad.SolidWorks.Geometry
     {
         internal static Plane GetPlane(this ISwPlanarSheetBody body)
         {
-            var planarFace = SwSelObject.FromDispatch<SwPlanarFace>(body.Body.IGetFirstFace());
+            var planarFace = ((SwObject)body).Application.CreateObjectFromDispatch<SwPlanarFace>(
+                body.Body.IGetFirstFace(), ((SwObject)body).Document);
+
             return planarFace.Definition.Plane;
         }
 
@@ -206,8 +209,8 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
             for (int i = 0; i < segs.Length; i++)
             {
-                var curve = (edges[i] as IEdge).IGetCurve();
-                segs[i] = SwSelObject.FromDispatch<SwCurve>(curve);
+                var curve = ((IEdge)edges[i]).IGetCurve();
+                segs[i] = ((SwObject)body).Application.CreateObjectFromDispatch<SwCurve>(curve, ((SwObject)body).Document);
             }
 
             return segs;
@@ -220,7 +223,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
     internal class SwSolidBody : SwBody, ISwBody, ISwSolidBody
     {
-        internal SwSolidBody(IBody2 body, ISwDocument doc) : base(body, doc)
+        internal SwSolidBody(IBody2 body, ISwDocument doc, ISwApplication app) : base(body, doc, app)
         {
         }
 

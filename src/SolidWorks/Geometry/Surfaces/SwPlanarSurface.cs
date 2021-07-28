@@ -21,7 +21,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Surfaces
 
     internal class SwPlanarSurface : SwSurface, ISwPlanarSurface
     {
-        internal SwPlanarSurface(ISurface surface, ISwDocument doc) : base(surface, doc)
+        internal SwPlanarSurface(ISurface surface, ISwDocument doc, ISwApplication app) : base(surface, doc, app)
         {
         }
 

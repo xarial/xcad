@@ -349,7 +349,7 @@ namespace Xarial.XCad.SolidWorks
         {
             var tab = new SwModelViewTab<TControl>(
                 new ModelViewTabCreator<TControl>(doc.Model.ModelViewManager, m_SvcProvider),
-                doc.Model.ModelViewManager, (SwDocument)doc, Logger);
+                doc.Model.ModelViewManager, (SwDocument)doc, Application, Logger);
             
             tab.InitControl();
             
@@ -399,7 +399,7 @@ namespace Xarial.XCad.SolidWorks
         {
             var tab = new SwFeatureMgrTab<TControl>(
                 new FeatureManagerTabCreator<TControl>(doc.Model.ModelViewManager, m_SvcProvider),
-                (SwDocument)doc, Logger);
+                (SwDocument)doc, Application, Logger);
 
             tab.InitControl();
             tab.Disposed += OnItemDisposed;
@@ -412,7 +412,7 @@ namespace Xarial.XCad.SolidWorks
         {
         }
 
-        private void OnItemDisposed(ISessionAttachedItem item)
+        private void OnItemDisposed(IAutoDisposable item)
         {
             item.Disposed -= OnItemDisposed;
 

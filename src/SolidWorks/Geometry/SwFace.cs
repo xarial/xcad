@@ -38,16 +38,15 @@ namespace Xarial.XCad.SolidWorks.Geometry
         IXEdge[] IXFace.Edges => Edges;
 
         public IFace2 Face { get; }
+        private readonly IMathUtility m_MathUtils;
 
-        private readonly Lazy<SwMathUtilsProvider> m_MathUtilsProvider;
-
-        internal SwFace(IFace2 face, ISwDocument doc) : base((IEntity)face, doc)
+        internal SwFace(IFace2 face, ISwDocument doc, ISwApplication app) : base((IEntity)face, doc, app)
         {
             Face = face;
-            m_MathUtilsProvider = new Lazy<SwMathUtilsProvider>(() => new SwMathUtilsProvider(this));
+            m_MathUtils = app.Sw.IGetMathUtility();
         }
 
-        public override ISwBody Body => (SwBody)FromDispatch(Face.GetBody());
+        public override ISwBody Body => Application.CreateObjectFromDispatch<ISwBody>(Face.GetBody(), Document);
 
         public override IEnumerable<ISwEntity> AdjacentEntities 
         {
@@ -55,7 +54,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
             {
                 foreach (IEdge edge in (Face.GetEdges() as object[]).ValueOrEmpty())
                 {
-                    yield return FromDispatch<SwEdge>(edge, m_Doc);
+                    yield return Application.CreateObjectFromDispatch<ISwEdge>(edge, Document);
                 }
             }
         }
@@ -73,7 +72,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
                 (o, c) => Face.RemoveMaterialProperty2((int)o, c));
         }
 
-        public ISwSurface Definition => SwSelObject.FromDispatch<SwSurface>(Face.IGetSurface());
+        public ISwSurface Definition => Application.CreateObjectFromDispatch<SwSurface>(Face.IGetSurface(), Document);
 
         public IXFeature Feature 
         {
@@ -83,7 +82,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
                 if (feat != null)
                 {
-                    return SwObject.FromDispatch<ISwFeature>(feat, m_Doc);
+                    return Application.CreateObjectFromDispatch<ISwFeature>(feat, Document);
                 }
                 else 
                 {
@@ -93,15 +92,15 @@ namespace Xarial.XCad.SolidWorks.Geometry
         }
 
         public ISwEdge[] Edges => (Face.GetEdges() as object[])
-            .Select(f => SwObject.FromDispatch<ISwEdge>(f, m_Doc)).ToArray();
+            .Select(f => Application.CreateObjectFromDispatch<ISwEdge>(f, Document)).ToArray();
 
         public override Point FindClosestPoint(Point point)
             => new Point(((double[])Face.GetClosestPointOn(point.X, point.Y, point.Z)).Take(3).ToArray());
 
         public bool TryProjectPoint(Point point, Vector direction, out Point projectedPoint)
         {
-            var dirVec = (MathVector)m_MathUtilsProvider.Value.CreateVector(direction);
-            var startPt = (MathPoint)m_MathUtilsProvider.Value.CreatePoint(point);
+            var dirVec = (MathVector)m_MathUtils.CreateVector(direction.ToArray());
+            var startPt = (MathPoint)m_MathUtils.CreatePoint(point.ToArray());
 
             var resPt = Face.GetProjectedPointOn(startPt, dirVec);
 
@@ -128,11 +127,11 @@ namespace Xarial.XCad.SolidWorks.Geometry
         IXSegment[] IXRegion.Boundary => Boundary;
         IXPlanarSurface IXPlanarFace.Definition => Definition;
 
-        public SwPlanarFace(IFace2 face, ISwDocument doc) : base(face, doc)
+        public SwPlanarFace(IFace2 face, ISwDocument doc, ISwApplication app) : base(face, doc, app)
         {
         }
 
-        public new ISwPlanarSurface Definition => SwSelObject.FromDispatch<SwPlanarSurface>(Face.IGetSurface());
+        public new ISwPlanarSurface Definition => Application.CreateObjectFromDispatch<SwPlanarSurface>(Face.IGetSurface(), Document);
 
         public Plane Plane => Definition.Plane;
 
@@ -148,10 +147,10 @@ namespace Xarial.XCad.SolidWorks.Geometry
     {
         IXCylindricalSurface IXCylindricalFace.Definition => Definition;
 
-        public SwCylindricalFace(IFace2 face, ISwDocument doc) : base(face, doc)
+        public SwCylindricalFace(IFace2 face, ISwDocument doc, ISwApplication app) : base(face, doc, app)
         {
         }
 
-        public new ISwCylindricalSurface Definition => SwSelObject.FromDispatch<SwCylindricalSurface>(Face.IGetSurface());
+        public new ISwCylindricalSurface Definition => Application.CreateObjectFromDispatch<SwCylindricalSurface>(Face.IGetSurface(), Document);
     }
 }

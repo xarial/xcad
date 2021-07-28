@@ -13,6 +13,7 @@ using System.Text;
 using System.Threading;
 using Xarial.XCad.Base;
 using Xarial.XCad.Geometry.Curves;
+using Xarial.XCad.SolidWorks.Documents;
 
 namespace Xarial.XCad.SolidWorks.Geometry.Curves
 {
@@ -31,8 +32,8 @@ namespace Xarial.XCad.SolidWorks.Geometry.Curves
 
         public ISwCurve[] Composition { get; set; }
 
-        internal SwComplexCurve(IModeler modeler, ICurve[] curves, bool isCreated) 
-            : base(modeler, curves, isCreated)
+        internal SwComplexCurve(ICurve[] curves, ISwDocument doc, ISwApplication app, bool isCreated) 
+            : base(curves, doc, app, isCreated)
         {
         }
 

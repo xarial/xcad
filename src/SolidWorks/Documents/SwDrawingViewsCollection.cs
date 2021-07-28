@@ -68,7 +68,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
             if (view != null)
             {
-                ent = SwSelObject.FromDispatch<SwDrawingView>(view, m_Draw);
+                ent = m_Draw.CreateObjectFromDispatch<SwDrawingView>(view);
             }
             else 
             {
@@ -84,7 +84,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
             foreach (IView view in GetSwViews())
             {
-                yield return SwSelObject.FromDispatch<SwDrawingView>(view, m_Draw);
+                yield return m_Draw.CreateObjectFromDispatch<SwDrawingView>(view);
             }
         }
 

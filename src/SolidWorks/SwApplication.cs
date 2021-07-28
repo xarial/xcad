@@ -51,6 +51,9 @@ namespace Xarial.XCad.SolidWorks
         new ISwDocumentCollection Documents { get; }
         new ISwMemoryGeometryBuilder MemoryGeometryBuilder { get; }
         new ISwMacro OpenMacro(string path);
+
+        TObj CreateObjectFromDispatch<TObj>(object disp, ISwDocument doc)
+            where TObj : IXObject;
     }
 
     /// <inheritdoc/>
@@ -471,7 +474,7 @@ namespace Xarial.XCad.SolidWorks
         {
             collection.AddOrReplace((Func<IXLogger>)(() => new TraceLogger("xCAD.SwApplication")));
             collection.AddOrReplace((Func<IMemoryGeometryBuilderDocumentProvider>)(() => new DefaultMemoryGeometryBuilderDocumentProvider(this)));
-            collection.AddOrReplace<IFilePathResolver>(() => new SwFilePathResolverNoSearchFolders(this));//TODO: there is some issue with recursive search of folders in search locations - do a test to validate
+            collection.AddOrReplace((Func<IFilePathResolver>)(() => new SwFilePathResolverNoSearchFolders(this)));//TODO: there is some issue with recursive search of folders in search locations - do a test to validate
         }
 
         public IXProgress CreateProgress()
@@ -510,6 +513,10 @@ namespace Xarial.XCad.SolidWorks
 
             iconsCreator?.Dispose();
         }
+
+        public TObj CreateObjectFromDispatch<TObj>(object disp, ISwDocument doc)
+            where TObj : IXObject
+            => SwObjectFactory.FromDispatch<TObj>(disp, doc, this);
     }
 
     public static class SwApplicationExtension 

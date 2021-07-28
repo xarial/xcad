@@ -12,6 +12,7 @@ using System.Text;
 using System.Threading;
 using Xarial.XCad.Geometry.Curves;
 using Xarial.XCad.Geometry.Structures;
+using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Geometry.Exceptions;
 
 namespace Xarial.XCad.SolidWorks.Geometry.Curves
@@ -22,7 +23,8 @@ namespace Xarial.XCad.SolidWorks.Geometry.Curves
 
     internal class SwLineCurve : SwCurve, ISwLineCurve
     {
-        internal SwLineCurve(IModeler modeler, ICurve curve, bool isCreated) : base(modeler, curve, isCreated)
+        internal SwLineCurve(ICurve curve, ISwDocument doc, ISwApplication app, bool isCreated) 
+            : base(curve, doc, app, isCreated)
         {
         }
 

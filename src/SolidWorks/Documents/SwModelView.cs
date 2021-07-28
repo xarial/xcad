@@ -92,11 +92,11 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public override object Dispatch => View;
 
-        internal SwModelView(IModelDoc2 model, IModelView view, IMathUtility mathUtils) : base(view)
+        internal SwModelView(IModelView view, ISwDocument doc, ISwApplication app) : base(view, doc, app)
         {
             View = view;
-            Owner = model;
-            m_MathUtils = mathUtils;
+            Owner = doc.Model;
+            m_MathUtils = app.Sw.IGetMathUtility();
         }
 
         public void Freeze(bool freeze)
@@ -138,8 +138,8 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public string Name { get; }
 
-        internal SwNamedView(IModelDoc2 model, IModelView view, IMathUtility mathUtils, string name)
-            : base(model, view, mathUtils)
+        internal SwNamedView(IModelView view, ISwDocument doc, ISwApplication app, string name)
+            : base(view, doc, app)
         {
             Name = name;
         }
@@ -195,8 +195,8 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        internal SwStandardView(IModelDoc2 model, IModelView view, IMathUtility mathUtils, StandardViewType_e type) 
-            : base(model, view, mathUtils, GetStandardViewName(model, type))
+        internal SwStandardView(IModelView view, ISwDocument doc, ISwApplication app, StandardViewType_e type) 
+            : base(view, doc, app, GetStandardViewName(doc.Model, type))
         {
             Type = type;
 

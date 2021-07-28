@@ -53,8 +53,8 @@ namespace Xarial.XCad.SolidWorks.Geometry
             m_GeomBuilderDocsProvider = geomBuilderDocsProvider;
         }
 
-        public ISwTempExtrusion PreCreateExtrusion() => new SwTempExtrusion(m_MathUtils, m_Modeler, null, false);
-        public ISwTempRevolve PreCreateRevolve() => new SwTempRevolve(m_MathUtils, m_Modeler, null, false);
-        public ISwTempSweep PreCreateSweep() => new SwTempSweep((SwPart)m_GeomBuilderDocsProvider.ProvideDocument(typeof(SwTempSweep)), m_MathUtils, m_Modeler, null, false);
+        public ISwTempExtrusion PreCreateExtrusion() => new SwTempExtrusion(null, m_App, false);
+        public ISwTempRevolve PreCreateRevolve() => new SwTempRevolve(null, m_App, false);
+        public ISwTempSweep PreCreateSweep() => new SwTempSweep(null, (SwPart)m_GeomBuilderDocsProvider.ProvideDocument(typeof(SwTempSweep)), m_App, false);
     }
 }

@@ -72,7 +72,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
             if (bodies != null)
             {
-                return bodies.Select(b => SwSelObject.FromDispatch<SwBody>(b, m_RootDoc));
+                return bodies.Select(b => m_RootDoc.CreateObjectFromDispatch<SwBody>(b));
             }
             else 
             {

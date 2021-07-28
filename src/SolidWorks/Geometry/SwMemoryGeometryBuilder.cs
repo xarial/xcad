@@ -31,16 +31,20 @@ namespace Xarial.XCad.SolidWorks.Geometry
         public IXSheetGeometryBuilder SheetBuilder { get; }
         public IXSolidGeometryBuilder SolidBuilder { get; }
 
+        private readonly ISwApplication m_App;
+
         private readonly IModeler m_Modeler;
         private readonly IMathUtility m_MathUtils;
 
         internal SwMemoryGeometryBuilder(ISwApplication app, IMemoryGeometryBuilderDocumentProvider geomBuilderDocsProvider) 
         {
+            m_App = app;
+
             m_MathUtils = app.Sw.IGetMathUtility();
             m_Modeler = app.Sw.IGetModeler();
 
-            WireBuilder = new SwMemoryWireGeometryBuilder(m_MathUtils, m_Modeler);
-            SheetBuilder = new SwMemorySheetGeometryBuilder(m_MathUtils, m_Modeler);
+            WireBuilder = new SwMemoryWireGeometryBuilder(app);
+            SheetBuilder = new SwMemorySheetGeometryBuilder(app);
             SolidBuilder = new SwMemorySolidGeometryBuilder(app, geomBuilderDocsProvider);
         }
 
@@ -48,7 +52,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
         {
             var comStr = new StreamWrapper(stream);
             var body = (IBody2)m_Modeler.Restore(comStr);
-            return SwObjectFactory.FromDispatch<ISwTempBody>(body, null);
+            return m_App.CreateObjectFromDispatch<ISwTempBody>(body, null);
         }
 
         public void SerializeBody(IXBody body, Stream stream)

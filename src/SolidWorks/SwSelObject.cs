@@ -21,10 +21,7 @@ namespace Xarial.XCad.SolidWorks
 
     /// <inheritdoc/>
     internal class SwSelObject : SwObject, ISwSelObject
-    {
-        internal static new SwSelObject FromDispatch(object disp, ISwDocument doc)
-            => (SwSelObject)SwSelObject.FromDispatch(disp, doc, o => new SwSelObject(o, doc));
-        
+    {        
         public virtual bool IsCommitted => true;
 
         public bool IsSelected
@@ -43,11 +40,7 @@ namespace Xarial.XCad.SolidWorks
             }
         }
 
-        internal SwSelObject(object disp) : this(disp, null)
-        {
-        }
-
-        internal SwSelObject(object disp, ISwDocument doc) : base(disp, doc)
+        internal SwSelObject(object disp, ISwDocument doc, ISwApplication app) : base(disp, doc, app)
         {
         }
 

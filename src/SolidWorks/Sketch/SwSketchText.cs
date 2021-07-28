@@ -27,8 +27,8 @@ namespace Xarial.XCad.SolidWorks.Sketch
         public override IXPoint StartPoint => throw new NotSupportedException();
         public override IXPoint EndPoint => throw new NotSupportedException();
 
-        internal SwSketchText(ISwDocument doc, ISketchText textSeg, bool created)
-            : base(doc, (ISketchSegment)textSeg, created)
+        internal SwSketchText(ISketchText textSeg, ISwDocument doc, ISwApplication app, bool created)
+            : base((ISketchSegment)textSeg, doc, app, created)
         {
         }
 

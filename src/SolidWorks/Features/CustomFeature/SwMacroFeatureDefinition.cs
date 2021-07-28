@@ -175,7 +175,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             LogOperation("Editing feature", app as ISldWorks, modelDoc as IModelDoc2, feature as IFeature);
 
             var doc = (SwDocument)Application.Documents[modelDoc as IModelDoc2];
-            return OnEditDefinition(Application, doc, CreateMacroFeatureInstance(feature as IFeature, doc));
+            return OnEditDefinition(Application, doc, CreateMacroFeatureInstance(feature as IFeature, doc, Application));
         }
 
         [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
@@ -189,7 +189,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 
                 var doc = (SwDocument)Application.Documents[modelDoc as IModelDoc2];
 
-                var macroFeatInst = (SwMacroFeature)CreateMacroFeatureInstance(feature as IFeature, doc);
+                var macroFeatInst = (SwMacroFeature)CreateMacroFeatureInstance(feature as IFeature, doc, Application);
 
                 var res = OnRebuild(Application, doc, macroFeatInst);
 
@@ -221,7 +221,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         public object Security(object app, object modelDoc, object feature)
         {
             var doc = (SwDocument)Application.Documents[modelDoc as IModelDoc2];
-            return OnUpdateState(Application, doc, CreateMacroFeatureInstance(feature as IFeature, doc));
+            return OnUpdateState(Application, doc, CreateMacroFeatureInstance(feature as IFeature, doc, Application));
         }
 
         private void SetProvider(ISldWorks app, IFeature feature)
@@ -390,8 +390,8 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         {
         }
 
-        protected virtual ISwMacroFeature CreateMacroFeatureInstance(IFeature feat, ISwDocument doc)
-            => SwObject.FromDispatch<SwMacroFeature>(feat, doc);
+        protected virtual ISwMacroFeature CreateMacroFeatureInstance(IFeature feat, ISwDocument doc, ISwApplication app)
+            => doc.CreateObjectFromDispatch<SwMacroFeature>(feat);
     }
 
     /// <inheritdoc/>
@@ -497,8 +497,8 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         }
 
         //NOTE: using this to avoid overflow of OnUpdateState as calling the IMacroFeatureData from IFeature invokes Security and thus causing infinite loop
-        protected override ISwMacroFeature CreateMacroFeatureInstance(IFeature feat, ISwDocument doc)
-            => new SwMacroFeature<TParams>((SwDocument)doc, doc.Model.FeatureManager, feat, m_ParamsParser, true);
+        protected override ISwMacroFeature CreateMacroFeatureInstance(IFeature feat, ISwDocument doc, ISwApplication app)
+            => new SwMacroFeature<TParams>(feat, (SwDocument)doc, app, m_ParamsParser, true);
     }
 
     /// <inheritdoc/>

@@ -28,8 +28,8 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         public Point Coordinate => new Point((double[])Vertex.GetPoint());
 
-        public override ISwBody Body => SwObject.FromDispatch<ISwBody>(
-            ((Vertex.GetEdges() as object[]).First() as IEdge).GetBody(), m_Doc);
+        public override ISwBody Body => Application.CreateObjectFromDispatch<ISwBody>(
+            ((Vertex.GetEdges() as object[]).First() as IEdge).GetBody(), Document);
 
         public override IEnumerable<ISwEntity> AdjacentEntities
         {
@@ -37,12 +37,12 @@ namespace Xarial.XCad.SolidWorks.Geometry
             {
                 foreach (IEdge edge in (Vertex.GetEdges() as object[]).ValueOrEmpty())
                 {
-                    yield return FromDispatch<SwEdge>(edge, m_Doc);
+                    yield return Application.CreateObjectFromDispatch<SwEdge>(edge, Document);
                 }
 
                 foreach (IFace2 face in (Vertex.GetAdjacentFaces() as object[]).ValueOrEmpty())
                 {
-                    yield return FromDispatch<SwFace>(face, m_Doc);
+                    yield return Application.CreateObjectFromDispatch<SwFace>(face, Document);
                 }
             }
         }
@@ -50,7 +50,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
         public override Point FindClosestPoint(Point point)
             => new Point(((double[])Vertex.GetClosestPointOn(point.X, point.Y, point.Z)).Take(3).ToArray());
 
-        internal SwVertex(IVertex vertex, ISwDocument doc) : base((IEntity)vertex, doc)
+        internal SwVertex(IVertex vertex, ISwDocument doc, ISwApplication app) : base((IEntity)vertex, doc, app)
         {
             Vertex = vertex;
         }

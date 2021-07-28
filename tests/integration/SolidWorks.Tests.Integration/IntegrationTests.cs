@@ -46,6 +46,7 @@ namespace SolidWorks.Tests.Integration
         private SwVersion_e? SW_VERSION = null;
 
         protected ISwApplication m_App;
+        private Process m_Process;
         private ISldWorks m_SwApp;
 
         private List<IDisposable> m_Disposables;
@@ -85,6 +86,7 @@ namespace SolidWorks.Tests.Integration
             }
 
             m_SwApp = m_App.Sw;
+            m_Process = m_App.Process;
             m_Disposables = new List<IDisposable>();
         }
 
@@ -173,6 +175,8 @@ namespace SolidWorks.Tests.Integration
         [TearDown]
         public void TearDown() 
         {
+            Debug.Print("Unit Tests: Disposing test disposables");
+
             foreach (var disp in m_Disposables)
             {
                 try
@@ -190,10 +194,11 @@ namespace SolidWorks.Tests.Integration
         [OneTimeTearDown]
         public void FinalTearDown()
         {
+            Debug.Print($"Unit Tests: Closing SOLIDWORKS instance: {m_CloseSw}");
+
             if (m_CloseSw) 
             {
-                Debug.Print("Unit Tests: Closing SOLIDWORKS instance");
-                m_App.Process.Kill();
+                m_Process.Kill();
             }
         }
     }

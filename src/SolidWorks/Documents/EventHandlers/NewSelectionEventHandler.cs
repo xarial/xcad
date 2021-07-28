@@ -19,7 +19,7 @@ namespace Xarial.XCad.SolidWorks.Documents.EventHandlers
         private IModelDoc2 Model => m_Doc.Model;
         private ISelectionMgr SelMgr => Model.ISelectionManager;
 
-        internal NewSelectionEventHandler(SwDocument doc) : base(doc)
+        internal NewSelectionEventHandler(SwDocument doc, ISwApplication app) : base(doc, app)
         {
         }
 
@@ -60,7 +60,7 @@ namespace Xarial.XCad.SolidWorks.Documents.EventHandlers
             if (selIndex > 0)
             {
                 var lastSelObj = SelMgr.GetSelectedObject6(selIndex, -1);
-                var obj = SwSelObject.FromDispatch(lastSelObj, m_Doc);
+                var obj = m_Doc.CreateObjectFromDispatch<ISwSelObject>(lastSelObj);
                 Delegate?.Invoke(m_Doc, obj);
             }
 

@@ -29,7 +29,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         public IEdge Edge { get; }
 
-        public override ISwBody Body => FromDispatch<SwBody>(Edge.GetBody());
+        public override ISwBody Body => Application.CreateObjectFromDispatch<SwBody>(Edge.GetBody(), Document);
 
         public override IEnumerable<ISwEntity> AdjacentEntities 
         {
@@ -37,26 +37,26 @@ namespace Xarial.XCad.SolidWorks.Geometry
             {
                 foreach (IFace2 face in (Edge.GetTwoAdjacentFaces2() as object[]).ValueOrEmpty()) 
                 {
-                    yield return FromDispatch<SwFace>(face, m_Doc);
+                    yield return Application.CreateObjectFromDispatch<SwFace>(face, Document);
                 }
 
                 foreach (ICoEdge coEdge in (Edge.GetCoEdges() as ICoEdge[]).ValueOrEmpty())
                 {
                     var edge = coEdge.GetEdge() as IEdge;
-                    yield return FromDispatch<SwEdge>(edge, m_Doc);
+                    yield return Application.CreateObjectFromDispatch<SwEdge>(edge, Document);
                 }
 
-                yield return FromDispatch<ISwVertex>(Edge.IGetStartVertex(), m_Doc);
-                yield return FromDispatch<ISwVertex>(Edge.IGetEndVertex(), m_Doc);
+                yield return Application.CreateObjectFromDispatch<ISwVertex>(Edge.IGetStartVertex(), Document);
+                yield return Application.CreateObjectFromDispatch<ISwVertex>(Edge.IGetEndVertex(), Document);
             }
         }
 
-        public ISwCurve Definition => FromDispatch<SwCurve>(Edge.IGetCurve());
+        public ISwCurve Definition => Application.CreateObjectFromDispatch<SwCurve>(Edge.IGetCurve(), Document);
 
         public override Point FindClosestPoint(Point point)
             => new Point(((double[])Edge.GetClosestPointOn(point.X, point.Y, point.Z)).Take(3).ToArray());
 
-        internal SwEdge(IEdge edge, ISwDocument doc) : base((IEntity)edge, doc)
+        internal SwEdge(IEdge edge, ISwDocument doc, ISwApplication app) : base((IEntity)edge, doc, app)
         {
             Edge = edge;
         }
@@ -71,11 +71,11 @@ namespace Xarial.XCad.SolidWorks.Geometry
     {
         IXArc IXCircularEdge.Definition => Definition;
 
-        internal SwCircularEdge(IEdge edge, ISwDocument doc) : base(edge, doc)
+        internal SwCircularEdge(IEdge edge, ISwDocument doc, ISwApplication app) : base(edge, doc, app)
         {
         }
 
-        public new ISwArcCurve Definition => SwSelObject.FromDispatch<SwArcCurve>(this.Edge.IGetCurve());
+        public new ISwArcCurve Definition => Application.CreateObjectFromDispatch<SwArcCurve>(this.Edge.IGetCurve(), Document);
     }
 
     public interface ISwLinearEdge : ISwEdge, IXLinearEdge
@@ -87,10 +87,10 @@ namespace Xarial.XCad.SolidWorks.Geometry
     {
         IXLine IXLinearEdge.Definition => Definition;
 
-        internal SwLinearEdge(IEdge edge, ISwDocument doc) : base(edge, doc)
+        internal SwLinearEdge(IEdge edge, ISwDocument doc, ISwApplication app) : base(edge, doc, app)
         {
         }
 
-        public new ISwLineCurve Definition => SwSelObject.FromDispatch<SwLineCurve>(this.Edge.IGetCurve());
+        public new ISwLineCurve Definition => Application.CreateObjectFromDispatch<SwLineCurve>(this.Edge.IGetCurve(), Document);
     }
 }

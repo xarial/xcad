@@ -839,8 +839,8 @@ namespace SolidWorks.Tests.Integration
             {
                 var part = (ISwPart)m_App.Documents.Active;
 
-                var face = SwObjectFactory.FromDispatch<ISwFace>(
-                    part.Part.GetEntityByName("Face2", (int)swSelectType_e.swSelFACES) as IFace2, part);
+                var face = part.CreateObjectFromDispatch<ISwFace>(
+                    part.Part.GetEntityByName("Face2", (int)swSelectType_e.swSelFACES) as IFace2);
 
                 byte[] bytes;
 

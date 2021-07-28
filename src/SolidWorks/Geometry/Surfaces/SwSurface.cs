@@ -27,9 +27,12 @@ namespace Xarial.XCad.SolidWorks.Geometry.Surfaces
 
         public override object Dispatch => Surface;
 
-        internal SwSurface(ISurface surface, ISwDocument doc) : base(surface, doc)
+        private readonly IMathUtility m_MathUtils;
+
+        internal SwSurface(ISurface surface, ISwDocument doc, ISwApplication app) : base(surface, doc, app)
         {
             Surface = surface;
+            m_MathUtils = app.Sw.IGetMathUtility();
         }
 
         public bool TryProjectPoint(Point point, Vector direction, out Point projectedPoint)

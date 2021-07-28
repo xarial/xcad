@@ -38,12 +38,14 @@ namespace Xarial.XCad.SolidWorks.Geometry
         protected readonly ElementCreator<Box3D> m_Creator;
 
         private readonly ISwDocument m_Doc;
+        private readonly ISwApplication m_App;
 
-        internal SwBoundingBox(ISwDocument doc, IMathUtility mathUtils) 
+        internal SwBoundingBox(ISwDocument doc, ISwApplication app) 
         {
             m_Doc = doc;
 
-            m_MathUtils = mathUtils;
+            m_App = app;
+            m_MathUtils = app.Sw.IGetMathUtility();
 
             m_Creator = new ElementCreator<Box3D>(CreateBox, null, false);
 
@@ -263,7 +265,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
                             throw new Exception("Failed to apply relative to coordinate");
                         }
 
-                        return SwObject.FromDispatch<SwBody>(swBody);
+                        return m_Doc.CreateObjectFromDispatch<SwBody>(swBody);
                     }).ToArray();
                 }
 
@@ -404,7 +406,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
     {
         private readonly ISwAssembly m_Assm;
 
-        internal SwAssemblyBoundingBox(ISwAssembly assm, IMathUtility mathUtils) : base(assm, mathUtils)
+        internal SwAssemblyBoundingBox(ISwAssembly assm, ISwApplication app) : base(assm, app)
         {
             m_Assm = assm;
             VisibleOnly = true;
@@ -528,7 +530,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
     {
         private readonly ISwPart m_Part;
 
-        internal SwPartBoundingBox(ISwPart part, IMathUtility mathUtils) : base(part, mathUtils)
+        internal SwPartBoundingBox(ISwPart part, ISwApplication app) : base(part, app)
         {
             m_Part = part;
         }

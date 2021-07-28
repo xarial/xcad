@@ -16,7 +16,7 @@ namespace Xarial.XCad.SolidWorks.Documents.EventHandlers
 {
     internal class ClearSelectionEventHandler : SwModelEventsHandler<ClearSelectionDelegate>
     {
-        internal ClearSelectionEventHandler(SwDocument doc) : base(doc)
+        internal ClearSelectionEventHandler(SwDocument doc, ISwApplication app) : base(doc, app)
         {            
         }
 

@@ -13,6 +13,7 @@ using System.Text;
 using System.Threading;
 using Xarial.XCad.Geometry.Curves;
 using Xarial.XCad.Geometry.Structures;
+using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Geometry.Exceptions;
 
 namespace Xarial.XCad.SolidWorks.Geometry.Curves
@@ -23,8 +24,8 @@ namespace Xarial.XCad.SolidWorks.Geometry.Curves
 
     internal class SwPolylineCurve : SwCurve, ISwPolylineCurve
     {
-        internal SwPolylineCurve(IModeler modeler, ICurve[] curves, bool isCreated) 
-            : base(modeler, curves, isCreated)
+        internal SwPolylineCurve(ICurve[] curves, ISwDocument doc, ISwApplication app, bool isCreated) 
+            : base(curves, doc, app, isCreated)
         {
         }
 

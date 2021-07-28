@@ -36,14 +36,14 @@ namespace Xarial.XCad.SolidWorks.Features
 
         public override object Dispatch => Feature;
 
-        internal SwFeature(ISwDocument doc, IFeature feat, bool created) : base(feat, doc)
+        internal SwFeature(IFeature feat, ISwDocument doc, ISwApplication app, bool created) : base(feat, doc, app)
         {
             if (doc == null) 
             {
                 throw new ArgumentNullException(nameof(doc));
             }
 
-            Dimensions = new SwFeatureDimensionsCollection(m_Doc, this);
+            Dimensions = new SwFeatureDimensionsCollection(this, Document, Application);
 
             m_Creator = new ElementCreator<IFeature>(CreateFeature, feat, created);
         }

@@ -35,7 +35,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         public abstract IEnumerable<ISwEntity> AdjacentEntities { get; }
 
-        internal SwEntity(IEntity entity, ISwDocument doc) : base(entity, doc)
+        internal SwEntity(IEntity entity, ISwDocument doc, ISwApplication app) : base(entity, doc, app)
         {
             Entity = entity;
         }

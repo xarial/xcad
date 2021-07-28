@@ -35,14 +35,16 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
+        private readonly ISwApplication m_App;
         private readonly SwDrawing m_Drawing;
 
         private readonly SheetActivatedEventsHandler m_SheetActivatedEventsHandler;
 
-        internal SwSheetCollection(SwDrawing doc)
+        internal SwSheetCollection(SwDrawing doc, ISwApplication app)
         {
+            m_App = app;
             m_Drawing = doc;
-            m_SheetActivatedEventsHandler = new SheetActivatedEventsHandler(doc);
+            m_SheetActivatedEventsHandler = new SheetActivatedEventsHandler(doc, app);
         }
 
         public IXSheet this[string name] => this.Get(name);
@@ -53,7 +55,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
             if (sheet != null)
             {
-                ent = SwObject.FromDispatch<SwSheet>(sheet, m_Drawing);
+                ent = m_Drawing.CreateObjectFromDispatch<SwSheet>(sheet);
                 return true;
             }
             else 
@@ -71,11 +73,11 @@ namespace Xarial.XCad.SolidWorks.Documents
             {
                 if (m_Drawing.IsCommitted)
                 {
-                    return SwObject.FromDispatch<SwSheet>((ISheet)m_Drawing.Drawing.GetCurrentSheet(), m_Drawing);
+                    return m_Drawing.CreateObjectFromDispatch<SwSheet>((ISheet)m_Drawing.Drawing.GetCurrentSheet());
                 }
                 else 
                 {
-                    return new UncommittedPreviewOnlySheet(m_Drawing);
+                    return new UncommittedPreviewOnlySheet(m_Drawing, m_App);
                 }
             }
         }
@@ -112,7 +114,7 @@ namespace Xarial.XCad.SolidWorks.Documents
     internal class SwSheetEnumerator : IEnumerator<IXSheet>
     {
         public IXSheet Current
-            => SwObject.FromDispatch<SwSheet>(m_Doc.Drawing.Sheet[m_SheetNames[m_CurSheetIndex]], m_Doc);
+            => m_Doc.CreateObjectFromDispatch<SwSheet>(m_Doc.Drawing.Sheet[m_SheetNames[m_CurSheetIndex]]);
 
         object IEnumerator.Current => Current;
 

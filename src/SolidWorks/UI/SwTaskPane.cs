@@ -199,12 +199,12 @@ namespace Xarial.XCad.SolidWorks.UI
         }
     }
 
-    internal class SwTaskPane<TControl> : ISwTaskPane<TControl>, ISessionAttachedItem
+    internal class SwTaskPane<TControl> : ISwTaskPane<TControl>, IAutoDisposable
     {
         private const int S_OK = 0;
 
         [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
-        public event Action<ISessionAttachedItem> Disposed;
+        public event Action<IAutoDisposable> Disposed;
 
         public event TaskPaneButtonClickDelegate ButtonClick;
         public event ControlCreatedDelegate<TControl> ControlCreated;

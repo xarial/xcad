@@ -38,7 +38,7 @@ namespace Xarial.XCad.SolidWorks.Features
         private ISwDocument3D m_OwnerDoc;
         private ISwConfiguration m_OwnerConf;
 
-        internal SwCutListItem(ISwDocument3D doc, IFeature feat, bool created) : base(doc, feat, created)
+        internal SwCutListItem(IFeature feat, ISwDocument3D doc, ISwApplication app, bool created) : base(feat, doc, app, created)
         {
             if (feat.GetTypeName2() != "CutListFolder") 
             {
@@ -55,7 +55,7 @@ namespace Xarial.XCad.SolidWorks.Features
         }
 
         protected virtual SwCutListCustomPropertiesCollection CreatePropertiesCollection()
-            => new SwCutListCustomPropertiesCollection(m_Doc, Feature.CustomPropertyManager, m_OwnerDoc, m_OwnerConf);
+            => new SwCutListCustomPropertiesCollection(Document, Application, Feature.CustomPropertyManager, m_OwnerDoc, m_OwnerConf);
 
         public IBodyFolder CutListBodyFolder { get; }
 
@@ -67,7 +67,7 @@ namespace Xarial.XCad.SolidWorks.Features
 
                 if (bodies != null)
                 {
-                    return bodies.Select(b => SwObjectFactory.FromDispatch<ISwSolidBody>(b, m_Doc)).ToArray();
+                    return bodies.Select(b => Document.CreateObjectFromDispatch<ISwSolidBody>(b)).ToArray();
                 }
                 else 
                 {
@@ -113,9 +113,9 @@ namespace Xarial.XCad.SolidWorks.Features
         private readonly ISwDocument3D m_OwnerDoc;
         private readonly ISwConfiguration m_OwnerConf;
 
-        internal SwCutListCustomPropertiesCollection(ISwDocument doc, CustomPropertyManager prpsMgr,
+        internal SwCutListCustomPropertiesCollection(ISwDocument doc, ISwApplication app, CustomPropertyManager prpsMgr,
             ISwDocument3D ownerDoc, ISwConfiguration ownerConf) 
-            : base((SwDocument)doc)
+            : base((SwDocument)doc, app)
         {
             PrpMgr = prpsMgr;
 
@@ -130,7 +130,7 @@ namespace Xarial.XCad.SolidWorks.Features
 
         protected override SwCustomProperty CreatePropertyInstance(CustomPropertyManager prpMgr, string name, bool isCreated)
         {
-            var prp = new SwCutListCustomProperty(prpMgr, name, m_OwnerDoc, m_OwnerConf, isCreated, m_Doc.App);
+            var prp = new SwCutListCustomProperty(prpMgr, name, m_OwnerDoc, m_OwnerConf, isCreated, m_App);
             InitProperty(prp);
             return prp;
         }

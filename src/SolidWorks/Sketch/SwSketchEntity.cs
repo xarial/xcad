@@ -24,7 +24,7 @@ namespace Xarial.XCad.SolidWorks.Sketch
         public new abstract bool IsCommitted { get; }
         public abstract Color? Color { get; set; }
 
-        internal SwSketchEntity(ISwDocument doc, object ent) : base(ent, doc)
+        internal SwSketchEntity(object ent, ISwDocument doc, ISwApplication app) : base(ent, doc, app)
         {
         }
     }

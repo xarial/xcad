@@ -32,11 +32,10 @@ namespace Xarial.XCad.SolidWorks.Geometry
         public override IBody2 Body => m_TempBody;
         public override object Dispatch => m_TempBody;
 
+        private readonly IMathUtility m_MathUtils;
+
         //NOTE: keeping the pointer in this class only so it can be properly disposed
-
-        private readonly Lazy<SwMathUtilsProvider> m_MathUtilsProvider;
-
-        internal SwTempBody(IBody2 body) : base(null, null)
+        internal SwTempBody(IBody2 body, ISwApplication app) : base(null, null, app)
         {
             if (!body.IsTemporaryBody()) 
             {
@@ -44,7 +43,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
             }
 
             m_TempBody = body;
-            m_MathUtilsProvider = new Lazy<SwMathUtilsProvider>(() => new SwMathUtilsProvider(this));
+            m_MathUtils = app.Sw.IGetMathUtility();
         }
 
         public void Preview(ISwPart part, Color color, bool selectable = false) 
@@ -73,8 +72,8 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         public override void Move(TransformMatrix transform)
         {
-            var mathTransform = (MathTransform)m_MathUtilsProvider.Value.CreateTransform(transform);
-            
+            var mathTransform = (MathTransform)m_MathUtils.ToMathTransform(transform);
+
             if (!Body.ApplyTransform(mathTransform))
             {
                 throw new Exception("Failed to apply transform to the body");
@@ -96,7 +95,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
     internal class SwTempSolidBody : SwTempBody, ISwTempSolidBody
     {
-        internal SwTempSolidBody(IBody2 body) : base(body)
+        internal SwTempSolidBody(IBody2 body, ISwApplication app) : base(body, app)
         {
         }
 
@@ -105,14 +104,14 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
     internal class SwTempSheetBody : SwTempBody, ISwTempSheetBody
     {
-        internal SwTempSheetBody(IBody2 body) : base(body)
+        internal SwTempSheetBody(IBody2 body, ISwApplication app) : base(body, app)
         {
         }
     }
 
     internal class SwTempPlanarSheetBody : SwTempBody, ISwTempPlanarSheetBody
     {
-        internal SwTempPlanarSheetBody(IBody2 body) : base(body)
+        internal SwTempPlanarSheetBody(IBody2 body, ISwApplication app) : base(body, app)
         {
         }
 

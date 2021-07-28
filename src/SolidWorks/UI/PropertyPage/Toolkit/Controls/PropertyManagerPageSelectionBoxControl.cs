@@ -67,7 +67,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
         internal IPropertyManagerPageSelectionbox SelectionBox => SwSpecificControl;
 
-        private SwSelObject ToSelObject(object disp) => SwSelObject.FromDispatch(disp, m_App.Documents.Active);
+        private SwSelObject ToSelObject(object disp) => m_App.Documents.Active.CreateObjectFromDispatch<SwSelObject>(disp);
 
         private void OnSubmitSelection(int id, object selection, int selType, ref string itemText, ref bool res)
         {

@@ -25,7 +25,8 @@ namespace Xarial.XCad.SolidWorks.Features
     {
         IEnumerable<IXSketchRegion> IXSketch2D.Regions => Regions;
 
-        internal SwSketch2D(ISwDocument doc, IFeature feat, bool created) : base(doc, feat, created)
+        internal SwSketch2D(IFeature feat, ISwDocument doc, ISwApplication app, bool created) 
+            : base(feat, doc, app, created)
         {
             if (doc == null) 
             {
@@ -43,7 +44,7 @@ namespace Xarial.XCad.SolidWorks.Features
                 {
                     foreach (ISketchRegion reg in regs) 
                     {
-                        yield return SwObject.FromDispatch<ISwSketchRegion>(reg);
+                        yield return Document.CreateObjectFromDispatch<ISwSketchRegion>(reg);
                     }
                 }
             }
@@ -53,7 +54,7 @@ namespace Xarial.XCad.SolidWorks.Features
         {
             get
             {
-                var mathUtils = ((SwDocument)m_Doc).App.Sw.IGetMathUtility();
+                var mathUtils = Application.Sw.IGetMathUtility();
 
                 var transform = Sketch.ModelToSketchTransform.IInverse();
 

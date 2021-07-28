@@ -34,7 +34,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
     }
 
     /// <inheritdoc/>
-    internal class SwPropertyManagerPage<TModel> : ISwPropertyManagerPage<TModel>, ISessionAttachedItem
+    internal class SwPropertyManagerPage<TModel> : ISwPropertyManagerPage<TModel>, IAutoDisposable
     {
         /// <inheritdoc/>
         public event PageClosedDelegate Closed;
@@ -46,7 +46,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
         public event PageDataChangedDelegate DataChanged;
 
         [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
-        public event Action<ISessionAttachedItem> Disposed;
+        public event Action<IAutoDisposable> Disposed;
 
         private readonly ISwApplication m_App;
         private readonly IIconsCreator m_IconsConv;

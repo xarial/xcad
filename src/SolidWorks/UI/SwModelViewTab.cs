@@ -46,7 +46,7 @@ namespace Xarial.XCad.SolidWorks.UI
         private string m_CurTabTitle;
 
         internal SwModelViewTab(ModelViewTabCreator<TControl> ctrlCreator, 
-            ModelViewManager modelViewManager, SwDocument doc, IXLogger logger) : base(doc, logger)
+            ModelViewManager modelViewManager, SwDocument doc, ISwApplication app, IXLogger logger) : base(doc, app, logger)
         {
             m_CtrlCreator = ctrlCreator;
 
