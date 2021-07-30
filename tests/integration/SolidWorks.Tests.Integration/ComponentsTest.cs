@@ -1,5 +1,6 @@
 ﻿using NUnit.Framework;
 using SolidWorks.Interop.sldworks;
+using SolidWorks.Interop.swconst;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -318,6 +319,53 @@ namespace SolidWorks.Tests.Integration
             Assert.AreEqual(ComponentState_e.Envelope, s3);
             Assert.AreEqual(ComponentState_e.ExcludedFromBom, s4);
             Assert.AreEqual(ComponentState_e.Hidden, s5);
+        }
+
+        [Test]
+        public void ComponentColorTest()
+        {
+            System.Drawing.Color? c1;
+            System.Drawing.Color? c2;
+            System.Drawing.Color? c3;
+
+            double[] mat1;
+            double[] mat2;
+
+            using (var doc = OpenDataDocument(@"ColorAssembly\Assem1.SLDASM"))
+            {
+                var assm = (ISwAssembly)m_App.Documents.Active;
+
+                c1 = assm.Configurations.Active.Components["Part1-1"].Color;
+                c2 = assm.Configurations.Active.Components["Part1-2"].Color;
+                c3 = assm.Configurations.Active.Components["Part1-3"].Color;
+
+                assm.Configurations.Active.Components["Part1-3"].Color = System.Drawing.Color.FromArgb(100, 50, 150, 250);
+                assm.Configurations.Active.Components["Part1-1"].Color = null;
+
+                mat1 = (double[])((ISwComponent)assm.Configurations.Active.Components["Part1-3"]).Component.GetMaterialPropertyValues2((int)swInConfigurationOpts_e.swThisConfiguration, null);
+                mat2 = (double[])((ISwComponent)assm.Configurations.Active.Components["Part1-1"]).Component.GetMaterialPropertyValues2((int)swInConfigurationOpts_e.swThisConfiguration, null);
+            }
+
+            Assert.IsNotNull(c1);
+            Assert.AreEqual(255, c1.Value.A);
+            Assert.AreEqual(103, c1.Value.R);
+            Assert.AreEqual(229, c1.Value.G);
+            Assert.AreEqual(255, c1.Value.B);
+
+            Assert.IsNotNull(c2);
+            Assert.AreEqual(127, c2.Value.A);
+            Assert.AreEqual(255, c2.Value.R);
+            Assert.AreEqual(63, c2.Value.G);
+            Assert.AreEqual(103, c2.Value.B);
+
+            Assert.IsNull(c3);
+
+            Assert.AreEqual(50, (int)(mat1[0] * 255));
+            Assert.AreEqual(150, (int)(mat1[1] * 255));
+            Assert.AreEqual(250, (int)(mat1[2] * 255));
+            Assert.AreEqual(100, (int)((1f - mat1[7]) * 255));
+
+            Assert.IsTrue(mat2.All(m => m == -1));
         }
     }
 }

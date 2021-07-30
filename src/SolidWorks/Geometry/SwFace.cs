@@ -65,9 +65,9 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         public System.Drawing.Color? Color 
         {
-            get => SwColorHelper.GetColor(Face, Component, 
+            get => SwColorHelper.GetColor(Component, 
                 (o, c) => Face.GetMaterialPropertyValues2((int)o, c) as double[]);
-            set => SwColorHelper.SetColor(Face, value, Component,
+            set => SwColorHelper.SetColor(value, Component,
                 (m, o, c) => Face.SetMaterialPropertyValues2(m, (int)o, c),
                 (o, c) => Face.RemoveMaterialProperty2((int)o, c));
         }

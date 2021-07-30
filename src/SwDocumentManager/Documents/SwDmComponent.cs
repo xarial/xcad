@@ -10,6 +10,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -38,6 +39,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         public IXFeatureRepository Features => throw new NotSupportedException();
         public IXBodyRepository Bodies => throw new NotSupportedException();
         TSelObject IXObjectContainer.ConvertObject<TSelObject>(TSelObject obj) => throw new NotSupportedException();
+        public Color? Color { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
 
         #endregion
 

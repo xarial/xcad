@@ -67,9 +67,9 @@ namespace Xarial.XCad.SolidWorks.Features
 
         public Color? Color
         {
-            get => SwColorHelper.GetColor(Feature, Component,
+            get => SwColorHelper.GetColor(Component,
                 (o, c) => Feature.GetMaterialPropertyValues2((int)o, c) as double[]);
-            set => SwColorHelper.SetColor(Feature, value, Component,
+            set => SwColorHelper.SetColor(value, Component,
                 (m, o, c) => Feature.SetMaterialPropertyValues2(m, (int)o, c),
                 (o, c) => Feature.RemoveMaterialProperty2((int)o, c));
         }

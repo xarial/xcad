@@ -17,22 +17,22 @@ namespace Xarial.XCad.SolidWorks.Utils
 {
     internal static class SwColorHelper
     {
-        internal static Color? GetColor<TEnt>(TEnt ent, IComponent2 entComp,
+        internal static Color? GetColor(IComponent2 ownerComp,
             Func<swInConfigurationOpts_e, string[], double[]> getColorAction) 
         {
-            GetColorScope(entComp, out swInConfigurationOpts_e confOpts, out string[] confs);
+            GetColorScope(ownerComp, out swInConfigurationOpts_e confOpts, out string[] confs);
             
             var matPrps = getColorAction.Invoke(confOpts, confs);
 
             return FromMaterialProperties(matPrps);
         }
 
-        internal static void SetColor<TEnt>(TEnt ent, Color? color,
-            IComponent2 entComp,
+        internal static void SetColor(Color? color,
+            IComponent2 ownerComp,
             Action<double[], swInConfigurationOpts_e, string[]> setColorAction, 
             Action<swInConfigurationOpts_e, string[]> removeColorAction) 
         {
-            GetColorScope(entComp, out swInConfigurationOpts_e confOpts, out string[] confs);
+            GetColorScope(ownerComp, out swInConfigurationOpts_e confOpts, out string[] confs);
 
             if (color.HasValue)
             {

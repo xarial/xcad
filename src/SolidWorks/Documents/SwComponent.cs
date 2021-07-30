@@ -25,6 +25,7 @@ using Xarial.XCad.SolidWorks.Data;
 using Xarial.XCad.SolidWorks.Features;
 using Xarial.XCad.SolidWorks.Geometry;
 using Xarial.XCad.SolidWorks.Services;
+using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.Toolkit;
 using Xarial.XCad.Toolkit.Services;
 
@@ -231,6 +232,15 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public IXConfiguration ReferencedConfiguration
             => new SwComponentConfiguration(this, OwnerApplication);
+
+        public System.Drawing.Color? Color
+        {
+            get => SwColorHelper.GetColor(null,
+                (o, c) => Component.GetMaterialPropertyValues2((int)o, c) as double[]);
+            set => SwColorHelper.SetColor(value, null,
+                (m, o, c) => Component.SetMaterialPropertyValues2(m, (int)o, c),
+                (o, c) => Component.RemoveMaterialProperty2((int)o, c));
+        }
 
         public override void Select(bool append)
         {
