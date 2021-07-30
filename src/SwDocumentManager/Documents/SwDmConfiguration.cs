@@ -56,7 +56,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         public virtual string Name
         {
             get => Configuration.Name;
-            set => throw new NotSupportedException("Property is read-only");
+            set => ((ISwDMConfiguration7)Configuration).Name2 = value;
         }
 
         public ISwDmCutListItem[] CutLists
