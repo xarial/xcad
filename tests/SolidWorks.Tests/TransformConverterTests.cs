@@ -76,6 +76,40 @@ namespace SolidWorks.Tests
             CollectionAssert.AreEqual(swTransformData, res, new DoubleComparer());
         }
 
+        [Test]
+        public void ToMathTransformTest() 
+        {
+            var matrix = new TransformMatrix(0.227240687239813, 0.130118199184401, 0.114296007651233, 0, -0.173173945982243, 0.173173945982242, 0.147153735688577, 0, -0.00225999047373953, -0.186313423389655, 0.216598369728654, 0, 0.202001019294273, 0.304139434520347, -0.00901467562486433, 1);
+            var transformData = TransformConverter.ToMathTransformData(matrix);
+
+            var expTransform = new double[] { 0.795342405339345, 0.455413697145403, 0.400036026779314, -0.606108810937849, 0.606108810937846, 0.515038074910018, -7.90996665808835E-03, -0.652096981863791, 0.758094294050287, 0.202001019294273, 0.304139434520347, -9.01467562486433E-03, 0.285714285714286, 0, 0, 0 };
+            CollectionAssert.AreEqual(expTransform, transformData, new DoubleComparer());
+        }
+
+        [Test]
+        public void IdentityTest() 
+        {
+            var matrix = TransformConverter.ToTransformMatrix(new double[]
+            {
+                1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0
+            });
+
+            CollectionAssert.AreEqual(TransformMatrix.Identity.ToArray(), matrix.ToArray(), new DoubleComparer());
+        }
+
+        [Test]
+        public void TranslationTest()
+        {
+            var matrix = TransformConverter.ToTransformMatrix(new double[]
+            {
+                1, 0, 0, 0, 1, 0, 0, 0, 1, 0.01, 0.02, 0.03, 1, 0, 0, 0
+            });
+            
+            Assert.AreEqual(matrix.M41, 0.01);
+            Assert.AreEqual(matrix.M42, 0.02);
+            Assert.AreEqual(matrix.M43, 0.03);
+        }
+
         public class DoubleComparer : IComparer
         {
             public int Compare(object x, object y)

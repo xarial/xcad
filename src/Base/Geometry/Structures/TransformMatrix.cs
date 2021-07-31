@@ -5,34 +5,152 @@
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
+using System;
+
 namespace Xarial.XCad.Geometry.Structures
 {
+    /// <summary>
+    /// Represents 4x4 transformation matrix
+    /// </summary>
     public class TransformMatrix
     {
+        private static readonly double[] m_Identity
+            = new double[]
+            {
+                1.0, 0.0, 0.0, 0.0,
+                0.0, 1.0, 0.0, 0.0,
+                0.0, 0.0, 1.0, 0.0,
+                0.0, 0.0, 0.0, 1.0
+            };
+
+        /// <summary>
+        /// Returns identity matrix
+        /// </summary>
+        public static TransformMatrix Identity
+            => new TransformMatrix(m_Identity);
+
+        /// <summary>
+        /// Create rotation transformation around axis
+        /// </summary>
+        /// <param name="axis">Axis to generate rotation about</param>
+        /// <param name="angle">Angle in radians</param>
+        /// <returns>Transformation matrix</returns>
+        public static TransformMatrix CreateFromRotationAroundAxis(Vector axis, double angle)
+        {
+            var s = Math.Sin(angle);
+            var c = Math.Cos(angle);
+
+            var normVec = axis.Normalize();
+
+            var x = normVec.X;
+            var y = normVec.Y;
+            var z = normVec.Z;
+
+            var xx = x * x;
+            var yy = y * y;
+            var zz = z * z;
+            var xy = x * y;
+            var xz = x * z;
+            var yz = y * z;
+
+            return new TransformMatrix(
+                xx + c * (1.0 - xx), xy - c * xy + s * z, xz - c * xz - s * y, 0.0,
+                xy - c * xy - s * z, yy + c * (1.0 - yy), yz - c * yz + s * x, 0.0,
+                xz - c * xz + s * y, yz - c * yz - s * x, zz + c * (1.0 - zz), 0.0,
+                0.0, 0.0, 0.0, 1.0);
+        }
+        
+        /// <summary>
+        /// X-Axis Rotation (X)
+        /// </summary>
         public double M11 { get; set; }
+
+        /// <summary>
+        /// X-Axis Rotation (Y)
+        /// </summary>
         public double M12 { get; set; }
+
+        /// <summary>
+        /// X-Axis Rotation (Z)
+        /// </summary>
         public double M13 { get; set; }
+
+        /// <summary>
+        /// Not Used
+        /// </summary>
         public double M14 { get; set; }
 
+        /// <summary>
+        /// Y-Axis Rotation (X)
+        /// </summary>
         public double M21 { get; set; }
+
+        /// <summary>
+        /// Y-Axis Rotation (Y)
+        /// </summary>
         public double M22 { get; set; }
+
+        /// <summary>
+        /// Y-Axis Rotation (Z)
+        /// </summary>
         public double M23 { get; set; }
+
+        /// <summary>
+        /// Not Used
+        /// </summary>
         public double M24 { get; set; }
 
+        /// <summary>
+        /// Z-Axis Rotation (X)
+        /// </summary>
         public double M31 { get; set; }
+
+        /// <summary>
+        /// Z-Axis Rotation (Y)
+        /// </summary>
         public double M32 { get; set; }
+
+        /// <summary>
+        /// Z-Axis Rotation (Z)
+        /// </summary>
         public double M33 { get; set; }
+
+        /// <summary>
+        /// Not Used
+        /// </summary>
         public double M34 { get; set; }
 
+        /// <summary>
+        /// X-Translation
+        /// </summary>
         public double M41 { get; set; }
+
+        /// <summary>
+        /// Y-Translation
+        /// </summary>
         public double M42 { get; set; }
+
+        /// <summary>
+        /// Z-Translation
+        /// </summary>
         public double M43 { get; set; }
+
+        /// <summary>
+        /// 1
+        /// </summary>
         public double M44 { get; set; }
 
+        /// <summary>
+        /// Creates identity transformation matrix
+        /// </summary>
         public TransformMatrix()
-        {
+            : this(m_Identity)
+        { 
         }
 
+        /// <summary>
+        /// Creates transformation matrix from input data
+        /// </summary>
         public TransformMatrix(double m11, double m12, double m13, double m14,
             double m21, double m22, double m23, double m24,
             double m31, double m32, double m33, double m34,
@@ -58,5 +176,59 @@ namespace Xarial.XCad.Geometry.Structures
             M43 = m43;
             M44 = m44;
         }
+
+        /// <summary>
+        /// Creates transform matrox from array
+        /// </summary>
+        /// <param name="matrix">Array of 16 elements</param>
+        protected TransformMatrix(double[] matrix) :
+            this(matrix[0], matrix[1], matrix[2], matrix[3],
+                matrix[4], matrix[5], matrix[6], matrix[7],
+                matrix[8], matrix[9], matrix[10], matrix[11],
+                matrix[12], matrix[13], matrix[14], matrix[15])
+        {
+        }
+
+        /// <summary>
+        /// Multiplies transformation matrix
+        /// </summary>
+        /// <param name="matrix">Matrix to multiply with</param>
+        /// <returns>Resulting matrix</returns>
+        public TransformMatrix Multiply(TransformMatrix matrix)
+            => new TransformMatrix(
+                (M11 * matrix.M11) + (M12 * matrix.M21) + (M13 * matrix.M31) + (M14 * matrix.M41),
+                (M11 * matrix.M12) + (M12 * matrix.M22) + (M13 * matrix.M32) + (M14 * matrix.M42),
+                (M11 * matrix.M13) + (M12 * matrix.M23) + (M13 * matrix.M33) + (M14 * matrix.M43),
+                (M11 * matrix.M14) + (M12 * matrix.M24) + (M13 * matrix.M34) + (M14 * matrix.M44),
+                (M21 * matrix.M11) + (M22 * matrix.M21) + (M23 * matrix.M31) + (M24 * matrix.M41),
+                (M21 * matrix.M12) + (M22 * matrix.M22) + (M23 * matrix.M32) + (M24 * matrix.M42),
+                (M21 * matrix.M13) + (M22 * matrix.M23) + (M23 * matrix.M33) + (M24 * matrix.M43),
+                (M21 * matrix.M14) + (M22 * matrix.M24) + (M23 * matrix.M34) + (M24 * matrix.M44),
+                (M31 * matrix.M11) + (M32 * matrix.M21) + (M33 * matrix.M31) + (M34 * matrix.M41),
+                (M31 * matrix.M12) + (M32 * matrix.M22) + (M33 * matrix.M32) + (M34 * matrix.M42),
+                (M31 * matrix.M13) + (M32 * matrix.M23) + (M33 * matrix.M33) + (M34 * matrix.M43),
+                (M31 * matrix.M14) + (M32 * matrix.M24) + (M33 * matrix.M34) + (M34 * matrix.M44),
+                (M41 * matrix.M11) + (M42 * matrix.M21) + (M43 * matrix.M31) + (M44 * matrix.M41),
+                (M41 * matrix.M12) + (M42 * matrix.M22) + (M43 * matrix.M32) + (M44 * matrix.M42),
+                (M41 * matrix.M13) + (M42 * matrix.M23) + (M43 * matrix.M33) + (M44 * matrix.M43),
+                (M41 * matrix.M14) + (M42 * matrix.M24) + (M43 * matrix.M34) + (M44 * matrix.M44));
+
+        /// <summary>
+        /// Converts matrix to 1-dimensional array
+        /// </summary>
+        /// <returns></returns>
+        public double[] ToArray()
+            => new double[]
+            {
+                M11, M12, M13, M14,
+                M21, M22, M23, M24,
+                M31, M32, M33, M34,
+                M41, M42, M43, M44
+            };
+
+        /// <summary>
+        /// Converts to string
+        /// </summary>
+        public override string ToString() => string.Join(", ", ToArray());
     }
 }

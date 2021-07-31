@@ -31,14 +31,25 @@ namespace Xarial.XCad.SolidWorks.Utils
         /// <returns>Transformed matrix</returns>
         public static TransformMatrix ToTransformMatrix(double[] data)
         {
+            if (data == null)
+            {
+                throw new ArgumentNullException(nameof(data));
+            }
+
+            if (data.Length != 16)
+            {
+                throw new Exception("Array size must be 16 (4x4 matrix)");
+            }
+
             var scale = data[12];
 
             return new TransformMatrix(
-                data[0] * scale, data[1] * scale, data[2] * scale, data[9],
-                data[3] * scale, data[4] * scale, data[5] * scale, data[10],
-                data[6] * scale, data[7] * scale, data[8] * scale, data[11],
-                0, 0, 0, 1);
+                data[0] * scale, data[1] * scale, data[2] * scale, 0,
+                data[3] * scale, data[4] * scale, data[5] * scale, 0,
+                data[6] * scale, data[7] * scale, data[8] * scale, 0,
+                data[9], data[10], data[11], 1);
         }
+
 
         /// <summary>
         /// Transforms xCAD matrix to SOLIDWORKS transform
@@ -56,9 +67,9 @@ namespace Xarial.XCad.SolidWorks.Utils
         /// <returns>SOLIDWORKS transform data</returns>
         public static double[] ToMathTransformData(this TransformMatrix matrix)
         {
-            var transX = matrix.M14;
-            var transY = matrix.M24;
-            var transZ = matrix.M34;
+            var transX = matrix.M41;
+            var transY = matrix.M42;
+            var transZ = matrix.M43;
 
             var scaleX = new Vector(matrix.M11, matrix.M21, matrix.M31).GetLength();
             var scaleY = new Vector(matrix.M11, matrix.M21, matrix.M31).GetLength();

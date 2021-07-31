@@ -11,6 +11,7 @@ using System.Xml.Serialization;
 using Xarial.XCad.Base;
 using Xarial.XCad.Data.Enums;
 using Xarial.XCad.Documents;
+using Xarial.XCad.Documents.Delegates;
 using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Documents.Exceptions;
 using Xarial.XCad.Geometry;
@@ -403,10 +404,12 @@ namespace SolidWorks.Tests.Integration
         {
             var activateDocsList = new List<string>();
 
-            m_App.Documents.DocumentActivated += (IXDocument doc) =>
+            var handler = new DocumentActivateDelegate((IXDocument doc) =>
             {
                 activateDocsList.Add(Path.GetFileName(doc.Path));
-            };
+            });
+
+            m_App.Documents.DocumentActivated += handler;
 
             var results = new List<bool>();
 
@@ -420,6 +423,13 @@ namespace SolidWorks.Tests.Integration
             var model3 = m_App.Sw.IActiveDoc2;
             newDoc.Dispose();
             m_App.Sw.CloseDoc(model1.GetTitle());
+
+            //keep document otherwise sw closes automatically
+            var testPart = m_App.Documents.PreCreate<ISwPart>();
+            testPart.State = DocumentState_e.Hidden;
+            testPart.Commit();
+            //
+
             m_App.Sw.CloseDoc(model2.GetTitle());
 
             Assert.AreEqual(4, activateDocsList.Count);
