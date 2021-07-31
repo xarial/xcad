@@ -34,8 +34,9 @@ namespace Xarial.XCad.Geometry.Structures
         /// </summary>
         /// <param name="axis">Axis to generate rotation about</param>
         /// <param name="angle">Angle in radians</param>
+        /// <param name="point">Anchor point of the rotation</param>
         /// <returns>Transformation matrix</returns>
-        public static TransformMatrix CreateFromRotationAroundAxis(Vector axis, double angle)
+        public static TransformMatrix CreateFromRotationAroundAxis(Vector axis, double angle, Point point)
         {
             var s = Math.Sin(angle);
             var c = Math.Cos(angle);
@@ -53,13 +54,42 @@ namespace Xarial.XCad.Geometry.Structures
             var xz = x * z;
             var yz = y * z;
 
-            return new TransformMatrix(
+            var matrix = new TransformMatrix(
                 xx + c * (1.0 - xx), xy - c * xy + s * z, xz - c * xz - s * y, 0.0,
                 xy - c * xy - s * z, yy + c * (1.0 - yy), yz - c * yz + s * x, 0.0,
                 xz - c * xz + s * y, yz - c * yz - s * x, zz + c * (1.0 - zz), 0.0,
                 0.0, 0.0, 0.0, 1.0);
+
+            if (Math.Abs(point.X) > double.Epsilon
+                || Math.Abs(point.Y) > double.Epsilon
+                || Math.Abs(point.Z) > double.Epsilon) 
+            {
+                var translateMatrix = CreateFromTranslation(point.ToVector());
+
+                var translateMatrixInv = CreateFromTranslation(point.ToVector() * -1);
+
+                matrix = translateMatrixInv.Multiply(matrix).Multiply(translateMatrix);
+            }
+
+            return matrix;
         }
-        
+
+        /// <summary>
+        /// Creates matrix from translation
+        /// </summary>
+        /// <param name="translation">Translation vector</param>
+        /// <returns></returns>
+        public static TransformMatrix CreateFromTranslation(Vector translation) 
+        {   
+            var matrix = Identity;
+            
+            matrix.M41 = translation.X;
+            matrix.M42 = translation.Y;
+            matrix.M43 = translation.Z;
+
+            return matrix;
+        }
+
         /// <summary>
         /// X-Axis Rotation (X)
         /// </summary>
@@ -190,6 +220,17 @@ namespace Xarial.XCad.Geometry.Structures
         }
 
         /// <summary>
+        /// Returns the determinant of the matrix
+        /// </summary>
+        public double Determinant
+            => M11 * M22 * M33 * M44 - M11 * M22 * M34 * M43 + M11 * M23 * M34 * M42 - M11 * M23 * M32 * M44
+               + M11 * M24 * M32 * M43 - M11 * M24 * M33 * M42 - M12 * M23 * M34 * M41 + M12 * M23 * M31 * M44
+               - M12 * M24 * M31 * M43 + M12 * M24 * M33 * M41 - M12 * M21 * M33 * M44 + M12 * M21 * M34 * M43
+               + M13 * M24 * M31 * M42 - M13 * M24 * M32 * M41 + M13 * M21 * M32 * M44 - M13 * M21 * M34 * M42
+               + M13 * M22 * M34 * M41 - M13 * M22 * M31 * M44 - M14 * M21 * M32 * M43 + M14 * M21 * M33 * M42
+               - M14 * M22 * M33 * M41 + M14 * M22 * M31 * M43 - M14 * M23 * M31 * M42 + M14 * M23 * M32 * M41;
+
+        /// <summary>
         /// Multiplies transformation matrix
         /// </summary>
         /// <param name="matrix">Matrix to multiply with</param>
@@ -212,6 +253,67 @@ namespace Xarial.XCad.Geometry.Structures
                 (M41 * matrix.M12) + (M42 * matrix.M22) + (M43 * matrix.M32) + (M44 * matrix.M42),
                 (M41 * matrix.M13) + (M42 * matrix.M23) + (M43 * matrix.M33) + (M44 * matrix.M43),
                 (M41 * matrix.M14) + (M42 * matrix.M24) + (M43 * matrix.M34) + (M44 * matrix.M44));
+
+        /// <summary>
+        /// Inverses this matrix
+        /// </summary>
+        /// <returns>Inversed matrix</returns>
+        public TransformMatrix Inverse() 
+        {
+            var det = Determinant;
+
+            if (Math.Abs(det) < double.Epsilon) 
+            {
+                throw new Exception("Singular matrix cannot be inverted");
+            }
+
+            var detInv = 1.0 / det;
+
+            var m33443443 = M33 * M44 - M34 * M43;
+            var m32443442 = M32 * M44 - M34 * M42;
+            var m32433342 = M32 * M43 - M33 * M42;
+            var m31443441 = M31 * M44 - M34 * M41;
+            var m31433341 = M31 * M43 - M33 * M41;
+            var m31423241 = M31 * M42 - M32 * M41;
+            var m23442443 = M23 * M44 - M24 * M43;
+            var m22442442 = M22 * M44 - M24 * M42;
+            var m22432342 = M22 * M43 - M23 * M42;
+            var m21442441 = M21 * M44 - M24 * M41;
+            var m21432341 = M21 * M43 - M23 * M41;
+            var m21422241 = M21 * M42 - M22 * M41;
+            var m23342433 = M23 * M34 - M24 * M33;
+            var m22342432 = M22 * M34 - M24 * M32;
+            var m22332332 = M22 * M33 - M23 * M32;
+            var m21342431 = M21 * M34 - M24 * M31;
+            var m21332331 = M21 * M33 - M23 * M31;
+            var m21322231 = M21 * M32 - M22 * M31;
+            
+            var a1 = +(M22 * m33443443 - M23 * m32443442 + M24 * m32433342);
+            var a2 = -(M21 * m33443443 - M23 * m31443441 + M24 * m31433341);
+            var a3 = +(M21 * m32443442 - M22 * m31443441 + M24 * m31423241);
+            var a4 = -(M21 * m32433342 - M22 * m31433341 + M23 * m31423241);
+
+            return new TransformMatrix(
+                a1 * detInv,
+                -(M12 * m33443443 - M13 * m32443442 + M14 * m32433342) * detInv,
+                (M12 * m23442443 - M13 * m22442442 + M14 * m22432342) * detInv,
+                -(M12 * m23342433 - M13 * m22342432 + M14 * m22332332) * detInv,
+
+                a2 * detInv,
+                (M11 * m33443443 - M13 * m31443441 + M14 * m31433341) * detInv,
+                -(M11 * m23442443 - M13 * m21442441 + M14 * m21432341) * detInv,
+                (M11 * m23342433 - M13 * m21342431 + M14 * m21332331) * detInv,
+
+                a3 * detInv,
+                -(M11 * m32443442 - M12 * m31443441 + M14 * m31423241) * detInv,
+                (M11 * m22442442 - M12 * m21442441 + M14 * m21422241) * detInv,
+                -(M11 * m22342432 - M12 * m21342431 + M14 * m21322231) * detInv,
+
+                a4 * detInv,
+                (M11 * m32433342 - M12 * m31433341 + M13 * m31423241) * detInv,
+                -(M11 * m22432342 - M12 * m21432341 + M13 * m21422241) * detInv,
+                (M11 * m22332332 - M12 * m21332331 + M13 * m21322231) * detInv);
+        }
 
         /// <summary>
         /// Converts matrix to 1-dimensional array

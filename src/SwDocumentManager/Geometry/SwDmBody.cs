@@ -31,7 +31,7 @@ namespace Xarial.XCad.SwDocumentManager.Geometry
         public IXBody[] Common(IXBody other) => throw new NotSupportedException();
         public IXBody[] Substract(IXBody other) => throw new NotSupportedException();
         public IXBody Copy() => throw new NotSupportedException();
-        public void Move(TransformMatrix transform) => throw new NotSupportedException();
+        public void Transform(TransformMatrix transform) => throw new NotSupportedException();
 
         public SwDmBody() : base(null)
         {

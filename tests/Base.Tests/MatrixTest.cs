@@ -32,11 +32,41 @@ namespace Base.Tests
             var matrix2 = new TransformMatrix(0.974788926484518, 0, -0.223128995881668, 0, 0.223128995881668, 0, 0.974788926484518, 0, 0, -1, 0, 0, 0.18810566875436, 0.01, 0.123668090384383, 1);
 
             //sw transform data: -0.612846350937167, -0.614422575794384, 0.496894605019207, -0.765966769263138, 0.616444592651635, -0.182458139240622, -0.194201592494987, -0.492423560103246, -0.848413094505063, 0.479312337703569, -4.93062288453039E-02, 0.354075453415271, 1, 0, 0, 0
-            var expMatrix = new TransformMatrix(-0.612846350937167, -0.614422575794384, 0.496894605019207, 0, -0.765966769263138, 0.616444592651635, -0.182458139240622, 0, -0.194201592494987, -0.492423560103246, -0.848413094505063, 0, 0.479312337703569, -0.0493062288453039, 0.354075453415271, 1);
+            var expMatrix = new double[] { -0.612846350937167, -0.614422575794384, 0.496894605019207, 0, -0.765966769263138, 0.616444592651635, -0.182458139240622, 0, -0.194201592494987, -0.492423560103246, -0.848413094505063, 0, 0.479312337703569, -0.0493062288453039, 0.354075453415271, 1 };
 
             var resMatrix = matrix1.Multiply(matrix2);
 
-            CollectionAssert.AreEqual(expMatrix.ToArray(), resMatrix.ToArray(), new DoubleComparer());
+            CollectionAssert.AreEqual(expMatrix, resMatrix.ToArray(), new DoubleComparer());
+        }
+
+        [Test]
+        public void DeterminantTest() 
+        {
+            var matrix = new TransformMatrix(
+                -1, 3, 3.5, 9,
+                1, 2, 1.5, 1,
+                -3, 7.6, 9, 7.45,
+                5, 2, 4, 9);
+
+            var d = matrix.Determinant;
+
+            Assert.That(-366.875, Is.EqualTo(d).Within(0.00001).Percent);
+        }
+
+        [Test]
+        public void InverseTest()
+        {
+            var matrix = new TransformMatrix(
+                -1, 3, 3.5, 9,
+                1, 2, 1.5, 1,
+                -3, 7.6, 9, 7.45,
+                5, 2, 4, 9);
+
+            var inversedMatrix = matrix.Inverse();
+
+            var expMatrix = new double[] { -0.0941737649063033, 0.212470187393527, -0.0477001703577513, 0.110051107325383, 0.246882453151618, 0.924906303236797, -0.149914821124361, -0.225553662691652, -0.376149914821124, -0.699829642248722, 0.272572402044293, 0.228279386712095, 0.164633730834753, -0.0125383304940375, -0.0613287904599659, -0.00136286201022147 };
+
+            CollectionAssert.AreEqual(expMatrix, inversedMatrix.ToArray(), new DoubleComparer());            
         }
 
         public class DoubleComparer : IComparer

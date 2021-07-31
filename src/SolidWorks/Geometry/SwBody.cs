@@ -162,7 +162,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
         public IXBody Copy()
             => OwnerApplication.CreateObjectFromDispatch<SwTempBody>(Body.ICopy(), OwnerDocument);
 
-        public virtual void Move(TransformMatrix transform)
+        public virtual void Transform(TransformMatrix transform)
             => throw new NotSupportedException($"Only temp bodies are supported. Use {nameof(Copy)} method");
     }
 

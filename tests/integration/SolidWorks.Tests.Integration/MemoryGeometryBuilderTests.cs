@@ -165,7 +165,7 @@ namespace SolidWorks.Tests.Integration
             int faceCount;
             double[] massPrps;
 
-            using (var doc = NewDocument(Interop.swconst.swDocumentTypes_e.swDocPART))
+            using (var doc = NewDocument(swDocumentTypes_e.swDocPART))
             {
                 var polyline = m_App.MemoryGeometryBuilder.WireBuilder.PreCreatePolyline();
                 polyline.Points = new Point[]

@@ -70,7 +70,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
             m_TempBody = null;
         }
 
-        public override void Move(TransformMatrix transform)
+        public override void Transform(TransformMatrix transform)
         {
             var mathTransform = (MathTransform)m_MathUtils.ToMathTransform(transform);
 

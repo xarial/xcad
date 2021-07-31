@@ -70,7 +70,7 @@ namespace Xarial.XCad.Geometry
         /// Moves this body with specified matrix
         /// </summary>
         /// <param name="transform">Transformation matrix</param>
-        void Move(TransformMatrix transform);
+        void Transform(TransformMatrix transform);
     }
 
     /// <summary>

@@ -149,6 +149,12 @@ namespace Xarial.XCad.Geometry.Structures
         }
 
         /// <summary>
+        /// Converts this point to vector
+        /// </summary>
+        /// <returns>Resulting vector</returns>
+        public Vector ToVector() => new Vector(X, Y, Z);
+
+        /// <summary>
         /// Transforms this point with the transformation matrix
         /// </summary>
         /// <param name="matrix">Transformation matrix</param>
