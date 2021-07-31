@@ -17,7 +17,7 @@ namespace Base.Tests
             //sw transform data: 0.900202513118371, -0.424567507790233, -0.096839386120319, 0.383554841948467, 0.878329091336096, -0.285348366966756, 0.206206495031693, 0.219728101619931, 0.953518978712666, 0, 0, 0, 1, 0, 0, 0
             var matrix = new TransformMatrix(0.900202513118371, -0.424567507790233, -0.096839386120319, 0, 0.383554841948467, 0.878329091336096, -0.285348366966756, 0, 0.206206495031693, 0.219728101619931, 0.953518978712666, 0, 0, 0, 0, 1);
 
-            var rotMatrix = TransformMatrix.CreateFromRotationAroundAxis(new Vector(-0.5, 0.3, -0.8), 0.523599);
+            var rotMatrix = TransformMatrix.CreateFromRotationAroundAxis(new Vector(-0.5, 0.3, -0.8), 0.523599, new Point(0, 0, 0));
 
             CollectionAssert.AreEqual(matrix.ToArray(), rotMatrix.ToArray(), new DoubleComparer());
         }
