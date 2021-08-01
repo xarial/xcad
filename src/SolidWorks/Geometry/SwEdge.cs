@@ -53,6 +53,40 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         public ISwCurve Definition => OwnerApplication.CreateObjectFromDispatch<SwCurve>(Edge.IGetCurve(), OwnerDocument);
 
+        public IXVertex StartVertex 
+        {
+            get 
+            {
+                var vertex = Edge.IGetStartVertex();
+
+                if (vertex != null)
+                {
+                    return OwnerApplication.CreateObjectFromDispatch<ISwVertex>(vertex, OwnerDocument);
+                }
+                else 
+                {
+                    return null;
+                }
+            }
+        }
+
+        public IXVertex EndVertex 
+        {
+            get
+            {
+                var vertex = Edge.IGetEndVertex();
+
+                if (vertex != null)
+                {
+                    return OwnerApplication.CreateObjectFromDispatch<ISwVertex>(vertex, OwnerDocument);
+                }
+                else
+                {
+                    return null;
+                }
+            }
+        }
+
         public override Point FindClosestPoint(Point point)
             => new Point(((double[])Edge.GetClosestPointOn(point.X, point.Y, point.Z)).Take(3).ToArray());
 
@@ -75,7 +109,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
         {
         }
 
-        public new ISwArcCurve Definition => OwnerApplication.CreateObjectFromDispatch<SwArcCurve>(this.Edge.IGetCurve(), OwnerDocument);
+        public new ISwArcCurve Definition => OwnerApplication.CreateObjectFromDispatch<SwArcCurve>(Edge.IGetCurve(), OwnerDocument);
     }
 
     public interface ISwLinearEdge : ISwEdge, IXLinearEdge
@@ -91,6 +125,6 @@ namespace Xarial.XCad.SolidWorks.Geometry
         {
         }
 
-        public new ISwLineCurve Definition => OwnerApplication.CreateObjectFromDispatch<SwLineCurve>(this.Edge.IGetCurve(), OwnerDocument);
+        public new ISwLineCurve Definition => OwnerApplication.CreateObjectFromDispatch<SwLineCurve>(Edge.IGetCurve(), OwnerDocument);
     }
 }

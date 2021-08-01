@@ -16,6 +16,16 @@ namespace Xarial.XCad.Geometry
     public interface IXEdge : IXEntity
     {
         /// <summary>
+        /// Start vertex
+        /// </summary>
+        IXVertex StartVertex { get; }
+
+        /// <summary>
+        /// End vertex
+        /// </summary>
+        IXVertex EndVertex { get; }
+
+        /// <summary>
         /// Underlyining segment defining this edge
         /// </summary>
         IXSegment Definition { get; }
