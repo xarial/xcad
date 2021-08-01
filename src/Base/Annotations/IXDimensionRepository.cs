@@ -13,6 +13,9 @@ using Xarial.XCad.Base;
 
 namespace Xarial.XCad.Annotations
 {
+    /// <summary>
+    /// Collection of dimensions
+    /// </summary>
     public interface IXDimensionRepository : IXRepository<IXDimension>
     {
     }

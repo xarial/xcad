@@ -82,6 +82,9 @@ namespace Xarial.XCad.SolidWorks
                         return new SwFace(face, doc, app);
                     }
 
+                case IVertex vertex:
+                    return new SwVertex(vertex, doc, app);
+
                 case IFeature feat:
                     switch (feat.GetTypeName())
                     {
