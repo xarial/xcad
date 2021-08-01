@@ -91,6 +91,27 @@ namespace Xarial.XCad.Geometry.Structures
         }
 
         /// <summary>
+        /// Composes the transformation matrix from input parameters
+        /// </summary>
+        /// <param name="axisX">X axis</param>
+        /// <param name="axisY">Y axis</param>
+        /// <param name="axisZ">Z axis</param>
+        /// <param name="position">Position coordinate</param>
+        /// <returns>Transformation matrix</returns>
+        public static TransformMatrix Compose(Vector axisX, Vector axisY, Vector axisZ, Point position)
+        {
+            axisX = axisX.Normalize();
+            axisY = axisY.Normalize();
+            axisZ = axisZ.Normalize();
+
+            return new TransformMatrix(
+                axisX.X, axisX.Y, axisX.Z, 0.0,
+                axisY.X, axisY.Y, axisY.Z, 0.0f,
+                axisZ.X, axisZ.Y, axisZ.Z, 0.0,
+                position.X, position.Y, position.Z, 1.0);
+        }
+
+        /// <summary>
         /// X-Axis Rotation (X)
         /// </summary>
         public double M11 { get; set; }
