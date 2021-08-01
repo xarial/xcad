@@ -22,9 +22,6 @@ namespace Xarial.XCad.SolidWorks.Geometry.Curves
 {
     public interface ISwCurve : IXCurve, ISwObject
     {
-        [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
-        bool TryGetPlane(out Plane plane);
-
         ICurve[] Curves { get; }
     }
 
@@ -114,7 +111,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Curves
             }
         }
 
-        public virtual bool TryGetPlane(out Plane plane)
+        internal virtual bool TryGetPlane(out Plane plane)
         {
             plane = null;
             return false;

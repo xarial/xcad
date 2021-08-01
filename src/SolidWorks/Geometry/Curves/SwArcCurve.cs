@@ -110,7 +110,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Curves
             }
         }
 
-        public override bool TryGetPlane(out Plane plane)
+        internal override bool TryGetPlane(out Plane plane)
         {
             plane = new Plane(Center, Axis, ReferenceDirection);
             return true;

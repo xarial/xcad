@@ -46,9 +46,10 @@ namespace Xarial.XCad.Geometry
         IXPolylineCurve PreCreatePolyline();
 
         /// <summary>
-        /// Creates compltex curve template
+        /// Merges the input curve into a single curve
         /// </summary>
-        /// <returns></returns>
-        IXComplexCurve PreCreateComplex();
+        /// <param name="curves">Curves to merge</param>
+        /// <returns>Merged curve</returns>
+        IXCurve Merge(IXCurve[] curves);
     }
 }

@@ -227,6 +227,12 @@ namespace Xarial.XCad.SolidWorks
                             return new SwLineCurve(curve, doc, app, true);
                         case swCurveTypes_e.CIRCLE_TYPE:
                             return new SwArcCurve(curve, doc, app, true);
+                        case swCurveTypes_e.BCURVE_TYPE:
+                            return new SwBCurve(curve, doc, app, true);
+                        case swCurveTypes_e.ELLIPSE_TYPE:
+                            return new SwEllipseCurve(curve, doc, app, true);
+                        case swCurveTypes_e.SPCURVE_TYPE:
+                            return new SwSplineCurve(curve, doc, app, true);
                         default:
                             return new SwCurve(curve, doc, app, true);
                     }

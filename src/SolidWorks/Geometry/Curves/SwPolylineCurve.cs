@@ -45,7 +45,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Curves
             }
         }
 
-        public override bool TryGetPlane(out Plane plane)
+        internal override bool TryGetPlane(out Plane plane)
         {
             if (Points?.Length > 2)
             {

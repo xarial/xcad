@@ -5,6 +5,7 @@
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
+using Xarial.XCad.Geometry.Curves;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Geometry.Wires;
 
@@ -26,9 +27,9 @@ namespace Xarial.XCad.Geometry
         IXVertex EndVertex { get; }
 
         /// <summary>
-        /// Underlyining segment defining this edge
+        /// Underlyining curve defining this edge
         /// </summary>
-        IXSegment Definition { get; }
+        IXCurve Definition { get; }
     }
 
     /// <summary>

@@ -31,7 +31,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
             {
                 Plane plane = null;
 
-                var firstCurve = Boundary.FirstOrDefault() as ISwCurve;
+                var firstCurve = Boundary.FirstOrDefault() as SwCurve;
 
                 if (firstCurve?.TryGetPlane(out plane) == true)
                 {

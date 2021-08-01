@@ -9,6 +9,7 @@ using SolidWorks.Interop.sldworks;
 using System.Collections.Generic;
 using System.Linq;
 using Xarial.XCad.Geometry;
+using Xarial.XCad.Geometry.Curves;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Geometry.Wires;
 using Xarial.XCad.SolidWorks.Documents;
@@ -25,7 +26,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
     internal class SwEdge : SwEntity, ISwEdge
     {
-        IXSegment IXEdge.Definition => Definition;
+        IXCurve IXEdge.Definition => Definition;
 
         public IEdge Edge { get; }
 
