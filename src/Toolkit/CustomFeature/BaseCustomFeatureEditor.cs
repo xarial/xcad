@@ -25,15 +25,24 @@ using Xarial.XCad.UI.PropertyPage.Delegates;
 
 namespace Xarial.XCad.Utils.CustomFeature
 {
-    public delegate void CustomFeatureStateChangedDelegate(IXApplication app, IXDocument doc, IXCustomFeature feat);
+    public delegate void CustomFeatureStateChangedDelegate<TData>(IXApplication app, IXDocument doc, IXCustomFeature<TData> feat)
+        where TData : class, new();
+
+    public delegate void CustomFeaturePageParametersChangedDelegate<TPageData, TData>(IXApplication app, IXDocument doc, IXCustomFeature<TData> feat, TPageData pageData)
+        where TPageData : class, new()
+        where TData : class, new();
+
+    public delegate void CustomFeatureEditingCompletedDelegate<TData>(IXApplication app, IXDocument doc, IXCustomFeature<TData> feat, PageCloseReasons_e reason)
+        where TData : class, new();
 
     public abstract class BaseCustomFeatureEditor<TData, TPage> 
         where TData : class, new()
         where TPage : class, new()
     {
-        public event CustomFeatureStateChangedDelegate EditingStarted;
-        public event CustomFeatureStateChangedDelegate EditingCompleted;
-        public event CustomFeatureStateChangedDelegate FeatureInserted;
+        public event CustomFeatureStateChangedDelegate<TData> EditingStarted;
+        public event CustomFeatureEditingCompletedDelegate<TData> EditingCompleted;
+        public event CustomFeatureStateChangedDelegate<TData> FeatureInserted;
+        public event CustomFeaturePageParametersChangedDelegate<TPage, TData> PageParametersChanged;
 
         protected readonly IXApplication m_App;
         protected readonly IServiceProvider m_SvcProvider;
@@ -104,8 +113,8 @@ namespace Xarial.XCad.Utils.CustomFeature
 
                 m_CurPageData = Definition.ConvertParamsToPage(featParam);
 
-                m_PmPage.Show(m_CurPageData);
                 EditingStarted?.Invoke(m_App, model, feature);
+                m_PmPage.Show(m_CurPageData);
 
                 UpdatePreview();
             }
@@ -124,7 +133,9 @@ namespace Xarial.XCad.Utils.CustomFeature
             m_EditingFeature = null;
 
             EditingStarted?.Invoke(m_App, model, null);
+
             m_PmPage.Show(m_CurPageData);
+
             UpdatePreview();
         }
 
@@ -170,11 +181,13 @@ namespace Xarial.XCad.Utils.CustomFeature
         private void OnDataChanged()
         {
             UpdatePreview();
+
+            PageParametersChanged?.Invoke(m_App, CurModel, m_EditingFeature, m_CurPageData);
         }
 
         private void OnPageClosed(PageCloseReasons_e reason)
         {
-            EditingCompleted?.Invoke(m_App, CurModel, m_EditingFeature);
+            EditingCompleted?.Invoke(m_App, CurModel, m_EditingFeature, reason);
 
             ShowEditBodies();
 

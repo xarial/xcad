@@ -42,6 +42,7 @@ using Xarial.XCad.Toolkit;
 using Xarial.XCad.Toolkit.CustomFeature;
 using Xarial.XCad.UI;
 using Xarial.XCad.UI.PropertyPage.Base;
+using Xarial.XCad.UI.PropertyPage.Enums;
 using Xarial.XCad.Utils.Diagnostics;
 using Xarial.XCad.Utils.Reflection;
 
@@ -525,6 +526,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             m_Editor.EditingStarted += OnEditingStarted;
             m_Editor.EditingCompleted += OnEditingCompleted;
             m_Editor.FeatureInserted += OnFeatureInserted;
+            m_Editor.PageParametersChanged += OnPageParametersChanged;
         }
 
         protected virtual void AssignPreviewBodyColor(IXBody body, out System.Drawing.Color color)
@@ -584,8 +586,8 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         /// </summary>
         /// <param name="app">Application</param>
         /// <param name="doc">Document</param>
-        /// <param name="feat">Feature being edited</param>
-        protected virtual void OnEditingStarted(IXApplication app, IXDocument doc, IXCustomFeature feat)
+        /// <param name="feat">Feature being edited (null if feature is being inserted)</param>
+        protected virtual void OnEditingStarted(IXApplication app, IXDocument doc, IXCustomFeature<TParams> feat)
         {
         }
 
@@ -595,7 +597,8 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         /// <param name="app">Application</param>
         /// <param name="doc">Document</param>
         /// <param name="feat">Feature being edited</param>
-        protected virtual void OnEditingCompleted(IXApplication app, IXDocument doc, IXCustomFeature feat)
+        /// <param name="reason">Closing reason</param>
+        protected virtual void OnEditingCompleted(IXApplication app, IXDocument doc, IXCustomFeature<TParams> feat, PageCloseReasons_e reason)
         {
         }
 
@@ -605,11 +608,21 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         /// <param name="app">Application</param>
         /// <param name="doc">Document</param>
         /// <param name="feat">Feature which is created</param>
-        protected virtual void OnFeatureInserted(IXApplication app, IXDocument doc, IXCustomFeature feat)
+        protected virtual void OnFeatureInserted(IXApplication app, IXDocument doc, IXCustomFeature<TParams> feat)
         {
         }
 
-        protected virtual IControlDescriptor[] CreateDynamicControls(object tag)
-            => null;
+        /// <summary>
+        /// Called when parameters of the property page have been changed
+        /// </summary>
+        /// <param name="app">Application</param>
+        /// <param name="doc">Document</param>
+        /// <param name="feat">Feature being edited</param>
+        /// <param name="pageData">Current page data</param>
+        protected virtual void OnPageParametersChanged(IXApplication app, IXDocument doc, IXCustomFeature<TParams> feat, TPage pageData)
+        {
+        }
+
+        protected virtual IControlDescriptor[] CreateDynamicControls(object tag) => null;
     }
 }
