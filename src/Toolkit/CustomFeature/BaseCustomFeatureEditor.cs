@@ -32,7 +32,10 @@ namespace Xarial.XCad.Utils.CustomFeature
         where TPageData : class, new()
         where TData : class, new();
 
-    public delegate void CustomFeatureEditingCompletedDelegate<TData>(IXApplication app, IXDocument doc, IXCustomFeature<TData> feat, PageCloseReasons_e reason)
+    public delegate void CustomFeatureInsertedDelegate<TData>(IXApplication app, IXDocument doc, IXCustomFeature<TData> feat, TData data)
+        where TData : class, new();
+
+    public delegate void CustomFeatureEditingCompletedDelegate<TData>(IXApplication app, IXDocument doc, IXCustomFeature<TData> feat, TData data, PageCloseReasons_e reason)
         where TData : class, new();
 
     public abstract class BaseCustomFeatureEditor<TData, TPage> 
@@ -41,7 +44,7 @@ namespace Xarial.XCad.Utils.CustomFeature
     {
         public event CustomFeatureStateChangedDelegate<TData> EditingStarted;
         public event CustomFeatureEditingCompletedDelegate<TData> EditingCompleted;
-        public event CustomFeatureStateChangedDelegate<TData> FeatureInserted;
+        public event CustomFeatureInsertedDelegate<TData> FeatureInserted;
         public event CustomFeaturePageParametersChangedDelegate<TPage, TData> PageParametersChanged;
 
         protected readonly IXApplication m_App;
@@ -187,7 +190,9 @@ namespace Xarial.XCad.Utils.CustomFeature
 
         private void OnPageClosed(PageCloseReasons_e reason)
         {
-            EditingCompleted?.Invoke(m_App, CurModel, m_EditingFeature, reason);
+            var data = Definition.ConvertPageToParams(m_CurPageData);
+
+            EditingCompleted?.Invoke(m_App, CurModel, m_EditingFeature, data, reason);
 
             ShowEditBodies();
 
@@ -201,7 +206,7 @@ namespace Xarial.XCad.Utils.CustomFeature
                 {
                     var feat = CurModel.Features.PreCreateCustomFeature<TData>();
                     feat.DefinitionType = m_DefType;
-                    feat.Parameters = Definition.ConvertPageToParams(m_CurPageData);
+                    feat.Parameters = data;
                     CurModel.Features.Add(feat);
 
                     if (feat == null)
@@ -209,11 +214,11 @@ namespace Xarial.XCad.Utils.CustomFeature
                         throw new NullReferenceException("Failed to create custom feature");
                     }
 
-                    FeatureInserted?.Invoke(m_App, CurModel, feat);
+                    FeatureInserted?.Invoke(m_App, CurModel, feat, data);
                 }
                 else
                 {
-                    m_EditingFeature.Parameters = Definition.ConvertPageToParams(m_CurPageData);
+                    m_EditingFeature.Parameters = data;
                 }
             }
             else

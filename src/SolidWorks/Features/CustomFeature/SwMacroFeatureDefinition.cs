@@ -509,7 +509,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
     {
         private readonly MacroFeatureParametersParser m_ParamsParser;
 
-        private readonly SwMacroFeatureEditor<TParams, TPage> m_Editor;
+        private readonly Lazy<SwMacroFeatureEditor<TParams, TPage>> m_Editor;
 
         public SwMacroFeatureDefinition() : this(new MacroFeatureParametersParser())
         {
@@ -519,21 +519,37 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         {
             m_ParamsParser = parser;
 
-            m_Editor = new SwMacroFeatureEditor<TParams, TPage>(
-                Application, this.GetType(), CreatePageHandler(),
-                m_ParamsParser, m_SvcProvider, CreateDynamicControls, AssignPreviewBodyColor);
+            m_Editor = new Lazy<SwMacroFeatureEditor<TParams, TPage>>(() => 
+            {
+                var editor = new SwMacroFeatureEditor<TParams, TPage>(
+                    Application, this.GetType(), CreatePageHandler(),
+                    m_ParamsParser, m_SvcProvider, CreateDynamicControls, AssignPreviewBodyColor);
 
-            m_Editor.EditingStarted += OnEditingStarted;
-            m_Editor.EditingCompleted += OnEditingCompleted;
-            m_Editor.FeatureInserted += OnFeatureInserted;
-            m_Editor.PageParametersChanged += OnPageParametersChanged;
+                editor.EditingStarted += OnEditingStarted;
+                editor.EditingCompleted += OnEditingCompleted;
+                editor.FeatureInserted += OnFeatureInserted;
+                editor.PageParametersChanged += OnPageParametersChanged;
+
+                return editor;
+            });
         }
 
         protected virtual void AssignPreviewBodyColor(IXBody body, out System.Drawing.Color color)
             => color = System.Drawing.Color.Yellow;
 
-        protected virtual SwPropertyManagerPageHandler CreatePageHandler() 
-            => (SwPropertyManagerPageHandler)Activator.CreateInstance(typeof(TPage));
+        protected virtual SwPropertyManagerPageHandler CreatePageHandler()
+        {
+            var page = Activator.CreateInstance(typeof(TPage));
+
+            if (page is SwPropertyManagerPageHandler)
+            {
+                return (SwPropertyManagerPageHandler)page;
+            }
+            else 
+            {
+                throw new InvalidCastException($"{typeof(TPage).FullName} must be COM-visible and inherit {typeof(SwPropertyManagerPageHandler).FullName}");
+            }
+        }
 
         public virtual TParams ConvertPageToParams(TPage par)
         {
@@ -563,12 +579,12 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 
         public void Insert(IXDocument doc)
         {
-            m_Editor.Insert(doc);
+            m_Editor.Value.Insert(doc);
         }
 
         public override bool OnEditDefinition(ISwApplication app, ISwDocument model, ISwMacroFeature<TParams> feature)
         {
-            m_Editor.Edit(model, feature);
+            m_Editor.Value.Edit(model, feature);
             return true;
         }
 
@@ -597,8 +613,9 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         /// <param name="app">Application</param>
         /// <param name="doc">Document</param>
         /// <param name="feat">Feature being edited</param>
+        /// <param name="data">Macro feature data</param>
         /// <param name="reason">Closing reason</param>
-        protected virtual void OnEditingCompleted(IXApplication app, IXDocument doc, IXCustomFeature<TParams> feat, PageCloseReasons_e reason)
+        protected virtual void OnEditingCompleted(IXApplication app, IXDocument doc, IXCustomFeature<TParams> feat, TParams data, PageCloseReasons_e reason)
         {
         }
 
@@ -608,7 +625,8 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         /// <param name="app">Application</param>
         /// <param name="doc">Document</param>
         /// <param name="feat">Feature which is created</param>
-        protected virtual void OnFeatureInserted(IXApplication app, IXDocument doc, IXCustomFeature<TParams> feat)
+        /// <param name="data">Macro feature data</param>
+        protected virtual void OnFeatureInserted(IXApplication app, IXDocument doc, IXCustomFeature<TParams> feat, TParams data)
         {
         }
 

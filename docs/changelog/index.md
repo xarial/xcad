@@ -17,6 +17,7 @@ Breaking change is marked with &#x26A0; symbol
 * &#x26A0; IXDrawingView::Document is renamed to IXDrawingView::ReferencedDocument
 * &#x26A0; IXComponent::Document is renamed to IXComponent::ReferencedDocument
 * &#x26A0; SwObjectFactory::FromDispatch is replaced with ISwDocument::CreateObjectFromDispatch and ISwApplication::CreateObjectFromDispatch
+* &#x26A0; Changed the signatures of SwMacroFeatureDefinition{TParams, TPage}::OnEditingCompleted, SwMacroFeatureDefinition{TParams, TPage}::OnFeatureInserted, SwMacroFeatureDefinition{TParams, TPage}::OnEditingStarted
 
 ## 0.7.4 - July 11, 2021
 
