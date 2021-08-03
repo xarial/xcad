@@ -128,13 +128,15 @@ namespace Xarial.XCad.SolidWorks.Annotations
 
         private void GetDimensionParameters(string confName, out swInConfigurationOpts_e opts, out string[] confs)
         {
-            opts = swInConfigurationOpts_e.swThisConfiguration;
-            confs = null;
-
             if (!string.IsNullOrEmpty(confName))
             {
                 confs = new string[] { confName };
                 opts = swInConfigurationOpts_e.swSpecifyConfiguration;
+            }
+            else 
+            {
+                opts = swInConfigurationOpts_e.swAllConfiguration;
+                confs = null;
             }
         }
     }
