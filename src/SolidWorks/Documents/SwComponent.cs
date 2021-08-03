@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Xarial.XCad.Annotations;
 using Xarial.XCad.Base;
 using Xarial.XCad.Data;
 using Xarial.XCad.Data.Delegates;
@@ -21,6 +22,7 @@ using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Features;
 using Xarial.XCad.Features.CustomFeature;
 using Xarial.XCad.Geometry;
+using Xarial.XCad.SolidWorks.Annotations;
 using Xarial.XCad.SolidWorks.Data;
 using Xarial.XCad.SolidWorks.Features;
 using Xarial.XCad.SolidWorks.Geometry;
@@ -39,6 +41,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             where TSelObject : ISwSelObject;
         IComponent2 Component { get; }
         new ISwFeatureManager Features { get; }
+        new ISwDimensionsCollection Dimensions { get; }
 
         /// <summary>
         /// Returns the cached path of the component as stored in SOLIDWORKS
@@ -53,6 +56,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         IXComponentRepository IXComponent.Children => Children;
         IXFeatureRepository IXComponent.Features => Features;
         TSelObject IXObjectContainer.ConvertObject<TSelObject>(TSelObject obj) => ConvertObjectBoxed(obj) as TSelObject;
+        IXDimensionRepository IXComponent.Dimensions => Dimensions;
 
         public IComponent2 Component { get; }
 
@@ -62,7 +66,8 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         private readonly IFilePathResolver m_FilePathResolver;
 
-        private readonly Lazy<ISwFeatureManager> m_Features;
+        private readonly Lazy<ISwFeatureManager> m_FeaturesLazy;
+        private readonly Lazy<ISwDimensionsCollection> m_DimensionsLazy;
 
         public override object Dispatch => Component;
 
@@ -71,7 +76,9 @@ namespace Xarial.XCad.SolidWorks.Documents
             m_RootAssembly = rootAssembly;
             Component = comp;
             Children = new SwChildComponentsCollection(rootAssembly, comp);
-            m_Features = new Lazy<ISwFeatureManager>(() => new SwComponentFeatureManager(this, rootAssembly, app));
+            m_FeaturesLazy = new Lazy<ISwFeatureManager>(() => new SwComponentFeatureManager(this, rootAssembly, app));
+            m_DimensionsLazy = new Lazy<ISwDimensionsCollection>(() => new SwFeatureManagerDimensionsCollection(Features));
+
             Bodies = new SwComponentBodyCollection(comp, rootAssembly);
 
             m_FilePathResolver = ((SwApplication)OwnerApplication).Services.GetService<IFilePathResolver>();
@@ -204,7 +211,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        public ISwFeatureManager Features => m_Features.Value;
+        public ISwFeatureManager Features => m_FeaturesLazy.Value;
 
         public IXBodyRepository Bodies { get; }
 
@@ -241,6 +248,8 @@ namespace Xarial.XCad.SolidWorks.Documents
                 (m, o, c) => Component.SetMaterialPropertyValues2(m, (int)o, c),
                 (o, c) => Component.RemoveMaterialProperty2((int)o, c));
         }
+
+        public ISwDimensionsCollection Dimensions => m_DimensionsLazy.Value;
 
         public override void Select(bool append)
         {
@@ -362,7 +371,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
     internal class SwComponentBodyCollection : SwBodyCollection
     {
-        private IComponent2 m_Comp;
+        private readonly IComponent2 m_Comp;
 
         public SwComponentBodyCollection(IComponent2 comp, ISwDocument rootDoc) : base(rootDoc)
         {

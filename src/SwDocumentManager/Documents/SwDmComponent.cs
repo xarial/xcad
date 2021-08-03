@@ -15,6 +15,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using Xarial.XCad.Annotations;
 using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Enums;
@@ -40,6 +41,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         public IXBodyRepository Bodies => throw new NotSupportedException();
         TSelObject IXObjectContainer.ConvertObject<TSelObject>(TSelObject obj) => throw new NotSupportedException();
         public Color? Color { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
+        public IXDimensionRepository Dimensions => throw new NotSupportedException();
 
         #endregion
 

@@ -382,7 +382,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
             m_FeaturesLazy = new Lazy<ISwFeatureManager>(() => new SwFeatureManager(this, app));
             m_SelectionsLazy = new Lazy<ISwSelectionCollection>(() => new SwSelectionCollection(this, app));
-            m_DimensionsLazy = new Lazy<ISwDimensionsCollection>(() => new SwDocumentDimensionsCollection(this, app));
+            m_DimensionsLazy = new Lazy<ISwDimensionsCollection>(() => new SwFeatureManagerDimensionsCollection(this.Features));
             m_PropertiesLazy = new Lazy<ISwCustomPropertiesCollection>(() => new SwFileCustomPropertiesCollection(this, app));
 
             m_StreamReadAvailableHandler = new StreamReadAvailableEventsHandler(this, app);

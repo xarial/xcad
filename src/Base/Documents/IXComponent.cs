@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Xarial.XCad.Annotations;
 using Xarial.XCad.Base;
 using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Features;
@@ -57,6 +58,11 @@ namespace Xarial.XCad.Documents
         /// Features of this components
         /// </summary>
         IXFeatureRepository Features { get; }
+
+        /// <summary>
+        /// Collection of dimensions of this component
+        /// </summary>
+        IXDimensionRepository Dimensions { get; }
 
         /// <summary>
         /// Bodies in this component

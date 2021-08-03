@@ -53,19 +53,17 @@ namespace Xarial.XCad.SolidWorks.Annotations
         }
     }
 
-    internal class SwDocumentDimensionsCollection : SwDimensionsCollection
+    internal class SwFeatureManagerDimensionsCollection : SwDimensionsCollection
     {
-        private readonly ISwApplication m_App;
-        private readonly SwDocument m_Doc;
+        private readonly ISwFeatureManager m_FeatMgr;
 
-        internal SwDocumentDimensionsCollection(SwDocument model, ISwApplication app)
+        internal SwFeatureManagerDimensionsCollection(ISwFeatureManager featMgr)
         {
-            m_Doc = model;
-            m_App = app;
+            m_FeatMgr = featMgr;
         }
 
         public override IEnumerator<IXDimension> GetEnumerator() 
-            => m_Doc.Features.SelectMany(f => f.Dimensions).GetEnumerator();
+            => m_FeatMgr.SelectMany(f => f.Dimensions).GetEnumerator();
 
         public override bool TryGet(string name, out IXDimension ent)
         {
@@ -81,7 +79,7 @@ namespace Xarial.XCad.SolidWorks.Annotations
 
             IXDimension dim = null;
 
-            if (m_Doc.Features.TryGet(featName, out IXFeature feat))
+            if (m_FeatMgr.TryGet(featName, out IXFeature feat))
             {
                 dim = feat.Dimensions.FirstOrDefault(
                     d => string.Equals(d.Name, $"{dimName}@{featName}",
