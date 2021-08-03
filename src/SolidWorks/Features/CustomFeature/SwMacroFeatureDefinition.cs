@@ -526,6 +526,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
                     m_ParamsParser, m_SvcProvider, CreateDynamicControls, AssignPreviewBodyColor);
 
                 editor.EditingStarted += OnEditingStarted;
+                editor.EditingCompleting += OnEditingCompleting;
                 editor.EditingCompleted += OnEditingCompleted;
                 editor.FeatureInserted += OnFeatureInserted;
                 editor.PageParametersChanged += OnPageParametersChanged;
@@ -571,7 +572,11 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             throw new Exception($"Override {nameof(ConvertParamsToPage)} to provide the converter");
         }
 
-        public abstract ISwBody[] CreateGeometry(ISwApplication app, ISwDocument model, TParams data, bool isPreview, out AlignDimensionDelegate<TParams> alignDim);
+        public virtual ISwBody[] CreateGeometry(ISwApplication app, ISwDocument model, TParams data, bool isPreview, out AlignDimensionDelegate<TParams> alignDim) 
+        {
+            alignDim = null;
+            return new ISwBody[0];
+        }
 
         IXBody[] IXCustomFeatureDefinition<TParams, TPage>.CreateGeometry(
             IXApplication app, IXDocument doc, TParams data, bool isPreview, out AlignDimensionDelegate<TParams> alignDim) 
@@ -604,6 +609,18 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         /// <param name="doc">Document</param>
         /// <param name="feat">Feature being edited (null if feature is being inserted)</param>
         protected virtual void OnEditingStarted(IXApplication app, IXDocument doc, IXCustomFeature<TParams> feat)
+        {
+        }
+
+        /// <summary>
+        /// Called when macro feature is finishing editing and Property Manager Page is about to be closed
+        /// </summary>
+        /// <param name="app">Application</param>
+        /// <param name="doc">Document</param>
+        /// <param name="feat">Feature being edited</param>
+        /// <param name="data">Macro feature data</param>
+        /// <param name="reason">Closing reason</param>
+        protected virtual void OnEditingCompleting(IXApplication app, IXDocument doc, IXCustomFeature<TParams> feat, TParams data, PageCloseReasons_e reason)
         {
         }
 

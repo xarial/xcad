@@ -43,6 +43,7 @@ namespace Xarial.XCad.Utils.CustomFeature
         where TPage : class, new()
     {
         public event CustomFeatureStateChangedDelegate<TData> EditingStarted;
+        public event CustomFeatureEditingCompletedDelegate<TData> EditingCompleting;
         public event CustomFeatureEditingCompletedDelegate<TData> EditingCompleted;
         public event CustomFeatureInsertedDelegate<TData> FeatureInserted;
         public event CustomFeaturePageParametersChangedDelegate<TPage, TData> PageParametersChanged;
@@ -242,6 +243,19 @@ namespace Xarial.XCad.Utils.CustomFeature
 
         private void OnPageClosing(PageCloseReasons_e reason, PageClosingArg arg)
         {
+            if (EditingCompleting != null)
+            {
+                try
+                {
+                    var data = Definition.ConvertPageToParams(m_CurPageData);
+                    EditingCompleting.Invoke(m_App, CurModel, m_EditingFeature, data, reason);
+                }
+                catch (Exception ex)
+                {
+                    m_LastError = ex;
+                }
+            }
+
             if (m_LastError != null)
             {
                 arg.ErrorMessage = m_LastError.Message;
