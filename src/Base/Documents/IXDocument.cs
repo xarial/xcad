@@ -150,6 +150,11 @@ namespace Xarial.XCad.Documents
             where TObj : IXObject;
 
         /// <summary>
+        /// Regenerates this document
+        /// </summary>
+        void Regenerate();
+
+        /// <summary>
         /// Returns the time stamp of the change of the current model
         /// </summary>
         int UpdateStamp { get; }

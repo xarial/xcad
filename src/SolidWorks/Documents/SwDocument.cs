@@ -1112,6 +1112,14 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public TObj CreateObjectFromDispatch<TObj>(object disp) where TObj : ISwObject
             => SwObjectFactory.FromDispatch<TObj>(disp, this, OwnerApplication);
+
+        public void Regenerate() 
+        {
+            if (Model.ForceRebuild3(false)) 
+            {
+                throw new Exception("Failed to rebuild the model");
+            }
+        }
     }
 
     internal class SwUnknownDocument : SwDocument, IXUnknownDocument

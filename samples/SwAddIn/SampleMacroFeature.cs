@@ -23,6 +23,7 @@ using Xarial.XCad.SolidWorks.Geometry.Primitives;
 using Xarial.XCad.Geometry.Primitives;
 using Xarial.XCad.SolidWorks.Geometry;
 using Xarial.XCad.Base;
+using Xarial.XCad.SolidWorks.Features.CustomFeature.Attributes;
 
 namespace SwAddInExample
 {
@@ -39,9 +40,10 @@ namespace SwAddInExample
     [ComVisible(true)]
     [Icon(typeof(Resources), nameof(Resources.xarial))]
     [MissingDefinitionErrorMessage("xCAD. Download the add-in")]
+    [HandlePostRebuild]
     public class SampleMacroFeature : SwMacroFeatureDefinition<PmpMacroFeatData>
     {
-        public override CustomFeatureRebuildResult OnRebuild(ISwApplication app, ISwDocument model, ISwMacroFeature feature, 
+        public override CustomFeatureRebuildResult OnRebuild(ISwApplication app, ISwDocument model, ISwMacroFeature<PmpMacroFeatData> feature, 
             PmpMacroFeatData parameters, out AlignDimensionDelegate<PmpMacroFeatData> alignDim)
         {
             alignDim = (n, d)=> 
@@ -77,6 +79,11 @@ namespace SwAddInExample
 
             parameters.Number = parameters.Number + 1;
             return new CustomFeatureBodyRebuildResult() { Bodies = sweep.Bodies };
+        }
+
+        public override void OnPostRebuild(ISwApplication app, ISwDocument model, ISwMacroFeature<PmpMacroFeatData> feature, PmpMacroFeatData parameters)
+        {
+            base.OnPostRebuild(app, model, feature, parameters);
         }
     }
 }

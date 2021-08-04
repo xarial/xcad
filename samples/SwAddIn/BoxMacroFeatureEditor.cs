@@ -17,6 +17,7 @@ using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.SolidWorks;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Features.CustomFeature;
+using Xarial.XCad.SolidWorks.Features.CustomFeature.Attributes;
 using Xarial.XCad.SolidWorks.Geometry;
 using Xarial.XCad.SolidWorks.UI.PropertyPage;
 
@@ -43,6 +44,7 @@ namespace SwAddInExample
     }
 
     [ComVisible(true)]
+    [HandlePostRebuild]
     public class BoxMacroFeatureEditor : SwMacroFeatureDefinition<BoxMacroFeatureData, BoxData>
     {
         public override BoxMacroFeatureData ConvertPageToParams(BoxData par)
@@ -74,6 +76,11 @@ namespace SwAddInExample
                 data.Width, data.Height, data.Length).Bodies.First();
 
             return new ISwBody[] { box };
+        }
+
+        public override void OnPostRebuild(ISwApplication app, ISwDocument model, ISwMacroFeature<BoxMacroFeatureData> feature, BoxMacroFeatureData parameters)
+        {
+            base.OnPostRebuild(app, model, feature, parameters);
         }
     }
 }
