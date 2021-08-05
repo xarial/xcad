@@ -734,7 +734,9 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         /// <param name="app">Application</param>
         /// <param name="doc">Document</param>
         /// <param name="feat">Feature being edited (null if feature is being inserted)</param>
-        public virtual void OnEditingStarted(IXApplication app, IXDocument doc, IXCustomFeature<TParams> feat)
+        /// <param name="data">Macro feature data (null if feature is being inserted)</param>
+        /// <param name="page">Page data</param>
+        public virtual void OnEditingStarted(IXApplication app, IXDocument doc, IXCustomFeature<TParams> feat, TParams data, TPage page)
         {
         }
 
@@ -745,8 +747,9 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         /// <param name="doc">Document</param>
         /// <param name="feat">Feature being edited</param>
         /// <param name="data">Macro feature data</param>
+        /// <param name="page">Page data</param>
         /// <param name="reason">Closing reason</param>
-        public virtual void OnEditingCompleting(IXApplication app, IXDocument doc, IXCustomFeature<TParams> feat, TParams data, PageCloseReasons_e reason)
+        public virtual void OnEditingCompleting(IXApplication app, IXDocument doc, IXCustomFeature<TParams> feat, TParams data, TPage page, PageCloseReasons_e reason)
         {
         }
 
@@ -757,8 +760,9 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         /// <param name="doc">Document</param>
         /// <param name="feat">Feature being edited</param>
         /// <param name="data">Macro feature data</param>
+        /// <param name="page">Page data</param>
         /// <param name="reason">Closing reason</param>
-        public virtual void OnEditingCompleted(IXApplication app, IXDocument doc, IXCustomFeature<TParams> feat, TParams data, PageCloseReasons_e reason)
+        public virtual void OnEditingCompleted(IXApplication app, IXDocument doc, IXCustomFeature<TParams> feat, TParams data, TPage page, PageCloseReasons_e reason)
         {
         }
 
@@ -769,7 +773,8 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         /// <param name="doc">Document</param>
         /// <param name="feat">Feature which is created</param>
         /// <param name="data">Macro feature data</param>
-        public virtual void OnFeatureInserted(IXApplication app, IXDocument doc, IXCustomFeature<TParams> feat, TParams data)
+        /// <param name="page">Page data</param>
+        public virtual void OnFeatureInserted(IXApplication app, IXDocument doc, IXCustomFeature<TParams> feat, TParams data, TPage page)
         {
         }
 
