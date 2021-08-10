@@ -160,5 +160,17 @@ namespace Xarial.XCad.SolidWorks.Geometry.Curves
                 throw new Exception("Only single curve is supported");
             }
         }
+
+        public double CalculateLength(double startParamU, double endParamU)
+        {
+            if (Curves.Length == 1)
+            {
+                return Curves.First().GetLength3(startParamU, endParamU);
+            }
+            else
+            {
+                throw new Exception("Only single curve is supported");
+            }
+        }
     }
 }

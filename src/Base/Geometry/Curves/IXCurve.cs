@@ -38,5 +38,13 @@ namespace Xarial.XCad.Geometry.Curves
         /// <param name="uParam">U-parameter</param>
         /// <returns>Point location</returns>
         Point CalculateLocation(double uParam);
+
+        /// <summary>
+        /// Calculates the length of the curve
+        /// </summary>
+        /// <param name="startParamU">Start U-parameter</param>
+        /// <param name="endParamU">End U-parameter</param>
+        /// <returns></returns>
+        double CalculateLength(double startParamU, double endParamU);
     }
 }
