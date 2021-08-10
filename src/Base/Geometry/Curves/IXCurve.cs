@@ -8,6 +8,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Geometry.Wires;
 
 namespace Xarial.XCad.Geometry.Curves
@@ -17,5 +18,25 @@ namespace Xarial.XCad.Geometry.Curves
     /// </summary>
     public interface IXCurve : IXSegment
     {
+        /// <summary>
+        /// Find closes point on this curve
+        /// </summary>
+        /// <param name="point">Input point</param>
+        /// <returns></returns>
+        Point FindClosestPoint(Point point);
+
+        /// <summary>
+        /// Finds u-parameter of the curve based on the point location
+        /// </summary>
+        /// <param name="point">Point</param>
+        /// <returns>U-parameter</returns>
+        double CalculateUParameter(Point point);
+
+        /// <summary>
+        /// Finds location of the point based on the curve u-parameter
+        /// </summary>
+        /// <param name="uParam">U-parameter</param>
+        /// <returns>Point location</returns>
+        Point CalculateLocation(double uParam);
     }
 }

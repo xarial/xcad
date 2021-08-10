@@ -26,7 +26,11 @@ namespace Xarial.XCad.SolidWorks.Geometry
     {
         public IVertex Vertex { get; }
 
-        public Point Coordinate => new Point((double[])Vertex.GetPoint());
+        public Point Coordinate
+        {
+            get => new Point((double[])Vertex.GetPoint());
+            set => throw new NotSupportedException("Coordinate of the vertex cannot be changed");
+        }
 
         public override ISwBody Body => OwnerApplication.CreateObjectFromDispatch<ISwBody>(
             ((Vertex.GetEdges() as object[]).First() as IEdge).GetBody(), OwnerDocument);

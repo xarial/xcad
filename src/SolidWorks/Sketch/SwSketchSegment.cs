@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Text;
 using System.Threading;
+using Xarial.XCad.Geometry.Curves;
 using Xarial.XCad.Geometry.Wires;
 using Xarial.XCad.Services;
 using Xarial.XCad.Sketch;
@@ -28,7 +29,9 @@ namespace Xarial.XCad.SolidWorks.Sketch
 
     internal abstract class SwSketchSegment : SwSketchEntity, ISwSketchSegment
     {
-        IXSegment IXSketchSegment.Definition => Definition;
+        IXCurve IXSketchSegment.Definition => Definition;
+        IXPoint IXSegment.StartPoint => StartPoint;
+        IXPoint IXSegment.EndPoint => EndPoint;
 
         protected readonly ElementCreator<ISketchSegment> m_Creator;
 
@@ -114,8 +117,8 @@ namespace Xarial.XCad.SolidWorks.Sketch
             get => Definition.Length;
         }
 
-        public abstract IXPoint StartPoint { get; }
-        public abstract IXPoint EndPoint { get; }
+        public abstract IXSketchPoint StartPoint { get; }
+        public abstract IXSketchPoint EndPoint { get; }
 
         public bool IsConstruction => Segment.ConstructionGeometry;
 

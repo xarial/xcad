@@ -24,8 +24,8 @@ namespace Xarial.XCad.SolidWorks.Sketch
     {
         public ISketchParabola Parabola => (ISketchParabola)Segment;
 
-        public override IXPoint StartPoint => OwnerDocument.CreateObjectFromDispatch<SwSketchPoint>(Parabola.IGetStartPoint2());
-        public override IXPoint EndPoint => OwnerDocument.CreateObjectFromDispatch<SwSketchPoint>(Parabola.IGetEndPoint2());
+        public override IXSketchPoint StartPoint => OwnerDocument.CreateObjectFromDispatch<SwSketchPoint>(Parabola.IGetStartPoint2());
+        public override IXSketchPoint EndPoint => OwnerDocument.CreateObjectFromDispatch<SwSketchPoint>(Parabola.IGetEndPoint2());
 
         internal SwSketchParabola(ISketchParabola parabola, ISwDocument doc, ISwApplication app, bool created)
             : base((ISketchSegment)parabola, doc, app, created)

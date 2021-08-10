@@ -13,8 +13,14 @@ using Xarial.XCad.Geometry.Structures;
 
 namespace Xarial.XCad.Geometry.Wires
 {
+    /// <summary>
+    /// Represents the point entity
+    /// </summary>
     public interface IXPoint : IXTransaction
     {
+        /// <summary>
+        /// Coodinate of the point
+        /// </summary>
         Point Coordinate { get; set; }
     }
 }

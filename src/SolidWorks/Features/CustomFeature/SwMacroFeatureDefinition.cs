@@ -784,8 +784,8 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         /// <param name="app">Application</param>
         /// <param name="doc">Document</param>
         /// <param name="feat">Feature being edited</param>
-        /// <param name="pageData">Current page data</param>
-        public virtual void OnPageParametersChanged(IXApplication app, IXDocument doc, IXCustomFeature<TParams> feat, TPage pageData)
+        /// <param name="page">Current page data</param>
+        public virtual void OnPageParametersChanged(IXApplication app, IXDocument doc, IXCustomFeature<TParams> feat, TPage page)
         {
         }
 

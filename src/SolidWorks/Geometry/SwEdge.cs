@@ -26,6 +26,9 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
     internal class SwEdge : SwEntity, ISwEdge
     {
+        IXPoint IXSegment.StartPoint => StartPoint;
+        IXPoint IXSegment.EndPoint => EndPoint;
+
         IXCurve IXEdge.Definition => Definition;
 
         public IEdge Edge { get; }
@@ -54,7 +57,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         public ISwCurve Definition => OwnerApplication.CreateObjectFromDispatch<SwCurve>(Edge.IGetCurve(), OwnerDocument);
 
-        public IXVertex StartVertex 
+        public IXVertex StartPoint 
         {
             get 
             {
@@ -71,7 +74,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
             }
         }
 
-        public IXVertex EndVertex 
+        public IXVertex EndPoint 
         {
             get
             {
@@ -87,6 +90,8 @@ namespace Xarial.XCad.SolidWorks.Geometry
                 }
             }
         }
+
+        public double Length => Definition.Length;
 
         public override Point FindClosestPoint(Point point)
             => new Point(((double[])Edge.GetClosestPointOn(point.X, point.Y, point.Z)).Take(3).ToArray());

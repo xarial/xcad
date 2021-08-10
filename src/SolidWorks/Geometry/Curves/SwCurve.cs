@@ -116,5 +116,49 @@ namespace Xarial.XCad.SolidWorks.Geometry.Curves
             plane = null;
             return false;
         }
+
+        public Point FindClosestPoint(Point point)
+        {
+            Point resPt = null;
+
+            foreach (var curve in Curves) 
+            {
+                var thisPt = new Point(((double[])curve.GetClosestPointOn(point.X, point.Y, point.Z)).Take(3).ToArray());
+
+                if (resPt != null)
+                {
+                    if ((thisPt - point).GetLength() < (resPt - point).GetLength())
+                    {
+                        resPt = thisPt;
+                    }
+                }
+            }
+
+            return resPt;
+        }
+
+        public double CalculateUParameter(Point point)
+        {
+            if (Curves.Length == 1)
+            {
+                return Curves.First().ReverseEvaluate(point.X, point.Y, point.Z);
+            }
+            else 
+            {
+                throw new Exception("Only single curve is supported");
+            }
+        }
+
+        public Point CalculateLocation(double uParam)
+        {
+            if (Curves.Length == 1)
+            {
+                return new Point(((double[])Curves.First().Evaluate2(uParam, 1)).Take(3).ToArray());
+            }
+            else
+            {
+                throw new Exception("Only single curve is supported");
+            }
+        }
     }
 }

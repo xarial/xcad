@@ -14,17 +14,17 @@ namespace Xarial.XCad.Geometry
     /// <summary>
     /// Represents an edge element of the geometry
     /// </summary>
-    public interface IXEdge : IXEntity
+    public interface IXEdge : IXEntity, IXSegment
     {
         /// <summary>
         /// Start vertex
         /// </summary>
-        IXVertex StartVertex { get; }
+        new IXVertex StartPoint { get; }
 
         /// <summary>
         /// End vertex
         /// </summary>
-        IXVertex EndVertex { get; }
+        new IXVertex EndPoint { get; }
 
         /// <summary>
         /// Underlyining curve defining this edge

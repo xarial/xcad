@@ -6,6 +6,7 @@
 //*********************************************************************
 
 using Xarial.XCad.Geometry;
+using Xarial.XCad.Geometry.Curves;
 using Xarial.XCad.Geometry.Wires;
 
 namespace Xarial.XCad.Sketch
@@ -18,11 +19,21 @@ namespace Xarial.XCad.Sketch
         /// <summary>
         /// Underlyining segment defining this sketch segment
         /// </summary>
-        IXSegment Definition { get; }
+        IXCurve Definition { get; }
 
         /// <summary>
         /// Identifies if this sketch segment is construction geometry
         /// </summary>
         bool IsConstruction { get; }
+
+        /// <summary>
+        /// Start sketch point of this sketch segment
+        /// </summary>
+        new IXSketchPoint StartPoint { get; }
+
+        /// <summary>
+        /// End sketch point of this sketch segment
+        /// </summary>
+        new IXSketchPoint EndPoint { get; }
     }
 }
