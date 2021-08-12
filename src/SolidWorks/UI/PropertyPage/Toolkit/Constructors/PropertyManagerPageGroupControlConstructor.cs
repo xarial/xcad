@@ -38,7 +38,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
         }
 
         protected override PropertyManagerPageGroupBase Create(
-            PropertyManagerPageGroupBase group, IAttributeSet atts, IMetadata metadata)
+            PropertyManagerPageGroupBase group, IAttributeSet atts, IMetadata metadata, ref int numberOfUsedIds)
         {
             if (group is PropertyManagerPageTabControl)
             {
@@ -54,7 +54,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
             //NOTE: nested groups are not supported in SOLIDWORKS, creating the group in page instead
             else if (group is PropertyManagerPageGroupControl)
             {
-                return Create(group.ParentPage, atts, metadata);
+                return Create(group.ParentPage, atts, metadata, ref numberOfUsedIds);
             }
             else
             {
@@ -63,7 +63,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
         }
 
         protected override PropertyManagerPageGroupBase Create(PropertyManagerPagePage page, IAttributeSet atts,
-            IMetadata metadata)
+            IMetadata metadata, ref int numberOfUsedIds)
         {
             var opts = GetGroupOptions(atts);
 

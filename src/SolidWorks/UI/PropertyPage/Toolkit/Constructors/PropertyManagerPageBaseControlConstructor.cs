@@ -62,11 +62,11 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
             m_Type = type;
         }
 
-        protected override TControl Create(PropertyManagerPageGroupBase group, IAttributeSet atts, IMetadata metadata)
+        protected override TControl Create(PropertyManagerPageGroupBase group, IAttributeSet atts, IMetadata metadata, ref int numberOfUsedIds)
         {
             var opts = GetControlOptions(atts);
 
-            TControlSw swCtrl = null;
+            TControlSw swCtrl;
             
             if (group is PropertyManagerPageGroupControl)
             {
@@ -86,7 +86,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
             return CreateControl(swCtrl, atts, metadata, group.Handler, opts.Height);
         }
 
-        protected override TControl Create(PropertyManagerPagePage page, IAttributeSet atts, IMetadata metadata)
+        protected override TControl Create(PropertyManagerPagePage page, IAttributeSet atts, IMetadata metadata, ref int numberOfUsedIds)
         {
             var opts = GetControlOptions(atts);
 

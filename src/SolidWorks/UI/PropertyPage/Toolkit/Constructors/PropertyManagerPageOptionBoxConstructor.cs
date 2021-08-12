@@ -29,16 +29,16 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
         {
         }
 
-        protected override PropertyManagerPageOptionBoxControl Create(PropertyManagerPagePage page, IAttributeSet atts, IMetadata metadata, ref int idRange)
+        protected override PropertyManagerPageOptionBoxControl Create(PropertyManagerPagePage page, IAttributeSet atts, IMetadata metadata, ref int numberOfUsedIds)
         {
-            idRange = EnumExtension.GetEnumFields(atts.ContextType).Count;
-            return base.Create(page, atts, metadata);
+            numberOfUsedIds = EnumExtension.GetEnumFields(atts.ContextType).Count;
+            return base.Create(page, atts, metadata, ref numberOfUsedIds);
         }
 
-        protected override PropertyManagerPageOptionBoxControl Create(PropertyManagerPageGroupBase group, IAttributeSet atts, IMetadata metadata, ref int idRange)
+        protected override PropertyManagerPageOptionBoxControl Create(PropertyManagerPageGroupBase group, IAttributeSet atts, IMetadata metadata, ref int numberOfUsedIds)
         {
-            idRange = EnumExtension.GetEnumFields(atts.ContextType).Count;
-            return base.Create(group, atts, metadata);
+            numberOfUsedIds = EnumExtension.GetEnumFields(atts.ContextType).Count;
+            return base.Create(group, atts, metadata, ref numberOfUsedIds);
         }
 
         protected override PropertyManagerPageOptionBoxControl CreateControl(

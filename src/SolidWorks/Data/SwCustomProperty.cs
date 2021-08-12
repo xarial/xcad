@@ -273,7 +273,7 @@ namespace Xarial.XCad.SolidWorks.Data
         {
             base.AddProperty(prpMgr, name, value);
 
-            if (m_App.Version.Major == SwVersion_e.Sw2021) //regression bug in SW 2021 where property cannot be added to unloaded configuration
+            if (m_App.Version.Major == SwVersion_e.Sw2021 && !m_App.IsVersionNewerOrEqual(SwVersion_e.Sw2021, 4, 1)) //regression bug in SW 2021 where property cannot be added to unloaded configuration
             {
                 if (!m_Conf.IsLoaded())
                 {
