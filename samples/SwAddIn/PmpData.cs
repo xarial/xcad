@@ -157,7 +157,8 @@ namespace SwAddInExample
         [ListBox(1, 2, 3, 4)]
         public List<int> ListBox3 { get; set; }
 
-        [ListBox]
+        //[ListBox]
+        [OptionBox]
         public Opts ListBox4 { get; set; }
 
         [ListBox]

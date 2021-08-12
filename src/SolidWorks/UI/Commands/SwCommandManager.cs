@@ -126,7 +126,7 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
         internal SwCommandGroup AddCommandGroupOrContextMenu(CommandGroupSpec cmdBar,
             bool isContextMenu, swSelectType_e? contextMenuSelectType)
         {
-            m_Logger.Log($"Creating command group: {cmdBar.Id}", XCad.Base.Enums.LoggerMessageSeverity_e.Debug);
+            m_Logger.Log($"Creating command group: {cmdBar.Id}", LoggerMessageSeverity_e.Debug);
 
             if (m_CommandBars.FirstOrDefault(b => b.Spec.Id == cmdBar.Id) != null)
             {
@@ -210,9 +210,9 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
                         usedToolbarIds.Add(grp.CommandGroup.ToolbarId);
                     }
 
-                    m_Logger.Log($"Removing group: {grp.Spec.Id}", XCad.Base.Enums.LoggerMessageSeverity_e.Debug);
+                    m_Logger.Log($"Removing group: {grp.Spec.Id}", LoggerMessageSeverity_e.Debug);
 
-                    var removeRes = false;
+                    bool removeRes;
 
                     if (m_App.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2011))
                     {
@@ -246,7 +246,7 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
             }
         }
 
-        //NOTE: this is a workaround method as ICommandManager::RemoveCommandGroup2 seems to ignore the RuntimeOnly  flag and always keep the group in the registry
+        //NOTE: this is a workaround method as ICommandManager::RemoveCommandGroup2 seems to ignore the RuntimeOnly flag and always keep the group in the registry
         //furthermore the IgnorePreviousVersion parameter of ICommandManager::CreateCommandGroup2 seems to only work after the restart
         //this results in the cached toolbar id loaded for the dangling group if its user id reused
         private void TryClearDanglingToolbarIds(IEnumerable<int> usedGroupIds) 
@@ -276,7 +276,7 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
 
                             if (moduleGuid.Equals(m_AddInGuid))
                             {
-                                m_Logger.Log($"Clearing the registry key '{toolbarId}' at 'HKEY_CURRENT_USER\\{customApiToolbarsRegKeyName}'", XCad.Base.Enums.LoggerMessageSeverity_e.Debug);
+                                m_Logger.Log($"Clearing the registry key '{toolbarId}' at 'HKEY_CURRENT_USER\\{customApiToolbarsRegKeyName}'", LoggerMessageSeverity_e.Debug);
                                 customApiToolbarsRegKey.DeleteSubKey(toolbarId);
                             }
                         }
@@ -291,11 +291,11 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
 
         private void ClearCommandTabBox(ICommandTabBox cmdBox)
         {
-            m_Logger.Log($"Clearing Command Tab Box", XCad.Base.Enums.LoggerMessageSeverity_e.Debug);
+            m_Logger.Log($"Clearing Command Tab Box", LoggerMessageSeverity_e.Debug);
 
             object existingCmds;
-            object existingTextStyles;
-            cmdBox.GetCommands(out existingCmds, out existingTextStyles);
+            
+            cmdBox.GetCommands(out existingCmds, out _);
 
             if (existingCmds != null)
             {

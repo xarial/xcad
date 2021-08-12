@@ -259,7 +259,11 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
         protected override void SetSpecificValue(Enum value)
         {
             var index = m_Values.IndexOf(value);
-            SwSpecificControl.Controls[index].Checked = true;
+
+            for (int i = 0; i < SwSpecificControl.Controls.Length; i++) 
+            {
+                SwSpecificControl.Controls[i].Checked = i == index;
+            }
         }
 
         protected override void Dispose(bool disposing)
