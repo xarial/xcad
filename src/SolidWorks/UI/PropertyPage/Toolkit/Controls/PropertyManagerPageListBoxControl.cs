@@ -25,7 +25,8 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
         public PropertyManagerPageListBoxControl(int id, object tag,
             IPropertyManagerPageListbox listBox, Type targetType, bool isMultiSel,
-            SwPropertyManagerPageHandler handler, IMetadata metadata) : base(id, tag, listBox, handler, metadata)
+            SwPropertyManagerPageHandler handler, IMetadata metadata, IPropertyManagerPageLabel label)
+            : base(id, tag, listBox, handler, metadata, label)
         {
             m_IsMultiSelect = isMultiSel;
             m_TargetType = targetType;
@@ -95,7 +96,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
                         selIndices.Add(GetItemIndex(item));
                     }
                 }
-                else
+                else if(value is Enum)
                 {
                     for (int i = 0; i < Items.Length; i++) 
                     {

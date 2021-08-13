@@ -41,7 +41,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
 
         protected override PropertyManagerPageComboBoxControl<TVal> CreateControl(
             IPropertyManagerPageCombobox swCtrl, IAttributeSet atts, IMetadata metadata, 
-            SwPropertyManagerPageHandler handler, short height)
+            SwPropertyManagerPageHandler handler, short height, IPropertyManagerPageLabel label)
         {   
             if (height != -1)
             {
@@ -62,7 +62,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
                 selDefVal = opts.SelectDefaultValue;
             }
 
-            var ctrl = new PropertyManagerPageComboBoxControl<TVal>(atts.Id, atts.Tag, selDefVal, swCtrl, handler, metadata);
+            var ctrl = new PropertyManagerPageComboBoxControl<TVal>(atts.Id, atts.Tag, selDefVal, swCtrl, handler, metadata, label);
             ctrl.Items = m_Helper.GetItems(m_SwApp, atts);
             return ctrl;
         }

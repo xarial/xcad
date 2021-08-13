@@ -16,7 +16,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
         public PropertyManagerPageCheckBoxControl(int id, object tag,
             IPropertyManagerPageCheckbox checkBox,
-            SwPropertyManagerPageHandler handler) : base(checkBox, id, tag, handler)
+            SwPropertyManagerPageHandler handler, IPropertyManagerPageLabel label) : base(checkBox, id, tag, handler, label)
         {
             m_Handler.CheckChanged += OnCheckChanged;
         }

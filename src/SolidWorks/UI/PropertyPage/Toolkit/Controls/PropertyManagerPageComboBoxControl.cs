@@ -26,7 +26,8 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
         
         public PropertyManagerPageComboBoxControl(int id, object tag, bool selDefVal,
             IPropertyManagerPageCombobox comboBox,
-            SwPropertyManagerPageHandler handler, IMetadata metadata) : base(id, tag, comboBox, handler, metadata)
+            SwPropertyManagerPageHandler handler, IMetadata metadata, IPropertyManagerPageLabel label)
+            : base(id, tag, comboBox, handler, metadata, label)
         {
             m_SelectDefaultValue = selDefVal;
             m_Handler.ComboBoxChanged += OnComboBoxChanged;

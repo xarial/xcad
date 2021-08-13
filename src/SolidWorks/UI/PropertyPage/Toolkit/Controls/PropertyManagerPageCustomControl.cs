@@ -28,7 +28,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
         internal PropertyManagerPageCustomControl(Type ctrlType, int id, object tag,
             IPropertyManagerPageWindowFromHandle wndFromHandler,
             SwPropertyManagerPageHandler handler,
-            PropertyPageControlCreator<object> creator) : base(wndFromHandler, id, tag, handler)
+            PropertyPageControlCreator<object> creator, IPropertyManagerPageLabel label) : base(wndFromHandler, id, tag, handler, label)
         {
             m_CtrlType = ctrlType;
             m_Handler.CustomControlCreated += OnCustomControlCreated;

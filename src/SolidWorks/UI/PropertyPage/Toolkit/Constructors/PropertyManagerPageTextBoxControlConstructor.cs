@@ -28,7 +28,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
 
         protected override PropertyManagerPageTextBoxControl CreateControl(
             IPropertyManagerPageTextbox swCtrl, IAttributeSet atts, IMetadata metadata, 
-            SwPropertyManagerPageHandler handler, short height)
+            SwPropertyManagerPageHandler handler, short height, IPropertyManagerPageLabel label)
         {
             if (height != -1)
             {
@@ -45,7 +45,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
                 }
             }
 
-            return new PropertyManagerPageTextBoxControl(atts.Id, atts.Tag, swCtrl, handler);
+            return new PropertyManagerPageTextBoxControl(atts.Id, atts.Tag, swCtrl, handler, label);
         }
     }
 }

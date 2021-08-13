@@ -5,6 +5,7 @@
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
+using SolidWorks.Interop.sldworks;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -36,7 +37,8 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
         private readonly IMetadata m_Metadata;
 
         public PropertyManagerPageItemsSourceControl(int id, object tag,
-            TSwCtrl ctrl, SwPropertyManagerPageHandler handler, IMetadata metadata) : base(ctrl, id, tag, handler)
+            TSwCtrl ctrl, SwPropertyManagerPageHandler handler, IMetadata metadata, IPropertyManagerPageLabel label)
+            : base(ctrl, id, tag, handler, label)
         {
             m_Metadata = metadata;
 

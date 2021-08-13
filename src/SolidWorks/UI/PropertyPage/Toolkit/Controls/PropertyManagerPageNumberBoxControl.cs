@@ -16,7 +16,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
         public PropertyManagerPageNumberBoxControl(int id, object tag,
             IPropertyManagerPageNumberbox numberBox,
-            SwPropertyManagerPageHandler handler) : base(numberBox, id, tag, handler)
+            SwPropertyManagerPageHandler handler, IPropertyManagerPageLabel label) : base(numberBox, id, tag, handler, label)
         {
             m_Handler.NumberChanged += OnNumberChanged;
         }

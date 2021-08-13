@@ -25,6 +25,7 @@ using SwAddInExample.Properties;
 using System.Linq;
 using System.ComponentModel;
 using Xarial.XCad.UI.PropertyPage.Services;
+using Xarial.XCad.UI.PropertyPage.Enums;
 
 namespace SwAddInExample
 {
@@ -140,6 +141,7 @@ namespace SwAddInExample
         //public List<string> List { get; set; }
 
         [ComboBox(1, 2, 3, 4, 5)]
+        [Label("Static Combo Box:", ControlLeftAlign_e.Indent)]
         public int StaticComboBox { get; set; }
 
         [Metadata("_SRC_")]
@@ -149,6 +151,8 @@ namespace SwAddInExample
         public string ItemsSourceComboBox { get; set; }
 
         [ListBox(ItemsSource = "_SRC_")]
+        [Label("List Box1:", ControlLeftAlign_e.LeftEdge, LabelFontStyle_e.Bold)]
+        [ControlOptions(align: ControlLeftAlign_e.Indent)]
         public string ListBox1 { get; set; }
 
         [ListBox("A1", "A2", "A3")]
@@ -159,6 +163,7 @@ namespace SwAddInExample
 
         //[ListBox]
         [OptionBox]
+        [Label("Sample List Box 4:", fontStyle: LabelFontStyle_e.Underline)]
         public Opts ListBox4 { get; set; }
 
         [ListBox]

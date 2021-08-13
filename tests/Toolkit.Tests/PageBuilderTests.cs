@@ -79,33 +79,33 @@ namespace Toolkit.Tests
                 m_IdRangeSelector = idRangeSelector;
             }
 
-            protected override ControlMock Create(PageMock page, IAttributeSet atts, IMetadata metadata)
+            private ControlMock Create(PageMock page, IAttributeSet atts, IMetadata metadata)
             {
                 var ctrl = new ControlMock(atts.Id, atts.Tag);
                 page.Controls.Add(ctrl);
                 return ctrl;
             }
 
-            protected override ControlMock Create(GroupMock group, IAttributeSet atts, IMetadata metadata)
+            private ControlMock Create(GroupMock group, IAttributeSet atts, IMetadata metadata)
             {
                 return new ControlMock(atts.Id, atts.Tag);
             }
 
-            protected override ControlMock Create(PageMock page, IAttributeSet atts, IMetadata metadata, ref int idRange)
+            protected override ControlMock Create(PageMock page, IAttributeSet atts, IMetadata metadata, ref int numberOfUsedIds)
             {
                 if (m_IdRangeSelector != null)
                 {
-                    idRange = m_IdRangeSelector.Invoke();
+                    numberOfUsedIds = m_IdRangeSelector.Invoke();
                 }
 
                 return Create(page, atts, metadata);
             }
 
-            protected override ControlMock Create(GroupMock group, IAttributeSet atts, IMetadata metadata, ref int idRange)
+            protected override ControlMock Create(GroupMock group, IAttributeSet atts, IMetadata metadata, ref int numberOfUsedIds)
             {
                 if (m_IdRangeSelector != null)
                 {
-                    idRange = m_IdRangeSelector.Invoke();
+                    numberOfUsedIds = m_IdRangeSelector.Invoke();
                 }
 
                 return Create(group, atts, metadata);
