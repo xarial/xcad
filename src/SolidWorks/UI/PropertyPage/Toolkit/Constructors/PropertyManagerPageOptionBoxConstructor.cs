@@ -7,6 +7,7 @@
 
 using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
+using System;
 using System.Linq;
 using Xarial.XCad.SolidWorks.Enums;
 using Xarial.XCad.SolidWorks.Services;
@@ -43,7 +44,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
 
         protected override PropertyManagerPageOptionBoxControl CreateControl(
             PropertyManagerPageOptionBox swCtrl, IAttributeSet atts, IMetadata metadata, 
-            SwPropertyManagerPageHandler handler, short height)
+            SwPropertyManagerPageHandler handler, short height, IPropertyManagerPageLabel label)
         {
             var options = EnumExtension.GetEnumFields(atts.ContextType);
 
@@ -57,59 +58,52 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
                 }
             }
 
-            return new PropertyManagerPageOptionBoxControl(atts.Id, atts.Tag, swCtrl, options.Keys.ToList().AsReadOnly(), handler);
+            return new PropertyManagerPageOptionBoxControl(atts.Id, atts.Tag, swCtrl, options.Keys.ToList().AsReadOnly(), handler, label);
         }
 
-        protected override PropertyManagerPageOptionBox CreateSwControlInPage(IPropertyManagerPage2 page,
-            ControlOptionsAttribute opts, IAttributeSet atts)
-        {
-            return CreateOptionBoxControl(opts, atts,
+        protected override PropertyManagerPageOptionBox CreateSwControl(object host, ControlOptionsAttribute opts, IAttributeSet atts)
+            => CreateOptionBoxControl(opts, atts,
                 (int id, short controlType, string caption, short leftAlign, int options, string tip) =>
                 {
-                    if (m_App.IsVersionNewerOrEqual(SwVersion_e.Sw2014, 1))
+                    var legacy = !m_App.IsVersionNewerOrEqual(SwVersion_e.Sw2014, 1);
+
+                    switch (host)
                     {
-                        return page.AddControl2(id, controlType, caption, leftAlign, options, tip) as IPropertyManagerPageOption;
-                    }
-                    else
-                    {
-                        return page.AddControl(id, controlType, caption, leftAlign, options, tip) as IPropertyManagerPageOption;
+                        case IPropertyManagerPage2 page:
+                            if (!legacy)
+                            {
+                                return page.AddControl2(id, controlType, caption, leftAlign, options, tip) as IPropertyManagerPageOption;
+                            }
+                            else
+                            {
+                                return page.AddControl(id, controlType, caption, leftAlign, options, tip) as IPropertyManagerPageOption;
+                            }
+
+                        case IPropertyManagerPageTab tab:
+                            if (!legacy)
+                            {
+                                return tab.AddControl2(id, controlType, caption, leftAlign, options, tip) as IPropertyManagerPageOption;
+                            }
+                            else
+                            {
+                                return tab.AddControl(id, controlType, caption, leftAlign, options, tip) as IPropertyManagerPageOption;
+                            }
+
+                        case IPropertyManagerPageGroup group:
+                            if (!legacy)
+                            {
+                                return group.AddControl2(id, controlType, caption, leftAlign, options, tip) as IPropertyManagerPageOption;
+                            }
+                            else
+                            {
+                                return group.AddControl(id, controlType, caption, leftAlign, options, tip) as IPropertyManagerPageOption;
+                            }
+
+                        default:
+                            throw new NotSupportedException("Host is not supported");
                     }
                 });
-        }
-
-        protected override PropertyManagerPageOptionBox CreateSwControlInGroup(IPropertyManagerPageGroup group,
-            ControlOptionsAttribute opts, IAttributeSet atts)
-        {
-            return CreateOptionBoxControl(opts, atts,
-                (int id, short controlType, string caption, short leftAlign, int options, string tip) =>
-                {
-                    if (m_App.IsVersionNewerOrEqual(SwVersion_e.Sw2014, 1))
-                    {
-                        return group.AddControl2(id, controlType, caption, leftAlign, options, tip) as IPropertyManagerPageOption;
-                    }
-                    else
-                    {
-                        return group.AddControl(id, controlType, caption, leftAlign, options, tip) as IPropertyManagerPageOption;
-                    }
-                });
-        }
-
-        protected override PropertyManagerPageOptionBox CreateSwControlInTab(IPropertyManagerPageTab tab, ControlOptionsAttribute opts, IAttributeSet atts)
-        {
-            return CreateOptionBoxControl(opts, atts,
-                (int id, short controlType, string caption, short leftAlign, int options, string tip) =>
-                {
-                    if (m_App.IsVersionNewerOrEqual(SwVersion_e.Sw2014, 1))
-                    {
-                        return tab.AddControl2(id, controlType, caption, leftAlign, options, tip) as IPropertyManagerPageOption;
-                    }
-                    else
-                    {
-                        return tab.AddControl(id, controlType, caption, leftAlign, options, tip) as IPropertyManagerPageOption;
-                    }
-                });
-        }
-
+        
         private PropertyManagerPageOptionBox CreateOptionBoxControl(ControlOptionsAttribute opts, IAttributeSet atts,
             ControlCreatorDelegate creator)
         {

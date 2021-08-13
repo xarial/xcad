@@ -223,7 +223,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
         public PropertyManagerPageOptionBoxControl(int id, object tag,
             PropertyManagerPageOptionBox optionBox, ReadOnlyCollection<Enum> values,
-            SwPropertyManagerPageHandler handler) : base(optionBox, id, tag, handler)
+            SwPropertyManagerPageHandler handler, IPropertyManagerPageLabel label) : base(optionBox, id, tag, handler, label)
         {
             m_Values = values;
             m_Handler.OptionChecked += OnOptionChecked;

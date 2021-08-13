@@ -16,7 +16,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
         internal PropertyManagerPageTextBoxControl(int id, object tag,
             IPropertyManagerPageTextbox textBox,
-            SwPropertyManagerPageHandler handler) : base(textBox, id, tag, handler)
+            SwPropertyManagerPageHandler handler, IPropertyManagerPageLabel label) : base(textBox, id, tag, handler, label)
         {
             m_Handler.TextChanged += OnTextChanged;
         }

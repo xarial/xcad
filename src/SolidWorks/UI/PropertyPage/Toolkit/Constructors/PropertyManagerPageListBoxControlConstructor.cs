@@ -37,7 +37,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
 
         protected override PropertyManagerPageListBoxControl CreateControl(
             IPropertyManagerPageListbox swCtrl, IAttributeSet atts, IMetadata metadata, 
-            SwPropertyManagerPageHandler handler, short height)
+            SwPropertyManagerPageHandler handler, short height, IPropertyManagerPageLabel label)
         {
             if (height <= 0)
             {
@@ -76,7 +76,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
 
             swCtrl.Style = style;
 
-            var ctrl = new PropertyManagerPageListBoxControl(atts.Id, atts.Tag, swCtrl, atts.ContextType, isMultiSelect, handler, metadata);
+            var ctrl = new PropertyManagerPageListBoxControl(atts.Id, atts.Tag, swCtrl, atts.ContextType, isMultiSelect, handler, metadata, label);
             var items = m_Helper.GetItems(m_SwApp, atts);
             
             if (sortItems) 
