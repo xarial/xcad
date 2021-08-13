@@ -21,6 +21,7 @@ using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Features;
 using Xarial.XCad.Geometry;
+using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Services;
 using Xarial.XCad.SwDocumentManager.Services;
 
@@ -138,6 +139,30 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                     ((ISwDMComponent5)Component).ExcludeFromBOM = (int)swDmExcludeFromBOMResult.swDmExcludeFromBOM_TRUE;
                 }
             }
+        }
+
+        public TransformMatrix Transformation
+        {
+            get 
+            {
+                var data = (double[])Component.Transform;
+
+                var scale = data[15];
+
+                var transform = new TransformMatrix(
+                    data[0] * scale, data[1] * scale, data[2] * scale, 0,
+                    data[4] * scale, data[5] * scale, data[6] * scale, 0,
+                    data[8] * scale, data[9] * scale, data[10] * scale, 0,
+                    data[12], data[13], data[14], 1);
+
+                if (Parent != null) 
+                {
+                    transform = transform.Multiply(Parent.Transformation);
+                }
+
+                return transform;
+            }
+            set => throw new NotSupportedException("Transform of the component cannot be modified"); 
         }
 
         private ISwDmDocument3D m_CachedDocument;

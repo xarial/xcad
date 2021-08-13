@@ -22,6 +22,7 @@ using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Features;
 using Xarial.XCad.Features.CustomFeature;
 using Xarial.XCad.Geometry;
+using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.SolidWorks.Annotations;
 using Xarial.XCad.SolidWorks.Data;
 using Xarial.XCad.SolidWorks.Features;
@@ -71,6 +72,8 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public override object Dispatch => Component;
 
+        private readonly IMathUtility m_MathUtils;
+
         internal SwComponent(IComponent2 comp, SwAssembly rootAssembly, ISwApplication app) : base(comp, rootAssembly, app)
         {
             m_RootAssembly = rootAssembly;
@@ -78,6 +81,8 @@ namespace Xarial.XCad.SolidWorks.Documents
             Children = new SwChildComponentsCollection(rootAssembly, comp);
             m_FeaturesLazy = new Lazy<ISwFeatureManager>(() => new SwComponentFeatureManager(this, rootAssembly, app));
             m_DimensionsLazy = new Lazy<ISwDimensionsCollection>(() => new SwFeatureManagerDimensionsCollection(Features));
+
+            m_MathUtils = app.Sw.IGetMathUtility();
 
             Bodies = new SwComponentBodyCollection(comp, rootAssembly);
 
@@ -250,6 +255,12 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
 
         public ISwDimensionsCollection Dimensions => m_DimensionsLazy.Value;
+
+        public TransformMatrix Transformation 
+        {
+            get => Component.Transform2.ToTransformMatrix();
+            set => Component.Transform2 = (MathTransform)m_MathUtils.ToMathTransform(value);
+        }
 
         public override void Select(bool append)
         {

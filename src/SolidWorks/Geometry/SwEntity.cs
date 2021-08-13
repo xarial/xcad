@@ -8,6 +8,7 @@
 using SolidWorks.Interop.sldworks;
 using System;
 using System.Collections.Generic;
+using Xarial.XCad.Documents;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.SolidWorks.Documents;
@@ -18,6 +19,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
     {
         IEntity Entity { get; }
 
+        new ISwComponent Component { get; }
         new IEnumerable<ISwEntity> AdjacentEntities { get; }
         new ISwBody Body { get; }
     }
@@ -26,6 +28,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
     {
         IXBody IXEntity.Body => Body;
         IEnumerable<IXEntity> IXEntity.AdjacentEntities => AdjacentEntities;
+        IXComponent IXEntity.Component => Component;
 
         public IEntity Entity { get; }
 
@@ -34,6 +37,23 @@ namespace Xarial.XCad.SolidWorks.Geometry
         public abstract ISwBody Body { get; }
 
         public abstract IEnumerable<ISwEntity> AdjacentEntities { get; }
+
+        public ISwComponent Component 
+        {
+            get 
+            {
+                var comp = (IComponent2)Entity.GetComponent();
+
+                if (comp != null)
+                {
+                    return OwnerDocument.CreateObjectFromDispatch<ISwComponent>(comp);
+                }
+                else 
+                {
+                    return null;
+                }
+            }
+        }
 
         internal SwEntity(IEntity entity, ISwDocument doc, ISwApplication app) : base(entity, doc, app)
         {

@@ -11,5 +11,9 @@ using System.Text;
 
 namespace Xarial.XCad.Documents.Delegates
 {
+    /// <summary>
+    /// Delegate for <see cref="IXSelectionRepository.ClearSelection"/> event
+    /// </summary>
+    /// <param name="doc">Document where the selection is cleared</param>
     public delegate void ClearSelectionDelegate(IXDocument doc);
 }
