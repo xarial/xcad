@@ -12,6 +12,9 @@ using Xarial.XCad.Exceptions;
 
 namespace Xarial.XCad.SwDocumentManager.Exceptions
 {
+    /// <summary>
+    /// Exception indicates that cut-lists cannot be exctrated for this version of the SOLIDWORKS file
+    /// </summary>
     public class ConfigurationCutListIsNotSupported : NotSupportedException, IUserException
     {
         public ConfigurationCutListIsNotSupported() 

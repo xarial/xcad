@@ -19,6 +19,7 @@ using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Services;
 using Xarial.XCad.SolidWorks.Documents;
+using Xarial.XCad.SolidWorks.Geometry.Exceptions;
 using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.Toolkit.Exceptions;
 
@@ -138,6 +139,11 @@ namespace Xarial.XCad.SolidWorks.Geometry
         private IMassProperty CreateMassProperty(CancellationToken cancellationToken)
         {
             var massPrps = (IMassProperty)m_Doc.Model.Extension.CreateMassProperty();
+
+            if (massPrps == null)
+            {
+                throw new MassPropertyNotAvailableException();
+            }
 
             massPrps.UseSystemUnits = !UserUnits;
 

@@ -18,6 +18,7 @@ using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Services;
 using Xarial.XCad.SolidWorks.Documents;
+using Xarial.XCad.SolidWorks.Geometry.Exceptions;
 using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.Toolkit.Exceptions;
 
@@ -182,6 +183,11 @@ namespace Xarial.XCad.SolidWorks.Geometry
         protected Tuple<IMassProperty2, IMassProperty> CreateMassProperty(CancellationToken cancellationToken)
         {
             var massPrps = (IMassProperty2)m_Doc.Model.Extension.CreateMassProperty2();
+
+            if (massPrps == null) 
+            {
+                throw new MassPropertyNotAvailableException();
+            }
 
             IMassProperty partMassPrps = null;
 
