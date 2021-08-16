@@ -466,6 +466,17 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         public TObj CreateObjectFromDispatch<TObj>(object disp) where TObj : ISwDmObject
             => SwDmObjectFactory.FromDispatch<TObj>(disp, this);
+
+        public void Dispose()
+        {
+            if (m_IsClosed != true)
+            {
+                if (IsAlive)
+                {
+                    Close();
+                }
+            }
+        }
     }
 
     internal class SwDmUnknownDocument : SwDmDocument, IXUnknownDocument

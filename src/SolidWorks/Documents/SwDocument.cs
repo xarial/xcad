@@ -60,6 +60,7 @@ namespace Xarial.XCad.SolidWorks.Documents
     internal abstract class SwDocument : SwObject, ISwDocument
     {
         protected static Dictionary<string, swDocumentTypes_e> m_NativeFileExts { get; }
+        private bool? m_IsClosed;
 
         static SwDocument() 
         {
@@ -803,12 +804,21 @@ namespace Xarial.XCad.SolidWorks.Documents
         public void Close()
         {
             OwnerApplication.Sw.CloseDoc(Model.GetTitle());
+            m_IsClosed = true;
         }
 
         public void Dispose()
         {
             if (!m_IsDisposed)
             {
+                if (m_IsClosed != true)
+                {
+                    if (IsAlive)
+                    {
+                        Close();
+                    }
+                }
+
                 Dispose(true);
                 m_IsDisposed = true;
             }

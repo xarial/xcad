@@ -5,6 +5,7 @@
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
+using System;
 using System.ComponentModel;
 using System.IO;
 using Xarial.XCad.Annotations;
@@ -20,7 +21,7 @@ namespace Xarial.XCad.Documents
     /// <summary>
     /// Represents the base interface of all document types
     /// </summary>
-    public interface IXDocument : IXObject, IXTransaction, IPropertiesOwner
+    public interface IXDocument : IXObject, IXTransaction, IPropertiesOwner, IDisposable
     {
         /// <summary>
         /// Current version of the document
