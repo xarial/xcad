@@ -275,6 +275,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             doc.Destroyed -= OnDocumentDestroyed;
             m_Documents.Remove(doc.Model);
             m_DocsHandler.ReleaseHandlers(doc);
+            doc.SetClosed();
             doc.Dispose();
         }
 

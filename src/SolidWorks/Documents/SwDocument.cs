@@ -303,6 +303,12 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
+        [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
+        internal void SetClosed()
+        {
+            m_IsClosed = true;
+        }
+
         private DocumentState_e GetDocumentState()
         {
             var state = DocumentState_e.Default;
@@ -811,6 +817,8 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
             if (!m_IsDisposed)
             {
+                m_IsDisposed = true;
+
                 if (m_IsClosed != true)
                 {
                     if (IsAlive)
@@ -820,7 +828,6 @@ namespace Xarial.XCad.SolidWorks.Documents
                 }
 
                 Dispose(true);
-                m_IsDisposed = true;
             }
         }
 
