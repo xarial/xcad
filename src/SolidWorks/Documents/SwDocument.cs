@@ -908,31 +908,38 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
             const int S_OK = 0;
 
-            if (destroyType == (int)swDestroyNotifyType_e.swDestroyNotifyDestroy)
+            try
             {
-                m_Logger.Log($"Destroying '{Model.GetTitle()}' document", XCad.Base.Enums.LoggerMessageSeverity_e.Debug);
-
-                try
+                if (destroyType == (int)swDestroyNotifyType_e.swDestroyNotifyDestroy)
                 {
-                    Closing?.Invoke(this);
-                }
-                catch (Exception ex)
-                {
-                    m_Logger.Log(ex);
-                }
+                    m_Logger.Log($"Destroying '{Model.GetTitle()}' document", XCad.Base.Enums.LoggerMessageSeverity_e.Debug);
 
-                Destroyed?.Invoke(this);
-                
-                Dispose();
+                    try
+                    {
+                        Closing?.Invoke(this);
+                    }
+                    catch (Exception ex)
+                    {
+                        m_Logger.Log(ex);
+                    }
+
+                    Destroyed?.Invoke(this);
+
+                    Dispose();
+                }
+                else if (destroyType == (int)swDestroyNotifyType_e.swDestroyNotifyHidden)
+                {
+                    Hidden?.Invoke(this);
+                    m_Logger.Log($"Hiding '{Model.GetTitle()}' document", XCad.Base.Enums.LoggerMessageSeverity_e.Debug);
+                }
+                else
+                {
+                    Debug.Assert(false, "Not supported type of destroy");
+                }
             }
-            else if (destroyType == (int)swDestroyNotifyType_e.swDestroyNotifyHidden)
+            catch (Exception ex)
             {
-                Hidden?.Invoke(this);
-                m_Logger.Log($"Hiding '{Model.GetTitle()}' document", XCad.Base.Enums.LoggerMessageSeverity_e.Debug);
-            }
-            else
-            {
-                Debug.Assert(false, "Not supported type of destroy");
+                m_Logger.Log(ex);
             }
 
             return S_OK;

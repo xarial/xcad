@@ -86,7 +86,15 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        public int Count => m_Documents.Count;
+        public int Count
+        {
+            get
+            {
+                ClearDanglingModelPointers(false);
+
+                return m_Documents.Count;
+            }
+        }
 
         public IXDocument this[string name] 
         {
@@ -105,6 +113,8 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         private bool m_IsAttached;
 
+        private readonly List<IModelDoc2> m_DanglingModelPointers;
+
         internal SwDocumentCollection(SwApplication app, IXLogger logger)
         {
             m_Lock = new object();
@@ -114,9 +124,11 @@ namespace Xarial.XCad.SolidWorks.Documents
             m_Logger = logger;
 
             m_DocsDispatcher = new SwDocumentDispatcher(app, logger);
-            
+
+            m_DanglingModelPointers = new List<IModelDoc2>();
+
             m_Documents = new Dictionary<IModelDoc2, SwDocument>(
-                new SwModelPointerEqualityComparer());
+                new SwModelPointerEqualityComparer(m_DanglingModelPointers));
             m_DocsHandler = new DocumentsHandler(app, m_Logger);
 
             m_IsAttached = false;
@@ -181,7 +193,10 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
 
         public IEnumerator<IXDocument> GetEnumerator()
-            => m_Documents.Values.GetEnumerator();
+        {
+            ClearDanglingModelPointers(false);
+            return m_Documents.Values.GetEnumerator();
+        }
 
         IEnumerator IEnumerable.GetEnumerator()
             => GetEnumerator();
@@ -222,6 +237,8 @@ namespace Xarial.XCad.SolidWorks.Documents
             {
                 if (!m_Documents.ContainsKey(doc.Model))
                 {
+                    ClearDanglingModelPointers(true);
+
                     doc.Destroyed += OnDocumentDestroyed;
 
                     m_Documents.Add(doc.Model, doc);
@@ -237,8 +254,8 @@ namespace Xarial.XCad.SolidWorks.Documents
                         m_Logger.Log(ex);
                     }
 
-                    if (m_WaitActivateDocument != null 
-                        && SwModelPointerEqualityComparer.AreEqual(m_WaitActivateDocument, doc.Model) )
+                    if (m_WaitActivateDocument != null
+                        && SwModelPointerEqualityComparer.AreEqual(m_WaitActivateDocument, doc.Model))
                     {
                         try
                         {
@@ -259,7 +276,46 @@ namespace Xarial.XCad.SolidWorks.Documents
                 }
             }
         }
-        
+
+        private void ClearDanglingModelPointers(bool cachedOnly)
+        {
+            lock (m_Lock)
+            {
+                void RemovePointers(IEnumerable<IModelDoc2> models) 
+                {
+                    foreach (var dangModelPtr in models)
+                    {
+                        try
+                        {
+                            m_Logger.Log("Removing dangling model from the list");
+                            m_Documents.Remove(dangModelPtr);
+                        }
+                        catch (Exception ex)
+                        {
+                            m_Logger.Log(ex);
+                        }
+                    }
+                }
+
+                if (m_DanglingModelPointers.Count > 0)
+                {
+                    RemovePointers(m_DanglingModelPointers);
+
+                    m_DanglingModelPointers.Clear();
+                }
+
+                if (!cachedOnly)
+                {
+                    if (m_SwApp.GetDocumentCount() != m_Documents.Count)
+                    {
+                        var dangPtrs = m_Documents.Where(d => !d.Value.IsAlive).Select(d => d.Key).ToArray();
+
+                        RemovePointers(dangPtrs);
+                    }
+                }
+            }
+        }
+
         private int OnDocumentLoadNotify2(string docTitle, string docPath)
         {
             m_DocsDispatcher.Dispatch(docTitle, docPath);
@@ -277,6 +333,8 @@ namespace Xarial.XCad.SolidWorks.Documents
             m_DocsHandler.ReleaseHandlers(doc);
             doc.SetClosed();
             doc.Dispose();
+
+            ClearDanglingModelPointers(true);
         }
 
         public void RegisterHandler<THandler>(Func<THandler> handlerFact) 
