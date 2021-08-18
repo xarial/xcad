@@ -28,6 +28,11 @@ namespace Xarial.XCad
         event ApplicationStartingDelegate Starting;
 
         /// <summary>
+        /// Fires when no activity detected in the application
+        /// </summary>
+        event ApplicationIdleDelegate Idle;
+
+        /// <summary>
         /// Version of the application
         /// </summary>
         IXVersion Version { get; set; }

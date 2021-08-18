@@ -64,19 +64,50 @@ namespace Xarial.XCad.SolidWorks
         static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
         #endregion
 
-        public event ApplicationStartingDelegate Starting;
-        public event ConfigureServicesDelegate ConfigureServices;
-
-        internal event Action<SwApplication> FirstStartupCompleted;
-        
         IXDocumentRepository IXApplication.Documents => Documents;
         IXMacro IXApplication.OpenMacro(string path) => OpenMacro(path);
         IXMemoryGeometryBuilder IXApplication.MemoryGeometryBuilder => MemoryGeometryBuilder;
-        IXVersion IXApplication.Version 
+        IXVersion IXApplication.Version
         {
             get => Version;
             set => Version = (ISwVersion)value;
         }
+
+        public event ApplicationStartingDelegate Starting;
+        public event ConfigureServicesDelegate ConfigureServices;
+
+        public event ApplicationIdleDelegate Idle
+        {
+            add
+            {
+                if(m_IdleDelegate == null) 
+                {
+                    ((SldWorks)Sw).OnIdleNotify += OnIdleNotify;
+                }
+
+                m_IdleDelegate += value;
+            }
+            remove
+            {
+                m_IdleDelegate -= value;
+
+                if (m_IdleDelegate == null)
+                {
+                    ((SldWorks)Sw).OnIdleNotify -= OnIdleNotify;
+                }
+            }
+        }
+
+        private int OnIdleNotify()
+        {
+            const int S_OK = 0;
+
+            m_IdleDelegate?.Invoke(this);
+
+            return S_OK;
+        }
+
+        internal event Action<SwApplication> FirstStartupCompleted;
 
         private IXServiceCollection m_CustomServices;
 
@@ -228,6 +259,8 @@ namespace Xarial.XCad.SolidWorks
         {
             Init(customServices);
         }
+
+        private ApplicationIdleDelegate m_IdleDelegate;
 
         /// <summary>
         /// Only to be used within SwAddInEx

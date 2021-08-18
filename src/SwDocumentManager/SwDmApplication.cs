@@ -38,7 +38,9 @@ namespace Xarial.XCad.SwDocumentManager
     {
         #region Not Supported        
 
-        public event ApplicationStartingDelegate Starting;
+        public event ApplicationStartingDelegate Starting { add => throw new NotSupportedException(); remove => throw new NotSupportedException(); }
+        public event ApplicationIdleDelegate Idle { add => throw new NotSupportedException(); remove => throw new NotSupportedException(); }
+
         public ApplicationState_e State { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
         public bool IsAlive => throw new NotSupportedException();
         public Rectangle WindowRectangle => throw new NotSupportedException();
