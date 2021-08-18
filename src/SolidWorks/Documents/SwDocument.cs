@@ -581,6 +581,23 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public int UpdateStamp => Model.GetUpdateStamp();
 
+        public bool IsLoadingCompleted
+        {
+            get 
+            {
+                if (Model.IsOpenedViewOnly())
+                {
+                    return true;
+                }
+                else 
+                {
+                    const int LOADED_MIN_FEATS_COUNT = 3;
+
+                    return Model.FeatureManager.GetFeatureCount(true) >= LOADED_MIN_FEATS_COUNT;
+                }
+            }
+        }
+
         private SwVersion_e GetVersion(string[] versHistory)
         {
             if (versHistory?.Any() == true)

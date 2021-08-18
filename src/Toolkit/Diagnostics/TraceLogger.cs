@@ -10,6 +10,9 @@ using Xarial.XCad.Base.Enums;
 
 namespace Xarial.XCad.Utils.Diagnostics
 {
+    /// <summary>
+    /// Logger logs messages to trace window
+    /// </summary>
     public class TraceLogger : IXLogger
     {
         private readonly string m_Category;

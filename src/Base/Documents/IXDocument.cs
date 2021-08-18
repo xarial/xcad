@@ -84,6 +84,11 @@ namespace Xarial.XCad.Documents
         bool IsDirty { get; set; }
 
         /// <summary>
+        /// Indicates if the document is fully loaded
+        /// </summary>
+        bool IsLoadingCompleted { get; }
+
+        /// <summary>
         /// Gets or sets the state of the document
         /// </summary>
         DocumentState_e State { get; set; }

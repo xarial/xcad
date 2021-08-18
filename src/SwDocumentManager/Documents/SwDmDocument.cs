@@ -288,6 +288,8 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         public int UpdateStamp => Document.GetLastUpdateStamp();
 
+        public bool IsLoadingCompleted => true;
+
         public override bool Equals(IXObject other)
         {
             if (!object.ReferenceEquals(this, other)
