@@ -64,7 +64,7 @@ namespace Xarial.XCad.Geometry
         public static IXExtrusion CreateSolidCylinder(this IXGeometryBuilder builder, Point center, Vector axis,
             double radius, double height)
         {
-            var arc = builder.WireBuilder.PreCreateArc();
+            var arc = builder.WireBuilder.PreCreateCircle();
             arc.Center = center;
             arc.Axis = axis;
             arc.Diameter = radius * 2;
@@ -171,9 +171,9 @@ namespace Xarial.XCad.Geometry
             return line;
         }
 
-        public static IXArc CreateCircle(this IXGeometryBuilder builder, Point centerPt, Vector axis, double diameter)
+        public static IXCircle CreateCircle(this IXGeometryBuilder builder, Point centerPt, Vector axis, double diameter)
         {
-            var circle = builder.WireBuilder.PreCreateArc();
+            var circle = builder.WireBuilder.PreCreateCircle();
             circle.Center = centerPt;
             circle.Axis = axis;
             circle.Diameter = diameter;

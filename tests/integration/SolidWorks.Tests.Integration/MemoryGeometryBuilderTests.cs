@@ -9,27 +9,29 @@ using System.Text;
 using System.Threading.Tasks;
 using Xarial.XCad.Base;
 using Xarial.XCad.Geometry;
+using Xarial.XCad.Geometry.Curves;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Geometry;
+using Xarial.XCad.SolidWorks.Geometry.Curves;
 
 namespace SolidWorks.Tests.Integration
 {
     public class MemoryGeometryBuilderTests : IntegrationTests
     {
         [Test]
-        public void ArcSweepTest()
+        public void CircleSweepTest()
         {
             int faceCount;
             double[] massPrps;
 
-            using (var doc = NewDocument(Interop.swconst.swDocumentTypes_e.swDocPART))
+            using (var doc = NewDocument(swDocumentTypes_e.swDocPART))
             {
-                var sweepArc = m_App.MemoryGeometryBuilder.WireBuilder.PreCreateArc();
-                sweepArc.Center = new Point(0, 0, 0);
-                sweepArc.Axis = new Vector(0, 0, 1);
-                sweepArc.Diameter = 0.01;
-                sweepArc.Commit();
+                var sweepCircle = m_App.MemoryGeometryBuilder.WireBuilder.PreCreateCircle();
+                sweepCircle.Center = new Point(0, 0, 0);
+                sweepCircle.Axis = new Vector(0, 0, 1);
+                sweepCircle.Diameter = 0.01;
+                sweepCircle.Commit();
 
                 var sweepLine = m_App.MemoryGeometryBuilder.WireBuilder.PreCreateLine();
                 sweepLine.StartCoordinate = new Point(0, 0, 0);
@@ -38,7 +40,7 @@ namespace SolidWorks.Tests.Integration
 
                 var sweep = m_App.MemoryGeometryBuilder.SolidBuilder.PreCreateSweep();
                 sweep.Profiles = new IXRegion[] { m_App.MemoryGeometryBuilder.CreatePlanarSheet(
-                    m_App.MemoryGeometryBuilder.CreateRegionFromSegments(sweepArc)).Bodies.First() };
+                    m_App.MemoryGeometryBuilder.CreateRegionFromSegments(sweepCircle)).Bodies.First() };
                 sweep.Path = sweepLine;
                 sweep.Commit();
 
@@ -88,18 +90,18 @@ namespace SolidWorks.Tests.Integration
         }
 
         [Test]
-        public void ArcRevolveTest()
+        public void CircleRevolveTest()
         {
             int faceCount;
             double[] massPrps;
 
             using (var doc = NewDocument(Interop.swconst.swDocumentTypes_e.swDocPART))
             {
-                var arc = m_App.MemoryGeometryBuilder.WireBuilder.PreCreateArc();
-                arc.Center = new Point(-0.1, 0, 0);
-                arc.Axis = new Vector(0, 0, 1);
-                arc.Diameter = 0.01;
-                arc.Commit();
+                var circle = m_App.MemoryGeometryBuilder.WireBuilder.PreCreateCircle();
+                circle.Center = new Point(-0.1, 0, 0);
+                circle.Axis = new Vector(0, 0, 1);
+                circle.Diameter = 0.01;
+                circle.Commit();
 
                 var axis = m_App.MemoryGeometryBuilder.WireBuilder.PreCreateLine();
                 axis.StartCoordinate = new Point(0, 0, 0);
@@ -110,7 +112,7 @@ namespace SolidWorks.Tests.Integration
                 rev.Angle = Math.PI * 2;
                 rev.Axis = axis;
                 rev.Profiles = new IXRegion[] { m_App.MemoryGeometryBuilder.CreatePlanarSheet(
-                    m_App.MemoryGeometryBuilder.CreateRegionFromSegments(arc)).Bodies.First() };
+                    m_App.MemoryGeometryBuilder.CreateRegionFromSegments(circle)).Bodies.First() };
                 rev.Commit();
 
                 var body = (rev.Bodies.First() as ISwBody).Body;
@@ -238,7 +240,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = NewDocument(Interop.swconst.swDocumentTypes_e.swDocPART))
             {
-                var arc = m_App.MemoryGeometryBuilder.WireBuilder.PreCreateArc();
+                var arc = m_App.MemoryGeometryBuilder.WireBuilder.PreCreateCircle();
                 arc.Center = new Point(0.75, 0.5, 0.15);
                 arc.Axis = new Vector(Math.Round(1E-16d, 15), 0, 1);
                 arc.Diameter = 2.5;
@@ -262,6 +264,58 @@ namespace SolidWorks.Tests.Integration
             Assert.That(0.5, Is.EqualTo(circleParams[1]).Within(0.001).Percent);
             Assert.That(0.15, Is.EqualTo(circleParams[2]).Within(0.001).Percent);
             Assert.That(1.25, Is.EqualTo(circleParams[6]).Within(0.001).Percent);
+        }
+
+        [Test]
+        public void SurfaceKnitTest()
+        {
+            int b1Count;
+            int f1Count;
+            double a1;
+
+            int b2Count;
+            int f2_1Count;
+            int f2_2Count;
+            double a2_1;
+            double a2_2;
+
+            using (var doc = OpenDataDocument("FacePart.SLDPRT"))
+            {
+                var part = (ISwPart)m_App.Documents.Active;
+
+                var face1 = part.CreateObjectFromDispatch<ISwFace>(part.Part.GetEntityByName("FACE1", (int)swSelectType_e.swSelFACES));//0.00743892
+                var face2 = part.CreateObjectFromDispatch<ISwFace>(part.Part.GetEntityByName("FACE2", (int)swSelectType_e.swSelFACES));//0.01130973
+                var face3 = part.CreateObjectFromDispatch<ISwFace>(part.Part.GetEntityByName("FACE3", (int)swSelectType_e.swSelFACES));//0.01202536
+                var face4 = part.CreateObjectFromDispatch<ISwFace>(part.Part.GetEntityByName("FACE4", (int)swSelectType_e.swSelFACES));//0.01463892
+
+                var knit1 = m_App.MemoryGeometryBuilder.SheetBuilder.PreCreateKnit();
+                knit1.Faces = new IXFace[] { face2, face3 };
+                knit1.Commit();
+
+                b1Count = knit1.Bodies.Length;
+                f1Count = knit1.Bodies[0].Faces.Count();
+                a1 = knit1.Bodies[0].Faces.Sum(f => f.Area);
+
+                var knit2 = m_App.MemoryGeometryBuilder.SheetBuilder.PreCreateKnit();
+                knit2.Faces = new IXFace[] { face1, face3, face4 };
+                knit2.Commit();
+
+                b2Count = knit2.Bodies.Length;
+                f2_1Count = knit2.Bodies[0].Faces.Count();
+                f2_2Count = knit2.Bodies[1].Faces.Count();
+                a2_1 = knit2.Bodies[0].Faces.Sum(f => f.Area);
+                a2_2 = knit2.Bodies[1].Faces.Sum(f => f.Area);
+            }
+
+            Assert.AreEqual(1, b1Count);
+            Assert.AreEqual(2, f1Count);
+            Assert.That(0.01130973 + 0.01202536, Is.EqualTo(a1).Within(0.01).Percent);
+
+            Assert.AreEqual(2, b2Count);
+            Assert.AreEqual(2, f2_1Count);
+            Assert.AreEqual(1, f2_2Count);
+            Assert.That(0.00743892, Is.EqualTo(a2_2).Within(0.01).Percent);
+            Assert.That(0.01202536 + 0.01463892, Is.EqualTo(a2_1).Within(0.01).Percent);
         }
 
         [Test]
@@ -290,6 +344,66 @@ namespace SolidWorks.Tests.Integration
 
                 Assert.That(2.3851693679806192E-05, Is.EqualTo(mass).Within(0.001).Percent);
             }
+        }
+
+        [Test]
+        public void ArcTest()
+        {
+            Type curve1Type;
+            double curve1Length;
+            double curve2Length;
+
+            using (var doc = OpenDataDocument("FacePart.sldprt"))
+            {
+                var part = (ISwPart)m_App.Documents.Active;
+                var edge = part.CreateObjectFromDispatch<ISwEdge>(part.Part.GetEntityByName("EDGE1", (int)swSelectType_e.swSelEDGES));
+                var curve1 = edge.Definition;
+                curve1Type = curve1.GetType();
+                curve1Length = curve1.Length;
+
+                var arc2 = m_App.MemoryGeometryBuilder.WireBuilder.PreCreateArc();
+                arc2.Center = new Point(0, 0, 0);
+                arc2.Axis = new Vector(0, 0, -1);
+                arc2.Diameter = 0.01;
+                arc2.Start = new Point(-0.005, 0, 0);
+                arc2.End = new Point(0, 0.005, 0);
+                arc2.Commit();
+
+                curve2Length = arc2.Length;
+            }
+
+            Assert.That(typeof(ISwArcCurve).IsAssignableFrom(curve1Type));
+            Assert.That(0.09424777961, Is.EqualTo(curve1Length).Within(0.001).Percent);
+            Assert.That(Math.PI * 0.01 * 0.25, Is.EqualTo(curve2Length).Within(0.001).Percent);
+        }
+
+        [Test]
+        public void CircleTest()
+        {
+            Type curve1Type;
+            double curve1Length;
+            double curve2Length;
+
+            using (var doc = OpenDataDocument("FacePart.sldprt"))
+            {
+                var part = (ISwPart)m_App.Documents.Active;
+                var edge = part.CreateObjectFromDispatch<ISwEdge>(part.Part.GetEntityByName("EDGE2", (int)swSelectType_e.swSelEDGES));
+                var curve1 = edge.Definition;
+                curve1Type = curve1.GetType();
+                curve1Length = curve1.Length;
+
+                var circle2 = m_App.MemoryGeometryBuilder.WireBuilder.PreCreateCircle();
+                circle2.Center = new Point(0, 0, 0);
+                circle2.Axis = new Vector(0, 0, -1);
+                circle2.Diameter = 0.01;
+                circle2.Commit();
+
+                curve2Length = circle2.Length;
+            }
+
+            Assert.That(typeof(ISwCircleCurve).IsAssignableFrom(curve1Type) && !typeof(ISwArcCurve).IsAssignableFrom(curve1Type));
+            Assert.That(0.12214774689, Is.EqualTo(curve1Length).Within(0.001).Percent);
+            Assert.That(Math.PI * 0.01, Is.EqualTo(curve2Length).Within(0.001).Percent);
         }
     }
 }

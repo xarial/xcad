@@ -12,7 +12,17 @@ using Xarial.XCad.Geometry.Wires;
 
 namespace Xarial.XCad.Geometry.Curves
 {
-    public interface IXArcCurve : IXCurve, IXArc
+    /// <summary>
+    /// Represents the circle curve
+    /// </summary>
+    public interface IXCircleCurve : IXCurve, IXCircle
+    {
+    }
+
+    /// <summary>
+    /// Represents the arc curve
+    /// </summary>
+    public interface IXArcCurve : IXCircleCurve , IXArc
     {
     }
 }

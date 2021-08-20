@@ -15,6 +15,9 @@ using Xarial.XCad.Documents.Services;
 
 namespace Xarial.XCad.Toolkit.Services
 {
+    /// <summary>
+    /// Handles documents lifecycle
+    /// </summary>
     public class DocumentsHandler
     {
         private readonly IXApplication m_App;

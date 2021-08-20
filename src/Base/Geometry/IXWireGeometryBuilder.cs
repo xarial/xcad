@@ -24,25 +24,31 @@ namespace Xarial.XCad.Geometry
         /// <summary>
         /// Creates a line template
         /// </summary>
-        /// <returns></returns>
+        /// <returns>Line template</returns>
         IXLine PreCreateLine();
+
+        /// <summary>
+        /// Creates an circle template
+        /// </summary>
+        /// <returns>Circle template</returns>
+        IXCircle PreCreateCircle();
 
         /// <summary>
         /// Creates an arc template
         /// </summary>
-        /// <returns></returns>
+        /// <returns>Arc template</returns>
         IXArc PreCreateArc();
 
         /// <summary>
         /// Creates a point template
         /// </summary>
-        /// <returns></returns>
+        /// <returns>Point template</returns>
         IXPoint PreCreatePoint();
 
         /// <summary>
         /// Creates a polyline template
         /// </summary>
-        /// <returns></returns>
+        /// <returns>Polyline template</returns>
         IXPolylineCurve PreCreatePolyline();
 
         /// <summary>

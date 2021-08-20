@@ -35,7 +35,7 @@ namespace SolidWorks.Tests.Integration
             Assert.AreEqual(6, entTypes.Length);
             Assert.IsNotNull(entTypes.FirstOrDefault(t => typeof(ISwSketchEllipse).IsAssignableFrom(t)));
             Assert.IsNotNull(entTypes.FirstOrDefault(t => typeof(ISwSketchLine).IsAssignableFrom(t)));
-            Assert.IsNotNull(entTypes.FirstOrDefault(t => typeof(ISwSketchArc).IsAssignableFrom(t)));
+            Assert.IsNotNull(entTypes.FirstOrDefault(t => typeof(ISwSketchCircle).IsAssignableFrom(t)));
             Assert.IsNotNull(entTypes.FirstOrDefault(t => typeof(ISwSketchText).IsAssignableFrom(t)));
             Assert.IsNotNull(entTypes.FirstOrDefault(t => typeof(ISwSketchSpline).IsAssignableFrom(t)));
             Assert.IsNotNull(entTypes.FirstOrDefault(t => typeof(ISwSketchParabola).IsAssignableFrom(t)));
@@ -108,7 +108,7 @@ namespace SolidWorks.Tests.Integration
 
                 l1 = segs.OfType<ISwSketchEllipse>().First().Length;
                 l2 = segs.OfType<ISwSketchLine>().First().Length;
-                l3 = segs.OfType<ISwSketchArc>().First().Length;
+                l3 = segs.OfType<ISwSketchCircle>().First().Length;
                 l4 = segs.OfType<ISwSketchSpline>().First().Length;
                 l5 = segs.OfType<ISwSketchParabola>().First().Length;
             }

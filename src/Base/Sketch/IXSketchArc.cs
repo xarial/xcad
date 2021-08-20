@@ -12,7 +12,17 @@ using Xarial.XCad.Geometry.Wires;
 
 namespace Xarial.XCad.Sketch
 {
-    public interface IXSketchArc : IXSketchSegment, IXArc
+    /// <summary>
+    /// Represents the sketch circle
+    /// </summary>
+    public interface IXSketchCircle : IXSketchSegment, IXCircle
+    {
+    }
+
+    /// <summary>
+    /// Represents the sketch arc
+    /// </summary>
+    public interface IXSketchArc : IXSketchCircle, IXArc
     {
     }
 }

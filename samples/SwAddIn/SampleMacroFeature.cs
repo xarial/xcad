@@ -60,7 +60,7 @@ namespace SwAddInExample
                 }
             };
 
-            var sweepArc = app.MemoryGeometryBuilder.WireBuilder.PreCreateArc();
+            var sweepArc = app.MemoryGeometryBuilder.WireBuilder.PreCreateCircle();
             sweepArc.Center = new Point(0, 0, 0);
             sweepArc.Axis = new Vector(0, 0, 1);
             sweepArc.Diameter = 0.01;

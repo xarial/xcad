@@ -175,7 +175,7 @@ namespace StandAlone
 
         private static void CreateTempGeometry(IXApplication app) 
         {
-            var sweepArc = app.MemoryGeometryBuilder.WireBuilder.PreCreateArc();
+            var sweepArc = app.MemoryGeometryBuilder.WireBuilder.PreCreateCircle();
             sweepArc.Center = new Point(0, 0, 0);
             sweepArc.Axis = new Vector(0, 0, 1);
             sweepArc.Diameter = 0.01;
@@ -205,7 +205,7 @@ namespace StandAlone
 
             (app.Documents.Active as ISwPart).Part.CreateFeatureFromBody3(body, false, 0);
 
-            var arc = app.MemoryGeometryBuilder.WireBuilder.PreCreateArc();
+            var arc = app.MemoryGeometryBuilder.WireBuilder.PreCreateCircle();
             arc.Center = new Point(-0.1, 0, 0);
             arc.Axis = new Vector(0, 0, 1);
             arc.Diameter = 0.01;

@@ -16,12 +16,16 @@ using Xarial.XCad.SolidWorks.Documents;
 
 namespace Xarial.XCad.SolidWorks.Sketch
 {
-    public interface ISwSketchArc : IXSketchArc 
+    public interface ISwSketchCircle : IXSketchCircle 
     {
         ISketchArc Arc { get; }
     }
 
-    internal class SwSketchArc : SwSketchSegment, ISwSketchArc
+    public interface ISwSketchArc : ISwSketchCircle
+    {
+    }
+
+    internal class SwSketchCircle : SwSketchSegment, ISwSketchCircle
     {
         public ISketchArc Arc => (ISketchArc)Segment;
 
@@ -32,7 +36,7 @@ namespace Xarial.XCad.SolidWorks.Sketch
         public Point Center { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public Vector Axis { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
-        internal SwSketchArc(ISketchArc arc, ISwDocument doc, ISwApplication app, bool created)
+        internal SwSketchCircle(ISketchArc arc, ISwDocument doc, ISwApplication app, bool created)
             : base((ISketchSegment)arc, doc, app, created)
         {
         }
@@ -40,6 +44,16 @@ namespace Xarial.XCad.SolidWorks.Sketch
         protected override ISketchSegment CreateSketchEntity()
         {
             throw new NotImplementedException();
+        }
+    }
+
+    internal class SwSketchArc : SwSketchCircle, IXSketchArc
+    {
+        public Point Start { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public Point End { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
+        internal SwSketchArc(ISketchArc arc, ISwDocument doc, ISwApplication app, bool created) : base(arc, doc, app, created)
+        {
         }
     }
 }

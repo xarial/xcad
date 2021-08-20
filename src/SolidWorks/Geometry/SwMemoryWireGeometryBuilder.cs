@@ -20,17 +20,21 @@ namespace Xarial.XCad.SolidWorks.Geometry
     public interface ISwMemoryWireGeometryBuilder : IXWireGeometryBuilder
     {
         new ISwLineCurve PreCreateLine();
-        new ISwCurve Merge(ISwCurve[] curves);
+        new ISwCircleCurve PreCreateCircle();
+        new ISwArcCurve PreCreateArc();
+        ISwCurve Merge(ISwCurve[] curves);
     }
 
     internal class SwMemoryWireGeometryBuilder : ISwMemoryWireGeometryBuilder
     {
+        IXCircle IXWireGeometryBuilder.PreCreateCircle() => PreCreateCircle();
         IXArc IXWireGeometryBuilder.PreCreateArc() => PreCreateArc();
         IXLine IXWireGeometryBuilder.PreCreateLine() => PreCreateLine();
         IXPoint IXWireGeometryBuilder.PreCreatePoint() => PreCreatePoint();
         IXPolylineCurve IXWireGeometryBuilder.PreCreatePolyline() => PreCreatePolyline();
         IXCurve IXWireGeometryBuilder.Merge(IXCurve[] curves) => Merge(curves.Cast<ISwCurve>().ToArray());
 
+        public ISwCircleCurve PreCreateCircle() => new SwCircleCurve(null, null, m_App, false);
         public ISwArcCurve PreCreateArc() => new SwArcCurve(null, null, m_App, false);
         public ISwLineCurve PreCreateLine() => new SwLineCurve(null, null, m_App, false);
         public ISwPoint PreCreatePoint() => new SwPoint();

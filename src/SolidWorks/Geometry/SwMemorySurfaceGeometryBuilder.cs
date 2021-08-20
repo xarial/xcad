@@ -18,11 +18,13 @@ namespace Xarial.XCad.SolidWorks.Geometry
     public interface ISwMemorySheetGeometryBuilder : IXSheetGeometryBuilder
     {
         new ISwTempPlanarSheet PreCreatePlanarSheet();
+        new ISwTempSurfaceKnit PreCreateKnit();
     }
 
     internal class SwMemorySheetGeometryBuilder : ISwMemorySheetGeometryBuilder
     {
         IXPlanarSheet IXSheetGeometryBuilder.PreCreatePlanarSheet() => PreCreatePlanarSheet();
+        IXKnit IX3DGeometryBuilder.PreCreateKnit() => PreCreateKnit();
 
         public IXExtrusion PreCreateExtrusion()
         {
@@ -45,6 +47,8 @@ namespace Xarial.XCad.SolidWorks.Geometry
         }
 
         public ISwTempPlanarSheet PreCreatePlanarSheet() => new SwTempPlanarSheet(null, m_App, false);
+
+        public ISwTempSurfaceKnit PreCreateKnit() => new SwTempSurfaceKnit(null, m_App, false);
 
         private readonly ISwApplication m_App;
 

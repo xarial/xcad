@@ -19,6 +19,7 @@ Breaking change is marked with &#x26A0; symbol
 * &#x26A0; SwObjectFactory::FromDispatch is replaced with ISwDocument::CreateObjectFromDispatch and ISwApplication::CreateObjectFromDispatch
 * &#x26A0; Changed the signatures of SwMacroFeatureDefinition{TParams, TPage}::OnEditingCompleted, SwMacroFeatureDefinition{TParams, TPage}::OnFeatureInserted
 * &#x26A0; Changed from protected to public: SwMacroFeatureDefinition{TParams, TPage}::OnEditingStarted, SwMacroFeatureDefinition{TParams,TPage}::CreatePageHandler, SwMacroFeatureDefinition{TParams,TPage}::OnEditingStarted, SwMacroFeatureDefinition{TParams,TPage}::OnEditingCompleted, SwMacroFeatureDefinition{TParams,TPage}::OnFeatureInserted, SwMacroFeatureDefinition{TParams,TPage}::CreateDynamicControls
+* &#x26A0; IXGeometryMemoryBuilder::PreCreateArc is renamed to IXGeometryMemoryBuilder::PreCreateCircle. IXGeometryMemoryBuilder::PreCreateArc has been redefined to create arc rather than circle
 
 ## 0.7.4 - July 11, 2021
 
