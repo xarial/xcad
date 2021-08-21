@@ -99,7 +99,17 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature.Toolkit
 
             if (selObjects != null)
             {
-                selection = selObjects.Select(s => ((SwDocument)doc).CreateObjectFromDispatch<SwSelObject>(s)).ToArray();
+                selection = selObjects.Select(s =>
+                {
+                    if (s != null)
+                    {
+                        return ((SwDocument)doc).CreateObjectFromDispatch<SwSelObject>(s);
+                    }
+                    else 
+                    {
+                        return null;
+                    }
+                }).ToArray();
             }
             else
             {

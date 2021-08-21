@@ -41,6 +41,11 @@ namespace Xarial.XCad.SolidWorks
 
         private static ISwObject FromDispatch(object disp, ISwDocument doc, ISwApplication app, Func<object, ISwObject> defaultHandler)
         {
+            if (disp == null) 
+            {
+                throw new ArgumentException("Dispatch is null");
+            }
+
             if (disp is IEntity)
             {
                 var safeEnt = (disp as IEntity).GetSafeEntity();
