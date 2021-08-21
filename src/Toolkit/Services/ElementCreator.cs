@@ -13,6 +13,9 @@ using Xarial.XCad.Toolkit.Exceptions;
 
 namespace Xarial.XCad.Services
 {
+    /// <summary>
+    /// Manages cached properties of <see cref="Base.IXTransaction"/>
+    /// </summary>
     public class CachedProperties 
     {
         private readonly Dictionary<string, object> m_CachedProperties;

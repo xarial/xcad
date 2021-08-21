@@ -16,6 +16,9 @@ using Xarial.XCad.SwDocumentManager.Exceptions;
 
 namespace Xarial.XCad.SwDocumentManager
 {
+    /// <summary>
+    /// Provides a factory to create instance of the <see cref="ISwDmApplication"/>
+    /// </summary>
     public static class SwDmApplicationFactory
     {
         public static ISwDmApplication PreCreate() => new SwDmApplication(null, false);
