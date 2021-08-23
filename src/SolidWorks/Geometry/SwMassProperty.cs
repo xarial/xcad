@@ -10,6 +10,7 @@ using SolidWorks.Interop.swconst;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using Xarial.XCad.Base;
@@ -38,25 +39,46 @@ namespace Xarial.XCad.SolidWorks.Geometry
         public double SurfaceArea => MassProperty.SurfaceArea;
         public double Volume => MassProperty.Volume;
         public double Mass => MassProperty.Mass;
+
         public double Density => MassProperty.Density;
 
         public PrincipalAxesOfInertia PrincipalAxesOfInertia
         {
             get
             {
+                const int AXIS_X = 0;
+                const int AXIS_Y = 1;
+                const int AXIS_Z = 2;
+
                 if (m_Doc is ISwPart)
                 {
                     return new PrincipalAxesOfInertia(
-                        new Vector((double[])MassPropertyLegacy.PrincipleAxesOfInertia[0]),
-                        new Vector((double[])MassPropertyLegacy.PrincipleAxesOfInertia[1]),
-                        new Vector((double[])MassPropertyLegacy.PrincipleAxesOfInertia[2]));
+                        new Vector((double[])MassPropertyLegacy.PrincipleAxesOfInertia[AXIS_X]),
+                        new Vector((double[])MassPropertyLegacy.PrincipleAxesOfInertia[AXIS_Y]),
+                        new Vector((double[])MassPropertyLegacy.PrincipleAxesOfInertia[AXIS_Z]));
                 }
                 else 
                 {
-                    return new PrincipalAxesOfInertia(
-                        new Vector((double[])MassProperty.PrincipalAxesOfInertia[0]),
-                        new Vector((double[])MassProperty.PrincipalAxesOfInertia[1]),
-                        new Vector((double[])MassProperty.PrincipalAxesOfInertia[2]));
+                    var overrides = (IMassPropertyOverrideOptions)MassProperty.GetOverrideOptions();
+
+                    double[] x;
+                    double[] y;
+                    double[] z;
+
+                    if (overrides.OverrideMomentsOfInertia)//invalid values returned for the Axis if overriden
+                    {
+                        x = (double[])overrides.GetOverridePrincipalAxesOrientation(AXIS_X);
+                        y = (double[])overrides.GetOverridePrincipalAxesOrientation(AXIS_Y);
+                        z = (double[])overrides.GetOverridePrincipalAxesOrientation(AXIS_Z);
+                    }
+                    else
+                    {
+                        x = (double[])MassProperty.PrincipalAxesOfInertia[AXIS_X];
+                        y = (double[])MassProperty.PrincipalAxesOfInertia[AXIS_Y];
+                        z = (double[])MassProperty.PrincipalAxesOfInertia[AXIS_Z];
+                    }
+
+                    return new PrincipalAxesOfInertia(new Vector(x), new Vector(y), new Vector(z));
                 }
             }
         }
@@ -229,13 +251,13 @@ namespace Xarial.XCad.SolidWorks.Geometry
             return new Tuple<IMassProperty2, IMassProperty>(massPrps, partMassPrps);
         }
 
-        protected virtual void SetScope(IMassProperty2 massPrps)
+        protected void SetScope(IMassProperty2 massPrps)
         {
-            var scope = Scope;
+            var scope = GetSpecificSelectionScope();
 
             if (scope != null)
             {
-                massPrps.SelectedItems = scope.Select(x => ((ISwBody)x).Body).ToArray();
+                massPrps.SelectedItems = scope;
             }
             else 
             {
@@ -252,7 +274,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
         }
 
         //IMPORTANT: IMassProperty2 returns invalid results for PrincipalAxesOfInertia and PrincipalMomentOfInertia for parts
-        protected virtual void SetPartScope(ISwPart part, IMassProperty massPrps)
+        private void SetPartScope(ISwPart part, IMassProperty massPrps)
         {
             var scope = Scope;
 
@@ -275,6 +297,27 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
             //IMPORTANT: if this property is not called then the principal moment of intertia and principal axes will not be calculated correctly
             var testRefreshCall = massPrps.OverrideCenterOfMass;
+        }
+
+        protected virtual DispatchWrapper[] GetSpecificSelectionScope()
+        {
+            var scope = Scope;
+
+            if (scope != null)
+            {
+                var bodies = scope.OfType<IXSolidBody>().Select(x => new DispatchWrapper(((ISwBody)x).Body)).ToArray();
+
+                if (!bodies.Any()) 
+                {
+                    throw new MassPropertyNotAvailableException();
+                }
+
+                return bodies;
+            }
+            else
+            {
+                return null;
+            }
         }
 
         public void Commit(CancellationToken cancellationToken)
@@ -310,25 +353,33 @@ namespace Xarial.XCad.SolidWorks.Geometry
             }
         }
 
-        protected override void SetScope(IMassProperty2 massPrps)
+        protected override DispatchWrapper[] GetSpecificSelectionScope()
         {
             var scope = (this as IXAssemblyMassProperty).Scope;
 
             if (scope != null)
             {
-                massPrps.SelectedItems = scope.Select(x => ((ISwComponent)x).Component).ToArray();
+                var hasSolidBodies = false;
+
+                var comps = scope.Select(x =>
+                {
+                    if (!hasSolidBodies) 
+                    {
+                        hasSolidBodies = x.IterateBodies(!VisibleOnly).OfType<IXSolidBody>().Any();
+                    }
+                    return new DispatchWrapper(((ISwComponent)x).Component);
+                }).ToArray();
+
+                if (!hasSolidBodies)
+                {
+                    throw new MassPropertyNotAvailableException();
+                }
+
+                return comps;
             }
             else 
             {
-                if (massPrps.SelectedItems != null)
-                {
-                    m_Doc.Selections.Clear();
-                }
-            }
-
-            if (!massPrps.Recalculate())
-            {
-                throw new Exception($"Failed to recalculate mass properties");
+                return null;
             }
         }
     }

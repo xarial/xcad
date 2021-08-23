@@ -119,6 +119,22 @@ namespace Xarial.XCad.SolidWorks.Geometry
             }
         }
 
+        public bool IgnoreUserAssignedValues
+        {
+            get => m_Creator.CachedProperties.Get<bool>();
+            set
+            {
+                if (!IsCommitted)
+                {
+                    m_Creator.CachedProperties.Set(value);
+                }
+                else
+                {
+                    throw new CommittedElementPropertyChangeNotSupported();
+                }
+            }
+        }
+
         public bool IsCommitted => m_Creator.IsCreated;
 
         protected readonly ISwDocument3D m_Doc;
