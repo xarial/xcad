@@ -1172,6 +1172,54 @@ namespace SolidWorks.Tests.Integration
         }
 
         [Test]
+        public void MassPropertyAssignedPropsComponentRefCoordTest()
+        {
+            double mass1;
+            Point cog1;
+            PrincipalAxesOfInertia pai1;
+            PrincipalMomentOfInertia pmoi1;
+
+            using (var doc = OpenDataDocument(@"MassPrpsAssembly2\Assem1.SLDASM"))
+            {
+                var assm = (ISwAssembly)m_App.Documents.Active;
+
+                using (var massPrps = assm.PreCreateMassProperty())
+                {
+                    massPrps.UserUnits = true;
+                    massPrps.VisibleOnly = true;
+                    massPrps.RelativeTo = TransformConverter.ToTransformMatrix(
+                        assm.Model.Extension.GetCoordinateSystemTransformByName("Coordinate System1"));
+
+                    massPrps.Scope = new IXComponent[] { assm.Configurations.Active.Components["Overriden-1"] };
+
+                    massPrps.Commit();
+
+                    mass1 = massPrps.Mass;
+                    cog1 = massPrps.CenterOfGravity;
+                    pmoi1 = massPrps.PrincipalMomentOfInertia;
+                    pai1 = massPrps.PrincipalAxesOfInertia;
+                }
+            }
+
+            AssertCompareDoubles(mass1, 25.00000000);
+            AssertCompareDoubles(cog1.X, 117.06080141);
+            AssertCompareDoubles(cog1.Y, -319.12608668);
+            AssertCompareDoubles(cog1.Z, -55.54863587);
+            AssertCompareDoubles(pmoi1.Px, 5000.00000000);
+            AssertCompareDoubles(pmoi1.Py, 6000.00000000);
+            AssertCompareDoubles(pmoi1.Pz, 7000.00000000);
+            AssertCompareDoubles(pai1.Ix.X, 0.84143725);
+            AssertCompareDoubles(pai1.Ix.Y, 0.53912429);
+            AssertCompareDoubles(pai1.Ix.Z, 0.03644656);
+            AssertCompareDoubles(pai1.Iy.X, 0.48866011);
+            AssertCompareDoubles(pai1.Iy.Y, -0.73041626);
+            AssertCompareDoubles(pai1.Iy.Z, -0.47718275);
+            AssertCompareDoubles(pai1.Iz.X, -0.23063965);
+            AssertCompareDoubles(pai1.Iz.Y, 0.41932932);
+            AssertCompareDoubles(pai1.Iz.Z, -0.87804799);
+        }
+
+        [Test]
         public void MassPropertyAssignedPropsPartTest()
         {
             double mass1;

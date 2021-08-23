@@ -184,10 +184,25 @@ namespace Xarial.XCad.SolidWorks.Geometry
             {
                 if (VisibleOnly) 
                 {
-                    scope = GetAllVisibleBodies();
+                    scope = IterateSolidBodies(false).ToArray();
                 }
             }
 
+            if (scope == null)
+            {
+                if (!IterateSolidBodies(!VisibleOnly).Any()) 
+                {
+                    throw new MassPropertyNotAvailableException();
+                }
+            }
+            else 
+            {
+                if (!scope.Any())
+                {
+                    throw new MassPropertyNotAvailableException();
+                }
+            }
+            
             if (!massPrps.AddBodies(scope?.Select(x => ((ISwBody)x).Body).ToArray()))
             {
                 throw new Exception("Failed to add bodies to the scope");
@@ -197,11 +212,11 @@ namespace Xarial.XCad.SolidWorks.Geometry
             var testRefreshCall = massPrps.OverrideCenterOfMass;
         }
 
-        protected virtual IXBody[] GetAllVisibleBodies()
+        protected virtual IEnumerable<IXBody> IterateSolidBodies(bool includeHidden)
         {
             if (m_Doc is IXPart)
             {
-                return ((IXPart)m_Doc).Bodies.OfType<IXSolidBody>().Where(b => b.Visible).ToArray();
+                return ((IXPart)m_Doc).Bodies.OfType<IXSolidBody>().Where(b => includeHidden || b.Visible);
             }
             else 
             {
@@ -258,8 +273,8 @@ namespace Xarial.XCad.SolidWorks.Geometry
             }
         }
 
-        protected override IXBody[] GetAllVisibleBodies()
+        protected override IEnumerable<IXBody> IterateSolidBodies(bool includeHidden)
             => m_Assm.Configurations.Active.Components
-            .IterateBodies(!VisibleOnly).OfType<IXSolidBody>().ToArray();
+            .IterateBodies(includeHidden).OfType<IXSolidBody>();
     }
 }

@@ -734,7 +734,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                 {
                     if (docType == swDocumentTypes_e.swDocDRAWING)
                     {
-                        if (OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2020))
+                        if (OwnerApplication.IsVersionNewerOrEqual(SwVersion_e.Sw2020))
                         {
                             opts |= swOpenDocOptions_e.swOpenDocOptions_OpenDetailingMode;
                         }
@@ -776,7 +776,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                         error = "File not found at the specified path";
                         break;
                     case swFileLoadError_e.swFileRequiresRepairError:
-                        error = "File has non-critical custom property data corruption";
+                        error = "File has non-critical data corruption and requires repair";
                         break;
                     case swFileLoadError_e.swFileWithSameTitleAlreadyOpen:
                         error = "A document with the same name is already open";
