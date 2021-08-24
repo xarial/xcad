@@ -318,6 +318,11 @@ namespace Xarial.XCad.SolidWorks.Documents
                 state |= DocumentState_e.Rapid;
             }
 
+            if (IsLightweightMode)
+            {
+                state |= DocumentState_e.Lightweight;
+            }
+
             if (Model.IsOpenedReadOnly())
             {
                 state |= DocumentState_e.ReadOnly;
@@ -337,6 +342,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
 
         protected abstract bool IsRapidMode { get; }
+        protected abstract bool IsLightweightMode { get; }
 
         private readonly Lazy<ISwFeatureManager> m_FeaturesLazy;
         private readonly Lazy<ISwSelectionCollection> m_SelectionsLazy;
@@ -745,7 +751,38 @@ namespace Xarial.XCad.SolidWorks.Documents
                     }
                     else if (docType == swDocumentTypes_e.swDocASSEMBLY)
                     {
+                        opts |= swOpenDocOptions_e.swOpenDocOptions_ViewOnly;
+
+                        if (OwnerApplication.IsVersionNewerOrEqual(SwVersion_e.Sw2021, 4, 1))
+                        {
+                            const swOpenDocOptions_e swOpenDocOptions_LDR_EditAssembly = (swOpenDocOptions_e)2048;//TODO; replace with enum once the interops are updated
+
+                            opts |= swOpenDocOptions_LDR_EditAssembly;
+                        }
+                    }
+                    else if (docType == swDocumentTypes_e.swDocPART)
+                    {
+                        //There is no rapid option for SOLIDWORKS part document
+                    }
+                }
+
+                if (State.HasFlag(DocumentState_e.Lightweight))
+                {
+                    if (docType == swDocumentTypes_e.swDocDRAWING
+                        || docType == swDocumentTypes_e.swDocASSEMBLY)
+                    {
                         opts |= swOpenDocOptions_e.swOpenDocOptions_OverrideDefaultLoadLightweight | swOpenDocOptions_e.swOpenDocOptions_LoadLightweight;
+                    }
+                    else if (docType == swDocumentTypes_e.swDocPART)
+                    {
+                        //There is no rapid option for SOLIDWORKS part document
+                    }
+                }
+                else 
+                {
+                    if (docType == swDocumentTypes_e.swDocDRAWING || docType == swDocumentTypes_e.swDocASSEMBLY)
+                    {
+                        opts |= swOpenDocOptions_e.swOpenDocOptions_OverrideDefaultLoadLightweight;
                     }
                     else if (docType == swDocumentTypes_e.swDocPART)
                     {
@@ -1157,6 +1194,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
         }
 
+        protected override bool IsLightweightMode => throw new NotImplementedException();
         protected override bool IsRapidMode => throw new NotImplementedException();
 
         internal protected override swDocumentTypes_e? DocumentType 

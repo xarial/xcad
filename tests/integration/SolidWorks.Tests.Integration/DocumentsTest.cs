@@ -977,5 +977,41 @@ namespace SolidWorks.Tests.Integration
             Assert.IsTrue(r7);
             Assert.IsTrue(r8);
         }
+
+        [Test]
+        public void OpenAssemblyLightweight() 
+        {
+            int lightweightCompsCount1;
+            int lightweightCompsCount2;
+
+            var autoLoadLw = m_App.Sw.GetUserPreferenceToggle((int)swUserPreferenceToggle_e.swAutoLoadPartsLightweight);
+
+            try
+            {
+                m_App.Sw.SetUserPreferenceToggle((int)swUserPreferenceToggle_e.swAutoLoadPartsLightweight, true);
+
+                var assm1 = m_App.Documents.PreCreate<ISwAssembly>();
+                assm1.Path = GetFilePath(@"Assembly2\TopAssem.SLDASM");
+                assm1.State = DocumentState_e.Default;
+                assm1.Commit();
+                lightweightCompsCount1 = assm1.Assembly.GetLightWeightComponentCount();
+                assm1.Close();
+
+                var assm2 = m_App.Documents.PreCreate<ISwAssembly>();
+                m_App.Sw.SetUserPreferenceToggle((int)swUserPreferenceToggle_e.swAutoLoadPartsLightweight, false);
+                assm2.Path = GetFilePath(@"Assembly2\TopAssem.SLDASM");
+                assm2.State = DocumentState_e.Lightweight;
+                assm2.Commit();
+                lightweightCompsCount2 = assm2.Assembly.GetLightWeightComponentCount();
+                assm2.Close();
+            }
+            finally 
+            {
+                m_App.Sw.SetUserPreferenceToggle((int)swUserPreferenceToggle_e.swAutoLoadPartsLightweight, autoLoadLw);
+            }
+
+            Assert.AreEqual(0, lightweightCompsCount1);
+            Assert.AreNotEqual(0, lightweightCompsCount2);
+        }
     }
 }

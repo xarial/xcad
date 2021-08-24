@@ -43,6 +43,7 @@ using Xarial.XCad.UI.PropertyPage.Attributes;
 using Xarial.XCad.Extensions;
 using Xarial.XCad.Enums;
 using System.Drawing;
+using Xarial.XCad.Documents.Enums;
 
 namespace SwAddInExample
 {
@@ -311,8 +312,11 @@ namespace SwAddInExample
             switch (spec) 
             {
                 case Commands_e.OpenDoc:
-                    (Application.Documents.Active.Model as AssemblyDoc).FileDropPreNotify += SwAddInSample_FileDropPreNotify;
-                    var doc = Application.Documents.Open(@"C:\Users\artem\OneDrive\Attribution\SwModels\Annotation.sldprt");
+                    //(Application.Documents.Active.Model as AssemblyDoc).FileDropPreNotify += SwAddInSample_FileDropPreNotify;
+                    var doc = Application.Documents.PreCreate<IXDocument>();
+                    doc.Path = @"C:\Users\artem\OneDrive\xCAD\TestData\Assembly2\TopAssem.SLDASM";
+                    doc.State = DocumentState_e.Rapid;
+                    doc.Commit();
                     break;
 
                 case Commands_e.ShowPmPage:

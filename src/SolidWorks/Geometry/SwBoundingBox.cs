@@ -132,7 +132,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
                 Box = CalculateBoundingBox()
             };
 
-        protected Box3D CalculateBoundingBox() 
+        protected Box3D CalculateBoundingBox()
         {
             if (Precise)
             {
