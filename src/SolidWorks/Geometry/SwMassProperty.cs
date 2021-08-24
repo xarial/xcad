@@ -16,6 +16,7 @@ using System.Threading;
 using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Geometry;
+using Xarial.XCad.Geometry.Exceptions;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Services;
 using Xarial.XCad.SolidWorks.Documents;
@@ -33,6 +34,13 @@ namespace Xarial.XCad.SolidWorks.Geometry
     {
     }
 
+    internal enum PrincipalAxesOfInertia_e 
+    {
+        X = 0,
+        Y = 1,
+        Z = 2
+    }
+
     internal class SwMassProperty : ISwMassProperty
     {
         public Point CenterOfGravity => new Point((double[])MassProperty.CenterOfMass);
@@ -46,39 +54,35 @@ namespace Xarial.XCad.SolidWorks.Geometry
         {
             get
             {
-                const int AXIS_X = 0;
-                const int AXIS_Y = 1;
-                const int AXIS_Z = 2;
-
                 if (m_Doc is ISwPart)
                 {
                     return new PrincipalAxesOfInertia(
-                        new Vector((double[])MassPropertyLegacy.PrincipleAxesOfInertia[AXIS_X]),
-                        new Vector((double[])MassPropertyLegacy.PrincipleAxesOfInertia[AXIS_Y]),
-                        new Vector((double[])MassPropertyLegacy.PrincipleAxesOfInertia[AXIS_Z]));
+                        new Vector((double[])MassPropertyLegacy.PrincipleAxesOfInertia[(int)PrincipalAxesOfInertia_e.X]),
+                        new Vector((double[])MassPropertyLegacy.PrincipleAxesOfInertia[(int)PrincipalAxesOfInertia_e.Y]),
+                        new Vector((double[])MassPropertyLegacy.PrincipleAxesOfInertia[(int)PrincipalAxesOfInertia_e.Z]));
                 }
                 else 
                 {
                     var overrides = (IMassPropertyOverrideOptions)MassProperty.GetOverrideOptions();
 
-                    double[] x;
-                    double[] y;
-                    double[] z;
+                    double[] ix;
+                    double[] iy;
+                    double[] iz;
 
                     if (overrides.OverrideMomentsOfInertia)//invalid values returned for the Axis if overriden
                     {
-                        x = (double[])overrides.GetOverridePrincipalAxesOrientation(AXIS_X);
-                        y = (double[])overrides.GetOverridePrincipalAxesOrientation(AXIS_Y);
-                        z = (double[])overrides.GetOverridePrincipalAxesOrientation(AXIS_Z);
+                        ix = (double[])overrides.GetOverridePrincipalAxesOrientation((int)PrincipalAxesOfInertia_e.X);
+                        iy = (double[])overrides.GetOverridePrincipalAxesOrientation((int)PrincipalAxesOfInertia_e.Y);
+                        iz = (double[])overrides.GetOverridePrincipalAxesOrientation((int)PrincipalAxesOfInertia_e.Z);
                     }
                     else
                     {
-                        x = (double[])MassProperty.PrincipalAxesOfInertia[AXIS_X];
-                        y = (double[])MassProperty.PrincipalAxesOfInertia[AXIS_Y];
-                        z = (double[])MassProperty.PrincipalAxesOfInertia[AXIS_Z];
+                        ix = (double[])MassProperty.PrincipalAxesOfInertia[(int)PrincipalAxesOfInertia_e.X];
+                        iy = (double[])MassProperty.PrincipalAxesOfInertia[(int)PrincipalAxesOfInertia_e.Y];
+                        iz = (double[])MassProperty.PrincipalAxesOfInertia[(int)PrincipalAxesOfInertia_e.Z];
                     }
 
-                    return new PrincipalAxesOfInertia(new Vector(x), new Vector(y), new Vector(z));
+                    return new PrincipalAxesOfInertia(new Vector(ix), new Vector(iy), new Vector(iz));
                 }
             }
         }
@@ -208,7 +212,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
             if (massPrps == null) 
             {
-                throw new MassPropertyNotAvailableException();
+                throw new EvaluationFailedException();
             }
 
             IMassProperty partMassPrps = null;
@@ -309,7 +313,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
                 if (!bodies.Any()) 
                 {
-                    throw new MassPropertyNotAvailableException();
+                    throw new EvaluationFailedException();
                 }
 
                 return bodies;
@@ -372,7 +376,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
                 if (!hasSolidBodies)
                 {
-                    throw new MassPropertyNotAvailableException();
+                    throw new EvaluationFailedException();
                 }
 
                 return comps;

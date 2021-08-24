@@ -313,7 +313,7 @@ namespace SolidWorks.Tests.Integration
 
                 part.Model.ShowConfiguration2("Conf1");
 
-                part.Rebuild += (d) =>
+                part.Rebuilt += (d) =>
                 {
                     rebuildCount++;
                 };

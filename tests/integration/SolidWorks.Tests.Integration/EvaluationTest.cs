@@ -13,6 +13,7 @@ using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Geometry;
 using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.SolidWorks.Geometry.Exceptions;
+using Xarial.XCad.Geometry.Exceptions;
 
 namespace SolidWorks.Tests.Integration
 {
@@ -485,6 +486,83 @@ namespace SolidWorks.Tests.Integration
             AssertCompareDoubles(b1.CenterPoint.X, 0, 5);
             AssertCompareDoubles(b1.CenterPoint.Y, 0, 5);
             AssertCompareDoubles(b1.CenterPoint.Z, 0.0375, 5);
+        }
+
+        [Test]
+        public void BoundingBoxEmptyComponentsTest()
+        {
+            using (var doc = OpenDataDocument(@"MassPrpsAssembly2\Assem1.SLDASM"))
+            {
+                var assm = (ISwAssembly)m_App.Documents.Active;
+
+                using (var bbox = assm.PreCreateBoundingBox())
+                {
+                    bbox.UserUnits = false;
+                    bbox.VisibleOnly = false;
+                    bbox.Precise = true;
+
+                    bbox.Scope = new IXComponent[] { assm.Configurations.Active.Components["Empty-1"] };
+                    Assert.Throws<EvaluationFailedException>(() => bbox.Commit());
+                    Assert.DoesNotThrow(() =>
+                    {
+                        bbox.Scope = new IXComponent[] { assm.Configurations.Active.Components["Part1-1"] };
+                        bbox.Commit();
+                    });
+                    Assert.Throws<EvaluationFailedException>(() => bbox.Scope = new IXComponent[] { assm.Configurations.Active.Components["Sketch-1"] });
+                    Assert.DoesNotThrow(() => bbox.Scope = new IXComponent[] { assm.Configurations.Active.Components["Part1-1"] });
+                    Assert.DoesNotThrow(() => bbox.Scope = new IXComponent[] { assm.Configurations.Active.Components["Surface-1"] });
+                    Assert.DoesNotThrow(() => bbox.Scope = new IXComponent[] { assm.Configurations.Active.Components["SubAssem1-1"] });
+                    Assert.DoesNotThrow(() => bbox.Scope = new IXComponent[] { assm.Configurations.Active.Components["Part2-1"] });
+                }
+            }
+        }
+
+        [Test]
+        public void BoundingBoxEmptyAssemblyTest()
+        {
+            using (var doc = NewDocument(Interop.swconst.swDocumentTypes_e.swDocASSEMBLY))
+            {
+                var assm = (ISwAssembly)m_App.Documents.Active;
+
+                using (var bbox = assm.PreCreateBoundingBox())
+                {
+                    bbox.UserUnits = false;
+                    bbox.VisibleOnly = true;
+                    bbox.Precise = false;
+
+                    bbox.Scope = null;
+                    Assert.Throws<EvaluationFailedException>(() => bbox.Commit());
+                    Assert.Throws<EvaluationFailedException>(() =>
+                    {
+                        bbox.Scope = new IXComponent[0];
+                        bbox.Commit();
+                    });
+                }
+            }
+        }
+
+        [Test]
+        public void BoundingBoxEmptyPartTest()
+        {
+            using (var doc = OpenDataDocument(@"MassPrpsAssembly2\Sketch.sldprt"))
+            {
+                var part = (ISwPart)m_App.Documents.Active;
+
+                using (var bbox = part.PreCreateBoundingBox())
+                {
+                    bbox.UserUnits = false;
+                    bbox.VisibleOnly = false;
+                    bbox.Precise = true;
+
+                    bbox.Scope = null;
+                    Assert.Throws<EvaluationFailedException>(() => bbox.Commit());
+                    Assert.Throws<EvaluationFailedException>(() =>
+                    {
+                        bbox.Scope = new IXBody[0];
+                        bbox.Commit();
+                    });
+                }
+            }
         }
 
         [Test]
@@ -1276,15 +1354,15 @@ namespace SolidWorks.Tests.Integration
                     massPrps.VisibleOnly = false;
 
                     massPrps.Scope = new IXComponent[] { assm.Configurations.Active.Components["Empty-1"] };
-                    Assert.Throws<MassPropertyNotAvailableException>(() => massPrps.Commit());
+                    Assert.Throws<EvaluationFailedException>(() => massPrps.Commit());
                     Assert.DoesNotThrow(() =>
                     {
                         massPrps.Scope = new IXComponent[] { assm.Configurations.Active.Components["Part1-1"] };
                         massPrps.Commit();
                     });
-                    Assert.Throws<MassPropertyNotAvailableException>(() => massPrps.Scope = new IXComponent[] { assm.Configurations.Active.Components["Sketch-1"] });
+                    Assert.Throws<EvaluationFailedException>(() => massPrps.Scope = new IXComponent[] { assm.Configurations.Active.Components["Sketch-1"] });
                     Assert.DoesNotThrow(() => massPrps.Scope = new IXComponent[] { assm.Configurations.Active.Components["Part1-1"] });
-                    Assert.Throws<MassPropertyNotAvailableException>(() => massPrps.Scope = new IXComponent[] { assm.Configurations.Active.Components["Surface-1"] });
+                    Assert.Throws<EvaluationFailedException>(() => massPrps.Scope = new IXComponent[] { assm.Configurations.Active.Components["Surface-1"] });
                     Assert.DoesNotThrow(() => massPrps.Scope = new IXComponent[] { assm.Configurations.Active.Components["SubAssem1-1"] });
                     Assert.DoesNotThrow(() => massPrps.Scope = new IXComponent[] { assm.Configurations.Active.Components["Part2-1"] });
                 }
@@ -1304,8 +1382,8 @@ namespace SolidWorks.Tests.Integration
                     massPrps.VisibleOnly = false;
 
                     massPrps.Scope = null;
-                    Assert.Throws<MassPropertyNotAvailableException>(() => massPrps.Commit());
-                    Assert.Throws<MassPropertyNotAvailableException>(() =>
+                    Assert.Throws<EvaluationFailedException>(() => massPrps.Commit());
+                    Assert.Throws<EvaluationFailedException>(() =>
                     {
                         massPrps.Scope = new IXComponent[0];
                         massPrps.Commit();
@@ -1327,8 +1405,8 @@ namespace SolidWorks.Tests.Integration
                     massPrps.VisibleOnly = false;
 
                     massPrps.Scope = null;
-                    Assert.Throws<MassPropertyNotAvailableException>(() => massPrps.Commit());
-                    Assert.Throws<MassPropertyNotAvailableException>(() =>
+                    Assert.Throws<EvaluationFailedException>(() => massPrps.Commit());
+                    Assert.Throws<EvaluationFailedException>(() =>
                     {
                         massPrps.Scope = new IXBody[0];
                         massPrps.Commit();
@@ -1348,13 +1426,13 @@ namespace SolidWorks.Tests.Integration
                 {
                     massPrps.VisibleOnly = true;
 
-                    Assert.Throws<MassPropertyNotAvailableException>(() =>
+                    Assert.Throws<EvaluationFailedException>(() =>
                     {
                         massPrps.Scope = new IXComponent[] { assm.Configurations.Active.Components["SubAssem1-1"] };
                         massPrps.Commit();
                     });
 
-                    Assert.Throws<MassPropertyNotAvailableException>(() =>
+                    Assert.Throws<EvaluationFailedException>(() =>
                     {
                         massPrps.Scope = new IXComponent[] { assm.Configurations.Active.Components["Part2-1"] };
                         massPrps.Commit();
