@@ -10,11 +10,13 @@ using SolidWorks.Interop.swconst;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Geometry;
+using Xarial.XCad.Geometry.Exceptions;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Services;
 using Xarial.XCad.SolidWorks.Documents;
@@ -32,12 +34,20 @@ namespace Xarial.XCad.SolidWorks.Geometry
     {
     }
 
+    internal enum PrincipalAxesOfInertia_e 
+    {
+        X = 0,
+        Y = 1,
+        Z = 2
+    }
+
     internal class SwMassProperty : ISwMassProperty
     {
         public Point CenterOfGravity => new Point((double[])MassProperty.CenterOfMass);
         public double SurfaceArea => MassProperty.SurfaceArea;
         public double Volume => MassProperty.Volume;
         public double Mass => MassProperty.Mass;
+
         public double Density => MassProperty.Density;
 
         public PrincipalAxesOfInertia PrincipalAxesOfInertia
@@ -47,16 +57,32 @@ namespace Xarial.XCad.SolidWorks.Geometry
                 if (m_Doc is ISwPart)
                 {
                     return new PrincipalAxesOfInertia(
-                        new Vector((double[])MassPropertyLegacy.PrincipleAxesOfInertia[0]),
-                        new Vector((double[])MassPropertyLegacy.PrincipleAxesOfInertia[1]),
-                        new Vector((double[])MassPropertyLegacy.PrincipleAxesOfInertia[2]));
+                        new Vector((double[])MassPropertyLegacy.PrincipleAxesOfInertia[(int)PrincipalAxesOfInertia_e.X]),
+                        new Vector((double[])MassPropertyLegacy.PrincipleAxesOfInertia[(int)PrincipalAxesOfInertia_e.Y]),
+                        new Vector((double[])MassPropertyLegacy.PrincipleAxesOfInertia[(int)PrincipalAxesOfInertia_e.Z]));
                 }
                 else 
                 {
-                    return new PrincipalAxesOfInertia(
-                        new Vector((double[])MassProperty.PrincipalAxesOfInertia[0]),
-                        new Vector((double[])MassProperty.PrincipalAxesOfInertia[1]),
-                        new Vector((double[])MassProperty.PrincipalAxesOfInertia[2]));
+                    var overrides = (IMassPropertyOverrideOptions)MassProperty.GetOverrideOptions();
+
+                    double[] ix;
+                    double[] iy;
+                    double[] iz;
+
+                    if (overrides.OverrideMomentsOfInertia)//invalid values returned for the Axis if overriden
+                    {
+                        ix = (double[])overrides.GetOverridePrincipalAxesOrientation((int)PrincipalAxesOfInertia_e.X);
+                        iy = (double[])overrides.GetOverridePrincipalAxesOrientation((int)PrincipalAxesOfInertia_e.Y);
+                        iz = (double[])overrides.GetOverridePrincipalAxesOrientation((int)PrincipalAxesOfInertia_e.Z);
+                    }
+                    else
+                    {
+                        ix = (double[])MassProperty.PrincipalAxesOfInertia[(int)PrincipalAxesOfInertia_e.X];
+                        iy = (double[])MassProperty.PrincipalAxesOfInertia[(int)PrincipalAxesOfInertia_e.Y];
+                        iz = (double[])MassProperty.PrincipalAxesOfInertia[(int)PrincipalAxesOfInertia_e.Z];
+                    }
+
+                    return new PrincipalAxesOfInertia(new Vector(ix), new Vector(iy), new Vector(iz));
                 }
             }
         }
@@ -186,7 +212,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
             if (massPrps == null) 
             {
-                throw new MassPropertyNotAvailableException();
+                throw new EvaluationFailedException();
             }
 
             IMassProperty partMassPrps = null;
@@ -229,13 +255,13 @@ namespace Xarial.XCad.SolidWorks.Geometry
             return new Tuple<IMassProperty2, IMassProperty>(massPrps, partMassPrps);
         }
 
-        protected virtual void SetScope(IMassProperty2 massPrps)
+        protected void SetScope(IMassProperty2 massPrps)
         {
-            var scope = Scope;
+            var scope = GetSpecificSelectionScope();
 
             if (scope != null)
             {
-                massPrps.SelectedItems = scope.Select(x => ((ISwBody)x).Body).ToArray();
+                massPrps.SelectedItems = scope;
             }
             else 
             {
@@ -252,7 +278,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
         }
 
         //IMPORTANT: IMassProperty2 returns invalid results for PrincipalAxesOfInertia and PrincipalMomentOfInertia for parts
-        protected virtual void SetPartScope(ISwPart part, IMassProperty massPrps)
+        private void SetPartScope(ISwPart part, IMassProperty massPrps)
         {
             var scope = Scope;
 
@@ -275,6 +301,27 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
             //IMPORTANT: if this property is not called then the principal moment of intertia and principal axes will not be calculated correctly
             var testRefreshCall = massPrps.OverrideCenterOfMass;
+        }
+
+        protected virtual DispatchWrapper[] GetSpecificSelectionScope()
+        {
+            var scope = Scope;
+
+            if (scope != null)
+            {
+                var bodies = scope.OfType<IXSolidBody>().Select(x => new DispatchWrapper(((ISwBody)x).Body)).ToArray();
+
+                if (!bodies.Any()) 
+                {
+                    throw new EvaluationFailedException();
+                }
+
+                return bodies;
+            }
+            else
+            {
+                return null;
+            }
         }
 
         public void Commit(CancellationToken cancellationToken)
@@ -310,25 +357,33 @@ namespace Xarial.XCad.SolidWorks.Geometry
             }
         }
 
-        protected override void SetScope(IMassProperty2 massPrps)
+        protected override DispatchWrapper[] GetSpecificSelectionScope()
         {
             var scope = (this as IXAssemblyMassProperty).Scope;
 
             if (scope != null)
             {
-                massPrps.SelectedItems = scope.Select(x => ((ISwComponent)x).Component).ToArray();
+                var hasSolidBodies = false;
+
+                var comps = scope.Select(x =>
+                {
+                    if (!hasSolidBodies) 
+                    {
+                        hasSolidBodies = x.IterateBodies(!VisibleOnly).OfType<IXSolidBody>().Any();
+                    }
+                    return new DispatchWrapper(((ISwComponent)x).Component);
+                }).ToArray();
+
+                if (!hasSolidBodies)
+                {
+                    throw new EvaluationFailedException();
+                }
+
+                return comps;
             }
             else 
             {
-                if (massPrps.SelectedItems != null)
-                {
-                    m_Doc.Selections.Clear();
-                }
-            }
-
-            if (!massPrps.Recalculate())
-            {
-                throw new Exception($"Failed to recalculate mass properties");
+                return null;
             }
         }
     }

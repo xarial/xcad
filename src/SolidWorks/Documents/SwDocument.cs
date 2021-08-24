@@ -82,7 +82,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public event DocumentCloseDelegate Closing;
         
-        public event DocumentRebuildDelegate Rebuild 
+        public event DocumentRebuildDelegate Rebuilt 
         {
             add 
             {
@@ -392,6 +392,8 @@ namespace Xarial.XCad.SolidWorks.Documents
             m_DimensionsLazy = new Lazy<ISwDimensionsCollection>(() => new SwFeatureManagerDimensionsCollection(this.Features));
             m_PropertiesLazy = new Lazy<ISwCustomPropertiesCollection>(() => new SwFileCustomPropertiesCollection(this, app));
 
+            Units = new SwUnits(this);
+
             m_StreamReadAvailableHandler = new StreamReadAvailableEventsHandler(this, app);
             m_StreamWriteAvailableHandler = new StreamWriteAvailableEventsHandler(this, app);
             m_StorageReadAvailableHandler = new StorageReadAvailableEventsHandler(this, app);
@@ -581,6 +583,8 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public int UpdateStamp => Model.GetUpdateStamp();
 
+        public IXUnits Units { get; }
+
         private SwVersion_e GetVersion(string[] versHistory)
         {
             if (versHistory?.Any() == true)
@@ -734,7 +738,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                 {
                     if (docType == swDocumentTypes_e.swDocDRAWING)
                     {
-                        if (OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2020))
+                        if (OwnerApplication.IsVersionNewerOrEqual(SwVersion_e.Sw2020))
                         {
                             opts |= swOpenDocOptions_e.swOpenDocOptions_OpenDetailingMode;
                         }
@@ -776,7 +780,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                         error = "File not found at the specified path";
                         break;
                     case swFileLoadError_e.swFileRequiresRepairError:
-                        error = "File has non-critical custom property data corruption";
+                        error = "File has non-critical data corruption and requires repair";
                         break;
                     case swFileLoadError_e.swFileWithSameTitleAlreadyOpen:
                         error = "A document with the same name is already open";
@@ -1137,7 +1141,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         public TObj CreateObjectFromDispatch<TObj>(object disp) where TObj : ISwObject
             => SwObjectFactory.FromDispatch<TObj>(disp, this, OwnerApplication);
 
-        public void Regenerate() 
+        public void Rebuild() 
         {
             if (Model.ForceRebuild3(false)) 
             {

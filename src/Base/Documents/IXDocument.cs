@@ -51,7 +51,7 @@ namespace Xarial.XCad.Documents
         /// <summary>
         /// Fired when document is rebuilt
         /// </summary>
-        event DocumentRebuildDelegate Rebuild;
+        event DocumentRebuildDelegate Rebuilt;
 
         /// <summary>
         /// Fired when documetn is saving
@@ -62,6 +62,11 @@ namespace Xarial.XCad.Documents
         /// Fired when document is closing
         /// </summary>
         event DocumentCloseDelegate Closing;
+
+        /// <summary>
+        /// Units assigned in this document
+        /// </summary>
+        IXUnits Units { get; }
 
         /// <summary>
         /// Changes the title of this document
@@ -153,7 +158,7 @@ namespace Xarial.XCad.Documents
         /// <summary>
         /// Regenerates this document
         /// </summary>
-        void Regenerate();
+        void Rebuild();
 
         /// <summary>
         /// Returns the time stamp of the change of the current model

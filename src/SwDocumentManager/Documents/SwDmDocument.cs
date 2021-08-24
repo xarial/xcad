@@ -83,9 +83,10 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         public IXFeatureRepository Features => throw new NotImplementedException();
         public IXSelectionRepository Selections => throw new NotSupportedException();
         public IXDimensionRepository Dimensions => throw new NotSupportedException();
-        public event DocumentRebuildDelegate Rebuild;
+        public event DocumentRebuildDelegate Rebuilt;
         public TObj DeserializeObject<TObj>(Stream stream) where TObj : IXObject => throw new NotSupportedException();
-        public void Regenerate() => throw new NotSupportedException();
+        public void Rebuild() => throw new NotSupportedException();
+        public IXUnits Units => throw new NotSupportedException();
 
         #endregion
 
@@ -287,9 +288,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         public override object Dispatch => Document;
 
         public int UpdateStamp => Document.GetLastUpdateStamp();
-
-        public bool IsLoadingCompleted => true;
-
+        
         public override bool Equals(IXObject other)
         {
             if (!object.ReferenceEquals(this, other)

@@ -40,8 +40,6 @@ namespace Xarial.XCad.Base
         /// </summary>
         /// <param name="transaction">Transaction to commit</param>
         public static void Commit(this IXTransaction transaction) 
-        {
-            transaction.Commit(CancellationToken.None);
-        }
+            => transaction.Commit(CancellationToken.None);
     }
 }

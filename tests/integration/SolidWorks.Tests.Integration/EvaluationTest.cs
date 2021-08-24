@@ -12,6 +12,8 @@ using Xarial.XCad.SolidWorks;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Geometry;
 using Xarial.XCad.SolidWorks.Utils;
+using Xarial.XCad.SolidWorks.Geometry.Exceptions;
+using Xarial.XCad.Geometry.Exceptions;
 
 namespace SolidWorks.Tests.Integration
 {
@@ -484,6 +486,83 @@ namespace SolidWorks.Tests.Integration
             AssertCompareDoubles(b1.CenterPoint.X, 0, 5);
             AssertCompareDoubles(b1.CenterPoint.Y, 0, 5);
             AssertCompareDoubles(b1.CenterPoint.Z, 0.0375, 5);
+        }
+
+        [Test]
+        public void BoundingBoxEmptyComponentsTest()
+        {
+            using (var doc = OpenDataDocument(@"MassPrpsAssembly2\Assem1.SLDASM"))
+            {
+                var assm = (ISwAssembly)m_App.Documents.Active;
+
+                using (var bbox = assm.PreCreateBoundingBox())
+                {
+                    bbox.UserUnits = false;
+                    bbox.VisibleOnly = false;
+                    bbox.Precise = true;
+
+                    bbox.Scope = new IXComponent[] { assm.Configurations.Active.Components["Empty-1"] };
+                    Assert.Throws<EvaluationFailedException>(() => bbox.Commit());
+                    Assert.DoesNotThrow(() =>
+                    {
+                        bbox.Scope = new IXComponent[] { assm.Configurations.Active.Components["Part1-1"] };
+                        bbox.Commit();
+                    });
+                    Assert.Throws<EvaluationFailedException>(() => bbox.Scope = new IXComponent[] { assm.Configurations.Active.Components["Sketch-1"] });
+                    Assert.DoesNotThrow(() => bbox.Scope = new IXComponent[] { assm.Configurations.Active.Components["Part1-1"] });
+                    Assert.DoesNotThrow(() => bbox.Scope = new IXComponent[] { assm.Configurations.Active.Components["Surface-1"] });
+                    Assert.DoesNotThrow(() => bbox.Scope = new IXComponent[] { assm.Configurations.Active.Components["SubAssem1-1"] });
+                    Assert.DoesNotThrow(() => bbox.Scope = new IXComponent[] { assm.Configurations.Active.Components["Part2-1"] });
+                }
+            }
+        }
+
+        [Test]
+        public void BoundingBoxEmptyAssemblyTest()
+        {
+            using (var doc = NewDocument(Interop.swconst.swDocumentTypes_e.swDocASSEMBLY))
+            {
+                var assm = (ISwAssembly)m_App.Documents.Active;
+
+                using (var bbox = assm.PreCreateBoundingBox())
+                {
+                    bbox.UserUnits = false;
+                    bbox.VisibleOnly = true;
+                    bbox.Precise = false;
+
+                    bbox.Scope = null;
+                    Assert.Throws<EvaluationFailedException>(() => bbox.Commit());
+                    Assert.Throws<EvaluationFailedException>(() =>
+                    {
+                        bbox.Scope = new IXComponent[0];
+                        bbox.Commit();
+                    });
+                }
+            }
+        }
+
+        [Test]
+        public void BoundingBoxEmptyPartTest()
+        {
+            using (var doc = OpenDataDocument(@"MassPrpsAssembly2\Sketch.sldprt"))
+            {
+                var part = (ISwPart)m_App.Documents.Active;
+
+                using (var bbox = part.PreCreateBoundingBox())
+                {
+                    bbox.UserUnits = false;
+                    bbox.VisibleOnly = false;
+                    bbox.Precise = true;
+
+                    bbox.Scope = null;
+                    Assert.Throws<EvaluationFailedException>(() => bbox.Commit());
+                    Assert.Throws<EvaluationFailedException>(() =>
+                    {
+                        bbox.Scope = new IXBody[0];
+                        bbox.Commit();
+                    });
+                }
+            }
         }
 
         [Test]
@@ -1123,6 +1202,243 @@ namespace SolidWorks.Tests.Integration
             AssertCompareDoubles(pmoi4.Px, 0.03690704);
             AssertCompareDoubles(pmoi4.Py, 0.74230130);
             AssertCompareDoubles(pmoi4.Pz, 0.76510851);
+        }
+
+        [Test]
+        public void MassPropertyAssignedPropsComponentTest()
+        {
+            double mass1;
+            Point cog1;
+            PrincipalAxesOfInertia pai1;
+            PrincipalMomentOfInertia pmoi1;
+
+            using (var doc = OpenDataDocument(@"MassPrpsAssembly2\Assem1.SLDASM"))
+            {
+                var assm = (ISwAssembly)m_App.Documents.Active;
+
+                using (var massPrps = assm.PreCreateMassProperty())
+                {
+                    massPrps.UserUnits = false;
+                    massPrps.VisibleOnly = false;
+                    massPrps.Scope = new IXComponent[] { assm.Configurations.Active.Components["Overriden-1"] };
+
+                    massPrps.Commit();
+
+                    mass1 = massPrps.Mass;
+                    cog1 = massPrps.CenterOfGravity;
+                    pmoi1 = massPrps.PrincipalMomentOfInertia;
+                    pai1 = massPrps.PrincipalAxesOfInertia;
+                }
+            }
+
+            AssertCompareDoubles(mass1, 0.02500000);
+            AssertCompareDoubles(cog1.X, 0.03495069);
+            AssertCompareDoubles(cog1.Y, -0.09596771);
+            AssertCompareDoubles(cog1.Z, 0.10021386);
+            AssertCompareDoubles(pmoi1.Px, 0.00000500);
+            AssertCompareDoubles(pmoi1.Py, 0.00000600);
+            AssertCompareDoubles(pmoi1.Pz, 0.00000700);
+            AssertCompareDoubles(pai1.Ix.X, 0.57735027);
+            AssertCompareDoubles(pai1.Ix.Y, 0.57735027);
+            AssertCompareDoubles(pai1.Ix.Z, 0.57735027);
+            AssertCompareDoubles(pai1.Iy.X, 0.70710678);
+            AssertCompareDoubles(pai1.Iy.Y, -0.70710678);
+            AssertCompareDoubles(pai1.Iy.Z, 0.00000000);
+            AssertCompareDoubles(pai1.Iz.X, 0.40824829);
+            AssertCompareDoubles(pai1.Iz.Y, 0.40824829);
+            AssertCompareDoubles(pai1.Iz.Z, -0.81649658);
+        }
+
+        [Test]
+        public void MassPropertyAssignedPropsComponentRefCoordTest()
+        {
+            double mass1;
+            Point cog1;
+            PrincipalAxesOfInertia pai1;
+            PrincipalMomentOfInertia pmoi1;
+
+            using (var doc = OpenDataDocument(@"MassPrpsAssembly2\Assem1.SLDASM"))
+            {
+                var assm = (ISwAssembly)m_App.Documents.Active;
+
+                using (var massPrps = assm.PreCreateMassProperty())
+                {
+                    massPrps.UserUnits = true;
+                    massPrps.VisibleOnly = true;
+                    massPrps.RelativeTo = TransformConverter.ToTransformMatrix(
+                        assm.Model.Extension.GetCoordinateSystemTransformByName("Coordinate System1"));
+
+                    massPrps.Scope = new IXComponent[] { assm.Configurations.Active.Components["Overriden-1"] };
+
+                    massPrps.Commit();
+
+                    mass1 = massPrps.Mass;
+                    cog1 = massPrps.CenterOfGravity;
+                    pmoi1 = massPrps.PrincipalMomentOfInertia;
+                    pai1 = massPrps.PrincipalAxesOfInertia;
+                }
+            }
+
+            AssertCompareDoubles(mass1, 25.00000000);
+            AssertCompareDoubles(cog1.X, 117.06080141);
+            AssertCompareDoubles(cog1.Y, -319.12608668);
+            AssertCompareDoubles(cog1.Z, -55.54863587);
+            AssertCompareDoubles(pmoi1.Px, 5000.00000000);
+            AssertCompareDoubles(pmoi1.Py, 6000.00000000);
+            AssertCompareDoubles(pmoi1.Pz, 7000.00000000);
+            AssertCompareDoubles(pai1.Ix.X, 0.84143725);
+            AssertCompareDoubles(pai1.Ix.Y, 0.53912429);
+            AssertCompareDoubles(pai1.Ix.Z, 0.03644656);
+            AssertCompareDoubles(pai1.Iy.X, 0.48866011);
+            AssertCompareDoubles(pai1.Iy.Y, -0.73041626);
+            AssertCompareDoubles(pai1.Iy.Z, -0.47718275);
+            AssertCompareDoubles(pai1.Iz.X, -0.23063965);
+            AssertCompareDoubles(pai1.Iz.Y, 0.41932932);
+            AssertCompareDoubles(pai1.Iz.Z, -0.87804799);
+        }
+
+        [Test]
+        public void MassPropertyAssignedPropsPartTest()
+        {
+            double mass1;
+            Point cog1;
+            PrincipalAxesOfInertia pai1;
+            PrincipalMomentOfInertia pmoi1;
+
+            using (var doc = OpenDataDocument(@"MassPrpsAssembly2\Overriden.SLDPRT"))
+            {
+                var part = (ISwPart)m_App.Documents.Active;
+
+                using (var massPrps = part.PreCreateMassProperty())
+                {
+                    massPrps.UserUnits = false;
+                    massPrps.VisibleOnly = false;
+
+                    massPrps.Commit();
+
+                    mass1 = massPrps.Mass;
+                    cog1 = massPrps.CenterOfGravity;
+                    pmoi1 = massPrps.PrincipalMomentOfInertia;
+                    pai1 = massPrps.PrincipalAxesOfInertia;
+                }
+            }
+
+            AssertCompareDoubles(mass1, 0.02500000);
+            AssertCompareDoubles(cog1.X, -0.01);
+            AssertCompareDoubles(cog1.Y, -0.02);
+            AssertCompareDoubles(cog1.Z, -0.03);
+            AssertCompareDoubles(pmoi1.Px, 0.00000500);
+            AssertCompareDoubles(pmoi1.Py, 0.00000600);
+            AssertCompareDoubles(pmoi1.Pz, 0.00000700);
+            AssertCompareDoubles(pai1.Ix.X, 0.57735027);
+            AssertCompareDoubles(pai1.Ix.Y, 0.57735027);
+            AssertCompareDoubles(pai1.Ix.Z, 0.57735027);
+            AssertCompareDoubles(pai1.Iy.X, 0.70710678);
+            AssertCompareDoubles(pai1.Iy.Y, -0.70710678);
+            AssertCompareDoubles(pai1.Iy.Z, 0.00000000);
+            AssertCompareDoubles(pai1.Iz.X, 0.40824829);
+            AssertCompareDoubles(pai1.Iz.Y, 0.40824829);
+            AssertCompareDoubles(pai1.Iz.Z, -0.81649658);
+        }
+
+        [Test]
+        public void MassPropertyEmptyComponentsTest()
+        {
+            using (var doc = OpenDataDocument(@"MassPrpsAssembly2\Assem1.SLDASM"))
+            {
+                var assm = (ISwAssembly)m_App.Documents.Active;
+
+                using (var massPrps = assm.PreCreateMassProperty())
+                {
+                    massPrps.UserUnits = false;
+                    massPrps.VisibleOnly = false;
+
+                    massPrps.Scope = new IXComponent[] { assm.Configurations.Active.Components["Empty-1"] };
+                    Assert.Throws<EvaluationFailedException>(() => massPrps.Commit());
+                    Assert.DoesNotThrow(() =>
+                    {
+                        massPrps.Scope = new IXComponent[] { assm.Configurations.Active.Components["Part1-1"] };
+                        massPrps.Commit();
+                    });
+                    Assert.Throws<EvaluationFailedException>(() => massPrps.Scope = new IXComponent[] { assm.Configurations.Active.Components["Sketch-1"] });
+                    Assert.DoesNotThrow(() => massPrps.Scope = new IXComponent[] { assm.Configurations.Active.Components["Part1-1"] });
+                    Assert.Throws<EvaluationFailedException>(() => massPrps.Scope = new IXComponent[] { assm.Configurations.Active.Components["Surface-1"] });
+                    Assert.DoesNotThrow(() => massPrps.Scope = new IXComponent[] { assm.Configurations.Active.Components["SubAssem1-1"] });
+                    Assert.DoesNotThrow(() => massPrps.Scope = new IXComponent[] { assm.Configurations.Active.Components["Part2-1"] });
+                }
+            }
+        }
+
+        [Test]
+        public void MassPropertyEmptyAssemblyTest()
+        {
+            using (var doc = NewDocument(Interop.swconst.swDocumentTypes_e.swDocASSEMBLY))
+            {
+                var assm = (ISwAssembly)m_App.Documents.Active;
+
+                using (var massPrps = assm.PreCreateMassProperty())
+                {
+                    massPrps.UserUnits = false;
+                    massPrps.VisibleOnly = false;
+
+                    massPrps.Scope = null;
+                    Assert.Throws<EvaluationFailedException>(() => massPrps.Commit());
+                    Assert.Throws<EvaluationFailedException>(() =>
+                    {
+                        massPrps.Scope = new IXComponent[0];
+                        massPrps.Commit();
+                    });
+                }
+            }
+        }
+
+        [Test]
+        public void MassPropertyEmptyPartTest()
+        {
+            using (var doc = OpenDataDocument(@"MassPrpsAssembly2\Surface.sldprt"))
+            {
+                var part = (ISwPart)m_App.Documents.Active;
+
+                using (var massPrps = part.PreCreateMassProperty())
+                {
+                    massPrps.UserUnits = false;
+                    massPrps.VisibleOnly = false;
+
+                    massPrps.Scope = null;
+                    Assert.Throws<EvaluationFailedException>(() => massPrps.Commit());
+                    Assert.Throws<EvaluationFailedException>(() =>
+                    {
+                        massPrps.Scope = new IXBody[0];
+                        massPrps.Commit();
+                    });
+                }
+            }
+        }
+
+        [Test]
+        public void MassPropertyNoVisibleBodiesTest()
+        {
+            using (var doc = OpenDataDocument(@"MassPrpsAssembly2\Assem1.SLDASM"))
+            {
+                var assm = (ISwAssembly)m_App.Documents.Active;
+
+                using (var massPrps = assm.PreCreateMassProperty())
+                {
+                    massPrps.VisibleOnly = true;
+
+                    Assert.Throws<EvaluationFailedException>(() =>
+                    {
+                        massPrps.Scope = new IXComponent[] { assm.Configurations.Active.Components["SubAssem1-1"] };
+                        massPrps.Commit();
+                    });
+
+                    Assert.Throws<EvaluationFailedException>(() =>
+                    {
+                        massPrps.Scope = new IXComponent[] { assm.Configurations.Active.Components["Part2-1"] };
+                        massPrps.Commit();
+                    });
+                }
+            }
         }
     }
 }

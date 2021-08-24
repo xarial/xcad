@@ -15,9 +15,11 @@ using System.Threading;
 using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Geometry;
+using Xarial.XCad.Geometry.Exceptions;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Services;
 using Xarial.XCad.SolidWorks.Documents;
+using Xarial.XCad.SolidWorks.Geometry.Exceptions;
 using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.Toolkit.Exceptions;
 
@@ -33,26 +35,29 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
     internal abstract class SwBoundingBox : ISwBoundingBox
     {
+        internal class EditableBox3D 
+        {
+            internal Box3D Box { get; set; }
+        }
+
         private readonly IMathUtility m_MathUtils;
 
-        protected readonly ElementCreator<Box3D> m_Creator;
+        protected readonly ElementCreator<EditableBox3D> m_Creator;
 
         private readonly ISwDocument m_Doc;
-        private readonly ISwApplication m_App;
 
         internal SwBoundingBox(ISwDocument doc, ISwApplication app) 
         {
             m_Doc = doc;
 
-            m_App = app;
             m_MathUtils = app.Sw.IGetMathUtility();
 
-            m_Creator = new ElementCreator<Box3D>(CreateBox, null, false);
+            m_Creator = new ElementCreator<EditableBox3D>(CreateBox, null, false);
 
             UserUnits = false;
         }
 
-        public Box3D Box => m_Creator.Element;
+        public Box3D Box => m_Creator.Element.Box;
 
         public TransformMatrix RelativeTo 
         {
@@ -107,13 +112,11 @@ namespace Xarial.XCad.SolidWorks.Geometry
             get => m_Creator.CachedProperties.Get<IXBody[]>();
             set
             {
-                if (!IsCommitted)
+                m_Creator.CachedProperties.Set(value);
+
+                if (IsCommitted)
                 {
-                    m_Creator.CachedProperties.Set(value);
-                }
-                else
-                {
-                    throw new CommittedElementPropertyChangeNotSupported();
+                    m_Creator.Element.Box = CalculateBoundingBox();
                 }
             }
         }
@@ -123,7 +126,13 @@ namespace Xarial.XCad.SolidWorks.Geometry
         public void Commit(CancellationToken cancellationToken)
             => m_Creator.Create(cancellationToken);
 
-        protected Box3D CreateBox(CancellationToken cancellationToken)
+        private EditableBox3D CreateBox(CancellationToken cancellationToken)
+            => new EditableBox3D()
+            {
+                Box = CalculateBoundingBox()
+            };
+
+        protected Box3D CalculateBoundingBox() 
         {
             if (Precise)
             {
@@ -135,16 +144,21 @@ namespace Xarial.XCad.SolidWorks.Geometry
                 {
                     bodies = scope;
                 }
-                else 
+                else
                 {
                     bodies = GetAllBodies();
                 }
 
+                if (bodies?.Any() != true)
+                {
+                    throw new EvaluationFailedException();
+                }
+
                 return ComputePreciseBoundingBox(bodies);
             }
-            else 
+            else
             {
-                if (RelativeTo != null) 
+                if (RelativeTo != null)
                 {
                     throw new NotSupportedException("RelativeTo can only be calculated when precise bounding box is used");
                 }
@@ -158,6 +172,11 @@ namespace Xarial.XCad.SolidWorks.Geometry
                 else
                 {
                     bbox = ComputeFullApproximateBoundingBox();
+                }
+
+                if (bbox.All(x => Math.Abs(x) < double.Epsilon))
+                {
+                    throw new EvaluationFailedException();
                 }
 
                 return CreateBoxFromData(bbox[0], bbox[1], bbox[2], bbox[3], bbox[4], bbox[5]);
@@ -188,6 +207,11 @@ namespace Xarial.XCad.SolidWorks.Geometry
         protected virtual double[] ComputeScopedApproximateBoundingBox()
         {
             var bodies = Scope.Select(b => GetSwBody(b, out _)).ToArray();
+
+            if (!bodies.Any()) 
+            {
+                throw new EvaluationFailedException();
+            }
 
             var minX = double.MaxValue;
             var minY = double.MaxValue;
@@ -438,13 +462,11 @@ namespace Xarial.XCad.SolidWorks.Geometry
             get => m_Creator.CachedProperties.Get<IXComponent[]>(nameof(Scope) + "_Components");
             set
             {
-                if (!IsCommitted)
+                m_Creator.CachedProperties.Set(value, nameof(Scope) + "_Components");
+
+                if (IsCommitted)
                 {
-                    m_Creator.CachedProperties.Set(value, nameof(Scope) + "_Components");
-                }
-                else
-                {
-                    throw new CommittedElementPropertyChangeNotSupported();
+                    m_Creator.Element.Box = CalculateBoundingBox();
                 }
             }
         }
@@ -460,6 +482,11 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
             if (comps != null)
             {
+                if (!comps.Any()) 
+                {
+                    throw new EvaluationFailedException();
+                }
+
                 var minX = double.MaxValue;
                 var minY = double.MaxValue;
                 var minZ = double.MaxValue;
