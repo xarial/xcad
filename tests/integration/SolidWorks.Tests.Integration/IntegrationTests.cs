@@ -170,7 +170,7 @@ namespace SolidWorks.Tests.Integration
         }
 
         protected void AssertCompareDoubles(double actual, double expected, int digits = 8)
-            => Assert.That(Math.Round(expected, digits), Is.EqualTo(Math.Round(actual, digits)).Within(0.000001).Percent);
+            => Assert.That(Math.Round(actual, digits), Is.EqualTo(Math.Round(expected, digits)).Within(0.000001).Percent);
 
         [TearDown]
         public void TearDown() 

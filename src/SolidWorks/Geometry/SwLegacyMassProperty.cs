@@ -28,25 +28,87 @@ namespace Xarial.XCad.SolidWorks.Geometry
 {
     internal class SwLegacyMassProperty : ISwMassProperty
     {
-        public virtual Point CenterOfGravity => new Point((double[])m_Creator.Element.CenterOfMass);
-        public double SurfaceArea => m_Creator.Element.SurfaceArea;
-        public double Volume => m_Creator.Element.Volume;
-        public virtual double Mass => m_Creator.Element.Mass;
-        public double Density => m_Creator.Element.Density;
+        public virtual Point CenterOfGravity
+        {
+            get
+            {
+                ThrowIfScopeException();
+                //NOTE: must be called otherwise calling other propertis may clear the overriden value
+                var testCall = m_Creator.Element.OverrideCenterOfMass;
+                return new Point((double[])m_Creator.Element.CenterOfMass);
+            }
+        }
+
+        public double SurfaceArea
+        {
+            get
+            {
+                ThrowIfScopeException();
+                return m_Creator.Element.SurfaceArea;
+            }
+        }
+
+        public double Volume
+        {
+            get
+            {
+                ThrowIfScopeException();
+                return m_Creator.Element.Volume;
+            }
+        }
+
+        public virtual double Mass
+        {
+            get
+            {
+                ThrowIfScopeException();
+
+                //NOTE: must be called otherwise calling other propertis may clear the overriden value
+                var testCall = m_Creator.Element.OverrideCenterOfMass;
+                return m_Creator.Element.Mass;
+            }
+        }
+
+        public double Density
+        {
+            get
+            {
+                ThrowIfScopeException();
+                return m_Creator.Element.Density;
+            }
+        }
 
         public virtual PrincipalAxesOfInertia PrincipalAxesOfInertia
-            => new PrincipalAxesOfInertia(
-                new Vector((double[])m_Creator.Element.PrincipleAxesOfInertia[(int)PrincipalAxesOfInertia_e.X]),
-                new Vector((double[])m_Creator.Element.PrincipleAxesOfInertia[(int)PrincipalAxesOfInertia_e.Y]),
-                new Vector((double[])m_Creator.Element.PrincipleAxesOfInertia[(int)PrincipalAxesOfInertia_e.Z]));
+        {
+            get
+            {
+                ThrowIfScopeException();
+                //NOTE: must be called otherwise calling other propertis may clear the overriden value
+                var testCall = m_Creator.Element.OverrideMomentsOfInertia;
+                return new PrincipalAxesOfInertia(
+                    new Vector((double[])m_Creator.Element.PrincipleAxesOfInertia[(int)PrincipalAxesOfInertia_e.X]),
+                    new Vector((double[])m_Creator.Element.PrincipleAxesOfInertia[(int)PrincipalAxesOfInertia_e.Y]),
+                    new Vector((double[])m_Creator.Element.PrincipleAxesOfInertia[(int)PrincipalAxesOfInertia_e.Z]));
+            }
+        }
 
         public virtual PrincipalMomentOfInertia PrincipalMomentOfInertia
-            => new PrincipalMomentOfInertia((double[])m_Creator.Element.PrincipleMomentsOfInertia);
+        {
+            get 
+            {
+                ThrowIfScopeException();
+                //NOTE: must be called otherwise calling other propertis may clear the overriden value
+                var testCall = m_Creator.Element.OverrideMomentsOfInertia;
+                return new PrincipalMomentOfInertia((double[])m_Creator.Element.PrincipleMomentsOfInertia);
+            }
+        }
 
         public MomentOfInertia MomentOfInertia
         {
             get
             {
+                ThrowIfScopeException();
+                
                 var moi = (double[])m_Creator.Element.GetMomentOfInertia(RelativeTo != null
                     ? (int)swMassPropertyMoment_e.swMassPropertyMomentAboutCoordSys
                     : (int)swMassPropertyMoment_e.swMassPropertyMomentAboutCenterOfMass);
@@ -83,7 +145,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
                 if (IsCommitted)
                 {
-                    SetScope(m_Creator.Element);
+                    UpdateScope(m_Creator.Element);
                 }
             }
         }
@@ -143,6 +205,8 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         protected readonly ElementCreator<IMassProperty> m_Creator;
 
+        private Exception m_CurrentScopeException;
+
         internal SwLegacyMassProperty(ISwDocument3D doc, IMathUtility mathUtils)
         {
             m_Doc = doc;
@@ -151,6 +215,14 @@ namespace Xarial.XCad.SolidWorks.Geometry
             m_Creator = new ElementCreator<IMassProperty>(CreateMassProperty, null, false);
 
             UserUnits = false;
+        }
+
+        protected void ThrowIfScopeException()
+        {
+            if (m_CurrentScopeException != null)
+            {
+                throw m_CurrentScopeException;
+            }
         }
 
         private IMassProperty CreateMassProperty(CancellationToken cancellationToken)
@@ -172,45 +244,68 @@ namespace Xarial.XCad.SolidWorks.Geometry
                 }
             }
 
-            SetScope(massPrps);
+            UpdateScope(massPrps);
 
             return massPrps;
         }
 
-        protected void SetScope(IMassProperty massPrps)
+        protected void UpdateScope(IMassProperty massPrps)
         {
-            var scope = Scope;
+            try
+            {
+                m_CurrentScopeException = null;
 
-            if (scope == null)
-            {
-                if (VisibleOnly) 
-                {
-                    scope = IterateSolidBodies(false).ToArray();
-                }
-            }
+                var scope = Scope;
 
-            if (scope == null)
-            {
-                if (!IterateSolidBodies(!VisibleOnly).Any()) 
+                if (scope == null)
                 {
-                    throw new EvaluationFailedException();
+                    if (VisibleOnly)
+                    {
+                        scope = IterateSolidBodies(false).ToArray();
+                    }
                 }
-            }
-            else 
-            {
-                if (!scope.Any())
-                {
-                    throw new EvaluationFailedException();
-                }
-            }
-            
-            if (!massPrps.AddBodies(scope?.Select(x => ((ISwBody)x).Body).ToArray()))
-            {
-                throw new Exception("Failed to add bodies to the scope");
-            }
 
-            //IMPORTANT: if this property is not called then the values are not calculated correctly
-            var testRefreshCall = massPrps.OverrideCenterOfMass;
+                if (scope == null)
+                {
+                    if (!IterateSolidBodies(!VisibleOnly).Any())
+                    {
+                        throw new EvaluationFailedException();
+                    }
+                }
+                else
+                {
+                    if (!scope.Any())
+                    {
+                        throw new EvaluationFailedException();
+                    }
+                }
+
+                if (!massPrps.AddBodies(scope?.Select(x => ((ISwBody)x).Body).ToArray()))
+                {
+                    throw new Exception("Failed to add bodies to the scope");
+                }
+
+                ValidateCalculations(massPrps);
+
+                //IMPORTANT: if this property is not called then the values are not calculated correctly
+                var testRefreshCall = massPrps.OverrideCenterOfMass;
+            }
+            catch (Exception ex) 
+            {
+                m_CurrentScopeException = ex;
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Sometimes mass cannot be calculated and no error returned (model rebuilding is required)
+        /// </summary>
+        private void ValidateCalculations(IMassProperty massPrps)
+        {
+            if (massPrps.SurfaceArea == 0 && massPrps.Volume == 0)
+            {
+                throw new InvalidMassPropertyCalculationException();
+            }
         }
 
         protected virtual IEnumerable<IXBody> IterateSolidBodies(bool includeHidden)
@@ -253,6 +348,8 @@ namespace Xarial.XCad.SolidWorks.Geometry
         {
             get
             {
+                ThrowIfScopeException();
+
                 if (m_ReferenceComponentMassPropertyLazy != null)
                 {
                     var compRefDocMassPrp = m_ReferenceComponentMassPropertyLazy.Value.MassProperty;
@@ -294,6 +391,8 @@ namespace Xarial.XCad.SolidWorks.Geometry
         {
             get 
             {
+                ThrowIfScopeException();
+
                 if (m_ReferenceComponentMassPropertyLazy != null)
                 {
                     var compRefDocMassPrp = m_ReferenceComponentMassPropertyLazy.Value.MassProperty;
@@ -320,6 +419,8 @@ namespace Xarial.XCad.SolidWorks.Geometry
         {
             get
             {
+                ThrowIfScopeException();
+
                 if (m_ReferenceComponentMassPropertyLazy != null)
                 {
                     var compRefDocMassPrp = m_ReferenceComponentMassPropertyLazy.Value.MassProperty;
@@ -357,6 +458,8 @@ namespace Xarial.XCad.SolidWorks.Geometry
         {
             get
             {
+                ThrowIfScopeException();
+
                 if (m_ReferenceComponentMassPropertyLazy != null)
                 {
                     var compRefDocMassPrp = m_ReferenceComponentMassPropertyLazy.Value.MassProperty;
@@ -449,7 +552,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
                 if (IsCommitted)
                 {
-                    SetScope(m_Creator.Element);
+                    UpdateScope(m_Creator.Element);
                 }
             }
         }
