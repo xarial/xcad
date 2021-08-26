@@ -20,7 +20,7 @@ namespace Xarial.XCad.Geometry.Exceptions
         /// <summary>
         /// Default constructor
         /// </summary>
-        public EvaluationFailedException() : base("Cannot perform the evaluated for this model. Make sure that model contains the valid geometry")
+        public EvaluationFailedException() : base("Cannot perform the evaluation for this model. Make sure that model contains the valid geometry")
         {
         }
     }

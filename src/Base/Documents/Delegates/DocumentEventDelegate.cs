@@ -7,5 +7,9 @@
 
 namespace Xarial.XCad.Documents.Delegates
 {
-    public delegate void DocumentCloseDelegate(IXDocument doc);
+    /// <summary>
+    /// Delegate for the different document events
+    /// </summary>
+    /// <param name="doc">Document</param>
+    public delegate void DocumentEventDelegate(IXDocument doc);
 }

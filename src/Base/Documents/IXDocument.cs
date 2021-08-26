@@ -51,7 +51,7 @@ namespace Xarial.XCad.Documents
         /// <summary>
         /// Fired when document is rebuilt
         /// </summary>
-        event DocumentRebuildDelegate Rebuilt;
+        event DocumentEventDelegate Rebuilt;
 
         /// <summary>
         /// Fired when documetn is saving
@@ -61,7 +61,7 @@ namespace Xarial.XCad.Documents
         /// <summary>
         /// Fired when document is closing
         /// </summary>
-        event DocumentCloseDelegate Closing;
+        event DocumentEventDelegate Closing;
 
         /// <summary>
         /// Units assigned in this document

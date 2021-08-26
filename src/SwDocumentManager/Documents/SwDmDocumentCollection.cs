@@ -70,8 +70,10 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         public int Count => m_Documents.Count;
 
-        public event DocumentActivateDelegate DocumentActivated;
-        public event DocumentCreateDelegate DocumentCreated;
+        public event DocumentEventDelegate DocumentActivated;
+        public event DocumentEventDelegate DocumentLoaded;
+        public event DocumentEventDelegate DocumentOpened;
+        public event DocumentEventDelegate NewDocumentCreated;
 
         private List<ISwDmDocument> m_Documents;
 

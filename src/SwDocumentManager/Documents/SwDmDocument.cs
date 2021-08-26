@@ -83,7 +83,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         public IXFeatureRepository Features => throw new NotImplementedException();
         public IXSelectionRepository Selections => throw new NotSupportedException();
         public IXDimensionRepository Dimensions => throw new NotSupportedException();
-        public event DocumentRebuildDelegate Rebuilt;
+        public event DocumentEventDelegate Rebuilt;
         public TObj DeserializeObject<TObj>(Stream stream) where TObj : IXObject => throw new NotSupportedException();
         public void Rebuild() => throw new NotSupportedException();
         public IXUnits Units => throw new NotSupportedException();
@@ -258,7 +258,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         public event DataStoreAvailableDelegate StorageWriteAvailable;
         
         public event DocumentSaveDelegate Saving;
-        public event DocumentCloseDelegate Closing;
+        public event DocumentEventDelegate Closing;
 
         protected readonly ElementCreator<ISwDMDocument> m_Creator;
 

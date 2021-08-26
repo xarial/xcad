@@ -80,9 +80,9 @@ namespace Xarial.XCad.SolidWorks.Documents
         internal event Action<SwDocument> Hidden;
         internal event Action<SwDocument> Destroyed;
 
-        public event DocumentCloseDelegate Closing;
+        public event DocumentEventDelegate Closing;
         
-        public event DocumentRebuildDelegate Rebuilt 
+        public event DocumentEventDelegate Rebuilt 
         {
             add 
             {
