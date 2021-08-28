@@ -82,7 +82,7 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
         /// </summary>
         public ICommandManager CmdMgr { get; private set; }
 
-        public IEnumerable<IXCommandGroup> CommandGroups => m_CommandBars;
+        public IXCommandGroup[] CommandGroups => m_CommandBars.ToArray();
 
         private readonly IServiceProvider m_SvcProvider;
         private readonly Guid m_AddInGuid;

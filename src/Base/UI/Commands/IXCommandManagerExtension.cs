@@ -20,6 +20,9 @@ using Xarial.XCad.UI.Structures;
 
 namespace Xarial.XCad.UI.Commands
 {
+    /// <summary>
+    /// Additional methods for <see cref="IXCommandManager"/>
+    /// </summary>
     public static class IXCommandManagerExtension
     {
         //TODO: think of a way to call Dispose on all wrapped enum groups
@@ -45,7 +48,9 @@ namespace Xarial.XCad.UI.Commands
         public static IEnumCommandGroup<TCmdEnum> AddCommandGroup<TCmdEnum>(this IXCommandManager cmdMgr)
             where TCmdEnum : Enum
         {
-            var enumGrp = CreateEnumCommandGroup<TCmdEnum>(cmdMgr, GetEnumCommandGroupParent(cmdMgr, typeof(TCmdEnum)), -1);
+            var id = GetEnumCommandGroupId(cmdMgr, typeof(TCmdEnum));
+
+            var enumGrp = CreateEnumCommandGroup<TCmdEnum>(cmdMgr, GetEnumCommandGroupParent(cmdMgr, typeof(TCmdEnum)), id);
 
             var cmdGrp = cmdMgr.AddCommandGroup(enumGrp);
 
@@ -60,26 +65,48 @@ namespace Xarial.XCad.UI.Commands
         public static IEnumCommandGroup<TCmdEnum> AddContextMenu<TCmdEnum>(this IXCommandManager cmdMgr, SelectType_e? owner = null)
             where TCmdEnum : Enum
         {
-            var enumGrp = CreateEnumCommandGroup<TCmdEnum>(cmdMgr, GetEnumCommandGroupParent(cmdMgr, typeof(TCmdEnum)), -1);
+            var id = GetEnumCommandGroupId(cmdMgr, typeof(TCmdEnum));
+
+            var enumGrp = CreateEnumCommandGroup<TCmdEnum>(cmdMgr, GetEnumCommandGroupParent(cmdMgr, typeof(TCmdEnum)), id);
 
             var cmdGrp = cmdMgr.AddContextMenu(enumGrp, owner);
 
             return new EnumCommandGroup<TCmdEnum>(cmdGrp);
         }
 
+        /// <summary>
+        /// Creates spec from the enumeration
+        /// </summary>
+        /// <typeparam name="TCmdEnum">Enumeration type</typeparam>
+        /// <param name="cmdMgr">Command group</param>
+        /// <param name="parent">Parrent spec for this spec</param>
+        /// <param name="id">Id or null to read the data from enum itself</param>
+        /// <returns>Specification</returns>
+        /// <exception cref="GroupUserIdNotAssignedException"/>
         [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
-        public static CommandGroupSpec CreateSpecFromEnum<TCmdEnum>(this IXCommandManager cmdMgr, int id = -1, CommandGroupSpec parent = null)
-            where TCmdEnum : Enum => CreateEnumCommandGroup<TCmdEnum>(cmdMgr, parent, id);
+        public static CommandGroupSpec CreateSpecFromEnum<TCmdEnum>(this IXCommandManager cmdMgr, CommandGroupSpec parent, int? id)
+            where TCmdEnum : Enum
+        {
+            if (!id.HasValue)
+            {
+                if (TryGetUserAssignedGroupId(typeof(TCmdEnum), out int userId))
+                {
+                    id = userId;
+                }
+                else 
+                {
+                    throw new GroupUserIdNotAssignedException();
+                }
+            }
 
+            return CreateEnumCommandGroup<TCmdEnum>(cmdMgr, parent, id.Value);
+        }
+
+        /// <param name="id">Id or -1 to automatically assign</param>
         private static EnumCommandGroupSpec CreateEnumCommandGroup<TCmdEnum>(IXCommandManager cmdMgr, CommandGroupSpec parent, int id)
                                     where TCmdEnum : Enum
         {
             var cmdGroupType = typeof(TCmdEnum);
-
-            if (id == -1)
-            {
-                id = GetEnumCommandGroupId(cmdMgr, cmdGroupType);
-            }
 
             if (parent != null)
             {
@@ -94,8 +121,10 @@ namespace Xarial.XCad.UI.Commands
 
             bar.InitFromEnum<TCmdEnum>();
 
+            var enumCmdUserId = 1;
+
             bar.Commands = Enum.GetValues(cmdGroupType).Cast<TCmdEnum>().Select(
-                c => CreateCommand(c)).ToArray();
+                c => CreateEnumCommand(c, enumCmdUserId++)).ToArray();
 
             return bar;
         }
@@ -146,39 +175,52 @@ namespace Xarial.XCad.UI.Commands
 
         private static int GetEnumCommandGroupId(IXCommandManager cmdMgr, Type cmdGroupType)
         {
-            var nextGroupId = 0;
-
-            if (cmdMgr.CommandGroups.Any())
+            if (!TryGetUserAssignedGroupId(cmdGroupType, out int id)) 
             {
-                nextGroupId = cmdMgr.CommandGroups.Max(g => g.Spec.Id) + 1;
+                var nextGroupId = 1;
+
+                if (cmdMgr.CommandGroups.Any())
+                {
+                    var usedIds = cmdMgr.CommandGroups.Select(g => g.Spec.Id).OrderBy(x => x).ToArray();
+
+                    for (int i = 0; i < cmdMgr.CommandGroups.Length; i++)
+                    {
+                        if (usedIds[i] != nextGroupId)
+                        {
+                            break;
+                        }
+
+                        nextGroupId++;
+                    }
+                }
+
+                id = nextGroupId;
             }
             
+            return id;
+        }
+
+        private static bool TryGetUserAssignedGroupId(Type cmdGroupType, out int userId) 
+        {
             CommandGroupInfoAttribute grpInfoAtt = null;
 
-            var id = 0;
             if (cmdGroupType.TryGetAttribute<CommandGroupInfoAttribute>(x => grpInfoAtt = x))
             {
                 if (grpInfoAtt.UserId != -1)
                 {
-                    id = grpInfoAtt.UserId;
+                    userId = grpInfoAtt.UserId;
+                    return true;
                 }
-                else
-                {
-                    id = nextGroupId;
-                }
-            }
-            else
-            {
-                id = nextGroupId;
             }
 
-            return id;
+            userId = -1;
+            return false;
         }
 
-        private static EnumCommandSpec<TCmdEnum> CreateCommand<TCmdEnum>(TCmdEnum cmdEnum)
+        private static EnumCommandSpec<TCmdEnum> CreateEnumCommand<TCmdEnum>(TCmdEnum cmdEnum, int userId)
             where TCmdEnum : Enum
         {
-            var cmd = new EnumCommandSpec<TCmdEnum>(cmdEnum, Convert.ToInt32(cmdEnum));
+            var cmd = new EnumCommandSpec<TCmdEnum>(cmdEnum, userId);
 
             if (!cmdEnum.TryGetAttribute<CommandItemInfoAttribute>(
                 att =>
