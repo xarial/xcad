@@ -367,6 +367,13 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
 
         private Dictionary<CommandSpec, int> CreateCommandItems(SwCommandGroup cmdGroup, int groupId, CommandSpec[] cmds)
         {
+            var dupIds = cmds.Where(c => c.UserId > 0).GroupBy(c => c.UserId).Where(g => g.Count() > 1).ToArray();
+
+            if (dupIds.Any()) 
+            {
+                throw new DuplicateCommandUserIdsException(cmdGroup.Spec.Title, groupId, dupIds.Select(x => x.Key).ToArray());
+            }
+
             var createdCmds = new Dictionary<CommandSpec, int>();
 
             var callbackMethodName = nameof(SwAddInEx.OnCommandClick);

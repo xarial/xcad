@@ -27,14 +27,31 @@ namespace Xarial.XCad.UI.Commands
     {
         //TODO: think of a way to call Dispose on all wrapped enum groups
 
-        internal class EnumCommandSpec<TEnum> : CommandSpec
-            where TEnum : Enum
+        /// <summary>
+        /// Specific command spec associated with enumeration
+        /// </summary>
+        [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
+        public class EnumCommandSpec : CommandSpec
         {
-            internal TEnum Value { get; }
+            /// <summary>
+            /// Enumeration value of this command spec
+            /// </summary>
+            [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
+            public Enum Value { get; }
 
-            internal EnumCommandSpec(TEnum value, int userId) : base(userId)
+            internal EnumCommandSpec(Enum value, int userId) : base(userId)
             {
                 Value = value;
+            }
+        }
+
+        internal class EnumCommandSpec<TEnum> : EnumCommandSpec
+            where TEnum : Enum
+        {
+            internal new TEnum Value => (TEnum)base.Value;
+
+            internal EnumCommandSpec(TEnum value, int userId) : base(value, userId)
+            {
             }
         }
 
@@ -84,7 +101,7 @@ namespace Xarial.XCad.UI.Commands
         /// <returns>Specification</returns>
         /// <exception cref="GroupUserIdNotAssignedException"/>
         [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
-        public static CommandGroupSpec CreateSpecFromEnum<TCmdEnum>(this IXCommandManager cmdMgr, CommandGroupSpec parent, int? id)
+        public static EnumCommandGroupSpec CreateSpecFromEnum<TCmdEnum>(this IXCommandManager cmdMgr, CommandGroupSpec parent, int? id)
             where TCmdEnum : Enum
         {
             if (!id.HasValue)
@@ -104,7 +121,7 @@ namespace Xarial.XCad.UI.Commands
 
         /// <param name="id">Id or -1 to automatically assign</param>
         private static EnumCommandGroupSpec CreateEnumCommandGroup<TCmdEnum>(IXCommandManager cmdMgr, CommandGroupSpec parent, int id)
-                                    where TCmdEnum : Enum
+            where TCmdEnum : Enum
         {
             var cmdGroupType = typeof(TCmdEnum);
 
@@ -121,10 +138,23 @@ namespace Xarial.XCad.UI.Commands
 
             bar.InitFromEnum<TCmdEnum>();
 
-            var enumCmdUserId = 1;
-
             bar.Commands = Enum.GetValues(cmdGroupType).Cast<TCmdEnum>().Select(
-                c => CreateEnumCommand(c, enumCmdUserId++)).ToArray();
+                c => 
+                {
+                    var enumCmdUserId = Convert.ToInt32(c);
+
+                    if (enumCmdUserId < 0)
+                    {
+                        enumCmdUserId = 0;//default id (not used)
+                    }
+                    else 
+                    {
+                        //NOTE: adding one to the id as 0 id means not used while enums start with 0
+                        enumCmdUserId++;
+                    }
+                    
+                    return CreateEnumCommand(c, enumCmdUserId); 
+                }).ToArray();
 
             return bar;
         }
