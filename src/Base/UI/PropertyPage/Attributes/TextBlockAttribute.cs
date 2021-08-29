@@ -11,17 +11,17 @@ using Xarial.XCad.UI.PropertyPage.Base;
 namespace Xarial.XCad.UI.PropertyPage.Attributes
 {
     /// <summary>
-    /// Constructor of option box
+    /// Constructor of text block
     /// </summary>
-    public interface IOptionBoxConstructor
+    public interface ITextBlockConstructor
     {
     }
 
     /// <summary>
-    /// Attribute indicates that current property should be rendered as option box
+    /// Attribute indicates that current property should be rendered as text block
     /// </summary>
     /// <remarks>This attribute is only applicable for <see cref="Enum">enum</see> types</remarks>
-    public class OptionBoxAttribute : Attribute, ISpecificConstructorAttribute
+    public class TextBlockAttribute : Attribute, ISpecificConstructorAttribute
     {
         /// <summary>
         /// Type of the constructor
@@ -31,9 +31,9 @@ namespace Xarial.XCad.UI.PropertyPage.Attributes
         /// <summary>
         /// Sets the current property as option box
         /// </summary>
-        public OptionBoxAttribute()
+        public TextBlockAttribute()
         {
-            ConstructorType = typeof(IOptionBoxConstructor);
+            ConstructorType = typeof(ITextBlockConstructor);
         }
     }
 }

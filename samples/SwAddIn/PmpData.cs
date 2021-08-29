@@ -122,6 +122,13 @@ namespace SwAddInExample
 
         public ISwCircularEdge CircEdge { get; set; }
 
+        private string m_TextBlockText = "Hello World";
+
+        [TextBlock]
+        [TextBlockOptions(TextAlignment_e.Center, FontStyle_e.Bold | FontStyle_e.Italic)]
+        [ControlOptions(backgroundColor: System.Drawing.KnownColor.Yellow, textColor: System.Drawing.KnownColor.Green)]
+        public string TextBlockText => m_TextBlockText;
+
         [BitmapButton(typeof(Resources), nameof(Resources.vertical), 96, 96)]
         public bool CheckBox1 { get; set; }
 
@@ -151,7 +158,7 @@ namespace SwAddInExample
         public string ItemsSourceComboBox { get; set; }
 
         [ListBox(ItemsSource = "_SRC_")]
-        [Label("List Box1:", ControlLeftAlign_e.LeftEdge, LabelFontStyle_e.Bold)]
+        [Label("List Box1:", ControlLeftAlign_e.LeftEdge, FontStyle_e.Bold)]
         [ControlOptions(align: ControlLeftAlign_e.Indent)]
         public string ListBox1 { get; set; }
 
@@ -163,7 +170,7 @@ namespace SwAddInExample
 
         //[ListBox]
         [OptionBox]
-        [Label("Sample List Box 4:", fontStyle: LabelFontStyle_e.Underline)]
+        [Label("Sample List Box 4:", fontStyle: FontStyle_e.Underline)]
         public Opts ListBox4 { get; set; }
 
         [ListBox]
@@ -184,6 +191,12 @@ namespace SwAddInExample
             DynamicControls = new Dictionary<string, object>()
             {
                 { "A", "Hello" }
+            };
+
+            Button1 = () =>
+            {
+                m_TextBlockText = "Hello World - " + Guid.NewGuid().ToString();
+                this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(TextBlockText)));
             };
         }
     }
