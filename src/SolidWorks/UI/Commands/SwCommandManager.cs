@@ -42,12 +42,11 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
     {
         private class CommandInfo
         {
-            internal SwCommandGroup Grp { get; }
+            internal SwCommandGroup Group { get; set; }
             internal CommandSpec Spec { get; }
 
-            internal CommandInfo(SwCommandGroup grp, CommandSpec spec)
+            internal CommandInfo(CommandSpec spec)
             {
-                Grp = grp;
                 Spec = spec;
             }
         }
@@ -102,9 +101,7 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
         }
 
         public IXCommandGroup AddCommandGroup(CommandGroupSpec cmdBar)
-        {
-            return AddCommandGroupOrContextMenu(cmdBar, false, null);
-        }
+            => AddCommandGroupOrContextMenu(cmdBar, false, null);
 
         public IXCommandGroup AddContextMenu(CommandGroupSpec cmdBar, SelectType_e? owner)
         {
@@ -138,42 +135,61 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
             var cmdGroup = CreateCommandGroup(cmdBar.Id, title, cmdBar.Tooltip,
                 cmdBar.Commands.Select(c => c.UserId).ToArray(), isContextMenu,
                 contextMenuSelectType);
-            
-            var bar = new SwCommandGroup(m_App, cmdBar, cmdGroup);
 
-            m_CommandBars.Add(bar);
+            CommandTabBox[] tabBoxes = null;
+            CommandInfo[] cmdInfos;
 
             using (var iconsConv = m_SvcProvider.GetService<IIconsCreator>())
             {
                 CreateIcons(cmdGroup, cmdBar, iconsConv);
 
-                var createdCmds = CreateCommandItems(bar, cmdBar.Id, cmdBar.Commands);
+                var createdCmds = CreateCommandItems(cmdBar, cmdGroup, cmdBar.Id, cmdBar.Commands, out cmdInfos);
 
-                var tabGroup = GetRootCommandGroup(cmdBar);
+                if (!isContextMenu)
+                {
+                    var rootTabGroupSpec = cmdBar;
 
-                try
-                {
-                    CreateCommandTabBox(tabGroup, createdCmds);
-                }
-                catch (Exception ex)
-                {
-                    m_Logger.Log(ex);
-                    //not critical error - continue operation
+                    while (rootTabGroupSpec.Parent != null)
+                    {
+                        rootTabGroupSpec = rootTabGroupSpec.Parent;
+                    }
+
+                    CommandGroup rootTabGroup;
+
+                    if (rootTabGroupSpec == cmdBar)
+                    {
+                        rootTabGroup = cmdGroup;
+                    }
+                    else 
+                    {
+                        rootTabGroup = m_CommandBars.FirstOrDefault(b => b.Spec == rootTabGroupSpec).CommandGroup;
+                    }
+
+                    tabBoxes = TryCreateCommandTabBoxes(rootTabGroup, createdCmds);
                 }
             }
+
+            var bar = new SwCommandGroup(m_App, cmdBar, cmdGroup, tabBoxes);
+
+            foreach (var cmdInfo in cmdInfos) 
+            {
+                cmdInfo.Group = bar;
+            }
+
+            m_CommandBars.Add(bar);
 
             return bar;
         }
 
         internal void HandleCommandClick(string cmdId)
         {
-            m_Logger.Log($"Command clicked: {cmdId}", XCad.Base.Enums.LoggerMessageSeverity_e.Debug);
+            m_Logger.Log($"Command clicked: {cmdId}", LoggerMessageSeverity_e.Debug);
 
             CommandInfo cmd;
 
             if (m_Commands.TryGetValue(cmdId, out cmd))
             {
-                cmd.Grp.RaiseCommandClick(cmd.Spec);
+                cmd.Group.RaiseCommandClick(cmd.Spec);
             }
             else
             {
@@ -187,7 +203,7 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
 
             if (m_Commands.TryGetValue(cmdId, out cmd))
             {
-                return (int)cmd.Grp.RaiseCommandEnable(cmd.Spec);
+                return (int)cmd.Group.RaiseCommandEnable(cmd.Spec);
             }
             else
             {
@@ -211,6 +227,14 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
                     }
 
                     m_Logger.Log($"Removing group: {grp.Spec.Id}", LoggerMessageSeverity_e.Debug);
+
+                    if (grp.TabBoxes != null) 
+                    {
+                        foreach (var tabBox in grp.TabBoxes) 
+                        {
+                            TryClearCommandTabBox(tabBox);
+                        }
+                    }
 
                     bool removeRes;
 
@@ -289,17 +313,33 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
             }
         }
 
-        private void ClearCommandTabBox(ICommandTabBox cmdBox)
+        private void TryClearCommandTabBox(ICommandTabBox cmdBox)
         {
-            m_Logger.Log($"Clearing Command Tab Box", LoggerMessageSeverity_e.Debug);
-
-            object existingCmds;
-            
-            cmdBox.GetCommands(out existingCmds, out _);
-
-            if (existingCmds != null)
+            try
             {
-                cmdBox.RemoveCommands(existingCmds as int[]);
+                m_Logger.Log($"Clearing Command Tab Box", LoggerMessageSeverity_e.Debug);
+
+                object existingCmds;
+
+                cmdBox.GetCommands(out existingCmds, out _);
+
+                if (existingCmds != null)
+                {
+                    if (!cmdBox.RemoveCommands((int[])existingCmds))
+                    {
+                        //WORKAROUND - remove commands always returns null
+                        cmdBox.GetCommands(out existingCmds, out _);
+
+                        if (existingCmds != null)
+                        {
+                            m_Logger.Log($"Failed to remove commands from the command tab box", LoggerMessageSeverity_e.Error);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                m_Logger.Log(ex);
             }
         }
 
@@ -365,19 +405,22 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
             return cmdGroup;
         }
 
-        private Dictionary<CommandSpec, int> CreateCommandItems(SwCommandGroup cmdGroup, int groupId, CommandSpec[] cmds)
+        private Dictionary<CommandSpec, int> CreateCommandItems(CommandGroupSpec cmdGrpSpec, CommandGroup cmdGrp,
+            int groupId, CommandSpec[] cmds, out CommandInfo[] cmdInfos)
         {
             var dupIds = cmds.Where(c => c.UserId > 0).GroupBy(c => c.UserId).Where(g => g.Count() > 1).ToArray();
 
             if (dupIds.Any()) 
             {
-                throw new DuplicateCommandUserIdsException(cmdGroup.Spec.Title, groupId, dupIds.Select(x => x.Key).ToArray());
+                throw new DuplicateCommandUserIdsException(cmdGrpSpec.Title, groupId, dupIds.Select(x => x.Key).ToArray());
             }
 
             var createdCmds = new Dictionary<CommandSpec, int>();
 
             var callbackMethodName = nameof(SwAddInEx.OnCommandClick);
             var enableMethodName = nameof(SwAddInEx.OnCommandEnable);
+
+            var cmdInfosList = new List<CommandInfo>();
 
             for (int i = 0; i < cmds.Length; i++)
             {
@@ -402,17 +445,20 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
 
                 var cmdName = $"{groupId}.{cmd.UserId}";
 
-                m_Commands.Add(cmdName, new CommandInfo(cmdGroup, cmd));
+                var cmdInfo = new CommandInfo(cmd);
+
+                cmdInfosList.Add(cmdInfo);
+                m_Commands.Add(cmdName, cmdInfo);
 
                 var callbackFunc = $"{callbackMethodName}({cmdName})";
                 var enableFunc = $"{enableMethodName}({cmdName})";
 
                 if (cmd.HasSpacer)
                 {
-                    cmdGroup.CommandGroup.AddSpacer2(-1, (int)menuToolbarOpts);
+                    cmdGrp.AddSpacer2(-1, (int)menuToolbarOpts);
                 }
 
-                var cmdIndex = cmdGroup.CommandGroup.AddCommandItem2(cmd.Title, -1, cmd.Tooltip,
+                var cmdIndex = cmdGrp.AddCommandItem2(cmd.Title, -1, cmd.Tooltip,
                     cmd.Title, i, callbackFunc, enableFunc, cmd.UserId,
                     (int)menuToolbarOpts);
 
@@ -421,103 +467,128 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
                 m_Logger.Log($"Created command {cmd.Title}:{cmdIndex} for {cmd.UserId}", LoggerMessageSeverity_e.Debug);
             }
 
-            cmdGroup.CommandGroup.HasToolbar = cmds.Any(c => c.HasToolbar);
-            cmdGroup.CommandGroup.HasMenu = cmds.Any(c => c.HasMenu);
+            cmdGrp.HasToolbar = cmds.Any(c => c.HasToolbar);
+            cmdGrp.HasMenu = cmds.Any(c => c.HasMenu);
 
-            if (!cmdGroup.CommandGroup.Activate()) 
+            if (!cmdGrp.Activate()) 
             {
                 m_Logger.Log("Command group activation failed", LoggerMessageSeverity_e.Error);
             }
 
-            m_Logger.Log($"Command group-{groupId} Id: {(cmdGroup.CommandGroup.HasToolbar ? cmdGroup.CommandGroup.ToolbarId.ToString() : "No Toolbar")}", LoggerMessageSeverity_e.Debug);
+            m_Logger.Log($"Command group-{groupId} Id: {(cmdGrp.HasToolbar ? cmdGrp.ToolbarId.ToString() : "No Toolbar")}", LoggerMessageSeverity_e.Debug);
+
+            cmdInfos = cmdInfosList.ToArray();
 
             return createdCmds.ToDictionary(p => p.Key, p =>
             {
-                var cmdId = cmdGroup.CommandGroup.CommandID[p.Value];
+                var cmdId = cmdGrp.CommandID[p.Value];
                 m_Logger.Log($"Command-{p.Value} Id: {cmdId}", LoggerMessageSeverity_e.Debug);
                 return cmdId;
             });
         }
 
-        private void CreateCommandTabBox(CommandGroup cmdGroup, Dictionary<CommandSpec, int> commands)
+        private CommandTabBox[] TryCreateCommandTabBoxes(CommandGroup cmdGroup, Dictionary<CommandSpec, int> commands)
         {
-            m_Logger.Log($"Creating command tab box", LoggerMessageSeverity_e.Debug);
-
-            var tabCommands = new List<TabCommandInfo>();
-
-            foreach (var cmdData in commands)
+            try
             {
-                var cmd = cmdData.Key;
-                var cmdId = cmdData.Value;
+                m_Logger.Log($"Creating command tab box", LoggerMessageSeverity_e.Debug);
 
-                if (cmd.HasTabBox)
+                var tabCommands = new List<TabCommandInfo>();
+
+                foreach (var cmdData in commands)
                 {
-                    var docTypes = new List<swDocumentTypes_e>();
+                    var cmd = cmdData.Key;
+                    var cmdId = cmdData.Value;
 
-                    if (cmd.SupportedWorkspace.HasFlag(WorkspaceTypes_e.Part))
+                    if (cmd.HasTabBox)
                     {
-                        docTypes.Add(swDocumentTypes_e.swDocPART);
-                    }
+                        var docTypes = new List<swDocumentTypes_e>();
 
-                    if (cmd.SupportedWorkspace.HasFlag(WorkspaceTypes_e.Assembly))
-                    {
-                        docTypes.Add(swDocumentTypes_e.swDocASSEMBLY);
-                    }
-
-                    if (cmd.SupportedWorkspace.HasFlag(WorkspaceTypes_e.Drawing))
-                    {
-                        docTypes.Add(swDocumentTypes_e.swDocDRAWING);
-                    }
-
-                    tabCommands.AddRange(docTypes.Select(
-                        t => new TabCommandInfo(
-                            t, cmdId, ConvertTextDisplay(cmd.TabBoxStyle))));
-                }
-            }
-
-            foreach (var cmdGrp in tabCommands.GroupBy(c => c.DocType))
-            {
-                var docType = cmdGrp.Key;
-
-                var cmdTab = CmdMgr.GetCommandTab((int)docType, cmdGroup.Name);
-
-                if (cmdTab == null)
-                {
-                    cmdTab = CmdMgr.AddCommandTab((int)docType, cmdGroup.Name);
-                }
-
-                if (cmdTab != null)
-                {
-                    var cmdIds = cmdGrp.Select(c => c.CmdId).ToArray();
-                    var txtTypes = cmdGrp.Select(c => (int)c.TextType).ToArray();
-
-                    var cmdBox = TryFindCommandTabBox(cmdTab, cmdIds);
-
-                    if (cmdBox == null)
-                    {
-                        cmdBox = cmdTab.AddCommandTabBox();
-                    }
-                    else
-                    {
-                        if (!IsCommandTabBoxChanged(cmdBox, cmdIds, txtTypes))
+                        if (cmd.SupportedWorkspace.HasFlag(WorkspaceTypes_e.Part))
                         {
-                            continue;
+                            docTypes.Add(swDocumentTypes_e.swDocPART);
+                        }
+
+                        if (cmd.SupportedWorkspace.HasFlag(WorkspaceTypes_e.Assembly))
+                        {
+                            docTypes.Add(swDocumentTypes_e.swDocASSEMBLY);
+                        }
+
+                        if (cmd.SupportedWorkspace.HasFlag(WorkspaceTypes_e.Drawing))
+                        {
+                            docTypes.Add(swDocumentTypes_e.swDocDRAWING);
+                        }
+
+                        tabCommands.AddRange(docTypes.Select(
+                            t => new TabCommandInfo(
+                                t, cmdId, ConvertTextDisplay(cmd.TabBoxStyle))));
+                    }
+                }
+
+                var cmdTabBoxes = new List<CommandTabBox>();
+
+                foreach (var cmdGrp in tabCommands.GroupBy(c => c.DocType))
+                {
+                    var docType = cmdGrp.Key;
+
+                    var cmdTab = CmdMgr.GetCommandTab((int)docType, cmdGroup.Name);
+
+                    if (cmdTab == null)
+                    {
+                        cmdTab = CmdMgr.AddCommandTab((int)docType, cmdGroup.Name);
+                    }
+
+                    if (cmdTab != null)
+                    {
+                        var cmdIds = cmdGrp.Select(c => c.CmdId).ToArray();
+                        var txtTypes = cmdGrp.Select(c => (int)c.TextType).ToArray();
+
+                        var cmdBox = TryFindCommandTabBox(cmdTab, cmdIds);
+
+                        bool needAddCommands;
+
+                        if (cmdBox == null)
+                        {
+                            cmdBox = cmdTab.AddCommandTabBox();
+                            needAddCommands = true;
                         }
                         else
                         {
-                            ClearCommandTabBox(cmdBox);
+                            if (IsCommandTabBoxChanged(cmdBox, cmdIds, txtTypes))
+                            {
+                                TryClearCommandTabBox(cmdBox);
+                                needAddCommands = true;
+                            }
+                            else
+                            {
+                                needAddCommands = false;
+                            }
+                        }
+
+                        cmdTabBoxes.Add(cmdBox);
+
+                        if (needAddCommands)
+                        {
+                            if (!cmdBox.AddCommands(cmdIds, txtTypes))
+                            {
+                                m_Logger.Log($"Failed to add commands to commands tab box {cmdGroup.Name} for document type {docType}", LoggerMessageSeverity_e.Error);
+                            }
                         }
                     }
-
-                    if (!cmdBox.AddCommands(cmdIds, txtTypes))
+                    else
                     {
-                        throw new InvalidOperationException("Failed to add commands to commands tab box");
+                        m_Logger.Log($"Failed to create command tab box {cmdGroup.Name} for document type {docType}", LoggerMessageSeverity_e.Error);
                     }
                 }
-                else
-                {
-                    throw new NullReferenceException("Failed to create command tab box");
-                }
+
+                return cmdTabBoxes.ToArray();
+            }
+            catch(Exception ex)
+            {
+                m_Logger.Log(ex);
+                //not critical error - continue operation
+
+                return null;
             }
         }
 
@@ -597,19 +668,7 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
 
             return title.ToString();
         }
-
-        private CommandGroup GetRootCommandGroup(CommandGroupSpec cmdBar)
-        {
-            var root = cmdBar;
-
-            while (root.Parent != null)
-            {
-                root = root.Parent;
-            }
-
-            return m_CommandBars.FirstOrDefault(b => b.Spec == root).CommandGroup;
-        }
-
+        
         private bool IsCommandTabBoxChanged(ICommandTabBox cmdBox, int[] cmdIds, int[] txtTypes)
         {
             object existingCmds;

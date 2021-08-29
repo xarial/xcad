@@ -15,6 +15,15 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
 {
     public interface ISwCommandGroup : IXCommandGroup 
     {
+        /// <summary>
+        /// SOLIDWORKS specific command group
+        /// </summary>
+        CommandGroup CommandGroup { get; }
+
+        /// <summary>
+        /// Tab boxes associated with this group or null
+        /// </summary>
+        CommandTabBox[] TabBoxes { get; }
     }
 
     /// <inheritdoc/>
@@ -32,19 +41,21 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
         /// <inheritdoc/>
         public CommandGroupSpec Spec { get; }
 
+        /// <inheritdoc/>
+        public CommandTabBox[] TabBoxes { get; }
+
         private readonly ISwApplication m_App;
 
-        internal SwCommandGroup(ISwApplication app, CommandGroupSpec spec, CommandGroup cmdGroup)
+        internal SwCommandGroup(ISwApplication app, CommandGroupSpec spec, CommandGroup cmdGroup, CommandTabBox[] tabBoxes)
         {
+            m_App = app;
             Spec = spec;
             CommandGroup = cmdGroup;
-            m_App = app;
+            TabBoxes = tabBoxes;
         }
 
         internal void RaiseCommandClick(CommandSpec spec)
-        {
-            CommandClick?.Invoke(spec);
-        }
+            => CommandClick?.Invoke(spec);
 
         internal CommandItemEnableState_e RaiseCommandEnable(CommandSpec spec)
         {
