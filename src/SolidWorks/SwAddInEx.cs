@@ -188,10 +188,12 @@ namespace Xarial.XCad.SolidWorks
 
                 SwMacroFeatureDefinition.Application = m_Application;
 
-                m_CommandManager = new SwCommandManager(Application, AddInId, m_SvcProvider, this.GetType().GUID);
+                m_CommandManager = new SwCommandManager(Application, AddInId, m_SvcProvider);
 
                 Connect?.Invoke(this);
                 OnConnect();
+
+                m_CommandManager.TryBuildCommandTabs();
 
                 return true;
             }

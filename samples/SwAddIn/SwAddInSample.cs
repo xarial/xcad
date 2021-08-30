@@ -165,8 +165,29 @@ namespace SwAddInExample
 
         private PmpData m_Data;
 
+        [CommandGroupInfo(1)]
+        public enum Commands1_e 
+        {
+            Cmd1,
+            //Cmd2,
+            //Cmd5
+        }
+
+        [CommandGroupInfo(2)]
+        [CommandGroupParent(typeof(Commands1_e))]
+        public enum Commands2_e
+        {
+            Cmd3,
+            Cmd4,
+            Cmd7,
+            Cmd8
+        }
+
         public override void OnConnect()
         {
+            CommandManager.AddCommandGroup<Commands1_e>();
+            CommandManager.AddCommandGroup<Commands2_e>();
+            return;
             CommandManager.AddCommandGroup(new CommandGroupSpec(99)
             {
                 Title = "Group 1",
