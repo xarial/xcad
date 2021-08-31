@@ -524,7 +524,14 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
                 {
                     m_Logger.Log($"Tab '{tabName}' in {workspace} is changed", LoggerMessageSeverity_e.Debug);
 
-                    if (CmdMgr.RemoveCommandTab(cmdTab))
+                    var removeTabRes = CmdMgr.RemoveCommandTab(cmdTab);
+
+                    if (!removeTabRes) //NOTE: sometimes API returns false despite the tab been removed correctly
+                    {
+                        removeTabRes = CmdMgr.GetCommandTab((int)docType, tabName) == null;
+                    }
+
+                    if (removeTabRes)
                     {
                         cmdTab = CmdMgr.AddCommandTab((int)docType, tabName);
                     }
