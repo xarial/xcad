@@ -30,6 +30,12 @@ namespace Xarial.XCad.UI.Commands.Structures
         public virtual CommandSpec[] Commands { get; set; }
 
         /// <summary>
+        /// Name of the ribbon tab where his groupd should be added
+        /// </summary>
+        /// <remarks>If this is not set the name of the group is used or the name of the root parent if this group is a sub group</remarks>
+        public string RibbonTabName { get; set; }
+
+        /// <summary>
         /// Default constructor
         /// </summary>
         /// <param name="id">Group id</param>

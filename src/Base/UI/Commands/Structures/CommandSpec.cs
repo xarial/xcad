@@ -34,12 +34,12 @@ namespace Xarial.XCad.UI.Commands.Structures
         /// <summary>
         /// Indicates if this command should be adde to ribbon tab box
         /// </summary>
-        public bool HasTabBox { get; set; }
+        public bool HasRibbon { get; set; }
 
         /// <summary>
         /// Style of the ribbon tab box
         /// </summary>
-        public RibbonTabTextDisplay_e TabBoxStyle { get; set; }
+        public RibbonTabTextDisplay_e RibbonTextStyle { get; set; }
 
         /// <summary>
         /// Indicates if this command should be separated by spacer

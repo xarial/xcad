@@ -428,24 +428,31 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
             {
                 if (!cmdGrp.IsContextMenu)
                 {
-                    var rootTabGroupSpec = cmdGrp.Spec;
+                    var tabName = cmdGrp.Spec.RibbonTabName;
 
-                    while (rootTabGroupSpec.Parent != null)
+                    if (string.IsNullOrEmpty(tabName))
                     {
-                        rootTabGroupSpec = rootTabGroupSpec.Parent;
+                        var rootTabGroupSpec = cmdGrp.Spec;
+
+                        while (rootTabGroupSpec.Parent != null)
+                        {
+                            rootTabGroupSpec = rootTabGroupSpec.Parent;
+                        }
+
+                        tabName = rootTabGroupSpec.Title;
                     }
 
                     var config = new CommandGroupTabConfiguration()
                     {
                         Include = true,
-                        TabName = rootTabGroupSpec.Title
+                        TabName = tabName
                     };
 
                     m_TabConfigurer.ConfigureTab(cmdGrp.Spec, config);
 
                     if (config.Include)
                     {
-                        var tabName = config.TabName;
+                        tabName = config.TabName;
 
                         var tabData = tabs.FirstOrDefault(t => string.Equals(t.TabName, tabName, StringComparison.CurrentCultureIgnoreCase));
 
@@ -573,10 +580,10 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
                 {
                     foreach (var cmd in group.Spec.Commands)
                     {
-                        if (cmd.HasTabBox)
+                        if (cmd.HasRibbon)
                         {
                             var cmdId = cmdIds[cmd];
-                            var textType = ConvertTextDisplay(cmd.TabBoxStyle);
+                            var textType = ConvertTextDisplay(cmd.RibbonTextStyle);
 
                             foreach (var worspaceType in new WorkspaceTypes_e[] { WorkspaceTypes_e.Part, WorkspaceTypes_e.Assembly, WorkspaceTypes_e.Drawing }) 
                             {
@@ -596,7 +603,7 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
                                         tabCmdGrps.Add(tabCmdGrp);
                                     }
 
-                                    tabCmdGrp.Commands.Add(new TabCommandInfo(cmdId, cmd.TabBoxStyle));
+                                    tabCmdGrp.Commands.Add(new TabCommandInfo(cmdId, cmd.RibbonTextStyle));
                                 }
                             }
                         }

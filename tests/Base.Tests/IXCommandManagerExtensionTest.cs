@@ -189,8 +189,8 @@ namespace Base.Tests
             Assert.AreEqual(true, res.Commands[0].HasSpacer);
             Assert.AreEqual(false, res.Commands[0].HasMenu);
             Assert.AreEqual(true, res.Commands[0].HasToolbar);
-            Assert.AreEqual(true, res.Commands[0].HasTabBox);
-            Assert.AreEqual(Xarial.XCad.UI.Commands.Enums.RibbonTabTextDisplay_e.NoText, res.Commands[0].TabBoxStyle);
+            Assert.AreEqual(true, res.Commands[0].HasRibbon);
+            Assert.AreEqual(Xarial.XCad.UI.Commands.Enums.RibbonTabTextDisplay_e.NoText, res.Commands[0].RibbonTextStyle);
             Assert.AreEqual(Xarial.XCad.UI.Commands.Enums.WorkspaceTypes_e.Assembly, res.Commands[0].SupportedWorkspace);
 
             Assert.That(res.Commands[0].Icon.Buffer.SequenceEqual(new byte[] { 2, 3 }));

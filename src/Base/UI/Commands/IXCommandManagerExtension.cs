@@ -65,9 +65,9 @@ namespace Xarial.XCad.UI.Commands
         public static IEnumCommandGroup<TCmdEnum> AddCommandGroup<TCmdEnum>(this IXCommandManager cmdMgr)
             where TCmdEnum : Enum
         {
-            var id = GetEnumCommandGroupId(cmdMgr, typeof(TCmdEnum));
+            var id = GetEnumCommandGroupId(cmdMgr, typeof(TCmdEnum), out string tabName);
 
-            var enumGrp = CreateEnumCommandGroup<TCmdEnum>(cmdMgr, GetEnumCommandGroupParent(cmdMgr, typeof(TCmdEnum)), id);
+            var enumGrp = CreateEnumCommandGroup<TCmdEnum>(cmdMgr, GetEnumCommandGroupParent(cmdMgr, typeof(TCmdEnum)), tabName, id);
 
             var cmdGrp = cmdMgr.AddCommandGroup(enumGrp);
 
@@ -82,9 +82,9 @@ namespace Xarial.XCad.UI.Commands
         public static IEnumCommandGroup<TCmdEnum> AddContextMenu<TCmdEnum>(this IXCommandManager cmdMgr, SelectType_e? owner = null)
             where TCmdEnum : Enum
         {
-            var id = GetEnumCommandGroupId(cmdMgr, typeof(TCmdEnum));
+            var id = GetEnumCommandGroupId(cmdMgr, typeof(TCmdEnum), out string tabName);
 
-            var enumGrp = CreateEnumCommandGroup<TCmdEnum>(cmdMgr, GetEnumCommandGroupParent(cmdMgr, typeof(TCmdEnum)), id);
+            var enumGrp = CreateEnumCommandGroup<TCmdEnum>(cmdMgr, GetEnumCommandGroupParent(cmdMgr, typeof(TCmdEnum)), tabName, id);
 
             var cmdGrp = cmdMgr.AddContextMenu(enumGrp, owner);
 
@@ -104,9 +104,11 @@ namespace Xarial.XCad.UI.Commands
         public static EnumCommandGroupSpec CreateSpecFromEnum<TCmdEnum>(this IXCommandManager cmdMgr, CommandGroupSpec parent, int? id)
             where TCmdEnum : Enum
         {
+            var isUserIdAssigned = TryGetUserAssignedGroupId(typeof(TCmdEnum), out string tabName, out int userId);
+
             if (!id.HasValue)
             {
-                if (TryGetUserAssignedGroupId(typeof(TCmdEnum), out int userId))
+                if (isUserIdAssigned)
                 {
                     id = userId;
                 }
@@ -116,11 +118,11 @@ namespace Xarial.XCad.UI.Commands
                 }
             }
 
-            return CreateEnumCommandGroup<TCmdEnum>(cmdMgr, parent, id.Value);
+            return CreateEnumCommandGroup<TCmdEnum>(cmdMgr, parent, tabName, id.Value);
         }
 
         /// <param name="id">Id or -1 to automatically assign</param>
-        private static EnumCommandGroupSpec CreateEnumCommandGroup<TCmdEnum>(IXCommandManager cmdMgr, CommandGroupSpec parent, int id)
+        private static EnumCommandGroupSpec CreateEnumCommandGroup<TCmdEnum>(IXCommandManager cmdMgr, CommandGroupSpec parent, string tabName, int id)
             where TCmdEnum : Enum
         {
             var cmdGroupType = typeof(TCmdEnum);
@@ -134,6 +136,7 @@ namespace Xarial.XCad.UI.Commands
             }
 
             var bar = new EnumCommandGroupSpec(cmdGroupType, id);
+            bar.RibbonTabName = tabName;
             bar.Parent = parent;
 
             bar.InitFromEnum<TCmdEnum>();
@@ -203,9 +206,9 @@ namespace Xarial.XCad.UI.Commands
             return parent;
         }
 
-        private static int GetEnumCommandGroupId(IXCommandManager cmdMgr, Type cmdGroupType)
+        private static int GetEnumCommandGroupId(IXCommandManager cmdMgr, Type cmdGroupType, out string tabName)
         {
-            if (!TryGetUserAssignedGroupId(cmdGroupType, out int id)) 
+            if (!TryGetUserAssignedGroupId(cmdGroupType, out tabName, out int id)) 
             {
                 var nextGroupId = 1;
 
@@ -230,7 +233,7 @@ namespace Xarial.XCad.UI.Commands
             return id;
         }
 
-        private static bool TryGetUserAssignedGroupId(Type cmdGroupType, out int userId) 
+        private static bool TryGetUserAssignedGroupId(Type cmdGroupType, out string tabName, out int userId) 
         {
             CommandGroupInfoAttribute grpInfoAtt = null;
 
@@ -239,11 +242,13 @@ namespace Xarial.XCad.UI.Commands
                 if (grpInfoAtt.UserId != -1)
                 {
                     userId = grpInfoAtt.UserId;
+                    tabName = grpInfoAtt.TabName;
                     return true;
                 }
             }
 
             userId = -1;
+            tabName = "";
             return false;
         }
 
@@ -258,15 +263,15 @@ namespace Xarial.XCad.UI.Commands
                     cmd.HasMenu = att.HasMenu;
                     cmd.HasToolbar = att.HasToolbar;
                     cmd.SupportedWorkspace = att.SupportedWorkspaces;
-                    cmd.HasTabBox = att.ShowInCommandTabBox;
-                    cmd.TabBoxStyle = att.CommandTabBoxDisplayStyle;
+                    cmd.HasRibbon = att.ShowInCommandTabBox;
+                    cmd.RibbonTextStyle = att.CommandTabBoxDisplayStyle;
                 }))
             {
                 cmd.HasMenu = true;
                 cmd.HasToolbar = true;
                 cmd.SupportedWorkspace = WorkspaceTypes_e.All;
-                cmd.HasTabBox = true;
-                cmd.TabBoxStyle = RibbonTabTextDisplay_e.TextBelow;
+                cmd.HasRibbon = true;
+                cmd.RibbonTextStyle = RibbonTabTextDisplay_e.TextBelow;
             }
 
             cmd.HasSpacer = cmdEnum.TryGetAttribute<CommandSpacerAttribute>(x => { });

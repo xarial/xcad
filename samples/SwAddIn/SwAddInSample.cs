@@ -198,8 +198,8 @@ namespace SwAddInExample
                         Title = "Cmd1",
                         HasMenu = true, 
                         HasToolbar = true,
-                        HasTabBox = true,
-                        TabBoxStyle = RibbonTabTextDisplay_e.TextBelow,
+                        HasRibbon = true,
+                        RibbonTextStyle = RibbonTabTextDisplay_e.TextBelow,
                         SupportedWorkspace = WorkspaceTypes_e.All
                     },
                     new CommandSpec(4)
@@ -207,8 +207,8 @@ namespace SwAddInExample
                         Title = "Cmd2",
                         HasMenu = true,
                         HasToolbar = true,
-                        HasTabBox = true,
-                        TabBoxStyle = RibbonTabTextDisplay_e.TextBelow,
+                        HasRibbon = true,
+                        RibbonTextStyle = RibbonTabTextDisplay_e.TextBelow,
                         SupportedWorkspace = WorkspaceTypes_e.All
                     },
                     new CommandSpec(5)
@@ -216,8 +216,8 @@ namespace SwAddInExample
                         Title = "Cmd3",
                         HasMenu = true,
                         HasToolbar = true,
-                        HasTabBox = true,
-                        TabBoxStyle = RibbonTabTextDisplay_e.TextBelow,
+                        HasRibbon = true,
+                        RibbonTextStyle = RibbonTabTextDisplay_e.TextBelow,
                         SupportedWorkspace = WorkspaceTypes_e.All
                     }
                 }
