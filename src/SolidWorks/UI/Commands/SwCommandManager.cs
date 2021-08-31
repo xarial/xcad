@@ -112,6 +112,8 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
 
         private readonly IServiceProvider m_SvcProvider;
 
+        private readonly ICommandGroupTabConfigurer m_TabConfigurer;
+
         internal SwCommandManager(ISwApplication app, int addinCookie, IServiceProvider svcProvider)
         {
             m_App = app;
@@ -121,6 +123,7 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
             m_SvcProvider = svcProvider;
 
             m_Logger = svcProvider.GetService<IXLogger>();
+            m_TabConfigurer = svcProvider.GetService<ICommandGroupTabConfigurer>();
             m_Commands = new Dictionary<string, CommandInfo>();
             m_CommandBars = new List<SwCommandGroup>();
         }
@@ -432,17 +435,28 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
                         rootTabGroupSpec = rootTabGroupSpec.Parent;
                     }
 
-                    var tabName = rootTabGroupSpec.Title;
-
-                    var tabData = tabs.FirstOrDefault(t => string.Equals(t.TabName, tabName, StringComparison.CurrentCultureIgnoreCase));
-
-                    if (tabData == null)
+                    var config = new CommandGroupTabConfiguration()
                     {
-                        tabData = new TabInfo(tabName);
-                        tabs.Add(tabData);
-                    }
+                        Include = true,
+                        TabName = rootTabGroupSpec.Title
+                    };
 
-                    tabData.CommandGroups.Add(cmdGrp);
+                    m_TabConfigurer.ConfigureTab(cmdGrp.Spec, config);
+
+                    if (config.Include)
+                    {
+                        var tabName = config.TabName;
+
+                        var tabData = tabs.FirstOrDefault(t => string.Equals(t.TabName, tabName, StringComparison.CurrentCultureIgnoreCase));
+
+                        if (tabData == null)
+                        {
+                            tabData = new TabInfo(tabName);
+                            tabs.Add(tabData);
+                        }
+
+                        tabData.CommandGroups.Add(cmdGrp);
+                    }
                 }
             }
 

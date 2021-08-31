@@ -223,6 +223,7 @@ namespace Xarial.XCad.SolidWorks
             svcCollection.AddOrReplace<IFeatureManagerTabControlProvider, FeatureManagerTabControlProvider>();
             svcCollection.AddOrReplace<ITaskPaneControlProvider, TaskPaneControlProvider>();
             svcCollection.AddOrReplace<IModelViewControlProvider, ModelViewControlProvider>();
+            svcCollection.AddOrReplace<ICommandGroupTabConfigurer, DefaultCommandGroupTabConfigurer>();
 
             return svcCollection;
         }
