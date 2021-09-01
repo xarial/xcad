@@ -494,7 +494,28 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
             }
         }
 
-        private void CreateTabInWorkspace(string tabName, WorkspaceTypes_e workspace, TabCommandGroupInfo[] tabGroups) 
+        private void CreateTabInWorkspace(string tabName, WorkspaceTypes_e workspace, TabCommandGroupInfo[] tabGroups)
+        {
+            var cmdTab = GetTab(tabName, workspace, tabGroups, out bool matches);
+
+            if (!matches)
+            {
+                foreach (var tabGroup in tabGroups)
+                {
+                    var tabBox = cmdTab.AddCommandTabBox();
+
+                    var cmdIds = tabGroup.Commands.Select(c => c.CommandId).ToArray();
+                    var txtTypes = tabGroup.Commands.Select(c => (int)ConvertTextDisplay(c.TextStyle)).ToArray();
+
+                    if (!tabBox.AddCommands(cmdIds, txtTypes))
+                    {
+                        m_Logger.Log($"Failed to add commands to commands tab box {tabName} for document type {workspace}", LoggerMessageSeverity_e.Error);
+                    }
+                }
+            }
+        }
+
+        private CommandTab GetTab(string tabName, WorkspaceTypes_e workspace, TabCommandGroupInfo[] tabGroups, out bool matches)
         {
             swDocumentTypes_e docType;
 
@@ -520,9 +541,54 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
 
             if (cmdTab != null)
             {
-                if (!IsCommandTabUnchanged(cmdTab, tabGroups))
+                if (!IsCommandTabContainingGroups(cmdTab, tabGroups))
                 {
                     m_Logger.Log($"Tab '{tabName}' in {workspace} is changed", LoggerMessageSeverity_e.Debug);
+
+                    if (!TryClearTab(tabName, docType, ref cmdTab))
+                    {
+                        throw new Exception($"Failed to remove tab '{tabName}' in {workspace}");
+                    }
+
+                    matches = false;
+                }
+                else
+                {
+                    m_Logger.Log($"Tab '{tabName}' in {workspace} is not changed", LoggerMessageSeverity_e.Debug);
+
+                    matches = true;
+                }
+            }
+            else
+            {
+                m_Logger.Log($"Tab '{tabName}' in {workspace} does not exist", LoggerMessageSeverity_e.Debug);
+
+                matches = false;
+                cmdTab = CmdMgr.AddCommandTab((int)docType, tabName);
+            }
+
+            if (cmdTab == null) 
+            {
+                throw new Exception($"Failed to create tab '{tabName}' in {workspace}");
+            }
+
+            return cmdTab;
+        }
+
+        private bool TryClearTab(string tabName, swDocumentTypes_e docType, ref CommandTab cmdTab)
+        {
+            var cmdTabBoxes = (object[])cmdTab.CommandTabBoxes();
+
+            if (cmdTabBoxes?.Any() == true)
+            {
+                foreach (CommandTabBox cmdTabBox in cmdTabBoxes)
+                {
+                    cmdTab.RemoveCommandTabBox(cmdTabBox);
+                }
+
+                if (cmdTab.GetCommandTabBoxCount() > 0)
+                {
+                    m_Logger.Log($"Failed to clear command tab boxes in '{tabName}' in {docType}", LoggerMessageSeverity_e.Debug);
 
                     var removeTabRes = CmdMgr.RemoveCommandTab(cmdTab);
 
@@ -534,47 +600,24 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
                     if (removeTabRes)
                     {
                         cmdTab = CmdMgr.AddCommandTab((int)docType, tabName);
+                        return true;
                     }
-                    else 
+                    else
                     {
-                        throw new Exception($"Failed to remove tab '{tabName}' in {workspace}");
+                        return false;
                     }
                 }
-                else 
+                else
                 {
-                    m_Logger.Log($"Tab '{tabName}' in {workspace} is not changed", LoggerMessageSeverity_e.Debug);
-
-                    return;
+                    return true;
                 }
             }
             else 
             {
-                m_Logger.Log($"Tab '{tabName}' in {workspace} does not exist", LoggerMessageSeverity_e.Debug);
-
-                cmdTab = CmdMgr.AddCommandTab((int)docType, tabName);
-            }
-
-            if (cmdTab != null)
-            {
-                foreach (var tabGroup in tabGroups) 
-                {
-                    var tabBox = cmdTab.AddCommandTabBox();
-
-                    var cmdIds = tabGroup.Commands.Select(c => c.CommandId).ToArray();
-                    var txtTypes = tabGroup.Commands.Select(c => (int)ConvertTextDisplay(c.TextStyle)).ToArray();
-
-                    if (!tabBox.AddCommands(cmdIds, txtTypes))
-                    {
-                        m_Logger.Log($"Failed to add commands to commands tab box {tabName} for document type {docType}", LoggerMessageSeverity_e.Error);
-                    }
-                }
-            }
-            else
-            {
-                m_Logger.Log($"Failed to create command tab box {tabName} for document type {docType}", LoggerMessageSeverity_e.Error);
+                return true;
             }
         }
-        
+
         private Dictionary<WorkspaceTypes_e, TabCommandGroupInfo[]> GroupTabCommandsByWorkspace(List<SwCommandGroup> groups)
         {
             var tabCommands = new Dictionary<WorkspaceTypes_e, List<TabCommandGroupInfo>>();
@@ -621,7 +664,7 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
             return tabCommands.ToDictionary(x => x.Key, x => x.Value.ToArray());
         }
         
-        private bool IsCommandTabUnchanged(ICommandTab cmdTab, TabCommandGroupInfo[] tabGroups) 
+        private bool IsCommandTabContainingGroups(ICommandTab cmdTab, TabCommandGroupInfo[] tabGroups) 
         {
             var tabBoxes = (object[])cmdTab.CommandTabBoxes();
 
@@ -629,7 +672,7 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
             {
                 for (int i = 0; i < tabBoxes.Length; i++)
                 {
-                    if (!IsCommandTabBoxUnchanged((ICommandTabBox)tabBoxes[i], tabGroups[i]))
+                    if (!IsCommandTabBoxMatchingGroup((ICommandTabBox)tabBoxes[i], tabGroups[i]))
                     {
                         return false;
                     }
@@ -643,7 +686,7 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
             }
         }
 
-        private bool IsCommandTabBoxUnchanged(ICommandTabBox cmdTabBox, TabCommandGroupInfo groupInfo)
+        private bool IsCommandTabBoxMatchingGroup(ICommandTabBox cmdTabBox, TabCommandGroupInfo groupInfo)
         {
             object existingCmds;
             object existingTextStyles;
