@@ -12,7 +12,7 @@ using Xarial.XCad.Data;
 namespace Xarial.XCad
 {
     /// <summary>
-    /// Wrapper inteface over the specific object
+    /// Wrapper interface over the specific object
     /// </summary>
     public interface IXObject : IEquatable<IXObject>
     {
