@@ -479,49 +479,49 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         internal protected abstract swDocumentTypes_e? DocumentType { get; }
 
-        public ISwDocument3D[] Dependencies 
+        public ISwDocument3D[] Dependencies
         {
-            get 
+            get
             {
-                if (!string.IsNullOrEmpty(Path))
-                {
-                    string[] depsData;
+                string[] depsData;
 
-                    if (IsCommitted && !Model.IsOpenedViewOnly())
-                    {
-                        depsData = Model.Extension.GetDependencies(false, true, false, true, true) as string[];
-                    }
-                    else 
+                if (IsCommitted && !Model.IsOpenedViewOnly())
+                {
+                    depsData = Model.Extension.GetDependencies(false, true, false, true, true) as string[];
+                }
+                else
+                {
+                    if (!string.IsNullOrEmpty(Path))
                     {
                         depsData = OwnerApplication.Sw.GetDocumentDependencies2(Path, false, true, false) as string[];
                     }
-
-                    if (depsData?.Any() == true)
+                    else
                     {
-                        var deps = new ISwDocument3D[depsData.Length / 2];
-
-                        for (int i = 1; i < depsData.Length; i += 2) 
-                        {
-                            var path = depsData[i];
-
-                            if (!((SwDocumentCollection)OwnerApplication.Documents).TryFindExistingDocumentByPath(path, out SwDocument refDoc))
-                            {
-                                refDoc = (SwDocument3D)((SwDocumentCollection)OwnerApplication.Documents).PreCreateFromPath(path);
-                            }
-
-                            deps[(i - 1) / 2] = (ISwDocument3D)refDoc;
-                        }
-
-                        return deps;
-                    }
-                    else 
-                    {
-                        return new ISwDocument3D[0];
+                        throw new Exception("Dependencies can only be extracted for the document with specified path");
                     }
                 }
-                else 
+
+                if (depsData?.Any() == true)
                 {
-                    throw new Exception("Dependencies can only be extracted for the document with specified path");
+                    var deps = new ISwDocument3D[depsData.Length / 2];
+
+                    for (int i = 1; i < depsData.Length; i += 2)
+                    {
+                        var path = depsData[i];
+
+                        if (!((SwDocumentCollection)OwnerApplication.Documents).TryFindExistingDocumentByPath(path, out SwDocument refDoc))
+                        {
+                            refDoc = (SwDocument3D)((SwDocumentCollection)OwnerApplication.Documents).PreCreateFromPath(path);
+                        }
+
+                        deps[(i - 1) / 2] = (ISwDocument3D)refDoc;
+                    }
+
+                    return deps;
+                }
+                else
+                {
+                    return new ISwDocument3D[0];
                 }
             }
         }
