@@ -42,6 +42,8 @@ namespace Xarial.XCad.SwDocumentManager.Features
             set => throw new NotSupportedException();
         }
 
+        public IEnumerable<IXFace> Faces => throw new NotSupportedException();
+
         #endregion
 
         IXPropertyRepository IPropertiesOwner.Properties => Properties;
@@ -66,18 +68,14 @@ namespace Xarial.XCad.SwDocumentManager.Features
             m_Conf = conf;
         }
 
-        public IXSolidBody[] Bodies 
+        public IEnumerable<IXSolidBody> Bodies 
         {
             get 
             {
-                var bodies = new IXSolidBody[CutListItem.Quantity];
-
-                for (int i = 0; i < bodies.Length; i++) 
+                for (int i = 0; i < CutListItem.Quantity; i++) 
                 {
-                    bodies[i] = new SwDmSolidBody();
+                    yield return new SwDmSolidBody();
                 }
-
-                return bodies;
             }
         }
 

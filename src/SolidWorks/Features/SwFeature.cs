@@ -12,9 +12,11 @@ using System.Drawing;
 using System.Threading;
 using Xarial.XCad.Annotations;
 using Xarial.XCad.Features;
+using Xarial.XCad.Geometry;
 using Xarial.XCad.Services;
 using Xarial.XCad.SolidWorks.Annotations;
 using Xarial.XCad.SolidWorks.Documents;
+using Xarial.XCad.SolidWorks.Geometry;
 using Xarial.XCad.SolidWorks.Utils;
 
 namespace Xarial.XCad.SolidWorks.Features
@@ -75,6 +77,22 @@ namespace Xarial.XCad.SolidWorks.Features
         }
 
         public override bool IsCommitted => m_Creator.IsCreated;
+
+        public IEnumerable<IXFace> Faces 
+        {
+            get 
+            {
+                var faces = (object[])Feature.GetFaces();
+
+                if (faces != null) 
+                {
+                    foreach (var face in Faces) 
+                    {
+                        yield return OwnerDocument.CreateObjectFromDispatch<ISwFace>(face);
+                    }
+                }
+            }
+        }
 
         public override void Select(bool append)
         {

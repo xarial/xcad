@@ -105,7 +105,7 @@ namespace SolidWorksDocMgr.Tests.Integration
             {
                 var assm = m_App.Documents.Active;
 
-                var deps = assm.Dependencies;
+                var deps = assm.Dependencies.ToArray();
 
                 var dir = Path.GetDirectoryName(assm.Path);
 
@@ -147,7 +147,7 @@ namespace SolidWorksDocMgr.Tests.Integration
             {
                 var assm = m_App.Documents.Active;
 
-                var deps = assm.Dependencies;
+                var deps = assm.Dependencies.ToArray();
 
                 var dir = Path.GetDirectoryName(assm.Path);
 
@@ -164,7 +164,7 @@ namespace SolidWorksDocMgr.Tests.Integration
             {
                 var assm = m_App.Documents.Active;
 
-                var deps = assm.Dependencies;
+                var deps = assm.Dependencies.ToArray();
 
                 var dir = GetFilePath(@"Assembly3");
 

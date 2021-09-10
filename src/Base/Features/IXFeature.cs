@@ -5,8 +5,10 @@
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
+using System.Collections.Generic;
 using Xarial.XCad.Annotations;
 using Xarial.XCad.Base;
+using Xarial.XCad.Geometry;
 
 namespace Xarial.XCad.Features
 {
@@ -24,5 +26,10 @@ namespace Xarial.XCad.Features
         /// Dimensions associated with the feature
         /// </summary>
         IXDimensionRepository Dimensions { get; }
+
+        /// <summary>
+        /// Faces of this feature
+        /// </summary>
+        IEnumerable<IXFace> Faces { get; }
     }
 }

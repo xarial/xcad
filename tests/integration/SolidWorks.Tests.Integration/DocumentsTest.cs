@@ -533,7 +533,7 @@ namespace SolidWorks.Tests.Integration
             var assm = m_App.Documents.PreCreate<ISwAssembly>();
             assm.Path = GetFilePath(@"Assembly2\TopAssem.SLDASM");
 
-            var deps = assm.Dependencies;
+            var deps = assm.Dependencies.ToArray();
 
             var dir = Path.GetDirectoryName(assm.Path);
 
@@ -599,7 +599,7 @@ namespace SolidWorks.Tests.Integration
             var assm = m_App.Documents.PreCreate<ISwAssembly>();
             assm.Path = GetFilePath(@"MovedNonOpenedAssembly1\TopAssembly.SLDASM");
 
-            var deps = assm.Dependencies;
+            var deps = assm.Dependencies.ToArray();
 
             var dir = Path.GetDirectoryName(assm.Path);
 
@@ -614,7 +614,7 @@ namespace SolidWorks.Tests.Integration
             var assm = m_App.Documents.PreCreate<ISwAssembly>();
             assm.Path = GetFilePath(@"Assembly3\Assemblies\Assem1.SLDASM");
 
-            var deps = assm.Dependencies;
+            var deps = assm.Dependencies.ToArray();
 
             var dir = GetFilePath("Assembly3");
 

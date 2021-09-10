@@ -22,6 +22,8 @@ Breaking change is marked with &#x26A0; symbol
 * &#x26A0; IXGeometryMemoryBuilder::PreCreateArc is renamed to IXGeometryMemoryBuilder::PreCreateCircle. IXGeometryMemoryBuilder::PreCreateArc has been redefined to create arc rather than circle
 * &#x26A0; IXDocumentRepository::DocumentCreated is renamed to IXDocumentRepository::DocumentLoaded
 * &#x26A0; IXDocument::Rebuild event is renamed to IXDocument::Rebuilt and IXDocument::Regenerate method is renamed to IXDocument::Rebuild
+* &#x26A0; CommandSpec::TabBoxStyle is replaced with CommandSpec::RibbonTextStyle, CommandSpec::HasTabBox is replaced with CommandSpec::HasRibbon
+* &#x26A0; IXDocument::Dependencies, IXConfiguration::CutLists, IXCutList::Bodies, IXFace::Edges changed from array to IEnumerable
 
 ## 0.7.4 - July 11, 2021
 

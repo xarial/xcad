@@ -272,6 +272,9 @@ namespace Xarial.XCad.SolidWorks
                             return new SwSurface(surf, doc, app);
                     }
 
+                case IModelView modelView:
+                    return new SwModelView(modelView, doc, app);
+
                 default:
                     return defaultHandler.Invoke(disp);
             }

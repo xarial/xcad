@@ -37,7 +37,7 @@ namespace Xarial.XCad.Geometry
         /// <summary>
         /// Edges of this face
         /// </summary>
-        IXEdge[] Edges { get; }
+        IEnumerable<IXEdge> Edges { get; }
 
         /// <summary>
         /// Projects the specified point onto the surface

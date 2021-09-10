@@ -24,7 +24,7 @@ namespace Xarial.XCad.Documents.Extensions
 
         private static IEnumerable<IXDocument3D> EnumerateDependencies(IXDocument doc, List<string> usedPaths) 
         {
-            IXDocument3D[] deps = null;
+            IEnumerable<IXDocument3D> deps = null;
 
             try
             {

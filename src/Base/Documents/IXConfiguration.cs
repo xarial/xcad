@@ -10,6 +10,7 @@ using Xarial.XCad.Data;
 using Xarial.XCad.Features;
 using Xarial.XCad.UI;
 using Xarial.XCad.Documents.Enums;
+using System.Collections.Generic;
 
 namespace Xarial.XCad.Documents
 {
@@ -41,7 +42,7 @@ namespace Xarial.XCad.Documents
         /// <summary>
         /// Cut-list items in this configuration (if available)
         /// </summary>
-        IXCutListItem[] CutLists { get; }
+        IEnumerable<IXCutListItem> CutLists { get; }
 
         /// <summary>
         /// Preview image of this configuration

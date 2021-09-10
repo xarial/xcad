@@ -59,7 +59,7 @@ namespace Xarial.XCad.SolidWorks.Features
 
         public IBodyFolder CutListBodyFolder { get; }
 
-        public IXSolidBody[] Bodies 
+        public IEnumerable<IXSolidBody> Bodies 
         {
             get
             {
@@ -67,11 +67,10 @@ namespace Xarial.XCad.SolidWorks.Features
 
                 if (bodies != null)
                 {
-                    return bodies.Select(b => OwnerDocument.CreateObjectFromDispatch<ISwSolidBody>(b)).ToArray();
-                }
-                else 
-                {
-                    return new IXSolidBody[0];
+                    foreach (var body in bodies.Select(b => OwnerDocument.CreateObjectFromDispatch<ISwSolidBody>(b))) 
+                    {
+                        yield return body;
+                    }
                 }
             }
         }

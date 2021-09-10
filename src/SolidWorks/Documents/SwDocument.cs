@@ -48,7 +48,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         new ISwDimensionsCollection Dimensions { get; }
         new ISwCustomPropertiesCollection Properties { get; }
         new ISwVersion Version { get; }
-        new ISwDocument3D[] Dependencies { get; }
+        new IEnumerable<ISwDocument3D> Dependencies { get; }
         new TSwObj DeserializeObject<TSwObj>(Stream stream)
             where TSwObj : ISwObject;
 
@@ -158,7 +158,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         IXSelectionRepository IXDocument.Selections => Selections;
         IXDimensionRepository IXDocument.Dimensions => Dimensions;
         IXPropertyRepository IPropertiesOwner.Properties => Properties;
-        IXDocument3D[] IXDocument.Dependencies => Dependencies;
+        IEnumerable<IXDocument3D> IXDocument.Dependencies => Dependencies;
         IXVersion IXDocument.Version => Version;
 
         TObj IXDocument.DeserializeObject<TObj>(Stream stream)
@@ -479,7 +479,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         internal protected abstract swDocumentTypes_e? DocumentType { get; }
 
-        public ISwDocument3D[] Dependencies
+        public IEnumerable<ISwDocument3D> Dependencies
         {
             get
             {
@@ -503,8 +503,6 @@ namespace Xarial.XCad.SolidWorks.Documents
 
                 if (depsData?.Any() == true)
                 {
-                    var deps = new ISwDocument3D[depsData.Length / 2];
-
                     for (int i = 1; i < depsData.Length; i += 2)
                     {
                         var path = depsData[i];
@@ -514,14 +512,8 @@ namespace Xarial.XCad.SolidWorks.Documents
                             refDoc = (SwDocument3D)((SwDocumentCollection)OwnerApplication.Documents).PreCreateFromPath(path);
                         }
 
-                        deps[(i - 1) / 2] = (ISwDocument3D)refDoc;
+                        yield return (ISwDocument3D)refDoc;
                     }
-
-                    return deps;
-                }
-                else
-                {
-                    return new ISwDocument3D[0];
                 }
             }
         }

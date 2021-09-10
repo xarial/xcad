@@ -28,7 +28,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
     {
         ISwDMConfiguration Configuration { get; }
         new ISwDmCustomPropertiesCollection Properties { get; }
-        new ISwDmCutListItem[] CutLists { get; }
+        new IEnumerable<ISwDmCutListItem> CutLists { get; }
     }
 
     internal class SwDmConfiguration : SwDmObject, ISwDmConfiguration
@@ -36,7 +36,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         internal const string QTY_PROPERTY = "UNIT_OF_MEASURE";
 
         IXPropertyRepository IPropertiesOwner.Properties => Properties;
-        IXCutListItem[] IXConfiguration.CutLists => CutLists;
+        IEnumerable<IXCutListItem> IXConfiguration.CutLists => CutLists;
 
         private readonly Lazy<ISwDmCustomPropertiesCollection> m_Properties;
 
@@ -59,7 +59,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             set => ((ISwDMConfiguration7)Configuration).Name2 = value;
         }
 
-        public ISwDmCutListItem[] CutLists
+        public IEnumerable<ISwDmCutListItem> CutLists
         {
             get
             {
@@ -84,12 +84,11 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
                 if (cutListItems != null)
                 {
-                    return cutListItems.Cast<ISwDMCutListItem2>()
-                        .Select(c => new SwDmCutListItem(c, Document, this)).ToArray();
-                }
-                else
-                {
-                    return new ISwDmCutListItem[0];
+                    foreach (var cutList in cutListItems.Cast<ISwDMCutListItem2>()
+                        .Select(c => new SwDmCutListItem(c, Document, this))) 
+                    {
+                        yield return cutList;
+                    }
                 }
             }
         }

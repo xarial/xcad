@@ -29,13 +29,13 @@ namespace Xarial.XCad.SolidWorks.Geometry
     {
         IFace2 Face { get; }
         new ISwSurface Definition { get; }
-        new ISwEdge[] Edges { get; }
+        new IEnumerable<ISwEdge> Edges { get; }
     }
 
     internal class SwFace : SwEntity, ISwFace
     {
         IXSurface IXFace.Definition => Definition;
-        IXEdge[] IXFace.Edges => Edges;
+        IEnumerable<IXEdge> IXFace.Edges => Edges;
 
         public IFace2 Face { get; }
         private readonly IMathUtility m_MathUtils;
@@ -91,8 +91,8 @@ namespace Xarial.XCad.SolidWorks.Geometry
             }
         }
 
-        public ISwEdge[] Edges => (Face.GetEdges() as object[])
-            .Select(f => OwnerApplication.CreateObjectFromDispatch<ISwEdge>(f, OwnerDocument)).ToArray();
+        public IEnumerable<ISwEdge> Edges => (Face.GetEdges() as object[])
+            .Select(f => OwnerApplication.CreateObjectFromDispatch<ISwEdge>(f, OwnerDocument));
 
         public override Point FindClosestPoint(Point point)
             => new Point(((double[])Face.GetClosestPointOn(point.X, point.Y, point.Z)).Take(3).ToArray());

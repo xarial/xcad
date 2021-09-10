@@ -21,7 +21,7 @@ namespace SolidWorksDocMgr.Tests.Integration
             {
                 var part = (ISwDmDocument3D)m_App.Documents.Active;
                 var cutLists = part.Configurations.Active.CutLists;
-                cutListData = cutLists.ToDictionary(c => c.Name, c => c.Bodies.Length);
+                cutListData = cutLists.ToDictionary(c => c.Name, c => c.Bodies.Count());
             }
 
             Assert.AreEqual(2, cutListData.Count);
@@ -40,7 +40,7 @@ namespace SolidWorksDocMgr.Tests.Integration
             {
                 var part = (ISwDmDocument3D)m_App.Documents.Active;
                 var cutLists = part.Configurations.Active.CutLists;
-                cutListData = cutLists.ToDictionary(c => c.Name, c => c.Bodies.Length);
+                cutListData = cutLists.ToDictionary(c => c.Name, c => c.Bodies.Count());
             }
 
             Assert.AreEqual(1, cutListData.Count);
@@ -57,7 +57,7 @@ namespace SolidWorksDocMgr.Tests.Integration
             {
                 var part = (ISwDmDocument3D)m_App.Documents.Active;
                 var cutLists = part.Configurations.Active.CutLists;
-                cutListData = cutLists.ToDictionary(c => c.Name, c => c.Bodies.Length);
+                cutListData = cutLists.ToDictionary(c => c.Name, c => c.Bodies.Count());
             }
 
             Assert.AreEqual(3, cutListData.Count);

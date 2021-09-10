@@ -198,7 +198,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             }
         }
 
-        public IXDocument3D[] Dependencies 
+        public IEnumerable<IXDocument3D> Dependencies 
         {
             get 
             {
@@ -233,10 +233,11 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                         deps = ((ISwDMDocument13)doc).GetAllExternalReferences4(searchOpts, out _, out _, out _) as string[];
                     }
 
-                    var depDocs = (deps ?? new string[0])
-                        .Select(d => (ISwDmDocument3D)SwDmApp.Documents.PreCreateFromPath(d)).ToArray();
-
-                    return depDocs;
+                    foreach (var dep in (deps ?? new string[0])
+                        .Select(d => (ISwDmDocument3D)SwDmApp.Documents.PreCreateFromPath(d))) 
+                    {
+                        yield return dep;
+                    }
                 }
                 finally 
                 {
