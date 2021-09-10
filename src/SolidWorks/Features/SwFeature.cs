@@ -84,9 +84,9 @@ namespace Xarial.XCad.SolidWorks.Features
             {
                 var faces = (object[])Feature.GetFaces();
 
-                if (faces != null) 
+                if (faces != null)
                 {
-                    foreach (var face in Faces) 
+                    foreach (var face in faces) 
                     {
                         yield return OwnerDocument.CreateObjectFromDispatch<ISwFace>(face);
                     }
