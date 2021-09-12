@@ -8,6 +8,7 @@
 using SolidWorks.Interop.swdocumentmgr;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -38,6 +39,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             where TObj : ISwDmObject;
     }
 
+    [DebuggerDisplay("{" + nameof(Title) + "}")]
     internal abstract class SwDmDocument : SwDmObject, ISwDmDocument
     {
         internal static SwDmDocumentType GetDocumentType(string path)
@@ -216,6 +218,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                     }
 
                     var searchOpts = SwDmApp.SwDocMgr.GetSearchOptionObject();
+
                     searchOpts.SearchFilters = (int)(
                         SwDmSearchFilters.SwDmSearchExternalReference
                         | SwDmSearchFilters.SwDmSearchRootAssemblyFolder
@@ -246,9 +249,19 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                         var compsLazy = new Lazy<ISwDmComponent[]>(
                             () =>
                             {
-                                if (this is ISwDmAssembly)
+                                if (string.Equals(System.IO.Path.GetExtension(Path), ".sldasm", StringComparison.CurrentCultureIgnoreCase))
                                 {
-                                    return ((ISwDmAssembly)this).Configurations.Active.Components.Cast<ISwDmComponent>().ToArray();
+                                    var activeConfName = doc.ConfigurationManager.GetActiveConfigurationName();
+                                    var conf = (ISwDMConfiguration2)doc.ConfigurationManager.GetConfigurationByName(activeConfName);
+                                    var comps = (object[])conf.GetComponents();
+                                    if (comps != null)
+                                    {
+                                        return comps.Select(c => CreateObjectFromDispatch<ISwDmComponent>(c)).ToArray();
+                                    }
+                                    else 
+                                    {
+                                        return new ISwDmComponent[0];
+                                    }
                                 }
                                 else 
                                 {
@@ -287,6 +300,10 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                             if (!isVirtual[i] || !TryFindVirtualDocument(depPath, out depDoc))
                             {
                                 depDoc = (ISwDmDocument3D)SwDmApp.Documents.PreCreateFromPath(depPath);
+                                if (State.HasFlag(DocumentState_e.ReadOnly))
+                                {
+                                    depDoc.State = DocumentState_e.ReadOnly;
+                                }
                             }
                             
                             yield return depDoc;

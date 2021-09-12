@@ -510,6 +510,11 @@ namespace Xarial.XCad.SolidWorks.Documents
                         if (!((SwDocumentCollection)OwnerApplication.Documents).TryFindExistingDocumentByPath(path, out SwDocument refDoc))
                         {
                             refDoc = (SwDocument3D)((SwDocumentCollection)OwnerApplication.Documents).PreCreateFromPath(path);
+                            
+                            if (State.HasFlag(DocumentState_e.ReadOnly))
+                            {
+                                refDoc.State = DocumentState_e.ReadOnly;
+                            }
                         }
 
                         yield return (ISwDocument3D)refDoc;
