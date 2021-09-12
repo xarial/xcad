@@ -223,20 +223,74 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                         | SwDmSearchFilters.SwDmSearchInContextReference);
 
                     string[] deps;
+                    object isVirtualObj;
 
                     if (SwDmApp.IsVersionNewerOrEqual(SwDmVersion_e.Sw2017))
                     {
-                        deps = ((ISwDMDocument21)doc).GetAllExternalReferences5(searchOpts, out _, out _, out _, out _) as string[];
+                        deps = ((ISwDMDocument21)doc).GetAllExternalReferences5(searchOpts, out _, out isVirtualObj, out _, out _) as string[];
                     }
                     else
                     {
-                        deps = ((ISwDMDocument13)doc).GetAllExternalReferences4(searchOpts, out _, out _, out _) as string[];
+                        deps = ((ISwDMDocument13)doc).GetAllExternalReferences4(searchOpts, out _, out isVirtualObj, out _) as string[];
                     }
 
-                    foreach (var dep in (deps ?? new string[0])
-                        .Select(d => (ISwDmDocument3D)SwDmApp.Documents.PreCreateFromPath(d))) 
+                    if (deps != null)
                     {
-                        yield return dep;
+                        var isVirtual = (bool[])isVirtualObj;
+
+                        if (isVirtual.Length != deps.Length) 
+                        {
+                            throw new Exception("Invalid API. Number of virtual components information does not match references count");
+                        }
+
+                        var compsLazy = new Lazy<ISwDmComponent[]>(
+                            () =>
+                            {
+                                if (this is ISwDmAssembly)
+                                {
+                                    return ((ISwDmAssembly)this).Configurations.Active.Components.Cast<ISwDmComponent>().ToArray();
+                                }
+                                else 
+                                {
+                                    throw new Exception("Components can only be extracted from the assembly");
+                                }
+                            });
+
+                        bool TryFindVirtualDocument(string filePath, out ISwDmDocument3D virtCompDoc)
+                        {
+                            var comp = compsLazy.Value.FirstOrDefault(c => string.Equals(
+                                System.IO.Path.GetFileName(c.CachedPath), System.IO.Path.GetFileName(filePath),
+                                StringComparison.CurrentCultureIgnoreCase));
+
+                            if (comp != null)
+                            {
+                                try
+                                {
+                                    virtCompDoc = comp.ReferencedDocument;
+                                    return true;
+                                }
+                                catch 
+                                {
+                                }
+                            }
+
+                            virtCompDoc = null;
+                            return false;
+                        }
+
+                        for (int i = 0; i < deps.Length; i++) 
+                        {
+                            var depPath = deps[i];
+
+                            ISwDmDocument3D depDoc;
+
+                            if (!isVirtual[i] || !TryFindVirtualDocument(depPath, out depDoc))
+                            {
+                                depDoc = (ISwDmDocument3D)SwDmApp.Documents.PreCreateFromPath(depPath);
+                            }
+                            
+                            yield return depDoc;
+                        }
                     }
                 }
                 finally 

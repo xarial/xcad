@@ -14,6 +14,7 @@ using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Delegates;
 using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Documents.Exceptions;
+using Xarial.XCad.Documents.Extensions;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.SolidWorks;
@@ -621,6 +622,45 @@ namespace SolidWorks.Tests.Integration
             Assert.AreEqual(1, deps.Length);
             Assert.That(deps.All(d => !d.IsCommitted));
             Assert.That(deps.Any(d => string.Equals(d.Path, Path.Combine(dir, "Parts\\Part1.SLDPRT"), StringComparison.CurrentCultureIgnoreCase)));
+        }
+
+        [Test]
+        public void DocumentAllDependenciesMissingAndVirtualTest()
+        {
+            using (var doc = OpenDataDocument(@"Assembly6\Assem1.SLDASM"))
+            {
+                var assm = m_App.Documents.Active;
+
+                var deps = assm.GetAllDependencies().ToArray();
+
+                var dir = Path.GetDirectoryName(assm.Path);
+
+                var d1 = deps.FirstOrDefault(d => string.Equals(Path.GetFileName(d.Path), "Part1^Assem1.sldprt",
+                    StringComparison.CurrentCultureIgnoreCase));
+                var d2 = deps.FirstOrDefault(d => string.Equals(Path.GetFileName(d.Path), "Part2.sldprt",
+                    StringComparison.CurrentCultureIgnoreCase));
+                var d3 = deps.FirstOrDefault(d => string.Equals(Path.GetFileName(d.Path), "Assem2.sldasm",
+                    StringComparison.CurrentCultureIgnoreCase));
+                var d4 = deps.FirstOrDefault(d => string.Equals(Path.GetFileName(d.Path), "Assem3^Assem1.sldasm",
+                    StringComparison.CurrentCultureIgnoreCase));
+                var d5 = deps.FirstOrDefault(d => string.Equals(Path.GetFileName(d.Path), "Part4.sldprt",
+                    StringComparison.CurrentCultureIgnoreCase));
+                var d6 = deps.FirstOrDefault(d => string.Equals(Path.GetFileName(d.Path), "Part5^Assem3_Assem1.sldprt",
+                    StringComparison.CurrentCultureIgnoreCase));
+
+                Assert.AreEqual(6, deps.Length);
+                Assert.IsTrue(d1.IsAlive);
+                Assert.IsTrue(d1.IsCommitted);
+                Assert.Throws<OpenDocumentFailedException>(() => d2.Commit());
+                Assert.Throws<OpenDocumentFailedException>(() => d3.Commit());
+                Assert.IsTrue(d4.IsAlive);
+                Assert.IsTrue(d4.IsCommitted);
+                Assert.IsTrue(d5.IsAlive);
+                Assert.IsTrue(d5.IsCommitted);
+                Assert.That(string.Equals(d5.Path, Path.Combine(dir, "Part4.SLDPRT"), StringComparison.CurrentCultureIgnoreCase));
+                Assert.IsTrue(d6.IsAlive);
+                Assert.IsTrue(d6.IsCommitted);
+            }
         }
 
         [Test]

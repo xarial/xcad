@@ -29,6 +29,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 {
     public interface ISwDmComponent : IXComponent, ISwDmSelObject
     {
+        string CachedPath { get; }
         ISwDMComponent Component { get; }
         new ISwDmDocument3D ReferencedDocument { get; }
         new ISwDmConfiguration ReferencedConfiguration { get; }

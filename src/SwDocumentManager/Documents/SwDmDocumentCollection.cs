@@ -21,6 +21,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 {
     public interface ISwDmDocumentCollection : IXDocumentRepository, IDisposable 
     {
+        bool TryGet(string name, out ISwDmDocument ent);
         new ISwDmDocument this[string name] { get; }
         new ISwDmDocument Active { get; set; }
     }
@@ -35,13 +36,20 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             set => Active = (ISwDmDocument)value;
         }
 
+        bool IXRepository<IXDocument>.TryGet(string name, out IXDocument ent)
+        {
+            var res = this.TryGet(name, out ISwDmDocument doc);
+            ent = doc;
+            return res;
+        }
+
         public ISwDmDocument this[string name]
         {
             get
             {
-                if (TryGet(name, out IXDocument doc))
+                if (TryGet(name, out ISwDmDocument doc))
                 {
-                    return (ISwDmDocument)doc;
+                    return doc;
                 }
                 else
                 {
@@ -113,7 +121,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             }
         }
 
-        public bool TryGet(string name, out IXDocument ent)
+        public bool TryGet(string name, out ISwDmDocument ent)
         {
             if (System.IO.Path.IsPathRooted(name))
             {

@@ -12,6 +12,9 @@ using System.Text;
 
 namespace Xarial.XCad.Documents.Extensions
 {
+    /// <summary>
+    /// Additional methods for <see cref="IXDocument"/>
+    /// </summary>
     public static class IXDocumentExtension
     {
         /// <summary>
@@ -24,13 +27,13 @@ namespace Xarial.XCad.Documents.Extensions
 
         private static IEnumerable<IXDocument3D> EnumerateDependencies(IXDocument doc, List<string> usedPaths) 
         {
-            IEnumerable<IXDocument3D> deps = null;
+            IXDocument3D[] deps = null;
 
             try
             {
-                deps = doc.Dependencies;
+                deps = doc.Dependencies.ToArray();
             }
-            catch 
+            catch
             {
             }
 
@@ -41,7 +44,7 @@ namespace Xarial.XCad.Documents.Extensions
                     usedPaths.Add(dep.Path);
                     yield return dep;
 
-                    foreach (var childDep in EnumerateDependencies(dep, usedPaths)) 
+                    foreach (var childDep in EnumerateDependencies(dep, usedPaths))
                     {
                         yield return childDep;
                     }

@@ -10,6 +10,7 @@ using Xarial.XCad.Base;
 using Xarial.XCad.Data.Enums;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Enums;
+using Xarial.XCad.Documents.Exceptions;
 using Xarial.XCad.Documents.Extensions;
 using Xarial.XCad.SwDocumentManager;
 using Xarial.XCad.SwDocumentManager.Documents;
@@ -137,6 +138,44 @@ namespace SolidWorksDocMgr.Tests.Integration
                 Assert.That(deps.Any(d => string.Equals(d.Path, Path.Combine(dir, "Assem1.SLDASM"))));
                 Assert.That(deps.Any(d => string.Equals(d.Path, Path.Combine(dir, "Assem2.SLDASM"))));
                 Assert.That(deps.Any(d => string.Equals(d.Path, Path.Combine(dir, "Part1.SLDPRT"))));
+            }
+        }
+
+        [Test]
+        public void DocumentAllDependenciesMissingAndVirtualTest()
+        {
+            using (var doc = OpenDataDocument(@"Assembly6\Assem1.SLDASM"))
+            {
+                var assm = m_App.Documents.Active;
+
+                var deps = assm.GetAllDependencies().ToArray();
+
+                var dir = Path.GetDirectoryName(assm.Path);
+
+                var d1 = deps.FirstOrDefault(d => string.Equals(Path.GetFileName(d.Path), "_temp_Part1^Assem1.sldprt",
+                    StringComparison.CurrentCultureIgnoreCase));
+                var d2 = deps.FirstOrDefault(d => string.Equals(Path.GetFileName(d.Path), "Part2.sldprt",
+                    StringComparison.CurrentCultureIgnoreCase));
+                var d3 = deps.FirstOrDefault(d => string.Equals(Path.GetFileName(d.Path), "Assem2.sldasm",
+                    StringComparison.CurrentCultureIgnoreCase));
+                var d4 = deps.FirstOrDefault(d => string.Equals(Path.GetFileName(d.Path), "_temp_Assem3^Assem1.sldasm",
+                    StringComparison.CurrentCultureIgnoreCase));
+                var d5 = deps.FirstOrDefault(d => string.Equals(Path.GetFileName(d.Path), "Part4.sldprt",
+                    StringComparison.CurrentCultureIgnoreCase));
+                var d6 = deps.FirstOrDefault(d => string.Equals(Path.GetFileName(d.Path), "_temp_Part5^Assem3_Assem1.sldprt",
+                    StringComparison.CurrentCultureIgnoreCase));
+
+                Assert.AreEqual(6, deps.Length);
+                Assert.IsTrue(d1.IsAlive);
+                Assert.IsTrue(d1.IsCommitted);
+                Assert.Throws<OpenDocumentFailedException>(() => d2.Commit());
+                Assert.Throws<OpenDocumentFailedException>(() => d3.Commit());
+                Assert.IsTrue(d4.IsAlive);
+                Assert.IsTrue(d4.IsCommitted);
+                Assert.IsFalse(d5.IsCommitted);
+                Assert.That(string.Equals(d5.Path, Path.Combine(dir, "Part4.SLDPRT"), StringComparison.CurrentCultureIgnoreCase));
+                Assert.IsTrue(d6.IsAlive);
+                Assert.IsTrue(d6.IsCommitted);
             }
         }
 
