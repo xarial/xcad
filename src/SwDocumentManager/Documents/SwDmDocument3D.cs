@@ -45,4 +45,21 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             m_Configurations = new Lazy<ISwDmConfigurationCollection>(() => new SwDmConfigurationCollection(this));
         }
     }
+
+    internal class SwDmVirtualDocumentHelper
+    {
+        internal static string GetTitle(string fileName)
+        {
+            const string PREFIX = "_temp_";
+
+            if (fileName.StartsWith(PREFIX, StringComparison.CurrentCultureIgnoreCase))
+            {
+                return fileName.Substring(PREFIX.Length);
+            }
+            else 
+            {
+                return fileName;
+            }
+        }
+    }
 }

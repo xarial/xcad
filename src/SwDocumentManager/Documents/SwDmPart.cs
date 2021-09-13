@@ -35,4 +35,19 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         public IXBodyRepository Bodies => throw new NotImplementedException();
     }
+
+    internal class SwDmVirtualPart : SwDmPart
+    {
+        public SwDmVirtualPart(ISwDmApplication dmApp, ISwDMDocument doc, bool isCreated,
+            Action<ISwDmDocument> createHandler, Action<ISwDmDocument> closeHandler, bool? isReadOnly) 
+            : base(dmApp, doc, isCreated, createHandler, closeHandler, isReadOnly)
+        {
+        }
+
+        public override string Title
+        {
+            get => SwDmVirtualDocumentHelper.GetTitle(base.Title);
+            set => base.Title = value;
+        }
+    }
 }

@@ -199,18 +199,37 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                             if (doc == null)
                             {
                                 var docType = ((ISwDMComponent2)Component).DocumentType;
+                                var isVirtual = ((ISwDMComponent3)Component).IsVirtual;
 
                                 switch (docType)
                                 {
                                     case SwDmDocumentType.swDmDocumentPart:
-                                        doc = new SwDmPart(m_ParentAssm.SwDmApp, dmDoc, true,
-                                            docsColl.OnDocumentCreated,
-                                            docsColl.OnDocumentClosed, isReadOnly);
+                                        if (!isVirtual)
+                                        {
+                                            doc = new SwDmPart(m_ParentAssm.SwDmApp, dmDoc, true,
+                                                docsColl.OnDocumentCreated,
+                                                docsColl.OnDocumentClosed, isReadOnly);
+                                        }
+                                        else 
+                                        {
+                                            doc = new SwDmVirtualPart(m_ParentAssm.SwDmApp, dmDoc, true,
+                                                docsColl.OnDocumentCreated,
+                                                docsColl.OnDocumentClosed, isReadOnly);
+                                        }
                                         break;
                                     case SwDmDocumentType.swDmDocumentAssembly:
-                                        doc = new SwDmAssembly(m_ParentAssm.SwDmApp, dmDoc, true,
-                                            docsColl.OnDocumentCreated,
-                                            docsColl.OnDocumentClosed, isReadOnly);
+                                        if (!isVirtual)
+                                        {
+                                            doc = new SwDmAssembly(m_ParentAssm.SwDmApp, dmDoc, true,
+                                                docsColl.OnDocumentCreated,
+                                                docsColl.OnDocumentClosed, isReadOnly);
+                                        }
+                                        else 
+                                        {
+                                            doc = new SwDmVirtualAssembly(m_ParentAssm.SwDmApp, dmDoc, true,
+                                                docsColl.OnDocumentCreated,
+                                                docsColl.OnDocumentClosed, isReadOnly);
+                                        }
                                         break;
                                     default:
                                         throw new NotSupportedException($"Document type '{docType}' of the component is not supported");

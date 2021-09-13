@@ -188,6 +188,32 @@ namespace SolidWorksDocMgr.Tests.Integration
         }
 
         [Test]
+        public void DocumentAllDependenciesTitleTest()
+        {
+            string[] titles;
+
+            using (var doc = OpenDataDocument(@"Assembly7\Assem1.SLDASM"))
+            {
+                var assm = m_App.Documents.Active;
+
+                titles = assm.GetAllDependencies().Select(d => Path.GetFileNameWithoutExtension(d.Title)).ToArray();
+            }
+
+            Assert.AreEqual(7, titles.Length);
+
+            CollectionAssert.AreEquivalent(new string[] 
+            {
+                "Part1^Assem1",
+                "__Part2^Assem1",
+                "_temp_ABC^Assem1",
+                "Assem2^Assem1",
+                "Part4^Assem2_Assem1",
+                "Assem2",
+                "Part5^Assem2"
+            }, titles);
+        }
+
+        [Test]
         public void DocumentAllDependenciesReadOnlyState()
         {
             var destPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());

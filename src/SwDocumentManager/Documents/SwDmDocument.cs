@@ -99,12 +99,22 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         public ISwDmVersion Version => SwDmApplicationFactory.CreateVersion((SwDmVersion_e)Document.GetVersion());
 
-        public string Title 
+        public virtual string Title 
         {
-            get => System.IO.Path.GetFileName(Path);
+            get 
+            {
+                if (IsFileExtensionShown)
+                {
+                    return System.IO.Path.GetFileName(Path);
+                }
+                else
+                {
+                    return System.IO.Path.GetFileNameWithoutExtension(Path);
+                }
+            }
             set => throw new NotSupportedException("This property is read-only");
         }
-        
+
         public string Path 
         {
             get 
@@ -271,20 +281,20 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
                         bool TryFindVirtualDocument(string filePath, out ISwDmDocument3D virtCompDoc)
                         {
-                            var comp = compsLazy.Value.FirstOrDefault(c => string.Equals(
-                                System.IO.Path.GetFileName(c.CachedPath), System.IO.Path.GetFileName(filePath),
-                                StringComparison.CurrentCultureIgnoreCase));
-
-                            if (comp != null)
+                            try
                             {
-                                try
+                                var comp = compsLazy.Value.FirstOrDefault(c => string.Equals(
+                                    System.IO.Path.GetFileName(c.CachedPath), System.IO.Path.GetFileName(filePath),
+                                    StringComparison.CurrentCultureIgnoreCase));
+
+                                if (comp != null)
                                 {
                                     virtCompDoc = comp.ReferencedDocument;
                                     return true;
                                 }
-                                catch 
-                                {
-                                }
+                            }
+                            catch
+                            {
                             }
 
                             virtCompDoc = null;
@@ -534,6 +544,29 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                 }
 
                 throw new SaveDocumentFailedException((int)res, errDesc);
+            }
+        }
+
+        private bool IsFileExtensionShown
+        {
+            get
+            {
+                try
+                {
+                    const string REG_KEY = @"Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced";
+                    const int UNCHECKED = 0;
+                    var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(REG_KEY);
+
+                    if (key != null)
+                    {
+                        return (int)key.GetValue("HideFileExt") == UNCHECKED;
+                    }
+                }
+                catch
+                {
+                }
+
+                return false;
             }
         }
 
