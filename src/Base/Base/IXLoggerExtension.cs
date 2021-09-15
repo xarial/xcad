@@ -23,11 +23,16 @@ namespace Xarial.XCad.Base
         /// </summary>
         /// <param name="logger">Logger</param>
         /// <param name="msg">Message to trace</param>
-        /// <param name="severity"></param>
         /// <param name="category">Trace category</param>
-        public static void Trace(this IXLogger logger, string msg, string category, LoggerMessageSeverity_e severity)
+        /// <param name="severity"></param>
+        /// <param name="singleLine">True to merge multiline into a single line</param>
+        public static void Trace(this IXLogger logger, string msg, string category, LoggerMessageSeverity_e severity, bool singleLine = false)
         {
-            msg = Regex.Replace(msg, @"\r\n?|\n", " :: ");
+            if (singleLine)
+            {
+                msg = Regex.Replace(msg, @"\r\n?|\n", " :: ");
+            }
+
             System.Diagnostics.Trace.WriteLine($"[{severity}]{msg}", category);
         }
 
