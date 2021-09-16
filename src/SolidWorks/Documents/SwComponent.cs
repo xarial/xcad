@@ -187,14 +187,31 @@ namespace Xarial.XCad.SolidWorks.Documents
             {
                 var swState = GetSuppressionState();
 
-                if ((swState == swComponentSuppressionState_e.swComponentSuppressed && !value.HasFlag(ComponentState_e.Suppressed))
-                    || (swState == swComponentSuppressionState_e.swComponentLightweight
-                        || swState == swComponentSuppressionState_e.swComponentFullyLightweight
-                        && !value.HasFlag(ComponentState_e.Lightweight)))
+                if ((swState == swComponentSuppressionState_e.swComponentSuppressed 
+                    || swState == swComponentSuppressionState_e.swComponentLightweight
+                    || swState == swComponentSuppressionState_e.swComponentFullyLightweight)
+                        && !value.HasFlag(ComponentState_e.Lightweight) && !value.HasFlag(ComponentState_e.Suppressed))
                 {
                     if (Component.SetSuppression2((int)swComponentSuppressionState_e.swComponentFullyResolved) != (int)swSuppressionError_e.swSuppressionChangeOk) 
                     {
-                        throw new Exception("Failed to resovle component state");
+                        throw new Exception("Failed to resolve component state");
+                    }
+                }
+                else if (swState != swComponentSuppressionState_e.swComponentSuppressed
+                        && value.HasFlag(ComponentState_e.Suppressed))
+                {
+                    if (Component.SetSuppression2((int)swComponentSuppressionState_e.swComponentSuppressed) != (int)swSuppressionError_e.swSuppressionChangeOk)
+                    {
+                        throw new Exception("Failed to suppress component");
+                    }
+                }
+                else if (swState != swComponentSuppressionState_e.swComponentFullyLightweight
+                        && swState != swComponentSuppressionState_e.swComponentLightweight
+                        && value.HasFlag(ComponentState_e.Lightweight))
+                {
+                    if (Component.SetSuppression2((int)swComponentSuppressionState_e.swComponentFullyLightweight) != (int)swSuppressionError_e.swSuppressionChangeOk)
+                    {
+                        throw new Exception("Failed to resolve component state");
                     }
                 }
 
@@ -207,10 +224,18 @@ namespace Xarial.XCad.SolidWorks.Documents
                 {
                     Component.Visible = (int)swComponentVisibilityState_e.swComponentVisible;
                 }
+                else if (!Component.IsHidden(false) && value.HasFlag(ComponentState_e.Hidden))
+                {
+                    Component.Visible = (int)swComponentVisibilityState_e.swComponentHidden;
+                }
 
                 if (Component.ExcludeFromBOM && !value.HasFlag(ComponentState_e.ExcludedFromBom))
                 {
                     Component.ExcludeFromBOM = false;
+                }
+                else if (!Component.ExcludeFromBOM && value.HasFlag(ComponentState_e.ExcludedFromBom))
+                {
+                    Component.ExcludeFromBOM = true;
                 }
 
                 if (Component.IsEnvelope() && !value.HasFlag(ComponentState_e.Envelope))

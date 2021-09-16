@@ -267,7 +267,8 @@ namespace SolidWorksDocMgr.Tests.Integration
             ComponentState_e s3;
             ComponentState_e s4;
             ComponentState_e s5;
-
+            ComponentState_e s6;
+            
             using (var doc = OpenDataDocument(@"Assembly5\Assem1.SLDASM"))
             {
                 var assm = (ISwDmAssembly)m_App.Documents.Active;
@@ -277,6 +278,7 @@ namespace SolidWorksDocMgr.Tests.Integration
                 s3 = assm.Configurations.Active.Components["Part1-3"].State;
                 s4 = assm.Configurations.Active.Components["Part1-4"].State;
                 s5 = assm.Configurations.Active.Components["Part1-5"].State;
+                s6 = assm.Configurations.Active.Components["Part2^Assem1-1"].State;
             }
 
             Assert.AreEqual(ComponentState_e.Default, s1);
@@ -284,6 +286,7 @@ namespace SolidWorksDocMgr.Tests.Integration
             Assert.AreEqual(ComponentState_e.Envelope, s3);
             Assert.AreEqual(ComponentState_e.ExcludedFromBom, s4);
             Assert.AreEqual(ComponentState_e.Hidden, s5);
+            Assert.AreEqual(ComponentState_e.Embedded, s6);
         }
 
         [Test]
