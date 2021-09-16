@@ -144,11 +144,15 @@ namespace Xarial.XCad.SolidWorks.Documents
                 {
                     state |= ComponentState_e.Lightweight;
                 }
-                else if (swState == (int)swComponentSuppressionState_e.swComponentSuppressed) 
+                else if (swState == swComponentSuppressionState_e.swComponentSuppressed) 
                 {
                     state |= ComponentState_e.Suppressed;
                 }
-                
+                else if (swState == swComponentSuppressionState_e.swComponentInternalIdMismatch)
+                {
+                    state |= ComponentState_e.SuppressedIdMismatch;
+                }
+
                 if (m_RootAssembly.Model.IsOpenedViewOnly()) //Large design review
                 {
                     state |= ComponentState_e.ViewOnly;
@@ -212,6 +216,26 @@ namespace Xarial.XCad.SolidWorks.Documents
                 if (Component.IsEnvelope() && !value.HasFlag(ComponentState_e.Envelope))
                 {
                     throw new Exception("Envelope state cannot be changed");
+                }
+
+                if (!Component.IsVirtual && value.HasFlag(ComponentState_e.Embedded)) 
+                {
+                    if (OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2016))
+                    {
+                        Component.MakeVirtual2(false);
+                    }
+                    else if (OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2013))
+                    {
+                        Component.MakeVirtual();
+                    }
+                    else
+                    {
+                        throw new Exception("Component can only be set to virtual starting from SOLIDWORKS 2013");
+                    }
+                }
+                else if (Component.IsVirtual && !value.HasFlag(ComponentState_e.Embedded))
+                {
+                    throw new NotSupportedException("Changing component from virtual is not supported");
                 }
             }
         }

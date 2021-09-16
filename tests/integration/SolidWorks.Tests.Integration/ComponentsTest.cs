@@ -321,7 +321,7 @@ namespace SolidWorks.Tests.Integration
             Assert.AreEqual(ComponentState_e.ExcludedFromBom, s4);
             Assert.AreEqual(ComponentState_e.Hidden, s5);
         }
-
+        
         [Test]
         public void TransformTest()
         {

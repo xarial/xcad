@@ -100,7 +100,7 @@ namespace Xarial.XCad.Documents
             {
                 var state = parent.State;
 
-                if (!state.HasFlag(ComponentState_e.Suppressed))
+                if (!state.HasFlag(ComponentState_e.Suppressed) && !state.HasFlag(ComponentState_e.SuppressedIdMismatch))
                 {
                     if (includeHidden || !state.HasFlag(ComponentState_e.Hidden))
                     {
