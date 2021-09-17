@@ -81,12 +81,6 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         #region Not Supported
 
-        public event DocumentEventDelegate Hiding 
-        {
-            add => throw new NotSupportedException();
-            remove => throw new NotSupportedException();
-        }
-
         public string Template { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
         public IXFeatureRepository Features => throw new NotImplementedException();
         public IXSelectionRepository Selections => throw new NotSupportedException();
@@ -350,7 +344,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         public event DataStoreAvailableDelegate StorageWriteAvailable;
         
         public event DocumentSaveDelegate Saving;
-        public event DocumentEventDelegate Closing;
+        public event DocumentCloseDelegate Closing;
         
         protected readonly ElementCreator<ISwDMDocument> m_Creator;
 
@@ -460,7 +454,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         public void Close()
         {
             Document.CloseDoc();
-            Closing?.Invoke(this);
+            Closing?.Invoke(this, DocumentCloseType_e.Destroy);
 
             m_CloseHandler.Invoke(this);
             m_IsClosed = true;

@@ -244,14 +244,17 @@ namespace SolidWorks.Tests.Integration
 
             var doc1 = (ISwDocument)m_App.Documents.Open(GetFilePath("foreign.IGS"));
 
-            doc1.Closing += (d)=> 
+            doc1.Closing += (d, t)=> 
             {
-                if (d != doc1)
+                if (t == DocumentCloseType_e.Destroy)
                 {
-                    throw new Exception("doc1 is invalid");
-                }
+                    if (d != doc1)
+                    {
+                        throw new Exception("doc1 is invalid");
+                    }
 
-                d1ClosingCount++;
+                    d1ClosingCount++;
+                }
             };
 
             int errs = -1;
@@ -264,14 +267,17 @@ namespace SolidWorks.Tests.Integration
 
             var doc2 = m_App.Documents[model2];
 
-            doc2.Closing += (d) =>
+            doc2.Closing += (d, t) =>
             {
-                if (d != doc2)
+                if (t == DocumentCloseType_e.Destroy)
                 {
-                    throw new Exception("doc2 is invalid");
-                }
+                    if (d != doc2)
+                    {
+                        throw new Exception("doc2 is invalid");
+                    }
 
-                d2ClosingCount++;
+                    d2ClosingCount++;
+                }
             };
 
             var activeDocTitle = Path.GetFileNameWithoutExtension(m_App.Documents.Active.Title).ToLower();
@@ -295,23 +301,31 @@ namespace SolidWorks.Tests.Integration
         {
             var hiddenDocs = new List<string>();
 
-            void OnHiding(IXDocument d) => hiddenDocs.Add(Path.GetFileName(d.Path));
+            void OnHiding(IXDocument d, DocumentCloseType_e t)
+            {
+                if (t == DocumentCloseType_e.Hide)
+                {
+                    hiddenDocs.Add(Path.GetFileName(d.Path));
+                }
+            }
+
+            var docs = m_App.Documents;
 
             using (var doc = OpenDataDocument(GetFilePath("Assembly1\\TopAssem1.SLDASM"))) 
             {
-                var assm = m_App.Documents.Active;
-                assm.Hiding += OnHiding;
+                var assm = docs.Active;
+                assm.Closing += OnHiding;
 
                 foreach (var dep in assm.GetAllDependencies()) 
                 {
-                    dep.Hiding += OnHiding;
+                    dep.Closing += OnHiding;
                 }
 
-                m_App.Documents.Active = (ISwDocument)m_App.Documents[GetFilePath("Assembly1\\Part1.sldprt")];
+                m_App.Documents.Active = (ISwDocument)docs[GetFilePath("Assembly1\\Part1.sldprt")];
                 m_App.Documents.Active.Close();
-                m_App.Documents.Active = (ISwDocument)m_App.Documents[GetFilePath("Assembly1\\SubAssem1.SLDASM")];
+                m_App.Documents.Active = (ISwDocument)docs[GetFilePath("Assembly1\\SubAssem1.SLDASM")];
                 m_App.Documents.Active.Close();
-                m_App.Documents.Active = (ISwDocument)m_App.Documents[GetFilePath("Assembly1\\Part3.sldprt")];
+                m_App.Documents.Active = (ISwDocument)docs[GetFilePath("Assembly1\\Part3.sldprt")];
                 m_App.Documents.Active.Close();
             }
 

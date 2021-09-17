@@ -413,8 +413,9 @@ namespace Xarial.XCad.SolidWorks.Documents
                 }
                 else 
                 {
+                    //NOTE: this happens on activation of the document
                     m_Logger.Log($"Conflict. {doc.Model.GetTitle()} already dispatched", LoggerMessageSeverity_e.Warning);
-                    Debug.Assert(false, "Document already dispatched");
+                    //Debug.Assert(false, "Document already dispatched");
                 }
             }
         }

@@ -13,6 +13,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
 using System.Text;
 using System.Threading;
@@ -78,9 +79,9 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
 
         internal event Action<SwDocument> Destroyed;
+        internal event Action<SwDocument> Hidden;
 
-        public event DocumentEventDelegate Hiding;
-        public event DocumentEventDelegate Closing;
+        public event DocumentCloseDelegate Closing;
         
         public event DocumentEventDelegate Rebuilt 
         {
@@ -954,7 +955,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
                     try
                     {
-                        Closing?.Invoke(this);
+                        Closing?.Invoke(this, DocumentCloseType_e.Destroy);
                     }
                     catch (Exception ex)
                     {
@@ -967,7 +968,17 @@ namespace Xarial.XCad.SolidWorks.Documents
                 }
                 else if (destroyType == (int)swDestroyNotifyType_e.swDestroyNotifyHidden)
                 {
-                    Hiding?.Invoke(this);
+                    try
+                    {
+                        Closing?.Invoke(this, DocumentCloseType_e.Hide);
+                    }
+                    catch (Exception ex)
+                    {
+                        m_Logger.Log(ex);
+                    }
+
+                    Hidden?.Invoke(this);
+
                     m_Logger.Log($"Hiding '{Model.GetTitle()}' document", XCad.Base.Enums.LoggerMessageSeverity_e.Debug);
                 }
                 else

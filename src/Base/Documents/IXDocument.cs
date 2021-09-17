@@ -62,13 +62,7 @@ namespace Xarial.XCad.Documents
         /// <summary>
         /// Fired when document is closing
         /// </summary>
-        event DocumentEventDelegate Closing;
-
-        /// <summary>
-        /// Fired when document is hiding
-        /// </summary>
-        /// <remarks>This happens when document is being closed from its own window but remain a part of opened assembly or drawing</remarks>
-        event DocumentEventDelegate Hiding;
+        event DocumentCloseDelegate Closing;
 
         /// <summary>
         /// Units assigned in this document
