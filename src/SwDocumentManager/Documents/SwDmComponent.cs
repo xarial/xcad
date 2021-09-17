@@ -9,6 +9,7 @@ using SolidWorks.Interop.swdocumentmgr;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.IO;
@@ -35,6 +36,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         new ISwDmConfiguration ReferencedConfiguration { get; }
     }
 
+    [DebuggerDisplay("{" + nameof(Name) + "}")]
     internal class SwDmComponent : SwDmSelObject, ISwDmComponent
     {
         #region Not Supported

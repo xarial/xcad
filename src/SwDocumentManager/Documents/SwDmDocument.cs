@@ -81,11 +81,21 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         #region Not Supported
 
+        public event DocumentEventDelegate Hiding 
+        {
+            add => throw new NotSupportedException();
+            remove => throw new NotSupportedException();
+        }
+
         public string Template { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
         public IXFeatureRepository Features => throw new NotImplementedException();
         public IXSelectionRepository Selections => throw new NotSupportedException();
         public IXDimensionRepository Dimensions => throw new NotSupportedException();
-        public event DocumentEventDelegate Rebuilt;
+        public event DocumentEventDelegate Rebuilt
+        {
+            add => throw new NotSupportedException();
+            remove => throw new NotSupportedException();
+        }
         public TObj DeserializeObject<TObj>(Stream stream) where TObj : IXObject => throw new NotSupportedException();
         public void Rebuild() => throw new NotSupportedException();
         public IXUnits Units => throw new NotSupportedException();
@@ -341,7 +351,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         
         public event DocumentSaveDelegate Saving;
         public event DocumentEventDelegate Closing;
-
+        
         protected readonly ElementCreator<ISwDMDocument> m_Creator;
 
         internal protected ISwDmApplication SwDmApp { get; }

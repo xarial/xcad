@@ -77,9 +77,9 @@ namespace Xarial.XCad.SolidWorks.Documents
             };
         }
 
-        internal event Action<SwDocument> Hidden;
         internal event Action<SwDocument> Destroyed;
 
+        public event DocumentEventDelegate Hiding;
         public event DocumentEventDelegate Closing;
         
         public event DocumentEventDelegate Rebuilt 
@@ -967,7 +967,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                 }
                 else if (destroyType == (int)swDestroyNotifyType_e.swDestroyNotifyHidden)
                 {
-                    Hidden?.Invoke(this);
+                    Hiding?.Invoke(this);
                     m_Logger.Log($"Hiding '{Model.GetTitle()}' document", XCad.Base.Enums.LoggerMessageSeverity_e.Debug);
                 }
                 else

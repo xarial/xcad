@@ -291,6 +291,37 @@ namespace SolidWorks.Tests.Integration
         }
 
         [Test]
+        public void DocumentHidingTest()
+        {
+            var hiddenDocs = new List<string>();
+
+            void OnHiding(IXDocument d) => hiddenDocs.Add(Path.GetFileName(d.Path));
+
+            using (var doc = OpenDataDocument(GetFilePath("Assembly1\\TopAssem1.SLDASM"))) 
+            {
+                var assm = m_App.Documents.Active;
+                assm.Hiding += OnHiding;
+
+                foreach (var dep in assm.GetAllDependencies()) 
+                {
+                    dep.Hiding += OnHiding;
+                }
+
+                m_App.Documents.Active = (ISwDocument)m_App.Documents[GetFilePath("Assembly1\\Part1.sldprt")];
+                m_App.Documents.Active.Close();
+                m_App.Documents.Active = (ISwDocument)m_App.Documents[GetFilePath("Assembly1\\SubAssem1.SLDASM")];
+                m_App.Documents.Active.Close();
+                m_App.Documents.Active = (ISwDocument)m_App.Documents[GetFilePath("Assembly1\\Part3.sldprt")];
+                m_App.Documents.Active.Close();
+            }
+
+            Assert.AreEqual(3, hiddenDocs.Count);
+            Assert.That(string.Equals("Part1.sldprt", hiddenDocs[0], StringComparison.CurrentCultureIgnoreCase));
+            Assert.That(string.Equals("SubAssem1.SLDASM", hiddenDocs[1], StringComparison.CurrentCultureIgnoreCase));
+            Assert.That(string.Equals("Part3.sldprt", hiddenDocs[2], StringComparison.CurrentCultureIgnoreCase));
+        }
+
+        [Test]
         public void PartEventsTest() 
         {
             var rebuildCount = 0;

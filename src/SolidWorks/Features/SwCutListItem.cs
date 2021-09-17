@@ -8,6 +8,7 @@
 using SolidWorks.Interop.sldworks;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using Xarial.XCad.Data;
@@ -29,6 +30,7 @@ namespace Xarial.XCad.SolidWorks.Features
         IBodyFolder CutListBodyFolder { get; }
     }
 
+    [DebuggerDisplay("{" + nameof(Name) + "}")]
     internal class SwCutListItem : SwFeature, ISwCutListItem
     {
         private readonly Lazy<ISwCustomPropertiesCollection> m_Properties;

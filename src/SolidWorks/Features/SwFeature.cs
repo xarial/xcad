@@ -8,6 +8,7 @@
 using SolidWorks.Interop.sldworks;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Threading;
 using Xarial.XCad.Annotations;
@@ -27,6 +28,7 @@ namespace Xarial.XCad.SolidWorks.Features
         new ISwDimensionsCollection Dimensions { get; }
     }
 
+    [DebuggerDisplay("{" + nameof(Name) + "}")]
     internal class SwFeature : SwSelObject, ISwFeature
     {
         private readonly ElementCreator<IFeature> m_Creator;

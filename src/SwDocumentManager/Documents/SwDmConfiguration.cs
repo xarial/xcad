@@ -8,6 +8,7 @@
 using SolidWorks.Interop.swdocumentmgr;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -31,6 +32,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         new IEnumerable<ISwDmCutListItem> CutLists { get; }
     }
 
+    [DebuggerDisplay("{" + nameof(Name) + "}")]
     internal class SwDmConfiguration : SwDmObject, ISwDmConfiguration
     {
         internal const string QTY_PROPERTY = "UNIT_OF_MEASURE";

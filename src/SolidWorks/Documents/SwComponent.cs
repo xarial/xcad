@@ -10,6 +10,7 @@ using SolidWorks.Interop.swconst;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -51,6 +52,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         string CachedPath { get; }
     }
 
+    [DebuggerDisplay("{" + nameof(Name) + "}")]
     internal class SwComponent : SwSelObject, ISwComponent
     {
         IXDocument3D IXComponent.ReferencedDocument => ReferencedDocument;

@@ -9,6 +9,7 @@ using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
@@ -35,6 +36,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         new ISwCustomPropertiesCollection Properties { get; }
     }
 
+    [DebuggerDisplay("{" + nameof(Name) + "}")]
     internal class SwConfiguration : SwObject, ISwConfiguration
     {
         internal const string QTY_PROPERTY = "UNIT_OF_MEASURE";

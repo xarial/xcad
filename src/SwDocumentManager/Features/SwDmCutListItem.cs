@@ -8,6 +8,7 @@
 using SolidWorks.Interop.swdocumentmgr;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -30,6 +31,7 @@ namespace Xarial.XCad.SwDocumentManager.Features
         ISwDMCutListItem2 CutListItem { get; }
     }
 
+    [DebuggerDisplay("{" + nameof(Name) + "}")]
     internal class SwDmCutListItem : SwDmSelObject, ISwDmCutListItem
     {
         #region Not Supported

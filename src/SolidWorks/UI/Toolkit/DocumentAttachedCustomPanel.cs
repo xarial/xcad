@@ -101,7 +101,7 @@ namespace Xarial.XCad.SolidWorks.UI.Toolkit
         {
             m_App = app;
             m_Doc = doc;
-            m_Doc.Hidden += OnHidden;
+            m_Doc.Hiding += OnHidden;
             m_Doc.Destroyed += OnDestroyed;
 
             app.Documents.DocumentActivated += OnDocumentActivated;
@@ -147,7 +147,7 @@ namespace Xarial.XCad.SolidWorks.UI.Toolkit
             }
         }
 
-        private void OnHidden(SwDocument doc)
+        private void OnHidden(IXDocument doc)
         {
             try
             {
@@ -179,7 +179,7 @@ namespace Xarial.XCad.SolidWorks.UI.Toolkit
             if (!m_IsDisposed)
             {
                 m_App.Documents.DocumentActivated -= OnDocumentActivated;
-                m_Doc.Hidden -= OnHidden;
+                m_Doc.Hiding -= OnHidden;
                 m_Doc.Destroyed -= OnDestroyed;
 
                 m_IsDisposed = true;
