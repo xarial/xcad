@@ -49,6 +49,7 @@
     <Reference Include="System.Windows.Forms" />
     <Reference Include="PresentationFramework" />
     <Reference Include="PresentationCore" />
+    <Reference Include="System.Xaml" />
     <Reference Include="WindowsFormsIntegration" />
     <Reference Include="WindowsBase" />
   </ItemGroup>
