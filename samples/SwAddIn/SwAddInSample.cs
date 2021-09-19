@@ -185,9 +185,9 @@ namespace SwAddInExample
 
         public override void OnConnect()
         {
-            CommandManager.AddCommandGroup<Commands1_e>();
-            CommandManager.AddCommandGroup<Commands2_e>();
-            return;
+            //CommandManager.AddCommandGroup<Commands1_e>();
+            //CommandManager.AddCommandGroup<Commands2_e>();
+            //return;
             CommandManager.AddCommandGroup(new CommandGroupSpec(99)
             {
                 Title = "Group 1",

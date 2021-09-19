@@ -47,11 +47,6 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
         {
             m_KeystrokePropagator.Dispose();
             
-            if (m_Elem is IDisposable) 
-            {
-                ((IDisposable)m_Elem).Dispose();
-            }
-            
             m_Host.Dispose();
         }
     }
