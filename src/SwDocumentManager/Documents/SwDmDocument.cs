@@ -22,6 +22,7 @@ using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Documents.Exceptions;
 using Xarial.XCad.Documents.Structures;
 using Xarial.XCad.Features;
+using Xarial.XCad.Geometry;
 using Xarial.XCad.Services;
 using Xarial.XCad.SolidWorks.Data;
 using Xarial.XCad.SwDocumentManager.Data;
@@ -313,7 +314,16 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
                             if (!isVirtual[i] || !TryFindVirtualDocument(depPath, out depDoc))
                             {
-                                depDoc = (ISwDmDocument3D)SwDmApp.Documents.PreCreateFromPath(depPath);
+                                try
+                                {
+                                    depDoc = (ISwDmDocument3D)SwDmApp.Documents.PreCreateFromPath(depPath);
+                                }
+                                catch
+                                {
+                                    depDoc = SwDmApp.Documents.PreCreate<ISwDmDocument3D>();
+                                    depDoc.Path = depPath;
+                                }
+
                                 if (State.HasFlag(DocumentState_e.ReadOnly))
                                 {
                                     depDoc.State = DocumentState_e.ReadOnly;
@@ -646,5 +656,20 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
             return m_SpecificDoc;
         }
+    }
+
+    internal class SwDmUnknownDocument3D : SwDmUnknownDocument, ISwDmDocument3D
+    {
+        public SwDmUnknownDocument3D(ISwDmApplication dmApp, SwDMDocument doc, bool isCreated, Action<ISwDmDocument> createHandler, Action<ISwDmDocument> closeHandler, bool? isReadOnly = null)
+            : base(dmApp, doc, isCreated, createHandler, closeHandler, isReadOnly)
+        {
+        }
+
+        public ISwDmConfigurationCollection Configurations => throw new NotImplementedException();
+        public IXModelViewRepository ModelViews => throw new NotImplementedException();
+        IXConfigurationRepository IXDocument3D.Configurations => throw new NotImplementedException();
+        public IXBoundingBox PreCreateBoundingBox() => throw new NotImplementedException();
+        public IXMassProperty PreCreateMassProperty() => throw new NotImplementedException();
+        TSelObject IXObjectContainer.ConvertObject<TSelObject>(TSelObject obj) => throw new NotImplementedException();
     }
 }

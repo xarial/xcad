@@ -505,6 +505,10 @@ namespace Xarial.XCad.SolidWorks.Documents
             {
                 templateDoc = new SwDrawing(null, m_App, m_Logger, false);
             }
+            else if (typeof(IXDocument3D).IsAssignableFrom(typeof(TDocument)))
+            {
+                templateDoc = new SwUnknownDocument3D(null, m_App, m_Logger, false);
+            }
             else if (typeof(IXDocument).IsAssignableFrom(typeof(TDocument)) 
                 || typeof(IXUnknownDocument).IsAssignableFrom(typeof(TDocument)))
             {
@@ -517,7 +521,14 @@ namespace Xarial.XCad.SolidWorks.Documents
 
             templateDoc.SetDispatcher(m_DocsDispatcher);
 
-            return templateDoc as TDocument;
+            if (templateDoc is TDocument)
+            {
+                return templateDoc as TDocument;
+            }
+            else 
+            {
+                throw new InvalidCastException($"{templateDoc.GetType().FullName} cannot be cast to {typeof(TDocument).FullName}");
+            }
         }
 
         public bool TryGet(string name, out IXDocument ent)

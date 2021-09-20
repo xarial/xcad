@@ -592,6 +592,42 @@ namespace SolidWorks.Tests.Integration
         }
 
         [Test]
+        public void DocumentDependencies3DInterconnect()
+        {
+            Dictionary<string, bool> r1;
+
+            using (var assm = OpenDataDocument(@"Assembly9\Assem1.SLDASM"))
+            {
+                var deps = m_App.Documents.Active.GetAllDependencies().ToArray();
+                r1 = deps.ToDictionary(d => Path.GetFileName(d.Path), d => d.IsCommitted, StringComparer.CurrentCultureIgnoreCase);
+            }
+
+            Assert.AreEqual(2, r1.Count);
+            Assert.That(r1.ContainsKey("Part2.sldprt"));
+            Assert.That(r1.ContainsKey("Part1.prt.sldprt"));
+            Assert.IsTrue(r1["Part2.sldprt"]);
+            Assert.IsTrue(r1["Part1.prt.sldprt"]);
+        }
+
+        [Test]
+        public void DocumentDependencies3DInterconnectUnloaded()
+        {
+            Dictionary<string, bool> r1;
+
+            var assm = m_App.Documents.PreCreate<ISwAssembly>();
+            assm.Path = GetFilePath(@"Assembly9\Assem1.SLDASM");
+
+            var deps = assm.GetAllDependencies().ToArray();
+            r1 = deps.ToDictionary(d => Path.GetFileName(d.Path), d => d.IsCommitted, StringComparer.CurrentCultureIgnoreCase);
+
+            Assert.AreEqual(2, r1.Count);
+            Assert.That(r1.ContainsKey("Part2.sldprt"));
+            Assert.That(r1.ContainsKey("Part1.prt.sldprt"));
+            Assert.IsFalse(r1["Part2.sldprt"]);
+            Assert.IsFalse(r1["Part1.prt.sldprt"]);
+        }
+
+        [Test]
         public void DocumentDependenciesLoadedTest()
         {
             string dir = "";

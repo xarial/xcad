@@ -167,6 +167,10 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             {
                 templateDoc = new SwDmDrawing(m_DmApp, null, false, OnDocumentCreated, OnDocumentClosed, null);
             }
+            else if (typeof(IXDocument3D).IsAssignableFrom(typeof(TDocument)))
+            {
+                templateDoc = new SwDmUnknownDocument3D(m_DmApp, null, false, OnDocumentCreated, OnDocumentClosed);
+            }
             else if (typeof(IXDocument).IsAssignableFrom(typeof(TDocument))
                 || typeof(IXUnknownDocument).IsAssignableFrom(typeof(TDocument)))
             {
@@ -177,7 +181,14 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                 throw new NotSupportedException("Creation of this type of document is not supported");
             }
 
-            return templateDoc as TDocument;
+            if (templateDoc is TDocument)
+            {
+                return templateDoc as TDocument;
+            }
+            else
+            {
+                throw new InvalidCastException($"{templateDoc.GetType().FullName} cannot be cast to {typeof(TDocument).FullName}");
+            }
         }
 
         internal void OnDocumentCreated(ISwDmDocument doc)

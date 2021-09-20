@@ -23,7 +23,14 @@ namespace Xarial.XCad.Documents.Extensions
         /// <param name="doc">Input document</param>
         /// <returns>All dependencies</returns>
         public static IEnumerable<IXDocument3D> GetAllDependencies(this IXDocument doc)
-            => EnumerateDependencies(doc, new List<string>());
+        {
+            if (doc == null) 
+            {
+                throw new ArgumentNullException(nameof(doc));
+            }
+
+            return EnumerateDependencies(doc, new List<string>());
+        }
 
         private static IEnumerable<IXDocument3D> EnumerateDependencies(IXDocument doc, List<string> usedPaths) 
         {

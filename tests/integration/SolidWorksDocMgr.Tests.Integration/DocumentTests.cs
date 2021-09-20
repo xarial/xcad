@@ -214,6 +214,23 @@ namespace SolidWorksDocMgr.Tests.Integration
         }
 
         [Test]
+        public void DocumentDependencies3DInterconnect()
+        {
+            Dictionary<string, bool> r1;
+
+            using (var assm = OpenDataDocument(@"Assembly9\Assem1.SLDASM"))
+            {
+                var deps = m_App.Documents.Active.GetAllDependencies().ToArray();
+                r1 = deps.ToDictionary(d => Path.GetFileName(d.Path), d => d.IsCommitted, StringComparer.CurrentCultureIgnoreCase);
+            }
+
+            Assert.AreEqual(2, r1.Count);
+            Assert.That(r1.ContainsKey("Part2.sldprt"));
+            Assert.That(r1.ContainsKey("Part1.prt.sldprt"));
+            Assert.That(r1.Values.All(x => x == false));
+        }
+
+        [Test]
         public void DocumentAllDependenciesReadOnlyState()
         {
             var destPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());

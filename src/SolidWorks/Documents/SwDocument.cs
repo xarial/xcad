@@ -27,6 +27,7 @@ using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Documents.Exceptions;
 using Xarial.XCad.Exceptions;
 using Xarial.XCad.Features;
+using Xarial.XCad.Geometry;
 using Xarial.XCad.Services;
 using Xarial.XCad.SolidWorks.Annotations;
 using Xarial.XCad.SolidWorks.Data;
@@ -506,22 +507,48 @@ namespace Xarial.XCad.SolidWorks.Documents
                 {
                     for (int i = 1; i < depsData.Length; i += 2)
                     {
+                        ISwDocument3D refDoc;
                         var path = depsData[i];
 
-                        if (!((SwDocumentCollection)OwnerApplication.Documents).TryFindExistingDocumentByPath(path, out SwDocument refDoc))
+                        path = ResolvePathIf3DInterconnect(path);
+
+                        if (!((SwDocumentCollection)OwnerApplication.Documents).TryFindExistingDocumentByPath(path, out SwDocument existingRefDoc))
                         {
-                            refDoc = (SwDocument3D)((SwDocumentCollection)OwnerApplication.Documents).PreCreateFromPath(path);
-                            
+                            try
+                            {
+                                refDoc = (SwDocument3D)((SwDocumentCollection)OwnerApplication.Documents).PreCreateFromPath(path);
+                            }
+                            catch (Exception ex)//for 3D interconnect files the PreCreateFromPath can fail
+                            {
+                                m_Logger.Log(ex);
+                                refDoc = OwnerApplication.Documents.PreCreate<ISwDocument3D>();
+                                refDoc.Path = path;
+                            }
+
                             if (State.HasFlag(DocumentState_e.ReadOnly))
                             {
                                 refDoc.State = DocumentState_e.ReadOnly;
                             }
                         }
+                        else
+                        {
+                            refDoc = (ISwDocument3D)existingRefDoc;
+                        }
 
-                        yield return (ISwDocument3D)refDoc;
+                        yield return refDoc;
                     }
                 }
             }
+        }
+
+        private static string ResolvePathIf3DInterconnect(string path)
+        {
+            if (path.Contains("|"))
+            {
+                path = path.Split('|').First();
+            }
+
+            return path;
         }
 
         public ISwVersion Version 
@@ -1296,5 +1323,26 @@ namespace Xarial.XCad.SolidWorks.Documents
 
             return m_SpecificDoc;
         }
+    }
+
+    internal class SwUnknownDocument3D : SwUnknownDocument, ISwDocument3D
+    {
+        public SwUnknownDocument3D(IModelDoc2 model, SwApplication app, IXLogger logger, bool isCreated) 
+            : base(model, app, logger, isCreated)
+        {
+        }
+
+        public IXModelViewRepository ModelViews => throw new NotImplementedException();
+        public IXConfigurationRepository Configurations => throw new NotImplementedException();
+        ISwConfigurationCollection ISwDocument3D.Configurations => throw new NotImplementedException();
+        IXConfigurationRepository IXDocument3D.Configurations => throw new NotImplementedException();
+        ISwModelViewsCollection ISwDocument3D.ModelViews => throw new NotImplementedException();
+        IXModelViewRepository IXDocument3D.ModelViews => throw new NotImplementedException();
+        public IXBoundingBox PreCreateBoundingBox() => throw new NotImplementedException();
+        public IXMassProperty PreCreateMassProperty() => throw new NotImplementedException();
+        TSelObject IXObjectContainer.ConvertObject<TSelObject>(TSelObject obj) => throw new NotImplementedException();
+        TSelObject ISwDocument3D.ConvertObject<TSelObject>(TSelObject obj) => throw new NotImplementedException();
+        IXBoundingBox IXDocument3D.PreCreateBoundingBox() => throw new NotImplementedException();
+        IXMassProperty IXDocument3D.PreCreateMassProperty() => throw new NotImplementedException();
     }
 }
