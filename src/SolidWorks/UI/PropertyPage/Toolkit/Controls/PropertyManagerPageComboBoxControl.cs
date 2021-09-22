@@ -85,11 +85,15 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
         protected override void SetItemsToControl(ItemsControlItem[] items)
         {
+            var curVal = GetSpecificValue();
+
             SwSpecificControl.Clear();
 
             if (items?.Any() == true)
             {
                 SwSpecificControl.AddItems(items.Select(x => x.DisplayName).ToArray());
+                
+                SetSpecificValue(curVal);
             }
         }
     }

@@ -251,10 +251,17 @@ namespace SwAddInExample
         public MyItem Option4Set { get; set; }
 
         [ComboBox(1, 2, 3)]
+        [ControlTag(nameof(Option5Default))]
         public int Option5Default { get; set; }
 
         [ComboBox(1, 2, 3)]
         public int Option5Set { get; set; }
+
+        [ComboBox(typeof(MyCustomItemsProvider), nameof(Option5Default))]
+        public MyItem Option6Default { get; set; }
+
+        [ComboBox(typeof(MyCustomItemsProvider), nameof(Option5Default))]
+        public MyItem Option6Set { get; set; }
 
         public PmpComboBoxData()
         {
@@ -262,11 +269,13 @@ namespace SwAddInExample
             //Option3Set = Opts.Opt2;
             //Option4Set = MyItem.All.Last();
             //Option5Set = 2;
+            //Option6Set = MyItem.All.Last();
 
             Option2Set = new MyItem() { Name = "_", Id = -1 };
             Option3Set = (Opts)5;
             Option4Set = new MyItem() { Name = "-", Id = -2 };
             Option5Set = 5;
+            Option6Set = new MyItem() { Name = "+", Id = -3 };
         }
     }
 

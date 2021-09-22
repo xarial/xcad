@@ -19,7 +19,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 {
     internal class WpfCustomControl : IXCustomControl, IDisposable
     {
-        public event Action<IXCustomControl, object> ValueChanged;
+        public event CustomControlValueChangedDelegate ValueChanged;
 
         private readonly System.Windows.Forms.Control m_Host;
         private readonly FrameworkElement m_Elem;

@@ -26,6 +26,7 @@ Breaking change is marked with &#x26A0; symbol
 * &#x26A0; IXDocument::Dependencies, IXConfiguration::CutLists, IXCutList::Bodies, IXFace::Edges changed from array to IEnumerable
 * &#x26A0; IXDocument::Closing is passing the additional parameter if the document is closing or hiding
 * &#x26A0; ComboBoxOptionsAttribute::SelectDefaultValue option is deprecated and removed
+* &#x26A0; IXCustomControl::ValueChanged event delegate type is changed
 
 ## 0.7.4 - July 11, 2021
 
