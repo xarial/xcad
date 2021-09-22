@@ -49,20 +49,21 @@ namespace Xarial.XCad.Utils.PageBuilder.Core
 
         public void UpdateDataModel()
         {
-            SetDataModelValue();
+            SetDataModelValue(Control.GetValue());
             ModelUpdated?.Invoke(this);
         }
 
         protected void RaiseChangedEvent() 
             => Changed?.Invoke(this);
 
-        protected abstract void SetDataModelValue();
+        protected abstract void SetDataModelValue(object value);
 
         protected abstract void SetUserControlValue();
 
         private void OnControlValueChanged(IControl sender, object newValue)
         {
-            UpdateDataModel();
+            SetDataModelValue(newValue);
+            ModelUpdated?.Invoke(this);
             RaiseChangedEvent();
         }
     }

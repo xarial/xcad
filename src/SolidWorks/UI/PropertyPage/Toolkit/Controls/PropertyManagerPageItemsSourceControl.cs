@@ -9,6 +9,7 @@ using SolidWorks.Interop.sldworks;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Xarial.XCad.UI.PropertyPage.Base;
 using Xarial.XCad.UI.PropertyPage.Structures;
 using Xarial.XCad.Utils.PageBuilder.PageElements;
@@ -71,16 +72,17 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             Items = items.ToArray();
         }
         
-        protected TVal GetItem(int index) 
+        protected virtual TVal GetItem(int index) 
         {
-            if (index >= 0 && index < m_Items.Length)
+            if (m_Items != null)
             {
-                return (TVal)m_Items[index].Value;
+                if (index >= 0 && index < m_Items.Length)
+                {
+                    return (TVal)m_Items[index].Value;
+                }
             }
-            else
-            {
-                return default;
-            }
+
+            return default;
         }
 
         protected int GetItemIndex(TVal value) 

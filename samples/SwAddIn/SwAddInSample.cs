@@ -114,7 +114,9 @@ namespace SwAddInExample
 
             HandleSelection,
 
-            ShowTooltip
+            ShowTooltip,
+
+            ShowPmpComboBox
         }
 
         [Icon(typeof(Resources), nameof(Resources.xarial))]
@@ -158,9 +160,11 @@ namespace SwAddInExample
 
         private IXPropertyPage<PmpMacroFeatData> m_MacroFeatPage;
         private PmpMacroFeatData m_MacroFeatPmpData;
+        private PmpComboBoxData m_PmpComboBoxData;
 
         private ISwPropertyManagerPage<PmpData> m_Page;
         private ISwPropertyManagerPage<ToggleGroupPmpData> m_ToggleGroupPage;
+        private ISwPropertyManagerPage<PmpComboBoxData> m_ComboBoxPage;
         private ToggleGroupPmpData m_TogglePageData;
 
         private PmpData m_Data;
@@ -196,7 +200,7 @@ namespace SwAddInExample
                     new CommandSpec(1)
                     {
                         Title = "Cmd1",
-                        HasMenu = true, 
+                        HasMenu = true,
                         HasToolbar = true,
                         HasRibbon = true,
                         RibbonTextStyle = RibbonTabTextDisplay_e.TextBelow,
@@ -238,6 +242,14 @@ namespace SwAddInExample
 
             m_MacroFeatPage = this.CreatePage<PmpMacroFeatData>();
             m_MacroFeatPage.Closed += OnClosed;
+
+            m_ComboBoxPage = this.CreatePage<PmpComboBoxData>();
+            m_ComboBoxPage.Closed += OnComboBoxPageClosed;
+        }
+
+        private void OnComboBoxPageClosed(PageCloseReasons_e reason)
+        {
+            var x = m_PmpComboBoxData;
         }
 
         private void OnDocumentActivated(IXDocument doc)
@@ -342,6 +354,7 @@ namespace SwAddInExample
 
                 case Commands_e.ShowPmPage:
                     m_Data = new PmpData();
+                    m_Data.ItemsSourceComboBox = "Y";
                     m_Page.Show(m_Data);
                     m_Page.DataChanged += OnPageDataChanged;
                     break;
@@ -428,6 +441,11 @@ namespace SwAddInExample
                     var modelView = (Application.Documents.Active as IXDocument3D).ModelViews.Active;
                     var pt = new System.Drawing.Point(modelView.ScreenRect.Left, modelView.ScreenRect.Top);
                     Application.ShowTooltip(new MyTooltipSpec("xCAD", "Test Message", pt, TooltipArrowPosition_e.LeftTop));
+                    break;
+
+                case Commands_e.ShowPmpComboBox:
+                    m_PmpComboBoxData = new PmpComboBoxData();
+                    m_ComboBoxPage.Show(m_PmpComboBoxData);
                     break;
             }
         }

@@ -48,8 +48,6 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
                 swCtrl.Height = height;
             }
 
-            var selDefVal = false;
-            
             if (atts.Has<ComboBoxOptionsAttribute>())
             {
                 var opts = atts.Get<ComboBoxOptionsAttribute>();
@@ -58,11 +56,9 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
                 {
                     swCtrl.Style = (int)opts.Style;
                 }
-
-                selDefVal = opts.SelectDefaultValue;
             }
 
-            var ctrl = new PropertyManagerPageComboBoxControl<TVal>(atts.Id, atts.Tag, selDefVal, swCtrl, handler, metadata, label);
+            var ctrl = new PropertyManagerPageComboBoxControl<TVal>(atts.Id, atts.Tag, swCtrl, handler, metadata, label);
             ctrl.Items = m_Helper.GetItems(m_SwApp, atts);
             return ctrl;
         }

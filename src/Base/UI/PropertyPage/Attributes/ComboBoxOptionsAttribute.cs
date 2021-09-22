@@ -23,19 +23,12 @@ namespace Xarial.XCad.UI.PropertyPage.Attributes
         public ComboBoxStyle_e Style { get; }
 
         /// <summary>
-        /// Instructs to select the default value (if available) to avoid the control with deselected value on start
-        /// </summary>
-        public bool SelectDefaultValue { get; }
-
-        /// <summary>
         /// Constructor for specifying style of combo box
         /// </summary>
         /// <param name="style">Specific style applied for combo box control</param>
-        /// <param name="selectDefaultValue">Instructs to select the default value (if available) to avoid the control with deselected value on start</param>
-        public ComboBoxOptionsAttribute(ComboBoxStyle_e style = 0, bool selectDefaultValue = false)
+        public ComboBoxOptionsAttribute(ComboBoxStyle_e style = 0)
         {
             Style = style;
-            SelectDefaultValue = selectDefaultValue;
         }
     }
 }

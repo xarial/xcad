@@ -216,7 +216,6 @@ namespace SwAddInExample
         
         [ParameterExclude]
         [ComboBox(typeof(MyCustomItemsProvider))]
-        [ComboBoxOptions(selectDefaultValue: true)]
         public MyItem Option2 { get; set; }
 
         [ParameterDimension(CustomFeatureDimensionType_e.Angular)]
@@ -226,6 +225,48 @@ namespace SwAddInExample
         public PmpMacroFeatData() 
         {
             Option2 = MyItem.All.Last();
+        }
+    }
+
+    [ComVisible(true)]
+    public class PmpComboBoxData : SwPropertyManagerPageHandler
+    {
+        [ComboBox(typeof(MyCustomItemsProvider))]
+        public MyItem Option1Default { get; set; }
+
+        [ComboBox(typeof(MyCustomItemsProvider))]
+        public MyItem Option2Set { get; set; }
+
+        public Opts Option3Default { get; set; }
+
+        public Opts Option3Set { get; set; }
+
+        [Metadata(nameof(List1))]
+        public MyItem[] List1 => MyItem.All;
+
+        [ComboBox(ItemsSource = nameof(List1))]
+        public MyItem Option4Default { get; set; }
+
+        [ComboBox(ItemsSource = nameof(List1))]
+        public MyItem Option4Set { get; set; }
+
+        [ComboBox(1, 2, 3)]
+        public int Option5Default { get; set; }
+
+        [ComboBox(1, 2, 3)]
+        public int Option5Set { get; set; }
+
+        public PmpComboBoxData()
+        {
+            //Option2Set = MyItem.All.Last();
+            //Option3Set = Opts.Opt2;
+            //Option4Set = MyItem.All.Last();
+            //Option5Set = 2;
+
+            Option2Set = new MyItem() { Name = "_", Id = -1 };
+            Option3Set = (Opts)5;
+            Option4Set = new MyItem() { Name = "-", Id = -2 };
+            Option5Set = 5;
         }
     }
 

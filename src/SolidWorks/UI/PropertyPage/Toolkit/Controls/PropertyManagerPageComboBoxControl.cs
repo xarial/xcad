@@ -22,14 +22,11 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
     {
         protected override event ControlValueChangedDelegate<TVal> ValueChanged;
         
-        private readonly bool m_SelectDefaultValue;
-        
-        public PropertyManagerPageComboBoxControl(int id, object tag, bool selDefVal,
+        public PropertyManagerPageComboBoxControl(int id, object tag,
             IPropertyManagerPageCombobox comboBox,
             SwPropertyManagerPageHandler handler, IMetadata metadata, IPropertyManagerPageLabel label)
             : base(id, tag, comboBox, handler, metadata, label)
         {
-            m_SelectDefaultValue = selDefVal;
             m_Handler.ComboBoxChanged += OnComboBoxChanged;
         }
         
@@ -41,13 +38,35 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             }
         }
 
-        protected override TVal GetSpecificValue() => GetItem(SwSpecificControl.CurrentSelection);
-        
+        protected override TVal GetSpecificValue() 
+            => GetItem(SwSpecificControl.CurrentSelection);
+
+        protected override TVal GetItem(int index)
+        {
+            if (Items != null)
+            {
+                if (index >= 0 && index < Items.Length)
+                {
+                    return (TVal)Items[index].Value;
+                }
+                else
+                {
+                    if (Items.Length > 0)
+                    {
+                        return (TVal)Items[0].Value;
+                    }
+                }
+            }
+
+            return default;
+        }
+
         protected override void SetSpecificValue(TVal value)
         {
             var index = GetItemIndex(value);
 
-            if (index == -1 && m_SelectDefaultValue && Items.Any())
+            //overriding the default value if specified value is not found
+            if (index == -1 && Items.Any())
             {
                 index = 0;
                 ValueChanged?.Invoke(this, GetItem(index));
@@ -71,12 +90,6 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             if (items?.Any() == true)
             {
                 SwSpecificControl.AddItems(items.Select(x => x.DisplayName).ToArray());
-
-                if (m_SelectDefaultValue)
-                {
-                    SwSpecificControl.CurrentSelection = 0;
-                    ValueChanged?.Invoke(this, (TVal)items.First().Value);
-                }
             }
         }
     }
