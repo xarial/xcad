@@ -169,6 +169,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
 
             Handler.InvokeOpening();
 
+            //NOTE: controls must be updated before the page is displayed
             foreach (var binding in m_Page.Binding.Bindings ?? Enumerable.Empty<IBinding>())
             {
                 binding.UpdateControl();

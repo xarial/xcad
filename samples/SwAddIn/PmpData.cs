@@ -229,54 +229,84 @@ namespace SwAddInExample
     }
 
     [ComVisible(true)]
-    public class PmpComboBoxData : SwPropertyManagerPageHandler
+    public class PmpComboBoxData : SwPropertyManagerPageHandler, INotifyPropertyChanged
     {
+        private MyItem[] m_List1;
+        private MyItem m_Option4Set;
+
         [ComboBox(typeof(MyCustomItemsProvider))]
         public MyItem Option1Default { get; set; }
 
         [ComboBox(typeof(MyCustomItemsProvider))]
-        public MyItem Option2Set { get; set; }
+        public MyItem Option1Set { get; set; }
 
-        public Opts Option3Default { get; set; }
+        public Opts Option2Default { get; set; }
 
-        public Opts Option3Set { get; set; }
+        public Opts Option2Set { get; set; }
 
         [Metadata(nameof(List1))]
-        public MyItem[] List1 => MyItem.All;
+        public MyItem[] List1
+        {
+            get => m_List1;
+            set
+            {
+                m_List1 = value;
+                this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(List1)));
+            }
+        }
 
         [ComboBox(ItemsSource = nameof(List1))]
-        public MyItem Option4Default { get; set; }
+        public MyItem Option3Default { get; set; }
 
         [ComboBox(ItemsSource = nameof(List1))]
-        public MyItem Option4Set { get; set; }
+        public MyItem Option3Set
+        {
+            get => m_Option4Set;
+            set
+            {
+                m_Option4Set = value;
+                this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Option3Set)));
+            }
+        }
 
         [ComboBox(1, 2, 3)]
-        [ControlTag(nameof(Option5Default))]
-        public int Option5Default { get; set; }
+        [ControlTag(nameof(Option4Default))]
+        public int Option4Default { get; set; }
 
         [ComboBox(1, 2, 3)]
-        public int Option5Set { get; set; }
+        public int Option4Set { get; set; }
 
-        [ComboBox(typeof(MyCustomItemsProvider), nameof(Option5Default))]
-        public MyItem Option6Default { get; set; }
+        [ComboBox(typeof(MyCustomItemsProvider), nameof(Option4Default))]
+        public MyItem Option5Default { get; set; }
 
-        [ComboBox(typeof(MyCustomItemsProvider), nameof(Option5Default))]
-        public MyItem Option6Set { get; set; }
+        [ComboBox(typeof(MyCustomItemsProvider), nameof(Option4Default))]
+        public MyItem Option5Set { get; set; }
+
+        public Action Button { get; }
 
         public PmpComboBoxData()
         {
-            //Option2Set = MyItem.All.Last();
-            //Option3Set = Opts.Opt2;
-            //Option4Set = MyItem.All.Last();
-            //Option5Set = 2;
-            //Option6Set = MyItem.All.Last();
+            List1 = MyItem.All;
+            Option1Set = MyItem.All.Last();
+            Option2Set = Opts.Opt2;
+            m_Option4Set = MyItem.All.Last();
+            Option4Set = 2;
+            Option5Set = MyItem.All.Last();
 
-            Option2Set = new MyItem() { Name = "_", Id = -1 };
-            Option3Set = (Opts)5;
-            Option4Set = new MyItem() { Name = "-", Id = -2 };
-            Option5Set = 5;
-            Option6Set = new MyItem() { Name = "+", Id = -3 };
+            //Option1Set = new MyItem() { Name = "_", Id = -1 };
+            //Option2Set = (Opts)5;
+            //Option3Set = new MyItem() { Name = "-", Id = -2 };
+            //Option4Set = 5;
+            //Option5Set = new MyItem() { Name = "+", Id = -3 };
+
+            Button = new Action(() =>
+            {
+                List1 = new MyItem[] { new MyItem() { Name = "_", Id = -1 }, new MyItem() { Name = "-", Id = -2 } };
+                Option3Set = List1.Last();
+            });
         }
+
+        public event PropertyChangedEventHandler PropertyChanged;
     }
 
     [ComVisible(true)]

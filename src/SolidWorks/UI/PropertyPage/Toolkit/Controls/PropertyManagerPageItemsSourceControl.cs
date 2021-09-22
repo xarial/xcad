@@ -23,24 +23,26 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
         private ItemsControlItem[] m_Items;
 
-        public ItemsControlItem[] Items
+        public virtual ItemsControlItem[] Items
         {
             get => m_Items;
             set
             {
                 m_Items = value;
-                SetItemsToControl(value);
+                LoadItemsIntoControl(value);
             }
         }
 
-        protected abstract void SetItemsToControl(ItemsControlItem[] items);
+        protected abstract void LoadItemsIntoControl(ItemsControlItem[] newItems);
         
         private readonly IMetadata m_Metadata;
+        private readonly Type m_SpecificItemType;
 
         public PropertyManagerPageItemsSourceControl(int id, object tag,
-            TSwCtrl ctrl, SwPropertyManagerPageHandler handler, IMetadata metadata, IPropertyManagerPageLabel label)
+            TSwCtrl ctrl, SwPropertyManagerPageHandler handler, IMetadata metadata, IPropertyManagerPageLabel label, Type specificItemType)
             : base(ctrl, id, tag, handler, label)
         {
+            m_SpecificItemType = specificItemType;
             m_Metadata = metadata;
 
             if (m_Metadata != null)
@@ -74,27 +76,42 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
         
         protected virtual TVal GetItem(int index) 
         {
-            if (m_Items != null)
+            if (Items != null)
             {
-                if (index >= 0 && index < m_Items.Length)
+                if (index >= 0 && index < Items.Length)
                 {
-                    return (TVal)m_Items[index].Value;
+                    return (TVal)Items[index].Value;
                 }
             }
 
-            return default;
+            return GetDefaultItemValue();
+        }
+
+        protected TVal GetDefaultItemValue() 
+        {
+            if (m_SpecificItemType.IsValueType)
+            {
+                return (TVal)Activator.CreateInstance(m_SpecificItemType);
+            }
+            else 
+            {
+                return default;
+            }
         }
 
         protected int GetItemIndex(TVal value) 
         {
             int index = -1;
 
-            for (int i = 0; i < m_Items.Length; i++)
+            if (Items != null)
             {
-                if (object.Equals(m_Items[i].Value, value))
+                for (int i = 0; i < Items.Length; i++)
                 {
-                    index = (short)i;
-                    break;
+                    if (object.Equals(Items[i].Value, value))
+                    {
+                        index = (short)i;
+                        break;
+                    }
                 }
             }
 
