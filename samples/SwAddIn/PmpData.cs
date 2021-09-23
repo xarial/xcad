@@ -103,6 +103,29 @@ namespace SwAddInExample
             => MyItem.All;
     }
 
+    public class MyCustomItems1Provider : SwCustomItemsProvider<string>
+    {
+        public override IEnumerable<string> ProvideItems(ISwApplication app, IControl[] dependencies) 
+        {
+            var item = dependencies.First()?.GetValue() as MyItem;
+
+            if (item != null)
+            {
+                return new string[]
+                {
+                    "1_" + item.Name,
+                    "2_" + item.Name,
+                    "3_" + item.Name,
+                    "4_" + item.Name
+                };
+            }
+            else 
+            {
+                return null;
+            }
+        }
+    }
+
     [ComVisible(true)]
     public class PmpData : SwPropertyManagerPageHandler, INotifyPropertyChanged
     {
@@ -232,7 +255,7 @@ namespace SwAddInExample
     public class PmpComboBoxData : SwPropertyManagerPageHandler, INotifyPropertyChanged
     {
         private MyItem[] m_List1;
-        private MyItem m_Option4Set;
+        private MyItem m_Option3Set;
 
         [ComboBox(typeof(MyCustomItemsProvider))]
         public MyItem Option1Default { get; set; }
@@ -259,12 +282,13 @@ namespace SwAddInExample
         public MyItem Option3Default { get; set; }
 
         [ComboBox(ItemsSource = nameof(List1))]
+        [ControlTag(nameof(Option3Set))]
         public MyItem Option3Set
         {
-            get => m_Option4Set;
+            get => m_Option3Set;
             set
             {
-                m_Option4Set = value;
+                m_Option3Set = value;
                 this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Option3Set)));
             }
         }
@@ -282,14 +306,23 @@ namespace SwAddInExample
         [ComboBox(typeof(MyCustomItemsProvider), nameof(Option4Default))]
         public MyItem Option5Set { get; set; }
 
+        [ComboBox(typeof(MyCustomItems1Provider), nameof(Option3Set))]
+        public string Option6 { get; set; }
+
         public Action Button { get; }
 
         public PmpComboBoxData()
         {
+            Button = new Action(() =>
+            {
+                List1 = new MyItem[] { new MyItem() { Name = "_", Id = -1 }, new MyItem() { Name = "-", Id = -2 } };
+                Option3Set = List1.Last();
+            });
+
             List1 = MyItem.All;
             Option1Set = MyItem.All.Last();
             Option2Set = Opts.Opt2;
-            m_Option4Set = MyItem.All.Last();
+            m_Option3Set = MyItem.All.Last();
             Option4Set = 2;
             Option5Set = MyItem.All.Last();
 
@@ -298,12 +331,6 @@ namespace SwAddInExample
             //Option3Set = new MyItem() { Name = "-", Id = -2 };
             //Option4Set = 5;
             //Option5Set = new MyItem() { Name = "+", Id = -3 };
-
-            Button = new Action(() =>
-            {
-                List1 = new MyItem[] { new MyItem() { Name = "_", Id = -1 }, new MyItem() { Name = "-", Id = -2 } };
-                Option3Set = List1.Last();
-            });
         }
 
         public event PropertyChangedEventHandler PropertyChanged;

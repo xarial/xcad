@@ -112,9 +112,18 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
                 ValueChanged?.Invoke(this, val);
             }
         }
-        
-        protected override TVal GetSpecificValue() 
-            => GetItem(SwSpecificControl.CurrentSelection);
+
+        protected override TVal GetSpecificValue()
+        {
+            if (!m_IsPageOpened)
+            {
+                return m_CurrentValueCached;
+            }
+            else
+            {
+                return GetItem(SwSpecificControl.CurrentSelection);
+            }
+        }
 
         protected override void SetSpecificValue(TVal value)
         {
