@@ -364,6 +364,11 @@ namespace Xarial.XCad.SolidWorks.Documents
                 if (value == true)
                 {
                     Model.SetSaveFlag();
+
+                    if (!Model.GetSaveFlag()) 
+                    {
+                        throw new DirtyFlagIsNotSetException();
+                    }
                 }
                 else 
                 {
