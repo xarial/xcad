@@ -224,7 +224,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                 case swBOMPartNumberSource_e.swBOMPartNumber_ConfigurationName:
                     return conf.Name;
                 case swBOMPartNumberSource_e.swBOMPartNumber_DocumentName:
-                    return m_Doc.Title;
+                    return Path.GetFileNameWithoutExtension(m_Doc.Title);
                 case swBOMPartNumberSource_e.swBOMPartNumber_ParentName:
                     return GetPartNumber(conf.GetParent());
                 case swBOMPartNumberSource_e.swBOMPartNumber_UserSpecified:

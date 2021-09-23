@@ -240,7 +240,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                 case swDmBOMPartNumberSource.swDmBOMPartNumber_ConfigurationName:
                     return conf.Name;
                 case swDmBOMPartNumberSource.swDmBOMPartNumber_DocumentName:
-                    return Document.Title;
+                    return Path.GetFileNameWithoutExtension(Document.Title);
                 case swDmBOMPartNumberSource.swDmBOMPartNumber_ParentName:
                     return GetPartNumber(Document.Configurations[conf.Configuration.GetParentConfigurationName()]);
                 case swDmBOMPartNumberSource.swDmBOMPartNumber_UserSpecified:
