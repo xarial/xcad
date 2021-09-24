@@ -878,12 +878,11 @@ namespace Xarial.XCad.SolidWorks.Documents
             return model;
         }
 
+        //NOTE: closing of document migth note neecsserily unload if from memory (if this document is used in active assembly or drawing)
+        //do not dispose or set m_IsClosed flag in this function
         public void Close()
-        {
-            OwnerApplication.Sw.CloseDoc(Model.GetTitle());
-            m_IsClosed = true;
-        }
-
+            => OwnerApplication.Sw.CloseDoc(Model.GetTitle());
+        
         public void Dispose()
         {
             if (!m_IsDisposed)
