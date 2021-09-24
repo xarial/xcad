@@ -7,14 +7,18 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
+using Xarial.XCad.Exceptions;
 
-namespace Xarial.XCad.SolidWorks.UI.Commands.Exceptions
+namespace Xarial.XCad.SolidWorks.Exceptions
 {
-    public class DuplicateCommandUserIdsException : Exception
+    /// <summary>
+    /// Indicates that macro file is not found
+    /// </summary>
+    public class MacroFileNotFoundException : FileNotFoundException, IUserException
     {
-        public DuplicateCommandUserIdsException(string groupTitle, int groupUserId, int[] dupUserIds)
-            : base($"The following command user ids are duplicate in the group {groupTitle} [{groupUserId}]: {string.Join(", ", dupUserIds)}") 
+        internal MacroFileNotFoundException(string filePath) : base($"Macro file '{filePath}' not found") 
         {
         }
     }

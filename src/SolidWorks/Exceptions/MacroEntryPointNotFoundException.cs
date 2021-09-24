@@ -9,15 +9,17 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Xarial.XCad.Exceptions;
+using Xarial.XCad.Structures;
 
-namespace Xarial.XCad.SolidWorks.Documents.Exceptions
+namespace Xarial.XCad.SolidWorks.Exceptions
 {
     /// <summary>
-    /// Indicates that document cannot be set to dirty
+    /// Indicates that specified entry point to run the macro is not found
     /// </summary>
-    public class DirtyFlagIsNotSetException : Exception, IUserException
+    public class MacroEntryPointNotFoundException : Exception, IUserException
     {
-        public DirtyFlagIsNotSetException() : base("Dirty flag cannot be set for the documents opened in Read-Only, Large Design Review or View-Only mode") 
+        internal MacroEntryPointNotFoundException(string macroPath, MacroEntryPoint entryPoint)
+            : base($"Entry point '{entryPoint}' is not available in the macro '{macroPath}'")
         {
         }
     }

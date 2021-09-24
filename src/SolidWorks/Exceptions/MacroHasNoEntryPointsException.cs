@@ -8,13 +8,16 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Xarial.XCad.Exceptions;
 
-namespace Xarial.XCad.SolidWorks.UI.Commands.Exceptions
+namespace Xarial.XCad.SolidWorks.Exceptions
 {
-    public class DuplicateCommandUserIdsException : Exception
+    /// <summary>
+    /// Indicates that macro contains no entry points
+    /// </summary>
+    public class MacroHasNoEntryPointsException : Exception, IUserException
     {
-        public DuplicateCommandUserIdsException(string groupTitle, int groupUserId, int[] dupUserIds)
-            : base($"The following command user ids are duplicate in the group {groupTitle} [{groupUserId}]: {string.Join(", ", dupUserIds)}") 
+        internal MacroHasNoEntryPointsException() : base("Macro has no entry points") 
         {
         }
     }

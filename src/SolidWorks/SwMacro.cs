@@ -9,6 +9,7 @@ using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using Xarial.XCad.Enums;
@@ -39,6 +40,11 @@ namespace Xarial.XCad.SolidWorks
 
         public virtual void Run(MacroEntryPoint entryPoint, MacroRunOptions_e opts)
         {
+            if (!File.Exists(Path)) 
+            {
+                throw new MacroFileNotFoundException(Path);
+            }
+
             swRunMacroOption_e swOpts = swRunMacroOption_e.swRunMacroDefault;
 
             switch (opts) 
@@ -217,13 +223,18 @@ namespace Xarial.XCad.SolidWorks
         
         public override void Run(MacroEntryPoint entryPoint, MacroRunOptions_e options)
         {
+            if (EntryPoints == null) 
+            {
+                throw new MacroHasNoEntryPointsException();
+            }
+
             if (EntryPoints.Contains(entryPoint, new MacroEntryPointEqualityComparer()))
             {
                 base.Run(entryPoint, options);
             }
             else 
             {
-                throw new Exception($"Entry point '{entryPoint}' is not available in the macro '{m_Path}'");
+                throw new MacroEntryPointNotFoundException(m_Path, entryPoint);
             }
         }
         
