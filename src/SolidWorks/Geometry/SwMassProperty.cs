@@ -43,17 +43,57 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
     internal class SwMassProperty : ISwMassProperty
     {
-        public Point CenterOfGravity => new Point((double[])MassProperty.CenterOfMass);
-        public double SurfaceArea => MassProperty.SurfaceArea;
-        public double Volume => MassProperty.Volume;
-        public double Mass => MassProperty.Mass;
+        public Point CenterOfGravity
+        {
+            get
+            {
+                ThrowIfScopeException();
+                return new Point((double[])MassProperty.CenterOfMass);
+            }
+        }
 
-        public double Density => MassProperty.Density;
+        public double SurfaceArea
+        {
+            get
+            {
+                ThrowIfScopeException();
+                return MassProperty.SurfaceArea;
+            }
+        }
+
+        public double Volume
+        {
+            get
+            {
+                ThrowIfScopeException();
+                return MassProperty.Volume;
+            }
+        }
+
+        public double Mass
+        {
+            get
+            {
+                ThrowIfScopeException();
+                return MassProperty.Mass;
+            }
+        }
+
+        public double Density
+        {
+            get
+            {
+                ThrowIfScopeException();
+                return MassProperty.Density;
+            }
+        }
 
         public PrincipalAxesOfInertia PrincipalAxesOfInertia
         {
             get
             {
+                ThrowIfScopeException();
+
                 if (m_Doc is ISwPart)
                 {
                     return new PrincipalAxesOfInertia(
@@ -91,6 +131,8 @@ namespace Xarial.XCad.SolidWorks.Geometry
         {
             get 
             {
+                ThrowIfScopeException();
+
                 if (m_Doc is ISwPart)
                 {
                     return new PrincipalMomentOfInertia((double[])MassPropertyLegacy.PrincipleMomentsOfInertia);
@@ -106,6 +148,8 @@ namespace Xarial.XCad.SolidWorks.Geometry
         {
             get
             {
+                ThrowIfScopeException();
+
                 var moi = (double[])MassProperty.GetMomentOfInertia(RelativeTo != null
                     ? (int)swMassPropertyMoment_e.swMassPropertyMomentAboutCoordSys
                     : (int)swMassPropertyMoment_e.swMassPropertyMomentAboutCenterOfMass);
@@ -142,12 +186,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
                 if (IsCommitted)
                 {
-                    SetScope(m_Creator.Element.Item1);
-
-                    if (m_Doc is ISwPart)
-                    {
-                        SetPartScope((ISwPart)m_Doc, m_Creator.Element.Item2);
-                    }
+                    UpdateScope(m_Creator.Element.Item1, m_Creator.Element.Item2);
                 }
             }
         }
@@ -196,6 +235,8 @@ namespace Xarial.XCad.SolidWorks.Geometry
         protected IMassProperty2 MassProperty => m_Creator.Element.Item1;
         protected IMassProperty MassPropertyLegacy => m_Creator.Element.Item2;
 
+        private Exception m_CurrentScopeException;
+
         internal SwMassProperty(ISwDocument3D doc, IMathUtility mathUtils) 
         {
             m_Doc = doc;
@@ -204,6 +245,14 @@ namespace Xarial.XCad.SolidWorks.Geometry
             m_Creator = new ElementCreator<Tuple<IMassProperty2, IMassProperty>>(CreateMassProperty, null, false);
 
             UserUnits = false;
+        }
+
+        protected void ThrowIfScopeException()
+        {
+            if (m_CurrentScopeException != null)
+            {
+                throw m_CurrentScopeException;
+            }
         }
 
         protected Tuple<IMassProperty2, IMassProperty> CreateMassProperty(CancellationToken cancellationToken)
@@ -245,40 +294,63 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
             massPrps.IncludeHiddenBodiesOrComponents = !VisibleOnly;
 
-            SetScope(massPrps);
-
-            if (m_Doc is ISwPart)
-            {
-                SetPartScope((ISwPart)m_Doc, partMassPrps);
-            }
+            UpdateScope(massPrps, partMassPrps);
 
             return new Tuple<IMassProperty2, IMassProperty>(massPrps, partMassPrps);
         }
 
-        protected void SetScope(IMassProperty2 massPrps)
+        protected void UpdateScope(IMassProperty2 massPrps, IMassProperty partMassPrps = null)
         {
-            var scope = GetSpecificSelectionScope();
+            try
+            {
+                m_CurrentScopeException = null;
 
-            if (scope != null)
-            {
-                massPrps.SelectedItems = scope;
-            }
-            else 
-            {
-                if (massPrps.SelectedItems != null)
+                var scope = GetSpecificSelectionScope();
+
+                if (scope != null)
                 {
-                    m_Doc.Selections.Clear();
+                    massPrps.SelectedItems = scope;
                 }
-            }
+                else
+                {
+                    if (massPrps.SelectedItems != null)
+                    {
+                        m_Doc.Selections.Clear();
+                    }
+                }
 
-            if (!massPrps.Recalculate())
+                if (!massPrps.Recalculate())
+                {
+                    throw new Exception($"Failed to recalculate mass properties");
+                }
+
+                if (m_Doc is ISwPart)
+                {
+                    UpdatePartScope((ISwPart)m_Doc, partMassPrps);
+                }
+
+                ValidateCalculations(massPrps);
+            }
+            catch (Exception ex) 
             {
-                throw new Exception($"Failed to recalculate mass properties");
+                m_CurrentScopeException = ex;
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Sometimes mass cannot be calculated and no error returned (model rebuilding is required)
+        /// </summary>
+        private void ValidateCalculations(IMassProperty2 massPrp)
+        {
+            if (massPrp.SurfaceArea == 0 && massPrp.Volume == 0)
+            {
+                throw new InvalidMassPropertyCalculationException();
             }
         }
 
         //IMPORTANT: IMassProperty2 returns invalid results for PrincipalAxesOfInertia and PrincipalMomentOfInertia for parts
-        private void SetPartScope(ISwPart part, IMassProperty massPrps)
+        private void UpdatePartScope(ISwPart part, IMassProperty massPrps)
         {
             var scope = Scope;
 
@@ -352,7 +424,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
                 if (IsCommitted)
                 {
-                    SetScope(MassProperty);
+                    UpdateScope(MassProperty);
                 }
             }
         }

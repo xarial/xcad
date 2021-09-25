@@ -1342,6 +1342,55 @@ namespace SolidWorks.Tests.Integration
         }
 
         [Test]
+        public void MassPropertyAssignedPropsUserUnitPartTest()
+        {
+            double mass1;
+            Point cog1;
+            PrincipalAxesOfInertia pai1;
+            PrincipalMomentOfInertia pmoi1;
+
+            using (var doc = OpenDataDocument(@"MassPrpsAssembly2\Overriden.SLDPRT"))
+            {
+                var part = (ISwPart)m_App.Documents.Active;
+
+                using (var massPrps = part.PreCreateMassProperty())
+                {
+                    massPrps.UserUnits = true;
+                    massPrps.VisibleOnly = true;
+
+                    massPrps.Commit();
+
+                    var vol = massPrps.Volume;
+                    var moi = massPrps.MomentOfInertia;
+                    var area = massPrps.SurfaceArea;
+                    var dens = massPrps.Density;
+
+                    mass1 = massPrps.Mass;
+                    cog1 = massPrps.CenterOfGravity;
+                    pmoi1 = massPrps.PrincipalMomentOfInertia;
+                    pai1 = massPrps.PrincipalAxesOfInertia;
+                }
+            }
+
+            AssertCompareDoubles(mass1, 25);
+            AssertCompareDoubles(cog1.X, -10);
+            AssertCompareDoubles(cog1.Y, -20);
+            AssertCompareDoubles(cog1.Z, -30);
+            AssertCompareDoubles(pmoi1.Px, 5000);
+            AssertCompareDoubles(pmoi1.Py, 6000);
+            AssertCompareDoubles(pmoi1.Pz, 7000);
+            AssertCompareDoubles(pai1.Ix.X, 0.57735027);
+            AssertCompareDoubles(pai1.Ix.Y, 0.57735027);
+            AssertCompareDoubles(pai1.Ix.Z, 0.57735027);
+            AssertCompareDoubles(pai1.Iy.X, 0.70710678);
+            AssertCompareDoubles(pai1.Iy.Y, -0.70710678);
+            AssertCompareDoubles(pai1.Iy.Z, 0.00000000);
+            AssertCompareDoubles(pai1.Iz.X, 0.40824829);
+            AssertCompareDoubles(pai1.Iz.Y, 0.40824829);
+            AssertCompareDoubles(pai1.Iz.Z, -0.81649658);
+        }
+
+        [Test]
         public void MassPropertyEmptyComponentsTest()
         {
             using (var doc = OpenDataDocument(@"MassPrpsAssembly2\Assem1.SLDASM"))

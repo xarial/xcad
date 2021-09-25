@@ -50,9 +50,9 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
         private void OnPageClosed(swPropertyManagerPageCloseReasons_e reason)
         {
-            if (m_CurrentControl is IDisposable) 
+            if (m_CurrentControl is IDisposable)
             {
-                (m_CurrentControl as IDisposable).Dispose();
+                ((IDisposable)m_CurrentControl).Dispose();
             }
         }
 
@@ -74,9 +74,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
         }
 
         private void OnDataContextChanged(IXCustomControl ctrl, object newVal)
-        {
-            ValueChanged?.Invoke(this, newVal);
-        }
+            => ValueChanged?.Invoke(this, newVal);
 
         protected override void Dispose(bool disposing)
         {

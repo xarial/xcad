@@ -11,6 +11,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Features;
@@ -114,14 +115,9 @@ namespace Xarial.XCad.SolidWorks.Features
         public IXSketch3D PreCreate3DSketch() => new SwSketch3D(null, Document, m_App, false);
         
         public virtual IEnumerator<IXFeature> GetEnumerator()
-        {
-            return new DocumentFeatureEnumerator(Document);
-        }
+            => new DocumentFeatureEnumerator(Document);
 
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
         public IXCustomFeature<TParams> PreCreateCustomFeature<TParams>()
             where TParams : class, new()
@@ -132,7 +128,19 @@ namespace Xarial.XCad.SolidWorks.Features
 
         public void RemoveRange(IEnumerable<IXFeature> ents)
         {
-            //TODO: implement deletion
+            var disps = ents.Cast<SwFeature>().Select(e => new DispatchWrapper(e.Feature)).ToArray();
+
+            if (Document.Model.Extension.MultiSelect2(disps, false, null) == disps.Length)
+            {
+                if (!Document.Model.Extension.DeleteSelection2((int)swDeleteSelectionOptions_e.swDelete_Absorbed))
+                {
+                    throw new Exception("Failed to delete features");
+                }
+            }
+            else 
+            {
+                throw new Exception("Failed to select features for deletion");
+            }            
         }
 
         /// <inheritdoc/>
@@ -161,10 +169,8 @@ namespace Xarial.XCad.SolidWorks.Features
 
     internal static class SwFeatureManagerExtension 
     {
-        internal static SwCutListItem[] GetCutLists(this SwFeatureManager featMgr) 
+        internal static IEnumerable<SwCutListItem> EnumerateCutLists(this SwFeatureManager featMgr) 
         {
-            var cutLists = new List<SwCutListItem>();
-
             ISwConfiguration refConf;
 
             SwDocument3D doc;
@@ -209,7 +215,7 @@ namespace Xarial.XCad.SolidWorks.Features
                         {
                             var cutList = (SwCutListItem)feat;
                             cutList.SetParent(doc, refConf);
-                            cutLists.Add(cutList);
+                            yield return cutList;
                         }
                         else if (feat.Feature.GetTypeName2() == "RefPlane")
                         {
@@ -218,8 +224,6 @@ namespace Xarial.XCad.SolidWorks.Features
                     }
                 }
             }
-
-            return cutLists.ToArray();
         }
     }
 }

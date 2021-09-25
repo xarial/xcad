@@ -4,6 +4,7 @@ using Xarial.XCad;
 using Xarial.XCad.Annotations;
 using Xarial.XCad.Data;
 using Xarial.XCad.Documents;
+using Xarial.XCad.Documents.Delegates;
 using Xarial.XCad.Documents.Services;
 using Xarial.XCad.SolidWorks;
 
@@ -30,7 +31,7 @@ namespace Xarial.XCad.Documentation
             m_D1Dim.ValueChanged += OnDimensionValueChanged;
         }
 
-        private void OnModelClosing(IXDocument doc)
+        private void OnModelClosing(IXDocument doc, DocumentCloseType_e type)
         {
             //TODO: handle closing
         }

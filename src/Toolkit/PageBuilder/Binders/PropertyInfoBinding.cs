@@ -62,9 +62,8 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
 
         public override IMetadata Metadata => m_Metadata;
 
-        protected override void SetDataModelValue()
+        protected override void SetDataModelValue(object value)
         {
-            var value = Control.GetValue();
             var curModel = GetCurrentModel();
 
             var curVal = ControlDescriptor.GetValue(curModel);

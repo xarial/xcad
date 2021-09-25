@@ -43,7 +43,7 @@ namespace SolidWorks.Tests.Integration
 
         private const int SW_PRC_ID = -1;
         private const string DATA_FOLDER = @"C:\Users\artem\OneDrive\xCAD\TestData";
-        private SwVersion_e? SW_VERSION = null;
+        private SwVersion_e? SW_VERSION = SwVersion_e.Sw2021;
 
         protected ISwApplication m_App;
         private Process m_Process;
@@ -170,7 +170,7 @@ namespace SolidWorks.Tests.Integration
         }
 
         protected void AssertCompareDoubles(double actual, double expected, int digits = 8)
-            => Assert.That(Math.Round(expected, digits), Is.EqualTo(Math.Round(actual, digits)).Within(0.000001).Percent);
+            => Assert.That(Math.Round(actual, digits), Is.EqualTo(Math.Round(expected, digits)).Within(0.000001).Percent);
 
         [TearDown]
         public void TearDown() 

@@ -11,5 +11,10 @@ using System.Text;
 
 namespace Xarial.XCad.Documents.Delegates
 {
-    public delegate void SheetActivatedDelegate(IXDrawing doc, IXSheet newSheet);
+    /// <summary>
+    /// Delegate for <see cref="IXSheetRepository.SheetActivated"/> event
+    /// </summary>
+    /// <param name="drw">Drawing where the sheet is activating</param>
+    /// <param name="newSheet">Activated sheet</param>
+    public delegate void SheetActivatedDelegate(IXDrawing drw, IXSheet newSheet);
 }

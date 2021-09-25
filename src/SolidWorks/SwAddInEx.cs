@@ -169,9 +169,7 @@ namespace Xarial.XCad.SolidWorks
                     app.SetAddinCallbackInfo(0, this, AddInId);
                 }
 
-                m_Application = new SwApplication(app);
-
-                m_Application.FirstStartupCompleted += OnStartupCompleted;
+                m_Application = new SwApplication(app, OnStartupCompleted);
 
                 var svcCollection = GetServicesCollection();
 
@@ -188,10 +186,12 @@ namespace Xarial.XCad.SolidWorks
 
                 SwMacroFeatureDefinition.Application = m_Application;
 
-                m_CommandManager = new SwCommandManager(Application, AddInId, m_SvcProvider, this.GetType().GUID);
+                m_CommandManager = new SwCommandManager(Application, AddInId, m_SvcProvider);
 
                 Connect?.Invoke(this);
                 OnConnect();
+
+                m_CommandManager.TryBuildCommandTabs();
 
                 return true;
             }
@@ -204,8 +204,14 @@ namespace Xarial.XCad.SolidWorks
 
         private void OnStartupCompleted(SwApplication app)
         {
-            m_Application.FirstStartupCompleted -= OnStartupCompleted;
-            StartupCompleted?.Invoke(this);
+            try
+            {
+                StartupCompleted?.Invoke(this);
+            }
+            catch (Exception ex)
+            {
+                Logger.Log(ex);
+            }
         }
 
         private IXServiceCollection GetServicesCollection()
@@ -221,6 +227,7 @@ namespace Xarial.XCad.SolidWorks
             svcCollection.AddOrReplace<IFeatureManagerTabControlProvider, FeatureManagerTabControlProvider>();
             svcCollection.AddOrReplace<ITaskPaneControlProvider, TaskPaneControlProvider>();
             svcCollection.AddOrReplace<IModelViewControlProvider, ModelViewControlProvider>();
+            svcCollection.AddOrReplace<ICommandGroupTabConfigurer, DefaultCommandGroupTabConfigurer>();
 
             return svcCollection;
         }

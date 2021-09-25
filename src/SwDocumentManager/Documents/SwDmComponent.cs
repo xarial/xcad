@@ -9,6 +9,7 @@ using SolidWorks.Interop.swdocumentmgr;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.IO;
@@ -29,11 +30,13 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 {
     public interface ISwDmComponent : IXComponent, ISwDmSelObject
     {
+        string CachedPath { get; }
         ISwDMComponent Component { get; }
         new ISwDmDocument3D ReferencedDocument { get; }
         new ISwDmConfiguration ReferencedConfiguration { get; }
     }
 
+    [DebuggerDisplay("{" + nameof(Name) + "}")]
     internal class SwDmComponent : SwDmSelObject, ISwDmComponent
     {
         #region Not Supported
@@ -198,18 +201,37 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                             if (doc == null)
                             {
                                 var docType = ((ISwDMComponent2)Component).DocumentType;
+                                var isVirtual = ((ISwDMComponent3)Component).IsVirtual;
 
                                 switch (docType)
                                 {
                                     case SwDmDocumentType.swDmDocumentPart:
-                                        doc = new SwDmPart(m_ParentAssm.SwDmApp, dmDoc, true,
-                                            docsColl.OnDocumentCreated,
-                                            docsColl.OnDocumentClosed, isReadOnly);
+                                        if (!isVirtual)
+                                        {
+                                            doc = new SwDmPart(m_ParentAssm.SwDmApp, dmDoc, true,
+                                                docsColl.OnDocumentCreated,
+                                                docsColl.OnDocumentClosed, isReadOnly);
+                                        }
+                                        else 
+                                        {
+                                            doc = new SwDmVirtualPart(m_ParentAssm.SwDmApp, dmDoc, true,
+                                                docsColl.OnDocumentCreated,
+                                                docsColl.OnDocumentClosed, isReadOnly);
+                                        }
                                         break;
                                     case SwDmDocumentType.swDmDocumentAssembly:
-                                        doc = new SwDmAssembly(m_ParentAssm.SwDmApp, dmDoc, true,
-                                            docsColl.OnDocumentCreated,
-                                            docsColl.OnDocumentClosed, isReadOnly);
+                                        if (!isVirtual)
+                                        {
+                                            doc = new SwDmAssembly(m_ParentAssm.SwDmApp, dmDoc, true,
+                                                docsColl.OnDocumentCreated,
+                                                docsColl.OnDocumentClosed, isReadOnly);
+                                        }
+                                        else 
+                                        {
+                                            doc = new SwDmVirtualAssembly(m_ParentAssm.SwDmApp, dmDoc, true,
+                                                docsColl.OnDocumentCreated,
+                                                docsColl.OnDocumentClosed, isReadOnly);
+                                        }
                                         break;
                                     default:
                                         throw new NotSupportedException($"Document type '{docType}' of the component is not supported");

@@ -107,8 +107,6 @@ namespace Xarial.XCad.SolidWorks
             return S_OK;
         }
 
-        internal event Action<SwApplication> FirstStartupCompleted;
-
         private IXServiceCollection m_CustomServices;
 
         public ISldWorks Sw => m_Creator.Element;
@@ -254,20 +252,23 @@ namespace Xarial.XCad.SolidWorks
 
         private ElementCreator<ISldWorks> m_Creator;
 
+        private ApplicationIdleDelegate m_IdleDelegate;
+
+        private readonly Action<SwApplication> m_StartupCompletedCallback;
+
         internal SwApplication(ISldWorks app, IXServiceCollection customServices) 
-            : this(app)
+            : this(app, default(Action<SwApplication>))
         {
             Init(customServices);
         }
 
-        private ApplicationIdleDelegate m_IdleDelegate;
-
         /// <summary>
         /// Only to be used within SwAddInEx
         /// </summary>
-        internal SwApplication(ISldWorks app)
+        internal SwApplication(ISldWorks app, Action<SwApplication> startupCompletedCallback)
         {
             m_IsStartupNotified = false;
+            m_StartupCompletedCallback = startupCompletedCallback;
 
             m_Creator = new ElementCreator<ISldWorks>(CreateInstance, app, true);
             WatchStartupCompleted((SldWorks)app);
@@ -460,10 +461,6 @@ namespace Xarial.XCad.SolidWorks
             
             if (!m_IsStartupNotified)
             {
-                m_IsStartupNotified = true;
-
-                var continueListening = false;
-
                 if (Sw?.StartupProcessCompleted == true)
                 {
                     if (m_HideOnStartup)
@@ -474,15 +471,10 @@ namespace Xarial.XCad.SolidWorks
                         Sw.Visible = false;
                     }
 
-                    FirstStartupCompleted?.Invoke(this);
-                }
-                else
-                {
-                    continueListening = true;
-                }
+                    m_IsStartupNotified = true;
 
-                if (!continueListening)
-                {
+                    m_StartupCompletedCallback?.Invoke(this);
+
                     if (Sw != null)
                     {
                         (Sw as SldWorks).OnIdleNotify -= OnLoadFirstIdleNotify;

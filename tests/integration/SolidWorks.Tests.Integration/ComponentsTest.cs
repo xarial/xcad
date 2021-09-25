@@ -303,6 +303,7 @@ namespace SolidWorks.Tests.Integration
             ComponentState_e s3;
             ComponentState_e s4;
             ComponentState_e s5;
+            ComponentState_e s6;
 
             using (var doc = OpenDataDocument(@"Assembly5\Assem1.SLDASM"))
             {
@@ -313,6 +314,7 @@ namespace SolidWorks.Tests.Integration
                 s3 = assm.Configurations.Active.Components["Part1-3"].State;
                 s4 = assm.Configurations.Active.Components["Part1-4"].State;
                 s5 = assm.Configurations.Active.Components["Part1-5"].State;
+                s6 = assm.Configurations.Active.Components["Part2^Assem1-1"].State;
             }
 
             Assert.AreEqual(ComponentState_e.Default, s1);
@@ -320,6 +322,39 @@ namespace SolidWorks.Tests.Integration
             Assert.AreEqual(ComponentState_e.Envelope, s3);
             Assert.AreEqual(ComponentState_e.ExcludedFromBom, s4);
             Assert.AreEqual(ComponentState_e.Hidden, s5);
+            Assert.AreEqual(ComponentState_e.Embedded, s6);
+        }
+
+        [Test]
+        public void ComponentSetStateTest()
+        {
+            using (var doc = OpenDataDocument(@"Assembly5\Assem1.SLDASM"))
+            {
+                var assm = (ISwAssembly)m_App.Documents.Active;
+
+                var c1 = (ISwComponent)assm.Configurations.Active.Components["Part1-1"];
+                var c2 = (ISwComponent)assm.Configurations.Active.Components["Part1-2"];
+                var c3 = (ISwComponent)assm.Configurations.Active.Components["Part1-4"];
+                var c4 = (ISwComponent)assm.Configurations.Active.Components["Part1-5"];
+                var c5 = (ISwComponent)assm.Configurations.Active.Components["Part3-1"];
+                var c6 = (ISwComponent)assm.Configurations.Active.Components["Part2^Assem1-1"];
+
+                c1.State = ComponentState_e.Suppressed;
+                c2.State = ComponentState_e.Hidden;
+                c3.State = ComponentState_e.Default;
+                c4.State = ComponentState_e.ExcludedFromBom | ComponentState_e.Hidden;
+                c5.State = ComponentState_e.Embedded;
+                c6.State = ComponentState_e.Embedded | ComponentState_e.Lightweight;
+
+                Assert.AreEqual((int)swComponentSuppressionState_e.swComponentSuppressed, c1.Component.GetSuppression2());
+                Assert.IsTrue(c2.Component.IsHidden(false));
+                Assert.IsFalse(c3.Component.ExcludeFromBOM);
+                Assert.IsTrue(c4.Component.IsHidden(false));
+                Assert.IsTrue(c4.Component.ExcludeFromBOM);
+                Assert.That(c4.Component.GetSuppression2() == (int)swComponentSuppressionState_e.swComponentResolved || c4.Component.GetSuppression2() == (int)swComponentSuppressionState_e.swComponentFullyResolved);
+                Assert.IsTrue(c5.Component.IsVirtual);
+                Assert.That(c6.Component.GetSuppression2() == (int)swComponentSuppressionState_e.swComponentLightweight || c4.Component.GetSuppression2() == (int)swComponentSuppressionState_e.swComponentFullyLightweight);
+            }
         }
 
         [Test]

@@ -6,6 +6,7 @@
 //*********************************************************************
 
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using Xarial.XCad.Annotations;
@@ -51,7 +52,7 @@ namespace Xarial.XCad.Documents
         /// <summary>
         /// Fired when document is rebuilt
         /// </summary>
-        event DocumentRebuildDelegate Rebuilt;
+        event DocumentEventDelegate Rebuilt;
 
         /// <summary>
         /// Fired when documetn is saving
@@ -145,7 +146,7 @@ namespace Xarial.XCad.Documents
         /// </summary>
         /// <remarks>Dependencies might be uncommited if document is loaded view only or in the rapid mode. Use <see cref="IXTransaction.IsCommitted"/> to check the state and call <see cref="IXTransaction.Commit(System.Threading.CancellationToken)"/> to load document if needed.
         /// In most CADs this method wil lwork with uncommitted documents</remarks>
-        IXDocument3D[] Dependencies { get; }
+        IEnumerable<IXDocument3D> Dependencies { get; }
 
         /// <summary>
         /// Deserializes specific object from stream

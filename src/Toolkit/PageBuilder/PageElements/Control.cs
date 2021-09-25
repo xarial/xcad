@@ -47,15 +47,9 @@ namespace Xarial.XCad.Utils.PageBuilder.PageElements
             Tag = tag;
         }
 
-        public void Dispose()
-        {
-            Dispose(true);
-        }
+        public void Dispose() => Dispose(true);
 
-        object IControl.GetValue()
-        {
-            return GetSpecificValue();
-        }
+        object IControl.GetValue() => GetSpecificValue();
 
         public void SetValue(object value)
         {

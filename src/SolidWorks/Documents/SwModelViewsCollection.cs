@@ -40,8 +40,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public int Count => throw new NotImplementedException();
 
-        //TODO: move the view creation to SwObject.FromDispatch
-        public ISwModelView Active => new SwModelView(m_Doc.Model.IActiveView, m_Doc, m_App);
+        public ISwModelView Active => m_Doc.CreateObjectFromDispatch<ISwModelView>(m_Doc.Model.IActiveView);
         
         public ISwNamedView this[string name] 
         {

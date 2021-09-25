@@ -8,6 +8,7 @@
 using SolidWorks.Interop.sldworks;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using Xarial.XCad.Data;
@@ -29,6 +30,7 @@ namespace Xarial.XCad.SolidWorks.Features
         IBodyFolder CutListBodyFolder { get; }
     }
 
+    [DebuggerDisplay("{" + nameof(Name) + "}")]
     internal class SwCutListItem : SwFeature, ISwCutListItem
     {
         private readonly Lazy<ISwCustomPropertiesCollection> m_Properties;
@@ -59,7 +61,7 @@ namespace Xarial.XCad.SolidWorks.Features
 
         public IBodyFolder CutListBodyFolder { get; }
 
-        public IXSolidBody[] Bodies 
+        public IEnumerable<IXSolidBody> Bodies 
         {
             get
             {
@@ -67,11 +69,10 @@ namespace Xarial.XCad.SolidWorks.Features
 
                 if (bodies != null)
                 {
-                    return bodies.Select(b => OwnerDocument.CreateObjectFromDispatch<ISwSolidBody>(b)).ToArray();
-                }
-                else 
-                {
-                    return new IXSolidBody[0];
+                    foreach (var body in bodies.Select(b => OwnerDocument.CreateObjectFromDispatch<ISwSolidBody>(b))) 
+                    {
+                        yield return body;
+                    }
                 }
             }
         }

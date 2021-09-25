@@ -14,6 +14,7 @@ using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Delegates;
 using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Documents.Exceptions;
+using Xarial.XCad.Documents.Extensions;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.SolidWorks;
@@ -236,21 +237,24 @@ namespace SolidWorks.Tests.Integration
             var d1ClosingCount = 0;
             var d2ClosingCount = 0;
 
-            m_App.Documents.DocumentCreated += (d)=> 
+            m_App.Documents.DocumentLoaded += (d)=> 
             {
                 createdDocs.Add(Path.GetFileNameWithoutExtension(d.Title).ToLower());
             };
 
             var doc1 = (ISwDocument)m_App.Documents.Open(GetFilePath("foreign.IGS"));
 
-            doc1.Closing += (d)=> 
+            doc1.Closing += (d, t)=> 
             {
-                if (d != doc1)
+                if (t == DocumentCloseType_e.Destroy)
                 {
-                    throw new Exception("doc1 is invalid");
-                }
+                    if (d != doc1)
+                    {
+                        throw new Exception("doc1 is invalid");
+                    }
 
-                d1ClosingCount++;
+                    d1ClosingCount++;
+                }
             };
 
             int errs = -1;
@@ -263,14 +267,17 @@ namespace SolidWorks.Tests.Integration
 
             var doc2 = m_App.Documents[model2];
 
-            doc2.Closing += (d) =>
+            doc2.Closing += (d, t) =>
             {
-                if (d != doc2)
+                if (t == DocumentCloseType_e.Destroy)
                 {
-                    throw new Exception("doc2 is invalid");
-                }
+                    if (d != doc2)
+                    {
+                        throw new Exception("doc2 is invalid");
+                    }
 
-                d2ClosingCount++;
+                    d2ClosingCount++;
+                }
             };
 
             var activeDocTitle = Path.GetFileNameWithoutExtension(m_App.Documents.Active.Title).ToLower();
@@ -287,6 +294,45 @@ namespace SolidWorks.Tests.Integration
             Assert.AreEqual(d2ClosingCount, 1);
             Assert.AreEqual(activeDocTitle, "subsubassem1");
             Assert.AreEqual(activeDocTitle1, "foreign");
+        }
+
+        [Test]
+        public void DocumentHidingTest()
+        {
+            var hiddenDocs = new List<string>();
+
+            void OnHiding(IXDocument d, DocumentCloseType_e t)
+            {
+                if (t == DocumentCloseType_e.Hide)
+                {
+                    hiddenDocs.Add(Path.GetFileName(d.Path));
+                }
+            }
+
+            var docs = m_App.Documents;
+
+            using (var doc = OpenDataDocument(GetFilePath("Assembly1\\TopAssem1.SLDASM"))) 
+            {
+                var assm = docs.Active;
+                assm.Closing += OnHiding;
+
+                foreach (var dep in assm.GetAllDependencies()) 
+                {
+                    dep.Closing += OnHiding;
+                }
+
+                m_App.Documents.Active = (ISwDocument)docs[GetFilePath("Assembly1\\Part1.sldprt")];
+                m_App.Documents.Active.Close();
+                m_App.Documents.Active = (ISwDocument)docs[GetFilePath("Assembly1\\SubAssem1.SLDASM")];
+                m_App.Documents.Active.Close();
+                m_App.Documents.Active = (ISwDocument)docs[GetFilePath("Assembly1\\Part3.sldprt")];
+                m_App.Documents.Active.Close();
+            }
+
+            Assert.AreEqual(3, hiddenDocs.Count);
+            Assert.That(string.Equals("Part1.sldprt", hiddenDocs[0], StringComparison.CurrentCultureIgnoreCase));
+            Assert.That(string.Equals("SubAssem1.SLDASM", hiddenDocs[1], StringComparison.CurrentCultureIgnoreCase));
+            Assert.That(string.Equals("Part3.sldprt", hiddenDocs[2], StringComparison.CurrentCultureIgnoreCase));
         }
 
         [Test]
@@ -404,7 +450,7 @@ namespace SolidWorks.Tests.Integration
         {
             var activateDocsList = new List<string>();
 
-            var handler = new DocumentActivateDelegate((IXDocument doc) =>
+            var handler = new DocumentEventDelegate((IXDocument doc) =>
             {
                 activateDocsList.Add(Path.GetFileName(doc.Path));
             });
@@ -533,7 +579,7 @@ namespace SolidWorks.Tests.Integration
             var assm = m_App.Documents.PreCreate<ISwAssembly>();
             assm.Path = GetFilePath(@"Assembly2\TopAssem.SLDASM");
 
-            var deps = assm.Dependencies;
+            var deps = assm.Dependencies.ToArray();
 
             var dir = Path.GetDirectoryName(assm.Path);
 
@@ -543,6 +589,42 @@ namespace SolidWorks.Tests.Integration
             Assert.That(deps.Any(d => string.Equals(d.Path, Path.Combine(dir, "Assem1.SLDASM"))));
             Assert.That(deps.Any(d => string.Equals(d.Path, Path.Combine(dir, "Assem2.SLDASM"))));
             Assert.That(deps.Any(d => string.Equals(d.Path, Path.Combine(dir, "Part1.SLDPRT"))));
+        }
+
+        [Test]
+        public void DocumentDependencies3DInterconnect()
+        {
+            Dictionary<string, bool> r1;
+
+            using (var assm = OpenDataDocument(@"Assembly9\Assem1.SLDASM"))
+            {
+                var deps = m_App.Documents.Active.GetAllDependencies().ToArray();
+                r1 = deps.ToDictionary(d => Path.GetFileName(d.Path), d => d.IsCommitted, StringComparer.CurrentCultureIgnoreCase);
+            }
+
+            Assert.AreEqual(2, r1.Count);
+            Assert.That(r1.ContainsKey("Part2.sldprt"));
+            Assert.That(r1.ContainsKey("Part1.prt.sldprt"));
+            Assert.IsTrue(r1["Part2.sldprt"]);
+            Assert.IsTrue(r1["Part1.prt.sldprt"]);
+        }
+
+        [Test]
+        public void DocumentDependencies3DInterconnectUnloaded()
+        {
+            Dictionary<string, bool> r1;
+
+            var assm = m_App.Documents.PreCreate<ISwAssembly>();
+            assm.Path = GetFilePath(@"Assembly9\Assem1.SLDASM");
+
+            var deps = assm.GetAllDependencies().ToArray();
+            r1 = deps.ToDictionary(d => Path.GetFileName(d.Path), d => d.IsCommitted, StringComparer.CurrentCultureIgnoreCase);
+
+            Assert.AreEqual(2, r1.Count);
+            Assert.That(r1.ContainsKey("Part2.sldprt"));
+            Assert.That(r1.ContainsKey("Part1.prt.sldprt"));
+            Assert.IsFalse(r1["Part2.sldprt"]);
+            Assert.IsFalse(r1["Part1.prt.sldprt"]);
         }
 
         [Test]
@@ -599,7 +681,7 @@ namespace SolidWorks.Tests.Integration
             var assm = m_App.Documents.PreCreate<ISwAssembly>();
             assm.Path = GetFilePath(@"MovedNonOpenedAssembly1\TopAssembly.SLDASM");
 
-            var deps = assm.Dependencies;
+            var deps = assm.Dependencies.ToArray();
 
             var dir = Path.GetDirectoryName(assm.Path);
 
@@ -614,13 +696,114 @@ namespace SolidWorks.Tests.Integration
             var assm = m_App.Documents.PreCreate<ISwAssembly>();
             assm.Path = GetFilePath(@"Assembly3\Assemblies\Assem1.SLDASM");
 
-            var deps = assm.Dependencies;
+            var deps = assm.Dependencies.ToArray();
 
             var dir = GetFilePath("Assembly3");
 
             Assert.AreEqual(1, deps.Length);
             Assert.That(deps.All(d => !d.IsCommitted));
             Assert.That(deps.Any(d => string.Equals(d.Path, Path.Combine(dir, "Parts\\Part1.SLDPRT"), StringComparison.CurrentCultureIgnoreCase)));
+        }
+
+        [Test]
+        public void DocumentAllDependenciesMissingAndVirtualTest()
+        {
+            using (var doc = OpenDataDocument(@"Assembly6\Assem1.SLDASM"))
+            {
+                var assm = m_App.Documents.Active;
+
+                var deps = assm.GetAllDependencies().ToArray();
+
+                var dir = Path.GetDirectoryName(assm.Path);
+
+                var d1 = deps.FirstOrDefault(d => string.Equals(Path.GetFileName(d.Path), "Part1^Assem1.sldprt",
+                    StringComparison.CurrentCultureIgnoreCase));
+                var d2 = deps.FirstOrDefault(d => string.Equals(Path.GetFileName(d.Path), "Part2.sldprt",
+                    StringComparison.CurrentCultureIgnoreCase));
+                var d3 = deps.FirstOrDefault(d => string.Equals(Path.GetFileName(d.Path), "Assem2.sldasm",
+                    StringComparison.CurrentCultureIgnoreCase));
+                var d4 = deps.FirstOrDefault(d => string.Equals(Path.GetFileName(d.Path), "Assem3^Assem1.sldasm",
+                    StringComparison.CurrentCultureIgnoreCase));
+                var d5 = deps.FirstOrDefault(d => string.Equals(Path.GetFileName(d.Path), "Part4.sldprt",
+                    StringComparison.CurrentCultureIgnoreCase));
+                var d6 = deps.FirstOrDefault(d => string.Equals(Path.GetFileName(d.Path), "Part5^Assem3_Assem1.sldprt",
+                    StringComparison.CurrentCultureIgnoreCase));
+                var d7 = deps.FirstOrDefault(d => string.Equals(Path.GetFileName(d.Path), "Assem4.sldasm",
+                    StringComparison.CurrentCultureIgnoreCase));
+                var d8 = deps.FirstOrDefault(d => string.Equals(Path.GetFileName(d.Path), "Part1^Assem4.sldprt",
+                    StringComparison.CurrentCultureIgnoreCase));
+
+                Assert.AreEqual(8, deps.Length);
+                Assert.IsTrue(d1.IsAlive);
+                Assert.IsTrue(d1.IsCommitted);
+                Assert.Throws<OpenDocumentFailedException>(() => d2.Commit());
+                Assert.Throws<OpenDocumentFailedException>(() => d3.Commit());
+                Assert.IsTrue(d4.IsAlive);
+                Assert.IsTrue(d4.IsCommitted);
+                Assert.IsTrue(d5.IsAlive);
+                Assert.IsTrue(d5.IsCommitted);
+                Assert.That(string.Equals(d5.Path, Path.Combine(dir, "Part4.SLDPRT"), StringComparison.CurrentCultureIgnoreCase));
+                Assert.IsTrue(d6.IsAlive);
+                Assert.IsTrue(d6.IsCommitted);
+                Assert.IsTrue(d7.IsCommitted);
+                Assert.That(string.Equals(d7.Path, Path.Combine(dir, "Assem4.sldasm"), StringComparison.CurrentCultureIgnoreCase));
+                Assert.IsTrue(d8.IsAlive);
+                Assert.IsTrue(d8.IsCommitted);
+            }
+        }
+        
+        [Test]
+        public void DocumentAllDependenciesMovedPath()
+        {
+            var destPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+
+            Directory.CreateDirectory(destPath);
+
+            var srcPath = GetFilePath(@"Assembly6");
+
+            foreach (var srcFile in Directory.GetFiles(srcPath, "*.*"))
+            {
+                File.Copy(srcFile, Path.Combine(destPath, Path.GetFileName(srcFile)));
+            }
+
+            using (var doc = OpenDataDocument(Path.Combine(destPath, "Assem1.SLDASM")))
+            {
+                var assm = m_App.Documents.Active;
+
+                var deps = assm.GetAllDependencies().ToArray();
+
+                var d1 = deps.FirstOrDefault(d => string.Equals(Path.GetFileName(d.Path), "Part1^Assem1.sldprt",
+                    StringComparison.CurrentCultureIgnoreCase));
+                var d2 = deps.FirstOrDefault(d => string.Equals(Path.GetFileName(d.Path), "Part2.sldprt",
+                    StringComparison.CurrentCultureIgnoreCase));
+                var d3 = deps.FirstOrDefault(d => string.Equals(Path.GetFileName(d.Path), "Assem2.sldasm",
+                    StringComparison.CurrentCultureIgnoreCase));
+                var d4 = deps.FirstOrDefault(d => string.Equals(Path.GetFileName(d.Path), "Assem3^Assem1.sldasm",
+                    StringComparison.CurrentCultureIgnoreCase));
+                var d5 = deps.FirstOrDefault(d => string.Equals(Path.GetFileName(d.Path), "Part4.sldprt",
+                    StringComparison.CurrentCultureIgnoreCase));
+                var d6 = deps.FirstOrDefault(d => string.Equals(Path.GetFileName(d.Path), "Part5^Assem3_Assem1.sldprt",
+                    StringComparison.CurrentCultureIgnoreCase));
+                var d7 = deps.FirstOrDefault(d => string.Equals(Path.GetFileName(d.Path), "Assem4.sldasm",
+                    StringComparison.CurrentCultureIgnoreCase));
+                var d8 = deps.FirstOrDefault(d => string.Equals(Path.GetFileName(d.Path), "Part1^Assem4.sldprt",
+                    StringComparison.CurrentCultureIgnoreCase));
+
+                Assert.AreEqual(8, deps.Length);
+
+                Assert.IsNotNull(d1);
+                Assert.IsNotNull(d4);
+                Assert.IsNotNull(d6);
+                Assert.IsNotNull(d8);
+                Assert.That(string.Equals(d2.Path, Path.Combine(srcPath, "Part2.SLDPRT"), StringComparison.CurrentCultureIgnoreCase));
+                Assert.That(string.Equals(d3.Path, Path.Combine(srcPath, "Assem2.sldasm"), StringComparison.CurrentCultureIgnoreCase));
+                Assert.Throws<OpenDocumentFailedException>(() => d2.Commit());
+                Assert.Throws<OpenDocumentFailedException>(() => d3.Commit());
+                //Assert.That(string.Equals(d5.Path, Path.Combine(destPath, "Part4.SLDPRT"), StringComparison.CurrentCultureIgnoreCase)); - SOLIDWORKS does not follow the path resolution for the components of virtual component
+                Assert.That(string.Equals(d7.Path, Path.Combine(destPath, "Assem4.sldasm"), StringComparison.CurrentCultureIgnoreCase));
+            }
+
+            Directory.Delete(destPath, true);
         }
 
         [Test]
@@ -773,6 +956,72 @@ namespace SolidWorks.Tests.Integration
             Assert.IsFalse(contains4);
             Assert.IsTrue(contains5);
             Assert.IsFalse(contains6);
+        }
+
+        [Test]
+        public void DocumentLoadingEventsTest() 
+        {
+            ISwAssembly assm = null;
+            ISwPart part = null;
+
+            var openEvents = new List<Tuple<string, int>>();
+
+            const int LOADED = 0;
+            const int NEW = 1;
+            const int OPENED = 2;
+
+            string newTitle = "";
+
+            void OnDocumentLoaded(IXDocument x) { openEvents.Add(new Tuple<string, int>(string.IsNullOrEmpty(x.Path) ? x.Title : x.Path, LOADED)); };
+            void OnDocumentOpened(IXDocument x) { openEvents.Add(new Tuple<string, int>(x.Path, OPENED)); };
+            void OnNewDocumentCreated(IXDocument x) { newTitle = x.Title; openEvents.Add(new Tuple<string, int>(x.Title, NEW)); };
+
+            try
+            {
+                m_App.Documents.DocumentLoaded += OnDocumentLoaded;
+                m_App.Documents.DocumentOpened += OnDocumentOpened;
+                m_App.Documents.NewDocumentCreated += OnNewDocumentCreated;
+
+                assm = m_App.Documents.PreCreate<ISwAssembly>();
+                assm.Path = GetFilePath(@"Assembly1\TopAssem1.SLDASM");
+                assm.Commit();
+
+                part = m_App.Documents.PreCreate<ISwPart>();
+                part.Commit();
+
+                Assert.AreEqual(11, openEvents.Count);
+                Assert.AreEqual(1, openEvents.Where(x => string.Equals(x.Item1, GetFilePath(@"Assembly1\Part1.SLDPRT"), StringComparison.CurrentCultureIgnoreCase) && x.Item2 == LOADED).Count());
+                Assert.AreEqual(1, openEvents.Where(x => string.Equals(x.Item1, GetFilePath(@"Assembly1\Part2.SLDPRT"), StringComparison.CurrentCultureIgnoreCase) && x.Item2 == LOADED).Count());
+                Assert.AreEqual(1, openEvents.Where(x => string.Equals(x.Item1, GetFilePath(@"Assembly1\Part3.SLDPRT"), StringComparison.CurrentCultureIgnoreCase) && x.Item2 == LOADED).Count());
+                Assert.AreEqual(1, openEvents.Where(x => string.Equals(x.Item1, GetFilePath(@"Assembly1\Part4.SLDPRT"), StringComparison.CurrentCultureIgnoreCase) && x.Item2 == LOADED).Count());
+                Assert.AreEqual(1, openEvents.Where(x => string.Equals(x.Item1, GetFilePath(@"Assembly1\SubAssem1.SLDASM"), StringComparison.CurrentCultureIgnoreCase) && x.Item2 == LOADED).Count());
+                Assert.AreEqual(1, openEvents.Where(x => string.Equals(x.Item1, GetFilePath(@"Assembly1\SubAssem2.SLDASM"), StringComparison.CurrentCultureIgnoreCase) && x.Item2 == LOADED).Count());
+                Assert.AreEqual(1, openEvents.Where(x => string.Equals(x.Item1, GetFilePath(@"Assembly1\SubSubAssem1.SLDASM"), StringComparison.CurrentCultureIgnoreCase) && x.Item2 == LOADED).Count());
+                Assert.AreEqual(1, openEvents.Where(x => string.Equals(x.Item1, GetFilePath(@"Assembly1\TopAssem1.SLDASM"), StringComparison.CurrentCultureIgnoreCase) && x.Item2 == LOADED).Count());
+                Assert.AreEqual(1, openEvents.Where(x => string.Equals(x.Item1, GetFilePath(@"Assembly1\TopAssem1.SLDASM"), StringComparison.CurrentCultureIgnoreCase) && x.Item2 == OPENED).Count());
+                Assert.AreEqual(1, openEvents.Where(x => string.Equals(x.Item1, newTitle, StringComparison.CurrentCultureIgnoreCase) && x.Item2 == NEW).Count());
+                Assert.AreEqual(1, openEvents.Where(x => string.Equals(x.Item1, newTitle, StringComparison.CurrentCultureIgnoreCase) && x.Item2 == LOADED).Count());
+                Assert.AreEqual(1, openEvents.Where(x => x.Item2 == OPENED).Count());
+                Assert.AreEqual(1, openEvents.Where(x => x.Item2 == NEW).Count());
+                Assert.That(openEvents.FindIndex(x => string.Equals(x.Item1, GetFilePath(@"Assembly1\TopAssem1.SLDASM"), StringComparison.CurrentCultureIgnoreCase) && x.Item2 == OPENED) > openEvents.FindIndex(x => string.Equals(x.Item1, GetFilePath(@"Assembly1\TopAssem1.SLDASM"), StringComparison.CurrentCultureIgnoreCase) && x.Item2 == LOADED));
+                Assert.That(openEvents.FindIndex(x => string.Equals(x.Item1, newTitle, StringComparison.CurrentCultureIgnoreCase) && x.Item2 == NEW) > openEvents.FindIndex(x => string.Equals(x.Item1, newTitle, StringComparison.CurrentCultureIgnoreCase) && x.Item2 == LOADED));
+            }
+            finally 
+            {
+                if(assm?.IsCommitted == true)
+                {
+                    assm.Close();
+                }
+
+                if (part?.IsCommitted == true)
+                {
+                    part.Close();
+                }
+
+                m_App.Documents.DocumentLoaded -= OnDocumentLoaded;
+                m_App.Documents.DocumentOpened -= OnDocumentOpened;
+                m_App.Documents.NewDocumentCreated -= OnNewDocumentCreated;
+            }
         }
 
         [Test]
@@ -976,6 +1225,42 @@ namespace SolidWorks.Tests.Integration
             Assert.IsTrue(r6);
             Assert.IsTrue(r7);
             Assert.IsTrue(r8);
+        }
+
+        [Test]
+        public void OpenAssemblyLightweight() 
+        {
+            int lightweightCompsCount1;
+            int lightweightCompsCount2;
+
+            var autoLoadLw = m_App.Sw.GetUserPreferenceToggle((int)swUserPreferenceToggle_e.swAutoLoadPartsLightweight);
+
+            try
+            {
+                m_App.Sw.SetUserPreferenceToggle((int)swUserPreferenceToggle_e.swAutoLoadPartsLightweight, true);
+
+                var assm1 = m_App.Documents.PreCreate<ISwAssembly>();
+                assm1.Path = GetFilePath(@"Assembly2\TopAssem.SLDASM");
+                assm1.State = DocumentState_e.Default;
+                assm1.Commit();
+                lightweightCompsCount1 = assm1.Assembly.GetLightWeightComponentCount();
+                assm1.Close();
+
+                var assm2 = m_App.Documents.PreCreate<ISwAssembly>();
+                m_App.Sw.SetUserPreferenceToggle((int)swUserPreferenceToggle_e.swAutoLoadPartsLightweight, false);
+                assm2.Path = GetFilePath(@"Assembly2\TopAssem.SLDASM");
+                assm2.State = DocumentState_e.Lightweight;
+                assm2.Commit();
+                lightweightCompsCount2 = assm2.Assembly.GetLightWeightComponentCount();
+                assm2.Close();
+            }
+            finally 
+            {
+                m_App.Sw.SetUserPreferenceToggle((int)swUserPreferenceToggle_e.swAutoLoadPartsLightweight, autoLoadLw);
+            }
+
+            Assert.AreEqual(0, lightweightCompsCount1);
+            Assert.AreNotEqual(0, lightweightCompsCount2);
         }
     }
 }

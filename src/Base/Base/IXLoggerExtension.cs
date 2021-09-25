@@ -8,6 +8,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.RegularExpressions;
 using Xarial.XCad.Base.Enums;
 
 namespace Xarial.XCad.Base
@@ -17,6 +18,24 @@ namespace Xarial.XCad.Base
     /// </summary>
     public static class ILoggerExtension
     {
+        /// <summary>
+        /// Prints the message to trace
+        /// </summary>
+        /// <param name="logger">Logger</param>
+        /// <param name="msg">Message to trace</param>
+        /// <param name="category">Trace category</param>
+        /// <param name="severity"></param>
+        /// <param name="singleLine">True to merge multiline into a single line</param>
+        public static void Trace(this IXLogger logger, string msg, string category, LoggerMessageSeverity_e severity, bool singleLine = false)
+        {
+            if (singleLine)
+            {
+                msg = Regex.Replace(msg, @"\r\n?|\n", " :: ");
+            }
+
+            System.Diagnostics.Trace.WriteLine($"[{severity}]{msg}", category);
+        }
+
         /// <summary>
         /// Logs error
         /// </summary>

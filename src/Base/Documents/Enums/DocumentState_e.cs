@@ -46,6 +46,11 @@ namespace Xarial.XCad.Documents.Enums
         /// Opens document in the rapid mode
         /// </summary>
         /// <remarks>This mode significantly improves the performance of opening but certain functionality and API migth not be available</remarks>
-        Rapid = 16
+        Rapid = 16,
+
+        /// <summary>
+        /// Opens document in lightweigth mode
+        /// </summary>
+        Lightweight = 32
     }
 }

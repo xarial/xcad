@@ -17,6 +17,7 @@ using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.UI.PropertyPage.Attributes;
 using Xarial.XCad.UI.PropertyPage.Base;
 using Xarial.XCad.UI.PropertyPage.Enums;
+using Xarial.XCad.UI.PropertyPage.Structures;
 using Xarial.XCad.Utils.PageBuilder.Attributes;
 using Xarial.XCad.Utils.PageBuilder.Base;
 
@@ -76,15 +77,18 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
 
             swCtrl.Style = style;
 
-            var ctrl = new PropertyManagerPageListBoxControl(atts.Id, atts.Tag, swCtrl, atts.ContextType, isMultiSelect, handler, metadata, label);
-            var items = m_Helper.GetItems(m_SwApp, atts);
-            
-            if (sortItems) 
-            {
-                items = items.OrderBy(i => i.DisplayName).ToArray();
-            }
+            var ctrl = new PropertyManagerPageListBoxControl(atts.Id, atts.Tag, swCtrl, atts.ContextType, isMultiSelect, handler, metadata, label, atts.ContextType);
 
-            ctrl.Items = items;
+            if (m_Helper.TryGetStaticItems(m_SwApp, atts, out ItemsControlItem[] items)) 
+            {
+                if (sortItems)
+                {
+                    items = items.OrderBy(i => i.DisplayName).ToArray();
+                }
+
+                ctrl.Items = items;
+            }
+            
             return ctrl;
         }
     }

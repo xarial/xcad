@@ -20,6 +20,13 @@ Breaking change is marked with &#x26A0; symbol
 * &#x26A0; Changed the signatures of SwMacroFeatureDefinition{TParams, TPage}::OnEditingCompleted, SwMacroFeatureDefinition{TParams, TPage}::OnFeatureInserted
 * &#x26A0; Changed from protected to public: SwMacroFeatureDefinition{TParams, TPage}::OnEditingStarted, SwMacroFeatureDefinition{TParams,TPage}::CreatePageHandler, SwMacroFeatureDefinition{TParams,TPage}::OnEditingStarted, SwMacroFeatureDefinition{TParams,TPage}::OnEditingCompleted, SwMacroFeatureDefinition{TParams,TPage}::OnFeatureInserted, SwMacroFeatureDefinition{TParams,TPage}::CreateDynamicControls
 * &#x26A0; IXGeometryMemoryBuilder::PreCreateArc is renamed to IXGeometryMemoryBuilder::PreCreateCircle. IXGeometryMemoryBuilder::PreCreateArc has been redefined to create arc rather than circle
+* &#x26A0; IXDocumentRepository::DocumentCreated is renamed to IXDocumentRepository::DocumentLoaded
+* &#x26A0; IXDocument::Rebuild event is renamed to IXDocument::Rebuilt and IXDocument::Regenerate method is renamed to IXDocument::Rebuild
+* &#x26A0; CommandSpec::TabBoxStyle is replaced with CommandSpec::RibbonTextStyle, CommandSpec::HasTabBox is replaced with CommandSpec::HasRibbon
+* &#x26A0; IXDocument::Dependencies, IXConfiguration::CutLists, IXCutList::Bodies, IXFace::Edges changed from array to IEnumerable
+* &#x26A0; IXDocument::Closing is passing the additional parameter if the document is closing or hiding
+* &#x26A0; ComboBoxOptionsAttribute::SelectDefaultValue option is deprecated and removed
+* &#x26A0; IXCustomControl::ValueChanged event delegate type is changed
 
 ## 0.7.4 - July 11, 2021
 
