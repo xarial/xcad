@@ -101,7 +101,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                         return Mass_e.Kilograms;
 
                     case swUnitSystem_e.swUnitSystem_MMGS:
-                        return Mass_e.Milligrams;
+                        return Mass_e.Grams;
 
                     case swUnitSystem_e.swUnitSystem_Custom:
 

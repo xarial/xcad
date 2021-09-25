@@ -1250,6 +1250,129 @@ namespace SolidWorks.Tests.Integration
         }
 
         [Test]
+        public void MassPropertyAssignedPropsSubComponentTest()
+        {
+            double mass1;
+            double density1;
+            double volume1;
+            double area1;
+            Point cog1;
+            PrincipalAxesOfInertia pai1;
+            PrincipalMomentOfInertia pmoi1;
+            MomentOfInertia moi1;
+
+            double mass2;
+            double density2;
+            double volume2;
+            double area2;
+            Point cog2;
+            PrincipalAxesOfInertia pai2;
+            PrincipalMomentOfInertia pmoi2;
+            MomentOfInertia moi2;
+
+            using (var doc = OpenDataDocument(@"MassPrpsAssembly3\Assem1.SLDASM"))
+            {
+                var assm = (ISwAssembly)m_App.Documents.Active;
+
+                using (var massPrps = assm.PreCreateMassProperty())
+                {
+                    massPrps.UserUnits = true;
+                    massPrps.VisibleOnly = false;
+                    massPrps.Scope = new IXComponent[] { assm.Configurations.Active.Components["Assem2-1"] };
+
+                    massPrps.Commit();
+
+                    area1 = massPrps.SurfaceArea;
+                    density1 = massPrps.Density;
+                    volume1 = massPrps.Volume;
+                    mass1 = massPrps.Mass;
+                    moi1 = massPrps.MomentOfInertia;
+                    cog1 = massPrps.CenterOfGravity;
+                    pmoi1 = massPrps.PrincipalMomentOfInertia;
+                    pai1 = massPrps.PrincipalAxesOfInertia;
+                }
+
+                using (var massPrps = assm.PreCreateMassProperty())
+                {
+                    massPrps.UserUnits = false;
+                    massPrps.VisibleOnly = false;
+                    massPrps.Scope = new IXComponent[] { assm.Configurations.Active.Components["Assem2-1"] };
+                    massPrps.RelativeTo = TransformConverter.ToTransformMatrix(
+                        assm.Model.Extension.GetCoordinateSystemTransformByName("Coordinate System1"));
+
+                    massPrps.Commit();
+
+                    area2 = massPrps.SurfaceArea;
+                    density2 = massPrps.Density;
+                    volume2 = massPrps.Volume;
+                    mass2 = massPrps.Mass;
+                    moi2 = massPrps.MomentOfInertia;
+                    cog2 = massPrps.CenterOfGravity;
+                    pmoi2 = massPrps.PrincipalMomentOfInertia;
+                    pai2 = massPrps.PrincipalAxesOfInertia;
+                }
+            }
+
+            AssertCompareDoubles(area1, 60465.27053010);
+            AssertCompareDoubles(density1, 0.0016646521587058);
+            AssertCompareDoubles(volume1, 247196.25491005);
+            AssertCompareDoubles(mass1, 411.49577936);
+            AssertCompareDoubles(cog1.X, 182.14962799);
+            AssertCompareDoubles(cog1.Y, -102.41561654);
+            AssertCompareDoubles(cog1.Z, -55.10900463);
+            AssertCompareDoubles(pmoi1.Px, 149212.95863893);
+            AssertCompareDoubles(pmoi1.Py, 6557483.61812571);
+            AssertCompareDoubles(pmoi1.Pz, 6699522.03125179);
+            AssertCompareDoubles(pai1.Ix.X, -0.05974859);
+            AssertCompareDoubles(pai1.Ix.Y, 0.30564005);
+            AssertCompareDoubles(pai1.Ix.Z, 0.95027063);
+            AssertCompareDoubles(pai1.Iy.X, 0.78418176);
+            AssertCompareDoubles(pai1.Iy.Y, 0.60340725);
+            AssertCompareDoubles(pai1.Iy.Z, -0.14477104);
+            AssertCompareDoubles(pai1.Iz.X, -0.61764802);
+            AssertCompareDoubles(pai1.Iz.Y, 0.73653502);
+            AssertCompareDoubles(pai1.Iz.Z, -0.27573009);
+            AssertCompareDoubles(moi1.Lx.X, 6588792.87251996);
+            AssertCompareDoubles(moi1.Lx.Y, -52409.00818634);
+            AssertCompareDoubles(moi1.Lx.Z, -388034.23992010);
+            AssertCompareDoubles(moi1.Ly.X, -52409.00818634);
+            AssertCompareDoubles(moi1.Ly.Y, 6035903.15614703);
+            AssertCompareDoubles(moi1.Ly.Z, 1890068.89237849);
+            AssertCompareDoubles(moi1.Lz.X, -388034.23992010);
+            AssertCompareDoubles(moi1.Lz.Y, 1890068.89237849);
+            AssertCompareDoubles(moi1.Lz.Z, 781522.57934945);
+
+            AssertCompareDoubles(area2, 0.06046527);
+            AssertCompareDoubles(density2, 1664.6521587058);
+            AssertCompareDoubles(volume2, 0.00024720);
+            AssertCompareDoubles(mass2, 0.41149578);
+            AssertCompareDoubles(cog2.X, 0.10276163);
+            AssertCompareDoubles(cog2.Y, -0.16882696);
+            AssertCompareDoubles(cog2.Z, 0.14185856);
+            AssertCompareDoubles(pmoi2.Px, 0.00014921);
+            AssertCompareDoubles(pmoi2.Py, 0.00655748);
+            AssertCompareDoubles(pmoi2.Pz, 0.00669952);
+            //AssertCompareDoubles(pai2.Ix.X, 0.99711183);
+            //AssertCompareDoubles(pai2.Ix.Y, -0.046883989651476242);
+            //AssertCompareDoubles(pai2.Ix.Z, 0.059748591891107754);
+            //AssertCompareDoubles(pai2.Iy.X, 0.017824261557919906);
+            //AssertCompareDoubles(pai2.Iy.Y, -0.62027515275262135);
+            //AssertCompareDoubles(pai2.Iy.Z, -0.784181758636113);
+            //AssertCompareDoubles(pai2.Iz.X, 0.073826136418782856);
+            //AssertCompareDoubles(pai2.Iz.Y, 0.78298188126678425);
+            //AssertCompareDoubles(pai2.Iz.Z, -0.617648018850059);
+            AssertCompareDoubles(moi2.Lx.X, 0.02019650);
+            AssertCompareDoubles(moi2.Lx.Y, -0.00744680);
+            AssertCompareDoubles(moi2.Lx.Z, 0.00638688);
+            AssertCompareDoubles(moi2.Ly.X, -0.00744680);
+            AssertCompareDoubles(moi2.Ly.Y, 0.01925673);
+            AssertCompareDoubles(moi2.Ly.Z, -0.00980440);
+            AssertCompareDoubles(moi2.Lz.X, 0.00638688);
+            AssertCompareDoubles(moi2.Lz.Y, -0.00980440);
+            AssertCompareDoubles(moi2.Lz.Z, 0.02266284);
+        }
+
+        [Test]
         public void MassPropertyAssignedPropsComponentRefCoordTest()
         {
             double mass1;
