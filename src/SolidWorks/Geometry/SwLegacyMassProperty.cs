@@ -458,17 +458,22 @@ namespace Xarial.XCad.SolidWorks.Geometry
                 {
                     var compRefDocMassPrp = m_ReferenceComponentMassPropertyLazy.Value.MassProperty;
 
-                    if (compRefDocMassPrp.OverrideMomentsOfInertia || NeedToReadMassPropertiesFromReferencedDocument())
+                    var overrideMoi = compRefDocMassPrp.OverrideMomentsOfInertia;
+
+                    if (overrideMoi || NeedToReadMassPropertiesFromReferencedDocument())
                     {
                         var ix = new Vector((double[])compRefDocMassPrp.PrincipleAxesOfInertia[(int)PrincipalAxesOfInertia_e.X]);
                         var iy = new Vector((double[])compRefDocMassPrp.PrincipleAxesOfInertia[(int)PrincipalAxesOfInertia_e.Y]);
                         var iz = new Vector((double[])compRefDocMassPrp.PrincipleAxesOfInertia[(int)PrincipalAxesOfInertia_e.Z]);
 
-                        var compTransform = m_ReferenceComponentMassPropertyLazy.Value.Component.Transformation;
+                        if (!overrideMoi)
+                        {
+                            var compTransform = m_ReferenceComponentMassPropertyLazy.Value.Component.Transformation;
 
-                        ix = ix.Transform(compTransform) * -1;
-                        iy = iy.Transform(compTransform);
-                        iz = iz.Transform(compTransform) * -1;
+                            ix = ix.Transform(compTransform) * -1;
+                            iy = iy.Transform(compTransform);
+                            iz = iz.Transform(compTransform) * -1;
+                        }
 
                         if (RelativeTo != null)
                         {
