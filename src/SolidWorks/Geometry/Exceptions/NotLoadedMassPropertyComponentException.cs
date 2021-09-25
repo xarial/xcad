@@ -9,13 +9,14 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Xarial.XCad.Documents;
+using Xarial.XCad.Exceptions;
 
 namespace Xarial.XCad.SolidWorks.Geometry.Exceptions
 {
-    public class NotLoadedMassPropertyComponentException : NullReferenceException
+    public class NotLoadedMassPropertyComponentException : NullReferenceException, IUserException
     {
         public NotLoadedMassPropertyComponentException(IXComponent comp) 
-            : base($"Reference document of the component '{comp.Name}' must be loaded in order to access this mass property") 
+            : base($"Reference document of the component '{comp.Name}' must be loaded in order to access this mass property in SOLIDWORKS 2019 or older") 
         {
         }
     }

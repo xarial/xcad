@@ -44,6 +44,7 @@ using Xarial.XCad.Extensions;
 using Xarial.XCad.Enums;
 using System.Drawing;
 using Xarial.XCad.Documents.Enums;
+using Xarial.XCad.SolidWorks.Features;
 
 namespace SwAddInExample
 {
@@ -116,7 +117,9 @@ namespace SwAddInExample
 
             ShowTooltip,
 
-            ShowPmpComboBox
+            ShowPmpComboBox,
+
+            GetMassPrps
         }
 
         [Icon(typeof(Resources), nameof(Resources.xarial))]
@@ -446,6 +449,31 @@ namespace SwAddInExample
                 case Commands_e.ShowPmpComboBox:
                     m_PmpComboBoxData = new PmpComboBoxData();
                     m_ComboBoxPage.Show(m_PmpComboBoxData);
+                    break;
+
+                case Commands_e.GetMassPrps:
+                    
+                    var visOnly = true;
+                    var relToCoordSys = "Coordinate System1";
+                    var userUnits = true;
+
+                    var massPrps = ((ISwAssembly)Application.Documents.Active).PreCreateMassProperty();
+                    massPrps.Scope = Application.Documents.Active.Selections.OfType<IXComponent>().ToArray();
+                    massPrps.VisibleOnly = visOnly;
+                    massPrps.UserUnits = userUnits;
+                    if (!string.IsNullOrEmpty(relToCoordSys))
+                    {
+                        massPrps.RelativeTo = ((ISwCoordinateSystem)Application.Documents.Active.Features[relToCoordSys]).Transform;
+                    }
+                    massPrps.Commit();
+                    var cog = massPrps.CenterOfGravity;
+                    var dens = massPrps.Density;
+                    var mass = massPrps.Mass;
+                    var moi = massPrps.MomentOfInertia;
+                    var paoi = massPrps.PrincipalAxesOfInertia;
+                    var pmoi = massPrps.PrincipalMomentOfInertia;
+                    var surfArea = massPrps.SurfaceArea;
+                    var volume = massPrps.Volume;
                     break;
             }
         }

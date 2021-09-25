@@ -69,7 +69,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
             }
         }
 
-        public double Density
+        public virtual double Density
         {
             get
             {
@@ -103,7 +103,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
             }
         }
 
-        public MomentOfInertia MomentOfInertia
+        public virtual MomentOfInertia MomentOfInertia
         {
             get
             {
@@ -201,7 +201,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
         public bool IsCommitted => m_Creator.IsCreated;
 
         protected readonly ISwDocument3D m_Doc;
-        private readonly IMathUtility m_MathUtils;
+        protected readonly IMathUtility m_MathUtils;
 
         protected readonly ElementCreator<IMassProperty> m_Creator;
 
@@ -261,13 +261,13 @@ namespace Xarial.XCad.SolidWorks.Geometry
                 {
                     if (VisibleOnly)
                     {
-                        scope = IterateSolidBodies(false).ToArray();
+                        scope = IterateRootSolidBodies(false).ToArray();
                     }
                 }
 
                 if (scope == null)
                 {
-                    if (!IterateSolidBodies(!VisibleOnly).Any())
+                    if (!IterateRootSolidBodies(!VisibleOnly).Any())
                     {
                         throw new EvaluationFailedException();
                     }
@@ -308,7 +308,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
             }
         }
 
-        protected virtual IEnumerable<IXBody> IterateSolidBodies(bool includeHidden)
+        protected virtual IEnumerable<IXBody> IterateRootSolidBodies(bool includeHidden)
         {
             if (m_Doc is IXPart)
             {
@@ -332,12 +332,14 @@ namespace Xarial.XCad.SolidWorks.Geometry
     {
         private class ComponentMassProperty 
         {
+            internal IXDocument3D Document { get; }
             internal IXComponent Component { get; }
             internal IMassProperty MassProperty { get; }
             internal IXUnits UserUnit { get; }
-
-            internal ComponentMassProperty(IXComponent component, IMassProperty massProperty, IXUnits userUnit)
+            
+            internal ComponentMassProperty(IXDocument3D doc, IXComponent component, IMassProperty massProperty, IXUnits userUnit)
             {
+                Document = doc;
                 Component = component;
                 MassProperty = massProperty;
                 UserUnit = userUnit;
@@ -354,7 +356,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
                 {
                     var compRefDocMassPrp = m_ReferenceComponentMassPropertyLazy.Value.MassProperty;
                     
-                    if (compRefDocMassPrp.OverrideCenterOfMass)
+                    if (compRefDocMassPrp.OverrideCenterOfMass || NeedToReadMassPropertiesFromReferencedDocument())
                     {
                         var comp = m_ReferenceComponentMassPropertyLazy.Value.Component;
                         var units = m_ReferenceComponentMassPropertyLazy.Value.UserUnit;
@@ -397,7 +399,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
                 {
                     var compRefDocMassPrp = m_ReferenceComponentMassPropertyLazy.Value.MassProperty;
 
-                    if (compRefDocMassPrp.OverrideMass)
+                    if (compRefDocMassPrp.OverrideMass || NeedToReadMassPropertiesFromReferencedDocument())
                     {
                         var units = m_ReferenceComponentMassPropertyLazy.Value.UserUnit;
 
@@ -415,6 +417,37 @@ namespace Xarial.XCad.SolidWorks.Geometry
             }
         }
 
+        public override double Density 
+        {
+            get 
+            {
+                ThrowIfScopeException();
+
+                if (m_ReferenceComponentMassPropertyLazy != null)
+                {
+                    var compRefDocMassPrp = m_ReferenceComponentMassPropertyLazy.Value.MassProperty;
+
+                    if (compRefDocMassPrp.OverrideMass || NeedToReadMassPropertiesFromReferencedDocument())
+                    {
+                        var units = m_ReferenceComponentMassPropertyLazy.Value.UserUnit;
+
+                        //mass / cubic length 
+                        var confFactor = units != null ? units.GetMassConversionFactor() / Math.Pow(units.GetLengthConversionFactor(), 3) : 1;
+
+                        return compRefDocMassPrp.Density * (units != null ? confFactor : 1);
+                    }
+                    else
+                    {
+                        return base.Density;
+                    }
+                }
+                else
+                {
+                    return base.Density;
+                }
+            }
+        }
+
         public override PrincipalAxesOfInertia PrincipalAxesOfInertia
         {
             get
@@ -425,11 +458,22 @@ namespace Xarial.XCad.SolidWorks.Geometry
                 {
                     var compRefDocMassPrp = m_ReferenceComponentMassPropertyLazy.Value.MassProperty;
 
-                    if (compRefDocMassPrp.OverrideMomentsOfInertia)
+                    var overrideMoi = compRefDocMassPrp.OverrideMomentsOfInertia;
+
+                    if (overrideMoi || NeedToReadMassPropertiesFromReferencedDocument())
                     {
                         var ix = new Vector((double[])compRefDocMassPrp.PrincipleAxesOfInertia[(int)PrincipalAxesOfInertia_e.X]);
                         var iy = new Vector((double[])compRefDocMassPrp.PrincipleAxesOfInertia[(int)PrincipalAxesOfInertia_e.Y]);
                         var iz = new Vector((double[])compRefDocMassPrp.PrincipleAxesOfInertia[(int)PrincipalAxesOfInertia_e.Z]);
+
+                        if (!overrideMoi)
+                        {
+                            var compTransform = m_ReferenceComponentMassPropertyLazy.Value.Component.Transformation;
+
+                            ix = ix.Transform(compTransform) * -1;
+                            iy = iy.Transform(compTransform);
+                            iz = iz.Transform(compTransform) * -1;
+                        }
 
                         if (RelativeTo != null)
                         {
@@ -464,7 +508,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
                 {
                     var compRefDocMassPrp = m_ReferenceComponentMassPropertyLazy.Value.MassProperty;
 
-                    if (compRefDocMassPrp.OverrideMomentsOfInertia)
+                    if (compRefDocMassPrp.OverrideMomentsOfInertia || NeedToReadMassPropertiesFromReferencedDocument())
                     {
                         var units = m_ReferenceComponentMassPropertyLazy.Value.UserUnit;
 
@@ -487,6 +531,74 @@ namespace Xarial.XCad.SolidWorks.Geometry
                 else
                 {
                     return base.PrincipalMomentOfInertia;
+                }
+            }
+        }
+
+        public override MomentOfInertia MomentOfInertia 
+        {
+            get 
+            {
+                ThrowIfScopeException();
+
+                if (m_ReferenceComponentMassPropertyLazy != null)
+                {
+                    var compRefDocMassPrp = m_ReferenceComponentMassPropertyLazy.Value.MassProperty;
+
+                    if (NeedToReadMassPropertiesFromReferencedDocument())
+                    {
+                        var transform = m_ReferenceComponentMassPropertyLazy.Value.Component.Transformation;
+
+                        if (RelativeTo != null)
+                        {
+                            var relTransform = RelativeTo.Inverse();
+
+                            transform = transform.Multiply(relTransform);
+                        }
+
+                        transform = transform.Inverse();
+
+                        try
+                        {
+                            if (compRefDocMassPrp.SetCoordinateSystem((MathTransform)m_MathUtils.ToMathTransform(transform)))
+                            {
+                                var moiData = (double[])compRefDocMassPrp.GetMomentOfInertia(RelativeTo != null
+                                    ? (int)swMassPropertyMoment_e.swMassPropertyMomentAboutCoordSys
+                                    : (int)swMassPropertyMoment_e.swMassPropertyMomentAboutCenterOfMass);
+
+                                var units = m_ReferenceComponentMassPropertyLazy.Value.UserUnit;
+
+                                //mass *  square length 
+                                var confFactor = units != null ? units.GetMassConversionFactor() * Math.Pow(units.GetLengthConversionFactor(), 2) : 1;
+
+                                var moi = new MomentOfInertia(
+                                    new Vector(moiData[0], moiData[1], moiData[2]) * confFactor,
+                                    new Vector(moiData[3], moiData[4], moiData[5]) * confFactor,
+                                    new Vector(moiData[6], moiData[7], moiData[8]) * confFactor);
+
+                                return moi;
+                            }
+                            else
+                            {
+                                throw new Exception("Failed to align Moment Of Inertia");
+                            }
+                        }
+                        finally 
+                        {
+                            if (!compRefDocMassPrp.SetCoordinateSystem((MathTransform)m_MathUtils.ToMathTransform(TransformMatrix.Identity)))
+                            {
+                                throw new Exception("Failed to reset Moment Of Inertia coordinate system");
+                            }
+                        }
+                    }
+                    else
+                    {
+                        return base.MomentOfInertia;
+                    }
+                }
+                else
+                {
+                    return base.MomentOfInertia;
                 }
             }
         }
@@ -517,7 +629,9 @@ namespace Xarial.XCad.SolidWorks.Geometry
             }
             set => base.Scope = value;
         }
-        
+
+        private Lazy<bool> m_HasHiddenBodiesOrComponentsLazy;
+
         IXComponent[] IAssemblyEvaluation.Scope
         {
             get => m_Creator.CachedProperties.Get<IXComponent[]>(nameof(Scope) + "_Components");
@@ -540,8 +654,25 @@ namespace Xarial.XCad.SolidWorks.Geometry
                         //NOTE: always resolving the system units as it is requried to get units from the assembly (not the component) for the units and also by some reasons incorrect COG is returned for the user units
                         massPrps.UseSystemUnits = true;
                         
-                        return new ComponentMassProperty(comp, massPrps, UserUnits ? m_Assm.Units : null);
+                        return new ComponentMassProperty(refDoc, comp, massPrps, UserUnits ? m_Assm.Units : null);
                     });
+
+                    m_HasHiddenBodiesOrComponentsLazy = new Lazy<bool>(() => 
+                    {
+                        foreach (var body in value.First().IterateBodies(true).OfType<IXSolidBody>()) 
+                        {
+                            if (!body.Visible || body.Faces.First().Component.State.HasFlag(ComponentState_e.Hidden)) 
+                            {
+                                return true;
+                            }
+                        }
+
+                        return false;
+                    });
+                }
+                else if (value?.Length > 1)
+                {
+                    throw new NotSupportedException("Only single component is supported for scope in the assembly in SOLIDWORKS 2019 or older");
                 }
                 else
                 {
@@ -557,8 +688,29 @@ namespace Xarial.XCad.SolidWorks.Geometry
             }
         }
 
-        protected override IEnumerable<IXBody> IterateSolidBodies(bool includeHidden)
+        protected override IEnumerable<IXBody> IterateRootSolidBodies(bool includeHidden)
             => m_Assm.Configurations.Active.Components
             .IterateBodies(includeHidden).OfType<IXSolidBody>();
+
+        private bool NeedToReadMassPropertiesFromReferencedDocument()
+        {
+            if (m_ReferenceComponentMassPropertyLazy != null)
+            {
+                if (m_ReferenceComponentMassPropertyLazy.Value.Document is ISwAssembly)
+                {
+                    if (VisibleOnly) 
+                    {
+                        if (m_HasHiddenBodiesOrComponentsLazy.Value) 
+                        {
+                            throw new MassPropertiesHiddenComponentBodiesNotSupported();
+                        }
+                    }
+
+                    return true;
+                }
+            }
+
+            return false;
+        }
     }
 }
