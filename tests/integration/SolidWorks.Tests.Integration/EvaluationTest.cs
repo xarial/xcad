@@ -1211,6 +1211,7 @@ namespace SolidWorks.Tests.Integration
             Point cog1;
             PrincipalAxesOfInertia pai1;
             PrincipalMomentOfInertia pmoi1;
+            MomentOfInertia moi1 = null;
 
             using (var doc = OpenDataDocument(@"MassPrpsAssembly2\Assem1.SLDASM"))
             {
@@ -1228,6 +1229,17 @@ namespace SolidWorks.Tests.Integration
                     cog1 = massPrps.CenterOfGravity;
                     pmoi1 = massPrps.PrincipalMomentOfInertia;
                     pai1 = massPrps.PrincipalAxesOfInertia;
+                    if (m_App.IsVersionNewerOrEqual(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020))
+                    {
+                        moi1 = massPrps.MomentOfInertia;
+                    }
+                    else
+                    {
+                        Assert.Throws<MomentOfInertiaOverridenException>(() => 
+                        {
+                            var x = massPrps.MomentOfInertia;
+                        });
+                    }
                 }
             }
 
@@ -1247,6 +1259,18 @@ namespace SolidWorks.Tests.Integration
             AssertCompareDoubles(pai1.Iz.X, 0.40824829);
             AssertCompareDoubles(pai1.Iz.Y, 0.40824829);
             AssertCompareDoubles(pai1.Iz.Z, -0.81649658);
+            if (m_App.IsVersionNewerOrEqual(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020))
+            {
+                AssertCompareDoubles(moi1.Lx.X, 0.00000689);
+                AssertCompareDoubles(moi1.Lx.Y, -0.00000012);
+                AssertCompareDoubles(moi1.Lx.Z, 0.00000041);
+                AssertCompareDoubles(moi1.Ly.X, -0.00000012);
+                AssertCompareDoubles(moi1.Ly.Y, 0.00000602);
+                AssertCompareDoubles(moi1.Ly.Z, 0.00000008);
+                AssertCompareDoubles(moi1.Lz.X, 0.00000041);
+                AssertCompareDoubles(moi1.Lz.Y, 0.00000008);
+                AssertCompareDoubles(moi1.Lz.Z, 0.00000509);
+            }
         }
 
         [Test]
@@ -1379,6 +1403,7 @@ namespace SolidWorks.Tests.Integration
             Point cog1;
             PrincipalAxesOfInertia pai1;
             PrincipalMomentOfInertia pmoi1;
+            MomentOfInertia moi1 = null;
 
             using (var doc = OpenDataDocument(@"MassPrpsAssembly2\Assem1.SLDASM"))
             {
@@ -1399,6 +1424,17 @@ namespace SolidWorks.Tests.Integration
                     cog1 = massPrps.CenterOfGravity;
                     pmoi1 = massPrps.PrincipalMomentOfInertia;
                     pai1 = massPrps.PrincipalAxesOfInertia;
+                    if (m_App.IsVersionNewerOrEqual(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020))
+                    {
+                        moi1 = massPrps.MomentOfInertia;
+                    }
+                    else 
+                    {
+                        Assert.Throws<MomentOfInertiaOverridenException>(() =>
+                        {
+                            var x = massPrps.MomentOfInertia;
+                        });
+                    }
                 }
             }
 
@@ -1418,6 +1454,18 @@ namespace SolidWorks.Tests.Integration
             AssertCompareDoubles(pai1.Iz.X, -0.23063965);
             AssertCompareDoubles(pai1.Iz.Y, 0.41932932);
             AssertCompareDoubles(pai1.Iz.Z, -0.87804799);
+            if (m_App.IsVersionNewerOrEqual(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020))
+            {
+                AssertCompareDoubles(moi1.Lx.X, 2628846.22823299);
+                AssertCompareDoubles(moi1.Lx.Y, -933979.23905004);
+                AssertCompareDoubles(moi1.Lx.Z, -161624.97699916);
+                AssertCompareDoubles(moi1.Ly.X, -933979.23905004);
+                AssertCompareDoubles(moi1.Ly.Y, 425733.37087830);
+                AssertCompareDoubles(moi1.Ly.Z, 443270.58593256);
+                AssertCompareDoubles(moi1.Lz.X, -161624.97699916);
+                AssertCompareDoubles(moi1.Lz.Y, 443270.58593256);
+                AssertCompareDoubles(moi1.Lz.Z, 2894937.46974962);
+            }
         }
 
         [Test]
@@ -1610,6 +1658,262 @@ namespace SolidWorks.Tests.Integration
                         massPrps.Commit();
                     });
                 }
+            }
+        }
+
+        [Test]
+        public void MomentOfIntertiaPartOverrideTest()
+        {
+            double[] GetMomentOfIntertia(ISwAssembly assm, string compName, bool includeHidden, bool relToCoord)
+            {
+                using (var massPrps = assm.PreCreateMassProperty())
+                {
+                    massPrps.Scope = new IXComponent[] { assm.Configurations.Active.Components[compName] };
+                    massPrps.UserUnits = true;
+                    massPrps.VisibleOnly = !includeHidden;
+                    
+                    if (relToCoord)
+                    {
+                        massPrps.RelativeTo = TransformConverter.ToTransformMatrix(
+                            assm.Model.Extension.GetCoordinateSystemTransformByName("Coordinate System1"));
+                    }
+
+                    massPrps.Commit();
+
+                    var moi = massPrps.MomentOfInertia;
+
+                    return new double[]
+                    {
+                        moi.Lx.X, moi.Lx.Y, moi.Lx.Z,
+                        moi.Ly.X, moi.Ly.Y, moi.Ly.Z,
+                        moi.Lz.X, moi.Lz.Y, moi.Lz.Z
+                    };
+                }
+            };
+            
+            using (var doc = OpenDataDocument(@"MassPrpsAssembly4\Assem1.SLDASM"))
+            {
+                var assm = (ISwAssembly)m_App.Documents.Active;
+
+                AssertCompareDoubleArray(GetMomentOfIntertia(assm, "COG_Overridden-1", true, false), new double[] { 732771.57070537, 207033.34471190, 284753.25397601, 207033.34471190, 1016744.10068294, 283072.44302186, 284753.25397601, 283072.44302186, 1170200.96290798 });
+                if (m_App.IsVersionNewerOrEqual(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020))
+                {
+                    AssertCompareDoubleArray(GetMomentOfIntertia(assm, "Mass_Overridden-2", true, false), new double[] { 37977.36013703, -9549.44652330, -4965.19161883, -9549.44652330, 17440.37185897, 1988.87607517, -4965.19161883, 1988.87607517, 35024.94118039 });
+                    AssertCompareDoubleArray(GetMomentOfIntertia(assm, "PMOI_Overridden-1", true, false), new double[] { 1054.58171345, -84.46972878, -210.87298292, -84.46972878, 1130.72391154, -326.34343170, -210.87298292, -326.34343170, 1814.69437501 });
+                }
+                else 
+                {
+                    Assert.Throws<MomentOfInertiaOverridenException>(() => GetMomentOfIntertia(assm, "Mass_Overridden-2", true, false));
+                    Assert.Throws<MomentOfInertiaOverridenException>(() => GetMomentOfIntertia(assm, "PMOI_Overridden-1", true, false));
+                }
+                AssertCompareDoubleArray(GetMomentOfIntertia(assm, "None_Overridden-1", true, false), new double[] { 953380.76757384, 221739.33836451, 355898.35534423, 221739.33836451, 1257823.94327966, 42062.10100616, 355898.35534423, 42062.10100616, 708511.92344279 });
+
+                AssertCompareDoubleArray(GetMomentOfIntertia(assm, "COG_Overridden-1", false, false), new double[] { 12582.55584223, 250.22092804, 148.85064148, 250.22092804, 21375.67770367, -5235.05710985, 148.85064148, -5235.05710985, 15689.65556923 });
+                if (m_App.IsVersionNewerOrEqual(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020))
+                {
+                    AssertCompareDoubleArray(GetMomentOfIntertia(assm, "Mass_Overridden-2", false, false), new double[] { 3207.83128782, -70.58035199, 50.22342169, -70.58035199, 5220.98393895, 1434.27367730, 50.22342169, 1434.27367730, 4225.95731532 });
+                    AssertCompareDoubleArray(GetMomentOfIntertia(assm, "PMOI_Overridden-1", false, false), new double[] { 1054.58171345, -84.46972878, -210.87298292, -84.46972878, 1130.72391154, -326.34343170, -210.87298292, -326.34343170, 1814.69437501 });
+                }
+                else
+                {
+                    Assert.Throws<MomentOfInertiaOverridenException>(() => GetMomentOfIntertia(assm, "Mass_Overridden-2", false, false));
+                    Assert.Throws<MomentOfInertiaOverridenException>(() => GetMomentOfIntertia(assm, "PMOI_Overridden-1", false, false));
+                }
+                AssertCompareDoubleArray(GetMomentOfIntertia(assm, "None_Overridden-1", false, false), new double[] { 20444.14131853, -5636.36285550, -349.56564420, -5636.36285550, 16612.77720078, -250.39444679, -349.56564420, -250.39444679, 12590.97059582 });
+
+                if (m_App.IsVersionNewerOrEqual(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020))
+                {
+                    AssertCompareDoubleArray(GetMomentOfIntertia(assm, "COG_Overridden-1", false, true), new double[] { 2055493.59519249, 1473733.62357906, 209311.83240675, 1473733.62357906, 1144281.88776368, 284502.22693767, 209311.83240675, 284502.22693767, 3094248.38970080 });
+                    AssertCompareDoubleArray(GetMomentOfIntertia(assm, "Mass_Overridden-2", false, true), new double[] { 768793.19616025, 104754.95861837, 314872.85703145, 104754.95861837, 834722.70323284, 227762.09556753, 314872.85703145, 227762.09556753, 223073.39439345 });
+                    AssertCompareDoubleArray(GetMomentOfIntertia(assm, "PMOI_Overridden-1", false, true), new double[] { 3378287.78275181, 10966.98973875, 9093.51593862, 10966.98973875, 1318697.38761996, 1647362.86006517, 9093.51593862, 1647362.86006517, 2061484.22500662 });
+                }
+                else 
+                {
+                    Assert.Throws<MomentOfInertiaOverridenException>(() => GetMomentOfIntertia(assm, "COG_Overridden-1", false, true));
+                    Assert.Throws<MomentOfInertiaOverridenException>(() => GetMomentOfIntertia(assm, "Mass_Overridden-2", false, true));
+                    Assert.Throws<MomentOfInertiaOverridenException>(() => GetMomentOfIntertia(assm, "PMOI_Overridden-1", false, true));
+                }
+                
+                AssertCompareDoubleArray(GetMomentOfIntertia(assm, "None_Overridden-1", false, true), new double[] { 14712236.09617482, 4987667.80184248, 3855648.81964258, 4987667.80184248, 8226946.56763011, 7118485.74938377, 3855648.81964258, 7118485.74938377, 11915270.93498221 });
+
+                if (m_App.IsVersionNewerOrEqual(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020))
+                {
+                    AssertCompareDoubleArray(GetMomentOfIntertia(assm, "COG_Overridden-1", true, true), new double[] { 18169538.72272953, 11995399.31901705, 1683580.55358953, 11995399.31901705, 10041778.53972001, 1993318.14300060, 1683580.55358953, 1993318.14300060, 26090270.31616359 });
+                    AssertCompareDoubleArray(GetMomentOfIntertia(assm, "Mass_Overridden-2", true, true), new double[] { 429678.07221692, -53952.39135083, 328772.98457456, -53952.39135083, 700029.78915353, -43384.18746203, 328772.98457456, -43384.18746203, 325063.83301430 });
+                    AssertCompareDoubleArray(GetMomentOfIntertia(assm, "PMOI_Overridden-1", true, true), new double[] { 18613926.38640416, 5871368.65378197, 6995931.98530180, 5871368.65378197, 15403813.71193740, 9165628.99074609, 6995931.98530180, 9165628.99074609, 12175445.88721939 });
+                }
+                else 
+                {
+                    Assert.Throws<MomentOfInertiaOverridenException>(() => GetMomentOfIntertia(assm, "COG_Overridden-1", true, true));
+                    Assert.Throws<MomentOfInertiaOverridenException>(() => GetMomentOfIntertia(assm, "Mass_Overridden-2", true, true));
+                    Assert.Throws<MomentOfInertiaOverridenException>(() => GetMomentOfIntertia(assm, "PMOI_Overridden-1", true, true));
+                }
+                AssertCompareDoubleArray(GetMomentOfIntertia(assm, "None_Overridden-1", true, true), new double[] { 110981291.63683793, 23338999.87521937, 25883931.20133131, 23338999.87521937, 73306473.61240853, 54171849.01522268, 25883931.20133131, 54171849.01522268, 60433968.38786618 });
+            }
+        }
+
+        [Test]
+        public void MomentOfIntertiaSubAssemblyPartOverrideTest()
+        {
+            double[] GetMomentOfIntertia(ISwAssembly assm, string compName, bool includeHidden, bool relToCoord)
+            {
+                using (var massPrps = assm.PreCreateMassProperty())
+                {
+                    massPrps.Scope = new IXComponent[] { assm.Configurations.Active.Components[compName] };
+                    massPrps.UserUnits = true;
+                    massPrps.VisibleOnly = !includeHidden;
+
+                    if (relToCoord)
+                    {
+                        massPrps.RelativeTo = TransformConverter.ToTransformMatrix(
+                            assm.Model.Extension.GetCoordinateSystemTransformByName("Coordinate System1"));
+                    }
+
+                    massPrps.Commit();
+
+                    var moi = massPrps.MomentOfInertia;
+
+                    return new double[]
+                    {
+                        moi.Lx.X, moi.Lx.Y, moi.Lx.Z,
+                        moi.Ly.X, moi.Ly.Y, moi.Ly.Z,
+                        moi.Lz.X, moi.Lz.Y, moi.Lz.Z
+                    };
+                }
+            };
+
+            using (var doc = OpenDataDocument(@"MassPrpsAssembly5\Assem1.SLDASM"))
+            {
+                var assm = (ISwAssembly)m_App.Documents.Active;
+
+                AssertCompareDoubleArray(GetMomentOfIntertia(assm, "COG_Overridden_Assm-1", true, false), new double[] { 732771.57070537, 207033.34471190, 284753.25397601, 207033.34471190, 1016744.10068294, 283072.44302186, 284753.25397601, 283072.44302186, 1170200.96290798 });
+                AssertCompareDoubleArray(GetMomentOfIntertia(assm, "Mass_Overridden_Assm-2", true, false), new double[] { 37977.36013703, -9549.44652330, -4965.19161883, -9549.44652330, 17440.37185897, 1988.87607517, -4965.19161883, 1988.87607517, 35024.94118039 });
+                AssertCompareDoubleArray(GetMomentOfIntertia(assm, "PMOI_Overridden_Assm-1", true, false), new double[] { 1054.58171345, -84.46972878, -210.87298292, -84.46972878, 1130.72391154, -326.34343170, -210.87298292, -326.34343170, 1814.69437501 });
+                AssertCompareDoubleArray(GetMomentOfIntertia(assm, "None_Overridden_Assm-2", true, false), new double[] { 953380.76757384, 221739.33836451, 355898.35534423, 221739.33836451, 1257823.94327966, 42062.10100616, 355898.35534423, 42062.10100616, 708511.92344279 });
+
+                if (m_App.IsVersionNewerOrEqual(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020))
+                {
+                    AssertCompareDoubleArray(GetMomentOfIntertia(assm, "COG_Overridden_Assm-1", false, false), new double[] { 12582.55584223, 250.22092804, 148.85064148, 250.22092804, 21375.67770367, -5235.05710985, 148.85064148, -5235.05710985, 15689.65556923 });
+                    AssertCompareDoubleArray(GetMomentOfIntertia(assm, "Mass_Overridden_Assm-2", false, false), new double[] { 3207.83128782, -70.58035199, 50.22342169, -70.58035199, 5220.98393895, 1434.27367730, 50.22342169, 1434.27367730, 4225.95731532 });
+                    AssertCompareDoubleArray(GetMomentOfIntertia(assm, "PMOI_Overridden_Assm-1", false, false), new double[] { 1054.58171345, -84.46972878, -210.87298292, -84.46972878, 1130.72391154, -326.34343170, -210.87298292, -326.34343170, 1814.69437501 });
+                    AssertCompareDoubleArray(GetMomentOfIntertia(assm, "None_Overridden_Assm-2", false, false), new double[] { 20444.14131853, -5636.36285550, -349.56564420, -5636.36285550, 16612.77720078, -250.39444679, -349.56564420, -250.39444679, 12590.97059582 });
+
+                    AssertCompareDoubleArray(GetMomentOfIntertia(assm, "COG_Overridden_Assm-1", false, true), new double[] { 2055493.59519249, 1473733.62357906, 209311.83240675, 1473733.62357906, 1144281.88776368, 284502.22693767, 209311.83240675, 284502.22693767, 3094248.38970080 });
+                    AssertCompareDoubleArray(GetMomentOfIntertia(assm, "Mass_Overridden_Assm-2", false, true), new double[] { 768793.19616025, 104754.95861837, 314872.85703145, 104754.95861837, 834722.70323284, 227762.09556753, 314872.85703145, 227762.09556753, 223073.39439345 });
+                    AssertCompareDoubleArray(GetMomentOfIntertia(assm, "PMOI_Overridden_Assm-1", false, true), new double[] { 3378287.78275181, 10966.98973875, 9093.51593862, 10966.98973875, 1318697.38761996, 1647362.86006517, 9093.51593862, 1647362.86006517, 2061484.22500662 });
+                    AssertCompareDoubleArray(GetMomentOfIntertia(assm, "None_Overridden_Assm-2", false, true), new double[] { 14712236.09617482, 4987667.80184248, 3855648.81964258, 4987667.80184248, 8226946.56763011, 7118485.74938377, 3855648.81964258, 7118485.74938377, 11915270.93498221 });
+                }
+                else
+                {
+                    Assert.Throws<MassPropertiesHiddenComponentBodiesNotSupported>(() => GetMomentOfIntertia(assm, "COG_Overridden_Assm-1", false, false));
+                    Assert.Throws<MassPropertiesHiddenComponentBodiesNotSupported>(() => GetMomentOfIntertia(assm, "Mass_Overridden_Assm-2", false, false));
+                    Assert.Throws<MassPropertiesHiddenComponentBodiesNotSupported>(() => GetMomentOfIntertia(assm, "PMOI_Overridden_Assm-1", false, false));
+                    Assert.Throws<MassPropertiesHiddenComponentBodiesNotSupported>(() => GetMomentOfIntertia(assm, "None_Overridden_Assm-2", false, false));
+
+                    Assert.Throws<MassPropertiesHiddenComponentBodiesNotSupported>(() => GetMomentOfIntertia(assm, "COG_Overridden_Assm-1", false, true));
+                    Assert.Throws<MassPropertiesHiddenComponentBodiesNotSupported>(() => GetMomentOfIntertia(assm, "Mass_Overridden_Assm-2", false, true));
+                    Assert.Throws<MassPropertiesHiddenComponentBodiesNotSupported>(() => GetMomentOfIntertia(assm, "PMOI_Overridden_Assm-1", false, true));
+                    Assert.Throws<MassPropertiesHiddenComponentBodiesNotSupported>(() => GetMomentOfIntertia(assm, "None_Overridden_Assm-2", false, true));
+                }
+                
+                AssertCompareDoubleArray(GetMomentOfIntertia(assm, "COG_Overridden_Assm-1", true, true), new double[] { 18169538.72272953, 11995399.31901705, 1683580.55358953, 11995399.31901705, 10041778.53972001, 1993318.14300060, 1683580.55358953, 1993318.14300060, 26090270.31616359 });
+                AssertCompareDoubleArray(GetMomentOfIntertia(assm, "Mass_Overridden_Assm-2", true, true), new double[] { 789955.12562743, 95455.10146005, 311223.79181517, 95455.10146005, 856579.14555075, 237846.12328317, 311223.79181517, 237846.12328317, 257842.92324266 });//note this is calculated differently to previous 2 tests
+                AssertCompareDoubleArray(GetMomentOfIntertia(assm, "PMOI_Overridden_Assm-1", true, true), new double[] { 18613926.38640416, 5871368.65378197, 6995931.98530180, 5871368.65378197, 15403813.71193740, 9165628.99074609, 6995931.98530180, 9165628.99074609, 12175445.88721939 });
+                AssertCompareDoubleArray(GetMomentOfIntertia(assm, "None_Overridden_Assm-2", true, true), new double[] { 110981291.63683793, 23338999.87521937, 25883931.20133131, 23338999.87521937, 73306473.61240853, 54171849.01522268, 25883931.20133131, 54171849.01522268, 60433968.38786618 });
+            }
+        }
+
+        [Test]
+        public void MomentOfIntertiaSubAssemblyOverrideTest()
+        {
+            double[] GetMomentOfIntertia(ISwAssembly assm, string compName, bool includeHidden, bool relToCoord)
+            {
+                using (var massPrps = assm.PreCreateMassProperty())
+                {
+                    massPrps.Scope = new IXComponent[] { assm.Configurations.Active.Components[compName] };
+                    massPrps.UserUnits = true;
+                    massPrps.VisibleOnly = !includeHidden;
+
+                    if (relToCoord)
+                    {
+                        massPrps.RelativeTo = TransformConverter.ToTransformMatrix(
+                            assm.Model.Extension.GetCoordinateSystemTransformByName("Coordinate System1"));
+                    }
+
+                    massPrps.Commit();
+
+                    var moi = massPrps.MomentOfInertia;
+
+                    return new double[]
+                    {
+                        moi.Lx.X, moi.Lx.Y, moi.Lx.Z,
+                        moi.Ly.X, moi.Ly.Y, moi.Ly.Z,
+                        moi.Lz.X, moi.Lz.Y, moi.Lz.Z
+                    };
+                }
+            };
+
+            using (var doc = OpenDataDocument(@"MassPrpsAssembly6\Assem1.SLDASM"))
+            {
+                var assm = (ISwAssembly)m_App.Documents.Active;
+
+                if (m_App.IsVersionNewerOrEqual(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020))
+                {
+                    AssertCompareDoubleArray(GetMomentOfIntertia(assm, "COG_Overridden_Assm-1", true, false), new double[] { 732771.57070537, 207033.34471190, 284753.25397601, 207033.34471190, 1016744.10068294, 283072.44302186, 284753.25397601, 283072.44302186, 1170200.96290798 });
+                    AssertCompareDoubleArray(GetMomentOfIntertia(assm, "Mass_Overridden_Assm-2", true, false), new double[] { 37977.36013703, -9549.44652330, -4965.19161883, -9549.44652330, 17440.37185897, 1988.87607517, -4965.19161883, 1988.87607517, 35024.94118039 });
+                    AssertCompareDoubleArray(GetMomentOfIntertia(assm, "PMOI_Overridden_Assm-1", true, false), new double[] { 1054.58171345, -84.46972878, -210.87298292, -84.46972878, 1130.72391154, -326.34343170, -210.87298292, -326.34343170, 1814.69437501 });
+                }
+                else 
+                {
+                    Assert.Throws<MomentOfInertiaOverridenException>(() => GetMomentOfIntertia(assm, "COG_Overridden_Assm-1", true, false));
+                    Assert.Throws<MomentOfInertiaOverridenException>(() => GetMomentOfIntertia(assm, "Mass_Overridden_Assm-2", true, false));
+                    Assert.Throws<MomentOfInertiaOverridenException>(() => GetMomentOfIntertia(assm, "PMOI_Overridden_Assm-1", true, false));
+                }
+                AssertCompareDoubleArray(GetMomentOfIntertia(assm, "None_Overridden_Assm-2", true, false), new double[] { 953380.76757384, 221739.33836451, 355898.35534423, 221739.33836451, 1257823.94327966, 42062.10100616, 355898.35534423, 42062.10100616, 708511.92344279 });
+
+                if (m_App.IsVersionNewerOrEqual(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020))
+                {
+                    AssertCompareDoubleArray(GetMomentOfIntertia(assm, "COG_Overridden_Assm-1", false, false), new double[] { 12582.55584223, 250.22092804, 148.85064148, 250.22092804, 21375.67770367, -5235.05710985, 148.85064148, -5235.05710985, 15689.65556923 });
+                    AssertCompareDoubleArray(GetMomentOfIntertia(assm, "Mass_Overridden_Assm-2", false, false), new double[] { 3207.83128782, -70.58035199, 50.22342169, -70.58035199, 5220.98393895, 1434.27367730, 50.22342169, 1434.27367730, 4225.95731532 });
+                    AssertCompareDoubleArray(GetMomentOfIntertia(assm, "PMOI_Overridden_Assm-1", false, false), new double[] { 1054.58171345, -84.46972878, -210.87298292, -84.46972878, 1130.72391154, -326.34343170, -210.87298292, -326.34343170, 1814.69437501 });
+                    AssertCompareDoubleArray(GetMomentOfIntertia(assm, "None_Overridden_Assm-2", false, false), new double[] { 20444.14131853, -5636.36285550, -349.56564420, -5636.36285550, 16612.77720078, -250.39444679, -349.56564420, -250.39444679, 12590.97059582 });
+                }
+                else
+                {
+                    Assert.Throws<MomentOfInertiaOverridenException>(() => GetMomentOfIntertia(assm, "COG_Overridden_Assm-1", false, false));
+                    Assert.Throws<MomentOfInertiaOverridenException>(() => GetMomentOfIntertia(assm, "Mass_Overridden_Assm-2", false, false));
+                    Assert.Throws<MomentOfInertiaOverridenException>(() => GetMomentOfIntertia(assm, "PMOI_Overridden_Assm-1", false, false));
+                    Assert.Throws<MassPropertiesHiddenComponentBodiesNotSupported>(() => GetMomentOfIntertia(assm, "None_Overridden_Assm-2", false, false));
+                }
+                
+                if (m_App.IsVersionNewerOrEqual(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020))
+                {
+                    AssertCompareDoubleArray(GetMomentOfIntertia(assm, "COG_Overridden_Assm-1", false, true), new double[] { 2055493.59519249, 1473733.62357906, 209311.83240675, 1473733.62357906, 1144281.88776368, 284502.22693767, 209311.83240675, 284502.22693767, 3094248.38970080 });
+                    AssertCompareDoubleArray(GetMomentOfIntertia(assm, "Mass_Overridden_Assm-2", false, true), new double[] { 768793.19616025, 104754.95861837, 314872.85703145, 104754.95861837, 834722.70323284, 227762.09556753, 314872.85703145, 227762.09556753, 223073.39439345 });
+                    AssertCompareDoubleArray(GetMomentOfIntertia(assm, "PMOI_Overridden_Assm-1", false, true), new double[] { 3378287.78275181, 10966.98973875, 9093.51593862, 10966.98973875, 1318697.38761996, 1647362.86006517, 9093.51593862, 1647362.86006517, 2061484.22500662 });
+                    AssertCompareDoubleArray(GetMomentOfIntertia(assm, "None_Overridden_Assm-2", false, true), new double[] { 14712236.09617482, 4987667.80184248, 3855648.81964258, 4987667.80184248, 8226946.56763011, 7118485.74938377, 3855648.81964258, 7118485.74938377, 11915270.93498221 });
+                }
+                else
+                {
+                    Assert.Throws<MomentOfInertiaOverridenException>(() => GetMomentOfIntertia(assm, "COG_Overridden_Assm-1", false, true));
+                    Assert.Throws<MomentOfInertiaOverridenException>(() => GetMomentOfIntertia(assm, "Mass_Overridden_Assm-2", false, true));
+                    Assert.Throws<MomentOfInertiaOverridenException>(() => GetMomentOfIntertia(assm, "PMOI_Overridden_Assm-1", false, true));
+                    Assert.Throws<MassPropertiesHiddenComponentBodiesNotSupported>(() => GetMomentOfIntertia(assm, "None_Overridden_Assm-2", false, true));
+                }
+
+                if (m_App.IsVersionNewerOrEqual(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020))
+                {
+                    AssertCompareDoubleArray(GetMomentOfIntertia(assm, "COG_Overridden_Assm-1", true, true), new double[] { 18169538.72272953, 11995399.31901705, 1683580.55358953, 11995399.31901705, 10041778.53972001, 1993318.14300060, 1683580.55358953, 1993318.14300060, 26090270.31616359 });
+                    AssertCompareDoubleArray(GetMomentOfIntertia(assm, "Mass_Overridden_Assm-2", true, true), new double[] { 429678.07221692, -53952.39135083, 328772.98457456, -53952.39135083, 700029.78915353, -43384.18746203, 328772.98457456, -43384.18746203, 325063.83301430 });
+                    AssertCompareDoubleArray(GetMomentOfIntertia(assm, "PMOI_Overridden_Assm-1", true, true), new double[] { 18613926.38640416, 5871368.65378197, 6995931.98530180, 5871368.65378197, 15403813.71193740, 9165628.99074609, 6995931.98530180, 9165628.99074609, 12175445.88721939 });
+                }
+                else
+                {
+                    Assert.Throws<MomentOfInertiaOverridenException>(() => GetMomentOfIntertia(assm, "COG_Overridden_Assm-1", true, true));
+                    Assert.Throws<MomentOfInertiaOverridenException>(() => GetMomentOfIntertia(assm, "Mass_Overridden_Assm-2", true, true));
+                    Assert.Throws<MomentOfInertiaOverridenException>(() => GetMomentOfIntertia(assm, "PMOI_Overridden_Assm-1", true, true));
+                }
+                AssertCompareDoubleArray(GetMomentOfIntertia(assm, "None_Overridden_Assm-2", true, true), new double[] { 110981291.63683793, 23338999.87521937, 25883931.20133131, 23338999.87521937, 73306473.61240853, 54171849.01522268, 25883931.20133131, 54171849.01522268, 60433968.38786618 });
             }
         }
     }

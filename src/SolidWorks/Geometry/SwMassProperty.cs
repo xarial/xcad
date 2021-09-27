@@ -150,6 +150,10 @@ namespace Xarial.XCad.SolidWorks.Geometry
             {
                 ThrowIfScopeException();
 
+                //NOTE: if this is not called the incorrect values will be returned for sub-assemblies with override options when include hidden is false
+                //keeping this for all cases as in case there are otehr unknow conditions
+                var testCall = (IMassPropertyOverrideOptions)MassProperty.GetOverrideOptions();
+                
                 var moi = (double[])MassProperty.GetMomentOfInertia(RelativeTo != null
                     ? (int)swMassPropertyMoment_e.swMassPropertyMomentAboutCoordSys
                     : (int)swMassPropertyMoment_e.swMassPropertyMomentAboutCenterOfMass);
