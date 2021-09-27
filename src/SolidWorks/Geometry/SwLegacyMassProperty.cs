@@ -709,9 +709,11 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
                 massPrps = compMassPrp.MassProperty;
 
-                var isOverriden = isOverriddenFunc.Invoke(massPrps);
-
-                if (isOverriden || HasOverridenMassPropertiesChildren(compMassPrp.Document)) 
+                if (isOverriddenFunc.Invoke(massPrps))
+                {
+                    return true;
+                }
+                else if (HasOverridenMassPropertiesChildren(compMassPrp.Document)) 
                 {
                     if (VisibleOnly && compMassPrp.Document is IXAssembly)
                     {
