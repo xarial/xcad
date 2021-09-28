@@ -96,6 +96,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
                 if (m_Doc is ISwPart)
                 {
+                    //[WORKAROUND] - incorrect values returned for the part - using older method instead
                     return new PrincipalAxesOfInertia(
                         new Vector((double[])MassPropertyLegacy.PrincipleAxesOfInertia[(int)PrincipalAxesOfInertia_e.X]),
                         new Vector((double[])MassPropertyLegacy.PrincipleAxesOfInertia[(int)PrincipalAxesOfInertia_e.Y]),
@@ -103,6 +104,16 @@ namespace Xarial.XCad.SolidWorks.Geometry
                 }
                 else 
                 {
+                    if (RelativeTo != null) 
+                    {
+                        //[WORKAROUND] - Principal Axes Of Inertia are not calculated correctly when relative coordinate system is specified
+                        //instead setting the default coordinate system and transforming the axis
+                        if (!MassProperty.SetCoordinateSystem(m_MathUtils.ToMathTransform(TransformMatrix.Identity)))
+                        {
+                            throw new Exception("Failed to set default coordinate system");
+                        }
+                    }
+
                     var overrides = (IMassPropertyOverrideOptions)MassProperty.GetOverrideOptions();
 
                     double[] ix;
@@ -122,7 +133,26 @@ namespace Xarial.XCad.SolidWorks.Geometry
                         iz = (double[])MassProperty.PrincipalAxesOfInertia[(int)PrincipalAxesOfInertia_e.Z];
                     }
 
-                    return new PrincipalAxesOfInertia(new Vector(ix), new Vector(iy), new Vector(iz));
+                    var ixVec = new Vector(ix);
+                    var iyVec = new Vector(iy);
+                    var izVec = new Vector(iz);
+
+                    if (RelativeTo != null)
+                    {
+                        //see [WORKAROUND]
+                        var transform = RelativeTo.Inverse();
+
+                        ixVec = ixVec.Transform(transform);
+                        iyVec = iyVec.Transform(transform);
+                        izVec = izVec.Transform(transform);
+
+                        if (!MassProperty.SetCoordinateSystem(m_MathUtils.ToMathTransform(RelativeTo)))
+                        {
+                            throw new Exception("Failed to set coordinate system");
+                        }
+                    }
+
+                    return new PrincipalAxesOfInertia(ixVec, iyVec, izVec);
                 }
             }
         }
@@ -150,7 +180,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
             {
                 ThrowIfScopeException();
 
-                //NOTE: if this is not called the incorrect values will be returned for sub-assemblies with override options when include hidden is false
+                //[WORKAROUND] if this is not called the incorrect values will be returned for sub-assemblies with override options when include hidden is false
                 //keeping this for all cases as in case there are otehr unknow conditions
                 var testCall = (IMassPropertyOverrideOptions)MassProperty.GetOverrideOptions();
                 
@@ -375,7 +405,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
                 throw new Exception("Failed to add bodies to mass property scope");
             }
 
-            //IMPORTANT: if this property is not called then the principal moment of intertia and principal axes will not be calculated correctly
+            //[WORKAROUND]: if this property is not called then the principal moment of intertia and principal axes will not be calculated correctly
             var testRefreshCall = massPrps.OverrideCenterOfMass;
         }
 
