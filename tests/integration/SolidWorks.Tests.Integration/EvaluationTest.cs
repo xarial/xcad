@@ -1813,6 +1813,31 @@ namespace SolidWorks.Tests.Integration
             AssertCompareDoubles(10, (double)mass14);
             AssertCompareDoubles(322.82511471125844, (double)mass15);
             AssertCompareDoubles(322.82511471125844, (double)mass16);
+
+            AssertCompareDoubles(322.82511471125844, (double)mass13);
+            AssertCompareDoubles(10, (double)mass14);
+            AssertCompareDoubles(322.82511471125844, (double)mass15);
+            AssertCompareDoubles(322.82511471125844, (double)mass16);
+
+            AssertCompareDoubleArray((double[])cog1, new double[] { 76.82290986, -0.07532937, -278.77174281 });
+            AssertCompareDoubleArray((double[])cog2, new double[] { -154.08110264, -113.14142480, 92.49402618 });
+            AssertCompareDoubleArray((double[])cog3, new double[] { -139.23655151, 45.30273096, 193.49523334 });
+            AssertCompareDoubleArray((double[])cog4, new double[] { -391.50242124, 152.80074381, 410.94934022 });
+
+            AssertCompareDoubleArray((double[])cog5, new double[] { 76.82290986, -0.07532937, -278.77174281 });
+            AssertCompareDoubleArray((double[])cog6, new double[] { -217.44164968, -1.76969527, 145.08869196 });
+            AssertCompareDoubleArray((double[])cog7, new double[] { -138.52048542, 181.89475797, 170.54909351 });
+            AssertCompareDoubleArray((double[])cog8, new double[] { -329.99239780, 159.62894541, 534.86186021 });
+
+            AssertCompareDoubleArray((double[])cog9, new double[] { -165.93855976, -225.86082420, -32.13831180 });
+            AssertCompareDoubleArray((double[])cog10, new double[] { 120.15541293, 86.88632259, 262.12624774 });
+            AssertCompareDoubleArray((double[])cog11, new double[] { 1.25415420, 229.16546409, 183.20508347 });
+            AssertCompareDoubleArray((double[])cog12, new double[] { 262.56537709, 483.99090078, 374.67699586 });
+
+            AssertCompareDoubleArray((double[])cog13, new double[] { -165.93855976, -225.86082420, -32.13831180 });
+            AssertCompareDoubleArray((double[])cog14, new double[] { 167.28644176, -26.90527256, 198.76570069 });
+            AssertCompareDoubleArray((double[])cog15, new double[] { 117.82614748, 154.36654994, 183.92114956 });
+            AssertCompareDoubleArray((double[])cog16, new double[] { 184.35125704, 387.64004000, 436.18701929 });
         }
 
         [Test]
@@ -1963,6 +1988,41 @@ namespace SolidWorks.Tests.Integration
             AssertCompareDoubles(10, (double)mass14);
             AssertCompareDoubles(322.82511471125844, (double)mass15);
             AssertCompareDoubles(322.82511471125844, (double)mass16);
+
+            AssertCompareDoubleArray((double[])cog1, new double[] { 76.82290986, -0.07532937, -278.77174281 });
+            AssertCompareDoubleArray((double[])cog2, new double[] { -217.44164968, -1.76969527, 145.08869196 });
+            AssertCompareDoubleArray((double[])cog3, new double[] { -139.23655151, 45.30273096, 193.49523334 });
+            AssertCompareDoubleArray((double[])cog4, new double[] { -391.50242124, 152.80074381, 410.94934022 });
+            
+            if (m_App.IsVersionNewerOrEqual(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020))
+            {
+                AssertCompareDoubleArray((double[])cog5, new double[] { 76.82290986, -0.07532937, -278.77174281 });
+                AssertCompareDoubleArray((double[])cog6, new double[] { -217.44164968, -1.76969527, 145.08869196 });
+                AssertCompareDoubleArray((double[])cog7, new double[] { -138.52048542, 181.89475797, 170.54909351 });
+                AssertCompareDoubleArray((double[])cog8, new double[] { -329.99239780, 159.62894541, 534.86186021 });
+
+                AssertCompareDoubleArray((double[])cog9, new double[] { -165.93855976, -225.86082420, -32.13831180 });
+                AssertCompareDoubleArray((double[])cog10, new double[] { 120.15541293, 86.88632259, 262.12624774 });
+                AssertCompareDoubleArray((double[])cog11, new double[] { 1.25415420, 229.16546409, 183.20508347 });
+                AssertCompareDoubleArray((double[])cog12, new double[] { 262.56537709, 483.99090078, 374.67699586 });
+            }
+            else
+            {
+                Assert.IsInstanceOf<MassPropertiesHiddenComponentBodiesNotSupported>(cog5);
+                Assert.IsInstanceOf<MassPropertiesHiddenComponentBodiesNotSupported>(cog6);
+                Assert.IsInstanceOf<MassPropertiesHiddenComponentBodiesNotSupported>(cog7);
+                Assert.IsInstanceOf<MassPropertiesHiddenComponentBodiesNotSupported>(cog8);
+                                                                                     
+                Assert.IsInstanceOf<MassPropertiesHiddenComponentBodiesNotSupported>(cog9);
+                Assert.IsInstanceOf<MassPropertiesHiddenComponentBodiesNotSupported>(cog10);
+                Assert.IsInstanceOf<MassPropertiesHiddenComponentBodiesNotSupported>(cog11);
+                Assert.IsInstanceOf<MassPropertiesHiddenComponentBodiesNotSupported>(cog12);
+            }
+
+            AssertCompareDoubleArray((double[])cog13, new double[] { -165.93855976, -225.86082420, -32.13831180 });
+            AssertCompareDoubleArray((double[])cog14, new double[] { 120.15541293, 86.88632259, 262.12624774 });
+            AssertCompareDoubleArray((double[])cog15, new double[] { 117.82614748, 154.36654994, 183.92114956 });
+            AssertCompareDoubleArray((double[])cog16, new double[] { 184.35125704, 387.64004000, 436.18701929 });
         }
 
         [Test]
@@ -2135,6 +2195,40 @@ namespace SolidWorks.Tests.Integration
             AssertCompareDoubles(10, (double)mass14);
             AssertCompareDoubles(322.82511471125844, (double)mass15);
             AssertCompareDoubles(322.82511471125844, (double)mass16);
+
+            AssertCompareDoubleArray((double[])cog1, new double[] { 76.82290986, -0.07532937, -278.77174281 });
+            AssertCompareDoubleArray((double[])cog2, new double[] { -154.08110264, -113.14142480, 92.49402618 });
+            AssertCompareDoubleArray((double[])cog3, new double[] { -139.23655151, 45.30273096, 193.49523334 });
+            AssertCompareDoubleArray((double[])cog4, new double[] { -391.50242124, 152.80074381, 410.94934022 });
+
+            AssertCompareDoubleArray((double[])cog5, new double[] { 76.82290986, -0.07532937, -278.77174281 });
+            AssertCompareDoubleArray((double[])cog9, new double[] { -165.93855976, -225.86082420, -32.13831180 });
+
+            if (m_App.IsVersionNewerOrEqual(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020))
+            {   
+                AssertCompareDoubleArray((double[])cog6, new double[] { -217.44164968, -1.76969527, 145.08869196 });
+                AssertCompareDoubleArray((double[])cog7, new double[] { -138.52048542, 181.89475797, 170.54909351 });
+                AssertCompareDoubleArray((double[])cog8, new double[] { -329.99239780, 159.62894541, 534.86186021 });
+
+                AssertCompareDoubleArray((double[])cog10, new double[] { 120.15541293, 86.88632259, 262.12624774 });
+                AssertCompareDoubleArray((double[])cog11, new double[] { 1.25415420, 229.16546409, 183.20508347 });
+                AssertCompareDoubleArray((double[])cog12, new double[] { 262.56537709, 483.99090078, 374.67699586 });
+            }
+            else
+            {
+                Assert.IsInstanceOf<MassPropertiesHiddenComponentBodiesNotSupported>(cog6);
+                Assert.IsInstanceOf<MassPropertiesHiddenComponentBodiesNotSupported>(cog7);
+                Assert.IsInstanceOf<MassPropertiesHiddenComponentBodiesNotSupported>(cog8);
+                                                                                     
+                Assert.IsInstanceOf<MassPropertiesHiddenComponentBodiesNotSupported>(cog10);
+                Assert.IsInstanceOf<MassPropertiesHiddenComponentBodiesNotSupported>(cog11);
+                Assert.IsInstanceOf<MassPropertiesHiddenComponentBodiesNotSupported>(cog12);
+            }
+
+            AssertCompareDoubleArray((double[])cog13, new double[] { -165.93855976, -225.86082420, -32.13831180 });
+            AssertCompareDoubleArray((double[])cog14, new double[] { 167.28644176, -26.90527256, 198.76570069 });
+            AssertCompareDoubleArray((double[])cog15, new double[] { 117.82614748, 154.36654994, 183.92114956 });
+            AssertCompareDoubleArray((double[])cog16, new double[] { 184.35125704, 387.64004000, 436.18701929 });
         }
 
         private void GetMassPropertyArrayData(ISwAssembly assm, string compName, bool includeHidden,
@@ -2181,7 +2275,7 @@ namespace SolidWorks.Tests.Integration
 
                 try
                 {
-                    cog = massPrps.CenterOfGravity;
+                    cog = massPrps.CenterOfGravity.ToArray();
                 }
                 catch (Exception ex)
                 {
