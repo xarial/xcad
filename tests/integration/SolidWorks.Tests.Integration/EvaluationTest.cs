@@ -1715,29 +1715,63 @@ namespace SolidWorks.Tests.Integration
             object cog15;
             object cog16;
 
+            object pmoi1;
+            object pmoi2;
+            object pmoi3;
+            object pmoi4;
+            object pmoi5;
+            object pmoi6;
+            object pmoi7;
+            object pmoi8;
+            object pmoi9;
+            object pmoi10;
+            object pmoi11;
+            object pmoi12;
+            object pmoi13;
+            object pmoi14;
+            object pmoi15;
+            object pmoi16;
+
+            object paoi1;
+            object paoi2;
+            object paoi3;
+            object paoi4;
+            object paoi5;
+            object paoi6;
+            object paoi7;
+            object paoi8;
+            object paoi9;
+            object paoi10;
+            object paoi11;
+            object paoi12;
+            object paoi13;
+            object paoi14;
+            object paoi15;
+            object paoi16;
+
             using (var doc = OpenDataDocument(@"MassPrpsAssembly4\Assem1.SLDASM"))
             {
                 var assm = (ISwAssembly)m_App.Documents.Active;
 
-                GetMassPropertyArrayData(assm, "COG_Overridden-1", true, false, out moi1, out mass1, out cog1);
-                GetMassPropertyArrayData(assm, "Mass_Overridden-2", true, false, out moi2, out mass2, out cog2);
-                GetMassPropertyArrayData(assm, "PMOI_Overridden-1", true, false, out moi3, out mass3, out cog3);
-                GetMassPropertyArrayData(assm, "None_Overridden-1", true, false, out moi4, out mass4, out cog4);
+                GetMassPropertyArrayData(assm, "COG_Overridden-1", true, false, out moi1, out mass1, out cog1, out pmoi1, out paoi1);
+                GetMassPropertyArrayData(assm, "Mass_Overridden-2", true, false, out moi2, out mass2, out cog2, out pmoi2, out paoi2);
+                GetMassPropertyArrayData(assm, "PMOI_Overridden-1", true, false, out moi3, out mass3, out cog3, out pmoi3, out paoi3);
+                GetMassPropertyArrayData(assm, "None_Overridden-1", true, false, out moi4, out mass4, out cog4, out pmoi4, out paoi4);
 
-                GetMassPropertyArrayData(assm, "COG_Overridden-1", false, false, out moi5, out mass5, out cog5);
-                GetMassPropertyArrayData(assm, "Mass_Overridden-2", false, false, out moi6, out mass6, out cog6);
-                GetMassPropertyArrayData(assm, "PMOI_Overridden-1", false, false, out moi7, out mass7, out cog7);
-                GetMassPropertyArrayData(assm, "None_Overridden-1", false, false, out moi8, out mass8, out cog8);
+                GetMassPropertyArrayData(assm, "COG_Overridden-1", false, false, out moi5, out mass5, out cog5, out pmoi5, out paoi5);
+                GetMassPropertyArrayData(assm, "Mass_Overridden-2", false, false, out moi6, out mass6, out cog6, out pmoi6, out paoi6);
+                GetMassPropertyArrayData(assm, "PMOI_Overridden-1", false, false, out moi7, out mass7, out cog7, out pmoi7, out paoi7);
+                GetMassPropertyArrayData(assm, "None_Overridden-1", false, false, out moi8, out mass8, out cog8, out pmoi8, out paoi8);
 
-                GetMassPropertyArrayData(assm, "COG_Overridden-1", false, true, out moi9, out mass9, out cog9);
-                GetMassPropertyArrayData(assm, "Mass_Overridden-2", false, true, out moi10, out mass10, out cog10);
-                GetMassPropertyArrayData(assm, "PMOI_Overridden-1", false, true, out moi11, out mass11, out cog11);
-                GetMassPropertyArrayData(assm, "None_Overridden-1", false, true, out moi12, out mass12, out cog12);
+                GetMassPropertyArrayData(assm, "COG_Overridden-1", false, true, out moi9, out mass9, out cog9, out pmoi9, out paoi9);
+                GetMassPropertyArrayData(assm, "Mass_Overridden-2", false, true, out moi10, out mass10, out cog10, out pmoi10, out paoi10);
+                GetMassPropertyArrayData(assm, "PMOI_Overridden-1", false, true, out moi11, out mass11, out cog11, out pmoi11, out paoi11);
+                GetMassPropertyArrayData(assm, "None_Overridden-1", false, true, out moi12, out mass12, out cog12, out pmoi12, out paoi12);
 
-                GetMassPropertyArrayData(assm, "COG_Overridden-1", true, true, out moi13, out mass13, out cog13);
-                GetMassPropertyArrayData(assm, "Mass_Overridden-2", true, true, out moi14, out mass14, out cog14);
-                GetMassPropertyArrayData(assm, "PMOI_Overridden-1", true, true, out moi15, out mass15, out cog15);
-                GetMassPropertyArrayData(assm, "None_Overridden-1", true, true, out moi16, out mass16, out cog16);
+                GetMassPropertyArrayData(assm, "COG_Overridden-1", true, true, out moi13, out mass13, out cog13, out pmoi13, out paoi13);
+                GetMassPropertyArrayData(assm, "Mass_Overridden-2", true, true, out moi14, out mass14, out cog14, out pmoi14, out paoi14);
+                GetMassPropertyArrayData(assm, "PMOI_Overridden-1", true, true, out moi15, out mass15, out cog15, out pmoi15, out paoi15);
+                GetMassPropertyArrayData(assm, "None_Overridden-1", true, true, out moi16, out mass16, out cog16, out pmoi16, out paoi16);
             }
 
             AssertCompareDoubleArray((double[])moi1, new double[] { 732771.57070537, 207033.34471190, 284753.25397601, 207033.34471190, 1016744.10068294, 283072.44302186, 284753.25397601, 283072.44302186, 1170200.96290798 });
@@ -1838,6 +1872,39 @@ namespace SolidWorks.Tests.Integration
             AssertCompareDoubleArray((double[])cog14, new double[] { 167.28644176, -26.90527256, 198.76570069 });
             AssertCompareDoubleArray((double[])cog15, new double[] { 117.82614748, 154.36654994, 183.92114956 });
             AssertCompareDoubleArray((double[])cog16, new double[] { 184.35125704, 387.64004000, 436.18701929 });
+
+            AssertCompareDoubleArray((double[])pmoi1, new double[] { 421570.35749821, 1090708.81606145, 1407437.46073663 });
+            AssertCompareDoubleArray((double[])pmoi3, new double[] { 1000.00000000, 1000.00000000, 2000.00000000 });
+            AssertCompareDoubleArray((double[])pmoi4, new double[] { 421570.35749821, 1090708.81606145, 1407437.46073663 });
+
+            if (m_App.IsVersionNewerOrEqual(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020))
+            {
+                AssertCompareDoubleArray((double[])pmoi2, new double[] { 13058.78440949, 33786.36810946, 43597.52065745 });
+                AssertCompareDoubleArray((double[])pmoi6, new double[] { 3205.35980219, 3205.35980219, 6244.05293771 });
+                AssertCompareDoubleArray((double[])pmoi10, new double[] { 3205.35980219, 3205.35980219, 6244.05293771 });
+                AssertCompareDoubleArray((double[])pmoi14, new double[] { 13058.78440949, 33786.36810946, 43597.52065745 });
+            }
+            else
+            {
+                Assert.IsInstanceOf<PrincipalMomentOfInertiaOverridenException>(pmoi2);
+                Assert.IsInstanceOf<PrincipalMomentOfInertiaOverridenException>(pmoi6);
+                Assert.IsInstanceOf<PrincipalMomentOfInertiaOverridenException>(pmoi10);
+                Assert.IsInstanceOf<PrincipalMomentOfInertiaOverridenException>(pmoi14);
+            }
+
+            AssertCompareDoubleArray((double[])pmoi5, new double[] { 12575.44120243, 12575.44120243, 24497.00671027 });
+            AssertCompareDoubleArray((double[])pmoi7, new double[] { 1000.00000000, 1000.00000000, 2000.00000000 });
+            AssertCompareDoubleArray((double[])pmoi8, new double[] { 12575.44120243, 12575.44120243, 24497.00671027 });
+
+            AssertCompareDoubleArray((double[])pmoi9, new double[]  { 12575.44120243, 12575.44120243, 24497.00671027 });
+            AssertCompareDoubleArray((double[])pmoi11, new double[] { 1000.00000000, 1000.00000000, 2000.00000000 });
+            AssertCompareDoubleArray((double[])pmoi12, new double[] { 12575.44120243, 12575.44120243, 24497.00671027 });
+
+            AssertCompareDoubleArray((double[])pmoi13, new double[] { 421570.35749821, 1090708.81606145, 1407437.46073663 });
+            AssertCompareDoubleArray((double[])pmoi15, new double[] { 1000.00000000, 1000.00000000, 2000.00000000 });
+            AssertCompareDoubleArray((double[])pmoi16, new double[] { 421570.35749821, 1090708.81606145, 1407437.46073663 });
+
+            //AssertCompareDoubleArray((double[])paoi1, new double[] { });
         }
 
         [Test]
@@ -1894,29 +1961,63 @@ namespace SolidWorks.Tests.Integration
             object cog15;
             object cog16;
 
+            object pmoi1;
+            object pmoi2;
+            object pmoi3;
+            object pmoi4;
+            object pmoi5;
+            object pmoi6;
+            object pmoi7;
+            object pmoi8;
+            object pmoi9;
+            object pmoi10;
+            object pmoi11;
+            object pmoi12;
+            object pmoi13;
+            object pmoi14;
+            object pmoi15;
+            object pmoi16;
+
+            object paoi1;
+            object paoi2;
+            object paoi3;
+            object paoi4;
+            object paoi5;
+            object paoi6;
+            object paoi7;
+            object paoi8;
+            object paoi9;
+            object paoi10;
+            object paoi11;
+            object paoi12;
+            object paoi13;
+            object paoi14;
+            object paoi15;
+            object paoi16;
+
             using (var doc = OpenDataDocument(@"MassPrpsAssembly5\Assem1.SLDASM"))
             {
                 var assm = (ISwAssembly)m_App.Documents.Active;
 
-                GetMassPropertyArrayData(assm, "COG_Overridden_Assm-1", true, false, out moi1, out mass1, out cog1);
-                GetMassPropertyArrayData(assm, "Mass_Overridden_Assm-2", true, false, out moi2, out mass2, out cog2);
-                GetMassPropertyArrayData(assm, "PMOI_Overridden_Assm-1", true, false, out moi3, out mass3, out cog3);
-                GetMassPropertyArrayData(assm, "None_Overridden_Assm-2", true, false, out moi4, out mass4, out cog4);
+                GetMassPropertyArrayData(assm, "COG_Overridden_Assm-1", true, false, out moi1, out mass1, out cog1, out pmoi1, out paoi1);
+                GetMassPropertyArrayData(assm, "Mass_Overridden_Assm-2", true, false, out moi2, out mass2, out cog2, out pmoi2, out paoi2);
+                GetMassPropertyArrayData(assm, "PMOI_Overridden_Assm-1", true, false, out moi3, out mass3, out cog3, out pmoi3, out paoi3);
+                GetMassPropertyArrayData(assm, "None_Overridden_Assm-2", true, false, out moi4, out mass4, out cog4, out pmoi4, out paoi4);
 
-                GetMassPropertyArrayData(assm, "COG_Overridden_Assm-1", false, false, out moi5, out mass5, out cog5);
-                GetMassPropertyArrayData(assm, "Mass_Overridden_Assm-2", false, false, out moi6, out mass6, out cog6);
-                GetMassPropertyArrayData(assm, "PMOI_Overridden_Assm-1", false, false, out moi7, out mass7, out cog7);
-                GetMassPropertyArrayData(assm, "None_Overridden_Assm-2", false, false, out moi8, out mass8, out cog8);
+                GetMassPropertyArrayData(assm, "COG_Overridden_Assm-1", false, false, out moi5, out mass5, out cog5, out pmoi5, out paoi5);
+                GetMassPropertyArrayData(assm, "Mass_Overridden_Assm-2", false, false, out moi6, out mass6, out cog6, out pmoi6, out paoi6);
+                GetMassPropertyArrayData(assm, "PMOI_Overridden_Assm-1", false, false, out moi7, out mass7, out cog7, out pmoi7, out paoi7);
+                GetMassPropertyArrayData(assm, "None_Overridden_Assm-2", false, false, out moi8, out mass8, out cog8, out pmoi8, out paoi8);
 
-                GetMassPropertyArrayData(assm, "COG_Overridden_Assm-1", false, true, out moi9, out mass9, out cog9);
-                GetMassPropertyArrayData(assm, "Mass_Overridden_Assm-2", false, true, out moi10, out mass10, out cog10);
-                GetMassPropertyArrayData(assm, "PMOI_Overridden_Assm-1", false, true, out moi11, out mass11, out cog11);
-                GetMassPropertyArrayData(assm, "None_Overridden_Assm-2", false, true, out moi12, out mass12, out cog12);
+                GetMassPropertyArrayData(assm, "COG_Overridden_Assm-1", false, true, out moi9, out mass9, out cog9, out pmoi9, out paoi9);
+                GetMassPropertyArrayData(assm, "Mass_Overridden_Assm-2", false, true, out moi10, out mass10, out cog10, out pmoi10, out paoi10);
+                GetMassPropertyArrayData(assm, "PMOI_Overridden_Assm-1", false, true, out moi11, out mass11, out cog11, out pmoi11, out paoi11);
+                GetMassPropertyArrayData(assm, "None_Overridden_Assm-2", false, true, out moi12, out mass12, out cog12, out pmoi12, out paoi12);
 
-                GetMassPropertyArrayData(assm, "COG_Overridden_Assm-1", true, true, out moi13, out mass13, out cog13);
-                GetMassPropertyArrayData(assm, "Mass_Overridden_Assm-2", true, true, out moi14, out mass14, out cog14);
-                GetMassPropertyArrayData(assm, "PMOI_Overridden_Assm-1", true, true, out moi15, out mass15, out cog15);
-                GetMassPropertyArrayData(assm, "None_Overridden_Assm-2", true, true, out moi16, out mass16, out cog16);
+                GetMassPropertyArrayData(assm, "COG_Overridden_Assm-1", true, true, out moi13, out mass13, out cog13, out pmoi13, out paoi13);
+                GetMassPropertyArrayData(assm, "Mass_Overridden_Assm-2", true, true, out moi14, out mass14, out cog14, out pmoi14, out paoi14);
+                GetMassPropertyArrayData(assm, "PMOI_Overridden_Assm-1", true, true, out moi15, out mass15, out cog15, out pmoi15, out paoi15);
+                GetMassPropertyArrayData(assm, "None_Overridden_Assm-2", true, true, out moi16, out mass16, out cog16, out pmoi16, out paoi16);
             }
 
             AssertCompareDoubleArray((double[])moi1, new double[] { 732771.57070537, 207033.34471190, 284753.25397601, 207033.34471190, 1016744.10068294, 283072.44302186, 284753.25397601, 283072.44302186, 1170200.96290798 });
@@ -2023,6 +2124,41 @@ namespace SolidWorks.Tests.Integration
             AssertCompareDoubleArray((double[])cog14, new double[] { 120.15541293, 86.88632259, 262.12624774 });
             AssertCompareDoubleArray((double[])cog15, new double[] { 117.82614748, 154.36654994, 183.92114956 });
             AssertCompareDoubleArray((double[])cog16, new double[] { 184.35125704, 387.64004000, 436.18701929 });
+
+            AssertCompareDoubleArray((double[])pmoi1, new double[] { 421570.35749821, 1090708.81606145, 1407437.46073663 });
+            AssertCompareDoubleArray((double[])pmoi2, new double[] { 13058.78440949, 33786.36810946, 43597.52065745 });
+            AssertCompareDoubleArray((double[])pmoi3, new double[] { 1000.00000000, 1000.00000000, 2000.00000000 });
+            AssertCompareDoubleArray((double[])pmoi4, new double[] { 421570.35749821, 1090708.81606145, 1407437.46073663 });
+
+            if (m_App.IsVersionNewerOrEqual(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020))
+            {
+                AssertCompareDoubleArray((double[])pmoi5, new double[] { 12575.44120243, 12575.44120243, 24497.00671027 });
+                AssertCompareDoubleArray((double[])pmoi6, new double[] { 3205.35980219, 3205.35980219, 6244.05293771 });
+                AssertCompareDoubleArray((double[])pmoi7, new double[] { 1000.00000000, 1000.00000000, 2000.00000000 });
+                AssertCompareDoubleArray((double[])pmoi8, new double[] { 12575.44120243, 12575.44120243, 24497.00671027 });
+
+                AssertCompareDoubleArray((double[])pmoi9, new double[] { 12575.44120243, 12575.44120243, 24497.00671027 });
+                AssertCompareDoubleArray((double[])pmoi10, new double[] { 3205.35980219, 3205.35980219, 6244.05293771 });
+                AssertCompareDoubleArray((double[])pmoi11, new double[] { 1000.00000000, 1000.00000000, 2000.00000000 });
+                AssertCompareDoubleArray((double[])pmoi12, new double[] { 12575.44120243, 12575.44120243, 24497.00671027 });
+            }
+            else 
+            {
+                Assert.IsInstanceOf<MassPropertiesHiddenComponentBodiesNotSupported>(pmoi5);
+                Assert.IsInstanceOf<MassPropertiesHiddenComponentBodiesNotSupported>(pmoi6);
+                Assert.IsInstanceOf<MassPropertiesHiddenComponentBodiesNotSupported>(pmoi7);
+                Assert.IsInstanceOf<MassPropertiesHiddenComponentBodiesNotSupported>(pmoi8);
+                                                                                     
+                Assert.IsInstanceOf<MassPropertiesHiddenComponentBodiesNotSupported>(pmoi9);
+                Assert.IsInstanceOf<MassPropertiesHiddenComponentBodiesNotSupported>(pmoi10);
+                Assert.IsInstanceOf<MassPropertiesHiddenComponentBodiesNotSupported>(pmoi11);
+                Assert.IsInstanceOf<MassPropertiesHiddenComponentBodiesNotSupported>(pmoi12);
+            }
+
+            AssertCompareDoubleArray((double[])pmoi13, new double[] { 421570.35749821, 1090708.81606145, 1407437.46073663 });
+            AssertCompareDoubleArray((double[])pmoi14, new double[] { 13058.78440949, 33786.36810946, 43597.52065745 });
+            AssertCompareDoubleArray((double[])pmoi15, new double[] { 1000.00000000, 1000.00000000, 2000.00000000 });
+            AssertCompareDoubleArray((double[])pmoi16, new double[] { 421570.35749821, 1090708.81606145, 1407437.46073663 });
         }
 
         [Test]
@@ -2079,29 +2215,63 @@ namespace SolidWorks.Tests.Integration
             object cog15;
             object cog16;
 
+            object pmoi1;
+            object pmoi2;
+            object pmoi3;
+            object pmoi4;
+            object pmoi5;
+            object pmoi6;
+            object pmoi7;
+            object pmoi8;
+            object pmoi9;
+            object pmoi10;
+            object pmoi11;
+            object pmoi12;
+            object pmoi13;
+            object pmoi14;
+            object pmoi15;
+            object pmoi16;
+
+            object paoi1;
+            object paoi2;
+            object paoi3;
+            object paoi4;
+            object paoi5;
+            object paoi6;
+            object paoi7;
+            object paoi8;
+            object paoi9;
+            object paoi10;
+            object paoi11;
+            object paoi12;
+            object paoi13;
+            object paoi14;
+            object paoi15;
+            object paoi16;
+
             using (var doc = OpenDataDocument(@"MassPrpsAssembly6\Assem1.SLDASM"))
             {
                 var assm = (ISwAssembly)m_App.Documents.Active;
 
-                GetMassPropertyArrayData(assm, "COG_Overridden_Assm-1", true, false, out moi1, out mass1, out cog1);
-                GetMassPropertyArrayData(assm, "Mass_Overridden_Assm-2", true, false, out moi2, out mass2, out cog2);
-                GetMassPropertyArrayData(assm, "PMOI_Overridden_Assm-1", true, false, out moi3, out mass3, out cog3);
-                GetMassPropertyArrayData(assm, "None_Overridden_Assm-2", true, false, out moi4, out mass4, out cog4);
+                GetMassPropertyArrayData(assm, "COG_Overridden_Assm-1", true, false, out moi1, out mass1, out cog1, out pmoi1, out paoi1);
+                GetMassPropertyArrayData(assm, "Mass_Overridden_Assm-2", true, false, out moi2, out mass2, out cog2, out pmoi2, out paoi2);
+                GetMassPropertyArrayData(assm, "PMOI_Overridden_Assm-1", true, false, out moi3, out mass3, out cog3, out pmoi3, out paoi3);
+                GetMassPropertyArrayData(assm, "None_Overridden_Assm-2", true, false, out moi4, out mass4, out cog4, out pmoi4, out paoi4);
 
-                GetMassPropertyArrayData(assm, "COG_Overridden_Assm-1", false, false, out moi5, out mass5, out cog5);
-                GetMassPropertyArrayData(assm, "Mass_Overridden_Assm-2", false, false, out moi6, out mass6, out cog6);
-                GetMassPropertyArrayData(assm, "PMOI_Overridden_Assm-1", false, false, out moi7, out mass7, out cog7);
-                GetMassPropertyArrayData(assm, "None_Overridden_Assm-2", false, false, out moi8, out mass8, out cog8);
+                GetMassPropertyArrayData(assm, "COG_Overridden_Assm-1", false, false, out moi5, out mass5, out cog5, out pmoi5, out paoi5);
+                GetMassPropertyArrayData(assm, "Mass_Overridden_Assm-2", false, false, out moi6, out mass6, out cog6, out pmoi6, out paoi6);
+                GetMassPropertyArrayData(assm, "PMOI_Overridden_Assm-1", false, false, out moi7, out mass7, out cog7, out pmoi7, out paoi7);
+                GetMassPropertyArrayData(assm, "None_Overridden_Assm-2", false, false, out moi8, out mass8, out cog8, out pmoi8, out paoi8);
 
-                GetMassPropertyArrayData(assm, "COG_Overridden_Assm-1", false, true, out moi9, out mass9, out cog9);
-                GetMassPropertyArrayData(assm, "Mass_Overridden_Assm-2", false, true, out moi10, out mass10, out cog10);
-                GetMassPropertyArrayData(assm, "PMOI_Overridden_Assm-1", false, true, out moi11, out mass11, out cog11);
-                GetMassPropertyArrayData(assm, "None_Overridden_Assm-2", false, true, out moi12, out mass12, out cog12);
+                GetMassPropertyArrayData(assm, "COG_Overridden_Assm-1", false, true, out moi9, out mass9, out cog9, out pmoi9, out paoi9);
+                GetMassPropertyArrayData(assm, "Mass_Overridden_Assm-2", false, true, out moi10, out mass10, out cog10, out pmoi10, out paoi10);
+                GetMassPropertyArrayData(assm, "PMOI_Overridden_Assm-1", false, true, out moi11, out mass11, out cog11, out pmoi11, out paoi11);
+                GetMassPropertyArrayData(assm, "None_Overridden_Assm-2", false, true, out moi12, out mass12, out cog12, out pmoi12, out paoi12);
 
-                GetMassPropertyArrayData(assm, "COG_Overridden_Assm-1", true, true, out moi13, out mass13, out cog13);
-                GetMassPropertyArrayData(assm, "Mass_Overridden_Assm-2", true, true, out moi14, out mass14, out cog14);
-                GetMassPropertyArrayData(assm, "PMOI_Overridden_Assm-1", true, true, out moi15, out mass15, out cog15);
-                GetMassPropertyArrayData(assm, "None_Overridden_Assm-2", true, true, out moi16, out mass16, out cog16);
+                GetMassPropertyArrayData(assm, "COG_Overridden_Assm-1", true, true, out moi13, out mass13, out cog13, out pmoi13, out paoi13);
+                GetMassPropertyArrayData(assm, "Mass_Overridden_Assm-2", true, true, out moi14, out mass14, out cog14, out pmoi14, out paoi14);
+                GetMassPropertyArrayData(assm, "PMOI_Overridden_Assm-1", true, true, out moi15, out mass15, out cog15, out pmoi15, out paoi15);
+                GetMassPropertyArrayData(assm, "None_Overridden_Assm-2", true, true, out moi16, out mass16, out cog16, out pmoi16, out paoi16);
             }
 
             if (m_App.IsVersionNewerOrEqual(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020))
@@ -2205,7 +2375,7 @@ namespace SolidWorks.Tests.Integration
             AssertCompareDoubleArray((double[])cog9, new double[] { -165.93855976, -225.86082420, -32.13831180 });
 
             if (m_App.IsVersionNewerOrEqual(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020))
-            {   
+            {
                 AssertCompareDoubleArray((double[])cog6, new double[] { -217.44164968, -1.76969527, 145.08869196 });
                 AssertCompareDoubleArray((double[])cog7, new double[] { -138.52048542, 181.89475797, 170.54909351 });
                 AssertCompareDoubleArray((double[])cog8, new double[] { -329.99239780, 159.62894541, 534.86186021 });
@@ -2229,10 +2399,53 @@ namespace SolidWorks.Tests.Integration
             AssertCompareDoubleArray((double[])cog14, new double[] { 167.28644176, -26.90527256, 198.76570069 });
             AssertCompareDoubleArray((double[])cog15, new double[] { 117.82614748, 154.36654994, 183.92114956 });
             AssertCompareDoubleArray((double[])cog16, new double[] { 184.35125704, 387.64004000, 436.18701929 });
+
+            AssertCompareDoubleArray((double[])pmoi3, new double[] { 1000.00000000, 1000.00000000, 2000.00000000 });
+            AssertCompareDoubleArray((double[])pmoi4, new double[] { 421570.35749821, 1090708.81606145, 1407437.46073663 });
+
+            if (m_App.IsVersionNewerOrEqual(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020))
+            {
+                AssertCompareDoubleArray((double[])pmoi1, new double[] { 421570.35749821, 1090708.81606145, 1407437.46073663 });
+                AssertCompareDoubleArray((double[])pmoi2, new double[] { 13058.78440949, 33786.36810946, 43597.52065745 });
+
+                AssertCompareDoubleArray((double[])pmoi5, new double[] { 12575.44120243, 12575.44120243, 24497.00671027 });
+                AssertCompareDoubleArray((double[])pmoi6, new double[] { 3205.35980219, 3205.35980219, 6244.05293771 });         
+                AssertCompareDoubleArray((double[])pmoi8, new double[] { 12575.44120243, 12575.44120243, 24497.00671027 });
+                
+                AssertCompareDoubleArray((double[])pmoi9, new double[] { 12575.44120243, 12575.44120243, 24497.00671027 });
+                AssertCompareDoubleArray((double[])pmoi10, new double[] { 3205.35980219, 3205.35980219, 6244.05293771 });
+                AssertCompareDoubleArray((double[])pmoi12, new double[] { 12575.44120243, 12575.44120243, 24497.00671027 });
+
+                AssertCompareDoubleArray((double[])pmoi13, new double[] { 421570.35749821, 1090708.81606145, 1407437.46073663 });
+                AssertCompareDoubleArray((double[])pmoi14, new double[] { 13058.78440949, 33786.36810946, 43597.52065745 });
+            }
+            else 
+            {
+                Assert.IsInstanceOf<PrincipalMomentOfInertiaOverridenException>(pmoi1);
+                Assert.IsInstanceOf<PrincipalMomentOfInertiaOverridenException>(pmoi2);
+
+                Assert.IsInstanceOf<PrincipalMomentOfInertiaOverridenException>(pmoi5);
+                Assert.IsInstanceOf<PrincipalMomentOfInertiaOverridenException>(pmoi6);
+                Assert.IsInstanceOf<MassPropertiesHiddenComponentBodiesNotSupported>(pmoi8);
+
+                Assert.IsInstanceOf<PrincipalMomentOfInertiaOverridenException>(pmoi9);
+                Assert.IsInstanceOf<PrincipalMomentOfInertiaOverridenException>(pmoi10);
+                Assert.IsInstanceOf<MassPropertiesHiddenComponentBodiesNotSupported>(pmoi12);
+
+                Assert.IsInstanceOf<PrincipalMomentOfInertiaOverridenException>(pmoi13);
+                Assert.IsInstanceOf<PrincipalMomentOfInertiaOverridenException>(pmoi14);
+            }
+
+            AssertCompareDoubleArray((double[])pmoi7, new double[] { 1000.00000000, 1000.00000000, 2000.00000000 });
+
+            AssertCompareDoubleArray((double[])pmoi11, new double[] { 1000.00000000, 1000.00000000, 2000.00000000 });
+
+            AssertCompareDoubleArray((double[])pmoi15, new double[] { 1000.00000000, 1000.00000000, 2000.00000000 });
+            AssertCompareDoubleArray((double[])pmoi16, new double[] { 421570.35749821, 1090708.81606145, 1407437.46073663 });
         }
 
         private void GetMassPropertyArrayData(ISwAssembly assm, string compName, bool includeHidden,
-            bool relToCoord, out object moi, out object mass, out object cog)
+            bool relToCoord, out object moi, out object mass, out object cog, out object pmoi, out object paoi)
         {
             using (var massPrps = assm.PreCreateMassProperty())
             {
@@ -2280,6 +2493,32 @@ namespace SolidWorks.Tests.Integration
                 catch (Exception ex)
                 {
                     cog = ex;
+                }
+
+                try
+                {
+                    var resPmoi = massPrps.PrincipalMomentOfInertia;
+                    pmoi = new double[] { resPmoi.Px, resPmoi.Py, resPmoi.Pz };
+                }
+                catch (Exception ex)
+                {
+                    pmoi = ex;
+                }
+
+                try
+                {
+                    var resPaoi = massPrps.PrincipalAxesOfInertia;
+
+                    paoi = new double[]
+                    {
+                        resPaoi.Ix.X, resPaoi.Ix.Y, resPaoi.Ix.Z,
+                        resPaoi.Iy.X, resPaoi.Iy.Y, resPaoi.Iy.Z,
+                        resPaoi.Iz.X, resPaoi.Iz.Y, resPaoi.Iz.Z
+                    };
+                }
+                catch (Exception ex)
+                {
+                    paoi = ex;
                 }
             }
         }

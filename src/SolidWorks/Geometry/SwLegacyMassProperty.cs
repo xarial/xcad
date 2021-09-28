@@ -507,8 +507,28 @@ namespace Xarial.XCad.SolidWorks.Geometry
             {
                 ThrowIfScopeException();
 
-                if (NeedToReadMassPropertiesFromReferencedDocument(m => m.OverrideMass || m.OverrideMomentsOfInertia, out IMassProperty compRefDocMassPrp))
+                if (NeedToReadMassPropertiesFromReferencedDocument(m =>
                 {
+                    var refDoc = m_ReferenceComponentMassPropertyLazy.Value.Document;
+
+                    if (m.OverrideMass && !m.OverrideMomentsOfInertia)
+                    {
+                        throw new PrincipalMomentOfInertiaOverridenException("Override Mass set for component");
+                    }
+
+                    if (refDoc is IXAssembly) 
+                    {
+                        if (m.OverrideCenterOfMass && !m.OverrideMomentsOfInertia)
+                        {
+                            throw new PrincipalMomentOfInertiaOverridenException("Override Center Of Gravity set for assembly component");
+                        }
+                    }
+
+                    return m.OverrideMass || m.OverrideMomentsOfInertia;
+                },
+                    out IMassProperty compRefDocMassPrp))
+                {
+
                     var units = m_ReferenceComponentMassPropertyLazy.Value.UserUnit;
 
                     //mass *  square length 
