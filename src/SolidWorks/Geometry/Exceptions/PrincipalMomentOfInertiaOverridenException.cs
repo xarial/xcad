@@ -6,7 +6,7 @@ using Xarial.XCad.Exceptions;
 namespace Xarial.XCad.SolidWorks.Geometry.Exceptions
 {
     /// <summary>
-    /// IMassProperty API in SOLIDOWRKS 2019 failed to correctly calculate the Moment Of Intertia for the components
+    /// IMassProperty API in SOLIDOWRKS 2019 failed to correctly calculate the Principal Moment Of Intertia for the components
     /// </summary>
     public class PrincipalMomentOfInertiaOverridenException : NotSupportedException, IUserException
     {

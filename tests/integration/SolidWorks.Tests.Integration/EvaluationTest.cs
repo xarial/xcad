@@ -1562,6 +1562,64 @@ namespace SolidWorks.Tests.Integration
         }
 
         [Test]
+        public void PrincipalAxesOfInertiaSubAssemblyOverriddenTest()
+        {
+            PrincipalAxesOfInertia pai1;
+            PrincipalAxesOfInertia pai2;
+            PrincipalAxesOfInertia pai3;
+
+            using (var doc = OpenDataDocument(@"MassPrpsAssembly7\Assem1.SLDASM"))
+            {
+                var assm = (ISwAssembly)m_App.Documents.Active;
+
+                using (var massPrps = assm.PreCreateMassProperty())
+                {
+                    massPrps.UserUnits = true;
+                    massPrps.Scope = new IXComponent[] { assm.Configurations.Active.Components["SubSubAssem1-1"] };
+                    massPrps.Commit();
+
+                    pai1 = massPrps.PrincipalAxesOfInertia;
+
+                    massPrps.Scope = new IXComponent[] { assm.Configurations.Active.Components["SubAssem2-1"] };
+                    pai2 = massPrps.PrincipalAxesOfInertia;
+
+                    massPrps.Scope = new IXComponent[] { assm.Configurations.Active.Components["SubAssem1-1"].Children["SubSubAssem1-1"] };
+                    pai3 = massPrps.PrincipalAxesOfInertia;
+                }
+            }
+            
+            AssertCompareDoubles(pai1.Ix.X, -0.90443126);
+            AssertCompareDoubles(pai1.Ix.Y, 0.22610782);
+            AssertCompareDoubles(pai1.Ix.Z, 0.36177251);
+            AssertCompareDoubles(pai1.Iy.X, 0.08716355);
+            AssertCompareDoubles(pai1.Iy.Y, -0.73217386);
+            AssertCompareDoubles(pai1.Iy.Z, 0.67551755);
+            AssertCompareDoubles(pai1.Iz.X, 0.41762017);
+            AssertCompareDoubles(pai1.Iz.Y, 0.64249257);
+            AssertCompareDoubles(pai1.Iz.Z, 0.64249257);
+            
+            AssertCompareDoubles(pai2.Ix.X, -0.89442719);
+            AssertCompareDoubles(pai2.Ix.Y, -0.44721360);
+            AssertCompareDoubles(pai2.Ix.Z, 0.00000000);
+            AssertCompareDoubles(pai2.Iy.X, 0.44721360);
+            AssertCompareDoubles(pai2.Iy.Y, -0.89442719);
+            AssertCompareDoubles(pai2.Iy.Z, 0.00000000);
+            AssertCompareDoubles(pai2.Iz.X, 0.00000000);
+            AssertCompareDoubles(pai2.Iz.Y, 0.00000000);
+            AssertCompareDoubles(pai2.Iz.Z, 1.00000000);
+
+            AssertCompareDoubles(pai3.Ix.X, -0.90443126);
+            AssertCompareDoubles(pai3.Ix.Y, 0.22610782);
+            AssertCompareDoubles(pai3.Ix.Z, 0.36177251);
+            AssertCompareDoubles(pai3.Iy.X, 0.08716355);
+            AssertCompareDoubles(pai3.Iy.Y, -0.73217386);
+            AssertCompareDoubles(pai3.Iy.Z, 0.67551755);
+            AssertCompareDoubles(pai3.Iz.X, 0.41762017);
+            AssertCompareDoubles(pai3.Iz.Y, 0.64249257);
+            AssertCompareDoubles(pai3.Iz.Z, 0.64249257);
+        }
+
+        [Test]
         public void MassPropertyEmptyComponentsTest()
         {
             using (var doc = OpenDataDocument(@"MassPrpsAssembly2\Assem1.SLDASM"))
@@ -2481,24 +2539,47 @@ namespace SolidWorks.Tests.Integration
             AssertCompareDoubleArray((double[])pmoi15, new double[] { 1000.00000000, 1000.00000000, 2000.00000000 });
             AssertCompareDoubleArray((double[])pmoi16, new double[] { 421570.35749821, 1090708.81606145, 1407437.46073663 });
 
-            AssertCompareDoubleArray((double[])paoi1, new double[] { 0.74428291, 0.47984159, 0.46453740, -0.63704755, 0.71891902, 0.27807527, -0.20053269, -0.50289908, 0.84076106 });
-            AssertCompareDoubleArray((double[])paoi2, new double[] { -0.38183860, 0.90872286, 0.16858839, -0.34497319, -0.30935881, 0.88616625, 0.85743384, 0.28021401, 0.43161016 });
-            //AssertCompareDoubleArray((double[])paoi3, new double[] { 0.54453395, 0.46999645, 0.69468418, 0.67935084, -0.73289707, -0.03666497, 0.49189960, 0.49189960, -0.71837982 });
+            if (m_App.IsVersionNewerOrEqual(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020))
+            {
+                AssertCompareDoubleArray((double[])paoi1, new double[] { 0.74428291, 0.47984159, 0.46453740, -0.63704755, 0.71891902, 0.27807527, -0.20053269, -0.50289908, 0.84076106 });
+                AssertCompareDoubleArray((double[])paoi2, new double[] { -0.38183860, 0.90872286, 0.16858839, -0.34497319, -0.30935881, 0.88616625, 0.85743384, 0.28021401, 0.43161016 });
+
+                AssertCompareDoubleArray((double[])paoi5, new double[] { 0.65641077, -0.37181957, 0.65641077, 0.75400803, 0.35152849, -0.55488703, -0.02442923, 0.85917282, 0.51110203 }, 7);
+                AssertCompareDoubleArray((double[])paoi6, new double[] { 0.63787041, 0.43155844, 0.63787041, 0.76961549, -0.38786325, -0.50720222, 0.02851909, 0.81444423, -0.57954055 });
+                AssertCompareDoubleArray((double[])paoi8, new double[] { -0.47372654, 0.62272914, 0.62272914, 0.33991764, -0.52302028, 0.78160462, 0.81242794, 0.58194347, 0.03609197 });
+
+                AssertCompareDoubleArray((double[])paoi9, new double[] { 0.71646322, 0.23623155, -0.65641077, -0.63321170, -0.17468496, -0.75400803, -0.29278558, 0.95586600, 0.02442923 });
+                AssertCompareDoubleArray((double[])paoi10, new double[] { 0.10906999, 0.76238119, -0.63787041, -0.05361748, -0.63625243, -0.76961549, -0.99258697, 0.11814296, -0.02851909 });
+                AssertCompareDoubleArray((double[])paoi12, new double[] { -0.04267474, 0.87963744, 0.47372654, 0.91256521, 0.22733400, -0.33991764, -0.40669843, 0.41780046, -0.81242794 });
+
+                AssertCompareDoubleArray((double[])paoi13, new double[] { -0.04316746, 0.66646794, -0.74428291, -0.34551872, 0.68904806, 0.63704755, 0.93741847, 0.28466341, 0.20053269 });
+                AssertCompareDoubleArray((double[])paoi14, new double[] { -0.55965261, 0.73551903, 0.38183860, 0.82460690, 0.44834914, 0.34497319, 0.08253734, 0.50793189, -0.85743384 });
+            }
+            else
+            {
+                Assert.IsInstanceOf<PrincipalAxesOfInertiaOverridenException>(paoi1);
+                Assert.IsInstanceOf<PrincipalAxesOfInertiaOverridenException>(paoi2);
+
+                Assert.IsInstanceOf<PrincipalAxesOfInertiaOverridenException>(paoi5);
+                Assert.IsInstanceOf<PrincipalAxesOfInertiaOverridenException>(paoi6);
+                Assert.IsInstanceOf<MassPropertiesHiddenComponentBodiesNotSupported>(pmoi8);
+
+                Assert.IsInstanceOf<PrincipalAxesOfInertiaOverridenException>(paoi9);
+                Assert.IsInstanceOf<PrincipalAxesOfInertiaOverridenException>(paoi10);
+                Assert.IsInstanceOf<MassPropertiesHiddenComponentBodiesNotSupported>(pmoi12);
+
+                Assert.IsInstanceOf<PrincipalAxesOfInertiaOverridenException>(paoi13);
+                Assert.IsInstanceOf<PrincipalAxesOfInertiaOverridenException>(paoi14);
+            }
+
+            AssertCompareDoubleArray((double[])paoi3, new double[] { 0.54453395, 0.46999645, 0.69468418, 0.67935084, -0.73289707, -0.03666497, 0.49189960, 0.49189960, -0.71837982 });
             AssertCompareDoubleArray((double[])paoi4, new double[] { 0.60088528, 0.19827816, 0.77435306, 0.55652280, 0.59160768, -0.58333758, -0.57377631, 0.78146409, 0.24514203 });
-
-            AssertCompareDoubleArray((double[])paoi5, new double[] { 0.65641077, -0.37181957, 0.65641077, 0.75400803, 0.35152849, -0.55488703, -0.02442923, 0.85917282, 0.51110203 }, 7);
-            AssertCompareDoubleArray((double[])paoi6, new double[] { 0.63787041, 0.43155844, 0.63787041, 0.76961549, -0.38786325, -0.50720222, 0.02851909, 0.81444423, -0.57954055 });
-            //AssertCompareDoubleArray((double[])paoi7, new double[] { 0.54453395, 0.46999645, 0.69468418, 0.67935084, -0.73289707, -0.03666497, 0.49189960, 0.49189960, -0.71837982 });
-            AssertCompareDoubleArray((double[])paoi8, new double[] { -0.47372654, 0.62272914, 0.62272914, 0.33991764, -0.52302028, 0.78160462, 0.81242794, 0.58194347, 0.03609197 });
-
-            AssertCompareDoubleArray((double[])paoi9, new double[] { 0.71646322, 0.23623155, -0.65641077, -0.63321170, -0.17468496, -0.75400803, -0.29278558, 0.95586600, 0.02442923 });
-            AssertCompareDoubleArray((double[])paoi10, new double[] { 0.10906999, 0.76238119, -0.63787041, -0.05361748, -0.63625243, -0.76961549, -0.99258697, 0.11814296, -0.02851909 });
-            //AssertCompareDoubleArray((double[])paoi11, new double[] { 0.11878463, 0.83028488, -0.54453395, 0.51810061, -0.51966739, -0.67935084, -0.84703127, -0.20142694, -0.49189960 });
-            AssertCompareDoubleArray((double[])paoi12, new double[] { -0.04267474, 0.87963744, 0.47372654, 0.91256521, 0.22733400, -0.33991764, -0.40669843, 0.41780046, -0.81242794 });
-
-            AssertCompareDoubleArray((double[])paoi13, new double[] { -0.04316746, 0.66646794, -0.74428291, -0.34551872, 0.68904806, 0.63704755, 0.93741847, 0.28466341, 0.20053269 });
-            AssertCompareDoubleArray((double[])paoi14, new double[] { -0.55965261, 0.73551903, 0.38183860, 0.82460690, 0.44834914, 0.34497319, 0.08253734, 0.50793189, -0.85743384 });
-            //AssertCompareDoubleArray((double[])paoi15, new double[] { 0.11878463, 0.83028488, -0.54453395, 0.51810061, -0.51966739, -0.67935084, -0.84703127, -0.20142694, -0.49189960 });
+            
+            AssertCompareDoubleArray((double[])paoi7, new double[] { 0.54453395, 0.46999645, 0.69468418, 0.67935084, -0.73289707, -0.03666497, 0.49189960, 0.49189960, -0.71837982 });
+            
+            AssertCompareDoubleArray((double[])paoi11, new double[] { 0.11878463, 0.83028488, -0.54453395, 0.51810061, -0.51966739, -0.67935084, -0.84703127, -0.20142694, -0.49189960 }, 7);
+            
+            AssertCompareDoubleArray((double[])paoi15, new double[] { 0.11878463, 0.83028488, -0.54453395, 0.51810061, -0.51966739, -0.67935084, -0.84703127, -0.20142694, -0.49189960 }, 7);
             AssertCompareDoubleArray((double[])paoi16, new double[] { 0.37354142, 0.70668500, -0.60088528, -0.83011915, -0.03441769, -0.55652280, -0.41396740, 0.70669069, 0.57377631 });
         }
 

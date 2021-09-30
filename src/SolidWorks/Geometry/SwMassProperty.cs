@@ -96,7 +96,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
                 if (m_Doc is ISwPart)
                 {
-                    //[WORKAROUND] - incorrect values returned for the part - using older method instead
+                    //WORKAROUND: incorrect values returned for the part - using older method instead
                     return new PrincipalAxesOfInertia(
                         new Vector((double[])MassPropertyLegacy.PrincipleAxesOfInertia[(int)PrincipalAxesOfInertia_e.X]),
                         new Vector((double[])MassPropertyLegacy.PrincipleAxesOfInertia[(int)PrincipalAxesOfInertia_e.Y]),
@@ -106,7 +106,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
                 {
                     if (RelativeTo != null) 
                     {
-                        //[WORKAROUND] - Principal Axes Of Inertia are not calculated correctly when relative coordinate system is specified
+                        //WORKAROUND: Principal Axes Of Inertia are not calculated correctly when relative coordinate system is specified
                         //instead setting the default coordinate system and transforming the axis
                         if (!MassProperty.SetCoordinateSystem(m_MathUtils.ToMathTransform(TransformMatrix.Identity)))
                         {
@@ -114,24 +114,11 @@ namespace Xarial.XCad.SolidWorks.Geometry
                         }
                     }
 
-                    var overrides = (IMassPropertyOverrideOptions)MassProperty.GetOverrideOptions();
-
                     double[] ix;
                     double[] iy;
                     double[] iz;
 
-                    if (overrides.OverrideMomentsOfInertia)//invalid values returned for the Axis if overriden
-                    {
-                        ix = (double[])overrides.GetOverridePrincipalAxesOrientation((int)PrincipalAxesOfInertia_e.X);
-                        iy = (double[])overrides.GetOverridePrincipalAxesOrientation((int)PrincipalAxesOfInertia_e.Y);
-                        iz = (double[])overrides.GetOverridePrincipalAxesOrientation((int)PrincipalAxesOfInertia_e.Z);
-                    }
-                    else
-                    {
-                        ix = (double[])MassProperty.PrincipalAxesOfInertia[(int)PrincipalAxesOfInertia_e.X];
-                        iy = (double[])MassProperty.PrincipalAxesOfInertia[(int)PrincipalAxesOfInertia_e.Y];
-                        iz = (double[])MassProperty.PrincipalAxesOfInertia[(int)PrincipalAxesOfInertia_e.Z];
-                    }
+                    GetRawPrincipalAxesOfInertia(out ix, out iy, out iz);
 
                     var ixVec = new Vector(ix);
                     var iyVec = new Vector(iy);
@@ -180,7 +167,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
             {
                 ThrowIfScopeException();
 
-                //[WORKAROUND] if this is not called the incorrect values will be returned for sub-assemblies with override options when include hidden is false
+                //WORKAROUND: if this is not called the incorrect values will be returned for sub-assemblies with override options when include hidden is false
                 //keeping this for all cases as in case there are otehr unknow conditions
                 var testCall = (IMassPropertyOverrideOptions)MassProperty.GetOverrideOptions();
                 
@@ -372,6 +359,24 @@ namespace Xarial.XCad.SolidWorks.Geometry
             }
         }
 
+        protected virtual void GetRawPrincipalAxesOfInertia(out double[] ix, out double[] iy, out double[] iz)
+        {
+            var overrides = (IMassPropertyOverrideOptions)MassProperty.GetOverrideOptions();
+
+            if (overrides.OverrideMomentsOfInertia)//invalid values returned for the Axis if overriden
+            {
+                ix = (double[])overrides.GetOverridePrincipalAxesOrientation((int)PrincipalAxesOfInertia_e.X);
+                iy = (double[])overrides.GetOverridePrincipalAxesOrientation((int)PrincipalAxesOfInertia_e.Y);
+                iz = (double[])overrides.GetOverridePrincipalAxesOrientation((int)PrincipalAxesOfInertia_e.Z);
+            }
+            else
+            {
+                ix = (double[])MassProperty.PrincipalAxesOfInertia[(int)PrincipalAxesOfInertia_e.X];
+                iy = (double[])MassProperty.PrincipalAxesOfInertia[(int)PrincipalAxesOfInertia_e.Y];
+                iz = (double[])MassProperty.PrincipalAxesOfInertia[(int)PrincipalAxesOfInertia_e.Z];
+            }
+        }
+
         /// <summary>
         /// Sometimes mass cannot be calculated and no error returned (model rebuilding is required)
         /// </summary>
@@ -405,7 +410,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
                 throw new Exception("Failed to add bodies to mass property scope");
             }
 
-            //[WORKAROUND]: if this property is not called then the principal moment of intertia and principal axes will not be calculated correctly
+            //WORKAROUND: if this property is not called then the principal moment of intertia and principal axes will not be calculated correctly
             var testRefreshCall = massPrps.OverrideCenterOfMass;
         }
 
@@ -444,6 +449,8 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
     internal class SwAssemblyMassProperty : SwMassProperty, ISwAssemblyMassProperty
     {
+        private LegacyComponentMassPropertyLazy m_ComponentMassPropertyLazy;
+
         internal SwAssemblyMassProperty(ISwAssembly assm, IMathUtility mathUtils) : base(assm, mathUtils)
         {
             VisibleOnly = true;
@@ -455,6 +462,8 @@ namespace Xarial.XCad.SolidWorks.Geometry
             set
             {
                 m_Creator.CachedProperties.Set(value);
+
+                m_ComponentMassPropertyLazy = new LegacyComponentMassPropertyLazy(() => value);
 
                 if (IsCommitted)
                 {
@@ -490,6 +499,38 @@ namespace Xarial.XCad.SolidWorks.Geometry
             else 
             {
                 return null;
+            }
+        }
+
+        protected override void GetRawPrincipalAxesOfInertia(out double[] ix, out double[] iy, out double[] iz)
+        {
+            var overrides = (IMassPropertyOverrideOptions)MassProperty.GetOverrideOptions();
+
+            if (overrides.OverrideMomentsOfInertia)//invalid values returned for the Axis if overriden
+            {
+                var scopeComps = (this as IAssemblyEvaluation).Scope;
+
+                //WORKAROUND: overriden principal axes of inertia is not correct in sub-assemblies
+                if (scopeComps?.Length == 1 && scopeComps.First().ReferencedDocument is IXAssembly)
+                {
+                    var legacyMassPrps = m_ComponentMassPropertyLazy.Value.MassProperty;
+
+                    ix = (double[])legacyMassPrps.PrincipleAxesOfInertia[(int)PrincipalAxesOfInertia_e.X];
+                    iy = (double[])legacyMassPrps.PrincipleAxesOfInertia[(int)PrincipalAxesOfInertia_e.Y];
+                    iz = (double[])legacyMassPrps.PrincipleAxesOfInertia[(int)PrincipalAxesOfInertia_e.Z];
+                }
+                else 
+                {
+                    ix = (double[])overrides.GetOverridePrincipalAxesOrientation((int)PrincipalAxesOfInertia_e.X);
+                    iy = (double[])overrides.GetOverridePrincipalAxesOrientation((int)PrincipalAxesOfInertia_e.Y);
+                    iz = (double[])overrides.GetOverridePrincipalAxesOrientation((int)PrincipalAxesOfInertia_e.Z);
+                }
+            }
+            else
+            {
+                ix = (double[])MassProperty.PrincipalAxesOfInertia[(int)PrincipalAxesOfInertia_e.X];
+                iy = (double[])MassProperty.PrincipalAxesOfInertia[(int)PrincipalAxesOfInertia_e.Y];
+                iz = (double[])MassProperty.PrincipalAxesOfInertia[(int)PrincipalAxesOfInertia_e.Z];
             }
         }
     }

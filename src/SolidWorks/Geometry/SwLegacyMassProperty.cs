@@ -359,22 +359,6 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
     internal class SwAssemblyLegacyMassProperty : SwLegacyMassProperty, ISwAssemblyMassProperty
     {
-        private class ComponentMassProperty 
-        {
-            internal IXDocument3D Document { get; }
-            internal IXComponent Component { get; }
-            internal IMassProperty MassProperty { get; }
-            internal IXUnits UserUnit { get; }
-            
-            internal ComponentMassProperty(IXDocument3D doc, IXComponent component, IMassProperty massProperty, IXUnits userUnit)
-            {
-                Document = doc;
-                Component = component;
-                MassProperty = massProperty;
-                UserUnit = userUnit;
-            }
-        }
-
         public override Point CenterOfGravity
         {
             get
@@ -465,6 +449,17 @@ namespace Xarial.XCad.SolidWorks.Geometry
                 if (NeedToReadMassPropertiesFromReferencedDocument(m =>
                 {
                     overrideMoi = m.OverrideMomentsOfInertia;
+
+                    var refDoc = m_ReferenceComponentMassPropertyLazy.Value.Document;
+
+                    if (refDoc is IXAssembly)
+                    {
+                        if ((m.OverrideMass || m.OverrideCenterOfMass) && !overrideMoi)
+                        {
+                            throw new PrincipalAxesOfInertiaOverridenException("Override Center Of Gravity or Mass set for assembly component");
+                        }
+                    }
+
                     return overrideMoi;
                 }, out IMassProperty compRefDocMassPrp))
                 {
@@ -628,7 +623,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
             }
         }
 
-        private Lazy<ComponentMassProperty> m_ReferenceComponentMassPropertyLazy;
+        private LegacyComponentMassPropertyLazy m_ReferenceComponentMassPropertyLazy;
 
         private readonly ISwAssembly m_Assm;
 
@@ -662,47 +657,40 @@ namespace Xarial.XCad.SolidWorks.Geometry
             get => m_Creator.CachedProperties.Get<IXComponent[]>(nameof(Scope) + "_Components");
             set
             {
-                if (value?.Length == 1)
+                if (value?.Any() == true)
                 {
-                    m_ReferenceComponentMassPropertyLazy = new Lazy<ComponentMassProperty>(() =>
-                    {
-                        var comp = value.First();
-                        var refDoc = (ISwDocument3D)comp.ReferencedDocument;
-
-                        if (!refDoc.IsCommitted) 
-                        {
-                            throw new NotLoadedMassPropertyComponentException(comp);
-                        }
-
-                        var massPrps = refDoc.Model.Extension.CreateMassProperty();
-
-                        //NOTE: always resolving the system units as it is requried to get units from the assembly (not the component) for the units and also by some reasons incorrect COG is returned for the user units
-                        massPrps.UseSystemUnits = true;
-                        
-                        return new ComponentMassProperty(refDoc, comp, massPrps, UserUnits ? m_Assm.Units : null);
-                    });
-
-                    m_HasHiddenBodiesOrComponentsLazy = new Lazy<bool>(() => 
-                    {
-                        foreach (var body in value.First().IterateBodies(true).OfType<IXSolidBody>()) 
-                        {
-                            if (!body.Visible || body.Faces.First().Component.State.HasFlag(ComponentState_e.Hidden)) 
-                            {
-                                return true;
-                            }
-                        }
-
-                        return false;
-                    });
-                }
-                else if (value?.Length > 1)
-                {
-                    throw new NotSupportedException("Only single component is supported for scope in the assembly in SOLIDWORKS 2019 or older");
+                    m_ReferenceComponentMassPropertyLazy = new LegacyComponentMassPropertyLazy(() => value, () => UserUnits ? m_Assm.Units : null);
                 }
                 else
                 {
                     m_ReferenceComponentMassPropertyLazy = null;
                 }
+
+                m_HasHiddenBodiesOrComponentsLazy = new Lazy<bool>(() =>
+                {
+                    if (value?.Any() == true)
+                    {
+                        foreach (var comp in value)
+                        {
+                            if (!comp.State.HasFlag(ComponentState_e.Hidden))
+                            {
+                                foreach (var body in comp.IterateBodies(true).OfType<IXSolidBody>())
+                                {
+                                    if (!body.Visible || body.Faces.First().Component.State.HasFlag(ComponentState_e.Hidden))
+                                    {
+                                        return true;
+                                    }
+                                }
+                            }
+                            else 
+                            {
+                                return true;
+                            }
+                        }
+                    }
+
+                    return false;
+                });
 
                 m_Creator.CachedProperties.Set(value, nameof(Scope) + "_Components");
 

@@ -62,7 +62,7 @@ namespace Xarial.XCad.SolidWorks.Data.EventHandlers
 
         private void SubscribeIdleEvent()
         {
-            //NOTE: load from storage notification is not always raised
+            //WORKAROUND: load from storage notification is not always raised
             //it is not raised when model is loaded with assembly, it won't be also raised if the document already loaded
             //as a workaround force call loading within the idle notification
             (m_App.Sw as SldWorks).OnIdleNotify += OnIdleHandleThirdPartyStorageNotify;
