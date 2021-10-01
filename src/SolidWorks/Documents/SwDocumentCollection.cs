@@ -271,8 +271,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             return m_Documents.Values.GetEnumerator();
         }
 
-        IEnumerator IEnumerable.GetEnumerator()
-            => GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
         private int OnFileOpenPostNotify(string fileName)
         {

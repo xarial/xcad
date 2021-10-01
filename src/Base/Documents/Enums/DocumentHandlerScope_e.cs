@@ -8,33 +8,29 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Xarial.XCad.Documents.Attributes;
 
-namespace Xarial.XCad.UI.PropertyPage.Enums
+namespace Xarial.XCad.Documents.Enums
 {
     /// <summary>
-    /// Style of the font
+    /// Scope of the handler used in <see cref="DocumentHandlerScopeAttribute"/>
     /// </summary>
     [Flags]
-    public enum FontStyle_e
+    public enum DocumentHandlerScope_e
     {
         /// <summary>
-        /// Default style
+        /// Part documents (<see cref="IXPart"/>)
         /// </summary>
-        Default = 0,
+        Part = 1,
 
         /// <summary>
-        /// Bold font
+        /// Assembly documents (<see cref="IXAssembly"/>)
         /// </summary>
-        Bold = 1,
+        Assembly = 2,
 
         /// <summary>
-        /// Italic font
+        /// Drawing documents (<see cref="IXDrawing"/>)
         /// </summary>
-        Italic = 2,
-
-        /// <summary>
-        /// Underline font
-        /// </summary>
-        Underline = 4
+        Drawing = 4
     }
 }

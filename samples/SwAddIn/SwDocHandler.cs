@@ -14,10 +14,13 @@ using System.Xml.Serialization;
 using Xarial.XCad;
 using Xarial.XCad.Data.Enums;
 using Xarial.XCad.Documents;
+using Xarial.XCad.Documents.Attributes;
+using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Documents.Services;
 
 namespace SwAddInExample
 {
+    [DocumentHandlerScope(DocumentHandlerScope_e.Part | DocumentHandlerScope_e.Assembly)]
     public class SwDocHandler : IDocumentHandler
     {
         public class RevData
