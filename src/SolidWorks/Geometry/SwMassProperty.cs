@@ -48,10 +48,6 @@ namespace Xarial.XCad.SolidWorks.Geometry
             get
             {
                 ThrowIfScopeException();
-
-                //WORKAROUND: if this is not called the incorrect values may be returned for components with override options when include hidden is false
-                var testCall = (IMassPropertyOverrideOptions)MassProperty.GetOverrideOptions();
-
                 return new Point((double[])MassProperty.CenterOfMass);
             }
         }
@@ -79,10 +75,6 @@ namespace Xarial.XCad.SolidWorks.Geometry
             get
             {
                 ThrowIfScopeException();
-                
-                //WORKAROUND: if this is not called the incorrect values may be returned for components with override options when include hidden is false
-                var testCall = (IMassPropertyOverrideOptions)MassProperty.GetOverrideOptions();
-
                 return MassProperty.Mass;
             }
         }
@@ -147,6 +139,8 @@ namespace Xarial.XCad.SolidWorks.Geometry
                         }
                     }
 
+                    RefreshOverrides(MassProperty);
+
                     return new PrincipalAxesOfInertia(ixVec, iyVec, izVec);
                 }
             }
@@ -164,9 +158,6 @@ namespace Xarial.XCad.SolidWorks.Geometry
                 }
                 else 
                 {
-                    //WORKAROUND: if this is not called the incorrect values may be returned for components with override options when include hidden is false
-                    var testCall = (IMassPropertyOverrideOptions)MassProperty.GetOverrideOptions();
-
                     return new PrincipalMomentOfInertia((double[])MassProperty.PrincipalMomentsOfInertia);
                 }
             }
@@ -178,9 +169,6 @@ namespace Xarial.XCad.SolidWorks.Geometry
             {
                 ThrowIfScopeException();
 
-                //WORKAROUND: if this is not called the incorrect values may be returned for components with override options when include hidden is false
-                var testCall = (IMassPropertyOverrideOptions)MassProperty.GetOverrideOptions();
-                
                 var moi = (double[])MassProperty.GetMomentOfInertia(RelativeTo != null
                     ? (int)swMassPropertyMoment_e.swMassPropertyMomentAboutCoordSys
                     : (int)swMassPropertyMoment_e.swMassPropertyMomentAboutCenterOfMass);
@@ -217,7 +205,12 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
                 if (IsCommitted)
                 {
-                    UpdateScope(m_Creator.Element.Item1, m_Creator.Element.Item2);
+                    UpdateScope(m_Creator.Element);
+
+                    if (m_Doc is ISwPart && m_LegacyMassPropertyLazy.IsValueCreated)
+                    {
+                        UpdatePartScope((ISwPart)m_Doc, MassPropertyLegacy);
+                    }
                 }
             }
         }
@@ -261,19 +254,21 @@ namespace Xarial.XCad.SolidWorks.Geometry
         protected readonly ISwDocument3D m_Doc;
         private readonly IMathUtility m_MathUtils;
 
-        protected readonly ElementCreator<Tuple<IMassProperty2, IMassProperty>> m_Creator;
+        protected readonly ElementCreator<IMassProperty2> m_Creator;
 
-        protected IMassProperty2 MassProperty => m_Creator.Element.Item1;
-        protected IMassProperty MassPropertyLegacy => m_Creator.Element.Item2;
+        protected IMassProperty2 MassProperty => m_Creator.Element;
+        protected IMassProperty MassPropertyLegacy => m_LegacyMassPropertyLazy.Value;
 
         private Exception m_CurrentScopeException;
+
+        private Lazy<IMassProperty> m_LegacyMassPropertyLazy;
 
         internal SwMassProperty(ISwDocument3D doc, IMathUtility mathUtils) 
         {
             m_Doc = doc;
             m_MathUtils = mathUtils;
 
-            m_Creator = new ElementCreator<Tuple<IMassProperty2, IMassProperty>>(CreateMassProperty, null, false);
+            m_Creator = new ElementCreator<IMassProperty2>(CreateMassProperty, null, false);
 
             UserUnits = false;
         }
@@ -286,7 +281,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
             }
         }
 
-        protected Tuple<IMassProperty2, IMassProperty> CreateMassProperty(CancellationToken cancellationToken)
+        protected IMassProperty2 CreateMassProperty(CancellationToken cancellationToken)
         {
             var massPrps = (IMassProperty2)m_Doc.Model.Extension.CreateMassProperty2();
 
@@ -295,14 +290,29 @@ namespace Xarial.XCad.SolidWorks.Geometry
                 throw new EvaluationFailedException();
             }
 
-            IMassProperty partMassPrps = null;
-
-            if (m_Doc is ISwPart)
+            m_LegacyMassPropertyLazy = new Lazy<IMassProperty>(() => 
             {
-                partMassPrps = m_Doc.Model.Extension.CreateMassProperty();
-                partMassPrps.UseSystemUnits = !UserUnits;
-            }
+                if (!(m_Doc is ISwPart))
+                {
+                    throw new InvalidCastException("Document is not part");
+                }
 
+                var partMassPrps = m_Doc.Model.Extension.CreateMassProperty();
+                partMassPrps.UseSystemUnits = !UserUnits;
+
+                if (RelativeTo != null) 
+                {
+                    if (!partMassPrps.SetCoordinateSystem((MathTransform)m_MathUtils.ToMathTransform(RelativeTo)))
+                    {
+                        throw new Exception("Failed to set coordinate system");
+                    }
+                }
+
+                UpdatePartScope((ISwPart)m_Doc, partMassPrps);
+
+                return partMassPrps;
+            });
+            
             massPrps.UseSystemUnits = !UserUnits;
 
             m_IncludeHiddenBodiesDefault = massPrps.IncludeHiddenBodiesOrComponents;
@@ -313,24 +323,16 @@ namespace Xarial.XCad.SolidWorks.Geometry
                 {
                     throw new Exception("Failed to set coordinate system");
                 }
-
-                if (m_Doc is ISwPart)
-                {
-                    if (!partMassPrps.SetCoordinateSystem((MathTransform)m_MathUtils.ToMathTransform(RelativeTo)))
-                    {
-                        throw new Exception("Failed to set coordinate system");
-                    }
-                }
             }
 
             massPrps.IncludeHiddenBodiesOrComponents = !VisibleOnly;
 
-            UpdateScope(massPrps, partMassPrps);
+            UpdateScope(massPrps);
 
-            return new Tuple<IMassProperty2, IMassProperty>(massPrps, partMassPrps);
+            return massPrps;
         }
 
-        protected void UpdateScope(IMassProperty2 massPrps, IMassProperty partMassPrps = null)
+        protected void UpdateScope(IMassProperty2 massPrps)
         {
             try
             {
@@ -355,10 +357,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
                     throw new Exception($"Failed to recalculate mass properties");
                 }
 
-                if (m_Doc is ISwPart)
-                {
-                    UpdatePartScope((ISwPart)m_Doc, partMassPrps);
-                }
+                RefreshOverrides(massPrps);
 
                 ValidateCalculations(massPrps);
             }
@@ -385,6 +384,12 @@ namespace Xarial.XCad.SolidWorks.Geometry
                 iy = (double[])MassProperty.PrincipalAxesOfInertia[(int)PrincipalAxesOfInertia_e.Y];
                 iz = (double[])MassProperty.PrincipalAxesOfInertia[(int)PrincipalAxesOfInertia_e.Z];
             }
+        }
+
+        private void RefreshOverrides(IMassProperty2 massPrps)
+        {
+            //WORKAROUND: if this is not called the incorrect values may be returned for components with override options when include hidden is false
+            var testCall = (IMassPropertyOverrideOptions)massPrps.GetOverrideOptions();
         }
 
         /// <summary>
@@ -452,7 +457,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
         {
             if (m_Creator.IsCreated) 
             {
-                m_Creator.Element.Item1.IncludeHiddenBodiesOrComponents = m_IncludeHiddenBodiesDefault;
+                m_Creator.Element.IncludeHiddenBodiesOrComponents = m_IncludeHiddenBodiesDefault;
             }
         }
     }
