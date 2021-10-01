@@ -2236,20 +2236,35 @@ namespace SolidWorks.Tests.Integration
             AssertCompareDoubleArray((double[])pmoi15, new double[] { 1000.00000000, 1000.00000000, 2000.00000000 });
             AssertCompareDoubleArray((double[])pmoi16, new double[] { 421570.35749821, 1090708.81606145, 1407437.46073663 });
             
-            AssertCompareDoubleArray((double[])paoi1, new double[] { 0.74428291, 0.47984159, 0.46453740, -0.63704755, 0.71891902, 0.27807527, -0.20053269, -0.50289908, 0.84076106 });
-            AssertCompareDoubleArray((double[])paoi2, new double[] { -0.38183860, 0.90872286, 0.16858839, -0.34497319, -0.30935881, 0.88616625, 0.85743384, 0.28021401, 0.43161016 });
+            AssertCompareDoubleArray((double[])paoi1, new double[] { 0.74428291, 0.47984159, 0.46453740, -0.63704755, 0.71891902, 0.27807527, -0.20053269, -0.50289908, 0.84076106 });//-
+            AssertCompareDoubleArray((double[])paoi2, new double[] { -0.38183860, 0.90872286, 0.16858839, -0.34497319, -0.30935881, 0.88616625, 0.85743384, 0.28021401, 0.43161016 });//-
             AssertCompareDoubleArray((double[])paoi3, new double[] { 0.64086508, 0.64086508, -0.42259189, -0.73123884, 0.67717652, -0.08198608, 0.23362730, 0.36155762, 0.90260422 });
             AssertCompareDoubleArray((double[])paoi4, new double[] { 0.60088528, 0.19827816, 0.77435306, 0.55652280, 0.59160768, -0.58333758, -0.57377631, 0.78146409, 0.24514203 });
 
-            AssertCompareDoubleArray((double[])paoi5, new double[] { 0.65641077, -0.37181957, 0.65641077, 0.75400803, 0.35152849, -0.55488703, -0.02442923, 0.85917282, 0.51110203 }, 7);
-            AssertCompareDoubleArray((double[])paoi6, new double[] { 0.63787041, 0.43155844, 0.63787041, 0.76961549, -0.38786325, -0.50720222, 0.02851909, 0.81444423, -0.57954055 });
-            AssertCompareDoubleArray((double[])paoi7, new double[] { 0.64086508, 0.64086508, -0.42259189, -0.73123884, 0.67717652, -0.08198608, 0.23362730, 0.36155762, 0.90260422 });
-            AssertCompareDoubleArray((double[])paoi8, new double[] { -0.47372654, 0.62272914, 0.62272914, 0.33991764, -0.52302028, 0.78160462, 0.81242794, 0.58194347, 0.03609197 });
-            
-            AssertCompareDoubleArray((double[])paoi9, new double[] { 0.71646322, 0.23623155, -0.65641077, -0.63321170, -0.17468496, -0.75400803, -0.29278558, 0.95586600, 0.02442923 });
-            AssertCompareDoubleArray((double[])paoi10, new double[] { 0.10906999, 0.76238119, -0.63787041, -0.05361748, -0.63625243, -0.76961549, -0.99258697, 0.11814296, -0.02851909 });
-            AssertCompareDoubleArray((double[])paoi11, new double[] { -0.75857324, 0.11772254, -0.64086508, -0.55657219, 0.39435663, 0.73123884, 0.33881268, 0.91138590, -0.23362730 });
-            AssertCompareDoubleArray((double[])paoi12, new double[] { -0.04267474, 0.87963744, 0.47372654, 0.91256521, 0.22733400, -0.33991764, -0.40669843, 0.41780046, -0.81242794 });
+            if (m_App.IsVersionNewerOrEqual(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020))
+            {
+                AssertCompareDoubleArray((double[])paoi5, new double[] { 0.65641077, -0.37181957, 0.65641077, 0.75400803, 0.35152849, -0.55488703, -0.02442923, 0.85917282, 0.51110203 }, 7);
+                AssertCompareDoubleArray((double[])paoi6, new double[] { 0.63787041, 0.43155844, 0.63787041, 0.76961549, -0.38786325, -0.50720222, 0.02851909, 0.81444423, -0.57954055 });
+                AssertCompareDoubleArray((double[])paoi7, new double[] { 0.64086508, 0.64086508, -0.42259189, -0.73123884, 0.67717652, -0.08198608, 0.23362730, 0.36155762, 0.90260422 });
+                AssertCompareDoubleArray((double[])paoi8, new double[] { -0.47372654, 0.62272914, 0.62272914, 0.33991764, -0.52302028, 0.78160462, 0.81242794, 0.58194347, 0.03609197 });
+
+                AssertCompareDoubleArray((double[])paoi9, new double[] { 0.71646322, 0.23623155, -0.65641077, -0.63321170, -0.17468496, -0.75400803, -0.29278558, 0.95586600, 0.02442923 });
+                AssertCompareDoubleArray((double[])paoi10, new double[] { 0.10906999, 0.76238119, -0.63787041, -0.05361748, -0.63625243, -0.76961549, -0.99258697, 0.11814296, -0.02851909 });
+                AssertCompareDoubleArray((double[])paoi11, new double[] { -0.75857324, 0.11772254, -0.64086508, -0.55657219, 0.39435663, 0.73123884, 0.33881268, 0.91138590, -0.23362730 });
+                AssertCompareDoubleArray((double[])paoi12, new double[] { -0.04267474, 0.87963744, 0.47372654, 0.91256521, 0.22733400, -0.33991764, -0.40669843, 0.41780046, -0.81242794 });
+            }
+            else
+            {
+                Assert.IsInstanceOf<MassPropertiesHiddenComponentBodiesNotSupported>(paoi5);
+                Assert.IsInstanceOf<MassPropertiesHiddenComponentBodiesNotSupported>(paoi6);
+                Assert.IsInstanceOf<MassPropertiesHiddenComponentBodiesNotSupported>(paoi7);
+                Assert.IsInstanceOf<MassPropertiesHiddenComponentBodiesNotSupported>(paoi8);
+                                                                                     
+                Assert.IsInstanceOf<MassPropertiesHiddenComponentBodiesNotSupported>(paoi9);
+                Assert.IsInstanceOf<MassPropertiesHiddenComponentBodiesNotSupported>(paoi10);
+                Assert.IsInstanceOf<MassPropertiesHiddenComponentBodiesNotSupported>(paoi11);
+                Assert.IsInstanceOf<MassPropertiesHiddenComponentBodiesNotSupported>(paoi12);
+            }
 
             AssertCompareDoubleArray((double[])paoi13, new double[] { -0.04316746, 0.66646794, -0.74428291, -0.34551872, 0.68904806, 0.63704755, 0.93741847, 0.28466341, 0.20053269 });
             AssertCompareDoubleArray((double[])paoi14, new double[] { -0.55965261, 0.73551903, 0.38183860, 0.82460690, 0.44834914, 0.34497319, 0.08253734, 0.50793189, -0.85743384 });
@@ -2602,40 +2617,6 @@ namespace SolidWorks.Tests.Integration
 
                 try
                 {
-                    var resMoi = massPrps.MomentOfInertia;
-
-                    moi = new double[]
-                    {
-                        resMoi.Lx.X, resMoi.Lx.Y, resMoi.Lx.Z,
-                        resMoi.Ly.X, resMoi.Ly.Y, resMoi.Ly.Z,
-                        resMoi.Lz.X, resMoi.Lz.Y, resMoi.Lz.Z
-                    };
-                }
-                catch (Exception ex)
-                {
-                    moi = ex;
-                }
-
-                try
-                {
-                    mass = massPrps.Mass;
-                }
-                catch (Exception ex)
-                {
-                    mass = ex;
-                }
-
-                try
-                {
-                    cog = massPrps.CenterOfGravity.ToArray();
-                }
-                catch (Exception ex)
-                {
-                    cog = ex;
-                }
-
-                try
-                {
                     var resPmoi = massPrps.PrincipalMomentOfInertia;
                     pmoi = new double[] { resPmoi.Px, resPmoi.Py, resPmoi.Pz };
                 }
@@ -2658,6 +2639,40 @@ namespace SolidWorks.Tests.Integration
                 catch (Exception ex)
                 {
                     paoi = ex;
+                }
+
+                try
+                {
+                    cog = massPrps.CenterOfGravity.ToArray();
+                }
+                catch (Exception ex)
+                {
+                    cog = ex;
+                }
+
+                try
+                {
+                    mass = massPrps.Mass;
+                }
+                catch (Exception ex)
+                {
+                    mass = ex;
+                }
+
+                try
+                {
+                    var resMoi = massPrps.MomentOfInertia;
+
+                    moi = new double[]
+                    {
+                        resMoi.Lx.X, resMoi.Lx.Y, resMoi.Lx.Z,
+                        resMoi.Ly.X, resMoi.Ly.Y, resMoi.Ly.Z,
+                        resMoi.Lz.X, resMoi.Lz.Y, resMoi.Lz.Z
+                    };
+                }
+                catch (Exception ex)
+                {
+                    moi = ex;
                 }
             }
         }

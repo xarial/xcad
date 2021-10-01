@@ -48,6 +48,10 @@ namespace Xarial.XCad.SolidWorks.Geometry
             get
             {
                 ThrowIfScopeException();
+
+                //WORKAROUND: if this is not called the incorrect values may be returned for components with override options when include hidden is false
+                var testCall = (IMassPropertyOverrideOptions)MassProperty.GetOverrideOptions();
+
                 return new Point((double[])MassProperty.CenterOfMass);
             }
         }
@@ -75,6 +79,10 @@ namespace Xarial.XCad.SolidWorks.Geometry
             get
             {
                 ThrowIfScopeException();
+                
+                //WORKAROUND: if this is not called the incorrect values may be returned for components with override options when include hidden is false
+                var testCall = (IMassPropertyOverrideOptions)MassProperty.GetOverrideOptions();
+
                 return MassProperty.Mass;
             }
         }
@@ -156,6 +164,9 @@ namespace Xarial.XCad.SolidWorks.Geometry
                 }
                 else 
                 {
+                    //WORKAROUND: if this is not called the incorrect values may be returned for components with override options when include hidden is false
+                    var testCall = (IMassPropertyOverrideOptions)MassProperty.GetOverrideOptions();
+
                     return new PrincipalMomentOfInertia((double[])MassProperty.PrincipalMomentsOfInertia);
                 }
             }
@@ -167,8 +178,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
             {
                 ThrowIfScopeException();
 
-                //WORKAROUND: if this is not called the incorrect values will be returned for sub-assemblies with override options when include hidden is false
-                //keeping this for all cases as in case there are otehr unknow conditions
+                //WORKAROUND: if this is not called the incorrect values may be returned for components with override options when include hidden is false
                 var testCall = (IMassPropertyOverrideOptions)MassProperty.GetOverrideOptions();
                 
                 var moi = (double[])MassProperty.GetMomentOfInertia(RelativeTo != null

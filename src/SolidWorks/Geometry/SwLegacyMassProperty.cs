@@ -230,10 +230,16 @@ namespace Xarial.XCad.SolidWorks.Geometry
         {
             //NOTE: must be called otherwise calling other propertis may clear the overriden value
             var testCall = massPrps.OverrideMomentsOfInertia;
-            return new PrincipalAxesOfInertia(
-                new Vector((double[])massPrps.PrincipleAxesOfInertia[(int)PrincipalAxesOfInertia_e.X]),
-                new Vector((double[])massPrps.PrincipleAxesOfInertia[(int)PrincipalAxesOfInertia_e.Y]),
-                new Vector((double[])massPrps.PrincipleAxesOfInertia[(int)PrincipalAxesOfInertia_e.Z]));
+
+            var ix = (double[])massPrps.PrincipleAxesOfInertia[(int)PrincipalAxesOfInertia_e.X];
+            var iy = (double[])massPrps.PrincipleAxesOfInertia[(int)PrincipalAxesOfInertia_e.Y];
+            var iz = (double[])massPrps.PrincipleAxesOfInertia[(int)PrincipalAxesOfInertia_e.Z];
+
+            var ixVec = new Vector(ix);
+            var iyVec = new Vector(iy);
+            var izVec = new Vector(iz);
+
+            return new PrincipalAxesOfInertia(ixVec, iyVec, izVec);
         }
 
         protected PrincipalMomentOfInertia GetPrincipalMomentOfInertia(IMassProperty massPrps)
@@ -317,6 +323,22 @@ namespace Xarial.XCad.SolidWorks.Geometry
             }
         }
 
+        protected void SetCoordinateSystem(IMassProperty massPrps, TransformMatrix transform)
+        {
+            if (transform == null)
+            {
+                transform = TransformMatrix.Identity;
+            }
+
+            if (!massPrps.SetCoordinateSystem((MathTransform)m_MathUtils.ToMathTransform(transform)))
+            {
+                throw new Exception("Failed to set coordinate system");
+            }
+
+            //IMPORTANT: if this property is not called then the values are not calculated correctly
+            var testRefreshCall = massPrps.OverrideCenterOfMass;
+        }
+
         private IMassProperty CreateMassProperty(CancellationToken cancellationToken)
         {
             var massPrps = (IMassProperty)m_Doc.Model.Extension.CreateMassProperty();
@@ -330,10 +352,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
             if (RelativeTo != null)
             {
-                if (!massPrps.SetCoordinateSystem((MathTransform)m_MathUtils.ToMathTransform(RelativeTo)))
-                {
-                    throw new Exception("Failed to set coordinate system");
-                }
+                SetCoordinateSystem(massPrps, RelativeTo);
             }
 
             UpdateScope(massPrps);
@@ -444,11 +463,9 @@ namespace Xarial.XCad.SolidWorks.Geometry
             {
                 ThrowIfScopeException();
 
-                bool overrideMoi = false;
-
                 if (NeedToReadMassPropertiesFromReferencedDocument(m =>
                 {
-                    overrideMoi = m.OverrideMomentsOfInertia;
+                    var overrideMoi = m.OverrideMomentsOfInertia;
 
                     var refDoc = m_ReferenceComponentMassPropertyLazy.Value.Document;
 
@@ -463,20 +480,15 @@ namespace Xarial.XCad.SolidWorks.Geometry
                     return overrideMoi;
                 }, out IMassProperty compRefDocMassPrp))
                 {
+                    SetCoordinateSystem(compRefDocMassPrp, m_ReferenceComponentMassPropertyLazy.Value.Component.Transformation.Inverse());
+
                     var paoi = base.GetPrincipalAxesOfInertia(compRefDocMassPrp);
+
+                    SetCoordinateSystem(compRefDocMassPrp, null);
 
                     var ix = paoi.Ix;
                     var iy = paoi.Iy;
                     var iz = paoi.Iz;
-
-                    if (!overrideMoi)
-                    {
-                        var compTransform = m_ReferenceComponentMassPropertyLazy.Value.Component.Transformation;
-
-                        ix = ix.Transform(compTransform) * -1;
-                        iy = iy.Transform(compTransform);
-                        iz = iz.Transform(compTransform) * -1;
-                    }
 
                     if (RelativeTo != null)
                     {
@@ -491,7 +503,31 @@ namespace Xarial.XCad.SolidWorks.Geometry
                 }
                 else
                 {
-                    return base.PrincipalAxesOfInertia;
+                    var massPrps = m_Creator.Element;
+
+                    if (RelativeTo != null)
+                    {
+                        //WORKAROUND: Principal Axes Of Inertia are not calculated correctly when relative coordinate system is specified
+                        //instead setting the default coordinate system and transforming the axis
+                        SetCoordinateSystem(massPrps, null);
+                    }
+
+                    var paoi = base.PrincipalAxesOfInertia;
+
+                    if (RelativeTo != null)
+                    {
+                        //see [WORKAROUND]
+                        var transform = RelativeTo.Inverse();
+
+                        paoi = new PrincipalAxesOfInertia(
+                            paoi.Ix.Transform(transform),
+                            paoi.Iy.Transform(transform),
+                            paoi.Iz.Transform(transform));
+
+                        SetCoordinateSystem(massPrps, RelativeTo);
+                    }
+
+                    return paoi;
                 }
             }
         }
@@ -590,30 +626,22 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
                     try
                     {
-                        if (compRefDocMassPrp.SetCoordinateSystem((MathTransform)m_MathUtils.ToMathTransform(transform)))
-                        {
-                            var moi = base.GetMomentOfInertia(compRefDocMassPrp);
-                            
-                            var units = m_ReferenceComponentMassPropertyLazy.Value.UserUnit;
+                        SetCoordinateSystem(compRefDocMassPrp, transform);
 
-                            //mass *  square length 
-                            var confFactor = units != null ? units.GetMassConversionFactor() * Math.Pow(units.GetLengthConversionFactor(), 2) : 1;
+                        var moi = base.GetMomentOfInertia(compRefDocMassPrp);
 
-                            moi = new MomentOfInertia(moi.Lx * confFactor, moi.Ly * confFactor, moi.Lz * confFactor);
+                        var units = m_ReferenceComponentMassPropertyLazy.Value.UserUnit;
 
-                            return moi;
-                        }
-                        else
-                        {
-                            throw new Exception("Failed to align Moment Of Inertia");
-                        }
+                        //mass *  square length 
+                        var confFactor = units != null ? units.GetMassConversionFactor() * Math.Pow(units.GetLengthConversionFactor(), 2) : 1;
+
+                        moi = new MomentOfInertia(moi.Lx * confFactor, moi.Ly * confFactor, moi.Lz * confFactor);
+
+                        return moi;
                     }
                     finally
                     {
-                        if (!compRefDocMassPrp.SetCoordinateSystem((MathTransform)m_MathUtils.ToMathTransform(TransformMatrix.Identity)))
-                        {
-                            throw new Exception("Failed to reset Moment Of Inertia coordinate system");
-                        }
+                        SetCoordinateSystem(compRefDocMassPrp, null);
                     }
                 }
                 else
