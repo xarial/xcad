@@ -96,6 +96,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
                 if (m_Doc is ISwPart)
                 {
+                    //WORKAROUND: incorrect values returned for the part - using older method instead
                     return new PrincipalAxesOfInertia(
                         new Vector((double[])MassPropertyLegacy.PrincipleAxesOfInertia[(int)PrincipalAxesOfInertia_e.X]),
                         new Vector((double[])MassPropertyLegacy.PrincipleAxesOfInertia[(int)PrincipalAxesOfInertia_e.Y]),
@@ -103,26 +104,44 @@ namespace Xarial.XCad.SolidWorks.Geometry
                 }
                 else 
                 {
-                    var overrides = (IMassPropertyOverrideOptions)MassProperty.GetOverrideOptions();
+                    if (RelativeTo != null) 
+                    {
+                        //WORKAROUND: Principal Axes Of Inertia are not calculated correctly when relative coordinate system is specified
+                        //instead setting the default coordinate system and transforming the axis
+                        if (!MassProperty.SetCoordinateSystem(m_MathUtils.ToMathTransform(TransformMatrix.Identity)))
+                        {
+                            throw new Exception("Failed to set default coordinate system");
+                        }
+                    }
 
                     double[] ix;
                     double[] iy;
                     double[] iz;
 
-                    if (overrides.OverrideMomentsOfInertia)//invalid values returned for the Axis if overriden
+                    GetRawPrincipalAxesOfInertia(out ix, out iy, out iz);
+
+                    var ixVec = new Vector(ix);
+                    var iyVec = new Vector(iy);
+                    var izVec = new Vector(iz);
+
+                    if (RelativeTo != null)
                     {
-                        ix = (double[])overrides.GetOverridePrincipalAxesOrientation((int)PrincipalAxesOfInertia_e.X);
-                        iy = (double[])overrides.GetOverridePrincipalAxesOrientation((int)PrincipalAxesOfInertia_e.Y);
-                        iz = (double[])overrides.GetOverridePrincipalAxesOrientation((int)PrincipalAxesOfInertia_e.Z);
-                    }
-                    else
-                    {
-                        ix = (double[])MassProperty.PrincipalAxesOfInertia[(int)PrincipalAxesOfInertia_e.X];
-                        iy = (double[])MassProperty.PrincipalAxesOfInertia[(int)PrincipalAxesOfInertia_e.Y];
-                        iz = (double[])MassProperty.PrincipalAxesOfInertia[(int)PrincipalAxesOfInertia_e.Z];
+                        //see [WORKAROUND]
+                        var transform = RelativeTo.Inverse();
+
+                        ixVec = ixVec.Transform(transform);
+                        iyVec = iyVec.Transform(transform);
+                        izVec = izVec.Transform(transform);
+
+                        if (!MassProperty.SetCoordinateSystem(m_MathUtils.ToMathTransform(RelativeTo)))
+                        {
+                            throw new Exception("Failed to set coordinate system");
+                        }
                     }
 
-                    return new PrincipalAxesOfInertia(new Vector(ix), new Vector(iy), new Vector(iz));
+                    RefreshOverrides(MassProperty);
+
+                    return new PrincipalAxesOfInertia(ixVec, iyVec, izVec);
                 }
             }
         }
@@ -186,7 +205,12 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
                 if (IsCommitted)
                 {
-                    UpdateScope(m_Creator.Element.Item1, m_Creator.Element.Item2);
+                    UpdateScope(m_Creator.Element);
+
+                    if (m_Doc is ISwPart && m_LegacyMassPropertyLazy.IsValueCreated)
+                    {
+                        UpdatePartScope((ISwPart)m_Doc, MassPropertyLegacy);
+                    }
                 }
             }
         }
@@ -230,19 +254,21 @@ namespace Xarial.XCad.SolidWorks.Geometry
         protected readonly ISwDocument3D m_Doc;
         private readonly IMathUtility m_MathUtils;
 
-        protected readonly ElementCreator<Tuple<IMassProperty2, IMassProperty>> m_Creator;
+        protected readonly ElementCreator<IMassProperty2> m_Creator;
 
-        protected IMassProperty2 MassProperty => m_Creator.Element.Item1;
-        protected IMassProperty MassPropertyLegacy => m_Creator.Element.Item2;
+        protected IMassProperty2 MassProperty => m_Creator.Element;
+        protected IMassProperty MassPropertyLegacy => m_LegacyMassPropertyLazy.Value;
 
         private Exception m_CurrentScopeException;
+
+        private Lazy<IMassProperty> m_LegacyMassPropertyLazy;
 
         internal SwMassProperty(ISwDocument3D doc, IMathUtility mathUtils) 
         {
             m_Doc = doc;
             m_MathUtils = mathUtils;
 
-            m_Creator = new ElementCreator<Tuple<IMassProperty2, IMassProperty>>(CreateMassProperty, null, false);
+            m_Creator = new ElementCreator<IMassProperty2>(CreateMassProperty, null, false);
 
             UserUnits = false;
         }
@@ -255,7 +281,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
             }
         }
 
-        protected Tuple<IMassProperty2, IMassProperty> CreateMassProperty(CancellationToken cancellationToken)
+        protected IMassProperty2 CreateMassProperty(CancellationToken cancellationToken)
         {
             var massPrps = (IMassProperty2)m_Doc.Model.Extension.CreateMassProperty2();
 
@@ -264,14 +290,29 @@ namespace Xarial.XCad.SolidWorks.Geometry
                 throw new EvaluationFailedException();
             }
 
-            IMassProperty partMassPrps = null;
-
-            if (m_Doc is ISwPart)
+            m_LegacyMassPropertyLazy = new Lazy<IMassProperty>(() => 
             {
-                partMassPrps = m_Doc.Model.Extension.CreateMassProperty();
-                partMassPrps.UseSystemUnits = !UserUnits;
-            }
+                if (!(m_Doc is ISwPart))
+                {
+                    throw new InvalidCastException("Document is not part");
+                }
 
+                var partMassPrps = m_Doc.Model.Extension.CreateMassProperty();
+                partMassPrps.UseSystemUnits = !UserUnits;
+
+                if (RelativeTo != null) 
+                {
+                    if (!partMassPrps.SetCoordinateSystem((MathTransform)m_MathUtils.ToMathTransform(RelativeTo)))
+                    {
+                        throw new Exception("Failed to set coordinate system");
+                    }
+                }
+
+                UpdatePartScope((ISwPart)m_Doc, partMassPrps);
+
+                return partMassPrps;
+            });
+            
             massPrps.UseSystemUnits = !UserUnits;
 
             m_IncludeHiddenBodiesDefault = massPrps.IncludeHiddenBodiesOrComponents;
@@ -282,24 +323,16 @@ namespace Xarial.XCad.SolidWorks.Geometry
                 {
                     throw new Exception("Failed to set coordinate system");
                 }
-
-                if (m_Doc is ISwPart)
-                {
-                    if (!partMassPrps.SetCoordinateSystem((MathTransform)m_MathUtils.ToMathTransform(RelativeTo)))
-                    {
-                        throw new Exception("Failed to set coordinate system");
-                    }
-                }
             }
 
             massPrps.IncludeHiddenBodiesOrComponents = !VisibleOnly;
 
-            UpdateScope(massPrps, partMassPrps);
+            UpdateScope(massPrps);
 
-            return new Tuple<IMassProperty2, IMassProperty>(massPrps, partMassPrps);
+            return massPrps;
         }
 
-        protected void UpdateScope(IMassProperty2 massPrps, IMassProperty partMassPrps = null)
+        protected void UpdateScope(IMassProperty2 massPrps)
         {
             try
             {
@@ -324,10 +357,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
                     throw new Exception($"Failed to recalculate mass properties");
                 }
 
-                if (m_Doc is ISwPart)
-                {
-                    UpdatePartScope((ISwPart)m_Doc, partMassPrps);
-                }
+                RefreshOverrides(massPrps);
 
                 ValidateCalculations(massPrps);
             }
@@ -336,6 +366,30 @@ namespace Xarial.XCad.SolidWorks.Geometry
                 m_CurrentScopeException = ex;
                 throw;
             }
+        }
+
+        protected virtual void GetRawPrincipalAxesOfInertia(out double[] ix, out double[] iy, out double[] iz)
+        {
+            var overrides = (IMassPropertyOverrideOptions)MassProperty.GetOverrideOptions();
+
+            if (overrides.OverrideMomentsOfInertia)//invalid values returned for the Axis if overriden
+            {
+                ix = (double[])overrides.GetOverridePrincipalAxesOrientation((int)PrincipalAxesOfInertia_e.X);
+                iy = (double[])overrides.GetOverridePrincipalAxesOrientation((int)PrincipalAxesOfInertia_e.Y);
+                iz = (double[])overrides.GetOverridePrincipalAxesOrientation((int)PrincipalAxesOfInertia_e.Z);
+            }
+            else
+            {
+                ix = (double[])MassProperty.PrincipalAxesOfInertia[(int)PrincipalAxesOfInertia_e.X];
+                iy = (double[])MassProperty.PrincipalAxesOfInertia[(int)PrincipalAxesOfInertia_e.Y];
+                iz = (double[])MassProperty.PrincipalAxesOfInertia[(int)PrincipalAxesOfInertia_e.Z];
+            }
+        }
+
+        private void RefreshOverrides(IMassProperty2 massPrps)
+        {
+            //WORKAROUND: if this is not called the incorrect values may be returned for components with override options when include hidden is false
+            var testCall = (IMassPropertyOverrideOptions)massPrps.GetOverrideOptions();
         }
 
         /// <summary>
@@ -371,7 +425,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
                 throw new Exception("Failed to add bodies to mass property scope");
             }
 
-            //IMPORTANT: if this property is not called then the principal moment of intertia and principal axes will not be calculated correctly
+            //WORKAROUND: if this property is not called then the principal moment of intertia and principal axes will not be calculated correctly
             var testRefreshCall = massPrps.OverrideCenterOfMass;
         }
 
@@ -403,13 +457,15 @@ namespace Xarial.XCad.SolidWorks.Geometry
         {
             if (m_Creator.IsCreated) 
             {
-                m_Creator.Element.Item1.IncludeHiddenBodiesOrComponents = m_IncludeHiddenBodiesDefault;
+                m_Creator.Element.IncludeHiddenBodiesOrComponents = m_IncludeHiddenBodiesDefault;
             }
         }
     }
 
     internal class SwAssemblyMassProperty : SwMassProperty, ISwAssemblyMassProperty
     {
+        private LegacyComponentMassPropertyLazy m_ComponentMassPropertyLazy;
+
         internal SwAssemblyMassProperty(ISwAssembly assm, IMathUtility mathUtils) : base(assm, mathUtils)
         {
             VisibleOnly = true;
@@ -421,6 +477,8 @@ namespace Xarial.XCad.SolidWorks.Geometry
             set
             {
                 m_Creator.CachedProperties.Set(value);
+
+                m_ComponentMassPropertyLazy = new LegacyComponentMassPropertyLazy(() => value);
 
                 if (IsCommitted)
                 {
@@ -456,6 +514,38 @@ namespace Xarial.XCad.SolidWorks.Geometry
             else 
             {
                 return null;
+            }
+        }
+
+        protected override void GetRawPrincipalAxesOfInertia(out double[] ix, out double[] iy, out double[] iz)
+        {
+            var overrides = (IMassPropertyOverrideOptions)MassProperty.GetOverrideOptions();
+
+            if (overrides.OverrideMomentsOfInertia)//invalid values returned for the Axis if overriden
+            {
+                var scopeComps = (this as IAssemblyEvaluation).Scope;
+
+                //WORKAROUND: overriden principal axes of inertia is not correct in sub-assemblies
+                if (scopeComps?.Length == 1 && scopeComps.First().ReferencedDocument is IXAssembly)
+                {
+                    var legacyMassPrps = m_ComponentMassPropertyLazy.Value.MassProperty;
+
+                    ix = (double[])legacyMassPrps.PrincipleAxesOfInertia[(int)PrincipalAxesOfInertia_e.X];
+                    iy = (double[])legacyMassPrps.PrincipleAxesOfInertia[(int)PrincipalAxesOfInertia_e.Y];
+                    iz = (double[])legacyMassPrps.PrincipleAxesOfInertia[(int)PrincipalAxesOfInertia_e.Z];
+                }
+                else 
+                {
+                    ix = (double[])overrides.GetOverridePrincipalAxesOrientation((int)PrincipalAxesOfInertia_e.X);
+                    iy = (double[])overrides.GetOverridePrincipalAxesOrientation((int)PrincipalAxesOfInertia_e.Y);
+                    iz = (double[])overrides.GetOverridePrincipalAxesOrientation((int)PrincipalAxesOfInertia_e.Z);
+                }
+            }
+            else
+            {
+                ix = (double[])MassProperty.PrincipalAxesOfInertia[(int)PrincipalAxesOfInertia_e.X];
+                iy = (double[])MassProperty.PrincipalAxesOfInertia[(int)PrincipalAxesOfInertia_e.Y];
+                iz = (double[])MassProperty.PrincipalAxesOfInertia[(int)PrincipalAxesOfInertia_e.Z];
             }
         }
     }

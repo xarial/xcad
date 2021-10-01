@@ -11,12 +11,29 @@ using System.Text;
 
 namespace Xarial.XCad.Geometry.Structures
 {
+    /// <summary>
+    /// Principal axes of inertia of the solid geometry used in <see cref="IXMassProperty"/>
+    /// </summary>
     public class PrincipalAxesOfInertia
     {
+        /// <summary>
+        /// X direction
+        /// </summary>
         public Vector Ix { get; }
+
+        /// <summary>
+        /// Y direction
+        /// </summary>
         public Vector Iy { get; }
+
+        /// <summary>
+        /// Z direction
+        /// </summary>
         public Vector Iz { get; }
 
+        /// <summary>
+        /// Default constructor
+        /// </summary>
         public PrincipalAxesOfInertia(Vector ix, Vector iy, Vector iz)
         {
             Ix = ix;

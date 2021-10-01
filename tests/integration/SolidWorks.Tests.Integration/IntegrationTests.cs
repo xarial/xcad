@@ -172,6 +172,21 @@ namespace SolidWorks.Tests.Integration
         protected void AssertCompareDoubles(double actual, double expected, int digits = 8)
             => Assert.That(Math.Round(actual, digits), Is.EqualTo(Math.Round(expected, digits)).Within(0.000001).Percent);
 
+        protected void AssertCompareDoubleArray(double[] actual, double[] expected, int digits = 8)
+        {
+            if (actual.Length == expected.Length)
+            {
+                for (int i = 0; i < actual.Length; i++) 
+                {
+                    Assert.That(Math.Round(actual[i], digits), Is.EqualTo(Math.Round(expected[i], digits)).Within(0.000001).Percent);
+                }
+            }
+            else 
+            {
+                Assert.Fail("Arrays size mismatch");
+            }
+        }
+
         [TearDown]
         public void TearDown() 
         {

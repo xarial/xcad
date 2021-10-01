@@ -7,11 +7,16 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using Xarial.XCad.Base;
+using Xarial.XCad.Base.Enums;
 using Xarial.XCad.Documents;
+using Xarial.XCad.Documents.Attributes;
+using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Documents.Services;
+using Xarial.XCad.Reflection;
 
 namespace Xarial.XCad.Toolkit.Services
 {
@@ -20,9 +25,23 @@ namespace Xarial.XCad.Toolkit.Services
     /// </summary>
     public class DocumentsHandler
     {
+        private class DocumentHandlerInfo 
+        {
+            internal Type HandlerType { get; }
+            internal DocumentHandlerScope_e Scope { get; }
+            internal Delegate Factory { get; }
+
+            internal DocumentHandlerInfo(Type handlerType, DocumentHandlerScope_e scope, Delegate factory) 
+            {
+                HandlerType = handlerType;
+                Scope = scope;
+                Factory = factory;
+            }
+        }
+
         private readonly IXApplication m_App;
 
-        private readonly Dictionary<Type, Delegate> m_Handlers;
+        private readonly List<DocumentHandlerInfo> m_Handlers;
         private readonly Dictionary<IXDocument, List<IDocumentHandler>> m_DocsMap;
 
         private readonly IXLogger m_Logger;
@@ -32,7 +51,7 @@ namespace Xarial.XCad.Toolkit.Services
             m_App = app;
             m_Logger = logger;
 
-            m_Handlers = new Dictionary<Type, Delegate>();
+            m_Handlers = new List<DocumentHandlerInfo>();
             m_DocsMap = new Dictionary<IXDocument, List<IDocumentHandler>>();
         }
 
@@ -40,40 +59,51 @@ namespace Xarial.XCad.Toolkit.Services
         {
             var type = typeof(THandler);
 
-            if (!m_Handlers.ContainsKey(type))
-            {
-                m_Handlers.Add(type, handlerFact);
-
-                foreach (var map in m_DocsMap) 
-                {
-                    var handler = CreateHandler(map.Key, type);
-                    map.Value.Add(handler);
-                }
-            }
-            else 
+            if (m_Handlers.Any(h => h.HandlerType == type)) 
             {
                 throw new Exception("Handler for this type is already registered");
+            }
+
+            var scope = DocumentHandlerScope_e.Part | DocumentHandlerScope_e.Assembly | DocumentHandlerScope_e.Drawing;
+
+            type.TryGetAttribute<DocumentHandlerScopeAttribute>(a => scope = a.Scope);
+
+            var handlerInfo = new DocumentHandlerInfo(type, scope, handlerFact);
+
+            m_Handlers.Add(handlerInfo);
+
+            foreach (var map in m_DocsMap)
+            {
+                CreateHandler(map.Key, handlerInfo, map.Value);
             }
         }
 
         public THandler GetHandler<THandler>(IXDocument doc) 
             where THandler : IDocumentHandler
         {
-            var handlers = m_DocsMap[doc];
+            var handlers = m_DocsMap[doc].Where(h => h.GetType() == typeof(THandler));
 
-            return (THandler)handlers.First(h => h.GetType() == typeof(THandler));
+            if (handlers.Any())
+            {
+                Debug.Assert(handlers.Count() != 1, "Must be only one handler of the specified type");
+
+                return (THandler)handlers.First();
+            }
+            else 
+            {
+                throw new Exception("Handler of the specified type is not registered for the specified document");
+            }
         }
 
         public void TryInitHandlers(IXDocument doc) 
         {
             var handlers = new List<IDocumentHandler>();
 
-            foreach (var type in m_Handlers.Keys) 
+            foreach (var handlerInfo in m_Handlers) 
             {
                 try
                 {
-                    var handler = CreateHandler(doc, type);
-                    handlers.Add(handler);
+                    CreateHandler(doc, handlerInfo, handlers);
                 }
                 catch (Exception ex)
                 {
@@ -86,27 +116,62 @@ namespace Xarial.XCad.Toolkit.Services
 
         public void ReleaseHandlers(IXDocument doc)
         {
-            foreach (var handler in m_DocsMap[doc])
+            if (m_DocsMap.TryGetValue(doc, out List<IDocumentHandler> handlers))
             {
-                try
+                foreach (var handler in handlers)
                 {
-                    handler.Dispose();
+                    try
+                    {
+                        handler.Dispose();
+                    }
+                    catch (Exception ex)
+                    {
+                        m_Logger.Log(ex);
+                    }
                 }
-                catch (Exception ex)
-                {
-                    m_Logger.Log(ex);
-                }
-            }
 
-            m_DocsMap[doc].Clear();
-            m_DocsMap.Remove(doc);
+                handlers.Clear();
+                m_DocsMap.Remove(doc);
+            }
+            else 
+            {
+                Debug.Assert(false, "Cannot find the handler of this document. All the documents must be in the map");
+            }
         }
 
-        private IDocumentHandler CreateHandler(IXDocument doc, Type type)
+        private void CreateHandler(IXDocument doc, DocumentHandlerInfo handlerInfo, List<IDocumentHandler> handlersList)
         {
-            var handler = (IDocumentHandler)m_Handlers[type].DynamicInvoke();
-            handler.Init(m_App, doc);
-            return handler;
+            DocumentHandlerScope_e docType;
+
+            if (doc is IXPart)
+            {
+                docType = DocumentHandlerScope_e.Part;
+            }
+            else if (doc is IXAssembly)
+            {
+                docType = DocumentHandlerScope_e.Assembly;
+            }
+            else if (doc is IXDrawing)
+            {
+                docType = DocumentHandlerScope_e.Drawing;
+            }
+            else 
+            {
+                throw new NotSupportedException("Document type is not supported");
+            }
+
+            if (handlerInfo.Scope.HasFlag(docType))
+            {
+                m_Logger.Log($"Creating document handler '{handlerInfo.HandlerType.FullName}' for document type: {docType}", LoggerMessageSeverity_e.Debug);
+
+                var handler = (IDocumentHandler)handlerInfo.Factory.DynamicInvoke();
+                handler.Init(m_App, doc);
+                handlersList.Add(handler);
+            }
+            else 
+            {
+                m_Logger.Log($"Skipping creation of document handler '{handlerInfo.HandlerType.FullName}' for document type: {docType}", LoggerMessageSeverity_e.Debug);
+            }
         }
     }
 }
