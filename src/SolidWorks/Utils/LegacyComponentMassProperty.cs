@@ -40,7 +40,7 @@ namespace Xarial.XCad.SolidWorks.Utils
     /// </summary>
     internal class LegacyComponentMassPropertyLazy : Lazy<LegacyComponentMassProperty>
     {
-        public LegacyComponentMassPropertyLazy(Func<IXComponent[]> compsFunc, Func<IXUnits> unitsFunc = null) 
+        internal LegacyComponentMassPropertyLazy(Func<IXComponent[]> compsFunc, Func<IXUnits> unitsFunc = null) 
             : base(() => CreateComponentMassProperty(compsFunc.Invoke(), unitsFunc?.Invoke()))
         {
         }
