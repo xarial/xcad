@@ -8,6 +8,7 @@
 using SolidWorks.Interop.swdocumentmgr;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -28,15 +29,16 @@ namespace Xarial.XCad.SwDocumentManager.Documents
     {
         ISwDMConfiguration Configuration { get; }
         new ISwDmCustomPropertiesCollection Properties { get; }
-        new ISwDmCutListItem[] CutLists { get; }
+        new IEnumerable<ISwDmCutListItem> CutLists { get; }
     }
 
+    [DebuggerDisplay("{" + nameof(Name) + "}")]
     internal class SwDmConfiguration : SwDmObject, ISwDmConfiguration
     {
         internal const string QTY_PROPERTY = "UNIT_OF_MEASURE";
 
         IXPropertyRepository IPropertiesOwner.Properties => Properties;
-        IXCutListItem[] IXConfiguration.CutLists => CutLists;
+        IEnumerable<IXCutListItem> IXConfiguration.CutLists => CutLists;
 
         private readonly Lazy<ISwDmCustomPropertiesCollection> m_Properties;
 
@@ -56,10 +58,10 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         public virtual string Name
         {
             get => Configuration.Name;
-            set => throw new NotSupportedException("Property is read-only");
+            set => ((ISwDMConfiguration7)Configuration).Name2 = value;
         }
 
-        public ISwDmCutListItem[] CutLists
+        public IEnumerable<ISwDmCutListItem> CutLists
         {
             get
             {
@@ -84,12 +86,11 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
                 if (cutListItems != null)
                 {
-                    return cutListItems.Cast<ISwDMCutListItem2>()
-                        .Select(c => new SwDmCutListItem(c, Document, this)).ToArray();
-                }
-                else
-                {
-                    return new ISwDmCutListItem[0];
+                    foreach (var cutList in cutListItems.Cast<ISwDMCutListItem2>()
+                        .Select(c => new SwDmCutListItem(c, Document, this))) 
+                    {
+                        yield return cutList;
+                    }
                 }
             }
         }
@@ -239,7 +240,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                 case swDmBOMPartNumberSource.swDmBOMPartNumber_ConfigurationName:
                     return conf.Name;
                 case swDmBOMPartNumberSource.swDmBOMPartNumber_DocumentName:
-                    return Document.Title;
+                    return Path.GetFileNameWithoutExtension(Document.Title);
                 case swDmBOMPartNumberSource.swDmBOMPartNumber_ParentName:
                     return GetPartNumber(Document.Configurations[conf.Configuration.GetParentConfigurationName()]);
                 case swDmBOMPartNumberSource.swDmBOMPartNumber_UserSpecified:

@@ -1,4 +1,11 @@
-﻿using SolidWorks.Interop.sldworks;
+﻿//*********************************************************************
+//xCAD
+//Copyright(C) 2021 Xarial Pty Limited
+//Product URL: https://www.xcad.net
+//License: https://xcad.xarial.com/license/
+//*********************************************************************
+
+using SolidWorks.Interop.sldworks;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -18,11 +25,11 @@ namespace Xarial.XCad.SolidWorks.Features
 
         private readonly IMathUtility m_MathUtils;
 
-        internal SwPlane(ISwDocument doc, IFeature feat, bool created) : base(doc, feat, created)
+        internal SwPlane(IFeature feat, ISwDocument doc, ISwApplication app, bool created) : base(feat, doc, app, created)
         {
             m_RefPlane = feat.GetSpecificFeature2() as IRefPlane;
 
-            m_MathUtils = ((SwDocument)doc).App.Sw.IGetMathUtility();
+            m_MathUtils = OwnerApplication.Sw.IGetMathUtility();
         }
 
         public Plane Definition 

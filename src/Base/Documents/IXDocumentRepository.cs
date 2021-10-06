@@ -22,12 +22,28 @@ namespace Xarial.XCad.Documents
         /// <summary>
         /// Fired when document is activated
         /// </summary>
-        event DocumentActivateDelegate DocumentActivated;
+        event DocumentEventDelegate DocumentActivated;
         
+        /// <summary>
+        /// Fired when new document is loaded (opened or new document is created)
+        /// </summary>
+        /// <remarks>This event is fired for all referenced documents (e.g. assembly components or drawing view referenced models)
+        /// Document might not be fully loaded at this point
+        /// This event is fired before <see cref="DocumentOpened"/> and <see cref="NewDocumentCreated"/>
+        /// </remarks>
+        event DocumentEventDelegate DocumentLoaded;
+
+        /// <summary>
+        /// Fired when top-level document is opened
+        /// </summary>
+        /// <remarks>Unlike <see cref="DocumentLoaded"/> event, this even will only be fired for the top document (part, assembly or drawing) but not for the references. This event is fired after the <see cref="DocumentLoaded"/></remarks>
+        event DocumentEventDelegate DocumentOpened;
+
         /// <summary>
         /// Fired when new document is created
         /// </summary>
-        event DocumentCreateDelegate DocumentCreated;
+        /// <remarks>This event is fired after the <see cref="DocumentLoaded"/></remarks>
+        event DocumentEventDelegate NewDocumentCreated;
 
         /// <summary>
         /// Returns the pointer to active document

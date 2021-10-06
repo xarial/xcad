@@ -1,4 +1,11 @@
-﻿using SolidWorks.Interop.sldworks;
+﻿//*********************************************************************
+//xCAD
+//Copyright(C) 2021 Xarial Pty Limited
+//Product URL: https://www.xcad.net
+//License: https://xcad.xarial.com/license/
+//*********************************************************************
+
+using SolidWorks.Interop.sldworks;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -17,7 +24,7 @@ namespace Xarial.XCad.SolidWorks.Features
     {
         private readonly ICoordinateSystemFeatureData m_CoordSys;
 
-        internal SwCoordinateSystem(ISwDocument doc, IFeature feat, bool created) : base(doc, feat, created)
+        internal SwCoordinateSystem(IFeature feat, ISwDocument doc, ISwApplication app, bool created) : base(feat, doc, app, created)
         {
             m_CoordSys = feat.GetDefinition() as ICoordinateSystemFeatureData;
         }

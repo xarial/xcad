@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Text;
 using System.Threading;
+using Xarial.XCad.Geometry.Curves;
 using Xarial.XCad.Geometry.Wires;
 using Xarial.XCad.Services;
 using Xarial.XCad.Sketch;
@@ -20,7 +21,7 @@ using Xarial.XCad.Toolkit.Utils;
 
 namespace Xarial.XCad.SolidWorks.Sketch
 {
-    public interface ISwSketchSegment : IXSketchSegment
+    public interface ISwSketchSegment : IXSketchSegment, ISwSelObject
     {
         ISketchSegment Segment { get; }
         new ISwCurve Definition { get; }
@@ -28,25 +29,21 @@ namespace Xarial.XCad.SolidWorks.Sketch
 
     internal abstract class SwSketchSegment : SwSketchEntity, ISwSketchSegment
     {
-        IXSegment IXSketchSegment.Definition => Definition;
+        IXCurve IXSketchSegment.Definition => Definition;
+        IXPoint IXSegment.StartPoint => StartPoint;
+        IXPoint IXSegment.EndPoint => EndPoint;
 
         protected readonly ElementCreator<ISketchSegment> m_Creator;
 
         protected readonly ISketchManager m_SketchMgr;
 
-        public ISketchSegment Segment
-        {
-            get
-            {
-                return m_Creator.Element;
-            }
-        }
+        public ISketchSegment Segment => m_Creator.Element;
 
         public override bool IsCommitted => m_Creator.IsCreated;
 
         public override object Dispatch => Segment;
 
-        protected SwSketchSegment(ISwDocument doc, ISketchSegment seg, bool created) : base(doc, seg)
+        protected SwSketchSegment(ISketchSegment seg, ISwDocument doc, ISwApplication app, bool created) : base(seg, doc, app)
         {
             if (doc == null)
             {
@@ -105,7 +102,7 @@ namespace Xarial.XCad.SolidWorks.Sketch
 
                 curve.ApplyTransform(transform);
 
-                return FromDispatch<SwCurve>(curve, m_Doc);
+                return OwnerDocument.CreateObjectFromDispatch<SwCurve>(curve);
             }
         }
 
@@ -114,9 +111,11 @@ namespace Xarial.XCad.SolidWorks.Sketch
             get => Definition.Length;
         }
 
-        public abstract IXPoint StartPoint { get; }
-        public abstract IXPoint EndPoint { get; }
-        
+        public abstract IXSketchPoint StartPoint { get; }
+        public abstract IXSketchPoint EndPoint { get; }
+
+        public bool IsConstruction => Segment.ConstructionGeometry;
+
         private void SetColor(ISketchSegment seg, Color? color)
         {
             int colorRef = 0;

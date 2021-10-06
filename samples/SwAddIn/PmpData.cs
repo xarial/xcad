@@ -25,6 +25,7 @@ using SwAddInExample.Properties;
 using System.Linq;
 using System.ComponentModel;
 using Xarial.XCad.UI.PropertyPage.Services;
+using Xarial.XCad.UI.PropertyPage.Enums;
 
 namespace SwAddInExample
 {
@@ -102,6 +103,29 @@ namespace SwAddInExample
             => MyItem.All;
     }
 
+    public class MyCustomItems1Provider : SwCustomItemsProvider<string>
+    {
+        public override IEnumerable<string> ProvideItems(ISwApplication app, IControl[] dependencies) 
+        {
+            var item = dependencies.First()?.GetValue() as MyItem;
+
+            if (item != null)
+            {
+                return new string[]
+                {
+                    "1_" + item.Name,
+                    "2_" + item.Name,
+                    "3_" + item.Name,
+                    "4_" + item.Name
+                };
+            }
+            else 
+            {
+                return null;
+            }
+        }
+    }
+
     [ComVisible(true)]
     public class PmpData : SwPropertyManagerPageHandler, INotifyPropertyChanged
     {
@@ -120,6 +144,13 @@ namespace SwAddInExample
         public ISwBody Body { get; set; }
 
         public ISwCircularEdge CircEdge { get; set; }
+
+        private string m_TextBlockText = "Hello World";
+
+        [TextBlock]
+        [TextBlockOptions(TextAlignment_e.Center, FontStyle_e.Bold | FontStyle_e.Italic)]
+        [ControlOptions(backgroundColor: System.Drawing.KnownColor.Yellow, textColor: System.Drawing.KnownColor.Green)]
+        public string TextBlockText => m_TextBlockText;
 
         [BitmapButton(typeof(Resources), nameof(Resources.vertical), 96, 96)]
         public bool CheckBox1 { get; set; }
@@ -140,6 +171,7 @@ namespace SwAddInExample
         //public List<string> List { get; set; }
 
         [ComboBox(1, 2, 3, 4, 5)]
+        [Label("Static Combo Box:", ControlLeftAlign_e.Indent)]
         public int StaticComboBox { get; set; }
 
         [Metadata("_SRC_")]
@@ -149,6 +181,8 @@ namespace SwAddInExample
         public string ItemsSourceComboBox { get; set; }
 
         [ListBox(ItemsSource = "_SRC_")]
+        [Label("List Box1:", ControlLeftAlign_e.LeftEdge, FontStyle_e.Bold)]
+        [ControlOptions(align: ControlLeftAlign_e.Indent)]
         public string ListBox1 { get; set; }
 
         [ListBox("A1", "A2", "A3")]
@@ -157,7 +191,9 @@ namespace SwAddInExample
         [ListBox(1, 2, 3, 4)]
         public List<int> ListBox3 { get; set; }
 
-        [ListBox]
+        //[ListBox]
+        [OptionBox]
+        [Label("Sample List Box 4:", fontStyle: FontStyle_e.Underline)]
         public Opts ListBox4 { get; set; }
 
         [ListBox]
@@ -179,6 +215,12 @@ namespace SwAddInExample
             {
                 { "A", "Hello" }
             };
+
+            Button1 = () =>
+            {
+                m_TextBlockText = "Hello World - " + Guid.NewGuid().ToString();
+                this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(TextBlockText)));
+            };
         }
     }
 
@@ -197,7 +239,6 @@ namespace SwAddInExample
         
         [ParameterExclude]
         [ComboBox(typeof(MyCustomItemsProvider))]
-        [ComboBoxOptions(selectDefaultValue: true)]
         public MyItem Option2 { get; set; }
 
         [ParameterDimension(CustomFeatureDimensionType_e.Angular)]
@@ -208,6 +249,91 @@ namespace SwAddInExample
         {
             Option2 = MyItem.All.Last();
         }
+    }
+
+    [ComVisible(true)]
+    public class PmpComboBoxData : SwPropertyManagerPageHandler, INotifyPropertyChanged
+    {
+        private MyItem[] m_List1;
+        private MyItem m_Option3Set;
+
+        [ComboBox(typeof(MyCustomItemsProvider))]
+        public MyItem Option1Default { get; set; }
+
+        [ComboBox(typeof(MyCustomItemsProvider))]
+        public MyItem Option1Set { get; set; }
+
+        public Opts Option2Default { get; set; }
+
+        public Opts Option2Set { get; set; }
+
+        [Metadata(nameof(List1))]
+        public MyItem[] List1
+        {
+            get => m_List1;
+            set
+            {
+                m_List1 = value;
+                this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(List1)));
+            }
+        }
+
+        [ComboBox(ItemsSource = nameof(List1))]
+        public MyItem Option3Default { get; set; }
+
+        [ComboBox(ItemsSource = nameof(List1))]
+        [ControlTag(nameof(Option3Set))]
+        public MyItem Option3Set
+        {
+            get => m_Option3Set;
+            set
+            {
+                m_Option3Set = value;
+                this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Option3Set)));
+            }
+        }
+
+        [ComboBox(1, 2, 3)]
+        [ControlTag(nameof(Option4Default))]
+        public int Option4Default { get; set; }
+
+        [ComboBox(1, 2, 3)]
+        public int Option4Set { get; set; }
+
+        [ComboBox(typeof(MyCustomItemsProvider), nameof(Option4Default))]
+        public MyItem Option5Default { get; set; }
+
+        [ComboBox(typeof(MyCustomItemsProvider), nameof(Option4Default))]
+        public MyItem Option5Set { get; set; }
+
+        [ComboBox(typeof(MyCustomItems1Provider), nameof(Option3Set))]
+        public string Option6 { get; set; }
+
+        public Action Button { get; }
+
+        public PmpComboBoxData()
+        {
+            Button = new Action(() =>
+            {
+                List1 = new MyItem[] { new MyItem() { Name = "_", Id = -1 }, new MyItem() { Name = "-", Id = -2 } };
+                Option3Set = List1.Last();
+            });
+
+            List1 = MyItem.All;
+            Option1Set = MyItem.All.Last();
+            Option2Set = Opts.Opt2;
+            m_Option3Set = MyItem.All.Last();
+            Option4Set = 2;
+            Option5Set = MyItem.All.Last();
+
+            //Option1Set = new MyItem() { Name = "_", Id = -1 };
+            //Option2Set = (Opts)5;
+            //Option3Set = new MyItem() { Name = "-", Id = -2 };
+            //Option4Set = 5;
+            //Option5Set = new MyItem() { Name = "+", Id = -3 };
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
     }
 
     [ComVisible(true)]

@@ -30,13 +30,13 @@ namespace Xarial.XCad.Annotations
         /// </summary>
         /// <param name="confName">Name of the configuration</param>
         /// <returns>Dimension value</returns>
-        double GetValue(string confName = "");
+        double GetValue(string confName = ""); //TODO: make dimensions configuration specific
 
         /// <summary>
         /// Sets the value of the dimension in the specified configuration
         /// </summary>
         /// <param name="val">Value to set in the system units</param>
         /// <param name="confName">Name of the configuration or default</param>
-        void SetValue(double val, string confName = "");
+        void SetValue(double val, string confName = ""); //TODO: make dimensions configuration specific
     }
 }

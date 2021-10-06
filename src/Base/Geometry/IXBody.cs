@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Geometry.Primitives;
+using Xarial.XCad.Geometry.Structures;
 
 namespace Xarial.XCad.Geometry
 {
@@ -58,6 +59,18 @@ namespace Xarial.XCad.Geometry
         /// Enumerates all edges of this body
         /// </summary>
         IEnumerable<IXEdge> Edges { get; }
+
+        /// <summary>
+        /// Creates a copy of the current body
+        /// </summary>
+        /// <returns>Copied body</returns>
+        IXBody Copy();
+
+        /// <summary>
+        /// Moves this body with specified matrix
+        /// </summary>
+        /// <param name="transform">Transformation matrix</param>
+        void Transform(TransformMatrix transform);
     }
 
     /// <summary>

@@ -8,6 +8,7 @@
 using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
 using System;
+using System.Linq;
 using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Utils.Diagnostics;
@@ -29,11 +30,13 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         private readonly Lazy<IXSheetRepository> m_SheetsLazy;
 
+        protected override bool IsLightweightMode => Sheets.Any(s => s.DrawingViews.Any(v => ((ISwDrawingView)v).DrawingView.IsLightweight()));
+
         protected override bool IsRapidMode 
         {
             get 
             {
-                if (App.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2020))
+                if (OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2020))
                 {
                     return Drawing.IsDetailingMode();
                 }
@@ -44,10 +47,10 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        internal SwDrawing(IDrawingDoc drawing, SwApplication app, IXLogger logger, bool isCreated)
+        internal SwDrawing(IDrawingDoc drawing, ISwApplication app, IXLogger logger, bool isCreated)
             : base((IModelDoc2)drawing, app, logger, isCreated)
         {
-            m_SheetsLazy = new Lazy<IXSheetRepository>(() => new SwSheetCollection(this));
+            m_SheetsLazy = new Lazy<IXSheetRepository>(() => new SwSheetCollection(this, OwnerApplication));
         }
     }
 }

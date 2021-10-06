@@ -117,7 +117,7 @@ namespace SolidWorksDocMgr.Tests.Integration
                 p4 = confs["Conf5"].PartNumber;
             }
 
-            Assert.AreEqual("PartNumber1", System.IO.Path.GetFileNameWithoutExtension(p1));
+            Assert.AreEqual("PartNumber1", p1);
             Assert.AreEqual("Conf1", p2);
             Assert.AreEqual("Conf3", p3);
             Assert.AreEqual("ABC", p4);

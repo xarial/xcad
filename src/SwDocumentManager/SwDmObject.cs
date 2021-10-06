@@ -60,13 +60,13 @@ namespace Xarial.XCad.SwDocumentManager
 
     public static class SwDmObjectFactory 
     {
-        public static TObj FromDispatch<TObj>(object disp, ISwDmDocument doc)
+        internal static TObj FromDispatch<TObj>(object disp, ISwDmDocument doc)
             where TObj : ISwDmObject
         {
             return (TObj)FromDispatch(disp, doc);
         }
 
-        public static ISwDmObject FromDispatch(object disp, ISwDmDocument doc)
+        private static ISwDmObject FromDispatch(object disp, ISwDmDocument doc)
         {
             switch (disp) 
             {

@@ -7,6 +7,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Text;
 using Xarial.XCad.Base;
@@ -17,8 +18,11 @@ using Xarial.XCad.UI.Exceptions;
 
 namespace Xarial.XCad.SolidWorks.UI.Toolkit
 {
-    internal abstract class DocumentAttachedCustomPanel<TControl> : IXCustomPanel<TControl>
+    internal abstract class DocumentAttachedCustomPanel<TControl> : IXCustomPanel<TControl>, IAutoDisposable
     {
+        [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
+        public event Action<IAutoDisposable> Disposed;
+
         public event ControlCreatedDelegate<TControl> ControlCreated;
         public event PanelActivatedDelegate<TControl> Activated;
 
@@ -87,17 +91,21 @@ namespace Xarial.XCad.SolidWorks.UI.Toolkit
             }
         }
 
+        private readonly ISwApplication m_App;
         protected readonly SwDocument m_Doc;
         protected readonly IXLogger m_Logger;
 
         private bool m_IsDisposed;
 
-        internal DocumentAttachedCustomPanel(SwDocument doc, IXLogger logger)
+        internal DocumentAttachedCustomPanel(SwDocument doc, ISwApplication app, IXLogger logger)
         {
+            m_App = app;
             m_Doc = doc;
+            
             m_Doc.Hidden += OnHidden;
             m_Doc.Destroyed += OnDestroyed;
-            m_Doc.App.Documents.DocumentActivated += OnDocumentActivated;
+
+            app.Documents.DocumentActivated += OnDocumentActivated;
 
             m_Logger = logger;
 
@@ -140,7 +148,7 @@ namespace Xarial.XCad.SolidWorks.UI.Toolkit
             }
         }
 
-        private void OnHidden(SwDocument doc)
+        private void OnHidden(IXDocument doc)
         {
             try
             {
@@ -165,20 +173,20 @@ namespace Xarial.XCad.SolidWorks.UI.Toolkit
         }
 
         public void Dispose()
-        {
-            Close();
-        }
+            => Close();
 
         public void Close()
         {
             if (!m_IsDisposed)
             {
-                m_Doc.App.Documents.DocumentActivated -= OnDocumentActivated;
+                m_App.Documents.DocumentActivated -= OnDocumentActivated;
                 m_Doc.Hidden -= OnHidden;
                 m_Doc.Destroyed -= OnDestroyed;
 
                 m_IsDisposed = true;
                 DisposeControl();
+
+                Disposed?.Invoke(this);
             }
         }
 

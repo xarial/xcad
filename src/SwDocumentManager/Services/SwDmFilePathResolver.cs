@@ -13,8 +13,17 @@ using Xarial.XCad.Documents.Exceptions;
 
 namespace Xarial.XCad.SwDocumentManager.Services
 {
+    /// <summary>
+    /// Service which provides custom path resolvers
+    /// </summary>
     public interface IFilePathResolver 
     {
+        /// <summary>
+        /// Resolves the path of the document
+        /// </summary>
+        /// <param name="parentDocPath">Parent document full path</param>
+        /// <param name="path">Cached document path</param>
+        /// <returns>Resolved path</returns>
         string ResolvePath(string parentDocPath, string path);
     }
 

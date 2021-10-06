@@ -12,6 +12,9 @@ using Xarial.XCad.Geometry.Wires;
 
 namespace Xarial.XCad.Sketch
 {
+    /// <summary>
+    /// Represents sketch ellipse
+    /// </summary>
     public interface IXSketchEllipse : IXSketchSegment, IXEllipse
     {
     }

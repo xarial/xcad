@@ -8,6 +8,7 @@
 using SolidWorks.Interop.swdocumentmgr;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -30,6 +31,7 @@ namespace Xarial.XCad.SwDocumentManager.Features
         ISwDMCutListItem2 CutListItem { get; }
     }
 
+    [DebuggerDisplay("{" + nameof(Name) + "}")]
     internal class SwDmCutListItem : SwDmSelObject, ISwDmCutListItem
     {
         #region Not Supported
@@ -41,6 +43,8 @@ namespace Xarial.XCad.SwDocumentManager.Features
             get => throw new NotSupportedException();
             set => throw new NotSupportedException();
         }
+
+        public IEnumerable<IXFace> Faces => throw new NotSupportedException();
 
         #endregion
 
@@ -66,18 +70,14 @@ namespace Xarial.XCad.SwDocumentManager.Features
             m_Conf = conf;
         }
 
-        public IXSolidBody[] Bodies 
+        public IEnumerable<IXSolidBody> Bodies 
         {
             get 
             {
-                var bodies = new IXSolidBody[CutListItem.Quantity];
-
-                for (int i = 0; i < bodies.Length; i++) 
+                for (int i = 0; i < CutListItem.Quantity; i++) 
                 {
-                    bodies[i] = new SwDmSolidBody();
+                    yield return new SwDmSolidBody();
                 }
-
-                return bodies;
             }
         }
 

@@ -116,5 +116,16 @@ namespace Xarial.XCad.Geometry.Structures
         /// <returns>Scalar dot product</returns>
         public double Dot(Vector vector)
             => X * vector.X + Y * vector.Y + Z * vector.Z;
+
+        /// <summary>
+        /// Transforms this vector with the transformation matrix
+        /// </summary>
+        /// <param name="matrix">Transformation matrix</param>
+        /// <returns>Transformed vector</returns>
+        public new Vector Transform(TransformMatrix matrix)
+            => new Vector(
+                X * matrix.M11 + Y * matrix.M21 + Z * matrix.M31,
+                X * matrix.M12 + Y * matrix.M22 + Z * matrix.M32,
+                X * matrix.M13 + Y * matrix.M23 + Z * matrix.M33);
     }
 }

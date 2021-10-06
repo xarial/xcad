@@ -21,8 +21,6 @@ namespace Xarial.XCad
         /// Default icon
         /// </summary>
         public static IXImage Icon
-        {
-            get => new BaseImage(Resources.default_icon);
-        }
+            => new BaseImage(Resources.default_icon);
     }
 }

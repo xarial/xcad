@@ -11,5 +11,9 @@ using System.Text;
 
 namespace Xarial.XCad.Documents.Delegates
 {
+    /// <summary>
+    /// Delegate for <see cref="IXPart.CutListRebuild"/> event
+    /// </summary>
+    /// <param name="part">Part where cut-list is rebuilt</param>
     public delegate void CutListRebuildDelegate(IXPart part);
 }

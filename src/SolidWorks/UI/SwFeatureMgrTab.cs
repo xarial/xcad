@@ -46,8 +46,8 @@ namespace Xarial.XCad.SolidWorks.UI
         private string m_Title;
         private int m_TabIndex;
 
-        internal SwFeatureMgrTab(FeatureManagerTabCreator<TControl> ctrlCreator, SwDocument doc, IXLogger logger)
-            : base(doc, logger)
+        internal SwFeatureMgrTab(FeatureManagerTabCreator<TControl> ctrlCreator, SwDocument doc, ISwApplication app, IXLogger logger)
+            : base(doc, app, logger)
         {
             m_ModelViewMgr = doc.Model.ModelViewManager;
             m_CtrlCreator = ctrlCreator;

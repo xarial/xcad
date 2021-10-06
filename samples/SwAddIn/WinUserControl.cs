@@ -28,6 +28,6 @@ namespace SwAddInExample
 
         public object Value { get; set; }
 
-        public event Action<IXCustomControl, object> ValueChanged;
+        public event CustomControlValueChangedDelegate ValueChanged;
     }
 }

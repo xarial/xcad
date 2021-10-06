@@ -48,7 +48,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             set => throw new NotSupportedException(); 
         }
 
-        public IXDocument3D Document 
+        public IXDocument3D ReferencedDocument 
         {
             get 
             {
@@ -86,12 +86,13 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
                 if (!string.IsNullOrEmpty(confName) && confName != "-")
                 {
-                    if (!Document.IsCommitted)
+                    if (!ReferencedDocument.IsCommitted)
                     {
-                        Document.Commit();
+                        ReferencedDocument.Commit();
                     }
 
-                    return Document.Configurations.FirstOrDefault(c => string.Equals(c.Name, confName, StringComparison.CurrentCultureIgnoreCase));
+                    return ReferencedDocument.Configurations.FirstOrDefault(
+                        c => string.Equals(c.Name, confName, StringComparison.CurrentCultureIgnoreCase));
                 }
                 else 
                 {

@@ -15,9 +15,9 @@ using Xarial.XCad.SolidWorks.Utils;
 
 namespace Xarial.XCad.SolidWorks.Documents.EventHandlers
 {
-    internal class DocumentRebuildEventsHandler : SwModelEventsHandler<DocumentRebuildDelegate>
+    internal class DocumentRebuildEventsHandler : SwModelEventsHandler<DocumentEventDelegate>
     {
-        internal DocumentRebuildEventsHandler(SwDocument doc) : base(doc)
+        internal DocumentRebuildEventsHandler(SwDocument doc, ISwApplication app) : base(doc, app)
         {
         }
 

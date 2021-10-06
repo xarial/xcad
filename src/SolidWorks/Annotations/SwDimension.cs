@@ -55,8 +55,8 @@ namespace Xarial.XCad.SolidWorks.Annotations
             }
         }
 
-        internal SwDimension(ISwDocument doc, IDisplayDimension dispDim)
-            : base(dispDim, doc)
+        internal SwDimension(IDisplayDimension dispDim, ISwDocument doc, ISwApplication app)
+            : base(dispDim, doc, app)
         {
             if (doc == null) 
             {
@@ -74,7 +74,17 @@ namespace Xarial.XCad.SolidWorks.Annotations
 
             swInConfigurationOpts_e opts;
             string[] confs;
-            GetDimensionParameters(confName, out opts, out confs);
+
+            if (!string.IsNullOrEmpty(confName))
+            {
+                confs = new string[] { confName };
+                opts = swInConfigurationOpts_e.swSpecifyConfiguration;
+            }
+            else
+            {
+                opts = swInConfigurationOpts_e.swThisConfiguration;
+                confs = null;
+            }
 
             var val = (dim.GetSystemValue3((int)opts, confs) as double[])[0];
 
@@ -85,7 +95,17 @@ namespace Xarial.XCad.SolidWorks.Annotations
         {
             swInConfigurationOpts_e opts;
             string[] confs;
-            GetDimensionParameters(confName, out opts, out confs);
+
+            if (!string.IsNullOrEmpty(confName))
+            {
+                confs = new string[] { confName };
+                opts = swInConfigurationOpts_e.swSpecifyConfiguration;
+            }
+            else
+            {
+                opts = swInConfigurationOpts_e.swAllConfiguration;
+                confs = null;
+            }
 
             Dimension.SetSystemValue3(val, (int)opts, confs);
         }
@@ -124,18 +144,6 @@ namespace Xarial.XCad.SolidWorks.Annotations
 
         protected virtual void Dispose(bool disposing)
         {
-        }
-
-        private void GetDimensionParameters(string confName, out swInConfigurationOpts_e opts, out string[] confs)
-        {
-            opts = swInConfigurationOpts_e.swThisConfiguration;
-            confs = null;
-
-            if (!string.IsNullOrEmpty(confName))
-            {
-                confs = new string[] { confName };
-                opts = swInConfigurationOpts_e.swSpecifyConfiguration;
-            }
         }
     }
 }

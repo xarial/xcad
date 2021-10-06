@@ -9,6 +9,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using Xarial.XCad.Geometry.Structures;
+using Xarial.XCad.Geometry.Surfaces;
+using Xarial.XCad.Geometry.Wires;
 
 namespace Xarial.XCad.Geometry
 {
@@ -31,6 +34,13 @@ namespace Xarial.XCad.Geometry
         /// Provides an access to solid geometry builder functions
         /// </summary>
         IXSolidGeometryBuilder SolidBuilder { get; }
+
+        /// <summary>
+        /// Creates region from the specified list of segments
+        /// </summary>
+        /// <param name="segments">Segments</param>
+        /// <returns>Created region</returns>
+        IXRegion CreateRegionFromSegments(params IXSegment[] segments);
     }
 
     /// <summary>

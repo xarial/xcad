@@ -5,6 +5,7 @@
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
+using Xarial.XCad.Geometry.Curves;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Geometry.Wires;
 
@@ -13,12 +14,22 @@ namespace Xarial.XCad.Geometry
     /// <summary>
     /// Represents an edge element of the geometry
     /// </summary>
-    public interface IXEdge : IXEntity
+    public interface IXEdge : IXEntity, IXSegment
     {
         /// <summary>
-        /// Underlyining segment defining this edge
+        /// Start vertex
         /// </summary>
-        IXSegment Definition { get; }
+        new IXVertex StartPoint { get; }
+
+        /// <summary>
+        /// End vertex
+        /// </summary>
+        new IXVertex EndPoint { get; }
+
+        /// <summary>
+        /// Underlyining curve defining this edge
+        /// </summary>
+        IXCurve Definition { get; }
     }
 
     /// <summary>
@@ -27,7 +38,7 @@ namespace Xarial.XCad.Geometry
     public interface IXCircularEdge : IXEdge 
     {
         /// <inheritdoc/>
-        new IXArc Definition { get; }
+        new IXCircle Definition { get; }
     }
 
     /// <summary>

@@ -43,9 +43,10 @@ namespace SolidWorks.Tests.Integration
 
         private const int SW_PRC_ID = -1;
         private const string DATA_FOLDER = @"C:\Users\artem\OneDrive\xCAD\TestData";
-        private SwVersion_e? SW_VERSION = null;
+        private SwVersion_e? SW_VERSION = SwVersion_e.Sw2021;
 
         protected ISwApplication m_App;
+        private Process m_Process;
         private ISldWorks m_SwApp;
 
         private List<IDisposable> m_Disposables;
@@ -85,6 +86,7 @@ namespace SolidWorks.Tests.Integration
             }
 
             m_SwApp = m_App.Sw;
+            m_Process = m_App.Process;
             m_Disposables = new List<IDisposable>();
         }
 
@@ -168,11 +170,28 @@ namespace SolidWorks.Tests.Integration
         }
 
         protected void AssertCompareDoubles(double actual, double expected, int digits = 8)
-            => Assert.That(Math.Round(expected, digits), Is.EqualTo(Math.Round(actual, digits)).Within(0.000001).Percent);
+            => Assert.That(Math.Round(actual, digits), Is.EqualTo(Math.Round(expected, digits)).Within(0.000001).Percent);
+
+        protected void AssertCompareDoubleArray(double[] actual, double[] expected, int digits = 8)
+        {
+            if (actual.Length == expected.Length)
+            {
+                for (int i = 0; i < actual.Length; i++) 
+                {
+                    Assert.That(Math.Round(actual[i], digits), Is.EqualTo(Math.Round(expected[i], digits)).Within(0.000001).Percent);
+                }
+            }
+            else 
+            {
+                Assert.Fail("Arrays size mismatch");
+            }
+        }
 
         [TearDown]
         public void TearDown() 
         {
+            Debug.Print("Unit Tests: Disposing test disposables");
+
             foreach (var disp in m_Disposables)
             {
                 try
@@ -190,9 +209,11 @@ namespace SolidWorks.Tests.Integration
         [OneTimeTearDown]
         public void FinalTearDown()
         {
+            Debug.Print($"Unit Tests: Closing SOLIDWORKS instance: {m_CloseSw}");
+
             if (m_CloseSw) 
             {
-                m_App.Process.Kill();
+                m_Process.Kill();
             }
         }
     }

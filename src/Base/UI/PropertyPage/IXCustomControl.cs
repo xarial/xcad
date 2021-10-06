@@ -12,6 +12,13 @@ using System.Text;
 namespace Xarial.XCad.UI.PropertyPage
 {
     /// <summary>
+    /// Delegate for <see cref="IXCustomControl.ValueChanged"/> event
+    /// </summary>
+    /// <param name="sender">Sender control</param>
+    /// <param name="newValue">New value</param>
+    public delegate void CustomControlValueChangedDelegate(IXCustomControl sender, object newValue);
+
+    /// <summary>
     /// Represents the custom control hosted in the page
     /// </summary>
     public interface IXCustomControl
@@ -19,7 +26,7 @@ namespace Xarial.XCad.UI.PropertyPage
         /// <summary>
         /// Raised when data context of this control is changed
         /// </summary>
-        event Action<IXCustomControl, object> ValueChanged;
+        event CustomControlValueChangedDelegate ValueChanged;
 
         /// <summary>
         /// Returns the data context of this control

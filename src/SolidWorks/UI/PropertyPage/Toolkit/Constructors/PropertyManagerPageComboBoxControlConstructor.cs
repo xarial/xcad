@@ -41,15 +41,13 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
 
         protected override PropertyManagerPageComboBoxControl<TVal> CreateControl(
             IPropertyManagerPageCombobox swCtrl, IAttributeSet atts, IMetadata metadata, 
-            SwPropertyManagerPageHandler handler, short height)
+            SwPropertyManagerPageHandler handler, short height, IPropertyManagerPageLabel label)
         {   
             if (height != -1)
             {
                 swCtrl.Height = height;
             }
 
-            var selDefVal = false;
-            
             if (atts.Has<ComboBoxOptionsAttribute>())
             {
                 var opts = atts.Get<ComboBoxOptionsAttribute>();
@@ -58,12 +56,12 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
                 {
                     swCtrl.Style = (int)opts.Style;
                 }
-
-                selDefVal = opts.SelectDefaultValue;
             }
 
-            var ctrl = new PropertyManagerPageComboBoxControl<TVal>(atts.Id, atts.Tag, selDefVal, swCtrl, handler, metadata);
-            ctrl.Items = m_Helper.GetItems(m_SwApp, atts);
+            var isStatic = m_Helper.TryGetStaticItems(m_SwApp, atts, out ItemsControlItem[] staticItems);
+            
+            var ctrl = new PropertyManagerPageComboBoxControl<TVal>(atts.Id, atts.Tag, swCtrl, handler, metadata, label, atts.ContextType, isStatic, staticItems);
+
             return ctrl;
         }
     }

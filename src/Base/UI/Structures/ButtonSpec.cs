@@ -15,13 +15,35 @@ using Xarial.XCad.Reflection;
 
 namespace Xarial.XCad.UI.Structures
 {
+    /// <summary>
+    /// Specification of the generic button
+    /// </summary>
     public class ButtonSpec
     {
+        /// <summary>
+        /// User id if this button
+        /// </summary>
         public int UserId { get; }
+
+        /// <summary>
+        /// Title of the button
+        /// </summary>
         public string Title { get; set; }
+
+        /// <summary>
+        /// Tooltip of the button
+        /// </summary>
         public string Tooltip { get; set; }
+
+        /// <summary>
+        /// Icon associated with the button
+        /// </summary>
         public IXImage Icon { get; set; }
 
+        /// <summary>
+        /// Default constructor
+        /// </summary>
+        /// <param name="userId">Button user id</param>
         public ButtonSpec(int userId) 
         {
             UserId = userId;

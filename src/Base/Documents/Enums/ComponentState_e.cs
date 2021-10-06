@@ -55,6 +55,11 @@ namespace Xarial.XCad.Documents.Enums
         /// <summary>
         /// Component is embedded (virtual) into the assembly
         /// </summary>
-        Embedded = 64
+        Embedded = 64,
+
+        /// <summary>
+        /// Indicates that component is suppressed due to the mismatched ID of its underlying model
+        /// </summary>
+        SuppressedIdMismatch = 128
     }
 }

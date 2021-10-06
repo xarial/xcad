@@ -8,11 +8,11 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Xarial.XCad.Geometry.Wires;
 
 namespace Xarial.XCad.Geometry.Curves
 {
-    public interface IXComplexCurve : IXCurve
+    public interface IXParabolaCurve : IXCurve, IXParabola
     {
-        IXCurve[] Composition { get; set; }
     }
 }

@@ -31,15 +31,17 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         private readonly Lazy<SwAssemblyConfigurationCollection> m_LazyConfigurations;
 
-        internal SwAssembly(IAssemblyDoc assembly, SwApplication app, IXLogger logger, bool isCreated)
+        internal SwAssembly(IAssemblyDoc assembly, ISwApplication app, IXLogger logger, bool isCreated)
             : base((IModelDoc2)assembly, app, logger, isCreated)
         {
-            m_LazyConfigurations = new Lazy<SwAssemblyConfigurationCollection>(() => new SwAssemblyConfigurationCollection(app.Sw, this));
+            m_LazyConfigurations = new Lazy<SwAssemblyConfigurationCollection>(() => new SwAssemblyConfigurationCollection(this, app));
         }
 
         internal protected override swDocumentTypes_e? DocumentType => swDocumentTypes_e.swDocASSEMBLY;
 
-        protected override bool IsRapidMode => Assembly.GetLightWeightComponentCount() > 0;
+        protected override bool IsRapidMode => Model.IsOpenedViewOnly(); //TODO: when editing feature of LDR is available make this to be rapid mode
+
+        protected override bool IsLightweightMode => Assembly.GetLightWeightComponentCount() > 0;
 
         ISwAssemblyConfigurationCollection ISwAssembly.Configurations => m_LazyConfigurations.Value;
         IXAssemblyConfigurationRepository IXAssembly.Configurations => (this as ISwAssembly).Configurations;
@@ -48,14 +50,14 @@ namespace Xarial.XCad.SolidWorks.Documents
             => (this as IXAssembly).PreCreateBoundingBox();
 
         IXAssemblyBoundingBox IXAssembly.PreCreateBoundingBox()
-            => new SwAssemblyBoundingBox(this, m_MathUtils);
+            => new SwAssemblyBoundingBox(this, OwnerApplication);
 
         public override IXMassProperty PreCreateMassProperty()
             => (this as IXAssembly).PreCreateMassProperty();
 
         IXAssemblyMassProperty IXAssembly.PreCreateMassProperty()
         {
-            if (App.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2020))
+            if (OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2020))
             {
                 return new SwAssemblyMassProperty(this, m_MathUtils);
             }

@@ -33,11 +33,11 @@ namespace Xarial.XCad.SolidWorks.Documents
         IXConfigurationRepository IXDocument3D.Configurations => Configurations;
         IXModelViewRepository IXDocument3D.ModelViews => ModelViews;
 
-        internal SwDocument3D(IModelDoc2 model, SwApplication app, IXLogger logger, bool isCreated) : base(model, app, logger, isCreated)
+        internal SwDocument3D(IModelDoc2 model, ISwApplication app, IXLogger logger, bool isCreated) : base(model, app, logger, isCreated)
         {
             m_MathUtils = app.Sw.IGetMathUtility();
-            m_Configurations = new Lazy<ISwConfigurationCollection>(() => new SwConfigurationCollection(app.Sw, this));
-            m_ModelViews = new Lazy<ISwModelViewsCollection>(() => new SwModelViewsCollection(this, m_MathUtils));
+            m_Configurations = new Lazy<ISwConfigurationCollection>(() => new SwConfigurationCollection(this, app));
+            m_ModelViews = new Lazy<ISwModelViewsCollection>(() => new SwModelViewsCollection(this, app));
         }
 
         private Lazy<ISwConfigurationCollection> m_Configurations;
@@ -50,7 +50,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
             base.Dispose(disposing);
 
-            if (disposing) 
+            if (disposing)
             {
                 if (m_Configurations.IsValueCreated)
                 {
@@ -76,7 +76,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
                 if (corrDisp != null)
                 {
-                    return SwSelObject.FromDispatch(corrDisp, this);
+                    return this.CreateObjectFromDispatch<ISwSelObject>(corrDisp);
                 }
                 else
                 {
@@ -93,7 +93,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public virtual IXMassProperty PreCreateMassProperty()
         {
-            if (App.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2020))
+            if (OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2020))
             {
                 return new SwMassProperty(this, m_MathUtils);
             }

@@ -2,11 +2,31 @@
 title: List of changes in the releases of xCAD.NET framework
 caption: Changelog
 description: Information about releases (new features, bug fixes breaking changes) of xCAD.NET framework for developing CAD applications
-order: 8
+order: 99
 ---
 This page contains list of the most notable changes in the releases of xCAD.NET.
 
 Breaking change is marked with &#x26A0; symbol
+
+## 0.7.5 - October 6, 2021
+
+* &#x26A0; ISwMacroFeature::ToParameters is removed. Now SwObjectFactory::FromDispatch will create a specific instance from IFeature
+* &#x26A0; ISwBodyExtension::ToTempBody is replace with IXBody::Copy
+* &#x26A0; IXPlanarSheet::Boundary type is changed from IXSegment[] to IXRegion. Use IXGeometryBuilder::CreateRegionFromSegments to create region from array of segments
+* &#x26A0; IXPlanarSheet::Boundary is renamed to IXPlanarSheet::Region
+* &#x26A0; IXDrawingView::Document is renamed to IXDrawingView::ReferencedDocument
+* &#x26A0; IXComponent::Document is renamed to IXComponent::ReferencedDocument
+* &#x26A0; SwObjectFactory::FromDispatch is replaced with ISwDocument::CreateObjectFromDispatch and ISwApplication::CreateObjectFromDispatch
+* &#x26A0; Changed the signatures of SwMacroFeatureDefinition{TParams, TPage}::OnEditingCompleted, SwMacroFeatureDefinition{TParams, TPage}::OnFeatureInserted
+* &#x26A0; Changed from protected to public: SwMacroFeatureDefinition{TParams, TPage}::OnEditingStarted, SwMacroFeatureDefinition{TParams,TPage}::CreatePageHandler, SwMacroFeatureDefinition{TParams,TPage}::OnEditingStarted, SwMacroFeatureDefinition{TParams,TPage}::OnEditingCompleted, SwMacroFeatureDefinition{TParams,TPage}::OnFeatureInserted, SwMacroFeatureDefinition{TParams,TPage}::CreateDynamicControls
+* &#x26A0; IXGeometryMemoryBuilder::PreCreateArc is renamed to IXGeometryMemoryBuilder::PreCreateCircle. IXGeometryMemoryBuilder::PreCreateArc has been redefined to create arc rather than circle
+* &#x26A0; IXDocumentRepository::DocumentCreated is renamed to IXDocumentRepository::DocumentLoaded
+* &#x26A0; IXDocument::Rebuild event is renamed to IXDocument::Rebuilt and IXDocument::Regenerate method is renamed to IXDocument::Rebuild
+* &#x26A0; CommandSpec::TabBoxStyle is replaced with CommandSpec::RibbonTextStyle, CommandSpec::HasTabBox is replaced with CommandSpec::HasRibbon
+* &#x26A0; IXDocument::Dependencies, IXConfiguration::CutLists, IXCutList::Bodies, IXFace::Edges changed from array to IEnumerable
+* &#x26A0; IXDocument::Closing is passing the additional parameter if the document is closing or hiding
+* &#x26A0; ComboBoxOptionsAttribute::SelectDefaultValue option is deprecated and removed
+* &#x26A0; IXCustomControl::ValueChanged event delegate type is changed
 
 ## 0.7.4 - July 11, 2021
 

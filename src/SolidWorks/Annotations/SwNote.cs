@@ -1,4 +1,11 @@
-﻿using SolidWorks.Interop.sldworks;
+﻿//*********************************************************************
+//xCAD
+//Copyright(C) 2021 Xarial Pty Limited
+//Product URL: https://www.xcad.net
+//License: https://xcad.xarial.com/license/
+//*********************************************************************
+
+using SolidWorks.Interop.sldworks;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -16,7 +23,7 @@ namespace Xarial.XCad.SolidWorks.Annotations
     {
         public INote Note { get; }
 
-        internal SwNote(INote note, ISwDocument doc) : base(note, doc)
+        internal SwNote(INote note, ISwDocument doc, ISwApplication app) : base(note, doc, app)
         {
             Note = note;
         }

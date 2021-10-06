@@ -34,8 +34,8 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
         public PropertyManagerPageSelectionBoxControl(ISwApplication app, int id, object tag,
             IPropertyManagerPageSelectionbox selBox,
-            SwPropertyManagerPageHandler handler, Type objType, ISelectionCustomFilter customFilter, bool defaultFocus)
-            : base(selBox, id, tag, handler)
+            SwPropertyManagerPageHandler handler, Type objType, ISelectionCustomFilter customFilter, bool defaultFocus, IPropertyManagerPageLabel label)
+            : base(selBox, id, tag, handler, label)
         {
             m_App = app;
             m_ObjType = objType;
@@ -67,7 +67,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
         internal IPropertyManagerPageSelectionbox SelectionBox => SwSpecificControl;
 
-        private SwSelObject ToSelObject(object disp) => SwSelObject.FromDispatch(disp, m_App.Documents.Active);
+        private SwSelObject ToSelObject(object disp) => m_App.Documents.Active.CreateObjectFromDispatch<SwSelObject>(disp);
 
         private void OnSubmitSelection(int id, object selection, int selType, ref string itemText, ref bool res)
         {

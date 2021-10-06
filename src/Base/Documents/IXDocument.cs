@@ -5,6 +5,8 @@
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
+using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using Xarial.XCad.Annotations;
@@ -20,7 +22,7 @@ namespace Xarial.XCad.Documents
     /// <summary>
     /// Represents the base interface of all document types
     /// </summary>
-    public interface IXDocument : IXObject, IXTransaction, IPropertiesOwner
+    public interface IXDocument : IXObject, IXTransaction, IPropertiesOwner, IDisposable
     {
         /// <summary>
         /// Current version of the document
@@ -50,7 +52,7 @@ namespace Xarial.XCad.Documents
         /// <summary>
         /// Fired when document is rebuilt
         /// </summary>
-        event DocumentRebuildDelegate Rebuild;
+        event DocumentEventDelegate Rebuilt;
 
         /// <summary>
         /// Fired when documetn is saving
@@ -61,6 +63,11 @@ namespace Xarial.XCad.Documents
         /// Fired when document is closing
         /// </summary>
         event DocumentCloseDelegate Closing;
+
+        /// <summary>
+        /// Units assigned in this document
+        /// </summary>
+        IXUnits Units { get; }
 
         /// <summary>
         /// Changes the title of this document
@@ -139,7 +146,7 @@ namespace Xarial.XCad.Documents
         /// </summary>
         /// <remarks>Dependencies might be uncommited if document is loaded view only or in the rapid mode. Use <see cref="IXTransaction.IsCommitted"/> to check the state and call <see cref="IXTransaction.Commit(System.Threading.CancellationToken)"/> to load document if needed.
         /// In most CADs this method wil lwork with uncommitted documents</remarks>
-        IXDocument3D[] Dependencies { get; }
+        IEnumerable<IXDocument3D> Dependencies { get; }
 
         /// <summary>
         /// Deserializes specific object from stream
@@ -148,6 +155,11 @@ namespace Xarial.XCad.Documents
         /// <returns>Deserialized object</returns>
         TObj DeserializeObject<TObj>(Stream stream)
             where TObj : IXObject;
+
+        /// <summary>
+        /// Regenerates this document
+        /// </summary>
+        void Rebuild();
 
         /// <summary>
         /// Returns the time stamp of the change of the current model

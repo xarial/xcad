@@ -12,9 +12,17 @@ using Xarial.XCad.Geometry.Wires;
 
 namespace Xarial.XCad.Geometry.Primitives
 {
+    /// <summary>
+    /// Specific planar sheet
+    /// </summary>
     public interface IXPlanarSheet : IXPrimitive
     {
-        IXSegment[] Boundary { get; set; }
+        /// <summary>
+        /// Boundary of this sheet
+        /// </summary>
+        IXRegion Region { get; set; }
+        
+        /// <inheritdoc/>
         new IXPlanarSheetBody[] Bodies { get; }
     }
 }

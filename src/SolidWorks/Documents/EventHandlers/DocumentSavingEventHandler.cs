@@ -19,7 +19,7 @@ namespace Xarial.XCad.SolidWorks.Documents.EventHandlers
 {
     internal class DocumentSavingEventHandler : SwModelEventsHandler<DocumentSaveDelegate>
     {
-        internal DocumentSavingEventHandler(SwDocument doc) : base(doc)
+        internal DocumentSavingEventHandler(SwDocument doc, ISwApplication app) : base(doc, app)
         {
         }
 

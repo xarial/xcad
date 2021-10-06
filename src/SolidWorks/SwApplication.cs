@@ -51,6 +51,9 @@ namespace Xarial.XCad.SolidWorks
         new ISwDocumentCollection Documents { get; }
         new ISwMemoryGeometryBuilder MemoryGeometryBuilder { get; }
         new ISwMacro OpenMacro(string path);
+
+        TObj CreateObjectFromDispatch<TObj>(object disp, ISwDocument doc)
+            where TObj : ISwObject;
     }
 
     /// <inheritdoc/>
@@ -61,18 +64,47 @@ namespace Xarial.XCad.SolidWorks
         static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
         #endregion
 
-        public event ApplicationStartingDelegate Starting;
-        public event ConfigureServicesDelegate ConfigureServices;
-
-        internal event Action<SwApplication> FirstStartupCompleted;
-        
         IXDocumentRepository IXApplication.Documents => Documents;
         IXMacro IXApplication.OpenMacro(string path) => OpenMacro(path);
         IXMemoryGeometryBuilder IXApplication.MemoryGeometryBuilder => MemoryGeometryBuilder;
-        IXVersion IXApplication.Version 
+        IXVersion IXApplication.Version
         {
             get => Version;
             set => Version = (ISwVersion)value;
+        }
+
+        public event ApplicationStartingDelegate Starting;
+        public event ConfigureServicesDelegate ConfigureServices;
+
+        public event ApplicationIdleDelegate Idle
+        {
+            add
+            {
+                if(m_IdleDelegate == null) 
+                {
+                    ((SldWorks)Sw).OnIdleNotify += OnIdleNotify;
+                }
+
+                m_IdleDelegate += value;
+            }
+            remove
+            {
+                m_IdleDelegate -= value;
+
+                if (m_IdleDelegate == null)
+                {
+                    ((SldWorks)Sw).OnIdleNotify -= OnIdleNotify;
+                }
+            }
+        }
+
+        private int OnIdleNotify()
+        {
+            const int S_OK = 0;
+
+            m_IdleDelegate?.Invoke(this);
+
+            return S_OK;
         }
 
         private IXServiceCollection m_CustomServices;
@@ -220,8 +252,12 @@ namespace Xarial.XCad.SolidWorks
 
         private ElementCreator<ISldWorks> m_Creator;
 
+        private ApplicationIdleDelegate m_IdleDelegate;
+
+        private readonly Action<SwApplication> m_StartupCompletedCallback;
+
         internal SwApplication(ISldWorks app, IXServiceCollection customServices) 
-            : this(app)
+            : this(app, default(Action<SwApplication>))
         {
             Init(customServices);
         }
@@ -229,9 +265,10 @@ namespace Xarial.XCad.SolidWorks
         /// <summary>
         /// Only to be used within SwAddInEx
         /// </summary>
-        internal SwApplication(ISldWorks app)
+        internal SwApplication(ISldWorks app, Action<SwApplication> startupCompletedCallback)
         {
             m_IsStartupNotified = false;
+            m_StartupCompletedCallback = startupCompletedCallback;
 
             m_Creator = new ElementCreator<ISldWorks>(CreateInstance, app, true);
             WatchStartupCompleted((SldWorks)app);
@@ -424,10 +461,6 @@ namespace Xarial.XCad.SolidWorks
             
             if (!m_IsStartupNotified)
             {
-                m_IsStartupNotified = true;
-
-                var continueListening = false;
-
                 if (Sw?.StartupProcessCompleted == true)
                 {
                     if (m_HideOnStartup)
@@ -438,15 +471,10 @@ namespace Xarial.XCad.SolidWorks
                         Sw.Visible = false;
                     }
 
-                    FirstStartupCompleted?.Invoke(this);
-                }
-                else
-                {
-                    continueListening = true;
-                }
+                    m_IsStartupNotified = true;
 
-                if (!continueListening)
-                {
+                    m_StartupCompletedCallback?.Invoke(this);
+
                     if (Sw != null)
                     {
                         (Sw as SldWorks).OnIdleNotify -= OnLoadFirstIdleNotify;
@@ -471,7 +499,7 @@ namespace Xarial.XCad.SolidWorks
         {
             collection.AddOrReplace((Func<IXLogger>)(() => new TraceLogger("xCAD.SwApplication")));
             collection.AddOrReplace((Func<IMemoryGeometryBuilderDocumentProvider>)(() => new DefaultMemoryGeometryBuilderDocumentProvider(this)));
-            collection.AddOrReplace<IFilePathResolver>(() => new SwFilePathResolverNoSearchFolders(this));//TODO: there is some issue with recursive search of folders in search locations - do a test to validate
+            collection.AddOrReplace((Func<IFilePathResolver>)(() => new SwFilePathResolverNoSearchFolders(this)));//TODO: there is some issue with recursive search of folders in search locations - do a test to validate
         }
 
         public IXProgress CreateProgress()
@@ -510,6 +538,10 @@ namespace Xarial.XCad.SolidWorks
 
             iconsCreator?.Dispose();
         }
+
+        public TObj CreateObjectFromDispatch<TObj>(object disp, ISwDocument doc)
+            where TObj : ISwObject
+            => SwObjectFactory.FromDispatch<TObj>(disp, doc, this);
     }
 
     public static class SwApplicationExtension 

@@ -5,7 +5,13 @@
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
-namespace Xarial.XCad.Documents.Delegates
+using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace Xarial.XCad.Geometry.Wires
 {
-    public delegate void DocumentCreateDelegate(IXDocument doc);
+    public interface IXBSpline : IXSegment
+    {
+    }
 }

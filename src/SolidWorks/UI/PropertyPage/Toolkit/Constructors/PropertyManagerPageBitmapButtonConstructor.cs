@@ -32,24 +32,12 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
             m_IconsConv = iconsConv;
         }
 
-        protected override IPropertyManagerPageBitmapButton CreateSwControlInGroup(IPropertyManagerPageGroup group, ControlOptionsAttribute opts, IAttributeSet atts)
+        protected override IPropertyManagerPageBitmapButton CreateSwControl(object host, ControlOptionsAttribute opts, IAttributeSet atts)
         {
             SetButtonSpecificType(atts);
-            return base.CreateSwControlInGroup(group, opts, atts);
+            return base.CreateSwControl(host, opts, atts);
         }
-
-        protected override IPropertyManagerPageBitmapButton CreateSwControlInPage(IPropertyManagerPage2 page, ControlOptionsAttribute opts, IAttributeSet atts)
-        {
-            SetButtonSpecificType(atts);
-            return base.CreateSwControlInPage(page, opts, atts);
-        }
-
-        protected override IPropertyManagerPageBitmapButton CreateSwControlInTab(IPropertyManagerPageTab tab, ControlOptionsAttribute opts, IAttributeSet atts)
-        {
-            SetButtonSpecificType(atts);
-            return base.CreateSwControlInTab(tab, opts, atts);
-        }
-
+        
         private void SetButtonSpecificType(IAttributeSet atts) 
         {
             if (atts.ContextType == typeof(bool))
@@ -67,7 +55,8 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
         }
 
         protected override PropertyManagerPageBitmapButtonControl CreateControl(
-            IPropertyManagerPageBitmapButton swCtrl, IAttributeSet atts, IMetadata metadata, SwPropertyManagerPageHandler handler, short height)
+            IPropertyManagerPageBitmapButton swCtrl, IAttributeSet atts, IMetadata metadata,
+            SwPropertyManagerPageHandler handler, short height, IPropertyManagerPageLabel label)
         {
             var bmpAtt = atts.Get<BitmapButtonAttribute>();
 
@@ -98,7 +87,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
                 }
             }
 
-            return new PropertyManagerPageBitmapButtonControl(atts.Id, atts.Tag, swCtrl, handler);
+            return new PropertyManagerPageBitmapButtonControl(atts.Id, atts.Tag, swCtrl, handler, label);
         }
     }
 }

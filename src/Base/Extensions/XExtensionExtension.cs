@@ -17,8 +17,18 @@ using Xarial.XCad.UI.TaskPane.Attributes;
 
 namespace Xarial.XCad.Extensions
 {
+    /// <summary>
+    /// Additional methods for the <see cref="IXExtension"/>
+    /// </summary>
     public static class XExtensionExtension
     {
+        /// <summary>
+        /// Creates Task Pane from the enumeration definition
+        /// </summary>
+        /// <typeparam name="TControl">Type of control</typeparam>
+        /// <typeparam name="TEnum">Enumeration defining the commands for Task Pane</typeparam>
+        /// <param name="ext">Extension</param>
+        /// <returns>Task Pane instance</returns>
         public static IXEnumTaskPane<TControl, TEnum> CreateTaskPane<TControl, TEnum>(this IXExtension ext)
             where TEnum : Enum
         {

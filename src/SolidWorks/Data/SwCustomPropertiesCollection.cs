@@ -73,15 +73,18 @@ namespace Xarial.XCad.SolidWorks.Data
 
         protected SwDocument m_Doc;
 
-        protected SwCustomPropertiesCollection(SwDocument doc)
+        protected readonly ISwApplication m_App;
+
+        protected SwCustomPropertiesCollection(SwDocument doc, ISwApplication app)
         {
             m_Doc = doc;
+            m_App = app;
         }
 
         private bool Exists(string name) 
         {
             //TODO: for older that SW2014 - get all properties
-            if (m_Doc.App.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2014))
+            if (m_App.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2014))
             {
                 return PrpMgr.Get5(name, true, out _, out _, out _)
                     != (int)swCustomInfoGetResult_e.swCustomInfoGetResult_NotPresent;
@@ -114,7 +117,7 @@ namespace Xarial.XCad.SolidWorks.Data
 
         protected virtual void DeleteProperty(IXProperty prp)
         {
-            if (m_Doc.App.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2014))
+            if (m_App.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2014))
             {
                 var delRes = (swCustomInfoDeleteResult_e)PrpMgr.Delete2(prp.Name);
 
@@ -159,9 +162,9 @@ namespace Xarial.XCad.SolidWorks.Data
         private readonly CustomPropertiesEventsHelper m_EventsHelper;
         private readonly List<EventsHandler<PropertyValueChangedDelegate>> m_EventsHandlers;
 
-        internal SwConfigurationCustomPropertiesCollection(SwDocument doc, string confName) : base(doc)
+        internal SwConfigurationCustomPropertiesCollection(string confName, SwDocument doc, ISwApplication app) : base(doc, app)
         {
-            m_EventsHelper = new CustomPropertiesEventsHelper(doc.App.Sw, doc);
+            m_EventsHelper = new CustomPropertiesEventsHelper(app.Sw, doc);
 
             m_ConfName = confName;
 
@@ -172,7 +175,7 @@ namespace Xarial.XCad.SolidWorks.Data
 
         protected override SwCustomProperty CreatePropertyInstance(CustomPropertyManager prpMgr, string name, bool isCreated)
         {
-            var prp = new SwConfigurationCustomProperty(prpMgr, name, isCreated, m_Doc, m_ConfName, m_Doc.App);
+            var prp = new SwConfigurationCustomProperty(prpMgr, name, isCreated, m_Doc, m_ConfName, m_App);
             InitProperty(prp);
             return prp;
         }
@@ -212,13 +215,13 @@ namespace Xarial.XCad.SolidWorks.Data
 
     internal class SwFileCustomPropertiesCollection : SwConfigurationCustomPropertiesCollection
     {
-        internal SwFileCustomPropertiesCollection(SwDocument doc) : base(doc, "")
+        internal SwFileCustomPropertiesCollection(SwDocument doc, ISwApplication app) : base("", doc, app)
         {
         }
 
         protected override SwCustomProperty CreatePropertyInstance(CustomPropertyManager prpMgr, string name, bool isCreated)
         {
-            var prp = new SwCustomProperty(prpMgr, name, isCreated, m_Doc.App);
+            var prp = new SwCustomProperty(prpMgr, name, isCreated, m_App);
             InitProperty(prp);
             return prp;
         }

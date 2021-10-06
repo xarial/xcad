@@ -132,7 +132,7 @@ namespace Xarial.XCad.SolidWorks.Documents.Services
             return model != null;
         }
 
-        private void DispatchAllModels() 
+        private void DispatchAllModels()
         {
             lock (m_Lock) 
             {

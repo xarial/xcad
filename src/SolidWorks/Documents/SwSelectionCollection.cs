@@ -59,12 +59,12 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public IXSelObject this[string name] => throw new NotSupportedException();
 
-        internal SwSelectionCollection(SwDocument doc) 
+        internal SwSelectionCollection(SwDocument doc, ISwApplication app) 
         {
             m_Doc = doc;
 
-            m_NewSelectionEventHandler = new NewSelectionEventHandler(doc);
-            m_ClearSelectionEventHandler = new ClearSelectionEventHandler(doc);
+            m_NewSelectionEventHandler = new NewSelectionEventHandler(doc, app);
+            m_ClearSelectionEventHandler = new ClearSelectionEventHandler(doc, app);
         }
 
         public void AddRange(IEnumerable<IXSelObject> ents)
@@ -118,7 +118,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
     internal class SwSelObjectEnumerator : IEnumerator<IXSelObject>
     {
-        public IXSelObject Current => SwSelObject.FromDispatch(m_SelMgr.GetSelectedObject6(m_CurSelIndex, -1), m_Doc);
+        public IXSelObject Current => m_Doc.CreateObjectFromDispatch<ISwSelObject>(m_SelMgr.GetSelectedObject6(m_CurSelIndex, -1));
 
         object IEnumerator.Current => Current;
 

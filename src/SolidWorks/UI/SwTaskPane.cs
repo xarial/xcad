@@ -22,6 +22,7 @@ using Xarial.XCad.Toolkit;
 using Xarial.XCad.SolidWorks.UI.Toolkit;
 using Xarial.XCad.Base;
 using System.Runtime.InteropServices;
+using System.ComponentModel;
 
 namespace Xarial.XCad.SolidWorks.UI
 {
@@ -198,9 +199,12 @@ namespace Xarial.XCad.SolidWorks.UI
         }
     }
 
-    internal class SwTaskPane<TControl> : ISwTaskPane<TControl>
+    internal class SwTaskPane<TControl> : ISwTaskPane<TControl>, IAutoDisposable
     {
         private const int S_OK = 0;
+
+        [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
+        public event Action<IAutoDisposable> Disposed;
 
         public event TaskPaneButtonClickDelegate ButtonClick;
         public event ControlCreatedDelegate<TControl> ControlCreated;
@@ -272,24 +276,10 @@ namespace Xarial.XCad.SolidWorks.UI
         {
             var hWnd = m_WinCtrl.Handle;
 
-            //var x = WinAPI.GetWindowRect(hWnd, out WinAPI.RECT rect);
-
             WinAPI.ForcePaint(hWnd);
 
-            //rect = new WinAPI.RECT(0, 0, rect.Width, rect.Height);
-
-            //var y = WinAPI.RedrawWindow(hWnd,
-            //    null, IntPtr.Zero, WinAPI.RedrawWindowFlags.Erase | WinAPI.RedrawWindowFlags.Invalidate | WinAPI.RedrawWindowFlags.EraseNow | WinAPI.RedrawWindowFlags.AllChildren);
-
-
-
-            //var z = WinAPI.UpdateWindow(hWnd);
-
-            //m_WinCtrl.Invalidate();
-
-            //m_WinCtrl.Refresh();
-
             Activated?.Invoke(this);
+
             return 0;
         }
 
@@ -319,9 +309,7 @@ namespace Xarial.XCad.SolidWorks.UI
         }
 
         public void Dispose()
-        {
-            Close();
-        }
+            => Close();
 
         public void Close()
         {
@@ -349,6 +337,8 @@ namespace Xarial.XCad.SolidWorks.UI
                         throw new InvalidOperationException("Failed to remove TaskPane");
                     }
                 }
+
+                Disposed?.Invoke(this);
             }
         }
     }

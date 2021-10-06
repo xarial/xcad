@@ -17,6 +17,9 @@ namespace Xarial.XCad.UI.PropertyPage.Attributes
     /// <remarks>Applied to property of type <see cref="string"/></remarks>
     public class TextBoxOptionsAttribute : Attribute, IAttribute
     {
+        /// <summary>
+        /// Specific text box style
+        /// </summary>
         public TextBoxStyle_e Style { get; private set; }
 
         /// <summary>

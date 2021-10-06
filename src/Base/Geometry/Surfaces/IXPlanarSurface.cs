@@ -5,15 +5,18 @@
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
-using System;
-using System.Collections.Generic;
-using System.Text;
 using Xarial.XCad.Geometry.Structures;
 
 namespace Xarial.XCad.Geometry.Surfaces
 {
+    /// <summary>
+    /// Represents specific planar surface
+    /// </summary>
     public interface IXPlanarSurface : IXSurface
     {
+        /// <summary>
+        /// Plane defining this planar surface
+        /// </summary>
         Plane Plane { get; }
     }
 }

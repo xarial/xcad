@@ -33,7 +33,7 @@ namespace Xarial.XCad.SolidWorks.Sketch
 
         public override object Dispatch => Point;
 
-        internal SwSketchPoint(ISwDocument doc, ISketchPoint pt, bool created) : base(doc, pt)
+        internal SwSketchPoint(ISketchPoint pt, ISwDocument doc, ISwApplication app, bool created) : base(pt, doc, app)
         {
             m_SketchMgr = doc.Model.SketchManager;
             m_Creator = new ElementCreator<ISketchPoint>(CreatePoint, pt, created);

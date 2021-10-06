@@ -41,4 +41,19 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         ISwDmAssemblyConfigurationCollection ISwDmAssembly.Configurations => m_LazyConfigurations.Value;
     }
+
+    internal class SwDmVirtualAssembly : SwDmAssembly
+    {
+        public SwDmVirtualAssembly(ISwDmApplication dmApp, ISwDMDocument doc, bool isCreated,
+            Action<ISwDmDocument> createHandler, Action<ISwDmDocument> closeHandler, bool? isReadOnly) 
+            : base(dmApp, doc, isCreated, createHandler, closeHandler, isReadOnly)
+        {
+        }
+
+        public override string Title
+        {
+            get => SwDmVirtualDocumentHelper.GetTitle(base.Title);
+            set => base.Title = value; 
+        }
+    }
 }

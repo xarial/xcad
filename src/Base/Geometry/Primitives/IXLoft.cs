@@ -9,8 +9,14 @@ using Xarial.XCad.Geometry.Wires;
 
 namespace Xarial.XCad.Geometry.Primitives
 {
+    /// <summary>
+    /// Represents loft
+    /// </summary>
     public interface IXLoft : IXPrimitive
     {
+        /// <summary>
+        /// Profiles of this loft
+        /// </summary>
         IXRegion[] Profiles { get; set; }
     }
 }

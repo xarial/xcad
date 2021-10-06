@@ -92,7 +92,7 @@ namespace Xarial.XCad.Utils.PageBuilder.Internal
             }
         }
 
-        internal IControl CreateElement(Type type, IGroup parent, IAttributeSet atts, IMetadata metadata, ref int idRange)
+        internal IControl CreateElement(Type type, IGroup parent, IAttributeSet atts, IMetadata metadata, ref int numberOfUsedIds)
         {
             if (type == null)
             {
@@ -115,11 +115,11 @@ namespace Xarial.XCad.Utils.PageBuilder.Internal
 
             if (parent is TPage)
             {
-                return constr.Create((TPage)parent, atts, metadata, ref idRange);
+                return constr.Create((TPage)parent, atts, metadata, ref numberOfUsedIds);
             }
             else if (parent is TGroup)
             {
-                return constr.Create((TGroup)parent, atts, metadata, ref idRange);
+                return constr.Create((TGroup)parent, atts, metadata, ref numberOfUsedIds);
             }
             else
             {

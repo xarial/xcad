@@ -27,11 +27,15 @@ namespace SwAddInExample
 {
     [Title("WPF User Control")]
     [Icon(typeof(Resources), nameof(Properties.Resources.xarial))]
-    public partial class WpfUserControl : UserControl
+    public partial class WpfUserControl : UserControl, IDisposable
     {
         public WpfUserControl()
         {
             InitializeComponent();
+        }
+
+        public void Dispose()
+        {
         }
     }
 }

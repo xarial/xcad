@@ -6,7 +6,7 @@ namespace Xarial.XCad.Documentation.PropertyPage.Controls
 {
     public partial class CustomWinFormsControl : UserControl, IXCustomControl
     {
-        public event Action<IXCustomControl, object> ValueChanged;
+        public event CustomControlValueChangedDelegate ValueChanged;
 
         private CustomControlWinFormsModel m_Model;
 

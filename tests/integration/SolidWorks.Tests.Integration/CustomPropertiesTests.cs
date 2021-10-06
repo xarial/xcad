@@ -10,6 +10,7 @@ using Xarial.XCad.SolidWorks;
 using Xarial.XCad.SolidWorks.Data.Exceptions;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Documents.Exceptions;
+using Xarial.XCad.SolidWorks.Enums;
 
 namespace SolidWorks.Tests.Integration
 {
@@ -76,7 +77,7 @@ namespace SolidWorks.Tests.Integration
                 m_App.Sw.IActiveDoc2.Extension.CustomPropertyManager["Conf1"].Get5("Test2", false, out val2, out _, out _);
             }
 
-            if (m_App.Version.Major == Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2021)
+            if(m_App.Version.Major == SwVersion_e.Sw2021 && !m_App.IsVersionNewerOrEqual(SwVersion_e.Sw2021, 4, 1))
             {
                 Assert.IsInstanceOf<CustomPropertyUnloadedConfigException>(val1);
             }
@@ -323,7 +324,7 @@ namespace SolidWorks.Tests.Integration
                 Assert.Throws<ConfigurationSpecificCutListPropertiesWriteNotSupportedException>(
                     () => { prp3.Commit(); });
 
-                var part = (ISwPart)assm.Configurations.Active.Components["CutListConfs1-1"].Document;
+                var part = (ISwPart)assm.Configurations.Active.Components["CutListConfs1-1"].ReferencedDocument;
 
                 part.Model.ShowConfiguration2("Conf1<As Machined>");
                 part.Part.IFeatureByName("Cut-List-Item1").CustomPropertyManager.Get5("Prp3", false, out _, out conf1Val, out _);
@@ -422,6 +423,8 @@ namespace SolidWorks.Tests.Integration
             {
                 var part = (IXPart)m_App.Documents.Active;
 
+                var x = m_App.Sw.IActiveDoc2.Extension.CustomPropertyManager["Conf1"].Get6("Prp1", true, out string val, out string resVal, out _, out _);
+
                 val1Def = part.Configurations["Default"].Properties["Prp1"].Value;
                 val2Def = part.Configurations["Default"].Properties["Prp2"].Value;
 
@@ -446,7 +449,7 @@ namespace SolidWorks.Tests.Integration
             Assert.AreEqual("115.72", val1Def);
             Assert.AreEqual("200.00", val2Def);
             Assert.AreEqual("0.00", val1Conf1); //not resolved
-            Assert.AreEqual("100.00", val2Conf1);
+            Assert.AreEqual("200.00", val2Conf1);
 
             Assert.AreEqual("115.72", val1Def_1);
             Assert.AreEqual("200.00", val2Def_1);

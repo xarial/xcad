@@ -9,6 +9,7 @@ using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using Xarial.XCad.Enums;
@@ -39,9 +40,16 @@ namespace Xarial.XCad.SolidWorks
 
         public virtual void Run(MacroEntryPoint entryPoint, MacroRunOptions_e opts)
         {
+            ValidateMacro(entryPoint);
+
+            ExecuteMacro(entryPoint, opts);
+        }
+
+        protected void ExecuteMacro(MacroEntryPoint entryPoint, MacroRunOptions_e opts)
+        {
             swRunMacroOption_e swOpts = swRunMacroOption_e.swRunMacroDefault;
 
-            switch (opts) 
+            switch (opts)
             {
                 case MacroRunOptions_e.Default:
                     swOpts = swRunMacroOption_e.swRunMacroDefault;
@@ -53,12 +61,12 @@ namespace Xarial.XCad.SolidWorks
             }
 
             int err;
-            
+
             if (!m_SwApp.RunMacro2(m_Path, entryPoint.ModuleName, entryPoint.ProcedureName, (int)swOpts, out err))
             {
                 string errDesc;
 
-                switch ((swRunMacroError_e)err) 
+                switch ((swRunMacroError_e)err)
                 {
                     case swRunMacroError_e.swRunMacroError_InvalidArg:
                         errDesc = "Invalid argument";
@@ -150,6 +158,14 @@ namespace Xarial.XCad.SolidWorks
                 throw new MacroRunFailedException(m_Path, err, errDesc);
             }
         }
+
+        protected virtual void ValidateMacro(MacroEntryPoint entryPoint)
+        {
+            if (!File.Exists(Path))
+            {
+                throw new MacroFileNotFoundException(Path);
+            }
+        }
     }
 
     public interface ISwVbaMacro : ISwMacro
@@ -215,18 +231,21 @@ namespace Xarial.XCad.SolidWorks
             EntryPoints = GetEntryPoints();
         }
         
-        public override void Run(MacroEntryPoint entryPoint, MacroRunOptions_e options)
+        protected override void ValidateMacro(MacroEntryPoint entryPoint)
         {
-            if (EntryPoints.Contains(entryPoint, new MacroEntryPointEqualityComparer()))
+            base.ValidateMacro(entryPoint);
+
+            if (EntryPoints == null)
             {
-                base.Run(entryPoint, options);
+                throw new MacroHasNoEntryPointsException();
             }
-            else 
+
+            if (!EntryPoints.Contains(entryPoint, new MacroEntryPointEqualityComparer()))
             {
-                throw new Exception($"Entry point '{entryPoint}' is not available in the macro '{m_Path}'");
+                throw new MacroEntryPointNotFoundException(m_Path, entryPoint);
             }
         }
-        
+
         private MacroEntryPoint[] GetEntryPoints()
         {
             var methods = m_SwApp.GetMacroMethods(m_Path,
@@ -274,6 +293,8 @@ namespace Xarial.XCad.SolidWorks
 
         public override void Run(MacroEntryPoint entryPoint, MacroRunOptions_e opts)
         {
+            base.ValidateMacro(entryPoint);
+
             var stopDebugVstaFlag = m_SwApp.GetUserPreferenceToggle((int)swUserPreferenceToggle_e.swStopDebuggingVstaOnExit);
 
             bool? isVsta3 = null;
@@ -293,7 +314,7 @@ namespace Xarial.XCad.SolidWorks
 
             try
             {
-                base.Run(entryPoint, MacroRunOptions_e.Default);
+                base.ExecuteMacro(entryPoint, MacroRunOptions_e.Default);
             }
             finally 
             {

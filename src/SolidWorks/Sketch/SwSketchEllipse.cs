@@ -24,11 +24,11 @@ namespace Xarial.XCad.SolidWorks.Sketch
     {
         public ISketchEllipse Ellipse => (ISketchEllipse)Segment;
 
-        public override IXPoint StartPoint => SwSelObject.FromDispatch<SwSketchPoint>(Ellipse.IGetStartPoint2(), m_Doc);
-        public override IXPoint EndPoint => SwSelObject.FromDispatch<SwSketchPoint>(Ellipse.IGetEndPoint2(), m_Doc);
+        public override IXSketchPoint StartPoint => OwnerDocument.CreateObjectFromDispatch<SwSketchPoint>(Ellipse.IGetStartPoint2());
+        public override IXSketchPoint EndPoint => OwnerDocument.CreateObjectFromDispatch<SwSketchPoint>(Ellipse.IGetEndPoint2());
         
-        internal SwSketchEllipse(ISwDocument doc, ISketchEllipse ellipse, bool created)
-            : base(doc, (ISketchSegment)ellipse, created)
+        internal SwSketchEllipse(ISketchEllipse ellipse, ISwDocument doc, ISwApplication app, bool created)
+            : base((ISketchSegment)ellipse, doc, app, created)
         {
             if (doc == null)
             {
