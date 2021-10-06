@@ -15,7 +15,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Exceptions
     /// <summary>
     /// IMassProperty API in SOLIDOWRKS 2019 failed to correctly calculate the Moment Of Intertia for the components
     /// </summary>
-    internal class MomentOfInertiaOverridenException : NotSupportedException
+    public class MomentOfInertiaOverridenException : NotSupportedException
     {
         internal MomentOfInertiaOverridenException(string reason)
             : base($"Failed to calculate Moment Of Intertia for in SOLIDWORKS 2019 for the overriden mass properties: {reason}") 
