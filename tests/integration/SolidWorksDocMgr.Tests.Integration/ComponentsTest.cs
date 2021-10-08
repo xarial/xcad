@@ -176,11 +176,6 @@ namespace SolidWorksDocMgr.Tests.Integration
                     d4.Save();
                 }
 
-                //foreach (var doc in m_App.Documents) 
-                //{
-                //    doc.Save();
-                //}
-
                 using (var wrp = OpenDataDocument(Path.Combine(tempDir, "Assem1.sldasm"), false))
                 {
                     var deps = wrp.Document.GetAllDependencies().ToArray();

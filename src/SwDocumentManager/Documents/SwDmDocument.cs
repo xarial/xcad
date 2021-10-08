@@ -255,12 +255,20 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                         {
                             var virtCompFileName = System.IO.Path.GetFileName(filePath);
 
-                            virtCompDoc = (ISwDmDocument3D)SwDmApp.Documents.FirstOrDefault(d => string.Equals(d.Title,
+                            virtCompDoc = m_VirtualDocumentsCache.FirstOrDefault(d => string.Equals(d.Title,
                                 virtCompFileName, StringComparison.CurrentCultureIgnoreCase));
 
                             if (virtCompDoc != null) 
                             {
-                                return true;
+                                if (virtCompDoc.IsAlive)
+                                {
+                                    return true;
+                                }
+                                else 
+                                {
+                                    m_VirtualDocumentsCache.Remove(virtCompDoc);
+                                    virtCompDoc = null;
+                                }
                             }
 
                             var comp = compsLazy.Value.FirstOrDefault(c => string.Equals(
@@ -270,6 +278,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                             if (comp != null)
                             {
                                 virtCompDoc = comp.ReferencedDocument;
+                                m_VirtualDocumentsCache.Add(virtCompDoc);
                                 return true;
                             }
                         }
@@ -341,6 +350,8 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         private readonly Lazy<ISwDmCustomPropertiesCollection> m_Properties;
 
+        private readonly List<ISwDmDocument3D> m_VirtualDocumentsCache;
+
         internal SwDmDocument(ISwDmApplication dmApp, ISwDMDocument doc, bool isCreated, 
             Action<ISwDmDocument> createHandler, Action<ISwDmDocument> closeHandler,
             bool? isReadOnly = null) : base(doc)
@@ -351,6 +362,8 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
             m_CreateHandler = createHandler;
             m_CloseHandler = closeHandler;
+
+            m_VirtualDocumentsCache = new List<ISwDmDocument3D>();
 
             m_Creator = new ElementCreator<ISwDMDocument>(OpenDocument, doc, isCreated);
 

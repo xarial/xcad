@@ -32,11 +32,6 @@ namespace SolidWorksDocMgr.Tests.Integration
             {
                 Document.Close();
                 m_IsDisposed = true;
-
-                while(m_App.Documents.Any())
-                {
-                    m_App.Documents.First().Close();
-                }
             }
         }
     }
@@ -115,6 +110,11 @@ namespace SolidWorksDocMgr.Tests.Integration
             }
 
             m_Disposables.Clear();
+
+            while (m_App.Documents.Any())
+            {
+                m_App.Documents.First().Close();
+            }
         }
 
         [OneTimeTearDown]
