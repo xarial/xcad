@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -33,7 +33,7 @@ namespace Xarial.XCad.SolidWorks.Sketch
 
         public override object Dispatch => Point;
 
-        internal SwSketchPoint(ISwDocument doc, ISketchPoint pt, bool created) : base(doc, pt)
+        internal SwSketchPoint(ISketchPoint pt, ISwDocument doc, ISwApplication app, bool created) : base(pt, doc, app)
         {
             m_SketchMgr = doc.Model.SketchManager;
             m_Creator = new ElementCreator<ISketchPoint>(CreatePoint, pt, created);

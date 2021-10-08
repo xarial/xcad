@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Text;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Geometry.Surfaces;
+using Xarial.XCad.SolidWorks.Documents;
 
 namespace Xarial.XCad.SolidWorks.Geometry.Surfaces
 {
@@ -20,7 +21,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Surfaces
 
     internal class SwCylindricalSurface : SwSurface, ISwCylindricalSurface
     {
-        internal SwCylindricalSurface(ISurface surface) : base(surface)
+        internal SwCylindricalSurface(ISurface surface, ISwDocument doc, ISwApplication app) : base(surface, doc, app)
         {
         }
 

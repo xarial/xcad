@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -15,5 +15,15 @@ namespace Xarial.XCad.UI.PropertyPage.Structures
     {
         public string DisplayName { get; set; }
         public object Value { get; set; }
+
+        public ItemsControlItem() 
+        {
+        }
+
+        public ItemsControlItem(object item)
+        {
+            Value = item;
+            DisplayName = item?.ToString();
+        }
     }
 }

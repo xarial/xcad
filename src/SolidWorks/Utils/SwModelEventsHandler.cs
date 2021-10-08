@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -17,11 +17,14 @@ namespace Xarial.XCad.SolidWorks.Utils
     internal abstract class SwModelEventsHandler<TDel> : EventsHandler<TDel>
         where TDel : Delegate
     {
-        protected readonly ISwDocument m_Doc;
+        protected readonly SwDocument m_Doc;
         private IModelDoc2 m_Model => m_Doc.Model;
 
-        internal SwModelEventsHandler(ISwDocument doc) 
+        protected readonly ISwApplication m_App;
+
+        internal SwModelEventsHandler(SwDocument doc, ISwApplication app) 
         {
+            m_App = app;
             m_Doc = doc;
         }
 

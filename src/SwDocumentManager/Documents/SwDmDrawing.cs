@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -16,17 +16,23 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 {
     public interface ISwDmDrawing : ISwDmDocument, IXDrawing
     {
+        new ISwDmSheetCollection Sheets { get; }
     }
 
     internal class SwDmDrawing : SwDmDocument, ISwDmDrawing
     {
+        IXSheetRepository IXDrawing.Sheets => Sheets;
+
+        private readonly Lazy<SwDmSheetCollection> m_SheetsLazy;
+
         public SwDmDrawing(ISwDmApplication dmApp, ISwDMDocument doc, bool isCreated,
             Action<ISwDmDocument> createHandler, Action<ISwDmDocument> closeHandler,
-            bool? isReadOnly = null)
+            bool? isReadOnly)
             : base(dmApp, doc, isCreated, createHandler, closeHandler, isReadOnly)
         {
+            m_SheetsLazy = new Lazy<SwDmSheetCollection>(() => new SwDmSheetCollection(this));
         }
 
-        public IXSheetRepository Sheets => throw new NotImplementedException();
+        public ISwDmSheetCollection Sheets => m_SheetsLazy.Value;
     }
 }

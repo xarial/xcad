@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -28,11 +28,26 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         #endregion
 
         public SwDmPart(ISwDmApplication dmApp, ISwDMDocument doc, bool isCreated,
-            Action<ISwDmDocument> createHandler, Action<ISwDmDocument> closeHandler, bool? isReadOnly = null)
+            Action<ISwDmDocument> createHandler, Action<ISwDmDocument> closeHandler, bool? isReadOnly)
             : base(dmApp, doc, isCreated, createHandler, closeHandler, isReadOnly)
         {
         }
 
         public IXBodyRepository Bodies => throw new NotImplementedException();
+    }
+
+    internal class SwDmVirtualPart : SwDmPart
+    {
+        public SwDmVirtualPart(ISwDmApplication dmApp, ISwDMDocument doc, bool isCreated,
+            Action<ISwDmDocument> createHandler, Action<ISwDmDocument> closeHandler, bool? isReadOnly) 
+            : base(dmApp, doc, isCreated, createHandler, closeHandler, isReadOnly)
+        {
+        }
+
+        public override string Title
+        {
+            get => SwDmVirtualDocumentHelper.GetTitle(base.Title);
+            set => base.Title = value;
+        }
     }
 }

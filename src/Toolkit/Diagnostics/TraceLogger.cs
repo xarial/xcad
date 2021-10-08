@@ -1,14 +1,18 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
 using Xarial.XCad.Base;
+using Xarial.XCad.Base.Enums;
 
 namespace Xarial.XCad.Utils.Diagnostics
 {
+    /// <summary>
+    /// Logger logs messages to trace window
+    /// </summary>
     public class TraceLogger : IXLogger
     {
         private readonly string m_Category;
@@ -18,9 +22,7 @@ namespace Xarial.XCad.Utils.Diagnostics
             m_Category = category;
         }
 
-        public void Log(string msg)
-        {
-            System.Diagnostics.Trace.WriteLine(msg, m_Category);
-        }
+        public void Log(string msg, LoggerMessageSeverity_e severity = LoggerMessageSeverity_e.Information)
+            => this.Trace(msg, m_Category, severity);
     }
 }

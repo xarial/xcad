@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -46,7 +46,7 @@ namespace Xarial.XCad.Geometry
             var extr = builder.SolidBuilder.PreCreateExtrusion();
             extr.Depth = height;
             extr.Direction = dir;
-            extr.Profiles = new IXRegion[] { builder.CreatePlanarSheet(polyline).Bodies.First() };
+            extr.Profiles = new IXRegion[] { builder.CreatePlanarSheet(builder.CreateRegionFromSegments(polyline)).Bodies.First() };
             extr.Commit();
 
             return extr;
@@ -64,7 +64,7 @@ namespace Xarial.XCad.Geometry
         public static IXExtrusion CreateSolidCylinder(this IXGeometryBuilder builder, Point center, Vector axis,
             double radius, double height)
         {
-            var arc = builder.WireBuilder.PreCreateArc();
+            var arc = builder.WireBuilder.PreCreateCircle();
             arc.Center = center;
             arc.Axis = axis;
             arc.Diameter = radius * 2;
@@ -73,7 +73,7 @@ namespace Xarial.XCad.Geometry
             var extr = builder.SolidBuilder.PreCreateExtrusion();
             extr.Depth = height;
             extr.Direction = arc.Axis;
-            extr.Profiles = new IXRegion[] { builder.CreatePlanarSheet(arc).Bodies.First() };
+            extr.Profiles = new IXRegion[] { builder.CreatePlanarSheet(builder.CreateRegionFromSegments(arc)).Bodies.First() };
             extr.Commit();
 
             return extr;
@@ -113,7 +113,7 @@ namespace Xarial.XCad.Geometry
             var rev = builder.SolidBuilder.PreCreateRevolve();
             rev.Axis = revLine;
             rev.Angle = Math.PI * 2;
-            rev.Profiles = new IXRegion[] { builder.CreatePlanarSheet(profile).Bodies.First() };
+            rev.Profiles = new IXRegion[] { builder.CreatePlanarSheet(builder.CreateRegionFromSegments(profile)).Bodies.First() };
             rev.Commit();
 
             return rev;
@@ -152,10 +152,10 @@ namespace Xarial.XCad.Geometry
             return sweep;
         }
 
-        public static IXPlanarSheet CreatePlanarSheet(this IXGeometryBuilder builder, params IXSegment[] boundary)
+        public static IXPlanarSheet CreatePlanarSheet(this IXGeometryBuilder builder, IXRegion boundary)
         {
             var surf = builder.SheetBuilder.PreCreatePlanarSheet();
-            surf.Boundary = boundary;
+            surf.Region = boundary;
             surf.Commit();
 
             return surf;
@@ -171,9 +171,9 @@ namespace Xarial.XCad.Geometry
             return line;
         }
 
-        public static IXArc CreateCircle(this IXGeometryBuilder builder, Point centerPt, Vector axis, double diameter)
+        public static IXCircle CreateCircle(this IXGeometryBuilder builder, Point centerPt, Vector axis, double diameter)
         {
-            var circle = builder.WireBuilder.PreCreateArc();
+            var circle = builder.WireBuilder.PreCreateCircle();
             circle.Center = centerPt;
             circle.Axis = axis;
             circle.Diameter = diameter;

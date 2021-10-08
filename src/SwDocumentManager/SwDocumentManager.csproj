@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
 
   <PropertyGroup>
     <TargetFrameworks>netcoreapp3.1;net461</TargetFrameworks>
@@ -11,10 +11,10 @@
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <PackageId>Xarial.XCad.SwDocumentManager</PackageId>
-    <VersionPrefix>0.6.11</VersionPrefix>
+    <VersionPrefix>0.7.5</VersionPrefix>
     <Authors>Xarial</Authors>
     <Product>xCAD</Product>
-    <Copyright>© 2020 Xarial Pty Limited</Copyright>
+    <Copyright>© 2021 Xarial Pty Limited</Copyright>
     <PackageProjectUrl>https://xcad.net</PackageProjectUrl>
     <AssemblyOriginatorKeyFile></AssemblyOriginatorKeyFile>
     <Company>Xarial Pty Limited</Company>
@@ -50,9 +50,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="..\..\build\solidworks-dm-init.ps1" pack="true" PackagePath="tools\init.ps1"/>
-    <None Include="..\..\data\icon.png" pack="true" PackagePath=""/>
-    <None Include="..\..\LICENSE.md" pack="true" PackagePath=""/>
+    <None Include="..\..\build\solidworks-dm-init.ps1" pack="true" PackagePath="tools\init.ps1" />
+    <None Include="..\..\data\icon.png" pack="true" PackagePath="" />
+    <None Include="..\..\LICENSE.md" pack="true" PackagePath="" />
   </ItemGroup>
   
   <ItemGroup>

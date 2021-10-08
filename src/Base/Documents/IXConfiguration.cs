@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -8,6 +8,9 @@
 using Xarial.XCad.Base;
 using Xarial.XCad.Data;
 using Xarial.XCad.Features;
+using Xarial.XCad.UI;
+using Xarial.XCad.Documents.Enums;
+using System.Collections.Generic;
 
 namespace Xarial.XCad.Documents
 {
@@ -16,6 +19,11 @@ namespace Xarial.XCad.Documents
     /// </summary>
     public interface IXConfiguration : IXObject, IXTransaction, IPropertiesOwner
     {
+        /// <summary>
+        /// BOM quantity value
+        /// </summary>
+        double Quantity { get; }
+
         /// <summary>
         /// Name of the configuration
         /// </summary>
@@ -27,8 +35,18 @@ namespace Xarial.XCad.Documents
         string PartNumber { get; }
 
         /// <summary>
+        /// Options for displaying this configuration in BOM
+        /// </summary>
+        BomChildrenSolving_e BomChildrenSolving { get; }
+
+        /// <summary>
         /// Cut-list items in this configuration (if available)
         /// </summary>
-        IXCutListItem[] CutLists { get; }
+        IEnumerable<IXCutListItem> CutLists { get; }
+
+        /// <summary>
+        /// Preview image of this configuration
+        /// </summary>
+        IXImage Preview { get; }
     }
 }

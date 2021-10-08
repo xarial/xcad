@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -108,5 +108,24 @@ namespace Xarial.XCad.Geometry.Structures
                 + Math.Pow(Y, 2)
                 + Math.Pow(Z, 2));
         }
+
+        /// <summary>
+        /// Calculates the dot product between vectors
+        /// </summary>
+        /// <param name="vector">Other vector</param>
+        /// <returns>Scalar dot product</returns>
+        public double Dot(Vector vector)
+            => X * vector.X + Y * vector.Y + Z * vector.Z;
+
+        /// <summary>
+        /// Transforms this vector with the transformation matrix
+        /// </summary>
+        /// <param name="matrix">Transformation matrix</param>
+        /// <returns>Transformed vector</returns>
+        public new Vector Transform(TransformMatrix matrix)
+            => new Vector(
+                X * matrix.M11 + Y * matrix.M21 + Z * matrix.M31,
+                X * matrix.M12 + Y * matrix.M22 + Z * matrix.M32,
+                X * matrix.M13 + Y * matrix.M23 + Z * matrix.M33);
     }
 }

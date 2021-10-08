@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -47,15 +47,9 @@ namespace Xarial.XCad.Utils.PageBuilder.PageElements
             Tag = tag;
         }
 
-        public void Dispose()
-        {
-            Dispose(true);
-        }
+        public void Dispose() => Dispose(true);
 
-        object IControl.GetValue()
-        {
-            return GetSpecificValue();
-        }
+        object IControl.GetValue() => GetSpecificValue();
 
         public void SetValue(object value)
         {

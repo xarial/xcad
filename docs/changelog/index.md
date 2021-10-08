@@ -2,16 +2,77 @@
 title: List of changes in the releases of xCAD.NET framework
 caption: Changelog
 description: Information about releases (new features, bug fixes breaking changes) of xCAD.NET framework for developing CAD applications
-order: 8
+order: 99
 ---
 This page contains list of the most notable changes in the releases of xCAD.NET.
 
 Breaking change is marked with &#x26A0; symbol
 
-## 0.6.11 - 
+## 0.7.5 - October 6, 2021
+
+* &#x26A0; ISwMacroFeature::ToParameters is removed. Now SwObjectFactory::FromDispatch will create a specific instance from IFeature
+* &#x26A0; ISwBodyExtension::ToTempBody is replace with IXBody::Copy
+* &#x26A0; IXPlanarSheet::Boundary type is changed from IXSegment[] to IXRegion. Use IXGeometryBuilder::CreateRegionFromSegments to create region from array of segments
+* &#x26A0; IXPlanarSheet::Boundary is renamed to IXPlanarSheet::Region
+* &#x26A0; IXDrawingView::Document is renamed to IXDrawingView::ReferencedDocument
+* &#x26A0; IXComponent::Document is renamed to IXComponent::ReferencedDocument
+* &#x26A0; SwObjectFactory::FromDispatch is replaced with ISwDocument::CreateObjectFromDispatch and ISwApplication::CreateObjectFromDispatch
+* &#x26A0; Changed the signatures of SwMacroFeatureDefinition{TParams, TPage}::OnEditingCompleted, SwMacroFeatureDefinition{TParams, TPage}::OnFeatureInserted
+* &#x26A0; Changed from protected to public: SwMacroFeatureDefinition{TParams, TPage}::OnEditingStarted, SwMacroFeatureDefinition{TParams,TPage}::CreatePageHandler, SwMacroFeatureDefinition{TParams,TPage}::OnEditingStarted, SwMacroFeatureDefinition{TParams,TPage}::OnEditingCompleted, SwMacroFeatureDefinition{TParams,TPage}::OnFeatureInserted, SwMacroFeatureDefinition{TParams,TPage}::CreateDynamicControls
+* &#x26A0; IXGeometryMemoryBuilder::PreCreateArc is renamed to IXGeometryMemoryBuilder::PreCreateCircle. IXGeometryMemoryBuilder::PreCreateArc has been redefined to create arc rather than circle
+* &#x26A0; IXDocumentRepository::DocumentCreated is renamed to IXDocumentRepository::DocumentLoaded
+* &#x26A0; IXDocument::Rebuild event is renamed to IXDocument::Rebuilt and IXDocument::Regenerate method is renamed to IXDocument::Rebuild
+* &#x26A0; CommandSpec::TabBoxStyle is replaced with CommandSpec::RibbonTextStyle, CommandSpec::HasTabBox is replaced with CommandSpec::HasRibbon
+* &#x26A0; IXDocument::Dependencies, IXConfiguration::CutLists, IXCutList::Bodies, IXFace::Edges changed from array to IEnumerable
+* &#x26A0; IXDocument::Closing is passing the additional parameter if the document is closing or hiding
+* &#x26A0; ComboBoxOptionsAttribute::SelectDefaultValue option is deprecated and removed
+* &#x26A0; IXCustomControl::ValueChanged event delegate type is changed
+
+## 0.7.4 - July 11, 2021
+
+* Fixed the incorrect mass properties for SOLIDWORKS 2019 and older
+* Fixed invalid principle moment of inertia and principle axis of inertia calculation for Part file
+
+## 0.7.3 - July 2, 2021
+
+* &#x26A0; IXDocument::DeserializeObject changed to use generic parameter to specify return type
+* Fixed the IXDocumentRepository::Active error
+* Fixed the issue with macro feature editor not using the converted parameters correctly if different from the page data
+* Added suppressed icon for the macro feature
+* [Dispose objects in IXExtension safely one-by-one](https://github.com/xarial/xcad/issues/72)
+* [Add option to specify the order of controls in Property Page](https://github.com/xarial/xcad/issues/73)
+* [Add support for Mass properties](https://github.com/xarial/xcad/issues/74)
+* &#x26A0; [Add option to calculate bounding box relative to coordinate system](https://github.com/xarial/xcad/issues/75)
+
+## 0.7.1 - June 8, 2021
+
+* &#x26A0; IXDocument3D::CalculateBoundingBox is replaced with IXDocument3D::PreCreateBoundingBox
+* &#x26A0; ComponentState_e::Rapid is renamed to ComponentState_e::Lightweight
+* Implemented [Add option to calculate bounding box relative to coordinate system](https://github.com/xarial/xcad/issues/75)
+* Implemented [Add support for Mass properties](https://github.com/xarial/xcad/issues/74)
+
+## 0.7.0 - May 2, 2021
 
 * &#x26A0; IXPropertyRepository::GetOrPreCreate moved to extension method
 * &#x26A0; IXObject::IsSame replaced with IEquatable<IXObject>.Equals
+* &#x26A0; IXCustomControl::DataContextChanged replaced with IXCustomControl::ValueChanged
+* &#x26A0; IXCustomControl::DataContext replaced with IXCustomControl::Value
+* &#x26A0; ResourceHelper::FromBytes replaced with BaseImage class
+* &#x26A0; CustomItemsAttribute is renamed to ComboBoxAttribute
+* Implemented [Implement xCAD for SOLIDWORKS Document Manager](https://github.com/xarial/xcad/issues/17)
+* Implemented [Add support for cut-list custom properties enhancement](https://github.com/xarial/xcad/issues/18)
+* Implemented [Add support for List control in the property page enhancement](https://github.com/xarial/xcad/issues/27)
+* Implemented [Add support for checkbox in group enhancement](https://github.com/xarial/xcad/issues/54)
+* Implemented [Add attribute to exclude the property from the macro feature binding enhancement](https://github.com/xarial/xcad/issues/61)
+* Implemented [Add ability to serialize and deserialize pointers for SW objects enhancement](https://github.com/xarial/xcad/issues/62)
+* Implemented [Add ability to add controls dynamically to property manager page enhancement](https://github.com/xarial/xcad/issues/63)
+* Implemented [Add options to specify items source based on the property for ComboBox control enhancement](https://github.com/xarial/xcad/issues/64)
+* Implemented [Add support for expressions for custom properties enhancement](https://github.com/xarial/xcad/issues/65)
+* Implemented [Add support for quantity for the configuration enhancement](https://github.com/xarial/xcad/issues/66)
+* Fixed [API returns named view from the sheet (when not inserted) bug](https://github.com/xarial/xcad/issues/67)
+* Fixed [Bitmap button displays incorrect size on first opening the page bug](https://github.com/xarial/xcad/issues/68)
+* &#x26A0; Implemented [Components should be returned from IXConfiguration not IXAssembly enhancement](https://github.com/xarial/xcad/issues/69)
+* &#x26A0; Fixed [Selection color is ignored in SelectionBoxOption attribute bug](https://github.com/xarial/xcad/issues/70)
 
 ## 0.6.10 - December 7, 2020
 

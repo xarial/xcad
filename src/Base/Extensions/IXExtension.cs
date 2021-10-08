@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -10,6 +10,7 @@ using Xarial.XCad.Extensions.Delegates;
 using Xarial.XCad.UI;
 using Xarial.XCad.UI.Commands;
 using Xarial.XCad.UI.PropertyPage;
+using Xarial.XCad.UI.PropertyPage.Delegates;
 using Xarial.XCad.UI.TaskPane;
 
 namespace Xarial.XCad.Extensions
@@ -58,8 +59,9 @@ namespace Xarial.XCad.Extensions
         /// Create native property page to manage parameters
         /// </summary>
         /// <typeparam name="TData">Type defining the data model of the property page</typeparam>
+        /// <param name="createDynCtrlHandler">Dynamic control creation handler for properties marked with <see cref="UI.PropertyPage.Attributes.DynamicControlsAttribute"/></param>
         /// <returns>Instance of the property page</returns>
-        IXPropertyPage<TData> CreatePage<TData>();
+        IXPropertyPage<TData> CreatePage<TData>(CreateDynamicControlsDelegate createDynCtrlHandler = null);
 
         /// <summary>
         /// Returns the instance of the current logger

@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -17,8 +17,11 @@ namespace Xarial.XCad.UI.PropertyPage.Attributes
     /// <remarks>Applied to property of type <see cref="Image"/></remarks>
     public class BitmapOptionsAttribute : Attribute, IAttribute
     {
-        public Size Size { get; private set; }
-
+        /// <summary>
+        /// Size of the bitmap
+        /// </summary>
+        public Size Size { get; }
+        
         /// <summary>
         /// Constructor for bitmap options
         /// </summary>

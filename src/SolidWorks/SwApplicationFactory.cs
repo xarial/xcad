@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -13,7 +13,6 @@ using Xarial.XCad.SolidWorks.Enums;
 using Xarial.XCad.Toolkit.Windows;
 using System.Diagnostics;
 using System.Threading;
-using Xarial.XCad.SolidWorks.Exceptions;
 using System.Collections.Generic;
 using Microsoft.Win32;
 using Xarial.XCad.Toolkit;
@@ -129,9 +128,7 @@ namespace Xarial.XCad.SolidWorks
             => FromPointer(app, new ServiceCollection());
 
         public static ISwApplication FromPointer(ISldWorks app, IXServiceCollection services)
-        {
-            return new SwApplication(app, services);
-        }
+            => new SwApplication(app, services);
 
         public static ISwApplication FromProcess(Process process)
             => FromProcess(process, new ServiceCollection());

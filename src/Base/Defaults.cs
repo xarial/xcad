@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -12,14 +12,15 @@ using Xarial.XCad.UI;
 
 namespace Xarial.XCad
 {
+    /// <summary>
+    /// Collection of default objects
+    /// </summary>
     public static class Defaults
     {
+        /// <summary>
+        /// Default icon
+        /// </summary>
         public static IXImage Icon
-        {
-            get
-            {
-                return ResourceHelper.FromBytes(Resources.default_icon);
-            }
-        }
+            => new BaseImage(Resources.default_icon);
     }
 }

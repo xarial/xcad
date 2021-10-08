@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Xarial.XCad.Documents;
+using Xarial.XCad.Enums;
 using Xarial.XCad.SwDocumentManager.Documents;
 
 namespace SolidWorksDocMgr.Tests.Integration
@@ -19,7 +21,7 @@ namespace SolidWorksDocMgr.Tests.Integration
             {
                 var part = (ISwDmDocument3D)m_App.Documents.Active;
                 var cutLists = part.Configurations.Active.CutLists;
-                cutListData = cutLists.ToDictionary(c => c.Name, c => c.Bodies.Length);
+                cutListData = cutLists.ToDictionary(c => c.Name, c => c.Bodies.Count());
             }
 
             Assert.AreEqual(2, cutListData.Count);
@@ -38,7 +40,7 @@ namespace SolidWorksDocMgr.Tests.Integration
             {
                 var part = (ISwDmDocument3D)m_App.Documents.Active;
                 var cutLists = part.Configurations.Active.CutLists;
-                cutListData = cutLists.ToDictionary(c => c.Name, c => c.Bodies.Length);
+                cutListData = cutLists.ToDictionary(c => c.Name, c => c.Bodies.Count());
             }
 
             Assert.AreEqual(1, cutListData.Count);
@@ -55,7 +57,7 @@ namespace SolidWorksDocMgr.Tests.Integration
             {
                 var part = (ISwDmDocument3D)m_App.Documents.Active;
                 var cutLists = part.Configurations.Active.CutLists;
-                cutListData = cutLists.ToDictionary(c => c.Name, c => c.Bodies.Length);
+                cutListData = cutLists.ToDictionary(c => c.Name, c => c.Bodies.Count());
             }
 
             Assert.AreEqual(3, cutListData.Count);
@@ -65,6 +67,22 @@ namespace SolidWorksDocMgr.Tests.Integration
             Assert.AreEqual(1, cutListData[" C CHANNEL, 76.20 X 5<1>"]);
             Assert.AreEqual(1, cutListData[" C CHANNEL, 76.20 X 5<2>"]);
             Assert.AreEqual(1, cutListData[" C CHANNEL, 76.20 X 5<3>"]);
+        }
+
+        [Test]
+        public void ExcludeFromBomTest()
+        {
+            Dictionary<string, CutListState_e> cutListData;
+
+            using (var doc = OpenDataDocument("CutListExcludeBom_2021.SLDPRT"))
+            {
+                var part = (IXDocument3D)m_App.Documents.Active;
+                var cutLists = part.Configurations.Active.CutLists;
+                cutListData = cutLists.ToDictionary(c => c.Name, c => c.State);
+            }
+
+            Assert.AreEqual((CutListState_e)0, cutListData["C CHANNEL 80.00 X 8<1>"]);
+            Assert.AreEqual(CutListState_e.ExcludeFromBom, cutListData["PIPE, SCH 40, 25.40 DIA.<1>"]);
         }
     }
 }

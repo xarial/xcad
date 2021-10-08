@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -72,7 +72,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
             if (bodies != null)
             {
-                return bodies.Select(b => SwSelObject.FromDispatch<SwBody>(b, m_RootDoc));
+                return bodies.Select(b => m_RootDoc.CreateObjectFromDispatch<SwBody>(b));
             }
             else 
             {

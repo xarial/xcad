@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -12,6 +12,9 @@ using Xarial.XCad.Data;
 
 namespace Xarial.XCad.Toolkit.Data
 {
+    /// <summary>
+    /// Manages tags
+    /// </summary>
     public class TagsManager : ITagsManager
     {
         private readonly Dictionary<string, object> m_Tags;

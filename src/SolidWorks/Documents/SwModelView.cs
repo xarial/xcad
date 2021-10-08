@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -33,14 +33,11 @@ namespace Xarial.XCad.SolidWorks.Documents
             {
                 var box = View.GetVisibleBox() as int[];
 
-                //TODO: potential issue if feature manager is not docked on left
-                var featMgrWidth = Owner.GetFeatureManagerWidth();
-
-                return new Rectangle(box[0] + featMgrWidth, box[1], box[2] - box[0] - featMgrWidth, box[3] - box[1]);
+                return new Rectangle(box[0], box[1], box[2] - box[0], box[3] - box[1]);
             }
         }
 
-        public virtual TransformMatrix ScreenTransform => TransformUtils.ToTransformMatrix(View.Transform);
+        public virtual TransformMatrix ScreenTransform => TransformConverter.ToTransformMatrix(View.Transform);
 
         public virtual TransformMatrix Transform
         {
@@ -60,7 +57,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
                 data[12] = origScale;
 
-                return TransformUtils.ToTransformMatrix(data);
+                return TransformConverter.ToTransformMatrix(data);
             }
             set
             {
@@ -95,11 +92,11 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public override object Dispatch => View;
 
-        internal SwModelView(IModelDoc2 model, IModelView view, IMathUtility mathUtils) : base(view)
+        internal SwModelView(IModelView view, ISwDocument doc, ISwApplication app) : base(view, doc, app)
         {
             View = view;
-            Owner = model;
-            m_MathUtils = mathUtils;
+            Owner = doc.Model;
+            m_MathUtils = app.Sw.IGetMathUtility();
         }
 
         public void Freeze(bool freeze)
@@ -117,8 +114,8 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
             var transform = View.Orientation3;
 
-            var mathPt1 = m_MathUtils.CreatePoint(box.LeftBottomBack.ToArray()) as IMathPoint;
-            var mathPt2 = m_MathUtils.CreatePoint(box.RightTopFront.ToArray()) as IMathPoint;
+            var mathPt1 = m_MathUtils.CreatePoint(box.GetLeftBottomBack().ToArray()) as IMathPoint;
+            var mathPt2 = m_MathUtils.CreatePoint(box.GetRightTopFront().ToArray()) as IMathPoint;
             var pt1 = mathPt1.IMultiplyTransform(transform).ArrayData as double[];
             var pt2 = mathPt2.IMultiplyTransform(transform).ArrayData as double[];
 
@@ -141,8 +138,8 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public string Name { get; }
 
-        internal SwNamedView(IModelDoc2 model, IModelView view, IMathUtility mathUtils, string name)
-            : base(model, view, mathUtils)
+        internal SwNamedView(IModelView view, ISwDocument doc, ISwApplication app, string name)
+            : base(view, doc, app)
         {
             Name = name;
         }
@@ -198,8 +195,8 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        internal SwStandardView(IModelDoc2 model, IModelView view, IMathUtility mathUtils, StandardViewType_e type) 
-            : base(model, view, mathUtils, GetStandardViewName(model, type))
+        internal SwStandardView(IModelView view, ISwDocument doc, ISwApplication app, StandardViewType_e type) 
+            : base(view, doc, app, GetStandardViewName(doc.Model, type))
         {
             Type = type;
 

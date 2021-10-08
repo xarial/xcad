@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -18,6 +18,16 @@ namespace Xarial.XCad.Documents
     /// </summary>
     public interface IXDrawingView : IXSelObject, IXObjectContainer, IXTransaction
     {
+        /// <summary>
+        /// Contains the document referenced by this drawing view
+        /// </summary>
+        IXDocument3D ReferencedDocument { get; }
+
+        /// <summary>
+        /// Contains the configuration this drawing view is created from
+        /// </summary>
+        IXConfiguration ReferencedConfiguration { get; }
+
         /// <summary>
         /// Name of this drawing view
         /// </summary>

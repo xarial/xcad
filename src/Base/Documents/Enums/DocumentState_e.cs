@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -46,6 +46,11 @@ namespace Xarial.XCad.Documents.Enums
         /// Opens document in the rapid mode
         /// </summary>
         /// <remarks>This mode significantly improves the performance of opening but certain functionality and API migth not be available</remarks>
-        Rapid = 16
+        Rapid = 16,
+
+        /// <summary>
+        /// Opens document in lightweigth mode
+        /// </summary>
+        Lightweight = 32
     }
 }

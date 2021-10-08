@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -148,6 +148,31 @@ namespace Xarial.XCad.Geometry.Structures
             Z *= scalar;
         }
 
+        /// <summary>
+        /// Converts this point to vector
+        /// </summary>
+        /// <returns>Resulting vector</returns>
+        public Vector ToVector() => new Vector(X, Y, Z);
+
+        /// <summary>
+        /// Transforms this point with the transformation matrix
+        /// </summary>
+        /// <param name="matrix">Transformation matrix</param>
+        /// <returns>Transformed point</returns>
+        public Point Transform(TransformMatrix matrix) 
+        {
+            var x = X * matrix.M11 + Y * matrix.M21 + Z * matrix.M31 + matrix.M41;
+            var y = X * matrix.M12 + Y * matrix.M22 + Z * matrix.M32 + matrix.M42;
+            var z = X * matrix.M13 + Y * matrix.M23 + Z * matrix.M33 + matrix.M43;
+
+            var w = matrix.M14 * X + matrix.M24 * Y + matrix.M34 * Z + matrix.M44;
+
+            return new Point(x / w, y / w, z / w);
+        }
+
+        /// <summary>
+        /// Converts to string
+        /// </summary>
         public override string ToString()
         {
             return $"{X};{Y};{Z}";

@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -8,6 +8,7 @@
 using SolidWorks.Interop.swdocumentmgr;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -15,9 +16,11 @@ using System.Text;
 using System.Threading;
 using Xarial.XCad.Annotations;
 using Xarial.XCad.Data;
+using Xarial.XCad.Enums;
 using Xarial.XCad.Features;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.SwDocumentManager.Data;
+using Xarial.XCad.SwDocumentManager.Documents;
 using Xarial.XCad.SwDocumentManager.Geometry;
 
 namespace Xarial.XCad.SwDocumentManager.Features
@@ -28,6 +31,7 @@ namespace Xarial.XCad.SwDocumentManager.Features
         ISwDMCutListItem2 CutListItem { get; }
     }
 
+    [DebuggerDisplay("{" + nameof(Name) + "}")]
     internal class SwDmCutListItem : SwDmSelObject, ISwDmCutListItem
     {
         #region Not Supported
@@ -40,6 +44,8 @@ namespace Xarial.XCad.SwDocumentManager.Features
             set => throw new NotSupportedException();
         }
 
+        public IEnumerable<IXFace> Faces => throw new NotSupportedException();
+
         #endregion
 
         IXPropertyRepository IPropertiesOwner.Properties => Properties;
@@ -47,26 +53,31 @@ namespace Xarial.XCad.SwDocumentManager.Features
         public ISwDMCutListItem2 CutListItem { get; }
 
         private readonly Lazy<ISwDmCustomPropertiesCollection> m_Properties;
+        private readonly SwDmDocument3D m_Doc;
+        private readonly SwDmConfiguration m_Conf;
 
-        internal SwDmCutListItem(ISwDMCutListItem2 cutListItem) : base(cutListItem)
+        internal SwDmCutListItem(ISwDMCutListItem2 cutListItem, SwDmDocument3D doc) : base(cutListItem)
         {
             CutListItem = cutListItem;
+            m_Doc = doc;
+            
             m_Properties = new Lazy<ISwDmCustomPropertiesCollection>(
-                () => new SwDmCutListCustomPropertiesCollection(this));
+                () => new SwDmCutListCustomPropertiesCollection(this, m_Doc, m_Conf));
         }
 
-        public IXSolidBody[] Bodies 
+        internal SwDmCutListItem(ISwDMCutListItem2 cutListItem, SwDmDocument3D doc, SwDmConfiguration conf) : this(cutListItem, doc)
+        {
+            m_Conf = conf;
+        }
+
+        public IEnumerable<IXSolidBody> Bodies 
         {
             get 
             {
-                var bodies = new IXSolidBody[CutListItem.Quantity];
-
-                for (int i = 0; i < bodies.Length; i++) 
+                for (int i = 0; i < CutListItem.Quantity; i++) 
                 {
-                    bodies[i] = new SwDmSolidBody();
+                    yield return new SwDmSolidBody();
                 }
-
-                return bodies;
             }
         }
 
@@ -77,5 +88,33 @@ namespace Xarial.XCad.SwDocumentManager.Features
         }
 
         public ISwDmCustomPropertiesCollection Properties => m_Properties.Value;
+
+        public CutListState_e State 
+        {
+            get 
+            {
+                if (m_Doc.SwDmApp.IsVersionNewerOrEqual(SwDmVersion_e.Sw2021))
+                {
+                    var cutListStatus = (CutListItem as ISwDMCutListItem4).ExcludeFromCutlist;
+
+                    if (cutListStatus == swDMCutListExclusionStatus_e.swDMCutListStatus_Excluded)
+                    {
+                        return CutListState_e.ExcludeFromBom;
+                    }
+                    else if (cutListStatus == swDMCutListExclusionStatus_e.swDMCutListStatus_Included)
+                    {
+                        return 0;
+                    }
+                    else
+                    {
+                        throw new Exception("Failed to extract the BOM status. Save document in SW 2021 or newer");
+                    }
+                }
+                else 
+                {
+                    throw new NotSupportedException("This API is available in SW 2021 or newer");
+                }
+            }
+        }
     }
 }

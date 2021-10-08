@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -17,15 +17,15 @@ namespace Xarial.XCad.UI.PropertyPage.Attributes
     /// </summary>
     public class ControlOptionsAttribute : Attribute, IAttribute
     {
-        public AddControlOptions_e Options { get; private set; }
-        public ControlLeftAlign_e Align { get; private set; }
-        public KnownColor BackgroundColor { get; private set; }
-        public KnownColor TextColor { get; private set; }
-        public short Left { get; private set; }
-        public short Top { get; private set; }
-        public short Width { get; private set; }
-        public short Height { get; private set; }
-        public ControlOnResizeOptions_e ResizeOptions { get; private set; }
+        public AddControlOptions_e Options { get; }
+        public ControlLeftAlign_e Align { get; }
+        public KnownColor BackgroundColor { get; }
+        public KnownColor TextColor { get; }
+        public short Left { get; }
+        public short Top { get; }
+        public short Width { get; }
+        public short Height { get; }
+        public ControlOnResizeOptions_e ResizeOptions { get; }
 
         /// <summary>
         /// Constructor allowing to specify control common parameters

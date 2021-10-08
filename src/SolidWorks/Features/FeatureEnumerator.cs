@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -15,7 +15,7 @@ namespace Xarial.XCad.SolidWorks.Features
 {
     internal abstract class FeatureEnumerator : IEnumerator<IXFeature>
     {
-        public IXFeature Current => SwObject.FromDispatch<SwFeature>(m_CurFeat, m_RootDoc);
+        public IXFeature Current => m_RootDoc.CreateObjectFromDispatch<SwFeature>(m_CurFeat);
 
         object IEnumerator.Current => Current;
 

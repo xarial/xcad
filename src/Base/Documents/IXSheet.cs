@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Xarial.XCad.Base;
+using Xarial.XCad.UI;
 
 namespace Xarial.XCad.Documents
 {
@@ -26,5 +27,10 @@ namespace Xarial.XCad.Documents
         /// Drawings views on this sheet
         /// </summary>
         IXDrawingViewRepository DrawingViews { get; }
+
+        /// <summary>
+        /// Preview of this drawing sheet
+        /// </summary>
+        IXImage Preview { get; }
     }
 }

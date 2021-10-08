@@ -14,6 +14,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Xarial.XCad;
 using Xarial.XCad.Base;
+using Xarial.XCad.Base.Enums;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Enums;
 using Xarial.XCad.Features;
@@ -34,7 +35,7 @@ namespace StandAlone
 {
     public class MyLogger : IXLogger
     {
-        public void Log(string msg)
+        public void Log(string msg, LoggerMessageSeverity_e severity = LoggerMessageSeverity_e.Information)
         {
         }
     }
@@ -155,7 +156,8 @@ namespace StandAlone
             };
             polyline.Commit();
 
-            var reg = app.MemoryGeometryBuilder.CreatePlanarSheet(polyline).Bodies.First();
+            var reg = app.MemoryGeometryBuilder.CreatePlanarSheet(
+                app.MemoryGeometryBuilder.CreateRegionFromSegments(polyline)).Bodies.First();
 
             var pathSeg = app.Documents.Active.Selections.Last() as IXSketchSegment;
 
@@ -173,7 +175,7 @@ namespace StandAlone
 
         private static void CreateTempGeometry(IXApplication app) 
         {
-            var sweepArc = app.MemoryGeometryBuilder.WireBuilder.PreCreateArc();
+            var sweepArc = app.MemoryGeometryBuilder.WireBuilder.PreCreateCircle();
             sweepArc.Center = new Point(0, 0, 0);
             sweepArc.Axis = new Vector(0, 0, 1);
             sweepArc.Diameter = 0.01;
@@ -185,7 +187,8 @@ namespace StandAlone
             sweepLine.Commit();
 
             var sweep = app.MemoryGeometryBuilder.SolidBuilder.PreCreateSweep();
-            sweep.Profiles = new IXRegion[] { app.MemoryGeometryBuilder.CreatePlanarSheet(sweepArc).Bodies.First() };
+            sweep.Profiles = new IXRegion[] { app.MemoryGeometryBuilder.CreatePlanarSheet(
+                app.MemoryGeometryBuilder.CreateRegionFromSegments(sweepArc)).Bodies.First() };
             sweep.Path = sweepLine;
             sweep.Commit();
 
@@ -202,7 +205,7 @@ namespace StandAlone
 
             (app.Documents.Active as ISwPart).Part.CreateFeatureFromBody3(body, false, 0);
 
-            var arc = app.MemoryGeometryBuilder.WireBuilder.PreCreateArc();
+            var arc = app.MemoryGeometryBuilder.WireBuilder.PreCreateCircle();
             arc.Center = new Point(-0.1, 0, 0);
             arc.Axis = new Vector(0, 0, 1);
             arc.Diameter = 0.01;
@@ -216,7 +219,8 @@ namespace StandAlone
             var rev = app.MemoryGeometryBuilder.SolidBuilder.PreCreateRevolve();
             rev.Angle = Math.PI * 2;
             rev.Axis = axis;
-            rev.Profiles = new IXRegion[] { app.MemoryGeometryBuilder.CreatePlanarSheet(arc).Bodies.First() };
+            rev.Profiles = new IXRegion[] { app.MemoryGeometryBuilder.CreatePlanarSheet(
+                app.MemoryGeometryBuilder.CreateRegionFromSegments(arc)).Bodies.First() };
             rev.Commit();
 
             body = (rev.Bodies.First() as ISwBody).Body;
@@ -246,7 +250,8 @@ namespace StandAlone
             var extr = app.MemoryGeometryBuilder.SolidBuilder.PreCreateExtrusion();
             extr.Depth = 0.5;
             extr.Direction = new Vector(1, 1, 1);
-            extr.Profiles = new IXRegion[] { app.MemoryGeometryBuilder.CreatePlanarSheet(polyline).Bodies.First() };
+            extr.Profiles = new IXRegion[] { app.MemoryGeometryBuilder.CreatePlanarSheet(
+                app.MemoryGeometryBuilder.CreateRegionFromSegments(polyline)).Bodies.First() };
             extr.Commit();
 
             body = (extr.Bodies.First() as ISwBody).Body;

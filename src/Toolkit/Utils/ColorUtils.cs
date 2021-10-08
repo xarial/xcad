@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -12,13 +12,26 @@ using System.Text;
 
 namespace Xarial.XCad.Toolkit.Utils
 {
+    /// <summary>
+    /// Utility to convert between the .NET Color and Win32 color
+    /// </summary>
     public static class ColorUtils
     {
+        /// <summary>
+        /// Creates a Win32 color
+        /// </summary>
+        /// <param name="color">Input color</param>
+        /// <returns>Wind32 color</returns>
         public static int ToColorRef(Color color)
         {
             return (color.R << 0) | (color.G << 8) | (color.B << 16);
         }
 
+        /// <summary>
+        /// Converts Win32 color to .NET color
+        /// </summary>
+        /// <param name="colorRef">Input color</param>
+        /// <returns>Converted color</returns>
         public static Color FromColorRef(int colorRef) 
         {
             int r = colorRef & 0x000000FF;

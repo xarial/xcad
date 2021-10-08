@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -19,7 +19,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
         public PropertyManagerPageBitmapButtonControl(int id, object tag,
             IPropertyManagerPageBitmapButton bmpButton,
-            SwPropertyManagerPageHandler handler) : base(bmpButton, id, tag, handler)
+            SwPropertyManagerPageHandler handler, IPropertyManagerPageLabel label) : base(bmpButton, id, tag, handler, label)
         {
             m_Handler.ButtonPressed += OnButtonPressed;
         }

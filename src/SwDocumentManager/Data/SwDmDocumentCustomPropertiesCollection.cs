@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -29,6 +29,7 @@ namespace Xarial.XCad.SwDocumentManager.Data
         public override IEnumerator<IXProperty> GetEnumerator()
         {
             var prpNames = m_Doc.Document.GetCustomPropertyNames() as string[] ?? new string[0];
+            prpNames = prpNames.Except(new string[] { SwDmConfiguration.QTY_PROPERTY }).ToArray();
             return prpNames.Select(p => CreatePropertyInstance(p, true)).GetEnumerator();
         }
 
@@ -59,10 +60,18 @@ namespace Xarial.XCad.SwDocumentManager.Data
             }
         }
 
-        protected override object ReadValue()
+        protected override object ReadValue(out string exp)
         {
             //TODO: parse type
-            return m_Doc.Document.GetCustomProperty(Name, out SwDmCustomInfoType type);
+
+            var val = ((ISwDMDocument5)m_Doc.Document).GetCustomPropertyValues(Name, out SwDmCustomInfoType type, out exp);
+
+            if (string.IsNullOrEmpty(exp)) 
+            {
+                exp = val;
+            }
+
+            return val;
         }
 
         protected override void SetValue(object value) => m_Doc.Document.SetCustomProperty(Name, value?.ToString());

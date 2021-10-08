@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -15,11 +15,9 @@ namespace Xarial.XCad.SolidWorks.Data.EventHandlers
     internal class StreamReadAvailableEventsHandler : SwModelEventsHandler<DataStoreAvailableDelegate>
     {
         private bool m_Is3rdPartyStreamLoaded;
-        private readonly SwDocument m_Doc;
 
-        internal StreamReadAvailableEventsHandler(SwDocument doc) : base(doc)
+        internal StreamReadAvailableEventsHandler(SwDocument doc, ISwApplication app) : base(doc, app)
         {
-            m_Doc = doc;
             m_Is3rdPartyStreamLoaded = false;
         }
 
@@ -64,10 +62,10 @@ namespace Xarial.XCad.SolidWorks.Data.EventHandlers
 
         private void SubscribeIdleEvent()
         {
-            //NOTE: load from storage notification is not always raised
+            //WORKAROUND: load from storage notification is not always raised
             //it is not raised when model is loaded with assembly, it won't be also raised if the document already loaded
             //as a workaround force call loading within the idle notification
-            (m_Doc.App.Sw as SldWorks).OnIdleNotify += OnIdleHandleThirdPartyStorageNotify;
+            (m_App.Sw as SldWorks).OnIdleNotify += OnIdleHandleThirdPartyStorageNotify;
         }
 
         private int OnIdleHandleThirdPartyStorageNotify()
@@ -75,7 +73,7 @@ namespace Xarial.XCad.SolidWorks.Data.EventHandlers
             EnsureLoadFromStream();
 
             //only need to handle loading one time
-            (m_Doc.App.Sw as SldWorks).OnIdleNotify -= OnIdleHandleThirdPartyStorageNotify;
+            (m_App.Sw as SldWorks).OnIdleNotify -= OnIdleHandleThirdPartyStorageNotify;
 
             return S_OK;
         }

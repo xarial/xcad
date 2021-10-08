@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -8,6 +8,7 @@
 using SolidWorks.Interop.sldworks;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using Xarial.XCad.Documents;
@@ -39,7 +40,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         public override object Dispatch => DrawingView;
 
         internal SwDrawingView(IView drwView, SwDrawing drw, ISheet sheet, bool created) 
-            : base(drwView, drw)
+            : base(drwView, drw, drw?.OwnerApplication)
         {
             m_Drawing = drw;
             m_Creator = new ElementCreator<IView>(CreateDrawingView, drwView, created);
@@ -64,7 +65,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
             const string DRW_VIEW_TYPE_NAME = "DRAWINGVIEW";
 
-            if (!ModelDoc.Extension.SelectByID2(DrawingView.Name, DRW_VIEW_TYPE_NAME, 0, 0, 0, append, 0, null, 0)) 
+            if (!OwnerModelDoc.Extension.SelectByID2(DrawingView.Name, DRW_VIEW_TYPE_NAME, 0, 0, 0, append, 0, null, 0)) 
             {
                 throw new Exception("Failed to select drawing view");
             }
@@ -151,6 +152,58 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
+        public IXDocument3D ReferencedDocument 
+        {
+            get 
+            {
+                var refDoc = DrawingView.ReferencedDocument;
+
+                if (refDoc != null)
+                {
+                    return (IXDocument3D)((SwDocumentCollection)OwnerApplication.Documents)[refDoc];
+                }
+                else 
+                {
+                    var refDocPath = DrawingView.GetReferencedModelName();
+
+                    if (!string.IsNullOrEmpty(refDocPath))
+                    {
+
+                        if (((SwDocumentCollection)OwnerApplication.Documents).TryFindExistingDocumentByPath(refDocPath, out SwDocument doc))
+                        {
+                            return (ISwDocument3D)doc;
+                        }
+                        else
+                        {
+                            return (ISwDocument3D)((SwDocumentCollection)OwnerApplication.Documents).PreCreateFromPath(refDocPath);
+                        }
+                    }
+                    else 
+                    {
+                        return null;
+                    }
+                }
+            }
+        }
+
+        public IXConfiguration ReferencedConfiguration 
+        {
+            get 
+            {
+                var refConfName = DrawingView.ReferencedConfiguration;
+
+                if (!string.IsNullOrEmpty(refConfName))
+                {
+                    return ReferencedDocument.Configurations.First(
+                        c => string.Equals(c.Name, refConfName, StringComparison.CurrentCultureIgnoreCase));
+                }
+                else 
+                {
+                    return null;
+                }
+            }
+        }
+
         TSelObject IXObjectContainer.ConvertObject<TSelObject>(TSelObject obj) => ConvertObjectBoxed(obj) as TSelObject;
 
         public TSelObject ConvertObject<TSelObject>(TSelObject obj)
@@ -163,14 +216,14 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
             if (obj is ISwSelObject)
             {
-                if (m_Drawing.App.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2018))
+                if (OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2018))
                 {
                     var disp = (obj as ISwSelObject).Dispatch;
                     var corrDisp = DrawingView.GetCorresponding(disp);
 
                     if (corrDisp != null)
                     {
-                        return SwSelObject.FromDispatch(corrDisp, m_Drawing);
+                        return m_Drawing.CreateObjectFromDispatch<ISwSelObject>(corrDisp);
                     }
                     else
                     {

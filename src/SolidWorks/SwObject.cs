@@ -1,246 +1,74 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
 using SolidWorks.Interop.sldworks;
-using SolidWorks.Interop.swconst;
 using System;
 using System.IO;
 using Xarial.XCad.Base;
-using Xarial.XCad.SolidWorks.Annotations;
+using Xarial.XCad.Data;
+using Xarial.XCad.Exceptions;
 using Xarial.XCad.SolidWorks.Documents;
-using Xarial.XCad.SolidWorks.Features;
-using Xarial.XCad.SolidWorks.Geometry;
-using Xarial.XCad.SolidWorks.Geometry.Curves;
-using Xarial.XCad.SolidWorks.Geometry.Surfaces;
-using Xarial.XCad.SolidWorks.Sketch;
+using Xarial.XCad.Toolkit.Data;
 
 namespace Xarial.XCad.SolidWorks
 {
+    /// <summary>
+    /// Represents base interface for all SOLIDWORKS objects
+    /// </summary>
     public interface ISwObject : IXObject
     {
+        /// <summary>
+        /// SOLIDWORKS specific dispatch
+        /// </summary>
         object Dispatch { get; }
-    }
-
-    public static class SwObjectFactory 
-    {
-        public static TObj FromDispatch<TObj>(object disp, ISwDocument doc)
-            where TObj : ISwObject => SwObject.FromDispatch<TObj>(disp, doc);
     }
 
     /// <inheritdoc/>
     internal class SwObject : ISwObject
     {
-        protected IModelDoc2 ModelDoc => m_Doc.Model;
+        protected IModelDoc2 OwnerModelDoc => OwnerDocument.Model;
 
-        protected readonly ISwDocument m_Doc;
-
-        internal static TObj FromDispatch<TObj>(object disp)
-            where TObj : ISwObject
-        {
-            return (TObj)FromDispatch(disp, null);
-        }
-
-        internal static ISwObject FromDispatch(object disp)
-        {
-            return FromDispatch(disp, null);
-        }
-
-        internal static TObj FromDispatch<TObj>(object disp, ISwDocument doc)
-            where TObj : ISwObject
-        {
-            return (TObj)FromDispatch(disp, doc);
-        }
-
-        internal static ISwObject FromDispatch(object disp, ISwDocument doc)
-        {
-            return FromDispatch(disp, doc, d => new SwObject(d, doc));
-        }
-
-        internal static ISwObject FromDispatch(object disp, ISwDocument doc, Func<object, ISwObject> defaultHandler)
-        {
-            if (disp is IEntity) 
-            {
-                var safeEnt = (disp as IEntity).GetSafeEntity();
-                if (safeEnt != null) 
-                {
-                    disp = safeEnt;
-                }
-            }
-
-            switch (disp)
-            {
-                case IEdge edge:
-                    var edgeCurve = edge.IGetCurve();
-                    if (edgeCurve.IsCircle())
-                    {
-                        return new SwCircularEdge(edge, doc);
-                    }
-                    else if (edgeCurve.IsLine())
-                    {
-                        return new SwLinearEdge(edge, doc);
-                    }
-                    else
-                    {
-                        return new SwEdge(edge, doc);
-                    }
-
-                case IFace2 face:
-                    var faceSurf = face.IGetSurface();
-                    if (faceSurf.IsPlane())
-                    {
-                        return new SwPlanarFace(face, doc);
-                    }
-                    else if (faceSurf.IsCylinder())
-                    {
-                        return new SwCylindricalFace(face, doc);
-                    }
-                    else
-                    {
-                        return new SwFace(face, doc);
-                    }
-
-                case IFeature feat:
-                    switch (feat.GetTypeName()) 
-                    {
-                        case "ProfileFeature":
-                            return new SwSketch2D(doc, feat, true);
-                        case "3DProfileFeature":
-                            return new SwSketch3D(doc, feat, true);
-                        case "CutListFolder":
-                            return new SwCutListItem(doc, feat, true);
-                        default:
-                            return new SwFeature(doc, feat, true);
-                    }
-
-                case IBody2 body:
-                    
-                    var bodyType = (swBodyType_e)body.GetType();
-                    var isTemp = body.IsTemporaryBody();
-
-                    switch (bodyType)
-                    {
-                        case swBodyType_e.swSheetBody:
-                            if (body.GetFaceCount() == 1 && body.IGetFirstFace().IGetSurface().IsPlane())
-                            {
-                                if (!isTemp)
-                                {
-                                    return new SwPlanarSheetBody(body, doc);
-                                }
-                                else
-                                {
-                                    return new SwTempPlanarSheetBody(body);
-                                }
-                            }
-                            else
-                            {
-                                if (!isTemp)
-                                {
-                                    return new SwSheetBody(body, doc);
-                                }
-                                else
-                                {
-                                    return new SwTempSheetBody(body);
-                                }
-                            }
-
-                        case swBodyType_e.swSolidBody:
-                            if (!isTemp)
-                            {
-                                return new SwSolidBody(body, doc);
-                            }
-                            else
-                            {
-                                return new SwTempSolidBody(body);
-                            }
-
-                        default:
-                            throw new NotSupportedException();
-                    }
-                    
-
-                case ISketchSegment seg:
-                    switch ((swSketchSegments_e)seg.GetType()) 
-                    {
-                        case swSketchSegments_e.swSketchARC:
-                            return new SwSketchArc(doc, seg as ISketchArc, true);
-                        case swSketchSegments_e.swSketchELLIPSE:
-                            return new SwSketchEllipse(doc, seg as ISketchEllipse, true);
-                        case swSketchSegments_e.swSketchLINE:
-                            return new SwSketchLine(doc, seg as ISketchLine, true);
-                        case swSketchSegments_e.swSketchPARABOLA:
-                            return new SwSketchParabola(doc, seg as ISketchParabola, true);
-                        case swSketchSegments_e.swSketchSPLINE:
-                            return new SwSketchSpline(doc, seg as ISketchSpline, true);
-                        case swSketchSegments_e.swSketchTEXT:
-                            return new SwSketchText(doc, seg as ISketchText, true);
-                        default:
-                            throw new NotSupportedException();
-                    }
-
-                case ISketchRegion skReg:
-                    return new SwSketchRegion(skReg, doc);
-
-                case ISketchPoint skPt:
-                    return new SwSketchPoint(doc, skPt, true);
-
-                case IDisplayDimension dispDim:
-                    return new SwDimension(doc, dispDim);
-
-                case IConfiguration conf:
-                    return new SwConfiguration((SwDocument3D)doc, conf, true);
-
-                case IComponent2 comp:
-                    return new SwComponent(comp, (SwAssembly)doc);
-
-                case ISheet sheet:
-                    return new SwSheet((SwDrawing)doc, sheet);
-
-                case IView view:
-                    return new SwDrawingView(view, (SwDrawing)doc);
-
-                case ICurve curve:
-                    switch ((swCurveTypes_e)curve.Identity()) 
-                    {
-                        case swCurveTypes_e.LINE_TYPE:
-                            return new SwLineCurve(((SwDocument)doc)?.App.Sw.IGetModeler(), curve, true);
-                        case swCurveTypes_e.CIRCLE_TYPE:
-                            return new SwArcCurve(((SwDocument)doc)?.App.Sw.IGetModeler(), curve, true);
-                        default:
-                            return new SwCurve(((SwDocument)doc)?.App.Sw.IGetModeler(), curve, true);
-                    }
-
-                case ISurface surf:
-                    switch ((swSurfaceTypes_e)surf.Identity()) 
-                    {
-                        case swSurfaceTypes_e.PLANE_TYPE:
-                            return new SwPlanarSurface(surf);
-
-                        case swSurfaceTypes_e.CYLINDER_TYPE:
-                            return new SwCylindricalSurface(surf);
-
-                        default:
-                            return new SwSurface(surf);
-                    }
-
-                default:
-                    return defaultHandler.Invoke(disp);
-            }
-        }
+        internal ISwApplication OwnerApplication { get; }
+        internal virtual ISwDocument OwnerDocument { get; }
 
         public virtual object Dispatch { get; }
 
-        internal SwObject(object dispatch)
+        public virtual bool IsAlive 
         {
-            Dispatch = dispatch;
+            get 
+            {
+                try
+                {
+                    if (Dispatch != null)
+                    {
+                        if (OwnerModelDoc.Extension.GetPersistReference3(Dispatch) != null)
+                        {
+                            return true;
+                        }
+                    }
+                }
+                catch 
+                {
+                }
+
+                return false;
+            }
         }
 
-        internal SwObject(object dispatch, ISwDocument doc) : this(dispatch)
+        public ITagsManager Tags => m_TagsLazy.Value;
+
+        private readonly Lazy<ITagsManager> m_TagsLazy;
+        
+        internal SwObject(object disp, ISwDocument doc, ISwApplication app) 
         {
-            m_Doc = doc;
+            Dispatch = disp;
+            m_TagsLazy = new Lazy<ITagsManager>(() => new TagsManager());
+            OwnerDocument = doc;
+            OwnerApplication = app;
         }
 
         public virtual bool Equals(IXObject other)
@@ -270,7 +98,29 @@ namespace Xarial.XCad.SolidWorks
             }
         }
 
-        public virtual void Serialize(Stream stream) 
-            => throw new NotSupportedException("This object cannot be serialized");
+        public virtual void Serialize(Stream stream)
+        {
+            if (OwnerModelDoc != null)
+            {
+                var disp = Dispatch;
+
+                if (disp != null)
+                {
+                    var persRef = OwnerModelDoc.Extension.GetPersistReference3(disp) as byte[];
+
+                    if (persRef == null)
+                    {
+                        throw new ObjectSerializationException("Failed to serialize the object", -1);
+                    }
+
+                    stream.Write(persRef, 0, persRef.Length);
+                    return;
+                }
+            }
+            else 
+            {
+                throw new ObjectSerializationException("Model is not set for this object", -1);
+            }
+        }
     }
 }

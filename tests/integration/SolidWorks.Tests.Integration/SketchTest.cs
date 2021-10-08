@@ -26,8 +26,8 @@ namespace SolidWorks.Tests.Integration
             {
                 var part = (ISwPart)m_App.Documents.Active;
 
-                var sketch = SwObjectFactory.FromDispatch<ISwSketch2D>(
-                    part.Features["Sketch1"].Feature.GetSpecificFeature2() as ISketch, part);
+                var sketch = part.CreateObjectFromDispatch<ISwSketch2D>(
+                    part.Features["Sketch1"].Feature.GetSpecificFeature2() as ISketch);
 
                 entTypes = sketch.Entities.Where(e => !(e is ISwSketchPoint)).Select(e => e.GetType()).ToArray();
             }
@@ -35,7 +35,7 @@ namespace SolidWorks.Tests.Integration
             Assert.AreEqual(6, entTypes.Length);
             Assert.IsNotNull(entTypes.FirstOrDefault(t => typeof(ISwSketchEllipse).IsAssignableFrom(t)));
             Assert.IsNotNull(entTypes.FirstOrDefault(t => typeof(ISwSketchLine).IsAssignableFrom(t)));
-            Assert.IsNotNull(entTypes.FirstOrDefault(t => typeof(ISwSketchArc).IsAssignableFrom(t)));
+            Assert.IsNotNull(entTypes.FirstOrDefault(t => typeof(ISwSketchCircle).IsAssignableFrom(t)));
             Assert.IsNotNull(entTypes.FirstOrDefault(t => typeof(ISwSketchText).IsAssignableFrom(t)));
             Assert.IsNotNull(entTypes.FirstOrDefault(t => typeof(ISwSketchSpline).IsAssignableFrom(t)));
             Assert.IsNotNull(entTypes.FirstOrDefault(t => typeof(ISwSketchParabola).IsAssignableFrom(t)));
@@ -86,6 +86,38 @@ namespace SolidWorks.Tests.Integration
             Assert.That(0.2, Is.EqualTo(x2).Within(0.001).Percent);
             Assert.That(0.2, Is.EqualTo(y2).Within(0.001).Percent);
             Assert.That(0.2, Is.EqualTo(z2).Within(0.001).Percent);
+        }
+
+        [Test]
+        public void GetSketchEntitiesLengthTest()
+        {
+            double l1;
+            double l2;
+            double l3;
+            double l4;
+            double l5;
+
+            using (var doc = OpenDataDocument("Sketch1.SLDPRT"))
+            {
+                var part = (ISwPart)m_App.Documents.Active;
+
+                var sketch = part.CreateObjectFromDispatch<ISwSketch2D>(
+                    part.Features["Sketch1"].Feature.GetSpecificFeature2() as ISketch);
+
+                var segs = sketch.Entities.OfType<IXSketchSegment>().ToArray();
+
+                l1 = segs.OfType<ISwSketchEllipse>().First().Length;
+                l2 = segs.OfType<ISwSketchLine>().First().Length;
+                l3 = segs.OfType<ISwSketchCircle>().First().Length;
+                l4 = segs.OfType<ISwSketchSpline>().First().Length;
+                l5 = segs.OfType<ISwSketchParabola>().First().Length;
+            }
+
+            Assert.That(0.12991965190301241, Is.EqualTo(l1).Within(0.001).Percent);
+            Assert.That(0.08468717758758991, Is.EqualTo(l2).Within(0.001).Percent);
+            Assert.That(0.10094045912639603, Is.EqualTo(l3).Within(0.001).Percent);
+            Assert.That(0.16421451670784409, Is.EqualTo(l4).Within(0.001).Percent);
+            Assert.That(0.1034014049596117, Is.EqualTo(l5).Within(0.001).Percent);
         }
     }
 }

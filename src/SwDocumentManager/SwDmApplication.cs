@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -10,11 +10,14 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Text;
 using System.Threading;
+using Xarial.XCad.Base;
 using Xarial.XCad.Base.Enums;
+using Xarial.XCad.Delegates;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Enums;
 using Xarial.XCad.Geometry;
@@ -34,18 +37,22 @@ namespace Xarial.XCad.SwDocumentManager
     internal class SwDmApplication : ISwDmApplication
     {
         #region Not Supported        
-        
+
+        public event ApplicationStartingDelegate Starting { add => throw new NotSupportedException(); remove => throw new NotSupportedException(); }
+        public event ApplicationIdleDelegate Idle { add => throw new NotSupportedException(); remove => throw new NotSupportedException(); }
+
         public ApplicationState_e State { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
         public bool IsAlive => throw new NotSupportedException();
         public Rectangle WindowRectangle => throw new NotSupportedException();
         public IntPtr WindowHandle => throw new NotSupportedException();
         public Process Process => throw new NotSupportedException();
-        public IXGeometryBuilder MemoryGeometryBuilder => throw new NotSupportedException();
+        public IXMemoryGeometryBuilder MemoryGeometryBuilder => throw new NotSupportedException();
         public IXProgress CreateProgress() => throw new NotSupportedException();
         public IXMacro OpenMacro(string path) => throw new NotSupportedException();
-        public void Close() => throw new NotSupportedException();
         public MessageBoxResult_e ShowMessageBox(string msg,
             MessageBoxIcon_e icon = MessageBoxIcon_e.Info, MessageBoxButtons_e buttons = MessageBoxButtons_e.Ok)
+            => throw new NotSupportedException();
+        public void ShowTooltip(ITooltipSpec spec)
             => throw new NotSupportedException();
 
         #endregion
@@ -103,13 +110,33 @@ namespace Xarial.XCad.SwDocumentManager
             Documents = new SwDmDocumentCollection(this);
         }
 
-        private ISwDMApplication CreateApplication(CancellationToken cancellationToke)
-            => SwDmApplicationFactory.ConnectToDm(LicenseKey);
+        private ISwDMApplication CreateApplication(CancellationToken cancellationToken)
+        {
+            var licKey = LicenseKey;
+            LicenseKey = null;
+            return SwDmApplicationFactory.ConnectToDm(licKey);
+        }
 
-        public void Commit(CancellationToken cancellationToken) => m_Creator.Create(cancellationToken);
+        public void Close() 
+        {
+            foreach (var doc in Documents.ToArray()) 
+            {
+                if (doc.IsCommitted && doc.IsAlive) 
+                {
+                    doc.Close();
+                }
+            }
+
+            Marshal.ReleaseComObject(m_Creator.Element);
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+        }
+
+        public void Commit(CancellationToken cancellationToken) 
+            => m_Creator.Create(cancellationToken);
     }
 
-    public static class SwApplicationExtension
+    public static class SwDmApplicationExtension
     {
         public static bool IsVersionNewerOrEqual(this ISwDmApplication app, SwDmVersion_e version)
             => app.Version.Major >= version;

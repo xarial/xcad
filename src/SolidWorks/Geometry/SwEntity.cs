@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -8,7 +8,9 @@
 using SolidWorks.Interop.sldworks;
 using System;
 using System.Collections.Generic;
+using Xarial.XCad.Documents;
 using Xarial.XCad.Geometry;
+using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.SolidWorks.Documents;
 
 namespace Xarial.XCad.SolidWorks.Geometry
@@ -17,6 +19,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
     {
         IEntity Entity { get; }
 
+        new ISwComponent Component { get; }
         new IEnumerable<ISwEntity> AdjacentEntities { get; }
         new ISwBody Body { get; }
     }
@@ -25,6 +28,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
     {
         IXBody IXEntity.Body => Body;
         IEnumerable<IXEntity> IXEntity.AdjacentEntities => AdjacentEntities;
+        IXComponent IXEntity.Component => Component;
 
         public IEntity Entity { get; }
 
@@ -34,7 +38,24 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         public abstract IEnumerable<ISwEntity> AdjacentEntities { get; }
 
-        internal SwEntity(IEntity entity, ISwDocument doc) : base(entity, doc)
+        public ISwComponent Component 
+        {
+            get 
+            {
+                var comp = (IComponent2)Entity.GetComponent();
+
+                if (comp != null)
+                {
+                    return OwnerDocument.CreateObjectFromDispatch<ISwComponent>(comp);
+                }
+                else 
+                {
+                    return null;
+                }
+            }
+        }
+
+        internal SwEntity(IEntity entity, ISwDocument doc, ISwApplication app) : base(entity, doc, app)
         {
             Entity = entity;
         }
@@ -46,5 +67,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
                 throw new Exception("Failed to select entity");
             }
         }
+
+        public abstract Point FindClosestPoint(Point point);
     }
 }

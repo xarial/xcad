@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -32,7 +32,7 @@ namespace Xarial.XCad.SolidWorks.Utils
         {
             try
             {
-                m_Logger.Log($"Registering add-in");
+                m_Logger.Log($"Registering add-in", XCad.Base.Enums.LoggerMessageSeverity_e.Debug);
 
                 RegisterAddIn(type);
 
@@ -49,7 +49,7 @@ namespace Xarial.XCad.SolidWorks.Utils
         {
             try
             {
-                m_Logger.Log($"Unregistering add-in");
+                m_Logger.Log($"Unregistering add-in", XCad.Base.Enums.LoggerMessageSeverity_e.Debug);
 
                 UnregisterAddIn(type);
 
@@ -89,7 +89,7 @@ namespace Xarial.XCad.SolidWorks.Utils
                 string.Format(ADDIN_REG_KEY_TEMPLATE, type.GUID));
             addInKey.SetValue(null, 0);
 
-            m_Logger.Log($"Created HKLM\\{addInKey}");
+            m_Logger.Log($"Created HKLM\\{addInKey}", XCad.Base.Enums.LoggerMessageSeverity_e.Debug);
 
             addInKey.SetValue(DESCRIPTION_REG_KEY_NAME, desc);
             addInKey.SetValue(TITLE_REG_KEY_NAME, title);
@@ -98,7 +98,7 @@ namespace Xarial.XCad.SolidWorks.Utils
                 string.Format(ADDIN_STARTUP_REG_KEY_TEMPLATE, type.GUID));
             addInStartupKey.SetValue(null, Convert.ToInt32(loadAtStartup), RegistryValueKind.DWord);
 
-            m_Logger.Log($"Created HKCU\\{addInStartupKey}");
+            m_Logger.Log($"Created HKCU\\{addInStartupKey}", XCad.Base.Enums.LoggerMessageSeverity_e.Debug);
         }
 
         private void UnregisterAddIn(Type type)
@@ -109,13 +109,13 @@ namespace Xarial.XCad.SolidWorks.Utils
             if (Registry.LocalMachine.OpenSubKey(addInKey, false) != null)
             {
                 Registry.LocalMachine.DeleteSubKey(addInKey);
-                m_Logger.Log($"Deleting: HKLM\\{addInKey}");
+                m_Logger.Log($"Deleting: HKLM\\{addInKey}", XCad.Base.Enums.LoggerMessageSeverity_e.Debug);
             }
 
             if (Registry.CurrentUser.OpenSubKey(addInStartupKey, false) != null)
             {
                 Registry.CurrentUser.DeleteSubKey(addInStartupKey);
-                m_Logger.Log($"Deleting: HKCU\\{addInStartupKey}");
+                m_Logger.Log($"Deleting: HKCU\\{addInStartupKey}", XCad.Base.Enums.LoggerMessageSeverity_e.Debug);
             }
         }
     }

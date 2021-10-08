@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -127,7 +127,7 @@ namespace Xarial.XCad.Toolkit.Windows
                     opts += ROTFLAGS_ALLOWANYCLIENT;
                 }
 
-                logger?.Log($"Registering object in ROT with {opts} option");
+                logger?.Log($"Registering object in ROT with {opts} option", XCad.Base.Enums.LoggerMessageSeverity_e.Debug);
 
                 var id = rot.Register(opts, obj, moniker);
 
@@ -136,7 +136,7 @@ namespace Xarial.XCad.Toolkit.Windows
                     throw new Exception("Failed to register object in ROT");
                 }
 
-                logger?.Log($"Object id in ROT: {id}");
+                logger?.Log($"Object id in ROT: {id}", XCad.Base.Enums.LoggerMessageSeverity_e.Debug);
 
                 return id;
             }

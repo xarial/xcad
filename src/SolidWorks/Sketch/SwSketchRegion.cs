@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -29,7 +29,7 @@ namespace Xarial.XCad.SolidWorks.Sketch
     {
         IXSegment[] IXRegion.Boundary => Boundary;
 
-        internal SwSketchRegion(ISketchRegion region, ISwDocument doc) : base(region, doc)
+        internal SwSketchRegion(ISketchRegion region, ISwDocument doc, ISwApplication app) : base(region, doc, app)
         {
             Region = region;
         }
@@ -40,7 +40,7 @@ namespace Xarial.XCad.SolidWorks.Sketch
         
         public ISwCurve[] Boundary => (Region.GetEdges() as object[])
                                         .Cast<IEdge>()
-                                        .Select(e => SwObject.FromDispatch<ISwCurve>(e.IGetCurve()))
+                                        .Select(e => OwnerApplication.CreateObjectFromDispatch<ISwCurve>(e.IGetCurve(), OwnerDocument))
                                         .ToArray();
     }
 }

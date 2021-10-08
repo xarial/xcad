@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -10,6 +10,7 @@ using System.Diagnostics;
 using System.Drawing;
 using Xarial.XCad.Base;
 using Xarial.XCad.Base.Enums;
+using Xarial.XCad.Delegates;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Enums;
 using Xarial.XCad.Geometry;
@@ -21,6 +22,16 @@ namespace Xarial.XCad
     /// </summary>
     public interface IXApplication : IXTransaction
     {
+        /// <summary>
+        /// Fires when application is starting
+        /// </summary>
+        event ApplicationStartingDelegate Starting;
+
+        /// <summary>
+        /// Fires when no activity detected in the application
+        /// </summary>
+        event ApplicationIdleDelegate Idle;
+
         /// <summary>
         /// Version of the application
         /// </summary>
@@ -60,7 +71,7 @@ namespace Xarial.XCad
         /// Accesses memory geometry builder to build primitive wires, surface and solids
         /// </summary>
         /// <remarks>Usually used in the <see cref="Features.CustomFeature.IXCustomFeatureDefinition"/></remarks>
-        IXGeometryBuilder MemoryGeometryBuilder { get; }
+        IXMemoryGeometryBuilder MemoryGeometryBuilder { get; }
         
         /// <summary>
         /// Displays the message box
@@ -70,6 +81,12 @@ namespace Xarial.XCad
         /// <param name="buttons">Message box buttons</param>
         /// <returns>Button clicked by the user</returns>
         MessageBoxResult_e ShowMessageBox(string msg, MessageBoxIcon_e icon = MessageBoxIcon_e.Info, MessageBoxButtons_e buttons = MessageBoxButtons_e.Ok);
+
+        /// <summary>
+        /// Displays the modeless tooltip
+        /// </summary>
+        /// <param name="spec">Specification of the tooltip</param>
+        void ShowTooltip(ITooltipSpec spec);
 
         /// <summary>
         /// Create instance of the macro

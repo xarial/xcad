@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -39,7 +39,7 @@ namespace Xarial.XCad.SwDocumentManager.Data
             {
                 if (IsCommitted)
                 {
-                    return ReadValue();
+                    return ReadValue(out _);
                 }
                 else 
                 {
@@ -54,6 +54,34 @@ namespace Xarial.XCad.SwDocumentManager.Data
                     ValueChanged?.Invoke(this, value);
                 }
                 else 
+                {
+                    m_TempValue = value;
+                }
+            }
+        }
+
+        public string Expression
+        {
+            get
+            {
+                if (IsCommitted)
+                {
+                    ReadValue(out string exp);
+                    return exp;
+                }
+                else
+                {
+                    return m_TempValue as string;
+                }
+            }
+            set
+            {
+                if (IsCommitted)
+                {
+                    SetValue(value);
+                    ValueChanged?.Invoke(this, value);
+                }
+                else
                 {
                     m_TempValue = value;
                 }
@@ -109,7 +137,7 @@ namespace Xarial.XCad.SwDocumentManager.Data
         }
 
         internal abstract void Delete();
-        protected abstract object ReadValue();
+        protected abstract object ReadValue(out string expression);
         protected abstract void AddValue(object value);
         protected abstract void SetValue(object value);
     }

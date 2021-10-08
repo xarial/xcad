@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -21,6 +21,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 {
     public interface ISwDmDocumentCollection : IXDocumentRepository, IDisposable 
     {
+        bool TryGet(string name, out ISwDmDocument ent);
         new ISwDmDocument this[string name] { get; }
         new ISwDmDocument Active { get; set; }
     }
@@ -35,13 +36,20 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             set => Active = (ISwDmDocument)value;
         }
 
+        bool IXRepository<IXDocument>.TryGet(string name, out IXDocument ent)
+        {
+            var res = this.TryGet(name, out ISwDmDocument doc);
+            ent = doc;
+            return res;
+        }
+
         public ISwDmDocument this[string name]
         {
             get
             {
-                if (TryGet(name, out IXDocument doc))
+                if (TryGet(name, out ISwDmDocument doc))
                 {
-                    return (ISwDmDocument)doc;
+                    return doc;
                 }
                 else
                 {
@@ -70,8 +78,10 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         public int Count => m_Documents.Count;
 
-        public event DocumentActivateDelegate DocumentActivated;
-        public event DocumentCreateDelegate DocumentCreated;
+        public event DocumentEventDelegate DocumentActivated;
+        public event DocumentEventDelegate DocumentLoaded;
+        public event DocumentEventDelegate DocumentOpened;
+        public event DocumentEventDelegate NewDocumentCreated;
 
         private List<ISwDmDocument> m_Documents;
 
@@ -93,7 +103,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         public IEnumerator<IXDocument> GetEnumerator() => m_Documents.GetEnumerator();
 
-        public THandler GetHandler<THandler>(IXDocument doc) where THandler : IDocumentHandler, new()
+        public THandler GetHandler<THandler>(IXDocument doc) where THandler : IDocumentHandler
         {
             throw new NotImplementedException();
         }
@@ -111,7 +121,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             }
         }
 
-        public bool TryGet(string name, out IXDocument ent)
+        public bool TryGet(string name, out ISwDmDocument ent)
         {
             if (System.IO.Path.IsPathRooted(name))
             {
@@ -147,15 +157,19 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
             if (typeof(IXPart).IsAssignableFrom(typeof(TDocument)))
             {
-                templateDoc = new SwDmPart(m_DmApp, null, false, OnDocumentCreated, OnDocumentClosed);
+                templateDoc = new SwDmPart(m_DmApp, null, false, OnDocumentCreated, OnDocumentClosed, null);
             }
             else if (typeof(IXAssembly).IsAssignableFrom(typeof(TDocument)))
             {
-                templateDoc = new SwDmAssembly(m_DmApp, null, false, OnDocumentCreated, OnDocumentClosed);
+                templateDoc = new SwDmAssembly(m_DmApp, null, false, OnDocumentCreated, OnDocumentClosed, null);
             }
             else if (typeof(IXDrawing).IsAssignableFrom(typeof(TDocument)))
             {
-                templateDoc = new SwDmDrawing(m_DmApp, null, false, OnDocumentCreated, OnDocumentClosed);
+                templateDoc = new SwDmDrawing(m_DmApp, null, false, OnDocumentCreated, OnDocumentClosed, null);
+            }
+            else if (typeof(IXDocument3D).IsAssignableFrom(typeof(TDocument)))
+            {
+                templateDoc = new SwDmUnknownDocument3D(m_DmApp, null, false, OnDocumentCreated, OnDocumentClosed);
             }
             else if (typeof(IXDocument).IsAssignableFrom(typeof(TDocument))
                 || typeof(IXUnknownDocument).IsAssignableFrom(typeof(TDocument)))
@@ -167,7 +181,14 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                 throw new NotSupportedException("Creation of this type of document is not supported");
             }
 
-            return templateDoc as TDocument;
+            if (templateDoc is TDocument)
+            {
+                return templateDoc as TDocument;
+            }
+            else
+            {
+                throw new InvalidCastException($"{templateDoc.GetType().FullName} cannot be cast to {typeof(TDocument).FullName}");
+            }
         }
 
         internal void OnDocumentCreated(ISwDmDocument doc)

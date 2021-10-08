@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -13,10 +13,10 @@ namespace Xarial.XCad.Utils.PageBuilder.Core
 {
     public abstract class Binding<TDataModel> : IBinding
     {
+        public event Action<IBinding> Changed;
         public event Action<IBinding> ControlUpdated;
-
         public event Action<IBinding> ModelUpdated;
-
+        
         public IControl Control { get; private set; }
 
         object IBinding.Model
@@ -33,6 +33,8 @@ namespace Xarial.XCad.Utils.PageBuilder.Core
 
         protected virtual TDataModel DataModel { get; set; }
 
+        public abstract IMetadata Metadata { get; }
+
         public Binding(IControl control)
         {
             Control = control;
@@ -47,17 +49,22 @@ namespace Xarial.XCad.Utils.PageBuilder.Core
 
         public void UpdateDataModel()
         {
-            SetDataModelValue();
+            SetDataModelValue(Control.GetValue());
             ModelUpdated?.Invoke(this);
         }
 
-        protected abstract void SetDataModelValue();
+        protected void RaiseChangedEvent() 
+            => Changed?.Invoke(this);
+
+        protected abstract void SetDataModelValue(object value);
 
         protected abstract void SetUserControlValue();
 
         private void OnControlValueChanged(IControl sender, object newValue)
         {
-            UpdateDataModel();
+            SetDataModelValue(newValue);
+            ModelUpdated?.Invoke(this);
+            RaiseChangedEvent();
         }
     }
 }

@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -30,15 +30,17 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature.Toolkit
     {
         internal IMathUtility MathUtils { get; }
 
+        private readonly ISwApplication m_App;
         private readonly IXLogger m_Logger;
 
-        internal MacroFeatureParametersParser() : this(SwMacroFeatureDefinition.Application.Sw)
+        internal MacroFeatureParametersParser() : this(SwMacroFeatureDefinition.Application)
         {
         }
 
-        internal MacroFeatureParametersParser(ISldWorks app)
+        internal MacroFeatureParametersParser(ISwApplication app)
         {
-            MathUtils = app.IGetMathUtility();
+            m_App = app;
+            MathUtils = m_App.Sw.IGetMathUtility();
 
             //TODO: pass logger as parameter
             m_Logger = new TraceLogger("xCAD.MacroFeature");
@@ -69,7 +71,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature.Toolkit
             if (editBodiesObj != null)
             {
                 editBodies = editBodiesObj.Cast<IBody2>()
-                    .Select(b => SwObject.FromDispatch<SwBody>(b, (SwDocument)doc)).ToArray();
+                    .Select(b => ((SwDocument)doc).CreateObjectFromDispatch<SwBody>(b)).ToArray();
             }
             else
             {
@@ -97,7 +99,17 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature.Toolkit
 
             if (selObjects != null)
             {
-                selection = selObjects.Select(s => SwObject.FromDispatch<SwSelObject>(s, (SwDocument)doc)).ToArray();
+                selection = selObjects.Select(s =>
+                {
+                    if (s != null)
+                    {
+                        return ((SwDocument)doc).CreateObjectFromDispatch<SwSelObject>(s);
+                    }
+                    else 
+                    {
+                        return null;
+                    }
+                }).ToArray();
             }
             else
             {
@@ -117,7 +129,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature.Toolkit
 
                 for (int i = 0; i < dispDimsObj.Length; i++)
                 {
-                    dimensions[i] = new SwDimension(macroFeat.Document, dispDimsObj[i] as IDisplayDimension);
+                    dimensions[i] = new SwDimension(dispDimsObj[i] as IDisplayDimension, macroFeat.OwnerDocument, m_App);
                     dispDimsObj[i] = null;
                 }
 

@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -29,11 +29,11 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public bool TryGet(string name, out IXComponent ent)
         {
-            var comp = m_Assm.Assembly.GetComponentByName(name);
+            var comp = GetChildren().FirstOrDefault(c => string.Equals(GetRelativeName(c), name, StringComparison.CurrentCultureIgnoreCase));
 
             if (comp != null)
             {
-                ent = SwObject.FromDispatch<SwComponent>(comp, m_Assm);
+                ent = m_Assm.CreateObjectFromDispatch<SwComponent>(comp);
                 return true;
             }
             else
@@ -43,7 +43,45 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        public int Count => GetChildrenCount();
+        public int Count
+        {
+            get 
+            {
+                if (m_Assm.IsCommitted)
+                {
+                    if (m_Assm.Model.IsOpenedViewOnly())
+                    {
+                        throw new Exception("Components count is inaccurate in Large Design Review assembly");
+                    }
+
+                    return GetChildrenCount();
+                }
+                else
+                {
+                    throw new Exception("Assembly is not committed");
+                }
+            }
+        }
+
+        public int TotalCount 
+        {
+            get 
+            {
+                if (m_Assm.IsCommitted)
+                {
+                    if (m_Assm.Model.IsOpenedViewOnly())
+                    {
+                        throw new Exception("Total components count is inaccurate in Large Design Review assembly");
+                    }
+
+                    return GetTotalChildrenCount();
+                }
+                else
+                {
+                    throw new Exception("Assembly is not committed");
+                }
+            }
+        }
 
         private readonly ISwAssembly m_Assm;
 
@@ -59,6 +97,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         protected abstract IEnumerable<IComponent2> GetChildren();
         protected abstract int GetChildrenCount();
+        protected abstract int GetTotalChildrenCount();
 
         public IEnumerator<IXComponent> GetEnumerator()
         {
@@ -70,7 +109,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                 }
 
                 return (GetChildren() ?? new IComponent2[0])
-                    .Select(c => SwSelObject.FromDispatch<SwComponent>(c, m_Assm)).GetEnumerator();
+                    .Select(c => m_Assm.CreateObjectFromDispatch<SwComponent>(c)).GetEnumerator();
             }
             else 
             {
@@ -84,5 +123,26 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+        private string GetRelativeName(IComponent2 comp)
+        {
+            var parentComp = comp.GetParent();
+
+            if (parentComp == null)
+            {
+                return comp.Name2;
+            }
+            else
+            {
+                if (comp.Name2.StartsWith(parentComp.Name2, StringComparison.CurrentCultureIgnoreCase))
+                {
+                    return comp.Name2.Substring(parentComp.Name2.Length + 1);
+                }
+                else
+                {
+                    throw new Exception("Invalid component name");
+                }
+            }
+        }
     }
 }

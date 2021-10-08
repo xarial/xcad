@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -16,6 +16,9 @@ using Xarial.XCad.SwDocumentManager.Exceptions;
 
 namespace Xarial.XCad.SwDocumentManager
 {
+    /// <summary>
+    /// Provides a factory to create instance of the <see cref="ISwDmApplication"/>
+    /// </summary>
     public static class SwDmApplicationFactory
     {
         public static ISwDmApplication PreCreate() => new SwDmApplication(null, false);

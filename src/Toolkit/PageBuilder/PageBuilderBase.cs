@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -8,6 +8,7 @@
 using System;
 using System.Collections.Generic;
 using Xarial.XCad.UI.PropertyPage.Base;
+using Xarial.XCad.UI.PropertyPage.Delegates;
 using Xarial.XCad.Utils.PageBuilder.Base;
 using Xarial.XCad.Utils.PageBuilder.Internal;
 
@@ -18,7 +19,6 @@ namespace Xarial.XCad.Utils.PageBuilder
         where TGroup : IGroup
         where TControl : IControl
     {
-
         private readonly IXApplication m_App;
 
         private readonly IDataModelBinder m_DataBinder;
@@ -39,13 +39,9 @@ namespace Xarial.XCad.Utils.PageBuilder
             m_ControlConstructors = new ConstructorsContainer<TPage, TGroup>(ctrlsContstrs);
         }
 
-        public virtual TPage CreatePage<TModel>()
+        public virtual TPage CreatePage<TModel>(CreateDynamicControlsDelegate dynCtrlsHandler)
         {
             var page = default(TPage);
-
-            IEnumerable<IBinding> bindings;
-
-            IRawDependencyGroup dependencies;
 
             m_DataBinder.Bind<TModel>(
                 atts =>
@@ -53,14 +49,16 @@ namespace Xarial.XCad.Utils.PageBuilder
                     page = m_PageConstructor.Create(atts);
                     return page;
                 },
-                (Type type, IAttributeSet atts, IGroup parent, out int idRange) =>
+                (Type type, IAttributeSet atts, IGroup parent, IMetadata metadata, out int numberOfUsedIds) =>
                 {
-                    idRange = 1;
-                    return m_ControlConstructors.CreateElement(type, parent, atts, ref idRange);
-                },
-                out bindings, out dependencies);
+                    numberOfUsedIds = 1;
+                    return m_ControlConstructors.CreateElement(type, parent, atts, metadata, ref numberOfUsedIds);
+                }, dynCtrlsHandler,
+                    out IEnumerable<IBinding> bindings,
+                    out IRawDependencyGroup dependencies,
+                    out IMetadata[] allMetadata);
 
-            page.Binding.Load(m_App, bindings, dependencies);
+            page.Binding.Load(m_App, bindings, dependencies, allMetadata);
             UpdatePageDependenciesState(page);
 
             return page;

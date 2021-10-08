@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -19,7 +19,7 @@ namespace Xarial.XCad.SolidWorks.Documents.EventHandlers
     {
         private readonly ISwDocument3D m_Doc3D;
 
-        internal ConfigurationActivatedEventsHandler(ISwDocument3D doc) : base(doc)
+        internal ConfigurationActivatedEventsHandler(SwDocument3D doc, ISwApplication app) : base(doc, app)
         {
             m_Doc3D = doc;
         }

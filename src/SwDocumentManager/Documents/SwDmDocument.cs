@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -8,6 +8,7 @@
 using SolidWorks.Interop.swdocumentmgr;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -21,6 +22,7 @@ using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Documents.Exceptions;
 using Xarial.XCad.Documents.Structures;
 using Xarial.XCad.Features;
+using Xarial.XCad.Geometry;
 using Xarial.XCad.Services;
 using Xarial.XCad.SolidWorks.Data;
 using Xarial.XCad.SwDocumentManager.Data;
@@ -33,8 +35,12 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         ISwDMDocument Document { get; }
         new ISwDmVersion Version { get; }
         new ISwDmCustomPropertiesCollection Properties { get; }
+
+        TObj CreateObjectFromDispatch<TObj>(object disp)
+            where TObj : ISwDmObject;
     }
 
+    [DebuggerDisplay("{" + nameof(Title) + "}")]
     internal abstract class SwDmDocument : SwDmObject, ISwDmDocument
     {
         internal static SwDmDocumentType GetDocumentType(string path)
@@ -46,14 +52,19 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                 switch (System.IO.Path.GetExtension(path).ToLower())
                 {
                     case ".sldprt":
+                    case ".sldblk":
+                    case ".prtdot":
+                    case ".sldlfp":
                         docType = SwDmDocumentType.swDmDocumentPart;
                         break;
 
                     case ".sldasm":
+                    case ".asmdot":
                         docType = SwDmDocumentType.swDmDocumentAssembly;
                         break;
 
                     case ".slddrw":
+                    case ".drwdot":
                         docType = SwDmDocumentType.swDmDocumentDrawing;
                         break;
 
@@ -75,8 +86,14 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         public IXFeatureRepository Features => throw new NotImplementedException();
         public IXSelectionRepository Selections => throw new NotSupportedException();
         public IXDimensionRepository Dimensions => throw new NotSupportedException();
-        public event DocumentRebuildDelegate Rebuild;
-        public IXObject DeserializeObject(Stream stream) => throw new NotSupportedException();
+        public event DocumentEventDelegate Rebuilt
+        {
+            add => throw new NotSupportedException();
+            remove => throw new NotSupportedException();
+        }
+        public TObj DeserializeObject<TObj>(Stream stream) where TObj : IXObject => throw new NotSupportedException();
+        public void Rebuild() => throw new NotSupportedException();
+        public IXUnits Units => throw new NotSupportedException();
 
         #endregion
 
@@ -87,12 +104,22 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         public ISwDmVersion Version => SwDmApplicationFactory.CreateVersion((SwDmVersion_e)Document.GetVersion());
 
-        public string Title 
+        public virtual string Title 
         {
-            get => System.IO.Path.GetFileName(Path);
+            get 
+            {
+                if (IsFileExtensionShown)
+                {
+                    return System.IO.Path.GetFileName(Path);
+                }
+                else
+                {
+                    return System.IO.Path.GetFileNameWithoutExtension(Path);
+                }
+            }
             set => throw new NotSupportedException("This property is read-only");
         }
-        
+
         public string Path 
         {
             get 
@@ -160,12 +187,10 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                 }
             }
         }
-
-        public ITagsManager Tags { get; }
-
+        
         private bool? m_IsClosed;
 
-        public bool IsAlive 
+        public override bool IsAlive 
         {
             get 
             {
@@ -190,77 +215,130 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             }
         }
 
-        public IXDocument3D[] Dependencies 
+        public IEnumerable<IXDocument3D> Dependencies 
         {
             get 
             {
-                var searchOpts = SwDmApp.SwDocMgr.GetSearchOptionObject();
-                searchOpts.SearchFilters = (int)(
-                    SwDmSearchFilters.SwDmSearchExternalReference 
-                    | SwDmSearchFilters.SwDmSearchRootAssemblyFolder 
-                    | SwDmSearchFilters.SwDmSearchSubfolders 
-                    | SwDmSearchFilters.SwDmSearchInContextReference);
+                ISwDMDocument doc = null;
 
-                var processed = new List<string>();
-
-                processed.Add(Path);
-
-                return TraverseDependencies(this, searchOpts, processed).ToArray();
-            }
-        }
-
-        private IEnumerable<ISwDmDocument3D> TraverseDependencies(
-            ISwDmDocument parent, SwDMSearchOption searchOpts, List<string> processed) 
-        {
-            string[] deps;
-
-            if (SwDmApp.IsVersionNewerOrEqual(SwDmVersion_e.Sw2017))
-            {
-                deps = ((ISwDMDocument21)parent.Document).GetAllExternalReferences5(searchOpts, out _, out _, out _, out _) as string[];
-            }
-            else
-            {
-                deps = ((ISwDMDocument21)parent.Document).GetAllExternalReferences4(searchOpts, out _, out _, out _) as string[];
-            }
-
-            if (deps != null)
-            {
-                foreach(var dep in deps)
+                try
                 {
-                    if (!processed.Contains(dep, StringComparer.CurrentCultureIgnoreCase))
+                    if (IsCommitted)
                     {
-                        processed.Add(dep);
+                        doc = Document;
+                    }
+                    else
+                    {
+                        doc = OpenDocument(Path, DocumentState_e.ReadOnly);
+                    }
 
-                        if (File.Exists(dep))
+                    var searchOpts = SwDmApp.SwDocMgr.GetSearchOptionObject();
+
+                    searchOpts.SearchFilters = (int)(
+                        SwDmSearchFilters.SwDmSearchExternalReference
+                        | SwDmSearchFilters.SwDmSearchRootAssemblyFolder
+                        | SwDmSearchFilters.SwDmSearchSubfolders
+                        | SwDmSearchFilters.SwDmSearchInContextReference);
+
+                    string[] deps;
+                    object isVirtualObj;
+
+                    if (SwDmApp.IsVersionNewerOrEqual(SwDmVersion_e.Sw2017))
+                    {
+                        deps = ((ISwDMDocument21)doc).GetAllExternalReferences5(searchOpts, out _, out isVirtualObj, out _, out _) as string[];
+                    }
+                    else
+                    {
+                        deps = ((ISwDMDocument13)doc).GetAllExternalReferences4(searchOpts, out _, out isVirtualObj, out _) as string[];
+                    }
+
+                    if (deps != null)
+                    {
+                        var isVirtual = (bool[])isVirtualObj;
+
+                        if (isVirtual.Length != deps.Length) 
                         {
-                            yield return (ISwDmDocument3D)SwDmApp.Documents.PreCreateFromPath(dep);
+                            throw new Exception("Invalid API. Number of virtual components information does not match references count");
+                        }
 
-                            ISwDmDocument3D doc = null;
+                        var compsLazy = new Lazy<ISwDmComponent[]>(
+                            () =>
+                            {
+                                if (string.Equals(System.IO.Path.GetExtension(Path), ".sldasm", StringComparison.CurrentCultureIgnoreCase))
+                                {
+                                    var activeConfName = doc.ConfigurationManager.GetActiveConfigurationName();
+                                    var conf = (ISwDMConfiguration2)doc.ConfigurationManager.GetConfigurationByName(activeConfName);
+                                    var comps = (object[])conf.GetComponents();
+                                    if (comps != null)
+                                    {
+                                        return comps.Select(c => CreateObjectFromDispatch<ISwDmComponent>(c)).ToArray();
+                                    }
+                                    else 
+                                    {
+                                        return new ISwDmComponent[0];
+                                    }
+                                }
+                                else 
+                                {
+                                    throw new Exception("Components can only be extracted from the assembly");
+                                }
+                            });
 
+                        bool TryFindVirtualDocument(string filePath, out ISwDmDocument3D virtCompDoc)
+                        {
                             try
                             {
-                                doc = (ISwDmDocument3D)SwDmApp.Documents.Open(dep, DocumentState_e.ReadOnly);
+                                var comp = compsLazy.Value.FirstOrDefault(c => string.Equals(
+                                    System.IO.Path.GetFileName(c.CachedPath), System.IO.Path.GetFileName(filePath),
+                                    StringComparison.CurrentCultureIgnoreCase));
+
+                                if (comp != null)
+                                {
+                                    virtCompDoc = comp.ReferencedDocument;
+                                    return true;
+                                }
                             }
                             catch
                             {
                             }
 
-                            if (doc != null)
+                            virtCompDoc = null;
+                            return false;
+                        }
+
+                        for (int i = 0; i < deps.Length; i++) 
+                        {
+                            var depPath = deps[i];
+
+                            ISwDmDocument3D depDoc;
+
+                            if (!isVirtual[i] || !TryFindVirtualDocument(depPath, out depDoc))
                             {
-                                foreach (var childDoc in TraverseDependencies(doc, searchOpts, processed))
+                                try
                                 {
-                                    yield return (ISwDmDocument3D)SwDmApp.Documents.PreCreateFromPath(childDoc.Path);
+                                    depDoc = (ISwDmDocument3D)SwDmApp.Documents.PreCreateFromPath(depPath);
+                                }
+                                catch
+                                {
+                                    depDoc = SwDmApp.Documents.PreCreate<ISwDmDocument3D>();
+                                    depDoc.Path = depPath;
+                                }
+
+                                if (State.HasFlag(DocumentState_e.ReadOnly))
+                                {
+                                    depDoc.State = DocumentState_e.ReadOnly;
                                 }
                             }
-
-                            doc?.Close();
-
+                            
+                            yield return depDoc;
                         }
-                        else
-                        {
-                            var doc = (ISwDmDocument3D)SwDmApp.Documents.PreCreateFromPath(dep);
-                            yield return doc;
-                        }
+                    }
+                }
+                finally 
+                {
+                    if (!IsCommitted && doc != null) 
+                    {
+                        doc.CloseDoc();
                     }
                 }
             }
@@ -277,7 +355,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         
         public event DocumentSaveDelegate Saving;
         public event DocumentCloseDelegate Closing;
-
+        
         protected readonly ElementCreator<ISwDMDocument> m_Creator;
 
         internal protected ISwDmApplication SwDmApp { get; }
@@ -298,7 +376,6 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             m_CreateHandler = createHandler;
             m_CloseHandler = closeHandler;
 
-            Tags = new TagsManager();
             m_Creator = new ElementCreator<ISwDMDocument>(OpenDocument, doc, isCreated);
 
             m_Properties = new Lazy<ISwDmCustomPropertiesCollection>(() => new SwDmDocumentCustomPropertiesCollection(this));
@@ -306,6 +383,8 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         public override object Dispatch => Document;
 
+        public int UpdateStamp => Document.GetLastUpdateStamp();
+        
         public override bool Equals(IXObject other)
         {
             if (!object.ReferenceEquals(this, other)
@@ -325,21 +404,30 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         {
             m_IsReadOnly = State.HasFlag(DocumentState_e.ReadOnly);
 
-            var doc = SwDmApp.SwDocMgr.GetDocument(Path, GetDocumentType(Path), 
-                m_IsReadOnly.Value, out SwDmDocumentOpenError err);
+            var doc = OpenDocument(Path, State);
+
+            StreamReadAvailable?.Invoke(this);
+            StorageReadAvailable?.Invoke(this);
+
+            return doc;
+        }
+
+        private ISwDMDocument OpenDocument(string path, DocumentState_e state)
+        {
+            var isReadOnly = state.HasFlag(DocumentState_e.ReadOnly);
+
+            var doc = SwDmApp.SwDocMgr.GetDocument(path, GetDocumentType(path),
+                isReadOnly, out SwDmDocumentOpenError err);
 
             if (doc != null)
             {
-                StreamReadAvailable?.Invoke(this);
-                StorageReadAvailable?.Invoke(this);
-
                 return doc;
             }
             else
             {
                 string errDesc;
 
-                switch (err) 
+                switch (err)
                 {
                     case SwDmDocumentOpenError.swDmDocumentOpenErrorFail:
                         errDesc = "Generic error";
@@ -354,8 +442,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                         break;
 
                     case SwDmDocumentOpenError.swDmDocumentOpenErrorFileReadOnly:
-                        errDesc = "File is read-only and cannot be opened for write access";
-                        break;
+                        throw new DocumentWriteAccessDeniedException(path, (int)err);
 
                     case SwDmDocumentOpenError.swDmDocumentOpenErrorNoLicense:
                         errDesc = "No Document Manager license found";
@@ -370,14 +457,14 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                         break;
                 }
 
-                throw new OpenDocumentFailedException(Path, (int)err, errDesc);
+                throw new OpenDocumentFailedException(path, (int)err, errDesc);
             }
         }
 
         public void Close()
         {
             Document.CloseDoc();
-            Closing?.Invoke(this);
+            Closing?.Invoke(this, DocumentCloseType_e.Destroy);
 
             m_CloseHandler.Invoke(this);
             m_IsClosed = true;
@@ -473,6 +560,43 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                 throw new SaveDocumentFailedException((int)res, errDesc);
             }
         }
+
+        private bool IsFileExtensionShown
+        {
+            get
+            {
+                try
+                {
+                    const string REG_KEY = @"Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced";
+                    const int UNCHECKED = 0;
+                    var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(REG_KEY);
+
+                    if (key != null)
+                    {
+                        return (int)key.GetValue("HideFileExt") == UNCHECKED;
+                    }
+                }
+                catch
+                {
+                }
+
+                return false;
+            }
+        }
+
+        public TObj CreateObjectFromDispatch<TObj>(object disp) where TObj : ISwDmObject
+            => SwDmObjectFactory.FromDispatch<TObj>(disp, this);
+
+        public void Dispose()
+        {
+            if (m_IsClosed != true)
+            {
+                if (IsAlive)
+                {
+                    Close();
+                }
+            }
+        }
     }
 
     internal class SwDmUnknownDocument : SwDmDocument, IXUnknownDocument
@@ -502,34 +626,50 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                 return m_SpecificDoc;
             }
 
-            var model = Document;
-
-            if (model == null)
-            {
-                throw new Exception("Model is not yet created, cannot get specific document");
-            }
+            var model = IsCommitted ? Document : null;
 
             var isReadOnly = State.HasFlag(DocumentState_e.ReadOnly);
 
             switch (GetDocumentType(Path))
             {
                 case SwDmDocumentType.swDmDocumentPart:
-                    m_SpecificDoc = new SwDmPart(SwDmApp, model, true, m_CreateHandler, m_CloseHandler, isReadOnly);
+                    m_SpecificDoc = new SwDmPart(SwDmApp, model, IsCommitted, m_CreateHandler, m_CloseHandler, isReadOnly);
                     break;
 
                 case SwDmDocumentType.swDmDocumentAssembly:
-                    m_SpecificDoc = new SwDmAssembly(SwDmApp, model, true, m_CreateHandler, m_CloseHandler, isReadOnly);
+                    m_SpecificDoc = new SwDmAssembly(SwDmApp, model, IsCommitted, m_CreateHandler, m_CloseHandler, isReadOnly);
                     break;
 
                 case SwDmDocumentType.swDmDocumentDrawing:
-                    m_SpecificDoc = new SwDmDrawing(SwDmApp, model, true, m_CreateHandler, m_CloseHandler, isReadOnly);
+                    m_SpecificDoc = new SwDmDrawing(SwDmApp, model, IsCommitted, m_CreateHandler, m_CloseHandler, isReadOnly);
                     break;
 
                 default:
                     throw new Exception("Invalid document type");
             }
 
+            if (!IsCommitted) 
+            {
+                //TODO: implement copy cache on ElementCreator
+                m_SpecificDoc.Path = Path;
+            }
+
             return m_SpecificDoc;
         }
+    }
+
+    internal class SwDmUnknownDocument3D : SwDmUnknownDocument, ISwDmDocument3D
+    {
+        public SwDmUnknownDocument3D(ISwDmApplication dmApp, SwDMDocument doc, bool isCreated, Action<ISwDmDocument> createHandler, Action<ISwDmDocument> closeHandler, bool? isReadOnly = null)
+            : base(dmApp, doc, isCreated, createHandler, closeHandler, isReadOnly)
+        {
+        }
+
+        public ISwDmConfigurationCollection Configurations => throw new NotImplementedException();
+        public IXModelViewRepository ModelViews => throw new NotImplementedException();
+        IXConfigurationRepository IXDocument3D.Configurations => throw new NotImplementedException();
+        public IXBoundingBox PreCreateBoundingBox() => throw new NotImplementedException();
+        public IXMassProperty PreCreateMassProperty() => throw new NotImplementedException();
+        TSelObject IXObjectContainer.ConvertObject<TSelObject>(TSelObject obj) => throw new NotImplementedException();
     }
 }

@@ -14,10 +14,14 @@ using System.Xml.Serialization;
 using Xarial.XCad;
 using Xarial.XCad.Data.Enums;
 using Xarial.XCad.Documents;
+using Xarial.XCad.Documents.Attributes;
+using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Documents.Services;
+using Xarial.XCad.SolidWorks.Documents;
 
 namespace SwAddInExample
 {
+    [DocumentHandlerFilter(typeof(ISwDocument3D))]
     public class SwDocHandler : IDocumentHandler
     {
         public class RevData
@@ -46,7 +50,7 @@ namespace SwAddInExample
             m_Model.StorageReadAvailable += LoadFromStorage;
             m_Model.StorageWriteAvailable += SaveToStorage;
 
-            m_App.ShowMessageBox($"Opened {model.Title}");
+            //m_App.ShowMessageBox($"Opened {model.Title}");
         }
 
         private void SaveToStream(IXDocument doc)
@@ -156,7 +160,9 @@ namespace SwAddInExample
             m_Model.StorageReadAvailable -= LoadFromStorage;
             m_Model.StorageWriteAvailable -= SaveToStorage;
 
-            m_App.ShowMessageBox($"Closed {m_Model.Title}");
+            System.Diagnostics.Debug.Print($"Closed {m_Model.Title}");
+
+            //m_App.ShowMessageBox($"Closed {m_Model.Title}");
         }
     }
 }

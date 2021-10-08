@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -19,7 +19,7 @@ namespace Xarial.XCad.SolidWorks.Documents.EventHandlers
     {
         private readonly ISwPart m_Part;
 
-        internal CutListRebuildEventsHandler(ISwPart part) : base(part)
+        internal CutListRebuildEventsHandler(SwPart part, ISwApplication app) : base(part, app)
         {
             m_Part = part;
         }

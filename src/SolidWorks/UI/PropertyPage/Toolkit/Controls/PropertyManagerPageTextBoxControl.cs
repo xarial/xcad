@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -16,7 +16,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
         internal PropertyManagerPageTextBoxControl(int id, object tag,
             IPropertyManagerPageTextbox textBox,
-            SwPropertyManagerPageHandler handler) : base(textBox, id, tag, handler)
+            SwPropertyManagerPageHandler handler, IPropertyManagerPageLabel label) : base(textBox, id, tag, handler, label)
         {
             m_Handler.TextChanged += OnTextChanged;
         }
@@ -30,14 +30,10 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
         }
 
         protected override string GetSpecificValue()
-        {
-            return SwSpecificControl.Text;
-        }
+            => SwSpecificControl.Text;
 
         protected override void SetSpecificValue(string value)
-        {
-            SwSpecificControl.Text = value;
-        }
+            => SwSpecificControl.Text = value;
 
         protected override void Dispose(bool disposing)
         {

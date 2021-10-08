@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -13,6 +13,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Xarial.XCad.Base.Enums;
+using Xarial.XCad.Toolkit.PageBuilder.Constructors;
 using Xarial.XCad.UI.PropertyPage;
 using Xarial.XCad.UI.PropertyPage.Services;
 using Xarial.XCad.Utils.PageBuilder.PageElements;
@@ -26,38 +27,66 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
         private readonly ISwApplication m_App;
         private readonly Type m_ObjType;
+        private readonly Type m_ElementType;
         private readonly ISelectionCustomFilter m_CustomFilter;
+
+        private readonly bool m_DefaultFocus;
 
         public PropertyManagerPageSelectionBoxControl(ISwApplication app, int id, object tag,
             IPropertyManagerPageSelectionbox selBox,
-            SwPropertyManagerPageHandler handler, Type objType, ISelectionCustomFilter customFilter = null)
-            : base(selBox, id, tag, handler)
+            SwPropertyManagerPageHandler handler, Type objType, ISelectionCustomFilter customFilter, bool defaultFocus, IPropertyManagerPageLabel label)
+            : base(selBox, id, tag, handler, label)
         {
             m_App = app;
             m_ObjType = objType;
+            m_ElementType = SelectionBoxConstructorHelper.GetElementType(m_ObjType);
             m_CustomFilter = customFilter;
+
+            m_DefaultFocus = defaultFocus;
 
             m_Handler.SelectionChanged += OnSelectionChanged;
 
-            if (m_CustomFilter != null)
+            if (m_DefaultFocus)
             {
-                m_Handler.SubmitSelection += OnSubmitSelection;
+                m_Handler.Opened += OnPageOpened;
+            }
+
+            m_Handler.SubmitSelection += OnSubmitSelection;
+        }
+
+        private void OnPageOpened()
+        {
+            if (m_DefaultFocus) 
+            {
+                if (Visible)
+                {
+                    SwSpecificControl.SetSelectionFocus();
+                }
             }
         }
 
         internal IPropertyManagerPageSelectionbox SelectionBox => SwSpecificControl;
 
-        private SwSelObject ToSelObject(object disp) => SwSelObject.FromDispatch(disp, m_App.Documents.Active);
+        private SwSelObject ToSelObject(object disp) => m_App.Documents.Active.CreateObjectFromDispatch<SwSelObject>(disp);
 
-        private void OnSubmitSelection(int Id, object Selection, int SelType, ref string ItemText, ref bool res)
+        private void OnSubmitSelection(int id, object selection, int selType, ref string itemText, ref bool res)
         {
-            if (Id == this.Id)
+            if (id == this.Id)
             {
-                Debug.Assert(m_CustomFilter != null, "This event must not be attached if custom filter is not specified");
+                var selObj = ToSelObject(selection);
 
-                //TODO: implement conversion
-                res = m_CustomFilter.Filter(this, ToSelObject(Selection),
-                    (SelectType_e)SelType, ref ItemText);
+                if (m_ElementType.IsAssignableFrom(selObj.GetType()))
+                {
+                    if (m_CustomFilter != null)
+                    {
+                        res = m_CustomFilter.Filter(this, selObj,
+                            (SelectType_e)selType, ref itemText);
+                    }
+                }
+                else 
+                {
+                    res = false;
+                }
             }
         }
 

@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -16,7 +16,7 @@ namespace Xarial.XCad.SolidWorks.Documents.EventHandlers
 {
     internal class ClearSelectionEventHandler : SwModelEventsHandler<ClearSelectionDelegate>
     {
-        internal ClearSelectionEventHandler(SwDocument doc) : base(doc)
+        internal ClearSelectionEventHandler(SwDocument doc, ISwApplication app) : base(doc, app)
         {            
         }
 

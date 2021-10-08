@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -27,13 +27,16 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
         : Control<TVal>, IPropertyManagerPageControlEx
         where TSwControl : class
     {
-        protected SwPropertyManagerPageHandler m_Handler;
+        private readonly IPropertyManagerPageLabel m_Label;
+        protected readonly SwPropertyManagerPageHandler m_Handler;
 
-        protected PropertyManagerPageBaseControl(TSwControl ctrl, int id, object tag, SwPropertyManagerPageHandler handler)
+        protected PropertyManagerPageBaseControl(TSwControl ctrl, int id, object tag,
+            SwPropertyManagerPageHandler handler, IPropertyManagerPageLabel label)
             : base(id, tag)
         {
             SwSpecificControl = ctrl;
             m_Handler = handler;
+            m_Label = label;
         }
 
         protected TSwControl SwSpecificControl { get; private set; }

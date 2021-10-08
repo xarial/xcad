@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -16,6 +16,7 @@ using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Primitives;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Geometry.Wires;
+using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Geometry.Curves;
 using Xarial.XCad.SolidWorks.Geometry.Exceptions;
 
@@ -29,8 +30,8 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
 
     internal class SwTempRevolve : SwTempPrimitive, ISwTempRevolve
     {
-        internal SwTempRevolve(IMathUtility mathUtils, IModeler modeler, SwTempBody[] bodies, bool isCreated) 
-            : base(mathUtils, modeler, bodies, isCreated)
+        internal SwTempRevolve(SwTempBody[] bodies, ISwApplication app, bool isCreated) 
+            : base(bodies, app, isCreated)
         {
         }
 
@@ -116,7 +117,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
                     throw new Exception("Failed to create revolve body");
                 }
 
-                bodies.Add(SwSelObject.FromDispatch<SwTempBody>(body.First()));
+                bodies.Add(m_App.CreateObjectFromDispatch<SwTempBody>(body.First(), null));
             }
             
             return bodies.ToArray();

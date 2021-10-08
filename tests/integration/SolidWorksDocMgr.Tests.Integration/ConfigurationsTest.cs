@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Xarial.XCad.Documents;
+using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Exceptions;
 using Xarial.XCad.SwDocumentManager.Documents;
 
@@ -116,10 +117,30 @@ namespace SolidWorksDocMgr.Tests.Integration
                 p4 = confs["Conf5"].PartNumber;
             }
 
-            Assert.AreEqual("PartNumber1", System.IO.Path.GetFileNameWithoutExtension(p1));
+            Assert.AreEqual("PartNumber1", p1);
             Assert.AreEqual("Conf1", p2);
             Assert.AreEqual("Conf3", p3);
             Assert.AreEqual("ABC", p4);
+        }
+
+        [Test]
+        public void BomChildrenDisplayTest()
+        {
+            BomChildrenSolving_e s1;
+            BomChildrenSolving_e s2;
+            BomChildrenSolving_e s3;
+
+            using (var doc = OpenDataDocument("BomChildrenDisplay.SLDASM"))
+            {
+                var confs = (m_App.Documents.Active as ISwDmDocument3D).Configurations;
+                s1 = confs["Conf1"].BomChildrenSolving;
+                s2 = confs["Conf2"].BomChildrenSolving;
+                s3 = confs["Conf3"].BomChildrenSolving;
+            }
+
+            Assert.AreEqual(BomChildrenSolving_e.Show, s1);
+            Assert.AreEqual(BomChildrenSolving_e.Hide, s2);
+            Assert.AreEqual(BomChildrenSolving_e.Promote, s3);
         }
     }
 }
