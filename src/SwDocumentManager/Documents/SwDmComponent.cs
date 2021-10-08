@@ -214,7 +214,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                                         }
                                         else 
                                         {
-                                            doc = new SwDmVirtualPart(m_ParentAssm.SwDmApp, dmDoc, true,
+                                            doc = new SwDmVirtualPart(m_ParentAssm.SwDmApp, dmDoc, m_ParentAssm, true,
                                                 docsColl.OnDocumentCreated,
                                                 docsColl.OnDocumentClosed, isReadOnly);
                                         }
@@ -228,7 +228,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                                         }
                                         else 
                                         {
-                                            doc = new SwDmVirtualAssembly(m_ParentAssm.SwDmApp, dmDoc, true,
+                                            doc = new SwDmVirtualAssembly(m_ParentAssm.SwDmApp, dmDoc, m_ParentAssm, true,
                                                 docsColl.OnDocumentCreated,
                                                 docsColl.OnDocumentClosed, isReadOnly);
                                         }

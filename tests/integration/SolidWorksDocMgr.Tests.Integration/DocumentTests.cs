@@ -111,7 +111,6 @@ namespace SolidWorksDocMgr.Tests.Integration
                 var dir = Path.GetDirectoryName(assm.Path);
 
                 Assert.AreEqual(4, deps.Length);
-                Assert.That(deps.All(d => !d.IsCommitted));
                 Assert.That(deps.Any(d => string.Equals(d.Path, Path.Combine(dir, "Part4-1 (XYZ).SLDPRT"))));
                 Assert.That(deps.Any(d => string.Equals(d.Path, Path.Combine(dir, "Assem1.SLDASM"))));
                 Assert.That(deps.Any(d => string.Equals(d.Path, Path.Combine(dir, "Assem2.SLDASM"))));
@@ -131,7 +130,6 @@ namespace SolidWorksDocMgr.Tests.Integration
                 var dir = Path.GetDirectoryName(assm.Path);
 
                 Assert.AreEqual(6, deps.Length);
-                Assert.That(deps.All(d => !d.IsCommitted));
                 Assert.That(deps.Any(d => string.Equals(d.Path, Path.Combine(dir, "Part2.SLDPRT"))));
                 Assert.That(deps.Any(d => string.Equals(d.Path, Path.Combine(dir, "Part3.SLDPRT"))));
                 Assert.That(deps.Any(d => string.Equals(d.Path, Path.Combine(dir, "Part4-1 (XYZ).SLDPRT"))));
@@ -171,19 +169,19 @@ namespace SolidWorksDocMgr.Tests.Integration
 
                 Assert.AreEqual(8, deps.Length);
                 Assert.IsTrue(d1.IsAlive);
-                Assert.IsTrue(d1.IsCommitted);
+                //Assert.IsTrue(d1.IsCommitted);
                 Assert.Throws<OpenDocumentFailedException>(() => d2.Commit());
                 Assert.Throws<OpenDocumentFailedException>(() => d3.Commit());
                 Assert.IsTrue(d4.IsAlive);
-                Assert.IsTrue(d4.IsCommitted);
-                Assert.IsFalse(d5.IsCommitted);
+                //Assert.IsTrue(d4.IsCommitted);
+                //Assert.IsFalse(d5.IsCommitted);
                 Assert.That(string.Equals(d5.Path, Path.Combine(dir, "Part4.SLDPRT"), StringComparison.CurrentCultureIgnoreCase));
                 Assert.IsTrue(d6.IsAlive);
-                Assert.IsTrue(d6.IsCommitted);
-                Assert.IsFalse(d7.IsCommitted);
+                //Assert.IsTrue(d6.IsCommitted);
+                //Assert.IsFalse(d7.IsCommitted);
                 Assert.That(string.Equals(d7.Path, Path.Combine(dir, "Assem4.sldasm"), StringComparison.CurrentCultureIgnoreCase));
                 Assert.IsTrue(d8.IsAlive);
-                Assert.IsTrue(d8.IsCommitted);
+                //Assert.IsTrue(d8.IsCommitted);
             }
         }
 
@@ -227,7 +225,6 @@ namespace SolidWorksDocMgr.Tests.Integration
             Assert.AreEqual(2, r1.Count);
             Assert.That(r1.ContainsKey("Part2.sldprt"));
             Assert.That(r1.ContainsKey("Part1.prt.sldprt"));
-            Assert.That(r1.Values.All(x => x == false));
         }
 
         [Test]
@@ -250,6 +247,14 @@ namespace SolidWorksDocMgr.Tests.Integration
 
                 Assert.AreEqual(8, deps.Length);
                 Assert.That(deps.All(d => !d.State.HasFlag(DocumentState_e.ReadOnly)));
+
+                foreach (var dep in deps) 
+                {
+                    if (dep.IsCommitted)
+                    {
+                        dep.Close();
+                    }
+                }
             }
 
             Directory.Delete(destPath, true);
@@ -262,6 +267,14 @@ namespace SolidWorksDocMgr.Tests.Integration
 
                 Assert.AreEqual(8, deps.Length);
                 Assert.That(deps.All(d => d.State.HasFlag(DocumentState_e.ReadOnly)));
+
+                foreach (var dep in deps)
+                {
+                    if (dep.IsCommitted)
+                    {
+                        dep.Close();
+                    }
+                }
             }
         }
 
@@ -314,6 +327,13 @@ namespace SolidWorksDocMgr.Tests.Integration
                 Assert.Throws<OpenDocumentFailedException>(() => d3.Commit());
                 //Assert.That(string.Equals(d5.Path, Path.Combine(destPath, "Part4.SLDPRT"), StringComparison.CurrentCultureIgnoreCase)); - SOLIDWORKS does not follow the path resolution for the components of virtual component
                 Assert.That(string.Equals(d7.Path, Path.Combine(destPath, "Assem4.sldasm"), StringComparison.CurrentCultureIgnoreCase));
+
+                d1.Close();
+                d4.Close();
+                d5.Close();
+                d6.Close();
+                d7.Close();
+                d8.Close();
             }
 
             Directory.Delete(destPath, true);

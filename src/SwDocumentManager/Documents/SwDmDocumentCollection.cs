@@ -127,25 +127,27 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             {
                 ent = m_Documents.FirstOrDefault(
                     d => string.Equals(d.Path, name, StringComparison.CurrentCultureIgnoreCase));
-
-                return ent != null;
             }
             else if (System.IO.Path.HasExtension(name))
             {
                 ent = m_Documents.FirstOrDefault(
                     d => string.Equals(System.IO.Path.GetFileName(d.Path), name,
                     StringComparison.CurrentCultureIgnoreCase));
-
-                return ent != null;
             }
             else
             {
                 ent = m_Documents.FirstOrDefault(
                     d => string.Equals(System.IO.Path.GetFileNameWithoutExtension(d.Path),
                     name, StringComparison.CurrentCultureIgnoreCase));
-
-                return ent != null;
             }
+
+            if (ent?.IsAlive == false) 
+            {
+                ent.Close();
+                ent = null;
+            }
+
+            return ent != null;
         }
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
