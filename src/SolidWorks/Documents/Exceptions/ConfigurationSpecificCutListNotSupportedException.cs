@@ -15,7 +15,7 @@ namespace Xarial.XCad.SolidWorks.Documents.Exceptions
     public class ConfigurationSpecificCutListNotSupportedException : NotSupportedException, IUserException
     {
         public ConfigurationSpecificCutListNotSupportedException() 
-            : base("Configuration specific cut-lists are not supported. Instead modify the properties in active configuration only") 
+            : base("Configuration specific cut-lists are not supported. Instead access cut-lists from an active configuration") 
         {
         }
     }

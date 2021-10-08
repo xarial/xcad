@@ -13,9 +13,9 @@ using Xarial.XCad.Exceptions;
 
 namespace Xarial.XCad.SolidWorks.Geometry.Exceptions
 {
-    public class NotLoadedMassPropertyComponentException : NullReferenceException, IUserException
+    internal class NotLoadedMassPropertyComponentException : NotSupportedException
     {
-        public NotLoadedMassPropertyComponentException(IXComponent comp) 
+        internal NotLoadedMassPropertyComponentException(IXComponent comp) 
             : base($"Reference document of the component '{comp.Name}' must be loaded in order to access this mass property in SOLIDWORKS 2019 or older") 
         {
         }

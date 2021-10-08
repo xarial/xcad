@@ -28,13 +28,13 @@ namespace Xarial.XCad.Toolkit.Services
         private class DocumentHandlerInfo 
         {
             internal Type HandlerType { get; }
-            internal DocumentHandlerScope_e Scope { get; }
+            internal Type[] DocumentTypeFilters { get; }
             internal Delegate Factory { get; }
 
-            internal DocumentHandlerInfo(Type handlerType, DocumentHandlerScope_e scope, Delegate factory) 
+            internal DocumentHandlerInfo(Type handlerType, Type[] docTypeFilters, Delegate factory) 
             {
                 HandlerType = handlerType;
-                Scope = scope;
+                DocumentTypeFilters = docTypeFilters;
                 Factory = factory;
             }
         }
@@ -64,11 +64,11 @@ namespace Xarial.XCad.Toolkit.Services
                 throw new Exception("Handler for this type is already registered");
             }
 
-            var scope = DocumentHandlerScope_e.Part | DocumentHandlerScope_e.Assembly | DocumentHandlerScope_e.Drawing;
+            Type[] filters = null;
 
-            type.TryGetAttribute<DocumentHandlerScopeAttribute>(a => scope = a.Scope);
+            type.TryGetAttribute<DocumentHandlerFilterAttribute>(a => filters = a.Filters);
 
-            var handlerInfo = new DocumentHandlerInfo(type, scope, handlerFact);
+            var handlerInfo = new DocumentHandlerInfo(type, filters, handlerFact);
 
             m_Handlers.Add(handlerInfo);
 
@@ -141,26 +141,20 @@ namespace Xarial.XCad.Toolkit.Services
 
         private void CreateHandler(IXDocument doc, DocumentHandlerInfo handlerInfo, List<IDocumentHandler> handlersList)
         {
-            DocumentHandlerScope_e docType;
+            var createHandler = false;
 
-            if (doc is IXPart)
+            var docType = doc.GetType();
+
+            if (handlerInfo.DocumentTypeFilters == null)
             {
-                docType = DocumentHandlerScope_e.Part;
-            }
-            else if (doc is IXAssembly)
-            {
-                docType = DocumentHandlerScope_e.Assembly;
-            }
-            else if (doc is IXDrawing)
-            {
-                docType = DocumentHandlerScope_e.Drawing;
+                createHandler = true;
             }
             else 
             {
-                throw new NotSupportedException("Document type is not supported");
+                createHandler = handlerInfo.DocumentTypeFilters.Any(t => t.IsAssignableFrom(docType));
             }
 
-            if (handlerInfo.Scope.HasFlag(docType))
+            if (createHandler)
             {
                 m_Logger.Log($"Creating document handler '{handlerInfo.HandlerType.FullName}' for document type: {docType}", LoggerMessageSeverity_e.Debug);
 

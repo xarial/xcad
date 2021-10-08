@@ -12,9 +12,12 @@ using Xarial.XCad.Exceptions;
 
 namespace Xarial.XCad.SolidWorks.Geometry.Exceptions
 {
+    /// <summary>
+    /// Exception indicates that calculation of mass properties has failed
+    /// </summary>
     public class InvalidMassPropertyCalculationException : Exception, IUserException
     {
-        public InvalidMassPropertyCalculationException() : base("Invalid mass properties calculation") 
+        public InvalidMassPropertyCalculationException() : base("Invalid mass properties calculation. Try rebuilding the model") 
         {
         }
     }
