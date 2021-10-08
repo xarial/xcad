@@ -310,7 +310,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             set => throw new NotSupportedException();
         }
 
-        protected override SwDmDocument3D Document => (SwDmDocument3D)m_Comp.ReferencedDocument;
+        internal protected override SwDmDocument3D Document => (SwDmDocument3D)m_Comp.ReferencedDocument;
 
         public override ISwDMConfiguration Configuration => Document.Configurations[Name].Configuration;
 

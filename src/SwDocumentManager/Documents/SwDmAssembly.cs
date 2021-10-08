@@ -64,5 +64,19 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             get => SwDmVirtualDocumentHelper.GetTitle(base.Title);
             set => base.Title = value; 
         }
+
+        public override bool IsDirty
+        {
+            get => base.IsDirty;
+            set
+            {
+                base.IsDirty = value;
+
+                if (value)
+                {
+                    m_Owner.IsDirty = true;
+                }
+            }
+        }
     }
 }

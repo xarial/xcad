@@ -149,7 +149,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             }
         }
 
-        public bool IsDirty { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public virtual bool IsDirty { get; set; }
 
         private bool? m_IsReadOnly;
 
@@ -494,46 +494,45 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         }
 
         public void Save()
-        {
-            var saveArgs = new DocumentSaveArgs();
-            saveArgs.FileName = Path;
-
-            Saving?.Invoke(this, DocumentSaveType_e.SaveCurrent, saveArgs);
-
-            if (!saveArgs.Cancel)
+            => PerformSave(DocumentSaveType_e.SaveCurrent, f =>
             {
-                if (!string.Equals(saveArgs.FileName, Path))
+                if (!string.Equals(f, Path))
                 {
                     throw new NotSupportedException("File name can be changed for SaveAs file only");
                 }
 
-                StreamWriteAvailable?.Invoke(this);
-                StorageWriteAvailable?.Invoke(this);
-
-                var res = Document.Save();
-                ProcessSaveResult(res);
-            }
-        }
+                return true;
+            }, (d, f) => d.Save());
 
         public void SaveAs(string filePath)
+            => PerformSave(DocumentSaveType_e.SaveAs, f => true, (d, f) => d.SaveAs(f));
+
+        private void PerformSave(DocumentSaveType_e saveType, Func<string, bool> canSave,
+            Func<ISwDMDocument, string, SwDmDocumentSaveError> saveFunc) 
         {
             var saveArgs = new DocumentSaveArgs();
-            saveArgs.FileName = filePath;
+            saveArgs.FileName = Path;
 
-            Saving?.Invoke(this, DocumentSaveType_e.SaveAs, saveArgs);
+            Saving?.Invoke(this, saveType, saveArgs);
 
             if (!saveArgs.Cancel)
             {
-                StreamWriteAvailable?.Invoke(this);
-                StorageWriteAvailable?.Invoke(this);
+                if (canSave.Invoke(saveArgs.FileName))
+                {
+                    StreamWriteAvailable?.Invoke(this);
+                    StorageWriteAvailable?.Invoke(this);
 
-                //TODO: add support for saving to parasolid
-                var res = Document.SaveAs(saveArgs.FileName);
-                ProcessSaveResult(res);
+                    var res = saveFunc.Invoke(Document, saveArgs.FileName);
+
+                    if (ProcessSaveResult(res))
+                    {
+                        IsDirty = false;
+                    }
+                }
             }
         }
 
-        private void ProcessSaveResult(SwDmDocumentSaveError res)
+        private bool ProcessSaveResult(SwDmDocumentSaveError res)
         {
             if (res != SwDmDocumentSaveError.swDmDocumentSaveErrorNone)
             {
@@ -552,6 +551,8 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
                 throw new SaveDocumentFailedException((int)res, errDesc);
             }
+
+            return true;
         }
 
         private bool IsFileExtensionShown

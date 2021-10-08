@@ -76,6 +76,8 @@ namespace Xarial.XCad.SwDocumentManager.Data
             {
                 throw new ConfigurationSpecificCutListPropertiesWriteNotSupportedException();
             }
+
+            m_Conf.Document.IsDirty = true;
         }
 
         protected override object ReadValue(out string exp)
@@ -102,6 +104,8 @@ namespace Xarial.XCad.SwDocumentManager.Data
             {
                 throw new ConfigurationSpecificCutListPropertiesWriteNotSupportedException();
             }
+
+            m_Conf.Document.IsDirty = true;
         }
 
         internal override void Delete()
@@ -117,6 +121,8 @@ namespace Xarial.XCad.SwDocumentManager.Data
             {
                 throw new ConfigurationSpecificCutListPropertiesWriteNotSupportedException();
             }
+
+            m_Conf.Document.IsDirty = true;
         }
     }
 }
