@@ -14,6 +14,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using Xarial.XCad.Annotations;
+using Xarial.XCad.Base;
 using Xarial.XCad.Data;
 using Xarial.XCad.Data.Enums;
 using Xarial.XCad.Documents;
@@ -96,6 +97,8 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         public IXUnits Units => throw new NotSupportedException();
 
         #endregion
+
+        internal event Action<SwDmDocument> Disposed;
 
         IXVersion IXDocument.Version => Version;
         IXPropertyRepository IPropertiesOwner.Properties => Properties;
@@ -217,102 +220,91 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         public IEnumerable<IXDocument3D> Dependencies 
         {
-            get 
+            get
             {
-                ISwDMDocument doc = null;
+                var deps = GetRawDependencies();
 
-                try
+                if (deps.Any())
                 {
-                    if (IsCommitted)
-                    {
-                        doc = Document;
-                    }
-                    else
-                    {
-                        doc = OpenDocument(Path, DocumentState_e.ReadOnly);
-                    }
-
-                    var searchOpts = SwDmApp.SwDocMgr.GetSearchOptionObject();
-
-                    searchOpts.SearchFilters = (int)(
-                        SwDmSearchFilters.SwDmSearchExternalReference
-                        | SwDmSearchFilters.SwDmSearchRootAssemblyFolder
-                        | SwDmSearchFilters.SwDmSearchSubfolders
-                        | SwDmSearchFilters.SwDmSearchInContextReference);
-
-                    string[] deps;
-                    object isVirtualObj;
-
-                    if (SwDmApp.IsVersionNewerOrEqual(SwDmVersion_e.Sw2017))
-                    {
-                        deps = ((ISwDMDocument21)doc).GetAllExternalReferences5(searchOpts, out _, out isVirtualObj, out _, out _) as string[];
-                    }
-                    else
-                    {
-                        deps = ((ISwDMDocument13)doc).GetAllExternalReferences4(searchOpts, out _, out isVirtualObj, out _) as string[];
-                    }
-
-                    if (deps != null)
-                    {
-                        var isVirtual = (bool[])isVirtualObj;
-
-                        if (isVirtual.Length != deps.Length) 
+                    var compsLazy = new Lazy<ISwDmComponent[]>(
+                        () =>
                         {
-                            throw new Exception("Invalid API. Number of virtual components information does not match references count");
-                        }
-
-                        var compsLazy = new Lazy<ISwDmComponent[]>(
-                            () =>
+                            if (string.Equals(System.IO.Path.GetExtension(Path), ".sldasm", StringComparison.CurrentCultureIgnoreCase))
                             {
-                                if (string.Equals(System.IO.Path.GetExtension(Path), ".sldasm", StringComparison.CurrentCultureIgnoreCase))
+                                var activeConfName = Document.ConfigurationManager.GetActiveConfigurationName();
+                                var conf = (ISwDMConfiguration2)Document.ConfigurationManager.GetConfigurationByName(activeConfName);
+                                var comps = (object[])conf.GetComponents();
+                                if (comps != null)
                                 {
-                                    var activeConfName = doc.ConfigurationManager.GetActiveConfigurationName();
-                                    var conf = (ISwDMConfiguration2)doc.ConfigurationManager.GetConfigurationByName(activeConfName);
-                                    var comps = (object[])conf.GetComponents();
-                                    if (comps != null)
-                                    {
-                                        return comps.Select(c => CreateObjectFromDispatch<ISwDmComponent>(c)).ToArray();
-                                    }
-                                    else 
-                                    {
-                                        return new ISwDmComponent[0];
-                                    }
+                                    return comps.Select(c => CreateObjectFromDispatch<ISwDmComponent>(c)).ToArray();
+                                }
+                                else
+                                {
+                                    return new ISwDmComponent[0];
+                                }
+                            }
+                            else
+                            {
+                                throw new Exception("Components can only be extracted from the assembly");
+                            }
+                        });
+
+                    bool TryFindVirtualDocument(string filePath, out ISwDmDocument3D virtCompDoc)
+                    {
+                        try
+                        {
+                            var virtCompFileName = System.IO.Path.GetFileName(filePath);
+
+                            virtCompDoc = m_VirtualDocumentsCache.FirstOrDefault(d => string.Equals(d.Title,
+                                virtCompFileName, StringComparison.CurrentCultureIgnoreCase));
+
+                            if (virtCompDoc != null) 
+                            {
+                                if (virtCompDoc.IsAlive)
+                                {
+                                    return true;
                                 }
                                 else 
                                 {
-                                    throw new Exception("Components can only be extracted from the assembly");
+                                    m_VirtualDocumentsCache.Remove(virtCompDoc);
+                                    virtCompDoc = null;
                                 }
-                            });
+                            }
 
-                        bool TryFindVirtualDocument(string filePath, out ISwDmDocument3D virtCompDoc)
+                            var comp = compsLazy.Value.FirstOrDefault(c => string.Equals(
+                                System.IO.Path.GetFileName(c.CachedPath), virtCompFileName,
+                                StringComparison.CurrentCultureIgnoreCase));
+
+                            if (comp != null)
+                            {
+                                virtCompDoc = comp.ReferencedDocument;
+                                m_VirtualDocumentsCache.Add(virtCompDoc);
+                                return true;
+                            }
+                        }
+                        catch
                         {
-                            try
-                            {
-                                var comp = compsLazy.Value.FirstOrDefault(c => string.Equals(
-                                    System.IO.Path.GetFileName(c.CachedPath), System.IO.Path.GetFileName(filePath),
-                                    StringComparison.CurrentCultureIgnoreCase));
-
-                                if (comp != null)
-                                {
-                                    virtCompDoc = comp.ReferencedDocument;
-                                    return true;
-                                }
-                            }
-                            catch
-                            {
-                            }
-
-                            virtCompDoc = null;
-                            return false;
                         }
 
-                        for (int i = 0; i < deps.Length; i++) 
+                        virtCompDoc = null;
+                        return false;
+                    }
+
+                    for (int i = 0; i < deps.Length; i++)
+                    {
+                        var depPath = deps[i].Item1;
+                        var isVirtual = deps[i].Item2;
+
+                        ISwDmDocument3D depDoc = null;
+
+                        if (SwDmApp.Documents.TryGet(depPath, out ISwDmDocument curDoc))
                         {
-                            var depPath = deps[i];
+                            depDoc = (ISwDmDocument3D)curDoc;
+                        }
 
-                            ISwDmDocument3D depDoc;
-
-                            if (!isVirtual[i] || !TryFindVirtualDocument(depPath, out depDoc))
+                        if (depDoc == null)
+                        {
+                            if (!isVirtual || !TryFindVirtualDocument(depPath, out depDoc))
                             {
                                 try
                                 {
@@ -329,16 +321,9 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                                     depDoc.State = DocumentState_e.ReadOnly;
                                 }
                             }
-                            
-                            yield return depDoc;
                         }
-                    }
-                }
-                finally 
-                {
-                    if (!IsCommitted && doc != null) 
-                    {
-                        doc.CloseDoc();
+
+                        yield return depDoc;
                     }
                 }
             }
@@ -365,6 +350,8 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         private readonly Lazy<ISwDmCustomPropertiesCollection> m_Properties;
 
+        private readonly List<ISwDmDocument3D> m_VirtualDocumentsCache;
+
         internal SwDmDocument(ISwDmApplication dmApp, ISwDMDocument doc, bool isCreated, 
             Action<ISwDmDocument> createHandler, Action<ISwDmDocument> closeHandler,
             bool? isReadOnly = null) : base(doc)
@@ -375,6 +362,8 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
             m_CreateHandler = createHandler;
             m_CloseHandler = closeHandler;
+
+            m_VirtualDocumentsCache = new List<ISwDmDocument3D>();
 
             m_Creator = new ElementCreator<ISwDMDocument>(OpenDocument, doc, isCreated);
 
@@ -463,11 +452,15 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         public void Close()
         {
-            Document.CloseDoc();
-            Closing?.Invoke(this, DocumentCloseType_e.Destroy);
+            if (!m_IsClosed.HasValue || !m_IsClosed.Value)
+            {
+                Document.CloseDoc();
+                Closing?.Invoke(this, DocumentCloseType_e.Destroy);
 
-            m_CloseHandler.Invoke(this);
-            m_IsClosed = true;
+                m_CloseHandler.Invoke(this);
+                m_IsClosed = true;
+                Disposed?.Invoke(this);
+            }
         }
 
         public virtual void Commit(CancellationToken cancellationToken)
@@ -581,6 +574,57 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                 }
 
                 return false;
+            }
+        }
+
+        private Tuple<string, bool>[] GetRawDependencies()
+        {
+            if (!IsCommitted)
+            {
+                this.Commit();
+            }
+
+            string[] deps;
+            object isVirtualObj;
+
+            var searchOpts = SwDmApp.SwDocMgr.GetSearchOptionObject();
+
+            searchOpts.SearchFilters = (int)(
+                SwDmSearchFilters.SwDmSearchExternalReference
+                | SwDmSearchFilters.SwDmSearchRootAssemblyFolder
+                | SwDmSearchFilters.SwDmSearchSubfolders
+                | SwDmSearchFilters.SwDmSearchInContextReference);
+
+            if (SwDmApp.IsVersionNewerOrEqual(SwDmVersion_e.Sw2017))
+            {
+                deps = ((ISwDMDocument21)Document).GetAllExternalReferences5(searchOpts, out _, out isVirtualObj, out _, out _) as string[];
+            }
+            else
+            {
+                deps = ((ISwDMDocument13)Document).GetAllExternalReferences4(searchOpts, out _, out isVirtualObj, out _) as string[];
+            }
+
+            if (deps != null)
+            {
+                var isVirtual = (bool[])isVirtualObj;
+
+                if (isVirtual.Length != deps.Length)
+                {
+                    throw new Exception("Invalid API. Number of virtual components information does not match references count");
+                }
+
+                var res = new Tuple<string, bool>[deps.Length];
+
+                for (int i = 0; i < res.Length; i++)
+                {
+                    res[i] = new Tuple<string, bool>(deps[i], isVirtual[i]);
+                }
+
+                return res;
+            }
+            else
+            {
+                return new Tuple<string, bool>[0];
             }
         }
 

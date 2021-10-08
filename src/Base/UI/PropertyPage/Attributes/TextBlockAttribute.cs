@@ -29,7 +29,7 @@ namespace Xarial.XCad.UI.PropertyPage.Attributes
         public Type ConstructorType { get; }
 
         /// <summary>
-        /// Sets the current property as option box
+        /// Sets the current property as text box
         /// </summary>
         public TextBlockAttribute()
         {

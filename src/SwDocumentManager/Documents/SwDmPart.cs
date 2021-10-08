@@ -38,10 +38,19 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
     internal class SwDmVirtualPart : SwDmPart
     {
-        public SwDmVirtualPart(ISwDmApplication dmApp, ISwDMDocument doc, bool isCreated,
+        private readonly SwDmDocument m_Owner;
+
+        public SwDmVirtualPart(ISwDmApplication dmApp, ISwDMDocument doc, SwDmDocument owner, bool isCreated,
             Action<ISwDmDocument> createHandler, Action<ISwDmDocument> closeHandler, bool? isReadOnly) 
             : base(dmApp, doc, isCreated, createHandler, closeHandler, isReadOnly)
         {
+            m_Owner = owner;
+            m_Owner.Disposed += OnOwnerDisposed;
+        }
+
+        private void OnOwnerDisposed(SwDmDocument owner)
+        {
+            this.Close();
         }
 
         public override string Title
