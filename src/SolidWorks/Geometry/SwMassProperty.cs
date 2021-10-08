@@ -521,10 +521,15 @@ namespace Xarial.XCad.SolidWorks.Geometry
         {
             var overrides = (IMassPropertyOverrideOptions)MassProperty.GetOverrideOptions();
 
+            var scopeComps = (this as IAssemblyEvaluation).Scope;
+
+            if (scopeComps?.Length == 1 && !scopeComps.First().ReferencedDocument.IsCommitted) 
+            {
+                throw new PrincipalAxesOfInertiaOverridenLightweightComponentException();
+            }
+
             if (overrides.OverrideMomentsOfInertia)//invalid values returned for the Axis if overriden
             {
-                var scopeComps = (this as IAssemblyEvaluation).Scope;
-
                 //WORKAROUND: overriden principal axes of inertia is not correct in sub-assemblies
                 if (scopeComps?.Length == 1 && scopeComps.First().ReferencedDocument is IXAssembly)
                 {
