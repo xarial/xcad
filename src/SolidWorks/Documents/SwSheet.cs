@@ -8,8 +8,11 @@
 using SolidWorks.Interop.sldworks;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Text;
 using System.Threading;
+using Xarial.XCad.Data;
 using Xarial.XCad.Documents;
 using Xarial.XCad.SolidWorks.Documents.Exceptions;
 using Xarial.XCad.SolidWorks.Utils;
@@ -59,7 +62,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
     }
 
-    internal class UncommittedPreviewOnlySheet : IXSheet 
+    internal class UncommittedPreviewOnlySheet : ISwSelObject, IXSheet 
     {
         #region Not Supported
         
@@ -67,6 +70,15 @@ namespace Xarial.XCad.SolidWorks.Documents
         public IXDrawingViewRepository DrawingViews => throw new UnloadedDocumentPreviewOnlySheetException();
         public void Commit(CancellationToken cancellationToken)
             => throw new UnloadedDocumentPreviewOnlySheetException();
+        public void Select(bool append)
+            => throw new UnloadedDocumentPreviewOnlySheetException();
+        public void Serialize(Stream stream)
+            => throw new UnloadedDocumentPreviewOnlySheetException();
+
+        public object Dispatch => throw new UnloadedDocumentPreviewOnlySheetException();
+        public bool IsSelected => throw new UnloadedDocumentPreviewOnlySheetException();
+        public bool IsAlive => throw new UnloadedDocumentPreviewOnlySheetException();
+        public ITagsManager Tags => throw new UnloadedDocumentPreviewOnlySheetException();
 
         #endregion
 
@@ -83,5 +95,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             => PictureDispUtils.PictureDispToXImage(m_App.Sw.GetPreviewBitmap(m_Drw.Path, ""));
 
         public bool IsCommitted => false;
+
+        public bool Equals(IXObject other) => this == other;
     }
 }
