@@ -185,7 +185,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         protected readonly ElementCreator<IMassProperty> m_Creator;
 
-        private Exception m_CurrentScopeException;
+        protected Exception m_CurrentScopeException;
 
         internal SwLegacyMassProperty(ISwDocument3D doc, IMathUtility mathUtils)
         {
@@ -482,9 +482,16 @@ namespace Xarial.XCad.SolidWorks.Geometry
                 {
                     SetCoordinateSystem(compRefDocMassPrp, m_ReferenceComponentMassPropertyLazy.Value.Component.Transformation.Inverse());
 
-                    var paoi = base.GetPrincipalAxesOfInertia(compRefDocMassPrp);
+                    PrincipalAxesOfInertia paoi;
 
-                    SetCoordinateSystem(compRefDocMassPrp, null);
+                    try
+                    {
+                        paoi = base.GetPrincipalAxesOfInertia(compRefDocMassPrp);
+                    }
+                    finally 
+                    {
+                        SetCoordinateSystem(compRefDocMassPrp, null);
+                    }
 
                     var ix = paoi.Ix;
                     var iy = paoi.Iy;
@@ -505,29 +512,46 @@ namespace Xarial.XCad.SolidWorks.Geometry
                 {
                     var massPrps = m_Creator.Element;
 
-                    if (RelativeTo != null)
+                    try
                     {
-                        //WORKAROUND: Principal Axes Of Inertia are not calculated correctly when relative coordinate system is specified
-                        //instead setting the default coordinate system and transforming the axis
-                        SetCoordinateSystem(massPrps, null);
+                        if (RelativeTo != null)
+                        {
+                            //WORKAROUND: Principal Axes Of Inertia are not calculated correctly when relative coordinate system is specified
+                            //instead setting the default coordinate system and transforming the axis
+                            SetCoordinateSystem(massPrps, null);
+                        }
+
+                        var paoi = base.PrincipalAxesOfInertia;
+
+                        if (RelativeTo != null)
+                        {
+                            //see [WORKAROUND]
+                            var transform = RelativeTo.Inverse();
+
+                            paoi = new PrincipalAxesOfInertia(
+                                paoi.Ix.Transform(transform),
+                                paoi.Iy.Transform(transform),
+                                paoi.Iz.Transform(transform));
+                        }
+
+                        return paoi;
                     }
-
-                    var paoi = base.PrincipalAxesOfInertia;
-
-                    if (RelativeTo != null)
+                    finally
                     {
-                        //see [WORKAROUND]
-                        var transform = RelativeTo.Inverse();
-
-                        paoi = new PrincipalAxesOfInertia(
-                            paoi.Ix.Transform(transform),
-                            paoi.Iy.Transform(transform),
-                            paoi.Iz.Transform(transform));
-
-                        SetCoordinateSystem(massPrps, RelativeTo);
+                        if (RelativeTo != null)
+                        {
+                            //see [WORKAROUND]
+                            try
+                            {
+                                SetCoordinateSystem(massPrps, RelativeTo);
+                            }
+                            catch (Exception ex)
+                            {
+                                m_CurrentScopeException = ex;
+                                throw;
+                            }
+                        }
                     }
-
-                    return paoi;
                 }
             }
         }
