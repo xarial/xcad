@@ -104,44 +104,53 @@ namespace Xarial.XCad.SolidWorks.Geometry
                 }
                 else 
                 {
-                    if (RelativeTo != null) 
+                    try
                     {
-                        //WORKAROUND: Principal Axes Of Inertia are not calculated correctly when relative coordinate system is specified
-                        //instead setting the default coordinate system and transforming the axis
-                        if (!MassProperty.SetCoordinateSystem(m_MathUtils.ToMathTransform(TransformMatrix.Identity)))
+                        if (RelativeTo != null)
                         {
-                            throw new Exception("Failed to set default coordinate system");
+                            //WORKAROUND: Principal Axes Of Inertia are not calculated correctly when relative coordinate system is specified
+                            //instead setting the default coordinate system and transforming the axis
+                            if (!MassProperty.SetCoordinateSystem(m_MathUtils.ToMathTransform(TransformMatrix.Identity)))
+                            {
+                                throw new Exception("Failed to set default coordinate system");
+                            }
                         }
+
+                        double[] ix;
+                        double[] iy;
+                        double[] iz;
+
+                        GetRawPrincipalAxesOfInertia(out ix, out iy, out iz);
+
+                        var ixVec = new Vector(ix);
+                        var iyVec = new Vector(iy);
+                        var izVec = new Vector(iz);
+
+                        if (RelativeTo != null)
+                        {
+                            //see [WORKAROUND]
+                            var transform = RelativeTo.Inverse();
+
+                            ixVec = ixVec.Transform(transform);
+                            iyVec = iyVec.Transform(transform);
+                            izVec = izVec.Transform(transform);
+                        }
+
+                        return new PrincipalAxesOfInertia(ixVec, iyVec, izVec);
                     }
-
-                    double[] ix;
-                    double[] iy;
-                    double[] iz;
-
-                    GetRawPrincipalAxesOfInertia(out ix, out iy, out iz);
-
-                    var ixVec = new Vector(ix);
-                    var iyVec = new Vector(iy);
-                    var izVec = new Vector(iz);
-
-                    if (RelativeTo != null)
+                    finally 
                     {
-                        //see [WORKAROUND]
-                        var transform = RelativeTo.Inverse();
-
-                        ixVec = ixVec.Transform(transform);
-                        iyVec = iyVec.Transform(transform);
-                        izVec = izVec.Transform(transform);
-
-                        if (!MassProperty.SetCoordinateSystem(m_MathUtils.ToMathTransform(RelativeTo)))
+                        if (RelativeTo != null)
                         {
-                            throw new Exception("Failed to set coordinate system");
+                            if (!MassProperty.SetCoordinateSystem(m_MathUtils.ToMathTransform(RelativeTo)))
+                            {
+                                m_CurrentScopeException = new Exception("Failed to set coordinate system");
+                                throw m_CurrentScopeException;
+                            }
                         }
+
+                        RefreshOverrides(MassProperty);
                     }
-
-                    RefreshOverrides(MassProperty);
-
-                    return new PrincipalAxesOfInertia(ixVec, iyVec, izVec);
                 }
             }
         }
@@ -521,10 +530,15 @@ namespace Xarial.XCad.SolidWorks.Geometry
         {
             var overrides = (IMassPropertyOverrideOptions)MassProperty.GetOverrideOptions();
 
+            var scopeComps = (this as IAssemblyEvaluation).Scope;
+
+            if (scopeComps?.Length == 1 && !scopeComps.First().ReferencedDocument.IsCommitted) 
+            {
+                throw new PrincipalAxesOfInertiaOverridenLightweightComponentException();
+            }
+
             if (overrides.OverrideMomentsOfInertia)//invalid values returned for the Axis if overriden
             {
-                var scopeComps = (this as IAssemblyEvaluation).Scope;
-
                 //WORKAROUND: overriden principal axes of inertia is not correct in sub-assemblies
                 if (scopeComps?.Length == 1 && scopeComps.First().ReferencedDocument is IXAssembly)
                 {

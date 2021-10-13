@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Enums;
+using Xarial.XCad.Documents.Extensions;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.SwDocumentManager.Documents;
 
@@ -136,6 +137,74 @@ namespace SolidWorksDocMgr.Tests.Integration
             Assert.That(isCommitted.All(x => x == true));
             Assert.That(isAlive.All(x => x == true));
             Assert.That(isVirtual.All(x => x == true));
+        }
+        
+        [Test]
+        public void SavingVirtualComponentsTest()
+        {
+            var tempDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+            Directory.CreateDirectory(tempDir);
+
+            try
+            {
+                foreach (var file in Directory.GetFiles(GetFilePath("VirtAssm2"), "*.*", SearchOption.TopDirectoryOnly))
+                {
+                    File.Copy(file, Path.Combine(tempDir, Path.GetFileName(file)));
+                }
+
+                using (var wrp = OpenDataDocument(Path.Combine(tempDir, "Assem1.sldasm"), false))
+                {
+                    var deps = wrp.Document.IterateDependencies().ToArray();
+                    
+                    var d1 = deps.FirstOrDefault(d => string.Equals(Path.GetFileNameWithoutExtension(d.Title),
+                        "Part1^Assem1", StringComparison.CurrentCultureIgnoreCase));
+                    var d2 = deps.FirstOrDefault(d => string.Equals(Path.GetFileNameWithoutExtension(d.Title),
+                        "Part2^SubAssem1", StringComparison.CurrentCultureIgnoreCase));
+                    var d3 = deps.FirstOrDefault(d => string.Equals(Path.GetFileNameWithoutExtension(d.Title),
+                        "Part3^Assem3_Assem1", StringComparison.CurrentCultureIgnoreCase));
+                    var d4 = deps.FirstOrDefault(d => string.Equals(Path.GetFileNameWithoutExtension(d.Title),
+                        "Assem3^Assem1", StringComparison.CurrentCultureIgnoreCase));
+                    
+                    ((ISwDmDocument)d1).Document.AddCustomProperty("UnitTest", SolidWorks.Interop.swdocumentmgr.SwDmCustomInfoType.swDmCustomInfoText, "xCAD");
+                    ((ISwDmDocument)d2).Document.AddCustomProperty("UnitTest", SolidWorks.Interop.swdocumentmgr.SwDmCustomInfoType.swDmCustomInfoText, "xCAD");
+                    ((ISwDmDocument)d3).Document.AddCustomProperty("UnitTest", SolidWorks.Interop.swdocumentmgr.SwDmCustomInfoType.swDmCustomInfoText, "xCAD");
+                    ((ISwDmDocument)d4).Document.AddCustomProperty("UnitTest", SolidWorks.Interop.swdocumentmgr.SwDmCustomInfoType.swDmCustomInfoText, "xCAD");
+
+                    d1.Save();
+                    d2.Save();
+                    d3.Save();
+                    d4.Save();
+                }
+
+                using (var wrp = OpenDataDocument(Path.Combine(tempDir, "Assem1.sldasm"), false))
+                {
+                    var deps = wrp.Document.IterateDependencies().ToArray();
+
+                    var d1 = deps.FirstOrDefault(d => string.Equals(Path.GetFileNameWithoutExtension(d.Title),
+                        "Part1^Assem1", StringComparison.CurrentCultureIgnoreCase));
+                    var d2 = deps.FirstOrDefault(d => string.Equals(Path.GetFileNameWithoutExtension(d.Title),
+                        "Part2^SubAssem1", StringComparison.CurrentCultureIgnoreCase));
+                    var d3 = deps.FirstOrDefault(d => string.Equals(Path.GetFileNameWithoutExtension(d.Title),
+                        "Part3^Assem3_Assem1", StringComparison.CurrentCultureIgnoreCase));
+                    var d4 = deps.FirstOrDefault(d => string.Equals(Path.GetFileNameWithoutExtension(d.Title),
+                        "Assem3^Assem1", StringComparison.CurrentCultureIgnoreCase));
+
+                    Assert.AreEqual("xCAD", ((ISwDmDocument)d1).Document.GetCustomProperty("UnitTest", out _));
+                    Assert.AreEqual("xCAD", ((ISwDmDocument)d2).Document.GetCustomProperty("UnitTest", out _));
+                    Assert.AreEqual("xCAD", ((ISwDmDocument)d3).Document.GetCustomProperty("UnitTest", out _));
+                    Assert.AreEqual("xCAD", ((ISwDmDocument)d4).Document.GetCustomProperty("UnitTest", out _));
+                }
+            }
+            finally
+            {
+                try
+                {
+                    Directory.Delete(tempDir, true);
+                }
+                catch
+                {
+                }
+            }
         }
 
         [Test]

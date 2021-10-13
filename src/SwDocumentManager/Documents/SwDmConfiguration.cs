@@ -58,7 +58,11 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         public virtual string Name
         {
             get => Configuration.Name;
-            set => ((ISwDMConfiguration7)Configuration).Name2 = value;
+            set
+            {
+                ((ISwDMConfiguration7)Configuration).Name2 = value;
+                Document.IsDirty = true;
+            }
         }
 
         public IEnumerable<ISwDmCutListItem> CutLists
@@ -99,7 +103,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         public string PartNumber => GetPartNumber(this);
 
-        protected virtual SwDmDocument3D Document { get; }
+        internal protected virtual SwDmDocument3D Document { get; }
 
         public IXImage Preview
         {

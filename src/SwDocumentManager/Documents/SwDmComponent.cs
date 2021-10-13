@@ -214,7 +214,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                                         }
                                         else 
                                         {
-                                            doc = new SwDmVirtualPart(m_ParentAssm.SwDmApp, dmDoc, true,
+                                            doc = new SwDmVirtualPart(m_ParentAssm.SwDmApp, dmDoc, m_ParentAssm, true,
                                                 docsColl.OnDocumentCreated,
                                                 docsColl.OnDocumentClosed, isReadOnly);
                                         }
@@ -228,7 +228,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                                         }
                                         else 
                                         {
-                                            doc = new SwDmVirtualAssembly(m_ParentAssm.SwDmApp, dmDoc, true,
+                                            doc = new SwDmVirtualAssembly(m_ParentAssm.SwDmApp, dmDoc, m_ParentAssm, true,
                                                 docsColl.OnDocumentCreated,
                                                 docsColl.OnDocumentClosed, isReadOnly);
                                         }
@@ -310,7 +310,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             set => throw new NotSupportedException();
         }
 
-        protected override SwDmDocument3D Document => (SwDmDocument3D)m_Comp.ReferencedDocument;
+        internal protected override SwDmDocument3D Document => (SwDmDocument3D)m_Comp.ReferencedDocument;
 
         public override ISwDMConfiguration Configuration => Document.Configurations[Name].Configuration;
 

@@ -9,12 +9,12 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Xarial.XCad.Toolkit.Exceptions
+namespace Xarial.XCad.SolidWorks.Geometry.Exceptions
 {
-    public class NonCommittedElementAccessException : Exception
+    public class PrincipalAxesOfInertiaOverridenLightweightComponentException : NotSupportedException
     {
-        public NonCommittedElementAccessException() 
-            : base("This is a template feature and has not been created yet. Commit this feature by adding to the feature collection") 
+        internal PrincipalAxesOfInertiaOverridenLightweightComponentException()
+            : base($"Incorrect calculation of Principal Axes Of Intertia for in SOLIDWORKS 2020 onwards for the overriden Moments of Inertia")
         {
         }
     }
