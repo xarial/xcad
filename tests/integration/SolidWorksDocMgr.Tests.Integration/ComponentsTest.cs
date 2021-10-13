@@ -154,7 +154,7 @@ namespace SolidWorksDocMgr.Tests.Integration
 
                 using (var wrp = OpenDataDocument(Path.Combine(tempDir, "Assem1.sldasm"), false))
                 {
-                    var deps = wrp.Document.GetAllDependencies().ToArray();
+                    var deps = wrp.Document.IterateDependencies().ToArray();
                     
                     var d1 = deps.FirstOrDefault(d => string.Equals(Path.GetFileNameWithoutExtension(d.Title),
                         "Part1^Assem1", StringComparison.CurrentCultureIgnoreCase));
@@ -178,7 +178,7 @@ namespace SolidWorksDocMgr.Tests.Integration
 
                 using (var wrp = OpenDataDocument(Path.Combine(tempDir, "Assem1.sldasm"), false))
                 {
-                    var deps = wrp.Document.GetAllDependencies().ToArray();
+                    var deps = wrp.Document.IterateDependencies().ToArray();
 
                     var d1 = deps.FirstOrDefault(d => string.Equals(Path.GetFileNameWithoutExtension(d.Title),
                         "Part1^Assem1", StringComparison.CurrentCultureIgnoreCase));

@@ -316,7 +316,7 @@ namespace SolidWorks.Tests.Integration
                 var assm = docs.Active;
                 assm.Closing += OnHiding;
 
-                foreach (var dep in assm.GetAllDependencies()) 
+                foreach (var dep in assm.IterateDependencies()) 
                 {
                     dep.Closing += OnHiding;
                 }
@@ -598,7 +598,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var assm = OpenDataDocument(@"Assembly9\Assem1.SLDASM"))
             {
-                var deps = m_App.Documents.Active.GetAllDependencies().ToArray();
+                var deps = m_App.Documents.Active.IterateDependencies().ToArray();
                 r1 = deps.ToDictionary(d => Path.GetFileName(d.Path), d => d.IsCommitted, StringComparer.CurrentCultureIgnoreCase);
             }
 
@@ -617,7 +617,7 @@ namespace SolidWorks.Tests.Integration
             var assm = m_App.Documents.PreCreate<ISwAssembly>();
             assm.Path = GetFilePath(@"Assembly9\Assem1.SLDASM");
 
-            var deps = assm.GetAllDependencies().ToArray();
+            var deps = assm.IterateDependencies().ToArray();
             r1 = deps.ToDictionary(d => Path.GetFileName(d.Path), d => d.IsCommitted, StringComparer.CurrentCultureIgnoreCase);
 
             Assert.AreEqual(2, r1.Count);
@@ -712,7 +712,7 @@ namespace SolidWorks.Tests.Integration
             {
                 var assm = m_App.Documents.Active;
 
-                var deps = assm.GetAllDependencies().ToArray();
+                var deps = assm.IterateDependencies().ToArray();
 
                 var dir = Path.GetDirectoryName(assm.Path);
 
@@ -770,7 +770,7 @@ namespace SolidWorks.Tests.Integration
             {
                 var assm = m_App.Documents.Active;
 
-                var deps = assm.GetAllDependencies().ToArray();
+                var deps = assm.IterateDependencies().ToArray();
 
                 var d1 = deps.FirstOrDefault(d => string.Equals(Path.GetFileName(d.Path), "Part1^Assem1.sldprt",
                     StringComparison.CurrentCultureIgnoreCase));

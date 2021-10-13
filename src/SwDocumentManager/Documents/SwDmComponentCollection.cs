@@ -16,6 +16,7 @@ using System.Linq;
 using Xarial.XCad.SwDocumentManager.Services;
 using System.IO;
 using Xarial.XCad.Toolkit.Exceptions;
+using Xarial.XCad.Exceptions;
 
 namespace Xarial.XCad.SwDocumentManager.Documents
 {

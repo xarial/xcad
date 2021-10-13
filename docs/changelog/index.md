@@ -8,6 +8,10 @@ This page contains list of the most notable changes in the releases of xCAD.NET.
 
 Breaking change is marked with &#x26A0; symbol
 
+## 0.7.6
+
+* &#x26A0; - IXDocument::GetAllDependencies extension method is renamed to IXDocument::IterateDependencies and 3 optional parameters are added
+
 ## 0.7.5 - October 6, 2021
 
 * &#x26A0; ISwMacroFeature::ToParameters is removed. Now SwObjectFactory::FromDispatch will create a specific instance from IFeature

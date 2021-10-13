@@ -580,11 +580,6 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         private Tuple<string, bool>[] GetRawDependencies()
         {
-            if (!IsCommitted)
-            {
-                this.Commit();
-            }
-
             string[] deps;
             object isVirtualObj;
 
