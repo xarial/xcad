@@ -8,9 +8,10 @@ This page contains list of the most notable changes in the releases of xCAD.NET.
 
 Breaking change is marked with &#x26A0; symbol
 
-## 0.7.6
+## 0.7.6 - October 13, 2021
 
 * &#x26A0; - IXDocument::GetAllDependencies extension method is renamed to IXDocument::IterateDependencies and 3 optional parameters are added
+* Fixed handling of virtual component in ISwDmDocument::Dependencies
 
 ## 0.7.5 - October 6, 2021
 
