@@ -32,13 +32,14 @@ namespace SolidWorks.Tests.Integration
                 entTypes = sketch.Entities.Where(e => !(e is ISwSketchPoint)).Select(e => e.GetType()).ToArray();
             }
 
-            Assert.AreEqual(6, entTypes.Length);
+            Assert.AreEqual(7, entTypes.Length);
             Assert.IsNotNull(entTypes.FirstOrDefault(t => typeof(ISwSketchEllipse).IsAssignableFrom(t)));
             Assert.IsNotNull(entTypes.FirstOrDefault(t => typeof(ISwSketchLine).IsAssignableFrom(t)));
             Assert.IsNotNull(entTypes.FirstOrDefault(t => typeof(ISwSketchCircle).IsAssignableFrom(t)));
             Assert.IsNotNull(entTypes.FirstOrDefault(t => typeof(ISwSketchText).IsAssignableFrom(t)));
             Assert.IsNotNull(entTypes.FirstOrDefault(t => typeof(ISwSketchSpline).IsAssignableFrom(t)));
             Assert.IsNotNull(entTypes.FirstOrDefault(t => typeof(ISwSketchParabola).IsAssignableFrom(t)));
+            Assert.IsNotNull(entTypes.FirstOrDefault(t => typeof(ISwSketchArc).IsAssignableFrom(t)));
         }
 
         [Test]
@@ -96,6 +97,7 @@ namespace SolidWorks.Tests.Integration
             double l3;
             double l4;
             double l5;
+            double l6;
 
             using (var doc = OpenDataDocument("Sketch1.SLDPRT"))
             {
@@ -111,6 +113,7 @@ namespace SolidWorks.Tests.Integration
                 l3 = segs.OfType<ISwSketchCircle>().First().Length;
                 l4 = segs.OfType<ISwSketchSpline>().First().Length;
                 l5 = segs.OfType<ISwSketchParabola>().First().Length;
+                l6 = segs.OfType<ISwSketchArc>().First().Length;
             }
 
             Assert.That(0.12991965190301241, Is.EqualTo(l1).Within(0.001).Percent);
@@ -118,6 +121,7 @@ namespace SolidWorks.Tests.Integration
             Assert.That(0.10094045912639603, Is.EqualTo(l3).Within(0.001).Percent);
             Assert.That(0.16421451670784409, Is.EqualTo(l4).Within(0.001).Percent);
             Assert.That(0.1034014049596117, Is.EqualTo(l5).Within(0.001).Percent);
+            Assert.That(0.03101279385858513, Is.EqualTo(l6).Within(0.001).Percent);
         }
     }
 }
