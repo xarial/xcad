@@ -29,6 +29,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
         IXBody IXEntity.Body => Body;
         IEnumerable<IXEntity> IXEntity.AdjacentEntities => AdjacentEntities;
         IXComponent IXEntity.Component => Component;
+        ISwObject IResilientibleObject.CreateResilient() => CreateResilient();
 
         public IEntity Entity { get; }
 

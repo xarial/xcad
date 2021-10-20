@@ -37,11 +37,13 @@ namespace Xarial.XCad.SolidWorks.Geometry
         IXBody[] IXBody.Substract(IXBody other) => Substract((ISwBody)other);
         IXBody[] IXBody.Common(IXBody other) => Common((ISwBody)other);
 
+        ISwObject IResilientibleObject.CreateResilient() => CreateResilient();
+
         public virtual IBody2 Body 
         {
             get 
             {
-                if (m_IsResilientBody)
+                if (IsResilient)
                 {
                     try
                     {
@@ -131,10 +133,9 @@ namespace Xarial.XCad.SolidWorks.Geometry
             }
         }
 
-        public bool IsResilient => m_IsResilientBody;
+        public bool IsResilient { get; private set; }
 
         private byte[] m_PersistId;
-        private bool m_IsResilientBody;
 
         private IBody2 m_Body;
 
@@ -213,7 +214,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         private void MakeResilient(byte[] persistId) 
         {
-            m_IsResilientBody = true;
+            IsResilient = true;
             m_PersistId = persistId;
         }
     }
