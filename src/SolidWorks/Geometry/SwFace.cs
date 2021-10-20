@@ -61,13 +61,13 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         public double Area => Face.GetArea();
 
-        private IComponent2 Component => (Face as IEntity).GetComponent() as IComponent2;
+        private IComponent2 GetSwComponent() => (Face as IEntity).GetComponent() as IComponent2;
 
         public System.Drawing.Color? Color 
         {
-            get => SwColorHelper.GetColor(Component, 
+            get => SwColorHelper.GetColor(GetSwComponent(), 
                 (o, c) => Face.GetMaterialPropertyValues2((int)o, c) as double[]);
-            set => SwColorHelper.SetColor(value, Component,
+            set => SwColorHelper.SetColor(value, GetSwComponent(),
                 (m, o, c) => Face.SetMaterialPropertyValues2(m, (int)o, c),
                 (o, c) => Face.RemoveMaterialProperty2((int)o, c));
         }

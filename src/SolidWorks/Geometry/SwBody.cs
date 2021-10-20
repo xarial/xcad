@@ -21,7 +21,8 @@ using Xarial.XCad.SolidWorks.Utils;
 
 namespace Xarial.XCad.SolidWorks.Geometry
 {
-    public interface ISwBody : ISwSelObject, IXBody
+
+    public interface ISwBody : ISwSelObject, IXBody, IResilientibleObject<ISwBody>
     {
         IBody2 Body { get; }
 
@@ -36,17 +37,34 @@ namespace Xarial.XCad.SolidWorks.Geometry
         IXBody[] IXBody.Substract(IXBody other) => Substract((ISwBody)other);
         IXBody[] IXBody.Common(IXBody other) => Common((ISwBody)other);
 
-        public static SwBody operator -(SwBody firstBody, SwBody secondBody)
+        public virtual IBody2 Body 
         {
-            return (SwBody)firstBody.Substract(secondBody).First();
-        }
+            get 
+            {
+                if (m_IsResilientBody)
+                {
+                    try
+                    {
+                        var testPtrAlive = m_Body.Name;
+                    }
+                    catch 
+                    {
+                        var body = (IBody2)OwnerDocument.Model.Extension.GetObjectByPersistReference3(m_PersistId, out _);
 
-        public static SwBody operator +(SwBody firstBody, SwBody secondBody)
-        {
-            return (SwBody)firstBody.Add(secondBody);
-        }
+                        if (body != null)
+                        {
+                            m_Body = body;
+                        }
+                        else 
+                        {
+                            throw new NullReferenceException("Pointer to the body cannot be restored");
+                        }
+                    }
+                }
 
-        public virtual IBody2 Body { get; }
+                return m_Body;
+            }
+        }
 
         public override object Dispatch => Body;
 
@@ -113,10 +131,17 @@ namespace Xarial.XCad.SolidWorks.Geometry
             }
         }
 
+        public bool IsResilient => m_IsResilientBody;
+
+        private byte[] m_PersistId;
+        private bool m_IsResilientBody;
+
+        private IBody2 m_Body;
+
         internal SwBody(IBody2 body, ISwDocument doc, ISwApplication app) 
             : base(body, doc, app ?? ((SwDocument)doc)?.OwnerApplication)
         {
-            Body = body;
+            m_Body = body;
         }
 
         public override void Select(bool append)
@@ -164,6 +189,33 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         public virtual void Transform(TransformMatrix transform)
             => throw new NotSupportedException($"Only temp bodies are supported. Use {nameof(Copy)} method");
+
+        public virtual ISwBody CreateResilient()
+        {
+            if (OwnerDocument == null) 
+            {
+                throw new NullReferenceException("Owner document is not set");
+            }
+
+            var id = (byte[])OwnerDocument.Model.Extension.GetPersistReference3(Body);
+
+            if (id != null)
+            {
+                var body = OwnerDocument.CreateObjectFromDispatch<SwBody>(Body);
+                body.MakeResilient(id);
+                return body;
+            }
+            else 
+            {
+                throw new Exception("Failed to create resilient body");
+            }
+        }
+
+        private void MakeResilient(byte[] persistId) 
+        {
+            m_IsResilientBody = true;
+            m_PersistId = persistId;
+        }
     }
 
     public interface ISwSheetBody : ISwBody, IXSheetBody

@@ -79,6 +79,9 @@ namespace Xarial.XCad.SolidWorks.Geometry
                 throw new Exception("Failed to apply transform to the body");
             }
         }
+
+        public override ISwBody CreateResilient()
+            => throw new NotSupportedException("Only permanent bodies can be converter to resilient bodies");
     }
 
     public interface ISwTempSolidBody : ISwTempBody, ISwSolidBody
