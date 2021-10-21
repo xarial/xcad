@@ -49,7 +49,7 @@ namespace Xarial.XCad.Utils.PageBuilder
                     page = m_PageConstructor.Create(atts);
                     return page;
                 },
-                (Type type, IAttributeSet atts, IGroup parent, IMetadata metadata, out int numberOfUsedIds) =>
+                (Type type, IAttributeSet atts, IGroup parent, IMetadata[] metadata, out int numberOfUsedIds) =>
                 {
                     numberOfUsedIds = 1;
                     return m_ControlConstructors.CreateElement(type, parent, atts, metadata, ref numberOfUsedIds);

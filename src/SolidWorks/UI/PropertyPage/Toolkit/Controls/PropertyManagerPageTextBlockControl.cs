@@ -9,6 +9,7 @@ using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
 using System.Drawing;
 using Xarial.XCad.Toolkit.Utils;
+using Xarial.XCad.UI.PropertyPage.Base;
 using Xarial.XCad.UI.PropertyPage.Enums;
 using Xarial.XCad.Utils.PageBuilder.PageElements;
 
@@ -55,7 +56,8 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
         internal PropertyManagerPageTextBlockControl(int id, object tag,
             IPropertyManagerPageLabel textBlock, FontStyle_e fontStyle, string font, KnownColor? textColor,
-            SwPropertyManagerPageHandler handler, IPropertyManagerPageLabel label) : base(textBlock, id, tag, handler, label)
+            SwPropertyManagerPageHandler handler, IPropertyManagerPageLabel label, IMetadata[] metadata)
+            : base(textBlock, id, tag, handler, label, metadata)
         {
             m_FontStyle = fontStyle;
             m_Font = font;

@@ -7,6 +7,9 @@
 
 namespace Xarial.XCad.Base.Enums
 {
+    /// <summary>
+    /// Type of the selection object
+    /// </summary>
     public enum SelectType_e
     {
         Everything = -3,

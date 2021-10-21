@@ -62,7 +62,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
             m_Type = type;
         }
 
-        protected override TControl Create(PropertyManagerPageGroupBase group, IAttributeSet atts, IMetadata metadata, ref int numberOfUsedIds)
+        protected override TControl Create(PropertyManagerPageGroupBase group, IAttributeSet atts, IMetadata[] metadata, ref int numberOfUsedIds)
         {
             var opts = GetControlOptions(atts);
 
@@ -91,7 +91,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
             return CreateControl(swCtrl, atts, metadata, group.Handler, opts.Height, label);
         }
 
-        protected override TControl Create(PropertyManagerPagePage page, IAttributeSet atts, IMetadata metadata, ref int numberOfUsedIds)
+        protected override TControl Create(PropertyManagerPagePage page, IAttributeSet atts, IMetadata[] metadata, ref int numberOfUsedIds)
         {
             var opts = GetControlOptions(atts);
 
@@ -226,7 +226,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
         }
         
         protected abstract TControl CreateControl(TControlSw swCtrl, IAttributeSet atts,
-            IMetadata metadata, SwPropertyManagerPageHandler handler, short height, IPropertyManagerPageLabel label);
+            IMetadata[] metadata, SwPropertyManagerPageHandler handler, short height, IPropertyManagerPageLabel label);
         
         private ControlOptionsAttribute GetControlOptions(IAttributeSet atts)
         {

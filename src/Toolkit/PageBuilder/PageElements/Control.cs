@@ -41,10 +41,13 @@ namespace Xarial.XCad.Utils.PageBuilder.PageElements
         public abstract bool Enabled { get; set; }
         public abstract bool Visible { get; set; }
 
-        protected Control(int id, object tag)
+        public IMetadata[] Metadata { get; }
+
+        protected Control(int id, object tag, IMetadata[] metadata)
         {
             Id = id;
             Tag = tag;
+            Metadata = metadata;
         }
 
         public void Dispose() => Dispose(true);
@@ -57,6 +60,8 @@ namespace Xarial.XCad.Utils.PageBuilder.PageElements
 
             SetSpecificValue(destVal);
         }
+
+        public abstract void ShowTooltip(string title, string msg);
 
         protected virtual void Dispose(bool disposing)
         {

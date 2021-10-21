@@ -23,6 +23,8 @@ namespace Xarial.XCad.Toolkit.PageBuilder.Binders
 
         private object m_CurrentModel;
 
+        public object Tag { get; }
+
         public object Value 
         {
             get => GetValue();
@@ -41,10 +43,11 @@ namespace Xarial.XCad.Toolkit.PageBuilder.Binders
             }
         }
 
-        public PropertyInfoMetadata(PropertyInfo prpInfo, PropertyInfo[] parents)
+        public PropertyInfoMetadata(PropertyInfo prpInfo, PropertyInfo[] parents, object tag)
         {
             m_PrpInfo = prpInfo;
             m_Parents = parents;
+            Tag = tag;
         }
 
         private void SetDataModel(object model) 

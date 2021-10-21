@@ -14,6 +14,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using Xarial.XCad.Base;
+using Xarial.XCad.Base.Enums;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Geometry.Structures;
@@ -25,7 +26,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         ISwDMView DrawingView { get; }
     }
 
-    internal class SwDmDrawingView : SwDmObject, ISwDmDrawingView
+    internal class SwDmDrawingView : SwDmSelObject, ISwDmDrawingView
     {
         #region Not Supported
 
@@ -39,6 +40,8 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         public bool IsSelected => throw new NotSupportedException();
 
         #endregion
+
+        public override SelectType_e Type => SelectType_e.DrawingViews;
 
         public ISwDMView DrawingView { get; }
 
@@ -101,7 +104,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             }
         }
 
-        public bool IsCommitted => true;
+        public override bool IsCommitted => true;
 
         private readonly SwDmDrawing m_Drw;
         private IXDocument3D m_CachedDocument;

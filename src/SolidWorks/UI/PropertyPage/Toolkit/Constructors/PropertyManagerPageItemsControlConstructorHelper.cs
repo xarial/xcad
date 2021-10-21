@@ -5,6 +5,7 @@
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Xarial.XCad.UI.PropertyPage.Attributes;
@@ -17,7 +18,8 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
 {
     internal class PropertyManagerPageItemsControlConstructorHelper
     {
-        internal bool TryGetStaticItems(IXApplication app, IAttributeSet atts, out ItemsControlItem[] staticItems)
+        internal void ParseItems(IXApplication app, IAttributeSet atts, IMetadata[] metadata,
+            out bool isStatic, out ItemsControlItem[] staticItems, out IMetadata itemsSourceMetadata)
         {
             if (atts.ContextType.IsEnum)
             {
@@ -28,7 +30,8 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
                     Value = i.Key
                 }).ToArray();
 
-                return true;
+                isStatic = true;
+                itemsSourceMetadata = null;
             }
             else 
             {
@@ -39,22 +42,41 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
                     staticItems = customItemsAtt
                         .StaticItems.Select(i => new ItemsControlItem(i)).ToArray();
 
-                    return true;
+                    isStatic = true;
+                    itemsSourceMetadata = null;
                 }
                 else if (customItemsAtt.CustomItemsProvider != null)
                 {
-                    if (customItemsAtt.Dependencies?.Any() != true) 
+                    isStatic = true;
+                    itemsSourceMetadata = null;
+
+                    if (customItemsAtt.Dependencies?.Any() != true)
                     {
                         var provider = customItemsAtt.CustomItemsProvider;
 
                         staticItems = provider.ProvideItems(app, new IControl[0]).Select(i => new ItemsControlItem(i)).ToArray();
-                        return true;
+                    }
+                    else
+                    {
+                        staticItems = null;
                     }
                 }
-            }
+                else if (customItemsAtt.ItemsSource != null)
+                {
+                    isStatic = false;
+                    staticItems = null;
+                    itemsSourceMetadata = metadata?.FirstOrDefault(m => object.Equals(m.Tag, customItemsAtt.ItemsSource));
 
-            staticItems = null;
-            return false;
+                    if (itemsSourceMetadata == null)
+                    {
+                        throw new NullReferenceException($"Failed to find the items source metadata property: {customItemsAtt.ItemsSource}");
+                    }
+                }
+                else 
+                {
+                    throw new NotSupportedException("Items source is not specified");
+                }
+            }
         }
     }
 }

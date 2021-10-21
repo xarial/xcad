@@ -48,13 +48,13 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
             //TODO: not used
         }
 
-        protected override PropertyManagerPageGroupBase Create(PropertyManagerPageGroupBase group, IAttributeSet atts, IMetadata metadata, ref int numberOfUsedIds)
+        protected override PropertyManagerPageGroupBase Create(PropertyManagerPageGroupBase group, IAttributeSet atts, IMetadata[] metadata, ref int numberOfUsedIds)
         {
             //NOTE: nested tabs are not supported in SOLIDWORKS, creating the group in page instead
             return Create(group.ParentPage, atts, metadata, ref numberOfUsedIds);
         }
 
-        protected override PropertyManagerPageGroupBase Create(PropertyManagerPagePage page, IAttributeSet atts, IMetadata metadata, ref int numberOfUsedIds)
+        protected override PropertyManagerPageGroupBase Create(PropertyManagerPagePage page, IAttributeSet atts, IMetadata[] metadata, ref int numberOfUsedIds)
         {
             const int OPTIONS_NOT_USED = 0;
 
@@ -79,7 +79,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
                 iconPath, OPTIONS_NOT_USED) as IPropertyManagerPageTab;
             
             return new PropertyManagerPageTabControl(atts.Id, atts.Tag,
-                page.Handler, tab, page.App, page);
+                page.Handler, tab, page.App, page, metadata);
         }
 
         private void TryConvertIconTo8bit(string path)

@@ -33,7 +33,7 @@ namespace Xarial.XCad.Utils.PageBuilder.Core
 
         protected virtual TDataModel DataModel { get; set; }
 
-        public abstract IMetadata Metadata { get; }
+        public abstract IMetadata[] Metadata { get; }
 
         public Binding(IControl control)
         {

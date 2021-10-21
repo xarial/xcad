@@ -26,12 +26,12 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
         }
 
         protected override PropertyManagerPageCheckBoxControl CreateControl(
-            IPropertyManagerPageCheckbox swCtrl, IAttributeSet atts, IMetadata metadata, 
+            IPropertyManagerPageCheckbox swCtrl, IAttributeSet atts, IMetadata[] metadata, 
             SwPropertyManagerPageHandler handler, short height, IPropertyManagerPageLabel label)
         {
             swCtrl.Caption = atts.Name;
             
-            return new PropertyManagerPageCheckBoxControl(atts.Id, atts.Tag, swCtrl, handler, label);
+            return new PropertyManagerPageCheckBoxControl(atts.Id, atts.Tag, swCtrl, handler, label, metadata);
         }
     }
 }

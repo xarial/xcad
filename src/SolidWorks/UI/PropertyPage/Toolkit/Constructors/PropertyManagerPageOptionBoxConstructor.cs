@@ -30,20 +30,20 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
         {
         }
 
-        protected override PropertyManagerPageOptionBoxControl Create(PropertyManagerPagePage page, IAttributeSet atts, IMetadata metadata, ref int numberOfUsedIds)
+        protected override PropertyManagerPageOptionBoxControl Create(PropertyManagerPagePage page, IAttributeSet atts, IMetadata[] metadata, ref int numberOfUsedIds)
         {
             numberOfUsedIds = EnumExtension.GetEnumFields(atts.ContextType).Count;
             return base.Create(page, atts, metadata, ref numberOfUsedIds);
         }
 
-        protected override PropertyManagerPageOptionBoxControl Create(PropertyManagerPageGroupBase group, IAttributeSet atts, IMetadata metadata, ref int numberOfUsedIds)
+        protected override PropertyManagerPageOptionBoxControl Create(PropertyManagerPageGroupBase group, IAttributeSet atts, IMetadata[] metadata, ref int numberOfUsedIds)
         {
             numberOfUsedIds = EnumExtension.GetEnumFields(atts.ContextType).Count;
             return base.Create(group, atts, metadata, ref numberOfUsedIds);
         }
 
         protected override PropertyManagerPageOptionBoxControl CreateControl(
-            PropertyManagerPageOptionBox swCtrl, IAttributeSet atts, IMetadata metadata, 
+            PropertyManagerPageOptionBox swCtrl, IAttributeSet atts, IMetadata[] metadata, 
             SwPropertyManagerPageHandler handler, short height, IPropertyManagerPageLabel label)
         {
             var options = EnumExtension.GetEnumFields(atts.ContextType);
@@ -58,7 +58,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
                 }
             }
 
-            return new PropertyManagerPageOptionBoxControl(atts.Id, atts.Tag, swCtrl, options.Keys.ToList().AsReadOnly(), handler, label);
+            return new PropertyManagerPageOptionBoxControl(atts.Id, atts.Tag, swCtrl, options.Keys.ToList().AsReadOnly(), handler, label, metadata);
         }
 
         protected override PropertyManagerPageOptionBox CreateSwControl(object host, ControlOptionsAttribute opts, IAttributeSet atts)

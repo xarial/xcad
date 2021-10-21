@@ -5,6 +5,7 @@
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
+using Xarial.XCad.UI.PropertyPage.Base;
 using Xarial.XCad.Utils.PageBuilder.Base;
 using Xarial.XCad.Utils.PageBuilder.Core;
 
@@ -14,7 +15,7 @@ namespace Xarial.XCad.Utils.PageBuilder.PageElements
     {
         private IBindingManager m_Binding;
 
-        public Page() : base(-1, null)
+        public Page() : base(-1, null, null)
         {
         }
 

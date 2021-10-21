@@ -53,7 +53,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 
                         if (!string.IsNullOrEmpty(progId))
                         {
-                            m_DefinitionType = Type.GetTypeFromProgID(progId);
+                            m_DefinitionType = System.Type.GetTypeFromProgID(progId);
                         }
                     }
                 }

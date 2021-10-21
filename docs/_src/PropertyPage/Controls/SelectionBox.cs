@@ -6,6 +6,7 @@ using Xarial.XCad.SolidWorks.Geometry;
 using Xarial.XCad.UI.PropertyPage.Attributes;
 using Xarial.XCad.UI.PropertyPage.Base;
 using Xarial.XCad.UI.PropertyPage.Services;
+using Xarial.XCad.UI.PropertyPage.Structures;
 
 //--- Single
 public class SelectionBoxDataModel
@@ -38,11 +39,18 @@ public class SelectionBoxCustomSelectionFilterDataModel
 
     public class PlanarFaceFilter : ISelectionCustomFilter
     {
-        public bool Filter(IControl selBox, IXSelObject selection, SelectType_e selType, ref string itemText)
+        public void Filter(IControl selBox, IXSelObject selection, SelectionCustomFilterArguments args)
         {
-            itemText = "Planar Face";
-
-            return (selection as ISwFace).Face.IGetSurface().IsPlane(); //validating the selection and only allowing planar face
+            args.Filter = (selection as ISwFace).Face.IGetSurface().IsPlane(); //validating the selection and only allowing planar face
+            
+            if (args.Filter)
+            {
+                args.ItemText = "Planar Face";
+            }
+            else 
+            {
+                args.Reason = "Only planar faces can be selected";
+            }
         }
     }
 }

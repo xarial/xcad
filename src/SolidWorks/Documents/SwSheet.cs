@@ -12,6 +12,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Text;
 using System.Threading;
+using Xarial.XCad.Base.Enums;
 using Xarial.XCad.Data;
 using Xarial.XCad.Documents;
 using Xarial.XCad.SolidWorks.Documents.Exceptions;
@@ -95,6 +96,8 @@ namespace Xarial.XCad.SolidWorks.Documents
             => PictureDispUtils.PictureDispToXImage(m_App.Sw.GetPreviewBitmap(m_Drw.Path, ""));
 
         public bool IsCommitted => false;
+
+        public SelectType_e Type => SelectType_e.Sheets;
 
         public bool Equals(IXObject other) => this == other;
     }

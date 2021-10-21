@@ -15,6 +15,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using Xarial.XCad.Annotations;
+using Xarial.XCad.Base.Enums;
 using Xarial.XCad.Data;
 using Xarial.XCad.Enums;
 using Xarial.XCad.Features;
@@ -49,7 +50,7 @@ namespace Xarial.XCad.SwDocumentManager.Features
         #endregion
 
         IXPropertyRepository IPropertiesOwner.Properties => Properties;
-
+        
         public ISwDMCutListItem2 CutListItem { get; }
 
         private readonly Lazy<ISwDmCustomPropertiesCollection> m_Properties;

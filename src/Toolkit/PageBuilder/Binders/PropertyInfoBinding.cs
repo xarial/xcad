@@ -26,12 +26,12 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
 
         public IControlDescriptor ControlDescriptor { get; }
 
-        private readonly PropertyInfoMetadata m_Metadata;
+        private readonly PropertyInfoMetadata[] m_Metadata;
 
         private object m_CurrentDataModel;
 
         internal PropertyInfoBinding(IControl control,
-            IControlDescriptor ctrlDesc, IList<IControlDescriptor> parents, PropertyInfoMetadata metadata)
+            IControlDescriptor ctrlDesc, IList<IControlDescriptor> parents, PropertyInfoMetadata[] metadata)
             : base(control)
         {
             ControlDescriptor = ctrlDesc;
@@ -60,7 +60,7 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
             }
         }
 
-        public override IMetadata Metadata => m_Metadata;
+        public override IMetadata[] Metadata => m_Metadata;
 
         protected override void SetDataModelValue(object value)
         {

@@ -6,6 +6,7 @@
 //*********************************************************************
 
 using SolidWorks.Interop.sldworks;
+using SolidWorks.Interop.swconst;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -15,7 +16,9 @@ using System.Runtime.InteropServices;
 using Xarial.XCad.Base.Enums;
 using Xarial.XCad.Toolkit.PageBuilder.Constructors;
 using Xarial.XCad.UI.PropertyPage;
+using Xarial.XCad.UI.PropertyPage.Base;
 using Xarial.XCad.UI.PropertyPage.Services;
+using Xarial.XCad.UI.PropertyPage.Structures;
 using Xarial.XCad.Utils.PageBuilder.PageElements;
 
 namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
@@ -34,8 +37,9 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
         public PropertyManagerPageSelectionBoxControl(ISwApplication app, int id, object tag,
             IPropertyManagerPageSelectionbox selBox,
-            SwPropertyManagerPageHandler handler, Type objType, ISelectionCustomFilter customFilter, bool defaultFocus, IPropertyManagerPageLabel label)
-            : base(selBox, id, tag, handler, label)
+            SwPropertyManagerPageHandler handler, Type objType, ISelectionCustomFilter customFilter, bool defaultFocus,
+            IPropertyManagerPageLabel label, IMetadata[] metadata)
+            : base(selBox, id, tag, handler, label, metadata)
         {
             m_App = app;
             m_ObjType = objType;
@@ -79,8 +83,21 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
                 {
                     if (m_CustomFilter != null)
                     {
-                        res = m_CustomFilter.Filter(this, selObj,
-                            (SelectType_e)selType, ref itemText);
+                        var args = new SelectionCustomFilterArguments()
+                        {
+                            ItemText = itemText,
+                            Filter = res
+                        };
+
+                        m_CustomFilter.Filter(this, selObj, args);
+
+                        res = args.Filter;
+                        itemText = args.ItemText;
+
+                        if (!res && !string.IsNullOrEmpty(args.Reason)) 
+                        {
+                            SwControl.ShowBubbleTooltip("", args.Reason, "");
+                        }
                     }
                 }
                 else 
