@@ -214,21 +214,8 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
 
                 label.Caption = labelAtt.Caption;
 
-                switch (labelAtt.FontStyle)
-                {
-                    case LabelFontStyle_e.Bold:
-                        label.Bold[0, (short)(labelAtt.Caption.Length - 1)] = true;
-                        break;
-
-                    case LabelFontStyle_e.Italic:
-                        label.Italic[0, (short)(labelAtt.Caption.Length - 1)] = true;
-                        break;
-
-                    case LabelFontStyle_e.Underline:
-                        label.Underline[0, (short)(labelAtt.Caption.Length - 1)] = (int)swPropMgrPageLabelUnderlineStyle_e.swPropMgrPageLabel_SolidUnderline;
-                        break;
-                }
-
+                label.SetLabelOptions(labelAtt.FontStyle, "", null);
+                
                 return true;
             }
             else 

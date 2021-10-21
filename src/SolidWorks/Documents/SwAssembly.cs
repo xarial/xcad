@@ -39,7 +39,9 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         internal protected override swDocumentTypes_e? DocumentType => swDocumentTypes_e.swDocASSEMBLY;
 
-        protected override bool IsRapidMode => Assembly.GetLightWeightComponentCount() > 0;
+        protected override bool IsRapidMode => Model.IsOpenedViewOnly(); //TODO: when editing feature of LDR is available make this to be rapid mode
+
+        protected override bool IsLightweightMode => Assembly.GetLightWeightComponentCount() > 0;
 
         ISwAssemblyConfigurationCollection ISwAssembly.Configurations => m_LazyConfigurations.Value;
         IXAssemblyConfigurationRepository IXAssembly.Configurations => (this as ISwAssembly).Configurations;

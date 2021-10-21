@@ -10,6 +10,9 @@ using System.Linq;
 
 namespace Xarial.XCad.Reflection
 {
+    /// <summary>
+    /// Additional methods for <see cref="Type"/>
+    /// </summary>
     public static class TypeExtension
     {
         /// <summary>

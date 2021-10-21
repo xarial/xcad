@@ -9,7 +9,11 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Xarial.XCad.Documents.Delegates
+namespace Xarial.XCad.Delegates
 {
-    public delegate void DocumentActivateDelegate(IXDocument doc);
+    /// <summary>
+    /// Delegate of <see cref="IXApplication.Idle"/> event
+    /// </summary>
+    /// <param name="app">Pointer to the application</param>
+    public delegate void ApplicationIdleDelegate(IXApplication app);
 }

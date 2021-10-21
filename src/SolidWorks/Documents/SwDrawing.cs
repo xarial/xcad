@@ -8,6 +8,7 @@
 using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
 using System;
+using System.Linq;
 using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Utils.Diagnostics;
@@ -28,6 +29,8 @@ namespace Xarial.XCad.SolidWorks.Documents
         internal protected override swDocumentTypes_e? DocumentType => swDocumentTypes_e.swDocDRAWING;
 
         private readonly Lazy<IXSheetRepository> m_SheetsLazy;
+
+        protected override bool IsLightweightMode => Sheets.Any(s => s.DrawingViews.Any(v => ((ISwDrawingView)v).DrawingView.IsLightweight()));
 
         protected override bool IsRapidMode 
         {

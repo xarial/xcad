@@ -8,6 +8,8 @@ using System.Threading.Tasks;
 using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Enums;
+using Xarial.XCad.Documents.Extensions;
+using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.SwDocumentManager.Documents;
 
 namespace SolidWorksDocMgr.Tests.Integration
@@ -135,6 +137,74 @@ namespace SolidWorksDocMgr.Tests.Integration
             Assert.That(isCommitted.All(x => x == true));
             Assert.That(isAlive.All(x => x == true));
             Assert.That(isVirtual.All(x => x == true));
+        }
+        
+        [Test]
+        public void SavingVirtualComponentsTest()
+        {
+            var tempDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+            Directory.CreateDirectory(tempDir);
+
+            try
+            {
+                foreach (var file in Directory.GetFiles(GetFilePath("VirtAssm2"), "*.*", SearchOption.TopDirectoryOnly))
+                {
+                    File.Copy(file, Path.Combine(tempDir, Path.GetFileName(file)));
+                }
+
+                using (var wrp = OpenDataDocument(Path.Combine(tempDir, "Assem1.sldasm"), false))
+                {
+                    var deps = wrp.Document.IterateDependencies().ToArray();
+                    
+                    var d1 = deps.FirstOrDefault(d => string.Equals(Path.GetFileNameWithoutExtension(d.Title),
+                        "Part1^Assem1", StringComparison.CurrentCultureIgnoreCase));
+                    var d2 = deps.FirstOrDefault(d => string.Equals(Path.GetFileNameWithoutExtension(d.Title),
+                        "Part2^SubAssem1", StringComparison.CurrentCultureIgnoreCase));
+                    var d3 = deps.FirstOrDefault(d => string.Equals(Path.GetFileNameWithoutExtension(d.Title),
+                        "Part3^Assem3_Assem1", StringComparison.CurrentCultureIgnoreCase));
+                    var d4 = deps.FirstOrDefault(d => string.Equals(Path.GetFileNameWithoutExtension(d.Title),
+                        "Assem3^Assem1", StringComparison.CurrentCultureIgnoreCase));
+                    
+                    ((ISwDmDocument)d1).Document.AddCustomProperty("UnitTest", SolidWorks.Interop.swdocumentmgr.SwDmCustomInfoType.swDmCustomInfoText, "xCAD");
+                    ((ISwDmDocument)d2).Document.AddCustomProperty("UnitTest", SolidWorks.Interop.swdocumentmgr.SwDmCustomInfoType.swDmCustomInfoText, "xCAD");
+                    ((ISwDmDocument)d3).Document.AddCustomProperty("UnitTest", SolidWorks.Interop.swdocumentmgr.SwDmCustomInfoType.swDmCustomInfoText, "xCAD");
+                    ((ISwDmDocument)d4).Document.AddCustomProperty("UnitTest", SolidWorks.Interop.swdocumentmgr.SwDmCustomInfoType.swDmCustomInfoText, "xCAD");
+
+                    d1.Save();
+                    d2.Save();
+                    d3.Save();
+                    d4.Save();
+                }
+
+                using (var wrp = OpenDataDocument(Path.Combine(tempDir, "Assem1.sldasm"), false))
+                {
+                    var deps = wrp.Document.IterateDependencies().ToArray();
+
+                    var d1 = deps.FirstOrDefault(d => string.Equals(Path.GetFileNameWithoutExtension(d.Title),
+                        "Part1^Assem1", StringComparison.CurrentCultureIgnoreCase));
+                    var d2 = deps.FirstOrDefault(d => string.Equals(Path.GetFileNameWithoutExtension(d.Title),
+                        "Part2^SubAssem1", StringComparison.CurrentCultureIgnoreCase));
+                    var d3 = deps.FirstOrDefault(d => string.Equals(Path.GetFileNameWithoutExtension(d.Title),
+                        "Part3^Assem3_Assem1", StringComparison.CurrentCultureIgnoreCase));
+                    var d4 = deps.FirstOrDefault(d => string.Equals(Path.GetFileNameWithoutExtension(d.Title),
+                        "Assem3^Assem1", StringComparison.CurrentCultureIgnoreCase));
+
+                    Assert.AreEqual("xCAD", ((ISwDmDocument)d1).Document.GetCustomProperty("UnitTest", out _));
+                    Assert.AreEqual("xCAD", ((ISwDmDocument)d2).Document.GetCustomProperty("UnitTest", out _));
+                    Assert.AreEqual("xCAD", ((ISwDmDocument)d3).Document.GetCustomProperty("UnitTest", out _));
+                    Assert.AreEqual("xCAD", ((ISwDmDocument)d4).Document.GetCustomProperty("UnitTest", out _));
+                }
+            }
+            finally
+            {
+                try
+                {
+                    Directory.Delete(tempDir, true);
+                }
+                catch
+                {
+                }
+            }
         }
 
         [Test]
@@ -266,7 +336,8 @@ namespace SolidWorksDocMgr.Tests.Integration
             ComponentState_e s3;
             ComponentState_e s4;
             ComponentState_e s5;
-
+            ComponentState_e s6;
+            
             using (var doc = OpenDataDocument(@"Assembly5\Assem1.SLDASM"))
             {
                 var assm = (ISwDmAssembly)m_App.Documents.Active;
@@ -276,6 +347,7 @@ namespace SolidWorksDocMgr.Tests.Integration
                 s3 = assm.Configurations.Active.Components["Part1-3"].State;
                 s4 = assm.Configurations.Active.Components["Part1-4"].State;
                 s5 = assm.Configurations.Active.Components["Part1-5"].State;
+                s6 = assm.Configurations.Active.Components["Part2^Assem1-1"].State;
             }
 
             Assert.AreEqual(ComponentState_e.Default, s1);
@@ -283,6 +355,74 @@ namespace SolidWorksDocMgr.Tests.Integration
             Assert.AreEqual(ComponentState_e.Envelope, s3);
             Assert.AreEqual(ComponentState_e.ExcludedFromBom, s4);
             Assert.AreEqual(ComponentState_e.Hidden, s5);
+            Assert.AreEqual(ComponentState_e.Embedded, s6);
+        }
+
+        [Test]
+        public void TransformTest()
+        {
+            TransformMatrix m1;
+            TransformMatrix m2;
+            TransformMatrix m3;
+
+            using (var doc = OpenDataDocument(@"AssemTransform1\Assem1.SLDASM"))
+            {
+                var assm = (IXAssembly)m_App.Documents.Active;
+                m1 = assm.Configurations.Active.Components["Part1-1"].Transformation;
+                m2 = assm.Configurations.Active.Components["Assem2-1"].Transformation;
+                m3 = assm.Configurations.Active.Components["Assem2-1"].Children["Part1-1"].Transformation;
+            }
+
+            Assert.That(m1.M11, Is.EqualTo(1).Within(0.00000000001).Percent);
+            Assert.That(m1.M12, Is.EqualTo(0).Within(0.00000000001).Percent);
+            Assert.That(m1.M13, Is.EqualTo(0).Within(0.00000000001).Percent);
+            Assert.That(m1.M14, Is.EqualTo(0).Within(0.00000000001).Percent);
+            Assert.That(m1.M21, Is.EqualTo(0).Within(0.00000000001).Percent);
+            Assert.That(m1.M22, Is.EqualTo(1).Within(0.00000000001).Percent);
+            Assert.That(m1.M23, Is.EqualTo(0).Within(0.00000000001).Percent);
+            Assert.That(m1.M24, Is.EqualTo(0).Within(0.00000000001).Percent);
+            Assert.That(m1.M31, Is.EqualTo(0).Within(0.00000000001).Percent);
+            Assert.That(m1.M32, Is.EqualTo(0).Within(0.00000000001).Percent);
+            Assert.That(m1.M33, Is.EqualTo(1).Within(0.00000000001).Percent);
+            Assert.That(m1.M34, Is.EqualTo(0).Within(0.00000000001).Percent);
+            Assert.That(m1.M41, Is.EqualTo(0.1).Within(0.00000000001).Percent);
+            Assert.That(m1.M42, Is.EqualTo(0.2).Within(0.00000000001).Percent);
+            Assert.That(m1.M43, Is.EqualTo(0.3).Within(0.00000000001).Percent);
+            Assert.That(m1.M44, Is.EqualTo(1).Within(0.00000000001).Percent);
+
+            Assert.That(m2.M11, Is.EqualTo(0.778911219112665).Within(0.00000000001).Percent);
+            Assert.That(m2.M12, Is.EqualTo(-0.315828483619943).Within(0.00000000001).Percent);
+            Assert.That(m2.M13, Is.EqualTo(-0.541802253294271).Within(0.00000000001).Percent);
+            Assert.That(m2.M14, Is.EqualTo(0).Within(0.00000000001).Percent);
+            Assert.That(m2.M21, Is.EqualTo(0.440686764398983).Within(0.00000000001).Percent);
+            Assert.That(m2.M22, Is.EqualTo(0.890321262112265).Within(0.00000000001).Percent);
+            Assert.That(m2.M23, Is.EqualTo(0.114556649367804).Within(0.00000000001).Percent);
+            Assert.That(m2.M24, Is.EqualTo(0).Within(0.00000000001).Percent);
+            Assert.That(m2.M31, Is.EqualTo(0.446197813109809).Within(0.00000000001).Percent);
+            Assert.That(m2.M32, Is.EqualTo(-0.327994541364868).Within(0.00000000001).Percent);
+            Assert.That(m2.M33, Is.EqualTo(0.832662652225301).Within(0.00000000001).Percent);
+            Assert.That(m2.M34, Is.EqualTo(0).Within(0.00000000001).Percent);
+            Assert.That(m2.M41, Is.EqualTo(1.19494753551567E-02).Within(0.00000000001).Percent);
+            Assert.That(m2.M42, Is.EqualTo(0.238358452555315).Within(0.00000000001).Percent);
+            Assert.That(m2.M43, Is.EqualTo(0.283118040140713).Within(0.00000000001).Percent);
+            Assert.That(m2.M44, Is.EqualTo(1).Within(0.00000000001).Percent);
+
+            Assert.That(m3.M11, Is.EqualTo(0.469471562785889).Within(0.00000000001).Percent);
+            Assert.That(m3.M12, Is.EqualTo(0.323601375916072).Within(0.00000000001).Percent);
+            Assert.That(m3.M13, Is.EqualTo(-0.821509952003383).Within(0.00000000001).Percent);
+            Assert.That(m3.M14, Is.EqualTo(0).Within(0.00000000001).Percent);
+            Assert.That(m3.M21, Is.EqualTo(0.387058748836215).Within(0.00000000001).Percent);
+            Assert.That(m3.M22, Is.EqualTo(0.760826796642461).Within(0.00000000001).Percent);
+            Assert.That(m3.M23, Is.EqualTo(0.520891649443639).Within(0.00000000001).Percent);
+            Assert.That(m3.M24, Is.EqualTo(0).Within(0.00000000001).Percent);
+            Assert.That(m3.M31, Is.EqualTo(0.79358803965579).Within(0.00000000001).Percent);
+            Assert.That(m3.M32, Is.EqualTo(-0.562516430885353).Within(0.00000000001).Percent);
+            Assert.That(m3.M33, Is.EqualTo(0.231933801545365).Within(0.00000000001).Percent);
+            Assert.That(m3.M34, Is.EqualTo(0).Within(0.00000000001).Percent);
+            Assert.That(m3.M41, Is.EqualTo(0.23870483272917).Within(0.00000000001).Percent);
+            Assert.That(m3.M42, Is.EqualTo(6.52374740041025E-02).Within(0.00000000001).Percent);
+            Assert.That(m3.M43, Is.EqualTo(0.673600359515548).Within(0.00000000001).Percent);
+            Assert.That(m3.M44, Is.EqualTo(1).Within(0.00000000001).Percent);
         }
     }
 }

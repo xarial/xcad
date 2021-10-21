@@ -21,6 +21,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 {
     public interface ISwDmDocumentCollection : IXDocumentRepository, IDisposable 
     {
+        bool TryGet(string name, out ISwDmDocument ent);
         new ISwDmDocument this[string name] { get; }
         new ISwDmDocument Active { get; set; }
     }
@@ -35,13 +36,20 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             set => Active = (ISwDmDocument)value;
         }
 
+        bool IXRepository<IXDocument>.TryGet(string name, out IXDocument ent)
+        {
+            var res = this.TryGet(name, out ISwDmDocument doc);
+            ent = doc;
+            return res;
+        }
+
         public ISwDmDocument this[string name]
         {
             get
             {
-                if (TryGet(name, out IXDocument doc))
+                if (TryGet(name, out ISwDmDocument doc))
                 {
-                    return (ISwDmDocument)doc;
+                    return doc;
                 }
                 else
                 {
@@ -70,8 +78,10 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         public int Count => m_Documents.Count;
 
-        public event DocumentActivateDelegate DocumentActivated;
-        public event DocumentCreateDelegate DocumentCreated;
+        public event DocumentEventDelegate DocumentActivated;
+        public event DocumentEventDelegate DocumentLoaded;
+        public event DocumentEventDelegate DocumentOpened;
+        public event DocumentEventDelegate NewDocumentCreated;
 
         private List<ISwDmDocument> m_Documents;
 
@@ -111,31 +121,33 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             }
         }
 
-        public bool TryGet(string name, out IXDocument ent)
+        public bool TryGet(string name, out ISwDmDocument ent)
         {
             if (System.IO.Path.IsPathRooted(name))
             {
                 ent = m_Documents.FirstOrDefault(
                     d => string.Equals(d.Path, name, StringComparison.CurrentCultureIgnoreCase));
-
-                return ent != null;
             }
             else if (System.IO.Path.HasExtension(name))
             {
                 ent = m_Documents.FirstOrDefault(
                     d => string.Equals(System.IO.Path.GetFileName(d.Path), name,
                     StringComparison.CurrentCultureIgnoreCase));
-
-                return ent != null;
             }
             else
             {
                 ent = m_Documents.FirstOrDefault(
                     d => string.Equals(System.IO.Path.GetFileNameWithoutExtension(d.Path),
                     name, StringComparison.CurrentCultureIgnoreCase));
-
-                return ent != null;
             }
+
+            if (ent?.IsAlive == false) 
+            {
+                ent.Close();
+                ent = null;
+            }
+
+            return ent != null;
         }
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
@@ -157,6 +169,10 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             {
                 templateDoc = new SwDmDrawing(m_DmApp, null, false, OnDocumentCreated, OnDocumentClosed, null);
             }
+            else if (typeof(IXDocument3D).IsAssignableFrom(typeof(TDocument)))
+            {
+                templateDoc = new SwDmUnknownDocument3D(m_DmApp, null, false, OnDocumentCreated, OnDocumentClosed);
+            }
             else if (typeof(IXDocument).IsAssignableFrom(typeof(TDocument))
                 || typeof(IXUnknownDocument).IsAssignableFrom(typeof(TDocument)))
             {
@@ -167,7 +183,14 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                 throw new NotSupportedException("Creation of this type of document is not supported");
             }
 
-            return templateDoc as TDocument;
+            if (templateDoc is TDocument)
+            {
+                return templateDoc as TDocument;
+            }
+            else
+            {
+                throw new InvalidCastException($"{templateDoc.GetType().FullName} cannot be cast to {typeof(TDocument).FullName}");
+            }
         }
 
         internal void OnDocumentCreated(ISwDmDocument doc)

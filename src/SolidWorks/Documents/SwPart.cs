@@ -56,6 +56,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         internal protected override swDocumentTypes_e? DocumentType => swDocumentTypes_e.swDocPART;
 
+        protected override bool IsLightweightMode => false;
         protected override bool IsRapidMode => false;
 
         public override IXBoundingBox PreCreateBoundingBox()

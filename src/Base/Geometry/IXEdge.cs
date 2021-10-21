@@ -38,7 +38,7 @@ namespace Xarial.XCad.Geometry
     public interface IXCircularEdge : IXEdge 
     {
         /// <inheritdoc/>
-        new IXArc Definition { get; }
+        new IXCircle Definition { get; }
     }
 
     /// <summary>

@@ -29,13 +29,13 @@ namespace Xarial.XCad.SolidWorks.Geometry
     {
         IFace2 Face { get; }
         new ISwSurface Definition { get; }
-        new ISwEdge[] Edges { get; }
+        new IEnumerable<ISwEdge> Edges { get; }
     }
 
     internal class SwFace : SwEntity, ISwFace
     {
         IXSurface IXFace.Definition => Definition;
-        IXEdge[] IXFace.Edges => Edges;
+        IEnumerable<IXEdge> IXFace.Edges => Edges;
 
         public IFace2 Face { get; }
         private readonly IMathUtility m_MathUtils;
@@ -61,13 +61,13 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         public double Area => Face.GetArea();
 
-        private IComponent2 Component => (Face as IEntity).GetComponent() as IComponent2;
+        private IComponent2 GetSwComponent() => (Face as IEntity).GetComponent() as IComponent2;
 
         public System.Drawing.Color? Color 
         {
-            get => SwColorHelper.GetColor(Component, 
+            get => SwColorHelper.GetColor(GetSwComponent(), 
                 (o, c) => Face.GetMaterialPropertyValues2((int)o, c) as double[]);
-            set => SwColorHelper.SetColor(value, Component,
+            set => SwColorHelper.SetColor(value, GetSwComponent(),
                 (m, o, c) => Face.SetMaterialPropertyValues2(m, (int)o, c),
                 (o, c) => Face.RemoveMaterialProperty2((int)o, c));
         }
@@ -91,8 +91,8 @@ namespace Xarial.XCad.SolidWorks.Geometry
             }
         }
 
-        public ISwEdge[] Edges => (Face.GetEdges() as object[])
-            .Select(f => OwnerApplication.CreateObjectFromDispatch<ISwEdge>(f, OwnerDocument)).ToArray();
+        public IEnumerable<ISwEdge> Edges => (Face.GetEdges() as object[])
+            .Select(f => OwnerApplication.CreateObjectFromDispatch<ISwEdge>(f, OwnerDocument));
 
         public override Point FindClosestPoint(Point point)
             => new Point(((double[])Face.GetClosestPointOn(point.X, point.Y, point.Z)).Take(3).ToArray());

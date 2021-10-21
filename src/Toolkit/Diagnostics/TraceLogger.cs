@@ -10,6 +10,9 @@ using Xarial.XCad.Base.Enums;
 
 namespace Xarial.XCad.Utils.Diagnostics
 {
+    /// <summary>
+    /// Logger logs messages to trace window
+    /// </summary>
     public class TraceLogger : IXLogger
     {
         private readonly string m_Category;
@@ -20,8 +23,6 @@ namespace Xarial.XCad.Utils.Diagnostics
         }
 
         public void Log(string msg, LoggerMessageSeverity_e severity = LoggerMessageSeverity_e.Information)
-        {
-            System.Diagnostics.Trace.WriteLine($"[{severity}]{msg}", m_Category);
-        }
+            => this.Trace(msg, m_Category, severity);
     }
 }

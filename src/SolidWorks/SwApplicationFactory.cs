@@ -13,7 +13,6 @@ using Xarial.XCad.SolidWorks.Enums;
 using Xarial.XCad.Toolkit.Windows;
 using System.Diagnostics;
 using System.Threading;
-using Xarial.XCad.SolidWorks.Exceptions;
 using System.Collections.Generic;
 using Microsoft.Win32;
 using Xarial.XCad.Toolkit;

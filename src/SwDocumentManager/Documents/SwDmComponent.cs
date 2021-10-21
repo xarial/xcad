@@ -9,6 +9,7 @@ using SolidWorks.Interop.swdocumentmgr;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.IO;
@@ -21,6 +22,7 @@ using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Features;
 using Xarial.XCad.Geometry;
+using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Services;
 using Xarial.XCad.SwDocumentManager.Services;
 
@@ -28,11 +30,13 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 {
     public interface ISwDmComponent : IXComponent, ISwDmSelObject
     {
+        string CachedPath { get; }
         ISwDMComponent Component { get; }
         new ISwDmDocument3D ReferencedDocument { get; }
         new ISwDmConfiguration ReferencedConfiguration { get; }
     }
 
+    [DebuggerDisplay("{" + nameof(Name) + "}")]
     internal class SwDmComponent : SwDmSelObject, ISwDmComponent
     {
         #region Not Supported
@@ -140,6 +144,30 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             }
         }
 
+        public TransformMatrix Transformation
+        {
+            get 
+            {
+                var data = (double[])Component.Transform;
+
+                var scale = data[15];
+
+                var transform = new TransformMatrix(
+                    data[0] * scale, data[1] * scale, data[2] * scale, 0,
+                    data[4] * scale, data[5] * scale, data[6] * scale, 0,
+                    data[8] * scale, data[9] * scale, data[10] * scale, 0,
+                    data[12], data[13], data[14], 1);
+
+                if (Parent != null) 
+                {
+                    transform = transform.Multiply(Parent.Transformation);
+                }
+
+                return transform;
+            }
+            set => throw new NotSupportedException("Transform of the component cannot be modified"); 
+        }
+
         private ISwDmDocument3D m_CachedDocument;
 
         public ISwDmDocument3D ReferencedDocument
@@ -173,18 +201,37 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                             if (doc == null)
                             {
                                 var docType = ((ISwDMComponent2)Component).DocumentType;
+                                var isVirtual = ((ISwDMComponent3)Component).IsVirtual;
 
                                 switch (docType)
                                 {
                                     case SwDmDocumentType.swDmDocumentPart:
-                                        doc = new SwDmPart(m_ParentAssm.SwDmApp, dmDoc, true,
-                                            docsColl.OnDocumentCreated,
-                                            docsColl.OnDocumentClosed, isReadOnly);
+                                        if (!isVirtual)
+                                        {
+                                            doc = new SwDmPart(m_ParentAssm.SwDmApp, dmDoc, true,
+                                                docsColl.OnDocumentCreated,
+                                                docsColl.OnDocumentClosed, isReadOnly);
+                                        }
+                                        else 
+                                        {
+                                            doc = new SwDmVirtualPart(m_ParentAssm.SwDmApp, dmDoc, m_ParentAssm, true,
+                                                docsColl.OnDocumentCreated,
+                                                docsColl.OnDocumentClosed, isReadOnly);
+                                        }
                                         break;
                                     case SwDmDocumentType.swDmDocumentAssembly:
-                                        doc = new SwDmAssembly(m_ParentAssm.SwDmApp, dmDoc, true,
-                                            docsColl.OnDocumentCreated,
-                                            docsColl.OnDocumentClosed, isReadOnly);
+                                        if (!isVirtual)
+                                        {
+                                            doc = new SwDmAssembly(m_ParentAssm.SwDmApp, dmDoc, true,
+                                                docsColl.OnDocumentCreated,
+                                                docsColl.OnDocumentClosed, isReadOnly);
+                                        }
+                                        else 
+                                        {
+                                            doc = new SwDmVirtualAssembly(m_ParentAssm.SwDmApp, dmDoc, m_ParentAssm, true,
+                                                docsColl.OnDocumentCreated,
+                                                docsColl.OnDocumentClosed, isReadOnly);
+                                        }
                                         break;
                                     default:
                                         throw new NotSupportedException($"Document type '{docType}' of the component is not supported");
@@ -263,7 +310,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             set => throw new NotSupportedException();
         }
 
-        protected override SwDmDocument3D Document => (SwDmDocument3D)m_Comp.ReferencedDocument;
+        internal protected override SwDmDocument3D Document => (SwDmDocument3D)m_Comp.ReferencedDocument;
 
         public override ISwDMConfiguration Configuration => Document.Configurations[Name].Configuration;
 

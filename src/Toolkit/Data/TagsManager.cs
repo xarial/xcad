@@ -12,6 +12,9 @@ using Xarial.XCad.Data;
 
 namespace Xarial.XCad.Toolkit.Data
 {
+    /// <summary>
+    /// Manages tags
+    /// </summary>
     public class TagsManager : ITagsManager
     {
         private readonly Dictionary<string, object> m_Tags;

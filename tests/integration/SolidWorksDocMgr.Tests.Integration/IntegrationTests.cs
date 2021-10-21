@@ -12,34 +12,34 @@ using Xarial.XCad.SwDocumentManager.Documents;
 
 namespace SolidWorksDocMgr.Tests.Integration
 {
+    public class DocumentWrapper : IDisposable
+    {
+        private readonly ISwDmApplication m_App;
+        public ISwDmDocument Document { get; }
+
+        private bool m_IsDisposed;
+
+        internal DocumentWrapper(ISwDmApplication app, ISwDmDocument model)
+        {
+            m_App = app;
+            Document = model;
+            m_IsDisposed = false;
+        }
+
+        public void Dispose()
+        {
+            if (!m_IsDisposed)
+            {
+                Document.Close();
+                m_IsDisposed = true;
+            }
+        }
+    }
+
     [TestFixture]
     [RequiresThread(System.Threading.ApartmentState.STA)]
     public abstract class IntegrationTests
     {
-        private class DocumentWrapper : IDisposable
-        {
-            private readonly ISwDMApplication m_App;
-            private readonly ISwDMDocument m_Model;
-
-            private bool m_IsDisposed;
-
-            internal DocumentWrapper(ISwDMApplication app, ISwDMDocument model)
-            {
-                m_App = app;
-                m_Model = model;
-                m_IsDisposed = false;
-            }
-
-            public void Dispose()
-            {
-                if (!m_IsDisposed)
-                {
-                    m_Model.CloseDoc();
-                    m_IsDisposed = true;
-                }
-            }
-        }
-
         private const string DATA_FOLDER = @"C:\Users\artem\OneDrive\xCAD\TestData";
 
         protected ISwDmApplication m_App;
@@ -74,7 +74,7 @@ namespace SolidWorksDocMgr.Tests.Integration
             return filePath;
         }
 
-        protected IDisposable OpenDataDocument(string name, bool readOnly = true)
+        protected DocumentWrapper OpenDataDocument(string name, bool readOnly = true)
         {
             var filePath = GetFilePath(name);
 
@@ -85,7 +85,7 @@ namespace SolidWorksDocMgr.Tests.Integration
 
             if (doc != null)
             {
-                var docWrapper = new DocumentWrapper(m_SwDmApp, doc.Document);
+                var docWrapper = new DocumentWrapper(m_App, doc);
                 m_Disposables.Add(docWrapper);
                 return docWrapper;
             }
@@ -110,6 +110,11 @@ namespace SolidWorksDocMgr.Tests.Integration
             }
 
             m_Disposables.Clear();
+
+            while (m_App.Documents.Any())
+            {
+                m_App.Documents.First().Close();
+            }
         }
 
         [OneTimeTearDown]

@@ -7,6 +7,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Xarial.XCad.Data;
 using Xarial.XCad.Enums;
@@ -27,7 +28,7 @@ namespace Xarial.XCad.Features
         /// <summary>
         /// Bodies of this cut-list item
         /// </summary>
-        IXSolidBody[] Bodies { get; }
+        IEnumerable<IXSolidBody> Bodies { get; }
     }
 
     /// <summary>
@@ -40,6 +41,6 @@ namespace Xarial.XCad.Features
         /// </summary>
         /// <param name="item">Input item</param>
         /// <returns>Quantity</returns>
-        public static int Quantity(this IXCutListItem item) => item.Bodies.Length;
+        public static int Quantity(this IXCutListItem item) => item.Bodies.Count();
     }
 }

@@ -30,14 +30,10 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
         }
 
         protected override string GetSpecificValue()
-        {
-            return SwSpecificControl.Text;
-        }
+            => SwSpecificControl.Text;
 
         protected override void SetSpecificValue(string value)
-        {
-            SwSpecificControl.Text = value;
-        }
+            => SwSpecificControl.Text = value;
 
         protected override void Dispose(bool disposing)
         {

@@ -94,6 +94,9 @@ namespace Xarial.XCad.Toolkit.Data
 
     #endregion
 
+    /// <summary>
+    /// Represents the implementation of Storage in .NET
+    /// </summary>
     public class ComStorage : IStorage
     {
         private bool m_IsWritable;

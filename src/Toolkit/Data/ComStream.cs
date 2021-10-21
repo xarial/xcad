@@ -11,6 +11,9 @@ using System.Runtime.InteropServices.ComTypes;
 
 namespace Xarial.XCad.Toolkit.Data
 {
+    /// <summary>
+    /// Represents the COM stream wrapper
+    /// </summary>
     public class ComStream : Stream
     {
         private readonly bool m_Commit;

@@ -13,5 +13,11 @@ using Xarial.XCad.Documents.Structures;
 
 namespace Xarial.XCad.Documents.Delegates
 {
+    /// <summary>
+    /// Delegate for <see cref="IXDocument.Saving"/> event
+    /// </summary>
+    /// <param name="doc">Document being saved</param>
+    /// <param name="type">Save type</param>
+    /// <param name="args">Savig arguments</param>
     public delegate void DocumentSaveDelegate(IXDocument doc, DocumentSaveType_e type, DocumentSaveArgs args);
 }

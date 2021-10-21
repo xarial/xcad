@@ -58,6 +58,8 @@ namespace Xarial.XCad.SwDocumentManager.Data
             {
                 throw new Exception("Failed to add custom property");
             }
+
+            m_Doc.IsDirty = true;
         }
 
         protected override object ReadValue(out string exp)
@@ -74,7 +76,11 @@ namespace Xarial.XCad.SwDocumentManager.Data
             return val;
         }
 
-        protected override void SetValue(object value) => m_Doc.Document.SetCustomProperty(Name, value?.ToString());
+        protected override void SetValue(object value)
+        {
+            m_Doc.Document.SetCustomProperty(Name, value?.ToString());
+            m_Doc.IsDirty = true;
+        }
 
         internal override void Delete() 
         {
@@ -82,6 +88,8 @@ namespace Xarial.XCad.SwDocumentManager.Data
             {
                 throw new Exception("Failed to delete property");
             }
+
+            m_Doc.IsDirty = true;
         }
     }
 }

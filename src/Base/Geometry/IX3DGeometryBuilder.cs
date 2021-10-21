@@ -37,5 +37,11 @@ namespace Xarial.XCad.Geometry
         /// </summary>
         /// <returns>Revolve template</returns>
         IXRevolve PreCreateRevolve();
+
+        /// <summary>
+        /// Creates knit template
+        /// </summary>
+        /// <returns>Knit template</returns>
+        IXKnit PreCreateKnit();
     }
 }

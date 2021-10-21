@@ -8,6 +8,8 @@
 using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
 using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
@@ -34,6 +36,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         new ISwCustomPropertiesCollection Properties { get; }
     }
 
+    [DebuggerDisplay("{" + nameof(Name) + "}")]
     internal class SwConfiguration : SwObject, ISwConfiguration
     {
         internal const string QTY_PROPERTY = "UNIT_OF_MEASURE";
@@ -76,13 +79,13 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public bool IsCommitted => m_Creator.IsCreated;
 
-        public virtual IXCutListItem[] CutLists
+        public virtual IEnumerable<IXCutListItem> CutLists
         {
             get
             {
                 var activeConf = m_Doc.Configurations.Active;
 
-                var cutLists = ((SwFeatureManager)m_Doc.Features).GetCutLists();
+                var cutLists = ((SwFeatureManager)m_Doc.Features).EnumerateCutLists();
 
                 if (cutLists.Any())
                 {
@@ -221,7 +224,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                 case swBOMPartNumberSource_e.swBOMPartNumber_ConfigurationName:
                     return conf.Name;
                 case swBOMPartNumberSource_e.swBOMPartNumber_DocumentName:
-                    return m_Doc.Title;
+                    return Path.GetFileNameWithoutExtension(m_Doc.Title);
                 case swBOMPartNumberSource_e.swBOMPartNumber_ParentName:
                     return GetPartNumber(conf.GetParent());
                 case swBOMPartNumberSource_e.swBOMPartNumber_UserSpecified:
@@ -296,7 +299,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        public override IXCutListItem[] CutLists => ((SwComponentFeatureManager)m_Comp.Features).GetCutLists();
+        public override IEnumerable<IXCutListItem> CutLists => ((SwComponentFeatureManager)m_Comp.Features).EnumerateCutLists();
     }
 
     internal class SwViewOnlyUnloadedConfiguration : SwConfiguration
@@ -316,7 +319,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
 
         public override void Commit(CancellationToken cancellationToken) => throw new InactiveLdrConfgurationNotSupportedException();
-        public override IXCutListItem[] CutLists => throw new InactiveLdrConfgurationNotSupportedException();
+        public override IEnumerable<IXCutListItem> CutLists => throw new InactiveLdrConfgurationNotSupportedException();
         public override object Dispatch => throw new InactiveLdrConfgurationNotSupportedException();
         public override ISwCustomPropertiesCollection Properties => throw new InactiveLdrConfgurationNotSupportedException();
     }
@@ -338,7 +341,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
 
         public override void Commit(CancellationToken cancellationToken) => throw new InactiveLdrConfgurationNotSupportedException();
-        public override IXCutListItem[] CutLists => throw new InactiveLdrConfgurationNotSupportedException();
+        public override IEnumerable<IXCutListItem> CutLists => throw new InactiveLdrConfgurationNotSupportedException();
         public override object Dispatch => throw new InactiveLdrConfgurationNotSupportedException();
         public override ISwCustomPropertiesCollection Properties => throw new InactiveLdrConfgurationNotSupportedException();
     }

@@ -19,9 +19,9 @@ namespace Xarial.XCad.SwDocumentManager.Data
     {
         public override int Count => m_Conf.Configuration.GetCustomPropertyCount();
 
-        private readonly ISwDmConfiguration m_Conf;
+        private readonly SwDmConfiguration m_Conf;
 
-        internal SwDmConfigurationCustomPropertiesCollection(ISwDmConfiguration conf)
+        internal SwDmConfigurationCustomPropertiesCollection(SwDmConfiguration conf)
         {
             m_Conf = conf;
         }
@@ -44,9 +44,9 @@ namespace Xarial.XCad.SwDocumentManager.Data
 
     internal class SwDmConfigurationCustomProperty : SwDmCustomProperty
     {
-        private readonly ISwDmConfiguration m_Conf;
+        private readonly SwDmConfiguration m_Conf;
 
-        public SwDmConfigurationCustomProperty(ISwDmConfiguration conf, string name, bool isCreated) 
+        internal SwDmConfigurationCustomProperty(SwDmConfiguration conf, string name, bool isCreated) 
             : base(name, isCreated)
         {
             m_Conf = conf;
@@ -60,6 +60,8 @@ namespace Xarial.XCad.SwDocumentManager.Data
             {
                 throw new Exception("Failed to add custom property");
             }
+
+            m_Conf.Document.IsDirty = true;
         }
 
         protected override object ReadValue(out string exp)
@@ -77,8 +79,11 @@ namespace Xarial.XCad.SwDocumentManager.Data
             return val;
         }
 
-        protected override void SetValue(object value) 
-            => m_Conf.Configuration.SetCustomProperty(Name, value?.ToString());
+        protected override void SetValue(object value)
+        {
+            m_Conf.Configuration.SetCustomProperty(Name, value?.ToString());
+            m_Conf.Document.IsDirty = true;
+        }
 
         internal override void Delete()
         {
@@ -86,6 +91,8 @@ namespace Xarial.XCad.SwDocumentManager.Data
             {
                 throw new Exception("Failed to delete property");
             }
+
+            m_Conf.Document.IsDirty = true;
         }
     }
 }

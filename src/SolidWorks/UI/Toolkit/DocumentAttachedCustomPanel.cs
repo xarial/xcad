@@ -24,7 +24,7 @@ namespace Xarial.XCad.SolidWorks.UI.Toolkit
         public event Action<IAutoDisposable> Disposed;
 
         public event ControlCreatedDelegate<TControl> ControlCreated;
-        public event PanelActivatedDelegate<TControl> Activated;
+        public virtual event PanelActivatedDelegate<TControl> Activated;
 
         public bool IsActive
         {
@@ -101,6 +101,7 @@ namespace Xarial.XCad.SolidWorks.UI.Toolkit
         {
             m_App = app;
             m_Doc = doc;
+            
             m_Doc.Hidden += OnHidden;
             m_Doc.Destroyed += OnDestroyed;
 
@@ -123,11 +124,6 @@ namespace Xarial.XCad.SolidWorks.UI.Toolkit
         protected abstract TControl CreateControl();
         protected abstract void DeleteControl();
 
-        protected void RaiseActivated() 
-        {
-            Activated?.Invoke(this);
-        }
-
         private void OnDocumentActivated(IXDocument doc)
         {
             if (!m_IsDisposed)
@@ -147,7 +143,7 @@ namespace Xarial.XCad.SolidWorks.UI.Toolkit
             }
         }
 
-        private void OnHidden(SwDocument doc)
+        private void OnHidden(IXDocument doc)
         {
             try
             {
@@ -174,7 +170,7 @@ namespace Xarial.XCad.SolidWorks.UI.Toolkit
         public void Dispose()
             => Close();
 
-        public void Close()
+        public virtual void Close()
         {
             if (!m_IsDisposed)
             {

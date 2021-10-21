@@ -17,51 +17,44 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
 {
     internal class PropertyManagerPageItemsControlConstructorHelper
     {
-        internal ItemsControlItem[] GetItems(IXApplication app, IAttributeSet atts)
+        internal bool TryGetStaticItems(IXApplication app, IAttributeSet atts, out ItemsControlItem[] staticItems)
         {
             if (atts.ContextType.IsEnum)
             {
                 var items = EnumExtension.GetEnumFields(atts.ContextType);
-                return items.Select(i => new ItemsControlItem()
+                staticItems = items.Select(i => new ItemsControlItem()
                 {
                     DisplayName = i.Value,
                     Value = i.Key
                 }).ToArray();
+
+                return true;
             }
             else 
             {
                 var customItemsAtt = atts.Get<ItemsSourceControlAttribute>();
 
-                List<object> items = null;
-
-                if (customItemsAtt.StaticItems != null)
+                if (customItemsAtt.StaticItems?.Any() == true)
                 {
-                    items = customItemsAtt.StaticItems.ToList();
-                }
-                else if (customItemsAtt.CustomItemsProvider != null) 
-                {
-                    var provider = customItemsAtt.CustomItemsProvider;
+                    staticItems = customItemsAtt
+                        .StaticItems.Select(i => new ItemsControlItem(i)).ToArray();
 
-                    var depsCount = customItemsAtt.Dependencies?.Length;
-
-                    //TODO: dependency controls cannot be loaded at this stage as binding is not yet loaded - need to sort this out
-                    //Not very critical at this stage as provide items wil be called as part ResolveState for dependent controls
-                    //For now just add a note in the documentation for this behavior
-                    items = provider.ProvideItems(app, new IControl[depsCount.Value])?.ToList();
+                    return true;
                 }
-                else if (customItemsAtt.ItemsSource != null)
+                else if (customItemsAtt.CustomItemsProvider != null)
                 {
-                    //this will be resolved dynamically
-                    items = new List<object>();
-                }
-                
-                if (items == null)
-                {
-                    items = new List<object>();
-                }
+                    if (customItemsAtt.Dependencies?.Any() != true) 
+                    {
+                        var provider = customItemsAtt.CustomItemsProvider;
 
-                return items.Select(i => new ItemsControlItem(i)).ToArray();
+                        staticItems = provider.ProvideItems(app, new IControl[0]).Select(i => new ItemsControlItem(i)).ToArray();
+                        return true;
+                    }
+                }
             }
+
+            staticItems = null;
+            return false;
         }
     }
 }

@@ -7,14 +7,18 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
+using Xarial.XCad.Exceptions;
 
-namespace Xarial.XCad.Toolkit.Exceptions
+namespace Xarial.XCad.SolidWorks.Exceptions
 {
-    public class NonCommittedElementAccessException : Exception
+    /// <summary>
+    /// Indicates that macro file is not found
+    /// </summary>
+    public class MacroFileNotFoundException : FileNotFoundException, IUserException
     {
-        public NonCommittedElementAccessException() 
-            : base("This is a template feature and has not been created yet. Commit this feature by adding to the feature collection") 
+        internal MacroFileNotFoundException(string filePath) : base($"Macro file '{filePath}' not found") 
         {
         }
     }

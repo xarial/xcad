@@ -21,7 +21,7 @@ using Xarial.XCad.Toolkit.Utils;
 
 namespace Xarial.XCad.SolidWorks.Sketch
 {
-    public interface ISwSketchSegment : IXSketchSegment
+    public interface ISwSketchSegment : IXSketchSegment, ISwSelObject
     {
         ISketchSegment Segment { get; }
         new ISwCurve Definition { get; }
@@ -37,13 +37,7 @@ namespace Xarial.XCad.SolidWorks.Sketch
 
         protected readonly ISketchManager m_SketchMgr;
 
-        public ISketchSegment Segment
-        {
-            get
-            {
-                return m_Creator.Element;
-            }
-        }
+        public ISketchSegment Segment => m_Creator.Element;
 
         public override bool IsCommitted => m_Creator.IsCreated;
 

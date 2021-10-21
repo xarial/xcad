@@ -14,6 +14,7 @@ using Xarial.XCad.Base;
 using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Features;
 using Xarial.XCad.Geometry;
+using Xarial.XCad.Geometry.Structures;
 
 namespace Xarial.XCad.Documents
 {
@@ -68,6 +69,11 @@ namespace Xarial.XCad.Documents
         /// Bodies in this component
         /// </summary>
         IXBodyRepository Bodies { get; }
+
+        /// <summary>
+        /// Transformation of this component in the assembly relative to the global coordinate system
+        /// </summary>
+        TransformMatrix Transformation { get; set; }
     }
 
     /// <summary>
@@ -94,7 +100,7 @@ namespace Xarial.XCad.Documents
             {
                 var state = parent.State;
 
-                if (!state.HasFlag(ComponentState_e.Suppressed))
+                if (!state.HasFlag(ComponentState_e.Suppressed) && !state.HasFlag(ComponentState_e.SuppressedIdMismatch))
                 {
                     if (includeHidden || !state.HasFlag(ComponentState_e.Hidden))
                     {

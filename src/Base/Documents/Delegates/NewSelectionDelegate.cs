@@ -11,5 +11,10 @@ using System.Text;
 
 namespace Xarial.XCad.Documents.Delegates
 {
+    /// <summary>
+    /// Delegate for the <see cref="IXSelectionRepository.NewSelection"/> event
+    /// </summary>
+    /// <param name="doc">Document where selection is done</param>
+    /// <param name="selObject">Selected object</param>
     public delegate void NewSelectionDelegate(IXDocument doc, IXSelObject selObject);
 }

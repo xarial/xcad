@@ -9,7 +9,16 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Xarial.XCad.Documents.Delegates
+namespace Xarial.XCad.Geometry.Primitives
 {
-    public delegate void DocumentRebuildDelegate(IXDocument doc);
+    /// <summary>
+    /// Represents the knit premitive
+    /// </summary>
+    public interface IXKnit : IXPrimitive
+    {
+        /// <summary>
+        /// Faces representing this knit
+        /// </summary>
+        IXFace[] Faces { get; set; }
+    }
 }

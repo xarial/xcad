@@ -13,6 +13,7 @@ using Xarial.XCad.UI.Commands.Attributes;
 using Xarial.XCad.UI.Commands.Structures;
 using System.Linq;
 using Xarial.XCad.UI.Exceptions;
+using System.Collections.Generic;
 
 namespace Base.Tests
 {
@@ -71,6 +72,38 @@ namespace Base.Tests
             Cmd2
         }
 
+        public enum Commands6_1 
+        {
+            Cmd1,
+            Cmd2
+        }
+
+        [CommandGroupInfo(3)]
+        public enum Commands7_1
+        {
+            Cmd1,
+            Cmd2
+        }
+
+        [CommandGroupInfo(4)]
+        public enum Commands8_1
+        {
+            Cmd1,
+            Cmd2
+        }
+
+        public enum Commands9_1
+        {
+            Cmd1,
+            Cmd2
+        }
+
+        public enum Commands10_1
+        {
+            Cmd1,
+            Cmd2
+        }
+
         [Test]
         public void TestAddCommandGroup()
         {
@@ -86,9 +119,47 @@ namespace Base.Tests
 
             mock.Object.AddCommandGroup<Commands1_e>();
 
+            Assert.AreEqual(1, res.Id);
             Assert.AreEqual(2, res.Commands.Length);
             Assert.AreEqual("Cmd1", res.Commands[0].Title);
             Assert.AreEqual("Cmd2", res.Commands[1].Title);
+        }
+
+        [Test]
+        public void TestAddCommandGroupAutoUserIds()
+        {
+            var cmdMgrMock = new Mock<IXCommandManager>();
+
+            var cmgGrps = new List<IXCommandGroup>();
+
+            cmdMgrMock.Setup(m => m.CommandGroups).Returns(() => cmgGrps.ToArray());
+
+            cmdMgrMock.Setup(m => m.AddCommandGroup(It.IsAny<CommandGroupSpec>()))
+                .Returns((CommandGroupSpec s) => 
+                {
+                    var cmdGrpMock = new Mock<IXCommandGroup>();
+                    cmdGrpMock.Setup(x => x.Spec).Returns(s);
+
+                    var cmdGrp = cmdGrpMock.Object;
+
+                    cmgGrps.Add(cmdGrp);
+
+                    return cmdGrp;
+                });
+
+            var cmdMgr = cmdMgrMock.Object;
+
+            var g1 = cmdMgr.AddCommandGroup<Commands6_1>();
+            var g2 = cmdMgr.AddCommandGroup<Commands7_1>();
+            var g3 = cmdMgr.AddCommandGroup<Commands8_1>();
+            var g4 = cmdMgr.AddCommandGroup<Commands9_1>();
+            var g5 = cmdMgr.AddCommandGroup<Commands10_1>();
+
+            Assert.AreEqual(1, g1.Spec.Id);
+            Assert.AreEqual(3, g2.Spec.Id);
+            Assert.AreEqual(4, g3.Spec.Id);
+            Assert.AreEqual(2, g4.Spec.Id);
+            Assert.AreEqual(5, g5.Spec.Id);
         }
 
         [Test]
@@ -118,8 +189,8 @@ namespace Base.Tests
             Assert.AreEqual(true, res.Commands[0].HasSpacer);
             Assert.AreEqual(false, res.Commands[0].HasMenu);
             Assert.AreEqual(true, res.Commands[0].HasToolbar);
-            Assert.AreEqual(true, res.Commands[0].HasTabBox);
-            Assert.AreEqual(Xarial.XCad.UI.Commands.Enums.RibbonTabTextDisplay_e.NoText, res.Commands[0].TabBoxStyle);
+            Assert.AreEqual(true, res.Commands[0].HasRibbon);
+            Assert.AreEqual(Xarial.XCad.UI.Commands.Enums.RibbonTabTextDisplay_e.NoText, res.Commands[0].RibbonTextStyle);
             Assert.AreEqual(Xarial.XCad.UI.Commands.Enums.WorkspaceTypes_e.Assembly, res.Commands[0].SupportedWorkspace);
 
             Assert.That(res.Commands[0].Icon.Buffer.SequenceEqual(new byte[] { 2, 3 }));
@@ -155,7 +226,7 @@ namespace Base.Tests
             Assert.AreEqual(parentSpec, res.Parent);
 
             Assert.Throws<ParentGroupNotFoundException>(() => mock.Object.AddCommandGroup<Commands4_e>());
-            Assert.Throws<ParentGroupCircularDependencyException>(() => mock.Object.CreateSpecFromEnum<Commands5_e>(-1, new CommandGroupSpec(20)));
+            Assert.Throws<ParentGroupCircularDependencyException>(() => mock.Object.CreateSpecFromEnum<Commands5_e>(new CommandGroupSpec(20), null));
         }
     }
 }

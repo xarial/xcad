@@ -22,12 +22,17 @@ namespace Xarial.XCad.SolidWorks.Geometry
     {
         IEdge Edge { get; }
         new ISwCurve Definition { get; }
+        new ISwVertex StartPoint { get; }
+        new ISwVertex EndPoint { get; }
     }
 
     internal class SwEdge : SwEntity, ISwEdge
     {
         IXPoint IXSegment.StartPoint => StartPoint;
         IXPoint IXSegment.EndPoint => EndPoint;
+        
+        IXVertex IXEdge.StartPoint => StartPoint;
+        IXVertex IXEdge.EndPoint => EndPoint;
 
         IXCurve IXEdge.Definition => Definition;
 
@@ -50,14 +55,25 @@ namespace Xarial.XCad.SolidWorks.Geometry
                     yield return OwnerApplication.CreateObjectFromDispatch<SwEdge>(edge, OwnerDocument);
                 }
 
-                yield return OwnerApplication.CreateObjectFromDispatch<ISwVertex>(Edge.IGetStartVertex(), OwnerDocument);
-                yield return OwnerApplication.CreateObjectFromDispatch<ISwVertex>(Edge.IGetEndVertex(), OwnerDocument);
+                var startVertex =  StartPoint;
+
+                if (startVertex != null) 
+                {
+                    yield return startVertex;
+                }
+
+                var endVertex = EndPoint;
+
+                if (endVertex != null)
+                {
+                    yield return endVertex;
+                }
             }
         }
 
         public ISwCurve Definition => OwnerApplication.CreateObjectFromDispatch<SwCurve>(Edge.IGetCurve(), OwnerDocument);
 
-        public IXVertex StartPoint 
+        public ISwVertex StartPoint 
         {
             get 
             {
@@ -74,7 +90,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
             }
         }
 
-        public IXVertex EndPoint 
+        public ISwVertex EndPoint 
         {
             get
             {
@@ -104,18 +120,18 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
     public interface ISwCircularEdge : ISwEdge, IXCircularEdge
     {
-        new ISwArcCurve Definition { get; }
+        new ISwCircleCurve Definition { get; }
     }
 
     internal class SwCircularEdge : SwEdge, ISwCircularEdge
     {
-        IXArc IXCircularEdge.Definition => Definition;
+        IXCircle IXCircularEdge.Definition => Definition;
 
         internal SwCircularEdge(IEdge edge, ISwDocument doc, ISwApplication app) : base(edge, doc, app)
         {
         }
 
-        public new ISwArcCurve Definition => OwnerApplication.CreateObjectFromDispatch<SwArcCurve>(Edge.IGetCurve(), OwnerDocument);
+        public new ISwCircleCurve Definition => OwnerApplication.CreateObjectFromDispatch<SwCircleCurve>(Edge.IGetCurve(), OwnerDocument);
     }
 
     public interface ISwLinearEdge : ISwEdge, IXLinearEdge

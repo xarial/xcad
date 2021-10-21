@@ -110,13 +110,15 @@ namespace Xarial.XCad.SolidWorks.Sketch
             //TODO: implement removing of entities
         }
 
-        public IXArc PreCreateArc() => new SwSketchArc(null, m_Doc, m_App, false);
+        public IXCircle PreCreateCircle() => new SwSketchCircle(null, m_Doc, m_App, false);
 
         public IXPolylineCurve PreCreatePolyline()
             => throw new NotSupportedException();
 
         public IXCurve Merge(IXCurve[] curves)
             => throw new NotSupportedException();
+
+        public IXArc PreCreateArc() => new SwSketchArc(null, m_Doc, m_App, false);
     }
 
     internal class SwSketchEntitiesEnumerator : IEnumerator<ISwSketchEntity>

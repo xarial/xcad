@@ -41,4 +41,42 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         ISwDmAssemblyConfigurationCollection ISwDmAssembly.Configurations => m_LazyConfigurations.Value;
     }
+
+    internal class SwDmVirtualAssembly : SwDmAssembly
+    {
+        private readonly SwDmDocument m_Owner;
+
+        public SwDmVirtualAssembly(ISwDmApplication dmApp, ISwDMDocument doc, SwDmDocument owner, bool isCreated,
+            Action<ISwDmDocument> createHandler, Action<ISwDmDocument> closeHandler, bool? isReadOnly) 
+            : base(dmApp, doc, isCreated, createHandler, closeHandler, isReadOnly)
+        {
+            m_Owner = owner;
+            m_Owner.Disposed += OnOwnerDisposed;
+        }
+
+        private void OnOwnerDisposed(SwDmDocument owner)
+        {
+            this.Close();
+        }
+
+        public override string Title
+        {
+            get => SwDmVirtualDocumentHelper.GetTitle(base.Title);
+            set => base.Title = value; 
+        }
+
+        public override bool IsDirty
+        {
+            get => base.IsDirty;
+            set
+            {
+                base.IsDirty = value;
+
+                if (value)
+                {
+                    m_Owner.IsDirty = true;
+                }
+            }
+        }
+    }
 }

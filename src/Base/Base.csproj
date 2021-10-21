@@ -11,7 +11,7 @@
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <PackageId>Xarial.XCad</PackageId>
-    <VersionPrefix>0.7.5</VersionPrefix>
+    <VersionPrefix>0.7.7</VersionPrefix>
     <Authors>Xarial</Authors>
     <Product>xCAD</Product>
     <Copyright>© 2021 Xarial Pty Limited</Copyright>

@@ -12,11 +12,17 @@ using static Xarial.XCad.UI.Commands.IXCommandManagerExtension;
 
 namespace Xarial.XCad.UI.Commands.Structures
 {
+    /// <summary>
+    /// Command group based on the enumeration
+    /// </summary>
+    /// <typeparam name="TCmdEnum">Enumeration with commands</typeparam>
     public interface IEnumCommandGroup<TCmdEnum> : IXCommandGroup
         where TCmdEnum : Enum
     {
+        /// <inheritdoc/>
         new event CommandEnumClickDelegate<TCmdEnum> CommandClick;
 
+        /// <inheritdoc/>
         new event CommandEnumStateDelegate<TCmdEnum> CommandStateResolve;
     }
 

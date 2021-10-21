@@ -10,6 +10,7 @@ using SolidWorks.Interop.swconst;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -22,6 +23,7 @@ using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Features;
 using Xarial.XCad.Features.CustomFeature;
 using Xarial.XCad.Geometry;
+using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.SolidWorks.Annotations;
 using Xarial.XCad.SolidWorks.Data;
 using Xarial.XCad.SolidWorks.Features;
@@ -50,6 +52,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         string CachedPath { get; }
     }
 
+    [DebuggerDisplay("{" + nameof(Name) + "}")]
     internal class SwComponent : SwSelObject, ISwComponent
     {
         IXDocument3D IXComponent.ReferencedDocument => ReferencedDocument;
@@ -71,13 +74,17 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public override object Dispatch => Component;
 
+        private readonly IMathUtility m_MathUtils;
+
         internal SwComponent(IComponent2 comp, SwAssembly rootAssembly, ISwApplication app) : base(comp, rootAssembly, app)
         {
             m_RootAssembly = rootAssembly;
             Component = comp;
-            Children = new SwChildComponentsCollection(rootAssembly, comp);
+            Children = new SwChildComponentsCollection(rootAssembly, this);
             m_FeaturesLazy = new Lazy<ISwFeatureManager>(() => new SwComponentFeatureManager(this, rootAssembly, app));
             m_DimensionsLazy = new Lazy<ISwDimensionsCollection>(() => new SwFeatureManagerDimensionsCollection(Features));
+
+            m_MathUtils = app.Sw.IGetMathUtility();
 
             Bodies = new SwComponentBodyCollection(comp, rootAssembly);
 
@@ -132,18 +139,22 @@ namespace Xarial.XCad.SolidWorks.Documents
             {
                 var state = ComponentState_e.Default;
 
-                var swState = Component.GetSuppression2();
+                var swState = GetSuppressionState();
 
-                if (swState == (int)swComponentSuppressionState_e.swComponentLightweight
-                    || swState == (int)swComponentSuppressionState_e.swComponentFullyLightweight)
+                if (swState == swComponentSuppressionState_e.swComponentLightweight
+                    || swState == swComponentSuppressionState_e.swComponentFullyLightweight)
                 {
                     state |= ComponentState_e.Lightweight;
                 }
-                else if (swState == (int)swComponentSuppressionState_e.swComponentSuppressed) 
+                else if (swState == swComponentSuppressionState_e.swComponentSuppressed) 
                 {
                     state |= ComponentState_e.Suppressed;
                 }
-                
+                else if (swState == swComponentSuppressionState_e.swComponentInternalIdMismatch)
+                {
+                    state |= ComponentState_e.SuppressedIdMismatch;
+                }
+
                 if (m_RootAssembly.Model.IsOpenedViewOnly()) //Large design review
                 {
                     state |= ComponentState_e.ViewOnly;
@@ -176,16 +187,33 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
             set 
             {
-                var swState = Component.GetSuppression2();
+                var swState = GetSuppressionState();
 
-                if ((swState == (int)swComponentSuppressionState_e.swComponentSuppressed && !value.HasFlag(ComponentState_e.Suppressed))
-                    || (swState == (int)swComponentSuppressionState_e.swComponentLightweight
-                        || swState == (int)swComponentSuppressionState_e.swComponentFullyLightweight
-                        && !value.HasFlag(ComponentState_e.Lightweight)))
+                if ((swState == swComponentSuppressionState_e.swComponentSuppressed 
+                    || swState == swComponentSuppressionState_e.swComponentLightweight
+                    || swState == swComponentSuppressionState_e.swComponentFullyLightweight)
+                        && !value.HasFlag(ComponentState_e.Lightweight) && !value.HasFlag(ComponentState_e.Suppressed))
                 {
                     if (Component.SetSuppression2((int)swComponentSuppressionState_e.swComponentFullyResolved) != (int)swSuppressionError_e.swSuppressionChangeOk) 
                     {
-                        throw new Exception("Failed to resovle component state");
+                        throw new Exception("Failed to resolve component state");
+                    }
+                }
+                else if (swState != swComponentSuppressionState_e.swComponentSuppressed
+                        && value.HasFlag(ComponentState_e.Suppressed))
+                {
+                    if (Component.SetSuppression2((int)swComponentSuppressionState_e.swComponentSuppressed) != (int)swSuppressionError_e.swSuppressionChangeOk)
+                    {
+                        throw new Exception("Failed to suppress component");
+                    }
+                }
+                else if (swState != swComponentSuppressionState_e.swComponentFullyLightweight
+                        && swState != swComponentSuppressionState_e.swComponentLightweight
+                        && value.HasFlag(ComponentState_e.Lightweight))
+                {
+                    if (Component.SetSuppression2((int)swComponentSuppressionState_e.swComponentFullyLightweight) != (int)swSuppressionError_e.swSuppressionChangeOk)
+                    {
+                        throw new Exception("Failed to resolve component state");
                     }
                 }
 
@@ -198,15 +226,43 @@ namespace Xarial.XCad.SolidWorks.Documents
                 {
                     Component.Visible = (int)swComponentVisibilityState_e.swComponentVisible;
                 }
+                else if (!Component.IsHidden(false) && value.HasFlag(ComponentState_e.Hidden))
+                {
+                    Component.Visible = (int)swComponentVisibilityState_e.swComponentHidden;
+                }
 
                 if (Component.ExcludeFromBOM && !value.HasFlag(ComponentState_e.ExcludedFromBom))
                 {
                     Component.ExcludeFromBOM = false;
                 }
+                else if (!Component.ExcludeFromBOM && value.HasFlag(ComponentState_e.ExcludedFromBom))
+                {
+                    Component.ExcludeFromBOM = true;
+                }
 
                 if (Component.IsEnvelope() && !value.HasFlag(ComponentState_e.Envelope))
                 {
                     throw new Exception("Envelope state cannot be changed");
+                }
+
+                if (!Component.IsVirtual && value.HasFlag(ComponentState_e.Embedded)) 
+                {
+                    if (OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2016))
+                    {
+                        Component.MakeVirtual2(false);
+                    }
+                    else if (OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2013))
+                    {
+                        Component.MakeVirtual();
+                    }
+                    else
+                    {
+                        throw new Exception("Component can only be set to virtual starting from SOLIDWORKS 2013");
+                    }
+                }
+                else if (Component.IsVirtual && !value.HasFlag(ComponentState_e.Embedded))
+                {
+                    throw new NotSupportedException("Changing component from virtual is not supported");
                 }
             }
         }
@@ -224,7 +280,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                 var cachedPath = CachedPath;
 
                 var needResolve = m_RootAssembly.Model.IsOpenedViewOnly() 
-                    || Component.GetSuppression2() == (int)swComponentSuppressionState_e.swComponentSuppressed;
+                    || GetSuppressionState() == swComponentSuppressionState_e.swComponentSuppressed;
 
                 if (needResolve)
                 {
@@ -250,6 +306,12 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
 
         public ISwDimensionsCollection Dimensions => m_DimensionsLazy.Value;
+
+        public TransformMatrix Transformation 
+        {
+            get => Component.Transform2.ToTransformMatrix();
+            set => Component.Transform2 = (MathTransform)m_MathUtils.ToMathTransform(value);
+        }
 
         public override void Select(bool append)
         {
@@ -284,6 +346,18 @@ namespace Xarial.XCad.SolidWorks.Documents
             else
             {
                 throw new InvalidCastException("Object is not SOLIDWORKS object");
+            }
+        }
+
+        internal swComponentSuppressionState_e GetSuppressionState()
+        {
+            if (m_RootAssembly.OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2019))
+            {
+                return (swComponentSuppressionState_e)Component.GetSuppression2();
+            }
+            else
+            {
+                return (swComponentSuppressionState_e)Component.GetSuppression();
             }
         }
     }
@@ -384,18 +458,18 @@ namespace Xarial.XCad.SolidWorks.Documents
 
     internal class SwChildComponentsCollection : SwComponentCollection
     {
-        private readonly IComponent2 m_Comp;
+        private readonly SwComponent m_Comp;
 
-        public SwChildComponentsCollection(ISwAssembly rootAssm, IComponent2 comp) : base(rootAssm)
+        public SwChildComponentsCollection(ISwAssembly rootAssm, SwComponent comp) : base(rootAssm)
         {
             m_Comp = comp;
         }
 
         protected override int GetTotalChildrenCount()
         {
-            if (!!m_Comp.IsSuppressed())
+            if (m_Comp.GetSuppressionState() != swComponentSuppressionState_e.swComponentSuppressed)
             {
-                var refModel = m_Comp.GetModelDoc2();
+                var refModel = m_Comp.Component.GetModelDoc2();
 
                 if (refModel is IAssemblyDoc)
                 {
@@ -418,9 +492,9 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         protected override IEnumerable<IComponent2> GetChildren()
         {
-            if (!m_Comp.IsSuppressed())
+            if (m_Comp.GetSuppressionState() != swComponentSuppressionState_e.swComponentSuppressed)
             {
-                return (m_Comp.GetChildren() as object[])?.Cast<IComponent2>();
+                return (m_Comp.Component.GetChildren() as object[])?.Cast<IComponent2>();
             }
             else 
             {
@@ -428,6 +502,6 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        protected override int GetChildrenCount() => m_Comp.IGetChildrenCount();
+        protected override int GetChildrenCount() => m_Comp.Component.IGetChildrenCount();
     }
 }

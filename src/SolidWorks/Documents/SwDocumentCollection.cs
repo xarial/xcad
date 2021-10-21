@@ -38,8 +38,74 @@ namespace Xarial.XCad.SolidWorks.Documents
     [DebuggerDisplay("Documents: {" + nameof(Count) + "}")]
     internal class SwDocumentCollection : ISwDocumentCollection
     {
-        public event DocumentCreateDelegate DocumentCreated;
-        public event DocumentActivateDelegate DocumentActivated;
+        public event DocumentEventDelegate DocumentLoaded;
+
+        public event DocumentEventDelegate DocumentActivated 
+        {
+            add 
+            {
+                if (m_DocumentActivated == null) 
+                {
+                    m_SwApp.ActiveModelDocChangeNotify += OnActiveModelDocChangeNotify;
+                }
+
+                m_DocumentActivated += value;
+            }
+            remove 
+            {
+                m_DocumentActivated -= value;
+
+                if (m_DocumentActivated == null)
+                {
+                    m_SwApp.ActiveModelDocChangeNotify -= OnActiveModelDocChangeNotify;
+                }
+            }
+        }
+
+        public event DocumentEventDelegate NewDocumentCreated
+        {
+            add
+            {
+                if (m_NewDocumentCreated == null)
+                {
+                    m_SwApp.FileNewNotify2 += OnFileNewNotify;
+                }
+
+                m_NewDocumentCreated += value;
+            }
+            remove
+            {
+                m_NewDocumentCreated -= value;
+
+                if (m_NewDocumentCreated == null)
+                {
+                    m_SwApp.FileNewNotify2 -= OnFileNewNotify;
+                }
+            }
+        }
+
+        public event DocumentEventDelegate DocumentOpened
+        {
+            add
+            {
+                if (m_DocumentOpened == null)
+                {
+                    m_SwApp.FileOpenPostNotify += OnFileOpenPostNotify;
+                }
+
+                m_DocumentOpened += value;
+            }
+            remove
+            {
+                m_DocumentOpened -= value;
+
+                if (m_DocumentOpened == null)
+                {
+                    m_SwApp.FileOpenPostNotify -= OnFileOpenPostNotify;
+                }
+            }
+        }
+
 
         IXDocument IXDocumentRepository.Active 
         {
@@ -56,6 +122,14 @@ namespace Xarial.XCad.SolidWorks.Documents
         private readonly DocumentsHandler m_DocsHandler;
 
         private readonly SwDocumentDispatcher m_DocsDispatcher;
+
+        private DocumentEventDelegate m_DocumentActivated;
+        private DocumentEventDelegate m_DocumentOpened;
+        private DocumentEventDelegate m_NewDocumentCreated;
+
+        private IModelDoc2 m_WaitActivateDocument;
+        private IModelDoc2 m_WaitOpenDocument;
+        private IModelDoc2 m_WaitNewDocument;
 
         private object m_Lock;
 
@@ -86,7 +160,15 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        public int Count => m_Documents.Count;
+        public int Count
+        {
+            get
+            {
+                ClearDanglingModelPointers(false);
+
+                return m_Documents.Count;
+            }
+        }
 
         public IXDocument this[string name] 
         {
@@ -105,6 +187,8 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         private bool m_IsAttached;
 
+        private readonly List<IModelDoc2> m_DanglingModelPointers;
+
         internal SwDocumentCollection(SwApplication app, IXLogger logger)
         {
             m_Lock = new object();
@@ -114,9 +198,11 @@ namespace Xarial.XCad.SolidWorks.Documents
             m_Logger = logger;
 
             m_DocsDispatcher = new SwDocumentDispatcher(app, logger);
-            
+
+            m_DanglingModelPointers = new List<IModelDoc2>();
+
             m_Documents = new Dictionary<IModelDoc2, SwDocument>(
-                new SwModelPointerEqualityComparer());
+                new SwModelPointerEqualityComparer(m_DanglingModelPointers));
             m_DocsHandler = new DocumentsHandler(app, m_Logger);
 
             m_IsAttached = false;
@@ -133,12 +219,9 @@ namespace Xarial.XCad.SolidWorks.Documents
                 AttachToAllOpenedDocuments();
 
                 m_SwApp.DocumentLoadNotify2 += OnDocumentLoadNotify2;
-                m_SwApp.ActiveModelDocChangeNotify += OnActiveModelDocChangeNotify;
             }
         }
         
-        private IModelDoc2 m_WaitActivateDocument;
-
         private int OnActiveModelDocChangeNotify()
         {
             var activeDoc = m_SwApp.IActiveDoc2;
@@ -147,7 +230,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             {
                 try
                 {
-                    DocumentActivated?.Invoke(doc);
+                    m_DocumentActivated?.Invoke(doc);
                 }
                 catch (Exception ex)
                 {
@@ -156,6 +239,8 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
             else
             {
+                m_Logger.Log($"Adding {activeDoc.GetTitle()} to the activate waiting list", LoggerMessageSeverity_e.Debug);
+
                 //activate event can happen before the loading event, so the document is not yet registered
                 m_WaitActivateDocument = activeDoc;
             }
@@ -181,26 +266,64 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
 
         public IEnumerator<IXDocument> GetEnumerator()
-            => m_Documents.Values.GetEnumerator();
-
-        IEnumerator IEnumerable.GetEnumerator()
-            => GetEnumerator();
-
-        public void Dispose()
         {
-            if (m_IsAttached)
+            ClearDanglingModelPointers(false);
+            return m_Documents.Values.GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+        private int OnFileOpenPostNotify(string fileName)
+        {
+            if (TryFindExistingDocumentByPath(fileName, out SwDocument doc))
             {
-                m_DocsDispatcher.Dispatched -= OnDocumentDispatched;
-                m_SwApp.DocumentLoadNotify2 -= OnDocumentLoadNotify2;
-                m_SwApp.ActiveModelDocChangeNotify -= OnActiveModelDocChangeNotify;
-
-                foreach (var doc in m_Documents.Values.ToArray())
+                try
                 {
-                    ReleaseDocument(doc);
+                    m_DocumentOpened?.Invoke(doc);
                 }
-
-                m_Documents.Clear();
+                catch (Exception ex)
+                {
+                    m_Logger.Log(ex);
+                }
             }
+            else
+            {
+                m_Logger.Log($"Adding {fileName} to the open waiting list", LoggerMessageSeverity_e.Debug);
+
+                m_WaitOpenDocument = (IModelDoc2)m_SwApp.GetOpenDocumentByName(fileName);
+
+                if (m_WaitOpenDocument == null) 
+                {
+                    m_Logger.Log($"Failed to find the document by name '{fileName}'", LoggerMessageSeverity_e.Error);
+                }
+            }
+
+            return S_OK;
+        }
+
+        private int OnFileNewNotify(object newDoc, int docType, string templateName)
+        {
+            var model = (IModelDoc2)newDoc;
+
+            if (m_Documents.TryGetValue(model, out SwDocument doc))
+            {
+                try
+                {
+                    m_NewDocumentCreated?.Invoke(doc);
+                }
+                catch (Exception ex)
+                {
+                    m_Logger.Log(ex);
+                }
+            }
+            else
+            {
+                m_Logger.Log($"Adding {model.GetTitle()} to the new document waiting list", LoggerMessageSeverity_e.Debug);
+
+                m_WaitNewDocument = model;
+            }
+
+            return S_OK;
         }
 
         private void AttachToAllOpenedDocuments()
@@ -222,6 +345,8 @@ namespace Xarial.XCad.SolidWorks.Documents
             {
                 if (!m_Documents.ContainsKey(doc.Model))
                 {
+                    ClearDanglingModelPointers(true);
+
                     doc.Destroyed += OnDocumentDestroyed;
 
                     m_Documents.Add(doc.Model, doc);
@@ -230,19 +355,20 @@ namespace Xarial.XCad.SolidWorks.Documents
 
                     try
                     {
-                        DocumentCreated?.Invoke(doc);
+                        DocumentLoaded?.Invoke(doc);
                     }
                     catch (Exception ex)
                     {
                         m_Logger.Log(ex);
                     }
 
-                    if (m_WaitActivateDocument != null 
-                        && SwModelPointerEqualityComparer.AreEqual(m_WaitActivateDocument, doc.Model) )
+                    if (m_WaitActivateDocument != null
+                        && SwModelPointerEqualityComparer.AreEqual(m_WaitActivateDocument, doc.Model))
                     {
                         try
                         {
-                            DocumentActivated?.Invoke(doc);
+                            m_Logger.Log($"Calling document activated event for the {doc.Title}", LoggerMessageSeverity_e.Debug);
+                            m_DocumentActivated?.Invoke(doc);
                         }
                         catch (Exception ex)
                         {
@@ -251,15 +377,87 @@ namespace Xarial.XCad.SolidWorks.Documents
 
                         m_WaitActivateDocument = null;
                     }
+
+                    if (m_WaitNewDocument != null
+                        && SwModelPointerEqualityComparer.AreEqual(m_WaitNewDocument, doc.Model))
+                    {
+                        try
+                        {
+                            m_Logger.Log($"Calling new document created event for the {doc.Title}", LoggerMessageSeverity_e.Debug);
+                            m_NewDocumentCreated?.Invoke(doc);
+                        }
+                        catch (Exception ex)
+                        {
+                            m_Logger.Log(ex);
+                        }
+
+                        m_WaitNewDocument = null;
+                    }
+
+                    if (m_WaitOpenDocument != null
+                        && SwModelPointerEqualityComparer.AreEqual(m_WaitOpenDocument, doc.Model))
+                    {
+                        try
+                        {
+                            m_Logger.Log($"Calling document opened event for the {doc.Title}", LoggerMessageSeverity_e.Debug);
+                            m_DocumentOpened?.Invoke(doc);
+                        }
+                        catch (Exception ex)
+                        {
+                            m_Logger.Log(ex);
+                        }
+
+                        m_WaitOpenDocument = null;
+                    }
                 }
                 else 
                 {
+                    //NOTE: this happens on activation of the document
                     m_Logger.Log($"Conflict. {doc.Model.GetTitle()} already dispatched", LoggerMessageSeverity_e.Warning);
-                    Debug.Assert(false, "Document already dispatched");
+                    //Debug.Assert(false, "Document already dispatched");
                 }
             }
         }
-        
+
+        private void ClearDanglingModelPointers(bool cachedOnly)
+        {
+            lock (m_Lock)
+            {
+                void RemovePointers(IEnumerable<IModelDoc2> models) 
+                {
+                    foreach (var dangModelPtr in models)
+                    {
+                        try
+                        {
+                            m_Logger.Log("Removing dangling model from the list");
+                            m_Documents.Remove(dangModelPtr);
+                        }
+                        catch (Exception ex)
+                        {
+                            m_Logger.Log(ex);
+                        }
+                    }
+                }
+
+                if (m_DanglingModelPointers.Count > 0)
+                {
+                    RemovePointers(m_DanglingModelPointers);
+
+                    m_DanglingModelPointers.Clear();
+                }
+
+                if (!cachedOnly)
+                {
+                    if (m_SwApp.GetDocumentCount() != m_Documents.Count)
+                    {
+                        var dangPtrs = m_Documents.Where(d => !d.Value.IsAlive).Select(d => d.Key).ToArray();
+
+                        RemovePointers(dangPtrs);
+                    }
+                }
+            }
+        }
+
         private int OnDocumentLoadNotify2(string docTitle, string docPath)
         {
             m_DocsDispatcher.Dispatch(docTitle, docPath);
@@ -275,7 +473,10 @@ namespace Xarial.XCad.SolidWorks.Documents
             doc.Destroyed -= OnDocumentDestroyed;
             m_Documents.Remove(doc.Model);
             m_DocsHandler.ReleaseHandlers(doc);
+            doc.SetClosed();
             doc.Dispose();
+
+            ClearDanglingModelPointers(true);
         }
 
         public void RegisterHandler<THandler>(Func<THandler> handlerFact) 
@@ -303,6 +504,10 @@ namespace Xarial.XCad.SolidWorks.Documents
             {
                 templateDoc = new SwDrawing(null, m_App, m_Logger, false);
             }
+            else if (typeof(IXDocument3D).IsAssignableFrom(typeof(TDocument)))
+            {
+                templateDoc = new SwUnknownDocument3D(null, m_App, m_Logger, false);
+            }
             else if (typeof(IXDocument).IsAssignableFrom(typeof(TDocument)) 
                 || typeof(IXUnknownDocument).IsAssignableFrom(typeof(TDocument)))
             {
@@ -315,7 +520,14 @@ namespace Xarial.XCad.SolidWorks.Documents
 
             templateDoc.SetDispatcher(m_DocsDispatcher);
 
-            return templateDoc as TDocument;
+            if (templateDoc is TDocument)
+            {
+                return templateDoc as TDocument;
+            }
+            else 
+            {
+                throw new InvalidCastException($"{templateDoc.GetType().FullName} cannot be cast to {typeof(TDocument).FullName}");
+            }
         }
 
         public bool TryGet(string name, out IXDocument ent)
@@ -359,6 +571,25 @@ namespace Xarial.XCad.SolidWorks.Documents
                 d => string.Equals(d.Path, path, StringComparison.CurrentCultureIgnoreCase));
 
             return doc != null;
+        }
+
+        public void Dispose()
+        {
+            if (m_IsAttached)
+            {
+                m_DocsDispatcher.Dispatched -= OnDocumentDispatched;
+                m_SwApp.DocumentLoadNotify2 -= OnDocumentLoadNotify2;
+                m_SwApp.ActiveModelDocChangeNotify -= OnActiveModelDocChangeNotify;
+                m_SwApp.FileNewNotify2 -= OnFileNewNotify;
+                m_SwApp.FileOpenPostNotify -= OnFileOpenPostNotify;
+
+                foreach (var doc in m_Documents.Values.ToArray())
+                {
+                    ReleaseDocument(doc);
+                }
+
+                m_Documents.Clear();
+            }
         }
     }
 

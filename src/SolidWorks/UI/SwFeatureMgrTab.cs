@@ -40,6 +40,43 @@ namespace Xarial.XCad.SolidWorks.UI
             }
         }
 
+        private PanelActivatedDelegate<TControl> m_ActivatedDelegate;
+
+        public override event PanelActivatedDelegate<TControl> Activated 
+        {
+            add 
+            {
+                if (m_ActivatedDelegate == null) 
+                {
+                    switch (m_Doc.Model)
+                    {
+                        case PartDoc part:
+                            part.FeatureManagerTabActivatedNotify += OnFeatureManagerTabActivated;
+                            break;
+
+                        case AssemblyDoc assm:
+                            assm.FeatureManagerTabActivatedNotify += OnFeatureManagerTabActivated;
+                            break;
+
+                        case DrawingDoc drw:
+                            drw.FeatureManagerTabActivatedNotify += OnFeatureManagerTabActivated;
+                            break;
+                    }
+                }
+
+                m_ActivatedDelegate += value;
+            }
+            remove 
+            {
+                m_ActivatedDelegate -= value;
+
+                if (m_ActivatedDelegate == null)
+                {
+                    UnsubscribeTabActivateEvent();
+                }
+            }
+        }
+
         private IModelViewManager m_ModelViewMgr;
         private IFeatMgrView m_CurFeatMgrView;
         private readonly FeatureManagerTabCreator<TControl> m_CtrlCreator;
@@ -51,21 +88,12 @@ namespace Xarial.XCad.SolidWorks.UI
         {
             m_ModelViewMgr = doc.Model.ModelViewManager;
             m_CtrlCreator = ctrlCreator;
+        }
 
-            switch (doc.Model) 
-            {
-                case PartDoc part:
-                    part.FeatureManagerTabActivatedNotify += OnFeatureManagerTabActivated;
-                    break;
-
-                case AssemblyDoc assm:
-                    assm.FeatureManagerTabActivatedNotify += OnFeatureManagerTabActivated;
-                    break;
-
-                case DrawingDoc drw:
-                    drw.FeatureManagerTabActivatedNotify += OnFeatureManagerTabActivated;
-                    break;
-            }
+        public override void Close()
+        {
+            base.Close();
+            UnsubscribeTabActivateEvent();
         }
 
         protected override bool GetIsActive() => m_ModelViewMgr.ActiveFeatureManagerTabIndex == m_TabIndex;
@@ -103,7 +131,20 @@ namespace Xarial.XCad.SolidWorks.UI
             {
                 m_Logger.Log("Failed to delete feature manager view", XCad.Base.Enums.LoggerMessageSeverity_e.Error);
             }
+        }
 
+        private int OnFeatureManagerTabActivated(int commandIndex, string commandTabName)
+        {
+            if (commandIndex == m_TabIndex) 
+            {
+                m_ActivatedDelegate?.Invoke(this);
+            }
+
+            return 0;
+        }
+
+        private void UnsubscribeTabActivateEvent()
+        {
             switch (m_Doc.Model)
             {
                 case PartDoc part:
@@ -118,16 +159,6 @@ namespace Xarial.XCad.SolidWorks.UI
                     drw.FeatureManagerTabActivatedNotify -= OnFeatureManagerTabActivated;
                     break;
             }
-        }
-
-        private int OnFeatureManagerTabActivated(int commandIndex, string commandTabName)
-        {
-            if (commandIndex == m_TabIndex) 
-            {
-                RaiseActivated();
-            }
-
-            return 0;
         }
     }
 }

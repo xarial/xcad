@@ -41,13 +41,9 @@ namespace Xarial.XCad.SolidWorks
 
         private static ISwObject FromDispatch(object disp, ISwDocument doc, ISwApplication app, Func<object, ISwObject> defaultHandler)
         {
-            if (disp is IEntity)
+            if (disp == null) 
             {
-                var safeEnt = (disp as IEntity).GetSafeEntity();
-                if (safeEnt != null)
-                {
-                    disp = safeEnt;
-                }
+                throw new ArgumentException("Dispatch is null");
             }
 
             switch (disp)
@@ -160,7 +156,16 @@ namespace Xarial.XCad.SolidWorks
                     switch ((swSketchSegments_e)seg.GetType())
                     {
                         case swSketchSegments_e.swSketchARC:
-                            return new SwSketchArc((ISketchArc)seg, doc, app, true);
+                            var arc = (ISketchArc)seg;
+                            const int CIRCLE = 1;
+                            if (arc.IsCircle() == CIRCLE)
+                            {
+                                return new SwSketchCircle(arc, doc, app, true);
+                            }
+                            else 
+                            {
+                                return new SwSketchArc(arc, doc, app, true);
+                            }
                         case swSketchSegments_e.swSketchELLIPSE:
                             return new SwSketchEllipse((ISketchEllipse)seg, doc, app, true);
                         case swSketchSegments_e.swSketchLINE:
@@ -226,7 +231,15 @@ namespace Xarial.XCad.SolidWorks
                         case swCurveTypes_e.LINE_TYPE:
                             return new SwLineCurve(curve, doc, app, true);
                         case swCurveTypes_e.CIRCLE_TYPE:
-                            return new SwArcCurve(curve, doc, app, true);
+                            curve.GetEndParams(out _, out _, out bool isClosed, out _);
+                            if (isClosed)
+                            {
+                                return new SwCircleCurve(curve, doc, app, true);
+                            }
+                            else 
+                            {
+                                return new SwArcCurve(curve, doc, app, true);
+                            }
                         case swCurveTypes_e.BCURVE_TYPE:
                             return new SwBCurve(curve, doc, app, true);
                         case swCurveTypes_e.ELLIPSE_TYPE:
@@ -249,6 +262,9 @@ namespace Xarial.XCad.SolidWorks
                         default:
                             return new SwSurface(surf, doc, app);
                     }
+
+                case IModelView modelView:
+                    return new SwModelView(modelView, doc, app);
 
                 default:
                     return defaultHandler.Invoke(disp);

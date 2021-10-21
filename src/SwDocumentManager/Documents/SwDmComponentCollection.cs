@@ -15,6 +15,8 @@ using SolidWorks.Interop.swdocumentmgr;
 using System.Linq;
 using Xarial.XCad.SwDocumentManager.Services;
 using System.IO;
+using Xarial.XCad.Toolkit.Exceptions;
+using Xarial.XCad.Exceptions;
 
 namespace Xarial.XCad.SwDocumentManager.Documents
 {
@@ -132,9 +134,9 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                     .GetComponents() as object[] ?? new object[0])
                     .Cast<ISwDMComponent>();
             }
-            else 
+            else
             {
-                return Enumerable.Empty<ISwDMComponent>();
+                throw new NonCommittedElementAccessException();
             }
         }
 
