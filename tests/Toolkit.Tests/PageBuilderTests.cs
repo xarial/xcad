@@ -37,7 +37,7 @@ namespace Toolkit.Tests
             protected override event ControlValueChangedDelegate<object> ValueChanged;
 #pragma warning restore
 
-            public ControlMock(int id, object tag) : base(id, tag)
+            public ControlMock(int id, object tag) : base(id, tag, null)
             {
             }
 
@@ -49,16 +49,24 @@ namespace Toolkit.Tests
             protected override void SetSpecificValue(object value)
             {
             }
+
+            public override void ShowTooltip(string title, string msg)
+            {
+            }
         }
 
         public class GroupMock : Group
         {
-            public GroupMock(int id, object tag) : base(id, tag)
+            public GroupMock(int id, object tag) : base(id, tag, null)
             {
             }
 
             public override bool Enabled { get; set; }
             public override bool Visible { get; set; }
+
+            public override void ShowTooltip(string title, string msg)
+            {
+            }
         }
 
         public class PageMock : Page
@@ -67,6 +75,10 @@ namespace Toolkit.Tests
 
             public override bool Enabled { get; set; }
             public override bool Visible { get; set; }
+
+            public override void ShowTooltip(string title, string msg)
+            {
+            }
         }
 
         [DefaultType(typeof(SpecialTypes.AnyType))]
@@ -79,19 +91,19 @@ namespace Toolkit.Tests
                 m_IdRangeSelector = idRangeSelector;
             }
 
-            private ControlMock Create(PageMock page, IAttributeSet atts, IMetadata metadata)
+            private ControlMock Create(PageMock page, IAttributeSet atts, IMetadata[] metadata)
             {
                 var ctrl = new ControlMock(atts.Id, atts.Tag);
                 page.Controls.Add(ctrl);
                 return ctrl;
             }
 
-            private ControlMock Create(GroupMock group, IAttributeSet atts, IMetadata metadata)
+            private ControlMock Create(GroupMock group, IAttributeSet atts, IMetadata[] metadata)
             {
                 return new ControlMock(atts.Id, atts.Tag);
             }
 
-            protected override ControlMock Create(PageMock page, IAttributeSet atts, IMetadata metadata, ref int numberOfUsedIds)
+            protected override ControlMock Create(PageMock page, IAttributeSet atts, IMetadata[] metadata, ref int numberOfUsedIds)
             {
                 if (m_IdRangeSelector != null)
                 {
@@ -101,7 +113,7 @@ namespace Toolkit.Tests
                 return Create(page, atts, metadata);
             }
 
-            protected override ControlMock Create(GroupMock group, IAttributeSet atts, IMetadata metadata, ref int numberOfUsedIds)
+            protected override ControlMock Create(GroupMock group, IAttributeSet atts, IMetadata[] metadata, ref int numberOfUsedIds)
             {
                 if (m_IdRangeSelector != null)
                 {
