@@ -47,17 +47,17 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
                 }
                 else if (customItemsAtt.CustomItemsProvider != null)
                 {
-                    isStatic = true;
                     itemsSourceMetadata = null;
 
                     if (customItemsAtt.Dependencies?.Any() != true)
                     {
                         var provider = customItemsAtt.CustomItemsProvider;
-
                         staticItems = provider.ProvideItems(app, new IControl[0]).Select(i => new ItemsControlItem(i)).ToArray();
+                        isStatic = true;
                     }
                     else
                     {
+                        isStatic = false;
                         staticItems = null;
                     }
                 }
