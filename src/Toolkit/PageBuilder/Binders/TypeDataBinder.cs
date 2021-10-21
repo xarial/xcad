@@ -180,26 +180,42 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
 
                     if (!atts.Has<IIgnoreBindingAttribute>() && !atts.Has<IMetadataAttribute>())
                     {
-                        PropertyInfoMetadata prpMetadata = null;
+                        var prpMetadata = new List<PropertyInfoMetadata>();
 
                         if (atts.Has<IHasMetadataAttribute>())
                         {
-                            var metadataTag = atts.Get<IHasMetadataAttribute>().MetadataTag;
+                            var metadataTagsAtts = atts.GetAll<IHasMetadataAttribute>();
 
-                            if (metadataTag != null)
+                            foreach (var metadataTagAtts in metadataTagsAtts)
                             {
-                                if (!metadata.TryGetValue(metadataTag, out prpMetadata))
+                                if (metadataTagAtts.HasMetadata)
                                 {
-                                    throw new MissingMetadataException(metadataTag, ctrlDesc);
+                                    var metadataTag = metadataTagAtts.MetadataTag;
+
+                                    if (metadataTag == null) 
+                                    {
+                                        throw new NullReferenceException($"Metadata tag is not set for {ctrlDesc.Name}");
+                                    }
+
+                                    if (metadata.TryGetValue(metadataTag, out PropertyInfoMetadata md))
+                                    {
+                                        prpMetadata.Add(md);
+                                    }
+                                    else
+                                    {
+                                        throw new MissingMetadataException(metadataTag, ctrlDesc);
+                                    }
                                 }
                             }
                         }
 
+                        var prpMetadataArr = prpMetadata.ToArray();
+
                         int numberOfUsedIds;
-                        var ctrl = ctrlCreator.Invoke(prpType, atts, parentCtrl, prpMetadata, out numberOfUsedIds);
+                        var ctrl = ctrlCreator.Invoke(prpType, atts, parentCtrl, prpMetadataArr, out numberOfUsedIds);
                         nextCtrlId += numberOfUsedIds;
 
-                        var binding = new PropertyInfoBinding<TDataModel>(ctrl, ctrlDesc, parents, prpMetadata);
+                        var binding = new PropertyInfoBinding<TDataModel>(ctrl, ctrlDesc, parents, prpMetadataArr);
                         bindings.Add(binding);
 
                         if (atts.Has<IControlTagAttribute>())
@@ -262,7 +278,7 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
                 {
                     if (!metadata.ContainsKey(metadataAtt.Tag))
                     {
-                        metadata.Add(metadataAtt.Tag, new PropertyInfoMetadata(prp, parents));
+                        metadata.Add(metadataAtt.Tag, new PropertyInfoMetadata(prp, parents, metadataAtt.Tag));
                     }
                     else
                     {

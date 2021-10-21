@@ -61,11 +61,11 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
         internal PropertyManagerPageGroupControl(int id, object tag, SwPropertyManagerPageHandler handler,
             IPropertyManagerPageGroup group,
-            ISldWorks app, PropertyManagerPagePage parentPage, IMetadata metadata, bool isCheckable, bool collapse)
-            : base(id, tag, handler, app, parentPage)
+            ISldWorks app, PropertyManagerPagePage parentPage, IMetadata toggleMetadata, bool isCheckable, bool collapse, IMetadata[] metadata)
+            : base(id, tag, handler, app, parentPage, metadata)
         {
             Group = group;
-            m_ToggleMetadata = metadata;
+            m_ToggleMetadata = toggleMetadata;
 
             m_IsCheckable = isCheckable;
             m_Collapse = collapse;

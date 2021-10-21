@@ -28,7 +28,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
         }
 
         protected override PropertyManagerPageNumberBoxControl CreateControl(
-            IPropertyManagerPageNumberbox swCtrl, IAttributeSet atts, IMetadata metadata, 
+            IPropertyManagerPageNumberbox swCtrl, IAttributeSet atts, IMetadata[] metadata, 
             SwPropertyManagerPageHandler handler, short height, IPropertyManagerPageLabel label)
         {
             if (height != -1)
@@ -52,7 +52,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
                 }
             }
 
-            return new PropertyManagerPageNumberBoxControl(atts.Id, atts.Tag, swCtrl, handler, label);
+            return new PropertyManagerPageNumberBoxControl(atts.Id, atts.Tag, swCtrl, handler, label, metadata);
         }
     }
 }

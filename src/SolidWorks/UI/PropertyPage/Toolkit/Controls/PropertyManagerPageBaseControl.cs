@@ -31,8 +31,8 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
         protected readonly SwPropertyManagerPageHandler m_Handler;
 
         protected PropertyManagerPageBaseControl(TSwControl ctrl, int id, object tag,
-            SwPropertyManagerPageHandler handler, IPropertyManagerPageLabel label)
-            : base(id, tag)
+            SwPropertyManagerPageHandler handler, IPropertyManagerPageLabel label, IMetadata[] metadata)
+            : base(id, tag, metadata)
         {
             SwSpecificControl = ctrl;
             m_Handler = handler;

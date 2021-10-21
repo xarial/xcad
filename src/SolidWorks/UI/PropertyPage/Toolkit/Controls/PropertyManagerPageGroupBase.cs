@@ -7,6 +7,7 @@
 
 using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
+using Xarial.XCad.UI.PropertyPage.Base;
 using Xarial.XCad.Utils.PageBuilder.PageElements;
 
 namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
@@ -24,7 +25,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
                         "", "", 0, (int)swLinkString.swLinkStringNone, "", "");
 
         internal PropertyManagerPageGroupBase(int id, object tag, SwPropertyManagerPageHandler handler,
-            ISldWorks app, PropertyManagerPagePage parentPage) : base(id, tag)
+            ISldWorks app, PropertyManagerPagePage parentPage, IMetadata[] metadata) : base(id, tag, metadata)
         {
             Handler = handler;
             App = app;

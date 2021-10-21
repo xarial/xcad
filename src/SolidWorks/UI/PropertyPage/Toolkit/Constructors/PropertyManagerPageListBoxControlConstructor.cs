@@ -37,7 +37,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
         }
 
         protected override PropertyManagerPageListBoxControl CreateControl(
-            IPropertyManagerPageListbox swCtrl, IAttributeSet atts, IMetadata metadata, 
+            IPropertyManagerPageListbox swCtrl, IAttributeSet atts, IMetadata[] metadata, 
             SwPropertyManagerPageHandler handler, short height, IPropertyManagerPageLabel label)
         {
             if (height <= 0)
@@ -77,16 +77,19 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
 
             swCtrl.Style = style;
 
-            var ctrl = new PropertyManagerPageListBoxControl(atts.Id, atts.Tag, swCtrl, atts.ContextType, isMultiSelect, handler, metadata, label, atts.ContextType);
+            m_Helper.ParseItems(m_SwApp, atts, metadata, out bool isStatic, out ItemsControlItem[] staticItems, out IMetadata srcMetadata);
 
-            if (m_Helper.TryGetStaticItems(m_SwApp, atts, out ItemsControlItem[] items)) 
+            var ctrl = new PropertyManagerPageListBoxControl(atts.Id, atts.Tag, swCtrl, atts.ContextType, isMultiSelect,
+                handler, srcMetadata, label, atts.ContextType, metadata);
+
+            if (isStatic) 
             {
                 if (sortItems)
                 {
-                    items = items.OrderBy(i => i.DisplayName).ToArray();
+                    staticItems = staticItems.OrderBy(i => i.DisplayName).ToArray();
                 }
 
-                ctrl.Items = items;
+                ctrl.Items = staticItems;
             }
             
             return ctrl;

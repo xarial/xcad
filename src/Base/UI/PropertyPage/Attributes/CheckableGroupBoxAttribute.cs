@@ -17,21 +17,30 @@ namespace Xarial.XCad.UI.PropertyPage.Attributes
     /// </summary>
     public interface ICheckableGroupBoxAttribute : IAttribute
     {
+        /// <summary>
+        /// Reference to property which defines the toggle state 
+        /// </summary>
+        object ToggleMetadataTag { get; }
     }
 
     /// <inheritdoc/>
     public class CheckableGroupBoxAttribute : Attribute, IHasMetadataAttribute, ICheckableGroupBoxAttribute
     {
         /// <inheritdoc/>
-        public object MetadataTag { get; }
+        public object MetadataTag => ToggleMetadataTag;
+
+        /// <inheritdoc/>
+        public object ToggleMetadataTag { get; }
+
+        public bool HasMetadata => true;
 
         /// <summary>
         /// Default constructor
         /// </summary>
-        /// <param name="metadataTag">Reference to property which defines the toggle state</param>
-        public CheckableGroupBoxAttribute(object metadataTag)
+        /// <param name="toggleMetadataTag">Reference to property which defines the toggle state</param>
+        public CheckableGroupBoxAttribute(object toggleMetadataTag)
         {
-            MetadataTag = metadataTag;
+            ToggleMetadataTag = toggleMetadataTag;
         }
     }
 }

@@ -9,6 +9,7 @@ using SolidWorks.Interop.sldworks;
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
+using Xarial.XCad.UI.PropertyPage.Base;
 using Xarial.XCad.Utils.PageBuilder.PageElements;
 
 namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
@@ -223,7 +224,8 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
         public PropertyManagerPageOptionBoxControl(int id, object tag,
             PropertyManagerPageOptionBox optionBox, ReadOnlyCollection<Enum> values,
-            SwPropertyManagerPageHandler handler, IPropertyManagerPageLabel label) : base(optionBox, id, tag, handler, label)
+            SwPropertyManagerPageHandler handler, IPropertyManagerPageLabel label, IMetadata[] metadata)
+            : base(optionBox, id, tag, handler, label, metadata)
         {
             m_Values = values;
             m_Handler.OptionChecked += OnOptionChecked;

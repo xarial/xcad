@@ -30,7 +30,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
         }
 
         protected override PropertyManagerPageCustomControl CreateControl(
-            IPropertyManagerPageWindowFromHandle swCtrl, IAttributeSet atts, IMetadata metadata, 
+            IPropertyManagerPageWindowFromHandle swCtrl, IAttributeSet atts, IMetadata[] metadata, 
             SwPropertyManagerPageHandler handler, short height, IPropertyManagerPageLabel label)
         {
             if (height <= 0)
@@ -43,7 +43,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
             var ctrlType = atts.Get<CustomControlAttribute>().ControlType;
 
             return new PropertyManagerPageCustomControl(ctrlType, atts.Id, atts.Tag,
-                swCtrl, handler, new PropertyPageControlCreator<object>(swCtrl), label);
+                swCtrl, handler, new PropertyPageControlCreator<object>(swCtrl), label, metadata);
         }
     }
 }

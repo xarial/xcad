@@ -17,6 +17,11 @@ namespace Xarial.XCad.UI.PropertyPage.Base
     public interface IMetadata
     {
         /// <summary>
+        /// Tag of this metadata
+        /// </summary>
+        object Tag { get; }
+
+        /// <summary>
         /// Value associated with the metadata
         /// </summary>
         object Value { get; set; }

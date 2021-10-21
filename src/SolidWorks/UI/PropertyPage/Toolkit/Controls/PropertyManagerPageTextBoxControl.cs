@@ -6,6 +6,7 @@
 //*********************************************************************
 
 using SolidWorks.Interop.sldworks;
+using Xarial.XCad.UI.PropertyPage.Base;
 using Xarial.XCad.Utils.PageBuilder.PageElements;
 
 namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
@@ -16,7 +17,8 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
         internal PropertyManagerPageTextBoxControl(int id, object tag,
             IPropertyManagerPageTextbox textBox,
-            SwPropertyManagerPageHandler handler, IPropertyManagerPageLabel label) : base(textBox, id, tag, handler, label)
+            SwPropertyManagerPageHandler handler, IPropertyManagerPageLabel label, IMetadata[] metadata)
+            : base(textBox, id, tag, handler, label, metadata)
         {
             m_Handler.TextChanged += OnTextChanged;
         }

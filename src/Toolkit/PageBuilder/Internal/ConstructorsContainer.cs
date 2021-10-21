@@ -92,7 +92,7 @@ namespace Xarial.XCad.Utils.PageBuilder.Internal
             }
         }
 
-        internal IControl CreateElement(Type type, IGroup parent, IAttributeSet atts, IMetadata metadata, ref int numberOfUsedIds)
+        internal IControl CreateElement(Type type, IGroup parent, IAttributeSet atts, IMetadata[] metadata, ref int numberOfUsedIds)
         {
             if (type == null)
             {

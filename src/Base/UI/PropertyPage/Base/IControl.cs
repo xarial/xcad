@@ -27,6 +27,11 @@ namespace Xarial.XCad.UI.PropertyPage.Base
         event ControlObjectValueChangedDelegate ValueChanged;
 
         /// <summary>
+        /// Metadata attached to this control
+        /// </summary>
+        IMetadata[] Metadata { get; }
+
+        /// <summary>
         /// Manages the enable state of the control
         /// </summary>
         bool Enabled { get; set; }

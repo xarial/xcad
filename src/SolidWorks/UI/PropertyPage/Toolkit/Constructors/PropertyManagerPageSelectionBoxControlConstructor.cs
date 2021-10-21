@@ -56,10 +56,10 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
         }
 
         protected override PropertyManagerPageSelectionBoxControl CreateControl(
-            IPropertyManagerPageSelectionbox swCtrl, IAttributeSet atts, IMetadata metadata, 
+            IPropertyManagerPageSelectionbox swCtrl, IAttributeSet atts, IMetadata[] metadata, 
             SwPropertyManagerPageHandler handler, short height, IPropertyManagerPageLabel label)
         {
-            swCtrl.SingleEntityOnly = !(typeof(IList).IsAssignableFrom(atts.ContextType));
+            swCtrl.SingleEntityOnly = !typeof(IList).IsAssignableFrom(atts.ContextType);
 
             if (height == -1)
             {
@@ -119,7 +119,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
             }
 
             return new PropertyManagerPageSelectionBoxControl(m_SwApp, atts.Id, atts.Tag,
-                swCtrl, handler, atts.ContextType, customFilter, focusOnOpen, label);
+                swCtrl, handler, atts.ContextType, customFilter, focusOnOpen, label, metadata);
         }
 
         private swSelectType_e[] ConvertToSwSelFilters(SelectType_e[] selFilters) 

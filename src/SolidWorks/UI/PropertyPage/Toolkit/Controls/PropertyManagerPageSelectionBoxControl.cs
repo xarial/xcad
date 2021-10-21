@@ -16,6 +16,7 @@ using System.Runtime.InteropServices;
 using Xarial.XCad.Base.Enums;
 using Xarial.XCad.Toolkit.PageBuilder.Constructors;
 using Xarial.XCad.UI.PropertyPage;
+using Xarial.XCad.UI.PropertyPage.Base;
 using Xarial.XCad.UI.PropertyPage.Services;
 using Xarial.XCad.UI.PropertyPage.Structures;
 using Xarial.XCad.Utils.PageBuilder.PageElements;
@@ -37,8 +38,8 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
         public PropertyManagerPageSelectionBoxControl(ISwApplication app, int id, object tag,
             IPropertyManagerPageSelectionbox selBox,
             SwPropertyManagerPageHandler handler, Type objType, ISelectionCustomFilter customFilter, bool defaultFocus,
-            IPropertyManagerPageLabel label)
-            : base(selBox, id, tag, handler, label)
+            IPropertyManagerPageLabel label, IMetadata[] metadata)
+            : base(selBox, id, tag, handler, label, metadata)
         {
             m_App = app;
             m_ObjType = objType;

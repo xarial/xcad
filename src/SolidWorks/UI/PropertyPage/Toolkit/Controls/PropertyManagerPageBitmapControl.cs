@@ -14,6 +14,7 @@ using Xarial.XCad.SolidWorks.Services;
 using Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Icons;
 using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.UI;
+using Xarial.XCad.UI.PropertyPage.Base;
 using Xarial.XCad.Utils.PageBuilder.PageElements;
 
 namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
@@ -34,7 +35,8 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
         public PropertyManagerPageBitmapControl(IIconsCreator iconsConv,
             int id, object tag, Size? size,
             IPropertyManagerPageBitmap bitmap,
-            SwPropertyManagerPageHandler handler, IPropertyManagerPageLabel label) : base(bitmap, id, tag, handler, label)
+            SwPropertyManagerPageHandler handler, IPropertyManagerPageLabel label, IMetadata[] metadata)
+            : base(bitmap, id, tag, handler, label, metadata)
         {
             m_Size = size.HasValue ? size.Value : new Size(36, 36);
             m_IconsConv = iconsConv;

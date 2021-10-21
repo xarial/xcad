@@ -28,7 +28,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
         }
 
         protected override PropertyManagerPageTextBlockControl CreateControl(
-            IPropertyManagerPageLabel swCtrl, IAttributeSet atts, IMetadata metadata, 
+            IPropertyManagerPageLabel swCtrl, IAttributeSet atts, IMetadata[] metadata, 
             SwPropertyManagerPageHandler handler, short height, IPropertyManagerPageLabel label)
         {
             if (height != -1)
@@ -57,7 +57,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
                 swCtrl.SetLabelOptions(fontStyle, font, textColor);
             }
 
-            return new PropertyManagerPageTextBlockControl(atts.Id, atts.Tag, swCtrl, fontStyle, font, textColor, handler, label);
+            return new PropertyManagerPageTextBlockControl(atts.Id, atts.Tag, swCtrl, fontStyle, font, textColor, handler, label, metadata);
         }
     }
 }

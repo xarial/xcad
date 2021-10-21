@@ -158,12 +158,20 @@ namespace SwAddInExample
         public ISwSelObject AnyObject { get; set; }
 
         [SelectionBoxOptions(typeof(PlanarFaceFilter), SelectType_e.Faces)] //setting the standard filter to faces and custom filter to only filter planar faces
+        [AttachMetadata(nameof(ComponentsMetadata))]
+        [AttachMetadata(nameof(CircEdgeMetadata))]
         public ISwFace PlanarFace { get; set; }
 
         public List<ISwComponent> Components { get; set; }
 
         [SelectionBoxOptions(Focused = true)]
         public ISwBody Body { get; set; }
+
+        [Metadata(nameof(ComponentsMetadata))]
+        public List<ISwComponent> ComponentsMetadata => Components;
+
+        [Metadata(nameof(CircEdgeMetadata))]
+        public ISwCircularEdge CircEdgeMetadata => CircEdge;
 
         public ISwCircularEdge CircEdge { get; set; }
 

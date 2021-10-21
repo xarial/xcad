@@ -15,14 +15,14 @@ namespace Xarial.XCad.Utils.PageBuilder.Constructors
             where TPage : IPage
             where TElem : IControl
     {
-        IControl IPageElementConstructor<TGroup, TPage>.Create(TPage page, IAttributeSet atts, IMetadata metadata, ref int numberOfUsedIds)
+        IControl IPageElementConstructor<TGroup, TPage>.Create(TPage page, IAttributeSet atts, IMetadata[] metadata, ref int numberOfUsedIds)
             => Create(page, atts, metadata, ref numberOfUsedIds);
 
-        IControl IPageElementConstructor<TGroup, TPage>.Create(TGroup group, IAttributeSet atts, IMetadata metadata, ref int numberOfUsedIds)
+        IControl IPageElementConstructor<TGroup, TPage>.Create(TGroup group, IAttributeSet atts, IMetadata[] metadata, ref int numberOfUsedIds)
             => Create(group, atts, metadata, ref numberOfUsedIds);
         
-        protected abstract TElem Create(TPage page, IAttributeSet atts, IMetadata metadata, ref int numberOfUsedIds);
+        protected abstract TElem Create(TPage page, IAttributeSet atts, IMetadata[] metadata, ref int numberOfUsedIds);
 
-        protected abstract TElem Create(TGroup group, IAttributeSet atts, IMetadata metadata, ref int numberOfUsedIds);
+        protected abstract TElem Create(TGroup group, IAttributeSet atts, IMetadata[] metadata, ref int numberOfUsedIds);
     }
 }
