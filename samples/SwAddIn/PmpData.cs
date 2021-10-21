@@ -26,6 +26,7 @@ using System.Linq;
 using System.ComponentModel;
 using Xarial.XCad.UI.PropertyPage.Services;
 using Xarial.XCad.UI.PropertyPage.Enums;
+using Xarial.XCad.UI.PropertyPage.Structures;
 
 namespace SwAddInExample
 {
@@ -126,6 +127,24 @@ namespace SwAddInExample
         }
     }
 
+
+    public class PlanarFaceFilter : ISelectionCustomFilter
+    {
+        public void Filter(IControl selBox, IXSelObject selection, SelectionCustomFilterArguments args)
+        {
+            args.Filter = (selection as ISwFace).Face.IGetSurface().IsPlane(); //validating the selection and only allowing planar face
+
+            if (args.Filter)
+            {
+                args.ItemText = "Planar Face";
+            }
+            else
+            {
+                args.Reason = "Only planar faces can be selected";
+            }
+        }
+    }
+
     [ComVisible(true)]
     public class PmpData : SwPropertyManagerPageHandler, INotifyPropertyChanged
     {
@@ -137,6 +156,9 @@ namespace SwAddInExample
         public CustomControlDataContext CustomControl { get; set; } = new CustomControlDataContext();
 
         public ISwSelObject AnyObject { get; set; }
+
+        [SelectionBoxOptions(typeof(PlanarFaceFilter), SelectType_e.Faces)] //setting the standard filter to faces and custom filter to only filter planar faces
+        public ISwFace PlanarFace { get; set; }
 
         public List<ISwComponent> Components { get; set; }
 

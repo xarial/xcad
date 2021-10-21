@@ -29,7 +29,7 @@ namespace Xarial.XCad.UI.PropertyPage.Attributes
         /// Default constructor
         /// </summary>
         /// <param name="metadataTag">Reference to property which defines the toggle state</param>
-        public CheckableGroupBoxAttribute(object metadataTag) 
+        public CheckableGroupBoxAttribute(object metadataTag)
         {
             MetadataTag = metadataTag;
         }

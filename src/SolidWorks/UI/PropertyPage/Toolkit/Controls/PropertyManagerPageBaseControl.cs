@@ -65,6 +65,9 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             }
         }
 
+        public override void ShowTooltip(string title, string msg)
+            => SwControl.ShowBubbleTooltip(title, msg, "");
+
         public IPropertyManagerPageControl SwControl
         {
             get

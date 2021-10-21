@@ -18,6 +18,7 @@ using System.Text;
 using System.Threading;
 using Xarial.XCad.Annotations;
 using Xarial.XCad.Base;
+using Xarial.XCad.Base.Enums;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Features;
@@ -53,6 +54,8 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         IXConfiguration IXComponent.ReferencedConfiguration => ReferencedConfiguration;
 
         public ISwDMComponent Component { get; }
+
+        public override SelectType_e Type => SelectType_e.Components;
 
         private SwDmAssembly m_ParentAssm;
 

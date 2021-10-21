@@ -38,6 +38,11 @@ namespace Xarial.XCad.UI.PropertyPage.Attributes
         /// <inheritdoc/>
         public IMetadataDependencyHandler DependencyHandler { get; }
 
+        /// <summary>
+        /// Default constructor
+        /// </summary>
+        /// <param name="dependencyHandler">Dependency handler of type <see cref="IMetadataDependencyHandler"/></param>
+        /// <param name="dependencies">Dependencies names marked with <see cref="MetadataAttribute"/></param>
         public DependentOnMetadataAttribute(Type dependencyHandler, params object[] dependencies)
         {
             if (!typeof(IMetadataDependencyHandler).IsAssignableFrom(dependencyHandler))

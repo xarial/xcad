@@ -58,6 +58,8 @@ namespace Xarial.XCad.Utils.PageBuilder.PageElements
             SetSpecificValue(destVal);
         }
 
+        public abstract void ShowTooltip(string title, string msg);
+
         protected virtual void Dispose(bool disposing)
         {
         }

@@ -57,5 +57,12 @@ namespace Xarial.XCad.UI.PropertyPage.Base
         /// </summary>
         /// <param name="value"></param>
         void SetValue(object value);
+
+        /// <summary>
+        /// Shows tooltip for this control
+        /// </summary>
+        /// <param name="title">Title of the tooltip</param>
+        /// <param name="msg">Message to show in the tooltip</param>
+        void ShowTooltip(string title, string msg);
     }
 }

@@ -10,6 +10,7 @@ using System;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
+using Xarial.XCad.Base.Enums;
 using Xarial.XCad.Exceptions;
 using Xarial.XCad.SolidWorks.Documents;
 
@@ -37,6 +38,23 @@ namespace Xarial.XCad.SolidWorks
                 }
 
                 return false;
+            }
+        }
+
+        public SelectType_e Type 
+        {
+            get 
+            {
+                if (OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2015))
+                {
+                    OwnerModelDoc.ISelectionManager.GetSelectByIdSpecification(Dispatch, out _, out _, out int type);
+
+                    return (SelectType_e)type;
+                }
+                else 
+                {
+                    throw new NotSupportedException();
+                }
             }
         }
 
