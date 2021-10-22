@@ -21,7 +21,6 @@ using Xarial.XCad.SolidWorks.Utils;
 
 namespace Xarial.XCad.SolidWorks.Geometry
 {
-
     public interface ISwBody : ISwSelObject, IXBody, IResilientibleObject<ISwBody>
     {
         IBody2 Body { get; }
@@ -37,7 +36,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
         IXBody[] IXBody.Substract(IXBody other) => Substract((ISwBody)other);
         IXBody[] IXBody.Common(IXBody other) => Common((ISwBody)other);
 
-        ISwObject IResilientibleObject.CreateResilient() => CreateResilient();
+        IXObject IResilientibleObject.CreateResilient() => CreateResilient();
 
         public virtual IBody2 Body 
         {
