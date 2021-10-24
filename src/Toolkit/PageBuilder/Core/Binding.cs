@@ -17,21 +17,7 @@ namespace Xarial.XCad.Utils.PageBuilder.Core
         public event Action<IBinding> ControlUpdated;
         public event Action<IBinding> ModelUpdated;
         
-        public IControl Control { get; private set; }
-
-        object IBinding.Model
-        {
-            get
-            {
-                return DataModel;
-            }
-            set 
-            {
-                DataModel = (TDataModel)value;
-            }
-        }
-
-        protected virtual TDataModel DataModel { get; set; }
+        public IControl Control { get; }
 
         public abstract IMetadata[] Metadata { get; }
 
@@ -43,6 +29,7 @@ namespace Xarial.XCad.Utils.PageBuilder.Core
 
         public void UpdateControl()
         {
+            Control.Update();
             SetUserControlValue();
             ControlUpdated?.Invoke(this);
         }

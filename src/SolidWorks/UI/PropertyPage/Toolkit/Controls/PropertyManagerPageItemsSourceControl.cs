@@ -52,7 +52,20 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             }
         }
 
+        public override void Update()
+        {
+            if (m_SrcMetadata != null) 
+            {
+                LoadItemsFromSource(m_SrcMetadata.Value);
+            }
+        }
+
         private void OnMetadataChanged(IMetadata metadata, object value)
+        {
+            LoadItemsFromSource(value);
+        }
+
+        private void LoadItemsFromSource(object value)
         {
             var items = new List<ItemsControlItem>();
 
@@ -63,7 +76,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
                     items.Add(new ItemsControlItem(item));
                 }
             }
-            else if (value is null) 
+            else if (value is null)
             {
                 //return empty
             }
@@ -74,7 +87,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
             Items = items.ToArray();
         }
-        
+
         protected virtual TVal GetItem(int index) 
         {
             if (Items != null)

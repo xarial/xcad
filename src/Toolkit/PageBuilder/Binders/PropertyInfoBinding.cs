@@ -28,35 +28,33 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
 
         private readonly PropertyInfoMetadata[] m_Metadata;
 
-        private object m_CurrentDataModel;
+        private object m_CurrentDataModelContext;
+
+        private readonly IContextProvider m_ContextProvider;
 
         internal PropertyInfoBinding(IControl control,
-            IControlDescriptor ctrlDesc, IList<IControlDescriptor> parents, PropertyInfoMetadata[] metadata)
+            IControlDescriptor ctrlDesc, IList<IControlDescriptor> parents, PropertyInfoMetadata[] metadata, IContextProvider contextProvider)
             : base(control)
         {
             ControlDescriptor = ctrlDesc;
             m_Parents = parents;
             m_Metadata = metadata;
+            m_ContextProvider = contextProvider;
+            m_ContextProvider.ContextChanged += OnContextChanged;
         }
 
-        protected override TDataModel DataModel 
+        private void OnContextChanged(IContextProvider sender, object model)
         {
-            get => base.DataModel; 
-            set
+            if (m_CurrentDataModelContext is INotifyPropertyChanged)
             {
-                if (m_CurrentDataModel is INotifyPropertyChanged) 
-                {
-                    (m_CurrentDataModel as INotifyPropertyChanged).PropertyChanged -= OnPropertyChanged;
-                }
+                (m_CurrentDataModelContext as INotifyPropertyChanged).PropertyChanged -= OnPropertyChanged;
+            }
+            
+            m_CurrentDataModelContext = GetContextModel(model);
 
-                base.DataModel = value;
-
-                m_CurrentDataModel = GetCurrentModel();
-
-                if (m_CurrentDataModel is INotifyPropertyChanged)
-                {
-                    (m_CurrentDataModel as INotifyPropertyChanged).PropertyChanged += OnPropertyChanged;
-                }
+            if (m_CurrentDataModelContext is INotifyPropertyChanged)
+            {
+                (m_CurrentDataModelContext as INotifyPropertyChanged).PropertyChanged += OnPropertyChanged;
             }
         }
 
@@ -64,21 +62,18 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
 
         protected override void SetDataModelValue(object value)
         {
-            var curModel = GetCurrentModel();
-
-            var curVal = ControlDescriptor.GetValue(curModel);
+            var curVal = ControlDescriptor.GetValue(m_CurrentDataModelContext);
             var destVal = value.Cast(ControlDescriptor.DataType);
 
             if (!object.Equals(curVal, destVal))
             {
-                ControlDescriptor.SetValue(curModel, destVal);
+                ControlDescriptor.SetValue(m_CurrentDataModelContext, destVal);
             }
         }
 
         protected override void SetUserControlValue()
         {
-            var curModel = GetCurrentModel();
-            var val = ControlDescriptor.GetValue(curModel);
+            var val = ControlDescriptor.GetValue(m_CurrentDataModelContext);
 
             var curVal = Control.GetValue();
 
@@ -88,9 +83,9 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
             }
         }
 
-        private object GetCurrentModel()
+        private object GetContextModel(object model)
         {
-            object curModel = DataModel;
+            object curModel = model;
 
             if (m_Parents != null)
             {

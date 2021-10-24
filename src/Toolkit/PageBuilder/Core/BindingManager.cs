@@ -13,9 +13,9 @@ namespace Xarial.XCad.Utils.PageBuilder.Core
 {
     public class BindingManager : IBindingManager
     {
-        public IEnumerable<IBinding> Bindings { get; private set; }
-        public IDependencyManager Dependency { get; private set; }
-        public IMetadata[] Metadata { get; private set; }
+        public IEnumerable<IBinding> Bindings { get; set; }
+        public IDependencyManager Dependency { get; set; }
+        public IMetadata[] Metadata { get; set; }
 
         public void Load(IXApplication app, IEnumerable<IBinding> bindings,
             IRawDependencyGroup dependencies, IMetadata[] metadata)

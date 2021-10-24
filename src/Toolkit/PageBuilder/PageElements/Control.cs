@@ -30,6 +30,8 @@ namespace Xarial.XCad.Utils.PageBuilder.PageElements
             }
         }
 
+        object IControl.GetValue() => GetSpecificValue();
+
         protected abstract event ControlValueChangedDelegate<TVal> ValueChanged;
 
         private ControlObjectValueChangedDelegate m_ValueChangedHandler;
@@ -50,9 +52,11 @@ namespace Xarial.XCad.Utils.PageBuilder.PageElements
             Metadata = metadata;
         }
 
-        public void Dispose() => Dispose(true);
+        public virtual void Update() 
+        {
+        }
 
-        object IControl.GetValue() => GetSpecificValue();
+        public void Dispose() => Dispose(true);
 
         public void SetValue(object value)
         {

@@ -30,10 +30,5 @@ namespace Xarial.XCad.UI.PropertyPage.Base
         /// Notifies when metadata is changed
         /// </summary>
         event Action<IMetadata, object> Changed;
-
-        /// <summary>
-        /// Model associated with this metadata
-        /// </summary>
-        object Model { get; set; }
     }
 }

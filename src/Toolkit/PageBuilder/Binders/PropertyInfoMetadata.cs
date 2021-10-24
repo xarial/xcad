@@ -11,6 +11,7 @@ using System.ComponentModel;
 using System.Reflection;
 using System.Text;
 using Xarial.XCad.UI.PropertyPage.Base;
+using Xarial.XCad.Utils.PageBuilder;
 
 namespace Xarial.XCad.Toolkit.PageBuilder.Binders
 {
@@ -21,55 +22,50 @@ namespace Xarial.XCad.Toolkit.PageBuilder.Binders
         private readonly PropertyInfo m_PrpInfo;
         private readonly PropertyInfo[] m_Parents;
 
-        private object m_CurrentModel;
+        private object m_CurrentContext;
 
         public object Tag { get; }
 
         public object Value 
         {
             get => GetValue();
-            set => m_PrpInfo.SetValue(m_CurrentModel, value);
+            set => m_PrpInfo.SetValue(m_CurrentContext, value);
         }
 
-        private object m_Model;
+        private readonly IContextProvider m_ContextProvider;
 
-        public object Model 
-        {
-            get => m_Model;
-            set 
-            {
-                m_Model = value;
-                SetDataModel(value);
-            }
-        }
-
-        public PropertyInfoMetadata(PropertyInfo prpInfo, PropertyInfo[] parents, object tag)
+        public PropertyInfoMetadata(PropertyInfo prpInfo, PropertyInfo[] parents, object tag, IContextProvider contextProvider)
         {
             m_PrpInfo = prpInfo;
             m_Parents = parents;
             Tag = tag;
+            m_ContextProvider = contextProvider;
+            m_ContextProvider.ContextChanged += OnContextChanged;
         }
 
-        private void SetDataModel(object model) 
+        private void OnContextChanged(IContextProvider sender, object model)
         {
-            if (m_CurrentModel is INotifyPropertyChanged)
+            SetDataContext(model);
+        }
+
+        private void SetDataContext(object model) 
+        {
+            if (m_CurrentContext is INotifyPropertyChanged)
             {
-                (m_CurrentModel as INotifyPropertyChanged).PropertyChanged -= OnPropertyChanged;
+                (m_CurrentContext as INotifyPropertyChanged).PropertyChanged -= OnPropertyChanged;
             }
 
-            m_CurrentModel = GetCurrentModel(model);
+            m_CurrentContext = GetCurrentContext(model);
 
-            if (m_CurrentModel is INotifyPropertyChanged)
+            if (m_CurrentContext is INotifyPropertyChanged)
             {
-                (m_CurrentModel as INotifyPropertyChanged).PropertyChanged += OnPropertyChanged;
+                (m_CurrentContext as INotifyPropertyChanged).PropertyChanged += OnPropertyChanged;
             }
             
             //TODO: handle INotifyCollection
-
-            Changed?.Invoke(this, GetValue());
         }
 
-        private object GetCurrentModel(object curModel)
+        private object GetCurrentContext(object curModel)
         {
             if (m_Parents != null)
             {
@@ -104,6 +100,6 @@ namespace Xarial.XCad.Toolkit.PageBuilder.Binders
         }
 
         private object GetValue() 
-            => m_PrpInfo.GetValue(m_CurrentModel, null);
+            => m_PrpInfo.GetValue(m_CurrentContext, null);
     }
 }

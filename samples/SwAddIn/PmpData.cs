@@ -373,7 +373,7 @@ namespace SwAddInExample
         {
             public void UpdateState(IXApplication app, IControl source, IMetadata[] metadata)
             {
-                source.Enabled = !((bool)metadata.First().Value);
+                source.Enabled = !(bool)metadata.First().Value;
             }
         }
 
