@@ -350,6 +350,15 @@ namespace Xarial.XCad.Geometry.Structures
             };
 
         /// <summary>
+        /// Multiplies two matrices
+        /// </summary>
+        /// <param name="srcMatrix">Source matrix</param>
+        /// <param name="other">Other matrix</param>
+        /// <returns>Transformed matrix</returns>
+        public static TransformMatrix operator *(TransformMatrix srcMatrix, TransformMatrix other)
+            => srcMatrix.Multiply(other);
+
+        /// <summary>
         /// Converts to string
         /// </summary>
         public override string ToString() => string.Join(", ", ToArray());

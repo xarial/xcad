@@ -12,6 +12,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
+using Xarial.XCad.Exceptions;
 using Xarial.XCad.UI.PropertyPage.Structures;
 
 namespace Xarial.XCad.SolidWorks.UI.PropertyPage
@@ -122,7 +123,16 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
             m_CloseReason = (swPropertyManagerPageCloseReasons_e)Reason;
 
             var arg = new PageClosingArg();
-            Closing?.Invoke(m_CloseReason, arg);
+            
+            try
+            {
+                Closing?.Invoke(m_CloseReason, arg);
+            }
+            catch (Exception ex)
+            {
+                arg.Cancel = true;
+                arg.ErrorMessage = ex.Message;
+            }
 
             if (arg.Cancel)
             {

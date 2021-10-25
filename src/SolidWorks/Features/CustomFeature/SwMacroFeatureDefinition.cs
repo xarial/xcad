@@ -709,9 +709,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             => CreateGeometry((ISwApplication)app, (ISwDocument)doc, data, isPreview, out alignDim).Cast<SwBody>().ToArray();
 
         public void Insert(IXDocument doc)
-        {
-            m_Editor.Value.Insert(doc);
-        }
+            => m_Editor.Value.Insert(doc);
 
         public override bool OnEditDefinition(ISwApplication app, ISwDocument model, ISwMacroFeature<TParams> feature)
         {

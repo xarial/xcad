@@ -127,5 +127,14 @@ namespace Xarial.XCad.Geometry.Structures
                 X * matrix.M11 + Y * matrix.M21 + Z * matrix.M31,
                 X * matrix.M12 + Y * matrix.M22 + Z * matrix.M32,
                 X * matrix.M13 + Y * matrix.M23 + Z * matrix.M33);
+
+        /// <summary>
+        /// Applies the transformation to the vector
+        /// </summary>
+        /// <param name="vec">Source vector</param>
+        /// <param name="matrix">Matrix</param>
+        /// <returns>Transformed point</returns>
+        public static Vector operator *(Vector vec, TransformMatrix matrix)
+            => vec.Transform(matrix);
     }
 }

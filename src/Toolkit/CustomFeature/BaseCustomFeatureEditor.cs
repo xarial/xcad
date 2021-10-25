@@ -66,6 +66,8 @@ namespace Xarial.XCad.Utils.CustomFeature
         private IXPropertyPage<TPage> m_PmPage;
         private IXBody[] m_PreviewBodies;
 
+        private IXCustomFeatureDefinition<TData, TPage> m_Definition;
+
         protected IXDocument CurModel { get; private set; }
 
         public BaseCustomFeatureEditor(IXApplication app,
@@ -99,15 +101,8 @@ namespace Xarial.XCad.Utils.CustomFeature
             m_PmPage.Closed += OnPageClosed;
         }
 
-        private IXCustomFeatureDefinition<TData, TPage> m_Definition;
-
         private IXCustomFeatureDefinition<TData, TPage> Definition 
-        {
-            get 
-            {
-                return m_Definition ?? (m_Definition = (IXCustomFeatureDefinition<TData, TPage>)CustomFeatureDefinitionInstanceCache.GetInstance(m_DefType));
-            }
-        }
+            => m_Definition ?? (m_Definition = (IXCustomFeatureDefinition<TData, TPage>)CustomFeatureDefinitionInstanceCache.GetInstance(m_DefType));
 
         public void Edit(IXDocument model, IXCustomFeature<TData> feature)
         {
