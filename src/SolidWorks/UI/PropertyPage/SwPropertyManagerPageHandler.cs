@@ -140,6 +140,8 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
                 {
                     var title = !string.IsNullOrEmpty(arg.ErrorTitle) ? arg.ErrorTitle : "Error";
 
+                    m_App.HideBubbleTooltip();
+
                     m_App.ShowBubbleTooltipAt2(0, 0, (int)swArrowPosition.swArrowLeftTop,
                         title, arg.ErrorMessage, (int)swBitMaps.swBitMapTreeError,
                         "", "", 0, (int)swLinkString.swLinkStringNone, "", "");

@@ -47,9 +47,12 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
         }
 
         public override void ShowTooltip(string title, string msg)
-            => App.ShowBubbleTooltipAt2(0, 0, (int) swArrowPosition.swArrowLeftTop,
-                        title, msg, (int) swBitMaps.swBitMapNone,
-                        "", "", 0, (int) swLinkString.swLinkStringNone, "", "");
+        {
+            App.HideBubbleTooltip();
+            App.ShowBubbleTooltipAt2(0, 0, (int)swArrowPosition.swArrowLeftTop,
+                        title, msg, (int)swBitMaps.swBitMapNone,
+                        "", "", 0, (int)swLinkString.swLinkStringNone, "", "");
+        }
 
         private void OnWhatsNewRequested()
             => OpenLink(m_WhatsNewLink);
