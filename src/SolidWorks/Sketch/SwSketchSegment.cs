@@ -11,11 +11,13 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Text;
 using System.Threading;
+using Xarial.XCad.Features;
 using Xarial.XCad.Geometry.Curves;
 using Xarial.XCad.Geometry.Wires;
 using Xarial.XCad.Services;
 using Xarial.XCad.Sketch;
 using Xarial.XCad.SolidWorks.Documents;
+using Xarial.XCad.SolidWorks.Features;
 using Xarial.XCad.SolidWorks.Geometry.Curves;
 using Xarial.XCad.Toolkit.Utils;
 
@@ -106,15 +108,14 @@ namespace Xarial.XCad.SolidWorks.Sketch
             }
         }
 
-        public double Length
-        {
-            get => Definition.Length;
-        }
+        public double Length => Definition.Length;
 
         public abstract IXSketchPoint StartPoint { get; }
         public abstract IXSketchPoint EndPoint { get; }
 
         public bool IsConstruction => Segment.ConstructionGeometry;
+
+        public override IXSketchBase OwnerSketch => OwnerDocument.CreateObjectFromDispatch<ISwSketchBase>(Segment.GetSketch());
 
         private void SetColor(ISketchSegment seg, Color? color)
         {
