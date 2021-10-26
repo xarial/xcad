@@ -34,6 +34,7 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
 
         public void Bind<TDataModel>(CreateBindingPageDelegate pageCreator,
             CreateBindingControlDelegate ctrlCreator, CreateDynamicControlsDelegate dynCtrlDescCreator,
+            IContextProvider contextProvider,
             out IEnumerable<IBinding> bindings, out IRawDependencyGroup dependencies, out IMetadata[] metadata)
         {
             var type = typeof(TDataModel);
@@ -52,10 +53,10 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
             dependencies = new RawDependencyGroup();
 
             var metadataMap = new Dictionary<object, PropertyInfoMetadata>();
-            CollectMetadata(type, metadataMap, new PropertyInfo[0], new List<Type>());
+            CollectMetadata(type, metadataMap, new PropertyInfo[0], new List<Type>(), contextProvider);
 
             TraverseType<TDataModel>(type, new List<IControlDescriptor>(),
-                ctrlCreator, dynCtrlDescCreator, page, metadataMap, bindingsList, dependencies, ref firstCtrlId);
+                ctrlCreator, dynCtrlDescCreator, page, metadataMap, bindingsList, dependencies, contextProvider, ref firstCtrlId);
 
             metadata = metadataMap.Values.ToArray();
 
@@ -131,7 +132,7 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
         private void TraverseType<TDataModel>(Type type, List<IControlDescriptor> parents,
                     CreateBindingControlDelegate ctrlCreator, CreateDynamicControlsDelegate dynCtrlDescCreator,
                     IGroup parentCtrl, IReadOnlyDictionary<object, PropertyInfoMetadata> metadata,
-                    List<IBinding> bindings, IRawDependencyGroup dependencies, ref int nextCtrlId)
+                    List<IBinding> bindings, IRawDependencyGroup dependencies, IContextProvider contextProvider, ref int nextCtrlId)
         {
             foreach (var prp in type.GetProperties().OrderBy(p => 
             {
@@ -180,26 +181,42 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
 
                     if (!atts.Has<IIgnoreBindingAttribute>() && !atts.Has<IMetadataAttribute>())
                     {
-                        PropertyInfoMetadata prpMetadata = null;
+                        var prpMetadata = new List<PropertyInfoMetadata>();
 
                         if (atts.Has<IHasMetadataAttribute>())
                         {
-                            var metadataTag = atts.Get<IHasMetadataAttribute>().MetadataTag;
+                            var metadataTagsAtts = atts.GetAll<IHasMetadataAttribute>();
 
-                            if (metadataTag != null)
+                            foreach (var metadataTagAtts in metadataTagsAtts)
                             {
-                                if (!metadata.TryGetValue(metadataTag, out prpMetadata))
+                                if (metadataTagAtts.HasMetadata)
                                 {
-                                    throw new MissingMetadataException(metadataTag, ctrlDesc);
+                                    var metadataTag = metadataTagAtts.MetadataTag;
+
+                                    if (metadataTag == null) 
+                                    {
+                                        throw new NullReferenceException($"Metadata tag is not set for {ctrlDesc.Name}");
+                                    }
+
+                                    if (metadata.TryGetValue(metadataTag, out PropertyInfoMetadata md))
+                                    {
+                                        prpMetadata.Add(md);
+                                    }
+                                    else
+                                    {
+                                        throw new MissingMetadataException(metadataTag, ctrlDesc);
+                                    }
                                 }
                             }
                         }
 
+                        var prpMetadataArr = prpMetadata.ToArray();
+
                         int numberOfUsedIds;
-                        var ctrl = ctrlCreator.Invoke(prpType, atts, parentCtrl, prpMetadata, out numberOfUsedIds);
+                        var ctrl = ctrlCreator.Invoke(prpType, atts, parentCtrl, prpMetadataArr, out numberOfUsedIds);
                         nextCtrlId += numberOfUsedIds;
 
-                        var binding = new PropertyInfoBinding<TDataModel>(ctrl, ctrlDesc, parents, prpMetadata);
+                        var binding = new PropertyInfoBinding<TDataModel>(ctrl, ctrlDesc, parents, prpMetadataArr, contextProvider);
                         bindings.Add(binding);
 
                         if (atts.Has<IControlTagAttribute>())
@@ -244,7 +261,7 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
                             var grpParents = new List<IControlDescriptor>(parents);
                             grpParents.Add(ctrlDesc);
                             TraverseType<TDataModel>(prpType, grpParents, ctrlCreator, dynCtrlDescCreator,
-                                ctrl as IGroup, metadata, bindings, dependencies, ref nextCtrlId);
+                                ctrl as IGroup, metadata, bindings, dependencies, contextProvider, ref nextCtrlId);
                         }
                     }
                 }
@@ -252,7 +269,7 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
         }
 
         private void CollectMetadata(Type type, Dictionary<object, PropertyInfoMetadata> metadata,
-            PropertyInfo[] parents, List<Type> processedTypes)
+            PropertyInfo[] parents, List<Type> processedTypes, IContextProvider contextProvider)
         {
             foreach (var prp in type.GetProperties())
             {
@@ -262,7 +279,7 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
                 {
                     if (!metadata.ContainsKey(metadataAtt.Tag))
                     {
-                        metadata.Add(metadataAtt.Tag, new PropertyInfoMetadata(prp, parents));
+                        metadata.Add(metadataAtt.Tag, new PropertyInfoMetadata(prp, parents, metadataAtt.Tag, contextProvider));
                     }
                     else
                     {
@@ -282,7 +299,7 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
                         && !typeof(IXObject).IsAssignableFrom(prpType))
                     {
                         processedTypes.Add(prpType);
-                        CollectMetadata(prpType, metadata, parents.Union(new PropertyInfo[] { prp }).ToArray(), processedTypes);
+                        CollectMetadata(prpType, metadata, parents.Union(new PropertyInfo[] { prp }).ToArray(), processedTypes, contextProvider);
                     }
                 }
                 else

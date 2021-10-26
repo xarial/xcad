@@ -17,6 +17,11 @@ namespace Xarial.XCad.UI.PropertyPage.Base
     public interface IHasMetadataAttribute : IAttribute
     {
         /// <summary>
+        /// True if the referenced property has metadata
+        /// </summary>
+        bool HasMetadata { get; }
+
+        /// <summary>
         /// Tag of metadata linked to <see cref="IMetadataAttribute.Tag"/>
         /// </summary>
         object MetadataTag { get; }

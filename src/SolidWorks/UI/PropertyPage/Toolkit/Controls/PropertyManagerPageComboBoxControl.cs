@@ -33,9 +33,9 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
         public PropertyManagerPageComboBoxControl(int id, object tag,
             IPropertyManagerPageCombobox comboBox,
-            SwPropertyManagerPageHandler handler, IMetadata metadata, IPropertyManagerPageLabel label,
-            Type specificItemType, bool isStatic, ItemsControlItem[] staticItems)
-            : base(id, tag, comboBox, handler, metadata, label, specificItemType)
+            SwPropertyManagerPageHandler handler, IMetadata srcMetadata, IPropertyManagerPageLabel label,
+            Type specificItemType, bool isStatic, ItemsControlItem[] staticItems, IMetadata[] metadata)
+            : base(id, tag, comboBox, handler, srcMetadata, label, specificItemType, metadata)
         {
             m_IsStatic = isStatic;
             m_StaticItems = staticItems;

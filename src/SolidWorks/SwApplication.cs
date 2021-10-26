@@ -532,6 +532,8 @@ namespace Xarial.XCad.SolidWorks
                 bmp = iconsCreator.ConvertIcon(new TooltipIcon(icon)).First();
             }
 
+            Sw.HideBubbleTooltip();
+
             Sw.ShowBubbleTooltipAt2(spec.Position.X, spec.Position.Y, (int)spec.ArrowPosition,
                         spec.Title, spec.Message, (int)bmpType,
                         bmp, "", 0, (int)swLinkString.swLinkStringNone, "", "");

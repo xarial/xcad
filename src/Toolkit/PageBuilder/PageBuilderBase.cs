@@ -14,6 +14,22 @@ using Xarial.XCad.Utils.PageBuilder.Internal;
 
 namespace Xarial.XCad.Utils.PageBuilder
 {
+    public interface IContextProvider 
+    {
+        event Action<IContextProvider, object> ContextChanged;
+        void NotifyContextChanged(object context);
+    }
+
+    public class BaseContextProvider : IContextProvider
+    {
+        public event Action<IContextProvider, object> ContextChanged;
+
+        public void NotifyContextChanged(object context)
+        {
+            ContextChanged?.Invoke(this, context);
+        }
+    }
+
     public class PageBuilderBase<TPage, TGroup, TControl>
         where TPage : IPage
         where TGroup : IGroup
@@ -39,7 +55,7 @@ namespace Xarial.XCad.Utils.PageBuilder
             m_ControlConstructors = new ConstructorsContainer<TPage, TGroup>(ctrlsContstrs);
         }
 
-        public virtual TPage CreatePage<TModel>(CreateDynamicControlsDelegate dynCtrlsHandler)
+        public virtual TPage CreatePage<TModel>(CreateDynamicControlsDelegate dynCtrlsHandler, IContextProvider modelProvider)
         {
             var page = default(TPage);
 
@@ -49,11 +65,11 @@ namespace Xarial.XCad.Utils.PageBuilder
                     page = m_PageConstructor.Create(atts);
                     return page;
                 },
-                (Type type, IAttributeSet atts, IGroup parent, IMetadata metadata, out int numberOfUsedIds) =>
+                (Type type, IAttributeSet atts, IGroup parent, IMetadata[] metadata, out int numberOfUsedIds) =>
                 {
                     numberOfUsedIds = 1;
                     return m_ControlConstructors.CreateElement(type, parent, atts, metadata, ref numberOfUsedIds);
-                }, dynCtrlsHandler,
+                }, dynCtrlsHandler, modelProvider,
                     out IEnumerable<IBinding> bindings,
                     out IRawDependencyGroup dependencies,
                     out IMetadata[] allMetadata);

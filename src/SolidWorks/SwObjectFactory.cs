@@ -46,15 +46,6 @@ namespace Xarial.XCad.SolidWorks
                 throw new ArgumentException("Dispatch is null");
             }
 
-            if (disp is IEntity)
-            {
-                var safeEnt = (disp as IEntity).GetSafeEntity();
-                if (safeEnt != null)
-                {
-                    disp = safeEnt;
-                }
-            }
-
             switch (disp)
             {
                 case IEdge edge:

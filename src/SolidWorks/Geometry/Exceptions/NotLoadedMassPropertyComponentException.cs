@@ -13,9 +13,16 @@ using Xarial.XCad.Exceptions;
 
 namespace Xarial.XCad.SolidWorks.Geometry.Exceptions
 {
-    internal class NotLoadedMassPropertyComponentException : NotSupportedException
+    /// <summary>
+    /// SOLIDOWORKS API limitation of not-loaded components mass property calculation in SOLIDWORKS 2019 or older
+    /// </summary>
+    public class NotLoadedMassPropertyComponentException : NotSupportedException
     {
-        internal NotLoadedMassPropertyComponentException(IXComponent comp) 
+        /// <summary>
+        /// Default constructor
+        /// </summary>
+        /// <param name="comp">Component</param>
+        public NotLoadedMassPropertyComponentException(IXComponent comp) 
             : base($"Reference document of the component '{comp.Name}' must be loaded in order to access this mass property in SOLIDWORKS 2019 or older") 
         {
         }

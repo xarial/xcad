@@ -45,6 +45,7 @@ using Xarial.XCad.Enums;
 using System.Drawing;
 using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.SolidWorks.Features;
+using System.Diagnostics;
 
 namespace SwAddInExample
 {
@@ -195,11 +196,14 @@ namespace SwAddInExample
             //CommandManager.AddCommandGroup<Commands1_e>();
             //CommandManager.AddCommandGroup<Commands2_e>();
             //return;
-            CommandManager.AddCommandGroup(new CommandGroupSpec(99)
+
+            try
             {
-                Title = "Group 1",
-                Commands = new CommandSpec[]
+                CommandManager.AddCommandGroup(new CommandGroupSpec(99)
                 {
+                    Title = "Group 1",
+                    Commands = new CommandSpec[]
+                    {
                     new CommandSpec(1)
                     {
                         Title = "Cmd1",
@@ -227,27 +231,32 @@ namespace SwAddInExample
                         RibbonTextStyle = RibbonTabTextDisplay_e.TextBelow,
                         SupportedWorkspace = WorkspaceTypes_e.All
                     }
-                }
-            });
+                    }
+                });
 
-            CommandManager.AddCommandGroup<Commands_e>().CommandClick += OnCommandClick;
-            CommandManager.AddContextMenu<ContextMenuCommands_e>(Xarial.XCad.Base.Enums.SelectType_e.Faces).CommandClick += OnContextMenuCommandClick;
+                CommandManager.AddCommandGroup<Commands_e>().CommandClick += OnCommandClick;
+                CommandManager.AddContextMenu<ContextMenuCommands_e>(Xarial.XCad.Base.Enums.SelectType_e.Faces).CommandClick += OnContextMenuCommandClick;
 
-            Application.Documents.RegisterHandler<SwDocHandler>();
+                Application.Documents.RegisterHandler<SwDocHandler>();
 
-            Application.Documents.DocumentActivated += OnDocumentActivated;
+                Application.Documents.DocumentActivated += OnDocumentActivated;
 
-            m_Page = this.CreatePage<PmpData>(OnCreateDynamicControls);
-            m_Page.Closed += OnPage1Closed;
+                m_Page = this.CreatePage<PmpData>(OnCreateDynamicControls);
+                m_Page.Closed += OnPage1Closed;
 
-            m_ToggleGroupPage = this.CreatePage<ToggleGroupPmpData>();
-            m_ToggleGroupPage.Closed += OnToggleGroupPageClosed;
+                m_ToggleGroupPage = this.CreatePage<ToggleGroupPmpData>();
+                m_ToggleGroupPage.Closed += OnToggleGroupPageClosed;
 
-            m_MacroFeatPage = this.CreatePage<PmpMacroFeatData>();
-            m_MacroFeatPage.Closed += OnClosed;
+                m_MacroFeatPage = this.CreatePage<PmpMacroFeatData>();
+                m_MacroFeatPage.Closed += OnClosed;
 
-            m_ComboBoxPage = this.CreatePage<PmpComboBoxData>();
-            m_ComboBoxPage.Closed += OnComboBoxPageClosed;
+                m_ComboBoxPage = this.CreatePage<PmpComboBoxData>();
+                m_ComboBoxPage.Closed += OnComboBoxPageClosed;
+            }
+            catch 
+            {
+                Debug.Assert(false);
+            }
         }
 
         private void OnComboBoxPageClosed(PageCloseReasons_e reason)
@@ -345,136 +354,143 @@ namespace SwAddInExample
 
         private void OnCommandClick(Commands_e spec)
         {
-            switch (spec) 
+            try
             {
-                case Commands_e.OpenDoc:
-                    //(Application.Documents.Active.Model as AssemblyDoc).FileDropPreNotify += SwAddInSample_FileDropPreNotify;
-                    var doc = Application.Documents.PreCreate<IXDocument>();
-                    doc.Path = @"C:\Users\artem\OneDrive\xCAD\TestData\Assembly2\TopAssem.SLDASM";
-                    doc.State = DocumentState_e.Rapid;
-                    doc.Commit();
-                    break;
+                switch (spec)
+                {
+                    case Commands_e.OpenDoc:
+                        //(Application.Documents.Active.Model as AssemblyDoc).FileDropPreNotify += SwAddInSample_FileDropPreNotify;
+                        var doc = Application.Documents.PreCreate<IXDocument>();
+                        doc.Path = @"C:\Users\artem\OneDrive\xCAD\TestData\Assembly2\TopAssem.SLDASM";
+                        doc.State = DocumentState_e.Rapid;
+                        doc.Commit();
+                        break;
 
-                case Commands_e.ShowPmPage:
-                    m_Data = new PmpData();
-                    m_Data.ItemsSourceComboBox = "Y";
-                    m_Page.Show(m_Data);
-                    m_Page.DataChanged += OnPageDataChanged;
-                    break;
+                    case Commands_e.ShowPmPage:
+                        m_Data = new PmpData();
+                        m_Data.ItemsSourceComboBox = "Y";
+                        m_Page.Show(m_Data);
+                        m_Page.DataChanged += OnPageDataChanged;
+                        break;
 
-                case Commands_e.ShowToggleGroupPage:
-                    m_ToggleGroupPage.Show(m_TogglePageData ?? (m_TogglePageData = new ToggleGroupPmpData()));
-                    break;
+                    case Commands_e.ShowToggleGroupPage:
+                        m_ToggleGroupPage.Show(m_TogglePageData ?? (m_TogglePageData = new ToggleGroupPmpData()));
+                        break;
 
-                case Commands_e.ShowPmPageMacroFeature:
-                    m_MacroFeatPmpData = new PmpMacroFeatData() { Text = "ABC", Number = 0.1 };
-                    m_MacroFeatPage.Show(m_MacroFeatPmpData);
-                    break;
+                    case Commands_e.ShowPmPageMacroFeature:
+                        m_MacroFeatPmpData = new PmpMacroFeatData() { Text = "ABC", Number = 0.1 };
+                        m_MacroFeatPage.Show(m_MacroFeatPmpData);
+                        break;
 
-                case Commands_e.RecordView:
-                    var view = (Application.Documents.Active as IXDocument3D).ModelViews.Active;
+                    case Commands_e.RecordView:
+                        var view = (Application.Documents.Active as IXDocument3D).ModelViews.Active;
 
-                    if (m_ViewTransform == null)
-                    {
-                        m_ViewTransform = view.Transform;
-                        Application.Sw.SendMsgToUser("Recorded");
-                    }
-                    else 
-                    {
-                        view.Transform = m_ViewTransform;
-                        view.Update();
-                        m_ViewTransform = null;
-                        Application.Sw.SendMsgToUser("Restored");
-                    }
-                    break;
+                        if (m_ViewTransform == null)
+                        {
+                            m_ViewTransform = view.Transform;
+                            Application.Sw.SendMsgToUser("Recorded");
+                        }
+                        else
+                        {
+                            view.Transform = m_ViewTransform;
+                            view.Update();
+                            m_ViewTransform = null;
+                            Application.Sw.SendMsgToUser("Restored");
+                        }
+                        break;
 
-                case Commands_e.CreateBox:
-                    Application.Documents.Active.Features.CreateCustomFeature<BoxMacroFeatureEditor, BoxMacroFeatureData, BoxData>();
-                    break;
+                    case Commands_e.CreateBox:
+                        Application.Documents.Active.Features.CreateCustomFeature<BoxMacroFeatureEditor, BoxMacroFeatureData, BoxData>();
+                        break;
 
-                case Commands_e.WatchDimension:
-                    WatchDimension();
-                    break;
+                    case Commands_e.WatchDimension:
+                        WatchDimension();
+                        break;
 
-                case Commands_e.WatchCustomProperty:
-                    WatchCustomProperty();
-                    break;
+                    case Commands_e.WatchCustomProperty:
+                        WatchCustomProperty();
+                        break;
 
-                case Commands_e.CreateModelView:
-                    this.CreateDocumentTabWpf<WpfUserControl>(Application.Documents.Active);
-                    //this.CreateDocumentTabWinForm<WinUserControl>(Application.Documents.Active);
-                    //this.CreateDocumentTabWinForm<ComUserControl>(Application.Documents.Active);
-                    break;
+                    case Commands_e.CreateModelView:
+                        this.CreateDocumentTabWpf<WpfUserControl>(Application.Documents.Active);
+                        //this.CreateDocumentTabWinForm<WinUserControl>(Application.Documents.Active);
+                        //this.CreateDocumentTabWinForm<ComUserControl>(Application.Documents.Active);
+                        break;
 
-                case Commands_e.CreateFeatMgrView:
-                    m_FeatMgrTab = this.CreateFeatureManagerTab<WpfUserControl>(Application.Documents.Active);
-                    m_FeatMgrTab.Activated += OnFeatureManagerTabActivated;
+                    case Commands_e.CreateFeatMgrView:
+                        m_FeatMgrTab = this.CreateFeatureManagerTab<WpfUserControl>(Application.Documents.Active);
+                        m_FeatMgrTab.Activated += OnFeatureManagerTabActivated;
 
-                    foreach (var comp in Application.Documents.Active.Selections.OfType<IXComponent>()) 
-                    {
-                        this.CreateFeatureManagerTab<WpfUserControl>((ISwDocument)comp.ReferencedDocument);
-                    }
+                        foreach (var comp in Application.Documents.Active.Selections.OfType<IXComponent>())
+                        {
+                            this.CreateFeatureManagerTab<WpfUserControl>((ISwDocument)comp.ReferencedDocument);
+                        }
 
-                    //this.CreateDocumentTabWinForm<WinUserControl>(Application.Documents.Active);
-                    //this.CreateDocumentTabWinForm<ComUserControl>(Application.Documents.Active);
-                    break;
+                        //this.CreateDocumentTabWinForm<WinUserControl>(Application.Documents.Active);
+                        //this.CreateDocumentTabWinForm<ComUserControl>(Application.Documents.Active);
+                        break;
 
-                case Commands_e.CreatePopup:
-                    //var winForm = this.CreatePopupWinForm<WinForm>();
-                    //winForm.Show(true);
-                    m_Window?.Close();
-                    m_Window = this.CreatePopupWpfWindow<WpfWindow>();
-                    m_Window.Closed += OnWindowClosed;
-                    m_Window.Show();
-                    break;
+                    case Commands_e.CreatePopup:
+                        //var winForm = this.CreatePopupWinForm<WinForm>();
+                        //winForm.Show(true);
+                        m_Window?.Close();
+                        m_Window = this.CreatePopupWpfWindow<WpfWindow>();
+                        m_Window.Closed += OnWindowClosed;
+                        m_Window.Show();
+                        break;
 
-                case Commands_e.CreateTaskPane:
-                    var tp = this.CreateTaskPaneWpf<WpfUserControl, TaskPaneButtons_e>();
-                    tp.ButtonClick += OnButtonClick;
-                    //this.CreateTaskPaneWinForm<WinUserControl>();
-                    //this.CreateTaskPaneWinForm<ComUserControl>();
-                    break;
+                    case Commands_e.CreateTaskPane:
+                        var tp = this.CreateTaskPaneWpf<WpfUserControl, TaskPaneButtons_e>();
+                        tp.ButtonClick += OnButtonClick;
+                        //this.CreateTaskPaneWinForm<WinUserControl>();
+                        //this.CreateTaskPaneWinForm<ComUserControl>();
+                        break;
 
-                case Commands_e.HandleSelection:
-                    Application.Documents.Active.Selections.NewSelection += OnNewSelection;
-                    Application.Documents.Active.Selections.ClearSelection += OnClearSelection;
-                    break;
+                    case Commands_e.HandleSelection:
+                        Application.Documents.Active.Selections.NewSelection += OnNewSelection;
+                        Application.Documents.Active.Selections.ClearSelection += OnClearSelection;
+                        break;
 
-                case Commands_e.ShowTooltip:
-                    var modelView = (Application.Documents.Active as IXDocument3D).ModelViews.Active;
-                    var pt = new System.Drawing.Point(modelView.ScreenRect.Left, modelView.ScreenRect.Top);
-                    Application.ShowTooltip(new MyTooltipSpec("xCAD", "Test Message", pt, TooltipArrowPosition_e.LeftTop));
-                    break;
+                    case Commands_e.ShowTooltip:
+                        var modelView = (Application.Documents.Active as IXDocument3D).ModelViews.Active;
+                        var pt = new System.Drawing.Point(modelView.ScreenRect.Left, modelView.ScreenRect.Top);
+                        Application.ShowTooltip(new MyTooltipSpec("xCAD", "Test Message", pt, TooltipArrowPosition_e.LeftTop));
+                        break;
 
-                case Commands_e.ShowPmpComboBox:
-                    m_PmpComboBoxData = new PmpComboBoxData();
-                    m_ComboBoxPage.Show(m_PmpComboBoxData);
-                    break;
+                    case Commands_e.ShowPmpComboBox:
+                        m_PmpComboBoxData = new PmpComboBoxData();
+                        m_ComboBoxPage.Show(m_PmpComboBoxData);
+                        break;
 
-                case Commands_e.GetMassPrps:
-                    
-                    var visOnly = true;
-                    var relToCoordSys = "Coordinate System1";
-                    var userUnits = true;
+                    case Commands_e.GetMassPrps:
 
-                    var massPrps = ((ISwAssembly)Application.Documents.Active).PreCreateMassProperty();
-                    massPrps.Scope = Application.Documents.Active.Selections.OfType<IXComponent>().ToArray();
-                    massPrps.VisibleOnly = visOnly;
-                    massPrps.UserUnits = userUnits;
-                    if (!string.IsNullOrEmpty(relToCoordSys))
-                    {
-                        massPrps.RelativeTo = ((ISwCoordinateSystem)Application.Documents.Active.Features[relToCoordSys]).Transform;
-                    }
-                    massPrps.Commit();
-                    var cog = massPrps.CenterOfGravity;
-                    var dens = massPrps.Density;
-                    var mass = massPrps.Mass;
-                    var moi = massPrps.MomentOfInertia;
-                    var paoi = massPrps.PrincipalAxesOfInertia;
-                    var pmoi = massPrps.PrincipalMomentOfInertia;
-                    var surfArea = massPrps.SurfaceArea;
-                    var volume = massPrps.Volume;
-                    break;
+                        var visOnly = true;
+                        var relToCoordSys = "Coordinate System1";
+                        var userUnits = true;
+
+                        var massPrps = ((ISwAssembly)Application.Documents.Active).PreCreateMassProperty();
+                        massPrps.Scope = Application.Documents.Active.Selections.OfType<IXComponent>().ToArray();
+                        massPrps.VisibleOnly = visOnly;
+                        massPrps.UserUnits = userUnits;
+                        if (!string.IsNullOrEmpty(relToCoordSys))
+                        {
+                            massPrps.RelativeTo = ((ISwCoordinateSystem)Application.Documents.Active.Features[relToCoordSys]).Transform;
+                        }
+                        massPrps.Commit();
+                        var cog = massPrps.CenterOfGravity;
+                        var dens = massPrps.Density;
+                        var mass = massPrps.Mass;
+                        var moi = massPrps.MomentOfInertia;
+                        var paoi = massPrps.PrincipalAxesOfInertia;
+                        var pmoi = massPrps.PrincipalMomentOfInertia;
+                        var surfArea = massPrps.SurfaceArea;
+                        var volume = massPrps.Volume;
+                        break;
+                }
+            }
+            catch 
+            {
+                Debug.Assert(false);
             }
         }
 

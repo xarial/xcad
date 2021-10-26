@@ -46,15 +46,19 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             Handler.WhatsNewRequested += OnWhatsNewRequested;
         }
 
-        private void OnWhatsNewRequested()
+        public override void ShowTooltip(string title, string msg)
         {
-            OpenLink(m_WhatsNewLink);
+            App.HideBubbleTooltip();
+            App.ShowBubbleTooltipAt2(0, 0, (int)swArrowPosition.swArrowLeftTop,
+                        title, msg, (int)swBitMaps.swBitMapNone,
+                        "", "", 0, (int)swLinkString.swLinkStringNone, "", "");
         }
 
+        private void OnWhatsNewRequested()
+            => OpenLink(m_WhatsNewLink);
+
         private void OnHelpRequested()
-        {
-            OpenLink(m_HelpLink);
-        }
+            => OpenLink(m_HelpLink);
 
         private void OpenLink(string link)
         {

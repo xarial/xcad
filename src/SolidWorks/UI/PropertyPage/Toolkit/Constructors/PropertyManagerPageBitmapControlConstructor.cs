@@ -31,7 +31,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
         }
 
         protected override PropertyManagerPageBitmapControl CreateControl(
-            IPropertyManagerPageBitmap swCtrl, IAttributeSet atts, IMetadata metadata, 
+            IPropertyManagerPageBitmap swCtrl, IAttributeSet atts, IMetadata[] metadata, 
             SwPropertyManagerPageHandler handler, short height, IPropertyManagerPageLabel label)
         {
             Size? size = null;
@@ -42,7 +42,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
                 size = opts.Size;
             }
 
-            return new PropertyManagerPageBitmapControl(m_IconsConv, atts.Id, atts.Tag, size, swCtrl, handler, label);
+            return new PropertyManagerPageBitmapControl(m_IconsConv, atts.Id, atts.Tag, size, swCtrl, handler, label, metadata);
         }
     }
 }

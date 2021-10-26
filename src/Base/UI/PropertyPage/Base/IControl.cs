@@ -27,6 +27,11 @@ namespace Xarial.XCad.UI.PropertyPage.Base
         event ControlObjectValueChangedDelegate ValueChanged;
 
         /// <summary>
+        /// Metadata attached to this control
+        /// </summary>
+        IMetadata[] Metadata { get; }
+
+        /// <summary>
         /// Manages the enable state of the control
         /// </summary>
         bool Enabled { get; set; }
@@ -57,5 +62,17 @@ namespace Xarial.XCad.UI.PropertyPage.Base
         /// </summary>
         /// <param name="value"></param>
         void SetValue(object value);
+
+        /// <summary>
+        /// Shows tooltip for this control
+        /// </summary>
+        /// <param name="title">Title of the tooltip</param>
+        /// <param name="msg">Message to show in the tooltip</param>
+        void ShowTooltip(string title, string msg);
+
+        /// <summary>
+        /// Updated this control
+        /// </summary>
+        void Update();
     }
 }

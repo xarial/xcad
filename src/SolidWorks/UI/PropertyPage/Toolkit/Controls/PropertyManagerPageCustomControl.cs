@@ -10,6 +10,7 @@ using SolidWorks.Interop.swconst;
 using System;
 using Xarial.XCad.SolidWorks.UI.Toolkit;
 using Xarial.XCad.UI.PropertyPage;
+using Xarial.XCad.UI.PropertyPage.Base;
 using Xarial.XCad.Utils.PageBuilder.PageElements;
 
 namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
@@ -28,7 +29,8 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
         internal PropertyManagerPageCustomControl(Type ctrlType, int id, object tag,
             IPropertyManagerPageWindowFromHandle wndFromHandler,
             SwPropertyManagerPageHandler handler,
-            PropertyPageControlCreator<object> creator, IPropertyManagerPageLabel label) : base(wndFromHandler, id, tag, handler, label)
+            PropertyPageControlCreator<object> creator, IPropertyManagerPageLabel label, IMetadata[] metadata)
+            : base(wndFromHandler, id, tag, handler, label, metadata)
         {
             m_CtrlType = ctrlType;
             m_Handler.CustomControlCreated += OnCustomControlCreated;

@@ -7,6 +7,7 @@
 
 using SolidWorks.Interop.sldworks;
 using System;
+using Xarial.XCad.UI.PropertyPage.Base;
 using Xarial.XCad.Utils.PageBuilder.PageElements;
 
 namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
@@ -19,7 +20,8 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
         public PropertyManagerPageBitmapButtonControl(int id, object tag,
             IPropertyManagerPageBitmapButton bmpButton,
-            SwPropertyManagerPageHandler handler, IPropertyManagerPageLabel label) : base(bmpButton, id, tag, handler, label)
+            SwPropertyManagerPageHandler handler, IPropertyManagerPageLabel label, IMetadata[] metadata)
+            : base(bmpButton, id, tag, handler, label, metadata)
         {
             m_Handler.ButtonPressed += OnButtonPressed;
         }

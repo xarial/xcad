@@ -1632,15 +1632,15 @@ namespace SolidWorks.Tests.Integration
                     massPrps.VisibleOnly = false;
 
                     massPrps.Scope = new IXComponent[] { assm.Configurations.Active.Components["Empty-1"] };
-                    Assert.Throws<EvaluationFailedException>(() => massPrps.Commit());
+                    Assert.That(() => massPrps.Commit(), Throws.InstanceOf<EvaluationFailedException>());
                     Assert.DoesNotThrow(() =>
                     {
                         massPrps.Scope = new IXComponent[] { assm.Configurations.Active.Components["Part1-1"] };
                         massPrps.Commit();
                     });
-                    Assert.Throws<EvaluationFailedException>(() => massPrps.Scope = new IXComponent[] { assm.Configurations.Active.Components["Sketch-1"] });
+                    Assert.That(() => massPrps.Scope = new IXComponent[] { assm.Configurations.Active.Components["Sketch-1"] }, Throws.InstanceOf<EvaluationFailedException>());
                     Assert.DoesNotThrow(() => massPrps.Scope = new IXComponent[] { assm.Configurations.Active.Components["Part1-1"] });
-                    Assert.Throws<EvaluationFailedException>(() => massPrps.Scope = new IXComponent[] { assm.Configurations.Active.Components["Surface-1"] });
+                    Assert.That(() => massPrps.Scope = new IXComponent[] { assm.Configurations.Active.Components["Surface-1"] }, Throws.InstanceOf<EvaluationFailedException>());
                     Assert.DoesNotThrow(() => massPrps.Scope = new IXComponent[] { assm.Configurations.Active.Components["SubAssem1-1"] });
                     Assert.DoesNotThrow(() => massPrps.Scope = new IXComponent[] { assm.Configurations.Active.Components["Part2-1"] });
                 }
@@ -1704,17 +1704,17 @@ namespace SolidWorks.Tests.Integration
                 {
                     massPrps.VisibleOnly = true;
 
-                    Assert.Throws<EvaluationFailedException>(() =>
+                    Assert.That(() =>
                     {
                         massPrps.Scope = new IXComponent[] { assm.Configurations.Active.Components["SubAssem1-1"] };
                         massPrps.Commit();
-                    });
+                    }, Throws.InstanceOf<EvaluationFailedException>());
 
-                    Assert.Throws<EvaluationFailedException>(() =>
+                    Assert.That(() =>
                     {
                         massPrps.Scope = new IXComponent[] { assm.Configurations.Active.Components["Part2-1"] };
                         massPrps.Commit();
-                    });
+                    }, Throws.InstanceOf<EvaluationFailedException>());
                 }
             }
         }
@@ -1811,25 +1811,25 @@ namespace SolidWorks.Tests.Integration
             {
                 var assm = (ISwAssembly)m_App.Documents.Active;
 
-                GetMassPropertyArrayData(assm, "COG_Overridden-1", true, false, out moi1, out mass1, out cog1, out pmoi1, out paoi1);
-                GetMassPropertyArrayData(assm, "Mass_Overridden-2", true, false, out moi2, out mass2, out cog2, out pmoi2, out paoi2);
-                GetMassPropertyArrayData(assm, "PMOI_Overridden-1", true, false, out moi3, out mass3, out cog3, out pmoi3, out paoi3);
-                GetMassPropertyArrayData(assm, "None_Overridden-1", true, false, out moi4, out mass4, out cog4, out pmoi4, out paoi4);
+                GetMassPropertyArrayData(assm, "COG_Overridden-1", true, false, true, out moi1, out mass1, out cog1, out pmoi1, out paoi1, out _, out _, out _);
+                GetMassPropertyArrayData(assm, "Mass_Overridden-2", true, false, true, out moi2, out mass2, out cog2, out pmoi2, out paoi2, out _, out _, out _);
+                GetMassPropertyArrayData(assm, "PMOI_Overridden-1", true, false, true, out moi3, out mass3, out cog3, out pmoi3, out paoi3, out _, out _, out _);
+                GetMassPropertyArrayData(assm, "None_Overridden-1", true, false, true, out moi4, out mass4, out cog4, out pmoi4, out paoi4, out _, out _, out _);
 
-                GetMassPropertyArrayData(assm, "COG_Overridden-1", false, false, out moi5, out mass5, out cog5, out pmoi5, out paoi5);
-                GetMassPropertyArrayData(assm, "Mass_Overridden-2", false, false, out moi6, out mass6, out cog6, out pmoi6, out paoi6);
-                GetMassPropertyArrayData(assm, "PMOI_Overridden-1", false, false, out moi7, out mass7, out cog7, out pmoi7, out paoi7);
-                GetMassPropertyArrayData(assm, "None_Overridden-1", false, false, out moi8, out mass8, out cog8, out pmoi8, out paoi8);
+                GetMassPropertyArrayData(assm, "COG_Overridden-1", false, false, true, out moi5, out mass5, out cog5, out pmoi5, out paoi5, out _, out _, out _);
+                GetMassPropertyArrayData(assm, "Mass_Overridden-2", false, false, true, out moi6, out mass6, out cog6, out pmoi6, out paoi6, out _, out _, out _);
+                GetMassPropertyArrayData(assm, "PMOI_Overridden-1", false, false, true, out moi7, out mass7, out cog7, out pmoi7, out paoi7, out _, out _, out _);
+                GetMassPropertyArrayData(assm, "None_Overridden-1", false, false, true, out moi8, out mass8, out cog8, out pmoi8, out paoi8, out _, out _, out _);
 
-                GetMassPropertyArrayData(assm, "COG_Overridden-1", false, true, out moi9, out mass9, out cog9, out pmoi9, out paoi9);
-                GetMassPropertyArrayData(assm, "Mass_Overridden-2", false, true, out moi10, out mass10, out cog10, out pmoi10, out paoi10);
-                GetMassPropertyArrayData(assm, "PMOI_Overridden-1", false, true, out moi11, out mass11, out cog11, out pmoi11, out paoi11);
-                GetMassPropertyArrayData(assm, "None_Overridden-1", false, true, out moi12, out mass12, out cog12, out pmoi12, out paoi12);
+                GetMassPropertyArrayData(assm, "COG_Overridden-1", false, true, true, out moi9, out mass9, out cog9, out pmoi9, out paoi9, out _, out _, out _);
+                GetMassPropertyArrayData(assm, "Mass_Overridden-2", false, true, true, out moi10, out mass10, out cog10, out pmoi10, out paoi10, out _, out _, out _);
+                GetMassPropertyArrayData(assm, "PMOI_Overridden-1", false, true, true, out moi11, out mass11, out cog11, out pmoi11, out paoi11, out _, out _, out _);
+                GetMassPropertyArrayData(assm, "None_Overridden-1", false, true, true, out moi12, out mass12, out cog12, out pmoi12, out paoi12, out _, out _, out _);
 
-                GetMassPropertyArrayData(assm, "COG_Overridden-1", true, true, out moi13, out mass13, out cog13, out pmoi13, out paoi13);
-                GetMassPropertyArrayData(assm, "Mass_Overridden-2", true, true, out moi14, out mass14, out cog14, out pmoi14, out paoi14);
-                GetMassPropertyArrayData(assm, "PMOI_Overridden-1", true, true, out moi15, out mass15, out cog15, out pmoi15, out paoi15);
-                GetMassPropertyArrayData(assm, "None_Overridden-1", true, true, out moi16, out mass16, out cog16, out pmoi16, out paoi16);
+                GetMassPropertyArrayData(assm, "COG_Overridden-1", true, true, true, out moi13, out mass13, out cog13, out pmoi13, out paoi13, out _, out _, out _);
+                GetMassPropertyArrayData(assm, "Mass_Overridden-2", true, true, true, out moi14, out mass14, out cog14, out pmoi14, out paoi14, out _, out _, out _);
+                GetMassPropertyArrayData(assm, "PMOI_Overridden-1", true, true, true, out moi15, out mass15, out cog15, out pmoi15, out paoi15, out _, out _, out _);
+                GetMassPropertyArrayData(assm, "None_Overridden-1", true, true, true, out moi16, out mass16, out cog16, out pmoi16, out paoi16, out _, out _, out _);
             }
 
             AssertCompareDoubleArray((double[])moi1, new double[] { 732771.57070537, 207033.34471190, 284753.25397601, 207033.34471190, 1016744.10068294, 283072.44302186, 284753.25397601, 283072.44302186, 1170200.96290798 });
@@ -2075,25 +2075,25 @@ namespace SolidWorks.Tests.Integration
             {
                 var assm = (ISwAssembly)m_App.Documents.Active;
 
-                GetMassPropertyArrayData(assm, "COG_Overridden_Assm-1", true, false, out moi1, out mass1, out cog1, out pmoi1, out paoi1);
-                GetMassPropertyArrayData(assm, "Mass_Overridden_Assm-2", true, false, out moi2, out mass2, out cog2, out pmoi2, out paoi2);
-                GetMassPropertyArrayData(assm, "PMOI_Overridden_Assm-1", true, false, out moi3, out mass3, out cog3, out pmoi3, out paoi3);
-                GetMassPropertyArrayData(assm, "None_Overridden_Assm-2", true, false, out moi4, out mass4, out cog4, out pmoi4, out paoi4);
+                GetMassPropertyArrayData(assm, "COG_Overridden_Assm-1", true, false, true, out moi1, out mass1, out cog1, out pmoi1, out paoi1, out _, out _, out _);
+                GetMassPropertyArrayData(assm, "Mass_Overridden_Assm-2", true, false, true, out moi2, out mass2, out cog2, out pmoi2, out paoi2, out _, out _, out _);
+                GetMassPropertyArrayData(assm, "PMOI_Overridden_Assm-1", true, false, true, out moi3, out mass3, out cog3, out pmoi3, out paoi3, out _, out _, out _);
+                GetMassPropertyArrayData(assm, "None_Overridden_Assm-2", true, false, true, out moi4, out mass4, out cog4, out pmoi4, out paoi4, out _, out _, out _);
 
-                GetMassPropertyArrayData(assm, "COG_Overridden_Assm-1", false, false, out moi5, out mass5, out cog5, out pmoi5, out paoi5);
-                GetMassPropertyArrayData(assm, "Mass_Overridden_Assm-2", false, false, out moi6, out mass6, out cog6, out pmoi6, out paoi6);
-                GetMassPropertyArrayData(assm, "PMOI_Overridden_Assm-1", false, false, out moi7, out mass7, out cog7, out pmoi7, out paoi7);
-                GetMassPropertyArrayData(assm, "None_Overridden_Assm-2", false, false, out moi8, out mass8, out cog8, out pmoi8, out paoi8);
+                GetMassPropertyArrayData(assm, "COG_Overridden_Assm-1", false, false, true, out moi5, out mass5, out cog5, out pmoi5, out paoi5, out _, out _, out _);
+                GetMassPropertyArrayData(assm, "Mass_Overridden_Assm-2", false, false, true, out moi6, out mass6, out cog6, out pmoi6, out paoi6, out _, out _, out _);
+                GetMassPropertyArrayData(assm, "PMOI_Overridden_Assm-1", false, false, true, out moi7, out mass7, out cog7, out pmoi7, out paoi7, out _, out _, out _);
+                GetMassPropertyArrayData(assm, "None_Overridden_Assm-2", false, false, true, out moi8, out mass8, out cog8, out pmoi8, out paoi8, out _, out _, out _);
 
-                GetMassPropertyArrayData(assm, "COG_Overridden_Assm-1", false, true, out moi9, out mass9, out cog9, out pmoi9, out paoi9);
-                GetMassPropertyArrayData(assm, "Mass_Overridden_Assm-2", false, true, out moi10, out mass10, out cog10, out pmoi10, out paoi10);
-                GetMassPropertyArrayData(assm, "PMOI_Overridden_Assm-1", false, true, out moi11, out mass11, out cog11, out pmoi11, out paoi11);
-                GetMassPropertyArrayData(assm, "None_Overridden_Assm-2", false, true, out moi12, out mass12, out cog12, out pmoi12, out paoi12);
+                GetMassPropertyArrayData(assm, "COG_Overridden_Assm-1", false, true, true, out moi9, out mass9, out cog9, out pmoi9, out paoi9, out _, out _, out _);
+                GetMassPropertyArrayData(assm, "Mass_Overridden_Assm-2", false, true, true, out moi10, out mass10, out cog10, out pmoi10, out paoi10, out _, out _, out _);
+                GetMassPropertyArrayData(assm, "PMOI_Overridden_Assm-1", false, true, true, out moi11, out mass11, out cog11, out pmoi11, out paoi11, out _, out _, out _);
+                GetMassPropertyArrayData(assm, "None_Overridden_Assm-2", false, true, true, out moi12, out mass12, out cog12, out pmoi12, out paoi12, out _, out _, out _);
 
-                GetMassPropertyArrayData(assm, "COG_Overridden_Assm-1", true, true, out moi13, out mass13, out cog13, out pmoi13, out paoi13);
-                GetMassPropertyArrayData(assm, "Mass_Overridden_Assm-2", true, true, out moi14, out mass14, out cog14, out pmoi14, out paoi14);
-                GetMassPropertyArrayData(assm, "PMOI_Overridden_Assm-1", true, true, out moi15, out mass15, out cog15, out pmoi15, out paoi15);
-                GetMassPropertyArrayData(assm, "None_Overridden_Assm-2", true, true, out moi16, out mass16, out cog16, out pmoi16, out paoi16);
+                GetMassPropertyArrayData(assm, "COG_Overridden_Assm-1", true, true, true, out moi13, out mass13, out cog13, out pmoi13, out paoi13, out _, out _, out _);
+                GetMassPropertyArrayData(assm, "Mass_Overridden_Assm-2", true, true, true, out moi14, out mass14, out cog14, out pmoi14, out paoi14, out _, out _, out _);
+                GetMassPropertyArrayData(assm, "PMOI_Overridden_Assm-1", true, true, true, out moi15, out mass15, out cog15, out pmoi15, out paoi15, out _, out _, out _);
+                GetMassPropertyArrayData(assm, "None_Overridden_Assm-2", true, true, true, out moi16, out mass16, out cog16, out pmoi16, out paoi16, out _, out _, out _);
             }
 
             AssertCompareDoubleArray((double[])moi1, new double[] { 732771.57070537, 207033.34471190, 284753.25397601, 207033.34471190, 1016744.10068294, 283072.44302186, 284753.25397601, 283072.44302186, 1170200.96290798 });
@@ -2364,25 +2364,25 @@ namespace SolidWorks.Tests.Integration
             {
                 var assm = (ISwAssembly)m_App.Documents.Active;
 
-                GetMassPropertyArrayData(assm, "COG_Overridden_Assm-1", true, false, out moi1, out mass1, out cog1, out pmoi1, out paoi1);
-                GetMassPropertyArrayData(assm, "Mass_Overridden_Assm-2", true, false, out moi2, out mass2, out cog2, out pmoi2, out paoi2);
-                GetMassPropertyArrayData(assm, "PMOI_Overridden_Assm-1", true, false, out moi3, out mass3, out cog3, out pmoi3, out paoi3);
-                GetMassPropertyArrayData(assm, "None_Overridden_Assm-2", true, false, out moi4, out mass4, out cog4, out pmoi4, out paoi4);
+                GetMassPropertyArrayData(assm, "COG_Overridden_Assm-1", true, false, true, out moi1, out mass1, out cog1, out pmoi1, out paoi1, out _, out _, out _);
+                GetMassPropertyArrayData(assm, "Mass_Overridden_Assm-2", true, false, true, out moi2, out mass2, out cog2, out pmoi2, out paoi2, out _, out _, out _);
+                GetMassPropertyArrayData(assm, "PMOI_Overridden_Assm-1", true, false, true, out moi3, out mass3, out cog3, out pmoi3, out paoi3, out _, out _, out _);
+                GetMassPropertyArrayData(assm, "None_Overridden_Assm-2", true, false, true, out moi4, out mass4, out cog4, out pmoi4, out paoi4, out _, out _, out _);
 
-                GetMassPropertyArrayData(assm, "COG_Overridden_Assm-1", false, false, out moi5, out mass5, out cog5, out pmoi5, out paoi5);
-                GetMassPropertyArrayData(assm, "Mass_Overridden_Assm-2", false, false, out moi6, out mass6, out cog6, out pmoi6, out paoi6);
-                GetMassPropertyArrayData(assm, "PMOI_Overridden_Assm-1", false, false, out moi7, out mass7, out cog7, out pmoi7, out paoi7);
-                GetMassPropertyArrayData(assm, "None_Overridden_Assm-2", false, false, out moi8, out mass8, out cog8, out pmoi8, out paoi8);
+                GetMassPropertyArrayData(assm, "COG_Overridden_Assm-1", false, false, true, out moi5, out mass5, out cog5, out pmoi5, out paoi5, out _, out _, out _);
+                GetMassPropertyArrayData(assm, "Mass_Overridden_Assm-2", false, false, true, out moi6, out mass6, out cog6, out pmoi6, out paoi6, out _, out _, out _);
+                GetMassPropertyArrayData(assm, "PMOI_Overridden_Assm-1", false, false, true, out moi7, out mass7, out cog7, out pmoi7, out paoi7, out _, out _, out _);
+                GetMassPropertyArrayData(assm, "None_Overridden_Assm-2", false, false, true, out moi8, out mass8, out cog8, out pmoi8, out paoi8, out _, out _, out _);
 
-                GetMassPropertyArrayData(assm, "COG_Overridden_Assm-1", false, true, out moi9, out mass9, out cog9, out pmoi9, out paoi9);
-                GetMassPropertyArrayData(assm, "Mass_Overridden_Assm-2", false, true, out moi10, out mass10, out cog10, out pmoi10, out paoi10);
-                GetMassPropertyArrayData(assm, "PMOI_Overridden_Assm-1", false, true, out moi11, out mass11, out cog11, out pmoi11, out paoi11);
-                GetMassPropertyArrayData(assm, "None_Overridden_Assm-2", false, true, out moi12, out mass12, out cog12, out pmoi12, out paoi12);
+                GetMassPropertyArrayData(assm, "COG_Overridden_Assm-1", false, true, true, out moi9, out mass9, out cog9, out pmoi9, out paoi9, out _, out _, out _);
+                GetMassPropertyArrayData(assm, "Mass_Overridden_Assm-2", false, true, true, out moi10, out mass10, out cog10, out pmoi10, out paoi10, out _, out _, out _);
+                GetMassPropertyArrayData(assm, "PMOI_Overridden_Assm-1", false, true, true, out moi11, out mass11, out cog11, out pmoi11, out paoi11, out _, out _, out _);
+                GetMassPropertyArrayData(assm, "None_Overridden_Assm-2", false, true, true, out moi12, out mass12, out cog12, out pmoi12, out paoi12, out _, out _, out _);
 
-                GetMassPropertyArrayData(assm, "COG_Overridden_Assm-1", true, true, out moi13, out mass13, out cog13, out pmoi13, out paoi13);
-                GetMassPropertyArrayData(assm, "Mass_Overridden_Assm-2", true, true, out moi14, out mass14, out cog14, out pmoi14, out paoi14);
-                GetMassPropertyArrayData(assm, "PMOI_Overridden_Assm-1", true, true, out moi15, out mass15, out cog15, out pmoi15, out paoi15);
-                GetMassPropertyArrayData(assm, "None_Overridden_Assm-2", true, true, out moi16, out mass16, out cog16, out pmoi16, out paoi16);
+                GetMassPropertyArrayData(assm, "COG_Overridden_Assm-1", true, true, true, out moi13, out mass13, out cog13, out pmoi13, out paoi13, out _, out _, out _);
+                GetMassPropertyArrayData(assm, "Mass_Overridden_Assm-2", true, true, true, out moi14, out mass14, out cog14, out pmoi14, out paoi14, out _, out _, out _);
+                GetMassPropertyArrayData(assm, "PMOI_Overridden_Assm-1", true, true, true, out moi15, out mass15, out cog15, out pmoi15, out paoi15, out _, out _, out _);
+                GetMassPropertyArrayData(assm, "None_Overridden_Assm-2", true, true, true, out moi16, out mass16, out cog16, out pmoi16, out paoi16, out _, out _, out _);
             }
 
             if (m_App.IsVersionNewerOrEqual(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020))
@@ -2598,13 +2598,92 @@ namespace SolidWorks.Tests.Integration
             AssertCompareDoubleArray((double[])paoi16, new double[] { 0.37354142, 0.70668500, -0.60088528, -0.83011915, -0.03441769, -0.55652280, -0.41396740, 0.70669069, 0.57377631 });
         }
 
+        [Test]
+        public void MassPropertyAssemblyLightweightTest()
+        {
+            object cog1;
+            object mass1;
+            object moi1;
+            object pai1;
+            object pmoi1;
+            object density1;
+            object area1;
+            object volume1;
+
+            object cog2;
+            object mass2;
+            object moi2;
+            object pai2;
+            object pmoi2;
+            object density2;
+            object area2;
+            object volume2;
+
+            using (var doc = OpenDataDocument(@"MassPrpsAssembly1\Assem1.SLDASM", true, s =>
+            {
+                s.LightWeight = true;
+                s.UseLightWeightDefault = false;
+            }))
+            {
+                var assm = (ISwAssembly)m_App.Documents.Active;
+
+                GetMassPropertyArrayData(assm, "Part1-1", false, false, false, out moi1, out mass1, out cog1, out pmoi1, out pai1, out density1, out area1, out volume1);
+                GetMassPropertyArrayData(assm, "SubAssem1-1", false, false, false, out moi2, out mass2, out cog2, out pmoi2, out pai2, out density2, out area2, out volume2);
+            }
+
+            if (m_App.IsVersionNewerOrEqual(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020))
+            {
+                AssertCompareDoubles((double)density1, 7300.00000000);
+                AssertCompareDoubleArray((double[])cog1, new double[] { 0.03260240, 0.06212415, 0.00000000 });
+                AssertCompareDoubleArray((double[])moi1, new double[] { 0.00328186, 0.00358474, 0.00000000, 0.00358474, 0.00613822, 0.00000000, 0.00000000, 0.00000000, 0.00793613 });
+                Assert.IsAssignableFrom<PrincipalAxesOfInertiaOverridenLightweightComponentException>(pai1);
+                AssertCompareDoubleArray((double[])pmoi1, new double[] { 0.00085128, 0.00793613, 0.00856881 });
+                AssertCompareDoubles((double)mass1, 2.25609306);
+            }
+            else
+            {
+                Assert.IsAssignableFrom<NotLoadedMassPropertyComponentException>(density1);
+                Assert.IsAssignableFrom<NotLoadedMassPropertyComponentException>(cog1);
+                Assert.IsAssignableFrom<NotLoadedMassPropertyComponentException>(moi1);
+                Assert.IsAssignableFrom<NotLoadedMassPropertyComponentException>(pai1);
+                Assert.IsAssignableFrom<NotLoadedMassPropertyComponentException>(pmoi1);
+                Assert.IsAssignableFrom<NotLoadedMassPropertyComponentException>(mass1);
+            }
+
+            AssertCompareDoubles((double)area1, 0.03850408);
+            AssertCompareDoubles((double)volume1, 0.00030905);
+
+            if (m_App.IsVersionNewerOrEqual(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020))
+            {
+                AssertCompareDoubles((double)density2, 4553.1112368995864);
+                AssertCompareDoubleArray((double[])cog2, new double[] { -0.00177216, 0.01832142, 0.04575921 });
+                AssertCompareDoubleArray((double[])moi2, new double[] { 0.00476278, 0.00099353, -0.00189405, 0.00099353, 0.00647799, -0.00072354, -0.00189405, -0.00072354, 0.00361526 }, 6);
+                Assert.IsAssignableFrom<PrincipalAxesOfInertiaOverridenLightweightComponentException>(pai2);
+                AssertCompareDoubleArray((double[])pmoi2, new double[] { 0.00190684, 0.00600671, 0.00694247 });
+                AssertCompareDoubles((double)mass2, 2.27447091);
+            }
+            else
+            {
+                Assert.IsAssignableFrom<MassPropertiesHiddenComponentBodiesNotSupported>(density2);
+                Assert.IsAssignableFrom<MassPropertiesHiddenComponentBodiesNotSupported>(cog2);
+                Assert.IsAssignableFrom<MassPropertiesHiddenComponentBodiesNotSupported>(moi2);
+                Assert.IsAssignableFrom<MassPropertiesHiddenComponentBodiesNotSupported>(pai2);
+                Assert.IsAssignableFrom<MassPropertiesHiddenComponentBodiesNotSupported>(pmoi2);
+                Assert.IsAssignableFrom<MassPropertiesHiddenComponentBodiesNotSupported>(mass2);
+            }
+
+            AssertCompareDoubles((double)area2, 0.04697909);
+            AssertCompareDoubles((double)volume2, 0.00049954);
+        }
+
         private void GetMassPropertyArrayData(ISwAssembly assm, string compName, bool includeHidden,
-            bool relToCoord, out object moi, out object mass, out object cog, out object pmoi, out object paoi)
+            bool relToCoord, bool userUnits, out object moi, out object mass, out object cog, out object pmoi, out object paoi,
+            out object density, out object area, out object volume)
         {
             using (var massPrps = assm.PreCreateMassProperty())
             {
                 massPrps.Scope = new IXComponent[] { assm.Configurations.Active.Components[compName] };
-                massPrps.UserUnits = true;
+                massPrps.UserUnits = userUnits;
                 massPrps.VisibleOnly = !includeHidden;
 
                 if (relToCoord)
@@ -2673,6 +2752,33 @@ namespace SolidWorks.Tests.Integration
                 catch (Exception ex)
                 {
                     moi = ex;
+                }
+
+                try
+                {
+                    density = massPrps.Density;
+                }
+                catch (Exception ex)
+                {
+                    density = ex;
+                }
+
+                try
+                {
+                    area = massPrps.SurfaceArea;
+                }
+                catch (Exception ex)
+                {
+                    area = ex;
+                }
+
+                try
+                {
+                    volume = massPrps.Volume;
+                }
+                catch (Exception ex)
+                {
+                    volume = ex;
                 }
             }
         }

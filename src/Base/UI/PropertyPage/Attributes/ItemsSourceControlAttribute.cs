@@ -31,7 +31,9 @@ namespace Xarial.XCad.UI.PropertyPage.Attributes
         /// </summary>
         /// <remarks>Target property must be <see cref="IEnumerable"/> </remarks>
         public object ItemsSource { get; set; }
-        
+
+        public bool HasMetadata => ItemsSource != null;
+
         /// <summary>
         /// Creates a combo box with custom items provider
         /// </summary>

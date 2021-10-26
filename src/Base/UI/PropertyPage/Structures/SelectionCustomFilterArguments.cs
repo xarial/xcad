@@ -9,26 +9,26 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Xarial.XCad.UI.PropertyPage.Base
+namespace Xarial.XCad.UI.PropertyPage.Structures
 {
     /// <summary>
-    /// Represents the custom metadata which is attached to binding
+    /// Arguments of <see cref="Services.ISelectionCustomFilter"/>
     /// </summary>
-    public interface IMetadata
+    public class SelectionCustomFilterArguments
     {
         /// <summary>
-        /// Tag of this metadata
+        /// Text of the item to be displayed in the selection box
         /// </summary>
-        object Tag { get; }
+        public string ItemText { get; set; }
 
         /// <summary>
-        /// Value associated with the metadata
+        /// True to allow this item to be selected
         /// </summary>
-        object Value { get; set; }
+        public bool Filter { get; set; }
 
         /// <summary>
-        /// Notifies when metadata is changed
+        /// Reason to display to the user of <see cref="Filter"/> is False
         /// </summary>
-        event Action<IMetadata, object> Changed;
+        public string Reason { get; set; }
     }
 }

@@ -11,6 +11,7 @@ using System.Drawing;
 using System.IO;
 using System.Text;
 using System.Threading;
+using Xarial.XCad.Base.Enums;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;
 
@@ -32,7 +33,7 @@ namespace Xarial.XCad.SwDocumentManager.Geometry
         public IXBody[] Substract(IXBody other) => throw new NotSupportedException();
         public IXBody Copy() => throw new NotSupportedException();
         public void Transform(TransformMatrix transform) => throw new NotSupportedException();
-
+               
         public SwDmBody() : base(null)
         {
         }

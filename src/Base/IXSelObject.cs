@@ -6,6 +6,7 @@
 //*********************************************************************
 
 using Xarial.XCad.Base;
+using Xarial.XCad.Base.Enums;
 
 namespace Xarial.XCad
 {
@@ -24,5 +25,10 @@ namespace Xarial.XCad
         /// </summary>
         /// <param name="append">True to add selection to the current list, false to clear existing selection</param>
         void Select(bool append);
+
+        /// <summary>
+        /// Type of this selection object
+        /// </summary>
+        SelectType_e Type { get; }
     }
 }

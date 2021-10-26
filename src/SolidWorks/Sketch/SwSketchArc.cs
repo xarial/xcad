@@ -21,7 +21,7 @@ namespace Xarial.XCad.SolidWorks.Sketch
         ISketchArc Arc { get; }
     }
 
-    public interface ISwSketchArc : ISwSketchCircle
+    public interface ISwSketchArc : ISwSketchCircle, IXSketchArc
     {
     }
 
@@ -47,7 +47,7 @@ namespace Xarial.XCad.SolidWorks.Sketch
         }
     }
 
-    internal class SwSketchArc : SwSketchCircle, IXSketchArc
+    internal class SwSketchArc : SwSketchCircle, ISwSketchArc
     {
         public Point Start { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public Point End { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }

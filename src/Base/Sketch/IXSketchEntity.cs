@@ -6,6 +6,7 @@
 //*********************************************************************
 
 using Xarial.XCad.Base;
+using Xarial.XCad.Features;
 
 namespace Xarial.XCad.Sketch
 {
@@ -14,5 +15,9 @@ namespace Xarial.XCad.Sketch
     /// </summary>
     public interface IXSketchEntity : IXSelObject, IXColorizable, IXTransaction
     {
+        /// <summary>
+        /// Owner sketch of this sketch entity
+        /// </summary>
+        IXSketchBase OwnerSketch { get; }
     }
 }

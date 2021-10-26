@@ -26,6 +26,7 @@ using Xarial.XCad.UI.PropertyPage.Base;
 using Xarial.XCad.UI.Exceptions;
 using Xarial.XCad.SolidWorks.UI.Toolkit;
 using System.ComponentModel;
+using Xarial.XCad.Utils.PageBuilder;
 
 namespace Xarial.XCad.SolidWorks.UI.PropertyPage
 {
@@ -67,6 +68,8 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
 
         private readonly IServiceProvider m_SvcProvider;
 
+        private readonly IContextProvider m_ContextProvider;
+
         /// <summary>Creates instance of property manager page</summary>
         /// <param name="app">Pointer to session of SOLIDWORKS where the property manager page to be created</param>
         internal SwPropertyManagerPage(ISwApplication app, IServiceProvider svcProvider, SwPropertyManagerPageHandler handler,
@@ -95,7 +98,9 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
             Handler.Closing += OnClosing;
             m_PmpBuilder = new PropertyManagerPageBuilder(app, m_IconsConv, Handler, pageSpec, m_Logger);
 
-            m_Page = m_PmpBuilder.CreatePage<TModel>(createDynCtrlHandler);
+            m_ContextProvider = new BaseContextProvider();
+
+            m_Page = m_PmpBuilder.CreatePage<TModel>(createDynCtrlHandler, m_ContextProvider);
 
             var ctrls = new List<IPropertyManagerPageElementEx>();
 
@@ -157,15 +162,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
 
             m_App.Sw.IActiveDoc2.ClearSelection2(true);
 
-            foreach (var binding in m_Page.Binding.Bindings ?? Enumerable.Empty<IBinding>())
-            {
-                binding.Model = model;
-            }
-
-            foreach (var md in m_Page.Binding.Metadata ?? Enumerable.Empty<IMetadata>())
-            {
-                md.Model = model;
-            }
+            m_ContextProvider.NotifyContextChanged(model);
 
             Handler.InvokeOpening();
 

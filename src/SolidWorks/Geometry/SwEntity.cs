@@ -15,7 +15,7 @@ using Xarial.XCad.SolidWorks.Documents;
 
 namespace Xarial.XCad.SolidWorks.Geometry
 {
-    public interface ISwEntity : ISwSelObject, IXEntity
+    public interface ISwEntity : ISwSelObject, IXEntity, IResilientibleObject<ISwEntity>
     {
         IEntity Entity { get; }
 
@@ -29,6 +29,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
         IXBody IXEntity.Body => Body;
         IEnumerable<IXEntity> IXEntity.AdjacentEntities => AdjacentEntities;
         IXComponent IXEntity.Component => Component;
+        IXObject IResilientibleObject.CreateResilient() => CreateResilient();
 
         public IEntity Entity { get; }
 
@@ -55,6 +56,8 @@ namespace Xarial.XCad.SolidWorks.Geometry
             }
         }
 
+        public bool IsResilient => Entity.IsSafe;
+
         internal SwEntity(IEntity entity, ISwDocument doc, ISwApplication app) : base(entity, doc, app)
         {
             Entity = entity;
@@ -69,5 +72,17 @@ namespace Xarial.XCad.SolidWorks.Geometry
         }
 
         public abstract Point FindClosestPoint(Point point);
+
+        public ISwEntity CreateResilient()
+        {
+            var safeEnt = Entity.GetSafeEntity();
+
+            if (safeEnt == null) 
+            {
+                throw new NullReferenceException("Failed to get safe entity");
+            }
+
+            return OwnerApplication.CreateObjectFromDispatch<SwEntity>(safeEnt, OwnerDocument);
+        }
     }
 }

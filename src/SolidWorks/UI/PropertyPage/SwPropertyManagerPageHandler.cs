@@ -12,6 +12,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
+using Xarial.XCad.Exceptions;
 using Xarial.XCad.UI.PropertyPage.Structures;
 
 namespace Xarial.XCad.SolidWorks.UI.PropertyPage
@@ -122,13 +123,24 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
             m_CloseReason = (swPropertyManagerPageCloseReasons_e)Reason;
 
             var arg = new PageClosingArg();
-            Closing?.Invoke(m_CloseReason, arg);
+            
+            try
+            {
+                Closing?.Invoke(m_CloseReason, arg);
+            }
+            catch (Exception ex)
+            {
+                arg.Cancel = true;
+                arg.ErrorMessage = ex.Message;
+            }
 
             if (arg.Cancel)
             {
                 if (!string.IsNullOrEmpty(arg.ErrorTitle) || !string.IsNullOrEmpty(arg.ErrorMessage))
                 {
                     var title = !string.IsNullOrEmpty(arg.ErrorTitle) ? arg.ErrorTitle : "Error";
+
+                    m_App.HideBubbleTooltip();
 
                     m_App.ShowBubbleTooltipAt2(0, 0, (int)swArrowPosition.swArrowLeftTop,
                         title, arg.ErrorMessage, (int)swBitMaps.swBitMapTreeError,

@@ -25,8 +25,8 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
         public PropertyManagerPageListBoxControl(int id, object tag,
             IPropertyManagerPageListbox listBox, Type targetType, bool isMultiSel,
-            SwPropertyManagerPageHandler handler, IMetadata metadata, IPropertyManagerPageLabel label, Type specificItemType)
-            : base(id, tag, listBox, handler, metadata, label, specificItemType)
+            SwPropertyManagerPageHandler handler, IMetadata srcMetadata, IPropertyManagerPageLabel label, Type specificItemType, IMetadata[] metadata)
+            : base(id, tag, listBox, handler, srcMetadata, label, specificItemType, metadata)
         {
             m_IsMultiSelect = isMultiSel;
             m_TargetType = targetType;

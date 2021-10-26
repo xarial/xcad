@@ -55,7 +55,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
         }
 
         protected override PropertyManagerPageBitmapButtonControl CreateControl(
-            IPropertyManagerPageBitmapButton swCtrl, IAttributeSet atts, IMetadata metadata,
+            IPropertyManagerPageBitmapButton swCtrl, IAttributeSet atts, IMetadata[] metadata,
             SwPropertyManagerPageHandler handler, short height, IPropertyManagerPageLabel label)
         {
             var bmpAtt = atts.Get<BitmapButtonAttribute>();
@@ -87,7 +87,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
                 }
             }
 
-            return new PropertyManagerPageBitmapButtonControl(atts.Id, atts.Tag, swCtrl, handler, label);
+            return new PropertyManagerPageBitmapButtonControl(atts.Id, atts.Tag, swCtrl, handler, label, metadata);
         }
     }
 }

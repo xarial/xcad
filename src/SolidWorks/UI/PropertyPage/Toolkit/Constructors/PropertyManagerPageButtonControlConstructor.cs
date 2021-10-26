@@ -27,12 +27,12 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
         }
 
         protected override PropertyManagerPageButtonControl CreateControl(
-            IPropertyManagerPageButton swCtrl, IAttributeSet atts, IMetadata metadata, 
+            IPropertyManagerPageButton swCtrl, IAttributeSet atts, IMetadata[] metadata, 
             SwPropertyManagerPageHandler handler, short height, IPropertyManagerPageLabel label)
         {
             swCtrl.Caption = atts.Name;
 
-            return new PropertyManagerPageButtonControl(atts.Id, atts.Tag, swCtrl, handler, label);
+            return new PropertyManagerPageButtonControl(atts.Id, atts.Tag, swCtrl, handler, label, metadata);
         }
     }
 }

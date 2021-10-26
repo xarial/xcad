@@ -113,15 +113,19 @@ namespace SolidWorks.Tests.Integration
             var spec = (IDocumentSpecification)m_SwApp.GetOpenDocSpec(filePath);
             spec.ReadOnly = readOnly;
             spec.LightWeight = false;
+            spec.UseLightWeightDefault = false;
             specEditor?.Invoke(spec);
 
             var model = m_SwApp.OpenDoc7(spec);
 
             if (model != null)
             {
-                if (model is IAssemblyDoc) 
+                if (!spec.LightWeight)
                 {
-                    (model as IAssemblyDoc).ResolveAllLightWeightComponents(false);
+                    if (model is IAssemblyDoc)
+                    {
+                        (model as IAssemblyDoc).ResolveAllLightWeightComponents(false);
+                    }
                 }
 
                 var docWrapper = new DocumentWrapper(m_SwApp, model);

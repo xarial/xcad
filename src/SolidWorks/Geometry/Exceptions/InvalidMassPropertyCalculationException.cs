@@ -9,15 +9,19 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Xarial.XCad.Exceptions;
+using Xarial.XCad.Geometry.Exceptions;
 
 namespace Xarial.XCad.SolidWorks.Geometry.Exceptions
 {
     /// <summary>
     /// Exception indicates that calculation of mass properties has failed
     /// </summary>
-    public class InvalidMassPropertyCalculationException : Exception, IUserException
+    public class InvalidMassPropertyCalculationException : EvaluationFailedException, IUserException
     {
-        public InvalidMassPropertyCalculationException() : base("Invalid mass properties calculation. Try rebuilding the model") 
+        /// <summary>
+        /// Default constructor
+        /// </summary>
+        public InvalidMassPropertyCalculationException() : base("Invalid mass properties calculation. Make sure that model contains the valid geometry or try rebuilding the model") 
         {
         }
     }

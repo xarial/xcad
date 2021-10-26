@@ -35,23 +35,37 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
         protected abstract void LoadItemsIntoControl(ItemsControlItem[] newItems);
         
-        private readonly IMetadata m_Metadata;
+        private readonly IMetadata m_SrcMetadata;
         private readonly Type m_SpecificItemType;
 
         public PropertyManagerPageItemsSourceControl(int id, object tag,
-            TSwCtrl ctrl, SwPropertyManagerPageHandler handler, IMetadata metadata, IPropertyManagerPageLabel label, Type specificItemType)
-            : base(ctrl, id, tag, handler, label)
+            TSwCtrl ctrl, SwPropertyManagerPageHandler handler, IMetadata srcMetadata,
+            IPropertyManagerPageLabel label, Type specificItemType, IMetadata[] metadata)
+            : base(ctrl, id, tag, handler, label, metadata)
         {
             m_SpecificItemType = specificItemType;
-            m_Metadata = metadata;
+            m_SrcMetadata = srcMetadata;
 
-            if (m_Metadata != null)
+            if (m_SrcMetadata != null)
             {
-                m_Metadata.Changed += OnMetadataChanged;
+                m_SrcMetadata.Changed += OnMetadataChanged;
+            }
+        }
+
+        public override void Update()
+        {
+            if (m_SrcMetadata != null) 
+            {
+                LoadItemsFromSource(m_SrcMetadata.Value);
             }
         }
 
         private void OnMetadataChanged(IMetadata metadata, object value)
+        {
+            LoadItemsFromSource(value);
+        }
+
+        private void LoadItemsFromSource(object value)
         {
             var items = new List<ItemsControlItem>();
 
@@ -62,7 +76,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
                     items.Add(new ItemsControlItem(item));
                 }
             }
-            else if (value is null) 
+            else if (value is null)
             {
                 //return empty
             }
@@ -73,7 +87,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
             Items = items.ToArray();
         }
-        
+
         protected virtual TVal GetItem(int index) 
         {
             if (Items != null)

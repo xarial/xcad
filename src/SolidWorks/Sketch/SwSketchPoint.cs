@@ -8,10 +8,12 @@
 using SolidWorks.Interop.sldworks;
 using System;
 using System.Threading;
+using Xarial.XCad.Features;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Services;
 using Xarial.XCad.Sketch;
 using Xarial.XCad.SolidWorks.Documents;
+using Xarial.XCad.SolidWorks.Features;
 using Xarial.XCad.Toolkit.Utils;
 
 namespace Xarial.XCad.SolidWorks.Sketch
@@ -32,6 +34,8 @@ namespace Xarial.XCad.SolidWorks.Sketch
         public ISketchPoint Point => m_Creator.Element;
 
         public override object Dispatch => Point;
+
+        public override IXSketchBase OwnerSketch => OwnerDocument.CreateObjectFromDispatch<ISwSketchBase>(Point.GetSketch());
 
         internal SwSketchPoint(ISketchPoint pt, ISwDocument doc, ISwApplication app, bool created) : base(pt, doc, app)
         {
