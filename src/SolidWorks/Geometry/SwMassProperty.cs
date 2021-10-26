@@ -15,6 +15,7 @@ using System.Text;
 using System.Threading;
 using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
+using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Exceptions;
 using Xarial.XCad.Geometry.Structures;
@@ -444,14 +445,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
             if (scope != null)
             {
-                var bodies = scope.OfType<IXSolidBody>().Select(x => new DispatchWrapper(((ISwBody)x).Body)).ToArray();
-
-                if (!bodies.Any()) 
-                {
-                    throw new EvaluationFailedException();
-                }
-
-                return bodies;
+                return scope.OfType<IXSolidBody>().Select(x => new DispatchWrapper(((ISwBody)x).Body)).ToArray();
             }
             else
             {
@@ -502,23 +496,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
             if (scope != null)
             {
-                var hasSolidBodies = false;
-
-                var comps = scope.Select(x =>
-                {
-                    if (!hasSolidBodies) 
-                    {
-                        hasSolidBodies = x.IterateBodies(!VisibleOnly).OfType<IXSolidBody>().Any();
-                    }
-                    return new DispatchWrapper(((ISwComponent)x).Component);
-                }).ToArray();
-
-                if (!hasSolidBodies)
-                {
-                    throw new EvaluationFailedException();
-                }
-
-                return comps;
+                return scope.Select(x => new DispatchWrapper(((ISwComponent)x).Component)).ToArray();
             }
             else 
             {

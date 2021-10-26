@@ -23,5 +23,13 @@ namespace Xarial.XCad.Geometry.Exceptions
         public EvaluationFailedException() : base("Cannot perform the evaluation for this model. Make sure that model contains the valid geometry")
         {
         }
+
+        /// <summary>
+        /// Specific evaluation exception
+        /// </summary>
+        /// <param name="error">Error description</param>
+        public EvaluationFailedException(string error) : base(error)
+        {
+        }
     }
 }
