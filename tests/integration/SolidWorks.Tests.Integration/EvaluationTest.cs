@@ -2631,16 +2631,7 @@ namespace SolidWorks.Tests.Integration
                 GetMassPropertyArrayData(assm, "SubAssem1-1", false, false, false, out moi2, out mass2, out cog2, out pmoi2, out pai2, out density2, out area2, out volume2);
             }
 
-            if (m_App.IsVersionNewerOrEqual(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2019))
-            {
-                Assert.IsAssignableFrom<NotLoadedMassPropertyComponentException>(density1);
-                Assert.IsAssignableFrom<NotLoadedMassPropertyComponentException>(cog1);
-                Assert.IsAssignableFrom<NotLoadedMassPropertyComponentException>(moi1);
-                Assert.IsAssignableFrom<NotLoadedMassPropertyComponentException>(pai1);
-                Assert.IsAssignableFrom<NotLoadedMassPropertyComponentException>(pmoi1);
-                Assert.IsAssignableFrom<NotLoadedMassPropertyComponentException>(mass1);
-            }
-            else
+            if (m_App.IsVersionNewerOrEqual(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020))
             {
                 AssertCompareDoubles((double)density1, 7300.00000000);
                 AssertCompareDoubleArray((double[])cog1, new double[] { 0.03260240, 0.06212415, 0.00000000 });
@@ -2649,20 +2640,20 @@ namespace SolidWorks.Tests.Integration
                 AssertCompareDoubleArray((double[])pmoi1, new double[] { 0.00085128, 0.00793613, 0.00856881 });
                 AssertCompareDoubles((double)mass1, 2.25609306);
             }
+            else
+            {
+                Assert.IsAssignableFrom<NotLoadedMassPropertyComponentException>(density1);
+                Assert.IsAssignableFrom<NotLoadedMassPropertyComponentException>(cog1);
+                Assert.IsAssignableFrom<NotLoadedMassPropertyComponentException>(moi1);
+                Assert.IsAssignableFrom<NotLoadedMassPropertyComponentException>(pai1);
+                Assert.IsAssignableFrom<NotLoadedMassPropertyComponentException>(pmoi1);
+                Assert.IsAssignableFrom<NotLoadedMassPropertyComponentException>(mass1);
+            }
 
             AssertCompareDoubles((double)area1, 0.03850408);
             AssertCompareDoubles((double)volume1, 0.00030905);
 
-            if (m_App.IsVersionNewerOrEqual(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2019))
-            {
-                Assert.IsAssignableFrom<MassPropertiesHiddenComponentBodiesNotSupported>(density2);
-                Assert.IsAssignableFrom<MassPropertiesHiddenComponentBodiesNotSupported>(cog2);
-                Assert.IsAssignableFrom<MassPropertiesHiddenComponentBodiesNotSupported>(moi2);
-                Assert.IsAssignableFrom<MassPropertiesHiddenComponentBodiesNotSupported>(pai2);
-                Assert.IsAssignableFrom<MassPropertiesHiddenComponentBodiesNotSupported>(pmoi2);
-                Assert.IsAssignableFrom<MassPropertiesHiddenComponentBodiesNotSupported>(mass2);
-            }
-            else
+            if (m_App.IsVersionNewerOrEqual(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020))
             {
                 AssertCompareDoubles((double)density2, 4553.1112368995864);
                 AssertCompareDoubleArray((double[])cog2, new double[] { -0.00177216, 0.01832142, 0.04575921 });
@@ -2670,6 +2661,15 @@ namespace SolidWorks.Tests.Integration
                 Assert.IsAssignableFrom<PrincipalAxesOfInertiaOverridenLightweightComponentException>(pai2);
                 AssertCompareDoubleArray((double[])pmoi2, new double[] { 0.00190684, 0.00600671, 0.00694247 });
                 AssertCompareDoubles((double)mass2, 2.27447091);
+            }
+            else
+            {
+                Assert.IsAssignableFrom<MassPropertiesHiddenComponentBodiesNotSupported>(density2);
+                Assert.IsAssignableFrom<MassPropertiesHiddenComponentBodiesNotSupported>(cog2);
+                Assert.IsAssignableFrom<MassPropertiesHiddenComponentBodiesNotSupported>(moi2);
+                Assert.IsAssignableFrom<MassPropertiesHiddenComponentBodiesNotSupported>(pai2);
+                Assert.IsAssignableFrom<MassPropertiesHiddenComponentBodiesNotSupported>(pmoi2);
+                Assert.IsAssignableFrom<MassPropertiesHiddenComponentBodiesNotSupported>(mass2);
             }
 
             AssertCompareDoubles((double)area2, 0.04697909);
