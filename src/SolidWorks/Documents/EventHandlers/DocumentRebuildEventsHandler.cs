@@ -54,13 +54,13 @@ namespace Xarial.XCad.SolidWorks.Documents.EventHandlers
         private int OnRegenPostNotify(object stopFeature)
         {
             Delegate?.Invoke(m_Doc);
-            return S_OK;
+            return HResult.S_OK;
         }
 
         private int OnDrwRegenPostNotify()
         {
             Delegate?.Invoke(m_Doc);
-            return S_OK;
+            return HResult.S_OK;
         }
     }
 }

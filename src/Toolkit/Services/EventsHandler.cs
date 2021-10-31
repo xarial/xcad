@@ -18,9 +18,6 @@ namespace Xarial.XCad.Toolkit.Services
     public abstract class EventsHandler<TDel> : IDisposable
         where TDel : Delegate
     {
-        protected const int S_OK = 0;
-        protected const int S_FALSE = 1;
-
         public TDel Delegate { get; set; }
 
         private bool m_IsSubscribed;

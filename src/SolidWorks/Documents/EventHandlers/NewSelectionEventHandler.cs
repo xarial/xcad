@@ -64,7 +64,7 @@ namespace Xarial.XCad.SolidWorks.Documents.EventHandlers
                 Delegate?.Invoke(m_Doc, obj);
             }
 
-            return S_OK;
+            return HResult.S_OK;
         }
     }
 }

@@ -8,6 +8,7 @@
 using SolidWorks.Interop.sldworks;
 using Xarial.XCad.Annotations.Delegates;
 using Xarial.XCad.SolidWorks.Documents;
+using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.Toolkit.Services;
 
 namespace Xarial.XCad.SolidWorks.Annotations.EventHandlers
@@ -66,7 +67,7 @@ namespace Xarial.XCad.SolidWorks.Annotations.EventHandlers
                 Delegate.Invoke(m_Dim, m_Dim.GetValue());
             }
 
-            return S_OK;
+            return HResult.S_OK;
         }
     }
 }

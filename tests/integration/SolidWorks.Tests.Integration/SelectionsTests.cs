@@ -43,7 +43,7 @@ namespace SolidWorks.Tests.Integration
         }
 
         [Test]
-        public void SelectionEventsTest() 
+        public void NewSelectionEventsTest() 
         {
             var selTypes = new List<Type>();
 
@@ -59,6 +59,28 @@ namespace SolidWorks.Tests.Integration
 
             Assert.That(typeof(ISwPlanarFace).IsAssignableFrom(selTypes[0]));
             Assert.That(typeof(ISwLinearEdge).IsAssignableFrom(selTypes[1]));
+        }
+
+        [Test]
+        public void ClearSelectionEventsTest()
+        {
+            int clearSelCount = 0;
+
+            using (var doc = OpenDataDocument("Selections1.SLDPRT"))
+            {
+                var part = (IPartDoc)m_App.Sw.IActiveDoc2;
+
+                m_App.Documents.Active.Selections.ClearSelection += (d) => clearSelCount++;
+
+                (part.GetEntityByName("Face1", (int)swSelectType_e.swSelFACES) as IEntity).Select4(true, null);
+                (part.GetEntityByName("Edge1", (int)swSelectType_e.swSelEDGES) as IEntity).Select4(false, null);
+                (part.GetEntityByName("Face1", (int)swSelectType_e.swSelFACES) as IEntity).Select4(true, null);
+                (part as IModelDoc2).ClearSelection2(true);
+                (part.GetEntityByName("Face1", (int)swSelectType_e.swSelFACES) as IEntity).Select4(true, null);
+                (part.GetEntityByName("Face1", (int)swSelectType_e.swSelFACES) as IEntity).DeSelect();
+            }
+
+            Assert.AreEqual(2, clearSelCount);
         }
     }
 }

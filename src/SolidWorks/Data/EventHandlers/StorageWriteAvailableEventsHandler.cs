@@ -54,7 +54,7 @@ namespace Xarial.XCad.SolidWorks.Data.EventHandlers
         private int OnWriteToStorageNotify()
         {
             Delegate?.Invoke(m_Doc);
-            return S_OK;
+            return HResult.S_OK;
         }
     }
 }

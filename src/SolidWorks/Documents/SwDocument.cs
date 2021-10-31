@@ -976,8 +976,6 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         private int OnDestroyNotify(int destroyType)
         {
-            const int S_OK = 0;
-
             try
             {
                 if (destroyType == (int)swDestroyNotifyType_e.swDestroyNotifyDestroy)
@@ -1022,7 +1020,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                 m_Logger.Log(ex);
             }
 
-            return S_OK;
+            return HResult.S_OK;
         }
 
         public Stream OpenStream(string name, AccessType_e access)

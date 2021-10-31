@@ -201,8 +201,6 @@ namespace Xarial.XCad.SolidWorks.UI
 
     internal class SwTaskPane<TControl> : ISwTaskPane<TControl>, IAutoDisposable
     {
-        private const int S_OK = 0;
-
         [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
         public event Action<IAutoDisposable> Disposed;
 
@@ -297,7 +295,7 @@ namespace Xarial.XCad.SolidWorks.UI
                 Debug.Assert(false, "Invalid command id");
             }
 
-            return S_OK;
+            return HResult.S_OK;
         }
 
         private int OnTaskPaneDestroyNotify()
@@ -305,7 +303,7 @@ namespace Xarial.XCad.SolidWorks.UI
             m_Logger.Log("Destroying task pane", XCad.Base.Enums.LoggerMessageSeverity_e.Debug);
 
             Dispose();
-            return S_OK;
+            return HResult.S_OK;
         }
 
         public void Dispose()

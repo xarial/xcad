@@ -80,7 +80,7 @@ namespace Xarial.XCad.SolidWorks.Documents.EventHandlers
                 if (type == DocumentSaveType_e.SaveAs)
                 {
                     m_Doc.Model.SetSaveAsFileName(args.FileName);
-                    return S_FALSE;
+                    return HResult.S_FALSE;
                 }
                 else if (type == DocumentSaveType_e.SaveCurrent) 
                 {
@@ -88,7 +88,7 @@ namespace Xarial.XCad.SolidWorks.Documents.EventHandlers
                 }
             }
 
-            return args.Cancel ? S_FALSE : S_OK;
+            return args.Cancel ? HResult.S_FALSE : HResult.S_OK;
         }
     }
 }

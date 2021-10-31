@@ -81,7 +81,7 @@ namespace Xarial.XCad.SolidWorks.Data.EventHandlers
             //only need to handle loading one time
             (m_App.Sw as SldWorks).OnIdleNotify -= OnIdleHandleThirdPartyStorageNotify;
 
-            return S_OK;
+            return HResult.S_OK;
         }
 
         private int EnsureLoadFromStorage()
@@ -92,7 +92,7 @@ namespace Xarial.XCad.SolidWorks.Data.EventHandlers
                 Delegate?.Invoke(m_Doc);
             }
 
-            return S_OK;
+            return HResult.S_OK;
         }
     }
 }

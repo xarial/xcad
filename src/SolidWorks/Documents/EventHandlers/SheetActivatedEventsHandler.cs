@@ -37,7 +37,7 @@ namespace Xarial.XCad.SolidWorks.Documents.EventHandlers
         private int OnActivateSheetPostNotify(string sheetName)
         {
             Delegate?.Invoke(m_Drw, m_Drw.Sheets[sheetName]);
-            return S_OK;
+            return HResult.S_OK;
         }
     }
 }

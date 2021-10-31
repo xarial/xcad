@@ -113,8 +113,6 @@ namespace Xarial.XCad.SolidWorks.Documents
             set => Active = (SwDocument)value;
         }
         
-        private const int S_OK = 0;
-
         private readonly SwApplication m_App;
         private readonly SldWorks m_SwApp;
         private readonly Dictionary<IModelDoc2, SwDocument> m_Documents;
@@ -245,7 +243,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                 m_WaitActivateDocument = activeDoc;
             }
 
-            return S_OK;
+            return HResult.S_OK;
         }
 
         public ISwDocument this[IModelDoc2 model]
@@ -298,7 +296,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                 }
             }
 
-            return S_OK;
+            return HResult.S_OK;
         }
 
         private int OnFileNewNotify(object newDoc, int docType, string templateName)
@@ -323,7 +321,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                 m_WaitNewDocument = model;
             }
 
-            return S_OK;
+            return HResult.S_OK;
         }
 
         private void AttachToAllOpenedDocuments()
@@ -462,7 +460,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
             m_DocsDispatcher.Dispatch(docTitle, docPath);
             
-            return S_OK;
+            return HResult.S_OK;
         }
 
         private void OnDocumentDestroyed(SwDocument doc)
