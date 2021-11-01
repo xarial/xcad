@@ -53,7 +53,7 @@ namespace Xarial.XCad.SolidWorks.Documents.EventHandlers
                 Delegate?.Invoke(m_Doc3D, m_Doc3D.Configurations[configurationName]);
             }
 
-            return S_OK;
+            return HResult.S_OK;
         }
     }
 }

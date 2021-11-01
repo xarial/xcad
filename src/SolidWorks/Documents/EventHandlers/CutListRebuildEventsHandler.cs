@@ -37,7 +37,7 @@ namespace Xarial.XCad.SolidWorks.Documents.EventHandlers
         private int OnWeldmentCutListUpdatePostNotify()
         {
             Delegate?.Invoke(m_Part);
-            return S_OK;
+            return HResult.S_OK;
         }
     }
 }

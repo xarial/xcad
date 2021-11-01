@@ -100,11 +100,9 @@ namespace Xarial.XCad.SolidWorks
 
         private int OnIdleNotify()
         {
-            const int S_OK = 0;
-
             m_IdleDelegate?.Invoke(this);
 
-            return S_OK;
+            return HResult.S_OK;
         }
 
         private IXServiceCollection m_CustomServices;
@@ -455,8 +453,6 @@ namespace Xarial.XCad.SolidWorks
 
         private int OnLoadFirstIdleNotify()
         {
-            const int S_OK = 0;
-
             Debug.Assert(!m_IsStartupNotified, "This event shoud only be fired once");
             
             if (!m_IsStartupNotified)
@@ -486,7 +482,7 @@ namespace Xarial.XCad.SolidWorks
                 (Sw as SldWorks).OnIdleNotify -= OnLoadFirstIdleNotify;
             }
 
-            return S_OK;
+            return HResult.S_OK;
         }
 
         private ApplicationState_e GetApplicationState() 

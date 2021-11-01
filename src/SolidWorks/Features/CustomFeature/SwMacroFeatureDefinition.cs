@@ -260,8 +260,6 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 
         private int OnIdleNotify()
         {
-            const int S_OK = 0;
-
             m_IsSubscribedToIdle = false;
             ((SldWorks)Application.Sw).OnIdleNotify -= OnIdleNotify;
 
@@ -272,7 +270,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 
             m_RebuildFeaturesQueue.Clear();
 
-            return S_OK;
+            return HResult.S_OK;
         }
 
         [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
