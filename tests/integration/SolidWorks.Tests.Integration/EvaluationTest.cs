@@ -2636,8 +2636,10 @@ namespace SolidWorks.Tests.Integration
                 AssertCompareDoubles((double)density1, 7300.00000000);
                 AssertCompareDoubleArray((double[])cog1, new double[] { 0.03260240, 0.06212415, 0.00000000 });
                 AssertCompareDoubleArray((double[])moi1, new double[] { 0.00328186, 0.00358474, 0.00000000, 0.00358474, 0.00613822, 0.00000000, 0.00000000, 0.00000000, 0.00793613 });
+                //AssertCompareDoubleArray((double[])pai1, new double[] { 0.82768156, 0.56119804, 0.00000000, 0.00000000, 0.00000000, -1.00000000, -0.56119804, 0.82768156, 0.00000000 });
                 Assert.IsAssignableFrom<PrincipalAxesOfInertiaOverridenLightweightComponentException>(pai1);
-                AssertCompareDoubleArray((double[])pmoi1, new double[] { 0.00085128, 0.00793613, 0.00856881 });
+                //AssertCompareDoubleArray((double[])pmoi1, new double[] { 0.00085128, 0.00793613, 0.00856881 });
+                Assert.IsAssignableFrom<PrincipalMomentsOfInertiaOverridenLightweightComponentException>(pmoi1);
                 AssertCompareDoubles((double)mass1, 2.25609306);
             }
             else
@@ -2658,8 +2660,10 @@ namespace SolidWorks.Tests.Integration
                 AssertCompareDoubles((double)density2, 4553.1112368995864);
                 AssertCompareDoubleArray((double[])cog2, new double[] { -0.00177216, 0.01832142, 0.04575921 });
                 AssertCompareDoubleArray((double[])moi2, new double[] { 0.00476278, 0.00099353, -0.00189405, 0.00099353, 0.00647799, -0.00072354, -0.00189405, -0.00072354, 0.00361526 }, 6);
+                //AssertCompareDoubleArray((double[])pai2, new double[] { -0.59405952, -0.25013380, 0.76454324, 0.65591383, 0.39959869, 0.64038889, -0.46569339, 0.88190360, -0.07331919 });
                 Assert.IsAssignableFrom<PrincipalAxesOfInertiaOverridenLightweightComponentException>(pai2);
-                AssertCompareDoubleArray((double[])pmoi2, new double[] { 0.00190684, 0.00600671, 0.00694247 });
+                //AssertCompareDoubleArray((double[])pmoi2, new double[] { 0.00190684, 0.00600671, 0.00694247 });
+                Assert.IsAssignableFrom<PrincipalMomentsOfInertiaOverridenLightweightComponentException>(pmoi2);
                 AssertCompareDoubles((double)mass2, 2.27447091);
             }
             else

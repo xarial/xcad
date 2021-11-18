@@ -11,10 +11,10 @@ using System.Text;
 
 namespace Xarial.XCad.SolidWorks.Geometry.Exceptions
 {
-    public class PrincipalAxesOfInertiaOverridenLightweightComponentException : NotSupportedException
+    public class PrincipalMomentsOfInertiaOverridenLightweightComponentException : NotSupportedException
     {
-        internal PrincipalAxesOfInertiaOverridenLightweightComponentException()
-            : base($"Incorrect calculation of Principal Axes Of Intertia in SOLIDWORKS 2020 onwards for the overriden Moments of Inertia for lightweigth component")
+        internal PrincipalMomentsOfInertiaOverridenLightweightComponentException()
+            : base($"Incorrect calculation of Principal Moments Of Intertia in SOLIDWORKS 2020 onwards for the overriden Moments of Inertia for lightweigth component")
         {
         }
     }
