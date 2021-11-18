@@ -583,7 +583,6 @@ namespace Xarial.XCad.SolidWorks.Geometry
                 },
                     out IMassProperty compRefDocMassPrp))
                 {
-
                     var units = m_ReferenceComponentMassPropertyLazy.Value.UserUnit;
 
                     //mass *  square length 

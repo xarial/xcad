@@ -168,7 +168,9 @@ namespace Xarial.XCad.SolidWorks.Geometry
                 }
                 else 
                 {
-                    return new PrincipalMomentOfInertia((double[])MassProperty.PrincipalMomentsOfInertia);
+                    GetRawPrincipalMomentsOfInertia(out double[] p);
+
+                    return new PrincipalMomentOfInertia(p);
                 }
             }
         }
@@ -396,6 +398,11 @@ namespace Xarial.XCad.SolidWorks.Geometry
             }
         }
 
+        protected virtual void GetRawPrincipalMomentsOfInertia(out double[] p)
+        {
+            p = (double[])MassProperty.PrincipalMomentsOfInertia;
+        }
+
         private void RefreshOverrides(IMassProperty2 massPrps)
         {
             //WORKAROUND: if this is not called the incorrect values may be returned for components with override options when include hidden is false
@@ -469,9 +476,12 @@ namespace Xarial.XCad.SolidWorks.Geometry
     {
         private LegacyComponentMassPropertyLazy m_ComponentMassPropertyLazy;
 
+        private readonly ISwAssembly m_Assm;
+
         internal SwAssemblyMassProperty(ISwAssembly assm, IMathUtility mathUtils) : base(assm, mathUtils)
         {
             VisibleOnly = true;
+            m_Assm = assm;
         }
 
         IXComponent[] IAssemblyEvaluation.Scope
@@ -481,7 +491,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
             {
                 m_Creator.CachedProperties.Set(value);
 
-                m_ComponentMassPropertyLazy = new LegacyComponentMassPropertyLazy(() => value);
+                m_ComponentMassPropertyLazy = new LegacyComponentMassPropertyLazy(() => value, () => UserUnits ? m_Assm.Units : null);
 
                 if (IsCommitted)
                 {
@@ -510,15 +520,16 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
             var scopeComps = (this as IAssemblyEvaluation).Scope;
 
-            if (scopeComps?.Length == 1 && !scopeComps.First().ReferencedDocument.IsCommitted) 
+            //WORKAROUND: wrong value is returned for overridden lightweight component. It is not possible to check if overridden option is checked if component is lightweight so considering all components overridden
+            if (scopeComps?.Length == 1 && !scopeComps.First().ReferencedDocument.IsCommitted)
             {
                 throw new PrincipalAxesOfInertiaOverridenLightweightComponentException();
             }
 
-            if (overrides.OverrideMomentsOfInertia)//invalid values returned for the Axis if overriden
+            if (overrides.OverrideMomentsOfInertia && scopeComps?.Length == 1)
             {
                 //WORKAROUND: overriden principal axes of inertia is not correct in sub-assemblies
-                if (scopeComps?.Length == 1 && scopeComps.First().ReferencedDocument is IXAssembly)
+                if (scopeComps.First().ReferencedDocument is IXAssembly)//invalid values returned for the Axis if overriden
                 {
                     var legacyMassPrps = m_ComponentMassPropertyLazy.Value.MassProperty;
 
@@ -526,18 +537,58 @@ namespace Xarial.XCad.SolidWorks.Geometry
                     iy = (double[])legacyMassPrps.PrincipleAxesOfInertia[(int)PrincipalAxesOfInertia_e.Y];
                     iz = (double[])legacyMassPrps.PrincipleAxesOfInertia[(int)PrincipalAxesOfInertia_e.Z];
                 }
-                else 
+                else
                 {
-                    ix = (double[])overrides.GetOverridePrincipalAxesOrientation((int)PrincipalAxesOfInertia_e.X);
-                    iy = (double[])overrides.GetOverridePrincipalAxesOrientation((int)PrincipalAxesOfInertia_e.Y);
-                    iz = (double[])overrides.GetOverridePrincipalAxesOrientation((int)PrincipalAxesOfInertia_e.Z);
+                    base.GetRawPrincipalAxesOfInertia(out ix, out iy, out iz);
                 }
             }
             else
             {
-                ix = (double[])MassProperty.PrincipalAxesOfInertia[(int)PrincipalAxesOfInertia_e.X];
-                iy = (double[])MassProperty.PrincipalAxesOfInertia[(int)PrincipalAxesOfInertia_e.Y];
-                iz = (double[])MassProperty.PrincipalAxesOfInertia[(int)PrincipalAxesOfInertia_e.Z];
+                base.GetRawPrincipalAxesOfInertia(out ix, out iy, out iz);
+            }
+        }
+
+        protected override void GetRawPrincipalMomentsOfInertia(out double[] p)
+        {
+            var overrides = (IMassPropertyOverrideOptions)MassProperty.GetOverrideOptions();
+
+            var scopeComps = (this as IAssemblyEvaluation).Scope;
+            
+            if (scopeComps?.Length == 1 && !scopeComps.First().ReferencedDocument.IsCommitted)
+            {
+                //WORKAROUND: wrong value is returned for overridden lightweight component. It is not possible to check if overridden option is checked if component is lightweight so considering all components overridden
+                throw new PrincipalMomentsOfInertiaOverridenLightweightComponentException();
+            }
+
+            if (overrides.OverrideMomentsOfInertia && scopeComps?.Length == 1)
+            {
+                //WORKAROUND: overriden moments of inertia is not correct in sub-assemblies
+                if (scopeComps.First().ReferencedDocument is IXAssembly)//Py and Pz values are reversed
+                {
+                    var legacyMassPrps = m_ComponentMassPropertyLazy.Value.MassProperty;
+
+                    p = (double[])legacyMassPrps.PrincipleMomentsOfInertia;
+
+                    var units = m_ComponentMassPropertyLazy.Value.UserUnit;
+
+                    //mass *  square length 
+                    var confFactor = units != null ? units.GetMassConversionFactor() * Math.Pow(units.GetLengthConversionFactor(), 2) : 1;
+
+                    p = new double[]
+                    {
+                        p[0] * confFactor,
+                        p[1] * confFactor,
+                        p[2] * confFactor
+                    };
+                }
+                else 
+                {
+                    base.GetRawPrincipalMomentsOfInertia(out p);
+                }
+            }
+            else
+            {
+                base.GetRawPrincipalMomentsOfInertia(out p);
             }
         }
     }
