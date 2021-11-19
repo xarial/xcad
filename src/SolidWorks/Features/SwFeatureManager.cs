@@ -214,8 +214,12 @@ namespace Xarial.XCad.SolidWorks.Features
                         if (feat is SwCutListItem)
                         {
                             var cutList = (SwCutListItem)feat;
-                            cutList.SetParent(doc, refConf);
-                            yield return cutList;
+                            
+                            if (cutList.CutListBodyFolder.GetBodyCount() > 0)//no bodies for hidden cut-lists (not available in the specific configuration)
+                            {
+                                cutList.SetParent(doc, refConf);
+                                yield return cutList;
+                            }
                         }
                         else if (feat.Feature.GetTypeName2() == "RefPlane")
                         {
