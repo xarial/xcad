@@ -91,5 +91,27 @@ namespace SolidWorks.Tests.Integration
             Assert.AreEqual((CutListState_e)0, cutListData["C CHANNEL 80.00 X 8<1>"]);
             Assert.AreEqual(CutListState_e.ExcludeFromBom, cutListData["PIPE, SCH 40, 25.40 DIA.<1>"]);
         }
+
+        [Test]
+        public void ComponentsCutListTest()
+        {
+            Dictionary<string, int> cutListData1;
+            Dictionary<string, int> cutListData2;
+
+            using (var doc = OpenDataDocument(@"CutListsAssembly1\Assem1.SLDASM"))
+            {
+                var assm = (ISwAssembly)m_App.Documents.Active;
+                cutListData1 = assm.Configurations.Active.Components["Part1-1"].ReferencedConfiguration.CutLists.ToDictionary(c => c.Name, c => c.Bodies.Count());
+                cutListData2 = assm.Configurations.Active.Components["Part1-2"].ReferencedConfiguration.CutLists.ToDictionary(c => c.Name, c => c.Bodies.Count());
+            }
+
+            Assert.AreEqual(1, cutListData1.Count);
+            Assert.That(cutListData1.ContainsKey("L 25.40 X 25.40 X 3.175<1>"));
+            Assert.AreEqual(1, cutListData1["L 25.40 X 25.40 X 3.175<1>"]);
+
+            Assert.AreEqual(1, cutListData2.Count);
+            Assert.That(cutListData2.ContainsKey("PIPE 21.30 X 2.3<1>"));
+            Assert.AreEqual(1, cutListData2["PIPE 21.30 X 2.3<1>"]);
+        }
     }
 }
