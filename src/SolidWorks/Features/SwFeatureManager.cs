@@ -169,63 +169,23 @@ namespace Xarial.XCad.SolidWorks.Features
 
     internal static class SwFeatureManagerExtension 
     {
-        internal static IEnumerable<SwCutListItem> EnumerateCutLists(this SwFeatureManager featMgr) 
+        internal static IEnumerable<SwCutListItem> EnumerateCutLists(this ISwFeatureManager featMgr, ISwDocument3D parent, ISwConfiguration refConf)
         {
-            ISwConfiguration refConf;
-
-            SwDocument3D doc;
-
-            if (featMgr is SwComponentFeatureManager)
+            foreach (ISwFeature feat in featMgr)
             {
-                var comp = (featMgr as SwComponentFeatureManager).Component;
-                refConf = (ISwConfiguration)comp.ReferencedConfiguration;
-                doc = (SwDocument3D)comp.ReferencedDocument;
-            }
-            else 
-            {
-                doc = (SwDocument3D)featMgr.Document;
-                refConf = doc.Configurations.Active;
-            }
-
-            if (doc.DocumentType == swDocumentTypes_e.swDocPART)
-            {
-                var part = doc.Model as IPartDoc;
-
-                IEnumerable<IBody2> IterateBodies()
+                if (feat is SwCutListItem)
                 {
-                    object bodies;
-                    if (featMgr is SwComponentFeatureManager)
-                    {
-                        bodies = ((SwComponentFeatureManager)featMgr).Component.Component.GetBodies3((int)swBodyType_e.swSolidBody, out _);
-                    }
-                    else 
-                    {
-                        bodies = part.GetBodies2((int)swBodyType_e.swSolidBody, false);
-                    }
+                    var cutList = (SwCutListItem)feat;
 
-                    return (bodies as object[] ?? new object[0]).Cast<IBody2>();
+                    if (cutList.CutListBodyFolder.GetBodyCount() > 0)//no bodies for hidden cut-lists (not available in the specific configuration)
+                    {
+                        cutList.SetParent(parent, refConf);
+                        yield return cutList;
+                    }
                 }
-
-                if (part.IsWeldment()
-                    || IterateBodies().Any(b => b.IsSheetMetal()))
+                else if (feat.Feature.GetTypeName2() == "RefPlane")
                 {
-                    foreach (ISwFeature feat in featMgr)
-                    {
-                        if (feat is SwCutListItem)
-                        {
-                            var cutList = (SwCutListItem)feat;
-                            
-                            if (cutList.CutListBodyFolder.GetBodyCount() > 0)//no bodies for hidden cut-lists (not available in the specific configuration)
-                            {
-                                cutList.SetParent(doc, refConf);
-                                yield return cutList;
-                            }
-                        }
-                        else if (feat.Feature.GetTypeName2() == "RefPlane")
-                        {
-                            break;
-                        }
-                    }
+                    break;
                 }
             }
         }
