@@ -178,9 +178,13 @@ namespace SolidWorks.Tests.Integration
                     featNames.Add(feat.Name);
                 }
             }
-            
-            Assert.That(featNames.SequenceEqual(
-                new string[] { "Favorites", "Selection Sets", "Sensors", "Design Binder", "Annotations", "Notes", "Notes1___EndTag___", "Surface Bodies", "Solid Bodies", "Lights, Cameras and Scene", "Ambient", "Directional1", "Directional2", "Directional3", "Markups", "Equations", "Material <not specified>", "Front Plane", "Top Plane", "Right Plane", "Origin", "Sketch1", "Boss-Extrude1" }));
+
+            var expected = new string[] { "Comments", "Favorites", "Selection Sets", "Sensors", "Design Binder", "Annotations",
+                "Notes", "Notes1___EndTag___", "Surface Bodies", "Solid Bodies", "Lights, Cameras and Scene", "Ambient",
+                "Directional1", "Directional2", "Directional3", "Markups", "Equations", "Material <not specified>", "Front Plane",
+                "Top Plane", "Right Plane", "Origin", "Sketch1", "Boss-Extrude1" };
+
+            CollectionAssert.AreEqual(expected, featNames);
         }
 
         [Test]

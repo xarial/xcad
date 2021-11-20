@@ -411,8 +411,10 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        public override IEnumerator<IXFeature> GetEnumerator() => new ComponentFeatureEnumerator(m_Assm, Component.Component);
-        
+        public override IEnumerator<IXFeature> GetEnumerator() => new ComponentFeatureEnumerator(m_Assm, GetFirstFeature());
+
+        protected internal override IFeature GetFirstFeature() => Component.Component.FirstFeature();
+
         public override bool TryGet(string name, out IXFeature ent)
         {
             var feat = Component.Component.FeatureByName(name);
@@ -432,15 +434,10 @@ namespace Xarial.XCad.SolidWorks.Documents
 
     internal class ComponentFeatureEnumerator : FeatureEnumerator
     {
-        private readonly IComponent2 m_Comp;
-
-        public ComponentFeatureEnumerator(ISwDocument rootDoc, IComponent2 comp) : base(rootDoc)
+        public ComponentFeatureEnumerator(ISwDocument rootDoc, IFeature firstFeat) : base(rootDoc, firstFeat)
         {
-            m_Comp = comp;
             Reset();
         }
-
-        protected override IFeature GetFirstFeature() => m_Comp.FirstFeature();
     }
 
     internal class SwComponentBodyCollection : SwBodyCollection

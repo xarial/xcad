@@ -15,51 +15,9 @@ namespace Xarial.XCad.SolidWorks.Features
 {
     internal abstract class FeatureEnumerator : IEnumerator<IXFeature>
     {
-        public IXFeature Current => m_RootDoc.CreateObjectFromDispatch<SwFeature>(m_Features.Current);
-
-        object IEnumerator.Current => Current;
-
-        private readonly ISwDocument m_RootDoc;
-
-        internal FeatureEnumerator(ISwDocument rootDoc)
-        {
-            m_RootDoc = rootDoc;
-        }
-
-        public bool MoveNext() => m_Features.MoveNext();
-
-        public void Reset()
-            => m_Features = IterateFeatures(GetFirstFeature()).GetEnumerator();
-
-        private IEnumerator<IFeature> m_Features;
-
-        protected abstract IFeature GetFirstFeature();
-
-        private IEnumerable<IFeature> IterateFeatures(IFeature firstFeature)
+        internal static IEnumerable<IFeature> IterateFeatures(IFeature firstFeature, bool recursive)
         {
             var processedFeats = new List<IFeature>();
-
-            IEnumerable<IFeature> IterateChildrenFeatures(IFeature parent)
-            {
-                var nextSubFeat = parent.IGetFirstSubFeature();
-
-                while (nextSubFeat != null)
-                {
-                    if (!processedFeats.Contains(nextSubFeat))
-                    {
-                        processedFeats.Add(nextSubFeat);
-
-                        yield return nextSubFeat;
-
-                        foreach (var subSubFeat in IterateChildrenFeatures(nextSubFeat))
-                        {
-                            yield return subSubFeat;
-                        }
-                    }
-
-                    nextSubFeat = nextSubFeat.IGetNextSubFeature();
-                }
-            }
 
             var nextFeat = firstFeature;
 
@@ -73,9 +31,12 @@ namespace Xarial.XCad.SolidWorks.Features
 
                         yield return nextFeat;
 
-                        foreach (var subFeat in IterateChildrenFeatures(nextFeat))
+                        if (recursive)
                         {
-                            yield return subFeat;
+                            foreach (var subFeat in IterateSubFeatures(nextFeat, processedFeats, recursive))
+                            {
+                                yield return subFeat;
+                            }
                         }
                     }
                 }
@@ -83,6 +44,55 @@ namespace Xarial.XCad.SolidWorks.Features
                 nextFeat = nextFeat.IGetNextFeature();
             }
         }
+
+        internal static IEnumerable<IFeature> IterateSubFeatures(IFeature parent, bool recursive)
+            => IterateSubFeatures(parent, new List<IFeature>(), recursive);
+
+        private static IEnumerable<IFeature> IterateSubFeatures(IFeature parent, List<IFeature> processedFeats, bool recursive)
+        {
+            var nextSubFeat = parent.IGetFirstSubFeature();
+
+            while (nextSubFeat != null)
+            {
+                if (!processedFeats.Contains(nextSubFeat))
+                {
+                    processedFeats.Add(nextSubFeat);
+
+                    yield return nextSubFeat;
+
+                    if (recursive)
+                    {
+                        foreach (var subSubFeat in IterateSubFeatures(nextSubFeat, processedFeats, recursive))
+                        {
+                            yield return subSubFeat;
+                        }
+                    }
+                }
+
+                nextSubFeat = nextSubFeat.IGetNextSubFeature();
+            }
+        }
+
+        public IXFeature Current => m_RootDoc.CreateObjectFromDispatch<SwFeature>(m_Features.Current);
+
+        object IEnumerator.Current => Current;
+
+        private readonly ISwDocument m_RootDoc;
+
+        private readonly IFeature m_FirstFeat;
+
+        internal FeatureEnumerator(ISwDocument rootDoc, IFeature firstFeat)
+        {
+            m_RootDoc = rootDoc;
+            m_FirstFeat = firstFeat;
+        }
+
+        public bool MoveNext() => m_Features.MoveNext();
+
+        public void Reset()
+            => m_Features = IterateFeatures(m_FirstFeat, true).GetEnumerator();
+
+        private IEnumerator<IFeature> m_Features;
 
         public void Dispose()
         {

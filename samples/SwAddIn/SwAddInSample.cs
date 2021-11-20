@@ -359,6 +359,9 @@ namespace SwAddInExample
                 switch (spec)
                 {
                     case Commands_e.OpenDoc:
+
+                        var cutLists = (Application.Documents.Active as ISwPart).Configurations.Active.CutLists.ToArray();
+
                         //(Application.Documents.Active.Model as AssemblyDoc).FileDropPreNotify += SwAddInSample_FileDropPreNotify;
                         var doc = Application.Documents.PreCreate<IXDocument>();
                         doc.Path = @"C:\Users\artem\OneDrive\xCAD\TestData\Assembly2\TopAssem.SLDASM";

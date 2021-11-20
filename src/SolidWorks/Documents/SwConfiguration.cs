@@ -97,7 +97,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
                         var checkedConfigsConflict = false;
 
-                        foreach (var cutList in ((SwFeatureManager)m_Doc.Features).EnumerateCutLists(m_Doc, activeConf))
+                        foreach (var cutList in ((SwFeatureManager)m_Doc.Features).IterateCutLists(m_Doc, activeConf))
                         {
                             if (!checkedConfigsConflict)
                             {
@@ -330,7 +330,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
                     if ((refDoc.IsCommitted && (refDoc.Model as IPartDoc).IsWeldment()) || IterateBodies().Any(b => b.IsSheetMetal()))
                     {
-                        foreach (var cutList in m_Comp.Features.EnumerateCutLists(refDoc, refConf))
+                        foreach (var cutList in ((SwFeatureManager)m_Comp.Features).IterateCutLists(refDoc, refConf))
                         {
                             yield return cutList;
                         }
@@ -356,10 +356,10 @@ namespace Xarial.XCad.SolidWorks.Documents
             m_ViewOnlyConfName = confName;
         }
 
-        public override void Commit(CancellationToken cancellationToken) => throw new InactiveLdrConfgurationNotSupportedException();
-        public override IEnumerable<IXCutListItem> CutLists => throw new InactiveLdrConfgurationNotSupportedException();
-        public override object Dispatch => throw new InactiveLdrConfgurationNotSupportedException();
-        public override ISwCustomPropertiesCollection Properties => throw new InactiveLdrConfgurationNotSupportedException();
+        public override void Commit(CancellationToken cancellationToken) => throw new InactiveLdrConfigurationNotSupportedException();
+        public override IEnumerable<IXCutListItem> CutLists => throw new InactiveLdrConfigurationNotSupportedException();
+        public override object Dispatch => throw new InactiveLdrConfigurationNotSupportedException();
+        public override ISwCustomPropertiesCollection Properties => throw new InactiveLdrConfigurationNotSupportedException();
     }
 
     internal class SwLdrUnloadedConfiguration : SwAssemblyConfiguration
@@ -378,9 +378,9 @@ namespace Xarial.XCad.SolidWorks.Documents
             m_LdrConfName = confName;
         }
 
-        public override void Commit(CancellationToken cancellationToken) => throw new InactiveLdrConfgurationNotSupportedException();
-        public override IEnumerable<IXCutListItem> CutLists => throw new InactiveLdrConfgurationNotSupportedException();
-        public override object Dispatch => throw new InactiveLdrConfgurationNotSupportedException();
-        public override ISwCustomPropertiesCollection Properties => throw new InactiveLdrConfgurationNotSupportedException();
+        public override void Commit(CancellationToken cancellationToken) => throw new InactiveLdrConfigurationNotSupportedException();
+        public override IEnumerable<IXCutListItem> CutLists => throw new InactiveLdrConfigurationNotSupportedException();
+        public override object Dispatch => throw new InactiveLdrConfigurationNotSupportedException();
+        public override ISwCustomPropertiesCollection Properties => throw new InactiveLdrConfigurationNotSupportedException();
     }
 }
