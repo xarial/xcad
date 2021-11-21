@@ -106,5 +106,29 @@ namespace SolidWorksDocMgr.Tests.Integration
             Assert.That(cutListData2.ContainsKey("PIPE 21.30 X 2.3<1>"));
             Assert.AreEqual(1, cutListData2["PIPE 21.30 X 2.3<1>"]);
         }
+
+        [Test]
+        public void SubWeldmentsTest()
+        {
+            Dictionary<string, int> cutListData;
+
+            using (var doc = OpenDataDocument(@"Weldment2.SLDPRT"))
+            {
+                var part = (IXDocument3D)m_App.Documents.Active;
+                var cutLists = part.Configurations.Active.CutLists;
+                cutListData = cutLists.ToDictionary(c => c.Name, c => c.Bodies.Count());
+            }
+
+            Assert.AreEqual(4, cutListData.Count);
+
+            Assert.That(cutListData.ContainsKey("TUBE, RECTANGULAR 60.00 X 40.00 X 3.20<2>"));
+            Assert.AreEqual(2, cutListData["TUBE, RECTANGULAR 60.00 X 40.00 X 3.20<2>"]);
+            Assert.That(cutListData.ContainsKey("TUBE, RECTANGULAR 60.00 X 40.00 X 3.20<3>"));
+            Assert.AreEqual(1, cutListData["TUBE, RECTANGULAR 60.00 X 40.00 X 3.20<3>"]);
+            Assert.That(cutListData.ContainsKey("Cut-List-Item5"));
+            Assert.AreEqual(1, cutListData["Cut-List-Item5"]);
+            Assert.That(cutListData.ContainsKey("Cut-List-Item6"));
+            Assert.AreEqual(1, cutListData["Cut-List-Item6"]);
+        }
     }
 }
