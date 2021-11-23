@@ -52,7 +52,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         string CachedPath { get; }
     }
 
-    [DebuggerDisplay("{" + nameof(Name) + "}")]
+    [DebuggerDisplay("{" + nameof(FullName) + "}")]
     internal class SwComponent : SwSelObject, ISwComponent
     {
         IXDocument3D IXComponent.ReferencedDocument => ReferencedDocument;
@@ -93,9 +93,15 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public string Name
         {
-            get => Component.Name2;
+            get 
+            {
+                var fullName = FullName;
+                return fullName.Substring(fullName.LastIndexOf('/') + 1);
+            }
             set => Component.Name2 = value;
         }
+
+        public string FullName => Component.Name2;
 
         public ISwDocument3D ReferencedDocument
         {

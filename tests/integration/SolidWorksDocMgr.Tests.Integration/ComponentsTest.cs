@@ -26,8 +26,7 @@ namespace SolidWorksDocMgr.Tests.Integration
                 compNames = ((ISwDmAssembly)m_App.Documents.Active).Configurations.Active.Components.Select(c => c.Name).ToArray();
             }
 
-            Assert.That(compNames.OrderBy(c => c).SequenceEqual(
-                new string[] { "Part1-1", "Part1-2", "SubAssem1-1", "SubAssem1-2", "SubAssem2-1", "Part1-3" }.OrderBy(c => c)));
+            CollectionAssert.AreEquivalent(new string[] { "Part1-1", "Part1-2", "SubAssem1-1", "SubAssem1-2", "SubAssem2-1", "Part1-3" }, compNames);
         }
 
         [Test]
@@ -39,11 +38,10 @@ namespace SolidWorksDocMgr.Tests.Integration
             {
                 var assm = (ISwDmAssembly)m_App.Documents.Active;
                 var comp = assm.Configurations.Active.Components["SubAssem1-1"];
-                compNames = comp.Children.Select(c => c.Name).ToArray();
+                compNames = comp.Children.Select(c => c.FullName).ToArray();
             }
 
-            Assert.That(compNames.OrderBy(c => c).SequenceEqual(
-                new string[] { "SubAssem1-1/Part2-1", "SubAssem1-1/SubSubAssem1-1" }.OrderBy(c => c)));
+            CollectionAssert.AreEquivalent(new string[] { "SubAssem1-1/Part2-1", "SubAssem1-1/SubSubAssem1-1" }, compNames);
         }
 
         [Test]
@@ -264,6 +262,42 @@ namespace SolidWorksDocMgr.Tests.Integration
 
             Assert.AreEqual(6, count);
             Assert.AreEqual(17, totalCount);
+        }
+
+        [Test]
+        public void ComponentNameTest()
+        {
+            string fn1;
+            string fn2;
+            string fn3;
+
+            string n1;
+            string n2;
+            string n3;
+
+            using (var doc = OpenDataDocument(@"Assembly10\Assem1.SLDASM"))
+            {
+                var assm = (ISwDmAssembly)m_App.Documents.Active;
+
+                var c1 = assm.Configurations.Active.Components.First();
+                var c2 = c1.Children.First();
+                var c3 = c2.Children.First();
+
+                n1 = c1.Name;
+                n2 = c2.Name;
+                n3 = c3.Name;
+
+                fn1 = c1.FullName;
+                fn2 = c2.FullName;
+                fn3 = c3.FullName;
+            }
+
+            Assert.AreEqual("SubAssem1-1", fn1);
+            Assert.AreEqual("SubAssem1-1/SubSubAssem1-1", fn2);
+            Assert.AreEqual("SubAssem1-1/SubSubAssem1-1/Part1-1", fn3);
+            Assert.AreEqual("SubAssem1-1", n1);
+            Assert.AreEqual("SubSubAssem1-1", n2);
+            Assert.AreEqual("Part1-1", n3);
         }
 
         [Test]
