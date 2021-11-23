@@ -42,7 +42,7 @@ namespace Xarial.XCad.Documents
         /// <summary>
         /// Cut-list items in this configuration (if available)
         /// </summary>
-        IEnumerable<IXCutListItem> CutLists { get; }
+        IEnumerable<IXCutListItem> CutLists { get; }//TODO: create IXPartConfiguration specific to part and move this proeprty there
 
         /// <summary>
         /// Preview image of this configuration

@@ -230,7 +230,7 @@ namespace SolidWorks.Tests.Integration
                     .ToDictionary(p => p.Name, p => p.Value);
 
                 Assert.Throws<ConfigurationSpecificCutListNotSupportedException>(
-                    () => { var cl = part.Configurations["Default"].CutLists; });
+                    () => { var cl = part.Configurations["Default"].CutLists.ToArray(); });
             }
 
             Assert.AreEqual(4, conf1Prps.Count);
@@ -285,7 +285,7 @@ namespace SolidWorks.Tests.Integration
                 prp1.Commit();
 
                 Assert.Throws<ConfigurationSpecificCutListNotSupportedException>(
-                    () => { var cl = part.Configurations["Default<As Machined>"].CutLists; });
+                    () => { var cl = part.Configurations["Default<As Machined>"].CutLists.ToArray(); });
                 
                 part.Model.ShowConfiguration2("Conf1<As Machined>");
                 part.Part.IFeatureByName("Cut-List-Item1").CustomPropertyManager.Get5("Prp3", false, out _, out conf1Val, out _);

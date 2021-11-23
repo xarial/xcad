@@ -24,6 +24,11 @@ namespace Xarial.XCad.Documents
     public interface IXComponent : IXSelObject, IXObjectContainer, IXTransaction, IXColorizable
     {
         /// <summary>
+        /// Full name of the component including the hierarchical path
+        /// </summary>
+        string FullName { get; }
+
+        /// <summary>
         /// Name of the component
         /// </summary>
         string Name { get; }

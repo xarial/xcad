@@ -115,7 +115,9 @@ namespace Xarial.XCad.SolidWorks.Features
         public IXSketch3D PreCreate3DSketch() => new SwSketch3D(null, Document, m_App, false);
         
         public virtual IEnumerator<IXFeature> GetEnumerator()
-            => new DocumentFeatureEnumerator(Document);
+            => new DocumentFeatureEnumerator(Document, GetFirstFeature());
+
+        internal protected virtual IFeature GetFirstFeature() => Document.Model.IFirstFeature();
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
@@ -156,78 +158,44 @@ namespace Xarial.XCad.SolidWorks.Features
 
     internal class DocumentFeatureEnumerator : FeatureEnumerator
     {
-        private readonly IModelDoc2 m_Model;
-
-        public DocumentFeatureEnumerator(ISwDocument rootDoc) : base(rootDoc)
+        public DocumentFeatureEnumerator(ISwDocument rootDoc, IFeature firstFeat) : base(rootDoc, firstFeat)
         {
-            m_Model = rootDoc.Model;
             Reset();
         }
-
-        protected override IFeature GetFirstFeature() => m_Model.IFirstFeature();
     }
 
     internal static class SwFeatureManagerExtension 
     {
-        internal static IEnumerable<SwCutListItem> EnumerateCutLists(this SwFeatureManager featMgr) 
+        internal static IEnumerable<SwCutListItem> IterateCutLists(this SwFeatureManager featMgr, ISwDocument3D parent, ISwConfiguration refConf)
         {
-            ISwConfiguration refConf;
-
-            SwDocument3D doc;
-
-            if (featMgr is SwComponentFeatureManager)
+            foreach (var feat in FeatureEnumerator.IterateFeatures(featMgr.GetFirstFeature(), false)) 
             {
-                var comp = (featMgr as SwComponentFeatureManager).Component;
-                refConf = (ISwConfiguration)comp.ReferencedConfiguration;
-                doc = (SwDocument3D)comp.ReferencedDocument;
-            }
-            else 
-            {
-                doc = (SwDocument3D)featMgr.Document;
-                refConf = doc.Configurations.Active;
-            }
-
-            if (doc.DocumentType == swDocumentTypes_e.swDocPART)
-            {
-                var part = doc.Model as IPartDoc;
-
-                IEnumerable<IBody2> IterateBodies()
+                if (feat.GetTypeName2() == "SolidBodyFolder") 
                 {
-                    object bodies;
-                    if (featMgr is SwComponentFeatureManager)
+                    foreach (var subFeat in FeatureEnumerator.IterateSubFeatures(feat, true)) 
                     {
-                        bodies = ((SwComponentFeatureManager)featMgr).Component.Component.GetBodies3((int)swBodyType_e.swSolidBody, out _);
-                    }
-                    else 
-                    {
-                        bodies = part.GetBodies2((int)swBodyType_e.swSolidBody, false);
-                    }
-
-                    return (bodies as object[] ?? new object[0]).Cast<IBody2>();
-                }
-
-                if (part.IsWeldment()
-                    || IterateBodies().Any(b => b.IsSheetMetal()))
-                {
-                    foreach (ISwFeature feat in featMgr)
-                    {
-                        if (feat is SwCutListItem)
+                        if (subFeat.GetTypeName2() == "CutListFolder") 
                         {
-                            var cutList = (SwCutListItem)feat;
-                            
-                            if (cutList.CutListBodyFolder.GetBodyCount() > 0)//no bodies for hidden cut-lists (not available in the specific configuration)
+                            var cutListFolder = (IBodyFolder)subFeat.GetSpecificFeature2();
+
+                            if (cutListFolder.GetBodyCount() > 0)//no bodies for hidden cut-lists (not available in the specific configuration)
                             {
-                                cutList.SetParent(doc, refConf);
+                                var cutList = featMgr.Document.CreateObjectFromDispatch<SwCutListItem>(subFeat);
+                                cutList.SetParent(parent, refConf);
                                 yield return cutList;
                             }
                         }
-                        else if (feat.Feature.GetTypeName2() == "RefPlane")
-                        {
-                            break;
-                        }
                     }
+
+                    break;
+                }
+                else if (feat.GetTypeName2() == "RefPlane")
+                {
+                    break;
                 }
             }
+
+            yield break;
         }
     }
 }

@@ -190,7 +190,7 @@ namespace SolidWorks.Tests.Integration
                 r1 = confs["Default"].IsCommitted;
                 r2 = confs["Conf1"].IsCommitted;
                 r3 = confs["Conf2"].IsCommitted;
-                Assert.Throws<InactiveLdrConfgurationNotSupportedException>(() => { var p1 = confs["Conf1"].Properties; });
+                Assert.Throws<InactiveLdrConfigurationNotSupportedException>(() => { var p1 = confs["Conf1"].Properties; });
                 var p2 = confs["Default"].Properties;
                 var p3 = confs.First().Properties;
             }

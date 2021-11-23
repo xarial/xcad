@@ -77,21 +77,20 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             });
         }
 
-        public string Name
+        public string Name => ((ISwDMComponent7)Component).Name2;
+
+        public string FullName
         {
             get
             {
-                var fullName = new StringBuilder(((ISwDMComponent7)Component).Name2);
-
-                var curParent = Parent;
-
-                while (curParent != null) 
+                if (Parent != null)
                 {
-                    fullName.Insert(0, curParent.Name + "/");
-                    curParent = curParent.Parent;
+                    return Parent.FullName + "/" + Name;
                 }
-
-                return fullName.ToString();
+                else 
+                {
+                    return Name;
+                }   
             }
         }
 

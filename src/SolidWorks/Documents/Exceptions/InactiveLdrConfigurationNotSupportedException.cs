@@ -12,9 +12,9 @@ using Xarial.XCad.Exceptions;
 
 namespace Xarial.XCad.SolidWorks.Documents.Exceptions
 {
-    public class InactiveLdrConfgurationNotSupportedException : NotSupportedException, IUserException
+    public class InactiveLdrConfigurationNotSupportedException : NotSupportedException, IUserException
     {
-        public InactiveLdrConfgurationNotSupportedException() 
+        public InactiveLdrConfigurationNotSupportedException() 
             : base("Inactive configuration of assembly opened in Large Design Review model is not supported and cannot be loaded")
         {
         }
