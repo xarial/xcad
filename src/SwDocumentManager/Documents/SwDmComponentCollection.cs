@@ -37,13 +37,13 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         #endregion
 
         private readonly ISwDmConfiguration m_Conf;
-        private readonly SwDmAssembly m_OwnerAssm;
+        private readonly SwDmAssembly m_ParentAssm;
 
         private IFilePathResolver m_PathResolver;
 
-        internal SwDmComponentCollection(SwDmAssembly ownerAssm, ISwDmConfiguration conf) 
+        internal SwDmComponentCollection(SwDmAssembly parentAssm, ISwDmConfiguration conf) 
         {
-            m_OwnerAssm = ownerAssm;
+            m_ParentAssm = parentAssm;
             m_Conf = conf;
 
             m_PathResolver = new SwDmFilePathResolver();
@@ -78,7 +78,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                 {
                     try
                     {
-                        var path = m_PathResolver.ResolvePath(Path.GetDirectoryName(m_OwnerAssm.Path), comp.PathName);
+                        var path = m_PathResolver.ResolvePath(Path.GetDirectoryName(m_ParentAssm.Path), comp.PathName);
 
                         var confName = comp.ConfigurationName;
 
@@ -94,7 +94,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                             {
                                 int subTotalCount = 0;
 
-                                var subAssm = m_OwnerAssm.SwDmApp.SwDocMgr
+                                var subAssm = m_ParentAssm.SwDmApp.SwDocMgr
                                     .GetDocument(path, SwDmDocumentType.swDmDocumentAssembly, true, out SwDmDocumentOpenError err);
 
                                 try
@@ -147,8 +147,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         protected virtual SwDmComponent CreateComponentInstance(ISwDMComponent dmComp) 
         {
-            var comp = SwDmObjectFactory.FromDispatch<SwDmComponent>(dmComp, m_OwnerAssm);
-            comp.OwnerAssembly = m_OwnerAssm;
+            var comp = SwDmObjectFactory.FromDispatch<SwDmComponent>(dmComp, m_ParentAssm);
             return comp;
         }
 

@@ -57,7 +57,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         public override SelectType_e Type => SelectType_e.Components;
 
-        private SwDmAssembly m_ParentAssm;
+        internal SwDmAssembly ParentAssembly { get; }
 
         private IFilePathResolver m_FilePathResolver;
 
@@ -66,12 +66,12 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         internal SwDmComponent(SwDmAssembly parentAssm, ISwDMComponent comp) : base(comp)
         {
             Component = comp;
-            m_ParentAssm = parentAssm;
+            ParentAssembly = parentAssm;
             m_FilePathResolver = new SwDmFilePathResolver();
 
             m_PathLazy = new Lazy<string>(() => 
             {
-                var rootDir = System.IO.Path.GetDirectoryName(OwnerAssembly.Path);
+                var rootDir = System.IO.Path.GetDirectoryName(ParentAssembly.Path);
 
                 return m_FilePathResolver.ResolvePath(rootDir, CachedPath);
             });
@@ -178,62 +178,55 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             {
                 if (m_CachedDocument == null || (m_CachedDocument.IsCommitted && !m_CachedDocument.IsAlive))
                 {
-                    var isReadOnly = m_ParentAssm.State.HasFlag(DocumentState_e.ReadOnly);
+                    var isReadOnly = ParentAssembly.State.HasFlag(DocumentState_e.ReadOnly);
 
-                    var docsColl = (SwDmDocumentCollection)m_ParentAssm.SwDmApp.Documents;
+                    var docsColl = (SwDmDocumentCollection)ParentAssembly.SwDmApp.Documents;
 
                     try
                     {
-                        var searchOpts = m_ParentAssm.SwDmApp.SwDocMgr.GetSearchOptionObject();
-                        searchOpts.SearchFilters = (int)(
-                            SwDmSearchFilters.SwDmSearchExternalReference
-                            | SwDmSearchFilters.SwDmSearchRootAssemblyFolder
-                            | SwDmSearchFilters.SwDmSearchSubfolders
-                            | SwDmSearchFilters.SwDmSearchInContextReference);
-
-                        var dmDoc = ((ISwDMComponent4)Component).GetDocument2(isReadOnly, searchOpts, out SwDmDocumentOpenError err);
-
                         ISwDmDocument3D doc;
 
-                        if (dmDoc != null)
+                        var isVirtual = ((ISwDMComponent3)Component).IsVirtual;
+
+                        //NOTE: Do not use ISwDMComponent4::GetDocument2 to get the document as it will firstly load the file from the cached path which may result in th wrong file loaded if assembly is copied
+                        if (isVirtual)
                         {
-                            doc = (ISwDmDocument3D)m_ParentAssm.SwDmApp.Documents
+                            var searchOpts = ParentAssembly.SwDmApp.SwDocMgr.GetSearchOptionObject();
+
+                            searchOpts.AddSearchPath(System.IO.Path.GetDirectoryName(ParentAssembly.Path));
+
+                            searchOpts.SearchFilters = (int)(SwDmSearchFilters.SwDmSearchForAssembly
+                                | SwDmSearchFilters.SwDmSearchForPart
+                                | SwDmSearchFilters.SwDmSearchRootAssemblyFolder
+                                | SwDmSearchFilters.SwDmSearchSubfolders
+                                | SwDmSearchFilters.SwDmSearchExternalReference
+                                | SwDmSearchFilters.SwDmSearchInContextReference);
+
+                            var dmDoc = ((ISwDMComponent4)Component).GetDocument2(isReadOnly, searchOpts, out SwDmDocumentOpenError err);
+
+                            if (dmDoc == null) 
+                            {
+                                throw new NullReferenceException("Failed to load virtual component document");
+                            }
+
+                            doc = (ISwDmDocument3D)ParentAssembly.SwDmApp.Documents
                                     .FirstOrDefault(d => ((ISwDmDocument)d).Document == d);
 
                             if (doc == null)
                             {
                                 var docType = ((ISwDMComponent2)Component).DocumentType;
-                                var isVirtual = ((ISwDMComponent3)Component).IsVirtual;
-
+                                
                                 switch (docType)
                                 {
                                     case SwDmDocumentType.swDmDocumentPart:
-                                        if (!isVirtual)
-                                        {
-                                            doc = new SwDmPart(m_ParentAssm.SwDmApp, dmDoc, true,
-                                                docsColl.OnDocumentCreated,
-                                                docsColl.OnDocumentClosed, isReadOnly);
-                                        }
-                                        else 
-                                        {
-                                            doc = new SwDmVirtualPart(m_ParentAssm.SwDmApp, dmDoc, m_ParentAssm, true,
-                                                docsColl.OnDocumentCreated,
-                                                docsColl.OnDocumentClosed, isReadOnly);
-                                        }
+                                        doc = new SwDmVirtualPart(ParentAssembly.SwDmApp, dmDoc, ParentAssembly, true,
+                                            docsColl.OnDocumentCreated,
+                                            docsColl.OnDocumentClosed, isReadOnly);
                                         break;
                                     case SwDmDocumentType.swDmDocumentAssembly:
-                                        if (!isVirtual)
-                                        {
-                                            doc = new SwDmAssembly(m_ParentAssm.SwDmApp, dmDoc, true,
-                                                docsColl.OnDocumentCreated,
-                                                docsColl.OnDocumentClosed, isReadOnly);
-                                        }
-                                        else 
-                                        {
-                                            doc = new SwDmVirtualAssembly(m_ParentAssm.SwDmApp, dmDoc, m_ParentAssm, true,
-                                                docsColl.OnDocumentCreated,
-                                                docsColl.OnDocumentClosed, isReadOnly);
-                                        }
+                                        doc = new SwDmVirtualAssembly(ParentAssembly.SwDmApp, dmDoc, ParentAssembly, true,
+                                            docsColl.OnDocumentCreated,
+                                            docsColl.OnDocumentClosed, isReadOnly);
                                         break;
                                     default:
                                         throw new NotSupportedException($"Document type '{docType}' of the component is not supported");
@@ -244,17 +237,26 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                         }
                         else 
                         {
-                            doc = (ISwDmDocument3D)m_ParentAssm.SwDmApp.Documents.PreCreateFromPath(Path);
-                            doc.State = isReadOnly ? DocumentState_e.ReadOnly : DocumentState_e.Default;
+                            doc = (ISwDmDocument3D)ParentAssembly.SwDmApp.Documents
+                                .FirstOrDefault(d => string.Equals(Path, d.Path, StringComparison.CurrentCultureIgnoreCase));
 
-                            doc.Commit();
+                            if (doc == null || (doc.IsCommitted && !doc.IsAlive))
+                            {
+                                doc = (ISwDmDocument3D)ParentAssembly.SwDmApp.Documents.PreCreateFromPath(Path);
+                                doc.State = isReadOnly ? DocumentState_e.ReadOnly : DocumentState_e.Default;
+                            }
+
+                            if (!doc.IsCommitted) 
+                            {
+                                doc.Commit();
+                            }
                         }
 
                         m_CachedDocument = doc;
                     }
                     catch 
                     {
-                        var unknownDoc = new SwDmUnknownDocument(m_ParentAssm.SwDmApp, null,
+                        var unknownDoc = new SwDmUnknownDocument(ParentAssembly.SwDmApp, null,
                                 false,
                                 docsColl.OnDocumentCreated,
                                 docsColl.OnDocumentClosed, isReadOnly);
@@ -284,7 +286,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                         refConf.Commit(default);
                     }
 
-                    return new SwDmSubComponentCollection(this, ReferencedDocument as SwDmAssembly, refConf);
+                    return new SwDmSubComponentCollection(this, (SwDmAssembly)ReferencedDocument, refConf);
                 }
                 else 
                 {
@@ -294,7 +296,6 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         }
 
         internal SwDmComponent Parent { get; set; }
-        internal ISwDmAssembly OwnerAssembly { get; set; }
     }
 
     internal class SwDmComponentConfiguration : SwDmConfiguration
@@ -326,8 +327,8 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         private readonly SwDmComponent m_ParentComp;
 
         internal SwDmSubComponentCollection(SwDmComponent parentComp,
-            SwDmAssembly ownerAssm, ISwDmConfiguration conf) 
-            : base(ownerAssm, conf)
+            SwDmAssembly rootAssm, ISwDmConfiguration conf) 
+            : base(rootAssm, conf)
         {
             m_ParentComp = parentComp;
         }

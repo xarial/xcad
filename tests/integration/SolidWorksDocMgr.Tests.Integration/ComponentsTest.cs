@@ -130,8 +130,7 @@ namespace SolidWorksDocMgr.Tests.Integration
                 isVirtual = comps.Select(c => c.State.HasFlag(ComponentState_e.Embedded)).ToArray();
             }
 
-            Assert.That(compNames.OrderBy(c => c).SequenceEqual(
-                new string[] { "Part1^VirtAssem1-1", "Assem2^VirtAssem1-1" }.OrderBy(c => c)));
+            CollectionAssert.AreEquivalent(compNames, new string[] { "Part1^VirtAssem1-1", "Assem2^VirtAssem1-1" });
             Assert.That(isCommitted.All(x => x == true));
             Assert.That(isAlive.All(x => x == true));
             Assert.That(isVirtual.All(x => x == true));
