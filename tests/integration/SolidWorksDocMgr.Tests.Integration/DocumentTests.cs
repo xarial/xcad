@@ -415,7 +415,17 @@ namespace SolidWorksDocMgr.Tests.Integration
             }
             finally
             {
-                Directory.Delete(tempPath, true);
+                try
+                {
+                    Directory.Delete(tempPath, true);
+                }
+                catch //folder can be locked by SW while files can be deleted
+                {
+                    foreach (var file in Directory.GetFiles(tempPath, "*.*", SearchOption.AllDirectories))
+                    {
+                        File.Delete(file);
+                    }
+                }
             }
 
             Assert.AreEqual(8, refs.Count);

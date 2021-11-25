@@ -133,6 +133,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         {
             if (m_Conf.IsCommitted)
             {
+                //if the parent documetn was closed calling the below method will open the document into the memory
                 return (((ISwDMConfiguration2)m_Conf.Configuration)
                     .GetComponents() as object[] ?? new object[0])
                     .Cast<ISwDMComponent>();
