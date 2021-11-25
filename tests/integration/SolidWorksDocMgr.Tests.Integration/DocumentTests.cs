@@ -373,6 +373,66 @@ namespace SolidWorksDocMgr.Tests.Integration
             }
         }
 
+        [Test]
+        public void DocumentDependenciesCopiedFilesTest()
+        {
+            var tempPath = Path.Combine(Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString()));
+
+            Dictionary<string, bool> refs;
+
+            var destPath = Path.Combine(tempPath, "_Assembly11");
+            var tempSrcAssmPath = Path.Combine(tempPath, "Assembly11");
+
+            try
+            {
+                var srcPath = GetFilePath("Assembly11");
+
+                CopyDirectory(srcPath, tempSrcAssmPath);
+                UpdateSwReferences(tempSrcAssmPath, "TopLevel\\Assem1.sldasm", "SubAssemblies\\Assem3.SLDASM", "SubAssemblies\\A\\Assem2.SLDASM");
+
+                CopyDirectory(tempSrcAssmPath, destPath);
+
+                File.Delete(Path.Combine(destPath, "Parts\\Part4.sldprt"));
+                File.Delete(Path.Combine(destPath, "SubAssemblies\\Part2.sldprt"));
+                File.Delete(Path.Combine(tempSrcAssmPath, "Parts\\Part4.sldprt"));
+
+                using (var doc = OpenDataDocument(Path.Combine(destPath, "TopLevel\\Assem1.sldasm")))
+                {
+                    var assm = (ISwDmAssembly)doc.Document;
+
+                    var deps = assm.IterateDependencies().ToArray();
+
+                    refs = deps.ToDictionary(x => x.Path, x => x.IsCommitted, StringComparer.CurrentCultureIgnoreCase);
+
+                    foreach (var refDoc in assm.IterateDependencies().ToArray())
+                    {
+                        if (refDoc.IsCommitted && refDoc.IsAlive)
+                        {
+                            refDoc.Close();
+                        }
+                    }
+                }
+            }
+            finally
+            {
+                Directory.Delete(tempPath, true);
+            }
+
+            Assert.AreEqual(8, refs.Count);
+
+            var virtComp = refs.FirstOrDefault(x => x.Key.EndsWith("Part6^Assem1.sldprt", StringComparison.CurrentCultureIgnoreCase));
+
+            Assert.AreEqual(refs[Path.Combine(destPath, @"SubAssemblies\A\Assem2.SLDASM")], true);
+            Assert.AreEqual(refs[Path.Combine(destPath, @"Parts\Part1.SLDPRT")], true);
+            Assert.AreEqual(refs[Path.Combine(destPath, @"SubAssemblies\Assem3.SLDASM")], true);
+            Assert.That(!string.IsNullOrEmpty(virtComp.Key));
+            Assert.AreEqual(virtComp.Value, true);
+            Assert.AreEqual(refs[Path.Combine(destPath, @"SubAssemblies\A\Part3.SLDPRT")], true);
+            Assert.AreEqual(refs[Path.Combine(tempSrcAssmPath, @"Parts\Part4.SLDPRT")], false);
+            Assert.AreEqual(refs[Path.Combine(tempSrcAssmPath, @"SubAssemblies\Part2.SLDPRT")], true);
+            Assert.AreEqual(refs[Path.Combine(destPath, @"SubAssemblies\Part5.SLDPRT")], true);
+        }
+
         public class TestData
         {
             public string Text { get; set; }

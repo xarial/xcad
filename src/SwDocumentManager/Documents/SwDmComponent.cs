@@ -62,7 +62,9 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         private IFilePathResolver m_FilePathResolver;
 
         private readonly Lazy<string> m_PathLazy;
-
+        private readonly Lazy<IXComponentRepository> m_ChildrenLazy;
+        private readonly Lazy<ISwDmConfiguration> m_ReferencedConfigurationLazy;
+        
         internal SwDmComponent(SwDmAssembly parentAssm, ISwDMComponent comp) : base(comp)
         {
             Component = comp;
@@ -75,6 +77,27 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
                 return m_FilePathResolver.ResolvePath(rootDir, CachedPath);
             });
+
+            m_ChildrenLazy = new Lazy<IXComponentRepository>(() => 
+            {
+                if (!Component.IsSuppressed() && ReferencedDocument is SwDmAssembly)
+                {
+                    var refConf = ReferencedConfiguration;
+
+                    if (!refConf.IsCommitted)
+                    {
+                        refConf.Commit();
+                    }
+
+                    return new SwDmSubComponentCollection(this, (SwDmAssembly)ReferencedDocument, refConf);
+                }
+                else
+                {
+                    return new EmptyComponentCollection();
+                }
+            });
+
+            m_ReferencedConfigurationLazy = new Lazy<ISwDmConfiguration>(() => new SwDmComponentConfiguration(this));
         }
 
         public string Name => ((ISwDMComponent7)Component).Name2;
@@ -98,7 +121,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         public string Path => m_PathLazy.Value;
 
-        public ISwDmConfiguration ReferencedConfiguration => new SwDmComponentConfiguration(this);
+        public ISwDmConfiguration ReferencedConfiguration => m_ReferencedConfigurationLazy.Value;
 
         public ComponentState_e State
         {
@@ -176,7 +199,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         {
             get
             {
-                if (m_CachedDocument == null || (m_CachedDocument.IsCommitted && !m_CachedDocument.IsAlive))
+                if (m_CachedDocument == null)
                 {
                     var isReadOnly = ParentAssembly.State.HasFlag(DocumentState_e.ReadOnly);
 
@@ -237,10 +260,11 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                         }
                         else 
                         {
-                            doc = (ISwDmDocument3D)ParentAssembly.SwDmApp.Documents
-                                .FirstOrDefault(d => string.Equals(Path, d.Path, StringComparison.CurrentCultureIgnoreCase));
-
-                            if (doc == null || (doc.IsCommitted && !doc.IsAlive))
+                            if (ParentAssembly.SwDmApp.Documents.TryGet(Path, out ISwDmDocument curDoc))
+                            {
+                                doc = (ISwDmDocument3D)curDoc;
+                            }
+                            else
                             {
                                 doc = (ISwDmDocument3D)ParentAssembly.SwDmApp.Documents.PreCreateFromPath(Path);
                                 doc.State = isReadOnly ? DocumentState_e.ReadOnly : DocumentState_e.Default;
@@ -272,28 +296,8 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                 return m_CachedDocument;
             }
         }
-        
-        public IXComponentRepository Children
-        {
-            get
-            {
-                if (!Component.IsSuppressed() && ReferencedDocument is SwDmAssembly)
-                {
-                    var refConf = ReferencedConfiguration;
 
-                    if (!refConf.IsCommitted)
-                    {
-                        refConf.Commit(default);
-                    }
-
-                    return new SwDmSubComponentCollection(this, (SwDmAssembly)ReferencedDocument, refConf);
-                }
-                else 
-                {
-                    return new EmptyComponentCollection();
-                }
-            }
-        }
+        public IXComponentRepository Children => m_ChildrenLazy.Value;
 
         internal SwDmComponent Parent { get; set; }
     }

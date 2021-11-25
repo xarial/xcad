@@ -71,10 +71,12 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         }
          
         private readonly SwDmDocument3D m_Doc;
+        private readonly Dictionary<ISwDMConfiguration, ISwDmConfiguration> m_ConfigurationsCache;
 
         internal SwDmConfigurationCollection(SwDmDocument3D doc) 
         {
             m_Doc = doc;
+            m_ConfigurationsCache = new Dictionary<ISwDMConfiguration, ISwDmConfiguration>();
         }
 
         public IEnumerator<IXConfiguration> GetEnumerator()
@@ -125,7 +127,14 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                 conf = m_Doc.Document.ConfigurationManager.GetConfigurationByName(name);
             }
 
-            ent = SwDmObjectFactory.FromDispatch<ISwDmConfiguration>(conf, m_Doc);
+            if (!m_ConfigurationsCache.TryGetValue(conf, out ISwDmConfiguration curConf))
+            {
+                curConf = SwDmObjectFactory.FromDispatch<ISwDmConfiguration>(conf, m_Doc);
+                m_ConfigurationsCache.Add(conf, curConf);
+            }
+
+            ent = curConf;
+
             return true;
         }
 

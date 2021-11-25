@@ -18,6 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\src\SolidWorks\SolidWorks.csproj" />
     <ProjectReference Include="..\..\..\src\SwDocumentManager\SwDocumentManager.csproj" />
   </ItemGroup>
 

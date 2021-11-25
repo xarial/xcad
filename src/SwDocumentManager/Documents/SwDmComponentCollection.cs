@@ -41,12 +41,15 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         private IFilePathResolver m_PathResolver;
 
+        private readonly Dictionary<string, SwDmComponent> m_ComponentsCache;
+
         internal SwDmComponentCollection(SwDmAssembly parentAssm, ISwDmConfiguration conf) 
         {
             m_ParentAssm = parentAssm;
             m_Conf = conf;
 
             m_PathResolver = new SwDmFilePathResolver();
+            m_ComponentsCache = new Dictionary<string, SwDmComponent>(StringComparer.CurrentCultureIgnoreCase);
         }
 
         public IXComponent this[string name] => this.Get(name);
@@ -147,7 +150,14 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         protected virtual SwDmComponent CreateComponentInstance(ISwDMComponent dmComp) 
         {
-            var comp = SwDmObjectFactory.FromDispatch<SwDmComponent>(dmComp, m_ParentAssm);
+            var compName = ((ISwDMComponent7)dmComp).Name2;
+
+            if (!m_ComponentsCache.TryGetValue(compName, out SwDmComponent comp))
+            {
+                comp = SwDmObjectFactory.FromDispatch<SwDmComponent>(dmComp, m_ParentAssm);
+                m_ComponentsCache.Add(compName, comp);
+            }
+
             return comp;
         }
 
