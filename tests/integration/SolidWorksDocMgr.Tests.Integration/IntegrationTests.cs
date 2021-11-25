@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Xarial.XCad.Documents;
 using Xarial.XCad.SolidWorks;
 using Xarial.XCad.SolidWorks.Documents;
+using Xarial.XCad.SolidWorks.Enums;
 using Xarial.XCad.SwDocumentManager;
 using Xarial.XCad.SwDocumentManager.Documents;
 
@@ -44,9 +45,9 @@ namespace SolidWorksDocMgr.Tests.Integration
     public abstract class IntegrationTests
     {
         private const string DATA_FOLDER = @"C:\Users\artem\OneDrive\xCAD\TestData";
+        private SwVersion_e? SW_VERSION = SwVersion_e.Sw2021;
 
         protected ISwDmApplication m_App;
-        private ISwDMApplication m_SwDmApp;
 
         private List<IDisposable> m_Disposables;
 
@@ -56,7 +57,6 @@ namespace SolidWorksDocMgr.Tests.Integration
             var dmKey = Environment.GetEnvironmentVariable("SW_DM_KEY", EnvironmentVariableTarget.Machine);
 
             m_App = SwDmApplicationFactory.Create(dmKey);
-            m_SwDmApp = m_App.SwDocMgr;
 
             m_Disposables = new List<IDisposable>();
         }
@@ -81,7 +81,7 @@ namespace SolidWorksDocMgr.Tests.Integration
         {
             Process prc;
 
-            using (var app = SwApplicationFactory.Create(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2019,
+            using (var app = SwApplicationFactory.Create(SW_VERSION,
                             Xarial.XCad.Enums.ApplicationState_e.Background
                             | Xarial.XCad.Enums.ApplicationState_e.Silent
                             | Xarial.XCad.Enums.ApplicationState_e.Safe))
