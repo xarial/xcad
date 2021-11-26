@@ -46,7 +46,20 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         public ISwDmConfiguration this[string name] => (ISwDmConfiguration)this.Get(name);
 
-        public ISwDmConfiguration Active => this[m_Doc.Document.ConfigurationManager.GetActiveConfigurationName()];
+        public ISwDmConfiguration Active 
+        {
+            get 
+            {
+                var confName = m_Doc.Document.ConfigurationManager.GetActiveConfigurationName();
+
+                if (string.IsNullOrEmpty(confName)) 
+                {
+                    throw new InvalidConfigurationsException("Name of the active configuration cannot be extracted");
+                }
+
+                return this[confName];
+            }
+        }
 
         public int Count
         {
@@ -71,10 +84,12 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         }
          
         private readonly SwDmDocument3D m_Doc;
+        private readonly Dictionary<ISwDMConfiguration, ISwDmConfiguration> m_ConfigurationsCache;
 
         internal SwDmConfigurationCollection(SwDmDocument3D doc) 
         {
             m_Doc = doc;
+            m_ConfigurationsCache = new Dictionary<ISwDMConfiguration, ISwDmConfiguration>();
         }
 
         public IEnumerator<IXConfiguration> GetEnumerator()
@@ -125,7 +140,14 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                 conf = m_Doc.Document.ConfigurationManager.GetConfigurationByName(name);
             }
 
-            ent = SwDmObjectFactory.FromDispatch<ISwDmConfiguration>(conf, m_Doc);
+            if (!m_ConfigurationsCache.TryGetValue(conf, out ISwDmConfiguration curConf))
+            {
+                curConf = SwDmObjectFactory.FromDispatch<ISwDmConfiguration>(conf, m_Doc);
+                m_ConfigurationsCache.Add(conf, curConf);
+            }
+
+            ent = curConf;
+
             return true;
         }
 

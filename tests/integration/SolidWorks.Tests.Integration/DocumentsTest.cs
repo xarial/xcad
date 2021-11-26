@@ -807,6 +807,111 @@ namespace SolidWorks.Tests.Integration
         }
 
         [Test]
+        public void DocumentDependenciesCopiedFilesUnloadedTest()
+        {
+            var tempPath = Path.Combine(Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString()));
+
+            Dictionary<string, bool> refs;
+
+            var destPath = Path.Combine(tempPath, "_Assembly11");
+            var tempSrcAssmPath = Path.Combine(tempPath, "Assembly11");
+
+            try
+            {
+                var srcPath = GetFilePath("Assembly11");
+
+                CopyDirectory(srcPath, tempSrcAssmPath);
+                UpdateSwReferences(tempSrcAssmPath, "TopLevel\\Assem1.sldasm", "SubAssemblies\\Assem3.SLDASM", "SubAssemblies\\A\\Assem2.SLDASM");
+
+                CopyDirectory(tempSrcAssmPath, destPath);
+
+                File.Delete(Path.Combine(destPath, "Parts\\Part4.sldprt"));
+                File.Delete(Path.Combine(destPath, "SubAssemblies\\Part2.sldprt"));
+                File.Delete(Path.Combine(tempSrcAssmPath, "Parts\\Part4.sldprt"));
+
+                var assm = m_App.Documents.PreCreate<ISwAssembly>();
+                assm.Path = Path.Combine(destPath, "TopLevel\\Assem1.sldasm");
+
+                var deps = assm.IterateDependencies().ToArray();
+
+                refs = deps.ToDictionary(x => x.Path, x => x.IsCommitted, StringComparer.CurrentCultureIgnoreCase);
+
+                foreach (var refDoc in assm.IterateDependencies().ToArray())
+                {
+                    if (refDoc.IsCommitted && refDoc.IsAlive)
+                    {
+                        refDoc.Close();
+                    }
+                }
+            }
+            finally
+            {
+                try
+                {
+                    Directory.Delete(tempPath, true);
+                }
+                catch //folder can be locked by SW while files can be deleted
+                {
+                    foreach (var file in Directory.GetFiles(tempPath, "*.*", SearchOption.AllDirectories)) 
+                    {
+                        File.Delete(file);
+                    }
+                }
+            }
+
+            Assert.AreEqual(8, refs.Count);
+
+            var virtComp = refs.FirstOrDefault(x => x.Key.EndsWith("Part6^Assem1.sldprt", StringComparison.CurrentCultureIgnoreCase));
+
+            Assert.AreEqual(refs[Path.Combine(destPath, @"SubAssemblies\A\Assem2.SLDASM")], false);
+            Assert.AreEqual(refs[Path.Combine(destPath, @"Parts\Part1.SLDPRT")], false);
+            Assert.AreEqual(refs[Path.Combine(destPath, @"SubAssemblies\Assem3.SLDASM")], false);
+            Assert.That(!string.IsNullOrEmpty(virtComp.Key));
+            Assert.AreEqual(virtComp.Value, false);
+            Assert.AreEqual(refs[Path.Combine(destPath, @"SubAssemblies\A\Part3.SLDPRT")], false);
+            Assert.AreEqual(refs[Path.Combine(tempSrcAssmPath, @"Parts\Part4.SLDPRT")], false);
+            Assert.AreEqual(refs[Path.Combine(tempSrcAssmPath, @"SubAssemblies\Part2.SLDPRT")], false);
+            Assert.AreEqual(refs[Path.Combine(destPath, @"SubAssemblies\Part5.SLDPRT")], false);
+        }
+
+        protected void UpdateSwReferences(string destPath, params string[] assmRelPaths)
+        {
+            foreach (var assmPath in assmRelPaths)
+            {
+                using (var doc = (ISwDocument)m_App.Documents.Open(Path.Combine(destPath, assmPath)))
+                {
+                    doc.Model.ForceRebuild3(false);
+                    doc.Save();
+                    var deps = (doc.Model.Extension.GetDependencies(false, false, false, false, false) as string[]).Where((item, index) => index % 2 != 0).ToArray();
+
+                    if (!deps.All(d => d.Contains("^") || d.StartsWith(destPath, StringComparison.CurrentCultureIgnoreCase)))
+                    {
+                        throw new Exception("Failed to setup source assemblies");
+                    }
+                }
+            }
+
+            m_App.Sw.CloseAllDocuments(true);
+        }
+
+        protected void CopyDirectory(string srcPath, string destPath)
+        {
+            foreach (var srcFile in Directory.GetFiles(srcPath, "*.*", SearchOption.AllDirectories))
+            {
+                var relPath = srcFile.Substring(srcPath.Length + 1);
+                var destFilePath = Path.Combine(destPath, relPath);
+                var destDir = Path.GetDirectoryName(destFilePath);
+
+                if (!Directory.Exists(destDir))
+                {
+                    Directory.CreateDirectory(destDir);
+                }
+
+                File.Copy(srcFile, destFilePath);
+            }
+        }
+
+        [Test]
         public void OpenConflictTest()
         {
             var filePath = GetFilePath(@"Assembly1\Part1.SLDPRT");

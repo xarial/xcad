@@ -209,6 +209,15 @@ namespace SolidWorks.Tests.Integration
                 isCommitted = docs.Select(d => d.IsCommitted).ToArray();
                 isAlive = docs.Select(d => d.IsAlive).ToArray();
                 isVirtual = comps.Select(c => c.State.HasFlag(ComponentState_e.Embedded)).ToArray();
+
+                //SOLIDWORKS 2022 is crashing if assembly of the virtual component is closed while virtual component is opened in its own window
+                foreach (var compDoc in docs)
+                {
+                    if (compDoc.IsCommitted)
+                    {
+                        compDoc.Close();
+                    }
+                }
             }
 
             Assert.That(compNames.OrderBy(c => c).SequenceEqual(

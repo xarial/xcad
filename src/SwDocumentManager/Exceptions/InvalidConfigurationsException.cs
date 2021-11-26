@@ -46,5 +46,15 @@ namespace Xarial.XCad.SwDocumentManager.Exceptions
         {
             Error = err;
         }
+
+        internal InvalidConfigurationsException(string err) : base(err)   
+        {
+            Error = SwDMConfigurationError.SwDMConfigurationError_Unknown;
+        }
+
+        internal InvalidConfigurationsException(string err, Exception ex) : base(err, ex)
+        {
+            Error = SwDMConfigurationError.SwDMConfigurationError_Unknown;
+        }
     }
 }

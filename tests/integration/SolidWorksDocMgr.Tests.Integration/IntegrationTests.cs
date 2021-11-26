@@ -2,11 +2,15 @@
 using SolidWorks.Interop.swdocumentmgr;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Xarial.XCad.Documents;
+using Xarial.XCad.SolidWorks;
+using Xarial.XCad.SolidWorks.Documents;
+using Xarial.XCad.SolidWorks.Enums;
 using Xarial.XCad.SwDocumentManager;
 using Xarial.XCad.SwDocumentManager.Documents;
 
@@ -41,9 +45,9 @@ namespace SolidWorksDocMgr.Tests.Integration
     public abstract class IntegrationTests
     {
         private const string DATA_FOLDER = @"C:\Users\artem\OneDrive\xCAD\TestData";
+        private SwVersion_e? SW_VERSION = SwVersion_e.Sw2021;
 
         protected ISwDmApplication m_App;
-        private ISwDMApplication m_SwDmApp;
 
         private List<IDisposable> m_Disposables;
 
@@ -53,7 +57,6 @@ namespace SolidWorksDocMgr.Tests.Integration
             var dmKey = Environment.GetEnvironmentVariable("SW_DM_KEY", EnvironmentVariableTarget.Machine);
 
             m_App = SwDmApplicationFactory.Create(dmKey);
-            m_SwDmApp = m_App.SwDocMgr;
 
             m_Disposables = new List<IDisposable>();
         }
@@ -72,6 +75,55 @@ namespace SolidWorksDocMgr.Tests.Integration
             }
 
             return filePath;
+        }
+
+        protected void UpdateSwReferences(string destPath, params string[] assmRelPaths)
+        {
+            Process prc;
+
+            using (var app = SwApplicationFactory.Create(SW_VERSION,
+                            Xarial.XCad.Enums.ApplicationState_e.Background
+                            | Xarial.XCad.Enums.ApplicationState_e.Silent
+                            | Xarial.XCad.Enums.ApplicationState_e.Safe))
+            {
+                prc = app.Process;
+
+                foreach (var assmPath in assmRelPaths)
+                {
+                    using (var doc = (ISwDocument)app.Documents.Open(Path.Combine(destPath, assmPath)))
+                    {
+                        doc.Model.ForceRebuild3(false);
+                        doc.Save();
+                        var deps = (doc.Model.Extension.GetDependencies(false, false, false, false, false) as string[]).Where((item, index) => index % 2 != 0).ToArray();
+
+                        if (!deps.All(d => d.Contains("^") || d.StartsWith(destPath, StringComparison.CurrentCultureIgnoreCase)))
+                        {
+                            throw new Exception("Failed to setup source assemblies");
+                        }
+                    }
+                }
+
+                app.Close();
+            }
+
+            prc.Kill();
+        }
+
+        protected void CopyDirectory(string srcPath, string destPath)
+        {
+            foreach (var srcFile in Directory.GetFiles(srcPath, "*.*", SearchOption.AllDirectories))
+            {
+                var relPath = srcFile.Substring(srcPath.Length + 1);
+                var destFilePath = Path.Combine(destPath, relPath);
+                var destDir = Path.GetDirectoryName(destFilePath);
+
+                if (!Directory.Exists(destDir))
+                {
+                    Directory.CreateDirectory(destDir);
+                }
+
+                File.Copy(srcFile, destFilePath);
+            }
         }
 
         protected DocumentWrapper OpenDataDocument(string name, bool readOnly = true)
