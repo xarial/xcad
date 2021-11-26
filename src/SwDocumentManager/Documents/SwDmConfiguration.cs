@@ -226,10 +226,24 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         private string TryGetConfigurationPropertyValue(string prpName)
         {
+            ISwDMConfiguration5 conf;
+
             try
             {
-                return ((ISwDMConfiguration5)Configuration)
-                    .GetCustomPropertyValues(prpName, out _, out _);
+                conf = (ISwDMConfiguration5)Configuration;
+            }
+            catch (InvalidConfigurationsException) 
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidConfigurationsException($"Failed to access configuration '{Name}' to extract quantity value", ex);
+            }
+
+            try
+            {
+                return conf.GetCustomPropertyValues(prpName, out _, out _);
             }
             catch 
             {
