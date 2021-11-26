@@ -46,5 +46,9 @@ namespace Xarial.XCad.SwDocumentManager.Exceptions
         {
             Error = err;
         }
+
+        internal InvalidConfigurationsException(string err) : base(err)   
+        {
+        }
     }
 }

@@ -46,7 +46,20 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         public ISwDmConfiguration this[string name] => (ISwDmConfiguration)this.Get(name);
 
-        public ISwDmConfiguration Active => this[m_Doc.Document.ConfigurationManager.GetActiveConfigurationName()];
+        public ISwDmConfiguration Active 
+        {
+            get 
+            {
+                var confName = m_Doc.Document.ConfigurationManager.GetActiveConfigurationName();
+
+                if (string.IsNullOrEmpty(confName)) 
+                {
+                    throw new InvalidConfigurationsException("Name of the active configuration cannot be extracted");
+                }
+
+                return this[confName];
+            }
+        }
 
         public int Count
         {
