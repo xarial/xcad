@@ -83,7 +83,6 @@ namespace Xarial.XCad.SolidWorks.Data
 
         private bool Exists(string name) 
         {
-            //TODO: for older that SW2014 - get all properties
             if (m_App.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2014))
             {
                 return PrpMgr.Get5(name, true, out _, out _, out _)

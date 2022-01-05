@@ -9,7 +9,7 @@ namespace Xarial.XCad.Documentation
 {
     public class EditMacroFeatureDefinitionParameters
     {
-        //TODO: add properties
+        //add properties
     }
 
     [ComVisible(true)]
@@ -38,7 +38,7 @@ namespace Xarial.XCad.Documentation
 
         private bool ShowPage(EditMacroFeatureDefinitionParameters parameters, out EditMacroFeatureDefinitionParameters newParameters)
         {
-            //TODO: Show property page or any other user interface
+            //Show property page or any other user interface
 
             newParameters = null;
             return true;

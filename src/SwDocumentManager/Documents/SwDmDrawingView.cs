@@ -13,10 +13,12 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using Xarial.XCad.Annotations;
 using Xarial.XCad.Base;
 using Xarial.XCad.Base.Enums;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Enums;
+using Xarial.XCad.Documents.Structures;
 using Xarial.XCad.Geometry.Structures;
 
 namespace Xarial.XCad.SwDocumentManager.Documents
@@ -38,7 +40,10 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         TSelObject IXObjectContainer.ConvertObject<TSelObject>(TSelObject obj)
             => throw new NotSupportedException();
         public bool IsSelected => throw new NotSupportedException();
-
+        public Scale Scale { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
+        public Rect2D Boundary => throw new NotSupportedException();
+        public Thickness Padding => throw new NotSupportedException();
+        public IXDimensionRepository Dimensions => throw new NotSupportedException();
         #endregion
 
         public override SelectType_e Type => SelectType_e.DrawingViews;

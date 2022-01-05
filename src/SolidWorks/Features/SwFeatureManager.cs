@@ -154,6 +154,12 @@ namespace Xarial.XCad.SolidWorks.Features
             var inst = (TDef)CustomFeatureDefinitionInstanceCache.GetInstance(typeof(TDef));
             inst.Insert(Document);
         }
+
+        public void Enable(bool enable)
+        {
+            FeatMgr.EnableFeatureTree = enable;
+            FeatMgr.EnableFeatureTreeWindow = enable;
+        }
     }
 
     internal class DocumentFeatureEnumerator : FeatureEnumerator

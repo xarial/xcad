@@ -11,10 +11,10 @@
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <PackageId>Xarial.XCad.SwDocumentManager</PackageId>
-    <VersionPrefix>0.7.12</VersionPrefix>
+    <VersionPrefix>0.8.0</VersionPrefix>
     <Authors>Xarial</Authors>
     <Product>xCAD</Product>
-    <Copyright>© 2021 Xarial Pty Limited</Copyright>
+    <Copyright>© 2022 Xarial Pty Limited</Copyright>
     <PackageProjectUrl>https://xcad.net</PackageProjectUrl>
     <AssemblyOriginatorKeyFile></AssemblyOriginatorKeyFile>
     <Company>Xarial Pty Limited</Company>
@@ -46,7 +46,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Xarial.XCad.SolidWorks.DocumentManager.Interops" Version="0.1.0" />
+    <PackageReference Include="Xarial.XCad.SolidWorks.DocumentManager.Interops" Version="0.2.0" />
   </ItemGroup>
 
   <ItemGroup>

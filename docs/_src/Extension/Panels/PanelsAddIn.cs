@@ -86,7 +86,7 @@ namespace Xarial.XCad.Documentation.Extension.Panels
             switch (spec) 
             {
                 case TaskPaneCommands_e.Command:
-                    //TODO: handle command
+                    //handle command
                     break;
 
                 case TaskPaneCommands_e.Close:

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Xarial.XCad.Documents;
+using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.SolidWorks.Documents;
 
 namespace SolidWorks.Tests.Integration
@@ -193,5 +194,138 @@ namespace SolidWorks.Tests.Integration
             Assert.That(string.Equals(view4Conf, "Default", StringComparison.CurrentCultureIgnoreCase));
             Assert.That(string.IsNullOrEmpty(view5Conf));
         }
+
+        [Test]
+        public void DrawingPaddingTest()
+        {
+            throw new NotImplementedException();
+
+            Thickness p1;
+            Thickness p2;
+            Thickness p3;
+            Thickness p4;
+            Thickness p5;
+            Thickness p6;
+
+            using (var doc = OpenDataDocument("Drawing2\\Drawing2.SLDDRW"))
+            {
+                var sheets = (m_App.Documents.Active as ISwDrawing).Sheets;
+
+                p1 = sheets["Sheet1"].DrawingViews["Drawing View1"].Padding;
+                p2 = sheets["Sheet1"].DrawingViews["Drawing View2"].Padding;
+                p3 = sheets["Sheet2"].DrawingViews["Drawing View3"].Padding;
+                p4 = sheets["Sheet2"].DrawingViews["Drawing View4"].Padding;
+                p5 = sheets["Sheet3"].DrawingViews["Drawing View5"].Padding;
+                p6 = sheets["Sheet3"].DrawingViews["Drawing View6"].Padding;
+            }
+
+            Assert.That(p1.Bottom, Is.EqualTo(0.016819999999999998).Within(0.0001).Percent);
+            Assert.That(p1.Top, Is.EqualTo(0.016819999999999998).Within(0.0001).Percent);
+            Assert.That(p1.Right, Is.EqualTo(0.016819999999999998).Within(0.0001).Percent);
+            Assert.That(p1.Left, Is.EqualTo(0.016819999999999998).Within(0.0001).Percent);
+
+            Assert.That(p2.Bottom, Is.EqualTo(0.016819999999999998).Within(0.0001).Percent);
+            Assert.That(p2.Top, Is.EqualTo(0.016819999999999998).Within(0.0001).Percent);
+            Assert.That(p2.Right, Is.EqualTo(0.016819999999999998).Within(0.0001).Percent);
+            Assert.That(p2.Left, Is.EqualTo(0.016819999999999998).Within(0.0001).Percent);
+
+            Assert.That(p3.Bottom, Is.EqualTo(0.033639999999999996).Within(0.0001).Percent);
+            Assert.That(p3.Top, Is.EqualTo(0.033639999999999996).Within(0.0001).Percent);
+            Assert.That(p3.Right, Is.EqualTo(0.033639999999999996).Within(0.0001).Percent);
+            Assert.That(p3.Left, Is.EqualTo(0.033639999999999996).Within(0.0001).Percent);
+
+            Assert.That(p4.Bottom, Is.EqualTo(0.033639999999999996).Within(0.0001).Percent);
+            Assert.That(p4.Top, Is.EqualTo(0.033639999999999996).Within(0.0001).Percent);
+            Assert.That(p4.Right, Is.EqualTo(0.033639999999999996).Within(0.0001).Percent);
+            Assert.That(p4.Left, Is.EqualTo(0.033639999999999996).Within(0.0001).Percent);
+
+            Assert.That(p5.Bottom, Is.EqualTo(0.0014).Within(0.0001).Percent);
+            Assert.That(p5.Top, Is.EqualTo(0.0014).Within(0.0001).Percent);
+            Assert.That(p5.Right, Is.EqualTo(0.0014).Within(0.0001).Percent);
+            Assert.That(p5.Left, Is.EqualTo(0.0014).Within(0.0001).Percent);
+
+            Assert.That(p6.Bottom, Is.EqualTo(0.0014).Within(0.0001).Percent);
+            Assert.That(p6.Top, Is.EqualTo(0.0014).Within(0.0001).Percent);
+            Assert.That(p6.Right, Is.EqualTo(0.0014).Within(0.0001).Percent);
+            Assert.That(p6.Left, Is.EqualTo(0.0014).Within(0.0001).Percent);
+        }
+
+        [Test]
+        public void DrawingLocationTest()
+        {
+            throw new NotImplementedException();
+
+            Point p1;
+            Point p2;
+            Point p3;
+            Point p4;
+            Point p5;
+            Point p6;
+
+            using (var doc = OpenDataDocument("Drawing2\\Drawing2.SLDDRW"))
+            {
+                var sheets = (m_App.Documents.Active as ISwDrawing).Sheets;
+
+                p1 = sheets["Sheet1"].DrawingViews["Drawing View1"].Location;
+                p2 = sheets["Sheet1"].DrawingViews["Drawing View2"].Location;
+                p3 = sheets["Sheet2"].DrawingViews["Drawing View3"].Location;
+                p4 = sheets["Sheet2"].DrawingViews["Drawing View4"].Location;
+                p5 = sheets["Sheet3"].DrawingViews["Drawing View5"].Location;
+                p6 = sheets["Sheet3"].DrawingViews["Drawing View6"].Location;
+            }
+
+            Assert.That(p1.X, Is.EqualTo(0.347683547297297).Within(0.0001).Percent);
+            Assert.That(p1.Y, Is.EqualTo(0.611770675675676).Within(0.0001).Percent);
+            Assert.That(p1.Z, Is.EqualTo(0).Within(0.0001).Percent);
+
+            Assert.That(p2.X, Is.EqualTo(0).Within(0.0001).Percent);
+            Assert.That(p2.Y, Is.EqualTo(0).Within(0.0001).Percent);
+            Assert.That(p2.Z, Is.EqualTo(0).Within(0.0001).Percent);
+
+            Assert.That(p3.X, Is.EqualTo(0).Within(0.0001).Percent);
+            Assert.That(p3.Y, Is.EqualTo(0).Within(0.0001).Percent);
+            Assert.That(p3.Z, Is.EqualTo(0).Within(0.0001).Percent);
+
+            Assert.That(p4.X, Is.EqualTo(0).Within(0.0001).Percent);
+            Assert.That(p4.Y, Is.EqualTo(0).Within(0.0001).Percent);
+            Assert.That(p4.Z, Is.EqualTo(0).Within(0.0001).Percent);
+
+            Assert.That(p5.X, Is.EqualTo(0).Within(0.0001).Percent);
+            Assert.That(p5.Y, Is.EqualTo(0).Within(0.0001).Percent);
+            Assert.That(p5.Z, Is.EqualTo(0).Within(0.0001).Percent);
+
+            Assert.That(p6.X, Is.EqualTo(0).Within(0.0001).Percent);
+            Assert.That(p6.Y, Is.EqualTo(0).Within(0.0001).Percent);
+            Assert.That(p6.Z, Is.EqualTo(0).Within(0.0001).Percent);
+        }
+
+        [Test]
+        public void DrawingBoundaryTest()
+        {
+            throw new NotImplementedException();
+
+            Rect2D b1;
+            Rect2D b2;
+            Rect2D b3;
+            Rect2D b4;
+            Rect2D b5;
+            Rect2D b6;
+
+            using (var doc = OpenDataDocument("Drawing2\\Drawing2.SLDDRW"))
+            {
+                var sheets = (m_App.Documents.Active as ISwDrawing).Sheets;
+                b1 = sheets["Sheet1"].DrawingViews["Drawing View1"].Boundary;
+                b2 = sheets["Sheet1"].DrawingViews["Drawing View2"].Boundary;
+                b3 = sheets["Sheet2"].DrawingViews["Drawing View3"].Boundary;
+                b4 = sheets["Sheet2"].DrawingViews["Drawing View4"].Boundary;
+                b5 = sheets["Sheet3"].DrawingViews["Drawing View5"].Boundary;
+                b6 = sheets["Sheet3"].DrawingViews["Drawing View6"].Boundary;
+            }
+
+            //Assert.That(p1.X, Is.EqualTo(0.347683547297297).Within(0.0001).Percent);
+            //Assert.That(p1.Y, Is.EqualTo(0.611770675675676).Within(0.0001).Percent);
+            //Assert.That(p1.Z, Is.EqualTo(0).Within(0.0001).Percent);
+        }
     }
 }
+

@@ -18,12 +18,12 @@ namespace Xarial.XCad.Geometry.Structures
         public double Width { get; }
 
         /// <summary>
-        /// Width of the bounding box relative to Y axis
+        /// Height of the bounding box relative to Y axis
         /// </summary>
         public double Height { get; }
 
         /// <summary>
-        /// Width of the bounding box relative to Z axis
+        /// Length of the bounding box relative to Z axis
         /// </summary>
         public double Length { get; }
 

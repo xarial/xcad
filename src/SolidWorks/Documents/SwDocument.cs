@@ -785,9 +785,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
                         if (OwnerApplication.IsVersionNewerOrEqual(SwVersion_e.Sw2021, 4, 1))
                         {
-                            const swOpenDocOptions_e swOpenDocOptions_LDR_EditAssembly = (swOpenDocOptions_e)2048;//TODO; replace with enum once the interops are updated
-
-                            opts |= swOpenDocOptions_LDR_EditAssembly;
+                            opts |= swOpenDocOptions_e.swOpenDocOptions_LDR_EditAssembly;
                         }
                     }
                     else if (docType == swDocumentTypes_e.swDocPART)

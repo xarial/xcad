@@ -8,6 +8,7 @@
 using SolidWorks.Interop.sldworks;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Text;
@@ -15,6 +16,7 @@ using System.Threading;
 using Xarial.XCad.Base.Enums;
 using Xarial.XCad.Data;
 using Xarial.XCad.Documents;
+using Xarial.XCad.Documents.Structures;
 using Xarial.XCad.SolidWorks.Documents.Exceptions;
 using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.UI;
@@ -26,6 +28,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         ISheet Sheet { get; }
     }
 
+    [DebuggerDisplay("{" + nameof(Name) + "}")]
     internal class SwSheet : SwSelObject, ISwSheet
     {
         public ISheet Sheet { get; }
@@ -49,6 +52,26 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public IXImage Preview
             => PictureDispUtils.PictureDispToXImage(OwnerApplication.Sw.GetPreviewBitmap(m_Drawing.Path, Name));
+
+        public Scale Scale 
+        {
+            get 
+            {
+                double[] sheetPrps;
+
+                if (m_Drawing.OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2016))
+                {
+                    sheetPrps = (double[])Sheet.GetProperties2();
+                }
+                else 
+                {
+                    sheetPrps = (double[])Sheet.GetProperties();
+                }
+
+                return new Scale(sheetPrps[2], sheetPrps[3]);
+            }
+            set => Sheet.SetScale(value.Numerator, value.Denominator, true, true);
+        }
 
         internal SwSheet(ISheet sheet, SwDrawing draw, ISwApplication app) : base(sheet, draw, app)
         {
@@ -75,6 +98,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             => throw new UnloadedDocumentPreviewOnlySheetException();
         public void Serialize(Stream stream)
             => throw new UnloadedDocumentPreviewOnlySheetException();
+        public Scale Scale { get => throw new UnloadedDocumentPreviewOnlySheetException(); set => throw new UnloadedDocumentPreviewOnlySheetException(); }
 
         public object Dispatch => throw new UnloadedDocumentPreviewOnlySheetException();
         public bool IsSelected => throw new UnloadedDocumentPreviewOnlySheetException();

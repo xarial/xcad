@@ -8,7 +8,9 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Xarial.XCad.Annotations;
 using Xarial.XCad.Base;
+using Xarial.XCad.Documents.Structures;
 using Xarial.XCad.Geometry.Structures;
 
 namespace Xarial.XCad.Documents
@@ -29,14 +31,35 @@ namespace Xarial.XCad.Documents
         IXConfiguration ReferencedConfiguration { get; }
 
         /// <summary>
+        /// Dimensions of the drawing
+        /// </summary>
+        IXDimensionRepository Dimensions { get; }
+
+        /// <summary>
         /// Name of this drawing view
         /// </summary>
         string Name { get; set; }
 
         /// <summary>
-        /// Location of this drawing view
+        /// Location of this drawing view center
         /// </summary>
         Point Location { get; set; }
+
+        /// <summary>
+        /// Represents scale of this drawing view
+        /// </summary>
+        Scale Scale { get; set; }
+
+        /// <summary>
+        /// Outline of the view
+        /// </summary>
+        Rect2D Boundary { get; }
+
+        /// <summary>
+        /// View boundary padding
+        /// </summary>
+        /// <remarks>Padding represents difference between <see cref="Boundary"/> and geometry</remarks>
+        Thickness Padding { get; }
     }
 
     /// <summary>

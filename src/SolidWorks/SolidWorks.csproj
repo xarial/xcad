@@ -11,10 +11,10 @@
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <PackageId>Xarial.XCad.SolidWorks</PackageId>
-    <VersionPrefix>0.7.12</VersionPrefix>
+    <VersionPrefix>0.8.0</VersionPrefix>
     <Authors>Xarial</Authors>
     <Product>xCAD</Product>
-    <Copyright>© 2021 Xarial Pty Limited</Copyright>
+    <Copyright>© 2022 Xarial Pty Limited</Copyright>
     <PackageProjectUrl>https://xcad.net</PackageProjectUrl>
     <AssemblyOriginatorKeyFile></AssemblyOriginatorKeyFile>
     <Company>Xarial Pty Limited</Company>
@@ -58,7 +58,7 @@
   </ItemGroup>
   
   <ItemGroup>
-    <PackageReference Include="Xarial.XCad.SolidWorks.Interops" Version="0.3.0" />
+    <PackageReference Include="Xarial.XCad.SolidWorks.Interops" Version="0.4.0" />
   </ItemGroup>
 
   <ItemGroup>

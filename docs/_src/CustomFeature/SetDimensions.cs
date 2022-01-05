@@ -13,7 +13,7 @@ namespace Xarial.XCad.Documentation
     {        
         private IXBody[] GetBodies()
         {
-            //TODO: create bodies for geometry
+            //create bodies for geometry
             return null;
         }
 

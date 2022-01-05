@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Xarial.XCad.Base;
+using Xarial.XCad.Documents.Structures;
 using Xarial.XCad.UI;
 
 namespace Xarial.XCad.Documents
@@ -32,5 +33,10 @@ namespace Xarial.XCad.Documents
         /// Preview of this drawing sheet
         /// </summary>
         IXImage Preview { get; }
+
+        /// <summary>
+        /// Represents scale of this sheet
+        /// </summary>
+        Scale Scale { get; set; }
     }
 }

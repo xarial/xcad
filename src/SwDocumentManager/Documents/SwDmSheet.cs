@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 using Xarial.XCad.Documents;
+using Xarial.XCad.Documents.Structures;
 using Xarial.XCad.UI;
 
 namespace Xarial.XCad.SwDocumentManager.Documents
@@ -22,6 +23,10 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
     internal class SwDmSheet : SwDmObject, ISwDmSheet
     {
+        #region Not Supported
+        public Scale Scale { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
+        #endregion
+
         public string Name
         {
             get => Sheet.Name;
@@ -51,7 +56,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         public bool IsCommitted => true;
 
         public ISwDMSheet Sheet { get; }
-
+        
         private readonly Lazy<SwDmDrawingViewsCollection> m_DrawingViewsLazy;
 
         internal SwDmSheet(ISwDMSheet sheet, SwDmDrawing drw) : base(sheet)

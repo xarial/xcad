@@ -51,5 +51,11 @@ namespace Xarial.XCad.Features
         /// </summary>
         /// <returns>2D sketch template</returns>
         IXSketch3D PreCreate3DSketch();
+
+        /// <summary>
+        /// Enables or disables feature tree
+        /// </summary>
+        /// <param name="enable">True to enable, False to disable</param>
+        void Enable(bool enable);
     }
 }

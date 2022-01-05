@@ -7,13 +7,18 @@
 
 using SolidWorks.Interop.sldworks;
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using Xarial.XCad.Annotations;
 using Xarial.XCad.Documents;
+using Xarial.XCad.Documents.Structures;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Services;
+using Xarial.XCad.SolidWorks.Annotations;
 
 namespace Xarial.XCad.SolidWorks.Documents
 {
@@ -22,6 +27,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         IView DrawingView { get; }
     }
 
+    [DebuggerDisplay("{" + nameof(Name) + "}")]
     internal class SwDrawingView : SwSelObject, ISwDrawingView
     {
         protected readonly SwDrawing m_Drawing;
@@ -55,6 +61,8 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
 
             m_Sheet = sheet;
+
+            Dimensions = new SwDrawingViewDimensionRepository(drw, this);
         }
 
         public override void Commit(CancellationToken cancellationToken) => m_Creator.Create(cancellationToken);
@@ -204,6 +212,49 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
+        public Scale Scale 
+        {
+            get 
+            {
+                var scale = (double[])DrawingView.ScaleRatio;
+                return new Scale(scale[0], scale[1]);
+            }
+            set => DrawingView.ScaleRatio = new double[] { value.Numerator, value.Denominator };
+        }
+
+        public Rect2D Boundary 
+        {
+            get 
+            {
+                var outline = (double[])DrawingView.GetOutline();
+                var width = outline[2] - outline[0];
+                var height = outline[3] - outline[1];
+
+                var centerPt = new Point((outline[0] + outline[2]) / 2, (outline[1] + outline[3]) / 2, 0);
+
+                return new Rect2D(width, height, centerPt);
+            }
+        }
+
+        public Thickness Padding 
+        {
+            get 
+            {
+                const double VIEW_BORDER_RATIO = 0.02;
+
+                var width = -1d;
+                var height = -1d;
+
+                DrawingView.Sheet.GetSize(ref width, ref height);
+
+                var minSize = Math.Min(width, height);
+
+                return new Thickness(minSize * VIEW_BORDER_RATIO);
+            }
+        }
+
+        public IXDimensionRepository Dimensions { get; }
+
         TSelObject IXObjectContainer.ConvertObject<TSelObject>(TSelObject obj) => ConvertObjectBoxed(obj) as TSelObject;
 
         public TSelObject ConvertObject<TSelObject>(TSelObject obj)
@@ -238,6 +289,47 @@ namespace Xarial.XCad.SolidWorks.Documents
             else
             {
                 throw new InvalidCastException("Object is not SOLIDWORKS object");
+            }
+        }
+    }
+
+    internal class SwDrawingViewDimensionRepository : IXDimensionRepository
+    {
+        private readonly SwDrawing m_Drw;
+        private readonly SwDrawingView m_View;
+        
+        internal SwDrawingViewDimensionRepository(SwDrawing drw, SwDrawingView view) 
+        {
+            m_Drw = drw;
+            m_View = view;
+        }
+
+        public IXDimension this[string name] => throw new NotImplementedException();
+
+        public int Count => throw new NotImplementedException();
+
+        public void AddRange(IEnumerable<IXDimension> ents)
+            => throw new NotImplementedException();
+
+        public IEnumerator<IXDimension> GetEnumerator()
+            => IterateDimensions().GetEnumerator();
+
+        public void RemoveRange(IEnumerable<IXDimension> ents)
+            => throw new NotImplementedException();
+
+        public bool TryGet(string name, out IXDimension ent)
+            => throw new NotImplementedException();
+
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+        private IEnumerable<IXDimension> IterateDimensions() 
+        {
+            var dispDim = m_View.DrawingView.GetFirstDisplayDimension5();
+
+            while (dispDim != null) 
+            {
+                yield return m_Drw.CreateObjectFromDispatch<ISwDimension>(dispDim);
+                dispDim = dispDim.GetNext5();
             }
         }
     }

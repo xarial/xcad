@@ -33,22 +33,22 @@ namespace Xarial.XCad.Documentation
 
         private void OnModelClosing(IXDocument doc, DocumentCloseType_e type)
         {
-            //TODO: handle closing
+            //handle closing
         }
 
         private void OnNewSelection(IXDocument doc, IXSelObject selObject)
         {
-            //TODO: handle new selection
+            //handle new selection
         }
 
         private void OnPropertyValueChanged(IXProperty prp, object newValue)
         {
-            //TODO: handle property change
+            //handle property change
         }
 
         private void OnDimensionValueChanged(IXDimension dim, double newVal)
         {
-            //TODO: handle dimension change
+            //handle dimension change
         }
 
         public void Dispose()
