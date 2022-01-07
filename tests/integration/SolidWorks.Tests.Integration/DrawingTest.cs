@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Xarial.XCad.Documents;
+using Xarial.XCad.Documents.Structures;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.SolidWorks.Documents;
 
@@ -198,8 +199,6 @@ namespace SolidWorks.Tests.Integration
         [Test]
         public void DrawingPaddingTest()
         {
-            throw new NotImplementedException();
-
             Thickness p1;
             Thickness p2;
             Thickness p3;
@@ -207,54 +206,64 @@ namespace SolidWorks.Tests.Integration
             Thickness p5;
             Thickness p6;
 
+            double s1;
+            double s2;
+            double s3;
+
             using (var doc = OpenDataDocument("Drawing2\\Drawing2.SLDDRW"))
             {
                 var sheets = (m_App.Documents.Active as ISwDrawing).Sheets;
 
-                p1 = sheets["Sheet1"].DrawingViews["Drawing View1"].Padding;
-                p2 = sheets["Sheet1"].DrawingViews["Drawing View2"].Padding;
-                p3 = sheets["Sheet2"].DrawingViews["Drawing View3"].Padding;
-                p4 = sheets["Sheet2"].DrawingViews["Drawing View4"].Padding;
-                p5 = sheets["Sheet3"].DrawingViews["Drawing View5"].Padding;
-                p6 = sheets["Sheet3"].DrawingViews["Drawing View6"].Padding;
+                var sheet1 = sheets["Sheet1"];
+                var sheet2 = sheets["Sheet2"];
+                var sheet3 = sheets["Sheet3"];
+
+                s1 = sheet1.Scale.AsDouble();
+                s2 = sheet2.Scale.AsDouble();
+                s3 = sheet3.Scale.AsDouble();
+
+                p1 = sheet1.DrawingViews["Drawing View1"].Padding;
+                p2 = sheet1.DrawingViews["Drawing View2"].Padding;
+                p3 = sheet2.DrawingViews["Drawing View3"].Padding;
+                p4 = sheet2.DrawingViews["Drawing View4"].Padding;
+                p5 = sheet3.DrawingViews["Drawing View5"].Padding;
+                p6 = sheet3.DrawingViews["Drawing View6"].Padding;
             }
 
-            Assert.That(p1.Bottom, Is.EqualTo(0.016819999999999998).Within(0.0001).Percent);
-            Assert.That(p1.Top, Is.EqualTo(0.016819999999999998).Within(0.0001).Percent);
-            Assert.That(p1.Right, Is.EqualTo(0.016819999999999998).Within(0.0001).Percent);
-            Assert.That(p1.Left, Is.EqualTo(0.016819999999999998).Within(0.0001).Percent);
+            Assert.That(p1.Bottom / s1, Is.EqualTo(0.016819999999999998).Within(0.0001).Percent);
+            Assert.That(p1.Top / s1, Is.EqualTo(0.016819999999999998).Within(0.0001).Percent);
+            Assert.That(p1.Right / s1, Is.EqualTo(0.016819999999999998).Within(0.0001).Percent);
+            Assert.That(p1.Left / s1, Is.EqualTo(0.016819999999999998).Within(0.0001).Percent);
 
-            Assert.That(p2.Bottom, Is.EqualTo(0.016819999999999998).Within(0.0001).Percent);
-            Assert.That(p2.Top, Is.EqualTo(0.016819999999999998).Within(0.0001).Percent);
-            Assert.That(p2.Right, Is.EqualTo(0.016819999999999998).Within(0.0001).Percent);
-            Assert.That(p2.Left, Is.EqualTo(0.016819999999999998).Within(0.0001).Percent);
+            Assert.That(p2.Bottom / s1, Is.EqualTo(0.016819999999999998).Within(0.0001).Percent);
+            Assert.That(p2.Top / s1, Is.EqualTo(0.016819999999999998).Within(0.0001).Percent);
+            Assert.That(p2.Right / s1, Is.EqualTo(0.016819999999999998).Within(0.0001).Percent);
+            Assert.That(p2.Left / s1, Is.EqualTo(0.016819999999999998).Within(0.0001).Percent);
 
-            Assert.That(p3.Bottom, Is.EqualTo(0.033639999999999996).Within(0.0001).Percent);
-            Assert.That(p3.Top, Is.EqualTo(0.033639999999999996).Within(0.0001).Percent);
-            Assert.That(p3.Right, Is.EqualTo(0.033639999999999996).Within(0.0001).Percent);
-            Assert.That(p3.Left, Is.EqualTo(0.033639999999999996).Within(0.0001).Percent);
+            Assert.That(p3.Bottom / s2, Is.EqualTo(0.033639999999999996).Within(0.0001).Percent);
+            Assert.That(p3.Top / s2, Is.EqualTo(0.033639999999999996).Within(0.0001).Percent);
+            Assert.That(p3.Right / s2, Is.EqualTo(0.033639999999999996).Within(0.0001).Percent);
+            Assert.That(p3.Left / s2, Is.EqualTo(0.033639999999999996).Within(0.0001).Percent);
 
-            Assert.That(p4.Bottom, Is.EqualTo(0.033639999999999996).Within(0.0001).Percent);
-            Assert.That(p4.Top, Is.EqualTo(0.033639999999999996).Within(0.0001).Percent);
-            Assert.That(p4.Right, Is.EqualTo(0.033639999999999996).Within(0.0001).Percent);
-            Assert.That(p4.Left, Is.EqualTo(0.033639999999999996).Within(0.0001).Percent);
+            Assert.That(p4.Bottom / s2, Is.EqualTo(0.033639999999999996).Within(0.0001).Percent);
+            Assert.That(p4.Top / s2, Is.EqualTo(0.033639999999999996).Within(0.0001).Percent);
+            Assert.That(p4.Right / s2, Is.EqualTo(0.033639999999999996).Within(0.0001).Percent);
+            Assert.That(p4.Left / s2, Is.EqualTo(0.033639999999999996).Within(0.0001).Percent);
 
-            Assert.That(p5.Bottom, Is.EqualTo(0.0014).Within(0.0001).Percent);
-            Assert.That(p5.Top, Is.EqualTo(0.0014).Within(0.0001).Percent);
-            Assert.That(p5.Right, Is.EqualTo(0.0014).Within(0.0001).Percent);
-            Assert.That(p5.Left, Is.EqualTo(0.0014).Within(0.0001).Percent);
+            Assert.That(p5.Bottom / s3, Is.EqualTo(0.0014).Within(0.0001).Percent);
+            Assert.That(p5.Top / s3, Is.EqualTo(0.0014).Within(0.0001).Percent);
+            Assert.That(p5.Right / s3, Is.EqualTo(0.0014).Within(0.0001).Percent);
+            Assert.That(p5.Left / s3, Is.EqualTo(0.0014).Within(0.0001).Percent);
 
-            Assert.That(p6.Bottom, Is.EqualTo(0.0014).Within(0.0001).Percent);
-            Assert.That(p6.Top, Is.EqualTo(0.0014).Within(0.0001).Percent);
-            Assert.That(p6.Right, Is.EqualTo(0.0014).Within(0.0001).Percent);
-            Assert.That(p6.Left, Is.EqualTo(0.0014).Within(0.0001).Percent);
+            Assert.That(p6.Bottom / s3, Is.EqualTo(0.0014).Within(0.0001).Percent);
+            Assert.That(p6.Top / s3, Is.EqualTo(0.0014).Within(0.0001).Percent);
+            Assert.That(p6.Right / s3, Is.EqualTo(0.0014).Within(0.0001).Percent);
+            Assert.That(p6.Left / s3, Is.EqualTo(0.0014).Within(0.0001).Percent);
         }
 
         [Test]
         public void DrawingLocationTest()
         {
-            throw new NotImplementedException();
-
             Point p1;
             Point p2;
             Point p3;
@@ -262,48 +271,58 @@ namespace SolidWorks.Tests.Integration
             Point p5;
             Point p6;
 
+            double s1;
+            double s2;
+            double s3;
+
             using (var doc = OpenDataDocument("Drawing2\\Drawing2.SLDDRW"))
             {
                 var sheets = (m_App.Documents.Active as ISwDrawing).Sheets;
 
-                p1 = sheets["Sheet1"].DrawingViews["Drawing View1"].Location;
-                p2 = sheets["Sheet1"].DrawingViews["Drawing View2"].Location;
-                p3 = sheets["Sheet2"].DrawingViews["Drawing View3"].Location;
-                p4 = sheets["Sheet2"].DrawingViews["Drawing View4"].Location;
-                p5 = sheets["Sheet3"].DrawingViews["Drawing View5"].Location;
-                p6 = sheets["Sheet3"].DrawingViews["Drawing View6"].Location;
+                var sheet1 = sheets["Sheet1"];
+                var sheet2 = sheets["Sheet2"];
+                var sheet3 = sheets["Sheet3"];
+
+                s1 = sheet1.Scale.AsDouble();
+                s2 = sheet2.Scale.AsDouble();
+                s3 = sheet3.Scale.AsDouble();
+
+                p1 = sheet1.DrawingViews["Drawing View1"].Location;
+                p2 = sheet1.DrawingViews["Drawing View2"].Location;
+                p3 = sheet2.DrawingViews["Drawing View3"].Location;
+                p4 = sheet2.DrawingViews["Drawing View4"].Location;
+                p5 = sheet3.DrawingViews["Drawing View5"].Location;
+                p6 = sheet3.DrawingViews["Drawing View6"].Location;
             }
 
-            Assert.That(p1.X, Is.EqualTo(0.347683547297297).Within(0.0001).Percent);
-            Assert.That(p1.Y, Is.EqualTo(0.611770675675676).Within(0.0001).Percent);
-            Assert.That(p1.Z, Is.EqualTo(0).Within(0.0001).Percent);
+            Assert.That(p1.X / s1, Is.EqualTo(0.347683547297297).Within(0.0001).Percent);
+            Assert.That(p1.Y / s1, Is.EqualTo(0.611770675675676).Within(0.0001).Percent);
+            Assert.That(p1.Z / s1, Is.EqualTo(0).Within(0.0001).Percent);
 
-            Assert.That(p2.X, Is.EqualTo(0).Within(0.0001).Percent);
-            Assert.That(p2.Y, Is.EqualTo(0).Within(0.0001).Percent);
-            Assert.That(p2.Z, Is.EqualTo(0).Within(0.0001).Percent);
+            Assert.That(p2.X / s1, Is.EqualTo(0.76128881162062212).Within(0.0001).Percent);
+            Assert.That(p2.Y / s1, Is.EqualTo(0.53438399106822387).Within(0.0001).Percent);
+            Assert.That(p2.Z / s1, Is.EqualTo(0).Within(0.0001).Percent);
 
-            Assert.That(p3.X, Is.EqualTo(0).Within(0.0001).Percent);
-            Assert.That(p3.Y, Is.EqualTo(0).Within(0.0001).Percent);
-            Assert.That(p3.Z, Is.EqualTo(0).Within(0.0001).Percent);
+            Assert.That(p3.X / s2, Is.EqualTo(0.83543905405405439).Within(0.0001).Percent);
+            Assert.That(p3.Y / s2, Is.EqualTo(1.0496589189189187).Within(0.0001).Percent);
+            Assert.That(p3.Z / s2, Is.EqualTo(0).Within(0.0001).Percent);
 
-            Assert.That(p4.X, Is.EqualTo(0).Within(0.0001).Percent);
-            Assert.That(p4.Y, Is.EqualTo(0).Within(0.0001).Percent);
-            Assert.That(p4.Z, Is.EqualTo(0).Within(0.0001).Percent);
+            Assert.That(p4.X / s2, Is.EqualTo(1.8526512837837843).Within(0.0001).Percent);
+            Assert.That(p4.Y / s2, Is.EqualTo(0.94919351351351344).Within(0.0001).Percent);
+            Assert.That(p4.Z / s2, Is.EqualTo(0).Within(0.0001).Percent);
 
-            Assert.That(p5.X, Is.EqualTo(0).Within(0.0001).Percent);
-            Assert.That(p5.Y, Is.EqualTo(0).Within(0.0001).Percent);
-            Assert.That(p5.Z, Is.EqualTo(0).Within(0.0001).Percent);
+            Assert.That(p5.X / s3, Is.EqualTo(0.022835313821058443).Within(0.0001).Percent);
+            Assert.That(p5.Y / s3, Is.EqualTo(0.081958522817812171).Within(0.0001).Percent);
+            Assert.That(p5.Z / s3, Is.EqualTo(0).Within(0.0001).Percent);
 
-            Assert.That(p6.X, Is.EqualTo(0).Within(0.0001).Percent);
-            Assert.That(p6.Y, Is.EqualTo(0).Within(0.0001).Percent);
-            Assert.That(p6.Z, Is.EqualTo(0).Within(0.0001).Percent);
+            Assert.That(p6.X / s3, Is.EqualTo(0.037347512600946653).Within(0.0001).Percent);
+            Assert.That(p6.Y / s3, Is.EqualTo(0.048798225460288336).Within(0.0001).Percent);
+            Assert.That(p6.Z / s3, Is.EqualTo(0).Within(0.0001).Percent);
         }
 
         [Test]
         public void DrawingBoundaryTest()
         {
-            throw new NotImplementedException();
-
             Rect2D b1;
             Rect2D b2;
             Rect2D b3;
@@ -311,20 +330,65 @@ namespace SolidWorks.Tests.Integration
             Rect2D b5;
             Rect2D b6;
 
+            double s1;
+            double s2;
+            double s3;
+
             using (var doc = OpenDataDocument("Drawing2\\Drawing2.SLDDRW"))
             {
                 var sheets = (m_App.Documents.Active as ISwDrawing).Sheets;
-                b1 = sheets["Sheet1"].DrawingViews["Drawing View1"].Boundary;
-                b2 = sheets["Sheet1"].DrawingViews["Drawing View2"].Boundary;
-                b3 = sheets["Sheet2"].DrawingViews["Drawing View3"].Boundary;
-                b4 = sheets["Sheet2"].DrawingViews["Drawing View4"].Boundary;
-                b5 = sheets["Sheet3"].DrawingViews["Drawing View5"].Boundary;
-                b6 = sheets["Sheet3"].DrawingViews["Drawing View6"].Boundary;
+
+                var sheet1 = sheets["Sheet1"];
+                var sheet2 = sheets["Sheet2"];
+                var sheet3 = sheets["Sheet3"];
+
+                s1 = sheet1.Scale.AsDouble();
+                s2 = sheet2.Scale.AsDouble();
+                s3 = sheet3.Scale.AsDouble();
+
+                b1 = sheet1.DrawingViews["Drawing View1"].Boundary;
+                b2 = sheet1.DrawingViews["Drawing View2"].Boundary;
+                b3 = sheet2.DrawingViews["Drawing View3"].Boundary;
+                b4 = sheet2.DrawingViews["Drawing View4"].Boundary;
+                b5 = sheet3.DrawingViews["Drawing View5"].Boundary;
+                b6 = sheet3.DrawingViews["Drawing View6"].Boundary;
             }
 
-            //Assert.That(p1.X, Is.EqualTo(0.347683547297297).Within(0.0001).Percent);
-            //Assert.That(p1.Y, Is.EqualTo(0.611770675675676).Within(0.0001).Percent);
-            //Assert.That(p1.Z, Is.EqualTo(0).Within(0.0001).Percent);
+            Assert.That(b1.CenterPoint.X / s1, Is.EqualTo(0.347683547297297).Within(0.0001).Percent);
+            Assert.That(b1.CenterPoint.Y / s1, Is.EqualTo(0.611770675675676).Within(0.0001).Percent);
+            Assert.That(b1.CenterPoint.Z / s1, Is.EqualTo(0).Within(0.0001).Percent);
+            Assert.That(b1.Width / s1, Is.EqualTo(0.31397657558361641).Within(0.0001).Percent);
+            Assert.That(b1.Height / s1, Is.EqualTo(0.25674397158642376).Within(0.0001).Percent);
+
+            Assert.That(b2.CenterPoint.X / s1, Is.EqualTo(0.76128881162062212).Within(0.0001).Percent);
+            Assert.That(b2.CenterPoint.Y / s1, Is.EqualTo(0.53438399106822387).Within(0.0001).Percent);
+            Assert.That(b2.CenterPoint.Z / s1, Is.EqualTo(0).Within(0.0001).Percent);
+            Assert.That(b2.Width / s1, Is.EqualTo(0.27343183861370846).Within(0.0001).Percent);
+            Assert.That(b2.Height / s1, Is.EqualTo(0.27343183861370851).Within(0.0001).Percent);
+
+            Assert.That(b3.CenterPoint.X / s2, Is.EqualTo(0.83543905405405439).Within(0.0001).Percent);
+            Assert.That(b3.CenterPoint.Y / s2, Is.EqualTo(1.0496589189189187).Within(0.0001).Percent);
+            Assert.That(b3.CenterPoint.Z / s2, Is.EqualTo(0).Within(0.0001).Percent);
+            Assert.That(b3.Width / s2, Is.EqualTo(1.1886263023344656).Within(0.0001).Percent);
+            Assert.That(b3.Height / s2, Is.EqualTo(0.95969588634569514).Within(0.0001).Percent);
+
+            Assert.That(b4.CenterPoint.X / s2, Is.EqualTo(1.8526512837837843).Within(0.0001).Percent);
+            Assert.That(b4.CenterPoint.Y / s2, Is.EqualTo(0.94919351351351344).Within(0.0001).Percent);
+            Assert.That(b4.CenterPoint.Z / s2, Is.EqualTo(0).Within(0.0001).Percent);
+            Assert.That(b4.Width / s2, Is.EqualTo(0.18717591930685407).Within(0.0001).Percent);
+            Assert.That(b4.Height / s2, Is.EqualTo(0.18717591930685418).Within(0.0001).Percent);
+
+            Assert.That(b5.CenterPoint.X / s3, Is.EqualTo(0.022835313821058443).Within(0.0001).Percent);
+            Assert.That(b5.CenterPoint.Y / s3, Is.EqualTo(0.081958522817812171).Within(0.0001).Percent);
+            Assert.That(b5.CenterPoint.Z / s3, Is.EqualTo(0).Within(0.0001).Percent);
+            Assert.That(b5.Width / s3, Is.EqualTo(0.021489105038907764).Within(0.0001).Percent);
+            Assert.That(b5.Height / s3, Is.EqualTo(0.017673598105761589).Within(0.0001).Percent);
+
+            Assert.That(b6.CenterPoint.X / s3, Is.EqualTo(0.037347512600946653).Within(0.0001).Percent);
+            Assert.That(b6.CenterPoint.Y / s3, Is.EqualTo(0.048798225460288336).Within(0.0001).Percent);
+            Assert.That(b6.CenterPoint.Z / s3, Is.EqualTo(0).Within(0.0001).Percent);
+            Assert.That(b6.Width / s3, Is.EqualTo(0.042765306435618093).Within(0.0001).Percent);
+            Assert.That(b6.Height / s3, Is.EqualTo(0.042765306435618093).Within(0.0001).Percent);
         }
     }
 }
