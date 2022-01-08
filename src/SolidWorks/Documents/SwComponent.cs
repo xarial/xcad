@@ -81,8 +81,8 @@ namespace Xarial.XCad.SolidWorks.Documents
             RootAssembly = rootAssembly;
             Component = comp;
             Children = new SwChildComponentsCollection(rootAssembly, this);
-            m_FeaturesLazy = new Lazy<ISwFeatureManager>(() => new SwComponentFeatureManager(this, rootAssembly, app, this));
-            m_DimensionsLazy = new Lazy<ISwDimensionsCollection>(() => new SwFeatureManagerDimensionsCollection(Features, this));
+            m_FeaturesLazy = new Lazy<ISwFeatureManager>(() => new SwComponentFeatureManager(this, rootAssembly, app, new Context(this)));
+            m_DimensionsLazy = new Lazy<ISwDimensionsCollection>(() => new SwFeatureManagerDimensionsCollection(Features, new Context(this)));
 
             m_MathUtils = app.Sw.IGetMathUtility();
 
@@ -373,7 +373,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         private readonly SwAssembly m_Assm;
         internal SwComponent Component { get; }
 
-        public SwComponentFeatureManager(SwComponent comp, SwAssembly assm, ISwApplication app, ISwObject context) 
+        public SwComponentFeatureManager(SwComponent comp, SwAssembly assm, ISwApplication app, Context context) 
             : base(assm, app, context)
         {
             m_Assm = assm;
@@ -417,7 +417,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        public override IEnumerator<IXFeature> GetEnumerator() => new ComponentFeatureEnumerator(m_Assm, GetFirstFeature(), Component);
+        public override IEnumerator<IXFeature> GetEnumerator() => new ComponentFeatureEnumerator(m_Assm, GetFirstFeature(), new Context(Component));
 
         protected internal override IFeature GetFirstFeature() => Component.Component.FirstFeature();
 
@@ -442,7 +442,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
     internal class ComponentFeatureEnumerator : FeatureEnumerator
     {
-        public ComponentFeatureEnumerator(ISwDocument rootDoc, IFeature firstFeat, ISwComponent context) : base(rootDoc, firstFeat, context)
+        public ComponentFeatureEnumerator(ISwDocument rootDoc, IFeature firstFeat, Context context) : base(rootDoc, firstFeat, context)
         {
             Reset();
         }

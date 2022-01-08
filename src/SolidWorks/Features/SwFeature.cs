@@ -41,7 +41,7 @@ namespace Xarial.XCad.SolidWorks.Features
         public override object Dispatch => Feature;
 
         private readonly Lazy<SwFeatureDimensionsCollection> m_DimensionsLazy;
-        private ISwObject m_Context;
+        private Context m_Context;
 
         internal SwFeature(IFeature feat, ISwDocument doc, ISwApplication app, bool created) : base(feat, doc, app)
         {
@@ -58,11 +58,11 @@ namespace Xarial.XCad.SolidWorks.Features
 
                     if (comp != null)
                     {
-                        m_Context = OwnerDocument.CreateObjectFromDispatch<ISwComponent>(comp);
+                        m_Context = new Context(OwnerDocument.CreateObjectFromDispatch<ISwComponent>(comp));
                     }
                     else
                     {
-                        m_Context = OwnerDocument;
+                        m_Context = new Context(OwnerDocument);
                     }
                 }
 
@@ -72,7 +72,7 @@ namespace Xarial.XCad.SolidWorks.Features
             m_Creator = new ElementCreator<IFeature>(CreateFeature, feat, created);
         }
 
-        internal void SetContext(ISwObject context) 
+        internal void SetContext(Context context) 
         {
             m_Context = context;
         }

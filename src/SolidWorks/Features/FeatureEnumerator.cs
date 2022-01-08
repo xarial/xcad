@@ -10,6 +10,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Xarial.XCad.Features;
 using Xarial.XCad.SolidWorks.Documents;
+using Xarial.XCad.SolidWorks.Utils;
 
 namespace Xarial.XCad.SolidWorks.Features
 {
@@ -89,9 +90,9 @@ namespace Xarial.XCad.SolidWorks.Features
 
         private readonly IFeature m_FirstFeat;
 
-        private readonly ISwObject m_Context;
+        private readonly Context m_Context;
 
-        internal FeatureEnumerator(ISwDocument rootDoc, IFeature firstFeat, ISwObject context)
+        internal FeatureEnumerator(ISwDocument rootDoc, IFeature firstFeat, Context context)
         {
             m_RootDoc = rootDoc;
             m_FirstFeat = firstFeat;

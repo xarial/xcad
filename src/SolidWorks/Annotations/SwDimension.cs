@@ -13,6 +13,7 @@ using Xarial.XCad.Annotations;
 using Xarial.XCad.Annotations.Delegates;
 using Xarial.XCad.SolidWorks.Annotations.EventHandlers;
 using Xarial.XCad.SolidWorks.Documents;
+using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.Toolkit.Services;
 
 namespace Xarial.XCad.SolidWorks.Annotations
@@ -61,7 +62,7 @@ namespace Xarial.XCad.SolidWorks.Annotations
             set => SetValue(value);
         }
 
-        protected ISwObject m_Context;
+        protected Context m_Context;
 
         internal SwDimension(IDisplayDimension dispDim, ISwDocument doc, ISwApplication app)
             : base(dispDim, doc, app)
@@ -71,21 +72,21 @@ namespace Xarial.XCad.SolidWorks.Annotations
                 throw new ArgumentNullException(nameof(doc));
             }
 
-            m_Context = doc;
+            m_Context = new Context(doc);
             
             DisplayDimension = dispDim;
 
             m_ValueChangedHandler = new SwDimensionChangeEventsHandler(this, doc);
         }
 
-        internal void SetContext(ISwObject context)
+        internal void SetContext(Context context)
         {
             ValidateContext(context);
 
             m_Context = context;
         }
 
-        private void ValidateContext(ISwObject context) => ParseContext(context, out _);
+        private void ValidateContext(Context context) => ParseContext(context, out _);
 
         protected double GetValue()
         {
@@ -137,9 +138,14 @@ namespace Xarial.XCad.SolidWorks.Annotations
             action.Invoke(opts, confs);
         }
 
-        private swInConfigurationOpts_e ParseContext(ISwObject context, out string confName)
+        private swInConfigurationOpts_e ParseContext(Context context, out string confName)
         {
-            switch (context)
+            if (context == null) 
+            {
+                throw new NullReferenceException("Context is not specified");
+            }
+
+            switch (context.Owner)
             {
                 case ISwDocument doc:
                     if (doc is ISwDocument3D)

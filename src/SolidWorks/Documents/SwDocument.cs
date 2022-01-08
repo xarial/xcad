@@ -400,9 +400,9 @@ namespace Xarial.XCad.SolidWorks.Documents
 
             m_Creator.Creating += OnCreating;
 
-            m_FeaturesLazy = new Lazy<ISwFeatureManager>(() => new SwFeatureManager(this, app, this));
+            m_FeaturesLazy = new Lazy<ISwFeatureManager>(() => new SwFeatureManager(this, app, new Context(this)));
             m_SelectionsLazy = new Lazy<ISwSelectionCollection>(() => new SwSelectionCollection(this, app));
-            m_DimensionsLazy = new Lazy<ISwDimensionsCollection>(() => new SwFeatureManagerDimensionsCollection(this.Features, this));
+            m_DimensionsLazy = new Lazy<ISwDimensionsCollection>(() => new SwFeatureManagerDimensionsCollection(this.Features, new Context(this)));
             m_PropertiesLazy = new Lazy<ISwCustomPropertiesCollection>(() => new SwFileCustomPropertiesCollection(this, app));
 
             Units = new SwUnits(this);

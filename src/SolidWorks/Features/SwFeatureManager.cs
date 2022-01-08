@@ -19,6 +19,7 @@ using Xarial.XCad.Features.CustomFeature;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Features.CustomFeature;
 using Xarial.XCad.SolidWorks.Features.CustomFeature.Toolkit;
+using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.Toolkit.CustomFeature;
 
 namespace Xarial.XCad.SolidWorks.Features
@@ -93,9 +94,9 @@ namespace Xarial.XCad.SolidWorks.Features
             }
         }
 
-        protected readonly ISwObject m_Context;
+        protected readonly Context m_Context;
 
-        internal SwFeatureManager(SwDocument doc, ISwApplication app, ISwObject context)
+        internal SwFeatureManager(SwDocument doc, ISwApplication app, Context context)
         {
             m_App = app;
             Document = doc;
@@ -120,7 +121,7 @@ namespace Xarial.XCad.SolidWorks.Features
         public IXSketch3D PreCreate3DSketch() => new SwSketch3D(null, Document, m_App, false);
         
         public virtual IEnumerator<IXFeature> GetEnumerator()
-            => new DocumentFeatureEnumerator(Document, GetFirstFeature(), Document);
+            => new DocumentFeatureEnumerator(Document, GetFirstFeature(), new Context(Document));
 
         internal protected virtual IFeature GetFirstFeature() => Document.Model.IFirstFeature();
 
@@ -169,7 +170,7 @@ namespace Xarial.XCad.SolidWorks.Features
 
     internal class DocumentFeatureEnumerator : FeatureEnumerator
     {
-        public DocumentFeatureEnumerator(ISwDocument rootDoc, IFeature firstFeat, ISwObject context) : base(rootDoc, firstFeat, context)
+        public DocumentFeatureEnumerator(ISwDocument rootDoc, IFeature firstFeat, Context context) : base(rootDoc, firstFeat, context)
         {
             Reset();
         }

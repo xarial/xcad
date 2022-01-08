@@ -16,6 +16,7 @@ using Xarial.XCad.Base;
 using Xarial.XCad.Features;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Features;
+using Xarial.XCad.SolidWorks.Utils;
 
 namespace Xarial.XCad.SolidWorks.Annotations
 {
@@ -34,9 +35,9 @@ namespace Xarial.XCad.SolidWorks.Annotations
 
         public int Count => throw new NotImplementedException();
 
-        protected readonly ISwObject m_Context;
+        protected readonly Context m_Context;
 
-        protected SwDimensionsCollection(ISwObject context) 
+        protected SwDimensionsCollection(Context context) 
         {
             m_Context = context;
         }
@@ -64,7 +65,7 @@ namespace Xarial.XCad.SolidWorks.Annotations
     {
         private readonly ISwFeatureManager m_FeatMgr;
 
-        internal SwFeatureManagerDimensionsCollection(ISwFeatureManager featMgr, ISwObject context) : base(context)
+        internal SwFeatureManagerDimensionsCollection(ISwFeatureManager featMgr, Context context) : base(context)
         {
             m_FeatMgr = featMgr;
         }
@@ -111,7 +112,7 @@ namespace Xarial.XCad.SolidWorks.Annotations
         private readonly ISwDocument m_Doc;
         private readonly SwFeature m_Feat;
 
-        internal SwFeatureDimensionsCollection(SwFeature feat, ISwDocument doc, ISwObject context) : base(context)
+        internal SwFeatureDimensionsCollection(SwFeature feat, ISwDocument doc, Context context) : base(context)
         {
             m_Feat = feat;
             m_Doc = doc;
@@ -170,13 +171,13 @@ namespace Xarial.XCad.SolidWorks.Annotations
 
         private readonly ISwDocument m_Doc;
         private readonly IFeature m_Feat;
-        private readonly ISwObject m_Context;
+        private readonly Context m_Context;
 
         private IDisplayDimension m_CurDispDim;
 
         private bool m_IsStart;
 
-        internal SwFeatureDimensionsEnumerator(IFeature feat, ISwDocument doc, ISwObject context) 
+        internal SwFeatureDimensionsEnumerator(IFeature feat, ISwDocument doc, Context context) 
         {
             m_Doc = doc;
             m_Feat = feat;

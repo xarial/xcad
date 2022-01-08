@@ -261,7 +261,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         public virtual void Commit(CancellationToken cancellationToken) => m_Creator.Create(cancellationToken);
 
         protected virtual ISwDimensionsCollection CreateDimensions()
-            => new SwFeatureManagerDimensionsCollection(new SwFeatureManager(m_Doc, m_Doc.OwnerApplication, this), this);
+            => new SwFeatureManagerDimensionsCollection(new SwFeatureManager(m_Doc, m_Doc.OwnerApplication, new Context(this)), new Context(this));
 
         private IConfiguration Create(CancellationToken cancellationToken) 
         {
@@ -328,7 +328,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         protected override ISwDimensionsCollection CreateDimensions()
             => new SwFeatureManagerDimensionsCollection(
-                new SwComponentFeatureManager(m_Comp, m_Comp.RootAssembly, OwnerApplication, this), this);
+                new SwComponentFeatureManager(m_Comp, m_Comp.RootAssembly, OwnerApplication, new Context(this)), new Context(this));
 
         public override IEnumerable<IXCutListItem> CutLists
         {
