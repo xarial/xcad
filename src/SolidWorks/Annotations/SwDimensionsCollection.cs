@@ -34,6 +34,13 @@ namespace Xarial.XCad.SolidWorks.Annotations
 
         public int Count => throw new NotImplementedException();
 
+        protected readonly ISwObject m_Context;
+
+        protected SwDimensionsCollection(ISwObject context) 
+        {
+            m_Context = context;
+        }
+
         public void AddRange(IEnumerable<IXDimension> ents)
         {
             throw new NotImplementedException();
@@ -57,7 +64,7 @@ namespace Xarial.XCad.SolidWorks.Annotations
     {
         private readonly ISwFeatureManager m_FeatMgr;
 
-        internal SwFeatureManagerDimensionsCollection(ISwFeatureManager featMgr)
+        internal SwFeatureManagerDimensionsCollection(ISwFeatureManager featMgr, ISwObject context) : base(context)
         {
             m_FeatMgr = featMgr;
         }
@@ -101,15 +108,13 @@ namespace Xarial.XCad.SolidWorks.Annotations
 
     internal class SwFeatureDimensionsCollection : SwDimensionsCollection
     {
-        private readonly ISwApplication m_App;
         private readonly ISwDocument m_Doc;
         private readonly SwFeature m_Feat;
 
-        internal SwFeatureDimensionsCollection(SwFeature feat, ISwDocument doc, ISwApplication app)
+        internal SwFeatureDimensionsCollection(SwFeature feat, ISwDocument doc, ISwObject context) : base(context)
         {
             m_Feat = feat;
             m_Doc = doc;
-            m_App = app;
         }
 
         public override bool TryGet(string name, out IXDimension ent)
@@ -146,28 +151,37 @@ namespace Xarial.XCad.SolidWorks.Annotations
         }
 
         public override IEnumerator<IXDimension> GetEnumerator() 
-            => new SwFeatureDimensionsEnumerator(m_Feat.Feature, m_Doc, m_App);
+            => new SwFeatureDimensionsEnumerator(m_Feat.Feature, m_Doc, m_Context);
     }
 
     internal class SwFeatureDimensionsEnumerator : IEnumerator<IXDimension>
     {
-        public IXDimension Current => m_Doc.CreateObjectFromDispatch<SwDimension>(m_CurDispDim);
+        public IXDimension Current
+        {
+            get
+            {
+                var dim = m_Doc.CreateObjectFromDispatch<SwDimension>(m_CurDispDim);
+                dim.SetContext(m_Context);
+                return dim;
+            }
+        }
 
         object IEnumerator.Current => Current;
 
         private readonly ISwDocument m_Doc;
         private readonly IFeature m_Feat;
-        private readonly ISwApplication m_App;
+        private readonly ISwObject m_Context;
 
         private IDisplayDimension m_CurDispDim;
 
         private bool m_IsStart;
 
-        internal SwFeatureDimensionsEnumerator(IFeature feat, ISwDocument doc, ISwApplication app) 
+        internal SwFeatureDimensionsEnumerator(IFeature feat, ISwDocument doc, ISwObject context) 
         {
             m_Doc = doc;
             m_Feat = feat;
-            m_App = app;
+            m_Context = context;
+
             m_IsStart = true;
         }        
 

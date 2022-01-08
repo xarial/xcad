@@ -26,17 +26,8 @@ namespace Xarial.XCad.Annotations
         string Name { get; }
 
         /// <summary>
-        /// Gets the value of the dimension in the system units in the specified configuration or default
+        /// Dimension value in the system units
         /// </summary>
-        /// <param name="confName">Name of the configuration</param>
-        /// <returns>Dimension value</returns>
-        double GetValue(string confName = ""); //TODO: make dimensions configuration specific
-
-        /// <summary>
-        /// Sets the value of the dimension in the specified configuration
-        /// </summary>
-        /// <param name="val">Value to set in the system units</param>
-        /// <param name="confName">Name of the configuration or default</param>
-        void SetValue(double val, string confName = ""); //TODO: make dimensions configuration specific
+        double Value { get; set; }
     }
 }

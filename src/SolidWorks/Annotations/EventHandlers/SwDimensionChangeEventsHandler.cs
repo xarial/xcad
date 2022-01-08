@@ -64,7 +64,7 @@ namespace Xarial.XCad.SolidWorks.Annotations.EventHandlers
         {
             if (m_Dim.DisplayDimension == displayDim)
             {
-                Delegate.Invoke(m_Dim, m_Dim.GetValue());
+                Delegate.Invoke(m_Dim, m_Dim.Value);
             }
 
             return HResult.S_OK;

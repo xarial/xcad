@@ -55,6 +55,14 @@ namespace Xarial.XCad.SolidWorks.Annotations
             }
         }
 
+        public virtual double Value
+        {
+            get => GetValue();
+            set => SetValue(value);
+        }
+
+        protected ISwObject m_Context;
+
         internal SwDimension(IDisplayDimension dispDim, ISwDocument doc, ISwApplication app)
             : base(dispDim, doc, app)
         {
@@ -63,22 +71,62 @@ namespace Xarial.XCad.SolidWorks.Annotations
                 throw new ArgumentNullException(nameof(doc));
             }
 
+            m_Context = doc;
+            
             DisplayDimension = dispDim;
 
             m_ValueChangedHandler = new SwDimensionChangeEventsHandler(this, doc);
         }
 
-        public virtual double GetValue(string confName = "")
+        internal void SetContext(ISwObject context)
         {
-            var dim = DisplayDimension.GetDimension2(0);
+            ValidateContext(context);
 
+            m_Context = context;
+        }
+
+        private void ValidateContext(ISwObject context) => ParseContext(context, out _);
+
+        protected double GetValue()
+        {
+            var val = double.NaN;
+
+            ProcessDimension((opts, confs) =>
+            {
+                if (opts == swInConfigurationOpts_e.swAllConfiguration) 
+                {
+                    opts = swInConfigurationOpts_e.swSpecifyConfiguration;
+                }
+
+                val = (Dimension.GetSystemValue3((int)opts, confs) as double[])[0];
+            });
+
+            return val;
+        }
+
+        protected void SetValue(double val)
+        {
+            ProcessDimension((opts, confs) =>
+            {
+                if (opts == swInConfigurationOpts_e.swAllConfiguration) 
+                {
+                    confs = null;
+                }
+
+                Dimension.SetSystemValue3(val, (int)opts, confs);
+            });
+        }
+
+        private void ProcessDimension(Action<swInConfigurationOpts_e, string[]> action) 
+        {
             swInConfigurationOpts_e opts;
             string[] confs;
 
-            if (!string.IsNullOrEmpty(confName))
+            if (m_Context != null)
             {
+                opts = ParseContext(m_Context, out string confName);
+
                 confs = new string[] { confName };
-                opts = swInConfigurationOpts_e.swSpecifyConfiguration;
             }
             else
             {
@@ -86,28 +134,35 @@ namespace Xarial.XCad.SolidWorks.Annotations
                 confs = null;
             }
 
-            var val = (dim.GetSystemValue3((int)opts, confs) as double[])[0];
-
-            return val;
+            action.Invoke(opts, confs);
         }
 
-        public void SetValue(double val, string confName = "")
+        private swInConfigurationOpts_e ParseContext(ISwObject context, out string confName)
         {
-            swInConfigurationOpts_e opts;
-            string[] confs;
-
-            if (!string.IsNullOrEmpty(confName))
+            switch (context)
             {
-                confs = new string[] { confName };
-                opts = swInConfigurationOpts_e.swSpecifyConfiguration;
-            }
-            else
-            {
-                opts = swInConfigurationOpts_e.swAllConfiguration;
-                confs = null;
-            }
+                case ISwDocument doc:
+                    if (doc is ISwDocument3D)
+                    {
+                        confName = ((ISwDocument3D)doc).Configurations.Active.Name;
+                    }
+                    else
+                    {
+                        confName = "";
+                    }
+                    return swInConfigurationOpts_e.swAllConfiguration;
 
-            Dimension.SetSystemValue3(val, (int)opts, confs);
+                case ISwComponent comp:
+                    confName = comp.ReferencedConfiguration.Name;
+                    return swInConfigurationOpts_e.swAllConfiguration;
+
+                case ISwConfiguration conf:
+                    confName = conf.Name;
+                    return swInConfigurationOpts_e.swSpecifyConfiguration;
+
+                default:
+                    throw new Exception("Invalid context of the dimension");
+            }
         }
 
         public void Dispose()

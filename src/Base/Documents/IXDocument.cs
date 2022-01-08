@@ -22,7 +22,7 @@ namespace Xarial.XCad.Documents
     /// <summary>
     /// Represents the base interface of all document types
     /// </summary>
-    public interface IXDocument : IXObject, IXTransaction, IPropertiesOwner, IDisposable
+    public interface IXDocument : IXObject, IXTransaction, IPropertiesOwner, IDimensionable, IDisposable
     {
         /// <summary>
         /// Current version of the document
@@ -119,11 +119,6 @@ namespace Xarial.XCad.Documents
         /// Collection of selections of this document
         /// </summary>
         IXSelectionRepository Selections { get; }
-
-        /// <summary>
-        /// Collection of dimensions of this document
-        /// </summary>
-        IXDimensionRepository Dimensions { get; }
         
         /// <summary>
         /// Opens the user data stream from this document

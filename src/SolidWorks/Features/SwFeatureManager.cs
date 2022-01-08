@@ -59,29 +59,31 @@ namespace Xarial.XCad.SolidWorks.Features
 
         public virtual bool TryGet(string name, out IXFeature ent)
         {
-            IFeature feat;
+            IFeature swFeat;
 
             switch (Document.Model)
             {
                 case IPartDoc part:
-                    feat = part.FeatureByName(name) as IFeature;
+                    swFeat = part.FeatureByName(name) as IFeature;
                     break;
 
                 case IAssemblyDoc assm:
-                    feat = assm.FeatureByName(name) as IFeature;
+                    swFeat = assm.FeatureByName(name) as IFeature;
                     break;
 
                 case IDrawingDoc drw:
-                    feat = drw.FeatureByName(name) as IFeature;
+                    swFeat = drw.FeatureByName(name) as IFeature;
                     break;
 
                 default:
                     throw new NotSupportedException();
             }
 
-            if (feat != null)
+            if (swFeat != null)
             {
-                ent = Document.CreateObjectFromDispatch<SwFeature>(feat);
+                var feat = Document.CreateObjectFromDispatch<SwFeature>(swFeat);
+                feat.SetContext(m_Context);
+                ent = feat;
                 return true;
             }
             else
@@ -91,10 +93,13 @@ namespace Xarial.XCad.SolidWorks.Features
             }
         }
 
-        internal SwFeatureManager(SwDocument doc, ISwApplication app)
+        protected readonly ISwObject m_Context;
+
+        internal SwFeatureManager(SwDocument doc, ISwApplication app, ISwObject context)
         {
             m_App = app;
             Document = doc;
+            m_Context = context;
             m_ParamsParser = new MacroFeatureParametersParser(app);
         }
 
@@ -115,7 +120,7 @@ namespace Xarial.XCad.SolidWorks.Features
         public IXSketch3D PreCreate3DSketch() => new SwSketch3D(null, Document, m_App, false);
         
         public virtual IEnumerator<IXFeature> GetEnumerator()
-            => new DocumentFeatureEnumerator(Document, GetFirstFeature());
+            => new DocumentFeatureEnumerator(Document, GetFirstFeature(), Document);
 
         internal protected virtual IFeature GetFirstFeature() => Document.Model.IFirstFeature();
 
@@ -164,7 +169,7 @@ namespace Xarial.XCad.SolidWorks.Features
 
     internal class DocumentFeatureEnumerator : FeatureEnumerator
     {
-        public DocumentFeatureEnumerator(ISwDocument rootDoc, IFeature firstFeat) : base(rootDoc, firstFeat)
+        public DocumentFeatureEnumerator(ISwDocument rootDoc, IFeature firstFeat, ISwObject context) : base(rootDoc, firstFeat, context)
         {
             Reset();
         }

@@ -15,12 +15,14 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using Xarial.XCad.Annotations;
 using Xarial.XCad.Data;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Features;
 using Xarial.XCad.Reflection;
 using Xarial.XCad.Services;
+using Xarial.XCad.SolidWorks.Annotations;
 using Xarial.XCad.SolidWorks.Data;
 using Xarial.XCad.SolidWorks.Documents.Exceptions;
 using Xarial.XCad.SolidWorks.Enums;
@@ -72,10 +74,13 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
 
         IXPropertyRepository IPropertiesOwner.Properties => Properties;
+        IXDimensionRepository IDimensionable.Dimensions => Dimensions;
 
         public virtual ISwCustomPropertiesCollection Properties => m_PropertiesLazy.Value;
+        public ISwDimensionsCollection Dimensions => m_DimensionsLazy.Value;
 
         private readonly Lazy<ISwCustomPropertiesCollection> m_PropertiesLazy;
+        private readonly Lazy<ISwDimensionsCollection> m_DimensionsLazy;
 
         public bool IsCommitted => m_Creator.IsCreated;
 
@@ -126,6 +131,8 @@ namespace Xarial.XCad.SolidWorks.Documents
 
             m_PropertiesLazy = new Lazy<ISwCustomPropertiesCollection>(
                 () => new SwConfigurationCustomPropertiesCollection(Name, m_Doc, OwnerApplication));
+
+            m_DimensionsLazy = new Lazy<ISwDimensionsCollection>(CreateDimensions);
         }
 
         public override object Dispatch => Configuration;
@@ -213,7 +220,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                 }
             }
         }
-
+        
         private string GetPropertyValue(ICustomPropertyManager prpMgr, string prpName) 
         {
             string resVal;
@@ -252,6 +259,9 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
 
         public virtual void Commit(CancellationToken cancellationToken) => m_Creator.Create(cancellationToken);
+
+        protected virtual ISwDimensionsCollection CreateDimensions()
+            => new SwFeatureManagerDimensionsCollection(new SwFeatureManager(m_Doc, m_Doc.OwnerApplication, this), this);
 
         private IConfiguration Create(CancellationToken cancellationToken) 
         {
@@ -315,6 +325,10 @@ namespace Xarial.XCad.SolidWorks.Documents
                 Name = name;
             }
         }
+
+        protected override ISwDimensionsCollection CreateDimensions()
+            => new SwFeatureManagerDimensionsCollection(
+                new SwComponentFeatureManager(m_Comp, m_Comp.RootAssembly, OwnerApplication, this), this);
 
         public override IEnumerable<IXCutListItem> CutLists
         {

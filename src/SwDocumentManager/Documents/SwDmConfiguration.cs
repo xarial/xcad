@@ -13,6 +13,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using Xarial.XCad.Annotations;
 using Xarial.XCad.Data;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Enums;
@@ -35,6 +36,10 @@ namespace Xarial.XCad.SwDocumentManager.Documents
     [DebuggerDisplay("{" + nameof(Name) + "}")]
     internal class SwDmConfiguration : SwDmObject, ISwDmConfiguration
     {
+        #region Not Supported
+        public IXDimensionRepository Dimensions => throw new NotSupportedException();
+        #endregion
+
         internal const string QTY_PROPERTY = "UNIT_OF_MEASURE";
 
         IXPropertyRepository IPropertiesOwner.Properties => Properties;

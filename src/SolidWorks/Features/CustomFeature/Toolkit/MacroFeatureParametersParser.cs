@@ -238,7 +238,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature.Toolkit
                 {
                     for (int i = 0; i < dims.Length; i++)
                     {
-                        dims[i].SetValue(dimValues[i]);
+                        dims[i].Value = dimValues[i];
                         ((SwDimension)dims[i]).Dispose();
                     }
                 }

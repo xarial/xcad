@@ -11,13 +11,14 @@ using Xarial.XCad.Features;
 using Xarial.XCad.UI;
 using Xarial.XCad.Documents.Enums;
 using System.Collections.Generic;
+using Xarial.XCad.Annotations;
 
 namespace Xarial.XCad.Documents
 {
     /// <summary>
     /// Represents the configiration (variant) of the document
     /// </summary>
-    public interface IXConfiguration : IXObject, IXTransaction, IPropertiesOwner
+    public interface IXConfiguration : IXObject, IXTransaction, IPropertiesOwner, IDimensionable
     {
         /// <summary>
         /// BOM quantity value

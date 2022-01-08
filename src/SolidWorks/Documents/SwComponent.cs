@@ -59,11 +59,11 @@ namespace Xarial.XCad.SolidWorks.Documents
         IXComponentRepository IXComponent.Children => Children;
         IXFeatureRepository IXComponent.Features => Features;
         TSelObject IXObjectContainer.ConvertObject<TSelObject>(TSelObject obj) => ConvertObjectBoxed(obj) as TSelObject;
-        IXDimensionRepository IXComponent.Dimensions => Dimensions;
+        IXDimensionRepository IDimensionable.Dimensions => Dimensions;
 
         public IComponent2 Component { get; }
 
-        private readonly SwAssembly m_RootAssembly;
+        internal SwAssembly RootAssembly { get; }
 
         public ISwComponentCollection Children { get; }
 
@@ -78,11 +78,11 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         internal SwComponent(IComponent2 comp, SwAssembly rootAssembly, ISwApplication app) : base(comp, rootAssembly, app)
         {
-            m_RootAssembly = rootAssembly;
+            RootAssembly = rootAssembly;
             Component = comp;
             Children = new SwChildComponentsCollection(rootAssembly, this);
-            m_FeaturesLazy = new Lazy<ISwFeatureManager>(() => new SwComponentFeatureManager(this, rootAssembly, app));
-            m_DimensionsLazy = new Lazy<ISwDimensionsCollection>(() => new SwFeatureManagerDimensionsCollection(Features));
+            m_FeaturesLazy = new Lazy<ISwFeatureManager>(() => new SwComponentFeatureManager(this, rootAssembly, app, this));
+            m_DimensionsLazy = new Lazy<ISwDimensionsCollection>(() => new SwFeatureManagerDimensionsCollection(Features, this));
 
             m_MathUtils = app.Sw.IGetMathUtility();
 
@@ -110,7 +110,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                 var compModel = Component.IGetModelDoc();
 
                 //Note: for LDR assembly IGetModelDoc returns the pointer to root assembly
-                if (compModel != null && !m_RootAssembly.Model.IsOpenedViewOnly())
+                if (compModel != null && !RootAssembly.Model.IsOpenedViewOnly())
                 {
                     return (ISwDocument3D)OwnerApplication.Documents[compModel];
                 }
@@ -161,7 +161,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                     state |= ComponentState_e.SuppressedIdMismatch;
                 }
 
-                if (m_RootAssembly.Model.IsOpenedViewOnly()) //Large design review
+                if (RootAssembly.Model.IsOpenedViewOnly()) //Large design review
                 {
                     state |= ComponentState_e.ViewOnly;
                 }
@@ -223,7 +223,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                     }
                 }
 
-                if (m_RootAssembly.Model.IsOpenedViewOnly() && !value.HasFlag(ComponentState_e.ViewOnly)) //Large design review
+                if (RootAssembly.Model.IsOpenedViewOnly() && !value.HasFlag(ComponentState_e.ViewOnly)) //Large design review
                 {
                     throw new Exception("Component cannot be resolved when opened as view only");
                 }
@@ -285,12 +285,12 @@ namespace Xarial.XCad.SolidWorks.Documents
             {
                 var cachedPath = CachedPath;
 
-                var needResolve = m_RootAssembly.Model.IsOpenedViewOnly() 
+                var needResolve = RootAssembly.Model.IsOpenedViewOnly() 
                     || GetSuppressionState() == swComponentSuppressionState_e.swComponentSuppressed;
 
                 if (needResolve)
                 {
-                    return m_FilePathResolver.ResolvePath(m_RootAssembly.Path, cachedPath);
+                    return m_FilePathResolver.ResolvePath(RootAssembly.Path, cachedPath);
                 }
                 else 
                 {
@@ -342,7 +342,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
                 if (corrDisp != null)
                 {
-                    return m_RootAssembly.CreateObjectFromDispatch<ISwSelObject>(corrDisp);
+                    return RootAssembly.CreateObjectFromDispatch<ISwSelObject>(corrDisp);
                 }
                 else
                 {
@@ -357,7 +357,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         internal swComponentSuppressionState_e GetSuppressionState()
         {
-            if (m_RootAssembly.OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2019))
+            if (RootAssembly.OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2019))
             {
                 return (swComponentSuppressionState_e)Component.GetSuppression2();
             }
@@ -373,8 +373,8 @@ namespace Xarial.XCad.SolidWorks.Documents
         private readonly SwAssembly m_Assm;
         internal SwComponent Component { get; }
 
-        public SwComponentFeatureManager(SwComponent comp, SwAssembly assm, ISwApplication app) 
-            : base(assm, app)
+        public SwComponentFeatureManager(SwComponent comp, SwAssembly assm, ISwApplication app, ISwObject context) 
+            : base(assm, app, context)
         {
             m_Assm = assm;
             Component = comp;
@@ -417,17 +417,19 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        public override IEnumerator<IXFeature> GetEnumerator() => new ComponentFeatureEnumerator(m_Assm, GetFirstFeature());
+        public override IEnumerator<IXFeature> GetEnumerator() => new ComponentFeatureEnumerator(m_Assm, GetFirstFeature(), Component);
 
         protected internal override IFeature GetFirstFeature() => Component.Component.FirstFeature();
 
         public override bool TryGet(string name, out IXFeature ent)
         {
-            var feat = Component.Component.FeatureByName(name);
+            var swFeat = Component.Component.FeatureByName(name);
 
-            if (feat != null)
+            if (swFeat != null)
             {
-                ent = m_Assm.CreateObjectFromDispatch<SwFeature>(feat);
+                var feat = m_Assm.CreateObjectFromDispatch<SwFeature>(swFeat);
+                feat.SetContext(m_Context);
+                ent = feat;
                 return true;
             }
             else
@@ -440,7 +442,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
     internal class ComponentFeatureEnumerator : FeatureEnumerator
     {
-        public ComponentFeatureEnumerator(ISwDocument rootDoc, IFeature firstFeat) : base(rootDoc, firstFeat)
+        public ComponentFeatureEnumerator(ISwDocument rootDoc, IFeature firstFeat, ISwComponent context) : base(rootDoc, firstFeat, context)
         {
             Reset();
         }
