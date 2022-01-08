@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -11,5 +11,10 @@ using System.Text;
 
 namespace Xarial.XCad.Data.Delegates
 {
+    /// <summary>
+    /// Delegate for <see cref="IXProperty.ValueChanged"/> event
+    /// </summary>
+    /// <param name="prp">Event sender</param>
+    /// <param name="newValue">New value assigned to the property</param>
     public delegate void PropertyValueChangedDelegate(IXProperty prp, object newValue);
 }

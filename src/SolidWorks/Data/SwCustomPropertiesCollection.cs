@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -10,30 +10,41 @@ using SolidWorks.Interop.swconst;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Xarial.XCad.Base;
 using Xarial.XCad.Data;
+using Xarial.XCad.Data.Delegates;
 using Xarial.XCad.Exceptions;
+using Xarial.XCad.SolidWorks.Data.EventHandlers;
 using Xarial.XCad.SolidWorks.Data.Exceptions;
 using Xarial.XCad.SolidWorks.Data.Helpers;
+using Xarial.XCad.SolidWorks.Documents;
+using Xarial.XCad.Toolkit.Services;
 
 namespace Xarial.XCad.SolidWorks.Data
 {
-    public class SwCustomPropertiesCollection : IXPropertyRepository, IDisposable
+    public interface ISwCustomPropertiesCollection : IXPropertyRepository, IDisposable
     {
-        IXProperty IXPropertyRepository.GetOrPreCreate(string name) => GetOrPreCreate(name);
+        new ISwCustomProperty this[string name] { get; }
+        new ISwCustomProperty PreCreate();
+    }
+
+    internal abstract class SwCustomPropertiesCollection : ISwCustomPropertiesCollection
+    {
+        IXProperty IXPropertyRepository.PreCreate() => PreCreate();
 
         IXProperty IXRepository<IXProperty>.this[string name] => this[name];
 
-        public SwCustomProperty this[string name] 
+        public ISwCustomProperty this[string name]
         {
-            get 
+            get
             {
                 try
                 {
                     return (SwCustomProperty)this.Get(name);
                 }
-                catch (EntityNotFoundException) 
+                catch (EntityNotFoundException)
                 {
                     throw new CustomPropertyMissingException(name);
                 }
@@ -42,107 +53,197 @@ namespace Xarial.XCad.SolidWorks.Data
 
         public bool TryGet(string name, out IXProperty ent)
         {
-            var prp = GetOrPreCreate(name);
-
-            if (prp.Exists)
+            if (Exists(name))
             {
-                ent = prp;
+                ent = CreatePropertyInstance(PrpMgr, name, true);
                 return true;
             }
-            else
+            else 
             {
                 ent = null;
                 return false;
             }
         }
 
-        public int Count => m_PrpMgr.Count;
+        public int Count => PrpMgr.Count;
 
-        private readonly IModelDoc2 m_Model;
-        private readonly ICustomPropertyManager m_PrpMgr;
+        protected IModelDoc2 Model => m_Doc.Model;
 
-        private readonly string m_ConfName;
+        protected abstract CustomPropertyManager PrpMgr { get; }
 
-        private readonly CustomPropertiesEventsHelper m_EventsHelper;
+        protected SwDocument m_Doc;
 
-        internal SwCustomPropertiesCollection(ISldWorks app, IModelDoc2 model, string confName) 
+        protected readonly ISwApplication m_App;
+
+        protected SwCustomPropertiesCollection(SwDocument doc, ISwApplication app)
         {
-            m_Model = model;
-            m_PrpMgr = model.Extension.CustomPropertyManager[confName];
+            m_Doc = doc;
+            m_App = app;
+        }
 
-            m_EventsHelper = new CustomPropertiesEventsHelper(app, model);
-
-            m_ConfName = confName;
+        private bool Exists(string name) 
+        {
+            if (m_App.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2014))
+            {
+                return PrpMgr.Get5(name, true, out _, out _, out _)
+                    != (int)swCustomInfoGetResult_e.swCustomInfoGetResult_NotPresent;
+            }
+            else 
+            {
+                var prpNames = PrpMgr.GetNames() as string[] ?? new string[0];
+                return prpNames.Contains(name, StringComparer.CurrentCultureIgnoreCase);
+            }
         }
 
         public void AddRange(IEnumerable<IXProperty> ents)
         {
-            const int SUCCESS = 1;
-
-            foreach (var prp in ents) 
+            foreach (var prp in ents)
             {
-                //TODO: fix type conversion
-                if (m_PrpMgr.Add2(prp.Name, (int)swCustomInfoType_e.swCustomInfoText, prp.Value.ToString()) != SUCCESS)
-                {
-                    throw new Exception($"Failed to add {prp.Name}");
-                }
+                prp.Commit();
             }
         }
 
         public IEnumerator<IXProperty> GetEnumerator()
-        {
-            return new SwCustomPropertyEnumerator(m_Model, m_PrpMgr, m_ConfName, m_EventsHelper);
-        }
+            => new SwCustomPropertyEnumerator(PrpMgr, CreatePropertyInstance);
 
         public void RemoveRange(IEnumerable<IXProperty> ents)
         {
-            const int SUCCESS = 0;
-
             foreach (var prp in ents)
             {
-                //TODO: fix the versions
-                if (m_PrpMgr.Delete(prp.Name) != SUCCESS)
+                DeleteProperty(prp);
+            }
+        }
+
+        protected virtual void DeleteProperty(IXProperty prp)
+        {
+            if (m_App.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2014))
+            {
+                var delRes = (swCustomInfoDeleteResult_e)PrpMgr.Delete2(prp.Name);
+
+                if (delRes != swCustomInfoDeleteResult_e.swCustomInfoDeleteResult_OK)
                 {
-                    throw new Exception($"Failed to remove {prp.Name}");
+                    throw new Exception($"Failed to remove property '{prp.Name}'. Error code: {delRes}");
+                }
+            }
+            else
+            {
+                const int SUCCESS = 0;
+
+                if (PrpMgr.Delete(prp.Name) != SUCCESS)
+                {
+                    throw new Exception($"Failed to remove property '{prp.Name}'");
                 }
             }
         }
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-        public SwCustomProperty GetOrPreCreate(string name)
+        protected abstract EventsHandler<PropertyValueChangedDelegate> CreateEventsHandler(SwCustomProperty prp);
+
+        public ISwCustomProperty PreCreate() => CreatePropertyInstance(PrpMgr, "", false);
+
+        protected abstract SwCustomProperty CreatePropertyInstance(CustomPropertyManager prpMgr, string name, bool isCreated);
+
+        protected void InitProperty(SwCustomProperty prp)
         {
-            return new SwCustomProperty(m_Model, m_PrpMgr, name, m_ConfName, m_EventsHelper);
+            prp.SetEventsHandler(CreateEventsHandler(prp));
         }
 
-        public void Dispose()
+        public virtual void Dispose()
         {
+        }
+    }
+
+    internal class SwConfigurationCustomPropertiesCollection : SwCustomPropertiesCollection
+    {
+        private readonly string m_ConfName;
+
+        private readonly CustomPropertiesEventsHelper m_EventsHelper;
+        private readonly List<EventsHandler<PropertyValueChangedDelegate>> m_EventsHandlers;
+
+        internal SwConfigurationCustomPropertiesCollection(string confName, SwDocument doc, ISwApplication app) : base(doc, app)
+        {
+            m_EventsHelper = new CustomPropertiesEventsHelper(app.Sw, doc);
+
+            m_ConfName = confName;
+
+            m_EventsHandlers = new List<EventsHandler<PropertyValueChangedDelegate>>();
+        }
+
+        protected override CustomPropertyManager PrpMgr => Model.Extension.CustomPropertyManager[m_ConfName];
+
+        protected override SwCustomProperty CreatePropertyInstance(CustomPropertyManager prpMgr, string name, bool isCreated)
+        {
+            var prp = new SwConfigurationCustomProperty(prpMgr, name, isCreated, m_Doc, m_ConfName, m_App);
+            InitProperty(prp);
+            return prp;
+        }
+
+        protected override EventsHandler<PropertyValueChangedDelegate> CreateEventsHandler(SwCustomProperty prp)
+        {
+            var isBugPresent = true; //TODO: find version when the issue is starter
+
+            EventsHandler<PropertyValueChangedDelegate> evHandler = null;
+
+            if (isBugPresent)
+            {
+                evHandler = new CustomPropertyChangeEventsHandlerFromSw2017(m_EventsHelper, m_Doc.Model, prp, m_ConfName);
+            }
+            else
+            {
+                evHandler = new CustomPropertyChangeEventsHandler(m_Doc.Model, prp, m_ConfName);
+            }
+
+            m_EventsHandlers.Add(evHandler);
+
+            return evHandler;
+        }
+
+        public override void Dispose()
+        {
+            base.Dispose();
+
             m_EventsHelper.Dispose();
+
+            foreach (var evHandler in m_EventsHandlers) 
+            {
+                evHandler.Dispose();
+            }
+        }
+    }
+
+    internal class SwFileCustomPropertiesCollection : SwConfigurationCustomPropertiesCollection
+    {
+        internal SwFileCustomPropertiesCollection(SwDocument doc, ISwApplication app) : base("", doc, app)
+        {
+        }
+
+        protected override SwCustomProperty CreatePropertyInstance(CustomPropertyManager prpMgr, string name, bool isCreated)
+        {
+            var prp = new SwCustomProperty(prpMgr, name, isCreated, m_App);
+            InitProperty(prp);
+            return prp;
         }
     }
 
     internal class SwCustomPropertyEnumerator : IEnumerator<IXProperty>
     {
-        public IXProperty Current => new SwCustomProperty(m_Model, m_PrpMgr, m_PrpNames[m_CurPrpIndex], m_ConfName, m_EvHelper);
-
+        public IXProperty Current => m_PrpFact.Invoke(m_PrpMgr, m_PrpNames[m_CurPrpIndex], true);
+        
         object IEnumerator.Current => Current;
 
-        private readonly CustomPropertiesEventsHelper m_EvHelper;
+        protected readonly CustomPropertyManager m_PrpMgr;
 
-        private readonly IModelDoc2 m_Model;
-        private readonly ICustomPropertyManager m_PrpMgr;
-
-        private readonly string m_ConfName;
         private readonly string[] m_PrpNames;
         private int m_CurPrpIndex;
 
-        internal SwCustomPropertyEnumerator(IModelDoc2 model, ICustomPropertyManager prpMgr, string confName, CustomPropertiesEventsHelper evHelper) 
-        {
-            m_Model = model;
-            m_PrpMgr = prpMgr;
-            m_ConfName = confName;
+        private readonly Func<CustomPropertyManager, string, bool, SwCustomProperty> m_PrpFact;
 
-            m_EvHelper = evHelper;
+        internal SwCustomPropertyEnumerator(CustomPropertyManager prpMgr, 
+            Func<CustomPropertyManager, string, bool, SwCustomProperty> prpFact) 
+        {
+            m_PrpMgr = prpMgr;
+            m_PrpFact = prpFact;
 
             m_PrpNames = m_PrpMgr.GetNames() as string[];
             
@@ -150,6 +251,8 @@ namespace Xarial.XCad.SolidWorks.Data
             {
                 m_PrpNames = new string[0];
             }
+
+            m_PrpNames = m_PrpNames.Except(new string[] { SwConfiguration.QTY_PROPERTY }).ToArray();
 
             m_CurPrpIndex = -1;
         }

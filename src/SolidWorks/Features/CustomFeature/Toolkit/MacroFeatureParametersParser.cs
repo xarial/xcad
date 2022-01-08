@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -12,14 +12,17 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Xarial.XCad.Annotations;
+using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Features;
 using Xarial.XCad.Features.CustomFeature;
 using Xarial.XCad.Features.CustomFeature.Enums;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.SolidWorks.Annotations;
+using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Geometry;
 using Xarial.XCad.Utils.CustomFeature;
+using Xarial.XCad.Utils.Diagnostics;
 
 namespace Xarial.XCad.SolidWorks.Features.CustomFeature.Toolkit
 {
@@ -27,16 +30,24 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature.Toolkit
     {
         internal IMathUtility MathUtils { get; }
 
-        internal MacroFeatureParametersParser() : this(SwMacroFeatureDefinition.Application.Sw)
+        private readonly ISwApplication m_App;
+        private readonly IXLogger m_Logger;
+
+        internal MacroFeatureParametersParser() : this(SwMacroFeatureDefinition.Application)
         {
         }
 
-        internal MacroFeatureParametersParser(ISldWorks app)
+        internal MacroFeatureParametersParser(ISwApplication app)
         {
-            MathUtils = app.IGetMathUtility();
+            m_App = app;
+            MathUtils = m_App.Sw.IGetMathUtility();
+
+            //TODO: pass logger as parameter
+            m_Logger = new TraceLogger("xCAD.MacroFeature");
         }
 
-        protected override void ExtractRawParameters(IXCustomFeature feat, out Dictionary<string, object> parameters,
+        protected override void ExtractRawParameters(IXCustomFeature feat, IXDocument doc,
+            out Dictionary<string, object> parameters,
             out IXDimension[] dimensions, out IXSelObject[] selection, out IXBody[] editBodies)
         {
             object retParamNames = null;
@@ -59,7 +70,8 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature.Toolkit
 
             if (editBodiesObj != null)
             {
-                editBodies = editBodiesObj.Cast<IBody2>().Select(b => SwObject.FromDispatch<SwBody>(b)).ToArray();
+                editBodies = editBodiesObj.Cast<IBody2>()
+                    .Select(b => ((SwDocument)doc).CreateObjectFromDispatch<SwBody>(b)).ToArray();
             }
             else
             {
@@ -87,7 +99,17 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature.Toolkit
 
             if (selObjects != null)
             {
-                selection = selObjects.Select(s => SwObject.FromDispatch<SwSelObject>(s)).ToArray();
+                selection = selObjects.Select(s =>
+                {
+                    if (s != null)
+                    {
+                        return ((SwDocument)doc).CreateObjectFromDispatch<SwSelObject>(s);
+                    }
+                    else 
+                    {
+                        return null;
+                    }
+                }).ToArray();
             }
             else
             {
@@ -107,7 +129,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature.Toolkit
 
                 for (int i = 0; i < dispDimsObj.Length; i++)
                 {
-                    dimensions[i] = new SwDimension(macroFeat.Document.Model, dispDimsObj[i] as IDisplayDimension);
+                    dimensions[i] = new SwDimension(dispDimsObj[i] as IDisplayDimension, macroFeat.OwnerDocument, m_App);
                     dispDimsObj[i] = null;
                 }
 
@@ -266,7 +288,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature.Toolkit
             {
                 return base.GetParameters(feat, model, paramsType, out dispDims, out dispDimParams, out editBodies, out sels, out state);
             }
-            catch
+            catch(Exception ex)
             {
                 if (dispDims != null)
                 {
@@ -275,6 +297,8 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature.Toolkit
                         dim.Dispose();
                     }
                 }
+
+                m_Logger.Log(ex);
 
                 throw;
             }

@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -14,6 +14,7 @@ using System.Text;
 using Xarial.XCad.Data.Enums;
 using Xarial.XCad.SolidWorks.Data.Helpers;
 using Xarial.XCad.Toolkit.Data;
+using Xarial.XCad.Toolkit.Utils;
 
 namespace Xarial.XCad.SolidWorks.Data
 {

@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -20,18 +20,38 @@ using Xarial.XCad.UI.Structures;
 
 namespace Xarial.XCad.UI.Commands
 {
+    /// <summary>
+    /// Additional methods for <see cref="IXCommandManager"/>
+    /// </summary>
     public static class IXCommandManagerExtension
     {
         //TODO: think of a way to call Dispose on all wrapped enum groups
 
-        internal class EnumCommandSpec<TEnum> : CommandSpec
-            where TEnum : Enum
+        /// <summary>
+        /// Specific command spec associated with enumeration
+        /// </summary>
+        [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
+        public class EnumCommandSpec : CommandSpec
         {
-            internal TEnum Value { get; }
+            /// <summary>
+            /// Enumeration value of this command spec
+            /// </summary>
+            [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
+            public Enum Value { get; }
 
-            internal EnumCommandSpec(TEnum value, int userId) : base(userId)
+            internal EnumCommandSpec(Enum value, int userId) : base(userId)
             {
                 Value = value;
+            }
+        }
+
+        internal class EnumCommandSpec<TEnum> : EnumCommandSpec
+            where TEnum : Enum
+        {
+            internal new TEnum Value => (TEnum)base.Value;
+
+            internal EnumCommandSpec(TEnum value, int userId) : base(value, userId)
+            {
             }
         }
 
@@ -44,92 +64,114 @@ namespace Xarial.XCad.UI.Commands
         /// <remarks>Decorate enumeration and fields with <see cref="TitleAttribute"/>, <see cref="IconAttribute"/>, <see cref="DescriptionAttribute"/>, <see cref="CommandItemInfoAttribute"/> to customized look and feel of commands</remarks>
         public static IEnumCommandGroup<TCmdEnum> AddCommandGroup<TCmdEnum>(this IXCommandManager cmdMgr)
             where TCmdEnum : Enum
-        {   
-            var enumGrp = CreateEnumCommandGroup<TCmdEnum>(cmdMgr);
+        {
+            var id = GetEnumCommandGroupId(cmdMgr, typeof(TCmdEnum), out string tabName);
+
+            var enumGrp = CreateEnumCommandGroup<TCmdEnum>(cmdMgr, GetEnumCommandGroupParent(cmdMgr, typeof(TCmdEnum)), tabName, id);
 
             var cmdGrp = cmdMgr.AddCommandGroup(enumGrp);
 
             return new EnumCommandGroup<TCmdEnum>(cmdGrp);
         }
 
+        /// <summary>
+        /// Adds context menu based on the enumeration
+        /// </summary>
+        /// <param name="owner">Context menu owner</param>
+        ///<inheritdoc cref="AddCommandGroup{TCmdEnum}(IXCommandManager)"/>
         public static IEnumCommandGroup<TCmdEnum> AddContextMenu<TCmdEnum>(this IXCommandManager cmdMgr, SelectType_e? owner = null)
             where TCmdEnum : Enum
         {
-            var enumGrp = CreateEnumCommandGroup<TCmdEnum>(cmdMgr);
+            var id = GetEnumCommandGroupId(cmdMgr, typeof(TCmdEnum), out string tabName);
+
+            var enumGrp = CreateEnumCommandGroup<TCmdEnum>(cmdMgr, GetEnumCommandGroupParent(cmdMgr, typeof(TCmdEnum)), tabName, id);
 
             var cmdGrp = cmdMgr.AddContextMenu(enumGrp, owner);
 
             return new EnumCommandGroup<TCmdEnum>(cmdGrp);
         }
 
-        private static EnumCommandSpec<TCmdEnum> CreateCommand<TCmdEnum>(TCmdEnum cmdEnum)
+        /// <summary>
+        /// Creates spec from the enumeration
+        /// </summary>
+        /// <typeparam name="TCmdEnum">Enumeration type</typeparam>
+        /// <param name="cmdMgr">Command group</param>
+        /// <param name="parent">Parrent spec for this spec</param>
+        /// <param name="id">Id or null to read the data from enum itself</param>
+        /// <returns>Specification</returns>
+        /// <exception cref="GroupUserIdNotAssignedException"/>
+        [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
+        public static EnumCommandGroupSpec CreateSpecFromEnum<TCmdEnum>(this IXCommandManager cmdMgr, CommandGroupSpec parent, int? id)
             where TCmdEnum : Enum
         {
-            var cmd = new EnumCommandSpec<TCmdEnum>(cmdEnum, Convert.ToInt32(cmdEnum));
+            var isUserIdAssigned = TryGetUserAssignedGroupId(typeof(TCmdEnum), out string tabName, out int userId);
 
-            if (!cmdEnum.TryGetAttribute<CommandItemInfoAttribute>(
-                att =>
-                {
-                    cmd.HasMenu = att.HasMenu;
-                    cmd.HasToolbar = att.HasToolbar;
-                    cmd.SupportedWorkspace = att.SupportedWorkspaces;
-                    cmd.HasTabBox = att.ShowInCommandTabBox;
-                    cmd.TabBoxStyle = att.CommandTabBoxDisplayStyle;
-                }))
+            if (!id.HasValue)
             {
-                cmd.HasMenu = true;
-                cmd.HasToolbar = true;
-                cmd.SupportedWorkspace = WorkspaceTypes_e.All;
-                cmd.HasTabBox = true;
-                cmd.TabBoxStyle = RibbonTabTextDisplay_e.TextBelow;
+                if (isUserIdAssigned)
+                {
+                    id = userId;
+                }
+                else 
+                {
+                    throw new GroupUserIdNotAssignedException();
+                }
             }
 
-            cmd.HasSpacer = cmdEnum.TryGetAttribute<CommandSpacerAttribute>(x => { });
-
-            cmd.InitFromEnum(cmdEnum);
-
-            return cmd;
+            return CreateEnumCommandGroup<TCmdEnum>(cmdMgr, parent, tabName, id.Value);
         }
 
-        private static EnumCommandGroupSpec CreateEnumCommandGroup<TCmdEnum>(IXCommandManager cmdMgr)
-                                    where TCmdEnum : Enum
+        /// <param name="id">Id or -1 to automatically assign</param>
+        private static EnumCommandGroupSpec CreateEnumCommandGroup<TCmdEnum>(IXCommandManager cmdMgr, CommandGroupSpec parent, string tabName, int id)
+            where TCmdEnum : Enum
         {
-            var nextGroupId = 0;
-
-            if (cmdMgr.CommandGroups.Any())
-            {
-                nextGroupId = cmdMgr.CommandGroups.Max(g => g.Spec.Id) + 1;
-            }
-
-            var groups = cmdMgr.CommandGroups.Select(c => c.Spec);
-
             var cmdGroupType = typeof(TCmdEnum);
 
-            CommandGroupInfoAttribute grpInfoAtt = null;
-
-            EnumCommandGroupSpec parent = null;
-            int id = 0;
-
-            if (cmdGroupType.TryGetAttribute<CommandGroupInfoAttribute>(x => grpInfoAtt = x))
+            if (parent != null)
             {
-                if (grpInfoAtt.UserId != -1)
+                if (parent.Id == id)
                 {
-                    id = grpInfoAtt.UserId;
-                }
-                else
-                {
-                    id = nextGroupId;
+                    throw new ParentGroupCircularDependencyException($"{parent.Title} ({parent.Id})");
                 }
             }
-            else
-            {
-                id = nextGroupId;
-            }
+
+            var bar = new EnumCommandGroupSpec(cmdGroupType, id);
+            bar.RibbonTabName = tabName;
+            bar.Parent = parent;
+
+            bar.InitFromEnum<TCmdEnum>();
+
+            bar.Commands = Enum.GetValues(cmdGroupType).Cast<TCmdEnum>().Select(
+                c => 
+                {
+                    var enumCmdUserId = Convert.ToInt32(c);
+
+                    if (enumCmdUserId < 0)
+                    {
+                        enumCmdUserId = 0;//default id (not used)
+                    }
+                    else 
+                    {
+                        //NOTE: adding one to the id as 0 id means not used while enums start with 0
+                        enumCmdUserId++;
+                    }
+                    
+                    return CreateEnumCommand(c, enumCmdUserId); 
+                }).ToArray();
+
+            return bar;
+        }
+
+        private static CommandGroupSpec GetEnumCommandGroupParent(IXCommandManager cmdMgr, Type cmdGroupType)
+        {
+            CommandGroupSpec parent = null;
 
             CommandGroupParentAttribute grpParentAtt = null;
-            
+
             if (cmdGroupType.TryGetAttribute<CommandGroupParentAttribute>(x => grpParentAtt = x))
             {
+                var groups = cmdMgr.CommandGroups.Select(c => c.Spec);
+
                 if (grpParentAtt.ParentGroupType != null)
                 {
                     var parentGrpSpec = groups.OfType<EnumCommandGroupSpec>()
@@ -147,34 +189,96 @@ namespace Xarial.XCad.UI.Commands
 
                     parent = parentGrpSpec;
                 }
-                else 
+                else
                 {
-                    if (grpParentAtt.ParentGroupUserId == id)
-                    {
-                        throw new ParentGroupCircularDependencyException(grpParentAtt.ParentGroupType.FullName);
-                    }
-
-                    var parentGrpSpec = groups.OfType<EnumCommandGroupSpec>()
+                    var parentGrpSpec = groups.OfType<CommandGroupSpec>()
                         .FirstOrDefault(g => g.Id == grpParentAtt.ParentGroupUserId);
 
                     if (parentGrpSpec == null)
                     {
                         throw new ParentGroupNotFoundException(grpParentAtt.ParentGroupUserId.ToString(), cmdGroupType.FullName);
                     }
-
+                    
                     parent = parentGrpSpec;
                 }
-            }                
+            }
 
-            var bar = new EnumCommandGroupSpec(cmdGroupType, id);
-            bar.Parent = parent;
+            return parent;
+        }
 
-            bar.InitFromEnum<TCmdEnum>();
+        private static int GetEnumCommandGroupId(IXCommandManager cmdMgr, Type cmdGroupType, out string tabName)
+        {
+            if (!TryGetUserAssignedGroupId(cmdGroupType, out tabName, out int id)) 
+            {
+                var nextGroupId = 1;
 
-            bar.Commands = Enum.GetValues(cmdGroupType).Cast<TCmdEnum>().Select(
-                c => CreateCommand(c)).ToArray();
+                if (cmdMgr.CommandGroups.Any())
+                {
+                    var usedIds = cmdMgr.CommandGroups.Select(g => g.Spec.Id).OrderBy(x => x).ToArray();
 
-            return bar;
+                    for (int i = 0; i < cmdMgr.CommandGroups.Length; i++)
+                    {
+                        if (usedIds[i] != nextGroupId)
+                        {
+                            break;
+                        }
+
+                        nextGroupId++;
+                    }
+                }
+
+                id = nextGroupId;
+            }
+            
+            return id;
+        }
+
+        private static bool TryGetUserAssignedGroupId(Type cmdGroupType, out string tabName, out int userId) 
+        {
+            CommandGroupInfoAttribute grpInfoAtt = null;
+
+            if (cmdGroupType.TryGetAttribute<CommandGroupInfoAttribute>(x => grpInfoAtt = x))
+            {
+                if (grpInfoAtt.UserId != -1)
+                {
+                    userId = grpInfoAtt.UserId;
+                    tabName = grpInfoAtt.TabName;
+                    return true;
+                }
+            }
+
+            userId = -1;
+            tabName = "";
+            return false;
+        }
+
+        private static EnumCommandSpec<TCmdEnum> CreateEnumCommand<TCmdEnum>(TCmdEnum cmdEnum, int userId)
+            where TCmdEnum : Enum
+        {
+            var cmd = new EnumCommandSpec<TCmdEnum>(cmdEnum, userId);
+
+            if (!cmdEnum.TryGetAttribute<CommandItemInfoAttribute>(
+                att =>
+                {
+                    cmd.HasMenu = att.HasMenu;
+                    cmd.HasToolbar = att.HasToolbar;
+                    cmd.SupportedWorkspace = att.SupportedWorkspaces;
+                    cmd.HasRibbon = att.ShowInCommandTabBox;
+                    cmd.RibbonTextStyle = att.CommandTabBoxDisplayStyle;
+                }))
+            {
+                cmd.HasMenu = true;
+                cmd.HasToolbar = true;
+                cmd.SupportedWorkspace = WorkspaceTypes_e.All;
+                cmd.HasRibbon = true;
+                cmd.RibbonTextStyle = RibbonTabTextDisplay_e.TextBelow;
+            }
+
+            cmd.HasSpacer = cmdEnum.TryGetAttribute<CommandSpacerAttribute>(x => { });
+
+            cmd.InitFromEnum(cmdEnum);
+
+            return cmd;
         }
     }
 }

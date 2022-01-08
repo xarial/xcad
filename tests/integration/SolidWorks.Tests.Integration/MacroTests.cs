@@ -32,7 +32,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = NewDocument(Interop.swconst.swDocumentTypes_e.swDocPART))
             {
-                var macro = (SwVbaMacro)m_App.OpenMacro(GetFilePath("VbaMacro.swp"));
+                var macro = (ISwVbaMacro)m_App.OpenMacro(GetFilePath("VbaMacro.swp"));
                 var proc = macro.EntryPoints.First(e => e.ProcedureName == "Func1");
                 macro.Run(proc);
                 m_App.Sw.IActiveDoc2.Extension.CustomPropertyManager[""].Get5("Field1", false, out val, out _, out _);
@@ -44,10 +44,33 @@ namespace SolidWorks.Tests.Integration
         [Test]
         public void VbaMacroEntryPoints()
         {
-            var macro = (SwVbaMacro)m_App.OpenMacro(GetFilePath("VbaMacro.swp"));
+            var macro = (ISwVbaMacro)m_App.OpenMacro(GetFilePath("VbaMacro.swp"));
             var entryPoints = macro.EntryPoints.Select(e => $"{e.ModuleName}.{e.ProcedureName}");
 
             Assert.That(entryPoints.SequenceEqual(new string[] { "VbaMacro1.main", "VbaMacro1.Func1", "VbaMacro1.Func3", "Module1.Func4" }));
+        }
+
+        [Test]
+        public void RunVsta1Macro() 
+        {
+            using (var doc = NewDocument(Interop.swconst.swDocumentTypes_e.swDocPART))
+            {
+                var macro = (ISwVstaMacro)m_App.OpenMacro(GetFilePath(@"VstaMacro\Vsta1Macro\SwMacro\bin\Debug\Vsta1Macro.dll"));
+                macro.Version = VstaMacroVersion_e.Vsta1;
+
+                var proc = macro.EntryPoints.First();
+
+                if (m_App.Version.Major < Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2021)
+                {
+                    macro.Run(proc, Xarial.XCad.Enums.MacroRunOptions_e.UnloadAfterRun);
+                    m_App.Sw.IActiveDoc2.Extension.CustomPropertyManager[""].Get5("Field1", false, out string val, out _, out _);
+                    Assert.AreEqual("VstaMacroText", val);
+                }
+                else 
+                {
+                    Assert.Throws<NotSupportedException>(() => macro.Run(proc, Xarial.XCad.Enums.MacroRunOptions_e.UnloadAfterRun));
+                }
+            }
         }
     }
 }

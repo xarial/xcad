@@ -58,7 +58,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument(@"Dimensions2.sldprt"))
             {
-                swDim = (IDimension)(m_App.Documents.Active as SwDocument).Model.Parameter("D1@Sketch1");
+                swDim = (IDimension)(m_App.Documents.Active as ISwDocument).Model.Parameter("D1@Sketch1");
 
                 r1 = m_App.Documents.Active.Dimensions.TrySetDimensionValue("D1@Sketch1", 0.1d);
                 v1 = (swDim.GetSystemValue3((int)swInConfigurationOpts_e.swThisConfiguration, null) as double[])[0];

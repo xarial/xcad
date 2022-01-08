@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -12,8 +12,15 @@ using Xarial.XCad.Base;
 
 namespace Xarial.XCad.Data
 {
+    /// <summary>
+    /// Represents the collection of properties
+    /// </summary>
     public interface IXPropertyRepository : IXRepository<IXProperty>
     {
-        IXProperty GetOrPreCreate(string name);
+        /// <summary>
+        /// Pre-creates new property
+        /// </summary>
+        /// <returns>Property template</returns>
+        IXProperty PreCreate();
     }
 }

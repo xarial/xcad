@@ -15,14 +15,19 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Runtime.InteropServices;
+using Xarial.XCad.UI.PropertyPage;
 
 namespace SwAddInExample
 {
-    public partial class WinUserControl : UserControl
+    public partial class WinUserControl : UserControl, IXCustomControl
     {
         public WinUserControl()
         {
             InitializeComponent();
         }
+
+        public object Value { get; set; }
+
+        public event CustomControlValueChangedDelegate ValueChanged;
     }
 }

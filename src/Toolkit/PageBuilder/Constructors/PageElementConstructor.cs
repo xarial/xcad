@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -15,28 +15,14 @@ namespace Xarial.XCad.Utils.PageBuilder.Constructors
             where TPage : IPage
             where TElem : IControl
     {
-        protected abstract TElem Create(TPage page, IAttributeSet atts);
+        IControl IPageElementConstructor<TGroup, TPage>.Create(TPage page, IAttributeSet atts, IMetadata[] metadata, ref int numberOfUsedIds)
+            => Create(page, atts, metadata, ref numberOfUsedIds);
 
-        protected abstract TElem Create(TGroup group, IAttributeSet atts);
+        IControl IPageElementConstructor<TGroup, TPage>.Create(TGroup group, IAttributeSet atts, IMetadata[] metadata, ref int numberOfUsedIds)
+            => Create(group, atts, metadata, ref numberOfUsedIds);
+        
+        protected abstract TElem Create(TPage page, IAttributeSet atts, IMetadata[] metadata, ref int numberOfUsedIds);
 
-        protected virtual TElem Create(TPage page, IAttributeSet atts, ref int idRange)
-        {
-            return Create(page, atts);
-        }
-
-        protected virtual TElem Create(TGroup group, IAttributeSet atts, ref int idRange)
-        {
-            return Create(group, atts);
-        }
-
-        IControl IPageElementConstructor<TGroup, TPage>.Create(TPage page, IAttributeSet atts, ref int idRange)
-        {
-            return Create(page, atts, ref idRange);
-        }
-
-        IControl IPageElementConstructor<TGroup, TPage>.Create(TGroup group, IAttributeSet atts, ref int idRange)
-        {
-            return Create(group, atts, ref idRange);
-        }
+        protected abstract TElem Create(TGroup group, IAttributeSet atts, IMetadata[] metadata, ref int numberOfUsedIds);
     }
 }

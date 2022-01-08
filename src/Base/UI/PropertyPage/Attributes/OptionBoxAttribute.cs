@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -10,6 +10,9 @@ using Xarial.XCad.UI.PropertyPage.Base;
 
 namespace Xarial.XCad.UI.PropertyPage.Attributes
 {
+    /// <summary>
+    /// Constructor of option box
+    /// </summary>
     public interface IOptionBoxConstructor
     {
     }
@@ -20,6 +23,9 @@ namespace Xarial.XCad.UI.PropertyPage.Attributes
     /// <remarks>This attribute is only applicable for <see cref="Enum">enum</see> types</remarks>
     public class OptionBoxAttribute : Attribute, ISpecificConstructorAttribute
     {
+        /// <summary>
+        /// Type of the constructor
+        /// </summary>
         public Type ConstructorType { get; }
 
         /// <summary>

@@ -1,56 +1,34 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
 using SolidWorks.Interop.sldworks;
 using System;
+using System.Drawing;
+using Xarial.XCad.Features;
 using Xarial.XCad.Services;
 using Xarial.XCad.Sketch;
+using Xarial.XCad.SolidWorks.Documents;
+using Xarial.XCad.Toolkit.Utils;
 
 namespace Xarial.XCad.SolidWorks.Sketch
 {
-    public abstract class SwSketchEntity : SwSelObject, IXSketchEntity
+    public interface ISwSketchEntity : IXSketchEntity 
     {
-        internal abstract void Create();
-
-        internal SwSketchEntity(IModelDoc2 model, object ent) : base(model, ent)
-        {
-        }
     }
 
-    public abstract class SwSketchEntity<TEnt> : SwSketchEntity
+    internal abstract class SwSketchEntity : SwSelObject, ISwSketchEntity
     {
-        protected readonly ElementCreator<TEnt> m_Creator;
+        public new abstract bool IsCommitted { get; }
+        public abstract Color? Color { get; set; }
 
-        protected readonly ISketchManager m_SketchMgr;
+        public abstract IXSketchBase OwnerSketch { get; }
 
-        public TEnt Element
+        internal SwSketchEntity(object ent, ISwDocument doc, ISwApplication app) : base(ent, doc, app)
         {
-            get
-            {
-                return m_Creator.Element;
-            }
         }
-
-        internal SwSketchEntity(IModelDoc2 model, TEnt ent, bool created) : base(model, ent)
-        {
-            if (model == null)
-            {
-                throw new ArgumentNullException(nameof(model));
-            }
-
-            m_SketchMgr = model.SketchManager;
-            m_Creator = new ElementCreator<TEnt>(CreateSketchEntity, ent, created);
-        }
-
-        internal override void Create()
-        {
-            m_Creator.Create();
-        }
-
-        protected abstract TEnt CreateSketchEntity();
     }
 }

@@ -1,12 +1,13 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
 using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
+using System;
 using Xarial.XCad.Utils.PageBuilder.PageElements;
 
 namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
@@ -16,6 +17,18 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
         internal IPropertyManagerPage2 Page { get; private set; }
         internal SwPropertyManagerPageHandler Handler { get; private set; }
         internal ISldWorks App { get; private set; }
+        
+        public override bool Enabled 
+        {
+            get => throw new NotSupportedException(); 
+            set => throw new NotSupportedException(); 
+        }
+
+        public override bool Visible
+        {
+            get => throw new NotSupportedException();
+            set => throw new NotSupportedException();
+        }
 
         private string m_HelpLink;
         private string m_WhatsNewLink;
@@ -33,15 +46,19 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             Handler.WhatsNewRequested += OnWhatsNewRequested;
         }
 
-        private void OnWhatsNewRequested()
+        public override void ShowTooltip(string title, string msg)
         {
-            OpenLink(m_WhatsNewLink);
+            App.HideBubbleTooltip();
+            App.ShowBubbleTooltipAt2(0, 0, (int)swArrowPosition.swArrowLeftTop,
+                        title, msg, (int)swBitMaps.swBitMapNone,
+                        "", "", 0, (int)swLinkString.swLinkStringNone, "", "");
         }
 
+        private void OnWhatsNewRequested()
+            => OpenLink(m_WhatsNewLink);
+
         private void OnHelpRequested()
-        {
-            OpenLink(m_HelpLink);
-        }
+            => OpenLink(m_HelpLink);
 
         private void OpenLink(string link)
         {

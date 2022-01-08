@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -26,168 +26,295 @@ using System.Diagnostics;
 using System.Threading;
 using Xarial.XCad.SolidWorks.Exceptions;
 using Xarial.XCad.Base;
+using System.Collections.Generic;
+using Microsoft.Win32;
+using System.Drawing;
+using Xarial.XCad.Toolkit;
+using Xarial.XCad.SolidWorks.Services;
+using Xarial.XCad.Services;
+using Xarial.XCad.Enums;
+using Xarial.XCad.Delegates;
+using Xarial.XCad.Base.Attributes;
+using Xarial.XCad.UI;
+using Xarial.XCad.SolidWorks.UI;
+using Xarial.XCad.Reflection;
 
 namespace Xarial.XCad.SolidWorks
 {
-    /// <inheritdoc/>
-    public class SwApplication : IXApplication, IDisposable
+    public interface ISwApplication : IXApplication, IDisposable
     {
-        public static SwApplication FromPointer(ISldWorks app)
+        ISldWorks Sw { get; }
+        new ISwVersion Version { get; set; }
+
+        IXServiceCollection CustomServices { get; set; }
+
+        new ISwDocumentCollection Documents { get; }
+        new ISwMemoryGeometryBuilder MemoryGeometryBuilder { get; }
+        new ISwMacro OpenMacro(string path);
+
+        TObj CreateObjectFromDispatch<TObj>(object disp, ISwDocument doc)
+            where TObj : ISwObject;
+    }
+
+    /// <inheritdoc/>
+    internal class SwApplication : ISwApplication, IXServiceConsumer
+    {
+        #region WinApi
+        [DllImport("user32.dll")]
+        static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+        #endregion
+
+        IXDocumentRepository IXApplication.Documents => Documents;
+        IXMacro IXApplication.OpenMacro(string path) => OpenMacro(path);
+        IXMemoryGeometryBuilder IXApplication.MemoryGeometryBuilder => MemoryGeometryBuilder;
+        IXVersion IXApplication.Version
         {
-            return new SwApplication(app, new TraceLogger("xCAD"));
+            get => Version;
+            set => Version = (ISwVersion)value;
         }
 
-        public static SwApplication FromProcess(Process process)
-        {
-            var app = RotHelper.TryGetComObjectByMonikerName<ISldWorks>(GetMonikerName(process));
+        public event ApplicationStartingDelegate Starting;
+        public event ConfigureServicesDelegate ConfigureServices;
 
-            if (app != null)
+        public event ApplicationIdleDelegate Idle
+        {
+            add
             {
-                return FromPointer(app);
+                if(m_IdleDelegate == null) 
+                {
+                    ((SldWorks)Sw).OnIdleNotify += OnIdleNotify;
+                }
+
+                m_IdleDelegate += value;
             }
-            else
+            remove
             {
-                throw new Exception($"Cannot access SOLIDWORKS application at process {process.Id}");
+                m_IdleDelegate -= value;
+
+                if (m_IdleDelegate == null)
+                {
+                    ((SldWorks)Sw).OnIdleNotify -= OnIdleNotify;
+                }
             }
         }
 
-        private static string GetMonikerName(Process process) => $"SolidWorks_PID_{process.Id}";
-
-        ///<inheritdoc cref="Start(SwVersion_e?, string, CancellationToken?)"/>
-        ///<remarks>Default timeout is 5 minutes. Use different overload of this method to specify custom cancellation token</remarks>
-        public static Task<SwApplication> Start(SwVersion_e? vers = null,
-            string args = "")
+        private int OnIdleNotify()
         {
-            return Start(vers, args, new CancellationTokenSource(TimeSpan.FromMinutes(5)).Token);
+            m_IdleDelegate?.Invoke(this);
+
+            return HResult.S_OK;
+        }
+
+        private IXServiceCollection m_CustomServices;
+
+        public ISldWorks Sw => m_Creator.Element;
+
+        public ISwVersion Version 
+        {
+            get 
+            {
+                if (IsCommitted)
+                {
+                    return new SwVersion(Sw.GetVersion());
+                }
+                else 
+                {
+                    return m_Creator.CachedProperties.Get<SwVersion>();
+                }
+            }
+            set 
+            {
+                if (IsCommitted)
+                {
+                    throw new Exception("Version cannot be changed after the application is committed");
+                }
+                else 
+                {
+                    m_Creator.CachedProperties.Set(value);
+                }
+            }
+        }
+
+        private SwDocumentCollection m_Documents;
+
+        public ISwDocumentCollection Documents 
+        {
+            get 
+            {
+                m_Documents.Attach();
+                return m_Documents;
+            }
+        }
+        
+        public IntPtr WindowHandle => new IntPtr(Sw.IFrameObject().GetHWndx64());
+
+        public Process Process => Process.GetProcessById(Sw.GetProcessID());
+
+        public Rectangle WindowRectangle => new Rectangle(Sw.FrameLeft, Sw.FrameTop, Sw.FrameWidth, Sw.FrameHeight);
+
+        public ISwMemoryGeometryBuilder MemoryGeometryBuilder { get; private set; }
+
+        public bool IsCommitted => m_Creator.IsCreated;
+
+        public ApplicationState_e State 
+        {
+            get 
+            {
+                if (IsCommitted)
+                {
+                    return GetApplicationState();
+                }
+                else 
+                {
+                    return m_Creator.CachedProperties.Get<ApplicationState_e>();
+                }
+            }
+            set 
+            {
+                if (IsCommitted)
+                {
+                    var curState = GetApplicationState();
+
+                    if (curState == value)
+                    {
+                        //do nothing
+                    }
+                    else if (((int)curState - (int)value) == (int)ApplicationState_e.Hidden)
+                    {
+                        Sw.Visible = true;
+                    }
+                    else if ((int)value - ((int)curState) == (int)ApplicationState_e.Hidden)
+                    {
+                        Sw.Visible = false;
+                    }
+                    else 
+                    {
+                        throw new Exception("Only visibility can changed after the application is started");
+                    }
+                }
+                else 
+                {
+                    m_Creator.CachedProperties.Set(value);
+                }
+            }
+        }
+
+        public IXServiceCollection CustomServices 
+        {
+            get => m_CustomServices;
+            set 
+            {
+                if (!IsCommitted)
+                {
+                    m_CustomServices = value;
+                }
+                else 
+                {
+                    throw new Exception("Services can only be set before committing");
+                }
+            }
+        }
+
+        private IXLogger m_Logger;
+
+        internal IServiceProvider Services { get; private set; }
+
+        public bool IsAlive 
+        {
+            get
+            {
+                try
+                {
+                    if (Process == null || Process.HasExited || !Process.Responding)
+                    {
+                        return false;
+                    }
+                    else
+                    {
+                        var testCall = Sw.RevisionNumber();
+                        return true;
+                    }
+                }
+                catch 
+                {
+                    return false;
+                }
+            }
+        }
+
+        private bool m_IsInitialized;
+
+        private bool m_HideOnStartup;
+        
+        private bool m_IsStartupNotified;
+
+        private ElementCreator<ISldWorks> m_Creator;
+
+        private ApplicationIdleDelegate m_IdleDelegate;
+
+        private readonly Action<SwApplication> m_StartupCompletedCallback;
+
+        internal SwApplication(ISldWorks app, IXServiceCollection customServices) 
+            : this(app, default(Action<SwApplication>))
+        {
+            Init(customServices);
         }
 
         /// <summary>
-        /// Starts new instance of the SOLIDWORKS application
+        /// Only to be used within SwAddInEx
         /// </summary>
-        /// <param name="vers">Version of SOLIDWORKS to start or null for the latest version</param>
-        /// <param name="cancellationToken">Cancellation token</param>
-        /// <returns>Instance of application</returns>
-        public static async Task<SwApplication> Start(SwVersion_e? vers,
-            string args, CancellationToken? cancellationToken = null)
+        internal SwApplication(ISldWorks app, Action<SwApplication> startupCompletedCallback)
         {
-            var swPath = FindSwAppPath(vers);
+            m_IsStartupNotified = false;
+            m_StartupCompletedCallback = startupCompletedCallback;
 
-            var prc = Process.Start(swPath, args);
-
-            try
-            {
-                ISldWorks app = null;
-
-                do
-                {
-                    if (cancellationToken.HasValue)
-                    {
-                        if (cancellationToken.Value.IsCancellationRequested)
-                        {
-                            throw new AppStartCancelledByUserException();
-                        }
-                    }
-
-                    app = RotHelper.TryGetComObjectByMonikerName<ISldWorks>(GetMonikerName(prc));
-                    await Task.Delay(100);
-                }
-                while (app == null);
-
-                return FromPointer(app);
-            }
-            catch
-            {
-                if (prc != null)
-                {
-                    try
-                    {
-                        prc.Kill();
-                    }
-                    catch
-                    {
-                    }
-                }
-
-                throw;
-            }
+            m_Creator = new ElementCreator<ISldWorks>(CreateInstance, app, true);
+            WatchStartupCompleted((SldWorks)app);
         }
 
-        private static string FindSwAppPath(SwVersion_e? vers)
+        /// <summary>
+        /// Remarks used for <see cref="SwApplicationFactory.PreCreate"/>
+        /// </summary>
+        internal SwApplication()
         {
-            const string PROG_ID_TEMPLATE = "SldWorks.Application.{0}";
+            m_IsStartupNotified = false;
 
-            Microsoft.Win32.RegistryKey swAppRegKey = null;
+            m_Creator = new ElementCreator<ISldWorks>(CreateInstance, null, false);
 
-            if (vers.HasValue)
-            {
-                var progId = string.Format(PROG_ID_TEMPLATE, (int)vers);
-                swAppRegKey = Microsoft.Win32.Registry.ClassesRoot.OpenSubKey(progId);
-            }
-            else
-            {
-                foreach (var versCand in Enum.GetValues(typeof(SwVersion_e)).Cast<int>().OrderByDescending(x => x))
-                {
-                    var progId = string.Format(PROG_ID_TEMPLATE, versCand);
-                    swAppRegKey = Microsoft.Win32.Registry.ClassesRoot.OpenSubKey(progId);
-
-                    if (swAppRegKey != null)
-                    {
-                        break;
-                    }
-                }
-            }
-
-            if (swAppRegKey != null)
-            {
-                var clsidKey = swAppRegKey.OpenSubKey("CLSID", false);
-
-                if (clsidKey == null)
-                {
-                    throw new NullReferenceException($"Incorrect registry value, CLSID is missing");
-                }
-
-                var clsid = (string)clsidKey.GetValue("");
-
-                var localServerKey = Microsoft.Win32.Registry.ClassesRoot.OpenSubKey(
-                    $"CLSID\\{clsid}\\LocalServer32", false);
-
-                if (clsid == null)
-                {
-                    throw new NullReferenceException($"Incorrect registry value, LocalServer32 is missing");
-                }
-
-                var swAppPath = (string)localServerKey.GetValue("");
-
-                if (!File.Exists(swAppPath))
-                {
-                    throw new FileNotFoundException($"Path to SOLIDWORKS executable does not exist: {swAppPath}");
-                }
-
-                return swAppPath;
-            }
-            else
-            {
-                throw new NullReferenceException("Failed to find the information about the installed SOLIDWORKS applications in the registry");
-            }
+            m_Creator.CachedProperties.Set(new ServiceCollection(), nameof(CustomServices));
         }
-
-        IXDocumentCollection IXApplication.Documents => Documents;
-        IXGeometryBuilder IXApplication.GeometryBuilder => GeometryBuilder;
-        IXMacro IXApplication.OpenMacro(string path) => OpenMacro(path);
-
-        public ISldWorks Sw { get; private set; }
-
-        public SwVersion_e Version => Sw.GetVersion();
         
-        public SwDocumentCollection Documents { get; private set; }
-
-        public SwGeometryBuilder GeometryBuilder { get; private set; }
-
-        internal SwApplication(ISldWorks app, IXLogger logger)
+        internal void Init(IXServiceCollection customServices)
         {
-            Sw = app;
-            Documents = new SwDocumentCollection(this, logger);
-            GeometryBuilder = new SwGeometryBuilder(app.IGetMathUtility(), app.IGetModeler());
+            if (!m_IsInitialized)
+            {
+                m_CustomServices = customServices;
+
+                m_IsInitialized = true;
+
+                var services = new ServiceCollection();
+
+                ConfigureServices?.Invoke(this, services);
+                OnConfigureServices(services);
+
+                if (customServices != null)
+                {
+                    services.Merge(customServices);
+                }
+
+                Services = services.CreateProvider();
+                m_Logger = Services.GetService<IXLogger>();
+
+                m_Documents = new SwDocumentCollection(this, m_Logger);
+
+                var geomBuilderDocsProvider = Services.GetService<IMemoryGeometryBuilderDocumentProvider>();
+
+                MemoryGeometryBuilder = new SwMemoryGeometryBuilder(this, geomBuilderDocsProvider);
+            }
+            else 
+            {
+                Debug.Assert(false, "App has been already initialized. Must be only once");
+            }
         }
 
         public MessageBoxResult_e ShowMessageBox(string msg, MessageBoxIcon_e icon = MessageBoxIcon_e.Info, MessageBoxButtons_e buttons = MessageBoxButtons_e.Ok)
@@ -254,7 +381,7 @@ namespace Xarial.XCad.SolidWorks
             }
         }
 
-        public SwMacro OpenMacro(string path)
+        public ISwMacro OpenMacro(string path)
         {
             const string VSTA_FILE_EXT = ".dll";
             const string VBA_FILE_EXT = ".swp";
@@ -265,7 +392,7 @@ namespace Xarial.XCad.SolidWorks
             switch (ext.ToLower()) 
             {
                 case VSTA_FILE_EXT:
-                    return new SwVstaMacro(Sw, path);
+                    return new SwVstaMacro(this, path);
 
                 case VBA_FILE_EXT:
                 case BASIC_EXT:
@@ -278,6 +405,15 @@ namespace Xarial.XCad.SolidWorks
 
         public void Dispose()
         {
+            try
+            {
+                m_Documents.Dispose();
+            }
+            catch (Exception ex)
+            {
+                m_Logger.Log(ex);
+            }
+
             if (Sw != null)
             {
                 if (Marshal.IsComObject(Sw))
@@ -285,19 +421,130 @@ namespace Xarial.XCad.SolidWorks
                     Marshal.ReleaseComObject(Sw);
                 }
             }
-
-            Sw = null;
         }
 
         public void Close()
         {
             Sw.ExitApp();
         }
+        
+        public void Commit(CancellationToken cancellationToken)
+        {
+            m_Creator.Create(cancellationToken);
+            Init(CustomServices);
+        }
+
+        private ISldWorks CreateInstance(CancellationToken cancellationToken)
+        {
+            m_HideOnStartup = State.HasFlag(ApplicationState_e.Hidden);
+
+            using (var appStarter = new SwApplicationStarter(State, Version)) 
+            {
+                var app = appStarter.Start(p => Starting?.Invoke(this, p), cancellationToken);
+                WatchStartupCompleted((SldWorks)app);
+                return app;
+            }
+        }
+
+        private void WatchStartupCompleted(SldWorks sw) 
+        {
+            sw.OnIdleNotify += OnLoadFirstIdleNotify;
+        }
+
+        private int OnLoadFirstIdleNotify()
+        {
+            Debug.Assert(!m_IsStartupNotified, "This event shoud only be fired once");
+            
+            if (!m_IsStartupNotified)
+            {
+                if (Sw?.StartupProcessCompleted == true)
+                {
+                    if (m_HideOnStartup)
+                    {
+                        const int HIDE = 0;
+                        ShowWindow(new IntPtr(Sw.IFrameObject().GetHWnd()), HIDE);
+
+                        Sw.Visible = false;
+                    }
+
+                    m_IsStartupNotified = true;
+
+                    m_StartupCompletedCallback?.Invoke(this);
+
+                    if (Sw != null)
+                    {
+                        (Sw as SldWorks).OnIdleNotify -= OnLoadFirstIdleNotify;
+                    }
+                }
+            }
+            else
+            {
+                (Sw as SldWorks).OnIdleNotify -= OnLoadFirstIdleNotify;
+            }
+
+            return HResult.S_OK;
+        }
+
+        private ApplicationState_e GetApplicationState() 
+        {
+            //TODO: find the state
+            return ApplicationState_e.Default;
+        }
+
+        public void OnConfigureServices(IXServiceCollection collection)
+        {
+            collection.AddOrReplace((Func<IXLogger>)(() => new TraceLogger("xCAD.SwApplication")));
+            collection.AddOrReplace((Func<IMemoryGeometryBuilderDocumentProvider>)(() => new DefaultMemoryGeometryBuilderDocumentProvider(this)));
+            collection.AddOrReplace((Func<IFilePathResolver>)(() => new SwFilePathResolverNoSearchFolders(this)));//TODO: there is some issue with recursive search of folders in search locations - do a test to validate
+        }
+
+        public IXProgress CreateProgress()
+        {
+            if (Sw.GetUserProgressBar(out UserProgressBar prgBar))
+            {
+                return new SwProgress(prgBar);
+            }
+            else 
+            {
+                throw new Exception("Failed to create progress");
+            }
+        }
+
+        public void ShowTooltip(ITooltipSpec spec)
+        {
+            var bmp = "";
+            IXImage icon = null;
+
+            spec.GetType().TryGetAttribute<IconAttribute>(a => icon = a.Icon);
+
+            var bmpType = icon != null ? swBitMaps.swBitMapUserDefined : swBitMaps.swBitMapNone;
+
+            IIconsCreator iconsCreator = null;
+
+            if (icon != null)
+            {
+                iconsCreator = Services.GetService<IIconsCreator>();
+
+                bmp = iconsCreator.ConvertIcon(new TooltipIcon(icon)).First();
+            }
+
+            Sw.HideBubbleTooltip();
+
+            Sw.ShowBubbleTooltipAt2(spec.Position.X, spec.Position.Y, (int)spec.ArrowPosition,
+                        spec.Title, spec.Message, (int)bmpType,
+                        bmp, "", 0, (int)swLinkString.swLinkStringNone, "", "");
+
+            iconsCreator?.Dispose();
+        }
+
+        public TObj CreateObjectFromDispatch<TObj>(object disp, ISwDocument doc)
+            where TObj : ISwObject
+            => SwObjectFactory.FromDispatch<TObj>(disp, doc, this);
     }
 
     public static class SwApplicationExtension 
     {
-        public static bool IsVersionNewerOrEqual(this SwApplication app, SwVersion_e version, 
+        public static bool IsVersionNewerOrEqual(this ISwApplication app, SwVersion_e version, 
             int? servicePack = null, int? servicePackRev = null) 
         {
             return app.Sw.IsVersionNewerOrEqual(version, servicePack, servicePackRev);

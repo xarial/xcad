@@ -45,3 +45,29 @@ Use *eraser* button to clean messages (marked in blue)
 Custom messages and exceptions can be logged from xCAD module. Log can be accessed from **IXExtension::Logger** property allowing to log custom messages and exception from the module.
 
 {% code-snippet { file-name: ~LogAddIn.* } %}
+
+## Debugging xCAD.NET Source Code
+
+Starting from version 0.6.0 xCAD.NET supports Source Link allowing to step into original source code directly from the nuget package.
+
+To enable Source Link for xCAD.NET
+
+* Set the options in *Debugging* section of Visual Studio options dialog as below
+    * Unselect *Enable Just My Code* option
+    * Select *Enable Source Link support* option
+
+![Debugging options in Visual Studio](visual-studio-debugging-options.png)
+
+* Select *NuGet.org Symbol Server* in the *Symbols* section
+
+![Visual Studio symbols](visual-studio-symbols.png)
+
+Now it is possible to press F11 or click step into command to debug the source code of xCAD.NET. The following warning will be displayed. Select the appropriate option
+
+![Warning for downloading source code](download-code-warning.png)
+
+> Note. It is recommended to disable Source Link when not used
+
+See below the video demonstration of debugging the xCAD.NET source code using Source Link
+
+{% youtube id: dUzFDly9okA %}

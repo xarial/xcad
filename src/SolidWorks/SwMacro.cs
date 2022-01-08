@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -9,32 +9,47 @@ using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using Xarial.XCad.Enums;
+using Xarial.XCad.Exceptions;
 using Xarial.XCad.SolidWorks.Exceptions;
 using Xarial.XCad.Structures;
 
 namespace Xarial.XCad.SolidWorks
 {
-    public abstract class SwMacro : IXMacro 
+    public interface ISwMacro : IXMacro 
     {
-        protected readonly ISldWorks m_App;
+    }
+
+    public abstract class SwMacro : ISwMacro
+    {
+        protected readonly ISldWorks m_SwApp;
         protected readonly string m_Path;
 
         internal SwMacro(ISldWorks app, string path)
         {
-            m_App = app;
+            m_SwApp = app;
             m_Path = path;
         }
 
         public abstract MacroEntryPoint[] EntryPoints { get; }
-        
+
+        public string Path => m_Path;
+
         public virtual void Run(MacroEntryPoint entryPoint, MacroRunOptions_e opts)
+        {
+            ValidateMacro(entryPoint);
+
+            ExecuteMacro(entryPoint, opts);
+        }
+
+        protected void ExecuteMacro(MacroEntryPoint entryPoint, MacroRunOptions_e opts)
         {
             swRunMacroOption_e swOpts = swRunMacroOption_e.swRunMacroDefault;
 
-            switch (opts) 
+            switch (opts)
             {
                 case MacroRunOptions_e.Default:
                     swOpts = swRunMacroOption_e.swRunMacroDefault;
@@ -46,14 +61,118 @@ namespace Xarial.XCad.SolidWorks
             }
 
             int err;
-            if (!m_App.RunMacro2(m_Path, entryPoint.ModuleName, entryPoint.ProcedureName, (int)swOpts, out err))
+
+            if (!m_SwApp.RunMacro2(m_Path, entryPoint.ModuleName, entryPoint.ProcedureName, (int)swOpts, out err))
             {
-                throw new MacroRunException(m_Path, (swRunMacroError_e)err);
+                string errDesc;
+
+                switch ((swRunMacroError_e)err)
+                {
+                    case swRunMacroError_e.swRunMacroError_InvalidArg:
+                        errDesc = "Invalid argument";
+                        break;
+                    case swRunMacroError_e.swRunMacroError_MacrosAreDisabled:
+                        errDesc = "Macros are disabled";
+                        break;
+                    case swRunMacroError_e.swRunMacroError_NotInDesignMode:
+                        errDesc = "Not in design mode";
+                        break;
+                    case swRunMacroError_e.swRunMacroError_OnlyCodeModules:
+                        errDesc = "Only code modules";
+                        break;
+                    case swRunMacroError_e.swRunMacroError_OutOfMemory:
+                        errDesc = "Out of memory";
+                        break;
+                    case swRunMacroError_e.swRunMacroError_InvalidProcname:
+                        errDesc = "Invalid procedure name";
+                        break;
+                    case swRunMacroError_e.swRunMacroError_InvalidPropertyType:
+                        errDesc = "Invalid property type";
+                        break;
+                    case swRunMacroError_e.swRunMacroError_SuborfuncExpected:
+                        errDesc = "Sub or function expected";
+                        break;
+                    case swRunMacroError_e.swRunMacroError_BadParmCount:
+                        errDesc = "Bad parameter count";
+                        break;
+                    case swRunMacroError_e.swRunMacroError_BadVarType:
+                        errDesc = "Bad variable type";
+                        break;
+                    case swRunMacroError_e.swRunMacroError_UserInterrupt:
+                        throw new MacroUserInterruptException(m_Path, err);
+                    case swRunMacroError_e.swRunMacroError_Exception:
+                        errDesc = "Exception";
+                        break;
+                    case swRunMacroError_e.swRunMacroError_Overflow:
+                        errDesc = "Overflow";
+                        break;
+                    case swRunMacroError_e.swRunMacroError_TypeMismatch:
+                        errDesc = "Type mismatch";
+                        break;
+                    case swRunMacroError_e.swRunMacroError_ParmNotOptional:
+                        errDesc = "Parameter not optional";
+                        break;
+                    case swRunMacroError_e.swRunMacroError_UnknownLcid:
+                        errDesc = "Unknown LCID";
+                        break;
+                    case swRunMacroError_e.swRunMacroError_Busy:
+                        errDesc = "Busy";
+                        break;
+                    case swRunMacroError_e.swRunMacroError_ConnectionTerminated:
+                        errDesc = "Connection terminated";
+                        break;
+                    case swRunMacroError_e.swRunMacroError_CallRejected:
+                        errDesc = "Call rejected";
+                        break;
+                    case swRunMacroError_e.swRunMacroError_CallFailed:
+                        errDesc = "Call failed";
+                        break;
+                    case swRunMacroError_e.swRunMacroError_Zombied:
+                        errDesc = "Zombied";
+                        break;
+                    case swRunMacroError_e.swRunMacroError_Invalidindex:
+                        errDesc = "Invalid index";
+                        break;
+                    case swRunMacroError_e.swRunMacroError_NoPermission:
+                        errDesc = "No permission";
+                        break;
+                    case swRunMacroError_e.swRunMacroError_Reverted:
+                        errDesc = "Reverted";
+                        break;
+                    case swRunMacroError_e.swRunMacroError_TooManyOpenFiles:
+                        errDesc = "Too many open files";
+                        break;
+                    case swRunMacroError_e.swRunMacroError_DiskError:
+                        errDesc = "Disk error";
+                        break;
+                    case swRunMacroError_e.swRunMacroError_CantSave:
+                        errDesc = "Cannot save";
+                        break;
+                    case swRunMacroError_e.swRunMacroError_OpenFileFailed:
+                        errDesc = "Open file failed";
+                        break;
+                    default:
+                        throw new UnknownMacroRunFailedException(m_Path);
+                }
+
+                throw new MacroRunFailedException(m_Path, err, errDesc);
+            }
+        }
+
+        protected virtual void ValidateMacro(MacroEntryPoint entryPoint)
+        {
+            if (!File.Exists(Path))
+            {
+                throw new MacroFileNotFoundException(Path);
             }
         }
     }
 
-    public class SwVbaMacro : SwMacro
+    public interface ISwVbaMacro : ISwMacro
+    {
+    }
+
+    internal class SwVbaMacro : SwMacro, ISwVbaMacro
     {
         private class MacroEntryPointComparer : IComparer<MacroEntryPoint>
         {
@@ -112,21 +231,24 @@ namespace Xarial.XCad.SolidWorks
             EntryPoints = GetEntryPoints();
         }
         
-        public override void Run(MacroEntryPoint entryPoint, MacroRunOptions_e options)
+        protected override void ValidateMacro(MacroEntryPoint entryPoint)
         {
-            if (EntryPoints.Contains(entryPoint, new MacroEntryPointEqualityComparer()))
+            base.ValidateMacro(entryPoint);
+
+            if (EntryPoints == null)
             {
-                base.Run(entryPoint, options);
+                throw new MacroHasNoEntryPointsException();
             }
-            else 
+
+            if (!EntryPoints.Contains(entryPoint, new MacroEntryPointEqualityComparer()))
             {
-                throw new Exception($"Entry point '{entryPoint}' is not available in the macro '{m_Path}'");
+                throw new MacroEntryPointNotFoundException(m_Path, entryPoint);
             }
         }
-        
+
         private MacroEntryPoint[] GetEntryPoints()
         {
-            var methods = m_App.GetMacroMethods(m_Path,
+            var methods = m_SwApp.GetMacroMethods(m_Path,
                 (int)swMacroMethods_e.swMethodsWithoutArguments) as string[];
 
             if (methods != null)
@@ -142,10 +264,28 @@ namespace Xarial.XCad.SolidWorks
         }
     }
 
-    public class SwVstaMacro : SwMacro
+    public enum VstaMacroVersion_e 
     {
-        internal SwVstaMacro(ISldWorks app, string path) : base(app, path)
+        Vsta1,
+        Vsta3
+    }
+
+    public interface ISwVstaMacro : ISwMacro
+    {
+        VstaMacroVersion_e? Version { get; set; }
+    }
+
+    internal class SwVstaMacro : SwMacro, ISwVstaMacro
+    {
+        public VstaMacroVersion_e? Version { get; set; }
+
+        private readonly ISwApplication m_App;
+
+        internal SwVstaMacro(ISwApplication app, string path) : base(app.Sw, path)
         {
+            m_App = app;
+
+            Version = null; //TODO: identify version of VSTA macro
             EntryPoints = new MacroEntryPoint[] { new MacroEntryPoint("", "Main") };
         }
 
@@ -153,17 +293,37 @@ namespace Xarial.XCad.SolidWorks
 
         public override void Run(MacroEntryPoint entryPoint, MacroRunOptions_e opts)
         {
-            var stopDebugVstaFlag = m_App.GetUserPreferenceToggle((int)swUserPreferenceToggle_e.swStopDebuggingVstaOnExit);
+            base.ValidateMacro(entryPoint);
 
-            m_App.SetUserPreferenceToggle((int)swUserPreferenceToggle_e.swStopDebuggingVstaOnExit, opts == MacroRunOptions_e.UnloadAfterRun);
+            var stopDebugVstaFlag = m_SwApp.GetUserPreferenceToggle((int)swUserPreferenceToggle_e.swStopDebuggingVstaOnExit);
+
+            bool? isVsta3 = null;
+
+            if (Version.HasValue) 
+            {
+                if (Version == VstaMacroVersion_e.Vsta1 && m_App.Version.Major >= Enums.SwVersion_e.Sw2021) 
+                {
+                    throw new NotSupportedException("VSTA1 is not supported in Sw2021 or newer");
+                }
+
+                isVsta3 = m_SwApp.GetUserPreferenceToggle((int)swUserPreferenceToggle_e.swEnableVSTAVersion3);
+                m_SwApp.SetUserPreferenceToggle((int)swUserPreferenceToggle_e.swEnableVSTAVersion3, Version == VstaMacroVersion_e.Vsta3);
+            }
+
+            m_SwApp.SetUserPreferenceToggle((int)swUserPreferenceToggle_e.swStopDebuggingVstaOnExit, opts == MacroRunOptions_e.UnloadAfterRun);
 
             try
             {
-                base.Run(entryPoint, MacroRunOptions_e.Default);
+                base.ExecuteMacro(entryPoint, MacroRunOptions_e.Default);
             }
             finally 
             {
-                m_App.SetUserPreferenceToggle((int)swUserPreferenceToggle_e.swStopDebuggingVstaOnExit, stopDebugVstaFlag);
+                m_SwApp.SetUserPreferenceToggle((int)swUserPreferenceToggle_e.swStopDebuggingVstaOnExit, stopDebugVstaFlag);
+
+                if (isVsta3.HasValue) 
+                {
+                    m_SwApp.SetUserPreferenceToggle((int)swUserPreferenceToggle_e.swEnableVSTAVersion3, isVsta3.Value);
+                }
             }
         }
     }

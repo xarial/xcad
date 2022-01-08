@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -11,6 +11,9 @@ using System.Runtime.InteropServices.ComTypes;
 
 namespace Xarial.XCad.Toolkit.Data
 {
+    /// <summary>
+    /// Represents the COM stream wrapper
+    /// </summary>
     public class ComStream : Stream
     {
         private readonly bool m_Commit;

@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -17,23 +17,18 @@ namespace Xarial.XCad.SolidWorks.Documents.EventHandlers
 {
     internal class ConfigurationActivatedEventsHandler : SwModelEventsHandler<ConfigurationActivatedDelegate>
     {
-        private SwDocument3D m_Doc;
+        private readonly ISwDocument3D m_Doc3D;
 
-        internal ConfigurationActivatedEventsHandler(SwDocument3D doc) : base(doc.Model)
+        internal ConfigurationActivatedEventsHandler(SwDocument3D doc, ISwApplication app) : base(doc, app)
         {
-            m_Doc = doc;
+            m_Doc3D = doc;
         }
 
         protected override void SubscribeAssemblyEvents(AssemblyDoc assm)
         {
             assm.ConfigurationChangeNotify += OnConfigurationChangeNotify;
         }
-
-        protected override void SubscribeDrawingEvents(DrawingDoc drw)
-        {
-            throw new NotSupportedException();
-        }
-
+        
         protected override void SubscribePartEvents(PartDoc part)
         {
             part.ConfigurationChangeNotify += OnConfigurationChangeNotify;
@@ -42,11 +37,6 @@ namespace Xarial.XCad.SolidWorks.Documents.EventHandlers
         protected override void UnsubscribeAssemblyEvents(AssemblyDoc assm)
         {
             assm.ConfigurationChangeNotify -= OnConfigurationChangeNotify;
-        }
-
-        protected override void UnsubscribeDrawingEvents(DrawingDoc drw)
-        {
-            throw new NotSupportedException();
         }
 
         protected override void UnsubscribePartEvents(PartDoc part)
@@ -60,10 +50,10 @@ namespace Xarial.XCad.SolidWorks.Documents.EventHandlers
 
             if (changeType == POST_NOTIFICATION)
             {
-                Delegate?.Invoke(m_Doc, m_Doc.Configurations[configurationName]);
+                Delegate?.Invoke(m_Doc3D, m_Doc3D.Configurations[configurationName]);
             }
 
-            return S_OK;
+            return HResult.S_OK;
         }
     }
 }

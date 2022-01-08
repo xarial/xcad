@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -8,6 +8,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Xarial.XCad.Annotations;
 using Xarial.XCad.Base.Enums;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Features;
@@ -23,43 +24,28 @@ namespace Xarial.XCad.Toolkit.PageBuilder.Constructors
 {
     public static class SelectionBoxConstructorHelper
     {
-        internal class TypeSelectionCustomFilter : ISelectionCustomFilter
+        public static Type GetElementType(Type type) 
         {
-            private readonly Type m_TargetType;
-
-            internal TypeSelectionCustomFilter(Type targType)
+            if (type.IsAssignableToGenericType(typeof(IEnumerable<>)))
             {
-                if (targType == null)
-                {
-                    throw new ArgumentNullException(nameof(targType));
-                }
-
-                m_TargetType = targType;
+                return type.GetArgumentsOfGenericType(typeof(IEnumerable<>)).First();
             }
-
-            public bool Filter(IControl selBox, IXSelObject selection, SelectType_e selType, ref string itemText)
+            else 
             {
-                return m_TargetType.IsAssignableFrom(selection.GetType());
+                return type;
             }
         }
 
-        public static SelectType_e[] GetDefaultFilters(IAttributeSet atts, out ISelectionCustomFilter customFilter)
+        public static SelectType_e[] GetDefaultFilters(IAttributeSet atts)
         {
             var filters = new List<SelectType_e>();
-
-            customFilter = null;
-
+            
             if (atts == null)
             {
                 throw new ArgumentNullException(nameof(atts));
             }
 
-            var type = atts.BoundType;
-
-            if (type.IsAssignableToGenericType(typeof(IEnumerable<>))) 
-            {
-                type = type.GetArgumentsOfGenericType(typeof(IEnumerable<>)).First();
-            }
+            var type = GetElementType(atts.ContextType);
 
             if (IsOfType<IXEdge>(type))
             {
@@ -90,23 +76,24 @@ namespace Xarial.XCad.Toolkit.PageBuilder.Constructors
                 filters.Add(SelectType_e.SolidBodies);
                 filters.Add(SelectType_e.SurfaceBodies);
             }
-
-            if (!filters.Any())
+            else if (IsOfType<IXDimension>(type)) 
             {
-                filters.Add(SelectType_e.Everything);
+                filters.Add(SelectType_e.Dimensions);
             }
 
-            if (customFilter == null) 
+            if (filters.Any())
             {
-                customFilter = new TypeSelectionCustomFilter(type);
+                return filters.ToArray();
             }
-
-            return filters.ToArray();
+            else
+            {
+                return null;
+            }
         }
 
         public static BitmapLabelType_e? GetDefaultBitmapLabel(IAttributeSet atts)
         {
-            var type = atts.BoundType;
+            var type = atts.ContextType;
 
             if (type.IsAssignableToGenericType(typeof(IEnumerable<>)))
             {
@@ -125,13 +112,15 @@ namespace Xarial.XCad.Toolkit.PageBuilder.Constructors
             {
                 return BitmapLabelType_e.SelectComponent;
             }
+            else if (IsOfType<IXDimension>(type))
+            {
+                return BitmapLabelType_e.LinearDistance;
+            }
 
             return null;
         }
 
         private static bool IsOfType<T>(Type t)
-        {
-            return typeof(T).IsAssignableFrom(t);
-        }
+            => typeof(T).IsAssignableFrom(t);
     }
 }

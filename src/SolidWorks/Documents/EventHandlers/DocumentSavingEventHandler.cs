@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -19,11 +19,8 @@ namespace Xarial.XCad.SolidWorks.Documents.EventHandlers
 {
     internal class DocumentSavingEventHandler : SwModelEventsHandler<DocumentSaveDelegate>
     {
-        private readonly SwDocument m_Doc;
-
-        internal DocumentSavingEventHandler(SwDocument doc) : base(doc.Model)
+        internal DocumentSavingEventHandler(SwDocument doc, ISwApplication app) : base(doc, app)
         {
-            m_Doc = doc;
         }
 
         protected override void SubscribeAssemblyEvents(AssemblyDoc assm)
@@ -83,7 +80,7 @@ namespace Xarial.XCad.SolidWorks.Documents.EventHandlers
                 if (type == DocumentSaveType_e.SaveAs)
                 {
                     m_Doc.Model.SetSaveAsFileName(args.FileName);
-                    return S_FALSE;
+                    return HResult.S_FALSE;
                 }
                 else if (type == DocumentSaveType_e.SaveCurrent) 
                 {
@@ -91,7 +88,7 @@ namespace Xarial.XCad.SolidWorks.Documents.EventHandlers
                 }
             }
 
-            return args.Cancel ? S_FALSE : S_OK;
+            return args.Cancel ? HResult.S_FALSE : HResult.S_OK;
         }
     }
 }

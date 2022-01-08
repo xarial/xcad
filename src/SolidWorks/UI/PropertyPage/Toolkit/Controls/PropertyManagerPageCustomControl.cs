@@ -1,13 +1,16 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
 using SolidWorks.Interop.sldworks;
+using SolidWorks.Interop.swconst;
 using System;
+using Xarial.XCad.SolidWorks.UI.Toolkit;
 using Xarial.XCad.UI.PropertyPage;
+using Xarial.XCad.UI.PropertyPage.Base;
 using Xarial.XCad.Utils.PageBuilder.PageElements;
 
 namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
@@ -17,26 +20,49 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
     {
         protected override event ControlValueChangedDelegate<object> ValueChanged;
 
-        private readonly IXCustomControl m_Control;
+        private IXCustomControl m_CurrentControl;
 
-        internal PropertyManagerPageCustomControl(int id, object tag,
+        private readonly PropertyPageControlCreator<object> m_Creator;
+
+        private readonly Type m_CtrlType;
+
+        internal PropertyManagerPageCustomControl(Type ctrlType, int id, object tag,
             IPropertyManagerPageWindowFromHandle wndFromHandler,
-            SwPropertyManagerPageHandler handler, IXCustomControl control) : base(wndFromHandler, id, tag, handler)
+            SwPropertyManagerPageHandler handler,
+            PropertyPageControlCreator<object> creator, IPropertyManagerPageLabel label, IMetadata[] metadata)
+            : base(wndFromHandler, id, tag, handler, label, metadata)
         {
+            m_CtrlType = ctrlType;
             m_Handler.CustomControlCreated += OnCustomControlCreated;
-            m_Control = control;
-            m_Control.DataContextChanged += OnDataContextChanged;
+            m_Handler.Opening += OnPageOpening;
+            m_Handler.Closed += OnPageClosed;
+            m_Creator = creator;
+        }
+
+        private void OnPageOpening()
+        {
+            if (m_CurrentControl != null)
+            {
+                m_CurrentControl.ValueChanged -= OnDataContextChanged;
+            }
+
+            m_CurrentControl = m_Creator.CreateControl(m_CtrlType, out _);
+            m_CurrentControl.ValueChanged += OnDataContextChanged;
+        }
+
+        private void OnPageClosed(swPropertyManagerPageCloseReasons_e reason)
+        {
+            if (m_CurrentControl is IDisposable)
+            {
+                ((IDisposable)m_CurrentControl).Dispose();
+            }
         }
 
         protected override object GetSpecificValue()
-        {
-            return m_Control.DataContext;
-        }
+            => m_CurrentControl.Value;
 
         protected override void SetSpecificValue(object value)
-        {
-            m_Control.DataContext = value;
-        }
+            => m_CurrentControl.Value = value;
 
         private void OnCustomControlCreated(int id, bool status)
         {
@@ -50,9 +76,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
         }
 
         private void OnDataContextChanged(IXCustomControl ctrl, object newVal)
-        {
-            ValueChanged?.Invoke(this, newVal);
-        }
+            => ValueChanged?.Invoke(this, newVal);
 
         protected override void Dispose(bool disposing)
         {

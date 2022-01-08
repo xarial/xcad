@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -9,6 +9,7 @@ using SolidWorks.Interop.sldworks;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.Toolkit.Services;
 
 namespace Xarial.XCad.SolidWorks.Utils
@@ -16,11 +17,15 @@ namespace Xarial.XCad.SolidWorks.Utils
     internal abstract class SwModelEventsHandler<TDel> : EventsHandler<TDel>
         where TDel : Delegate
     {
-        private readonly IModelDoc2 m_Model;
+        protected readonly SwDocument m_Doc;
+        private IModelDoc2 m_Model => m_Doc.Model;
 
-        internal SwModelEventsHandler(IModelDoc2 model) 
+        protected readonly ISwApplication m_App;
+
+        internal SwModelEventsHandler(SwDocument doc, ISwApplication app) 
         {
-            m_Model = model;
+            m_App = app;
+            m_Doc = doc;
         }
 
         protected override void SubscribeEvents()
@@ -59,12 +64,28 @@ namespace Xarial.XCad.SolidWorks.Utils
             }
         }
 
-        protected abstract void SubscribePartEvents(PartDoc part);
-        protected abstract void SubscribeAssemblyEvents(AssemblyDoc assm);
-        protected abstract void SubscribeDrawingEvents(DrawingDoc drw);
+        protected virtual void SubscribePartEvents(PartDoc part)
+        {
+        }
 
-        protected abstract void UnsubscribePartEvents(PartDoc part);
-        protected abstract void UnsubscribeAssemblyEvents(AssemblyDoc assm);
-        protected abstract void UnsubscribeDrawingEvents(DrawingDoc drw);
+        protected virtual void SubscribeAssemblyEvents(AssemblyDoc assm)
+        {
+        }
+
+        protected virtual void SubscribeDrawingEvents(DrawingDoc drw)
+        {
+        }
+
+        protected virtual void UnsubscribePartEvents(PartDoc part) 
+        {
+        }
+
+        protected virtual void UnsubscribeAssemblyEvents(AssemblyDoc assm)
+        {
+        }
+
+        protected virtual void UnsubscribeDrawingEvents(DrawingDoc drw)
+        {
+        }
     }
 }

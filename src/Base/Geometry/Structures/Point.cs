@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -70,9 +70,7 @@ namespace Xarial.XCad.Geometry.Structures
         /// </summary>
         /// <returns>Array of coordinates</returns>
         public double[] ToArray()
-        {
-            return new double[] { X, Y, Z };
-        }
+            => new double[] { X, Y, Z };
 
         /// <summary>
         /// Compares two points coordinates by exact values
@@ -98,9 +96,7 @@ namespace Xarial.XCad.Geometry.Structures
         /// <param name="z">Z coordinate</param>
         /// <returns>True if coordinates are equal</returns>
         public bool IsSame(double x, double y, double z)
-        {
-            return X == x && Y == y && Z == z;
-        }
+            => X == x && Y == y && Z == z;
 
         /// <summary>
         /// Deducts one point of another resulting in vector
@@ -109,9 +105,7 @@ namespace Xarial.XCad.Geometry.Structures
         /// <param name="pt2">Second point</param>
         /// <returns>Vector</returns>
         public static Vector operator -(Point pt1, Point pt2)
-        {
-            return new Vector(pt2.X - pt1.X, pt2.Y - pt1.Y, pt2.Z - pt1.Z);
-        }
+            => new Vector(pt2.X - pt1.X, pt2.Y - pt1.Y, pt2.Z - pt1.Z);
 
         /// <summary>
         /// Moves point along the vector
@@ -120,9 +114,16 @@ namespace Xarial.XCad.Geometry.Structures
         /// <param name="vec">Direction of move</param>
         /// <returns>New point</returns>
         public static Point operator +(Point pt, Vector vec)
-        {
-            return new Point(pt.X + vec.X, pt.Y + vec.Y, pt.Z + vec.Z);
-        }
+            => new Point(pt.X + vec.X, pt.Y + vec.Y, pt.Z + vec.Z);
+
+        /// <summary>
+        /// Applies the transformation to the point
+        /// </summary>
+        /// <param name="pt">Source point</param>
+        /// <param name="matrix">Matrix</param>
+        /// <returns>Transformed point</returns>
+        public static Point operator *(Point pt, TransformMatrix matrix)
+            => pt.Transform(matrix);
 
         /// <summary>
         /// Moves the point along the vector by specified distance
@@ -148,6 +149,31 @@ namespace Xarial.XCad.Geometry.Structures
             Z *= scalar;
         }
 
+        /// <summary>
+        /// Converts this point to vector
+        /// </summary>
+        /// <returns>Resulting vector</returns>
+        public Vector ToVector() => new Vector(X, Y, Z);
+
+        /// <summary>
+        /// Transforms this point with the transformation matrix
+        /// </summary>
+        /// <param name="matrix">Transformation matrix</param>
+        /// <returns>Transformed point</returns>
+        public Point Transform(TransformMatrix matrix) 
+        {
+            var x = X * matrix.M11 + Y * matrix.M21 + Z * matrix.M31 + matrix.M41;
+            var y = X * matrix.M12 + Y * matrix.M22 + Z * matrix.M32 + matrix.M42;
+            var z = X * matrix.M13 + Y * matrix.M23 + Z * matrix.M33 + matrix.M43;
+
+            var w = matrix.M14 * X + matrix.M24 * Y + matrix.M34 * Z + matrix.M44;
+
+            return new Point(x / w, y / w, z / w);
+        }
+
+        /// <summary>
+        /// Converts to string
+        /// </summary>
         public override string ToString()
         {
             return $"{X};{Y};{Z}";

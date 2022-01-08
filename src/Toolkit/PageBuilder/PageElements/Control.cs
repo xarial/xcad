@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -30,6 +30,8 @@ namespace Xarial.XCad.Utils.PageBuilder.PageElements
             }
         }
 
+        object IControl.GetValue() => GetSpecificValue();
+
         protected abstract event ControlValueChangedDelegate<TVal> ValueChanged;
 
         private ControlObjectValueChangedDelegate m_ValueChangedHandler;
@@ -37,22 +39,24 @@ namespace Xarial.XCad.Utils.PageBuilder.PageElements
         public int Id { get; private set; }
 
         public object Tag { get; private set; }
+        
+        public abstract bool Enabled { get; set; }
+        public abstract bool Visible { get; set; }
 
-        protected Control(int id, object tag)
+        public IMetadata[] Metadata { get; }
+
+        protected Control(int id, object tag, IMetadata[] metadata)
         {
             Id = id;
             Tag = tag;
+            Metadata = metadata;
         }
 
-        public void Dispose()
+        public virtual void Update() 
         {
-            Dispose(true);
         }
 
-        object IControl.GetValue()
-        {
-            return GetSpecificValue();
-        }
+        public void Dispose() => Dispose(true);
 
         public void SetValue(object value)
         {
@@ -60,6 +64,8 @@ namespace Xarial.XCad.Utils.PageBuilder.PageElements
 
             SetSpecificValue(destVal);
         }
+
+        public abstract void ShowTooltip(string title, string msg);
 
         protected virtual void Dispose(bool disposing)
         {

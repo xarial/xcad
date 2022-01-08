@@ -1,88 +1,157 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
 using SolidWorks.Interop.sldworks;
+using SolidWorks.Interop.swconst;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
+using Xarial.XCad.Features;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;
+using Xarial.XCad.Geometry.Surfaces;
+using Xarial.XCad.Geometry.Wires;
+using Xarial.XCad.SolidWorks.Documents;
+using Xarial.XCad.SolidWorks.Features;
+using Xarial.XCad.SolidWorks.Geometry.Curves;
+using Xarial.XCad.SolidWorks.Geometry.Surfaces;
+using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.Utils.Reflection;
 
 namespace Xarial.XCad.SolidWorks.Geometry
 {
-    public class SwFace : SwEntity, IXFace
+    public interface ISwFace : ISwEntity, IXFace 
     {
-        public IFace2 Face { get; }
+        IFace2 Face { get; }
+        new ISwSurface Definition { get; }
+        new IEnumerable<ISwEdge> Edges { get; }
+    }
 
-        public SwFace(IFace2 face) : base(face as IEntity)
+    internal class SwFace : SwEntity, ISwFace
+    {
+        IXSurface IXFace.Definition => Definition;
+        IEnumerable<IXEdge> IXFace.Edges => Edges;
+
+        public IFace2 Face { get; }
+        private readonly IMathUtility m_MathUtils;
+
+        internal SwFace(IFace2 face, ISwDocument doc, ISwApplication app) : base((IEntity)face, doc, app)
         {
             Face = face;
+            m_MathUtils = app.Sw.IGetMathUtility();
         }
 
-        public override SwBody Body => (SwBody)FromDispatch(Face.GetBody());
+        public override ISwBody Body => OwnerApplication.CreateObjectFromDispatch<ISwBody>(Face.GetBody(), OwnerDocument);
 
-        public override IEnumerable<SwEntity> AdjacentEntities 
+        public override IEnumerable<ISwEntity> AdjacentEntities 
         {
             get 
             {
                 foreach (IEdge edge in (Face.GetEdges() as object[]).ValueOrEmpty())
                 {
-                    yield return FromDispatch<SwEdge>(edge);
+                    yield return OwnerApplication.CreateObjectFromDispatch<ISwEdge>(edge, OwnerDocument);
                 }
             }
         }
 
         public double Area => Face.GetArea();
-    }
 
-    public class SwPlanarFace : SwFace, IXPlanarFace
-    {
-        public SwPlanarFace(IFace2 face) : base(face)
+        private IComponent2 GetSwComponent() => (Face as IEntity).GetComponent() as IComponent2;
+
+        public System.Drawing.Color? Color 
         {
+            get => SwColorHelper.GetColor(GetSwComponent(), 
+                (o, c) => Face.GetMaterialPropertyValues2((int)o, c) as double[]);
+            set => SwColorHelper.SetColor(value, GetSwComponent(),
+                (m, o, c) => Face.SetMaterialPropertyValues2(m, (int)o, c),
+                (o, c) => Face.RemoveMaterialProperty2((int)o, c));
         }
 
-        public Vector Normal => new Vector(Face.Normal as double[]);
-    }
+        public ISwSurface Definition => OwnerApplication.CreateObjectFromDispatch<SwSurface>(Face.IGetSurface(), OwnerDocument);
 
-    public class SwCylindricalFace : SwFace, IXCylindricalFace
-    {
-        public SwCylindricalFace(IFace2 face) : base(face)
-        {
-        }
-
-        public Point Origin
-        {
-            get
-            {
-                var cylParams = CylinderParams;
-
-                return new Point(cylParams[0], cylParams[1], cylParams[2]);
-            }
-        }
-
-        public Vector Axis 
+        public IXFeature Feature 
         {
             get 
             {
-                var cylParams = CylinderParams;
+                var feat = Face.IGetFeature();
 
-                return new Vector(cylParams[3], cylParams[4], cylParams[5]);
+                if (feat != null)
+                {
+                    return OwnerDocument.CreateObjectFromDispatch<ISwFeature>(feat);
+                }
+                else 
+                {
+                    return null;
+                }
             }
         }
 
-        public double Radius => CylinderParams[6];
+        public IEnumerable<ISwEdge> Edges => (Face.GetEdges() as object[])
+            .Select(f => OwnerApplication.CreateObjectFromDispatch<ISwEdge>(f, OwnerDocument));
 
-        private double[] CylinderParams
+        public override Point FindClosestPoint(Point point)
+            => new Point(((double[])Face.GetClosestPointOn(point.X, point.Y, point.Z)).Take(3).ToArray());
+
+        public bool TryProjectPoint(Point point, Vector direction, out Point projectedPoint)
         {
-            get
+            var dirVec = (MathVector)m_MathUtils.CreateVector(direction.ToArray());
+            var startPt = (MathPoint)m_MathUtils.CreatePoint(point.ToArray());
+
+            var resPt = Face.GetProjectedPointOn(startPt, dirVec);
+
+            if (resPt != null)
             {
-                return Face.IGetSurface().CylinderParams as double[];
+                projectedPoint = new Point((double[])resPt.ArrayData);
+                return true;
+            }
+            else
+            {
+                projectedPoint = null;
+                return false;
             }
         }
+    }
+
+    public interface ISwPlanarFace : ISwFace, IXPlanarFace, ISwRegion
+    {
+        new ISwPlanarSurface Definition { get; }
+    }
+
+    internal class SwPlanarFace : SwFace, ISwPlanarFace
+    {
+        IXSegment[] IXRegion.Boundary => Boundary;
+        IXPlanarSurface IXPlanarFace.Definition => Definition;
+
+        public SwPlanarFace(IFace2 face, ISwDocument doc, ISwApplication app) : base(face, doc, app)
+        {
+        }
+
+        public new ISwPlanarSurface Definition => OwnerApplication.CreateObjectFromDispatch<SwPlanarSurface>(Face.IGetSurface(), OwnerDocument);
+
+        public Plane Plane => Definition.Plane;
+
+        public ISwCurve[] Boundary => Edges.Select(e => e.Definition).ToArray();
+    }
+
+    public interface ISwCylindricalFace : ISwFace, IXCylindricalFace
+    {
+        new ISwCylindricalSurface Definition { get; }
+    }
+
+    internal class SwCylindricalFace : SwFace, ISwCylindricalFace
+    {
+        IXCylindricalSurface IXCylindricalFace.Definition => Definition;
+
+        public SwCylindricalFace(IFace2 face, ISwDocument doc, ISwApplication app) : base(face, doc, app)
+        {
+        }
+
+        public new ISwCylindricalSurface Definition => OwnerApplication.CreateObjectFromDispatch<SwCylindricalSurface>(
+            Face.IGetSurface(), OwnerDocument);
     }
 }

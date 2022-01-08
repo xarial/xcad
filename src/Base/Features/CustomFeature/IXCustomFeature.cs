@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -15,7 +15,14 @@ namespace Xarial.XCad.Features.CustomFeature
      /// </summary>
     public interface IXCustomFeature : IXFeature
     {
+        /// <summary>
+        /// Type of the definition of this custom feature
+        /// </summary>
         Type DefinitionType { get; set; }
+
+        /// <summary>
+        /// Referenced configuration
+        /// </summary>
         IXConfiguration Configuration { get; }
     }
 
@@ -26,6 +33,9 @@ namespace Xarial.XCad.Features.CustomFeature
     public interface IXCustomFeature<TParams> : IXCustomFeature
         where TParams : class, new()
     {
+        /// <summary>
+        /// Parameters of this feature
+        /// </summary>
         TParams Parameters { get; set; }
     }
 }

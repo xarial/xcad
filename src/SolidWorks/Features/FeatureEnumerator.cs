@@ -1,0 +1,101 @@
+﻿//*********************************************************************
+//xCAD
+//Copyright(C) 2021 Xarial Pty Limited
+//Product URL: https://www.xcad.net
+//License: https://xcad.xarial.com/license/
+//*********************************************************************
+
+using SolidWorks.Interop.sldworks;
+using System.Collections;
+using System.Collections.Generic;
+using Xarial.XCad.Features;
+using Xarial.XCad.SolidWorks.Documents;
+
+namespace Xarial.XCad.SolidWorks.Features
+{
+    internal abstract class FeatureEnumerator : IEnumerator<IXFeature>
+    {
+        internal static IEnumerable<IFeature> IterateFeatures(IFeature firstFeature, bool recursive)
+        {
+            var processedFeats = new List<IFeature>();
+
+            var nextFeat = firstFeature;
+
+            while (nextFeat != null)
+            {
+                if (nextFeat.GetTypeName2() != "HistoryFolder")
+                {
+                    if (!processedFeats.Contains(nextFeat))
+                    {
+                        processedFeats.Add(nextFeat);
+
+                        yield return nextFeat;
+
+                        if (recursive)
+                        {
+                            foreach (var subFeat in IterateSubFeatures(nextFeat, processedFeats, recursive))
+                            {
+                                yield return subFeat;
+                            }
+                        }
+                    }
+                }
+
+                nextFeat = nextFeat.IGetNextFeature();
+            }
+        }
+
+        internal static IEnumerable<IFeature> IterateSubFeatures(IFeature parent, bool recursive)
+            => IterateSubFeatures(parent, new List<IFeature>(), recursive);
+
+        private static IEnumerable<IFeature> IterateSubFeatures(IFeature parent, List<IFeature> processedFeats, bool recursive)
+        {
+            var nextSubFeat = parent.IGetFirstSubFeature();
+
+            while (nextSubFeat != null)
+            {
+                if (!processedFeats.Contains(nextSubFeat))
+                {
+                    processedFeats.Add(nextSubFeat);
+
+                    yield return nextSubFeat;
+
+                    if (recursive)
+                    {
+                        foreach (var subSubFeat in IterateSubFeatures(nextSubFeat, processedFeats, recursive))
+                        {
+                            yield return subSubFeat;
+                        }
+                    }
+                }
+
+                nextSubFeat = nextSubFeat.IGetNextSubFeature();
+            }
+        }
+
+        public IXFeature Current => m_RootDoc.CreateObjectFromDispatch<SwFeature>(m_Features.Current);
+
+        object IEnumerator.Current => Current;
+
+        private readonly ISwDocument m_RootDoc;
+
+        private readonly IFeature m_FirstFeat;
+
+        internal FeatureEnumerator(ISwDocument rootDoc, IFeature firstFeat)
+        {
+            m_RootDoc = rootDoc;
+            m_FirstFeat = firstFeat;
+        }
+
+        public bool MoveNext() => m_Features.MoveNext();
+
+        public void Reset()
+            => m_Features = IterateFeatures(m_FirstFeat, true).GetEnumerator();
+
+        private IEnumerator<IFeature> m_Features;
+
+        public void Dispose()
+        {
+        }
+    }
+}

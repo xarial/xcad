@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -17,6 +17,9 @@ namespace Xarial.XCad.UI.PropertyPage.Attributes
     /// <remarks>Applied to property of type <see cref="string"/></remarks>
     public class TextBoxOptionsAttribute : Attribute, IAttribute
     {
+        /// <summary>
+        /// Specific text box style
+        /// </summary>
         public TextBoxStyle_e Style { get; private set; }
 
         /// <summary>

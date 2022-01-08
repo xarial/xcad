@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -22,15 +22,15 @@ namespace Xarial.XCad.SolidWorks.Documents.Services
         protected ISldWorks Application { get; private set; }
         protected IModelDoc2 Model { get; private set; }
 
-        protected SwDocument Document { get; private set; }
+        protected ISwDocument Document { get; private set; }
 
         public void Init(IXApplication app, IXDocument model)
         {
-            Document = (SwDocument)model;
+            Document = (ISwDocument)model;
 
-            Application = ((SwApplication)app).Sw;
+            Application = ((ISwApplication)app).Sw;
 
-            OnInit((SwApplication)app, Document);
+            OnInit((ISwApplication)app, Document);
 
             Model = Document.Model;
 
@@ -53,7 +53,7 @@ namespace Xarial.XCad.SolidWorks.Documents.Services
             }
         }
 
-        protected virtual void OnInit(SwApplication app, SwDocument doc) 
+        protected virtual void OnInit(ISwApplication app, ISwDocument doc) 
         {
         }
 

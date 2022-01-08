@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -10,10 +10,12 @@ using SolidWorks.Interop.swconst;
 using System;
 using System.Drawing;
 using System.Linq;
+using Xarial.XCad.SolidWorks.Services;
 using Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls;
 using Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Icons;
 using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.UI.PropertyPage.Attributes;
+using Xarial.XCad.UI.PropertyPage.Base;
 using Xarial.XCad.Utils.PageBuilder.Attributes;
 using Xarial.XCad.Utils.PageBuilder.Base;
 
@@ -22,39 +24,27 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
     internal class PropertyManagerPageBitmapButtonConstructor
         : PropertyManagerPageBaseControlConstructor<PropertyManagerPageBitmapButtonControl, IPropertyManagerPageBitmapButton>, IBitmapButtonConstructor
     {
-        private readonly IconsConverter m_IconsConv;
+        private readonly IIconsCreator m_IconsConv;
 
-        public PropertyManagerPageBitmapButtonConstructor(ISldWorks app, IconsConverter iconsConv)
+        public PropertyManagerPageBitmapButtonConstructor(ISldWorks app, IIconsCreator iconsConv)
             : base(app, swPropertyManagerPageControlType_e.swControlType_BitmapButton, iconsConv)
         {
             m_IconsConv = iconsConv;
         }
 
-        protected override IPropertyManagerPageBitmapButton CreateSwControlInGroup(IPropertyManagerPageGroup group, ControlOptionsAttribute opts, IAttributeSet atts)
+        protected override IPropertyManagerPageBitmapButton CreateSwControl(object host, ControlOptionsAttribute opts, IAttributeSet atts)
         {
             SetButtonSpecificType(atts);
-            return base.CreateSwControlInGroup(group, opts, atts);
+            return base.CreateSwControl(host, opts, atts);
         }
-
-        protected override IPropertyManagerPageBitmapButton CreateSwControlInPage(IPropertyManagerPage2 page, ControlOptionsAttribute opts, IAttributeSet atts)
-        {
-            SetButtonSpecificType(atts);
-            return base.CreateSwControlInPage(page, opts, atts);
-        }
-
-        protected override IPropertyManagerPageBitmapButton CreateSwControlInTab(IPropertyManagerPageTab tab, ControlOptionsAttribute opts, IAttributeSet atts)
-        {
-            SetButtonSpecificType(atts);
-            return base.CreateSwControlInTab(tab, opts, atts);
-        }
-
+        
         private void SetButtonSpecificType(IAttributeSet atts) 
         {
-            if (atts.BoundType == typeof(bool))
+            if (atts.ContextType == typeof(bool))
             {
                 m_Type = swPropertyManagerPageControlType_e.swControlType_CheckableBitmapButton;
             }
-            else if (atts.BoundType == typeof(Action))
+            else if (atts.ContextType == typeof(Action))
             {
                 m_Type = swPropertyManagerPageControlType_e.swControlType_BitmapButton;
             }
@@ -65,7 +55,8 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
         }
 
         protected override PropertyManagerPageBitmapButtonControl CreateControl(
-            IPropertyManagerPageBitmapButton swCtrl, IAttributeSet atts, SwPropertyManagerPageHandler handler, short height)
+            IPropertyManagerPageBitmapButton swCtrl, IAttributeSet atts, IMetadata[] metadata,
+            SwPropertyManagerPageHandler handler, short height, IPropertyManagerPageLabel label)
         {
             var bmpAtt = atts.Get<BitmapButtonAttribute>();
 
@@ -78,11 +69,12 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
                 var bmpWidth = bmpAtt.Width;
                 var bmpHeight = bmpAtt.Height;
 
-                var icon = AdjustIcon(IconsConverter.FromXImage(bmpAtt.Icon ?? Defaults.Icon), bmpWidth, bmpHeight);
+                var icon = bmpAtt.Icon ?? Defaults.Icon;
 
                 if (m_App.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2016))
                 {
                     var icons = m_IconsConv.ConvertIcon(new BitmapButtonHighResIcon(icon, bmpWidth, bmpHeight));
+
                     var imgList = icons.Take(6).ToArray();
                     var maskImgList = icons.Skip(6).ToArray();
                     swCtrl.SetBitmapsByName3(imgList, maskImgList);
@@ -90,28 +82,12 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
                 else
                 {
                     var icons = m_IconsConv.ConvertIcon(new BitmapButtonIcon(icon, bmpWidth, bmpHeight));
+
                     swCtrl.SetBitmapsByName2(icons[0], icons[1]);
                 }
             }
 
-            return new PropertyManagerPageBitmapButtonControl(atts.Id, atts.Tag, swCtrl, handler);
-        }
-
-        private Image AdjustIcon(Image icon, int width, int height) 
-        {
-            const int BORDER_SIZE = 5;
-
-            var offsetX = (int)(BORDER_SIZE * (icon.Width / width));
-            var offsetY = (int)(BORDER_SIZE * (icon.Height / height));
-
-            var img = new Bitmap(icon.Width + offsetX * 2, icon.Height + offsetY * 2, icon.PixelFormat);
-            
-            using (var gr = Graphics.FromImage(img))
-            {
-                gr.DrawImage(icon, new Rectangle(new Point(offsetX, offsetY), icon.Size));
-            }
-
-            return img;
+            return new PropertyManagerPageBitmapButtonControl(atts.Id, atts.Tag, swCtrl, handler, label, metadata);
         }
     }
 }

@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -9,15 +9,27 @@ using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using System.Text;
+using System.Threading;
 using Xarial.XCad.Data;
 using Xarial.XCad.Data.Delegates;
 using Xarial.XCad.SolidWorks.Data.EventHandlers;
+using Xarial.XCad.SolidWorks.Data.Exceptions;
 using Xarial.XCad.SolidWorks.Data.Helpers;
+using Xarial.XCad.SolidWorks.Documents;
+using Xarial.XCad.SolidWorks.Enums;
+using Xarial.XCad.Toolkit.Services;
 
 namespace Xarial.XCad.SolidWorks.Data
 {
-    public class SwCustomProperty : IXProperty
+    public interface ISwCustomProperty : IXProperty
+    {
+    }
+
+    [DebuggerDisplay("{" +nameof(Name) + "} = {" + nameof(Value) + "} ({" + nameof(Expression) + "})")]
+    internal class SwCustomProperty : ISwCustomProperty
     {
         private string m_Name;
         private object m_TempValue;
@@ -38,7 +50,7 @@ namespace Xarial.XCad.SolidWorks.Data
         {
             get
             {
-                if (Exists)
+                if (IsCommitted)
                 {
                     TryReadProperty(out _, out object resVal);
                     return resVal;
@@ -50,14 +62,9 @@ namespace Xarial.XCad.SolidWorks.Data
             }
             set
             {
-                if (Exists)
+                if (IsCommitted)
                 {
-                    var res = (swCustomInfoSetResult_e)m_PrpMgr.Set2(Name, value?.ToString());
-
-                    if (res != swCustomInfoSetResult_e.swCustomInfoSetResult_OK)
-                    {
-                        throw new Exception($"Failed to set the value of the property. Error code: {res}");
-                    }
+                    SetProperty(PrpMgr, Name, value);
                 }
                 else 
                 {
@@ -70,7 +77,7 @@ namespace Xarial.XCad.SolidWorks.Data
         {
             get 
             {
-                if (Exists)
+                if (IsCommitted)
                 {
                     TryReadProperty(out string val, out _);
                     return val;
@@ -82,7 +89,14 @@ namespace Xarial.XCad.SolidWorks.Data
             }
             set 
             {
-                Value = value;
+                if (IsCommitted)
+                {
+                    Value = value;
+                }
+                else 
+                {
+                    m_TempValue = value;
+                }
             }
         }
 
@@ -98,47 +112,38 @@ namespace Xarial.XCad.SolidWorks.Data
             }
         }
 
-        private readonly CustomPropertyChangeEventsHandler m_CustomPropertyChangeEventsHandler;
+        private EventsHandler<PropertyValueChangedDelegate> m_CustomPropertyChangeEventsHandler;
 
-        private IModelDoc2 m_Model;
-        private ICustomPropertyManager m_PrpMgr;
-
-        public string ConfigurationName { get; }
-
-        public bool Exists
+        protected virtual ICustomPropertyManager PrpMgr { get; }
+        
+        public bool IsCommitted 
         {
-            get
-            {
-                //TODO: for older that SW2014 - get all properties
-                return m_PrpMgr.Get5(Name, true, out _, out _, out _) != (int)swCustomInfoGetResult_e.swCustomInfoGetResult_NotPresent;
-            }
+            get;
+            private set;
+        }
+        public bool UseCached { get; set; }
+
+        protected readonly ISwApplication m_App;
+
+        internal SwCustomProperty(CustomPropertyManager prpMgr, string name, bool isCommited, ISwApplication app)
+        {
+            UseCached = true;
+            PrpMgr = prpMgr;
+            m_Name = name;
+            IsCommitted = isCommited;
+            m_App = app;
         }
 
-        internal SwCustomProperty(IModelDoc2 model, ICustomPropertyManager prpMgr, string name, 
-            string confName, CustomPropertiesEventsHelper evHelper) 
+        internal void SetEventsHandler(EventsHandler<PropertyValueChangedDelegate> eventsHandler) 
         {
-            m_Model = model;
-            m_PrpMgr = prpMgr;
-            m_Name = name;
-            ConfigurationName = confName;
-
-            var isBugPresent = true; //TODO: find version when the issue is starter
-
-            if (isBugPresent)
-            {
-                m_CustomPropertyChangeEventsHandler = new CustomPropertyChangeEventsHandlerFromSw2017(evHelper, model, this);
-            }
-            else 
-            {
-                m_CustomPropertyChangeEventsHandler = new CustomPropertyChangeEventsHandler(model, this);
-            }
+            m_CustomPropertyChangeEventsHandler = eventsHandler;
         }
 
         private void RenameProperty(string newName) 
         {
             m_Name = newName;
 
-            if (Exists)
+            if (IsCommitted)
             {
                 throw new NotImplementedException();
             }
@@ -147,12 +152,27 @@ namespace Xarial.XCad.SolidWorks.Data
         private void TryReadProperty(out string val, out object resVal)
         {
             string resValStr;
+
+            bool prpExist;
             
-            if (m_PrpMgr.Get4(Name, false, out val, out resValStr))
+            if (m_App.IsVersionNewerOrEqual(SwVersion_e.Sw2018))
+            {
+                prpExist = PrpMgr.Get6(Name, UseCached, out val, out resValStr, out _, out _) != (int)swCustomInfoGetResult_e.swCustomInfoGetResult_NotPresent;
+            }
+            else if (m_App.IsVersionNewerOrEqual(SwVersion_e.Sw2014))
+            {
+                prpExist = PrpMgr.Get5(Name, UseCached, out val, out resValStr, out _) != (int)swCustomInfoGetResult_e.swCustomInfoGetResult_NotPresent;
+            }
+            else
+            {
+                prpExist = PrpMgr.Get4(Name, UseCached, out val, out resValStr);
+            }
+
+            if (prpExist)
             {
                 resVal = null;
 
-                switch ((swCustomInfoType_e)m_PrpMgr.GetType2(Name))
+                switch ((swCustomInfoType_e)PrpMgr.GetType2(Name))
                 {
                     case swCustomInfoType_e.swCustomInfoText:
                         resVal = resValStr;
@@ -178,6 +198,92 @@ namespace Xarial.XCad.SolidWorks.Data
             else
             {
                 resVal = null;
+            }
+        }
+
+        public void Commit(CancellationToken cancellationToken)
+        {
+            if (!IsCommitted)
+            {
+                AddProperty(PrpMgr, Name, Value);
+
+                IsCommitted = true;
+            }
+            else 
+            {
+                throw new Exception("Property already committed");
+            }
+        }
+
+        protected virtual void AddProperty(ICustomPropertyManager prpMgr, string name, object value)
+        {
+            if (m_App.IsVersionNewerOrEqual(SwVersion_e.Sw2014))
+            {
+                var res = (swCustomInfoAddResult_e)prpMgr.Add3(name, (int)swCustomInfoType_e.swCustomInfoText, 
+                    value?.ToString(), (int)swCustomPropertyAddOption_e.swCustomPropertyOnlyIfNew);
+
+                if (res != swCustomInfoAddResult_e.swCustomInfoAddResult_AddedOrChanged)
+                {
+                    throw new Exception($"Failed to add {Name}. Error code: {res}");
+                }
+            }
+            else 
+            {
+                const int SUCCESS = 1;
+
+                if (prpMgr.Add2(name, (int)swCustomInfoType_e.swCustomInfoText, value?.ToString()) != SUCCESS)
+                {
+                    throw new Exception($"Failed to add {Name}");
+                }
+            }
+        }
+
+        protected virtual void SetProperty(ICustomPropertyManager prpMgr, string name, object value) 
+        {
+            if (m_App.IsVersionNewerOrEqual(SwVersion_e.Sw2014))
+            {
+                var res = (swCustomInfoSetResult_e)prpMgr.Set2(name, value?.ToString());
+
+                if (res != swCustomInfoSetResult_e.swCustomInfoSetResult_OK)
+                {
+                    throw new Exception($"Failed to set the value of the property '{name}'. Error code: {res}");
+                }
+            }
+            else 
+            {
+                const int SUCCESS = 0;
+
+                if (prpMgr.Set(name, value?.ToString()) != SUCCESS) 
+                {
+                    throw new Exception($"Failed to set the value of the property '{name}'");
+                }
+            }
+        }
+    }
+
+    internal class SwConfigurationCustomProperty : SwCustomProperty
+    {
+        private readonly IConfiguration m_Conf;
+        
+        internal SwConfigurationCustomProperty(CustomPropertyManager prpMgr, string name, bool isCommited, SwDocument doc, string confName, ISwApplication app)
+            : base(prpMgr, name, isCommited, app)
+        {
+            m_Conf = (IConfiguration)doc.Model.GetConfigurationByName(confName);
+        }
+
+        protected override void AddProperty(ICustomPropertyManager prpMgr, string name, object value)
+        {
+            base.AddProperty(prpMgr, name, value);
+
+            if (m_App.Version.Major == SwVersion_e.Sw2021 && !m_App.IsVersionNewerOrEqual(SwVersion_e.Sw2021, 4, 1)) //regression bug in SW 2021 where property cannot be added to unloaded configuration
+            {
+                if (!m_Conf.IsLoaded())
+                {
+                    if (!((string[])prpMgr.GetNames() ?? new string[0]).Contains(name, StringComparer.CurrentCultureIgnoreCase))
+                    {
+                        throw new CustomPropertyUnloadedConfigException();
+                    }
+                }
             }
         }
     }

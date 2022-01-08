@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -71,7 +71,7 @@ namespace Xarial.XCad.Utils.CustomFeature
             IXSelObject[] featSels;
             IXBody[] featBodies;
 
-            ExtractRawParameters(feat, out featRawParams, out featDims, out featSels, out featBodies);
+            ExtractRawParameters(feat, model, out featRawParams, out featDims, out featSels, out featBodies);
 
             var parameters = new Dictionary<string, string>();
 
@@ -301,7 +301,7 @@ namespace Xarial.XCad.Utils.CustomFeature
         }
 
         //TODO: need to spearate to different methods
-        protected abstract void ExtractRawParameters(IXCustomFeature feat,
+        protected abstract void ExtractRawParameters(IXCustomFeature feat, IXDocument doc,
             out Dictionary<string, object> parameters, out IXDimension[] dimensions,
             out IXSelObject[] selection, out IXBody[] editBodies);
 
@@ -551,35 +551,38 @@ namespace Xarial.XCad.Utils.CustomFeature
         {
             foreach (var prp in paramsType.GetProperties())
             {
-                var prpType = prp.PropertyType;
+                if (prp.TryGetAttribute<ParameterExcludeAttribute>() == null)
+                {
+                    var prpType = prp.PropertyType;
 
-                var dimAtt = prp.TryGetAttribute<ParameterDimensionAttribute>();
-                var editBodyAtt = prp.TryGetAttribute<ParameterEditBodyAttribute>();
+                    var dimAtt = prp.TryGetAttribute<ParameterDimensionAttribute>();
+                    var editBodyAtt = prp.TryGetAttribute<ParameterEditBodyAttribute>();
 
-                if (dimAtt != null)
-                {
-                    var dimType = dimAtt.DimensionType;
-                    dimParamHandler.Invoke(dimType, prp);
-                }
-                else if (editBodyAtt != null)
-                {
-                    editBodyHandler.Invoke(prp);
-                }
-                else if (typeof(IXSelObject).IsAssignableFrom(prpType)
-                    || typeof(IEnumerable<IXSelObject>).IsAssignableFrom(prpType))
-                {
-                    selParamHandler.Invoke(prp);
-                }
-                else
-                {
-                    if (typeof(IConvertible).IsAssignableFrom(prpType))
+                    if (dimAtt != null)
                     {
-                        dataParamHandler.Invoke(prp);
+                        var dimType = dimAtt.DimensionType;
+                        dimParamHandler.Invoke(dimType, prp);
+                    }
+                    else if (editBodyAtt != null)
+                    {
+                        editBodyHandler.Invoke(prp);
+                    }
+                    else if (typeof(IXSelObject).IsAssignableFrom(prpType)
+                        || typeof(IEnumerable<IXSelObject>).IsAssignableFrom(prpType))
+                    {
+                        selParamHandler.Invoke(prp);
                     }
                     else
                     {
-                        throw new NotSupportedException(
-                            $"{prp.Name} is not supported as the parameter of macro feature. Currently only types implementing IConvertible are supported (e.g. primitive types, string, DateTime, decimal)");
+                        if (typeof(IConvertible).IsAssignableFrom(prpType))
+                        {
+                            dataParamHandler.Invoke(prp);
+                        }
+                        else
+                        {
+                            throw new NotSupportedException(
+                                $"{prp.Name} is not supported as the parameter of macro feature. Currently only types implementing IConvertible are supported (e.g. primitive types, string, DateTime, decimal)");
+                        }
                     }
                 }
             }

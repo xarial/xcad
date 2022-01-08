@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -9,6 +9,7 @@ using SolidWorks.Interop.sldworks;
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
+using Xarial.XCad.UI.PropertyPage.Base;
 using Xarial.XCad.Utils.PageBuilder.PageElements;
 
 namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
@@ -223,7 +224,8 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
         public PropertyManagerPageOptionBoxControl(int id, object tag,
             PropertyManagerPageOptionBox optionBox, ReadOnlyCollection<Enum> values,
-            SwPropertyManagerPageHandler handler) : base(optionBox, id, tag, handler)
+            SwPropertyManagerPageHandler handler, IPropertyManagerPageLabel label, IMetadata[] metadata)
+            : base(optionBox, id, tag, handler, label, metadata)
         {
             m_Values = values;
             m_Handler.OptionChecked += OnOptionChecked;
@@ -259,7 +261,11 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
         protected override void SetSpecificValue(Enum value)
         {
             var index = m_Values.IndexOf(value);
-            SwSpecificControl.Controls[index].Checked = true;
+
+            for (int i = 0; i < SwSpecificControl.Controls.Length; i++) 
+            {
+                SwSpecificControl.Controls[i].Checked = i == index;
+            }
         }
 
         protected override void Dispose(bool disposing)

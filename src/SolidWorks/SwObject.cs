@@ -1,144 +1,125 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
 using SolidWorks.Interop.sldworks;
 using System;
-using Xarial.XCad.SolidWorks.Annotations;
+using System.IO;
+using Xarial.XCad.Base;
+using Xarial.XCad.Data;
+using Xarial.XCad.Exceptions;
 using Xarial.XCad.SolidWorks.Documents;
-using Xarial.XCad.SolidWorks.Features;
-using Xarial.XCad.SolidWorks.Geometry;
-using Xarial.XCad.SolidWorks.Sketch;
+using Xarial.XCad.Toolkit.Data;
 
 namespace Xarial.XCad.SolidWorks
 {
-    /// <inheritdoc/>
-    public class SwObject : IXObject
+    /// <summary>
+    /// Represents base interface for all SOLIDWORKS objects
+    /// </summary>
+    public interface ISwObject : IXObject
     {
-        public static TObj FromDispatch<TObj>(object disp)
-            where TObj : SwObject
-        {
-            return (TObj)FromDispatch(disp, null);
-        }
+        /// <summary>
+        /// SOLIDWORKS specific dispatch
+        /// </summary>
+        object Dispatch { get; }
+    }
 
-        public static SwObject FromDispatch(object disp)
-        {
-            return FromDispatch(disp, null);
-        }
+    /// <inheritdoc/>
+    internal class SwObject : ISwObject
+    {
+        protected IModelDoc2 OwnerModelDoc => OwnerDocument.Model;
 
-        public static TObj FromDispatch<TObj>(object disp, SwDocument doc)
-            where TObj : SwObject
-        {
-            return (TObj)FromDispatch(disp, doc);
-        }
-
-        public static SwObject FromDispatch(object disp, SwDocument doc)
-        {
-            return FromDispatch(disp, doc, d => new SwObject(d));
-        }
-
-        internal static SwObject FromDispatch(object disp, SwDocument doc, Func<object, SwObject> defaultHandler)
-        {
-            switch (disp)
-            {
-                case IEdge edge:
-                    var edgeCurve = edge.IGetCurve();
-                    if (edgeCurve.IsCircle())
-                    {
-                        return new SwCircularEdge(edge);
-                    }
-                    else if (edgeCurve.IsLine())
-                    {
-                        return new SwLinearEdge(edge);
-                    }
-                    else
-                    {
-                        return new SwEdge(edge);
-                    }
-
-                case IFace2 face:
-                    var faceSurf = face.IGetSurface();
-                    if (faceSurf.IsPlane())
-                    {
-                        return new SwPlanarFace(face);
-                    }
-                    else if (faceSurf.IsCylinder())
-                    {
-                        return new SwCylindricalFace(face);
-                    }
-                    else
-                    {
-                        return new SwFace(face);
-                    }
-
-                case IFeature feat:
-                    switch (feat.GetTypeName()) 
-                    {
-                        case "ProfileFeature":
-                            return new SwSketch2D(doc, feat, true);
-                        case "3DProfileFeature":
-                            return new SwSketch3D(doc, feat, true);
-                        default:
-                            return new SwFeature(doc, feat, true);
-                    }
-
-                case IBody2 body:
-                    if (!body.IsTemporaryBody())
-                    {
-                        return new SwBody(body);
-                    }
-                    else 
-                    {
-                        return new SwTempBody(body);
-                    }
-
-                case ISketchLine skLine:
-                    return new SwSketchLine(doc.Model, skLine, true);
-
-                case ISketchPoint skPt:
-                    return new SwSketchPoint(doc.Model, skPt, true);
-
-                case IDisplayDimension dispDim:
-                    return new SwDimension(doc.Model, dispDim);
-
-                case IConfiguration conf:
-                    return new SwConfiguration(doc.App.Sw, doc.Model, conf);
-
-                case IComponent2 comp:
-                    return new SwComponent(comp, (SwAssembly)doc);
-
-                case ISheet sheet:
-                    return new SwSheet(doc.Model as IDrawingDoc, sheet);
-
-                default:
-                    return defaultHandler.Invoke(disp);
-            }
-        }
+        internal ISwApplication OwnerApplication { get; }
+        internal virtual ISwDocument OwnerDocument { get; }
 
         public virtual object Dispatch { get; }
 
-        internal SwObject(object dispatch)
+        public virtual bool IsAlive 
         {
-            Dispatch = dispatch;
+            get 
+            {
+                try
+                {
+                    if (Dispatch != null)
+                    {
+                        if (OwnerModelDoc.Extension.GetPersistReference3(Dispatch) != null)
+                        {
+                            return true;
+                        }
+                    }
+                }
+                catch 
+                {
+                }
+
+                return false;
+            }
         }
 
-        public virtual bool IsSame(IXObject other)
+        public ITagsManager Tags => m_TagsLazy.Value;
+
+        private readonly Lazy<ITagsManager> m_TagsLazy;
+        
+        internal SwObject(object disp, ISwDocument doc, ISwApplication app) 
+        {
+            Dispatch = disp;
+            m_TagsLazy = new Lazy<ITagsManager>(() => new TagsManager());
+            OwnerDocument = doc;
+            OwnerApplication = app;
+        }
+
+        public virtual bool Equals(IXObject other)
         {
             if (object.ReferenceEquals(this, other)) 
             {
                 return true;
             }
 
-            if (other is SwObject)
+            if (other is ISwObject)
             {
-                return Dispatch == (other as SwObject).Dispatch;
+                if (this is IXTransaction && !((IXTransaction)this).IsCommitted) 
+                {
+                    return false;
+                }
+
+                if (other is IXTransaction && !((IXTransaction)other).IsCommitted)
+                {
+                    return false;
+                }
+
+                return Dispatch == (other as ISwObject).Dispatch;
             }
             else
             {
                 return false;
+            }
+        }
+
+        public virtual void Serialize(Stream stream)
+        {
+            if (OwnerModelDoc != null)
+            {
+                var disp = Dispatch;
+
+                if (disp != null)
+                {
+                    var persRef = OwnerModelDoc.Extension.GetPersistReference3(disp) as byte[];
+
+                    if (persRef == null)
+                    {
+                        throw new ObjectSerializationException("Failed to serialize the object", -1);
+                    }
+
+                    stream.Write(persRef, 0, persRef.Length);
+                    return;
+                }
+            }
+            else 
+            {
+                throw new ObjectSerializationException("Model is not set for this object", -1);
             }
         }
     }

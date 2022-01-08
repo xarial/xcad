@@ -37,21 +37,21 @@ public class ComboBoxDataModel
     //--- CustomItemsProvider
     public class CustomStringItemsProvider : SwCustomItemsProvider<string>
     {
-        public override IEnumerable<string> ProvideItems(SwApplication app, IControl[] dependencies)
+        public override IEnumerable<string> ProvideItems(ISwApplication app, IControl[] dependencies)
             => new string[] { "A", "B", "C" };
     }
 
     public class CustomIntItemsProvider : SwCustomItemsProvider<int>
     {
-        public override IEnumerable<int> ProvideItems(SwApplication app, IControl[] dependencies)
+        public override IEnumerable<int> ProvideItems(ISwApplication app, IControl[] dependencies)
             => new int[] { 1, 2, 3 };
     }
 
-    [CustomItems(typeof(CustomStringItemsProvider))]
+    [ComboBox(typeof(CustomStringItemsProvider))]
     [ControlTag(nameof(Options3))]
     public string Options3 { get; set; } = "B";
 
-    [CustomItems(typeof(CustomIntItemsProvider))]
+    [ComboBox(typeof(CustomIntItemsProvider))]
     [ControlTag(nameof(Options4))]
     public int Options4 { get; set; }
     //---
@@ -72,7 +72,7 @@ public class ComboBoxDataModel
 
     public class CustomDependencyProvider : SwCustomItemsProvider<CustomComboBoxItem>
     {
-        public override IEnumerable<CustomComboBoxItem> ProvideItems(SwApplication app,
+        public override IEnumerable<CustomComboBoxItem> ProvideItems(ISwApplication app,
             IControl[] dependencies)
         {
             return new CustomComboBoxItem[]
@@ -84,7 +84,7 @@ public class ComboBoxDataModel
         }
     }
 
-    [CustomItems(typeof(CustomDependencyProvider), nameof(Options3), nameof(Options4))]
+    [ComboBox(typeof(CustomDependencyProvider), nameof(Options3), nameof(Options4))]
     public CustomComboBoxItem Options5 { get; set; }
     //---
 }

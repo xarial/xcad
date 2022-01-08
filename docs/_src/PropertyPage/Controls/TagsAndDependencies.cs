@@ -76,7 +76,7 @@ namespace Xarial.XCad.Documentation
         {
             var curGrp = (Groups_e)(dependencies.First()).GetValue();
 
-            (source as IPropertyManagerPageControlEx).Visible = (Groups_e)source.Tag == curGrp;
+            source.Visible = (Groups_e)source.Tag == curGrp;
         }
     }
     //---
@@ -89,14 +89,14 @@ namespace Xarial.XCad.Documentation
         public bool Enable { get; set; }
 
         [DependentOn(typeof(EnableDepHandler), nameof(Enable))]
-        public SwFace Selection { get; set; }
+        public ISwFace Selection { get; set; }
     }
 
     public class EnableDepHandler : IDependencyHandler
     {
         public void UpdateState(IXApplication app, IControl source, IControl[] dependencies)
         {
-            (source as IPropertyManagerPageControlEx).Enabled = (bool)dependencies.First().GetValue();
+            source.Enabled = (bool)dependencies.First().GetValue();
         }
     }
     //---
@@ -111,10 +111,10 @@ namespace Xarial.XCad.Documentation
             ShowPmpEnable
         }
 
-        private SwPropertyManagerPage<DataModelCascading> m_PmpPageCascading;
+        private ISwPropertyManagerPage<DataModelCascading> m_PmpPageCascading;
         private DataModelCascading m_DataModelCascading;
 
-        private SwPropertyManagerPage<DataModelEnable> m_PmpPageEnable;
+        private ISwPropertyManagerPage<DataModelEnable> m_PmpPageEnable;
         private DataModelEnable m_DataModelEnable;
 
         public override void OnConnect()

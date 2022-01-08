@@ -16,11 +16,11 @@ namespace Xarial.XCad.Documentation
             {
                 Logger.Log("Loading add-in...");
 
-                //TODO: implement connection
+                //implement connection
             }
             catch (Exception ex)
             {
-                Logger.Log(ex);
+                Logger.Log(ex, true, Base.Enums.LoggerMessageSeverity_e.Fatal);
                 throw;
             }
         }

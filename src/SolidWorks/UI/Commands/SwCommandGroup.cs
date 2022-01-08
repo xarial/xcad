@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -13,8 +13,21 @@ using Xarial.XCad.UI.Commands.Structures;
 
 namespace Xarial.XCad.SolidWorks.UI.Commands
 {
+    public interface ISwCommandGroup : IXCommandGroup 
+    {
+        /// <summary>
+        /// Indicates if this group is context menu
+        /// </summary>
+        bool IsContextMenu { get; }
+
+        /// <summary>
+        /// SOLIDWORKS specific command group
+        /// </summary>
+        CommandGroup CommandGroup { get; }
+    }
+
     /// <inheritdoc/>
-    public class SwCommandGroup : IXCommandGroup
+    internal class SwCommandGroup : ISwCommandGroup
     {
         /// <inheritdoc/>
         public event CommandClickDelegate CommandClick;
@@ -28,19 +41,20 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
         /// <inheritdoc/>
         public CommandGroupSpec Spec { get; }
 
-        private readonly SwApplication m_App;
+        public bool IsContextMenu { get; }
 
-        internal SwCommandGroup(SwApplication app, CommandGroupSpec spec, CommandGroup cmdGroup)
+        private readonly ISwApplication m_App;
+
+        internal SwCommandGroup(ISwApplication app, CommandGroupSpec spec, CommandGroup cmdGroup, bool isContextMenu)
         {
+            m_App = app;
             Spec = spec;
             CommandGroup = cmdGroup;
-            m_App = app;
+            IsContextMenu = isContextMenu;
         }
 
         internal void RaiseCommandClick(CommandSpec spec)
-        {
-            CommandClick?.Invoke(spec);
-        }
+            => CommandClick?.Invoke(spec);
 
         internal CommandItemEnableState_e RaiseCommandEnable(CommandSpec spec)
         {

@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -17,11 +17,8 @@ namespace Xarial.XCad.SolidWorks.Data.EventHandlers
 {
     internal class StreamWriteAvailableEventsHandler : SwModelEventsHandler<DataStoreAvailableDelegate>
     {
-        private readonly SwDocument m_Doc;
-
-        internal StreamWriteAvailableEventsHandler(SwDocument doc) : base(doc.Model)
+        internal StreamWriteAvailableEventsHandler(SwDocument doc, ISwApplication app) : base(doc, app)
         {
-            m_Doc = doc;
         }
 
         protected override void SubscribeAssemblyEvents(AssemblyDoc assm)
@@ -57,7 +54,7 @@ namespace Xarial.XCad.SolidWorks.Data.EventHandlers
         private int OnWriteToStreamNotify()
         {
             Delegate?.Invoke(m_Doc);
-            return S_OK;
+            return HResult.S_OK;
         }
     }
 }

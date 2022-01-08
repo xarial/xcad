@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -15,10 +15,10 @@ namespace Xarial.XCad.UI.PropertyPage.Attributes
     public class DependentOnAttribute : Attribute, IDependentOnAttribute
     {
         /// <inheritdoc/>
-        public object[] Dependencies { get; private set; }
+        public object[] Dependencies { get; }
 
         /// <inheritdoc/>
-        public IDependencyHandler DependencyHandler { get; private set; }
+        public IDependencyHandler DependencyHandler { get; }
 
         public DependentOnAttribute(Type dependencyHandler, params object[] dependencies)
         {

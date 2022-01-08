@@ -5,6 +5,7 @@
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
+using Moq;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
@@ -12,6 +13,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Xarial.XCad;
+using Xarial.XCad.Base;
+using Xarial.XCad.UI.PropertyPage.Base;
+using Xarial.XCad.Utils.PageBuilder;
 using Xarial.XCad.Utils.PageBuilder.Attributes;
 using Xarial.XCad.Utils.PageBuilder.Base;
 using Xarial.XCad.Utils.PageBuilder.Binders;
@@ -27,11 +31,14 @@ namespace Toolkit.Tests
 
         public class ControlMock : Control<object>
         {
+            public override bool Enabled { get; set; }
+            public override bool Visible { get; set; }
+
 #pragma warning disable CS0067
             protected override event ControlValueChangedDelegate<object> ValueChanged;
 #pragma warning restore
 
-            public ControlMock(int id, object tag) : base(id, tag)
+            public ControlMock(int id, object tag) : base(id, tag, null)
             {
             }
 
@@ -43,11 +50,22 @@ namespace Toolkit.Tests
             protected override void SetSpecificValue(object value)
             {
             }
+
+            public override void ShowTooltip(string title, string msg)
+            {
+            }
         }
 
         public class GroupMock : Group
         {
-            public GroupMock(int id, object tag) : base(id, tag)
+            public GroupMock(int id, object tag) : base(id, tag, null)
+            {
+            }
+
+            public override bool Enabled { get; set; }
+            public override bool Visible { get; set; }
+
+            public override void ShowTooltip(string title, string msg)
             {
             }
         }
@@ -55,6 +73,13 @@ namespace Toolkit.Tests
         public class PageMock : Page
         {
             public List<ControlMock> Controls { get; } = new List<ControlMock>();
+
+            public override bool Enabled { get; set; }
+            public override bool Visible { get; set; }
+
+            public override void ShowTooltip(string title, string msg)
+            {
+            }
         }
 
         [DefaultType(typeof(SpecialTypes.AnyType))]
@@ -67,36 +92,36 @@ namespace Toolkit.Tests
                 m_IdRangeSelector = idRangeSelector;
             }
 
-            protected override ControlMock Create(PageMock page, IAttributeSet atts)
+            private ControlMock Create(PageMock page, IAttributeSet atts, IMetadata[] metadata)
             {
                 var ctrl = new ControlMock(atts.Id, atts.Tag);
                 page.Controls.Add(ctrl);
                 return ctrl;
             }
 
-            protected override ControlMock Create(GroupMock group, IAttributeSet atts)
+            private ControlMock Create(GroupMock group, IAttributeSet atts, IMetadata[] metadata)
             {
                 return new ControlMock(atts.Id, atts.Tag);
             }
 
-            protected override ControlMock Create(PageMock page, IAttributeSet atts, ref int idRange)
+            protected override ControlMock Create(PageMock page, IAttributeSet atts, IMetadata[] metadata, ref int numberOfUsedIds)
             {
                 if (m_IdRangeSelector != null)
                 {
-                    idRange = m_IdRangeSelector.Invoke();
+                    numberOfUsedIds = m_IdRangeSelector.Invoke();
                 }
 
-                return Create(page, atts);
+                return Create(page, atts, metadata);
             }
 
-            protected override ControlMock Create(GroupMock group, IAttributeSet atts, ref int idRange)
+            protected override ControlMock Create(GroupMock group, IAttributeSet atts, IMetadata[] metadata, ref int numberOfUsedIds)
             {
                 if (m_IdRangeSelector != null)
                 {
-                    idRange = m_IdRangeSelector.Invoke();
+                    numberOfUsedIds = m_IdRangeSelector.Invoke();
                 }
 
-                return Create(group, atts);
+                return Create(group, atts, metadata);
             }
         }
 
@@ -112,7 +137,7 @@ namespace Toolkit.Tests
         {
             public PageBuilderMock(Func<int> idRangeSelector = null)
                 : base(new Moq.Mock<IXApplication>().Object,
-                      new TypeDataBinder(), 
+                      new TypeDataBinder(new Mock<IXLogger>().Object), 
                       new PageMockConstructor(),
                       new ControlMockConstructor(idRangeSelector))
             {
@@ -132,7 +157,7 @@ namespace Toolkit.Tests
         public void CreatePageIdsTest()
         {
             var builder = new PageBuilderMock();
-            var page = builder.CreatePage<DataModel1>();
+            var page = builder.CreatePage<DataModel1>(x => null, new Mock<IContextProvider>().Object);
 
             Assert.AreEqual(3, page.Controls.Count);
             Assert.AreEqual(0, page.Controls[0].Id);
@@ -156,7 +181,7 @@ namespace Toolkit.Tests
                 ctrlIndex++;
                 return idRange;
             });
-            var page = builder.CreatePage<DataModel1>();
+            var page = builder.CreatePage<DataModel1>(x => null, new Mock<IContextProvider>().Object);
 
             Assert.AreEqual(3, page.Controls.Count);
             Assert.AreEqual(0, page.Controls[0].Id);

@@ -38,26 +38,26 @@ namespace Xarial.XCad.Documentation
             CustomWinFormsControl
         }
 
-        private SwPropertyManagerPage<DataModelCommonOpts> m_DataModelCommonOpts;
-        private SwPropertyManagerPage<ComboBoxDataModel> m_ComboBoxDataModel;
-        private SwPropertyManagerPage<GroupDataModel> m_GroupDataModel;
-        private SwPropertyManagerPage<NumberBoxDataModel> m_NumberBoxDataModel;
-        private SwPropertyManagerPage<DataModelPageOpts> m_DataModelPageOpts;
-        private SwPropertyManagerPage<DataModelPageAtts> m_DataModelPageAtts;
-        private SwPropertyManagerPage<DataModelHelpLinks> m_DataModelHelpLinks;
-        private SwPropertyManagerPage<TextBoxDataModel> m_TextBoxDataModel;
-        private SwPropertyManagerPage<OptionBoxDataModel> m_OptionBoxDataModel;
-        private SwPropertyManagerPage<SelectionBoxDataModel> m_SelectionBoxDataModel;
-        private SwPropertyManagerPage<SelectionBoxListDataModel> m_SelectionBoxListDataModel;
-        private SwPropertyManagerPage<SelectionBoxCustomSelectionFilterDataModel> m_SelectionBoxCustomSelectionFilterDataModel;
-        private SwPropertyManagerPage<ButtonDataModel> m_ButtonDataModel;
-        private SwPropertyManagerPage<CheckBoxDataModel> m_CheckBoxDataModel;
-        private SwPropertyManagerPage<TabDataModel> m_TabDataModel;
-        private SwPropertyManagerPage<BitmapDataModel> m_BitmapDataModel;
-        private SwPropertyManagerPage<BitmapButtonDataModel> m_BitmapButtonDataModel;
-        private SwPropertyManagerPage<DynamicValuesDataModel> m_DynamicValuesDataModel;
-        private SwPropertyManagerPage<CustomWpfControlPage> m_CustomWpfControlDataModel;
-        private SwPropertyManagerPage<CustomWinFormsControlPage> m_CustomWinFormsControlDataModel;
+        private ISwPropertyManagerPage<DataModelCommonOpts> m_DataModelCommonOpts;
+        private ISwPropertyManagerPage<ComboBoxDataModel> m_ComboBoxDataModel;
+        private ISwPropertyManagerPage<GroupDataModel> m_GroupDataModel;
+        private ISwPropertyManagerPage<NumberBoxDataModel> m_NumberBoxDataModel;
+        private ISwPropertyManagerPage<DataModelPageOpts> m_DataModelPageOpts;
+        private ISwPropertyManagerPage<DataModelPageAtts> m_DataModelPageAtts;
+        private ISwPropertyManagerPage<DataModelHelpLinks> m_DataModelHelpLinks;
+        private ISwPropertyManagerPage<TextBoxDataModel> m_TextBoxDataModel;
+        private ISwPropertyManagerPage<OptionBoxDataModel> m_OptionBoxDataModel;
+        private ISwPropertyManagerPage<SelectionBoxDataModel> m_SelectionBoxDataModel;
+        private ISwPropertyManagerPage<SelectionBoxListDataModel> m_SelectionBoxListDataModel;
+        private ISwPropertyManagerPage<SelectionBoxCustomSelectionFilterDataModel> m_SelectionBoxCustomSelectionFilterDataModel;
+        private ISwPropertyManagerPage<ButtonDataModel> m_ButtonDataModel;
+        private ISwPropertyManagerPage<CheckBoxDataModel> m_CheckBoxDataModel;
+        private ISwPropertyManagerPage<TabDataModel> m_TabDataModel;
+        private ISwPropertyManagerPage<BitmapDataModel> m_BitmapDataModel;
+        private ISwPropertyManagerPage<BitmapButtonDataModel> m_BitmapButtonDataModel;
+        private ISwPropertyManagerPage<DynamicValuesDataModel> m_DynamicValuesDataModel;
+        private ISwPropertyManagerPage<CustomWpfControlPage> m_CustomWpfControlDataModel;
+        private ISwPropertyManagerPage<CustomWinFormsControlPage> m_CustomWinFormsControlDataModel;
 
         public override void OnConnect()
         {

@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -11,6 +11,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Xarial.XCad.Base;
+using Xarial.XCad.SolidWorks.Services;
 using Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit;
 using Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls;
 using Xarial.XCad.SolidWorks.Utils;
@@ -20,11 +21,21 @@ using Xarial.XCad.UI.PropertyPage.Enums;
 using Xarial.XCad.UI.PropertyPage.Structures;
 using Xarial.XCad.Utils.Diagnostics;
 using Xarial.XCad.Utils.PageBuilder.Base;
+using Xarial.XCad.Toolkit;
+using Xarial.XCad.UI.PropertyPage.Base;
+using Xarial.XCad.UI.Exceptions;
+using Xarial.XCad.SolidWorks.UI.Toolkit;
+using System.ComponentModel;
+using Xarial.XCad.Utils.PageBuilder;
 
 namespace Xarial.XCad.SolidWorks.UI.PropertyPage
 {
+    public interface ISwPropertyManagerPage<TModel> : IXPropertyPage<TModel>, IDisposable 
+    {
+    }
+
     /// <inheritdoc/>
-    public class SwPropertyManagerPage<TModel> : IXPropertyPage<TModel>, IDisposable
+    internal class SwPropertyManagerPage<TModel> : ISwPropertyManagerPage<TModel>, IAutoDisposable
     {
         /// <inheritdoc/>
         public event PageClosedDelegate Closed;
@@ -35,85 +46,138 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
         /// <inheritdoc/>
         public event PageDataChangedDelegate DataChanged;
 
-        private readonly ISldWorks m_App;
-        private readonly IconsConverter m_IconsConv;
+        [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
+        public event Action<IAutoDisposable> Disposed;
+
+        private readonly ISwApplication m_App;
+        private readonly IIconsCreator m_IconsConv;
         private readonly PropertyManagerPagePage m_Page;
         private readonly PropertyManagerPageBuilder m_PmpBuilder;
 
         /// <inheritdoc/>
-        public IEnumerable<IPropertyManagerPageControlEx> Controls { get; private set; }
+        public IEnumerable<IPropertyManagerPageElementEx> Controls { get; private set; }
 
         internal SwPropertyManagerPageHandler Handler { get; private set; }
 
-        public IXLogger Logger { get; }
+        private readonly IXLogger m_Logger;
+
+        private bool m_IsDisposed;
 
         /// <inheritdoc/>
         public TModel Model { get; private set; }
 
+        private readonly IServiceProvider m_SvcProvider;
+
+        private readonly IContextProvider m_ContextProvider;
+
         /// <summary>Creates instance of property manager page</summary>
         /// <param name="app">Pointer to session of SOLIDWORKS where the property manager page to be created</param>
-        public SwPropertyManagerPage(SwApplication app, IXLogger logger, Type handlerType)
-            : this(app, null, logger, handlerType)
+        internal SwPropertyManagerPage(ISwApplication app, IServiceProvider svcProvider, SwPropertyManagerPageHandler handler,
+            CreateDynamicControlsDelegate createDynCtrlHandler)
+            : this(app, null, svcProvider, handler, createDynCtrlHandler)
         {
         }
 
-        public SwPropertyManagerPage(SwApplication app, IPageSpec pageSpec, IXLogger logger, Type handlerType)
+        internal SwPropertyManagerPage(ISwApplication app, IPageSpec pageSpec, IServiceProvider svcProvider, SwPropertyManagerPageHandler handler,
+            CreateDynamicControlsDelegate createDynCtrlHandler)
         {
-            m_App = app.Sw;
+            m_App = app;
 
-            Logger = logger;
+            m_IsDisposed = false;
 
-            m_IconsConv = new IconsConverter();
+            m_SvcProvider = svcProvider;
 
-            //TODO: validate that handlerType inherits PropertyManagerPageHandlerEx and it is COM visible with parameterless constructor
-            Handler = (SwPropertyManagerPageHandler)Activator.CreateInstance(handlerType);
+            m_Logger = m_SvcProvider.GetService<IXLogger>();
 
-            Handler.DataChanged += OnDataChanged;
+            m_IconsConv = m_SvcProvider.GetService<IIconsCreator>();
+
+            //TODO: validate that handler is COM visible
+            Handler = handler;
+
             Handler.Closed += OnClosed;
             Handler.Closing += OnClosing;
-            m_PmpBuilder = new PropertyManagerPageBuilder(app, m_IconsConv, Handler, pageSpec, Logger);
+            m_PmpBuilder = new PropertyManagerPageBuilder(app, m_IconsConv, Handler, pageSpec, m_Logger);
 
-            m_Page = m_PmpBuilder.CreatePage<TModel>();
-            Controls = m_Page.Binding.Bindings.Select(b => b.Control)
-                .OfType<IPropertyManagerPageControlEx>().ToArray();
+            m_ContextProvider = new BaseContextProvider();
+
+            m_Page = m_PmpBuilder.CreatePage<TModel>(createDynCtrlHandler, m_ContextProvider);
+
+            var ctrls = new List<IPropertyManagerPageElementEx>();
+
+            foreach (var binding in m_Page.Binding.Bindings) 
+            {
+                binding.Changed += OnBindingValueChanged;
+                
+                var ctrl = binding.Control;
+
+                if (ctrl is IPropertyManagerPageElementEx)
+                {
+                    ctrls.Add((IPropertyManagerPageElementEx)ctrl);
+                }
+                else 
+                {
+                    m_Logger.Log($"Unrecognized control type: {ctrl?.GetType().FullName}", XCad.Base.Enums.LoggerMessageSeverity_e.Error);
+                }
+            }
+
+            Controls = ctrls.ToArray();
         }
+
+        private void OnBindingValueChanged(IBinding binding)
+            => DataChanged?.Invoke();
 
         public void Dispose()
         {
-            Logger.Log("Disposing page");
-
-            foreach (var ctrl in m_Page.Binding.Bindings.Select(b => b.Control).OfType<IDisposable>())
+            if (!m_IsDisposed)
             {
-                ctrl.Dispose();
-            }
+                m_Logger.Log("Disposing page", XCad.Base.Enums.LoggerMessageSeverity_e.Debug);
 
-            m_IconsConv.Dispose();
+                foreach (var ctrl in m_Page.Binding.Bindings.Select(b => b.Control).OfType<IDisposable>())
+                {
+                    try
+                    {
+                        ctrl.Dispose();
+                    }
+                    catch (Exception ex)
+                    {
+                        m_Logger.Log(ex);
+                    }
+                }
+
+                m_IconsConv.Dispose();
+
+                m_IsDisposed = true;
+
+                Disposed?.Invoke(this);
+            }
         }
 
         /// <inheritdoc/>
         public void Show(TModel model)
         {
             Model = model;
-            Logger.Log("Opening page");
+            m_Logger.Log("Opening page", XCad.Base.Enums.LoggerMessageSeverity_e.Debug);
 
             const int OPTS_DEFAULT = 0;
 
-            m_App.IActiveDoc2.ClearSelection2(true);
+            m_App.Sw.IActiveDoc2.ClearSelection2(true);
 
-            foreach (var binding in m_Page.Binding.Bindings)
-            {
-                binding.Model = model;
-            }
+            m_ContextProvider.NotifyContextChanged(model);
 
-            m_Page.Page.Show2(OPTS_DEFAULT);
+            Handler.InvokeOpening();
 
-            foreach (var binding in m_Page.Binding.Bindings)
+            //NOTE: controls must be updated before the page is displayed
+            foreach (var binding in m_Page.Binding.Bindings ?? Enumerable.Empty<IBinding>())
             {
                 binding.UpdateControl();
             }
 
+            m_Page.Page.Show2(OPTS_DEFAULT);
+
             //updating control states
             m_Page.Binding.Dependency.UpdateAll();
+
+            Handler.InvokeOpened();
         }
 
         private PageCloseReasons_e ConvertReason(swPropertyManagerPageCloseReasons_e reason)
@@ -133,20 +197,13 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
                     return PageCloseReasons_e.Unknown;
             }
         }
-        
+
         private void OnClosed(swPropertyManagerPageCloseReasons_e reason)
-        {
-            Closed?.Invoke(ConvertReason(reason));
-        }
+            => Closed?.Invoke(ConvertReason(reason));
 
         private void OnClosing(swPropertyManagerPageCloseReasons_e reason, PageClosingArg arg)
-        {
-            Closing?.Invoke(ConvertReason(reason), arg);
-        }
+            => Closing?.Invoke(ConvertReason(reason), arg);
 
-        private void OnDataChanged()
-        {
-            DataChanged?.Invoke();
-        }
+        public void Close(bool cancel) => m_Page.Page.Close(!cancel);
     }
 }

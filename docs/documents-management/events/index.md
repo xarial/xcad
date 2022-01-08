@@ -13,3 +13,5 @@ Although it is possible to subscribe to events from any container, it is usually
 Explore API reference for more information about the passed parameters.
 
 {% code-snippet { file-name: ~EventsAddIn.*, regions: [EventHandlers] } %}
+
+Refer [Property As File Name](https://github.com/xarial/xcad-examples/tree/master/PropertyAsFileName) example which demonstrates how to interrupt saving event and supply custom name for the file.

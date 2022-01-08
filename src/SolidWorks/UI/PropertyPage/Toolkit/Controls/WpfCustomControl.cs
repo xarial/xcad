@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -12,72 +12,42 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows;
 using System.Windows.Interop;
+using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.UI.PropertyPage;
 
 namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 {
     internal class WpfCustomControl : IXCustomControl, IDisposable
     {
-        public event Action<IXCustomControl, object> DataContextChanged;
+        public event CustomControlValueChangedDelegate ValueChanged;
 
+        private readonly System.Windows.Forms.Control m_Host;
         private readonly FrameworkElement m_Elem;
-        private HwndSource m_HwndSrc;
-        private HwndSourceHook m_HwndSrcHook;
 
-        internal WpfCustomControl(FrameworkElement elem) 
+        private readonly WpfControlKeystrokePropagator m_KeystrokePropagator;
+
+        internal WpfCustomControl(FrameworkElement elem, System.Windows.Forms.Control host) 
         {
             m_Elem = elem;
-            m_Elem.Loaded += OnElementLoaded;
-            m_Elem.Unloaded += OnElementUnloaded;
+            m_Elem.DataContextChanged += OnDataContextChanged;
+            m_Host = host;
+            m_KeystrokePropagator = new WpfControlKeystrokePropagator(elem);
         }
 
-        public object DataContext 
+        public object Value 
         {
             get => m_Elem.DataContext;
             set => m_Elem.DataContext = value;
         }
 
-        private void OnElementLoaded(object sender, RoutedEventArgs e)
+        private void OnDataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
+            => ValueChanged?.Invoke(this, e.NewValue);
+
+        public void Dispose() 
         {
-            //If messages are not passed than all keystrokes will be ignored
-            m_HwndSrc = HwndSource.FromVisual(m_Elem) as HwndSource;
-
-            if (m_HwndSrc != null)
-            {
-                m_HwndSrcHook = new HwndSourceHook(OnChildHwndSourceHook);
-                m_HwndSrc.AddHook(m_HwndSrcHook);
-            }
-            else
-            {
-                throw new Exception("Failed to create HwndSource");
-            }
-        }
-
-        private void OnElementUnloaded(object sender, RoutedEventArgs e)
-        {
-            m_HwndSrc.RemoveHook(m_HwndSrcHook);
-        }
-
-        private IntPtr OnChildHwndSourceHook(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
-        {
-            const uint DLGC_WANTARROWS = 0x0001;
-            const uint DLGC_HASSETSEL = 0x0008;
-            const uint DLGC_WANTCHARS = 0x0080;
-            const uint WM_GETDLGCODE = 0x0087;
-
-            if (msg == WM_GETDLGCODE)
-            {
-                handled = true;
-                return new IntPtr(DLGC_WANTCHARS | DLGC_WANTARROWS | DLGC_HASSETSEL);
-            }
-
-            return IntPtr.Zero;
-        }
-
-        public void Dispose()
-        {
-            m_Elem.Loaded -= OnElementLoaded;
-            m_Elem.Unloaded -= OnElementUnloaded;
+            m_KeystrokePropagator.Dispose();
+            
+            m_Host.Dispose();
         }
     }
 }

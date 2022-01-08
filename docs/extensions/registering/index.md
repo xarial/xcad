@@ -18,6 +18,8 @@ xCAD framework will automatically register the add-in by performing 2 steps (no 
 
 {% code-snippet { file-name: ~Extension\Register.*, regions: [SkipReg] } %}
 
+> It might be required to run Visual Studio As Administrator to allow the registration of COM object and adding the keys to registry.
+
 ## .NET Framework
 
 To define add-in just add the [ComVisibleAttribute](https://docs.microsoft.com/en-us/dotnet/api/system.runtime.interopservices.comvisibleattribute?view=netframework-4.8).
@@ -40,7 +42,7 @@ In addition, it is required to add the *EnableComHosting* property into the *.cs
 
 {% code-snippet { file-name: ~Extension\Register.*, regions: [NetCore] } %}
 
-It is also recommended to change the SDK of the add-in project to *Microsoft.NET.Sdk.WindowsDesktop* and set the *UseWindowsForms* attribute. This would enable the support for resources and other windows specific .NET classes used by framework.
+It is also required to change the SDK of the add-in project to *Microsoft.NET.Sdk.WindowsDesktop* and set the *UseWindowsForms* attribute. This would enable the support for resources and other windows specific .NET classes used by framework.
 
 ~~~ xml jagged-bottom
 <Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
@@ -49,6 +51,10 @@ It is also recommended to change the SDK of the add-in project to *Microsoft.NET
     <UseWindowsForms>true</UseWindowsForms>
   </PropertyGroup>
 ~~~
+
+> Note, .NET Core is a new framework and there were some compatibility issues and conflicts reported with other 3rd party libraries when running as in-process application (i.e. add-in). It is recommended to use .NET Framework for add-ins development where possible until .NET Core is fully supported by SOLIDWORKS host application.
+
+Refer [Accessing SQL database via Entity Framework example](https://github.com/xarial/xcad-examples/tree/master/SqlDbEfNetCore) for the demonstration of the SOLIDWORKS add-in in .NET Core.
 
 ## Unregistering add-in
 

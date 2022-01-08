@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -9,6 +9,12 @@ namespace Xarial.XCad.SolidWorks.Enums
 {
     public enum SwVersion_e
     {
+        SwPrior2000 = 1,
+        Sw2000 = 8,
+        Sw2001 = 9,
+        Sw2001Plus = 10,
+        Sw2003 = 11,
+        Sw2004 = 12,
         Sw2005 = 13,
         Sw2006 = 14,
         Sw2007 = 15,
@@ -24,6 +30,8 @@ namespace Xarial.XCad.SolidWorks.Enums
         Sw2017 = 25,
         Sw2018 = 26,
         Sw2019 = 27,
-        Sw2020 = 28
+        Sw2020 = 28,
+        Sw2021 = 29,
+        Sw2022 = 30
     }
 }

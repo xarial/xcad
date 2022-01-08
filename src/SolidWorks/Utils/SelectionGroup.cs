@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -34,14 +34,17 @@ namespace Xarial.XCad.SolidWorks.Utils
         /// <param name="disp">Pointer to dispatch</param>
         /// <param name="selData">Optional selection data</param>
         /// <returns>Result of selection</returns>
-        internal bool Add(object disp, ISelectData selData = null)
+        internal void Add(object disp, ISelectData selData = null)
         {
             if (disp == null)
             {
                 throw new ArgumentNullException(nameof(disp));
             }
 
-            return m_SelMgr.AddSelectionListObject(new DispatchWrapper(disp), selData);
+            if (!m_SelMgr.AddSelectionListObject(new DispatchWrapper(disp), selData)) 
+            {
+                throw new Exception("Failed to add object to selection list");
+            }
         }
 
         /// <summary>
@@ -50,7 +53,7 @@ namespace Xarial.XCad.SolidWorks.Utils
         /// <param name="disps">Array of dispatches to select</param>
         /// <param name="selData">Optional selection data</param>
         /// <returns>Result of the selection</returns>
-        internal bool AddRange(object[] disps, ISelectData selData = null)
+        internal void AddRange(object[] disps, ISelectData selData = null)
         {
             if (disps == null)
             {
@@ -59,7 +62,10 @@ namespace Xarial.XCad.SolidWorks.Utils
 
             var dispWrappers = disps.Select(d => new DispatchWrapper(d)).ToArray();
 
-            return m_SelMgr.AddSelectionListObjects(dispWrappers, selData) == disps.Length;
+            if (m_SelMgr.AddSelectionListObjects(dispWrappers, selData) != disps.Length) 
+            {
+                throw new Exception("Failed to add objects to selection list");
+            }
         }
 
         public void Dispose()

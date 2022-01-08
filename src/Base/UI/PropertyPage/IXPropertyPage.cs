@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -35,5 +35,11 @@ namespace Xarial.XCad.UI.PropertyPage
         /// </summary>
         /// <param name="model">Pointer to an instance of the bound data model</param>
         void Show(TDataModel model);
+
+        /// <summary>
+        /// Closes the current page
+        /// </summary>
+        /// <param name="cancel">Cancel the current page or OK</param>
+        void Close(bool cancel);
     }
 }

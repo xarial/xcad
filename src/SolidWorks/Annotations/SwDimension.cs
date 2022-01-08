@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -12,11 +12,18 @@ using System.Runtime.InteropServices;
 using Xarial.XCad.Annotations;
 using Xarial.XCad.Annotations.Delegates;
 using Xarial.XCad.SolidWorks.Annotations.EventHandlers;
+using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.Toolkit.Services;
 
 namespace Xarial.XCad.SolidWorks.Annotations
 {
-    public class SwDimension : SwSelObject, IXDimension, IDisposable
+    public interface ISwDimension : IXDimension, IDisposable, ISwSelObject
+    {
+        IDimension Dimension { get; }
+        IDisplayDimension DisplayDimension { get; }
+    }
+
+    internal class SwDimension : SwSelObject, ISwDimension
     {
         private IDimension m_Dimension;
 
@@ -48,17 +55,17 @@ namespace Xarial.XCad.SolidWorks.Annotations
             }
         }
 
-        internal SwDimension(IModelDoc2 model, IDisplayDimension dispDim)
-            : base(null, dispDim)
+        internal SwDimension(IDisplayDimension dispDim, ISwDocument doc, ISwApplication app)
+            : base(dispDim, doc, app)
         {
-            if (model == null) 
+            if (doc == null) 
             {
-                throw new ArgumentNullException(nameof(model));
+                throw new ArgumentNullException(nameof(doc));
             }
 
             DisplayDimension = dispDim;
 
-            m_ValueChangedHandler = new SwDimensionChangeEventsHandler(this, model);
+            m_ValueChangedHandler = new SwDimensionChangeEventsHandler(this, doc);
         }
 
         public virtual double GetValue(string confName = "")
@@ -67,7 +74,17 @@ namespace Xarial.XCad.SolidWorks.Annotations
 
             swInConfigurationOpts_e opts;
             string[] confs;
-            GetDimensionParameters(confName, out opts, out confs);
+
+            if (!string.IsNullOrEmpty(confName))
+            {
+                confs = new string[] { confName };
+                opts = swInConfigurationOpts_e.swSpecifyConfiguration;
+            }
+            else
+            {
+                opts = swInConfigurationOpts_e.swThisConfiguration;
+                confs = null;
+            }
 
             var val = (dim.GetSystemValue3((int)opts, confs) as double[])[0];
 
@@ -78,7 +95,17 @@ namespace Xarial.XCad.SolidWorks.Annotations
         {
             swInConfigurationOpts_e opts;
             string[] confs;
-            GetDimensionParameters(confName, out opts, out confs);
+
+            if (!string.IsNullOrEmpty(confName))
+            {
+                confs = new string[] { confName };
+                opts = swInConfigurationOpts_e.swSpecifyConfiguration;
+            }
+            else
+            {
+                opts = swInConfigurationOpts_e.swAllConfiguration;
+                confs = null;
+            }
 
             Dimension.SetSystemValue3(val, (int)opts, confs);
         }
@@ -117,18 +144,6 @@ namespace Xarial.XCad.SolidWorks.Annotations
 
         protected virtual void Dispose(bool disposing)
         {
-        }
-
-        private void GetDimensionParameters(string confName, out swInConfigurationOpts_e opts, out string[] confs)
-        {
-            opts = swInConfigurationOpts_e.swThisConfiguration;
-            confs = null;
-
-            if (!string.IsNullOrEmpty(confName))
-            {
-                confs = new string[] { confName };
-                opts = swInConfigurationOpts_e.swSpecifyConfiguration;
-            }
         }
     }
 }

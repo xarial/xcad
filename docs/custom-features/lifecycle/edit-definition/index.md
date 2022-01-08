@@ -8,6 +8,6 @@ Edit definition allows to modify the parameters of an existing feature. Edit def
 
 ![Edit Feature Command](menu-edit-feature.png){ width=250 }
 
-Use **SwMacroFeature<TParams>.Parameters** property to read and write the parameters of this macro feature. Set the value to **null** to revert changes and rollback the feature.
+Use **ISwMacroFeature<TParams>.Parameters** property to read and write the parameters of this macro feature. Set the value to **null** to revert changes and rollback the feature.
 
 {% code-snippet { file-name: ~CustomFeature\EditMacroFeatureDefinition.* } %}

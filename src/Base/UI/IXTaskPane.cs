@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -49,6 +49,22 @@ namespace Xarial.XCad.UI
             }
         }
 
+        public event ControlCreatedDelegate<TControl> ControlCreated;
+        
+        public event PanelActivatedDelegate<TControl> Activated
+        {
+            add
+            {
+                m_TaskPane.Activated += value;
+            }
+            remove
+            {
+                m_TaskPane.Activated -= value;
+            }
+        }
+
+        public bool IsControlCreated => m_TaskPane.IsControlCreated;
+
         private TaskPaneButtonEnumClickDelegate<TBtnEnum> m_ButtonClick;
         private readonly IXTaskPane<TControl> m_TaskPane;
 
@@ -56,6 +72,7 @@ namespace Xarial.XCad.UI
         {
             m_TaskPane = taskPane;
             m_TaskPane.ButtonClick += OnButtonClick;
+            ControlCreated?.Invoke(m_TaskPane.Control);
         }
 
         private void OnButtonClick(TaskPaneButtonSpec spec) 

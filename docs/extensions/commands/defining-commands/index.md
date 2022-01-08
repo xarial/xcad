@@ -34,6 +34,8 @@ Icons can be referenced from any static class. Usually this should be a resource
 
 {% code-snippet { file-name: ~Extension\CommandsManager\CommandsAttribution.* } %}
 
+Refer [Command Group Icons Example](https://github.com/xarial/xcad-examples/tree/master/CommandGroupIcons) for the demonstration of hosting different icons with various sizes in SOLIDWORKS toolbar. menu and command tab box.
+
 ## Commands Scope
 
 Each command can be assigned with the operation scope (i.e. the environment where this command can be executed, e.g. Part, Assembly etc.). Scope can be assigned with **CommandItemInfoAttribute** attribute by specifying the values in *suppWorkspaces* parameter of the attribute's constructor. The **WorkspaceTypes_e** is a flag enumeration, so it is possible to combine the workspaces.

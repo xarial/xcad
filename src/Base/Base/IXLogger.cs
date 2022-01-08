@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -8,6 +8,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Xarial.XCad.Base.Enums;
 
 namespace Xarial.XCad.Base
 {
@@ -20,6 +21,7 @@ namespace Xarial.XCad.Base
         /// Logs message
         /// </summary>
         /// <param name="msg">Message</param>
-        void Log(string msg);
+        /// <param name="severity">Type of the message</param>
+        void Log(string msg, LoggerMessageSeverity_e severity = LoggerMessageSeverity_e.Information);
     }
 }

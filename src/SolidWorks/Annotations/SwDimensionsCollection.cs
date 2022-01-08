@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -19,11 +19,16 @@ using Xarial.XCad.SolidWorks.Features;
 
 namespace Xarial.XCad.SolidWorks.Annotations
 {
-    public abstract class SwDimensionsCollection : IXDimensionRepository, IDisposable
+    public interface ISwDimensionsCollection : IXDimensionRepository, IDisposable
+    {
+        new ISwDimension this[string name] { get; }
+    }
+
+    internal abstract class SwDimensionsCollection : ISwDimensionsCollection
     {
         IXDimension IXRepository<IXDimension>.this[string name] => this[name];
 
-        public SwDimension this[string name]=> (SwDimension)this.Get(name);
+        public ISwDimension this[string name] => (SwDimension)this.Get(name);
 
         public abstract bool TryGet(string name, out IXDimension ent);
 
@@ -48,17 +53,17 @@ namespace Xarial.XCad.SolidWorks.Annotations
         }
     }
 
-    internal class SwDocumentDimensionsCollection : SwDimensionsCollection
+    internal class SwFeatureManagerDimensionsCollection : SwDimensionsCollection
     {
-        private readonly SwDocument m_Doc;
+        private readonly ISwFeatureManager m_FeatMgr;
 
-        internal SwDocumentDimensionsCollection(SwDocument model)
+        internal SwFeatureManagerDimensionsCollection(ISwFeatureManager featMgr)
         {
-            m_Doc = model;
+            m_FeatMgr = featMgr;
         }
 
         public override IEnumerator<IXDimension> GetEnumerator() 
-            => m_Doc.Features.SelectMany(f => f.Dimensions).GetEnumerator();
+            => m_FeatMgr.SelectMany(f => f.Dimensions).GetEnumerator();
 
         public override bool TryGet(string name, out IXDimension ent)
         {
@@ -74,7 +79,7 @@ namespace Xarial.XCad.SolidWorks.Annotations
 
             IXDimension dim = null;
 
-            if (m_Doc.Features.TryGet(featName, out IXFeature feat))
+            if (m_FeatMgr.TryGet(featName, out IXFeature feat))
             {
                 dim = feat.Dimensions.FirstOrDefault(
                     d => string.Equals(d.Name, $"{dimName}@{featName}",
@@ -96,14 +101,15 @@ namespace Xarial.XCad.SolidWorks.Annotations
 
     internal class SwFeatureDimensionsCollection : SwDimensionsCollection
     {
+        private readonly ISwApplication m_App;
+        private readonly ISwDocument m_Doc;
         private readonly SwFeature m_Feat;
 
-        private readonly SwDocument m_Doc;
-
-        internal SwFeatureDimensionsCollection(SwDocument doc, SwFeature feat)
+        internal SwFeatureDimensionsCollection(SwFeature feat, ISwDocument doc, ISwApplication app)
         {
-            m_Doc = doc;
             m_Feat = feat;
+            m_Doc = doc;
+            m_App = app;
         }
 
         public override bool TryGet(string name, out IXDimension ent)
@@ -140,27 +146,28 @@ namespace Xarial.XCad.SolidWorks.Annotations
         }
 
         public override IEnumerator<IXDimension> GetEnumerator() 
-            => new SwFeatureDimensionsEnumerator(m_Doc, m_Feat.Feature);
+            => new SwFeatureDimensionsEnumerator(m_Feat.Feature, m_Doc, m_App);
     }
 
     internal class SwFeatureDimensionsEnumerator : IEnumerator<IXDimension>
     {
-        public IXDimension Current => SwSelObject.FromDispatch<SwDimension>(m_CurDispDim, m_Doc);
+        public IXDimension Current => m_Doc.CreateObjectFromDispatch<SwDimension>(m_CurDispDim);
 
         object IEnumerator.Current => Current;
 
-        private readonly SwDocument m_Doc;
-
+        private readonly ISwDocument m_Doc;
         private readonly IFeature m_Feat;
+        private readonly ISwApplication m_App;
 
         private IDisplayDimension m_CurDispDim;
 
         private bool m_IsStart;
 
-        internal SwFeatureDimensionsEnumerator(SwDocument doc, IFeature feat) 
+        internal SwFeatureDimensionsEnumerator(IFeature feat, ISwDocument doc, ISwApplication app) 
         {
             m_Doc = doc;
             m_Feat = feat;
+            m_App = app;
             m_IsStart = true;
         }        
 

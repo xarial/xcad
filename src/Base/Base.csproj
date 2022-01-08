@@ -5,12 +5,16 @@
     <AssemblyName>Xarial.XCad</AssemblyName>
     <RootNamespace>Xarial.XCad</RootNamespace>
     <SignAssembly>false</SignAssembly>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <PackageId>Xarial.XCad</PackageId>
-    <VersionPrefix>0.6.0</VersionPrefix>
+    <VersionPrefix>0.8.0</VersionPrefix>
     <Authors>Xarial</Authors>
     <Product>xCAD</Product>
-    <Copyright>© 2020 Xarial Pty Limited</Copyright>
+    <Copyright>© 2022 Xarial Pty Limited</Copyright>
     <PackageProjectUrl>https://xcad.net</PackageProjectUrl>
     <AssemblyOriginatorKeyFile></AssemblyOriginatorKeyFile>
     <Company>Xarial Pty Limited</Company>
@@ -22,6 +26,10 @@
     <PackageIconUrl>https://xcad.xarial.com/icon.png</PackageIconUrl>
     <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TF_BUILD)' == 'true'">
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)'=='Release'">
@@ -52,6 +60,10 @@
       <Pack>True</Pack>
       <PackagePath></PackagePath>
     </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
   </ItemGroup>
 
 </Project>

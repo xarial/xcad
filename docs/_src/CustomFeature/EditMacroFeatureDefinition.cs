@@ -9,19 +9,20 @@ namespace Xarial.XCad.Documentation
 {
     public class EditMacroFeatureDefinitionParameters
     {
-        //TODO: add properties
+        //add properties
     }
 
     [ComVisible(true)]
     public class EditMacroFeatureDefinition : SwMacroFeatureDefinition<EditMacroFeatureDefinitionParameters>
     {
-        public override CustomFeatureRebuildResult OnRebuild(SwApplication app, SwDocument model, SwMacroFeature feature, EditMacroFeatureDefinitionParameters parameters, out AlignDimensionDelegate<EditMacroFeatureDefinitionParameters> alignDim)
+        public override CustomFeatureRebuildResult OnRebuild(ISwApplication app, ISwDocument model, 
+            ISwMacroFeature<EditMacroFeatureDefinitionParameters> feature, EditMacroFeatureDefinitionParameters parameters, out AlignDimensionDelegate<EditMacroFeatureDefinitionParameters> alignDim)
         {
             alignDim = null;
             return new CustomFeatureRebuildResult() { Result = true };
         }
 
-        public override bool OnEditDefinition(SwApplication app, SwDocument model, SwMacroFeature<EditMacroFeatureDefinitionParameters> feature)
+        public override bool OnEditDefinition(ISwApplication app, ISwDocument model, ISwMacroFeature<EditMacroFeatureDefinitionParameters> feature)
         {
             if (ShowPage(feature.Parameters, out EditMacroFeatureDefinitionParameters newParams))
             {
@@ -37,7 +38,7 @@ namespace Xarial.XCad.Documentation
 
         private bool ShowPage(EditMacroFeatureDefinitionParameters parameters, out EditMacroFeatureDefinitionParameters newParameters)
         {
-            //TODO: Show property page or any other user interface
+            //Show property page or any other user interface
 
             newParameters = null;
             return true;
