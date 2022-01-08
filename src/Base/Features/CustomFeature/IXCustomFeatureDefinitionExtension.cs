@@ -85,7 +85,7 @@ namespace Xarial.XCad.Features.CustomFeature
             IXDimension dim, Point centerPt, Point refPt, Vector rotVec)
             where TParams : class, new()
         {
-            var angle = dim.GetValue();
+            var angle = dim.Value;
 
             var dirVec = new Vector(refPt.X - centerPt.X, refPt.Y - centerPt.Y, refPt.Z - centerPt.Z);
 
@@ -102,7 +102,7 @@ namespace Xarial.XCad.Features.CustomFeature
 
         private static Point CalculateEndPoint(IXDimension dim, Point startPt, Vector dir)
         {
-            var length = dim.GetValue();
+            var length = dim.Value;
             return startPt.Move(dir, length);
         }
     }

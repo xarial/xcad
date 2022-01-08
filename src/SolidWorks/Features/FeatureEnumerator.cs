@@ -10,6 +10,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Xarial.XCad.Features;
 using Xarial.XCad.SolidWorks.Documents;
+using Xarial.XCad.SolidWorks.Utils;
 
 namespace Xarial.XCad.SolidWorks.Features
 {
@@ -73,7 +74,15 @@ namespace Xarial.XCad.SolidWorks.Features
             }
         }
 
-        public IXFeature Current => m_RootDoc.CreateObjectFromDispatch<SwFeature>(m_Features.Current);
+        public IXFeature Current
+        {
+            get
+            {
+                var feat = m_RootDoc.CreateObjectFromDispatch<SwFeature>(m_Features.Current);
+                feat.SetContext(m_Context);
+                return feat;
+            }
+        }
 
         object IEnumerator.Current => Current;
 
@@ -81,10 +90,13 @@ namespace Xarial.XCad.SolidWorks.Features
 
         private readonly IFeature m_FirstFeat;
 
-        internal FeatureEnumerator(ISwDocument rootDoc, IFeature firstFeat)
+        private readonly Context m_Context;
+
+        internal FeatureEnumerator(ISwDocument rootDoc, IFeature firstFeat, Context context)
         {
             m_RootDoc = rootDoc;
             m_FirstFeat = firstFeat;
+            m_Context = context;
         }
 
         public bool MoveNext() => m_Features.MoveNext();

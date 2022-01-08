@@ -158,7 +158,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         IXFeatureRepository IXDocument.Features => Features;
         IXSelectionRepository IXDocument.Selections => Selections;
-        IXDimensionRepository IXDocument.Dimensions => Dimensions;
+        IXDimensionRepository IDimensionable.Dimensions => Dimensions;
         IXPropertyRepository IPropertiesOwner.Properties => Properties;
         IEnumerable<IXDocument3D> IXDocument.Dependencies => Dependencies;
         IXVersion IXDocument.Version => Version;
@@ -400,9 +400,9 @@ namespace Xarial.XCad.SolidWorks.Documents
 
             m_Creator.Creating += OnCreating;
 
-            m_FeaturesLazy = new Lazy<ISwFeatureManager>(() => new SwFeatureManager(this, app));
+            m_FeaturesLazy = new Lazy<ISwFeatureManager>(() => new SwFeatureManager(this, app, new Context(this)));
             m_SelectionsLazy = new Lazy<ISwSelectionCollection>(() => new SwSelectionCollection(this, app));
-            m_DimensionsLazy = new Lazy<ISwDimensionsCollection>(() => new SwFeatureManagerDimensionsCollection(this.Features));
+            m_DimensionsLazy = new Lazy<ISwDimensionsCollection>(() => new SwFeatureManagerDimensionsCollection(this.Features, new Context(this)));
             m_PropertiesLazy = new Lazy<ISwCustomPropertiesCollection>(() => new SwFileCustomPropertiesCollection(this, app));
 
             Units = new SwUnits(this);
@@ -1217,7 +1217,8 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
             if (Model.ForceRebuild3(false)) 
             {
-                throw new Exception("Failed to rebuild the model");
+                //do not throw exception - in some cases rebuild is happening, but false is returned
+                //throw new Exception("Failed to rebuild the model");
             }
         }
     }

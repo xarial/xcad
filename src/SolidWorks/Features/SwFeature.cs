@@ -33,12 +33,15 @@ namespace Xarial.XCad.SolidWorks.Features
     {
         private readonly ElementCreator<IFeature> m_Creator;
 
-        IXDimensionRepository IXFeature.Dimensions => Dimensions;
+        IXDimensionRepository IDimensionable.Dimensions => Dimensions;
 
         public virtual IFeature Feature
             => m_Creator.Element;
 
         public override object Dispatch => Feature;
+
+        private readonly Lazy<SwFeatureDimensionsCollection> m_DimensionsLazy;
+        private Context m_Context;
 
         internal SwFeature(IFeature feat, ISwDocument doc, ISwApplication app, bool created) : base(feat, doc, app)
         {
@@ -47,9 +50,31 @@ namespace Xarial.XCad.SolidWorks.Features
                 throw new ArgumentNullException(nameof(doc));
             }
 
-            Dimensions = new SwFeatureDimensionsCollection(this, OwnerDocument, OwnerApplication);
+            m_DimensionsLazy = new Lazy<SwFeatureDimensionsCollection>(() => 
+            {
+                if (m_Context == null)
+                {
+                    var comp = ((IEntity)Feature).GetComponent();
+
+                    if (comp != null)
+                    {
+                        m_Context = new Context(OwnerDocument.CreateObjectFromDispatch<ISwComponent>(comp));
+                    }
+                    else
+                    {
+                        m_Context = new Context(OwnerDocument);
+                    }
+                }
+
+                return new SwFeatureDimensionsCollection(this, OwnerDocument, m_Context);
+            });
 
             m_Creator = new ElementCreator<IFeature>(CreateFeature, feat, created);
+        }
+
+        internal void SetContext(Context context) 
+        {
+            m_Context = context;
         }
 
         public override void Commit(CancellationToken cancellationToken) => m_Creator.Create(cancellationToken);
@@ -59,7 +84,7 @@ namespace Xarial.XCad.SolidWorks.Features
             throw new NotSupportedException("Creation of this feature is not supported");
         }
 
-        public ISwDimensionsCollection Dimensions { get; }
+        public ISwDimensionsCollection Dimensions => m_DimensionsLazy.Value;
 
         public string Name 
         {

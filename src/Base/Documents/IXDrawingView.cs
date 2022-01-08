@@ -18,7 +18,7 @@ namespace Xarial.XCad.Documents
     /// <summary>
     /// Represents the drawing view on <see cref="IXSheet"/>
     /// </summary>
-    public interface IXDrawingView : IXSelObject, IXObjectContainer, IXTransaction
+    public interface IXDrawingView : IXSelObject, IXObjectContainer, IDimensionable, IXTransaction
     {
         /// <summary>
         /// Contains the document referenced by this drawing view
@@ -29,11 +29,6 @@ namespace Xarial.XCad.Documents
         /// Contains the configuration this drawing view is created from
         /// </summary>
         IXConfiguration ReferencedConfiguration { get; }
-
-        /// <summary>
-        /// Dimensions of the drawing
-        /// </summary>
-        IXDimensionRepository Dimensions { get; }
 
         /// <summary>
         /// Name of this drawing view

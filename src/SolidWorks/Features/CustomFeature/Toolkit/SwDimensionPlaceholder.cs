@@ -20,9 +20,10 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature.Toolkit
         {            
         }
 
-        public override double GetValue(string confName = "")
+        public override double Value
         {
-            return double.NaN;
+            get => double.NaN;
+            set => base.Value = value;
         }
     }
 }
