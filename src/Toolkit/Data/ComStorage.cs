@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -94,6 +94,9 @@ namespace Xarial.XCad.Toolkit.Data
 
     #endregion
 
+    /// <summary>
+    /// Represents the implementation of Storage in .NET
+    /// </summary>
     public class ComStorage : IStorage
     {
         private bool m_IsWritable;

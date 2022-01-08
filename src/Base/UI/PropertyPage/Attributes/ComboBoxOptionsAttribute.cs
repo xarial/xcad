@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -17,7 +17,10 @@ namespace Xarial.XCad.UI.PropertyPage.Attributes
     /// <remarks>Must be applied to the property of <see cref="Enum"/></remarks>
     public class ComboBoxOptionsAttribute : Attribute, IAttribute
     {
-        public ComboBoxStyle_e Style { get; private set; }
+        /// <summary>
+        /// Specific rendering style of the combobox
+        /// </summary>
+        public ComboBoxStyle_e Style { get; }
 
         /// <summary>
         /// Constructor for specifying style of combo box

@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -17,6 +17,7 @@ using Xarial.XCad.SolidWorks.Geometry;
 using Xarial.XCad.SolidWorks.UI.PropertyPage;
 using Xarial.XCad.Toolkit.Utils;
 using Xarial.XCad.UI.PropertyPage;
+using Xarial.XCad.UI.PropertyPage.Delegates;
 using Xarial.XCad.Utils.CustomFeature;
 using Xarial.XCad.Utils.Diagnostics;
 
@@ -26,10 +27,20 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         where TData : class, new()
         where TPage : class, new()
     {
-        internal SwMacroFeatureEditor(ISwApplication app, Type defType, 
-            CustomFeatureParametersParser paramsParser, IServiceProvider svcProvider) 
+        internal delegate void AssignPreviewBodyColorDelegate(IXBody body, out Color color);
+
+        private readonly SwPropertyManagerPageHandler m_Handler;
+        private readonly AssignPreviewBodyColorDelegate m_AssignBodyColorFunc;
+
+        internal SwMacroFeatureEditor(ISwApplication app, Type defType, SwPropertyManagerPageHandler handler,
+            CustomFeatureParametersParser paramsParser, IServiceProvider svcProvider,
+            CreateDynamicControlsDelegate createDynCtrlHandler, AssignPreviewBodyColorDelegate assignPreviewBodyColorDelegateFunc) 
             : base(app, defType, paramsParser, svcProvider)
         {
+            m_Handler = handler;
+            m_AssignBodyColorFunc = assignPreviewBodyColorDelegateFunc;
+
+            InitPage(createDynCtrlHandler);
         }
 
         protected override void DisplayPreview(IXBody[] bodies)
@@ -39,7 +50,9 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
                 var swBody = (body as SwBody).Body;
                 var model = (CurModel as SwDocument).Model;
 
-                swBody.Display3(model, ColorUtils.ToColorRef(Color.Yellow),
+                m_AssignBodyColorFunc.Invoke(body, out Color color);
+
+                swBody.Display3(model, ColorUtils.ToColorRef(color),
                     (int)swTempBodySelectOptions_e.swTempBodySelectOptionNone);
             }
         }
@@ -67,10 +80,10 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             }
         }
 
-        protected override IXPropertyPage<TPage> CreatePage()
+        protected override IXPropertyPage<TPage> CreatePage(CreateDynamicControlsDelegate createDynCtrlHandler)
         {
             //TODO: add support for other options
-            return new SwPropertyManagerPage<TPage>((ISwApplication)m_App, m_SvcProvider, typeof(TPage));
+            return new SwPropertyManagerPage<TPage>((ISwApplication)m_App, m_SvcProvider, m_Handler, createDynCtrlHandler);
         }
     }
 }

@@ -1,18 +1,20 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
 using SolidWorks.Interop.sldworks;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
 using Xarial.XCad.Reflection;
 using Xarial.XCad.SolidWorks.Services;
 using Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Icons;
 using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.UI;
+using Xarial.XCad.UI.PropertyPage.Base;
 using Xarial.XCad.Utils.PageBuilder.PageElements;
 
 namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
@@ -33,9 +35,10 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
         public PropertyManagerPageBitmapControl(IIconsCreator iconsConv,
             int id, object tag, Size? size,
             IPropertyManagerPageBitmap bitmap,
-            SwPropertyManagerPageHandler handler) : base(bitmap, id, tag, handler)
+            SwPropertyManagerPageHandler handler, IPropertyManagerPageLabel label, IMetadata[] metadata)
+            : base(bitmap, id, tag, handler, label, metadata)
         {
-            m_Size = size.HasValue ? size.Value : new Size(18, 18);
+            m_Size = size.HasValue ? size.Value : new Size(36, 36);
             m_IconsConv = iconsConv;
         }
 
@@ -43,15 +46,14 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
         protected override void SetSpecificValue(Image value)
         {
-            IXImage img = null;
-
+            IXImage img;
             if (value == null)
             {
                 img = Defaults.Icon;
             }
             else 
             {
-                img = ResourceHelper.FromBytes(ImageToByteArray(value));
+                img = new BaseImage(ImageToByteArray(value));
             }
 
             var icons = m_IconsConv.ConvertIcon(new ControlIcon(img, m_Size));

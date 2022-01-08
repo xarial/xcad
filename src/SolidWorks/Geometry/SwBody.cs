@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -8,6 +8,7 @@
 using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using Xarial.XCad.Geometry;
@@ -20,7 +21,7 @@ using Xarial.XCad.SolidWorks.Utils;
 
 namespace Xarial.XCad.SolidWorks.Geometry
 {
-    public interface ISwBody : ISwSelObject, IXBody
+    public interface ISwBody : ISwSelObject, IXBody, IResilientibleObject<ISwBody>
     {
         IBody2 Body { get; }
 
@@ -35,17 +36,38 @@ namespace Xarial.XCad.SolidWorks.Geometry
         IXBody[] IXBody.Substract(IXBody other) => Substract((ISwBody)other);
         IXBody[] IXBody.Common(IXBody other) => Common((ISwBody)other);
 
-        public static SwBody operator -(SwBody firstBody, SwBody secondBody)
+        IXObject IResilientibleObject.CreateResilient() => CreateResilient();
+
+        public virtual IBody2 Body 
         {
-            return (SwBody)firstBody.Substract(secondBody).First();
+            get 
+            {
+                if (IsResilient)
+                {
+                    try
+                    {
+                        var testPtrAlive = m_Body.Name;
+                    }
+                    catch 
+                    {
+                        var body = (IBody2)OwnerDocument.Model.Extension.GetObjectByPersistReference3(m_PersistId, out _);
+
+                        if (body != null)
+                        {
+                            m_Body = body;
+                        }
+                        else 
+                        {
+                            throw new NullReferenceException("Pointer to the body cannot be restored");
+                        }
+                    }
+                }
+
+                return m_Body;
+            }
         }
 
-        public static SwBody operator +(SwBody firstBody, SwBody secondBody)
-        {
-            return (SwBody)firstBody.Add(secondBody);
-        }
-
-        public virtual IBody2 Body { get; }
+        public override object Dispatch => Body;
 
         public bool Visible
         {
@@ -80,12 +102,46 @@ namespace Xarial.XCad.SolidWorks.Geometry
             }
         }
 
-        protected ISwDocument m_Document;
-
-        internal SwBody(IBody2 body, ISwDocument doc) : base(doc?.Model, body)
+        public IEnumerable<IXFace> Faces 
         {
-            Body = body;
-            m_Document = doc;
+            get 
+            {
+                var face = Body.IGetFirstFace();
+
+                while (face != null) 
+                {
+                    yield return OwnerApplication.CreateObjectFromDispatch<ISwFace>(face, OwnerDocument);
+                    face = face.IGetNextFace();
+                }
+            }
+        }
+
+        public IEnumerable<IXEdge> Edges
+        {
+            get
+            {
+                var edges = Body.GetEdges() as object[];
+
+                if (edges != null) 
+                {
+                    foreach (IEdge edge in edges) 
+                    {
+                        yield return OwnerApplication.CreateObjectFromDispatch<ISwEdge>(edge, OwnerDocument);
+                    }
+                }
+            }
+        }
+
+        public bool IsResilient { get; private set; }
+
+        private byte[] m_PersistId;
+
+        private IBody2 m_Body;
+
+        internal SwBody(IBody2 body, ISwDocument doc, ISwApplication app) 
+            : base(body, doc, app ?? ((SwDocument)doc)?.OwnerApplication)
+        {
+            m_Body = body;
         }
 
         public override void Select(bool append)
@@ -120,19 +176,46 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
             if (res?.Any() == true)
             {
-                return res.Select(b => FromDispatch<SwBody>(b as IBody2)).ToArray();
+                return res.Select(b => OwnerApplication.CreateObjectFromDispatch<SwBody>(b as IBody2, OwnerDocument)).ToArray();
             }
             else
             {
                 return new ISwBody[0];
             }
         }
-    }
 
-    public static class ISwBodyExtension
-    {
-        public static ISwTempBody ToTempBody(this ISwBody body)
-            => SwObject.FromDispatch<SwTempBody>(body.Body.ICopy());
+        public IXBody Copy()
+            => OwnerApplication.CreateObjectFromDispatch<SwTempBody>(Body.ICopy(), OwnerDocument);
+
+        public virtual void Transform(TransformMatrix transform)
+            => throw new NotSupportedException($"Only temp bodies are supported. Use {nameof(Copy)} method");
+
+        public virtual ISwBody CreateResilient()
+        {
+            if (OwnerDocument == null) 
+            {
+                throw new NullReferenceException("Owner document is not set");
+            }
+
+            var id = (byte[])OwnerDocument.Model.Extension.GetPersistReference3(Body);
+
+            if (id != null)
+            {
+                var body = OwnerDocument.CreateObjectFromDispatch<SwBody>(Body);
+                body.MakeResilient(id);
+                return body;
+            }
+            else 
+            {
+                throw new Exception("Failed to create resilient body");
+            }
+        }
+
+        private void MakeResilient(byte[] persistId) 
+        {
+            IsResilient = true;
+            m_PersistId = persistId;
+        }
     }
 
     public interface ISwSheetBody : ISwBody, IXSheetBody
@@ -141,7 +224,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
     internal class SwSheetBody : SwBody, ISwSheetBody
     {
-        internal SwSheetBody(IBody2 body, ISwDocument doc) : base(body, doc)
+        internal SwSheetBody(IBody2 body, ISwDocument doc, ISwApplication app) : base(body, doc, app)
         {
         }
     }
@@ -152,7 +235,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
     internal class SwPlanarSheetBody : SwSheetBody, ISwPlanarSheetBody
     {
-        internal SwPlanarSheetBody(IBody2 body, ISwDocument doc) : base(body, doc)
+        internal SwPlanarSheetBody(IBody2 body, ISwDocument doc, ISwApplication app) : base(body, doc, app)
         {
         }
 
@@ -164,7 +247,9 @@ namespace Xarial.XCad.SolidWorks.Geometry
     {
         internal static Plane GetPlane(this ISwPlanarSheetBody body)
         {
-            var planarFace = SwSelObject.FromDispatch<SwPlanarFace>(body.Body.IGetFirstFace());
+            var planarFace = ((SwObject)body).OwnerApplication.CreateObjectFromDispatch<SwPlanarFace>(
+                body.Body.IGetFirstFace(), ((SwObject)body).OwnerDocument);
+
             return planarFace.Definition.Plane;
         }
 
@@ -176,8 +261,8 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
             for (int i = 0; i < segs.Length; i++)
             {
-                var curve = (edges[i] as IEdge).IGetCurve();
-                segs[i] = SwSelObject.FromDispatch<SwCurve>(curve);
+                var curve = ((IEdge)edges[i]).IGetCurve();
+                segs[i] = ((SwObject)body).OwnerApplication.CreateObjectFromDispatch<SwCurve>(curve, ((SwObject)body).OwnerDocument);
             }
 
             return segs;
@@ -190,8 +275,19 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
     internal class SwSolidBody : SwBody, ISwBody, ISwSolidBody
     {
-        internal SwSolidBody(IBody2 body, ISwDocument doc) : base(body, doc)
+        internal SwSolidBody(IBody2 body, ISwDocument doc, ISwApplication app) : base(body, doc, app)
         {
+        }
+
+        public double Volume => this.GetVolume();
+    }
+
+    internal static class ISwBodyExtension
+    { 
+        public static double GetVolume(this ISwBody body)
+        {
+            var massPrps = body.Body.GetMassProperties(0) as double[];
+            return massPrps[3];
         }
     }
 }

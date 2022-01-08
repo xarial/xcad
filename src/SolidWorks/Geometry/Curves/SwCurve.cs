@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -16,14 +16,12 @@ using Xarial.XCad.Geometry.Curves;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Geometry.Wires;
 using Xarial.XCad.Services;
+using Xarial.XCad.SolidWorks.Documents;
 
 namespace Xarial.XCad.SolidWorks.Geometry.Curves
 {
     public interface ISwCurve : IXCurve, ISwObject
     {
-        [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
-        bool TryGetPlane(out Plane plane);
-
         ICurve[] Curves { get; }
     }
 
@@ -64,18 +62,20 @@ namespace Xarial.XCad.SolidWorks.Geometry.Curves
             }
         }
 
+        public override object Dispatch => Curves;
+
         protected readonly ElementCreator<ICurve[]> m_Creator;
 
         protected readonly IModeler m_Modeler;
 
-        internal SwCurve(IModeler modeler, ICurve curve, bool isCreated) 
-            : this(modeler, new ICurve[] { curve }, isCreated)
+        internal SwCurve(ICurve curve, ISwDocument doc, ISwApplication app, bool isCreated) 
+            : this(new ICurve[] { curve }, doc, app, isCreated)
         { 
         }
 
-        internal SwCurve(IModeler modeler, ICurve[] curves, bool isCreated) : base(curves)
+        internal SwCurve(ICurve[] curves, ISwDocument doc, ISwApplication app, bool isCreated) : base(curves, doc, app)
         {
-            m_Modeler = modeler;
+            m_Modeler = app.Sw.IGetModeler();
             m_Creator = new ElementCreator<ICurve[]>(Create, curves, isCreated);
         }
 
@@ -111,10 +111,66 @@ namespace Xarial.XCad.SolidWorks.Geometry.Curves
             }
         }
 
-        public virtual bool TryGetPlane(out Plane plane)
+        internal virtual bool TryGetPlane(out Plane plane)
         {
             plane = null;
             return false;
+        }
+
+        public Point FindClosestPoint(Point point)
+        {
+            Point resPt = null;
+
+            foreach (var curve in Curves) 
+            {
+                var thisPt = new Point(((double[])curve.GetClosestPointOn(point.X, point.Y, point.Z)).Take(3).ToArray());
+
+                if (resPt != null)
+                {
+                    if ((thisPt - point).GetLength() < (resPt - point).GetLength())
+                    {
+                        resPt = thisPt;
+                    }
+                }
+            }
+
+            return resPt;
+        }
+
+        public double CalculateUParameter(Point point)
+        {
+            if (Curves.Length == 1)
+            {
+                return Curves.First().ReverseEvaluate(point.X, point.Y, point.Z);
+            }
+            else 
+            {
+                throw new Exception("Only single curve is supported");
+            }
+        }
+
+        public Point CalculateLocation(double uParam)
+        {
+            if (Curves.Length == 1)
+            {
+                return new Point(((double[])Curves.First().Evaluate2(uParam, 1)).Take(3).ToArray());
+            }
+            else
+            {
+                throw new Exception("Only single curve is supported");
+            }
+        }
+
+        public double CalculateLength(double startParamU, double endParamU)
+        {
+            if (Curves.Length == 1)
+            {
+                return Curves.First().GetLength3(startParamU, endParamU);
+            }
+            else
+            {
+                throw new Exception("Only single curve is supported");
+            }
         }
     }
 }

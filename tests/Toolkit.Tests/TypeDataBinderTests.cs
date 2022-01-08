@@ -5,11 +5,14 @@
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
+using Moq;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Xarial.XCad.Base;
 using Xarial.XCad.UI.PropertyPage.Base;
+using Xarial.XCad.Utils.PageBuilder;
 using Xarial.XCad.Utils.PageBuilder.Base;
 using Xarial.XCad.Utils.PageBuilder.Binders;
 
@@ -47,7 +50,7 @@ namespace Toolkit.Tests
         [Test]
         public void TestBindSimple()
         {
-            var binder = new TypeDataBinder();
+            var binder = new TypeDataBinder(new Mock<IXLogger>().Object);
             IEnumerable<IBinding> bindings;
 
             IRawDependencyGroup dependencies;
@@ -55,27 +58,34 @@ namespace Toolkit.Tests
             binder.Bind<DataModelMock1>(
                 a =>
                 {
-                    return new Moq.Mock<IPage>().Object;
+                    return new Mock<IPage>().Object;
                 },
-                (Type t, IAttributeSet a, IGroup p, out int r) =>
+                (Type t, IAttributeSet a, IGroup p, IMetadata[] md, out int r) =>
                 {
                     r = 1;
-                    return new Moq.Mock<IControl>().Object;
-                }, out bindings, out dependencies);
+                    return new Mock<IControl>().Object;
+                }, x => null, new Mock<IContextProvider>().Object, out bindings, out dependencies, out _);
+
+            var d1 = (bindings.ElementAt(0) as PropertyInfoBinding<DataModelMock1>).ControlDescriptor;
+            var d2 = (bindings.ElementAt(1) as PropertyInfoBinding<DataModelMock1>).ControlDescriptor;
+            var d3 = (bindings.ElementAt(2) as PropertyInfoBinding<DataModelMock1>).ControlDescriptor;
 
             Assert.AreEqual(3, bindings.Count());
-            Assert.AreEqual(typeof(DataModelMock1).GetProperty("Field1"),
-                (bindings.ElementAt(0) as PropertyInfoBinding<DataModelMock1>).Property);
-            Assert.AreEqual(typeof(DataModelMock1).GetProperty("Field2"),
-                (bindings.ElementAt(1) as PropertyInfoBinding<DataModelMock1>).Property);
-            Assert.AreEqual(typeof(DataModelMock1).GetProperty("Field3"),
-                (bindings.ElementAt(2) as PropertyInfoBinding<DataModelMock1>).Property);
+            
+            Assert.AreEqual("Field1", d1.Name);
+            Assert.AreEqual(typeof(string), d1.DataType);
+
+            Assert.AreEqual("Field2", d2.Name);
+            Assert.AreEqual(typeof(int), d2.DataType);
+
+            Assert.AreEqual("Field3", d3.Name);
+            Assert.AreEqual(typeof(double), d3.DataType);
         }
 
         [Test]
         public void TestBindGroup()
         {
-            var binder = new TypeDataBinder();
+            var binder = new TypeDataBinder(new Mock<IXLogger>().Object);
             IEnumerable<IBinding> bindings;
 
             IRawDependencyGroup dependencies;
@@ -83,42 +93,57 @@ namespace Toolkit.Tests
             binder.Bind<DataModelMock2>(
                 a =>
                 {
-                    return new Moq.Mock<IPage>().Object;
+                    return new Mock<IPage>().Object;
                 },
-                (Type t, IAttributeSet a, IGroup p, out int r) =>
+                (Type t, IAttributeSet a, IGroup p, IMetadata[] md, out int r) =>
                 {
                     r = 1;
                     if (t == typeof(DataModelMock1))
                     {
-                        return new Moq.Mock<IGroup>().Object;
+                        return new Mock<IGroup>().Object;
                     }
                     else
                     {
-                        return new Moq.Mock<IControl>().Object;
+                        return new Mock<IControl>().Object;
                     }
-                }, out bindings, out dependencies);
+                }, x => null, new Mock<IContextProvider>().Object, out bindings, out dependencies, out _);
+
+            var d1 = (bindings.ElementAt(0) as PropertyInfoBinding<DataModelMock2>).ControlDescriptor;
+            var d2 = (bindings.ElementAt(1) as PropertyInfoBinding<DataModelMock2>).ControlDescriptor;
+            var d3 = (bindings.ElementAt(2) as PropertyInfoBinding<DataModelMock2>).ControlDescriptor;
+            var d4 = (bindings.ElementAt(3) as PropertyInfoBinding<DataModelMock2>).ControlDescriptor;
+            var d5 = (bindings.ElementAt(4) as PropertyInfoBinding<DataModelMock2>).ControlDescriptor;
+            var d6 = (bindings.ElementAt(5) as PropertyInfoBinding<DataModelMock2>).ControlDescriptor;
+            var d7 = (bindings.ElementAt(6) as PropertyInfoBinding<DataModelMock2>).ControlDescriptor;
 
             Assert.AreEqual(7, bindings.Count());
-            Assert.AreEqual(typeof(DataModelMock2).GetProperty("Field1"),
-                (bindings.ElementAt(0) as PropertyInfoBinding<DataModelMock2>).Property);
-            Assert.AreEqual(typeof(DataModelMock2).GetProperty("Field2"),
-                (bindings.ElementAt(1) as PropertyInfoBinding<DataModelMock2>).Property);
-            Assert.AreEqual(typeof(DataModelMock2).GetProperty("Field3"),
-                (bindings.ElementAt(2) as PropertyInfoBinding<DataModelMock2>).Property);
-            Assert.AreEqual(typeof(DataModelMock2).GetProperty("Group1"),
-                (bindings.ElementAt(3) as PropertyInfoBinding<DataModelMock2>).Property);
-            Assert.AreEqual(typeof(DataModelMock1).GetProperty("Field1"),
-                (bindings.ElementAt(4) as PropertyInfoBinding<DataModelMock2>).Property);
-            Assert.AreEqual(typeof(DataModelMock1).GetProperty("Field2"),
-                (bindings.ElementAt(5) as PropertyInfoBinding<DataModelMock2>).Property);
-            Assert.AreEqual(typeof(DataModelMock1).GetProperty("Field3"),
-                (bindings.ElementAt(6) as PropertyInfoBinding<DataModelMock2>).Property);
+
+            Assert.AreEqual("Field1", d1.Name);
+            Assert.AreEqual(typeof(string), d1.DataType);
+
+            Assert.AreEqual("Field2", d2.Name);
+            Assert.AreEqual(typeof(int), d2.DataType);
+
+            Assert.AreEqual("Field3", d3.Name);
+            Assert.AreEqual(typeof(double), d3.DataType);
+
+            Assert.AreEqual("Group1", d4.Name);
+            Assert.AreEqual(typeof(DataModelMock1), d4.DataType);
+
+            Assert.AreEqual("Field1", d5.Name);
+            Assert.AreEqual(typeof(string), d5.DataType);
+
+            Assert.AreEqual("Field2", d6.Name);
+            Assert.AreEqual(typeof(int), d6.DataType);
+
+            Assert.AreEqual("Field3", d7.Name);
+            Assert.AreEqual(typeof(double), d7.DataType);
         }
 
         [Test]
         public void TestBindParent()
         {
-            var binder = new TypeDataBinder();
+            var binder = new TypeDataBinder(new Mock<IXLogger>().Object);
             IEnumerable<IBinding> bindings;
 
             IPage page = null;
@@ -135,28 +160,28 @@ namespace Toolkit.Tests
                     page = new Moq.Mock<IPage>().Object;
                     return page;
                 },
-                (Type t, IAttributeSet a, IGroup p, out int r) =>
+                (Type t, IAttributeSet a, IGroup p, IMetadata[] md, out int r) =>
                 {
                     r = 1;
                     if (t == typeof(DataModelMock1))
                     {
-                        grp1 = new Moq.Mock<IGroup>().Object;
+                        grp1 = new Mock<IGroup>().Object;
                         parents.Add(grp1, p);
                         return grp1;
                     }
                     if (t == typeof(DataModelMock2))
                     {
-                        grp2 = new Moq.Mock<IGroup>().Object;
+                        grp2 = new Mock<IGroup>().Object;
                         parents.Add(grp2, p);
                         return grp2;
                     }
                     else
                     {
-                        var ctrl = new Moq.Mock<IControl>().Object;
+                        var ctrl = new Mock<IControl>().Object;
                         parents.Add(ctrl, p);
                         return ctrl;
                     }
-                }, out bindings, out dependencies);
+                }, x => null, new Mock<IContextProvider>().Object, out bindings, out dependencies, out _);
 
             Assert.AreEqual(page,
                 parents[(bindings.ElementAt(0) as PropertyInfoBinding<DataModelMock3>).Control]);
@@ -183,7 +208,7 @@ namespace Toolkit.Tests
         [Test]
         public void TestBindIds()
         {
-            var binder = new TypeDataBinder();
+            var binder = new TypeDataBinder(new Mock<IXLogger>().Object);
             IEnumerable<IBinding> bindings;
 
             IPage page = null;
@@ -193,16 +218,16 @@ namespace Toolkit.Tests
             binder.Bind<DataModelMock1>(
                 a =>
                 {
-                    page = new Moq.Mock<IPage>().Object;
+                    page = new Mock<IPage>().Object;
                     return page;
                 },
-                (Type t, IAttributeSet a, IGroup p, out int r) =>
+                (Type t, IAttributeSet a, IGroup p, IMetadata[] md, out int r) =>
                 {
                     r = 1;
-                    var ctrlMock = new Moq.Mock<IControl>();
+                    var ctrlMock = new Mock<IControl>();
                     ctrlMock.SetupGet(c => c.Id).Returns(() => a.Id);
                     return ctrlMock.Object;
-                }, out bindings, out dependencies);
+                }, x => null, new Mock<IContextProvider>().Object, out bindings, out dependencies, out _);
 
             Assert.AreEqual(0, bindings.ElementAt(0).Control.Id);
             Assert.AreEqual(1, bindings.ElementAt(1).Control.Id);

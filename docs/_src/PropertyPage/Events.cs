@@ -42,7 +42,7 @@ namespace Xarial.XCad.Documentation
         private void OnDataChanged()
         {
             var text = m_Data.Text;
-            //TODO: handle the data changing, e.g. update preview
+            //handle the data changing, e.g. update preview
         }
         //---
         //--- Closing
@@ -64,11 +64,11 @@ namespace Xarial.XCad.Documentation
         {
             if (reason == PageCloseReasons_e.Okay)
             {
-                //TODO: do work
+                //do work
             }
             else
             {
-                //TODO: release resources
+                //release resources
             }
         }
         //---

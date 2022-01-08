@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -13,7 +13,14 @@ namespace Xarial.XCad.Utils.Reflection
     {
         internal static TVal Cast<TVal>(this object obj)
         {
-            return (TVal)obj.Cast(typeof(TVal));
+            if (obj != null)
+            {
+                return (TVal)obj.Cast(typeof(TVal));
+            }
+            else 
+            {
+                return default;
+            }
         }
 
         internal static object Cast(this object value, Type type)
@@ -23,7 +30,7 @@ namespace Xarial.XCad.Utils.Reflection
             if (value != null)
             {
                 if (!type.IsAssignableFrom(value.GetType())
-                    && (typeof(IConvertible)).IsAssignableFrom(type))
+                    && typeof(IConvertible).IsAssignableFrom(type))
                 {
                     try
                     {

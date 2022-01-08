@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -28,6 +28,15 @@ namespace Xarial.XCad.Base.Attributes
         /// </summary>
         protected IconAttribute() 
         {
+        }
+
+        /// <summary>
+        /// Constructor to be used in dynamic controls
+        /// </summary>
+        /// <param name="icon"></param>
+        public IconAttribute(IXImage icon) 
+        {
+            Icon = icon;
         }
 
         /// <param name="resType">Type of the static class (usually Resources)</param>

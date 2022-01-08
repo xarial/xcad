@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -19,7 +19,7 @@ namespace Xarial.XCad.SolidWorks.Documents.EventHandlers
     {
         private SwDrawing m_Drw;
 
-        internal SheetActivatedEventsHandler(SwDrawing drw) : base(drw)
+        internal SheetActivatedEventsHandler(SwDrawing drw, ISwApplication app) : base(drw, app)
         {
             m_Drw = drw;
         }
@@ -37,7 +37,7 @@ namespace Xarial.XCad.SolidWorks.Documents.EventHandlers
         private int OnActivateSheetPostNotify(string sheetName)
         {
             Delegate?.Invoke(m_Drw, m_Drw.Sheets[sheetName]);
-            return S_OK;
+            return HResult.S_OK;
         }
     }
 }

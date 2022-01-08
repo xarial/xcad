@@ -29,7 +29,7 @@ namespace Xarial.XCad.Documentation
             {
                 case Commands_e.Command1:
                 case Commands_e.Command2:
-                    //TODO: implement logic to identify the state of the button
+                    //implement logic to identify the state of the button
                     state.Checked = false;
                     state.Enabled = false;
                     break;

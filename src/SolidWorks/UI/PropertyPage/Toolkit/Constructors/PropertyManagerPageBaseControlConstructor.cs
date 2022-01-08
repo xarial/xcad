@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -19,6 +19,7 @@ using Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Icons;
 using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.Toolkit.Utils;
 using Xarial.XCad.UI.PropertyPage.Attributes;
+using Xarial.XCad.UI.PropertyPage.Base;
 using Xarial.XCad.UI.PropertyPage.Enums;
 using Xarial.XCad.Utils.PageBuilder.Base;
 using Xarial.XCad.Utils.PageBuilder.Constructors;
@@ -61,19 +62,24 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
             m_Type = type;
         }
 
-        protected override TControl Create(PropertyManagerPageGroupBase group, IAttributeSet atts)
+        protected override TControl Create(PropertyManagerPageGroupBase group, IAttributeSet atts, IMetadata[] metadata, ref int numberOfUsedIds)
         {
             var opts = GetControlOptions(atts);
 
-            TControlSw swCtrl = null;
-            
+            TControlSw swCtrl;
+            IPropertyManagerPageLabel label;
+
             if (group is PropertyManagerPageGroupControl)
             {
-                swCtrl = CreateSwControlInGroup((group as PropertyManagerPageGroupControl).Group, opts, atts) as TControlSw;
+                var grp = (group as PropertyManagerPageGroupControl).Group;
+                AddLabelIfNeeded(grp, atts, ref numberOfUsedIds, out label);
+                swCtrl = CreateSwControl(grp, opts, atts) as TControlSw;
             }
             else if (group is PropertyManagerPageTabControl)
             {
-                swCtrl = CreateSwControlInTab((group as PropertyManagerPageTabControl).Tab, opts, atts) as TControlSw;
+                var tab = (group as PropertyManagerPageTabControl).Tab;
+                AddLabelIfNeeded(tab, atts, ref numberOfUsedIds, out label);
+                swCtrl = CreateSwControl(tab, opts, atts) as TControlSw;
             }
             else
             {
@@ -81,68 +87,147 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
             }
 
             AssignControlAttributes(swCtrl, opts, atts);
-
-            return CreateControl(swCtrl, atts, group.Handler, opts.Height);
+            
+            return CreateControl(swCtrl, atts, metadata, group.Handler, opts.Height, label);
         }
 
-        protected override TControl Create(PropertyManagerPagePage page, IAttributeSet atts)
+        protected override TControl Create(PropertyManagerPagePage page, IAttributeSet atts, IMetadata[] metadata, ref int numberOfUsedIds)
         {
             var opts = GetControlOptions(atts);
 
-            var swCtrl = CreateSwControlInPage(page.Page, opts, atts) as TControlSw;
+            AddLabelIfNeeded(page.Page, atts, ref numberOfUsedIds, out IPropertyManagerPageLabel label);
+
+            var swCtrl = CreateSwControl(page.Page, opts, atts) as TControlSw;
 
             AssignControlAttributes(swCtrl, opts, atts);
 
-            return CreateControl(swCtrl, atts, page.Handler, opts.Height);
+            return CreateControl(swCtrl, atts, metadata, page.Handler, opts.Height, label);
         }
-
-        protected virtual TControlSw CreateSwControlInPage(IPropertyManagerPage2 page,
-            ControlOptionsAttribute opts, IAttributeSet atts)
+        
+        protected virtual TControlSw CreateSwControl(object host, ControlOptionsAttribute opts, IAttributeSet atts)
         {
-            if (m_App.IsVersionNewerOrEqual(SwVersion_e.Sw2014, 1))
+            var legacy = !m_App.IsVersionNewerOrEqual(SwVersion_e.Sw2014, 1);
+
+            switch (host)
             {
-                return page.AddControl2(atts.Id, (short)m_Type, atts.Name,
-                    (short)opts.Align, (short)opts.Options, atts.Description) as TControlSw;
-            }
-            else
-            {
-                return page.AddControl(atts.Id, (short)m_Type, atts.Name,
-                    (short)opts.Align, (short)opts.Options, atts.Description) as TControlSw;
+                case IPropertyManagerPage2 page:
+                    if (!legacy)
+                    {
+                        return page.AddControl2(atts.Id, (short)m_Type, atts.Name,
+                            (short)opts.Align, (short)opts.Options, atts.Description) as TControlSw;
+                    }
+                    else
+                    {
+                        return page.AddControl(atts.Id, (short)m_Type, atts.Name,
+                            (short)opts.Align, (short)opts.Options, atts.Description) as TControlSw;
+                    }
+
+                case IPropertyManagerPageTab tab:
+                    if (!legacy)
+                    {
+                        return tab.AddControl2(atts.Id, (short)m_Type, atts.Name,
+                            (short)opts.Align, (short)opts.Options, atts.Description) as TControlSw;
+                    }
+                    else
+                    {
+                        return tab.AddControl(atts.Id, (short)m_Type, atts.Name,
+                            (short)opts.Align, (short)opts.Options, atts.Description) as TControlSw;
+                    }
+
+                case IPropertyManagerPageGroup group:
+                    if (!legacy)
+                    {
+                        return group.AddControl2(atts.Id, (short)m_Type, atts.Name,
+                            (short)opts.Align, (short)opts.Options, atts.Description) as TControlSw;
+                    }
+                    else
+                    {
+                        return group.AddControl(atts.Id, (short)m_Type, atts.Name,
+                            (short)opts.Align, (short)opts.Options, atts.Description) as TControlSw;
+                    }
+
+                default:
+                    throw new NotSupportedException("Host is not supported");
             }
         }
 
-        protected virtual TControlSw CreateSwControlInGroup(IPropertyManagerPageGroup group,
-            ControlOptionsAttribute opts, IAttributeSet atts)
+        private bool AddLabelIfNeeded(object host, IAttributeSet atts, ref int numberOfUsedIds, out IPropertyManagerPageLabel label) 
         {
-            if (m_App.IsVersionNewerOrEqual(SwVersion_e.Sw2014, 1))
+            if (atts.Has<LabelAttribute>())
             {
-                return group.AddControl2(atts.Id, (short)m_Type, atts.Name,
-                    (short)opts.Align, (short)opts.Options, atts.Description) as TControlSw;
+                numberOfUsedIds++;
+
+                var id = atts.Id + numberOfUsedIds - 1;
+
+                var labelAtt = atts.Get<LabelAttribute>();
+
+                var legacy = !m_App.IsVersionNewerOrEqual(SwVersion_e.Sw2014, 1);
+
+                var type = swPropertyManagerPageControlType_e.swControlType_Label;
+                var align = (swPropertyManagerPageControlLeftAlign_e)labelAtt.Align;
+                var opts = swAddControlOptions_e.swControlOptions_Enabled | swAddControlOptions_e.swControlOptions_SmallGapAbove | swAddControlOptions_e.swControlOptions_Visible;
+
+                switch (host)
+                {
+                    case IPropertyManagerPage2 page:
+                        if (!legacy)
+                        {
+                            label =(IPropertyManagerPageLabel)page.AddControl2(id, (short)type, labelAtt.Caption,
+                                (short)align, (short)opts, atts.Description);
+                        }
+                        else
+                        {
+                            label = (IPropertyManagerPageLabel)page.AddControl(id, (short)type, labelAtt.Caption,
+                                (short)align, (short)opts, atts.Description);
+                        }
+                        break;
+
+                    case IPropertyManagerPageTab tab:
+                        if (!legacy)
+                        {
+                            label = (IPropertyManagerPageLabel)tab.AddControl2(id, (short)type, labelAtt.Caption,
+                                (short)align, (short)opts, atts.Description);
+                        }
+                        else
+                        {
+                            label = (IPropertyManagerPageLabel)tab.AddControl(id, (short)type, labelAtt.Caption,
+                                (short)align, (short)opts, atts.Description);
+                        }
+                        break;
+
+                    case IPropertyManagerPageGroup group:
+                        if (!legacy)
+                        {
+                            label = (IPropertyManagerPageLabel)group.AddControl2(id, (short)type, labelAtt.Caption,
+                                (short)align, (short)opts, atts.Description);
+                        }
+                        else
+                        {
+                            label = (IPropertyManagerPageLabel)group.AddControl(id, (short)type, labelAtt.Caption,
+                                (short)align, (short)opts, atts.Description);
+                        }
+                        break;
+
+                    default:
+                        throw new NotSupportedException("Host is not supported");
+                }
+
+                label.Caption = labelAtt.Caption;
+
+                label.SetLabelOptions(labelAtt.FontStyle, "", null);
+                
+                return true;
             }
-            else
+            else 
             {
-                return group.AddControl(atts.Id, (short)m_Type, atts.Name,
-                    (short)opts.Align, (short)opts.Options, atts.Description) as TControlSw;
+                label = null;
+                return false;
             }
         }
-
-        protected virtual TControlSw CreateSwControlInTab(IPropertyManagerPageTab tab,
-            ControlOptionsAttribute opts, IAttributeSet atts)
-        {
-            if (m_App.IsVersionNewerOrEqual(SwVersion_e.Sw2014, 1))
-            {
-                return tab.AddControl2(atts.Id, (short)m_Type, atts.Name,
-                    (short)opts.Align, (short)opts.Options, atts.Description) as TControlSw;
-            }
-            else
-            {
-                return tab.AddControl(atts.Id, (short)m_Type, atts.Name,
-                    (short)opts.Align, (short)opts.Options, atts.Description) as TControlSw;
-            }
-        }
-
-        protected abstract TControl CreateControl(TControlSw swCtrl, IAttributeSet atts, SwPropertyManagerPageHandler handler, short height);
-
+        
+        protected abstract TControl CreateControl(TControlSw swCtrl, IAttributeSet atts,
+            IMetadata[] metadata, SwPropertyManagerPageHandler handler, short height, IPropertyManagerPageLabel label);
+        
         private ControlOptionsAttribute GetControlOptions(IAttributeSet atts)
         {
             ControlOptionsAttribute opts;
@@ -195,7 +280,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
 
             ControlIcon icon = null;
 
-            var commonIcon = atts.BoundMemberInfo?.TryGetAttribute<IconAttribute>()?.Icon;
+            var commonIcon = atts.ControlDescriptor?.Icon;
 
             if (commonIcon != null)
             {

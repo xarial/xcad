@@ -26,8 +26,8 @@ namespace SwAddInExample
             InitializeComponent();
         }
 
-        public object DataContext { get; set; }
+        public object Value { get; set; }
 
-        public event Action<IXCustomControl, object> DataContextChanged;
+        public event CustomControlValueChangedDelegate ValueChanged;
     }
 }

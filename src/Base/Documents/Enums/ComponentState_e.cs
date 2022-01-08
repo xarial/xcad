@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -28,13 +28,38 @@ namespace Xarial.XCad.Documents.Enums
         Suppressed = 1,
 
         /// <summary>
-        /// Component is loaded in the rapid mode
+        /// Component is loaded in the lightweight mode
         /// </summary>
-        Rapid = 2,
+        Lightweight = 2,
 
         /// <summary>
         /// Component is loaded in view-only mode
         /// </summary>
-        ViewOnly = 4
+        ViewOnly = 4,
+
+        /// <summary>
+        /// Component is hidden
+        /// </summary>
+        Hidden = 8,
+
+        /// <summary>
+        /// Component is excluded from Bill Of Materials
+        /// </summary>
+        ExcludedFromBom = 16,
+
+        /// <summary>
+        /// Components is created as envelope
+        /// </summary>
+        Envelope = 32,
+
+        /// <summary>
+        /// Component is embedded (virtual) into the assembly
+        /// </summary>
+        Embedded = 64,
+
+        /// <summary>
+        /// Indicates that component is suppressed due to the mismatched ID of its underlying model
+        /// </summary>
+        SuppressedIdMismatch = 128
     }
 }

@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -18,9 +18,6 @@ namespace Xarial.XCad.Toolkit.Services
     public abstract class EventsHandler<TDel> : IDisposable
         where TDel : Delegate
     {
-        protected const int S_OK = 0;
-        protected const int S_FALSE = 1;
-
         public TDel Delegate { get; set; }
 
         private bool m_IsSubscribed;

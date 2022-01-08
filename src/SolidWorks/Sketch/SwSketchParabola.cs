@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -24,11 +24,11 @@ namespace Xarial.XCad.SolidWorks.Sketch
     {
         public ISketchParabola Parabola => (ISketchParabola)Segment;
 
-        public override IXPoint StartPoint => SwSelObject.FromDispatch<SwSketchPoint>(Parabola.IGetStartPoint2(), m_Doc);
-        public override IXPoint EndPoint => SwSelObject.FromDispatch<SwSketchPoint>(Parabola.IGetEndPoint2(), m_Doc);
+        public override IXSketchPoint StartPoint => OwnerDocument.CreateObjectFromDispatch<SwSketchPoint>(Parabola.IGetStartPoint2());
+        public override IXSketchPoint EndPoint => OwnerDocument.CreateObjectFromDispatch<SwSketchPoint>(Parabola.IGetEndPoint2());
 
-        internal SwSketchParabola(ISwDocument doc, ISketchParabola parabola, bool created)
-            : base(doc, (ISketchSegment)parabola, created)
+        internal SwSketchParabola(ISketchParabola parabola, ISwDocument doc, ISwApplication app, bool created)
+            : base((ISketchSegment)parabola, doc, app, created)
         {
         }
 

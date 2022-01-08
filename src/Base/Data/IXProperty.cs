@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -32,6 +32,11 @@ namespace Xarial.XCad.Data
         /// Property value
         /// </summary>
         object Value { get; set; }
+
+        /// <summary>
+        /// Property equation
+        /// </summary>
+        string Expression { get; set; }
     }
 
 

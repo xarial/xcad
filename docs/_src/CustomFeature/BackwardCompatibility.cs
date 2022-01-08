@@ -51,7 +51,7 @@ namespace Xarial.XCad.Documentation
         {
             //conversion from version 1.0 to 2.0
             Add(new Version("2.0"), new VersConv_1_0To2_0());
-            //TODO: add more version converters
+            //add more version converters
         }
     }
     //---

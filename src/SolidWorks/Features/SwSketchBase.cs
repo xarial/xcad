@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -33,9 +33,9 @@ namespace Xarial.XCad.SolidWorks.Features
 
         public ISketch Sketch => Feature?.GetSpecificFeature2() as ISketch;
 
-        internal SwSketchBase(ISwDocument doc, IFeature feat, bool created) : base(doc, feat, created)
+        internal SwSketchBase(IFeature feat, ISwDocument doc, ISwApplication app, bool created) : base(feat, doc, app, created)
         {
-            m_SwEntsColl = new SwSketchEntityCollection(doc, this);
+            m_SwEntsColl = new SwSketchEntityCollection(this, doc, app);
         }
 
         public IXSketchEntityRepository Entities => m_SwEntsColl;
@@ -68,7 +68,7 @@ namespace Xarial.XCad.SolidWorks.Features
 
         public bool GetEditMode(ISketch sketch)
         {
-            return m_ModelDoc.SketchManager.ActiveSketch == sketch;
+            return OwnerModelDoc.SketchManager.ActiveSketch == sketch;
         }
 
         public void SetEditMode(ISketch sketch, bool isEditing)

@@ -1,14 +1,17 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
 using SolidWorks.Interop.sldworks;
 using System;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
+using Xarial.XCad.Base.Enums;
+using Xarial.XCad.Exceptions;
 using Xarial.XCad.SolidWorks.Documents;
 
 namespace Xarial.XCad.SolidWorks
@@ -19,28 +22,51 @@ namespace Xarial.XCad.SolidWorks
 
     /// <inheritdoc/>
     internal class SwSelObject : SwObject, ISwSelObject
-    {
-        internal static new SwSelObject FromDispatch(object disp, ISwDocument doc)
-            => (SwSelObject)SwSelObject.FromDispatch(disp, doc, o => new SwSelObject(doc.Model, o));
-        
-        protected readonly IModelDoc2 m_ModelDoc;
-
+    {        
         public virtual bool IsCommitted => true;
-        
-        internal SwSelObject(object disp) : this(null, disp)
+
+        public bool IsSelected
         {
+            get 
+            {
+                for (int i = 1; i < OwnerModelDoc.ISelectionManager.GetSelectedObjectCount2(-1) + 1; i++)
+                {
+                    if (OwnerModelDoc.ISelectionManager.GetSelectedObject6(i, -1) == Dispatch) 
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
         }
 
-        internal SwSelObject(IModelDoc2 model, object disp) : base(disp)
+        public SelectType_e Type 
         {
-            m_ModelDoc = model;
+            get 
+            {
+                if (OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2015))
+                {
+                    OwnerModelDoc.ISelectionManager.GetSelectByIdSpecification(Dispatch, out _, out _, out int type);
+
+                    return (SelectType_e)type;
+                }
+                else 
+                {
+                    throw new NotSupportedException();
+                }
+            }
+        }
+
+        internal SwSelObject(object disp, ISwDocument doc, ISwApplication app) : base(disp, doc, app)
+        {
         }
 
         public virtual void Select(bool append)
         {
-            if (m_ModelDoc != null)
+            if (OwnerModelDoc != null)
             {
-                if (m_ModelDoc.Extension.MultiSelect2(new DispatchWrapper[] { new DispatchWrapper(Dispatch) }, append, null) != 1)
+                if (OwnerModelDoc.Extension.MultiSelect2(new DispatchWrapper[] { new DispatchWrapper(Dispatch) }, append, null) != 1)
                 {
                     throw new Exception("Failed to select");
                 }

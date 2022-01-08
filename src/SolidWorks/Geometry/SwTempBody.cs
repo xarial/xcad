@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -15,6 +15,7 @@ using Xarial.XCad.Geometry.Wires;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Geometry.Curves;
 using Xarial.XCad.SolidWorks.Geometry.Primitives;
+using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.Toolkit.Utils;
 
 namespace Xarial.XCad.SolidWorks.Geometry
@@ -31,9 +32,10 @@ namespace Xarial.XCad.SolidWorks.Geometry
         public override IBody2 Body => m_TempBody;
         public override object Dispatch => m_TempBody;
 
-        //NOTE: keeping the pointer in this class only so it can be properly disposed
+        private readonly IMathUtility m_MathUtils;
 
-        internal SwTempBody(IBody2 body) : base(null, null)
+        //NOTE: keeping the pointer in this class only so it can be properly disposed
+        internal SwTempBody(IBody2 body, ISwApplication app) : base(null, null, app)
         {
             if (!body.IsTemporaryBody()) 
             {
@@ -41,6 +43,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
             }
 
             m_TempBody = body;
+            m_MathUtils = app.Sw.IGetMathUtility();
         }
 
         public void Preview(ISwPart part, Color color, bool selectable = false) 
@@ -66,6 +69,19 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
             m_TempBody = null;
         }
+
+        public override void Transform(TransformMatrix transform)
+        {
+            var mathTransform = (MathTransform)m_MathUtils.ToMathTransform(transform);
+
+            if (!Body.ApplyTransform(mathTransform))
+            {
+                throw new Exception("Failed to apply transform to the body");
+            }
+        }
+
+        public override ISwBody CreateResilient()
+            => throw new NotSupportedException("Only permanent bodies can be converter to resilient bodies");
     }
 
     public interface ISwTempSolidBody : ISwTempBody, ISwSolidBody
@@ -82,21 +98,23 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
     internal class SwTempSolidBody : SwTempBody, ISwTempSolidBody
     {
-        internal SwTempSolidBody(IBody2 body) : base(body)
+        internal SwTempSolidBody(IBody2 body, ISwApplication app) : base(body, app)
         {
         }
+
+        public double Volume => this.GetVolume();
     }
 
     internal class SwTempSheetBody : SwTempBody, ISwTempSheetBody
     {
-        internal SwTempSheetBody(IBody2 body) : base(body)
+        internal SwTempSheetBody(IBody2 body, ISwApplication app) : base(body, app)
         {
         }
     }
 
     internal class SwTempPlanarSheetBody : SwTempBody, ISwTempPlanarSheetBody
     {
-        internal SwTempPlanarSheetBody(IBody2 body) : base(body)
+        internal SwTempPlanarSheetBody(IBody2 body, ISwApplication app) : base(body, app)
         {
         }
 

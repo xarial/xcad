@@ -1,12 +1,16 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
+using System;
+using System.Collections.Generic;
 using Xarial.XCad.Base;
+using Xarial.XCad.Documents;
 using Xarial.XCad.Geometry.Primitives;
+using Xarial.XCad.Geometry.Structures;
 
 namespace Xarial.XCad.Geometry
 {
@@ -45,6 +49,28 @@ namespace Xarial.XCad.Geometry
         /// <param name="other">Body to get common with</param>
         /// <returns>Resulting body</returns>
         IXBody[] Common(IXBody other);
+
+        /// <summary>
+        /// Enumerates all faces of this body
+        /// </summary>
+        IEnumerable<IXFace> Faces { get; }
+
+        /// <summary>
+        /// Enumerates all edges of this body
+        /// </summary>
+        IEnumerable<IXEdge> Edges { get; }
+
+        /// <summary>
+        /// Creates a copy of the current body
+        /// </summary>
+        /// <returns>Copied body</returns>
+        IXBody Copy();
+
+        /// <summary>
+        /// Moves this body with specified matrix
+        /// </summary>
+        /// <param name="transform">Transformation matrix</param>
+        void Transform(TransformMatrix transform);
     }
 
     /// <summary>
@@ -66,5 +92,9 @@ namespace Xarial.XCad.Geometry
     /// </summary>
     public interface IXSolidBody : IXBody 
     {
+        /// <summary>
+        /// Volume of this solid body
+        /// </summary>
+        double Volume { get; }
     }
 }

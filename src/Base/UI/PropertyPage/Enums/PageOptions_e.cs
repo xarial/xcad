@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -18,7 +18,6 @@ namespace Xarial.XCad.UI.PropertyPage.Enums
         CloseDialogButton = 8,
         MultiplePages = 16,
         PushpinButton = 32,
-        AllowHorizontalResize = 64,
         PreviewButton = 128,
         DisableSelection = 256,
         AbortCommands = 1024,

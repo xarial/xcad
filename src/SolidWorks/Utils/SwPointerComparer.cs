@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -62,22 +62,82 @@ namespace Xarial.XCad.SolidWorks.Utils
         }
     }
 
-    internal class SwModelPointerEqualityComparer : SwPointerEqualityComparer<IModelDoc2>
+    internal class SwModelPointerEqualityComparer : IEqualityComparer<IModelDoc2>
     {
-        internal SwModelPointerEqualityComparer(ISldWorks app) : base(app)
+        private readonly List<IModelDoc2> m_DanglingModelPointers;
+
+        internal SwModelPointerEqualityComparer(List<IModelDoc2> danglingModelsPtrs) 
         {
+            m_DanglingModelPointers = danglingModelsPtrs;
         }
 
-        protected override bool IsAlive(IModelDoc2 model)
+        internal static bool AreEqual(IModelDoc2 x, IModelDoc2 y)
+            => AreEqual(x, y, null);
+
+        internal static bool AreEqual(IModelDoc2 x, IModelDoc2 y, List<IModelDoc2> corruptedModels)
         {
+            if (object.ReferenceEquals(x, y))
+            {
+                return true;
+            }
+
+            string title1;
+            string title2;
+
             try
             {
-                var title = model.GetTitle();
-                return true;
+                title1 = x.GetTitle();
             }
             catch
             {
+                RegisterDanglingModelPointer(x, corruptedModels);
                 return false;
+            }
+
+            try
+            {
+                title2 = y.GetTitle();
+            }
+            catch
+            {
+                RegisterDanglingModelPointer(y, corruptedModels);
+                return false;
+            }
+
+            return string.Equals(
+                    title1,
+                    title2,
+                    StringComparison.CurrentCultureIgnoreCase);
+        }
+
+        private static void RegisterDanglingModelPointer(IModelDoc2 model, List<IModelDoc2> danglingModelPtrs)
+        {
+            if (danglingModelPtrs != null && !danglingModelPtrs.Contains(model))
+            {
+                danglingModelPtrs.Add(model);
+            }
+        }
+
+        public bool Equals(IModelDoc2 x, IModelDoc2 y)
+            => AreEqual(x, y, m_DanglingModelPointers);
+
+        public int GetHashCode(IModelDoc2 obj)
+        {
+            if (obj is IPartDoc)
+            {
+                return 1;
+            }
+            else if (obj is IAssemblyDoc)
+            {
+                return 2;
+            }
+            else if (obj is IDrawingDoc)
+            {
+                return 3;
+            }
+            else
+            {
+                return 0;
             }
         }
     }

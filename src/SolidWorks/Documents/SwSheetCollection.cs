@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -35,25 +35,27 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        private readonly SwDrawing m_Doc;
+        private readonly ISwApplication m_App;
+        private readonly SwDrawing m_Drawing;
 
         private readonly SheetActivatedEventsHandler m_SheetActivatedEventsHandler;
 
-        internal SwSheetCollection(SwDrawing doc)
+        internal SwSheetCollection(SwDrawing doc, ISwApplication app)
         {
-            m_Doc = doc;
-            m_SheetActivatedEventsHandler = new SheetActivatedEventsHandler(doc);
+            m_App = app;
+            m_Drawing = doc;
+            m_SheetActivatedEventsHandler = new SheetActivatedEventsHandler(doc, app);
         }
 
         public IXSheet this[string name] => this.Get(name);
 
         public bool TryGet(string name, out IXSheet ent)
         {
-            var sheet = m_Doc.Drawing.Sheet[name];
+            var sheet = m_Drawing.Drawing.Sheet[name];
 
             if (sheet != null)
             {
-                ent = SwObject.FromDispatch<SwSheet>(sheet, m_Doc);
+                ent = m_Drawing.CreateObjectFromDispatch<SwSheet>(sheet);
                 return true;
             }
             else 
@@ -63,10 +65,22 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        public int Count => (m_Doc.Drawing.GetSheetNames() as string[]).Length;
+        public int Count => (m_Drawing.Drawing.GetSheetNames() as string[]).Length;
 
         public IXSheet Active
-            => SwObject.FromDispatch<SwSheet>((ISheet)m_Doc.Drawing.GetCurrentSheet(), m_Doc);
+        {
+            get 
+            {
+                if (m_Drawing.IsCommitted)
+                {
+                    return m_Drawing.CreateObjectFromDispatch<SwSheet>((ISheet)m_Drawing.Drawing.GetCurrentSheet());
+                }
+                else 
+                {
+                    return new UncommittedPreviewOnlySheet(m_Drawing, m_App);
+                }
+            }
+        }
         
         public void AddRange(IEnumerable<IXConfiguration> ents)
         {
@@ -94,13 +108,13 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-        public IEnumerator<IXSheet> GetEnumerator() => new SwSheetEnumerator(m_Doc);
+        public IEnumerator<IXSheet> GetEnumerator() => new SwSheetEnumerator(m_Drawing);
     }
 
     internal class SwSheetEnumerator : IEnumerator<IXSheet>
     {
         public IXSheet Current
-            => SwObject.FromDispatch<SwSheet>(m_Doc.Drawing.Sheet[m_SheetNames[m_CurSheetIndex]], m_Doc);
+            => m_Doc.CreateObjectFromDispatch<SwSheet>(m_Doc.Drawing.Sheet[m_SheetNames[m_CurSheetIndex]]);
 
         object IEnumerator.Current => Current;
 

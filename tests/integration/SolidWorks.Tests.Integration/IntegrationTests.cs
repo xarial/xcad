@@ -14,6 +14,7 @@ using Xarial.XCad.SolidWorks.Enums;
 namespace SolidWorks.Tests.Integration
 {
     [TestFixture]
+    [RequiresThread(System.Threading.ApartmentState.STA)]
     public abstract class IntegrationTests
     {
         private class DocumentWrapper : IDisposable
@@ -42,8 +43,10 @@ namespace SolidWorks.Tests.Integration
 
         private const int SW_PRC_ID = -1;
         private const string DATA_FOLDER = @"C:\Users\artem\OneDrive\xCAD\TestData";
+        private SwVersion_e? SW_VERSION = SwVersion_e.Sw2021;
 
         protected ISwApplication m_App;
+        private Process m_Process;
         private ISldWorks m_SwApp;
 
         private List<IDisposable> m_Disposables;
@@ -59,7 +62,7 @@ namespace SolidWorks.Tests.Integration
 
                 SwApplicationFactory.DisableAllAddInsStartup(out m_DisabledStartupAddIns);
 
-                m_App = SwApplicationFactory.Create(null,
+                m_App = SwApplicationFactory.Create(SW_VERSION,
                     ApplicationState_e.Background 
                     | ApplicationState_e.Safe 
                     | ApplicationState_e.Silent);
@@ -83,12 +86,13 @@ namespace SolidWorks.Tests.Integration
             }
 
             m_SwApp = m_App.Sw;
+            m_Process = m_App.Process;
             m_Disposables = new List<IDisposable>();
         }
 
         protected string GetFilePath(string name)
         {
-            var filePath = "";
+            string filePath;
 
             if (Path.IsPathRooted(name)) 
             {
@@ -109,15 +113,19 @@ namespace SolidWorks.Tests.Integration
             var spec = (IDocumentSpecification)m_SwApp.GetOpenDocSpec(filePath);
             spec.ReadOnly = readOnly;
             spec.LightWeight = false;
+            spec.UseLightWeightDefault = false;
             specEditor?.Invoke(spec);
 
             var model = m_SwApp.OpenDoc7(spec);
 
             if (model != null)
             {
-                if (model is IAssemblyDoc) 
+                if (!spec.LightWeight)
                 {
-                    (model as IAssemblyDoc).ResolveAllLightWeightComponents(false);
+                    if (model is IAssemblyDoc)
+                    {
+                        (model as IAssemblyDoc).ResolveAllLightWeightComponents(false);
+                    }
                 }
 
                 var docWrapper = new DocumentWrapper(m_SwApp, model);
@@ -132,31 +140,62 @@ namespace SolidWorks.Tests.Integration
 
         protected IDisposable NewDocument(swDocumentTypes_e docType) 
         {
-            var defTemplatePath = m_SwApp.GetDocumentTemplate(
-                (int)docType, "", (int)swDwgPaperSizes_e.swDwgPapersUserDefined, 100, 100);
+            var useDefTemplates = m_SwApp.GetUserPreferenceToggle((int)swUserPreferenceToggle_e.swAlwaysUseDefaultTemplates);
 
-            if (string.IsNullOrEmpty(defTemplatePath))
+            try
             {
-                throw new Exception("Default template is not found");
+                m_SwApp.SetUserPreferenceToggle((int)swUserPreferenceToggle_e.swAlwaysUseDefaultTemplates, true);
+                
+                var defTemplatePath = m_SwApp.GetDocumentTemplate(
+                    (int)docType, "", (int)swDwgPaperSizes_e.swDwgPapersUserDefined, 100, 100);
+
+                if (string.IsNullOrEmpty(defTemplatePath))
+                {
+                    throw new Exception("Default template is not found");
+                }
+
+                var model = (IModelDoc2)m_SwApp.NewDocument(defTemplatePath, (int)swDwgPaperSizes_e.swDwgPapersUserDefined, 100, 100);
+
+                if (model != null)
+                {
+                    var docWrapper = new DocumentWrapper(m_SwApp, model);
+                    m_Disposables.Add(docWrapper);
+                    return docWrapper;
+                }
+                else
+                {
+                    throw new NullReferenceException($"Failed to create new document from '{defTemplatePath}'");
+                }
             }
-
-            var model = (IModelDoc2)m_SwApp.NewDocument(defTemplatePath, (int)swDwgPaperSizes_e.swDwgPapersUserDefined, 100, 100);
-
-            if (model != null)
+            finally
             {
-                var docWrapper = new DocumentWrapper(m_SwApp, model);
-                m_Disposables.Add(docWrapper);
-                return docWrapper;
+                m_SwApp.SetUserPreferenceToggle((int)swUserPreferenceToggle_e.swAlwaysUseDefaultTemplates, useDefTemplates);
             }
-            else
+        }
+
+        protected void AssertCompareDoubles(double actual, double expected, int digits = 8)
+            => Assert.That(Math.Round(actual, digits), Is.EqualTo(Math.Round(expected, digits)).Within(0.000001).Percent);
+
+        protected void AssertCompareDoubleArray(double[] actual, double[] expected, int digits = 8)
+        {
+            if (actual.Length == expected.Length)
             {
-                throw new NullReferenceException($"Failed to create new document from '{defTemplatePath}'");
+                for (int i = 0; i < actual.Length; i++) 
+                {
+                    Assert.That(Math.Round(actual[i], digits), Is.EqualTo(Math.Round(expected[i], digits)).Within(0.000001).Percent);
+                }
+            }
+            else 
+            {
+                Assert.Fail("Arrays size mismatch");
             }
         }
 
         [TearDown]
         public void TearDown() 
         {
+            Debug.Print("Unit Tests: Disposing test disposables");
+
             foreach (var disp in m_Disposables)
             {
                 try
@@ -174,9 +213,11 @@ namespace SolidWorks.Tests.Integration
         [OneTimeTearDown]
         public void FinalTearDown()
         {
+            Debug.Print($"Unit Tests: Closing SOLIDWORKS instance: {m_CloseSw}");
+
             if (m_CloseSw) 
             {
-                m_App.Process.Kill();
+                m_Process.Kill();
             }
         }
     }

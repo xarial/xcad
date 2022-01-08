@@ -1,0 +1,13 @@
+trigger:
+  branches:
+    include:
+    - master
+    - dev
+  paths:
+    include:
+    - src/SwDocumentManager/*
+
+stages:
+- template: templates/pipeline.yml
+  parameters:
+    projectName: SwDocumentManager

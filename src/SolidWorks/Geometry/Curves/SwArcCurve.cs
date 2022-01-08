@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -13,18 +13,23 @@ using System.Text;
 using System.Threading;
 using Xarial.XCad.Geometry.Curves;
 using Xarial.XCad.Geometry.Structures;
+using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Geometry.Exceptions;
 
 namespace Xarial.XCad.SolidWorks.Geometry.Curves
 {
-    public interface ISwArcCurve : IXArcCurve 
+    public interface ISwCircleCurve : IXCircleCurve 
     {
     }
 
-    internal class SwArcCurve : SwCurve, ISwArcCurve
+    public interface ISwArcCurve : ISwCircleCurve, IXArcCurve
     {
-        internal SwArcCurve(IModeler modeler, ICurve curve, bool isCreated) 
-            : base(modeler, new ICurve[] { curve }, isCreated)
+    }
+
+    internal class SwCircleCurve : SwCurve, ISwCircleCurve
+    {
+        internal SwCircleCurve(ICurve curve, ISwDocument doc, ISwApplication app, bool isCreated) 
+            : base(new ICurve[] { curve }, doc, app, isCreated)
         {
         }
 
@@ -109,7 +114,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Curves
             }
         }
 
-        public override bool TryGetPlane(out Plane plane)
+        internal override bool TryGetPlane(out Plane plane)
         {
             plane = new Plane(Center, Axis, ReferenceDirection);
             return true;
@@ -117,14 +122,18 @@ namespace Xarial.XCad.SolidWorks.Geometry.Curves
 
         private Vector ReferenceDirection => Axis.CreateAnyPerpendicular();
 
+        protected virtual void GetEndPoints(out Point start, out Point end) 
+        {
+            start = Center.Move(ReferenceDirection, Diameter / 2);
+            end = start;
+        }
+
         protected override ICurve[] Create(CancellationToken cancellationToken)
         {
-            //TODO: check if this is not closed arc
+            GetEndPoints(out Point start, out Point end);
 
-            var refPt = Center.Move(ReferenceDirection, Diameter / 2);
-
-            var arc = m_Modeler.CreateArc(Center.ToArray(), Axis.ToArray(), Diameter / 2, refPt.ToArray(), refPt.ToArray()) as ICurve;
-            arc = arc.CreateTrimmedCurve2(refPt.X, refPt.Y, refPt.Z, refPt.X, refPt.Y, refPt.Z);
+            var arc = m_Modeler.CreateArc(Center.ToArray(), Axis.ToArray(), Diameter / 2, start.ToArray(), end.ToArray()) as ICurve;
+            arc = arc.CreateTrimmedCurve2(start.X, start.Y, start.Z, end.X, end.Y, end.Z);
 
             if (arc == null) 
             {
@@ -134,5 +143,75 @@ namespace Xarial.XCad.SolidWorks.Geometry.Curves
             return new ICurve[] { arc };
         }
 
+    }
+
+    internal class SwArcCurve : SwCircleCurve, ISwArcCurve
+    {
+        internal SwArcCurve(ICurve curve, ISwDocument doc, ISwApplication app, bool isCreated) : base(curve, doc, app, isCreated)
+        {
+        }
+
+        public Point Start
+        {
+            get
+            {
+                if (IsCommitted)
+                {
+                    return StartPoint.Coordinate;
+                }
+                else
+                {
+                    return m_Creator.CachedProperties.Get<Point>();
+                }
+            }
+            set
+            {
+                if (IsCommitted)
+                {
+                    throw new Exception("Cannot change the start point after the curve is created");
+                }
+                else
+                {
+                    m_Creator.CachedProperties.Set<Point>(value);
+                }
+            }
+        }
+
+        public Point End
+        {
+            get
+            {
+                if (IsCommitted)
+                {
+                    return EndPoint.Coordinate;
+                }
+                else
+                {
+                    return m_Creator.CachedProperties.Get<Point>();
+                }
+            }
+            set
+            {
+                if (IsCommitted)
+                {
+                    throw new Exception("Cannot change the start point after the curve is created");
+                }
+                else
+                {
+                    m_Creator.CachedProperties.Set<Point>(value);
+                }
+            }
+        }
+
+        protected override void GetEndPoints(out Point start, out Point end)
+        {
+            if (Start == null || End == null)
+            {
+                throw new Exception("Start or End point is not specified");
+            }
+
+            start = Start;
+            end = End;
+        }
     }
 }

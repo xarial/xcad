@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -40,6 +40,14 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
 
         private readonly ISwApplication m_SwApp;
 
+        private static readonly int[] m_AllFilters;
+
+        static PropertyManagerPageSelectionBoxControlConstructor() 
+        {
+            m_AllFilters = Enum.GetValues(typeof(swSelectType_e))
+                .Cast<int>().Where(f => f > 0).ToArray();
+        }
+
         public PropertyManagerPageSelectionBoxControlConstructor(ISwApplication app, IIconsCreator iconsConv, IXLogger logger)
             : base(app.Sw, swPropertyManagerPageControlType_e.swControlType_Selectionbox, iconsConv)
         {
@@ -48,9 +56,10 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
         }
 
         protected override PropertyManagerPageSelectionBoxControl CreateControl(
-            IPropertyManagerPageSelectionbox swCtrl, IAttributeSet atts, SwPropertyManagerPageHandler handler, short height)
+            IPropertyManagerPageSelectionbox swCtrl, IAttributeSet atts, IMetadata[] metadata, 
+            SwPropertyManagerPageHandler handler, short height, IPropertyManagerPageLabel label)
         {
-            swCtrl.SingleEntityOnly = !(typeof(IList).IsAssignableFrom(atts.BoundType));
+            swCtrl.SingleEntityOnly = !typeof(IList).IsAssignableFrom(atts.ContextType);
 
             if (height == -1)
             {
@@ -61,7 +70,9 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
 
             ISelectionCustomFilter customFilter = null;
 
-            SelectType_e[] filters = null;
+            var filters = SelectionBoxConstructorHelper.GetDefaultFilters(atts);
+
+            bool focusOnOpen = false;
 
             if (atts.Has<SelectionBoxOptionsAttribute>())
             {
@@ -74,15 +85,17 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
 
                 if (selAtt.SelectionColor != 0)
                 {
-                    swCtrl.SetSelectionColor(true, ConvertColor(selAtt.SelectionColor));
+                    swCtrl.SetSelectionColor(true, (int)selAtt.SelectionColor);
                 }
 
-                if (selAtt.Filters != null)
+                if (selAtt.Filters?.Any() == true)
                 {
                     filters = selAtt.Filters;
                 }
 
                 swCtrl.Mark = selAtt.SelectionMark;
+
+                focusOnOpen = selAtt.Focused;
 
                 if (selAtt.CustomFilter != null)
                 {
@@ -95,22 +108,39 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
                     }
                 }
             }
+
+            if (filters != null && !filters.Contains(SelectType_e.Everything))
+            {
+                swCtrl.SetSelectionFilters(ConvertToSwSelFilters(filters));
+            }
             else 
             {
-                filters = GetDefaultFilters(atts, out customFilter);
+                swCtrl.SetSelectionFilters(m_AllFilters);
             }
 
-            swCtrl.SetSelectionFilters(filters);
-
             return new PropertyManagerPageSelectionBoxControl(m_SwApp, atts.Id, atts.Tag,
-                swCtrl, handler, atts.BoundType, customFilter);
+                swCtrl, handler, atts.ContextType, customFilter, focusOnOpen, label, metadata);
         }
 
-        protected virtual SelectType_e[] GetDefaultFilters(IAttributeSet atts, out ISelectionCustomFilter customFilter) 
+        private swSelectType_e[] ConvertToSwSelFilters(SelectType_e[] selFilters) 
         {
-            return SelectionBoxConstructorHelper.GetDefaultFilters(atts, out customFilter);
-        }
+            var swSelFilters = selFilters.Select(f => (swSelectType_e)f).ToList();
 
+            if (swSelFilters.Contains(swSelectType_e.swSelSKETCHSEGS) 
+                && !swSelFilters.Contains(swSelectType_e.swSelEXTSKETCHSEGS)) 
+            {
+                swSelFilters.Add(swSelectType_e.swSelEXTSKETCHSEGS);
+            }
+
+            if (swSelFilters.Contains(swSelectType_e.swSelSKETCHPOINTS)
+                && !swSelFilters.Contains(swSelectType_e.swSelEXTSKETCHPOINTS))
+            {
+                swSelFilters.Add(swSelectType_e.swSelEXTSKETCHPOINTS);
+            }
+
+            return swSelFilters.ToArray();
+        }
+        
         protected override BitmapLabelType_e? GetDefaultBitmapLabel(IAttributeSet atts)
         {
             return SelectionBoxConstructorHelper.GetDefaultBitmapLabel(atts);
@@ -152,7 +182,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
                 });
             }
 
-            m_Logger.Log($"Assigned selection box marks: {string.Join(", ", selBoxes.Select(s => s.SelectionBox.Mark).ToArray())}");
+            m_Logger.Log($"Assigned selection box marks: {string.Join(", ", selBoxes.Select(s => s.SelectionBox.Mark).ToArray())}", LoggerMessageSeverity_e.Debug);
         }
 
         private void ValidateMarks(List<int> assignedMarks)
@@ -163,19 +193,19 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
 
                 if (dups.Any())
                 {
-                    m_Logger.Log($"Potential issue for selection boxes as there are duplicate selection marks: {string.Join(", ", dups.ToArray())}");
+                    m_Logger.Log($"Potential issue for selection boxes as there are duplicate selection marks: {string.Join(", ", dups.ToArray())}", LoggerMessageSeverity_e.Warning);
                 }
 
                 var joinedMarks = assignedMarks.Where(m => m != 0 && !IsPowerOfTwo(m));
 
                 if (joinedMarks.Any())
                 {
-                    m_Logger.Log($"Potential issue for selection boxes as not all marks are power of 2: {string.Join(", ", joinedMarks.ToArray())}");
+                    m_Logger.Log($"Potential issue for selection boxes as not all marks are power of 2: {string.Join(", ", joinedMarks.ToArray())}", LoggerMessageSeverity_e.Warning);
                 }
 
                 if (assignedMarks.Any(m => m == 0))
                 {
-                    m_Logger.Log($"Potential issue for selection boxes as some of the marks is 0 which means that all selections allowed");
+                    m_Logger.Log($"Potential issue for selection boxes as some of the marks is 0 which means that all selections allowed", LoggerMessageSeverity_e.Warning);
                 }
             }
         }

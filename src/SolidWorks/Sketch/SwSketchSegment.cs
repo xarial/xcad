@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -11,16 +11,19 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Text;
 using System.Threading;
+using Xarial.XCad.Features;
+using Xarial.XCad.Geometry.Curves;
 using Xarial.XCad.Geometry.Wires;
 using Xarial.XCad.Services;
 using Xarial.XCad.Sketch;
 using Xarial.XCad.SolidWorks.Documents;
+using Xarial.XCad.SolidWorks.Features;
 using Xarial.XCad.SolidWorks.Geometry.Curves;
 using Xarial.XCad.Toolkit.Utils;
 
 namespace Xarial.XCad.SolidWorks.Sketch
 {
-    public interface ISwSketchSegment : IXSketchSegment
+    public interface ISwSketchSegment : IXSketchSegment, ISwSelObject
     {
         ISketchSegment Segment { get; }
         new ISwCurve Definition { get; }
@@ -28,23 +31,21 @@ namespace Xarial.XCad.SolidWorks.Sketch
 
     internal abstract class SwSketchSegment : SwSketchEntity, ISwSketchSegment
     {
-        IXSegment IXSketchSegment.Definition => Definition;
+        IXCurve IXSketchSegment.Definition => Definition;
+        IXPoint IXSegment.StartPoint => StartPoint;
+        IXPoint IXSegment.EndPoint => EndPoint;
 
         protected readonly ElementCreator<ISketchSegment> m_Creator;
 
         protected readonly ISketchManager m_SketchMgr;
 
-        public ISketchSegment Segment
-        {
-            get
-            {
-                return m_Creator.Element;
-            }
-        }
+        public ISketchSegment Segment => m_Creator.Element;
 
         public override bool IsCommitted => m_Creator.IsCreated;
 
-        protected SwSketchSegment(ISwDocument doc, ISketchSegment seg, bool created) : base(doc, seg)
+        public override object Dispatch => Segment;
+
+        protected SwSketchSegment(ISketchSegment seg, ISwDocument doc, ISwApplication app, bool created) : base(seg, doc, app)
         {
             if (doc == null)
             {
@@ -103,13 +104,19 @@ namespace Xarial.XCad.SolidWorks.Sketch
 
                 curve.ApplyTransform(transform);
 
-                return FromDispatch<SwCurve>(curve, m_Doc);
+                return OwnerDocument.CreateObjectFromDispatch<SwCurve>(curve);
             }
         }
 
-        public abstract IXPoint StartPoint { get; }
-        public abstract IXPoint EndPoint { get; }
-        
+        public double Length => Definition.Length;
+
+        public abstract IXSketchPoint StartPoint { get; }
+        public abstract IXSketchPoint EndPoint { get; }
+
+        public bool IsConstruction => Segment.ConstructionGeometry;
+
+        public override IXSketchBase OwnerSketch => OwnerDocument.CreateObjectFromDispatch<ISwSketchBase>(Segment.GetSketch());
+
         private void SetColor(ISketchSegment seg, Color? color)
         {
             int colorRef = 0;

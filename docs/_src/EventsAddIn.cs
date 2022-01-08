@@ -4,6 +4,7 @@ using Xarial.XCad;
 using Xarial.XCad.Annotations;
 using Xarial.XCad.Data;
 using Xarial.XCad.Documents;
+using Xarial.XCad.Documents.Delegates;
 using Xarial.XCad.Documents.Services;
 using Xarial.XCad.SolidWorks;
 
@@ -30,24 +31,24 @@ namespace Xarial.XCad.Documentation
             m_D1Dim.ValueChanged += OnDimensionValueChanged;
         }
 
-        private void OnModelClosing(IXDocument doc)
+        private void OnModelClosing(IXDocument doc, DocumentCloseType_e type)
         {
-            //TODO: handle closing
+            //handle closing
         }
 
         private void OnNewSelection(IXDocument doc, IXSelObject selObject)
         {
-            //TODO: handle new selection
+            //handle new selection
         }
 
         private void OnPropertyValueChanged(IXProperty prp, object newValue)
         {
-            //TODO: handle property change
+            //handle property change
         }
 
         private void OnDimensionValueChanged(IXDimension dim, double newVal)
         {
-            //TODO: handle dimension change
+            //handle dimension change
         }
 
         public void Dispose()

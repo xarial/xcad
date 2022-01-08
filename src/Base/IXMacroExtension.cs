@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -22,9 +22,7 @@ namespace Xarial.XCad
         /// </summary>
         /// <param name="macro">Macro to run</param>
         public static void Run(this IXMacro macro) 
-        {
-            Run(macro, MacroRunOptions_e.Default);
-        }
+            => Run(macro, MacroRunOptions_e.Default);
 
         /// <summary>
         /// Run macro with default entry point and specified options
@@ -49,8 +47,6 @@ namespace Xarial.XCad
         /// <param name="macro">Macro to run</param>
         /// <param name="entryPoint">Entry point</param>
         public static void Run(this IXMacro macro, MacroEntryPoint entryPoint)
-        {
-            macro.Run(entryPoint, MacroRunOptions_e.Default);
-        }
+            => macro.Run(entryPoint, MacroRunOptions_e.Default);
     }
 }

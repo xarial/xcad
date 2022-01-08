@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Xarial.XCad.Features;
+using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Sketch;
 
@@ -24,7 +25,8 @@ namespace Xarial.XCad.SolidWorks.Features
     {
         IEnumerable<IXSketchRegion> IXSketch2D.Regions => Regions;
 
-        internal SwSketch2D(ISwDocument doc, IFeature feat, bool created) : base(doc, feat, created)
+        internal SwSketch2D(IFeature feat, ISwDocument doc, ISwApplication app, bool created) 
+            : base(feat, doc, app, created)
         {
             if (doc == null) 
             {
@@ -42,22 +44,44 @@ namespace Xarial.XCad.SolidWorks.Features
                 {
                     foreach (ISketchRegion reg in regs) 
                     {
-                        yield return SwObject.FromDispatch<ISwSketchRegion>(reg);
+                        yield return OwnerDocument.CreateObjectFromDispatch<ISwSketchRegion>(reg);
                     }
                 }
+            }
+        }
+        
+        public Plane Plane 
+        {
+            get
+            {
+                var mathUtils = OwnerApplication.Sw.IGetMathUtility();
+
+                var transform = Sketch.ModelToSketchTransform.IInverse();
+
+                var x = (IMathVector)mathUtils.CreateVector(new double[] { 1, 0, 0 });
+                var z = (IMathVector)mathUtils.CreateVector(new double[] { 0, 0, 1 });
+                var origin = (IMathPoint)mathUtils.CreatePoint(new double[] { 0, 0, 0 });
+
+                x = (IMathVector)x.MultiplyTransform(transform);
+                z = (IMathVector)z.MultiplyTransform(transform);
+                origin = (IMathPoint)origin.MultiplyTransform(transform);
+
+                return new Plane(new Point((double[])origin.ArrayData),
+                    new Vector((double[])z.ArrayData),
+                    new Vector((double[])x.ArrayData));
             }
         }
 
         protected override ISketch CreateSketch()
         {
             //TODO: select the plane or face
-            m_ModelDoc.InsertSketch2(true);
-            return m_ModelDoc.SketchManager.ActiveSketch;
+            OwnerModelDoc.InsertSketch2(true);
+            return OwnerModelDoc.SketchManager.ActiveSketch;
         }
 
         protected override void ToggleEditSketch()
         {
-            m_ModelDoc.InsertSketch2(true);
+            OwnerModelDoc.InsertSketch2(true);
         }
     }
 }

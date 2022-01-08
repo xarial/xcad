@@ -71,13 +71,13 @@ namespace Xarial.XCad.Documentation
 
             private int OnFileSave(string FileName)
             {
-                //TODO: handle saving
+                //handle saving
                 return S_OK;
             }
 
             private int OnRegen()
             {
-                //TODO: handle rebuild
+                //handle rebuild
                 return S_OK;
             }
 
@@ -121,7 +121,7 @@ namespace Xarial.XCad.Documentation
         //--- CommandGroup
         private void OnButtonClick(Commands_e cmd)
         {
-            //TODO: handle commands
+            //handle commands
         }
         //---
         //--- 3rdParty
@@ -143,7 +143,7 @@ namespace Xarial.XCad.Documentation
             switch (cmd)
             {
                 case TaskPaneCommands_e.Command1:
-                    //TODO: handle command
+                    //handle command
                     break;
             }
         }

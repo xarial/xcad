@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -32,6 +32,10 @@ namespace Xarial.XCad.SolidWorks.UI
         public abstract TWindow Control { get; }
 
         public abstract event PopupWindowClosedDelegate<TWindow> Closed;
+        public abstract event ControlCreatedDelegate<TWindow> ControlCreated;
+        public abstract event PanelActivatedDelegate<TWindow> Activated;
+
+        public bool IsControlCreated { get; protected set; }
 
         public abstract void Close();
 
@@ -44,6 +48,8 @@ namespace Xarial.XCad.SolidWorks.UI
     internal class SwPopupWpfWindow<TWindow> : SwPopupWindow<TWindow>
     {
         public override event PopupWindowClosedDelegate<TWindow> Closed;
+        public override event ControlCreatedDelegate<TWindow> ControlCreated;
+        public override event PanelActivatedDelegate<TWindow> Activated;
 
         public override bool IsActive
         {
@@ -73,6 +79,7 @@ namespace Xarial.XCad.SolidWorks.UI
         {
             Control = wpfWindow;
             m_WpfWindow = (System.Windows.Window)(object)wpfWindow;
+            m_WpfWindow.Activated += OnWindowActivated;
             m_WpfWindow.Closed += OnWpfWindowClosed;
             m_Owner = new System.Windows.Interop.WindowInteropHelper(m_WpfWindow);
             m_Owner.Owner = parent;
@@ -80,9 +87,18 @@ namespace Xarial.XCad.SolidWorks.UI
             m_IsDisposed = false;
         }
 
+        private void OnWindowActivated(object sender, EventArgs e)
+        {
+            m_WpfWindow.Activated -= OnWindowActivated;
+            ControlCreated?.Invoke(Control);
+            Activated?.Invoke(this);
+            IsControlCreated = true;
+        }
+
         private void OnWpfWindowClosed(object sender, EventArgs e)
         {
             Closed?.Invoke(this);
+            IsControlCreated = false;
         }
 
         public override void Dispose()
@@ -136,6 +152,8 @@ namespace Xarial.XCad.SolidWorks.UI
         private readonly IWin32Window m_Owner;
 
         public override event PopupWindowClosedDelegate<TControl> Closed;
+        public override event ControlCreatedDelegate<TControl> ControlCreated;
+        public override event PanelActivatedDelegate<TControl> Activated;
 
         private bool m_IsDisposed;
 
@@ -143,10 +161,17 @@ namespace Xarial.XCad.SolidWorks.UI
         {
             Control = winForm;
             m_Form = (Form)(object)winForm;
+            m_Form.Shown += OnFormShown;
             m_Form.FormClosed += OnFormClosed;
             m_Owner = new Win32Window(parent);
 
             m_IsDisposed = false;
+        }
+
+        private void OnFormShown(object sender, EventArgs e)
+        {
+            ControlCreated?.Invoke(Control);
+            Activated?.Invoke(this);
         }
 
         private void OnFormClosed(object sender, FormClosedEventArgs e)

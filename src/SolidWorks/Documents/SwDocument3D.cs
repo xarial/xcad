@@ -1,15 +1,19 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
 using SolidWorks.Interop.sldworks;
 using System;
+using System.Linq;
 using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
+using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;
+using Xarial.XCad.SolidWorks.Geometry;
+using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.Utils.Diagnostics;
 
 namespace Xarial.XCad.SolidWorks.Documents
@@ -24,16 +28,16 @@ namespace Xarial.XCad.SolidWorks.Documents
 
     internal abstract class SwDocument3D : SwDocument, ISwDocument3D
     {
-        private readonly IMathUtility m_MathUtils;
+        protected readonly IMathUtility m_MathUtils;
 
         IXConfigurationRepository IXDocument3D.Configurations => Configurations;
         IXModelViewRepository IXDocument3D.ModelViews => ModelViews;
 
-        internal SwDocument3D(IModelDoc2 model, SwApplication app, IXLogger logger, bool isCreated) : base(model, app, logger, isCreated)
+        internal SwDocument3D(IModelDoc2 model, ISwApplication app, IXLogger logger, bool isCreated) : base(model, app, logger, isCreated)
         {
             m_MathUtils = app.Sw.IGetMathUtility();
-            m_Configurations = new Lazy<ISwConfigurationCollection>(() => new SwConfigurationCollection(app.Sw, this));
-            m_ModelViews = new Lazy<ISwModelViewsCollection>(() => new SwModelViewsCollection(this, m_MathUtils));
+            m_Configurations = new Lazy<ISwConfigurationCollection>(() => new SwConfigurationCollection(this, app));
+            m_ModelViews = new Lazy<ISwModelViewsCollection>(() => new SwModelViewsCollection(this, app));
         }
 
         private Lazy<ISwConfigurationCollection> m_Configurations;
@@ -42,13 +46,11 @@ namespace Xarial.XCad.SolidWorks.Documents
         public ISwConfigurationCollection Configurations => m_Configurations.Value;
         public ISwModelViewsCollection ModelViews => m_ModelViews.Value;
 
-        public abstract Box3D CalculateBoundingBox();
-
         protected override void Dispose(bool disposing)
         {
             base.Dispose(disposing);
 
-            if (disposing) 
+            if (disposing)
             {
                 if (m_Configurations.IsValueCreated)
                 {
@@ -74,7 +76,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
                 if (corrDisp != null)
                 {
-                    return SwSelObject.FromDispatch(corrDisp, this);
+                    return this.CreateObjectFromDispatch<ISwSelObject>(corrDisp);
                 }
                 else
                 {
@@ -84,6 +86,20 @@ namespace Xarial.XCad.SolidWorks.Documents
             else
             {
                 throw new InvalidCastException("Object is not SOLIDWORKS object");
+            }
+        }
+
+        public abstract IXBoundingBox PreCreateBoundingBox();
+
+        public virtual IXMassProperty PreCreateMassProperty()
+        {
+            if (OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2020))
+            {
+                return new SwMassProperty(this, m_MathUtils);
+            }
+            else
+            {
+                return new SwLegacyMassProperty(this, m_MathUtils);
             }
         }
     }

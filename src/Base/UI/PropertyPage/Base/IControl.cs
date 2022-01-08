@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -25,6 +25,11 @@ namespace Xarial.XCad.UI.PropertyPage.Base
         /// Fired when the value of the control has been changed
         /// </summary>
         event ControlObjectValueChangedDelegate ValueChanged;
+
+        /// <summary>
+        /// Metadata attached to this control
+        /// </summary>
+        IMetadata[] Metadata { get; }
 
         /// <summary>
         /// Manages the enable state of the control
@@ -57,5 +62,17 @@ namespace Xarial.XCad.UI.PropertyPage.Base
         /// </summary>
         /// <param name="value"></param>
         void SetValue(object value);
+
+        /// <summary>
+        /// Shows tooltip for this control
+        /// </summary>
+        /// <param name="title">Title of the tooltip</param>
+        /// <param name="msg">Message to show in the tooltip</param>
+        void ShowTooltip(string title, string msg);
+
+        /// <summary>
+        /// Updated this control
+        /// </summary>
+        void Update();
     }
 }

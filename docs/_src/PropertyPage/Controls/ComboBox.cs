@@ -47,11 +47,11 @@ public class ComboBoxDataModel
             => new int[] { 1, 2, 3 };
     }
 
-    [CustomItems(typeof(CustomStringItemsProvider))]
+    [ComboBox(typeof(CustomStringItemsProvider))]
     [ControlTag(nameof(Options3))]
     public string Options3 { get; set; } = "B";
 
-    [CustomItems(typeof(CustomIntItemsProvider))]
+    [ComboBox(typeof(CustomIntItemsProvider))]
     [ControlTag(nameof(Options4))]
     public int Options4 { get; set; }
     //---
@@ -84,7 +84,7 @@ public class ComboBoxDataModel
         }
     }
 
-    [CustomItems(typeof(CustomDependencyProvider), nameof(Options3), nameof(Options4))]
+    [ComboBox(typeof(CustomDependencyProvider), nameof(Options3), nameof(Options4))]
     public CustomComboBoxItem Options5 { get; set; }
     //---
 }

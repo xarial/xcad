@@ -1,10 +1,12 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
+using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using Xarial.XCad.Annotations;
@@ -20,7 +22,7 @@ namespace Xarial.XCad.Documents
     /// <summary>
     /// Represents the base interface of all document types
     /// </summary>
-    public interface IXDocument : IXTransaction, IPropertiesOwner
+    public interface IXDocument : IXObject, IXTransaction, IPropertiesOwner, IDimensionable, IDisposable
     {
         /// <summary>
         /// Current version of the document
@@ -50,7 +52,7 @@ namespace Xarial.XCad.Documents
         /// <summary>
         /// Fired when document is rebuilt
         /// </summary>
-        event DocumentRebuildDelegate Rebuild;
+        event DocumentEventDelegate Rebuilt;
 
         /// <summary>
         /// Fired when documetn is saving
@@ -61,6 +63,11 @@ namespace Xarial.XCad.Documents
         /// Fired when document is closing
         /// </summary>
         event DocumentCloseDelegate Closing;
+
+        /// <summary>
+        /// Units assigned in this document
+        /// </summary>
+        IXUnits Units { get; }
 
         /// <summary>
         /// Changes the title of this document
@@ -88,11 +95,6 @@ namespace Xarial.XCad.Documents
         DocumentState_e State { get; set; }
 
         /// <summary>
-        /// Provides an ability to store temp tags in this session
-        /// </summary>
-        ITagsManager Tags { get; }
-
-        /// <summary>
         /// Closes this document
         /// </summary>
         void Close();
@@ -101,11 +103,6 @@ namespace Xarial.XCad.Documents
         /// Saves this document
         /// </summary>
         void Save();
-
-        /// <summary>
-        /// Identifies if the pointer to the document is still valid
-        /// </summary>
-        bool IsAlive { get; }
 
         /// <summary>
         /// Saves this document to a new location
@@ -122,11 +119,6 @@ namespace Xarial.XCad.Documents
         /// Collection of selections of this document
         /// </summary>
         IXSelectionRepository Selections { get; }
-
-        /// <summary>
-        /// Collection of dimensions of this document
-        /// </summary>
-        IXDimensionRepository Dimensions { get; }
         
         /// <summary>
         /// Opens the user data stream from this document
@@ -145,10 +137,29 @@ namespace Xarial.XCad.Documents
         IStorage OpenStorage(string name, AccessType_e access);
 
         /// <summary>
-        /// Returns dependencies of this document
+        /// Returns top level dependencies of this document
         /// </summary>
-        /// <remarks>Dependencies might be uncommited if document is loaded view only or in the rapid mode. Use <see cref="IXTransaction.IsCommitted"/> to check the state and call <see cref="IXTransaction.Commit(System.Threading.CancellationToken)"/> to load document if needed</remarks>
-        IXDocument[] Dependencies { get; }
+        /// <remarks>Dependencies might be uncommited if document is loaded view only or in the rapid mode. Use <see cref="IXTransaction.IsCommitted"/> to check the state and call <see cref="IXTransaction.Commit(System.Threading.CancellationToken)"/> to load document if needed.
+        /// In most CADs this method wil lwork with uncommitted documents</remarks>
+        IEnumerable<IXDocument3D> Dependencies { get; }
+
+        /// <summary>
+        /// Deserializes specific object from stream
+        /// </summary>
+        /// <param name="stream">Input stream with the serialized object</param>
+        /// <returns>Deserialized object</returns>
+        TObj DeserializeObject<TObj>(Stream stream)
+            where TObj : IXObject;
+
+        /// <summary>
+        /// Regenerates this document
+        /// </summary>
+        void Rebuild();
+
+        /// <summary>
+        /// Returns the time stamp of the change of the current model
+        /// </summary>
+        int UpdateStamp { get; }
     }
 
     /// <summary>

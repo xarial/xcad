@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -15,9 +15,9 @@ using Xarial.XCad.SolidWorks.Utils;
 
 namespace Xarial.XCad.SolidWorks.Documents.EventHandlers
 {
-    internal class DocumentRebuildEventsHandler : SwModelEventsHandler<DocumentRebuildDelegate>
+    internal class DocumentRebuildEventsHandler : SwModelEventsHandler<DocumentEventDelegate>
     {
-        internal DocumentRebuildEventsHandler(SwDocument doc) : base(doc)
+        internal DocumentRebuildEventsHandler(SwDocument doc, ISwApplication app) : base(doc, app)
         {
         }
 
@@ -54,13 +54,13 @@ namespace Xarial.XCad.SolidWorks.Documents.EventHandlers
         private int OnRegenPostNotify(object stopFeature)
         {
             Delegate?.Invoke(m_Doc);
-            return S_OK;
+            return HResult.S_OK;
         }
 
         private int OnDrwRegenPostNotify()
         {
             Delegate?.Invoke(m_Doc);
-            return S_OK;
+            return HResult.S_OK;
         }
     }
 }

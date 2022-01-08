@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -18,7 +18,7 @@ namespace Xarial.XCad.SolidWorks.Features
 
     internal class SwSketch3D : SwSketchBase, ISwSketch3D
     {
-        internal SwSketch3D(ISwDocument doc, IFeature feat, bool created) : base(doc, feat, created)
+        internal SwSketch3D(IFeature feat, ISwDocument doc, ISwApplication app, bool created) : base(feat, doc, app, created)
         {
             if (doc == null)
             {
@@ -29,14 +29,14 @@ namespace Xarial.XCad.SolidWorks.Features
         protected override ISketch CreateSketch()
         {
             //TODO: try to use API only selection
-            m_ModelDoc.ClearSelection2(true);
-            m_ModelDoc.Insert3DSketch2(true);
-            return m_ModelDoc.SketchManager.ActiveSketch;
+            OwnerModelDoc.ClearSelection2(true);
+            OwnerModelDoc.Insert3DSketch2(true);
+            return OwnerModelDoc.SketchManager.ActiveSketch;
         }
 
         protected override void ToggleEditSketch()
         {
-            m_ModelDoc.Insert3DSketch2(true);
+            OwnerModelDoc.Insert3DSketch2(true);
         }
     }
 }

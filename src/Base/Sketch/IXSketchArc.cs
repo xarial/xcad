@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -12,7 +12,17 @@ using Xarial.XCad.Geometry.Wires;
 
 namespace Xarial.XCad.Sketch
 {
-    public interface IXSketchArc : IXSketchSegment, IXArc
+    /// <summary>
+    /// Represents the sketch circle
+    /// </summary>
+    public interface IXSketchCircle : IXSketchSegment, IXCircle
+    {
+    }
+
+    /// <summary>
+    /// Represents the sketch arc
+    /// </summary>
+    public interface IXSketchArc : IXSketchCircle, IXArc
     {
     }
 }

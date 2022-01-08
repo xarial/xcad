@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -11,6 +11,7 @@ using System.Linq;
 using System.Reflection;
 using Xarial.XCad.UI.PropertyPage.Base;
 using Xarial.XCad.Utils.PageBuilder.Base;
+using Xarial.XCad.Utils.PageBuilder.Binders;
 
 namespace Xarial.XCad.Utils.PageBuilder.Core
 {
@@ -18,20 +19,20 @@ namespace Xarial.XCad.Utils.PageBuilder.Core
     {
         private readonly Dictionary<Type, List<IAttribute>> m_Attributes;
 
-        public MemberInfo BoundMemberInfo { get; private set; }
-        public Type BoundType { get; private set; }
-        public string Description { get; private set; }
-        public int Id { get; private set; }
-        public string Name { get; private set; }
-        public object Tag { get; private set; }
+        public IControlDescriptor ControlDescriptor { get; }
+        public Type ContextType { get; }
+        public string Description { get; }
+        public int Id { get; }
+        public string Name { get; }
+        public object Tag { get; }
 
-        internal AttributeSet(int ctrlId, string ctrlName, string desc, Type boundType, object tag, MemberInfo boundMemberInfo = null)
+        internal AttributeSet(int ctrlId, string ctrlName, string desc, Type contextType, object tag, IControlDescriptor ctrlDesc = null)
         {
             Id = ctrlId;
             Name = ctrlName;
             Description = desc;
-            BoundType = boundType;
-            BoundMemberInfo = boundMemberInfo;
+            ContextType = contextType;
+            ControlDescriptor = ctrlDesc;
             Tag = tag;
 
             m_Attributes = new Dictionary<Type, List<IAttribute>>();

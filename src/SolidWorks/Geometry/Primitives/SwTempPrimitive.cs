@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -13,6 +13,7 @@ using System.Threading;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Primitives;
 using Xarial.XCad.Services;
+using Xarial.XCad.SolidWorks.Documents;
 
 namespace Xarial.XCad.SolidWorks.Geometry.Primitives
 {
@@ -29,15 +30,19 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
 
         public bool IsCommitted => m_Creator.IsCreated;
 
+        protected readonly ISwApplication m_App;
+
         protected readonly IModeler m_Modeler;
         protected readonly IMathUtility m_MathUtils;
-
+        
         protected readonly ElementCreator<ISwTempBody[]> m_Creator;
         
-        internal SwTempPrimitive(IMathUtility mathUtils, IModeler modeler, SwTempBody[] bodies, bool isCreated) 
+        internal SwTempPrimitive(SwTempBody[] bodies, ISwApplication app, bool isCreated) 
         {
-            m_MathUtils = mathUtils;
-            m_Modeler = modeler;
+            m_App = app;
+
+            m_MathUtils = m_App.Sw.IGetMathUtility();
+            m_Modeler = m_App.Sw.IGetModeler();
 
             m_Creator = new ElementCreator<ISwTempBody[]>(CreateBodies, bodies, isCreated);
         }

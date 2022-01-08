@@ -1,20 +1,25 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
 using SolidWorks.Interop.sldworks;
+using SolidWorks.Interop.swconst;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.InteropServices;
 using Xarial.XCad.Base;
+using Xarial.XCad.Documents;
 using Xarial.XCad.Features;
 using Xarial.XCad.Features.CustomFeature;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Features.CustomFeature;
 using Xarial.XCad.SolidWorks.Features.CustomFeature.Toolkit;
+using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.Toolkit.CustomFeature;
 
 namespace Xarial.XCad.SolidWorks.Features
@@ -27,10 +32,12 @@ namespace Xarial.XCad.SolidWorks.Features
     /// <inheritdoc/>
     internal class SwFeatureManager : ISwFeatureManager
     {
-        private IFeatureManager FeatMgr => m_Doc.Model.FeatureManager;
+        private IFeatureManager FeatMgr => Document.Model.FeatureManager;
 
         private readonly MacroFeatureParametersParser m_ParamsParser;
-        private readonly SwDocument m_Doc;
+
+        private readonly ISwApplication m_App;
+        internal SwDocument Document { get; }
 
         public int Count => FeatMgr.GetFeatureCount(false);
 
@@ -53,29 +60,31 @@ namespace Xarial.XCad.SolidWorks.Features
 
         public virtual bool TryGet(string name, out IXFeature ent)
         {
-            IFeature feat;
+            IFeature swFeat;
 
-            switch (m_Doc.Model)
+            switch (Document.Model)
             {
                 case IPartDoc part:
-                    feat = part.FeatureByName(name) as IFeature;
+                    swFeat = part.FeatureByName(name) as IFeature;
                     break;
 
                 case IAssemblyDoc assm:
-                    feat = assm.FeatureByName(name) as IFeature;
+                    swFeat = assm.FeatureByName(name) as IFeature;
                     break;
 
                 case IDrawingDoc drw:
-                    feat = drw.FeatureByName(name) as IFeature;
+                    swFeat = drw.FeatureByName(name) as IFeature;
                     break;
 
                 default:
                     throw new NotSupportedException();
             }
 
-            if (feat != null)
+            if (swFeat != null)
             {
-                ent = SwObject.FromDispatch<SwFeature>(feat, m_Doc);
+                var feat = Document.CreateObjectFromDispatch<SwFeature>(swFeat);
+                feat.SetContext(m_Context);
+                ent = feat;
                 return true;
             }
             else
@@ -85,10 +94,14 @@ namespace Xarial.XCad.SolidWorks.Features
             }
         }
 
-        internal SwFeatureManager(SwDocument doc)
+        protected readonly Context m_Context;
+
+        internal SwFeatureManager(SwDocument doc, ISwApplication app, Context context)
         {
-            m_Doc = doc;
-            m_ParamsParser = new MacroFeatureParametersParser(doc.App.Sw);
+            m_App = app;
+            Document = doc;
+            m_Context = context;
+            m_ParamsParser = new MacroFeatureParametersParser(app);
         }
 
         public virtual void AddRange(IEnumerable<IXFeature> feats)
@@ -104,33 +117,38 @@ namespace Xarial.XCad.SolidWorks.Features
             }
         }
 
-        public IXSketch2D PreCreate2DSketch() => new SwSketch2D(m_Doc, null, false);
-        public IXSketch3D PreCreate3DSketch() => new SwSketch3D(m_Doc, null, false);
+        public IXSketch2D PreCreate2DSketch() => new SwSketch2D(null, Document, m_App, false);
+        public IXSketch3D PreCreate3DSketch() => new SwSketch3D(null, Document, m_App, false);
         
         public virtual IEnumerator<IXFeature> GetEnumerator()
-        {
-            return new DocumentFeatureEnumerator(m_Doc);
-        }
+            => new DocumentFeatureEnumerator(Document, GetFirstFeature(), new Context(Document));
 
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
+        internal protected virtual IFeature GetFirstFeature() => Document.Model.IFirstFeature();
+
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
         public IXCustomFeature<TParams> PreCreateCustomFeature<TParams>()
             where TParams : class, new()
-        {
-            return new SwMacroFeature<TParams>(m_Doc, FeatMgr, null, m_ParamsParser, false);
-        }
+            => new SwMacroFeature<TParams>(null, Document, m_App, m_ParamsParser, false);
 
         public IXCustomFeature PreCreateCustomFeature()
-        {
-            return new SwMacroFeature(m_Doc, FeatMgr, null, false);
-        }
+            => new SwMacroFeature(null, Document, m_App, false);
 
         public void RemoveRange(IEnumerable<IXFeature> ents)
         {
-            //TODO: implement deletion
+            var disps = ents.Cast<SwFeature>().Select(e => new DispatchWrapper(e.Feature)).ToArray();
+
+            if (Document.Model.Extension.MultiSelect2(disps, false, null) == disps.Length)
+            {
+                if (!Document.Model.Extension.DeleteSelection2((int)swDeleteSelectionOptions_e.swDelete_Absorbed))
+                {
+                    throw new Exception("Failed to delete features");
+                }
+            }
+            else 
+            {
+                throw new Exception("Failed to select features for deletion");
+            }            
         }
 
         /// <inheritdoc/>
@@ -140,42 +158,56 @@ namespace Xarial.XCad.SolidWorks.Features
             where TDef : class, IXCustomFeatureDefinition<TParams, TPage>, new()
         {
             var inst = (TDef)CustomFeatureDefinitionInstanceCache.GetInstance(typeof(TDef));
-            inst.Insert(m_Doc);
+            inst.Insert(Document);
+        }
+
+        public void Enable(bool enable)
+        {
+            FeatMgr.EnableFeatureTree = enable;
+            FeatMgr.EnableFeatureTreeWindow = enable;
         }
     }
 
     internal class DocumentFeatureEnumerator : FeatureEnumerator
     {
-        private readonly IModelDoc2 m_Model;
-
-        public DocumentFeatureEnumerator(ISwDocument rootDoc) : base(rootDoc)
+        public DocumentFeatureEnumerator(ISwDocument rootDoc, IFeature firstFeat, Context context) : base(rootDoc, firstFeat, context)
         {
-            m_Model = rootDoc.Model;
             Reset();
         }
-
-        protected override IFeature GetFirstFeature() => m_Model.IFirstFeature();
     }
 
     internal static class SwFeatureManagerExtension 
     {
-        internal static SwCutListItem[] GetCutLists(this ISwFeatureManager featMgr) 
+        internal static IEnumerable<SwCutListItem> IterateCutLists(this SwFeatureManager featMgr, ISwDocument3D parent, ISwConfiguration refConf)
         {
-            var cutLists = new List<SwCutListItem>();
-
-            foreach (ISwFeature feat in featMgr) 
+            foreach (var feat in FeatureEnumerator.IterateFeatures(featMgr.GetFirstFeature(), false)) 
             {
-                if (feat is SwCutListItem) 
+                if (feat.GetTypeName2() == "SolidBodyFolder") 
                 {
-                    cutLists.Add(feat as SwCutListItem);
+                    foreach (var subFeat in FeatureEnumerator.IterateSubFeatures(feat, true)) 
+                    {
+                        if (subFeat.GetTypeName2() == "CutListFolder") 
+                        {
+                            var cutListFolder = (IBodyFolder)subFeat.GetSpecificFeature2();
+
+                            if (cutListFolder.GetBodyCount() > 0)//no bodies for hidden cut-lists (not available in the specific configuration)
+                            {
+                                var cutList = featMgr.Document.CreateObjectFromDispatch<SwCutListItem>(subFeat);
+                                cutList.SetParent(parent, refConf);
+                                yield return cutList;
+                            }
+                        }
+                    }
+
+                    break;
                 }
-                else if (feat.Feature.GetTypeName2() == "RefPlane")
+                else if (feat.GetTypeName2() == "RefPlane")
                 {
                     break;
                 }
             }
 
-            return cutLists.ToArray();
+            yield break;
         }
     }
 }

@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -73,15 +73,17 @@ namespace Xarial.XCad.SolidWorks.Data
 
         protected SwDocument m_Doc;
 
-        protected SwCustomPropertiesCollection(SwDocument doc)
+        protected readonly ISwApplication m_App;
+
+        protected SwCustomPropertiesCollection(SwDocument doc, ISwApplication app)
         {
             m_Doc = doc;
+            m_App = app;
         }
 
         private bool Exists(string name) 
         {
-            //TODO: for older that SW2014 - get all properties
-            if (m_Doc.App.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2014))
+            if (m_App.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2014))
             {
                 return PrpMgr.Get5(name, true, out _, out _, out _)
                     != (int)swCustomInfoGetResult_e.swCustomInfoGetResult_NotPresent;
@@ -102,18 +104,34 @@ namespace Xarial.XCad.SolidWorks.Data
         }
 
         public IEnumerator<IXProperty> GetEnumerator()
-            => new SwCustomPropertyEnumerator(PrpMgr, CreateEventsHandler, CreatePropertyInstance);
+            => new SwCustomPropertyEnumerator(PrpMgr, CreatePropertyInstance);
 
         public void RemoveRange(IEnumerable<IXProperty> ents)
         {
-            const int SUCCESS = 0;
-
             foreach (var prp in ents)
             {
-                //TODO: fix the versions
+                DeleteProperty(prp);
+            }
+        }
+
+        protected virtual void DeleteProperty(IXProperty prp)
+        {
+            if (m_App.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2014))
+            {
+                var delRes = (swCustomInfoDeleteResult_e)PrpMgr.Delete2(prp.Name);
+
+                if (delRes != swCustomInfoDeleteResult_e.swCustomInfoDeleteResult_OK)
+                {
+                    throw new Exception($"Failed to remove property '{prp.Name}'. Error code: {delRes}");
+                }
+            }
+            else
+            {
+                const int SUCCESS = 0;
+
                 if (PrpMgr.Delete(prp.Name) != SUCCESS)
                 {
-                    throw new Exception($"Failed to remove {prp.Name}");
+                    throw new Exception($"Failed to remove property '{prp.Name}'");
                 }
             }
         }
@@ -124,11 +142,11 @@ namespace Xarial.XCad.SolidWorks.Data
 
         public ISwCustomProperty PreCreate() => CreatePropertyInstance(PrpMgr, "", false);
 
-        protected virtual SwCustomProperty CreatePropertyInstance(CustomPropertyManager prpMgr, string name, bool isCreated)
+        protected abstract SwCustomProperty CreatePropertyInstance(CustomPropertyManager prpMgr, string name, bool isCreated);
+
+        protected void InitProperty(SwCustomProperty prp)
         {
-            var prp = new SwCustomProperty(prpMgr, name, isCreated);
             prp.SetEventsHandler(CreateEventsHandler(prp));
-            return prp;
         }
 
         public virtual void Dispose()
@@ -143,9 +161,9 @@ namespace Xarial.XCad.SolidWorks.Data
         private readonly CustomPropertiesEventsHelper m_EventsHelper;
         private readonly List<EventsHandler<PropertyValueChangedDelegate>> m_EventsHandlers;
 
-        internal SwConfigurationCustomPropertiesCollection(SwDocument doc, string confName) : base(doc)
+        internal SwConfigurationCustomPropertiesCollection(string confName, SwDocument doc, ISwApplication app) : base(doc, app)
         {
-            m_EventsHelper = new CustomPropertiesEventsHelper(doc.App.Sw, doc);
+            m_EventsHelper = new CustomPropertiesEventsHelper(app.Sw, doc);
 
             m_ConfName = confName;
 
@@ -153,7 +171,14 @@ namespace Xarial.XCad.SolidWorks.Data
         }
 
         protected override CustomPropertyManager PrpMgr => Model.Extension.CustomPropertyManager[m_ConfName];
-                
+
+        protected override SwCustomProperty CreatePropertyInstance(CustomPropertyManager prpMgr, string name, bool isCreated)
+        {
+            var prp = new SwConfigurationCustomProperty(prpMgr, name, isCreated, m_Doc, m_ConfName, m_App);
+            InitProperty(prp);
+            return prp;
+        }
+
         protected override EventsHandler<PropertyValueChangedDelegate> CreateEventsHandler(SwCustomProperty prp)
         {
             var isBugPresent = true; //TODO: find version when the issue is starter
@@ -189,8 +214,15 @@ namespace Xarial.XCad.SolidWorks.Data
 
     internal class SwFileCustomPropertiesCollection : SwConfigurationCustomPropertiesCollection
     {
-        internal SwFileCustomPropertiesCollection(SwDocument doc) : base(doc, "")
+        internal SwFileCustomPropertiesCollection(SwDocument doc, ISwApplication app) : base("", doc, app)
         {
+        }
+
+        protected override SwCustomProperty CreatePropertyInstance(CustomPropertyManager prpMgr, string name, bool isCreated)
+        {
+            var prp = new SwCustomProperty(prpMgr, name, isCreated, m_App);
+            InitProperty(prp);
+            return prp;
         }
     }
 
@@ -205,17 +237,13 @@ namespace Xarial.XCad.SolidWorks.Data
         private readonly string[] m_PrpNames;
         private int m_CurPrpIndex;
 
-        private readonly Func<SwCustomProperty, EventsHandler<PropertyValueChangedDelegate>> m_EventsHandlerFact;
         private readonly Func<CustomPropertyManager, string, bool, SwCustomProperty> m_PrpFact;
 
         internal SwCustomPropertyEnumerator(CustomPropertyManager prpMgr, 
-            Func<SwCustomProperty, EventsHandler<PropertyValueChangedDelegate>> eventsHandlerFact,
             Func<CustomPropertyManager, string, bool, SwCustomProperty> prpFact) 
         {
             m_PrpMgr = prpMgr;
             m_PrpFact = prpFact;
-
-            m_EventsHandlerFact = eventsHandlerFact;
 
             m_PrpNames = m_PrpMgr.GetNames() as string[];
             
@@ -223,6 +251,8 @@ namespace Xarial.XCad.SolidWorks.Data
             {
                 m_PrpNames = new string[0];
             }
+
+            m_PrpNames = m_PrpNames.Except(new string[] { SwConfiguration.QTY_PROPERTY }).ToArray();
 
             m_CurPrpIndex = -1;
         }

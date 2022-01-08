@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -9,10 +9,14 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using Xarial.XCad.Exceptions;
 using Xarial.XCad.Toolkit.Exceptions;
 
 namespace Xarial.XCad.Services
 {
+    /// <summary>
+    /// Manages cached properties of <see cref="Base.IXTransaction"/>
+    /// </summary>
     public class CachedProperties 
     {
         private readonly Dictionary<string, object> m_CachedProperties;
