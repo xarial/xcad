@@ -77,6 +77,30 @@ namespace Xarial.XCad.Documents
     }
 
     /// <summary>
+    /// Specific component of the <see cref="IXPart"/>
+    /// </summary>
+    public interface IXPartComponent : IXComponent
+    {
+        /// <inheritdoc/>>
+        new IXPart ReferencedDocument { get; }
+
+        /// <inheritdoc/>>
+        new IXPartConfiguration ReferencedConfiguration { get; }
+    }
+
+    /// <summary>
+    /// Specific component of the <see cref="IXAssembly"/>
+    /// </summary>
+    public interface IXAssemblyComponent : IXComponent
+    {
+        /// <inheritdoc/>>
+        new IXAssembly ReferencedDocument { get; }
+
+        /// <inheritdoc/>>
+        new IXAssemblyConfiguration ReferencedConfiguration { get; }
+    }
+
+    /// <summary>
     /// Additional methods for <see cref="IXComponent"/>
     /// </summary>
     public static class IXComponentExtension 

@@ -54,10 +54,10 @@ namespace Xarial.XCad.SwDocumentManager.Features
         public ISwDMCutListItem2 CutListItem { get; }
 
         private readonly Lazy<ISwDmCustomPropertiesCollection> m_Properties;
-        private readonly SwDmDocument3D m_Doc;
-        private readonly SwDmConfiguration m_Conf;
+        private readonly SwDmPart m_Doc;
+        private readonly ISwDmPartConfiguration m_Conf;
 
-        internal SwDmCutListItem(ISwDMCutListItem2 cutListItem, SwDmDocument3D doc) : base(cutListItem)
+        internal SwDmCutListItem(ISwDMCutListItem2 cutListItem, SwDmPart doc) : base(cutListItem)
         {
             CutListItem = cutListItem;
             m_Doc = doc;
@@ -66,7 +66,7 @@ namespace Xarial.XCad.SwDocumentManager.Features
                 () => new SwDmCutListCustomPropertiesCollection(this, m_Doc, m_Conf));
         }
 
-        internal SwDmCutListItem(ISwDMCutListItem2 cutListItem, SwDmDocument3D doc, SwDmConfiguration conf) : this(cutListItem, doc)
+        internal SwDmCutListItem(ISwDMCutListItem2 cutListItem, SwDmPart doc, ISwDmPartConfiguration conf) : this(cutListItem, doc)
         {
             m_Conf = conf;
         }

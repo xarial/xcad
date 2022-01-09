@@ -41,11 +41,6 @@ namespace Xarial.XCad.Documents
         BomChildrenSolving_e BomChildrenSolving { get; }
 
         /// <summary>
-        /// Cut-list items in this configuration (if available)
-        /// </summary>
-        IEnumerable<IXCutListItem> CutLists { get; }//TODO: create IXPartConfiguration specific to part and move this property there
-
-        /// <summary>
         /// Preview image of this configuration
         /// </summary>
         IXImage Preview { get; }

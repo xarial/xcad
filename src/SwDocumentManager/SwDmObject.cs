@@ -76,18 +76,29 @@ namespace Xarial.XCad.SwDocumentManager
                         case SwDmAssembly assm:
                             return new SwDmAssemblyConfiguration(conf, assm);
 
-                        case SwDmDocument3D doc3D:
-                            return new SwDmConfiguration(conf, doc3D);
+                        case SwDmPart part:
+                            return new SwDmPartConfiguration(conf, part);
 
                         default:
                             throw new NotSupportedException("This document type is not supported for configuration");
                     }
 
                 case ISwDMCutListItem cutList:
-                    return new SwDmCutListItem((ISwDMCutListItem2)cutList, (SwDmDocument3D)doc);
+                    return new SwDmCutListItem((ISwDMCutListItem2)cutList, (SwDmPart)doc);
 
                 case ISwDMComponent comp:
-                    return new SwDmComponent((SwDmAssembly)doc, comp);
+                    var ext = Path.GetExtension(((ISwDMComponent6)comp).PathName);
+                    switch (ext.ToLower()) 
+                    {
+                        case ".sldprt":
+                            return new SwDmPartComponent((SwDmAssembly)doc, comp);
+
+                        case ".sldasm":
+                            return new SwDmAssemblyComponent((SwDmAssembly)doc, comp);
+
+                        default:
+                            throw new NotSupportedException();
+                    }
 
                 case ISwDMSheet sheet:
                     return new SwDmSheet(sheet, (SwDmDrawing)doc);

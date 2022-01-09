@@ -20,7 +20,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         new ISwDmConfigurationCollection Configurations { get; }
     }
 
-    internal class SwDmDocument3D : SwDmDocument, ISwDmDocument3D
+    internal abstract class SwDmDocument3D : SwDmDocument, ISwDmDocument3D
     {
         #region Not Supported
 
@@ -33,16 +33,13 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         IXConfigurationRepository IXDocument3D.Configurations => Configurations;
 
-        public ISwDmConfigurationCollection Configurations => m_Configurations.Value;
-
-        private readonly Lazy<ISwDmConfigurationCollection> m_Configurations;
+        public abstract ISwDmConfigurationCollection Configurations { get; }
 
         public SwDmDocument3D(ISwDmApplication dmApp, ISwDMDocument doc, bool isCreated,
             Action<ISwDmDocument> createHandler, Action<ISwDmDocument> closeHandler,
             bool? isReadOnly)
             : base(dmApp, doc, isCreated, createHandler, closeHandler, isReadOnly)
         {
-            m_Configurations = new Lazy<ISwDmConfigurationCollection>(() => new SwDmConfigurationCollection(this));
         }
     }
 

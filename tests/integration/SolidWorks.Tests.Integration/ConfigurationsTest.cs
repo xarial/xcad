@@ -127,9 +127,9 @@ namespace SolidWorks.Tests.Integration
         [Test]
         public void IterateConfsUnloadedTest()
         {
-            var part = m_App.Documents.PreCreate<IXPart>();
+            var part = m_App.Documents.PreCreate<ISwPart>();
             part.Path = GetFilePath("Configs1.SLDPRT");
-            var confNames = part.Configurations.Select(x => x.Name).ToArray();
+            var confNames = ((IEnumerable<IXConfiguration>)part.Configurations).Select(x => x.Name).ToArray();
 
             Assert.That(confNames.SequenceEqual(new string[]
             {

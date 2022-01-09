@@ -25,7 +25,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         new ISwDmConfiguration Active { get; }
     }
 
-    internal class SwDmConfigurationCollection : ISwDmConfigurationCollection
+    internal abstract class SwDmConfigurationCollection : ISwDmConfigurationCollection
     {
         #region Not Supported
 
@@ -175,6 +175,12 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         new ISwDmAssemblyConfiguration Active { get; set; }
     }
 
+    public interface ISwDmPartConfigurationCollection : ISwDmConfigurationCollection, IXPartConfigurationRepository
+    {
+        new ISwDmPartConfiguration this[string name] { get; }
+        new ISwDmPartConfiguration Active { get; set; }
+    }
+
     internal class SwDmAssemblyConfigurationCollection : SwDmConfigurationCollection, ISwDmAssemblyConfigurationCollection
     {
         private readonly SwDmAssembly m_Assm;
@@ -218,5 +224,50 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         IXAssemblyConfiguration IXAssemblyConfigurationRepository.PreCreate()
             => new SwDmAssemblyConfiguration(null, m_Assm);
+    }
+
+    internal class SwDmPartConfigurationCollection : SwDmConfigurationCollection, ISwDmPartConfigurationCollection
+    {
+        private readonly SwDmPart m_Part;
+
+        internal SwDmPartConfigurationCollection(SwDmPart part) : base(part)
+        {
+            m_Part = part;
+        }
+
+        IXPartConfiguration IXRepository<IXPartConfiguration>.this[string name] => (this as ISwDmPartConfigurationCollection)[name];
+
+        ISwDmPartConfiguration ISwDmPartConfigurationCollection.this[string name] => (ISwDmPartConfiguration)base[name];
+
+        IXPartConfiguration IXPartConfigurationRepository.Active
+        {
+            get => (ISwDmPartConfiguration)base.Active;
+            set => (this as IXConfigurationRepository).Active = value;
+        }
+
+        ISwDmPartConfiguration ISwDmPartConfigurationCollection.Active
+        {
+            get => (ISwDmPartConfiguration)base.Active;
+            set => (this as IXConfigurationRepository).Active = value;
+        }
+
+        public void AddRange(IEnumerable<IXPartConfiguration> ents)
+            => base.AddRange(ents);
+
+        public void RemoveRange(IEnumerable<IXPartConfiguration> ents)
+            => base.RemoveRange(ents);
+
+        public bool TryGet(string name, out IXPartConfiguration ent)
+        {
+            var res = base.TryGet(name, out IXConfiguration conf);
+            ent = (IXPartConfiguration)conf;
+            return res;
+        }
+
+        IEnumerator<IXPartConfiguration> IEnumerable<IXPartConfiguration>.GetEnumerator()
+            => GetConfigurationNames().Select(n => (IXPartConfiguration)this[n]).GetEnumerator();
+
+        IXPartConfiguration IXPartConfigurationRepository.PreCreate()
+            => new SwDmPartConfiguration(null, m_Part);
     }
 }

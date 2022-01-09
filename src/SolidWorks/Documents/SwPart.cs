@@ -24,10 +24,13 @@ namespace Xarial.XCad.SolidWorks.Documents
     public interface ISwPart : ISwDocument3D, IXPart 
     {
         IPartDoc Part { get; }
+        new ISwPartConfigurationCollection Configurations { get; }
     }
 
     internal class SwPart : SwDocument3D, ISwPart
     {
+        IXPartConfigurationRepository IXPart.Configurations => (IXPartConfigurationRepository)Configurations;
+
         public IPartDoc Part => Model as IPartDoc;
 
         public IXBodyRepository Bodies { get; }
@@ -59,8 +62,13 @@ namespace Xarial.XCad.SolidWorks.Documents
         protected override bool IsLightweightMode => false;
         protected override bool IsRapidMode => false;
 
+        ISwPartConfigurationCollection ISwPart.Configurations => (ISwPartConfigurationCollection)Configurations;
+
         public override IXBoundingBox PreCreateBoundingBox()
             => new SwPartBoundingBox(this, OwnerApplication);
+
+        protected override SwConfigurationCollection CreateConfigurations()
+            => new SwPartConfigurationCollection(this, OwnerApplication);
     }
 
     internal class SwPartBodyCollection : SwBodyCollection

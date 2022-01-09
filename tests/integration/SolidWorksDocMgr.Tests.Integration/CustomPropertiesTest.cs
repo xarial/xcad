@@ -56,7 +56,7 @@ namespace SolidWorksDocMgr.Tests.Integration
 
             using (var doc = OpenDataDocument("UnloadedConfPart.SLDPRT"))
             {
-                var part = (IXPart)m_App.Documents.Active;
+                var part = (ISwDmPart)m_App.Documents.Active;
 
                 var prp1 = part.Configurations["Default"].Properties.PreCreate();
                 prp1.Name = "Test1";
@@ -210,7 +210,7 @@ namespace SolidWorksDocMgr.Tests.Integration
 
             using (var doc = OpenDataDocument("CutListConfs1.SLDPRT"))
             {
-                var part = (ISwDmDocument3D)m_App.Documents.Active;
+                var part = (ISwDmPart)m_App.Documents.Active;
 
                 conf1Prps = part.Configurations["Conf1<As Machined>"].CutLists
                     .First(c => c.Name == "Cut-List-Item1").Properties
@@ -313,7 +313,7 @@ namespace SolidWorksDocMgr.Tests.Integration
 
             using (var doc = OpenDataDocument("MultiConfNotUpdatePartPrps.SLDPRT"))
             {
-                var part = (IXPart)m_App.Documents.Active;
+                var part = (ISwDmPart)m_App.Documents.Active;
 
                 val1Def = part.Configurations["Default"].Properties["Prp1"].Value;
                 val2Def = part.Configurations["Default"].Properties["Prp2"].Value;

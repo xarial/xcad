@@ -8,6 +8,7 @@
 using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
 using System;
+using System.IO;
 using System.Linq;
 using Xarial.XCad.SolidWorks.Annotations;
 using Xarial.XCad.SolidWorks.Documents;
@@ -209,15 +210,24 @@ namespace Xarial.XCad.SolidWorks
                         case SwAssembly assm:
                             return new SwAssemblyConfiguration(conf, assm, app, true);
 
-                        case SwDocument3D doc3D:
-                            return new SwConfiguration(conf, doc3D, app, true);
+                        case SwPart part:
+                            return new SwPartConfiguration(conf, part, app, true);
 
                         default:
                             throw new Exception("Owner document must be 3D document or assembly");
                     }
 
                 case IComponent2 comp:
-                    return new SwComponent(comp, (SwAssembly)doc, app);
+                    var ext = Path.GetExtension(comp.GetPathName());
+                    switch (ext.ToLower()) 
+                    {
+                        case ".sldprt":
+                            return new SwPartComponent(comp, (SwAssembly)doc, app);
+                        case ".sldasm":
+                            return new SwAssemblyComponent(comp, (SwAssembly)doc, app);
+                        default:
+                            throw new NotSupportedException();
+                    }
 
                 case ISheet sheet:
                     return new SwSheet(sheet, (SwDrawing)doc, app);
