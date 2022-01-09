@@ -19,11 +19,6 @@ namespace Xarial.XCad.Documents
         new IXPartConfigurationRepository Configurations { get; }
 
         /// <summary>
-        /// Fired when cut list is regenerated
-        /// </summary>
-        event CutListRebuildDelegate CutListRebuild;
-
-        /// <summary>
         /// Bodies in this part document
         /// </summary>
         IXBodyRepository Bodies { get; }

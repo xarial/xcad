@@ -11,6 +11,7 @@ using Xarial.XCad.Documents;
 using Xarial.XCad.Exceptions;
 using Xarial.XCad.SwDocumentManager.Documents;
 using Xarial.XCad.SwDocumentManager.Exceptions;
+using Xarial.XCad.SwDocumentManager.Features;
 
 namespace SolidWorksDocMgr.Tests.Integration
 {
@@ -251,8 +252,8 @@ namespace SolidWorksDocMgr.Tests.Integration
                 prp2.Value = "NewValueDefault";
                 Assert.Throws<ConfigurationSpecificCutListPropertiesWriteNotSupportedException>(() => prp2.Commit());
 
-                conf1Val = part.Configurations["Conf1<As Machined>"].CutLists
-                    .First(c => c.Name == "Cut-List-Item1").CutListItem.GetCustomPropertyValue("Prp3", out _, out _);
+                conf1Val = ((ISwDmCutListItem)part.Configurations["Conf1<As Machined>"].CutLists
+                    .First(c => c.Name == "Cut-List-Item1")).CutListItem.GetCustomPropertyValue("Prp3", out _, out _);
             }
 
             Assert.AreEqual("NewValueConf1", conf1Val);

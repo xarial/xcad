@@ -296,32 +296,12 @@ namespace Xarial.XCad.SolidWorks.Documents
 
     internal class SwPartComponentConfiguration : SwComponentConfiguration, IXPartConfiguration
     {
-        public SwPartComponentConfiguration(SwComponent comp, ISwApplication app) : base(comp, app)
+        public SwPartComponentConfiguration(SwPartComponent comp, ISwApplication app) : base(comp, app)
         {
+            CutLists = new SwPartComponentCutListItemCollection(comp);
         }
 
-        public IEnumerable<IXCutListItem> CutLists
-        {
-            get
-            {
-                var refConf = (ISwConfiguration)m_Comp.ReferencedConfiguration;
-                var refDoc = m_Comp.ReferencedDocument;
-
-                if (refDoc is ISwPart)
-                {
-                    IEnumerable<IBody2> IterateBodies() =>
-                        (m_Comp.Component.GetBodies3((int)swBodyType_e.swSolidBody, out _) as object[] ?? new object[0]).Cast<IBody2>();
-
-                    if ((refDoc.IsCommitted && (refDoc.Model as IPartDoc).IsWeldment()) || IterateBodies().Any(b => b.IsSheetMetal()))
-                    {
-                        foreach (var cutList in ((SwFeatureManager)m_Comp.Features).IterateCutLists(refDoc, refConf))
-                        {
-                            yield return cutList;
-                        }
-                    }
-                }
-            }
-        }
+        public IXCutListItemRepository CutLists { get; }
     }
 
     internal class SwAssemblyComponentConfiguration : SwComponentConfiguration, IXAssemblyConfiguration

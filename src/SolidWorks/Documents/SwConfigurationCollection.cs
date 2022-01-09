@@ -283,9 +283,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
             m_Assm = assm;
         }
-
-        IXAssemblyConfiguration IXRepository<IXAssemblyConfiguration>.this[string name] => (this as ISwAssemblyConfigurationCollection)[name];
-
+        
         ISwAssemblyConfiguration ISwAssemblyConfigurationCollection.this[string name] => (ISwAssemblyConfiguration)base[name];
 
         ISwAssemblyConfiguration ISwAssemblyConfigurationCollection.Active 
@@ -315,9 +313,6 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         protected override ISwConfiguration CreateViewOnlyConfiguration(string name)
             => new SwLdrAssemblyUnloadedConfiguration(m_Assm, m_App, name);
-
-        IEnumerator<IXAssemblyConfiguration> IEnumerable<IXAssemblyConfiguration>.GetEnumerator()
-            => new SwAssemblyConfigurationEnumerator(m_App, m_Assm);
 
         ISwAssemblyConfiguration ISwAssemblyConfigurationCollection.PreCreate()
             => new SwAssemblyConfiguration(null, m_Assm, m_App, false);
@@ -357,9 +352,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
             m_Part = part;
         }
-
-        IXPartConfiguration IXRepository<IXPartConfiguration>.this[string name] => (this as ISwPartConfigurationCollection)[name];
-
+        
         ISwPartConfiguration ISwPartConfigurationCollection.this[string name] => (ISwPartConfiguration)base[name];
 
         ISwPartConfiguration ISwPartConfigurationCollection.Active
@@ -386,9 +379,6 @@ namespace Xarial.XCad.SolidWorks.Documents
             ent = (IXPartConfiguration)conf;
             return res;
         }
-
-        IEnumerator<IXPartConfiguration> IEnumerable<IXPartConfiguration>.GetEnumerator()
-            => new SwPartConfigurationEnumerator(m_App, m_Part);
 
         ISwPartConfiguration ISwPartConfigurationCollection.PreCreate()
             => new SwPartConfiguration(null, m_Part, m_App, false);

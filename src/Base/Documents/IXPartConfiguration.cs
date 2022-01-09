@@ -18,6 +18,6 @@ namespace Xarial.XCad.Documents
         /// <summary>
         /// Cut-list items in this configuration (if available)
         /// </summary>
-        IEnumerable<IXCutListItem> CutLists { get; }
+        IXCutListItemRepository CutLists { get; }
     }
 }

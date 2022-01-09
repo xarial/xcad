@@ -358,13 +358,15 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
     internal class SwDmPartComponentConfiguration : SwDmComponentConfiguration, ISwDmPartConfiguration
     {
+        private readonly Lazy<IXCutListItemRepository> m_CutListsLazy;
+
         public SwDmPartComponentConfiguration(ISwDmComponent comp) : base(comp)
         {
+            m_CutListsLazy = new Lazy<IXCutListItemRepository>(
+                () => new SwDmCutListItemCollection(this, (SwDmPart)Document));
         }
 
-        public IEnumerable<ISwDmCutListItem> CutLists => this.IterateCutLists((SwDmPart)Document);
-
-        IEnumerable<IXCutListItem> IXPartConfiguration.CutLists => this.CutLists;
+        public IXCutListItemRepository CutLists => m_CutListsLazy.Value;
     }
 
     internal class SwDmAssemblyComponentConfiguration : SwDmComponentConfiguration, ISwDmAssemblyConfiguration

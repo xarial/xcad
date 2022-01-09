@@ -256,54 +256,15 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
     public interface ISwDmPartConfiguration : ISwDmConfiguration, IXPartConfiguration
     {
-        new IEnumerable<ISwDmCutListItem> CutLists { get; }
     }
 
     internal class SwDmPartConfiguration : SwDmConfiguration, ISwDmPartConfiguration
     {
-        IEnumerable<IXCutListItem> IXPartConfiguration.CutLists => CutLists;
-
-        private readonly SwDmPart m_Part;
-
         internal SwDmPartConfiguration(ISwDMConfiguration conf, SwDmPart part) : base(conf, part)
         {
-            m_Part = part;
+            CutLists = new SwDmCutListItemCollection(this, part);
         }
 
-        public IEnumerable<ISwDmCutListItem> CutLists => this.IterateCutLists(m_Part);
-    }
-
-    internal static class SwDmPartConfigurationExtension 
-    {
-        public static IEnumerable<ISwDmCutListItem> IterateCutLists(this ISwDmPartConfiguration conf, SwDmPart part)
-        {
-            object[] cutListItems = null;
-
-            if (part.SwDmApp.IsVersionNewerOrEqual(SwDmVersion_e.Sw2019)
-                && part.Version.Major >= SwDmVersion_e.Sw2019)
-            {
-                cutListItems = ((ISwDMConfiguration16)conf.Configuration).GetCutListItems() as object[];
-            }
-            else
-            {
-                if (conf.Configuration.Equals(part.Configurations.Active.Configuration))
-                {
-                    cutListItems = ((ISwDMDocument13)part.Document).GetCutListItems2() as object[];
-                }
-                else
-                {
-                    throw new ConfigurationCutListIsNotSupported();
-                }
-            }
-
-            if (cutListItems != null)
-            {
-                foreach (var cutList in cutListItems.Cast<ISwDMCutListItem2>()
-                    .Select(c => new SwDmCutListItem(c, part, conf)))
-                {
-                    yield return cutList;
-                }
-            }
-        }
+        public IXCutListItemRepository CutLists { get; }
     }
 }

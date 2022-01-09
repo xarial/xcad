@@ -12,7 +12,7 @@ namespace Xarial.XCad.Documents
     /// <summary>
     /// Represents the collection of configurations in <see cref="IXPart"/>
     /// </summary>
-    public interface IXPartConfigurationRepository : IXConfigurationRepository, IXRepository<IXPartConfiguration> 
+    public interface IXPartConfigurationRepository : IXConfigurationRepository
     {
         /// <inheritdoc/>
         new IXPartConfiguration Active { get; set; }

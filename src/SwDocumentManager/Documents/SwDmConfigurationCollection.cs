@@ -189,9 +189,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         {
             m_Assm = assm;
         }
-
-        IXAssemblyConfiguration IXRepository<IXAssemblyConfiguration>.this[string name] => (this as ISwDmAssemblyConfigurationCollection)[name];
-
+        
         ISwDmAssemblyConfiguration ISwDmAssemblyConfigurationCollection.this[string name] => (ISwDmAssemblyConfiguration)base[name];
 
         IXAssemblyConfiguration IXAssemblyConfigurationRepository.Active 
@@ -219,9 +217,6 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             return res;
         }
 
-        IEnumerator<IXAssemblyConfiguration> IEnumerable<IXAssemblyConfiguration>.GetEnumerator()
-            => GetConfigurationNames().Select(n => (IXAssemblyConfiguration)this[n]).GetEnumerator();
-
         IXAssemblyConfiguration IXAssemblyConfigurationRepository.PreCreate()
             => new SwDmAssemblyConfiguration(null, m_Assm);
     }
@@ -234,9 +229,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         {
             m_Part = part;
         }
-
-        IXPartConfiguration IXRepository<IXPartConfiguration>.this[string name] => (this as ISwDmPartConfigurationCollection)[name];
-
+        
         ISwDmPartConfiguration ISwDmPartConfigurationCollection.this[string name] => (ISwDmPartConfiguration)base[name];
 
         IXPartConfiguration IXPartConfigurationRepository.Active
@@ -263,9 +256,6 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             ent = (IXPartConfiguration)conf;
             return res;
         }
-
-        IEnumerator<IXPartConfiguration> IEnumerable<IXPartConfiguration>.GetEnumerator()
-            => GetConfigurationNames().Select(n => (IXPartConfiguration)this[n]).GetEnumerator();
 
         IXPartConfiguration IXPartConfigurationRepository.PreCreate()
             => new SwDmPartConfiguration(null, m_Part);

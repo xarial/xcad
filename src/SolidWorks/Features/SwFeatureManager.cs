@@ -43,20 +43,7 @@ namespace Xarial.XCad.SolidWorks.Features
 
         IXFeature IXRepository<IXFeature>.this[string name] => this[name];
 
-        public ISwFeature this[string name]
-        {
-            get
-            {
-                if (TryGet(name, out IXFeature ent))
-                {
-                    return (SwFeature)ent;
-                }
-                else 
-                {
-                    throw new NullReferenceException($"Feature '{name}' is not found");
-                }
-            }
-        }
+        public ISwFeature this[string name] => (ISwFeature)this.Get(name);
 
         public virtual bool TryGet(string name, out IXFeature ent)
         {

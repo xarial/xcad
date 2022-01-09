@@ -35,25 +35,9 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public IXBodyRepository Bodies { get; }
 
-        private readonly CutListRebuildEventsHandler m_CutListRebuild;
-
-        public event CutListRebuildDelegate CutListRebuild 
-        {
-            add
-            {
-                m_CutListRebuild.Attach(value);
-            }
-            remove
-            {
-                m_CutListRebuild.Detach(value);
-            }
-        }
-
         internal SwPart(IPartDoc part, ISwApplication app, IXLogger logger, bool isCreated)
             : base((IModelDoc2)part, app, logger, isCreated)
         {
-            m_CutListRebuild = new CutListRebuildEventsHandler(this, app);
-
             Bodies = new SwPartBodyCollection(this);
         }
 

@@ -22,14 +22,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
     internal class SwDmPart : SwDmDocument3D, ISwDmPart
     {
-        #region Not Supported
-
-        public event CutListRebuildDelegate CutListRebuild;
-
-        #endregion
-
         private readonly Lazy<SwDmPartConfigurationCollection> m_LazyConfigurations;
-
 
         public SwDmPart(ISwDmApplication dmApp, ISwDMDocument doc, bool isCreated,
             Action<ISwDmDocument> createHandler, Action<ISwDmDocument> closeHandler, bool? isReadOnly)

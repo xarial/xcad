@@ -225,12 +225,12 @@ namespace SolidWorks.Tests.Integration
             {
                 var part = (ISwPart)m_App.Documents.Active;
 
-                conf1Prps = ((IEnumerable<IXPartConfiguration>)part.Configurations).First(c => c.Name.StartsWith("Conf1")).CutLists
+                conf1Prps = ((IXPartConfiguration)part.Configurations.First(c => c.Name.StartsWith("Conf1"))).CutLists
                     .First(c => c.Name == "Cut-List-Item1").Properties
                     .ToDictionary(p => p.Name, p => p.Value);
 
                 Assert.Throws<ConfigurationSpecificCutListNotSupportedException>(
-                    () => { var cl = ((IEnumerable<IXPartConfiguration>)part.Configurations).First(c => c.Name.StartsWith("Default")).CutLists.ToArray(); });
+                    () => { var cl = ((IXPartConfiguration)part.Configurations.First(c => c.Name.StartsWith("Default"))).CutLists.ToArray(); });
             }
 
             Assert.AreEqual(4, conf1Prps.Count);
