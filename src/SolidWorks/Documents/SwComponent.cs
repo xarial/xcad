@@ -52,8 +52,18 @@ namespace Xarial.XCad.SolidWorks.Documents
         string CachedPath { get; }
     }
 
+    public interface ISwPartComponent : ISwComponent, IXPartComponent 
+    {
+        new ISwPart ReferencedDocument { get; }
+    }
+
+    public interface ISwAssemblyComponent : ISwComponent, IXAssemblyComponent
+    {
+        new ISwAssembly ReferencedDocument { get; }
+    }
+
     [DebuggerDisplay("{" + nameof(FullName) + "}")]
-    internal class SwComponent : SwSelObject, ISwComponent
+    internal abstract class SwComponent : SwSelObject, ISwComponent
     {
         IXDocument3D IXComponent.ReferencedDocument => ReferencedDocument;
         IXComponentRepository IXComponent.Children => Children;
@@ -299,9 +309,8 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        public IXConfiguration ReferencedConfiguration
-            => new SwComponentConfiguration(this, OwnerApplication);
-
+        public abstract IXConfiguration ReferencedConfiguration { get; }
+            
         public System.Drawing.Color? Color
         {
             get => SwColorHelper.GetColor(null,
@@ -367,7 +376,35 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
     }
-    
+
+    internal class SwPartComponent : SwComponent, ISwPartComponent
+    {
+        ISwPart ISwPartComponent.ReferencedDocument => (ISwPart)base.ReferencedDocument;
+        IXPart IXPartComponent.ReferencedDocument => (IXPart)base.ReferencedDocument;
+
+        IXPartConfiguration IXPartComponent.ReferencedConfiguration => new SwPartComponentConfiguration(this, OwnerApplication);
+
+        public override IXConfiguration ReferencedConfiguration => ((IXPartComponent)this).ReferencedConfiguration;
+
+        internal SwPartComponent(IComponent2 comp, SwAssembly rootAssembly, ISwApplication app) : base(comp, rootAssembly, app)
+        {
+        }
+    }
+
+    internal class SwAssemblyComponent : SwComponent, ISwAssemblyComponent
+    {
+        ISwAssembly ISwAssemblyComponent.ReferencedDocument => (ISwAssembly)base.ReferencedDocument;
+        IXAssembly IXAssemblyComponent.ReferencedDocument => (IXAssembly)base.ReferencedDocument;
+
+        IXAssemblyConfiguration IXAssemblyComponent.ReferencedConfiguration => new SwAssemblyComponentConfiguration(this, OwnerApplication);
+
+        public override IXConfiguration ReferencedConfiguration => ((IXAssemblyComponent)this).ReferencedConfiguration;
+
+        internal SwAssemblyComponent(IComponent2 comp, SwAssembly rootAssembly, ISwApplication app) : base(comp, rootAssembly, app)
+        {
+        }
+    }
+
     internal class SwComponentFeatureManager : SwFeatureManager
     {
         private readonly SwAssembly m_Assm;

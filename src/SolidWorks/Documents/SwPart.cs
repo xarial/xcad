@@ -24,33 +24,20 @@ namespace Xarial.XCad.SolidWorks.Documents
     public interface ISwPart : ISwDocument3D, IXPart 
     {
         IPartDoc Part { get; }
+        new ISwPartConfigurationCollection Configurations { get; }
     }
 
     internal class SwPart : SwDocument3D, ISwPart
     {
+        IXPartConfigurationRepository IXPart.Configurations => (IXPartConfigurationRepository)Configurations;
+
         public IPartDoc Part => Model as IPartDoc;
 
         public IXBodyRepository Bodies { get; }
 
-        private readonly CutListRebuildEventsHandler m_CutListRebuild;
-
-        public event CutListRebuildDelegate CutListRebuild 
-        {
-            add
-            {
-                m_CutListRebuild.Attach(value);
-            }
-            remove
-            {
-                m_CutListRebuild.Detach(value);
-            }
-        }
-
         internal SwPart(IPartDoc part, ISwApplication app, IXLogger logger, bool isCreated)
             : base((IModelDoc2)part, app, logger, isCreated)
         {
-            m_CutListRebuild = new CutListRebuildEventsHandler(this, app);
-
             Bodies = new SwPartBodyCollection(this);
         }
 
@@ -59,8 +46,13 @@ namespace Xarial.XCad.SolidWorks.Documents
         protected override bool IsLightweightMode => false;
         protected override bool IsRapidMode => false;
 
+        ISwPartConfigurationCollection ISwPart.Configurations => (ISwPartConfigurationCollection)Configurations;
+
         public override IXBoundingBox PreCreateBoundingBox()
             => new SwPartBoundingBox(this, OwnerApplication);
+
+        protected override SwConfigurationCollection CreateConfigurations()
+            => new SwPartConfigurationCollection(this, OwnerApplication);
     }
 
     internal class SwPartBodyCollection : SwBodyCollection

@@ -11,6 +11,7 @@ using System.Linq;
 using System.Text;
 using Xarial.XCad.Data;
 using Xarial.XCad.Enums;
+using Xarial.XCad.Features.Delegates;
 using Xarial.XCad.Geometry;
 
 namespace Xarial.XCad.Features

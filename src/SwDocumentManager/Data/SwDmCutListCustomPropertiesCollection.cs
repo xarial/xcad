@@ -23,9 +23,9 @@ namespace Xarial.XCad.SwDocumentManager.Data
 
         private readonly ISwDmCutListItem m_CutList;
         private readonly SwDmDocument3D m_Doc;
-        private readonly SwDmConfiguration m_Conf;
+        private readonly ISwDmPartConfiguration m_Conf;
 
-        internal SwDmCutListCustomPropertiesCollection(ISwDmCutListItem cutList, SwDmDocument3D doc, SwDmConfiguration conf)
+        internal SwDmCutListCustomPropertiesCollection(ISwDmCutListItem cutList, SwDmDocument3D doc, ISwDmPartConfiguration conf)
         {
             m_CutList = cutList;
             m_Doc = doc;
@@ -51,9 +51,9 @@ namespace Xarial.XCad.SwDocumentManager.Data
     {
         private readonly ISwDmCutListItem m_CutList;
         private readonly SwDmDocument3D m_Doc;
-        private readonly SwDmConfiguration m_Conf;
+        private readonly ISwDmConfiguration m_Conf;
 
-        public SwDmCutListCustomProperty(ISwDmCutListItem cutList, SwDmDocument3D doc, SwDmConfiguration conf, string name, bool isCreated) 
+        public SwDmCutListCustomProperty(ISwDmCutListItem cutList, SwDmDocument3D doc, ISwDmConfiguration conf, string name, bool isCreated) 
             : base(name, isCreated)
         {
             m_CutList = cutList;
@@ -77,7 +77,7 @@ namespace Xarial.XCad.SwDocumentManager.Data
                 throw new ConfigurationSpecificCutListPropertiesWriteNotSupportedException();
             }
 
-            m_Conf.Document.IsDirty = true;
+            m_Doc.IsDirty = true;
         }
 
         protected override object ReadValue(out string exp)
@@ -105,7 +105,7 @@ namespace Xarial.XCad.SwDocumentManager.Data
                 throw new ConfigurationSpecificCutListPropertiesWriteNotSupportedException();
             }
 
-            m_Conf.Document.IsDirty = true;
+            m_Doc.IsDirty = true;
         }
 
         internal override void Delete()
@@ -122,7 +122,7 @@ namespace Xarial.XCad.SwDocumentManager.Data
                 throw new ConfigurationSpecificCutListPropertiesWriteNotSupportedException();
             }
 
-            m_Conf.Document.IsDirty = true;
+            m_Doc.IsDirty = true;
         }
     }
 }

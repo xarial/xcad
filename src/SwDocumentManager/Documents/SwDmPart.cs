@@ -17,23 +17,27 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 {
     public interface ISwDmPart : ISwDmDocument3D, IXPart
     {
+        new ISwDmPartConfigurationCollection Configurations { get; }
     }
 
     internal class SwDmPart : SwDmDocument3D, ISwDmPart
     {
-        #region Not Supported
-        
-        public event CutListRebuildDelegate CutListRebuild;
-
-        #endregion
+        private readonly Lazy<SwDmPartConfigurationCollection> m_LazyConfigurations;
 
         public SwDmPart(ISwDmApplication dmApp, ISwDMDocument doc, bool isCreated,
             Action<ISwDmDocument> createHandler, Action<ISwDmDocument> closeHandler, bool? isReadOnly)
             : base(dmApp, doc, isCreated, createHandler, closeHandler, isReadOnly)
         {
+            m_LazyConfigurations = new Lazy<SwDmPartConfigurationCollection>(() => new SwDmPartConfigurationCollection(this));
         }
 
         public IXBodyRepository Bodies => throw new NotImplementedException();
+
+        IXPartConfigurationRepository IXPart.Configurations => m_LazyConfigurations.Value;
+
+        public override ISwDmConfigurationCollection Configurations => ((ISwDmPart)this).Configurations;
+
+        ISwDmPartConfigurationCollection ISwDmPart.Configurations => ((ISwDmPart)this).Configurations;
     }
 
     internal class SwDmVirtualPart : SwDmPart

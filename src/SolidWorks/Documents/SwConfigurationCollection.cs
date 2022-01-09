@@ -283,9 +283,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
             m_Assm = assm;
         }
-
-        IXAssemblyConfiguration IXRepository<IXAssemblyConfiguration>.this[string name] => (this as ISwAssemblyConfigurationCollection)[name];
-
+        
         ISwAssemblyConfiguration ISwAssemblyConfigurationCollection.this[string name] => (ISwAssemblyConfiguration)base[name];
 
         ISwAssemblyConfiguration ISwAssemblyConfigurationCollection.Active 
@@ -314,10 +312,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
 
         protected override ISwConfiguration CreateViewOnlyConfiguration(string name)
-            => new SwLdrUnloadedConfiguration(m_Assm, m_App, name);
-
-        IEnumerator<IXAssemblyConfiguration> IEnumerable<IXAssemblyConfiguration>.GetEnumerator()
-            => new SwAssemblyConfigurationEnumerator(m_App, m_Assm);
+            => new SwLdrAssemblyUnloadedConfiguration(m_Assm, m_App, name);
 
         ISwAssemblyConfiguration ISwAssemblyConfigurationCollection.PreCreate()
             => new SwAssemblyConfiguration(null, m_Assm, m_App, false);
@@ -336,9 +331,75 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
 
         protected override SwAssemblyConfiguration CreateViewOnlyConfiguration(string confName)
-            => new SwLdrUnloadedConfiguration(m_Assm, m_App, confName);
+            => new SwLdrAssemblyUnloadedConfiguration(m_Assm, m_App, confName);
 
         protected override SwAssemblyConfiguration PreCreateNewConfiguration()
             => new SwAssemblyConfiguration(null, m_Assm, m_App, false);
+    }
+
+    public interface ISwPartConfigurationCollection : ISwConfigurationCollection, IXPartConfigurationRepository
+    {
+        new ISwPartConfiguration this[string name] { get; }
+        new ISwPartConfiguration PreCreate();
+        new ISwPartConfiguration Active { get; set; }
+    }
+
+    internal class SwPartConfigurationCollection : SwConfigurationCollection, ISwPartConfigurationCollection
+    {
+        private readonly SwPart m_Part;
+
+        internal SwPartConfigurationCollection(SwPart part, ISwApplication app) : base(part, app)
+        {
+            m_Part = part;
+        }
+        
+        ISwPartConfiguration ISwPartConfigurationCollection.this[string name] => (ISwPartConfiguration)base[name];
+
+        ISwPartConfiguration ISwPartConfigurationCollection.Active
+        {
+            get => (ISwPartConfiguration)base.Active;
+            set => base.Active = value;
+        }
+
+        IXPartConfiguration IXPartConfigurationRepository.Active
+        {
+            get => (this as ISwPartConfigurationCollection).Active;
+            set => this.Active = (ISwPartConfiguration)value;
+        }
+
+        public void AddRange(IEnumerable<IXPartConfiguration> ents)
+            => base.AddRange(ents);
+
+        public void RemoveRange(IEnumerable<IXPartConfiguration> ents)
+            => base.RemoveRange(ents);
+
+        public bool TryGet(string name, out IXPartConfiguration ent)
+        {
+            var res = base.TryGet(name, out IXConfiguration conf);
+            ent = (IXPartConfiguration)conf;
+            return res;
+        }
+
+        ISwPartConfiguration ISwPartConfigurationCollection.PreCreate()
+            => new SwPartConfiguration(null, m_Part, m_App, false);
+
+        IXPartConfiguration IXPartConfigurationRepository.PreCreate()
+            => (this as ISwPartConfigurationCollection).PreCreate();
+    }
+
+    internal class SwPartConfigurationEnumerator : SwConfigurationEnumeratorBase<SwPartConfiguration>
+    {
+        private readonly SwPart m_Part;
+
+        public SwPartConfigurationEnumerator(ISwApplication app, SwPart part) : base(app, part)
+        {
+            m_Part = part;
+        }
+
+        protected override SwPartConfiguration CreateViewOnlyConfiguration(string confName)
+            => new SwLdrPartUnloadedConfiguration(m_Part, m_App, confName);
+
+        protected override SwPartConfiguration PreCreateNewConfiguration()
+            => new SwPartConfiguration(null, m_Part, m_App, false);
     }
 }

@@ -54,7 +54,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("UnloadedConfPart.SLDPRT"))
             {
-                var part = (IXPart)m_App.Documents.Active;
+                var part = (ISwPart)m_App.Documents.Active;
                 
                 var prp1 = part.Configurations["Default"].Properties.PreCreate();
                 prp1.Name = "Test1";
@@ -223,14 +223,14 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("CutListConfs1.SLDPRT")) 
             {
-                var part = (ISwDocument3D)m_App.Documents.Active;
+                var part = (ISwPart)m_App.Documents.Active;
 
-                conf1Prps = part.Configurations.First(c => c.Name.StartsWith("Conf1")).CutLists
+                conf1Prps = ((IXPartConfiguration)part.Configurations.First(c => c.Name.StartsWith("Conf1"))).CutLists
                     .First(c => c.Name == "Cut-List-Item1").Properties
                     .ToDictionary(p => p.Name, p => p.Value);
 
                 Assert.Throws<ConfigurationSpecificCutListNotSupportedException>(
-                    () => { var cl = part.Configurations.First(c => c.Name.StartsWith("Default")).CutLists.ToArray(); });
+                    () => { var cl = ((IXPartConfiguration)part.Configurations.First(c => c.Name.StartsWith("Default"))).CutLists.ToArray(); });
             }
 
             Assert.AreEqual(4, conf1Prps.Count);
@@ -249,11 +249,11 @@ namespace SolidWorks.Tests.Integration
             {
                 var assm = (ISwAssembly)m_App.Documents.Active;
 
-                conf1Prps = assm.Configurations.Active.Components["CutListConfs1-2"].ReferencedConfiguration.CutLists
+                conf1Prps = ((ISwPartComponent)assm.Configurations.Active.Components["CutListConfs1-2"]).ReferencedConfiguration.CutLists
                     .First(c => c.Name == "Cut-List-Item1").Properties
                     .ToDictionary(p => p.Name, p => p.Value);
 
-                defPrps = assm.Configurations.Active.Components["CutListConfs1-1"].ReferencedConfiguration.CutLists
+                defPrps = ((ISwPartComponent)assm.Configurations.Active.Components["CutListConfs1-1"]).ReferencedConfiguration.CutLists
                     .First(c => c.Name == "Cut-List-Item1").Properties
                     .ToDictionary(p => p.Name, p => p.Value);
             }
@@ -308,17 +308,17 @@ namespace SolidWorks.Tests.Integration
             {
                 var assm = (ISwAssembly)m_App.Documents.Active;
 
-                var prp1 = assm.Configurations.Active.Components["CutListConfs1-2"].ReferencedConfiguration.CutLists
+                var prp1 = ((ISwPartComponent)assm.Configurations.Active.Components["CutListConfs1-2"]).ReferencedConfiguration.CutLists
                     .First(c => c.Name == "Cut-List-Item1").Properties.GetOrPreCreate("Prp3");
                 prp1.Value = "NewValueConf1";
                 prp1.Commit();
 
-                var prp2 = assm.Configurations.Active.Components["CutListConfs1-1"].ReferencedConfiguration.CutLists
+                var prp2 = ((ISwPartComponent)assm.Configurations.Active.Components["CutListConfs1-1"]).ReferencedConfiguration.CutLists
                     .First(c => c.Name == "Cut-List-Item1").Properties.GetOrPreCreate("Prp1");
                 Assert.Throws<ConfigurationSpecificCutListPropertiesWriteNotSupportedException>(
                     () => { prp2.Value = "NewValue1Def1"; });
 
-                var prp3 = assm.Configurations.Active.Components["CutListConfs1-1"].ReferencedConfiguration.CutLists
+                var prp3 = ((ISwPartComponent)assm.Configurations.Active.Components["CutListConfs1-1"]).ReferencedConfiguration.CutLists
                     .First(c => c.Name == "Cut-List-Item1").Properties.GetOrPreCreate("Prp4");
                 prp3.Value = "NewValue1Def1";
                 Assert.Throws<ConfigurationSpecificCutListPropertiesWriteNotSupportedException>(
@@ -421,7 +421,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("MultiConfNotUpdatePartPrps.SLDPRT"))
             {
-                var part = (IXPart)m_App.Documents.Active;
+                var part = (ISwPart)m_App.Documents.Active;
 
                 var x = m_App.Sw.IActiveDoc2.Extension.CustomPropertyManager["Conf1"].Get6("Prp1", true, out string val, out string resVal, out _, out _);
 

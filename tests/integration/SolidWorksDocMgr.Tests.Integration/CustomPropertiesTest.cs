@@ -11,6 +11,7 @@ using Xarial.XCad.Documents;
 using Xarial.XCad.Exceptions;
 using Xarial.XCad.SwDocumentManager.Documents;
 using Xarial.XCad.SwDocumentManager.Exceptions;
+using Xarial.XCad.SwDocumentManager.Features;
 
 namespace SolidWorksDocMgr.Tests.Integration
 {
@@ -56,7 +57,7 @@ namespace SolidWorksDocMgr.Tests.Integration
 
             using (var doc = OpenDataDocument("UnloadedConfPart.SLDPRT"))
             {
-                var part = (IXPart)m_App.Documents.Active;
+                var part = (ISwDmPart)m_App.Documents.Active;
 
                 var prp1 = part.Configurations["Default"].Properties.PreCreate();
                 prp1.Name = "Test1";
@@ -210,7 +211,7 @@ namespace SolidWorksDocMgr.Tests.Integration
 
             using (var doc = OpenDataDocument("CutListConfs1.SLDPRT"))
             {
-                var part = (ISwDmDocument3D)m_App.Documents.Active;
+                var part = (ISwDmPart)m_App.Documents.Active;
 
                 conf1Prps = part.Configurations["Conf1<As Machined>"].CutLists
                     .First(c => c.Name == "Cut-List-Item1").Properties
@@ -251,8 +252,8 @@ namespace SolidWorksDocMgr.Tests.Integration
                 prp2.Value = "NewValueDefault";
                 Assert.Throws<ConfigurationSpecificCutListPropertiesWriteNotSupportedException>(() => prp2.Commit());
 
-                conf1Val = part.Configurations["Conf1<As Machined>"].CutLists
-                    .First(c => c.Name == "Cut-List-Item1").CutListItem.GetCustomPropertyValue("Prp3", out _, out _);
+                conf1Val = ((ISwDmCutListItem)part.Configurations["Conf1<As Machined>"].CutLists
+                    .First(c => c.Name == "Cut-List-Item1")).CutListItem.GetCustomPropertyValue("Prp3", out _, out _);
             }
 
             Assert.AreEqual("NewValueConf1", conf1Val);
@@ -313,7 +314,7 @@ namespace SolidWorksDocMgr.Tests.Integration
 
             using (var doc = OpenDataDocument("MultiConfNotUpdatePartPrps.SLDPRT"))
             {
-                var part = (IXPart)m_App.Documents.Active;
+                var part = (ISwDmPart)m_App.Documents.Active;
 
                 val1Def = part.Configurations["Default"].Properties["Prp1"].Value;
                 val2Def = part.Configurations["Default"].Properties["Prp2"].Value;

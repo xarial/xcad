@@ -8,12 +8,13 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Xarial.XCad.Documents;
 
-namespace Xarial.XCad.Documents.Delegates
+namespace Xarial.XCad.Features.Delegates
 {
     /// <summary>
-    /// Delegate for <see cref="IXPart.CutListRebuild"/> event
+    /// Delegate for <see cref="IXCutListItemRepository.CutListRebuild"/> event
     /// </summary>
-    /// <param name="part">Part where cut-list is rebuilt</param>
-    public delegate void CutListRebuildDelegate(IXPart part);
+    /// <param name="cutList">Cut-list being rebuilt</param>
+    public delegate void CutListRebuildDelegate(IXCutListItemRepository cutList);
 }

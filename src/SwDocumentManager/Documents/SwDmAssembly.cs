@@ -37,9 +37,11 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             m_LazyConfigurations = new Lazy<SwDmAssemblyConfigurationCollection>(() => new SwDmAssemblyConfigurationCollection(this));
         }
 
-        IXAssemblyConfigurationRepository IXAssembly.Configurations => (this as ISwDmAssembly).Configurations;
+        IXAssemblyConfigurationRepository IXAssembly.Configurations => ((ISwDmAssembly)this).Configurations;
 
         ISwDmAssemblyConfigurationCollection ISwDmAssembly.Configurations => m_LazyConfigurations.Value;
+
+        public override ISwDmConfigurationCollection Configurations => ((ISwDmAssembly)this).Configurations;
     }
 
     internal class SwDmVirtualAssembly : SwDmAssembly

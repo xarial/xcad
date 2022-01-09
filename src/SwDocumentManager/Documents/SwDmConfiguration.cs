@@ -30,11 +30,10 @@ namespace Xarial.XCad.SwDocumentManager.Documents
     {
         ISwDMConfiguration Configuration { get; }
         new ISwDmCustomPropertiesCollection Properties { get; }
-        new IEnumerable<ISwDmCutListItem> CutLists { get; }
     }
 
     [DebuggerDisplay("{" + nameof(Name) + "}")]
-    internal class SwDmConfiguration : SwDmObject, ISwDmConfiguration
+    internal abstract class SwDmConfiguration : SwDmObject, ISwDmConfiguration
     {
         #region Not Supported
         public IXDimensionRepository Dimensions => throw new NotSupportedException();
@@ -43,8 +42,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         internal const string QTY_PROPERTY = "UNIT_OF_MEASURE";
 
         IXPropertyRepository IPropertiesOwner.Properties => Properties;
-        IEnumerable<IXCutListItem> IXConfiguration.CutLists => CutLists;
-
+        
         private readonly Lazy<ISwDmCustomPropertiesCollection> m_Properties;
 
         public virtual ISwDMConfiguration Configuration { get; }
@@ -67,40 +65,6 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             {
                 ((ISwDMConfiguration7)Configuration).Name2 = value;
                 Document.IsDirty = true;
-            }
-        }
-
-        public IEnumerable<ISwDmCutListItem> CutLists
-        {
-            get
-            {
-                object[] cutListItems = null;
-
-                if (Document.SwDmApp.IsVersionNewerOrEqual(SwDmVersion_e.Sw2019)
-                    && Document.Version.Major >= SwDmVersion_e.Sw2019)
-                {
-                    cutListItems = ((ISwDMConfiguration16)Configuration).GetCutListItems() as object[];
-                }
-                else
-                {
-                    if (Configuration == Document.Configurations.Active.Configuration)
-                    {
-                        cutListItems = ((ISwDMDocument13)Document.Document).GetCutListItems2() as object[];
-                    }
-                    else
-                    {
-                        throw new ConfigurationCutListIsNotSupported();
-                    }
-                }
-
-                if (cutListItems != null)
-                {
-                    foreach (var cutList in cutListItems.Cast<ISwDMCutListItem2>()
-                        .Select(c => new SwDmCutListItem(c, Document, this))) 
-                    {
-                        yield return cutList;
-                    }
-                }
             }
         }
 
@@ -288,5 +252,19 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         }
 
         public IXComponentRepository Components { get; }
+    }
+
+    public interface ISwDmPartConfiguration : ISwDmConfiguration, IXPartConfiguration
+    {
+    }
+
+    internal class SwDmPartConfiguration : SwDmConfiguration, ISwDmPartConfiguration
+    {
+        internal SwDmPartConfiguration(ISwDMConfiguration conf, SwDmPart part) : base(conf, part)
+        {
+            CutLists = new SwDmCutListItemCollection(this, part);
+        }
+
+        public IXCutListItemRepository CutLists { get; }
     }
 }

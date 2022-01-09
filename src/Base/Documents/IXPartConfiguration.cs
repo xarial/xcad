@@ -5,19 +5,19 @@
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
-using Xarial.XCad.Base;
+using Xarial.XCad.Features;
+using System.Collections.Generic;
 
 namespace Xarial.XCad.Documents
 {
     /// <summary>
-    /// Represents the collection of configurations in <see cref="IXAssembly"/>
+    /// Represents the configuration of <see cref="IXPart"/>
     /// </summary>
-    public interface IXAssemblyConfigurationRepository : IXConfigurationRepository
+    public interface IXPartConfiguration : IXConfiguration
     {
-        /// <inheritdoc/>
-        new IXAssemblyConfiguration Active { get; set; }
-
-        /// <inheritdoc/>
-        new IXAssemblyConfiguration PreCreate();
+        /// <summary>
+        /// Cut-list items in this configuration (if available)
+        /// </summary>
+        IXCutListItemRepository CutLists { get; }
     }
 }

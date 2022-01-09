@@ -36,7 +36,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         internal SwDocument3D(IModelDoc2 model, ISwApplication app, IXLogger logger, bool isCreated) : base(model, app, logger, isCreated)
         {
             m_MathUtils = app.Sw.IGetMathUtility();
-            m_Configurations = new Lazy<ISwConfigurationCollection>(() => new SwConfigurationCollection(this, app));
+            m_Configurations = new Lazy<ISwConfigurationCollection>(CreateConfigurations);
             m_ModelViews = new Lazy<ISwModelViewsCollection>(() => new SwModelViewsCollection(this, app));
         }
 
@@ -58,6 +58,8 @@ namespace Xarial.XCad.SolidWorks.Documents
                 }
             }
         }
+
+        protected abstract SwConfigurationCollection CreateConfigurations();
 
         TSelObject IXObjectContainer.ConvertObject<TSelObject>(TSelObject obj) => ConvertObjectBoxed(obj) as TSelObject;
 

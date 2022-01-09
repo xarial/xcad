@@ -15,10 +15,8 @@ namespace Xarial.XCad.Documents
     /// </summary>
     public interface IXPart : IXDocument3D
     {
-        /// <summary>
-        /// Fired when cut list is regenerated
-        /// </summary>
-        event CutListRebuildDelegate CutListRebuild;
+        /// <inheritdoc/>
+        new IXPartConfigurationRepository Configurations { get; }
 
         /// <summary>
         /// Bodies in this part document

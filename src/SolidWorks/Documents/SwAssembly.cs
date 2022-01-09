@@ -66,6 +66,9 @@ namespace Xarial.XCad.SolidWorks.Documents
                 return new SwAssemblyLegacyMassProperty(this, m_MathUtils);
             }
         }
+
+        protected override SwConfigurationCollection CreateConfigurations()
+            => new SwAssemblyConfigurationCollection(this, OwnerApplication);
     }
 
     internal class SwAssemblyComponentCollection : SwComponentCollection

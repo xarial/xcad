@@ -84,43 +84,6 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public bool IsCommitted => m_Creator.IsCreated;
 
-        public virtual IEnumerable<IXCutListItem> CutLists
-        {
-            get
-            {
-                if (m_Doc.DocumentType == swDocumentTypes_e.swDocPART)
-                {
-                    var part = m_Doc.Model as IPartDoc;
-
-                    IEnumerable<IBody2> IterateBodies() =>
-                        (part.GetBodies2((int)swBodyType_e.swSolidBody, false) as object[] ?? new object[0]).Cast<IBody2>();
-
-                    if (part.IsWeldment()
-                        || IterateBodies().Any(b => b.IsSheetMetal()))
-                    {
-                        var activeConf = m_Doc.Configurations.Active;
-
-                        var checkedConfigsConflict = false;
-
-                        foreach (var cutList in ((SwFeatureManager)m_Doc.Features).IterateCutLists(m_Doc, activeConf))
-                        {
-                            if (!checkedConfigsConflict)
-                            {
-                                if (activeConf.Name != this.Configuration.Name)
-                                {
-                                    throw new ConfigurationSpecificCutListNotSupportedException();
-                                }
-
-                                checkedConfigsConflict = true;
-                            }
-
-                            yield return cutList;
-                        }
-                    }
-                }
-            }
-        }
-
         private readonly ElementCreator<IConfiguration> m_Creator;
 
         internal SwConfiguration(IConfiguration conf, SwDocument3D doc, ISwApplication app, bool created) : base(conf, doc, app)
@@ -293,7 +256,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
     }
 
-    internal class SwComponentConfiguration : SwConfiguration
+    internal abstract class SwComponentConfiguration : SwConfiguration
     {
         private static IConfiguration GetConfiguration(SwComponent comp)
         {
@@ -309,7 +272,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        private readonly SwComponent m_Comp;
+        protected readonly SwComponent m_Comp;
 
         internal SwComponentConfiguration(SwComponent comp, ISwApplication app)
             : this(GetConfiguration(comp), (SwDocument3D)comp.ReferencedDocument, app, comp.Component.ReferencedConfiguration)
@@ -329,29 +292,25 @@ namespace Xarial.XCad.SolidWorks.Documents
         protected override ISwDimensionsCollection CreateDimensions()
             => new SwFeatureManagerDimensionsCollection(
                 new SwComponentFeatureManager(m_Comp, m_Comp.RootAssembly, OwnerApplication, new Context(this)), new Context(this));
+    }
 
-        public override IEnumerable<IXCutListItem> CutLists
+    internal class SwPartComponentConfiguration : SwComponentConfiguration, IXPartConfiguration
+    {
+        public SwPartComponentConfiguration(SwPartComponent comp, ISwApplication app) : base(comp, app)
         {
-            get
-            {
-                var refConf = (ISwConfiguration)m_Comp.ReferencedConfiguration;
-                var refDoc = m_Comp.ReferencedDocument;
-
-                if (refDoc is ISwPart)
-                {
-                    IEnumerable<IBody2> IterateBodies() =>
-                        (m_Comp.Component.GetBodies3((int)swBodyType_e.swSolidBody, out _) as object[] ?? new object[0]).Cast<IBody2>();
-
-                    if ((refDoc.IsCommitted && (refDoc.Model as IPartDoc).IsWeldment()) || IterateBodies().Any(b => b.IsSheetMetal()))
-                    {
-                        foreach (var cutList in ((SwFeatureManager)m_Comp.Features).IterateCutLists(refDoc, refConf))
-                        {
-                            yield return cutList;
-                        }
-                    }
-                }
-            }
+            CutLists = new SwPartComponentCutListItemCollection(comp);
         }
+
+        public IXCutListItemRepository CutLists { get; }
+    }
+
+    internal class SwAssemblyComponentConfiguration : SwComponentConfiguration, IXAssemblyConfiguration
+    {
+        public SwAssemblyComponentConfiguration(SwComponent comp, ISwApplication app) : base(comp, app)
+        {
+        }
+
+        public IXComponentRepository Components => m_Comp.Children;
     }
 
     internal class SwViewOnlyUnloadedConfiguration : SwConfiguration
@@ -371,12 +330,11 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
 
         public override void Commit(CancellationToken cancellationToken) => throw new InactiveLdrConfigurationNotSupportedException();
-        public override IEnumerable<IXCutListItem> CutLists => throw new InactiveLdrConfigurationNotSupportedException();
         public override object Dispatch => throw new InactiveLdrConfigurationNotSupportedException();
         public override ISwCustomPropertiesCollection Properties => throw new InactiveLdrConfigurationNotSupportedException();
     }
 
-    internal class SwLdrUnloadedConfiguration : SwAssemblyConfiguration
+    internal class SwLdrAssemblyUnloadedConfiguration : SwAssemblyConfiguration
     {
         public override string Name 
         {
@@ -386,14 +344,34 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         private string m_LdrConfName;
 
-        internal SwLdrUnloadedConfiguration(SwAssembly assm, ISwApplication app, string confName) 
+        internal SwLdrAssemblyUnloadedConfiguration(SwAssembly assm, ISwApplication app, string confName) 
             : base(null, assm, app, false)
         {
             m_LdrConfName = confName;
         }
 
         public override void Commit(CancellationToken cancellationToken) => throw new InactiveLdrConfigurationNotSupportedException();
-        public override IEnumerable<IXCutListItem> CutLists => throw new InactiveLdrConfigurationNotSupportedException();
+        public override object Dispatch => throw new InactiveLdrConfigurationNotSupportedException();
+        public override ISwCustomPropertiesCollection Properties => throw new InactiveLdrConfigurationNotSupportedException();
+    }
+
+    internal class SwLdrPartUnloadedConfiguration : SwPartConfiguration
+    {
+        public override string Name
+        {
+            get => m_LdrConfName;
+            set => throw new NotSupportedException("Name of inactive LDR configuration cannot be changed");
+        }
+
+        private string m_LdrConfName;
+
+        internal SwLdrPartUnloadedConfiguration(SwPart part, ISwApplication app, string confName)
+            : base(null, part, app, false)
+        {
+            m_LdrConfName = confName;
+        }
+
+        public override void Commit(CancellationToken cancellationToken) => throw new InactiveLdrConfigurationNotSupportedException();
         public override object Dispatch => throw new InactiveLdrConfigurationNotSupportedException();
         public override ISwCustomPropertiesCollection Properties => throw new InactiveLdrConfigurationNotSupportedException();
     }

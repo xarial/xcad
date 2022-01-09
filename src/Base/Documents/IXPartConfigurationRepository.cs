@@ -10,14 +10,14 @@ using Xarial.XCad.Base;
 namespace Xarial.XCad.Documents
 {
     /// <summary>
-    /// Represents the collection of configurations in <see cref="IXAssembly"/>
+    /// Represents the collection of configurations in <see cref="IXPart"/>
     /// </summary>
-    public interface IXAssemblyConfigurationRepository : IXConfigurationRepository
+    public interface IXPartConfigurationRepository : IXConfigurationRepository
     {
         /// <inheritdoc/>
-        new IXAssemblyConfiguration Active { get; set; }
+        new IXPartConfiguration Active { get; set; }
 
         /// <inheritdoc/>
-        new IXAssemblyConfiguration PreCreate();
+        new IXPartConfiguration PreCreate();
     }
 }
