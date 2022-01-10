@@ -6,6 +6,7 @@
 //*********************************************************************
 
 using SolidWorks.Interop.sldworks;
+using SolidWorks.Interop.swconst;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -19,6 +20,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 {
     public interface ISwSheetCollection : IXSheetRepository, IDisposable 
     {
+        new ISwSheet Active { get; set; }
     }
 
     internal class SwSheetCollection : ISwSheetCollection
@@ -34,6 +36,8 @@ namespace Xarial.XCad.SolidWorks.Documents
                 m_SheetActivatedEventsHandler.Detach(value);
             }
         }
+
+        IXSheet IXSheetRepository.Active { get => Active; set => Active = (ISwSheet)value; }
 
         private readonly ISwApplication m_App;
         private readonly SwDrawing m_Drawing;
@@ -67,36 +71,34 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public int Count => (m_Drawing.Drawing.GetSheetNames() as string[]).Length;
 
-        public IXSheet Active
+        public ISwSheet Active
         {
             get 
             {
                 if (m_Drawing.IsCommitted)
                 {
-                    return m_Drawing.CreateObjectFromDispatch<SwSheet>((ISheet)m_Drawing.Drawing.GetCurrentSheet());
+                    return m_Drawing.CreateObjectFromDispatch<SwSheet>(m_Drawing.Drawing.IGetCurrentSheet());
                 }
                 else 
                 {
                     return new UncommittedPreviewOnlySheet(m_Drawing, m_App);
                 }
             }
+            set 
+            {
+                var currentSheet = m_Drawing.Drawing.IGetCurrentSheet();
+                
+                if (m_App.Sw.IsSame(currentSheet, value.Sheet) != (int)swObjectEquality.swObjectSame)
+                {
+                    if (!m_Drawing.Drawing.ActivateSheet(value.Name))
+                    {
+                        throw new Exception($"Failed to activate '{value.Name}'");
+                    }
+                }
+            }
         }
         
-        public void AddRange(IEnumerable<IXConfiguration> ents)
-        {
-            throw new NotImplementedException();
-        }
-
         public void AddRange(IEnumerable<IXSheet> ents)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void Dispose()
-        {
-        }
-
-        public void RemoveRange(IEnumerable<IXConfiguration> ents)
         {
             throw new NotImplementedException();
         }
@@ -109,6 +111,10 @@ namespace Xarial.XCad.SolidWorks.Documents
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
         public IEnumerator<IXSheet> GetEnumerator() => new SwSheetEnumerator(m_Drawing);
+
+        public void Dispose()
+        {
+        }
     }
 
     internal class SwSheetEnumerator : IEnumerator<IXSheet>

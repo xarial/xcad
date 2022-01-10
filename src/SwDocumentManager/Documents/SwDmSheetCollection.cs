@@ -52,6 +52,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                 var activeSheetName = (m_Drw.Document as ISwDMDocument10).GetActiveSheetName();
                 return this[activeSheetName];
             }
+            set => throw new NotSupportedException();
         }
 
         public int Count => (m_Drw.Document as ISwDMDocument10).GetSheetCount();

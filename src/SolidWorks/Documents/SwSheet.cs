@@ -86,7 +86,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
     }
 
-    internal class UncommittedPreviewOnlySheet : ISwSelObject, IXSheet 
+    internal class UncommittedPreviewOnlySheet : ISwSelObject, ISwSheet 
     {
         #region Not Supported
         
@@ -99,6 +99,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         public void Serialize(Stream stream)
             => throw new UnloadedDocumentPreviewOnlySheetException();
         public Scale Scale { get => throw new UnloadedDocumentPreviewOnlySheetException(); set => throw new UnloadedDocumentPreviewOnlySheetException(); }
+        public ISheet Sheet => throw new UnloadedDocumentPreviewOnlySheetException();
 
         public object Dispatch => throw new UnloadedDocumentPreviewOnlySheetException();
         public bool IsSelected => throw new UnloadedDocumentPreviewOnlySheetException();
