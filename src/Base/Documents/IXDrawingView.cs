@@ -55,6 +55,17 @@ namespace Xarial.XCad.Documents
         /// </summary>
         /// <remarks>Padding represents difference between <see cref="Boundary"/> and geometry</remarks>
         Thickness Padding { get; }
+
+        /// <summary>
+        /// Get the base drawing view
+        /// </summary>
+        /// <remarks>For the root views, base view will be null</remarks>
+        IXDrawingView BaseView { get; }
+
+        /// <summary>
+        /// Gets all views depending on this view
+        /// </summary>
+        IEnumerable<IXDrawingView> DependentViews { get; }
     }
 
     /// <summary>
@@ -66,5 +77,33 @@ namespace Xarial.XCad.Documents
         /// Model view this drawing view is based on
         /// </summary>
         IXModelView SourceModelView { get; set; }
+    }
+
+    /// <summary>
+    /// View projected from <see cref="IXDrawingView"/>
+    /// </summary>
+    public interface IXProjectedDrawingView : IXDrawingView
+    {
+    }
+
+    /// <summary>
+    /// Auxiliary drawing view
+    /// </summary>
+    public interface IXAuxiliaryDrawingView : IXDrawingView
+    {
+    }
+
+    /// <summary>
+    /// Section drawing view
+    /// </summary>
+    public interface IXSectionDrawingView : IXDrawingView
+    {
+    }
+
+    /// <summary>
+    /// Detailed drawing view
+    /// </summary>
+    public interface IXDetailedDrawingView : IXDrawingView
+    {
     }
 }

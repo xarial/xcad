@@ -6,6 +6,7 @@
 //*********************************************************************
 
 using SolidWorks.Interop.sldworks;
+using SolidWorks.Interop.swconst;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -15,6 +16,7 @@ using System.Text;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Delegates;
 using Xarial.XCad.SolidWorks.Documents.EventHandlers;
+using Xarial.XCad.SolidWorks.Utils;
 
 namespace Xarial.XCad.SolidWorks.Documents
 {
@@ -59,9 +61,12 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public IXSelObject this[string name] => throw new NotSupportedException();
 
+        private readonly ISwApplication m_App;
+
         internal SwSelectionCollection(SwDocument doc, ISwApplication app) 
         {
             m_Doc = doc;
+            m_App = app;
 
             m_NewSelectionEventHandler = new NewSelectionEventHandler(doc, app);
             m_ClearSelectionEventHandler = new ClearSelectionEventHandler(doc, app);
@@ -87,19 +92,39 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
 
         public void Clear()
-        {
-            Model.ClearSelection2(true);
-        }
+            => Model.ClearSelection2(true);
 
         public IEnumerator<IXSelObject> GetEnumerator()
-        {
-            return new SwSelObjectEnumerator(m_Doc, SelMgr);
-        }
+            => new SwSelObjectEnumerator(m_Doc, SelMgr);
 
         public void RemoveRange(IEnumerable<IXSelObject> ents)
         {
-            //TODO: implement
-            throw new NotImplementedException();
+            const int RESULT_TRUE = 1;
+
+            var selMgr = Model.ISelectionManager;
+
+            var entsToDeSelect = ents.Cast<ISwSelObject>().ToList();
+
+            for (int i = selMgr.GetSelectedObjectCount2(-1); i >= 1; i--)
+            {
+                var entToDeSelect = entsToDeSelect.FirstOrDefault(
+                    e => m_App.Sw.IsSame(selMgr.GetSelectedObject6(i, -1), e.Dispatch) == (int)swObjectEquality.swObjectSame);
+                
+                if (entToDeSelect != null)
+                {
+                    entsToDeSelect.Remove(entToDeSelect);
+
+                    if (selMgr.DeSelect2(i, -1) != RESULT_TRUE) 
+                    {
+                        throw new Exception($"Failed to deselect entity at index {i}");
+                    }
+                }
+            }
+
+            if (entsToDeSelect.Any()) 
+            {
+                throw new Exception($"Failed to deselect {entsToDeSelect.Count} entities as hose were not selected");
+            }
         }
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();

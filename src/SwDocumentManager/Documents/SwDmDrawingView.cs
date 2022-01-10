@@ -31,19 +31,15 @@ namespace Xarial.XCad.SwDocumentManager.Documents
     internal class SwDmDrawingView : SwDmSelObject, ISwDmDrawingView
     {
         #region Not Supported
-
         public Point Location { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
-        public void Commit(CancellationToken cancellationToken)
-            => throw new NotSupportedException();
-        public void Select(bool append)
-            => throw new NotSupportedException();
         TSelObject IXObjectContainer.ConvertObject<TSelObject>(TSelObject obj)
             => throw new NotSupportedException();
-        public bool IsSelected => throw new NotSupportedException();
         public Scale Scale { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
         public Rect2D Boundary => throw new NotSupportedException();
         public Thickness Padding => throw new NotSupportedException();
         public IXDimensionRepository Dimensions => throw new NotSupportedException();
+        public IXDrawingView BaseView => throw new NotSupportedException();
+        public IEnumerable<IXDrawingView> DependentViews => throw new NotSupportedException();
         #endregion
 
         public override SelectType_e Type => SelectType_e.DrawingViews;
