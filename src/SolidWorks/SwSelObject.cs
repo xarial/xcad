@@ -6,6 +6,7 @@
 //*********************************************************************
 
 using SolidWorks.Interop.sldworks;
+using SolidWorks.Interop.swconst;
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -29,9 +30,11 @@ namespace Xarial.XCad.SolidWorks
         {
             get 
             {
-                for (int i = 1; i < OwnerModelDoc.ISelectionManager.GetSelectedObjectCount2(-1) + 1; i++)
+                var selMgr = OwnerModelDoc.ISelectionManager;
+
+                for (int i = 1; i < selMgr.GetSelectedObjectCount2(-1) + 1; i++)
                 {
-                    if (OwnerModelDoc.ISelectionManager.GetSelectedObject6(i, -1) == Dispatch) 
+                    if (OwnerApplication.Sw.IsSame(selMgr.GetSelectedObject6(i, -1), Dispatch) == (int)swObjectEquality.swObjectSame)
                     {
                         return true;
                     }

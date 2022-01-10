@@ -390,6 +390,78 @@ namespace SolidWorks.Tests.Integration
             Assert.That(b6.Width / s3, Is.EqualTo(0.042765306435618093).Within(0.0001).Percent);
             Assert.That(b6.Height / s3, Is.EqualTo(0.042765306435618093).Within(0.0001).Percent);
         }
+
+        [Test]
+        public void ViewTypesTest()
+        {
+            Type t1;
+            Type t2;
+            Type t3;
+            Type t4;
+            Type t5;
+            Type t6;
+            Type t7;
+            Type t8;
+            Type t9;
+            Type t10;
+            Type t11;
+
+            using (var doc = OpenDataDocument("Drawing3\\Drawing3.SLDDRW"))
+            {
+                var sheet = (m_App.Documents.Active as ISwDrawing).Sheets.First();
+
+                t1 = sheet.DrawingViews["Drawing View1"].GetType();
+                t2 = sheet.DrawingViews["Drawing View2"].GetType();
+                t3 = sheet.DrawingViews["Drawing View3"].GetType();
+                t4 = sheet.DrawingViews["Drawing View4"].GetType();
+                t5 = sheet.DrawingViews["Drawing View5"].GetType();
+                t6 = sheet.DrawingViews["Drawing View6"].GetType();
+                t7 = sheet.DrawingViews["Drawing View7"].GetType();
+                t8 = sheet.DrawingViews["Drawing View8"].GetType();
+                t9 = sheet.DrawingViews["Section View B-B"].GetType();
+                t10 = sheet.DrawingViews["Removed Section1"].GetType();
+                t11 = sheet.DrawingViews["Detail View C (4 : 1)"].GetType();
+            }
+
+            Assert.That(typeof(ISwModelBasedDrawingView).IsAssignableFrom(t1));
+            Assert.That(typeof(ISwProjectedDrawingView).IsAssignableFrom(t2));
+            Assert.That(typeof(ISwProjectedDrawingView).IsAssignableFrom(t3));
+            Assert.That(typeof(ISwModelBasedDrawingView).IsAssignableFrom(t4));
+            Assert.That(typeof(ISwProjectedDrawingView).IsAssignableFrom(t5));
+            Assert.That(typeof(ISwProjectedDrawingView).IsAssignableFrom(t6));
+            Assert.That(typeof(ISwModelBasedDrawingView).IsAssignableFrom(t7));
+            Assert.That(typeof(ISwAuxiliaryDrawingView).IsAssignableFrom(t8));
+            Assert.That(typeof(ISwSectionDrawingView).IsAssignableFrom(t9));
+            Assert.That(typeof(ISwSectionDrawingView).IsAssignableFrom(t10));
+            Assert.That(typeof(ISwDetailDrawingView).IsAssignableFrom(t11));
+        }
+
+        [Test]
+        public void ViewDependencyTypesTest()
+        {
+            string[] d1;
+            string[] d2;
+            string[] d3;
+            string b1;
+            string b2;
+
+            using (var doc = OpenDataDocument("Drawing3\\Drawing3.SLDDRW"))
+            {
+                var sheet = (m_App.Documents.Active as ISwDrawing).Sheets.First();
+
+                d1 = sheet.DrawingViews["Drawing View1"].DependentViews.Select(v => v.Name).ToArray();
+                d2 = sheet.DrawingViews["Drawing View4"].DependentViews.Select(v => v.Name).ToArray();
+                d3 = sheet.DrawingViews["Drawing View3"].DependentViews.Select(v => v.Name).ToArray();
+                b1 = sheet.DrawingViews["Drawing View1"].BaseView?.Name;
+                b2 = sheet.DrawingViews["Drawing View2"].BaseView?.Name;
+            }
+
+            CollectionAssert.AreEquivalent(new string[] { "Drawing View2", "Drawing View3", "Detail View C (4 : 1)" }, d1);
+            CollectionAssert.AreEquivalent(new string[] { "Drawing View5", "Drawing View6" }, d2);
+            CollectionAssert.AreEquivalent(new string[] { "Section View B-B" }, d3);
+            Assert.IsNull(b1);
+            Assert.AreEqual("Drawing View1", b2);
+        }
     }
 }
 

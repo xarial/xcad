@@ -233,8 +233,22 @@ namespace Xarial.XCad.SolidWorks
                     return new SwSheet(sheet, (SwDrawing)doc, app);
 
                 case IView view:
-                    return new SwDrawingView(view, (SwDrawing)doc);
-
+                    switch ((swDrawingViewTypes_e)view.Type) 
+                    {
+                        case swDrawingViewTypes_e.swDrawingProjectedView:
+                            return new SwProjectedDrawingView(view, (SwDrawing)doc, view.Sheet, true);
+                        case swDrawingViewTypes_e.swDrawingNamedView:
+                            return new SwModelBasedDrawingView(view, (SwDrawing)doc, view.Sheet, true);
+                        case swDrawingViewTypes_e.swDrawingAuxiliaryView:
+                            return new SwAuxiliaryDrawingView(view, (SwDrawing)doc, view.Sheet, true);
+                        case swDrawingViewTypes_e.swDrawingSectionView:
+                            return new SwSectionDrawingView(view, (SwDrawing)doc, view.Sheet, true);
+                        case swDrawingViewTypes_e.swDrawingDetailView:
+                            return new SwDetailDrawingView(view, (SwDrawing)doc, view.Sheet, true);
+                        default:
+                            return new SwDrawingView(view, (SwDrawing)doc);
+                    }
+                    
                 case ICurve curve:
                     switch ((swCurveTypes_e)curve.Identity())
                     {
