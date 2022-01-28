@@ -23,9 +23,7 @@ namespace Xarial.XCad.Toolkit.Utils
         /// <param name="color">Input color</param>
         /// <returns>Wind32 color</returns>
         public static int ToColorRef(Color color)
-        {
-            return (color.R << 0) | (color.G << 8) | (color.B << 16);
-        }
+            => (color.R << 0) | (color.G << 8) | (color.B << 16);
 
         /// <summary>
         /// Converts Win32 color to .NET color

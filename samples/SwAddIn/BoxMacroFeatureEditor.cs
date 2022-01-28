@@ -7,6 +7,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -72,11 +73,14 @@ namespace SwAddInExample
             alignDim = null;
 
             var box = (ISwBody)app.MemoryGeometryBuilder.CreateSolidBox(
-                new Point(0, 0, 0), new Vector(0, 0, 1), new Vector(1, 0, 0).CreateAnyPerpendicular(),
+                new Xarial.XCad.Geometry.Structures.Point(0, 0, 0), new Vector(0, 0, 1), new Vector(1, 0, 0).CreateAnyPerpendicular(),
                 data.Width, data.Height, data.Length).Bodies.First();
 
             return new ISwBody[] { box };
         }
+
+        public override void AssignPreviewBodyColor(IXBody body, out Color color)
+            => color = Color.FromArgb(100, Color.Yellow);
 
         public override void OnPostRebuild(ISwApplication app, ISwDocument model, ISwMacroFeature<BoxMacroFeatureData> feature, BoxMacroFeatureData parameters)
         {
