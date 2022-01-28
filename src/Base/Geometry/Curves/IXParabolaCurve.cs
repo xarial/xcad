@@ -12,6 +12,9 @@ using Xarial.XCad.Geometry.Wires;
 
 namespace Xarial.XCad.Geometry.Curves
 {
+    /// <summary>
+    /// Represents the parabolic curve
+    /// </summary>
     public interface IXParabolaCurve : IXCurve, IXParabola
     {
     }

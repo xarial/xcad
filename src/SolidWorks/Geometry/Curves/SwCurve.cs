@@ -6,12 +6,14 @@
 //*********************************************************************
 
 using SolidWorks.Interop.sldworks;
+using SolidWorks.Interop.swconst;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Curves;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Geometry.Wires;
@@ -171,6 +173,23 @@ namespace Xarial.XCad.SolidWorks.Geometry.Curves
             {
                 throw new Exception("Only single curve is supported");
             }
+        }
+
+        public IXWireBody CreateBody()
+        {
+            if (!Curves.Any()) 
+            {
+                throw new Exception("No curves found");
+            }
+
+            var wireBody = m_Modeler.CreateWireBody(Curves, (int)swCreateWireBodyOptions_e.swCreateWireBodyByDefault);
+
+            if (wireBody == null) 
+            {
+                throw new NullReferenceException($"Wire body cannot be created from the curves");
+            }
+
+            return OwnerApplication.CreateObjectFromDispatch<ISwTempWireBody>(wireBody, OwnerDocument);
         }
     }
 }

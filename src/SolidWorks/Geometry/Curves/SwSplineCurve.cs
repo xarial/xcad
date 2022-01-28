@@ -17,7 +17,7 @@ using Xarial.XCad.SolidWorks.Geometry.Curves;
 
 namespace Xarial.XCad.SolidWorks.Geometry.Curves
 {
-    public interface ISwSplineCurve : IXSplineCurve
+    public interface ISwSplineCurve : IXSplineCurve, ISwCurve
     {
     }
 

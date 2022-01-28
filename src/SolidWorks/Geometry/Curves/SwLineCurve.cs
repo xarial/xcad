@@ -17,7 +17,7 @@ using Xarial.XCad.SolidWorks.Geometry.Exceptions;
 
 namespace Xarial.XCad.SolidWorks.Geometry.Curves
 {
-    public interface ISwLineCurve : IXLineCurve
+    public interface ISwLineCurve : IXLineCurve, ISwCurve
     {
     }
 

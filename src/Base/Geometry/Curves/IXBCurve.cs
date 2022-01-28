@@ -12,6 +12,9 @@ using Xarial.XCad.Geometry.Wires;
 
 namespace Xarial.XCad.Geometry.Curves
 {
+    /// <summary>
+    /// Represents B-Curve
+    /// </summary>
     public interface IXBCurve : IXCurve, IXBSpline
     {
     }

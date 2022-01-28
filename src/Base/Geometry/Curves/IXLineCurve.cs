@@ -12,6 +12,9 @@ using Xarial.XCad.Geometry.Wires;
 
 namespace Xarial.XCad.Geometry.Curves
 {
+    /// <summary>
+    /// Represents linear curve
+    /// </summary>
     public interface IXLineCurve : IXCurve, IXLine
     {
     }

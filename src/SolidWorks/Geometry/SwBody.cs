@@ -290,4 +290,15 @@ namespace Xarial.XCad.SolidWorks.Geometry
             return massPrps[3];
         }
     }
+
+    public interface ISwWireBody : ISwBody, IXWireBody 
+    {
+    }
+
+    internal class SwWireBody : SwBody, ISwWireBody
+    {
+        internal SwWireBody(IBody2 body, ISwDocument doc, ISwApplication app) : base(body, doc, app)
+        {
+        }
+    }
 }

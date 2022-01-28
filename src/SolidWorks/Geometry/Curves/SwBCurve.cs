@@ -17,7 +17,7 @@ using Xarial.XCad.SolidWorks.Geometry.Curves;
 
 namespace Xarial.XCad.SolidWorks.Geometry.Curves
 {
-    public interface ISwBCurve : IXBCurve
+    public interface ISwBCurve : IXBCurve, ISwCurve
     {
     }
 

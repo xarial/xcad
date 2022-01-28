@@ -97,4 +97,11 @@ namespace Xarial.XCad.Geometry
         /// </summary>
         double Volume { get; }
     }
+
+    /// <summary>
+    /// Represents the wire body
+    /// </summary>
+    public interface IXWireBody : IXBody 
+    {
+    }
 }

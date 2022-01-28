@@ -22,6 +22,7 @@ using Xarial.XCad.Utils.Diagnostics;
 using Xarial.XCad.Utils.Reflection;
 using Xarial.XCad.Toolkit;
 using Xarial.XCad.UI.PropertyPage.Delegates;
+using System.Collections.Generic;
 
 namespace Xarial.XCad.Utils.CustomFeature
 {
@@ -41,6 +42,8 @@ namespace Xarial.XCad.Utils.CustomFeature
         where TData : class, new()
         where TPage : class, new();
 
+    public delegate bool ShouldHidePreviewEditBody<TData, TPage>(IXBody body, TData data, TPage page);
+
     public abstract class BaseCustomFeatureEditor<TData, TPage> 
         where TData : class, new()
         where TPage : class, new()
@@ -50,6 +53,7 @@ namespace Xarial.XCad.Utils.CustomFeature
         public event CustomFeatureEditingCompletedDelegate<TData, TPage> EditingCompleted;
         public event CustomFeatureInsertedDelegate<TData, TPage> FeatureInserted;
         public event CustomFeaturePageParametersChangedDelegate<TData, TPage> PageParametersChanged;
+        public event ShouldHidePreviewEditBody<TData, TPage> ShouldHidePreviewEditBody;
 
         protected readonly IXApplication m_App;
         protected readonly IServiceProvider m_SvcProvider;
@@ -160,14 +164,38 @@ namespace Xarial.XCad.Utils.CustomFeature
                 body.Visible = true;
             }
 
+            var doNotHideBodies = new List<IXBody>();
+
             var bodiesToHide = editBodies.ValueOrEmpty().Except(m_HiddenEditBodies.ValueOrEmpty(), m_BodiesComparer);
 
             foreach (var body in bodiesToHide)
             {
-                body.Visible = false;
+                var hide = body.Visible;
+
+                if (hide && ShouldHidePreviewEditBody != null) 
+                {
+                    var data = Definition.ConvertPageToParams(m_CurPageData);
+                    hide &= ShouldHidePreviewEditBody.Invoke(body, data, m_CurPageData);
+                }
+
+                if (hide)
+                {   
+                    body.Visible = false;
+                }
+                else 
+                {
+                    doNotHideBodies.Add(body);
+                }
             }
 
-            m_HiddenEditBodies = editBodies;
+            if (editBodies != null)
+            {
+                m_HiddenEditBodies = editBodies.Except(doNotHideBodies).ToArray();
+            }
+            else 
+            {
+                m_HiddenEditBodies = null;
+            }
         }
 
         private void HidePreviewBodies()

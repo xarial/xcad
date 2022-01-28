@@ -14,7 +14,7 @@ using Xarial.XCad.Geometry.Wires;
 
 namespace Xarial.XCad.SolidWorks.Geometry.Curves
 {
-    public interface ISwPoint : IXPoint 
+    public interface ISwPoint : IXPoint
     {
     }
 

@@ -46,5 +46,11 @@ namespace Xarial.XCad.Geometry.Curves
         /// <param name="endParamU">End U-parameter</param>
         /// <returns></returns>
         double CalculateLength(double startParamU, double endParamU);
+
+        /// <summary>
+        /// Creates wire body from this curve
+        /// </summary>
+        /// <returns>Wire body</returns>
+        IXWireBody CreateBody();
     }
 }

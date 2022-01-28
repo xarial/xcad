@@ -20,7 +20,7 @@ namespace Xarial.XCad.Documents
         /// <summary>
         /// Gets active view
         /// </summary>
-        IXModelView Active { get; } //TODO: implement set
+        IXModelView Active { get; }
 
         /// <summary>
         /// Returns standard view by type

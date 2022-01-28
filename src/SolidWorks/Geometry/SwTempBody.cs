@@ -96,6 +96,10 @@ namespace Xarial.XCad.SolidWorks.Geometry
     {
     }
 
+    public interface ISwTempWireBody : ISwTempBody, ISwWireBody
+    {
+    }
+    
     internal class SwTempSolidBody : SwTempBody, ISwTempSolidBody
     {
         internal SwTempSolidBody(IBody2 body, ISwApplication app) : base(body, app)
@@ -125,5 +129,12 @@ namespace Xarial.XCad.SolidWorks.Geometry
         public ISwTempPlanarSheetBody PlanarSheetBody => this;
 
         ISwCurve[] ISwRegion.Boundary => this.GetBoundary();
+    }
+
+    internal class SwTempWireBody : SwTempBody, ISwTempWireBody
+    {
+        internal SwTempWireBody(IBody2 body, ISwApplication app) : base(body, app)
+        {
+        }
     }
 }

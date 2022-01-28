@@ -12,6 +12,9 @@ using Xarial.XCad.Geometry.Wires;
 
 namespace Xarial.XCad.Geometry.Curves
 {
+    /// <summary>
+    /// Represents elliptical curve
+    /// </summary>
     public interface IXEllipseCurve : IXCurve, IXEllipse
     {
     }

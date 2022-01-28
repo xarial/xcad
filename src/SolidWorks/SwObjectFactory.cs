@@ -149,6 +149,16 @@ namespace Xarial.XCad.SolidWorks
                                 return new SwTempSolidBody(body, app);
                             }
 
+                        case swBodyType_e.swWireBody:
+                            if (!isTemp)
+                            {
+                                return new SwWireBody(body, doc, app);
+                            }
+                            else
+                            {
+                                return new SwTempWireBody(body, app);
+                            }
+
                         default:
                             throw new NotSupportedException();
                     }
