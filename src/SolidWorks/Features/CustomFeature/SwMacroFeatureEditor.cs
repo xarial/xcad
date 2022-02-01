@@ -55,9 +55,11 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
                 swBody.Display3(model, ColorUtils.ToColorRef(color),
                     (int)swTempBodySelectOptions_e.swTempBodySelectOptionNone);
 
-                //COLORREF does not encode alpha channel, so assigning the color via material properties
-                if (color.A < 255) 
+                var hasAlpha = color.A < 255;
+                
+                if (hasAlpha) 
                 {
+                    //COLORREF does not encode alpha channel, so assigning the color via material properties
                     body.Color = color;
                 }
             }

@@ -7,11 +7,15 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Drawing;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using Xarial.XCad;
+using Xarial.XCad.Documents;
+using Xarial.XCad.Features.CustomFeature;
 using Xarial.XCad.Features.CustomFeature.Delegates;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;
@@ -21,20 +25,36 @@ using Xarial.XCad.SolidWorks.Features.CustomFeature;
 using Xarial.XCad.SolidWorks.Features.CustomFeature.Attributes;
 using Xarial.XCad.SolidWorks.Geometry;
 using Xarial.XCad.SolidWorks.UI.PropertyPage;
+using Xarial.XCad.UI.PropertyPage.Attributes;
+using Xarial.XCad.UI.PropertyPage.Enums;
 
 namespace SwAddInExample
 {
     [ComVisible(true)]
-    public class BoxData : SwPropertyManagerPageHandler
+    [PageOptions(PageOptions_e.OkayButton | PageOptions_e.PushpinButton | PageOptions_e.CancelButton | PageOptions_e.LockedPage)]
+    public class BoxPage : SwPropertyManagerPageHandler
     {
         public BoxParameters Parameters { get; set; }
     }
 
-    public class BoxParameters 
+    public class BoxParameters : INotifyPropertyChanged
     {
+        public event PropertyChangedEventHandler PropertyChanged;
+
         public double Width { get; set; } = 0.1;
         public double Height { get; set; } = 0.2;
         public double Length { get; set; } = 0.3;
+
+        internal void Reset()
+        {
+            Width = 0.1;
+            Height = 0.2;
+            Length = 0.3;
+
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Width)));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Height)));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Length)));
+        }
     }
 
     public class BoxMacroFeatureData : SwPropertyManagerPageHandler
@@ -46,9 +66,9 @@ namespace SwAddInExample
 
     [ComVisible(true)]
     [HandlePostRebuild]
-    public class BoxMacroFeatureEditor : SwMacroFeatureDefinition<BoxMacroFeatureData, BoxData>
+    public class BoxMacroFeatureEditor : SwMacroFeatureDefinition<BoxMacroFeatureData, BoxPage>
     {
-        public override BoxMacroFeatureData ConvertPageToParams(BoxData par)
+        public override BoxMacroFeatureData ConvertPageToParams(BoxPage par)
             => new BoxMacroFeatureData()
             {
                 Height = par.Parameters.Height,
@@ -56,8 +76,8 @@ namespace SwAddInExample
                 Width = par.Parameters.Width
             };
 
-        public override BoxData ConvertParamsToPage(BoxMacroFeatureData par)
-            => new BoxData()
+        public override BoxPage ConvertParamsToPage(BoxMacroFeatureData par)
+            => new BoxPage()
             {
                 Parameters = new BoxParameters()
                 {
@@ -85,6 +105,11 @@ namespace SwAddInExample
         public override void OnPostRebuild(ISwApplication app, ISwDocument model, ISwMacroFeature<BoxMacroFeatureData> feature, BoxMacroFeatureData parameters)
         {
             base.OnPostRebuild(app, model, feature, parameters);
+        }
+
+        public override void OnFeatureInserted(IXApplication app, IXDocument doc, IXCustomFeature<BoxMacroFeatureData> feat, BoxMacroFeatureData data, BoxPage page)
+        {
+            page.Parameters.Reset();
         }
     }
 }

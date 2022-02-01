@@ -74,6 +74,8 @@ namespace Xarial.XCad.Utils.CustomFeature
 
         protected IXDocument CurModel { get; private set; }
 
+        private bool m_IsPageActive;
+
         public BaseCustomFeatureEditor(IXApplication app,
             Type featDefType,
             CustomFeatureParametersParser paramsParser,
@@ -110,6 +112,8 @@ namespace Xarial.XCad.Utils.CustomFeature
 
         public void Edit(IXDocument model, IXCustomFeature<TData> feature)
         {
+            m_IsPageActive = true;
+
             CurModel = model;
             m_EditingFeature = feature;
 
@@ -132,6 +136,8 @@ namespace Xarial.XCad.Utils.CustomFeature
 
         public void Insert(IXDocument model)
         {
+            m_IsPageActive = true;
+
             m_CurPageData = new TPage();
 
             CurModel = model;
@@ -217,44 +223,8 @@ namespace Xarial.XCad.Utils.CustomFeature
 
         private void OnPageClosed(PageCloseReasons_e reason)
         {
-            var data = Definition.ConvertPageToParams(m_CurPageData);
-
-            EditingCompleted?.Invoke(m_App, CurModel, m_EditingFeature, data, m_CurPageData, reason);
-
-            ShowEditBodies();
-
-            HidePreviewBodies();
-
-            m_PreviewBodies = null;
-
-            if (reason == PageCloseReasons_e.Okay)
-            {
-                if (m_EditingFeature == null)
-                {
-                    var feat = CurModel.Features.PreCreateCustomFeature<TData>();
-                    feat.DefinitionType = m_DefType;
-                    feat.Parameters = data;
-                    CurModel.Features.Add(feat);
-
-                    if (feat == null)
-                    {
-                        throw new NullReferenceException("Failed to create custom feature");
-                    }
-
-                    FeatureInserted?.Invoke(m_App, CurModel, feat, data, m_CurPageData);
-                }
-                else
-                {
-                    m_EditingFeature.Parameters = data;
-                }
-            }
-            else
-            {
-                if (m_EditingFeature != null)
-                {
-                    m_EditingFeature.Parameters = null;
-                }
-            }
+            m_IsPageActive = false;
+            CompleteFeature(reason);
         }
 
         private void ShowEditBodies()
@@ -287,31 +257,86 @@ namespace Xarial.XCad.Utils.CustomFeature
                 arg.ErrorMessage = m_LastError.Message;
                 arg.Cancel = true;
             }
+            else 
+            {
+                if (reason == PageCloseReasons_e.Apply)
+                {
+                    CompleteFeature(reason);
+                    
+                    //page stays open
+                    UpdatePreview();
+                }
+            }
         }
 
         private void UpdatePreview()
         {
-            try
+            if (m_IsPageActive)
             {
-                m_LastError = null;
-
-                HidePreviewBodies();
-
-                m_PreviewBodies = Definition.CreateGeometry(m_App, CurModel,
-                    Definition.ConvertPageToParams(m_CurPageData), true, out _);
-
-                HideEditBodies();
-
-                if (m_PreviewBodies != null)
+                try
                 {
-                    DisplayPreview(m_PreviewBodies);
+                    m_LastError = null;
+
+                    HidePreviewBodies();
+
+                    m_PreviewBodies = Definition.CreateGeometry(m_App, CurModel,
+                        Definition.ConvertPageToParams(m_CurPageData), true, out _);
+
+                    HideEditBodies();
+
+                    if (m_PreviewBodies != null)
+                    {
+                        DisplayPreview(m_PreviewBodies);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    HidePreviewBodies();
+                    ShowEditBodies();
+                    m_LastError = ex;
                 }
             }
-            catch (Exception ex)
+        }
+
+        private void CompleteFeature(PageCloseReasons_e reason)
+        {
+            var data = Definition.ConvertPageToParams(m_CurPageData);
+
+            EditingCompleted?.Invoke(m_App, CurModel, m_EditingFeature, data, m_CurPageData, reason);
+
+            ShowEditBodies();
+
+            HidePreviewBodies();
+
+            m_PreviewBodies = null;
+
+            if (reason == PageCloseReasons_e.Okay || reason == PageCloseReasons_e.Apply)
             {
-                HidePreviewBodies();
-                ShowEditBodies();
-                m_LastError = ex;
+                if (m_EditingFeature == null)
+                {
+                    var feat = CurModel.Features.PreCreateCustomFeature<TData>();
+                    feat.DefinitionType = m_DefType;
+                    feat.Parameters = data;
+                    CurModel.Features.Add(feat);
+
+                    if (feat == null)
+                    {
+                        throw new NullReferenceException("Failed to create custom feature");
+                    }
+
+                    FeatureInserted?.Invoke(m_App, CurModel, feat, data, m_CurPageData);
+                }
+                else
+                {
+                    m_EditingFeature.Parameters = data;
+                }
+            }
+            else
+            {
+                if (m_EditingFeature != null)
+                {
+                    m_EditingFeature.Parameters = null;
+                }
             }
         }
     }

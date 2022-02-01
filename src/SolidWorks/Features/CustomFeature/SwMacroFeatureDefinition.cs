@@ -679,22 +679,26 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 
         public virtual TParams ConvertPageToParams(TPage par)
         {
-            if (typeof(TParams) == typeof(TPage)) 
+            if (typeof(TParams).IsAssignableFrom(typeof(TPage)))
             {
                 return (TParams)((object)par);
             }
-
-            throw new Exception($"Override {nameof(ConvertPageToParams)} to provide the converter");
+            else
+            {
+                throw new Exception($"Override {nameof(ConvertPageToParams)} to provide the converter from TPage to TParams");
+            }
         }
 
         public virtual TPage ConvertParamsToPage(TParams par)
         {
-            if (typeof(TParams) == typeof(TPage))
+            if (typeof(TPage).IsAssignableFrom(typeof(TParams)))
             {
                 return (TPage)((object)par);
             }
-
-            throw new Exception($"Override {nameof(ConvertParamsToPage)} to provide the converter");
+            else
+            {
+                throw new Exception($"Override {nameof(ConvertParamsToPage)} to provide the converter from TParams to TPage");
+            }
         }
 
         public virtual ISwBody[] CreateGeometry(ISwApplication app, ISwDocument model, TParams data, bool isPreview, out AlignDimensionDelegate<TParams> alignDim) 

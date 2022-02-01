@@ -403,7 +403,7 @@ namespace SwAddInExample
                         break;
 
                     case Commands_e.CreateBox:
-                        Application.Documents.Active.Features.CreateCustomFeature<BoxMacroFeatureEditor, BoxMacroFeatureData, BoxData>();
+                        Application.Documents.Active.Features.CreateCustomFeature<BoxMacroFeatureEditor, BoxMacroFeatureData, BoxPage>();
                         break;
 
                     case Commands_e.WatchDimension:
