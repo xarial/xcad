@@ -655,6 +655,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
                 editor.FeatureInserted += OnFeatureInserted;
                 editor.PageParametersChanged += OnPageParametersChanged;
                 editor.ShouldHidePreviewEditBody += ShouldHidePreviewEditBody;
+                editor.ShouldUpdatePreview += ShouldUpdatePreview;
 
                 return editor;
             });
@@ -751,6 +752,14 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         /// <remarks>usually edit body is hidden during the preview as it is replaced by the macro feature geometry
         /// In some cases user might need to perform multiple selections on edit body and thus hiding it preventing the further selections</remarks>
         public virtual bool ShouldHidePreviewEditBody(IXBody body, TParams data, TPage page) => true;
+
+        /// <summary>
+        /// Checks if the preview shoudl be updated
+        /// </summary>
+        /// <param name="oldData">Old parameters</param>
+        /// <param name="newData">New parameters</param>
+        /// <param name="dataChanged">Has parameters data changed</param>
+        public virtual void ShouldUpdatePreview(TParams oldData, TParams newData, ref bool dataChanged) { }
 
         /// <summary>
         /// Called when macro feature is finishing editing and Property Manager Page is about to be closed

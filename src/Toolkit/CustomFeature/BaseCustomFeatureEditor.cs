@@ -42,7 +42,9 @@ namespace Xarial.XCad.Utils.CustomFeature
         where TData : class, new()
         where TPage : class, new();
 
-    public delegate bool ShouldHidePreviewEditBody<TData, TPage>(IXBody body, TData data, TPage page);
+    public delegate bool ShouldHidePreviewEditBodyDelegate<TData, TPage>(IXBody body, TData data, TPage page);
+
+    public delegate void ShouldUpdatePreviewDelegate<TData>(TData oldData, TData newData, ref bool dataChanged);
 
     public abstract class BaseCustomFeatureEditor<TData, TPage> 
         where TData : class, new()
@@ -53,7 +55,8 @@ namespace Xarial.XCad.Utils.CustomFeature
         public event CustomFeatureEditingCompletedDelegate<TData, TPage> EditingCompleted;
         public event CustomFeatureInsertedDelegate<TData, TPage> FeatureInserted;
         public event CustomFeaturePageParametersChangedDelegate<TData, TPage> PageParametersChanged;
-        public event ShouldHidePreviewEditBody<TData, TPage> ShouldHidePreviewEditBody;
+        public event ShouldHidePreviewEditBodyDelegate<TData, TPage> ShouldHidePreviewEditBody;
+        public event ShouldUpdatePreviewDelegate<TData> ShouldUpdatePreview;
 
         protected readonly IXApplication m_App;
         protected readonly IServiceProvider m_SvcProvider;
@@ -221,7 +224,11 @@ namespace Xarial.XCad.Utils.CustomFeature
             var oldParams = m_CurData;
             m_CurData = Definition.ConvertPageToParams(m_CurPageData);
 
-            if (AreParametersChanged(oldParams, m_CurData))
+            var needUpdatePreview = AreParametersChanged(oldParams, m_CurData);
+
+            ShouldUpdatePreview?.Invoke(oldParams, m_CurData, ref needUpdatePreview);
+
+            if (needUpdatePreview)
             {
                 UpdatePreview();
 
