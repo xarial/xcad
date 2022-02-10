@@ -64,6 +64,7 @@ namespace Xarial.XCad.Utils.CustomFeature
         private readonly Type m_DefType;
 
         private TPage m_CurPageData;
+        private TData m_CurData;
         private IXBody[] m_HiddenEditBodies;
         private IXCustomFeature<TData> m_EditingFeature;
         private Exception m_LastError;
@@ -119,11 +120,11 @@ namespace Xarial.XCad.Utils.CustomFeature
 
             try
             {
-                var featParam = m_EditingFeature.Parameters;
+                m_CurData = m_EditingFeature.Parameters;
 
-                m_CurPageData = Definition.ConvertParamsToPage(featParam);
+                m_CurPageData = Definition.ConvertParamsToPage(m_CurData);
 
-                EditingStarted?.Invoke(m_App, model, feature, featParam, m_CurPageData);
+                EditingStarted?.Invoke(m_App, model, feature, m_CurData, m_CurPageData);
                 m_PmPage.Show(m_CurPageData);
 
                 UpdatePreview();
@@ -148,6 +149,8 @@ namespace Xarial.XCad.Utils.CustomFeature
 
             m_PmPage.Show(m_CurPageData);
 
+            m_CurData = Definition.ConvertPageToParams(m_CurPageData);
+
             UpdatePreview();
         }
 
@@ -161,7 +164,7 @@ namespace Xarial.XCad.Utils.CustomFeature
         {
             IXBody[] editBodies;
 
-            m_ParamsParser.Parse(Definition.ConvertPageToParams(m_CurPageData), out _, out _, out _, out _, out editBodies);
+            m_ParamsParser.Parse(m_CurData, out _, out _, out _, out _, out editBodies);
 
             var bodiesToShow = m_HiddenEditBodies.ValueOrEmpty().Except(editBodies.ValueOrEmpty(), m_BodiesComparer);
 
@@ -180,8 +183,7 @@ namespace Xarial.XCad.Utils.CustomFeature
 
                 if (hide && ShouldHidePreviewEditBody != null) 
                 {
-                    var data = Definition.ConvertPageToParams(m_CurPageData);
-                    hide &= ShouldHidePreviewEditBody.Invoke(body, data, m_CurPageData);
+                    hide &= ShouldHidePreviewEditBody.Invoke(body, m_CurData, m_CurPageData);
                 }
 
                 if (hide)
@@ -216,9 +218,50 @@ namespace Xarial.XCad.Utils.CustomFeature
 
         private void OnDataChanged()
         {
-            UpdatePreview();
+            var oldParams = m_CurData;
+            m_CurData = Definition.ConvertPageToParams(m_CurPageData);
 
-            PageParametersChanged?.Invoke(m_App, CurModel, m_EditingFeature, m_CurPageData);
+            if (AreParametersChanged(oldParams, m_CurData))
+            {
+                UpdatePreview();
+
+                PageParametersChanged?.Invoke(m_App, CurModel, m_EditingFeature, m_CurPageData);
+            }
+        }
+
+        private bool AreParametersChanged(TData oldParams, TData newParams) 
+        {
+            bool AreArraysEqual<T>(T[] oldArr, T[] newArr, Func<T, T, bool> comparer)
+            {
+                if (oldArr == null && newArr == null)
+                {
+                    return true;
+                }
+                else if (oldArr == null || newArr == null)
+                {
+                    return false;
+                }
+                else 
+                {
+                    for (int i = 0; i < oldArr.Length; i++) 
+                    {
+                        if (!comparer.Invoke(oldArr[i], newArr[i])) 
+                        {
+                            return false;
+                        }
+                    }
+                }
+
+                return true;
+            }
+
+            m_ParamsParser.Parse(oldParams, out CustomFeatureParameter[] oldAtts, out IXSelObject[] oldSels, out _, out double[] oldDimVals, out IXBody[] oldEditBodies);
+            m_ParamsParser.Parse(newParams, out CustomFeatureParameter[] newAtts, out IXSelObject[] newSels, out _, out double[] newDimVals, out IXBody[] newEditBodies);
+
+            return !(AreArraysEqual(oldAtts, newAtts, (o, n) => string.Equals(o.Name, n.Name) && object.Equals(o.Value, n.Value) && Type.Equals(o.Type, n.Type))
+                    && AreArraysEqual(oldSels, newSels, (o, n) => o.Equals(n))
+                    && AreArraysEqual(oldDimVals, newDimVals, (o, n) => double.Equals(o, n))
+                    && AreArraysEqual(oldEditBodies, newEditBodies, (o, n) => o.Equals(n)));
         }
 
         private void OnPageClosed(PageCloseReasons_e reason)
@@ -243,8 +286,7 @@ namespace Xarial.XCad.Utils.CustomFeature
             {
                 try
                 {
-                    var data = Definition.ConvertPageToParams(m_CurPageData);
-                    EditingCompleting.Invoke(m_App, CurModel, m_EditingFeature, data, m_CurPageData, reason);
+                    EditingCompleting.Invoke(m_App, CurModel, m_EditingFeature, m_CurData, m_CurPageData, reason);
                 }
                 catch (Exception ex)
                 {
@@ -262,7 +304,9 @@ namespace Xarial.XCad.Utils.CustomFeature
                 if (reason == PageCloseReasons_e.Apply)
                 {
                     CompleteFeature(reason);
-                    
+
+                    m_CurData = Definition.ConvertPageToParams(m_CurPageData);
+
                     //page stays open
                     UpdatePreview();
                 }
@@ -280,7 +324,7 @@ namespace Xarial.XCad.Utils.CustomFeature
                     HidePreviewBodies();
 
                     m_PreviewBodies = Definition.CreateGeometry(m_App, CurModel,
-                        Definition.ConvertPageToParams(m_CurPageData), true, out _);
+                        m_CurData, true, out _);
 
                     HideEditBodies();
 
@@ -300,9 +344,7 @@ namespace Xarial.XCad.Utils.CustomFeature
 
         private void CompleteFeature(PageCloseReasons_e reason)
         {
-            var data = Definition.ConvertPageToParams(m_CurPageData);
-
-            EditingCompleted?.Invoke(m_App, CurModel, m_EditingFeature, data, m_CurPageData, reason);
+            EditingCompleted?.Invoke(m_App, CurModel, m_EditingFeature, m_CurData, m_CurPageData, reason);
 
             ShowEditBodies();
 
@@ -316,7 +358,7 @@ namespace Xarial.XCad.Utils.CustomFeature
                 {
                     var feat = CurModel.Features.PreCreateCustomFeature<TData>();
                     feat.DefinitionType = m_DefType;
-                    feat.Parameters = data;
+                    feat.Parameters = m_CurData;
                     CurModel.Features.Add(feat);
 
                     if (feat == null)
@@ -324,11 +366,11 @@ namespace Xarial.XCad.Utils.CustomFeature
                         throw new NullReferenceException("Failed to create custom feature");
                     }
 
-                    FeatureInserted?.Invoke(m_App, CurModel, feat, data, m_CurPageData);
+                    FeatureInserted?.Invoke(m_App, CurModel, feat, m_CurData, m_CurPageData);
                 }
                 else
                 {
-                    m_EditingFeature.Parameters = data;
+                    m_EditingFeature.Parameters = m_CurData;
                 }
             }
             else

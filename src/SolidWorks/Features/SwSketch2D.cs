@@ -80,8 +80,6 @@ namespace Xarial.XCad.SolidWorks.Features
         }
 
         protected override void ToggleEditSketch()
-        {
-            OwnerModelDoc.InsertSketch2(true);
-        }
+            => OwnerModelDoc.InsertSketch2(true);
     }
 }

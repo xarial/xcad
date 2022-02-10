@@ -66,4 +66,36 @@ namespace Xarial.XCad.Geometry
         /// <inheritdoc/>
         new IXCylindricalSurface Definition { get; }
     }
+
+    public interface IXBlendXFace : IXFace 
+    {
+    }
+
+    public interface IXBFace : IXFace
+    {
+    }
+
+    public interface IXConicalFace : IXFace
+    {
+    }
+
+    public interface IXExtrudedFace : IXFace
+    {
+    }
+
+    public interface IXOffsetFace : IXFace
+    {
+    }
+
+    public interface IXRevolvedFace : IXFace
+    {
+    }
+
+    public interface IXSphericalFace : IXFace
+    {
+    }
+
+    public interface IXToroidalFace : IXFace
+    {
+    }
 }

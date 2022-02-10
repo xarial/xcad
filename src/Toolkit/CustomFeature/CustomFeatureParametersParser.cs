@@ -299,7 +299,7 @@ namespace Xarial.XCad.Utils.CustomFeature
 
             SetParametersToFeature(feat, selection, bodies, dispDims, dimValues, param);
         }
-
+        
         //TODO: need to spearate to different methods
         protected abstract void ExtractRawParameters(IXCustomFeature feat, IXDocument doc,
             out Dictionary<string, object> parameters, out IXDimension[] dimensions,
@@ -517,6 +517,7 @@ namespace Xarial.XCad.Utils.CustomFeature
 
             return value;
         }
+
         private void ReadObjectsValueFromProperty<T>(object parameters,
                     PropertyInfo prp, List<PropertyObject<T>> list)
                     where T : class

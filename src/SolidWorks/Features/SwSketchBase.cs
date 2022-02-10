@@ -67,9 +67,7 @@ namespace Xarial.XCad.SolidWorks.Features
         }
 
         public bool GetEditMode(ISketch sketch)
-        {
-            return OwnerModelDoc.SketchManager.ActiveSketch == sketch;
-        }
+            => OwnerModelDoc.SketchManager.ActiveSketch == sketch;
 
         public void SetEditMode(ISketch sketch, bool isEditing)
         {

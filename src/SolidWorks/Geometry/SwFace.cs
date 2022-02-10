@@ -32,7 +32,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
         new IEnumerable<ISwEdge> Edges { get; }
     }
 
-    internal class SwFace : SwEntity, ISwFace
+    internal abstract class SwFace : SwEntity, ISwFace
     {
         IXSurface IXFace.Definition => Definition;
         IEnumerable<IXEdge> IXFace.Edges => Edges;
@@ -40,7 +40,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
         public IFace2 Face { get; }
         private readonly IMathUtility m_MathUtils;
 
-        internal SwFace(IFace2 face, ISwDocument doc, ISwApplication app) : base((IEntity)face, doc, app)
+        protected SwFace(IFace2 face, ISwDocument doc, ISwApplication app) : base((IEntity)face, doc, app)
         {
             Face = face;
             m_MathUtils = app.Sw.IGetMathUtility();
@@ -153,5 +153,93 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         public new ISwCylindricalSurface Definition => OwnerApplication.CreateObjectFromDispatch<SwCylindricalSurface>(
             Face.IGetSurface(), OwnerDocument);
+    }
+
+    public interface ISwBlendXFace : ISwFace, IXBlendXFace
+    {
+    }
+
+    internal class SwBlendFace : SwFace, ISwBlendXFace
+    {
+        public SwBlendFace(IFace2 face, ISwDocument doc, ISwApplication app) : base(face, doc, app)
+        {
+        }
+    }
+
+    public interface ISwBFace : ISwFace, IXBFace
+    {
+    }
+
+    internal class SwBFace : SwFace, ISwBFace
+    {
+        public SwBFace(IFace2 face, ISwDocument doc, ISwApplication app) : base(face, doc, app)
+        {
+        }
+    }
+
+    public interface ISwConicalFace : ISwFace, IXConicalFace
+    {
+    }
+
+    internal class SwConicalFace : SwFace, ISwConicalFace
+    {
+        public SwConicalFace(IFace2 face, ISwDocument doc, ISwApplication app) : base(face, doc, app)
+        {
+        }
+    }
+
+    public interface ISwExtrudedFace : ISwFace, IXExtrudedFace
+    {
+    }
+
+    internal class SwExtrudedFace : SwFace, ISwExtrudedFace
+    {
+        public SwExtrudedFace(IFace2 face, ISwDocument doc, ISwApplication app) : base(face, doc, app)
+        {
+        }
+    }
+
+    public interface ISwOffsetFace : ISwFace, IXOffsetFace
+    {
+    }
+
+    internal class SwOffsetFace : SwFace, ISwOffsetFace
+    {
+        public SwOffsetFace(IFace2 face, ISwDocument doc, ISwApplication app) : base(face, doc, app)
+        {
+        }
+    }
+
+    public interface ISwRevolvedFace : ISwFace, IXRevolvedFace
+    {
+    }
+
+    internal class SwRevolvedFace : SwFace, ISwRevolvedFace
+    {
+        public SwRevolvedFace(IFace2 face, ISwDocument doc, ISwApplication app) : base(face, doc, app)
+        {
+        }
+    }
+
+    public interface ISwSphericalFace : ISwFace, IXSphericalFace
+    {
+    }
+
+    internal class SwSphericalFace : SwFace, ISwSphericalFace
+    {
+        public SwSphericalFace(IFace2 face, ISwDocument doc, ISwApplication app) : base(face, doc, app)
+        {
+        }
+    }
+
+    public interface ISwToroidalFace : ISwFace, IXToroidalFace
+    {
+    }
+
+    internal class SwToroidalFace : SwFace, ISwToroidalFace
+    {
+        public SwToroidalFace(IFace2 face, ISwDocument doc, ISwApplication app) : base(face, doc, app)
+        {
+        }
     }
 }

@@ -10,6 +10,7 @@ using SolidWorks.Interop.swconst;
 using System;
 using System.IO;
 using System.Linq;
+using Xarial.XCad.Geometry.Surfaces;
 using Xarial.XCad.SolidWorks.Annotations;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Features;
@@ -66,17 +67,41 @@ namespace Xarial.XCad.SolidWorks
 
                 case IFace2 face:
                     var faceSurf = face.IGetSurface();
-                    if (faceSurf.IsPlane())
+                    var faceSurfIdentity = (swSurfaceTypes_e)faceSurf.Identity();
+                    switch (faceSurfIdentity)
                     {
-                        return new SwPlanarFace(face, doc, app);
-                    }
-                    else if (faceSurf.IsCylinder())
-                    {
-                        return new SwCylindricalFace(face, doc, app);
-                    }
-                    else
-                    {
-                        return new SwFace(face, doc, app);
+                        case swSurfaceTypes_e.PLANE_TYPE:
+                            return new SwPlanarFace(face, doc, app);
+
+                        case swSurfaceTypes_e.CYLINDER_TYPE:
+                            return new SwCylindricalFace(face, doc, app);
+
+                        case swSurfaceTypes_e.CONE_TYPE:
+                            return new SwConicalFace(face, doc, app);
+
+                        case swSurfaceTypes_e.SPHERE_TYPE:
+                            return new SwSphericalFace(face, doc, app);
+
+                        case swSurfaceTypes_e.TORUS_TYPE:
+                            return new SwToroidalFace(face, doc, app);
+
+                        case swSurfaceTypes_e.BSURF_TYPE:
+                            return new SwBFace(face, doc, app);
+
+                        case swSurfaceTypes_e.BLEND_TYPE:
+                            return new SwBlendFace(face, doc, app);
+
+                        case swSurfaceTypes_e.OFFSET_TYPE:
+                            return new SwOffsetFace(face, doc, app);
+
+                        case swSurfaceTypes_e.EXTRU_TYPE:
+                            return new SwExtrudedFace(face, doc, app);
+
+                        case swSurfaceTypes_e.SREV_TYPE:
+                            return new SwRevolvedFace(face, doc, app);
+
+                        default:
+                            throw new NotSupportedException($"Not supported face type: {faceSurfIdentity}");
                     }
 
                 case IVertex vertex:
@@ -285,7 +310,8 @@ namespace Xarial.XCad.SolidWorks
                     }
 
                 case ISurface surf:
-                    switch ((swSurfaceTypes_e)surf.Identity())
+                    var surfIdentity = (swSurfaceTypes_e)surf.Identity();
+                    switch (surfIdentity)
                     {
                         case swSurfaceTypes_e.PLANE_TYPE:
                             return new SwPlanarSurface(surf, doc, app);
@@ -293,8 +319,32 @@ namespace Xarial.XCad.SolidWorks
                         case swSurfaceTypes_e.CYLINDER_TYPE:
                             return new SwCylindricalSurface(surf, doc, app);
 
+                        case swSurfaceTypes_e.CONE_TYPE:
+                            return new SwConicalSurface(surf, doc, app);
+
+                        case swSurfaceTypes_e.SPHERE_TYPE:
+                            return new SwSphericalSurface(surf, doc, app);
+
+                        case swSurfaceTypes_e.TORUS_TYPE:
+                            return new SwToroidalSurface(surf, doc, app);
+
+                        case swSurfaceTypes_e.BSURF_TYPE:
+                            return new SwBSurface(surf, doc, app);
+
+                        case swSurfaceTypes_e.BLEND_TYPE:
+                            return new SwBlendXSurface(surf, doc, app);
+
+                        case swSurfaceTypes_e.OFFSET_TYPE:
+                            return new SwOffsetSurface(surf, doc, app);
+
+                        case swSurfaceTypes_e.EXTRU_TYPE:
+                            return new SwExtrudedSurface(surf, doc, app);
+
+                        case swSurfaceTypes_e.SREV_TYPE:
+                            return new SwRevolvedSurface(surf, doc, app);
+
                         default:
-                            return new SwSurface(surf, doc, app);
+                            throw new NotSupportedException($"Not supported surface type: {surfIdentity}");
                     }
 
                 case IModelView modelView:

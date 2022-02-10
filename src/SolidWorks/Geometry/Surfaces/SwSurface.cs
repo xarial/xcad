@@ -21,7 +21,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Surfaces
         ISurface Surface { get; }
     }
 
-    internal class SwSurface : SwObject, ISwSurface
+    internal abstract class SwSurface : SwObject, ISwSurface
     {
         public ISurface Surface { get; }
 
@@ -29,7 +29,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Surfaces
 
         private readonly IMathUtility m_MathUtils;
 
-        internal SwSurface(ISurface surface, ISwDocument doc, ISwApplication app) : base(surface, doc, app)
+        protected SwSurface(ISurface surface, ISwDocument doc, ISwApplication app) : base(surface, doc, app)
         {
             Surface = surface;
             m_MathUtils = app.Sw.IGetMathUtility();
