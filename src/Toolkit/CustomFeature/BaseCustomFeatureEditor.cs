@@ -23,6 +23,7 @@ using Xarial.XCad.Utils.Reflection;
 using Xarial.XCad.Toolkit;
 using Xarial.XCad.UI.PropertyPage.Delegates;
 using System.Collections.Generic;
+using Xarial.XCad.Exceptions;
 
 namespace Xarial.XCad.Utils.CustomFeature
 {
@@ -66,6 +67,8 @@ namespace Xarial.XCad.Utils.CustomFeature
         private readonly CustomFeatureParametersParser m_ParamsParser;
         private readonly Type m_DefType;
 
+        private readonly Lazy<IXCustomFeatureDefinition<TData, TPage>> m_DefinitionLazy;
+
         private TPage m_CurPageData;
         private TData m_CurData;
         private IXBody[] m_HiddenEditBodies;
@@ -73,8 +76,6 @@ namespace Xarial.XCad.Utils.CustomFeature
         private Exception m_LastError;
         private IXPropertyPage<TPage> m_PmPage;
         private IXBody[] m_PreviewBodies;
-
-        private IXCustomFeatureDefinition<TData, TPage> m_Definition;
 
         protected IXDocument CurModel { get; private set; }
 
@@ -100,6 +101,9 @@ namespace Xarial.XCad.Utils.CustomFeature
             m_DefType = featDefType;
             m_BodiesComparer = new XObjectEqualityComparer<IXBody>();
             m_ParamsParser = paramsParser;
+
+            m_DefinitionLazy = new Lazy<IXCustomFeatureDefinition<TData, TPage>>(
+                () => (IXCustomFeatureDefinition<TData, TPage>)CustomFeatureDefinitionInstanceCache.GetInstance(m_DefType));
         }
 
         protected void InitPage(CreateDynamicControlsDelegate createDynCtrlHandler)
@@ -111,8 +115,7 @@ namespace Xarial.XCad.Utils.CustomFeature
             m_PmPage.Closed += OnPageClosed;
         }
 
-        private IXCustomFeatureDefinition<TData, TPage> Definition 
-            => m_Definition ?? (m_Definition = (IXCustomFeatureDefinition<TData, TPage>)CustomFeatureDefinitionInstanceCache.GetInstance(m_DefType));
+        private IXCustomFeatureDefinition<TData, TPage> Definition => m_DefinitionLazy.Value;
 
         public void Edit(IXDocument model, IXCustomFeature<TData> feature)
         {
@@ -132,8 +135,9 @@ namespace Xarial.XCad.Utils.CustomFeature
 
                 UpdatePreview();
             }
-            catch
+            catch(Exception ex)
             {
+                m_Logger.Log(ex);
                 m_EditingFeature.Parameters = null;
             }
         }
@@ -143,6 +147,7 @@ namespace Xarial.XCad.Utils.CustomFeature
             m_IsPageActive = true;
 
             m_CurPageData = new TPage();
+            m_CurData = Definition.ConvertPageToParams(m_CurPageData);
 
             CurModel = model;
 
@@ -151,8 +156,6 @@ namespace Xarial.XCad.Utils.CustomFeature
             EditingStarted?.Invoke(m_App, model, null, null, m_CurPageData);
 
             m_PmPage.Show(m_CurPageData);
-
-            m_CurData = Definition.ConvertPageToParams(m_CurPageData);
 
             UpdatePreview();
         }
@@ -275,6 +278,16 @@ namespace Xarial.XCad.Utils.CustomFeature
         {
             m_IsPageActive = false;
             CompleteFeature(reason);
+
+            m_CurPageData = null;
+            m_CurData = null;
+            m_HiddenEditBodies = null;
+            m_EditingFeature = null;
+            m_LastError = null;
+            m_PmPage = null;
+            m_PreviewBodies = null;
+
+            CurModel = null;
         }
 
         private void ShowEditBodies()
@@ -297,13 +310,14 @@ namespace Xarial.XCad.Utils.CustomFeature
                 }
                 catch (Exception ex)
                 {
+                    m_Logger.Log(ex);
                     m_LastError = ex;
                 }
             }
 
             if (m_LastError != null)
             {
-                arg.ErrorMessage = m_LastError.Message;
+                arg.ErrorMessage = m_LastError is IUserException ? m_LastError.Message : "Unknown error. Please see log for more details";
                 arg.Cancel = true;
             }
             else 
@@ -344,6 +358,7 @@ namespace Xarial.XCad.Utils.CustomFeature
                 {
                     HidePreviewBodies();
                     ShowEditBodies();
+                    m_Logger.Log(ex);
                     m_LastError = ex;
                 }
             }

@@ -189,6 +189,11 @@ namespace Xarial.XCad.Utils.CustomFeature
                     out CustomFeatureParameter[] atts, out IXSelObject[] selection,
                     out CustomFeatureDimensionType_e[] dimTypes, out double[] dimValues, out IXBody[] editBodies)
         {
+            if (parameters == null) 
+            {
+                throw new ArgumentNullException(nameof(parameters));
+            }
+
             var paramAttsList = new List<CustomFeatureParameter>();
 
             var selectionList = new List<PropertyObject<IXSelObject>>();

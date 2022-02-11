@@ -35,6 +35,11 @@ namespace SwAddInExample
     public class BoxPage : SwPropertyManagerPageHandler
     {
         public BoxParameters Parameters { get; set; }
+
+        public BoxPage() 
+        {
+            Parameters = new BoxParameters();
+        }
     }
 
     public class BoxParameters : INotifyPropertyChanged
