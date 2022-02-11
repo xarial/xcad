@@ -67,6 +67,7 @@ namespace Xarial.XCad.Utils.CustomFeature
         private readonly CustomFeatureParametersParser m_ParamsParser;
         private readonly Type m_DefType;
 
+        private readonly IXPropertyPage<TPage> m_PmPage;
         private readonly Lazy<IXCustomFeatureDefinition<TData, TPage>> m_DefinitionLazy;
 
         private TPage m_CurPageData;
@@ -74,26 +75,16 @@ namespace Xarial.XCad.Utils.CustomFeature
         private IXBody[] m_HiddenEditBodies;
         private IXCustomFeature<TData> m_EditingFeature;
         private Exception m_LastError;
-        private IXPropertyPage<TPage> m_PmPage;
         private IXBody[] m_PreviewBodies;
 
         protected IXDocument CurModel { get; private set; }
-
+        
         private bool m_IsPageActive;
 
         public BaseCustomFeatureEditor(IXApplication app,
             Type featDefType,
             CustomFeatureParametersParser paramsParser,
-            IServiceProvider svcProvider, CreateDynamicControlsDelegate createDynCtrlHandler)
-            : this(app, featDefType, paramsParser, svcProvider)
-        {
-            InitPage(createDynCtrlHandler);
-        }
-
-        protected BaseCustomFeatureEditor(IXApplication app,
-            Type featDefType,
-            CustomFeatureParametersParser paramsParser,
-            IServiceProvider svcProvider)
+            IServiceProvider svcProvider, IXPropertyPage<TPage> page)
         {
             m_App = app;
             m_SvcProvider = svcProvider;
@@ -104,17 +95,14 @@ namespace Xarial.XCad.Utils.CustomFeature
 
             m_DefinitionLazy = new Lazy<IXCustomFeatureDefinition<TData, TPage>>(
                 () => (IXCustomFeatureDefinition<TData, TPage>)CustomFeatureDefinitionInstanceCache.GetInstance(m_DefType));
-        }
 
-        protected void InitPage(CreateDynamicControlsDelegate createDynCtrlHandler)
-        {
-            m_PmPage = CreatePage(createDynCtrlHandler);
+            m_PmPage = page;
 
             m_PmPage.Closing += OnPageClosing;
             m_PmPage.DataChanged += OnDataChanged;
             m_PmPage.Closed += OnPageClosed;
         }
-
+        
         private IXCustomFeatureDefinition<TData, TPage> Definition => m_DefinitionLazy.Value;
 
         public void Edit(IXDocument model, IXCustomFeature<TData> feature)
@@ -163,8 +151,6 @@ namespace Xarial.XCad.Utils.CustomFeature
         protected abstract void DisplayPreview(IXBody[] bodies);
 
         protected abstract void HidePreview(IXBody[] bodies);
-
-        protected abstract IXPropertyPage<TPage> CreatePage(CreateDynamicControlsDelegate createDynCtrlHandler);
 
         private void HideEditBodies()
         {
@@ -284,7 +270,6 @@ namespace Xarial.XCad.Utils.CustomFeature
             m_HiddenEditBodies = null;
             m_EditingFeature = null;
             m_LastError = null;
-            m_PmPage = null;
             m_PreviewBodies = null;
 
             CurModel = null;

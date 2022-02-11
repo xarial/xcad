@@ -29,18 +29,14 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
     {
         internal delegate void AssignPreviewBodyColorDelegate(IXBody body, out Color color);
 
-        private readonly SwPropertyManagerPageHandler m_Handler;
         private readonly AssignPreviewBodyColorDelegate m_AssignBodyColorFunc;
 
-        internal SwMacroFeatureEditor(ISwApplication app, Type defType, SwPropertyManagerPageHandler handler,
+        internal SwMacroFeatureEditor(ISwApplication app, Type defType,
             CustomFeatureParametersParser paramsParser, IServiceProvider svcProvider,
-            CreateDynamicControlsDelegate createDynCtrlHandler, AssignPreviewBodyColorDelegate assignPreviewBodyColorDelegateFunc) 
-            : base(app, defType, paramsParser, svcProvider)
+            SwPropertyManagerPage<TPage> page, AssignPreviewBodyColorDelegate assignPreviewBodyColorDelegateFunc) 
+            : base(app, defType, paramsParser, svcProvider, page)
         {
-            m_Handler = handler;
             m_AssignBodyColorFunc = assignPreviewBodyColorDelegateFunc;
-
-            InitPage(createDynCtrlHandler);
         }
 
         protected override void DisplayPreview(IXBody[] bodies)
@@ -86,12 +82,6 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
                     bodies[i] = null;
                 }
             }
-        }
-
-        protected override IXPropertyPage<TPage> CreatePage(CreateDynamicControlsDelegate createDynCtrlHandler)
-        {
-            //TODO: add support for other options
-            return new SwPropertyManagerPage<TPage>((ISwApplication)m_App, m_SvcProvider, m_Handler, createDynCtrlHandler);
         }
     }
 }

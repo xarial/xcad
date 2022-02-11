@@ -645,9 +645,11 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 
             m_Editor = new Lazy<SwMacroFeatureEditor<TParams, TPage>>(() => 
             {
+                var page = new SwPropertyManagerPage<TPage>(Application, m_SvcProvider, CreatePageHandler(), CreateDynamicControls);
+
                 var editor = new SwMacroFeatureEditor<TParams, TPage>(
-                    Application, this.GetType(), CreatePageHandler(),
-                    m_ParamsParser, m_SvcProvider, CreateDynamicControls, AssignPreviewBodyColor);
+                    Application, this.GetType(),
+                    m_ParamsParser, m_SvcProvider, page, AssignPreviewBodyColor);
 
                 editor.EditingStarted += OnEditingStarted;
                 editor.EditingCompleting += OnEditingCompleting;
