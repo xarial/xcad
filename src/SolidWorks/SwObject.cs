@@ -6,6 +6,7 @@
 //*********************************************************************
 
 using SolidWorks.Interop.sldworks;
+using SolidWorks.Interop.swconst;
 using System;
 using System.IO;
 using Xarial.XCad.Base;
@@ -90,7 +91,22 @@ namespace Xarial.XCad.SolidWorks
                     return false;
                 }
 
-                return Dispatch == (other as ISwObject).Dispatch;
+                if (Dispatch == (other as ISwObject).Dispatch)
+                {
+                    return true;
+                }
+                else
+                {
+                    //NOTE: calling IsSame on com disconnected objects may cause a crash
+                    if (this.IsAlive && other.IsAlive)
+                    {
+                        return OwnerApplication.Sw.IsSame(Dispatch, (other as ISwObject).Dispatch) == (int)swObjectEquality.swObjectSame;
+                    }
+                    else 
+                    {
+                        return false;
+                    }
+                }
             }
             else
             {
