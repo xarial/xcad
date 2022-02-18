@@ -49,7 +49,11 @@ namespace Xarial.XCad.Utils.PageBuilder.Core
 
         private void OnControlValueChanged(IControl sender, object newValue)
         {
-            SetDataModelValue(newValue);
+            if (!(sender is IGroup))
+            {
+                SetDataModelValue(newValue);
+            }
+
             ModelUpdated?.Invoke(this);
             RaiseChangedEvent();
         }

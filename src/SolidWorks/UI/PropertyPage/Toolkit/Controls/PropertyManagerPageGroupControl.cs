@@ -8,6 +8,7 @@
 using SolidWorks.Interop.sldworks;
 using System.ComponentModel;
 using Xarial.XCad.UI.PropertyPage.Base;
+using Xarial.XCad.Utils.PageBuilder.PageElements;
 
 namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 {
@@ -24,6 +25,8 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
     internal class PropertyManagerPageGroupControl : PropertyManagerPageGroupBase, IPropertyManagerPageGroupEx
     {
+        protected override event ControlValueChangedDelegate<object> ValueChanged;
+
         public IPropertyManagerPageGroup Group { get; private set; }
 
         /// <summary>
@@ -100,6 +103,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             if (id == Id) 
             {
                 m_ToggleMetadata.Value = val;
+                ValueChanged?.Invoke(this, val);
             }
         }
 

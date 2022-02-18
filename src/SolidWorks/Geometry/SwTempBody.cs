@@ -70,16 +70,6 @@ namespace Xarial.XCad.SolidWorks.Geometry
             m_TempBody = null;
         }
 
-        public override void Transform(TransformMatrix transform)
-        {
-            var mathTransform = (MathTransform)m_MathUtils.ToMathTransform(transform);
-
-            if (!Body.ApplyTransform(mathTransform))
-            {
-                throw new Exception("Failed to apply transform to the body");
-            }
-        }
-
         public override ISwBody CreateResilient()
             => throw new NotSupportedException("Only permanent bodies can be converter to resilient bodies");
     }

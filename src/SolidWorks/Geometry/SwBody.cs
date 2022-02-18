@@ -138,10 +138,13 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         private IBody2 m_Body;
 
-        internal SwBody(IBody2 body, ISwDocument doc, ISwApplication app) 
+        private readonly IMathUtility m_MathUtils;
+
+        internal SwBody(IBody2 body, ISwDocument doc, ISwApplication app)
             : base(body, doc, app ?? ((SwDocument)doc)?.OwnerApplication)
         {
             m_Body = body;
+            m_MathUtils = app.Sw.IGetMathUtility();
         }
 
         public override void Select(bool append)
@@ -187,8 +190,22 @@ namespace Xarial.XCad.SolidWorks.Geometry
         public IXBody Copy()
             => OwnerApplication.CreateObjectFromDispatch<SwTempBody>(Body.ICopy(), OwnerDocument);
 
-        public virtual void Transform(TransformMatrix transform)
-            => throw new NotSupportedException($"Only temp bodies are supported. Use {nameof(Copy)} method");
+        public void Transform(TransformMatrix transform)
+        {
+            var mathTransform = (MathTransform)m_MathUtils.ToMathTransform(transform);
+
+            if (!Body.ApplyTransform(mathTransform))
+            {
+                if (!Body.IsTemporaryBody())
+                {
+                    throw new NotSupportedException($"Only temp bodies or bodies within the context of macro feature regeneration are supported. Use {nameof(Copy)} method");
+                }
+                else 
+                {
+                    throw new Exception("Failed to apply transform to the body"); 
+                }
+            }
+        }
 
         public virtual ISwBody CreateResilient()
         {
