@@ -87,6 +87,8 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
         {
             if (m_IsCheckable) 
             {
+                Group.Checked = (bool)m_ToggleMetadata.Value;
+
                 if (m_Collapse)
                 {
                     Group.Expanded = false;
