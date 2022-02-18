@@ -46,8 +46,17 @@ namespace Xarial.XCad.SolidWorks
                 {
                     if (Dispatch != null)
                     {
-                        if (OwnerModelDoc.Extension.GetPersistReference3(Dispatch) != null)
+                        if (OwnerDocument != null)
                         {
+                            if (OwnerModelDoc.Extension.GetPersistReference3(Dispatch) != null)
+                            {
+                                return true;
+                            }
+                        }
+                        else 
+                        {
+                            //this is an assumption as memory object can stil be destroyed
+                            //TODO: find how to capture the object has been disconnected from its client exception
                             return true;
                         }
                     }
@@ -97,15 +106,7 @@ namespace Xarial.XCad.SolidWorks
                 }
                 else
                 {
-                    //NOTE: calling IsSame on com disconnected objects may cause a crash
-                    if (this.IsAlive && other.IsAlive)
-                    {
-                        return OwnerApplication.Sw.IsSame(Dispatch, (other as ISwObject).Dispatch) == (int)swObjectEquality.swObjectSame;
-                    }
-                    else 
-                    {
-                        return false;
-                    }
+                    return OwnerApplication.Sw.IsSame(Dispatch, (other as ISwObject).Dispatch) == (int)swObjectEquality.swObjectSame;
                 }
             }
             else
