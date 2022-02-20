@@ -54,6 +54,7 @@ namespace Xarial.XCad.SwDocumentManager
             => throw new NotSupportedException();
         public void ShowTooltip(ITooltipSpec spec)
             => throw new NotSupportedException();
+        public IXObjectTracker CreateObjectTracker(string name) => throw new NotSupportedException();
 
         #endregion
 

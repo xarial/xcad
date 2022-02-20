@@ -102,6 +102,13 @@ namespace Xarial.XCad
         IXProgress CreateProgress();
 
         /// <summary>
+        /// Creates an object tracker to track objects across operations
+        /// </summary>
+        /// <param name="name">Name of the tracker</param>
+        /// <returns>Tracker</returns>
+        IXObjectTracker CreateObjectTracker(string name);
+
+        /// <summary>
         /// Close current instance of the application
         /// </summary>
         void Close();

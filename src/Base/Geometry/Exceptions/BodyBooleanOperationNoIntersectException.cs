@@ -13,7 +13,7 @@ namespace Xarial.XCad.Geometry.Exceptions
         /// Default constructor
         /// </summary>
         public BodyBooleanOperationNoIntersectException() 
-            : base("Multiple bodies are created as the result of Add operation. This indicates that bodies do not intersect") 
+            : base("Multiple bodies are produced as the result of boolean operation. This indicates that bodies do not intersect") 
         {
         }
     }
