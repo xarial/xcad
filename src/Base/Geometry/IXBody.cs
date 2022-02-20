@@ -34,6 +34,7 @@ namespace Xarial.XCad.Geometry
         /// </summary>
         /// <param name="other">Other body</param>
         /// <returns>Resulting body</returns>
+        /// <exception cref="Exceptions.BodyBooleanOperationNoIntersectException"/>
         IXBody Add(IXBody other);
 
         /// <summary>
@@ -41,6 +42,7 @@ namespace Xarial.XCad.Geometry
         /// </summary>
         /// <param name="other">Body to substract</param>
         /// <returns>Resulting bodies</returns>
+        /// <exception cref="Exceptions.BodyBooleanOperationNoIntersectException"/>
         IXBody[] Substract(IXBody other);
 
         /// <summary>
@@ -48,6 +50,7 @@ namespace Xarial.XCad.Geometry
         /// </summary>
         /// <param name="other">Body to get common with</param>
         /// <returns>Resulting body</returns>
+        /// <exception cref="Exceptions.BodyBooleanOperationNoIntersectException"/>
         IXBody[] Common(IXBody other);
 
         /// <summary>

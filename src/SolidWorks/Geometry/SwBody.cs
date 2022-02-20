@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using Xarial.XCad.Geometry;
+using Xarial.XCad.Geometry.Exceptions;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Geometry.Wires;
 using Xarial.XCad.SolidWorks.Documents;
@@ -156,13 +157,37 @@ namespace Xarial.XCad.SolidWorks.Geometry
         }
 
         public ISwBody Add(ISwBody other)
-            => PerformOperation(other, swBodyOperationType_e.SWBODYADD).FirstOrDefault();
+        {
+            var res = PerformOperation(other, swBodyOperationType_e.SWBODYADD);
 
+            if (res.Length == 0) 
+            {
+                throw new Exception("No bodies are created as the result of this operation");
+            }
+
+            if (res.Length > 1) 
+            {
+                throw new BodyBooleanOperationNoIntersectException();
+            }
+
+            return res.First();
+        }
+
+        /// <remarks>Empty array can be returned if bodies are equal</remarks>
         public ISwBody[] Substract(ISwBody other)
             => PerformOperation(other, swBodyOperationType_e.SWBODYCUT);
 
-        public ISwBody[] Common(ISwBody other)=>
-            PerformOperation(other, swBodyOperationType_e.SWBODYINTERSECT);
+        public ISwBody[] Common(ISwBody other)
+        {
+            var res = PerformOperation(other, swBodyOperationType_e.SWBODYINTERSECT);
+
+            if (!res.Any()) 
+            {
+                throw new BodyBooleanOperationNoIntersectException();
+            }
+
+            return null;
+        }
 
         private ISwBody[] PerformOperation(ISwBody other, swBodyOperationType_e op)
         {
