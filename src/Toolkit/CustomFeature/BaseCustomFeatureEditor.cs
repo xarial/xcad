@@ -24,6 +24,7 @@ using Xarial.XCad.Toolkit;
 using Xarial.XCad.UI.PropertyPage.Delegates;
 using System.Collections.Generic;
 using Xarial.XCad.Exceptions;
+using Xarial.XCad.Toolkit.Utils;
 
 namespace Xarial.XCad.Utils.CustomFeature
 {
@@ -323,28 +324,31 @@ namespace Xarial.XCad.Utils.CustomFeature
         {
             if (m_IsPageActive)
             {
-                try
+                using (var viewFreezer = new ViewFreezer(CurModel))
                 {
-                    m_LastError = null;
-
-                    HidePreviewBodies();
-
-                    m_PreviewBodies = Definition.CreateGeometry(m_App, CurModel,
-                        m_CurData, true, out _);
-
-                    HideEditBodies();
-
-                    if (m_PreviewBodies != null)
+                    try
                     {
-                        DisplayPreview(m_PreviewBodies);
+                        m_LastError = null;
+
+                        HidePreviewBodies();
+
+                        m_PreviewBodies = Definition.CreateGeometry(m_App, CurModel,
+                            m_CurData, true, out _);
+
+                        HideEditBodies();
+
+                        if (m_PreviewBodies != null)
+                        {
+                            DisplayPreview(m_PreviewBodies);
+                        }
                     }
-                }
-                catch (Exception ex)
-                {
-                    HidePreviewBodies();
-                    ShowEditBodies();
-                    m_Logger.Log(ex);
-                    m_LastError = ex;
+                    catch (Exception ex)
+                    {
+                        HidePreviewBodies();
+                        ShowEditBodies();
+                        m_Logger.Log(ex);
+                        m_LastError = ex;
+                    }
                 }
             }
         }

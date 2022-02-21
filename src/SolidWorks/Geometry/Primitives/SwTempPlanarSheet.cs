@@ -93,7 +93,15 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
                     }
                 }
 
-                sheetBody = planarSurf.CreateTrimmedSheet4(boundary.ToArray(), true) as Body2;
+                if (m_App.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2017, 4))
+                {
+                    const double TOL = 1E-05;
+                    sheetBody = planarSurf.CreateTrimmedSheet5(boundary.ToArray(), true, TOL) as Body2;
+                }
+                else 
+                {
+                    sheetBody = planarSurf.CreateTrimmedSheet4(boundary.ToArray(), true) as Body2;
+                }
             }
 
             if (sheetBody == null)

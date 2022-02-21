@@ -24,7 +24,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
     {
         #region Not Supported
 
-        public IXModelViewRepository ModelViews => throw new NotSupportedException();
+        public new IXModelView3DRepository ModelViews => throw new NotSupportedException();
         public IXBoundingBox PreCreateBoundingBox() => throw new NotSupportedException();
         TSelObject IXObjectContainer.ConvertObject<TSelObject>(TSelObject obj) => throw new NotSupportedException();
         public IXMassProperty PreCreateMassProperty() => throw new NotSupportedException();

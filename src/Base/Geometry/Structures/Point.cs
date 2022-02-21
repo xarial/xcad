@@ -6,6 +6,7 @@
 //*********************************************************************
 
 using System;
+using Xarial.XCad.Utils;
 
 namespace Xarial.XCad.Geometry.Structures
 {
@@ -76,16 +77,17 @@ namespace Xarial.XCad.Geometry.Structures
         /// Compares two points coordinates by exact values
         /// </summary>
         /// <param name="pt">Point to compare</param>
+        /// <param name="tol">Comparison tolerance</param>
         /// <returns>Result of comparison</returns>
         /// <exception cref="ArgumentNullException"/>
-        public bool IsSame(Point pt)
+        public bool IsSame(Point pt, double tol = Numeric.DEFAULT_NUMERIC_TOLERANCE)
         {
             if (pt == null)
             {
                 throw new ArgumentNullException(nameof(pt));
             }
 
-            return IsSame(pt.X, pt.Y, pt.Z);
+            return IsSame(pt.X, pt.Y, pt.Z, tol);
         }
 
         /// <summary>
@@ -94,9 +96,10 @@ namespace Xarial.XCad.Geometry.Structures
         /// <param name="x">X coordinate</param>
         /// <param name="y">Y coordinate</param>
         /// <param name="z">Z coordinate</param>
+        /// <param name="tol">Comparison tolerance</param>
         /// <returns>True if coordinates are equal</returns>
-        public bool IsSame(double x, double y, double z)
-            => X == x && Y == y && Z == z;
+        public bool IsSame(double x, double y, double z, double tol = Numeric.DEFAULT_NUMERIC_TOLERANCE)
+            => Numeric.Compare(X, x, tol) && Numeric.Compare(Y, y, tol) && Numeric.Compare(Z, z, tol);
 
         /// <summary>
         /// Deducts one point of another resulting in vector

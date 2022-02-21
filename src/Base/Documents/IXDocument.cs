@@ -95,6 +95,11 @@ namespace Xarial.XCad.Documents
         DocumentState_e State { get; set; }
 
         /// <summary>
+        /// Returns views collection
+        /// </summary>
+        IXModelViewRepository ModelViews { get; }
+
+        /// <summary>
         /// Closes this document
         /// </summary>
         void Close();

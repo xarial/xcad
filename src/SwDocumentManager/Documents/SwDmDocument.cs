@@ -95,6 +95,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         public TObj DeserializeObject<TObj>(Stream stream) where TObj : IXObject => throw new NotSupportedException();
         public void Rebuild() => throw new NotSupportedException();
         public IXUnits Units => throw new NotSupportedException();
+        public IXModelViewRepository ModelViews => throw new NotSupportedException();
 
         #endregion
 
@@ -706,7 +707,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         }
 
         public ISwDmConfigurationCollection Configurations => throw new NotImplementedException();
-        public IXModelViewRepository ModelViews => throw new NotImplementedException();
+        public IXModelView3DRepository ModelViews => throw new NotImplementedException();
         IXConfigurationRepository IXDocument3D.Configurations => throw new NotImplementedException();
         public IXBoundingBox PreCreateBoundingBox() => throw new NotImplementedException();
         public IXMassProperty PreCreateMassProperty() => throw new NotImplementedException();

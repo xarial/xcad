@@ -6,6 +6,7 @@
 //*********************************************************************
 
 using System;
+using Xarial.XCad.Utils;
 
 namespace Xarial.XCad.Geometry.Structures
 {
@@ -50,26 +51,27 @@ namespace Xarial.XCad.Geometry.Structures
         /// Compares the vectors
         /// </summary>
         /// <param name="vec">Another vector</param>
-        /// <param name="normilize">Normalized vectors while comparison</param>
+        /// <param name="normalize">Normalized vectors while comparison</param>
+        /// <param name="tol">Comparison tolerance</param>
         /// <returns>True if vectors are the same</returns>
-        public bool IsSame(Vector vec, bool normilize = true)
+        public bool IsSame(Vector vec, bool normalize = true, double tol = Numeric.DEFAULT_NUMERIC_TOLERANCE)
         {
             if (vec == null)
             {
                 throw new ArgumentNullException(nameof(vec));
             }
 
-            if (normilize)
+            if (normalize)
             {
                 var thisNorm = this.Normalize();
                 var otherNorm = vec.Normalize();
 
-                return thisNorm.IsSame(otherNorm.X, otherNorm.Y, otherNorm.Z)
-                    || thisNorm.IsSame(-otherNorm.X, -otherNorm.Y, -otherNorm.Z);
+                return thisNorm.IsSame(otherNorm.X, otherNorm.Y, otherNorm.Z, tol)
+                    || thisNorm.IsSame(-otherNorm.X, -otherNorm.Y, -otherNorm.Z, tol);
             }
             else
             {
-                return IsSame(vec.X, vec.Y, vec.Z);
+                return IsSame(vec.X, vec.Y, vec.Z, tol);
             }
         }
 

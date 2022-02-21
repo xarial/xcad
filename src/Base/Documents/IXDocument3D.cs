@@ -29,9 +29,9 @@ namespace Xarial.XCad.Documents
         IXMassProperty PreCreateMassProperty();
 
         /// <summary>
-        /// Returns views collection
+        /// Returns 3D views collection
         /// </summary>
-        IXModelViewRepository ModelViews { get; }
+        new IXModelView3DRepository ModelViews { get; }
 
         /// <summary>
         /// Returns configurations of this document

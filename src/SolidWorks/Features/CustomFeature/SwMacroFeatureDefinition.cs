@@ -41,6 +41,7 @@ using Xarial.XCad.SolidWorks.UI.PropertyPage;
 using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.Toolkit;
 using Xarial.XCad.Toolkit.CustomFeature;
+using Xarial.XCad.Toolkit.Utils;
 using Xarial.XCad.UI;
 using Xarial.XCad.UI.PropertyPage.Base;
 using Xarial.XCad.UI.PropertyPage.Enums;
@@ -726,10 +727,13 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         public override CustomFeatureRebuildResult OnRebuild(ISwApplication app, ISwDocument model,
             ISwMacroFeature<TParams> feature, TParams parameters, out AlignDimensionDelegate<TParams> alignDim)
         {
-            return new CustomFeatureBodyRebuildResult()
+            using (var viewFreezer = new ViewFreezer(model))
             {
-                Bodies = CreateGeometry(app, model, parameters, false, out alignDim).ToArray()
-            };
+                return new CustomFeatureBodyRebuildResult()
+                {
+                    Bodies = CreateGeometry(app, model, parameters, false, out alignDim).ToArray()
+                };
+            }
         }
 
         /// <summary>

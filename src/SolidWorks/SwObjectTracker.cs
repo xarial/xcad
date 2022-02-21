@@ -215,7 +215,13 @@ namespace Xarial.XCad.SolidWorks
         {
             foreach (var trackedObj in m_TrackedObjects.ToArray())
             {
-                Untrack(trackedObj);
+                try
+                {
+                    Untrack(trackedObj);
+                }
+                catch 
+                {
+                }
             }
         }
     }

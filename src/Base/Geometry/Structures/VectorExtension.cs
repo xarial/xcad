@@ -8,6 +8,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Xarial.XCad.Utils;
 
 namespace Xarial.XCad.Geometry.Structures
 {
@@ -20,13 +21,14 @@ namespace Xarial.XCad.Geometry.Structures
         /// Creates perpendicular vector
         /// </summary>
         /// <param name="dir">Vector to base on</param>
+        /// <param name="tol">Tolerance</param>
         /// <returns></returns>
-        public static Vector CreateAnyPerpendicular(this Vector dir)
+        public static Vector CreateAnyPerpendicular(this Vector dir, double tol = Numeric.DEFAULT_ANGLE_TOLERANCE)
         {
             Vector refDir;
             var zVec = new Vector(0, 0, 1);
 
-            if (dir.IsSame(zVec))
+            if (dir.IsParallel(zVec, tol))
             {
                 refDir = new Vector(1, 0, 0);
             }
@@ -43,16 +45,15 @@ namespace Xarial.XCad.Geometry.Structures
         /// </summary>
         /// <param name="thisVec">First vector</param>
         /// <param name="otherVec">Other vector</param>
+        /// <param name="tol">Tolerance</param>
         /// <returns>Angle in radians</returns>
-        public static double GetAngle(this Vector thisVec, Vector otherVec)
+        public static double GetAngle(this Vector thisVec, Vector otherVec, double tol = Numeric.DEFAULT_NUMERIC_TOLERANCE)
         {
-            var TOL = 1E-12;
-
             var cosine = thisVec.Dot(otherVec) / (thisVec.GetLength() * otherVec.GetLength());
 
             if (cosine > 1)
             {
-                if (Math.Abs(cosine - 1) < TOL)
+                if (Math.Abs(cosine - 1) < tol)
                 {
                     cosine = 1;
                 }
@@ -63,7 +64,7 @@ namespace Xarial.XCad.Geometry.Structures
             }
             else if (cosine < -1)
             {
-                if (Math.Abs(cosine + 1) < TOL)
+                if (Math.Abs(cosine + 1) < tol)
                 {
                     cosine = -1;
                 }
@@ -74,6 +75,20 @@ namespace Xarial.XCad.Geometry.Structures
             }
 
             return Math.Acos(cosine);
+        }
+
+        /// <summary>
+        /// Checks if 2 vectors are parallel
+        /// </summary>
+        /// <param name="firstVec">First vector</param>
+        /// <param name="secondVec">Second vector</param>
+        /// <param name="tol">Angle tolerance</param>
+        /// <returns>True if vectors are parallel, False if not</returns>
+        public static bool IsParallel(this Vector firstVec, Vector secondVec, double tol = Numeric.DEFAULT_ANGLE_TOLERANCE)
+        {
+            var ang = firstVec.GetAngle(secondVec);
+
+            return Math.Abs(ang) < tol || Math.PI - Math.Abs(ang) < tol;
         }
     }
 }

@@ -53,7 +53,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         new IEnumerable<ISwDocument3D> Dependencies { get; }
         new TSwObj DeserializeObject<TSwObj>(Stream stream)
             where TSwObj : ISwObject;
-
+        
         TObj CreateObjectFromDispatch<TObj>(object disp)
             where TObj : ISwObject;
     }
@@ -162,6 +162,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         IXPropertyRepository IPropertiesOwner.Properties => Properties;
         IEnumerable<IXDocument3D> IXDocument.Dependencies => Dependencies;
         IXVersion IXDocument.Version => Version;
+        IXModelViewRepository IXDocument.ModelViews => ModelViews;
 
         TObj IXDocument.DeserializeObject<TObj>(Stream stream)
             => DeserializeBaseObject<TObj>(stream);
@@ -387,6 +388,8 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         private bool m_IsDisposed;
 
+        private readonly Lazy<ISwModelViewsCollection> m_ModelViewsLazy;
+
         internal SwDocument(IModelDoc2 model, ISwApplication app, IXLogger logger) 
             : this(model, app, logger, true)
         {
@@ -404,6 +407,8 @@ namespace Xarial.XCad.SolidWorks.Documents
             m_SelectionsLazy = new Lazy<ISwSelectionCollection>(() => new SwSelectionCollection(this, app));
             m_DimensionsLazy = new Lazy<ISwDimensionsCollection>(() => new SwFeatureManagerDimensionsCollection(this.Features, new Context(this)));
             m_PropertiesLazy = new Lazy<ISwCustomPropertiesCollection>(() => new SwFileCustomPropertiesCollection(this, app));
+
+            m_ModelViewsLazy = new Lazy<ISwModelViewsCollection>(() => new SwModelViewsCollection(this, app));
 
             Units = new SwUnits(this);
 
@@ -620,6 +625,8 @@ namespace Xarial.XCad.SolidWorks.Documents
         public int UpdateStamp => Model.GetUpdateStamp();
 
         public IXUnits Units { get; }
+
+        public virtual ISwModelViewsCollection ModelViews => m_ModelViewsLazy.Value;
 
         private SwVersion_e GetVersion(string[] versHistory)
         {
@@ -1333,12 +1340,12 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
         }
 
-        public IXModelViewRepository ModelViews => throw new NotImplementedException();
+        public IXModelView3DRepository ModelViews => throw new NotImplementedException();
         public IXConfigurationRepository Configurations => throw new NotImplementedException();
         ISwConfigurationCollection ISwDocument3D.Configurations => throw new NotImplementedException();
         IXConfigurationRepository IXDocument3D.Configurations => throw new NotImplementedException();
-        ISwModelViewsCollection ISwDocument3D.ModelViews => throw new NotImplementedException();
-        IXModelViewRepository IXDocument3D.ModelViews => throw new NotImplementedException();
+        ISwModelViews3DCollection ISwDocument3D.ModelViews => throw new NotImplementedException();
+        IXModelView3DRepository IXDocument3D.ModelViews => throw new NotImplementedException();
         public IXBoundingBox PreCreateBoundingBox() => throw new NotImplementedException();
         public IXMassProperty PreCreateMassProperty() => throw new NotImplementedException();
         TSelObject IXObjectContainer.ConvertObject<TSelObject>(TSelObject obj) => throw new NotImplementedException();

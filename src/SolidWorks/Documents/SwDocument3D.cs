@@ -21,7 +21,7 @@ namespace Xarial.XCad.SolidWorks.Documents
     public interface ISwDocument3D : ISwDocument, IXDocument3D
     {
         new ISwConfigurationCollection Configurations { get; }
-        new ISwModelViewsCollection ModelViews { get; }
+        new ISwModelViews3DCollection ModelViews { get; }
         new TSelObject ConvertObject<TSelObject>(TSelObject obj)
             where TSelObject : ISwSelObject;
     }
@@ -31,21 +31,23 @@ namespace Xarial.XCad.SolidWorks.Documents
         protected readonly IMathUtility m_MathUtils;
 
         IXConfigurationRepository IXDocument3D.Configurations => Configurations;
-        IXModelViewRepository IXDocument3D.ModelViews => ModelViews;
+        IXModelView3DRepository IXDocument3D.ModelViews => (IXModelView3DRepository)ModelViews;
+        public override ISwModelViewsCollection ModelViews => ((ISwDocument3D)this).ModelViews;
 
         internal SwDocument3D(IModelDoc2 model, ISwApplication app, IXLogger logger, bool isCreated) : base(model, app, logger, isCreated)
         {
             m_MathUtils = app.Sw.IGetMathUtility();
             m_Configurations = new Lazy<ISwConfigurationCollection>(CreateConfigurations);
-            m_ModelViews = new Lazy<ISwModelViewsCollection>(() => new SwModelViewsCollection(this, app));
+            m_ModelViewsLazy = new Lazy<ISwModelViews3DCollection>(() => new SwModelViews3DCollection(this, app));
         }
 
         private Lazy<ISwConfigurationCollection> m_Configurations;
-        private Lazy<ISwModelViewsCollection> m_ModelViews;
+        private Lazy<ISwModelViews3DCollection> m_ModelViewsLazy;
 
         public ISwConfigurationCollection Configurations => m_Configurations.Value;
-        public ISwModelViewsCollection ModelViews => m_ModelViews.Value;
 
+        ISwModelViews3DCollection ISwDocument3D.ModelViews => m_ModelViewsLazy.Value;
+        
         protected override void Dispose(bool disposing)
         {
             base.Dispose(disposing);

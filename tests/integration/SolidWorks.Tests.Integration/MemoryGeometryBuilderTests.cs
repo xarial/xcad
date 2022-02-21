@@ -238,11 +238,11 @@ namespace SolidWorks.Tests.Integration
             double[] normal;
             double[] circleParams;
 
-            using (var doc = NewDocument(Interop.swconst.swDocumentTypes_e.swDocPART))
+            using (var doc = NewDocument(swDocumentTypes_e.swDocPART))
             {
                 var arc = m_App.MemoryGeometryBuilder.WireBuilder.PreCreateCircle();
                 arc.Center = new Point(0.75, 0.5, 0.15);
-                arc.Axis = new Vector(Math.Round(1E-16d, 15), 0, 1);
+                arc.Axis = new Vector(1E-16d, 0, 1);
                 arc.Diameter = 2.5;
                 arc.Commit();
                 var face = m_App.MemoryGeometryBuilder.CreatePlanarSheet(
@@ -257,9 +257,9 @@ namespace SolidWorks.Tests.Integration
             Assert.AreEqual(true, isPlanar);
             Assert.AreEqual(true, isCircular);
             Assert.AreEqual(1, edgeCount);
-            Assert.That(0, Is.EqualTo(normal[0]).Within(0.001).Percent);
-            Assert.That(0, Is.EqualTo(normal[1]).Within(0.001).Percent);
-            Assert.That(1, Is.EqualTo(normal[2]).Within(0.001).Percent);
+            AssertCompareDoubles(0, normal[0]);
+            AssertCompareDoubles(0, normal[1]);
+            AssertCompareDoubles(1, normal[2]);
             Assert.That(0.75, Is.EqualTo(circleParams[0]).Within(0.001).Percent);
             Assert.That(0.5, Is.EqualTo(circleParams[1]).Within(0.001).Percent);
             Assert.That(0.15, Is.EqualTo(circleParams[2]).Within(0.001).Percent);
