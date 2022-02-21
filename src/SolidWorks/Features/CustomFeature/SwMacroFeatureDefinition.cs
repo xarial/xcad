@@ -726,15 +726,10 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 
         public override CustomFeatureRebuildResult OnRebuild(ISwApplication app, ISwDocument model,
             ISwMacroFeature<TParams> feature, TParams parameters, out AlignDimensionDelegate<TParams> alignDim)
-        {
-            using (var viewFreezer = new ViewFreezer(model))
+            => new CustomFeatureBodyRebuildResult()
             {
-                return new CustomFeatureBodyRebuildResult()
-                {
-                    Bodies = CreateGeometry(app, model, parameters, false, out alignDim).ToArray()
-                };
-            }
-        }
+                Bodies = CreateGeometry(app, model, parameters, false, out alignDim).ToArray()
+            };
 
         /// <summary>
         /// Called when macro feature is about to be edited before Property Manager Page is opened

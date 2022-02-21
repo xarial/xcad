@@ -123,7 +123,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
             m_CloseReason = (swPropertyManagerPageCloseReasons_e)Reason;
 
             var arg = new PageClosingArg();
-            
+
             try
             {
                 Closing?.Invoke(m_CloseReason, arg);
@@ -134,7 +134,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
                 arg.ErrorMessage = ex.Message;
             }
 
-            if (arg.Cancel)
+            if (m_CloseReason != swPropertyManagerPageCloseReasons_e.swPropertyManagerPageClose_Cancel && arg.Cancel)
             {
                 if (!string.IsNullOrEmpty(arg.ErrorTitle) || !string.IsNullOrEmpty(arg.ErrorMessage))
                 {
