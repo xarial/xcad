@@ -11,6 +11,9 @@ using System.Text;
 
 namespace Xarial.XCad.Geometry.Surfaces
 {
+    /// <summary>
+    /// Represents the extruded surface
+    /// </summary>
     public interface IXExtrudedSurface : IXSurface
     {
     }

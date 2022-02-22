@@ -51,5 +51,35 @@ namespace Base.Tests
             Assert.That(1.81832643281354, Is.EqualTo(vector1.Y).Within(0.00001).Percent);
             Assert.That(1.54511422473005, Is.EqualTo(vector1.Z).Within(0.00001).Percent);
         }
+
+        [Test]
+        public void CreateAnyPerpendicularTest() 
+        {
+            var v1 = new Vector(1, 0, 0);
+            var v2 = new Vector(0, 0, 1);
+            var v3 = new Vector(0, 0, -1);
+            var v4 = new Vector(1E-15, 1E-15, 1);
+
+            var r1 = v1.CreateAnyPerpendicular();
+            var r2 = v2.CreateAnyPerpendicular();
+            var r3 = v3.CreateAnyPerpendicular();
+            var r4 = v4.CreateAnyPerpendicular();
+
+            Assert.AreEqual(0, r1.X);
+            Assert.AreEqual(-1, r1.Y);
+            Assert.AreEqual(0, r1.Z);
+
+            Assert.AreEqual(1, r2.X);
+            Assert.AreEqual(0, r2.Y);
+            Assert.AreEqual(0, r2.Z);
+
+            Assert.AreEqual(1, r3.X);
+            Assert.AreEqual(0, r3.Y);
+            Assert.AreEqual(0, r3.Z);
+
+            Assert.AreEqual(1, r4.X);
+            Assert.AreEqual(0, r4.Y);
+            Assert.AreEqual(0, r4.Z);
+        }
     }
 }

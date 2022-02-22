@@ -19,14 +19,9 @@ namespace Xarial.XCad.Geometry.Surfaces
     public interface IXCylindricalSurface : IXSurface
     {
         /// <summary>
-        /// Origin of the cylindrical face
+        /// Axis of this cylindrical face
         /// </summary>
-        Point Origin { get; }
-
-        /// <summary>
-        /// Cylinder axis
-        /// </summary>
-        Vector Axis { get; }
+        Axis Axis { get; }
 
         /// <summary>
         /// Radius of cylindrical face

@@ -25,34 +25,20 @@ namespace Xarial.XCad.SolidWorks.Geometry.Surfaces
         {
         }
 
-        public Point Origin
+        public Axis Axis
         {
             get
             {
                 var cylParams = CylinderParams;
 
-                return new Point(cylParams[0], cylParams[1], cylParams[2]);
-            }
-        }
-
-        public Vector Axis
-        {
-            get
-            {
-                var cylParams = CylinderParams;
-
-                return new Vector(cylParams[3], cylParams[4], cylParams[5]);
+                return new Axis(
+                    new Point(cylParams[0], cylParams[1], cylParams[2]),
+                    new Vector(cylParams[3], cylParams[4], cylParams[5]));
             }
         }
 
         public double Radius => CylinderParams[6];
 
-        private double[] CylinderParams
-        {
-            get
-            {
-                return Surface.CylinderParams as double[];
-            }
-        }
+        private double[] CylinderParams => Surface.CylinderParams as double[];
     }
 }
