@@ -77,14 +77,49 @@ namespace Xarial.XCad.Features.CustomFeature
         void AlignDimension(IXDimension dim, Point[] pts, Vector dir, Vector extDir);
     }
 
+    /// <summary>
+    /// Represents custom feature with a built-in custom page editor
+    /// </summary>
+    /// <typeparam name="TParams">Parameters of this custom feature</typeparam>
+    /// <typeparam name="TPage">Page editor of this custom feature</typeparam>
     public interface IXCustomFeatureDefinition<TParams, TPage> : IXCustomFeatureDefinition<TParams>
         where TParams : class, new()
         where TPage : class, new()
     {
+        /// <summary>
+        /// Start insertion of this custom feature
+        /// </summary>
+        /// <param name="doc">Document where to insert this feature to</param>
         void Insert(IXDocument doc);
+
+        /// <summary>
+        /// Called when geometry of this feature needs to be regenerated
+        /// </summary>
+        /// <param name="app">Application</param>
+        /// <param name="doc">Current document</param>
+        /// <param name="data">Data of this custo feature</param>
+        /// <param name="isPreview">Is the geometry generated within the preview or regeneration</param>
+        /// <param name="alignDim">Function to align dimensions</param>
+        /// <returns>Geometry of this macro feature</returns>
         IXBody[] CreateGeometry(IXApplication app, IXDocument doc, TParams data,
             bool isPreview, out AlignDimensionDelegate<TParams> alignDim);
-        TPage ConvertParamsToPage(TParams par);
-        TParams ConvertPageToParams(TPage par);
+
+        /// <summary>
+        /// Converter between custom feature parameters and page editor
+        /// </summary>
+        /// <param name="app">Application</param>
+        /// <param name="doc">Current document</param>
+        /// <param name="par">Custom feature parameter</param>
+        /// <returns>Corresponding page</returns>
+        TPage ConvertParamsToPage(IXApplication app, IXDocument doc, TParams par);
+
+        /// <summary>
+        /// Converts from page to custom feature parameters
+        /// </summary>
+        /// <param name="app">Application</param>
+        /// <param name="doc">Current document</param>
+        /// <param name="page">Page data to convert to custom feature parameters</param>
+        /// <returns>Corresponding custom feature parameters</returns>
+        TParams ConvertPageToParams(IXApplication app, IXDocument doc, TPage page);
     }
 }

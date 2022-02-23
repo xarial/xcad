@@ -56,7 +56,7 @@ namespace SwAddInExample
                 var val = selBox.GetValue();
             }
         }
-
+        
         [SelectionBoxOptions(typeof(SampleSelectionFilter))]
         public List<IXFace> Faces { get; set; }
 
@@ -69,7 +69,9 @@ namespace SwAddInExample
             Width = 0.1;
             Height = 0.2;
             Length = 0.3;
+            Faces = null;
 
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Faces)));
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Width)));
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Height)));
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Length)));
@@ -88,7 +90,7 @@ namespace SwAddInExample
     [HandlePostRebuild]
     public class BoxMacroFeatureEditor : SwMacroFeatureDefinition<BoxMacroFeatureData, BoxPage>
     {
-        public override BoxMacroFeatureData ConvertPageToParams(BoxPage par)
+        public override BoxMacroFeatureData ConvertPageToParams(IXApplication app, IXDocument doc, BoxPage par)
             => new BoxMacroFeatureData()
             {
                 Height = par.Parameters.Height,
@@ -97,7 +99,7 @@ namespace SwAddInExample
                 Faces = par.Parameters.Faces
             };
 
-        public override BoxPage ConvertParamsToPage(BoxMacroFeatureData par)
+        public override BoxPage ConvertParamsToPage(IXApplication app, IXDocument doc, BoxMacroFeatureData par)
             => new BoxPage()
             {
                 Parameters = new BoxParameters()
@@ -125,13 +127,12 @@ namespace SwAddInExample
             => color = Color.FromArgb(100, Color.Yellow);
 
         public override void OnPostRebuild(ISwApplication app, ISwDocument model, ISwMacroFeature<BoxMacroFeatureData> feature, BoxMacroFeatureData parameters)
-        {
-            base.OnPostRebuild(app, model, feature, parameters);
-        }
+            => base.OnPostRebuild(app, model, feature, parameters);
 
         public override void OnFeatureInserted(IXApplication app, IXDocument doc, IXCustomFeature<BoxMacroFeatureData> feat, BoxMacroFeatureData data, BoxPage page)
         {
             page.Parameters.Reset();
+            doc.Selections.Clear();
         }
     }
 }

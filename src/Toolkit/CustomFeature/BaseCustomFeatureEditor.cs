@@ -117,7 +117,7 @@ namespace Xarial.XCad.Utils.CustomFeature
             {
                 m_CurData = m_EditingFeature.Parameters;
 
-                m_CurPageData = Definition.ConvertParamsToPage(m_CurData);
+                m_CurPageData = Definition.ConvertParamsToPage(m_App, model, m_CurData);
 
                 EditingStarted?.Invoke(m_App, model, feature, m_CurData, m_CurPageData);
                 m_PmPage.Show(m_CurPageData);
@@ -136,7 +136,7 @@ namespace Xarial.XCad.Utils.CustomFeature
             m_IsPageActive = true;
 
             m_CurPageData = new TPage();
-            m_CurData = Definition.ConvertPageToParams(m_CurPageData);
+            m_CurData = Definition.ConvertPageToParams(m_App, model, m_CurPageData);
 
             CurModel = model;
 
@@ -212,7 +212,7 @@ namespace Xarial.XCad.Utils.CustomFeature
         private void OnDataChanged()
         {
             var oldParams = m_CurData;
-            m_CurData = Definition.ConvertPageToParams(m_CurPageData);
+            m_CurData = Definition.ConvertPageToParams(m_App, CurModel, m_CurPageData);
 
             var needUpdatePreview = AreParametersChanged(oldParams, m_CurData);
 
@@ -312,7 +312,7 @@ namespace Xarial.XCad.Utils.CustomFeature
                 {
                     CompleteFeature(reason);
 
-                    m_CurData = Definition.ConvertPageToParams(m_CurPageData);
+                    m_CurData = Definition.ConvertPageToParams(m_App, CurModel, m_CurPageData);
 
                     //page stays open
                     UpdatePreview();

@@ -681,7 +681,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             }
         }
 
-        public virtual TParams ConvertPageToParams(TPage par)
+        public virtual TParams ConvertPageToParams(IXApplication app, IXDocument doc, TPage par)
         {
             if (typeof(TParams).IsAssignableFrom(typeof(TPage)))
             {
@@ -693,7 +693,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             }
         }
 
-        public virtual TPage ConvertParamsToPage(TParams par)
+        public virtual TPage ConvertParamsToPage(IXApplication app, IXDocument doc, TParams par)
         {
             if (typeof(TPage).IsAssignableFrom(typeof(TParams)))
             {

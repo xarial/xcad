@@ -21,6 +21,7 @@ using Xarial.XCad.UI.PropertyPage.Services;
 using Xarial.XCad.UI.PropertyPage.Structures;
 using Xarial.XCad.Utils.PageBuilder.PageElements;
 using Xarial.XCad.Extensions;
+using Xarial.XCad.Base;
 
 namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 {
@@ -41,16 +42,20 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
         private object m_CurValue;
 
+        private readonly IXLogger m_Logger;
+
         public PropertyManagerPageSelectionBoxControl(ISwApplication app, int id, object tag,
             IPropertyManagerPageSelectionbox selBox,
             SwPropertyManagerPageHandler handler, Type objType, ISelectionCustomFilter customFilter, bool defaultFocus,
-            IPropertyManagerPageLabel label, IMetadata[] metadata)
+            IPropertyManagerPageLabel label, IMetadata[] metadata, IXLogger logger)
             : base(selBox, id, tag, handler, label, metadata)
         {
             m_App = app;
             m_ObjType = objType;
             m_ElementType = SelectionBoxConstructorHelper.GetElementType(m_ObjType);
             m_CustomFilter = customFilter;
+
+            m_Logger = logger;
 
             m_DefaultFocus = defaultFocus;
 
@@ -241,11 +246,14 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
                 m_Handler.SuspendSelectionRaise(Id, true);
 
-                if (selMgr.DeSelect2(indicesToDeselect.ToArray(), -1) != SUCCESS)
+                foreach (var indToDeselect in indicesToDeselect.OrderByDescending(i => i))
                 {
-                    //TODO: add log
+                    if (selMgr.DeSelect2(indToDeselect, -1) != SUCCESS)
+                    {
+                        m_Logger.Log($"Failed to deselect item at index {indToDeselect} of selection box ({Id})", LoggerMessageSeverity_e.Error);
+                    }
                 }
-
+                
                 m_Handler.SuspendSelectionRaise(Id, false);
             }
 
@@ -253,7 +261,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             {
                 var selData = selMgr.CreateSelectData();
                 selData.Mark = SwSpecificControl.Mark;
-
+                
                 m_App.Sw.IActiveDoc2.Extension.MultiSelect2(disps.ToArray(), true, selData);
             }
 
