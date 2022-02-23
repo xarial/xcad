@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
 using Xarial.XCad.Exceptions;
+using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.UI.PropertyPage.Structures;
 
 namespace Xarial.XCad.SolidWorks.UI.PropertyPage
@@ -147,8 +148,10 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
                         "", "", 0, (int)swLinkString.swLinkStringNone, "", "");
                 }
 
-                const int S_FALSE = 1;
-                throw new COMException(arg.ErrorMessage, S_FALSE);
+                if (m_CloseReason == swPropertyManagerPageCloseReasons_e.swPropertyManagerPageClose_Okay)
+                {
+                    throw new COMException(arg.ErrorMessage, HResult.S_FALSE);
+                }
             }
         }
 

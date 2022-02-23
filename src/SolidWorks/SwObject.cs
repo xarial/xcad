@@ -133,6 +133,10 @@ namespace Xarial.XCad.SolidWorks
                     stream.Write(persRef, 0, persRef.Length);
                     return;
                 }
+                else 
+                {
+                    throw new ObjectSerializationException("Dispatch is null", -1);
+                }
             }
             else 
             {
