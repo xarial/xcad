@@ -26,7 +26,10 @@ using Xarial.XCad.SolidWorks.Features.CustomFeature.Attributes;
 using Xarial.XCad.SolidWorks.Geometry;
 using Xarial.XCad.SolidWorks.UI.PropertyPage;
 using Xarial.XCad.UI.PropertyPage.Attributes;
+using Xarial.XCad.UI.PropertyPage.Base;
 using Xarial.XCad.UI.PropertyPage.Enums;
+using Xarial.XCad.UI.PropertyPage.Services;
+using Xarial.XCad.UI.PropertyPage.Structures;
 
 namespace SwAddInExample
 {
@@ -46,6 +49,17 @@ namespace SwAddInExample
     {
         public event PropertyChangedEventHandler PropertyChanged;
 
+        public class SampleSelectionFilter : ISelectionCustomFilter
+        {
+            public void Filter(IControl selBox, IXSelObject selection, SelectionCustomFilterArguments args)
+            {
+                var val = selBox.GetValue();
+            }
+        }
+
+        [SelectionBoxOptions(typeof(SampleSelectionFilter))]
+        public List<IXFace> Faces { get; set; }
+
         public double Width { get; set; } = 0.1;
         public double Height { get; set; } = 0.2;
         public double Length { get; set; } = 0.3;
@@ -63,7 +77,8 @@ namespace SwAddInExample
     }
 
     public class BoxMacroFeatureData : SwPropertyManagerPageHandler
-    {
+    {   
+        public List<IXFace> Faces { get; set; }
         public double Width { get; set; }
         public double Height { get; set; }
         public double Length { get; set; }
@@ -78,7 +93,8 @@ namespace SwAddInExample
             {
                 Height = par.Parameters.Height,
                 Length = par.Parameters.Length,
-                Width = par.Parameters.Width
+                Width = par.Parameters.Width,
+                Faces = par.Parameters.Faces
             };
 
         public override BoxPage ConvertParamsToPage(BoxMacroFeatureData par)
@@ -89,6 +105,7 @@ namespace SwAddInExample
                     Height = par.Height,
                     Length = par.Length,
                     Width = par.Width,
+                    Faces = par.Faces
                 }
             };
 

@@ -20,6 +20,7 @@ using Xarial.XCad.UI.PropertyPage.Base;
 using Xarial.XCad.UI.PropertyPage.Services;
 using Xarial.XCad.UI.PropertyPage.Structures;
 using Xarial.XCad.Utils.PageBuilder.PageElements;
+using Xarial.XCad.Extensions;
 
 namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 {
@@ -34,6 +35,11 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
         private readonly ISelectionCustomFilter m_CustomFilter;
 
         private readonly bool m_DefaultFocus;
+        private bool m_HasMissingItems;
+
+        private bool m_IsPageActive;
+
+        private object m_CurValue;
 
         public PropertyManagerPageSelectionBoxControl(ISwApplication app, int id, object tag,
             IPropertyManagerPageSelectionbox selBox,
@@ -50,16 +56,16 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
             m_Handler.SelectionChanged += OnSelectionChanged;
 
-            if (m_DefaultFocus)
-            {
-                m_Handler.Opened += OnPageOpened;
-            }
+            m_Handler.Opened += OnPageOpened;
+            m_Handler.Closed += OnPageClosed;
 
             m_Handler.SubmitSelection += OnSubmitSelection;
         }
 
         private void OnPageOpened()
         {
+            m_IsPageActive = true;
+
             if (m_DefaultFocus) 
             {
                 if (Visible)
@@ -67,6 +73,17 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
                     SwSpecificControl.SetSelectionFocus();
                 }
             }
+
+            if (m_HasMissingItems) 
+            {
+                m_HasMissingItems = false;
+                ProcessMissingItems();
+            }
+        }
+
+        private void OnPageClosed(swPropertyManagerPageCloseReasons_e reason)
+        {
+            m_IsPageActive = false;
         }
 
         internal IPropertyManagerPageSelectionbox SelectionBox => SwSpecificControl;
@@ -77,32 +94,39 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
         {
             if (id == this.Id)
             {
-                var selObj = ToSelObject(selection);
-
-                if (m_ElementType.IsAssignableFrom(selObj.GetType()))
+                if (m_IsPageActive)
                 {
-                    if (m_CustomFilter != null)
+                    var selObj = ToSelObject(selection);
+
+                    if (m_ElementType.IsAssignableFrom(selObj.GetType()))
                     {
-                        var args = new SelectionCustomFilterArguments()
+                        if (m_CustomFilter != null)
                         {
-                            ItemText = itemText,
-                            Filter = res
-                        };
+                            var args = new SelectionCustomFilterArguments()
+                            {
+                                ItemText = itemText,
+                                Filter = res
+                            };
 
-                        m_CustomFilter.Filter(this, selObj, args);
+                            m_CustomFilter.Filter(this, selObj, args);
 
-                        res = args.Filter;
-                        itemText = args.ItemText;
+                            res = args.Filter;
+                            itemText = args.ItemText;
 
-                        if (!res && !string.IsNullOrEmpty(args.Reason)) 
-                        {
-                            SwControl.ShowBubbleTooltip("", args.Reason, "");
+                            if (!res && !string.IsNullOrEmpty(args.Reason))
+                            {
+                                SwControl.ShowBubbleTooltip("", args.Reason, "");
+                            }
                         }
                     }
+                    else
+                    {
+                        res = false;
+                    }
                 }
-                else 
+                else
                 {
-                    res = false;
+                    res = true;
                 }
             }
         }
@@ -111,11 +135,20 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
         {
             if (Id == id)
             {
+                m_CurValue = ResolveCurrentValue();
                 ValueChanged?.Invoke(this, GetSpecificValue());
             }
         }
 
-        protected override object GetSpecificValue()
+        protected override object GetSpecificValue() => m_CurValue;
+
+        /// <summary>
+        /// Resolves the current values based on the selection
+        /// </summary>
+        /// <returns>List of objects or selection object</returns>
+        /// <remarks>This methdo is called when selection is changed. The value is cached because ItemCount is 0 within the SubmitSelection notification
+        /// which is causing the issue in the custom selection filter as the value returned is empty</remarks>
+        private object ResolveCurrentValue()
         {
             var selMgr = m_App.Sw.IActiveDoc2.ISelectionManager;
 
@@ -151,6 +184,10 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
         protected override void SetSpecificValue(object value)
         {
+            m_CurValue = value;
+
+            m_HasMissingItems = false;
+
             SwSpecificControl.SetSelectionFocus();
 
             var disps = new List<DispatchWrapper>();
@@ -161,7 +198,14 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
                 {
                     foreach (SwSelObject item in value as IList)
                     {
-                        disps.Add(new DispatchWrapper(item.Dispatch));
+                        if (item != null)
+                        {
+                            disps.Add(new DispatchWrapper(item.Dispatch));
+                        }
+                        else
+                        {
+                            m_HasMissingItems = true;
+                        }
                     }
                 }
                 else
@@ -185,7 +229,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
                 {
                     indicesToDeselect.Add(selIndex);
                 }
-                else 
+                else
                 {
                     disps.RemoveAt(objIndex);
                 }
@@ -196,7 +240,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
                 int SUCCESS = 1;
 
                 m_Handler.SuspendSelectionRaise(Id, true);
-                
+
                 if (selMgr.DeSelect2(indicesToDeselect.ToArray(), -1) != SUCCESS)
                 {
                     //TODO: add log
@@ -212,15 +256,28 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
                 m_App.Sw.IActiveDoc2.Extension.MultiSelect2(disps.ToArray(), true, selData);
             }
+
+            if (m_HasMissingItems)
+            {
+                ProcessMissingItems();
+            }
+        }
+
+        private void ProcessMissingItems()
+        {
+            if (m_IsPageActive)//tooltip is not visible until page is opened
+            {
+                ShowTooltip("Missing Items", "Some of the items were missing and excluded from the selection box");
+                m_HasMissingItems = false;
+
+                m_CurValue = ResolveCurrentValue();
+
+                ValueChanged?.Invoke(this, GetSpecificValue());
+            }
         }
 
         private bool SupportsMultiEntities
-        {
-            get
-            {
-                return typeof(IList).IsAssignableFrom(m_ObjType);
-            }
-        }
+            => typeof(IList).IsAssignableFrom(m_ObjType);
 
         protected override void Dispose(bool disposing)
         {
