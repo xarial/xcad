@@ -54,6 +54,10 @@ namespace Toolkit.Tests
             public override void ShowTooltip(string title, string msg)
             {
             }
+
+            public override void Focus()
+            {
+            }
         }
 
         public class GroupMock : Group

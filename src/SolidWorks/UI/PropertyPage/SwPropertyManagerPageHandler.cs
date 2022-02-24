@@ -26,9 +26,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
     public abstract class SwPropertyManagerPageHandler : IPropertyManagerPage2Handler9
     {
         internal delegate void SubmitSelectionDelegate(int id, object selection, int selType, ref string itemText, ref bool res);
-
         internal delegate void PropertyManagerPageClosingDelegate(swPropertyManagerPageCloseReasons_e reason, PageClosingArg arg);
-
         internal delegate void PropertyManagerPageClosedDelegate(swPropertyManagerPageCloseReasons_e reason);
 
         internal event Action Opening;
@@ -53,6 +51,8 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
 
         /// <inheritdoc/>
         internal event PropertyManagerPageClosedDelegate Closed;
+
+        internal event Action Applied;
 
         private swPropertyManagerPageCloseReasons_e m_CloseReason;
 
@@ -152,6 +152,10 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
                 {
                     throw new COMException(arg.ErrorMessage, HResult.S_FALSE);
                 }
+            }
+            else if (m_CloseReason == swPropertyManagerPageCloseReasons_e.swPropertyManagerPageClose_Apply && !arg.Cancel)
+            {
+                Applied?.Invoke();
             }
         }
 

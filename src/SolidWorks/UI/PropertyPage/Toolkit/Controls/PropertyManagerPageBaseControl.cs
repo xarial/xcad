@@ -27,7 +27,9 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
         : Control<TVal>, IPropertyManagerPageControlEx
         where TSwControl : class
     {
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Code Quality", "IDE0052:Remove unread private members", Justification = "Need to keep control alive to avoid GC")]
         private readonly IPropertyManagerPageLabel m_Label;
+
         protected readonly SwPropertyManagerPageHandler m_Handler;
 
         protected PropertyManagerPageBaseControl(TSwControl ctrl, int id, object tag,
@@ -82,6 +84,11 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
                         $"Failed to cast {typeof(TSwControl).FullName} to {typeof(IPropertyManagerPageControl).FullName}");
                 }
             }
+        }
+
+        public override void Focus()
+        {
+            //TODO: implement focusing via IPropertyManagerPage2::SetFocus
         }
     }
 }

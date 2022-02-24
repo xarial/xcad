@@ -66,7 +66,7 @@ namespace Xarial.XCad.UI.PropertyPage.Attributes
         public Type CustomFilter { get; set; }
 
         /// <summary>
-        /// Sets teh current selection box as default focus
+        /// Sets the current selection box as default focus
         /// </summary>
         public bool Focused { get; set; }
 

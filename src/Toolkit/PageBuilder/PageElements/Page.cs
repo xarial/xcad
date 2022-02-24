@@ -26,5 +26,9 @@ namespace Xarial.XCad.Utils.PageBuilder.PageElements
                 return m_Binding ?? (m_Binding = new BindingManager());
             }
         }
+
+        public override void Focus()
+        {
+        }
     }
 }

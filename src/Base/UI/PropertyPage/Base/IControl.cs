@@ -74,5 +74,10 @@ namespace Xarial.XCad.UI.PropertyPage.Base
         /// Updated this control
         /// </summary>
         void Update();
+
+        /// <summary>
+        /// Sets the focus to the current control
+        /// </summary>
+        void Focus();
     }
 }

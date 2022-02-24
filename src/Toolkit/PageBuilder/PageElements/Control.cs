@@ -67,6 +67,8 @@ namespace Xarial.XCad.Utils.PageBuilder.PageElements
 
         public abstract void ShowTooltip(string title, string msg);
 
+        public abstract void Focus();
+
         protected virtual void Dispose(bool disposing)
         {
         }

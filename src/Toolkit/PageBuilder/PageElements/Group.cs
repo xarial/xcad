@@ -34,5 +34,9 @@ namespace Xarial.XCad.Utils.PageBuilder.PageElements
         protected Group(int id, object tag, IMetadata[] metadata) : base(id, tag, metadata)
         {
         }
+
+        public override void Focus()
+        {
+        }
     }
 }

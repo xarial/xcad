@@ -63,35 +63,20 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
             m_Handler.Opened += OnPageOpened;
             m_Handler.Closed += OnPageClosed;
+            m_Handler.Applied += OnPageApplied;
 
             m_Handler.SubmitSelection += OnSubmitSelection;
         }
 
-        private void OnPageOpened()
-        {
-            m_IsPageActive = true;
-
-            if (m_DefaultFocus) 
-            {
-                if (Visible)
-                {
-                    SwSpecificControl.SetSelectionFocus();
-                }
-            }
-
-            if (m_HasMissingItems) 
-            {
-                m_HasMissingItems = false;
-                ProcessMissingItems();
-            }
-        }
-
-        private void OnPageClosed(swPropertyManagerPageCloseReasons_e reason)
-        {
-            m_IsPageActive = false;
-        }
-
         internal IPropertyManagerPageSelectionbox SelectionBox => SwSpecificControl;
+
+        public override void Focus()
+        {
+            if (Visible)
+            {
+                SwSpecificControl.SetSelectionFocus();
+            }
+        }
 
         private SwSelObject ToSelObject(object disp) => m_App.Documents.Active.CreateObjectFromDispatch<SwSelObject>(disp);
 
@@ -286,6 +271,35 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
         private bool SupportsMultiEntities
             => typeof(IList).IsAssignableFrom(m_ObjType);
+
+        private void OnPageOpened()
+        {
+            m_IsPageActive = true;
+
+            if (m_DefaultFocus)
+            {
+                Focus();
+            }
+
+            if (m_HasMissingItems)
+            {
+                m_HasMissingItems = false;
+                ProcessMissingItems();
+            }
+        }
+
+        private void OnPageApplied()
+        {
+            if (m_DefaultFocus)
+            {
+                Focus();
+            }
+        }
+
+        private void OnPageClosed(swPropertyManagerPageCloseReasons_e reason)
+        {
+            m_IsPageActive = false;
+        }
 
         protected override void Dispose(bool disposing)
         {
