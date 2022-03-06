@@ -133,11 +133,17 @@ namespace Xarial.XCad.SolidWorks.Geometry.Curves
             GetEndPoints(out Point start, out Point end);
 
             var arc = m_Modeler.CreateArc(Center.ToArray(), Axis.ToArray(), Diameter / 2, start.ToArray(), end.ToArray()) as ICurve;
+
+            if (arc == null) 
+            {
+                throw new Exception("Failed to create arc");
+            }
+
             arc = arc.CreateTrimmedCurve2(start.X, start.Y, start.Z, end.X, end.Y, end.Z);
 
             if (arc == null) 
             {
-                throw new NullReferenceException("Failed to create arc");
+                throw new NullReferenceException("Failed to trim arc");
             }
 
             return new ICurve[] { arc };

@@ -186,7 +186,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
                 throw new BodyBooleanOperationNoIntersectException();
             }
 
-            return null;
+            return res;
         }
 
         private ISwBody[] PerformOperation(ISwBody other, swBodyOperationType_e op)
