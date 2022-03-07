@@ -120,6 +120,7 @@ namespace Xarial.XCad.Utils.CustomFeature
                 m_CurPageData = Definition.ConvertParamsToPage(m_App, model, m_CurData);
 
                 EditingStarted?.Invoke(m_App, model, feature, m_CurData, m_CurPageData);
+
                 m_PmPage.Show(m_CurPageData);
 
                 UpdatePreview();
@@ -136,13 +137,14 @@ namespace Xarial.XCad.Utils.CustomFeature
             m_IsPageActive = true;
 
             m_CurPageData = new TPage();
-            m_CurData = Definition.ConvertPageToParams(m_App, model, m_CurPageData);
-
+            
             CurModel = model;
 
             m_EditingFeature = null;
 
             EditingStarted?.Invoke(m_App, model, null, null, m_CurPageData);
+
+            m_CurData = Definition.ConvertPageToParams(m_App, model, m_CurPageData);
 
             m_PmPage.Show(m_CurPageData);
 

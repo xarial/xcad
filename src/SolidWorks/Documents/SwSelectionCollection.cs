@@ -161,7 +161,11 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public bool MoveNext()
         {
-            m_CurSelIndex++;
+            do
+            {
+                m_CurSelIndex++;
+            } while (m_SelMgr.GetSelectedObjectType3(m_CurSelIndex, -1) == (int)swSelectType_e.swSelSELECTIONSETNODE);//selection node returns null as the object
+
             return m_SelMgr.GetSelectedObjectCount2(-1) >= m_CurSelIndex;
         }
 
