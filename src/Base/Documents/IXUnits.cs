@@ -253,7 +253,7 @@ namespace Xarial.XCad.Documents
         /// <param name="userValue">User value</param>
         /// <returns>Equivalent system value of length (meters)</returns>
         public static double ConvertLengthToSystemValue(this IXUnits unit, double userValue)
-            => unit.GetLengthConversionFactor() / userValue;
+            => userValue / unit.GetLengthConversionFactor();
 
         /// <summary>
         /// Converts the length value from the system units (meters) to user units
@@ -262,7 +262,7 @@ namespace Xarial.XCad.Documents
         /// <param name="systemValue">System value of length (meters)</param>
         /// <returns>Equivalent user value</returns>
         public static double ConvertLengthToUserValue(this IXUnits unit, double systemValue)
-            => unit.GetLengthConversionFactor() * systemValue;
+            => systemValue * unit.GetLengthConversionFactor();
 
         /// <summary>
         /// Converts the mass value from the user unit to system units (kilograms)
@@ -271,7 +271,7 @@ namespace Xarial.XCad.Documents
         /// <param name="userValue">User value</param>
         /// <returns>Equivalent system value of mass (kilograms)</returns>
         public static double ConvertMassToSystemValue(this IXUnits unit, double userValue)
-            => unit.GetMassConversionFactor() / userValue;
+            => userValue / unit.GetMassConversionFactor();
 
         /// <summary>
         /// Converts the mass value from the system units (kilograms) to user units
@@ -280,7 +280,7 @@ namespace Xarial.XCad.Documents
         /// <param name="systemValue">System value of mass (kilograms)</param>
         /// <returns>Equivalent user value</returns>
         public static double ConvertMassToUserValue(this IXUnits unit, double systemValue)
-            => unit.GetMassConversionFactor() * systemValue;
+            => systemValue * unit.GetMassConversionFactor();
 
         /// <summary>
         /// Converts the angle value from the user unit to system units (radians)
@@ -289,7 +289,7 @@ namespace Xarial.XCad.Documents
         /// <param name="userValue">User value</param>
         /// <returns>Equivalent system value of angle (radians)</returns>
         public static double ConvertAngleToSystemValue(this IXUnits unit, double userValue)
-            => unit.GetAngleConversionFactor() / userValue;
+            => userValue / unit.GetAngleConversionFactor();
 
         /// <summary>
         /// Converts the angle value from the system units (radians) to user units
@@ -298,7 +298,7 @@ namespace Xarial.XCad.Documents
         /// <param name="systemValue">System value of angle (radians)</param>
         /// <returns>Equivalent user value</returns>
         public static double ConvertAngleToUserValue(this IXUnits unit, double systemValue)
-            => unit.GetAngleConversionFactor() * systemValue;
+            => systemValue * unit.GetAngleConversionFactor();
 
         /// <summary>
         /// Converts the time value from the user unit to system units (seconds)
@@ -307,7 +307,7 @@ namespace Xarial.XCad.Documents
         /// <param name="userValue">User value</param>
         /// <returns>Equivalent system value of time (seconds)</returns>
         public static double ConvertTimeToSystemValue(this IXUnits unit, double userValue)
-            => unit.GetTimeConversionFactor() / userValue;
+            => userValue / unit.GetTimeConversionFactor();
 
         /// <summary>
         /// Converts the time value from the system units (seconds) to user units
@@ -316,6 +316,6 @@ namespace Xarial.XCad.Documents
         /// <param name="systemValue">System value of time (seconds)</param>
         /// <returns>Equivalent user value</returns>
         public static double ConvertTimeToUserValue(this IXUnits unit, double systemValue)
-            => unit.GetTimeConversionFactor() * systemValue;
+            => systemValue * unit.GetTimeConversionFactor();
     }
 }
