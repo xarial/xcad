@@ -50,4 +50,31 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             m_Host.Dispose();
         }
     }
+
+    internal class WpfCustomControlWrapper : IXCustomControl, IDisposable
+    {
+        public event CustomControlValueChangedDelegate ValueChanged;
+
+        private readonly IXCustomControl m_CustomWpfControl;
+
+        private readonly WpfControlKeystrokePropagator m_KeystrokePropagator;
+
+        internal WpfCustomControlWrapper(IXCustomControl customWpfControl)
+        {
+            m_CustomWpfControl = customWpfControl;
+            m_CustomWpfControl.ValueChanged += ValueChanged;
+            m_KeystrokePropagator = new WpfControlKeystrokePropagator((FrameworkElement)customWpfControl);
+        }
+
+        public object Value
+        {
+            get => m_CustomWpfControl.Value;
+            set => m_CustomWpfControl.Value = value;
+        }
+        
+        public void Dispose()
+        {
+            m_KeystrokePropagator.Dispose();
+        }
+    }
 }

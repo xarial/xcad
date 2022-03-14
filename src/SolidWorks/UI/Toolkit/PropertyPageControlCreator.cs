@@ -34,7 +34,14 @@ namespace Xarial.XCad.SolidWorks.UI.Toolkit
             {
                 if (ctrl is IXCustomControl)
                 {
-                    return (IXCustomControl)ctrl;
+                    if (ctrl is System.Windows.FrameworkElement)
+                    {
+                        return new WpfCustomControlWrapper((IXCustomControl)ctrl);
+                    }
+                    else
+                    {
+                        return (IXCustomControl)ctrl;
+                    }
                 }
                 else
                 {
