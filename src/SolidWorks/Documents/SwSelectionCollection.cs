@@ -17,6 +17,7 @@ using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Delegates;
 using Xarial.XCad.SolidWorks.Documents.EventHandlers;
 using Xarial.XCad.SolidWorks.Utils;
+using Xarial.XCad.UI;
 
 namespace Xarial.XCad.SolidWorks.Documents
 {
@@ -138,6 +139,11 @@ namespace Xarial.XCad.SolidWorks.Documents
         public bool TryGet(string name, out IXSelObject ent)
         {
             throw new NotSupportedException();
+        }
+
+        public IXSelCallout PreCreateCallout()
+        {
+            throw new NotImplementedException();
         }
     }
 

@@ -120,6 +120,10 @@ namespace Xarial.XCad.SolidWorks
                             return new SwCoordinateSystem(feat, doc, app, true);
                         case "RefPlane":
                             return new SwPlane(feat, doc, app, true);
+                        case "SketchBlockInst":
+                            return new SwSketchBlockInstance(feat, doc, app, true);
+                        case "SketchBlockDef":
+                            return new SwSketchBlockDefinition(feat, doc, app, true);
                         case "MacroFeature":
                             if (TryGetParameterType(feat, out Type paramType))
                             {
@@ -349,6 +353,12 @@ namespace Xarial.XCad.SolidWorks
 
                 case IModelView modelView:
                     return new SwModelView(modelView, doc, app);
+
+                case ISketchBlockInstance skBlockInst:
+                    return new SwSketchBlockInstance((IFeature)skBlockInst, doc, app, true);
+
+                case ISketchBlockDefinition skBlockDef:
+                    return new SwSketchBlockDefinition((IFeature)skBlockDef, doc, app, true);
 
                 default:
                     return defaultHandler.Invoke(disp);

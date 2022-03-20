@@ -28,6 +28,7 @@ using Xarial.XCad.Services;
 using Xarial.XCad.SolidWorks.Data;
 using Xarial.XCad.SwDocumentManager.Data;
 using Xarial.XCad.Toolkit.Data;
+using Xarial.XCad.UI;
 
 namespace Xarial.XCad.SwDocumentManager.Documents
 {
@@ -706,11 +707,12 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         {
         }
 
-        public ISwDmConfigurationCollection Configurations => throw new NotImplementedException();
-        public IXModelView3DRepository ModelViews => throw new NotImplementedException();
-        IXConfigurationRepository IXDocument3D.Configurations => throw new NotImplementedException();
-        public IXBoundingBox PreCreateBoundingBox() => throw new NotImplementedException();
-        public IXMassProperty PreCreateMassProperty() => throw new NotImplementedException();
-        TSelObject IXObjectContainer.ConvertObject<TSelObject>(TSelObject obj) => throw new NotImplementedException();
+        public ISwDmConfigurationCollection Configurations => throw new NotSupportedException();
+        public IXModelView3DRepository ModelViews => throw new NotSupportedException();
+        IXConfigurationRepository IXDocument3D.Configurations => throw new NotSupportedException();
+        public IXBoundingBox PreCreateBoundingBox() => throw new NotSupportedException();
+        public IXCallout PreCreateCallout() => throw new NotSupportedException();
+        public IXMassProperty PreCreateMassProperty() => throw new NotSupportedException();
+        TSelObject IXObjectContainer.ConvertObject<TSelObject>(TSelObject obj) => throw new NotSupportedException();
     }
 }

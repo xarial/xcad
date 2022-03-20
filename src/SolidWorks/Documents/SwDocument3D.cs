@@ -14,6 +14,7 @@ using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.SolidWorks.Geometry;
 using Xarial.XCad.SolidWorks.Utils;
+using Xarial.XCad.UI;
 using Xarial.XCad.Utils.Diagnostics;
 
 namespace Xarial.XCad.SolidWorks.Documents
@@ -105,6 +106,11 @@ namespace Xarial.XCad.SolidWorks.Documents
             {
                 return new SwLegacyMassProperty(this, m_MathUtils);
             }
+        }
+
+        public IXCallout PreCreateCallout()
+        {
+            throw new NotImplementedException();
         }
     }
 }

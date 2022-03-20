@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Text;
 using Xarial.XCad.Base;
 using Xarial.XCad.Documents.Delegates;
+using Xarial.XCad.UI;
 
 namespace Xarial.XCad.Documents
 {
@@ -32,5 +33,11 @@ namespace Xarial.XCad.Documents
         /// Clears all current selections
         /// </summary>
         void Clear();
+
+        /// <summary>
+        /// Pre-creates selection callout instance
+        /// </summary>
+        /// <returns>Instance of the selection callout</returns>
+        IXSelCallout PreCreateCallout();
     }
 }
