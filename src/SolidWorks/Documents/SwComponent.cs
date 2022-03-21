@@ -328,9 +328,9 @@ namespace Xarial.XCad.SolidWorks.Documents
             set => Component.Transform2 = (MathTransform)m_MathUtils.ToMathTransform(value);
         }
 
-        public override void Select(bool append)
+        internal override void Select(bool append, ISelectData selData)
         {
-            if(!Component.Select4(append, null, false)) 
+            if(!Component.Select4(append, (SelectData)selData, false)) 
             {
                 throw new Exception("Failed to select component");
             }

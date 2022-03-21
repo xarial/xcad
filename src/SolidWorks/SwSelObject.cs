@@ -26,7 +26,9 @@ namespace Xarial.XCad.SolidWorks
     {        
         public virtual bool IsCommitted => true;
 
-        public bool IsSelected
+        public bool IsSelected => SelectionIndex != -1;
+
+        internal int SelectionIndex
         {
             get 
             {
@@ -36,11 +38,11 @@ namespace Xarial.XCad.SolidWorks
                 {
                     if (OwnerApplication.Sw.IsSame(selMgr.GetSelectedObject6(i, -1), Dispatch) == (int)swObjectEquality.swObjectSame)
                     {
-                        return true;
+                        return i;
                     }
                 }
 
-                return false;
+                return -1;
             }
         }
 
@@ -65,16 +67,18 @@ namespace Xarial.XCad.SolidWorks
         {
         }
 
-        public virtual void Select(bool append)
+        public void Select(bool append) => Select(append, null);
+
+        internal virtual void Select(bool append, ISelectData selData) 
         {
             if (OwnerModelDoc != null)
             {
-                if (OwnerModelDoc.Extension.MultiSelect2(new DispatchWrapper[] { new DispatchWrapper(Dispatch) }, append, null) != 1)
+                if (OwnerModelDoc.Extension.MultiSelect2(new DispatchWrapper[] { new DispatchWrapper(Dispatch) }, append, selData) != 1)
                 {
                     throw new Exception("Failed to select");
                 }
             }
-            else 
+            else
             {
                 throw new Exception("Model doc is not initialized");
             }

@@ -13,9 +13,12 @@ using Xarial.XCad.Documents;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.SolidWorks.Geometry;
+using Xarial.XCad.SolidWorks.Services;
+using Xarial.XCad.SolidWorks.UI;
 using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.UI;
 using Xarial.XCad.Utils.Diagnostics;
+using Xarial.XCad.Toolkit;
 
 namespace Xarial.XCad.SolidWorks.Documents
 {
@@ -25,6 +28,8 @@ namespace Xarial.XCad.SolidWorks.Documents
         new ISwModelViews3DCollection ModelViews { get; }
         new TSelObject ConvertObject<TSelObject>(TSelObject obj)
             where TSelObject : ISwSelObject;
+        ISwCallout PreCreateCallout<T>()
+            where T : SwCalloutBaseHandler, new();
     }
 
     internal abstract class SwDocument3D : SwDocument, ISwDocument3D
@@ -108,9 +113,10 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        public IXCallout PreCreateCallout()
-        {
-            throw new NotImplementedException();
-        }
+        public IXCallout PreCreateCallout() =>
+            new SwCallout(this, ((SwApplication)OwnerApplication).Services.GetService<ICalloutHandlerProvider>().CreateHandler(OwnerApplication.Sw));
+
+        public ISwCallout PreCreateCallout<T>() where T : SwCalloutBaseHandler, new()
+            => new SwCallout(this, new T());
     }
 }

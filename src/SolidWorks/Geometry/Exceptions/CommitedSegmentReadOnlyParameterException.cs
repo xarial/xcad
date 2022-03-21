@@ -8,10 +8,11 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Xarial.XCad.Exceptions;
 
 namespace Xarial.XCad.SolidWorks.Geometry.Exceptions
 {
-    public class CommitedSegmentReadOnlyParameterException : Exception
+    public class CommitedSegmentReadOnlyParameterException : CommitedElementReadOnlyParameterException
     {
         public CommitedSegmentReadOnlyParameterException() : base("Parameter cannot be modified after entity is committed") 
         {

@@ -24,5 +24,14 @@ namespace Xarial.XCad.Exceptions
             : base("This is a template feature and has not been created yet. Commit this feature by adding to the feature collection")
         {
         }
+
+        /// <summary>
+        /// Constructor with custom message
+        /// </summary>
+        /// <param name="message">Custom message</param>
+        public NonCommittedElementAccessException(string message)
+            : base(message)
+        {
+        }
     }
 }

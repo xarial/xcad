@@ -37,6 +37,7 @@ using Xarial.XCad.SolidWorks.Documents.Exceptions;
 using Xarial.XCad.SolidWorks.Documents.Services;
 using Xarial.XCad.SolidWorks.Enums;
 using Xarial.XCad.SolidWorks.Features;
+using Xarial.XCad.SolidWorks.UI;
 using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.Toolkit.Data;
 using Xarial.XCad.UI;
@@ -1349,6 +1350,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         IXModelView3DRepository IXDocument3D.ModelViews => throw new NotImplementedException();
         public IXBoundingBox PreCreateBoundingBox() => throw new NotImplementedException();
         public IXCallout PreCreateCallout() => throw new NotImplementedException();
+        public ISwCallout PreCreateCallout<T>() where T : SwCalloutBaseHandler, new() => throw new NotImplementedException();
         public IXMassProperty PreCreateMassProperty() => throw new NotImplementedException();
         TSelObject IXObjectContainer.ConvertObject<TSelObject>(TSelObject obj) => throw new NotImplementedException();
         TSelObject ISwDocument3D.ConvertObject<TSelObject>(TSelObject obj) => throw new NotImplementedException();

@@ -50,9 +50,20 @@ using System.Diagnostics;
 namespace SwAddInExample
 {
     [ComVisible(true)]
+    public class SwDefaultCalloutBaseHandler : SwCalloutBaseHandler
+    {
+    }
+
+    [ComVisible(true)]
     [Guid("3078E7EF-780E-4A70-9359-172D90FAAED2")]
     public class SwAddInSample : SwAddInEx
     {
+        public class DefaultCalloutHandlerProvider : ICalloutHandlerProvider
+        {
+            public SwCalloutBaseHandler CreateHandler(ISldWorks app)
+                => new SwDefaultCalloutBaseHandler();
+        }
+
         public class DictionaryControl : IControlDescriptor
         {
             public string DisplayName { get; set; }
@@ -120,7 +131,9 @@ namespace SwAddInExample
 
             ShowPmpComboBox,
 
-            GetMassPrps
+            GetMassPrps,
+
+            CreateCallout
         }
 
         [Icon(typeof(Resources), nameof(Resources.xarial))]
@@ -172,6 +185,8 @@ namespace SwAddInExample
         private ToggleGroupPmpData m_TogglePageData;
 
         private PmpData m_Data;
+
+        private IXCalloutBase m_Callout;
 
         [CommandGroupInfo(1)]
         public enum Commands1_e 
@@ -489,6 +504,45 @@ namespace SwAddInExample
                         var surfArea = massPrps.SurfaceArea;
                         var volume = massPrps.Volume;
                         break;
+
+                    case Commands_e.CreateCallout:
+                        if (m_Callout == null)
+                        {
+                            var doc1 = (ISwDocument3D)Application.Documents.Active;
+
+                            if (doc1.Selections.Any())
+                            {
+                                var selCallout = doc1.Selections.PreCreateCallout();
+                                selCallout.Owner = doc1.Selections.First();
+                                m_Callout = selCallout;
+                            }
+                            else
+                            {
+                                var callout = doc1.PreCreateCallout();
+                                callout.Location = new Xarial.XCad.Geometry.Structures.Point(0.1, 0.1, 0.1);
+                                callout.Anchor = new Xarial.XCad.Geometry.Structures.Point(0, 0, 0);
+                                m_Callout = callout;
+                            }
+                            var row1 = m_Callout.PreCreateRow();
+                            row1.Name = "First Row";
+                            row1.Value = "Value1";
+                            row1.IsReadOnly = false;
+                            row1.ValueChanged += Row1ValueChanged;
+                            var row2 = m_Callout.PreCreateRow();
+                            row2.Name = "Second Row";
+                            row2.Value = "Value2";
+                            row2.IsReadOnly = true;
+                            m_Callout.Rows = new IXCalloutRow[] { row1, row2 };
+                            m_Callout.Commit();
+                            m_Callout.Show();
+                        }
+                        else 
+                        {
+                            m_Callout.Hide();
+                            m_Callout.Dispose();
+                            m_Callout = null;
+                        }
+                        break;
                 }
             }
             catch 
@@ -497,14 +551,8 @@ namespace SwAddInExample
             }
         }
 
-        private int SwAddInSample_FileDropPreNotify(string FileName)
-        {
-            var res = 0;
-            var fileName = @"D:\Temp\Part1.SLDPRT";
-            var x = (Application.Documents.Active.Model as IAssemblyDoc).SetDroppedFileName(fileName);
-
-            return res;
-        }
+        private bool Row1ValueChanged(IXCalloutBase callout, IXCalloutRow row, string newValue)
+            => !string.IsNullOrEmpty(newValue);
 
         private void OnFeatureManagerTabActivated(IXCustomPanel<WpfUserControl> sender)
         {
@@ -514,6 +562,8 @@ namespace SwAddInExample
         {
             collection.AddOrReplace<IMemoryGeometryBuilderDocumentProvider>(
                 () => new LazyNewDocumentGeometryBuilderDocumentProvider(Application));
+
+            collection.AddOrReplace<ICalloutHandlerProvider, DefaultCalloutHandlerProvider>();
         }
 
         private void OnPageDataChanged()

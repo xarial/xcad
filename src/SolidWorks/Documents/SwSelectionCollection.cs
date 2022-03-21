@@ -16,20 +16,25 @@ using System.Text;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Delegates;
 using Xarial.XCad.SolidWorks.Documents.EventHandlers;
+using Xarial.XCad.SolidWorks.Services;
+using Xarial.XCad.SolidWorks.UI;
 using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.UI;
+using Xarial.XCad.Toolkit;
 
 namespace Xarial.XCad.SolidWorks.Documents
 {
     public interface ISwSelectionCollection : IXSelectionRepository, IDisposable 
     {
+        ISwSelCallout PreCreateCallout<T>()
+            where T : SwCalloutBaseHandler, new();
     }
 
     internal class SwSelectionCollection : ISwSelectionCollection
     {
         private readonly SwDocument m_Doc;
         private IModelDoc2 Model => m_Doc.Model;
-        private ISelectionMgr SelMgr => Model.ISelectionManager;
+        internal ISelectionMgr SelMgr => Model.ISelectionManager;
 
         private readonly NewSelectionEventHandler m_NewSelectionEventHandler;
         private readonly ClearSelectionEventHandler m_ClearSelectionEventHandler;
@@ -68,7 +73,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
             m_Doc = doc;
             m_App = app;
-
+            
             m_NewSelectionEventHandler = new NewSelectionEventHandler(doc, app);
             m_ClearSelectionEventHandler = new ClearSelectionEventHandler(doc, app);
         }
@@ -141,10 +146,11 @@ namespace Xarial.XCad.SolidWorks.Documents
             throw new NotSupportedException();
         }
 
-        public IXSelCallout PreCreateCallout()
-        {
-            throw new NotImplementedException();
-        }
+        public IXSelCallout PreCreateCallout() 
+            => new SwSelCallout(this, ((SwApplication)m_App).Services.GetService<ICalloutHandlerProvider>().CreateHandler(m_App.Sw));
+
+        public ISwSelCallout PreCreateCallout<T>() where T : SwCalloutBaseHandler, new()
+            => new SwSelCallout(this, new T());
     }
 
     internal class SwSelObjectEnumerator : IEnumerator<IXSelObject>

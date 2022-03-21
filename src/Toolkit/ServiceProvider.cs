@@ -7,6 +7,7 @@
 
 using System;
 using System.Collections.Generic;
+using Xarial.XCad.Toolkit.Exceptions;
 
 namespace Xarial.XCad.Toolkit
 {
@@ -21,8 +22,14 @@ namespace Xarial.XCad.Toolkit
 
         public object GetService(Type serviceType)
         {
-            var svcFact = m_Services[serviceType];
-            return svcFact.Invoke();
+            if (m_Services.TryGetValue(serviceType, out var svcFact))
+            {
+                return svcFact.Invoke();
+            }
+            else
+            {
+                throw new ServiceNotRegisteredException(serviceType);
+            }
         }
     }
 

@@ -89,11 +89,11 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public override bool IsCommitted => m_Creator.IsCreated;
 
-        public override void Select(bool append)
+        internal override void Select(bool append, ISelectData selData)
         {
             const string DRW_VIEW_TYPE_NAME = "DRAWINGVIEW";
 
-            if (!OwnerModelDoc.Extension.SelectByID2(DrawingView.Name, DRW_VIEW_TYPE_NAME, 0, 0, 0, append, 0, null, 0))
+            if (!OwnerModelDoc.Extension.SelectByID2(DrawingView.Name, DRW_VIEW_TYPE_NAME, 0, 0, 0, append, selData?.Mark ?? 0, selData?.Callout, 0))
             {
                 throw new Exception("Failed to select drawing view");
             }
