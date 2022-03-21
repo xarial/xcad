@@ -28,7 +28,9 @@ namespace Xarial.XCad.SolidWorks.Sketch
 
     internal class SwSketchEntityCollection : ISwSketchEntityCollection
     {
-        public int Count => m_Sketch.IsCommitted ? 0 : m_Cache.Count;
+        public int Count => m_Sketch.IsCommitted 
+            ? ((object[])m_Sketch.Sketch.GetSketchSegments() ?? new object[0]).Length + m_Sketch.Sketch.GetSketchPointsCount2() + m_Sketch.Sketch.GetSketchBlockInstanceCount()
+            : m_Cache.Count;
 
         public IXSketchEntity this[string name] => throw new NotImplementedException();
 
@@ -92,7 +94,7 @@ namespace Xarial.XCad.SolidWorks.Sketch
         {
             if (m_Sketch.IsCommitted)
             {
-                return new SwSketchEntitiesEnumerator(m_Doc, m_Sketch);
+                return IterateEntities().GetEnumerator();
             }
             else
             {
@@ -119,57 +121,22 @@ namespace Xarial.XCad.SolidWorks.Sketch
             => throw new NotSupportedException();
 
         public IXArc PreCreateArc() => new SwSketchArc(null, m_Doc, m_App, false);
-    }
 
-    internal class SwSketchEntitiesEnumerator : IEnumerator<ISwSketchEntity>
-    {
-        public ISwSketchEntity Current => m_Doc.CreateObjectFromDispatch<SwSketchEntity>(m_Entities[m_CurIndex]);
-
-        object IEnumerator.Current => Current;
-
-        private readonly ISwDocument m_Doc;
-        private readonly ISwSketchBase m_Sketch;
-
-        private List<object> m_Entities;
-        private int m_CurIndex;
-
-        internal SwSketchEntitiesEnumerator(ISwDocument doc, ISwSketchBase sketch) 
+        private IEnumerable<ISwSketchEntity> IterateEntities() 
         {
-            m_Doc = doc;
-            m_Sketch = sketch;
-            m_Entities = new List<object>();
-
-            Reset();
-        }
-
-        public void Dispose()
-        {
-        }
-
-        public bool MoveNext()
-        {
-            m_CurIndex++;
-            return m_CurIndex < m_Entities.Count;
-        }
-
-        public void Reset()
-        {
-            m_CurIndex = -1;
-            
-            m_Entities.Clear();
-
-            var segs = m_Sketch.Sketch.GetSketchSegments() as object[];
-
-            if (segs != null) 
+            foreach (ISketchSegment seg in (object[])m_Sketch.Sketch.GetSketchSegments() ?? new object[0])
             {
-                m_Entities.AddRange(segs);
+                yield return m_Doc.CreateObjectFromDispatch<ISwSketchSegment>(seg);
             }
 
-            var pts = m_Sketch.Sketch.GetSketchPoints2() as object[];
-
-            if (pts != null) 
+            foreach (ISketchPoint pt in (object[])m_Sketch.Sketch.GetSketchPoints2() ?? new object[0])
             {
-                m_Entities.AddRange(pts);
+                yield return m_Doc.CreateObjectFromDispatch<ISwSketchPoint>(pt);
+            }
+
+            foreach (ISketchBlockInstance blockInst in (object[])m_Sketch.Sketch.GetSketchBlockInstances() ?? new object[0])
+            {
+                yield return m_Doc.CreateObjectFromDispatch<ISwSketchBlockInstance>(blockInst);
             }
         }
     }

@@ -27,6 +27,7 @@ using Xarial.XCad.UI.Exceptions;
 using Xarial.XCad.SolidWorks.UI.Toolkit;
 using System.ComponentModel;
 using Xarial.XCad.Utils.PageBuilder;
+using Xarial.XCad.Utils.Reflection;
 
 namespace Xarial.XCad.SolidWorks.UI.PropertyPage
 {
@@ -91,8 +92,9 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
 
             m_IconsConv = m_SvcProvider.GetService<IIconsCreator>();
 
-            //TODO: validate that handler is COM visible
             Handler = handler;
+
+            ValidateHandler(Handler);            
 
             Handler.Closed += OnClosed;
             Handler.Closing += OnClosing;
@@ -121,6 +123,26 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
             }
 
             Controls = ctrls.ToArray();
+        }
+
+        private void ValidateHandler(SwPropertyManagerPageHandler handler)
+        {
+            if (handler == null) 
+            {
+                throw new NullReferenceException("Handler is null");
+            }
+
+            var type = handler.GetType();
+
+            if (!type.IsComVisible()) 
+            {
+                throw new Exception($"Handler type '{type.FullName}' must be COM visible");
+            }
+
+            if (!type.IsPublic) 
+            {
+                throw new Exception($"Handler type '{type.FullName}' must be a public class");
+            }
         }
 
         private void OnBindingValueChanged(IBinding binding)

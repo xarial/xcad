@@ -121,9 +121,9 @@ namespace Xarial.XCad.SolidWorks.Features
             }
         }
 
-        public override void Select(bool append)
+        internal override void Select(bool append, ISelectData selData)
         {
-            if (!Feature.Select2(append, 0))
+            if (!Feature.Select2(append, selData?.Mark ?? 0))
             {
                 throw new Exception("Faile to select feature");
             }

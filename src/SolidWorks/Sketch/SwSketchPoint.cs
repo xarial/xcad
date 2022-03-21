@@ -18,7 +18,7 @@ using Xarial.XCad.Toolkit.Utils;
 
 namespace Xarial.XCad.SolidWorks.Sketch
 {
-    public interface ISwSketchPoint : IXSketchPoint
+    public interface ISwSketchPoint : IXSketchPoint, ISwSketchEntity
     {
         ISketchPoint Point { get; }
     }
@@ -124,5 +124,7 @@ namespace Xarial.XCad.SolidWorks.Sketch
 
             return pt;
         }
+
+        protected override string GetName() => throw new NotSupportedException();
     }
 }

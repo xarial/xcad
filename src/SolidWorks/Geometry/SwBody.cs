@@ -148,9 +148,9 @@ namespace Xarial.XCad.SolidWorks.Geometry
             m_MathUtils = app.Sw.IGetMathUtility();
         }
 
-        public override void Select(bool append)
+        internal override void Select(bool append, ISelectData selData)
         {
-            if (!Body.Select2(append, null))
+            if (!Body.Select2(append, (SelectData)selData))
             {
                 throw new Exception("Failed to select body");
             }

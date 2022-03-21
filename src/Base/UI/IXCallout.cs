@@ -16,7 +16,7 @@ namespace Xarial.XCad.UI
     /// <summary>
     /// Represents the visual key-value element which can be attached to visual elements
     /// </summary>
-    public interface IXCalloutBase : IXObject, IXTransaction, IDisposable
+    public interface IXCalloutBase : IXTransaction, IDisposable
     {
         /// <summary>
         /// Rows of this callout
@@ -27,6 +27,11 @@ namespace Xarial.XCad.UI
         /// Shows this callout
         /// </summary>
         void Show();
+
+        /// <summary>
+        /// Hides this callout
+        /// </summary>
+        void Hide();
 
         /// <summary>
         /// Pre creates new callout row
@@ -49,11 +54,6 @@ namespace Xarial.XCad.UI
         /// Anchor point (attachment) of this callout
         /// </summary>
         Point Anchor { get; set; }
-
-        /// <summary>
-        /// Hides this callout
-        /// </summary>
-        void Hide();
     }
 
     /// <summary>
@@ -64,14 +64,28 @@ namespace Xarial.XCad.UI
         /// <summary>
         /// Attached selection object
         /// </summary>
-        IXSelObject Owner { get; }
+        IXSelObject Owner { get; set; }
     }
+
+    /// <summary>
+    /// Delegate of <see cref="IXCalloutRow.ValueChanged"/> event
+    /// </summary>
+    /// <param name="callout">Callout where value is changed</param>
+    /// <param name="row">Changed row</param>
+    /// <param name="newValue">New value</param>
+    /// <returns>True to accept value, False to cancel the value change</returns>
+    public delegate bool CalloutRowValueChangedDelegate(IXCalloutBase callout, IXCalloutRow row, string newValue);
 
     /// <summary>
     /// Represents the callout row
     /// </summary>
-    public interface IXCalloutRow : IXTransaction
+    public interface IXCalloutRow
     {
+        /// <summary>
+        /// Fired when the value of the callout is changed
+        /// </summary>
+        event CalloutRowValueChangedDelegate ValueChanged;
+
         /// <summary>
         /// True if value of this callout cannot be changed
         /// </summary>

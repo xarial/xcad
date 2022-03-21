@@ -12,6 +12,7 @@ using System.Text;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;
+using Xarial.XCad.UI;
 
 namespace Xarial.XCad.SwDocumentManager.Documents
 {
@@ -28,6 +29,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         public IXBoundingBox PreCreateBoundingBox() => throw new NotSupportedException();
         TSelObject IXObjectContainer.ConvertObject<TSelObject>(TSelObject obj) => throw new NotSupportedException();
         public IXMassProperty PreCreateMassProperty() => throw new NotSupportedException();
+        public IXCallout PreCreateCallout() => throw new NotSupportedException();
 
         #endregion
 

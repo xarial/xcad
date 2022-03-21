@@ -195,9 +195,9 @@ namespace Xarial.XCad.SolidWorks.Annotations
             GC.WaitForPendingFinalizers();
         }
 
-        public override void Select(bool append)
+        internal override void Select(bool append, ISelectData selData)
         {
-            if (!DisplayDimension.IGetAnnotation().Select3(append, null))
+            if (!DisplayDimension.IGetAnnotation().Select3(append, (SelectData)selData))
             {
                 throw new Exception("Failed to select dimension");
             }

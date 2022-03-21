@@ -8,6 +8,7 @@
 using Xarial.XCad.Base;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;
+using Xarial.XCad.UI;
 
 namespace Xarial.XCad.Documents
 {
@@ -27,6 +28,12 @@ namespace Xarial.XCad.Documents
         /// </summary>
         /// <returns>Mass property</returns>
         IXMassProperty PreCreateMassProperty();
+
+        /// <summary>
+        /// Pre-creates callout instance
+        /// </summary>
+        /// <returns>Instance of the callout</returns>
+        IXCallout PreCreateCallout();
 
         /// <summary>
         /// Returns 3D views collection

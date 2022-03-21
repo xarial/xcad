@@ -63,9 +63,9 @@ namespace Xarial.XCad.SolidWorks.Geometry
             Entity = entity;
         }
 
-        public override void Select(bool append)
+        internal override void Select(bool append, ISelectData selData)
         {
-            if (!Entity.Select4(append, null))
+            if (!Entity.Select4(append, (SelectData)selData))
             {
                 throw new Exception("Failed to select entity");
             }

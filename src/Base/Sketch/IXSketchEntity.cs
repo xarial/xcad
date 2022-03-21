@@ -19,5 +19,10 @@ namespace Xarial.XCad.Sketch
         /// Owner sketch of this sketch entity
         /// </summary>
         IXSketchBase OwnerSketch { get; }
+
+        /// <summary>
+        /// Gets the block where this enityt belongs to or null if not a part of the block
+        /// </summary>
+        IXSketchBlockInstance OwnerBlock { get; }
     }
 }

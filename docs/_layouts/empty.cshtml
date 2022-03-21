@@ -1,0 +1,18 @@
+﻿@using RazorLight
+@using System
+@using Xarial.Docify.Base.Context
+@using Xarial.Docify.Lib.Tools
+@inherits TemplatePage<Xarial.Docify.Base.Context.IContextModel>
+@{
+    var pageTitle = Model.Page.Data.GetOrDefault<string>("title");
+}
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+    <title>@pageTitle</title>
+</head>
+<body>
+    {{ content }}
+</body>
+</html>

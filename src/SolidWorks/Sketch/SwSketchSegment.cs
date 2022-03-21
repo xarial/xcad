@@ -23,7 +23,7 @@ using Xarial.XCad.Toolkit.Utils;
 
 namespace Xarial.XCad.SolidWorks.Sketch
 {
-    public interface ISwSketchSegment : IXSketchSegment, ISwSelObject
+    public interface ISwSketchSegment : IXSketchSegment, ISwSelObject, ISwSketchEntity
     {
         ISketchSegment Segment { get; }
         new ISwCurve Definition { get; }
@@ -144,5 +144,7 @@ namespace Xarial.XCad.SolidWorks.Sketch
         {
             throw new NotSupportedException();
         }
+
+        protected override string GetName() => this.Segment.GetName();
     }
 }
