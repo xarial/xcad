@@ -98,7 +98,7 @@ namespace Xarial.XCad.Utils.PageBuilder.Core
                     List<ControlUpdateStateData> updates;
                     if (!m_ControlDependencies.TryGetValue(dependOnBinding, out updates))
                     {
-                        dependOnBinding.ModelUpdated += OnModelUpdated;
+                        dependOnBinding.Changed += OnBindingChanged;
 
                         updates = new List<ControlUpdateStateData>();
                         m_ControlDependencies.Add(dependOnBinding, updates);
@@ -126,14 +126,6 @@ namespace Xarial.XCad.Utils.PageBuilder.Core
             }
         }
 
-        private void OnMetadataChanged(IMetadata metadata, object val)
-        {
-            foreach (var state in m_MetadataDependencies[metadata]) 
-            {
-                state.Update();
-            }
-        }
-
         public void UpdateAll()
         {
             foreach (var state in m_ControlDependencies.SelectMany(b => b.Value))
@@ -147,9 +139,10 @@ namespace Xarial.XCad.Utils.PageBuilder.Core
             }
         }
 
-        private void OnModelUpdated(IBinding binding)
-        {
-            m_ControlDependencies[binding].ForEach(u => u.Update());
-        }
+        private void OnMetadataChanged(IMetadata metadata, object val)
+            => m_MetadataDependencies[metadata].ForEach(s => s.Update());
+
+        private void OnBindingChanged(IBinding binding)
+            => m_ControlDependencies[binding].ForEach(u => u.Update());
     }
 }

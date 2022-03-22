@@ -229,7 +229,7 @@ namespace Xarial.XCad.SolidWorks.UI
                 throw new Exception($"Handler type '{type.FullName}' must be COM visible");
             }
 
-            if (!type.IsPublic)
+            if (!(type.IsPublic || type.IsNestedPublic))
             {
                 throw new Exception($"Handler type '{type.FullName}' must be a public class");
             }
