@@ -35,6 +35,8 @@ namespace Xarial.XCad.SolidWorks.Features
 
         public ISketch Sketch => Feature?.GetSpecificFeature2() as ISketch;
 
+        public override object Dispatch => Sketch;
+
         internal SwSketchBase(IFeature feat, ISwDocument doc, ISwApplication app, bool created) : base(feat, doc, app, created)
         {
             m_SwEntsColl = new SwSketchEntityCollection(this, doc, app);

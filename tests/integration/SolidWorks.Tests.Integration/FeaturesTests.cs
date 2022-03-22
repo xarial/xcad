@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Xarial.XCad.Features;
+using Xarial.XCad.Sketch;
+using Xarial.XCad.SolidWorks.Features;
 
 namespace SolidWorks.Tests.Integration
 {
@@ -62,6 +64,21 @@ namespace SolidWorks.Tests.Integration
             Assert.IsTrue(r1);
             Assert.IsFalse(r2);
             Assert.IsNotNull(e1);
+        }
+
+        [Test]
+        public void SpecificFeatureEqualsTest() 
+        {
+            var e1 = false;
+
+            using (var doc = OpenDataDocument("Sketch1.SLDPRT"))
+            {
+                var sketch1 = m_App.Documents.Active.Features["Sketch1"];
+                var sketch2 = ((ISwSketchBase)sketch1).Entities.OfType<IXSketchSegment>().First().OwnerSketch;
+                e1 = sketch1.Equals(sketch2);
+            }
+
+            Assert.IsTrue(e1);
         }
     }
 }

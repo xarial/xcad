@@ -17,20 +17,23 @@ namespace Xarial.XCad.SolidWorks.Features
 {
     public interface ISwPlane : IXPlane, ISwFeature 
     {
+        IRefPlane RefPlane { get; }
     }
 
     internal class SwPlane : SwFeature, ISwPlane
     {
-        private readonly IRefPlane m_RefPlane;
+        public IRefPlane RefPlane { get; }
 
         private readonly IMathUtility m_MathUtils;
 
         internal SwPlane(IFeature feat, ISwDocument doc, ISwApplication app, bool created) : base(feat, doc, app, created)
         {
-            m_RefPlane = feat.GetSpecificFeature2() as IRefPlane;
+            RefPlane = feat.GetSpecificFeature2() as IRefPlane;
 
             m_MathUtils = OwnerApplication.Sw.IGetMathUtility();
         }
+
+        public override object Dispatch => RefPlane;
 
         public Plane Definition 
         {
@@ -40,7 +43,7 @@ namespace Xarial.XCad.SolidWorks.Features
                 var z = (IMathVector)m_MathUtils.CreateVector(new double[] { 0, 0, 1 });
                 var origin = (IMathPoint)m_MathUtils.CreatePoint(new double[] { 0, 0, 0 });
 
-                var transform = m_RefPlane.Transform;
+                var transform = RefPlane.Transform;
 
                 x = (IMathVector)x.MultiplyTransform(transform);
                 z = (IMathVector)z.MultiplyTransform(transform);

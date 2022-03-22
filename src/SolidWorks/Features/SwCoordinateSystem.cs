@@ -18,18 +18,21 @@ namespace Xarial.XCad.SolidWorks.Features
 {
     public interface ISwCoordinateSystem : IXCoordinateSystem, ISwFeature
     {
+        ICoordinateSystemFeatureData CoordSys { get; }
     }
 
     internal class SwCoordinateSystem : SwFeature, ISwCoordinateSystem
     {
-        private readonly ICoordinateSystemFeatureData m_CoordSys;
+        public ICoordinateSystemFeatureData CoordSys { get; }
 
         internal SwCoordinateSystem(IFeature feat, ISwDocument doc, ISwApplication app, bool created) : base(feat, doc, app, created)
         {
-            m_CoordSys = feat.GetDefinition() as ICoordinateSystemFeatureData;
+            CoordSys = feat.GetDefinition() as ICoordinateSystemFeatureData;
         }
 
+        public override object Dispatch => CoordSys;
+
         public TransformMatrix Transform
-            => m_CoordSys.Transform.ToTransformMatrix();
+            => CoordSys.Transform.ToTransformMatrix();
     }
 }

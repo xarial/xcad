@@ -117,12 +117,12 @@ namespace SolidWorks.Tests.Integration
                 r1 = m_App.Sw.IsSame(e1.Dispatch, selMgr.GetSelectedObject6(1, -1));
                 r2 = m_App.Sw.IsSame(e2.Dispatch, selMgr.GetSelectedObject6(2, -1));
                 r3 = m_App.Sw.IsSame(e3.Dispatch, selMgr.GetSelectedObject6(3, -1));
-                r4 = m_App.Sw.IsSame(e4.Dispatch, selMgr.GetSelectedObject6(4, -1));
+                r4 = m_App.Sw.IsSame(e4.Feature, selMgr.GetSelectedObject6(4, -1));
 
                 model.Selections.RemoveRange(new ISwSelObject[] { e1, e3});
                 selCount2 = selMgr.GetSelectedObjectCount2(-1);
                 r5 = m_App.Sw.IsSame(e2.Dispatch, selMgr.GetSelectedObject6(1, -1));
-                r6 = m_App.Sw.IsSame(e4.Dispatch, selMgr.GetSelectedObject6(2, -1));
+                r6 = m_App.Sw.IsSame(e4.Feature, selMgr.GetSelectedObject6(2, -1));
             }
 
             Assert.AreEqual(4, selCount1);

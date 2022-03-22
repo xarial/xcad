@@ -4,15 +4,18 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Xarial.XCad.Features;
+using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Sketch;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Features;
+using Xarial.XCad.SolidWorks.Utils;
 
 namespace Xarial.XCad.SolidWorks.Sketch
 {
     public interface ISwSketchBlockInstance : IXSketchBlockInstance, ISwFeature, ISwSketchEntity
     {
         ISketchBlockInstance SketchBlockInstance { get; }
+        TransformMatrix Transform { get; }
     }
 
     internal class SwSketchBlockInstance : SwFeature, ISwSketchBlockInstance
@@ -53,6 +56,8 @@ namespace Xarial.XCad.SolidWorks.Sketch
                 throw new Exception("Sketch block instance is not found in the tree. This may indicate that tree is hidden or not loaded");
             }
         }
+
+        public TransformMatrix Transform => SketchBlockInstance.BlockToSketchTransform.ToTransformMatrix();
 
         internal SwSketchBlockInstance(IFeature feat, ISwDocument doc, ISwApplication app, bool created) : base(feat, doc, app, created)
         {

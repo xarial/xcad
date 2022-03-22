@@ -61,6 +61,8 @@ namespace Xarial.XCad.SolidWorks.Features
 
         public IBodyFolder CutListBodyFolder { get; }
 
+        public override object Dispatch => CutListBodyFolder;
+
         public IEnumerable<IXSolidBody> Bodies 
         {
             get
