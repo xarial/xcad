@@ -33,13 +33,30 @@ namespace Xarial.XCad.SolidWorks.Features
     {
         private readonly SwSketchEntityCollection m_SwEntsColl;
 
-        public ISketch Sketch => Feature?.GetSpecificFeature2() as ISketch;
+        public ISketch Sketch => m_Sketch;
 
         public override object Dispatch => Sketch;
 
-        internal SwSketchBase(IFeature feat, ISwDocument doc, ISwApplication app, bool created) : base(feat, doc, app, created)
+        private ISketch m_Sketch;
+
+        internal SwSketchBase(IFeature feat, ISwDocument doc, ISwApplication app, bool created) 
+            : this(feat, (ISketch)feat?.GetSpecificFeature2(), doc, app, created)
         {
+        }
+
+        internal SwSketchBase(ISketch sketch, ISwDocument doc, ISwApplication app, bool created) : this((IFeature)sketch, sketch, doc, app, created)
+        {
+        }
+
+        private SwSketchBase(IFeature feat, ISketch sketch, ISwDocument doc, ISwApplication app, bool created) : base(feat, doc, app, created)
+        {
+            if (doc == null)
+            {
+                throw new ArgumentNullException(nameof(doc));
+            }
+
             m_SwEntsColl = new SwSketchEntityCollection(this, doc, app);
+            m_Sketch = sketch;
         }
 
         public IXSketchEntityRepository Entities => m_SwEntsColl;
@@ -100,6 +117,8 @@ namespace Xarial.XCad.SolidWorks.Features
             var sketch = CreateSketch();
 
             m_SwEntsColl.CommitCache(sketch);
+
+            m_Sketch = sketch;
 
             return (IFeature)sketch;
         }

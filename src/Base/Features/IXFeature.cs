@@ -15,13 +15,8 @@ namespace Xarial.XCad.Features
     /// <summary>
     /// Represents all features in the Feature Manager Design Tree
     /// </summary>
-    public interface IXFeature : IXSelObject, IXColorizable, IDimensionable, IXTransaction
+    public interface IXFeature : IXSelObject, IXColorizable, IDimensionable, IXTransaction, INameable
     {
-        /// <summary>
-        /// Name of the feature
-        /// </summary>
-        string Name { get; set; }
-
         /// <summary>
         /// Faces of this feature
         /// </summary>

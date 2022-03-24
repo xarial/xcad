@@ -35,8 +35,7 @@ namespace Xarial.XCad.SolidWorks.Features
 
         IXDimensionRepository IDimensionable.Dimensions => Dimensions;
 
-        public virtual IFeature Feature
-            => m_Creator.Element;
+        public virtual IFeature Feature => m_Creator.Element;
 
         public override object Dispatch => Feature;
 

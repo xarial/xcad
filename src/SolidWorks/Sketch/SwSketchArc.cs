@@ -9,6 +9,7 @@ using SolidWorks.Interop.sldworks;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Xarial.XCad.Geometry.Curves;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Geometry.Wires;
 using Xarial.XCad.Sketch;
@@ -32,9 +33,19 @@ namespace Xarial.XCad.SolidWorks.Sketch
         public override IXSketchPoint StartPoint => OwnerDocument.CreateObjectFromDispatch<SwSketchPoint>(Arc.IGetStartPoint2());
         public override IXSketchPoint EndPoint => OwnerDocument.CreateObjectFromDispatch<SwSketchPoint>(Arc.IGetEndPoint2());
 
-        public double Diameter { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-        public Point Center { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-        public Vector Axis { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public double Diameter
+        {
+            get => Arc.GetRadius() * 2;
+            set => Arc.SetRadius(value / 2);
+        }
+
+        public Point Center
+        {
+            get => CreatePoint((ISketchPoint)Arc.GetCenterPoint2());
+            set => SetPoint((ISketchPoint)Arc.GetCenterPoint2(), value);
+        }
+
+        public Vector Axis { get => ((IXCircleCurve)Definition).Axis; set => throw new NotSupportedException(); }
 
         internal SwSketchCircle(ISketchArc arc, ISwDocument doc, ISwApplication app, bool created)
             : base((ISketchSegment)arc, doc, app, created)
@@ -45,12 +56,30 @@ namespace Xarial.XCad.SolidWorks.Sketch
         {
             throw new NotImplementedException();
         }
+
+        protected Point CreatePoint(ISketchPoint pt) => new Point(pt.X, pt.Y, pt.Z);
+
+        protected void SetPoint(ISketchPoint pt, Point coord) 
+        {
+            pt.X = coord.X;
+            pt.Y = coord.Y;
+            pt.Z = coord.Z;
+        }
     }
 
     internal class SwSketchArc : SwSketchCircle, ISwSketchArc
     {
-        public Point Start { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-        public Point End { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public Point Start
+        {
+            get => CreatePoint((ISketchPoint)Arc.GetStartPoint2());
+            set => SetPoint((ISketchPoint)Arc.GetStartPoint2(), value);
+        }
+
+        public Point End
+        {
+            get => CreatePoint((ISketchPoint)Arc.GetEndPoint2());
+            set => SetPoint((ISketchPoint)Arc.GetEndPoint2(), value);
+        }
 
         internal SwSketchArc(ISketchArc arc, ISwDocument doc, ISwApplication app, bool created) : base(arc, doc, app, created)
         {

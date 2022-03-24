@@ -33,9 +33,13 @@ namespace Xarial.XCad.SolidWorks.Sketch
             }
         }
 
+        public IXSketchEntityRepository Entities { get; }
+        
         internal SwSketchBlockDefinition(IFeature feat, ISwDocument doc, ISwApplication app, bool created) : base(feat, doc, app, created) 
         {
             SketchBlockDefinition = (ISketchBlockDefinition)feat.GetSpecificFeature2();
+
+            Entities = new SwSketchEntityCollection(doc.CreateObjectFromDispatch<ISwSketchBase>(SketchBlockDefinition.GetSketch()), doc, app);
         }
     }
 }

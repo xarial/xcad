@@ -107,34 +107,14 @@ namespace Xarial.XCad.SolidWorks
                 case IVertex vertex:
                     return new SwVertex(vertex, doc, app);
 
-                case IFeature feat:
-                    switch (feat.GetTypeName())
+                case ISketch sketch:
+                    if (sketch.Is3D())
                     {
-                        case "ProfileFeature":
-                            return new SwSketch2D(feat, doc, app, true);
-                        case "3DProfileFeature":
-                            return new SwSketch3D(feat, doc, app, true);
-                        case "CutListFolder":
-                            return new SwCutListItem(feat, (ISwDocument3D)doc, app, true);
-                        case "CoordSys":
-                            return new SwCoordinateSystem(feat, doc, app, true);
-                        case "RefPlane":
-                            return new SwPlane(feat, doc, app, true);
-                        case "SketchBlockInst":
-                            return new SwSketchBlockInstance(feat, doc, app, true);
-                        case "SketchBlockDef":
-                            return new SwSketchBlockDefinition(feat, doc, app, true);
-                        case "MacroFeature":
-                            if (TryGetParameterType(feat, out Type paramType))
-                            {
-                                return SwMacroFeature<object>.CreateSpecificInstance(feat, (SwDocument)doc, app, paramType);
-                            }
-                            else
-                            {
-                                return new SwMacroFeature(feat, (SwDocument)doc, app, true);
-                            }
-                        default:
-                            return new SwFeature(feat, doc, app, true);
+                        return new SwSketch3D(sketch, doc, app, true);
+                    }
+                    else
+                    {
+                        return new SwSketch2D(sketch, doc, app, true);
                     }
 
                 case IBody2 body:
@@ -359,6 +339,36 @@ namespace Xarial.XCad.SolidWorks
 
                 case ISketchBlockDefinition skBlockDef:
                     return new SwSketchBlockDefinition((IFeature)skBlockDef, doc, app, true);
+
+                case IFeature feat:
+                    switch (feat.GetTypeName())
+                    {
+                        case "ProfileFeature":
+                            return new SwSketch2D(feat, doc, app, true);
+                        case "3DProfileFeature":
+                            return new SwSketch3D(feat, doc, app, true);
+                        case "CutListFolder":
+                            return new SwCutListItem(feat, (ISwDocument3D)doc, app, true);
+                        case "CoordSys":
+                            return new SwCoordinateSystem(feat, doc, app, true);
+                        case "RefPlane":
+                            return new SwPlane(feat, doc, app, true);
+                        case "SketchBlockInst":
+                            return new SwSketchBlockInstance(feat, doc, app, true);
+                        case "SketchBlockDef":
+                            return new SwSketchBlockDefinition(feat, doc, app, true);
+                        case "MacroFeature":
+                            if (TryGetParameterType(feat, out Type paramType))
+                            {
+                                return SwMacroFeature<object>.CreateSpecificInstance(feat, (SwDocument)doc, app, paramType);
+                            }
+                            else
+                            {
+                                return new SwMacroFeature(feat, (SwDocument)doc, app, true);
+                            }
+                        default:
+                            return new SwFeature(feat, doc, app, true);
+                    }
 
                 default:
                     return defaultHandler.Invoke(disp);

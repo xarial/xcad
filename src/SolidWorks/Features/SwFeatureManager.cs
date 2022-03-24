@@ -104,8 +104,8 @@ namespace Xarial.XCad.SolidWorks.Features
             }
         }
 
-        public IXSketch2D PreCreate2DSketch() => new SwSketch2D(null, Document, m_App, false);
-        public IXSketch3D PreCreate3DSketch() => new SwSketch3D(null, Document, m_App, false);
+        public IXSketch2D PreCreate2DSketch() => new SwSketch2D(default(ISketch), Document, m_App, false);
+        public IXSketch3D PreCreate3DSketch() => new SwSketch3D(default(ISketch), Document, m_App, false);
         
         public virtual IEnumerator<IXFeature> GetEnumerator()
             => new DocumentFeatureEnumerator(Document, GetFirstFeature(), new Context(Document));

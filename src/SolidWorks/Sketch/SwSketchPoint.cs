@@ -125,6 +125,6 @@ namespace Xarial.XCad.SolidWorks.Sketch
             return pt;
         }
 
-        protected override string GetName() => throw new NotSupportedException();
+        protected override string GetFullName() => throw new NotSupportedException();
     }
 }

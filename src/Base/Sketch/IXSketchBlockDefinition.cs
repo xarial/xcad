@@ -14,5 +14,10 @@ namespace Xarial.XCad.Sketch
         /// All instances of this sketch block defintion
         /// </summary>
         IEnumerable<IXSketchBlockInstance> Instances { get; }
+
+        /// <summary>
+        /// Entities of this sketch block definition
+        /// </summary>
+        IXSketchEntityRepository Entities { get; }
     }
 }

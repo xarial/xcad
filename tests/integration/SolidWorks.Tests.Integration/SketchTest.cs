@@ -183,5 +183,47 @@ namespace SolidWorks.Tests.Integration
             Assert.AreEqual("Block1-3", seg3OwnerBlock);
             Assert.AreEqual("Block2-1", block2OwnerBlock);
         }
+
+        [Test]
+        public void SketchBlocksEntitiesTransformTest()
+        {
+            bool areDefsEqual;
+            Type[] entTypes;
+            Point pt1;
+            Point pt2;
+
+            using (var doc = OpenDataDocument("Blocks1.SLDPRT"))
+            {
+                var part = (ISwPart)m_App.Documents.Active;
+
+                var sketch = (ISwSketch2D)part.Features["Sketch1"];
+
+                var blocks = sketch.Entities.OfType<IXSketchBlockInstance>().ToDictionary(b => b.Name, b => b);
+                var block1 = blocks["Block1-1"];
+                var block2 = blocks["Block1-2"];
+
+                var def = block1.Definition;
+                areDefsEqual = def.Equals(block2.Definition);
+
+                var ents = def.Entities.OfType<IXSketchSegment>().ToArray();
+                entTypes = ents.Select(e => e.GetType()).ToArray();
+
+                var circ = ents.OfType<IXSketchCircle>().First();
+                var centerPt = circ.Center;
+                pt1 = centerPt.Transform(block1.Transform);
+                pt2 = centerPt.Transform(block2.Transform);
+            }
+
+            Assert.IsTrue(areDefsEqual);
+            Assert.AreEqual(2, entTypes.Length);
+            Assert.That(entTypes.Any(e => typeof(IXSketchCircle).IsAssignableFrom(e)));
+            Assert.That(entTypes.Any(e => typeof(IXSketchLine).IsAssignableFrom(e)));
+            Assert.That(pt1.X, Is.EqualTo(-0.051242849137327).Within(0.00000000001).Percent);
+            Assert.That(pt1.Y, Is.EqualTo(0.027597052487211).Within(0.00000000001).Percent);
+            Assert.That(pt1.Z, Is.EqualTo(0).Within(0.00000000001).Percent);
+            Assert.That(pt2.X, Is.EqualTo(0.032844814145853).Within(0.00000000001).Percent);
+            Assert.That(pt2.Y, Is.EqualTo(0.0769249139264982).Within(0.00000000001).Percent);
+            Assert.That(pt2.Z, Is.EqualTo(0).Within(0.00000000001).Percent);
+        }
     }
 }

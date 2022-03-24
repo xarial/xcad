@@ -28,10 +28,11 @@ namespace Xarial.XCad.SolidWorks.Features
         internal SwSketch2D(IFeature feat, ISwDocument doc, ISwApplication app, bool created) 
             : base(feat, doc, app, created)
         {
-            if (doc == null) 
-            {
-                throw new ArgumentNullException(nameof(doc));
-            }
+        }
+
+        internal SwSketch2D(ISketch sketch, ISwDocument doc, ISwApplication app, bool created)
+            : base(sketch, doc, app, created)
+        {
         }
 
         public IEnumerable<ISwSketchRegion> Regions 

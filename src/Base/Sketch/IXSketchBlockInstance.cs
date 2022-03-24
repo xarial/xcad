@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using Xarial.XCad.Features;
+using Xarial.XCad.Geometry.Structures;
 
 namespace Xarial.XCad.Sketch
 {
@@ -14,5 +15,10 @@ namespace Xarial.XCad.Sketch
         /// Definition of this sketch block instance
         /// </summary>
         IXSketchBlockDefinition Definition { get; }
+
+        /// <summary>
+        /// Transformation of this sketch block instance regarding its defintion
+        /// </summary>
+        TransformMatrix Transform { get; }
     }
 }

@@ -15,7 +15,6 @@ namespace Xarial.XCad.SolidWorks.Sketch
     public interface ISwSketchBlockInstance : IXSketchBlockInstance, ISwFeature, ISwSketchEntity
     {
         ISketchBlockInstance SketchBlockInstance { get; }
-        TransformMatrix Transform { get; }
     }
 
     internal class SwSketchBlockInstance : SwFeature, ISwSketchBlockInstance

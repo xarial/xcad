@@ -145,6 +145,6 @@ namespace Xarial.XCad.SolidWorks.Sketch
             throw new NotSupportedException();
         }
 
-        protected override string GetName() => this.Segment.GetName();
+        protected override string GetFullName() => this.Segment.GetName();
     }
 }

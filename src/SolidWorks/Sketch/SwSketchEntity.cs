@@ -31,11 +31,11 @@ namespace Xarial.XCad.SolidWorks.Sketch
 
         public abstract IXSketchBase OwnerSketch { get; }
 
-        public IXSketchBlockInstance OwnerBlock 
+        public virtual IXSketchBlockInstance OwnerBlock 
         {
             get 
             {
-                var name = GetName();
+                var name = GetFullName();
 
                 var nameParts = name.Split('/');
 
@@ -60,11 +60,17 @@ namespace Xarial.XCad.SolidWorks.Sketch
             }
         }
 
+        public string Name
+        {
+            get => GetFullName();
+            set => throw new NotSupportedException();
+        }
+
         internal SwSketchEntity(object ent, ISwDocument doc, ISwApplication app) : base(ent, doc, app)
         {
         }
 
-        protected abstract string GetName();
+        protected abstract string GetFullName();
     }
 
     internal static class SwSketchEntityExtension 
