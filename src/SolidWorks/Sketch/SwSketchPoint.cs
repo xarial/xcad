@@ -125,6 +125,23 @@ namespace Xarial.XCad.SolidWorks.Sketch
             return pt;
         }
 
-        protected override string GetFullName() => throw new NotSupportedException();
+        protected override string GetFullName() 
+        {
+            if (OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2015)) 
+            {
+                if (OwnerModelDoc.ISelectionManager.GetSelectByIdSpecification(Point, out string name, out _, out _))
+                {
+                    return name;
+                }
+                else 
+                {
+                    throw new Exception("Failed to get the selection specification of the point");
+                }
+            }
+            else 
+            {
+                throw new NotSupportedException("Point name extraction is supported in SOLIDWORKS 2015 or newer");
+            }
+        }
     }
 }
