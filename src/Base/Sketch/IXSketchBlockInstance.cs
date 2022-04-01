@@ -20,5 +20,10 @@ namespace Xarial.XCad.Sketch
         /// Transformation of this sketch block instance regarding its defintion
         /// </summary>
         TransformMatrix Transform { get; }
+
+        /// <summary>
+        /// Entities of this sketch block definition
+        /// </summary>
+        IXSketchEntityRepository Entities { get; }
     }
 }

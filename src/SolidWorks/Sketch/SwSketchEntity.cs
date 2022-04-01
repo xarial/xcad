@@ -24,6 +24,7 @@ namespace Xarial.XCad.SolidWorks.Sketch
     {
     }
 
+    //TODO: for the entities of the block definition it might be required to transform all the coodinate system for the consistency
     internal abstract class SwSketchEntity : SwSelObject, ISwSketchEntity
     {
         public new abstract bool IsCommitted { get; }
@@ -35,30 +36,39 @@ namespace Xarial.XCad.SolidWorks.Sketch
         {
             get 
             {
-                var name = GetFullName();
-
-                var nameParts = name.Split('/');
-
-                if (nameParts.Length > 1) 
+                if (AssignedOwnerBlock != null)
                 {
-                    var blockName = nameParts[1].Split('@').First();
-
-                    var skBlockInstNode = this.IterateAllSketchBlockInstanceNodes().FirstOrDefault(
-                        x => string.Equals(((IFeature)x.Object).Name, blockName, StringComparison.CurrentCultureIgnoreCase));
-
-                    if (skBlockInstNode != null)
-                    {
-                        return OwnerDocument.CreateObjectFromDispatch<ISwSketchBlockInstance>(skBlockInstNode.Object);
-                    }
-                    else 
-                    {
-                        throw new Exception($"Failed to find the sketch block instance with the name '{blockName}'");
-                    }
+                    return AssignedOwnerBlock;
                 }
+                else
+                {
+                    var name = GetFullName();
 
-                return null;
+                    var nameParts = name.Split('/');
+
+                    if (nameParts.Length > 1)
+                    {
+                        var blockName = nameParts[1].Split('@').First();
+
+                        var skBlockInstNode = this.IterateAllSketchBlockInstanceNodes().FirstOrDefault(
+                            x => string.Equals(((IFeature)x.Object).Name, blockName, StringComparison.CurrentCultureIgnoreCase));
+
+                        if (skBlockInstNode != null)
+                        {
+                            return OwnerDocument.CreateObjectFromDispatch<ISwSketchBlockInstance>(skBlockInstNode.Object);
+                        }
+                        else
+                        {
+                            throw new Exception($"Failed to find the sketch block instance with the name '{blockName}'");
+                        }
+                    }
+
+                    return null;
+                }
             }
         }
+
+        internal SwSketchBlockInstance AssignedOwnerBlock { get; set; }
 
         public string Name
         {

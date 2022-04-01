@@ -32,9 +32,22 @@ namespace Xarial.XCad.SolidWorks.Sketch
             ? ((object[])m_Sketch.Sketch.GetSketchSegments() ?? new object[0]).Length + m_Sketch.Sketch.GetSketchPointsCount2() + m_Sketch.Sketch.GetSketchBlockInstanceCount()
             : m_Cache.Count;
 
-        public IXSketchEntity this[string name] => throw new NotImplementedException();
+        public IXSketchEntity this[string name] => this.Get(name);
 
-        public bool TryGet(string name, out IXSketchEntity ent) => throw new NotImplementedException();
+        public bool TryGet(string name, out IXSketchEntity ent) 
+        {
+            foreach (var curEnt in IterateEntities())
+            {
+                if (string.Equals(curEnt.Name, name, StringComparison.CurrentCultureIgnoreCase))
+                {
+                    ent = curEnt;
+                    return true;
+                }
+            }
+
+            ent = null;
+            return false;
+        }
 
         private readonly ISwSketchBase m_Sketch;
 
@@ -122,21 +135,21 @@ namespace Xarial.XCad.SolidWorks.Sketch
 
         public IXArc PreCreateArc() => new SwSketchArc(null, m_Doc, m_App, false);
 
-        private IEnumerable<ISwSketchEntity> IterateEntities() 
+        protected virtual IEnumerable<ISwSketchEntity> IterateEntities() 
         {
             foreach (ISketchSegment seg in (object[])m_Sketch.Sketch.GetSketchSegments() ?? new object[0])
             {
-                yield return m_Doc.CreateObjectFromDispatch<ISwSketchSegment>(seg);
+                yield return m_Doc.CreateObjectFromDispatch<SwSketchSegment>(seg);
             }
 
             foreach (ISketchPoint pt in (object[])m_Sketch.Sketch.GetSketchPoints2() ?? new object[0])
             {
-                yield return m_Doc.CreateObjectFromDispatch<ISwSketchPoint>(pt);
+                yield return m_Doc.CreateObjectFromDispatch<SwSketchPoint>(pt);
             }
 
             foreach (ISketchBlockInstance blockInst in (object[])m_Sketch.Sketch.GetSketchBlockInstances() ?? new object[0])
             {
-                yield return m_Doc.CreateObjectFromDispatch<ISwSketchBlockInstance>(blockInst);
+                yield return m_Doc.CreateObjectFromDispatch<SwSketchBlockInstance>(blockInst);
             }
         }
     }

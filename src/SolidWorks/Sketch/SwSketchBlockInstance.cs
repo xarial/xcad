@@ -27,40 +27,85 @@ namespace Xarial.XCad.SolidWorks.Sketch
         {
             get 
             {
-                foreach (var node in this.IterateAllSketchBlockInstanceNodes()) 
+                if (AssignedOwnerBlock != null)
                 {
-                    var feat = (IFeature)node.Object;
-                    var block = (ISketchBlockInstance)feat.GetSpecificFeature2();
-
-                    if (OwnerApplication.Sw.IsSame(block, SketchBlockInstance) == (int)swObjectEquality.swObjectSame) 
+                    return AssignedOwnerBlock;
+                }
+                else 
+                {
+                    foreach (var node in this.IterateAllSketchBlockInstanceNodes())
                     {
-                        var parentNode = node.GetParent();
+                        var feat = (IFeature)node.Object;
+                        var block = (ISketchBlockInstance)feat.GetSpecificFeature2();
 
-                        if (parentNode.ObjectType == (int)swTreeControlItemType_e.swFeatureManagerItem_Feature)
+                        if (OwnerApplication.Sw.IsSame(block, SketchBlockInstance) == (int)swObjectEquality.swObjectSame)
                         {
-                            var parentFeat = (IFeature)parentNode.Object;
+                            var parentNode = node.GetParent();
 
-                            if (parentFeat.GetTypeName2() == "SketchBlockInst")
+                            if (parentNode.ObjectType == (int)swTreeControlItemType_e.swFeatureManagerItem_Feature)
                             {
-                                return OwnerDocument.CreateObjectFromDispatch<ISwSketchBlockInstance>(parentFeat);
-                            }
-                            else 
-                            {
-                                return null;
+                                var parentFeat = (IFeature)parentNode.Object;
+
+                                if (parentFeat.GetTypeName2() == "SketchBlockInst")
+                                {
+                                    return OwnerDocument.CreateObjectFromDispatch<ISwSketchBlockInstance>(parentFeat);
+                                }
+                                else
+                                {
+                                    return null;
+                                }
                             }
                         }
                     }
-                }
 
-                throw new Exception("Sketch block instance is not found in the tree. This may indicate that tree is hidden or not loaded");
+                    throw new Exception("Sketch block instance is not found in the tree. This may indicate that tree is hidden or not loaded");
+                }
             }
         }
 
+        internal SwSketchBlockInstance AssignedOwnerBlock { get; set; }
+
         public TransformMatrix Transform => SketchBlockInstance.BlockToSketchTransform.ToTransformMatrix();
+
+        public IXSketchEntityRepository Entities { get; }
 
         internal SwSketchBlockInstance(IFeature feat, ISwDocument doc, ISwApplication app, bool created) : base(feat, doc, app, created)
         {
             SketchBlockInstance = (ISketchBlockInstance)feat.GetSpecificFeature2();
+            Entities = new SwSketchBlockInstanceEntityCollection(this, doc.CreateObjectFromDispatch<ISwSketchBase>(SketchBlockInstance.Definition.GetSketch()), doc, app);
+        }
+    }
+
+    internal class SwSketchBlockInstanceEntityCollection : SwSketchEntityCollection
+    {
+        private readonly SwSketchBlockInstance m_SketchBlockInst;
+
+        internal SwSketchBlockInstanceEntityCollection(SwSketchBlockInstance skBlockInst, ISwSketchBase sketch, ISwDocument doc, ISwApplication app)
+            : base(sketch, doc, app)
+        {
+            m_SketchBlockInst = skBlockInst;
+        }
+
+        protected override IEnumerable<ISwSketchEntity> IterateEntities()
+        {
+            foreach (var ent in base.IterateEntities()) 
+            {
+                switch (ent) 
+                {
+                    case SwSketchEntity skEnt:
+                        skEnt.AssignedOwnerBlock = m_SketchBlockInst;
+                        break;
+
+                    case SwSketchBlockInstance skBlockInst:
+                        skBlockInst.AssignedOwnerBlock = m_SketchBlockInst;
+                        break;
+
+                    default:
+                        throw new NotSupportedException($"{ent?.GetType()} sketch block entity is not supported");
+                }
+
+                yield return ent;
+            }
         }
     }
 }
