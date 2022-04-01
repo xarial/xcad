@@ -26,6 +26,13 @@ namespace Xarial.XCad.Geometry.Curves
         Point FindClosestPoint(Point point);
 
         /// <summary>
+        /// Finds the boundary of this curve
+        /// </summary>
+        /// <param name="uMin">Minimum u-parameter</param>
+        /// <param name="uMax">Maximum u-parameter</param>
+        void GetUBoundary(out double uMin, out double uMax);
+
+        /// <summary>
         /// Finds u-parameter of the curve based on the point location
         /// </summary>
         /// <param name="point">Point</param>

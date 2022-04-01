@@ -175,6 +175,21 @@ namespace Xarial.XCad.SolidWorks.Geometry.Curves
             }
         }
 
+        public void GetUBoundary(out double uMin, out double uMax)
+        {
+            if (Curves.Length == 1)
+            {
+                if (!Curves.First().GetEndParams(out uMin, out uMax, out _, out _)) 
+                {
+                    throw new Exception("Failed to read end parameters of the curve");
+                }
+            }
+            else
+            {
+                throw new Exception("Only single curve is supported");
+            }
+        }
+
         public IXWireBody CreateBody()
         {
             if (!Curves.Any()) 
