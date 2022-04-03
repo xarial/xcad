@@ -28,7 +28,7 @@ namespace Xarial.XCad.UI.PropertyPage.Attributes
         /// Default constructor
         /// </summary>
         /// <param name="tag">Tag of the metadata</param>
-        public AttachMetadataAttribute(string tag) 
+        public AttachMetadataAttribute(object tag) 
         {
             MetadataTag = tag;
         }

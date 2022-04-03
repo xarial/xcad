@@ -13,12 +13,14 @@ using System.Text;
 using System.Threading;
 using Xarial.XCad.Features;
 using Xarial.XCad.Geometry.Curves;
+using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Geometry.Wires;
 using Xarial.XCad.Services;
 using Xarial.XCad.Sketch;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Features;
 using Xarial.XCad.SolidWorks.Geometry.Curves;
+using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.Toolkit.Utils;
 
 namespace Xarial.XCad.SolidWorks.Sketch
@@ -45,6 +47,8 @@ namespace Xarial.XCad.SolidWorks.Sketch
 
         public override object Dispatch => Segment;
 
+        private readonly IMathUtility m_MathUtils;
+
         protected SwSketchSegment(ISketchSegment seg, ISwDocument doc, ISwApplication app, bool created) : base(seg, doc, app)
         {
             if (doc == null)
@@ -54,6 +58,8 @@ namespace Xarial.XCad.SolidWorks.Sketch
 
             m_SketchMgr = doc.Model.SketchManager;
             m_Creator = new ElementCreator<ISketchSegment>(CreateEntity, seg, created);
+
+            m_MathUtils = app.Sw.IGetMathUtility();
         }
 
         public override void Commit(CancellationToken cancellationToken) => m_Creator.Create(cancellationToken);
@@ -92,13 +98,18 @@ namespace Xarial.XCad.SolidWorks.Sketch
                 var startPt = StartPoint.Coordinate;
                 var endPt = EndPoint.Coordinate;
 
-                var parentBlock = OwnerBlock;
+                var blockTransform = OwnerBlock?.GetTotalTransform();
 
-                while (parentBlock != null) 
+                if (blockTransform != null)
                 {
-                    startPt = startPt.Transform(parentBlock.Transform);
-                    endPt = endPt.Transform(parentBlock.Transform);
-                    parentBlock = parentBlock.OwnerBlock;
+                    startPt = startPt.Transform(blockTransform);
+                    endPt = endPt.Transform(blockTransform);
+                }
+                
+                if (AssignedOwnerBlock != null) 
+                {
+                    //NOTE: if block is assigned and this sketch entity is extracted form the definition block, it is required transform the curve to the sketch block instance space
+                    curve.ApplyTransform((MathTransform)m_MathUtils.ToMathTransform(blockTransform));
                 }
 
                 curve = curve.CreateTrimmedCurve2(startPt.X, startPt.Y, startPt.Z, 

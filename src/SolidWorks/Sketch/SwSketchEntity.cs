@@ -9,6 +9,7 @@ using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using Xarial.XCad.Features;
@@ -25,6 +26,7 @@ namespace Xarial.XCad.SolidWorks.Sketch
     }
 
     //TODO: for the entities of the block definition it might be required to transform all the coodinate system for the consistency
+    [DebuggerDisplay("{" + nameof(Name) + "}")]
     internal abstract class SwSketchEntity : SwSelObject, ISwSketchEntity
     {
         public new abstract bool IsCommitted { get; }
