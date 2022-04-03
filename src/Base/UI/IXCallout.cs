@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Xarial.XCad.Base;
+using Xarial.XCad.Enums;
 using Xarial.XCad.Geometry.Structures;
 
 namespace Xarial.XCad.UI
@@ -22,6 +23,16 @@ namespace Xarial.XCad.UI
         /// Rows of this callout
         /// </summary>
         IXCalloutRow[] Rows { get; set; }
+
+        /// <summary>
+        /// Background color of the callout
+        /// </summary>
+        StandardSelectionColor_e? Background { get; set; }
+
+        /// <summary>
+        /// Foreground color of the callout
+        /// </summary>
+        StandardSelectionColor_e? Foreground { get; set; }
 
         /// <summary>
         /// Shows this callout

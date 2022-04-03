@@ -92,6 +92,15 @@ namespace Xarial.XCad.SolidWorks.Sketch
                 var startPt = StartPoint.Coordinate;
                 var endPt = EndPoint.Coordinate;
 
+                var parentBlock = OwnerBlock;
+
+                while (parentBlock != null) 
+                {
+                    startPt = startPt.Transform(parentBlock.Transform);
+                    endPt = endPt.Transform(parentBlock.Transform);
+                    parentBlock = parentBlock.OwnerBlock;
+                }
+
                 curve = curve.CreateTrimmedCurve2(startPt.X, startPt.Y, startPt.Z, 
                     endPt.X, endPt.Y, endPt.Z) as Curve;
 

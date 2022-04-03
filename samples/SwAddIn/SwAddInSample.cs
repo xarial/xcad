@@ -46,6 +46,7 @@ using System.Drawing;
 using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.SolidWorks.Features;
 using System.Diagnostics;
+using Xarial.XCad.Sketch;
 
 namespace SwAddInExample
 {
@@ -374,7 +375,7 @@ namespace SwAddInExample
                 switch (spec)
                 {
                     case Commands_e.OpenDoc:
-
+                        
                         var cutLists = (Application.Documents.Active as ISwPart).Configurations.Active.CutLists.ToArray();
 
                         //(Application.Documents.Active.Model as AssemblyDoc).FileDropPreNotify += SwAddInSample_FileDropPreNotify;
@@ -533,6 +534,8 @@ namespace SwAddInExample
                             row2.Value = "Value2";
                             row2.IsReadOnly = true;
                             m_Callout.Rows = new IXCalloutRow[] { row1, row2 };
+                            m_Callout.Background = StandardSelectionColor_e.Tertiary;
+                            m_Callout.Foreground = StandardSelectionColor_e.Primary;
                             m_Callout.Commit();
                             m_Callout.Show();
                         }

@@ -1,4 +1,5 @@
 ﻿using SolidWorks.Interop.sldworks;
+using SolidWorks.Interop.swconst;
 using SolidWorks.Interop.swpublished;
 using System;
 using System.Collections.Generic;
@@ -10,6 +11,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using Xarial.XCad.Data;
+using Xarial.XCad.Enums;
 using Xarial.XCad.Exceptions;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Services;
@@ -201,6 +203,75 @@ namespace Xarial.XCad.SolidWorks.UI
         public bool IsCommitted => m_Creator.IsCreated;
 
         public ICallout Callout => m_Creator.Element;
+        
+        public StandardSelectionColor_e? Background
+        {
+            get
+            {
+                if (IsCommitted)
+                {
+                    return (StandardSelectionColor_e)Callout.OpaqueColor;
+                }
+                else
+                {
+                    return m_Creator.CachedProperties.Get<StandardSelectionColor_e?>();
+                }
+            }
+            set
+            {
+                if (IsCommitted)
+                {
+                    if (value.HasValue)
+                    {
+                        Callout.OpaqueColor = (int)value.Value;
+                    }
+                    else
+                    {
+                        throw new Exception("Cannot remove the background color for the committed callout");
+                    }
+                }
+                else
+                {
+                    m_Creator.CachedProperties.Set(value);
+                }
+            }
+        }
+
+        public StandardSelectionColor_e? Foreground
+        {
+            get
+            {
+                if (IsCommitted)
+                {
+                    return (StandardSelectionColor_e)Callout.TextColor[0];
+                }
+                else
+                {
+                    return m_Creator.CachedProperties.Get<StandardSelectionColor_e?>();
+                }
+            }
+            set
+            {
+                if (IsCommitted)
+                {
+                    for (int i = 0; i < Rows.Length; i++)
+                    {
+                        if (value.HasValue)
+                        {
+                            Callout.TextColor[i] = (int)value.Value;
+                        }
+                        else 
+                        {
+                            throw new Exception("Cannot remove the foreground color for the committed callout");
+                        }
+                    }
+                }
+                else
+                {
+                    m_Creator.CachedProperties.Set(value);
+                }
+            }
+        }
 
         private readonly SwCalloutBaseHandler m_Handler;
 
@@ -269,11 +340,21 @@ namespace Xarial.XCad.SolidWorks.UI
             {
                 var callout = NewCallout(Rows.Length, m_Handler);
 
+                if (Background.HasValue)
+                {
+                    callout.OpaqueColor = (int)Background.Value;
+                }
+
                 for (int i = 0; i < Rows.Length; i++) 
                 {
                     callout.Label2[i] = Rows[i].Name;
                     callout.Value[i] = Rows[i].Value;
                     callout.ValueInactive[i] = Rows[i].IsReadOnly;
+
+                    if (Foreground.HasValue)
+                    {
+                        callout.TextColor[i] = (int)Foreground.Value;
+                    }
                 }
 
                 SetPosition(callout);
@@ -374,7 +455,15 @@ namespace Xarial.XCad.SolidWorks.UI
 
         protected override void SetPosition(ICallout callout)
         {
-            callout.Position = (MathPoint)m_MathUtils.CreatePoint(Location.ToArray());
+            if (Anchor == null)
+            {
+                throw new NullReferenceException($"Anchor point if the callout is not specified");
+            }
+
+            if (Location != null)
+            {
+                callout.Position = (MathPoint)m_MathUtils.CreatePoint(Location.ToArray());
+            }
 
             for (int i = 0; i < Rows.Length; i++)
             {

@@ -16,17 +16,19 @@ namespace Xarial.XCad.UI.PropertyPage.Attributes
     /// Indicates that metadata should be attached to the control
     /// </summary>
     [AttributeUsage(AttributeTargets.Property | AttributeTargets.Class, AllowMultiple = true)]
-    public class AttachMetadata : Attribute, IHasMetadataAttribute
+    public class AttachMetadataAttribute : Attribute, IHasMetadataAttribute
     {
+        /// <inheritdoc/>
         public bool HasMetadata => true;
 
+        /// <inheritdoc/>
         public object MetadataTag { get; }
 
         /// <summary>
         /// Default constructor
         /// </summary>
         /// <param name="tag">Tag of the metadata</param>
-        public AttachMetadata(string tag) 
+        public AttachMetadataAttribute(string tag) 
         {
             MetadataTag = tag;
         }

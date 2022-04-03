@@ -8,33 +8,13 @@
 using System;
 using System.Drawing;
 using Xarial.XCad.Base.Enums;
+using Xarial.XCad.Enums;
 using Xarial.XCad.UI.PropertyPage.Base;
 using Xarial.XCad.UI.PropertyPage.Enums;
 using Xarial.XCad.UI.PropertyPage.Services;
 
 namespace Xarial.XCad.UI.PropertyPage.Attributes
 {
-    /// <summary>
-    /// Represents the standard selection colors
-    /// </summary>
-    public enum StandardSelectionColor_e 
-    {
-        /// <summary>
-        /// Primary standard selection color
-        /// </summary>
-        Primary = 104,
-
-        /// <summary>
-        /// Secondary standard selection color
-        /// </summary>
-        Secondary = 105,
-
-        /// <summary>
-        /// Tertiary standard selection color
-        /// </summary>
-        Tertiary = 106,
-    }
-
     /// <summary>
     /// Additional options for selection box control
     /// </summary>
