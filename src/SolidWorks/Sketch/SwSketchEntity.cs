@@ -123,45 +123,10 @@ namespace Xarial.XCad.SolidWorks.Sketch
                     }
                 }
 
-                originPassed = IsOrigin(node);
+                originPassed = originPassed || IsOrigin(node);
             }
 
             throw new Exception($"Tree node is not found for {feat.Name}");
-
-            //var child = parent.GetFirstChild();
-
-            //while (child != null)
-            //{
-            //    if (originPassed)
-            //    {
-            //        bool? isSketch = null;
-
-            //        if (!isWithinSketch)
-            //        {
-            //            isSketch = IsSketchNode(child, sketchFeat, app);
-            //        }
-
-            //        isWithinSketch = isWithinSketch || isSketch.Value;
-
-            //        foreach (var subChild in TraverseSketchChildrenNodes(child, sketchFeat, app, isWithinSketch, originPassed))
-            //        {
-            //            if (isWithinSketch)
-            //            {
-            //                yield return subChild;
-            //            }
-            //        }
-
-            //        if (isSketch.HasValue && isSketch.Value)
-            //        {
-            //            isWithinSketch = false;
-            //            yield break;
-            //        }
-            //    }
-
-            //    originPassed = originPassed || IsOrigin(child);
-
-            //    child = child.GetNext();
-            //}
         }
 
         private static IEnumerable<ITreeControlItem> EnumerateTreeNodes(ITreeControlItem parent, Predicate<ITreeControlItem> traverseChildPred)

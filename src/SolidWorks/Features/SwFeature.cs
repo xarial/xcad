@@ -6,6 +6,7 @@
 //*********************************************************************
 
 using SolidWorks.Interop.sldworks;
+using SolidWorks.Interop.swconst;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -117,6 +118,23 @@ namespace Xarial.XCad.SolidWorks.Features
                         yield return OwnerDocument.CreateObjectFromDispatch<ISwFace>(face);
                     }
                 }
+            }
+        }
+
+        public FeatureState_e State 
+        {
+            get 
+            {
+                var state = FeatureState_e.Default;
+
+                var suppStates = (bool[])Feature.IsSuppressed2((int)swInConfigurationOpts_e.swThisConfiguration, null);
+
+                if (suppStates[0]) 
+                {
+                    state |= FeatureState_e.Suppressed;
+                }
+
+                return state;
             }
         }
 

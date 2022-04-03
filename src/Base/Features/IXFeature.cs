@@ -5,6 +5,7 @@
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
+using System;
 using System.Collections.Generic;
 using Xarial.XCad.Annotations;
 using Xarial.XCad.Base;
@@ -12,6 +13,23 @@ using Xarial.XCad.Geometry;
 
 namespace Xarial.XCad.Features
 {
+    /// <summary>
+    /// Specifies the state of the feature
+    /// </summary>
+    [Flags]
+    public enum FeatureState_e 
+    {
+        /// <summary>
+        /// Default state
+        /// </summary>
+        Default = 0,
+
+        /// <summary>
+        /// Feature is suppressed
+        /// </summary>
+        Suppressed = 1
+    }
+
     /// <summary>
     /// Represents all features in the Feature Manager Design Tree
     /// </summary>
@@ -21,5 +39,10 @@ namespace Xarial.XCad.Features
         /// Faces of this feature
         /// </summary>
         IEnumerable<IXFace> Faces { get; }
+
+        /// <summary>
+        /// State of this feature in the feature tree
+        /// </summary>
+        FeatureState_e State { get; }
     }
 }
