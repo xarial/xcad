@@ -46,6 +46,7 @@ namespace Xarial.XCad.SwDocumentManager.Features
         }
 
         public IEnumerable<IXFace> Faces => throw new NotSupportedException();
+        FeatureState_e IXFeature.State => throw new NotSupportedException();
 
         #endregion
 
