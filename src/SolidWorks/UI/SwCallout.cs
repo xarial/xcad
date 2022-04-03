@@ -136,14 +136,7 @@ namespace Xarial.XCad.SolidWorks.UI
                 }
                 else
                 {
-                    if (!IsReadOnly)
-                    {
-                        m_Owner.Callout.Value[RowIndex] = value;
-                    }
-                    else
-                    {
-                        throw new Exception("Value of the read-only row cannot be modified");
-                    }
+                    m_Owner.Callout.Value[RowIndex] = value;
                 }
             }
         }
