@@ -26,4 +26,28 @@ namespace Xarial.XCad.Sketch
         /// </summary>
         IXSketchEntityRepository Entities { get; }
     }
+
+    /// <summary>
+    /// Additional methods of <see cref="IXSketchBlockInstance"/>
+    /// </summary>
+    public static class IXSketchBlockInstanceExtension 
+    {
+        /// <summary>
+        /// Returns the total transform of this block, including parent block transforms
+        /// </summary>
+        /// <param name="skBlockInst"></param>
+        /// <returns></returns>
+        public static TransformMatrix GetTotalTransform(this IXSketchBlockInstance skBlockInst) 
+        {
+            var transform = TransformMatrix.Identity;
+
+            while (skBlockInst != null) 
+            {
+                transform = transform.Multiply(skBlockInst.Transform);
+                skBlockInst = skBlockInst.OwnerBlock;
+            }
+
+            return transform;
+        }
+    }
 }

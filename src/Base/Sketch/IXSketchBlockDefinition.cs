@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using Xarial.XCad.Features;
+using Xarial.XCad.Geometry.Structures;
 
 namespace Xarial.XCad.Sketch
 {
@@ -10,6 +11,11 @@ namespace Xarial.XCad.Sketch
     /// </summary>
     public interface IXSketchBlockDefinition : IXFeature
     {
+        /// <summary>
+        /// Insertion point of the sketch block definition
+        /// </summary>
+        Point InsertionPoint { get; }
+
         /// <summary>
         /// All instances of this sketch block defintion
         /// </summary>

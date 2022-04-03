@@ -5,6 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Text;
 using Xarial.XCad.Data;
+using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Sketch;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Features;
@@ -34,7 +35,9 @@ namespace Xarial.XCad.SolidWorks.Sketch
         }
 
         public IXSketchEntityRepository Entities { get; }
-        
+
+        public Point InsertionPoint => new Point((double[])SketchBlockDefinition.InsertionPoint.ArrayData);
+
         internal SwSketchBlockDefinition(IFeature feat, ISwDocument doc, ISwApplication app, bool created) : base(feat, doc, app, created) 
         {
             SketchBlockDefinition = (ISketchBlockDefinition)feat.GetSpecificFeature2();
