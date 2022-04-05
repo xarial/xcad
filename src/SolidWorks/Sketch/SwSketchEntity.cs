@@ -82,6 +82,26 @@ namespace Xarial.XCad.SolidWorks.Sketch
         {
         }
 
+        public override bool Equals(IXObject other)
+        {
+            if (base.Equals(other))
+            {
+                //NOTE: sketch segment pointers are from the definition and will be equal from different sketch block instances
+                if (AssignedOwnerBlock != null && (other as SwSketchEntity)?.AssignedOwnerBlock != null)
+                {
+                    return AssignedOwnerBlock.Equals(((SwSketchEntity)other).AssignedOwnerBlock);
+                }
+                else
+                {
+                    return true;
+                }
+            }
+            else
+            {
+                return false;
+            }
+        }
+
         protected abstract string GetFullName();
     }
 

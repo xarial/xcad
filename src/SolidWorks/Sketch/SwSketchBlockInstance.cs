@@ -74,6 +74,26 @@ namespace Xarial.XCad.SolidWorks.Sketch
             SketchBlockInstance = (ISketchBlockInstance)feat.GetSpecificFeature2();
             Entities = new SwSketchBlockInstanceEntityCollection(this, doc.CreateObjectFromDispatch<ISwSketchBase>(SketchBlockInstance.Definition.GetSketch()), doc, app);
         }
+
+        public override bool Equals(IXObject other)
+        {
+            if (base.Equals(other))
+            {
+                //NOTE: sketch block instance pointers are from the definition and will be equal from different sketch block instances
+                if (AssignedOwnerBlock != null && (other as SwSketchBlockInstance)?.AssignedOwnerBlock != null)
+                {
+                    return AssignedOwnerBlock.Equals(((SwSketchBlockInstance)other).AssignedOwnerBlock);
+                }
+                else
+                {
+                    return true;
+                }
+            }
+            else
+            {
+                return false;
+            }
+        }
     }
 
     internal class SwSketchBlockInstanceEntityCollection : SwSketchEntityCollection
