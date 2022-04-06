@@ -43,8 +43,9 @@ namespace Xarial.XCad.Geometry.Curves
         /// Finds location of the point based on the curve u-parameter
         /// </summary>
         /// <param name="uParam">U-parameter</param>
+        /// <param name="tangent">Tangent vector at point</param>
         /// <returns>Point location</returns>
-        Point CalculateLocation(double uParam);
+        Point CalculateLocation(double uParam, out Vector tangent);
 
         /// <summary>
         /// Calculates the length of the curve

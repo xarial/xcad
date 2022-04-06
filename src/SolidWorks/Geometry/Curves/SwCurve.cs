@@ -151,11 +151,15 @@ namespace Xarial.XCad.SolidWorks.Geometry.Curves
             }
         }
 
-        public Point CalculateLocation(double uParam)
+        public Point CalculateLocation(double uParam, out Vector tangent)
         {
             if (Curves.Length == 1)
             {
-                return new Point(((double[])Curves.First().Evaluate2(uParam, 1)).Take(3).ToArray());
+                var eval = (double[])Curves.First().Evaluate2(uParam, 1);
+
+                tangent = new Vector(eval[3], eval[4], eval[5]);
+
+                return new Point(eval[0], eval[1], eval[2]);
             }
             else
             {
