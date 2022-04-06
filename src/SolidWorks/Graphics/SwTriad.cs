@@ -74,6 +74,8 @@ namespace Xarial.XCad.SolidWorks.Graphics
 
         private readonly SwTriadHandler m_Handler;
 
+        private bool m_WasShown;
+
         internal SwTriad(SwDocument3D doc, SwTriadHandler handler) : base(null, doc, doc.OwnerApplication)
         {
             m_Creator = new ElementCreator<ITriadManipulator>(CreateTriad, null, false);
@@ -88,6 +90,8 @@ namespace Xarial.XCad.SolidWorks.Graphics
             Elements = TriadElements_e.All;
             Transform = TransformMatrix.Identity;
             Visible = true;
+
+            m_WasShown = false;
         }
 
         public override object Dispatch => Triad;
@@ -201,7 +205,14 @@ namespace Xarial.XCad.SolidWorks.Graphics
             {
                 if (IsCommitted)
                 {
-                    m_Manipulator.Visible = value;
+                    if (value && !m_WasShown)
+                    {
+                        Show(m_Manipulator);
+                    }
+                    else
+                    {
+                        m_Manipulator.Visible = value;
+                    }
                 }
                 else
                 {
@@ -211,7 +222,10 @@ namespace Xarial.XCad.SolidWorks.Graphics
         }
 
         private void Show(IManipulator manipulator)
-            => manipulator.Show(m_Doc.Model);
+        {
+            manipulator.Show(m_Doc.Model);
+            m_WasShown = true;
+        }
 
         public bool IsCommitted => m_Creator.IsCreated;
 
