@@ -17,16 +17,7 @@ namespace Xarial.XCad.Documents
         /// <inheritdoc/>
         new IXAssemblyConfigurationRepository Configurations { get; }
 
-        /// <summary>
-        /// Pre creates the 3D bounding box of the assembly
-        /// </summary>
-        /// <returns>Bounding box</returns>
-        new IXAssemblyBoundingBox PreCreateBoundingBox();
-
-        /// <summary>
-        /// Pre creates mass properties of the assembly
-        /// </summary>
-        /// <returns>Mass property</returns>
-        new IXAssemblyMassProperty PreCreateMassProperty();
+        /// <inheritdoc/>
+        new IXAssemblyEvaluation Evaluation { get; }
     }
 }

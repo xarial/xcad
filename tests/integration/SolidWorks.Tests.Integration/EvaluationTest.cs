@@ -44,13 +44,13 @@ namespace SolidWorks.Tests.Integration
             {
                 var part = (IXPart)m_App.Documents.Active;
 
-                var bbox = part.PreCreateBoundingBox();
+                var bbox = part.Evaluation.PreCreateBoundingBox();
                 bbox.Precise = true;
                 bbox.UserUnits = true;
                 bbox.Commit();
                 b1 = bbox.Box;
 
-                bbox = part.PreCreateBoundingBox();
+                bbox = part.Evaluation.PreCreateBoundingBox();
                 bbox.Precise = false;
                 bbox.UserUnits = true;
                 bbox.Commit();
@@ -102,13 +102,13 @@ namespace SolidWorks.Tests.Integration
 
                 var body = (IXSolidBody)part.Bodies["Boss-Extrude1"];
 
-                var bbox = part.PreCreateBoundingBox();
+                var bbox = part.Evaluation.PreCreateBoundingBox();
                 bbox.Precise = true;
                 bbox.Scope = new IXBody[] { body };
                 bbox.Commit();
                 b1 = bbox.Box;
 
-                bbox = part.PreCreateBoundingBox();
+                bbox = part.Evaluation.PreCreateBoundingBox();
                 bbox.Precise = false;
                 bbox.Scope = new IXBody[] { body };
                 bbox.Commit();
@@ -163,14 +163,14 @@ namespace SolidWorks.Tests.Integration
                 var matrix = TransformConverter.ToTransformMatrix(
                     part.Model.Extension.GetCoordinateSystemTransformByName("Coordinate System1"));
 
-                var bbox = part.PreCreateBoundingBox();
+                var bbox = part.Evaluation.PreCreateBoundingBox();
                 bbox.Precise = true;
                 bbox.RelativeTo = matrix;
                 bbox.Scope = new IXBody[] { body };
                 bbox.Commit();
                 b1 = bbox.Box;
 
-                bbox = part.PreCreateBoundingBox();
+                bbox = part.Evaluation.PreCreateBoundingBox();
                 bbox.Precise = false;
                 bbox.RelativeTo = matrix;
                 bbox.Scope = new IXBody[] { body };
@@ -223,7 +223,7 @@ namespace SolidWorks.Tests.Integration
             {
                 var part = (IXPart)m_App.Documents.Active;
 
-                var bbox = part.PreCreateBoundingBox();
+                var bbox = part.Evaluation.PreCreateBoundingBox();
                 bbox.Precise = false;
                 bbox.Commit();
                 b1 = bbox.Box;
@@ -255,7 +255,7 @@ namespace SolidWorks.Tests.Integration
             {
                 var assm = (IXAssembly)m_App.Documents.Active;
 
-                var bbox = assm.PreCreateBoundingBox();
+                var bbox = assm.Evaluation.PreCreateBoundingBox();
                 bbox.Precise = true;
                 bbox.Scope = new IXComponent[]
                 {
@@ -299,14 +299,14 @@ namespace SolidWorks.Tests.Integration
                 var matrix = TransformConverter.ToTransformMatrix(
                     assm.Model.Extension.GetCoordinateSystemTransformByName("Coordinate System1"));
 
-                var bbox = assm.PreCreateBoundingBox();
+                var bbox = assm.Evaluation.PreCreateBoundingBox();
                 bbox.Precise = true;
                 bbox.RelativeTo = matrix;
                 bbox.Scope = comps;
                 bbox.Commit();
                 b1 = bbox.Box;
 
-                bbox = assm.PreCreateBoundingBox();
+                bbox = assm.Evaluation.PreCreateBoundingBox();
                 bbox.Precise = false;
                 bbox.RelativeTo = matrix;
                 bbox.Scope = comps;
@@ -360,14 +360,14 @@ namespace SolidWorks.Tests.Integration
             {
                 var assm = (IXAssembly)m_App.Documents.Active;
 
-                var bbox = assm.PreCreateBoundingBox();
+                var bbox = assm.Evaluation.PreCreateBoundingBox();
                 bbox.Precise = false;
                 bbox.Commit();
                 b1 = bbox.Box;
 
                 try
                 {
-                    bbox = assm.PreCreateBoundingBox();
+                    bbox = assm.Evaluation.PreCreateBoundingBox();
                     bbox.VisibleOnly = false;
                     bbox.Commit();
                 }
@@ -412,7 +412,7 @@ namespace SolidWorks.Tests.Integration
                     assm.Configurations.Active.Components["SubAssem1-2"]
                 };
 
-                var bbox = assm.PreCreateBoundingBox();
+                var bbox = assm.Evaluation.PreCreateBoundingBox();
                 bbox.Scope = comps;
                 bbox.Precise = false;
                 bbox.Commit();
@@ -420,7 +420,7 @@ namespace SolidWorks.Tests.Integration
 
                 try
                 {
-                    bbox = assm.PreCreateBoundingBox();
+                    bbox = assm.Evaluation.PreCreateBoundingBox();
                     bbox.VisibleOnly = false;
                     bbox.Scope = comps;
                     bbox.Commit();
@@ -459,7 +459,7 @@ namespace SolidWorks.Tests.Integration
             {
                 var assm = (ISwAssembly)m_App.Documents.Active;
 
-                var bbox = assm.PreCreateBoundingBox();
+                var bbox = assm.Evaluation.PreCreateBoundingBox();
                 bbox.Precise = true;
                 var swBody = (assm.Configurations.Active.Components["SubAssem1-2"].Children["SubSubAssem1-1"].Children["Part1-1"]
                     .Bodies.First() as ISwBody).Body.ICopy();
@@ -495,7 +495,7 @@ namespace SolidWorks.Tests.Integration
             {
                 var assm = (ISwAssembly)m_App.Documents.Active;
 
-                using (var bbox = assm.PreCreateBoundingBox())
+                using (var bbox = assm.Evaluation.PreCreateBoundingBox())
                 {
                     bbox.UserUnits = false;
                     bbox.VisibleOnly = false;
@@ -524,7 +524,7 @@ namespace SolidWorks.Tests.Integration
             {
                 var assm = (ISwAssembly)m_App.Documents.Active;
 
-                using (var bbox = assm.PreCreateBoundingBox())
+                using (var bbox = assm.Evaluation.PreCreateBoundingBox())
                 {
                     bbox.UserUnits = false;
                     bbox.VisibleOnly = true;
@@ -548,7 +548,7 @@ namespace SolidWorks.Tests.Integration
             {
                 var part = (ISwPart)m_App.Documents.Active;
 
-                using (var bbox = part.PreCreateBoundingBox())
+                using (var bbox = part.Evaluation.PreCreateBoundingBox())
                 {
                     bbox.UserUnits = false;
                     bbox.VisibleOnly = false;
@@ -581,7 +581,7 @@ namespace SolidWorks.Tests.Integration
             {
                 var part = (ISwPart)m_App.Documents.Active;
                 
-                using (var massPrps = part.PreCreateMassProperty())
+                using (var massPrps = part.Evaluation.PreCreateMassProperty())
                 {
                     massPrps.Scope = new IXBody[] { part.Bodies["Sweep1"] };
                     massPrps.UserUnits = false;
@@ -644,7 +644,7 @@ namespace SolidWorks.Tests.Integration
             {
                 var part = (ISwPart)m_App.Documents.Active;
                 
-                using (var massPrps = part.PreCreateMassProperty())
+                using (var massPrps = part.Evaluation.PreCreateMassProperty())
                 {
                     massPrps.UserUnits = false;
                     massPrps.VisibleOnly = true;
@@ -707,7 +707,7 @@ namespace SolidWorks.Tests.Integration
             {
                 var part = (ISwPart)m_App.Documents.Active;
 
-                using (var massPrps = part.PreCreateMassProperty())
+                using (var massPrps = part.Evaluation.PreCreateMassProperty())
                 {
                     massPrps.UserUnits = true;
                     massPrps.VisibleOnly = true;
@@ -770,7 +770,7 @@ namespace SolidWorks.Tests.Integration
             {
                 var part = (ISwPart)m_App.Documents.Active;
 
-                using (var massPrps = part.PreCreateMassProperty())
+                using (var massPrps = part.Evaluation.PreCreateMassProperty())
                 {
                     massPrps.Scope = new IXBody[] { part.Bodies["Sweep1"] };
                     massPrps.UserUnits = true;
@@ -835,7 +835,7 @@ namespace SolidWorks.Tests.Integration
             {
                 var assm = (ISwAssembly)m_App.Documents.Active;
 
-                using (var massPrps = assm.PreCreateMassProperty())
+                using (var massPrps = assm.Evaluation.PreCreateMassProperty())
                 {
                     massPrps.Scope = new IXComponent[] { assm.Configurations.Active.Components["Part1-1"] };
                     massPrps.UserUnits = false;
@@ -898,7 +898,7 @@ namespace SolidWorks.Tests.Integration
             {
                 var assm = (ISwAssembly)m_App.Documents.Active;
 
-                using (var massPrps = assm.PreCreateMassProperty())
+                using (var massPrps = assm.Evaluation.PreCreateMassProperty())
                 {
                     massPrps.UserUnits = false;
                     massPrps.VisibleOnly = true;
@@ -961,7 +961,7 @@ namespace SolidWorks.Tests.Integration
             {
                 var assm = (ISwAssembly)m_App.Documents.Active;
 
-                using (var massPrps = assm.PreCreateMassProperty())
+                using (var massPrps = assm.Evaluation.PreCreateMassProperty())
                 {
                     massPrps.Scope = new IXComponent[] { assm.Configurations.Active.Components["SubAssem1-1"].Children["Part2-1"] };
                     massPrps.UserUnits = true;
@@ -1025,7 +1025,7 @@ namespace SolidWorks.Tests.Integration
             {
                 var assm = (ISwAssembly)m_App.Documents.Active;
 
-                using (var massPrps = assm.PreCreateMassProperty())
+                using (var massPrps = assm.Evaluation.PreCreateMassProperty())
                 {
                     massPrps.UserUnits = false;
                     massPrps.VisibleOnly = false;
@@ -1088,7 +1088,7 @@ namespace SolidWorks.Tests.Integration
             {
                 var assm = (ISwAssembly)m_App.Documents.Active;
 
-                using (var massPrps = assm.PreCreateMassProperty())
+                using (var massPrps = assm.Evaluation.PreCreateMassProperty())
                 {
                     massPrps.Scope = new IXComponent[] { assm.Configurations.Active.Components["Part1-1"] };
                     massPrps.UserUnits = false;
@@ -1157,7 +1157,7 @@ namespace SolidWorks.Tests.Integration
             {
                 var assm = (ISwAssembly)m_App.Documents.Active;
 
-                using (var massPrps = assm.PreCreateMassProperty())
+                using (var massPrps = assm.Evaluation.PreCreateMassProperty())
                 {
                     massPrps.UserUnits = false;
                     massPrps.VisibleOnly = false;
@@ -1217,7 +1217,7 @@ namespace SolidWorks.Tests.Integration
             {
                 var assm = (ISwAssembly)m_App.Documents.Active;
 
-                using (var massPrps = assm.PreCreateMassProperty())
+                using (var massPrps = assm.Evaluation.PreCreateMassProperty())
                 {
                     massPrps.UserUnits = false;
                     massPrps.VisibleOnly = false;
@@ -1298,7 +1298,7 @@ namespace SolidWorks.Tests.Integration
             {
                 var assm = (ISwAssembly)m_App.Documents.Active;
 
-                using (var massPrps = assm.PreCreateMassProperty())
+                using (var massPrps = assm.Evaluation.PreCreateMassProperty())
                 {
                     massPrps.UserUnits = true;
                     massPrps.VisibleOnly = false;
@@ -1316,7 +1316,7 @@ namespace SolidWorks.Tests.Integration
                     pai1 = massPrps.PrincipalAxesOfInertia;
                 }
 
-                using (var massPrps = assm.PreCreateMassProperty())
+                using (var massPrps = assm.Evaluation.PreCreateMassProperty())
                 {
                     massPrps.UserUnits = false;
                     massPrps.VisibleOnly = false;
@@ -1409,7 +1409,7 @@ namespace SolidWorks.Tests.Integration
             {
                 var assm = (ISwAssembly)m_App.Documents.Active;
 
-                using (var massPrps = assm.PreCreateMassProperty())
+                using (var massPrps = assm.Evaluation.PreCreateMassProperty())
                 {
                     massPrps.UserUnits = true;
                     massPrps.VisibleOnly = true;
@@ -1480,7 +1480,7 @@ namespace SolidWorks.Tests.Integration
             {
                 var part = (ISwPart)m_App.Documents.Active;
 
-                using (var massPrps = part.PreCreateMassProperty())
+                using (var massPrps = part.Evaluation.PreCreateMassProperty())
                 {
                     massPrps.UserUnits = false;
                     massPrps.VisibleOnly = false;
@@ -1524,7 +1524,7 @@ namespace SolidWorks.Tests.Integration
             {
                 var part = (ISwPart)m_App.Documents.Active;
 
-                using (var massPrps = part.PreCreateMassProperty())
+                using (var massPrps = part.Evaluation.PreCreateMassProperty())
                 {
                     massPrps.UserUnits = true;
                     massPrps.VisibleOnly = true;
@@ -1572,7 +1572,7 @@ namespace SolidWorks.Tests.Integration
             {
                 var assm = (ISwAssembly)m_App.Documents.Active;
 
-                using (var massPrps = assm.PreCreateMassProperty())
+                using (var massPrps = assm.Evaluation.PreCreateMassProperty())
                 {
                     massPrps.UserUnits = true;
                     massPrps.Scope = new IXComponent[] { assm.Configurations.Active.Components["SubSubAssem1-1"] };
@@ -1626,7 +1626,7 @@ namespace SolidWorks.Tests.Integration
             {
                 var assm = (ISwAssembly)m_App.Documents.Active;
 
-                using (var massPrps = assm.PreCreateMassProperty())
+                using (var massPrps = assm.Evaluation.PreCreateMassProperty())
                 {
                     massPrps.UserUnits = false;
                     massPrps.VisibleOnly = false;
@@ -1654,7 +1654,7 @@ namespace SolidWorks.Tests.Integration
             {
                 var assm = (ISwAssembly)m_App.Documents.Active;
 
-                using (var massPrps = assm.PreCreateMassProperty())
+                using (var massPrps = assm.Evaluation.PreCreateMassProperty())
                 {
                     massPrps.UserUnits = false;
                     massPrps.VisibleOnly = false;
@@ -1677,7 +1677,7 @@ namespace SolidWorks.Tests.Integration
             {
                 var part = (ISwPart)m_App.Documents.Active;
 
-                using (var massPrps = part.PreCreateMassProperty())
+                using (var massPrps = part.Evaluation.PreCreateMassProperty())
                 {
                     massPrps.UserUnits = false;
                     massPrps.VisibleOnly = false;
@@ -1700,7 +1700,7 @@ namespace SolidWorks.Tests.Integration
             {
                 var assm = (ISwAssembly)m_App.Documents.Active;
 
-                using (var massPrps = assm.PreCreateMassProperty())
+                using (var massPrps = assm.Evaluation.PreCreateMassProperty())
                 {
                     massPrps.VisibleOnly = true;
 
@@ -2684,7 +2684,7 @@ namespace SolidWorks.Tests.Integration
             bool relToCoord, bool userUnits, out object moi, out object mass, out object cog, out object pmoi, out object paoi,
             out object density, out object area, out object volume)
         {
-            using (var massPrps = assm.PreCreateMassProperty())
+            using (var massPrps = assm.Evaluation.PreCreateMassProperty())
             {
                 massPrps.Scope = new IXComponent[] { assm.Configurations.Active.Components[compName] };
                 massPrps.UserUnits = userUnits;

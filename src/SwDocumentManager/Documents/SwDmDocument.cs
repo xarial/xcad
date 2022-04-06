@@ -707,12 +707,13 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         {
         }
 
+        IXModelView3DRepository IXDocument3D.ModelViews => throw new NotSupportedException();
         public ISwDmConfigurationCollection Configurations => throw new NotSupportedException();
-        public IXModelView3DRepository ModelViews => throw new NotSupportedException();
+        public IXDocumentEvaluation Evaluation => throw new NotSupportedException();
+        public IXDocumentGraphics Graphics => throw new NotSupportedException();
+
         IXConfigurationRepository IXDocument3D.Configurations => throw new NotSupportedException();
-        public IXBoundingBox PreCreateBoundingBox() => throw new NotSupportedException();
-        public IXCallout PreCreateCallout() => throw new NotSupportedException();
-        public IXMassProperty PreCreateMassProperty() => throw new NotSupportedException();
+
         TSelObject IXObjectContainer.ConvertObject<TSelObject>(TSelObject obj) => throw new NotSupportedException();
     }
 }

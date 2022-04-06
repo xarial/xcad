@@ -14,14 +14,15 @@ using Xarial.XCad.Data;
 using Xarial.XCad.Enums;
 using Xarial.XCad.Exceptions;
 using Xarial.XCad.Geometry.Structures;
+using Xarial.XCad.Graphics;
 using Xarial.XCad.Services;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.UI;
 using Xarial.XCad.Utils.Reflection;
 
-namespace Xarial.XCad.SolidWorks.UI
+namespace Xarial.XCad.SolidWorks.Graphics
 {
-    public interface ISwCalloutBase : IXCalloutBase
+    public interface ISwCalloutBase : IXCalloutBase, ISwObject
     {
         ICallout Callout { get; }
     }
@@ -173,25 +174,11 @@ namespace Xarial.XCad.SolidWorks.UI
         }
     }
 
-    internal abstract class SwCalloutBase : ISwCalloutBase
+    internal abstract class SwCalloutBase : SwObject, ISwCalloutBase
     {
         protected readonly ElementCreator<ICallout> m_Creator;
 
-        public IXCalloutRow[] Rows
-        {
-            get => m_Creator.CachedProperties.Get<IXCalloutRow[]>();
-            set
-            {
-                if (!IsCommitted)
-                {
-                    m_Creator.CachedProperties.Set(value);
-                }
-                else 
-                {
-                    throw new CommitedElementReadOnlyParameterException();
-                }
-            }
-        }
+        public IXCalloutRow[] Rows { get; private set; }
 
         public bool IsCommitted => m_Creator.IsCreated;
 
@@ -266,17 +253,60 @@ namespace Xarial.XCad.SolidWorks.UI
             }
         }
 
+        public bool Visible 
+        {
+            get
+            {
+                if (IsCommitted)
+                {
+                    return m_IsVisible;
+                }
+                else
+                {
+                    return m_Creator.CachedProperties.Get<bool>();
+                }
+            }
+            set
+            {
+                if (IsCommitted)
+                {
+                    if (value)
+                    {
+                        Show(Callout);
+                    }
+                    else 
+                    {
+                        Hide();
+                    }
+
+                    m_IsVisible = value;
+                }
+                else
+                {
+                    m_Creator.CachedProperties.Set(value);
+                }
+            }
+        }
+
+        public override object Dispatch => Callout;
+
         private readonly SwCalloutBaseHandler m_Handler;
 
-        internal SwCalloutBase(SwCalloutBaseHandler handler) 
+        private bool m_IsVisible;
+
+        internal SwCalloutBase(SwDocument doc, SwCalloutBaseHandler handler) : base (null, doc, doc.OwnerApplication)
         {
+            m_Creator = new ElementCreator<ICallout>(CreateCallout, null, false);
+
             m_Handler = handler;
 
             ValidateHandler(m_Handler);
 
             m_Handler.ValueChanged += OnRowValueChanged;
 
-            m_Creator = new ElementCreator<ICallout>(CreateCallout, null, false);
+            Visible = true;
+
+            Visible = true;
         }
 
         private void ValidateHandler(SwCalloutBaseHandler handler)
@@ -301,17 +331,31 @@ namespace Xarial.XCad.SolidWorks.UI
 
         public void Commit(CancellationToken cancellationToken) => m_Creator.Create(cancellationToken);
 
-        public IXCalloutRow PreCreateRow() => new SwCalloutRow(this);
-
-        public virtual void Show()
+        public IXCalloutRow AddRow()
         {
-            if (!Callout.Display(true)) 
+            if (!IsCommitted)
+            {
+                var row = new SwCalloutRow(this);
+
+                Rows = (Rows ?? new IXCalloutRow[0]).Union(new IXCalloutRow[] { row }).ToArray();
+
+                return row;
+            }
+            else 
+            {
+                throw new CommitedElementReadOnlyParameterException();
+            }
+        }
+
+        protected virtual void Show(ICallout callout)
+        {
+            if (!callout.Display(true)) 
             {
                 throw new Exception("Failed to display callout");
             }
         }
 
-        public void Hide()
+        private void Hide()
         {
             if (!Callout.Display(false))
             {
@@ -333,6 +377,11 @@ namespace Xarial.XCad.SolidWorks.UI
             {
                 var callout = NewCallout(Rows.Length, m_Handler);
 
+                if (callout == null) 
+                {
+                    throw new NullReferenceException("Failed to create callout");
+                }
+
                 if (Background.HasValue)
                 {
                     callout.OpaqueColor = (int)Background.Value;
@@ -351,6 +400,11 @@ namespace Xarial.XCad.SolidWorks.UI
                 }
 
                 SetPosition(callout);
+
+                if (Visible) 
+                {
+                    Show(callout);
+                }
 
                 return callout;
             }
@@ -384,7 +438,7 @@ namespace Xarial.XCad.SolidWorks.UI
         private readonly SwDocument3D m_Doc;
         private readonly IMathUtility m_MathUtils;
 
-        public SwCallout(SwDocument3D doc, SwCalloutBaseHandler handler) : base(handler)
+        public SwCallout(SwDocument3D doc, SwCalloutBaseHandler handler) : base(doc, handler)
         {
             m_Doc = doc;
             m_MathUtils = m_Doc.OwnerApplication.Sw.IGetMathUtility();
@@ -471,7 +525,7 @@ namespace Xarial.XCad.SolidWorks.UI
     {
         private readonly SwSelectionCollection m_Sel;
 
-        public SwSelCallout(SwSelectionCollection sel, SwCalloutBaseHandler handler) : base(handler)
+        public SwSelCallout(SwDocument doc, SwSelectionCollection sel, SwCalloutBaseHandler handler) : base(doc, handler)
         {
             m_Sel = sel;
         }
@@ -492,7 +546,7 @@ namespace Xarial.XCad.SolidWorks.UI
             }
         }
 
-        public override void Show()
+        protected override void Show(ICallout callout)
         {
             var selIndex = ((SwSelObject)Owner).SelectionIndex;
             
@@ -502,7 +556,7 @@ namespace Xarial.XCad.SolidWorks.UI
             }
 
             var selData = m_Sel.SelMgr.CreateSelectData();
-            selData.Callout = (Callout)Callout;
+            selData.Callout = (Callout)callout;
             ((SwSelObject)Owner).Select(true, selData);
         }
 

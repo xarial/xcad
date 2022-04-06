@@ -12,17 +12,17 @@ using Xarial.XCad.Base;
 using Xarial.XCad.Enums;
 using Xarial.XCad.Geometry.Structures;
 
-namespace Xarial.XCad.UI
+namespace Xarial.XCad.Graphics
 {
     /// <summary>
     /// Represents the visual key-value element which can be attached to visual elements
     /// </summary>
-    public interface IXCalloutBase : IXTransaction, IDisposable
+    public interface IXCalloutBase : IXObject, IXTransaction, IDisposable
     {
         /// <summary>
         /// Rows of this callout
         /// </summary>
-        IXCalloutRow[] Rows { get; set; }
+        IXCalloutRow[] Rows { get; }
 
         /// <summary>
         /// Background color of the callout
@@ -35,20 +35,15 @@ namespace Xarial.XCad.UI
         StandardSelectionColor_e? Foreground { get; set; }
 
         /// <summary>
-        /// Shows this callout
+        /// Controls the visibility of this callout
         /// </summary>
-        void Show();
-
-        /// <summary>
-        /// Hides this callout
-        /// </summary>
-        void Hide();
+        bool Visible { get; set; }
 
         /// <summary>
         /// Pre creates new callout row
         /// </summary>
         /// <returns>New row template</returns>
-        IXCalloutRow PreCreateRow();
+        IXCalloutRow AddRow();
     }
 
     /// <summary>

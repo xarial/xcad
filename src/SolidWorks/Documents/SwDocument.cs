@@ -1342,19 +1342,14 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
         }
 
-        public IXModelView3DRepository ModelViews => throw new NotImplementedException();
         public IXConfigurationRepository Configurations => throw new NotImplementedException();
+        public IXDocumentEvaluation Evaluation => throw new NotImplementedException();
+        public IXDocumentGraphics Graphics => throw new NotImplementedException();
         ISwConfigurationCollection ISwDocument3D.Configurations => throw new NotImplementedException();
         IXConfigurationRepository IXDocument3D.Configurations => throw new NotImplementedException();
         ISwModelViews3DCollection ISwDocument3D.ModelViews => throw new NotImplementedException();
         IXModelView3DRepository IXDocument3D.ModelViews => throw new NotImplementedException();
-        public IXBoundingBox PreCreateBoundingBox() => throw new NotImplementedException();
-        public IXCallout PreCreateCallout() => throw new NotImplementedException();
-        public ISwCallout PreCreateCallout<T>() where T : SwCalloutBaseHandler, new() => throw new NotImplementedException();
-        public IXMassProperty PreCreateMassProperty() => throw new NotImplementedException();
         TSelObject IXObjectContainer.ConvertObject<TSelObject>(TSelObject obj) => throw new NotImplementedException();
         TSelObject ISwDocument3D.ConvertObject<TSelObject>(TSelObject obj) => throw new NotImplementedException();
-        IXBoundingBox IXDocument3D.PreCreateBoundingBox() => throw new NotImplementedException();
-        IXMassProperty IXDocument3D.PreCreateMassProperty() => throw new NotImplementedException();
     }
 }

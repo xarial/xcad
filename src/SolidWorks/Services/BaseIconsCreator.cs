@@ -178,7 +178,7 @@ namespace Xarial.XCad.SolidWorks.Services
             using (var bmp = new Bitmap(width,
                 height, PixelFormat.Format24bppRgb))
             {
-                using (var graph = Graphics.FromImage(bmp))
+                using (var graph = System.Drawing.Graphics.FromImage(bmp))
                 {
                     graph.InterpolationMode = InterpolationMode.HighQualityBicubic;
                     graph.SmoothingMode = SmoothingMode.HighQuality;

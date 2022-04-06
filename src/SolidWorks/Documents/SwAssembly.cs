@@ -30,11 +30,13 @@ namespace Xarial.XCad.SolidWorks.Documents
         public IAssemblyDoc Assembly => Model as IAssemblyDoc;
 
         private readonly Lazy<SwAssemblyConfigurationCollection> m_LazyConfigurations;
+        private readonly SwAssemblyEvaluation m_Evaluation;
 
         internal SwAssembly(IAssemblyDoc assembly, ISwApplication app, IXLogger logger, bool isCreated)
             : base((IModelDoc2)assembly, app, logger, isCreated)
         {
             m_LazyConfigurations = new Lazy<SwAssemblyConfigurationCollection>(() => new SwAssemblyConfigurationCollection(this, app));
+            m_Evaluation = new SwAssemblyEvaluation(this);
         }
 
         internal protected override swDocumentTypes_e? DocumentType => swDocumentTypes_e.swDocASSEMBLY;
@@ -46,26 +48,9 @@ namespace Xarial.XCad.SolidWorks.Documents
         ISwAssemblyConfigurationCollection ISwAssembly.Configurations => m_LazyConfigurations.Value;
         IXAssemblyConfigurationRepository IXAssembly.Configurations => (this as ISwAssembly).Configurations;
 
-        public override IXBoundingBox PreCreateBoundingBox()
-            => (this as IXAssembly).PreCreateBoundingBox();
+        public override IXDocumentEvaluation Evaluation => m_Evaluation;
 
-        IXAssemblyBoundingBox IXAssembly.PreCreateBoundingBox()
-            => new SwAssemblyBoundingBox(this, OwnerApplication);
-
-        public override IXMassProperty PreCreateMassProperty()
-            => (this as IXAssembly).PreCreateMassProperty();
-
-        IXAssemblyMassProperty IXAssembly.PreCreateMassProperty()
-        {
-            if (OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2020))
-            {
-                return new SwAssemblyMassProperty(this, m_MathUtils);
-            }
-            else
-            {
-                return new SwAssemblyLegacyMassProperty(this, m_MathUtils);
-            }
-        }
+        IXAssemblyEvaluation IXAssembly.Evaluation => m_Evaluation;
 
         protected override SwConfigurationCollection CreateConfigurations()
             => new SwAssemblyConfigurationCollection(this, OwnerApplication);

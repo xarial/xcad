@@ -47,11 +47,18 @@ using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.SolidWorks.Features;
 using System.Diagnostics;
 using Xarial.XCad.Sketch;
+using Xarial.XCad.SolidWorks.Graphics;
+using Xarial.XCad.Graphics;
 
 namespace SwAddInExample
 {
     [ComVisible(true)]
     public class SwDefaultCalloutBaseHandler : SwCalloutBaseHandler
+    {
+    }
+
+    [ComVisible(true)]
+    public class SwDefaultTriadHandler : SwTriadHandler
     {
     }
 
@@ -63,6 +70,12 @@ namespace SwAddInExample
         {
             public SwCalloutBaseHandler CreateHandler(ISldWorks app)
                 => new SwDefaultCalloutBaseHandler();
+        }
+
+        public class DefaultTriadHandlerProvider : ITriadHandlerProvider
+        {
+            public SwTriadHandler CreateHandler(ISldWorks app)
+                => new SwDefaultTriadHandler();
         }
 
         public class DictionaryControl : IControlDescriptor
@@ -134,7 +147,9 @@ namespace SwAddInExample
 
             GetMassPrps,
 
-            CreateCallout
+            CreateCallout,
+
+            CreateTriad
         }
 
         [Icon(typeof(Resources), nameof(Resources.xarial))]
@@ -487,7 +502,7 @@ namespace SwAddInExample
                         var relToCoordSys = "Coordinate System1";
                         var userUnits = true;
 
-                        var massPrps = ((ISwAssembly)Application.Documents.Active).PreCreateMassProperty();
+                        var massPrps = ((ISwAssembly)Application.Documents.Active).Evaluation.PreCreateMassProperty();
                         massPrps.Scope = Application.Documents.Active.Selections.OfType<IXComponent>().ToArray();
                         massPrps.VisibleOnly = visOnly;
                         massPrps.UserUnits = userUnits;
@@ -519,31 +534,47 @@ namespace SwAddInExample
                             }
                             else
                             {
-                                var callout = doc1.PreCreateCallout();
+                                var callout = doc1.Graphics.PreCreateCallout();
                                 callout.Location = new Xarial.XCad.Geometry.Structures.Point(0.1, 0.1, 0.1);
                                 callout.Anchor = new Xarial.XCad.Geometry.Structures.Point(0, 0, 0);
                                 m_Callout = callout;
                             }
-                            var row1 = m_Callout.PreCreateRow();
+                            var row1 = m_Callout.AddRow();
                             row1.Name = "First Row";
                             row1.Value = "Value1";
                             row1.IsReadOnly = false;
                             row1.ValueChanged += Row1ValueChanged;
-                            var row2 = m_Callout.PreCreateRow();
+                            var row2 = m_Callout.AddRow();
                             row2.Name = "Second Row";
                             row2.Value = "Value2";
                             row2.IsReadOnly = true;
-                            m_Callout.Rows = new IXCalloutRow[] { row1, row2 };
                             m_Callout.Background = StandardSelectionColor_e.Tertiary;
                             m_Callout.Foreground = StandardSelectionColor_e.Primary;
                             m_Callout.Commit();
-                            m_Callout.Show();
                         }
                         else 
                         {
-                            m_Callout.Hide();
+                            m_Callout.Visible = false;
                             m_Callout.Dispose();
                             m_Callout = null;
+                        }
+                        break;
+
+                    case Commands_e.CreateTriad:
+                        if (m_Triad == null)
+                        {
+                            m_Triad = ((IXDocument3D)Application.Documents.Active).Graphics.PreCreateTriad();
+                            var y = new Vector(1, 1, 1);
+                            var x = y.CreateAnyPerpendicular();
+                            var z = y.Cross(x);
+                            m_Triad.Transform = TransformMatrix.Compose(x, y, z, new Xarial.XCad.Geometry.Structures.Point(0.1, 0.1, 0.1));
+                            m_Triad.Commit();
+                        }
+                        else 
+                        {
+                            m_Triad.Visible = false;
+                            m_Triad.Dispose();
+                            m_Triad = null;
                         }
                         break;
                 }
@@ -553,6 +584,8 @@ namespace SwAddInExample
                 Debug.Assert(false);
             }
         }
+
+        private IXTriad m_Triad;
 
         private bool Row1ValueChanged(IXCalloutBase callout, IXCalloutRow row, string newValue)
             => !string.IsNullOrEmpty(newValue);
@@ -567,6 +600,7 @@ namespace SwAddInExample
                 () => new LazyNewDocumentGeometryBuilderDocumentProvider(Application));
 
             collection.AddOrReplace<ICalloutHandlerProvider, DefaultCalloutHandlerProvider>();
+            collection.AddOrReplace<ITriadHandlerProvider, DefaultTriadHandlerProvider>();
         }
 
         private void OnPageDataChanged()

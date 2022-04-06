@@ -18,22 +18,14 @@ namespace Xarial.XCad.Documents
     public interface IXDocument3D : IXDocument, IXObjectContainer
     {
         /// <summary>
-        /// Pre creates the 3D bounding box of the document
+        /// Access to the document's evaluation features
         /// </summary>
-        /// <returns>Bounding box</returns>
-        IXBoundingBox PreCreateBoundingBox();
+        IXDocumentEvaluation Evaluation { get; }
 
         /// <summary>
-        /// Pre creates the mass property evaluator for the document
+        /// Access the document's graphics features
         /// </summary>
-        /// <returns>Mass property</returns>
-        IXMassProperty PreCreateMassProperty();
-
-        /// <summary>
-        /// Pre-creates callout instance
-        /// </summary>
-        /// <returns>Instance of the callout</returns>
-        IXCallout PreCreateCallout();
+        IXDocumentGraphics Graphics { get; }
 
         /// <summary>
         /// Returns 3D views collection

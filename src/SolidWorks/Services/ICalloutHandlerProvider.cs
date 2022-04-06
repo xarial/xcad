@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Xarial.XCad.SolidWorks.Graphics;
 using Xarial.XCad.SolidWorks.UI;
 
 namespace Xarial.XCad.SolidWorks.Services

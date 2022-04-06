@@ -39,6 +39,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             : base((IModelDoc2)part, app, logger, isCreated)
         {
             Bodies = new SwPartBodyCollection(this);
+            Evaluation = new SwPartEvaluation(this);
         }
 
         internal protected override swDocumentTypes_e? DocumentType => swDocumentTypes_e.swDocPART;
@@ -48,8 +49,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         ISwPartConfigurationCollection ISwPart.Configurations => (ISwPartConfigurationCollection)Configurations;
 
-        public override IXBoundingBox PreCreateBoundingBox()
-            => new SwPartBoundingBox(this, OwnerApplication);
+        public override IXDocumentEvaluation Evaluation { get; }
 
         protected override SwConfigurationCollection CreateConfigurations()
             => new SwPartConfigurationCollection(this, OwnerApplication);

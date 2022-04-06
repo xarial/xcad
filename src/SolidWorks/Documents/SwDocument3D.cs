@@ -18,7 +18,6 @@ using Xarial.XCad.SolidWorks.UI;
 using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.UI;
 using Xarial.XCad.Utils.Diagnostics;
-using Xarial.XCad.Toolkit;
 
 namespace Xarial.XCad.SolidWorks.Documents
 {
@@ -28,23 +27,21 @@ namespace Xarial.XCad.SolidWorks.Documents
         new ISwModelViews3DCollection ModelViews { get; }
         new TSelObject ConvertObject<TSelObject>(TSelObject obj)
             where TSelObject : ISwSelObject;
-        ISwCallout PreCreateCallout<T>()
-            where T : SwCalloutBaseHandler, new();
     }
 
     internal abstract class SwDocument3D : SwDocument, ISwDocument3D
     {
-        protected readonly IMathUtility m_MathUtils;
-
         IXConfigurationRepository IXDocument3D.Configurations => Configurations;
         IXModelView3DRepository IXDocument3D.ModelViews => (IXModelView3DRepository)ModelViews;
         public override ISwModelViewsCollection ModelViews => ((ISwDocument3D)this).ModelViews;
+        ISwModelViews3DCollection ISwDocument3D.ModelViews => m_ModelViewsLazy.Value;
 
         internal SwDocument3D(IModelDoc2 model, ISwApplication app, IXLogger logger, bool isCreated) : base(model, app, logger, isCreated)
         {
-            m_MathUtils = app.Sw.IGetMathUtility();
             m_Configurations = new Lazy<ISwConfigurationCollection>(CreateConfigurations);
             m_ModelViewsLazy = new Lazy<ISwModelViews3DCollection>(() => new SwModelViews3DCollection(this, app));
+
+            Graphics = new SwDocumentGraphics(this);
         }
 
         private Lazy<ISwConfigurationCollection> m_Configurations;
@@ -52,8 +49,10 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public ISwConfigurationCollection Configurations => m_Configurations.Value;
 
-        ISwModelViews3DCollection ISwDocument3D.ModelViews => m_ModelViewsLazy.Value;
-        
+        public abstract IXDocumentEvaluation Evaluation { get; }
+
+        public IXDocumentGraphics Graphics { get; }
+
         protected override void Dispose(bool disposing)
         {
             base.Dispose(disposing);
@@ -98,25 +97,5 @@ namespace Xarial.XCad.SolidWorks.Documents
                 throw new InvalidCastException("Object is not SOLIDWORKS object");
             }
         }
-
-        public abstract IXBoundingBox PreCreateBoundingBox();
-
-        public virtual IXMassProperty PreCreateMassProperty()
-        {
-            if (OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2020))
-            {
-                return new SwMassProperty(this, m_MathUtils);
-            }
-            else
-            {
-                return new SwLegacyMassProperty(this, m_MathUtils);
-            }
-        }
-
-        public IXCallout PreCreateCallout() =>
-            new SwCallout(this, ((SwApplication)OwnerApplication).Services.GetService<ICalloutHandlerProvider>().CreateHandler(OwnerApplication.Sw));
-
-        public ISwCallout PreCreateCallout<T>() where T : SwCalloutBaseHandler, new()
-            => new SwCallout(this, new T());
     }
 }

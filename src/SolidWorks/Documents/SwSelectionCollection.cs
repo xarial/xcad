@@ -21,6 +21,8 @@ using Xarial.XCad.SolidWorks.UI;
 using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.UI;
 using Xarial.XCad.Toolkit;
+using Xarial.XCad.SolidWorks.Graphics;
+using Xarial.XCad.Graphics;
 
 namespace Xarial.XCad.SolidWorks.Documents
 {
@@ -147,10 +149,10 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
 
         public IXSelCallout PreCreateCallout() 
-            => new SwSelCallout(this, ((SwApplication)m_App).Services.GetService<ICalloutHandlerProvider>().CreateHandler(m_App.Sw));
+            => new SwSelCallout(m_Doc, this, ((SwApplication)m_App).Services.GetService<ICalloutHandlerProvider>().CreateHandler(m_App.Sw));
 
         public ISwSelCallout PreCreateCallout<T>() where T : SwCalloutBaseHandler, new()
-            => new SwSelCallout(this, new T());
+            => new SwSelCallout(m_Doc, this, new T());
     }
 
     internal class SwSelObjectEnumerator : IEnumerator<IXSelObject>
