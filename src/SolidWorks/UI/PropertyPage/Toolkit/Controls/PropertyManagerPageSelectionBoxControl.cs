@@ -246,8 +246,11 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             {
                 var selData = selMgr.CreateSelectData();
                 selData.Mark = SwSpecificControl.Mark;
-                
-                m_App.Sw.IActiveDoc2.Extension.MultiSelect2(disps.ToArray(), true, selData);
+
+                if (m_App.Sw.IActiveDoc2.Extension.MultiSelect2(disps.ToArray(), true, selData) != disps.Count) 
+                {
+                    m_Logger.Log($"Failed to select {disps.Count} items")
+                }
             }
 
             if (m_HasMissingItems)

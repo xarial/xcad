@@ -52,6 +52,11 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             set
             {
                 SwControl.Enabled = value;
+
+                if (m_Label != null)
+                {
+                    ((IPropertyManagerPageControl)m_Label).Enabled = value;
+                }
             }
         }
 
@@ -64,6 +69,11 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             set
             {
                 SwControl.Visible = value;
+
+                if (m_Label != null) 
+                {
+                    ((IPropertyManagerPageControl)m_Label).Visible = value;
+                }
             }
         }
 

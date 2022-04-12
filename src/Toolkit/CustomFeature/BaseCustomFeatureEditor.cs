@@ -129,13 +129,14 @@ namespace Xarial.XCad.Utils.CustomFeature
             {
                 m_Logger.Log(ex);
                 m_EditingFeature.Parameters = null;
+                throw;
             }
         }
 
         public void Insert(IXDocument model)
         {
             m_IsPageActive = true;
-
+            
             m_CurPageData = new TPage();
             
             CurModel = model;

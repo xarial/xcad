@@ -145,6 +145,14 @@ namespace SwAddInExample
         }
     }
 
+    public class VisibilityHandler : IDependencyHandler
+    {
+        public void UpdateState(IXApplication app, IControl source, IControl[] dependencies)
+        {
+            source.Visible = (bool)dependencies.First().GetValue();
+        }
+    }
+
     [ComVisible(true)]
     public class PmpData : SwPropertyManagerPageHandler, INotifyPropertyChanged
     {
@@ -228,6 +236,13 @@ namespace SwAddInExample
 
         [ListBox]
         public OptsFlag ListBox5 { get; set; } = OptsFlag.Opt1 | OptsFlag.Opt3;
+
+        [ControlTag(nameof(Visible))]
+        public bool Visible { get; set; }
+
+        [DependentOn(typeof(VisibilityHandler), nameof(Visible))]
+        [Label("Numeric Control")]
+        public double Number { get; set; }
 
         private void ReduceComponents() 
         {

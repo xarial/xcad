@@ -149,7 +149,6 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             {
                 throw new NotImplementedException();
             }
-
             remove
             {
                 throw new NotImplementedException();
@@ -193,10 +192,18 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
         public object Edit(object app, object modelDoc, object feature)
         {
-            LogOperation("Editing feature", app as ISldWorks, modelDoc as IModelDoc2, feature as IFeature);
+            try
+            {
+                LogOperation("Editing feature", app as ISldWorks, modelDoc as IModelDoc2, feature as IFeature);
 
-            var doc = (SwDocument)Application.Documents[modelDoc as IModelDoc2];
-            return OnEditDefinition(Application, doc, CreateMacroFeatureInstance(feature as IFeature, doc, Application));
+                var doc = (SwDocument)Application.Documents[modelDoc as IModelDoc2];
+                return OnEditDefinition(Application, doc, CreateMacroFeatureInstance(feature as IFeature, doc, Application));
+            }
+            catch(Exception ex) 
+            {
+                m_Logger.Log(ex);
+                return HandleEditException(ex);
+            }
         }
 
         [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
@@ -249,6 +256,31 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             }
         }
 
+        [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
+        public object Security(object app, object modelDoc, object feature)
+        {
+            try
+            {
+                var doc = (SwDocument)Application.Documents[modelDoc as IModelDoc2];
+                return OnUpdateState(Application, doc, CreateMacroFeatureInstance(feature as IFeature, doc, Application));
+            }
+            catch(Exception ex) 
+            {
+                m_Logger.Log(ex);
+                return HandleStateException(ex);
+            }
+        }
+
+        protected virtual object HandleEditException(Exception ex) 
+        {
+            throw ex;
+        }
+
+        protected virtual object HandleStateException(Exception ex)
+        {
+            throw ex;
+        }
+
         protected virtual void AddDataToRebuildQueue(ISwApplication app, ISwDocument doc, ISwMacroFeature macroFeatInst)
         {
             m_RebuildFeaturesQueue.Add(new MacroFeatureRegenerateData()
@@ -272,13 +304,6 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             m_RebuildFeaturesQueue.Clear();
 
             return HResult.S_OK;
-        }
-
-        [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
-        public object Security(object app, object modelDoc, object feature)
-        {
-            var doc = (SwDocument)Application.Documents[modelDoc as IModelDoc2];
-            return OnUpdateState(Application, doc, CreateMacroFeatureInstance(feature as IFeature, doc, Application));
         }
 
         private void SetProvider(ISldWorks app, IFeature feature)
