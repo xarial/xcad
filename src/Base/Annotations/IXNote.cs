@@ -23,6 +23,11 @@ namespace Xarial.XCad.Annotations
         Box3D Box { get; }
 
         /// <summary>
+        /// Position of this note
+        /// </summary>
+        Point Position { get; set; }
+
+        /// <summary>
         /// Text of the note
         /// </summary>
         string Text { get; set; }

@@ -23,10 +23,12 @@ namespace Xarial.XCad.SolidWorks.Annotations
     internal class SwNote : SwSelObject, ISwNote
     {
         public INote Note { get; }
+        private readonly IAnnotation m_Ann;
 
         internal SwNote(INote note, ISwDocument doc, ISwApplication app) : base(note, doc, app)
         {
             Note = note;
+            m_Ann = note.IGetAnnotation();
         }
 
         public string Text 
@@ -47,6 +49,28 @@ namespace Xarial.XCad.SolidWorks.Annotations
             {
                 var extent = (double[])Note.GetExtent();
                 return new Box3D(extent[0], extent[1], extent[2], extent[3], extent[4], extent[5]);
+            }
+        }
+
+        public Point Position
+        {
+            get => new Point((double[])m_Ann.GetPosition());
+            set 
+            {
+                if (OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2014, 3))
+                {
+                    if (!m_Ann.SetPosition2(value.X, value.Y, value.Z)) 
+                    {
+                        throw new Exception("Failed to set the position of the dimension");
+                    }
+                }
+                else 
+                {
+                    if (!m_Ann.SetPosition(value.X, value.Y, value.Z))
+                    {
+                        throw new Exception("Failed to set the position of the dimension");
+                    }
+                }
             }
         }
     }
