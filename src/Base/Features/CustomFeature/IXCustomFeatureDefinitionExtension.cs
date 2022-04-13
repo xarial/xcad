@@ -7,12 +7,27 @@
 
 using System;
 using Xarial.XCad.Annotations;
+using Xarial.XCad.Documents;
 using Xarial.XCad.Geometry.Structures;
 
 namespace Xarial.XCad.Features.CustomFeature
 {
+    /// <summary>
+    /// Additional methods for <see cref="IXCustomFeatureDefinition"/>
+    /// </summary>
     public static class IXCustomFeatureDefinitionExtension
     {
+        /// <summary>
+        /// Inserts new instance of macro feature with default parameters
+        /// </summary>
+        /// <typeparam name="TParams">Parameter type</typeparam>
+        /// <param name="featDef">Custom Feature Definition</param>
+        /// <param name="doc">Document</param>
+        /// <param name="data">Custom Feature data</param>
+        public static void Insert<TParams>(this IXCustomFeatureDefinition<TParams> featDef, IXDocument doc, TParams data)
+            where TParams : class, new()
+            => featDef.Insert(doc, new TParams());
+
         /// <summary>
         /// Aligns the linear dimension of custom feature
         /// </summary>

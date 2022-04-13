@@ -62,6 +62,22 @@ namespace Xarial.XCad.Geometry.Structures
             AxisY = axisY;
             AxisZ = axisZ;
         }
+
+        /// <summary>
+        /// Constructor based onend points of diagonal
+        /// </summary>
+        public Box3D(double minX, double minY, double minZ, double maxX, double maxY, double maxZ) 
+        {
+            Width = maxX - minX;
+            Height = maxY - minY;
+            Length = maxZ - minZ;
+
+            CenterPoint = new Point((maxX + minX) / 2, (maxY + minY) / 2, (maxZ + minZ) / 2);
+
+            AxisX = new Vector(1, 0, 0);
+            AxisY = new Vector(0, 1, 0);
+            AxisZ = new Vector(0, 0, 1);
+        }
     }
 
     /// <summary>

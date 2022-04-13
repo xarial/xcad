@@ -139,13 +139,13 @@ namespace Xarial.XCad.SolidWorks.Features
         }
 
         /// <inheritdoc/>
-        public void CreateCustomFeature<TDef, TParams, TPage>()
+        public void CreateCustomFeature<TDef, TParams, TPage>(TParams data)
             where TParams : class, new()
             where TPage : class, new()
             where TDef : class, IXCustomFeatureDefinition<TParams, TPage>, new()
         {
             var inst = (TDef)CustomFeatureDefinitionInstanceCache.GetInstance(typeof(TDef));
-            inst.Insert(Document);
+            inst.Insert(Document, data);
         }
 
         public void Enable(bool enable)

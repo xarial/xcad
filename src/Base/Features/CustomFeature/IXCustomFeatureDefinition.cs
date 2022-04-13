@@ -90,7 +90,8 @@ namespace Xarial.XCad.Features.CustomFeature
         /// Start insertion of this custom feature
         /// </summary>
         /// <param name="doc">Document where to insert this feature to</param>
-        void Insert(IXDocument doc);
+        /// <param name="data">Data for insertion</param>
+        void Insert(IXDocument doc, TParams data);
 
         /// <summary>
         /// Called when geometry of this feature needs to be regenerated
@@ -98,11 +99,33 @@ namespace Xarial.XCad.Features.CustomFeature
         /// <param name="app">Application</param>
         /// <param name="doc">Current document</param>
         /// <param name="data">Data of this custo feature</param>
-        /// <param name="isPreview">Is the geometry generated within the preview or regeneration</param>
         /// <param name="alignDim">Function to align dimensions</param>
         /// <returns>Geometry of this macro feature</returns>
         IXBody[] CreateGeometry(IXApplication app, IXDocument doc, TParams data,
-            bool isPreview, out AlignDimensionDelegate<TParams> alignDim);
+            out AlignDimensionDelegate<TParams> alignDim);
+
+        /// <summary>
+        /// Checks if the preview shoudl be updated
+        /// </summary>
+        /// <param name="oldData">Old parameters</param>
+        /// <param name="newData">New parameters</param>
+        /// <param name="page">Current page data</param>
+        /// <param name="dataChanged">Has parameters data changed</param>
+        void ShouldUpdatePreview(TParams oldData, TParams newData, TPage page, ref bool dataChanged);
+
+        /// <summary>
+        /// Creates preview geometry for the custom feature
+        /// </summary>
+        /// <param name="app">Application</param>
+        /// <param name="model">Current document</param>
+        /// <param name="data">Current data</param>
+        /// <param name="page">Current page</param>
+        /// <param name="shouldHidePreviewEdit">Delegate for handling if the specific body should be hidden while preview</param>
+        /// <param name="assignPreviewColor">Handler to specify the custom color for the preview body</param>
+        /// <returns></returns>
+        IXBody[] CreatePreviewGeometry(IXApplication app, IXDocument model, TParams data, TPage page,
+            out ShouldHidePreviewEditBodyDelegate<TParams, TPage> shouldHidePreviewEdit,
+            out AssignPreviewBodyColorDelegate assignPreviewColor);
 
         /// <summary>
         /// Converter between custom feature parameters and page editor

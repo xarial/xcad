@@ -249,7 +249,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
                 if (m_App.Sw.IActiveDoc2.Extension.MultiSelect2(disps.ToArray(), true, selData) != disps.Count) 
                 {
-                    m_Logger.Log($"Failed to select {disps.Count} items")
+                    m_Logger.Log($"Failed to select {disps.Count} items");
                 }
             }
 

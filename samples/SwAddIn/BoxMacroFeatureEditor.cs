@@ -112,7 +112,7 @@ namespace SwAddInExample
             };
 
         public override ISwBody[] CreateGeometry(ISwApplication app, ISwDocument model,
-            BoxMacroFeatureData data, bool isPreview, out AlignDimensionDelegate<BoxMacroFeatureData> alignDim)
+            BoxMacroFeatureData data, out AlignDimensionDelegate<BoxMacroFeatureData> alignDim)
         {
             alignDim = null;
 
@@ -123,8 +123,16 @@ namespace SwAddInExample
             return new ISwBody[] { box };
         }
 
-        public override void AssignPreviewBodyColor(IXBody body, out Color color)
-            => color = Color.FromArgb(100, Color.Yellow);
+        public override ISwBody[] CreatePreviewGeometry(ISwApplication app, ISwDocument model, BoxMacroFeatureData data, BoxPage page,
+            out ShouldHidePreviewEditBodyDelegate<BoxMacroFeatureData, BoxPage> shouldHidePreviewEdit, out AssignPreviewBodyColorDelegate assignPreviewColor)
+        {
+            shouldHidePreviewEdit = null;
+            assignPreviewColor = AssignPreviewBodyColor;
+            return CreateGeometry(app, model, data, out _);
+        }
+
+        private void AssignPreviewBodyColor(IXBody body, out Color color)
+            => color = Color.FromArgb(100, Color.Green);
 
         public override void OnPostRebuild(ISwApplication app, ISwDocument model, ISwMacroFeature<BoxMacroFeatureData> feature, BoxMacroFeatureData parameters)
             => base.OnPostRebuild(app, model, feature, parameters);

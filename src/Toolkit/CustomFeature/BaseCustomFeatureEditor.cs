@@ -44,9 +44,9 @@ namespace Xarial.XCad.Utils.CustomFeature
         where TData : class, new()
         where TPage : class, new();
 
-    public delegate bool ShouldHidePreviewEditBodyDelegate<TData, TPage>(IXBody body, TData data, TPage page);
-
-    public delegate void ShouldUpdatePreviewDelegate<TData>(TData oldData, TData newData, ref bool dataChanged);
+    public delegate void ShouldUpdatePreviewDelegate<TData, TPage>(TData oldData, TData newData, TPage page, ref bool dataChanged)
+        where TData : class, new()
+        where TPage : class, new();
 
     public abstract class BaseCustomFeatureEditor<TData, TPage> 
         where TData : class, new()
@@ -57,8 +57,7 @@ namespace Xarial.XCad.Utils.CustomFeature
         public event CustomFeatureEditingCompletedDelegate<TData, TPage> EditingCompleted;
         public event CustomFeatureInsertedDelegate<TData, TPage> FeatureInserted;
         public event CustomFeaturePageParametersChangedDelegate<TData, TPage> PageParametersChanged;
-        public event ShouldHidePreviewEditBodyDelegate<TData, TPage> ShouldHidePreviewEditBody;
-        public event ShouldUpdatePreviewDelegate<TData> ShouldUpdatePreview;
+        public event ShouldUpdatePreviewDelegate<TData, TPage> ShouldUpdatePreview;
 
         protected readonly IXApplication m_App;
         protected readonly IServiceProvider m_SvcProvider;
@@ -133,30 +132,30 @@ namespace Xarial.XCad.Utils.CustomFeature
             }
         }
 
-        public void Insert(IXDocument model)
+        public void Insert(IXDocument model, TData data)
         {
             m_IsPageActive = true;
-            
-            m_CurPageData = new TPage();
             
             CurModel = model;
 
             m_EditingFeature = null;
 
-            EditingStarted?.Invoke(m_App, model, null, null, m_CurPageData);
+            m_CurData = data;
 
-            m_CurData = Definition.ConvertPageToParams(m_App, model, m_CurPageData);
+            m_CurPageData = Definition.ConvertParamsToPage(m_App, model, m_CurData);
+
+            EditingStarted?.Invoke(m_App, model, null, m_CurData, m_CurPageData);
 
             m_PmPage.Show(m_CurPageData);
 
             UpdatePreview();
         }
 
-        protected abstract void DisplayPreview(IXBody[] bodies);
+        protected abstract void DisplayPreview(IXBody[] bodies, AssignPreviewBodyColorDelegate assignPreviewBodyColorDelegateFunc);
 
         protected abstract void HidePreview(IXBody[] bodies);
 
-        private void HideEditBodies()
+        private void HideEditBodies(ShouldHidePreviewEditBodyDelegate<TData, TPage> shouldHidePreviewEditBodyFunc)
         {
             IXBody[] editBodies;
 
@@ -177,9 +176,9 @@ namespace Xarial.XCad.Utils.CustomFeature
             {
                 var hide = body.Visible;
 
-                if (hide && ShouldHidePreviewEditBody != null) 
+                if (hide && shouldHidePreviewEditBodyFunc != null) 
                 {
-                    hide &= ShouldHidePreviewEditBody.Invoke(body, m_CurData, m_CurPageData);
+                    hide &= shouldHidePreviewEditBodyFunc.Invoke(body, m_CurData, m_CurPageData);
                 }
 
                 if (hide)
@@ -219,7 +218,7 @@ namespace Xarial.XCad.Utils.CustomFeature
 
             var needUpdatePreview = AreParametersChanged(oldParams, m_CurData);
 
-            ShouldUpdatePreview?.Invoke(oldParams, m_CurData, ref needUpdatePreview);
+            ShouldUpdatePreview?.Invoke(oldParams, m_CurData, m_CurPageData, ref needUpdatePreview);
 
             if (needUpdatePreview)
             {
@@ -323,6 +322,9 @@ namespace Xarial.XCad.Utils.CustomFeature
             }
         }
 
+        private void DefaultAssignPreviewBodyColor(IXBody body, out System.Drawing.Color color)
+            => color = System.Drawing.Color.Yellow;
+
         private void UpdatePreview()
         {
             if (m_IsPageActive)
@@ -335,14 +337,20 @@ namespace Xarial.XCad.Utils.CustomFeature
 
                         HidePreviewBodies();
 
-                        m_PreviewBodies = Definition.CreateGeometry(m_App, CurModel,
-                            m_CurData, true, out _);
+                        m_PreviewBodies = Definition.CreatePreviewGeometry(m_App, CurModel,
+                            m_CurData, m_CurPageData, out var shouldHidePreviewEdit,
+                            out var assignPreviewColor);
+                        
+                        if (assignPreviewColor == null) 
+                        {
+                            assignPreviewColor = DefaultAssignPreviewBodyColor;
+                        }
 
-                        HideEditBodies();
+                        HideEditBodies(shouldHidePreviewEdit);
 
                         if (m_PreviewBodies != null)
                         {
-                            DisplayPreview(m_PreviewBodies);
+                            DisplayPreview(m_PreviewBodies, assignPreviewColor);
                         }
                     }
                     catch (Exception ex)

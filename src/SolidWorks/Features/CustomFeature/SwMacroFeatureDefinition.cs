@@ -675,22 +675,21 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 
                 var editor = new SwMacroFeatureEditor<TParams, TPage>(
                     Application, this.GetType(),
-                    m_ParamsParser, m_SvcProvider, page, AssignPreviewBodyColor);
+                    m_ParamsParser, m_SvcProvider, page);
 
                 editor.EditingStarted += OnEditingStarted;
                 editor.EditingCompleting += OnEditingCompleting;
                 editor.EditingCompleted += OnEditingCompleted;
                 editor.FeatureInserted += OnFeatureInserted;
                 editor.PageParametersChanged += OnPageParametersChanged;
-                editor.ShouldHidePreviewEditBody += ShouldHidePreviewEditBody;
                 editor.ShouldUpdatePreview += ShouldUpdatePreview;
 
                 return editor;
             });
         }
 
-        public virtual void AssignPreviewBodyColor(IXBody body, out System.Drawing.Color color)
-            => color = System.Drawing.Color.Yellow;
+        /// <inheritdoc/>
+        public virtual void ShouldUpdatePreview(TParams oldData, TParams newData, TPage page, ref bool dataChanged) { }
 
         public virtual SwPropertyManagerPageHandler CreatePageHandler()
         {
@@ -730,18 +729,34 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             }
         }
 
-        public virtual ISwBody[] CreateGeometry(ISwApplication app, ISwDocument model, TParams data, bool isPreview, out AlignDimensionDelegate<TParams> alignDim) 
+        public virtual ISwBody[] CreateGeometry(ISwApplication app, ISwDocument model, TParams data, out AlignDimensionDelegate<TParams> alignDim) 
         {
             alignDim = null;
             return new ISwBody[0];
         }
 
-        IXBody[] IXCustomFeatureDefinition<TParams, TPage>.CreateGeometry(
-            IXApplication app, IXDocument doc, TParams data, bool isPreview, out AlignDimensionDelegate<TParams> alignDim) 
-            => CreateGeometry((ISwApplication)app, (ISwDocument)doc, data, isPreview, out alignDim).Cast<SwBody>().ToArray();
+        public virtual ISwBody[] CreatePreviewGeometry(ISwApplication app, ISwDocument model, TParams data, TPage page,
+            out ShouldHidePreviewEditBodyDelegate<TParams, TPage> shouldHidePreviewEdit,
+            out AssignPreviewBodyColorDelegate assignPreviewColor)
+        {
+            shouldHidePreviewEdit = null;
+            assignPreviewColor = null;
 
-        public void Insert(IXDocument doc)
-            => m_Editor.Value.Insert(doc);
+            return CreateGeometry(app, model, data, out _);
+        }
+
+        IXBody[] IXCustomFeatureDefinition<TParams, TPage>.CreateGeometry(
+            IXApplication app, IXDocument doc, TParams data, out AlignDimensionDelegate<TParams> alignDim) 
+            => CreateGeometry((ISwApplication)app, (ISwDocument)doc, data, out alignDim).Cast<SwBody>().ToArray();
+
+        public IXBody[] CreatePreviewGeometry(IXApplication app, IXDocument model, TParams data, TPage page,
+            out ShouldHidePreviewEditBodyDelegate<TParams, TPage> shouldHidePreviewEdit,
+            out AssignPreviewBodyColorDelegate assignPreviewColor)
+            => CreatePreviewGeometry((ISwApplication)app, (ISwDocument)model, data, page,
+                out shouldHidePreviewEdit, out assignPreviewColor).Cast<SwBody>().ToArray();
+
+        public void Insert(IXDocument doc, TParams data)
+            => m_Editor.Value.Insert(doc, data);
 
         public override bool OnEditDefinition(ISwApplication app, ISwDocument model, ISwMacroFeature<TParams> feature)
         {
@@ -753,7 +768,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             ISwMacroFeature<TParams> feature, TParams parameters, out AlignDimensionDelegate<TParams> alignDim)
             => new CustomFeatureBodyRebuildResult()
             {
-                Bodies = CreateGeometry(app, model, parameters, false, out alignDim).ToArray()
+                Bodies = CreateGeometry(app, model, parameters, out alignDim).ToArray()
             };
 
         /// <summary>
@@ -767,25 +782,6 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         public virtual void OnEditingStarted(IXApplication app, IXDocument doc, IXCustomFeature<TParams> feat, TParams data, TPage page)
         {
         }
-
-        /// <summary>
-        /// Override this method to control if the edit body should be hidden during the preview
-        /// </summary>
-        /// <param name="body">Body which is about to be hidden</param>
-        /// <param name="data">Macro feature data</param>
-        /// <param name="page">Macro feature page</param>
-        /// <returns>True to hide body, false to kepe the body visible</returns>
-        /// <remarks>usually edit body is hidden during the preview as it is replaced by the macro feature geometry
-        /// In some cases user might need to perform multiple selections on edit body and thus hiding it preventing the further selections</remarks>
-        public virtual bool ShouldHidePreviewEditBody(IXBody body, TParams data, TPage page) => true;
-
-        /// <summary>
-        /// Checks if the preview shoudl be updated
-        /// </summary>
-        /// <param name="oldData">Old parameters</param>
-        /// <param name="newData">New parameters</param>
-        /// <param name="dataChanged">Has parameters data changed</param>
-        public virtual void ShouldUpdatePreview(TParams oldData, TParams newData, ref bool dataChanged) { }
 
         /// <summary>
         /// Called when macro feature is finishing editing and Property Manager Page is about to be closed

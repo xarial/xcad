@@ -33,5 +33,11 @@ namespace Xarial.XCad.Features
 
             return custFeat;
         }
+
+        public static void CreateCustomFeature<TDef, TParams, TPage>(this IXFeatureRepository feats)
+            where TParams : class, new()
+            where TPage : class, new()
+            where TDef : class, IXCustomFeatureDefinition<TParams, TPage>, new()
+            => feats.CreateCustomFeature<TDef, TParams, TPage>(new TParams());
     }
 }

@@ -8,6 +8,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Xarial.XCad.Geometry.Structures;
 
 namespace Xarial.XCad.Annotations
 {
@@ -16,6 +17,11 @@ namespace Xarial.XCad.Annotations
     /// </summary>
     public interface IXNote : IXSelObject
     {
+        /// <summary>
+        /// Boundary of this note
+        /// </summary>
+        Box3D Box { get; }
+
         /// <summary>
         /// Text of the note
         /// </summary>
