@@ -19,6 +19,8 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
 {
     [DefaultType(typeof(int))]
     [DefaultType(typeof(double))]
+    [DefaultType(typeof(decimal))]
+    [DefaultType(typeof(float))]
     internal class PropertyManagerPageNumberBoxConstructor
         : PropertyManagerPageBaseControlConstructor<PropertyManagerPageNumberBoxControl, IPropertyManagerPageNumberbox>
     {
@@ -51,8 +53,8 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
                         style.Inclusive, style.Increment, style.FastIncrement, style.SlowIncrement);
                 }
             }
-
-            return new PropertyManagerPageNumberBoxControl(atts.Id, atts.Tag, swCtrl, handler, label, metadata);
+            
+            return new PropertyManagerPageNumberBoxControl(atts.Id, atts.Tag, atts.ContextType, swCtrl, handler, label, metadata);
         }
     }
 }

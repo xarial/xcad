@@ -13,7 +13,7 @@ namespace Xarial.XCad.Annotations
     /// <summary>
     /// Annotation which drives the dimension parameter
     /// </summary>
-    public interface IXDimension : IXSelObject, IXTransaction
+    public interface IXDimension : IXAnnotation, IXTransaction
     {
         /// <summary>
         /// Fired when the value of this dimension is changed

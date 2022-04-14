@@ -105,15 +105,6 @@ namespace Xarial.XCad.Features.CustomFeature
             out AlignDimensionDelegate<TParams> alignDim);
 
         /// <summary>
-        /// Checks if the preview shoudl be updated
-        /// </summary>
-        /// <param name="oldData">Old parameters</param>
-        /// <param name="newData">New parameters</param>
-        /// <param name="page">Current page data</param>
-        /// <param name="dataChanged">Has parameters data changed</param>
-        void ShouldUpdatePreview(TParams oldData, TParams newData, TPage page, ref bool dataChanged);
-
-        /// <summary>
         /// Creates preview geometry for the custom feature
         /// </summary>
         /// <param name="app">Application</param>

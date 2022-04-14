@@ -14,17 +14,16 @@ using Xarial.XCad.Annotations.Delegates;
 using Xarial.XCad.SolidWorks.Annotations.EventHandlers;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Utils;
-using Xarial.XCad.Toolkit.Services;
 
 namespace Xarial.XCad.SolidWorks.Annotations
 {
-    public interface ISwDimension : IXDimension, IDisposable, ISwSelObject
+    public interface ISwDimension : IXDimension, IDisposable, ISwSelObject, ISwAnnotation
     {
         IDimension Dimension { get; }
         IDisplayDimension DisplayDimension { get; }
     }
 
-    internal class SwDimension : SwSelObject, ISwDimension
+    internal class SwDimension : SwAnnotation, ISwDimension
     {
         private IDimension m_Dimension;
 
@@ -62,10 +61,12 @@ namespace Xarial.XCad.SolidWorks.Annotations
             set => SetValue(value);
         }
 
+        public override object Dispatch => DisplayDimension;
+
         protected Context m_Context;
 
         internal SwDimension(IDisplayDimension dispDim, ISwDocument doc, ISwApplication app)
-            : base(dispDim, doc, app)
+            : base(dispDim.IGetAnnotation(), doc, app)
         {
             if (doc == null) 
             {

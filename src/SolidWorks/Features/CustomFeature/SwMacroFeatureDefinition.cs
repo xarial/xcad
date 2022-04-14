@@ -681,15 +681,22 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
                 editor.EditingCompleting += OnEditingCompleting;
                 editor.EditingCompleted += OnEditingCompleted;
                 editor.FeatureInserted += OnFeatureInserted;
-                editor.PageParametersChanged += OnPageParametersChanged;
+                editor.PreviewUpdated += OnPreviewUpdated;
                 editor.ShouldUpdatePreview += ShouldUpdatePreview;
 
                 return editor;
             });
         }
 
-        /// <inheritdoc/>
-        public virtual void ShouldUpdatePreview(TParams oldData, TParams newData, TPage page, ref bool dataChanged) { }
+        /// <summary>
+        /// Checks if the preview should be updated
+        /// </summary>
+        /// <param name="oldData">Old parameters</param>
+        /// <param name="newData">New parameters</param>
+        /// <param name="page">Current page data</param>
+        /// <param name="dataChanged">Indicates if the parameters of the data have changed</param>
+        /// <remarks>This method is called everytime property manager page data is changed, however this is not always require preview update</remarks>
+        public virtual bool ShouldUpdatePreview(TParams oldData, TParams newData, TPage page, bool dataChanged) => true;
 
         public virtual SwPropertyManagerPageHandler CreatePageHandler()
         {
@@ -732,7 +739,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         public virtual ISwBody[] CreateGeometry(ISwApplication app, ISwDocument model, TParams data, out AlignDimensionDelegate<TParams> alignDim) 
         {
             alignDim = null;
-            return new ISwBody[0];
+            return CreateGeometry(app, model, data);
         }
 
         public virtual ISwBody[] CreatePreviewGeometry(ISwApplication app, ISwDocument model, TParams data, TPage page,
@@ -742,8 +749,13 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             shouldHidePreviewEdit = null;
             assignPreviewColor = null;
 
-            return CreateGeometry(app, model, data, out _);
+            return CreatePreviewGeometry(app, model, data, page);
         }
+
+        public virtual ISwBody[] CreateGeometry(ISwApplication app, ISwDocument model, TParams data) => new ISwBody[0];
+
+        public virtual ISwBody[] CreatePreviewGeometry(ISwApplication app, ISwDocument model, TParams data, TPage page)
+            => CreateGeometry(app, model, data, out _);
 
         IXBody[] IXCustomFeatureDefinition<TParams, TPage>.CreateGeometry(
             IXApplication app, IXDocument doc, TParams data, out AlignDimensionDelegate<TParams> alignDim) 
@@ -822,13 +834,14 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         }
 
         /// <summary>
-        /// Called when parameters of the property page have been changed
+        /// Called when the preview of the macro feature updated
         /// </summary>
         /// <param name="app">Application</param>
         /// <param name="doc">Document</param>
         /// <param name="feat">Feature being edited</param>
         /// <param name="page">Current page data</param>
-        public virtual void OnPageParametersChanged(IXApplication app, IXDocument doc, IXCustomFeature<TParams> feat, TPage page)
+        /// <remarks>Use <see cref="ShouldUpdatePreview(TParams, TParams, TPage, ref bool)"/> to control if preview needs to be updated</remarks>
+        public virtual void OnPreviewUpdated(IXApplication app, IXDocument doc, IXCustomFeature<TParams> feat, TPage page)
         {
         }
 

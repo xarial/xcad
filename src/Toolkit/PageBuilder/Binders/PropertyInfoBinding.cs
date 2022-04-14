@@ -26,14 +26,14 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
 
         public IControlDescriptor ControlDescriptor { get; }
 
-        private readonly PropertyInfoMetadata[] m_Metadata;
+        private readonly IMetadata[] m_Metadata;
 
         private object m_CurrentDataModelContext;
 
         private readonly IContextProvider m_ContextProvider;
 
         internal PropertyInfoBinding(IControl control,
-            IControlDescriptor ctrlDesc, IList<IControlDescriptor> parents, PropertyInfoMetadata[] metadata, IContextProvider contextProvider)
+            IControlDescriptor ctrlDesc, IList<IControlDescriptor> parents, IMetadata[] metadata, IContextProvider contextProvider)
             : base(control)
         {
             ControlDescriptor = ctrlDesc;

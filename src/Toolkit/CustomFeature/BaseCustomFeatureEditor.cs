@@ -44,7 +44,7 @@ namespace Xarial.XCad.Utils.CustomFeature
         where TData : class, new()
         where TPage : class, new();
 
-    public delegate void ShouldUpdatePreviewDelegate<TData, TPage>(TData oldData, TData newData, TPage page, ref bool dataChanged)
+    public delegate bool ShouldUpdatePreviewDelegate<TData, TPage>(TData oldData, TData newData, TPage page, bool dataChanged)
         where TData : class, new()
         where TPage : class, new();
 
@@ -56,7 +56,7 @@ namespace Xarial.XCad.Utils.CustomFeature
         public event CustomFeatureEditingCompletedDelegate<TData, TPage> EditingCompleting;
         public event CustomFeatureEditingCompletedDelegate<TData, TPage> EditingCompleted;
         public event CustomFeatureInsertedDelegate<TData, TPage> FeatureInserted;
-        public event CustomFeaturePageParametersChangedDelegate<TData, TPage> PageParametersChanged;
+        public event CustomFeaturePageParametersChangedDelegate<TData, TPage> PreviewUpdated;
         public event ShouldUpdatePreviewDelegate<TData, TPage> ShouldUpdatePreview;
 
         protected readonly IXApplication m_App;
@@ -216,15 +216,15 @@ namespace Xarial.XCad.Utils.CustomFeature
             var oldParams = m_CurData;
             m_CurData = Definition.ConvertPageToParams(m_App, CurModel, m_CurPageData);
 
-            var needUpdatePreview = AreParametersChanged(oldParams, m_CurData);
+            var dataChanged = AreParametersChanged(oldParams, m_CurData);
 
-            ShouldUpdatePreview?.Invoke(oldParams, m_CurData, m_CurPageData, ref needUpdatePreview);
+            var needUpdatePreview = ShouldUpdatePreview.Invoke(oldParams, m_CurData, m_CurPageData, dataChanged);
 
             if (needUpdatePreview)
             {
                 UpdatePreview();
 
-                PageParametersChanged?.Invoke(m_App, CurModel, m_EditingFeature, m_CurPageData);
+                PreviewUpdated?.Invoke(m_App, CurModel, m_EditingFeature, m_CurPageData);
             }
         }
 

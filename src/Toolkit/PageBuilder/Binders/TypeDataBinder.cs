@@ -181,7 +181,7 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
 
                     if (!atts.Has<IIgnoreBindingAttribute>() && !atts.Has<IMetadataAttribute>())
                     {
-                        var prpMetadata = new List<PropertyInfoMetadata>();
+                        var prpMetadata = new List<IMetadata>();
 
                         if (atts.Has<IHasMetadataAttribute>())
                         {
@@ -191,20 +191,31 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
                             {
                                 if (metadataTagAtts.HasMetadata)
                                 {
-                                    var metadataTag = metadataTagAtts.MetadataTag;
+                                    var metadataTag = metadataTagAtts.LinkedMetadataTag;
 
-                                    if (metadataTag == null) 
+                                    if (metadataTag != null)
                                     {
-                                        throw new NullReferenceException($"Metadata tag is not set for {ctrlDesc.Name}");
+                                        if (metadata.TryGetValue(metadataTag, out PropertyInfoMetadata md))
+                                        {
+                                            prpMetadata.Add(md);
+                                        }
+                                        else
+                                        {
+                                            throw new MissingMetadataException(metadataTag, ctrlDesc);
+                                        }
                                     }
+                                    else 
+                                    {
+                                        var staticMetadataVal = metadataTagAtts.StaticValue;
 
-                                    if (metadata.TryGetValue(metadataTag, out PropertyInfoMetadata md))
-                                    {
-                                        prpMetadata.Add(md);
-                                    }
-                                    else
-                                    {
-                                        throw new MissingMetadataException(metadataTag, ctrlDesc);
+                                        if (staticMetadataVal != null)
+                                        {
+                                            prpMetadata.Add(new StaticMetadata(staticMetadataVal));
+                                        }
+                                        else 
+                                        {
+                                            throw new NullReferenceException($"Neither metadata tag nor static value is not set for {ctrlDesc.Name}");
+                                        }
                                     }
                                 }
                             }

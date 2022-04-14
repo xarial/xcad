@@ -22,15 +22,25 @@ namespace Xarial.XCad.UI.PropertyPage.Attributes
         public bool HasMetadata => true;
 
         /// <inheritdoc/>
-        public object MetadataTag { get; }
+        public object LinkedMetadataTag { get; set; }
+
+        /// <inheritdoc/>
+        public object StaticValue { get; set; }
 
         /// <summary>
         /// Default constructor
         /// </summary>
-        /// <param name="tag">Tag of the metadata</param>
-        public AttachMetadataAttribute(object tag) 
+        public AttachMetadataAttribute() 
         {
-            MetadataTag = tag;
+        }
+
+        /// <summary>
+        /// Constructor setting the link to metadata
+        /// </summary>
+        /// <param name="linkedMetadataTag">Tag of the metadata</param>
+        public AttachMetadataAttribute(object linkedMetadataTag) 
+        {
+            LinkedMetadataTag = linkedMetadataTag;
         }
     }
 }

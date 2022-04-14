@@ -15,17 +15,12 @@ namespace Xarial.XCad.Annotations
     /// <summary>
     /// Represents the note annotation
     /// </summary>
-    public interface IXNote : IXSelObject
+    public interface IXNote : IXAnnotation
     {
         /// <summary>
         /// Boundary of this note
         /// </summary>
         Box3D Box { get; }
-
-        /// <summary>
-        /// Position of this note
-        /// </summary>
-        Point Position { get; set; }
 
         /// <summary>
         /// Text of the note

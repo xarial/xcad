@@ -24,6 +24,11 @@ namespace Xarial.XCad.UI.PropertyPage.Base
         /// <summary>
         /// Tag of metadata linked to <see cref="IMetadataAttribute.Tag"/>
         /// </summary>
-        object MetadataTag { get; }
+        object LinkedMetadataTag { get; }
+
+        /// <summary>
+        /// Static value of the metadata
+        /// </summary>
+        object StaticValue { get; }
     }
 }

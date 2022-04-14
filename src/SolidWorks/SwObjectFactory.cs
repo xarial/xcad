@@ -220,7 +220,7 @@ namespace Xarial.XCad.SolidWorks
                         case swAnnotationType_e.swNote:
                             return new SwNote((INote)ann.GetSpecificAnnotation(), doc, app);
                         default:
-                            return defaultHandler.Invoke(ann);
+                            return new SwAnnotation(ann, doc, app);
                     }
 
                 case IConfiguration conf:

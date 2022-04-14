@@ -16,15 +16,23 @@ namespace Xarial.XCad.UI.PropertyPage.Attributes
     [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
     public abstract class ItemsSourceControlAttribute : Attribute, IDependentOnAttribute, IHasMetadataAttribute
     {
+        /// <inheritdoc/>
         public ICustomItemsProvider CustomItemsProvider { get; }
 
+        /// <inheritdoc/>
         public IDependencyHandler DependencyHandler { get; }
 
+        /// <inheritdoc/>
         public object[] Dependencies { get; }
 
+        /// <inheritdoc/>
         public object[] StaticItems { get; }
 
-        public object MetadataTag => ItemsSource;
+        /// <inheritdoc/>
+        public object LinkedMetadataTag => ItemsSource;
+
+        /// <inheritdoc/>
+        public object StaticValue => throw new NotSupportedException();
 
         /// <summary>
         /// Tag of the metadata property (decorated with <see cref="MetadataAttribute"/>) which contains the items source for this combo box

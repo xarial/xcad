@@ -6,20 +6,24 @@
 //*********************************************************************
 
 using SolidWorks.Interop.sldworks;
+using System;
 using Xarial.XCad.UI.PropertyPage.Base;
 using Xarial.XCad.Utils.PageBuilder.PageElements;
 
 namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 {
-    internal class PropertyManagerPageNumberBoxControl : PropertyManagerPageBaseControl<double, IPropertyManagerPageNumberbox>
+    internal class PropertyManagerPageNumberBoxControl : PropertyManagerPageBaseControl<object, IPropertyManagerPageNumberbox>
     {
-        protected override event ControlValueChangedDelegate<double> ValueChanged;
+        protected override event ControlValueChangedDelegate<object> ValueChanged;
 
-        public PropertyManagerPageNumberBoxControl(int id, object tag,
+        private readonly Type m_ValType;
+
+        public PropertyManagerPageNumberBoxControl(int id, object tag, Type valType,
             IPropertyManagerPageNumberbox numberBox,
             SwPropertyManagerPageHandler handler, IPropertyManagerPageLabel label, IMetadata[] metadata)
             : base(numberBox, id, tag, handler, label, metadata)
         {
+            m_ValType = valType;
             m_Handler.NumberChanged += OnNumberChanged;
         }
 
@@ -31,14 +35,34 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             }
         }
 
-        protected override double GetSpecificValue()
+        protected override object GetSpecificValue()
         {
-            return SwSpecificControl.Value;
+            var val = SwSpecificControl.Value;
+
+            if (m_ValType == typeof(double))
+            {
+                return val;
+            }
+            else 
+            {
+                return Convert.ChangeType(val, m_ValType);
+            }
         }
 
-        protected override void SetSpecificValue(double value)
+        protected override void SetSpecificValue(object value)
         {
-            SwSpecificControl.Value = value;
+            double val;
+
+            if (value is double)
+            {
+                val = (double)value;
+            }
+            else 
+            {
+                val = (double)Convert.ChangeType(value, typeof(double));
+            }
+
+            SwSpecificControl.Value = val;
         }
 
         protected override void Dispose(bool disposing)

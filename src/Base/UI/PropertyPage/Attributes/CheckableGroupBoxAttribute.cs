@@ -27,12 +27,16 @@ namespace Xarial.XCad.UI.PropertyPage.Attributes
     public class CheckableGroupBoxAttribute : Attribute, IHasMetadataAttribute, ICheckableGroupBoxAttribute
     {
         /// <inheritdoc/>
-        public object MetadataTag => ToggleMetadataTag;
+        public object LinkedMetadataTag => ToggleMetadataTag;
 
         /// <inheritdoc/>
         public object ToggleMetadataTag { get; }
 
+        /// <inheritdoc/>
         public bool HasMetadata => true;
+
+        /// <inheritdoc/>
+        public object StaticValue => throw new NotSupportedException();
 
         /// <summary>
         /// Default constructor
