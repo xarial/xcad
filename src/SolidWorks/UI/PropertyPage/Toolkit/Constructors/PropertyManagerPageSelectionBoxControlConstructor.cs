@@ -138,6 +138,12 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
                 swSelFilters.Add(swSelectType_e.swSelEXTSKETCHPOINTS);
             }
 
+            if (swSelFilters.Contains(swSelectType_e.swSelBLOCKINST)
+                && !swSelFilters.Contains(swSelectType_e.swSelSUBSKETCHINST))
+            {
+                swSelFilters.Add(swSelectType_e.swSelSUBSKETCHINST);
+            }
+
             return swSelFilters.ToArray();
         }
         

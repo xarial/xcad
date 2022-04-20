@@ -272,9 +272,6 @@ namespace SwAddInExample
 
                 Application.Documents.DocumentActivated += OnDocumentActivated;
 
-                m_Page = this.CreatePage<PmpData>(OnCreateDynamicControls);
-                m_Page.Closed += OnPage1Closed;
-
                 m_ToggleGroupPage = this.CreatePage<ToggleGroupPmpData>();
                 m_ToggleGroupPage.Closed += OnToggleGroupPageClosed;
 
@@ -292,7 +289,6 @@ namespace SwAddInExample
 
         private void OnComboBoxPageClosed(PageCloseReasons_e reason)
         {
-            var x = m_PmpComboBoxData;
         }
 
         private void OnDocumentActivated(IXDocument doc)
@@ -331,7 +327,7 @@ namespace SwAddInExample
             };
         }
 
-        private void OnPage1Closed(PageCloseReasons_e reason)
+        private void OnPageClosed(PageCloseReasons_e reason)
         {
         }
 
@@ -401,6 +397,12 @@ namespace SwAddInExample
                         break;
 
                     case Commands_e.ShowPmPage:
+                        if (m_Page != null) 
+                        {
+                            m_Page.Closed -= OnPageClosed;
+                        }
+                        m_Page = this.CreatePage<PmpData>(OnCreateDynamicControls);
+                        m_Page.Closed += OnPageClosed;
                         m_Data = new PmpData();
                         m_Data.ItemsSourceComboBox = "Y";
                         m_Page.Show(m_Data);

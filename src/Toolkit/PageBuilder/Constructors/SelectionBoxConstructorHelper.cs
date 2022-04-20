@@ -67,6 +67,16 @@ namespace Xarial.XCad.Toolkit.PageBuilder.Constructors
             {
                 filters.Add(SelectType_e.SketchSegments);
             }
+            else if (IsOfType<IXSketchBlockInstance>(type))
+            {
+                filters.Add(SelectType_e.SketchBlockInstances);
+            }
+            else if (IsOfType<IXSketchEntity>(type)) 
+            {
+                filters.Add(SelectType_e.SketchPoints);
+                filters.Add(SelectType_e.SketchSegments);
+                filters.Add(SelectType_e.SketchBlockInstances);
+            }
             else if (IsOfType<IXComponent>(type))
             {
                 filters.Add(SelectType_e.Components);
@@ -76,7 +86,7 @@ namespace Xarial.XCad.Toolkit.PageBuilder.Constructors
                 filters.Add(SelectType_e.SolidBodies);
                 filters.Add(SelectType_e.SurfaceBodies);
             }
-            else if (IsOfType<IXDimension>(type)) 
+            else if (IsOfType<IXDimension>(type))
             {
                 filters.Add(SelectType_e.Dimensions);
             }
