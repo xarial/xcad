@@ -123,7 +123,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 
             m_IsSubscribedToIdle = false;
 
-            var svcColl = new ServiceCollection();
+            var svcColl = Application.CustomServices.Clone();
             
             svcColl.AddOrReplace<IXLogger>(() => new TraceLogger($"xCad.MacroFeature.{this.GetType().FullName}"));
             svcColl.AddOrReplace<IIconsCreator>(() => new BaseIconsCreator());
@@ -495,7 +495,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 
     /// <inheritdoc/>
     public abstract class SwMacroFeatureDefinition<TParams> : SwMacroFeatureDefinition, IXCustomFeatureDefinition<TParams>
-        where TParams : class, new()
+        where TParams : class
     {
         [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
         protected class MacroFeatureParametersRegenerateData : MacroFeatureRegenerateData 
@@ -654,8 +654,8 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 
     /// <inheritdoc/>
     public abstract class SwMacroFeatureDefinition<TParams, TPage> : SwMacroFeatureDefinition<TParams>, IXCustomFeatureDefinition<TParams, TPage>
-        where TParams : class, new()
-        where TPage : class, new()
+        where TParams : class
+        where TPage : class
     {
         private readonly MacroFeatureParametersParser m_ParamsParser;
 
@@ -699,18 +699,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         public virtual bool ShouldUpdatePreview(TParams oldData, TParams newData, TPage page, bool dataChanged) => true;
 
         public virtual SwPropertyManagerPageHandler CreatePageHandler()
-        {
-            var page = Activator.CreateInstance(typeof(TPage));
-
-            if (page is SwPropertyManagerPageHandler)
-            {
-                return (SwPropertyManagerPageHandler)page;
-            }
-            else 
-            {
-                throw new InvalidCastException($"{typeof(TPage).FullName} must be COM-visible and inherit {typeof(SwPropertyManagerPageHandler).FullName}");
-            }
-        }
+            => m_SvcProvider.GetService<IPropertyPageHandlerProvider>().CreateHandler(Application.Sw, typeof(TPage));
 
         public virtual TParams ConvertPageToParams(IXApplication app, IXDocument doc, TPage par)
         {

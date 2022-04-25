@@ -30,6 +30,12 @@ namespace Xarial.XCad
         /// </summary>
         /// <returns></returns>
         IServiceProvider CreateProvider();
+
+        /// <summary>
+        /// Creates a clone of these services
+        /// </summary>
+        /// <returns></returns>
+        IXServiceCollection Clone();
     }
 
     /// <summary>

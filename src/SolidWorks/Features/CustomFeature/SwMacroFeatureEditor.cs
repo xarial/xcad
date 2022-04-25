@@ -24,8 +24,8 @@ using Xarial.XCad.Utils.Diagnostics;
 namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 {
     internal class SwMacroFeatureEditor<TData, TPage> : BaseCustomFeatureEditor<TData, TPage>
-        where TData : class, new()
-        where TPage : class, new()
+        where TData : class
+        where TPage : class
     {
         //private readonly AssignPreviewBodyColorDelegate m_AssignBodyColorFunc;
 

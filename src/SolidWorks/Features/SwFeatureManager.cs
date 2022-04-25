@@ -115,7 +115,7 @@ namespace Xarial.XCad.SolidWorks.Features
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
         public IXCustomFeature<TParams> PreCreateCustomFeature<TParams>()
-            where TParams : class, new()
+            where TParams : class
             => new SwMacroFeature<TParams>(null, Document, m_App, m_ParamsParser, false);
 
         public IXCustomFeature PreCreateCustomFeature()
@@ -140,8 +140,8 @@ namespace Xarial.XCad.SolidWorks.Features
 
         /// <inheritdoc/>
         public void CreateCustomFeature<TDef, TParams, TPage>(TParams data)
-            where TParams : class, new()
-            where TPage : class, new()
+            where TParams : class
+            where TPage : class
             where TDef : class, IXCustomFeatureDefinition<TParams, TPage>, new()
         {
             var inst = (TDef)CustomFeatureDefinitionInstanceCache.GetInstance(typeof(TDef));

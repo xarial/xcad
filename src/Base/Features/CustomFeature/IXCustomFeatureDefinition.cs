@@ -57,7 +57,7 @@ namespace Xarial.XCad.Features.CustomFeature
     /// </summary>
     /// <typeparam name="TParams"></typeparam>
     public interface IXCustomFeatureDefinition<TParams> : IXCustomFeatureDefinition
-        where TParams : class, new()
+        where TParams : class
     {
         /// <inheritdoc cref="IXCustomFeatureDefinition.OnRebuild(IXApplication, IXDocument, IXCustomFeature)"/>
         /// <param name="parameters">Current parameters of the feature</param>
@@ -83,8 +83,8 @@ namespace Xarial.XCad.Features.CustomFeature
     /// <typeparam name="TParams">Parameters of this custom feature</typeparam>
     /// <typeparam name="TPage">Page editor of this custom feature</typeparam>
     public interface IXCustomFeatureDefinition<TParams, TPage> : IXCustomFeatureDefinition<TParams>
-        where TParams : class, new()
-        where TPage : class, new()
+        where TParams : class
+        where TPage : class
     {
         /// <summary>
         /// Start insertion of this custom feature

@@ -31,7 +31,7 @@ namespace Xarial.XCad.Features.CustomFeature
     /// </summary>
     /// <typeparam name="TParams">Parameters data model</typeparam>
     public interface IXCustomFeature<TParams> : IXCustomFeature
-        where TParams : class, new()
+        where TParams : class
     {
         /// <summary>
         /// Parameters of this feature

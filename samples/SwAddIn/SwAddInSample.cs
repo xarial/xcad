@@ -63,6 +63,11 @@ namespace SwAddInExample
     }
 
     [ComVisible(true)]
+    public class SwDefaultPropertyManagerPageHandler : SwPropertyManagerPageHandler 
+    {
+    }
+
+    [ComVisible(true)]
     [Guid("3078E7EF-780E-4A70-9359-172D90FAAED2")]
     public class SwAddInSample : SwAddInEx
     {
@@ -70,6 +75,12 @@ namespace SwAddInExample
         {
             public SwCalloutBaseHandler CreateHandler(ISldWorks app)
                 => new SwDefaultCalloutBaseHandler();
+        }
+
+        public class DefaultPropertyPageHandlerProvider : IPropertyPageHandlerProvider
+        {
+            public SwPropertyManagerPageHandler CreateHandler(ISldWorks app, Type handlerType)
+                => new SwDefaultPropertyManagerPageHandler();
         }
 
         public class DefaultTriadHandlerProvider : ITriadHandlerProvider
@@ -600,6 +611,8 @@ namespace SwAddInExample
         {
             collection.AddOrReplace<IMemoryGeometryBuilderDocumentProvider>(
                 () => new LazyNewDocumentGeometryBuilderDocumentProvider(Application));
+
+            collection.AddOrReplace<IPropertyPageHandlerProvider, DefaultPropertyPageHandlerProvider>();
 
             collection.AddOrReplace<ICalloutHandlerProvider, DefaultCalloutHandlerProvider>();
             collection.AddOrReplace<ITriadHandlerProvider, DefaultTriadHandlerProvider>();

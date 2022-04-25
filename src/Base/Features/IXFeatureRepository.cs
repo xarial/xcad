@@ -27,7 +27,7 @@ namespace Xarial.XCad.Features
         /// <typeparam name="TParams">Type of parameters managed by this custom feature</typeparam>
         /// <returns>Instance of custom feature</returns>
         IXCustomFeature<TParams> PreCreateCustomFeature<TParams>()
-            where TParams : class, new();
+            where TParams : class;
 
         /// <summary>
         /// Creates a custom feature with built-in editor for the property page
@@ -37,8 +37,8 @@ namespace Xarial.XCad.Features
         /// <typeparam name="TParams">Type which defines the data structure of the custom feature</typeparam>
         /// <typeparam name="TPage">Type which defines the data model for the property page</typeparam>
         void CreateCustomFeature<TDef, TParams, TPage>(TParams data)
-            where TParams : class, new()
-            where TPage : class, new()
+            where TParams : class
+            where TPage : class
             where TDef : class, IXCustomFeatureDefinition<TParams, TPage>, new();
 
         /// <summary>

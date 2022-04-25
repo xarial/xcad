@@ -15,6 +15,6 @@ namespace Xarial.XCad.Features.CustomFeature.Delegates
     /// <remarks>usually edit body is hidden during the preview as it is replaced by the macro feature geometry
     /// In some cases user might need to perform multiple selections on edit body and thus hiding it preventing the further selections</remarks>
     public delegate bool ShouldHidePreviewEditBodyDelegate<TData, TPage>(IXBody body, TData data, TPage page)
-            where TData : class, new()
-            where TPage : class, new();
+            where TData : class
+            where TPage : class;
 }

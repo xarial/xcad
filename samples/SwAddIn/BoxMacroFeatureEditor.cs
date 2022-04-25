@@ -33,13 +33,12 @@ using Xarial.XCad.UI.PropertyPage.Structures;
 
 namespace SwAddInExample
 {
-    [ComVisible(true)]
     [PageOptions(PageOptions_e.OkayButton | PageOptions_e.PushpinButton | PageOptions_e.CancelButton | PageOptions_e.LockedPage)]
-    public class BoxPage : SwPropertyManagerPageHandler
+    public class BoxPage
     {
         public BoxParameters Parameters { get; set; }
 
-        public BoxPage() 
+        public BoxPage(string dummy) 
         {
             Parameters = new BoxParameters();
         }
@@ -60,9 +59,9 @@ namespace SwAddInExample
         [SelectionBoxOptions(typeof(SampleSelectionFilter))]
         public List<IXFace> Faces { get; set; }
 
-        public double Width { get; set; } = 0.1;
-        public double Height { get; set; } = 0.2;
-        public double Length { get; set; } = 0.3;
+        public double Width { get; set; }
+        public double Height { get; set; }
+        public double Length { get; set; }
 
         internal void Reset()
         {
@@ -81,9 +80,9 @@ namespace SwAddInExample
     public class BoxMacroFeatureData : SwPropertyManagerPageHandler
     {   
         public List<IXFace> Faces { get; set; }
-        public double Width { get; set; }
-        public double Height { get; set; }
-        public double Length { get; set; }
+        public double Width { get; set; } = 0.1;
+        public double Height { get; set; } = 0.2;
+        public double Length { get; set; } = 0.3;
     }
 
     [ComVisible(true)]
@@ -100,7 +99,7 @@ namespace SwAddInExample
             };
 
         public override BoxPage ConvertParamsToPage(IXApplication app, IXDocument doc, BoxMacroFeatureData par)
-            => new BoxPage()
+            => new BoxPage("")
             {
                 Parameters = new BoxParameters()
                 {

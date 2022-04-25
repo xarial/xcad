@@ -13,7 +13,7 @@ namespace Xarial.XCad.Features
     public static class IXFeatureRepositoryExtension
     {
         public static IXCustomFeature<TParams> CreateCustomFeature<TDef, TParams>(this IXFeatureRepository feats, TParams param)
-            where TParams : class, new()
+            where TParams : class
             where TDef : IXCustomFeatureDefinition<TParams>
         {
             var custFeat = feats.PreCreateCustomFeature<TParams>();
@@ -36,7 +36,7 @@ namespace Xarial.XCad.Features
 
         public static void CreateCustomFeature<TDef, TParams, TPage>(this IXFeatureRepository feats)
             where TParams : class, new()
-            where TPage : class, new()
+            where TPage : class
             where TDef : class, IXCustomFeatureDefinition<TParams, TPage>, new()
             => feats.CreateCustomFeature<TDef, TParams, TPage>(new TParams());
     }

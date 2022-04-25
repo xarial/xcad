@@ -21,6 +21,24 @@ namespace Xarial.XCad.SolidWorks.Services
     internal class PropertyPageHandlerProvider : IPropertyPageHandlerProvider
     {
         public SwPropertyManagerPageHandler CreateHandler(ISldWorks app, Type handlerType)
-            => (SwPropertyManagerPageHandler)Activator.CreateInstance(handlerType);
+        {
+            if (handlerType.GetConstructor(Type.EmptyTypes) != null)
+            {
+                var handler = Activator.CreateInstance(handlerType);
+
+                if (handler is SwPropertyManagerPageHandler)
+                {
+                    return (SwPropertyManagerPageHandler)handler;
+                }
+                else
+                {
+                    throw new InvalidCastException($"{handlerType.FullName} must be COM-visible and inherit {typeof(SwPropertyManagerPageHandler).FullName}");
+                }
+            }
+            else 
+            {
+                throw new Exception($"{handlerType.FullName} must have a public parameterless constructor");
+            }
+        }
     }
 }

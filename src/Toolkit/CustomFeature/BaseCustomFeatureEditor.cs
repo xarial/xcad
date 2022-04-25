@@ -29,28 +29,28 @@ using Xarial.XCad.Toolkit.Utils;
 namespace Xarial.XCad.Utils.CustomFeature
 {
     public delegate void CustomFeatureStateChangedDelegate<TData, TPage>(IXApplication app, IXDocument doc, IXCustomFeature<TData> feat, TData data, TPage page)
-        where TData : class, new()
-        where TPage : class, new();
+        where TData : class
+        where TPage : class;
 
     public delegate void CustomFeaturePageParametersChangedDelegate<TData, TPage>(IXApplication app, IXDocument doc, IXCustomFeature<TData> feat, TPage page)
-        where TData : class, new()
-        where TPage : class, new();
+        where TData : class
+        where TPage : class;
 
     public delegate void CustomFeatureInsertedDelegate<TData, TPage>(IXApplication app, IXDocument doc, IXCustomFeature<TData> feat, TData data, TPage page)
-        where TData : class, new()
-        where TPage : class, new();
+        where TData : class
+        where TPage : class;
 
     public delegate void CustomFeatureEditingCompletedDelegate<TData, TPage>(IXApplication app, IXDocument doc, IXCustomFeature<TData> feat, TData data, TPage page, PageCloseReasons_e reason)
-        where TData : class, new()
-        where TPage : class, new();
+        where TData : class
+        where TPage : class;
 
     public delegate bool ShouldUpdatePreviewDelegate<TData, TPage>(TData oldData, TData newData, TPage page, bool dataChanged)
-        where TData : class, new()
-        where TPage : class, new();
+        where TData : class
+        where TPage : class;
 
     public abstract class BaseCustomFeatureEditor<TData, TPage> 
-        where TData : class, new()
-        where TPage : class, new()
+        where TData : class
+        where TPage : class
     {
         public event CustomFeatureStateChangedDelegate<TData, TPage> EditingStarted;
         public event CustomFeatureEditingCompletedDelegate<TData, TPage> EditingCompleting;

@@ -145,7 +145,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
     }
 
     public interface ISwMacroFeature<TParams> : ISwMacroFeature, IXCustomFeature<TParams>
-        where TParams : class, new()
+        where TParams : class
     {
         /// <summary>
         /// Returns parameters without accessing the selection
@@ -154,7 +154,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
     }
 
     internal class SwMacroFeature<TParams> : SwMacroFeature, ISwMacroFeature<TParams>
-        where TParams : class, new()
+        where TParams : class
     {
         private readonly MacroFeatureParametersParser m_ParamsParser;
         private TParams m_ParametersCache;
