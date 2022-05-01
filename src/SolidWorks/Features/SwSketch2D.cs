@@ -13,6 +13,7 @@ using Xarial.XCad.Features;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Sketch;
+using Xarial.XCad.SolidWorks.Utils;
 
 namespace Xarial.XCad.SolidWorks.Features
 {
@@ -55,21 +56,13 @@ namespace Xarial.XCad.SolidWorks.Features
         {
             get
             {
-                var mathUtils = OwnerApplication.Sw.IGetMathUtility();
+                var transform = Sketch.ModelToSketchTransform.IInverse().ToTransformMatrix();
 
-                var transform = Sketch.ModelToSketchTransform.IInverse();
-
-                var x = (IMathVector)mathUtils.CreateVector(new double[] { 1, 0, 0 });
-                var z = (IMathVector)mathUtils.CreateVector(new double[] { 0, 0, 1 });
-                var origin = (IMathPoint)mathUtils.CreatePoint(new double[] { 0, 0, 0 });
-
-                x = (IMathVector)x.MultiplyTransform(transform);
-                z = (IMathVector)z.MultiplyTransform(transform);
-                origin = (IMathPoint)origin.MultiplyTransform(transform);
-
-                return new Plane(new Point((double[])origin.ArrayData),
-                    new Vector((double[])z.ArrayData),
-                    new Vector((double[])x.ArrayData));
+                var x = new Vector(1, 0, 0).Transform(transform);
+                var z = new Vector(0, 0, 1).Transform(transform);
+                var origin = new Point(0, 0, 0).Transform(transform);
+                
+                return new Plane(origin, z, x);
             }
         }
 

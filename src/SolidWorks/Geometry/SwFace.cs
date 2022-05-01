@@ -115,6 +115,24 @@ namespace Xarial.XCad.SolidWorks.Geometry
                 return false;
             }
         }
+
+        public void GetUVBoundary(out double uMin, out double uMax, out double vMin, out double vMax)
+        {
+            var uvBounds = (double[])Face.GetUVBounds();
+
+            uMin = uvBounds[0];
+            uMax = uvBounds[1];
+            vMin = uvBounds[2];
+            vMax = uvBounds[3];
+        }
+
+        public void CalculateUVParameter(Point point, out double uParam, out double vParam)
+        {
+            var uvParam = (double[])Face.ReverseEvaluate(point.X, point.Y, point.Z);
+
+            uParam = uvParam[0];
+            vParam = uvParam[1];
+        }
     }
 
     public interface ISwPlanarFace : ISwFace, IXPlanarFace, ISwRegion

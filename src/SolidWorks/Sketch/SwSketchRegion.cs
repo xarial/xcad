@@ -17,6 +17,7 @@ using Xarial.XCad.Geometry.Wires;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Geometry;
 using Xarial.XCad.SolidWorks.Geometry.Curves;
+using Xarial.XCad.SolidWorks.Utils;
 
 namespace Xarial.XCad.SolidWorks.Sketch
 {
@@ -36,11 +37,23 @@ namespace Xarial.XCad.SolidWorks.Sketch
 
         public ISketchRegion Region { get; }
 
-        public Plane Plane => throw new NotImplementedException();
+        public Plane Plane
+        {
+            get 
+            {
+                var transform = Region.Sketch.ModelToSketchTransform.IInverse().ToTransformMatrix();
+
+                var x = new Vector(1, 0, 0).Transform(transform);
+                var z = new Vector(0, 0, 1).Transform(transform);
+                var origin = new Point(0, 0, 0).Transform(transform);
+
+                return new Plane(origin, z, x);
+            }
+        }
         
         public ISwCurve[] Boundary => (Region.GetEdges() as object[])
-                                        .Cast<IEdge>()
-                                        .Select(e => OwnerApplication.CreateObjectFromDispatch<ISwCurve>(e.IGetCurve(), OwnerDocument))
-                                        .ToArray();
+            .Cast<IEdge>()
+            .Select(e => OwnerApplication.CreateObjectFromDispatch<ISwCurve>(e.IGetCurve(), OwnerDocument))
+            .ToArray();
     }
 }

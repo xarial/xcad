@@ -47,6 +47,23 @@ namespace Xarial.XCad.Geometry
         /// <param name="projectedPoint">Projected point or null</param>
         /// <returns>True if projected point is found, false - if not</returns>
         bool TryProjectPoint(Point point, Vector direction, out Point projectedPoint);
+
+        /// <summary>
+        /// Finds the boundary of this face
+        /// </summary>
+        /// <param name="uMin">Minimum u-parameter</param>
+        /// <param name="uMax">Maximum u-parameter</param>
+        /// <param name="vMin">Minimum v-parameter</param>
+        /// <param name="vMax">Maximum v-parameter</param>
+        void GetUVBoundary(out double uMin, out double uMax, out double vMin, out double vMax);
+
+        /// <summary>
+        /// Finds u and v parameters of the face based on the point location
+        /// </summary>
+        /// <param name="point">Point</param>
+        /// <param name="uParam">U-parameter</param>
+        /// <param name="vParam">V-parameter</param>
+        void CalculateUVParameter(Point point, out double uParam, out double vParam);
     }
 
     /// <summary>

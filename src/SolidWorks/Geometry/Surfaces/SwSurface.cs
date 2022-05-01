@@ -56,5 +56,14 @@ namespace Xarial.XCad.SolidWorks.Geometry.Surfaces
 
         public Point FindClosestPoint(Point point)
             => new Point(((double[])Surface.GetClosestPointOn(point.X, point.Y, point.Z)).Take(3).ToArray());
+
+        public Point CalculateLocation(double uParam, double vParam, out Vector normal)
+        {
+            var evalData = (double[])Surface.Evaluate(uParam, vParam, 1, 1);
+
+            normal = new Vector(evalData.Skip(evalData.Length - 3).ToArray());
+
+            return new Point(evalData.Take(3).ToArray());
+        }
     }
 }
