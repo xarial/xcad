@@ -46,7 +46,17 @@ namespace Xarial.XCad.Geometry
         /// <summary>
         /// Hit point of this ray
         /// </summary>
-        public Point HitPoint { get; }
+        public Point Point { get; }
+
+        /// <summary>
+        /// Hit point normal
+        /// </summary>
+        public Vector Normal { get; }
+
+        /// <summary>
+        /// Intersection body
+        /// </summary>
+        public IXBody Body { get; }
 
         /// <summary>
         /// Intersection face
@@ -61,12 +71,16 @@ namespace Xarial.XCad.Geometry
         /// <summary>
         /// Default constructor
         /// </summary>
-        /// <param name="hitPoint">Hit point</param>
+        /// <param name="point">Hit point</param>
+        /// <param name="normal">Hit normal</param>
+        /// <param name="body">Body</param>
         /// <param name="face">Face</param>
         /// <param name="type">Type</param>
-        public RayHitResult(Point hitPoint, IXFace face, RayIntersectionType_e type) 
+        public RayHitResult(Point point, Vector normal, IXBody body, IXFace face, RayIntersectionType_e type) 
         {
-            HitPoint = hitPoint;
+            Point = point;
+            Normal = normal;
+            Body = body;
             Face = face;
             Type = type;
         }

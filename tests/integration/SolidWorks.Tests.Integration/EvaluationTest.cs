@@ -2700,13 +2700,13 @@ namespace SolidWorks.Tests.Integration
                 rays = rayInters.Rays;
             }
 
-            var h0_1 = rays[0].Hits.FirstOrDefault(h => h.HitPoint.IsSame(new Point(0.03857029, 0.00533597, 0.01)));
-            var h0_2 = rays[0].Hits.FirstOrDefault(h => h.HitPoint.IsSame(new Point(0.03857029, 0.00533597, 0)));
-            var h0_3 = rays[0].Hits.FirstOrDefault(h => h.HitPoint.IsSame(new Point(0.03857029, 0.00533597, -0.0385135112493299)));
-            var h0_4 = rays[0].Hits.FirstOrDefault(h => h.HitPoint.IsSame(new Point(0.03857029, 0.00533597, -0.0485135112493299)));
+            var h0_1 = rays[0].Hits.FirstOrDefault(h => h.Point.IsSame(new Point(0.03857029, 0.00533597, 0.01)));
+            var h0_2 = rays[0].Hits.FirstOrDefault(h => h.Point.IsSame(new Point(0.03857029, 0.00533597, 0)));
+            var h0_3 = rays[0].Hits.FirstOrDefault(h => h.Point.IsSame(new Point(0.03857029, 0.00533597, -0.0385135112493299)));
+            var h0_4 = rays[0].Hits.FirstOrDefault(h => h.Point.IsSame(new Point(0.03857029, 0.00533597, -0.0485135112493299)));
 
-            var h2_1 = rays[2].Hits.FirstOrDefault(h => h.HitPoint.IsSame(new Point(-0.06410509, 0.0344190476955077, 0.00603193)));
-            var h2_2 = rays[2].Hits.FirstOrDefault(h => h.HitPoint.IsSame(new Point(-0.06410509, -0.0858369122642557, 0.00603193)));
+            var h2_1 = rays[2].Hits.FirstOrDefault(h => h.Point.IsSame(new Point(-0.06410509, 0.0344190476955077, 0.00603193)));
+            var h2_2 = rays[2].Hits.FirstOrDefault(h => h.Point.IsSame(new Point(-0.06410509, -0.0858369122642557, 0.00603193)));
 
             Assert.AreEqual(3, rays.Length);
 

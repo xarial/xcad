@@ -17,7 +17,7 @@ using Xarial.XCad.Toolkit.Exceptions;
 
 namespace Xarial.XCad.SolidWorks.Geometry
 {
-    public interface ISwRayIntersection : IXRayIntersection 
+    public interface ISwRayIntersection : IXRayIntersection
     {
     }
 
@@ -25,7 +25,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
     {
     }
 
-    public interface ISwRay : IXRay 
+    public interface ISwRay : IXRay
     {
     }
 
@@ -64,9 +64,9 @@ namespace Xarial.XCad.SolidWorks.Geometry
             IsCommitted = true;
         }
 
-        internal void RegisterHit(Point hitPoint, IXFace face, RayIntersectionType_e type) 
+        internal void RegisterHit(Point point, Vector normal, IXBody body, IXFace face, RayIntersectionType_e type) 
         {
-            m_Hits.Add(new RayHitResult(hitPoint, face, type));
+            m_Hits.Add(new RayHitResult(point, normal, body, face, type));
             IsCommitted = true;
         }
     }
@@ -129,7 +129,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
             var intersectCount = m_Doc.Model.Extension.RayIntersections(scope.Cast<ISwBody>().Select(b => b.Body).ToArray(),
                 m_RaysList.SelectMany(r => r.Axis.RefPoint.ToArray()).ToArray(),
                 m_RaysList.SelectMany(r => r.Axis.Direction.ToArray()).ToArray(),
-                (int)(swRayPtsOpts_e.swRayPtsOptsTOPOLS | swRayPtsOpts_e.swRayPtsOptsENTRY_EXIT),
+                (int)(swRayPtsOpts_e.swRayPtsOptsTOPOLS | swRayPtsOpts_e.swRayPtsOptsNORMALS | swRayPtsOpts_e.swRayPtsOptsENTRY_EXIT | swRayPtsOpts_e.swRayPtsOptsUNBLOCK),
                 0.00001, 0, false);
 
             var topo = m_Doc.Model.GetRayIntersectionsTopology() as object[];
@@ -163,15 +163,19 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
                     if (topo[i] is IFace2)
                     {
+                        var bodyIndex = (int)topoData[i * 9];
+
                         var rayIndex = (int)topoData[i * 9 + 1];
 
                         hitRayIndices.Add(rayIndex);
 
                         var hitPt = new Point(topoData[i * 9 + 3], topoData[i * 9 + 4], topoData[i * 9 + 5]);
 
+                        var hitNorm = new Vector(topoData[i * 9 + 6], topoData[i * 9 + 7], topoData[i * 9 + 8]);
+
                         var face = topo[i] as IFace2;
 
-                        m_RaysList[rayIndex].RegisterHit(hitPt, m_Doc.CreateObjectFromDispatch<ISwFace>(face), rayType);
+                        m_RaysList[rayIndex].RegisterHit(hitPt, hitNorm, scope[bodyIndex], m_Doc.CreateObjectFromDispatch<ISwFace>(face), rayType);
                     }
                 }
             }
