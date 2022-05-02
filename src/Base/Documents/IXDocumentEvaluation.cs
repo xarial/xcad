@@ -21,6 +21,12 @@ namespace Xarial.XCad.Documents
         /// </summary>
         /// <returns>Mass property</returns>
         IXMassProperty PreCreateMassProperty();
+
+        /// <summary>
+        /// Pre creates ray intersection calculator
+        /// </summary>
+        /// <returns>Rat intersection</returns>
+        IXRayIntersection PreCreateRayIntersection();
     }
 
     /// <summary>
@@ -39,5 +45,11 @@ namespace Xarial.XCad.Documents
         /// </summary>
         /// <returns>Mass property</returns>
         new IXAssemblyMassProperty PreCreateMassProperty();
+
+        /// <summary>
+        /// Pre creates ray intersection calculator for assembly
+        /// </summary>
+        /// <returns>Rat intersection</returns>
+        new IXAssemblyRayIntersection PreCreateRayIntersection();
     }
 }

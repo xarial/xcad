@@ -83,11 +83,13 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
 
                 var boundary = new List<ICurve>();
 
-                for (int i = 0; i < Region.Boundary.Length; i++)
-                {
-                    boundary.AddRange(Region.Boundary[i].Curves);
+                var boundaryCurves = Region.Boundary;
 
-                    if (i != Region.Boundary.Length - 1)
+                for (int i = 0; i < boundaryCurves.Length; i++)
+                {
+                    boundary.AddRange(boundaryCurves[i].Curves);
+
+                    if (i != boundaryCurves.Length - 1)
                     {
                         boundary.Add(null);
                     }

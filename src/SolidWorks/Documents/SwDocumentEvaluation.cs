@@ -41,6 +41,8 @@ namespace Xarial.XCad.SolidWorks.Documents
                 return new SwLegacyMassProperty(m_Doc, m_MathUtils);
             }
         }
+
+        public abstract IXRayIntersection PreCreateRayIntersection();
     }
 
     internal class SwPartEvaluation : SwDocumentEvaluation 
@@ -54,6 +56,18 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public override IXBoundingBox PreCreateBoundingBox()
             => new SwPartBoundingBox(m_Part, m_Part.OwnerApplication);
+
+        public override IXRayIntersection PreCreateRayIntersection()
+        {
+            if (m_Part.OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2018, 2))
+            {
+                return new SwPartRayIntersection(m_Part);
+            }
+            else
+            {
+                throw new NotSupportedException("Supported from SOLIDWORKS 2018 SP2");
+            }
+        }
     }
 
     internal class SwAssemblyEvaluation : SwDocumentEvaluation, ISwAssemblyEvaluation
@@ -85,5 +99,20 @@ namespace Xarial.XCad.SolidWorks.Documents
                 return new SwAssemblyLegacyMassProperty(m_Assm, m_MathUtils);
             }
         }
+
+        IXAssemblyRayIntersection IXAssemblyEvaluation.PreCreateRayIntersection()
+        {
+            if (m_Assm.OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2018, 2))
+            {
+                return new SwAssemblyRayIntersection(m_Assm);
+            }
+            else 
+            {
+                throw new NotSupportedException("Supported from SOLIDWORKS 2018 SP2");
+            }
+        }
+
+        public override IXRayIntersection PreCreateRayIntersection()
+            => (this as IXAssemblyEvaluation).PreCreateRayIntersection();
     }
 }

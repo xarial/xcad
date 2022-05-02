@@ -2680,6 +2680,55 @@ namespace SolidWorks.Tests.Integration
             AssertCompareDoubles((double)volume2, 0.00049954);
         }
 
+        [Test]
+        public void RayIntersectionAssemblyTest()
+        {
+            IXRay[] rays;
+
+            using (var doc = OpenDataDocument("RayIntersectionAssem1.SLDASM")) 
+            {
+                var assm = (IXAssembly)m_App.Documents.Active;
+
+                var rayInters = assm.Evaluation.PreCreateRayIntersection();
+                
+                rayInters.AddRay(new Axis(new Point(0.03857029, 0.00533597, 0.02540296), new Vector(0, 0, -1)));
+                rayInters.AddRay(new Axis(new Point(-0.12615451, -0.02638223, 0), new Vector(0, 0, -1)));
+                rayInters.AddRay(new Axis(new Point(-0.06410509, 0.05318389, 0.00603193), new Vector(0, -1, 0)));
+
+                rayInters.Commit();
+
+                rays = rayInters.Rays;
+            }
+
+            var h0_1 = rays[0].Hits.FirstOrDefault(h => h.HitPoint.IsSame(new Point(0.03857029, 0.00533597, 0.01)));
+            var h0_2 = rays[0].Hits.FirstOrDefault(h => h.HitPoint.IsSame(new Point(0.03857029, 0.00533597, 0)));
+            var h0_3 = rays[0].Hits.FirstOrDefault(h => h.HitPoint.IsSame(new Point(0.03857029, 0.00533597, -0.0385135112493299)));
+            var h0_4 = rays[0].Hits.FirstOrDefault(h => h.HitPoint.IsSame(new Point(0.03857029, 0.00533597, -0.0485135112493299)));
+
+            var h2_1 = rays[2].Hits.FirstOrDefault(h => h.HitPoint.IsSame(new Point(-0.06410509, 0.0344190476955077, 0.00603193)));
+            var h2_2 = rays[2].Hits.FirstOrDefault(h => h.HitPoint.IsSame(new Point(-0.06410509, -0.0858369122642557, 0.00603193)));
+
+            Assert.AreEqual(3, rays.Length);
+
+            Assert.AreEqual(4, rays[0].Hits.Length);
+            Assert.IsNotNull(h0_1);
+            Assert.IsNotNull(h0_2);
+            Assert.IsNotNull(h0_3);
+            Assert.IsNotNull(h0_4);
+            Assert.AreEqual(RayIntersectionType_e.Enter, h0_1.Type);
+            Assert.AreEqual(RayIntersectionType_e.Exit, h0_2.Type);
+            Assert.AreEqual(RayIntersectionType_e.Enter, h0_3.Type);
+            Assert.AreEqual(RayIntersectionType_e.Exit, h0_4.Type);
+
+            Assert.AreEqual(0, rays[1].Hits.Length);
+
+            Assert.AreEqual(2, rays[2].Hits.Length);
+            Assert.IsNotNull(h2_1);
+            Assert.IsNotNull(h2_2);
+            Assert.AreEqual(RayIntersectionType_e.Enter, h2_1.Type);
+            Assert.AreEqual(RayIntersectionType_e.Exit, h2_2.Type);
+        }
+
         private void GetMassPropertyArrayData(ISwAssembly assm, string compName, bool includeHidden,
             bool relToCoord, bool userUnits, out object moi, out object mass, out object cog, out object pmoi, out object paoi,
             out object density, out object area, out object volume)

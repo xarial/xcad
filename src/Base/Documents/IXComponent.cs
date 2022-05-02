@@ -110,15 +110,16 @@ namespace Xarial.XCad.Documents
         /// </summary>
         /// <param name="comp">Component</param>
         /// <param name="includeHidden">True to include all bodies, false to only include visible</param>
+        /// <param name="transform">True to transform body to assembly space</param>
         /// <returns>Bodies</returns>
-        public static IEnumerable<IXBody> IterateBodies(this IXComponent comp, bool includeHidden = false)
-            => IterateComponentBodies(new IXComponent[] { comp }, includeHidden);
+        public static IEnumerable<IXBody> IterateBodies(this IXComponent comp, bool includeHidden = false, bool transform = false)
+            => IterateComponentBodies(new IXComponent[] { comp }, includeHidden, transform);
 
-        /// <inheritdoc cref="IterateBodies(IXComponent, bool)"/>
-        public static IEnumerable<IXBody> IterateBodies(this IXComponentRepository comps, bool includeHidden = false)
-            => IterateComponentBodies(comps, includeHidden);
+        /// <inheritdoc cref="IterateBodies(IXComponent, bool, bool)"/>
+        public static IEnumerable<IXBody> IterateBodies(this IXComponentRepository comps, bool includeHidden = false, bool transform = false)
+            => IterateComponentBodies(comps, includeHidden, transform);
 
-        private static IEnumerable<IXBody> IterateComponentBodies(IEnumerable<IXComponent> comps, bool includeHidden)
+        private static IEnumerable<IXBody> IterateComponentBodies(IEnumerable<IXComponent> comps, bool includeHidden, bool transform)
         {
             IEnumerable<IXComponent> SelectComponents(IXComponent parent)
             {
@@ -147,7 +148,20 @@ namespace Xarial.XCad.Documents
             }
 
             IXBody[] GetComponentBodies(IXComponent srcComp)
-                => srcComp.Bodies.Where(b => includeHidden || b.Visible).ToArray();
+                => srcComp.Bodies.Where(b => includeHidden || b.Visible)
+                .Select(b => 
+                {
+                    if (transform)
+                    {
+                        var copy = b.Copy();
+                        copy.Transform(srcComp.Transformation);
+                        return copy;
+                    }
+                    else
+                    {
+                        return b;
+                    }
+                }).ToArray();
 
             foreach (var comp in comps)
             {

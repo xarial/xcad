@@ -169,6 +169,26 @@ namespace Xarial.XCad.Documents
         /// Acessing time units
         /// </summary>
         Time_e Time { get; set; }
+
+        /// <summary>
+        /// Decimal places of the length
+        /// </summary>
+        int LengthDecimalPlaces { get; set; }
+
+        /// <summary>
+        /// Decimal places of the mass
+        /// </summary>
+        int MassDecimalPlaces { get; set; }
+
+        /// <summary>
+        /// Decimal places of the angle
+        /// </summary>
+        int AngleDecimalPlaces { get; set; }
+
+        /// <summary>
+        /// Decimal places of the time
+        /// </summary>
+        int TimeDecimalPlaces { get; set; }
     }
 
     /// <summary>
@@ -317,5 +337,129 @@ namespace Xarial.XCad.Documents
         /// <returns>Equivalent user value</returns>
         public static double ConvertTimeToUserValue(this IXUnits unit, double systemValue)
             => systemValue * unit.GetTimeConversionFactor();
+
+        /// <summary>
+        /// Gets the abbreviation (short name) of current length units
+        /// </summary>
+        /// <param name="unit">Units</param>
+        /// <returns>Length unit abbreviation</returns>
+        public static string GetLengthAbbreviation(this IXUnits unit)
+        {
+            switch (unit.Length)
+            {
+                case Length_e.Angstroms:
+                    return "Å";
+
+                case Length_e.Nanometers:
+                    return "nm";
+
+                case Length_e.Microns:
+                    return "μ";
+
+                case Length_e.Millimeters:
+                    return "mm";
+
+                case Length_e.Centimeters:
+                    return "cm";
+
+                case Length_e.Meters:
+                    return "m";
+
+                case Length_e.Microinches:
+                    return "µin";
+
+                case Length_e.Mils:
+                    return "mil";
+
+                case Length_e.Inches:
+                    return "in";
+
+                case Length_e.Feet:
+                    return "ft";
+
+                default:
+                    throw new NotSupportedException();
+            }
+        }
+
+
+        /// <summary>
+        /// Gets the abbreviation (short name) of current mass units
+        /// </summary>
+        /// <param name="unit">Units</param>
+        /// <returns>Mass unit abbreviation</returns>
+        public static string GetMassAbbreviation(this IXUnits unit)
+        {
+            switch (unit.Mass)
+            {
+                case Mass_e.Milligrams:
+                    return "mg";
+
+                case Mass_e.Grams:
+                    return "g";
+
+                case Mass_e.Kilograms:
+                    return "kg";
+
+                case Mass_e.Pounds:
+                    return "lb";
+
+                default:
+                    throw new NotSupportedException();
+            }
+        }
+
+        /// <summary>
+        /// Gets the abbreviation (short name) of current angle units
+        /// </summary>
+        /// <param name="unit">Units</param>
+        /// <returns>Angle unit abbreviation</returns>
+        public static string GetAngleAbbreviation(this IXUnits unit)
+        {
+            switch (unit.Angle)
+            {
+                case Angle_e.Degrees:
+                    return "°";
+
+                case Angle_e.Radians:
+                    return "rad";
+
+                default:
+                    throw new NotSupportedException();
+            }
+        }
+
+        /// <summary>
+        /// Gets the abbreviation (short name) of current time units
+        /// </summary>
+        /// <param name="unit">Units</param>
+        /// <returns>Time unit abbreviation</returns>
+        public static string GetTimeAbbreviation(this IXUnits unit)
+        {
+            switch (unit.Time)
+            {
+
+                case Time_e.Seconds:
+                    return "sec";
+
+                case Time_e.Milliseconds:
+                    return "msec";
+
+                case Time_e.Microseconds:
+                    return "µsec";
+
+                case Time_e.Nanoseconds:
+                    return "nsec";
+
+                case Time_e.Minutes:
+                    return "min";
+
+                case Time_e.Hours:
+                    return "hr";
+
+                default:
+                    throw new NotSupportedException();
+            }
+        }
     }
 }

@@ -8,6 +8,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Xarial.XCad.Base;
+using Xarial.XCad.Documents;
+using Xarial.XCad.Features;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Curves;
 using Xarial.XCad.Geometry.Structures;
@@ -264,6 +266,27 @@ namespace SolidWorks.Tests.Integration
             Assert.That(0.5, Is.EqualTo(circleParams[1]).Within(0.001).Percent);
             Assert.That(0.15, Is.EqualTo(circleParams[2]).Within(0.001).Percent);
             Assert.That(1.25, Is.EqualTo(circleParams[6]).Within(0.001).Percent);
+        }
+
+        [Test]
+        public void PlanarSheetSketchRegionTest() 
+        {
+            double area;
+
+            using (var doc = OpenDataDocument("SketchRegion1.SLDPRT")) 
+            {
+                var part = (IXPart)m_App.Documents.Active;
+
+                var sketch = (IXSketch2D)part.Features["Sketch1"];
+
+                var reg = sketch.Regions.First();
+
+                var surf = m_App.MemoryGeometryBuilder.CreatePlanarSheet(reg);
+
+                area = surf.Bodies.First().Faces.First().Area;
+            }
+
+            Assert.That(0.00105942, Is.EqualTo(area).Within(0.001).Percent);
         }
 
         [Test]

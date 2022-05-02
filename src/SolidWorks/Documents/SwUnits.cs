@@ -209,6 +209,38 @@ namespace Xarial.XCad.SolidWorks.Documents
             set => throw new NotImplementedException();
         }
 
+        public int LengthDecimalPlaces
+        {
+            get => m_Document.Model.Extension.GetUserPreferenceInteger(
+                (int)swUserPreferenceIntegerValue_e.swUnitsLinearDecimalPlaces,
+                (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified);
+            set => throw new NotImplementedException(); 
+        }
+
+        public int MassDecimalPlaces
+        {
+            get => m_Document.Model.Extension.GetUserPreferenceInteger(
+                (int)swUserPreferenceIntegerValue_e.swUnitsMassPropDecimalPlaces,
+                (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified);
+            set => throw new NotImplementedException();
+        }
+
+        public int AngleDecimalPlaces
+        {
+            get => m_Document.Model.Extension.GetUserPreferenceInteger(
+                (int)swUserPreferenceIntegerValue_e.swUnitsAngularDecimalPlaces,
+                (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified);
+            set => throw new NotImplementedException();
+        }
+
+        public int TimeDecimalPlaces
+        {
+            get => m_Document.Model.Extension.GetUserPreferenceInteger(
+                (int)swUserPreferenceIntegerValue_e.swUnitsTimeDecimalPlaces,
+                (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified);
+            set => throw new NotImplementedException();
+        }
+
         private readonly ISwDocument m_Document;
 
         internal SwUnits(ISwDocument document) 
