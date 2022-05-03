@@ -5,17 +5,31 @@
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
+using System;
 using System.Drawing;
 using Xarial.XCad.Base;
+using Xarial.XCad.Documents.Delegates;
 using Xarial.XCad.Geometry.Structures;
 
 namespace Xarial.XCad.Documents
 {
     /// <summary>
+    /// Context to draw the custom graphics
+    /// </summary>
+    public interface IXCustomGraphicsContext : IDisposable
+    {
+    }
+
+    /// <summary>
     /// Represents the model view
     /// </summary>
     public interface IXModelView : IXTransaction
     {
+        /// <summary>
+        /// Fired when custom graphics can be drawn in the model
+        /// </summary>
+        event RenderCustomGraphicsDelegate RenderCustomGraphics;
+
         /// <summary>
         /// Freezes all view updates
         /// </summary>

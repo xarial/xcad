@@ -119,14 +119,14 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         private IReadOnlyList<IXRay> CreateRayIntersections(CancellationToken cancellationToken) 
         {
-            var scope = Scope;
+            var bodies = Scope;
 
-            if(scope == null) 
+            if(bodies == null) 
             {
-                scope = GetAllBodies();
+                bodies = GetAllBodies();
             }
             
-            var intersectCount = m_Doc.Model.Extension.RayIntersections(scope.Cast<ISwBody>().Select(b => b.Body).ToArray(),
+            var intersectCount = m_Doc.Model.Extension.RayIntersections(bodies.Cast<ISwBody>().Select(b => b.Body).ToArray(),
                 m_RaysList.SelectMany(r => r.Axis.RefPoint.ToArray()).ToArray(),
                 m_RaysList.SelectMany(r => r.Axis.Direction.ToArray()).ToArray(),
                 (int)(swRayPtsOpts_e.swRayPtsOptsTOPOLS | swRayPtsOpts_e.swRayPtsOptsNORMALS | swRayPtsOpts_e.swRayPtsOptsENTRY_EXIT),
@@ -175,7 +175,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
                         var face = topo[i] as IFace2;
 
-                        m_RaysList[rayIndex].RegisterHit(hitPt, hitNorm, scope[bodyIndex], m_Doc.CreateObjectFromDispatch<ISwFace>(face), rayType);
+                        m_RaysList[rayIndex].RegisterHit(hitPt, hitNorm, bodies[bodyIndex], m_Doc.CreateObjectFromDispatch<ISwFace>(face), rayType);
                     }
                 }
             }

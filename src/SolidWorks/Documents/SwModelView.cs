@@ -11,8 +11,10 @@ using System;
 using System.Drawing;
 using System.Threading;
 using Xarial.XCad.Documents;
+using Xarial.XCad.Documents.Delegates;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.SolidWorks.Utils;
+using Xarial.XCad.Toolkit.Graphics;
 
 namespace Xarial.XCad.SolidWorks.Documents
 {
@@ -24,6 +26,34 @@ namespace Xarial.XCad.SolidWorks.Documents
     internal class SwModelView : SwObject, ISwModelView
     {
         private readonly IMathUtility m_MathUtils;
+
+        public event RenderCustomGraphicsDelegate RenderCustomGraphics 
+        {
+            add 
+            {
+                if (m_RenderCustomGraphicsDelegate == null)
+                {
+                    m_GraphicsContext = new OglGraphicsContext();
+                    ((ModelView)View).BufferSwapNotify += OnBufferSwapNotify;
+                }
+
+                m_RenderCustomGraphicsDelegate += value;
+            }
+            remove 
+            {
+                m_RenderCustomGraphicsDelegate -= value;
+
+                if (m_RenderCustomGraphicsDelegate == null)
+                {
+                    m_GraphicsContext?.Dispose();
+                    m_GraphicsContext = null;
+                    ((ModelView)View).BufferSwapNotify -= OnBufferSwapNotify;
+                }
+            }
+        }
+
+        private OglGraphicsContext m_GraphicsContext;
+        private RenderCustomGraphicsDelegate m_RenderCustomGraphicsDelegate;
 
         internal IModelDoc2 Owner { get; }
 
@@ -100,14 +130,10 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
 
         public void Freeze(bool freeze)
-        {
-            View.EnableGraphicsUpdate = !freeze;
-        }
+            => View.EnableGraphicsUpdate = !freeze;
 
         public void Update()
-        {
-            View.GraphicsRedraw(null);
-        }
+            => View.GraphicsRedraw(null);
 
         /// <inheritdoc/>
         public void ZoomToBox(Box3D box)
@@ -125,6 +151,18 @@ namespace Xarial.XCad.SolidWorks.Documents
         public void Commit(CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
+        }
+
+        private int OnBufferSwapNotify()
+        {
+            if (m_RenderCustomGraphicsDelegate?.Invoke(this, m_GraphicsContext) == true)
+            {
+                return HResult.S_OK;
+            }
+            else
+            {
+                return HResult.S_FALSE;
+            }
         }
     }
 
