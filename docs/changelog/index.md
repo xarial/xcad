@@ -13,7 +13,9 @@ Breaking change is marked with &#x26A0; symbol
 * &#x26A0; - IXCustomFeatureDefinition\<TParams, TPage\>::OnPageParametersChanged renamed to IXCustomFeatureDefinition\<TParams, TPage\>::OnPreviewUpdated
 * &#x26A0; - IXCustomFeatureDefinition\<TParams, TPage\>::CreateGeometry is split to IXCustomFeatureDefinition\<TParams, TPage\>.CreatePreviewGeometry.
 * &#x26A0; - ISwMacroFeatureDefinition::ShouldUpdatePreview changed the signature (added the pointer to TPage)
-* &#x26A0; - ISwMacroFeatureDefinition::ShouldHidePreviewEditBody, ISwMacroFeatureDefinition::AssignPreviewBodyColor replaced with the delegates of IXCustomFeatureDefinition\<TParams, TPage\>.CreatePreviewGeometry
+* &#x26A0; - ISwMacroFeatureDefinition::ShouldHidePreviewEditBody, ISwMacroFeatureDefinition::AssignPreviewBodyColor replaced with the delegates of IXCustomFeatureDefinition\<TParams, TPage\>.
+CreatePreviewGeometry
+* &#x26A0; - ISwMacroFeatureDefinition::ConvertParamsToPage added additional parameter for current data
 * &#x26A0; - IXDocument3D::PreCreateBoundingBox, IXDocument3D::PreCreateMassProperty moved to IXDocumentEvaluation
 
 ## 0.7.7 - October 26, 2021

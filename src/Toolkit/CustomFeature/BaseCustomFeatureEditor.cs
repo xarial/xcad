@@ -214,7 +214,7 @@ namespace Xarial.XCad.Utils.CustomFeature
         private void OnDataChanged()
         {
             var oldParams = m_CurData;
-            m_CurData = Definition.ConvertPageToParams(m_App, CurModel, m_CurPageData);
+            m_CurData = Definition.ConvertPageToParams(m_App, CurModel, m_CurPageData, m_CurData);
 
             var dataChanged = AreParametersChanged(oldParams, m_CurData);
 
@@ -314,7 +314,7 @@ namespace Xarial.XCad.Utils.CustomFeature
                 {
                     CompleteFeature(reason);
 
-                    m_CurData = Definition.ConvertPageToParams(m_App, CurModel, m_CurPageData);
+                    m_CurData = Definition.ConvertPageToParams(m_App, CurModel, m_CurPageData, m_CurData);
 
                     //page stays open
                     UpdatePreview();

@@ -701,11 +701,11 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         public virtual SwPropertyManagerPageHandler CreatePageHandler()
             => m_SvcProvider.GetService<IPropertyPageHandlerProvider>().CreateHandler(Application.Sw, typeof(TPage));
 
-        public virtual TParams ConvertPageToParams(IXApplication app, IXDocument doc, TPage par)
+        public virtual TParams ConvertPageToParams(IXApplication app, IXDocument doc, TPage page, TParams curParams)
         {
             if (typeof(TParams).IsAssignableFrom(typeof(TPage)))
             {
-                return (TParams)((object)par);
+                return (TParams)((object)page);
             }
             else
             {

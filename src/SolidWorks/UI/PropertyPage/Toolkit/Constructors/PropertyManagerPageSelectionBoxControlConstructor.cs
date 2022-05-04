@@ -36,6 +36,10 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
     internal class PropertyManagerPageSelectionBoxControlConstructor
         : PropertyManagerPageBaseControlConstructor<PropertyManagerPageSelectionBoxControl, IPropertyManagerPageSelectionbox>
     {
+        private const int DEFAULT_SEL_HEIGHT = -1;
+        private const int DEFAULT_SINGLE_SEL_HEIGHT = 12;
+        private const int DEFAULT_MULTI_SEL_HEIGHT = 50;
+
         private readonly IXLogger m_Logger;
 
         private readonly ISwApplication m_SwApp;
@@ -59,11 +63,20 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
             IPropertyManagerPageSelectionbox swCtrl, IAttributeSet atts, IMetadata[] metadata, 
             SwPropertyManagerPageHandler handler, short height, IPropertyManagerPageLabel label)
         {
-            swCtrl.SingleEntityOnly = !typeof(IList).IsAssignableFrom(atts.ContextType);
+            var isMultiSel = typeof(IList).IsAssignableFrom(atts.ContextType);
 
-            if (height == -1)
+            swCtrl.SingleEntityOnly = !isMultiSel;
+
+            if (height == DEFAULT_SEL_HEIGHT)
             {
-                height = 20;
+                if (isMultiSel)
+                {
+                    height = DEFAULT_MULTI_SEL_HEIGHT;
+                }
+                else
+                {
+                    height = DEFAULT_SINGLE_SEL_HEIGHT;
+                }
             }
 
             swCtrl.Height = height;

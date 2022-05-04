@@ -125,6 +125,7 @@ namespace Xarial.XCad.Features.CustomFeature
         /// <param name="doc">Current document</param>
         /// <param name="par">Custom feature parameter</param>
         /// <returns>Corresponding page</returns>
+        /// <remarks>This method is called once when editing of the feature is started or new feature is being inserted</remarks>
         TPage ConvertParamsToPage(IXApplication app, IXDocument doc, TParams par);
 
         /// <summary>
@@ -133,7 +134,9 @@ namespace Xarial.XCad.Features.CustomFeature
         /// <param name="app">Application</param>
         /// <param name="doc">Current document</param>
         /// <param name="page">Page data to convert to custom feature parameters</param>
+        /// <param name="curParams">Current parameters</param>
         /// <returns>Corresponding custom feature parameters</returns>
-        TParams ConvertPageToParams(IXApplication app, IXDocument doc, TPage page);
+        /// <remarks>This method is called everytime page data is changed</remarks>
+        TParams ConvertPageToParams(IXApplication app, IXDocument doc, TPage page, TParams curParams);
     }
 }
