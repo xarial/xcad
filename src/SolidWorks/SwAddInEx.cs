@@ -142,7 +142,7 @@ namespace Xarial.XCad.SolidWorks
 
         private readonly List<IDisposable> m_Disposables;
 
-        private IServiceProvider m_SvcProvider;
+        protected IServiceProvider m_SvcProvider;
         
         public SwAddInEx()
         {   
