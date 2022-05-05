@@ -65,5 +65,24 @@ namespace Xarial.XCad.SolidWorks.Geometry.Surfaces
 
             return new Point(evalData.Take(3).ToArray());
         }
+
+        public Vector CalculateNormalAtPoint(Point point)
+        {
+            if (point == null) 
+            {
+                throw new ArgumentNullException(nameof(point));
+            }
+
+            var evalData = (double[])Surface.EvaluateAtPoint(point.X, point.Y, point.Z);
+
+            if (evalData != null)
+            {
+                return new Vector(evalData[0], evalData[1], evalData[2]);
+            }
+            else 
+            {
+                throw new NullReferenceException("Failed to evaluate surface at point. This can indicate that point does not lie on the surface");
+            }
+        }
     }
 }

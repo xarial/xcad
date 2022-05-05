@@ -17,6 +17,11 @@ namespace Xarial.XCad.Geometry
     public interface IXEdge : IXEntity, IXSegment
     {
         /// <summary>
+        /// True if the direction of the edge conicides with the direction of its curve definition, False if the directions are opposite
+        /// </summary>
+        bool Sense { get; }
+
+        /// <summary>
         /// Start vertex
         /// </summary>
         new IXVertex StartPoint { get; }

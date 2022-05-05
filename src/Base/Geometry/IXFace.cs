@@ -20,6 +20,11 @@ namespace Xarial.XCad.Geometry
     public interface IXFace : IXEntity, IXColorizable
     {
         /// <summary>
+        /// True if the direction of the face conicides with the direction of its surface definition, False if the directions are opposite
+        /// </summary>
+        bool Sense { get; }
+
+        /// <summary>
         /// Area of the face
         /// </summary>
         double Area { get; }

@@ -41,5 +41,12 @@ namespace Xarial.XCad.Geometry.Surfaces
         /// <param name="normal">Normal vector at point</param>
         /// <returns>Point location</returns>
         Point CalculateLocation(double uParam, double vParam, out Vector normal);
+
+        /// <summary>
+        /// Finds the normal of this surface at the specified point
+        /// </summary>
+        /// <param name="point">Point</param>
+        /// <returns>Normal vector</returns>
+        Vector CalculateNormalAtPoint(Point point);
     }
 }

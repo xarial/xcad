@@ -109,6 +109,15 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         public double Length => Definition.Length;
 
+        public bool Sense 
+        {
+            get 
+            {
+                var curveParams = Edge.GetCurveParams3();
+                return curveParams.Sense;
+            }
+        }
+
         public override Point FindClosestPoint(Point point)
             => new Point(((double[])Edge.GetClosestPointOn(point.X, point.Y, point.Z)).Take(3).ToArray());
 

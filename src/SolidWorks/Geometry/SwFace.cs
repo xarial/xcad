@@ -94,6 +94,8 @@ namespace Xarial.XCad.SolidWorks.Geometry
         public IEnumerable<ISwEdge> Edges => (Face.GetEdges() as object[])
             .Select(f => OwnerApplication.CreateObjectFromDispatch<ISwEdge>(f, OwnerDocument));
 
+        public bool Sense => Face.FaceInSurfaceSense();
+
         public override Point FindClosestPoint(Point point)
             => new Point(((double[])Face.GetClosestPointOn(point.X, point.Y, point.Z)).Take(3).ToArray());
 
@@ -130,8 +132,15 @@ namespace Xarial.XCad.SolidWorks.Geometry
         {
             var uvParam = (double[])Face.ReverseEvaluate(point.X, point.Y, point.Z);
 
-            uParam = uvParam[0];
-            vParam = uvParam[1];
+            if (uvParam != null)
+            {
+                uParam = uvParam[0];
+                vParam = uvParam[1];
+            }
+            else
+            {
+                throw new NullReferenceException("Failed to extract UV parameters of the face. This may indicate that input point does not lie on the face");
+            }
         }
     }
 
