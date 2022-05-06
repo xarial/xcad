@@ -29,13 +29,11 @@ namespace Xarial.XCad.SolidWorks.Geometry
     {
         IFace2 Face { get; }
         new ISwSurface Definition { get; }
-        new IEnumerable<ISwEdge> Edges { get; }
     }
 
     internal abstract class SwFace : SwEntity, ISwFace
     {
         IXSurface IXFace.Definition => Definition;
-        IEnumerable<IXEdge> IXFace.Edges => Edges;
 
         public IFace2 Face { get; }
         private readonly IMathUtility m_MathUtils;
@@ -52,9 +50,20 @@ namespace Xarial.XCad.SolidWorks.Geometry
         {
             get 
             {
+                IEnumerable<IVertex> EnumerateVertices(IEdge edge)
+                {
+                    yield return edge.IGetStartVertex();
+                    yield return edge.IGetEndVertex();
+                }
+
                 foreach (IEdge edge in (Face.GetEdges() as object[]).ValueOrEmpty())
                 {
                     yield return OwnerApplication.CreateObjectFromDispatch<ISwEdge>(edge, OwnerDocument);
+                }
+                
+                foreach (var vertex in (Face.GetEdges() as object[]).ValueOrEmpty().Cast<IEdge>().SelectMany(EnumerateVertices).Distinct())
+                {
+                    yield return OwnerApplication.CreateObjectFromDispatch<ISwVertex>(vertex, OwnerDocument);
                 }
             }
         }
@@ -90,10 +99,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
                 }
             }
         }
-
-        public IEnumerable<ISwEdge> Edges => (Face.GetEdges() as object[])
-            .Select(f => OwnerApplication.CreateObjectFromDispatch<ISwEdge>(f, OwnerDocument));
-
+        
         public bool Sense => Face.FaceInSurfaceSense();
 
         public override Point FindClosestPoint(Point point)
@@ -162,7 +168,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         public Plane Plane => Definition.Plane;
 
-        public ISwCurve[] Boundary => Edges.Select(e => e.Definition).ToArray();
+        public ISwCurve[] Boundary => AdjacentEntities.OfType<ISwEdge>().Select(e => e.Definition).ToArray();
     }
 
     public interface ISwCylindricalFace : ISwFace, IXCylindricalFace

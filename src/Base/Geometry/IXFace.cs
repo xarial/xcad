@@ -40,11 +40,6 @@ namespace Xarial.XCad.Geometry
         IXFeature Feature { get; }
 
         /// <summary>
-        /// Edges of this face
-        /// </summary>
-        IEnumerable<IXEdge> Edges { get; }
-
-        /// <summary>
         /// Projects the specified point onto the surface
         /// </summary>
         /// <param name="point">Input point</param>
@@ -89,34 +84,72 @@ namespace Xarial.XCad.Geometry
         new IXCylindricalSurface Definition { get; }
     }
 
+    /// <summary>
+    /// Additional methods for <see cref="IXPlanarFace"/>
+    /// </summary>
+    public static class IXPlanarFaceExtension 
+    {
+        /// <summary>
+        /// Returns the normal vector of the planar face
+        /// </summary>
+        /// <param name="face">Face to get normal from</param>
+        /// <returns>Normal vector</returns>
+        public static Vector GetNormal(this IXPlanarFace face)
+            => face.Definition.Plane.Normal * (face.Sense ? -1 : 1);
+    }
+
+    /// <summary>
+    /// Blend face
+    /// </summary>
     public interface IXBlendXFace : IXFace 
     {
     }
 
+    /// <summary>
+    /// B-surface face
+    /// </summary>
     public interface IXBFace : IXFace
     {
     }
 
+    /// <summary>
+    /// Conical face
+    /// </summary>
     public interface IXConicalFace : IXFace
     {
     }
 
+    /// <summary>
+    /// Extruded face
+    /// </summary>
     public interface IXExtrudedFace : IXFace
     {
     }
 
+    /// <summary>
+    /// Offset face
+    /// </summary>
     public interface IXOffsetFace : IXFace
     {
     }
 
+    /// <summary>
+    /// Revolved face
+    /// </summary>
     public interface IXRevolvedFace : IXFace
     {
     }
 
+    /// <summary>
+    /// Spherical face
+    /// </summary>
     public interface IXSphericalFace : IXFace
     {
     }
 
+    /// <summary>
+    /// Toroidal face
+    /// </summary>
     public interface IXToroidalFace : IXFace
     {
     }
