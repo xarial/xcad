@@ -169,6 +169,15 @@ namespace Xarial.XCad.SolidWorks.Geometry
         public Plane Plane => Definition.Plane;
 
         public ISwCurve[] Boundary => AdjacentEntities.OfType<ISwEdge>().Select(e => e.Definition).ToArray();
+
+        public ISwTempPlanarSheetBody PlanarSheetBody 
+        {
+            get 
+            {
+                var sheetBody = Face.CreateSheetBody();
+                return OwnerApplication.CreateObjectFromDispatch<SwTempPlanarSheetBody>(sheetBody, OwnerDocument); ;
+            }
+        }
     }
 
     public interface ISwCylindricalFace : ISwFace, IXCylindricalFace

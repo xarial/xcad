@@ -8,6 +8,7 @@
 using SolidWorks.Interop.sldworks;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using Xarial.XCad.Geometry;
@@ -22,6 +23,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
         IVertex Vertex { get; }
     }
 
+    [DebuggerDisplay("{" + nameof(Coordinate) + "}")]
     internal class SwVertex : SwEntity, ISwVertex
     {
         public IVertex Vertex { get; }

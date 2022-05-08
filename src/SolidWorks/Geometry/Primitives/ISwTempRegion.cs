@@ -16,6 +16,5 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
 {
     public interface ISwTempRegion : ISwRegion
     {
-        ISwTempPlanarSheetBody PlanarSheetBody { get; }
     }
 }

@@ -205,6 +205,32 @@ namespace SolidWorks.Tests.Integration
         }
 
         [Test]
+        public void ExtrusionPolylineTest() 
+        {
+            var profile = m_App.MemoryGeometryBuilder.WireBuilder.PreCreatePolyline();
+
+            profile.Points = new Point[] 
+            {
+                new Point(0, 0, 0),
+                new Point(0.1, 0, 0),
+                new Point(0.1, 0.1, 0),
+                new Point(0, 0.1, 0),
+                new Point(0, 0, 0),
+            };
+
+            profile.Commit();
+
+            var profileReg = m_App.MemoryGeometryBuilder.CreateRegionFromSegments(profile);
+            
+            var ext = m_App.MemoryGeometryBuilder.CreateSolidExtrusion(0.1, new Vector(0, 0, 1), profileReg);
+            
+            var body = (IXSolidBody)ext.Bodies.First();
+            
+            var vol = body.Volume;
+            Assert.That(0.001, Is.EqualTo(vol).Within(0.001).Percent);
+        }
+
+        [Test]
         public void CylinderTest() 
         {
             int faceCount;

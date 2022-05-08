@@ -13,15 +13,17 @@ using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Geometry.Wires;
 using Xarial.XCad.SolidWorks.Geometry.Curves;
+using Xarial.XCad.SolidWorks.Sketch;
 
 namespace Xarial.XCad.SolidWorks.Geometry
 {
     public interface ISwRegion : IXRegion
     {
+        ISwTempPlanarSheetBody PlanarSheetBody { get; }
         new ISwCurve[] Boundary { get; }
     }
 
-    internal class SwRegion : ISwRegion 
+    internal class SwRegion : ISwRegion
     {
         public IXSegment[] Boundary { get; }
 
@@ -54,14 +56,59 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         ISwCurve[] ISwRegion.Boundary => m_LazyBoundary.Value;
 
+        public ISwTempPlanarSheetBody PlanarSheetBody => this.ToPlanarSheetBody(m_GeomBuilder);
+
         private readonly Lazy<ISwCurve[]> m_LazyBoundary;
 
-        internal SwRegion(IXSegment[] boundary) 
+        private readonly ISwMemoryGeometryBuilder m_GeomBuilder;
+
+        internal SwRegion(IXSegment[] boundary, ISwMemoryGeometryBuilder geomBuilder)
         {
+            m_GeomBuilder = geomBuilder;
             Boundary = boundary;
 
-            //TODO: check if segment is not curve - then create curve (e.g. from the edge)
-            m_LazyBoundary = new Lazy<ISwCurve[]>(() => boundary.Cast<ISwCurve>().ToArray());
+            m_LazyBoundary = new Lazy<ISwCurve[]>(() =>
+            {
+                var res = new List<ISwCurve>();
+
+                foreach (var bound in boundary) 
+                {
+                    switch (bound) 
+                    {
+                        case ISwCurve curve:
+                            res.Add(curve);
+                            break;
+
+                        case ISwEdge edge:
+                            res.Add(edge.Definition);
+                            break;
+
+                        case ISwSketchSegment seg:
+                            res.Add(seg.Definition);
+                            break;
+                    }
+                }
+
+                return res.ToArray();
+            });
+        }
+    }
+
+    internal static class SwRegionExtension
+    {
+        internal static ISwTempPlanarSheetBody ToPlanarSheetBody(this ISwRegion region, ISwMemoryGeometryBuilder geomBuilder)
+        {
+            var planarSheet = geomBuilder.CreatePlanarSheet(region);
+            var bodies = planarSheet.Bodies;
+
+            if (bodies.Length == 1)
+            {
+                return (ISwTempPlanarSheetBody)bodies.First();
+            }
+            else 
+            {
+                throw new Exception("Region must contain only one planar sheet body");
+            }
         }
     }
 }

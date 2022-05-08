@@ -55,5 +55,7 @@ namespace Xarial.XCad.SolidWorks.Sketch
             .Cast<IEdge>()
             .Select(e => OwnerApplication.CreateObjectFromDispatch<ISwCurve>(e.IGetCurve().ICopy(), OwnerDocument))
             .ToArray();
+
+        public ISwTempPlanarSheetBody PlanarSheetBody => this.ToPlanarSheetBody(OwnerApplication.MemoryGeometryBuilder);
     }
 }

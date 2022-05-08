@@ -11,10 +11,24 @@ using Xarial.XCad.Geometry.Wires;
 
 namespace Xarial.XCad.Geometry.Primitives
 {
+    /// <summary>
+    /// Represents the extruded geometry
+    /// </summary>
     public interface IXExtrusion : IXPrimitive
     {
+        /// <summary>
+        /// Profiles used to create this extrusion geometry
+        /// </summary>
         IXRegion[] Profiles { get; set; }
+
+        /// <summary>
+        /// Depth of the extrusion
+        /// </summary>
         double Depth { get; set; }
+
+        /// <summary>
+        /// Direction of the extrusion
+        /// </summary>
         Vector Direction { get; set; }
     }
 }
