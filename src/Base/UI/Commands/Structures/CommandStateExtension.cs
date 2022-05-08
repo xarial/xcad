@@ -6,44 +6,60 @@
 //*********************************************************************
 
 using System;
+using System.Collections.Generic;
 using Xarial.XCad.Documents;
 using Xarial.XCad.UI.Commands.Enums;
 
 namespace Xarial.XCad.UI.Commands.Structures
 {
+    /// <summary>
+    /// Additional methods of <see cref="CommandState"/>
+    /// </summary>
     public static class CommandStateExtension
     {
+        /// <summary>
+        /// Resolves the default state based on the workspace
+        /// </summary>
+        /// <param name="state">Current state</param>
+        /// <param name="ws">Workspace</param>
+        /// <param name="app">Application</param>
         public static void ResolveState(this CommandState state, WorkspaceTypes_e ws, IXApplication app)
         {
             var activeDoc = app.Documents.Active;
 
-            WorkspaceTypes_e curSpace;
+            var enabled = false;
 
             if (activeDoc == null)
             {
-                curSpace = WorkspaceTypes_e.NoDocuments;
+                enabled = ws.HasFlag(WorkspaceTypes_e.NoDocuments);
             }
             else
             {
-                if (activeDoc is IXPart)
+                switch (activeDoc) 
                 {
-                    curSpace = WorkspaceTypes_e.Part;
-                }
-                else if (activeDoc is IXAssembly)
-                {
-                    curSpace = WorkspaceTypes_e.Assembly;
-                }
-                else if (activeDoc is IXDrawing)
-                {
-                    curSpace = WorkspaceTypes_e.Drawing;
-                }
-                else
-                {
-                    throw new NotSupportedException();
+                    case IXPart _:
+                        enabled = ws.HasFlag(WorkspaceTypes_e.Part);
+                        break;
+
+                    case IXAssembly assm:
+                        enabled = ws.HasFlag(WorkspaceTypes_e.Assembly);
+                        if (!enabled) 
+                        {
+                            if (ws.HasFlag(WorkspaceTypes_e.InContextPart)) 
+                            {
+                                var editComp = assm.EditingComponent;
+                                enabled = editComp != null && editComp.ReferencedDocument is IXPart;
+                            }
+                        }
+                        break;
+
+                    case IXDrawing _:
+                        enabled = ws.HasFlag(WorkspaceTypes_e.Drawing);
+                        break;
                 }
             }
 
-            state.Enabled = ws.HasFlag(curSpace);
+            state.Enabled = enabled;
         }
     }
 }

@@ -36,6 +36,11 @@ namespace Xarial.XCad.UI.Commands.Enums
         Drawing = 2 << 2,
 
         /// <summary>
+        /// Part document edited in the context of the assembly
+        /// </summary>
+        InContextPart = 2 << 3,
+
+        /// <summary>
         /// All SOLIDWORKS documents
         /// </summary>
         AllDocuments = Part | Assembly | Drawing,
