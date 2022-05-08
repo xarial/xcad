@@ -22,6 +22,7 @@ namespace Xarial.XCad.SolidWorks.Documents
     public interface ISwAssembly : ISwDocument3D, IXAssembly
     {
         IAssemblyDoc Assembly { get; }
+        new ISwComponent EditingComponent { get; }
         new ISwAssemblyConfigurationCollection Configurations { get; }
     }
 
@@ -39,18 +40,35 @@ namespace Xarial.XCad.SolidWorks.Documents
             m_Evaluation = new SwAssemblyEvaluation(this);
         }
 
+        ISwAssemblyConfigurationCollection ISwAssembly.Configurations => m_LazyConfigurations.Value;
+        IXAssemblyConfigurationRepository IXAssembly.Configurations => (this as ISwAssembly).Configurations;
+        IXComponent IXAssembly.EditingComponent => EditingComponent;
+        IXAssemblyEvaluation IXAssembly.Evaluation => m_Evaluation;
+
         internal protected override swDocumentTypes_e? DocumentType => swDocumentTypes_e.swDocASSEMBLY;
 
         protected override bool IsRapidMode => Model.IsOpenedViewOnly(); //TODO: when editing feature of LDR is available make this to be rapid mode
 
         protected override bool IsLightweightMode => Assembly.GetLightWeightComponentCount() > 0;
 
-        ISwAssemblyConfigurationCollection ISwAssembly.Configurations => m_LazyConfigurations.Value;
-        IXAssemblyConfigurationRepository IXAssembly.Configurations => (this as ISwAssembly).Configurations;
-
         public override IXDocumentEvaluation Evaluation => m_Evaluation;
 
-        IXAssemblyEvaluation IXAssembly.Evaluation => m_Evaluation;
+        public ISwComponent EditingComponent 
+        {
+            get
+            {
+                var comp = Assembly.GetEditTargetComponent();
+
+                if (comp != null && !comp.IsRoot())
+                {
+                    return this.CreateObjectFromDispatch<ISwComponent>(comp);
+                }
+                else
+                {
+                    return null;
+                }
+            }
+        }
 
         protected override SwConfigurationCollection CreateConfigurations()
             => new SwAssemblyConfigurationCollection(this, OwnerApplication);

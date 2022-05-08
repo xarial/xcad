@@ -683,7 +683,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
                 editor.FeatureInserted += OnFeatureInserted;
                 editor.PreviewUpdated += OnPreviewUpdated;
                 editor.ShouldUpdatePreview += ShouldUpdatePreview;
-
+                editor.ProvidePreviewContext += ProvidePreviewContext;
                 return editor;
             });
         }
@@ -835,5 +835,25 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         }
 
         public virtual IControlDescriptor[] CreateDynamicControls(object tag) => null;
+
+        /// <summary>
+        /// Context for the preview of this document
+        /// </summary>
+        /// <param name="doc">Current document</param>
+        /// <returns>Either <see cref="IXPart"/> or <see cref="IXComponent"/></returns>
+        protected virtual ISwObject ProvidePreviewContext(IXDocument doc)
+        {
+            switch (doc)
+            {
+                case ISwPart part:
+                    return part;
+
+                case ISwAssembly assm:
+                    return assm.EditingComponent;
+
+                default:
+                    throw new NotSupportedException("Not supported preview context");
+            }
+        }
     }
 }

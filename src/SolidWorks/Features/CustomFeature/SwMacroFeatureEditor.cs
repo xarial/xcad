@@ -9,6 +9,7 @@ using SolidWorks.Interop.swconst;
 using System;
 using System.Drawing;
 using Xarial.XCad.Base;
+using Xarial.XCad.Documents;
 using Xarial.XCad.Extensions;
 using Xarial.XCad.Features.CustomFeature.Delegates;
 using Xarial.XCad.Geometry;
@@ -27,14 +28,21 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         where TData : class
         where TPage : class
     {
-        //private readonly AssignPreviewBodyColorDelegate m_AssignBodyColorFunc;
+        internal event Func<IXDocument, ISwObject> ProvidePreviewContext;
+
+        private enum DisplayBodyResult_e 
+        {
+            Success = 0,
+            NotTempBody = 1,
+            InvalidComponent = 2,
+            NotPart = 3
+        }
 
         internal SwMacroFeatureEditor(ISwApplication app, Type defType,
             CustomFeatureParametersParser paramsParser, IServiceProvider svcProvider,
             SwPropertyManagerPage<TPage> page) 
             : base(app, defType, paramsParser, svcProvider, page)
         {
-            //m_AssignBodyColorFunc = assignPreviewBodyColorDelegateFunc;
         }
 
         protected override void DisplayPreview(IXBody[] bodies, AssignPreviewBodyColorDelegate assignPreviewBodyColorDelegateFunc)
@@ -42,12 +50,22 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             foreach (var body in bodies)
             {
                 var swBody = (body as SwBody).Body;
-                var model = (CurModel as SwDocument).Model;
+                var previewContext = ProvidePreviewContext?.Invoke(CurModel)?.Dispatch;
+
+                if (previewContext == null) 
+                {
+                    throw new Exception("Preview context is not specified");
+                }
 
                 assignPreviewBodyColorDelegateFunc.Invoke(body, out Color color);
 
-                swBody.Display3(model, ColorUtils.ToColorRef(color),
+                var res = (DisplayBodyResult_e)swBody.Display3(previewContext, ColorUtils.ToColorRef(color),
                     (int)swTempBodySelectOptions_e.swTempBodySelectOptionNone);
+
+                if (res != DisplayBodyResult_e.Success) 
+                {
+                    throw new Exception($"Failed to render preview body: {res}");
+                }
 
                 var hasAlpha = color.A < 255;
                 

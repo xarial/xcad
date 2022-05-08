@@ -187,7 +187,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             {
                 if (IsCommitted)
                 {
-                    if (FeatureData.AccessSelections(OwnerModelDoc, null))
+                    if (FeatureData.AccessSelections(OwnerModelDoc, OwnerInContextComponent))
                     {
                         return (TParams)m_ParamsParser.GetParameters(this, OwnerDocument, typeof(TParams),
                             out _, out _, out _, out _, out _);
@@ -214,7 +214,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
                     {
                         m_ParamsParser.SetParameters(OwnerDocument, this, value, out _);
 
-                        if (!Feature.ModifyDefinition(FeatureData, OwnerModelDoc, null))
+                        if (!Feature.ModifyDefinition(FeatureData, OwnerModelDoc, OwnerInContextComponent))
                         {
                             throw new Exception("Failed to update parameters");
                         }
@@ -232,8 +232,29 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
                 out _, out _, out _, out _, out _);
 
         protected override IFeature CreateFeature(CancellationToken cancellationToken)
+            => InsertComFeatureWithParameters();
+
+        protected override void ValidateDefinitionType()
         {
-            return InsertComFeatureWithParameters();
+            if (!typeof(SwMacroFeatureDefinition<TParams>).IsAssignableFrom(DefinitionType))
+            {
+                throw new MacroFeatureDefinitionTypeMismatch(DefinitionType, typeof(SwMacroFeatureDefinition<TParams>));
+            }
+        }
+
+        private IComponent2 OwnerInContextComponent 
+        {
+            get
+            {
+                if (OwnerDocument is ISwAssembly)
+                {
+                    return ((ISwAssembly)OwnerDocument).EditingComponent.Component;
+                }
+                else 
+                {
+                    return null;
+                }
+            }
         }
 
         private IFeature InsertComFeatureWithParameters()
@@ -261,14 +282,6 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
                 dimTypes?.Select(d => (int)d)?.ToArray(), dimValues,
                 selection?.Cast<SwSelObject>()?.Select(s => s.Dispatch)?.ToArray(),
                 editBodies?.Cast<SwBody>()?.Select(b => b.Body)?.ToArray());
-        }
-
-        protected override void ValidateDefinitionType()
-        {
-            if (!typeof(SwMacroFeatureDefinition<TParams>).IsAssignableFrom(DefinitionType))
-            {
-                throw new MacroFeatureDefinitionTypeMismatch(DefinitionType, typeof(SwMacroFeatureDefinition<TParams>));
-            }
         }
     }
 }

@@ -19,5 +19,10 @@ namespace Xarial.XCad.Documents
 
         /// <inheritdoc/>
         new IXAssemblyEvaluation Evaluation { get; }
+
+        /// <summary>
+        /// Returns the component which is currently being editied in-context or null
+        /// </summary>
+        IXComponent EditingComponent { get; }
     }
 }

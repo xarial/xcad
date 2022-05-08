@@ -25,6 +25,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         
         public IXAssemblyEvaluation Evaluation => throw new NotSupportedException();
         IXAssemblyEvaluation IXAssembly.Evaluation => throw new NotSupportedException();
+        public IXComponent EditingComponent => throw new NotSupportedException();
 
         #endregion
 
