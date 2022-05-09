@@ -98,7 +98,14 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
 
             foreach (var profile in Profiles) 
             {
-                var body = m_Modeler.CreateExtrudedBody((Body2)profile.PlanarSheetBody.Body, dir, Depth) as IBody2;
+                var length = Depth;
+
+                if (length == 0) 
+                {
+                    throw new Exception("Cannot create extrusion of 0 length");
+                }
+
+                var body = (IBody2)m_Modeler.CreateExtrudedBody((Body2)profile.PlanarSheetBody.Body, dir, length);
 
                 if (body == null)
                 {

@@ -133,7 +133,6 @@ namespace Xarial.XCad.Utils.CustomFeature
                     {
                         var dispDim = featDims[dimInd];
 
-                        //TODO: work with current configuration when assembly is supported
                         var val = dispDim.Value;
 
                         if (!double.IsNaN(val))

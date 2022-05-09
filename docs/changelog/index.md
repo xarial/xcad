@@ -18,6 +18,7 @@ CreatePreviewGeometry
 * &#x26A0; - ISwMacroFeatureDefinition::ConvertParamsToPage added additional parameter for current data
 * &#x26A0; - IXDocument3D::PreCreateBoundingBox, IXDocument3D::PreCreateMassProperty moved to IXDocumentEvaluation
 * &#x26A0; - IXFace::Edges is deprecated and replaced with IXFace::AdjacentEntities
+* &#x26A0; - HandlePostRebuildAttribute is deprecated and replaced with SwMacroFeatureDefinition::PostRebuild event
 
 ## 0.7.7 - October 26, 2021
 

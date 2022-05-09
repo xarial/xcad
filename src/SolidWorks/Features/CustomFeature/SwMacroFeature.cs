@@ -33,6 +33,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 {
     public interface ISwMacroFeature : ISwFeature, IXCustomFeature
     {
+        new ISwConfiguration Configuration { get; }
     }
 
     internal class SwMacroFeature : SwFeature, ISwMacroFeature
@@ -83,8 +84,10 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             m_FeatMgr = doc.Model.FeatureManager;
         }
 
+        IXConfiguration IXCustomFeature.Configuration => Configuration;
+
         //TODO: check constant context disconnection exception
-        public IXConfiguration Configuration 
+        public ISwConfiguration Configuration 
             => OwnerDocument.CreateObjectFromDispatch<SwConfiguration>(FeatureData.CurrentConfiguration);
 
         protected override IFeature CreateFeature(CancellationToken cancellationToken)

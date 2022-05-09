@@ -16,13 +16,14 @@ using System.Threading.Tasks;
 using Xarial.XCad;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Features.CustomFeature;
+using Xarial.XCad.Features.CustomFeature.Attributes;
 using Xarial.XCad.Features.CustomFeature.Delegates;
+using Xarial.XCad.Features.CustomFeature.Enums;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.SolidWorks;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Features.CustomFeature;
-using Xarial.XCad.SolidWorks.Features.CustomFeature.Attributes;
 using Xarial.XCad.SolidWorks.Geometry;
 using Xarial.XCad.SolidWorks.UI.PropertyPage;
 using Xarial.XCad.UI.PropertyPage.Attributes;
@@ -88,13 +89,19 @@ namespace SwAddInExample
 
         public double Width { get; set; } = 0.1;
         public double Height { get; set; } = 0.2;
+
+        [ParameterDimension(CustomFeatureDimensionType_e.Linear)]
         public double Length { get; set; } = 0.3;
     }
 
     [ComVisible(true)]
-    [HandlePostRebuild]
     public class BoxMacroFeatureEditor : SwMacroFeatureDefinition<BoxMacroFeatureData, BoxPage>
     {
+        public BoxMacroFeatureEditor()
+        {
+            this.PostRebuild += OnPostRebuild;
+        }
+
         public override BoxMacroFeatureData ConvertPageToParams(IXApplication app, IXDocument doc, BoxPage page, BoxMacroFeatureData cudData)
             => new BoxMacroFeatureData()
             {
@@ -119,8 +126,6 @@ namespace SwAddInExample
         public override ISwBody[] CreateGeometry(ISwApplication app, ISwDocument model,
             BoxMacroFeatureData data, out AlignDimensionDelegate<BoxMacroFeatureData> alignDim)
         {
-            alignDim = null;
-
             var face = data.Faces?.FirstOrDefault();
 
             Xarial.XCad.Geometry.Structures.Point pt;
@@ -145,6 +150,14 @@ namespace SwAddInExample
                 pt, dir, refDir,
                 data.Width, data.Height, data.Length).Bodies.First();
 
+            alignDim = new AlignDimensionDelegate<BoxMacroFeatureData>((p, d) => 
+            {
+                if (string.Equals(p, nameof(BoxMacroFeatureData.Length))) 
+                {
+                    this.AlignLinearDimension(d, pt, dir);
+                }
+            });
+
             return new ISwBody[] { box };
         }
 
@@ -159,8 +172,9 @@ namespace SwAddInExample
         private void AssignPreviewBodyColor(IXBody body, out Color color)
             => color = Color.FromArgb(100, Color.Green);
 
-        public override void OnPostRebuild(ISwApplication app, ISwDocument model, ISwMacroFeature<BoxMacroFeatureData> feature, BoxMacroFeatureData parameters)
-            => base.OnPostRebuild(app, model, feature, parameters);
+        private void OnPostRebuild(ISwApplication app, ISwDocument model, ISwMacroFeature<BoxMacroFeatureData> feature, BoxMacroFeatureData parameters)
+        { 
+        }
 
         public override void OnFeatureInserted(IXApplication app, IXDocument doc, IXCustomFeature<BoxMacroFeatureData> feat, BoxMacroFeatureData data, BoxPage page)
         {

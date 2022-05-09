@@ -32,7 +32,7 @@ using Xarial.XCad.Reflection;
 using Xarial.XCad.SolidWorks.Annotations;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Enums;
-using Xarial.XCad.SolidWorks.Features.CustomFeature.Attributes;
+using Xarial.XCad.SolidWorks.Features.CustomFeature.Delegates;
 using Xarial.XCad.SolidWorks.Features.CustomFeature.Toolkit;
 using Xarial.XCad.SolidWorks.Features.CustomFeature.Toolkit.Icons;
 using Xarial.XCad.SolidWorks.Geometry;
@@ -69,6 +69,23 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 
         public event ConfigureServicesDelegate ConfigureServices;
 
+        /// <summary>
+        /// Called when macro feature is rebuild
+        /// </summary>
+        public event PostRebuildMacroFeatureDelegate PostRebuild 
+        {
+            add 
+            {
+                m_PostRebuild += value;
+                m_HandlePostRebuild = m_PostRebuild != null;
+            }
+            remove 
+            {
+                m_PostRebuild -= value;
+                m_HandlePostRebuild = m_PostRebuild != null;
+            }
+        }
+
         private static SwApplication m_Application;
 
         internal static SwApplication Application
@@ -87,6 +104,8 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
                 m_Application = value;
             }
         }
+
+        private PostRebuildMacroFeatureDelegate m_PostRebuild;
 
         #region Initiation
 
@@ -118,9 +137,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             m_Provider = provider;
 
             m_RebuildFeaturesQueue = new List<MacroFeatureRegenerateData>();
-
-            m_HandlePostRebuild = this.GetType().TryGetAttribute<HandlePostRebuildAttribute>(out _);
-
+            
             m_IsSubscribedToIdle = false;
 
             var svcColl = Application.CustomServices.Clone();
@@ -141,18 +158,6 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             iconsConv.KeepIcons = true;
             iconsConv.IconsFolder = MacroFeatureIconInfo.GetLocation(this.GetType());
             TryCreateIcons(iconsConv);
-        }
-
-        event ConfigureServicesDelegate IXServiceConsumer.ConfigureServices
-        {
-            add
-            {
-                throw new NotImplementedException();
-            }
-            remove
-            {
-                throw new NotImplementedException();
-            }
         }
 
         private void TryCreateIcons(IIconsCreator iconsConverter)
@@ -348,17 +353,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 
         [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
         protected virtual void DispatchPostBuildData(MacroFeatureRegenerateData data)
-            => OnPostRebuild(data.Application, data.Document, data.Feature);
-
-        /// <summary>
-        /// Called when macro feature is rebuild
-        /// </summary>
-        /// <param name="app">Application</param>
-        /// <param name="model">Document</param>
-        /// <param name="feature">Feature</param>
-        public virtual void OnPostRebuild(ISwApplication app, ISwDocument model, ISwMacroFeature feature) 
-        {
-        }
+            => m_PostRebuild?.Invoke(data.Application, data.Document, data.Feature);
 
         public virtual CustomFeatureState_e OnUpdateState(ISwApplication app, ISwDocument model, ISwMacroFeature feature)
             => CustomFeatureState_e.Default;
@@ -498,9 +493,25 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         where TParams : class
     {
         [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
-        protected class MacroFeatureParametersRegenerateData : MacroFeatureRegenerateData 
+        protected class MacroFeatureParametersRegenerateData : MacroFeatureRegenerateData
         {
             internal TParams Parameters { get; set; }
+        }
+
+        private PostRebuildMacroFeatureDelegate<TParams> m_PostRebuild;
+
+        public new event PostRebuildMacroFeatureDelegate<TParams> PostRebuild
+        {
+            add
+            {
+                m_PostRebuild += value;
+                m_HandlePostRebuild = m_PostRebuild != null;
+            }
+            remove
+            {
+                m_PostRebuild -= value;
+                m_HandlePostRebuild = m_PostRebuild != null;
+            }
         }
 
         private readonly MacroFeatureParametersParser m_ParamsParser;
@@ -587,7 +598,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
                     {
                         alignDimsDel.Invoke(dimParamNames[i], dims[i]);
 
-                        //IMPORTANT: need to dispose otherwise SW will crash once document is closed
+                        //IMPORTANT: need to dispose otherwise SW will crash once the document is closed
                         ((IDisposable)dims[i]).Dispose();
                     }
                 }
@@ -629,22 +640,8 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         {
             var paramData = (MacroFeatureParametersRegenerateData)data;
 
-            OnPostRebuild(paramData.Application, paramData.Document, (ISwMacroFeature<TParams>)paramData.Feature, paramData.Parameters);   
+            m_PostRebuild?.Invoke(paramData.Application, paramData.Document, (ISwMacroFeature<TParams>)paramData.Feature, paramData.Parameters);
         }
-
-        [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
-        public override void OnPostRebuild(ISwApplication app, ISwDocument model, ISwMacroFeature feature)
-            => base.OnPostRebuild(app, model, feature);
-
-        /// <summary>
-        /// Called when macro feature is rebuild
-        /// </summary>
-        /// <param name="app">Application</param>
-        /// <param name="model">Document</param>
-        /// <param name="feature">Feature</param>
-        /// <param name="parameters">Parameters</param>
-        public virtual void OnPostRebuild(ISwApplication app, ISwDocument model, ISwMacroFeature<TParams> feature, TParams parameters)
-            => base.OnPostRebuild(app, model, feature);
 
         //NOTE: using this to avoid overflow of OnUpdateState as calling the IMacroFeatureData from IFeature invokes Security and thus causing infinite loop
         [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]

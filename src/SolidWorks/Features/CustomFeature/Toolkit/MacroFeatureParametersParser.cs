@@ -21,6 +21,7 @@ using Xarial.XCad.Geometry;
 using Xarial.XCad.SolidWorks.Annotations;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Geometry;
+using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.Utils.CustomFeature;
 using Xarial.XCad.Utils.Diagnostics;
 
@@ -120,7 +121,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature.Toolkit
         protected override IXDimension[] GetDimensions(IXCustomFeature feat)
         {
             var macroFeat = (SwMacroFeature)feat;
-
+            
             var dispDimsObj = macroFeat.FeatureData.GetDisplayDimensions() as object[];
 
             if (dispDimsObj != null)
@@ -129,7 +130,9 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature.Toolkit
 
                 for (int i = 0; i < dispDimsObj.Length; i++)
                 {
-                    dimensions[i] = new SwDimension(dispDimsObj[i] as IDisplayDimension, macroFeat.OwnerDocument, m_App);
+                    var dim = new SwMacroFeatureDimension((IDisplayDimension)dispDimsObj[i], macroFeat.OwnerDocument, m_App);
+
+                    dimensions[i] = dim;
                     dispDimsObj[i] = null;
                 }
 

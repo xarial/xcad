@@ -100,7 +100,7 @@ namespace Xarial.XCad.SolidWorks.Annotations
                     opts = swInConfigurationOpts_e.swSpecifyConfiguration;
                 }
 
-                val = (Dimension.GetSystemValue3((int)opts, confs) as double[])[0];
+                val = ((double[])Dimension.GetSystemValue3((int)opts, confs))[0];
             });
 
             return val;
@@ -206,6 +206,26 @@ namespace Xarial.XCad.SolidWorks.Annotations
 
         protected virtual void Dispose(bool disposing)
         {
+        }
+    }
+
+    /// <summary>
+    /// This is a specific dimension related to a macro feature
+    /// </summary>
+    internal class SwMacroFeatureDimension : SwDimension
+    {
+        internal SwMacroFeatureDimension(IDisplayDimension dispDim, ISwDocument doc, ISwApplication app) : base(dispDim, doc, app)
+        {
+        }
+
+        /// <summary>
+        /// Macro feature dimensions are managing thei rvalues in the different way. The dimension will always be attached to the correct configuration
+        /// Attempt to read the dimension value from the specific configuration with GetSystemValue3 method may result in 0 value for the multi-part configuration
+        /// </summary>
+        public override double Value
+        {
+            get => Dimension.SystemValue;
+            set => Dimension.SystemValue = value; 
         }
     }
 }
