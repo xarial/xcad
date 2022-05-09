@@ -79,7 +79,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
                 iconPath, OPTIONS_NOT_USED) as IPropertyManagerPageTab;
             
             return new PropertyManagerPageTabControl(atts.Id, atts.Tag,
-                page.Handler, tab, page.App, page, metadata);
+                page.Handler, tab, page.SwApp, page, metadata);
         }
 
         private void TryConvertIconTo8bit(string path)

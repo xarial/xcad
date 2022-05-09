@@ -16,8 +16,17 @@ namespace Xarial.XCad.UI.PropertyPage.Attributes
     /// <remarks>Applied to the model class</remarks>
     public class HelpAttribute : Attribute, IAttribute
     {
-        public string HelpLink { get; private set; }
-        public string WhatsNewLink { get; private set; }
+        /// <summary>
+        /// Link to a help file
+        /// </summary>
+        /// <remarks>Thsi can be either url or local path (absolute or relative)</remarks>
+        public string HelpLink { get; }
+
+        /// <summary>
+        /// Link to what's new documentation
+        /// </summary>
+        /// <remarks>Thsi can be either url or local path (absolute or relative)</remarks>
+        public string WhatsNewLink { get; }
 
         /// <summary>
         /// Constructor for specifying links to help resources

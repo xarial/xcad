@@ -180,8 +180,6 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
             Model = model;
             m_Logger.Log("Opening page", XCad.Base.Enums.LoggerMessageSeverity_e.Debug);
 
-            const int OPTS_DEFAULT = 0;
-
             m_App.Sw.IActiveDoc2.ClearSelection2(true);
 
             m_ContextProvider.NotifyContextChanged(model);
@@ -194,7 +192,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
                 binding.UpdateControl();
             }
 
-            m_Page.Page.Show2(OPTS_DEFAULT);
+            m_Page.Show();
 
             //updating control states
             m_Page.Binding.Dependency.UpdateAll();

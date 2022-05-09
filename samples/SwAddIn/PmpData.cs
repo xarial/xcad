@@ -154,6 +154,7 @@ namespace SwAddInExample
     }
 
     [ComVisible(true)]
+    [Help("https://xcad.net/")]
     public class PmpData : SwPropertyManagerPageHandler, INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler PropertyChanged;

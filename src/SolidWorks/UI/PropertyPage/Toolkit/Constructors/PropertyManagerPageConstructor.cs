@@ -23,17 +23,17 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
 {
     internal class PropertyManagerPageConstructor : PageConstructor<PropertyManagerPagePage>
     {
-        private readonly ISldWorks m_App;
+        private readonly ISwApplication m_App;
         private readonly IIconsCreator m_IconsConv;
         private readonly SwPropertyManagerPageHandler m_Handler;
 
-        internal PropertyManagerPageConstructor(ISldWorks app, IIconsCreator iconsConv, SwPropertyManagerPageHandler handler)
+        internal PropertyManagerPageConstructor(ISwApplication app, IIconsCreator iconsConv, SwPropertyManagerPageHandler handler)
         {
             m_App = app;
             m_IconsConv = iconsConv;
 
             m_Handler = handler;
-            handler.Init(m_App);
+            handler.Init(m_App.Sw);
         }
 
         protected override PropertyManagerPagePage Create(IAttributeSet atts)
@@ -85,7 +85,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
                 whatsNewLink = helpAtt.WhatsNewLink;
             }
 
-            var page = m_App.CreatePropertyManagerPage(atts.Name,
+            var page = m_App.Sw.CreatePropertyManagerPage(atts.Name,
                 (int)opts,
                 m_Handler, ref err) as IPropertyManagerPage2;
 

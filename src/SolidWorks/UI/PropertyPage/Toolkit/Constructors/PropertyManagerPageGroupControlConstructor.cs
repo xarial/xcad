@@ -73,7 +73,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
                 (int)opts) as IPropertyManagerPageGroup;
 
             return new PropertyManagerPageGroupControl(atts.Id, atts.Tag,
-                page.Handler, grp, page.App, page, toggleMetadata,
+                page.Handler, grp, page.SwApp, page, toggleMetadata,
                 opts.HasFlag(swAddGroupBoxOptions_e.swGroupBoxOptions_Checkbox),
                 !opts.HasFlag(swAddGroupBoxOptions_e.swGroupBoxOptions_Expanded), metadata);
         }
