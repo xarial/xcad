@@ -20,6 +20,7 @@ using Xarial.XCad.Features.CustomFeature.Enums;
 using Xarial.XCad.Features.CustomFeature.Services;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Reflection;
+using Xarial.XCad.Toolkit.Utils;
 using Xarial.XCad.Utils.Reflection;
 
 namespace Xarial.XCad.Utils.CustomFeature
@@ -60,6 +61,13 @@ namespace Xarial.XCad.Utils.CustomFeature
         protected const string VERSION_DIMENSIONS_NAME = "__dimsVersion";
         protected const string VERSION_PARAMETERS_NAME = "__paramsVersion";
 
+        private readonly FaultObjectFactory m_FaultObjectFactory;
+
+        public CustomFeatureParametersParser() 
+        {
+            m_FaultObjectFactory = new FaultObjectFactory();
+        }
+
         public virtual object GetParameters(IXCustomFeature feat, IXDocument model, Type paramsType,
                     out IXDimension[] dispDims, out string[] dispDimParams, out IXBody[] editBodies,
                     out IXSelObject[] sels, out CustomFeatureOutdateState_e state)
@@ -73,7 +81,7 @@ namespace Xarial.XCad.Utils.CustomFeature
 
             ExtractRawParameters(feat, model, out featRawParams, out featDims, out featSels, out featBodies);
 
-            var parameters = new Dictionary<string, string>();
+            var parameters = new Dictionary<string, object>();
 
             var paramsVersion = new Version();
             var dimsVersion = new Version();
@@ -84,16 +92,15 @@ namespace Xarial.XCad.Utils.CustomFeature
                 {
                     var paramName = featRawParam.Key;
 
-                    //TODO: think about conversion
-                    var paramVal = featRawParam.Value?.ToString();
+                    var paramVal = featRawParam.Value;
 
                     if (paramName == VERSION_PARAMETERS_NAME)
                     {
-                        paramsVersion = new Version(paramVal);
+                        paramsVersion = new Version(paramVal.ToString());
                     }
                     else if (paramName == VERSION_DIMENSIONS_NAME)
                     {
-                        paramsVersion = new Version(paramVal);
+                        dimsVersion = new Version(paramVal.ToString());
                     }
                     else
                     {
@@ -145,7 +152,7 @@ namespace Xarial.XCad.Utils.CustomFeature
                     else
                     {
                         throw new IndexOutOfRangeException(
-                            $"Dimension at index {dimInd} id not present in the macro feature");
+                            $"Dimension at index {dimInd} is not present in the macro feature");
                     }
                 },
                 (prp) =>
@@ -162,7 +169,7 @@ namespace Xarial.XCad.Utils.CustomFeature
                     {
                         if (prp.PropertyType.IsEnum)
                         {
-                            val = Enum.Parse(prp.PropertyType, paramVal);
+                            val = Enum.Parse(prp.PropertyType, paramVal.ToString());
                         }
                         else
                         {
@@ -355,7 +362,7 @@ namespace Xarial.XCad.Utils.CustomFeature
         }
 
         private void AssignObjectsToProperty(object resParams, Array availableObjects,
-                                                    PropertyInfo prp, Dictionary<string, string> parameters)
+            PropertyInfo prp, Dictionary<string, object> parameters)
         {
             var indices = GetObjectIndices(prp, parameters);
 
@@ -374,15 +381,15 @@ namespace Xarial.XCad.Utils.CustomFeature
                     {
                         //TODO: potential issues with IList as IEnumerable can come here as well and it will fail
 
-                        var lst = prp.GetValue(resParams, null) as IList;
-
+                        var lst = (IList)prp.GetValue(resParams, null);
+                        
                         if (lst != null)
                         {
                             lst.Clear();
                         }
                         else
                         {
-                            lst = Activator.CreateInstance(prp.PropertyType) as IList;
+                            lst = (IList)Activator.CreateInstance(prp.PropertyType);
                         }
 
                         val = lst;
@@ -395,14 +402,25 @@ namespace Xarial.XCad.Utils.CustomFeature
                         {
                             foreach (var obj in indices.Select(i =>
                             {
-                                if (i != -1)
+                                object elem;
+
+                                if (i == -1)
                                 {
-                                    return availableObjects.GetValue(i);
+                                    elem = null;
                                 }
                                 else
                                 {
-                                    return null;
+                                    elem = availableObjects.GetValue(i);
+
+                                    if (elem == null)
+                                    {
+                                        var elemType = prp.PropertyType.GetArgumentsOfGenericType(typeof(IList<>))[0];
+
+                                        elem = m_FaultObjectFactory.CreateFaultObject(elemType);
+                                    }
                                 }
+
+                                return elem;
                             }))
                             {
                                 lst.Add(obj);
@@ -425,6 +443,11 @@ namespace Xarial.XCad.Utils.CustomFeature
                         else
                         {
                             val = availableObjects.GetValue(index);
+
+                            if (val == null)
+                            {
+                                val = m_FaultObjectFactory.CreateFaultObject(prp.PropertyType);
+                            }
                         }
                     }
                 }
@@ -487,32 +510,30 @@ namespace Xarial.XCad.Utils.CustomFeature
         }
 
         private Version GetDimensionsVersion(IXFeature featData)
-        {
-            return GetVersion(featData, VERSION_DIMENSIONS_NAME);
-        }
+            => GetVersion(featData, VERSION_DIMENSIONS_NAME);
 
-        private int[] GetObjectIndices(PropertyInfo prp, Dictionary<string, string> parameters)
+        private int[] GetObjectIndices(PropertyInfo prp, Dictionary<string, object> parameters)
         {
             int[] indices = null;
 
-            string indValues;
+            object indValues;
 
             if (parameters.TryGetValue(prp.Name, out indValues))
             {
-                indices = indValues.Split(',').Select(i => int.Parse(i)).ToArray();
+                indices = indValues.ToString().Split(',').Select(i => int.Parse(i)).ToArray();
             }
 
             return indices;
         }
 
-        private string GetParameterValue(Dictionary<string, string> parameters, string name)
+        private object GetParameterValue(Dictionary<string, object> parameters, string name)
         {
             if (parameters == null)
             {
                 throw new ArgumentNullException(nameof(parameters));
             }
 
-            string value;
+            object value;
 
             if (!parameters.TryGetValue(name, out value))
             {

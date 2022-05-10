@@ -276,15 +276,9 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             }
         }
 
-        protected virtual object HandleEditException(Exception ex) 
-        {
-            throw ex;
-        }
+        protected virtual object HandleEditException(Exception ex) => throw ex;
 
-        protected virtual object HandleStateException(Exception ex)
-        {
-            throw ex;
-        }
+        protected virtual object HandleStateException(Exception ex) => throw ex;
 
         protected virtual void AddDataToRebuildQueue(ISwApplication app, ISwDocument doc, ISwMacroFeature macroFeatInst)
         {
@@ -681,9 +675,18 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
                 editor.PreviewUpdated += OnPreviewUpdated;
                 editor.ShouldUpdatePreview += ShouldUpdatePreview;
                 editor.ProvidePreviewContext += ProvidePreviewContext;
+                editor.HandleEditingException += HandleEditingException;
                 return editor;
             });
         }
+
+        /// <summary>
+        /// Override this method to handle the exception reading the macro feature parameters on editing of the macro feature
+        /// </summary>
+        /// <param name="feat">Feature being edited</param>
+        /// <param name="ex">Exception</param>
+        /// <returns>Parameters to use for feature editing</returns>
+        protected virtual TParams HandleEditingException(IXCustomFeature<TParams> feat, Exception ex) => throw ex;
 
         /// <summary>
         /// Checks if the preview should be updated

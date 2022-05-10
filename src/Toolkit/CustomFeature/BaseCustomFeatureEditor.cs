@@ -48,6 +48,9 @@ namespace Xarial.XCad.Utils.CustomFeature
         where TData : class
         where TPage : class;
 
+    public delegate TData HandleEditingExceptionDelegate<TData>(IXCustomFeature<TData> feat, Exception ex)
+        where TData : class;
+
     public abstract class BaseCustomFeatureEditor<TData, TPage> 
         where TData : class
         where TPage : class
@@ -58,6 +61,7 @@ namespace Xarial.XCad.Utils.CustomFeature
         public event CustomFeatureInsertedDelegate<TData, TPage> FeatureInserted;
         public event CustomFeaturePageParametersChangedDelegate<TData, TPage> PreviewUpdated;
         public event ShouldUpdatePreviewDelegate<TData, TPage> ShouldUpdatePreview;
+        public event HandleEditingExceptionDelegate<TData> HandleEditingException;
 
         protected readonly IXApplication m_App;
         protected readonly IServiceProvider m_SvcProvider;
@@ -114,7 +118,14 @@ namespace Xarial.XCad.Utils.CustomFeature
 
             try
             {
-                m_CurData = m_EditingFeature.Parameters;
+                try
+                {
+                    m_CurData = m_EditingFeature.Parameters;
+                }
+                catch (Exception ex)
+                {
+                    m_CurData = HandleEditingException.Invoke(m_EditingFeature, ex);
+                }
 
                 m_CurPageData = Definition.ConvertParamsToPage(m_App, model, m_CurData);
 

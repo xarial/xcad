@@ -70,7 +70,7 @@ namespace Xarial.XCad.Features.CustomFeature.Services
         /// <param name="parameters">Dictionary of parameter names and values</param>
         /// <returns>Parameters for the new version</returns>
         /// <remarks>Parameters list also contains the indices for the objects in macro feature (edit bodies, selection, dimensions)</remarks>
-        Dictionary<string, string> ConvertParameters(IXDocument model, IXCustomFeature feat, Dictionary<string, string> parameters);
+        Dictionary<string, object> ConvertParameters(IXDocument model, IXCustomFeature feat, Dictionary<string, object> parameters);
 
         /// <summary>
         /// Converts selections from previous version
@@ -89,23 +89,15 @@ namespace Xarial.XCad.Features.CustomFeature.Services
     public class ParameterConverter : IParameterConverter
     {
         public virtual IXDimension[] ConvertDisplayDimensions(IXDocument model, IXCustomFeature feat, IXDimension[] dispDims)
-        {
-            return dispDims;
-        }
+            => dispDims;
 
         public virtual IXBody[] ConvertEditBodies(IXDocument model, IXCustomFeature feat, IXBody[] editBodies)
-        {
-            return editBodies;
-        }
+            => editBodies;
 
-        public virtual Dictionary<string, string> ConvertParameters(IXDocument model, IXCustomFeature feat, Dictionary<string, string> parameters)
-        {
-            return parameters;
-        }
+        public virtual Dictionary<string, object> ConvertParameters(IXDocument model, IXCustomFeature feat, Dictionary<string, object> parameters)
+            => parameters;
 
         public virtual IXSelObject[] ConvertSelections(IXDocument model, IXCustomFeature feat, IXSelObject[] selection)
-        {
-            return selection;
-        }
+            => selection;
     }
 }

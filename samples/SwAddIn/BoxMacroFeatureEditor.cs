@@ -57,8 +57,10 @@ namespace SwAddInExample
             }
         }
         
+        public IXFace BaseFace { get; set; }
+
         [SelectionBoxOptions(typeof(SampleSelectionFilter))]
-        public List<IXFace> Faces { get; set; }
+        public List<IXFace> TestFaces { get; set; }
 
         [NumberBoxOptions(units: NumberBoxUnitType_e.Length, 0, 1000, 0.01, false, 0.1, 0.001)]
         public double Width { get; set; }
@@ -74,18 +76,23 @@ namespace SwAddInExample
             Width = 0.01;
             Height = 0.02;
             Length = 0.03;
-            Faces = null;
+            TestFaces = null;
+            BaseFace = null;
 
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Faces)));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(BaseFace)));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(TestFaces)));
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Width)));
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Height)));
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Length)));
         }
     }
 
-    public class BoxMacroFeatureData : SwPropertyManagerPageHandler
+    public class BoxMacroFeatureData
     {   
-        public List<IXFace> Faces { get; set; }
+        public IXFace BaseFace { get; set; }
+
+        //[ParameterExclude]
+        public List<IXFace> TestFaces { get; set; }
 
         public double Width { get; set; } = 0.1;
         public double Height { get; set; } = 0.2;
@@ -108,7 +115,8 @@ namespace SwAddInExample
                 Height = page.Parameters.Height,
                 Length = page.Parameters.Length,
                 Width = page.Parameters.Width,
-                Faces = page.Parameters.Faces
+                BaseFace = page.Parameters.BaseFace,
+                TestFaces = page.Parameters.TestFaces
             };
 
         public override BoxPage ConvertParamsToPage(IXApplication app, IXDocument doc, BoxMacroFeatureData par)
@@ -119,31 +127,40 @@ namespace SwAddInExample
                     Height = par.Height,
                     Length = par.Length,
                     Width = par.Width,
-                    Faces = par.Faces
+                    BaseFace = par.BaseFace,
+                    TestFaces = par.TestFaces
                 }
             };
 
         public override ISwBody[] CreateGeometry(ISwApplication app, ISwDocument model,
             BoxMacroFeatureData data, out AlignDimensionDelegate<BoxMacroFeatureData> alignDim)
         {
-            var face = data.Faces?.FirstOrDefault();
+            var face = data.BaseFace;
 
             Xarial.XCad.Geometry.Structures.Point pt;
             Vector dir;
             Vector refDir;
 
-            if (face is IXPlanarFace)
+            if (face is IFaultObject)
+            {
+                throw new UserException("Base face is a fault entity");
+            }
+            else if (face is IXPlanarFace)
             {
                 var plane = ((IXPlanarFace)face).Plane;
                 pt = face.FindClosestPoint(plane.Point);
                 dir = plane.Normal * (face.Sense ? 1 : -1);
                 refDir = plane.Reference;
             }
-            else 
+            else if (face == null)
             {
                 pt = new Xarial.XCad.Geometry.Structures.Point(0, 0, 0);
                 dir = new Vector(0, 0, 1);
                 refDir = new Vector(1, 0, 0);
+            }
+            else 
+            {
+                throw new NotSupportedException();
             }
 
             var box = (ISwBody)app.MemoryGeometryBuilder.CreateSolidBox(
@@ -159,6 +176,11 @@ namespace SwAddInExample
             });
 
             return new ISwBody[] { box };
+        }
+
+        protected override BoxMacroFeatureData HandleEditingException(IXCustomFeature<BoxMacroFeatureData> feat, Exception ex)
+        {
+            return new BoxMacroFeatureData();
         }
 
         public override ISwBody[] CreatePreviewGeometry(ISwApplication app, ISwDocument model, BoxMacroFeatureData data, BoxPage page,

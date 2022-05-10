@@ -79,6 +79,7 @@
     <Compile Include="SwAddInSample.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SwDocHandler.cs" />
+    <Compile Include="UserException.cs" />
     <Compile Include="WinForm.cs">
       <SubType>Form</SubType>
     </Compile>

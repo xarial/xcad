@@ -41,7 +41,7 @@ namespace Xarial.XCad.SolidWorks.Annotations
             }
         }
 
-        public IDimension Dimension => m_Dimension ?? (m_Dimension = DisplayDimension.GetDimension2(0));
+        public IDimension Dimension => m_Dimension ?? (m_Dimension = DisplayDimension?.GetDimension2(0));
         public IDisplayDimension DisplayDimension { get; private set; }
 
         public string Name 

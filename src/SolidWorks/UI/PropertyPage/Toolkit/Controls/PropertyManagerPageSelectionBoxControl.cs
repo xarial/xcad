@@ -186,11 +186,11 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             {
                 if (SupportsMultiEntities)
                 {
-                    foreach (SwSelObject item in value as IList)
+                    foreach (var item in (IList)value)
                     {
-                        if (item != null)
+                        if (item != null && !(item is IFaultObject))
                         {
-                            disps.Add(new DispatchWrapper(item.Dispatch));
+                            disps.Add(new DispatchWrapper(((SwSelObject)item).Dispatch));
                         }
                         else
                         {
@@ -200,7 +200,15 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
                 }
                 else
                 {
-                    disps.Add(new DispatchWrapper((value as SwSelObject).Dispatch));
+                    if (!(value is IFaultObject))
+                    {
+                        disps.Add(new DispatchWrapper((value as SwSelObject).Dispatch));
+                    }
+                    else
+                    {
+                        value = null;
+                        m_HasMissingItems = true;
+                    }
                 }
             }
 

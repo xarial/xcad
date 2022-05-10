@@ -22,6 +22,7 @@ using Xarial.XCad.SolidWorks.Annotations;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Geometry;
 using Xarial.XCad.SolidWorks.Utils;
+using Xarial.XCad.Toolkit.Utils;
 using Xarial.XCad.Utils.CustomFeature;
 using Xarial.XCad.Utils.Diagnostics;
 
@@ -33,12 +34,12 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature.Toolkit
 
         private readonly ISwApplication m_App;
         private readonly IXLogger m_Logger;
-
+        
         internal MacroFeatureParametersParser() : this(SwMacroFeatureDefinition.Application)
         {
         }
 
-        internal MacroFeatureParametersParser(ISwApplication app)
+        internal MacroFeatureParametersParser(ISwApplication app) : base()
         {
             m_App = app;
             MathUtils = m_App.Sw.IGetMathUtility();
@@ -51,9 +52,9 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature.Toolkit
             out Dictionary<string, object> parameters,
             out IXDimension[] dimensions, out IXSelObject[] selection, out IXBody[] editBodies)
         {
-            object retParamNames = null;
-            object retParamValues = null;
-            object paramTypes = null;
+            object retParamNames;
+            object retParamValues;
+            object paramTypes;
             object retSelObj;
             object selObjType;
             object selMarks;
@@ -64,6 +65,8 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature.Toolkit
 
             featData.GetParameters(out retParamNames, out paramTypes, out retParamValues);
             featData.GetSelections3(out retSelObj, out selObjType, out selMarks, out selDrViews, out compXforms);
+
+            //TODO: if entity is missing then the order of the retSelObj will be incorrect (null references are always at the end) which may break the indices
 
             dimensions = GetDimensions(feat);
 
@@ -88,7 +91,24 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature.Toolkit
 
                 for (int i = 0; i < paramNames.Length; i++)
                 {
-                    parameters.Add(paramNames[i], paramValues[i]);
+                    object paramValue;
+
+                    switch ((swMacroFeatureParamType_e)((int[])paramTypes)[i])
+                    {
+                        case swMacroFeatureParamType_e.swMacroFeatureParamTypeInteger:
+                            paramValue = int.Parse(paramValues[i]);
+                            break;
+                        case swMacroFeatureParamType_e.swMacroFeatureParamTypeDouble:
+                            paramValue = double.Parse(paramValues[i]);
+                            break;
+                        case swMacroFeatureParamType_e.swMacroFeatureParamTypeString:
+                            paramValue = paramValues[i];
+                            break;
+                        default:
+                            throw new NotSupportedException("Macro feature parameter type is not supported");
+                    }
+
+                    parameters.Add(paramNames[i], paramValue);
                 }
             }
             else
@@ -228,7 +248,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature.Toolkit
                 if (selection != null && selection.Any())
                 {
                     var dispWraps = selection.Cast<SwSelObject>().Select(s => new DispatchWrapper(s.Dispatch)).ToArray();
-
+                    
                     featData.SetSelections2(dispWraps, new int[selection.Length], new IView[selection.Length]);
                 }
 
