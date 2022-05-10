@@ -228,7 +228,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature.Toolkit
                     return (int)paramType;
                 }).ToArray();
 
-                paramValues = param.Select(p => (string)p.Value).ToArray();
+                paramValues = param.Select(p => p.Value?.ToString()).ToArray();
             }
             else
             {
@@ -285,6 +285,8 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature.Toolkit
                     int[] paramTypes;
 
                     ConvertParameters(param, out paramNames, out paramTypes, out paramValues);
+
+                    m_Logger.Log($"Writing macro feature parameters: {string.Join(", ", paramNames)} of types {string.Join(", ", paramTypes)} to values {string.Join(", ", paramValues)}", XCad.Base.Enums.LoggerMessageSeverity_e.Debug);
 
                     featData.SetParameters(paramNames, paramTypes, paramValues);
 

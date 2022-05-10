@@ -582,7 +582,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             AlignDimensionDelegate<TParams> alignDimsDel;
             var res = OnRebuild(app, model, (ISwMacroFeature<TParams>)feature, param, out alignDimsDel);
 
-            m_ParamsParser.SetParameters(model, feature, param, out CustomFeatureOutdateState_e _);
+            //m_ParamsParser.SetParameters(model, feature, param, out CustomFeatureOutdateState_e _);
 
             if (dims?.Any() == true)
             {

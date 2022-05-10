@@ -229,7 +229,7 @@ namespace Xarial.XCad.Utils.CustomFeature
                     {
                         Name = prp.Name,
                         Type = prp.PropertyType,
-                        Value = Convert.ToString(val)
+                        Value = val
                     });
                 });
 
@@ -453,8 +453,8 @@ namespace Xarial.XCad.Utils.CustomFeature
                 }
                 else
                 {
-                    throw new NullReferenceException(
-                        $"Referenced entity is missing for {prp.Name}");
+                    throw new IndexOutOfRangeException(
+                        $"Some of the referenced entity indices ({string.Join(", ", indices)}) are out of range for '{prp.Name}' (max size: {availableObjects.Length})");
                 }
 
                 prp.SetValue(resParams, val, null);

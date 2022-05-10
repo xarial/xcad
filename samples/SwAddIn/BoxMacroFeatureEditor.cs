@@ -19,6 +19,7 @@ using Xarial.XCad.Features.CustomFeature;
 using Xarial.XCad.Features.CustomFeature.Attributes;
 using Xarial.XCad.Features.CustomFeature.Delegates;
 using Xarial.XCad.Features.CustomFeature.Enums;
+using Xarial.XCad.Features.CustomFeature.Services;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.SolidWorks;
@@ -37,15 +38,15 @@ namespace SwAddInExample
     [PageOptions(PageOptions_e.OkayButton | PageOptions_e.PushpinButton | PageOptions_e.CancelButton | PageOptions_e.LockedPage)]
     public class BoxPage
     {
-        public BoxParameters Parameters { get; set; }
+        public BoxParametersPage Parameters { get; set; }
 
         public BoxPage(string dummy) 
         {
-            Parameters = new BoxParameters();
+            Parameters = new BoxParametersPage();
         }
     }
 
-    public class BoxParameters : INotifyPropertyChanged
+    public class BoxParametersPage : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -122,7 +123,7 @@ namespace SwAddInExample
         public override BoxPage ConvertParamsToPage(IXApplication app, IXDocument doc, BoxMacroFeatureData par)
             => new BoxPage("")
             {
-                Parameters = new BoxParameters()
+                Parameters = new BoxParametersPage()
                 {
                     Height = par.Height,
                     Length = par.Length,
