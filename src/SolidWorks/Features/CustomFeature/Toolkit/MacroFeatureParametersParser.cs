@@ -142,7 +142,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature.Toolkit
         {
             var macroFeat = (SwMacroFeature)feat;
             
-            var dispDimsObj = macroFeat.FeatureData.GetDisplayDimensions() as object[];
+            var dispDimsObj = (object[])macroFeat.FeatureData.GetDisplayDimensions();
 
             if (dispDimsObj != null)
             {

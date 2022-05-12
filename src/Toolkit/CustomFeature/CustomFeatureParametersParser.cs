@@ -109,13 +109,8 @@ namespace Xarial.XCad.Utils.CustomFeature
                 }
             }
 
-            ConvertParameters(paramsType, paramsVersion, conv =>
-            {
-                parameters = conv.ConvertParameters(model, feat, parameters);
-                featBodies = conv.ConvertEditBodies(model, feat, featBodies);
-                featSels = conv.ConvertSelections(model, feat, featSels);
-                featDims = conv.ConvertDisplayDimensions(model, feat, featDims);
-            });
+            ConvertParameters(paramsType, paramsVersion,
+                conv => conv.Convert(model, feat, ref parameters, ref featSels, ref featDims, ref featBodies));
 
             var resParams = Activator.CreateInstance(paramsType);
 
@@ -161,23 +156,24 @@ namespace Xarial.XCad.Utils.CustomFeature
                 },
                 prp =>
                 {
-                    var paramVal = GetParameterValue(parameters, prp.Name);
-                    
-                    object val = null;
-
-                    if (paramVal != null)
+                    if (TryGetParameterValue(parameters, prp.Name, out object paramVal))
                     {
-                        if (prp.PropertyType.IsEnum)
+                        object val = null;
+
+                        if (paramVal != null)
                         {
-                            val = Enum.Parse(prp.PropertyType, paramVal.ToString());
+                            if (prp.PropertyType.IsEnum)
+                            {
+                                val = Enum.Parse(prp.PropertyType, paramVal.ToString());
+                            }
+                            else
+                            {
+                                val = Convert.ChangeType(paramVal, prp.PropertyType);
+                            }
                         }
-                        else
-                        {
-                            val = Convert.ChangeType(paramVal, prp.PropertyType);
-                        }
+
+                        prp.SetValue(resParams, val, null);
                     }
-                    
-                    prp.SetValue(resParams, val, null);
                 });
 
             dispDims = featDims;
@@ -281,22 +277,21 @@ namespace Xarial.XCad.Utils.CustomFeature
         {
             CustomFeatureParameter[] param;
             IXSelObject[] selection;
-            CustomFeatureDimensionType_e[] dimTypes;
             double[] dimValues;
             IXBody[] bodies;
 
             Parse(parameters,
                 out param,
-                out selection, out dimTypes, out dimValues, out bodies);
+                out selection, out _, out dimValues, out bodies);
 
             var dispDims = GetDimensions(feat);
 
-            var dimsVersion = GetDimensionsVersion(feat);
+            //var dimsVersion = GetDimensionsVersion(feat);
 
-            ConvertParameters(parameters.GetType(), dimsVersion, conv =>
-            {
-                dispDims = conv.ConvertDisplayDimensions(model, feat, dispDims);
-            });
+            //ConvertParameters(parameters.GetType(), dimsVersion, conv =>
+            //{
+            //    dispDims = conv.ConvertDisplayDimensions(model, feat, dispDims);
+            //});
 
             if (dispDims != null)
             {
@@ -526,21 +521,14 @@ namespace Xarial.XCad.Utils.CustomFeature
             return indices;
         }
 
-        private object GetParameterValue(Dictionary<string, object> parameters, string name)
+        private bool TryGetParameterValue(Dictionary<string, object> parameters, string name, out object value)
         {
             if (parameters == null)
             {
                 throw new ArgumentNullException(nameof(parameters));
             }
 
-            object value;
-
-            if (!parameters.TryGetValue(name, out value))
-            {
-                throw new IndexOutOfRangeException($"Failed to read parameter {name}");
-            }
-
-            return value;
+            return parameters.TryGetValue(name, out value);
         }
 
         private void ReadObjectsValueFromProperty<T>(object parameters,

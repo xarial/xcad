@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using Xarial.XCad.Annotations;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Features.CustomFeature;
 using Xarial.XCad.Features.CustomFeature.Attributes;
 using Xarial.XCad.Features.CustomFeature.Services;
+using Xarial.XCad.Geometry;
 
 namespace Xarial.XCad.Documentation
 {
@@ -35,15 +37,14 @@ namespace Xarial.XCad.Documentation
     //--- Converter
     public class MacroFeatureParamsVersionConverter : ParametersVersionConverter
     {
-        private class VersConv_1_0To2_0 : ParameterConverter
+        private class VersConv_1_0To2_0 : IParameterConverter
         {
-            public override Dictionary<string, string> ConvertParameters(IXDocument model, IXCustomFeature feat, Dictionary<string, string> parameters)
+            public void Convert(IXDocument model, IXCustomFeature feat, ref Dictionary<string, object> parameters, ref IXSelObject[] selection, ref IXDimension[] dispDims, ref IXBody[] editBodies)
             {
                 var paramVal = parameters["Param1"];
                 parameters.Remove("Param1");
                 parameters.Add("Param1A", paramVal);//renaming parameter
                 parameters.Add("Param3", "Default");//adding new parameter with default value
-                return parameters;
             }
         }
 

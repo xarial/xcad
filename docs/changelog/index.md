@@ -19,6 +19,7 @@ CreatePreviewGeometry
 * &#x26A0; - IXDocument3D::PreCreateBoundingBox, IXDocument3D::PreCreateMassProperty moved to IXDocumentEvaluation
 * &#x26A0; - IXFace::Edges is deprecated and replaced with IXFace::AdjacentEntities
 * &#x26A0; - HandlePostRebuildAttribute is deprecated and replaced with SwMacroFeatureDefinition::PostRebuild event
+* &#x26A0; - IParameterConverter::ConvertEditBodies, IParameterConverter::ConvertDisplayDimensions, IParameterConverter::ConvertParameters, IParameterConverter::ConvertSelections is replaced with IParameterConverter::Convert. ParameterConverter implementation is deprecated
 
 ## 0.7.7 - October 26, 2021
 

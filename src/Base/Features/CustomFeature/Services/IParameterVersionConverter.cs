@@ -41,63 +41,20 @@ namespace Xarial.XCad.Features.CustomFeature.Services
     /// <summary>
     /// Represents the conversion routines between this version of parameters and previous version of the parameters
     /// </summary>
-    /// <remarks>Use specific implementation <see cref="ParameterConverter"/></remarks>
     public interface IParameterConverter
     {
-        /// <summary>
-        /// Converts edit bodies from previous version
-        /// </summary>
-        /// <param name="model">Pointer to current model</param>
-        /// <param name="feat">Pointer to current feature</param>
-        /// <param name="editBodies">Array of edit bodies form the previous version of parameters</param>
-        /// <returns>Array of new bodies in the new version of macro feature</returns>
-        IXBody[] ConvertEditBodies(IXDocument model, IXCustomFeature feat, IXBody[] editBodies);
-
-        /// <summary>
-        /// Converts display dimensions from previous version
-        /// </summary>
-        /// <param name="model">Pointer to current model</param>
-        /// <param name="feat">Pointer to current feature</param>
-        /// <param name="dispDims">Array of display dimensions from the previous version</param>
-        /// <returns>Array of display dimensions in the new version of macro feature</returns>
-        IXDimension[] ConvertDisplayDimensions(IXDocument model, IXCustomFeature feat, IXDimension[] dispDims);
-
         /// <summary>
         /// Converts parameters from previous version
         /// </summary>
         /// <param name="model">Pointer to current model</param>
         /// <param name="feat">Pointer to current feature</param>
         /// <param name="parameters">Dictionary of parameter names and values</param>
+        /// <param name="selection">Array of selections from previous version</param>
+        /// <param name="dispDims">Array of display dimensions from the previous version</param>
+        /// <param name="editBodies">Array of edit bodies form the previous version of parameters</param>
         /// <returns>Parameters for the new version</returns>
         /// <remarks>Parameters list also contains the indices for the objects in macro feature (edit bodies, selection, dimensions)</remarks>
-        Dictionary<string, object> ConvertParameters(IXDocument model, IXCustomFeature feat, Dictionary<string, object> parameters);
-
-        /// <summary>
-        /// Converts selections from previous version
-        /// </summary>
-        /// <param name="model">Pointer to current model</param>
-        /// <param name="feat">Pointer to current feature</param>
-        /// <param name="selection">Array of selections from previous version</param>
-        /// <returns>Selections correspond to new version of macro feature</returns>
-        IXSelObject[] ConvertSelections(IXDocument model, IXCustomFeature feat, IXSelObject[] selection);
-    }
-
-    /// <inheritdoc/>
-    /// <summary>
-    /// Specific implementation of <see cref="IParameterConverter"/>
-    /// </summary>
-    public class ParameterConverter : IParameterConverter
-    {
-        public virtual IXDimension[] ConvertDisplayDimensions(IXDocument model, IXCustomFeature feat, IXDimension[] dispDims)
-            => dispDims;
-
-        public virtual IXBody[] ConvertEditBodies(IXDocument model, IXCustomFeature feat, IXBody[] editBodies)
-            => editBodies;
-
-        public virtual Dictionary<string, object> ConvertParameters(IXDocument model, IXCustomFeature feat, Dictionary<string, object> parameters)
-            => parameters;
-
-        public virtual IXSelObject[] ConvertSelections(IXDocument model, IXCustomFeature feat, IXSelObject[] selection)
-            => selection;
+        void Convert(IXDocument model, IXCustomFeature feat, ref Dictionary<string, object> parameters,
+            ref IXSelObject[] selection, ref IXDimension[] dispDims, ref IXBody[] editBodies);
     }
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Text;
+using Xarial.XCad.Exceptions;
 
 namespace Xarial.XCad.Toolkit.Utils
 {
@@ -97,7 +98,7 @@ namespace Xarial.XCad.Toolkit.Utils
 
                 var ilGenerator = methodBuilder.GetILGenerator();
 
-                ilGenerator.ThrowException(typeof(NotSupportedException));
+                ilGenerator.ThrowException(typeof(FaultObjectNotSupportedException));
 
                 typeBuilder.DefineMethodOverride(methodBuilder, methodInfo);
 
