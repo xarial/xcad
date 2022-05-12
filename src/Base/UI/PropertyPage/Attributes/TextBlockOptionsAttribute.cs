@@ -33,16 +33,24 @@ namespace Xarial.XCad.UI.PropertyPage.Attributes
         public string Font { get; }
 
         /// <summary>
+        /// Specifies the string format of this textblock
+        /// </summary>
+        /// <remarks>Use {0} placeholder to use the value of the property</remarks>
+        public string Format { get; }
+
+        /// <summary>
         /// Constructor for text block options
         /// </summary>
         /// <param name="textAlignment">Text block font alignment</param>
         /// <param name="fontStyle">Font style</param>
         /// <param name="font">Font name</param>
-        public TextBlockOptionsAttribute(TextAlignment_e textAlignment = TextAlignment_e.Default, FontStyle_e fontStyle = FontStyle_e.Default, string font = "")
+        /// <param name="format">String format</param>
+        public TextBlockOptionsAttribute(TextAlignment_e textAlignment = TextAlignment_e.Default, FontStyle_e fontStyle = FontStyle_e.Default, string font = "", string format = "")
         {
             TextAlignment = textAlignment;
             FontStyle = fontStyle;
             Font = font;
+            Format = format;
         }
     }
 }

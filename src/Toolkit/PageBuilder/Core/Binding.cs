@@ -21,10 +21,13 @@ namespace Xarial.XCad.Utils.PageBuilder.Core
 
         public abstract IMetadata[] Metadata { get; }
 
-        public Binding(IControl control)
+        public bool Silent { get; }
+
+        public Binding(IControl control, bool silent)
         {
             Control = control;
             Control.ValueChanged += OnControlValueChanged;
+            Silent = silent;
         }
 
         public void UpdateControl()

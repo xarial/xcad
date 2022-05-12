@@ -227,7 +227,7 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
                         var ctrl = ctrlCreator.Invoke(prpType, atts, parentCtrl, prpMetadataArr, out numberOfUsedIds);
                         nextCtrlId += numberOfUsedIds;
 
-                        var binding = new PropertyInfoBinding<TDataModel>(ctrl, ctrlDesc, parents, prpMetadataArr, contextProvider);
+                        var binding = new PropertyInfoBinding<TDataModel>(ctrl, ctrlDesc, parents, prpMetadataArr, contextProvider, atts.Has<ISilentBindingAttribute>());
                         bindings.Add(binding);
 
                         if (atts.Has<IControlTagAttribute>())

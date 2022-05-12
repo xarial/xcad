@@ -46,30 +46,42 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
         }
     }
 
-    internal class PropertyManagerPageTextBlockControl : PropertyManagerPageBaseControl<string, IPropertyManagerPageLabel>
+    internal class PropertyManagerPageTextBlockControl : PropertyManagerPageBaseControl<object, IPropertyManagerPageLabel>
     {
-        protected override event ControlValueChangedDelegate<string> ValueChanged;
+        protected override event ControlValueChangedDelegate<object> ValueChanged;
 
         private readonly FontStyle_e m_FontStyle;
         private readonly string m_Font;
         private readonly KnownColor? m_TextColor;
+        private readonly string m_Format;
 
         internal PropertyManagerPageTextBlockControl(int id, object tag,
-            IPropertyManagerPageLabel textBlock, FontStyle_e fontStyle, string font, KnownColor? textColor,
+            IPropertyManagerPageLabel textBlock, FontStyle_e fontStyle, string font, KnownColor? textColor, string format,
             SwPropertyManagerPageHandler handler, IPropertyManagerPageLabel label, IMetadata[] metadata)
             : base(textBlock, id, tag, handler, label, metadata)
         {
             m_FontStyle = fontStyle;
             m_Font = font;
             m_TextColor = textColor;
+            m_Format = format;
         }
 
-        protected override string GetSpecificValue()
-            => SwSpecificControl.Caption;
+        protected override object GetSpecificValue() => null;
 
-        protected override void SetSpecificValue(string value)
+        protected override void SetSpecificValue(object value)
         {
-            SwSpecificControl.Caption = value;
+            string caption;
+
+            if (string.IsNullOrEmpty(m_Format))
+            {
+                caption = value?.ToString();
+            }
+            else 
+            {
+                caption = string.Format(m_Format, value);
+            }
+
+            SwSpecificControl.Caption = caption;
             SwSpecificControl.SetLabelOptions(m_FontStyle, m_Font, m_TextColor);
         }
 

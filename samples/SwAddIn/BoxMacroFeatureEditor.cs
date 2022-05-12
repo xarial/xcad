@@ -63,6 +63,34 @@ namespace SwAddInExample
         [SelectionBoxOptions(typeof(SampleSelectionFilter))]
         public List<IXFace> TestFaces { get; set; }
 
+        private string m_Size;
+        private double m_Volume;
+
+        [TextBlock]
+        [SilentControl]
+        public string Size 
+        {
+            get => m_Size;
+            set 
+            {
+                m_Size = value;
+                this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Size)));
+            }
+        }
+
+        [TextBlock]
+        [SilentControl]
+        [TextBlockOptions(format: "Volume: {0:N2} mm^3")]
+        public double Volume
+        {
+            get => m_Volume;
+            set
+            {
+                m_Volume = value;
+                this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Volume)));
+            }
+        }
+
         [NumberBoxOptions(units: NumberBoxUnitType_e.Length, 0, 1000, 0.01, false, 0.1, 0.001)]
         public double Width { get; set; }
 
@@ -85,6 +113,12 @@ namespace SwAddInExample
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Width)));
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Height)));
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Length)));
+        }
+
+        internal void UpdateSize() 
+        {
+            Size = $"{Width}x{Height}x{Length}";
+            Volume = Width * 1000 * Height * 1000 * Length * 1000;
         }
     }
 
@@ -189,6 +223,7 @@ namespace SwAddInExample
         {
             shouldHidePreviewEdit = null;
             assignPreviewColor = AssignPreviewBodyColor;
+            page.Parameters.UpdateSize();
             return CreateGeometry(app, model, data, out _);
         }
 

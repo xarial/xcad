@@ -10,6 +10,9 @@ using Xarial.XCad.UI.PropertyPage.Base;
 
 namespace Xarial.XCad.UI.PropertyPage.Attributes
 {
+    /// <summary>
+    /// Control should not be created for this property
+    /// </summary>
     public class ExcludeControlAttribute : Attribute, IIgnoreBindingAttribute
     {
     }

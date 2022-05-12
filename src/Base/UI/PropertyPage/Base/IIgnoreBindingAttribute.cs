@@ -7,6 +7,9 @@
 
 namespace Xarial.XCad.UI.PropertyPage.Base
 {
+    /// <summary>
+    /// Indicates that this binding should be ignored
+    /// </summary>
     public interface IIgnoreBindingAttribute : IAttribute
     {
     }

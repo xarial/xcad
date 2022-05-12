@@ -146,7 +146,12 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
         }
 
         private void OnBindingValueChanged(IBinding binding)
-            => DataChanged?.Invoke();
+        {
+            if (!binding.Silent) 
+            {
+                DataChanged?.Invoke();
+            }
+        }
 
         public void Dispose()
         {

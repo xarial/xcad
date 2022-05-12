@@ -33,8 +33,8 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
         private readonly IContextProvider m_ContextProvider;
 
         internal PropertyInfoBinding(IControl control,
-            IControlDescriptor ctrlDesc, IList<IControlDescriptor> parents, IMetadata[] metadata, IContextProvider contextProvider)
-            : base(control)
+            IControlDescriptor ctrlDesc, IList<IControlDescriptor> parents, IMetadata[] metadata, IContextProvider contextProvider, bool silent)
+            : base(control, silent)
         {
             ControlDescriptor = ctrlDesc;
             m_Parents = parents;

@@ -39,6 +39,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
             var fontStyle = FontStyle_e.Default;
             var font = "";
             var textColor = default(KnownColor?);
+            var format = "";
 
             if (atts.Has<ControlOptionsAttribute>())
             {
@@ -54,10 +55,12 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
                 fontStyle = style.FontStyle;
                 font = style.Font;
 
+                format = style.Format;
+
                 swCtrl.SetLabelOptions(fontStyle, font, textColor);
             }
 
-            return new PropertyManagerPageTextBlockControl(atts.Id, atts.Tag, swCtrl, fontStyle, font, textColor, handler, label, metadata);
+            return new PropertyManagerPageTextBlockControl(atts.Id, atts.Tag, swCtrl, fontStyle, font, textColor, format, handler, label, metadata);
         }
     }
 }

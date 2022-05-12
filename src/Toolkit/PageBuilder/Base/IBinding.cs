@@ -12,6 +12,7 @@ namespace Xarial.XCad.Utils.PageBuilder.Base
 {
     public interface IBinding
     {
+        bool Silent { get; }
         IMetadata[] Metadata { get; }
         event Action<IBinding> Changed;
 
