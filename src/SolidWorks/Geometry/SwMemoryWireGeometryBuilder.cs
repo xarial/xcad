@@ -17,6 +17,7 @@ using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Curves;
 using Xarial.XCad.Geometry.Wires;
 using Xarial.XCad.SolidWorks.Geometry.Curves;
+using Xarial.XCad.Toolkit.Utils;
 
 namespace Xarial.XCad.SolidWorks.Geometry
 {
@@ -71,36 +72,12 @@ namespace Xarial.XCad.SolidWorks.Geometry
             => throw new NotImplementedException();
 
         public T PreCreate<T>() where T : IXWireEntity
-        {
-            IXWireEntity seg;
-
-            if (typeof(IXArc).IsAssignableFrom(typeof(T)))
-            {
-                seg = new SwArcCurve(null, null, m_App, false);
-            }
-            else if (typeof(IXCircle).IsAssignableFrom(typeof(T)))
-            {
-                seg = new SwCircleCurve(null, null, m_App, false);
-            }
-            else if (typeof(IXLine).IsAssignableFrom(typeof(T)))
-            {
-                seg = new SwLineCurve(null, null, m_App, false);
-            }
-            else if (typeof(IXPolyline).IsAssignableFrom(typeof(T)))
-            {
-                seg = new SwPolylineCurve(null, null, m_App, false);
-            }
-            else if (typeof(IXPoint).IsAssignableFrom(typeof(T)))
-            {
-                seg = new SwPoint(null, null, m_App);
-            }
-            else 
-            {
-                throw new NotSupportedException("This segment type is not supported");
-            }
-
-            return (T)seg;
-        }
+            => RepositoryHelper.PreCreate<IXWireEntity, T>(this, 
+                () => new SwArcCurve(null, null, m_App, false),
+                () => new SwCircleCurve(null, null, m_App, false),
+                () => new SwLineCurve(null, null, m_App, false),
+                () => new SwPolylineCurve(null, null, m_App, false),
+                () => new SwPoint(null, null, m_App));
 
         public IEnumerator<IXWireEntity> GetEnumerator()
             => throw new NotImplementedException();

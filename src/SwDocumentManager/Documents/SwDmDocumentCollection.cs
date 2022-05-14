@@ -17,6 +17,7 @@ using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Delegates;
 using Xarial.XCad.Documents.Services;
 using Xarial.XCad.Exceptions;
+using Xarial.XCad.Toolkit.Utils;
 
 namespace Xarial.XCad.SwDocumentManager.Documents
 {
@@ -177,44 +178,12 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
         public T PreCreate<T>() where T : IXDocument
-        {
-            SwDmDocument templateDoc;
-
-            if (typeof(IXPart).IsAssignableFrom(typeof(T)))
-            {
-                templateDoc = new SwDmPart(m_DmApp, null, false, OnDocumentCreated, OnDocumentClosed, null);
-            }
-            else if (typeof(IXAssembly).IsAssignableFrom(typeof(T)))
-            {
-                templateDoc = new SwDmAssembly(m_DmApp, null, false, OnDocumentCreated, OnDocumentClosed, null);
-            }
-            else if (typeof(IXDrawing).IsAssignableFrom(typeof(T)))
-            {
-                templateDoc = new SwDmDrawing(m_DmApp, null, false, OnDocumentCreated, OnDocumentClosed, null);
-            }
-            else if (typeof(IXDocument3D).IsAssignableFrom(typeof(T)))
-            {
-                templateDoc = new SwDmUnknownDocument3D(m_DmApp, null, false, OnDocumentCreated, OnDocumentClosed);
-            }
-            else if (typeof(IXDocument).IsAssignableFrom(typeof(T))
-                || typeof(IXUnknownDocument).IsAssignableFrom(typeof(T)))
-            {
-                templateDoc = new SwDmUnknownDocument(m_DmApp, null, false, OnDocumentCreated, OnDocumentClosed);
-            }
-            else
-            {
-                throw new NotSupportedException("Creation of this type of document is not supported");
-            }
-
-            if (templateDoc is T)
-            {
-                return (T)(object)templateDoc;
-            }
-            else
-            {
-                throw new InvalidCastException($"{templateDoc.GetType().FullName} cannot be cast to {typeof(T).FullName}");
-            }
-        }
+            => RepositoryHelper.PreCreate<IXDocument, T>(this,
+                () => new SwDmPart(m_DmApp, null, false, OnDocumentCreated, OnDocumentClosed, null),
+                () => new SwDmAssembly(m_DmApp, null, false, OnDocumentCreated, OnDocumentClosed, null),
+                () => new SwDmDrawing(m_DmApp, null, false, OnDocumentCreated, OnDocumentClosed, null),
+                () => new SwDmUnknownDocument3D(m_DmApp, null, false, OnDocumentCreated, OnDocumentClosed, null),
+                () => new SwDmUnknownDocument(m_DmApp, null, false, OnDocumentCreated, OnDocumentClosed, null));
 
         internal void OnDocumentCreated(ISwDmDocument doc)
         {

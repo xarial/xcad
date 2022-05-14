@@ -18,6 +18,7 @@ using Xarial.XCad.Geometry.Primitives;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Geometry.Primitives;
 using Xarial.XCad.SolidWorks.Services;
+using Xarial.XCad.Toolkit.Utils;
 
 namespace Xarial.XCad.SolidWorks.Geometry
 {
@@ -60,32 +61,11 @@ namespace Xarial.XCad.SolidWorks.Geometry
         public void RemoveRange(IEnumerable<IXPrimitive> ents, CancellationToken cancellationToken) => throw new NotImplementedException();
 
         public T PreCreate<T>() where T : IXPrimitive
-        {
-            ISwTempPrimitive prim;
-
-            if (typeof(IXExtrusion).IsAssignableFrom(typeof(T)))
-            {
-                prim = new SwTempExtrusion(null, m_App, false);
-            }
-            else if (typeof(IXRevolve).IsAssignableFrom(typeof(T)))
-            {
-                prim = new SwTempRevolve(null, m_App, false);
-            }
-            else if (typeof(IXSweep).IsAssignableFrom(typeof(T)))
-            {
-                prim = new SwTempSweep(null, (SwPart)m_GeomBuilderDocsProvider.ProvideDocument(typeof(SwTempSweep)), m_App, false);
-            }
-            else if (typeof(IXKnit).IsAssignableFrom(typeof(T)))
-            {
-                prim = new SwTempSolidKnit(null, m_App, false);
-            }
-            else 
-            {
-                throw new NotSupportedException("This entity is not supported");
-            }
-
-            return (T)prim;
-        }
+            => RepositoryHelper.PreCreate<IXPrimitive, T>(this,
+                () => new SwTempExtrusion(null, m_App, false),
+                () => new SwTempRevolve(null, m_App, false),
+                () => new SwTempSweep(null, (SwPart)m_GeomBuilderDocsProvider.ProvideDocument(typeof(SwTempSweep)), m_App, false),
+                () => new SwTempSolidKnit(null, m_App, false));
 
         public IEnumerator<IXPrimitive> GetEnumerator() => throw new NotImplementedException();
 

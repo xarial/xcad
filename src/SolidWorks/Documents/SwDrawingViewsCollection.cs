@@ -14,6 +14,7 @@ using System.Text;
 using System.Threading;
 using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
+using Xarial.XCad.Toolkit.Utils;
 
 namespace Xarial.XCad.SolidWorks.Documents
 {
@@ -117,15 +118,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
 
         public T PreCreate<T>() where T : IXDrawingView
-        {
-            if (typeof(T).IsAssignableFrom(typeof(SwModelBasedDrawingView)))
-            {
-                return (T)(ISwDrawingView)new SwModelBasedDrawingView(null, m_Draw, m_Sheet, false);
-            }
-            else
-            {
-                throw new NotSupportedException("Precreation of this drawing view is not supported");
-            }
-        }
+            => RepositoryHelper.PreCreate<IXDrawingView, T>(this,
+                () => new SwModelBasedDrawingView(null, m_Draw, m_Sheet, false));
     }
 }

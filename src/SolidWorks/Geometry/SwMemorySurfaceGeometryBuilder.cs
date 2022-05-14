@@ -14,6 +14,7 @@ using System.Threading;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Primitives;
 using Xarial.XCad.SolidWorks.Geometry.Primitives;
+using Xarial.XCad.Toolkit.Utils;
 
 namespace Xarial.XCad.SolidWorks.Geometry
 {
@@ -48,23 +49,8 @@ namespace Xarial.XCad.SolidWorks.Geometry
         }
 
         public T PreCreate<T>() where T : IXPrimitive
-        {
-            ISwTempPrimitive prim;
-
-            if (typeof(IXPlanarSheet).IsAssignableFrom(typeof(T)))
-            {
-                prim = new SwTempPlanarSheet(null, m_App, false);
-            }
-            else if (typeof(IXKnit).IsAssignableFrom(typeof(T)))
-            {
-                prim = new SwTempSurfaceKnit(null, m_App, false);
-            }
-            else
-            {
-                throw new NotSupportedException();
-            }
-
-            return (T)prim;
-        }
+            => RepositoryHelper.PreCreate<IXPrimitive, T>(this, 
+                () => new SwTempPlanarSheet(null, m_App, false),
+                () => new SwTempSurfaceKnit(null, m_App, false));
     }
 }

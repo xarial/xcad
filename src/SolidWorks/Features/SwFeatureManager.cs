@@ -149,31 +149,19 @@ namespace Xarial.XCad.SolidWorks.Features
 
         public T PreCreate<T>() where T : IXFeature
         {
-            ISwFeature feat;
-
-            if (typeof(IXSketch2D).IsAssignableFrom(typeof(T)))
-            {
-                feat = new SwSketch2D(default(ISketch), Document, m_App, false);
-            }
-            else if (typeof(IXSketch3D).IsAssignableFrom(typeof(T)))
-            {
-                feat = new SwSketch3D(default(ISketch), Document, m_App, false);
-            }
-            else if (typeof(T).IsAssignableToGenericType(typeof(IXCustomFeature<>))) 
+            if (typeof(T).IsAssignableToGenericType(typeof(IXCustomFeature<>)))
             {
                 var macroFeatureParamsType = typeof(T).GetArgumentsOfGenericType(typeof(IXCustomFeature<>)).First();
-                feat = SwMacroFeature<object>.CreateSpecificInstance(null, Document, m_App, macroFeatureParamsType, m_ParamsParser);
+                var feat = SwMacroFeature<object>.CreateSpecificInstance(null, Document, m_App, macroFeatureParamsType, m_ParamsParser);
+                return (T)(object)feat;
             }
-            else if (typeof(IXCustomFeature).IsAssignableFrom(typeof(T)))
+            else 
             {
-                feat = new SwMacroFeature(null, Document, m_App, false);
+                return RepositoryHelper.PreCreate<IXFeature, T>(this,
+                    () => new SwSketch2D(default(ISketch), Document, m_App, false),
+                    () => new SwSketch3D(default(ISketch), Document, m_App, false),
+                    () => new SwMacroFeature(null, Document, m_App, false));
             }
-            else
-            {
-                throw new NotSupportedException("This feature type is not supported");
-            }
-
-            return (T)feat;
         }
     }
 

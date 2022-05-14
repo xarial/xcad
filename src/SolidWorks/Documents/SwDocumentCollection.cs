@@ -25,6 +25,7 @@ using Xarial.XCad.Exceptions;
 using Xarial.XCad.SolidWorks.Documents.Services;
 using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.Toolkit.Services;
+using Xarial.XCad.Toolkit.Utils;
 using Xarial.XCad.Utils.Diagnostics;
 
 namespace Xarial.XCad.SolidWorks.Documents
@@ -486,47 +487,25 @@ namespace Xarial.XCad.SolidWorks.Documents
             where THandler : IDocumentHandler
             => m_DocsHandler.GetHandler<THandler>(doc);
 
-
         public T PreCreate<T>() where T : IXDocument
         {
-            SwDocument templateDoc;
+            var doc = RepositoryHelper.PreCreate<IXDocument, T>(this,
+                () => new SwPart(null, m_App, m_Logger, false),
+                () => new SwAssembly(null, m_App, m_Logger, false),
+                () => new SwDrawing(null, m_App, m_Logger, false),
+                () => new SwUnknownDocument3D(null, m_App, m_Logger, false),
+                () => new SwUnknownDocument(null, m_App, m_Logger, false));
 
-            if (typeof(IXPart).IsAssignableFrom(typeof(T)))
+            if (doc is SwDocument)
             {
-                templateDoc = new SwPart(null, m_App, m_Logger, false);
+                ((SwDocument)(object)doc).SetDispatcher(m_DocsDispatcher);
             }
-            else if (typeof(IXAssembly).IsAssignableFrom(typeof(T)))
+            else 
             {
-                templateDoc = new SwAssembly(null, m_App, m_Logger, false);
-            }
-            else if (typeof(IXDrawing).IsAssignableFrom(typeof(T)))
-            {
-                templateDoc = new SwDrawing(null, m_App, m_Logger, false);
-            }
-            else if (typeof(IXDocument3D).IsAssignableFrom(typeof(T)))
-            {
-                templateDoc = new SwUnknownDocument3D(null, m_App, m_Logger, false);
-            }
-            else if (typeof(IXDocument).IsAssignableFrom(typeof(T))
-                || typeof(IXUnknownDocument).IsAssignableFrom(typeof(T)))
-            {
-                templateDoc = new SwUnknownDocument(null, m_App, m_Logger, false);
-            }
-            else
-            {
-                throw new NotSupportedException("Creation of this type of document is not supported");
+                throw new InvalidCastException("Document type must be of type SwDocument");
             }
 
-            templateDoc.SetDispatcher(m_DocsDispatcher);
-
-            if (templateDoc is T)
-            {
-                return (T)(ISwDocument)templateDoc;
-            }
-            else
-            {
-                throw new InvalidCastException($"{templateDoc.GetType().FullName} cannot be cast to {typeof(T).FullName}");
-            }
+            return doc;
         }
 
         public bool TryGet(string name, out IXDocument ent)
