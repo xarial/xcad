@@ -152,29 +152,28 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-        public TDocument PreCreate<TDocument>()
-            where TDocument : class, IXDocument
+        public T PreCreate<T>() where T : IXDocument
         {
             SwDmDocument templateDoc;
 
-            if (typeof(IXPart).IsAssignableFrom(typeof(TDocument)))
+            if (typeof(IXPart).IsAssignableFrom(typeof(T)))
             {
                 templateDoc = new SwDmPart(m_DmApp, null, false, OnDocumentCreated, OnDocumentClosed, null);
             }
-            else if (typeof(IXAssembly).IsAssignableFrom(typeof(TDocument)))
+            else if (typeof(IXAssembly).IsAssignableFrom(typeof(T)))
             {
                 templateDoc = new SwDmAssembly(m_DmApp, null, false, OnDocumentCreated, OnDocumentClosed, null);
             }
-            else if (typeof(IXDrawing).IsAssignableFrom(typeof(TDocument)))
+            else if (typeof(IXDrawing).IsAssignableFrom(typeof(T)))
             {
                 templateDoc = new SwDmDrawing(m_DmApp, null, false, OnDocumentCreated, OnDocumentClosed, null);
             }
-            else if (typeof(IXDocument3D).IsAssignableFrom(typeof(TDocument)))
+            else if (typeof(IXDocument3D).IsAssignableFrom(typeof(T)))
             {
                 templateDoc = new SwDmUnknownDocument3D(m_DmApp, null, false, OnDocumentCreated, OnDocumentClosed);
             }
-            else if (typeof(IXDocument).IsAssignableFrom(typeof(TDocument))
-                || typeof(IXUnknownDocument).IsAssignableFrom(typeof(TDocument)))
+            else if (typeof(IXDocument).IsAssignableFrom(typeof(T))
+                || typeof(IXUnknownDocument).IsAssignableFrom(typeof(T)))
             {
                 templateDoc = new SwDmUnknownDocument(m_DmApp, null, false, OnDocumentCreated, OnDocumentClosed);
             }
@@ -183,13 +182,13 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                 throw new NotSupportedException("Creation of this type of document is not supported");
             }
 
-            if (templateDoc is TDocument)
+            if (templateDoc is T)
             {
-                return templateDoc as TDocument;
+                return (T)(object)templateDoc;
             }
             else
             {
-                throw new InvalidCastException($"{templateDoc.GetType().FullName} cannot be cast to {typeof(TDocument).FullName}");
+                throw new InvalidCastException($"{templateDoc.GetType().FullName} cannot be cast to {typeof(T).FullName}");
             }
         }
 

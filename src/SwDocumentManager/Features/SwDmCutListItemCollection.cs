@@ -28,7 +28,7 @@ namespace Xarial.XCad.SwDocumentManager.Features
             add => throw new NotSupportedException();
             remove => throw new NotSupportedException();
         }
-
+        public T PreCreate<T>() where T : IXCutListItem => throw new NotSupportedException();
         #endregion
 
         private readonly ISwDmPartConfiguration m_Conf;

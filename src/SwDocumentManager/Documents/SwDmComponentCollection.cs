@@ -27,13 +27,9 @@ namespace Xarial.XCad.SwDocumentManager.Documents
     internal class SwDmComponentCollection : ISwDmComponentCollection
     {
         #region Not Supported
-
-        public void AddRange(IEnumerable<IXComponent> ents)
-            => throw new NotSupportedException();
-
-        public void RemoveRange(IEnumerable<IXComponent> ents)
-            => throw new NotSupportedException();
-
+        public void AddRange(IEnumerable<IXComponent> ents) => throw new NotSupportedException();
+        public void RemoveRange(IEnumerable<IXComponent> ents) => throw new NotSupportedException();
+        public T PreCreate<T>() where T : IXComponent => throw new NotSupportedException();
         #endregion
 
         private readonly ISwDmConfiguration m_Conf;

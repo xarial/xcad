@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Xarial.XCad.Geometry.Structures;
+using Xarial.XCad.Geometry.Wires;
 
 namespace Xarial.XCad.Geometry.Curves
 {
@@ -36,7 +37,7 @@ namespace Xarial.XCad.Geometry.Curves
     /// <summary>
     /// Represents the continue curve containing lines
     /// </summary>
-    public interface IXPolylineCurve : IXCurve
+    public interface IXPolylineCurve : IXPolyline, IXCurve
     {
         /// <summary>
         /// Polyline curve mode

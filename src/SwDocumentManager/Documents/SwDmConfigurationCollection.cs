@@ -28,12 +28,14 @@ namespace Xarial.XCad.SwDocumentManager.Documents
     internal abstract class SwDmConfigurationCollection : ISwDmConfigurationCollection
     {
         #region Not Supported
-
-        public event ConfigurationActivatedDelegate ConfigurationActivated;
-
+        public event ConfigurationActivatedDelegate ConfigurationActivated 
+        {
+            add => throw new NotSupportedException();
+            remove => throw new NotSupportedException();
+        }
         public void AddRange(IEnumerable<IXConfiguration> ents) => throw new NotSupportedException();
         public IXConfiguration PreCreate() => throw new NotSupportedException();
-
+        public T PreCreate<T>() where T : IXConfiguration => throw new NotSupportedException();
         #endregion
 
         IXConfiguration IXRepository<IXConfiguration>.this[string name] => this[name];

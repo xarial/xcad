@@ -30,7 +30,7 @@ namespace Xarial.XCad.SwDocumentManager.Data
             }
         }
 
-        public IXProperty PreCreate() => CreatePropertyInstance("", false);
+        public T PreCreate<T>() where T : IXProperty => (T)CreatePropertyInstance("", false);
 
         public void RemoveRange(IEnumerable<IXProperty> ents)
         {

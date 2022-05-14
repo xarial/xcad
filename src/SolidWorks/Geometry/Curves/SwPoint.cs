@@ -11,15 +11,20 @@ using System.Text;
 using System.Threading;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Geometry.Wires;
+using Xarial.XCad.SolidWorks.Documents;
 
 namespace Xarial.XCad.SolidWorks.Geometry.Curves
 {
-    public interface ISwPoint : IXPoint
+    public interface ISwPoint : ISwObject, IXPoint
     {
     }
 
-    internal class SwPoint : ISwPoint
+    internal class SwPoint : SwObject, ISwPoint
     {
+        internal SwPoint(object disp, ISwDocument doc, ISwApplication app) : base(disp, doc, app)
+        {
+        }
+
         public Point Coordinate { get; set; }
 
         public bool IsCommitted => true;
