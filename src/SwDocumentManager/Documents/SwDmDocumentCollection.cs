@@ -73,20 +73,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             return res;
         }
 
-        public ISwDmDocument this[string name]
-        {
-            get
-            {
-                if (TryGet(name, out ISwDmDocument doc))
-                {
-                    return doc;
-                }
-                else
-                {
-                    throw new EntityNotFoundException(name);
-                }
-            }
-        }
+        public ISwDmDocument this[string name] => (ISwDmDocument)RepositoryHelper.Get(this, name);
 
         private ISwDmDocument m_Active;
 

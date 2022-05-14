@@ -14,6 +14,7 @@ using System.Text;
 using System.Threading;
 using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
+using Xarial.XCad.Toolkit.Utils;
 
 namespace Xarial.XCad.SolidWorks.Documents
 {
@@ -46,21 +47,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public ISwModelView Active => m_Doc.CreateObjectFromDispatch<ISwModelView>(m_Doc.Model.IActiveView);
 
-        public ISwNamedView this[string name]
-        {
-            get
-            {
-                if (TryGet(name, out IXModelView view))
-                {
-                    return (SwNamedView)view;
-                }
-                else
-                {
-                    throw new Exception("Failed to find the named view");
-
-                }
-            }
-        }
+        public ISwNamedView this[string name] => (ISwNamedView)RepositoryHelper.Get(this, name);
 
         public bool TryGet(string name, out IXModelView ent)
         {

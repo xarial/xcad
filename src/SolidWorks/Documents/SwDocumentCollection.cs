@@ -170,20 +170,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        public IXDocument this[string name] 
-        {
-            get 
-            {
-                if (TryGet(name, out IXDocument doc))
-                {
-                    return doc;
-                }
-                else 
-                {
-                    throw new EntityNotFoundException(name);
-                }
-            }
-        }
+        public IXDocument this[string name] => RepositoryHelper.Get(this, name);
 
         private bool m_IsAttached;
 

@@ -33,18 +33,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             m_Sheet = sheet;
         }
 
-        public IXDrawingView this[string name] 
-        {
-            get 
-            {
-                if (!TryGet(name, out IXDrawingView view)) 
-                {
-                    throw new Exception("Failed to find the view by name");
-                }
-
-                return view;
-            }
-        }
+        public IXDrawingView this[string name] => RepositoryHelper.Get(this, name);
 
         public int Count => GetSwViews().Count();
 

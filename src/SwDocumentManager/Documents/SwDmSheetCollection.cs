@@ -40,8 +40,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             m_Drw = drw;
         }
 
-        public IXSheet this[string name] 
-            => RepositoryHelper.Get(this, name);
+        public IXSheet this[string name]  => RepositoryHelper.Get(this, name);
 
         public IXSheet Active 
         {

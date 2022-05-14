@@ -14,6 +14,7 @@ using System.Text;
 using System.Threading;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.SolidWorks.Documents;
+using Xarial.XCad.Toolkit.Utils;
 
 namespace Xarial.XCad.SolidWorks.Geometry
 {
@@ -30,18 +31,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
             m_RootDoc = rootDoc;
         }
 
-        public IXBody this[string name]
-        {
-            get 
-            {
-                if (!TryGet(name, out IXBody body)) 
-                {
-                    throw new Exception("Body with specified name is not found");
-                }
-
-                return body;
-            }
-        }
+        public IXBody this[string name] => RepositoryHelper.Get(this, name);
 
         public int Count => GetBodies().Count();
 
