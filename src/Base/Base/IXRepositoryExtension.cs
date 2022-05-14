@@ -46,5 +46,14 @@ namespace Xarial.XCad.Base
                 throw new EntityNotFoundException(name);
             }
         }
+
+        /// <summary>
+        /// Pre-creates default template
+        /// </summary>
+        /// <typeparam name="TEnt"></typeparam>
+        /// <param name="repo">Repository</param>
+        /// <returns>Entity template</returns>
+        public static TEnt PreCreate<TEnt>(this IXRepository<TEnt> repo) where TEnt : IXTransaction
+            => repo.PreCreate<TEnt>();
     }
 }

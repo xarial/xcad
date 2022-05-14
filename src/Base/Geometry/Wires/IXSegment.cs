@@ -12,6 +12,7 @@ namespace Xarial.XCad.Geometry.Wires
     /// <summary>
     /// Segment represents the definition of any wire body
     /// </summary>
+    /// <remarks>This is a based interface for all geometrical primitives (either curves, sketch segments or edges)</remarks>
     public interface IXSegment : IXTransaction, IXObject
     {
         /// <summary>

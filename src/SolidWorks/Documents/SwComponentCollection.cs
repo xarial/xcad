@@ -144,5 +144,10 @@ namespace Xarial.XCad.SolidWorks.Documents
                 }
             }
         }
+
+        public T PreCreate<T>() where T : IXComponent
+        {
+            throw new NotImplementedException();
+        }
     }
 }

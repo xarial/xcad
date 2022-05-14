@@ -24,11 +24,5 @@ namespace Xarial.XCad.Documents
         /// Returns the currently active configuration or activates the specific configuration
         /// </summary>
         IXConfiguration Active { get; set; }
-
-        /// <summary>
-        /// Creates new template configuration
-        /// </summary>
-        /// <returns>Pre-created configuration</returns>
-        IXConfiguration PreCreate();
     }
 }

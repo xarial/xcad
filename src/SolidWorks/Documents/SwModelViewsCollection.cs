@@ -82,6 +82,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         public IEnumerator<IXModelView> GetEnumerator() => throw new NotImplementedException();
         public void RemoveRange(IEnumerable<IXModelView> ents) => throw new NotImplementedException();
         IEnumerator IEnumerable.GetEnumerator() => throw new NotImplementedException();
+        public T PreCreate<T>() where T : IXModelView => throw new NotImplementedException();
     }
 
     internal class SwModelViews3DCollection : SwModelViewsCollection, ISwModelViews3DCollection

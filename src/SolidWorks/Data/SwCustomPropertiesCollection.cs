@@ -27,13 +27,11 @@ namespace Xarial.XCad.SolidWorks.Data
     public interface ISwCustomPropertiesCollection : IXPropertyRepository, IDisposable
     {
         new ISwCustomProperty this[string name] { get; }
-        new ISwCustomProperty PreCreate();
+        ISwCustomProperty PreCreate();
     }
 
     internal abstract class SwCustomPropertiesCollection : ISwCustomPropertiesCollection
     {
-        IXProperty IXPropertyRepository.PreCreate() => PreCreate();
-
         IXProperty IXRepository<IXProperty>.this[string name] => this[name];
 
         public ISwCustomProperty this[string name]
@@ -152,6 +150,8 @@ namespace Xarial.XCad.SolidWorks.Data
         public virtual void Dispose()
         {
         }
+
+        public T PreCreate<T>() where T : IXProperty => (T)PreCreate();
     }
 
     internal class SwConfigurationCustomPropertiesCollection : SwCustomPropertiesCollection

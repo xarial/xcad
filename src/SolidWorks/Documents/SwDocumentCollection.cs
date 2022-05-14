@@ -485,29 +485,29 @@ namespace Xarial.XCad.SolidWorks.Documents
             where THandler : IDocumentHandler
             => m_DocsHandler.GetHandler<THandler>(doc);
 
-        public TDocument PreCreate<TDocument>()
-             where TDocument : class, IXDocument
+
+        public T PreCreate<T>() where T : IXDocument
         {
             SwDocument templateDoc;
 
-            if (typeof(IXPart).IsAssignableFrom(typeof(TDocument)))
+            if (typeof(IXPart).IsAssignableFrom(typeof(T)))
             {
                 templateDoc = new SwPart(null, m_App, m_Logger, false);
             }
-            else if (typeof(IXAssembly).IsAssignableFrom(typeof(TDocument)))
+            else if (typeof(IXAssembly).IsAssignableFrom(typeof(T)))
             {
                 templateDoc = new SwAssembly(null, m_App, m_Logger, false);
             }
-            else if (typeof(IXDrawing).IsAssignableFrom(typeof(TDocument)))
+            else if (typeof(IXDrawing).IsAssignableFrom(typeof(T)))
             {
                 templateDoc = new SwDrawing(null, m_App, m_Logger, false);
             }
-            else if (typeof(IXDocument3D).IsAssignableFrom(typeof(TDocument)))
+            else if (typeof(IXDocument3D).IsAssignableFrom(typeof(T)))
             {
                 templateDoc = new SwUnknownDocument3D(null, m_App, m_Logger, false);
             }
-            else if (typeof(IXDocument).IsAssignableFrom(typeof(TDocument)) 
-                || typeof(IXUnknownDocument).IsAssignableFrom(typeof(TDocument)))
+            else if (typeof(IXDocument).IsAssignableFrom(typeof(T))
+                || typeof(IXUnknownDocument).IsAssignableFrom(typeof(T)))
             {
                 templateDoc = new SwUnknownDocument(null, m_App, m_Logger, false);
             }
@@ -518,13 +518,13 @@ namespace Xarial.XCad.SolidWorks.Documents
 
             templateDoc.SetDispatcher(m_DocsDispatcher);
 
-            if (templateDoc is TDocument)
+            if (templateDoc is T)
             {
-                return templateDoc as TDocument;
+                return (T)(ISwDocument)templateDoc;
             }
-            else 
+            else
             {
-                throw new InvalidCastException($"{templateDoc.GetType().FullName} cannot be cast to {typeof(TDocument).FullName}");
+                throw new InvalidCastException($"{templateDoc.GetType().FullName} cannot be cast to {typeof(T).FullName}");
             }
         }
 

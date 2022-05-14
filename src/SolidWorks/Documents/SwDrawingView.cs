@@ -361,6 +361,9 @@ namespace Xarial.XCad.SolidWorks.Documents
         public IEnumerator<IXDimension> GetEnumerator()
             => IterateDimensions().GetEnumerator();
 
+        public T PreCreate<T>() where T : IXDimension
+            => throw new NotImplementedException();
+
         public void RemoveRange(IEnumerable<IXDimension> ents)
             => throw new NotImplementedException();
 

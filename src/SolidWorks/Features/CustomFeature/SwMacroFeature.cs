@@ -162,10 +162,14 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         private readonly MacroFeatureParametersParser m_ParamsParser;
         private TParams m_ParametersCache;
 
-        internal static SwMacroFeature CreateSpecificInstance(IFeature feat, SwDocument doc, ISwApplication app, Type paramType) 
+        internal static SwMacroFeature CreateSpecificInstance(IFeature feat, SwDocument doc, ISwApplication app, Type paramType, MacroFeatureParametersParser paramsParser = null) 
         {
             var macroFeatType = typeof(SwMacroFeature<>).MakeGenericType(paramType);
-            var paramsParser = new MacroFeatureParametersParser(app);
+
+            if (paramsParser == null)
+            {
+                paramsParser = new MacroFeatureParametersParser(app);
+            }
 
 #if DEBUG
             //NOTE: this is a test to ensure that if constructor is changed the reflection will not be broken and this call will fail at compile time
@@ -174,7 +178,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             var constr = macroFeatType.GetConstructor(BindingFlags.Instance | BindingFlags.NonPublic, null,
                 new Type[] { typeof(IFeature), typeof(SwDocument), typeof(ISwApplication), typeof(MacroFeatureParametersParser), typeof(bool) }, null);
 
-            return (SwMacroFeature)constr.Invoke(new object[] { feat, doc, app, paramsParser, true });
+            return (SwMacroFeature)constr.Invoke(new object[] { feat, doc, app, paramsParser, feat != null });
         }
 
         //NOTE: this constructor is used in the reflection of SwObjectFactory

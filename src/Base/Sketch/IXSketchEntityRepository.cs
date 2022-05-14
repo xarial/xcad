@@ -10,7 +10,17 @@ using Xarial.XCad.Geometry;
 
 namespace Xarial.XCad.Sketch
 {
+    /// <summary>
+    /// Represents the collection of entities (lines, arcs, points) in the sketch
+    /// </summary>
     public interface IXSketchEntityRepository : IXRepository<IXSketchEntity>, IXWireGeometryBuilder
+    {
+    }
+
+    /// <summary>
+    /// Additional methods of <see cref="IXSketchEntityRepository"/>
+    /// </summary>
+    public static class XSketchEntityRepositoryExtension 
     {
     }
 }

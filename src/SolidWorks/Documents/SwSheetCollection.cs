@@ -97,20 +97,16 @@ namespace Xarial.XCad.SolidWorks.Documents
                 }
             }
         }
-        
-        public void AddRange(IEnumerable<IXSheet> ents)
-        {
-            throw new NotImplementedException();
-        }
 
-        public void RemoveRange(IEnumerable<IXSheet> ents)
-        {
-            throw new NotImplementedException();
-        }
+        public void AddRange(IEnumerable<IXSheet> ents) => throw new NotImplementedException();
+
+        public void RemoveRange(IEnumerable<IXSheet> ents) => throw new NotImplementedException();
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
         public IEnumerator<IXSheet> GetEnumerator() => new SwSheetEnumerator(m_Drawing);
+
+        public T PreCreate<T>() where T : IXSheet => throw new NotImplementedException();
 
         public void Dispose()
         {

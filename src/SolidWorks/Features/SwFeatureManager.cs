@@ -21,6 +21,7 @@ using Xarial.XCad.SolidWorks.Features.CustomFeature;
 using Xarial.XCad.SolidWorks.Features.CustomFeature.Toolkit;
 using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.Toolkit.CustomFeature;
+using Xarial.XCad.Utils.Reflection;
 
 namespace Xarial.XCad.SolidWorks.Features
 {
@@ -104,22 +105,12 @@ namespace Xarial.XCad.SolidWorks.Features
             }
         }
 
-        public IXSketch2D PreCreate2DSketch() => new SwSketch2D(default(ISketch), Document, m_App, false);
-        public IXSketch3D PreCreate3DSketch() => new SwSketch3D(default(ISketch), Document, m_App, false);
-        
         public virtual IEnumerator<IXFeature> GetEnumerator()
             => new DocumentFeatureEnumerator(Document, GetFirstFeature(), new Context(Document));
 
         internal protected virtual IFeature GetFirstFeature() => Document.Model.IFirstFeature();
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-
-        public IXCustomFeature<TParams> PreCreateCustomFeature<TParams>()
-            where TParams : class
-            => new SwMacroFeature<TParams>(null, Document, m_App, m_ParamsParser, false);
-
-        public IXCustomFeature PreCreateCustomFeature()
-            => new SwMacroFeature(null, Document, m_App, false);
 
         public void RemoveRange(IEnumerable<IXFeature> ents)
         {
@@ -152,6 +143,35 @@ namespace Xarial.XCad.SolidWorks.Features
         {
             FeatMgr.EnableFeatureTree = enable;
             FeatMgr.EnableFeatureTreeWindow = enable;
+        }
+
+        public T PreCreate<T>() where T : IXFeature
+        {
+            ISwFeature feat;
+
+            if (typeof(IXSketch2D).IsAssignableFrom(typeof(T)))
+            {
+                feat = new SwSketch2D(default(ISketch), Document, m_App, false);
+            }
+            else if (typeof(IXSketch3D).IsAssignableFrom(typeof(T)))
+            {
+                feat = new SwSketch3D(default(ISketch), Document, m_App, false);
+            }
+            else if (typeof(T).IsAssignableToGenericType(typeof(IXCustomFeature<>))) 
+            {
+                var macroFeatureParamsType = typeof(T).GetArgumentsOfGenericType(typeof(IXCustomFeature<>)).First();
+                feat = SwMacroFeature<object>.CreateSpecificInstance(null, Document, m_App, macroFeatureParamsType, m_ParamsParser);
+            }
+            else if (typeof(IXCustomFeature).IsAssignableFrom(typeof(T)))
+            {
+                feat = new SwMacroFeature(null, Document, m_App, false);
+            }
+            else
+            {
+                throw new NotSupportedException("This feature type is not supported");
+            }
+
+            return (T)feat;
         }
     }
 

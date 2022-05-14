@@ -153,6 +153,8 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public ISwSelCallout PreCreateCallout<T>() where T : SwCalloutBaseHandler, new()
             => new SwSelCallout(m_Doc, this, new T());
+
+        public T PreCreate<T>() where T : IXSelObject => throw new NotImplementedException();
     }
 
     internal class SwSelObjectEnumerator : IEnumerator<IXSelObject>

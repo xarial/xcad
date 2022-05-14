@@ -26,7 +26,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 {
     public interface ISwConfigurationCollection : IXConfigurationRepository, IDisposable
     {
-        new ISwConfiguration PreCreate();
+        ISwConfiguration PreCreate();
         new ISwConfiguration Active { get; set; }
     }
 
@@ -49,8 +49,6 @@ namespace Xarial.XCad.SolidWorks.Documents
             get => Active;
             set => Active = (ISwConfiguration)value;
         }
-
-        IXConfiguration IXConfigurationRepository.PreCreate() => PreCreate();
 
         protected readonly ISwApplication m_App;
         private readonly SwDocument3D m_Doc;
@@ -169,6 +167,8 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+        public T PreCreate<T>() where T : IXConfiguration => (T)PreCreate();
     }
 
     internal class SwConfigurationEnumerator : SwConfigurationEnumeratorBase<SwConfiguration>

@@ -56,6 +56,8 @@ namespace Xarial.XCad.SolidWorks.Features
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
         protected abstract IEnumerable<IXCutListItem> IterateCutLists();
+
+        public T PreCreate<T>() where T : IXCutListItem => throw new NotImplementedException();
     }
 
     internal class SwPartCutListItemCollection : SwCutListItemCollection

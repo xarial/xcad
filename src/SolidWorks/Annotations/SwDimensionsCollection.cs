@@ -43,22 +43,20 @@ namespace Xarial.XCad.SolidWorks.Annotations
         }
 
         public void AddRange(IEnumerable<IXDimension> ents)
-        {
-            throw new NotImplementedException();
-        }
+            => throw new NotImplementedException();
 
         public abstract IEnumerator<IXDimension> GetEnumerator();
 
         public void RemoveRange(IEnumerable<IXDimension> ents)
-        {
-            throw new NotImplementedException();
-        }
+            => throw new NotImplementedException();
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
         public void Dispose()
         {
         }
+
+        public T PreCreate<T>() where T : IXDimension => throw new NotImplementedException();
     }
 
     internal class SwFeatureManagerDimensionsCollection : SwDimensionsCollection

@@ -152,5 +152,29 @@ namespace Xarial.XCad.SolidWorks.Sketch
                 yield return m_Doc.CreateObjectFromDispatch<SwSketchBlockInstance>(blockInst);
             }
         }
+
+        public T PreCreate<T>() where T : IXSketchEntity
+        {
+            ISwSketchEntity skEnt;
+
+            if (typeof(IXLine).IsAssignableFrom(typeof(T)))
+            {
+                skEnt = new SwSketchLine(null, m_Doc, m_App, false);
+            }
+            else if (typeof(IXPoint).IsAssignableFrom(typeof(T)))
+            {
+                skEnt = new SwSketchPoint(null, m_Doc, m_App, false);
+            }
+            else if (typeof(IXCircle).IsAssignableFrom(typeof(T)))
+            {
+                skEnt = new SwSketchCircle(null, m_Doc, m_App, false);
+            }
+            else 
+            {
+                throw new NotSupportedException("Sketch entity is not supported");
+            }
+
+            return (T)skEnt;
+        }
     }
 }

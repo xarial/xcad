@@ -17,10 +17,5 @@ namespace Xarial.XCad.Data
     /// </summary>
     public interface IXPropertyRepository : IXRepository<IXProperty>
     {
-        /// <summary>
-        /// Pre-creates new property
-        /// </summary>
-        /// <returns>Property template</returns>
-        IXProperty PreCreate();
     }
 }

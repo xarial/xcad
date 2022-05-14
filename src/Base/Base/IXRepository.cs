@@ -49,6 +49,12 @@ namespace Xarial.XCad.Base
         /// <param name="ents">Entities to remove</param>
         void RemoveRange(IEnumerable<TEnt> ents);
 
-        //TODO: make a T PreCreate<T>() function a part of this interface so it is unified across all repositories
+        /// <summary>
+        /// Pre-creates template object
+        /// </summary>
+        /// <typeparam name="T">Specific type of the template object</typeparam>
+        /// <returns>Template object</returns>
+        /// <remarks>Use <see cref="IXTransaction.Commit(System.Threading.CancellationToken)"/> or <see cref="IXRepository{TEnt}.AddRange(IEnumerable{TEnt})"/> to commit templates and create objects</remarks>
+        T PreCreate<T>() where T : TEnt;
     }
 }

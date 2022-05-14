@@ -45,16 +45,12 @@ namespace Xarial.XCad.SolidWorks.Geometry
         public int Count => GetBodies().Count();
 
         public void AddRange(IEnumerable<IXBody> ents)
-        {
-            throw new NotImplementedException();
-        }
+            => throw new NotImplementedException();
 
         public IEnumerator<IXBody> GetEnumerator() => GetBodies().GetEnumerator();
 
         public void RemoveRange(IEnumerable<IXBody> ents)
-        {
-            throw new NotImplementedException();
-        }
+            => throw new NotImplementedException();
 
         public bool TryGet(string name, out IXBody ent)
         {
@@ -81,5 +77,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
         }
 
         protected abstract IEnumerable<IBody2> GetSwBodies();
+
+        public T PreCreate<T>() where T : IXBody => throw new NotImplementedException();
     }
 }

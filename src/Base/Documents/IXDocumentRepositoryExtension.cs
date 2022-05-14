@@ -47,7 +47,7 @@ namespace Xarial.XCad.Documents
             var doc = repo.PreCreate<TDoc>();
             repo.Add(doc);
 
-            if (doc is IXUnknownDocument) 
+            if (doc is IXUnknownDocument)
             {
                 doc = (TDoc)(doc as IXUnknownDocument).GetSpecific();
             }
@@ -81,9 +81,21 @@ namespace Xarial.XCad.Documents
         /// <typeparam name="THandler">Handler type</typeparam>
         /// <param name="repo">Documents repository</param>
         public static void RegisterHandler<THandler>(this IXDocumentRepository repo)
-            where THandler : IDocumentHandler, new()
-        {
-            repo.RegisterHandler<THandler>(() => new THandler());
-        }
+            where THandler : IDocumentHandler, new() => repo.RegisterHandler<THandler>(() => new THandler());
+
+        /// <summary>
+        /// Creates new part template
+        /// </summary>
+        public static IXPart PreCreatePart(this IXDocumentRepository repo) => repo.PreCreate<IXPart>();
+
+        /// <summary>
+        /// Creates new assembly template
+        /// </summary>
+        public static IXAssembly PreCreateAssembly(this IXDocumentRepository repo) => repo.PreCreate<IXAssembly>();
+
+        /// <summary>
+        /// Creates new drawing template
+        /// </summary>
+        public static IXDrawing PreCreateDrawing(this IXDocumentRepository repo) => repo.PreCreate<IXDrawing>();
     }
 }

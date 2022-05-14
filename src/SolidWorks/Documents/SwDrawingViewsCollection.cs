@@ -57,9 +57,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         public IEnumerator<IXDrawingView> GetEnumerator() => GetDrawingViews().GetEnumerator();
 
         public void RemoveRange(IEnumerable<IXDrawingView> ents)
-        {
-            throw new NotImplementedException();
-        }
+            => throw new NotImplementedException();
 
         public bool TryGet(string name, out IXDrawingView ent)
         {
@@ -117,13 +115,13 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        TDrawingView IXDrawingViewRepository.PreCreate<TDrawingView>()
+        public T PreCreate<T>() where T : IXDrawingView
         {
-            if (typeof(TDrawingView).IsAssignableFrom(typeof(SwModelBasedDrawingView)))
+            if (typeof(T).IsAssignableFrom(typeof(SwModelBasedDrawingView)))
             {
-                return new SwModelBasedDrawingView(null, m_Draw, m_Sheet, false) as TDrawingView;
+                return (T)(ISwDrawingView)new SwModelBasedDrawingView(null, m_Draw, m_Sheet, false);
             }
-            else 
+            else
             {
                 throw new NotSupportedException("Precreation of this drawing view is not supported");
             }
