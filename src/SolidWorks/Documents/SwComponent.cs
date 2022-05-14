@@ -14,6 +14,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using Xarial.XCad.Annotations;
 using Xarial.XCad.Base;
 using Xarial.XCad.Data;
@@ -417,7 +418,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             Component = comp;
         }
 
-        public override void AddRange(IEnumerable<IXFeature> feats)
+        public override void AddRange(IEnumerable<IXFeature> feats, CancellationToken cancellationToken)
         {
             try
             {
@@ -436,7 +437,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                         m_Assm.Assembly.EditPart2(true, false, ref inf);
                     }
 
-                    base.AddRange(feats);
+                    base.AddRange(feats, cancellationToken);
                 }
                 else 
                 {

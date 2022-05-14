@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using Xarial.XCad.Base;
 using Xarial.XCad.Base.Enums;
 using Xarial.XCad.Documents;
@@ -547,7 +548,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             return false;
         }
 
-        public void AddRange(IEnumerable<IXDocument> ents)
+        public void AddRange(IEnumerable<IXDocument> ents, CancellationToken cancellationToken)
         {
             foreach (SwDocument doc in ents) 
             {
@@ -555,7 +556,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        public void RemoveRange(IEnumerable<IXDocument> ents)
+        public void RemoveRange(IEnumerable<IXDocument> ents, CancellationToken cancellationToken)
         {
             foreach (var doc in ents.ToArray()) 
             {

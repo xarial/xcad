@@ -11,6 +11,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
 
@@ -78,9 +79,9 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        public void AddRange(IEnumerable<IXModelView> ents) => throw new NotImplementedException();
+        public void AddRange(IEnumerable<IXModelView> ents, CancellationToken cancellationToken) => throw new NotImplementedException();
         public IEnumerator<IXModelView> GetEnumerator() => throw new NotImplementedException();
-        public void RemoveRange(IEnumerable<IXModelView> ents) => throw new NotImplementedException();
+        public void RemoveRange(IEnumerable<IXModelView> ents, CancellationToken cancellationToken) => throw new NotImplementedException();
         IEnumerator IEnumerable.GetEnumerator() => throw new NotImplementedException();
         public T PreCreate<T>() where T : IXModelView => throw new NotImplementedException();
     }

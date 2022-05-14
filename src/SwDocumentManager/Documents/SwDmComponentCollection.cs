@@ -17,6 +17,8 @@ using Xarial.XCad.SwDocumentManager.Services;
 using System.IO;
 using Xarial.XCad.Toolkit.Exceptions;
 using Xarial.XCad.Exceptions;
+using System.Threading;
+using Xarial.XCad.Toolkit.Utils;
 
 namespace Xarial.XCad.SwDocumentManager.Documents
 {
@@ -27,8 +29,8 @@ namespace Xarial.XCad.SwDocumentManager.Documents
     internal class SwDmComponentCollection : ISwDmComponentCollection
     {
         #region Not Supported
-        public void AddRange(IEnumerable<IXComponent> ents) => throw new NotSupportedException();
-        public void RemoveRange(IEnumerable<IXComponent> ents) => throw new NotSupportedException();
+        public void AddRange(IEnumerable<IXComponent> ents, CancellationToken cancellationToken) => throw new NotSupportedException();
+        public void RemoveRange(IEnumerable<IXComponent> ents, CancellationToken cancellationToken) => throw new NotSupportedException();
         public T PreCreate<T>() where T : IXComponent => throw new NotSupportedException();
         #endregion
 
@@ -48,7 +50,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             m_ComponentsCache = new Dictionary<string, SwDmComponent>(StringComparer.CurrentCultureIgnoreCase);
         }
 
-        public IXComponent this[string name] => this.Get(name);
+        public IXComponent this[string name] => RepositoryHelper.Get(this, name);
 
         public int Count 
             => (((ISwDMConfiguration2)m_Conf.Configuration).GetComponents() as object[])?.Length ?? 0;

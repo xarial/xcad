@@ -11,6 +11,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
 
@@ -46,7 +47,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public int Count => GetSwViews().Count();
 
-        public void AddRange(IEnumerable<IXDrawingView> ents)
+        public void AddRange(IEnumerable<IXDrawingView> ents, CancellationToken cancellationToken)
         {
             foreach (SwDrawingView view in ents) 
             {
@@ -56,7 +57,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public IEnumerator<IXDrawingView> GetEnumerator() => GetDrawingViews().GetEnumerator();
 
-        public void RemoveRange(IEnumerable<IXDrawingView> ents)
+        public void RemoveRange(IEnumerable<IXDrawingView> ents, CancellationToken cancellationToken)
             => throw new NotImplementedException();
 
         public bool TryGet(string name, out IXDrawingView ent)

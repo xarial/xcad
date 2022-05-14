@@ -11,6 +11,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using Xarial.XCad.Base;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Curves;
@@ -58,7 +59,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
         public bool TryGet(string name, out IXWireEntity ent)
             => throw new NotImplementedException();
 
-        public void AddRange(IEnumerable<IXWireEntity> ents)
+        public void AddRange(IEnumerable<IXWireEntity> ents, CancellationToken cancellationToken)
         {
             foreach (var ent in ents) 
             {
@@ -66,7 +67,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
             }
         }
 
-        public void RemoveRange(IEnumerable<IXWireEntity> ents)
+        public void RemoveRange(IEnumerable<IXWireEntity> ents, CancellationToken cancellationToken)
             => throw new NotImplementedException();
 
         public T PreCreate<T>() where T : IXWireEntity

@@ -400,8 +400,8 @@ namespace Xarial.XCad.SwDocumentManager.Documents
     internal class EmptyComponentCollection : IXComponentRepository
     {
         #region Not Supported
-        public void AddRange(IEnumerable<IXComponent> ents) => throw new NotSupportedException();
-        public void RemoveRange(IEnumerable<IXComponent> ents) => throw new NotSupportedException();
+        public void AddRange(IEnumerable<IXComponent> ents, CancellationToken cancellationToken) => throw new NotSupportedException();
+        public void RemoveRange(IEnumerable<IXComponent> ents, CancellationToken cancellationToken) => throw new NotSupportedException();
         public T PreCreate<T>() where T : IXComponent => throw new NotSupportedException();
         #endregion
 

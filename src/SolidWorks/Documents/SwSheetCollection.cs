@@ -11,10 +11,12 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
 using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Delegates;
 using Xarial.XCad.SolidWorks.Documents.EventHandlers;
+using Xarial.XCad.Toolkit.Utils;
 
 namespace Xarial.XCad.SolidWorks.Documents
 {
@@ -51,7 +53,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             m_SheetActivatedEventsHandler = new SheetActivatedEventsHandler(doc, app);
         }
 
-        public IXSheet this[string name] => this.Get(name);
+        public IXSheet this[string name] => RepositoryHelper.Get(this, name);
 
         public bool TryGet(string name, out IXSheet ent)
         {
@@ -98,9 +100,9 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        public void AddRange(IEnumerable<IXSheet> ents) => throw new NotImplementedException();
+        public void AddRange(IEnumerable<IXSheet> ents, CancellationToken cancellationToken) => throw new NotImplementedException();
 
-        public void RemoveRange(IEnumerable<IXSheet> ents) => throw new NotImplementedException();
+        public void RemoveRange(IEnumerable<IXSheet> ents, CancellationToken cancellationToken) => throw new NotImplementedException();
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 

@@ -16,6 +16,8 @@ using Xarial.XCad.SwDocumentManager.Documents;
 using SolidWorks.Interop.swdocumentmgr;
 using Xarial.XCad.SwDocumentManager.Exceptions;
 using Xarial.XCad.Features.Delegates;
+using System.Threading;
+using Xarial.XCad.Toolkit.Utils;
 
 namespace Xarial.XCad.SwDocumentManager.Features
 {
@@ -40,17 +42,17 @@ namespace Xarial.XCad.SwDocumentManager.Features
             m_Part = part;
         }
 
-        public IXCutListItem this[string name] => this.Get(name);
+        public IXCutListItem this[string name] => RepositoryHelper.Get(this, name);
 
         public int Count => IterateCutLists().Count();
 
-        public void AddRange(IEnumerable<IXCutListItem> ents)
+        public void AddRange(IEnumerable<IXCutListItem> ents, CancellationToken cancellationToken)
             => throw new NotImplementedException();
 
         public IEnumerator<IXCutListItem> GetEnumerator()
             => IterateCutLists().GetEnumerator();
 
-        public void RemoveRange(IEnumerable<IXCutListItem> ents)
+        public void RemoveRange(IEnumerable<IXCutListItem> ents, CancellationToken cancellationToken)
             => throw new NotImplementedException();
 
         public bool TryGet(string name, out IXCutListItem ent)

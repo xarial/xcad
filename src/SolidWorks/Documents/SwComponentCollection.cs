@@ -11,8 +11,10 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
+using Xarial.XCad.Toolkit.Utils;
 
 namespace Xarial.XCad.SolidWorks.Documents
 {
@@ -25,7 +27,7 @@ namespace Xarial.XCad.SolidWorks.Documents
     {
         IXComponent IXRepository<IXComponent>.this[string name] => this[name];
 
-        public ISwComponent this[string name] => (SwComponent)this.Get(name);
+        public ISwComponent this[string name] => (SwComponent)RepositoryHelper.Get(this, name);
 
         public bool TryGet(string name, out IXComponent ent)
         {
@@ -90,7 +92,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             m_Assm = assm;
         }
 
-        public void AddRange(IEnumerable<IXComponent> ents)
+        public void AddRange(IEnumerable<IXComponent> ents, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
@@ -117,7 +119,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        public void RemoveRange(IEnumerable<IXComponent> ents)
+        public void RemoveRange(IEnumerable<IXComponent> ents, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }

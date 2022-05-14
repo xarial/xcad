@@ -11,6 +11,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using Xarial.XCad.Base;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Primitives;
@@ -48,7 +49,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         public bool TryGet(string name, out IXPrimitive ent) => throw new NotImplementedException();
 
-        public void AddRange(IEnumerable<IXPrimitive> ents)
+        public void AddRange(IEnumerable<IXPrimitive> ents, CancellationToken cancellationToken)
         {
             foreach (var ent in ents) 
             {
@@ -56,7 +57,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
             }
         }
 
-        public void RemoveRange(IEnumerable<IXPrimitive> ents) => throw new NotImplementedException();
+        public void RemoveRange(IEnumerable<IXPrimitive> ents, CancellationToken cancellationToken) => throw new NotImplementedException();
 
         public T PreCreate<T>() where T : IXPrimitive
         {

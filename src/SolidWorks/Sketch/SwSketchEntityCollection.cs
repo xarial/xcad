@@ -10,6 +10,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Xarial.XCad.Base;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Curves;
@@ -19,6 +20,7 @@ using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Features;
 using Xarial.XCad.SolidWorks.Geometry;
 using Xarial.XCad.SolidWorks.Geometry.Curves;
+using Xarial.XCad.Toolkit.Utils;
 
 namespace Xarial.XCad.SolidWorks.Sketch
 {
@@ -34,7 +36,7 @@ namespace Xarial.XCad.SolidWorks.Sketch
             ? ((object[])m_Sketch.Sketch.GetSketchSegments() ?? new object[0]).Length + m_Sketch.Sketch.GetSketchPointsCount2() + m_Sketch.Sketch.GetSketchBlockInstanceCount()
             : m_Cache.Count;
 
-        public IXWireEntity this[string name] => this.Get(name);
+        public IXWireEntity this[string name] => RepositoryHelper.Get(this, name);
 
         private readonly ISwSketchBase m_Sketch;
 
@@ -114,7 +116,7 @@ namespace Xarial.XCad.SolidWorks.Sketch
             return false;
         }
 
-        public void AddRange(IEnumerable<IXWireEntity> ents)
+        public void AddRange(IEnumerable<IXWireEntity> ents, CancellationToken cancellationToken)
         {
             if (m_Sketch.IsCommitted)
             {
@@ -126,7 +128,7 @@ namespace Xarial.XCad.SolidWorks.Sketch
             }
         }
 
-        public void RemoveRange(IEnumerable<IXWireEntity> ents)
+        public void RemoveRange(IEnumerable<IXWireEntity> ents, CancellationToken cancellationToken)
             => throw new NotImplementedException();
 
         public T PreCreate<T>() where T : IXWireEntity

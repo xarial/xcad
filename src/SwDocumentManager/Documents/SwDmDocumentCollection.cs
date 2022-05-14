@@ -11,6 +11,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Delegates;
@@ -28,6 +29,34 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
     internal class SwDmDocumentCollection : ISwDmDocumentCollection
     {
+        #region NotSupported
+        
+        public event DocumentEventDelegate DocumentActivated 
+        {
+            add => throw new NotSupportedException();
+            remove => throw new NotSupportedException();
+        }
+
+        public event DocumentEventDelegate DocumentLoaded
+        {
+            add => throw new NotSupportedException();
+            remove => throw new NotSupportedException();
+        }
+
+        public event DocumentEventDelegate DocumentOpened
+        {
+            add => throw new NotSupportedException();
+            remove => throw new NotSupportedException();
+        }
+
+        public event DocumentEventDelegate NewDocumentCreated
+        {
+            add => throw new NotSupportedException();
+            remove => throw new NotSupportedException();
+        }
+
+        #endregion
+
         IXDocument IXRepository<IXDocument>.this[string name] => this[name];
 
         IXDocument IXDocumentRepository.Active
@@ -78,11 +107,6 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         public int Count => m_Documents.Count;
 
-        public event DocumentEventDelegate DocumentActivated;
-        public event DocumentEventDelegate DocumentLoaded;
-        public event DocumentEventDelegate DocumentOpened;
-        public event DocumentEventDelegate NewDocumentCreated;
-
         private List<ISwDmDocument> m_Documents;
 
         private readonly ISwDmApplication m_DmApp;
@@ -93,7 +117,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             m_Documents = new List<ISwDmDocument>();
         }
 
-        public void AddRange(IEnumerable<IXDocument> ents)
+        public void AddRange(IEnumerable<IXDocument> ents, CancellationToken cancellationToken)
         {
             foreach (var doc in ents)
             {
@@ -113,7 +137,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             throw new NotImplementedException();
         }
 
-        public void RemoveRange(IEnumerable<IXDocument> ents)
+        public void RemoveRange(IEnumerable<IXDocument> ents, CancellationToken cancellationToken)
         {
             foreach (var doc in ents)
             {

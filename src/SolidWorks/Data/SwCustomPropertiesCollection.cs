@@ -12,6 +12,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using Xarial.XCad.Base;
 using Xarial.XCad.Data;
 using Xarial.XCad.Data.Delegates;
@@ -21,6 +22,7 @@ using Xarial.XCad.SolidWorks.Data.Exceptions;
 using Xarial.XCad.SolidWorks.Data.Helpers;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.Toolkit.Services;
+using Xarial.XCad.Toolkit.Utils;
 
 namespace Xarial.XCad.SolidWorks.Data
 {
@@ -40,7 +42,7 @@ namespace Xarial.XCad.SolidWorks.Data
             {
                 try
                 {
-                    return (SwCustomProperty)this.Get(name);
+                    return (SwCustomProperty)RepositoryHelper.Get(this, name);
                 }
                 catch (EntityNotFoundException)
                 {
@@ -93,7 +95,7 @@ namespace Xarial.XCad.SolidWorks.Data
             }
         }
 
-        public void AddRange(IEnumerable<IXProperty> ents)
+        public void AddRange(IEnumerable<IXProperty> ents, CancellationToken cancellationToken)
         {
             foreach (var prp in ents)
             {
@@ -104,7 +106,7 @@ namespace Xarial.XCad.SolidWorks.Data
         public IEnumerator<IXProperty> GetEnumerator()
             => new SwCustomPropertyEnumerator(PrpMgr, CreatePropertyInstance);
 
-        public void RemoveRange(IEnumerable<IXProperty> ents)
+        public void RemoveRange(IEnumerable<IXProperty> ents, CancellationToken cancellationToken)
         {
             foreach (var prp in ents)
             {

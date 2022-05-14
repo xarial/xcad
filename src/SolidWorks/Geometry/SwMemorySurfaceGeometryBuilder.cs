@@ -10,6 +10,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Primitives;
 using Xarial.XCad.SolidWorks.Geometry.Primitives;
@@ -25,8 +26,8 @@ namespace Xarial.XCad.SolidWorks.Geometry
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
         public bool TryGet(string name, out IXPrimitive ent) => throw new NotImplementedException();
-        public void AddRange(IEnumerable<IXPrimitive> ents) => throw new NotImplementedException();
-        public void RemoveRange(IEnumerable<IXPrimitive> ents) => throw new NotImplementedException();
+        public void AddRange(IEnumerable<IXPrimitive> ents, CancellationToken cancellationToken) => throw new NotImplementedException();
+        public void RemoveRange(IEnumerable<IXPrimitive> ents, CancellationToken cancellationToken) => throw new NotImplementedException();
 
         public IEnumerator<IXPrimitive> GetEnumerator() => throw new NotImplementedException();
 
