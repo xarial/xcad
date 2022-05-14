@@ -55,29 +55,31 @@ namespace Xarial.XCad.SolidWorks.Sketch
             m_Cache = new List<IXSketchEntity>();
         }
 
-        internal void CommitCache(ISketch sketch)
+        internal void CommitCache(ISketch sketch, CancellationToken cancellationToken)
         {
-            CreateSegments(m_Cache, sketch);
+            CreateSegments(m_Cache, sketch, cancellationToken);
 
             m_Cache.Clear();
         }
 
-        private void CreateSegments(IEnumerable<IXSketchEntity> segments, ISketch sketch)
+        private void CreateSegments(IEnumerable<IXSketchEntity> segments, ISketch sketch, CancellationToken cancellationToken)
         {
             var addToDbOrig = m_SkMgr.AddToDB;
 
-            m_Sketch.SetEditMode(sketch, true);
-
-            m_SkMgr.AddToDB = true;
-
-            foreach (SwSketchEntity seg in segments)
+            try
             {
-                seg.Commit();
+                m_Sketch.SetEditMode(sketch, true);
+
+                m_SkMgr.AddToDB = true;
+
+                RepositoryHelper.AddRange(this, segments, cancellationToken);
             }
+            finally
+            {
+                m_SkMgr.AddToDB = addToDbOrig;
 
-            m_SkMgr.AddToDB = addToDbOrig;
-
-            m_Sketch.SetEditMode(sketch, false);
+                m_Sketch.SetEditMode(sketch, false);
+            }
         }
 
         public IXCurve Merge(IXCurve[] curves)
@@ -120,7 +122,7 @@ namespace Xarial.XCad.SolidWorks.Sketch
         {
             if (m_Sketch.IsCommitted)
             {
-                CreateSegments(ents.Cast<IXSketchEntity>(), m_Sketch.Sketch);
+                CreateSegments(ents.Cast<IXSketchEntity>(), m_Sketch.Sketch, cancellationToken);
             }
             else
             {

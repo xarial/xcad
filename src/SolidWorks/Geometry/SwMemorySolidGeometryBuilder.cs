@@ -50,13 +50,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         public bool TryGet(string name, out IXPrimitive ent) => throw new NotImplementedException();
 
-        public void AddRange(IEnumerable<IXPrimitive> ents, CancellationToken cancellationToken)
-        {
-            foreach (var ent in ents) 
-            {
-                ent.Commit();
-            }
-        }
+        public void AddRange(IEnumerable<IXPrimitive> ents, CancellationToken cancellationToken) => RepositoryHelper.AddRange(this, ents, cancellationToken);
 
         public void RemoveRange(IEnumerable<IXPrimitive> ents, CancellationToken cancellationToken) => throw new NotImplementedException();
 

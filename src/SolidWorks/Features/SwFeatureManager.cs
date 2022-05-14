@@ -94,18 +94,7 @@ namespace Xarial.XCad.SolidWorks.Features
             m_ParamsParser = new MacroFeatureParametersParser(app);
         }
 
-        public virtual void AddRange(IEnumerable<IXFeature> feats, CancellationToken cancellationToken)
-        {
-            if (feats == null)
-            {
-                throw new ArgumentNullException(nameof(feats));
-            }
-
-            foreach (SwFeature feat in feats)
-            {
-                feat.Commit();
-            }
-        }
+        public virtual void AddRange(IEnumerable<IXFeature> feats, CancellationToken cancellationToken) => RepositoryHelper.AddRange(this, feats, cancellationToken);
 
         public virtual IEnumerator<IXFeature> GetEnumerator()
             => new DocumentFeatureEnumerator(Document, GetFirstFeature(), new Context(Document));

@@ -514,13 +514,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             return false;
         }
 
-        public void AddRange(IEnumerable<IXDocument> ents, CancellationToken cancellationToken)
-        {
-            foreach (SwDocument doc in ents) 
-            {
-                doc.Commit();
-            }
-        }
+        public void AddRange(IEnumerable<IXDocument> ents, CancellationToken cancellationToken) => RepositoryHelper.AddRange(this, ents, cancellationToken);
 
         public void RemoveRange(IEnumerable<IXDocument> ents, CancellationToken cancellationToken)
         {

@@ -37,13 +37,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public int Count => GetSwViews().Count();
 
-        public void AddRange(IEnumerable<IXDrawingView> ents, CancellationToken cancellationToken)
-        {
-            foreach (SwDrawingView view in ents) 
-            {
-                view.Commit();
-            }
-        }
+        public void AddRange(IEnumerable<IXDrawingView> ents, CancellationToken cancellationToken) => RepositoryHelper.AddRange(this, ents, cancellationToken);
 
         public IEnumerator<IXDrawingView> GetEnumerator() => GetDrawingViews().GetEnumerator();
 
