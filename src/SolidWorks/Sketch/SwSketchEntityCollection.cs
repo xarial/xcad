@@ -137,7 +137,11 @@ namespace Xarial.XCad.SolidWorks.Sketch
             => RepositoryHelper.PreCreate<IXWireEntity, T>(this,
                 () => new SwSketchLine(null, m_Doc, m_App, false),
                 () => new SwSketchPoint(null, m_Doc, m_App, false),
-                () => new SwSketchCircle(null, m_Doc, m_App, false));
+                () => new SwSketchCircle(null, m_Doc, m_App, false),
+                () => new SwSketchArc(null, m_Doc, m_App, false),
+                () => new SwSketchEllipse(null, m_Doc, m_App, false),
+                () => new SwSketchSpline(null, m_Doc, m_App, false),
+                () => new SwSketchText(null, m_Doc, m_App, false));
 
         public IEnumerator<IXWireEntity> GetEnumerator() => IterateEntities().GetEnumerator();
     }

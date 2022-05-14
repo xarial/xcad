@@ -66,9 +66,9 @@ namespace Xarial.XCad.SolidWorks.Geometry
             => throw new NotImplementedException();
 
         public T PreCreate<T>() where T : IXWireEntity
-            => RepositoryHelper.PreCreate<IXWireEntity, T>(this, 
-                () => new SwArcCurve(null, null, m_App, false),
+            => RepositoryHelper.PreCreate<IXWireEntity, T>(this,
                 () => new SwCircleCurve(null, null, m_App, false),
+                () => new SwArcCurve(null, null, m_App, false),
                 () => new SwLineCurve(null, null, m_App, false),
                 () => new SwPolylineCurve(null, null, m_App, false),
                 () => new SwPoint(null, null, m_App));

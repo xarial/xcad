@@ -35,9 +35,9 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         IXPartConfigurationRepository IXPart.Configurations => m_LazyConfigurations.Value;
 
-        public override ISwDmConfigurationCollection Configurations => ((ISwDmPart)this).Configurations;
+        public override ISwDmConfigurationCollection Configurations => m_LazyConfigurations.Value;
 
-        ISwDmPartConfigurationCollection ISwDmPart.Configurations => ((ISwDmPart)this).Configurations;
+        ISwDmPartConfigurationCollection ISwDmPart.Configurations => m_LazyConfigurations.Value;
     }
 
     internal class SwDmVirtualPart : SwDmPart

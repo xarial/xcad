@@ -477,11 +477,11 @@ namespace Xarial.XCad.SolidWorks.Documents
         public T PreCreate<T>() where T : IXDocument
         {
             var doc = RepositoryHelper.PreCreate<IXDocument, T>(this,
+                () => new SwUnknownDocument(null, m_App, m_Logger, false),
+                () => new SwUnknownDocument3D(null, m_App, m_Logger, false),
                 () => new SwPart(null, m_App, m_Logger, false),
                 () => new SwAssembly(null, m_App, m_Logger, false),
-                () => new SwDrawing(null, m_App, m_Logger, false),
-                () => new SwUnknownDocument3D(null, m_App, m_Logger, false),
-                () => new SwUnknownDocument(null, m_App, m_Logger, false));
+                () => new SwDrawing(null, m_App, m_Logger, false));
 
             if (doc is SwDocument)
             {
