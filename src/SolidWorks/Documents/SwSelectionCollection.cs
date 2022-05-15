@@ -23,6 +23,7 @@ using Xarial.XCad.UI;
 using Xarial.XCad.Toolkit;
 using Xarial.XCad.SolidWorks.Graphics;
 using Xarial.XCad.Graphics;
+using System.Threading;
 
 namespace Xarial.XCad.SolidWorks.Documents
 {
@@ -80,7 +81,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             m_ClearSelectionEventHandler = new ClearSelectionEventHandler(doc, app);
         }
 
-        public void AddRange(IEnumerable<IXSelObject> ents)
+        public void AddRange(IEnumerable<IXSelObject> ents, CancellationToken cancellationToken)
         {
             if (ents == null) 
             {
@@ -105,7 +106,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         public IEnumerator<IXSelObject> GetEnumerator()
             => new SwSelObjectEnumerator(m_Doc, SelMgr);
 
-        public void RemoveRange(IEnumerable<IXSelObject> ents)
+        public void RemoveRange(IEnumerable<IXSelObject> ents, CancellationToken cancellationToken)
         {
             const int RESULT_TRUE = 1;
 
@@ -153,6 +154,8 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public ISwSelCallout PreCreateCallout<T>() where T : SwCalloutBaseHandler, new()
             => new SwSelCallout(m_Doc, this, new T());
+
+        public T PreCreate<T>() where T : IXSelObject => throw new NotImplementedException();
     }
 
     internal class SwSelObjectEnumerator : IEnumerator<IXSelObject>

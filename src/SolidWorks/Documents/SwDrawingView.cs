@@ -355,13 +355,16 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public int Count => throw new NotImplementedException();
 
-        public void AddRange(IEnumerable<IXDimension> ents)
+        public void AddRange(IEnumerable<IXDimension> ents, CancellationToken cancellationToken)
             => throw new NotImplementedException();
 
         public IEnumerator<IXDimension> GetEnumerator()
             => IterateDimensions().GetEnumerator();
 
-        public void RemoveRange(IEnumerable<IXDimension> ents)
+        public T PreCreate<T>() where T : IXDimension
+            => throw new NotImplementedException();
+
+        public void RemoveRange(IEnumerable<IXDimension> ents, CancellationToken cancellationToken)
             => throw new NotImplementedException();
 
         public bool TryGet(string name, out IXDimension ent)

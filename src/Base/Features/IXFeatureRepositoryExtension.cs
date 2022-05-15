@@ -39,5 +39,32 @@ namespace Xarial.XCad.Features
             where TPage : class
             where TDef : class, IXCustomFeatureDefinition<TParams, TPage>, new()
             => feats.CreateCustomFeature<TDef, TParams, TPage>(new TParams());
+
+        /// <summary>
+        /// Creates a template for 2D sketch
+        /// </summary>
+        /// <returns>2D sketch template</returns>
+        public static IXSketch2D PreCreate2DSketch(this IXFeatureRepository feats) => feats.PreCreate<IXSketch2D>();
+
+        /// <summary>
+        /// Creates a template for 3D sketch
+        /// </summary>
+        /// <returns>2D sketch template</returns>
+        public static IXSketch3D PreCreate3DSketch(this IXFeatureRepository feats) => feats.PreCreate<IXSketch3D>();
+
+        /// <summary>
+        /// Pre-creates custom feature
+        /// </summary>
+        /// <returns>Instance of custom feature</returns>
+        public static IXCustomFeature PreCreateCustomFeature(this IXFeatureRepository feats) => feats.PreCreate<IXCustomFeature>();
+
+        /// <summary>
+        /// Pre-creates custom feature with specific parameters
+        /// </summary>
+        /// <typeparam name="TParams">Type of parameters managed by this custom feature</typeparam>
+        /// <returns>Instance of custom feature</returns>
+        public static IXCustomFeature<TParams> PreCreateCustomFeature<TParams>(this IXFeatureRepository feats)
+            where TParams : class
+            => feats.PreCreate<IXCustomFeature<TParams>>();
     }
 }

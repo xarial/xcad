@@ -16,20 +16,6 @@ namespace Xarial.XCad.Features
     public interface IXFeatureRepository : IXRepository<IXFeature>
     {
         /// <summary>
-        /// Pre-creates custom feature
-        /// </summary>
-        /// <returns>Instance of custom feature</returns>
-        IXCustomFeature PreCreateCustomFeature();
-
-        /// <summary>
-        /// Pre-creates custom feature with specific parameters
-        /// </summary>
-        /// <typeparam name="TParams">Type of parameters managed by this custom feature</typeparam>
-        /// <returns>Instance of custom feature</returns>
-        IXCustomFeature<TParams> PreCreateCustomFeature<TParams>()
-            where TParams : class;
-
-        /// <summary>
         /// Creates a custom feature with built-in editor for the property page
         /// </summary>
         /// <param name="data">Feature data</param>
@@ -40,18 +26,6 @@ namespace Xarial.XCad.Features
             where TParams : class
             where TPage : class
             where TDef : class, IXCustomFeatureDefinition<TParams, TPage>, new();
-
-        /// <summary>
-        /// Creates a template for 2D sketch
-        /// </summary>
-        /// <returns>2D sketch template</returns>
-        IXSketch2D PreCreate2DSketch();
-
-        /// <summary>
-        /// Creates a template for 3D sketch
-        /// </summary>
-        /// <returns>2D sketch template</returns>
-        IXSketch3D PreCreate3DSketch();
 
         /// <summary>
         /// Enables or disables feature tree

@@ -11,8 +11,10 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
+using Xarial.XCad.Toolkit.Utils;
 
 namespace Xarial.XCad.SolidWorks.Documents
 {
@@ -31,35 +33,16 @@ namespace Xarial.XCad.SolidWorks.Documents
             m_Sheet = sheet;
         }
 
-        public IXDrawingView this[string name] 
-        {
-            get 
-            {
-                if (!TryGet(name, out IXDrawingView view)) 
-                {
-                    throw new Exception("Failed to find the view by name");
-                }
-
-                return view;
-            }
-        }
+        public IXDrawingView this[string name] => RepositoryHelper.Get(this, name);
 
         public int Count => GetSwViews().Count();
 
-        public void AddRange(IEnumerable<IXDrawingView> ents)
-        {
-            foreach (SwDrawingView view in ents) 
-            {
-                view.Commit();
-            }
-        }
+        public void AddRange(IEnumerable<IXDrawingView> ents, CancellationToken cancellationToken) => RepositoryHelper.AddRange(this, ents, cancellationToken);
 
         public IEnumerator<IXDrawingView> GetEnumerator() => GetDrawingViews().GetEnumerator();
 
-        public void RemoveRange(IEnumerable<IXDrawingView> ents)
-        {
-            throw new NotImplementedException();
-        }
+        public void RemoveRange(IEnumerable<IXDrawingView> ents, CancellationToken cancellationToken)
+            => throw new NotImplementedException();
 
         public bool TryGet(string name, out IXDrawingView ent)
         {
@@ -117,16 +100,8 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        TDrawingView IXDrawingViewRepository.PreCreate<TDrawingView>()
-        {
-            if (typeof(TDrawingView).IsAssignableFrom(typeof(SwModelBasedDrawingView)))
-            {
-                return new SwModelBasedDrawingView(null, m_Draw, m_Sheet, false) as TDrawingView;
-            }
-            else 
-            {
-                throw new NotSupportedException("Precreation of this drawing view is not supported");
-            }
-        }
+        public T PreCreate<T>() where T : IXDrawingView
+            => RepositoryHelper.PreCreate<IXDrawingView, T>(this,
+                () => new SwModelBasedDrawingView(null, m_Draw, m_Sheet, false));
     }
 }

@@ -13,11 +13,18 @@ namespace Xarial.XCad.Geometry
     /// Provides methods to buld sheet geometry
     /// </summary>
     public interface IXSheetGeometryBuilder : IX3DGeometryBuilder
+    {   
+    }
+
+    /// <summary>
+    /// Additional methods for <see cref="IXSheetGeometryBuilder"/>
+    /// </summary>
+    public static class XSheetGeometryBuilderExtension 
     {
         /// <summary>
         /// Creates new instance of planar sheet
         /// </summary>
         /// <returns>Planar sheet template</returns>
-        IXPlanarSheet PreCreatePlanarSheet();
+        public static IXPlanarSheet PreCreatePlanarSheet(this IXSheetGeometryBuilder geomBuilder) => geomBuilder.PreCreate<IXPlanarSheet>();
     }
 }

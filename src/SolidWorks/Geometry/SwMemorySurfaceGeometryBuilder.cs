@@ -7,48 +7,33 @@
 
 using SolidWorks.Interop.sldworks;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Primitives;
 using Xarial.XCad.SolidWorks.Geometry.Primitives;
+using Xarial.XCad.Toolkit.Utils;
 
 namespace Xarial.XCad.SolidWorks.Geometry
 {
     public interface ISwMemorySheetGeometryBuilder : IXSheetGeometryBuilder
     {
-        new ISwTempPlanarSheet PreCreatePlanarSheet();
-        new ISwTempSurfaceKnit PreCreateKnit();
     }
 
     internal class SwMemorySheetGeometryBuilder : ISwMemorySheetGeometryBuilder
     {
-        IXPlanarSheet IXSheetGeometryBuilder.PreCreatePlanarSheet() => PreCreatePlanarSheet();
-        IXKnit IX3DGeometryBuilder.PreCreateKnit() => PreCreateKnit();
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-        public IXExtrusion PreCreateExtrusion()
-        {
-            throw new NotImplementedException();
-        }
+        public bool TryGet(string name, out IXPrimitive ent) => throw new NotImplementedException();
+        public void AddRange(IEnumerable<IXPrimitive> ents, CancellationToken cancellationToken) => throw new NotImplementedException();
+        public void RemoveRange(IEnumerable<IXPrimitive> ents, CancellationToken cancellationToken) => throw new NotImplementedException();
 
-        public IXLoft PreCreateLoft()
-        {
-            throw new NotImplementedException();
-        }
+        public IEnumerator<IXPrimitive> GetEnumerator() => throw new NotImplementedException();
 
-        public IXRevolve PreCreateRevolve()
-        {
-            throw new NotImplementedException();
-        }
-
-        public IXSweep PreCreateSweep()
-        {
-            throw new NotImplementedException();
-        }
-
-        public ISwTempPlanarSheet PreCreatePlanarSheet() => new SwTempPlanarSheet(null, m_App, false);
-
-        public ISwTempSurfaceKnit PreCreateKnit() => new SwTempSurfaceKnit(null, m_App, false);
+        public int Count => throw new NotImplementedException();
+        public IXPrimitive this[string name] => throw new NotImplementedException();
 
         private readonly ISwApplication m_App;
 
@@ -62,5 +47,10 @@ namespace Xarial.XCad.SolidWorks.Geometry
             m_MathUtils = m_App.Sw.IGetMathUtility();
             m_Modeler = m_App.Sw.IGetModeler();
         }
+
+        public T PreCreate<T>() where T : IXPrimitive
+            => RepositoryHelper.PreCreate<IXPrimitive, T>(this, 
+                () => new SwTempPlanarSheet(null, m_App, false),
+                () => new SwTempSurfaceKnit(null, m_App, false));
     }
 }

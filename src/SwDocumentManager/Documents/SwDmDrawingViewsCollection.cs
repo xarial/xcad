@@ -13,6 +13,8 @@ using Xarial.XCad.Documents;
 using Xarial.XCad.Base;
 using SolidWorks.Interop.swdocumentmgr;
 using System.Linq;
+using System.Threading;
+using Xarial.XCad.Toolkit.Utils;
 
 namespace Xarial.XCad.SwDocumentManager.Documents
 {
@@ -23,17 +25,12 @@ namespace Xarial.XCad.SwDocumentManager.Documents
     internal class SwDmDrawingViewsCollection : ISwDmDrawingViewsCollection
     {
         #region Not Supported
-
-        public void AddRange(IEnumerable<IXDrawingView> ents)
-            => throw new NotSupportedException();
-        TDrawingView IXDrawingViewRepository.PreCreate<TDrawingView>()
-            => throw new NotSupportedException();
-        public void RemoveRange(IEnumerable<IXDrawingView> ents)
-            => throw new NotSupportedException();
-
+        public void AddRange(IEnumerable<IXDrawingView> ents, CancellationToken cancellationToken) => throw new NotSupportedException();
+        public void RemoveRange(IEnumerable<IXDrawingView> ents, CancellationToken cancellationToken) => throw new NotSupportedException();
+        public T PreCreate<T>() where T : IXDrawingView => throw new NotSupportedException();
         #endregion
 
-        public IXDrawingView this[string name] => this.Get(name);
+        public IXDrawingView this[string name] => RepositoryHelper.Get(this, name);
 
         public int Count => (((ISwDMSheet4)m_Sheet.Sheet).GetViews() as object[] ?? new object[0]).Length;
 

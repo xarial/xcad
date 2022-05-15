@@ -11,11 +11,13 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Delegates;
 using Xarial.XCad.Exceptions;
 using Xarial.XCad.SwDocumentManager.Exceptions;
+using Xarial.XCad.Toolkit.Utils;
 
 namespace Xarial.XCad.SwDocumentManager.Documents
 {
@@ -28,12 +30,14 @@ namespace Xarial.XCad.SwDocumentManager.Documents
     internal abstract class SwDmConfigurationCollection : ISwDmConfigurationCollection
     {
         #region Not Supported
-
-        public event ConfigurationActivatedDelegate ConfigurationActivated;
-
-        public void AddRange(IEnumerable<IXConfiguration> ents) => throw new NotSupportedException();
+        public event ConfigurationActivatedDelegate ConfigurationActivated 
+        {
+            add => throw new NotSupportedException();
+            remove => throw new NotSupportedException();
+        }
+        public void AddRange(IEnumerable<IXConfiguration> ents, CancellationToken cancellationToken) => throw new NotSupportedException();
         public IXConfiguration PreCreate() => throw new NotSupportedException();
-
+        public T PreCreate<T>() where T : IXConfiguration => throw new NotSupportedException();
         #endregion
 
         IXConfiguration IXRepository<IXConfiguration>.this[string name] => this[name];
@@ -44,7 +48,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             set => throw new NotSupportedException();
         }
 
-        public ISwDmConfiguration this[string name] => (ISwDmConfiguration)this.Get(name);
+        public ISwDmConfiguration this[string name] => (ISwDmConfiguration)RepositoryHelper.Get(this, name);
 
         public ISwDmConfiguration Active 
         {
@@ -151,7 +155,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             return true;
         }
 
-        public void RemoveRange(IEnumerable<IXConfiguration> ents) 
+        public void RemoveRange(IEnumerable<IXConfiguration> ents, CancellationToken cancellationToken) 
         {
             var activeConfName = m_Doc.Document.ConfigurationManager.GetActiveConfigurationName();
 
@@ -204,11 +208,11 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             set => (this as IXConfigurationRepository).Active = value;
         }
 
-        public void AddRange(IEnumerable<IXAssemblyConfiguration> ents)
-            => base.AddRange(ents);
+        public void AddRange(IEnumerable<IXAssemblyConfiguration> ents, CancellationToken cancellationToken)
+            => base.AddRange(ents, cancellationToken);
 
-        public void RemoveRange(IEnumerable<IXAssemblyConfiguration> ents)
-            => base.RemoveRange(ents);
+        public void RemoveRange(IEnumerable<IXAssemblyConfiguration> ents, CancellationToken cancellationToken)
+            => base.RemoveRange(ents, cancellationToken);
 
         public bool TryGet(string name, out IXAssemblyConfiguration ent)
         {
@@ -244,11 +248,11 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             set => (this as IXConfigurationRepository).Active = value;
         }
 
-        public void AddRange(IEnumerable<IXPartConfiguration> ents)
-            => base.AddRange(ents);
+        public void AddRange(IEnumerable<IXPartConfiguration> ents, CancellationToken cancellationToken)
+            => base.AddRange(ents, cancellationToken);
 
-        public void RemoveRange(IEnumerable<IXPartConfiguration> ents)
-            => base.RemoveRange(ents);
+        public void RemoveRange(IEnumerable<IXPartConfiguration> ents, CancellationToken cancellationToken)
+            => base.RemoveRange(ents, cancellationToken);
 
         public bool TryGet(string name, out IXPartConfiguration ent)
         {

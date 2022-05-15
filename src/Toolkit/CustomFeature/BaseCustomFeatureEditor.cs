@@ -25,6 +25,7 @@ using Xarial.XCad.UI.PropertyPage.Delegates;
 using System.Collections.Generic;
 using Xarial.XCad.Exceptions;
 using Xarial.XCad.Toolkit.Utils;
+using Xarial.XCad.Features;
 
 namespace Xarial.XCad.Utils.CustomFeature
 {

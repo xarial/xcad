@@ -11,8 +11,10 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
+using Xarial.XCad.Toolkit.Utils;
 
 namespace Xarial.XCad.SolidWorks.Documents
 {
@@ -45,21 +47,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public ISwModelView Active => m_Doc.CreateObjectFromDispatch<ISwModelView>(m_Doc.Model.IActiveView);
 
-        public ISwNamedView this[string name]
-        {
-            get
-            {
-                if (TryGet(name, out IXModelView view))
-                {
-                    return (SwNamedView)view;
-                }
-                else
-                {
-                    throw new Exception("Failed to find the named view");
-
-                }
-            }
-        }
+        public ISwNamedView this[string name] => (ISwNamedView)RepositoryHelper.Get(this, name);
 
         public bool TryGet(string name, out IXModelView ent)
         {
@@ -78,10 +66,11 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        public void AddRange(IEnumerable<IXModelView> ents) => throw new NotImplementedException();
+        public void AddRange(IEnumerable<IXModelView> ents, CancellationToken cancellationToken) => throw new NotImplementedException();
         public IEnumerator<IXModelView> GetEnumerator() => throw new NotImplementedException();
-        public void RemoveRange(IEnumerable<IXModelView> ents) => throw new NotImplementedException();
+        public void RemoveRange(IEnumerable<IXModelView> ents, CancellationToken cancellationToken) => throw new NotImplementedException();
         IEnumerator IEnumerable.GetEnumerator() => throw new NotImplementedException();
+        public T PreCreate<T>() where T : IXModelView => throw new NotImplementedException();
     }
 
     internal class SwModelViews3DCollection : SwModelViewsCollection, ISwModelViews3DCollection

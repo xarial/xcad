@@ -12,6 +12,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading;
 using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Features;
@@ -21,6 +22,8 @@ using Xarial.XCad.SolidWorks.Features.CustomFeature;
 using Xarial.XCad.SolidWorks.Features.CustomFeature.Toolkit;
 using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.Toolkit.CustomFeature;
+using Xarial.XCad.Toolkit.Utils;
+using Xarial.XCad.Utils.Reflection;
 
 namespace Xarial.XCad.SolidWorks.Features
 {
@@ -43,7 +46,7 @@ namespace Xarial.XCad.SolidWorks.Features
 
         IXFeature IXRepository<IXFeature>.this[string name] => this[name];
 
-        public ISwFeature this[string name] => (ISwFeature)this.Get(name);
+        public ISwFeature this[string name] => (ISwFeature)RepositoryHelper.Get(this, name);
 
         public virtual bool TryGet(string name, out IXFeature ent)
         {
@@ -91,22 +94,8 @@ namespace Xarial.XCad.SolidWorks.Features
             m_ParamsParser = new MacroFeatureParametersParser(app);
         }
 
-        public virtual void AddRange(IEnumerable<IXFeature> feats)
-        {
-            if (feats == null)
-            {
-                throw new ArgumentNullException(nameof(feats));
-            }
+        public virtual void AddRange(IEnumerable<IXFeature> feats, CancellationToken cancellationToken) => RepositoryHelper.AddRange(this, feats, cancellationToken);
 
-            foreach (SwFeature feat in feats)
-            {
-                feat.Commit();
-            }
-        }
-
-        public IXSketch2D PreCreate2DSketch() => new SwSketch2D(default(ISketch), Document, m_App, false);
-        public IXSketch3D PreCreate3DSketch() => new SwSketch3D(default(ISketch), Document, m_App, false);
-        
         public virtual IEnumerator<IXFeature> GetEnumerator()
             => new DocumentFeatureEnumerator(Document, GetFirstFeature(), new Context(Document));
 
@@ -114,14 +103,7 @@ namespace Xarial.XCad.SolidWorks.Features
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-        public IXCustomFeature<TParams> PreCreateCustomFeature<TParams>()
-            where TParams : class
-            => new SwMacroFeature<TParams>(null, Document, m_App, m_ParamsParser, false);
-
-        public IXCustomFeature PreCreateCustomFeature()
-            => new SwMacroFeature(null, Document, m_App, false);
-
-        public void RemoveRange(IEnumerable<IXFeature> ents)
+        public void RemoveRange(IEnumerable<IXFeature> ents, CancellationToken cancellationToken)
         {
             var disps = ents.Cast<SwFeature>().Select(e => new DispatchWrapper(e.Feature)).ToArray();
 
@@ -152,6 +134,23 @@ namespace Xarial.XCad.SolidWorks.Features
         {
             FeatMgr.EnableFeatureTree = enable;
             FeatMgr.EnableFeatureTreeWindow = enable;
+        }
+
+        public T PreCreate<T>() where T : IXFeature
+        {
+            if (typeof(T).IsAssignableToGenericType(typeof(IXCustomFeature<>)))
+            {
+                var macroFeatureParamsType = typeof(T).GetArgumentsOfGenericType(typeof(IXCustomFeature<>)).First();
+                var feat = SwMacroFeature<object>.CreateSpecificInstance(null, Document, m_App, macroFeatureParamsType, m_ParamsParser);
+                return (T)(object)feat;
+            }
+            else 
+            {
+                return RepositoryHelper.PreCreate<IXFeature, T>(this,
+                    () => new SwSketch2D(default(ISketch), Document, m_App, false),
+                    () => new SwSketch3D(default(ISketch), Document, m_App, false),
+                    () => new SwMacroFeature(null, Document, m_App, false));
+            }
         }
     }
 

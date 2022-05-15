@@ -20,13 +20,14 @@ using Xarial.XCad.Documents.Delegates;
 using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Features;
 using Xarial.XCad.SolidWorks.Documents.EventHandlers;
+using Xarial.XCad.Toolkit.Utils;
 using Xarial.XCad.UI;
 
 namespace Xarial.XCad.SolidWorks.Documents
 {
     public interface ISwConfigurationCollection : IXConfigurationRepository, IDisposable
     {
-        new ISwConfiguration PreCreate();
+        ISwConfiguration PreCreate();
         new ISwConfiguration Active { get; set; }
     }
 
@@ -50,8 +51,6 @@ namespace Xarial.XCad.SolidWorks.Documents
             set => Active = (ISwConfiguration)value;
         }
 
-        IXConfiguration IXConfigurationRepository.PreCreate() => PreCreate();
-
         protected readonly ISwApplication m_App;
         private readonly SwDocument3D m_Doc;
 
@@ -64,7 +63,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             m_ConfigurationActivatedEventsHandler = new ConfigurationActivatedEventsHandler(doc, app);
         }
 
-        public IXConfiguration this[string name] => this.Get(name);
+        public IXConfiguration this[string name] => RepositoryHelper.Get(this, name);
 
         public bool TryGet(string name, out IXConfiguration ent)
         {
@@ -126,21 +125,15 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public ISwConfiguration PreCreate() => new SwConfiguration(null, m_Doc, m_App, false);
 
-        public void AddRange(IEnumerable<IXConfiguration> ents)
-        {
-            foreach (var conf in ents) 
-            {
-                conf.Commit();
-            }
-        }
-        
+        public void AddRange(IEnumerable<IXConfiguration> ents, CancellationToken cancellationToken) => RepositoryHelper.AddRange(this, ents, cancellationToken);
+
         public void Dispose()
         {
         }
 
         public IEnumerator<IXConfiguration> GetEnumerator() => new SwConfigurationEnumerator(m_App, m_Doc);
 
-        public void RemoveRange(IEnumerable<IXConfiguration> ents)
+        public void RemoveRange(IEnumerable<IXConfiguration> ents, CancellationToken cancellationToken)
         {
             foreach (var conf in ents) 
             {
@@ -169,6 +162,8 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+        public T PreCreate<T>() where T : IXConfiguration => (T)PreCreate();
     }
 
     internal class SwConfigurationEnumerator : SwConfigurationEnumeratorBase<SwConfiguration>
@@ -298,11 +293,11 @@ namespace Xarial.XCad.SolidWorks.Documents
             set => this.Active = (ISwAssemblyConfiguration)value;
         }
 
-        public void AddRange(IEnumerable<IXAssemblyConfiguration> ents)
-            => base.AddRange(ents);
+        public void AddRange(IEnumerable<IXAssemblyConfiguration> ents, CancellationToken cancellationToken)
+            => base.AddRange(ents, cancellationToken);
 
-        public void RemoveRange(IEnumerable<IXAssemblyConfiguration> ents)
-            => base.RemoveRange(ents);
+        public void RemoveRange(IEnumerable<IXAssemblyConfiguration> ents, CancellationToken cancellationToken)
+            => base.RemoveRange(ents, cancellationToken);
 
         public bool TryGet(string name, out IXAssemblyConfiguration ent)
         {
@@ -367,11 +362,11 @@ namespace Xarial.XCad.SolidWorks.Documents
             set => this.Active = (ISwPartConfiguration)value;
         }
 
-        public void AddRange(IEnumerable<IXPartConfiguration> ents)
-            => base.AddRange(ents);
+        public void AddRange(IEnumerable<IXPartConfiguration> ents, CancellationToken cancellationToken)
+            => base.AddRange(ents, cancellationToken);
 
-        public void RemoveRange(IEnumerable<IXPartConfiguration> ents)
-            => base.RemoveRange(ents);
+        public void RemoveRange(IEnumerable<IXPartConfiguration> ents, CancellationToken cancellationToken)
+            => base.RemoveRange(ents, cancellationToken);
 
         public bool TryGet(string name, out IXPartConfiguration ent)
         {

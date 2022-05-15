@@ -14,6 +14,8 @@ using System.Text;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Delegates;
 using Xarial.XCad.Base;
+using System.Threading;
+using Xarial.XCad.Toolkit.Utils;
 
 namespace Xarial.XCad.SwDocumentManager.Documents
 {
@@ -24,15 +26,11 @@ namespace Xarial.XCad.SwDocumentManager.Documents
     internal class SwDmSheetCollection : ISwDmSheetCollection
     {
         #region Not Supported
-
         public event SheetActivatedDelegate SheetActivated;
 
-        public void AddRange(IEnumerable<IXSheet> ents)
-            => throw new NotSupportedException();
-
-        public void RemoveRange(IEnumerable<IXSheet> ents)
-            => throw new NotSupportedException();
-
+        public void AddRange(IEnumerable<IXSheet> ents, CancellationToken cancellationToken) => throw new NotSupportedException();
+        public void RemoveRange(IEnumerable<IXSheet> ents, CancellationToken cancellationToken) => throw new NotSupportedException();
+        public T PreCreate<T>() where T : IXSheet => throw new NotSupportedException();
         #endregion
 
         private readonly SwDmDrawing m_Drw;
@@ -42,8 +40,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             m_Drw = drw;
         }
 
-        public IXSheet this[string name] 
-            => this.Get(name);
+        public IXSheet this[string name]  => RepositoryHelper.Get(this, name);
 
         public IXSheet Active 
         {

@@ -17,12 +17,5 @@ namespace Xarial.XCad.Documents
     /// </summary>
     public interface IXDrawingViewRepository : IXRepository<IXDrawingView>
     {
-        /// <summary>
-        /// Precreates a specific drawing view
-        /// </summary>
-        /// <typeparam name="TDrawingView">Type of drawing view to precreate</typeparam>
-        /// <returns>Drawing view template</returns>
-        TDrawingView PreCreate<TDrawingView>()
-            where TDrawingView : class, IXDrawingView;
     }
 }

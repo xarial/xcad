@@ -116,7 +116,7 @@ namespace Xarial.XCad.SolidWorks.Features
         {
             var sketch = CreateSketch();
 
-            m_SwEntsColl.CommitCache(sketch);
+            m_SwEntsColl.CommitCache(sketch, cancellationToken);
 
             m_Sketch = sketch;
 

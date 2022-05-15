@@ -170,7 +170,9 @@ namespace Xarial.XCad.Documents
     /// <summary>
     /// Represents the unknown document type
     /// </summary>
-    public interface IXUnknownDocument : IXDocument 
+    /// <remarks>This interface provides an access to the document whose specific type cannot be determined in advance
+    /// (e.g. imported document types might be both parts and assemblies and it is not known until the document is opened)</remarks>
+    public interface IXUnknownDocument : IXDocument
     {
         /// <summary>
         /// Retrieves the specific document from the unknown document

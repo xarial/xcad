@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using Xarial.XCad.Base;
 using Xarial.XCad.Base.Enums;
 using Xarial.XCad.Documents;
@@ -24,6 +25,7 @@ using Xarial.XCad.Exceptions;
 using Xarial.XCad.SolidWorks.Documents.Services;
 using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.Toolkit.Services;
+using Xarial.XCad.Toolkit.Utils;
 using Xarial.XCad.Utils.Diagnostics;
 
 namespace Xarial.XCad.SolidWorks.Documents
@@ -168,20 +170,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        public IXDocument this[string name] 
-        {
-            get 
-            {
-                if (TryGet(name, out IXDocument doc))
-                {
-                    return doc;
-                }
-                else 
-                {
-                    throw new EntityNotFoundException(name);
-                }
-            }
-        }
+        public IXDocument this[string name] => RepositoryHelper.Get(this, name);
 
         private bool m_IsAttached;
 
@@ -485,47 +474,25 @@ namespace Xarial.XCad.SolidWorks.Documents
             where THandler : IDocumentHandler
             => m_DocsHandler.GetHandler<THandler>(doc);
 
-        public TDocument PreCreate<TDocument>()
-             where TDocument : class, IXDocument
+        public T PreCreate<T>() where T : IXDocument
         {
-            SwDocument templateDoc;
+            var doc = RepositoryHelper.PreCreate<IXDocument, T>(this,
+                () => new SwUnknownDocument(null, m_App, m_Logger, false),
+                () => new SwUnknownDocument3D(null, m_App, m_Logger, false),
+                () => new SwPart(null, m_App, m_Logger, false),
+                () => new SwAssembly(null, m_App, m_Logger, false),
+                () => new SwDrawing(null, m_App, m_Logger, false));
 
-            if (typeof(IXPart).IsAssignableFrom(typeof(TDocument)))
+            if (doc is SwDocument)
             {
-                templateDoc = new SwPart(null, m_App, m_Logger, false);
-            }
-            else if (typeof(IXAssembly).IsAssignableFrom(typeof(TDocument)))
-            {
-                templateDoc = new SwAssembly(null, m_App, m_Logger, false);
-            }
-            else if (typeof(IXDrawing).IsAssignableFrom(typeof(TDocument)))
-            {
-                templateDoc = new SwDrawing(null, m_App, m_Logger, false);
-            }
-            else if (typeof(IXDocument3D).IsAssignableFrom(typeof(TDocument)))
-            {
-                templateDoc = new SwUnknownDocument3D(null, m_App, m_Logger, false);
-            }
-            else if (typeof(IXDocument).IsAssignableFrom(typeof(TDocument)) 
-                || typeof(IXUnknownDocument).IsAssignableFrom(typeof(TDocument)))
-            {
-                templateDoc = new SwUnknownDocument(null, m_App, m_Logger, false);
-            }
-            else
-            {
-                throw new NotSupportedException("Creation of this type of document is not supported");
-            }
-
-            templateDoc.SetDispatcher(m_DocsDispatcher);
-
-            if (templateDoc is TDocument)
-            {
-                return templateDoc as TDocument;
+                ((SwDocument)(object)doc).SetDispatcher(m_DocsDispatcher);
             }
             else 
             {
-                throw new InvalidCastException($"{templateDoc.GetType().FullName} cannot be cast to {typeof(TDocument).FullName}");
+                throw new InvalidCastException("Document type must be of type SwDocument");
             }
+
+            return doc;
         }
 
         public bool TryGet(string name, out IXDocument ent)
@@ -547,15 +514,9 @@ namespace Xarial.XCad.SolidWorks.Documents
             return false;
         }
 
-        public void AddRange(IEnumerable<IXDocument> ents)
-        {
-            foreach (SwDocument doc in ents) 
-            {
-                doc.Commit();
-            }
-        }
+        public void AddRange(IEnumerable<IXDocument> ents, CancellationToken cancellationToken) => RepositoryHelper.AddRange(this, ents, cancellationToken);
 
-        public void RemoveRange(IEnumerable<IXDocument> ents)
+        public void RemoveRange(IEnumerable<IXDocument> ents, CancellationToken cancellationToken)
         {
             foreach (var doc in ents.ToArray()) 
             {

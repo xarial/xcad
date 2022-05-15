@@ -16,7 +16,7 @@ namespace Xarial.XCad.Geometry.Wires
     /// <summary>
     /// Represents the point entity
     /// </summary>
-    public interface IXPoint : IXTransaction
+    public interface IXPoint : IXWireEntity
     {
         /// <summary>
         /// Coodinate of the point

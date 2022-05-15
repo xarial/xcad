@@ -10,6 +10,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Xarial.XCad.Base;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Curves;
@@ -19,6 +20,7 @@ using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Features;
 using Xarial.XCad.SolidWorks.Geometry;
 using Xarial.XCad.SolidWorks.Geometry.Curves;
+using Xarial.XCad.Toolkit.Utils;
 
 namespace Xarial.XCad.SolidWorks.Sketch
 {
@@ -28,26 +30,13 @@ namespace Xarial.XCad.SolidWorks.Sketch
 
     internal class SwSketchEntityCollection : ISwSketchEntityCollection
     {
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
         public int Count => m_Sketch.IsCommitted 
             ? ((object[])m_Sketch.Sketch.GetSketchSegments() ?? new object[0]).Length + m_Sketch.Sketch.GetSketchPointsCount2() + m_Sketch.Sketch.GetSketchBlockInstanceCount()
             : m_Cache.Count;
 
-        public IXSketchEntity this[string name] => this.Get(name);
-
-        public bool TryGet(string name, out IXSketchEntity ent) 
-        {
-            foreach (var curEnt in IterateEntities())
-            {
-                if (string.Equals(curEnt.Name, name, StringComparison.CurrentCultureIgnoreCase))
-                {
-                    ent = curEnt;
-                    return true;
-                }
-            }
-
-            ent = null;
-            return false;
-        }
+        public IXWireEntity this[string name] => RepositoryHelper.Get(this, name);
 
         private readonly ISwSketchBase m_Sketch;
 
@@ -66,74 +55,35 @@ namespace Xarial.XCad.SolidWorks.Sketch
             m_Cache = new List<IXSketchEntity>();
         }
 
-        public void AddRange(IEnumerable<IXSketchEntity> segments)
+        internal void CommitCache(ISketch sketch, CancellationToken cancellationToken)
         {
-            if (m_Sketch.IsCommitted)
-            {
-                CreateSegments(segments, m_Sketch.Sketch);
-            }
-            else
-            {
-                m_Cache.AddRange(segments);
-            }
-        }
-
-        internal void CommitCache(ISketch sketch)
-        {
-            CreateSegments(m_Cache, sketch);
+            CreateSegments(m_Cache, sketch, cancellationToken);
 
             m_Cache.Clear();
         }
 
-        private void CreateSegments(IEnumerable<IXSketchEntity> segments, ISketch sketch)
+        private void CreateSegments(IEnumerable<IXSketchEntity> segments, ISketch sketch, CancellationToken cancellationToken)
         {
             var addToDbOrig = m_SkMgr.AddToDB;
 
-            m_Sketch.SetEditMode(sketch, true);
-
-            m_SkMgr.AddToDB = true;
-
-            foreach (SwSketchEntity seg in segments)
+            try
             {
-                seg.Commit();
+                m_Sketch.SetEditMode(sketch, true);
+
+                m_SkMgr.AddToDB = true;
+
+                RepositoryHelper.AddRange(this, segments, cancellationToken);
             }
-
-            m_SkMgr.AddToDB = addToDbOrig;
-
-            m_Sketch.SetEditMode(sketch, false);
-        }
-
-        public IEnumerator<IXSketchEntity> GetEnumerator()
-        {
-            if (m_Sketch.IsCommitted)
+            finally
             {
-                return IterateEntities().GetEnumerator();
-            }
-            else
-            {
-                return m_Cache.GetEnumerator();
+                m_SkMgr.AddToDB = addToDbOrig;
+
+                m_Sketch.SetEditMode(sketch, false);
             }
         }
-
-        public IXLine PreCreateLine() => new SwSketchLine(null, m_Doc, m_App, false);
-        public IXPoint PreCreatePoint() => new SwSketchPoint(null, m_Doc, m_App, false);
-
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-
-        public void RemoveRange(IEnumerable<IXSketchEntity> ents)
-        {
-            //TODO: implement removing of entities
-        }
-
-        public IXCircle PreCreateCircle() => new SwSketchCircle(null, m_Doc, m_App, false);
-
-        public IXPolylineCurve PreCreatePolyline()
-            => throw new NotSupportedException();
 
         public IXCurve Merge(IXCurve[] curves)
             => throw new NotSupportedException();
-
-        public IXArc PreCreateArc() => new SwSketchArc(null, m_Doc, m_App, false);
 
         protected virtual IEnumerable<ISwSketchEntity> IterateEntities() 
         {
@@ -152,5 +102,47 @@ namespace Xarial.XCad.SolidWorks.Sketch
                 yield return m_Doc.CreateObjectFromDispatch<SwSketchBlockInstance>(blockInst);
             }
         }
+
+        public bool TryGet(string name, out IXWireEntity ent)
+        {
+            foreach (var curEnt in IterateEntities())
+            {
+                if (string.Equals(curEnt.Name, name, StringComparison.CurrentCultureIgnoreCase))
+                {
+                    ent = curEnt;
+                    return true;
+                }
+            }
+
+            ent = null;
+            return false;
+        }
+
+        public void AddRange(IEnumerable<IXWireEntity> ents, CancellationToken cancellationToken)
+        {
+            if (m_Sketch.IsCommitted)
+            {
+                CreateSegments(ents.Cast<IXSketchEntity>(), m_Sketch.Sketch, cancellationToken);
+            }
+            else
+            {
+                m_Cache.AddRange(ents.Cast<IXSketchEntity>());
+            }
+        }
+
+        public void RemoveRange(IEnumerable<IXWireEntity> ents, CancellationToken cancellationToken)
+            => throw new NotImplementedException();
+
+        public T PreCreate<T>() where T : IXWireEntity
+            => RepositoryHelper.PreCreate<IXWireEntity, T>(this,
+                () => new SwSketchLine(null, m_Doc, m_App, false),
+                () => new SwSketchPoint(null, m_Doc, m_App, false),
+                () => new SwSketchCircle(null, m_Doc, m_App, false),
+                () => new SwSketchArc(null, m_Doc, m_App, false),
+                () => new SwSketchEllipse(null, m_Doc, m_App, false),
+                () => new SwSketchSpline(null, m_Doc, m_App, false),
+                () => new SwSketchText(null, m_Doc, m_App, false));
+
+        public IEnumerator<IXWireEntity> GetEnumerator() => IterateEntities().GetEnumerator();
     }
 }

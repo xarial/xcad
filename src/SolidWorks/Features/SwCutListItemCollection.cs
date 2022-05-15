@@ -18,6 +18,8 @@ using SolidWorks.Interop.swconst;
 using Xarial.XCad.SolidWorks.Documents.Exceptions;
 using Xarial.XCad.SolidWorks.Documents.EventHandlers;
 using Xarial.XCad.Features.Delegates;
+using System.Threading;
+using Xarial.XCad.Toolkit.Utils;
 
 namespace Xarial.XCad.SolidWorks.Features
 {
@@ -25,17 +27,17 @@ namespace Xarial.XCad.SolidWorks.Features
     {
         public abstract event CutListRebuildDelegate CutListRebuild;
 
-        public IXCutListItem this[string name] => this.Get(name);
+        public IXCutListItem this[string name] => RepositoryHelper.Get(this, name);
 
         public int Count => IterateCutLists().Count();
 
-        public void AddRange(IEnumerable<IXCutListItem> ents)
+        public void AddRange(IEnumerable<IXCutListItem> ents, CancellationToken cancellationToken)
             => throw new NotImplementedException();
 
         public IEnumerator<IXCutListItem> GetEnumerator()
             => IterateCutLists().GetEnumerator();
 
-        public void RemoveRange(IEnumerable<IXCutListItem> ents)
+        public void RemoveRange(IEnumerable<IXCutListItem> ents, CancellationToken cancellationToken)
             => throw new NotImplementedException();
 
         public bool TryGet(string name, out IXCutListItem ent)
@@ -56,6 +58,8 @@ namespace Xarial.XCad.SolidWorks.Features
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
         protected abstract IEnumerable<IXCutListItem> IterateCutLists();
+
+        public T PreCreate<T>() where T : IXCutListItem => throw new NotImplementedException();
     }
 
     internal class SwPartCutListItemCollection : SwCutListItemCollection

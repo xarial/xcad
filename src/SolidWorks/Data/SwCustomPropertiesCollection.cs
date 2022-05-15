@@ -12,6 +12,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using Xarial.XCad.Base;
 using Xarial.XCad.Data;
 using Xarial.XCad.Data.Delegates;
@@ -21,19 +22,18 @@ using Xarial.XCad.SolidWorks.Data.Exceptions;
 using Xarial.XCad.SolidWorks.Data.Helpers;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.Toolkit.Services;
+using Xarial.XCad.Toolkit.Utils;
 
 namespace Xarial.XCad.SolidWorks.Data
 {
     public interface ISwCustomPropertiesCollection : IXPropertyRepository, IDisposable
     {
         new ISwCustomProperty this[string name] { get; }
-        new ISwCustomProperty PreCreate();
+        ISwCustomProperty PreCreate();
     }
 
     internal abstract class SwCustomPropertiesCollection : ISwCustomPropertiesCollection
     {
-        IXProperty IXPropertyRepository.PreCreate() => PreCreate();
-
         IXProperty IXRepository<IXProperty>.this[string name] => this[name];
 
         public ISwCustomProperty this[string name]
@@ -42,7 +42,7 @@ namespace Xarial.XCad.SolidWorks.Data
             {
                 try
                 {
-                    return (SwCustomProperty)this.Get(name);
+                    return (SwCustomProperty)RepositoryHelper.Get(this, name);
                 }
                 catch (EntityNotFoundException)
                 {
@@ -95,18 +95,12 @@ namespace Xarial.XCad.SolidWorks.Data
             }
         }
 
-        public void AddRange(IEnumerable<IXProperty> ents)
-        {
-            foreach (var prp in ents)
-            {
-                prp.Commit();
-            }
-        }
+        public void AddRange(IEnumerable<IXProperty> ents, CancellationToken cancellationToken) => RepositoryHelper.AddRange(this, ents, cancellationToken);
 
         public IEnumerator<IXProperty> GetEnumerator()
             => new SwCustomPropertyEnumerator(PrpMgr, CreatePropertyInstance);
 
-        public void RemoveRange(IEnumerable<IXProperty> ents)
+        public void RemoveRange(IEnumerable<IXProperty> ents, CancellationToken cancellationToken)
         {
             foreach (var prp in ents)
             {
@@ -152,6 +146,8 @@ namespace Xarial.XCad.SolidWorks.Data
         public virtual void Dispose()
         {
         }
+
+        public T PreCreate<T>() where T : IXProperty => (T)PreCreate();
     }
 
     internal class SwConfigurationCustomPropertiesCollection : SwCustomPropertiesCollection

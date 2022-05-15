@@ -11,8 +11,10 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.SolidWorks.Documents;
+using Xarial.XCad.Toolkit.Utils;
 
 namespace Xarial.XCad.SolidWorks.Geometry
 {
@@ -29,32 +31,17 @@ namespace Xarial.XCad.SolidWorks.Geometry
             m_RootDoc = rootDoc;
         }
 
-        public IXBody this[string name]
-        {
-            get 
-            {
-                if (!TryGet(name, out IXBody body)) 
-                {
-                    throw new Exception("Body with specified name is not found");
-                }
-
-                return body;
-            }
-        }
+        public IXBody this[string name] => RepositoryHelper.Get(this, name);
 
         public int Count => GetBodies().Count();
 
-        public void AddRange(IEnumerable<IXBody> ents)
-        {
-            throw new NotImplementedException();
-        }
+        public void AddRange(IEnumerable<IXBody> ents, CancellationToken cancellationToken)
+            => throw new NotImplementedException();
 
         public IEnumerator<IXBody> GetEnumerator() => GetBodies().GetEnumerator();
 
-        public void RemoveRange(IEnumerable<IXBody> ents)
-        {
-            throw new NotImplementedException();
-        }
+        public void RemoveRange(IEnumerable<IXBody> ents, CancellationToken cancellationToken)
+            => throw new NotImplementedException();
 
         public bool TryGet(string name, out IXBody ent)
         {
@@ -81,5 +68,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
         }
 
         protected abstract IEnumerable<IBody2> GetSwBodies();
+
+        public T PreCreate<T>() where T : IXBody => throw new NotImplementedException();
     }
 }

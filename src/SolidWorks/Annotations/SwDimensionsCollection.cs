@@ -11,12 +11,14 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using Xarial.XCad.Annotations;
 using Xarial.XCad.Base;
 using Xarial.XCad.Features;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Features;
 using Xarial.XCad.SolidWorks.Utils;
+using Xarial.XCad.Toolkit.Utils;
 
 namespace Xarial.XCad.SolidWorks.Annotations
 {
@@ -29,7 +31,7 @@ namespace Xarial.XCad.SolidWorks.Annotations
     {
         IXDimension IXRepository<IXDimension>.this[string name] => this[name];
 
-        public ISwDimension this[string name] => (SwDimension)this.Get(name);
+        public ISwDimension this[string name] => (ISwDimension)RepositoryHelper.Get(this, name);
 
         public abstract bool TryGet(string name, out IXDimension ent);
 
@@ -42,23 +44,21 @@ namespace Xarial.XCad.SolidWorks.Annotations
             m_Context = context;
         }
 
-        public void AddRange(IEnumerable<IXDimension> ents)
-        {
-            throw new NotImplementedException();
-        }
+        public void AddRange(IEnumerable<IXDimension> ents, CancellationToken cancellationToken)
+            => throw new NotImplementedException();
 
         public abstract IEnumerator<IXDimension> GetEnumerator();
 
-        public void RemoveRange(IEnumerable<IXDimension> ents)
-        {
-            throw new NotImplementedException();
-        }
+        public void RemoveRange(IEnumerable<IXDimension> ents, CancellationToken cancellationToken)
+            => throw new NotImplementedException();
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
         public void Dispose()
         {
         }
+
+        public T PreCreate<T>() where T : IXDimension => throw new NotImplementedException();
     }
 
     internal class SwFeatureManagerDimensionsCollection : SwDimensionsCollection

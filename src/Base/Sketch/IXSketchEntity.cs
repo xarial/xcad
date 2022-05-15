@@ -7,13 +7,14 @@
 
 using Xarial.XCad.Base;
 using Xarial.XCad.Features;
+using Xarial.XCad.Geometry.Wires;
 
 namespace Xarial.XCad.Sketch
 {
     /// <summary>
     /// Represents generic sketch entity (e.g. line, point, arc, etc.)
     /// </summary>
-    public interface IXSketchEntity : IXSelObject, IXColorizable, IXTransaction, INameable
+    public interface IXSketchEntity : IXSelObject, IXColorizable, IXTransaction, INameable, IXWireEntity
     {
         /// <summary>
         /// Owner sketch of this sketch entity
