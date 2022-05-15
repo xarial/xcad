@@ -20,24 +20,79 @@ namespace Xarial.XCad.SolidWorks.Features
 {
     public interface ISwSketchBase : IXSketchBase, ISwFeature
     {
-        //TODO: think how to remove the below functions
-        [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
-        bool GetEditMode(ISketch sketch);
-        [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
-        void SetEditMode(ISketch sketch, bool isEditing);
-
         ISketch Sketch { get; }
+    }
+
+    internal abstract class SwSketchEditorBase<TSketch> : IEditor<TSketch>
+        where TSketch : SwSketchBase
+    {
+        public TSketch Target { get; }
+
+        public bool Cancel { get; set; }
+
+        protected abstract void StartEdit();
+        protected abstract void EndEdit(bool cancel);
+
+        private readonly bool? m_AddToDbOrig;
+
+        private readonly ISketchManager m_SketchMgr;
+
+        private readonly ISketch m_Sketch;
+
+        protected SwSketchEditorBase(TSketch sketch, ISketch swSketch) 
+        {
+            if (sketch == null)
+            {
+                throw new ArgumentNullException(nameof(sketch));
+            }
+
+            if (swSketch == null)
+            {
+                throw new ArgumentNullException(nameof(swSketch));
+            }
+
+            Target = sketch;
+            m_Sketch = swSketch;
+
+            m_SketchMgr = Target.OwnerDocument.Model.SketchManager;
+
+            if (!Target.IsEditing)
+            {
+                if (((IFeature)m_Sketch).Select2(false, 0))
+                {
+                    m_AddToDbOrig = m_SketchMgr.AddToDB;
+                    StartEdit();
+                }
+                else 
+                {
+                    throw new Exception("Failed to select sketch for editing");
+                }
+            }
+        }
+
+        public void Dispose()
+        {
+            if (Target.IsEditing)
+            {
+                if (m_AddToDbOrig.HasValue)
+                {
+                    m_SketchMgr.AddToDB = m_AddToDbOrig.Value;
+                }
+
+                m_SketchMgr.Document.ClearSelection2(true);
+                
+                EndEdit(Cancel);
+            }
+        }
     }
 
     internal abstract class SwSketchBase : SwFeature, ISwSketchBase
     {
         private readonly SwSketchEntityCollection m_SwEntsColl;
 
-        public ISketch Sketch => m_Sketch;
+        public ISketch Sketch { get; private set; }
 
         public override object Dispatch => Sketch;
-
-        private ISketch m_Sketch;
 
         internal SwSketchBase(IFeature feat, ISwDocument doc, ISwApplication app, bool created) 
             : this(feat, (ISketch)feat?.GetSpecificFeature2(), doc, app, created)
@@ -56,73 +111,28 @@ namespace Xarial.XCad.SolidWorks.Features
             }
 
             m_SwEntsColl = new SwSketchEntityCollection(this, doc, app);
-            m_Sketch = sketch;
+            Sketch = sketch;
         }
 
         public IXSketchEntityRepository Entities => m_SwEntsColl;
-
-        public bool IsEditing
-        {
-            get
-            {
-                if (IsCommitted)
-                {
-                    return GetEditMode(Sketch);
-                }
-                else
-                {
-                    throw new Exception("This option is only valid for the committed sketch");
-                }
-            }
-            set
-            {
-                if (IsCommitted)
-                {
-                    SetEditMode(Sketch, value);
-                }
-                else
-                {
-                    throw new Exception("This option is only valid for the committed sketch");
-                }
-            }
-        }
-
-        public bool GetEditMode(ISketch sketch)
-            => OwnerModelDoc.SketchManager.ActiveSketch == sketch;
-
-        public void SetEditMode(ISketch sketch, bool isEditing)
-        {
-            if (isEditing)
-            {
-                if (!GetEditMode(sketch))
-                {
-                    //TODO: use API only selection
-                    (sketch as IFeature).Select2(false, 0);
-                    ToggleEditSketch();
-                }
-            }
-            else
-            {
-                if (GetEditMode(sketch))
-                {
-                    ToggleEditSketch();
-                }
-            }
-        }
-
-        protected abstract void ToggleEditSketch();
 
         protected override IFeature CreateFeature(CancellationToken cancellationToken)
         {
             var sketch = CreateSketch();
 
-            m_SwEntsColl.CommitCache(sketch, cancellationToken);
+            Sketch = sketch;
 
-            m_Sketch = sketch;
+            m_SwEntsColl.CommitCache(sketch, cancellationToken);
 
             return (IFeature)sketch;
         }
 
         protected abstract ISketch CreateSketch();
+
+        public IEditor<IXSketchBase> Edit() => CreateSketchEditor(Sketch);
+
+        protected internal bool IsEditing => OwnerDocument.Model.SketchManager.ActiveSketch == Sketch;
+
+        protected internal abstract IEditor<IXSketchBase> CreateSketchEditor(ISketch sketch);
     }
 }

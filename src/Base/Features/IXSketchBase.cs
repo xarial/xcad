@@ -15,13 +15,14 @@ namespace Xarial.XCad.Features
     public interface IXSketchBase : IXFeature
     {
         /// <summary>
-        /// Identifies if this sketch is currently under editing
-        /// </summary>
-        bool IsEditing { get; set; }
-
-        /// <summary>
         /// List of sketch entitites (segments and points)
         /// </summary>
         IXSketchEntityRepository Entities { get; }
+
+        /// <summary>
+        /// Starts editing of this sketch
+        /// </summary>
+        /// <returns></returns>
+        IEditor<IXSketchBase> Edit();
     }
 }

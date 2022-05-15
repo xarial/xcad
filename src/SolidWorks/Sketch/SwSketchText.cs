@@ -12,6 +12,7 @@ using System.Text;
 using Xarial.XCad.Geometry.Wires;
 using Xarial.XCad.Sketch;
 using Xarial.XCad.SolidWorks.Documents;
+using Xarial.XCad.SolidWorks.Features;
 
 namespace Xarial.XCad.SolidWorks.Sketch
 {
@@ -29,6 +30,10 @@ namespace Xarial.XCad.SolidWorks.Sketch
 
         internal SwSketchText(ISketchText textSeg, ISwDocument doc, ISwApplication app, bool created)
             : base((ISketchSegment)textSeg, doc, app, created)
+        {
+        }
+
+        internal SwSketchText(SwSketchBase ownerSketch, ISwDocument doc, ISwApplication app) : base(ownerSketch, doc, app)
         {
         }
 

@@ -12,6 +12,7 @@ using System.Text;
 using Xarial.XCad.Geometry.Wires;
 using Xarial.XCad.Sketch;
 using Xarial.XCad.SolidWorks.Documents;
+using Xarial.XCad.SolidWorks.Features;
 
 namespace Xarial.XCad.SolidWorks.Sketch
 {
@@ -34,6 +35,10 @@ namespace Xarial.XCad.SolidWorks.Sketch
             {
                 throw new ArgumentNullException(nameof(doc));
             }
+        }
+
+        internal SwSketchEllipse(SwSketchBase ownerSketch, ISwDocument doc, ISwApplication app) : base(ownerSketch, doc, app)
+        {
         }
 
         protected override ISketchSegment CreateSketchEntity()

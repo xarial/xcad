@@ -46,10 +46,10 @@ namespace StandAlone
         {
             try
             {
-                var app = SwApplicationFactory.Create(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020,
-                    ApplicationState_e.Default);
+                //var app = SwApplicationFactory.Create(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2021,
+                //    ApplicationState_e.Default);
                                 
-                //var app = SwApplicationFactory.FromProcess(Process.GetProcessesByName("SLDWORKS").First());
+                var app = SwApplicationFactory.FromProcess(Process.GetProcessesByName("SLDWORKS").First());
                 
                 //CustomServices();
 
@@ -64,7 +64,7 @@ namespace StandAlone
 
                 //var app = SwApplication.FromPointer(sw);
 
-                //CreateSketchEntities(app);
+                CreateSketchEntities(app);
 
                 //TraverseSelectedFaces(app);
 
@@ -129,9 +129,19 @@ namespace StandAlone
             app.Documents.Active.Features.Add(sketch3D);
 
             var c = line.EndPoint.Coordinate;
-            sketch3D.IsEditing = true;
-            line.EndPoint.Coordinate = new Point(0.3, 0.3, 0.3);
-            sketch3D.IsEditing = false;
+
+            using (var editor = sketch3D.Edit()) 
+            {
+                line.EndPoint.Coordinate = new Point(0.3, 0.3, 0.3);
+            }
+
+            using (var editor = sketch3D.Edit())
+            {
+                var line2 = (IXSketchLine)sketch3D.Entities.PreCreateLine();
+                line2.StartCoordinate = new Point(0, 0, 0);
+                line2.EndCoordinate = new Point(0.1, 0.2, 0.3);
+                line2.Commit();
+            }
         }
 
         private static void TraverseSelectedFaces(IXApplication app) 

@@ -49,6 +49,8 @@ namespace Xarial.XCad.SolidWorks.Sketch
 
         private readonly IMathUtility m_MathUtils;
 
+        private SwSketchBase m_OwnerSketch;
+
         protected SwSketchSegment(ISketchSegment seg, ISwDocument doc, ISwApplication app, bool created) : base(seg, doc, app)
         {
             if (doc == null)
@@ -60,6 +62,16 @@ namespace Xarial.XCad.SolidWorks.Sketch
             m_Creator = new ElementCreator<ISketchSegment>(CreateEntity, seg, created);
 
             m_MathUtils = app.Sw.IGetMathUtility();
+
+            if (seg != null)
+            {
+                SetOwnerSketch(seg);
+            }
+        }
+
+        protected SwSketchSegment(SwSketchBase ownerSketch, ISwDocument doc, ISwApplication app) : this(null, doc, app, false)
+        {
+            m_OwnerSketch = ownerSketch;
         }
 
         public override void Commit(CancellationToken cancellationToken) => m_Creator.Create(cancellationToken);
@@ -135,7 +147,7 @@ namespace Xarial.XCad.SolidWorks.Sketch
 
         public bool IsConstruction => Segment.ConstructionGeometry;
 
-        public override IXSketchBase OwnerSketch => OwnerDocument.CreateObjectFromDispatch<ISwSketchBase>(Segment.GetSketch());
+        public override IXSketchBase OwnerSketch => m_OwnerSketch;
 
         private void SetColor(ISketchSegment seg, Color? color)
         {
@@ -153,18 +165,37 @@ namespace Xarial.XCad.SolidWorks.Sketch
 
         private ISketchSegment CreateEntity(CancellationToken cancellationToken)
         {
-            var ent = CreateSketchEntity();
+            if (m_OwnerSketch != null) 
+            {
+                if (!m_OwnerSketch.IsEditing) 
+                {
+                    throw new Exception($"New sketch entities can only be added to the sketch in the edit mode. Use {nameof(IXSketchBase)}::{nameof(IXSketchBase.Edit)} to enable editing mode");
+                }
+            }
 
-            SetColor(ent, m_Creator.CachedProperties.Get<Color?>(nameof(Color)));
+            //NOTE: this entity can be created even if the IsCommited set to false as these are the cached entities created
+            var seg = CreateSketchEntity();
 
-            return ent;
+            if (seg == null) 
+            {
+                throw new Exception("Failed to create sketch segment");
+            }
+
+            SetColor(seg, m_Creator.CachedProperties.Get<Color?>(nameof(Color)));
+
+            SetOwnerSketch(seg);
+
+            return seg;
         }
 
         protected virtual ISketchSegment CreateSketchEntity() 
-        {
-            throw new NotSupportedException();
-        }
+            => throw new NotSupportedException();
 
         protected override string GetFullName() => this.Segment.GetName();
+
+        private void SetOwnerSketch(ISketchSegment seg) 
+        {
+            m_OwnerSketch = OwnerDocument.CreateObjectFromDispatch<SwSketchBase>(seg.GetSketch());
+        }
     }
 }

@@ -14,6 +14,7 @@ using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Geometry.Wires;
 using Xarial.XCad.Sketch;
 using Xarial.XCad.SolidWorks.Documents;
+using Xarial.XCad.SolidWorks.Features;
 
 namespace Xarial.XCad.SolidWorks.Sketch
 {
@@ -52,6 +53,10 @@ namespace Xarial.XCad.SolidWorks.Sketch
         {
         }
 
+        internal SwSketchCircle(SwSketchBase ownerSketch, ISwDocument doc, ISwApplication app) : base(ownerSketch, doc, app)
+        {
+        }
+
         protected override ISketchSegment CreateSketchEntity()
         {
             throw new NotImplementedException();
@@ -82,6 +87,10 @@ namespace Xarial.XCad.SolidWorks.Sketch
         }
 
         internal SwSketchArc(ISketchArc arc, ISwDocument doc, ISwApplication app, bool created) : base(arc, doc, app, created)
+        {
+        }
+
+        internal SwSketchArc(SwSketchBase ownerSketch, ISwDocument doc, ISwApplication app) : base(ownerSketch, doc, app)
         {
         }
     }

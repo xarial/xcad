@@ -13,6 +13,7 @@ using System.Text;
 using Xarial.XCad.Geometry.Wires;
 using Xarial.XCad.Sketch;
 using Xarial.XCad.SolidWorks.Documents;
+using Xarial.XCad.SolidWorks.Features;
 
 namespace Xarial.XCad.SolidWorks.Sketch
 {
@@ -30,6 +31,10 @@ namespace Xarial.XCad.SolidWorks.Sketch
 
         internal SwSketchSpline(ISketchSpline spline, ISwDocument doc, ISwApplication app, bool created)
             : base((ISketchSegment)spline, doc, app, created)
+        {
+        }
+
+        internal SwSketchSpline(SwSketchBase ownerSketch, ISwDocument doc, ISwApplication app) : base(ownerSketch, doc, app)
         {
         }
 

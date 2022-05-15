@@ -42,7 +42,7 @@ namespace Xarial.XCad.SolidWorks.Sketch
         {
             SketchBlockDefinition = (ISketchBlockDefinition)feat.GetSpecificFeature2();
 
-            Entities = new SwSketchEntityCollection(doc.CreateObjectFromDispatch<ISwSketchBase>(SketchBlockDefinition.GetSketch()), doc, app);
+            Entities = new SwSketchEntityCollection(doc.CreateObjectFromDispatch<SwSketchBase>(SketchBlockDefinition.GetSketch()), doc, app);
         }
     }
 }

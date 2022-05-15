@@ -43,6 +43,10 @@ namespace Xarial.XCad.SolidWorks.Sketch
             m_Creator = new ElementCreator<ISketchPoint>(CreatePoint, pt, created);
         }
 
+        internal SwSketchPoint(SwSketchBase ownerSketch, ISwDocument doc, ISwApplication app) : base(ownerSketch, doc, app)
+        {
+        }
+
         public override void Commit(CancellationToken cancellationToken) => m_Creator.Create(cancellationToken);
 
         public override System.Drawing.Color? Color

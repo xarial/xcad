@@ -16,6 +16,16 @@ namespace Xarial.XCad.SolidWorks.Features
     {
     }
 
+    internal class SwSketch3DEditor : SwSketchEditorBase<SwSketch3D>
+    {
+        public SwSketch3DEditor(SwSketch3D sketch, ISketch swSketch) : base(sketch, swSketch)
+        {
+        }
+
+        protected override void StartEdit() => Target.OwnerDocument.Model.SketchManager.Insert3DSketch(true);
+        protected override void EndEdit(bool cancel) => Target.OwnerDocument.Model.SketchManager.Insert3DSketch(!cancel);
+    }
+
     internal class SwSketch3D : SwSketchBase, ISwSketch3D
     {
         internal SwSketch3D(IFeature feat, ISwDocument doc, ISwApplication app, bool created) : base(feat, doc, app, created)
@@ -26,6 +36,8 @@ namespace Xarial.XCad.SolidWorks.Features
         {
         }
 
+        protected internal override IEditor<IXSketchBase> CreateSketchEditor(ISketch sketch) => new SwSketch3DEditor(this, sketch);
+
         protected override ISketch CreateSketch()
         {
             //TODO: try to use API only selection
@@ -33,8 +45,5 @@ namespace Xarial.XCad.SolidWorks.Features
             OwnerModelDoc.Insert3DSketch2(true);
             return OwnerModelDoc.SketchManager.ActiveSketch;
         }
-
-        protected override void ToggleEditSketch()
-            => OwnerModelDoc.Insert3DSketch2(true);
     }
 }
