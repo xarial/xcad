@@ -34,15 +34,10 @@ namespace Xarial.XCad.Documents
         string Name { get; }
 
         /// <summary>
-        /// Gets the path of this component
-        /// </summary>
-        string Path { get; }
-
-        /// <summary>
         /// Returns the referenced configuration of this component
         /// </summary>
         /// <remarks>For unloaded or rapid components this configuration may be uncommitted</remarks>
-        IXConfiguration ReferencedConfiguration { get; }
+        IXConfiguration ReferencedConfiguration { get; set; }
 
         /// <summary>
         /// State of this component
@@ -53,7 +48,7 @@ namespace Xarial.XCad.Documents
         /// Document of the component
         /// </summary>
         /// <remarks>If component is rapid, view only or suppressed document migth not be loaded into the memory. Use <see cref="IXTransaction.IsCommitted"/> to check the state and call <see cref="IXTransaction.Commit(System.Threading.CancellationToken)"/> to load document if needed</remarks>
-        IXDocument3D ReferencedDocument { get; }
+        IXDocument3D ReferencedDocument { get; set; }
         
         /// <summary>
         /// Children components
@@ -88,10 +83,10 @@ namespace Xarial.XCad.Documents
     public interface IXPartComponent : IXComponent
     {
         /// <inheritdoc/>>
-        new IXPart ReferencedDocument { get; }
+        new IXPart ReferencedDocument { get; set; }
 
         /// <inheritdoc/>>
-        new IXPartConfiguration ReferencedConfiguration { get; }
+        new IXPartConfiguration ReferencedConfiguration { get; set; }
     }
 
     /// <summary>
@@ -100,10 +95,10 @@ namespace Xarial.XCad.Documents
     public interface IXAssemblyComponent : IXComponent
     {
         /// <inheritdoc/>>
-        new IXAssembly ReferencedDocument { get; }
+        new IXAssembly ReferencedDocument { get; set; }
 
         /// <inheritdoc/>>
-        new IXAssemblyConfiguration ReferencedConfiguration { get; }
+        new IXAssemblyConfiguration ReferencedConfiguration { get; set; }
     }
 
     /// <summary>

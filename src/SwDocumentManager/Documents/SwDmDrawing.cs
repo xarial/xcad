@@ -34,5 +34,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         }
 
         public ISwDmSheetCollection Sheets => m_SheetsLazy.Value;
+
+        protected override bool IsDocumentTypeCompatible(SwDmDocumentType docType) => docType == SwDmDocumentType.swDmDocumentDrawing;
     }
 }

@@ -72,6 +72,8 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         protected override SwConfigurationCollection CreateConfigurations()
             => new SwAssemblyConfigurationCollection(this, OwnerApplication);
+
+        protected override bool IsDocumentTypeCompatible(swDocumentTypes_e docType) => docType == swDocumentTypes_e.swDocASSEMBLY;
     }
 
     internal class SwAssemblyComponentCollection : SwComponentCollection
@@ -80,7 +82,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         private readonly IConfiguration m_Conf;
 
-        public SwAssemblyComponentCollection(ISwAssembly assm, IConfiguration conf) : base(assm)
+        public SwAssemblyComponentCollection(SwAssembly assm, IConfiguration conf) : base(assm)
         {
             m_Assm = assm;
             m_Conf = conf;

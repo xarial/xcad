@@ -108,7 +108,6 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-
         IXDocument IXDocumentRepository.Active 
         {
             get => Active;

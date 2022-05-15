@@ -21,10 +21,12 @@ using Xarial.XCad.Data;
 using Xarial.XCad.Data.Delegates;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Enums;
+using Xarial.XCad.Exceptions;
 using Xarial.XCad.Features;
 using Xarial.XCad.Features.CustomFeature;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;
+using Xarial.XCad.Services;
 using Xarial.XCad.SolidWorks.Annotations;
 using Xarial.XCad.SolidWorks.Data;
 using Xarial.XCad.SolidWorks.Features;
@@ -36,7 +38,7 @@ using Xarial.XCad.Toolkit.Services;
 
 namespace Xarial.XCad.SolidWorks.Documents
 {
-    public interface ISwComponent : IXComponent, ISwSelObject 
+    public interface ISwComponent : IXComponent, ISwSelObject
     {
         new ISwComponentCollection Children { get; }
         new ISwDocument3D ReferencedDocument { get; }
@@ -53,14 +55,14 @@ namespace Xarial.XCad.SolidWorks.Documents
         string CachedPath { get; }
     }
 
-    public interface ISwPartComponent : ISwComponent, IXPartComponent 
+    public interface ISwPartComponent : ISwComponent, IXPartComponent
     {
-        new ISwPart ReferencedDocument { get; }
+        new ISwPart ReferencedDocument { get; set; }
     }
 
     public interface ISwAssemblyComponent : ISwComponent, IXAssemblyComponent
     {
-        new ISwAssembly ReferencedDocument { get; }
+        new ISwAssembly ReferencedDocument { get; set; }
     }
 
     internal abstract class SwComponentEditor : IEditor<SwComponent>
@@ -84,7 +86,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        public bool Cancel 
+        public bool Cancel
         {
             get => false;
             set => throw new NotSupportedException("This operation cannot be cancelled");
@@ -106,11 +108,11 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
 
         protected override void StartEdit(ISwAssembly assm, SwComponent comp)
-        {   
+        {
             int inf = -1;
-            var res = (swEditPartCommandStatus_e)assm.Assembly.EditPart2(true, false, ref inf);
+            var res = (swEditPartCommandStatus_e)assm.Assembly.EditPart2(true, true, ref inf);
 
-            if (res != swEditPartCommandStatus_e.swEditPartSuccessful) 
+            if (res != swEditPartCommandStatus_e.swEditPartSuccessful)
             {
                 throw new Exception($"Failed to edit component: {res}");
             }
@@ -132,13 +134,13 @@ namespace Xarial.XCad.SolidWorks.Documents
     [DebuggerDisplay("{" + nameof(FullName) + "}")]
     internal abstract class SwComponent : SwSelObject, ISwComponent
     {
-        IXDocument3D IXComponent.ReferencedDocument => ReferencedDocument;
+        IXDocument3D IXComponent.ReferencedDocument { get => ReferencedDocument; set => ReferencedDocument = (ISwDocument3D)value; }
         IXComponentRepository IXComponent.Children => Children;
         IXFeatureRepository IXComponent.Features => Features;
         TSelObject IXObjectContainer.ConvertObject<TSelObject>(TSelObject obj) => ConvertObjectBoxed(obj) as TSelObject;
         IXDimensionRepository IDimensionable.Dimensions => Dimensions;
 
-        public IComponent2 Component { get; }
+        public IComponent2 Component => m_Creator.Element;
 
         internal SwAssembly RootAssembly { get; }
 
@@ -153,10 +155,14 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         private readonly IMathUtility m_MathUtils;
 
+        public override bool IsCommitted => m_Creator.IsCreated;
+
+        private readonly ElementCreator<IComponent2> m_Creator;
+
         internal SwComponent(IComponent2 comp, SwAssembly rootAssembly, ISwApplication app) : base(comp, rootAssembly, app)
         {
             RootAssembly = rootAssembly;
-            Component = comp;
+            m_Creator = new ElementCreator<IComponent2>(CreateComponent, comp, comp != null);
             Children = new SwChildComponentsCollection(rootAssembly, this);
             m_FeaturesLazy = new Lazy<ISwFeatureManager>(() => new SwComponentFeatureManager(this, rootAssembly, app, new Context(this)));
             m_DimensionsLazy = new Lazy<ISwDimensionsCollection>(() => new SwFeatureManagerDimensionsCollection(Features, new Context(this)));
@@ -170,7 +176,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public string Name
         {
-            get 
+            get
             {
                 var fullName = FullName;
                 return fullName.Substring(fullName.LastIndexOf('/') + 1);
@@ -178,175 +184,246 @@ namespace Xarial.XCad.SolidWorks.Documents
             set => Component.Name2 = value;
         }
 
-        public string FullName => Component.Name2;
+        public string FullName
+        {
+            get
+            {
+                if (IsCommitted)
+                {
+                    return Component.Name2;
+                }
+                else 
+                {
+                    var path = ReferencedDocument?.Path;
+
+                    if (!string.IsNullOrEmpty(path)) 
+                    {
+                        return Path.GetFileName(path);
+                    }
+
+                    return path;
+                }
+            }
+        }
 
         public ISwDocument3D ReferencedDocument
         {
             get
             {
-                var compModel = Component.IGetModelDoc();
-
-                //Note: for LDR assembly IGetModelDoc returns the pointer to root assembly
-                if (compModel != null && !RootAssembly.Model.IsOpenedViewOnly())
+                if (IsCommitted)
                 {
-                    return (ISwDocument3D)OwnerApplication.Documents[compModel];
+                    var compModel = Component.IGetModelDoc();
+
+                    //Note: for LDR assembly IGetModelDoc returns the pointer to root assembly
+                    if (compModel != null && !RootAssembly.Model.IsOpenedViewOnly())
+                    {
+                        return (ISwDocument3D)OwnerApplication.Documents[compModel];
+                    }
+                    else
+                    {
+                        string path;
+
+                        try
+                        {
+                            path = GetPath();
+                        }
+                        catch
+                        {
+                            path = CachedPath;
+                        }
+
+                        if (((SwDocumentCollection)OwnerApplication.Documents).TryFindExistingDocumentByPath(path, out SwDocument doc))
+                        {
+                            return (ISwDocument3D)doc;
+                        }
+                        else
+                        {
+                            return (ISwDocument3D)((SwDocumentCollection)OwnerApplication.Documents).PreCreateFromPath(path);
+                        }
+                    }
                 }
-                else
+                else 
                 {
-                    string path;
-
-                    try
-                    {
-                        path = Path;
-                    }
-                    catch 
-                    {
-                        path = CachedPath;
-                    }
-
-                    if (((SwDocumentCollection)OwnerApplication.Documents).TryFindExistingDocumentByPath(path, out SwDocument doc))
-                    {
-                        return (ISwDocument3D)doc;
-                    }
-                    else 
-                    {
-                        return (ISwDocument3D)((SwDocumentCollection)OwnerApplication.Documents).PreCreateFromPath(path);
-                    }
+                    return m_Creator.CachedProperties.Get<ISwDocument3D>();
+                }
+            }
+            set 
+            {
+                if (IsCommitted)
+                {
+                    //TODO: implement ReplaceComponent feature
+                    throw new CommitedElementReadOnlyParameterException();
+                }
+                else 
+                {
+                    m_Creator.CachedProperties.Set(value);
                 }
             }
         }
 
         public ComponentState_e State
         {
-            get 
+            get
             {
-                var state = ComponentState_e.Default;
+                if (IsCommitted)
+                {
+                    var state = ComponentState_e.Default;
 
-                var swState = GetSuppressionState();
+                    var swState = GetSuppressionState();
 
-                if (swState == swComponentSuppressionState_e.swComponentLightweight
-                    || swState == swComponentSuppressionState_e.swComponentFullyLightweight)
-                {
-                    state |= ComponentState_e.Lightweight;
-                }
-                else if (swState == swComponentSuppressionState_e.swComponentSuppressed) 
-                {
-                    state |= ComponentState_e.Suppressed;
-                }
-                else if (swState == swComponentSuppressionState_e.swComponentInternalIdMismatch)
-                {
-                    state |= ComponentState_e.SuppressedIdMismatch;
-                }
-
-                if (RootAssembly.Model.IsOpenedViewOnly()) //Large design review
-                {
-                    state |= ComponentState_e.ViewOnly;
-                }
-
-                if (Component.IsHidden(false)) 
-                {
-                    state |= ComponentState_e.Hidden;
-                }
-
-                if (Component.ExcludeFromBOM) 
-                {
-                    if (!Component.IsEnvelope())
+                    if (swState == swComponentSuppressionState_e.swComponentLightweight
+                        || swState == swComponentSuppressionState_e.swComponentFullyLightweight)
                     {
-                        state |= ComponentState_e.ExcludedFromBom;
+                        state |= ComponentState_e.Lightweight;
                     }
-                }
+                    else if (swState == swComponentSuppressionState_e.swComponentSuppressed)
+                    {
+                        state |= ComponentState_e.Suppressed;
+                    }
+                    else if (swState == swComponentSuppressionState_e.swComponentInternalIdMismatch)
+                    {
+                        state |= ComponentState_e.SuppressedIdMismatch;
+                    }
 
-                if (Component.IsEnvelope()) 
-                {
-                    state |= ComponentState_e.Envelope;
-                }
+                    if (RootAssembly.Model.IsOpenedViewOnly()) //Large design review
+                    {
+                        state |= ComponentState_e.ViewOnly;
+                    }
 
-                if (Component.IsVirtual) 
-                {
-                    state |= ComponentState_e.Embedded;
+                    if (Component.IsHidden(false))
+                    {
+                        state |= ComponentState_e.Hidden;
+                    }
+
+                    if (Component.ExcludeFromBOM)
+                    {
+                        if (!Component.IsEnvelope())
+                        {
+                            state |= ComponentState_e.ExcludedFromBom;
+                        }
+                    }
+
+                    if (Component.IsEnvelope())
+                    {
+                        state |= ComponentState_e.Envelope;
+                    }
+
+                    if (Component.IsVirtual)
+                    {
+                        state |= ComponentState_e.Embedded;
+                    }
+
+                    if (Component.IsFixed())
+                    {
+                        state |= ComponentState_e.Fixed;
+                    }
+
+                    return state;
                 }
-                               
-                return state;
+                else 
+                {
+                    return m_Creator.CachedProperties.Get<ComponentState_e>();
+                }
             }
-            set 
+            set
             {
-                var swState = GetSuppressionState();
+                if (IsCommitted)
+                {
+                    var swState = GetSuppressionState();
 
-                if ((swState == swComponentSuppressionState_e.swComponentSuppressed 
-                    || swState == swComponentSuppressionState_e.swComponentLightweight
-                    || swState == swComponentSuppressionState_e.swComponentFullyLightweight)
-                        && !value.HasFlag(ComponentState_e.Lightweight) && !value.HasFlag(ComponentState_e.Suppressed))
-                {
-                    if (Component.SetSuppression2((int)swComponentSuppressionState_e.swComponentFullyResolved) != (int)swSuppressionError_e.swSuppressionChangeOk) 
+                    if ((swState == swComponentSuppressionState_e.swComponentSuppressed
+                        || swState == swComponentSuppressionState_e.swComponentLightweight
+                        || swState == swComponentSuppressionState_e.swComponentFullyLightweight)
+                            && !value.HasFlag(ComponentState_e.Lightweight) && !value.HasFlag(ComponentState_e.Suppressed))
                     {
-                        throw new Exception("Failed to resolve component state");
+                        if (Component.SetSuppression2((int)swComponentSuppressionState_e.swComponentFullyResolved) != (int)swSuppressionError_e.swSuppressionChangeOk)
+                        {
+                            throw new Exception("Failed to resolve component state");
+                        }
                     }
-                }
-                else if (swState != swComponentSuppressionState_e.swComponentSuppressed
-                        && value.HasFlag(ComponentState_e.Suppressed))
-                {
-                    if (Component.SetSuppression2((int)swComponentSuppressionState_e.swComponentSuppressed) != (int)swSuppressionError_e.swSuppressionChangeOk)
+                    else if (swState != swComponentSuppressionState_e.swComponentSuppressed
+                            && value.HasFlag(ComponentState_e.Suppressed))
                     {
-                        throw new Exception("Failed to suppress component");
+                        if (Component.SetSuppression2((int)swComponentSuppressionState_e.swComponentSuppressed) != (int)swSuppressionError_e.swSuppressionChangeOk)
+                        {
+                            throw new Exception("Failed to suppress component");
+                        }
                     }
-                }
-                else if (swState != swComponentSuppressionState_e.swComponentFullyLightweight
-                        && swState != swComponentSuppressionState_e.swComponentLightweight
-                        && value.HasFlag(ComponentState_e.Lightweight))
-                {
-                    if (Component.SetSuppression2((int)swComponentSuppressionState_e.swComponentFullyLightweight) != (int)swSuppressionError_e.swSuppressionChangeOk)
+                    else if (swState != swComponentSuppressionState_e.swComponentFullyLightweight
+                            && swState != swComponentSuppressionState_e.swComponentLightweight
+                            && value.HasFlag(ComponentState_e.Lightweight))
                     {
-                        throw new Exception("Failed to resolve component state");
+                        if (Component.SetSuppression2((int)swComponentSuppressionState_e.swComponentFullyLightweight) != (int)swSuppressionError_e.swSuppressionChangeOk)
+                        {
+                            throw new Exception("Failed to resolve component state");
+                        }
                     }
-                }
 
-                if (RootAssembly.Model.IsOpenedViewOnly() && !value.HasFlag(ComponentState_e.ViewOnly)) //Large design review
-                {
-                    throw new Exception("Component cannot be resolved when opened as view only");
-                }
-
-                if (Component.IsHidden(false) && !value.HasFlag(ComponentState_e.Hidden))
-                {
-                    Component.Visible = (int)swComponentVisibilityState_e.swComponentVisible;
-                }
-                else if (!Component.IsHidden(false) && value.HasFlag(ComponentState_e.Hidden))
-                {
-                    Component.Visible = (int)swComponentVisibilityState_e.swComponentHidden;
-                }
-
-                if (Component.ExcludeFromBOM && !value.HasFlag(ComponentState_e.ExcludedFromBom))
-                {
-                    Component.ExcludeFromBOM = false;
-                }
-                else if (!Component.ExcludeFromBOM && value.HasFlag(ComponentState_e.ExcludedFromBom))
-                {
-                    Component.ExcludeFromBOM = true;
-                }
-
-                if (Component.IsEnvelope() && !value.HasFlag(ComponentState_e.Envelope))
-                {
-                    throw new Exception("Envelope state cannot be changed");
-                }
-
-                if (!Component.IsVirtual && value.HasFlag(ComponentState_e.Embedded)) 
-                {
-                    if (OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2016))
+                    if (RootAssembly.Model.IsOpenedViewOnly() && !value.HasFlag(ComponentState_e.ViewOnly)) //Large design review
                     {
-                        Component.MakeVirtual2(false);
+                        throw new Exception("Component cannot be resolved when opened as view only");
                     }
-                    else if (OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2013))
+
+                    EditState(value, () => Component.IsHidden(false), ComponentState_e.Hidden, () => Component.Visible = (int)swComponentVisibilityState_e.swComponentHidden, () => Component.Visible = (int)swComponentVisibilityState_e.swComponentVisible);
+
+                    EditState(value, () => Component.ExcludeFromBOM, ComponentState_e.ExcludedFromBom, () => Component.ExcludeFromBOM = true, () => Component.ExcludeFromBOM = false);
+
+                    if (Component.IsEnvelope() && !value.HasFlag(ComponentState_e.Envelope))
                     {
-                        Component.MakeVirtual();
+                        throw new Exception("Envelope state cannot be changed");
                     }
-                    else
-                    {
-                        throw new Exception("Component can only be set to virtual starting from SOLIDWORKS 2013");
-                    }
+
+                    EditState(value, () => Component.IsVirtual, ComponentState_e.Embedded,
+                        () =>
+                        {
+                            if (OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2016))
+                            {
+                                Component.MakeVirtual2(false);
+                            }
+                            else if (OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2013))
+                            {
+                                Component.MakeVirtual();
+                            }
+                            else
+                            {
+                                throw new Exception("Component can only be set to virtual starting from SOLIDWORKS 2013");
+                            }
+                        },
+                        () =>
+                        {
+                            throw new NotSupportedException("Changing component from virtual is not supported");
+                        });
+
+                    EditState(value, () => Component.IsFixed(), ComponentState_e.Fixed,
+                        () =>
+                        {
+                            Select(false);
+                            RootAssembly.Assembly.FixComponent();
+                        },
+                        () =>
+                        {
+                            Select(false);
+                            RootAssembly.Assembly.UnfixComponent();
+                        });
                 }
-                else if (Component.IsVirtual && !value.HasFlag(ComponentState_e.Embedded))
+                else 
                 {
-                    throw new NotSupportedException("Changing component from virtual is not supported");
+                    m_Creator.CachedProperties.Set(value);
                 }
+            }
+        }
+
+        private void EditState(ComponentState_e state, Func<bool> getFunc, ComponentState_e type, Action setFunc, Action unsetFunc) 
+        {
+            var curVal = getFunc();
+
+            if (curVal && !state.HasFlag(type))
+            {
+                unsetFunc.Invoke();
+            }
+            else if (!curVal && state.HasFlag(type))
+            {
+                setFunc.Invoke();
             }
         }
 
@@ -356,28 +433,56 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public string CachedPath => Component.GetPathName();
 
-        public string Path 
+        private string GetPath()
+        {
+            var cachedPath = CachedPath;
+
+            var needResolve = RootAssembly.Model.IsOpenedViewOnly()
+                || GetSuppressionState() == swComponentSuppressionState_e.swComponentSuppressed;
+
+            if (needResolve)
+            {
+                return m_FilePathResolver.ResolvePath(RootAssembly.Path, cachedPath);
+            }
+            else
+            {
+                return cachedPath;
+            }
+        }
+
+        public IXConfiguration ReferencedConfiguration 
         {
             get 
             {
-                var cachedPath = CachedPath;
-
-                var needResolve = RootAssembly.Model.IsOpenedViewOnly() 
-                    || GetSuppressionState() == swComponentSuppressionState_e.swComponentSuppressed;
-
-                if (needResolve)
+                if (IsCommitted)
                 {
-                    return m_FilePathResolver.ResolvePath(RootAssembly.Path, cachedPath);
+                    return GetReferencedConfiguration();
                 }
                 else 
                 {
-                    return cachedPath;
+                    return m_Creator.CachedProperties.Get<IXConfiguration>();
+                }
+            }
+            set 
+            {
+                if (IsCommitted)
+                {
+                    Component.ReferencedConfiguration = value.Name;
+
+                    if (!string.Equals(Component.ReferencedConfiguration, value.Name, StringComparison.CurrentCultureIgnoreCase)) 
+                    {
+                        throw new Exception("Failed to change referenced configuration");
+                    }
+                }
+                else 
+                {
+                    m_Creator.CachedProperties.Set(value);
                 }
             }
         }
 
-        public abstract IXConfiguration ReferencedConfiguration { get; }
-            
+        protected abstract IXConfiguration GetReferencedConfiguration();
+
         public System.Drawing.Color? Color
         {
             get => SwColorHelper.GetColor(null,
@@ -391,9 +496,31 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public TransformMatrix Transformation 
         {
-            get => Component.Transform2.ToTransformMatrix();
-            set => Component.Transform2 = (MathTransform)m_MathUtils.ToMathTransform(value);
+            get
+            {
+                if (IsCommitted)
+                {
+                    return Component.Transform2.ToTransformMatrix();
+                }
+                else 
+                {
+                    return m_Creator.CachedProperties.Get<TransformMatrix>();
+                }
+            }
+            set
+            {
+                if (IsCommitted)
+                {
+                    Component.Transform2 = (MathTransform)m_MathUtils.ToMathTransform(value);
+                }
+                else 
+                {
+                    m_Creator.CachedProperties.Set(value);
+                }
+            }
         }
+
+        public override void Commit(CancellationToken cancellationToken) => m_Creator.Create(cancellationToken);
 
         internal override void Select(bool append, ISelectData selData)
         {
@@ -444,38 +571,52 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
 
         public abstract IEditor<IXComponent> Edit();
+
+        internal IComponent2 BatchComponentBuffer { get; set; }
+
+        private IComponent2 CreateComponent(CancellationToken cancellationToken)
+        {
+            if (BatchComponentBuffer == null)
+            {
+                SwComponentCollection.BatchAdd(RootAssembly, new SwComponent[] { this }, false);
+            }
+
+            var batchComp = BatchComponentBuffer;
+
+            BatchComponentBuffer = null;
+
+            return batchComp;
+        }
     }
 
     internal class SwPartComponent : SwComponent, ISwPartComponent
     {
-        ISwPart ISwPartComponent.ReferencedDocument => (ISwPart)base.ReferencedDocument;
-        IXPart IXPartComponent.ReferencedDocument => (IXPart)base.ReferencedDocument;
-
-        IXPartConfiguration IXPartComponent.ReferencedConfiguration => new SwPartComponentConfiguration(this, OwnerApplication);
-
-        public override IXConfiguration ReferencedConfiguration => ((IXPartComponent)this).ReferencedConfiguration;
+        ISwPart ISwPartComponent.ReferencedDocument { get => (ISwPart)base.ReferencedDocument; set => base.ReferencedDocument = value; }
+        IXPart IXPartComponent.ReferencedDocument { get => (IXPart)base.ReferencedDocument; set => base.ReferencedDocument = (ISwDocument3D)value; }
+        IXPartConfiguration IXPartComponent.ReferencedConfiguration { get => (IXPartConfiguration)base.ReferencedConfiguration; set => base.ReferencedConfiguration = value; }
 
         internal SwPartComponent(IComponent2 comp, SwAssembly rootAssembly, ISwApplication app) : base(comp, rootAssembly, app)
         {
         }
 
         public override IEditor<IXComponent> Edit() => new SwPartComponentEditor(RootAssembly, this);
+
+        protected override IXConfiguration GetReferencedConfiguration() => new SwPartComponentConfiguration(this, OwnerApplication);
     }
 
     internal class SwAssemblyComponent : SwComponent, ISwAssemblyComponent
     {
-        ISwAssembly ISwAssemblyComponent.ReferencedDocument => (ISwAssembly)base.ReferencedDocument;
-        IXAssembly IXAssemblyComponent.ReferencedDocument => (IXAssembly)base.ReferencedDocument;
-
-        IXAssemblyConfiguration IXAssemblyComponent.ReferencedConfiguration => new SwAssemblyComponentConfiguration(this, OwnerApplication);
-
-        public override IXConfiguration ReferencedConfiguration => ((IXAssemblyComponent)this).ReferencedConfiguration;
+        ISwAssembly ISwAssemblyComponent.ReferencedDocument { get => (ISwAssembly)base.ReferencedDocument; set => base.ReferencedDocument = value; }
+        IXAssembly IXAssemblyComponent.ReferencedDocument { get => (IXAssembly)base.ReferencedDocument; set => base.ReferencedDocument = (ISwDocument3D)value; }
+        IXAssemblyConfiguration IXAssemblyComponent.ReferencedConfiguration { get => (IXAssemblyConfiguration)base.ReferencedConfiguration; set => base.ReferencedConfiguration = value; }
 
         internal SwAssemblyComponent(IComponent2 comp, SwAssembly rootAssembly, ISwApplication app) : base(comp, rootAssembly, app)
         {
         }
 
         public override IEditor<IXComponent> Edit() => new SwAssemblyComponentEditor(RootAssembly, this);
+
+        protected override IXConfiguration GetReferencedConfiguration() => new SwAssemblyComponentConfiguration(this, OwnerApplication);
     }
 
     internal class SwComponentFeatureManager : SwFeatureManager
@@ -546,7 +687,7 @@ namespace Xarial.XCad.SolidWorks.Documents
     {
         private readonly SwComponent m_Comp;
 
-        public SwChildComponentsCollection(ISwAssembly rootAssm, SwComponent comp) : base(rootAssm)
+        public SwChildComponentsCollection(SwAssembly rootAssm, SwComponent comp) : base(rootAssm)
         {
             m_Comp = comp;
         }

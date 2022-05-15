@@ -6,6 +6,7 @@
 //*********************************************************************
 
 using SolidWorks.Interop.sldworks;
+using SolidWorks.Interop.swconst;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -14,6 +15,9 @@ using System.Text;
 using System.Threading;
 using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
+using Xarial.XCad.Documents.Enums;
+using Xarial.XCad.Geometry.Structures;
+using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.Toolkit.Utils;
 
 namespace Xarial.XCad.SolidWorks.Documents
@@ -25,6 +29,11 @@ namespace Xarial.XCad.SolidWorks.Documents
 
     internal abstract class SwComponentCollection : ISwComponentCollection
     {
+        private static readonly BatchComponentsInserter m_BatchCompsInserter = new BatchComponentsInserter();
+
+        internal static void BatchAdd(SwAssembly assm, SwComponent[] comps, bool commitComps)
+            => m_BatchCompsInserter.BatchAdd(assm, comps, commitComps);
+
         IXComponent IXRepository<IXComponent>.this[string name] => this[name];
 
         public ISwComponent this[string name] => (SwComponent)RepositoryHelper.Get(this, name);
@@ -85,16 +94,16 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        private readonly ISwAssembly m_Assm;
+        private readonly SwAssembly m_Assm;
 
-        internal SwComponentCollection(ISwAssembly assm)
+        internal SwComponentCollection(SwAssembly assm)
         {
             m_Assm = assm;
         }
 
         public void AddRange(IEnumerable<IXComponent> ents, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            BatchAdd(m_Assm, ents.Cast<SwComponent>().ToArray(), true);
         }
 
         protected abstract IEnumerable<IComponent2> GetChildren();
@@ -148,8 +157,8 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
 
         public T PreCreate<T>() where T : IXComponent
-        {
-            throw new NotImplementedException();
-        }
+            => RepositoryHelper.PreCreate<IXComponent, T>(this,
+                () => new SwPartComponent(null, m_Assm, m_Assm.OwnerApplication),
+                () => new SwAssemblyComponent(null, m_Assm, m_Assm.OwnerApplication));
     }
 }

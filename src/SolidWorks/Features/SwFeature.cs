@@ -89,7 +89,7 @@ namespace Xarial.XCad.SolidWorks.Features
         IXComponent IXFeature.Component => Component;
         IXDimensionRepository IDimensionable.Dimensions => Dimensions;
 
-        private readonly ElementCreator<IFeature> m_Creator;
+        protected readonly ElementCreator<IFeature> m_Creator;
 
         public virtual IFeature Feature => m_Creator.Element;
 

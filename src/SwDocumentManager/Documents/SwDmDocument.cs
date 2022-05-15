@@ -113,13 +113,22 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         {
             get 
             {
-                if (IsFileExtensionShown)
+                var path = Path;
+
+                if (!string.IsNullOrEmpty(path))
                 {
-                    return System.IO.Path.GetFileName(Path);
+                    if (IsFileExtensionShown)
+                    {
+                        return System.IO.Path.GetFileName(path);
+                    }
+                    else
+                    {
+                        return System.IO.Path.GetFileNameWithoutExtension(path);
+                    }
                 }
-                else
+                else 
                 {
-                    return System.IO.Path.GetFileNameWithoutExtension(Path);
+                    return "";
                 }
             }
             set => throw new NotSupportedException("This property is read-only");
@@ -407,7 +416,14 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         {
             var isReadOnly = state.HasFlag(DocumentState_e.ReadOnly);
 
-            var doc = SwDmApp.SwDocMgr.GetDocument(path, GetDocumentType(path),
+            var docType = GetDocumentType(path);
+
+            if (!IsDocumentTypeCompatible(docType))
+            {
+                throw new DocumentPathIncompatibleException(this);
+            }
+
+            var doc = SwDmApp.SwDocMgr.GetDocument(path, docType,
                 isReadOnly, out SwDmDocumentOpenError err);
 
             if (doc != null)
@@ -451,6 +467,8 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                 throw new OpenDocumentFailedException(path, (int)err, errDesc);
             }
         }
+
+        protected abstract bool IsDocumentTypeCompatible(SwDmDocumentType docType);
 
         public void Close()
         {
@@ -698,6 +716,8 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
             return m_SpecificDoc;
         }
+
+        protected override bool IsDocumentTypeCompatible(SwDmDocumentType docType) => true;
     }
 
     internal class SwDmUnknownDocument3D : SwDmUnknownDocument, ISwDmDocument3D

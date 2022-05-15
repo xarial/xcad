@@ -53,6 +53,8 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         protected override SwConfigurationCollection CreateConfigurations()
             => new SwPartConfigurationCollection(this, OwnerApplication);
+
+        protected override bool IsDocumentTypeCompatible(swDocumentTypes_e docType) => docType == swDocumentTypes_e.swDocPART;
     }
 
     internal class SwPartBodyCollection : SwBodyCollection

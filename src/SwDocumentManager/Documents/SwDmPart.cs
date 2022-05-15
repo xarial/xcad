@@ -38,6 +38,8 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         public override ISwDmConfigurationCollection Configurations => m_LazyConfigurations.Value;
 
         ISwDmPartConfigurationCollection ISwDmPart.Configurations => m_LazyConfigurations.Value;
+
+        protected override bool IsDocumentTypeCompatible(SwDmDocumentType docType) => docType == SwDmDocumentType.swDmDocumentPart;
     }
 
     internal class SwDmVirtualPart : SwDmPart

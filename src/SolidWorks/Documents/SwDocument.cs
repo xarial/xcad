@@ -827,12 +827,25 @@ namespace Xarial.XCad.SolidWorks.Documents
                     }
                 }
 
+                if (!IsDocumentTypeCompatible(docType))
+                {
+                    throw new DocumentPathIncompatibleException(this);
+                }
+
                 int warns = -1;
                 model = OwnerApplication.Sw.OpenDoc6(Path, (int)docType, (int)opts, "", ref errorCode, ref warns);
             }
             else
             {
                 model = OwnerApplication.Sw.LoadFile4(Path, "", null, ref errorCode);
+
+                if (model != null) 
+                {
+                    if (!IsDocumentTypeCompatible((swDocumentTypes_e)model.GetType()))
+                    {
+                        throw new DocumentPathIncompatibleException(this);
+                    }
+                }
             }
 
             if (model == null)
@@ -884,6 +897,8 @@ namespace Xarial.XCad.SolidWorks.Documents
 
             return model;
         }
+
+        protected abstract bool IsDocumentTypeCompatible(swDocumentTypes_e docType);
 
         //NOTE: closing of document migth note neecsserily unload if from memory (if this document is used in active assembly or drawing)
         //do not dispose or set m_IsClosed flag in this function
@@ -1333,6 +1348,8 @@ namespace Xarial.XCad.SolidWorks.Documents
 
             return m_SpecificDoc;
         }
+
+        protected override bool IsDocumentTypeCompatible(swDocumentTypes_e docType) => true;
     }
 
     internal class SwUnknownDocument3D : SwUnknownDocument, ISwDocument3D

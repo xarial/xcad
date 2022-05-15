@@ -48,11 +48,12 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         TSelObject IXObjectContainer.ConvertObject<TSelObject>(TSelObject obj) => throw new NotSupportedException();
         public Color? Color { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
         public IXDimensionRepository Dimensions => throw new NotSupportedException();
+        public IEditor<IXComponent> Edit() => throw new NotSupportedException();
 
         #endregion
 
-        IXDocument3D IXComponent.ReferencedDocument => ReferencedDocument;
-        IXConfiguration IXComponent.ReferencedConfiguration => ReferencedConfiguration;
+        IXDocument3D IXComponent.ReferencedDocument { get => ReferencedDocument; set => ReferencedDocument = (ISwDmDocument3D)value; }
+        IXConfiguration IXComponent.ReferencedConfiguration { get => ReferencedConfiguration; set => ReferencedConfiguration = (ISwDmConfiguration)value; }
 
         public ISwDMComponent Component { get; }
 
@@ -117,9 +118,16 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         public string CachedPath => ((ISwDMComponent6)Component).PathName;
 
-        public string Path => m_PathLazy.Value;
+        private string GetPath() => m_PathLazy.Value;
 
-        public abstract ISwDmConfiguration ReferencedConfiguration { get; }
+        public ISwDmConfiguration ReferencedConfiguration 
+        {
+            get => GetReferencedConfiguration();
+            set => throw new NotSupportedException();
+        }
+
+        protected abstract ISwDmConfiguration GetReferencedConfiguration();
+        protected abstract ISwDmDocument3D GetReferencedDocument();
 
         public ComponentState_e State
         {
@@ -159,8 +167,13 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             }
             set 
             {
-                if (((ISwDMComponent5)Component).ExcludeFromBOM == (int)swDmExcludeFromBOMResult.swDmExcludeFromBOM_TRUE
-                    && !value.HasFlag(ComponentState_e.ExcludedFromBom))
+                var isExcludedFromBom = ((ISwDMComponent5)Component).ExcludeFromBOM == (int)swDmExcludeFromBOMResult.swDmExcludeFromBOM_TRUE;
+
+                if (isExcludedFromBom && !value.HasFlag(ComponentState_e.ExcludedFromBom))
+                {
+                    ((ISwDMComponent5)Component).ExcludeFromBOM = (int)swDmExcludeFromBOMResult.swDmExcludeFromBOM_FALSE;
+                }
+                else if (!isExcludedFromBom && value.HasFlag(ComponentState_e.ExcludedFromBom))
                 {
                     ((ISwDMComponent5)Component).ExcludeFromBOM = (int)swDmExcludeFromBOMResult.swDmExcludeFromBOM_TRUE;
                 }
@@ -195,7 +208,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         
         public IXComponentRepository Children => m_ChildrenLazy.Value;
 
-        protected TDocument GetReferencedDocument<TDocument>()
+        protected TDocument GetSpecificReferencedDocument<TDocument>()
             where TDocument : ISwDmDocument3D
         {
             if (m_CachedDocument == null)
@@ -259,13 +272,15 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                     }
                     else
                     {
-                        if (ParentAssembly.SwDmApp.Documents.TryGet(Path, out ISwDmDocument curDoc))
+                        var path = GetPath();
+
+                        if (ParentAssembly.SwDmApp.Documents.TryGet(path, out ISwDmDocument curDoc))
                         {
                             doc = (ISwDmDocument3D)curDoc;
                         }
                         else
                         {
-                            doc = (ISwDmDocument3D)ParentAssembly.SwDmApp.Documents.PreCreateFromPath(Path);
+                            doc = (ISwDmDocument3D)ParentAssembly.SwDmApp.Documents.PreCreateFromPath(path);
                             doc.State = isReadOnly ? DocumentState_e.ReadOnly : DocumentState_e.Default;
                         }
 
@@ -297,11 +312,18 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         internal SwDmComponent Parent { get; set; }
 
-        public abstract ISwDmDocument3D ReferencedDocument { get; }
+        public ISwDmDocument3D ReferencedDocument 
+        {
+            get => GetReferencedDocument();
+            set => throw new NotSupportedException();
+        }
     }
 
     internal class SwDmPartComponent : SwDmComponent, IXPartComponent
     {
+        IXPart IXPartComponent.ReferencedDocument { get => (IXPart)base.ReferencedDocument; set => base.ReferencedDocument = (ISwDmDocument3D)value; }
+        IXPartConfiguration IXPartComponent.ReferencedConfiguration { get => (IXPartConfiguration)base.ReferencedConfiguration; set => base.ReferencedConfiguration = (ISwDmConfiguration)value; }
+
         private readonly Lazy<ISwDmPartConfiguration> m_ReferencedConfigurationLazy;
 
         public SwDmPartComponent(SwDmAssembly parentAssm, ISwDMComponent comp) : base(parentAssm, comp)
@@ -309,15 +331,15 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             m_ReferencedConfigurationLazy = new Lazy<ISwDmPartConfiguration>(() => new SwDmPartComponentConfiguration(this));
         }
 
-        public override ISwDmDocument3D ReferencedDocument => (ISwDmDocument3D)((IXPartComponent)this).ReferencedDocument;
-        IXPart IXPartComponent.ReferencedDocument => GetReferencedDocument<ISwDmPart>();
-
-        public override ISwDmConfiguration ReferencedConfiguration => (ISwDmConfiguration)((IXPartComponent)this).ReferencedConfiguration;
-        IXPartConfiguration IXPartComponent.ReferencedConfiguration => m_ReferencedConfigurationLazy.Value;
+        protected override ISwDmConfiguration GetReferencedConfiguration() => m_ReferencedConfigurationLazy.Value;
+        protected override ISwDmDocument3D GetReferencedDocument() => GetSpecificReferencedDocument<ISwDmPart>();
     }
 
     internal class SwDmAssemblyComponent : SwDmComponent, IXAssemblyComponent
     {
+        IXAssembly IXAssemblyComponent.ReferencedDocument { get => (IXAssembly)base.ReferencedDocument; set => base.ReferencedDocument = (ISwDmDocument3D)value; }
+        IXAssemblyConfiguration IXAssemblyComponent.ReferencedConfiguration { get => (IXAssemblyConfiguration)base.ReferencedConfiguration; set => base.ReferencedConfiguration = (ISwDmConfiguration)value; }
+
         private readonly Lazy<ISwDmAssemblyConfiguration> m_ReferencedConfigurationLazy;
 
         public SwDmAssemblyComponent(SwDmAssembly parentAssm, ISwDMComponent comp) : base(parentAssm, comp)
@@ -325,11 +347,8 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             m_ReferencedConfigurationLazy = new Lazy<ISwDmAssemblyConfiguration>(() => new SwDmAssemblyComponentConfiguration(this));
         }
 
-        public override ISwDmDocument3D ReferencedDocument => (ISwDmDocument3D)((IXAssemblyComponent)this).ReferencedDocument;
-        IXAssembly IXAssemblyComponent.ReferencedDocument => GetReferencedDocument<ISwDmAssembly>();
-
-        public override ISwDmConfiguration ReferencedConfiguration => (ISwDmConfiguration)((IXAssemblyComponent)this).ReferencedConfiguration;
-        IXAssemblyConfiguration IXAssemblyComponent.ReferencedConfiguration => m_ReferencedConfigurationLazy.Value;
+        protected override ISwDmConfiguration GetReferencedConfiguration() => m_ReferencedConfigurationLazy.Value;
+        protected override ISwDmDocument3D GetReferencedDocument() => GetSpecificReferencedDocument<ISwDmAssembly>();
     }
 
     internal abstract class SwDmComponentConfiguration : SwDmConfiguration

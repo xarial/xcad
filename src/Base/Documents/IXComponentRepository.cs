@@ -61,5 +61,17 @@ namespace Xarial.XCad.Documents
                 yield return comp;
             }
         }
+
+        /// <summary>
+        /// Creates a template for part component
+        /// </summary>
+        /// <returns>Part component template</returns>
+        public static IXPartComponent PreCreatePartComponent(this IXComponentRepository repo) => repo.PreCreate<IXPartComponent>();
+
+        /// <summary>
+        /// Creates a template for assembly component
+        /// </summary>
+        /// <returns>Assembly component template</returns>
+        public static IXAssemblyComponent PreCreateAssemblyComponent(this IXComponentRepository repo) => repo.PreCreate<IXAssemblyComponent>();
     }
 }

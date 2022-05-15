@@ -215,7 +215,7 @@ namespace SolidWorksDocMgr.Tests.Integration
             using (var doc = OpenDataDocument(@"MovedNonOpenedAssembly1\TopAssembly.SLDASM"))
             {
                 var comps = ((ISwDmAssembly)m_App.Documents.Active).Configurations.Active.Components.Flatten().ToArray();
-                paths = comps.Select(c => c.Path).ToArray();
+                paths = comps.Select(c => c.ReferencedDocument.Path).ToArray();
                 isCommitted = comps.Select(c => c.ReferencedDocument.IsCommitted).ToArray();
             }
 
@@ -236,7 +236,7 @@ namespace SolidWorksDocMgr.Tests.Integration
             using (var doc = OpenDataDocument(@"Assembly3\Assemblies\Assem1.SLDASM"))
             {
                 var comps = ((ISwDmAssembly)m_App.Documents.Active).Configurations.Active.Components.Flatten().ToArray();
-                paths = comps.Select(c => c.Path).ToArray();
+                paths = comps.Select(c => c.ReferencedDocument.Path).ToArray();
                 isCommitted = comps.Select(c => c.ReferencedDocument.IsCommitted).ToArray();
             }
 

@@ -52,5 +52,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
             m_SheetsLazy = new Lazy<IXSheetRepository>(() => new SwSheetCollection(this, OwnerApplication));
         }
+
+        protected override bool IsDocumentTypeCompatible(swDocumentTypes_e docType) => docType == swDocumentTypes_e.swDocDRAWING;
     }
 }

@@ -10,6 +10,8 @@ using System.Threading.Tasks;
 using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Enums;
+using Xarial.XCad.Features;
+using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.SolidWorks;
 using Xarial.XCad.SolidWorks.Documents;
@@ -315,6 +317,7 @@ namespace SolidWorks.Tests.Integration
             ComponentState_e s4;
             ComponentState_e s5;
             ComponentState_e s6;
+            ComponentState_e s7;
 
             using (var doc = OpenDataDocument(@"Assembly5\Assem1.SLDASM"))
             {
@@ -326,6 +329,7 @@ namespace SolidWorks.Tests.Integration
                 s4 = assm.Configurations.Active.Components["Part1-4"].State;
                 s5 = assm.Configurations.Active.Components["Part1-5"].State;
                 s6 = assm.Configurations.Active.Components["Part2^Assem1-1"].State;
+                s7 = assm.Configurations.Active.Components["Part1-6"].State;
             }
 
             Assert.AreEqual(ComponentState_e.Default, s1);
@@ -333,7 +337,8 @@ namespace SolidWorks.Tests.Integration
             Assert.AreEqual(ComponentState_e.Envelope, s3);
             Assert.AreEqual(ComponentState_e.ExcludedFromBom, s4);
             Assert.AreEqual(ComponentState_e.Hidden, s5);
-            Assert.AreEqual(ComponentState_e.Embedded, s6);
+            Assert.AreEqual(ComponentState_e.Embedded | ComponentState_e.Fixed, s6);
+            Assert.AreEqual(ComponentState_e.Fixed, s7);
         }
 
         [Test]
@@ -385,22 +390,26 @@ namespace SolidWorks.Tests.Integration
                 var c4 = (ISwComponent)assm.Configurations.Active.Components["Part1-5"];
                 var c5 = (ISwComponent)assm.Configurations.Active.Components["Part3-1"];
                 var c6 = (ISwComponent)assm.Configurations.Active.Components["Part2^Assem1-1"];
+                var c7 = (ISwComponent)assm.Configurations.Active.Components["Part1-6"];
 
                 c1.State = ComponentState_e.Suppressed;
-                c2.State = ComponentState_e.Hidden;
+                c2.State = ComponentState_e.Hidden | ComponentState_e.Fixed;
                 c3.State = ComponentState_e.Default;
                 c4.State = ComponentState_e.ExcludedFromBom | ComponentState_e.Hidden;
                 c5.State = ComponentState_e.Embedded;
                 c6.State = ComponentState_e.Embedded | ComponentState_e.Lightweight;
+                c7.State = ComponentState_e.Default;
 
                 Assert.AreEqual((int)swComponentSuppressionState_e.swComponentSuppressed, c1.Component.GetSuppression2());
                 Assert.IsTrue(c2.Component.IsHidden(false));
+                Assert.IsTrue(c2.Component.IsFixed());
                 Assert.IsFalse(c3.Component.ExcludeFromBOM);
                 Assert.IsTrue(c4.Component.IsHidden(false));
                 Assert.IsTrue(c4.Component.ExcludeFromBOM);
                 Assert.That(c4.Component.GetSuppression2() == (int)swComponentSuppressionState_e.swComponentResolved || c4.Component.GetSuppression2() == (int)swComponentSuppressionState_e.swComponentFullyResolved);
                 Assert.IsTrue(c5.Component.IsVirtual);
                 Assert.That(c6.Component.GetSuppression2() == (int)swComponentSuppressionState_e.swComponentLightweight || c4.Component.GetSuppression2() == (int)swComponentSuppressionState_e.swComponentFullyLightweight);
+                Assert.IsFalse(c7.Component.IsFixed());
             }
         }
 
@@ -516,6 +525,129 @@ namespace SolidWorks.Tests.Integration
             Assert.AreEqual(100, (int)((1f - mat1[7]) * 255));
 
             Assert.IsTrue(mat2.All(m => m == -1));
+        }
+
+        [Test]
+        public void AddComponentsTest()
+        {
+            using (var partDoc = OpenDataDocument("Box1.sldprt"))
+            {
+                var doc4 = (IXPart)m_App.Documents.Active;
+
+                using (var doc = NewDocument(swDocumentTypes_e.swDocASSEMBLY))
+                {
+                    var assm = (ISwAssembly)m_App.Documents.Active;
+
+                    var doc1 = (IXPart)m_App.Documents.PreCreateFromPath(GetFilePath("Cylinder1.sldprt"));
+                    var doc2 = m_App.Documents.PreCreatePart();
+                    var doc3 = m_App.Documents.PreCreateAssembly();
+                    
+                    var comp1 = assm.Configurations.Active.Components.PreCreate<IXPartComponent>();
+                    comp1.ReferencedDocument = doc1;
+                    comp1.State = ComponentState_e.Fixed;
+
+                    var comp2 = assm.Configurations.Active.Components.PreCreate<IXPartComponent>();
+                    comp2.ReferencedDocument = doc1;
+                    comp2.ReferencedConfiguration = (IXPartConfiguration)doc1.Configurations["Conf1"];
+                    comp2.Transformation = TransformMatrix.CreateFromTranslation(new Vector(0.1, 0.2, 0.3));
+                    comp2.State = ComponentState_e.Fixed;
+
+                    var comp3 = assm.Configurations.Active.Components.PreCreate<IXPartComponent>();
+                    comp3.ReferencedDocument = doc2;
+                    comp3.State = ComponentState_e.Embedded;
+
+                    var comp4 = assm.Configurations.Active.Components.PreCreate<IXPartComponent>();
+                    comp4.ReferencedDocument = doc2;
+                    comp4.State = ComponentState_e.Embedded;
+                    comp4.Transformation = TransformMatrix.CreateFromRotationAroundAxis(new Vector(1, 0, 0), Math.PI / 4, new Point(0, 0, 0));
+
+                    var comp5 = assm.Configurations.Active.Components.PreCreate<IXAssemblyComponent>();
+                    comp5.ReferencedDocument = doc3;
+                    comp5.State = ComponentState_e.Embedded;
+
+                    var comp6 = assm.Configurations.Active.Components.PreCreate<IXPartComponent>();
+                    comp6.ReferencedDocument = doc4;
+                    comp6.State = ComponentState_e.Suppressed;
+
+                    var comp7 = assm.Configurations.Active.Components.PreCreate<IXPartComponent>();
+                    comp7.ReferencedDocument = doc4;
+                    comp7.State = ComponentState_e.ExcludedFromBom;
+
+                    var comp8 = assm.Configurations.Active.Components.PreCreate<IXPartComponent>();
+                    comp8.ReferencedDocument = doc4;
+                    comp8.State = ComponentState_e.Hidden;
+
+                    assm.Configurations.Active.Components.AddRange(new IXComponent[] { comp1, comp2, comp3, comp4, comp5, comp6, comp7, comp8 });
+
+                    var comp3ModelDoc = (IModelDoc2)((ISwComponent)comp3).Component.GetModelDoc2();
+
+                    Assert.That(string.Equals(Path.GetFileName(((IModelDoc2)((ISwComponent)comp1).Component.GetModelDoc2()).GetPathName()), "Cylinder1.sldprt", StringComparison.CurrentCultureIgnoreCase));
+                    Assert.That(((ISwComponent)comp1).Component.IsFixed());
+
+                    Assert.That(string.Equals(Path.GetFileName(((IModelDoc2)((ISwComponent)comp2).Component.GetModelDoc2()).GetPathName()), "Cylinder1.sldprt", StringComparison.CurrentCultureIgnoreCase));
+                    Assert.That(((ISwComponent)comp2).Component.IsFixed());
+                    Assert.AreEqual("Conf1", ((ISwComponent)comp2).Component.ReferencedConfiguration);
+                    AssertCompareDoubleArray((double[])((ISwComponent)comp2).Component.Transform2.ArrayData, new double[] { 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.1, 0.2, 0.3, 1, 0, 0, 0 });
+
+                    Assert.That(!((ISwComponent)comp3).Component.IsFixed());
+                    Assert.AreEqual((int)swDocumentTypes_e.swDocPART, comp3ModelDoc.GetType());
+                    Assert.That(((ISwComponent)comp3).Component.IsVirtual);
+
+                    Assert.That(!((ISwComponent)comp4).Component.IsFixed());
+                    Assert.AreEqual(comp3ModelDoc, (IModelDoc2)((ISwComponent)comp4).Component.GetModelDoc2());
+                    Assert.That(((ISwComponent)comp4).Component.IsVirtual);
+                    AssertCompareDoubleArray((double[])((ISwComponent)comp4).Component.Transform2.ArrayData, new double[] { 1, 0, 0, 0, 0.70710678118654757, 0.70710678118654746, 0, -0.70710678118654746, 0.70710678118654757, 0, 0, 0, 1, 0, 0, 0 });
+
+                    Assert.That(!((ISwComponent)comp5).Component.IsFixed());
+                    Assert.AreEqual((int)swDocumentTypes_e.swDocASSEMBLY, ((IModelDoc2)((ISwComponent)comp5).Component.GetModelDoc2()).GetType());
+                    Assert.That(((ISwComponent)comp5).Component.IsVirtual);
+
+                    Assert.That(string.Equals(Path.GetFileName(comp6.ReferencedDocument.Path), "Box1.sldprt", StringComparison.CurrentCultureIgnoreCase));
+                    Assert.That(((ISwComponent)comp6).Component.IsSuppressed());
+
+                    Assert.That(string.Equals(Path.GetFileName(((IModelDoc2)((ISwComponent)comp7).Component.GetModelDoc2()).GetPathName()), "Box1.sldprt", StringComparison.CurrentCultureIgnoreCase));
+                    Assert.That(((ISwComponent)comp7).Component.ExcludeFromBOM);
+
+                    Assert.That(string.Equals(Path.GetFileName(((IModelDoc2)((ISwComponent)comp8).Component.GetModelDoc2()).GetPathName()), "Box1.sldprt", StringComparison.CurrentCultureIgnoreCase));
+                    Assert.That(((ISwComponent)comp8).Component.IsHidden(false));
+                }
+            }
+        }
+
+        [Test]
+        public void EditComponentInContext() 
+        {
+            IXComponent editComp1;
+            string editComp2;
+            int bodyCount;
+            double[] vols;
+
+            using (var doc = OpenDataDocument(@"Assembly5\Assem1.SLDASM", false))
+            {
+                var assm = (ISwAssembly)m_App.Documents.Active;
+
+                var comp = assm.Configurations.Active.Components["Part1-1"];
+
+                editComp1 = assm.EditingComponent;
+
+                using (var editor = comp.Edit()) 
+                {
+                    editComp2 = assm.EditingComponent?.Name;
+
+                    var dumbBodyFeat = comp.Features.PreCreateDumbBody();
+                    dumbBodyFeat.Body = m_App.MemoryGeometryBuilder.CreateSolidBox(new Point(0, 0, 0), new Vector(1, 0, 0), new Vector(0, 1, 0), 0.1, 0.2, 0.3).Bodies.First();
+                    dumbBodyFeat.Commit();
+                }
+
+                bodyCount = comp.Bodies.Count;
+                vols = comp.Bodies.Where(b => !string.Equals(b.Name, "Boss-Extrude1", StringComparison.CurrentCultureIgnoreCase)).Select(b => ((IXSolidBody)b).Volume).ToArray();
+            }
+
+            Assert.IsNull(editComp1);
+            Assert.AreEqual("Part1-1", editComp2);
+            Assert.AreEqual(2, bodyCount);
+            Assert.AreEqual(1, vols.Length);
+            Assert.That(vols[0], Is.EqualTo(0.006).Within(0.00000000001).Percent);
         }
     }
 }

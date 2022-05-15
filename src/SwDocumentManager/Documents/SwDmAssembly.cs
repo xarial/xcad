@@ -43,6 +43,8 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         ISwDmAssemblyConfigurationCollection ISwDmAssembly.Configurations => m_LazyConfigurations.Value;
 
         public override ISwDmConfigurationCollection Configurations => ((ISwDmAssembly)this).Configurations;
+
+        protected override bool IsDocumentTypeCompatible(SwDmDocumentType docType) => docType == SwDmDocumentType.swDmDocumentAssembly;
     }
 
     internal class SwDmVirtualAssembly : SwDmAssembly

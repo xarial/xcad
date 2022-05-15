@@ -149,7 +149,8 @@ namespace Xarial.XCad.SolidWorks.Features
                 return RepositoryHelper.PreCreate<IXFeature, T>(this,
                     () => new SwSketch2D(default(ISketch), Document, m_App, false),
                     () => new SwSketch3D(default(ISketch), Document, m_App, false),
-                    () => new SwMacroFeature(null, Document, m_App, false));
+                    () => new SwMacroFeature(null, Document, m_App, false),
+                    () => new SwDumbBody(null, Document, m_App, false));
             }
         }
     }

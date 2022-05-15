@@ -59,6 +59,12 @@ namespace Xarial.XCad.Features
         public static IXCustomFeature PreCreateCustomFeature(this IXFeatureRepository feats) => feats.PreCreate<IXCustomFeature>();
 
         /// <summary>
+        /// Pre-creates dumb body feature
+        /// </summary>
+        /// <returns>Instance of dumb body feature</returns>
+        public static IXDumbBody PreCreateDumbBody(this IXFeatureRepository feats) => feats.PreCreate<IXDumbBody>();
+
+        /// <summary>
         /// Pre-creates custom feature with specific parameters
         /// </summary>
         /// <typeparam name="TParams">Type of parameters managed by this custom feature</typeparam>
