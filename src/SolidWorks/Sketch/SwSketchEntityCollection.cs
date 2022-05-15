@@ -38,7 +38,7 @@ namespace Xarial.XCad.SolidWorks.Sketch
 
         public IXWireEntity this[string name] => RepositoryHelper.Get(this, name);
 
-        private readonly ISwSketchBase m_Sketch;
+        private readonly SwSketchBase m_Sketch;
 
         private readonly List<IXSketchEntity> m_Cache;
 
@@ -46,7 +46,7 @@ namespace Xarial.XCad.SolidWorks.Sketch
         private readonly ISwDocument m_Doc;
         private readonly ISketchManager m_SkMgr;
 
-        internal SwSketchEntityCollection(ISwSketchBase sketch, ISwDocument doc, ISwApplication app)
+        internal SwSketchEntityCollection(SwSketchBase sketch, ISwDocument doc, ISwApplication app)
         {
             m_Doc = doc;
             m_App = app;
@@ -57,29 +57,9 @@ namespace Xarial.XCad.SolidWorks.Sketch
 
         internal void CommitCache(ISketch sketch, CancellationToken cancellationToken)
         {
-            CreateSegments(m_Cache, sketch, cancellationToken);
+            CreateSegments(sketch, m_Cache, cancellationToken);
 
             m_Cache.Clear();
-        }
-
-        private void CreateSegments(IEnumerable<IXSketchEntity> segments, ISketch sketch, CancellationToken cancellationToken)
-        {
-            var addToDbOrig = m_SkMgr.AddToDB;
-
-            try
-            {
-                m_Sketch.SetEditMode(sketch, true);
-
-                m_SkMgr.AddToDB = true;
-
-                RepositoryHelper.AddRange(this, segments, cancellationToken);
-            }
-            finally
-            {
-                m_SkMgr.AddToDB = addToDbOrig;
-
-                m_Sketch.SetEditMode(sketch, false);
-            }
         }
 
         public IXCurve Merge(IXCurve[] curves)
@@ -122,7 +102,7 @@ namespace Xarial.XCad.SolidWorks.Sketch
         {
             if (m_Sketch.IsCommitted)
             {
-                CreateSegments(ents.Cast<IXSketchEntity>(), m_Sketch.Sketch, cancellationToken);
+                CreateSegments(m_Sketch.Sketch, ents, cancellationToken);
             }
             else
             {
@@ -135,14 +115,22 @@ namespace Xarial.XCad.SolidWorks.Sketch
 
         public T PreCreate<T>() where T : IXWireEntity
             => RepositoryHelper.PreCreate<IXWireEntity, T>(this,
-                () => new SwSketchLine(null, m_Doc, m_App, false),
-                () => new SwSketchPoint(null, m_Doc, m_App, false),
-                () => new SwSketchCircle(null, m_Doc, m_App, false),
-                () => new SwSketchArc(null, m_Doc, m_App, false),
-                () => new SwSketchEllipse(null, m_Doc, m_App, false),
-                () => new SwSketchSpline(null, m_Doc, m_App, false),
-                () => new SwSketchText(null, m_Doc, m_App, false));
+                () => new SwSketchLine(m_Sketch, m_Doc, m_App),
+                () => new SwSketchPoint(m_Sketch, m_Doc, m_App),
+                () => new SwSketchCircle(m_Sketch, m_Doc, m_App),
+                () => new SwSketchArc(m_Sketch, m_Doc, m_App),
+                () => new SwSketchEllipse(m_Sketch, m_Doc, m_App),
+                () => new SwSketchSpline(m_Sketch, m_Doc, m_App),
+                () => new SwSketchText(m_Sketch, m_Doc, m_App));
 
         public IEnumerator<IXWireEntity> GetEnumerator() => IterateEntities().GetEnumerator();
+
+        private void CreateSegments(ISketch sketch, IEnumerable<IXWireEntity> ents, CancellationToken cancellationToken)
+        {
+            using (var editor = m_Sketch.CreateSketchEditor(sketch))
+            {
+                RepositoryHelper.AddRange(this, ents, cancellationToken);
+            }
+        }
     }
 }

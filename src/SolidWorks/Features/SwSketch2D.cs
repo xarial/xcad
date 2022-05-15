@@ -22,6 +22,16 @@ namespace Xarial.XCad.SolidWorks.Features
         new IEnumerable<ISwSketchRegion> Regions { get; }
     }
 
+    internal class SwSketch2DEditor : SwSketchEditorBase<SwSketch2D>
+    {
+        public SwSketch2DEditor(SwSketch2D sketch, ISketch swSketch) : base(sketch, swSketch)
+        {
+        }
+
+        protected override void StartEdit() => Target.OwnerDocument.Model.SketchManager.InsertSketch(true);
+        protected override void EndEdit(bool cancel) => Target.OwnerDocument.Model.SketchManager.InsertSketch(!cancel);
+    }
+
     internal class SwSketch2D : SwSketchBase, ISwSketch2D
     {
         IEnumerable<IXSketchRegion> IXSketch2D.Regions => Regions;
@@ -72,8 +82,7 @@ namespace Xarial.XCad.SolidWorks.Features
             OwnerModelDoc.InsertSketch2(true);
             return OwnerModelDoc.SketchManager.ActiveSketch;
         }
-
-        protected override void ToggleEditSketch()
-            => OwnerModelDoc.InsertSketch2(true);
+        
+        protected internal override IEditor<IXSketchBase> CreateSketchEditor(ISketch sketch) => new SwSketch2DEditor(this, sketch);
     }
 }

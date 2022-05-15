@@ -74,6 +74,12 @@ namespace Xarial.XCad.Documents
         /// Transformation of this component in the assembly relative to the global coordinate system
         /// </summary>
         TransformMatrix Transformation { get; set; }
+
+        /// <summary>
+        /// Enables an editing mode for the component
+        /// </summary>
+        /// <returns>Component editor</returns>
+        IEditor<IXComponent> Edit();
     }
 
     /// <summary>

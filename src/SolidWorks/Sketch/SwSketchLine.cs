@@ -12,6 +12,7 @@ using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Geometry.Wires;
 using Xarial.XCad.Sketch;
 using Xarial.XCad.SolidWorks.Documents;
+using Xarial.XCad.SolidWorks.Features;
 
 namespace Xarial.XCad.SolidWorks.Sketch
 {
@@ -81,6 +82,10 @@ namespace Xarial.XCad.SolidWorks.Sketch
 
         internal SwSketchLine(ISketchLine line, ISwDocument doc, ISwApplication app, bool created) 
             : base((ISketchSegment)line, doc, app, created)
+        {
+        }
+
+        internal SwSketchLine(SwSketchBase ownerSketch, ISwDocument doc, ISwApplication app) : base(ownerSketch, doc, app)
         {
         }
 

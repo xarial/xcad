@@ -13,6 +13,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Threading;
 using Xarial.XCad.Annotations;
+using Xarial.XCad.Documents;
 using Xarial.XCad.Features;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Services;
@@ -27,14 +28,68 @@ namespace Xarial.XCad.SolidWorks.Features
     {
         IFeature Feature { get; }
         new ISwDimensionsCollection Dimensions { get; }
+        new ISwComponent Component { get; }
+    }
+
+    internal abstract class SwFeatureEditor<TFeatData> : IEditor<SwFeature>
+    {
+        public SwFeature Target { get; }
+
+        public bool Cancel 
+        {
+            get;
+            set;
+        }
+
+        private readonly TFeatData m_FeatData;
+        private readonly ISwDocument m_Doc;
+        private readonly ISwComponent m_Comp;
+
+        internal SwFeatureEditor(SwFeature feat, TFeatData featData)
+        {
+            Target = feat;
+            m_FeatData = featData;
+
+            m_Doc = Target.OwnerDocument;
+            m_Comp = Target.Component;
+
+            if (!StartEdit(m_FeatData, m_Doc, m_Comp)) 
+            {
+                throw new Exception("Failed to start editing of the feature");
+            }
+        }
+
+        protected abstract bool StartEdit(TFeatData featData, ISwDocument doc, ISwComponent comp);
+        protected abstract void CancelEdit(TFeatData featData);
+
+        private void EndEdit(bool cancel)
+        {
+            if (!cancel)
+            {
+                if (!Target.Feature.ModifyDefinition(m_FeatData, m_Doc.Model, m_Comp?.Component))
+                {
+                    throw new Exception("Failed to modify defintion of the feature");
+                }
+            }
+            else 
+            {
+                CancelEdit(m_FeatData);
+            }
+        }
+
+        public void Dispose()
+        {
+            EndEdit(Cancel);
+        }
     }
 
     [DebuggerDisplay("{" + nameof(Name) + "}")]
     internal class SwFeature : SwSelObject, ISwFeature
     {
-        private readonly ElementCreator<IFeature> m_Creator;
-
+        IXComponent IXFeature.Component => Component;
         IXDimensionRepository IDimensionable.Dimensions => Dimensions;
+
+        private readonly ElementCreator<IFeature> m_Creator;
 
         public virtual IFeature Feature => m_Creator.Element;
 
@@ -79,10 +134,25 @@ namespace Xarial.XCad.SolidWorks.Features
 
         public override void Commit(CancellationToken cancellationToken) => m_Creator.Create(cancellationToken);
 
-        protected virtual IFeature CreateFeature(CancellationToken cancellationToken)
+        public ISwComponent Component
         {
-            throw new NotSupportedException("Creation of this feature is not supported");
+            get
+            {
+                var comp = (IComponent2)((IEntity)Feature).GetComponent();
+
+                if (comp != null)
+                {
+                    return OwnerDocument.CreateObjectFromDispatch<ISwComponent>(comp);
+                }
+                else
+                {
+                    return null;
+                }
+            }
         }
+
+        protected virtual IFeature CreateFeature(CancellationToken cancellationToken)
+            => throw new NotSupportedException("Creation of this feature is not supported");
 
         public ISwDimensionsCollection Dimensions => m_DimensionsLazy.Value;
 
@@ -91,14 +161,12 @@ namespace Xarial.XCad.SolidWorks.Features
             get => Feature.Name;
             set => Feature.Name = value;
         }
-
-        private IComponent2 Component => (Feature as IEntity).GetComponent() as IComponent2;
-
+        
         public Color? Color
         {
-            get => SwColorHelper.GetColor(Component,
+            get => SwColorHelper.GetColor(Component?.Component,
                 (o, c) => Feature.GetMaterialPropertyValues2((int)o, c) as double[]);
-            set => SwColorHelper.SetColor(value, Component,
+            set => SwColorHelper.SetColor(value, Component?.Component,
                 (m, o, c) => Feature.SetMaterialPropertyValues2(m, (int)o, c),
                 (o, c) => Feature.RemoveMaterialProperty2((int)o, c));
         }
@@ -145,5 +213,7 @@ namespace Xarial.XCad.SolidWorks.Features
                 throw new Exception("Faile to select feature");
             }
         }
+
+        public virtual IEditor<IXFeature> Edit() => throw new NotSupportedException();
     }
 }

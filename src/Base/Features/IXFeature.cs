@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using Xarial.XCad.Annotations;
 using Xarial.XCad.Base;
+using Xarial.XCad.Documents;
 using Xarial.XCad.Geometry;
 
 namespace Xarial.XCad.Features
@@ -44,5 +45,17 @@ namespace Xarial.XCad.Features
         /// State of this feature in the feature tree
         /// </summary>
         FeatureState_e State { get; }
+
+        /// <summary>
+        /// Component of this feature if it is a in-context feature of the assembly
+        /// </summary>
+        /// <remarks>Returns null if feature is top level feature</remarks>
+        IXComponent Component { get; }
+
+        /// <summary>
+        /// Enables feature editing mode
+        /// </summary>
+        /// <returns>Feature edtior</returns>
+        IEditor<IXFeature> Edit();
     }
 }

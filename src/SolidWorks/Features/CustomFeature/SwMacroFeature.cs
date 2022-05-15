@@ -15,6 +15,7 @@ using System.Reflection;
 using System.Threading;
 using Xarial.XCad.Annotations;
 using Xarial.XCad.Documents;
+using Xarial.XCad.Features;
 using Xarial.XCad.Features.CustomFeature;
 using Xarial.XCad.Features.CustomFeature.Attributes;
 using Xarial.XCad.Features.CustomFeature.Enums;
@@ -150,10 +151,18 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
     public interface ISwMacroFeature<TParams> : ISwMacroFeature, IXCustomFeature<TParams>
         where TParams : class
     {
-        /// <summary>
-        /// Returns parameters without accessing the selection
-        /// </summary>
-        TParams CachedParameters { get; }
+    }
+
+    internal class SwMacroFeatureEditor : SwFeatureEditor<IMacroFeatureData>
+    {
+        public SwMacroFeatureEditor(SwFeature feat, IMacroFeatureData featData) : base(feat, featData)
+        {
+        }
+
+        protected override void CancelEdit(IMacroFeatureData featData) => featData.ReleaseSelectionAccess();
+
+        protected override bool StartEdit(IMacroFeatureData featData, ISwDocument doc, ISwComponent comp)
+            => featData.AccessSelections(doc?.Model, comp?.Component);
     }
 
     internal class SwMacroFeature<TParams> : SwMacroFeature, ISwMacroFeature<TParams>
@@ -188,21 +197,16 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             m_ParamsParser = paramsParser;
         }
 
+        public override IEditor<IXFeature> Edit() => new SwMacroFeatureEditor(this, FeatureData);
+
         public TParams Parameters
         {
             get
             {
                 if (IsCommitted)
                 {
-                    if (FeatureData.AccessSelections(OwnerModelDoc, OwnerInContextComponent))
-                    {
-                        return (TParams)m_ParamsParser.GetParameters(this, OwnerDocument, typeof(TParams),
+                    return (TParams)m_ParamsParser.GetParameters(this, OwnerDocument, typeof(TParams),
                             out _, out _, out _, out _, out _);
-                    }
-                    else
-                    {
-                        throw new Exception("Failed to edit feature");
-                    }
                 }
                 else
                 {
@@ -213,19 +217,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             {
                 if (IsCommitted)
                 {
-                    if (value == null)
-                    {
-                        FeatureData.ReleaseSelectionAccess();
-                    }
-                    else
-                    {
-                        m_ParamsParser.SetParameters(OwnerDocument, this, value, out _);
-
-                        if (!Feature.ModifyDefinition(FeatureData, OwnerModelDoc, OwnerInContextComponent))
-                        {
-                            throw new Exception("Failed to update parameters");
-                        }
-                    }
+                    m_ParamsParser.SetParameters(OwnerDocument, this, value, out _);
                 }
                 else
                 {
@@ -233,11 +225,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
                 }
             }
         }
-
-        public TParams CachedParameters =>
-            (TParams)m_ParamsParser.GetParameters(this, OwnerDocument, typeof(TParams),
-                out _, out _, out _, out _, out _);
-
+        
         protected override IFeature CreateFeature(CancellationToken cancellationToken)
             => InsertComFeatureWithParameters();
 
