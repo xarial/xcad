@@ -20,6 +20,7 @@ CreatePreviewGeometry
 * &#x26A0; - IXFace::Edges is deprecated and replaced with IXFace::AdjacentEntities
 * &#x26A0; - HandlePostRebuildAttribute is deprecated and replaced with SwMacroFeatureDefinition::PostRebuild event
 * &#x26A0; - IParameterConverter::ConvertEditBodies, IParameterConverter::ConvertDisplayDimensions, IParameterConverter::ConvertParameters, IParameterConverter::ConvertSelections is replaced with IParameterConverter::Convert. ParameterConverter implementation is deprecated
+* &#x26A0; - ISwMacroFeature::CachedParameters is deprecated. use IXCustomFeature::Parameter without IXFeature::Edit to get cached parameters
 
 ## 0.7.7 - October 26, 2021
 

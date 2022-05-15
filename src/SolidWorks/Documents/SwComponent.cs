@@ -63,6 +63,72 @@ namespace Xarial.XCad.SolidWorks.Documents
         new ISwAssembly ReferencedDocument { get; }
     }
 
+    internal abstract class SwComponentEditor : IEditor<SwComponent>
+    {
+        public SwComponent Target { get; set; }
+
+        private readonly ISwAssembly m_Assm;
+
+        internal SwComponentEditor(ISwAssembly assm, SwComponent comp)
+        {
+            m_Assm = assm;
+            Target = comp;
+
+            if (Target.Component.Select4(false, null, false))
+            {
+                StartEdit(m_Assm, Target);
+            }
+            else
+            {
+                throw new Exception("Failed to select component for editing");
+            }
+        }
+
+        public bool Cancel 
+        {
+            get => false;
+            set => throw new NotSupportedException("This operation cannot be cancelled");
+        }
+
+        protected abstract void StartEdit(ISwAssembly assm, SwComponent comp);
+
+        public void Dispose()
+        {
+            m_Assm.Model.ClearSelection2(true);
+            m_Assm.Assembly.EditAssembly();
+        }
+    }
+
+    internal class SwPartComponentEditor : SwComponentEditor
+    {
+        internal SwPartComponentEditor(ISwAssembly assm, SwPartComponent comp) : base(assm, comp)
+        {
+        }
+
+        protected override void StartEdit(ISwAssembly assm, SwComponent comp)
+        {   
+            int inf = -1;
+            var res = (swEditPartCommandStatus_e)assm.Assembly.EditPart2(true, false, ref inf);
+
+            if (res != swEditPartCommandStatus_e.swEditPartSuccessful) 
+            {
+                throw new Exception($"Failed to edit component: {res}");
+            }
+        }
+    }
+
+    internal class SwAssemblyComponentEditor : SwComponentEditor
+    {
+        public SwAssemblyComponentEditor(ISwAssembly assm, SwAssemblyComponent comp) : base(assm, comp)
+        {
+        }
+
+        protected override void StartEdit(ISwAssembly assm, SwComponent comp)
+        {
+            assm.Assembly.EditAssembly();
+        }
+    }
+
     [DebuggerDisplay("{" + nameof(FullName) + "}")]
     internal abstract class SwComponent : SwSelObject, ISwComponent
     {
@@ -376,6 +442,8 @@ namespace Xarial.XCad.SolidWorks.Documents
                 return (swComponentSuppressionState_e)Component.GetSuppression();
             }
         }
+
+        public abstract IEditor<IXComponent> Edit();
     }
 
     internal class SwPartComponent : SwComponent, ISwPartComponent
@@ -390,6 +458,8 @@ namespace Xarial.XCad.SolidWorks.Documents
         internal SwPartComponent(IComponent2 comp, SwAssembly rootAssembly, ISwApplication app) : base(comp, rootAssembly, app)
         {
         }
+
+        public override IEditor<IXComponent> Edit() => new SwPartComponentEditor(RootAssembly, this);
     }
 
     internal class SwAssemblyComponent : SwComponent, ISwAssemblyComponent
@@ -404,6 +474,8 @@ namespace Xarial.XCad.SolidWorks.Documents
         internal SwAssemblyComponent(IComponent2 comp, SwAssembly rootAssembly, ISwApplication app) : base(comp, rootAssembly, app)
         {
         }
+
+        public override IEditor<IXComponent> Edit() => new SwAssemblyComponentEditor(RootAssembly, this);
     }
 
     internal class SwComponentFeatureManager : SwFeatureManager
@@ -420,38 +492,9 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public override void AddRange(IEnumerable<IXFeature> feats, CancellationToken cancellationToken)
         {
-            try
+            using (var editor = Component.Edit()) 
             {
-                if (Component.Component.Select4(false, null, false))
-                {
-                    var isAssm = string.Equals(Path.GetExtension(Component.Component.GetPathName()),
-                        ".sldasm", StringComparison.CurrentCultureIgnoreCase);
-
-                    if (isAssm)
-                    {
-                        m_Assm.Assembly.EditAssembly();
-                    }
-                    else 
-                    {
-                        int inf = -1;
-                        m_Assm.Assembly.EditPart2(true, false, ref inf);
-                    }
-
-                    base.AddRange(feats, cancellationToken);
-                }
-                else 
-                {
-                    throw new Exception("Failed to select component to insert features");
-                }
-            }
-            catch 
-            {
-                throw;
-            }
-            finally
-            {
-                m_Assm.Model.ClearSelection2(true);
-                m_Assm.Assembly.EditAssembly();
+                base.AddRange(feats, cancellationToken);
             }
         }
 

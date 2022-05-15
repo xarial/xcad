@@ -28,7 +28,11 @@ namespace Xarial.XCad.SolidWorks.Features
     {
         public TSketch Target { get; }
 
-        public bool Cancel { get; set; }
+        public bool Cancel
+        {
+            get => false;
+            set => throw new NotSupportedException("This operation cannot be cancelled");
+        }
 
         protected abstract void StartEdit();
         protected abstract void EndEdit(bool cancel);
