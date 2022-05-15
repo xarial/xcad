@@ -18,11 +18,5 @@ namespace Xarial.XCad.Features
         /// List of sketch entitites (segments and points)
         /// </summary>
         IXSketchEntityRepository Entities { get; }
-
-        /// <summary>
-        /// Starts editing of this sketch
-        /// </summary>
-        /// <returns></returns>
-        IEditor<IXSketchBase> Edit();
     }
 }

@@ -102,9 +102,9 @@ namespace SwAddInExample
 
         internal void Reset()
         {
-            Width = 0.01;
-            Height = 0.02;
-            Length = 0.03;
+            Width = 0.1;
+            Height = 0.2;
+            Length = 0.3;
             TestFaces = null;
             BaseFace = null;
 

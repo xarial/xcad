@@ -24,15 +24,18 @@ namespace Xarial.XCad.Documentation
 
         public override bool OnEditDefinition(ISwApplication app, ISwDocument model, ISwMacroFeature<EditMacroFeatureDefinitionParameters> feature)
         {
-            if (ShowPage(feature.Parameters, out EditMacroFeatureDefinitionParameters newParams))
+            using (var editor = feature.Edit())
             {
-                feature.Parameters = newParams;
-                return true;
-            }
-            else 
-            {
-                feature.Parameters = null;
-                return false;
+                if (ShowPage(feature.Parameters, out EditMacroFeatureDefinitionParameters newParams))
+                {
+                    feature.Parameters = newParams;
+                    return true;
+                }
+                else
+                {
+                    editor.Cancel = true;
+                    return false;
+                }
             }
         }
 

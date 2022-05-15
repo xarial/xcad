@@ -17,6 +17,7 @@ using System.Threading;
 using Xarial.XCad.Annotations;
 using Xarial.XCad.Base.Enums;
 using Xarial.XCad.Data;
+using Xarial.XCad.Documents;
 using Xarial.XCad.Enums;
 using Xarial.XCad.Features;
 using Xarial.XCad.Geometry;
@@ -47,6 +48,9 @@ namespace Xarial.XCad.SwDocumentManager.Features
 
         public IEnumerable<IXFace> Faces => throw new NotSupportedException();
         FeatureState_e IXFeature.State => throw new NotSupportedException();
+
+        public IXComponent Component => throw new NotSupportedException();
+        public IEditor<IXFeature> Edit() => throw new NotSupportedException();
 
         #endregion
 

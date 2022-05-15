@@ -110,12 +110,20 @@ namespace Xarial.XCad.Utils.CustomFeature
         
         private IXCustomFeatureDefinition<TData, TPage> Definition => m_DefinitionLazy.Value;
 
+        private IEditor<IXFeature> m_CurEditor;
+
         public void Edit(IXDocument model, IXCustomFeature<TData> feature)
         {
+            if (feature == null) 
+            {
+                throw new ArgumentNullException(nameof(feature));
+            }
+
             m_IsPageActive = true;
 
             CurModel = model;
             m_EditingFeature = feature;
+            m_CurEditor = m_EditingFeature.Edit();
 
             try
             {
@@ -139,7 +147,8 @@ namespace Xarial.XCad.Utils.CustomFeature
             catch(Exception ex)
             {
                 m_Logger.Log(ex);
-                m_EditingFeature.Parameters = null;
+                m_CurEditor.Cancel = true;
+                m_CurEditor.Dispose();
                 throw;
             }
         }
@@ -279,6 +288,7 @@ namespace Xarial.XCad.Utils.CustomFeature
         {
             m_IsPageActive = false;
             CompleteFeature(reason);
+            m_CurEditor?.Dispose();
 
             m_CurPageData = null;
             m_CurData = null;
@@ -286,7 +296,7 @@ namespace Xarial.XCad.Utils.CustomFeature
             m_EditingFeature = null;
             m_LastError = null;
             m_PreviewBodies = null;
-
+            m_CurEditor = null;
             CurModel = null;
         }
 
@@ -411,7 +421,7 @@ namespace Xarial.XCad.Utils.CustomFeature
             {
                 if (m_EditingFeature != null)
                 {
-                    m_EditingFeature.Parameters = null;
+                    m_CurEditor.Cancel = true;
                 }
             }
         }
