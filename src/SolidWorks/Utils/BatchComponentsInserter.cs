@@ -9,11 +9,65 @@ using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.SolidWorks.Documents;
+using Xarial.XCad.SolidWorks.Documents.Services;
 
 namespace Xarial.XCad.SolidWorks.Utils
 {
     internal class BatchComponentsInserter
     {
+        private class AutoComponentsDispatcher : IDisposable
+        {
+            private readonly SwDocumentDispatcher m_Dispatcher;
+            private readonly ISwDocument3D[] m_NonCommitedDocs;
+            private readonly Dictionary<ISwDocument3D, IModelDoc2> m_Map;
+
+            internal AutoComponentsDispatcher(SwAssembly assm, SwComponent[] comps) 
+            {
+                m_Map = new Dictionary<ISwDocument3D, IModelDoc2>();
+
+                var docs = (SwDocumentCollection)assm.OwnerApplication.Documents;
+
+                m_Dispatcher = docs.Dispatcher;
+
+                m_NonCommitedDocs = comps.Where(c => !c.ReferencedDocument.IsCommitted).Select(c => c.ReferencedDocument).Distinct().ToArray();
+
+                foreach (var nonCommDoc in m_NonCommitedDocs)
+                {
+                    if (docs.TryFindExistingDocumentByPath(nonCommDoc.Path, out _))
+                    {
+                        throw new DocumentAlreadyOpenedException(nonCommDoc.Path);
+                    }
+
+                    m_Dispatcher.BeginDispatch((SwDocument)nonCommDoc);
+                }
+            }
+
+            internal void Map(ISwDocument3D doc, IModelDoc2 model) 
+            {
+                if (!m_Map.ContainsKey(doc))
+                {
+                    m_Map.Add(doc, model);
+                }
+                else 
+                {
+                    throw new Exception("Document is already mapped");
+                }
+            }
+
+            public void Dispose()
+            {
+                foreach (var nonCommDoc in m_NonCommitedDocs)
+                {
+                    if (!m_Map.TryGetValue(nonCommDoc, out IModelDoc2 model))
+                    {
+                        model = null;
+                    }
+
+                    m_Dispatcher.EndDispatch((SwDocument)nonCommDoc, model);
+                }
+            }
+        }
+
         internal void BatchAdd(SwAssembly assm, SwComponent[] comps, bool commitComps)
         {
             if (comps?.Any() != true)
@@ -76,91 +130,109 @@ namespace Xarial.XCad.SolidWorks.Utils
 
         private void InsertFileComponents(SwAssembly assm, SwComponent[] modelComps)
         {
-            var insertedComps = (object[])assm.Assembly.AddComponents3(
-                modelComps.Select(c => c.ReferencedDocument.Path).ToArray(),
-                modelComps.SelectMany(c => (c.Transformation ?? TransformMatrix.Identity).ToMathTransformData()).ToArray(),
-                new string[modelComps.Length]);
-
-            if (insertedComps == null)
+            if (modelComps.Any())
             {
-                throw new Exception("Failed to insert components");
-            }
+                var nonCommitedDocs = modelComps.Where(c => !c.ReferencedDocument.IsCommitted).Select(c => c.ReferencedDocument).Distinct().ToArray();
 
-            if (insertedComps.Length != modelComps.Length)
-            {
-                throw new Exception("Failed to insert the correct number of components");
-            }
+                object[] insertedComps;
 
-            for (int i = 0; i < modelComps.Length; i++)
-            {
-                modelComps[i].BatchComponentBuffer = (IComponent2)insertedComps[i];
+                using (var compsDisp = new AutoComponentsDispatcher(assm, modelComps))
+                {
+                    insertedComps = (object[])assm.Assembly.AddComponents3(
+                        modelComps.Select(c => c.ReferencedDocument.Path).ToArray(),
+                        modelComps.SelectMany(c => (c.Transformation ?? TransformMatrix.Identity).ToMathTransformData()).ToArray(),
+                        new string[modelComps.Length]);
+                }
+
+                if (insertedComps == null)
+                {
+                    throw new Exception("Failed to insert components");
+                }
+
+                if (insertedComps.Length != modelComps.Length)
+                {
+                    throw new Exception("Failed to insert the correct number of components");
+                }
+
+                for (int i = 0; i < modelComps.Length; i++)
+                {
+                    modelComps[i].BatchComponentBuffer = (IComponent2)insertedComps[i];
+                }
             }
         }
 
         private void InsertVirtualComponents(SwAssembly assm, SwComponent[] virtComps)
         {
-            var mathUtils = assm.OwnerApplication.Sw.IGetMathUtility();
-
-            foreach (var virtCompsGroup in virtComps.GroupBy(c => c.ReferencedDocument))
+            if (virtComps.Any())
             {
-                Component2 swVirtComp;
-                swInsertNewPartErrorCode_e res;
-                var lastFeat = assm.Model.Extension.GetLastFeatureAdded();
+                var mathUtils = assm.OwnerApplication.Sw.IGetMathUtility();
 
-                switch (virtCompsGroup.Key)
+                foreach (var virtCompsGroup in virtComps.GroupBy(c => c.ReferencedDocument))
                 {
-                    case IXPart _:
-                        res = (swInsertNewPartErrorCode_e)assm.Assembly.InsertNewVirtualPart(null, out swVirtComp);
-                        break;
+                    Component2 swVirtComp;
+                    swInsertNewPartErrorCode_e res;
+                    var lastFeat = assm.Model.Extension.GetLastFeatureAdded();
 
-                    case IXAssembly _:
-                        res = (swInsertNewPartErrorCode_e)assm.Assembly.InsertNewVirtualAssembly(out swVirtComp);
-                        break;
-
-                    default:
-                        throw new NotSupportedException();
-                }
-
-                if (res != swInsertNewPartErrorCode_e.swInsertNewPartError_NoError)
-                {
-                    throw new Exception($"Failed to insert virtual component: {res}");
-                }
-                else if (swVirtComp == null)//NOTE: InsertNewVirtualAssembly does not return the pointer to the component
-                {
-                    var lastCompFeat = assm.Model.Extension.GetLastFeatureAdded();
-
-                    if (lastFeat != lastCompFeat)
+                    using (var compsDisp = new AutoComponentsDispatcher(assm, virtComps))
                     {
-                        swVirtComp = (Component2)lastCompFeat.GetSpecificFeature2();
-
-                        if (swVirtComp == null)
+                        switch (virtCompsGroup.Key)
                         {
-                            throw new Exception("Virtual component is null");
+                            case IXPart _:
+                                res = (swInsertNewPartErrorCode_e)assm.Assembly.InsertNewVirtualPart(null, out swVirtComp);
+                                break;
+
+                            case IXAssembly _:
+                                res = (swInsertNewPartErrorCode_e)assm.Assembly.InsertNewVirtualAssembly(out swVirtComp);
+                                break;
+
+                            default:
+                                throw new NotSupportedException();
                         }
+
+                        if (res != swInsertNewPartErrorCode_e.swInsertNewPartError_NoError)
+                        {
+                            throw new Exception($"Failed to insert virtual component: {res}");
+                        }
+                        else if (swVirtComp == null)//NOTE: InsertNewVirtualAssembly does not return the pointer to the component
+                        {
+                            var lastCompFeat = assm.Model.Extension.GetLastFeatureAdded();
+
+                            if (lastFeat != lastCompFeat)
+                            {
+                                swVirtComp = (Component2)lastCompFeat.GetSpecificFeature2();
+
+                                if (swVirtComp == null)
+                                {
+                                    throw new Exception("Virtual component is null");
+                                }
+                            }
+                            else
+                            {
+                                throw new Exception("Failed to find last inserted virtual component");
+                            }
+                        }
+
+                        compsDisp.Map(virtCompsGroup.Key, (IModelDoc2)swVirtComp.GetModelDoc2());
                     }
-                    else
+
+                    if (swVirtComp.IsFixed())
                     {
-                        throw new Exception("Failed to find last inserted virtual component");
+                        SelectComponents(assm.Model, swVirtComp);
+                        assm.Assembly.UnfixComponent();
                     }
-                }
 
-                if (swVirtComp.IsFixed())
-                {
-                    SelectComponents(assm.Model, swVirtComp);
-                    assm.Assembly.UnfixComponent();
-                }
+                    var docVirtComps = virtCompsGroup.ToArray();
 
-                var docVirtComps = virtCompsGroup.ToArray();
+                    swVirtComp.Transform2 = (MathTransform)mathUtils.ToMathTransform(docVirtComps.First().Transformation ?? TransformMatrix.Identity);
 
-                swVirtComp.Transform2 = (MathTransform)mathUtils.ToMathTransform(docVirtComps.First().Transformation ?? TransformMatrix.Identity);
+                    docVirtComps.First().BatchComponentBuffer = swVirtComp;
 
-                docVirtComps.First().BatchComponentBuffer = swVirtComp;
-
-                foreach (var virtComp in docVirtComps.Skip(1))
-                {
-                    var newComp = CopyComponent(assm.Model, swVirtComp);
-                    newComp.Transform2 = (MathTransform)mathUtils.ToMathTransform(virtComp.Transformation ?? TransformMatrix.Identity);
-                    virtComp.BatchComponentBuffer = newComp;
+                    foreach (var virtComp in docVirtComps.Skip(1))
+                    {
+                        var newComp = CopyComponent(assm.Model, swVirtComp);
+                        newComp.Transform2 = (MathTransform)mathUtils.ToMathTransform(virtComp.Transformation ?? TransformMatrix.Identity);
+                        virtComp.BatchComponentBuffer = newComp;
+                    }
                 }
             }
         }

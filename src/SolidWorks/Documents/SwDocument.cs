@@ -433,19 +433,14 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public override object Dispatch => Model;
 
+        internal void SetModel(IModelDoc2 model) => m_Creator.Reset(model, true);
+
         private void OnCreating(IModelDoc2 model)
         {
             var cachedModel = m_Creator.CachedProperties.Get<IModelDoc2>(nameof(Model));
 
             Debug.Assert(cachedModel == null 
                 || SwModelPointerEqualityComparer.AreEqual(cachedModel, model), "Invalid pointers");
-        }
-
-        private SwDocumentDispatcher m_DocsDispatcher;
-
-        internal void SetDispatcher(SwDocumentDispatcher dispatcher) 
-        {
-            m_DocsDispatcher = dispatcher;
         }
 
         protected IModelDoc2 CreateDocument(CancellationToken cancellationToken)
@@ -1058,15 +1053,19 @@ namespace Xarial.XCad.SolidWorks.Documents
                 throw new DocumentAlreadyOpenedException(Path);
             }
 
-            m_DocsDispatcher.BeginDispatch(this);
-            
+            var dispatcher = ((SwDocumentCollection)OwnerApplication.Documents).Dispatcher;
+
+            dispatcher.BeginDispatch(this);
+
+            IModelDoc2 model = null;
+
             try
             {
-                m_Creator.Create(cancellationToken);
+                model = m_Creator.Create(cancellationToken);
             }
             finally 
             {
-                m_DocsDispatcher.EndDispatch(this);
+                dispatcher.EndDispatch(this, model);
             }
         }
 

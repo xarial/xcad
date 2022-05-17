@@ -44,14 +44,12 @@ namespace Xarial.XCad.SolidWorks.Sketch
 
         private readonly ISwApplication m_App;
         private readonly ISwDocument m_Doc;
-        private readonly ISketchManager m_SkMgr;
 
         internal SwSketchEntityCollection(SwSketchBase sketch, ISwDocument doc, ISwApplication app)
         {
             m_Doc = doc;
             m_App = app;
             m_Sketch = sketch;
-            m_SkMgr = doc.Model.SketchManager;
             m_Cache = new List<IXSketchEntity>();
         }
 

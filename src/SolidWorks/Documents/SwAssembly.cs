@@ -14,6 +14,7 @@ using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;
+using Xarial.XCad.SolidWorks.Documents.Services;
 using Xarial.XCad.SolidWorks.Geometry;
 using Xarial.XCad.Utils.Diagnostics;
 

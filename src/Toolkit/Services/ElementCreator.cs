@@ -87,13 +87,14 @@ namespace Xarial.XCad.Services
             }
         }
 
-        public void Create(CancellationToken cancellationToken)
+        public TElem Create(CancellationToken cancellationToken)
         {
             if (!IsCreated)
             {
                 m_Element = m_Creator.Invoke(cancellationToken);
                 Creating?.Invoke(m_Element);
                 IsCreated = true;
+                return m_Element;
             }
             else
             {

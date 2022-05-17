@@ -17,6 +17,7 @@ using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Geometry.Structures;
+using Xarial.XCad.SolidWorks.Documents.Services;
 using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.Toolkit.Utils;
 
@@ -102,9 +103,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
 
         public void AddRange(IEnumerable<IXComponent> ents, CancellationToken cancellationToken)
-        {
-            BatchAdd(m_Assm, ents.Cast<SwComponent>().ToArray(), true);
-        }
+            => BatchAdd(m_Assm, ents.Cast<SwComponent>().ToArray(), true);
 
         protected abstract IEnumerable<IComponent2> GetChildren();
         protected abstract int GetChildrenCount();

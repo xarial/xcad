@@ -120,7 +120,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         private readonly IXLogger m_Logger;
         private readonly DocumentsHandler m_DocsHandler;
 
-        private readonly SwDocumentDispatcher m_DocsDispatcher;
+        internal SwDocumentDispatcher Dispatcher { get; }
 
         private DocumentEventDelegate m_DocumentActivated;
         private DocumentEventDelegate m_DocumentOpened;
@@ -183,7 +183,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             m_SwApp = (SldWorks)m_App.Sw;
             m_Logger = logger;
 
-            m_DocsDispatcher = new SwDocumentDispatcher(app, logger);
+            Dispatcher = new SwDocumentDispatcher(app, logger);
 
             m_DanglingModelPointers = new List<IModelDoc2>();
 
@@ -200,7 +200,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             {
                 m_IsAttached = true;
 
-                m_DocsDispatcher.Dispatched += OnDocumentDispatched;
+                Dispatcher.Dispatched += OnDocumentDispatched;
 
                 AttachToAllOpenedDocuments();
 
@@ -320,7 +320,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             {
                 foreach (IModelDoc2 model in openDocs)
                 {
-                    m_DocsDispatcher.Dispatch(model.GetTitle(), model.GetPathName());
+                    Dispatcher.Dispatch(model.GetTitle(), model.GetPathName());
                 }
             }
         }
@@ -446,7 +446,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         private int OnDocumentLoadNotify2(string docTitle, string docPath)
         {
-            m_DocsDispatcher.Dispatch(docTitle, docPath);
+            Dispatcher.Dispatch(docTitle, docPath);
             
             return HResult.S_OK;
         }
@@ -482,11 +482,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                 () => new SwAssembly(null, m_App, m_Logger, false),
                 () => new SwDrawing(null, m_App, m_Logger, false));
 
-            if (doc is SwDocument)
-            {
-                ((SwDocument)(object)doc).SetDispatcher(m_DocsDispatcher);
-            }
-            else 
+            if (!(doc is SwDocument))
             {
                 throw new InvalidCastException("Document type must be of type SwDocument");
             }
@@ -525,8 +521,15 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         internal bool TryFindExistingDocumentByPath(string path, out SwDocument doc)
         {
-            doc = (SwDocument)this.FirstOrDefault(
-                d => string.Equals(d.Path, path, StringComparison.CurrentCultureIgnoreCase));
+            if (!string.IsNullOrEmpty(path))
+            {
+                doc = (SwDocument)this.FirstOrDefault(
+                    d => string.Equals(d.Path, path, StringComparison.CurrentCultureIgnoreCase));
+            }
+            else 
+            {
+                doc = null;
+            }
 
             return doc != null;
         }
@@ -535,7 +538,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
             if (m_IsAttached)
             {
-                m_DocsDispatcher.Dispatched -= OnDocumentDispatched;
+                Dispatcher.Dispatched -= OnDocumentDispatched;
                 m_SwApp.DocumentLoadNotify2 -= OnDocumentLoadNotify2;
                 m_SwApp.ActiveModelDocChangeNotify -= OnActiveModelDocChangeNotify;
                 m_SwApp.FileNewNotify2 -= OnFileNewNotify;

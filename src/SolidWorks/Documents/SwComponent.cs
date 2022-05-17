@@ -29,6 +29,7 @@ using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Services;
 using Xarial.XCad.SolidWorks.Annotations;
 using Xarial.XCad.SolidWorks.Data;
+using Xarial.XCad.SolidWorks.Documents.Services;
 using Xarial.XCad.SolidWorks.Features;
 using Xarial.XCad.SolidWorks.Geometry;
 using Xarial.XCad.SolidWorks.Services;
