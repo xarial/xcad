@@ -28,7 +28,7 @@ namespace Xarial.XCad.SolidWorks.Sketch
         public override IXSketchPoint StartPoint => OwnerDocument.CreateObjectFromDispatch<SwSketchPoint>(Ellipse.IGetStartPoint2());
         public override IXSketchPoint EndPoint => OwnerDocument.CreateObjectFromDispatch<SwSketchPoint>(Ellipse.IGetEndPoint2());
         
-        internal SwSketchEllipse(ISketchEllipse ellipse, ISwDocument doc, ISwApplication app, bool created)
+        internal SwSketchEllipse(ISketchEllipse ellipse, SwDocument doc, SwApplication app, bool created)
             : base((ISketchSegment)ellipse, doc, app, created)
         {
             if (doc == null)
@@ -37,7 +37,7 @@ namespace Xarial.XCad.SolidWorks.Sketch
             }
         }
 
-        internal SwSketchEllipse(SwSketchBase ownerSketch, ISwDocument doc, ISwApplication app) : base(ownerSketch, doc, app)
+        internal SwSketchEllipse(SwSketchBase ownerSketch, SwDocument doc, SwApplication app) : base(ownerSketch, doc, app)
         {
         }
 

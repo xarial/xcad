@@ -352,7 +352,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         public event DocumentSaveDelegate Saving;
         public event DocumentCloseDelegate Closing;
         
-        protected readonly ElementCreator<ISwDMDocument> m_Creator;
+        protected readonly IElementCreator<ISwDMDocument> m_Creator;
 
         internal protected ISwDmApplication SwDmApp { get; }
 

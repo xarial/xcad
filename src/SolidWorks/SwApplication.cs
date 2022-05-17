@@ -248,7 +248,7 @@ namespace Xarial.XCad.SolidWorks
         
         private bool m_IsStartupNotified;
 
-        private ElementCreator<ISldWorks> m_Creator;
+        private readonly IElementCreator<ISldWorks> m_Creator;
 
         private ApplicationIdleDelegate m_IdleDelegate;
 
@@ -539,7 +539,7 @@ namespace Xarial.XCad.SolidWorks
 
         public TObj CreateObjectFromDispatch<TObj>(object disp, ISwDocument doc)
             where TObj : ISwObject
-            => SwObjectFactory.FromDispatch<TObj>(disp, doc, this);
+            => SwObjectFactory.FromDispatch<TObj>(disp, (SwDocument)doc, this);
 
         public IXObjectTracker CreateObjectTracker(string name) 
             => new SwObjectTracker(this, name);

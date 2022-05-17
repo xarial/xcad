@@ -56,7 +56,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
         public override Point FindClosestPoint(Point point)
             => new Point(((double[])Vertex.GetClosestPointOn(point.X, point.Y, point.Z)).Take(3).ToArray());
 
-        internal SwVertex(IVertex vertex, ISwDocument doc, ISwApplication app) : base((IEntity)vertex, doc, app)
+        internal SwVertex(IVertex vertex, SwDocument doc, SwApplication app) : base((IEntity)vertex, doc, app)
         {
             Vertex = vertex;
         }

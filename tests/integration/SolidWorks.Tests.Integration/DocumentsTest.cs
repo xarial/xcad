@@ -15,6 +15,7 @@ using Xarial.XCad.Documents.Delegates;
 using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Documents.Exceptions;
 using Xarial.XCad.Documents.Extensions;
+using Xarial.XCad.Features;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.SolidWorks;
@@ -1366,6 +1367,30 @@ namespace SolidWorks.Tests.Integration
 
             Assert.AreEqual(0, lightweightCompsCount1);
             Assert.AreNotEqual(0, lightweightCompsCount2);
+        }
+
+        [Test]
+        public void CommitCachedFeatures()
+        {
+            var doc = m_App.Documents.PreCreatePart();
+
+            try
+            {
+                var dumbBodyFeat = doc.Features.PreCreateDumbBody();
+                dumbBodyFeat.Body = m_App.MemoryGeometryBuilder.CreateSolidBox(new Point(0, 0, 0), new Vector(1, 0, 0), new Vector(0, 1, 0), 0.1, 0.2, 0.3).Bodies.First();
+                doc.Features.Add(dumbBodyFeat);
+                doc.Commit();
+
+                var bodyCount = doc.Bodies.Count;
+                var vol = doc.Bodies.OfType<IXSolidBody>().First().Volume;
+
+                Assert.AreEqual(1, bodyCount);
+                Assert.That(vol, Is.EqualTo(0.006).Within(0.00000000001).Percent);
+            }
+            finally 
+            {
+                doc.Dispose();
+            }
         }
     }
 }

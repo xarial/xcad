@@ -17,7 +17,7 @@ namespace Xarial.XCad.SolidWorks.Annotations
     {
         public IAnnotation Annotation { get; }
 
-        internal SwAnnotation(IAnnotation ann, ISwDocument doc, ISwApplication app) : base(ann, doc, app) 
+        internal SwAnnotation(IAnnotation ann, SwDocument doc, SwApplication app) : base(ann, doc, app) 
         {
             Annotation = ann;
         }

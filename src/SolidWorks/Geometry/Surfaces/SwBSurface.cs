@@ -22,7 +22,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Surfaces
 
     internal class SwBSurface : SwSurface, ISwBSurface
     {
-        public SwBSurface(ISurface surface, ISwDocument doc, ISwApplication app) : base(surface, doc, app)
+        public SwBSurface(ISurface surface, SwDocument doc, SwApplication app) : base(surface, doc, app)
         {
         }
     }

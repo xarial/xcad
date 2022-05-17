@@ -25,7 +25,7 @@ namespace Xarial.XCad.SolidWorks.Features
     {
         public ICoordinateSystemFeatureData CoordSys { get; }
 
-        internal SwCoordinateSystem(IFeature feat, ISwDocument doc, ISwApplication app, bool created) : base(feat, doc, app, created)
+        internal SwCoordinateSystem(IFeature feat, SwDocument doc, SwApplication app, bool created) : base(feat, doc, app, created)
         {
             CoordSys = feat.GetDefinition() as ICoordinateSystemFeatureData;
         }

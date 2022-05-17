@@ -23,7 +23,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
     internal class SwPartConfiguration : SwConfiguration, ISwPartConfiguration
     {
-        internal SwPartConfiguration(IConfiguration conf, SwPart part, ISwApplication app, bool created) 
+        internal SwPartConfiguration(IConfiguration conf, SwPart part, SwApplication app, bool created) 
             : base(conf, part, app, created)
         {
             CutLists = new SwPartCutListItemCollection(this, part);

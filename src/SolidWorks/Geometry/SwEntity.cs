@@ -58,7 +58,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         public bool IsResilient => Entity.IsSafe;
 
-        internal SwEntity(IEntity entity, ISwDocument doc, ISwApplication app) : base(entity, doc, app)
+        internal SwEntity(IEntity entity, SwDocument doc, SwApplication app) : base(entity, doc, app)
         {
             Entity = entity;
         }

@@ -38,7 +38,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
         public IFace2 Face { get; }
         private readonly IMathUtility m_MathUtils;
 
-        protected SwFace(IFace2 face, ISwDocument doc, ISwApplication app) : base((IEntity)face, doc, app)
+        protected SwFace(IFace2 face, SwDocument doc, SwApplication app) : base((IEntity)face, doc, app)
         {
             Face = face;
             m_MathUtils = app.Sw.IGetMathUtility();
@@ -160,7 +160,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
         IXSegment[] IXRegion.Boundary => Boundary;
         IXPlanarSurface IXPlanarFace.Definition => Definition;
 
-        public SwPlanarFace(IFace2 face, ISwDocument doc, ISwApplication app) : base(face, doc, app)
+        public SwPlanarFace(IFace2 face, SwDocument doc, SwApplication app) : base(face, doc, app)
         {
         }
 
@@ -189,7 +189,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
     {
         IXCylindricalSurface IXCylindricalFace.Definition => Definition;
 
-        public SwCylindricalFace(IFace2 face, ISwDocument doc, ISwApplication app) : base(face, doc, app)
+        public SwCylindricalFace(IFace2 face, SwDocument doc, SwApplication app) : base(face, doc, app)
         {
         }
 
@@ -203,7 +203,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
     internal class SwBlendFace : SwFace, ISwBlendXFace
     {
-        public SwBlendFace(IFace2 face, ISwDocument doc, ISwApplication app) : base(face, doc, app)
+        public SwBlendFace(IFace2 face, SwDocument doc, SwApplication app) : base(face, doc, app)
         {
         }
     }
@@ -214,7 +214,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
     internal class SwBFace : SwFace, ISwBFace
     {
-        public SwBFace(IFace2 face, ISwDocument doc, ISwApplication app) : base(face, doc, app)
+        public SwBFace(IFace2 face, SwDocument doc, SwApplication app) : base(face, doc, app)
         {
         }
     }
@@ -225,7 +225,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
     internal class SwConicalFace : SwFace, ISwConicalFace
     {
-        public SwConicalFace(IFace2 face, ISwDocument doc, ISwApplication app) : base(face, doc, app)
+        public SwConicalFace(IFace2 face, SwDocument doc, SwApplication app) : base(face, doc, app)
         {
         }
     }
@@ -236,7 +236,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
     internal class SwExtrudedFace : SwFace, ISwExtrudedFace
     {
-        public SwExtrudedFace(IFace2 face, ISwDocument doc, ISwApplication app) : base(face, doc, app)
+        public SwExtrudedFace(IFace2 face, SwDocument doc, SwApplication app) : base(face, doc, app)
         {
         }
     }
@@ -247,7 +247,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
     internal class SwOffsetFace : SwFace, ISwOffsetFace
     {
-        public SwOffsetFace(IFace2 face, ISwDocument doc, ISwApplication app) : base(face, doc, app)
+        public SwOffsetFace(IFace2 face, SwDocument doc, SwApplication app) : base(face, doc, app)
         {
         }
     }
@@ -258,7 +258,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
     internal class SwRevolvedFace : SwFace, ISwRevolvedFace
     {
-        public SwRevolvedFace(IFace2 face, ISwDocument doc, ISwApplication app) : base(face, doc, app)
+        public SwRevolvedFace(IFace2 face, SwDocument doc, SwApplication app) : base(face, doc, app)
         {
         }
     }
@@ -269,7 +269,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
     internal class SwSphericalFace : SwFace, ISwSphericalFace
     {
-        public SwSphericalFace(IFace2 face, ISwDocument doc, ISwApplication app) : base(face, doc, app)
+        public SwSphericalFace(IFace2 face, SwDocument doc, SwApplication app) : base(face, doc, app)
         {
         }
     }
@@ -280,7 +280,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
     internal class SwToroidalFace : SwFace, ISwToroidalFace
     {
-        public SwToroidalFace(IFace2 face, ISwDocument doc, ISwApplication app) : base(face, doc, app)
+        public SwToroidalFace(IFace2 face, SwDocument doc, SwApplication app) : base(face, doc, app)
         {
         }
     }

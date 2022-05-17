@@ -36,12 +36,12 @@ namespace Xarial.XCad.SolidWorks.Features
     {
         IEnumerable<IXSketchRegion> IXSketch2D.Regions => Regions;
 
-        internal SwSketch2D(IFeature feat, ISwDocument doc, ISwApplication app, bool created) 
+        internal SwSketch2D(IFeature feat, SwDocument doc, SwApplication app, bool created) 
             : base(feat, doc, app, created)
         {
         }
 
-        internal SwSketch2D(ISketch sketch, ISwDocument doc, ISwApplication app, bool created)
+        internal SwSketch2D(ISketch sketch, SwDocument doc, SwApplication app, bool created)
             : base(sketch, doc, app, created)
         {
         }

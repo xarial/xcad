@@ -35,7 +35,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
         protected readonly IModeler m_Modeler;
         protected readonly IMathUtility m_MathUtils;
         
-        protected readonly ElementCreator<ISwTempBody[]> m_Creator;
+        protected readonly IElementCreator<ISwTempBody[]> m_Creator;
         
         internal SwTempPrimitive(SwTempBody[] bodies, ISwApplication app, bool isCreated) 
         {

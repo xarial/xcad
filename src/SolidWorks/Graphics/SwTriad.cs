@@ -67,7 +67,7 @@ namespace Xarial.XCad.SolidWorks.Graphics
     {
         private readonly SwDocument3D m_Doc;
 
-        private readonly ElementCreator<ITriadManipulator> m_Creator;
+        private readonly IElementCreator<ITriadManipulator> m_Creator;
         private readonly IMathUtility m_MathUtils;
 
         private IManipulator m_Manipulator;

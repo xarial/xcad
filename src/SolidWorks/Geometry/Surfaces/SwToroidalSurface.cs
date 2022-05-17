@@ -22,7 +22,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Surfaces
 
     internal class SwToroidalSurface : SwSurface, ISwToroidalSurface
     {
-        public SwToroidalSurface(ISurface surface, ISwDocument doc, ISwApplication app) : base(surface, doc, app)
+        public SwToroidalSurface(ISurface surface, SwDocument doc, SwApplication app) : base(surface, doc, app)
         {
         }
     }

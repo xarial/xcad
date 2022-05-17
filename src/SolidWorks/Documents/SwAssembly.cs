@@ -14,6 +14,7 @@ using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;
+using Xarial.XCad.SolidWorks.Documents.Services;
 using Xarial.XCad.SolidWorks.Geometry;
 using Xarial.XCad.Utils.Diagnostics;
 
@@ -33,7 +34,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         private readonly Lazy<SwAssemblyConfigurationCollection> m_LazyConfigurations;
         private readonly SwAssemblyEvaluation m_Evaluation;
 
-        internal SwAssembly(IAssemblyDoc assembly, ISwApplication app, IXLogger logger, bool isCreated)
+        internal SwAssembly(IAssemblyDoc assembly, SwApplication app, IXLogger logger, bool isCreated)
             : base((IModelDoc2)assembly, app, logger, isCreated)
         {
             m_LazyConfigurations = new Lazy<SwAssemblyConfigurationCollection>(() => new SwAssemblyConfigurationCollection(this, app));

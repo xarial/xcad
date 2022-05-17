@@ -36,7 +36,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         public override ISwModelViewsCollection ModelViews => ((ISwDocument3D)this).ModelViews;
         ISwModelViews3DCollection ISwDocument3D.ModelViews => m_ModelViewsLazy.Value;
 
-        internal SwDocument3D(IModelDoc2 model, ISwApplication app, IXLogger logger, bool isCreated) : base(model, app, logger, isCreated)
+        internal SwDocument3D(IModelDoc2 model, SwApplication app, IXLogger logger, bool isCreated) : base(model, app, logger, isCreated)
         {
             m_Configurations = new Lazy<ISwConfigurationCollection>(CreateConfigurations);
             m_ModelViewsLazy = new Lazy<ISwModelViews3DCollection>(() => new SwModelViews3DCollection(this, app));

@@ -28,7 +28,7 @@ namespace Xarial.XCad.SolidWorks
     /// </summary>
     internal static class SwObjectFactory 
     {
-        internal static TObj FromDispatch<TObj>(object disp, ISwDocument doc, ISwApplication app)
+        internal static TObj FromDispatch<TObj>(object disp, SwDocument doc, SwApplication app)
             where TObj : IXObject
         {
             if (typeof(ISwSelObject).IsAssignableFrom(typeof(TObj))) 
@@ -41,7 +41,7 @@ namespace Xarial.XCad.SolidWorks
             }
         }
 
-        private static ISwObject FromDispatch(object disp, ISwDocument doc, ISwApplication app, Func<object, ISwObject> defaultHandler)
+        private static ISwObject FromDispatch(object disp, SwDocument doc, SwApplication app, Func<object, ISwObject> defaultHandler)
         {
             if (disp == null) 
             {
@@ -348,7 +348,7 @@ namespace Xarial.XCad.SolidWorks
                         case "3DProfileFeature":
                             return new SwSketch3D(feat, doc, app, true);
                         case "CutListFolder":
-                            return new SwCutListItem(feat, (ISwDocument3D)doc, app, true);
+                            return new SwCutListItem(feat, (SwDocument3D)doc, app, true);
                         case "CoordSys":
                             return new SwCoordinateSystem(feat, doc, app, true);
                         case "RefPlane":
@@ -357,14 +357,16 @@ namespace Xarial.XCad.SolidWorks
                             return new SwSketchBlockInstance(feat, doc, app, true);
                         case "SketchBlockDef":
                             return new SwSketchBlockDefinition(feat, doc, app, true);
+                        case "BaseBody":
+                            return new SwDumbBody(feat, doc, app, true);
                         case "MacroFeature":
                             if (TryGetParameterType(feat, out Type paramType))
                             {
-                                return SwMacroFeature<object>.CreateSpecificInstance(feat, (SwDocument)doc, app, paramType);
+                                return SwMacroFeature<object>.CreateSpecificInstance(feat, doc, app, paramType);
                             }
                             else
                             {
-                                return new SwMacroFeature(feat, (SwDocument)doc, app, true);
+                                return new SwMacroFeature(feat, doc, app, true);
                             }
                         default:
                             return new SwFeature(feat, doc, app, true);

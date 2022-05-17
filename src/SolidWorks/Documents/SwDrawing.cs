@@ -47,7 +47,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        internal SwDrawing(IDrawingDoc drawing, ISwApplication app, IXLogger logger, bool isCreated)
+        internal SwDrawing(IDrawingDoc drawing, SwApplication app, IXLogger logger, bool isCreated)
             : base((IModelDoc2)drawing, app, logger, isCreated)
         {
             m_SheetsLazy = new Lazy<IXSheetRepository>(() => new SwSheetCollection(this, OwnerApplication));

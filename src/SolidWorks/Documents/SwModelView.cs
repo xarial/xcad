@@ -122,7 +122,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public override object Dispatch => View;
 
-        internal SwModelView(IModelView view, ISwDocument doc, ISwApplication app) : base(view, doc, app)
+        internal SwModelView(IModelView view, SwDocument doc, SwApplication app) : base(view, doc, app)
         {
             View = view;
             Owner = doc.Model;
@@ -176,7 +176,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public string Name { get; }
 
-        internal SwNamedView(IModelView view, ISwDocument doc, ISwApplication app, string name)
+        internal SwNamedView(IModelView view, SwDocument doc, SwApplication app, string name)
             : base(view, doc, app)
         {
             Name = name;
@@ -233,7 +233,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        internal SwStandardView(IModelView view, ISwDocument doc, ISwApplication app, StandardViewType_e type) 
+        internal SwStandardView(IModelView view, SwDocument doc, SwApplication app, StandardViewType_e type) 
             : base(view, doc, app, GetStandardViewName(doc.Model, type))
         {
             Type = type;

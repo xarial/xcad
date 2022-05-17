@@ -183,7 +183,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
         protected readonly ISwDocument3D m_Doc;
         protected readonly IMathUtility m_MathUtils;
 
-        protected readonly ElementCreator<IMassProperty> m_Creator;
+        protected readonly IElementCreator<IMassProperty> m_Creator;
 
         protected Exception m_CurrentScopeException;
 

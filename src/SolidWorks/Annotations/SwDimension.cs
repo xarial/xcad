@@ -65,7 +65,7 @@ namespace Xarial.XCad.SolidWorks.Annotations
 
         protected Context m_Context;
 
-        internal SwDimension(IDisplayDimension dispDim, ISwDocument doc, ISwApplication app)
+        internal SwDimension(IDisplayDimension dispDim, SwDocument doc, SwApplication app)
             : base(dispDim.IGetAnnotation(), doc, app)
         {
             if (doc == null) 
@@ -214,7 +214,7 @@ namespace Xarial.XCad.SolidWorks.Annotations
     /// </summary>
     internal class SwMacroFeatureDimension : SwDimension
     {
-        internal SwMacroFeatureDimension(IDisplayDimension dispDim, ISwDocument doc, ISwApplication app) : base(dispDim, doc, app)
+        internal SwMacroFeatureDimension(IDisplayDimension dispDim, SwDocument doc, SwApplication app) : base(dispDim, doc, app)
         {
         }
 

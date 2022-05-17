@@ -141,7 +141,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         private readonly IMathUtility m_MathUtils;
 
-        internal SwBody(IBody2 body, ISwDocument doc, ISwApplication app)
+        internal SwBody(IBody2 body, SwDocument doc, SwApplication app)
             : base(body, doc, app ?? ((SwDocument)doc)?.OwnerApplication)
         {
             m_Body = body;
@@ -266,7 +266,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
     internal class SwSheetBody : SwBody, ISwSheetBody
     {
-        internal SwSheetBody(IBody2 body, ISwDocument doc, ISwApplication app) : base(body, doc, app)
+        internal SwSheetBody(IBody2 body, SwDocument doc, SwApplication app) : base(body, doc, app)
         {
         }
     }
@@ -277,7 +277,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
     internal class SwPlanarSheetBody : SwSheetBody, ISwPlanarSheetBody
     {
-        internal SwPlanarSheetBody(IBody2 body, ISwDocument doc, ISwApplication app) : base(body, doc, app)
+        internal SwPlanarSheetBody(IBody2 body, SwDocument doc, SwApplication app) : base(body, doc, app)
         {
         }
 
@@ -317,7 +317,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
     internal class SwSolidBody : SwBody, ISwBody, ISwSolidBody
     {
-        internal SwSolidBody(IBody2 body, ISwDocument doc, ISwApplication app) : base(body, doc, app)
+        internal SwSolidBody(IBody2 body, SwDocument doc, SwApplication app) : base(body, doc, app)
         {
         }
 
@@ -339,7 +339,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
     internal class SwWireBody : SwBody, ISwWireBody
     {
-        internal SwWireBody(IBody2 body, ISwDocument doc, ISwApplication app) : base(body, doc, app)
+        internal SwWireBody(IBody2 body, SwDocument doc, SwApplication app) : base(body, doc, app)
         {
         }
     }

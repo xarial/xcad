@@ -32,14 +32,14 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature.Toolkit
     {
         internal IMathUtility MathUtils { get; }
 
-        private readonly ISwApplication m_App;
+        private readonly SwApplication m_App;
         private readonly IXLogger m_Logger;
         
         internal MacroFeatureParametersParser() : this(SwMacroFeatureDefinition.Application)
         {
         }
 
-        internal MacroFeatureParametersParser(ISwApplication app) : base()
+        internal MacroFeatureParametersParser(SwApplication app) : base()
         {
             m_App = app;
             MathUtils = m_App.Sw.IGetMathUtility();

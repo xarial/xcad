@@ -54,7 +54,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public IView DrawingView => m_Creator.Element;
 
-        private readonly ElementCreator<IView> m_Creator;
+        private readonly IElementCreator<IView> m_Creator;
 
         private readonly ISheet m_Sheet;
 

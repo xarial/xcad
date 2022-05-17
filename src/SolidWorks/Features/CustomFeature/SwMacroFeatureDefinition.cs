@@ -67,6 +67,9 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             internal ISwMacroFeature Feature { get; set; }
         }
 
+        private static SwMacroFeature CreateMacroFeatureInstance(SwMacroFeatureDefinition sender, IFeature feat, SwDocument doc, SwApplication app)
+            => doc.CreateObjectFromDispatch<SwMacroFeature>(feat);
+
         public event ConfigureServicesDelegate ConfigureServices;
 
         /// <summary>
@@ -126,8 +129,12 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 
         private bool m_IsSubscribedToIdle;
 
-        public SwMacroFeatureDefinition()
+        private readonly Func<SwMacroFeatureDefinition, IFeature, SwDocument, SwApplication, SwMacroFeature> m_MacroFeatInstFact;
+
+        internal SwMacroFeatureDefinition(Func<SwMacroFeatureDefinition, IFeature, SwDocument, SwApplication, SwMacroFeature> macroFeatInstFact) 
         {
+            m_MacroFeatInstFact = macroFeatInstFact;
+
             string provider = "";
             this.GetType().TryGetAttribute<MissingDefinitionErrorMessage>(a =>
             {
@@ -137,11 +144,11 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             m_Provider = provider;
 
             m_RebuildFeaturesQueue = new List<MacroFeatureRegenerateData>();
-            
+
             m_IsSubscribedToIdle = false;
 
             var svcColl = Application.CustomServices.Clone();
-            
+
             svcColl.AddOrReplace<IXLogger>(() => new TraceLogger($"xCad.MacroFeature.{this.GetType().FullName}"));
             svcColl.AddOrReplace<IIconsCreator>(() => new BaseIconsCreator());
 
@@ -158,6 +165,10 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             iconsConv.KeepIcons = true;
             iconsConv.IconsFolder = MacroFeatureIconInfo.GetLocation(this.GetType());
             TryCreateIcons(iconsConv);
+        }
+
+        public SwMacroFeatureDefinition() : this(CreateMacroFeatureInstance)
+        {
         }
 
         private void TryCreateIcons(IIconsCreator iconsConverter)
@@ -202,7 +213,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
                 LogOperation("Editing feature", app as ISldWorks, modelDoc as IModelDoc2, feature as IFeature);
 
                 var doc = (SwDocument)Application.Documents[modelDoc as IModelDoc2];
-                return OnEditDefinition(Application, doc, CreateMacroFeatureInstance(feature as IFeature, doc, Application));
+                return OnEditDefinition(Application, doc, m_MacroFeatInstFact.Invoke(this, feature as IFeature, doc, Application));
             }
             catch(Exception ex) 
             {
@@ -222,7 +233,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 
                 var doc = (SwDocument)Application.Documents[modelDoc as IModelDoc2];
 
-                var macroFeatInst = (SwMacroFeature)CreateMacroFeatureInstance(feature as IFeature, doc, Application);
+                var macroFeatInst = m_MacroFeatInstFact.Invoke(this, feature as IFeature, doc, Application);
 
                 var res = OnRebuild(Application, doc, macroFeatInst);
 
@@ -267,7 +278,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             try
             {
                 var doc = (SwDocument)Application.Documents[modelDoc as IModelDoc2];
-                return OnUpdateState(Application, doc, CreateMacroFeatureInstance(feature as IFeature, doc, Application));
+                return OnUpdateState(Application, doc, m_MacroFeatInstFact.Invoke(this, feature as IFeature, doc, Application));
             }
             catch(Exception ex) 
             {
@@ -476,16 +487,15 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         public virtual void OnConfigureServices(IXServiceCollection collection)
         {
         }
-
-        [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
-        protected virtual ISwMacroFeature CreateMacroFeatureInstance(IFeature feat, ISwDocument doc, ISwApplication app)
-            => doc.CreateObjectFromDispatch<SwMacroFeature>(feat);
     }
 
     /// <inheritdoc/>
     public abstract class SwMacroFeatureDefinition<TParams> : SwMacroFeatureDefinition, IXCustomFeatureDefinition<TParams>
         where TParams : class
     {
+        private static SwMacroFeature CreateMacroFeatureInstance(SwMacroFeatureDefinition sender, IFeature feat, SwDocument doc, SwApplication app)
+            => new SwMacroFeature<TParams>(feat, doc, app, ((SwMacroFeatureDefinition<TParams>)sender).m_ParamsParser, true);
+
         [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
         protected class MacroFeatureParametersRegenerateData : MacroFeatureRegenerateData
         {
@@ -521,7 +531,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         {
         }
 
-        internal SwMacroFeatureDefinition(MacroFeatureParametersParser paramsParser) : base()
+        internal SwMacroFeatureDefinition(MacroFeatureParametersParser paramsParser) : base(CreateMacroFeatureInstance)
         {
             m_ParamsParser = paramsParser;
         }
@@ -636,11 +646,6 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 
             m_PostRebuild?.Invoke(paramData.Application, paramData.Document, (ISwMacroFeature<TParams>)paramData.Feature, paramData.Parameters);
         }
-
-        //NOTE: using this to avoid overflow of OnUpdateState as calling the IMacroFeatureData from IFeature invokes Security and thus causing infinite loop
-        [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
-        protected override ISwMacroFeature CreateMacroFeatureInstance(IFeature feat, ISwDocument doc, ISwApplication app)
-            => new SwMacroFeature<TParams>(feat, (SwDocument)doc, app, m_ParamsParser, true);
     }
 
     /// <inheritdoc/>

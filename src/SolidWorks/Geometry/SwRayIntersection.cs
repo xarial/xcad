@@ -191,7 +191,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
             return m_RaysList;
         }
 
-        protected readonly ElementCreator<IReadOnlyList<IXRay>> m_Creator;
+        protected readonly IElementCreator<IReadOnlyList<IXRay>> m_Creator;
 
         private readonly ISwDocument3D m_Doc;
 

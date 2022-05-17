@@ -541,7 +541,7 @@ namespace SolidWorks.Tests.Integration
                     var doc1 = (IXPart)m_App.Documents.PreCreateFromPath(GetFilePath("Cylinder1.sldprt"));
                     var doc2 = m_App.Documents.PreCreatePart();
                     var doc3 = m_App.Documents.PreCreateAssembly();
-                    
+
                     var comp1 = assm.Configurations.Active.Components.PreCreate<IXPartComponent>();
                     comp1.ReferencedDocument = doc1;
                     comp1.State = ComponentState_e.Fixed;
@@ -583,33 +583,48 @@ namespace SolidWorks.Tests.Integration
 
                     Assert.That(string.Equals(Path.GetFileName(((IModelDoc2)((ISwComponent)comp1).Component.GetModelDoc2()).GetPathName()), "Cylinder1.sldprt", StringComparison.CurrentCultureIgnoreCase));
                     Assert.That(((ISwComponent)comp1).Component.IsFixed());
+                    Assert.That(comp1.ReferencedDocument.IsCommitted);
 
                     Assert.That(string.Equals(Path.GetFileName(((IModelDoc2)((ISwComponent)comp2).Component.GetModelDoc2()).GetPathName()), "Cylinder1.sldprt", StringComparison.CurrentCultureIgnoreCase));
                     Assert.That(((ISwComponent)comp2).Component.IsFixed());
                     Assert.AreEqual("Conf1", ((ISwComponent)comp2).Component.ReferencedConfiguration);
                     AssertCompareDoubleArray((double[])((ISwComponent)comp2).Component.Transform2.ArrayData, new double[] { 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.1, 0.2, 0.3, 1, 0, 0, 0 });
+                    Assert.That(comp2.ReferencedDocument.IsCommitted);
 
                     Assert.That(!((ISwComponent)comp3).Component.IsFixed());
                     Assert.AreEqual((int)swDocumentTypes_e.swDocPART, comp3ModelDoc.GetType());
                     Assert.That(((ISwComponent)comp3).Component.IsVirtual);
+                    Assert.That(comp4.ReferencedDocument.IsCommitted);
 
                     Assert.That(!((ISwComponent)comp4).Component.IsFixed());
                     Assert.AreEqual(comp3ModelDoc, (IModelDoc2)((ISwComponent)comp4).Component.GetModelDoc2());
                     Assert.That(((ISwComponent)comp4).Component.IsVirtual);
                     AssertCompareDoubleArray((double[])((ISwComponent)comp4).Component.Transform2.ArrayData, new double[] { 1, 0, 0, 0, 0.70710678118654757, 0.70710678118654746, 0, -0.70710678118654746, 0.70710678118654757, 0, 0, 0, 1, 0, 0, 0 });
+                    Assert.That(comp5.ReferencedDocument.IsCommitted);
 
                     Assert.That(!((ISwComponent)comp5).Component.IsFixed());
                     Assert.AreEqual((int)swDocumentTypes_e.swDocASSEMBLY, ((IModelDoc2)((ISwComponent)comp5).Component.GetModelDoc2()).GetType());
                     Assert.That(((ISwComponent)comp5).Component.IsVirtual);
+                    Assert.That(comp6.ReferencedDocument.IsCommitted);
 
                     Assert.That(string.Equals(Path.GetFileName(comp6.ReferencedDocument.Path), "Box1.sldprt", StringComparison.CurrentCultureIgnoreCase));
                     Assert.That(((ISwComponent)comp6).Component.IsSuppressed());
+                    Assert.That(comp7.ReferencedDocument.IsCommitted);
 
                     Assert.That(string.Equals(Path.GetFileName(((IModelDoc2)((ISwComponent)comp7).Component.GetModelDoc2()).GetPathName()), "Box1.sldprt", StringComparison.CurrentCultureIgnoreCase));
                     Assert.That(((ISwComponent)comp7).Component.ExcludeFromBOM);
+                    Assert.That(comp7.ReferencedDocument.IsCommitted);
 
                     Assert.That(string.Equals(Path.GetFileName(((IModelDoc2)((ISwComponent)comp8).Component.GetModelDoc2()).GetPathName()), "Box1.sldprt", StringComparison.CurrentCultureIgnoreCase));
                     Assert.That(((ISwComponent)comp8).Component.IsHidden(false));
+                    Assert.That(comp8.ReferencedDocument.IsCommitted);
+
+                    Assert.AreEqual(5, m_App.Documents.Count);
+                    Assert.That(m_App.Documents.Contains(assm));
+                    Assert.That(m_App.Documents.Contains(doc1));
+                    Assert.That(m_App.Documents.Contains(doc2));
+                    Assert.That(m_App.Documents.Contains(doc3));
+                    Assert.That(m_App.Documents.Contains(doc4));
                 }
             }
         }

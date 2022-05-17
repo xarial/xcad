@@ -35,7 +35,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
         private readonly IMathUtility m_MathUtils;
 
         //NOTE: keeping the pointer in this class only so it can be properly disposed
-        internal SwTempBody(IBody2 body, ISwApplication app) : base(null, null, app)
+        internal SwTempBody(IBody2 body, SwApplication app) : base(null, null, app)
         {
             if (!body.IsTemporaryBody()) 
             {
@@ -92,7 +92,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
     
     internal class SwTempSolidBody : SwTempBody, ISwTempSolidBody
     {
-        internal SwTempSolidBody(IBody2 body, ISwApplication app) : base(body, app)
+        internal SwTempSolidBody(IBody2 body, SwApplication app) : base(body, app)
         {
         }
 
@@ -101,14 +101,14 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
     internal class SwTempSheetBody : SwTempBody, ISwTempSheetBody
     {
-        internal SwTempSheetBody(IBody2 body, ISwApplication app) : base(body, app)
+        internal SwTempSheetBody(IBody2 body, SwApplication app) : base(body, app)
         {
         }
     }
 
     internal class SwTempPlanarSheetBody : SwTempBody, ISwTempPlanarSheetBody
     {
-        internal SwTempPlanarSheetBody(IBody2 body, ISwApplication app) : base(body, app)
+        internal SwTempPlanarSheetBody(IBody2 body, SwApplication app) : base(body, app)
         {
         }
 
@@ -123,7 +123,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
     internal class SwTempWireBody : SwTempBody, ISwTempWireBody
     {
-        internal SwTempWireBody(IBody2 body, ISwApplication app) : base(body, app)
+        internal SwTempWireBody(IBody2 body, SwApplication app) : base(body, app)
         {
         }
     }

@@ -25,7 +25,7 @@ namespace Xarial.XCad.SolidWorks.Sketch
 
     internal class SwSketchPoint : SwSketchEntity, ISwSketchPoint
     {
-        protected readonly ElementCreator<ISketchPoint> m_Creator;
+        protected readonly IElementCreator<ISketchPoint> m_Creator;
 
         protected readonly ISketchManager m_SketchMgr;
         
@@ -37,13 +37,13 @@ namespace Xarial.XCad.SolidWorks.Sketch
 
         public override IXSketchBase OwnerSketch => OwnerDocument.CreateObjectFromDispatch<ISwSketchBase>(Point.GetSketch());
 
-        internal SwSketchPoint(ISketchPoint pt, ISwDocument doc, ISwApplication app, bool created) : base(pt, doc, app)
+        internal SwSketchPoint(ISketchPoint pt, SwDocument doc, SwApplication app, bool created) : base(pt, doc, app)
         {
             m_SketchMgr = doc.Model.SketchManager;
             m_Creator = new ElementCreator<ISketchPoint>(CreatePoint, pt, created);
         }
 
-        internal SwSketchPoint(SwSketchBase ownerSketch, ISwDocument doc, ISwApplication app) : base(ownerSketch, doc, app)
+        internal SwSketchPoint(SwSketchBase ownerSketch, SwDocument doc, SwApplication app) : base(ownerSketch, doc, app)
         {
         }
 

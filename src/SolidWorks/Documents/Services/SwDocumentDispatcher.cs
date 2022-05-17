@@ -21,8 +21,8 @@ namespace Xarial.XCad.SolidWorks.Documents.Services
     /// <summary>
     /// This services dispatches the model docs and creates SwDocument objects
     /// </summary>
-    /// <remarks>This service is also responsible to using the objects pre-created templates wheer applicable instead of creating new ones.
-    /// DocumentLoadNotify2 even is fired async so it is not ensured that it is raised before or after OpenDoc6 or NewDocument APIs. This services is respnsibel for handlign the race conditions</remarks>
+    /// <remarks>This service is also responsible to using the objects pre-created templates where applicable instead of creating new ones.
+    /// DocumentLoadNotify2 even is fired async so it is not ensured that it is raised before or after OpenDoc6 or NewDocument APIs. This services is responsible for handling the race conditions</remarks>
     internal class SwDocumentDispatcher
     {
         private class ModelInfo 
@@ -52,7 +52,12 @@ namespace Xarial.XCad.SolidWorks.Documents.Services
             m_Lock = new object();
         }
 
-        //NOTE: it is not safe to dispatch the pointer to IModelDoc2 as for assembly documents it can cause RPC_E_WRONG_THREAD when retrieved on EndDispatch
+        /// <summary>
+        /// Dispatches the loaded document
+        /// </summary>
+        /// <param name="title">Title of the document</param>
+        /// <param name="path">Path of the document</param>
+        /// <remarks>It is not safe to dispatch the pointer to IModelDoc2 as for assembly documents it can cause RPC_E_WRONG_THREAD when retrieved on EndDispatch</remarks>
         internal void Dispatch(string title, string path) 
         {
             lock (m_Lock) 
@@ -72,24 +77,58 @@ namespace Xarial.XCad.SolidWorks.Documents.Services
             }
         }
 
-        internal void BeginDispatch(SwDocument doc) 
-            => m_DocsDispatchQueue.Add(doc);
+        /// <summary>
+        /// Puts the document into the dispatch queue
+        /// </summary>
+        /// <param name="doc">Document to put into the queue</param>
+        internal void BeginDispatch(SwDocument doc) => m_DocsDispatchQueue.Add(doc);
 
-        internal void EndDispatch(SwDocument doc) 
+        /// <summary>
+        /// Removes the document from the queue
+        /// </summary>
+        /// <param name="doc">Document to remove from the queue</param>
+        /// <param name="model">Actual pointer to the model. If null system will try to find the matching model</param>
+        internal void EndDispatch(SwDocument doc, IModelDoc2 model = null) 
         {
             lock (m_Lock)
             {
                 m_DocsDispatchQueue.Remove(doc);
 
-                var index = m_ModelsDispatchQueue.FindIndex(
-                    d => string.Equals(d.Path, doc.Path, StringComparison.CurrentCultureIgnoreCase)
-                        || string.Equals(d.Title, doc.Title, StringComparison.CurrentCultureIgnoreCase));
+                int index;
+
+                if (model != null)
+                {
+                    index = m_ModelsDispatchQueue.FindIndex(i =>
+                        (!string.IsNullOrEmpty(i.Path) && string.Equals(System.IO.Path.GetFileNameWithoutExtension(model.GetPathName()), System.IO.Path.GetFileNameWithoutExtension(i.Path), StringComparison.CurrentCultureIgnoreCase))
+                        || string.Equals(System.IO.Path.GetFileNameWithoutExtension(model.GetTitle()), System.IO.Path.GetFileNameWithoutExtension(i.Title), StringComparison.CurrentCultureIgnoreCase));
+                }
+                else 
+                {
+                    index = m_ModelsDispatchQueue.FindIndex(
+                        d => (!string.IsNullOrEmpty(d.Path) && string.Equals(d.Path, doc.Path, StringComparison.CurrentCultureIgnoreCase))
+                            || string.Equals(d.Title, doc.Title, StringComparison.CurrentCultureIgnoreCase));
+                }
 
                 if (index != -1)
                 {
                     m_Logger.Log($"Removing '{doc.Title}' from the dispatch queue", LoggerMessageSeverity_e.Debug);
 
+                    var modelInfo = m_ModelsDispatchQueue[index];
+
                     m_ModelsDispatchQueue.RemoveAt(index);
+
+                    if (!doc.IsCommitted)
+                    {
+                        if (model != null || TryFindModel(modelInfo, out model))
+                        {
+                            doc.SetModel(model);
+                        }
+                        else
+                        {
+                            System.Diagnostics.Debug.Assert(false);
+                            m_Logger.Log($"Failed to find the loaded model: {modelInfo.Title} ({modelInfo.Path})", LoggerMessageSeverity_e.Error);
+                        }
+                    }
                 }
                 else 
                 {
@@ -125,13 +164,18 @@ namespace Xarial.XCad.SolidWorks.Documents.Services
             }
             else
             {
-                model = (m_App.Sw.GetDocuments() as object[])?.FirstOrDefault(
-                    d => string.Equals((d as IModelDoc2).GetTitle(), info.Title)) as IModelDoc2;
+                var docs = (m_App.Sw.GetDocuments() as object[] ?? new object[0]).Cast<IModelDoc2>().ToArray();
+
+                model = docs.FirstOrDefault(
+                    d => string.Equals(
+                        System.IO.Path.GetFileNameWithoutExtension(d.GetTitle()),
+                        System.IO.Path.GetFileNameWithoutExtension(info.Title),
+                        StringComparison.CurrentCultureIgnoreCase));
             }
 
             return model != null;
         }
-
+        
         private void DispatchAllModels()
         {
             lock (m_Lock) 

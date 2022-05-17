@@ -48,12 +48,12 @@ namespace Xarial.XCad.SolidWorks.Sketch
 
         public Vector Axis { get => ((IXCircleCurve)Definition).Axis; set => throw new NotSupportedException(); }
 
-        internal SwSketchCircle(ISketchArc arc, ISwDocument doc, ISwApplication app, bool created)
+        internal SwSketchCircle(ISketchArc arc, SwDocument doc, SwApplication app, bool created)
             : base((ISketchSegment)arc, doc, app, created)
         {
         }
 
-        internal SwSketchCircle(SwSketchBase ownerSketch, ISwDocument doc, ISwApplication app) : base(ownerSketch, doc, app)
+        internal SwSketchCircle(SwSketchBase ownerSketch, SwDocument doc, SwApplication app) : base(ownerSketch, doc, app)
         {
         }
 
@@ -86,11 +86,11 @@ namespace Xarial.XCad.SolidWorks.Sketch
             set => SetPoint((ISketchPoint)Arc.GetEndPoint2(), value);
         }
 
-        internal SwSketchArc(ISketchArc arc, ISwDocument doc, ISwApplication app, bool created) : base(arc, doc, app, created)
+        internal SwSketchArc(ISketchArc arc, SwDocument doc, SwApplication app, bool created) : base(arc, doc, app, created)
         {
         }
 
-        internal SwSketchArc(SwSketchBase ownerSketch, ISwDocument doc, ISwApplication app) : base(ownerSketch, doc, app)
+        internal SwSketchArc(SwSketchBase ownerSketch, SwDocument doc, SwApplication app) : base(ownerSketch, doc, app)
         {
         }
     }

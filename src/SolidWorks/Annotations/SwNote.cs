@@ -26,7 +26,7 @@ namespace Xarial.XCad.SolidWorks.Annotations
 
         public override object Dispatch => Note;
 
-        internal SwNote(INote note, ISwDocument doc, ISwApplication app) : base(note.IGetAnnotation(), doc, app)
+        internal SwNote(INote note, SwDocument doc, SwApplication app) : base(note.IGetAnnotation(), doc, app)
         {
             Note = note;
         }

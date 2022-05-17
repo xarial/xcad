@@ -22,7 +22,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Surfaces
 
     internal class SwRevolvedSurface : SwSurface, ISwRevolvedSurface
     {
-        public SwRevolvedSurface(ISurface surface, ISwDocument doc, ISwApplication app) : base(surface, doc, app)
+        public SwRevolvedSurface(ISurface surface, SwDocument doc, SwApplication app) : base(surface, doc, app)
         {
         }
     }

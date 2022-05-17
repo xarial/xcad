@@ -103,7 +103,7 @@ namespace Xarial.XCad.SwDocumentManager
             }
         }
 
-        private ElementCreator<ISwDMApplication> m_Creator;
+        private readonly IElementCreator<ISwDMApplication> m_Creator;
 
         internal SwDmApplication(ISwDMApplication dmApp, bool isCreated) 
         {

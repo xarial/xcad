@@ -266,7 +266,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
         protected readonly ISwDocument3D m_Doc;
         private readonly IMathUtility m_MathUtils;
 
-        protected readonly ElementCreator<IMassProperty2> m_Creator;
+        protected readonly IElementCreator<IMassProperty2> m_Creator;
 
         protected IMassProperty2 MassProperty => m_Creator.Element;
         protected IMassProperty MassPropertyLegacy => m_LegacyMassPropertyLazy.Value;
