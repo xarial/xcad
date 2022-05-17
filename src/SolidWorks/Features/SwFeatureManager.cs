@@ -39,7 +39,7 @@ namespace Xarial.XCad.SolidWorks.Features
 
         private readonly Lazy<MacroFeatureParametersParser> m_ParamsParserLazy;
 
-        private readonly ISwApplication m_App;
+        private readonly SwApplication m_App;
         internal SwDocument Document { get; }
 
         public int Count => FeatMgr.GetFeatureCount(false);
@@ -88,7 +88,7 @@ namespace Xarial.XCad.SolidWorks.Features
 
         private readonly List<IXFeature> m_Cache;
 
-        internal SwFeatureManager(SwDocument doc, ISwApplication app, Context context)
+        internal SwFeatureManager(SwDocument doc, SwApplication app, Context context)
         {
             m_App = app;
             Document = doc;

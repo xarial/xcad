@@ -24,7 +24,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Curves
 
     internal class SwPolylineCurve : SwCurve, ISwPolylineCurve
     {
-        internal SwPolylineCurve(ICurve[] curves, ISwDocument doc, ISwApplication app, bool isCreated) 
+        internal SwPolylineCurve(ICurve[] curves, SwDocument doc, SwApplication app, bool isCreated) 
             : base(curves, doc, app, isCreated)
         {
             m_Creator.CachedProperties.Set(PolylineMode_e.Strip, nameof(Mode));

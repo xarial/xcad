@@ -35,7 +35,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public IXBodyRepository Bodies { get; }
 
-        internal SwPart(IPartDoc part, ISwApplication app, IXLogger logger, bool isCreated)
+        internal SwPart(IPartDoc part, SwApplication app, IXLogger logger, bool isCreated)
             : base((IModelDoc2)part, app, logger, isCreated)
         {
             Bodies = new SwPartBodyCollection(this);

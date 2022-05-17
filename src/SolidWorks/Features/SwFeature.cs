@@ -98,7 +98,7 @@ namespace Xarial.XCad.SolidWorks.Features
         private readonly Lazy<SwFeatureDimensionsCollection> m_DimensionsLazy;
         private Context m_Context;
 
-        internal SwFeature(IFeature feat, ISwDocument doc, ISwApplication app, bool created) : base(feat, doc, app)
+        internal SwFeature(IFeature feat, SwDocument doc, SwApplication app, bool created) : base(feat, doc, app)
         {
             if (doc == null) 
             {

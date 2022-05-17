@@ -160,7 +160,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         private readonly IElementCreator<IComponent2> m_Creator;
 
-        internal SwComponent(IComponent2 comp, SwAssembly rootAssembly, ISwApplication app) : base(comp, rootAssembly, app)
+        internal SwComponent(IComponent2 comp, SwAssembly rootAssembly, SwApplication app) : base(comp, rootAssembly, app)
         {
             RootAssembly = rootAssembly;
             m_Creator = new ElementCreator<IComponent2>(CreateComponent, comp, comp != null);
@@ -596,7 +596,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         IXPart IXPartComponent.ReferencedDocument { get => (IXPart)base.ReferencedDocument; set => base.ReferencedDocument = (ISwDocument3D)value; }
         IXPartConfiguration IXPartComponent.ReferencedConfiguration { get => (IXPartConfiguration)base.ReferencedConfiguration; set => base.ReferencedConfiguration = value; }
 
-        internal SwPartComponent(IComponent2 comp, SwAssembly rootAssembly, ISwApplication app) : base(comp, rootAssembly, app)
+        internal SwPartComponent(IComponent2 comp, SwAssembly rootAssembly, SwApplication app) : base(comp, rootAssembly, app)
         {
         }
 
@@ -611,7 +611,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         IXAssembly IXAssemblyComponent.ReferencedDocument { get => (IXAssembly)base.ReferencedDocument; set => base.ReferencedDocument = (ISwDocument3D)value; }
         IXAssemblyConfiguration IXAssemblyComponent.ReferencedConfiguration { get => (IXAssemblyConfiguration)base.ReferencedConfiguration; set => base.ReferencedConfiguration = value; }
 
-        internal SwAssemblyComponent(IComponent2 comp, SwAssembly rootAssembly, ISwApplication app) : base(comp, rootAssembly, app)
+        internal SwAssemblyComponent(IComponent2 comp, SwAssembly rootAssembly, SwApplication app) : base(comp, rootAssembly, app)
         {
         }
 
@@ -625,7 +625,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         private readonly SwAssembly m_Assm;
         internal SwComponent Component { get; }
 
-        public SwComponentFeatureManager(SwComponent comp, SwAssembly assm, ISwApplication app, Context context) 
+        public SwComponentFeatureManager(SwComponent comp, SwAssembly assm, SwApplication app, Context context) 
             : base(assm, app, context)
         {
             m_Assm = assm;

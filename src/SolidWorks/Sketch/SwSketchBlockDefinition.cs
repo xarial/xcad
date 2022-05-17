@@ -38,7 +38,7 @@ namespace Xarial.XCad.SolidWorks.Sketch
 
         public Point InsertionPoint => new Point((double[])SketchBlockDefinition.InsertionPoint.ArrayData);
 
-        internal SwSketchBlockDefinition(IFeature feat, ISwDocument doc, ISwApplication app, bool created) : base(feat, doc, app, created) 
+        internal SwSketchBlockDefinition(IFeature feat, SwDocument doc, SwApplication app, bool created) : base(feat, doc, app, created) 
         {
             SketchBlockDefinition = (ISketchBlockDefinition)feat.GetSpecificFeature2();
 

@@ -51,12 +51,12 @@ namespace Xarial.XCad.SolidWorks.Documents
             set => Active = (ISwConfiguration)value;
         }
 
-        protected readonly ISwApplication m_App;
+        protected readonly SwApplication m_App;
         private readonly SwDocument3D m_Doc;
 
         private readonly ConfigurationActivatedEventsHandler m_ConfigurationActivatedEventsHandler;
 
-        internal SwConfigurationCollection(SwDocument3D doc, ISwApplication app)
+        internal SwConfigurationCollection(SwDocument3D doc, SwApplication app)
         {
             m_App = app;
             m_Doc = doc;
@@ -189,7 +189,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
     internal class SwConfigurationEnumerator : SwConfigurationEnumeratorBase<SwConfiguration>
     {
-        public SwConfigurationEnumerator(ISwApplication app, SwDocument3D doc) : base(app, doc)
+        public SwConfigurationEnumerator(SwApplication app, SwDocument3D doc) : base(app, doc)
         {
         }
 
@@ -243,12 +243,12 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         private int m_CurConfIndex;
 
-        protected readonly ISwApplication m_App;
+        protected readonly SwApplication m_App;
         protected readonly SwDocument3D m_Doc;
 
         private string[] m_ConfNames;
 
-        internal SwConfigurationEnumeratorBase(ISwApplication app, SwDocument3D doc)
+        internal SwConfigurationEnumeratorBase(SwApplication app, SwDocument3D doc)
         {
             m_App = app;
             m_Doc = doc;
@@ -295,7 +295,7 @@ namespace Xarial.XCad.SolidWorks.Documents
     {
         private readonly SwAssembly m_Assm;
 
-        internal SwAssemblyConfigurationCollection(SwAssembly assm, ISwApplication app) : base(assm, app)
+        internal SwAssemblyConfigurationCollection(SwAssembly assm, SwApplication app) : base(assm, app)
         {
             m_Assm = assm;
         }
@@ -343,7 +343,7 @@ namespace Xarial.XCad.SolidWorks.Documents
     {
         private readonly SwAssembly m_Assm;
 
-        public SwAssemblyConfigurationEnumerator(ISwApplication app, SwAssembly assm) : base(app, assm)
+        public SwAssemblyConfigurationEnumerator(SwApplication app, SwAssembly assm) : base(app, assm)
         {
             m_Assm = assm;
         }
@@ -366,7 +366,7 @@ namespace Xarial.XCad.SolidWorks.Documents
     {
         private readonly SwPart m_Part;
 
-        internal SwPartConfigurationCollection(SwPart part, ISwApplication app) : base(part, app)
+        internal SwPartConfigurationCollection(SwPart part, SwApplication app) : base(part, app)
         {
             m_Part = part;
         }
@@ -411,7 +411,7 @@ namespace Xarial.XCad.SolidWorks.Documents
     {
         private readonly SwPart m_Part;
 
-        public SwPartConfigurationEnumerator(ISwApplication app, SwPart part) : base(app, part)
+        public SwPartConfigurationEnumerator(SwApplication app, SwPart part) : base(app, part)
         {
             m_Part = part;
         }

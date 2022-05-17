@@ -31,12 +31,12 @@ namespace Xarial.XCad.SolidWorks.Geometry
         public IXSheetGeometryBuilder SheetBuilder { get; }
         public IXSolidGeometryBuilder SolidBuilder { get; }
 
-        private readonly ISwApplication m_App;
+        private readonly SwApplication m_App;
 
         private readonly IModeler m_Modeler;
         private readonly IMathUtility m_MathUtils;
 
-        internal SwMemoryGeometryBuilder(ISwApplication app, IMemoryGeometryBuilderDocumentProvider geomBuilderDocsProvider) 
+        internal SwMemoryGeometryBuilder(SwApplication app, IMemoryGeometryBuilderDocumentProvider geomBuilderDocsProvider) 
         {
             m_App = app;
 

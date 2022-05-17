@@ -70,12 +70,12 @@ namespace Xarial.XCad.SolidWorks.Geometry.Curves
 
         protected readonly IModeler m_Modeler;
 
-        internal SwCurve(ICurve curve, ISwDocument doc, ISwApplication app, bool isCreated) 
+        internal SwCurve(ICurve curve, SwDocument doc, SwApplication app, bool isCreated) 
             : this(new ICurve[] { curve }, doc, app, isCreated)
         { 
         }
 
-        internal SwCurve(ICurve[] curves, ISwDocument doc, ISwApplication app, bool isCreated) : base(curves, doc, app)
+        internal SwCurve(ICurve[] curves, SwDocument doc, SwApplication app, bool isCreated) : base(curves, doc, app)
         {
             m_Modeler = app.Sw.IGetModeler();
             m_Creator = new ElementCreator<ICurve[]>(Create, curves, isCreated);

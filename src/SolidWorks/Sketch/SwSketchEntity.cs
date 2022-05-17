@@ -78,7 +78,7 @@ namespace Xarial.XCad.SolidWorks.Sketch
             set => throw new NotSupportedException();
         }
 
-        internal SwSketchEntity(object ent, ISwDocument doc, ISwApplication app) : base(ent, doc, app)
+        internal SwSketchEntity(object ent, SwDocument doc, SwApplication app) : base(ent, doc, app)
         {
         }
 

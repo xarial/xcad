@@ -33,8 +33,8 @@ namespace Xarial.XCad.SolidWorks
     {
         protected IModelDoc2 OwnerModelDoc => OwnerDocument.Model;
 
-        internal ISwApplication OwnerApplication { get; }
-        internal virtual ISwDocument OwnerDocument { get; }
+        internal SwApplication OwnerApplication { get; }
+        internal virtual SwDocument OwnerDocument { get; }
 
         public virtual object Dispatch { get; }
 
@@ -73,7 +73,7 @@ namespace Xarial.XCad.SolidWorks
 
         private readonly Lazy<ITagsManager> m_TagsLazy;
         
-        internal SwObject(object disp, ISwDocument doc, ISwApplication app) 
+        internal SwObject(object disp, SwDocument doc, SwApplication app) 
         {
             Dispatch = disp;
             m_TagsLazy = new Lazy<ITagsManager>(() => new TagsManager());

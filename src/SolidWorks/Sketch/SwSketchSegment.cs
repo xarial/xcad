@@ -51,7 +51,7 @@ namespace Xarial.XCad.SolidWorks.Sketch
 
         private SwSketchBase m_OwnerSketch;
 
-        protected SwSketchSegment(ISketchSegment seg, ISwDocument doc, ISwApplication app, bool created) : base(seg, doc, app)
+        protected SwSketchSegment(ISketchSegment seg, SwDocument doc, SwApplication app, bool created) : base(seg, doc, app)
         {
             if (doc == null)
             {
@@ -69,7 +69,7 @@ namespace Xarial.XCad.SolidWorks.Sketch
             }
         }
 
-        protected SwSketchSegment(SwSketchBase ownerSketch, ISwDocument doc, ISwApplication app) : this(null, doc, app, false)
+        protected SwSketchSegment(SwSketchBase ownerSketch, SwDocument doc, SwApplication app) : this(null, doc, app, false)
         {
             m_OwnerSketch = ownerSketch;
         }

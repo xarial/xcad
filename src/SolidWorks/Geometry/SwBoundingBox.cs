@@ -46,7 +46,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         private readonly ISwDocument m_Doc;
 
-        internal SwBoundingBox(ISwDocument doc, ISwApplication app) 
+        internal SwBoundingBox(SwDocument doc, SwApplication app) 
         {
             m_Doc = doc;
 
@@ -428,9 +428,9 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
     internal class SwAssemblyBoundingBox : SwBoundingBox, ISwAssemblyBoundingBox
     {
-        private readonly ISwAssembly m_Assm;
+        private readonly SwAssembly m_Assm;
 
-        internal SwAssemblyBoundingBox(ISwAssembly assm, ISwApplication app) : base(assm, app)
+        internal SwAssemblyBoundingBox(SwAssembly assm, SwApplication app) : base(assm, app)
         {
             m_Assm = assm;
             VisibleOnly = true;
@@ -538,7 +538,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
         }
 
         protected override IXBody[] GetAllBodies()
-            => m_Assm.Configurations.Active.Components.SelectMany(c => c.IterateBodies(!VisibleOnly)).ToArray();
+            => ((ISwAssemblyConfiguration)m_Assm.Configurations.Active).Components.SelectMany(c => c.IterateBodies(!VisibleOnly)).ToArray();
 
         protected override double[] ComputeFullApproximateBoundingBox()
         {
@@ -555,9 +555,9 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
     internal class SwPartBoundingBox : SwBoundingBox
     {
-        private readonly ISwPart m_Part;
+        private readonly SwPart m_Part;
 
-        internal SwPartBoundingBox(ISwPart part, ISwApplication app) : base(part, app)
+        internal SwPartBoundingBox(SwPart part, SwApplication app) : base(part, app)
         {
             m_Part = part;
         }

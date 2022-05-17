@@ -73,7 +73,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             set => Sheet.SetScale(value.Numerator, value.Denominator, true, true);
         }
 
-        internal SwSheet(ISheet sheet, SwDrawing draw, ISwApplication app) : base(sheet, draw, app)
+        internal SwSheet(ISheet sheet, SwDrawing draw, SwApplication app) : base(sheet, draw, app)
         {
             m_Drawing = draw;
             Sheet = sheet;

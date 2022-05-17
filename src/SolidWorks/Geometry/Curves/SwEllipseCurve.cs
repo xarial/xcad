@@ -23,7 +23,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Curves
 
     internal class SwEllipseCurve : SwCurve, ISwEllipseCurve
     {
-        internal SwEllipseCurve(ICurve curve, ISwDocument doc, ISwApplication app, bool isCreated) 
+        internal SwEllipseCurve(ICurve curve, SwDocument doc, SwApplication app, bool isCreated) 
             : base(curve, doc, app, isCreated)
         {
         }

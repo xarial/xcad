@@ -30,7 +30,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
     {
         IXCurve IXWireGeometryBuilder.Merge(IXCurve[] curves) => Merge(curves.Cast<ISwCurve>().ToArray());
 
-        private readonly ISwApplication m_App;
+        private readonly SwApplication m_App;
         protected readonly IModeler m_Modeler;
         protected readonly IMathUtility m_MathUtils;
 
@@ -38,7 +38,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         public IXWireEntity this[string name] => throw new NotImplementedException();
 
-        internal SwMemoryWireGeometryBuilder(ISwApplication app)
+        internal SwMemoryWireGeometryBuilder(SwApplication app)
         {
             m_App = app;
             m_MathUtils = app.Sw.IGetMathUtility();

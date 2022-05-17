@@ -23,7 +23,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Curves
 
     internal class SwBCurve : SwCurve, ISwBCurve
     {
-        internal SwBCurve(ICurve curve, ISwDocument doc, ISwApplication app, bool isCreated) 
+        internal SwBCurve(ICurve curve, SwDocument doc, SwApplication app, bool isCreated) 
             : base(curve, doc, app, isCreated)
         {
         }

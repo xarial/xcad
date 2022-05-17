@@ -29,7 +29,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Surfaces
 
         private readonly IMathUtility m_MathUtils;
 
-        protected SwSurface(ISurface surface, ISwDocument doc, ISwApplication app) : base(surface, doc, app)
+        protected SwSurface(ISurface surface, SwDocument doc, SwApplication app) : base(surface, doc, app)
         {
             Surface = surface;
             m_MathUtils = app.Sw.IGetMathUtility();

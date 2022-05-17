@@ -28,7 +28,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Curves
 
     internal class SwCircleCurve : SwCurve, ISwCircleCurve
     {
-        internal SwCircleCurve(ICurve curve, ISwDocument doc, ISwApplication app, bool isCreated) 
+        internal SwCircleCurve(ICurve curve, SwDocument doc, SwApplication app, bool isCreated) 
             : base(new ICurve[] { curve }, doc, app, isCreated)
         {
         }
@@ -153,7 +153,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Curves
 
     internal class SwArcCurve : SwCircleCurve, ISwArcCurve
     {
-        internal SwArcCurve(ICurve curve, ISwDocument doc, ISwApplication app, bool isCreated) : base(curve, doc, app, isCreated)
+        internal SwArcCurve(ICurve curve, SwDocument doc, SwApplication app, bool isCreated) : base(curve, doc, app, isCreated)
         {
         }
 

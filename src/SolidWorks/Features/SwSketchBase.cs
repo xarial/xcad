@@ -98,16 +98,16 @@ namespace Xarial.XCad.SolidWorks.Features
 
         public override object Dispatch => Sketch;
 
-        internal SwSketchBase(IFeature feat, ISwDocument doc, ISwApplication app, bool created) 
+        internal SwSketchBase(IFeature feat, SwDocument doc, SwApplication app, bool created) 
             : this(feat, (ISketch)feat?.GetSpecificFeature2(), doc, app, created)
         {
         }
 
-        internal SwSketchBase(ISketch sketch, ISwDocument doc, ISwApplication app, bool created) : this((IFeature)sketch, sketch, doc, app, created)
+        internal SwSketchBase(ISketch sketch, SwDocument doc, SwApplication app, bool created) : this((IFeature)sketch, sketch, doc, app, created)
         {
         }
 
-        private SwSketchBase(IFeature feat, ISketch sketch, ISwDocument doc, ISwApplication app, bool created) : base(feat, doc, app, created)
+        private SwSketchBase(IFeature feat, ISketch sketch, SwDocument doc, SwApplication app, bool created) : base(feat, doc, app, created)
         {
             if (doc == null)
             {

@@ -121,7 +121,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
         public override Point FindClosestPoint(Point point)
             => new Point(((double[])Edge.GetClosestPointOn(point.X, point.Y, point.Z)).Take(3).ToArray());
 
-        internal SwEdge(IEdge edge, ISwDocument doc, ISwApplication app) : base((IEntity)edge, doc, app)
+        internal SwEdge(IEdge edge, SwDocument doc, SwApplication app) : base((IEntity)edge, doc, app)
         {
             Edge = edge;
         }
@@ -136,7 +136,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
     {
         IXCircle IXCircularEdge.Definition => Definition;
 
-        internal SwCircularEdge(IEdge edge, ISwDocument doc, ISwApplication app) : base(edge, doc, app)
+        internal SwCircularEdge(IEdge edge, SwDocument doc, SwApplication app) : base(edge, doc, app)
         {
         }
 
@@ -152,7 +152,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
     {
         IXLine IXLinearEdge.Definition => Definition;
 
-        internal SwLinearEdge(IEdge edge, ISwDocument doc, ISwApplication app) : base(edge, doc, app)
+        internal SwLinearEdge(IEdge edge, SwDocument doc, SwApplication app) : base(edge, doc, app)
         {
         }
 

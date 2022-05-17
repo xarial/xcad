@@ -28,11 +28,11 @@ namespace Xarial.XCad.SolidWorks.Features
 
     internal class SwSketch3D : SwSketchBase, ISwSketch3D
     {
-        internal SwSketch3D(IFeature feat, ISwDocument doc, ISwApplication app, bool created) : base(feat, doc, app, created)
+        internal SwSketch3D(IFeature feat, SwDocument doc, SwApplication app, bool created) : base(feat, doc, app, created)
         {
         }
 
-        internal SwSketch3D(ISketch sketch, ISwDocument doc, ISwApplication app, bool created) : base(sketch, doc, app, created)
+        internal SwSketch3D(ISketch sketch, SwDocument doc, SwApplication app, bool created) : base(sketch, doc, app, created)
         {
         }
 

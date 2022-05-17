@@ -21,7 +21,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Curves
 
     internal class SwPoint : SwObject, ISwPoint
     {
-        internal SwPoint(object disp, ISwDocument doc, ISwApplication app) : base(disp, doc, app)
+        internal SwPoint(object disp, SwDocument doc, SwApplication app) : base(disp, doc, app)
         {
         }
 

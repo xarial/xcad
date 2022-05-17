@@ -30,7 +30,7 @@ namespace Xarial.XCad.SolidWorks.Sketch
     {
         IXSegment[] IXRegion.Boundary => Boundary;
 
-        internal SwSketchRegion(ISketchRegion region, ISwDocument doc, ISwApplication app) : base(region, doc, app)
+        internal SwSketchRegion(ISketchRegion region, SwDocument doc, SwApplication app) : base(region, doc, app)
         {
             Region = region;
         }

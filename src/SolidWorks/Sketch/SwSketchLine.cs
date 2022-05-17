@@ -80,12 +80,12 @@ namespace Xarial.XCad.SolidWorks.Sketch
             }
         }
 
-        internal SwSketchLine(ISketchLine line, ISwDocument doc, ISwApplication app, bool created) 
+        internal SwSketchLine(ISketchLine line, SwDocument doc, SwApplication app, bool created) 
             : base((ISketchSegment)line, doc, app, created)
         {
         }
 
-        internal SwSketchLine(SwSketchBase ownerSketch, ISwDocument doc, ISwApplication app) : base(ownerSketch, doc, app)
+        internal SwSketchLine(SwSketchBase ownerSketch, SwDocument doc, SwApplication app) : base(ownerSketch, doc, app)
         {
         }
 

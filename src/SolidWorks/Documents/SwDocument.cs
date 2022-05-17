@@ -386,18 +386,18 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         private bool m_AreEventsAttached;
 
-        internal override ISwDocument OwnerDocument => this;
+        internal override SwDocument OwnerDocument => this;
 
         private bool m_IsDisposed;
 
         private readonly Lazy<ISwModelViewsCollection> m_ModelViewsLazy;
 
-        internal SwDocument(IModelDoc2 model, ISwApplication app, IXLogger logger) 
+        internal SwDocument(IModelDoc2 model, SwApplication app, IXLogger logger) 
             : this(model, app, logger, true)
         {
         }
 
-        internal SwDocument(IModelDoc2 model, ISwApplication app, IXLogger logger, bool created) : base(model, null, app)
+        internal SwDocument(IModelDoc2 model, SwApplication app, IXLogger logger, bool created) : base(model, null, app)
         {
             m_Logger = logger;
 

@@ -21,7 +21,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Surfaces
 
     internal class SwCylindricalSurface : SwSurface, ISwCylindricalSurface
     {
-        internal SwCylindricalSurface(ISurface surface, ISwDocument doc, ISwApplication app) : base(surface, doc, app)
+        internal SwCylindricalSurface(ISurface surface, SwDocument doc, SwApplication app) : base(surface, doc, app)
         {
         }
 

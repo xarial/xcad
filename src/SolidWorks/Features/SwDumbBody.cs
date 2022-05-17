@@ -18,7 +18,7 @@ namespace Xarial.XCad.SolidWorks.Features
 
     internal class SwDumbBody : SwFeature, ISwDumbBody
     {
-        internal SwDumbBody(IFeature feat, ISwDocument doc, ISwApplication app, bool created) : base(feat, doc, app, created)
+        internal SwDumbBody(IFeature feat, SwDocument doc, SwApplication app, bool created) : base(feat, doc, app, created)
         {
         }
 

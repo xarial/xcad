@@ -42,10 +42,10 @@ namespace Xarial.XCad.SolidWorks.Sketch
 
         private readonly List<IXSketchEntity> m_Cache;
 
-        private readonly ISwApplication m_App;
-        private readonly ISwDocument m_Doc;
+        private readonly SwApplication m_App;
+        private readonly SwDocument m_Doc;
 
-        internal SwSketchEntityCollection(SwSketchBase sketch, ISwDocument doc, ISwApplication app)
+        internal SwSketchEntityCollection(SwSketchBase sketch, SwDocument doc, SwApplication app)
         {
             m_Doc = doc;
             m_App = app;

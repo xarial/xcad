@@ -17,7 +17,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
     internal class SwAssemblyConfiguration : SwConfiguration, ISwAssemblyConfiguration
     {
-        internal SwAssemblyConfiguration(IConfiguration conf, SwAssembly assm, ISwApplication app, bool created) 
+        internal SwAssemblyConfiguration(IConfiguration conf, SwAssembly assm, SwApplication app, bool created) 
             : base(conf, assm, app, created)
         {
             Components = new SwAssemblyComponentCollection(assm, conf);

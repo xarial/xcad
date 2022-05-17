@@ -34,10 +34,10 @@ namespace Xarial.XCad.SolidWorks.Documents
         IXModelView IXRepository<IXModelView>.this[string name] => this[name];
         IXModelView IXModelViewRepository.Active => Active;
 
-        protected readonly ISwDocument m_Doc;
-        protected readonly ISwApplication m_App;
+        protected readonly SwDocument m_Doc;
+        protected readonly SwApplication m_App;
 
-        public SwModelViewsCollection(ISwDocument doc, ISwApplication app)
+        public SwModelViewsCollection(SwDocument doc, SwApplication app)
         {
             m_Doc = doc;
             m_App = app;
@@ -77,7 +77,7 @@ namespace Xarial.XCad.SolidWorks.Documents
     {
         IXStandardView IXModelView3DRepository.this[StandardViewType_e type] => this[type];
 
-        public SwModelViews3DCollection(ISwDocument3D doc, ISwApplication app) : base(doc, app)
+        public SwModelViews3DCollection(SwDocument3D doc, SwApplication app) : base(doc, app)
         {
         }
 

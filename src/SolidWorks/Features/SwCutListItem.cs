@@ -40,7 +40,7 @@ namespace Xarial.XCad.SolidWorks.Features
         private ISwDocument3D m_ParentDoc;
         private ISwConfiguration m_ParentConf;
         
-        internal SwCutListItem(IFeature feat, ISwDocument3D doc, ISwApplication app, bool created) : base(feat, doc, app, created)
+        internal SwCutListItem(IFeature feat, SwDocument3D doc, SwApplication app, bool created) : base(feat, doc, app, created)
         {
             if (feat.GetTypeName2() != "CutListFolder") 
             {

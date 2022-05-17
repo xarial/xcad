@@ -79,7 +79,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 
         private readonly IFeatureManager m_FeatMgr;
 
-        internal SwMacroFeature(IFeature feat, SwDocument doc, ISwApplication app, bool created)
+        internal SwMacroFeature(IFeature feat, SwDocument doc, SwApplication app, bool created)
             : base(feat, doc, app, created)
         {
             m_FeatMgr = doc.Model.FeatureManager;
@@ -171,7 +171,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         private readonly MacroFeatureParametersParser m_ParamsParser;
         private TParams m_ParametersCache;
 
-        internal static SwMacroFeature CreateSpecificInstance(IFeature feat, SwDocument doc, ISwApplication app, Type paramType, MacroFeatureParametersParser paramsParser = null) 
+        internal static SwMacroFeature CreateSpecificInstance(IFeature feat, SwDocument doc, SwApplication app, Type paramType, MacroFeatureParametersParser paramsParser = null) 
         {
             var macroFeatType = typeof(SwMacroFeature<>).MakeGenericType(paramType);
 
@@ -185,13 +185,19 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             var test = new SwMacroFeature<object>(feat, doc, app, paramsParser, true);
 #endif
             var constr = macroFeatType.GetConstructor(BindingFlags.Instance | BindingFlags.NonPublic, null,
-                new Type[] { typeof(IFeature), typeof(SwDocument), typeof(ISwApplication), typeof(MacroFeatureParametersParser), typeof(bool) }, null);
+                new Type[] { typeof(IFeature), typeof(SwDocument), typeof(SwApplication), typeof(MacroFeatureParametersParser), typeof(bool) }, null);
+
+            if (constr == null) 
+            {
+                System.Diagnostics.Debug.Assert(false, "Modify the parameters above");
+                throw new Exception("Failed to create instance of the macro feature - incorrect parameters");
+            }
 
             return (SwMacroFeature)constr.Invoke(new object[] { feat, doc, app, paramsParser, feat != null });
         }
 
         //NOTE: this constructor is used in the reflection of SwObjectFactory
-        internal SwMacroFeature(IFeature feat, SwDocument doc, ISwApplication app, MacroFeatureParametersParser paramsParser, bool created)
+        internal SwMacroFeature(IFeature feat, SwDocument doc, SwApplication app, MacroFeatureParametersParser paramsParser, bool created)
             : base(feat, doc, app, created)
         {
             m_ParamsParser = paramsParser;

@@ -69,7 +69,7 @@ namespace Xarial.XCad.SolidWorks.Sketch
 
         public IXSketchEntityRepository Entities { get; }
 
-        internal SwSketchBlockInstance(IFeature feat, ISwDocument doc, ISwApplication app, bool created) : base(feat, doc, app, created)
+        internal SwSketchBlockInstance(IFeature feat, SwDocument doc, SwApplication app, bool created) : base(feat, doc, app, created)
         {
             SketchBlockInstance = (ISketchBlockInstance)feat.GetSpecificFeature2();
             Entities = new SwSketchBlockInstanceEntityCollection(this, doc.CreateObjectFromDispatch<SwSketchBase>(SketchBlockInstance.Definition.GetSketch()), doc, app);
@@ -100,7 +100,7 @@ namespace Xarial.XCad.SolidWorks.Sketch
     {
         private readonly SwSketchBlockInstance m_SketchBlockInst;
 
-        internal SwSketchBlockInstanceEntityCollection(SwSketchBlockInstance skBlockInst, SwSketchBase sketch, ISwDocument doc, ISwApplication app)
+        internal SwSketchBlockInstanceEntityCollection(SwSketchBlockInstance skBlockInst, SwSketchBase sketch, SwDocument doc, SwApplication app)
             : base(sketch, doc, app)
         {
             m_SketchBlockInst = skBlockInst;

@@ -63,7 +63,7 @@ namespace Xarial.XCad.SolidWorks
             }
         }
 
-        internal SwSelObject(object disp, ISwDocument doc, ISwApplication app) : base(disp, doc, app)
+        internal SwSelObject(object disp, SwDocument doc, SwApplication app) : base(disp, doc, app)
         {
         }
 

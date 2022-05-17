@@ -86,7 +86,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         private readonly IElementCreator<IConfiguration> m_Creator;
 
-        internal SwConfiguration(IConfiguration conf, SwDocument3D doc, ISwApplication app, bool created) : base(conf, doc, app)
+        internal SwConfiguration(IConfiguration conf, SwDocument3D doc, SwApplication app, bool created) : base(conf, doc, app)
         {
             m_Doc = doc;
 
@@ -274,13 +274,13 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         protected readonly SwComponent m_Comp;
 
-        internal SwComponentConfiguration(SwComponent comp, ISwApplication app)
+        internal SwComponentConfiguration(SwComponent comp, SwApplication app)
             : this(GetConfiguration(comp), (SwDocument3D)comp.ReferencedDocument, app, comp.Component.ReferencedConfiguration)
         {
             m_Comp = comp;
         }
 
-        private SwComponentConfiguration(IConfiguration conf, SwDocument3D doc, ISwApplication app, string name)
+        private SwComponentConfiguration(IConfiguration conf, SwDocument3D doc, SwApplication app, string name)
             : base(conf, doc, app, conf != null)
         {
             if (conf == null)
@@ -296,7 +296,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
     internal class SwPartComponentConfiguration : SwComponentConfiguration, IXPartConfiguration
     {
-        public SwPartComponentConfiguration(SwPartComponent comp, ISwApplication app) : base(comp, app)
+        public SwPartComponentConfiguration(SwPartComponent comp, SwApplication app) : base(comp, app)
         {
             CutLists = new SwPartComponentCutListItemCollection(comp);
         }
@@ -306,7 +306,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
     internal class SwAssemblyComponentConfiguration : SwComponentConfiguration, IXAssemblyConfiguration
     {
-        public SwAssemblyComponentConfiguration(SwComponent comp, ISwApplication app) : base(comp, app)
+        public SwAssemblyComponentConfiguration(SwComponent comp, SwApplication app) : base(comp, app)
         {
         }
 
@@ -323,7 +323,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         private string m_ViewOnlyConfName;
 
-        internal SwViewOnlyUnloadedConfiguration(string confName, SwDocument3D doc, ISwApplication app)
+        internal SwViewOnlyUnloadedConfiguration(string confName, SwDocument3D doc, SwApplication app)
             : base(null, doc, app, false)
         {
             m_ViewOnlyConfName = confName;
@@ -344,7 +344,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         private string m_LdrConfName;
 
-        internal SwLdrAssemblyUnloadedConfiguration(SwAssembly assm, ISwApplication app, string confName) 
+        internal SwLdrAssemblyUnloadedConfiguration(SwAssembly assm, SwApplication app, string confName) 
             : base(null, assm, app, false)
         {
             m_LdrConfName = confName;
@@ -365,7 +365,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         private string m_LdrConfName;
 
-        internal SwLdrPartUnloadedConfiguration(SwPart part, ISwApplication app, string confName)
+        internal SwLdrPartUnloadedConfiguration(SwPart part, SwApplication app, string confName)
             : base(null, part, app, false)
         {
             m_LdrConfName = confName;
