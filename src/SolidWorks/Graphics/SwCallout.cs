@@ -50,7 +50,7 @@ namespace Xarial.XCad.SolidWorks.Graphics
         public event CalloutRowValueChangedDelegate ValueChanged;
         
         private readonly SwCalloutBase m_Owner;
-        private readonly ElementCreator<object> m_Creator;
+        private readonly IElementCreator<object> m_Creator;
 
         private int? m_RowIndex;
         
@@ -176,7 +176,7 @@ namespace Xarial.XCad.SolidWorks.Graphics
 
     internal abstract class SwCalloutBase : SwObject, ISwCalloutBase
     {
-        protected readonly ElementCreator<ICallout> m_Creator;
+        protected readonly IElementCreator<ICallout> m_Creator;
 
         public IXCalloutRow[] Rows { get; private set; }
 

@@ -248,7 +248,7 @@ namespace Xarial.XCad.SolidWorks
         
         private bool m_IsStartupNotified;
 
-        private ElementCreator<ISldWorks> m_Creator;
+        private readonly IElementCreator<ISldWorks> m_Creator;
 
         private ApplicationIdleDelegate m_IdleDelegate;
 

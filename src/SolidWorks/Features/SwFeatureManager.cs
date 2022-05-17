@@ -37,7 +37,7 @@ namespace Xarial.XCad.SolidWorks.Features
     {
         private IFeatureManager FeatMgr => Document.Model.FeatureManager;
 
-        private readonly MacroFeatureParametersParser m_ParamsParser;
+        private readonly Lazy<MacroFeatureParametersParser> m_ParamsParserLazy;
 
         private readonly ISwApplication m_App;
         internal SwDocument Document { get; }
@@ -86,15 +86,43 @@ namespace Xarial.XCad.SolidWorks.Features
 
         protected readonly Context m_Context;
 
+        private readonly List<IXFeature> m_Cache;
+
         internal SwFeatureManager(SwDocument doc, ISwApplication app, Context context)
         {
             m_App = app;
             Document = doc;
             m_Context = context;
-            m_ParamsParser = new MacroFeatureParametersParser(app);
+            m_ParamsParserLazy = new Lazy<MacroFeatureParametersParser>(() => new MacroFeatureParametersParser(app));
+            m_Cache = new List<IXFeature>();
         }
 
-        public virtual void AddRange(IEnumerable<IXFeature> feats, CancellationToken cancellationToken) => RepositoryHelper.AddRange(this, feats, cancellationToken);
+        public virtual void AddRange(IEnumerable<IXFeature> feats, CancellationToken cancellationToken)
+        {
+            if (Document.IsCommitted)
+            {
+                RepositoryHelper.AddRange(this, feats, cancellationToken);
+            }
+            else 
+            {
+                m_Cache.AddRange(feats);
+            }
+        }
+
+        internal void CommitCache(CancellationToken cancellationToken) 
+        {
+            try
+            {
+                if (m_Cache.Any())
+                {
+                    AddRange(m_Cache, cancellationToken);
+                }
+            }
+            finally
+            {
+                m_Cache.Clear();
+            }
+        }
 
         public virtual IEnumerator<IXFeature> GetEnumerator()
             => new DocumentFeatureEnumerator(Document, GetFirstFeature(), new Context(Document));
@@ -141,7 +169,7 @@ namespace Xarial.XCad.SolidWorks.Features
             if (typeof(T).IsAssignableToGenericType(typeof(IXCustomFeature<>)))
             {
                 var macroFeatureParamsType = typeof(T).GetArgumentsOfGenericType(typeof(IXCustomFeature<>)).First();
-                var feat = SwMacroFeature<object>.CreateSpecificInstance(null, Document, m_App, macroFeatureParamsType, m_ParamsParser);
+                var feat = SwMacroFeature<object>.CreateSpecificInstance(null, Document, m_App, macroFeatureParamsType, m_ParamsParserLazy.Value);
                 return (T)(object)feat;
             }
             else 

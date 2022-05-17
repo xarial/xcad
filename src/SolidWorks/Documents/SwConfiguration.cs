@@ -84,7 +84,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public bool IsCommitted => m_Creator.IsCreated;
 
-        private readonly ElementCreator<IConfiguration> m_Creator;
+        private readonly IElementCreator<IConfiguration> m_Creator;
 
         internal SwConfiguration(IConfiguration conf, SwDocument3D doc, ISwApplication app, bool created) : base(conf, doc, app)
         {

@@ -42,7 +42,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         private readonly IMathUtility m_MathUtils;
 
-        protected readonly ElementCreator<EditableBox3D> m_Creator;
+        protected readonly IElementCreator<EditableBox3D> m_Creator;
 
         private readonly ISwDocument m_Doc;
 

@@ -89,7 +89,7 @@ namespace Xarial.XCad.SolidWorks.Features
         IXComponent IXFeature.Component => Component;
         IXDimensionRepository IDimensionable.Dimensions => Dimensions;
 
-        protected readonly ElementCreator<IFeature> m_Creator;
+        protected readonly IElementCreator<IFeature> m_Creator;
 
         public virtual IFeature Feature => m_Creator.Element;
 
@@ -124,7 +124,7 @@ namespace Xarial.XCad.SolidWorks.Features
                 return new SwFeatureDimensionsCollection(this, OwnerDocument, m_Context);
             });
 
-            m_Creator = new ElementCreator<IFeature>(CreateFeature, feat, created);
+            m_Creator = new ElementCreator<IFeature>(CreateFeature, CommitCache, feat, created);
         }
 
         internal void SetContext(Context context) 
@@ -153,6 +153,10 @@ namespace Xarial.XCad.SolidWorks.Features
 
         protected virtual IFeature CreateFeature(CancellationToken cancellationToken)
             => throw new NotSupportedException("Creation of this feature is not supported");
+
+        protected virtual void CommitCache(IFeature feat, CancellationToken cancellationToken)
+        {
+        }
 
         public ISwDimensionsCollection Dimensions => m_DimensionsLazy.Value;
 

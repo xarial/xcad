@@ -45,31 +45,70 @@ namespace Xarial.XCad.Services
         }
     }
 
-    public class ElementCreator<TElem>
+    /// <summary>
+    /// Helper class to manage the lifecycle of <see cref="Base.IXTransaction"/>
+    /// </summary>
+    /// <typeparam name="TElem">Type of the underlying object</typeparam>
+    public interface IElementCreator<TElem>
     {
-        public event Action<TElem> Creating;
+        /// <summary>
+        /// True if this element is created or false if it is a template
+        /// </summary>
+        bool IsCreated { get; }
 
+        /// <summary>
+        /// Provides access to manage cached properties
+        /// </summary>
+        CachedProperties CachedProperties { get; }
+
+        /// <summary>
+        /// Pointer to the specific element
+        /// </summary>
+        /// <exception cref="NonCommittedElementAccessException"/>
+        TElem Element { get; }
+
+        /// <summary>
+        /// Forcibly sets the element instance
+        /// </summary>
+        /// <param name="elem">Element to set</param>
+        /// <param name="cancellationToken">Cancellation token</param>
+        /// <exception cref="ElementAlreadyCommittedException"/>
+        void Set(TElem elem, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Creates element from the template
+        /// </summary>
+        /// <param name="cancellationToken">Cancellation token</param>
+        /// <exception cref="ElementAlreadyCommittedException"/>
+        /// <returns>Instance of the specific element</returns>
+        TElem Create(CancellationToken cancellationToken);
+    }
+
+    public class ElementCreator<TElem> : IElementCreator<TElem>
+    {
         public bool IsCreated { get; private set; }
 
         private TElem m_Element;
 
         private readonly Func<CancellationToken, TElem> m_Creator;
+        private readonly Action<TElem, CancellationToken> m_PostCreator;
 
         public CachedProperties CachedProperties { get; }
 
-        public ElementCreator(Func<CancellationToken,TElem> creator, TElem elem, bool created = false)
+        public ElementCreator(Func<CancellationToken, TElem> creator, TElem elem, bool created = false)
+            : this(creator, null, elem, created)
+        {
+        }
+
+        public ElementCreator(Func<CancellationToken, TElem> creator, Action<TElem, CancellationToken> postCreator, TElem elem, bool created = false)
         {
             m_Creator = creator;
+            m_PostCreator = postCreator;
+
             IsCreated = created;
             m_Element = elem;
 
             CachedProperties = new CachedProperties();
-        }
-
-        public void Reset(TElem elem, bool created) 
-        {
-            m_Element = elem;
-            IsCreated = created;
         }
 
         public TElem Element
@@ -87,13 +126,32 @@ namespace Xarial.XCad.Services
             }
         }
 
+        public void Set(TElem elem, CancellationToken cancellationToken) 
+        {
+            if (!IsCreated)
+            {
+                if (elem == null)
+                {
+                    throw new ArgumentNullException(nameof(elem));
+                }
+
+                m_Element = elem;
+                IsCreated = true;
+                m_PostCreator?.Invoke(elem, cancellationToken);
+            }
+            else
+            {
+                throw new ElementAlreadyCommittedException();
+            }
+        }
+
         public TElem Create(CancellationToken cancellationToken)
         {
             if (!IsCreated)
             {
                 m_Element = m_Creator.Invoke(cancellationToken);
-                Creating?.Invoke(m_Element);
                 IsCreated = true;
+                m_PostCreator?.Invoke(m_Element, cancellationToken);
                 return m_Element;
             }
             else

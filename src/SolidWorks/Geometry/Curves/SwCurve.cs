@@ -66,7 +66,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Curves
 
         public override object Dispatch => Curves;
 
-        protected readonly ElementCreator<ICurve[]> m_Creator;
+        protected readonly IElementCreator<ICurve[]> m_Creator;
 
         protected readonly IModeler m_Modeler;
 

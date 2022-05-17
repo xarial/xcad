@@ -349,7 +349,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         protected abstract bool IsRapidMode { get; }
         protected abstract bool IsLightweightMode { get; }
 
-        private readonly Lazy<ISwFeatureManager> m_FeaturesLazy;
+        private readonly Lazy<SwFeatureManager> m_FeaturesLazy;
         private readonly Lazy<ISwSelectionCollection> m_SelectionsLazy;
         private readonly Lazy<ISwDimensionsCollection> m_DimensionsLazy;
         private readonly Lazy<ISwCustomPropertiesCollection> m_PropertiesLazy;
@@ -382,7 +382,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         
         public bool IsCommitted => m_Creator.IsCreated;
 
-        protected readonly ElementCreator<IModelDoc2> m_Creator;
+        protected readonly IElementCreator<IModelDoc2> m_Creator;
 
         private bool m_AreEventsAttached;
 
@@ -401,11 +401,9 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
             m_Logger = logger;
 
-            m_Creator = new ElementCreator<IModelDoc2>(CreateDocument, model, created);
+            m_Creator = new ElementCreator<IModelDoc2>(CreateDocument, CommitCache, model, created);
 
-            m_Creator.Creating += OnCreating;
-
-            m_FeaturesLazy = new Lazy<ISwFeatureManager>(() => new SwFeatureManager(this, app, new Context(this)));
+            m_FeaturesLazy = new Lazy<SwFeatureManager>(() => new SwFeatureManager(this, app, new Context(this)));
             m_SelectionsLazy = new Lazy<ISwSelectionCollection>(() => new SwSelectionCollection(this, app));
             m_DimensionsLazy = new Lazy<ISwDimensionsCollection>(() => new SwFeatureManagerDimensionsCollection(this.Features, new Context(this)));
             m_PropertiesLazy = new Lazy<ISwCustomPropertiesCollection>(() => new SwFileCustomPropertiesCollection(this, app));
@@ -433,15 +431,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public override object Dispatch => Model;
 
-        internal void SetModel(IModelDoc2 model) => m_Creator.Reset(model, true);
-
-        private void OnCreating(IModelDoc2 model)
-        {
-            var cachedModel = m_Creator.CachedProperties.Get<IModelDoc2>(nameof(Model));
-
-            Debug.Assert(cachedModel == null 
-                || SwModelPointerEqualityComparer.AreEqual(cachedModel, model), "Invalid pointers");
-        }
+        internal void SetModel(IModelDoc2 model) => m_Creator.Set(model, CancellationToken.None);
 
         protected IModelDoc2 CreateDocument(CancellationToken cancellationToken)
         {
@@ -483,6 +473,14 @@ namespace Xarial.XCad.SolidWorks.Documents
                 {
                     OwnerApplication.Sw.DocumentVisible(origVisible, docType);
                 }
+            }
+        }
+
+        private void CommitCache(IModelDoc2 model, CancellationToken cancellationToken)
+        {
+            if (m_FeaturesLazy.IsValueCreated) 
+            {
+                m_FeaturesLazy.Value.CommitCache(cancellationToken);
             }
         }
 
@@ -1303,7 +1301,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             if (((SwDocumentCollection)OwnerApplication.Documents).TryFindExistingDocumentByPath(Path, out SwDocument curDoc))
             {
                 m_SpecificDoc = curDoc;
-                m_Creator.Reset(curDoc.Model, true);
+                m_Creator.Set(curDoc.Model, CancellationToken.None);
             }
             else
             {

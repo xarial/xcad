@@ -126,9 +126,12 @@ namespace Xarial.XCad.SolidWorks.Features
 
             Sketch = sketch;
 
-            m_SwEntsColl.CommitCache(sketch, cancellationToken);
-
             return (IFeature)sketch;
+        }
+
+        protected override void CommitCache(IFeature feat, CancellationToken cancellationToken)
+        {
+            m_SwEntsColl.CommitCache(cancellationToken);
         }
 
         protected abstract ISketch CreateSketch();

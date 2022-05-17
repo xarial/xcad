@@ -357,6 +357,8 @@ namespace Xarial.XCad.SolidWorks
                             return new SwSketchBlockInstance(feat, doc, app, true);
                         case "SketchBlockDef":
                             return new SwSketchBlockDefinition(feat, doc, app, true);
+                        case "BaseBody":
+                            return new SwDumbBody(feat, doc, app, true);
                         case "MacroFeature":
                             if (TryGetParameterType(feat, out Type paramType))
                             {

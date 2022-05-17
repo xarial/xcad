@@ -25,7 +25,7 @@ namespace Xarial.XCad.SolidWorks.Sketch
 
     internal class SwSketchPoint : SwSketchEntity, ISwSketchPoint
     {
-        protected readonly ElementCreator<ISketchPoint> m_Creator;
+        protected readonly IElementCreator<ISketchPoint> m_Creator;
 
         protected readonly ISketchManager m_SketchMgr;
         

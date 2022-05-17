@@ -37,7 +37,7 @@ namespace Xarial.XCad.SolidWorks.Sketch
         IXPoint IXSegment.StartPoint => StartPoint;
         IXPoint IXSegment.EndPoint => EndPoint;
 
-        protected readonly ElementCreator<ISketchSegment> m_Creator;
+        protected readonly IElementCreator<ISketchSegment> m_Creator;
 
         protected readonly ISketchManager m_SketchMgr;
 
