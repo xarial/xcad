@@ -63,7 +63,7 @@ namespace Xarial.XCad.SolidWorks.Features
             }
         }
 
-        protected override IFeature CreateFeature(CancellationToken cancellationToken)
+        protected override IFeature InsertFeature(CancellationToken cancellationToken)
         {
             IPartDoc part = null;
 

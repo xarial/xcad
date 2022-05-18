@@ -91,7 +91,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         public ISwConfiguration Configuration 
             => OwnerDocument.CreateObjectFromDispatch<SwConfiguration>(FeatureData.CurrentConfiguration);
 
-        protected override IFeature CreateFeature(CancellationToken cancellationToken)
+        protected override IFeature InsertFeature(CancellationToken cancellationToken)
             => InsertComFeatureBase(null, null, null, null, null, null, null);
 
         protected IFeature InsertComFeatureBase(string[] paramNames, int[] paramTypes, string[] paramValues,
@@ -232,7 +232,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             }
         }
         
-        protected override IFeature CreateFeature(CancellationToken cancellationToken)
+        protected override IFeature InsertFeature(CancellationToken cancellationToken)
             => InsertComFeatureWithParameters();
 
         protected override void ValidateDefinitionType()

@@ -172,17 +172,34 @@ namespace Xarial.XCad.SolidWorks.Documents
 
             Bodies = new SwComponentBodyCollection(comp, rootAssembly);
 
-            m_FilePathResolver = ((SwApplication)OwnerApplication).Services.GetService<IFilePathResolver>();
+            m_FilePathResolver = OwnerApplication.Services.GetService<IFilePathResolver>();
         }
 
         public string Name
         {
             get
             {
-                var fullName = FullName;
-                return fullName.Substring(fullName.LastIndexOf('/') + 1);
+                if (IsCommitted)
+                {
+                    var fullName = FullName;
+                    return fullName.Substring(fullName.LastIndexOf('/') + 1);
+                }
+                else 
+                {
+                    return m_Creator.CachedProperties.Get<string>();
+                }
             }
-            set => Component.Name2 = value;
+            set
+            {
+                if (IsCommitted)
+                {
+                    Component.Name2 = value;
+                }
+                else 
+                {
+                    m_Creator.CachedProperties.Set<string>(value);
+                }
+            }
         }
 
         public string FullName
@@ -582,11 +599,18 @@ namespace Xarial.XCad.SolidWorks.Documents
                 SwComponentCollection.BatchAdd(RootAssembly, new SwComponent[] { this }, false);
             }
 
-            var batchComp = BatchComponentBuffer;
+            var comp = BatchComponentBuffer;
 
             BatchComponentBuffer = null;
 
-            return batchComp;
+            var userName = Name;
+
+            if (!string.IsNullOrEmpty(userName)) 
+            {
+                comp.Name2 = userName;
+            }
+
+            return comp;
         }
     }
 

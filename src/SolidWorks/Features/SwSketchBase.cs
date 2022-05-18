@@ -120,7 +120,7 @@ namespace Xarial.XCad.SolidWorks.Features
 
         public IXSketchEntityRepository Entities => m_SwEntsColl;
 
-        protected override IFeature CreateFeature(CancellationToken cancellationToken)
+        protected override IFeature InsertFeature(CancellationToken cancellationToken)
         {
             var sketch = CreateSketch();
 

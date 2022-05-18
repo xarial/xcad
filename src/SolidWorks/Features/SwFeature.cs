@@ -151,7 +151,21 @@ namespace Xarial.XCad.SolidWorks.Features
             }
         }
 
-        protected virtual IFeature CreateFeature(CancellationToken cancellationToken)
+        private IFeature CreateFeature(CancellationToken cancellationToken)
+        {
+            var feat = InsertFeature(cancellationToken);
+
+            var userName = Name;
+
+            if (!string.IsNullOrEmpty(userName)) 
+            {
+                feat.Name = userName;
+            }
+
+            return feat;
+        }
+
+        protected virtual IFeature InsertFeature(CancellationToken cancellationToken)
             => throw new NotSupportedException("Creation of this feature is not supported");
 
         protected virtual void CommitCache(IFeature feat, CancellationToken cancellationToken)
@@ -162,8 +176,28 @@ namespace Xarial.XCad.SolidWorks.Features
 
         public string Name 
         {
-            get => Feature.Name;
-            set => Feature.Name = value;
+            get
+            {
+                if (IsCommitted)
+                {
+                    return Feature.Name;
+                }
+                else 
+                {
+                    return m_Creator.CachedProperties.Get<string>();
+                }
+            }
+            set 
+            {
+                if (IsCommitted)
+                {
+                    Feature.Name = value;
+                }
+                else 
+                {
+                    m_Creator.CachedProperties.Set(value);
+                }
+            }
         }
         
         public Color? Color
