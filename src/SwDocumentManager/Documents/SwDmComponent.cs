@@ -99,7 +99,11 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             });
         }
 
-        public string Name => ((ISwDMComponent7)Component).Name2;
+        public string Name
+        {
+            get => ((ISwDMComponent7)Component).Name2;
+            set => throw new NotSupportedException();
+        }
 
         public string FullName
         {
