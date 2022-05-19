@@ -73,7 +73,7 @@ namespace Xarial.XCad.Features.CustomFeature
         /// <param name="pts">Points of the dimension</param>
         /// <param name="dir">Direction of the dimension</param>
         /// <param name="extDir">Dimension extension line</param>
-        /// <remarks>Use <see cref="IXCustomFeatureDefinitionExtension"/> extension methods for more helper functions to align specific types of dimensions</remarks>
+        /// <remarks>Use <see cref="XCustomFeatureDefinitionExtension"/> extension methods for more helper functions to align specific types of dimensions</remarks>
         void AlignDimension(IXDimension dim, Point[] pts, Vector dir, Vector extDir);
     }
 

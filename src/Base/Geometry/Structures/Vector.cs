@@ -16,12 +16,14 @@ namespace Xarial.XCad.Geometry.Structures
     /// </summary>
     public class Vector : Point
     {
+        /// <summary>
+        ///Scales the vector
+        /// </summary>
+        /// <param name="vec">Vector to scale</param>
+        /// <param name="scale">Scale</param>
+        /// <returns>Scaled vector</returns>
         public static Vector operator *(Vector vec, double scale)
-        {
-            var res = new Vector(vec);
-            res.Scale(scale);
-            return res;
-        }
+            => new Vector(vec).Scale(scale);
 
         /// <inheritdoc cref="Point(double, double, double)"/>
         /// <summary>
@@ -85,6 +87,14 @@ namespace Xarial.XCad.Geometry.Structures
             var thisNorm = new Vector(X / thisLen, Y / thisLen, Z / thisLen);
             return thisNorm;
         }
+
+        /// <summary>
+        /// Scales the vector
+        /// </summary>
+        /// <param name="scalar">Scalar value</param>
+        /// <returns>Scaled vector</returns>
+        public new Vector Scale(double scalar)
+            => new Vector(X * scalar, Y * scalar, Z * scalar);
 
         /// <summary>
         /// Creates a cross product of this vector with another vector

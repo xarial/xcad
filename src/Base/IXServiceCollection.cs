@@ -41,7 +41,7 @@ namespace Xarial.XCad
     /// <summary>
     /// Extension methods of <see cref="IXServiceCollection"/>
     /// </summary>
-    public static class IXServiceCollectionExtension 
+    public static class XServiceCollectionExtension 
     {
         /// <inheritdoc cref="IXServiceCollection.AddOrReplace(Type, Func{object})"/>
         /// <param name="coll">Services collection</param>

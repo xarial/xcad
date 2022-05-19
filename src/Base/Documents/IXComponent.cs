@@ -99,7 +99,7 @@ namespace Xarial.XCad.Documents
     /// <summary>
     /// Additional methods for <see cref="IXComponent"/>
     /// </summary>
-    public static class IXComponentExtension 
+    public static class XComponentExtension 
     {
         /// <summary>
         /// Gets all bodies from the components

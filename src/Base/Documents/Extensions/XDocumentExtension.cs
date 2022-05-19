@@ -19,7 +19,7 @@ namespace Xarial.XCad.Documents.Extensions
     /// <summary>
     /// Additional methods for <see cref="IXDocument"/>
     /// </summary>
-    public static class IXDocumentExtension
+    public static class XDocumentExtension
     {
         /// <summary>
         /// Returns all dependencies including nested dependencies

@@ -15,7 +15,7 @@ namespace Xarial.XCad.Data
     /// <summary>
     /// Additional methods for <see cref="IXPropertyRepository"/>
     /// </summary>
-    public static class IXPropertyRepositoryExtension
+    public static class XPropertyRepositoryExtension
     {
         /// <summary>
         /// Sets the value for this poperty

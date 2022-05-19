@@ -22,16 +22,35 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using Xarial.XCad.Base.Attributes;
+using Xarial.XCad.UI.PropertyPage;
 
 namespace SwAddInExample
 {
     [Title("WPF User Control")]
     [Icon(typeof(Resources), nameof(Properties.Resources.xarial))]
-    public partial class WpfUserControl : UserControl, IDisposable
+    public partial class WpfUserControl : UserControl, IDisposable, IXCustomControl
     {
+        public event CustomControlValueChangedDelegate ValueChanged;
+
+        private CustomControlDataContext m_Context;
+
         public WpfUserControl()
         {
             InitializeComponent();
+            m_Context = new CustomControlDataContext();
+            m_Context.ValueChanged += OnContextValueChanged;
+            this.DataContext = m_Context;
+        }
+
+        public object Value 
+        {
+            get => m_Context.Value;
+            set => m_Context.Value = (string)value;
+        }
+
+        private void OnContextValueChanged(CustomControlDataContext sender, string value)
+        {
+            ValueChanged?.Invoke(this, value);
         }
 
         public void Dispose()

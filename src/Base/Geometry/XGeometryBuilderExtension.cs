@@ -14,7 +14,10 @@ using Xarial.XCad.Geometry.Wires;
 
 namespace Xarial.XCad.Geometry
 {
-    public static class IXGeometryBuilderExtension
+    /// <summary>
+    /// Additional methods for <see cref="IXGeometryBuilder"/>
+    /// </summary>
+    public static class XGeometryBuilderExtension
     {
         /// <summary>
         /// Creates a box body from the specified parameters

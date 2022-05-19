@@ -87,7 +87,7 @@ namespace Xarial.XCad.Geometry
     /// <summary>
     /// Additional methods for <see cref="IXPlanarFace"/>
     /// </summary>
-    public static class IXPlanarFaceExtension 
+    public static class XPlanarFaceExtension 
     {
         /// <summary>
         /// Returns the normal vector of the planar face

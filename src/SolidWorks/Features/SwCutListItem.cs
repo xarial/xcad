@@ -81,13 +81,13 @@ namespace Xarial.XCad.SolidWorks.Features
 
         public ISwCustomPropertiesCollection Properties => m_Properties.Value;
 
-        public CutListState_e State 
+        public CutListStatus_e Status 
         {
             get 
             {
                 if (Feature.ExcludeFromCutList)
                 {
-                    return CutListState_e.ExcludeFromBom;
+                    return CutListStatus_e.ExcludeFromBom;
                 }
                 else 
                 {

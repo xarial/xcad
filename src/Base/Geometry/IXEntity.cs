@@ -39,4 +39,45 @@ namespace Xarial.XCad.Geometry
         /// <returns>Closest point</returns>
         Point FindClosestPoint(Point point);
     }
+
+    /// <summary>
+    /// Additional methods of <see cref="IXEntity"/>
+    /// </summary>
+    public static class XEntityExtension 
+    {
+        /// <summary>
+        /// Returns the total transformation of this entity in the current context
+        /// </summary>
+        /// <param name="ent">Entity to get transformation for</param>
+        /// <param name="context">Context document</param>
+        /// <returns>Transformation</returns>
+        /// <remarks>For the entity in the assembly context the transformation of the component is returned relatively to currently editing target</remarks>
+        public static TransformMatrix GetRelativeTransform(this IXEntity ent, IXDocument context) 
+        {
+            var comp = ent.Component;
+
+            TransformMatrix transform;
+
+            if (comp != null)
+            {
+                transform = comp.Transformation;
+            }
+            else 
+            {
+                transform = TransformMatrix.Identity;
+            }
+
+            if (context is IXAssembly) 
+            {
+                var editComp = ((IXAssembly)context).EditingComponent;
+
+                if (editComp != null)
+                {
+                    transform = transform.Multiply(editComp.Transformation.Inverse());
+                }
+            }
+
+            return transform;
+        }
+    }
 }

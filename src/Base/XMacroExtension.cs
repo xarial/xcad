@@ -15,7 +15,7 @@ namespace Xarial.XCad
     /// <summary>
     /// Additional methods of <see cref="IXMacro"/>
     /// </summary>
-    public static class IXMacroExtension
+    public static class XMacroExtension
     {
         /// <summary>
         /// Run macro with default entry point and default options

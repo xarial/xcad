@@ -10,8 +10,19 @@ using Xarial.XCad.Features.CustomFeature;
 
 namespace Xarial.XCad.Features
 {
-    public static class IXFeatureRepositoryExtension
+    /// <summary>
+    /// Additional methods for <see cref="IXFeatureRepository"/>
+    /// </summary>
+    public static class XFeatureRepositoryExtension
     {
+        /// <summary>
+        /// Creates custom feature with specified parameters
+        /// </summary>
+        /// <typeparam name="TDef">Definition</typeparam>
+        /// <typeparam name="TParams">Paramteres</typeparam>
+        /// <param name="feats">Feature repository</param>
+        /// <param name="param">Parameters</param>
+        /// <returns>Instance of the custom feature</returns>
         public static IXCustomFeature<TParams> CreateCustomFeature<TDef, TParams>(this IXFeatureRepository feats, TParams param)
             where TParams : class
             where TDef : IXCustomFeatureDefinition<TParams>
@@ -24,6 +35,12 @@ namespace Xarial.XCad.Features
             return custFeat;
         }
 
+        /// <summary>
+        /// Creates parameterlsess custom feature
+        /// </summary>
+        /// <typeparam name="TDef">Defintion of the custom feature</typeparam>
+        /// <param name="feats">Feature repository</param>
+        /// <returns>Instance of the custom feature</returns>
         public static IXCustomFeature CreateCustomFeature<TDef>(this IXFeatureRepository feats)
             where TDef : IXCustomFeatureDefinition
         {
@@ -34,6 +51,13 @@ namespace Xarial.XCad.Features
             return custFeat;
         }
 
+        /// <summary>
+        /// Starts the insertion of the custom feature with page editor
+        /// </summary>
+        /// <typeparam name="TDef">Defintion</typeparam>
+        /// <typeparam name="TParams">Parameters</typeparam>
+        /// <typeparam name="TPage">Page</typeparam>
+        /// <param name="feats">Feature repository</param>
         public static void CreateCustomFeature<TDef, TParams, TPage>(this IXFeatureRepository feats)
             where TParams : class, new()
             where TPage : class

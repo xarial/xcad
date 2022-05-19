@@ -15,7 +15,7 @@ namespace Xarial.XCad.Features.CustomFeature
     /// <summary>
     /// Additional methods for <see cref="IXCustomFeatureDefinition"/>
     /// </summary>
-    public static class IXCustomFeatureDefinitionExtension
+    public static class XCustomFeatureDefinitionExtension
     {
         /// <summary>
         /// Inserts new instance of macro feature with default parameters

@@ -22,9 +22,9 @@ namespace Xarial.XCad.Features
     public interface IXCutListItem : IXFeature, IPropertiesOwner
     {
         /// <summary>
-        /// State of this cut-list item
+        /// Status of this cut-list item
         /// </summary>
-        CutListState_e State { get; }
+        CutListStatus_e Status { get; }
 
         /// <summary>
         /// Bodies of this cut-list item
@@ -35,7 +35,7 @@ namespace Xarial.XCad.Features
     /// <summary>
     /// Additional methods of <see cref="IXCutListItem"/>
     /// </summary>
-    public static class IXCutListItemExtension 
+    public static class XCutListItemExtension 
     {
         /// <summary>
         /// Gets the quantity of this cut-list-item

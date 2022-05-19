@@ -72,17 +72,17 @@ namespace SolidWorksDocMgr.Tests.Integration
         [Test]
         public void ExcludeFromBomTest()
         {
-            Dictionary<string, CutListState_e> cutListData;
+            Dictionary<string, CutListStatus_e> cutListData;
 
             using (var doc = OpenDataDocument("CutListExcludeBom_2021.SLDPRT"))
             {
                 var part = (IXPart)m_App.Documents.Active;
                 var cutLists = part.Configurations.Active.CutLists;
-                cutListData = cutLists.ToDictionary(c => c.Name, c => c.State);
+                cutListData = cutLists.ToDictionary(c => c.Name, c => c.Status);
             }
 
-            Assert.AreEqual((CutListState_e)0, cutListData["C CHANNEL 80.00 X 8<1>"]);
-            Assert.AreEqual(CutListState_e.ExcludeFromBom, cutListData["PIPE, SCH 40, 25.40 DIA.<1>"]);
+            Assert.AreEqual((CutListStatus_e)0, cutListData["C CHANNEL 80.00 X 8<1>"]);
+            Assert.AreEqual(CutListStatus_e.ExcludeFromBom, cutListData["PIPE, SCH 40, 25.40 DIA.<1>"]);
         }
 
         [Test]

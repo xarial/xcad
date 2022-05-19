@@ -23,7 +23,7 @@ namespace Xarial.XCad.UI.Commands
     /// <summary>
     /// Additional methods for <see cref="IXCommandManager"/>
     /// </summary>
-    public static class IXCommandManagerExtension
+    public static class XCommandManagerExtension
     {
         //TODO: think of a way to call Dispose on all wrapped enum groups
 

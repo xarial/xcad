@@ -17,7 +17,7 @@ namespace Xarial.XCad.Documents
     /// <summary>
     /// Additional methods for the <see cref="IXDocument"/>
     /// </summary>
-    public static class IXDocumentExtension
+    public static class XDocumentExtension
     {
         /// <summary>
         /// Tries to open stream from the document

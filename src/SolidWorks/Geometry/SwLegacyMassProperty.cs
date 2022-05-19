@@ -400,7 +400,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
                     if (units != null)
                     {
-                        cog.Scale(units.GetLengthConversionFactor());
+                        cog = cog.Scale(units.GetLengthConversionFactor());
                     }
 
                     return cog;

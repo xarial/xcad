@@ -13,10 +13,10 @@ using Xarial.XCad.Features;
 namespace Xarial.XCad.Enums
 {
     /// <summary>
-    /// Represents the <see cref="IXCutListItem.State"/> of the cut-list
+    /// Represents the <see cref="IXCutListItem.Status"/> of the cut-list
     /// </summary>
     [Flags]
-    public enum CutListState_e
+    public enum CutListStatus_e
     {
         /// <summary>
         /// Cut-list is excluded from BOM

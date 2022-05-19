@@ -48,8 +48,28 @@ namespace SwAddInExample
 
     public class CustomControlDataContext 
     {
-        public string Value { get; set; }
-        public ObservableCollection<Item> Items { get; set; } = new ObservableCollection<Item>();
+        public event Action<CustomControlDataContext, string> ValueChanged;
+
+        private string m_Value;
+
+        public string Value 
+        {
+            get => m_Value;
+            set 
+            {
+                m_Value = value;
+                ValueChanged?.Invoke(this, value);
+            }
+        }
+
+        public CustomControlDataContext() 
+        {
+            Items = new ObservableCollection<Item>();
+            Items.Add(new Item() { Name = "ABC", Value = "XYZ" });
+            Items.Add(new Item() { Name = "ABC1", Value = "XYZ1" });
+        }
+
+        public ObservableCollection<Item> Items { get; }
     }
 
     public class Item 
@@ -153,6 +173,16 @@ namespace SwAddInExample
         }
     }
 
+    public class CustomControlDependantHandler : IDependencyHandler
+    {
+        public void UpdateState(IXApplication app, IControl source, IControl[] dependencies)
+        {
+            var val = (string)dependencies.First().GetValue();
+
+            source.Enabled = !string.IsNullOrEmpty(val);
+        }
+    }
+
     [ComVisible(true)]
     [Help("https://xcad.net/")]
     public class PmpData : SwPropertyManagerPageHandler, INotifyPropertyChanged
@@ -162,8 +192,10 @@ namespace SwAddInExample
         [CustomControl(typeof(WpfUserControl))]
         //[CustomControl(typeof(WinUserControl))]
         [ControlOptions(height: 200)]
-        public CustomControlDataContext CustomControl { get; set; } = new CustomControlDataContext();
+        [ControlTag(nameof(CustomControl))]
+        public string CustomControl { get; set; }
 
+        [DependentOn(typeof(CustomControlDependantHandler), nameof(CustomControl))]
         public ISwSelObject AnyObject { get; set; }
 
         [SelectionBoxOptions(typeof(PlanarFaceFilter), SelectType_e.Faces)] //setting the standard filter to faces and custom filter to only filter planar faces

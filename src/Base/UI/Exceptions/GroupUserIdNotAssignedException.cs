@@ -14,7 +14,7 @@ using Xarial.XCad.UI.Commands.Attributes;
 namespace Xarial.XCad.UI.Exceptions
 {
     /// <summary>
-    /// Indicates that no user id assigned in <see cref="IXCommandManagerExtension.CreateSpecFromEnum"/>
+    /// Indicates that no user id assigned in <see cref="XCommandManagerExtension.CreateSpecFromEnum"/>
     /// </summary>
     public class GroupUserIdNotAssignedException : Exception
     {

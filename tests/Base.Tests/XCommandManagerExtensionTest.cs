@@ -17,7 +17,7 @@ using System.Collections.Generic;
 
 namespace Base.Tests
 {
-    public class IXCommandManagerExtensionTest
+    public class XCommandManagerExtensionTest
     {
         public static class ResourcesMock 
         {

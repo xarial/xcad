@@ -33,7 +33,7 @@ namespace Xarial.XCad.Base
     /// <summary>
     /// Additional methods for <see cref="IXTransaction"/>
     /// </summary>
-    public static class IXTransactionExtension
+    public static class XTransactionExtension
     {
         /// <summary>
         /// Commits the transaction with default cancellation token

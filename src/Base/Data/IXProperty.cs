@@ -43,7 +43,7 @@ namespace Xarial.XCad.Data
     /// <summary>
     /// Additional methods for property
     /// </summary>
-    public static class IXPropertyExtension 
+    public static class XPropertyExtension 
     {
         /// <summary>
         /// True if this property exists

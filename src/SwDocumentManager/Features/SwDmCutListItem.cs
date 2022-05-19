@@ -95,7 +95,7 @@ namespace Xarial.XCad.SwDocumentManager.Features
 
         public ISwDmCustomPropertiesCollection Properties => m_Properties.Value;
 
-        public CutListState_e State 
+        public CutListStatus_e Status
         {
             get 
             {
@@ -105,7 +105,7 @@ namespace Xarial.XCad.SwDocumentManager.Features
 
                     if (cutListStatus == swDMCutListExclusionStatus_e.swDMCutListStatus_Excluded)
                     {
-                        return CutListState_e.ExcludeFromBom;
+                        return CutListStatus_e.ExcludeFromBom;
                     }
                     else if (cutListStatus == swDMCutListExclusionStatus_e.swDMCutListStatus_Included)
                     {

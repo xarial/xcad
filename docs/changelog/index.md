@@ -10,6 +10,7 @@ Breaking change is marked with &#x26A0; symbol
 
 ## 0.8.0
 
+* &#x26A0; - Point::Scale/Vector::Scale are not do not modify the values of the original object rather return new scaled result
 * &#x26A0; - IXCustomFeatureDefinition\<TParams, TPage\>::OnPageParametersChanged renamed to IXCustomFeatureDefinition\<TParams, TPage\>::OnPreviewUpdated
 * &#x26A0; - IXCustomFeatureDefinition\<TParams, TPage\>::CreateGeometry is split to IXCustomFeatureDefinition\<TParams, TPage\>.CreatePreviewGeometry.
 * &#x26A0; - ISwMacroFeatureDefinition::ShouldUpdatePreview changed the signature (added the pointer to TPage)
@@ -21,6 +22,7 @@ CreatePreviewGeometry
 * &#x26A0; - HandlePostRebuildAttribute is deprecated and replaced with SwMacroFeatureDefinition::PostRebuild event
 * &#x26A0; - IParameterConverter::ConvertEditBodies, IParameterConverter::ConvertDisplayDimensions, IParameterConverter::ConvertParameters, IParameterConverter::ConvertSelections is replaced with IParameterConverter::Convert. ParameterConverter implementation is deprecated
 * &#x26A0; - ISwMacroFeature::CachedParameters is deprecated. use IXCustomFeature::Parameter without IXFeature::Edit to get cached parameters
+* &#x26A0; - IXCutList::State is renamed to IXCutList::Status  and CutListState_e is renamed to CutListStatus_e
 
 ## 0.7.7 - October 26, 2021
 

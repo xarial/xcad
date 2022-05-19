@@ -135,22 +135,15 @@ namespace Xarial.XCad.Geometry.Structures
         /// <param name="dist">Distance</param>
         /// <returns>New point</returns>
         public Point Move(Vector dir, double dist)
-        {
-            var moveVec = dir.Normalize();
-            moveVec.Scale(dist);
-            return this + moveVec;
-        }
+            => this + dir.Normalize().Scale(dist);
 
         /// <summary>
         /// Scales the position
         /// </summary>
         /// <param name="scalar">Scalar value</param>
-        public void Scale(double scalar)
-        {
-            X *= scalar;
-            Y *= scalar;
-            Z *= scalar;
-        }
+        /// <returns>Scaled point</returns>
+        public Point Scale(double scalar) 
+            => new Point(X * scalar, Y * scalar, Z * scalar);
 
         /// <summary>
         /// Converts this point to vector

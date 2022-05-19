@@ -12,7 +12,7 @@ namespace Xarial.XCad.Documents
     /// <summary>
     /// Extension methods for the <see cref="IXDrawingViewRepository"/>
     /// </summary>
-    public static class IXDrawingViewRepositoryExtension
+    public static class XDrawingViewRepositoryExtension
     {
         /// <summary>
         /// Creates a view based on the model 3D view

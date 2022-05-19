@@ -15,7 +15,7 @@ namespace Xarial.XCad.Documents
     /// <summary>
     /// Additonal methods for <see cref="IXDocumentRepository"/>
     /// </summary>
-    public static class IXDocumentRepositoryExtension
+    public static class XDocumentRepositoryExtension
     {
         /// <summary>
         /// Creates new part document

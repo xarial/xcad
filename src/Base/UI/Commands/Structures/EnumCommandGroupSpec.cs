@@ -7,7 +7,7 @@
 
 using System;
 using System.ComponentModel;
-using static Xarial.XCad.UI.Commands.IXCommandManagerExtension;
+using static Xarial.XCad.UI.Commands.XCommandManagerExtension;
 
 namespace Xarial.XCad.UI.Commands.Structures
 {

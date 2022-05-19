@@ -182,10 +182,16 @@ namespace SwAddInExample
             }
             else if (face is IXPlanarFace)
             {
+                var transform = face.GetRelativeTransform(model);
+
                 var plane = ((IXPlanarFace)face).Plane;
-                pt = face.FindClosestPoint(plane.Point);
-                dir = plane.Normal * (face.Sense ? 1 : -1);
-                refDir = plane.Reference;
+                
+                face.GetUVBoundary(out double uMin, out double uMax, out double vMin, out double vMax);
+
+                pt = face.Definition.CalculateLocation((uMin + uMax) / 2, (vMin + vMax) / 2, out _).Transform(transform);
+
+                dir = plane.Normal.Transform(transform) * (face.Sense ? 1 : -1);
+                refDir = plane.Reference.Transform(transform);
             }
             else if (face == null)
             {

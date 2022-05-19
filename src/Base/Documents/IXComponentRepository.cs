@@ -29,7 +29,7 @@ namespace Xarial.XCad.Documents
     /// <summary>
     /// Additonal methods of <see cref="IXComponentRepository"/>
     /// </summary>
-    public static class IXComponentRepositoryExtension 
+    public static class XComponentRepositoryExtension 
     {
         /// <summary>
         /// Returns all components, including children

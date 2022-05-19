@@ -46,7 +46,7 @@ namespace Xarial.XCad
     /// <summary>
     /// Additional methods for version
     /// </summary>
-    public static class IXVersionExtension 
+    public static class XVersionExtension 
     {
         /// <summary>
         /// Compares two versions

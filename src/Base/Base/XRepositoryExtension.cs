@@ -16,7 +16,7 @@ namespace Xarial.XCad.Base
     /// <summary>
     /// Provides additional methods for <see cref="IXRepository{TEnt}"/>
     /// </summary>
-    public static class IXRepositoryExtension
+    public static class XRepositoryExtension
     {
         /// <summary>
         /// Adds entities to the repository without the cancellation token

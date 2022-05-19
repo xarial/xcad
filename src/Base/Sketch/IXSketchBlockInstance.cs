@@ -30,7 +30,7 @@ namespace Xarial.XCad.Sketch
     /// <summary>
     /// Additional methods of <see cref="IXSketchBlockInstance"/>
     /// </summary>
-    public static class IXSketchBlockInstanceExtension 
+    public static class XSketchBlockInstanceExtension 
     {
         /// <summary>
         /// Returns the total transform of this block, including parent block transforms
