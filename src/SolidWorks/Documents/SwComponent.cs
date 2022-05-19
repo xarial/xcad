@@ -503,13 +503,37 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public System.Drawing.Color? Color
         {
-            get => SwColorHelper.GetColor(null,
-                (o, c) => Component.GetMaterialPropertyValues2((int)o, c) as double[]);
-            set => SwColorHelper.SetColor(value, null,
-                (m, o, c) => Component.SetMaterialPropertyValues2(m, (int)o, c),
-                (o, c) => Component.RemoveMaterialProperty2((int)o, c));
+            get
+            {
+                if (IsCommitted)
+                {
+                    return GetColor(Component);
+                }
+                else
+                {
+                    return m_Creator.CachedProperties.Get<System.Drawing.Color?>();
+                }
+            }
+            set
+            {
+                if (IsCommitted)
+                {
+                    SetColor(Component, value);
+                }
+                else
+                {
+                    m_Creator.CachedProperties.Set(value);
+                }
+            }
         }
 
+        private System.Drawing.Color? GetColor(IComponent2 comp) => SwColorHelper.GetColor(null,
+                (o, c) => comp.GetMaterialPropertyValues2((int)o, c) as double[]);
+
+        private void SetColor(IComponent2 comp, System.Drawing.Color? color) => SwColorHelper.SetColor(color, null,
+                (m, o, c) => comp.SetMaterialPropertyValues2(m, (int)o, c),
+                (o, c) => comp.RemoveMaterialProperty2((int)o, c));
+        
         public ISwDimensionsCollection Dimensions => m_DimensionsLazy.Value;
 
         public TransformMatrix Transformation 
@@ -608,6 +632,13 @@ namespace Xarial.XCad.SolidWorks.Documents
             if (!string.IsNullOrEmpty(userName)) 
             {
                 comp.Name2 = userName;
+            }
+
+            var userColor = Color;
+
+            if (userColor.HasValue) 
+            {
+                SetColor(comp, userColor);
             }
 
             return comp;

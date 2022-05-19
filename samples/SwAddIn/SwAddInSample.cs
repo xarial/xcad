@@ -233,6 +233,17 @@ namespace SwAddInExample
             Cmd8
         }
 
+        private readonly Xarial.XToolkit.Helpers.AssemblyResolver m_AssmResolver;
+
+        public SwAddInSample() 
+        {
+            m_AssmResolver = new Xarial.XToolkit.Helpers.AssemblyResolver(AppDomain.CurrentDomain, "xCAD.NET");
+            m_AssmResolver.RegisterAssemblyReferenceResolver(
+                new Xarial.XToolkit.Reflection.LocalFolderReferencesResolver(System.IO.Path.GetDirectoryName(typeof(SwAddInSample).Assembly.Location),
+                Xarial.XToolkit.Reflection.AssemblyMatchFilter_e.Culture | Xarial.XToolkit.Reflection.AssemblyMatchFilter_e.PublicKeyToken | Xarial.XToolkit.Reflection.AssemblyMatchFilter_e.Version,
+                "xCAD.NET Local Folder"));
+        }
+
         public override void OnConnect()
         {
             //CommandManager.AddCommandGroup<Commands1_e>();

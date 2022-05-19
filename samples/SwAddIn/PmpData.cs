@@ -46,19 +46,21 @@ namespace SwAddInExample
         Opt4 = 8
     }
 
-    public class CustomControlDataContext 
+    public class CustomControlDataContext : INotifyPropertyChanged
     {
-        public event Action<CustomControlDataContext, string> ValueChanged;
+        public event Action<CustomControlDataContext, OptsFlag> ValueChanged;
+        public event PropertyChangedEventHandler PropertyChanged;
 
-        private string m_Value;
+        private OptsFlag m_Value;
 
-        public string Value 
+        public OptsFlag Value 
         {
             get => m_Value;
             set 
             {
                 m_Value = value;
                 ValueChanged?.Invoke(this, value);
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Value)));
             }
         }
 
@@ -177,9 +179,9 @@ namespace SwAddInExample
     {
         public void UpdateState(IXApplication app, IControl source, IControl[] dependencies)
         {
-            var val = (string)dependencies.First().GetValue();
+            var val = (OptsFlag)dependencies.First().GetValue();
 
-            source.Enabled = !string.IsNullOrEmpty(val);
+            source.Enabled = val.HasFlag(OptsFlag.Opt2);
         }
     }
 
@@ -193,7 +195,7 @@ namespace SwAddInExample
         //[CustomControl(typeof(WinUserControl))]
         [ControlOptions(height: 200)]
         [ControlTag(nameof(CustomControl))]
-        public string CustomControl { get; set; }
+        public OptsFlag CustomControl { get; set; }
 
         [DependentOn(typeof(CustomControlDependantHandler), nameof(CustomControl))]
         public ISwSelObject AnyObject { get; set; }
@@ -299,6 +301,7 @@ namespace SwAddInExample
                 m_TextBlockText = "Hello World - " + Guid.NewGuid().ToString();
                 this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(TextBlockText)));
             };
+            CustomControl = OptsFlag.Opt3 | OptsFlag.Opt4;
         }
     }
 

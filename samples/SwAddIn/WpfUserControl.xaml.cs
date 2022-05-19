@@ -45,10 +45,10 @@ namespace SwAddInExample
         public object Value 
         {
             get => m_Context.Value;
-            set => m_Context.Value = (string)value;
+            set => m_Context.Value = (OptsFlag)value;
         }
 
-        private void OnContextValueChanged(CustomControlDataContext sender, string value)
+        private void OnContextValueChanged(CustomControlDataContext sender, OptsFlag value)
         {
             ValueChanged?.Invoke(this, value);
         }

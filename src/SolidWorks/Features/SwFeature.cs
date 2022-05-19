@@ -162,6 +162,13 @@ namespace Xarial.XCad.SolidWorks.Features
                 feat.Name = userName;
             }
 
+            var userColor = Color;
+
+            if (userColor.HasValue) 
+            {
+                SetColor(feat, userColor);
+            }
+
             return feat;
         }
 
@@ -202,12 +209,36 @@ namespace Xarial.XCad.SolidWorks.Features
         
         public Color? Color
         {
-            get => SwColorHelper.GetColor(Component?.Component,
-                (o, c) => Feature.GetMaterialPropertyValues2((int)o, c) as double[]);
-            set => SwColorHelper.SetColor(value, Component?.Component,
-                (m, o, c) => Feature.SetMaterialPropertyValues2(m, (int)o, c),
-                (o, c) => Feature.RemoveMaterialProperty2((int)o, c));
+            get
+            {
+                if (IsCommitted)
+                {
+                    return GetColor(Feature);
+                }
+                else
+                {
+                    return m_Creator.CachedProperties.Get<Color?>();
+                }
+            }
+            set
+            {
+                if (IsCommitted)
+                {
+                    SetColor(Feature, value);
+                }
+                else
+                {
+                    m_Creator.CachedProperties.Set(value);
+                }
+            }
         }
+
+        private Color? GetColor(IFeature feat) => SwColorHelper.GetColor((IComponent2)((IEntity)feat).GetComponent(),
+            (o, c) => feat.GetMaterialPropertyValues2((int)o, c) as double[]);
+
+        private void SetColor(IFeature feat, Color? color)=> SwColorHelper.SetColor(color, (IComponent2)((IEntity)feat).GetComponent(),
+                (m, o, c) => feat.SetMaterialPropertyValues2(m, (int)o, c),
+                (o, c) => feat.RemoveMaterialProperty2((int)o, c));
 
         public override bool IsCommitted => m_Creator.IsCreated;
 
