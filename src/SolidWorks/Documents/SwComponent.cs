@@ -42,7 +42,7 @@ namespace Xarial.XCad.SolidWorks.Documents
     public interface ISwComponent : IXComponent, ISwSelObject
     {
         new ISwComponentCollection Children { get; }
-        new ISwDocument3D ReferencedDocument { get; }
+        new ISwDocument3D ReferencedDocument { get; set; }
         new TSelObject ConvertObject<TSelObject>(TSelObject obj)
             where TSelObject : ISwSelObject;
         IComponent2 Component { get; }

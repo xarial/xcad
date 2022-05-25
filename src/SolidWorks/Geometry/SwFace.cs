@@ -52,8 +52,19 @@ namespace Xarial.XCad.SolidWorks.Geometry
             {
                 IEnumerable<IVertex> EnumerateVertices(IEdge edge)
                 {
-                    yield return edge.IGetStartVertex();
-                    yield return edge.IGetEndVertex();
+                    var startVertex = edge.IGetStartVertex();
+
+                    if (startVertex != null) 
+                    {
+                        yield return startVertex;
+                    }
+
+                    var endVertex = edge.IGetEndVertex();
+
+                    if (endVertex != null)//vertex is null for the closed curves
+                    {
+                        yield return endVertex;
+                    }
                 }
 
                 foreach (IEdge edge in (Face.GetEdges() as object[]).ValueOrEmpty())

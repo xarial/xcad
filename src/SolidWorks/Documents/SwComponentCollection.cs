@@ -10,6 +10,7 @@ using SolidWorks.Interop.swconst;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -45,7 +46,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
             if (comp != null)
             {
-                ent = m_Assm.CreateObjectFromDispatch<SwComponent>(comp);
+                ent = RootAssembly.CreateObjectFromDispatch<SwComponent>(comp);
                 return true;
             }
             else
@@ -59,9 +60,9 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
             get 
             {
-                if (m_Assm.IsCommitted)
+                if (RootAssembly.IsCommitted)
                 {
-                    if (m_Assm.Model.IsOpenedViewOnly())
+                    if (RootAssembly.Model.IsOpenedViewOnly())
                     {
                         throw new Exception("Components count is inaccurate in Large Design Review assembly");
                     }
@@ -79,9 +80,9 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
             get 
             {
-                if (m_Assm.IsCommitted)
+                if (RootAssembly.IsCommitted)
                 {
-                    if (m_Assm.Model.IsOpenedViewOnly())
+                    if (RootAssembly.Model.IsOpenedViewOnly())
                     {
                         throw new Exception("Total components count is inaccurate in Large Design Review assembly");
                     }
@@ -95,15 +96,15 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        private readonly SwAssembly m_Assm;
+        internal SwAssembly RootAssembly { get; }
 
         internal SwComponentCollection(SwAssembly assm)
         {
-            m_Assm = assm;
+            RootAssembly = assm;
         }
 
         public void AddRange(IEnumerable<IXComponent> ents, CancellationToken cancellationToken)
-            => BatchAdd(m_Assm, ents.Cast<SwComponent>().ToArray(), true);
+            => BatchAdd(RootAssembly, ents.Cast<SwComponent>().ToArray(), true);
 
         protected abstract IEnumerable<IComponent2> GetChildren();
         protected abstract int GetChildrenCount();
@@ -111,15 +112,15 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public IEnumerator<IXComponent> GetEnumerator()
         {
-            if (m_Assm.IsCommitted)
+            if (RootAssembly.IsCommitted)
             {
-                if (m_Assm.Model.IsOpenedViewOnly())
+                if (RootAssembly.Model.IsOpenedViewOnly())
                 {
                     throw new Exception("Components cannot be extracted for the Large Design Review assembly");
                 }
 
                 return (GetChildren() ?? new IComponent2[0])
-                    .Select(c => m_Assm.CreateObjectFromDispatch<SwComponent>(c)).GetEnumerator();
+                    .Select(c => RootAssembly.CreateObjectFromDispatch<SwComponent>(c)).GetEnumerator();
             }
             else 
             {
@@ -157,7 +158,44 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public T PreCreate<T>() where T : IXComponent
             => RepositoryHelper.PreCreate<IXComponent, T>(this,
-                () => new SwPartComponent(null, m_Assm, m_Assm.OwnerApplication),
-                () => new SwAssemblyComponent(null, m_Assm, m_Assm.OwnerApplication));
+                () => new SwPartComponent(null, RootAssembly, RootAssembly.OwnerApplication),
+                () => new SwAssemblyComponent(null, RootAssembly, RootAssembly.OwnerApplication));
+    }
+
+    public static class SwComponentCollectionExtension
+    {
+        /// <summary>
+        /// Pre creates new component from path
+        /// </summary>
+        /// <param name="docsColl">Documents collection</param>
+        /// <param name="path"></param>
+        /// <returns>Pre-created document</returns>
+        public static ISwComponent PreCreateFromPath(this ISwComponentCollection compsColl, string path)
+        {
+            var ext = Path.GetExtension(path);
+
+            ISwComponent comp;
+
+            switch (ext.ToLower())
+            {
+                case ".sldprt":
+                    comp = compsColl.PreCreate<ISwPartComponent>();
+                    
+                    break;
+
+                case ".sldasm":
+                    comp = compsColl.PreCreate<ISwAssemblyComponent>();
+                    break;
+                    
+                default:
+                    throw new NotSupportedException("Only parts and assemblies are supported");
+            }
+
+            var app = ((SwComponentCollection)compsColl).RootAssembly.OwnerApplication;
+
+            comp.ReferencedDocument = (ISwDocument3D)app.Documents.PreCreateFromPath(path);
+
+            return comp;
+        }
     }
 }

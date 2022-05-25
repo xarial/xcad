@@ -57,7 +57,7 @@ namespace Xarial.XCad.Base
         /// </summary>
         /// <typeparam name="T">Specific type of the template object</typeparam>
         /// <returns>Template object</returns>
-        /// <remarks>Use <see cref="IXTransaction.Commit(System.Threading.CancellationToken)"/> or <see cref="IXRepository{TEnt}.AddRange(IEnumerable{TEnt}, CancellationToken)"/> to commit templates and create objects</remarks>
+        /// <remarks>Use <see cref="IXTransaction.Commit(CancellationToken)"/> or <see cref="IXRepository{TEnt}.AddRange(IEnumerable{TEnt}, CancellationToken)"/> to commit templates and create objects</remarks>
         T PreCreate<T>() where T : TEnt;
     }
 }

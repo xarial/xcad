@@ -6,6 +6,7 @@
 //*********************************************************************
 
 using SolidWorks.Interop.sldworks;
+using SolidWorks.Interop.swconst;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -50,7 +51,9 @@ namespace StandAlone
                 //    ApplicationState_e.Default);
                                 
                 var app = SwApplicationFactory.FromProcess(Process.GetProcessesByName("SLDWORKS").First());
-                
+
+                CreateLoftFromSelection(app);
+
                 //CustomServices();
 
                 //Progress(app);
@@ -64,7 +67,7 @@ namespace StandAlone
 
                 //var app = SwApplication.FromPointer(sw);
 
-                CreateSketchEntities(app);
+                //CreateSketchEntities(app);
 
                 //TraverseSelectedFaces(app);
 
@@ -274,6 +277,45 @@ namespace StandAlone
             body = (cyl.Bodies.First() as ISwBody).Body;
 
             (app.Documents.Active as ISwPart).Part.CreateFeatureFromBody3(body, false, 0);
+        }
+
+        private static void CreateLoftFromSelection(ISwApplication app)
+        {
+            var part = (ISwPart)app.Documents.Active;
+
+            var faces = part.Selections.OfType<IXPlanarFace>().ToArray();
+
+            var modeler = app.Sw.IGetModeler();
+
+            var curves = new List<ICurve>();
+
+            var firstProfile = faces[0].AdjacentEntities.OfType<ISwEdge>().Select(e => e.Definition.Curves.First().ICopy());
+            var secondProfile = faces[1].AdjacentEntities.OfType<ISwEdge>().Select(e => e.Definition.Curves.First().ICopy());
+
+            //var c1 = modeler.MergeCurves(firstProfile.Select(c => c.ICopy()).ToArray());
+            //var c2 = modeler.MergeCurves(secondProfile.Select(c => c.ICopy()).ToArray());
+
+            //curves.Add(c1.MakeBsplineCurve2());
+            //curves.Add(c2.MakeBsplineCurve2());
+
+            curves.AddRange(firstProfile.Select(c => c.MakeBsplineCurve2()));
+            curves.AddRange(secondProfile.Select(c => c.MakeBsplineCurve2()));
+
+            //var vec = (IMathVector)app.Sw.IGetMathUtility().CreateVector(new double[] { 0, 0, 1 });
+
+            var surf = (ISurface)modeler.CreateLoftSurface(curves.ToArray(), false, true, new ICurve[0], 0, 0, null, null, new IFace2[0], new IFace2[0], false, false, null, null, -1, -1, -1, -1);
+
+            curves.Clear();
+
+            curves.AddRange(firstProfile.Select(c => c.ICopy()));
+            //curves.Add(c1.ICopy());
+            curves.Add(null);
+            //curves.Add(c2.ICopy());
+            curves.AddRange(secondProfile.Select(c => c.ICopy()));
+
+            var body = (IBody2)surf.CreateTrimmedSheet4(curves.ToArray(), true);
+
+            part.Part.CreateFeatureFromBody3(body, false, (int)swCreateFeatureBodyOpts_e.swCreateFeatureBodySimplify);
         }
     }
 }
