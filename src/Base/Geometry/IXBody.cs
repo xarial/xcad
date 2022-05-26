@@ -86,7 +86,7 @@ namespace Xarial.XCad.Geometry
     /// <summary>
     /// Subtype of <see cref="IXSheetBody"/> which is planar
     /// </summary>
-    public interface IXPlanarSheetBody : IXSheetBody, IXRegion 
+    public interface IXPlanarSheetBody : IXSheetBody, IXPlanarRegion 
     {
     }
 

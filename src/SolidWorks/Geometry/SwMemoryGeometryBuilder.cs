@@ -18,6 +18,7 @@ using Xarial.XCad.Geometry.Wires;
 using Xarial.XCad.SolidWorks.Geometry.Surfaces;
 using Xarial.XCad.SolidWorks.Services;
 using Xarial.XCad.Toolkit.Data;
+using Xarial.XCad.Toolkit;
 
 namespace Xarial.XCad.SolidWorks.Geometry
 {
@@ -34,18 +35,19 @@ namespace Xarial.XCad.SolidWorks.Geometry
         private readonly SwApplication m_App;
 
         private readonly IModeler m_Modeler;
-        private readonly IMathUtility m_MathUtils;
 
-        internal SwMemoryGeometryBuilder(SwApplication app, IMemoryGeometryBuilderDocumentProvider geomBuilderDocsProvider) 
+        private readonly IMemoryGeometryBuilderToleranceProvider m_TolProvider;
+
+        internal SwMemoryGeometryBuilder(SwApplication app, IMemoryGeometryBuilderDocumentProvider geomBuilderDocsProvider, IMemoryGeometryBuilderToleranceProvider tolProvider) 
         {
             m_App = app;
+            m_TolProvider = tolProvider;
 
-            m_MathUtils = app.Sw.IGetMathUtility();
             m_Modeler = app.Sw.IGetModeler();
 
             WireBuilder = new SwMemoryWireGeometryBuilder(app);
-            SheetBuilder = new SwMemorySheetGeometryBuilder(app);
-            SolidBuilder = new SwMemorySolidGeometryBuilder(app, geomBuilderDocsProvider);
+            SheetBuilder = new SwMemorySheetGeometryBuilder(app, m_TolProvider);
+            SolidBuilder = new SwMemorySolidGeometryBuilder(app, geomBuilderDocsProvider, m_TolProvider);
         }
 
         public IXBody DeserializeBody(Stream stream)
@@ -61,6 +63,6 @@ namespace Xarial.XCad.SolidWorks.Geometry
             ((SwBody)body).Body.Save(comStr);
         }
 
-        public IXRegion CreateRegionFromSegments(params IXSegment[] segments) => new SwRegion(segments, this);
+        public IXPlanarRegion CreateRegionFromSegments(params IXSegment[] segments) => new SwPlanarRegion(segments, this);
     }
 }

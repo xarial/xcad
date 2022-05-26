@@ -11,7 +11,7 @@ namespace Xarial.XCad.Geometry.Primitives
 {
     public interface IXRevolve : IXPrimitive
     {
-        IXRegion[] Profiles { get; set; }
+        IXPlanarRegion[] Profiles { get; set; }
         IXLine Axis { get; set; }
         double Angle { get; set; }
     }

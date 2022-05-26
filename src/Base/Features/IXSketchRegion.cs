@@ -15,7 +15,7 @@ namespace Xarial.XCad.Features
     /// <summary>
     /// Represents sketch region (closed contour)
     /// </summary>
-    public interface IXSketchRegion : IXRegion, IXSelObject
+    public interface IXSketchRegion : IXPlanarRegion, IXSelObject
     {
     }
 }

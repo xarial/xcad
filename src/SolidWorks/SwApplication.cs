@@ -307,9 +307,9 @@ namespace Xarial.XCad.SolidWorks
 
                 m_Documents = new SwDocumentCollection(this, m_Logger);
 
-                var geomBuilderDocsProvider = Services.GetService<IMemoryGeometryBuilderDocumentProvider>();
-
-                MemoryGeometryBuilder = new SwMemoryGeometryBuilder(this, geomBuilderDocsProvider);
+                MemoryGeometryBuilder = new SwMemoryGeometryBuilder(this,
+                    Services.GetService<IMemoryGeometryBuilderDocumentProvider>(),
+                    Services.GetService<IMemoryGeometryBuilderToleranceProvider>());
             }
             else 
             {
@@ -496,6 +496,7 @@ namespace Xarial.XCad.SolidWorks
             collection.AddOrReplace((Func<IXLogger>)(() => new TraceLogger("xCAD.SwApplication")));
             collection.AddOrReplace((Func<IMemoryGeometryBuilderDocumentProvider>)(() => new DefaultMemoryGeometryBuilderDocumentProvider(this)));
             collection.AddOrReplace((Func<IFilePathResolver>)(() => new SwFilePathResolverNoSearchFolders(this)));//TODO: there is some issue with recursive search of folders in search locations - do a test to validate
+            collection.AddOrReplace<IMemoryGeometryBuilderToleranceProvider, DefaultMemoryGeometryBuilderToleranceProvider>();
         }
 
         public IXProgress CreateProgress()

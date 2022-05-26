@@ -30,7 +30,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
 
     internal class SwTempSweep : SwTempPrimitive, ISwTempSweep
     {
-        IXRegion[] IXSweep.Profiles
+        IXPlanarRegion[] IXSweep.Profiles
         {
             get => Profiles;
             set => Profiles = value.Cast<ISwTempRegion>().ToArray();

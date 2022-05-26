@@ -32,16 +32,16 @@ namespace Xarial.XCad.Features.CustomFeature
         /// Aligns the linear dimension of custom feature
         /// </summary>
         /// <typeparam name="TParams">Definition parameters</typeparam>
+        /// <param name="featDef">Custom feature definition</param>
         /// <param name="dim">Dimension to align</param>
         /// <param name="originPt">Fixed point of the dimension</param>
         /// <param name="normal">Normal of the entity the radial dimension is assigned to</param>
         public static void AlignRadialDimension<TParams>(this IXCustomFeatureDefinition<TParams> featDef, IXDimension dim, Point originPt, Vector normal)
             where TParams : class, new()
         {
-            Vector dir = null;
-            Vector extDir = null;
-
             var yVec = new Vector(0, 1, 0);
+
+            Vector dir;
 
             if (normal.IsSame(yVec))
             {
@@ -52,8 +52,7 @@ namespace Xarial.XCad.Features.CustomFeature
                 dir = normal.Cross(yVec);
             }
 
-            extDir = normal.Cross(dir);
-
+            Vector extDir = normal.Cross(dir);
             var endPt = CalculateEndPoint(dim, originPt, normal);
 
             featDef.AlignDimension(dim, new Point[] { originPt, endPt }, dir, extDir);

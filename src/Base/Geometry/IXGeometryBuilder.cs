@@ -40,7 +40,7 @@ namespace Xarial.XCad.Geometry
         /// </summary>
         /// <param name="segments">Segments</param>
         /// <returns>Created region</returns>
-        IXRegion CreateRegionFromSegments(params IXSegment[] segments);
+        IXPlanarRegion CreateRegionFromSegments(params IXSegment[] segments);
     }
 
     /// <summary>

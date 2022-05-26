@@ -38,9 +38,13 @@ namespace Xarial.XCad.SolidWorks.Geometry
         public int Count => throw new NotImplementedException();
         public IXPrimitive this[string name] => throw new NotImplementedException();
 
-        internal SwMemorySolidGeometryBuilder(ISwApplication app, IMemoryGeometryBuilderDocumentProvider geomBuilderDocsProvider)
+        private readonly IMemoryGeometryBuilderToleranceProvider m_TolProvider;
+
+        internal SwMemorySolidGeometryBuilder(ISwApplication app, IMemoryGeometryBuilderDocumentProvider geomBuilderDocsProvider, IMemoryGeometryBuilderToleranceProvider tolProvider)
         {
             m_App = app;
+
+            m_TolProvider = tolProvider;
 
             m_MathUtils = m_App.Sw.IGetMathUtility();
             m_Modeler = m_App.Sw.IGetModeler();
@@ -59,7 +63,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
                 () => new SwTempExtrusion(null, m_App, false),
                 () => new SwTempRevolve(null, m_App, false),
                 () => new SwTempSweep(null, (SwPart)m_GeomBuilderDocsProvider.ProvideDocument(typeof(SwTempSweep)), m_App, false),
-                () => new SwTempSolidKnit(null, m_App, false));
+                () => new SwTempSolidKnit(null, m_App, false, m_TolProvider));
 
         public IEnumerator<IXPrimitive> GetEnumerator() => throw new NotImplementedException();
 

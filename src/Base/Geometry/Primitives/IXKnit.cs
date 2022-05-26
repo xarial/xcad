@@ -19,6 +19,6 @@ namespace Xarial.XCad.Geometry.Primitives
         /// <summary>
         /// Faces representing this knit
         /// </summary>
-        IXFace[] Faces { get; set; }
+        IXRegion[] Regions { get; set; }
     }
 }

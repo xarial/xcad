@@ -11,7 +11,7 @@ namespace Xarial.XCad.Geometry.Primitives
 {
     public interface IXSweep : IXPrimitive
     {
-        IXRegion[] Profiles { get; set; }
+        IXPlanarRegion[] Profiles { get; set; }
         IXSegment Path { get; set; }
     }
 }

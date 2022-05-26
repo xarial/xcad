@@ -19,33 +19,37 @@ using Xarial.XCad.Geometry.Wires;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Geometry.Curves;
 using Xarial.XCad.SolidWorks.Geometry.Exceptions;
+using Xarial.XCad.SolidWorks.Services;
 
 namespace Xarial.XCad.SolidWorks.Geometry.Primitives
 {
     public interface ISwTempPlanarSheet : IXPlanarSheet, ISwTempPrimitive
     {
         new ISwTempPlanarSheetBody[] Bodies { get; }
-        new ISwRegion Region { get; set; }
+        new ISwPlanarRegion Region { get; set; }
     }
 
     internal class SwTempPlanarSheet : SwTempPrimitive, ISwTempPlanarSheet
     {
         IXPlanarSheetBody[] IXPlanarSheet.Bodies => Bodies;
 
-        IXRegion IXPlanarSheet.Region
+        IXPlanarRegion IXPlanarSheet.Region
         {
             get => Region;
-            set => Region = (ISwRegion)value;
-        }
-        
-        internal SwTempPlanarSheet(SwTempBody[] bodies, ISwApplication app, bool isCreated)
-            : base(bodies, app, isCreated)
-        {
+            set => Region = (ISwPlanarRegion)value;
         }
 
-        public ISwRegion Region
+        private readonly IMemoryGeometryBuilderToleranceProvider m_TolProvider;
+
+        internal SwTempPlanarSheet(SwTempBody[] bodies, SwApplication app, bool isCreated, IMemoryGeometryBuilderToleranceProvider tolProvider)
+            : base(bodies, app, isCreated)
         {
-            get => m_Creator.CachedProperties.Get<ISwRegion>();
+            m_TolProvider = tolProvider;
+        }
+
+        public ISwPlanarRegion Region
+        {
+            get => m_Creator.CachedProperties.Get<ISwPlanarRegion>();
             set
             {
                 if (IsCommitted)
@@ -97,8 +101,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
 
                 if (m_App.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2017, 4))
                 {
-                    const double TOL = 1E-05;
-                    sheetBody = planarSurf.CreateTrimmedSheet5(boundary.ToArray(), true, TOL) as Body2;
+                    sheetBody = planarSurf.CreateTrimmedSheet5(boundary.ToArray(), true, m_TolProvider.Trimming) as Body2;
                 }
                 else 
                 {

@@ -14,7 +14,7 @@ using Xarial.XCad.SolidWorks.Geometry.Curves;
 
 namespace Xarial.XCad.SolidWorks.Geometry.Primitives
 {
-    public interface ISwTempRegion : ISwRegion
+    public interface ISwTempRegion : ISwPlanarRegion
     {
     }
 }

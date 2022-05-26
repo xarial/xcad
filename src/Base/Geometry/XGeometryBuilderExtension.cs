@@ -49,7 +49,7 @@ namespace Xarial.XCad.Geometry
             var extr = builder.SolidBuilder.PreCreateExtrusion();
             extr.Depth = height;
             extr.Direction = dir;
-            extr.Profiles = new IXRegion[] { builder.CreatePlanarSheet(builder.CreateRegionFromSegments(polyline)).Bodies.First() };
+            extr.Profiles = new IXPlanarRegion[] { builder.CreatePlanarSheet(builder.CreateRegionFromSegments(polyline)).Bodies.First() };
             extr.Commit();
 
             return extr;
@@ -76,7 +76,7 @@ namespace Xarial.XCad.Geometry
             var extr = builder.SolidBuilder.PreCreateExtrusion();
             extr.Depth = height;
             extr.Direction = arc.Axis;
-            extr.Profiles = new IXRegion[] { builder.CreatePlanarSheet(builder.CreateRegionFromSegments(arc)).Bodies.First() };
+            extr.Profiles = new IXPlanarRegion[] { builder.CreatePlanarSheet(builder.CreateRegionFromSegments(arc)).Bodies.First() };
             extr.Commit();
 
             return extr;
@@ -116,14 +116,22 @@ namespace Xarial.XCad.Geometry
             var rev = builder.SolidBuilder.PreCreateRevolve();
             rev.Axis = revLine;
             rev.Angle = Math.PI * 2;
-            rev.Profiles = new IXRegion[] { builder.CreatePlanarSheet(builder.CreateRegionFromSegments(profile)).Bodies.First() };
+            rev.Profiles = new IXPlanarRegion[] { builder.CreatePlanarSheet(builder.CreateRegionFromSegments(profile)).Bodies.First() };
             rev.Commit();
 
             return rev;
         }
 
+        /// <summary>
+        /// Creates solid body extrusion
+        /// </summary>
+        /// <param name="builder">Builder</param>
+        /// <param name="depth">Extrusion depth</param>
+        /// <param name="direction">Direction of the extrusion</param>
+        /// <param name="profiles">Extrusion profiles</param>
+        /// <returns>Extrusion primitive</returns>
         public static IXExtrusion CreateSolidExtrusion(this IXGeometryBuilder builder, 
-            double depth, Vector direction, params IXRegion[] profiles) 
+            double depth, Vector direction, params IXPlanarRegion[] profiles) 
         {
             var extr = builder.SolidBuilder.PreCreateExtrusion();
             extr.Depth = depth;
@@ -134,7 +142,15 @@ namespace Xarial.XCad.Geometry
             return extr;
         }
 
-        public static IXRevolve CreateSolidRevolve(this IXGeometryBuilder builder, IXLine axis, double angle, params IXRegion[] profiles)
+        /// <summary>
+        /// Creates solid body revolve
+        /// </summary>
+        /// <param name="builder">Builder</param>
+        /// <param name="axis">Revolution axis</param>
+        /// <param name="angle">Revolution angle</param>
+        /// <param name="profiles">Profiles to revolve</param>
+        /// <returns>Revolve primitive</returns>
+        public static IXRevolve CreateSolidRevolve(this IXGeometryBuilder builder, IXLine axis, double angle, params IXPlanarRegion[] profiles)
         {
             var rev = builder.SolidBuilder.PreCreateRevolve();
             rev.Angle = angle;
@@ -145,7 +161,14 @@ namespace Xarial.XCad.Geometry
             return rev;
         }
 
-        public static IXSweep CreateSolidSweep(this IXGeometryBuilder builder, IXSegment path, params IXRegion[] profiles)
+        /// <summary>
+        /// Creates solid body sweep
+        /// </summary>
+        /// <param name="builder">Builder</param>
+        /// <param name="path">Sweep path</param>
+        /// <param name="profiles">Profiles to sweep</param>
+        /// <returns>Sweep primitive</returns>
+        public static IXSweep CreateSolidSweep(this IXGeometryBuilder builder, IXSegment path, params IXPlanarRegion[] profiles)
         {
             var sweep = builder.SolidBuilder.PreCreateSweep();
             sweep.Profiles = profiles;
@@ -155,7 +178,13 @@ namespace Xarial.XCad.Geometry
             return sweep;
         }
 
-        public static IXPlanarSheet CreatePlanarSheet(this IXGeometryBuilder builder, IXRegion boundary)
+        /// <summary>
+        /// Creates the planar sheet body
+        /// </summary>
+        /// <param name="builder">Builder</param>
+        /// <param name="boundary">Boundary</param>
+        /// <returns>Planar sheet primitive</returns>
+        public static IXPlanarSheet CreatePlanarSheet(this IXGeometryBuilder builder, IXPlanarRegion boundary)
         {
             var surf = builder.SheetBuilder.PreCreatePlanarSheet();
             surf.Region = boundary;
@@ -164,6 +193,13 @@ namespace Xarial.XCad.Geometry
             return surf;
         }
 
+        /// <summary>
+        /// Creates a line segment
+        /// </summary>
+        /// <param name="builder">Builder</param>
+        /// <param name="startPt">Start point</param>
+        /// <param name="endPt">End point</param>
+        /// <returns>Line segment</returns>
         public static IXLine CreateLine(this IXGeometryBuilder builder, Point startPt, Point endPt)
         {
             var line = builder.WireBuilder.PreCreateLine();
@@ -174,6 +210,14 @@ namespace Xarial.XCad.Geometry
             return line;
         }
 
+        /// <summary>
+        /// Creates circle segment
+        /// </summary>
+        /// <param name="builder">Builder</param>
+        /// <param name="centerPt">Center point</param>
+        /// <param name="axis">Axis of the circle</param>
+        /// <param name="diameter">Diameter of the circle</param>
+        /// <returns>Circle segment</returns>
         public static IXCircle CreateCircle(this IXGeometryBuilder builder, Point centerPt, Vector axis, double diameter)
         {
             var circle = builder.WireBuilder.PreCreateCircle();

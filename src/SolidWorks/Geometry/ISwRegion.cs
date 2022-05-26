@@ -19,11 +19,15 @@ namespace Xarial.XCad.SolidWorks.Geometry
 {
     public interface ISwRegion : IXRegion
     {
-        ISwTempPlanarSheetBody PlanarSheetBody { get; }
         new ISwCurve[] Boundary { get; }
     }
 
-    internal class SwRegion : ISwRegion
+    public interface ISwPlanarRegion : ISwRegion, IXPlanarRegion
+    {
+        ISwTempPlanarSheetBody PlanarSheetBody { get; }
+    }
+
+    internal class SwPlanarRegion : ISwPlanarRegion
     {
         public IXSegment[] Boundary { get; }
 
@@ -62,7 +66,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         private readonly ISwMemoryGeometryBuilder m_GeomBuilder;
 
-        internal SwRegion(IXSegment[] boundary, ISwMemoryGeometryBuilder geomBuilder)
+        internal SwPlanarRegion(IXSegment[] boundary, ISwMemoryGeometryBuilder geomBuilder)
         {
             m_GeomBuilder = geomBuilder;
             Boundary = boundary;
@@ -96,7 +100,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
     internal static class SwRegionExtension
     {
-        internal static ISwTempPlanarSheetBody ToPlanarSheetBody(this ISwRegion region, ISwMemoryGeometryBuilder geomBuilder)
+        internal static ISwTempPlanarSheetBody ToPlanarSheetBody(this ISwPlanarRegion region, ISwMemoryGeometryBuilder geomBuilder)
         {
             var planarSheet = geomBuilder.CreatePlanarSheet(region);
             var bodies = planarSheet.Bodies;

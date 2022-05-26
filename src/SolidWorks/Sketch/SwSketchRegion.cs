@@ -21,7 +21,7 @@ using Xarial.XCad.SolidWorks.Utils;
 
 namespace Xarial.XCad.SolidWorks.Sketch
 {
-    public interface ISwSketchRegion : IXSketchRegion, ISwRegion, ISwSelObject
+    public interface ISwSketchRegion : IXSketchRegion, ISwPlanarRegion, ISwSelObject
     {
         ISketchRegion Region { get; }
     }

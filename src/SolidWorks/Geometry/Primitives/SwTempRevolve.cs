@@ -35,7 +35,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
         {
         }
 
-        IXRegion[] IXRevolve.Profiles 
+        IXPlanarRegion[] IXRevolve.Profiles 
         {
             get => Profiles;
             set => Profiles = value.Cast<ISwTempRegion>().ToArray();

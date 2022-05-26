@@ -26,15 +26,15 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
 {
     public interface ISwTempExtrusion : IXExtrusion, ISwTempPrimitive
     {
-        new ISwRegion[] Profiles { get; set; }
+        new ISwPlanarRegion[] Profiles { get; set; }
     }
 
     internal class SwTempExtrusion : SwTempPrimitive, ISwTempExtrusion
     {
-        IXRegion[] IXExtrusion.Profiles
+        IXPlanarRegion[] IXExtrusion.Profiles
         {
             get => Profiles;
-            set => Profiles = value?.Cast<ISwRegion>().ToArray();
+            set => Profiles = value?.Cast<ISwPlanarRegion>().ToArray();
         }
 
         public double Depth
@@ -69,9 +69,9 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
             }
         }
 
-        public ISwRegion[] Profiles
+        public ISwPlanarRegion[] Profiles
         {
-            get => m_Creator.CachedProperties.Get<ISwRegion[]>();
+            get => m_Creator.CachedProperties.Get<ISwPlanarRegion[]>();
             set
             {
                 if (IsCommitted)

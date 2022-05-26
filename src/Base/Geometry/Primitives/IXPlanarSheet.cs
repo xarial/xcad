@@ -20,7 +20,7 @@ namespace Xarial.XCad.Geometry.Primitives
         /// <summary>
         /// Boundary of this sheet
         /// </summary>
-        IXRegion Region { get; set; }
+        IXPlanarRegion Region { get; set; }
         
         /// <inheritdoc/>
         new IXPlanarSheetBody[] Bodies { get; }

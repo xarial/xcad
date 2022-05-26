@@ -41,7 +41,7 @@ namespace SolidWorks.Tests.Integration
                 sweepLine.Commit();
 
                 var sweep = m_App.MemoryGeometryBuilder.SolidBuilder.PreCreateSweep();
-                sweep.Profiles = new IXRegion[] { m_App.MemoryGeometryBuilder.CreatePlanarSheet(
+                sweep.Profiles = new IXPlanarRegion[] { m_App.MemoryGeometryBuilder.CreatePlanarSheet(
                     m_App.MemoryGeometryBuilder.CreateRegionFromSegments(sweepCircle)).Bodies.First() };
                 sweep.Path = sweepLine;
                 sweep.Commit();
@@ -113,7 +113,7 @@ namespace SolidWorks.Tests.Integration
                 var rev = m_App.MemoryGeometryBuilder.SolidBuilder.PreCreateRevolve();
                 rev.Angle = Math.PI * 2;
                 rev.Axis = axis;
-                rev.Profiles = new IXRegion[] { m_App.MemoryGeometryBuilder.CreatePlanarSheet(
+                rev.Profiles = new IXPlanarRegion[] { m_App.MemoryGeometryBuilder.CreatePlanarSheet(
                     m_App.MemoryGeometryBuilder.CreateRegionFromSegments(circle)).Bodies.First() };
                 rev.Commit();
 
@@ -184,7 +184,7 @@ namespace SolidWorks.Tests.Integration
                 var extr = m_App.MemoryGeometryBuilder.SolidBuilder.PreCreateExtrusion();
                 extr.Depth = 0.5;
                 extr.Direction = new Vector(1, 1, 1);
-                extr.Profiles = new IXRegion[] { m_App.MemoryGeometryBuilder.CreatePlanarSheet(
+                extr.Profiles = new IXPlanarRegion[] { m_App.MemoryGeometryBuilder.CreatePlanarSheet(
                     m_App.MemoryGeometryBuilder.CreateRegionFromSegments(polyline)).Bodies.First() };
                 extr.Commit();
 
@@ -338,7 +338,7 @@ namespace SolidWorks.Tests.Integration
                 var face4 = part.CreateObjectFromDispatch<ISwFace>(part.Part.GetEntityByName("FACE4", (int)swSelectType_e.swSelFACES));//0.01463892
 
                 var knit1 = m_App.MemoryGeometryBuilder.SheetBuilder.PreCreateKnit();
-                knit1.Faces = new IXFace[] { face2, face3 };
+                knit1.Regions = new IXRegion[] { face2, face3 };
                 knit1.Commit();
 
                 b1Count = knit1.Bodies.Length;
@@ -346,7 +346,7 @@ namespace SolidWorks.Tests.Integration
                 a1 = knit1.Bodies[0].Faces.Sum(f => f.Area);
 
                 var knit2 = m_App.MemoryGeometryBuilder.SheetBuilder.PreCreateKnit();
-                knit2.Faces = new IXFace[] { face1, face3, face4 };
+                knit2.Regions = new IXRegion[] { face1, face3, face4 };
                 knit2.Commit();
 
                 b2Count = knit2.Bodies.Length;

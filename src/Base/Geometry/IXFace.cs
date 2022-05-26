@@ -17,7 +17,7 @@ namespace Xarial.XCad.Geometry
     /// <summary>
     /// Represents face entity
     /// </summary>
-    public interface IXFace : IXEntity, IXColorizable
+    public interface IXFace : IXEntity, IXColorizable, IXRegion
     {
         /// <summary>
         /// True if the direction of the face conicides with the direction of its surface definition, False if the directions are opposite
@@ -69,7 +69,7 @@ namespace Xarial.XCad.Geometry
     /// <summary>
     /// Represents planar face
     /// </summary>
-    public interface IXPlanarFace : IXFace, IXRegion
+    public interface IXPlanarFace : IXFace, IXPlanarRegion
     {
         /// <inheritdoc/>
         new IXPlanarSurface Definition { get; }

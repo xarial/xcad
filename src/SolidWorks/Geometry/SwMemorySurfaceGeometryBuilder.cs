@@ -14,6 +14,7 @@ using System.Threading;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Primitives;
 using Xarial.XCad.SolidWorks.Geometry.Primitives;
+using Xarial.XCad.SolidWorks.Services;
 using Xarial.XCad.Toolkit.Utils;
 
 namespace Xarial.XCad.SolidWorks.Geometry
@@ -35,14 +36,18 @@ namespace Xarial.XCad.SolidWorks.Geometry
         public int Count => throw new NotImplementedException();
         public IXPrimitive this[string name] => throw new NotImplementedException();
 
-        private readonly ISwApplication m_App;
+        private readonly SwApplication m_App;
 
         protected readonly IModeler m_Modeler;
         protected readonly IMathUtility m_MathUtils;
 
-        internal SwMemorySheetGeometryBuilder(ISwApplication app)
+        private readonly IMemoryGeometryBuilderToleranceProvider m_TolProvider;
+
+        internal SwMemorySheetGeometryBuilder(SwApplication app, IMemoryGeometryBuilderToleranceProvider tolProvider)
         {
             m_App = app;
+
+            m_TolProvider = tolProvider;
 
             m_MathUtils = m_App.Sw.IGetMathUtility();
             m_Modeler = m_App.Sw.IGetModeler();
@@ -50,7 +55,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         public T PreCreate<T>() where T : IXPrimitive
             => RepositoryHelper.PreCreate<IXPrimitive, T>(this, 
-                () => new SwTempPlanarSheet(null, m_App, false),
-                () => new SwTempSurfaceKnit(null, m_App, false));
+                () => new SwTempPlanarSheet(null, m_App, false, m_TolProvider),
+                () => new SwTempSurfaceKnit(null, m_App, false, m_TolProvider));
     }
 }

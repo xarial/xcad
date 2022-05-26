@@ -177,7 +177,7 @@ namespace StandAlone
             var pathCurve = pathSeg.Definition;
 
             var sweep = app.MemoryGeometryBuilder.SolidBuilder.PreCreateSweep();
-            sweep.Profiles = new IXRegion[] { reg };
+            sweep.Profiles = new IXPlanarRegion[] { reg };
             sweep.Path = pathCurve;
             sweep.Commit();
 
@@ -200,7 +200,7 @@ namespace StandAlone
             sweepLine.Commit();
 
             var sweep = app.MemoryGeometryBuilder.SolidBuilder.PreCreateSweep();
-            sweep.Profiles = new IXRegion[] { app.MemoryGeometryBuilder.CreatePlanarSheet(
+            sweep.Profiles = new IXPlanarRegion[] { app.MemoryGeometryBuilder.CreatePlanarSheet(
                 app.MemoryGeometryBuilder.CreateRegionFromSegments(sweepArc)).Bodies.First() };
             sweep.Path = sweepLine;
             sweep.Commit();
@@ -232,7 +232,7 @@ namespace StandAlone
             var rev = app.MemoryGeometryBuilder.SolidBuilder.PreCreateRevolve();
             rev.Angle = Math.PI * 2;
             rev.Axis = axis;
-            rev.Profiles = new IXRegion[] { app.MemoryGeometryBuilder.CreatePlanarSheet(
+            rev.Profiles = new IXPlanarRegion[] { app.MemoryGeometryBuilder.CreatePlanarSheet(
                 app.MemoryGeometryBuilder.CreateRegionFromSegments(arc)).Bodies.First() };
             rev.Commit();
 
@@ -263,7 +263,7 @@ namespace StandAlone
             var extr = app.MemoryGeometryBuilder.SolidBuilder.PreCreateExtrusion();
             extr.Depth = 0.5;
             extr.Direction = new Vector(1, 1, 1);
-            extr.Profiles = new IXRegion[] { app.MemoryGeometryBuilder.CreatePlanarSheet(
+            extr.Profiles = new IXPlanarRegion[] { app.MemoryGeometryBuilder.CreatePlanarSheet(
                 app.MemoryGeometryBuilder.CreateRegionFromSegments(polyline)).Bodies.First() };
             extr.Commit();
 
@@ -292,14 +292,27 @@ namespace StandAlone
             var firstProfile = faces[0].AdjacentEntities.OfType<ISwEdge>().Select(e => e.Definition.Curves.First().ICopy());
             var secondProfile = faces[1].AdjacentEntities.OfType<ISwEdge>().Select(e => e.Definition.Curves.First().ICopy());
 
-            //var c1 = modeler.MergeCurves(firstProfile.Select(c => c.ICopy()).ToArray());
-            //var c2 = modeler.MergeCurves(secondProfile.Select(c => c.ICopy()).ToArray());
+            var c1 = modeler.MergeCurves(firstProfile.Select(c => c.ICopy()).ToArray());
+            var c2 = modeler.MergeCurves(secondProfile.Select(c => c.ICopy()).ToArray());
 
-            //curves.Add(c1.MakeBsplineCurve2());
-            //curves.Add(c2.MakeBsplineCurve2());
+            c1.GetEndParams(out var start, out var end, out var isClosed, out var isPer);
+            c2.GetEndParams(out var start1, out var end1, out var isClosed1, out var isPer1);
 
-            curves.AddRange(firstProfile.Select(c => c.MakeBsplineCurve2()));
-            curves.AddRange(secondProfile.Select(c => c.MakeBsplineCurve2()));
+            var startPt = (double[])c1.Evaluate2(start, 0);
+            var endPt = (double[])c1.Evaluate2(end, 0);
+
+            c1 = c1.CreateTrimmedCurve2(startPt[0], startPt[1], startPt[2], endPt[0], endPt[1], endPt[2]);
+
+            startPt = (double[])c2.Evaluate2(start, 0);
+            endPt = (double[])c2.Evaluate2(end, 0);
+
+            c2 = c2.CreateTrimmedCurve2(startPt[0], startPt[1], startPt[2], endPt[0], endPt[1], endPt[2]);
+
+            curves.Add(c1.MakeBsplineCurve2());
+            curves.Add(c2.MakeBsplineCurve2());
+
+            //curves.AddRange(firstProfile.Select(c => c.MakeBsplineCurve2()));
+            //curves.AddRange(secondProfile.Select(c => c.MakeBsplineCurve2()));
 
             //var vec = (IMathVector)app.Sw.IGetMathUtility().CreateVector(new double[] { 0, 0, 1 });
 
@@ -307,11 +320,11 @@ namespace StandAlone
 
             curves.Clear();
 
-            curves.AddRange(firstProfile.Select(c => c.ICopy()));
-            //curves.Add(c1.ICopy());
+            //curves.AddRange(firstProfile.Select(c => c.ICopy()));
+            curves.Add(c1.ICopy());
             curves.Add(null);
-            //curves.Add(c2.ICopy());
-            curves.AddRange(secondProfile.Select(c => c.ICopy()));
+            curves.Add(c2.ICopy());
+            //curves.AddRange(secondProfile.Select(c => c.ICopy()));
 
             var body = (IBody2)surf.CreateTrimmedSheet4(curves.ToArray(), true);
 

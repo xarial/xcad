@@ -19,7 +19,7 @@ namespace Xarial.XCad.Geometry.Primitives
         /// <summary>
         /// Profiles used to create this extrusion geometry
         /// </summary>
-        IXRegion[] Profiles { get; set; }
+        IXPlanarRegion[] Profiles { get; set; }
 
         /// <summary>
         /// Depth of the extrusion

@@ -17,6 +17,6 @@ namespace Xarial.XCad.Geometry.Primitives
         /// <summary>
         /// Profiles of this loft
         /// </summary>
-        IXRegion[] Profiles { get; set; }
+        IXPlanarRegion[] Profiles { get; set; }
     }
 }

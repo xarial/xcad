@@ -14,18 +14,24 @@ using Xarial.XCad.Geometry.Wires;
 namespace Xarial.XCad.Geometry
 {
     /// <summary>
+    /// Represents the closed region
+    /// </summary>
+    public interface IXRegion 
+    {
+        /// <summary>
+        /// Boundary of this region
+        /// </summary>
+        IXSegment[] Boundary { get; }
+    }
+
+    /// <summary>
     /// Represents the closed planar region
     /// </summary>
-    public interface IXRegion
+    public interface IXPlanarRegion : IXRegion
     {
         /// <summary>
         /// Plane defining this region
         /// </summary>
         Plane Plane { get; }
-
-        /// <summary>
-        /// Boundary of this region
-        /// </summary>
-        IXSegment[] Boundary { get; }
     }
 }
