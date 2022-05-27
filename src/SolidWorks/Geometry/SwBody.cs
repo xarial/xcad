@@ -188,7 +188,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
             return res;
         }
-
+        
         private ISwBody[] PerformOperation(ISwBody other, swBodyOperationType_e op)
         {
             var thisBody = Body;
@@ -196,6 +196,15 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
             int errs;
             var res = thisBody.Operations2((int)op, otherBody, out errs) as object[];
+
+            if (errs == (int)swBodyOperationError_e.swBodyOperationNonManifold)
+            {
+                //NOTE: as per the SOLIDWORKS API documentation resetting the edge tolerances and trying again
+                otherBody.ResetEdgeTolerances();
+                thisBody.ResetEdgeTolerances();
+
+                res = thisBody.Operations2((int)op, otherBody, out errs) as object[];
+            }
 
             if (errs != (int)swBodyOperationError_e.swBodyOperationNoError)
             {
