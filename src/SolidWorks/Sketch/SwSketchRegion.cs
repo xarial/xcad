@@ -28,7 +28,7 @@ namespace Xarial.XCad.SolidWorks.Sketch
 
     internal class SwSketchRegion : SwSelObject, ISwSketchRegion
     {
-        IXSegment[] IXRegion.Boundary => Boundary;
+        IXLoop[] IXRegion.Boundary => Boundary;
 
         internal SwSketchRegion(ISketchRegion region, SwDocument doc, SwApplication app) : base(region, doc, app)
         {
@@ -39,7 +39,7 @@ namespace Xarial.XCad.SolidWorks.Sketch
 
         public Plane Plane
         {
-            get 
+            get
             {
                 var transform = Region.Sketch.ModelToSketchTransform.IInverse().ToTransformMatrix();
 
@@ -50,12 +50,33 @@ namespace Xarial.XCad.SolidWorks.Sketch
                 return new Plane(origin, z, x);
             }
         }
-        
-        public ISwCurve[] Boundary => (Region.GetEdges() as object[])
-            .Cast<IEdge>()
-            .Select(e => OwnerApplication.CreateObjectFromDispatch<ISwCurve>(e.IGetCurve().ICopy(), OwnerDocument))
-            .ToArray();
 
-        public ISwTempPlanarSheetBody PlanarSheetBody => this.ToPlanarSheetBody(OwnerApplication.MemoryGeometryBuilder);
+        public ISwLoop[] Boundary 
+        {
+            get 
+            {
+                var res = new List<ISwLoop>();
+
+                var loop = Region.GetFirstLoop();
+
+                while (loop != null) 
+                {
+                    res.Add(OwnerApplication.CreateObjectFromDispatch<ISwLoop>(loop, OwnerDocument));
+                    loop = loop.IGetNext();
+                }
+
+                return res.ToArray();
+            }
+        }
+
+        public ISwTempPlanarSheetBody PlanarSheetBody 
+        {
+            get 
+            {
+                var face = Region.GetFirstLoop().IGetFace();
+                var sheetBody = face.CreateSheetBody();
+                return OwnerApplication.CreateObjectFromDispatch<SwTempPlanarSheetBody>(sheetBody, OwnerDocument);
+            }
+        }
     }
 }

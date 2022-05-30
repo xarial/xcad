@@ -139,7 +139,7 @@ namespace SolidWorks.Tests.Integration
             int faceCount;
             double[] massPrps;
 
-            using (var doc = NewDocument(Interop.swconst.swDocumentTypes_e.swDocPART))
+            using (var doc = NewDocument(swDocumentTypes_e.swDocPART))
             {
                 var box = m_App.MemoryGeometryBuilder.CreateSolidBox(
                     new Point(0, 0, 0),
@@ -297,22 +297,32 @@ namespace SolidWorks.Tests.Integration
         [Test]
         public void PlanarSheetSketchRegionTest() 
         {
-            double area;
+            double area1;
+            double area2;
 
             using (var doc = OpenDataDocument("SketchRegion1.SLDPRT")) 
             {
                 var part = (IXPart)m_App.Documents.Active;
 
-                var sketch = (IXSketch2D)part.Features["Sketch1"];
+                var sketch1 = (IXSketch2D)part.Features["Sketch1"];
 
-                var reg = sketch.Regions.First();
+                var reg1 = sketch1.Regions.First();
 
-                var surf = m_App.MemoryGeometryBuilder.CreatePlanarSheet(reg);
+                var surf1 = m_App.MemoryGeometryBuilder.CreatePlanarSheet(reg1);
 
-                area = surf.Bodies.First().Faces.First().Area;
+                area1 = surf1.Bodies.First().Faces.First().Area;
+
+                var sketch2 = (IXSketch2D)part.Features["Sketch2"];
+
+                var reg2 = sketch2.Regions.First();
+
+                var surf2 = m_App.MemoryGeometryBuilder.CreatePlanarSheet(reg2);
+
+                area2 = surf2.Bodies.First().Faces.First().Area;
             }
 
-            Assert.That(0.00105942, Is.EqualTo(area).Within(0.001).Percent);
+            Assert.That(0.00105942, Is.EqualTo(area1).Within(0.001).Percent);
+            Assert.That(0.0017281361716421462, Is.EqualTo(area2).Within(0.001).Percent);
         }
 
         [Test]

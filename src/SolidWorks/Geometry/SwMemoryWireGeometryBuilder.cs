@@ -71,7 +71,8 @@ namespace Xarial.XCad.SolidWorks.Geometry
                 () => new SwArcCurve(null, null, m_App, false),
                 () => new SwLineCurve(null, null, m_App, false),
                 () => new SwPolylineCurve(null, null, m_App, false),
-                () => new SwPoint(null, null, m_App));
+                () => new SwPoint(null, null, m_App),
+                () => new SwLoop(null, null, m_App));
 
         public IEnumerator<IXWireEntity> GetEnumerator()
             => throw new NotImplementedException();

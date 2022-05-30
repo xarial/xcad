@@ -10,6 +10,7 @@ using SolidWorks.Interop.swconst;
 using System;
 using System.Drawing;
 using System.Runtime.InteropServices;
+using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Geometry.Wires;
 using Xarial.XCad.SolidWorks.Documents;
@@ -108,17 +109,17 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
     internal class SwTempPlanarSheetBody : SwTempBody, ISwTempPlanarSheetBody
     {
+        IXLoop[] IXRegion.Boundary => Boundary;
+
         internal SwTempPlanarSheetBody(IBody2 body, SwApplication app) : base(body, app)
         {
         }
 
         public Plane Plane => this.GetPlane();
 
-        public IXSegment[] Boundary => this.GetBoundary();
-
         public ISwTempPlanarSheetBody PlanarSheetBody => this;
 
-        ISwCurve[] ISwRegion.Boundary => this.GetBoundary();
+        public ISwLoop[] Boundary => this.GetBoundary();
     }
 
     internal class SwTempWireBody : SwTempBody, ISwTempWireBody

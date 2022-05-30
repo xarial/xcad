@@ -21,7 +21,7 @@ namespace Xarial.XCad.Geometry
         /// <summary>
         /// Boundary of this region
         /// </summary>
-        IXSegment[] Boundary { get; }
+        IXLoop[] Boundary { get; }
     }
 
     /// <summary>

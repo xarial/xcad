@@ -63,5 +63,11 @@ namespace Xarial.XCad.Geometry
         /// </summary>
         /// <returns>Polyline template</returns>
         public static IXPolylineCurve PreCreatePolyline(this IXWireGeometryBuilder geomBuilder) => geomBuilder.PreCreate<IXPolylineCurve>();
+
+        /// <summary>
+        /// Creates a loop
+        /// </summary>
+        /// <returns>Loop template</returns>
+        public static IXLoop PreCreateLoop(this IXWireGeometryBuilder geomBuilder) => geomBuilder.PreCreate<IXLoop>();
     }
 }

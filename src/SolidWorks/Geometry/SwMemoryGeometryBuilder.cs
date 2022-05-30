@@ -32,29 +32,29 @@ namespace Xarial.XCad.SolidWorks.Geometry
         public IXSheetGeometryBuilder SheetBuilder { get; }
         public IXSolidGeometryBuilder SolidBuilder { get; }
 
-        private readonly SwApplication m_App;
+        internal SwApplication Application { get; }
 
-        private readonly IModeler m_Modeler;
+        internal IModeler Modeler { get; }
 
-        private readonly IMemoryGeometryBuilderToleranceProvider m_TolProvider;
+        internal IMemoryGeometryBuilderToleranceProvider TolProvider { get; }
 
         internal SwMemoryGeometryBuilder(SwApplication app, IMemoryGeometryBuilderDocumentProvider geomBuilderDocsProvider, IMemoryGeometryBuilderToleranceProvider tolProvider) 
         {
-            m_App = app;
-            m_TolProvider = tolProvider;
+            Application = app;
+            TolProvider = tolProvider;
 
-            m_Modeler = app.Sw.IGetModeler();
+            Modeler = app.Sw.IGetModeler();
 
             WireBuilder = new SwMemoryWireGeometryBuilder(app);
-            SheetBuilder = new SwMemorySheetGeometryBuilder(app, m_TolProvider);
-            SolidBuilder = new SwMemorySolidGeometryBuilder(app, geomBuilderDocsProvider, m_TolProvider);
+            SheetBuilder = new SwMemorySheetGeometryBuilder(app, TolProvider);
+            SolidBuilder = new SwMemorySolidGeometryBuilder(app, geomBuilderDocsProvider, TolProvider);
         }
 
         public IXBody DeserializeBody(Stream stream)
         {
             var comStr = new StreamWrapper(stream);
-            var body = (IBody2)m_Modeler.Restore(comStr);
-            return m_App.CreateObjectFromDispatch<ISwTempBody>(body, null);
+            var body = (IBody2)Modeler.Restore(comStr);
+            return Application.CreateObjectFromDispatch<ISwTempBody>(body, null);
         }
 
         public void SerializeBody(IXBody body, Stream stream)

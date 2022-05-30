@@ -34,7 +34,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
     internal abstract class SwFace : SwEntity, ISwFace
     {
         IXSurface IXFace.Definition => Definition;
-        IXSegment[] IXRegion.Boundary => Boundary;
+        IXLoop[] IXRegion.Boundary => Boundary;
 
         public IFace2 Face { get; }
         private readonly IMathUtility m_MathUtils;
@@ -95,7 +95,22 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         public ISwSurface Definition => OwnerApplication.CreateObjectFromDispatch<SwSurface>(Face.IGetSurface(), OwnerDocument);
 
-        public ISwCurve[] Boundary => AdjacentEntities.OfType<ISwEdge>().Select(e => e.Definition).ToArray();
+        public ISwLoop[] Boundary 
+        {
+            get 
+            {
+                var loops = (object[])Face.GetLoops();
+
+                var res = new ISwLoop[loops.Length];
+
+                for (int i = 0; i < loops.Length; i++) 
+                {
+                    res[i] = OwnerApplication.CreateObjectFromDispatch<ISwLoop>((ILoop2)loops[i], OwnerDocument);
+                }
+
+                return res;
+            }
+        }
 
         public IXFeature Feature 
         {
@@ -171,7 +186,6 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
     internal class SwPlanarFace : SwFace, ISwPlanarFace
     {
-        
         IXPlanarSurface IXPlanarFace.Definition => Definition;
 
         public SwPlanarFace(IFace2 face, SwDocument doc, SwApplication app) : base(face, doc, app)

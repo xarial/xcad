@@ -66,55 +66,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
         new public ISwTempPlanarSheetBody[] Bodies => base.Bodies.Cast<ISwTempPlanarSheetBody>().ToArray();
 
         protected override ISwTempBody[] CreateBodies(CancellationToken cancellationToken)
-        {
-            Body2 sheetBody;
-
-            if (Region is ISwFace)
-            {
-                sheetBody = ((ISwFace)Region).Face.ICreateSheetBody();
-            }
-            else 
-            {
-                var plane = Region.Plane;
-
-                var planarSurf = m_Modeler.CreatePlanarSurface2(
-                        plane.Point.ToArray(), plane.Normal.ToArray(), plane.Direction.ToArray()) as ISurface;
-
-                if (planarSurf == null)
-                {
-                    throw new Exception("Failed to create plane");
-                }
-
-                var boundary = new List<ICurve>();
-
-                var boundaryCurves = Region.Boundary;
-
-                for (int i = 0; i < boundaryCurves.Length; i++)
-                {
-                    boundary.AddRange(boundaryCurves[i].Curves);
-
-                    if (i != boundaryCurves.Length - 1)
-                    {
-                        boundary.Add(null);
-                    }
-                }
-
-                if (m_App.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2017, 4))
-                {
-                    sheetBody = planarSurf.CreateTrimmedSheet5(boundary.ToArray(), true, m_TolProvider.Trimming) as Body2;
-                }
-                else 
-                {
-                    sheetBody = planarSurf.CreateTrimmedSheet4(boundary.ToArray(), true) as Body2;
-                }
-            }
-
-            if (sheetBody == null)
-            {
-                throw new Exception("Failed to create profile sheet body");
-            }
-
-            return new ISwTempBody[] { m_App.CreateObjectFromDispatch<SwTempBody>(sheetBody, null) };
-        }
+            => new ISwTempBody[] { Region.PlanarSheetBody };
+        
     }
 }

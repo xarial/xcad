@@ -291,7 +291,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
         }
 
         public Plane Plane => this.GetPlane();
-        public IXSegment[] Boundary => this.GetBoundary();
+        public IXLoop[] Boundary => this.GetBoundary();
     }
 
     internal static class ISwPlanarSheetBodyExtension 
@@ -304,19 +304,21 @@ namespace Xarial.XCad.SolidWorks.Geometry
             return planarFace.Definition.Plane;
         }
 
-        internal static SwCurve[] GetBoundary(this ISwPlanarSheetBody body)
+        internal static SwLoop[] GetBoundary(this ISwPlanarSheetBody body)
         {
             var face = body.Body.IGetFirstFace();
-            var edges = face.GetEdges() as object[];
-            var segs = new SwCurve[edges.Length];
 
-            for (int i = 0; i < segs.Length; i++)
+            var loops = (object[])face.GetLoops();
+
+            var res = new SwLoop[loops.Length];
+
+            for (int i = 0; i < loops.Length; i++)
             {
-                var curve = ((IEdge)edges[i]).IGetCurve();
-                segs[i] = ((SwObject)body).OwnerApplication.CreateObjectFromDispatch<SwCurve>(curve, ((SwObject)body).OwnerDocument);
+                var loop = (ILoop2)loops[i];
+                res[i] = ((SwObject)body).OwnerApplication.CreateObjectFromDispatch<SwLoop>(loop, ((SwObject)body).OwnerDocument);
             }
 
-            return segs;
+            return res;
         }
     }
 

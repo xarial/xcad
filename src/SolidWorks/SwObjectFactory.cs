@@ -293,6 +293,9 @@ namespace Xarial.XCad.SolidWorks
                             return new SwCurve(curve, doc, app, true);
                     }
 
+                case ILoop2 loop:
+                    return new SwLoop(loop, doc, app);
+
                 case ISurface surf:
                     var surfIdentity = (swSurfaceTypes_e)surf.Identity();
                     switch (surfIdentity)
