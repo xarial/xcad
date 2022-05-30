@@ -26,6 +26,8 @@ namespace Xarial.XCad.SolidWorks.Graphics
     [ComVisible(true)]
     public abstract class SwTriadHandler : ISwManipulatorHandler2
     {
+        internal event Action<swTriadManipulatorControlPoints_e> Selected;
+
         public void OnDirectionFlipped(object pManipulator)
         {
         }
@@ -34,6 +36,7 @@ namespace Xarial.XCad.SolidWorks.Graphics
 
         public void OnHandleSelected(object pManipulator, int handleIndex)
         {
+            Selected?.Invoke((swTriadManipulatorControlPoints_e)handleIndex);
         }
 
         public void OnUpdateDrag(object pManipulator, int handleIndex, object newPosMathPt)
@@ -65,6 +68,8 @@ namespace Xarial.XCad.SolidWorks.Graphics
 
     internal class SwTriad : SwObject, ISwTriad
     {
+        public event TriadSelectedDelegate Selected;
+
         private readonly SwDocument3D m_Doc;
 
         private readonly IElementCreator<ITriadManipulator> m_Creator;
@@ -84,6 +89,8 @@ namespace Xarial.XCad.SolidWorks.Graphics
 
             ValidateHandler(m_Handler);
 
+            m_Handler.Selected += OnSelected;
+
             m_Doc = doc;
             m_MathUtils = m_Doc.OwnerApplication.Sw.IGetMathUtility();
 
@@ -92,6 +99,35 @@ namespace Xarial.XCad.SolidWorks.Graphics
             Visible = true;
 
             m_WasShown = false;
+        }
+
+        private void OnSelected(swTriadManipulatorControlPoints_e handlerType)
+        {
+            TriadElements_e elem;
+
+            switch (handlerType) 
+            {
+                case swTriadManipulatorControlPoints_e.swTriadManipulatorOrigin:
+                    elem = TriadElements_e.Origin;
+                    break;
+
+                case swTriadManipulatorControlPoints_e.swTriadManipulatorXAxis:
+                    elem = TriadElements_e.AxisX;
+                    break;
+
+                case swTriadManipulatorControlPoints_e.swTriadManipulatorYAxis:
+                    elem = TriadElements_e.AxisY;
+                    break;
+
+                case swTriadManipulatorControlPoints_e.swTriadManipulatorZAxis:
+                    elem = TriadElements_e.AxisZ;
+                    break;
+
+                default:
+                    throw new NotSupportedException();
+            }
+
+            Selected?.Invoke(this, elem);
         }
 
         public override object Dispatch => Triad;

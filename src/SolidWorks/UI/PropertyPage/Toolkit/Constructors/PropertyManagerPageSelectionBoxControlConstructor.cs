@@ -101,6 +101,9 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
                     swCtrl.SetSelectionColor(true, (int)selAtt.SelectionColor);
                 }
 
+                swCtrl.AllowMultipleSelectOfSameEntity = selAtt.AllowDuplicateEntity;
+                swCtrl.AllowSelectInMultipleBoxes = selAtt.AllowSharedEntity;
+
                 if (selAtt.Filters?.Any() == true)
                 {
                     filters = selAtt.Filters;

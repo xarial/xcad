@@ -39,10 +39,22 @@ namespace Xarial.XCad.Graphics
     }
 
     /// <summary>
+    /// Delegate for <see cref="IXTriad.Selected"/> event
+    /// </summary>
+    /// <param name="sender">Triad</param>
+    /// <param name="element">Element being selected</param>
+    public delegate void TriadSelectedDelegate(IXTriad sender, TriadElements_e element);
+
+    /// <summary>
     /// Represents the triad manipulator
     /// </summary>
     public interface IXTriad : IXObject, IXTransaction, IDisposable
     {
+        /// <summary>
+        /// Raised when the element of the triad is selected
+        /// </summary>
+        event TriadSelectedDelegate Selected;
+
         /// <summary>
         /// Elements of this triad
         /// </summary>

@@ -22,5 +22,7 @@ namespace Xarial.XCad.Documents
         /// </summary>
         /// <returns>Instance of triad manipulator</returns>
         IXTriad PreCreateTriad();
+
+        IXDragArrow PreCreateDragArrow();
     }
 }

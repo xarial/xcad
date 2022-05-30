@@ -63,6 +63,11 @@ namespace SwAddInExample
     }
 
     [ComVisible(true)]
+    public class SwDefaultDragArrowHandler : SwDragArrowHandler
+    {
+    }
+
+    [ComVisible(true)]
     public class SwDefaultPropertyManagerPageHandler : SwPropertyManagerPageHandler 
     {
     }
@@ -87,6 +92,12 @@ namespace SwAddInExample
         {
             public SwTriadHandler CreateHandler(ISldWorks app)
                 => new SwDefaultTriadHandler();
+        }
+
+        public class DefaultDragArrowHandlerProvider : IDragArrowHandlerProvider
+        {
+            public SwDragArrowHandler CreateHandler(ISldWorks app)
+                => new SwDefaultDragArrowHandler();
         }
 
         public class DictionaryControl : IControlDescriptor
@@ -160,7 +171,9 @@ namespace SwAddInExample
 
             CreateCallout,
 
-            CreateTriad
+            CreateTriad,
+
+            CreateDragArrow
         }
 
         [Icon(typeof(Resources), nameof(Resources.xarial))]
@@ -601,6 +614,26 @@ namespace SwAddInExample
                             m_Triad = null;
                         }
                         break;
+
+                    case Commands_e.CreateDragArrow:
+                        if (m_DragArrow == null)
+                        {
+                            m_DragArrow = ((IXDocument3D)Application.Documents.Active).Graphics.PreCreateDragArrow();
+                            m_DragArrow.Origin = new Xarial.XCad.Geometry.Structures.Point(0, 0, 0);
+                            m_DragArrow.Length = 0.1;
+                            m_DragArrow.Direction = new Vector(1, 0, 0);
+                            m_DragArrow.CanFlip = true;
+                            m_DragArrow.Flipped += OnDragArrowFlipped;
+                            m_DragArrow.Selected += OnDragArrowSelected;
+                            m_DragArrow.Commit();
+                        }
+                        else
+                        {
+                            m_DragArrow.Visible = false;
+                            m_DragArrow.Dispose();
+                            m_DragArrow = null;
+                        }
+                        break;
                 }
             }
             catch 
@@ -609,7 +642,17 @@ namespace SwAddInExample
             }
         }
 
+        private void OnDragArrowSelected(IXDragArrow sender)
+        {
+            sender.Direction *= -1;
+        }
+
+        private void OnDragArrowFlipped(IXDragArrow sender, Vector direction)
+        {
+        }
+
         private IXTriad m_Triad;
+        private IXDragArrow m_DragArrow;
 
         private bool Row1ValueChanged(IXCalloutBase callout, IXCalloutRow row, string newValue)
             => !string.IsNullOrEmpty(newValue);
@@ -627,6 +670,7 @@ namespace SwAddInExample
 
             collection.AddOrReplace<ICalloutHandlerProvider, DefaultCalloutHandlerProvider>();
             collection.AddOrReplace<ITriadHandlerProvider, DefaultTriadHandlerProvider>();
+            collection.AddOrReplace<IDragArrowHandlerProvider, DefaultDragArrowHandlerProvider>();
         }
 
         private void OnPageDataChanged()

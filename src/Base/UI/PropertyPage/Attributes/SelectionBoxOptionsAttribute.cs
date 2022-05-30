@@ -51,6 +51,16 @@ namespace Xarial.XCad.UI.PropertyPage.Attributes
         public bool Focused { get; set; }
 
         /// <summary>
+        /// Indicates that entity can be selected more then once in the same box
+        /// </summary>
+        public bool AllowDuplicateEntity { get; set; }
+
+        /// <summary>
+        /// indicates that entity can be selected in the different selection box
+        /// </summary>
+        public bool AllowSharedEntity { get; set; }
+
+        /// <summary>
         /// Constructor for selection box options
         /// </summary>
         /// <param name="style">Selection box style</param>
