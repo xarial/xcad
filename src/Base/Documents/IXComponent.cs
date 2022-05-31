@@ -119,7 +119,7 @@ namespace Xarial.XCad.Documents
         /// <param name="compFilter">Filter for components</param>
         /// <param name="bodyFilter">Filter for bodies</param>
         /// <returns>Bodies enumeration</returns>
-        public static IEnumerable<IXBody> IterateBodies(IXComponent comp, Predicate<IXComponent> compFilter, Predicate<IXBody> bodyFilter)
+        public static IEnumerable<IXBody> IterateBodies(this IXComponent comp, Predicate<IXComponent> compFilter, Predicate<IXBody> bodyFilter)
         {
             IEnumerable<IXComponent> SelectComponents(IXComponent parent)
             {
