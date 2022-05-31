@@ -89,6 +89,22 @@ namespace Xarial.XCad.SolidWorks.Geometry
             }
         }
 
+        public bool Precise
+        {
+            get => m_Creator.CachedProperties.Get<bool>();
+            set
+            {
+                if (!IsCommitted)
+                {
+                    m_Creator.CachedProperties.Set(value);
+                }
+                else
+                {
+                    throw new CommittedElementPropertyChangeNotSupported();
+                }
+            }
+        }
+
         public PrincipalAxesOfInertia PrincipalAxesOfInertia
         {
             get
@@ -326,6 +342,15 @@ namespace Xarial.XCad.SolidWorks.Geometry
             });
             
             massPrps.UseSystemUnits = !UserUnits;
+
+            if (Precise)
+            {
+                massPrps.AccuracyLevel = (int)swMassPropertyAccuracyLevel_e.swMassPropertyAccuracyLevel_Higher;
+            }
+            else 
+            {
+                massPrps.AccuracyLevel = (int)swMassPropertyAccuracyLevel_e.swMassPropertyAccuracyLevel_Lower;
+            }
 
             m_IncludeHiddenBodiesDefault = massPrps.IncludeHiddenBodiesOrComponents;
 

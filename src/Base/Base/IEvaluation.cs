@@ -38,6 +38,11 @@ namespace Xarial.XCad.Base
         /// Bodies to include into the evaluation
         /// </summary>
         IXBody[] Scope { get; set; }
+
+        /// <summary>
+        /// True to calculate precise data, false to calculate approximate data
+        /// </summary>
+        bool Precise { get; set; }
     }
 
     /// <summary>

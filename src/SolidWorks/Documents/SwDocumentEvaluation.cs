@@ -43,6 +43,8 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
 
         public abstract IXRayIntersection PreCreateRayIntersection();
+
+        public abstract IXTessellation PreCreateTessellation();
     }
 
     internal class SwPartEvaluation : SwDocumentEvaluation 
@@ -68,6 +70,8 @@ namespace Xarial.XCad.SolidWorks.Documents
                 throw new NotSupportedException("Supported from SOLIDWORKS 2018 SP2");
             }
         }
+
+        public override IXTessellation PreCreateTessellation() => new SwPartTesselation(m_Part);
     }
 
     internal class SwAssemblyEvaluation : SwDocumentEvaluation, ISwAssemblyEvaluation
@@ -114,5 +118,11 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public override IXRayIntersection PreCreateRayIntersection()
             => (this as IXAssemblyEvaluation).PreCreateRayIntersection();
+
+        public override IXTessellation PreCreateTessellation()
+            => (this as IXAssemblyEvaluation).PreCreateTesselation();
+
+        IXAssemblyTessellation IXAssemblyEvaluation.PreCreateTesselation()
+            => new SwAssemblyTesselation(m_Assm);
     }
 }

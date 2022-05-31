@@ -25,8 +25,14 @@ namespace Xarial.XCad.Documents
         /// <summary>
         /// Pre creates ray intersection calculator
         /// </summary>
-        /// <returns>Rat intersection</returns>
+        /// <returns>Ray intersection</returns>
         IXRayIntersection PreCreateRayIntersection();
+
+        /// <summary>
+        /// Pre creates a geometry tesselation
+        /// </summary>
+        /// <returns>Tesselation</returns>
+        IXTessellation PreCreateTessellation();
     }
 
     /// <summary>
@@ -49,7 +55,13 @@ namespace Xarial.XCad.Documents
         /// <summary>
         /// Pre creates ray intersection calculator for assembly
         /// </summary>
-        /// <returns>Rat intersection</returns>
+        /// <returns>Ray intersection</returns>
         new IXAssemblyRayIntersection PreCreateRayIntersection();
+
+        /// <summary>
+        /// Pre creates a geometry tesselation for assembly
+        /// </summary>
+        /// <returns>Tesselation</returns>
+        new IXAssemblyTessellation PreCreateTesselation();
     }
 }

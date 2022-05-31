@@ -73,7 +73,10 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
     internal abstract class SwRayIntersection : ISwRayIntersection
     {
+        //TODO: implement relative to matrix
         public TransformMatrix RelativeTo { get => TransformMatrix.Identity; set => throw new NotImplementedException(); }
+        
+        //TODO: implement handling of user units
         public bool UserUnits { get => false; set => throw new NotImplementedException(); }
 
         public bool VisibleOnly
@@ -112,6 +115,22 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         public IXRay[] Rays => m_RaysList.ToArray();
 
+        public bool Precise
+        {
+            get => m_Creator.CachedProperties.Get<bool>();
+            set
+            {
+                if (!IsCommitted)
+                {
+                    m_Creator.CachedProperties.Set(value);
+                }
+                else
+                {
+                    throw new CommittedElementPropertyChangeNotSupported();
+                }
+            }
+        }
+
         private List<SwRay> m_RaysList;
 
         public void Commit(CancellationToken cancellationToken)
@@ -130,7 +149,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
                 m_RaysList.SelectMany(r => r.Axis.RefPoint.ToArray()).ToArray(),
                 m_RaysList.SelectMany(r => r.Axis.Direction.ToArray()).ToArray(),
                 (int)(swRayPtsOpts_e.swRayPtsOptsTOPOLS | swRayPtsOpts_e.swRayPtsOptsNORMALS | swRayPtsOpts_e.swRayPtsOptsENTRY_EXIT),
-                0.00001, 0, false);
+                0.00001, 0, Precise);
 
             var topo = m_Doc.Model.GetRayIntersectionsTopology() as object[];
             var topoData = m_Doc.Model.GetRayIntersectionsPoints() as double[];

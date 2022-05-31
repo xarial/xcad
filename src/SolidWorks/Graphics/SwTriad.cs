@@ -364,7 +364,11 @@ namespace Xarial.XCad.SolidWorks.Graphics
 
         public void Dispose()
         {
-            m_Manipulator.Remove();
+            if (m_Manipulator != null)
+            {
+                m_Manipulator.Remove();
+                m_Manipulator = null;
+            }
         }
     }
 }

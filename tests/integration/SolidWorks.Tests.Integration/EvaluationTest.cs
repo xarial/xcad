@@ -19,6 +19,14 @@ namespace SolidWorks.Tests.Integration
 {
     public class EvaluationTest : IntegrationTests
     {
+        public class DoubleComparer : IEqualityComparer<double>
+        {
+            public bool Equals(double x, double y)
+                => Math.Abs(x - y) < 1E-10;
+
+            public int GetHashCode(double obj) => 0;
+        }
+
         [Test]
         public void BodyVolumeTest()
         {
@@ -2834,6 +2842,92 @@ namespace SolidWorks.Tests.Integration
                     volume = ex;
                 }
             }
+        }
+
+        [Test]
+        public void TessellatePartTest()
+        {
+            TesselationTriangle[] triangs;
+
+            using (var doc = OpenDataDocument("TessPart1.SLDPRT"))
+            {
+                var part = (IXPart)m_App.Documents.Active;
+                var tess = part.Evaluation.PreCreateTessellation();
+                tess.Commit();
+                triangs = tess.Triangles.ToArray();
+            }
+
+            var side1 = triangs.Where(t => t.Normal.ToArray().SequenceEqual(new double[] { 1, 0, 0 }, new DoubleComparer())).ToArray();
+            var side2 = triangs.Where(t => t.Normal.ToArray().SequenceEqual(new double[] { -1, 0, 0 }, new DoubleComparer())).ToArray();
+            var side3 = triangs.Where(t => t.Normal.ToArray().SequenceEqual(new double[] { 0, 1, 0 }, new DoubleComparer())).ToArray();
+            var side4 = triangs.Where(t => t.Normal.ToArray().SequenceEqual(new double[] { 0, -1, 0 }, new DoubleComparer())).ToArray();
+            var side5 = triangs.Where(t => t.Normal.ToArray().SequenceEqual(new double[] { 0, 0, 1 }, new DoubleComparer())).ToArray();
+            var side6 = triangs.Where(t => t.Normal.ToArray().SequenceEqual(new double[] { 0, 0, -1 }, new DoubleComparer())).ToArray();
+
+            var side1Pts = new Point[]
+            {
+                side1[0].FirstPoint,
+                side1[0].SecondPoint,
+                side1[0].ThirdPoint,
+                side1[1].FirstPoint,
+                side1[1].SecondPoint,
+                side1[1].ThirdPoint
+            };
+            
+            Assert.AreEqual(12, triangs.Length);
+            Assert.AreEqual(2, side1.Length);
+            Assert.AreEqual(2, side2.Length);
+            Assert.AreEqual(2, side3.Length);
+            Assert.AreEqual(2, side4.Length);
+            Assert.AreEqual(2, side5.Length);
+            Assert.AreEqual(2, side6.Length);
+            Assert.That(side1Pts.Any(p => p.ToArray().SequenceEqual(new double[] { 0.025, 0.0125, -0.005 }, new DoubleComparer())));
+            Assert.That(side1Pts.Any(p => p.ToArray().SequenceEqual(new double[] { 0.025, -0.0125, -0.005 }, new DoubleComparer())));
+            Assert.That(side1Pts.Any(p => p.ToArray().SequenceEqual(new double[] { 0.025, 0.0125, 0.005 }, new DoubleComparer())));
+            Assert.That(side1Pts.Any(p => p.ToArray().SequenceEqual(new double[] { 0.025, -0.0125, 0.005 }, new DoubleComparer())));
+        }
+
+        [Test]
+        public void TessellateAssemblyTest()
+        {
+            TesselationTriangle[] triangs;
+
+            using (var doc = OpenDataDocument("TessAssm1.SLDASM"))
+            {
+                var assm = (IXAssembly)m_App.Documents.Active;
+                var tess = assm.Evaluation.PreCreateTessellation();
+                tess.Commit();
+                triangs = tess.Triangles.ToArray();
+            }
+
+            var side1 = triangs.Where(t => t.Normal.ToArray().SequenceEqual(new double[] { 1, 0, 0 }, new DoubleComparer())).ToArray();
+            var side2 = triangs.Where(t => t.Normal.ToArray().SequenceEqual(new double[] { -1, 0, 0 }, new DoubleComparer())).ToArray();
+            var side3 = triangs.Where(t => t.Normal.ToArray().SequenceEqual(new double[] { 0, 1, 0 }, new DoubleComparer())).ToArray();
+            var side4 = triangs.Where(t => t.Normal.ToArray().SequenceEqual(new double[] { 0, -1, 0 }, new DoubleComparer())).ToArray();
+            var side5 = triangs.Where(t => t.Normal.ToArray().SequenceEqual(new double[] { 0, 0, 1 }, new DoubleComparer())).ToArray();
+            var side6 = triangs.Where(t => t.Normal.ToArray().SequenceEqual(new double[] { 0, 0, -1 }, new DoubleComparer())).ToArray();
+
+            var side1Pts = new Point[]
+            {
+                side1[0].FirstPoint,
+                side1[0].SecondPoint,
+                side1[0].ThirdPoint,
+                side1[1].FirstPoint,
+                side1[1].SecondPoint,
+                side1[1].ThirdPoint
+            };
+
+            Assert.AreEqual(12, triangs.Length);
+            Assert.AreEqual(2, side1.Length);
+            Assert.AreEqual(2, side2.Length);
+            Assert.AreEqual(2, side3.Length);
+            Assert.AreEqual(2, side4.Length);
+            Assert.AreEqual(2, side5.Length);
+            Assert.AreEqual(2, side6.Length);
+            Assert.That(side1Pts.Any(p => p.ToArray().SequenceEqual(new double[] { 0.025, 0.0125, -0.005 }, new DoubleComparer())));
+            Assert.That(side1Pts.Any(p => p.ToArray().SequenceEqual(new double[] { 0.025, -0.0125, -0.005 }, new DoubleComparer())));
+            Assert.That(side1Pts.Any(p => p.ToArray().SequenceEqual(new double[] { 0.025, 0.0125, 0.005 }, new DoubleComparer())));
+            Assert.That(side1Pts.Any(p => p.ToArray().SequenceEqual(new double[] { 0.025, -0.0125, 0.005 }, new DoubleComparer())));
         }
     }
 }

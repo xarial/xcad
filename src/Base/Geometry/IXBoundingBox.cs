@@ -23,11 +23,6 @@ namespace Xarial.XCad.Geometry
         /// Bounding box data
         /// </summary>
         Box3D Box { get; }
-
-        /// <summary>
-        /// True to calculate precise bounding box, false to calculate approximate bounding box
-        /// </summary>
-        bool Precise { get; set; }
     }
 
     /// <summary>
