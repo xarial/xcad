@@ -140,7 +140,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
         {
             var bodies = Scope;
 
-            if(bodies == null) 
+            if(bodies?.Any() != true) 
             {
                 bodies = GetAllBodies();
             }

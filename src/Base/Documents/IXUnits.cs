@@ -196,7 +196,10 @@ namespace Xarial.XCad.Documents
     /// </summary>
     public static class XUnitsExtension 
     {
-        private static readonly Dictionary<Length_e, double> m_LengthConvFactor = new Dictionary<Length_e, double>()
+        /// <summary>
+        /// Conversion factor from system units (meters) to the specific length units
+        /// </summary>
+        public static Dictionary<Length_e, double> LengthConversionFactor { get; } = new Dictionary<Length_e, double>()
         {
             { Length_e.Angstroms, 1e+10 },
             { Length_e.Nanometers, 1e+9  },
@@ -210,7 +213,10 @@ namespace Xarial.XCad.Documents
             { Length_e.Feet, 3.280839895 }
         };
 
-        private static readonly Dictionary<Mass_e, double> m_MassConvFactor = new Dictionary<Mass_e, double>()
+        /// <summary>
+        /// Conversion factor from system units (kilograms) to the specific mass units
+        /// </summary>
+        public static Dictionary<Mass_e, double> MassConversionFactor { get; } = new Dictionary<Mass_e, double>()
         {
             { Mass_e.Milligrams, 1000000 },
             { Mass_e.Grams, 1000 },
@@ -218,13 +224,19 @@ namespace Xarial.XCad.Documents
             { Mass_e.Pounds, 2.2046226218 }
         };
 
-        private static readonly Dictionary<Angle_e, double> m_AngleConvFactor = new Dictionary<Angle_e, double>()
+        /// <summary>
+        /// Conversion factor from system units (radians) to the specific angle units
+        /// </summary>
+        public static Dictionary<Angle_e, double> AngleConversionFactor { get; } = new Dictionary<Angle_e, double>()
         {
             { Angle_e.Degrees, 180 / Math.PI },
             { Angle_e.Radians, 1 }
         };
 
-        private static readonly Dictionary<Time_e, double> m_TimeConvFactor = new Dictionary<Time_e, double>()
+        /// <summary>
+        /// Conversion factor from system units (seconds) to the specific time units
+        /// </summary>
+        public static Dictionary<Time_e, double> TimeConversionFactor { get; } = new Dictionary<Time_e, double>()
         {
             { Time_e.Seconds, 1 },
             { Time_e.Milliseconds, 1000 },
@@ -235,12 +247,62 @@ namespace Xarial.XCad.Documents
         };
 
         /// <summary>
+        /// Abbreviation of the length specific unit
+        /// </summary>
+        public static Dictionary<Length_e, string> LengthAbbreviation { get; } = new Dictionary<Length_e, string>
+        {
+            { Length_e.Angstroms, "Å" },
+            { Length_e.Nanometers, "nm" },
+            { Length_e.Microns, "μ" },
+            { Length_e.Millimeters, "mm" },
+            { Length_e.Centimeters, "cm" },
+            { Length_e.Meters, "m" },
+            { Length_e.Microinches, "µin" },
+            { Length_e.Mils, "mil" },
+            { Length_e.Inches, "in" },
+            { Length_e.Feet, "ft" }
+        };
+
+        /// <summary>
+        /// Abbreviation of the mass specific unit
+        /// </summary>
+        public static Dictionary<Mass_e, string> MassAbbreviation { get; } = new Dictionary<Mass_e, string>
+        {       
+            { Mass_e.Milligrams, "mg" },
+            { Mass_e.Grams, "g" },
+            { Mass_e.Kilograms, "kg" },
+            { Mass_e.Pounds, "lb" }
+        };
+
+        /// <summary>
+        /// Abbreviation of the angle specific unit
+        /// </summary>
+        public static Dictionary<Angle_e, string> AngleAbbreviation { get; } = new Dictionary<Angle_e, string>
+        {
+            { Angle_e.Degrees, "°" },
+            { Angle_e.Radians, "rad" }
+        };
+
+        /// <summary>
+        /// Abbreviation of the time specific unit
+        /// </summary>
+        public static Dictionary<Time_e, string> TimeAbbreviation { get; } = new Dictionary<Time_e, string>
+        {
+            { Time_e.Seconds, "sec" },
+            { Time_e.Milliseconds, "msec" },
+            { Time_e.Microseconds, "µsec" },
+            { Time_e.Nanoseconds, "nsec" },
+            { Time_e.Minutes, "min" },
+            { Time_e.Hours, "hr" }
+        };
+
+        /// <summary>
         /// Gets the length conversion factor from system units (meters) to user units
         /// </summary>
         /// <param name="unit">Units</param>
         /// <returns>Conversion factor</returns>
         public static double GetLengthConversionFactor(this IXUnits unit)
-            => m_LengthConvFactor[unit.Length];
+            => LengthConversionFactor[unit.Length];
 
         /// <summary>
         /// Gets the mass conversion factor from system units (kilograms) to user units
@@ -248,7 +310,7 @@ namespace Xarial.XCad.Documents
         /// <param name="unit">Units</param>
         /// <returns>Conversion factor</returns>
         public static double GetMassConversionFactor(this IXUnits unit)
-            => m_MassConvFactor[unit.Mass];
+            => MassConversionFactor[unit.Mass];
 
         /// <summary>
         /// Gets the angle conversion factor from system units (radians) to user units
@@ -256,7 +318,7 @@ namespace Xarial.XCad.Documents
         /// <param name="unit">Units</param>
         /// <returns>Conversion factor</returns>
         public static double GetAngleConversionFactor(this IXUnits unit)
-            => m_AngleConvFactor[unit.Angle];
+            => AngleConversionFactor[unit.Angle];
 
         /// <summary>
         /// Gets the time conversion factor from system units (seconds) to user units
@@ -264,7 +326,7 @@ namespace Xarial.XCad.Documents
         /// <param name="unit">Units</param>
         /// <returns>Conversion factor</returns>
         public static double GetTimeConversionFactor(this IXUnits unit)
-            => m_TimeConvFactor[unit.Time];
+            => TimeConversionFactor[unit.Time];
 
         /// <summary>
         /// Converts the length value from the user units to system units (meters)
@@ -343,44 +405,7 @@ namespace Xarial.XCad.Documents
         /// </summary>
         /// <param name="unit">Units</param>
         /// <returns>Length unit abbreviation</returns>
-        public static string GetLengthAbbreviation(this IXUnits unit)
-        {
-            switch (unit.Length)
-            {
-                case Length_e.Angstroms:
-                    return "Å";
-
-                case Length_e.Nanometers:
-                    return "nm";
-
-                case Length_e.Microns:
-                    return "μ";
-
-                case Length_e.Millimeters:
-                    return "mm";
-
-                case Length_e.Centimeters:
-                    return "cm";
-
-                case Length_e.Meters:
-                    return "m";
-
-                case Length_e.Microinches:
-                    return "µin";
-
-                case Length_e.Mils:
-                    return "mil";
-
-                case Length_e.Inches:
-                    return "in";
-
-                case Length_e.Feet:
-                    return "ft";
-
-                default:
-                    throw new NotSupportedException();
-            }
-        }
+        public static string GetLengthAbbreviation(this IXUnits unit) => LengthAbbreviation[unit.Length];
 
 
         /// <summary>
@@ -388,78 +413,20 @@ namespace Xarial.XCad.Documents
         /// </summary>
         /// <param name="unit">Units</param>
         /// <returns>Mass unit abbreviation</returns>
-        public static string GetMassAbbreviation(this IXUnits unit)
-        {
-            switch (unit.Mass)
-            {
-                case Mass_e.Milligrams:
-                    return "mg";
-
-                case Mass_e.Grams:
-                    return "g";
-
-                case Mass_e.Kilograms:
-                    return "kg";
-
-                case Mass_e.Pounds:
-                    return "lb";
-
-                default:
-                    throw new NotSupportedException();
-            }
-        }
+        public static string GetMassAbbreviation(this IXUnits unit) => MassAbbreviation[unit.Mass];
 
         /// <summary>
         /// Gets the abbreviation (short name) of current angle units
         /// </summary>
         /// <param name="unit">Units</param>
         /// <returns>Angle unit abbreviation</returns>
-        public static string GetAngleAbbreviation(this IXUnits unit)
-        {
-            switch (unit.Angle)
-            {
-                case Angle_e.Degrees:
-                    return "°";
-
-                case Angle_e.Radians:
-                    return "rad";
-
-                default:
-                    throw new NotSupportedException();
-            }
-        }
+        public static string GetAngleAbbreviation(this IXUnits unit) => AngleAbbreviation[unit.Angle];
 
         /// <summary>
         /// Gets the abbreviation (short name) of current time units
         /// </summary>
         /// <param name="unit">Units</param>
         /// <returns>Time unit abbreviation</returns>
-        public static string GetTimeAbbreviation(this IXUnits unit)
-        {
-            switch (unit.Time)
-            {
-
-                case Time_e.Seconds:
-                    return "sec";
-
-                case Time_e.Milliseconds:
-                    return "msec";
-
-                case Time_e.Microseconds:
-                    return "µsec";
-
-                case Time_e.Nanoseconds:
-                    return "nsec";
-
-                case Time_e.Minutes:
-                    return "min";
-
-                case Time_e.Hours:
-                    return "hr";
-
-                default:
-                    throw new NotSupportedException();
-            }
-        }
+        public static string GetTimeAbbreviation(this IXUnits unit) => TimeAbbreviation[unit.Time];
     }
 }
