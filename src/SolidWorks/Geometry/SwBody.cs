@@ -11,6 +11,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using Xarial.XCad.Documents;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Exceptions;
 using Xarial.XCad.Geometry.Structures;
@@ -26,6 +27,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
     {
         IBody2 Body { get; }
 
+        new ISwComponent Component { get; }
         ISwBody Add(ISwBody other);
         ISwBody[] Substract(ISwBody other);
         ISwBody[] Common(ISwBody other);
@@ -36,6 +38,8 @@ namespace Xarial.XCad.SolidWorks.Geometry
         IXBody IXBody.Add(IXBody other) => Add((ISwBody)other);
         IXBody[] IXBody.Substract(IXBody other) => Substract((ISwBody)other);
         IXBody[] IXBody.Common(IXBody other) => Common((ISwBody)other);
+        
+        IXComponent IXBody.Component => Component;
 
         IXObject IResilientibleObject.CreateResilient() => CreateResilient();
 
@@ -81,7 +85,39 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         public string Name => Body.Name;
 
-        private IComponent2 Component => (Body.IGetFirstFace() as IEntity)?.GetComponent() as IComponent2;
+        //public IXComponent 
+        //{
+        //    get 
+        //    {
+        //        var comp = (IComponent2)Entity.GetComponent();
+
+        //        if (comp != null)
+        //        {
+        //            return OwnerDocument.CreateObjectFromDispatch<ISwComponent>(comp);
+        //        }
+        //        else 
+        //        {
+        //            return null;
+        //        }
+        //    }
+        //}
+
+        public ISwComponent Component 
+        {
+            get
+            {
+                var comp = (Body.IGetFirstFace() as IEntity)?.GetComponent() as IComponent2;
+
+                if (comp != null)
+                {
+                    return OwnerDocument.CreateObjectFromDispatch<ISwComponent>(comp);
+                }
+                else
+                {
+                    return null;
+                }
+            }
+        }
 
         public Color? Color
         {
@@ -95,7 +131,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
                 }
                 else 
                 {
-                    SwColorHelper.GetColorScope(Component, 
+                    SwColorHelper.GetColorScope(Component?.Component, 
                         out swInConfigurationOpts_e confOpts, out string[] confs);
 
                     Body.RemoveMaterialProperty((int)confOpts, confs);

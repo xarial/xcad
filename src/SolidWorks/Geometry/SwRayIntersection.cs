@@ -144,6 +144,23 @@ namespace Xarial.XCad.SolidWorks.Geometry
             {
                 bodies = GetAllBodies();
             }
+
+            //assembly bodies must be transformed to the assembly space
+            bodies = bodies.Select(b => 
+            {
+                var comp = b.Component;
+
+                if (comp != null)
+                {
+                    var copy = b.Copy();
+                    copy.Transform(comp.Transformation);
+                    return copy;
+                }
+                else 
+                {
+                    return b;
+                }
+            }).ToArray();
             
             var intersectCount = m_Doc.Model.Extension.RayIntersections(bodies.Cast<ISwBody>().Select(b => b.Body).ToArray(),
                 m_RaysList.SelectMany(r => r.Axis.RefPoint.ToArray()).ToArray(),
@@ -279,7 +296,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
                 }
                 else
                 {
-                    return comps.SelectMany(c => c.IterateBodies(!VisibleOnly, true)).ToArray();
+                    return comps.SelectMany(c => c.IterateBodies(!VisibleOnly)).ToArray();
                 }
             }
             set => base.Scope = value;
@@ -302,6 +319,6 @@ namespace Xarial.XCad.SolidWorks.Geometry
         }
 
         protected override IXBody[] GetAllBodies()
-            => m_Assm.Configurations.Active.Components.SelectMany(c => c.IterateBodies(!VisibleOnly, true)).ToArray();
+            => m_Assm.Configurations.Active.Components.SelectMany(c => c.IterateBodies(!VisibleOnly)).ToArray();
     }
 }

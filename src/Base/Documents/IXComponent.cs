@@ -102,20 +102,24 @@ namespace Xarial.XCad.Documents
     public static class XComponentExtension 
     {
         /// <summary>
-        /// Gets all bodies from the components
+        /// Iterates all bodies from the components
         /// </summary>
         /// <param name="comp">Component</param>
         /// <param name="includeHidden">True to include all bodies, false to only include visible</param>
-        /// <param name="transform">True to transform body to assembly space</param>
         /// <returns>Bodies</returns>
-        public static IEnumerable<IXBody> IterateBodies(this IXComponent comp, bool includeHidden = false, bool transform = false)
-            => IterateComponentBodies(new IXComponent[] { comp }, includeHidden, transform);
-
-        /// <inheritdoc cref="IterateBodies(IXComponent, bool, bool)"/>
-        public static IEnumerable<IXBody> IterateBodies(this IXComponentRepository comps, bool includeHidden = false, bool transform = false)
-            => IterateComponentBodies(comps, includeHidden, transform);
-
-        private static IEnumerable<IXBody> IterateComponentBodies(IEnumerable<IXComponent> comps, bool includeHidden, bool transform)
+        public static IEnumerable<IXBody> IterateBodies(this IXComponent comp, bool includeHidden = false)
+            => IterateBodies(comp,
+                c => includeHidden || !c.State.HasFlag(ComponentState_e.Hidden),
+                b => includeHidden || b.Visible);
+        
+        /// <summary>
+        /// Iterates all bodies from the component with the specified filter
+        /// </summary>
+        /// <param name="comp">Component to get bodies from</param>
+        /// <param name="compFilter">Filter for components</param>
+        /// <param name="bodyFilter">Filter for bodies</param>
+        /// <returns>Bodies enumeration</returns>
+        public static IEnumerable<IXBody> IterateBodies(IXComponent comp, Predicate<IXComponent> compFilter, Predicate<IXBody> bodyFilter)
         {
             IEnumerable<IXComponent> SelectComponents(IXComponent parent)
             {
@@ -123,7 +127,7 @@ namespace Xarial.XCad.Documents
 
                 if (!state.HasFlag(ComponentState_e.Suppressed) && !state.HasFlag(ComponentState_e.SuppressedIdMismatch))
                 {
-                    if (includeHidden || !state.HasFlag(ComponentState_e.Hidden))
+                    if (compFilter.Invoke(parent))
                     {
                         yield return parent;
 
@@ -144,28 +148,12 @@ namespace Xarial.XCad.Documents
             }
 
             IXBody[] GetComponentBodies(IXComponent srcComp)
-                => srcComp.Bodies.Where(b => includeHidden || b.Visible)
-                .Select(b => 
-                {
-                    if (transform)
-                    {
-                        var copy = b.Copy();
-                        copy.Transform(srcComp.Transformation);
-                        return copy;
-                    }
-                    else
-                    {
-                        return b;
-                    }
-                }).ToArray();
+                => srcComp.Bodies.Where(b => bodyFilter.Invoke(b)).ToArray();
 
-            foreach (var comp in comps)
-            {
-                foreach (var body in SelectComponents(comp)
+            foreach (var body in SelectComponents(comp)
                     .SelectMany(GetComponentBodies))
-                {
-                    yield return body;
-                }
+            {
+                yield return body;
             }
         }
     }

@@ -124,7 +124,23 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
             foreach (ISwBody body in bodies) 
             {
-                var tess = (ITessellation)body.Body.GetTessellation(null);
+                ISwBody tessBody;
+
+                var comp = body.Component;
+
+                //assembly bodies must be transformed to the assembly space
+                if (comp != null)
+                {
+                    var copy = body.Copy();
+                    copy.Transform(comp.Transformation);
+                    tessBody = (ISwBody)copy;
+                }
+                else
+                {
+                    tessBody = body;
+                }
+
+                var tess = (ITessellation)tessBody.Body.GetTessellation(null);
 
                 tess.NeedVertexNormal = true;
                 tess.ImprovedQuality = Precise;
@@ -193,7 +209,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
                 }
                 else
                 {
-                    return comps.SelectMany(c => c.IterateBodies(!VisibleOnly, true)).ToArray();
+                    return comps.SelectMany(c => c.IterateBodies(!VisibleOnly)).ToArray();
                 }
             }
             set => base.Scope = value;
@@ -216,6 +232,6 @@ namespace Xarial.XCad.SolidWorks.Geometry
         }
 
         protected override IXBody[] GetAllBodies()
-            => m_Assm.Configurations.Active.Components.SelectMany(c => c.IterateBodies(!VisibleOnly, true)).ToArray();
+            => m_Assm.Configurations.Active.Components.SelectMany(c => c.IterateBodies(!VisibleOnly)).ToArray();
     }
 }

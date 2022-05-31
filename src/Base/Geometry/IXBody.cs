@@ -30,6 +30,12 @@ namespace Xarial.XCad.Geometry
         bool Visible { get; set; }
 
         /// <summary>
+        /// parent component of this body if within assembly
+        /// </summary>
+        /// <remarks>Null is returned for the body in the part</remarks>
+        IXComponent Component { get; }
+
+        /// <summary>
         /// Boolean add operation on body
         /// </summary>
         /// <param name="other">Other body</param>

@@ -12,6 +12,7 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using Xarial.XCad.Base.Enums;
+using Xarial.XCad.Documents;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;
 
@@ -28,6 +29,7 @@ namespace Xarial.XCad.SwDocumentManager.Geometry
         public Color? Color { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
         public IEnumerable<IXFace> Faces => throw new NotSupportedException();
         public IEnumerable<IXEdge> Edges => throw new NotSupportedException();
+        public IXComponent Component => throw new NotSupportedException();
         public IXBody Add(IXBody other) => throw new NotSupportedException();
         public IXBody[] Common(IXBody other) => throw new NotSupportedException();
         public IXBody[] Substract(IXBody other) => throw new NotSupportedException();

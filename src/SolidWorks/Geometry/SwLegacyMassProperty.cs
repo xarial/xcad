@@ -769,8 +769,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
         }
 
         protected override IEnumerable<IXBody> IterateRootSolidBodies(bool includeHidden)
-            => m_Assm.Configurations.Active.Components
-            .IterateBodies(includeHidden).OfType<IXSolidBody>();
+            => m_Assm.Configurations.Active.Components.SelectMany(c => c.IterateBodies(includeHidden).OfType<IXSolidBody>());
 
         // NOTE: overridden mass properties are not supported correctly by IMassProperty as individual bodies are added to the alculation
         // and document level overrides are not ignored. As a workaround we perform the calculation on the document level and adjusting to the assembly level
