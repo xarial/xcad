@@ -45,6 +45,42 @@ namespace Xarial.XCad.SwDocumentManager.Documents
     [DebuggerDisplay("{" + nameof(Title) + "}")]
     internal abstract class SwDmDocument : SwDmObject, ISwDmDocument
     {
+        /// <summary>
+        /// <see cref="ISwDmComponent.CachedPath"/> returns the last path when file was saved within SOLIDWORKS
+        /// If files were renamed with Pack&Go, SOLIDWORKS File Utilities, PDM or Document Manager cached path will not be changed until opened
+        /// </summary>
+        internal class ChangedReferencesCollection 
+        {
+            private readonly string[] m_OriginalReferences;
+            private readonly string[] m_NewReferences;
+
+            internal ChangedReferencesCollection(ISwDMDocument doc) 
+            {
+                ((ISwDMDocument8)doc).GetChangedReferences(out object origRefs, out object newRefs);
+
+                m_OriginalReferences = (string[])origRefs ?? new string[0];
+                m_NewReferences = (string[])newRefs ?? new string[0];
+
+                if (m_OriginalReferences.Length != m_NewReferences.Length) 
+                {
+                    throw new Exception("Count of original references does not match count of new references");
+                }
+            }
+
+            internal IEnumerable<string> EnumerateByFileName(string filePath) 
+            {
+                for (int i = 0; i < m_OriginalReferences.Length; i++)
+                {
+                    var origRef = m_OriginalReferences[i];
+
+                    if (string.Equals(System.IO.Path.GetFileName(origRef), System.IO.Path.GetFileName(filePath), StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        yield return m_NewReferences[i];
+                    }
+                }
+            }
+        }
+
         internal static SwDmDocumentType GetDocumentType(string path)
         {
             SwDmDocumentType docType;
@@ -356,12 +392,15 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         internal protected ISwDmApplication SwDmApp { get; }
 
+        internal ChangedReferencesCollection ChangedReferences => m_ChangedReferencesLazy.Value;
+
         protected readonly Action<ISwDmDocument> m_CreateHandler;
         protected readonly Action<ISwDmDocument> m_CloseHandler;
 
         private readonly Lazy<ISwDmCustomPropertiesCollection> m_Properties;
 
         private readonly List<ISwDmDocument3D> m_VirtualDocumentsCache;
+        private readonly Lazy<ChangedReferencesCollection> m_ChangedReferencesLazy;
 
         internal SwDmDocument(ISwDmApplication dmApp, ISwDMDocument doc, bool isCreated, 
             Action<ISwDmDocument> createHandler, Action<ISwDmDocument> closeHandler,
@@ -379,6 +418,8 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             m_Creator = new ElementCreator<ISwDMDocument>(OpenDocument, doc, isCreated);
 
             m_Properties = new Lazy<ISwDmCustomPropertiesCollection>(() => new SwDmDocumentCustomPropertiesCollection(this));
+
+            m_ChangedReferencesLazy = new Lazy<ChangedReferencesCollection>(() => new ChangedReferencesCollection(Document));
         }
 
         public override object Dispatch => Document;

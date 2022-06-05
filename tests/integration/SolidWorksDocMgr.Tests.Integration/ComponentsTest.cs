@@ -534,5 +534,27 @@ namespace SolidWorksDocMgr.Tests.Integration
             Assert.AreEqual(refs["Assem3-1/Assem2-1/Part1-1"], new Tuple<string, bool>(Path.Combine(destPath, @"Parts\Part1.SLDPRT").ToLower(), true));
             Assert.AreEqual(refs["Assem3-1/Assem2-1/Part4-1"], new Tuple<string, bool>(Path.Combine(tempSrcAssmPath, @"Parts\Part4.SLDPRT").ToLower(), false));
         }
+
+        [Test]
+        public void ChangedReferencesTest()
+        {
+            int count;
+            string refPath;
+            bool isCommitted;
+
+            using (var doc = OpenDataDocument(@"Assembly12\Assem1.SLDASM"))
+            {
+                var assm = (ISwDmAssembly)m_App.Documents.Active;
+
+                var refDocs = assm.Configurations.Active.Components.Select(c => c.ReferencedDocument).ToArray();
+                isCommitted = refDocs[0].IsCommitted;
+                count = refDocs.Length;
+                refPath = refDocs[0].Path;
+            }
+
+            Assert.AreEqual(1, count);
+            Assert.IsTrue(isCommitted);
+            Assert.That(string.Equals(refPath, GetFilePath(@"Assembly12\_Part1.sldprt"), StringComparison.CurrentCultureIgnoreCase));
+        }
     }
 }

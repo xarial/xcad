@@ -23,9 +23,8 @@ namespace Xarial.XCad.SwDocumentManager.Documents
     {
         #region Not Supported
         
-        public IXAssemblyEvaluation Evaluation => throw new NotSupportedException();
         IXAssemblyEvaluation IXAssembly.Evaluation => throw new NotSupportedException();
-        public IXComponent EditingComponent => throw new NotSupportedException();
+        IXComponent IXAssembly.EditingComponent => throw new NotSupportedException();
 
         #endregion
 

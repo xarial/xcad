@@ -74,9 +74,18 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
             m_PathLazy = new Lazy<string>(() => 
             {
-                var rootDir = System.IO.Path.GetDirectoryName(ParentAssembly.Path);
+                var rootDir = Path.GetDirectoryName(ParentAssembly.Path);
 
-                return m_FilePathResolver.ResolvePath(rootDir, CachedPath);
+                var cachedPath = CachedPath;
+
+                var changedPath = ParentAssembly.ChangedReferences.EnumerateByFileName(cachedPath).LastOrDefault();
+
+                if (!string.IsNullOrEmpty(changedPath))
+                {
+                    cachedPath = changedPath;
+                }
+
+                return m_FilePathResolver.ResolvePath(rootDir, cachedPath);
             });
 
             m_ChildrenLazy = new Lazy<IXComponentRepository>(() => 
@@ -227,7 +236,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
                     var isVirtual = ((ISwDMComponent3)Component).IsVirtual;
 
-                    //NOTE: Do not use ISwDMComponent4::GetDocument2 to get the document as it will firstly load the file from the cached path which may result in th wrong file loaded if assembly is copied
+                    //NOTE: Do not use ISwDMComponent4::GetDocument2 to get the document as it will firstly load the file from the cached path which may result in the wrong file loaded if assembly is copied
                     if (isVirtual)
                     {
                         var searchOpts = ParentAssembly.SwDmApp.SwDocMgr.GetSearchOptionObject();
