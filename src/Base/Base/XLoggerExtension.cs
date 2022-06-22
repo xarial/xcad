@@ -16,7 +16,7 @@ namespace Xarial.XCad.Base
     /// <summary>
     /// Additional extension methods for the logger
     /// </summary>
-    public static class ILoggerExtension
+    public static class XLoggerExtension
     {
         /// <summary>
         /// Prints the message to trace
