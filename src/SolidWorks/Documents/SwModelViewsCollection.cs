@@ -45,7 +45,22 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public int Count => throw new NotImplementedException();
 
-        public ISwModelView Active => m_Doc.CreateObjectFromDispatch<ISwModelView>(m_Doc.Model.IActiveView);
+        public ISwModelView Active
+        {
+            get
+            {
+                var activeView = m_Doc.Model.IActiveView;
+
+                if (activeView != null)
+                {
+                    return m_Doc.CreateObjectFromDispatch<ISwModelView>(activeView);
+                }
+                else 
+                {
+                    return null;
+                }
+            }
+        }
 
         public ISwNamedView this[string name] => (ISwNamedView)RepositoryHelper.Get(this, name);
 
