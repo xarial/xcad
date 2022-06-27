@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.1;net461</TargetFrameworks>
+    <TargetFrameworks>net6.0;netstandard2.1;net461</TargetFrameworks>
     <AssemblyName>Xarial.XCad</AssemblyName>
     <RootNamespace>Xarial.XCad</RootNamespace>
     <SignAssembly>false</SignAssembly>
