@@ -171,7 +171,7 @@ namespace Xarial.XCad.SolidWorks
 
                 m_Application = new SwApplication(app, OnStartupCompleted);
 
-                var svcCollection = GetServicesCollection();
+                var svcCollection = GetServiceCollection();
 
                 ConfigureServices?.Invoke(this, svcCollection);
                 OnConfigureServices(svcCollection);
@@ -214,23 +214,25 @@ namespace Xarial.XCad.SolidWorks
             }
         }
 
-        private IXServiceCollection GetServicesCollection()
+        private IXServiceCollection GetServiceCollection()
         {
-            var svcCollection = new ServiceCollection();
+            var svcCollection = CreateServiceCollection();
 
             var addInType = this.GetType();
             var title = GetRegistrationHelper(addInType).GetTitle(addInType);
 
-            svcCollection.AddOrReplace<IXLogger>(() => new TraceLogger($"XCad.AddIn.{title}"));
-            svcCollection.AddOrReplace<IIconsCreator, BaseIconsCreator>();
-            svcCollection.AddOrReplace<IPropertyPageHandlerProvider, PropertyPageHandlerProvider>();
-            svcCollection.AddOrReplace<IFeatureManagerTabControlProvider, FeatureManagerTabControlProvider>();
-            svcCollection.AddOrReplace<ITaskPaneControlProvider, TaskPaneControlProvider>();
-            svcCollection.AddOrReplace<IModelViewControlProvider, ModelViewControlProvider>();
-            svcCollection.AddOrReplace<ICommandGroupTabConfigurer, DefaultCommandGroupTabConfigurer>();
+            svcCollection.Add<IXLogger>(() => new TraceLogger($"XCad.AddIn.{title}"));
+            svcCollection.Add<IIconsCreator, BaseIconsCreator>();
+            svcCollection.Add<IPropertyPageHandlerProvider, PropertyPageHandlerProvider>();
+            svcCollection.Add<IFeatureManagerTabControlProvider, FeatureManagerTabControlProvider>();
+            svcCollection.Add<ITaskPaneControlProvider, TaskPaneControlProvider>();
+            svcCollection.Add<IModelViewControlProvider, ModelViewControlProvider>();
+            svcCollection.Add<ICommandGroupTabConfigurer, DefaultCommandGroupTabConfigurer>();
 
             return svcCollection;
         }
+
+        protected virtual IXServiceCollection CreateServiceCollection() => new ServiceCollection();
 
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]

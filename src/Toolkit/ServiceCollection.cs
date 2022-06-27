@@ -16,8 +16,6 @@ namespace Xarial.XCad.Toolkit
     {
         private readonly Dictionary<Type, Func<object>> m_Services;
 
-        public IReadOnlyDictionary<Type, Func<object>> Services => m_Services;
-
         public ServiceCollection() : this(new Dictionary<Type, Func<object>>()) 
         {
         }
@@ -27,9 +25,12 @@ namespace Xarial.XCad.Toolkit
             m_Services = svcs;
         }
 
-        public void AddOrReplace(Type svcType, Func<object> svcFactory)
+        public void Add(Type svcType, Func<object> svcFactory, bool replace = true)
         {
-            m_Services[svcType] = svcFactory;
+            if (replace || !m_Services.ContainsKey(svcType))
+            {
+                m_Services[svcType] = svcFactory;
+            }
         }
 
         public IServiceProvider CreateProvider()

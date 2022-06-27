@@ -16,14 +16,12 @@ namespace Xarial.XCad
     public interface IXServiceCollection 
     {
         /// <summary>
-        /// Registered services
-        /// </summary>
-        IReadOnlyDictionary<Type, Func<object>> Services { get; }
-
-        /// <summary>
         /// Adds new service or replaces existing one
         /// </summary>
-        void AddOrReplace(Type svcType, Func<object> svcFactory);
+        /// <param name="svcType">Service type</param>
+        /// <param name="svcFactory">Service factory</param>
+        /// <param name="replace">True to replace if service is registered, False if not</param>
+        void Add(Type svcType, Func<object> svcFactory, bool replace = true);
 
         /// <summary>
         /// Creates service provider from this service
@@ -43,42 +41,22 @@ namespace Xarial.XCad
     /// </summary>
     public static class XServiceCollectionExtension 
     {
-        /// <inheritdoc cref="IXServiceCollection.AddOrReplace(Type, Func{object})"/>
-        /// <param name="coll">Services collection</param>
+        /// <inheritdoc cref="IXServiceCollection.Add(Type, Func{object}, bool)"/>
+        /// <param name="svcColl">Services collection</param>
         /// <typeparam name="TService">Service interface</typeparam>
         /// <typeparam name="TImplementation">Service implementation</typeparam>
-        public static void AddOrReplace<TService, TImplementation>(this IXServiceCollection coll)
-            where TImplementation : TService => AddOrReplace(coll, typeof(TService), typeof(TImplementation));
+        public static void Add<TService, TImplementation>(this IXServiceCollection svcColl, bool replace = true)
+            where TImplementation : TService => Add(svcColl, typeof(TService), typeof(TImplementation), replace);
 
-        /// <inheritdoc cref="AddOrReplace{TService, TImplementation}(IXServiceCollection)"/>
+        /// <inheritdoc cref="Add{TService, TImplementation}(IXServiceCollection, bool)"/>
         /// <param name="factory">Service creation factory</param>
-        public static void AddOrReplace<TService>(this IXServiceCollection coll, Func<TService> factory)
-            => AddOrReplace(coll, typeof(TService), new Func<object>(() => factory.Invoke()));
+        public static void Add<TService>(this IXServiceCollection svcColl, Func<TService> factory, bool replace = true)
+            => svcColl.Add(typeof(TService), new Func<object>(() => factory.Invoke()), replace);
 
-        /// <inheritdoc cref="IXServiceCollection.AddOrReplace(Type, Func{object})"/>
+        /// <inheritdoc cref="IXServiceCollection.Add(Type, Func{object}, bool)"/>
         /// <param name="svcType">Type of service</param>
         /// <param name="impType">Service implementation</param>
-        public static void AddOrReplace(this IXServiceCollection coll, Type svcType, Type impType)
-            => AddOrReplace(coll, svcType, () => Activator.CreateInstance(impType));
-
-        /// <inheritdoc cref="AddOrReplace(IXServiceCollection, Type, Type)"/>
-        /// <param name="factory">Service creation factory</param>
-        public static void AddOrReplace(this IXServiceCollection coll, Type svcType, Func<object> factory)
-        {
-            coll.AddOrReplace(svcType, factory);
-        }
-
-        /// <summary>
-        /// Merges two service collections
-        /// </summary>
-        /// <param name="svc">Target service</param>
-        /// <param name="other">Service to merge with (will override services if exist)</param>
-        public static void Merge(this IXServiceCollection svc, IXServiceCollection other) 
-        {
-            foreach (var dep in other.Services) 
-            {
-                svc.AddOrReplace(dep.Key, dep.Value);
-            }
-        }
+        public static void Add(this IXServiceCollection svcColl, Type svcType, Type impType, bool replace = true)
+            => svcColl.Add(svcType, () => Activator.CreateInstance(impType), replace);
     }
 }

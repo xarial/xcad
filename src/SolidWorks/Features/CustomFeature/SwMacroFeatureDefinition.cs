@@ -149,10 +149,8 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 
             var svcColl = Application.CustomServices.Clone();
 
-            svcColl.AddOrReplace<IXLogger>(() => new TraceLogger($"xCad.MacroFeature.{this.GetType().FullName}"));
-            svcColl.AddOrReplace<IIconsCreator>(() => new BaseIconsCreator());
-
             ConfigureServices?.Invoke(this, svcColl);
+            
             OnConfigureServices(svcColl);
 
             m_SvcProvider = svcColl.CreateProvider();
@@ -484,8 +482,10 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             }
         }
 
-        public virtual void OnConfigureServices(IXServiceCollection collection)
+        public virtual void OnConfigureServices(IXServiceCollection svcColl)
         {
+            svcColl.Add<IXLogger>(() => new TraceLogger($"xCad.MacroFeature.{this.GetType().FullName}"), false);
+            svcColl.Add<IIconsCreator, BaseIconsCreator>(false);
         }
     }
 

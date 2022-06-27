@@ -24,6 +24,7 @@ CreatePreviewGeometry
 * &#x26A0; - ISwMacroFeature::CachedParameters is deprecated. use IXCustomFeature::Parameter without IXFeature::Edit to get cached parameters
 * &#x26A0; - IXCutList::State is renamed to IXCutList::Status  and CutListState_e is renamed to CutListStatus_e
 * &#x26A0; - IXRegion::Boundary type is changed from IXSegment[] to IXLoop[]
+* &#x26A0; - IXServiceCollection::AddOrReplace is renamed to IXServiceCollection::Add
 
 ## 0.7.7 - October 26, 2021
 

@@ -87,7 +87,7 @@ namespace StandAlone
         {
             var app = SwApplicationFactory.PreCreate();
             var svcColl = new ServiceCollection();
-            svcColl.AddOrReplace<IXLogger, MyLogger>();
+            svcColl.Add<IXLogger, MyLogger>();
             app.CustomServices = svcColl;
             app.Commit();
         }

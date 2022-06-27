@@ -292,17 +292,11 @@ namespace Xarial.XCad.SolidWorks
 
                 m_IsInitialized = true;
 
-                var services = new ServiceCollection();
+                ConfigureServices?.Invoke(this, customServices);
 
-                ConfigureServices?.Invoke(this, services);
-                OnConfigureServices(services);
+                OnConfigureServices(customServices);
 
-                if (customServices != null)
-                {
-                    services.Merge(customServices);
-                }
-
-                Services = services.CreateProvider();
+                Services = m_CustomServices.CreateProvider();
                 m_Logger = Services.GetService<IXLogger>();
 
                 m_Documents = new SwDocumentCollection(this, m_Logger);
@@ -491,12 +485,13 @@ namespace Xarial.XCad.SolidWorks
             return ApplicationState_e.Default;
         }
 
-        public void OnConfigureServices(IXServiceCollection collection)
+        public void OnConfigureServices(IXServiceCollection svcColl)
         {
-            collection.AddOrReplace((Func<IXLogger>)(() => new TraceLogger("xCAD.SwApplication")));
-            collection.AddOrReplace((Func<IMemoryGeometryBuilderDocumentProvider>)(() => new DefaultMemoryGeometryBuilderDocumentProvider(this)));
-            collection.AddOrReplace((Func<IFilePathResolver>)(() => new SwFilePathResolverNoSearchFolders(this)));//TODO: there is some issue with recursive search of folders in search locations - do a test to validate
-            collection.AddOrReplace<IMemoryGeometryBuilderToleranceProvider, DefaultMemoryGeometryBuilderToleranceProvider>();
+            svcColl.Add<IXLogger>(() => new TraceLogger("xCAD.SwApplication"), false);
+            svcColl.Add<IMemoryGeometryBuilderDocumentProvider>(() => new DefaultMemoryGeometryBuilderDocumentProvider(this), false);
+            svcColl.Add<IFilePathResolver>(() => new SwFilePathResolverNoSearchFolders(this), false);//TODO: there is some issue with recursive search of folders in search locations - do a test to validate
+            svcColl.Add<IMemoryGeometryBuilderToleranceProvider, DefaultMemoryGeometryBuilderToleranceProvider>(false);
+            svcColl.Add<IIconsCreator, BaseIconsCreator>(false);
         }
 
         public IXProgress CreateProgress()
