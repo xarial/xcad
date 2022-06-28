@@ -136,7 +136,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
         /// Resolves the current values based on the selection
         /// </summary>
         /// <returns>List of objects or selection object</returns>
-        /// <remarks>This methdo is called when selection is changed. The value is cached because ItemCount is 0 within the SubmitSelection notification
+        /// <remarks>This method is called when selection is changed. The value is cached because ItemCount is 0 within the SubmitSelection notification
         /// which is causing the issue in the custom selection filter as the value returned is empty</remarks>
         private object ResolveCurrentValue()
         {
@@ -309,6 +309,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
         private void OnPageClosed(swPropertyManagerPageCloseReasons_e reason)
         {
+            m_CurValue = null;
             m_IsPageActive = false;
         }
 

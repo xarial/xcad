@@ -85,7 +85,7 @@ namespace Xarial.XCad.Toolkit.Services
 
             if (handlers.Any())
             {
-                Debug.Assert(handlers.Count() != 1, "Must be only one handler of the specified type");
+                Debug.Assert(handlers.Count() == 1, "Must be only one handler of the specified type");
 
                 return (THandler)handlers.First();
             }

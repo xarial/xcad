@@ -12,7 +12,7 @@ using Xarial.XCad.Geometry.Wires;
 namespace Xarial.XCad.Sketch
 {
     /// <summary>
-    /// Represents the sketch segmetn element
+    /// Represents the sketch segment element
     /// </summary>
     public interface IXSketchSegment : IXSketchEntity, IXSegment
     {
