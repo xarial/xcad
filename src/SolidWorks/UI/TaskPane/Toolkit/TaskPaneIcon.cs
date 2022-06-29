@@ -16,16 +16,9 @@ namespace Xarial.XCad.SolidWorks.UI.Commands.Toolkit.Structures
     {
         protected readonly IXImage m_Icon;
 
-        private static readonly Color m_TransparencyKey
-                    = Color.White;
+        public virtual Color TransparencyKey => Color.White;
 
-        public virtual Color TransparencyKey
-        {
-            get
-            {
-                return m_TransparencyKey;
-            }
-        }
+        public bool IsPermanent => false;
 
         internal TaskPaneIcon(IXImage icon)
         {

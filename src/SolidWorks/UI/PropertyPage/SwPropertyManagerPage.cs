@@ -171,7 +171,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
                     }
                 }
 
-                m_IconsConv.Dispose();
+                m_IconsConv.Clear();
 
                 m_IsDisposed = true;
 

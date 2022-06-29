@@ -19,13 +19,9 @@ namespace Xarial.XCad.SolidWorks.UI.Commands.Toolkit.Structures
         private static readonly Color m_CommandTransparencyKey
                     = Color.FromArgb(192, 192, 192);
 
-        public virtual Color TransparencyKey
-        {
-            get
-            {
-                return m_CommandTransparencyKey;
-            }
-        }
+        public virtual Color TransparencyKey => m_CommandTransparencyKey;
+
+        public bool IsPermanent => false;
 
         internal CommandGroupIcon(IXImage icon)
         {

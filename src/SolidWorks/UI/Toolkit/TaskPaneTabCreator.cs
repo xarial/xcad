@@ -42,7 +42,9 @@ namespace Xarial.XCad.SolidWorks.UI.Toolkit
         protected override ITaskpaneView HostComControl(string progId, string title, 
             IXImage image, out TControl specCtrl)
         {
-            using (var iconsConv = m_SvcProvider.GetService<IIconsCreator>())
+            var iconsConv = m_SvcProvider.GetService<IIconsCreator>();
+
+            try
             {
                 var taskPaneView = CreateTaskPaneView(iconsConv, image, title);
 
@@ -55,11 +57,17 @@ namespace Xarial.XCad.SolidWorks.UI.Toolkit
 
                 return taskPaneView;
             }
+            finally 
+            {
+                iconsConv.Clear();
+            }
         }
 
         protected override ITaskpaneView HostNetControl(Control winCtrlHost, TControl ctrl, string title, IXImage image)
         {
-            using (var iconsConv = m_SvcProvider.GetService<IIconsCreator>())
+            var iconsConv = m_SvcProvider.GetService<IIconsCreator>();
+
+            try
             {
                 var taskPaneView = CreateTaskPaneView(iconsConv, image, title);
 
@@ -69,6 +77,10 @@ namespace Xarial.XCad.SolidWorks.UI.Toolkit
                 }
 
                 return taskPaneView;
+            }
+            finally 
+            {
+                iconsConv.Clear();
             }
         }
 
@@ -122,7 +134,9 @@ namespace Xarial.XCad.SolidWorks.UI.Toolkit
         {
             if (Spec.Buttons?.Any() == true)
             {
-                using (var iconsConv = m_SvcProvider.GetService<IIconsCreator>())
+                var iconsConv = m_SvcProvider.GetService<IIconsCreator>();
+
+                try
                 {
                     foreach (var btn in Spec.Buttons)
                     {
@@ -168,6 +182,10 @@ namespace Xarial.XCad.SolidWorks.UI.Toolkit
                             }
                         }
                     }
+                }
+                finally 
+                {
+                    iconsConv.Clear();
                 }
             }
         }

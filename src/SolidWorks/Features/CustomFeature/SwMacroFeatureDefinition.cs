@@ -160,16 +160,14 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             CustomFeatureDefinitionInstanceCache.RegisterInstance(this);
 
             var iconsConv = m_SvcProvider.GetService<IIconsCreator>();
-            iconsConv.KeepIcons = true;
-            iconsConv.IconsFolder = MacroFeatureIconInfo.GetLocation(this.GetType());
-            TryCreateIcons(iconsConv);
+            TryCreateIcons(iconsConv, MacroFeatureIconInfo.GetLocation(this.GetType()));
         }
 
         public SwMacroFeatureDefinition() : this(CreateMacroFeatureInstance)
         {
         }
 
-        private void TryCreateIcons(IIconsCreator iconsConverter)
+        private void TryCreateIcons(IIconsCreator iconsConverter, string folder)
         {
             IXImage icon = null;
 
@@ -186,12 +184,12 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             //Creation of icons may fail if user doesn't have write permissions or icon is locked
             try
             {
-                iconsConverter.ConvertIcon(new MacroFeatureIcon(icon, MacroFeatureIconInfo.RegularName));
-                iconsConverter.ConvertIcon(new MacroFeatureIcon(icon, MacroFeatureIconInfo.HighlightedName));
-                iconsConverter.ConvertIcon(new MacroFeatureSuppressedIcon(icon, MacroFeatureIconInfo.SuppressedName));
-                iconsConverter.ConvertIcon(new MacroFeatureHighResIcon(icon, MacroFeatureIconInfo.RegularName));
-                iconsConverter.ConvertIcon(new MacroFeatureHighResIcon(icon, MacroFeatureIconInfo.HighlightedName));
-                iconsConverter.ConvertIcon(new MacroFeatureSuppressedHighResIcon(icon, MacroFeatureIconInfo.SuppressedName));
+                iconsConverter.ConvertIcon(new MacroFeatureIcon(icon, MacroFeatureIconInfo.RegularName), folder);
+                iconsConverter.ConvertIcon(new MacroFeatureIcon(icon, MacroFeatureIconInfo.HighlightedName), folder);
+                iconsConverter.ConvertIcon(new MacroFeatureSuppressedIcon(icon, MacroFeatureIconInfo.SuppressedName), folder);
+                iconsConverter.ConvertIcon(new MacroFeatureHighResIcon(icon, MacroFeatureIconInfo.RegularName), folder);
+                iconsConverter.ConvertIcon(new MacroFeatureHighResIcon(icon, MacroFeatureIconInfo.HighlightedName), folder);
+                iconsConverter.ConvertIcon(new MacroFeatureSuppressedHighResIcon(icon, MacroFeatureIconInfo.SuppressedName), folder);
             }
             catch (Exception ex)
             {
@@ -484,8 +482,8 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 
         public virtual void OnConfigureServices(IXServiceCollection svcColl)
         {
-            svcColl.Add<IXLogger>(() => new TraceLogger($"xCad.MacroFeature.{this.GetType().FullName}"), false);
-            svcColl.Add<IIconsCreator, BaseIconsCreator>(false);
+            svcColl.Add<IXLogger>(() => new TraceLogger($"xCad.MacroFeature.{this.GetType().FullName}"), ServiceLifetimeScope_e.Singleton, false);
+            svcColl.Add<IIconsCreator, BaseIconsCreator>(ServiceLifetimeScope_e.Singleton, false);
         }
     }
 

@@ -35,7 +35,9 @@ namespace Xarial.XCad.SolidWorks.UI.Toolkit
         protected override string HostComControl(string progId, string title, IXImage image,
             out TControl specCtrl)
         {
-            using (var iconsConv = m_SvcProvider.GetService<IIconsCreator>())
+            var iconsConv = m_SvcProvider.GetService<IIconsCreator>();
+
+            try
             {
                 var imgPath = iconsConv.ConvertIcon(new FeatMgrViewIcon(image)).First();
 
@@ -45,17 +47,23 @@ namespace Xarial.XCad.SolidWorks.UI.Toolkit
                 {
                     return title;
                 }
-                else 
+                else
                 {
                     throw new ComControlHostException(progId);
                 }
+            }
+            finally 
+            {
+                iconsConv.Clear();
             }
         }
 
         protected override string HostNetControl(Control winCtrlHost, TControl ctrl,
             string title, IXImage image)
         {
-            using (var iconsConv = m_SvcProvider.GetService<IIconsCreator>())
+            var iconsConv = m_SvcProvider.GetService<IIconsCreator>();
+
+            try
             {
                 var imgPath = iconsConv.ConvertIcon(new FeatMgrViewIcon(image)).First();
 
@@ -67,6 +75,10 @@ namespace Xarial.XCad.SolidWorks.UI.Toolkit
                 {
                     throw new NetControlHostException(winCtrlHost.Handle);
                 }
+            }
+            finally 
+            {
+                iconsConv.Clear();
             }
         }
     }

@@ -19,13 +19,9 @@ namespace Xarial.XCad.SolidWorks.UI
         private static readonly Color m_TransparencyKey
                     = Color.White;
 
-        public virtual Color TransparencyKey
-        {
-            get
-            {
-                return m_TransparencyKey;
-            }
-        }
+        public virtual Color TransparencyKey => m_TransparencyKey;
+
+        public bool IsPermanent => false;
 
         internal FeatMgrViewIcon(IXImage icon)
         {

@@ -16,6 +16,11 @@ namespace Xarial.XCad.SolidWorks.Base
     public interface IIcon
     {
         /// <summary>
+        /// Indicates that this icon is permanent and should not be removed on dispose
+        /// </summary>
+        bool IsPermanent { get; }
+
+        /// <summary>
         /// Transparency key to be applied to transparent color
         /// </summary>
         Color TransparencyKey { get; }

@@ -17,18 +17,14 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Icons
     {
         protected const int BORDER_SIZE = 3;
 
-        internal IXImage Icon { get; private set; }
+        internal IXImage Icon { get; }
 
         protected readonly int m_Width;
         protected readonly int m_Height;
 
-        public Color TransparencyKey
-        {
-            get
-            {
-                return Color.White;
-            }
-        }
+        public Color TransparencyKey => Color.White;
+
+        public bool IsPermanent => false;
 
         internal BitmapButtonIcon(IXImage icon, int width, int height)
         {

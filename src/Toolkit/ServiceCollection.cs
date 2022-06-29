@@ -14,32 +14,54 @@ namespace Xarial.XCad.Toolkit
 {
     public class ServiceCollection : IXServiceCollection
     {
-        private readonly Dictionary<Type, Func<object>> m_Services;
+        internal class ServiceInfo 
+        {
+            internal Func<object> Factory { get; }
+            internal ServiceLifetimeScope_e Lifetime { get; }
 
-        public ServiceCollection() : this(new Dictionary<Type, Func<object>>()) 
+            internal ServiceInfo(Func<object> factory, ServiceLifetimeScope_e lifetime)
+            {
+                Factory = factory;
+                Lifetime = lifetime;
+            }
+        }
+
+        private readonly Dictionary<Type, ServiceInfo> m_Services;
+
+        private bool m_IsProviderCreated;
+
+        public ServiceCollection() : this(new Dictionary<Type, ServiceInfo>()) 
         {
         }
 
-        private ServiceCollection(Dictionary<Type, Func<object>> svcs)
+        private ServiceCollection(Dictionary<Type, ServiceInfo> svcs)
         {
             m_Services = svcs;
+            m_IsProviderCreated = false;
         }
 
-        public void Add(Type svcType, Func<object> svcFactory, bool replace = true)
+        public void Add(Type svcType, Func<object> svcFactory, ServiceLifetimeScope_e lifetime = ServiceLifetimeScope_e.Singleton, bool replace = true)
         {
             if (replace || !m_Services.ContainsKey(svcType))
             {
-                m_Services[svcType] = svcFactory;
+                m_Services[svcType] = new ServiceInfo(svcFactory, lifetime);
             }
         }
 
         public IServiceProvider CreateProvider()
         {
-            var provider = new ServiceProvider(m_Services);
-            return provider;
+            if (!m_IsProviderCreated)
+            {
+                m_IsProviderCreated = true;
+                return new ServiceProvider(m_Services);
+            }
+            else 
+            {
+                throw new Exception("Provider is already created");
+            }
         }
 
         public IXServiceCollection Clone()
-            => new ServiceCollection(m_Services.ToDictionary(x => x.Key, x => x.Value));
+            => new ServiceCollection(m_Services.ToDictionary(x => x.Key, x => new ServiceInfo(x.Value.Factory, x.Value.Lifetime)));
     }
 }

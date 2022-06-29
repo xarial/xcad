@@ -664,13 +664,13 @@ namespace SwAddInExample
         public override void OnConfigureServices(IXServiceCollection collection)
         {
             collection.Add<IMemoryGeometryBuilderDocumentProvider>(
-                () => new LazyNewDocumentGeometryBuilderDocumentProvider(Application));
+                () => new LazyNewDocumentGeometryBuilderDocumentProvider(Application), ServiceLifetimeScope_e.Singleton);
 
-            collection.Add<IPropertyPageHandlerProvider, DefaultPropertyPageHandlerProvider>();
+            collection.Add<IPropertyPageHandlerProvider, DefaultPropertyPageHandlerProvider>(ServiceLifetimeScope_e.Singleton);
 
-            collection.Add<ICalloutHandlerProvider, DefaultCalloutHandlerProvider>();
-            collection.Add<ITriadHandlerProvider, DefaultTriadHandlerProvider>();
-            collection.Add<IDragArrowHandlerProvider, DefaultDragArrowHandlerProvider>();
+            collection.Add<ICalloutHandlerProvider, DefaultCalloutHandlerProvider>(ServiceLifetimeScope_e.Singleton);
+            collection.Add<ITriadHandlerProvider, DefaultTriadHandlerProvider>(ServiceLifetimeScope_e.Singleton);
+            collection.Add<IDragArrowHandlerProvider, DefaultDragArrowHandlerProvider>(ServiceLifetimeScope_e.Singleton);
         }
 
         private void OnPageDataChanged()

@@ -20,6 +20,8 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature.Toolkit.Icons
 
         public Color TransparencyKey => Color.White;
 
+        public bool IsPermanent => true;
+
         internal MacroFeatureIcon(IXImage icon, string baseName)
         {
             m_BaseName = baseName;

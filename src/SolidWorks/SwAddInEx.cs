@@ -174,13 +174,12 @@ namespace Xarial.XCad.SolidWorks
                 var svcCollection = GetServiceCollection();
 
                 ConfigureServices?.Invoke(this, svcCollection);
+
                 OnConfigureServices(svcCollection);
 
-                m_SvcProvider = svcCollection.CreateProvider();
+                m_SvcProvider = m_Application.Init(svcCollection);
 
                 Logger = m_SvcProvider.GetService<IXLogger>();
-
-                m_Application.Init(svcCollection);
 
                 Logger.Log("Loading add-in", XCad.Base.Enums.LoggerMessageSeverity_e.Debug);
 
@@ -221,13 +220,13 @@ namespace Xarial.XCad.SolidWorks
             var addInType = this.GetType();
             var title = GetRegistrationHelper(addInType).GetTitle(addInType);
 
-            svcCollection.Add<IXLogger>(() => new TraceLogger($"XCad.AddIn.{title}"));
-            svcCollection.Add<IIconsCreator, BaseIconsCreator>();
-            svcCollection.Add<IPropertyPageHandlerProvider, PropertyPageHandlerProvider>();
-            svcCollection.Add<IFeatureManagerTabControlProvider, FeatureManagerTabControlProvider>();
-            svcCollection.Add<ITaskPaneControlProvider, TaskPaneControlProvider>();
-            svcCollection.Add<IModelViewControlProvider, ModelViewControlProvider>();
-            svcCollection.Add<ICommandGroupTabConfigurer, DefaultCommandGroupTabConfigurer>();
+            svcCollection.Add<IXLogger>(() => new TraceLogger($"XCad.AddIn.{title}"), ServiceLifetimeScope_e.Singleton);
+            svcCollection.Add<IIconsCreator, BaseIconsCreator>(ServiceLifetimeScope_e.Singleton);
+            svcCollection.Add<IPropertyPageHandlerProvider, PropertyPageHandlerProvider>(ServiceLifetimeScope_e.Singleton);
+            svcCollection.Add<IFeatureManagerTabControlProvider, FeatureManagerTabControlProvider>(ServiceLifetimeScope_e.Singleton);
+            svcCollection.Add<ITaskPaneControlProvider, TaskPaneControlProvider>(ServiceLifetimeScope_e.Singleton);
+            svcCollection.Add<IModelViewControlProvider, ModelViewControlProvider>(ServiceLifetimeScope_e.Singleton);
+            svcCollection.Add<ICommandGroupTabConfigurer, DefaultCommandGroupTabConfigurer>(ServiceLifetimeScope_e.Singleton);
 
             return svcCollection;
         }

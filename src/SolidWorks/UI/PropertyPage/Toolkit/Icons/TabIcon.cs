@@ -14,15 +14,11 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Icons
 {
     internal class TabIcon : IIcon
     {
-        internal IXImage Icon { get; private set; }
+        internal IXImage Icon { get; }
 
-        public Color TransparencyKey
-        {
-            get
-            {
-                return Color.White;
-            }
-        }
+        public Color TransparencyKey => Color.White;
+
+        public bool IsPermanent => false;
 
         internal TabIcon(IXImage icon)
         {

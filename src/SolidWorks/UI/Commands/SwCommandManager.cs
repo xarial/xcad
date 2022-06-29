@@ -159,7 +159,9 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
                 cmdBar.Commands.Select(c => c.UserId).ToArray(), isContextMenu,
                 contextMenuSelectType);
 
-            using (var iconsConv = m_SvcProvider.GetService<IIconsCreator>())
+            var iconsConv = m_SvcProvider.GetService<IIconsCreator>();
+
+            try
             {
                 CreateIcons(cmdGroup, cmdBar, iconsConv);
 
@@ -170,6 +172,10 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
                 m_CommandBars.Add(bar);
 
                 return bar;
+            }
+            finally 
+            {
+                iconsConv.Clear();
             }
         }
 

@@ -284,7 +284,7 @@ namespace Xarial.XCad.SolidWorks
             m_Creator.CachedProperties.Set(new ServiceCollection(), nameof(CustomServices));
         }
         
-        internal void Init(IXServiceCollection customServices)
+        internal IServiceProvider Init(IXServiceCollection customServices)
         {
             if (!m_IsInitialized)
             {
@@ -304,10 +304,14 @@ namespace Xarial.XCad.SolidWorks
                 MemoryGeometryBuilder = new SwMemoryGeometryBuilder(this,
                     Services.GetService<IMemoryGeometryBuilderDocumentProvider>(),
                     Services.GetService<IMemoryGeometryBuilderToleranceProvider>());
+
+                return Services;
             }
             else 
             {
                 Debug.Assert(false, "App has been already initialized. Must be only once");
+
+                return Services;
             }
         }
 
@@ -399,6 +403,11 @@ namespace Xarial.XCad.SolidWorks
 
         public void Dispose()
         {
+            if (Services is IDisposable) 
+            {
+                ((IDisposable)Services).Dispose();
+            }
+
             try
             {
                 m_Documents.Dispose();
@@ -487,11 +496,11 @@ namespace Xarial.XCad.SolidWorks
 
         public void OnConfigureServices(IXServiceCollection svcColl)
         {
-            svcColl.Add<IXLogger>(() => new TraceLogger("xCAD.SwApplication"), false);
-            svcColl.Add<IMemoryGeometryBuilderDocumentProvider>(() => new DefaultMemoryGeometryBuilderDocumentProvider(this), false);
-            svcColl.Add<IFilePathResolver>(() => new SwFilePathResolverNoSearchFolders(this), false);//TODO: there is some issue with recursive search of folders in search locations - do a test to validate
-            svcColl.Add<IMemoryGeometryBuilderToleranceProvider, DefaultMemoryGeometryBuilderToleranceProvider>(false);
-            svcColl.Add<IIconsCreator, BaseIconsCreator>(false);
+            svcColl.Add<IXLogger>(() => new TraceLogger("xCAD.SwApplication"), ServiceLifetimeScope_e.Singleton, false);
+            svcColl.Add<IMemoryGeometryBuilderDocumentProvider>(() => new DefaultMemoryGeometryBuilderDocumentProvider(this), ServiceLifetimeScope_e.Singleton, false);
+            svcColl.Add<IFilePathResolver>(() => new SwFilePathResolverNoSearchFolders(this), ServiceLifetimeScope_e.Singleton, false);//TODO: there is some issue with recursive search of folders in search locations - do a test to validate
+            svcColl.Add<IMemoryGeometryBuilderToleranceProvider, DefaultMemoryGeometryBuilderToleranceProvider>(ServiceLifetimeScope_e.Singleton, false);
+            svcColl.Add<IIconsCreator, BaseIconsCreator>(ServiceLifetimeScope_e.Singleton, false);
         }
 
         public IXProgress CreateProgress()
@@ -517,20 +526,25 @@ namespace Xarial.XCad.SolidWorks
 
             IIconsCreator iconsCreator = null;
 
-            if (icon != null)
+            try
             {
-                iconsCreator = Services.GetService<IIconsCreator>();
+                if (icon != null)
+                {
+                    iconsCreator = Services.GetService<IIconsCreator>();
 
-                bmp = iconsCreator.ConvertIcon(new TooltipIcon(icon)).First();
+                    bmp = iconsCreator.ConvertIcon(new TooltipIcon(icon)).First();
+                }
+
+                Sw.HideBubbleTooltip();
+
+                Sw.ShowBubbleTooltipAt2(spec.Position.X, spec.Position.Y, (int)spec.ArrowPosition,
+                            spec.Title, spec.Message, (int)bmpType,
+                            bmp, "", 0, (int)swLinkString.swLinkStringNone, "", "");
             }
-
-            Sw.HideBubbleTooltip();
-
-            Sw.ShowBubbleTooltipAt2(spec.Position.X, spec.Position.Y, (int)spec.ArrowPosition,
-                        spec.Title, spec.Message, (int)bmpType,
-                        bmp, "", 0, (int)swLinkString.swLinkStringNone, "", "");
-
-            iconsCreator?.Dispose();
+            finally
+            {
+                iconsCreator?.Clear();
+            }
         }
 
         public TObj CreateObjectFromDispatch<TObj>(object disp, ISwDocument doc)

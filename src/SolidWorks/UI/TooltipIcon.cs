@@ -16,15 +16,11 @@ namespace Xarial.XCad.SolidWorks.UI
 {
     internal class TooltipIcon : IIcon
     {
-        internal IXImage Icon { get; private set; }
+        internal IXImage Icon { get; }
 
-        public Color TransparencyKey
-        {
-            get
-            {
-                return Color.White;
-            }
-        }
+        public Color TransparencyKey => Color.White;
+
+        public bool IsPermanent => false;
 
         internal TooltipIcon(IXImage icon)
         {

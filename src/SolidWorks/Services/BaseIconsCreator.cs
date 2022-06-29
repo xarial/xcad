@@ -22,13 +22,10 @@ namespace Xarial.XCad.SolidWorks.Services
 {
     public class BaseIconsCreator : IIconsCreator
     {
-        public bool KeepIcons { get; set; }
-        
-        public string IconsFolder 
-        {
-            get;
-            set;
-        }
+        private readonly string m_DefaultFolder;
+
+        private readonly List<string> m_TempFolders;
+        private readonly List<string> m_TempIcons;
 
         public BaseIconsCreator()
             : this(Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString()))
@@ -39,16 +36,9 @@ namespace Xarial.XCad.SolidWorks.Services
         /// <param name="disposeIcons">True to remove the icons when class is disposed</param>
         public BaseIconsCreator(string iconsDir)
         {
-            IconsFolder = iconsDir;
-            KeepIcons = false;
-        }
-
-        /// <summary>
-        /// Disposing temp icon files
-        /// </summary>
-        public void Dispose()
-        {
-            Dispose(true);
+            m_DefaultFolder = iconsDir;
+            m_TempFolders = new List<string>();
+            m_TempIcons = new List<string>();
         }
 
         /// <summary>
@@ -84,34 +74,39 @@ namespace Xarial.XCad.SolidWorks.Services
             return maskImg;
         }
 
-        public string[] ConvertIcon(IIcon icon)
+        public string[] ConvertIcon(IIcon icon, string folder = "")
         {
+            var iconsFolder = GetIconsFolder(folder, icon.IsPermanent);
+
             var sizes = icon.GetIconSizes().ToArray();
 
             var bitmapPaths = new string[sizes.Length];
 
             for(int i = 0; i< sizes.Length; i++)
             {
-                bitmapPaths[i] = Path.Combine(IconsFolder, sizes[i].Name);
+                bitmapPaths[i] = Path.Combine(iconsFolder, sizes[i].Name);
 
                 CreateBitmap(new IXImage[] { sizes[i].SourceImage },
-                    bitmapPaths[i], sizes[i].TargetSize, sizes[i].Offset, icon.TransparencyKey, sizes[i].Mask);
+                    bitmapPaths[i], sizes[i].TargetSize, sizes[i].Offset, icon.TransparencyKey, sizes[i].Mask, icon.IsPermanent);
             }
 
             return bitmapPaths;
         }
-
+        
         /// <inheritdoc/>
-        public string[] ConvertIconsGroup(IIcon[] icons)
+        public string[] ConvertIconsGroup(IIcon[] icons, string folder = "")
         {
             if (icons == null || !icons.Any())
             {
                 throw new ArgumentNullException(nameof(icons));
             }
-
+            
             IIconSpec[,] iconsDataGroup = null;
 
             var transparencyKey = icons.First().TransparencyKey;
+            var permanent = icons.First().IsPermanent;
+
+            var iconsFolder = GetIconsFolder(folder, permanent);
 
             for (int i = 0; i < icons.Length; i++)
             {
@@ -143,34 +138,32 @@ namespace Xarial.XCad.SolidWorks.Services
                     imgs[j] = iconsDataGroup[i, j].SourceImage;
                 }
 
-                iconsPaths[i] = Path.Combine(IconsFolder, iconsDataGroup[i, 0].Name);
+                iconsPaths[i] = Path.Combine(iconsFolder, iconsDataGroup[i, 0].Name);
 
                 CreateBitmap(imgs, iconsPaths[i],
-                    iconsDataGroup[i, 0].TargetSize, iconsDataGroup[i, 0].Offset, transparencyKey, iconsDataGroup[i, 0].Mask);
+                    iconsDataGroup[i, 0].TargetSize, iconsDataGroup[i, 0].Offset, transparencyKey, iconsDataGroup[i, 0].Mask, permanent);
             }
 
             return iconsPaths;
         }
 
-        protected virtual void Dispose(bool disposing)
+        private string GetIconsFolder(string folder, bool permanent)
         {
-            if (!KeepIcons)
+            var iconsFolder = string.IsNullOrEmpty(folder) ? m_DefaultFolder : folder;
+
+            if (!permanent)
             {
-                try
+                if (!m_TempFolders.Contains(iconsFolder, StringComparer.CurrentCultureIgnoreCase))
                 {
-                    if (Directory.Exists(IconsFolder))
-                    {
-                        Directory.Delete(IconsFolder, true);
-                    }
-                }
-                catch
-                {
+                    m_TempFolders.Add(iconsFolder);
                 }
             }
+
+            return iconsFolder;
         }
 
         private void CreateBitmap(IXImage[] sourceIcons,
-            string targetIcon, Size size, int offset, Color background, ColorMaskDelegate mask)
+            string targetIcon, Size size, int offset, Color background, ColorMaskDelegate mask, bool permanent)
         {
             var width = size.Width * sourceIcons.Length;
             var height = size.Height;
@@ -235,6 +228,14 @@ namespace Xarial.XCad.SolidWorks.Services
                 }
 
                 bmp.Save(targetIcon, ImageFormat.Bmp);
+
+                if (!permanent) 
+                {
+                    if (!m_TempIcons.Contains(targetIcon, StringComparer.CurrentCultureIgnoreCase))
+                    {
+                        m_TempIcons.Add(targetIcon);
+                    }
+                }
             }
         }
 
@@ -268,6 +269,60 @@ namespace Xarial.XCad.SolidWorks.Services
             using (var str = new MemoryStream(img.Buffer))
             {
                 return Image.FromStream(str);
+            }
+        }
+
+        public void Clear()
+        {
+            foreach (var tempIcon in m_TempIcons)
+            {
+                try
+                {
+                    if (File.Exists(tempIcon))
+                    {
+                        File.Delete(tempIcon);
+                    }
+                }
+                catch
+                {
+                }
+            }
+
+            m_TempIcons.Clear();
+
+            foreach (var tempDir in m_TempFolders)
+            {
+                try
+                {
+                    if (Directory.Exists(tempDir))
+                    {
+                        if (!Directory.EnumerateFiles(tempDir, "*.*", SearchOption.AllDirectories).Any())
+                        {
+                            Directory.Delete(tempDir, true);
+                        }
+                    }
+                }
+                catch
+                {
+                }
+            }
+
+            m_TempFolders.Clear();
+        }
+
+        /// <summary>
+        /// Disposing temp icon files
+        /// </summary>
+        public void Dispose()
+        {
+            Dispose(true);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                Clear();
             }
         }
     }

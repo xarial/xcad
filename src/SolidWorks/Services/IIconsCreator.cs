@@ -12,11 +12,29 @@ using Xarial.XCad.SolidWorks.Base;
 
 namespace Xarial.XCad.SolidWorks.Services
 {
+    /// <summary>
+    /// Creates images from icons
+    /// </summary>
     public interface IIconsCreator : IDisposable
     {
-        string IconsFolder { get; set; }
-        bool KeepIcons { get; set; }
-        string[] ConvertIcon(IIcon icon);
-        string[] ConvertIconsGroup(IIcon[] icons);
+        /// <summary>
+        /// Creates image from the icon in all sizes
+        /// </summary>
+        /// <param name="icon">Icon</param>
+        /// <param name="folder">Custom folder, if empty - default folder is used</param>
+        /// <returns>Paths to icons of all sizes</returns>
+        string[] ConvertIcon(IIcon icon, string folder = "");
+
+        /// <summary>
+        /// Creates group of images from the input icons
+        /// </summary>
+        /// <param name="icons">Icons to group</param>
+        ///<inheritdoc/>
+        string[] ConvertIconsGroup(IIcon[] icons, string folder = "");
+
+        /// <summary>
+        /// Clears temp icons
+        /// </summary>
+        void Clear();
     }
 }

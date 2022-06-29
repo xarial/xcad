@@ -34,7 +34,9 @@ namespace Xarial.XCad.SolidWorks.UI.Toolkit
         protected override Tuple<IFeatMgrView, string> HostComControl(string progId, string title, IXImage image,
             out TControl specCtrl)
         {
-            using (var iconsConv = m_SvcProvider.GetService<IIconsCreator>())
+            var iconsConv = m_SvcProvider.GetService<IIconsCreator>();
+
+            try
             {
                 var imgPath = iconsConv.ConvertIcon(new FeatMgrViewIcon(image)).First();
 
@@ -54,17 +56,23 @@ namespace Xarial.XCad.SolidWorks.UI.Toolkit
 
                 return new Tuple<IFeatMgrView, string>(featMgrView, title);
             }
+            finally 
+            {
+                iconsConv.Clear();
+            }
         }
 
         protected override Tuple<IFeatMgrView, string> HostNetControl(Control winCtrlHost, TControl ctrl,
             string title, IXImage image)
         {
-            using (var iconsConv = m_SvcProvider.GetService<IIconsCreator>())
+            var iconsConv = m_SvcProvider.GetService<IIconsCreator>();
+
+            try
             {
                 var imgPath = iconsConv.ConvertIcon(new FeatMgrViewIcon(image)).First();
 
                 var featMgrView = m_TabProvider.ProvideNetControl(m_ModelViewMgr, winCtrlHost, imgPath, title);
-                
+
                 if (featMgrView != null)
                 {
                     return new Tuple<IFeatMgrView, string>(featMgrView, title);
@@ -73,6 +81,10 @@ namespace Xarial.XCad.SolidWorks.UI.Toolkit
                 {
                     throw new NetControlHostException(winCtrlHost.Handle);
                 }
+            }
+            finally 
+            {
+                iconsConv.Clear();
             }
         }
     }
