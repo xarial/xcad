@@ -105,8 +105,10 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
 
                 var profileLoop = sheetBody.Body.IGetFirstFace().IGetFirstLoop();
 
-                var axisPt = Axis.StartCoordinate;
-                var axisDir = Axis.EndCoordinate - Axis.StartCoordinate;
+                var line = Axis.Geometry;
+
+                var axisPt = line.StartPoint;
+                var axisDir = line.EndPoint - line.StartPoint;
 
                 var body = profileLoop.RevolvePlanarLoop(
                     axisPt.X, axisPt.Y, axisPt.Z,

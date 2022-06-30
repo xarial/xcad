@@ -163,7 +163,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
             }).ToArray();
             
             var intersectCount = m_Doc.Model.Extension.RayIntersections(bodies.Cast<ISwBody>().Select(b => b.Body).ToArray(),
-                m_RaysList.SelectMany(r => r.Axis.RefPoint.ToArray()).ToArray(),
+                m_RaysList.SelectMany(r => r.Axis.Point.ToArray()).ToArray(),
                 m_RaysList.SelectMany(r => r.Axis.Direction.ToArray()).ToArray(),
                 (int)(swRayPtsOpts_e.swRayPtsOptsTOPOLS | swRayPtsOpts_e.swRayPtsOptsNORMALS | swRayPtsOpts_e.swRayPtsOptsENTRY_EXIT),
                 0.00001, 0, Precise);

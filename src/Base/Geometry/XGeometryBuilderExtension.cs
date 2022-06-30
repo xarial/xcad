@@ -68,14 +68,12 @@ namespace Xarial.XCad.Geometry
             double radius, double height)
         {
             var arc = builder.WireBuilder.PreCreateCircle();
-            arc.Center = center;
-            arc.Axis = axis;
-            arc.Diameter = radius * 2;
+            arc.Geometry = new Circle(new Axis(center, axis), radius * 2);
             arc.Commit();
 
             var extr = builder.SolidBuilder.PreCreateExtrusion();
             extr.Depth = height;
-            extr.Direction = arc.Axis;
+            extr.Direction = axis;
             extr.Profiles = new IXPlanarRegion[] { builder.CreatePlanarSheet(builder.CreateRegionFromSegments(arc)).Bodies.First() };
             extr.Commit();
 
@@ -109,8 +107,7 @@ namespace Xarial.XCad.Geometry
             profile.Commit();
 
             var revLine = builder.WireBuilder.PreCreateLine();
-            revLine.StartCoordinate = center;
-            revLine.EndCoordinate = center.Move(axis, 1);
+            revLine.Geometry = new Line(center, center.Move(axis, 1));
             revLine.Commit();
 
             var rev = builder.SolidBuilder.PreCreateRevolve();
@@ -203,8 +200,7 @@ namespace Xarial.XCad.Geometry
         public static IXLine CreateLine(this IXGeometryBuilder builder, Point startPt, Point endPt)
         {
             var line = builder.WireBuilder.PreCreateLine();
-            line.StartCoordinate = startPt;
-            line.EndCoordinate = endPt;
+            line.Geometry = new Line(startPt, endPt);
             line.Commit();
 
             return line;
@@ -221,9 +217,7 @@ namespace Xarial.XCad.Geometry
         public static IXCircle CreateCircle(this IXGeometryBuilder builder, Point centerPt, Vector axis, double diameter)
         {
             var circle = builder.WireBuilder.PreCreateCircle();
-            circle.Center = centerPt;
-            circle.Axis = axis;
-            circle.Diameter = diameter;
+            circle.Geometry = new Circle(new Axis(centerPt, axis), diameter);
             circle.Commit();
 
             return circle;

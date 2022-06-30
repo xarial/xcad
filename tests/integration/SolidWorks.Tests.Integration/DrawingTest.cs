@@ -1,11 +1,15 @@
 ﻿using NUnit.Framework;
 using SolidWorks.Interop.sldworks;
+using SolidWorks.Interop.swconst;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
+using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Documents.Structures;
+using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.SolidWorks.Documents;
 
@@ -13,6 +17,93 @@ namespace SolidWorks.Tests.Integration
 {
     public class DrawingTest : IntegrationTests
     {
+        [Test]
+        public void NewDrawingTest() 
+        {
+            int drw1SheetsCount;
+            double[] drw1Prps;
+
+            int drw2SheetsCount;
+            string drw2SheetName;
+            double[] drw2Prps;
+
+            var drw1 = m_App.Documents.PreCreate<ISwDrawing>();
+            drw1.Commit();
+
+            drw1SheetsCount = (drw1.Drawing.GetSheetNames() as string[]).Length;
+            drw1Prps = (double[])drw1.Drawing.Sheet[(drw1.Drawing.GetSheetNames() as string[]).First()].GetProperties2();
+
+            var drw2 = m_App.Documents.PreCreate<ISwDrawing>();
+            drw2.Sheets.First().PaperSize = new PaperSize(StandardPaperSize_e.A2Landscape);
+            drw2.Sheets.First().Scale = new Scale(5, 3);
+            drw2.Sheets.First().Name = "My Sheet 1";
+            drw2.Commit();
+
+            drw2SheetsCount = (drw2.Drawing.GetSheetNames() as string[]).Length;
+            drw2SheetName = (drw2.Drawing.GetSheetNames() as string[]).First();
+            drw2Prps = (double[])drw2.Drawing.Sheet[(drw2.Drawing.GetSheetNames() as string[]).First()].GetProperties2();
+
+            drw1.Close();
+            drw2.Close();
+
+            Assert.AreEqual(1, drw1SheetsCount);
+            Assert.AreEqual((int)swDwgPaperSizes_e.swDwgPapersUserDefined, (int)drw1Prps[0]);
+            Assert.AreEqual(1, drw1Prps[2]);
+            Assert.AreEqual(1, drw1Prps[3]);
+            Assert.AreEqual(0.1, drw1Prps[5]);
+            Assert.AreEqual(0.1, drw1Prps[6]);
+
+            Assert.AreEqual(1, drw2SheetsCount);
+            Assert.AreEqual("My Sheet 1", drw2SheetName);
+            Assert.AreEqual((int)swDwgPaperSizes_e.swDwgPaperA2size, (int)drw2Prps[0]);
+            Assert.AreEqual(5, drw2Prps[2]);
+            Assert.AreEqual(3, drw2Prps[3]);
+        }
+
+        [Test]
+        public void NewDrawingCustomSheetsTest()
+        {
+            var drw = m_App.Documents.PreCreate<ISwDrawing>();
+
+            var sheet1 = drw.Sheets.PreCreate<ISwSheet>();
+            sheet1.Name = "TestSheet1";
+            sheet1.PaperSize = new PaperSize(StandardPaperSize_e.A4Portrait);
+            sheet1.Scale = new Scale(1, 1);
+
+            var sheet2 = drw.Sheets.PreCreate<ISwSheet>();
+            sheet2.Name = "TestSheet2";
+            sheet2.PaperSize = new PaperSize(StandardPaperSize_e.A4Landscape);
+            sheet2.Scale = new Scale(1, 2);
+
+            var sheet3 = drw.Sheets.PreCreate<ISwSheet>();
+            sheet3.Name = "Sheet1";
+            
+            drw.Sheets.AddRange(new ISwSheet[] { sheet1, sheet2, sheet3 });
+
+            drw.Commit();
+
+            var sheetNames = (string[])drw.Drawing.GetSheetNames();
+            var prps1 = (double[])drw.Drawing.Sheet["TestSheet1"]?.GetProperties2();
+            var prps2 = (double[])drw.Drawing.Sheet["TestSheet2"]?.GetProperties2();
+            var prps3 = (double[])drw.Drawing.Sheet["Sheet1"]?.GetProperties2();
+
+            drw.Close();
+
+            Assert.IsNotNull(drw);
+            Assert.That(sheetNames.SequenceEqual(new string[] { "TestSheet1", "TestSheet2", "Sheet1" }));
+            Assert.AreEqual((double)swDwgPaperSizes_e.swDwgPaperA4sizeVertical, prps1[0]);
+            Assert.AreEqual(1, prps1[2]);
+            Assert.AreEqual(1, prps1[3]);
+            Assert.AreEqual((double)swDwgPaperSizes_e.swDwgPaperA4size, prps2[0]);
+            Assert.AreEqual(1, prps2[2]);
+            Assert.AreEqual(2, prps2[3]);
+            Assert.AreEqual((int)swDwgPaperSizes_e.swDwgPapersUserDefined, (int)prps3[0]);
+            Assert.AreEqual(1, prps3[2]);
+            Assert.AreEqual(1, prps3[3]);
+            Assert.AreEqual(0.1, prps3[5]);
+            Assert.AreEqual(0.1, prps3[6]);
+        }
+
         [Test]
         public void ActiveSheetTest() 
         {
@@ -82,24 +173,263 @@ namespace SolidWorks.Tests.Integration
         public void CreateModelViewBasedTest() 
         {
             var refDocPathName = "";
-            var viewOrientName = "";
+            
+            string o1;
+            string o2;
+            string o3;
+            string o4;
+            string o5;
+            string o6;
+            string o7;
+            string o8;
+            string o9;
 
             using (var doc = OpenDataDocument("Selections1.SLDPRT"))
             {
                 var partDoc = m_App.Documents.Active as IXDocument3D;
-                var view = partDoc.ModelViews[StandardViewType_e.Right];
                 
-                using(var drw = NewDocument(Interop.swconst.swDocumentTypes_e.swDocDRAWING))
+                using(var drw = NewDocument(swDocumentTypes_e.swDocDRAWING))
                 {
                     var drwDoc = m_App.Documents.Active as ISwDrawing;
-                    var drwView = (ISwModelBasedDrawingView)drwDoc.Sheets.Active.DrawingViews.CreateModelViewBased(view);
-                    refDocPathName = drwView.DrawingView.ReferencedDocument.GetPathName();
-                    viewOrientName = drwView.DrawingView.GetOrientationName();
+
+                    var v1 = (ISwModelBasedDrawingView)drwDoc.Sheets.Active.DrawingViews.CreateModelViewBased(partDoc.ModelViews[StandardViewType_e.Back]);
+                    var v2 = (ISwModelBasedDrawingView)drwDoc.Sheets.Active.DrawingViews.CreateModelViewBased(partDoc.ModelViews[StandardViewType_e.Bottom]);
+                    var v3 = (ISwModelBasedDrawingView)drwDoc.Sheets.Active.DrawingViews.CreateModelViewBased(partDoc.ModelViews[StandardViewType_e.Dimetric]);
+                    var v4 = (ISwModelBasedDrawingView)drwDoc.Sheets.Active.DrawingViews.CreateModelViewBased(partDoc.ModelViews[StandardViewType_e.Front]);
+                    var v5 = (ISwModelBasedDrawingView)drwDoc.Sheets.Active.DrawingViews.CreateModelViewBased(partDoc.ModelViews[StandardViewType_e.Isometric]);
+                    var v6 = (ISwModelBasedDrawingView)drwDoc.Sheets.Active.DrawingViews.CreateModelViewBased(partDoc.ModelViews[StandardViewType_e.Left]);
+                    var v7 = (ISwModelBasedDrawingView)drwDoc.Sheets.Active.DrawingViews.CreateModelViewBased(partDoc.ModelViews[StandardViewType_e.Right]);
+                    var v8 = (ISwModelBasedDrawingView)drwDoc.Sheets.Active.DrawingViews.CreateModelViewBased(partDoc.ModelViews[StandardViewType_e.Top]);
+                    var v9 = (ISwModelBasedDrawingView)drwDoc.Sheets.Active.DrawingViews.CreateModelViewBased(partDoc.ModelViews[StandardViewType_e.Trimetric]);
+
+                    refDocPathName = v1.DrawingView.ReferencedDocument.GetPathName();
+                    
+                    o1 = v1.DrawingView.GetOrientationName();
+                    o2 = v2.DrawingView.GetOrientationName();
+                    o3 = v3.DrawingView.GetOrientationName();
+                    o4 = v4.DrawingView.GetOrientationName();
+                    o5 = v5.DrawingView.GetOrientationName();
+                    o6 = v6.DrawingView.GetOrientationName();
+                    o7 = v7.DrawingView.GetOrientationName();
+                    o8 = v8.DrawingView.GetOrientationName();
+                    o9 = v9.DrawingView.GetOrientationName();
                 }
             }
 
             Assert.AreEqual(GetFilePath("Selections1.SLDPRT"), refDocPathName);
-            Assert.AreEqual("*Right", viewOrientName);
+            Assert.AreEqual("*Back", o1);
+            Assert.AreEqual("*Bottom", o2);
+            Assert.AreEqual("*Dimetric", o3);
+            Assert.AreEqual("*Front", o4);
+            Assert.AreEqual("*Isometric", o5);
+            Assert.AreEqual("*Left", o6);
+            Assert.AreEqual("*Right", o7);
+            Assert.AreEqual("*Top", o8);
+            Assert.AreEqual("*Trimetric", o9);
+        }
+
+        [Test]
+        public void CreateFlatPatternNotOpenedTest()
+        {
+            bool view1IsFlatPattern;
+            string view1Conf;
+            int edgeCount1;
+
+            using (var drw = NewDocument(swDocumentTypes_e.swDocDRAWING))
+            {
+                var drwDoc = m_App.Documents.Active as ISwDrawing;
+
+                var drwView1 = drwDoc.Sheets.Active.DrawingViews.PreCreate<ISwFlatPatternDrawingView>();
+
+                var refDoc = m_App.Documents.PreCreate<IXPart>();
+                refDoc.Path = GetFilePath("FlatPattern1.SLDPRT");
+
+                drwView1.ReferencedDocument = refDoc;
+                drwView1.Commit();
+
+                view1IsFlatPattern = drwView1.DrawingView.IsFlatPatternView();
+                view1Conf = drwView1.DrawingView.ReferencedConfiguration;
+                edgeCount1 = drwView1.DrawingView.GetVisibleEntityCount2((Component2)(drwView1.DrawingView.GetVisibleComponents() as object[]).First(), (int)swViewEntityType_e.swViewEntityType_Edge);
+            }
+
+            Assert.IsTrue(view1IsFlatPattern);
+            Assert.AreEqual(12, edgeCount1);
+            Assert.That(view1Conf.StartsWith("DefaultSM-FLAT-PATTERN"));
+        }
+
+        [Test]
+        public void CreateFlatPatternMultiBodyTest()
+        {
+            bool view1IsFlatPattern;
+            bool view2IsFlatPattern;
+
+            string view1Conf;
+            string view2Conf;
+
+            int edgeCount1;
+            int edgeCount2;
+
+            using (var doc = OpenDataDocument("FlatPattern2.SLDPRT"))
+            {
+                var partDoc = m_App.Documents.Active as IXPart;
+
+                using (var drw = NewDocument(swDocumentTypes_e.swDocDRAWING))
+                {
+                    var drwDoc = m_App.Documents.Active as ISwDrawing;
+                    
+                    var drwView1 = drwDoc.Sheets.Active.DrawingViews.PreCreate<ISwFlatPatternDrawingView>();
+                    drwView1.SheetMetalBody = (IXSolidBody)partDoc.Bodies["Edge-Flange2"];
+                    drwView1.Commit();
+
+                    var drwView2 = drwDoc.Sheets.Active.DrawingViews.PreCreate<ISwFlatPatternDrawingView>();
+                    drwView2.SheetMetalBody = (IXSolidBody)partDoc.Bodies["Hem1"];
+                    drwView2.Commit();
+
+                    view1IsFlatPattern = drwView1.DrawingView.IsFlatPatternView();
+                    view1Conf = drwView1.DrawingView.ReferencedConfiguration;
+                    edgeCount1 = drwView1.DrawingView.GetVisibleEntityCount2((Component2)(drwView1.DrawingView.GetVisibleComponents() as object[]).First(), (int)swViewEntityType_e.swViewEntityType_Edge);
+
+                    view2IsFlatPattern = drwView2.DrawingView.IsFlatPatternView();
+                    view2Conf = drwView2.DrawingView.ReferencedConfiguration;
+                    edgeCount2 = drwView2.DrawingView.GetVisibleEntityCount2((Component2)(drwView2.DrawingView.GetVisibleComponents() as object[]).First(), (int)swViewEntityType_e.swViewEntityType_Edge);
+                }
+            }
+
+            Assert.IsTrue(view1IsFlatPattern);
+            Assert.IsTrue(view2IsFlatPattern);
+            Assert.AreEqual(6, edgeCount1);
+            Assert.AreEqual(5, edgeCount2);
+            Assert.That(view1Conf.StartsWith("DefaultSM-FLAT-PATTERN"));
+            Assert.That(view2Conf.StartsWith("DefaultSM-FLAT-PATTERN"));
+            Assert.AreNotEqual(view1Conf, view2Conf);
+        }
+
+        [Test]
+        public void CreateProjectedViewTest()
+        {
+            double[] t1;
+            double[] t2;
+            double[] t3;
+            double[] t4;
+            double[] t5;
+            double[] t6;
+            double[] t7;
+            double[] t8;
+
+            using (var doc = OpenDataDocument("Drawing4\\Drawing4.slddrw"))
+            {
+                var drwDoc = m_App.Documents.Active as ISwDrawing;
+
+                var sheet = drwDoc.Sheets["Sheet1"];
+
+                var srcView = sheet.DrawingViews.First();
+
+                var v1 = sheet.DrawingViews.PreCreate<ISwProjectedDrawingView>();
+                v1.BaseView = srcView;
+                v1.Direction = ProjectedViewDirection_e.Bottom;
+                v1.Commit();
+
+                var v2 = sheet.DrawingViews.PreCreate<ISwProjectedDrawingView>();
+                v2.BaseView = srcView;
+                v2.Direction = ProjectedViewDirection_e.IsoBottomLeft;
+                v2.Commit();
+
+                var v3 = sheet.DrawingViews.PreCreate<ISwProjectedDrawingView>();
+                v3.BaseView = srcView;
+                v3.Direction = ProjectedViewDirection_e.IsoBottomRight;
+                v3.Commit();
+
+                var v4 = sheet.DrawingViews.PreCreate<ISwProjectedDrawingView>();
+                v4.BaseView = srcView;
+                v4.Direction = ProjectedViewDirection_e.IsoTopLeft;
+                v4.Commit();
+
+                var v5 = sheet.DrawingViews.PreCreate<ISwProjectedDrawingView>();
+                v5.BaseView = srcView;
+                v5.Direction = ProjectedViewDirection_e.IsoTopRight;
+                v5.Commit();
+
+                var v6 = sheet.DrawingViews.PreCreate<ISwProjectedDrawingView>();
+                v6.BaseView = srcView;
+                v6.Direction = ProjectedViewDirection_e.Left;
+                v6.Commit();
+
+                var v7 = sheet.DrawingViews.PreCreate<ISwProjectedDrawingView>();
+                v7.BaseView = srcView;
+                v7.Direction = ProjectedViewDirection_e.Right;
+                v7.Commit();
+
+                var v8 = sheet.DrawingViews.PreCreate<ISwProjectedDrawingView>();
+                v8.BaseView = srcView;
+                v8.Direction = ProjectedViewDirection_e.Top;
+                v8.Commit();
+
+                t1 = (double[])v1.DrawingView.ModelToViewTransform.ArrayData;
+                t2 = (double[])v2.DrawingView.ModelToViewTransform.ArrayData;
+                t3 = (double[])v3.DrawingView.ModelToViewTransform.ArrayData;
+                t4 = (double[])v4.DrawingView.ModelToViewTransform.ArrayData;
+                t5 = (double[])v5.DrawingView.ModelToViewTransform.ArrayData;
+                t6 = (double[])v6.DrawingView.ModelToViewTransform.ArrayData;
+                t7 = (double[])v7.DrawingView.ModelToViewTransform.ArrayData;
+                t8 = (double[])v8.DrawingView.ModelToViewTransform.ArrayData;
+            }
+
+            AssertCompareDoubleArray(t1, new double[] { 1, 0, 0, 0, 0, -1, 0, 1, 0, 0.587737905405405, 0.323514932432432, 0, 1, 0, 0, 0 }, 8, 5);
+            AssertCompareDoubleArray(t2, new double[] { 0.707106781186546, -0.408204055911355, -0.577381545199984, 0, 0.81654081188575, -0.577287712085543, 0.707106781186549, 0.408204055911354, 0.577381545199982, 0.386120969982898, 0.285537997009925, 0, 1, 0, 0, 0 }, 8, 5);
+            AssertCompareDoubleArray(t3, new double[] { 0.707106781186546, 0.408204055911355, 0.577381545199984, 0, 0.81654081188575, -0.577287712085543, -0.707106781186549, 0.408204055911354, 0.577381545199982, 0.789354840827913, 0.285537997009925, 0, 1, 0, 0, 0 }, 8, 5);
+            AssertCompareDoubleArray(t4, new double[] { 0.707106781186546, 0.408204055911355, -0.577381545199984, 0, 0.81654081188575, 0.577287712085543, 0.707106781186549, -0.408204055911354, 0.577381545199982, 0.386120969982898, 0.68877186785494, 0, 1, 0, 0, 0 }, 8, 5);
+            AssertCompareDoubleArray(t5, new double[] { 0.707106781186546, -0.408204055911355, 0.577381545199984, 0, 0.81654081188575, 0.577287712085543, -0.707106781186549, -0.408204055911354, 0.577381545199982, 0.789354840827913, 0.68877186785494, 0, 1, 0, 0, 0 }, 8, 5);
+            AssertCompareDoubleArray(t6, new double[] { 0, 0, -1, 0, 1, 0, 1, 0, 0, 0.424097905405405, 0.487154932432432, 0, 1, 0, 0, 0 }, 8, 5);
+            AssertCompareDoubleArray(t7, new double[] { 0, 0, 1, 0, 1, 0, -1, 0, 0, 0.751377905405406, 0.487154932432432, 0, 1, 0, 0, 0 }, 8, 5);
+            AssertCompareDoubleArray(t8, new double[] { 1, 0, 0, 0, 0, 1, 0, -1, 0, 0.587737905405405, 0.650794932432433, 0, 1, 0, 0, 0 }, 8, 5);
+        }
+
+        [Test]
+        public void CreateSectionViewTest()
+        {
+            int t1;
+
+            using (var doc = OpenDataDocument("Drawing5\\Drawing5.slddrw"))
+            {
+                var drwDoc = m_App.Documents.Active as ISwDrawing;
+
+                var sheet = drwDoc.Sheets["Sheet1"];
+
+                var srcView = sheet.DrawingViews.First();
+
+                var v1 = sheet.DrawingViews.PreCreate<ISwSectionDrawingView>();
+                v1.BaseView = srcView;
+                v1.SectionLine = new Line(new Point(0, -0.1, -0.065), new Point(0, 0.3, -0.065));
+                v1.Commit();
+
+                t1 = v1.DrawingView.Type;
+            }
+
+            Assert.AreEqual((int)swDrawingViewTypes_e.swDrawingSectionView, t1);
+        }
+
+        [Test]
+        public void CreateDetailedViewTest()
+        {
+            int t1;
+
+            using (var doc = OpenDataDocument("Drawing5\\Drawing5.slddrw"))
+            {
+                var drwDoc = m_App.Documents.Active as ISwDrawing;
+
+                var sheet = drwDoc.Sheets["Sheet1"];
+
+                var srcView = sheet.DrawingViews.First();
+
+                var v1 = sheet.DrawingViews.PreCreate<ISwDetailDrawingView>();
+                v1.BaseView = srcView;
+                v1.DetailCircle = new Circle(new Axis(new Point(0.15, 0.035, -0.06), new Vector(0, 0, 1)), 0.1);
+                v1.Commit();
+
+                t1 = v1.DrawingView.Type;
+            }
+
+            Assert.AreEqual((int)swDrawingViewTypes_e.swDrawingDetailView, t1);
         }
 
         [Test]
@@ -405,6 +735,7 @@ namespace SolidWorks.Tests.Integration
             Type t9;
             Type t10;
             Type t11;
+            Type t12;
 
             using (var doc = OpenDataDocument("Drawing3\\Drawing3.SLDDRW"))
             {
@@ -421,6 +752,7 @@ namespace SolidWorks.Tests.Integration
                 t9 = sheet.DrawingViews["Section View B-B"].GetType();
                 t10 = sheet.DrawingViews["Removed Section1"].GetType();
                 t11 = sheet.DrawingViews["Detail View C (4 : 1)"].GetType();
+                t12 = sheet.DrawingViews["Drawing View9"].GetType();
             }
 
             Assert.That(typeof(ISwModelBasedDrawingView).IsAssignableFrom(t1));
@@ -434,6 +766,7 @@ namespace SolidWorks.Tests.Integration
             Assert.That(typeof(ISwSectionDrawingView).IsAssignableFrom(t9));
             Assert.That(typeof(ISwSectionDrawingView).IsAssignableFrom(t10));
             Assert.That(typeof(ISwDetailDrawingView).IsAssignableFrom(t11));
+            Assert.That(typeof(ISwFlatPatternDrawingView).IsAssignableFrom(t12));
         }
 
         [Test]

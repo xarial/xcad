@@ -6,17 +6,20 @@
 //*********************************************************************
 
 using SolidWorks.Interop.sldworks;
+using SolidWorks.Interop.swconst;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using Xarial.XCad.Base.Enums;
 using Xarial.XCad.Data;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Structures;
+using Xarial.XCad.Services;
 using Xarial.XCad.SolidWorks.Documents.Exceptions;
 using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.UI;
@@ -36,53 +39,200 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public string Name
         {
-            get => Sheet.GetName();
-            set 
+            get
             {
-                Sheet.SetName(value);
+                if (IsCommitted)
+                {
+                    return Sheet.GetName();
+                }
+                else
+                {
+                    return m_Creator.CachedProperties.Get<string>();
+                }
+            }
+            set
+            {
+                if (IsCommitted)
+                {
+                    Sheet.SetName(value);
+
+                    if (!string.Equals(Sheet.GetName(), value, StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        throw new Exception($"Failed to rename sheet to '{value}'");
+                    }
+                }
+                else
+                {
+                    m_Creator.CachedProperties.Set(value);
+                }
             }
         }
 
         public IXDrawingViewRepository DrawingViews { get; }
 
-        //TODO: implement creation of new sheets
-        public override bool IsCommitted => true;
+        public override bool IsCommitted => m_Creator.IsCreated;
 
         public override object Dispatch => Sheet;
 
         public IXImage Preview
             => PictureDispUtils.PictureDispToXImage(OwnerApplication.Sw.GetPreviewBitmap(m_Drawing.Path, Name));
 
-        public Scale Scale 
+        public Scale Scale
+        {
+            get
+            {
+                if (IsCommitted)
+                {
+                    double[] sheetPrps;
+
+                    if (m_Drawing.OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2016))
+                    {
+                        sheetPrps = (double[])Sheet.GetProperties2();
+                    }
+                    else
+                    {
+                        sheetPrps = (double[])Sheet.GetProperties();
+                    }
+
+                    return new Scale(sheetPrps[2], sheetPrps[3]);
+                }
+                else
+                {
+                    return m_Creator.CachedProperties.Get<Scale>();
+                }
+            }
+            set
+            {
+                if (IsCommitted)
+                {
+                    if (!Sheet.SetScale(value.Numerator, value.Denominator, false, false))
+                    {
+                        throw new Exception("Failed to change the scale of the sheet");
+                    }
+                }
+                else
+                {
+                    m_Creator.CachedProperties.Set(value);
+                }
+            }
+        }
+
+        public PaperSize PaperSize 
         {
             get 
             {
-                double[] sheetPrps;
-
-                if (m_Drawing.OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2016))
+                if (IsCommitted)
                 {
-                    sheetPrps = (double[])Sheet.GetProperties2();
+                    return null;
                 }
                 else 
                 {
-                    sheetPrps = (double[])Sheet.GetProperties();
+                    return m_Creator.CachedProperties.Get<PaperSize>();
                 }
-
-                return new Scale(sheetPrps[2], sheetPrps[3]);
             }
-            set => Sheet.SetScale(value.Numerator, value.Denominator, true, true);
+            set 
+            {
+                if (IsCommitted)
+                {
+                    //NOTE: ISheet::SetSize does not work correctly and removes the template and breaks drawing
+                    SetupSheet(Sheet, Name, value, Scale);
+                }
+                else
+                {
+                    m_Creator.CachedProperties.Set(value);
+                }
+            }
         }
+
+        private readonly ElementCreator<ISheet> m_Creator;
 
         internal SwSheet(ISheet sheet, SwDrawing draw, SwApplication app) : base(sheet, draw, app)
         {
             m_Drawing = draw;
             Sheet = sheet;
-            DrawingViews = new SwDrawingViewsCollection(draw, sheet);
+            DrawingViews = new SwDrawingViewsCollection(draw, this);
+            m_Creator = new ElementCreator<ISheet>(CreateSheet, sheet, sheet != null);
         }
 
-        public override void Commit(CancellationToken cancellationToken)
+        private ISheet CreateSheet(CancellationToken arg)
         {
-            throw new NotImplementedException();
+            PaperSizeHelper.ParsePaperSize(PaperSize, out var paperSize, out var template, out double paperWidth, out double paperHeight);
+
+            var scale = Scale ?? new Scale(1, 1);
+
+            if (OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2015))
+            {
+                if (!m_Drawing.Drawing.NewSheet4(Name, (int)paperSize, (int)template, scale.Numerator, scale.Denominator, true,
+                    "", paperWidth, paperHeight, "", 0, 0, 0, 0, 0, 0))
+                {
+                    throw new Exception("Failed to create new sheet");
+                }
+            }
+            else 
+            {
+                if (!m_Drawing.Drawing.NewSheet3(Name, (int)paperSize, (int)paperSize, scale.Numerator, scale.Denominator, true,
+                    "", paperWidth, paperHeight, ""))
+                {
+                    throw new Exception("Failed to create new sheet");
+                }
+            }
+
+            return m_Drawing.Drawing.Sheet[Name];
+        }
+
+        internal void SetupSheet(IXSheet template)
+            => SetupSheet(Sheet, template.Name, template.PaperSize, template.Scale);
+
+        internal void SetupSheet(ISheet sheet, string name, PaperSize size, Scale scale)
+        {
+            PaperSizeHelper.ParsePaperSize(size, out var paperSize, out var paperTemplate, out var paperWidth, out var paperHeight);
+
+            scale = scale ?? new Scale(1, 1);
+
+            if (!string.IsNullOrEmpty(name))
+            {
+                sheet.SetName(name);
+
+                if (!string.Equals(sheet.GetName(), name, StringComparison.CurrentCultureIgnoreCase)) 
+                {
+                    throw new Exception("Failed to change sheet name");
+                }
+            }
+
+            if (OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2015))
+            {
+                if (!m_Drawing.Drawing.SetupSheet6(name, (int)paperSize, (int)paperTemplate, scale.Numerator, scale.Denominator, true,
+                    "", paperWidth, paperHeight, "", true, 0, 0, 0, 0, 0, 0))
+                {
+                    throw new Exception("Failed to setup sheet");
+                }
+            }
+            else
+            {
+                if (!m_Drawing.Drawing.SetupSheet5(name, (int)paperSize, (int)paperSize, scale.Numerator, scale.Denominator, true,
+                    "", paperWidth, paperHeight, "", true))
+                {
+                    throw new Exception("Failed to setup sheet");
+                }
+            }
+        }
+
+        public override void Commit(CancellationToken cancellationToken) => m_Creator.Create(cancellationToken);
+    }
+
+    internal static class PaperSizeHelper 
+    {
+        internal static void ParsePaperSize(PaperSize paperSize, out swDwgPaperSizes_e dwgPaperSize, out swDwgTemplates_e dwgTemplate, out double dwpPaperWidth, out double dwpPaperHeight) 
+        {
+            if (paperSize == null) 
+            {
+                paperSize = new PaperSize(0.1, 0.1);
+            }
+
+            dwgPaperSize = paperSize.StandardPaperSize.HasValue ? (swDwgPaperSizes_e)paperSize.StandardPaperSize.Value : swDwgPaperSizes_e.swDwgPapersUserDefined;
+            dwgTemplate = paperSize.StandardPaperSize.HasValue ? (swDwgTemplates_e)paperSize.StandardPaperSize.Value : swDwgTemplates_e.swDwgTemplateNone;
+            dwpPaperWidth = paperSize.Width.HasValue ? paperSize.Width.Value : 0;
+            dwpPaperHeight = paperSize.Height.HasValue ? paperSize.Height.Value : 0;
         }
     }
 
@@ -100,11 +250,12 @@ namespace Xarial.XCad.SolidWorks.Documents
             => throw new UnloadedDocumentPreviewOnlySheetException();
         public Scale Scale { get => throw new UnloadedDocumentPreviewOnlySheetException(); set => throw new UnloadedDocumentPreviewOnlySheetException(); }
         public ISheet Sheet => throw new UnloadedDocumentPreviewOnlySheetException();
-
         public object Dispatch => throw new UnloadedDocumentPreviewOnlySheetException();
         public bool IsSelected => throw new UnloadedDocumentPreviewOnlySheetException();
         public bool IsAlive => throw new UnloadedDocumentPreviewOnlySheetException();
         public ITagsManager Tags => throw new UnloadedDocumentPreviewOnlySheetException();
+
+        public PaperSize PaperSize { get => throw new UnloadedDocumentPreviewOnlySheetException(); set => throw new UnloadedDocumentPreviewOnlySheetException(); }
 
         #endregion
 
@@ -125,5 +276,19 @@ namespace Xarial.XCad.SolidWorks.Documents
         public SelectType_e Type => SelectType_e.Sheets;
 
         public bool Equals(IXObject other) => this == other;
+    }
+
+    /// <summary>
+    /// This is a placeholder for a sheet(s) which already present in the template
+    /// </summary>
+    /// <remarks>Drawing will always contain at least one sheet so this is returned if no user sheets are found</remarks>
+    internal class SwTemplatePlaceholderSheet : SwSheet
+    {
+        internal SwTemplatePlaceholderSheet(SwDrawing draw, SwApplication app) : base(null, draw, app)
+        {
+        }
+
+        public override void Commit(CancellationToken cancellationToken)
+            => throw new NotSupportedException("Placeholder sheet cannot be committed");
     }
 }

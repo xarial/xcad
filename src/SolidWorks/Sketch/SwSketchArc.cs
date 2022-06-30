@@ -34,19 +34,16 @@ namespace Xarial.XCad.SolidWorks.Sketch
         public override IXSketchPoint StartPoint => OwnerDocument.CreateObjectFromDispatch<SwSketchPoint>(Arc.IGetStartPoint2());
         public override IXSketchPoint EndPoint => OwnerDocument.CreateObjectFromDispatch<SwSketchPoint>(Arc.IGetEndPoint2());
 
-        public double Diameter
+        public Circle Geometry 
         {
-            get => Arc.GetRadius() * 2;
-            set => Arc.SetRadius(value / 2);
+            get => ((IXCircleCurve)Definition).Geometry;
+            set 
+            {
+                Arc.SetRadius(value.Diameter / 2);
+                SetPoint((ISketchPoint)Arc.GetCenterPoint2(), value.CenterAxis.Point);
+                //TODO: implement changing of the axis
+            }
         }
-
-        public Point Center
-        {
-            get => CreatePoint((ISketchPoint)Arc.GetCenterPoint2());
-            set => SetPoint((ISketchPoint)Arc.GetCenterPoint2(), value);
-        }
-
-        public Vector Axis { get => ((IXCircleCurve)Definition).Axis; set => throw new NotSupportedException(); }
 
         internal SwSketchCircle(ISketchArc arc, SwDocument doc, SwApplication app, bool created)
             : base((ISketchSegment)arc, doc, app, created)

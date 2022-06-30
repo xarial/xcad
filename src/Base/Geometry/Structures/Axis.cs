@@ -12,7 +12,7 @@ namespace Xarial.XCad.Geometry.Structures
         /// <summary>
         /// Reference point of this axis
         /// </summary>
-        public Point RefPoint { get; set; }
+        public Point Point { get; set; }
 
         /// <summary>
         /// Direction of this axis
@@ -33,7 +33,7 @@ namespace Xarial.XCad.Geometry.Structures
         /// <param name="dir">Direction of the exis</param>
         public Axis(Point refPt, Vector dir) 
         {
-            RefPoint = refPt;
+            Point = refPt;
             Direction = dir;
         }
     }

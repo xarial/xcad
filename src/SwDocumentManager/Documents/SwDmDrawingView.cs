@@ -38,7 +38,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         public Rect2D Boundary => throw new NotSupportedException();
         public Thickness Padding => throw new NotSupportedException();
         public IXDimensionRepository Dimensions => throw new NotSupportedException();
-        public IXDrawingView BaseView => throw new NotSupportedException();
+        public IXDrawingView BaseView { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
         public IEnumerable<IXDrawingView> DependentViews => throw new NotSupportedException();
         #endregion
 
@@ -80,6 +80,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
                 return m_CachedDocument;
             }
+            set => throw new NotSupportedException();
         }
 
         public IXConfiguration ReferencedConfiguration 
@@ -103,6 +104,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                     return null;
                 }
             }
+            set => throw new NotSupportedException();
         }
 
         public override bool IsCommitted => true;

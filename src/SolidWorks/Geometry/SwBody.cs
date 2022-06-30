@@ -85,23 +85,6 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         public string Name => Body.Name;
 
-        //public IXComponent 
-        //{
-        //    get 
-        //    {
-        //        var comp = (IComponent2)Entity.GetComponent();
-
-        //        if (comp != null)
-        //        {
-        //            return OwnerDocument.CreateObjectFromDispatch<ISwComponent>(comp);
-        //        }
-        //        else 
-        //        {
-        //            return null;
-        //        }
-        //    }
-        //}
-
         public ISwComponent Component 
         {
             get

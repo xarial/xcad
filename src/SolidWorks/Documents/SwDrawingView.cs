@@ -6,6 +6,7 @@
 //*********************************************************************
 
 using SolidWorks.Interop.sldworks;
+using SolidWorks.Interop.swconst;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -15,10 +16,16 @@ using System.Text;
 using System.Threading;
 using Xarial.XCad.Annotations;
 using Xarial.XCad.Documents;
+using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Documents.Structures;
+using Xarial.XCad.Exceptions;
+using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Services;
 using Xarial.XCad.SolidWorks.Annotations;
+using Xarial.XCad.SolidWorks.Features;
+using Xarial.XCad.SolidWorks.Geometry;
+using Xarial.XCad.SolidWorks.Utils;
 
 namespace Xarial.XCad.SolidWorks.Documents
 {
@@ -47,6 +54,10 @@ namespace Xarial.XCad.SolidWorks.Documents
     {
     }
 
+    public interface ISwFlatPatternDrawingView : ISwDrawingView, IXFlatPatternDrawingView
+    {
+    }
+
     [DebuggerDisplay("{" + nameof(Name) + "}")]
     internal class SwDrawingView : SwSelObject, ISwDrawingView
     {
@@ -54,33 +65,39 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public IView DrawingView => m_Creator.Element;
 
-        private readonly IElementCreator<IView> m_Creator;
+        protected readonly IElementCreator<IView> m_Creator;
 
-        private readonly ISheet m_Sheet;
+        protected SwSheet Sheet 
+        {
+            get 
+            {
+                if (IsCommitted)
+                {
+                    return OwnerDocument.CreateObjectFromDispatch<SwSheet>(DrawingView.Sheet);
+                }
+                else 
+                {
+                    return m_ParentSheet;
+                }
+            }
+        }
 
         internal SwDrawingView(IView drwView, SwDrawing drw)
-            : this(drwView, drw, null, true)
+            : this(drwView, drw, null)
         {
         }
 
         public override object Dispatch => DrawingView;
 
-        protected SwDrawingView(IView drwView, SwDrawing drw, ISheet sheet, bool created)
+        private readonly SwSheet m_ParentSheet;
+
+        protected SwDrawingView(IView drwView, SwDrawing drw, SwSheet sheet)
             : base(drwView, drw, drw?.OwnerApplication)
         {
             m_Drawing = drw;
-            m_Creator = new ElementCreator<IView>(CreateDrawingView, drwView, created);
+            m_Creator = new ElementCreator<IView>(CreateDrawingViewElement, drwView, drwView != null);
 
-            if (created)
-            {
-                sheet = drwView.Sheet;
-            }
-            else
-            {
-                m_CachedLocation = new Point(0, 0, 0);
-            }
-
-            m_Sheet = sheet;
+            m_ParentSheet = sheet;
 
             Dimensions = new SwDrawingViewDimensionRepository(drw, this);
         }
@@ -101,27 +118,40 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         private IView CreateDrawingViewElement(CancellationToken cancellationToken)
         {
-            var curSheet = m_Drawing.Drawing.GetCurrentSheet() as ISheet;
+            using (var sheetActivator = new SheetActivator(Sheet)) 
+            {
+                var drwView = CreateDrawingView(cancellationToken);
 
-            try
-            {
-                m_Drawing.Drawing.ActivateSheet(m_Sheet.GetName());
-                return CreateDrawingView(cancellationToken);
-            }
-            catch
-            {
-                throw;
-            }
-            finally
-            {
-                m_Drawing.Drawing.ActivateSheet(curSheet.GetName());
+                if (drwView == null)
+                {
+                    throw new Exception("Failed to create drawing view");
+                }
+
+                if (!string.IsNullOrEmpty(Name))
+                {
+                    drwView.SetName2(Name);
+                }
+
+                var refConf = ReferencedConfiguration;
+
+                if (refConf != null) 
+                {
+                    drwView.ReferencedConfiguration = refConf.Name;
+                }
+
+                var loc = Location;
+
+                if (loc != null) 
+                {
+                    drwView.Position = new double[] { loc.X, loc.Y };
+                }
+
+                return drwView;
             }
         }
 
         protected virtual IView CreateDrawingView(CancellationToken cancellationToken)
-        {
-            throw new NotSupportedException("Creation of this drawing view is not supported"); ;
-        }
+            => throw new NotSupportedException("Creation of this drawing view is not supported");
 
         public string Name
         {
@@ -133,7 +163,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                 }
                 else
                 {
-                    return m_CachedName;
+                    return m_Creator.CachedProperties.Get<string>();
                 }
             }
             set
@@ -144,13 +174,10 @@ namespace Xarial.XCad.SolidWorks.Documents
                 }
                 else
                 {
-                    m_CachedName = value;
+                    m_Creator.CachedProperties.Set(value);
                 }
             }
         }
-
-        private Point m_CachedLocation;
-        private string m_CachedName;
 
         public Point Location
         {
@@ -164,7 +191,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                 }
                 else
                 {
-                    return m_CachedLocation;
+                    return m_Creator.CachedProperties.Get<Point>();
                 }
             }
             set
@@ -175,7 +202,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                 }
                 else
                 {
-                    m_CachedLocation = value;
+                    m_Creator.CachedProperties.Set(value);
                 }
             }
         }
@@ -184,32 +211,51 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
             get
             {
-                var refDoc = DrawingView.ReferencedDocument;
-
-                if (refDoc != null)
+                if (IsCommitted)
                 {
-                    return (IXDocument3D)((SwDocumentCollection)OwnerApplication.Documents)[refDoc];
-                }
-                else
-                {
-                    var refDocPath = DrawingView.GetReferencedModelName();
+                    var refDoc = DrawingView.ReferencedDocument;
 
-                    if (!string.IsNullOrEmpty(refDocPath))
+                    if (refDoc != null)
                     {
-
-                        if (((SwDocumentCollection)OwnerApplication.Documents).TryFindExistingDocumentByPath(refDocPath, out SwDocument doc))
-                        {
-                            return (ISwDocument3D)doc;
-                        }
-                        else
-                        {
-                            return (ISwDocument3D)((SwDocumentCollection)OwnerApplication.Documents).PreCreateFromPath(refDocPath);
-                        }
+                        return (IXDocument3D)((SwDocumentCollection)OwnerApplication.Documents)[refDoc];
                     }
                     else
                     {
-                        return null;
+                        var refDocPath = DrawingView.GetReferencedModelName();
+
+                        if (!string.IsNullOrEmpty(refDocPath))
+                        {
+
+                            if (((SwDocumentCollection)OwnerApplication.Documents).TryFindExistingDocumentByPath(refDocPath, out SwDocument doc))
+                            {
+                                return (ISwDocument3D)doc;
+                            }
+                            else
+                            {
+                                return (ISwDocument3D)((SwDocumentCollection)OwnerApplication.Documents).PreCreateFromPath(refDocPath);
+                            }
+                        }
+                        else
+                        {
+                            return null;
+                        }
                     }
+                }
+                else 
+                {
+                    return m_Creator.CachedProperties.Get<IXDocument3D>();
+                }
+            }
+            set 
+            {
+                if (IsCommitted)
+                {
+                    //TODO: implement model document replacement
+                    throw new CommitedElementReadOnlyParameterException();
+                }
+                else 
+                {
+                    m_Creator.CachedProperties.Set(value);
                 }
             }
         }
@@ -218,16 +264,34 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
             get
             {
-                var refConfName = DrawingView.ReferencedConfiguration;
+                if (IsCommitted)
+                {
+                    var refConfName = DrawingView.ReferencedConfiguration;
 
-                if (!string.IsNullOrEmpty(refConfName))
-                {
-                    return ReferencedDocument.Configurations.First(
-                        c => string.Equals(c.Name, refConfName, StringComparison.CurrentCultureIgnoreCase));
+                    if (!string.IsNullOrEmpty(refConfName))
+                    {
+                        return ReferencedDocument.Configurations.First(
+                            c => string.Equals(c.Name, refConfName, StringComparison.CurrentCultureIgnoreCase));
+                    }
+                    else
+                    {
+                        return null;
+                    }
                 }
-                else
+                else 
                 {
-                    return null;
+                    return m_Creator.CachedProperties.Get<IXConfiguration>();
+                }
+            }
+            set 
+            {
+                if (IsCommitted)
+                {
+                    DrawingView.ReferencedConfiguration = value.Name;
+                }
+                else 
+                {
+                    m_Creator.CachedProperties.Set(value);
                 }
             }
         }
@@ -279,15 +343,33 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
             get
             {
-                var baseView = DrawingView.IGetBaseView();
-
-                if (baseView != null)
+                if (!IsCommitted)
                 {
-                    return m_Drawing.CreateObjectFromDispatch<ISwDrawingView>(baseView);
+                    return m_Creator.CachedProperties.Get<IXDrawingView>();
                 }
                 else
                 {
-                    return null;
+                    var baseView = DrawingView.IGetBaseView();
+
+                    if (baseView != null)
+                    {
+                        return m_Drawing.CreateObjectFromDispatch<ISwDrawingView>(baseView);
+                    }
+                    else
+                    {
+                        return null;
+                    }
+                }
+            }
+            set
+            {
+                if (!IsCommitted)
+                {
+                    m_Creator.CachedProperties.Set(value);
+                }
+                else
+                {
+                    throw new CommitedElementReadOnlyParameterException();
                 }
             }
         }
@@ -386,45 +468,55 @@ namespace Xarial.XCad.SolidWorks.Documents
 
     internal class SwModelBasedDrawingView : SwDrawingView, ISwModelBasedDrawingView
     {
-        private SwNamedView m_BaseModelView;
+        internal SwModelBasedDrawingView(IView drwView, SwDrawing drw)
+            : base(drwView, drw)
+        {
+        }
 
-        internal SwModelBasedDrawingView(IView drwView, SwDrawing drw, ISheet sheet, bool created)
-            : base(drwView, drw, sheet, created)
+        internal SwModelBasedDrawingView(SwDrawing drw, SwSheet sheet)
+            : base(null, drw, sheet)
         {
         }
 
         protected override IView CreateDrawingView(CancellationToken cancellationToken)
-        {
-            var drwView = m_Drawing.Drawing.CreateDrawViewFromModelView3(
-                m_BaseModelView.Owner.GetPathName(), m_BaseModelView.Name, Location.X, Location.Y, Location.Z);
-
-            if (drwView == null)
+        {   
+            if (SourceModelView is SwNamedView)
             {
-                throw new Exception("Failed to create drawing view");
+                var namedView = (SwNamedView)SourceModelView;
+
+                var drwView = m_Drawing.Drawing.CreateDrawViewFromModelView3(
+                    namedView.Owner.GetPathName(), namedView.Name, 0, 0, 0);
+
+                return drwView;
             }
-
-            drwView.SetName2(Name);
-
-            return drwView;
+            else
+            {
+                throw new InvalidCastException("Only named views are supported");
+            }
         }
 
         public IXModelView SourceModelView 
         {
-            get => m_BaseModelView;
-            set 
+            get 
             {
-                if (IsCommitted) 
+                if (!IsCommitted)
                 {
-                    throw new Exception("Cannot modify already created drawing view");
-                }
-
-                if (value is SwNamedView)
-                {
-                    m_BaseModelView = (SwNamedView)value;
+                    return m_Creator.CachedProperties.Get<IXModelView>();
                 }
                 else 
                 {
-                    throw new InvalidCastException("Only named views are supported");
+                    throw new NotSupportedException();
+                }
+            }
+            set 
+            {
+                if (!IsCommitted)
+                {
+                    m_Creator.CachedProperties.Set(value);
+                }
+                else
+                {
+                    throw new CommitedElementReadOnlyParameterException();
                 }
             }
         }
@@ -432,29 +524,489 @@ namespace Xarial.XCad.SolidWorks.Documents
 
     internal class SwProjectedDrawingView : SwDrawingView, ISwProjectedDrawingView
     {
-        internal SwProjectedDrawingView(IView drwView, SwDrawing drw, ISheet sheet, bool created) : base(drwView, drw, sheet, created)
+        internal SwProjectedDrawingView(IView drwView, SwDrawing drw) : base(drwView, drw)
         {
+        }
+
+        internal SwProjectedDrawingView(SwDrawing drw, SwSheet sheet)
+            : base(null, drw, sheet)
+        {
+        }
+
+        public ProjectedViewDirection_e Direction
+        {
+            get
+            {
+                if (!IsCommitted)
+                {
+                    return m_Creator.CachedProperties.Get<ProjectedViewDirection_e>();
+                }
+                else
+                {
+                    throw new NotSupportedException();
+                }
+            }
+            set
+            {
+                if (!IsCommitted)
+                {
+                    m_Creator.CachedProperties.Set(value);
+                }
+                else
+                {
+                    throw new CommitedElementReadOnlyParameterException();
+                }
+            }
+        }
+
+        protected override IView CreateDrawingView(CancellationToken cancellationToken)
+        {
+            const double DEFAULT_OFFSET = 0.1;
+
+            var offsetDir = CalculateViewOffsetDirection(Direction);
+
+            BaseView.Select(false);
+
+            var srcPos = (double[])((ISwDrawingView)BaseView).DrawingView.Position;
+
+            var view = m_Drawing.Drawing.CreateUnfoldedViewAt3(
+                            srcPos[0] + offsetDir.X * DEFAULT_OFFSET,
+                            srcPos[1] + offsetDir.Y * DEFAULT_OFFSET,
+                            0, false);
+
+            if (view != null)
+            {
+                var srcViewOutline = (double[])((ISwDrawingView)BaseView).DrawingView.GetOutline();
+
+                var srcWidth = srcViewOutline[2] - srcViewOutline[0];
+                var srcHeight = srcViewOutline[3] - srcViewOutline[1];
+
+                var destViewOutline = (double[])view.GetOutline();
+
+                var destWidth = destViewOutline[2] - destViewOutline[0];
+                var destHeight = destViewOutline[3] - destViewOutline[1];
+
+                var offset = Math.Max(srcWidth, srcHeight) * 0.1;
+
+                double margin;
+
+                switch (Direction)
+                {
+                    case ProjectedViewDirection_e.Left:
+                    case ProjectedViewDirection_e.Right:
+                        margin = srcWidth / 2 + destWidth / 2 + offset;
+                        break;
+
+                    case ProjectedViewDirection_e.Top:
+                    case ProjectedViewDirection_e.Bottom:
+                        margin = srcHeight / 2 + destHeight / 2 + offset;
+                        break;
+
+                    case ProjectedViewDirection_e.IsoBottomLeft:
+                    case ProjectedViewDirection_e.IsoBottomRight:
+                    case ProjectedViewDirection_e.IsoTopLeft:
+                    case ProjectedViewDirection_e.IsoTopRight:
+                        margin = Math.Max(srcHeight, srcWidth) / 2 + Math.Max(destHeight, destWidth) / 2 + offset;
+                        break;
+
+                    default:
+                        throw new NotSupportedException();
+                }
+
+                var newPos = new double[]
+                {
+                        srcPos[0] + offsetDir.X * margin,
+                        srcPos[1] + offsetDir.Y * margin
+                };
+
+                view.Position = newPos;
+            }
+
+            return view;
+        }
+
+        private Vector CalculateViewOffsetDirection(ProjectedViewDirection_e projection)
+        {
+            double dirX;
+            double dirY;
+
+            switch (projection)
+            {
+                case ProjectedViewDirection_e.Left:
+                    dirX = -1;
+                    dirY = 0;
+                    break;
+
+                case ProjectedViewDirection_e.Top:
+                    dirX = 0;
+                    dirY = 1;
+                    break;
+
+                case ProjectedViewDirection_e.Right:
+                    dirX = 1;
+                    dirY = 0;
+                    break;
+
+                case ProjectedViewDirection_e.Bottom:
+                    dirX = 0;
+                    dirY = -1;
+                    break;
+
+                case ProjectedViewDirection_e.IsoTopLeft:
+                    dirX = -1;
+                    dirY = 1;
+                    break;
+
+                case ProjectedViewDirection_e.IsoTopRight:
+                    dirX = 1;
+                    dirY = 1;
+                    break;
+
+                case ProjectedViewDirection_e.IsoBottomLeft:
+                    dirX = -1;
+                    dirY = -1;
+                    break;
+
+                case ProjectedViewDirection_e.IsoBottomRight:
+                    dirX = 1;
+                    dirY = -1;
+                    break;
+
+                default:
+                    throw new NotSupportedException($"'{projection}' is not supported");
+            }
+
+            return new Vector(dirX, dirY, 0);
         }
     }
 
     internal class SwAuxiliaryDrawingView : SwDrawingView, ISwAuxiliaryDrawingView
     {
-        internal SwAuxiliaryDrawingView(IView drwView, SwDrawing drw, ISheet sheet, bool created) : base(drwView, drw, sheet, created)
+        internal SwAuxiliaryDrawingView(IView drwView, SwDrawing drw) : base(drwView, drw)
+        {
+        }
+
+        internal SwAuxiliaryDrawingView(SwDrawing drw, SwSheet sheet)
+            : base(null, drw, sheet)
         {
         }
     }
 
     internal class SwSectionDrawingView : SwDrawingView, ISwSectionDrawingView
     {
-        internal SwSectionDrawingView(IView drwView, SwDrawing drw, ISheet sheet, bool created) : base(drwView, drw, sheet, created)
+        internal SwSectionDrawingView(IView drwView, SwDrawing drw) : base(drwView, drw)
         {
+        }
+
+        internal SwSectionDrawingView(SwDrawing drw, SwSheet sheet)
+            : base(null, drw, sheet)
+        {
+        }
+
+        public Line SectionLine
+        {
+            get
+            {
+                if (!IsCommitted)
+                {
+                    return m_Creator.CachedProperties.Get<Line>();
+                }
+                else
+                {
+                    throw new NotSupportedException();
+                }
+            }
+            set
+            {
+                if (!IsCommitted)
+                {
+                    m_Creator.CachedProperties.Set(value);
+                }
+                else
+                {
+                    throw new CommitedElementReadOnlyParameterException();
+                }
+            }
+        }
+
+        protected override IView CreateDrawingView(CancellationToken cancellationToken)
+        {
+            var drwModel = m_Drawing.Model;
+            var skMgr = drwModel.SketchManager;
+            var mathUtils = OwnerApplication.Sw.IGetMathUtility();
+
+            var srcView = ((ISwDrawingView)BaseView).DrawingView;
+
+            if (m_Drawing.Drawing.ActivateView(srcView.Name))
+            {
+                var transform = srcView.ModelToViewTransform.IMultiply(srcView.IGetSketch().ModelToSketchTransform);
+
+                var startPt = (IMathPoint)mathUtils.CreatePoint(new double[] { SectionLine.StartPoint.X, SectionLine.StartPoint.Y, SectionLine.StartPoint.Z });
+                startPt = startPt.IMultiplyTransform(transform);
+
+                var endPt = (IMathPoint)mathUtils.CreatePoint(new double[] { SectionLine.EndPoint.X, SectionLine.EndPoint.Y, SectionLine.EndPoint.Z });
+                endPt = endPt.IMultiplyTransform(transform);
+
+                var startCoord = (double[])startPt.ArrayData;
+                var endCoord = (double[])endPt.ArrayData;
+
+                var sectionLine = skMgr.CreateLine(startCoord[0], startCoord[1], startCoord[2], endCoord[0], endCoord[1], endCoord[2]);
+
+                using (var selGrp = new SelectionGroup(drwModel, false))
+                {
+                    selGrp.Add(sectionLine);
+
+                    var sectionView = m_Drawing.Drawing.CreateSectionViewAt5(0, 0, 0, "", (int)swCreateSectionViewAtOptions_e.swCreateSectionView_NotAligned, null, 0);
+                    var section = sectionView.IGetSection();
+
+                    section.SetAutoHatch(true);
+                    section.SetDisplayOnlySurfaceCut(false);
+                    section.SetPartialSection(false);
+                    section.SetReversedCutDirection(false);
+                    section.SetScaleWithModelChanges(true);
+                    section.CutSurfaceBodies = false;
+                    section.DisplaySurfaceBodies = false;
+                    section.ExcludeSliceSectionBodies = false;
+
+                    return sectionView;
+                }
+            }
+            else 
+            {
+                throw new Exception("Failed to activate a view");
+            }
         }
     }
 
     internal class SwDetailDrawingView : SwDrawingView, ISwDetailDrawingView
     {
-        internal SwDetailDrawingView(IView drwView, SwDrawing drw, ISheet sheet, bool created) : base(drwView, drw, sheet, created)
+        internal SwDetailDrawingView(IView drwView, SwDrawing drw) : base(drwView, drw)
         {
+        }
+
+        internal SwDetailDrawingView(SwDrawing drw, SwSheet sheet)
+            : base(null, drw, sheet)
+        {
+        }
+
+        public Circle DetailCircle
+        {
+            get
+            {
+                if (!IsCommitted)
+                {
+                    return m_Creator.CachedProperties.Get<Circle>();
+                }
+                else
+                {
+                    throw new NotSupportedException();
+                }
+            }
+            set
+            {
+                if (!IsCommitted)
+                {
+                    m_Creator.CachedProperties.Set(value);
+                }
+                else
+                {
+                    throw new CommitedElementReadOnlyParameterException();
+                }
+            }
+        }
+
+        protected override IView CreateDrawingView(CancellationToken cancellationToken)
+        {
+            var drwModel = m_Drawing.Model;
+            var skMgr = drwModel.SketchManager;
+            var mathUtils = OwnerApplication.Sw.IGetMathUtility();
+
+            var srcView = ((ISwDrawingView)BaseView).DrawingView;
+
+            if (m_Drawing.Drawing.ActivateView(srcView.Name))
+            {
+                var transform = srcView.ModelToViewTransform.IMultiply(srcView.IGetSketch().ModelToSketchTransform);
+
+                var centerMathPt = (IMathPoint)mathUtils.CreatePoint(new double[] { DetailCircle.CenterAxis.Point.X, DetailCircle.CenterAxis.Point.Y, DetailCircle.CenterAxis.Point.Z });
+                centerMathPt = centerMathPt.IMultiplyTransform(transform);
+
+                var centerCoord = (double[])centerMathPt.ArrayData;
+
+                var circle = skMgr.CreateCircleByRadius(centerCoord[0], centerCoord[1], centerCoord[2], DetailCircle.Diameter / 2);
+
+                using (var selGrp = new SelectionGroup(drwModel, false))
+                {
+                    selGrp.Add(circle);
+
+                    var detailView = (IView)m_Drawing.Drawing.CreateDetailViewAt4(0, 0, 0, (int)swDetViewStyle_e.swDetViewSTANDARD, 1, 1,
+                        "", (int)swDetCircleShowType_e.swDetCircleCIRCLE, true, true, false, 5);
+
+                    var detailCircle = detailView.IGetDetail();
+
+                    detailCircle.ScaleHatchPattern = true;
+
+                    return detailView;
+                }
+            }
+            else
+            {
+                throw new Exception($"Failed to activate '{srcView.Name}'");
+            }
+        }
+    }
+
+    internal class SwFlatPatternDrawingView : SwDrawingView, ISwFlatPatternDrawingView
+    {
+        internal SwFlatPatternDrawingView(IView drwView, SwDrawing drw) : base(drwView, drw)
+        {
+        }
+
+        internal SwFlatPatternDrawingView(SwDrawing drw, SwSheet sheet)
+            : base(null, drw, sheet)
+        {
+        }
+
+        public IXSolidBody SheetMetalBody
+        {
+            get
+            {
+                if (!IsCommitted)
+                {
+                    return m_Creator.CachedProperties.Get<IXSolidBody>();
+                }
+                else
+                {
+                    throw new NotSupportedException();
+                }
+            }
+            set
+            {
+                if (!IsCommitted)
+                {
+                    m_Creator.CachedProperties.Set(value);
+                }
+                else
+                {
+                    throw new CommitedElementReadOnlyParameterException();
+                }
+            }
+        }
+
+        protected override IView CreateDrawingView(CancellationToken cancellationToken)
+        {
+            var sheetMetalBody = (SwSolidBody)SheetMetalBody;
+
+            SwPart sheetMetalPart;
+
+            if (sheetMetalBody != null)
+            {
+                if (!sheetMetalBody.Body.IsSheetMetal())
+                {
+                    throw new InvalidCastException("Specified body is not a sheet metal");
+                }
+
+                sheetMetalPart = (SwPart)sheetMetalBody.OwnerDocument;
+            }
+            else 
+            {
+                sheetMetalPart = (SwPart)ReferencedDocument;
+            }
+
+            if (sheetMetalPart == null) 
+            {
+                throw new NotSupportedException($"Sheet metal part is not specified. Either set the {nameof(SheetMetalBody)} or {nameof(ReferencedDocument)}");
+            }
+
+            if (!sheetMetalPart.IsCommitted)
+            {
+                if (!sheetMetalPart.State.HasFlag(DocumentState_e.Hidden)) 
+                {
+                    sheetMetalPart.State |= DocumentState_e.Hidden;
+                }
+
+                sheetMetalPart.Commit(cancellationToken);
+            }
+
+            var sheetMetalBodiesCount = sheetMetalPart.Bodies.Count(b => ((ISwBody)b).Body.IsSheetMetal());
+
+            if (sheetMetalBodiesCount > 0)
+            {
+                if (sheetMetalBodiesCount > 1 && sheetMetalBody == null) 
+                {
+                    throw new Exception($"Set the body to create flat pattern for via {nameof(SheetMetalBody)} for multi body sheet metal part");
+                }
+
+                //NOTE: part docu must be activated, otherwise the flat pattern will be invalid
+                var wasPartHidden = !sheetMetalPart.Model.Visible;
+
+                var activeDoc = OwnerApplication.Documents.Active;
+                OwnerApplication.Documents.Active = sheetMetalPart;
+
+                //var flatPatternFeat = sheetMetalPart.Features.OfType<ISwFlatPattern>().FirstOrDefault(f => sheetMetalBody == null || f.FixedEntity.Body.Equals(sheetMetalBody));
+
+                var flatPatternFeat = EnumerateFlatPatternFeatures(sheetMetalPart).FirstOrDefault(f => sheetMetalBody == null || f.FixedEntity.Body.Equals(sheetMetalBody));
+
+                if (flatPatternFeat == null)
+                {
+                    throw new Exception("Failed to find the flat pattern feature");
+                }
+
+                //flat pattern feature point may become invalid as the result of suppressing - storing feature name to restore the pointer
+                var flatPatternFeatName = flatPatternFeat.Name;
+
+                var isFlattened = flatPatternFeat.IsFlattened;
+
+                if (!isFlattened)
+                {
+                    flatPatternFeat.IsFlattened = true;
+                }
+
+                try
+                {
+                    return CreateFlatPatternView(sheetMetalPart);
+                }
+                finally
+                {
+                    ((ISwFlatPattern)sheetMetalPart.Features[flatPatternFeatName]).IsFlattened = isFlattened;
+                    
+                    if (wasPartHidden)
+                    {
+                        sheetMetalPart.Model.Visible = false;
+                    }
+
+                    OwnerApplication.Documents.Active = activeDoc;
+                }
+            }
+            else 
+            {
+                throw new Exception("No sheet metal bodies found in the part");
+            }
+        }
+
+        private IView CreateFlatPatternView(SwPart sheetMetalPart) 
+            => m_Drawing.Drawing.CreateFlatPatternViewFromModelView3(sheetMetalPart.Path, "", 0, 0, 0, false, false);
+
+        private IEnumerable<ISwFlatPattern> EnumerateFlatPatternFeatures(SwPart sheetMetalPart) 
+        {
+            int pos = 0;
+
+            IFeature feat;
+
+            do
+            {
+                feat = (IFeature)sheetMetalPart.Model.FeatureByPositionReverse(pos++);
+
+                if (feat?.GetTypeName2() == "FlatPattern")
+                {
+                    yield return sheetMetalPart.CreateObjectFromDispatch<ISwFlatPattern>(feat);
+                }
+
+                if (feat?.GetTypeName2() == "OriginProfileFeature") 
+                {
+                    yield break;
+                }
+
+            } while (feat != null);
         }
     }
 }

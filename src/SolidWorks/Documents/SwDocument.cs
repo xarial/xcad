@@ -25,6 +25,7 @@ using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Delegates;
 using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Documents.Exceptions;
+using Xarial.XCad.Documents.Structures;
 using Xarial.XCad.Exceptions;
 using Xarial.XCad.Features;
 using Xarial.XCad.Geometry;
@@ -476,7 +477,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        private void CommitCache(IModelDoc2 model, CancellationToken cancellationToken)
+        protected virtual void CommitCache(IModelDoc2 model, CancellationToken cancellationToken)
         {
             if (m_FeaturesLazy.IsValueCreated) 
             {
@@ -701,6 +702,8 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
             var docTemplate = Template;
 
+            GetPaperSize(out var paperSize, out var paperWidth, out var paperHeight);
+
             if (string.IsNullOrEmpty(docTemplate))
             {
                 if (!DocumentType.HasValue) 
@@ -715,7 +718,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                     OwnerApplication.Sw.SetUserPreferenceToggle((int)swUserPreferenceToggle_e.swAlwaysUseDefaultTemplates, true);
 
                     docTemplate = OwnerApplication.Sw.GetDocumentTemplate(
-                        (int)DocumentType.Value, "", (int)swDwgPaperSizes_e.swDwgPapersUserDefined, 0.1, 0.1);
+                        (int)DocumentType.Value, "", (int)paperSize, paperWidth, paperHeight);
                 }
                 finally
                 {
@@ -725,7 +728,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
             if (!string.IsNullOrEmpty(docTemplate))
             {
-                var doc = OwnerApplication.Sw.NewDocument(docTemplate, (int)swDwgPaperSizes_e.swDwgPapersUserDefined, 0.1, 0.1) as IModelDoc2;
+                var doc = OwnerApplication.Sw.NewDocument(docTemplate, (int)paperSize, paperWidth, paperHeight) as IModelDoc2;
 
                 if (doc != null)
                 {
@@ -892,6 +895,13 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
 
         protected abstract bool IsDocumentTypeCompatible(swDocumentTypes_e docType);
+
+        protected virtual void GetPaperSize(out swDwgPaperSizes_e size, out double width, out double height) 
+        {
+            size = swDwgPaperSizes_e.swDwgPapersUserDefined;
+            width = -1;
+            height = -1;
+        }
 
         //NOTE: closing of document migth note neecsserily unload if from memory (if this document is used in active assembly or drawing)
         //do not dispose or set m_IsClosed flag in this function

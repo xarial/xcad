@@ -25,9 +25,9 @@ namespace Xarial.XCad.SolidWorks.Documents
     internal class SwDrawingViewsCollection : ISwDrawingViewsCollection
     {
         private readonly SwDrawing m_Draw;
-        private readonly ISheet m_Sheet;
+        private readonly SwSheet m_Sheet;
 
-        internal SwDrawingViewsCollection(SwDrawing draw, ISheet sheet) 
+        internal SwDrawingViewsCollection(SwDrawing draw, SwSheet sheet) 
         {
             m_Draw = draw;
             m_Sheet = sheet;
@@ -79,7 +79,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             {
                 foreach (IView view in sheet) 
                 {
-                    if (string.Equals(view.Name, m_Sheet.GetName(), StringComparison.CurrentCultureIgnoreCase))
+                    if (string.Equals(view.Name, m_Sheet.Name, StringComparison.CurrentCultureIgnoreCase))
                     {
                         isSheetFound = true;
                     }
@@ -102,6 +102,11 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public T PreCreate<T>() where T : IXDrawingView
             => RepositoryHelper.PreCreate<IXDrawingView, T>(this,
-                () => new SwModelBasedDrawingView(null, m_Draw, m_Sheet, false));
+                () => new SwModelBasedDrawingView(m_Draw, m_Sheet),
+                () => new SwProjectedDrawingView(m_Draw, m_Sheet),
+                () => new SwAuxiliaryDrawingView(m_Draw, m_Sheet),
+                () => new SwDetailDrawingView(m_Draw, m_Sheet),
+                () => new SwSectionDrawingView(m_Draw, m_Sheet),
+                () => new SwFlatPatternDrawingView(m_Draw, m_Sheet));
     }
 }

@@ -10,7 +10,9 @@ using System.Collections.Generic;
 using System.Text;
 using Xarial.XCad.Annotations;
 using Xarial.XCad.Base;
+using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Documents.Structures;
+using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;
 
 namespace Xarial.XCad.Documents
@@ -23,12 +25,12 @@ namespace Xarial.XCad.Documents
         /// <summary>
         /// Contains the document referenced by this drawing view
         /// </summary>
-        IXDocument3D ReferencedDocument { get; }
+        IXDocument3D ReferencedDocument { get; set; }
 
         /// <summary>
         /// Contains the configuration this drawing view is created from
         /// </summary>
-        IXConfiguration ReferencedConfiguration { get; }
+        IXConfiguration ReferencedConfiguration { get; set; }
 
         /// <summary>
         /// Name of this drawing view
@@ -60,7 +62,7 @@ namespace Xarial.XCad.Documents
         /// Get the base drawing view
         /// </summary>
         /// <remarks>For the root views, base view will be null</remarks>
-        IXDrawingView BaseView { get; }
+        IXDrawingView BaseView { get; set; }
 
         /// <summary>
         /// Gets all views depending on this view
@@ -84,6 +86,10 @@ namespace Xarial.XCad.Documents
     /// </summary>
     public interface IXProjectedDrawingView : IXDrawingView
     {
+        /// <summary>
+        /// Direction of this projection view
+        /// </summary>
+        ProjectedViewDirection_e Direction { get; set; }
     }
 
     /// <summary>
@@ -98,6 +104,10 @@ namespace Xarial.XCad.Documents
     /// </summary>
     public interface IXSectionDrawingView : IXDrawingView
     {
+        /// <summary>
+        /// Section of this drawing view
+        /// </summary>
+        Line SectionLine { get; set; }
     }
 
     /// <summary>
@@ -105,5 +115,20 @@ namespace Xarial.XCad.Documents
     /// </summary>
     public interface IXDetailedDrawingView : IXDrawingView
     {
+        /// <summary>
+        /// Circle of this detailed view
+        /// </summary>
+        Circle DetailCircle { get; set; }
+    }
+
+    /// <summary>
+    /// Flat pattern view
+    /// </summary>
+    public interface IXFlatPatternDrawingView : IXDrawingView 
+    {
+        /// <summary>
+        /// Sheet metal body of the flat pattern view
+        /// </summary>
+        IXSolidBody SheetMetalBody { get; set; }
     }
 }

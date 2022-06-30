@@ -59,14 +59,11 @@ namespace SwAddInExample
             };
 
             var sweepArc = app.MemoryGeometryBuilder.WireBuilder.PreCreateCircle();
-            sweepArc.Center = new Point(0, 0, 0);
-            sweepArc.Axis = new Vector(0, 0, 1);
-            sweepArc.Diameter = 0.01;
+            sweepArc.Geometry = new Circle(new Axis(new Point(0, 0, 0), new Vector(0, 0, 1)), 0.01);
             sweepArc.Commit();
 
             var sweepLine = app.MemoryGeometryBuilder.WireBuilder.PreCreateLine();
-            sweepLine.StartCoordinate = new Point(0, 0, 0);
-            sweepLine.EndCoordinate = new Point(1, 1, 1);
+            sweepLine.Geometry = new Line(new Point(0, 0, 0), new Point(1, 1, 1));
             sweepLine.Commit();
 
             var sweep = (ISwTempSweep)app.MemoryGeometryBuilder.SolidBuilder.PreCreateSweep();

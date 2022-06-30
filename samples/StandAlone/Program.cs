@@ -125,8 +125,7 @@ namespace StandAlone
             var sketch3D = app.Documents.Active.Features.PreCreate3DSketch();
             var line = (IXSketchLine)sketch3D.Entities.PreCreateLine();
             line.Color = System.Drawing.Color.Green;
-            line.StartCoordinate = new Point(0.1, 0.1, 0.1);
-            line.EndCoordinate = new Point(0.2, 0.2, 0.2);
+            line.Geometry = new Line(new Point(0.1, 0.1, 0.1), new Point(0.2, 0.2, 0.2));
             sketch3D.Entities.AddRange(new IXSketchEntity[] { line });
 
             app.Documents.Active.Features.Add(sketch3D);
@@ -141,8 +140,7 @@ namespace StandAlone
             using (var editor = sketch3D.Edit())
             {
                 var line2 = (IXSketchLine)sketch3D.Entities.PreCreateLine();
-                line2.StartCoordinate = new Point(0, 0, 0);
-                line2.EndCoordinate = new Point(0.1, 0.2, 0.3);
+                line2.Geometry = new Line(new Point(0, 0, 0), new Point(0.1, 0.2, 0.3));
                 line2.Commit();
             }
         }
@@ -189,14 +187,11 @@ namespace StandAlone
         private static void CreateTempGeometry(IXApplication app) 
         {
             var sweepArc = app.MemoryGeometryBuilder.WireBuilder.PreCreateCircle();
-            sweepArc.Center = new Point(0, 0, 0);
-            sweepArc.Axis = new Vector(0, 0, 1);
-            sweepArc.Diameter = 0.01;
+            sweepArc.Geometry = new Circle(new Axis(new Point(0, 0, 0), new Vector(0, 0, 1)), 0.01);
             sweepArc.Commit();
 
             var sweepLine = app.MemoryGeometryBuilder.WireBuilder.PreCreateLine();
-            sweepLine.StartCoordinate = new Point(0, 0, 0);
-            sweepLine.EndCoordinate = new Point(1, 1, 1);
+            sweepLine.Geometry = new Line(new Point(0, 0, 0), new Point(1, 1, 1));
             sweepLine.Commit();
 
             var sweep = app.MemoryGeometryBuilder.SolidBuilder.PreCreateSweep();
@@ -219,14 +214,11 @@ namespace StandAlone
             (app.Documents.Active as ISwPart).Part.CreateFeatureFromBody3(body, false, 0);
 
             var arc = app.MemoryGeometryBuilder.WireBuilder.PreCreateCircle();
-            arc.Center = new Point(-0.1, 0, 0);
-            arc.Axis = new Vector(0, 0, 1);
-            arc.Diameter = 0.01;
+            arc.Geometry = new Circle(new Axis(new Point(-0.1, 0, 0), new Vector(0, 0, 1)), 0.01);
             arc.Commit();
 
             var axis = app.MemoryGeometryBuilder.WireBuilder.PreCreateLine();
-            axis.StartCoordinate = new Point(0, 0, 0);
-            axis.EndCoordinate = new Point(0, 1, 0);
+            axis.Geometry = new Line(new Point(0, 0, 0), new Point(0, 1, 0));
             axis.Commit();
 
             var rev = app.MemoryGeometryBuilder.SolidBuilder.PreCreateRevolve();

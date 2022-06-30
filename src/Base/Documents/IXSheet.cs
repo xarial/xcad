@@ -38,5 +38,10 @@ namespace Xarial.XCad.Documents
         /// Represents scale of this sheet
         /// </summary>
         Scale Scale { get; set; }
+
+        /// <summary>
+        /// Represents paper of this sheet
+        /// </summary>
+        PaperSize PaperSize { get; set; }
     }
 }

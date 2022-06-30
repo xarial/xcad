@@ -252,20 +252,27 @@ namespace Xarial.XCad.SolidWorks
                     return new SwSheet(sheet, (SwDrawing)doc, app);
 
                 case IView view:
-                    switch ((swDrawingViewTypes_e)view.Type) 
+                    if (view.IsFlatPatternView())
                     {
-                        case swDrawingViewTypes_e.swDrawingProjectedView:
-                            return new SwProjectedDrawingView(view, (SwDrawing)doc, view.Sheet, true);
-                        case swDrawingViewTypes_e.swDrawingNamedView:
-                            return new SwModelBasedDrawingView(view, (SwDrawing)doc, view.Sheet, true);
-                        case swDrawingViewTypes_e.swDrawingAuxiliaryView:
-                            return new SwAuxiliaryDrawingView(view, (SwDrawing)doc, view.Sheet, true);
-                        case swDrawingViewTypes_e.swDrawingSectionView:
-                            return new SwSectionDrawingView(view, (SwDrawing)doc, view.Sheet, true);
-                        case swDrawingViewTypes_e.swDrawingDetailView:
-                            return new SwDetailDrawingView(view, (SwDrawing)doc, view.Sheet, true);
-                        default:
-                            return new SwDrawingView(view, (SwDrawing)doc);
+                        return new SwFlatPatternDrawingView(view, (SwDrawing)doc);
+                    }
+                    else
+                    {
+                        switch ((swDrawingViewTypes_e)view.Type)
+                        {
+                            case swDrawingViewTypes_e.swDrawingProjectedView:
+                                return new SwProjectedDrawingView(view, (SwDrawing)doc);
+                            case swDrawingViewTypes_e.swDrawingNamedView:
+                                return new SwModelBasedDrawingView(view, (SwDrawing)doc);
+                            case swDrawingViewTypes_e.swDrawingAuxiliaryView:
+                                return new SwAuxiliaryDrawingView(view, (SwDrawing)doc);
+                            case swDrawingViewTypes_e.swDrawingSectionView:
+                                return new SwSectionDrawingView(view, (SwDrawing)doc);
+                            case swDrawingViewTypes_e.swDrawingDetailView:
+                                return new SwDetailDrawingView(view, (SwDrawing)doc);
+                            default:
+                                return new SwDrawingView(view, (SwDrawing)doc);
+                        }
                     }
                     
                 case ICurve curve:
@@ -356,6 +363,8 @@ namespace Xarial.XCad.SolidWorks
                             return new SwCoordinateSystem(feat, doc, app, true);
                         case "RefPlane":
                             return new SwPlane(feat, doc, app, true);
+                        case "FlatPattern":
+                            return new SwFlatPattern(feat, doc, app, true);
                         case "SketchBlockInst":
                             return new SwSketchBlockInstance(feat, doc, app, true);
                         case "SketchBlockDef":

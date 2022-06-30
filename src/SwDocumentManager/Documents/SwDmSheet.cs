@@ -25,6 +25,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
     {
         #region Not Supported
         public Scale Scale { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
+        public PaperSize PaperSize { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
         #endregion
 
         public string Name

@@ -14,18 +14,32 @@ namespace Xarial.XCad.SolidWorks.Utils
 {
     internal class SelectionGroup : IDisposable
     {
-        private ISelectionMgr m_SelMgr;
+        private readonly IModelDoc2 m_Model;
+        private readonly ISelectionMgr m_SelMgr;
 
-        internal SelectionGroup(ISelectionMgr selMgr)
+        private readonly bool m_IsSystemSelection;
+
+        internal SelectionGroup(IModelDoc2 model, bool systemSel)
         {
-            if (selMgr == null)
+            if (model == null)
             {
-                throw new ArgumentNullException(nameof(selMgr));
+                throw new ArgumentNullException(nameof(model));
             }
 
-            m_SelMgr = selMgr;
+            m_IsSystemSelection = systemSel;
 
-            m_SelMgr.SuspendSelectionList();
+            m_Model = model;
+
+            m_SelMgr = m_Model.ISelectionManager;
+
+            if (m_IsSystemSelection)
+            {
+                m_SelMgr.SuspendSelectionList();
+            }
+            else 
+            {
+                m_Model.ClearSelection2(true);
+            }
         }
 
         /// <summary>
@@ -41,9 +55,16 @@ namespace Xarial.XCad.SolidWorks.Utils
                 throw new ArgumentNullException(nameof(disp));
             }
 
-            if (!m_SelMgr.AddSelectionListObject(new DispatchWrapper(disp), selData)) 
+            if (m_IsSystemSelection)
             {
-                throw new Exception("Failed to add object to selection list");
+                if (!m_SelMgr.AddSelectionListObject(new DispatchWrapper(disp), selData))
+                {
+                    throw new Exception("Failed to add object to selection list");
+                }
+            }
+            else 
+            {
+                AddRange(new object[] { disp }, selData);
             }
         }
 
@@ -62,15 +83,34 @@ namespace Xarial.XCad.SolidWorks.Utils
 
             var dispWrappers = disps.Select(d => new DispatchWrapper(d)).ToArray();
 
-            if (m_SelMgr.AddSelectionListObjects(dispWrappers, selData) != disps.Length) 
+            if (m_IsSystemSelection)
             {
-                throw new Exception("Failed to add objects to selection list");
+                if (m_SelMgr.AddSelectionListObjects(dispWrappers, selData) != disps.Length)
+                {
+                    throw new Exception("Failed to add objects to selection list");
+                }
+            }
+            else 
+            {
+                var cusrSelCount = m_SelMgr.GetSelectedObjectCount2(-1);
+
+                if (m_Model.Extension.MultiSelect2(dispWrappers, true, null) - cusrSelCount != disps.Length) 
+                {
+                    throw new Exception("Failed to select objects");
+                }
             }
         }
 
         public void Dispose()
         {
-            m_SelMgr.ResumeSelectionList();
+            if (m_IsSystemSelection)
+            {
+                m_SelMgr.ResumeSelectionList();
+            }
+            else 
+            {
+                m_Model.ClearSelection2(true);
+            }
         }
     }
 }

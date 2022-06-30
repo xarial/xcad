@@ -21,7 +21,7 @@ namespace Xarial.XCad.Geometry.Structures
         {
             if (axis.Direction.IsParallel(otherAxis.Direction, tol)) 
             {
-                var altDir = axis.RefPoint - otherAxis.RefPoint;
+                var altDir = axis.Point - otherAxis.Point;
 
                 if (altDir.GetLength() < Numeric.DEFAULT_LENGTH_TOLERANCE)
                 {

@@ -9,9 +9,14 @@ using Xarial.XCad.Geometry.Structures;
 
 namespace Xarial.XCad.Geometry.Wires
 {
+    /// <summary>
+    /// Represents a line segment
+    /// </summary>
     public interface IXLine : IXSegment
     {
-        Point StartCoordinate { get; set; }
-        Point EndCoordinate { get; set; }
+        /// <summary>
+        /// Geometry of this line
+        /// </summary>
+        Line Geometry { get; set; }
     }
 }

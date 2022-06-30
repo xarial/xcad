@@ -91,7 +91,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
 
             foreach (var profile in Profiles)
             {
-                using (var selGrp = new SelectionGroup(selMgr))
+                using (var selGrp = new SelectionGroup(m_Part.Model, true))
                 {
                     if (profile.Boundary.Length > 1) 
                     {

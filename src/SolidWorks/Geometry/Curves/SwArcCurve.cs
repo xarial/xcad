@@ -33,98 +33,50 @@ namespace Xarial.XCad.SolidWorks.Geometry.Curves
         {
         }
 
-        public double Diameter 
-        {
-            get 
-            {
-                if (IsCommitted)
-                {
-                    var circParams = Curves.First().CircleParams as double[];
-                    return circParams[6] * 2;
-                }
-                else 
-                {
-                    return m_Creator.CachedProperties.Get<double>();
-                }
-            }
-            set 
-            {
-                if (IsCommitted)
-                {
-                    throw new CommitedSegmentReadOnlyParameterException();
-                }
-                else 
-                {
-                    m_Creator.CachedProperties.Set(value);
-                }
-            }
-        }
-        
-        public Point Center 
-        {
-            get
-            {
-                if (IsCommitted)
-                {
-                    var circParams = Curves.First().CircleParams as double[];
-                    return new Point(circParams[0], circParams[1], circParams[2]);
-                }
-                else
-                {
-                    return m_Creator.CachedProperties.Get<Point>();
-                }
-            }
-            set
-            {
-                if (IsCommitted)
-                {
-                    throw new CommitedSegmentReadOnlyParameterException();
-                }
-                else
-                {
-                    m_Creator.CachedProperties.Set(value);
-                }
-            }
-        }
-
-        public Vector Axis
-        {
-            get
-            {
-                if (IsCommitted)
-                {
-                    var circParams = Curves.First().CircleParams as double[];
-                    return new Vector(circParams[3], circParams[4], circParams[5]);
-                }
-                else
-                {
-                    return m_Creator.CachedProperties.Get<Vector>();
-                }
-            }
-            set
-            {
-                if (IsCommitted)
-                {
-                    throw new CommitedSegmentReadOnlyParameterException();
-                }
-                else
-                {
-                    m_Creator.CachedProperties.Set(value);
-                }
-            }
-        }
-
         internal override bool TryGetPlane(out Plane plane)
         {
-            plane = new Plane(Center, Axis, ReferenceDirection);
+            var geom = Geometry;
+            plane = new Plane(geom.CenterAxis.Point, geom.CenterAxis.Direction, ReferenceDirection);
             return true;
         }
 
-        private Vector ReferenceDirection => Axis.CreateAnyPerpendicular();
+        private Vector ReferenceDirection => Geometry.CenterAxis.Direction.CreateAnyPerpendicular();
+
+        public Circle Geometry 
+        {
+            get
+            {
+                if (IsCommitted)
+                {
+                    var circParams = Curves.First().CircleParams as double[];
+                    return new Circle(
+                        new Axis(new Point(circParams[0], circParams[1], circParams[2]), 
+                        new Vector(circParams[3], circParams[4], circParams[5])),
+                        circParams[6] * 2);
+                }
+                else
+                {
+                    return m_Creator.CachedProperties.Get<Circle>();
+                }
+            }
+            set
+            {
+                if (IsCommitted)
+                {
+                    throw new CommitedSegmentReadOnlyParameterException();
+                }
+                else
+                {
+                    m_Creator.CachedProperties.Set(value);
+                }
+            }
+        }
 
         protected virtual void GetEndPoints(out Point start, out Point end) 
         {
-            start = Center.Move(ReferenceDirection, Diameter / 2);
+            var geom = Geometry;
+
+            start = geom.CenterAxis.Point.Move(ReferenceDirection, geom.Diameter / 2);
             end = start;
         }
 
@@ -132,7 +84,9 @@ namespace Xarial.XCad.SolidWorks.Geometry.Curves
         {
             GetEndPoints(out Point start, out Point end);
 
-            var arc = m_Modeler.CreateArc(Center.ToArray(), Axis.ToArray(), Diameter / 2, start.ToArray(), end.ToArray()) as ICurve;
+            var geom = Geometry;
+
+            var arc = m_Modeler.CreateArc(geom.CenterAxis.Point.ToArray(), geom.CenterAxis.Direction.ToArray(), geom.Diameter / 2, start.ToArray(), end.ToArray()) as ICurve;
 
             if (arc == null) 
             {
@@ -204,7 +158,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Curves
                 }
                 else
                 {
-                    m_Creator.CachedProperties.Set<Point>(value);
+                    m_Creator.CachedProperties.Set(value);
                 }
             }
         }

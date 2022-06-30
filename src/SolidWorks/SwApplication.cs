@@ -434,7 +434,7 @@ namespace Xarial.XCad.SolidWorks
         public void Commit(CancellationToken cancellationToken)
         {
             m_Creator.Create(cancellationToken);
-            Init(CustomServices);
+            Init(CustomServices ?? new ServiceCollection());
         }
 
         private ISldWorks CreateInstance(CancellationToken cancellationToken)

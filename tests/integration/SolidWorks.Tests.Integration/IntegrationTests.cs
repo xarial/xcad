@@ -41,7 +41,7 @@ namespace SolidWorks.Tests.Integration
             }
         }
 
-        private const int SW_PRC_ID = -1;
+        private const int SW_PRC_ID = 0;
         private const string DATA_FOLDER = @"C:\Users\artem\OneDrive\xCAD\TestData";
         private SwVersion_e? SW_VERSION = SwVersion_e.Sw2021;
 
@@ -147,14 +147,14 @@ namespace SolidWorks.Tests.Integration
                 m_SwApp.SetUserPreferenceToggle((int)swUserPreferenceToggle_e.swAlwaysUseDefaultTemplates, true);
                 
                 var defTemplatePath = m_SwApp.GetDocumentTemplate(
-                    (int)docType, "", (int)swDwgPaperSizes_e.swDwgPapersUserDefined, 100, 100);
+                    (int)docType, "", (int)swDwgPaperSizes_e.swDwgPapersUserDefined, 0.1, 0.1);
 
                 if (string.IsNullOrEmpty(defTemplatePath))
                 {
                     throw new Exception("Default template is not found");
                 }
 
-                var model = (IModelDoc2)m_SwApp.NewDocument(defTemplatePath, (int)swDwgPaperSizes_e.swDwgPapersUserDefined, 100, 100);
+                var model = (IModelDoc2)m_SwApp.NewDocument(defTemplatePath, (int)swDwgPaperSizes_e.swDwgPapersUserDefined, 0.1, 0.1);
 
                 if (model != null)
                 {
@@ -176,13 +176,13 @@ namespace SolidWorks.Tests.Integration
         protected void AssertCompareDoubles(double actual, double expected, int digits = 8)
             => Assert.That(Math.Round(actual, digits), Is.EqualTo(Math.Round(expected, digits)).Within(0.000001).Percent);
 
-        protected void AssertCompareDoubleArray(double[] actual, double[] expected, int digits = 8)
+        protected void AssertCompareDoubleArray(double[] actual, double[] expected, int digits = 8, double percent = 0.000001)
         {
             if (actual.Length == expected.Length)
             {
                 for (int i = 0; i < actual.Length; i++) 
                 {
-                    Assert.That(Math.Round(actual[i], digits), Is.EqualTo(Math.Round(expected[i], digits)).Within(0.000001).Percent);
+                    Assert.That(Math.Round(actual[i], digits), Is.EqualTo(Math.Round(expected[i], digits)).Within(percent).Percent);
                 }
             }
             else 

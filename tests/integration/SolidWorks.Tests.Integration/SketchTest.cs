@@ -61,9 +61,7 @@ namespace SolidWorks.Tests.Integration
 
                 var sketch3D = (ISwSketch3D)part.Features.PreCreate3DSketch();
                 var line = (IXSketchLine)sketch3D.Entities.PreCreateLine();
-                
-                line.StartCoordinate = new Point(0.1, 0.1, 0.1);
-                line.EndCoordinate = new Point(0.2, 0.2, 0.2);
+                line.Geometry = new Line(new Point(0.1, 0.1, 0.1), new Point(0.2, 0.2, 0.2));
                 sketch3D.Entities.AddRange(new IXSketchEntity[] { line });
 
                 part.Features.Add(sketch3D);
@@ -211,7 +209,7 @@ namespace SolidWorks.Tests.Integration
                 entTypes = ents.Select(e => e.GetType()).ToArray();
 
                 var circ = ents.OfType<IXSketchCircle>().First();
-                var centerPt = circ.Center;
+                var centerPt = circ.Geometry.CenterAxis.Point;
                 pt1 = centerPt.Transform(block1.Transform);
                 pt2 = centerPt.Transform(block2.Transform);
             }

@@ -30,14 +30,11 @@ namespace SolidWorks.Tests.Integration
             using (var doc = NewDocument(swDocumentTypes_e.swDocPART))
             {
                 var sweepCircle = m_App.MemoryGeometryBuilder.WireBuilder.PreCreateCircle();
-                sweepCircle.Center = new Point(0, 0, 0);
-                sweepCircle.Axis = new Vector(0, 0, 1);
-                sweepCircle.Diameter = 0.01;
+                sweepCircle.Geometry = new Circle(new Axis(new Point(0, 0, 0), new Vector(0, 0, 1)), 0.01);
                 sweepCircle.Commit();
 
                 var sweepLine = m_App.MemoryGeometryBuilder.WireBuilder.PreCreateLine();
-                sweepLine.StartCoordinate = new Point(0, 0, 0);
-                sweepLine.EndCoordinate = new Point(1, 1, 1);
+                sweepLine.Geometry = new Line(new Point(0, 0, 0), new Point(1, 1, 1));
                 sweepLine.Commit();
 
                 var sweep = m_App.MemoryGeometryBuilder.SolidBuilder.PreCreateSweep();
@@ -100,14 +97,11 @@ namespace SolidWorks.Tests.Integration
             using (var doc = NewDocument(Interop.swconst.swDocumentTypes_e.swDocPART))
             {
                 var circle = m_App.MemoryGeometryBuilder.WireBuilder.PreCreateCircle();
-                circle.Center = new Point(-0.1, 0, 0);
-                circle.Axis = new Vector(0, 0, 1);
-                circle.Diameter = 0.01;
+                circle.Geometry = new Circle(new Axis(new Point(-0.1, 0, 0), new Vector(0, 0, 1)), 0.01);
                 circle.Commit();
 
                 var axis = m_App.MemoryGeometryBuilder.WireBuilder.PreCreateLine();
-                axis.StartCoordinate = new Point(0, 0, 0);
-                axis.EndCoordinate = new Point(0, 1, 0);
+                axis.Geometry = new Line(new Point(0, 0, 0), new Point(0, 1, 0));
                 axis.Commit();
 
                 var rev = m_App.MemoryGeometryBuilder.SolidBuilder.PreCreateRevolve();
@@ -269,9 +263,7 @@ namespace SolidWorks.Tests.Integration
             using (var doc = NewDocument(swDocumentTypes_e.swDocPART))
             {
                 var arc = m_App.MemoryGeometryBuilder.WireBuilder.PreCreateCircle();
-                arc.Center = new Point(0.75, 0.5, 0.15);
-                arc.Axis = new Vector(1E-16d, 0, 1);
-                arc.Diameter = 2.5;
+                arc.Geometry = new Circle(new Axis(new Point(0.75, 0.5, 0.15), new Vector(1E-16d, 0, 1)), 2.5);
                 arc.Commit();
                 var face = m_App.MemoryGeometryBuilder.CreatePlanarSheet(
                     m_App.MemoryGeometryBuilder.CreateRegionFromSegments(arc)).Bodies.First().Faces.First();
@@ -421,9 +413,7 @@ namespace SolidWorks.Tests.Integration
                 curve1Length = curve1.Length;
 
                 var arc2 = m_App.MemoryGeometryBuilder.WireBuilder.PreCreateArc();
-                arc2.Center = new Point(0, 0, 0);
-                arc2.Axis = new Vector(0, 0, -1);
-                arc2.Diameter = 0.01;
+                arc2.Geometry = new Circle(new Axis(new Point(0, 0, 0), new Vector(0, 0, -1)), 0.01);
                 arc2.Start = new Point(-0.005, 0, 0);
                 arc2.End = new Point(0, 0.005, 0);
                 arc2.Commit();
@@ -452,9 +442,7 @@ namespace SolidWorks.Tests.Integration
                 curve1Length = curve1.Length;
 
                 var circle2 = m_App.MemoryGeometryBuilder.WireBuilder.PreCreateCircle();
-                circle2.Center = new Point(0, 0, 0);
-                circle2.Axis = new Vector(0, 0, -1);
-                circle2.Diameter = 0.01;
+                circle2.Geometry = new Circle(new Axis(new Point(0, 0, 0), new Vector(0, 0, -1)), 0.01);
                 circle2.Commit();
 
                 curve2Length = circle2.Length;
