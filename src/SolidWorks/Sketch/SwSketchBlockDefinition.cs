@@ -40,14 +40,12 @@ namespace Xarial.XCad.SolidWorks.Sketch
 
         public Point InsertionPoint => new Point((double[])SketchBlockDefinition.InsertionPoint.ArrayData);
 
-        internal SwSketchBlockDefinition(IFeature feat, SwDocument doc, SwApplication app, bool created) : base(feat, doc, app, created) 
+        //Note: retrieving the pointer to the feature from the feature tree for the consistency as IFeature retrieved from ISketchBlockDefinition has a different pointer to IFeature in the tree
+        internal SwSketchBlockDefinition(IFeature feat, SwDocument doc, SwApplication app, bool created) : base(doc.Features[feat.Name].Feature, doc, app, created) 
         {
             SketchBlockDefinition = (ISketchBlockDefinition)feat.GetSpecificFeature2();
 
             Entities = new SwSketchEntityCollection(doc.CreateObjectFromDispatch<SwSketchBase>(SketchBlockDefinition.GetSketch()), doc, app);
         }
-
-        ///<remarks>PersistIds cannot be extracted from the IFeature which cast from ISketchBlockDefinition, but getting the feature from the tree works correctly</remarks>
-        protected override object GetSerializationDispatch() => OwnerDocument.Features[Name].Feature;
     }
 }
