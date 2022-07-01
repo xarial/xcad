@@ -67,6 +67,8 @@ namespace Xarial.XCad.SolidWorks.Sketch
 
         public TransformMatrix Transform => SketchBlockInstance.BlockToSketchTransform.ToTransformMatrix();
 
+        public override bool IsAlive => this.CheckIsAlive(() => { var test = SketchBlockInstance.Name; });
+
         public IXSketchEntityRepository Entities { get; }
 
         internal SwSketchBlockInstance(IFeature feat, SwDocument doc, SwApplication app, bool created) : base(feat, doc, app, created)

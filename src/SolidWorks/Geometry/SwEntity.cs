@@ -56,6 +56,8 @@ namespace Xarial.XCad.SolidWorks.Geometry
             }
         }
 
+        public override bool IsAlive => this.CheckIsAlive(() => { var test = Entity.IsSafe; });
+
         public bool IsResilient => Entity.IsSafe;
 
         internal SwEntity(IEntity entity, SwDocument doc, SwApplication app) : base(entity, doc, app)

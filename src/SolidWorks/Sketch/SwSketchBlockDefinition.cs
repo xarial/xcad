@@ -36,6 +36,8 @@ namespace Xarial.XCad.SolidWorks.Sketch
 
         public IXSketchEntityRepository Entities { get; }
 
+        public override bool IsAlive => this.CheckIsAlive(() => { var test = SketchBlockDefinition.LinkToFile; });
+
         public Point InsertionPoint => new Point((double[])SketchBlockDefinition.InsertionPoint.ArrayData);
 
         internal SwSketchBlockDefinition(IFeature feat, SwDocument doc, SwApplication app, bool created) : base(feat, doc, app, created) 

@@ -33,6 +33,8 @@ namespace Xarial.XCad.SolidWorks.Sketch
 
         public ISketchPoint Point => m_Creator.Element;
 
+        public override bool IsAlive => this.CheckIsAlive(() => Point.GetID());
+
         public override object Dispatch => Point;
 
         public override IXSketchBase OwnerSketch => OwnerDocument.CreateObjectFromDispatch<ISwSketchBase>(Point.GetSketch());
