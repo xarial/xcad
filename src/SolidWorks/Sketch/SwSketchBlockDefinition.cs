@@ -48,7 +48,7 @@ namespace Xarial.XCad.SolidWorks.Sketch
         }
 
         //Note: retrieving the pointer to the feature from the feature tree for the consistency as IFeature retrieved from ISketchBlockDefinition has a different pointer to IFeature in the tree
-        private IFeature GetSketchBlockDefinitionFeature(IModelDoc2 model, string name) 
+        private static IFeature GetSketchBlockDefinitionFeature(IModelDoc2 model, string name) 
         {
             switch (model) 
             {
