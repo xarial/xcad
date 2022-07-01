@@ -2,6 +2,7 @@
 using SolidWorks.Interop.swconst;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Xarial.XCad.Features;
 using Xarial.XCad.Geometry.Structures;
@@ -67,7 +68,18 @@ namespace Xarial.XCad.SolidWorks.Sketch
 
         public TransformMatrix Transform => SketchBlockInstance.BlockToSketchTransform.ToTransformMatrix();
 
-        public override bool IsAlive => this.CheckIsAlive(() => { var test = SketchBlockInstance.Name; });
+        public override bool IsAlive => this.CheckIsAlive(() => 
+        {
+            var test = SketchBlockInstance.Name;
+
+            //NOTE: the deleted block may still produce a valid pointer and all the methods can be executed successfully, checking if the definition still contains this block
+            var instances = (object[])SketchBlockInstance.Definition.GetInstances();
+
+            if (instances?.Any(i => OwnerApplication.Sw.IsSame(i, SketchBlockInstance) == (int)swObjectEquality.swObjectSame) != true)
+            {
+                throw new Exception();
+            }
+        });
 
         public IXSketchEntityRepository Entities { get; }
 
