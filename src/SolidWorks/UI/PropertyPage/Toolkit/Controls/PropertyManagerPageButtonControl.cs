@@ -6,8 +6,11 @@
 //*********************************************************************
 
 using SolidWorks.Interop.sldworks;
+using SolidWorks.Interop.swconst;
 using System;
+using Xarial.XCad.SolidWorks.Services;
 using Xarial.XCad.UI.PropertyPage.Base;
+using Xarial.XCad.Utils.PageBuilder.Base;
 using Xarial.XCad.Utils.PageBuilder.PageElements;
 
 namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
@@ -22,12 +25,16 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
         private Action m_ButtonClickHandler;
 
-        public PropertyManagerPageButtonControl(int id, object tag,
-            IPropertyManagerPageButton button,
-            SwPropertyManagerPageHandler handler, IPropertyManagerPageLabel label, IMetadata[] metadata)
-            : base(button, id, tag, handler, label, metadata)
+        public PropertyManagerPageButtonControl(SwApplication app, IGroup parentGroup, IIconsCreator iconConv,
+            IAttributeSet atts, IMetadata[] metadata, ref int numberOfUsedIds)
+            : base(app, parentGroup, iconConv, atts, metadata, swPropertyManagerPageControlType_e.swControlType_Button, ref numberOfUsedIds)
         {
             m_Handler.ButtonPressed += OnButtonPressed;
+        }
+
+        protected override void SetOptions(IPropertyManagerPageButton ctrl, IControlOptionsAttribute opts, IAttributeSet atts)
+        {
+            ctrl.Caption = atts.Name;
         }
 
         private void OnButtonPressed(int id)
@@ -43,15 +50,9 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             }
         }
 
-        protected override Action GetSpecificValue()
-        {
-            return m_ButtonClickHandler;
-        }
+        protected override Action GetSpecificValue() => m_ButtonClickHandler;
 
-        protected override void SetSpecificValue(Action value)
-        {
-            m_ButtonClickHandler = value;
-        }
+        protected override void SetSpecificValue(Action value) => m_ButtonClickHandler = value;
 
         protected override void Dispose(bool disposing)
         {

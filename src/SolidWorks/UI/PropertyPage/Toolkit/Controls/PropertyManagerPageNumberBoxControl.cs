@@ -6,8 +6,12 @@
 //*********************************************************************
 
 using SolidWorks.Interop.sldworks;
+using SolidWorks.Interop.swconst;
 using System;
+using Xarial.XCad.SolidWorks.Services;
+using Xarial.XCad.UI.PropertyPage.Attributes;
 using Xarial.XCad.UI.PropertyPage.Base;
+using Xarial.XCad.Utils.PageBuilder.Base;
 using Xarial.XCad.Utils.PageBuilder.PageElements;
 
 namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
@@ -16,15 +20,44 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
     {
         protected override event ControlValueChangedDelegate<object> ValueChanged;
 
-        private readonly Type m_ValType;
+        private Type m_ValType;
 
-        public PropertyManagerPageNumberBoxControl(int id, object tag, Type valType,
-            IPropertyManagerPageNumberbox numberBox,
-            SwPropertyManagerPageHandler handler, IPropertyManagerPageLabel label, IMetadata[] metadata)
-            : base(numberBox, id, tag, handler, label, metadata)
+        public PropertyManagerPageNumberBoxControl(SwApplication app, IGroup parentGroup, IIconsCreator iconConv,
+            IAttributeSet atts, IMetadata[] metadata, ref int numberOfUsedIds)
+            : base(app, parentGroup, iconConv, atts, metadata, swPropertyManagerPageControlType_e.swControlType_Numberbox, ref numberOfUsedIds)
         {
-            m_ValType = valType;
             m_Handler.NumberChanged += OnNumberChanged;
+        }
+
+        protected override void InitData(IControlOptionsAttribute opts, IAttributeSet atts)
+        {
+            m_ValType = atts.ContextType;
+        }
+
+        protected override void SetOptions(IPropertyManagerPageNumberbox ctrl, IControlOptionsAttribute opts, IAttributeSet atts)
+        {
+            var height = opts.Height;
+
+            if (height != -1)
+            {
+                ctrl.Height = height;
+            }
+
+            if (atts.Has<NumberBoxOptionsAttribute>())
+            {
+                var style = atts.Get<NumberBoxOptionsAttribute>();
+
+                if (style.Style != 0)
+                {
+                    SwSpecificControl.Style = (int)style.Style;
+                }
+
+                if (style.Units != 0)
+                {
+                    ctrl.SetRange2((int)style.Units, style.Minimum, style.Maximum,
+                        style.Inclusive, style.Increment, style.FastIncrement, style.SlowIncrement);
+                }
+            }
         }
 
         private void OnNumberChanged(int id, double value)

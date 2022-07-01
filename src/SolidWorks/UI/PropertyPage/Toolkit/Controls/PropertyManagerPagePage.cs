@@ -8,7 +8,14 @@
 using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
 using System;
+using Xarial.XCad.Base.Attributes;
+using Xarial.XCad.SolidWorks.Services;
+using Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Icons;
+using Xarial.XCad.UI.PropertyPage.Attributes;
+using Xarial.XCad.UI.PropertyPage.Enums;
+using Xarial.XCad.Utils.PageBuilder.Base;
 using Xarial.XCad.Utils.PageBuilder.PageElements;
+using Xarial.XCad.Utils.Reflection;
 
 namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 {
@@ -33,20 +40,84 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
         private string m_HelpLink;
         private string m_WhatsNewLink;
 
-        private readonly ISwApplication m_App;
+        private readonly SwApplication m_App;
 
-        internal PropertyManagerPagePage(IPropertyManagerPage2 page,
-            SwPropertyManagerPageHandler handler, ISwApplication app, string helpLink, string whatsNewLink)
+        private IImagesCollection m_PageIcon;
+
+        internal PropertyManagerPagePage(SwApplication app, IAttributeSet atts, IIconsCreator iconsConv, SwPropertyManagerPageHandler handler) 
         {
-            Page = page;
-            Handler = handler;
             m_App = app;
-            SwApp = app.Sw;
-            m_HelpLink = helpLink;
-            m_WhatsNewLink = whatsNewLink;
 
-            Handler.HelpRequested += OnHelpRequested;
-            Handler.WhatsNewRequested += OnWhatsNewRequested;
+            Handler = handler;
+            
+            int err = -1;
+
+            swPropertyManagerPageOptions_e opts;
+
+            TitleIcon titleIcon = null;
+
+            IconAttribute commIconAtt;
+            if (atts.ContextType.TryGetAttribute(out commIconAtt))
+            {
+                if (commIconAtt.Icon != null)
+                {
+                    titleIcon = new TitleIcon(commIconAtt.Icon);
+                }
+            }
+
+            if (atts.Has<PageOptionsAttribute>())
+            {
+                var optsAtt = atts.Get<PageOptionsAttribute>();
+
+                //TODO: implement conversion
+                opts = (swPropertyManagerPageOptions_e)optsAtt.Options;
+            }
+            else
+            {
+                //TODO: implement conversion
+                opts = (swPropertyManagerPageOptions_e)(PageOptions_e.OkayButton | PageOptions_e.CancelButton);
+            }
+
+            if (atts.Has<HelpAttribute>())
+            {
+                var helpAtt = atts.Get<HelpAttribute>();
+
+                if (!string.IsNullOrEmpty(helpAtt.WhatsNewLink))
+                {
+                    if (!opts.HasFlag(swPropertyManagerPageOptions_e.swPropertyManagerOptions_WhatsNew))
+                    {
+                        opts |= swPropertyManagerPageOptions_e.swPropertyManagerOptions_WhatsNew;
+                    }
+                }
+
+                m_HelpLink = helpAtt.HelpLink;
+                m_WhatsNewLink = helpAtt.WhatsNewLink;
+
+                Handler.HelpRequested += OnHelpRequested;
+                Handler.WhatsNewRequested += OnWhatsNewRequested;
+            }
+
+            Page = m_App.Sw.CreatePropertyManagerPage(atts.Name,
+                (int)opts,
+                Handler, ref err) as IPropertyManagerPage2;
+
+            if (titleIcon != null)
+            {
+                m_PageIcon = iconsConv.ConvertIcon(titleIcon);
+                Page.SetTitleBitmap2(m_PageIcon.FilePaths[0]);
+            }
+
+            if (atts.Has<MessageAttribute>())
+            {
+                var msgAtt = atts.Get<MessageAttribute>();
+                Page.SetMessage3(msgAtt.Text, (int)msgAtt.Visibility,
+                    (int)msgAtt.Expanded, msgAtt.Caption);
+            }
+            else if (!string.IsNullOrEmpty(atts.Description))
+            {
+                Page.SetMessage3(atts.Description, (int)swPropertyManagerPageMessageVisibility.swMessageBoxVisible,
+                    (int)swPropertyManagerPageMessageExpanded.swMessageBoxExpand, "");
+            }
         }
 
         internal void Show()
@@ -82,6 +153,8 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             {
                 Handler.HelpRequested -= OnHelpRequested;
                 Handler.WhatsNewRequested -= OnWhatsNewRequested;
+
+                m_PageIcon.Dispose();
             }
         }
     }

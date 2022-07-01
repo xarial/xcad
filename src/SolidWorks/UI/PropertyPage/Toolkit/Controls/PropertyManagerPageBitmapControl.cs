@@ -6,6 +6,7 @@
 //*********************************************************************
 
 using SolidWorks.Interop.sldworks;
+using SolidWorks.Interop.swconst;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
@@ -14,7 +15,9 @@ using Xarial.XCad.SolidWorks.Services;
 using Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Icons;
 using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.UI;
+using Xarial.XCad.UI.PropertyPage.Attributes;
 using Xarial.XCad.UI.PropertyPage.Base;
+using Xarial.XCad.Utils.PageBuilder.Base;
 using Xarial.XCad.Utils.PageBuilder.PageElements;
 
 namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
@@ -27,19 +30,28 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
 #pragma warning restore CS0067
 
-        private readonly IIconsCreator m_IconsConv;
-
         private Image m_Image;
-        private readonly Size m_Size;
+        private Size m_Size;
 
-        public PropertyManagerPageBitmapControl(IIconsCreator iconsConv,
-            int id, object tag, Size? size,
-            IPropertyManagerPageBitmap bitmap,
-            SwPropertyManagerPageHandler handler, IPropertyManagerPageLabel label, IMetadata[] metadata)
-            : base(bitmap, id, tag, handler, label, metadata)
+        private IImagesCollection m_Bitmap;
+
+        public PropertyManagerPageBitmapControl(SwApplication app, IGroup parentGroup, IIconsCreator iconConv,
+            IAttributeSet atts, IMetadata[] metadata, ref int numberOfUsedIds)
+            : base(app, parentGroup, iconConv, atts, metadata, swPropertyManagerPageControlType_e.swControlType_Bitmap, ref numberOfUsedIds)
         {
+        }
+
+        protected override void InitData(IControlOptionsAttribute opts, IAttributeSet atts)
+        {
+            Size? size = null;
+
+            if (atts.Has<BitmapOptionsAttribute>())
+            {
+                var bmpOpts = atts.Get<BitmapOptionsAttribute>();
+                size = bmpOpts.Size;
+            }
+
             m_Size = size.HasValue ? size.Value : new Size(36, 36);
-            m_IconsConv = iconsConv;
         }
 
         protected override Image GetSpecificValue() => m_Image;
@@ -56,8 +68,8 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
                 img = new BaseImage(ImageToByteArray(value));
             }
 
-            var icons = m_IconsConv.ConvertIcon(new ControlIcon(img, m_Size));
-            SwSpecificControl.SetBitmapByName(icons[0], icons[1]);
+            m_Bitmap = m_IconConv.ConvertIcon(new ControlIcon(img, m_Size));
+            SwSpecificControl.SetBitmapByName(m_Bitmap.FilePaths[0], m_Bitmap.FilePaths[1]);
 
             m_Image = value;
         }
@@ -68,6 +80,16 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             {
                 img.Save(ms, img.RawFormat);
                 return ms.ToArray();
+            }
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            base.Dispose(disposing);
+
+            if (disposing) 
+            {
+                m_Bitmap?.Dispose();
             }
         }
     }

@@ -158,6 +158,8 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public override bool IsCommitted => m_Creator.IsCreated;
 
+        public override bool IsAlive => this.CheckIsAlive(() => Component.GetID());
+
         private readonly IElementCreator<IComponent2> m_Creator;
 
         internal SwComponent(IComponent2 comp, SwAssembly rootAssembly, SwApplication app) : base(comp, rootAssembly, app)

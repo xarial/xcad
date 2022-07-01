@@ -6,6 +6,7 @@
 //*********************************************************************
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
@@ -20,12 +21,73 @@ using Xarial.XCad.UI;
 
 namespace Xarial.XCad.SolidWorks.Services
 {
+    public interface IImagesCollection : IDisposable
+    {
+        string[] FilePaths { get; }
+    }
+
+    public class ImagesCollection : IImagesCollection
+    {
+        public string[] FilePaths { get; }
+
+        private bool m_IsDisposed;
+
+        internal string TempDirectory { get; }
+
+        private readonly bool m_Permanent;
+
+        public ImagesCollection(string dir, string[] filePaths, bool permanent)
+        {
+            TempDirectory = dir;
+            m_Permanent = permanent;
+            FilePaths = filePaths;
+        }
+
+        public void Dispose()
+        {
+            if (!m_IsDisposed) 
+            {
+                m_IsDisposed = true;
+
+                if (!m_Permanent)
+                {
+                    foreach (var tempIcon in FilePaths)
+                    {
+                        try
+                        {
+                            if (File.Exists(tempIcon))
+                            {
+                                File.Delete(tempIcon);
+                            }
+                        }
+                        catch
+                        {
+                        }
+                    }
+
+                    try
+                    {
+                        if (Directory.Exists(TempDirectory))
+                        {
+                            if (!Directory.EnumerateFiles(TempDirectory, "*.*", SearchOption.AllDirectories).Any())
+                            {
+                                Directory.Delete(TempDirectory, true);
+                            }
+                        }
+                    }
+                    catch
+                    {
+                    }
+                }
+            }
+        }
+    }
+
     public class BaseIconsCreator : IIconsCreator
     {
         private readonly string m_DefaultFolder;
 
-        private readonly List<string> m_TempFolders;
-        private readonly List<string> m_TempIcons;
+        private readonly List<ImagesCollection> m_CreatedImages;
 
         public BaseIconsCreator()
             : this(Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString()))
@@ -37,8 +99,7 @@ namespace Xarial.XCad.SolidWorks.Services
         public BaseIconsCreator(string iconsDir)
         {
             m_DefaultFolder = iconsDir;
-            m_TempFolders = new List<string>();
-            m_TempIcons = new List<string>();
+            m_CreatedImages = new List<ImagesCollection>();
         }
 
         /// <summary>
@@ -74,9 +135,9 @@ namespace Xarial.XCad.SolidWorks.Services
             return maskImg;
         }
 
-        public string[] ConvertIcon(IIcon icon, string folder = "")
+        public IImagesCollection ConvertIcon(IIcon icon, string folder = "")
         {
-            var iconsFolder = GetIconsFolder(folder, icon.IsPermanent);
+            var iconsFolder = GetIconsFolder(folder);
 
             var sizes = icon.GetIconSizes().ToArray();
 
@@ -87,14 +148,18 @@ namespace Xarial.XCad.SolidWorks.Services
                 bitmapPaths[i] = Path.Combine(iconsFolder, sizes[i].Name);
 
                 CreateBitmap(new IXImage[] { sizes[i].SourceImage },
-                    bitmapPaths[i], sizes[i].TargetSize, sizes[i].Offset, icon.TransparencyKey, sizes[i].Mask, icon.IsPermanent);
+                    bitmapPaths[i], sizes[i].TargetSize, sizes[i].Offset, icon.TransparencyKey, sizes[i].Mask);
             }
 
-            return bitmapPaths;
+            var imgsColl = new ImagesCollection(iconsFolder, bitmapPaths, icon.IsPermanent);
+
+            m_CreatedImages.Add(imgsColl);
+
+            return imgsColl;
         }
         
         /// <inheritdoc/>
-        public string[] ConvertIconsGroup(IIcon[] icons, string folder = "")
+        public IImagesCollection ConvertIconsGroup(IIcon[] icons, string folder = "")
         {
             if (icons == null || !icons.Any())
             {
@@ -104,9 +169,8 @@ namespace Xarial.XCad.SolidWorks.Services
             IIconSpec[,] iconsDataGroup = null;
 
             var transparencyKey = icons.First().TransparencyKey;
-            var permanent = icons.First().IsPermanent;
-
-            var iconsFolder = GetIconsFolder(folder, permanent);
+            
+            var iconsFolder = GetIconsFolder(folder);
 
             for (int i = 0; i < icons.Length; i++)
             {
@@ -141,29 +205,21 @@ namespace Xarial.XCad.SolidWorks.Services
                 iconsPaths[i] = Path.Combine(iconsFolder, iconsDataGroup[i, 0].Name);
 
                 CreateBitmap(imgs, iconsPaths[i],
-                    iconsDataGroup[i, 0].TargetSize, iconsDataGroup[i, 0].Offset, transparencyKey, iconsDataGroup[i, 0].Mask, permanent);
+                    iconsDataGroup[i, 0].TargetSize, iconsDataGroup[i, 0].Offset, transparencyKey, iconsDataGroup[i, 0].Mask);
             }
 
-            return iconsPaths;
+            var imgsColl = new ImagesCollection(iconsFolder, iconsPaths, icons.First().IsPermanent);
+
+            m_CreatedImages.Add(imgsColl);
+
+            return imgsColl;
         }
 
-        private string GetIconsFolder(string folder, bool permanent)
-        {
-            var iconsFolder = string.IsNullOrEmpty(folder) ? m_DefaultFolder : folder;
-
-            if (!permanent)
-            {
-                if (!m_TempFolders.Contains(iconsFolder, StringComparer.CurrentCultureIgnoreCase))
-                {
-                    m_TempFolders.Add(iconsFolder);
-                }
-            }
-
-            return iconsFolder;
-        }
+        private string GetIconsFolder(string folder)
+            => string.IsNullOrEmpty(folder) ? m_DefaultFolder : folder;
 
         private void CreateBitmap(IXImage[] sourceIcons,
-            string targetIcon, Size size, int offset, Color background, ColorMaskDelegate mask, bool permanent)
+            string targetIcon, Size size, int offset, Color background, ColorMaskDelegate mask)
         {
             var width = size.Width * sourceIcons.Length;
             var height = size.Height;
@@ -228,14 +284,6 @@ namespace Xarial.XCad.SolidWorks.Services
                 }
 
                 bmp.Save(targetIcon, ImageFormat.Bmp);
-
-                if (!permanent) 
-                {
-                    if (!m_TempIcons.Contains(targetIcon, StringComparer.CurrentCultureIgnoreCase))
-                    {
-                        m_TempIcons.Add(targetIcon);
-                    }
-                }
             }
         }
 
@@ -272,25 +320,14 @@ namespace Xarial.XCad.SolidWorks.Services
             }
         }
 
-        public void Clear()
+        private void Clear()
         {
-            foreach (var tempIcon in m_TempIcons)
+            foreach (var createdImages in m_CreatedImages)
             {
-                try
-                {
-                    if (File.Exists(tempIcon))
-                    {
-                        File.Delete(tempIcon);
-                    }
-                }
-                catch
-                {
-                }
+                createdImages.Dispose();
             }
 
-            m_TempIcons.Clear();
-
-            foreach (var tempDir in m_TempFolders)
+            foreach (var tempDir in m_CreatedImages.Select(i => i.TempDirectory).Distinct(StringComparer.CurrentCultureIgnoreCase))
             {
                 try
                 {
@@ -307,7 +344,7 @@ namespace Xarial.XCad.SolidWorks.Services
                 }
             }
 
-            m_TempFolders.Clear();
+            m_CreatedImages.Clear();
         }
 
         /// <summary>

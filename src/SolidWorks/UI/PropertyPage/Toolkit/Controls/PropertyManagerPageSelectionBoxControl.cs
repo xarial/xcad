@@ -22,43 +22,48 @@ using Xarial.XCad.UI.PropertyPage.Structures;
 using Xarial.XCad.Utils.PageBuilder.PageElements;
 using Xarial.XCad.Extensions;
 using Xarial.XCad.Base;
+using Xarial.XCad.UI.PropertyPage.Enums;
+using Xarial.XCad.Utils.PageBuilder.Base;
+using Xarial.XCad.SolidWorks.Services;
+using Xarial.XCad.Toolkit;
+using Xarial.XCad.UI.PropertyPage.Attributes;
 
 namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 {
     //TODO: think of a better way to work with type instead of object (can be either SwSelObject or List). See how combo box is implemented
     internal class PropertyManagerPageSelectionBoxControl : PropertyManagerPageBaseControl<object, IPropertyManagerPageSelectionbox>
     {
+        private const int DEFAULT_SEL_HEIGHT = -1;
+        private const int DEFAULT_SINGLE_SEL_HEIGHT = 12;
+        private const int DEFAULT_MULTI_SEL_HEIGHT = 50;
+
         protected override event ControlValueChangedDelegate<object> ValueChanged;
 
-        private readonly ISwApplication m_App;
-        private readonly Type m_ObjType;
-        private readonly Type m_ElementType;
-        private readonly ISelectionCustomFilter m_CustomFilter;
+        private Type m_ObjType;
+        private Type m_ElementType;
+        private ISelectionCustomFilter m_CustomFilter;
 
-        private readonly bool m_DefaultFocus;
+        private bool m_DefaultFocus;
         private bool m_HasMissingItems;
 
         private bool m_IsPageActive;
 
         private object m_CurValue;
 
-        private readonly IXLogger m_Logger;
+        private IXLogger m_Logger;
 
-        public PropertyManagerPageSelectionBoxControl(ISwApplication app, int id, object tag,
-            IPropertyManagerPageSelectionbox selBox,
-            SwPropertyManagerPageHandler handler, Type objType, ISelectionCustomFilter customFilter, bool defaultFocus,
-            IPropertyManagerPageLabel label, IMetadata[] metadata, IXLogger logger)
-            : base(selBox, id, tag, handler, label, metadata)
+        private static readonly int[] m_AllFilters;
+
+        static PropertyManagerPageSelectionBoxControl()
         {
-            m_App = app;
-            m_ObjType = objType;
-            m_ElementType = SelectionBoxConstructorHelper.GetElementType(m_ObjType);
-            m_CustomFilter = customFilter;
+            m_AllFilters = Enum.GetValues(typeof(swSelectType_e))
+                .Cast<int>().Where(f => f > 0).ToArray();
+        }
 
-            m_Logger = logger;
-
-            m_DefaultFocus = defaultFocus;
-
+        public PropertyManagerPageSelectionBoxControl(SwApplication app, IGroup parentGroup, IIconsCreator iconConv,
+            IAttributeSet atts, IMetadata[] metadata, ref int numberOfUsedIds)
+            : base(app, parentGroup, iconConv, atts, metadata, swPropertyManagerPageControlType_e.swControlType_Selectionbox, ref numberOfUsedIds)
+        {
             m_Handler.SelectionChanged += OnSelectionChanged;
 
             m_Handler.Opened += OnPageOpened;
@@ -66,6 +71,86 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             m_Handler.Applied += OnPageApplied;
 
             m_Handler.SubmitSelection += OnSubmitSelection;
+        }
+
+        protected override void InitData(IControlOptionsAttribute opts, IAttributeSet atts)
+        {
+            m_ObjType = atts.ContextType;
+            m_ElementType = SelectionBoxConstructorHelper.GetElementType(m_ObjType);
+
+            m_Logger = m_App.Services.GetService<IXLogger>();
+        }
+
+        protected override void SetOptions(IPropertyManagerPageSelectionbox ctrl, IControlOptionsAttribute opts, IAttributeSet atts)
+        {
+            var isMultiSel = typeof(IList).IsAssignableFrom(atts.ContextType);
+
+            ctrl.SingleEntityOnly = !isMultiSel;
+
+            var height = opts.Height;
+
+            if (height == DEFAULT_SEL_HEIGHT)
+            {
+                if (isMultiSel)
+                {
+                    height = DEFAULT_MULTI_SEL_HEIGHT;
+                }
+                else
+                {
+                    height = DEFAULT_SINGLE_SEL_HEIGHT;
+                }
+            }
+
+            ctrl.Height = height;
+
+            var filters = SelectionBoxConstructorHelper.GetDefaultFilters(atts);
+
+            if (atts.Has<SelectionBoxOptionsAttribute>())
+            {
+                var selAtt = atts.Get<SelectionBoxOptionsAttribute>();
+
+                if (selAtt.Style != 0)
+                {
+                    ctrl.Style = (int)selAtt.Style;
+                }
+
+                if (selAtt.SelectionColor != 0)
+                {
+                    ctrl.SetSelectionColor(true, (int)selAtt.SelectionColor);
+                }
+
+                ctrl.AllowMultipleSelectOfSameEntity = selAtt.AllowDuplicateEntity;
+                ctrl.AllowSelectInMultipleBoxes = selAtt.AllowSharedEntity;
+
+                if (selAtt.Filters?.Any() == true)
+                {
+                    filters = selAtt.Filters;
+                }
+
+                ctrl.Mark = selAtt.SelectionMark;
+
+                m_DefaultFocus = selAtt.Focused;
+
+                if (selAtt.CustomFilter != null)
+                {
+                    m_CustomFilter = Activator.CreateInstance(selAtt.CustomFilter) as ISelectionCustomFilter;
+
+                    if (m_CustomFilter == null)
+                    {
+                        throw new InvalidCastException(
+                            $"Specified custom filter of type {selAtt.CustomFilter.FullName} cannot be cast to {typeof(ISelectionCustomFilter).FullName}");
+                    }
+                }
+            }
+
+            if (filters != null && !filters.Contains(SelectType_e.Everything))
+            {
+                ctrl.SetSelectionFilters(ConvertToSwSelFilters(filters));
+            }
+            else
+            {
+                ctrl.SetSelectionFilters(m_AllFilters);
+            }
         }
 
         internal IPropertyManagerPageSelectionbox SelectionBox => SwSpecificControl;
@@ -131,6 +216,34 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
         }
 
         protected override object GetSpecificValue() => m_CurValue;
+
+        protected override BitmapLabelType_e? GetDefaultBitmapLabel(IAttributeSet atts)
+            => SelectionBoxConstructorHelper.GetDefaultBitmapLabel(atts);
+
+        private swSelectType_e[] ConvertToSwSelFilters(SelectType_e[] selFilters)
+        {
+            var swSelFilters = selFilters.Select(f => (swSelectType_e)f).ToList();
+
+            if (swSelFilters.Contains(swSelectType_e.swSelSKETCHSEGS)
+                && !swSelFilters.Contains(swSelectType_e.swSelEXTSKETCHSEGS))
+            {
+                swSelFilters.Add(swSelectType_e.swSelEXTSKETCHSEGS);
+            }
+
+            if (swSelFilters.Contains(swSelectType_e.swSelSKETCHPOINTS)
+                && !swSelFilters.Contains(swSelectType_e.swSelEXTSKETCHPOINTS))
+            {
+                swSelFilters.Add(swSelectType_e.swSelEXTSKETCHPOINTS);
+            }
+
+            if (swSelFilters.Contains(swSelectType_e.swSelBLOCKINST)
+                && !swSelFilters.Contains(swSelectType_e.swSelSUBSKETCHINST))
+            {
+                swSelFilters.Add(swSelectType_e.swSelSUBSKETCHINST);
+            }
+
+            return swSelFilters.ToArray();
+        }
 
         /// <summary>
         /// Resolves the current values based on the selection

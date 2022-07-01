@@ -15,6 +15,7 @@ using Xarial.XCad.UI.PropertyPage.Attributes;
 using Xarial.XCad.UI.PropertyPage.Base;
 using Xarial.XCad.Utils.PageBuilder.Attributes;
 using Xarial.XCad.Utils.PageBuilder.Base;
+using Xarial.XCad.Utils.PageBuilder.PageElements;
 
 namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
 {
@@ -22,27 +23,12 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
     internal class PropertyManagerPageBitmapControlConstructor
         : PropertyManagerPageBaseControlConstructor<PropertyManagerPageBitmapControl, IPropertyManagerPageBitmap>
     {
-        private readonly IIconsCreator m_IconsConv;
-
-        public PropertyManagerPageBitmapControlConstructor(ISldWorks app, IIconsCreator iconsConv)
-            : base(app, swPropertyManagerPageControlType_e.swControlType_Bitmap, iconsConv)
+        public PropertyManagerPageBitmapControlConstructor(SwApplication app, IIconsCreator iconsConv)
+            : base(app, iconsConv)
         {
-            m_IconsConv = iconsConv;
         }
 
-        protected override PropertyManagerPageBitmapControl CreateControl(
-            IPropertyManagerPageBitmap swCtrl, IAttributeSet atts, IMetadata[] metadata, 
-            SwPropertyManagerPageHandler handler, short height, IPropertyManagerPageLabel label)
-        {
-            Size? size = null;
-
-            if (atts.Has<BitmapOptionsAttribute>())
-            {
-                var opts = atts.Get<BitmapOptionsAttribute>();
-                size = opts.Size;
-            }
-
-            return new PropertyManagerPageBitmapControl(m_IconsConv, atts.Id, atts.Tag, size, swCtrl, handler, label, metadata);
-        }
+        protected override PropertyManagerPageBitmapControl Create(IGroup parentGroup, IAttributeSet atts, IMetadata[] metadata, ref int numberOfUsedIds)
+            => new PropertyManagerPageBitmapControl(m_App, parentGroup, m_IconConv, atts, metadata, ref numberOfUsedIds);
     }
 }

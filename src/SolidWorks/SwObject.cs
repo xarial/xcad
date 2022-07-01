@@ -144,4 +144,20 @@ namespace Xarial.XCad.SolidWorks
             }
         }
     }
+
+    internal static class SwObjectExtension
+    {
+        internal static bool CheckIsAlive(this SwObject obj, Action checker)
+        {
+            try
+            {
+                checker.Invoke();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+    }
 }

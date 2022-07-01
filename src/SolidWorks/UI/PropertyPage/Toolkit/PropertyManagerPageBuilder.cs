@@ -107,24 +107,24 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit
         private readonly PmpTypeDataBinder m_DataBinder;
         private readonly IPageSpec m_PageSpec;
 
-        internal PropertyManagerPageBuilder(ISwApplication app, IIconsCreator iconsConv, SwPropertyManagerPageHandler handler, IPageSpec pageSpec, IXLogger logger)
+        internal PropertyManagerPageBuilder(SwApplication app, IIconsCreator iconsConv, SwPropertyManagerPageHandler handler, IPageSpec pageSpec, IXLogger logger)
             : this(app, new PmpTypeDataBinder(logger),
                   new PropertyManagerPageConstructor(app, iconsConv, handler),
-                  new PropertyManagerPageGroupControlConstructor(),
-                  new PropertyManagerPageTextBoxControlConstructor(app.Sw, iconsConv),
-                  new PropertyManagerPageNumberBoxConstructor(app.Sw, iconsConv),
-                  new PropertyManagerPageCheckBoxControlConstructor(app.Sw, iconsConv),
+                  new PropertyManagerPageGroupControlConstructor(app, iconsConv),
+                  new PropertyManagerPageTextBoxControlConstructor(app, iconsConv),
+                  new PropertyManagerPageNumberBoxConstructor(app, iconsConv),
+                  new PropertyManagerPageCheckBoxControlConstructor(app, iconsConv),
                   new PropertyManagerPageEnumComboBoxControlConstructor(app, iconsConv),
                   new PropertyManagerPageCustomItemsComboBoxControlConstructor(app, iconsConv),
                   new PropertyManagerPageListBoxControlConstructor(app, iconsConv),
-                  new PropertyManagerPageSelectionBoxControlConstructor(app, iconsConv, logger),
-                  new PropertyManagerPageOptionBoxConstructor(app.Sw, iconsConv),
-                  new PropertyManagerPageButtonControlConstructor(app.Sw, iconsConv),
-                  new PropertyManagerPageBitmapControlConstructor(app.Sw, iconsConv),
-                  new PropertyManagerPageTextBlockControlConstructor(app.Sw, iconsConv),
-                  new PropertyManagerPageTabConstructor(iconsConv),
-                  new PropertyManagerPageCustomControlConstructor(app.Sw, iconsConv),
-                  new PropertyManagerPageBitmapButtonConstructor(app.Sw, iconsConv))
+                  new PropertyManagerPageSelectionBoxControlConstructor(app, iconsConv),
+                  new PropertyManagerPageOptionBoxConstructor(app, iconsConv),
+                  new PropertyManagerPageButtonControlConstructor(app, iconsConv),
+                  new PropertyManagerPageBitmapControlConstructor(app, iconsConv),
+                  new PropertyManagerPageTextBlockControlConstructor(app, iconsConv),
+                  new PropertyManagerPageTabConstructor(app, iconsConv),
+                  new PropertyManagerPageCustomControlConstructor(app, iconsConv),
+                  new PropertyManagerPageBitmapButtonConstructor(app, iconsConv))
         {
             m_PageSpec = pageSpec;
         }

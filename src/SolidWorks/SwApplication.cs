@@ -517,33 +517,33 @@ namespace Xarial.XCad.SolidWorks
 
         public void ShowTooltip(ITooltipSpec spec)
         {
-            var bmp = "";
             IXImage icon = null;
 
             spec.GetType().TryGetAttribute<IconAttribute>(a => icon = a.Icon);
 
             var bmpType = icon != null ? swBitMaps.swBitMapUserDefined : swBitMaps.swBitMapNone;
 
-            IIconsCreator iconsCreator = null;
-
-            try
+            using (var bmp = CreateTooltipIcon(icon)) 
             {
-                if (icon != null)
-                {
-                    iconsCreator = Services.GetService<IIconsCreator>();
-
-                    bmp = iconsCreator.ConvertIcon(new TooltipIcon(icon)).First();
-                }
-
                 Sw.HideBubbleTooltip();
 
                 Sw.ShowBubbleTooltipAt2(spec.Position.X, spec.Position.Y, (int)spec.ArrowPosition,
                             spec.Title, spec.Message, (int)bmpType,
-                            bmp, "", 0, (int)swLinkString.swLinkStringNone, "", "");
+                            bmp?.FilePaths.First(), "", 0, (int)swLinkString.swLinkStringNone, "", "");
             }
-            finally
+        }
+
+        private IImagesCollection CreateTooltipIcon(IXImage icon) 
+        {
+            if (icon != null)
             {
-                iconsCreator?.Clear();
+                var iconsCreator = Services.GetService<IIconsCreator>();
+
+                return iconsCreator.ConvertIcon(new TooltipIcon(icon));
+            }
+            else 
+            {
+                return null;
             }
         }
 

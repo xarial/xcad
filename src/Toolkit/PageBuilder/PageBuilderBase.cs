@@ -44,8 +44,7 @@ namespace Xarial.XCad.Utils.PageBuilder
 
         public PageBuilderBase(IXApplication app, IDataModelBinder dataBinder,
             IPageConstructor<TPage> pageConstr,
-            params IPageElementConstructor<TGroup, TPage>[]
-            ctrlsContstrs)
+            params IPageElementConstructor[] ctrlsContstrs)
         {
             m_App = app;
 

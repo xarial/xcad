@@ -34,13 +34,9 @@ namespace Xarial.XCad.SolidWorks.UI.Toolkit
         protected override Tuple<IFeatMgrView, string> HostComControl(string progId, string title, IXImage image,
             out TControl specCtrl)
         {
-            var iconsConv = m_SvcProvider.GetService<IIconsCreator>();
-
-            try
+            using (var img = m_SvcProvider.GetService<IIconsCreator>().ConvertIcon(new FeatMgrViewIcon(image)))
             {
-                var imgPath = iconsConv.ConvertIcon(new FeatMgrViewIcon(image)).First();
-
-                var featMgrView = m_TabProvider.ProvideComControl(m_ModelViewMgr, imgPath, progId, title);
+                var featMgrView = m_TabProvider.ProvideComControl(m_ModelViewMgr, img.FilePaths.First(), progId, title);
 
                 specCtrl = default;
 
@@ -56,22 +52,14 @@ namespace Xarial.XCad.SolidWorks.UI.Toolkit
 
                 return new Tuple<IFeatMgrView, string>(featMgrView, title);
             }
-            finally 
-            {
-                iconsConv.Clear();
-            }
         }
 
         protected override Tuple<IFeatMgrView, string> HostNetControl(Control winCtrlHost, TControl ctrl,
             string title, IXImage image)
         {
-            var iconsConv = m_SvcProvider.GetService<IIconsCreator>();
-
-            try
+            using (var img = m_SvcProvider.GetService<IIconsCreator>().ConvertIcon(new FeatMgrViewIcon(image)))
             {
-                var imgPath = iconsConv.ConvertIcon(new FeatMgrViewIcon(image)).First();
-
-                var featMgrView = m_TabProvider.ProvideNetControl(m_ModelViewMgr, winCtrlHost, imgPath, title);
+                var featMgrView = m_TabProvider.ProvideNetControl(m_ModelViewMgr, winCtrlHost, img.FilePaths.First(), title);
 
                 if (featMgrView != null)
                 {
@@ -81,10 +69,6 @@ namespace Xarial.XCad.SolidWorks.UI.Toolkit
                 {
                     throw new NetControlHostException(winCtrlHost.Handle);
                 }
-            }
-            finally 
-            {
-                iconsConv.Clear();
             }
         }
     }

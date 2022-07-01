@@ -47,6 +47,8 @@ namespace Xarial.XCad.SolidWorks.Sketch
 
         public override object Dispatch => Segment;
 
+        public override bool IsAlive => this.CheckIsAlive(() => Segment.GetID());
+
         private readonly IMathUtility m_MathUtils;
 
         private SwSketchBase m_OwnerSketch;

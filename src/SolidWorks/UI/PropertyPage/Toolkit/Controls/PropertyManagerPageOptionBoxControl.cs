@@ -6,11 +6,18 @@
 //*********************************************************************
 
 using SolidWorks.Interop.sldworks;
+using SolidWorks.Interop.swconst;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using Xarial.XCad.SolidWorks.Services;
+using Xarial.XCad.UI.PropertyPage.Attributes;
 using Xarial.XCad.UI.PropertyPage.Base;
+using Xarial.XCad.UI.PropertyPage.Enums;
+using Xarial.XCad.Utils.PageBuilder.Base;
 using Xarial.XCad.Utils.PageBuilder.PageElements;
+using Xarial.XCad.Utils.Reflection;
 
 namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 {
@@ -218,27 +225,60 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
     internal class PropertyManagerPageOptionBoxControl : PropertyManagerPageBaseControl<Enum, PropertyManagerPageOptionBox>
     {
+        private delegate IPropertyManagerPageOption ControlCreatorDelegate(int id, short controlType, string caption, short leftAlign, int options, string tip);
+
         protected override event ControlValueChangedDelegate<Enum> ValueChanged;
 
-        private ReadOnlyCollection<Enum> m_Values;
+        private Enum[] m_Values;
+        private string[] m_ItemNames;
 
-        public PropertyManagerPageOptionBoxControl(int id, object tag,
-            PropertyManagerPageOptionBox optionBox, ReadOnlyCollection<Enum> values,
-            SwPropertyManagerPageHandler handler, IPropertyManagerPageLabel label, IMetadata[] metadata)
-            : base(optionBox, id, tag, handler, label, metadata)
+        public PropertyManagerPageOptionBoxControl(SwApplication app, IGroup parentGroup, IIconsCreator iconConv,
+            IAttributeSet atts, IMetadata[] metadata, ref int numberOfUsedIds)
+            : base(app, parentGroup, iconConv, atts, metadata, swPropertyManagerPageControlType_e.swControlType_Option, ref numberOfUsedIds)
         {
-            m_Values = values;
             m_Handler.OptionChecked += OnOptionChecked;
         }
 
-        private int GetIndex(int id)
+        protected override void InitData(IControlOptionsAttribute opts, IAttributeSet atts)
         {
-            return id - Id;
+            var items = EnumExtension.GetEnumFields(atts.ContextType);
+            m_Values = items.Keys.ToArray();
+            m_ItemNames = items.Values.ToArray();
         }
+
+        protected override PropertyManagerPageOptionBox Create(IGroup host, int id, string name, ControlLeftAlign_e align,
+            AddControlOptions_e options, string description, swPropertyManagerPageControlType_e type)
+        {
+            var ctrls = new IPropertyManagerPageOption[m_ItemNames.Length];
+
+            for (int i = 0; i < m_ItemNames.Length; i++)
+            {
+                var itemName = m_ItemNames[i];
+
+                ctrls[i] = base.CreateSwControl<IPropertyManagerPageOption>(host, id + i, itemName, align, options, description, type);
+            }
+
+            return new PropertyManagerPageOptionBox(ctrls);
+        }
+
+        protected override void SetOptions(PropertyManagerPageOptionBox ctrl, IControlOptionsAttribute opts, IAttributeSet atts)
+        {
+            if (atts.Has<OptionBoxOptionsAttribute>())
+            {
+                var style = atts.Get<OptionBoxOptionsAttribute>();
+
+                if (style.Style != 0)
+                {
+                    ctrl.Style = (int)style.Style;
+                }
+            }
+        }
+
+        private int GetIndex(int id) => id - Id;
 
         private void OnOptionChecked(int id)
         {
-            if (id >= Id && id < (Id + m_Values.Count))
+            if (id >= Id && id < (Id + m_Values.Length))
             {
                 ValueChanged?.Invoke(this, m_Values[GetIndex(id)]);
             }
@@ -260,7 +300,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
         protected override void SetSpecificValue(Enum value)
         {
-            var index = m_Values.IndexOf(value);
+            var index = Array.IndexOf(m_Values, value);
 
             for (int i = 0; i < SwSpecificControl.Controls.Length; i++) 
             {

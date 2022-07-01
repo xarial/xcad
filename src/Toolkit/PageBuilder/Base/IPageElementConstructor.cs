@@ -6,15 +6,12 @@
 //*********************************************************************
 
 using Xarial.XCad.UI.PropertyPage.Base;
+using Xarial.XCad.Utils.PageBuilder.PageElements;
 
 namespace Xarial.XCad.Utils.PageBuilder.Base
 {
-    public interface IPageElementConstructor<TGroup, TPage>
-        where TGroup : IGroup
-        where TPage : IPage
+    public interface IPageElementConstructor
     {
-        IControl Create(TPage page, IAttributeSet atts, IMetadata[] metadata, ref int idRange);
-
-        IControl Create(TGroup group, IAttributeSet atts, IMetadata[] metadata, ref int idRange);
+        IControl Create(IGroup parentGroup, IAttributeSet atts, IMetadata[] metadata, ref int idRange);
     }
 }

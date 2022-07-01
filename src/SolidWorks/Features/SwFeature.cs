@@ -95,6 +95,8 @@ namespace Xarial.XCad.SolidWorks.Features
 
         public override object Dispatch => Feature;
 
+        public override bool IsAlive => this.CheckIsAlive(() => Feature.GetID());
+
         private readonly Lazy<SwFeatureDimensionsCollection> m_DimensionsLazy;
         private Context m_Context;
 

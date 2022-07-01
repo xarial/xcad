@@ -6,8 +6,18 @@
 //*********************************************************************
 
 using SolidWorks.Interop.sldworks;
+using SolidWorks.Interop.swconst;
 using System;
+using System.Diagnostics;
+using System.Drawing;
+using Xarial.XCad.SolidWorks.Enums;
+using Xarial.XCad.SolidWorks.Services;
+using Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Icons;
+using Xarial.XCad.Toolkit.Utils;
+using Xarial.XCad.UI.PropertyPage.Attributes;
 using Xarial.XCad.UI.PropertyPage.Base;
+using Xarial.XCad.UI.PropertyPage.Enums;
+using Xarial.XCad.Utils.PageBuilder.Base;
 using Xarial.XCad.Utils.PageBuilder.PageElements;
 
 namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
@@ -27,18 +37,40 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
         : Control<TVal>, IPropertyManagerPageControlEx
         where TSwControl : class
     {
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Code Quality", "IDE0052:Remove unread private members", Justification = "Need to keep control alive to avoid GC")]
         private readonly IPropertyManagerPageLabel m_Label;
-
+        protected readonly IIconsCreator m_IconConv;
         protected readonly SwPropertyManagerPageHandler m_Handler;
+        protected readonly SwApplication m_App;
 
-        protected PropertyManagerPageBaseControl(TSwControl ctrl, int id, object tag,
-            SwPropertyManagerPageHandler handler, IPropertyManagerPageLabel label, IMetadata[] metadata)
-            : base(id, tag, metadata)
+        private IImagesCollection m_CustomIcon;
+
+        protected PropertyManagerPageBaseControl(SwApplication app, IGroup parentGroup, IIconsCreator iconConv,
+            IAttributeSet atts, IMetadata[] metadata, swPropertyManagerPageControlType_e type, ref int numberOfUsedIds)
+            : base(atts.Id, atts.Tag, metadata)
         {
-            SwSpecificControl = ctrl;
-            m_Handler = handler;
-            m_Label = label;
+            m_App = app;
+            m_Handler = GetHandler(parentGroup);
+            m_IconConv = iconConv;
+
+            var opts = GetControlOptions(atts);
+
+            InitData(opts, atts);
+            CreateLabelIfNeeded(parentGroup, atts, ref numberOfUsedIds, out m_Label);
+            SwSpecificControl = Create(parentGroup, atts.Id, atts.Name, opts.Align, opts.Options, atts.Description, type);
+            AssignControlAttributes(SwSpecificControl, opts, atts);
+            SetOptions(SwSpecificControl, opts, atts);
+        }
+
+        protected virtual void InitData(IControlOptionsAttribute opts, IAttributeSet atts) 
+        {
+        }
+
+        protected virtual TSwControl Create(IGroup host, int id, string name, ControlLeftAlign_e align, AddControlOptions_e options,
+            string description, swPropertyManagerPageControlType_e type) 
+            => CreateSwControl<TSwControl>(host, id, name, align, options, description, type);
+
+        protected virtual void SetOptions(TSwControl ctrl, IControlOptionsAttribute opts, IAttributeSet atts) 
+        {
         }
 
         protected TSwControl SwSpecificControl { get; private set; }
@@ -99,6 +131,208 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
         public override void Focus()
         {
             //TODO: implement focusing via IPropertyManagerPage2::SetFocus
+        }
+
+        private SwPropertyManagerPageHandler GetHandler(IGroup group)
+        {
+            switch (group)
+            {
+                case PropertyManagerPagePage page:
+                    return page.Handler;
+                case PropertyManagerPageGroupBase grp:
+                    return grp.Handler;
+                default:
+                    throw new NotSupportedException();
+            }
+        }
+
+        protected virtual BitmapLabelType_e? GetDefaultBitmapLabel(IAttributeSet atts) => null;
+
+        private void AssignControlAttributes(TSwControl ctrl, IControlOptionsAttribute opts, IAttributeSet atts)
+        {
+            var swCtrl = ctrl as IPropertyManagerPageControl;
+
+            if (opts.BackgroundColor != 0)
+            {
+                swCtrl.BackgroundColor = ConvertColor(opts.BackgroundColor);
+            }
+
+            if (opts.TextColor != 0)
+            {
+                swCtrl.TextColor = ConvertColor(opts.TextColor);
+            }
+
+            if (opts.Left != -1)
+            {
+                swCtrl.Left = opts.Left;
+            }
+
+            if (opts.Top != -1)
+            {
+                swCtrl.Top = opts.Top;
+            }
+
+            if (opts.Width != -1)
+            {
+                swCtrl.Width = opts.Width;
+            }
+
+            if (opts.ResizeOptions != 0)
+            {
+                swCtrl.OptionsForResize = (int)opts.ResizeOptions;
+            }
+
+            ControlIcon icon = null;
+
+            var commonIcon = atts.ControlDescriptor?.Icon;
+
+            if (commonIcon != null)
+            {
+                icon = new ControlIcon(commonIcon);
+            }
+
+            var hasIcon = false;
+
+            if (atts.Has<StandardControlIconAttribute>())
+            {
+                var attribution = atts.Get<StandardControlIconAttribute>();
+
+                if (attribution.Label != 0)
+                {
+                    hasIcon = true;
+                    swCtrl.SetStandardPictureLabel((int)attribution.Label);
+                }
+            }
+
+            if (icon != null)
+            {
+                hasIcon = true;
+                m_CustomIcon = m_IconConv.ConvertIcon(icon);
+                var res = swCtrl.SetPictureLabelByName(m_CustomIcon.FilePaths[0], m_CustomIcon.FilePaths[1]);
+                Debug.Assert(res);
+            }
+
+            if (!hasIcon)
+            {
+                var defIcon = GetDefaultBitmapLabel(atts);
+
+                if (defIcon.HasValue)
+                {
+                    swCtrl.SetStandardPictureLabel((int)defIcon.Value);
+                }
+            }
+        }
+
+        private int ConvertColor(KnownColor knownColor)
+        {
+            var color = Color.FromKnownColor(knownColor);
+
+            return ColorUtils.ToColorRef(color);
+        }
+
+        private bool CreateLabelIfNeeded(IGroup host, IAttributeSet atts, ref int numberOfUsedIds, out IPropertyManagerPageLabel label)
+        {
+            if (atts.Has<LabelAttribute>())
+            {
+                numberOfUsedIds++;
+
+                var id = atts.Id + numberOfUsedIds - 1;
+
+                var labelAtt = atts.Get<LabelAttribute>();
+
+                label = CreateSwControl<IPropertyManagerPageLabel>(host, id, "", labelAtt.Align,
+                    AddControlOptions_e.Enabled | AddControlOptions_e.SmallGapAbove | AddControlOptions_e.Visible,
+                    "", swPropertyManagerPageControlType_e.swControlType_Label);
+
+                label.Caption = labelAtt.Caption;
+
+                label.SetLabelOptions(labelAtt.FontStyle, "", null);
+
+                return true;
+            }
+            else
+            {
+                label = null;
+                return false;
+            }
+        }
+
+        protected TSpecificSwControl CreateSwControl<TSpecificSwControl>(IGroup host, int id, string name, ControlLeftAlign_e align, AddControlOptions_e options,
+            string description, swPropertyManagerPageControlType_e type)
+            where TSpecificSwControl : class
+        {
+            var legacy = !m_App.IsVersionNewerOrEqual(SwVersion_e.Sw2014, 1);
+
+            switch (host)
+            {
+                case PropertyManagerPagePage page:
+                    var pageCtrl = page.Page;
+                    if (!legacy)
+                    {
+                        return (TSpecificSwControl)pageCtrl.AddControl2(id, (short)type, name,
+                            (short)align, (short)options, description);
+                    }
+                    else
+                    {
+                        return (TSpecificSwControl)pageCtrl.AddControl(id, (short)type, name,
+                            (short)align, (short)options, description);
+                    }
+
+                case PropertyManagerPageTabControl tab:
+                    var tabCtrl = tab.Tab;
+                    if (!legacy)
+                    {
+                        return (TSpecificSwControl)tabCtrl.AddControl2(id, (short)type, name,
+                            (short)align, (short)options, description);
+                    }
+                    else
+                    {
+                        return (TSpecificSwControl)tabCtrl.AddControl(id, (short)type, name,
+                            (short)align, (short)options, description);
+                    }
+
+                case PropertyManagerPageGroupControl group:
+                    var grpCtrl = group.Group;
+                    if (!legacy)
+                    {
+                        return (TSpecificSwControl)grpCtrl.AddControl2(id, (short)type, name,
+                            (short)align, (short)options, description);
+                    }
+                    else
+                    {
+                        return (TSpecificSwControl)grpCtrl.AddControl(id, (short)type, name,
+                            (short)align, (short)options, description);
+                    }
+
+                default:
+                    throw new NotSupportedException("Host is not supported");
+            }
+        }
+
+        private IControlOptionsAttribute GetControlOptions(IAttributeSet atts)
+        {
+            ControlOptionsAttribute opts;
+
+            if (atts.Has<ControlOptionsAttribute>())
+            {
+                opts = atts.Get<ControlOptionsAttribute>();
+            }
+            else
+            {
+                opts = new ControlOptionsAttribute();
+            }
+
+            return opts;
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            base.Dispose(disposing);
+
+            if (disposing)
+            {
+                m_CustomIcon?.Dispose();
+            }
         }
     }
 }

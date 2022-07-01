@@ -161,21 +161,20 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
 
             var iconsConv = m_SvcProvider.GetService<IIconsCreator>();
 
-            try
+            using (var mainIcon = CreateMainIcon(cmdBar, iconsConv))
             {
-                CreateIcons(cmdGroup, cmdBar, iconsConv);
+                using (var toolbarIcons = CreateToolbarIcons(cmdBar, iconsConv))
+                {
+                    SetCommandGroupIcons(cmdGroup, mainIcon, toolbarIcons);
+                    
+                    var bar = new SwCommandGroup(m_App, cmdBar, cmdGroup, isContextMenu);
 
-                var bar = new SwCommandGroup(m_App, cmdBar, cmdGroup, isContextMenu);
+                    CreateCommandItems(bar);
 
-                CreateCommandItems(bar);
+                    m_CommandBars.Add(bar);
 
-                m_CommandBars.Add(bar);
-
-                return bar;
-            }
-            finally 
-            {
-                iconsConv.Clear();
+                    return bar;
+                }
             }
         }
 
@@ -345,16 +344,28 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
                 m_Commands.Add(createdCmd.Item3, cmdInfo);
             }   
         }
-        
-        private void CreateIcons(CommandGroup cmdGroup, CommandGroupSpec cmdBar, IIconsCreator iconsConv)
+
+        private IImagesCollection CreateMainIcon(CommandGroupSpec cmdBar, IIconsCreator iconsConv)
         {
             var mainIcon = cmdBar.Icon;
 
-            if (mainIcon == null) 
+            if (mainIcon == null)
             {
                 mainIcon = Defaults.Icon;
             }
 
+            if (CompatibilityUtils.SupportsHighResIcons(m_App.Sw, CompatibilityUtils.HighResIconsScope_e.CommandManager))
+            {
+                return iconsConv.ConvertIcon(new CommandGroupHighResIcon(mainIcon));
+            }
+            else
+            {
+                return iconsConv.ConvertIcon(new CommandGroupIcon(mainIcon));
+            }
+        }
+
+        private IImagesCollection CreateToolbarIcons(CommandGroupSpec cmdBar, IIconsCreator iconsConv)
+        {
             IXImage[] iconList = null;
 
             if (cmdBar.Commands != null)
@@ -362,26 +373,41 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
                 iconList = cmdBar.Commands.Select(c => c.Icon ?? Defaults.Icon).ToArray();
             }
 
-            //NOTE: if commands are not used, main icon will fail if toolbar commands image list is not specified, so it is required to specify it explicitly
-
             if (CompatibilityUtils.SupportsHighResIcons(m_App.Sw, CompatibilityUtils.HighResIconsScope_e.CommandManager))
-            {
-                var iconsList = iconsConv.ConvertIcon(new CommandGroupHighResIcon(mainIcon));
-                cmdGroup.MainIconList = iconsList;
-
+            {   
                 if (iconList != null && iconList.Any())
                 {
-                    cmdGroup.IconList = iconsConv.ConvertIconsGroup(
-                        iconList.Select(i => new CommandGroupHighResIcon(i)).ToArray());
+                    return iconsConv.ConvertIconsGroup(iconList.Select(i => new CommandGroupHighResIcon(i)).ToArray());
                 }
                 else
                 {
-                    cmdGroup.IconList = iconsList;
+                    return null;
                 }
             }
             else
             {
-                var mainIconPath = iconsConv.ConvertIcon(new CommandGroupIcon(mainIcon));
+                if (iconList != null && iconList.Any())
+                {
+                    return iconsConv.ConvertIconsGroup(iconList.Select(i => new CommandGroupIcon(i)).ToArray());
+                }
+                else
+                {
+                    return null;
+                }
+            }
+        }
+
+        private void SetCommandGroupIcons(CommandGroup cmdGroup, IImagesCollection mainIcon, IImagesCollection toolbarIcons)
+        {
+            //NOTE: if commands are not used, main icon will fail if toolbar commands image list is not specified, so it is required to specify it explicitly
+            if (CompatibilityUtils.SupportsHighResIcons(m_App.Sw, CompatibilityUtils.HighResIconsScope_e.CommandManager))
+            {
+                cmdGroup.MainIconList = mainIcon.FilePaths;
+                cmdGroup.IconList = toolbarIcons?.FilePaths;
+            }
+            else
+            {
+                var mainIconPath = mainIcon?.FilePaths ?? new string[] { null, null };
 
                 var smallIcon = mainIconPath[0];
                 var largeIcon = mainIconPath[1];
@@ -389,20 +415,12 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
                 cmdGroup.SmallMainIcon = smallIcon;
                 cmdGroup.LargeMainIcon = largeIcon;
 
-                if (iconList != null && iconList.Any())
-                {
-                    var iconListPath = iconsConv.ConvertIconsGroup(iconList.Select(i => new CommandGroupIcon(i)).ToArray());
-                    var smallIconList = iconListPath[0];
-                    var largeIconList = iconListPath[1];
+                var iconListPath = toolbarIcons?.FilePaths ?? new string[] { null, null };
+                var smallIconList = iconListPath[0];
+                var largeIconList = iconListPath[1];
 
-                    cmdGroup.SmallIconList = smallIconList;
-                    cmdGroup.LargeIconList = largeIconList;
-                }
-                else
-                {
-                    cmdGroup.SmallIconList = smallIcon;
-                    cmdGroup.LargeIconList = largeIcon;
-                }
+                cmdGroup.SmallIconList = smallIconList;
+                cmdGroup.LargeIconList = largeIconList;
             }
         }
 

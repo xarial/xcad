@@ -18,6 +18,7 @@ using System.Threading;
 using Xarial.XCad.Base.Enums;
 using Xarial.XCad.Data;
 using Xarial.XCad.Documents;
+using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Documents.Structures;
 using Xarial.XCad.Services;
 using Xarial.XCad.SolidWorks.Documents.Exceptions;
@@ -123,7 +124,14 @@ namespace Xarial.XCad.SolidWorks.Documents
             {
                 if (IsCommitted)
                 {
-                    return null;
+                    var width = 0d;
+                    var height = 0d;
+
+                    var paperSize = Sheet.GetSize(ref width, ref height);
+
+                    var standardPaperSize = paperSize == (int)swDwgPaperSizes_e.swDwgPapersUserDefined ? default(StandardPaperSize_e?) : (StandardPaperSize_e)paperSize;
+
+                    return new PaperSize(standardPaperSize, width, height);
                 }
                 else 
                 {

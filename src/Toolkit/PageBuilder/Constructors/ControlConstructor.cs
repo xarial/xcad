@@ -16,9 +16,5 @@ namespace Xarial.XCad.Utils.PageBuilder.Constructors
         where TPage : IPage
         where TGroup : IGroup
     {
-        protected virtual BitmapLabelType_e? GetDefaultBitmapLabel(IAttributeSet atts)
-        {
-            return null;
-        }
     }
 }

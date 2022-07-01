@@ -14,6 +14,7 @@ using Xarial.XCad.UI.PropertyPage.Attributes;
 using Xarial.XCad.UI.PropertyPage.Base;
 using Xarial.XCad.Utils.PageBuilder.Attributes;
 using Xarial.XCad.Utils.PageBuilder.Base;
+using Xarial.XCad.Utils.PageBuilder.PageElements;
 
 namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
 {
@@ -24,37 +25,12 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
     internal class PropertyManagerPageNumberBoxConstructor
         : PropertyManagerPageBaseControlConstructor<PropertyManagerPageNumberBoxControl, IPropertyManagerPageNumberbox>
     {
-        public PropertyManagerPageNumberBoxConstructor(ISldWorks app, IIconsCreator iconsConv)
-            : base(app, swPropertyManagerPageControlType_e.swControlType_Numberbox, iconsConv)
+        public PropertyManagerPageNumberBoxConstructor(SwApplication app, IIconsCreator iconsConv)
+            : base(app, iconsConv)
         {
         }
 
-        protected override PropertyManagerPageNumberBoxControl CreateControl(
-            IPropertyManagerPageNumberbox swCtrl, IAttributeSet atts, IMetadata[] metadata, 
-            SwPropertyManagerPageHandler handler, short height, IPropertyManagerPageLabel label)
-        {
-            if (height != -1)
-            {
-                swCtrl.Height = height;
-            }
-
-            if (atts.Has<NumberBoxOptionsAttribute>())
-            {
-                var style = atts.Get<NumberBoxOptionsAttribute>();
-
-                if (style.Style != 0)
-                {
-                    swCtrl.Style = (int)style.Style;
-                }
-
-                if (style.Units != 0)
-                {
-                    swCtrl.SetRange2((int)style.Units, style.Minimum, style.Maximum,
-                        style.Inclusive, style.Increment, style.FastIncrement, style.SlowIncrement);
-                }
-            }
-            
-            return new PropertyManagerPageNumberBoxControl(atts.Id, atts.Tag, atts.ContextType, swCtrl, handler, label, metadata);
-        }
+        protected override PropertyManagerPageNumberBoxControl Create(IGroup parentGroup, IAttributeSet atts, IMetadata[] metadata, ref int numberOfUsedIds)
+            => new PropertyManagerPageNumberBoxControl(m_App, parentGroup, m_IconConv, atts, metadata, ref numberOfUsedIds);
     }
 }

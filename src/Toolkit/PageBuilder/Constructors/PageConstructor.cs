@@ -12,10 +12,7 @@ namespace Xarial.XCad.Utils.PageBuilder.Constructors
     public abstract class PageConstructor<TPage> : IPageConstructor<TPage>
         where TPage : IPage
     {
-        TPage IPageConstructor<TPage>.Create(IAttributeSet atts)
-        {
-            return Create(atts);
-        }
+        TPage IPageConstructor<TPage>.Create(IAttributeSet atts) => Create(atts);
 
         protected abstract TPage Create(IAttributeSet atts);
     }

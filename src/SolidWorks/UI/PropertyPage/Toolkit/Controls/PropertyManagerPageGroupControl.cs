@@ -6,8 +6,14 @@
 //*********************************************************************
 
 using SolidWorks.Interop.sldworks;
+using SolidWorks.Interop.swconst;
+using System;
 using System.ComponentModel;
+using System.Linq;
+using Xarial.XCad.SolidWorks.Services;
+using Xarial.XCad.UI.PropertyPage.Attributes;
 using Xarial.XCad.UI.PropertyPage.Base;
+using Xarial.XCad.Utils.PageBuilder.Base;
 using Xarial.XCad.Utils.PageBuilder.PageElements;
 
 namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
@@ -23,11 +29,9 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
         IPropertyManagerPageGroup Group { get; }
     }
 
-    internal class PropertyManagerPageGroupControl : PropertyManagerPageGroupBase, IPropertyManagerPageGroupEx
+    internal class PropertyManagerPageGroupControl : PropertyManagerPageGroupBase<IPropertyManagerPageGroup>, IPropertyManagerPageGroupEx
     {
         protected override event ControlValueChangedDelegate<object> ValueChanged;
-
-        public IPropertyManagerPageGroup Group { get; private set; }
 
         /// <summary>
         /// Not supported
@@ -35,10 +39,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
         [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
         public override bool Enabled
         {
-            get
-            {
-                return true;
-            }
+            get => true;
             set
             {
             }
@@ -47,40 +48,51 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
         /// <inheritdoc/>
         public override bool Visible
         {
-            get
-            {
-                return Group.Visible;
-            }
-            set
-            {
-                Group.Visible = value;
-            }
+            get => Group.Visible;
+            set => Group.Visible = value;
         }
+
+        public IPropertyManagerPageGroup Group => m_SpecificGroup;
 
         private IMetadata m_ToggleMetadata;
 
-        private readonly bool m_IsCheckable;
-        private readonly bool m_Collapse;
+        private bool m_IsCheckable;
+        private bool m_Collapse;
 
-        internal PropertyManagerPageGroupControl(int id, object tag, SwPropertyManagerPageHandler handler,
-            IPropertyManagerPageGroup group,
-            ISldWorks app, PropertyManagerPagePage parentPage, IMetadata toggleMetadata, bool isCheckable, bool collapse, IMetadata[] metadata)
-            : base(id, tag, handler, app, parentPage, metadata)
+        internal PropertyManagerPageGroupControl(SwApplication app, IGroup parentGroup, IAttributeSet atts, IMetadata[] metadata, IIconsCreator iconsConv, ref int numberOfUsedIds)
+            : base(app, parentGroup, atts, metadata, iconsConv, ref numberOfUsedIds)
         {
-            Group = group;
-            m_ToggleMetadata = toggleMetadata;
-
-            m_IsCheckable = isCheckable;
-            m_Collapse = collapse;
-            
             Handler.GroupChecked += OnGroupChecked;
-            
-            if (m_ToggleMetadata != null) 
+
+            if (m_ToggleMetadata != null)
             {
                 m_ToggleMetadata.Changed += OnToggleChanged;
             }
 
             Handler.Opened += OnPageOpened;
+        }
+
+        protected override IPropertyManagerPageGroup Create(IGroup host, IAttributeSet atts, IMetadata[] metadata)
+        {
+            var opts = GetGroupOptions(atts, metadata, out m_ToggleMetadata);
+
+            m_IsCheckable = opts.HasFlag(swAddGroupBoxOptions_e.swGroupBoxOptions_Checkbox);
+            m_Collapse = !opts.HasFlag(swAddGroupBoxOptions_e.swGroupBoxOptions_Expanded);
+
+            switch (host) 
+            {
+                case PropertyManagerPagePage page:
+                    return (IPropertyManagerPageGroup)page.Page.AddGroupBox(atts.Id, atts.Name, (int)opts);
+
+                case PropertyManagerPageTabControl tab:
+                    return (IPropertyManagerPageGroup)tab.Tab.AddGroupBox(atts.Id, atts.Name, (int)opts);
+
+                case PropertyManagerPageGroupControl group:
+                    //NOTE: nested groups are not supported in SOLIDWORKS, creating the group in page instead
+                    return (IPropertyManagerPageGroup)group.ParentPage.Page.AddGroupBox(atts.Id, atts.Name, (int)opts);
+                default:
+                    throw new NotSupportedException();
+            }
         }
 
         private void OnPageOpened()
@@ -112,6 +124,42 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
         private void OnToggleChanged(IMetadata data, object value)
         {
             Group.Checked = (bool)value;
+        }
+
+        private swAddGroupBoxOptions_e GetGroupOptions(IAttributeSet atts, IMetadata[] metadata, out IMetadata toggleMetadata)
+        {
+            GroupBoxOptions_e opts = 0;
+
+            if (atts.Has<IGroupBoxOptionsAttribute>())
+            {
+                opts = atts.Get<IGroupBoxOptionsAttribute>().Options;
+            }
+
+            var swOpts = swAddGroupBoxOptions_e.swGroupBoxOptions_Visible;
+
+            if (!opts.HasFlag(GroupBoxOptions_e.Collapsed))
+            {
+                swOpts |= swAddGroupBoxOptions_e.swGroupBoxOptions_Expanded;
+            }
+
+            if (atts.Has<ICheckableGroupBoxAttribute>())
+            {
+                var checkAtt = atts.Get<ICheckableGroupBoxAttribute>();
+
+                swOpts |= swAddGroupBoxOptions_e.swGroupBoxOptions_Checkbox;
+                toggleMetadata = metadata?.FirstOrDefault(m => object.Equals(m.Tag, checkAtt.ToggleMetadataTag));
+
+                if (toggleMetadata == null)
+                {
+                    throw new NullReferenceException($"Failed to find the metadata to drive group toggle: '{checkAtt.ToggleMetadataTag}'");
+                }
+            }
+            else
+            {
+                toggleMetadata = null;
+            }
+
+            return swOpts;
         }
     }
 }

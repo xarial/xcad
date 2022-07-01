@@ -30,22 +30,27 @@ namespace Xarial.XCad.Documents.Structures
         /// <summary>
         /// Standard paper size constructor
         /// </summary>
-        /// <param name="standardPaperSize">Standard paper size</param>
-        public PaperSize(StandardPaperSize_e standardPaperSize) 
+        public PaperSize(StandardPaperSize_e standardPaperSize) : this(standardPaperSize, null, null)
         {
-            StandardPaperSize = standardPaperSize;
-            Width = null;
-            Height = null;
         }
 
         /// <summary>
         /// Custom paper size constructor
         /// </summary>
+        ///<inheritdoc/>
+        public PaperSize(double width, double height) : this(null, width, height)
+        {
+        }
+
+        /// <summary>
+        /// Constructor with all parameters
+        /// </summary>
+        /// <param name="standardPaperSize">Standard paper size</param>
         /// <param name="width">Custom width</param>
         /// <param name="height">Custom height</param>
-        public PaperSize(double width, double height)
+        public PaperSize(StandardPaperSize_e? standardPaperSize, double? width, double? height)
         {
-            StandardPaperSize = null;
+            StandardPaperSize = standardPaperSize;
             Width = width;
             Height = height;
         }

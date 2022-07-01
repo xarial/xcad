@@ -73,13 +73,13 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
 
         /// <summary>Creates instance of property manager page</summary>
         /// <param name="app">Pointer to session of SOLIDWORKS where the property manager page to be created</param>
-        internal SwPropertyManagerPage(ISwApplication app, IServiceProvider svcProvider, SwPropertyManagerPageHandler handler,
+        internal SwPropertyManagerPage(SwApplication app, IServiceProvider svcProvider, SwPropertyManagerPageHandler handler,
             CreateDynamicControlsDelegate createDynCtrlHandler)
             : this(app, null, svcProvider, handler, createDynCtrlHandler)
         {
         }
 
-        internal SwPropertyManagerPage(ISwApplication app, IPageSpec pageSpec, IServiceProvider svcProvider, SwPropertyManagerPageHandler handler,
+        internal SwPropertyManagerPage(SwApplication app, IPageSpec pageSpec, IServiceProvider svcProvider, SwPropertyManagerPageHandler handler,
             CreateDynamicControlsDelegate createDynCtrlHandler)
         {
             m_App = app;
@@ -170,8 +170,6 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
                         m_Logger.Log(ex);
                     }
                 }
-
-                m_IconsConv.Clear();
 
                 m_IsDisposed = true;
 

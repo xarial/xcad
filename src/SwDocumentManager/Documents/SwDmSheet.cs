@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 using Xarial.XCad.Documents;
+using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Documents.Structures;
 using Xarial.XCad.UI;
 
@@ -23,11 +24,6 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
     internal class SwDmSheet : SwDmObject, ISwDmSheet
     {
-        #region Not Supported
-        public Scale Scale { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
-        public PaperSize PaperSize { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
-        #endregion
-
         public string Name
         {
             get => Sheet.Name;
@@ -35,6 +31,48 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         }
 
         public IXDrawingViewRepository DrawingViews => m_DrawingViewsLazy.Value;
+
+        public Scale Scale 
+        {
+            get 
+            {
+                if (((ISwDMDocument13)m_Drawing.Document).GetSheetProperties(Name, out object prps) == (int)swSheetPropertiesResult.swSheetProperties_TRUE)
+                {
+                    var prpsArr = (double[])prps;
+
+                    return new Scale(prpsArr[3], prpsArr[4]);
+                }
+                else 
+                {
+                    throw new Exception("Failed to read sheet properties");
+                }
+            }
+            set => throw new NotSupportedException(); 
+        }
+        
+        public PaperSize PaperSize 
+        {
+            get
+            {
+                if (((ISwDMDocument13)m_Drawing.Document).GetSheetProperties(Name, out object prps) == (int)swSheetPropertiesResult.swSheetProperties_TRUE)
+                {
+                    var prpsArr = (double[])prps;
+
+                    const int swDwgPapersUserDefined = 12;
+
+                    var paperSize = Convert.ToInt32(prpsArr[0]);
+
+                    var standardPaperSize = paperSize == swDwgPapersUserDefined ? default(StandardPaperSize_e?) : (StandardPaperSize_e)paperSize;
+
+                    return new PaperSize(standardPaperSize, prpsArr[1], prpsArr[2]);
+                }
+                else
+                {
+                    throw new Exception("Failed to read sheet properties");
+                }
+            }
+            set => throw new NotSupportedException(); 
+        }
 
         public IXImage Preview 
         {
@@ -55,14 +93,17 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         }
 
         public bool IsCommitted => true;
-
         public ISwDMSheet Sheet { get; }
         
         private readonly Lazy<SwDmDrawingViewsCollection> m_DrawingViewsLazy;
 
+        private readonly SwDmDrawing m_Drawing;
+
         internal SwDmSheet(ISwDMSheet sheet, SwDmDrawing drw) : base(sheet)
         {
             Sheet = sheet;
+            m_Drawing = drw;
+
             m_DrawingViewsLazy = new Lazy<SwDmDrawingViewsCollection>(() => new SwDmDrawingViewsCollection(this, drw));
         }
 

@@ -5,6 +5,7 @@
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
+using SwAddInExample.Properties;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -92,9 +93,11 @@ namespace SwAddInExample
         }
 
         [NumberBoxOptions(units: NumberBoxUnitType_e.Length, 0, 1000, 0.01, false, 0.1, 0.001)]
+        [Xarial.XCad.Base.Attributes.Icon(typeof(Resources), nameof(Resources.horizontal))]
         public double Width { get; set; }
 
         [NumberBoxOptions(units: NumberBoxUnitType_e.Length, 0, 1000, 0.01, false, 0.1, 0.001)]
+        [Xarial.XCad.Base.Attributes.Icon(typeof(Resources), nameof(Resources.vertical))]
         public double Height { get; set; }
 
         [NumberBoxOptions(units: NumberBoxUnitType_e.Length, 0, 1000, 0.01, false, 0.1, 0.001)]

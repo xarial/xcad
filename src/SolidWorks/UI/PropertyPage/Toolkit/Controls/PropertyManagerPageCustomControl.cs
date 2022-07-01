@@ -8,9 +8,12 @@
 using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
 using System;
+using Xarial.XCad.SolidWorks.Services;
 using Xarial.XCad.SolidWorks.UI.Toolkit;
 using Xarial.XCad.UI.PropertyPage;
+using Xarial.XCad.UI.PropertyPage.Attributes;
 using Xarial.XCad.UI.PropertyPage.Base;
+using Xarial.XCad.Utils.PageBuilder.Base;
 using Xarial.XCad.Utils.PageBuilder.PageElements;
 
 namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
@@ -24,19 +27,34 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
         private readonly PropertyPageControlCreator<object> m_Creator;
 
-        private readonly Type m_CtrlType;
+        private Type m_CtrlType;
 
-        internal PropertyManagerPageCustomControl(Type ctrlType, int id, object tag,
-            IPropertyManagerPageWindowFromHandle wndFromHandler,
-            SwPropertyManagerPageHandler handler,
-            PropertyPageControlCreator<object> creator, IPropertyManagerPageLabel label, IMetadata[] metadata)
-            : base(wndFromHandler, id, tag, handler, label, metadata)
+        internal PropertyManagerPageCustomControl(SwApplication app, IGroup parentGroup, IIconsCreator iconConv,
+            IAttributeSet atts, IMetadata[] metadata, ref int numberOfUsedIds)
+            : base(app, parentGroup, iconConv, atts, metadata, swPropertyManagerPageControlType_e.swControlType_WindowFromHandle, ref numberOfUsedIds)
         {
-            m_CtrlType = ctrlType;
             m_Handler.CustomControlCreated += OnCustomControlCreated;
             m_Handler.Opening += OnPageOpening;
             m_Handler.Closed += OnPageClosed;
-            m_Creator = creator;
+
+            m_Creator = new PropertyPageControlCreator<object>(SwSpecificControl);
+        }
+
+        protected override void InitData(IControlOptionsAttribute opts, IAttributeSet atts)
+        {
+            m_CtrlType = atts.Get<CustomControlAttribute>().ControlType;
+        }
+
+        protected override void SetOptions(IPropertyManagerPageWindowFromHandle ctrl, IControlOptionsAttribute opts, IAttributeSet atts)
+        {
+            var height = opts.Height;
+
+            if (height <= 0)
+            {
+                height = 50;
+            }
+
+            ctrl.Height = height;
         }
 
         private void OnPageOpening()

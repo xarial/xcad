@@ -7,22 +7,17 @@
 
 using Xarial.XCad.UI.PropertyPage.Base;
 using Xarial.XCad.Utils.PageBuilder.Base;
+using Xarial.XCad.Utils.PageBuilder.PageElements;
 
 namespace Xarial.XCad.Utils.PageBuilder.Constructors
 {
-    public abstract class PageElementConstructor<TElem, TGroup, TPage> : IPageElementConstructor<TGroup, TPage>
+    public abstract class PageElementConstructor<TElem, TGroup, TPage> : IPageElementConstructor
             where TGroup : IGroup
             where TPage : IPage
             where TElem : IControl
     {
-        IControl IPageElementConstructor<TGroup, TPage>.Create(TPage page, IAttributeSet atts, IMetadata[] metadata, ref int numberOfUsedIds)
-            => Create(page, atts, metadata, ref numberOfUsedIds);
+        IControl IPageElementConstructor.Create(IGroup parentGroup, IAttributeSet atts, IMetadata[] metadata, ref int idRange) => Create(parentGroup, atts, metadata, ref idRange);
 
-        IControl IPageElementConstructor<TGroup, TPage>.Create(TGroup group, IAttributeSet atts, IMetadata[] metadata, ref int numberOfUsedIds)
-            => Create(group, atts, metadata, ref numberOfUsedIds);
-        
-        protected abstract TElem Create(TPage page, IAttributeSet atts, IMetadata[] metadata, ref int numberOfUsedIds);
-
-        protected abstract TElem Create(TGroup group, IAttributeSet atts, IMetadata[] metadata, ref int numberOfUsedIds);
+        protected abstract TElem Create(IGroup parentGroup, IAttributeSet atts, IMetadata[] metadata, ref int numberOfUsedIds);
     }
 }

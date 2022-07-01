@@ -347,7 +347,7 @@ namespace Xarial.XCad.SolidWorks
         {
             var handler = m_SvcProvider.GetService<IPropertyPageHandlerProvider>().CreateHandler(Application.Sw, handlerType);
 
-            var page = new SwPropertyManagerPage<TData>(Application, m_SvcProvider, handler, createDynCtrlHandler);
+            var page = new SwPropertyManagerPage<TData>(m_Application, m_SvcProvider, handler, createDynCtrlHandler);
             page.Disposed += OnItemDisposed;
             m_Disposables.Add(page);
             return page;
