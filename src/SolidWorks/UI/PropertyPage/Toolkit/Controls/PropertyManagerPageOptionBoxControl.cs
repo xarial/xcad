@@ -237,6 +237,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             : base(app, parentGroup, iconConv, atts, metadata, swPropertyManagerPageControlType_e.swControlType_Option, ref numberOfUsedIds)
         {
             m_Handler.OptionChecked += OnOptionChecked;
+            numberOfUsedIds = m_Values.Length;
         }
 
         protected override void InitData(IControlOptionsAttribute opts, IAttributeSet atts)

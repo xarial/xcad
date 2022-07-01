@@ -33,7 +33,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
         private Image m_Image;
         private Size m_Size;
 
-        private IImagesCollection m_Bitmap;
+        private IImageCollection m_Bitmap;
 
         public PropertyManagerPageBitmapControl(SwApplication app, IGroup parentGroup, IIconsCreator iconConv,
             IAttributeSet atts, IMetadata[] metadata, ref int numberOfUsedIds)
@@ -68,6 +68,8 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
                 img = new BaseImage(ImageToByteArray(value));
             }
 
+            m_Bitmap?.Dispose();
+
             m_Bitmap = m_IconConv.ConvertIcon(new ControlIcon(img, m_Size));
             SwSpecificControl.SetBitmapByName(m_Bitmap.FilePaths[0], m_Bitmap.FilePaths[1]);
 
@@ -85,10 +87,10 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
         protected override void Dispose(bool disposing)
         {
-            base.Dispose(disposing);
-
             if (disposing) 
             {
+                base.Dispose(disposing);
+
                 m_Bitmap?.Dispose();
             }
         }

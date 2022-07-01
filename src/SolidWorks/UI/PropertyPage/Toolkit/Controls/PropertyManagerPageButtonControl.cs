@@ -58,6 +58,8 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
         {
             if (disposing)
             {
+                base.Dispose(disposing);
+
                 m_Handler.ButtonPressed -= OnButtonPressed;
             }
         }

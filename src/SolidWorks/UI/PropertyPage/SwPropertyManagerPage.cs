@@ -171,6 +171,8 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
                     }
                 }
 
+                m_Page.Dispose();
+
                 m_IsDisposed = true;
 
                 Disposed?.Invoke(this);

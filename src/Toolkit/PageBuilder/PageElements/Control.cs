@@ -5,6 +5,7 @@
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
+using System;
 using System.Diagnostics;
 using System.Linq;
 using Xarial.XCad.UI.PropertyPage.Base;
@@ -45,6 +46,8 @@ namespace Xarial.XCad.Utils.PageBuilder.PageElements
 
         public IMetadata[] Metadata { get; }
 
+        public virtual Type ValueType => typeof(TVal);
+
         protected Control(int id, object tag, IMetadata[] metadata)
         {
             Id = id;
@@ -60,7 +63,7 @@ namespace Xarial.XCad.Utils.PageBuilder.PageElements
 
         public void SetValue(object value)
         {
-            var destVal = value.Cast<TVal>();
+            var destVal = (TVal)value.Cast(ValueType);
 
             SetSpecificValue(destVal);
         }

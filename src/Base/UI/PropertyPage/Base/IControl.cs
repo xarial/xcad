@@ -79,5 +79,11 @@ namespace Xarial.XCad.UI.PropertyPage.Base
         /// Sets the focus to the current control
         /// </summary>
         void Focus();
+
+        /// <summary>
+        /// Specific type of the value for this control
+        /// </summary>
+        /// <remarks>This is a type of the property this control value is bound to</remarks>
+        Type ValueType { get; }
     }
 }

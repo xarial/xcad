@@ -42,7 +42,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
         private readonly SwApplication m_App;
 
-        private IImagesCollection m_PageIcon;
+        private IImageCollection m_PageIcon;
 
         internal PropertyManagerPagePage(SwApplication app, IAttributeSet atts, IIconsCreator iconsConv, SwPropertyManagerPageHandler handler) 
         {
@@ -151,10 +151,12 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
         {
             if (disposing)
             {
+                base.Dispose(disposing);
+
                 Handler.HelpRequested -= OnHelpRequested;
                 Handler.WhatsNewRequested -= OnWhatsNewRequested;
 
-                m_PageIcon.Dispose();
+                m_PageIcon?.Dispose();
             }
         }
     }

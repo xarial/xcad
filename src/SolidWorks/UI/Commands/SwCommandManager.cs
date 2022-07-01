@@ -345,7 +345,7 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
             }   
         }
 
-        private IImagesCollection CreateMainIcon(CommandGroupSpec cmdBar, IIconsCreator iconsConv)
+        private IImageCollection CreateMainIcon(CommandGroupSpec cmdBar, IIconsCreator iconsConv)
         {
             var mainIcon = cmdBar.Icon;
 
@@ -364,7 +364,7 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
             }
         }
 
-        private IImagesCollection CreateToolbarIcons(CommandGroupSpec cmdBar, IIconsCreator iconsConv)
+        private IImageCollection CreateToolbarIcons(CommandGroupSpec cmdBar, IIconsCreator iconsConv)
         {
             IXImage[] iconList = null;
 
@@ -397,7 +397,7 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
             }
         }
 
-        private void SetCommandGroupIcons(CommandGroup cmdGroup, IImagesCollection mainIcon, IImagesCollection toolbarIcons)
+        private void SetCommandGroupIcons(CommandGroup cmdGroup, IImageCollection mainIcon, IImageCollection toolbarIcons)
         {
             //NOTE: if commands are not used, main icon will fail if toolbar commands image list is not specified, so it is required to specify it explicitly
             if (CompatibilityUtils.SupportsHighResIcons(m_App.Sw, CompatibilityUtils.HighResIconsScope_e.CommandManager))

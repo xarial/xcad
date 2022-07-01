@@ -27,7 +27,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
         private swPropertyManagerPageControlType_e m_Type;
 
-        private IImagesCollection m_Bitmap;
+        private IImageCollection m_Bitmap;
 
         public PropertyManagerPageBitmapButtonControl(SwApplication app, IGroup parentGroup, IIconsCreator iconConv,
             IAttributeSet atts, IMetadata[] metadata, ref int numberOfUsedIds)
@@ -143,6 +143,8 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
         {
             if (disposing)
             {
+                base.Dispose(disposing);
+
                 m_Handler.ButtonPressed -= OnButtonPressed;
 
                 m_Bitmap?.Dispose();

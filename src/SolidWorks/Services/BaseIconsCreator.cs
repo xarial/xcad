@@ -21,12 +21,12 @@ using Xarial.XCad.UI;
 
 namespace Xarial.XCad.SolidWorks.Services
 {
-    public interface IImagesCollection : IDisposable
+    public interface IImageCollection : IDisposable
     {
         string[] FilePaths { get; }
     }
 
-    public class ImagesCollection : IImagesCollection
+    public class ImageCollection : IImageCollection
     {
         public string[] FilePaths { get; }
 
@@ -34,12 +34,12 @@ namespace Xarial.XCad.SolidWorks.Services
 
         internal string TempDirectory { get; }
 
-        private readonly bool m_Permanent;
+        private readonly bool m_IsPermanent;
 
-        public ImagesCollection(string dir, string[] filePaths, bool permanent)
+        public ImageCollection(string dir, string[] filePaths, bool permanent)
         {
             TempDirectory = dir;
-            m_Permanent = permanent;
+            m_IsPermanent = permanent;
             FilePaths = filePaths;
         }
 
@@ -49,19 +49,22 @@ namespace Xarial.XCad.SolidWorks.Services
             {
                 m_IsDisposed = true;
 
-                if (!m_Permanent)
+                if (!m_IsPermanent)
                 {
-                    foreach (var tempIcon in FilePaths)
+                    if (FilePaths != null)
                     {
-                        try
+                        foreach (var tempIcon in FilePaths)
                         {
-                            if (File.Exists(tempIcon))
+                            try
                             {
-                                File.Delete(tempIcon);
+                                if (File.Exists(tempIcon))
+                                {
+                                    File.Delete(tempIcon);
+                                }
                             }
-                        }
-                        catch
-                        {
+                            catch
+                            {
+                            }
                         }
                     }
 
@@ -87,7 +90,7 @@ namespace Xarial.XCad.SolidWorks.Services
     {
         private readonly string m_DefaultFolder;
 
-        private readonly List<ImagesCollection> m_CreatedImages;
+        private readonly List<ImageCollection> m_CreatedImages;
 
         public BaseIconsCreator()
             : this(Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString()))
@@ -99,7 +102,7 @@ namespace Xarial.XCad.SolidWorks.Services
         public BaseIconsCreator(string iconsDir)
         {
             m_DefaultFolder = iconsDir;
-            m_CreatedImages = new List<ImagesCollection>();
+            m_CreatedImages = new List<ImageCollection>();
         }
 
         /// <summary>
@@ -135,7 +138,7 @@ namespace Xarial.XCad.SolidWorks.Services
             return maskImg;
         }
 
-        public IImagesCollection ConvertIcon(IIcon icon, string folder = "")
+        public IImageCollection ConvertIcon(IIcon icon, string folder = "")
         {
             var iconsFolder = GetIconsFolder(folder);
 
@@ -151,7 +154,7 @@ namespace Xarial.XCad.SolidWorks.Services
                     bitmapPaths[i], sizes[i].TargetSize, sizes[i].Offset, icon.TransparencyKey, sizes[i].Mask);
             }
 
-            var imgsColl = new ImagesCollection(iconsFolder, bitmapPaths, icon.IsPermanent);
+            var imgsColl = new ImageCollection(iconsFolder, bitmapPaths, icon.IsPermanent);
 
             m_CreatedImages.Add(imgsColl);
 
@@ -159,7 +162,7 @@ namespace Xarial.XCad.SolidWorks.Services
         }
         
         /// <inheritdoc/>
-        public IImagesCollection ConvertIconsGroup(IIcon[] icons, string folder = "")
+        public IImageCollection ConvertIconsGroup(IIcon[] icons, string folder = "")
         {
             if (icons == null || !icons.Any())
             {
@@ -208,7 +211,7 @@ namespace Xarial.XCad.SolidWorks.Services
                     iconsDataGroup[i, 0].TargetSize, iconsDataGroup[i, 0].Offset, transparencyKey, iconsDataGroup[i, 0].Mask);
             }
 
-            var imgsColl = new ImagesCollection(iconsFolder, iconsPaths, icons.First().IsPermanent);
+            var imgsColl = new ImageCollection(iconsFolder, iconsPaths, icons.First().IsPermanent);
 
             m_CreatedImages.Add(imgsColl);
 

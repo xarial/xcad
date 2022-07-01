@@ -42,7 +42,9 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
         protected readonly SwPropertyManagerPageHandler m_Handler;
         protected readonly SwApplication m_App;
 
-        private IImagesCollection m_CustomIcon;
+        private IImageCollection m_CustomIcon;
+
+        public override Type ValueType { get; }
 
         protected PropertyManagerPageBaseControl(SwApplication app, IGroup parentGroup, IIconsCreator iconConv,
             IAttributeSet atts, IMetadata[] metadata, swPropertyManagerPageControlType_e type, ref int numberOfUsedIds)
@@ -51,6 +53,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             m_App = app;
             m_Handler = GetHandler(parentGroup);
             m_IconConv = iconConv;
+            ValueType = atts.ContextType;
 
             var opts = GetControlOptions(atts);
 
@@ -327,10 +330,10 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
         protected override void Dispose(bool disposing)
         {
-            base.Dispose(disposing);
-
             if (disposing)
             {
+                base.Dispose(disposing);
+
                 m_CustomIcon?.Dispose();
             }
         }

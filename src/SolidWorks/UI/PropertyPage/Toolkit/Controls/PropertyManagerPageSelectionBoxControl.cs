@@ -430,6 +430,8 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
         {
             if (disposing)
             {
+                base.Dispose(disposing);
+
                 m_Handler.SelectionChanged -= OnSelectionChanged;
                 m_Handler.SubmitSelection -= OnSubmitSelection;
             }

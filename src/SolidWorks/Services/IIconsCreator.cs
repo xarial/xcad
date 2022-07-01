@@ -23,13 +23,13 @@ namespace Xarial.XCad.SolidWorks.Services
         /// <param name="icon">Icon</param>
         /// <param name="folder">Custom folder, if empty - default folder is used</param>
         /// <returns>Paths to icons of all sizes</returns>
-        IImagesCollection ConvertIcon(IIcon icon, string folder = "");
+        IImageCollection ConvertIcon(IIcon icon, string folder = "");
 
         /// <summary>
         /// Creates group of images from the input icons
         /// </summary>
         /// <param name="icons">Icons to group</param>
         ///<inheritdoc/>
-        IImagesCollection ConvertIconsGroup(IIcon[] icons, string folder = "");
+        IImageCollection ConvertIconsGroup(IIcon[] icons, string folder = "");
     }
 }

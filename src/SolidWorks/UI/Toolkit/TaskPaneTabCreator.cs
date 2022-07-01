@@ -72,7 +72,7 @@ namespace Xarial.XCad.SolidWorks.UI.Toolkit
             }
         }
 
-        private ITaskpaneView CreateTaskPaneView(string title, IImagesCollection icon)
+        private ITaskpaneView CreateTaskPaneView(string title, IImageCollection icon)
         {
             if (string.IsNullOrEmpty(title))
             {
@@ -99,7 +99,7 @@ namespace Xarial.XCad.SolidWorks.UI.Toolkit
             return taskPaneView;
         }
 
-        private IImagesCollection CreateTaskPaneIcon(IIconsCreator iconConv, IXImage icon) 
+        private IImageCollection CreateTaskPaneIcon(IIconsCreator iconConv, IXImage icon) 
         {
             if (icon == null)
             {

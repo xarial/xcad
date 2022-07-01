@@ -533,7 +533,7 @@ namespace Xarial.XCad.SolidWorks
             }
         }
 
-        private IImagesCollection CreateTooltipIcon(IXImage icon) 
+        private IImageCollection CreateTooltipIcon(IXImage icon) 
         {
             if (icon != null)
             {

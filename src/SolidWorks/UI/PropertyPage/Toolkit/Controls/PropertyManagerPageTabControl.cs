@@ -56,7 +56,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             }
         }
 
-        private IImagesCollection m_TabIcon;
+        private IImageCollection m_TabIcon;
 
         public PropertyManagerPageTabControl(SwApplication app, IGroup parentGroup, IAttributeSet atts, IMetadata[] metadata, IIconsCreator iconsConv, ref int numberOfUsedIds) 
             : base(app, parentGroup, atts, metadata, iconsConv, ref numberOfUsedIds)
@@ -127,10 +127,9 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
         protected override void Dispose(bool disposing)
         {
-            base.Dispose(disposing);
-
             if (disposing)
             {
+                base.Dispose(disposing);
                 m_TabIcon?.Dispose();
             }
         }
