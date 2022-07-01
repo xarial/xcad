@@ -36,7 +36,15 @@ namespace Xarial.XCad.SolidWorks.Sketch
 
         public Circle Geometry 
         {
-            get => ((IXCircleCurve)Definition).Geometry;
+            get 
+            {
+                var centerPt = CreatePoint((ISketchPoint)Arc.GetCenterPoint2());
+                var diam = Arc.GetRadius() * 2;
+
+                var norm = (double[])Arc.GetNormalVector();
+
+                return new Circle(new Axis(centerPt, new Vector(norm)), diam);
+            }
             set 
             {
                 Arc.SetRadius(value.Diameter / 2);
