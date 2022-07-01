@@ -46,5 +46,8 @@ namespace Xarial.XCad.SolidWorks.Sketch
 
             Entities = new SwSketchEntityCollection(doc.CreateObjectFromDispatch<SwSketchBase>(SketchBlockDefinition.GetSketch()), doc, app);
         }
+
+        ///<remarks>PersistIds cannot be extracted from the IFeature which cast from ISketchBlockDefinition, but getting the feature from the tree works correctly</remarks>
+        protected override object GetSerializationDispatch() => OwnerDocument.Features[Name].Feature;
     }
 }

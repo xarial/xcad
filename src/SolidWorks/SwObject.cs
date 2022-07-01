@@ -55,7 +55,7 @@ namespace Xarial.XCad.SolidWorks
                         }
                         else 
                         {
-                            //this is an assumption as memory object can stil be destroyed
+                            //this is an assumption as memory object can still be destroyed
                             //TODO: find how to capture the object has been disconnected from its client exception
                             return true;
                         }
@@ -119,7 +119,7 @@ namespace Xarial.XCad.SolidWorks
         {
             if (OwnerModelDoc != null)
             {
-                var disp = Dispatch;
+                var disp = GetSerializationDispatch();
 
                 if (disp != null)
                 {
@@ -143,6 +143,12 @@ namespace Xarial.XCad.SolidWorks
                 throw new ObjectSerializationException("Model is not set for this object", -1);
             }
         }
+
+        /// <summary>
+        /// In some instances it is required to serialize different dispatch (e.g. specific or base feature)
+        /// </summary>
+        /// <returns></returns>
+        protected virtual object GetSerializationDispatch() => Dispatch;
     }
 
     internal static class SwObjectExtension
