@@ -40,12 +40,30 @@ namespace Xarial.XCad.SolidWorks.Sketch
 
         public Point InsertionPoint => new Point((double[])SketchBlockDefinition.InsertionPoint.ArrayData);
 
-        //Note: retrieving the pointer to the feature from the feature tree for the consistency as IFeature retrieved from ISketchBlockDefinition has a different pointer to IFeature in the tree
-        internal SwSketchBlockDefinition(IFeature feat, SwDocument doc, SwApplication app, bool created) : base(doc.Features[feat.Name].Feature, doc, app, created) 
+        internal SwSketchBlockDefinition(IFeature feat, SwDocument doc, SwApplication app, bool created) : base(GetSketchBlockDefinitionFeature(doc.Model, feat.Name), doc, app, created) 
         {
             SketchBlockDefinition = (ISketchBlockDefinition)feat.GetSpecificFeature2();
 
             Entities = new SwSketchEntityCollection(doc.CreateObjectFromDispatch<SwSketchBase>(SketchBlockDefinition.GetSketch()), doc, app);
+        }
+
+        //Note: retrieving the pointer to the feature from the feature tree for the consistency as IFeature retrieved from ISketchBlockDefinition has a different pointer to IFeature in the tree
+        private IFeature GetSketchBlockDefinitionFeature(IModelDoc2 model, string name) 
+        {
+            switch (model) 
+            {
+                case IPartDoc part:
+                    return (IFeature)part.FeatureByName(name);
+
+                case IAssemblyDoc assm:
+                    return (IFeature)assm.FeatureByName(name);
+
+                case IDrawingDoc drw:
+                    return (IFeature)drw.FeatureByName(name);
+
+                default:
+                    throw new NotSupportedException();
+            }
         }
     }
 }
