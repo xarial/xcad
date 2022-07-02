@@ -159,8 +159,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 
             CustomFeatureDefinitionInstanceCache.RegisterInstance(this);
 
-            var iconsConv = m_SvcProvider.GetService<IIconsCreator>();
-            TryCreateIcons(iconsConv, MacroFeatureIconInfo.GetLocation(this.GetType()));
+            TryCreateIcons(m_SvcProvider.GetService<IIconsCreator>(), MacroFeatureIconInfo.GetLocation(this.GetType()));
         }
 
         public SwMacroFeatureDefinition() : this(CreateMacroFeatureInstance)
@@ -702,7 +701,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         public virtual bool ShouldUpdatePreview(TParams oldData, TParams newData, TPage page, bool dataChanged) => true;
 
         public virtual SwPropertyManagerPageHandler CreatePageHandler()
-            => m_SvcProvider.GetService<IPropertyPageHandlerProvider>().CreateHandler(Application.Sw, typeof(TPage));
+            => m_SvcProvider.GetService<IPropertyPageHandlerProvider>().CreateHandler(Application, typeof(TPage));
 
         public virtual TParams ConvertPageToParams(IXApplication app, IXDocument doc, TPage page, TParams curParams)
         {

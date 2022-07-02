@@ -63,7 +63,7 @@ namespace Xarial.XCad
         /// <typeparam name="TService">Service interface</typeparam>
         /// <typeparam name="TImplementation">Service implementation</typeparam>
         public static void Add<TService, TImplementation>(this IXServiceCollection svcColl, ServiceLifetimeScope_e lifetime = ServiceLifetimeScope_e.Transient, bool replace = true)
-            where TImplementation : TService => Add(svcColl, typeof(TService), typeof(TImplementation), lifetime, replace);
+            where TImplementation : class, TService => Add(svcColl, typeof(TService), typeof(TImplementation), lifetime, replace);
 
         /// <inheritdoc cref="Add{TService, TImplementation}(IXServiceCollection, ServiceLifetimeScope_e, bool)"/>
         /// <param name="factory">Service creation factory</param>

@@ -222,7 +222,10 @@ namespace Xarial.XCad.SolidWorks
 
             svcCollection.Add<IXLogger>(() => new TraceLogger($"XCad.AddIn.{title}"), ServiceLifetimeScope_e.Singleton);
             svcCollection.Add<IIconsCreator, BaseIconsCreator>(ServiceLifetimeScope_e.Singleton);
-            svcCollection.Add<IPropertyPageHandlerProvider, PropertyPageHandlerProvider>(ServiceLifetimeScope_e.Singleton);
+            svcCollection.Add<IPropertyPageHandlerProvider, DataModelPropertyPageHandlerProvider>(ServiceLifetimeScope_e.Singleton);
+            svcCollection.Add<IDragArrowHandlerProvider, NotSetDragArrowHandlerProvider>(ServiceLifetimeScope_e.Singleton);
+            svcCollection.Add<ICalloutHandlerProvider, NotSetCalloutHandlerProvider>(ServiceLifetimeScope_e.Singleton);
+            svcCollection.Add<ITriadHandlerProvider, NotSetTriadHandlerProvider>(ServiceLifetimeScope_e.Singleton);
             svcCollection.Add<IFeatureManagerTabControlProvider, FeatureManagerTabControlProvider>(ServiceLifetimeScope_e.Singleton);
             svcCollection.Add<ITaskPaneControlProvider, TaskPaneControlProvider>(ServiceLifetimeScope_e.Singleton);
             svcCollection.Add<IModelViewControlProvider, ModelViewControlProvider>(ServiceLifetimeScope_e.Singleton);
@@ -345,7 +348,7 @@ namespace Xarial.XCad.SolidWorks
         private ISwPropertyManagerPage<TData> CreatePropertyManagerPage<TData>(Type handlerType, 
             CreateDynamicControlsDelegate createDynCtrlHandler)
         {
-            var handler = m_SvcProvider.GetService<IPropertyPageHandlerProvider>().CreateHandler(Application.Sw, handlerType);
+            var handler = m_SvcProvider.GetService<IPropertyPageHandlerProvider>().CreateHandler(Application, handlerType);
 
             var page = new SwPropertyManagerPage<TData>(m_Application, m_SvcProvider, handler, createDynCtrlHandler);
             page.Disposed += OnItemDisposed;

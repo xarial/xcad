@@ -78,25 +78,25 @@ namespace SwAddInExample
     {
         public class DefaultCalloutHandlerProvider : ICalloutHandlerProvider
         {
-            public SwCalloutBaseHandler CreateHandler(ISldWorks app)
+            public SwCalloutBaseHandler CreateHandler(ISwApplication app)
                 => new SwDefaultCalloutBaseHandler();
         }
 
         public class DefaultPropertyPageHandlerProvider : IPropertyPageHandlerProvider
         {
-            public SwPropertyManagerPageHandler CreateHandler(ISldWorks app, Type handlerType)
+            public SwPropertyManagerPageHandler CreateHandler(ISwApplication app, Type handlerType)
                 => new SwDefaultPropertyManagerPageHandler();
         }
 
         public class DefaultTriadHandlerProvider : ITriadHandlerProvider
         {
-            public SwTriadHandler CreateHandler(ISldWorks app)
+            public SwTriadHandler CreateHandler(ISwApplication app)
                 => new SwDefaultTriadHandler();
         }
 
         public class DefaultDragArrowHandlerProvider : IDragArrowHandlerProvider
         {
-            public SwDragArrowHandler CreateHandler(ISldWorks app)
+            public SwDragArrowHandler CreateHandler(ISwApplication app)
                 => new SwDefaultDragArrowHandler();
         }
 
@@ -667,7 +667,6 @@ namespace SwAddInExample
                 () => new LazyNewDocumentGeometryBuilderDocumentProvider(Application), ServiceLifetimeScope_e.Singleton);
 
             collection.Add<IPropertyPageHandlerProvider, DefaultPropertyPageHandlerProvider>(ServiceLifetimeScope_e.Singleton);
-
             collection.Add<ICalloutHandlerProvider, DefaultCalloutHandlerProvider>(ServiceLifetimeScope_e.Singleton);
             collection.Add<ITriadHandlerProvider, DefaultTriadHandlerProvider>(ServiceLifetimeScope_e.Singleton);
             collection.Add<IDragArrowHandlerProvider, DefaultDragArrowHandlerProvider>(ServiceLifetimeScope_e.Singleton);

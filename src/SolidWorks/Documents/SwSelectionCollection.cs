@@ -150,7 +150,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
 
         public IXSelCallout PreCreateCallout() 
-            => new SwSelCallout(m_Doc, this, ((SwApplication)m_App).Services.GetService<ICalloutHandlerProvider>().CreateHandler(m_App.Sw));
+            => new SwSelCallout(m_Doc, this, ((SwApplication)m_App).Services.GetService<ICalloutHandlerProvider>().CreateHandler(m_App));
 
         public ISwSelCallout PreCreateCallout<T>() where T : SwCalloutBaseHandler, new()
             => new SwSelCallout(m_Doc, this, new T());

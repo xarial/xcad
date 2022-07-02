@@ -34,19 +34,19 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
 
         public IXCallout PreCreateCallout() 
-            => new SwCallout(m_Doc, m_Doc.OwnerApplication.Services.GetService<ICalloutHandlerProvider>().CreateHandler(m_Doc.OwnerApplication.Sw));
+            => new SwCallout(m_Doc, m_Doc.OwnerApplication.Services.GetService<ICalloutHandlerProvider>().CreateHandler(m_Doc.OwnerApplication));
 
         public ISwCallout PreCreateCallout<T>() where T : SwCalloutBaseHandler, new()
             => new SwCallout(m_Doc, new T());
 
         public IXDragArrow PreCreateDragArrow()
-            => new SwDragArrow(m_Doc, m_Doc.OwnerApplication.Services.GetService<IDragArrowHandlerProvider>().CreateHandler(m_Doc.OwnerApplication.Sw));
+            => new SwDragArrow(m_Doc, m_Doc.OwnerApplication.Services.GetService<IDragArrowHandlerProvider>().CreateHandler(m_Doc.OwnerApplication));
 
         public ISwDragArrow PreCreateDragArrow<T>() where T : SwDragArrowHandler, new()
             => new SwDragArrow(m_Doc, new T());
 
         public IXTriad PreCreateTriad() 
-            => new SwTriad(m_Doc, m_Doc.OwnerApplication.Services.GetService<ITriadHandlerProvider>().CreateHandler(m_Doc.OwnerApplication.Sw));
+            => new SwTriad(m_Doc, m_Doc.OwnerApplication.Services.GetService<ITriadHandlerProvider>().CreateHandler(m_Doc.OwnerApplication));
 
         public ISwTriad PreCreateTriad<T>() where T : SwTriadHandler, new()
             => new SwTriad(m_Doc, new T());
