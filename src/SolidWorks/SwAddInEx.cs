@@ -196,9 +196,15 @@ namespace Xarial.XCad.SolidWorks
             }
             catch (Exception ex)
             {
-                Logger.Log(ex);
+                HandleConnectException(ex);
                 return false;
             }
+        }
+
+        protected virtual void HandleConnectException(Exception ex) 
+        {
+            var logger = Logger ?? CreateDefaultLogger();
+            logger.Log(ex);
         }
 
         private void OnStartupCompleted(SwApplication app)
@@ -217,10 +223,7 @@ namespace Xarial.XCad.SolidWorks
         {
             var svcCollection = CreateServiceCollection();
 
-            var addInType = this.GetType();
-            var title = GetRegistrationHelper(addInType).GetTitle(addInType);
-
-            svcCollection.Add<IXLogger>(() => new TraceLogger($"XCad.AddIn.{title}"), ServiceLifetimeScope_e.Singleton);
+            svcCollection.Add<IXLogger>(CreateDefaultLogger, ServiceLifetimeScope_e.Singleton);
             svcCollection.Add<IIconsCreator, BaseIconsCreator>(ServiceLifetimeScope_e.Singleton);
             svcCollection.Add<IPropertyPageHandlerProvider, DataModelPropertyPageHandlerProvider>(ServiceLifetimeScope_e.Singleton);
             svcCollection.Add<IDragArrowHandlerProvider, NotSetDragArrowHandlerProvider>(ServiceLifetimeScope_e.Singleton);
@@ -232,6 +235,13 @@ namespace Xarial.XCad.SolidWorks
             svcCollection.Add<ICommandGroupTabConfigurer, DefaultCommandGroupTabConfigurer>(ServiceLifetimeScope_e.Singleton);
 
             return svcCollection;
+        }
+
+        private IXLogger CreateDefaultLogger() 
+        {
+            var addInType = this.GetType();
+            var title = GetRegistrationHelper(addInType).GetTitle(addInType);
+            return new TraceLogger($"XCad.AddIn.{title}");
         }
 
         protected virtual IXServiceCollection CreateServiceCollection() => new ServiceCollection();
