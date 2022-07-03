@@ -149,8 +149,9 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 
             var svcColl = Application.CustomServices.Clone();
 
-            ConfigureServices?.Invoke(this, svcColl);
-            
+            svcColl.Add<IXLogger>(() => new TraceLogger($"xCad.MacroFeature.{this.GetType().FullName}"), ServiceLifetimeScope_e.Singleton, false);
+            svcColl.Add<IIconsCreator, BaseIconsCreator>(ServiceLifetimeScope_e.Singleton, false);
+
             OnConfigureServices(svcColl);
 
             m_SvcProvider = svcColl.CreateProvider();
@@ -479,10 +480,17 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             }
         }
 
-        public virtual void OnConfigureServices(IXServiceCollection svcColl)
+        /// <summary>
+        /// Register Dependency Injection services
+        /// </summary>
+        /// <param name="svcColl">Services collection</param>
+        /// <remarks>Typically add-in is loaded before the instance of the macro feature definition service is created
+        /// In this case macro feature services will inherit services configured within the <see cref="ISwApplication"/> and <see cref="SwAddInEx"/> and overriding of this method or handling the <see cref="ConfigureServices"/> event is not required
+        /// However macro feature definition is independent COM server which means it can be loaded without the add-in. In this case add-in services will not be automatically inherited
+        /// It is recommended to haev independent helper class which registers all services and shares between the <see cref="ISwApplication"/>, <see cref="SwAddInEx"/> and <see cref="SwMacroFeatureDefinition"/></remarks>
+        protected virtual void OnConfigureServices(IXServiceCollection svcColl)
         {
-            svcColl.Add<IXLogger>(() => new TraceLogger($"xCad.MacroFeature.{this.GetType().FullName}"), ServiceLifetimeScope_e.Singleton, false);
-            svcColl.Add<IIconsCreator, BaseIconsCreator>(ServiceLifetimeScope_e.Singleton, false);
+            ConfigureServices?.Invoke(this, svcColl);
         }
     }
 

@@ -257,7 +257,10 @@ namespace Xarial.XCad.SolidWorks
         internal SwApplication(ISldWorks app, IXServiceCollection customServices) 
             : this(app, default(Action<SwApplication>))
         {
-            Init(customServices);
+            customServices = customServices ?? new ServiceCollection();
+
+            LoadServices(customServices);
+            Init(customServices.CreateProvider());
         }
 
         /// <summary>
@@ -283,20 +286,34 @@ namespace Xarial.XCad.SolidWorks
 
             m_Creator.CachedProperties.Set(new ServiceCollection(), nameof(CustomServices));
         }
-        
-        internal IServiceProvider Init(IXServiceCollection customServices)
+
+        internal void LoadServices(IXServiceCollection customServices)
         {
             if (!m_IsInitialized)
             {
                 m_CustomServices = customServices;
 
-                m_IsInitialized = true;
+                customServices.Add<IXLogger>(() => new TraceLogger("xCAD.SwApplication"), ServiceLifetimeScope_e.Singleton, false);
+                customServices.Add<IMemoryGeometryBuilderDocumentProvider>(() => new DefaultMemoryGeometryBuilderDocumentProvider(this), ServiceLifetimeScope_e.Singleton, false);
+                customServices.Add<IFilePathResolver>(() => new SwFilePathResolverNoSearchFolders(this), ServiceLifetimeScope_e.Singleton, false);//TODO: there is some issue with recursive search of folders in search locations - do a test to validate
+                customServices.Add<IMemoryGeometryBuilderToleranceProvider, DefaultMemoryGeometryBuilderToleranceProvider>(ServiceLifetimeScope_e.Singleton, false);
+                customServices.Add<IIconsCreator, BaseIconsCreator>(ServiceLifetimeScope_e.Singleton, false);
 
                 ConfigureServices?.Invoke(this, customServices);
+            }
+            else
+            {
+                Debug.Assert(false, "App has been already initialized. Must be only once");
+            }
+        }
 
-                OnConfigureServices(customServices);
+        internal void Init(IServiceProvider svcProvider)
+        {
+            if (!m_IsInitialized)
+            {
+                m_IsInitialized = true;
 
-                Services = m_CustomServices.CreateProvider();
+                Services = svcProvider;
                 m_Logger = Services.GetService<IXLogger>();
 
                 m_Documents = new SwDocumentCollection(this, m_Logger);
@@ -304,14 +321,10 @@ namespace Xarial.XCad.SolidWorks
                 MemoryGeometryBuilder = new SwMemoryGeometryBuilder(this,
                     Services.GetService<IMemoryGeometryBuilderDocumentProvider>(),
                     Services.GetService<IMemoryGeometryBuilderToleranceProvider>());
-
-                return Services;
             }
             else 
             {
                 Debug.Assert(false, "App has been already initialized. Must be only once");
-
-                return Services;
             }
         }
 
@@ -434,7 +447,10 @@ namespace Xarial.XCad.SolidWorks
         public void Commit(CancellationToken cancellationToken)
         {
             m_Creator.Create(cancellationToken);
-            Init(CustomServices ?? new ServiceCollection());
+
+            var customServices = CustomServices ?? new ServiceCollection();
+            LoadServices(customServices);
+            Init(customServices.CreateProvider());
         }
 
         private ISldWorks CreateInstance(CancellationToken cancellationToken)
@@ -492,15 +508,6 @@ namespace Xarial.XCad.SolidWorks
         {
             //TODO: find the state
             return ApplicationState_e.Default;
-        }
-
-        public void OnConfigureServices(IXServiceCollection svcColl)
-        {
-            svcColl.Add<IXLogger>(() => new TraceLogger("xCAD.SwApplication"), ServiceLifetimeScope_e.Singleton, false);
-            svcColl.Add<IMemoryGeometryBuilderDocumentProvider>(() => new DefaultMemoryGeometryBuilderDocumentProvider(this), ServiceLifetimeScope_e.Singleton, false);
-            svcColl.Add<IFilePathResolver>(() => new SwFilePathResolverNoSearchFolders(this), ServiceLifetimeScope_e.Singleton, false);//TODO: there is some issue with recursive search of folders in search locations - do a test to validate
-            svcColl.Add<IMemoryGeometryBuilderToleranceProvider, DefaultMemoryGeometryBuilderToleranceProvider>(ServiceLifetimeScope_e.Singleton, false);
-            svcColl.Add<IIconsCreator, BaseIconsCreator>(ServiceLifetimeScope_e.Singleton, false);
         }
 
         public IXProgress CreateProgress()

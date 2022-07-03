@@ -171,13 +171,13 @@ namespace Xarial.XCad.SolidWorks
 
                 m_Application = new SwApplication(app, OnStartupCompleted);
 
-                var svcCollection = GetServiceCollection();
-
-                ConfigureServices?.Invoke(this, svcCollection);
+                var svcCollection = GetServiceCollection(m_Application);
 
                 OnConfigureServices(svcCollection);
 
-                m_SvcProvider = m_Application.Init(svcCollection);
+                m_SvcProvider = svcCollection.CreateProvider();
+
+                m_Application.Init(m_SvcProvider);
 
                 Logger = m_SvcProvider.GetService<IXLogger>();
 
@@ -187,7 +187,6 @@ namespace Xarial.XCad.SolidWorks
 
                 m_CommandManager = new SwCommandManager(Application, AddInId, m_SvcProvider);
 
-                Connect?.Invoke(this);
                 OnConnect();
 
                 m_CommandManager.TryBuildCommandTabs();
@@ -219,9 +218,11 @@ namespace Xarial.XCad.SolidWorks
             }
         }
 
-        private IXServiceCollection GetServiceCollection()
+        private IXServiceCollection GetServiceCollection(SwApplication app)
         {
             var svcCollection = CreateServiceCollection();
+
+            app.LoadServices(svcCollection);
 
             svcCollection.Add<IXLogger>(CreateDefaultLogger, ServiceLifetimeScope_e.Singleton);
             svcCollection.Add<IIconsCreator, BaseIconsCreator>(ServiceLifetimeScope_e.Singleton);
@@ -297,6 +298,7 @@ namespace Xarial.XCad.SolidWorks
 
         public virtual void OnConnect()
         {
+            Connect?.Invoke(this);
         }
 
         public virtual void OnDisconnect()
@@ -429,8 +431,9 @@ namespace Xarial.XCad.SolidWorks
             return tab;
         }
         
-        public virtual void OnConfigureServices(IXServiceCollection collection)
+        protected virtual void OnConfigureServices(IXServiceCollection svcCollection)
         {
+            ConfigureServices?.Invoke(this, svcCollection);
         }
 
         private void OnItemDisposed(IAutoDisposable item)

@@ -22,6 +22,6 @@ namespace Xarial.XCad.SolidWorks.Services
     internal class NotSetCalloutHandlerProvider : ICalloutHandlerProvider
     {
         public SwCalloutBaseHandler CreateHandler(ISwApplication app)
-            => throw new Exception($"{nameof(ICalloutHandlerProvider)} service is not registered. Configure this service within the {nameof(SwAddInEx)}::{nameof(SwAddInEx.OnConfigureServices)} which returns the COM-visible instance of {nameof(SwCalloutBaseHandler)}");
+            => throw new Exception($"{nameof(ICalloutHandlerProvider)} service is not registered. Configure this service within the {nameof(SwAddInEx)}::OnConfigureServices which returns the COM-visible instance of {nameof(SwCalloutBaseHandler)}");
     }
 }

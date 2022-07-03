@@ -661,7 +661,7 @@ namespace SwAddInExample
         {
         }
 
-        public override void OnConfigureServices(IXServiceCollection collection)
+        protected override void OnConfigureServices(IXServiceCollection collection)
         {
             collection.Add<IMemoryGeometryBuilderDocumentProvider>(
                 () => new LazyNewDocumentGeometryBuilderDocumentProvider(Application), ServiceLifetimeScope_e.Singleton);

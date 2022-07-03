@@ -18,14 +18,9 @@ namespace Xarial.XCad
     public interface IXServiceConsumer
     {
         /// <summary>
-        /// Event for <see cref="OnConfigureServices(IXServiceCollection)"/>
+        /// Event to configure services/>
         /// </summary>
+        /// <remarks>This event may not be fired if ConfigureServices method is available is marked as virtual method and it is overridden in the derived class</remarks>
         event ConfigureServicesDelegate ConfigureServices;
-
-        /// <summary>
-        /// Allows to configure services of the object
-        /// </summary>
-        /// <param name="collection">Collection of services</param>
-        void OnConfigureServices(IXServiceCollection collection);
     }
 }

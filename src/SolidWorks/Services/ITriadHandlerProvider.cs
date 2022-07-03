@@ -21,6 +21,6 @@ namespace Xarial.XCad.SolidWorks.Services
     internal class NotSetTriadHandlerProvider : ITriadHandlerProvider
     {
         public SwTriadHandler CreateHandler(ISwApplication app)
-            => throw new Exception($"{nameof(ITriadHandlerProvider)} service is not registered. Configure this service within the {nameof(SwAddInEx)}::{nameof(SwAddInEx.OnConfigureServices)} which returns the COM-visible instance of {nameof(SwTriadHandler)}");
+            => throw new Exception($"{nameof(ITriadHandlerProvider)} service is not registered. Configure this service within the {nameof(SwAddInEx)}::OnConfigureServices which returns the COM-visible instance of {nameof(SwTriadHandler)}");
     }
 }

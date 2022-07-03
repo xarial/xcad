@@ -26,6 +26,7 @@ CreatePreviewGeometry
 * &#x26A0; - IXRegion::Boundary type is changed from IXSegment[] to IXLoop[]
 * &#x26A0; - IXServiceCollection::AddOrReplace is renamed to IXServiceCollection::Add
 * &#x26A0; - Introduced Line and Circle data structures which replaced the Axis, Diameter, StartPoint, EndPoint, CenterPoint properties in geometrical entities, such as IXCircle
+* &#x26A0; - Access modifier for SwAddInEx::OnConfigureServices and SwMacroFeatureDefinition::OnConfigureServices is changed to protected
 
 ## 0.7.7 - October 26, 2021
 

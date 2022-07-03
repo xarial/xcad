@@ -21,6 +21,6 @@ namespace Xarial.XCad.SolidWorks.Services
     internal class NotSetDragArrowHandlerProvider : IDragArrowHandlerProvider
     {
         public SwDragArrowHandler CreateHandler(ISwApplication app)
-            => throw new Exception($"{nameof(IDragArrowHandlerProvider)} service is not registered. Configure this service within the {nameof(SwAddInEx)}::{nameof(SwAddInEx.OnConfigureServices)} which returns the COM-visible instance of {nameof(SwDragArrowHandler)}");
+            => throw new Exception($"{nameof(IDragArrowHandlerProvider)} service is not registered. Configure this service within the {nameof(SwAddInEx)}::OnConfigureServices which returns the COM-visible instance of {nameof(SwDragArrowHandler)}");
     }
 }
