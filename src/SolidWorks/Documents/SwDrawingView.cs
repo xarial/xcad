@@ -146,6 +146,13 @@ namespace Xarial.XCad.SolidWorks.Documents
                     drwView.Position = new double[] { loc.X, loc.Y };
                 }
 
+                var scale = Scale;
+
+                if (scale != null)
+                {
+                    drwView.ScaleRatio = new double[] { scale.Numerator, scale.Denominator };
+                }
+
                 return drwView;
             }
         }
@@ -300,10 +307,27 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
             get
             {
-                var scale = (double[])DrawingView.ScaleRatio;
-                return new Scale(scale[0], scale[1]);
+                if (IsCommitted)
+                {
+                    var scale = (double[])DrawingView.ScaleRatio;
+                    return new Scale(scale[0], scale[1]);
+                }
+                else 
+                {
+                    return m_Creator.CachedProperties.Get<Scale>();
+                }
             }
-            set => DrawingView.ScaleRatio = new double[] { value.Numerator, value.Denominator };
+            set
+            {
+                if (IsCommitted)
+                {
+                    DrawingView.ScaleRatio = new double[] { value.Numerator, value.Denominator };
+                }
+                else 
+                {
+                    m_Creator.CachedProperties.Set(value);
+                }
+            }
         }
 
         public Rect2D Boundary

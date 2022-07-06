@@ -17,6 +17,7 @@ using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Delegates;
 using Xarial.XCad.SolidWorks.Documents.EventHandlers;
+using Xarial.XCad.Toolkit.Services;
 using Xarial.XCad.Toolkit.Utils;
 
 namespace Xarial.XCad.SolidWorks.Documents
@@ -24,6 +25,89 @@ namespace Xarial.XCad.SolidWorks.Documents
     public interface ISwSheetCollection : IXSheetRepository, IDisposable 
     {
         new ISwSheet Active { get; set; }
+    }
+
+    internal class SwSheetsCache : EntityCache<IXSheet>
+    {
+        private readonly SwDrawing m_Drw;
+
+        private readonly SwTemplatePlaceholderSheet m_TemplatePlaceholderSheet;
+
+        public SwSheetsCache(SwDrawing drw, SwApplication app, IXRepository<IXSheet> repo, Func<IXSheet, string> nameProvider) : base(drw, repo, nameProvider)
+        {
+            m_Drw = drw;
+
+            m_TemplatePlaceholderSheet = new SwTemplatePlaceholderSheet(drw, app);
+        }
+
+        protected override void CommitEntitiesFromCache(IReadOnlyList<IXSheet> ents, CancellationToken cancellationToken)
+        {
+            if (m_Drw.IsCommitted)
+            {
+                if (ents.Any())
+                {
+                    var curSheets = m_Repo.ToArray();
+
+                    if (curSheets.Length > ents.Count)
+                    {
+                        var excessSheets = curSheets.Skip(ents.Count).ToArray();
+                        curSheets = curSheets.Except(excessSheets).ToArray();
+                        m_Repo.RemoveRange(excessSheets, cancellationToken);
+                    }
+
+                    SetupCurrentSheets(curSheets, ents.Take(curSheets.Length).ToArray());
+
+                    if (curSheets.Length < ents.Count)
+                    {
+                        m_Repo.AddRange(ents.Skip(curSheets.Length), cancellationToken);
+                    }
+                }
+                else
+                {
+                    foreach (SwSheet sheet in m_Repo)
+                    {
+                        sheet.SetupSheet(m_TemplatePlaceholderSheet);
+                    }
+                }
+            }
+            else 
+            {
+                throw new Exception("Cached entities can only be committed to the loaded drawing");
+            }
+        }
+
+        protected override IEnumerable<IXSheet> IterateEntities(IReadOnlyList<IXSheet> ents)
+        {
+            if (ents.Any())
+            {
+                foreach (var cachedSheet in ents)
+                {
+                    yield return cachedSheet;
+                }
+            }
+            else
+            {
+                yield return m_TemplatePlaceholderSheet;
+            }
+        }
+
+        private void SetupCurrentSheets(IXSheet[] curSheets, IXSheet[] targetSheets)
+        {
+            //resolving potential name conflicts
+            for (int i = 0; i < curSheets.Length; i++)
+            {
+                if (targetSheets.FirstOrDefault(x => string.Equals(x.Name, curSheets[i].Name, StringComparison.CurrentCultureIgnoreCase)) != null)
+                {
+                    var tempSheetName = Guid.NewGuid().ToString();
+                    curSheets[i].Name = tempSheetName;
+                }
+            }
+
+            for (int i = 0; i < curSheets.Length; i++)
+            {
+                ((SwSheet)curSheets[i]).SetupSheet(targetSheets[i]);
+            }
+        }
     }
 
     internal class SwSheetCollection : ISwSheetCollection
@@ -48,18 +132,14 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         private readonly SheetActivatedEventsHandler m_SheetActivatedEventsHandler;
 
-        private readonly List<IXSheet> m_Cache;
-
-        private readonly SwTemplatePlaceholderSheet m_TemplatePlaceholderSheet;
+        private readonly SwSheetsCache m_Cache;
 
         internal SwSheetCollection(SwDrawing doc, SwApplication app)
         {
             m_App = app;
             m_Drawing = doc;
             m_SheetActivatedEventsHandler = new SheetActivatedEventsHandler(doc, app);
-            m_Cache = new List<IXSheet>();
-
-            m_TemplatePlaceholderSheet = new SwTemplatePlaceholderSheet(doc, app);
+            m_Cache = new SwSheetsCache(doc, app, this, s => s.Name);
         }
 
         public IXSheet this[string name] => RepositoryHelper.Get(this, name);
@@ -83,8 +163,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
             else 
             {
-                ent = IterateCachedSheets().FirstOrDefault(s => string.Equals(s.Name, name));
-                return ent != null;
+                return m_Cache.TryGet(name, out ent);
             }
         }
 
@@ -134,67 +213,15 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
             if (m_Drawing.IsCommitted)
             {
-                RepositoryHelper.AddRange(this, sheets, cancellationToken);
+                RepositoryHelper.AddRange(sheets, cancellationToken);
             }
             else
             {
-                m_Cache.AddRange(sheets);
+                m_Cache.AddRange(sheets, cancellationToken);
             }
         }
 
-        internal void CommitCache(CancellationToken cancellationToken)
-        {
-            try
-            {
-                if (m_Cache.Any())
-                {
-                    var curSheets = IterateSheets().ToArray();
-
-                    if (curSheets.Length > m_Cache.Count)
-                    {
-                        var excessSheets = curSheets.Skip(m_Cache.Count).ToArray();
-                        curSheets = curSheets.Except(excessSheets).ToArray();
-                        RemoveRange(excessSheets, cancellationToken);
-                    }
-                    
-                    SetupCurrentSheets(curSheets, m_Cache.Take(curSheets.Length).ToArray());
-
-                    if (curSheets.Length < m_Cache.Count)
-                    {
-                        AddRange(m_Cache.Skip(curSheets.Length), cancellationToken);
-                    }
-                }
-                else 
-                {
-                    foreach (SwSheet sheet in IterateSheets())
-                    {
-                        sheet.SetupSheet(m_TemplatePlaceholderSheet);
-                    }
-                }
-            }
-            finally
-            {
-                m_Cache.Clear();
-            }
-        }
-
-        private void SetupCurrentSheets(IXSheet[] curSheets, IXSheet[] targetSheets)
-        {
-            //resolving potential name conflicts
-            for (int i = 0; i < curSheets.Length; i++)
-            {
-                if (targetSheets.FirstOrDefault(x => string.Equals(x.Name, curSheets[i].Name, StringComparison.CurrentCultureIgnoreCase)) != null)
-                {
-                    var tempSheetName = Guid.NewGuid().ToString();
-                    curSheets[i].Name = tempSheetName;
-                }
-            }
-
-            for (int i = 0; i < curSheets.Length; i++) 
-            {
-                ((SwSheet)curSheets[i]).SetupSheet(targetSheets[i]);
-            }
-        }
+        internal void CommitCache(CancellationToken cancellationToken) => m_Cache.Commit(cancellationToken);
 
         public void RemoveRange(IEnumerable<IXSheet> sheets, CancellationToken cancellationToken) 
         {
@@ -214,10 +241,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
             else 
             {
-                foreach (var sheet in sheets.ToArray()) 
-                {
-                    m_Cache.Remove(sheet);
-                }
+                m_Cache.RemoveRange(sheets, cancellationToken);
             }
         }
 
@@ -229,7 +253,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
             else
             {
-                return IterateCachedSheets().GetEnumerator();
+                return m_Cache.GetEnumerator();
             }
         }
 
@@ -244,21 +268,6 @@ namespace Xarial.XCad.SolidWorks.Documents
             foreach (var sheetName in sheetNames) 
             {
                 yield return m_Drawing.CreateObjectFromDispatch<SwSheet>(m_Drawing.Drawing.Sheet[sheetName]);
-            }
-        }
-
-        private IEnumerable<IXSheet> IterateCachedSheets() 
-        {
-            if (m_Cache.Any())
-            {
-                foreach (var cachedSheet in m_Cache)
-                {
-                    yield return cachedSheet;
-                }
-            }
-            else 
-            {
-                yield return m_TemplatePlaceholderSheet;
             }
         }
 

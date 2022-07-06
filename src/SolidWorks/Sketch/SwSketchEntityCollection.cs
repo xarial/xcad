@@ -20,6 +20,7 @@ using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Features;
 using Xarial.XCad.SolidWorks.Geometry;
 using Xarial.XCad.SolidWorks.Geometry.Curves;
+using Xarial.XCad.Toolkit.Services;
 using Xarial.XCad.Toolkit.Utils;
 
 namespace Xarial.XCad.SolidWorks.Sketch
@@ -32,15 +33,28 @@ namespace Xarial.XCad.SolidWorks.Sketch
     {
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-        public int Count => m_Sketch.IsCommitted 
-            ? ((object[])m_Sketch.Sketch.GetSketchSegments() ?? new object[0]).Length + m_Sketch.Sketch.GetSketchPointsCount2() + m_Sketch.Sketch.GetSketchBlockInstanceCount()
-            : m_Cache.Count;
+        public int Count 
+        {
+            get 
+            {
+                if (m_Sketch.IsCommitted)
+                {
+                    return ((object[])m_Sketch.Sketch.GetSketchSegments() ?? new object[0]).Length 
+                        + m_Sketch.Sketch.GetSketchPointsCount2() 
+                        + m_Sketch.Sketch.GetSketchBlockInstanceCount();
+                }
+                else 
+                {
+                    return m_Cache.Count;
+                }
+            }
+        }
 
         public IXWireEntity this[string name] => RepositoryHelper.Get(this, name);
 
         private readonly SwSketchBase m_Sketch;
 
-        private readonly List<IXSketchEntity> m_Cache;
+        private readonly EntityCache<IXWireEntity> m_Cache;
 
         private readonly SwApplication m_App;
         private readonly SwDocument m_Doc;
@@ -50,20 +64,10 @@ namespace Xarial.XCad.SolidWorks.Sketch
             m_Doc = doc;
             m_App = app;
             m_Sketch = sketch;
-            m_Cache = new List<IXSketchEntity>();
+            m_Cache = new EntityCache<IXWireEntity>(sketch, this, s => ((IXSketchEntity)s).Name);
         }
 
-        internal void CommitCache(CancellationToken cancellationToken)
-        {
-            try
-            {
-                CreateSegments(m_Cache, cancellationToken);
-            }
-            finally
-            {
-                m_Cache.Clear();
-            }
-        }
+        internal void CommitCache(CancellationToken cancellationToken) => m_Cache.Commit(cancellationToken);
 
         public IXCurve Merge(IXCurve[] curves)
             => throw new NotSupportedException();
@@ -88,33 +92,52 @@ namespace Xarial.XCad.SolidWorks.Sketch
 
         public bool TryGet(string name, out IXWireEntity ent)
         {
-            foreach (var curEnt in IterateEntities())
+            if (m_Sketch.IsCommitted)
             {
-                if (string.Equals(curEnt.Name, name, StringComparison.CurrentCultureIgnoreCase))
+                foreach (var curEnt in IterateEntities())
                 {
-                    ent = curEnt;
-                    return true;
+                    if (string.Equals(curEnt.Name, name, StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        ent = curEnt;
+                        return true;
+                    }
                 }
-            }
 
-            ent = null;
-            return false;
+                ent = null;
+                return false;
+            }
+            else 
+            {
+                return m_Cache.TryGet(name, out ent);
+            }
         }
 
         public void AddRange(IEnumerable<IXWireEntity> ents, CancellationToken cancellationToken)
         {
             if (m_Sketch.IsCommitted)
             {
-                CreateSegments(ents, cancellationToken);
+                using (var editor = m_Sketch.CreateSketchEditor(m_Sketch.Sketch))
+                {
+                    RepositoryHelper.AddRange(ents, cancellationToken);
+                }
             }
             else
             {
-                m_Cache.AddRange(ents.Cast<IXSketchEntity>());
+                m_Cache.AddRange(ents, cancellationToken);
             }
         }
 
         public void RemoveRange(IEnumerable<IXWireEntity> ents, CancellationToken cancellationToken)
-            => throw new NotImplementedException();
+        {
+            if (m_Sketch.IsCommitted)
+            {
+                throw new NotImplementedException();
+            }
+            else 
+            {
+                m_Cache.RemoveRange(ents, cancellationToken);
+            }
+        }
 
         public T PreCreate<T>() where T : IXWireEntity
             => RepositoryHelper.PreCreate<IXWireEntity, T>(this,
@@ -126,13 +149,15 @@ namespace Xarial.XCad.SolidWorks.Sketch
                 () => new SwSketchSpline(m_Sketch, m_Doc, m_App),
                 () => new SwSketchText(m_Sketch, m_Doc, m_App));
 
-        public IEnumerator<IXWireEntity> GetEnumerator() => IterateEntities().GetEnumerator();
-
-        private void CreateSegments(IEnumerable<IXWireEntity> ents, CancellationToken cancellationToken)
+        public IEnumerator<IXWireEntity> GetEnumerator()
         {
-            using (var editor = m_Sketch.CreateSketchEditor(m_Sketch.Sketch))
+            if (m_Sketch.IsCommitted)
             {
-                RepositoryHelper.AddRange(this, ents, cancellationToken);
+                return IterateEntities().GetEnumerator();
+            }
+            else 
+            {
+                return m_Cache.GetEnumerator();
             }
         }
     }

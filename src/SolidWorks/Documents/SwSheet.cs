@@ -69,7 +69,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        public IXDrawingViewRepository DrawingViews { get; }
+        public IXDrawingViewRepository DrawingViews => m_DrawingViews;
 
         public override bool IsCommitted => m_Creator.IsCreated;
 
@@ -154,12 +154,15 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         private readonly ElementCreator<ISheet> m_Creator;
 
+        private readonly SwDrawingViewsCollection m_DrawingViews;
+
+
         internal SwSheet(ISheet sheet, SwDrawing draw, SwApplication app) : base(sheet, draw, app)
         {
             m_Drawing = draw;
             Sheet = sheet;
-            DrawingViews = new SwDrawingViewsCollection(draw, this);
-            m_Creator = new ElementCreator<ISheet>(CreateSheet, sheet, sheet != null);
+            m_DrawingViews = new SwDrawingViewsCollection(draw, this);
+            m_Creator = new ElementCreator<ISheet>(CreateSheet, CommitCache, sheet, sheet != null);
         }
 
         private ISheet CreateSheet(CancellationToken arg)
@@ -226,6 +229,9 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
 
         public override void Commit(CancellationToken cancellationToken) => m_Creator.Create(cancellationToken);
+
+        private void CommitCache(ISheet sheet, CancellationToken cancellationToken)
+            => m_DrawingViews.CommitCache(cancellationToken);
     }
 
     internal static class PaperSizeHelper 

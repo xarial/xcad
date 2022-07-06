@@ -69,7 +69,7 @@ namespace Xarial.XCad.Toolkit.Utils
         /// <param name="ents">Entities</param>
         /// <param name="cancellationToken">Cancellation token</param>
         /// <exception cref="OperationCanceledException"/>
-        public static void AddRange<TEnt>(IXRepository<TEnt> repo, IEnumerable<TEnt> ents, CancellationToken cancellationToken)
+        public static void AddRange<TEnt>(IEnumerable<TEnt> ents, CancellationToken cancellationToken)
             where TEnt : IXTransaction
         {
             if (ents == null) 

@@ -509,7 +509,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             return false;
         }
 
-        public void AddRange(IEnumerable<IXDocument> ents, CancellationToken cancellationToken) => RepositoryHelper.AddRange(this, ents, cancellationToken);
+        public void AddRange(IEnumerable<IXDocument> ents, CancellationToken cancellationToken) => RepositoryHelper.AddRange(ents, cancellationToken);
 
         public void RemoveRange(IEnumerable<IXDocument> ents, CancellationToken cancellationToken)
         {

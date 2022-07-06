@@ -6,6 +6,7 @@
 //*********************************************************************
 
 using SolidWorks.Interop.sldworks;
+using SolidWorks.Interop.swconst;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -14,6 +15,7 @@ using System.Text;
 using System.Threading;
 using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
+using Xarial.XCad.Toolkit.Services;
 using Xarial.XCad.Toolkit.Utils;
 
 namespace Xarial.XCad.SolidWorks.Documents
@@ -24,44 +26,103 @@ namespace Xarial.XCad.SolidWorks.Documents
 
     internal class SwDrawingViewsCollection : ISwDrawingViewsCollection
     {
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
         private readonly SwDrawing m_Draw;
         private readonly SwSheet m_Sheet;
 
-        internal SwDrawingViewsCollection(SwDrawing draw, SwSheet sheet) 
+        private readonly EntityCache<IXDrawingView> m_Cache;
+
+        internal SwDrawingViewsCollection(SwDrawing draw, SwSheet sheet)
         {
             m_Draw = draw;
             m_Sheet = sheet;
+            m_Cache = new EntityCache<IXDrawingView>(draw, this, v => v.Name);
         }
 
         public IXDrawingView this[string name] => RepositoryHelper.Get(this, name);
 
-        public int Count => GetSwViews().Count();
-
-        public void AddRange(IEnumerable<IXDrawingView> ents, CancellationToken cancellationToken) => RepositoryHelper.AddRange(this, ents, cancellationToken);
-
-        public IEnumerator<IXDrawingView> GetEnumerator() => GetDrawingViews().GetEnumerator();
-
-        public void RemoveRange(IEnumerable<IXDrawingView> ents, CancellationToken cancellationToken)
-            => throw new NotImplementedException();
-
-        public bool TryGet(string name, out IXDrawingView ent)
+        public int Count
         {
-            var view = GetSwViews().FirstOrDefault(
-                x => string.Equals(x.Name, name, StringComparison.CurrentCultureIgnoreCase));
-
-            if (view != null)
+            get
             {
-                ent = m_Draw.CreateObjectFromDispatch<SwDrawingView>(view);
+                if (m_Draw.IsCommitted)
+                {
+                    return GetSwViews().Count();
+                }
+                else 
+                {
+                    return m_Cache.Count;
+                }
+            }
+        }
+
+        public void AddRange(IEnumerable<IXDrawingView> ents, CancellationToken cancellationToken) 
+        {
+            if (m_Draw.IsCommitted)
+            {
+                RepositoryHelper.AddRange(ents, cancellationToken);
             }
             else 
             {
-                ent = null;
+                m_Cache.AddRange(ents, cancellationToken);
             }
-
-            return ent != null;
         }
 
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+        public IEnumerator<IXDrawingView> GetEnumerator()
+        {
+            if (m_Draw.IsCommitted)
+            {
+                return GetDrawingViews().GetEnumerator();
+            }
+            else 
+            {
+                return m_Cache.GetEnumerator();
+            }
+        }
+
+        public void RemoveRange(IEnumerable<IXDrawingView> ents, CancellationToken cancellationToken)
+        {
+            if (m_Draw.IsCommitted)
+            {
+                m_Draw.Selections.AddRange(ents);
+
+                if (!m_Draw.Model.Extension.DeleteSelection2((int)swDeleteSelectionOptions_e.swDelete_Absorbed)) 
+                {
+                    throw new Exception("Failed to delete views");
+                }
+            }
+            else 
+            {
+                m_Cache.RemoveRange(ents, cancellationToken);
+            }
+        }
+
+        public bool TryGet(string name, out IXDrawingView ent)
+        {
+            if (m_Draw.IsCommitted)
+            {
+                var view = GetSwViews().FirstOrDefault(
+                    x => string.Equals(x.Name, name, StringComparison.CurrentCultureIgnoreCase));
+
+                if (view != null)
+                {
+                    ent = m_Draw.CreateObjectFromDispatch<SwDrawingView>(view);
+                }
+                else
+                {
+                    ent = null;
+                }
+
+                return ent != null;
+            }
+            else 
+            {
+                return m_Cache.TryGet(name, out ent);
+            }
+        }
+
+        internal void CommitCache(CancellationToken cancellationToken) => m_Cache.Commit(cancellationToken);
 
         private IEnumerable<SwDrawingView> GetDrawingViews() 
         {

@@ -24,7 +24,7 @@ namespace Xarial.XCad.SwDocumentManager.Data
     {
         public IXProperty this[string name] => RepositoryHelper.Get(this, name);
 
-        public void AddRange(IEnumerable<IXProperty> ents, CancellationToken cancellationToken) => RepositoryHelper.AddRange(this, ents, cancellationToken);
+        public void AddRange(IEnumerable<IXProperty> ents, CancellationToken cancellationToken) => RepositoryHelper.AddRange(ents, cancellationToken);
 
         public T PreCreate<T>() where T : IXProperty => (T)CreatePropertyInstance("", false);
 

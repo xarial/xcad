@@ -22,6 +22,7 @@ using Xarial.XCad.SolidWorks.Features.CustomFeature;
 using Xarial.XCad.SolidWorks.Features.CustomFeature.Toolkit;
 using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.Toolkit.CustomFeature;
+using Xarial.XCad.Toolkit.Services;
 using Xarial.XCad.Toolkit.Utils;
 using Xarial.XCad.Utils.Reflection;
 
@@ -42,7 +43,20 @@ namespace Xarial.XCad.SolidWorks.Features
         private readonly SwApplication m_App;
         internal SwDocument Document { get; }
 
-        public int Count => FeatMgr.GetFeatureCount(false);
+        public int Count
+        {
+            get
+            {
+                if (Document.IsCommitted)
+                {
+                    return FeatMgr.GetFeatureCount(false);
+                }
+                else 
+                {
+                    return m_Cache.Count;
+                }
+            }
+        }
 
         IXFeature IXRepository<IXFeature>.this[string name] => this[name];
 
@@ -50,43 +64,50 @@ namespace Xarial.XCad.SolidWorks.Features
 
         public virtual bool TryGet(string name, out IXFeature ent)
         {
-            IFeature swFeat;
-
-            switch (Document.Model)
+            if (Document.IsCommitted)
             {
-                case IPartDoc part:
-                    swFeat = part.FeatureByName(name) as IFeature;
-                    break;
+                IFeature swFeat;
 
-                case IAssemblyDoc assm:
-                    swFeat = assm.FeatureByName(name) as IFeature;
-                    break;
+                switch (Document.Model)
+                {
+                    case IPartDoc part:
+                        swFeat = part.FeatureByName(name) as IFeature;
+                        break;
 
-                case IDrawingDoc drw:
-                    swFeat = drw.FeatureByName(name) as IFeature;
-                    break;
+                    case IAssemblyDoc assm:
+                        swFeat = assm.FeatureByName(name) as IFeature;
+                        break;
 
-                default:
-                    throw new NotSupportedException();
+                    case IDrawingDoc drw:
+                        swFeat = drw.FeatureByName(name) as IFeature;
+                        break;
+
+                    default:
+                        throw new NotSupportedException();
+                }
+
+                if (swFeat != null)
+                {
+                    var feat = Document.CreateObjectFromDispatch<SwFeature>(swFeat);
+                    feat.SetContext(m_Context);
+                    ent = feat;
+                    return true;
+                }
+                else
+                {
+                    ent = null;
+                    return false;
+                }
             }
-
-            if (swFeat != null)
+            else 
             {
-                var feat = Document.CreateObjectFromDispatch<SwFeature>(swFeat);
-                feat.SetContext(m_Context);
-                ent = feat;
-                return true;
-            }
-            else
-            {
-                ent = null;
-                return false;
+                return m_Cache.TryGet(name, out ent);
             }
         }
 
         protected readonly Context m_Context;
 
-        private readonly List<IXFeature> m_Cache;
+        private readonly EntityCache<IXFeature> m_Cache;
 
         internal SwFeatureManager(SwDocument doc, SwApplication app, Context context)
         {
@@ -94,38 +115,34 @@ namespace Xarial.XCad.SolidWorks.Features
             Document = doc;
             m_Context = context;
             m_ParamsParserLazy = new Lazy<MacroFeatureParametersParser>(() => new MacroFeatureParametersParser(app));
-            m_Cache = new List<IXFeature>();
+            m_Cache = new EntityCache<IXFeature>(doc, this, f => f.Name);
         }
 
         public virtual void AddRange(IEnumerable<IXFeature> feats, CancellationToken cancellationToken)
         {
             if (Document.IsCommitted)
             {
-                RepositoryHelper.AddRange(this, feats, cancellationToken);
+                RepositoryHelper.AddRange(feats, cancellationToken);
             }
             else 
             {
-                m_Cache.AddRange(feats);
+                m_Cache.AddRange(feats, cancellationToken);
             }
         }
 
-        internal void CommitCache(CancellationToken cancellationToken) 
-        {
-            try
-            {
-                if (m_Cache.Any())
-                {
-                    AddRange(m_Cache, cancellationToken);
-                }
-            }
-            finally
-            {
-                m_Cache.Clear();
-            }
-        }
+        internal void CommitCache(CancellationToken cancellationToken) => m_Cache.Commit(cancellationToken);
 
         public virtual IEnumerator<IXFeature> GetEnumerator()
-            => new DocumentFeatureEnumerator(Document, GetFirstFeature(), new Context(Document));
+        {
+            if (Document.IsCommitted)
+            {
+                return new DocumentFeatureEnumerator(Document, GetFirstFeature(), new Context(Document));
+            }
+            else 
+            {
+                return m_Cache.GetEnumerator();
+            }
+        }
 
         internal protected virtual IFeature GetFirstFeature() => Document.Model.IFirstFeature();
 
@@ -133,19 +150,26 @@ namespace Xarial.XCad.SolidWorks.Features
 
         public void RemoveRange(IEnumerable<IXFeature> ents, CancellationToken cancellationToken)
         {
-            var disps = ents.Cast<SwFeature>().Select(e => new DispatchWrapper(e.Feature)).ToArray();
-
-            if (Document.Model.Extension.MultiSelect2(disps, false, null) == disps.Length)
+            if (Document.IsCommitted)
             {
-                if (!Document.Model.Extension.DeleteSelection2((int)swDeleteSelectionOptions_e.swDelete_Absorbed))
+                var disps = ents.Cast<SwFeature>().Select(e => new DispatchWrapper(e.Feature)).ToArray();
+
+                if (Document.Model.Extension.MultiSelect2(disps, false, null) == disps.Length)
                 {
-                    throw new Exception("Failed to delete features");
+                    if (!Document.Model.Extension.DeleteSelection2((int)swDeleteSelectionOptions_e.swDelete_Absorbed))
+                    {
+                        throw new Exception("Failed to delete features");
+                    }
+                }
+                else
+                {
+                    throw new Exception("Failed to select features for deletion");
                 }
             }
             else 
             {
-                throw new Exception("Failed to select features for deletion");
-            }            
+                m_Cache.RemoveRange(ents, cancellationToken);
+            }
         }
 
         /// <inheritdoc/>

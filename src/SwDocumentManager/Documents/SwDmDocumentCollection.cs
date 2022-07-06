@@ -105,7 +105,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             m_Documents = new List<ISwDmDocument>();
         }
 
-        public void AddRange(IEnumerable<IXDocument> ents, CancellationToken cancellationToken) => RepositoryHelper.AddRange(this, ents, cancellationToken);
+        public void AddRange(IEnumerable<IXDocument> ents, CancellationToken cancellationToken) => RepositoryHelper.AddRange(ents, cancellationToken);
 
         public IEnumerator<IXDocument> GetEnumerator() => m_Documents.GetEnumerator();
 

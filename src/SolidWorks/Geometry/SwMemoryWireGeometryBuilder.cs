@@ -60,7 +60,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
         public bool TryGet(string name, out IXWireEntity ent)
             => throw new NotImplementedException();
 
-        public void AddRange(IEnumerable<IXWireEntity> ents, CancellationToken cancellationToken) => RepositoryHelper.AddRange(this, ents, cancellationToken);
+        public void AddRange(IEnumerable<IXWireEntity> ents, CancellationToken cancellationToken) => RepositoryHelper.AddRange(ents, cancellationToken);
 
         public void RemoveRange(IEnumerable<IXWireEntity> ents, CancellationToken cancellationToken)
             => throw new NotImplementedException();

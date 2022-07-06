@@ -95,7 +95,7 @@ namespace Xarial.XCad.SolidWorks.Data
             }
         }
 
-        public void AddRange(IEnumerable<IXProperty> ents, CancellationToken cancellationToken) => RepositoryHelper.AddRange(this, ents, cancellationToken);
+        public void AddRange(IEnumerable<IXProperty> ents, CancellationToken cancellationToken) => RepositoryHelper.AddRange(ents, cancellationToken);
 
         public IEnumerator<IXProperty> GetEnumerator()
             => new SwCustomPropertyEnumerator(PrpMgr, CreatePropertyInstance);

@@ -146,7 +146,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public ISwConfiguration PreCreate() => new SwConfiguration(null, m_Doc, m_App, false);
 
-        public void AddRange(IEnumerable<IXConfiguration> ents, CancellationToken cancellationToken) => RepositoryHelper.AddRange(this, ents, cancellationToken);
+        public void AddRange(IEnumerable<IXConfiguration> ents, CancellationToken cancellationToken) => RepositoryHelper.AddRange(ents, cancellationToken);
 
         public void Dispose()
         {
