@@ -8,7 +8,7 @@ namespace Xarial.XCad.Annotations
     /// <summary>
     /// Represents the base interface of annotation (e.g.<see cref="IXDimension"/>, <see cref="IXNote"/> etc.)
     /// </summary>
-    public interface IXAnnotation : IXSelObject
+    public interface IXAnnotation : IXSelObject, IXColorizable
     {
         /// <summary>
         /// Position of this annotation

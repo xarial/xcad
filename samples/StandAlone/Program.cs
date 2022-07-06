@@ -14,6 +14,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Xarial.XCad;
+using Xarial.XCad.Annotations;
 using Xarial.XCad.Base;
 using Xarial.XCad.Base.Enums;
 using Xarial.XCad.Documents;
@@ -52,7 +53,9 @@ namespace StandAlone
                                 
                 var app = SwApplicationFactory.FromProcess(Process.GetProcessesByName("SLDWORKS").First());
 
-                CreateLoftFromSelection(app);
+                AnnotationColor(app);
+
+                //CreateLoftFromSelection(app);
 
                 //CustomServices();
 
@@ -81,6 +84,14 @@ namespace StandAlone
             }
 
             Console.ReadLine();
+        }
+
+        private static void AnnotationColor(ISwApplication app)
+        {
+            var note = app.Documents.Active.Selections.OfType<IXNote>().First();
+            var c = note.Color;
+            note.Color = System.Drawing.Color.Green;
+            note.Color = null;
         }
 
         private static void CustomServices() 
