@@ -130,5 +130,10 @@ namespace Xarial.XCad.Documents
         /// Sheet metal body of the flat pattern view
         /// </summary>
         IXSolidBody SheetMetalBody { get; set; }
+
+        /// <summary>
+        /// Options of flat pattern view
+        /// </summary>
+        FlatPatternViewOptions_e Options { get; set; }
     }
 }

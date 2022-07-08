@@ -841,6 +841,59 @@ namespace SolidWorks.Tests.Integration
             Assert.IsNull(b1);
             Assert.AreEqual("Drawing View1", b2);
         }
+
+        [Test]
+        public void FlatPatternOptionsTest()
+        {
+            FlatPatternViewOptions_e opts1;
+            FlatPatternViewOptions_e opts2;
+            FlatPatternViewOptions_e opts3;
+
+            int view1BendLines;
+            int view2BendLines;
+            int view3BendLines;
+
+            bool view1BendNotes;
+            bool view2BendNotes;
+            bool view3BendNotes;
+
+            using (var doc = OpenDataDocument("Drawing6\\Drawing6.slddrw"))
+            {
+                var drwDoc = m_App.Documents.Active as ISwDrawing;
+
+                var sheet = drwDoc.Sheets["Sheet1"];
+
+                var view1 = (ISwFlatPatternDrawingView)sheet.DrawingViews["Drawing View1"];
+                opts1 = view1.Options;
+                view1.Options = FlatPatternViewOptions_e.None;
+                view1BendLines = view1.DrawingView.GetBendLineCount();
+                view1BendNotes = view1.DrawingView.ShowSheetMetalBendNotes;
+
+                var view2 = (ISwFlatPatternDrawingView)sheet.DrawingViews["Drawing View2"];
+                opts2 = view1.Options;
+                view2.Options = FlatPatternViewOptions_e.BendLines | FlatPatternViewOptions_e.BendNotes;
+                view2BendLines = view2.DrawingView.GetBendLineCount();
+                view2BendNotes = view2.DrawingView.ShowSheetMetalBendNotes;
+
+                var view3 = (ISwFlatPatternDrawingView)sheet.DrawingViews["Drawing View3"];
+                opts3 = view1.Options;
+                view3.Options = FlatPatternViewOptions_e.BendLines;
+                view3BendLines = view3.DrawingView.GetBendLineCount();
+                view3BendNotes = view3.DrawingView.ShowSheetMetalBendNotes;
+            }
+
+            Assert.AreEqual(FlatPatternViewOptions_e.BendLines | FlatPatternViewOptions_e.BendNotes, opts1);
+            Assert.AreEqual(0, view1BendLines);
+            Assert.AreEqual(false, view1BendNotes);
+
+            Assert.AreEqual(FlatPatternViewOptions_e.None, opts2);
+            Assert.AreEqual(2, view2BendLines);
+            Assert.AreEqual(true, view2BendNotes);
+
+            Assert.AreEqual(FlatPatternViewOptions_e.None, opts3);
+            Assert.AreEqual(1, view3BendLines);
+            Assert.AreEqual(false, view3BendNotes);
+        }
     }
 }
 

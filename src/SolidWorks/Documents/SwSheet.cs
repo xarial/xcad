@@ -35,8 +35,9 @@ namespace Xarial.XCad.SolidWorks.Documents
     [DebuggerDisplay("{" + nameof(Name) + "}")]
     internal class SwSheet : SwSelObject, ISwSheet
     {
-        public ISheet Sheet { get; }
         private readonly SwDrawing m_Drawing;
+
+        public ISheet Sheet => m_Creator.Element;
 
         public string Name
         {
@@ -156,11 +157,14 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         private readonly SwDrawingViewsCollection m_DrawingViews;
 
+        internal void InitFromExisting(SwSheet swSheet, CancellationToken cancellationToken)
+        {
+            m_Creator.Init(swSheet.Sheet, cancellationToken);
+        }
 
         internal SwSheet(ISheet sheet, SwDrawing draw, SwApplication app) : base(sheet, draw, app)
         {
             m_Drawing = draw;
-            Sheet = sheet;
             m_DrawingViews = new SwDrawingViewsCollection(draw, this);
             m_Creator = new ElementCreator<ISheet>(CreateSheet, CommitCache, sheet, sheet != null);
         }
@@ -191,8 +195,8 @@ namespace Xarial.XCad.SolidWorks.Documents
             return m_Drawing.Drawing.Sheet[Name];
         }
 
-        internal void SetupSheet(IXSheet template)
-            => SetupSheet(Sheet, template.Name, template.PaperSize, template.Scale);
+        internal void SetupSheet(IXSheet template, string sheetName)
+            => SetupSheet(Sheet, sheetName, template.PaperSize, template.Scale);
 
         internal void SetupSheet(ISheet sheet, string name, PaperSize size, Scale scale)
         {
@@ -230,8 +234,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public override void Commit(CancellationToken cancellationToken) => m_Creator.Create(cancellationToken);
 
-        private void CommitCache(ISheet sheet, CancellationToken cancellationToken)
-            => m_DrawingViews.CommitCache(cancellationToken);
+        private void CommitCache(ISheet sheet, CancellationToken cancellationToken) => m_DrawingViews.CommitCache(cancellationToken);
     }
 
     internal static class PaperSizeHelper 

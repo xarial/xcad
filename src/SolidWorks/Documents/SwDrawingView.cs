@@ -11,6 +11,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -89,7 +90,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public override object Dispatch => DrawingView;
 
-        private readonly SwSheet m_ParentSheet;
+        private SwSheet m_ParentSheet;
 
         protected SwDrawingView(IView drwView, SwDrawing drw, SwSheet sheet)
             : base(drwView, drw, drw?.OwnerApplication)
@@ -114,6 +115,11 @@ namespace Xarial.XCad.SolidWorks.Documents
             {
                 throw new Exception("Failed to select drawing view");
             }
+        }
+
+        internal void SetParentSheet(SwSheet parentSheet) 
+        {
+            m_ParentSheet = parentSheet;
         }
 
         private IView CreateDrawingViewElement(CancellationToken cancellationToken)
@@ -446,6 +452,48 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
     }
 
+    internal static class SwDrawingViewExtension 
+    {
+        internal static void SelectFeature(this SwDrawingView drwView, IFeature feat, bool append) 
+        {
+            if (drwView.OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2018))
+            {
+                var corrFeat = drwView.DrawingView.GetCorresponding(feat);
+                
+                var selData = drwView.OwnerDocument.Model.ISelectionManager.CreateSelectData();
+                
+                selData.View = (View)drwView.DrawingView;
+
+                if (!((IEntity)corrFeat).Select4(append, selData)) 
+                {
+                    throw new Exception("Failed to select feature in the drawing view");
+                }
+            }
+            else 
+            {
+                var selSuffix = feat.GetNameForSelection(out string selType);
+
+                var featComp = ((IEntity)feat).GetComponent();
+
+                if (featComp != null)
+                {
+                    selSuffix = "/" + selSuffix.Substring(selSuffix.IndexOf('@') + 1);
+                }
+                else 
+                {
+                    selSuffix = "";
+                }
+
+                var selName = $"{feat.Name}@{drwView.DrawingView.RootDrawingComponent.Name}@{drwView.DrawingView.Name}" + selSuffix;
+
+                if (!drwView.OwnerDocument.Model.Extension.SelectByID2(selName, selType, 0, 0, 0, append, 0, null, (int)swSelectOption_e.swSelectOptionDefault))
+                {
+                    throw new Exception("Failed to select feature in the drawing view");
+                }
+            }
+        }
+    }
+
     internal class SwDrawingViewDimensionRepository : IXDimensionRepository
     {
         private readonly SwDrawing m_Drw;
@@ -639,8 +687,8 @@ namespace Xarial.XCad.SolidWorks.Documents
 
                 var newPos = new double[]
                 {
-                        srcPos[0] + offsetDir.X * margin,
-                        srcPos[1] + offsetDir.Y * margin
+                    srcPos[0] + offsetDir.X * margin,
+                    srcPos[1] + offsetDir.Y * margin
                 };
 
                 view.Position = newPos;
@@ -900,7 +948,8 @@ namespace Xarial.XCad.SolidWorks.Documents
                 }
                 else
                 {
-                    throw new NotSupportedException();
+                    var fixedEnt = GetViewFlatPattern(DrawingView).FixedEntity;
+                    return (IXSolidBody)fixedEnt.Body;
                 }
             }
             set
@@ -912,6 +961,44 @@ namespace Xarial.XCad.SolidWorks.Documents
                 else
                 {
                     throw new CommitedElementReadOnlyParameterException();
+                }
+            }
+        }
+
+        public FlatPatternViewOptions_e Options 
+        {
+            get 
+            {
+                if (IsCommitted)
+                {
+                    FlatPatternViewOptions_e opts = 0;
+
+                    if (DrawingView.ShowSheetMetalBendNotes) 
+                    {
+                        opts |= FlatPatternViewOptions_e.BendNotes;
+                    }
+
+                    if (DrawingView.GetBendLineCount() > 0) 
+                    {
+                        opts |= FlatPatternViewOptions_e.BendLines;
+                    }
+
+                    return opts;
+                }
+                else 
+                {
+                    return m_Creator.CachedProperties.Get<FlatPatternViewOptions_e>();
+                }
+            }
+            set 
+            {
+                if (IsCommitted)
+                {
+                    SetViewOptions(DrawingView, value);
+                }
+                else 
+                {
+                    m_Creator.CachedProperties.Set(value);
                 }
             }
         }
@@ -960,13 +1047,11 @@ namespace Xarial.XCad.SolidWorks.Documents
                     throw new Exception($"Set the body to create flat pattern for via {nameof(SheetMetalBody)} for multi body sheet metal part");
                 }
 
-                //NOTE: part docu must be activated, otherwise the flat pattern will be invalid
+                //NOTE: part document must be activated, otherwise the flat pattern will be invalid
                 var wasPartHidden = !sheetMetalPart.Model.Visible;
 
                 var activeDoc = OwnerApplication.Documents.Active;
                 OwnerApplication.Documents.Active = sheetMetalPart;
-
-                //var flatPatternFeat = sheetMetalPart.Features.OfType<ISwFlatPattern>().FirstOrDefault(f => sheetMetalBody == null || f.FixedEntity.Body.Equals(sheetMetalBody));
 
                 var flatPatternFeat = EnumerateFlatPatternFeatures(sheetMetalPart).FirstOrDefault(f => sheetMetalBody == null || f.FixedEntity.Body.Equals(sheetMetalBody));
 
@@ -1007,8 +1092,107 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        private IView CreateFlatPatternView(SwPart sheetMetalPart) 
-            => m_Drawing.Drawing.CreateFlatPatternViewFromModelView3(sheetMetalPart.Path, "", 0, 0, 0, false, false);
+        private IView CreateFlatPatternView(SwPart sheetMetalPart)
+        {
+            var view = m_Drawing.Drawing.CreateFlatPatternViewFromModelView3(sheetMetalPart.Path, "", 0, 0, 0, false, false);
+
+            if (view != null) 
+            {
+                SetViewOptions(view, Options);
+            }
+
+            return view;
+        }
+
+        private void SetViewOptions(IView view, FlatPatternViewOptions_e opts) 
+        {
+            var hasBendLines = view.GetBendLineCount() > 0;
+
+            var needBendLines = opts.HasFlag(FlatPatternViewOptions_e.BendLines);
+
+            //NOTE: if hiding bend lines bend notes must be hidden first
+            if (!needBendLines)
+            {
+                view.ShowSheetMetalBendNotes = opts.HasFlag(FlatPatternViewOptions_e.BendNotes);
+
+                if (view.ShowSheetMetalBendNotes) 
+                {
+                    throw new Exception("Bend notes cannot be displayed if bend lines are hidden");
+                }
+            }
+
+            if (hasBendLines != needBendLines)
+            {
+                var flatPattern = GetViewFlatPattern(view);
+                var bendLinesSketch = GetBendLinesSketch(flatPattern);
+
+                this.SelectFeature(bendLinesSketch, false);
+
+                if (needBendLines)
+                {
+                    OwnerDocument.Model.UnblankSketch();
+                }
+                else
+                {
+                    OwnerDocument.Model.BlankSketch();
+                }
+            }
+
+            //NOTE: if showing bend lines bend notes must be shown last
+            if (needBendLines)
+            {
+                view.ShowSheetMetalBendNotes = opts.HasFlag(FlatPatternViewOptions_e.BendNotes);
+            }
+        }
+
+        private static IFeature GetBendLinesSketch(ISwFlatPattern flatPattern)
+        {
+            var subFeat = flatPattern.Feature.IGetFirstSubFeature();
+
+            IFeature bendLinesSketch = null;
+
+            while (subFeat != null)
+            {
+                if (subFeat.GetTypeName2() == "ProfileFeature")
+                {
+                    var sketch = (ISketch)subFeat.GetSpecificFeature2();
+                    var skSegs = (object[])sketch.GetSketchSegments();
+
+                    if ((skSegs?.FirstOrDefault() as ISketchSegment)?.IsBendLine() == true)
+                    {
+                        bendLinesSketch = subFeat;
+                        break;
+                    }
+                }
+
+                subFeat = subFeat.IGetNextSubFeature();
+            }
+
+            if (bendLinesSketch == null)
+            {
+                throw new Exception("Failed to find the bend line sketch of the view");
+            }
+
+            return bendLinesSketch;
+        }
+
+        private ISwFlatPattern GetViewFlatPattern(IView view) 
+        {
+            var comp = (Component2)((object[])view.GetVisibleComponents()).First();
+
+            IFace2 face;
+
+            if (OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2014))
+            {
+                face = (IFace2)((object[])view.GetVisibleEntities2(comp, (int)swViewEntityType_e.swViewEntityType_Face)).First();
+            }
+            else
+            {
+                face = (IFace2)((object[])view.GetVisibleEntities(comp, (int)swViewEntityType_e.swViewEntityType_Face)).First();
+            }
+
+            return OwnerDocument.CreateObjectFromDispatch<ISwFlatPattern>(face.GetFeature());
+        }
 
         private IEnumerable<ISwFlatPattern> EnumerateFlatPatternFeatures(SwPart sheetMetalPart) 
         {

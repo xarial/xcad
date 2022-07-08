@@ -432,10 +432,19 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public override object Dispatch => Model;
 
-        internal void SetModel(IModelDoc2 model) => m_Creator.Set(model, CancellationToken.None);
+        internal void SetModel(IModelDoc2 model) => m_Creator.Set(model);
 
-        protected IModelDoc2 CreateDocument(CancellationToken cancellationToken)
+        private IModelDoc2 CreateDocument(CancellationToken cancellationToken)
         {
+            if (((SwDocumentCollection)OwnerApplication.Documents).TryFindExistingDocumentByPath(Path, out _))
+            {
+                throw new DocumentAlreadyOpenedException(Path);
+            }
+
+            var dispatcher = ((SwDocumentCollection)OwnerApplication.Documents).Dispatcher;
+
+            dispatcher.BeginDispatch(this);
+
             var docType = -1;
 
             if (DocumentType.HasValue)
@@ -450,6 +459,8 @@ namespace Xarial.XCad.SolidWorks.Documents
                 origVisible = OwnerApplication.Sw.GetDocumentVisible(docType);
             }
 
+            IModelDoc2 model = null;
+
             try
             {
                 if (docType != -1)
@@ -461,15 +472,19 @@ namespace Xarial.XCad.SolidWorks.Documents
 
                 if (string.IsNullOrEmpty(Path))
                 {
-                    return CreateNewDocument();
+                    model = CreateNewDocument();
                 }
                 else
                 {
-                    return OpenDocument();
+                    model = OpenDocument();
                 }
+
+                return model;
             }
             finally 
             {
+                dispatcher.EndDispatch(this, model);
+
                 if (docType != -1)
                 {
                     OwnerApplication.Sw.DocumentVisible(origVisible, docType);
@@ -1055,27 +1070,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             => new Sw3rdPartyStorage(Model, name, access);
 
         public virtual void Commit(CancellationToken cancellationToken)
-        {
-            if (((SwDocumentCollection)OwnerApplication.Documents).TryFindExistingDocumentByPath(Path, out _)) 
-            {
-                throw new DocumentAlreadyOpenedException(Path);
-            }
-
-            var dispatcher = ((SwDocumentCollection)OwnerApplication.Documents).Dispatcher;
-
-            dispatcher.BeginDispatch(this);
-
-            IModelDoc2 model = null;
-
-            try
-            {
-                model = m_Creator.Create(cancellationToken);
-            }
-            finally 
-            {
-                dispatcher.EndDispatch(this, model);
-            }
-        }
+            => m_Creator.Create(cancellationToken);
 
         public void Save()
         {
@@ -1311,7 +1306,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             if (((SwDocumentCollection)OwnerApplication.Documents).TryFindExistingDocumentByPath(Path, out SwDocument curDoc))
             {
                 m_SpecificDoc = curDoc;
-                m_Creator.Set(curDoc.Model, CancellationToken.None);
+                m_Creator.Init(curDoc.Model, CancellationToken.None);
             }
             else
             {

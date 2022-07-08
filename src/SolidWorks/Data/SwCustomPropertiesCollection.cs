@@ -21,6 +21,7 @@ using Xarial.XCad.SolidWorks.Data.EventHandlers;
 using Xarial.XCad.SolidWorks.Data.Exceptions;
 using Xarial.XCad.SolidWorks.Data.Helpers;
 using Xarial.XCad.SolidWorks.Documents;
+using Xarial.XCad.SolidWorks.Enums;
 using Xarial.XCad.Toolkit.Services;
 using Xarial.XCad.Toolkit.Utils;
 
@@ -83,10 +84,13 @@ namespace Xarial.XCad.SolidWorks.Data
 
         private bool Exists(string name) 
         {
-            if (m_App.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2014))
+            if (m_App.IsVersionNewerOrEqual(SwVersion_e.Sw2018))
             {
-                return PrpMgr.Get5(name, true, out _, out _, out _)
-                    != (int)swCustomInfoGetResult_e.swCustomInfoGetResult_NotPresent;
+                return PrpMgr.Get6(name, true, out _, out _, out _, out _) != (int)swCustomInfoGetResult_e.swCustomInfoGetResult_NotPresent;
+            }
+            else if (m_App.IsVersionNewerOrEqual(SwVersion_e.Sw2014))
+            {
+                return PrpMgr.Get5(name, true, out _, out _, out _) != (int)swCustomInfoGetResult_e.swCustomInfoGetResult_NotPresent;
             }
             else 
             {

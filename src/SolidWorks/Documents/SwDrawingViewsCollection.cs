@@ -37,7 +37,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
             m_Draw = draw;
             m_Sheet = sheet;
-            m_Cache = new EntityCache<IXDrawingView>(draw, this, v => v.Name);
+            m_Cache = new EntityCache<IXDrawingView>(sheet, this, v => v.Name);
         }
 
         public IXDrawingView this[string name] => RepositoryHelper.Get(this, name);
@@ -46,7 +46,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
             get
             {
-                if (m_Draw.IsCommitted)
+                if (m_Sheet.IsCommitted)
                 {
                     return GetSwViews().Count();
                 }
@@ -59,7 +59,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public void AddRange(IEnumerable<IXDrawingView> ents, CancellationToken cancellationToken) 
         {
-            if (m_Draw.IsCommitted)
+            if (m_Sheet.IsCommitted)
             {
                 RepositoryHelper.AddRange(ents, cancellationToken);
             }
@@ -71,7 +71,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public IEnumerator<IXDrawingView> GetEnumerator()
         {
-            if (m_Draw.IsCommitted)
+            if (m_Sheet.IsCommitted)
             {
                 return GetDrawingViews().GetEnumerator();
             }
@@ -83,7 +83,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public void RemoveRange(IEnumerable<IXDrawingView> ents, CancellationToken cancellationToken)
         {
-            if (m_Draw.IsCommitted)
+            if (m_Sheet.IsCommitted)
             {
                 m_Draw.Selections.AddRange(ents);
 
@@ -100,7 +100,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public bool TryGet(string name, out IXDrawingView ent)
         {
-            if (m_Draw.IsCommitted)
+            if (m_Sheet.IsCommitted)
             {
                 var view = GetSwViews().FirstOrDefault(
                     x => string.Equals(x.Name, name, StringComparison.CurrentCultureIgnoreCase));

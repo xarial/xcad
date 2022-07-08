@@ -55,7 +55,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                         m_Repo.RemoveRange(excessSheets, cancellationToken);
                     }
 
-                    SetupCurrentSheets(curSheets, ents.Take(curSheets.Length).ToArray());
+                    SetupCurrentSheets(curSheets, ents.Take(curSheets.Length).ToArray(), cancellationToken);
 
                     if (curSheets.Length < ents.Count)
                     {
@@ -64,9 +64,29 @@ namespace Xarial.XCad.SolidWorks.Documents
                 }
                 else
                 {
+                    var isFirst = true;
+
                     foreach (SwSheet sheet in m_Repo)
                     {
-                        sheet.SetupSheet(m_TemplatePlaceholderSheet);
+                        sheet.SetupSheet(m_TemplatePlaceholderSheet, sheet.Name);
+
+                        if (isFirst)
+                        {
+                            var placeholderSheetDrwViews = m_TemplatePlaceholderSheet.DrawingViews.ToArray();
+                            
+                            if(placeholderSheetDrwViews.Any())
+                            {
+                                //NOTE: need this call to propagate the sheet pointer to the drawing views otehrwise they won't be committed
+                                foreach (SwDrawingView drwView in placeholderSheetDrwViews) 
+                                {
+                                    drwView.SetParentSheet(sheet);
+                                }
+                                
+                                sheet.DrawingViews.AddRange(placeholderSheetDrwViews);
+                            }
+                        }
+
+                        isFirst = false;
                     }
                 }
             }
@@ -91,7 +111,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        private void SetupCurrentSheets(IXSheet[] curSheets, IXSheet[] targetSheets)
+        private void SetupCurrentSheets(IXSheet[] curSheets, IXSheet[] targetSheets, CancellationToken cancellationToken)
         {
             //resolving potential name conflicts
             for (int i = 0; i < curSheets.Length; i++)
@@ -105,7 +125,11 @@ namespace Xarial.XCad.SolidWorks.Documents
 
             for (int i = 0; i < curSheets.Length; i++)
             {
-                ((SwSheet)curSheets[i]).SetupSheet(targetSheets[i]);
+                var swSheet = (SwSheet)curSheets[i];
+
+                swSheet.SetupSheet(targetSheets[i], swSheet.Name);
+
+                ((SwSheet)targetSheets[i]).InitFromExisting(swSheet, cancellationToken);
             }
         }
     }

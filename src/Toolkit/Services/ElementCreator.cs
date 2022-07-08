@@ -68,12 +68,19 @@ namespace Xarial.XCad.Services
         TElem Element { get; }
 
         /// <summary>
-        /// Forcibly sets the element instance
+        /// Sets the element to the specified value and updates the state
+        /// </summary>
+        /// <param name="elem">Element or null</param>
+        void Set(TElem elem);
+
+        /// <summary>
+        /// Forcibly inits the element instance
         /// </summary>
         /// <param name="elem">Element to set</param>
         /// <param name="cancellationToken">Cancellation token</param>
         /// <exception cref="ElementAlreadyCommittedException"/>
-        void Set(TElem elem, CancellationToken cancellationToken);
+        /// <remarks> Element must not be null and not commited. This method will also call the post creation handler</remarks>
+        void Init(TElem elem, CancellationToken cancellationToken);
 
         /// <summary>
         /// Creates element from the template
@@ -126,7 +133,7 @@ namespace Xarial.XCad.Services
             }
         }
 
-        public void Set(TElem elem, CancellationToken cancellationToken) 
+        public void Init(TElem elem, CancellationToken cancellationToken) 
         {
             if (!IsCreated)
             {
@@ -135,14 +142,20 @@ namespace Xarial.XCad.Services
                     throw new ArgumentNullException(nameof(elem));
                 }
 
-                m_Element = elem;
-                IsCreated = true;
+                Set(elem);
+                
                 m_PostCreator?.Invoke(elem, cancellationToken);
             }
             else
             {
                 throw new ElementAlreadyCommittedException();
             }
+        }
+
+        public void Set(TElem elem)
+        {
+            m_Element = elem;
+            IsCreated = m_Element != null;
         }
 
         public TElem Create(CancellationToken cancellationToken)
