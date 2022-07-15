@@ -929,6 +929,93 @@ namespace Xarial.XCad.SolidWorks.Documents
 
     internal class SwFlatPatternDrawingView : SwDrawingView, ISwFlatPatternDrawingView
     {
+        private class FlatPatternActivator : IDisposable
+        {
+            private readonly SwApplication m_App;
+            private readonly SwPart m_SheetMetalPart;
+
+            private bool m_OrigPartHidden;
+            private ISwDocument m_OrigActiveDoc;
+            private bool m_OrigIsFlattened;
+            private string m_OrigFlatPatternFeatName;
+
+            private ISwConfiguration m_OrigConf;
+
+            internal FlatPatternActivator(SwSolidBody sheetMetalBody, SwPart sheetMetalPart, ISwConfiguration conf) 
+            {
+                m_App = sheetMetalPart.OwnerApplication;
+                m_SheetMetalPart = sheetMetalPart;
+
+                //NOTE: part document must be activated, otherwise the flat pattern will be invalid
+                m_OrigPartHidden = !m_SheetMetalPart.Model.Visible;
+
+                m_OrigActiveDoc = m_App.Documents.Active;
+                m_App.Documents.Active = m_SheetMetalPart;
+
+                m_OrigConf = m_SheetMetalPart.Configurations.Active;
+
+                if (conf != null) 
+                {
+                    m_SheetMetalPart.Configurations.Active = conf;
+                }
+
+                var flatPatternFeat = EnumerateFlatPatternFeatures(m_SheetMetalPart)
+                    .FirstOrDefault(f => sheetMetalBody == null || f.FixedEntity.Body.Equals(sheetMetalBody));
+
+                if (flatPatternFeat == null)
+                {
+                    throw new Exception("Failed to find the flat pattern feature");
+                }
+
+                //flat pattern feature point may become invalid as the result of suppressing - storing feature name to restore the pointer
+                m_OrigFlatPatternFeatName = flatPatternFeat.Name;
+
+                m_OrigIsFlattened = flatPatternFeat.IsFlattened;
+
+                if (!m_OrigIsFlattened)
+                {
+                    flatPatternFeat.IsFlattened = true;
+                }
+            }
+
+            private IEnumerable<ISwFlatPattern> EnumerateFlatPatternFeatures(SwPart sheetMetalPart)
+            {
+                int pos = 0;
+
+                IFeature feat;
+
+                do
+                {
+                    feat = (IFeature)sheetMetalPart.Model.FeatureByPositionReverse(pos++);
+
+                    if (feat?.GetTypeName2() == "FlatPattern")
+                    {
+                        yield return sheetMetalPart.CreateObjectFromDispatch<ISwFlatPattern>(feat);
+                    }
+
+                    if (feat?.GetTypeName2() == "OriginProfileFeature")
+                    {
+                        yield break;
+                    }
+
+                } while (feat != null);
+            }
+
+            public void Dispose()
+            {
+                ((ISwFlatPattern)m_SheetMetalPart.Features[m_OrigFlatPatternFeatName]).IsFlattened = m_OrigIsFlattened;
+
+                m_SheetMetalPart.Configurations.Active = m_OrigConf;
+
+                if (m_OrigPartHidden)
+                {
+                    m_SheetMetalPart.Model.Visible = false;
+                }
+
+                m_App.Documents.Active = m_OrigActiveDoc;
+            }
+        }
+
         internal SwFlatPatternDrawingView(IView drwView, SwDrawing drw) : base(drwView, drw)
         {
         }
@@ -1049,43 +1136,10 @@ namespace Xarial.XCad.SolidWorks.Documents
                     throw new Exception($"Set the body to create flat pattern for via {nameof(SheetMetalBody)} for multi body sheet metal part");
                 }
 
-                //NOTE: part document must be activated, otherwise the flat pattern will be invalid
-                var wasPartHidden = !sheetMetalPart.Model.Visible;
-
-                var activeDoc = OwnerApplication.Documents.Active;
-                OwnerApplication.Documents.Active = sheetMetalPart;
-
-                var flatPatternFeat = EnumerateFlatPatternFeatures(sheetMetalPart).FirstOrDefault(f => sheetMetalBody == null || f.FixedEntity.Body.Equals(sheetMetalBody));
-
-                if (flatPatternFeat == null)
-                {
-                    throw new Exception("Failed to find the flat pattern feature");
-                }
-
-                //flat pattern feature point may become invalid as the result of suppressing - storing feature name to restore the pointer
-                var flatPatternFeatName = flatPatternFeat.Name;
-
-                var isFlattened = flatPatternFeat.IsFlattened;
-
-                if (!isFlattened)
-                {
-                    flatPatternFeat.IsFlattened = true;
-                }
-
-                try
+                using (var flatPatternActivator = new FlatPatternActivator(sheetMetalBody, sheetMetalPart,
+                    (ISwConfiguration)ReferencedConfiguration)) 
                 {
                     return CreateFlatPatternView(sheetMetalPart);
-                }
-                finally
-                {
-                    ((ISwFlatPattern)sheetMetalPart.Features[flatPatternFeatName]).IsFlattened = isFlattened;
-                    
-                    if (wasPartHidden)
-                    {
-                        sheetMetalPart.Model.Visible = false;
-                    }
-
-                    OwnerApplication.Documents.Active = activeDoc;
                 }
             }
             else 
@@ -1101,6 +1155,12 @@ namespace Xarial.XCad.SolidWorks.Documents
             if (view != null) 
             {
                 SetViewOptions(view, Options);
+
+                if (ReferencedConfiguration != null) 
+                {
+                    //NOTE: flat pattern view creates sub configuration based on the active configuration and it was activated already while creation of the view
+                    ReferencedConfiguration = null;
+                }
             }
 
             return view;
@@ -1194,29 +1254,6 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
 
             return OwnerDocument.CreateObjectFromDispatch<ISwFlatPattern>(face.GetFeature());
-        }
-
-        private IEnumerable<ISwFlatPattern> EnumerateFlatPatternFeatures(SwPart sheetMetalPart) 
-        {
-            int pos = 0;
-
-            IFeature feat;
-
-            do
-            {
-                feat = (IFeature)sheetMetalPart.Model.FeatureByPositionReverse(pos++);
-
-                if (feat?.GetTypeName2() == "FlatPattern")
-                {
-                    yield return sheetMetalPart.CreateObjectFromDispatch<ISwFlatPattern>(feat);
-                }
-
-                if (feat?.GetTypeName2() == "OriginProfileFeature") 
-                {
-                    yield break;
-                }
-
-            } while (feat != null);
         }
     }
 }

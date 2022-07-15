@@ -351,6 +351,55 @@ namespace SolidWorks.Tests.Integration
         }
 
         [Test]
+        public void CreateFlatPatternMultiConfTest()
+        {
+            bool view1IsFlatPattern;
+            bool view2IsFlatPattern;
+
+            string view1Conf;
+            string view2Conf;
+
+            int edgeCount1;
+            int edgeCount2;
+
+            using (var doc = OpenDataDocument("SheetMetal2.SLDPRT"))
+            {
+                var partDoc = m_App.Documents.Active as IXPart;
+
+                using (var drw = NewDocument(swDocumentTypes_e.swDocDRAWING))
+                {
+                    var drwDoc = m_App.Documents.Active as ISwDrawing;
+
+                    var drwView1 = drwDoc.Sheets.Active.DrawingViews.PreCreate<ISwFlatPatternDrawingView>();
+                    drwView1.ReferencedDocument = partDoc;
+                    drwView1.ReferencedConfiguration = partDoc.Configurations["Default"];
+                    drwView1.Commit();
+
+                    var drwView2 = drwDoc.Sheets.Active.DrawingViews.PreCreate<ISwFlatPatternDrawingView>();
+                    drwView2.ReferencedDocument = partDoc;
+                    drwView2.ReferencedConfiguration = partDoc.Configurations["Conf1"];
+                    drwView2.Commit();
+
+                    view1IsFlatPattern = drwView1.DrawingView.IsFlatPatternView();
+                    view1Conf = drwView1.DrawingView.ReferencedConfiguration;
+                    edgeCount1 = drwView1.DrawingView.GetVisibleEntityCount2((Component2)(drwView1.DrawingView.GetVisibleComponents() as object[]).First(), (int)swViewEntityType_e.swViewEntityType_Edge);
+
+                    view2IsFlatPattern = drwView2.DrawingView.IsFlatPatternView();
+                    view2Conf = drwView2.DrawingView.ReferencedConfiguration;
+                    edgeCount2 = drwView2.DrawingView.GetVisibleEntityCount2((Component2)(drwView2.DrawingView.GetVisibleComponents() as object[]).First(), (int)swViewEntityType_e.swViewEntityType_Edge);
+                }
+            }
+
+            Assert.IsTrue(view1IsFlatPattern);
+            Assert.IsTrue(view2IsFlatPattern);
+            Assert.AreEqual(6, edgeCount1);
+            Assert.AreEqual(8, edgeCount2);
+            Assert.That(view1Conf.StartsWith("DefaultSM-FLAT-PATTERN"));
+            Assert.That(view2Conf.StartsWith("Conf1SM-FLAT-PATTERN"));
+            Assert.AreNotEqual(view1Conf, view2Conf);
+        }
+
+        [Test]
         public void CreateProjectedViewTest()
         {
             double[] t1;
