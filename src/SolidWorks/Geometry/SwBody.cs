@@ -9,6 +9,7 @@ using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using Xarial.XCad.Documents;
@@ -33,6 +34,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
         ISwBody[] Common(ISwBody other);
     }
 
+    [DebuggerDisplay("{" + nameof(Name) + "}")]
     internal class SwBody : SwSelObject, ISwBody
     {
         IXBody IXBody.Add(IXBody other) => Add((ISwBody)other);

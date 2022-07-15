@@ -24,6 +24,7 @@ using Xarial.XCad.Extensions.Attributes;
 using Xarial.XCad.Extensions.Delegates;
 using Xarial.XCad.Features.CustomFeature;
 using Xarial.XCad.Features.CustomFeature.Delegates;
+using Xarial.XCad.SolidWorks.Attributes;
 using Xarial.XCad.SolidWorks.Base;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Features.CustomFeature;
@@ -70,7 +71,7 @@ namespace Xarial.XCad.SolidWorks
 
     /// <inheritdoc/>
     [ComVisible(true)]
-    public abstract class SwAddInEx : ISwAddInEx, ISwAddin, IXServiceConsumer, IDisposable
+    public abstract class SwAddInEx : ISwAddInEx, ISwAddin, IXServiceConsumer, IDisposable, ISwPEManager
     {
         #region Registration
 
@@ -200,6 +201,28 @@ namespace Xarial.XCad.SolidWorks
             }
         }
 
+        [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
+        public void IdentifyToSW(object classFactory)
+        {
+            if (this.GetType().TryGetAttribute<PartnerProductAttribute>(out var att)) 
+            {
+                try
+                {
+                    var res = (swPartnerEntitlementStatus_e)((ISwPEClassFactory)classFactory).SetPartnerKey(att.PartnerKey, out _);
+
+                    if (res != swPartnerEntitlementStatus_e.swPESuccess)
+                    {
+                        throw new Exception($"Failed to register partner product: {res}");
+                    }
+                }
+                catch(Exception ex)
+                {
+                    var logger = Logger ?? CreateDefaultLogger();
+                    logger.Log(ex);
+                }
+            }
+        }
+
         protected virtual void HandleConnectException(Exception ex) 
         {
             var logger = Logger ?? CreateDefaultLogger();
@@ -255,7 +278,6 @@ namespace Xarial.XCad.SolidWorks
 
             try
             {
-                Disconnect?.Invoke(this);
                 OnDisconnect();
                 Dispose();
                 return true;
@@ -303,6 +325,7 @@ namespace Xarial.XCad.SolidWorks
 
         public virtual void OnDisconnect()
         {
+            Disconnect?.Invoke(this);
         }
 
         protected virtual void Dispose(bool disposing)

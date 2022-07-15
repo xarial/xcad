@@ -936,6 +936,8 @@ namespace Xarial.XCad.SolidWorks.Documents
         internal SwFlatPatternDrawingView(SwDrawing drw, SwSheet sheet)
             : base(null, drw, sheet)
         {
+            m_Creator.CachedProperties.Set<FlatPatternViewOptions_e>(
+                FlatPatternViewOptions_e.BendLines | FlatPatternViewOptions_e.BendNotes, nameof(Options));
         }
 
         public IXSolidBody SheetMetalBody
@@ -971,7 +973,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             {
                 if (IsCommitted)
                 {
-                    FlatPatternViewOptions_e opts = 0;
+                    var opts = FlatPatternViewOptions_e.None;
 
                     if (DrawingView.ShowSheetMetalBendNotes) 
                     {

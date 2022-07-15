@@ -23,11 +23,13 @@ namespace Xarial.XCad.Extensions
         /// <summary>
         /// Event for <see cref="OnConnect"/>
         /// </summary>
+        /// <remarks>If <see cref="OnConnect"/> is overridden this event will not be raised</remarks>
         event ExtensionConnectDelegate Connect;
 
         /// <summary>
         /// Event for <see cref="OnDisconnect"/>
         /// </summary>
+        /// <remarks>If <see cref="OnDisconnect"/> is overridden this event will not be raised</remarks>
         event ExtensionDisconnectDelegate Disconnect;
 
         /// <summary>
