@@ -69,7 +69,6 @@ namespace Xarial.XCad.Toolkit.Windows
             catch (Exception ex)
             {
                 logger?.Log(ex);
-                throw;
             }
             finally
             {
