@@ -9,7 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Xarial.XCad.SolidWorks.Documents.Exceptions
+namespace Xarial.XCad.Documents.Exceptions
 {
     public class SaveNeverSavedDocumentException : Exception
     {

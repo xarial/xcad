@@ -71,7 +71,7 @@ namespace Xarial.XCad.SolidWorks
 
     /// <inheritdoc/>
     [ComVisible(true)]
-    public abstract class SwAddInEx : ISwAddInEx, ISwAddin, IXServiceConsumer, IDisposable, ISwPEManager
+    public abstract class SwAddInEx : ISwAddInEx, ISwAddin, IXServiceConsumer, IDisposable
     {
         #region Registration
 
@@ -158,6 +158,11 @@ namespace Xarial.XCad.SolidWorks
 
             try
             {
+                if (this.GetType().TryGetAttribute<PartnerProductAttribute>(out _))
+                {
+                    throw new Exception($"'{nameof(PartnerProductAttribute)}' must be used with {nameof(SwPartnerAddInEx)}");
+                }
+
                 var app = ThisSW as ISldWorks;
                 AddInId = cookie;
 
@@ -201,28 +206,6 @@ namespace Xarial.XCad.SolidWorks
             }
         }
 
-        [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
-        public void IdentifyToSW(object classFactory)
-        {
-            if (this.GetType().TryGetAttribute<PartnerProductAttribute>(out var att)) 
-            {
-                try
-                {
-                    var res = (swPartnerEntitlementStatus_e)((ISwPEClassFactory)classFactory).SetPartnerKey(att.PartnerKey, out _);
-
-                    if (res != swPartnerEntitlementStatus_e.swPESuccess)
-                    {
-                        throw new Exception($"Failed to register partner product: {res}");
-                    }
-                }
-                catch(Exception ex)
-                {
-                    var logger = Logger ?? CreateDefaultLogger();
-                    logger.Log(ex);
-                }
-            }
-        }
-
         protected virtual void HandleConnectException(Exception ex) 
         {
             var logger = Logger ?? CreateDefaultLogger();
@@ -261,7 +244,7 @@ namespace Xarial.XCad.SolidWorks
             return svcCollection;
         }
 
-        private IXLogger CreateDefaultLogger() 
+        protected IXLogger CreateDefaultLogger() 
         {
             var addInType = this.GetType();
             var title = GetRegistrationHelper(addInType).GetTitle(addInType);
@@ -470,6 +453,37 @@ namespace Xarial.XCad.SolidWorks
             else
             {
                 System.Diagnostics.Debug.Assert(false, "Disposable is not registered");
+            }
+        }
+    }
+
+    /// <inheritdoc/>
+    [ComVisible(true)]
+    public abstract class SwPartnerAddInEx : SwAddInEx, ISwPEManager
+    {
+        [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
+        public void IdentifyToSW(object classFactory)
+        {
+            if (this.GetType().TryGetAttribute<PartnerProductAttribute>(out var att))
+            {
+                try
+                {
+                    var res = (swPartnerEntitlementStatus_e)((ISwPEClassFactory)classFactory).SetPartnerKey(att.PartnerKey, out _);
+
+                    if (res != swPartnerEntitlementStatus_e.swPESuccess)
+                    {
+                        throw new Exception($"Failed to register partner product: {res}");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    var logger = Logger ?? CreateDefaultLogger();
+                    logger.Log(ex);
+                }
+            }
+            else
+            {
+                throw new Exception($"Decorate the add-in class with '{typeof(PartnerProductAttribute).FullName}' to specify partner key");
             }
         }
     }

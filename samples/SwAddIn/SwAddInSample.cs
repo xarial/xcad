@@ -173,7 +173,9 @@ namespace SwAddInExample
 
             CreateTriad,
 
-            CreateDragArrow
+            CreateDragArrow,
+
+            CreateFlatPattern
         }
 
         [Icon(typeof(Resources), nameof(Resources.xarial))]
@@ -634,11 +636,39 @@ namespace SwAddInExample
                             m_DragArrow = null;
                         }
                         break;
+
+                    case Commands_e.CreateFlatPattern:
+                        CreateFlatPattern();
+                        break;
                 }
             }
             catch 
             {
                 Debug.Assert(false);
+            }
+        }
+
+        private void CreateFlatPattern()
+        {
+            var part = (IXPart)Application.Documents.Active;
+            var conf = part.Configurations.Active;
+
+            using (var drw = Application.Documents.PreCreateDrawing())
+            {
+                var sheet = drw.Sheets.First();
+                sheet.PaperSize = new PaperSize(0.1, 0.1);
+                sheet.Scale = new Scale(1, 1);
+                drw.Commit();
+
+                var swDraw = ((ISwDrawing)drw).Model;
+
+                sheet = drw.Sheets.First();
+                var flatPatternView = sheet.DrawingViews.PreCreate<IXFlatPatternDrawingView>();
+                flatPatternView.ReferencedDocument = part;
+                flatPatternView.ReferencedConfiguration = conf;
+                flatPatternView.Scale = new Scale(1, 1);
+                flatPatternView.Options = FlatPatternViewOptions_e.BendLines;
+                sheet.DrawingViews.Add(flatPatternView);
             }
         }
 

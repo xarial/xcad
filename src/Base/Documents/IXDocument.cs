@@ -107,12 +107,15 @@ namespace Xarial.XCad.Documents
         /// <summary>
         /// Saves this document
         /// </summary>
+        /// <exception cref="Exceptions.SaveNeverSavedDocumentException"/>
+        /// <exception cref="Exceptions.SaveDocumentFailedException"/>
         void Save();
 
         /// <summary>
         /// Saves this document to a new location
         /// </summary>
         /// <param name="filePath"></param>
+        /// <exception cref="Exceptions.SaveDocumentFailedException"/>
         void SaveAs(string filePath);
 
         /// <summary>

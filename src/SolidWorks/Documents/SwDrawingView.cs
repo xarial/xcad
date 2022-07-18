@@ -1154,6 +1154,11 @@ namespace Xarial.XCad.SolidWorks.Documents
 
             if (view != null) 
             {
+                if (!view.IsFlatPatternView()) 
+                {
+                    throw new Exception("Created view cannot be set to flat pattern");
+                }
+
                 SetViewOptions(view, Options);
 
                 if (ReferencedConfiguration != null) 
