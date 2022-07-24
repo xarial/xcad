@@ -238,7 +238,6 @@ namespace Xarial.XCad.SolidWorks.Documents
 
                         if (!string.IsNullOrEmpty(refDocPath))
                         {
-
                             if (((SwDocumentCollection)OwnerApplication.Documents).TryFindExistingDocumentByPath(refDocPath, out SwDocument doc))
                             {
                                 return (ISwDocument3D)doc;
@@ -263,14 +262,37 @@ namespace Xarial.XCad.SolidWorks.Documents
             {
                 if (IsCommitted)
                 {
-                    //TODO: implement model document replacement
-                    throw new CommitedElementReadOnlyParameterException();
+                    var refDoc = ReferencedDocument;
+
+                    if (refDoc == null)
+                    {
+                        InsertPredefinedView(value);
+                    }
+                    else 
+                    {
+                        ReplaceViewDocument(refDoc, value);
+                    }
                 }
                 else 
                 {
                     m_Creator.CachedProperties.Set(value);
                 }
             }
+        }
+
+        private void InsertPredefinedView(IXDocument3D doc)
+        {
+            Select(false);
+
+            if (!m_Drawing.Drawing.InsertModelInPredefinedView(doc.Path))
+            {
+                throw new Exception("Failed to insert model into a predefined view");
+            }
+        }
+
+        private void ReplaceViewDocument(IXDocument3D oldDoc, IXDocument3D newDoc)
+        {
+            throw new NotImplementedException("View replacement is not implemented");
         }
 
         public IXConfiguration ReferencedConfiguration
@@ -454,15 +476,15 @@ namespace Xarial.XCad.SolidWorks.Documents
 
     internal static class SwDrawingViewExtension 
     {
-        internal static void SelectFeature(this SwDrawingView drwView, IFeature feat, bool append) 
+        internal static void SelectFeature(this IView drwView, SwDrawing drw, IFeature feat, bool append) 
         {
-            if (drwView.OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2018))
+            if (drw.OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2018))
             {
-                var corrFeat = drwView.DrawingView.GetCorresponding(feat);
+                var corrFeat = drwView.GetCorresponding(feat);
                 
-                var selData = drwView.OwnerDocument.Model.ISelectionManager.CreateSelectData();
+                var selData = drw.Model.ISelectionManager.CreateSelectData();
                 
-                selData.View = (View)drwView.DrawingView;
+                selData.View = (View)drwView;
 
                 if (!((IEntity)corrFeat).Select4(append, selData)) 
                 {
@@ -484,9 +506,9 @@ namespace Xarial.XCad.SolidWorks.Documents
                     selSuffix = "";
                 }
 
-                var selName = $"{feat.Name}@{drwView.DrawingView.RootDrawingComponent.Name}@{drwView.DrawingView.Name}" + selSuffix;
+                var selName = $"{feat.Name}@{drwView.RootDrawingComponent.Name}@{drwView.Name}" + selSuffix;
 
-                if (!drwView.OwnerDocument.Model.Extension.SelectByID2(selName, selType, 0, 0, 0, append, 0, null, (int)swSelectOption_e.swSelectOptionDefault))
+                if (!drw.Model.Extension.SelectByID2(selName, selType, 0, 0, 0, append, 0, null, (int)swSelectOption_e.swSelectOptionDefault))
                 {
                     throw new Exception("Failed to select feature in the drawing view");
                 }
@@ -1191,17 +1213,20 @@ namespace Xarial.XCad.SolidWorks.Documents
             if (hasBendLines != needBendLines)
             {
                 var flatPattern = GetViewFlatPattern(view);
-                var bendLinesSketch = GetBendLinesSketch(flatPattern);
+                var bendLinesSketch = GetBendLinesSketchOrNull(flatPattern);
 
-                this.SelectFeature(bendLinesSketch, false);
+                if (bendLinesSketch != null) //bend line sketch can be null if sheet metal has no bends
+                {
+                    view.SelectFeature((SwDrawing)OwnerDocument, bendLinesSketch, false);
 
-                if (needBendLines)
-                {
-                    OwnerDocument.Model.UnblankSketch();
-                }
-                else
-                {
-                    OwnerDocument.Model.BlankSketch();
+                    if (needBendLines)
+                    {
+                        OwnerDocument.Model.UnblankSketch();
+                    }
+                    else
+                    {
+                        OwnerDocument.Model.BlankSketch();
+                    }
                 }
             }
 
@@ -1212,7 +1237,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        private static IFeature GetBendLinesSketch(ISwFlatPattern flatPattern)
+        private static IFeature GetBendLinesSketchOrNull(ISwFlatPattern flatPattern)
         {
             var subFeat = flatPattern.Feature.IGetFirstSubFeature();
 
@@ -1233,11 +1258,6 @@ namespace Xarial.XCad.SolidWorks.Documents
                 }
 
                 subFeat = subFeat.IGetNextSubFeature();
-            }
-
-            if (bendLinesSketch == null)
-            {
-                throw new Exception("Failed to find the bend line sketch of the view");
             }
 
             return bendLinesSketch;

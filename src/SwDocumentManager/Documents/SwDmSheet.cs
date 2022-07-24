@@ -24,6 +24,11 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
     internal class SwDmSheet : SwDmObject, ISwDmSheet
     {
+        #region Not Supporter
+        public IXSheet Clone() => throw new NotSupportedException();
+        public void Commit(CancellationToken cancellationToken) => throw new NotSupportedException();
+        #endregion
+
         public string Name
         {
             get => Sheet.Name;
@@ -106,8 +111,5 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
             m_DrawingViewsLazy = new Lazy<SwDmDrawingViewsCollection>(() => new SwDmDrawingViewsCollection(this, drw));
         }
-
-        public void Commit(CancellationToken cancellationToken)
-             => throw new NotSupportedException();
     }
 }

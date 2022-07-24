@@ -232,9 +232,44 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
+        internal override void Select(bool append, ISelectData selData)
+        {
+            if (!m_Drawing.Model.Extension.SelectByID2(Name, "SHEET", 0, 0, 0, false, 0, null, (int)swSelectOption_e.swSelectOptionDefault))
+            {
+                throw new Exception($"Failed to select sheet");
+            }
+        }
+
         public override void Commit(CancellationToken cancellationToken) => m_Creator.Create(cancellationToken);
 
         private void CommitCache(ISheet sheet, CancellationToken cancellationToken) => m_DrawingViews.CommitCache(cancellationToken);
+
+        public IXSheet Clone()
+        {
+            Select(false);
+
+            m_Drawing.Model.EditCopy();
+
+            var curSheets = m_Drawing.Sheets.ToArray();
+
+            if (m_Drawing.Drawing.PasteSheet((int)swInsertOptions_e.swInsertOption_MoveToEnd, (int)swRenameOptions_e.swRenameOption_No))
+            {
+                var newSheet = m_Drawing.Sheets.Last();
+
+                if (!curSheets.Contains(newSheet, new XObjectEqualityComparer<IXSheet>()))
+                {
+                    return newSheet;
+                }
+                else 
+                {
+                    throw new Exception("Failed to get the cloned sheet");
+                }
+            }
+            else 
+            {
+                throw new Exception($"Failed to copy sheet");
+            }
+        }
     }
 
     internal static class PaperSizeHelper 
@@ -256,7 +291,6 @@ namespace Xarial.XCad.SolidWorks.Documents
     internal class UncommittedPreviewOnlySheet : ISwSelObject, ISwSheet 
     {
         #region Not Supported
-        
         public string Name { get => throw new UnloadedDocumentPreviewOnlySheetException(); set => throw new UnloadedDocumentPreviewOnlySheetException(); }
         public IXDrawingViewRepository DrawingViews => throw new UnloadedDocumentPreviewOnlySheetException();
         public void Commit(CancellationToken cancellationToken)
@@ -271,9 +305,8 @@ namespace Xarial.XCad.SolidWorks.Documents
         public bool IsSelected => throw new UnloadedDocumentPreviewOnlySheetException();
         public bool IsAlive => throw new UnloadedDocumentPreviewOnlySheetException();
         public ITagsManager Tags => throw new UnloadedDocumentPreviewOnlySheetException();
-
         public PaperSize PaperSize { get => throw new UnloadedDocumentPreviewOnlySheetException(); set => throw new UnloadedDocumentPreviewOnlySheetException(); }
-
+        public IXSheet Clone() => throw new NotSupportedException();
         #endregion
 
         private readonly ISwApplication m_App;

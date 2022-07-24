@@ -43,5 +43,11 @@ namespace Xarial.XCad.Documents
         /// Represents paper of this sheet
         /// </summary>
         PaperSize PaperSize { get; set; }
+
+        /// <summary>
+        /// Creates a copy of this sheet
+        /// </summary>
+        /// <returns>Cloned sheet</returns>
+        IXSheet Clone();
     }
 }

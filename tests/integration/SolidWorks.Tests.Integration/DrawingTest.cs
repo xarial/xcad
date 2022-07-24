@@ -400,6 +400,124 @@ namespace SolidWorks.Tests.Integration
         }
 
         [Test]
+        public void CreateFlatPatternOptionsTest()
+        {
+            int GenBendNotesCount(IView view)
+                => ((object[])view.GetNotes() ?? new object[0]).Count(n => ((INote)n).IsBendLineNote);
+
+            bool view1IsFlatPattern;
+            int view1EdgeCount;
+            int view1BendLinesCount;
+            int view1BendNotesCount;
+
+            bool view2IsFlatPattern;
+            int view2EdgeCount;
+            int view2BendLinesCount;
+            int view2BendNotesCount;
+
+            bool view3IsFlatPattern;
+            int view3EdgeCount;
+            int view3BendLinesCount;
+            int view3BendNotesCount;
+
+            bool view4IsFlatPattern;
+            int view4EdgeCount;
+            int view4BendLinesCount;
+            int view4BendNotesCount;
+
+            bool view5IsFlatPattern;
+            int view5EdgeCount;
+            int view5BendLinesCount;
+            int view5BendNotesCount;
+
+            using (var drw = NewDocument(swDocumentTypes_e.swDocDRAWING))
+            {
+                var drwDoc = m_App.Documents.Active as ISwDrawing;
+
+                var refDoc1 = m_App.Documents.PreCreate<IXPart>();
+                refDoc1.Path = GetFilePath("SheetMetal3.SLDPRT");
+
+                var drwView1 = drwDoc.Sheets.Active.DrawingViews.PreCreate<ISwFlatPatternDrawingView>();
+                drwView1.ReferencedDocument = refDoc1;
+                drwView1.Options = FlatPatternViewOptions_e.BendNotes | FlatPatternViewOptions_e.BendLines;
+                drwView1.Commit();
+
+                var drwView2 = drwDoc.Sheets.Active.DrawingViews.PreCreate<ISwFlatPatternDrawingView>();
+                drwView2.ReferencedDocument = refDoc1;
+                drwView2.Options = FlatPatternViewOptions_e.None;
+                drwView2.Commit();
+
+                var refDoc2 = m_App.Documents.PreCreate<IXPart>();
+                refDoc2.Path = GetFilePath("SheetMetal4.SLDPRT");
+
+                var drwView3 = drwDoc.Sheets.Active.DrawingViews.PreCreate<ISwFlatPatternDrawingView>();
+                drwView3.ReferencedDocument = refDoc2;
+                drwView3.Options = FlatPatternViewOptions_e.BendNotes | FlatPatternViewOptions_e.BendLines;
+                drwView3.Commit();
+
+                var drwView4 = drwDoc.Sheets.Active.DrawingViews.PreCreate<ISwFlatPatternDrawingView>();
+                drwView4.ReferencedDocument = refDoc2;
+                drwView4.Options = FlatPatternViewOptions_e.BendLines;
+                drwView4.Commit();
+
+                var drwView5 = drwDoc.Sheets.Active.DrawingViews.PreCreate<ISwFlatPatternDrawingView>();
+                drwView5.ReferencedDocument = refDoc2;
+                drwView5.Options = FlatPatternViewOptions_e.None;
+                drwView5.Commit();
+
+                view1IsFlatPattern = drwView1.DrawingView.IsFlatPatternView();
+                view1EdgeCount = drwView1.DrawingView.GetVisibleEntityCount2((Component2)(drwView1.DrawingView.GetVisibleComponents() as object[]).First(), (int)swViewEntityType_e.swViewEntityType_Edge);
+                view1BendLinesCount = drwView1.DrawingView.GetBendLineCount();
+                view1BendNotesCount = GenBendNotesCount(drwView1.DrawingView);
+
+                view2IsFlatPattern = drwView2.DrawingView.IsFlatPatternView();
+                view2EdgeCount = drwView2.DrawingView.GetVisibleEntityCount2((Component2)(drwView2.DrawingView.GetVisibleComponents() as object[]).First(), (int)swViewEntityType_e.swViewEntityType_Edge);
+                view2BendLinesCount = drwView2.DrawingView.GetBendLineCount();
+                view2BendNotesCount = GenBendNotesCount(drwView2.DrawingView);
+
+                view3IsFlatPattern = drwView3.DrawingView.IsFlatPatternView();
+                view3EdgeCount = drwView3.DrawingView.GetVisibleEntityCount2((Component2)(drwView3.DrawingView.GetVisibleComponents() as object[]).First(), (int)swViewEntityType_e.swViewEntityType_Edge);
+                view3BendLinesCount = drwView3.DrawingView.GetBendLineCount();
+                view3BendNotesCount = GenBendNotesCount(drwView3.DrawingView);
+
+                view4IsFlatPattern = drwView4.DrawingView.IsFlatPatternView();
+                view4EdgeCount = drwView4.DrawingView.GetVisibleEntityCount2((Component2)(drwView4.DrawingView.GetVisibleComponents() as object[]).First(), (int)swViewEntityType_e.swViewEntityType_Edge);
+                view4BendLinesCount = drwView4.DrawingView.GetBendLineCount();
+                view4BendNotesCount = GenBendNotesCount(drwView4.DrawingView);
+
+                view5IsFlatPattern = drwView5.DrawingView.IsFlatPatternView();
+                view5EdgeCount = drwView5.DrawingView.GetVisibleEntityCount2((Component2)(drwView5.DrawingView.GetVisibleComponents() as object[]).First(), (int)swViewEntityType_e.swViewEntityType_Edge);
+                view5BendLinesCount = drwView5.DrawingView.GetBendLineCount();
+                view5BendNotesCount = GenBendNotesCount(drwView5.DrawingView);
+            }
+
+            Assert.IsTrue(view1IsFlatPattern);
+            Assert.AreEqual(4, view1EdgeCount);
+            Assert.AreEqual(0, view1BendLinesCount);
+            Assert.AreEqual(0, view1BendNotesCount);
+
+            Assert.IsTrue(view2IsFlatPattern);
+            Assert.AreEqual(4, view2EdgeCount);
+            Assert.AreEqual(0, view2BendLinesCount);
+            Assert.AreEqual(0, view2BendNotesCount);
+
+            Assert.IsTrue(view3IsFlatPattern);
+            Assert.AreEqual(8, view3EdgeCount);
+            Assert.AreEqual(2, view3BendLinesCount);
+            Assert.AreEqual(2, view3BendNotesCount);
+
+            Assert.IsTrue(view4IsFlatPattern);
+            Assert.AreEqual(8, view4EdgeCount);
+            Assert.AreEqual(2, view4BendLinesCount);
+            Assert.AreEqual(0, view4BendNotesCount);
+
+            Assert.IsTrue(view5IsFlatPattern);
+            Assert.AreEqual(8, view5EdgeCount);
+            Assert.AreEqual(0, view5BendLinesCount);
+            Assert.AreEqual(0, view5BendNotesCount);
+        }
+
+        [Test]
         public void CreateProjectedViewTest()
         {
             double[] t1;
@@ -525,6 +643,65 @@ namespace SolidWorks.Tests.Integration
             }
 
             Assert.AreEqual((int)swDrawingViewTypes_e.swDrawingDetailView, t1);
+        }
+
+        [Test]
+        public void InsertPredefinedViewTest()
+        {
+            string view1RefDocOrig;
+            string view2RefDocOrig;
+            string view3RefDocOrig;
+            string view4RefDocOrig;
+
+            string view1RefDoc;
+            string view2RefDoc;
+            string view3RefDoc;
+            string view4RefDoc;
+
+            using (var part = OpenDataDocument("TessPart1.SLDPRT"))
+            {
+                var part1 = (ISwPart)m_App.Documents.Active;
+
+                using (var doc = OpenDataDocument("Drawing2.slddrw"))
+                {
+                    var drwDoc = m_App.Documents.Active as ISwDrawing;
+
+                    var sheet1 = drwDoc.Sheets["Sheet1"];
+                    var sheet2 = drwDoc.Sheets["Sheet2"];
+
+                    var view1 = sheet1.DrawingViews["Drawing View1"];
+                    var view2 = sheet1.DrawingViews["Drawing View2"];
+                    var view3 = sheet1.DrawingViews["Drawing View3"];
+                    var view4 = sheet2.DrawingViews["Drawing View4"];
+
+                    view1RefDocOrig = view1.ReferencedDocument?.Path;
+                    view2RefDocOrig = view2.ReferencedDocument?.Path;
+                    view3RefDocOrig = view3.ReferencedDocument?.Path;
+                    view4RefDocOrig = view4.ReferencedDocument?.Path;
+
+                    var part2 = (ISwPart)m_App.Documents.PreCreateFromPath(GetFilePath("Selections1.SLDPRT"));
+                    var assm3 = (ISwAssembly)m_App.Documents.PreCreateFromPath(GetFilePath(@"Assembly1\TopAssem1.SLDASM"));
+
+                    view1.ReferencedDocument = part1;
+                    view3.ReferencedDocument = part2;
+                    view4.ReferencedDocument = assm3;
+
+                    view1RefDoc = view1.ReferencedDocument?.Path;
+                    view2RefDoc = view2.ReferencedDocument?.Path;
+                    view3RefDoc = view3.ReferencedDocument?.Path;
+                    view4RefDoc = view4.ReferencedDocument?.Path;
+                }
+            }
+           
+            Assert.IsNull(view1RefDocOrig);
+            Assert.IsNull(view2RefDocOrig);
+            Assert.IsNull(view3RefDocOrig);
+            Assert.IsNull(view4RefDocOrig);
+
+            Assert.That(string.Equals(view1RefDoc, GetFilePath("TessPart1.SLDPRT"), StringComparison.CurrentCultureIgnoreCase));
+            Assert.That(string.Equals(view2RefDoc, GetFilePath("TessPart1.SLDPRT"), StringComparison.CurrentCultureIgnoreCase));
+            Assert.That(string.Equals(view3RefDoc, GetFilePath("Selections1.SLDPRT"), StringComparison.CurrentCultureIgnoreCase));
+            Assert.That(string.Equals(view4RefDoc, GetFilePath(@"Assembly1\TopAssem1.SLDASM"), StringComparison.CurrentCultureIgnoreCase));
         }
 
         [Test]
