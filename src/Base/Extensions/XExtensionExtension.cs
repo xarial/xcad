@@ -35,7 +35,7 @@ namespace Xarial.XCad.Extensions
             var spec = new TaskPaneSpec();
             spec.InitFromEnum<TEnum>();
             spec.Buttons = Enum.GetValues(typeof(TEnum)).Cast<TEnum>().Select(
-                c => 
+                c =>
                 {
                     var btn = new TaskPaneEnumButtonSpec<TEnum>(Convert.ToInt32(c));
                     btn.InitFromEnum(c);
@@ -46,5 +46,15 @@ namespace Xarial.XCad.Extensions
 
             return new EnumTaskPane<TControl, TEnum>(ext.CreateTaskPane<TControl>(spec));
         }
+
+        /// <summary>
+        /// Creates new popup window
+        /// </summary>
+        /// <typeparam name="TWindow">Type of window</typeparam>
+        /// <param name="ext">Extension</param>
+        /// <returns>Popup window</returns>
+        public static IXPopupWindow<TWindow> CreatePopupWindow<TWindow>(this IXExtension ext)
+            where TWindow : new() => ext.CreatePopupWindow<TWindow>(new TWindow());
+        
     }
 }

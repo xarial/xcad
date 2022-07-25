@@ -72,10 +72,10 @@ namespace Xarial.XCad.Documentation.Extension.Panels
             //---
 
             //--- Popup
-            var winFormPopupWnd = CreatePopupWindow<WinForm>();
+            var winFormPopupWnd = this.CreatePopupWindow<WinForm>();
             winFormPopupWnd.ShowDialog();
 
-            var wpfPopupWnd = CreatePopupWindow<WpfWindow>();
+            var wpfPopupWnd = this.CreatePopupWindow<WpfWindow>();
             wpfPopupWnd.ShowDialog();
             //---
         }

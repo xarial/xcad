@@ -90,8 +90,9 @@ namespace Xarial.XCad.Extensions
         /// Creates the popup window in the context of current application
         /// </summary>
         /// <typeparam name="TWindow">Window to show</typeparam>
+        /// <param name="window">Instance of the window</param>
         /// <returns>Custom popup window</returns>
-        IXPopupWindow<TWindow> CreatePopupWindow<TWindow>();
+        IXPopupWindow<TWindow> CreatePopupWindow<TWindow>(TWindow window);
         
         /// <summary>
         /// Hosts the control in the task pane

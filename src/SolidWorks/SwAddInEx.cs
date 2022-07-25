@@ -60,7 +60,7 @@ namespace Xarial.XCad.SolidWorks
         
         ISwModelViewTab<TControl> CreateDocumentTab<TControl>(ISwDocument doc);
         
-        new ISwPopupWindow<TWindow> CreatePopupWindow<TWindow>();
+        new ISwPopupWindow<TWindow> CreatePopupWindow<TWindow>(TWindow window);
         
         ISwTaskPane<TControl> CreateTaskPane<TControl>();
         
@@ -119,8 +119,8 @@ namespace Xarial.XCad.SolidWorks
         IXCommandManager IXExtension.CommandManager => CommandManager;
         IXCustomPanel<TControl> IXExtension.CreateDocumentTab<TControl>(IXDocument doc)
             => CreateDocumentTab<TControl>((SwDocument)doc);
-        IXPopupWindow<TWindow> IXExtension.CreatePopupWindow<TWindow>()
-            => CreatePopupWindow<TWindow>();
+        IXPopupWindow<TWindow> IXExtension.CreatePopupWindow<TWindow>(TWindow window)
+            => CreatePopupWindow<TWindow>(window);
         IXTaskPane<TControl> IXExtension.CreateTaskPane<TControl>(TaskPaneSpec spec)
             => CreateTaskPane<TControl>(spec);
         IXCustomPanel<TControl> IXExtension.CreateFeatureManagerTab<TControl>(IXDocument doc) 
@@ -394,17 +394,17 @@ namespace Xarial.XCad.SolidWorks
             return tab;
         }
         
-        public ISwPopupWindow<TWindow> CreatePopupWindow<TWindow>() 
+        public ISwPopupWindow<TWindow> CreatePopupWindow<TWindow>(TWindow window) 
         {
             var parent = (IntPtr)Application.Sw.IFrameObject().GetHWnd();
 
             if (typeof(System.Windows.Window).IsAssignableFrom(typeof(TWindow)))
             {
-                return new SwPopupWpfWindow<TWindow>((TWindow)Activator.CreateInstance(typeof(TWindow)), parent);
+                return new SwPopupWpfWindow<TWindow>(window, parent);
             }
             else if (typeof(Form).IsAssignableFrom(typeof(TWindow)))
             {
-                return new SwPopupWinForm<TWindow>((TWindow)Activator.CreateInstance(typeof(TWindow)), parent);
+                return new SwPopupWinForm<TWindow>(window, parent);
             }
             else
             {
@@ -506,10 +506,10 @@ namespace Xarial.XCad.SolidWorks
             where TControl : System.Windows.UIElement => addIn.CreateDocumentTab<TControl>(doc);
 
         public static ISwPopupWindow<TWindow> CreatePopupWpfWindow<TWindow>(this ISwAddInEx addIn)
-            where TWindow : System.Windows.Window => (SwPopupWpfWindow<TWindow>)addIn.CreatePopupWindow<TWindow>();
+            where TWindow : System.Windows.Window => (SwPopupWpfWindow<TWindow>)addIn.CreatePopupWindow<TWindow>((TWindow)Activator.CreateInstance(typeof(TWindow)));
 
         public static ISwPopupWindow<TWindow> CreatePopupWinForm<TWindow>(this ISwAddInEx addIn)
-            where TWindow : Form => (SwPopupWinForm<TWindow>)addIn.CreatePopupWindow<TWindow>();
+            where TWindow : Form => (SwPopupWinForm<TWindow>)addIn.CreatePopupWindow<TWindow>((TWindow)Activator.CreateInstance(typeof(TWindow)));
 
         public static ISwTaskPane<TControl> CreateTaskPaneWinForm<TControl>(this ISwAddInEx addIn, TaskPaneSpec spec = null)
             where TControl : Control => addIn.CreateTaskPane<TControl>(spec);
