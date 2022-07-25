@@ -158,10 +158,7 @@ namespace Xarial.XCad.SolidWorks
 
             try
             {
-                if (this.GetType().TryGetAttribute<PartnerProductAttribute>(out _))
-                {
-                    throw new Exception($"'{nameof(PartnerProductAttribute)}' must be used with {nameof(SwPartnerAddInEx)}");
-                }
+                Validate();
 
                 var app = ThisSW as ISldWorks;
                 AddInId = cookie;
@@ -203,6 +200,14 @@ namespace Xarial.XCad.SolidWorks
             {
                 HandleConnectException(ex);
                 return false;
+            }
+        }
+
+        protected virtual void Validate()
+        {
+            if (this.GetType().TryGetAttribute<PartnerProductAttribute>(out _))
+            {
+                throw new Exception($"'{nameof(PartnerProductAttribute)}' must be used with {nameof(SwPartnerAddInEx)}");
             }
         }
 
@@ -485,6 +490,10 @@ namespace Xarial.XCad.SolidWorks
             {
                 throw new Exception($"Decorate the add-in class with '{typeof(PartnerProductAttribute).FullName}' to specify partner key");
             }
+        }
+
+        protected override void Validate()
+        {
         }
     }
 
