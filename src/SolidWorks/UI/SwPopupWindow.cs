@@ -6,6 +6,8 @@
 //*********************************************************************
 
 using System;
+using System.Runtime.InteropServices;
+using System.Windows;
 using System.Windows.Forms;
 using Xarial.XCad.UI;
 using Xarial.XCad.UI.PopupWindow.Delegates;
@@ -45,6 +47,18 @@ namespace Xarial.XCad.SolidWorks.UI
         public abstract void Show();
     }
 
+    internal static class SwPopupWpfWindowWinAPI
+    {
+        [StructLayout(LayoutKind.Sequential)]
+        internal struct RECT
+        {
+            public int Left, Top, Right, Bottom;
+        }
+
+        [DllImport("user32.dll", SetLastError = true)]
+        internal static extern bool GetWindowRect(IntPtr hwnd, out RECT lpRect);
+    }
+
     internal class SwPopupWpfWindow<TWindow> : SwPopupWindow<TWindow>
     {
         public override event PopupWindowClosedDelegate<TWindow> Closed;
@@ -69,16 +83,20 @@ namespace Xarial.XCad.SolidWorks.UI
 
         public override TWindow Control { get; }
 
-        private readonly System.Windows.Window m_WpfWindow;
+        private readonly Window m_WpfWindow;
 
         private readonly System.Windows.Interop.WindowInteropHelper m_Owner;
 
         private bool m_IsDisposed;
 
+        private readonly IntPtr m_ParentWnd;
+
         internal SwPopupWpfWindow(TWindow wpfWindow, IntPtr parent) 
         {
+            m_ParentWnd = parent;
+
             Control = wpfWindow;
-            m_WpfWindow = (System.Windows.Window)(object)wpfWindow;
+            m_WpfWindow = (Window)(object)wpfWindow;
             m_WpfWindow.Activated += OnWindowActivated;
             m_WpfWindow.Closed += OnWpfWindowClosed;
             m_Owner = new System.Windows.Interop.WindowInteropHelper(m_WpfWindow);
@@ -117,13 +135,64 @@ namespace Xarial.XCad.SolidWorks.UI
 
         public override bool? ShowDialog()
         {
-            return m_WpfWindow.ShowDialog();
+            var startupLoc = m_WpfWindow.WindowStartupLocation;
+
+            PositionWindow();
+
+            var res = m_WpfWindow.ShowDialog();
+
+            m_WpfWindow.WindowStartupLocation = startupLoc;
+
+            return res;
         }
 
         public override void Show()
         {
+            var startupLoc = m_WpfWindow.WindowStartupLocation;
+
+            PositionWindow();
+
             m_WpfWindow.Show();
             m_WpfWindow.BringIntoView();
+
+            m_WpfWindow.WindowStartupLocation = startupLoc;
+        }
+
+        /// <remarks>
+        /// CenterOwner does not properly position the WPF on the Win32 parent
+        /// Instead calculating and setting the position manually
+        /// </remarks>
+        private void PositionWindow() 
+        {
+            if (m_WpfWindow.WindowStartupLocation == WindowStartupLocation.CenterOwner)
+            {
+                if (m_ParentWnd != IntPtr.Zero)
+                {
+                    SwPopupWpfWindowWinAPI.GetWindowRect(m_ParentWnd, out var rect);
+
+                    Point pos;
+
+                    using (var graphics = System.Drawing.Graphics.FromHwnd(IntPtr.Zero))
+                    {
+                        const int DPI = 96;
+
+                        var scaleX = graphics.DpiX / DPI;
+                        var scaleY = graphics.DpiY / DPI;
+
+                        var left = rect.Left / scaleX;
+                        var top = rect.Top / scaleY;
+
+                        var wndWidth = (rect.Right - rect.Left) / scaleX;
+                        var wndHeight = (rect.Bottom - rect.Top) / scaleY;
+
+                        pos = new Point(left + wndWidth / 2 - m_WpfWindow.Width / 2, top + wndHeight / 2 - m_WpfWindow.Height / 2);
+                    }
+
+                    m_WpfWindow.WindowStartupLocation = WindowStartupLocation.Manual;
+                    m_WpfWindow.Left = pos.X;
+                    m_WpfWindow.Top = pos.Y;
+                }
+            }
         }
     }
 
