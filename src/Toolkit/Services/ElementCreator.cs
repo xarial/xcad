@@ -39,6 +39,9 @@ namespace Xarial.XCad.Services
             m_CachedProperties[prpName] = val;
         }
 
+        public bool Has<T>([CallerMemberName] string prpName = "") 
+            => m_CachedProperties.ContainsKey(prpName);
+
         internal CachedProperties() 
         {
             m_CachedProperties = new Dictionary<string, object>();

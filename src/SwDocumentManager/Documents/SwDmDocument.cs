@@ -133,6 +133,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         public void Rebuild() => throw new NotSupportedException();
         public IXUnits Units => throw new NotSupportedException();
         public IXModelViewRepository ModelViews => throw new NotSupportedException();
+        public IXAnnotationRepository Annotations => throw new NotSupportedException();
 
         #endregion
 

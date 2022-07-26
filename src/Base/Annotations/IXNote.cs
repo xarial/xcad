@@ -26,5 +26,10 @@ namespace Xarial.XCad.Annotations
         /// Text of the note
         /// </summary>
         string Text { get; set; }
+
+        /// <summary>
+        /// Angle of this note in radians
+        /// </summary>
+        double Angle { get; set; }
     }
 }

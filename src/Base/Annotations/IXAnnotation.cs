@@ -14,5 +14,10 @@ namespace Xarial.XCad.Annotations
         /// Position of this annotation
         /// </summary>
         Point Position { get; set; }
+
+        /// <summary>
+        /// Font of this annotation
+        /// </summary>
+        IFont Font { get; set; }
     }
 }

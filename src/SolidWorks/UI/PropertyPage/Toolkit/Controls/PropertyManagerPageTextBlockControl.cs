@@ -8,6 +8,7 @@
 using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
 using System.Drawing;
+using Xarial.XCad.Enums;
 using Xarial.XCad.SolidWorks.Services;
 using Xarial.XCad.Toolkit.Utils;
 using Xarial.XCad.UI.PropertyPage.Attributes;

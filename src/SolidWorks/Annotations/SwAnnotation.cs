@@ -3,9 +3,12 @@ using SolidWorks.Interop.swconst;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
 using Xarial.XCad.Annotations;
 using Xarial.XCad.Geometry.Structures;
+using Xarial.XCad.Services;
 using Xarial.XCad.SolidWorks.Documents;
+using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.Toolkit.Utils;
 
 namespace Xarial.XCad.SolidWorks.Annotations
@@ -17,31 +20,39 @@ namespace Xarial.XCad.SolidWorks.Annotations
 
     internal class SwAnnotation : SwSelObject, ISwAnnotation
     {
-        public IAnnotation Annotation { get; }
+        public IAnnotation Annotation => m_Creator.Element;
+
+        public override bool IsCommitted => m_Creator.IsCreated;
+
+        protected readonly ElementCreator<IAnnotation> m_Creator;
 
         internal SwAnnotation(IAnnotation ann, SwDocument doc, SwApplication app) : base(ann, doc, app) 
         {
-            Annotation = ann;
+            m_Creator = new ElementCreator<IAnnotation>(CreateAnnotation, ann, ann != null);
         }
 
         public Point Position
         {
-            get => new Point((double[])Annotation.GetPosition());
+            get
+            {
+                if (IsCommitted)
+                {
+                    return new Point((double[])Annotation.GetPosition());
+                }
+                else 
+                {
+                    return m_Creator.CachedProperties.Get<Point>();
+                }
+            }
             set
             {
-                if (OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2014, 3))
+                if (IsCommitted)
                 {
-                    if (!Annotation.SetPosition2(value.X, value.Y, value.Z))
-                    {
-                        throw new Exception("Failed to set the position of the dimension");
-                    }
+                    SetPosition(Annotation, value);
                 }
-                else
+                else 
                 {
-                    if (!Annotation.SetPosition(value.X, value.Y, value.Z))
-                    {
-                        throw new Exception("Failed to set the position of the dimension");
-                    }
+                    m_Creator.CachedProperties.Set(value);
                 }
             }
         }
@@ -50,34 +61,110 @@ namespace Xarial.XCad.SolidWorks.Annotations
         {
             get
             {
-                var layerOverride = (swLayerOverride_e)Annotation.LayerOverride;
-
-                if (layerOverride.HasFlag(swLayerOverride_e.swLayerOverrideColor))
+                if (IsCommitted)
                 {
-                    return ColorUtils.FromColorRef(Annotation.Color);
+                    var layerOverride = (swLayerOverride_e)Annotation.LayerOverride;
+
+                    if (layerOverride.HasFlag(swLayerOverride_e.swLayerOverrideColor))
+                    {
+                        return ColorUtils.FromColorRef(Annotation.Color);
+                    }
+                    else
+                    {
+                        return null;
+                    }
                 }
                 else 
                 {
-                    return null;
+                    return m_Creator.CachedProperties.Get<System.Drawing.Color?>();
                 }
             }
             set
             {
-                if (value.HasValue)
+                if (IsCommitted)
                 {
-                    Annotation.Color = ColorUtils.ToColorRef(value.Value);
+                    SetColor(Annotation, value);
                 }
                 else 
                 {
-                    var layerOverride = (swLayerOverride_e)Annotation.LayerOverride;
+                    m_Creator.CachedProperties.Set(value);
+                }
+            }
+        }
 
-                    if (layerOverride.HasFlag(swLayerOverride_e.swLayerOverrideColor)) 
+        public IFont Font
+        {
+            get
+            {
+                if (IsCommitted)
+                {
+                    return SwFontHelper.FromTextFormat((ITextFormat)Annotation.GetTextFormat(0));
+                }
+                else
+                {
+                    return m_Creator.CachedProperties.Get<IFont>();
+                }
+            }
+            set
+            {
+                if (IsCommitted)
+                {
+                    var textFormat = (ITextFormat)Annotation.GetTextFormat(0);
+                    
+                    if (value != null)
                     {
-                        layerOverride -= swLayerOverride_e.swLayerOverrideColor;
+                        SwFontHelper.FillTextFormat(value, textFormat);
                     }
 
-                    Annotation.LayerOverride = (int)layerOverride;
+                    Annotation.SetTextFormat(0, value == null, textFormat);
                 }
+                else
+                {
+                    m_Creator.CachedProperties.Set(value);
+                }
+            }
+        }
+
+        public override void Commit(CancellationToken cancellationToken)
+            => m_Creator.Create(cancellationToken);
+
+        protected virtual IAnnotation CreateAnnotation(CancellationToken arg)
+            => throw new NotSupportedException("Creating of this annotation is not supported");
+
+        protected void SetPosition(IAnnotation ann, Point value)
+        {
+            if (OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2014, 3))
+            {
+                if (!ann.SetPosition2(value.X, value.Y, value.Z))
+                {
+                    throw new Exception("Failed to set the position of the dimension");
+                }
+            }
+            else
+            {
+                if (!ann.SetPosition(value.X, value.Y, value.Z))
+                {
+                    throw new Exception("Failed to set the position of the dimension");
+                }
+            }
+        }
+
+        protected void SetColor(IAnnotation ann, System.Drawing.Color? value)
+        {
+            if (value.HasValue)
+            {
+                ann.Color = ColorUtils.ToColorRef(value.Value);
+            }
+            else
+            {
+                var layerOverride = (swLayerOverride_e)ann.LayerOverride;
+
+                if (layerOverride.HasFlag(swLayerOverride_e.swLayerOverrideColor))
+                {
+                    layerOverride -= swLayerOverride_e.swLayerOverrideColor;
+                }
+
+                ann.LayerOverride = (int)layerOverride;
             }
         }
     }

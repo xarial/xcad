@@ -354,6 +354,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         private readonly Lazy<ISwSelectionCollection> m_SelectionsLazy;
         private readonly Lazy<ISwDimensionsCollection> m_DimensionsLazy;
         private readonly Lazy<ISwCustomPropertiesCollection> m_PropertiesLazy;
+        private readonly Lazy<SwAnnotationCollection> m_AnnotationsLazy;
 
         public ISwFeatureManager Features => m_FeaturesLazy.Value;
         public ISwSelectionCollection Selections => m_SelectionsLazy.Value;
@@ -408,6 +409,8 @@ namespace Xarial.XCad.SolidWorks.Documents
             m_SelectionsLazy = new Lazy<ISwSelectionCollection>(() => new SwSelectionCollection(this, app));
             m_DimensionsLazy = new Lazy<ISwDimensionsCollection>(() => new SwFeatureManagerDimensionsCollection(this.Features, new Context(this)));
             m_PropertiesLazy = new Lazy<ISwCustomPropertiesCollection>(() => new SwFileCustomPropertiesCollection(this, app));
+
+            m_AnnotationsLazy = new Lazy<SwAnnotationCollection>(() => new SwAnnotationCollection(this));
 
             m_ModelViewsLazy = new Lazy<ISwModelViewsCollection>(() => new SwModelViewsCollection(this, app));
 
@@ -639,6 +642,8 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public virtual ISwModelViewsCollection ModelViews => m_ModelViewsLazy.Value;
 
+        public IXAnnotationRepository Annotations => m_AnnotationsLazy.Value;
+
         private SwVersion_e GetVersion(string[] versHistory)
         {
             if (versHistory?.Any() == true)
@@ -703,6 +708,8 @@ namespace Xarial.XCad.SolidWorks.Documents
                         return SwVersion_e.Sw2021;
                     case 15000:
                         return SwVersion_e.Sw2022;
+                    case 16000:
+                        return SwVersion_e.Sw2023;
                     default:
                         throw new NotSupportedException($"'{latestVers}' version is not recognized");
                 }

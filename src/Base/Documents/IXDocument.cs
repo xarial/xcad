@@ -119,6 +119,11 @@ namespace Xarial.XCad.Documents
         void SaveAs(string filePath);
 
         /// <summary>
+        /// Collection of annotations
+        /// </summary>
+        IXAnnotationRepository Annotations { get; }
+
+        /// <summary>
         /// Collection of features of this document
         /// </summary>
         IXFeatureRepository Features { get; }

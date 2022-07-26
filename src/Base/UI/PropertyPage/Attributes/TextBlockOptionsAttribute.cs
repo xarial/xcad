@@ -6,6 +6,7 @@
 //*********************************************************************
 
 using System;
+using Xarial.XCad.Enums;
 using Xarial.XCad.UI.PropertyPage.Base;
 using Xarial.XCad.UI.PropertyPage.Enums;
 
@@ -45,7 +46,7 @@ namespace Xarial.XCad.UI.PropertyPage.Attributes
         /// <param name="fontStyle">Font style</param>
         /// <param name="font">Font name</param>
         /// <param name="format">String format</param>
-        public TextBlockOptionsAttribute(TextAlignment_e textAlignment = TextAlignment_e.Default, FontStyle_e fontStyle = FontStyle_e.Default, string font = "", string format = "")
+        public TextBlockOptionsAttribute(TextAlignment_e textAlignment = TextAlignment_e.Default, FontStyle_e fontStyle = FontStyle_e.Regular, string font = "", string format = "")
         {
             TextAlignment = textAlignment;
             FontStyle = fontStyle;

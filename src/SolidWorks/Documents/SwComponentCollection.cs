@@ -129,9 +129,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
 
         public void RemoveRange(IEnumerable<IXComponent> ents, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+            => throw new NotImplementedException();
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
