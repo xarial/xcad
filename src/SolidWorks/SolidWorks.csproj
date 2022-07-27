@@ -1,37 +1,19 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
 
   <PropertyGroup>
-    <TargetFrameworks>net6.0-windows;netcoreapp3.1;net461</TargetFrameworks>
-    <BuildNumber>0</BuildNumber>
-    <RootNamespace>Xarial.XCad.SolidWorks</RootNamespace>
     <AssemblyName>Xarial.XCad.SolidWorks</AssemblyName>
-    <SignAssembly>false</SignAssembly>
-    <PublishRepositoryUrl>true</PublishRepositoryUrl>
-    <EmbedUntrackedSources>true</EmbedUntrackedSources>
-    <IncludeSymbols>true</IncludeSymbols>
-    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <RootNamespace>Xarial.XCad.SolidWorks</RootNamespace>
+    <TargetFrameworks>net6.0-windows;netcoreapp3.1;net461</TargetFrameworks>
     <PackageId>Xarial.XCad.SolidWorks</PackageId>
-    <VersionPrefix>0.8.$(BuildNumber)</VersionPrefix>
-    <Authors>Xarial</Authors>
-    <Product>xCAD</Product>
-    <Copyright>© 2022 Xarial Pty Limited</Copyright>
-    <PackageProjectUrl>https://xcad.net</PackageProjectUrl>
-    <AssemblyOriginatorKeyFile></AssemblyOriginatorKeyFile>
-    <Company>Xarial Pty Limited</Company>
-    <RepositoryUrl>https://github.com/xarial/xcad</RepositoryUrl>
     <PackageTags>cad,solidworks</PackageTags>
     <Description>Framework for developing SOLIDWORKS applications</Description>
-    <RepositoryType>git</RepositoryType>
     <PackageIcon>icon.png</PackageIcon>
     <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
     <PackageIconUrl>https://xcad.xarial.com/icon.png</PackageIconUrl>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(TF_BUILD)' == 'true'">
-    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
-  </PropertyGroup>
-  
+  <Import Project="$(SolutionDir)common\common.props" />
+
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netcoreapp3.1|AnyCPU' Or '$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net6.0|AnyCPU' or '$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net6.0-windows|AnyCPU'">
     <NoWarn>1701;1702</NoWarn>
   </PropertyGroup>

@@ -27,6 +27,7 @@ using System.ComponentModel;
 using Xarial.XCad.UI.PropertyPage.Services;
 using Xarial.XCad.UI.PropertyPage.Enums;
 using Xarial.XCad.UI.PropertyPage.Structures;
+using Xarial.XCad.Enums;
 
 namespace SwAddInExample
 {

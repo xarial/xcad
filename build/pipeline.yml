@@ -27,10 +27,10 @@ stages:
 
     steps:
       - task: NuGetToolInstaller@1
-        displayName: 'Use NuGet'
+        displayName: 'Install NuGet'
 
       - task: NuGetCommand@2
-        displayName: 'NuGet restore'
+        displayName: 'Restore NuGet References'
         inputs:
           restoreSolution: '**\*.sln'
 
@@ -44,7 +44,7 @@ stages:
         - task: VSBuild@1
           displayName: 'Build and pack preview version'
           inputs:
-            solution: 'xcad.sln'
+            solution: 'src/*.csproj'
             msbuildArgs: '/t:pack /p:OutputPath=$(System.DefaultWorkingDirectory)\build\preview;SignAssembly=true;AssemblyOriginatorKeyFile=$(Certificate.secureFilePath);DelaySign=false;BuildNumber=$(Build.BuildID);VersionSuffix=preview'
             platform: '$(BuildPlatform)'
             configuration: '$(BuildConfiguration)'
@@ -52,7 +52,7 @@ stages:
       - task: VSBuild@1
         displayName: 'Build and pack release version'
         inputs:
-          solution: 'xcad.sln'
+          solution: 'src/*.csproj'
           msbuildArgs: '/t:pack /p:OutputPath=$(System.DefaultWorkingDirectory)\build\release;SignAssembly=true;AssemblyOriginatorKeyFile=$(Certificate.secureFilePath);DelaySign=false;BuildNumber=$(Build.BuildID)'
           platform: '$(BuildPlatform)'
           configuration: '$(BuildConfiguration)'
@@ -65,7 +65,7 @@ stages:
             configuration: '$(BuildConfiguration)'
             
       - task: VSTest@2
-        displayName: 'Unit test'
+        displayName: 'Run unit tests'
         inputs:
           testAssemblyVer2: |
             **\$(BuildConfiguration)\**\*tests*.dll
@@ -75,7 +75,7 @@ stages:
       
       - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
         - task: CopyFiles@2
-          displayName: 'Copy Nuget Package'
+          displayName: 'Copy NuGet packages to artifacts folder'
           inputs:
             SourceFolder: '$(system.defaultworkingdirectory)/build'
             Contents: |
@@ -88,7 +88,7 @@ stages:
           artifact: 'packages'
 
 - stage: 'PublishPreviewNuGetPackage'
-  displayName: 'Publish Preview NuGet Package to xarial nuget feed'
+  displayName: 'Publish preview NuGet Package to xarial nuget feed'
   dependsOn: 'Build'
   condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/dev'), ne(variables['Build.Reason'], 'PullRequest'))
   jobs:
@@ -103,7 +103,7 @@ stages:
       artifact: 'packages'
 
     - task: NuGetCommand@2
-      displayName: 'Push NuGet Package'
+      displayName: 'Push NuGet Packages'
       inputs:
         command: 'push'
         packagesToPush: '$(Pipeline.Workspace)/packages/preview/*.nupkg'
@@ -111,7 +111,7 @@ stages:
         publishVstsFeed: 'xcad/xcad-preview'
         
 - stage: 'PublishPreReleaseNuGetPackage'
-  displayName: 'Publish Prerelease NuGet Package to xarial nuget feed'
+  displayName: 'Publish PreRelease NuGet packages to xarial nuget feed'
   dependsOn: 'Build'
   condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'), ne(variables['Build.Reason'], 'PullRequest'))
   jobs:
@@ -126,7 +126,7 @@ stages:
       artifact: 'packages'
 
     - task: NuGetCommand@2
-      displayName: 'Push NuGet Package'
+      displayName: 'Push NuGet Packages'
       inputs:
         command: 'push'
         packagesToPush: '$(Pipeline.Workspace)/packages/release/*.nupkg'
@@ -139,7 +139,7 @@ stages:
     - group: build-vars
     - name: packagePath
       value:
-  displayName: 'Publish Release NuGet Package to Nuget.org production'
+  displayName: 'Publish release NuGet packages to Nuget.org production'
   dependsOn: 'PublishPreReleaseNuGetPackage'
   condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'), ne(variables['Build.Reason'], 'PullRequest'))
   jobs:
