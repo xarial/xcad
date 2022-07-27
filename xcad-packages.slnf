@@ -1,0 +1,11 @@
+{
+  "solution": {
+    "path": "xcad.sln",
+    "projects": [
+      "src\\Base\\Base.csproj",
+	  "src\\Toolkit\\Toolkit.csproj",
+	  "src\\SolidWorks\\SolidWorks.csproj",
+	  "src\\SwDocumentManager\\SwDocumentManager.csproj"
+    ]
+  }
+}
