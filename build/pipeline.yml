@@ -45,7 +45,7 @@ stages:
           displayName: 'Build and pack preview version'
           inputs:
             solution: 'xcad.sln'
-            msbuildArgs: '/t:pack /p:OutputPath=$(System.DefaultWorkingDirectory)\build\preview;SignAssembly=true;AssemblyOriginatorKeyFile=$(Certificate.secureFilePath);DelaySign=false;BuildNumber=$(BuildID);VersionSuffix=$(Build.BuildNumber)'
+            msbuildArgs: '/t:pack /p:OutputPath=$(System.DefaultWorkingDirectory)\build\preview;SignAssembly=true;AssemblyOriginatorKeyFile=$(Certificate.secureFilePath);DelaySign=false;BuildNumber=$(BuildID);VersionSuffix=preview'
             platform: '$(BuildPlatform)'
             configuration: '$(BuildConfiguration)'
           
