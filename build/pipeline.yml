@@ -34,6 +34,22 @@ stages:
         inputs:
           restoreSolution: '**\*.sln'
 
+      - task: VSBuild@1
+        displayName: 'Build test projects'
+        inputs:
+            solution: 'tests\*.Tests\*.csproj'
+            platform: '$(BuildPlatform)'
+            configuration: '$(BuildConfiguration)'
+
+      - task: VSTest@2
+        displayName: 'Run unit tests'
+        inputs:
+          testAssemblyVer2: |
+            **\$(BuildConfiguration)\**\*tests*.dll
+            !**\obj\**
+          platform: '$(BuildPlatform)'
+          configuration: '$(BuildConfiguration)'
+          
       - task: DownloadSecureFile@1
         name: Certificate
         displayName: 'Download code signing certificate'
@@ -45,15 +61,6 @@ stages:
         inputs:
           solution: 'src/**/*.csproj'
           msbuildArgs: '/p:SignAssembly=true;AssemblyOriginatorKeyFile=$(Certificate.secureFilePath);DelaySign=false;BuildNumber=.$(Build.BuildID)'
-          platform: '$(BuildPlatform)'
-          configuration: '$(BuildConfiguration)'
-            
-      - task: VSTest@2
-        displayName: 'Run unit tests'
-        inputs:
-          testAssemblyVer2: |
-            **\$(BuildConfiguration)\**\*tests*.dll
-            !**\obj\**
           platform: '$(BuildPlatform)'
           configuration: '$(BuildConfiguration)'
 
