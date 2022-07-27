@@ -20,7 +20,7 @@ stages:
   - job:
     pool:
       name: 'Azure Pipelines'
-      vmImage: windows-2019
+      vmImage: windows-latest
       demands:
         - msbuild
         - visualstudio
@@ -28,11 +28,6 @@ stages:
     steps:
       - task: NuGetToolInstaller@1
         displayName: 'Install NuGet'
-
-      - task: UseDotNet@2
-        displayName: 'Install .NET SDK'
-        inputs:
-          packageType: 'sdk'
 
       - task: NuGetCommand@2
         displayName: 'Restore NuGet References'
