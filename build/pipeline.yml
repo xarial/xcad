@@ -1,5 +1,11 @@
-parameters:
-  projectName : ''
+trigger:
+  branches:
+    include:
+    - master
+    - dev
+  paths:
+    include:
+    - src/*
 
 name: '$(Date:yyyyMMdd).$(Rev:r)[$(BuildID)]'
 
@@ -38,7 +44,7 @@ stages:
         - task: VSBuild@1
           displayName: 'Build and pack preview version'
           inputs:
-            solution: 'src\${{ parameters.projectName }}\*.csproj'
+            solution: 'xcad.sln'
             msbuildArgs: '/t:pack /p:OutputPath=$(System.DefaultWorkingDirectory)\build\preview;SignAssembly=true;AssemblyOriginatorKeyFile=$(Certificate.secureFilePath);DelaySign=false;BuildNumber=$(BuildID);VersionSuffix=$(Build.BuildNumber)'
             platform: '$(BuildPlatform)'
             configuration: '$(BuildConfiguration)'
@@ -46,7 +52,7 @@ stages:
       - task: VSBuild@1
         displayName: 'Build and pack release version'
         inputs:
-          solution: 'src\${{ parameters.projectName }}\*.csproj'
+          solution: 'xcad.sln'
           msbuildArgs: '/t:pack /p:OutputPath=$(System.DefaultWorkingDirectory)\build\release;SignAssembly=true;AssemblyOriginatorKeyFile=$(Certificate.secureFilePath);DelaySign=false;BuildNumber=$(BuildID)'
           platform: '$(BuildPlatform)'
           configuration: '$(BuildConfiguration)'
@@ -54,7 +60,7 @@ stages:
       - task: VSBuild@1
         displayName: 'Build test projects'
         inputs:
-            solution: 'tests\${{ parameters.projectName }}.Tests\*.csproj'
+            solution: 'tests\*.Tests\*.csproj'
             platform: '$(BuildPlatform)'
             configuration: '$(BuildConfiguration)'
             
@@ -165,13 +171,13 @@ stages:
                 Write-Host "##vso[task.setvariable variable=packagePath;]$packagePath"
 
           - task: NuGetCommand@2
-            displayName: 'Sign NuGet Package'
+            displayName: 'Sign NuGet Packages'
             inputs:
               command: 'custom'
               arguments: sign "$(PackagePath)" -CertificatePath "$(Certificate.secureFilePath)" -CertificatePassword "$(CODE_SIGN_CERT_PWD)" -Timestamper http://timestamp.comodoca.com
 
           - task: NuGetCommand@2
-            displayName: 'Push NuGet Package'
+            displayName: 'Push NuGet Packages'
             inputs:
               command: 'push'
               packagesToPush: '$(Pipeline.Workspace)/packages/release/*.nupkg'
