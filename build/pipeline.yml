@@ -49,7 +49,7 @@ stages:
             !**\obj\**
           platform: '$(BuildPlatform)'
           configuration: '$(BuildConfiguration)'
-          
+
       - task: DownloadSecureFile@1
         name: Certificate
         displayName: 'Download code signing certificate'
@@ -97,6 +97,7 @@ stages:
       
       - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
         - publish: '$(Build.ArtifactStagingDirectory)/packages'
+          displayName: 'Publish packages artifact'
           artifact: 'packages'
 
 - stage: 'PublishPreviewNuGetPackage'
