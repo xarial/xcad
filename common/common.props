@@ -2,8 +2,8 @@
   <PropertyGroup>
     <OutputPath>..\..\_build\</OutputPath>
     <Product>xCAD</Product>
-    <BuildNumber>0</BuildNumber>
-    <VersionPrefix>0.8.0.$(BuildNumber)</VersionPrefix>
+    <BuildNumber></BuildNumber>
+    <VersionPrefix>0.8.0$(BuildNumber)</VersionPrefix>
     <Company>Xarial Pty Limited</Company>
     <Copyright>Copyright © Xarial Pty Limited 2022</Copyright>
     <Authors>Xarial</Authors>
