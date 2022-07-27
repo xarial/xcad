@@ -12,7 +12,7 @@
     <PackageIconUrl>https://xcad.xarial.com/icon.png</PackageIconUrl>
   </PropertyGroup>
 
-  <Import Project="$(SolutionDir)common\common.props" />
+  <Import Project="..\..\common\common.props" />
 
   <PropertyGroup Condition="'$(Configuration)'=='Release'">
     <DocumentationFile>Xarial.XCad.Toolkit.xml</DocumentationFile>

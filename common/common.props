@@ -1,6 +1,6 @@
 <Project>
   <PropertyGroup>
-    <OutputPath>$(SolutionDir)_build\</OutputPath>
+    <OutputPath>..\..\_build\</OutputPath>
     <Product>xCAD</Product>
     <BuildNumber>0</BuildNumber>
     <VersionPrefix>0.8.$(BuildNumber)</VersionPrefix>

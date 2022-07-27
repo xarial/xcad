@@ -44,7 +44,7 @@ stages:
         - task: VSBuild@1
           displayName: 'Build and pack preview version'
           inputs:
-            solution: 'xcad-packages.slnf'
+            solution: 'src/**/*.csproj'
             msbuildArgs: '/t:pack /p:OutputPath=$(System.DefaultWorkingDirectory)\build\preview;SignAssembly=true;AssemblyOriginatorKeyFile=$(Certificate.secureFilePath);DelaySign=false;BuildNumber=$(Build.BuildID);VersionSuffix=preview'
             platform: '$(BuildPlatform)'
             configuration: '$(BuildConfiguration)'
@@ -53,7 +53,7 @@ stages:
         - task: VSBuild@1
           displayName: 'Build and pack release version'
           inputs:
-            solution: 'xcad-packages.slnf'
+            solution: 'src/**/*.csproj'
             msbuildArgs: '/t:pack /p:OutputPath=$(System.DefaultWorkingDirectory)\build\release;SignAssembly=true;AssemblyOriginatorKeyFile=$(Certificate.secureFilePath);DelaySign=false;BuildNumber=$(Build.BuildID)'
             platform: '$(BuildPlatform)'
             configuration: '$(BuildConfiguration)'

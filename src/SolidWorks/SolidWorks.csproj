@@ -12,7 +12,7 @@
     <PackageIconUrl>https://xcad.xarial.com/icon.png</PackageIconUrl>
   </PropertyGroup>
 
-  <Import Project="$(SolutionDir)common\common.props" />
+  <Import Project="..\..\common\common.props" />
 
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netcoreapp3.1|AnyCPU' Or '$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net6.0|AnyCPU' or '$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net6.0-windows|AnyCPU'">
     <NoWarn>1701;1702</NoWarn>
