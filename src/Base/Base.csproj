@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <TargetFrameworks>net6.0;netstandard2.1;net461</TargetFrameworks>
+    <BuildNumber>0</BuildNumber>
     <AssemblyName>Xarial.XCad</AssemblyName>
     <RootNamespace>Xarial.XCad</RootNamespace>
     <SignAssembly>false</SignAssembly>
@@ -11,7 +12,7 @@
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <PackageId>Xarial.XCad</PackageId>
-    <VersionPrefix>0.8.0</VersionPrefix>
+    <VersionPrefix>0.8.$(BuildNumber)</VersionPrefix>
     <Authors>Xarial</Authors>
     <Product>xCAD</Product>
     <Copyright>© 2022 Xarial Pty Limited</Copyright>

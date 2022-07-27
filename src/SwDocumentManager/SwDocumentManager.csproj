@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <TargetFrameworks>net6.0-windows;netcoreapp3.1;net461</TargetFrameworks>
+    <BuildNumber>0</BuildNumber>
     <RootNamespace>Xarial.XCad.SwDocumentManager</RootNamespace>
     <AssemblyName>Xarial.XCad.SwDocumentManager</AssemblyName>
     <SignAssembly>false</SignAssembly>
@@ -11,7 +12,7 @@
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <PackageId>Xarial.XCad.SwDocumentManager</PackageId>
-    <VersionPrefix>0.8.0</VersionPrefix>
+    <VersionPrefix>0.8.$(BuildNumber)</VersionPrefix>
     <Authors>Xarial</Authors>
     <Product>xCAD</Product>
     <Copyright>© 2022 Xarial Pty Limited</Copyright>
