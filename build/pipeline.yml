@@ -41,9 +41,9 @@ stages:
           secureFile: xarial.snk
 
       - task: VSBuild@1
-        displayName: 'Build solution'
+        displayName: 'Build projects'
         inputs:
-          solution: 'xcad.sln'
+          solution: 'src/**/*.csproj'
           msbuildArgs: '/p:SignAssembly=true;AssemblyOriginatorKeyFile=$(Certificate.secureFilePath);DelaySign=false;BuildNumber=.$(Build.BuildID)'
           platform: '$(BuildPlatform)'
           configuration: '$(BuildConfiguration)'
