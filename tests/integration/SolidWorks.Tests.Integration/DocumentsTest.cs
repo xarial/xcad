@@ -234,67 +234,74 @@ namespace SolidWorks.Tests.Integration
         [Test]
         public void DocumentLifecycleEventsTest() 
         {
-            var createdDocs = new List<string>();
-            var d1ClosingCount = 0;
-            var d2ClosingCount = 0;
-
-            m_App.Documents.DocumentLoaded += (d)=> 
+            try
             {
-                createdDocs.Add(Path.GetFileNameWithoutExtension(d.Title).ToLower());
-            };
+                var createdDocs = new List<string>();
+                var d1ClosingCount = 0;
+                var d2ClosingCount = 0;
 
-            var doc1 = (ISwDocument)m_App.Documents.Open(GetFilePath("foreign.IGS"));
-
-            doc1.Closing += (d, t)=> 
-            {
-                if (t == DocumentCloseType_e.Destroy)
+                m_App.Documents.DocumentLoaded += (d) =>
                 {
-                    if (d != doc1)
-                    {
-                        throw new Exception("doc1 is invalid");
-                    }
+                    createdDocs.Add(Path.GetFileNameWithoutExtension(d.Title).ToLower());
+                };
 
-                    d1ClosingCount++;
-                }
-            };
+                var doc1 = (ISwDocument)m_App.Documents.Open(GetFilePath("foreign.IGS"));
 
-            int errs = -1;
-            int warns = -1;
-
-            var model2 = m_App.Sw.OpenDoc6(GetFilePath("Assembly1\\SubSubAssem1.SLDASM"),
-                (int)swDocumentTypes_e.swDocASSEMBLY,
-                (int)swOpenDocOptions_e.swOpenDocOptions_Silent,
-                "", ref errs, ref warns);
-
-            var doc2 = m_App.Documents[model2];
-
-            doc2.Closing += (d, t) =>
-            {
-                if (t == DocumentCloseType_e.Destroy)
+                doc1.Closing += (d, t) =>
                 {
-                    if (d != doc2)
+                    if (t == DocumentCloseType_e.Destroy)
                     {
-                        throw new Exception("doc2 is invalid");
+                        if (d != doc1)
+                        {
+                            throw new Exception("doc1 is invalid");
+                        }
+
+                        d1ClosingCount++;
                     }
+                };
 
-                    d2ClosingCount++;
-                }
-            };
+                int errs = -1;
+                int warns = -1;
 
-            var activeDocTitle = Path.GetFileNameWithoutExtension(m_App.Documents.Active.Title).ToLower();
+                var model2 = m_App.Sw.OpenDoc6(GetFilePath("Assembly1\\SubSubAssem1.SLDASM"),
+                    (int)swDocumentTypes_e.swDocASSEMBLY,
+                    (int)swOpenDocOptions_e.swOpenDocOptions_Silent,
+                    "", ref errs, ref warns);
 
-            m_App.Documents.Active = doc1;
+                var doc2 = m_App.Documents[model2];
 
-            var activeDocTitle1 = Path.GetFileNameWithoutExtension(m_App.Documents.Active.Title).ToLower();
+                doc2.Closing += (d, t) =>
+                {
+                    if (t == DocumentCloseType_e.Destroy)
+                    {
+                        if (d != doc2)
+                        {
+                            throw new Exception("doc2 is invalid");
+                        }
 
-            m_App.Sw.CloseAllDocuments(true);
+                        d2ClosingCount++;
+                    }
+                };
 
-            Assert.That(createdDocs.OrderBy(d => d)
-                .SequenceEqual(new string[] { "part1", "part3", "part4", "foreign", "subsubassem1" }.OrderBy(d => d)));
-            Assert.AreEqual(d1ClosingCount, 1);
-            Assert.AreEqual(d2ClosingCount, 1);
-            Assert.AreEqual(activeDocTitle, "subsubassem1");
-            Assert.AreEqual(activeDocTitle1, "foreign");
+                var activeDocTitle = Path.GetFileNameWithoutExtension(m_App.Documents.Active.Title).ToLower();
+
+                m_App.Documents.Active = doc1;
+
+                var activeDocTitle1 = Path.GetFileNameWithoutExtension(m_App.Documents.Active.Title).ToLower();
+
+                m_App.Sw.CloseAllDocuments(true);
+
+                Assert.That(createdDocs.OrderBy(d => d)
+                    .SequenceEqual(new string[] { "part1", "part3", "part4", "foreign", "subsubassem1" }.OrderBy(d => d)));
+                Assert.AreEqual(d1ClosingCount, 1);
+                Assert.AreEqual(d2ClosingCount, 1);
+                Assert.AreEqual(activeDocTitle, "subsubassem1");
+                Assert.AreEqual(activeDocTitle1, "foreign");
+            }
+            finally 
+            {
+                m_App.Sw.CloseAllDocuments(true);
+            }
         }
 
         [Test]

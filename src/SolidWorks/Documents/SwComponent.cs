@@ -333,9 +333,12 @@ namespace Xarial.XCad.SolidWorks.Documents
                         state |= ComponentState_e.Embedded;
                     }
 
-                    if (Component.IsFixed())
+                    if (Component.GetParent() == null)//as per the API documentation only top level components are supported for fixed
                     {
-                        state |= ComponentState_e.Fixed;
+                        if (Component.IsFixed())
+                        {
+                            state |= ComponentState_e.Fixed;
+                        }
                     }
 
                     return state;
@@ -750,6 +753,36 @@ namespace Xarial.XCad.SolidWorks.Documents
             m_Comp = comp;
         }
 
+        protected override IEnumerable<IComponent2> IterateChildren()
+        {
+            //retrieving configuration specific component refernces (not used if the component belongs to the active configuration of the root assembly)
+            var compsMapLazy = new Lazy<Dictionary<string, IComponent2>>(() => 
+            {
+                return ((object[])m_Comp.Component.GetChildren() ?? new object[0]).Cast<IComponent2>().ToDictionary(c => 
+                {
+                    var fullName = c.Name2;
+                    return fullName.Substring(fullName.LastIndexOf('/') + 1);
+                }, StringComparer.CurrentCultureIgnoreCase);
+            });
+
+            if (m_Comp.GetSuppressionState() != swComponentSuppressionState_e.swComponentSuppressed)
+            {
+                foreach (var feat in base.IterateFeatureComponents(m_Comp.Component.FirstFeature())) 
+                {
+                    var comp = (IComponent2)feat.GetSpecificFeature2();
+
+                    //null will be returned if the component is in the context of inactive configuration of the root assembly
+                    if (comp == null)
+                    {
+                        //in this case retrieving the component from the map by name
+                        comp = compsMapLazy.Value[feat.Name];
+                    }
+
+                    yield return comp;
+                }
+            }
+        }
+
         protected override int GetTotalChildrenCount()
         {
             if (m_Comp.GetSuppressionState() != swComponentSuppressionState_e.swComponentSuppressed)
@@ -772,18 +805,6 @@ namespace Xarial.XCad.SolidWorks.Documents
             else
             {
                 return 0;
-            }
-        }
-
-        protected override IEnumerable<IComponent2> GetChildren()
-        {
-            if (m_Comp.GetSuppressionState() != swComponentSuppressionState_e.swComponentSuppressed)
-            {
-                return (m_Comp.Component.GetChildren() as object[])?.Cast<IComponent2>();
-            }
-            else 
-            {
-                return Enumerable.Empty<IComponent2>();
             }
         }
 

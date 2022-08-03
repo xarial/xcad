@@ -32,6 +32,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\Base\Base.csproj" />
     <ProjectReference Include="..\..\src\SolidWorks\SolidWorks.csproj" />
+    <ProjectReference Include="..\..\src\SwDocumentManager\SwDocumentManager.csproj" />
     <ProjectReference Include="..\..\src\Toolkit\Toolkit.csproj" />
   </ItemGroup>
 

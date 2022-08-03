@@ -27,8 +27,16 @@ namespace Xarial.XCad.SolidWorks.Documents.Services
     {
         private class ModelInfo 
         {
-            internal string Title { get; set; }
-            internal string Path { get; set; }
+            internal string Title { get; }
+            internal string Path { get; }
+            internal IModelDoc2 Model { get; }
+
+            internal ModelInfo(string title, string path, IModelDoc2 model)
+            {
+                Title = title;
+                Path = path;
+                Model = model;
+            }
         }
 
         internal event Action<SwDocument> Dispatched;
@@ -64,11 +72,7 @@ namespace Xarial.XCad.SolidWorks.Documents.Services
             {
                 m_Logger.Log($"Adding '{title}' to the dispatch queue", LoggerMessageSeverity_e.Debug);
 
-                m_ModelsDispatchQueue.Add(new ModelInfo() 
-                {
-                    Title = title,
-                    Path = path 
-                });
+                m_ModelsDispatchQueue.Add(new ModelInfo(title, path, m_App.Sw.GetOpenDocument(title)));
                 
                 if (!m_DocsDispatchQueue.Any())
                 {
@@ -101,6 +105,13 @@ namespace Xarial.XCad.SolidWorks.Documents.Services
                     index = m_ModelsDispatchQueue.FindIndex(i =>
                         (!string.IsNullOrEmpty(i.Path) && string.Equals(System.IO.Path.GetFileNameWithoutExtension(model.GetPathName()), System.IO.Path.GetFileNameWithoutExtension(i.Path), StringComparison.CurrentCultureIgnoreCase))
                         || string.Equals(System.IO.Path.GetFileNameWithoutExtension(model.GetTitle()), System.IO.Path.GetFileNameWithoutExtension(i.Title), StringComparison.CurrentCultureIgnoreCase));
+
+                    if (index == -1)
+                    {
+                        index = m_ModelsDispatchQueue.FindIndex(m =>
+                            string.Equals(System.IO.Path.GetFileNameWithoutExtension(model.GetTitle()),
+                            System.IO.Path.GetFileNameWithoutExtension(m.Model?.GetTitle()), StringComparison.CurrentCultureIgnoreCase));
+                    }
                 }
                 else 
                 {

@@ -15,6 +15,7 @@ using Xarial.XCad.Documents;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.SolidWorks.Documents.Services;
+using Xarial.XCad.SolidWorks.Features;
 using Xarial.XCad.SolidWorks.Geometry;
 using Xarial.XCad.Utils.Diagnostics;
 
@@ -89,13 +90,35 @@ namespace Xarial.XCad.SolidWorks.Documents
             m_Conf = conf;
         }
 
-        protected override int GetTotalChildrenCount()
-            => m_Assm.Assembly.GetComponentCount(false);
-        
-        protected override IEnumerable<IComponent2> GetChildren()
-            => (m_Conf.GetRootComponent3(m_Assm.Model.GetActiveConfiguration() != m_Conf).GetChildren() as object[])?.Cast<IComponent2>();
+        protected override IEnumerable<IComponent2> IterateChildren()
+        {
+            var isActiveConf = m_Assm.Model.GetActiveConfiguration() == m_Conf;
 
-        protected override int GetChildrenCount() 
-            => m_Assm.Assembly.GetComponentCount(true);
+            var compsMapLazy = new Lazy<Dictionary<int, IComponent2>>(() => 
+            {
+                var rootComp = m_Conf.GetRootComponent3(!isActiveConf);
+
+                //NOTE: GetChildren returns components in the random order, however this seems to be the only way to access the pointer
+                //of the components of the inactive configuraiton of the assembly. Collecting of the pointer to later map to the ordered components
+
+                return (rootComp.GetChildren() as object[] ?? new object[0]).Cast<IComponent2>().ToDictionary(c => c.GetID());
+            });
+
+            foreach (var feat in base.IterateFeatureComponents(m_Assm.Model.IFirstFeature())) 
+            {
+                var comp = (IComponent2)feat.GetSpecificFeature2();
+
+                if (!isActiveConf)
+                {
+                    //components are iterated in the active configuration of the model for the inactive configuration retrieve the corresponding component by id
+                    comp = compsMapLazy.Value[comp.GetID()];
+                }
+
+                yield return comp;
+            }
+        }
+
+        protected override int GetTotalChildrenCount() => m_Assm.Assembly.GetComponentCount(false);
+        protected override int GetChildrenCount() => m_Assm.Assembly.GetComponentCount(true);
     }
 }

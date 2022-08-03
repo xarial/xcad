@@ -195,8 +195,8 @@ namespace Xarial.XCad.SolidWorks.Documents
             return m_Drawing.Drawing.Sheet[Name];
         }
 
-        internal void SetupSheet(IXSheet template, string sheetName)
-            => SetupSheet(Sheet, sheetName, template.PaperSize, template.Scale);
+        internal void SetupSheet(IXSheet template)
+            => SetupSheet(Sheet, template.Name, template.PaperSize, template.Scale);
 
         internal void SetupSheet(ISheet sheet, string name, PaperSize size, Scale scale)
         {

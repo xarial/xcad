@@ -68,7 +68,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
                     foreach (SwSheet sheet in m_Repo)
                     {
-                        sheet.SetupSheet(m_TemplatePlaceholderSheet, sheet.Name);
+                        sheet.SetupSheet(m_TemplatePlaceholderSheet);
 
                         if (isFirst)
                         {
@@ -127,7 +127,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             {
                 var swSheet = (SwSheet)curSheets[i];
 
-                swSheet.SetupSheet(targetSheets[i], swSheet.Name);
+                swSheet.SetupSheet(targetSheets[i]);
 
                 ((SwSheet)targetSheets[i]).InitFromExisting(swSheet, cancellationToken);
             }

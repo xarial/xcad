@@ -19,6 +19,7 @@ using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.SolidWorks.Documents.Services;
+using Xarial.XCad.SolidWorks.Features;
 using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.Toolkit.Utils;
 
@@ -42,7 +43,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public bool TryGet(string name, out IXComponent ent)
         {
-            var comp = GetChildren().FirstOrDefault(c => string.Equals(GetRelativeName(c), name, StringComparison.CurrentCultureIgnoreCase));
+            var comp = IterateChildren().FirstOrDefault(c => string.Equals(GetRelativeName(c), name, StringComparison.CurrentCultureIgnoreCase));
 
             if (comp != null)
             {
@@ -106,7 +107,8 @@ namespace Xarial.XCad.SolidWorks.Documents
         public void AddRange(IEnumerable<IXComponent> ents, CancellationToken cancellationToken)
             => BatchAdd(RootAssembly, ents.Cast<SwComponent>().ToArray(), true);
 
-        protected abstract IEnumerable<IComponent2> GetChildren();
+        protected abstract IEnumerable<IComponent2> IterateChildren();
+
         protected abstract int GetChildrenCount();
         protected abstract int GetTotalChildrenCount();
 
@@ -119,7 +121,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                     throw new Exception("Components cannot be extracted for the Large Design Review assembly");
                 }
 
-                return (GetChildren() ?? new IComponent2[0])
+                return (IterateChildren() ?? new IComponent2[0])
                     .Select(c => RootAssembly.CreateObjectFromDispatch<SwComponent>(c)).GetEnumerator();
             }
             else 
@@ -130,6 +132,19 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public void RemoveRange(IEnumerable<IXComponent> ents, CancellationToken cancellationToken)
             => throw new NotImplementedException();
+
+        protected IEnumerable<IFeature> IterateFeatureComponents(IFeature firstFeat) 
+        {
+            foreach (var feat in FeatureEnumerator.IterateFeatures(firstFeat, true))
+            {
+                var typeName = feat.GetTypeName2();
+
+                if (typeName == "Reference" || typeName == "ReferencePattern")
+                {
+                    yield return feat;
+                }
+            }
+        }
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
