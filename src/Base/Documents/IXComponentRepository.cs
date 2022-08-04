@@ -40,14 +40,19 @@ namespace Xarial.XCad.Documents
         {
             foreach (var comp in repo) 
             {
+                yield return comp;
+
                 IXComponentRepository children = null;
 
-                try
+                var state = comp.State;
+
+                if (!comp.State.HasFlag(ComponentState_e.Suppressed) && !comp.State.HasFlag(ComponentState_e.SuppressedIdMismatch))
                 {
                     children = comp.Children;
                 }
-                catch 
+                else
                 {
+                    children = null;
                 }
 
                 if (children != null)
@@ -57,8 +62,6 @@ namespace Xarial.XCad.Documents
                         yield return subComp;
                     }
                 }
-
-                yield return comp;
             }
         }
 
