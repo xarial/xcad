@@ -194,9 +194,9 @@ stages:
             inputs:
               targetType: 'inline'
               script: |
-                $packagePath = (Get-ChildItem -Path "$(Pipeline.Workspace)/packages/$(versionSuffix)" -Filter "*.nupkg").FullName
+                $packagePath = "(Get-ChildItem -Path "$(Pipeline.Workspace)/packages/$(versionSuffix)" -Filter "*.nupkg").FullName"
                 Write-Host $packagePath
-                Write-Host "##vso[task.setvariable variable=packagePath;]$packagePath"
+                Write-Host ##vso[task.setvariable variable=packagePath;]$packagePath
 
           - task: NuGetCommand@2
             displayName: 'Sign NuGet Packages'
