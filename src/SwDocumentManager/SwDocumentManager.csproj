@@ -10,6 +10,7 @@
     <PackageIcon>icon.png</PackageIcon>
     <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
     <PackageIconUrl>https://xcad.xarial.com/icon.png</PackageIconUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
   <Import Project="..\..\common\common.props" />
@@ -36,6 +37,7 @@
     <None Include="..\..\build\solidworks-dm-init.ps1" pack="true" PackagePath="tools\init.ps1" />
     <None Include="..\..\data\icon.png" pack="true" PackagePath="" />
     <None Include="..\..\LICENSE.md" pack="true" PackagePath="" />
+    <None Include="..\..\README.md" pack="true" PackagePath="" />
   </ItemGroup>
   
   <ItemGroup>

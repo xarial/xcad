@@ -1,6 +1,6 @@
 # xCAD.NET: SOLIDWORKS API development made easy
 
-![Logo](data/icon.png)
+![Logo](https://raw.githubusercontent.com/xarial/xcad/master/data/icon.png)
 
 [![NuGet version (xCAD.NET)](https://img.shields.io/nuget/v/Xarial.XCad.svg?style=flat-square)](https://www.nuget.org/packages/Xarial.XCad/)
 [![Build status](https://dev.azure.com/xarial/xcad/_apis/build/status/xcad)](https://dev.azure.com/xarial/xcad/_build/latest?definitionId=34)
