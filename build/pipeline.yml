@@ -1,19 +1,14 @@
 variables:
   ${{ if eq(variables['Build.SourceBranchName'], 'master') }}:
     versionSuffix: release
-    releaseName: Production
   ${{ if eq(variables['Build.SourceBranchName'], 'dev') }}:
     versionSuffix: dev
-    releaseName: Development
   ${{ if eq(variables['Build.SourceBranchName'], '!preview') }}:
     versionSuffix: preview
-    releaseName: Preview
   ${{ if eq(variables['Build.SourceBranchName'], '!alpha') }}:
     versionSuffix: alpha
-    releaseName: Alpha
   ${{ if eq(variables['Build.SourceBranchName'], '!beta') }}:
     versionSuffix: beta
-    releaseName: Beta
 
 trigger:
   branches:
@@ -84,7 +79,7 @@ stages:
           platform: '$(BuildPlatform)'
           configuration: '$(BuildConfiguration)'
 
-      - ${{ if and(eq(variables['Build.SourceBranch'], 'refs/heads/dev'), eq(variables['Build.SourceBranch'], 'refs/heads/!preview'), eq(variables['Build.SourceBranch'], 'refs/heads/!alpha'), eq(variables['Build.SourceBranch'], 'refs/heads/!beta'), ne(variables['Build.Reason'], 'PullRequest')) }}:
+      - ${{ if and(or(eq(variables['Build.SourceBranch'], 'refs/heads/dev'), eq(variables['Build.SourceBranch'], 'refs/heads/!preview'), eq(variables['Build.SourceBranch'], 'refs/heads/!alpha'), eq(variables['Build.SourceBranch'], 'refs/heads/!beta')), ne(variables['Build.Reason'], 'PullRequest')) }}:
         - task: DotNetCoreCLI@2
           displayName: 'Pack $(versionSuffix) versions'
           inputs:
@@ -144,9 +139,9 @@ stages:
         publishVstsFeed: 'xcad/xcad-preview'
        
 - stage: 'PublishProvisionalNuGetPackage'
-  displayName: 'Publish Provisional [$(versionSuffix)] NuGet packages to xarial nuget feed'
+  displayName: 'Publish Provisional NuGet packages to xcad-dev nuget feed'
   dependsOn: 'Build'
-  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'), eq(variables['Build.SourceBranch'], 'refs/heads/!preview'), eq(variables['Build.SourceBranch'], 'refs/heads/!alpha'), eq(variables['Build.SourceBranch'], 'refs/heads/!beta'), ne(variables['Build.Reason'], 'PullRequest'))
+  condition: and(succeeded(), or(eq(variables['Build.SourceBranch'], 'refs/heads/master'), eq(variables['Build.SourceBranch'], 'refs/heads/!preview'), eq(variables['Build.SourceBranch'], 'refs/heads/!alpha'), eq(variables['Build.SourceBranch'], 'refs/heads/!beta')), ne(variables['Build.Reason'], 'PullRequest'))
   jobs:
   - job:
     pool:
@@ -165,16 +160,16 @@ stages:
         packagesToPush: '$(Pipeline.Workspace)/packages/$(versionSuffix)/*.nupkg'
         allowPackageConflicts: true
         nuGetFeedType: 'internal'
-        publishVstsFeed: 'xcad/xcad-preview'
+        publishVstsFeed: 'xcad/xcad-dev'
 
 - stage: 'PublishPublicPackage'
   variables:
     - group: build-vars
     - name: packagePath
       value:
-  displayName: 'Publish public [$(releaseName)] NuGet packages to nuget.org'
+  displayName: 'Publish public NuGet packages to nuget.org'
   dependsOn: 'PublishProvisionalNuGetPackage'
-  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'), eq(variables['Build.SourceBranch'], 'refs/heads/!preview'), eq(variables['Build.SourceBranch'], 'refs/heads/!alpha'), eq(variables['Build.SourceBranch'], 'refs/heads/!beta'), ne(variables['Build.Reason'], 'PullRequest'))
+  condition: and(succeeded(), or(eq(variables['Build.SourceBranch'], 'refs/heads/master'), eq(variables['Build.SourceBranch'], 'refs/heads/!preview'), eq(variables['Build.SourceBranch'], 'refs/heads/!alpha'), eq(variables['Build.SourceBranch'], 'refs/heads/!beta')), ne(variables['Build.Reason'], 'PullRequest'))
   jobs:
   - deployment:
     pool:
