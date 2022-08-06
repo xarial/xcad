@@ -88,7 +88,7 @@ stages:
             configurationToPack: $(BuildConfiguration)
             outputDir: $(Build.ArtifactStagingDirectory)/packages/$(versionSuffix)
             nobuild: true
-            buildProperties: 'VersionSuffix=$(Build.BuildId).$(versionSuffix)'
+            buildProperties: 'VersionSuffix=$(versionSuffix).$(Build.BuildId)'
 
       - ${{ if and(eq(variables['Build.SourceBranch'], 'refs/heads/master'), ne(variables['Build.Reason'], 'PullRequest')) }}:
         - task: DotNetCoreCLI@2
