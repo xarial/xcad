@@ -33,6 +33,7 @@ using Xarial.XCad.SolidWorks.Services;
 using Xarial.XCad.SolidWorks.UI;
 using Xarial.XCad.SolidWorks.UI.Commands;
 using Xarial.XCad.SolidWorks.UI.Commands.Exceptions;
+using Xarial.XCad.SolidWorks.UI.Commands.Toolkit.Enums;
 using Xarial.XCad.SolidWorks.UI.Commands.Toolkit.Structures;
 using Xarial.XCad.SolidWorks.UI.PropertyPage;
 using Xarial.XCad.SolidWorks.UI.Toolkit;
@@ -198,7 +199,7 @@ namespace Xarial.XCad.SolidWorks
             }
             catch (Exception ex)
             {
-                HandleConnectException(ex);
+                HandleException(ex);
                 return false;
             }
         }
@@ -211,7 +212,7 @@ namespace Xarial.XCad.SolidWorks
             }
         }
 
-        protected virtual void HandleConnectException(Exception ex) 
+        protected virtual void HandleException(Exception ex) 
         {
             var logger = Logger ?? CreateDefaultLogger();
             logger.Log(ex);
@@ -296,14 +297,29 @@ namespace Xarial.XCad.SolidWorks
         [EditorBrowsable(EditorBrowsableState.Never)]
         public void OnCommandClick(string cmdId)
         {
-            m_CommandManager.HandleCommandClick(cmdId);
+            try
+            {
+                m_CommandManager.HandleCommandClick(cmdId);
+            }
+            catch (Exception ex)
+            {
+                HandleException(ex);
+            }
         }
 
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         public int OnCommandEnable(string cmdId)
         {
-            return m_CommandManager.HandleCommandEnable(cmdId);
+            try
+            {
+                return m_CommandManager.HandleCommandEnable(cmdId);
+            }
+            catch(Exception ex)
+            {
+                HandleException(ex);
+                return (int)CommandItemEnableState_e.DeselectDisable;
+            }
         }
 
         public virtual void OnConnect()

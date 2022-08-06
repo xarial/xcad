@@ -1,8 +1,28 @@
+variables:
+  ${{ if eq(variables['Build.SourceBranchName'], 'master') }}:
+    versionSuffix: release
+    releaseName: Production
+  ${{ if eq(variables['Build.SourceBranchName'], 'dev') }}:
+    versionSuffix: dev
+    releaseName: Development
+  ${{ if eq(variables['Build.SourceBranchName'], '!preview') }}:
+    versionSuffix: preview
+    releaseName: Preview
+  ${{ if eq(variables['Build.SourceBranchName'], '!alpha') }}:
+    versionSuffix: alpha
+    releaseName: Alpha
+  ${{ if eq(variables['Build.SourceBranchName'], '!beta') }}:
+    versionSuffix: beta
+    releaseName: Beta
+
 trigger:
   branches:
     include:
     - master
     - dev
+    - '!preview'
+    - '!alpha'
+    - '!beta'
   paths:
     include:
     - src/*
@@ -64,16 +84,16 @@ stages:
           platform: '$(BuildPlatform)'
           configuration: '$(BuildConfiguration)'
 
-      - ${{ if and(eq(variables['Build.SourceBranch'], 'refs/heads/dev'), ne(variables['Build.Reason'], 'PullRequest')) }}:
+      - ${{ if and(eq(variables['Build.SourceBranch'], 'refs/heads/dev'), eq(variables['Build.SourceBranch'], 'refs/heads/!preview'), eq(variables['Build.SourceBranch'], 'refs/heads/!alpha'), eq(variables['Build.SourceBranch'], 'refs/heads/!beta'), ne(variables['Build.Reason'], 'PullRequest')) }}:
         - task: DotNetCoreCLI@2
-          displayName: 'Pack preview versions'
+          displayName: 'Pack $(versionSuffix) versions'
           inputs:
             command: pack
             packagesToPack: 'src/**/*.csproj'
             configurationToPack: $(BuildConfiguration)
-            outputDir: $(Build.ArtifactStagingDirectory)/packages/preview
+            outputDir: $(Build.ArtifactStagingDirectory)/packages/$(versionSuffix)
             nobuild: true
-            buildProperties: 'VersionSuffix=preview.$(Build.BuildId)'
+            buildProperties: 'VersionSuffix=$(versionSuffix).$(Build.BuildId)'
 
       - ${{ if and(eq(variables['Build.SourceBranch'], 'refs/heads/master'), ne(variables['Build.Reason'], 'PullRequest')) }}:
         - task: DotNetCoreCLI@2
@@ -100,8 +120,8 @@ stages:
           displayName: 'Publish packages artifact'
           artifact: 'packages'
 
-- stage: 'PublishPreviewNuGetPackage'
-  displayName: 'Publish preview NuGet Package to xarial nuget feed'
+- stage: 'PublishDevNuGetPackage'
+  displayName: 'Publish dev NuGet Package to xarial nuget feed'
   dependsOn: 'Build'
   condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/dev'), ne(variables['Build.Reason'], 'PullRequest'))
   jobs:
@@ -119,14 +139,14 @@ stages:
       displayName: 'Push NuGet Packages'
       inputs:
         command: 'push'
-        packagesToPush: '$(Pipeline.Workspace)/packages/preview/*.nupkg'
+        packagesToPush: '$(Pipeline.Workspace)/packages/dev/*.nupkg'
         nuGetFeedType: 'internal'
         publishVstsFeed: 'xcad/xcad-preview'
-        
-- stage: 'PublishPreReleaseNuGetPackage'
-  displayName: 'Publish PreRelease NuGet packages to xarial nuget feed'
+       
+- stage: 'PublishProvisionalNuGetPackage'
+  displayName: 'Publish Provisional [$(versionSuffix)] NuGet packages to xarial nuget feed'
   dependsOn: 'Build'
-  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'), ne(variables['Build.Reason'], 'PullRequest'))
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'), eq(variables['Build.SourceBranch'], 'refs/heads/!preview'), eq(variables['Build.SourceBranch'], 'refs/heads/!alpha'), eq(variables['Build.SourceBranch'], 'refs/heads/!beta'), ne(variables['Build.Reason'], 'PullRequest'))
   jobs:
   - job:
     pool:
@@ -142,19 +162,19 @@ stages:
       displayName: 'Push NuGet Packages'
       inputs:
         command: 'push'
-        packagesToPush: '$(Pipeline.Workspace)/packages/release/*.nupkg'
+        packagesToPush: '$(Pipeline.Workspace)/packages/$(versionSuffix)/*.nupkg'
         allowPackageConflicts: true
         nuGetFeedType: 'internal'
         publishVstsFeed: 'xcad/xcad-preview'
 
-- stage: 'PublishProductionPackage'
+- stage: 'PublishPublicPackage'
   variables:
     - group: build-vars
     - name: packagePath
       value:
-  displayName: 'Publish release NuGet packages to Nuget.org production'
-  dependsOn: 'PublishPreReleaseNuGetPackage'
-  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'), ne(variables['Build.Reason'], 'PullRequest'))
+  displayName: 'Publish public [$(releaseName)] NuGet packages to nuget.org'
+  dependsOn: 'PublishProvisionalNuGetPackage'
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'), eq(variables['Build.SourceBranch'], 'refs/heads/!preview'), eq(variables['Build.SourceBranch'], 'refs/heads/!alpha'), eq(variables['Build.SourceBranch'], 'refs/heads/!beta'), ne(variables['Build.Reason'], 'PullRequest'))
   jobs:
   - deployment:
     pool:
@@ -179,7 +199,7 @@ stages:
             inputs:
               targetType: 'inline'
               script: |
-                $packagePath = (Get-ChildItem -Path "$(Pipeline.Workspace)/packages/release" -Filter "*.nupkg").FullName
+                $packagePath = (Get-ChildItem -Path "$(Pipeline.Workspace)/packages/$(versionSuffix)" -Filter "*.nupkg").FullName
                 Write-Host $packagePath
                 Write-Host "##vso[task.setvariable variable=packagePath;]$packagePath"
 
@@ -193,6 +213,6 @@ stages:
             displayName: 'Push NuGet Packages'
             inputs:
               command: 'push'
-              packagesToPush: '$(Pipeline.Workspace)/packages/release/*.nupkg'
+              packagesToPush: '$(Pipeline.Workspace)/packages/$(versionSuffix)/*.nupkg'
               nuGetFeedType: 'external'
               publishFeedCredentials: 'Nuget.org'
