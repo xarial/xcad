@@ -116,7 +116,7 @@ stages:
           artifact: 'packages'
 
 - stage: 'PublishDevNuGetPackage'
-  displayName: 'Publish dev NuGet Package to xarial nuget feed'
+  displayName: 'Publish dev NuGet Package to xcad-dev nuget feed'
   dependsOn: 'Build'
   condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/dev'), ne(variables['Build.Reason'], 'PullRequest'))
   jobs:
@@ -136,7 +136,7 @@ stages:
         command: 'push'
         packagesToPush: '$(Pipeline.Workspace)/packages/dev/*.nupkg'
         nuGetFeedType: 'internal'
-        publishVstsFeed: 'xcad/xcad-preview'
+        publishVstsFeed: 'xcad/xcad-dev'
        
 - stage: 'PublishProvisionalNuGetPackage'
   displayName: 'Publish Provisional NuGet packages to xcad-dev nuget feed'
