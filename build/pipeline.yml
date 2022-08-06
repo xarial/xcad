@@ -198,11 +198,11 @@ stages:
                 Write-Host $packagePath
                 Write-Host "##vso[task.setvariable variable=packagePath;]$packagePath"
 
-          - task: NuGetCommand@2
+          - task: DotNetCoreCLI@2
             displayName: 'Sign NuGet Packages'
             inputs:
-              command: 'custom'
-              arguments: sign $(PackagePath) -CertificatePath "$(Certificate.secureFilePath)" -CertificatePassword "$(CODE_SIGN_CERT_PWD)" -Timestamper http://timestamp.comodoca.com
+              command: custom
+              custom: nuget sign $(PackagePath) --certificate-path "$(Certificate.secureFilePath)" --certificate-password "$(CODE_SIGN_CERT_PWD)" --timestamper http://timestamp.comodoca.com
 
           - task: NuGetCommand@2
             displayName: 'Push NuGet Packages'
