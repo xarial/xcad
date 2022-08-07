@@ -54,5 +54,3 @@ public class SwAddIn : Xarial.XCad.SolidWorks.SwAddInEx
         Application.ShowMessageBox("Hello xCAD");
     }
 }
-
-Add the <EnableComHosting>true</EnableComHosting> into the <PropertyGroup> of the add-in's .csproj file

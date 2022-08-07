@@ -1,10 +1,10 @@
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Target Name="BeforeClean" Condition="'$(OutputType)' == 'Library' And '$(XCadRegDll)' != 'false'">
     <Exec Command="regsvr32 &quot;$(TargetDir)$(TargetName).comhost.dll&quot; /u /s" IgnoreExitCode="true" Condition="Exists('$(TargetDir)$(TargetName).comhost.dll') And ('$(TargetFramework.Substring(0, 7))' == 'netcore' Or '$(TargetFramework.Substring(0, 5))' == 'net5.' Or '$(TargetFramework.Substring(0, 5))' == 'net6.') And '$(EnableComHosting)' == 'true'"/>
-	  <Exec Command="%windir%\Microsoft.NET\Framework64\v4.0.30319\RegAsm.exe &quot;$(TargetPath)&quot; /u" IgnoreExitCode="true" Condition="Exists('$(TargetPath)') And ('$(TargetFramework)' == '' Or '$(TargetFramework.Substring(0, 4))' == 'net4')" />
+	<Exec Command="%windir%\Microsoft.NET\Framework64\v4.0.30319\RegAsm.exe &quot;$(TargetPath)&quot; /u" IgnoreExitCode="true" Condition="Exists('$(TargetPath)') And ('$(TargetFramework)' == '' Or '$(TargetFramework.Substring(0, 4))' == 'net4')" />
   </Target>
   <Target Name="AfterBuild" Condition="'$(OutputType)' == 'Library' And '$(XCadRegDll)' != 'false'">
     <Exec Command="regsvr32 &quot;$(TargetDir)$(TargetName).comhost.dll&quot; /s" Condition="Exists('$(TargetDir)$(TargetName).comhost.dll') And ('$(TargetFramework.Substring(0, 7))' == 'netcore' Or '$(TargetFramework.Substring(0, 5))' == 'net5.' Or '$(TargetFramework.Substring(0, 5))' == 'net6.') And '$(EnableComHosting)' == 'true'" />
-	  <Exec Command="%windir%\Microsoft.NET\Framework64\v4.0.30319\RegAsm.exe &quot;$(TargetPath)&quot; /codebase" Condition="Exists('$(TargetPath)') And ('$(TargetFramework)' == '' Or '$(TargetFramework.Substring(0, 4))' == 'net4')" />
+	<Exec Command="%windir%\Microsoft.NET\Framework64\v4.0.30319\RegAsm.exe &quot;$(TargetPath)&quot; /codebase" Condition="Exists('$(TargetPath)') And ('$(TargetFramework)' == '' Or '$(TargetFramework.Substring(0, 4))' == 'net4')" />
   </Target>
  </Project>
