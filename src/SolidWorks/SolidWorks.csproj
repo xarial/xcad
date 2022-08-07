@@ -43,7 +43,6 @@
 
   <ItemGroup>
     <None Include="..\..\build\Xarial.XCad.SolidWorks.targets" pack="true" PackagePath="build" Link="_Pack\Xarial.XCad.SolidWorks.targets" />
-    <None Include="..\..\build\Xarial.XCad.SolidWorks.props" pack="true" PackagePath="build" Link="_Pack\Xarial.XCad.SolidWorks.props" />
     <None Include="..\..\build\solidworks-init.ps1" pack="true" PackagePath="tools\init.ps1" Link="_Pack\solidworks-init.ps1" />
     <None Include="..\..\data\icon.png" pack="true" PackagePath="" Link="_Pack\icon.png" />
     <None Include="..\..\LICENSE.md" pack="true" PackagePath="" Link="_Pack\LICENSE.md" />

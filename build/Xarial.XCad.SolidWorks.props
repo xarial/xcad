@@ -1,9 +1,0 @@
- <Project>
-  <PropertyGroup Condition="'$(OutputType)' == 'Library' And '$(XCadRegDll)' != 'false' And '$(TargetFramework.Substring(0, 7))' == 'netcore'">
-    <EnableComHosting>true</EnableComHosting>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(OutputType)' == 'Library' And '$(XCadRegDll)' != 'false' And '$(TargetFramework.Substring(0, 5))' == 'net5.' Or '$(TargetFramework.Substring(0, 5))' == 'net6.'">
-    <EnableComHosting>true</EnableComHosting>
-	<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
-  </PropertyGroup>
-</Project>
