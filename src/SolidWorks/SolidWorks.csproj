@@ -38,16 +38,16 @@
   </ItemGroup>
     
   <ItemGroup>
-    <None Include="..\..\build\solidworks-readme.txt" Link="solidworks-readme.txt" pack="true" PackagePath="readme.txt" />
+    <None Include="..\..\build\solidworks-readme.txt" Link="_Pack\solidworks-readme.txt" pack="true" PackagePath="readme.txt" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="..\..\build\Xarial.XCad.SolidWorks.targets" pack="true" PackagePath="build" />
-    <None Include="..\..\build\Xarial.XCad.SolidWorks.props" pack="true" PackagePath="build" />
-    <None Include="..\..\build\solidworks-init.ps1" pack="true" PackagePath="tools\init.ps1" />
-    <None Include="..\..\data\icon.png" pack="true" PackagePath="" />
-    <None Include="..\..\LICENSE.md" pack="true" PackagePath="" />
-    <None Include="..\..\README.md" pack="true" PackagePath="" />
+    <None Include="..\..\build\Xarial.XCad.SolidWorks.targets" pack="true" PackagePath="build" Link="_Pack\Xarial.XCad.SolidWorks.targets" />
+    <None Include="..\..\build\Xarial.XCad.SolidWorks.props" pack="true" PackagePath="build" Link="_Pack\Xarial.XCad.SolidWorks.props" />
+    <None Include="..\..\build\solidworks-init.ps1" pack="true" PackagePath="tools\init.ps1" Link="_Pack\solidworks-init.ps1" />
+    <None Include="..\..\data\icon.png" pack="true" PackagePath="" Link="_Pack\icon.png" />
+    <None Include="..\..\LICENSE.md" pack="true" PackagePath="" Link="_Pack\LICENSE.md" />
+    <None Include="..\..\README.md" pack="true" PackagePath="" Link="_Pack\README.md" />
   </ItemGroup>
 
   <ItemGroup>
@@ -83,9 +83,13 @@
     <None Include="..\..\thirdpty\SolidWorks.Interop.swconst.dll" pack="true" PackagePath="lib\netcoreapp3.1" />
     <None Include="..\..\thirdpty\SolidWorks.Interop.swpublished.dll" pack="true" PackagePath="lib\netcoreapp3.1" />
 
-    <None Include="..\..\thirdpty\SolidWorks.Interop.sldworks.dll" pack="true" PackagePath="lib\net6.0-windows7.0" />
-    <None Include="..\..\thirdpty\SolidWorks.Interop.swconst.dll" pack="true" PackagePath="lib\net6.0-windows7.0" />
-    <None Include="..\..\thirdpty\SolidWorks.Interop.swpublished.dll" pack="true" PackagePath="lib\net6.0-windows7.0" />
+    <None Include="..\..\thirdpty\SolidWorks.Interop.sldworks.dll" pack="true" PackagePath="lib\net6.0-windows7.0" Link="_Pack\SolidWorks.Interop.sldworks.dll" />
+    <None Include="..\..\thirdpty\SolidWorks.Interop.swconst.dll" pack="true" PackagePath="lib\net6.0-windows7.0" Link="_Pack\SolidWorks.Interop.swconst.dll" />
+    <None Include="..\..\thirdpty\SolidWorks.Interop.swpublished.dll" pack="true" PackagePath="lib\net6.0-windows7.0" Link="_Pack\SolidWorks.Interop.swpublished.dll" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="_Pack\" />
   </ItemGroup>
   
 </Project>

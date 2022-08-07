@@ -1,4 +1,4 @@
- <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+ <Project>
   <PropertyGroup Condition="'$(OutputType)' == 'Library' And '$(XCadRegDll)' != 'false' And '$(TargetFramework.Substring(0, 7))' == 'netcore'">
     <EnableComHosting>true</EnableComHosting>
   </PropertyGroup>
