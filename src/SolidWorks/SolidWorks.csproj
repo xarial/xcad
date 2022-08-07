@@ -72,5 +72,19 @@
       <EmbedInteropTypes>false</EmbedInteropTypes>
     </Reference>
   </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\thirdpty\SolidWorks.Interop.sldworks.dll" Pack="True" PackagePath="lib\net461" />
+    <None Include="..\..\thirdpty\SolidWorks.Interop.swconst.dll" Pack="True" PackagePath="lib\net461" />
+    <None Include="..\..\thirdpty\SolidWorks.Interop.swpublished.dll" Pack="True" PackagePath="lib\net461" />
+
+    <None Include="..\..\thirdpty\SolidWorks.Interop.sldworks.dll" Pack="True" PackagePath="lib\netcoreapp3.1" />
+    <None Include="..\..\thirdpty\SolidWorks.Interop.swconst.dll" Pack="True" PackagePath="lib\netcoreapp3.1" />
+    <None Include="..\..\thirdpty\SolidWorks.Interop.swpublished.dll" Pack="True" PackagePath="lib\netcoreapp3.1" />
+
+    <None Include="..\..\thirdpty\SolidWorks.Interop.sldworks.dll" Pack="True" PackagePath="lib\net6.0-windows7.0" />
+    <None Include="..\..\thirdpty\SolidWorks.Interop.swconst.dll" Pack="True" PackagePath="lib\net6.0-windows7.0" />
+    <None Include="..\..\thirdpty\SolidWorks.Interop.swpublished.dll" Pack="True" PackagePath="lib\net6.0-windows7.0" />
+  </ItemGroup>
   
 </Project>
