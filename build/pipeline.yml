@@ -191,18 +191,17 @@ stages:
               secureFile: xarial-code-signing.pfx
 
           - task: PowerShell@2
+            displayName: 'Write the paths to nuget package into variable'
             inputs:
               targetType: 'inline'
               script: |
-                $packagePath = (Get-ChildItem -Path "$(Pipeline.Workspace)/packages/$(versionSuffix)" -Filter "*.nupkg").FullName
+                $packagePath = (Get-ChildItem -Path "$(Pipeline.Workspace)/packages/$(versionSuffix)" -Filter "*.nupkg" | Select-Object  @{Name='QuotedFullPath';Expression={"""$($_.FullName)"""}} | Select-Object -ExpandProperty QuotedFullPath )
                 Write-Host $packagePath
                 Write-Host "##vso[task.setvariable variable=packagePath;]$packagePath"
 
-          - task: NuGetCommand@2
-            displayName: 'Sign NuGet Packages'
-            inputs:
-              command: 'custom'
-              arguments: sign "$(PackagePath)" -CertificatePath "$(Certificate.secureFilePath)" -CertificatePassword "$(CODE_SIGN_CERT_PWD)" -Timestamper http://timestamp.comodoca.com
+          - script: |
+              dotnet nuget sign $(PackagePath) --certificate-path "$(Certificate.secureFilePath)" --certificate-password "$(CODE_SIGN_CERT_PWD)" --timestamper http://timestamp.comodoca.com
+            displayName: Sign NuGet Packages
 
           - task: NuGetCommand@2
             displayName: 'Push NuGet Packages'

@@ -171,6 +171,60 @@ private static void IterateComponentsRecursively(IXComponentRepository compsRepo
 }
 ~~~
 
+## Target Frameworks
+
+xCAD.NET is compatible with multiple target frameworks: .NET Framework 4.6.1, .NET Core 3.1 and .NET 6.0 and number of additional computed target frameworks (e.g. .NET Framework 4.8)
+
+When building the SOLIDWORKS add-ins see the information below
+
+### .NET Framework
+
+* Run Visual Studio as an Administrator
+* Install [Xarial.XCad.SolidWorks](https://www.nuget.org/packages/Xarial.XCad.SolidWorks) package from the nuget and create add-in class as shown above
+* Build the solution. Add-in will be automatically registered. Clean the solution to unregister the add-in.
+* Set the **Embed Interop** option to **True** for all SOLIDWORKS type libraries (e.g. **SolidWorks.Interop.SldWorks.tlb**, **SolidWorks.Interop.SwConst.tlb**, **SolidWorks.Interop.SwPublished.tlb**). Note this might not be required as nuget will set this flag automatically.
+
+### .NET Core
+
+* Run Visual Studio as an Administrator
+* Install [Xarial.XCad.SolidWorks](https://www.nuget.org/packages/Xarial.XCad.SolidWorks) package from the nuget and create add-in class as shown above
+* Add the following properties into the project file
+~~~ xml
+<PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <EnableComHosting>true</EnableComHosting>
+</PropertyGroup>
+~~~
+* Add the following into the add-in class
+~~~ cs
+[ComRegisterFunction]
+public static void RegisterFunction(Type t)
+{
+    SwAddInEx.RegisterFunction(t);
+}
+
+[ComUnregisterFunction]
+public static void UnregisterFunction(Type t)
+{
+    SwAddInEx.UnregisterFunction(t);
+}
+~~~
+* Build the solution. Add-in will be automatically registered. Clean the solution to unregister the add-in.
+
+### .NET6
+
+* Run Visual Studio as an Administrator
+* Install [Xarial.XCad.SolidWorks](https://www.nuget.org/packages/Xarial.XCad.SolidWorks) package from the nuget and create add-in class as shown above
+* Add the following properties into the project file
+~~~ xml
+<PropertyGroup>
+    <TargetFramework>net6.0-windows</TargetFramework>
+    <EnableComHosting>true</EnableComHosting>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+</PropertyGroup>
+~~~
+* Build the solution. Add-in will be automatically registered. Clean the solution to unregister the add-in.
+
 Watch the [video demonstration](https://www.youtube.com/watch?v=BuiFfv7-Qig) of xCAD in action.
 
 Visit [User Guide](https://xcad.net) page and start exploring the framework.
