@@ -43,6 +43,7 @@
 
   <ItemGroup>
     <None Include="..\..\build\Xarial.XCad.SolidWorks.targets" pack="true" PackagePath="build" />
+    <None Include="..\..\build\Xarial.XCad.SolidWorks.props" pack="true" PackagePath="build" />
     <None Include="..\..\build\solidworks-init.ps1" pack="true" PackagePath="tools\init.ps1" />
     <None Include="..\..\data\icon.png" pack="true" PackagePath="" />
     <None Include="..\..\LICENSE.md" pack="true" PackagePath="" />
@@ -74,17 +75,17 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="..\..\thirdpty\SolidWorks.Interop.sldworks.dll" Pack="True" PackagePath="lib\net461" />
-    <None Include="..\..\thirdpty\SolidWorks.Interop.swconst.dll" Pack="True" PackagePath="lib\net461" />
-    <None Include="..\..\thirdpty\SolidWorks.Interop.swpublished.dll" Pack="True" PackagePath="lib\net461" />
+    <None Include="..\..\thirdpty\SolidWorks.Interop.sldworks.dll" pack="true" PackagePath="lib\net461" />
+    <None Include="..\..\thirdpty\SolidWorks.Interop.swconst.dll" pack="true" PackagePath="lib\net461" />
+    <None Include="..\..\thirdpty\SolidWorks.Interop.swpublished.dll" pack="true" PackagePath="lib\net461" />
 
-    <None Include="..\..\thirdpty\SolidWorks.Interop.sldworks.dll" Pack="True" PackagePath="lib\netcoreapp3.1" />
-    <None Include="..\..\thirdpty\SolidWorks.Interop.swconst.dll" Pack="True" PackagePath="lib\netcoreapp3.1" />
-    <None Include="..\..\thirdpty\SolidWorks.Interop.swpublished.dll" Pack="True" PackagePath="lib\netcoreapp3.1" />
+    <None Include="..\..\thirdpty\SolidWorks.Interop.sldworks.dll" pack="true" PackagePath="lib\netcoreapp3.1" />
+    <None Include="..\..\thirdpty\SolidWorks.Interop.swconst.dll" pack="true" PackagePath="lib\netcoreapp3.1" />
+    <None Include="..\..\thirdpty\SolidWorks.Interop.swpublished.dll" pack="true" PackagePath="lib\netcoreapp3.1" />
 
-    <None Include="..\..\thirdpty\SolidWorks.Interop.sldworks.dll" Pack="True" PackagePath="lib\net6.0-windows7.0" />
-    <None Include="..\..\thirdpty\SolidWorks.Interop.swconst.dll" Pack="True" PackagePath="lib\net6.0-windows7.0" />
-    <None Include="..\..\thirdpty\SolidWorks.Interop.swpublished.dll" Pack="True" PackagePath="lib\net6.0-windows7.0" />
+    <None Include="..\..\thirdpty\SolidWorks.Interop.sldworks.dll" pack="true" PackagePath="lib\net6.0-windows7.0" />
+    <None Include="..\..\thirdpty\SolidWorks.Interop.swconst.dll" pack="true" PackagePath="lib\net6.0-windows7.0" />
+    <None Include="..\..\thirdpty\SolidWorks.Interop.swpublished.dll" pack="true" PackagePath="lib\net6.0-windows7.0" />
   </ItemGroup>
   
 </Project>
