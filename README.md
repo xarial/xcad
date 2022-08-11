@@ -184,18 +184,22 @@ When building the SOLIDWORKS add-ins see the information below
 * Build the solution. Add-in will be automatically registered. Clean the solution to unregister the add-in.
 * Set the **Embed Interop** option to **True** for all SOLIDWORKS type libraries (e.g. **SolidWorks.Interop.SldWorks.tlb**, **SolidWorks.Interop.SwConst.tlb**, **SolidWorks.Interop.SwPublished.tlb**). Note this might not be required as nuget will set this flag automatically.
 
-### .NET Core
+### .NET Core/.NET6
 
 * Run Visual Studio as an Administrator
 * Install [Xarial.XCad.SolidWorks](https://www.nuget.org/packages/Xarial.XCad.SolidWorks) package from the nuget and create add-in class as shown above
 * Add the following properties into the project file
 ~~~ xml
 <PropertyGroup>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
     <EnableComHosting>true</EnableComHosting>
 </PropertyGroup>
 ~~~
-* Add the following into the add-in class
+* Build the solution. Add-in will be automatically registered. Clean the solution to unregister the add-in.
+
+### .NET Core Only
+
+Automatic registration does not work in .NET Core and it needs to be called manually by adding the following code into the add-in (this is not required for .NET6)
+
 ~~~ cs
 [ComRegisterFunction]
 public static void RegisterFunction(Type t)
@@ -209,21 +213,6 @@ public static void UnregisterFunction(Type t)
     SwAddInEx.UnregisterFunction(t);
 }
 ~~~
-* Build the solution. Add-in will be automatically registered. Clean the solution to unregister the add-in.
-
-### .NET6
-
-* Run Visual Studio as an Administrator
-* Install [Xarial.XCad.SolidWorks](https://www.nuget.org/packages/Xarial.XCad.SolidWorks) package from the nuget and create add-in class as shown above
-* Add the following properties into the project file
-~~~ xml
-<PropertyGroup>
-    <TargetFramework>net6.0-windows</TargetFramework>
-    <EnableComHosting>true</EnableComHosting>
-    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
-</PropertyGroup>
-~~~
-* Build the solution. Add-in will be automatically registered. Clean the solution to unregister the add-in.
 
 Watch the [video demonstration](https://www.youtube.com/watch?v=BuiFfv7-Qig) of xCAD in action.
 

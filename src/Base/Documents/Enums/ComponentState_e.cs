@@ -65,6 +65,11 @@ namespace Xarial.XCad.Documents.Enums
         /// <summary>
         /// Component has a fixed position
         /// </summary>
-        Fixed = 2 << 7
+        Fixed = 2 << 7,
+
+        /// <summary>
+        /// Component is a foreign document (interconnected)
+        /// </summary>
+        Foreign = 2 << 8
     }
 }

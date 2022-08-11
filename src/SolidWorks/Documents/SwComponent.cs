@@ -162,6 +162,8 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         private readonly IElementCreator<IComponent2> m_Creator;
 
+        private readonly Lazy<bool> m_Is3DInterconnectLazy;
+
         internal SwComponent(IComponent2 comp, SwAssembly rootAssembly, SwApplication app) : base(comp, rootAssembly, app)
         {
             RootAssembly = rootAssembly;
@@ -175,6 +177,45 @@ namespace Xarial.XCad.SolidWorks.Documents
             Bodies = new SwComponentBodyCollection(comp, rootAssembly);
 
             m_FilePathResolver = OwnerApplication.Services.GetService<IFilePathResolver>();
+
+            m_Is3DInterconnectLazy = new Lazy<bool>(() => 
+            {
+                if (OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2020))
+                {
+                    var parentComp = Component.GetParent();
+
+                    IFeature feat;
+
+                    if (parentComp == null)
+                    {
+                        feat = RootAssembly.Assembly.IFeatureByName(comp.Name2);
+                    }
+                    else
+                    {
+                        if (comp.Name2.StartsWith(parentComp.Name2, StringComparison.CurrentCultureIgnoreCase))
+                        {
+                            feat = parentComp.FeatureByName(comp.Name2.Substring(parentComp.Name2.Length + 1));
+                        }
+                        else
+                        {
+                            throw new Exception("Invalid component name");
+                        }
+                    }
+
+                    if (feat != null)
+                    {
+                        return feat.Is3DInterconnectFeature;
+                    }
+                    else
+                    {
+                        throw new Exception("Failed to get feature from the component");
+                    }
+                }
+                else 
+                {
+                    return false;
+                }
+            });
         }
 
         public string Name
@@ -339,6 +380,11 @@ namespace Xarial.XCad.SolidWorks.Documents
                         {
                             state |= ComponentState_e.Fixed;
                         }
+                    }
+
+                    if (m_Is3DInterconnectLazy.Value) 
+                    {
+                        state |= ComponentState_e.Foreign;
                     }
 
                     return state;
