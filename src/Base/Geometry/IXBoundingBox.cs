@@ -20,6 +20,11 @@ namespace Xarial.XCad.Geometry
     public interface IXBoundingBox : IEvaluation
     {
         /// <summary>
+        /// True to automatically find the best orientation to fit
+        /// </summary>
+        bool BestFit { get; set; }
+
+        /// <summary>
         /// Bounding box data
         /// </summary>
         Box3D Box { get; }

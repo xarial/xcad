@@ -29,6 +29,6 @@ namespace Xarial.XCad
         /// <summary>
         /// Type of this selection object
         /// </summary>
-        SelectType_e Type { get; }
+        SelectType_e SelectionType { get; }
     }
 }

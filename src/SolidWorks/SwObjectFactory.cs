@@ -270,6 +270,8 @@ namespace Xarial.XCad.SolidWorks
                                 return new SwSectionDrawingView(view, (SwDrawing)doc);
                             case swDrawingViewTypes_e.swDrawingDetailView:
                                 return new SwDetailDrawingView(view, (SwDrawing)doc);
+                            case swDrawingViewTypes_e.swDrawingRelativeView:
+                                return new SwRelativeView(view, (SwDrawing)doc);
                             default:
                                 return new SwDrawingView(view, (SwDrawing)doc);
                         }

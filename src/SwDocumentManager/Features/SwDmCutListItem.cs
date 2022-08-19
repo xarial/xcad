@@ -37,21 +37,13 @@ namespace Xarial.XCad.SwDocumentManager.Features
     internal class SwDmCutListItem : SwDmSelObject, ISwDmCutListItem
     {
         #region Not Supported
-        
         public IXDimensionRepository Dimensions => throw new NotSupportedException();
-
-        public Color? Color
-        {
-            get => throw new NotSupportedException();
-            set => throw new NotSupportedException();
-        }
-
+        public Color? Color { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
         public IEnumerable<IXFace> Faces => throw new NotSupportedException();
         FeatureState_e IXFeature.State => throw new NotSupportedException();
-
         public IXComponent Component => throw new NotSupportedException();
         public IEditor<IXFeature> Edit() => throw new NotSupportedException();
-
+        public void Update() => throw new NotSupportedException();
         #endregion
 
         IXPropertyRepository IPropertiesOwner.Properties => Properties;
@@ -99,7 +91,7 @@ namespace Xarial.XCad.SwDocumentManager.Features
         {
             get 
             {
-                if (m_Doc.SwDmApp.IsVersionNewerOrEqual(SwDmVersion_e.Sw2021))
+                if (m_Doc.IsVersionNewerOrEqual(SwDmVersion_e.Sw2021))
                 {
                     var cutListStatus = (CutListItem as ISwDMCutListItem4).ExcludeFromCutlist;
 
@@ -119,6 +111,34 @@ namespace Xarial.XCad.SwDocumentManager.Features
                 else 
                 {
                     throw new NotSupportedException("This API is available in SW 2021 or newer");
+                }
+            }
+        }
+
+        public CutListType_e Type 
+        {
+            get 
+            {
+                if (m_Doc.IsVersionNewerOrEqual(SwDmVersion_e.Sw2021))
+                {
+                    switch (((ISwDMCutListItem4)CutListItem).CutlistType) 
+                    {
+                        case swDMCutListType_e.swDMCutListType_SolidBody:
+                            return CutListType_e.SolidBody;
+
+                        case swDMCutListType_e.swDMCutListType_Sheetmetal:
+                            return CutListType_e.SheetMetal;
+
+                        case swDMCutListType_e.swDMCutListType_Weldment:
+                            return CutListType_e.Weldment;
+
+                        default:
+                            throw new NotSupportedException("Unrecognized cut-list item type");
+                    }
+                }
+                else 
+                {
+                    throw new NotSupportedException("This propery is only supported in SOLIDWORKS 2021 or newer");
                 }
             }
         }

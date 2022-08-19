@@ -31,13 +31,17 @@ namespace Xarial.XCad.SolidWorks.Documents
     {
         private readonly SwDrawing m_Drw;
 
-        private readonly SwTemplatePlaceholderSheet m_TemplatePlaceholderSheet;
+        /// <summary>
+        /// This is a placeholder for a sheet(s) which already present in the template
+        /// </summary>
+        /// <remarks>Drawing will always contain at least one sheet so this is returned if no user sheets are found</remarks>
+        private readonly SwSheet m_TemplatePlaceholderSheet;
 
         public SwSheetsCache(SwDrawing drw, SwApplication app, IXRepository<IXSheet> repo, Func<IXSheet, string> nameProvider) : base(drw, repo, nameProvider)
         {
             m_Drw = drw;
 
-            m_TemplatePlaceholderSheet = new SwTemplatePlaceholderSheet(drw, app);
+            m_TemplatePlaceholderSheet = new SwSheet(null, drw, app);
         }
 
         protected override void CommitEntitiesFromCache(IReadOnlyList<IXSheet> ents, CancellationToken cancellationToken)
@@ -66,17 +70,22 @@ namespace Xarial.XCad.SolidWorks.Documents
                 {
                     var isFirst = true;
 
+                    SwSheet placeholderSheetReplacement = null;
+
                     foreach (SwSheet sheet in m_Repo)
                     {
                         sheet.SetupSheet(m_TemplatePlaceholderSheet);
 
+                        //only commiting drawing views to the first sheet from the placeholder in case template has more than one
                         if (isFirst)
                         {
+                            placeholderSheetReplacement = sheet;
+
                             var placeholderSheetDrwViews = m_TemplatePlaceholderSheet.DrawingViews.ToArray();
                             
                             if(placeholderSheetDrwViews.Any())
                             {
-                                //NOTE: need this call to propagate the sheet pointer to the drawing views otehrwise they won't be committed
+                                //NOTE: need this call to propagate the sheet pointer to the drawing views otherwise they won't be committed
                                 foreach (SwDrawingView drwView in placeholderSheetDrwViews) 
                                 {
                                     drwView.SetParentSheet(sheet);
@@ -88,6 +97,8 @@ namespace Xarial.XCad.SolidWorks.Documents
 
                         isFirst = false;
                     }
+
+                    m_TemplatePlaceholderSheet.SetFromExisting(placeholderSheetReplacement);
                 }
             }
             else 

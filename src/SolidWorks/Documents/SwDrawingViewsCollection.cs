@@ -168,6 +168,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                 () => new SwAuxiliaryDrawingView(m_Draw, m_Sheet),
                 () => new SwDetailDrawingView(m_Draw, m_Sheet),
                 () => new SwSectionDrawingView(m_Draw, m_Sheet),
-                () => new SwFlatPatternDrawingView(m_Draw, m_Sheet));
+                () => new SwFlatPatternDrawingView(m_Draw, m_Sheet),
+                () => new SwRelativeView(m_Draw, m_Sheet));
     }
 }

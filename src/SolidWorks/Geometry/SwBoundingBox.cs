@@ -14,11 +14,13 @@ using System.Text;
 using System.Threading;
 using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
+using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Exceptions;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Services;
 using Xarial.XCad.SolidWorks.Documents;
+using Xarial.XCad.SolidWorks.Features;
 using Xarial.XCad.SolidWorks.Geometry.Exceptions;
 using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.Toolkit.Exceptions;
@@ -46,9 +48,13 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         private readonly ISwDocument m_Doc;
 
+        private readonly SwApplication m_App;
+
         internal SwBoundingBox(SwDocument doc, SwApplication app) 
         {
             m_Doc = doc;
+
+            m_App = app;
 
             m_MathUtils = app.Sw.IGetMathUtility();
 
@@ -116,7 +122,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
                 if (IsCommitted)
                 {
-                    m_Creator.Element.Box = CalculateBoundingBox();
+                    m_Creator.Element.Box = CalculateBoundingBox(default);
                 }
             }
         }
@@ -129,13 +135,18 @@ namespace Xarial.XCad.SolidWorks.Geometry
         private EditableBox3D CreateBox(CancellationToken cancellationToken)
             => new EditableBox3D()
             {
-                Box = CalculateBoundingBox()
+                Box = CalculateBoundingBox(cancellationToken)
             };
 
-        protected Box3D CalculateBoundingBox()
+        protected Box3D CalculateBoundingBox(CancellationToken cancellationToken)
         {
-            if (Precise)
+            if (BestFit)
             {
+                if (RelativeTo != null)
+                {
+                    throw new NotSupportedException("RelativeTo cannot be used if best fit option is specified");
+                }
+
                 IXBody[] bodies;
 
                 var scope = Scope;
@@ -154,32 +165,176 @@ namespace Xarial.XCad.SolidWorks.Geometry
                     throw new EvaluationFailedException();
                 }
 
-                return ComputePreciseBoundingBox(bodies);
+                return ComputeBestFitBoundingBox(bodies, cancellationToken);
             }
             else
             {
-                if (RelativeTo != null)
+                if (Precise)
                 {
-                    throw new NotSupportedException("RelativeTo can only be calculated when precise bounding box is used");
-                }
+                    IXBody[] bodies;
 
-                double[] bbox;
+                    var scope = Scope;
 
-                if (IsScoped)
-                {
-                    bbox = ComputeScopedApproximateBoundingBox();
+                    if (scope != null)
+                    {
+                        bodies = scope;
+                    }
+                    else
+                    {
+                        bodies = GetAllBodies();
+                    }
+
+                    if (bodies?.Any() != true)
+                    {
+                        throw new EvaluationFailedException();
+                    }
+
+                    return ComputePreciseBoundingBox(bodies);
                 }
                 else
                 {
-                    bbox = ComputeFullApproximateBoundingBox();
-                }
+                    if (RelativeTo != null)
+                    {
+                        throw new NotSupportedException("RelativeTo can only be calculated when precise bounding box is used");
+                    }
 
-                if (bbox.All(x => Math.Abs(x) < double.Epsilon))
+                    double[] bbox;
+
+                    if (IsScoped)
+                    {
+                        bbox = ComputeScopedApproximateBoundingBox();
+                    }
+                    else
+                    {
+                        bbox = ComputeFullApproximateBoundingBox();
+                    }
+
+                    if (bbox.All(x => Math.Abs(x) < double.Epsilon))
+                    {
+                        throw new EvaluationFailedException();
+                    }
+
+                    return CreateBoxFromData(bbox[0], bbox[1], bbox[2], bbox[3], bbox[4], bbox[5]);
+                }
+            }
+        }
+
+        private Box3D ComputeBestFitBoundingBox(IXBody[] bodies, CancellationToken cancellationToken)
+        {
+            if (m_App.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2018))
+            {
+                using (var tempPart = (ISwPart)m_App.Documents.PreCreatePart())
                 {
-                    throw new EvaluationFailedException();
-                }
+                    tempPart.State |= DocumentState_e.Silent | DocumentState_e.Hidden;
 
-                return CreateBoxFromData(bbox[0], bbox[1], bbox[2], bbox[3], bbox[4], bbox[5]);
+                    tempPart.Commit(cancellationToken);
+
+                    tempPart.Features.AddRange(bodies.Select(b =>
+                    {
+                        var swBody = GetTransformedSwBody(b, out var isCopy);
+
+                        var targBody = (IXBody)m_Doc.CreateObjectFromDispatch<SwBody>(swBody);
+
+                        if (!isCopy) 
+                        {
+                            targBody = targBody.Copy();
+                        }
+
+                        var dumbBody = tempPart.Features.PreCreate<ISwDumbBody>();
+                        dumbBody.Body = targBody;
+                        return dumbBody;
+                    }));
+
+                    tempPart.Rebuild();
+
+                    var bboxFeat = (IFeature)tempPart.Model.FeatureManager.InsertGlobalBoundingBox((int)swGlobalBoundingBoxFitOptions_e.swBoundingBoxType_BestFit, false, true, out var status);
+
+                    if (bboxFeat != null)
+                    {
+                        var bboxSketch = (ISketch)bboxFeat.GetSpecificFeature2();
+
+                        var lines = ((object[])bboxSketch.GetSketchSegments()).Cast<ISketchLine>().ToArray();
+                        var points = ((object[])bboxSketch.GetSketchPoints2()).Cast<ISketchPoint>().ToArray();
+
+                        var pt1 = points.First();
+
+                        ISketchPoint pt2 = null;
+                        var curDist = double.MinValue;
+
+                        var pt1Coord = new Point(pt1.X, pt1.Y, pt1.Z);
+                        Point pt2Coord = null;
+
+                        for (int i = 1; i < points.Length; i++) 
+                        {
+                            var coord = new Point(points[i].X, points[i].Y, points[i].Z);
+                            var dist = (pt1Coord - coord).GetLength();
+
+                            if (dist > curDist) 
+                            {
+                                curDist = dist;
+                                pt2 = points[i];
+                                pt2Coord = coord;
+                            }
+                        }
+
+                        var centerPt = new Point((pt1Coord.X + pt2Coord.X) / 2, (pt1Coord.Y + pt2Coord.Y) / 2, (pt1Coord.Z + pt2Coord.Z) / 2);
+
+                        var axesLines = lines.Where(l => l.GetStartPoint2() == pt1 || l.GetEndPoint2() == pt1).ToArray();
+
+                        if (axesLines.Length == 3)
+                        {
+                            Vector GetDirection(ISketchLine line, ISketchPoint orig) 
+                            {
+                                var startPt = line.IGetStartPoint2();
+                                var endPt = line.IGetEndPoint2();
+
+                                var startCoord = new Point(endPt.X, endPt.Y, endPt.Z);
+                                var endCoord = new Point(startPt.X, startPt.Y, startPt.Z);
+
+                                if (orig == startPt)
+                                {
+                                    return endCoord - startCoord;
+                                }
+                                else if (orig == endPt)
+                                {
+                                    return startCoord - endCoord;
+                                }
+                                else 
+                                {
+                                    throw new Exception("Origin does not belong to a line");
+                                }
+                            }
+
+                            var x = GetDirection(axesLines[0], pt1);
+                            var y = GetDirection(axesLines[1], pt1);
+                            var z = GetDirection(axesLines[2], pt1);
+
+                            double unitConvFactor = 1;
+
+                            if (UserUnits)
+                            {
+                                var userUnit = m_Doc.Model.IGetUserUnit((int)swUserUnitsType_e.swLengthUnit);
+                                unitConvFactor = userUnit.GetConversionFactor();
+                            }
+
+                            return new Box3D(x.GetLength() * unitConvFactor, y.GetLength() * unitConvFactor, z.GetLength() * unitConvFactor, 
+                                centerPt.Scale(unitConvFactor), 
+                                x.Normalize(), y.Normalize(), z.Normalize());
+                        }
+                        else 
+                        {
+                            throw new Exception("Failed to find the axes lines");
+                        }
+                    }
+                    else 
+                    {
+                        throw new Exception($"Failed to insert bounding box feature. Error code: {(swGlobalBoundingBoxResult_e)status}");
+                    }
+                }
+            }
+            else 
+            {
+                throw new NotSupportedException("Best fit bounding box can only be calculated in SOLIDWORKS 2018 or newer");
             }
         }
 
@@ -201,12 +356,28 @@ namespace Xarial.XCad.SolidWorks.Geometry
             }
         }
 
+        public bool BestFit
+        {
+            get => m_Creator.CachedProperties.Get<bool>();
+            set
+            {
+                if (!IsCommitted)
+                {
+                    m_Creator.CachedProperties.Set(value);
+                }
+                else
+                {
+                    throw new CommittedElementPropertyChangeNotSupported();
+                }
+            }
+        }
+
         protected abstract IXBody[] GetAllBodies();
         protected abstract double[] ComputeFullApproximateBoundingBox();
 
         protected virtual double[] ComputeScopedApproximateBoundingBox()
         {
-            var bodies = Scope.Select(b => GetSwBody(b, out _)).ToArray();
+            var bodies = Scope.Select(b => GetTransformedSwBody(b, out _)).ToArray();
 
             if (!bodies.Any()) 
             {
@@ -277,7 +448,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
                     bodies = bodies.Select(b =>
                     {
-                        var swBody = GetSwBody(b, out bool isCopy);
+                        var swBody = GetTransformedSwBody(b, out bool isCopy);
 
                         if (!isCopy) 
                         {
@@ -295,7 +466,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
                 foreach (var body in bodies)
                 {
-                    var swBody = GetSwBody(body, out _);
+                    var swBody = GetTransformedSwBody(body, out _);
 
                     double x;
                     double y;
@@ -348,7 +519,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
             return CreateBoxFromData(minX, minY, minZ, maxX, maxY, maxZ, mathTransform);
         }
 
-        private IBody2 GetSwBody(IXBody srcBody, out bool isCopy)
+        private IBody2 GetTransformedSwBody(IXBody srcBody, out bool isCopy)
         {
             var swBody = ((ISwBody)srcBody).Body;
 
@@ -466,7 +637,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
                 if (IsCommitted)
                 {
-                    m_Creator.Element.Box = CalculateBoundingBox();
+                    m_Creator.Element.Box = CalculateBoundingBox(default);
                 }
             }
         }

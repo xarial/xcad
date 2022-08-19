@@ -15,6 +15,7 @@ using Xarial.XCad.Data;
 using Xarial.XCad.Data.Enums;
 using Xarial.XCad.Documents.Delegates;
 using Xarial.XCad.Documents.Enums;
+using Xarial.XCad.Documents.Services;
 using Xarial.XCad.Features;
 
 namespace Xarial.XCad.Documents
@@ -168,6 +169,12 @@ namespace Xarial.XCad.Documents
         /// Regenerates this document
         /// </summary>
         void Rebuild();
+
+        /// <summary>
+        /// Starts the group of opertions
+        /// </summary>
+        /// <returns>Operation group template</returns>
+        IOperationGroup PreCreateOperationGroup();
 
         /// <summary>
         /// Returns the time stamp of the change of the current model

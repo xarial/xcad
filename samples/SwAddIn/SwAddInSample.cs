@@ -49,6 +49,8 @@ using System.Diagnostics;
 using Xarial.XCad.Sketch;
 using Xarial.XCad.SolidWorks.Graphics;
 using Xarial.XCad.Graphics;
+using Xarial.XCad.Geometry;
+using Xarial.XCad.Geometry.Wires;
 
 namespace SwAddInExample
 {
@@ -169,13 +171,17 @@ namespace SwAddInExample
 
             GetMassPrps,
 
+            GetBoundingBox,
+
             CreateCallout,
 
             CreateTriad,
 
             CreateDragArrow,
 
-            CreateFlatPattern
+            CreateFlatPattern,
+
+            CreateDrawing
         }
 
         [Icon(typeof(Resources), nameof(Resources.xarial))]
@@ -560,6 +566,10 @@ namespace SwAddInExample
                         var volume = massPrps.Volume;
                         break;
 
+                    case Commands_e.GetBoundingBox:
+                        GetBoundingBox();
+                        break;
+
                     case Commands_e.CreateCallout:
                         if (m_Callout == null)
                         {
@@ -640,12 +650,112 @@ namespace SwAddInExample
                     case Commands_e.CreateFlatPattern:
                         CreateFlatPattern();
                         break;
+
+                    case Commands_e.CreateDrawing:
+                        CreateDrawing();
+                        break;
                 }
             }
             catch 
             {
                 Debug.Assert(false);
             }
+        }
+
+        private void CreateDrawing()
+        {
+            var drw = Application.Documents.PreCreateDrawing();
+            
+            var sheet = drw.Sheets.First();
+            sheet.PaperSize = new PaperSize(0.1, 0.1);
+            sheet.Scale = new Scale(1, 1);
+
+            var view = sheet.DrawingViews.PreCreate<IXRelativeDrawingView>();
+            
+            view.Orientation = new RelativeDrawingViewOrientation(
+                (IXPlanarFace)Application.Documents.Active.Selections.ElementAt(0), StandardViewType_e.Front,
+                (IXPlanarFace)Application.Documents.Active.Selections.ElementAt(1), StandardViewType_e.Bottom);
+            
+            view.Bodies = new IXBody[] { ((IXPlanarFace)Application.Documents.Active.Selections.First()).Body };
+
+            sheet.DrawingViews.Add(view);
+
+            drw.Commit();
+        }
+
+        private void GetBoundingBox()
+        {
+            var bestFit = true;
+            var bbox = ((ISwDocument3D)Application.Documents.Active).Evaluation.PreCreateBoundingBox();
+            bbox.Scope = Application.Documents.Active.Selections.OfType<IXBody>().ToArray();
+            bbox.BestFit = bestFit;
+            bbox.Commit();
+            
+            var box = bbox.Box;
+            
+            var bboxSketch = Application.Documents.Active.Features.PreCreate3DSketch();
+            
+            var centerPt = (IXSketchPoint)bboxSketch.Entities.PreCreatePoint();
+            centerPt.Coordinate = box.CenterPoint;
+            centerPt.Color = Color.Yellow;
+
+            var lines = new IXLine[12];
+
+            lines[0] = bboxSketch.Entities.PreCreateLine();
+            lines[0].Geometry = new Line(box.GetLeftTopBack(), box.GetLeftTopFront());
+
+            lines[1] = bboxSketch.Entities.PreCreateLine();
+            lines[1].Geometry = new Line(box.GetLeftTopFront(), box.GetLeftBottomFront());
+
+            lines[2] = bboxSketch.Entities.PreCreateLine();
+            lines[2].Geometry = new Line(box.GetLeftBottomFront(), box.GetLeftBottomBack());
+
+            lines[3] = bboxSketch.Entities.PreCreateLine();
+            lines[3].Geometry = new Line(box.GetLeftBottomBack(), box.GetLeftTopBack());
+
+            lines[4] = bboxSketch.Entities.PreCreateLine();
+            lines[4].Geometry = new Line(box.GetRightTopBack(), box.GetRightTopFront());
+
+            lines[5] = bboxSketch.Entities.PreCreateLine();
+            lines[5].Geometry = new Line(box.GetRightTopFront(), box.GetRightBottomFront());
+
+            lines[6] = bboxSketch.Entities.PreCreateLine();
+            lines[6].Geometry = new Line(box.GetRightBottomFront(), box.GetRightBottomBack());
+
+            lines[7] = bboxSketch.Entities.PreCreateLine();
+            lines[7].Geometry = new Line(box.GetRightBottomBack(), box.GetRightTopBack());
+
+            lines[8] = bboxSketch.Entities.PreCreateLine();
+            lines[8].Geometry = new Line(box.GetLeftTopBack(), box.GetRightTopBack());
+
+            lines[9] = bboxSketch.Entities.PreCreateLine();
+            lines[9].Geometry = new Line(box.GetLeftTopFront(), box.GetRightTopFront());
+
+            lines[10] = bboxSketch.Entities.PreCreateLine();
+            lines[10].Geometry = new Line(box.GetLeftBottomFront(), box.GetRightBottomFront());
+
+            lines[11] = bboxSketch.Entities.PreCreateLine();
+            lines[11].Geometry = new Line(box.GetLeftBottomBack(), box.GetRightBottomBack());
+
+            var axes = new IXSketchLine[3];
+            
+            axes[0] = (IXSketchLine)bboxSketch.Entities.PreCreateLine();
+            axes[0].Geometry = new Line(box.CenterPoint, box.CenterPoint.Move(box.AxisX, 0.1));
+            axes[0].Color = Color.Red;
+
+            axes[1] = (IXSketchLine)bboxSketch.Entities.PreCreateLine();
+            axes[1].Geometry = new Line(box.CenterPoint, box.CenterPoint.Move(box.AxisY, 0.1));
+            axes[1].Color = Color.Green;
+
+            axes[2] = (IXSketchLine)bboxSketch.Entities.PreCreateLine();
+            axes[2].Geometry = new Line(box.CenterPoint, box.CenterPoint.Move(box.AxisZ, 0.1));
+            axes[2].Color = Color.Blue;
+
+            bboxSketch.Entities.Add(centerPt);
+            bboxSketch.Entities.AddRange(lines);
+            bboxSketch.Entities.AddRange(axes);
+
+            bboxSketch.Commit();
         }
 
         private void CreateFlatPattern()

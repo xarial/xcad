@@ -6,6 +6,7 @@
 //*********************************************************************
 
 using SolidWorks.Interop.sldworks;
+using SolidWorks.Interop.swconst;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -96,6 +97,27 @@ namespace Xarial.XCad.SolidWorks.Features
             }
         }
 
+        public CutListType_e Type 
+        {
+            get 
+            {
+                switch ((swCutListType_e)CutListBodyFolder.GetCutListType())
+                {
+                    case swCutListType_e.swSolidBodyCutList:
+                        return CutListType_e.SolidBody;
+
+                    case swCutListType_e.swSheetmetalCutlist:
+                        return CutListType_e.SheetMetal;
+
+                    case swCutListType_e.swWeldmentCutlist:
+                        return CutListType_e.Weldment;
+
+                    default:
+                        throw new NotSupportedException();
+                }
+            }
+        }
+
         internal void SetParent(ISwDocument3D doc, ISwConfiguration conf) 
         {
             m_ParentDoc = doc;
@@ -107,6 +129,14 @@ namespace Xarial.XCad.SolidWorks.Features
             if (m_Properties.IsValueCreated) 
             {
                 m_Properties.Value.Dispose();
+            }
+        }
+
+        public void Update()
+        {
+            if (!CutListBodyFolder.UpdateCutList()) 
+            {
+                throw new Exception("Failed to update cut-list folder");
             }
         }
     }

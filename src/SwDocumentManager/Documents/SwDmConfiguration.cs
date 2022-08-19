@@ -150,7 +150,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                 {
                     swDmShowChildComponentsInBOMResult childBomShowType;
 
-                    if (Document.SwDmApp.IsVersionNewerOrEqual(SwDmVersion_e.Sw2018))
+                    if (Document.IsVersionNewerOrEqual(SwDmVersion_e.Sw2018))
                     {
                         childBomShowType = (swDmShowChildComponentsInBOMResult)((ISwDMConfiguration15)Configuration).ShowChildComponentsInBOM2;
                     }

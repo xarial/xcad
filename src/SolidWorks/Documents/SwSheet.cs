@@ -158,9 +158,10 @@ namespace Xarial.XCad.SolidWorks.Documents
         private readonly SwDrawingViewsCollection m_DrawingViews;
 
         internal void InitFromExisting(SwSheet swSheet, CancellationToken cancellationToken)
-        {
-            m_Creator.Init(swSheet.Sheet, cancellationToken);
-        }
+            => m_Creator.Init(swSheet.Sheet, cancellationToken);
+
+        internal void SetFromExisting(SwSheet swSheet)
+            => m_Creator.Set(swSheet.Sheet);
 
         internal SwSheet(ISheet sheet, SwDrawing draw, SwApplication app) : base(sheet, draw, app)
         {
@@ -216,7 +217,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
             if (OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2015))
             {
-                if (!m_Drawing.Drawing.SetupSheet6(name, (int)paperSize, (int)paperTemplate, scale.Numerator, scale.Denominator, true,
+                if (!m_Drawing.Drawing.SetupSheet6(sheet.GetName(), (int)paperSize, (int)paperTemplate, scale.Numerator, scale.Denominator, true,
                     "", paperWidth, paperHeight, "", true, 0, 0, 0, 0, 0, 0))
                 {
                     throw new Exception("Failed to setup sheet");
@@ -224,7 +225,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
             else
             {
-                if (!m_Drawing.Drawing.SetupSheet5(name, (int)paperSize, (int)paperSize, scale.Numerator, scale.Denominator, true,
+                if (!m_Drawing.Drawing.SetupSheet5(sheet.GetName(), (int)paperSize, (int)paperSize, scale.Numerator, scale.Denominator, true,
                     "", paperWidth, paperHeight, "", true))
                 {
                     throw new Exception("Failed to setup sheet");
@@ -323,22 +324,8 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public bool IsCommitted => false;
 
-        public SelectType_e Type => SelectType_e.Sheets;
+        public SelectType_e SelectionType => SelectType_e.Sheets;
 
         public bool Equals(IXObject other) => this == other;
-    }
-
-    /// <summary>
-    /// This is a placeholder for a sheet(s) which already present in the template
-    /// </summary>
-    /// <remarks>Drawing will always contain at least one sheet so this is returned if no user sheets are found</remarks>
-    internal class SwTemplatePlaceholderSheet : SwSheet
-    {
-        internal SwTemplatePlaceholderSheet(SwDrawing draw, SwApplication app) : base(null, draw, app)
-        {
-        }
-
-        public override void Commit(CancellationToken cancellationToken)
-            => throw new NotSupportedException("Placeholder sheet cannot be committed");
     }
 }

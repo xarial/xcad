@@ -19,6 +19,7 @@ using Xarial.XCad.Base.Enums;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Documents.Structures;
+using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;
 
 namespace Xarial.XCad.SwDocumentManager.Documents
@@ -36,13 +37,14 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             => throw new NotSupportedException();
         public Scale Scale { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
         public Rect2D Boundary => throw new NotSupportedException();
+        public IXBody[] Bodies { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
         public Thickness Padding => throw new NotSupportedException();
         public IXDimensionRepository Dimensions => throw new NotSupportedException();
         public IXDrawingView BaseView { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
         public IEnumerable<IXDrawingView> DependentViews => throw new NotSupportedException();
         #endregion
 
-        public override SelectType_e Type => SelectType_e.DrawingViews;
+        public override SelectType_e SelectionType => SelectType_e.DrawingViews;
 
         public ISwDMView DrawingView { get; }
 

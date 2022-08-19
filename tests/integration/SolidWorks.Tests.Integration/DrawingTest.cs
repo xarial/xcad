@@ -12,6 +12,7 @@ using Xarial.XCad.Documents.Structures;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.SolidWorks.Documents;
+using Xarial.XCad.SolidWorks.Geometry;
 
 namespace SolidWorks.Tests.Integration
 {
@@ -643,6 +644,38 @@ namespace SolidWorks.Tests.Integration
             }
 
             Assert.AreEqual((int)swDrawingViewTypes_e.swDrawingDetailView, t1);
+        }
+
+        [Test]
+        public void CreateRelativeViewTest()
+        {
+            int t1;
+            int c1;
+
+            using (var part = OpenDataDocument("Part1.sldprt"))
+            {
+                var partDoc = m_App.Documents.Active as ISwPart;
+
+                var face1 = partDoc.CreateObjectFromDispatch<ISwPlanarFace>(partDoc.Part.GetEntityByName("FACE1", (int)swSelectType_e.swSelFACES));
+                var face2 = partDoc.CreateObjectFromDispatch<ISwPlanarFace>(partDoc.Part.GetEntityByName("FACE2", (int)swSelectType_e.swSelFACES));
+
+                using (var doc = NewDocument(swDocumentTypes_e.swDocDRAWING))
+                {
+                    var drwDoc = m_App.Documents.Active as ISwDrawing;
+
+                    var sheet = drwDoc.Sheets.First();
+
+                    var relView = sheet.DrawingViews.PreCreate<ISwRelativeDrawingView>();
+                    relView.Orientation = new RelativeDrawingViewOrientation(face1, StandardViewType_e.Front, face2, StandardViewType_e.Bottom);
+                    relView.Commit();
+
+                    t1 = relView.DrawingView.Type;
+                    c1 = ((object[])relView.DrawingView.GetVisibleEntities2((Component2)((object[])relView.DrawingView.GetVisibleComponents()).First(), (int)swViewEntityType_e.swViewEntityType_Edge)).Length;
+                }
+            }
+
+            Assert.AreEqual((int)swDrawingViewTypes_e.swDrawingRelativeView, t1);
+            Assert.AreEqual(4, c1);
         }
 
         [Test]

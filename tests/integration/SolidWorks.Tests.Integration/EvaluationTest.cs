@@ -43,6 +43,32 @@ namespace SolidWorks.Tests.Integration
         }
 
         [Test]
+        public void BoundingBoxBestFitTest()
+        {
+            Box3D b1;
+
+            using (var doc = OpenDataDocument("Part1.SLDPRT"))
+            {
+                var part = (IXPart)m_App.Documents.Active;
+
+                var bbox = part.Evaluation.PreCreateBoundingBox();
+                bbox.BestFit = true;
+                bbox.Commit();
+
+                b1 = bbox.Box;
+            }
+
+            var sizes = new double[] { b1.Width, b1.Height, b1.Length }.OrderBy(x => x).ToArray();
+
+            Assert.That(sizes[0], Is.EqualTo(0.01).Within(0.00000000001).Percent);
+            Assert.That(sizes[1], Is.EqualTo(0.035).Within(0.00000000001).Percent);
+            Assert.That(sizes[2], Is.EqualTo(0.075).Within(0.00000000001).Percent);
+            AssertCompareDoubles(b1.CenterPoint.X, 0.00980748828, 10);
+            AssertCompareDoubles(b1.CenterPoint.Y, -0.11052982533, 10);
+            AssertCompareDoubles(b1.CenterPoint.Z, -0.03862083082, 10);
+        }
+
+        [Test]
         public void BoundingBoxUserUnitTest()
         {
             Box3D b1;

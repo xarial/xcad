@@ -37,16 +37,25 @@ namespace Xarial.XCad.SolidWorks.Sketch
 
         public override object Dispatch => Point;
 
-        public override IXSketchBase OwnerSketch => OwnerDocument.CreateObjectFromDispatch<ISwSketchBase>(Point.GetSketch());
+        public override IXSketchBase OwnerSketch => m_OwnerSketch;
+
+        private SwSketchBase m_OwnerSketch;
 
         internal SwSketchPoint(ISketchPoint pt, SwDocument doc, SwApplication app, bool created) : base(pt, doc, app)
         {
             m_SketchMgr = doc.Model.SketchManager;
+
             m_Creator = new ElementCreator<ISketchPoint>(CreatePoint, pt, created);
+
+            if (pt != null) 
+            {
+                SetOwnerSketch(pt);
+            }
         }
 
-        internal SwSketchPoint(SwSketchBase ownerSketch, SwDocument doc, SwApplication app) : base(ownerSketch, doc, app)
+        internal SwSketchPoint(SwSketchBase ownerSketch, SwDocument doc, SwApplication app) : this(null, doc, app, false)
         {
+            m_OwnerSketch = ownerSketch;
         }
 
         public override void Commit(CancellationToken cancellationToken) => m_Creator.Create(cancellationToken);
@@ -124,9 +133,19 @@ namespace Xarial.XCad.SolidWorks.Sketch
 
         private ISketchPoint CreatePoint(CancellationToken cancellationToken)
         {
+            if (m_OwnerSketch != null)
+            {
+                if (!m_OwnerSketch.IsEditing)
+                {
+                    throw new Exception($"New sketch points can only be added to the sketch in the edit mode. Use {nameof(IXSketchBase)}::{nameof(IXSketchBase.Edit)} to enable editing mode");
+                }
+            }
+
             var pt = m_SketchMgr.CreatePoint(Coordinate.X, Coordinate.Y, Coordinate.Z);
 
             SetColor(pt, m_Creator.CachedProperties.Get<System.Drawing.Color?>(nameof(Color)));
+
+            SetOwnerSketch(pt);
 
             return pt;
         }
@@ -148,6 +167,11 @@ namespace Xarial.XCad.SolidWorks.Sketch
             {
                 throw new NotSupportedException("Point name extraction is supported in SOLIDWORKS 2015 or newer");
             }
+        }
+
+        private void SetOwnerSketch(ISketchPoint pt)
+        {
+            m_OwnerSketch = OwnerDocument.CreateObjectFromDispatch<SwSketchBase>(pt.GetSketch());
         }
     }
 }

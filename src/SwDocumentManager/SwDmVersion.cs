@@ -95,4 +95,10 @@ namespace Xarial.XCad.SwDocumentManager
 
         public override string ToString() => DisplayName;
     }
+
+    public static class SwDmVersionExtension 
+    {
+        public static bool IsVersionNewerOrEqual(this ISwDmVersion vers, SwDmVersion_e version)
+            => vers.Major >= version;
+    }
 }

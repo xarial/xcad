@@ -23,6 +23,11 @@ namespace Xarial.XCad.Documents
     public interface IXDrawingView : IXSelObject, IXObjectContainer, IDimensionable, IXTransaction
     {
         /// <summary>
+        /// Bodies scope of this view
+        /// </summary>
+        IXBody[] Bodies { get; set; }
+
+        /// <summary>
         /// Contains the document referenced by this drawing view
         /// </summary>
         IXDocument3D ReferencedDocument { get; set; }
@@ -135,5 +140,53 @@ namespace Xarial.XCad.Documents
         /// Options of flat pattern view
         /// </summary>
         FlatPatternViewOptions_e Options { get; set; }
+    }
+
+    /// <summary>
+    /// Orientation definition of the <see cref="IXRelativeDrawingView"/>
+    /// </summary>
+    public class RelativeDrawingViewOrientation 
+    {
+        /// <summary>
+        /// Entity which corresponds to the first orientation
+        /// </summary>
+        public IXPlanarRegion FirstEntity { get; }
+
+        /// <summary>
+        /// Direction of the first entity
+        /// </summary>
+        public StandardViewType_e FirstDirection { get; }
+
+        /// <summary>
+        /// Entity which corresponds to the second orientation
+        /// </summary>
+        public IXPlanarRegion SecondEntity { get; }
+
+        /// <summary>
+        /// Direction of the second entity
+        /// </summary>
+        public StandardViewType_e SecondDirection { get; }
+
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        public RelativeDrawingViewOrientation(IXPlanarRegion firstEntity, StandardViewType_e firstDirection, IXPlanarRegion secondEntity, StandardViewType_e secondDirection)
+        {
+            FirstEntity = firstEntity;
+            FirstDirection = firstDirection;
+            SecondEntity = secondEntity;
+            SecondDirection = secondDirection;
+        }
+    }
+
+    /// <summary>
+    /// Relative drawing view
+    /// </summary>
+    public interface IXRelativeDrawingView : IXDrawingView 
+    {
+        /// <summary>
+        /// Orientation of the relative view
+        /// </summary>
+        RelativeDrawingViewOrientation Orientation { get; set; }
     }
 }

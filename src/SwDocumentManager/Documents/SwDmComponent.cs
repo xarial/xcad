@@ -57,7 +57,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         public ISwDMComponent Component { get; }
 
-        public override SelectType_e Type => SelectType_e.Components;
+        public override SelectType_e SelectionType => SelectType_e.Components;
 
         internal SwDmAssembly ParentAssembly { get; }
 

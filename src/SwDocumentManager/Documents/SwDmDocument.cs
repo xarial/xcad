@@ -21,6 +21,7 @@ using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Delegates;
 using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Documents.Exceptions;
+using Xarial.XCad.Documents.Services;
 using Xarial.XCad.Documents.Structures;
 using Xarial.XCad.Features;
 using Xarial.XCad.Geometry;
@@ -131,6 +132,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         }
         public TObj DeserializeObject<TObj>(Stream stream) where TObj : IXObject => throw new NotSupportedException();
         public void Rebuild() => throw new NotSupportedException();
+        public IOperationGroup PreCreateOperationGroup() => throw new NotSupportedException();
         public IXUnits Units => throw new NotSupportedException();
         public IXModelViewRepository ModelViews => throw new NotSupportedException();
         public IXAnnotationRepository Annotations => throw new NotSupportedException();
@@ -533,7 +535,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         public IStorage OpenStorage(string name, AccessType_e access)
         {
-            if (SwDmApp.IsVersionNewerOrEqual(SwDmVersion_e.Sw2015)) 
+            if (this.IsVersionNewerOrEqual(SwDmVersion_e.Sw2015)) 
             {
                 return new SwDm3rdPartyStorage((ISwDMDocument19)Document, name, access);
             }
@@ -545,7 +547,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         public Stream OpenStream(string name, AccessType_e access)
         {
-            if (SwDmApp.IsVersionNewerOrEqual(SwDmVersion_e.Sw2015))
+            if (this.IsVersionNewerOrEqual(SwDmVersion_e.Sw2015))
             {
                 return new SwDm3rdPartyStream((ISwDMDocument19)Document, name, access);
             }
@@ -653,7 +655,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                 | SwDmSearchFilters.SwDmSearchSubfolders
                 | SwDmSearchFilters.SwDmSearchInContextReference);
 
-            if (SwDmApp.IsVersionNewerOrEqual(SwDmVersion_e.Sw2017))
+            if (this.IsVersionNewerOrEqual(SwDmVersion_e.Sw2017))
             {
                 deps = ((ISwDMDocument21)Document).GetAllExternalReferences5(searchOpts, out _, out isVirtualObj, out _, out _) as string[];
             }
@@ -777,5 +779,11 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         IXConfigurationRepository IXDocument3D.Configurations => throw new NotSupportedException();
 
         TSelObject IXObjectContainer.ConvertObject<TSelObject>(TSelObject obj) => throw new NotSupportedException();
+    }
+
+    public static class SwDmDocumentExtension 
+    {
+        public static bool IsVersionNewerOrEqual(this ISwDmDocument doc, SwDmVersion_e version)
+            => doc.Version.IsVersionNewerOrEqual(version);
     }
 }

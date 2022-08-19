@@ -64,7 +64,6 @@ namespace Xarial.XCad.SolidWorks.Features
             {
                 if (((IFeature)m_Sketch).Select2(false, 0))
                 {
-                    m_AddToDbOrig = m_SketchMgr.AddToDB;
                     StartEdit();
                 }
                 else 
@@ -72,17 +71,19 @@ namespace Xarial.XCad.SolidWorks.Features
                     throw new Exception("Failed to select sketch for editing");
                 }
             }
+
+            m_AddToDbOrig = m_SketchMgr.AddToDB;
         }
 
         public void Dispose()
         {
+            if (m_AddToDbOrig.HasValue)
+            {
+                m_SketchMgr.AddToDB = m_AddToDbOrig.Value;
+            }
+
             if (Target.IsEditing)
             {
-                if (m_AddToDbOrig.HasValue)
-                {
-                    m_SketchMgr.AddToDB = m_AddToDbOrig.Value;
-                }
-
                 m_SketchMgr.Document.ClearSelection2(true);
                 
                 EndEdit(Cancel);

@@ -69,7 +69,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         {
             get
             {
-                if (m_Doc.SwDmApp.IsVersionNewerOrEqual(SwDmVersion_e.Sw2019))
+                if (m_Doc.IsVersionNewerOrEqual(SwDmVersion_e.Sw2019))
                 {
                     var count = ((ISwDMConfigurationMgr2)m_Doc.Document.ConfigurationManager).GetConfigurationCount2(out SwDMConfigurationError err);
                     
@@ -103,7 +103,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         {
             string[] confNames;
 
-            if (m_Doc.SwDmApp.IsVersionNewerOrEqual(SwDmVersion_e.Sw2019))
+            if (m_Doc.IsVersionNewerOrEqual(SwDmVersion_e.Sw2019))
             {
                 confNames = (string[])((ISwDMConfigurationMgr2)m_Doc.Document.ConfigurationManager).GetConfigurationNames2(out SwDMConfigurationError err);
 
@@ -124,7 +124,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         {
             ISwDMConfiguration conf;
 
-            if (m_Doc.SwDmApp.IsVersionNewerOrEqual(SwDmVersion_e.Sw2019))
+            if (m_Doc.IsVersionNewerOrEqual(SwDmVersion_e.Sw2019))
             {
                 conf = ((ISwDMConfigurationMgr2)m_Doc.Document.ConfigurationManager).GetConfigurationByName2(name, out SwDMConfigurationError err);
 

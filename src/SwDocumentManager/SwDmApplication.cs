@@ -139,7 +139,7 @@ namespace Xarial.XCad.SwDocumentManager
 
     public static class SwDmApplicationExtension
     {
-        public static bool IsVersionNewerOrEqual(this ISwDmApplication app, SwDmVersion_e version)
-            => app.Version.Major >= version;
+        public static bool IsVersionNewerOrEqual(this ISwDmApplication app, SwDmVersion_e version) 
+            => app.Version.IsVersionNewerOrEqual(version);
     }
 }

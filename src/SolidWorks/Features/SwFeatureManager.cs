@@ -202,7 +202,8 @@ namespace Xarial.XCad.SolidWorks.Features
                     () => new SwSketch2D(default(ISketch), Document, m_App, false),
                     () => new SwSketch3D(default(ISketch), Document, m_App, false),
                     () => new SwMacroFeature(null, Document, m_App, false),
-                    () => new SwDumbBody(null, Document, m_App, false));
+                    () => new SwDumbBody(null, Document, m_App, false),
+                    () => new SwPlane(null, Document, m_App, false));
             }
         }
     }

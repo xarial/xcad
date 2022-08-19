@@ -44,6 +44,12 @@ stages:
       - task: NuGetToolInstaller@1
         displayName: 'Install NuGet'
 
+      - task: UseDotNet@2
+        displayName: 'Install .NET SDK'
+        inputs:
+          packageType: 'sdk'
+          version: '6.0.301'
+
       - task: NuGetCommand@2
         displayName: 'Restore NuGet References'
         inputs:

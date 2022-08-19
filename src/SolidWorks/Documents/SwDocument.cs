@@ -25,6 +25,7 @@ using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Delegates;
 using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Documents.Exceptions;
+using Xarial.XCad.Documents.Services;
 using Xarial.XCad.Documents.Structures;
 using Xarial.XCad.Exceptions;
 using Xarial.XCad.Features;
@@ -57,6 +58,12 @@ namespace Xarial.XCad.SolidWorks.Documents
         new TSwObj DeserializeObject<TSwObj>(Stream stream)
             where TSwObj : ISwObject;
         
+        /// <summary>
+        /// Creates xCAD object from a SOLIDWORKS dispatch object
+        /// </summary>
+        /// <typeparam name="TObj">Type of xCAD object</typeparam>
+        /// <param name="disp">SOLIDWORKS specific COM object instance</param>
+        /// <returns>xCAD object</returns>
         TObj CreateObjectFromDispatch<TObj>(object disp)
             where TObj : ISwObject;
     }
@@ -1254,6 +1261,8 @@ namespace Xarial.XCad.SolidWorks.Documents
                 //throw new Exception("Failed to rebuild the model");
             }
         }
+
+        public IOperationGroup PreCreateOperationGroup() => new SwUndoObjectGroup(this);
     }
 
     internal class SwUnknownDocument : SwDocument, IXUnknownDocument

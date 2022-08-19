@@ -46,7 +46,7 @@ namespace Xarial.XCad.SolidWorks
             }
         }
 
-        public SelectType_e Type 
+        public SelectType_e SelectionType 
         {
             get 
             {

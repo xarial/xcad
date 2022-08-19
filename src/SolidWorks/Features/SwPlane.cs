@@ -9,7 +9,10 @@ using SolidWorks.Interop.sldworks;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
+using Xarial.XCad.Exceptions;
 using Xarial.XCad.Features;
+using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.SolidWorks.Documents;
 
@@ -17,42 +20,86 @@ namespace Xarial.XCad.SolidWorks.Features
 {
     public interface ISwPlane : IXPlane, ISwFeature 
     {
+        /// <summary>
+        /// Pointer to the referenced plane feature
+        /// </summary>
         IRefPlane RefPlane { get; }
     }
 
     internal class SwPlane : SwFeature, ISwPlane
     {
-        public IRefPlane RefPlane { get; }
+        public IRefPlane RefPlane { get; private set; }
 
         private readonly IMathUtility m_MathUtils;
 
         internal SwPlane(IFeature feat, SwDocument doc, SwApplication app, bool created) : base(feat, doc, app, created)
         {
-            RefPlane = feat.GetSpecificFeature2() as IRefPlane;
+            if (feat != null)
+            {
+                RefPlane = feat.GetSpecificFeature2() as IRefPlane;
+            }
 
             m_MathUtils = OwnerApplication.Sw.IGetMathUtility();
         }
 
         public override object Dispatch => RefPlane;
 
-        public Plane Definition 
+        public Plane Plane 
         {
             get 
             {
-                var x = (IMathVector)m_MathUtils.CreateVector(new double[] { 1, 0, 0 });
-                var z = (IMathVector)m_MathUtils.CreateVector(new double[] { 0, 0, 1 });
-                var origin = (IMathPoint)m_MathUtils.CreatePoint(new double[] { 0, 0, 0 });
+                if (IsCommitted)
+                {
+                    var x = (IMathVector)m_MathUtils.CreateVector(new double[] { 1, 0, 0 });
+                    var z = (IMathVector)m_MathUtils.CreateVector(new double[] { 0, 0, 1 });
+                    var origin = (IMathPoint)m_MathUtils.CreatePoint(new double[] { 0, 0, 0 });
 
-                var transform = RefPlane.Transform;
+                    var transform = RefPlane.Transform;
 
-                x = (IMathVector)x.MultiplyTransform(transform);
-                z = (IMathVector)z.MultiplyTransform(transform);
-                origin = (IMathPoint)origin.MultiplyTransform(transform);
+                    x = (IMathVector)x.MultiplyTransform(transform);
+                    z = (IMathVector)z.MultiplyTransform(transform);
+                    origin = (IMathPoint)origin.MultiplyTransform(transform);
 
-                return new Plane(new Point((double[])origin.ArrayData),
-                    new Vector((double[])z.ArrayData),
-                    new Vector((double[])x.ArrayData));
+                    return new Plane(new Point((double[])origin.ArrayData),
+                        new Vector((double[])z.ArrayData),
+                        new Vector((double[])x.ArrayData));
+                }
+                else 
+                {
+                    return m_Creator.CachedProperties.Get<Plane>();
+                }
             }
+            set 
+            {
+                if (!IsCommitted)
+                {
+                    m_Creator.CachedProperties.Set(value);
+                }
+                else 
+                {
+                    throw new CommitedElementReadOnlyParameterException();
+                }
+            }
+        }
+
+        public IXLoop[] Boundary => throw new NotImplementedException();
+
+        protected override IFeature InsertFeature(CancellationToken cancellationToken)
+        {
+            if (Plane == null) 
+            {
+                throw new NullReferenceException("Plane is not specified");
+            }
+
+            var pt1 = Plane.Point;
+            var pt2 = Plane.Point.Move(Plane.Direction, 0.1);
+            var pt3 = Plane.Point.Move(Plane.Reference, 0.1);
+
+            RefPlane = (IRefPlane)OwnerDocument.Model.CreatePlaneFixed2(pt1.ToArray(), pt2.ToArray(), pt3.ToArray(), false);
+
+            var feat = (IFeature)RefPlane;
+
+            return feat;
         }
     }
 }

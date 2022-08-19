@@ -27,9 +27,19 @@ namespace Xarial.XCad.Features
         CutListStatus_e Status { get; }
 
         /// <summary>
+        /// Type of the cut-list
+        /// </summary>
+        CutListType_e Type { get; }
+
+        /// <summary>
         /// Bodies of this cut-list item
         /// </summary>
         IEnumerable<IXSolidBody> Bodies { get; }
+
+        /// <summary>
+        /// Updates cut-lists folder
+        /// </summary>
+        void Update();
     }
 
     /// <summary>

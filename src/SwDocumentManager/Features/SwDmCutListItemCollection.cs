@@ -76,8 +76,7 @@ namespace Xarial.XCad.SwDocumentManager.Features
         {
             object[] cutListItems = null;
 
-            if (m_Part.SwDmApp.IsVersionNewerOrEqual(SwDmVersion_e.Sw2019)
-                && m_Part.Version.Major >= SwDmVersion_e.Sw2019)
+            if (m_Part.IsVersionNewerOrEqual(SwDmVersion_e.Sw2019))
             {
                 cutListItems = ((ISwDMConfiguration16)m_Conf.Configuration).GetCutListItems() as object[];
             }

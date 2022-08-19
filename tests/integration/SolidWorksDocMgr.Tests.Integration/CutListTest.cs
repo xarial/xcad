@@ -32,6 +32,30 @@ namespace SolidWorksDocMgr.Tests.Integration
         }
 
         [Test]
+        public void CutListsTypes()
+        {
+            Dictionary<string, CutListType_e> cutListData;
+
+            using (var doc = OpenDataDocument("CutListTypes_2021.SLDPRT"))
+            {
+                var part = (ISwDmPart)m_App.Documents.Active;
+                var cutLists = part.Configurations.Active.CutLists;
+                cutListData = cutLists.ToDictionary(c => c.Name, c => c.Type);
+            }
+
+            Assert.AreEqual(3, cutListData.Count);
+
+            Assert.That(cutListData.ContainsKey("S 76.20 X 5.7<1>"));
+            Assert.AreEqual(CutListType_e.Weldment, cutListData["S 76.20 X 5.7<1>"]);
+
+            Assert.That(cutListData.ContainsKey("Sheet<1>"));
+            Assert.AreEqual(CutListType_e.SheetMetal, cutListData["Sheet<1>"]);
+
+            Assert.That(cutListData.ContainsKey("Cut-List-Item3"));
+            Assert.AreEqual(CutListType_e.SolidBody, cutListData["Cut-List-Item3"]);
+        }
+
+        [Test]
         public void WeldmentCutListsTest()
         {
             Dictionary<string, int> cutListData;

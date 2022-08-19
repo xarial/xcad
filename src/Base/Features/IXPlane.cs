@@ -8,6 +8,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;
 
 namespace Xarial.XCad.Features
@@ -15,11 +16,9 @@ namespace Xarial.XCad.Features
     /// <summary>
     /// Represents the plane reference geometry
     /// </summary>
-    public interface IXPlane : IXFeature
+    public interface IXPlane : IXFeature, IXPlanarRegion
     {
-        /// <summary>
-        /// Definition of this plane
-        /// </summary>
-        Plane Definition { get; }
+        /// <inheritdoc/>
+        new Plane Plane { get; set; }
     }
 }

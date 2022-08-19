@@ -1399,5 +1399,36 @@ namespace SolidWorks.Tests.Integration
                 doc.Dispose();
             }
         }
+
+        [Test]
+        public void OperationGroupTest() 
+        {
+            string lastFeatName;
+            int featsCount;
+
+            using (var doc = OpenDataDocument("Part1.SLDPRT"))
+            {
+                var part = (ISwPart)m_App.Documents.Active;
+
+                using (var oper = part.CreateOperationGroup("_Temp", true)) 
+                {
+                    var feat1 = part.Features.Last();
+
+                    part.Features.Remove(feat1);
+                    var feat2 = part.Features.PreCreate<IXDumbBody>();
+                    feat2.Body = m_App.MemoryGeometryBuilder.CreateSolidBox(new Point(0, 0, 0), new Vector(1, 0, 0), new Vector(0, 1, 0), 0.01, 0.01, 0.01).Bodies.First();
+                    feat2.Commit();
+                    var feat3 = part.Features.PreCreate<IXDumbBody>();
+                    feat3.Body = m_App.MemoryGeometryBuilder.CreateSolidBox(new Point(0.2, 0.2, 0.2), new Vector(1, 0, 0), new Vector(0, 1, 0), 0.01, 0.01, 0.01).Bodies.First();
+                    feat3.Commit();
+                }
+
+                featsCount = part.Features.Count;
+                lastFeatName = part.Features.Last().Name;
+            }
+
+            Assert.AreEqual("3DSketch2", lastFeatName);
+            Assert.AreEqual(28, featsCount);
+        }
     }
 }

@@ -59,6 +59,10 @@ namespace Xarial.XCad.SolidWorks.Documents
     {
     }
 
+    public interface ISwRelativeDrawingView : ISwDrawingView, IXRelativeDrawingView 
+    {
+    }
+
     [DebuggerDisplay("{" + nameof(Name) + "}")]
     internal class SwDrawingView : SwSelObject, ISwDrawingView
     {
@@ -157,6 +161,11 @@ namespace Xarial.XCad.SolidWorks.Documents
                 if (scale != null)
                 {
                     drwView.ScaleRatio = new double[] { scale.Numerator, scale.Denominator };
+                }
+
+                if (Bodies != null) 
+                {
+                    drwView.Bodies = Bodies.Cast<ISwBody>().Select(b => b.Body).ToArray();
                 }
 
                 return drwView;
@@ -433,6 +442,32 @@ namespace Xarial.XCad.SolidWorks.Documents
                 var views = (object[])DrawingView.GetDependentViews(true, -1) ?? new object[0];
 
                 return views.Select(v => m_Drawing.CreateObjectFromDispatch<ISwDrawingView>((IView)v));
+            }
+        }
+
+        public IXBody[] Bodies 
+        {
+            get 
+            {
+                if (IsCommitted)
+                {
+                    return ((object[])DrawingView.Bodies ?? new object[0]).Select(b => OwnerDocument.CreateObjectFromDispatch<ISwBody>(b)).ToArray();
+                }
+                else 
+                {
+                    return m_Creator.CachedProperties.Get<IXBody[]>();
+                }
+            }
+            set 
+            {
+                if (IsCommitted)
+                {
+                    DrawingView.Bodies = value.Cast<ISwBody>().Select(b => b.Body).ToArray();
+                }
+                else 
+                {
+                    m_Creator.CachedProperties.Set(value);
+                }
             }
         }
 
@@ -1279,6 +1314,104 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
 
             return OwnerDocument.CreateObjectFromDispatch<ISwFlatPattern>(face.GetFeature());
+        }
+    }
+
+    internal class SwRelativeView : SwDrawingView, ISwRelativeDrawingView
+    {
+
+        internal SwRelativeView(IView drwView, SwDrawing drw) : base(drwView, drw)
+        {
+        }
+
+        internal SwRelativeView(SwDrawing drw, SwSheet sheet)
+            : base(null, drw, sheet)
+        {
+        }
+
+        public RelativeDrawingViewOrientation Orientation 
+        {
+            get 
+            {
+                if (!IsCommitted)
+                {
+                    return m_Creator.CachedProperties.Get<RelativeDrawingViewOrientation>();
+                }
+                else
+                {
+                    throw new Exception("This property is only available for new view creation");
+                }
+            }
+            set 
+            {
+                if (!IsCommitted)
+                {
+                    m_Creator.CachedProperties.Set(value);
+                }
+                else
+                {
+                    throw new CommitedElementReadOnlyParameterException();
+                }
+            }
+        }
+
+        protected override IView CreateDrawingView(CancellationToken cancellationToken)
+        {
+            swRelativeViewCreationDirection_e ConvertDirection(StandardViewType_e dir) 
+            {
+                switch (dir) 
+                {
+                    case StandardViewType_e.Front:
+                        return swRelativeViewCreationDirection_e.swRelativeViewCreationDirection_FRONT;
+
+                    case StandardViewType_e.Back:
+                        return swRelativeViewCreationDirection_e.swRelativeViewCreationDirection_BACK;
+
+                    case StandardViewType_e.Left:
+                        return swRelativeViewCreationDirection_e.swRelativeViewCreationDirection_LEFT;
+
+                    case StandardViewType_e.Right:
+                        return swRelativeViewCreationDirection_e.swRelativeViewCreationDirection_RIGHT;
+
+                    case StandardViewType_e.Top:
+                        return swRelativeViewCreationDirection_e.swRelativeViewCreationDirection_TOP;
+
+                    case StandardViewType_e.Bottom:
+                        return swRelativeViewCreationDirection_e.swRelativeViewCreationDirection_BOTTOM;
+
+                    default:
+                        throw new NotSupportedException();
+                }
+            }
+
+            if (Orientation == null) 
+            {
+                throw new Exception("Orientation is not specified");
+            }
+
+            if (Orientation.FirstEntity is SwSelObject && Orientation.SecondEntity is SwSelObject)
+            {
+                var refDoc = ((SwSelObject)Orientation.FirstEntity).OwnerDocument;
+                
+                var selData = refDoc.Model.ISelectionManager.CreateSelectData();
+
+                selData.Mark = 1;
+
+                ((SwSelObject)Orientation.FirstEntity).Select(false, selData);
+
+                selData.Mark = 2;
+
+                ((SwSelObject)Orientation.SecondEntity).Select(true, selData);
+
+                var dirFront = ConvertDirection(Orientation.FirstDirection);
+                var dirRight = ConvertDirection(Orientation.SecondDirection);
+
+                return m_Drawing.Drawing.CreateRelativeView(refDoc.Path, Location?.X ?? 0, Location?.Y ?? 0, (int)dirFront, (int)dirRight);
+            }
+            else
+            {
+                throw new NotSupportedException("Entities must be selection objects");
+            }
         }
     }
 }

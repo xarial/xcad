@@ -243,7 +243,20 @@ namespace Xarial.XCad.SolidWorks.Geometry
         }
 
         public IXBody Copy()
-            => OwnerApplication.CreateObjectFromDispatch<SwTempBody>(Body.ICopy(), OwnerDocument);
+        {
+            IBody2 copy;
+
+            if (OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2019))
+            {
+                copy = (IBody2)Body.Copy2(true);
+            }
+            else 
+            {
+                copy = (IBody2)Body.Copy();
+            }
+
+            return OwnerApplication.CreateObjectFromDispatch<SwTempBody>(copy, OwnerDocument);
+        }
 
         public void Transform(TransformMatrix transform)
         {
