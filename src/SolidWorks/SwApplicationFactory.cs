@@ -20,6 +20,9 @@ using Xarial.XCad.Enums;
 
 namespace Xarial.XCad.SolidWorks
 {
+    /// <summary>
+    /// Factory for creating <see cref="ISwApplication"/>
+    /// </summary>
     public class SwApplicationFactory
     {
         internal static class CommandLineArguments
@@ -44,12 +47,17 @@ namespace Xarial.XCad.SolidWorks
         
         private const string ADDINS_STARTUP_REG_KEY = @"Software\SolidWorks\AddInsStartup";
 
-        public static void DisableAllAddInsStartup(out List<string> disabledAddInGuids)
+        /// <summary>
+        /// Disables all startup add-ins
+        /// </summary>
+        /// <param name="disabledAddInGuids">Guids of the disabled add-ins</param>
+        /// <remarks>Call the <see cref="EnableAddInsStartup(IReadOnlyList{string})"/> to restore the add-ins</remarks>
+        public static void DisableAllAddInsStartup(out IReadOnlyList<string> disabledAddInGuids)
         {
             const int DISABLE_VAL = 0;
             const int ENABLE_VAL = 1;
 
-            disabledAddInGuids = new List<string>();
+            var localDisabledAddInGuids = new List<string>();
 
             var addinsStartup = Registry.CurrentUser.OpenSubKey(ADDINS_STARTUP_REG_KEY, true);
 
@@ -72,15 +80,21 @@ namespace Xarial.XCad.SolidWorks
                             if (loadOnStartup)
                             {
                                 addInKey.SetValue("", DISABLE_VAL);
-                                disabledAddInGuids.Add(addInKeyName);
+                                localDisabledAddInGuids.Add(addInKeyName);
                             }
                         }
                     }
                 }
             }
+
+            disabledAddInGuids = localDisabledAddInGuids;
         }
 
-        public static void EnableAddInsStartup(List<string> addInGuids)
+        /// <summary>
+        /// Enables the add-ins at startup
+        /// </summary>
+        /// <param name="addInGuids">Add-in guids</param>
+        public static void EnableAddInsStartup(IReadOnlyList<string> addInGuids)
         {
             const int ENABLE_VAL = 1;
 
@@ -94,8 +108,16 @@ namespace Xarial.XCad.SolidWorks
             }
         }
 
+        /// <summary>
+        /// Pre-creates a template for SOLIDWORKS application
+        /// </summary>
+        /// <returns></returns>
         public static ISwApplication PreCreate() => new SwApplication();
 
+        /// <summary>
+        /// Returns all installed SOLIDWORKS versions
+        /// </summary>
+        /// <returns></returns>
         public static IEnumerable<ISwVersion> GetInstalledVersions()
         {
             foreach (var versCand in Enum.GetValues(typeof(SwVersion_e)).Cast<SwVersion_e>())
@@ -124,15 +146,29 @@ namespace Xarial.XCad.SolidWorks
             }
         }
 
+        /// <summary>
+        /// Creates <see cref="ISwApplication"/> from SOLIDWORKS pointer
+        /// </summary>
+        /// <param name="app">Pointer to SOLIDWORKS application</param>
+        /// <returns>Instance of <see cref="ISwApplication"/></returns>
         public static ISwApplication FromPointer(ISldWorks app)
             => FromPointer(app, new ServiceCollection());
 
+        /// <inheritdoc cref="FromPointer(ISldWorks)"/>
+        /// <param name="services">Custom serives</param>
         public static ISwApplication FromPointer(ISldWorks app, IXServiceCollection services)
             => new SwApplication(app, services);
 
+        /// <summary>
+        /// Creates instance of SOLIDWORKS from SLDWORKS.exe process
+        /// </summary>
+        /// <param name="process">SLDWORKS.exe process</param>
+        /// <returns>Pointer to <see cref="ISwApplication"/></returns>
         public static ISwApplication FromProcess(Process process)
             => FromProcess(process, new ServiceCollection());
 
+        /// <inheritdoc cref="FromProcess(Process)"/>
+        /// <param name="services">Custom serives</param>
         public static ISwApplication FromProcess(Process process, IXServiceCollection services)
         {
             var app = RotHelper.TryGetComObjectByMonikerName<ISldWorks>(GetMonikerName(process));
@@ -175,6 +211,11 @@ namespace Xarial.XCad.SolidWorks
             return app;
         }
 
+        /// <summary>
+        /// Creates instance of SOLIDWORKS version from the major version
+        /// </summary>
+        /// <param name="vers"></param>
+        /// <returns></returns>
         public static ISwVersion CreateVersion(SwVersion_e vers) => new SwVersion(vers);
 
         internal static string GetMonikerName(Process process) => $"SolidWorks_PID_{process.Id}";

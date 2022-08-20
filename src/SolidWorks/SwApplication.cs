@@ -459,7 +459,9 @@ namespace Xarial.XCad.SolidWorks
 
             using (var appStarter = new SwApplicationStarter(State, Version)) 
             {
-                var app = appStarter.Start(p => Starting?.Invoke(this, p), cancellationToken);
+                var logger = m_Logger ?? new TraceLogger("xCAD.SwApplication");
+
+                var app = appStarter.Start(p => Starting?.Invoke(this, p), logger, cancellationToken);
                 WatchStartupCompleted((SldWorks)app);
                 return app;
             }
