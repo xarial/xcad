@@ -58,6 +58,11 @@ namespace Xarial.XCad.Documents
         void ZoomToBox(Box3D box);
 
         /// <summary>
+        /// Zooms view to fit the model
+        /// </summary>
+        void ZoomToFit();
+
+        /// <summary>
         /// Refreshes the view
         /// </summary>
         void Update();
