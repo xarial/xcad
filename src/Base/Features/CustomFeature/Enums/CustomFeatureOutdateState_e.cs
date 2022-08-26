@@ -9,6 +9,9 @@ using System;
 
 namespace Xarial.XCad.Features.CustomFeature.Enums
 {
+    /// <summary>
+    /// Indicates which elements of the macro feature are outdated due to the parameters upgrade
+    /// </summary>
     [Flags]
     public enum CustomFeatureOutdateState_e
     {

@@ -29,16 +29,7 @@ namespace Xarial.XCad.SolidWorks.Utils
            
             var bmp = getPictureFromIPictureFunc.Invoke(null, new object[] { pictDisp }) as Bitmap;
 
-            return new BaseImage(BitmapToByteArray(bmp));
-        }
-
-        private static byte[] BitmapToByteArray(Bitmap bmp)
-        {
-            using (var ms = new MemoryStream())
-            {
-                bmp.Save(ms, ImageFormat.Png);
-                return ms.ToArray();
-            }
+            return new XDrawingImage(bmp);
         }
     }
 }

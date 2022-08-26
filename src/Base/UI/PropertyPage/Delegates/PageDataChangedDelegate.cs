@@ -7,5 +7,8 @@
 
 namespace Xarial.XCad.UI.PropertyPage.Delegates
 {
+    /// <summary>
+    /// Delegate of <see cref="IXPropertyPage{TDataModel}.DataChanged"/> event
+    /// </summary>
     public delegate void PageDataChangedDelegate();
 }

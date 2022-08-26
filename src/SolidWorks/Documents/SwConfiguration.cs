@@ -101,7 +101,19 @@ namespace Xarial.XCad.SolidWorks.Documents
         public override object Dispatch => Configuration;
 
         public IXImage Preview
-            => PictureDispUtils.PictureDispToXImage(OwnerApplication.Sw.GetPreviewBitmap(m_Doc.Path, Name));
+        {
+            get
+            {
+                if (OwnerApplication.IsInProcess())
+                {
+                    return PictureDispUtils.PictureDispToXImage(OwnerApplication.Sw.GetPreviewBitmap(m_Doc.Path, Name));
+                }
+                else
+                {
+                    return new XDrawingImage(m_Doc.GetThumbnailImage());
+                }
+            }
+        }
 
         public string PartNumber => GetPartNumber(Configuration);
 

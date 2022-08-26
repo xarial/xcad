@@ -11,6 +11,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -42,6 +43,7 @@ using Xarial.XCad.SolidWorks.Features;
 using Xarial.XCad.SolidWorks.UI;
 using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.Toolkit.Data;
+using Xarial.XCad.Toolkit.Utils;
 using Xarial.XCad.UI;
 
 namespace Xarial.XCad.SolidWorks.Documents
@@ -1386,5 +1388,16 @@ namespace Xarial.XCad.SolidWorks.Documents
         IXModelView3DRepository IXDocument3D.ModelViews => throw new NotImplementedException();
         TSelObject IXObjectContainer.ConvertObject<TSelObject>(TSelObject obj) => throw new NotImplementedException();
         TSelObject ISwDocument3D.ConvertObject<TSelObject>(TSelObject obj) => throw new NotImplementedException();
+    }
+
+    internal static class SwDocumentExtension 
+    {
+        internal static Image GetThumbnailImage(this SwDocument doc) 
+        {
+            using (var thumbnail = new ShellThumbnail(doc.Path)) 
+            {
+                return Image.FromHbitmap(thumbnail.BitmapHandle);
+            }
+        }
     }
 }

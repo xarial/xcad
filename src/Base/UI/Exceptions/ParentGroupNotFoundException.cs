@@ -9,6 +9,9 @@ using System;
 
 namespace Xarial.XCad.UI.Exceptions
 {
+    /// <summary>
+    /// Exception indicates that the specified parent group does not exist
+    /// </summary>
     public class ParentGroupNotFoundException : Exception
     {
         public ParentGroupNotFoundException(string parentGrpId, string thisGrpId)

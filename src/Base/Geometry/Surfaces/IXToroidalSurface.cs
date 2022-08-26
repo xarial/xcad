@@ -11,6 +11,9 @@ using System.Text;
 
 namespace Xarial.XCad.Geometry.Surfaces
 {
+    /// <summary>
+    /// Toroidal surface
+    /// </summary>
     public interface IXToroidalSurface : IXSurface
     {
     }

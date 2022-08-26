@@ -11,9 +11,19 @@ using System.Text;
 
 namespace Xarial.XCad.Data.Enums
 {
+    /// <summary>
+    /// Access type of the 3rd party data storage
+    /// </summary>
     public enum AccessType_e
     {
+        /// <summary>
+        /// Reading access
+        /// </summary>
         Read,
+
+        /// <summary>
+        /// Writing access
+        /// </summary>
         Write
     }
 }

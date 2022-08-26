@@ -11,6 +11,9 @@ using System.Text;
 
 namespace Xarial.XCad.UI.Exceptions
 {
+    /// <summary>
+    /// Exception indicates that the parent group is set as a parent of itself
+    /// </summary>
     public class ParentGroupCircularDependencyException : Exception
     {
         public ParentGroupCircularDependencyException(string grpId) 

@@ -6,6 +6,7 @@
 //*********************************************************************
 
 using System;
+using System.Diagnostics;
 using Xarial.XCad.Utils;
 
 namespace Xarial.XCad.Geometry.Structures
@@ -13,6 +14,7 @@ namespace Xarial.XCad.Geometry.Structures
     /// <summary>
     /// Structure representing 3D point
     /// </summary>
+    [DebuggerDisplay("{" + nameof(X) + "};{" + nameof(Y) + "};{" + nameof(Z) + "}")]
     public class Point
     {
         /// <summary>

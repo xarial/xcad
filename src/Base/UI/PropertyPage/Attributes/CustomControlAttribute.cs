@@ -16,6 +16,9 @@ namespace Xarial.XCad.UI.PropertyPage.Attributes
     {
     }
 
+    /// <summary>
+    /// Indicates that this propery should be rendered as a custom control
+    /// </summary>
     public class CustomControlAttribute : Attribute, ISpecificConstructorAttribute
     {
         public Type ConstructorType { get; }

@@ -7,10 +7,24 @@
 
 namespace Xarial.XCad.UI.Commands.Enums
 {
+    /// <summary>
+    /// Type of text display in the ribbon
+    /// </summary>
     public enum RibbonTabTextDisplay_e
     {
+        /// <summary>
+        /// No text
+        /// </summary>
         NoText,
+
+        /// <summary>
+        /// Display text below icon
+        /// </summary>
         TextBelow,
+
+        /// <summary>
+        /// Display text horizontally
+        /// </summary>
         TextHorizontal
     }
 }

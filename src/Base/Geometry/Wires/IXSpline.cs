@@ -11,6 +11,9 @@ using System.Text;
 
 namespace Xarial.XCad.Geometry.Wires
 {
+    /// <summary>
+    /// Spline segment
+    /// </summary>
     public interface IXSpline : IXSegment
     {
     }

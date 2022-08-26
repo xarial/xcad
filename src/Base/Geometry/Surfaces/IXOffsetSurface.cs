@@ -11,6 +11,9 @@ using System.Text;
 
 namespace Xarial.XCad.Geometry.Surfaces
 {
+    /// <summary>
+    /// Offset surface
+    /// </summary>
     public interface IXOffsetSurface : IXSurface
     {
     }

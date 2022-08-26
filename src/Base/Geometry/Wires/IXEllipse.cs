@@ -11,6 +11,9 @@ using System.Text;
 
 namespace Xarial.XCad.Geometry.Wires
 {
+    /// <summary>
+    /// Eliptical segment
+    /// </summary>
     public interface IXEllipse : IXSegment
     {
     }

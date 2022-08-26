@@ -11,5 +11,10 @@ using System.Text;
 
 namespace Xarial.XCad.UI.PopupWindow.Delegates
 {
+    /// <summary>
+    /// Delegate of <see cref="IXPopupWindow{TWindow}.Closed"/> event
+    /// </summary>
+    /// <typeparam name="TWindow">Specific type of the window</typeparam>
+    /// <param name="sender">Window sender</param>
     public delegate void PopupWindowClosedDelegate<TWindow>(IXPopupWindow<TWindow> sender);
 }

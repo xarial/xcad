@@ -11,6 +11,9 @@ using System.Text;
 
 namespace Xarial.XCad.Geometry.Surfaces
 {
+    /// <summary>
+    /// B-surface
+    /// </summary>
     public interface IXBSurface : IXSurface
     {
     }

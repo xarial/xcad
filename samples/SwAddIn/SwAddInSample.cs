@@ -51,6 +51,9 @@ using Xarial.XCad.SolidWorks.Graphics;
 using Xarial.XCad.Graphics;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Wires;
+using Xarial.XCad.SolidWorks.Extensions;
+using Xarial.XToolkit.Wpf.Utils;
+using System.Threading;
 
 namespace SwAddInExample
 {
@@ -181,7 +184,9 @@ namespace SwAddInExample
 
             CreateFlatPattern,
 
-            CreateDrawing
+            CreateDrawing,
+
+            GetPreview
         }
 
         [Icon(typeof(Resources), nameof(Resources.xarial))]
@@ -654,12 +659,42 @@ namespace SwAddInExample
                     case Commands_e.CreateDrawing:
                         CreateDrawing();
                         break;
+
+                    case Commands_e.GetPreview:
+                        GetPreview();
+                        break;
                 }
             }
             catch 
             {
                 Debug.Assert(false);
             }
+        }
+
+        private void GetPreview()
+        {
+            var inProcess = true;
+
+            if (FileSystemBrowser.BrowseFileSave(out var filePath, "Select file path", FileSystemBrowser.BuildFilterString(FileFilter.ImageFiles)))
+            {
+                if (inProcess)
+                {
+                    SaveImage(filePath);
+                }
+                else 
+                {
+                    var thread = new Thread(() => SaveImage(filePath));
+                    thread.SetApartmentState(ApartmentState.STA);
+                    thread.Start();
+                }
+            }
+        }
+
+        private void SaveImage(string filePath)
+        {
+            var preview = ((IXDocument3D)Application.Documents.Active).Configurations.Active.Preview;
+            var img = preview.ToImage();
+            img.Save(filePath);
         }
 
         private void CreateDrawing()

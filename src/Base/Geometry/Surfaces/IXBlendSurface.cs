@@ -11,6 +11,9 @@ using System.Text;
 
 namespace Xarial.XCad.Geometry.Surfaces
 {
+    /// <summary>
+    /// Blend surface
+    /// </summary>
     public interface IXBlendSurface : IXSurface
     {
     }

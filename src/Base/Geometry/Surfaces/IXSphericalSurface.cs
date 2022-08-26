@@ -11,6 +11,9 @@ using System.Text;
 
 namespace Xarial.XCad.Geometry.Surfaces
 {
+    /// <summary>
+    /// Spherical surface
+    /// </summary>
     public interface IXSphericalSurface : IXSurface
     {
     }

@@ -11,6 +11,9 @@ using System.Text;
 
 namespace Xarial.XCad.Geometry.Wires
 {
+    /// <summary>
+    /// Parabolic segment
+    /// </summary>
     public interface IXParabola : IXSegment
     {
     }

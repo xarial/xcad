@@ -10,6 +10,9 @@ using Xarial.XCad.Geometry.Wires;
 
 namespace Xarial.XCad.Sketch
 {
+    /// <summary>
+    /// Represents sketch line
+    /// </summary>
     public interface IXSketchLine : IXSketchSegment, IXLine
     {
     }

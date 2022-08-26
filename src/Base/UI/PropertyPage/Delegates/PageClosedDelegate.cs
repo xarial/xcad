@@ -9,5 +9,9 @@ using Xarial.XCad.UI.PropertyPage.Enums;
 
 namespace Xarial.XCad.UI.PropertyPage.Delegates
 {
+    /// <summary>
+    /// Delegate of <see cref="IXPropertyPage{TDataModel}.Closed"/> event
+    /// </summary>
+    /// <param name="reason">Reason of page closing</param>
     public delegate void PageClosedDelegate(PageCloseReasons_e reason);
 }

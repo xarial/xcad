@@ -11,5 +11,10 @@ using System.Text;
 
 namespace Xarial.XCad.Annotations.Delegates
 {
+    /// <summary>
+    /// Delegate of <see cref="IXDimension.ValueChanged"/> event
+    /// </summary>
+    /// <param name="dim">Sender</param>
+    /// <param name="newVal">New value of the dimension</param>
     public delegate void DimensionValueChangedDelegate(IXDimension dim, double newVal);
 }

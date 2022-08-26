@@ -7,6 +7,9 @@
 
 namespace Xarial.XCad.UI.PropertyPage.Base
 {
+    /// <summary>
+    /// Represents the base attribute
+    /// </summary>
     public interface IAttribute
     {
     }

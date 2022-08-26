@@ -11,6 +11,9 @@ using System.Text;
 
 namespace Xarial.XCad.Geometry.Surfaces
 {
+    /// <summary>
+    /// Surface of revolution
+    /// </summary>
     public interface IXRevolvedSurface : IXSurface
     {
     }

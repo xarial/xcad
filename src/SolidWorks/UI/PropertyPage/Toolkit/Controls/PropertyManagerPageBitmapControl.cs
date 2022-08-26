@@ -59,13 +59,14 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
         protected override void SetSpecificValue(Image value)
         {
             IXImage img;
+
             if (value == null)
             {
                 img = Defaults.Icon;
             }
             else 
             {
-                img = new BaseImage(ImageToByteArray(value));
+                img = new XDrawingImage(value);
             }
 
             m_Bitmap?.Dispose();
@@ -74,15 +75,6 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             SwSpecificControl.SetBitmapByName(m_Bitmap.FilePaths[0], m_Bitmap.FilePaths[1]);
 
             m_Image = value;
-        }
-
-        private byte[] ImageToByteArray(Image img)
-        {
-            using (var ms = new MemoryStream())
-            {
-                img.Save(ms, img.RawFormat);
-                return ms.ToArray();
-            }
         }
 
         protected override void Dispose(bool disposing)

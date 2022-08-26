@@ -11,6 +11,9 @@ using System.Text;
 
 namespace Xarial.XCad.Sketch
 {
+    /// <summary>
+    /// Represents sketch text
+    /// </summary>
     public interface IXSketchText : IXSketchSegment
     {
     }

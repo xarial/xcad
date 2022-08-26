@@ -12,6 +12,9 @@ using Xarial.XCad.Geometry.Wires;
 
 namespace Xarial.XCad.Geometry.Curves
 {
+    /// <summary>
+    /// Represents the spline curve
+    /// </summary>
     public interface IXSplineCurve : IXCurve, IXSpline
     {
     }

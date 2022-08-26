@@ -11,6 +11,9 @@ using System.Text;
 
 namespace Xarial.XCad.Geometry.Surfaces
 {
+    /// <summary>
+    /// Conical surface
+    /// </summary>
     public interface IXConicalSurface : IXSurface
     {
     }

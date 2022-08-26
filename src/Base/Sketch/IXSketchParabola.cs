@@ -12,6 +12,9 @@ using Xarial.XCad.Geometry.Wires;
 
 namespace Xarial.XCad.Sketch
 {
+    /// <summary>
+    /// Represents sketch parabola
+    /// </summary>
     public interface IXSketchParabola : IXSketchSegment, IXParabola
     {
     }

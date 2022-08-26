@@ -5,11 +5,14 @@
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
+using System.Diagnostics;
+
 namespace Xarial.XCad.Geometry.Structures
 {
     /// <summary>
     /// Represents the 3D bounding box
     /// </summary>
+    [DebuggerDisplay("{" + nameof(Width) + "} x {" + nameof(Height) + "} x {" + nameof(Length) + "}")]
     public class Box3D
     {
         /// <summary>

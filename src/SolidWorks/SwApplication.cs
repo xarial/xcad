@@ -564,12 +564,42 @@ namespace Xarial.XCad.SolidWorks
             => new SwObjectTracker(this, name);
     }
 
+    /// <summary>
+    /// Additional methods of <see cref="ISwApplication"/>
+    /// </summary>
     public static class SwApplicationExtension 
     {
+        /// <summary>
+        /// Checks if the current version of the SOLIDWORKS applicating equals or newver than the specified version
+        /// </summary>
+        /// <param name="app">Application</param>
+        /// <param name="version">Major version</param>
+        /// <param name="servicePack">Service pack</param>
+        /// <param name="servicePackRev">Revision</param>
+        /// <returns>True if current version is newer or equal</returns>
+        /// <remarks>Use this method for forward compatibility</remarks>
         public static bool IsVersionNewerOrEqual(this ISwApplication app, SwVersion_e version, 
             int? servicePack = null, int? servicePackRev = null) 
         {
             return app.Sw.IsVersionNewerOrEqual(version, servicePack, servicePackRev);
+        }
+
+        /// <summary>
+        /// Checks if currently running application is in-process application
+        /// </summary>
+        /// <param name="app">Application</param>
+        /// <returns>True if in process</returns>
+        /// <remarks>This method also checks the UI thread</remarks>
+        public static bool IsInProcess(this ISwApplication app) 
+        {
+            if (Process.GetCurrentProcess().Id == app.Process.Id)
+            {
+                return Thread.CurrentThread.ManagedThreadId == 1;
+            }
+            else 
+            {
+                return false;
+            }
         }
     }
 }

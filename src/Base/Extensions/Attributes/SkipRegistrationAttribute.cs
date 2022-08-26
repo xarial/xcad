@@ -9,8 +9,15 @@ using System;
 
 namespace Xarial.XCad.Extensions.Attributes
 {
+    /// <summary>
+    /// Attribute of <see cref="IXExtension"/> indicates that this add-in should not automatically register
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Class)]
     public class SkipRegistrationAttribute : Attribute
     {
+        /// <summary>
+        /// True to skip the registration
+        /// </summary>
         public bool Skip { get; private set; }
 
         public SkipRegistrationAttribute() : this(true)
