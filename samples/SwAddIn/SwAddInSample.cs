@@ -720,10 +720,13 @@ namespace SwAddInExample
 
         private void GetBoundingBox()
         {
+            var relativeTo = ((ISwDocument3D)Application.Documents.Active).Selections.OfType<IXPlanarRegion>().FirstOrDefault()?.Plane.GetTransformation();
+
             var bestFit = true;
             var bbox = ((ISwDocument3D)Application.Documents.Active).Evaluation.PreCreateBoundingBox();
             bbox.Scope = Application.Documents.Active.Selections.OfType<IXBody>().ToArray();
             bbox.BestFit = bestFit;
+            bbox.RelativeTo = relativeTo;
             bbox.Commit();
             
             var box = bbox.Box;

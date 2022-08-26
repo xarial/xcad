@@ -142,11 +142,6 @@ namespace Xarial.XCad.SolidWorks.Geometry
         {
             if (BestFit)
             {
-                if (RelativeTo != null)
-                {
-                    throw new NotSupportedException("RelativeTo cannot be used if best fit option is specified");
-                }
-
                 IXBody[] bodies;
 
                 var scope = Scope;
@@ -235,7 +230,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
                         var targBody = (IXBody)m_Doc.CreateObjectFromDispatch<SwBody>(swBody);
 
-                        if (!isCopy) 
+                        if (!isCopy)
                         {
                             targBody = targBody.Copy();
                         }
@@ -247,94 +242,142 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
                     tempPart.Rebuild();
 
-                    var bboxFeat = (IFeature)tempPart.Model.FeatureManager.InsertGlobalBoundingBox((int)swGlobalBoundingBoxFitOptions_e.swBoundingBoxType_BestFit, false, true, out var status);
+                    ISwPlane refPlane;
+                    swGlobalBoundingBoxFitOptions_e fitOpts;
 
-                    if (bboxFeat != null)
+                    if (RelativeTo == null)
                     {
-                        var bboxSketch = (ISketch)bboxFeat.GetSpecificFeature2();
-
-                        var lines = ((object[])bboxSketch.GetSketchSegments()).Cast<ISketchLine>().ToArray();
-                        var points = ((object[])bboxSketch.GetSketchPoints2()).Cast<ISketchPoint>().ToArray();
-
-                        var pt1 = points.First();
-
-                        ISketchPoint pt2 = null;
-                        var curDist = double.MinValue;
-
-                        var pt1Coord = new Point(pt1.X, pt1.Y, pt1.Z);
-                        Point pt2Coord = null;
-
-                        for (int i = 1; i < points.Length; i++) 
-                        {
-                            var coord = new Point(points[i].X, points[i].Y, points[i].Z);
-                            var dist = (pt1Coord - coord).GetLength();
-
-                            if (dist > curDist) 
-                            {
-                                curDist = dist;
-                                pt2 = points[i];
-                                pt2Coord = coord;
-                            }
-                        }
-
-                        var centerPt = new Point((pt1Coord.X + pt2Coord.X) / 2, (pt1Coord.Y + pt2Coord.Y) / 2, (pt1Coord.Z + pt2Coord.Z) / 2);
-
-                        var axesLines = lines.Where(l => l.GetStartPoint2() == pt1 || l.GetEndPoint2() == pt1).ToArray();
-
-                        if (axesLines.Length == 3)
-                        {
-                            Vector GetDirection(ISketchLine line, ISketchPoint orig) 
-                            {
-                                var startPt = line.IGetStartPoint2();
-                                var endPt = line.IGetEndPoint2();
-
-                                var startCoord = new Point(endPt.X, endPt.Y, endPt.Z);
-                                var endCoord = new Point(startPt.X, startPt.Y, startPt.Z);
-
-                                if (orig == startPt)
-                                {
-                                    return endCoord - startCoord;
-                                }
-                                else if (orig == endPt)
-                                {
-                                    return startCoord - endCoord;
-                                }
-                                else 
-                                {
-                                    throw new Exception("Origin does not belong to a line");
-                                }
-                            }
-
-                            var x = GetDirection(axesLines[0], pt1);
-                            var y = GetDirection(axesLines[1], pt1);
-                            var z = GetDirection(axesLines[2], pt1);
-
-                            double unitConvFactor = 1;
-
-                            if (UserUnits)
-                            {
-                                var userUnit = m_Doc.Model.IGetUserUnit((int)swUserUnitsType_e.swLengthUnit);
-                                unitConvFactor = userUnit.GetConversionFactor();
-                            }
-
-                            return new Box3D(x.GetLength() * unitConvFactor, y.GetLength() * unitConvFactor, z.GetLength() * unitConvFactor, 
-                                centerPt.Scale(unitConvFactor), 
-                                x.Normalize(), y.Normalize(), z.Normalize());
-                        }
-                        else 
-                        {
-                            throw new Exception("Failed to find the axes lines");
-                        }
+                        fitOpts = swGlobalBoundingBoxFitOptions_e.swBoundingBoxType_BestFit;
+                        refPlane = null;
                     }
                     else 
                     {
-                        throw new Exception($"Failed to insert bounding box feature. Error code: {(swGlobalBoundingBoxResult_e)status}");
+                        fitOpts = swGlobalBoundingBoxFitOptions_e.swBoundingBoxType_CustomPlane;
+
+                        var transform = RelativeTo;
+
+                        var point = new Point(0, 0, 0).Transform(transform);
+                        var normal = new Vector(0, 0, 1).Transform(transform);
+                        var dir = new Vector(1, 0, 0).Transform(transform);
+
+                        refPlane = tempPart.Features.PreCreate<ISwPlane>();
+                        refPlane.Plane = new Plane(point, normal, dir);
+                        refPlane.Commit();
                     }
+
+                    IFeature bboxFeat;
+
+                    if (m_App.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2019))
+                    {
+                        var bboxFeatData = (BoundingBoxFeatureData)tempPart.Model.FeatureManager.CreateDefinition((int)swFeatureNameID_e.swFmBoundingBox);
+                        bboxFeatData.ReferenceFaceOrPlane = (int)fitOpts;
+                        bboxFeatData.PlanarEntity = refPlane?.Feature;
+                        bboxFeat = tempPart.Model.FeatureManager.CreateFeature(bboxFeatData);
+
+                        if (bboxFeat == null)
+                        {
+                            throw new Exception("Failed to insert bounding box feature");
+                        }
+                    }
+                    else
+                    {
+                        if (refPlane != null) 
+                        {
+                            refPlane.Select(false);
+                        }
+
+                        bboxFeat = (IFeature)tempPart.Model.FeatureManager.InsertGlobalBoundingBox((int)fitOpts, false, true, out var status);
+
+                        if (bboxFeat == null)
+                        {
+                            throw new Exception($"Failed to insert bounding box feature. Error code: {(swGlobalBoundingBoxResult_e)status}");
+                        }
+                    }
+
+                    return ExtractBoxFromBoundingBoxFeature(bboxFeat);
                 }
             }
-            else 
+            else
             {
                 throw new NotSupportedException("Best fit bounding box can only be calculated in SOLIDWORKS 2018 or newer");
+            }
+        }
+
+        private Box3D ExtractBoxFromBoundingBoxFeature(IFeature bboxFeat)
+        {
+            var bboxSketch = (ISketch)bboxFeat.GetSpecificFeature2();
+
+            var lines = ((object[])bboxSketch.GetSketchSegments()).Cast<ISketchLine>().ToArray();
+            var points = ((object[])bboxSketch.GetSketchPoints2()).Cast<ISketchPoint>().ToArray();
+
+            var pt1 = points.First();
+
+            ISketchPoint pt2 = null;
+            var curDist = double.MinValue;
+
+            var pt1Coord = new Point(pt1.X, pt1.Y, pt1.Z);
+            Point pt2Coord = null;
+
+            for (int i = 1; i < points.Length; i++)
+            {
+                var coord = new Point(points[i].X, points[i].Y, points[i].Z);
+                var dist = (pt1Coord - coord).GetLength();
+
+                if (dist > curDist)
+                {
+                    curDist = dist;
+                    pt2 = points[i];
+                    pt2Coord = coord;
+                }
+            }
+
+            var centerPt = new Point((pt1Coord.X + pt2Coord.X) / 2, (pt1Coord.Y + pt2Coord.Y) / 2, (pt1Coord.Z + pt2Coord.Z) / 2);
+
+            var axesLines = lines.Where(l => l.GetStartPoint2() == pt1 || l.GetEndPoint2() == pt1).ToArray();
+
+            if (axesLines.Length == 3)
+            {
+                Vector GetDirection(ISketchLine line, ISketchPoint orig)
+                {
+                    var startPt = line.IGetStartPoint2();
+                    var endPt = line.IGetEndPoint2();
+
+                    var startCoord = new Point(endPt.X, endPt.Y, endPt.Z);
+                    var endCoord = new Point(startPt.X, startPt.Y, startPt.Z);
+
+                    if (orig == startPt)
+                    {
+                        return endCoord - startCoord;
+                    }
+                    else if (orig == endPt)
+                    {
+                        return startCoord - endCoord;
+                    }
+                    else
+                    {
+                        throw new Exception("Origin does not belong to a line");
+                    }
+                }
+
+                var x = GetDirection(axesLines[0], pt1);
+                var y = GetDirection(axesLines[1], pt1);
+                var z = GetDirection(axesLines[2], pt1);
+
+                double unitConvFactor = 1;
+
+                if (UserUnits)
+                {
+                    var userUnit = m_Doc.Model.IGetUserUnit((int)swUserUnitsType_e.swLengthUnit);
+                    unitConvFactor = userUnit.GetConversionFactor();
+                }
+
+                return new Box3D(x.GetLength() * unitConvFactor, y.GetLength() * unitConvFactor, z.GetLength() * unitConvFactor,
+                    centerPt.Scale(unitConvFactor),
+                    x.Normalize(), y.Normalize(), z.Normalize());
+            }
+            else
+            {
+                throw new Exception("Failed to find the axes lines");
             }
         }
 
