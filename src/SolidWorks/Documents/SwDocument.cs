@@ -98,74 +98,38 @@ namespace Xarial.XCad.SolidWorks.Documents
         
         public event DocumentEventDelegate Rebuilt 
         {
-            add 
-            {
-                m_DocumentRebuildEventHandler.Attach(value);
-            }
-            remove 
-            {
-                m_DocumentRebuildEventHandler.Detach(value);
-            }
+            add => m_DocumentRebuildEventHandler.Attach(value);
+            remove => m_DocumentRebuildEventHandler.Detach(value);
         }
 
         public event DocumentSaveDelegate Saving
         {
-            add
-            {
-                m_DocumentSavingEventHandler.Attach(value);
-            }
-            remove
-            {
-                m_DocumentSavingEventHandler.Detach(value);
-            }
+            add => m_DocumentSavingEventHandler.Attach(value);
+            remove => m_DocumentSavingEventHandler.Detach(value);
         }
 
         public event DataStoreAvailableDelegate StreamReadAvailable 
         {
-            add 
-            {
-                m_StreamReadAvailableHandler.Attach(value);
-            }
-            remove 
-            {
-                m_StreamReadAvailableHandler.Detach(value);
-            }
+            add => m_StreamReadAvailableHandler.Attach(value);
+            remove => m_StreamReadAvailableHandler.Detach(value);
         }
 
         public event DataStoreAvailableDelegate StorageReadAvailable
         {
-            add
-            {
-                m_StorageReadAvailableHandler.Attach(value);
-            }
-            remove
-            {
-                m_StorageReadAvailableHandler.Detach(value);
-            }
+            add => m_StorageReadAvailableHandler.Attach(value);
+            remove => m_StorageReadAvailableHandler.Detach(value);
         }
 
         public event DataStoreAvailableDelegate StreamWriteAvailable
         {
-            add
-            {
-                m_StreamWriteAvailableHandler.Attach(value);
-            }
-            remove
-            {
-                m_StreamWriteAvailableHandler.Detach(value);
-            }
+            add => m_StreamWriteAvailableHandler.Attach(value);
+            remove => m_StreamWriteAvailableHandler.Detach(value);
         }
 
         public event DataStoreAvailableDelegate StorageWriteAvailable
         {
-            add
-            {
-                m_StorageWriteAvailableHandler.Attach(value);
-            }
-            remove
-            {
-                m_StorageWriteAvailableHandler.Detach(value);
-            }
+            add => m_StorageWriteAvailableHandler.Attach(value);
+            remove => m_StorageWriteAvailableHandler.Detach(value);
         }
 
         IXFeatureRepository IXDocument.Features => Features;
@@ -196,7 +160,14 @@ namespace Xarial.XCad.SolidWorks.Documents
             {
                 if (IsCommitted)
                 {
-                    return Model.GetPathName();
+                    try
+                    {
+                        return Model.GetPathName();
+                    }
+                    catch 
+                    {
+                        return m_CachedFilePath;
+                    }
                 }
                 else
                 {
@@ -403,6 +374,11 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         private readonly Lazy<ISwModelViewsCollection> m_ModelViewsLazy;
 
+        /// <summary>
+        /// This is a fallback file path in case the COM pointer to this document is broken (e.g. file is closed or SW is closed)
+        /// </summary>
+        private string m_CachedFilePath;
+
         internal SwDocument(IModelDoc2 model, SwApplication app, IXLogger logger) 
             : this(model, app, logger, true)
         {
@@ -436,6 +412,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
             if (IsCommitted)
             {
+                m_CachedFilePath = model.GetPathName();
                 AttachEvents();
             }
 
@@ -488,6 +465,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                 }
                 else
                 {
+                    m_CachedFilePath = Path;
                     model = OpenDocument();
                 }
 
@@ -995,14 +973,17 @@ namespace Xarial.XCad.SolidWorks.Documents
                 {
                     case PartDoc part:
                         part.DestroyNotify2 += OnDestroyNotify;
+                        part.FileSavePostNotify += OnFileSavePostNotify;
                         break;
 
                     case AssemblyDoc assm:
                         assm.DestroyNotify2 += OnDestroyNotify;
+                        assm.FileSavePostNotify += OnFileSavePostNotify;
                         break;
 
                     case DrawingDoc drw:
                         drw.DestroyNotify2 += OnDestroyNotify;
+                        drw.FileSavePostNotify += OnFileSavePostNotify;
                         break;
                 }
             }
@@ -1012,20 +993,30 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
+        private int OnFileSavePostNotify(int saveType, string fileName)
+        {
+            m_CachedFilePath = fileName;
+
+            return HResult.S_OK;
+        }
+
         private void DetachEvents()
         {
             switch (Model)
             {
                 case PartDoc part:
                     part.DestroyNotify2 -= OnDestroyNotify;
+                    part.FileSavePostNotify -= OnFileSavePostNotify;
                     break;
 
                 case AssemblyDoc assm:
                     assm.DestroyNotify2 -= OnDestroyNotify;
+                    assm.FileSavePostNotify -= OnFileSavePostNotify;
                     break;
 
                 case DrawingDoc drw:
                     drw.DestroyNotify2 -= OnDestroyNotify;
+                    drw.FileSavePostNotify -= OnFileSavePostNotify;
                     break;
             }
         }
