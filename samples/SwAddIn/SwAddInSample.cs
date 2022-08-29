@@ -54,6 +54,7 @@ using Xarial.XCad.Geometry.Wires;
 using Xarial.XCad.SolidWorks.Extensions;
 using Xarial.XToolkit.Wpf.Utils;
 using System.Threading;
+using Xarial.XCad.Features.CustomFeature;
 
 namespace SwAddInExample
 {
@@ -387,8 +388,10 @@ namespace SwAddInExample
         {
             if (reason == PageCloseReasons_e.Okay) 
             {
-                //var feat = Application.Documents.Active.Features.CreateCustomFeature<SimpleMacroFeature>();
-                var feat = Application.Documents.Active.Features.CreateCustomFeature<SampleMacroFeature, PmpMacroFeatData>(m_MacroFeatPmpData);
+                var feat = Application.Documents.Active.Features.CreateCustomFeature<SimpleMacroFeature>();
+                //var feat = Application.Documents.Active.Features.CreateCustomFeature<SampleMacroFeature, PmpMacroFeatData>(m_MacroFeatPmpData);
+                var lastFeat = (IXCustomFeature)Application.Documents.Active.Features.Last();
+                var defType = lastFeat.DefinitionType;
             }
         }
 

@@ -68,7 +68,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         }
 
         private static SwMacroFeature CreateMacroFeatureInstance(SwMacroFeatureDefinition sender, IFeature feat, SwDocument doc, SwApplication app)
-            => doc.CreateObjectFromDispatch<SwMacroFeature>(feat);
+            => new SwMacroFeature(feat, doc, app, true);
 
         public event ConfigureServicesDelegate ConfigureServices;
 
