@@ -66,15 +66,18 @@ namespace Xarial.XCad.SolidWorks.Utils
     {
         private readonly List<IModelDoc2> m_DanglingModelPointers;
 
-        internal SwModelPointerEqualityComparer(List<IModelDoc2> danglingModelsPtrs) 
+        private readonly ISldWorks m_App;
+
+        internal SwModelPointerEqualityComparer(ISldWorks app, List<IModelDoc2> danglingModelsPtrs) 
         {
+            m_App = app;
             m_DanglingModelPointers = danglingModelsPtrs;
         }
 
-        internal static bool AreEqual(IModelDoc2 x, IModelDoc2 y)
-            => AreEqual(x, y, null);
+        internal static bool AreEqual(ISldWorks app, IModelDoc2 x, IModelDoc2 y)
+            => AreEqual(app, x, y, null);
 
-        internal static bool AreEqual(IModelDoc2 x, IModelDoc2 y, List<IModelDoc2> corruptedModels)
+        internal static bool AreEqual(ISldWorks app, IModelDoc2 x, IModelDoc2 y, List<IModelDoc2> corruptedModels)
         {
             if (object.ReferenceEquals(x, y))
             {
@@ -104,10 +107,15 @@ namespace Xarial.XCad.SolidWorks.Utils
                 return false;
             }
 
-            return string.Equals(
-                    title1,
-                    title2,
-                    StringComparison.CurrentCultureIgnoreCase);
+            //NOTE: in some cases drawings can have the same title so it might not be safe to only compare by titles
+            if (string.Equals(title1, title2, StringComparison.CurrentCultureIgnoreCase))
+            {
+                return app.IsSame(x, y) == (int)swObjectEquality.swObjectSame;
+            }
+            else 
+            {
+                return false;
+            }
         }
 
         private static void RegisterDanglingModelPointer(IModelDoc2 model, List<IModelDoc2> danglingModelPtrs)
@@ -119,7 +127,7 @@ namespace Xarial.XCad.SolidWorks.Utils
         }
 
         public bool Equals(IModelDoc2 x, IModelDoc2 y)
-            => AreEqual(x, y, m_DanglingModelPointers);
+            => AreEqual(m_App, x, y, m_DanglingModelPointers);
 
         public int GetHashCode(IModelDoc2 obj)
         {

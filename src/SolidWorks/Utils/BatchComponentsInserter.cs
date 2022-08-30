@@ -24,6 +24,7 @@ namespace Xarial.XCad.SolidWorks.Utils
     {
         private class AutoComponentsDispatcher : IDisposable
         {
+            private readonly SwApplication m_App;
             private readonly SwDocumentDispatcher m_Dispatcher;
             private readonly ISwDocument3D[] m_NonCommitedDocs;
             private readonly Dictionary<ISwDocument3D, IModelDoc2> m_Map;
@@ -32,7 +33,9 @@ namespace Xarial.XCad.SolidWorks.Utils
             {
                 m_Map = new Dictionary<ISwDocument3D, IModelDoc2>();
 
-                var docs = (SwDocumentCollection)assm.OwnerApplication.Documents;
+                m_App = assm.OwnerApplication;
+
+                var docs = (SwDocumentCollection)m_App.Documents;
 
                 m_Dispatcher = docs.Dispatcher;
 
@@ -67,7 +70,7 @@ namespace Xarial.XCad.SolidWorks.Utils
                 {
                     if (!m_Map.TryGetValue(nonCommDoc, out IModelDoc2 model))
                     {
-                        model = null;
+                        model = m_App.Sw.GetOpenDocument(nonCommDoc.Path);
                     }
 
                     m_Dispatcher.EndDispatch((SwDocument)nonCommDoc, model);

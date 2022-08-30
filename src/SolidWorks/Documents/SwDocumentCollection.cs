@@ -164,7 +164,6 @@ namespace Xarial.XCad.SolidWorks.Documents
             get
             {
                 ClearDanglingModelPointers(false);
-
                 return m_Documents.Count;
             }
         }
@@ -188,7 +187,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             m_DanglingModelPointers = new List<IModelDoc2>();
 
             m_Documents = new Dictionary<IModelDoc2, SwDocument>(
-                new SwModelPointerEqualityComparer(m_DanglingModelPointers));
+                new SwModelPointerEqualityComparer(m_SwApp, m_DanglingModelPointers));
             m_DocsHandler = new DocumentsHandler(app, m_Logger);
 
             m_IsAttached = false;
@@ -246,8 +245,40 @@ namespace Xarial.XCad.SolidWorks.Documents
                 }
                 else
                 {
-                    throw new KeyNotFoundException("Specified model document is not registered");
+                    return CreateMissingDocument(model);
                 }
+            }
+        }
+
+        private ISwDocument CreateMissingDocument(IModelDoc2 model) 
+        {
+            try
+            {
+                m_Logger.Log("Restoring missing document");
+
+                try
+                {
+                    var test = model.GetTitle();
+                }
+                catch
+                {
+                    throw new Exception("Pointer is not valid");
+                }
+
+                var docs = (m_SwApp.GetDocuments() as object[]).Cast<IModelDoc2>().ToArray();
+
+                if (docs.Contains(model) || docs.Any(d => m_SwApp.IsSame(d, model) == (int)swObjectEquality.swObjectSame))
+                {
+                    return Dispatcher.RegisterModel(model);
+                }
+                else
+                {
+                    throw new Exception($"Model is not found: {model.GetTitle()}");
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new KeyNotFoundException("Specified pointer to the model is not registered", ex);
             }
         }
 
@@ -320,7 +351,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             {
                 foreach (IModelDoc2 model in openDocs)
                 {
-                    Dispatcher.Dispatch(model.GetTitle(), model.GetPathName());
+                    Dispatcher.Dispatch(model);
                 }
             }
         }
@@ -349,7 +380,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                     }
 
                     if (m_WaitActivateDocument != null
-                        && SwModelPointerEqualityComparer.AreEqual(m_WaitActivateDocument, doc.Model))
+                        && SwModelPointerEqualityComparer.AreEqual(m_App.Sw, m_WaitActivateDocument, doc.Model))
                     {
                         try
                         {
@@ -365,7 +396,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                     }
 
                     if (m_WaitNewDocument != null
-                        && SwModelPointerEqualityComparer.AreEqual(m_WaitNewDocument, doc.Model))
+                        && SwModelPointerEqualityComparer.AreEqual(m_App.Sw, m_WaitNewDocument, doc.Model))
                     {
                         try
                         {
@@ -381,7 +412,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                     }
 
                     if (m_WaitOpenDocument != null
-                        && SwModelPointerEqualityComparer.AreEqual(m_WaitOpenDocument, doc.Model))
+                        && SwModelPointerEqualityComparer.AreEqual(m_App.Sw, m_WaitOpenDocument, doc.Model))
                     {
                         try
                         {
@@ -415,7 +446,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                     {
                         try
                         {
-                            m_Logger.Log("Removing dangling model from the list");
+                            m_Logger.Log("Removing dangling model from the list", LoggerMessageSeverity_e.Warning);
                             m_Documents.Remove(dangModelPtr);
                         }
                         catch (Exception ex)
@@ -446,7 +477,16 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         private int OnDocumentLoadNotify2(string docTitle, string docPath)
         {
-            Dispatcher.Dispatch(docTitle, docPath);
+            var docName = docPath;
+
+            if (string.IsNullOrEmpty(docName)) 
+            {
+                docName = docTitle;
+            }
+
+            var model = m_App.Sw.GetOpenDocument(docName);
+
+            Dispatcher.Dispatch(model);
             
             return HResult.S_OK;
         }

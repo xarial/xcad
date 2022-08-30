@@ -728,6 +728,10 @@ namespace SwAddInExample
             var bestFit = true;
             var bbox = ((ISwDocument3D)Application.Documents.Active).Evaluation.PreCreateBoundingBox();
             bbox.Scope = Application.Documents.Active.Selections.OfType<IXBody>().ToArray();
+            if (!bbox.Scope.Any()) 
+            {
+                bbox.Scope = null;
+            }
             bbox.BestFit = bestFit;
             bbox.RelativeTo = relativeTo;
             bbox.Commit();

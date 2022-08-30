@@ -25,24 +25,10 @@ namespace Xarial.XCad.SolidWorks.Documents.Services
     /// DocumentLoadNotify2 even is fired async so it is not ensured that it is raised before or after OpenDoc6 or NewDocument APIs. This services is responsible for handling the race conditions</remarks>
     internal class SwDocumentDispatcher
     {
-        private class ModelInfo 
-        {
-            internal string Title { get; }
-            internal string Path { get; }
-            internal IModelDoc2 Model { get; }
-
-            internal ModelInfo(string title, string path, IModelDoc2 model)
-            {
-                Title = title;
-                Path = path;
-                Model = model;
-            }
-        }
-
         internal event Action<SwDocument> Dispatched;
 
         private readonly List<SwDocument> m_DocsDispatchQueue;
-        private readonly List<ModelInfo> m_ModelsDispatchQueue;
+        private readonly List<IModelDoc2> m_ModelsDispatchQueue;
 
         private readonly object m_Lock;
 
@@ -55,7 +41,7 @@ namespace Xarial.XCad.SolidWorks.Documents.Services
             m_Logger = logger;
 
             m_DocsDispatchQueue = new List<SwDocument>();
-            m_ModelsDispatchQueue = new List<ModelInfo>();
+            m_ModelsDispatchQueue = new List<IModelDoc2>();
 
             m_Lock = new object();
         }
@@ -63,16 +49,20 @@ namespace Xarial.XCad.SolidWorks.Documents.Services
         /// <summary>
         /// Dispatches the loaded document
         /// </summary>
-        /// <param name="title">Title of the document</param>
-        /// <param name="path">Path of the document</param>
-        /// <remarks>It is not safe to dispatch the pointer to IModelDoc2 as for assembly documents it can cause RPC_E_WRONG_THREAD when retrieved on EndDispatch</remarks>
-        internal void Dispatch(string title, string path) 
+        /// <param name="model">Model to add to the queue</param>
+        /// <remarks>It is not safe to reuse the pointer to IModelDoc2 as for assembly documents it can cause RPC_E_WRONG_THREAD when retrieved on EndDispatch</remarks>
+        internal void Dispatch(IModelDoc2 model) 
         {
+            if (model == null) 
+            {
+                throw new ArgumentNullException(nameof(model));
+            }
+
             lock (m_Lock) 
             {
-                m_Logger.Log($"Adding '{title}' to the dispatch queue", LoggerMessageSeverity_e.Debug);
+                m_Logger.Log($"Adding '{model.GetTitle()}' to the dispatch queue", LoggerMessageSeverity_e.Debug);
 
-                m_ModelsDispatchQueue.Add(new ModelInfo(title, path, m_App.Sw.GetOpenDocument(title)));
+                m_ModelsDispatchQueue.Add(model);
                 
                 if (!m_DocsDispatchQueue.Any())
                 {
@@ -87,58 +77,50 @@ namespace Xarial.XCad.SolidWorks.Documents.Services
         /// <param name="doc">Document to put into the queue</param>
         internal void BeginDispatch(SwDocument doc) => m_DocsDispatchQueue.Add(doc);
 
+        internal void TryRemoveFromDispatchQueue(SwDocument doc)
+        {
+            lock (m_Lock)
+            {
+                if (m_DocsDispatchQueue.Contains(doc))
+                {
+                    m_DocsDispatchQueue.Remove(doc);
+                }
+            }
+        }
+
         /// <summary>
         /// Removes the document from the queue
         /// </summary>
         /// <param name="doc">Document to remove from the queue</param>
         /// <param name="model">Actual pointer to the model. If null system will try to find the matching model</param>
-        internal void EndDispatch(SwDocument doc, IModelDoc2 model = null) 
+        internal void EndDispatch(SwDocument doc, IModelDoc2 model) 
         {
+            if (doc == null)
+            {
+                throw new ArgumentNullException(nameof(doc));
+            }
+
+            if (model == null)
+            {
+                throw new ArgumentNullException(nameof(model));
+            }
+
             lock (m_Lock)
             {
                 m_DocsDispatchQueue.Remove(doc);
 
-                int index;
-
-                if (model != null)
-                {
-                    index = m_ModelsDispatchQueue.FindIndex(i =>
-                        (!string.IsNullOrEmpty(i.Path) && string.Equals(System.IO.Path.GetFileNameWithoutExtension(model.GetPathName()), System.IO.Path.GetFileNameWithoutExtension(i.Path), StringComparison.CurrentCultureIgnoreCase))
-                        || string.Equals(System.IO.Path.GetFileNameWithoutExtension(model.GetTitle()), System.IO.Path.GetFileNameWithoutExtension(i.Title), StringComparison.CurrentCultureIgnoreCase));
-
-                    if (index == -1)
-                    {
-                        index = m_ModelsDispatchQueue.FindIndex(m =>
-                            string.Equals(System.IO.Path.GetFileNameWithoutExtension(model.GetTitle()),
-                            System.IO.Path.GetFileNameWithoutExtension(m.Model?.GetTitle()), StringComparison.CurrentCultureIgnoreCase));
-                    }
-                }
-                else 
-                {
-                    index = m_ModelsDispatchQueue.FindIndex(
-                        d => (!string.IsNullOrEmpty(d.Path) && string.Equals(d.Path, doc.Path, StringComparison.CurrentCultureIgnoreCase))
-                            || string.Equals(d.Title, doc.Title, StringComparison.CurrentCultureIgnoreCase));
-                }
+                //NOTE: it might not be enough to compare the pointers. When LoadNotify2 event is called from different threads pointers might not be equal
+                var index = m_ModelsDispatchQueue.FindIndex(m => m_App.Sw.IsSame(m, model) == (int)swObjectEquality.swObjectSame);
 
                 if (index != -1)
                 {
                     m_Logger.Log($"Removing '{doc.Title}' from the dispatch queue", LoggerMessageSeverity_e.Debug);
 
-                    var modelInfo = m_ModelsDispatchQueue[index];
-
                     m_ModelsDispatchQueue.RemoveAt(index);
 
                     if (!doc.IsCommitted)
                     {
-                        if (model != null || TryFindModel(modelInfo, out model))
-                        {
-                            doc.SetModel(model);
-                        }
-                        else
-                        {
-                            System.Diagnostics.Debug.Assert(false);
-                            m_Logger.Log($"Failed to find the loaded model: {modelInfo.Title} ({modelInfo.Path})", LoggerMessageSeverity_e.Error);
-                        }
+                        doc.SetModel(model);
                     }
                 }
                 else 
@@ -167,26 +149,38 @@ namespace Xarial.XCad.SolidWorks.Documents.Services
             }
         }
 
-        private bool TryFindModel(ModelInfo info, out IModelDoc2 model) 
+        internal SwDocument RegisterModel(IModelDoc2 model) 
         {
-            if (!string.IsNullOrEmpty(info.Path))
+            if (model == null) 
             {
-                model = m_App.Sw.GetOpenDocumentByName(info.Path) as IModelDoc2;
-            }
-            else
-            {
-                var docs = (m_App.Sw.GetDocuments() as object[] ?? new object[0]).Cast<IModelDoc2>().ToArray();
-
-                model = docs.FirstOrDefault(
-                    d => string.Equals(
-                        System.IO.Path.GetFileNameWithoutExtension(d.GetTitle()),
-                        System.IO.Path.GetFileNameWithoutExtension(info.Title),
-                        StringComparison.CurrentCultureIgnoreCase));
+                throw new NullReferenceException("Model is null");
             }
 
-            return model != null;
+            SwDocument doc;
+
+            switch (model)
+            {
+                case IPartDoc part:
+                    doc = new SwPart(part, m_App, m_Logger, true);
+                    break;
+
+                case IAssemblyDoc assm:
+                    doc = new SwAssembly(assm, m_App, m_Logger, true);
+                    break;
+
+                case IDrawingDoc drw:
+                    doc = new SwDrawing(drw, m_App, m_Logger, true);
+                    break;
+
+                default:
+                    throw new NotSupportedException($"Invalid cast of '{model.GetPathName()}' [{model.GetTitle()}] of type '{((object)model).GetType().FullName}'. Specific document type: {(swDocumentTypes_e)model.GetType()}");
+            }
+
+            NotifyDispatchedSafe(doc);
+
+            return doc;
         }
-        
+
         private void DispatchAllModels()
         {
             lock (m_Lock) 
@@ -195,40 +189,15 @@ namespace Xarial.XCad.SolidWorks.Documents.Services
 
                 var errors = new List<Exception>();
 
-                foreach (var modelInfo in m_ModelsDispatchQueue)
+                foreach (var model in m_ModelsDispatchQueue)
                 {
-                    SwDocument doc;
-
-                    if (TryFindModel(modelInfo, out IModelDoc2 model))
+                    try
                     {
-                        switch (model)
-                        {
-                            case IPartDoc part:
-                                doc = new SwPart(part, m_App, m_Logger, true);
-                                break;
-
-                            case IAssemblyDoc assm:
-                                doc = new SwAssembly(assm, m_App, m_Logger, true);
-                                break;
-
-                            case IDrawingDoc drw:
-                                doc = new SwDrawing(drw, m_App, m_Logger, true);
-                                break;
-
-                            case null:
-                                errors.Add(new NullReferenceException("Model is null"));
-                                continue;
-
-                            default:
-                                errors.Add(new NotSupportedException($"Invalid cast of '{modelInfo.Path}' [{modelInfo.Title}] of type '{((object)model).GetType().FullName}'. Specific document type: {(swDocumentTypes_e)model.GetType()}"));
-                                continue;
-                        }
-
-                        NotifyDispatchedSafe(doc);
+                        RegisterModel(model);
                     }
-                    else 
+                    catch (Exception ex)
                     {
-                        m_Logger.Log($"Failed to find the loaded model: {modelInfo.Title} ({modelInfo.Path}). This may be due to the external reference which is not loaded", LoggerMessageSeverity_e.Error);
+                        errors.Add(ex);
                     }
                 }
 

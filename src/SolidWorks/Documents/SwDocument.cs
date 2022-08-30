@@ -473,7 +473,14 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
             finally 
             {
-                dispatcher.EndDispatch(this, model);
+                if (model != null)
+                {
+                    dispatcher.EndDispatch(this, model);
+                }
+                else 
+                {
+                    dispatcher.TryRemoveFromDispatchQueue(this);
+                }
 
                 if (docType != -1)
                 {
