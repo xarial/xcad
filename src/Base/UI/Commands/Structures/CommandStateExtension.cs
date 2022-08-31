@@ -25,37 +25,46 @@ namespace Xarial.XCad.UI.Commands.Structures
         /// <param name="app">Application</param>
         public static void ResolveState(this CommandState state, WorkspaceTypes_e ws, IXApplication app)
         {
-            var activeDoc = app.Documents.Active;
+            bool enabled;
 
-            var enabled = false;
-
-            if (activeDoc == null)
+            if (ws == WorkspaceTypes_e.All)
             {
-                enabled = ws.HasFlag(WorkspaceTypes_e.NoDocuments);
+                enabled = true;
             }
-            else
+            else 
             {
-                switch (activeDoc) 
+                enabled = false;
+
+                var activeDoc = app.Documents.Active;
+
+                if (activeDoc == null)
                 {
-                    case IXPart _:
-                        enabled = ws.HasFlag(WorkspaceTypes_e.Part);
-                        break;
+                    enabled = ws.HasFlag(WorkspaceTypes_e.NoDocuments);
+                }
+                else
+                {
+                    switch (activeDoc)
+                    {
+                        case IXPart _:
+                            enabled = ws.HasFlag(WorkspaceTypes_e.Part);
+                            break;
 
-                    case IXAssembly assm:
-                        enabled = ws.HasFlag(WorkspaceTypes_e.Assembly);
-                        if (!enabled) 
-                        {
-                            if (ws.HasFlag(WorkspaceTypes_e.InContextPart)) 
+                        case IXAssembly assm:
+                            enabled = ws.HasFlag(WorkspaceTypes_e.Assembly);
+                            if (!enabled)
                             {
-                                var editComp = assm.EditingComponent;
-                                enabled = editComp != null && editComp.ReferencedDocument is IXPart;
+                                if (ws.HasFlag(WorkspaceTypes_e.InContextPart))
+                                {
+                                    var editComp = assm.EditingComponent;
+                                    enabled = editComp != null && editComp.ReferencedDocument is IXPart;
+                                }
                             }
-                        }
-                        break;
+                            break;
 
-                    case IXDrawing _:
-                        enabled = ws.HasFlag(WorkspaceTypes_e.Drawing);
-                        break;
+                        case IXDrawing _:
+                            enabled = ws.HasFlag(WorkspaceTypes_e.Drawing);
+                            break;
+                    }
                 }
             }
 

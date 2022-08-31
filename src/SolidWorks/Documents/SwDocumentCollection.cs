@@ -245,7 +245,11 @@ namespace Xarial.XCad.SolidWorks.Documents
                 }
                 else
                 {
-                    return CreateMissingDocument(model);
+                    var newDoc = CreateMissingDocument(model);
+
+                    ResolveDiscrapancies();
+
+                    return newDoc;
                 }
             }
         }
@@ -265,9 +269,9 @@ namespace Xarial.XCad.SolidWorks.Documents
                     throw new Exception("Pointer is not valid");
                 }
 
-                var docs = (m_SwApp.GetDocuments() as object[]).Cast<IModelDoc2>().ToArray();
+                var models = (m_SwApp.GetDocuments() as object[]).Cast<IModelDoc2>().ToArray();
 
-                if (docs.Contains(model) || docs.Any(d => m_SwApp.IsSame(d, model) == (int)swObjectEquality.swObjectSame))
+                if (models.Contains(model) || models.Any(d => m_SwApp.IsSame(d, model) == (int)swObjectEquality.swObjectSame))
                 {
                     return Dispatcher.RegisterModel(model);
                 }
@@ -433,6 +437,36 @@ namespace Xarial.XCad.SolidWorks.Documents
                     m_Logger.Log($"Conflict. {doc.Model.GetTitle()} already dispatched", LoggerMessageSeverity_e.Warning);
                     //Debug.Assert(false, "Document already dispatched");
                 }
+            }
+        }
+
+        private void ResolveDiscrapancies()
+        {
+            var models = (m_SwApp.GetDocuments() as object[]).Cast<IModelDoc2>().ToArray();
+
+            var docs = new List<ISwDocument>();
+
+            foreach (var model in models)
+            {
+                if (m_Documents.TryGetValue(model, out var doc))
+                {
+                    docs.Add(doc);
+                }
+                else
+                {
+                    m_Logger.Log($"{model.GetTitle()} was not registered", LoggerMessageSeverity_e.Warning);
+
+                    docs.Add(Dispatcher.RegisterModel(model));
+                }
+            }
+
+            var danglingModels = m_Documents.Where(d => !docs.Contains(d.Value)).Select(d => d.Key).ToArray();
+
+            if (danglingModels.Any())
+            {
+                m_DanglingModelPointers.AddRange(danglingModels);
+
+                ClearDanglingModelPointers(true);
             }
         }
 
