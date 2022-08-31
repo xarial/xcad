@@ -46,6 +46,8 @@ namespace Xarial.XCad.SolidWorks.Documents.Services
             m_Lock = new object();
         }
 
+        internal bool HasDocumentsInDispatchQueue => m_DocsDispatchQueue.Any();
+
         /// <summary>
         /// Dispatches the loaded document
         /// </summary>

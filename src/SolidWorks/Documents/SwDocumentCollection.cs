@@ -222,12 +222,27 @@ namespace Xarial.XCad.SolidWorks.Documents
                     m_Logger.Log(ex);
                 }
             }
-            else
+            else //activate event can happen before the loading event, so the document is not yet registered
             {
                 m_Logger.Log($"Adding {activeDoc.GetTitle()} to the activate waiting list", LoggerMessageSeverity_e.Debug);
 
-                //activate event can happen before the loading event, so the document is not yet registered
-                m_WaitActivateDocument = activeDoc;
+                if (Dispatcher.HasDocumentsInDispatchQueue)
+                {
+                    m_WaitActivateDocument = activeDoc;
+                }
+                else 
+                {
+                    try
+                    {
+                        doc = CreateMissingDocument(activeDoc);
+
+                        m_DocumentActivated?.Invoke(doc);
+                    }
+                    catch (Exception ex)
+                    {
+                        m_Logger.Log(ex);
+                    }
+                }
             }
 
             return HResult.S_OK;
@@ -254,7 +269,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        private ISwDocument CreateMissingDocument(IModelDoc2 model) 
+        private SwDocument CreateMissingDocument(IModelDoc2 model) 
         {
             try
             {
@@ -311,11 +326,29 @@ namespace Xarial.XCad.SolidWorks.Documents
             {
                 m_Logger.Log($"Adding {fileName} to the open waiting list", LoggerMessageSeverity_e.Debug);
 
-                m_WaitOpenDocument = (IModelDoc2)m_SwApp.GetOpenDocumentByName(fileName);
+                var model = (IModelDoc2)m_SwApp.GetOpenDocumentByName(fileName);
 
-                if (m_WaitOpenDocument == null) 
+                if (model == null) 
                 {
                     m_Logger.Log($"Failed to find the document by name '{fileName}'", LoggerMessageSeverity_e.Error);
+                }
+
+                if (Dispatcher.HasDocumentsInDispatchQueue)
+                {
+                    m_WaitOpenDocument = model;
+                }
+                else
+                {
+                    try
+                    {
+                        doc = CreateMissingDocument(model);
+
+                        m_DocumentOpened?.Invoke(doc);
+                    }
+                    catch (Exception ex)
+                    {
+                        m_Logger.Log(ex);
+                    }
                 }
             }
 
@@ -341,7 +374,23 @@ namespace Xarial.XCad.SolidWorks.Documents
             {
                 m_Logger.Log($"Adding {model.GetTitle()} to the new document waiting list", LoggerMessageSeverity_e.Debug);
 
-                m_WaitNewDocument = model;
+                if (Dispatcher.HasDocumentsInDispatchQueue)
+                {
+                    m_WaitNewDocument = model;
+                }
+                else 
+                {
+                    try
+                    {
+                        doc = CreateMissingDocument(model);
+
+                        m_NewDocumentCreated?.Invoke(doc);
+                    }
+                    catch (Exception ex)
+                    {
+                        m_Logger.Log(ex);
+                    }
+                }
             }
 
             return HResult.S_OK;
