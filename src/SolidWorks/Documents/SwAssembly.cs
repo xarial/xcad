@@ -72,6 +72,9 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
+        protected override SwAnnotationCollection CreateAnnotations()
+            => new SwDocument3DAnnotationCollection(this);
+
         protected override SwConfigurationCollection CreateConfigurations()
             => new SwAssemblyConfigurationCollection(this, OwnerApplication);
 

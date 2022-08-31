@@ -28,6 +28,11 @@ namespace Xarial.XCad.Documents
         IXBody[] Bodies { get; set; }
 
         /// <summary>
+        /// Collection of annotations
+        /// </summary>
+        IXAnnotationRepository Annotations { get; }
+
+        /// <summary>
         /// Contains the document referenced by this drawing view
         /// </summary>
         IXDocument3D ReferencedDocument { get; set; }

@@ -105,6 +105,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             m_ParentSheet = sheet;
 
             Dimensions = new SwDrawingViewDimensionRepository(drw, this);
+            Annotations = new SwDrawingViewAnnotationCollection(this);
         }
 
         public override void Commit(CancellationToken cancellationToken) => m_Creator.Create(cancellationToken);
@@ -399,6 +400,8 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
 
         public IXDimensionRepository Dimensions { get; }
+        
+        public IXAnnotationRepository Annotations { get; }
 
         public IXDrawingView BaseView
         {

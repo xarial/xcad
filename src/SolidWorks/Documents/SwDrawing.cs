@@ -66,6 +66,8 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         protected override bool IsDocumentTypeCompatible(swDocumentTypes_e docType) => docType == swDocumentTypes_e.swDocDRAWING;
 
+        protected override SwAnnotationCollection CreateAnnotations() => new SwDrawingAnnotationCollection(this);
+
         protected override void GetPaperSize(out swDwgPaperSizes_e size, out double width, out double height)
         {
             if (m_SheetsLazy.IsValueCreated)

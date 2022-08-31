@@ -40,6 +40,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         public IXBody[] Bodies { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
         public Thickness Padding => throw new NotSupportedException();
         public IXDimensionRepository Dimensions => throw new NotSupportedException();
+        public IXAnnotationRepository Annotations => throw new NotSupportedException();
         public IXDrawingView BaseView { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
         public IEnumerable<IXDrawingView> DependentViews => throw new NotSupportedException();
         #endregion

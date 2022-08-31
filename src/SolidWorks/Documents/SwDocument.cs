@@ -395,7 +395,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             m_DimensionsLazy = new Lazy<ISwDimensionsCollection>(() => new SwFeatureManagerDimensionsCollection(this.Features, new Context(this)));
             m_PropertiesLazy = new Lazy<ISwCustomPropertiesCollection>(() => new SwFileCustomPropertiesCollection(this, app));
 
-            m_AnnotationsLazy = new Lazy<SwAnnotationCollection>(() => new SwAnnotationCollection(this));
+            m_AnnotationsLazy = new Lazy<SwAnnotationCollection>(CreateAnnotations);
 
             m_ModelViewsLazy = new Lazy<ISwModelViewsCollection>(() => new SwModelViewsCollection(this, app));
 
@@ -488,6 +488,8 @@ namespace Xarial.XCad.SolidWorks.Documents
                 }
             }
         }
+
+        protected abstract SwAnnotationCollection CreateAnnotations();
 
         protected virtual void CommitCache(IModelDoc2 model, CancellationToken cancellationToken)
         {
@@ -1272,8 +1274,9 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
         }
 
-        protected override bool IsLightweightMode => throw new NotImplementedException();
-        protected override bool IsRapidMode => throw new NotImplementedException();
+        protected override bool IsLightweightMode => throw new NotSupportedException();
+        protected override bool IsRapidMode => throw new NotSupportedException();
+        protected override SwAnnotationCollection CreateAnnotations() => throw new NotSupportedException();
 
         internal protected override swDocumentTypes_e? DocumentType 
         {

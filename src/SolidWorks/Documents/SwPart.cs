@@ -47,6 +47,8 @@ namespace Xarial.XCad.SolidWorks.Documents
         protected override bool IsLightweightMode => false;
         protected override bool IsRapidMode => false;
 
+        protected override SwAnnotationCollection CreateAnnotations() => new SwDocument3DAnnotationCollection(this);
+
         ISwPartConfigurationCollection ISwPart.Configurations => (ISwPartConfigurationCollection)Configurations;
 
         public override IXDocumentEvaluation Evaluation { get; }
