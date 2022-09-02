@@ -28,6 +28,7 @@ using Xarial.XCad.UI.PropertyPage.Services;
 using Xarial.XCad.UI.PropertyPage.Enums;
 using Xarial.XCad.UI.PropertyPage.Structures;
 using Xarial.XCad.Enums;
+using Xarial.XCad.Features;
 
 namespace SwAddInExample
 {
@@ -279,6 +280,8 @@ namespace SwAddInExample
         [DependentOn(typeof(VisibilityHandler), nameof(Visible))]
         [Label("Numeric Control")]
         public double Number { get; set; }
+
+        public IXCoordinateSystem CoordSystem { get; set; }
 
         private void ReduceComponents() 
         {

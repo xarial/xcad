@@ -454,7 +454,10 @@ namespace SwAddInExample
                         }
                         m_Page = this.CreatePage<PmpData>(OnCreateDynamicControls);
                         m_Page.Closed += OnPageClosed;
-                        m_Data = new PmpData();
+                        m_Data = new PmpData()
+                        {
+                            CoordSystem = Application.Documents.Active.Selections.OfType<IXCoordinateSystem>().FirstOrDefault()
+                        };
                         m_Data.ItemsSourceComboBox = "Y";
                         m_Page.Show(m_Data);
                         m_Page.DataChanged += OnPageDataChanged;

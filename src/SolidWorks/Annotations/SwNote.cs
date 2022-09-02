@@ -8,6 +8,7 @@
 using SolidWorks.Interop.sldworks;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 using System.Threading;
 using Xarial.XCad.Annotations;
@@ -22,6 +23,7 @@ namespace Xarial.XCad.SolidWorks.Annotations
         INote Note { get; }
     }
 
+    [DebuggerDisplay("{" + nameof(Text) + "}")]
     internal class SwNote : SwAnnotation, ISwNote
     {
         public INote Note => m_Note;

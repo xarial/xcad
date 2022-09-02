@@ -30,8 +30,6 @@ namespace Xarial.XCad.SolidWorks.Features
             CoordSys = feat.GetDefinition() as ICoordinateSystemFeatureData;
         }
 
-        public override object Dispatch => CoordSys;
-
         public TransformMatrix Transform
             => CoordSys.Transform.ToTransformMatrix();
     }

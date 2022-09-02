@@ -1322,7 +1322,6 @@ namespace Xarial.XCad.SolidWorks.Documents
 
     internal class SwRelativeView : SwDrawingView, ISwRelativeDrawingView
     {
-
         internal SwRelativeView(IView drwView, SwDrawing drw) : base(drwView, drw)
         {
         }
@@ -1409,7 +1408,11 @@ namespace Xarial.XCad.SolidWorks.Documents
                 var dirFront = ConvertDirection(Orientation.FirstDirection);
                 var dirRight = ConvertDirection(Orientation.SecondDirection);
 
-                return m_Drawing.Drawing.CreateRelativeView(refDoc.Path, Location?.X ?? 0, Location?.Y ?? 0, (int)dirFront, (int)dirRight);
+                var view = m_Drawing.Drawing.CreateRelativeView(refDoc.Path, Location?.X ?? 0, Location?.Y ?? 0, (int)dirFront, (int)dirRight);
+
+                refDoc.Model.ClearSelection2(true);
+
+                return view;
             }
             else
             {
