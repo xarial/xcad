@@ -500,7 +500,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                         throw new Exception("Failed to convert the pointer of the object");
                     }
                 }
-                else 
+                else
                 {
                     throw new NotSupportedException("This API only available in SOLIDWORKS 2018 onwards");
                 }
@@ -884,7 +884,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
                 var sectionLine = skMgr.CreateLine(startCoord[0], startCoord[1], startCoord[2], endCoord[0], endCoord[1], endCoord[2]);
 
-                using (var selGrp = new SelectionGroup(drwModel, false))
+                using (var selGrp = new SelectionGroup(m_Drawing, false))
                 {
                     selGrp.Add(sectionLine);
 
@@ -966,7 +966,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
                 var circle = skMgr.CreateCircleByRadius(centerCoord[0], centerCoord[1], centerCoord[2], DetailCircle.Diameter / 2);
 
-                using (var selGrp = new SelectionGroup(drwModel, false))
+                using (var selGrp = new SelectionGroup(m_Drawing, false))
                 {
                     selGrp.Add(circle);
 

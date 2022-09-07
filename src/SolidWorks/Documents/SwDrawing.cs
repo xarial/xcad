@@ -21,8 +21,68 @@ namespace Xarial.XCad.SolidWorks.Documents
         IDrawingDoc Drawing { get; }
     }
 
+    public interface ISwDrawingOptions : ISwDocumentOptions, IXDrawingOptions 
+    {
+    }
+
+    public interface ISwDrawingDetailingOptions : IXDrawingDetailingOptions 
+    {
+    }
+
+    internal class SwDrawingDetailingOptions : ISwDrawingDetailingOptions 
+    {
+        private readonly SwDrawing m_Draw;
+
+        internal SwDrawingDetailingOptions(SwDrawing draw) 
+        {
+            m_Draw = draw;
+        }
+
+        public bool DisplayCosmeticThreads 
+        {
+            get => m_Draw.GetUserPreferenceToggle(swUserPreferenceToggle_e.swDisplayCosmeticThreads);
+            set => m_Draw.SetUserPreferenceToggle(swUserPreferenceToggle_e.swDisplayCosmeticThreads, value);
+        }
+
+        public bool AutoInsertCenterMarksForSlots
+        {
+            get => m_Draw.GetUserPreferenceToggle(swUserPreferenceToggle_e.swDetailingAutoInsertCenterMarksForSlots);
+            set => m_Draw.SetUserPreferenceToggle(swUserPreferenceToggle_e.swDetailingAutoInsertCenterMarksForSlots, value);
+        }
+
+        public bool AutoInsertCenterMarksForFillets
+        {
+            get => m_Draw.GetUserPreferenceToggle(swUserPreferenceToggle_e.swDetailingAutoInsertCenterMarksForFillets);
+            set => m_Draw.SetUserPreferenceToggle(swUserPreferenceToggle_e.swDetailingAutoInsertCenterMarksForFillets, value);
+        }
+
+        public bool AutoInsertCenterMarksForHoles
+        {
+            get => m_Draw.GetUserPreferenceToggle(swUserPreferenceToggle_e.swDetailingAutoInsertCenterMarksForHoles);
+            set => m_Draw.SetUserPreferenceToggle(swUserPreferenceToggle_e.swDetailingAutoInsertCenterMarksForHoles, value);
+        }
+
+        public bool AutoInsertDowelSymbols
+        {
+            get => m_Draw.GetUserPreferenceToggle(swUserPreferenceToggle_e.swDetailingAutoInsertDowelSymbols);
+            set => m_Draw.SetUserPreferenceToggle(swUserPreferenceToggle_e.swDetailingAutoInsertDowelSymbols, value);
+        }
+    }
+
+    internal class SwDrawingOptions : SwDocumentOptions, ISwDrawingOptions 
+    {
+        internal SwDrawingOptions(SwDrawing draw) : base(draw) 
+        {
+            Detailing = new SwDrawingDetailingOptions(draw);
+        }
+
+        public IXDrawingDetailingOptions Detailing { get; }
+    }
+
     internal class SwDrawing : SwDocument, ISwDrawing
     {
+        IXDrawingOptions IXDrawing.Options => m_Options;
+
         public IDrawingDoc Drawing => Model as IDrawingDoc;
 
         public IXSheetRepository Sheets => m_SheetsLazy.Value;
@@ -48,10 +108,15 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
+        public override IXDocumentOptions Options => m_Options;
+
+        private SwDrawingOptions m_Options;
+
         internal SwDrawing(IDrawingDoc drawing, SwApplication app, IXLogger logger, bool isCreated)
             : base((IModelDoc2)drawing, app, logger, isCreated)
         {
             m_SheetsLazy = new Lazy<SwSheetCollection>(() => new SwSheetCollection(this, OwnerApplication));
+            m_Options = new SwDrawingOptions(this);
         }
 
         protected override void CommitCache(IModelDoc2 model, CancellationToken cancellationToken)

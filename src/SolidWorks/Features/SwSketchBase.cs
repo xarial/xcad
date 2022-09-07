@@ -15,6 +15,7 @@ using Xarial.XCad.Features;
 using Xarial.XCad.Sketch;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Sketch;
+using Xarial.XCad.SolidWorks.Utils;
 
 namespace Xarial.XCad.SolidWorks.Features
 {
@@ -73,6 +74,7 @@ namespace Xarial.XCad.SolidWorks.Features
             }
 
             m_AddToDbOrig = m_SketchMgr.AddToDB;
+            m_SketchMgr.AddToDB = true;
         }
 
         public void Dispose()
@@ -140,6 +142,42 @@ namespace Xarial.XCad.SolidWorks.Features
         public override IEditor<IXFeature> Edit() => CreateSketchEditor(Sketch);
 
         protected internal bool IsEditing => OwnerDocument.Model.SketchManager.ActiveSketch == Sketch;
+
+        public bool IsBlank
+        {
+            get
+            {
+                var visibility = (swVisibilityState_e)Feature.Visible;
+
+                switch (visibility)
+                {
+                    case swVisibilityState_e.swVisibilityStateHide:
+                        return true;
+
+                    case swVisibilityState_e.swVisibilityStateShown:
+                        return false;
+
+                    default:
+                        throw new NotSupportedException($"Visibility is not supported: {visibility}");
+                }
+            }
+            set 
+            {
+                using (var selGrp = new SelectionGroup(OwnerDocument, true)) 
+                {
+                    selGrp.Add(Feature);
+
+                    if (value)
+                    {
+                        OwnerDocument.Model.BlankSketch();
+                    }
+                    else 
+                    {
+                        OwnerDocument.Model.UnblankSketch();
+                    }
+                }
+            }
+        }
 
         protected internal abstract IEditor<IXSketchBase> CreateSketchEditor(ISketch sketch);
     }

@@ -56,6 +56,20 @@ namespace Xarial.XCad.SolidWorks
             where TObj : ISwObject;
     }
 
+    public interface ISwApplicationOptions : ISwOptions, IXApplicationOptions 
+    {
+    }
+
+    internal class SwApplicationOptions : SwOptions, ISwApplicationOptions 
+    {
+        private readonly SwApplication m_App;
+
+        internal SwApplicationOptions(SwApplication app) 
+        {
+            m_App = app;
+        }
+    }
+
     /// <inheritdoc/>
     internal class SwApplication : ISwApplication, IXServiceConsumer
     {
@@ -153,6 +167,8 @@ namespace Xarial.XCad.SolidWorks
         public Rectangle WindowRectangle => new Rectangle(Sw.FrameLeft, Sw.FrameTop, Sw.FrameWidth, Sw.FrameHeight);
 
         public ISwMemoryGeometryBuilder MemoryGeometryBuilder { get; private set; }
+
+        public IXApplicationOptions Options { get; }
 
         public bool IsCommitted => m_Creator.IsCreated;
 
@@ -270,6 +286,8 @@ namespace Xarial.XCad.SolidWorks
         {
             m_IsStartupNotified = false;
             m_StartupCompletedCallback = startupCompletedCallback;
+
+            Options = new SwApplicationOptions(this);
 
             m_Creator = new ElementCreator<ISldWorks>(CreateInstance, app, true);
             WatchStartupCompleted((SldWorks)app);

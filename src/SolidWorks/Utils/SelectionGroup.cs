@@ -9,6 +9,7 @@ using SolidWorks.Interop.sldworks;
 using System;
 using System.Linq;
 using System.Runtime.InteropServices;
+using Xarial.XCad.SolidWorks.Documents;
 
 namespace Xarial.XCad.SolidWorks.Utils
 {
@@ -19,16 +20,20 @@ namespace Xarial.XCad.SolidWorks.Utils
 
         private readonly bool m_IsSystemSelection;
 
-        internal SelectionGroup(IModelDoc2 model, bool systemSel)
+        private readonly SwApplication m_App;
+
+        internal SelectionGroup(SwDocument doc, bool systemSel)
         {
-            if (model == null)
+            if (doc == null)
             {
-                throw new ArgumentNullException(nameof(model));
+                throw new ArgumentNullException(nameof(doc));
             }
 
             m_IsSystemSelection = systemSel;
 
-            m_Model = model;
+            m_App = doc.OwnerApplication;
+
+            m_Model = doc.Model;
 
             m_SelMgr = m_Model.ISelectionManager;
 
@@ -55,17 +60,9 @@ namespace Xarial.XCad.SolidWorks.Utils
                 throw new ArgumentNullException(nameof(disp));
             }
 
-            if (m_IsSystemSelection)
-            {
-                if (!m_SelMgr.AddSelectionListObject(new DispatchWrapper(disp), selData))
-                {
-                    throw new Exception("Failed to add object to selection list");
-                }
-            }
-            else 
-            {
-                AddRange(new object[] { disp }, selData);
-            }
+            //NOTE: ISelectionMgr::AddSelectionListObject fails, use the AddSelectionListObjects for system selection
+
+            AddRange(new object[] { disp }, selData);
         }
 
         /// <summary>
@@ -105,7 +102,14 @@ namespace Xarial.XCad.SolidWorks.Utils
         {
             if (m_IsSystemSelection)
             {
-                m_SelMgr.ResumeSelectionList();
+                if (m_App.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2020))
+                {
+                    m_SelMgr.ResumeSelectionList2(false);
+                }
+                else 
+                {
+                    m_SelMgr.ResumeSelectionList();
+                }
             }
             else 
             {

@@ -642,6 +642,8 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             }
         }
 
+        public IXDocumentOptions Options => throw new NotImplementedException();
+
         private Tuple<string, bool>[] GetRawDependencies()
         {
             string[] deps;

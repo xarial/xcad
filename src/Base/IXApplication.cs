@@ -18,6 +18,13 @@ using Xarial.XCad.Geometry;
 namespace Xarial.XCad
 {
     /// <summary>
+    /// Application level options
+    /// </summary>
+    public interface IXApplicationOptions : IXOptions 
+    {
+    }
+
+    /// <summary>
     /// Top level object in the class hierarchy
     /// </summary>
     public interface IXApplication : IXTransaction
@@ -61,6 +68,11 @@ namespace Xarial.XCad
         /// Application process
         /// </summary>
         Process Process { get; }
+
+        /// <summary>
+        /// Application level options
+        /// </summary>
+        IXApplicationOptions Options { get; }
 
         /// <summary>
         /// Accesses the documents repository

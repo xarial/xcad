@@ -71,6 +71,11 @@ namespace Xarial.XCad.Documents
         IXUnits Units { get; }
 
         /// <summary>
+        /// Document specific options
+        /// </summary>
+        IXDocumentOptions Options { get; }
+
+        /// <summary>
         /// Changes the title of this document
         /// </summary>
         string Title { get; set; }

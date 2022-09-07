@@ -16,5 +16,10 @@ namespace Xarial.XCad.Documents
         /// Sheets on this drawing
         /// </summary>
         IXSheetRepository Sheets { get; }
+
+        /// <summary>
+        /// Drawing specific options
+        /// </summary>
+        new IXDrawingOptions Options { get; }
     }
 }

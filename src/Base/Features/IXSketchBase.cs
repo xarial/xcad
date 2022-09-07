@@ -18,5 +18,10 @@ namespace Xarial.XCad.Features
         /// List of sketch entitites (segments and points)
         /// </summary>
         IXSketchEntityRepository Entities { get; }
+
+        /// <summary>
+        /// Manages the blank state (hidden/visible) of the sketch
+        /// </summary>
+        bool IsBlank { get; set; }
     }
 }

@@ -69,7 +69,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         TObj CreateObjectFromDispatch<TObj>(object disp)
             where TObj : ISwObject;
     }
-    
+
     [DebuggerDisplay("{" + nameof(Title) + "}")]
     internal abstract class SwDocument : SwObject, ISwDocument
     {
@@ -401,6 +401,8 @@ namespace Xarial.XCad.SolidWorks.Documents
 
             Units = new SwUnits(this);
 
+            Options = new SwDocumentOptions(this);
+
             m_StreamReadAvailableHandler = new StreamReadAvailableEventsHandler(this, app);
             m_StreamWriteAvailableHandler = new StreamWriteAvailableEventsHandler(this, app);
             m_StorageReadAvailableHandler = new StorageReadAvailableEventsHandler(this, app);
@@ -635,6 +637,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         public int UpdateStamp => Model.GetUpdateStamp();
 
         public IXUnits Units { get; }
+        public virtual IXDocumentOptions Options { get; }
 
         public virtual ISwModelViewsCollection ModelViews => m_ModelViewsLazy.Value;
 
@@ -1400,5 +1403,11 @@ namespace Xarial.XCad.SolidWorks.Documents
                 return Image.FromHbitmap(thumbnail.BitmapHandle);
             }
         }
+
+        internal static void SetUserPreferenceToggle(this SwDocument doc, swUserPreferenceToggle_e option, bool value) 
+            => doc.Model.Extension.SetUserPreferenceToggle((int)option, (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified, value);
+
+        internal static bool GetUserPreferenceToggle(this SwDocument doc, swUserPreferenceToggle_e option)
+            => doc.Model.Extension.GetUserPreferenceToggle((int)option, (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified);
     }
 }

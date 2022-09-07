@@ -103,6 +103,8 @@ namespace Xarial.XCad.SwDocumentManager
             }
         }
 
+        public IXApplicationOptions Options => throw new NotImplementedException();
+
         private readonly IElementCreator<ISwDMApplication> m_Creator;
 
         internal SwDmApplication(ISwDMApplication dmApp, bool isCreated) 

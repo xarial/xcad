@@ -124,7 +124,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             var icons = MacroFeatureIconInfo.GetIcons(DefinitionType,
                 CompatibilityUtils.SupportsHighResIcons(SwMacroFeatureDefinition.Application.Sw, CompatibilityUtils.HighResIconsScope_e.MacroFeature));
 
-            using (var selSet = new SelectionGroup(m_FeatMgr.Document, true))
+            using (var selSet = new SelectionGroup(OwnerDocument, true))
             {
                 if (selection != null && selection.Any())
                 {
