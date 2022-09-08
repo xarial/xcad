@@ -74,6 +74,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BoxMacroFeatureEditor.cs" />
+    <Compile Include="XDrawingImage.cs" />
     <Compile Include="ComUserControl.cs">
       <SubType>UserControl</SubType>
     </Compile>

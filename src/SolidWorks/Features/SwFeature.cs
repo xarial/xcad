@@ -155,23 +155,26 @@ namespace Xarial.XCad.SolidWorks.Features
 
         private IFeature CreateFeature(CancellationToken cancellationToken)
         {
-            var feat = InsertFeature(cancellationToken);
-
-            var userName = Name;
-
-            if (!string.IsNullOrEmpty(userName)) 
+            using (var viewFreeze = new ViewFreeze(OwnerDocument))
             {
-                feat.Name = userName;
+                var feat = InsertFeature(cancellationToken);
+
+                var userName = Name;
+
+                if (!string.IsNullOrEmpty(userName))
+                {
+                    feat.Name = userName;
+                }
+
+                var userColor = Color;
+
+                if (userColor.HasValue)
+                {
+                    SetColor(feat, userColor);
+                }
+
+                return feat;
             }
-
-            var userColor = Color;
-
-            if (userColor.HasValue) 
-            {
-                SetColor(feat, userColor);
-            }
-
-            return feat;
         }
 
         protected virtual IFeature InsertFeature(CancellationToken cancellationToken)

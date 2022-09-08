@@ -20,6 +20,7 @@ using Xarial.XCad.Features.CustomFeature;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Features.CustomFeature;
 using Xarial.XCad.SolidWorks.Features.CustomFeature.Toolkit;
+using Xarial.XCad.SolidWorks.Sketch;
 using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.Toolkit.CustomFeature;
 using Xarial.XCad.Toolkit.Services;
@@ -203,7 +204,8 @@ namespace Xarial.XCad.SolidWorks.Features
                     () => new SwSketch3D(default(ISketch), Document, m_App, false),
                     () => new SwMacroFeature(null, Document, m_App, false),
                     () => new SwDumbBody(null, Document, m_App, false),
-                    () => new SwPlane(null, Document, m_App, false));
+                    () => new SwPlane(null, Document, m_App, false),
+                    () => new SwSketchPicture(null, Document, m_App, false));
             }
         }
     }

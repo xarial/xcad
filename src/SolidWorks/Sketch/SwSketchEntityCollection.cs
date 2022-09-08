@@ -41,7 +41,8 @@ namespace Xarial.XCad.SolidWorks.Sketch
                 {
                     return ((object[])m_Sketch.Sketch.GetSketchSegments() ?? new object[0]).Length 
                         + m_Sketch.Sketch.GetSketchPointsCount2() 
-                        + m_Sketch.Sketch.GetSketchBlockInstanceCount();
+                        + m_Sketch.Sketch.GetSketchBlockInstanceCount()
+                        + m_Sketch.Sketch.GetSketchPictureCount();
                 }
                 else 
                 {
@@ -87,6 +88,11 @@ namespace Xarial.XCad.SolidWorks.Sketch
             foreach (ISketchBlockInstance blockInst in (object[])m_Sketch.Sketch.GetSketchBlockInstances() ?? new object[0])
             {
                 yield return m_Doc.CreateObjectFromDispatch<SwSketchBlockInstance>(blockInst);
+            }
+
+            foreach (ISketchPicture skPict in (object[])m_Sketch.Sketch.GetSketchPictures() ?? new object[0])
+            {
+                yield return m_Doc.CreateObjectFromDispatch<SwSketchPicture>(skPict);
             }
         }
 

@@ -55,6 +55,8 @@ using Xarial.XCad.SolidWorks.Extensions;
 using Xarial.XToolkit.Wpf.Utils;
 using System.Threading;
 using Xarial.XCad.Features.CustomFeature;
+using System.IO;
+using Xarial.XCad.SolidWorks.Sketch;
 
 namespace SwAddInExample
 {
@@ -187,7 +189,9 @@ namespace SwAddInExample
 
             CreateDrawing,
 
-            GetPreview
+            GetPreview,
+
+            InsertPicture
         }
 
         [Icon(typeof(Resources), nameof(Resources.xarial))]
@@ -669,11 +673,63 @@ namespace SwAddInExample
                     case Commands_e.GetPreview:
                         GetPreview();
                         break;
+
+                    case Commands_e.InsertPicture:
+                        InsertPicture();
+                        break;
                 }
             }
             catch 
             {
                 Debug.Assert(false);
+            }
+        }
+
+        private void InsertPicture()
+        {
+            var serialize = false;
+
+            var doc = Application.Documents.Active;
+
+            var pict = doc.Selections.OfType<IXSketchPicture>().FirstOrDefault();
+
+            if (pict == null)
+            {
+                if (serialize)
+                {
+                    var id = "";
+                    var buffer = Convert.FromBase64String(id);
+
+                    using (var stream = new MemoryStream(buffer))
+                    {
+                        pict = doc.DeserializeObject<ISwSketchPicture>(stream);
+                    }
+                }
+                else
+                {
+                    pict = doc.Features.PreCreate<IXSketchPicture>();
+                    pict.Boundary = new Rect2D(0.05, 0.05, new Xarial.XCad.Geometry.Structures.Point(0.1, 0.1, 0));
+                    pict.Image = new XDrawingImage(Image.FromFile(@"C:\Users\artem\Desktop\123.png"));
+                    pict.Commit();
+                }
+            }
+            else 
+            {
+                if (serialize)
+                {
+                    using (var stream = new MemoryStream()) 
+                    {
+                        pict.Serialize(stream);
+
+                        stream.Seek(0, SeekOrigin.Begin);
+
+                        var id = Convert.ToBase64String(stream.GetBuffer());
+                    }
+                }
+                else 
+                {
+                    doc.Features.Remove(pict);
+                }
             }
         }
 
