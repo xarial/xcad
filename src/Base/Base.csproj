@@ -18,7 +18,7 @@
   <PropertyGroup Condition="'$(Configuration)'=='Release'">
     <DocumentationFile>Xarial.XCad.xml</DocumentationFile>
   </PropertyGroup>
-
+  
   <ItemGroup>
     <Compile Update="Properties\Resources.Designer.cs">
       <DesignTime>True</DesignTime>

@@ -166,6 +166,6 @@
     <Exec Command="%windir%\Microsoft.NET\Framework64\v4.0.30319\RegAsm.exe &quot;$(TargetPath)&quot; /u" IgnoreExitCode="true" Condition="Exists('$(TargetPath)')" />
   </Target>
   <Target Name="AfterBuild">
-    <Exec Command="%windir%\Microsoft.NET\Framework64\v4.0.30319\RegAsm.exe &quot;$(TargetPath)&quot; /codebase" Condition="Exists('$(TargetPath)')" />
+    <Exec Command="%windir%\Microsoft.NET\Framework64\v4.0.30319\RegAsm.exe &quot;$(TargetPath)&quot; /tlb /codebase" Condition="Exists('$(TargetPath)')" />
   </Target>
 </Project>

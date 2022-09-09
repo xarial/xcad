@@ -30,7 +30,7 @@ namespace Xarial.XCad.SolidWorks.Graphics
         IDragArrowManipulator DragArrow { get; }
     }
     
-    //[ComVisible(true)]
+    [ComVisible(true)]
     public abstract class SwDragArrowHandler : ISwManipulatorHandler2
     {
         internal event Action Flipped;
