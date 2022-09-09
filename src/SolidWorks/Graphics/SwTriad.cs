@@ -30,7 +30,7 @@ namespace Xarial.XCad.SolidWorks.Graphics
         ITriadManipulator Triad { get; }
     }
     
-    [ComVisible(true)]
+    //[ComVisible(true)]
     public abstract class SwTriadHandler : ISwManipulatorHandler2
     {
         internal event Action<swTriadManipulatorControlPoints_e> Selected;

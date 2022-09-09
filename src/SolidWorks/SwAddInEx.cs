@@ -71,7 +71,7 @@ namespace Xarial.XCad.SolidWorks
     }
 
     /// <inheritdoc/>
-    [ComVisible(true)]
+    //[ComVisible(true)]
     public abstract class SwAddInEx : ISwAddInEx, ISwAddin, IXServiceConsumer, IDisposable
     {
         #region Registration
@@ -479,7 +479,7 @@ namespace Xarial.XCad.SolidWorks
     }
 
     /// <inheritdoc/>
-    [ComVisible(true)]
+    //[ComVisible(true)]
     public abstract class SwPartnerAddInEx : SwAddInEx, ISwPEManager
     {
         [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]

@@ -22,7 +22,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
     /// Class which represents the handler of macro feature (system use only)
     /// </summary>
     /// <remarks>Class must be COM Visible, public and have parameterless constructor</remarks>
-    [ComVisible(true)]
+    //[ComVisible(true)]
     public abstract class SwPropertyManagerPageHandler : IPropertyManagerPage2Handler9
     {
         internal delegate void SubmitSelectionDelegate(int id, object selection, int selType, ref string itemText, ref bool res);

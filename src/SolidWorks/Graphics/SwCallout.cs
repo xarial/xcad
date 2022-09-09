@@ -42,7 +42,7 @@ namespace Xarial.XCad.SolidWorks.Graphics
     {
     }
 
-    [ComVisible(true)]
+    //[ComVisible(true)]
     public abstract class SwCalloutBaseHandler : ISwCalloutHandler
     {
         internal event Func<SwCalloutBaseHandler, int, string, bool> ValueChanged;
