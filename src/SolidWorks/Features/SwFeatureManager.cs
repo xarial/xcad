@@ -123,7 +123,10 @@ namespace Xarial.XCad.SolidWorks.Features
         {
             if (Document.IsCommitted)
             {
-                RepositoryHelper.AddRange(feats, cancellationToken);
+                using (var viewFreeze = new ViewFreeze(Document))
+                {
+                    RepositoryHelper.AddRange(feats, cancellationToken);
+                }
             }
             else 
             {
@@ -153,18 +156,21 @@ namespace Xarial.XCad.SolidWorks.Features
         {
             if (Document.IsCommitted)
             {
-                var disps = ents.Cast<SwFeature>().Select(e => new DispatchWrapper(e.Feature)).ToArray();
+                using (var viewFreeze = new ViewFreeze(Document))
+                {
+                    var disps = ents.Cast<SwFeature>().Select(e => new DispatchWrapper(e.Feature)).ToArray();
 
-                if (Document.Model.Extension.MultiSelect2(disps, false, null) == disps.Length)
-                {
-                    if (!Document.Model.Extension.DeleteSelection2((int)swDeleteSelectionOptions_e.swDelete_Absorbed))
+                    if (Document.Model.Extension.MultiSelect2(disps, false, null) == disps.Length)
                     {
-                        throw new Exception("Failed to delete features");
+                        if (!Document.Model.Extension.DeleteSelection2((int)swDeleteSelectionOptions_e.swDelete_Absorbed))
+                        {
+                            throw new Exception("Failed to delete features");
+                        }
                     }
-                }
-                else
-                {
-                    throw new Exception("Failed to select features for deletion");
+                    else
+                    {
+                        throw new Exception("Failed to select features for deletion");
+                    }
                 }
             }
             else 
@@ -205,7 +211,7 @@ namespace Xarial.XCad.SolidWorks.Features
                     () => new SwMacroFeature(null, Document, m_App, false),
                     () => new SwDumbBody(null, Document, m_App, false),
                     () => new SwPlane(null, Document, m_App, false),
-                    () => new SwSketchPicture(null, Document, m_App, false));
+                    () => new SwSketchPicture(default(IFeature), Document, m_App, false));
             }
         }
     }

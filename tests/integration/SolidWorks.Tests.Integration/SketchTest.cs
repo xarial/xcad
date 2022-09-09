@@ -1,5 +1,6 @@
 ﻿using NUnit.Framework;
 using SolidWorks.Interop.sldworks;
+using SolidWorks.Interop.swconst;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -31,10 +32,11 @@ namespace SolidWorks.Tests.Integration
                 var sketch = part.CreateObjectFromDispatch<ISwSketch2D>(
                     part.Features["Sketch1"].Feature.GetSpecificFeature2() as ISketch);
 
-                entTypes = sketch.Entities.Where(e => !(e is ISwSketchPoint)).Select(e => e.GetType()).ToArray();
+                entTypes = sketch.Entities.Where(e => !(e is ISwSketchPoint) || ((ISwSketchPoint)e).Point.Type == (int)swSketchPointType_e.swSketchPointType_User)
+                    .Select(e => e.GetType()).ToArray();
             }
 
-            Assert.AreEqual(7, entTypes.Length);
+            Assert.AreEqual(9, entTypes.Length);
             Assert.IsNotNull(entTypes.FirstOrDefault(t => typeof(ISwSketchEllipse).IsAssignableFrom(t)));
             Assert.IsNotNull(entTypes.FirstOrDefault(t => typeof(ISwSketchLine).IsAssignableFrom(t)));
             Assert.IsNotNull(entTypes.FirstOrDefault(t => typeof(ISwSketchCircle).IsAssignableFrom(t)));
@@ -42,6 +44,8 @@ namespace SolidWorks.Tests.Integration
             Assert.IsNotNull(entTypes.FirstOrDefault(t => typeof(ISwSketchSpline).IsAssignableFrom(t)));
             Assert.IsNotNull(entTypes.FirstOrDefault(t => typeof(ISwSketchParabola).IsAssignableFrom(t)));
             Assert.IsNotNull(entTypes.FirstOrDefault(t => typeof(ISwSketchArc).IsAssignableFrom(t)));
+            Assert.IsNotNull(entTypes.FirstOrDefault(t => typeof(ISwSketchPicture).IsAssignableFrom(t)));
+            Assert.IsNotNull(entTypes.FirstOrDefault(t => typeof(ISwSketchPoint).IsAssignableFrom(t)));
         }
 
         [Test]
@@ -116,12 +120,12 @@ namespace SolidWorks.Tests.Integration
                 l6 = segs.OfType<ISwSketchArc>().First().Length;
             }
 
-            Assert.That(0.12991965190301241, Is.EqualTo(l1).Within(0.001).Percent);
-            Assert.That(0.08468717758758991, Is.EqualTo(l2).Within(0.001).Percent);
-            Assert.That(0.10094045912639603, Is.EqualTo(l3).Within(0.001).Percent);
-            Assert.That(0.16421451670784409, Is.EqualTo(l4).Within(0.001).Percent);
-            Assert.That(0.1034014049596117, Is.EqualTo(l5).Within(0.001).Percent);
-            Assert.That(0.03101279385858513, Is.EqualTo(l6).Within(0.001).Percent);
+            Assert.That(0.08017834, Is.EqualTo(l1).Within(0.001).Percent);
+            Assert.That(0.05558668, Is.EqualTo(l2).Within(0.001).Percent);
+            Assert.That(0.14665069, Is.EqualTo(l3).Within(0.001).Percent);
+            Assert.That(0.11576035, Is.EqualTo(l4).Within(0.001).Percent);
+            Assert.That(0.09222105, Is.EqualTo(l5).Within(0.001).Percent);
+            Assert.That(0.03540695, Is.EqualTo(l6).Within(0.001).Percent);
         }
 
         [Test]
@@ -224,6 +228,82 @@ namespace SolidWorks.Tests.Integration
             Assert.That(pt2.X, Is.EqualTo(0.032844814145853).Within(0.00000000001).Percent);
             Assert.That(pt2.Y, Is.EqualTo(0.0769249139264982).Within(0.00000000001).Percent);
             Assert.That(pt2.Z, Is.EqualTo(0).Within(0.00000000001).Percent);
+        }
+
+        [Test]
+        public void OwnerSketchTestTest()
+        {
+            string n1;
+            string n2;
+            string n3;
+            string n4;
+            string n5;
+            string n6;
+            string n7;
+            string n8;
+            string n9;
+
+            string n1_1;
+            string n2_1;
+            string n3_1;
+            string n4_1;
+            string n5_1;
+            string n6_1;
+            string n7_1;
+            string n8_1;
+
+            using (var doc = OpenDataDocument("Sketch1.SLDPRT"))
+            {
+                var part = (ISwPart)m_App.Documents.Active;
+
+                var sketch = part.CreateObjectFromDispatch<ISwSketch2D>(
+                    part.Features["Sketch1"].Feature.GetSpecificFeature2() as ISketch);
+
+                n1 = ((ISwSketchPicture)sketch.Entities["Sketch Picture1"]).OwnerSketch.Name;
+                n2 = ((ISwSketchLine)sketch.Entities["Line1"]).OwnerSketch.Name;
+                n3 = ((ISwSketchCircle)sketch.Entities["Arc1"]).OwnerSketch.Name;
+                n4 = ((ISwSketchArc)sketch.Entities["Arc2"]).OwnerSketch.Name;
+                n5 = ((ISwSketchParabola)sketch.Entities["Parabola2"]).OwnerSketch.Name;
+                n6 = ((ISwSketchText)sketch.Entities["SketchText1"]).OwnerSketch.Name;
+                n7 = ((ISwSketchPoint)sketch.Entities["Point1@Sketch1"]).OwnerSketch.Name;
+                n8 = ((ISwSketchSpline)sketch.Entities["Spline1"]).OwnerSketch.Name;
+                n9 = ((ISwSketchEllipse)sketch.Entities["Ellipse1"]).OwnerSketch.Name;
+            }
+
+            using (var doc = OpenDataDocument("SheetSketch1.SLDDRW"))
+            {
+                var drw = (ISwDrawing)m_App.Documents.Active;
+
+                var sketch = drw.Sheets["Sheet2"].Sketch;
+
+                n1_1 = ((ISwSketchPicture)sketch.Entities["Sketch Picture1"]).OwnerSketch.Name;
+                n2_1 = ((ISwSketchLine)sketch.Entities["Line1"]).OwnerSketch.Name;
+                n3_1 = ((ISwSketchCircle)sketch.Entities["Arc1"]).OwnerSketch.Name;
+                n4_1 = ((ISwSketchArc)sketch.Entities["Arc2"]).OwnerSketch.Name;
+                n5_1 = ((ISwSketchParabola)sketch.Entities["Parabola1"]).OwnerSketch.Name;
+                n6_1 = ((ISwSketchPoint)sketch.Entities["Point1"]).OwnerSketch.Name;
+                n7_1 = ((ISwSketchSpline)sketch.Entities["Spline1"]).OwnerSketch.Name;
+                n8_1 = ((ISwSketchEllipse)sketch.Entities["Ellipse1"]).OwnerSketch.Name;
+            }
+
+            Assert.AreEqual("Sketch1", n1);
+            Assert.AreEqual("Sketch1", n2);
+            Assert.AreEqual("Sketch1", n3);
+            Assert.AreEqual("Sketch1", n4);
+            Assert.AreEqual("Sketch1", n5);
+            Assert.AreEqual("Sketch1", n6);
+            Assert.AreEqual("Sketch1", n7);
+            Assert.AreEqual("Sketch1", n8);
+            Assert.AreEqual("Sketch1", n9);
+
+            Assert.AreEqual("Sketch3", n1_1);
+            Assert.AreEqual("Sketch3", n2_1);
+            Assert.AreEqual("Sketch3", n3_1);
+            Assert.AreEqual("Sketch3", n4_1);
+            Assert.AreEqual("Sketch3", n5_1);
+            Assert.AreEqual("Sketch3", n6_1);
+            Assert.AreEqual("Sketch3", n7_1);
+            Assert.AreEqual("Sketch3", n8_1);
         }
     }
 }

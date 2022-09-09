@@ -206,6 +206,9 @@ namespace Xarial.XCad.SolidWorks
                 case ISketchPoint skPt:
                     return new SwSketchPoint(skPt, doc, app, true);
 
+                case ISketchPicture skPict:
+                    return new SwSketchPicture(skPict, doc, app, true);
+
                 case IDisplayDimension dispDim:
                     return new SwDimension(dispDim, doc, app);
 

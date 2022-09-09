@@ -47,6 +47,11 @@ namespace Xarial.XCad.SolidWorks.Sketch
             }
         }
 
+        internal SwSketchPicture(ISketchPicture skPict, SwDocument doc, SwApplication app, bool created) : base(skPict.GetFeature(), doc, app, created)
+        {
+            SketchPicture = skPict;
+        }
+
         internal SwSketchPicture(SwSketchBase ownerSketch, SwDocument doc, SwApplication app) : base(null, doc, app, false)
         {
             m_OwnerSketch = ownerSketch;
