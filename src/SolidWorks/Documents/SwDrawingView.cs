@@ -20,6 +20,7 @@ using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Documents.Structures;
 using Xarial.XCad.Exceptions;
+using Xarial.XCad.Features;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Services;
@@ -473,6 +474,8 @@ namespace Xarial.XCad.SolidWorks.Documents
                 }
             }
         }
+
+        public IXSketch2D Sketch => OwnerDocument.CreateObjectFromDispatch<ISwSketch2D>(DrawingView.GetSketch());
 
         TSelObject IXObjectContainer.ConvertObject<TSelObject>(TSelObject obj) => ConvertObjectBoxed(obj) as TSelObject;
 

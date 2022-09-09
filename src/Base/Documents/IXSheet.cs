@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Text;
 using Xarial.XCad.Base;
 using Xarial.XCad.Documents.Structures;
+using Xarial.XCad.Features;
 using Xarial.XCad.UI;
 
 namespace Xarial.XCad.Documents
@@ -28,6 +29,11 @@ namespace Xarial.XCad.Documents
         /// Drawings views on this sheet
         /// </summary>
         IXDrawingViewRepository DrawingViews { get; }
+
+        /// <summary>
+        /// Sketch space of this sheet
+        /// </summary>
+        IXSketch2D Sketch { get; }
 
         /// <summary>
         /// Preview of this drawing sheet

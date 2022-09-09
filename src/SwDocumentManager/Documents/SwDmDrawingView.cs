@@ -19,6 +19,7 @@ using Xarial.XCad.Base.Enums;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Documents.Structures;
+using Xarial.XCad.Features;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;
 
@@ -43,6 +44,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         public IXAnnotationRepository Annotations => throw new NotSupportedException();
         public IXDrawingView BaseView { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
         public IEnumerable<IXDrawingView> DependentViews => throw new NotSupportedException();
+        public IXSketch2D Sketch => throw new NotSupportedException();
         #endregion
 
         public override SelectType_e SelectionType => SelectType_e.DrawingViews;

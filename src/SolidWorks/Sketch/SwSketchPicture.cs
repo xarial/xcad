@@ -110,8 +110,12 @@ namespace Xarial.XCad.SolidWorks.Sketch
             }
         }
 
-        public IXSketchBase OwnerSketch => throw new NotImplementedException();
-        public IXSketchBlockInstance OwnerBlock => throw new NotImplementedException();
+        public IXSketchBase OwnerSketch => OwnerDocument.CreateObjectFromDispatch<ISwSketchBase>(Feature.GetOwnerFeature());
+
+        /// <remarks>
+        /// Sketch picture in SOLIDWORKS cannot be added into the block
+        /// </remarks>
+        public IXSketchBlockInstance OwnerBlock => null;
 
         protected override IFeature InsertFeature(CancellationToken cancellationToken)
         {

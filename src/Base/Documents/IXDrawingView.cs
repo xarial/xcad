@@ -12,6 +12,7 @@ using Xarial.XCad.Annotations;
 using Xarial.XCad.Base;
 using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Documents.Structures;
+using Xarial.XCad.Features;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;
 
@@ -26,6 +27,11 @@ namespace Xarial.XCad.Documents
         /// Bodies scope of this view
         /// </summary>
         IXBody[] Bodies { get; set; }
+
+        /// <summary>
+        /// Sketch space of this sheet
+        /// </summary>
+        IXSketch2D Sketch { get; }
 
         /// <summary>
         /// Collection of annotations

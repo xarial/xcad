@@ -32,6 +32,7 @@ namespace Xarial.XCad.Base.Enums
         CoordinateSystems = 61,
         SurfaceBodies = 75,
         SolidBodies = 76,
+        SketchPicture = 85,
         SketchBlockInstances = 93,
         SketchRegion = 95,
         SketchContour = 96,

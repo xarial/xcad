@@ -20,8 +20,10 @@ using Xarial.XCad.Data;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Documents.Structures;
+using Xarial.XCad.Features;
 using Xarial.XCad.Services;
 using Xarial.XCad.SolidWorks.Documents.Exceptions;
+using Xarial.XCad.SolidWorks.Features;
 using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.UI;
 
@@ -162,6 +164,24 @@ namespace Xarial.XCad.SolidWorks.Documents
                 {
                     m_Creator.CachedProperties.Set(value);
                 }
+            }
+        }
+
+        public IXSketch2D Sketch 
+        {
+            get 
+            {
+                foreach (object[] sheet in m_Drawing.Drawing.GetViews() as object[])
+                {
+                    var sheetView = (IView)sheet.First();
+
+                    if (string.Equals(sheetView.Name, Sheet.GetName(), StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        return m_Drawing.CreateObjectFromDispatch<ISwSketch2D>(sheetView.GetSketch());
+                    }
+                }
+
+                throw new Exception("Failed to find the view of the sheet");
             }
         }
 
@@ -320,6 +340,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         public ITagsManager Tags => throw new UnloadedDocumentPreviewOnlySheetException();
         public PaperSize PaperSize { get => throw new UnloadedDocumentPreviewOnlySheetException(); set => throw new UnloadedDocumentPreviewOnlySheetException(); }
         public IXSheet Clone() => throw new NotSupportedException();
+        public IXSketch2D Sketch => throw new NotSupportedException();
         #endregion
 
         private readonly ISwApplication m_App;

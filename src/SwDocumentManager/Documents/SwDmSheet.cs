@@ -13,6 +13,7 @@ using System.Threading;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Documents.Structures;
+using Xarial.XCad.Features;
 using Xarial.XCad.UI;
 
 namespace Xarial.XCad.SwDocumentManager.Documents
@@ -24,9 +25,10 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
     internal class SwDmSheet : SwDmObject, ISwDmSheet
     {
-        #region Not Supporter
+        #region Not Supported
         public IXSheet Clone() => throw new NotSupportedException();
         public void Commit(CancellationToken cancellationToken) => throw new NotSupportedException();
+        public IXSketch2D Sketch => throw new NotSupportedException();
         #endregion
 
         public string Name
