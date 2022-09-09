@@ -6,9 +6,11 @@
 //*********************************************************************
 
 using SolidWorks.Interop.sldworks;
+using SolidWorks.Interop.swconst;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using Xarial.XCad.Exceptions;
@@ -34,12 +36,20 @@ namespace Xarial.XCad.SolidWorks.Sketch
     {
         public ISketchPicture SketchPicture { get; private set; }
 
+        
+        private SwSketchBase m_OwnerSketch;
+
         internal SwSketchPicture(IFeature feat, SwDocument doc, SwApplication app, bool created) : base(feat, doc, app, created)
         {
             if (feat != null)
             {
                 SketchPicture = feat.GetSpecificFeature2() as ISketchPicture;
             }
+        }
+
+        internal SwSketchPicture(SwSketchBase ownerSketch, SwDocument doc, SwApplication app) : base(null, doc, app, false)
+        {
+            m_OwnerSketch = ownerSketch;
         }
 
         public override object Dispatch => SketchPicture;
@@ -110,7 +120,38 @@ namespace Xarial.XCad.SolidWorks.Sketch
             }
         }
 
-        public IXSketchBase OwnerSketch => OwnerDocument.CreateObjectFromDispatch<ISwSketchBase>(Feature.GetOwnerFeature());
+        public IXSketchBase OwnerSketch
+        {
+            get
+            {
+                var ownerFeat = Feature.GetOwnerFeature();
+
+                if (OwnerDocument is SwDrawing)
+                {
+                    var draw = (SwDrawing)OwnerDocument;
+
+                    var ownerSketch = (ISketch)ownerFeat.GetSpecificFeature2();
+
+                    foreach (object[] sheet in draw.Drawing.GetViews() as object[])
+                    {
+                        var sheetView = (IView)sheet.First();
+
+                        var sheetSketch = sheetView.IGetSketch();
+
+                        if (OwnerApplication.Sw.IsSame(sheetSketch, ownerSketch) == (int)swObjectEquality.swObjectSame) 
+                        {
+                            return new SwSheetSketch((SwSheet)draw.Sheets[sheetView.Name], ownerSketch, draw, OwnerApplication, true);
+                        }
+                    }
+
+                    throw new Exception("Faild to find the owner sketch of this sketch picture");
+                }
+                else
+                {
+                    return OwnerDocument.CreateObjectFromDispatch<ISwSketchBase>(ownerFeat);
+                }
+            }
+        }
 
         /// <remarks>
         /// Sketch picture in SOLIDWORKS cannot be added into the block
@@ -129,48 +170,51 @@ namespace Xarial.XCad.SolidWorks.Sketch
                 throw new Exception("Boundary of the image is not specified");
             }
 
-            var tempFileName = "";
-
-            try
+            using (var editor = m_OwnerSketch?.Edit())
             {
-                tempFileName = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString() + ".png");
+                var tempFileName = "";
 
-                File.WriteAllBytes(tempFileName, Image.Buffer);
-
-                var pict = OwnerDocument.Model.SketchManager.InsertSketchPicture(tempFileName);
-
-                if (pict != null)
+                try
                 {
-                    var orig = new Point(Boundary.CenterPoint.X - Boundary.Width / 2, Boundary.CenterPoint.Y - Boundary.Height / 2, 0);
+                    tempFileName = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString() + ".png");
 
-                    pict.SetOrigin(orig.X, orig.Y);
-                    pict.SetSize(Boundary.Width, Boundary.Height, false);
+                    File.WriteAllBytes(tempFileName, Image.Buffer);
 
-                    var angle = Boundary.AxisX.GetAngle(new Vector(1, 0, 0));
+                    var pict = OwnerDocument.Model.SketchManager.InsertSketchPicture(tempFileName);
 
-                    //picture PMPage stays open after inserting the picture
-                    const int swCommands_PmOK = -2;
-                    OwnerApplication.Sw.RunCommand(swCommands_PmOK, "");
-
-                    SketchPicture = pict;
-
-                    return pict.GetFeature();
-                }
-                else
-                {
-                    throw new Exception("Failed to insert picture");
-                }
-            }
-            finally
-            {
-                if (File.Exists(tempFileName))
-                {
-                    try
+                    if (pict != null)
                     {
-                        File.Delete(tempFileName);
+                        var orig = new Point(Boundary.CenterPoint.X - Boundary.Width / 2, Boundary.CenterPoint.Y - Boundary.Height / 2, 0);
+
+                        pict.SetOrigin(orig.X, orig.Y);
+                        pict.SetSize(Boundary.Width, Boundary.Height, false);
+
+                        var angle = Boundary.AxisX.GetAngle(new Vector(1, 0, 0));
+
+                        //picture PMPage stays open after inserting the picture
+                        const int swCommands_PmOK = -2;
+                        OwnerApplication.Sw.RunCommand(swCommands_PmOK, "");
+
+                        SketchPicture = pict;
+
+                        return pict.GetFeature();
                     }
-                    catch
+                    else
                     {
+                        throw new Exception("Failed to insert picture");
+                    }
+                }
+                finally
+                {
+                    if (File.Exists(tempFileName))
+                    {
+                        try
+                        {
+                            File.Delete(tempFileName);
+                        }
+                        catch
+                        {
+                        }
                     }
                 }
             }

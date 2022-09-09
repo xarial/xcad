@@ -153,7 +153,8 @@ namespace Xarial.XCad.SolidWorks.Sketch
                 () => new SwSketchArc(m_Sketch, m_Doc, m_App),
                 () => new SwSketchEllipse(m_Sketch, m_Doc, m_App),
                 () => new SwSketchSpline(m_Sketch, m_Doc, m_App),
-                () => new SwSketchText(m_Sketch, m_Doc, m_App));
+                () => new SwSketchText(m_Sketch, m_Doc, m_App),
+                () => new SwSketchPicture(m_Sketch, m_Doc, m_App));
 
         public IEnumerator<IXWireEntity> GetEnumerator()
         {

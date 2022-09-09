@@ -24,6 +24,7 @@ using Xarial.XCad.Features;
 using Xarial.XCad.Services;
 using Xarial.XCad.SolidWorks.Documents.Exceptions;
 using Xarial.XCad.SolidWorks.Features;
+using Xarial.XCad.SolidWorks.Sketch;
 using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.UI;
 
@@ -177,7 +178,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
                     if (string.Equals(sheetView.Name, Sheet.GetName(), StringComparison.CurrentCultureIgnoreCase))
                     {
-                        return m_Drawing.CreateObjectFromDispatch<ISwSketch2D>(sheetView.GetSketch());
+                        return new SwSheetSketch(this, sheetView.IGetSketch(), m_Drawing, OwnerApplication, true);
                     }
                 }
 
@@ -303,6 +304,36 @@ namespace Xarial.XCad.SolidWorks.Documents
                 throw new Exception($"Failed to copy sheet");
             }
         }
+    }
+
+    internal class SwSheetSketchEditor : SheetActivator, IEditor<SwSheetSketch>
+    {
+        private readonly SwSheetSketch m_SheetSketch;
+
+        internal SwSheetSketchEditor(SwSheetSketch sheetSketch, SwSheet sheet) : base(sheet)
+        {
+            m_SheetSketch = sheetSketch;
+        }
+
+        public SwSheetSketch Target => m_SheetSketch;
+
+        public bool Cancel { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
+    }
+
+    internal class SwSheetSketch : SwSketch2D
+    {
+        private readonly SwSheet m_Sheet;
+        private readonly SwDrawing m_Draw;
+
+        internal SwSheetSketch(SwSheet sheet, ISketch sketch, SwDrawing drw, SwApplication app, bool created) : base(sketch, drw, app, created)
+        {
+            m_Draw = drw;
+            m_Sheet = sheet;
+        }
+
+        protected internal override bool IsEditing => m_Draw.Sheets.Active.Equals(m_Sheet);
+
+        protected internal override IEditor<IXSketchBase> CreateSketchEditor(ISketch sketch) => new SwSheetSketchEditor(this, m_Sheet);
     }
 
     internal static class PaperSizeHelper 

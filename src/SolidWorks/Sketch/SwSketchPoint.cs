@@ -133,21 +133,16 @@ namespace Xarial.XCad.SolidWorks.Sketch
 
         private ISketchPoint CreatePoint(CancellationToken cancellationToken)
         {
-            if (m_OwnerSketch != null)
+            using (var editor = m_OwnerSketch?.Edit())
             {
-                if (!m_OwnerSketch.IsEditing)
-                {
-                    throw new Exception($"New sketch points can only be added to the sketch in the edit mode. Use {nameof(IXSketchBase)}::{nameof(IXSketchBase.Edit)} to enable editing mode");
-                }
+                var pt = m_SketchMgr.CreatePoint(Coordinate.X, Coordinate.Y, Coordinate.Z);
+
+                SetColor(pt, m_Creator.CachedProperties.Get<System.Drawing.Color?>(nameof(Color)));
+
+                SetOwnerSketch(pt);
+
+                return pt;
             }
-
-            var pt = m_SketchMgr.CreatePoint(Coordinate.X, Coordinate.Y, Coordinate.Z);
-
-            SetColor(pt, m_Creator.CachedProperties.Get<System.Drawing.Color?>(nameof(Color)));
-
-            SetOwnerSketch(pt);
-
-            return pt;
         }
 
         protected override string GetFullName() 

@@ -167,27 +167,22 @@ namespace Xarial.XCad.SolidWorks.Sketch
 
         private ISketchSegment CreateEntity(CancellationToken cancellationToken)
         {
-            if (m_OwnerSketch != null) 
+            using (var editor = m_OwnerSketch?.Edit())
             {
-                if (!m_OwnerSketch.IsEditing) 
+                //NOTE: this entity can be created even if the IsCommited set to false as these are the cached entities created
+                var seg = CreateSketchEntity();
+
+                if (seg == null)
                 {
-                    throw new Exception($"New sketch entities can only be added to the sketch in the edit mode. Use {nameof(IXSketchBase)}::{nameof(IXSketchBase.Edit)} to enable editing mode");
+                    throw new Exception("Failed to create sketch segment");
                 }
+
+                SetColor(seg, m_Creator.CachedProperties.Get<Color?>(nameof(Color)));
+
+                SetOwnerSketch(seg);
+
+                return seg;
             }
-
-            //NOTE: this entity can be created even if the IsCommited set to false as these are the cached entities created
-            var seg = CreateSketchEntity();
-
-            if (seg == null) 
-            {
-                throw new Exception("Failed to create sketch segment");
-            }
-
-            SetColor(seg, m_Creator.CachedProperties.Get<Color?>(nameof(Color)));
-
-            SetOwnerSketch(seg);
-
-            return seg;
         }
 
         protected virtual ISketchSegment CreateSketchEntity() 

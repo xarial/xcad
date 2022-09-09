@@ -141,7 +141,7 @@ namespace Xarial.XCad.SolidWorks.Features
 
         public override IEditor<IXFeature> Edit() => CreateSketchEditor(Sketch);
 
-        protected internal bool IsEditing => OwnerDocument.Model.SketchManager.ActiveSketch == Sketch;
+        protected internal virtual bool IsEditing => OwnerDocument.Model.SketchManager.ActiveSketch == Sketch;
 
         public bool IsBlank
         {

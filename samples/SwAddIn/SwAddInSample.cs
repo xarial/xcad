@@ -57,6 +57,7 @@ using System.Threading;
 using Xarial.XCad.Features.CustomFeature;
 using System.IO;
 using Xarial.XCad.SolidWorks.Sketch;
+using System.Drawing.Imaging;
 
 namespace SwAddInExample
 {
@@ -707,10 +708,27 @@ namespace SwAddInExample
                 }
                 else
                 {
-                    pict = doc.Features.PreCreate<IXSketchPicture>();
+                    var bmp = new Bitmap(50, 50);
+                    
+                    using (var graph = Graphics.FromImage(bmp))
+                    {
+                        graph.FillRectangle(Brushes.Red, new RectangleF(0f, 0f, 50f, 50f));
+                    }
+
+                    if (doc is IXDrawing)
+                    {
+                        pict = ((IXDrawing)doc).Sheets.Last().Sketch.Entities.PreCreate<IXSketchPicture>();
+                    }
+                    else 
+                    {
+                        pict = doc.Features.PreCreate<IXSketchPicture>();
+                    }
+
                     pict.Boundary = new Rect2D(0.05, 0.05, new Xarial.XCad.Geometry.Structures.Point(0.1, 0.1, 0));
-                    pict.Image = new XDrawingImage(Image.FromFile(@"C:\Users\artem\Desktop\123.png"));
+                    pict.Image = new XDrawingImage(bmp, ImageFormat.Bmp);
                     pict.Commit();
+
+                    var sketch = pict.OwnerSketch;
                 }
             }
             else 

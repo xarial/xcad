@@ -15,16 +15,20 @@ namespace SwAddInExample
         /// <inheritdoc/>
         public byte[] Buffer { get; }
 
-        internal XDrawingImage(Image img)
+        internal XDrawingImage(Image img) : this(img, ImageFormat.Png)
         {
-            Buffer = ImageToByteArray(img);
         }
 
-        private byte[] ImageToByteArray(Image bmp)
+        internal XDrawingImage(Image img, ImageFormat format)
+        {
+            Buffer = ImageToByteArray(img, format);
+        }
+
+        private byte[] ImageToByteArray(Image bmp, ImageFormat format)
         {
             using (var ms = new MemoryStream())
             {
-                bmp.Save(ms, ImageFormat.Png);
+                bmp.Save(ms, format);
                 return ms.ToArray();
             }
         }
