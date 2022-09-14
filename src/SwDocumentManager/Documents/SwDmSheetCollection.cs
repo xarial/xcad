@@ -26,8 +26,8 @@ namespace Xarial.XCad.SwDocumentManager.Documents
     internal class SwDmSheetCollection : ISwDmSheetCollection
     {
         #region Not Supported
-        public event SheetActivatedDelegate SheetActivated;
-
+        public event SheetActivatedDelegate SheetActivated { add => throw new NotSupportedException(); remove => throw new NotSupportedException(); }
+        public event SheetCreatedDelegate SheetCreated { add => throw new NotSupportedException(); remove => throw new NotSupportedException(); }
         public void AddRange(IEnumerable<IXSheet> ents, CancellationToken cancellationToken) => throw new NotSupportedException();
         public void RemoveRange(IEnumerable<IXSheet> ents, CancellationToken cancellationToken) => throw new NotSupportedException();
         public T PreCreate<T>() where T : IXSheet => throw new NotSupportedException();
@@ -54,8 +54,9 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         public int Count => (m_Drw.Document as ISwDMDocument10).GetSheetCount();
 
-        public IEnumerator<IXSheet> GetEnumerator()
-            => new SwDmSheetEnumerator(m_Drw);
+        public IEnumerator<IXSheet> GetEnumerator() => new SwDmSheetEnumerator(m_Drw);
+
+        public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters) => RepositoryHelper.FilterDefault(this, filters, reverseOrder);
 
         public bool TryGet(string name, out IXSheet ent)
         {

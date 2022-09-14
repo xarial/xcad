@@ -72,6 +72,8 @@ namespace Xarial.XCad.SwDocumentManager.Features
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
+        public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters) => RepositoryHelper.FilterDefault(this, filters, reverseOrder);
+
         private IEnumerable<IXCutListItem> IterateCutLists() 
         {
             object[] cutListItems = null;

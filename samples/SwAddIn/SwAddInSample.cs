@@ -192,7 +192,11 @@ namespace SwAddInExample
 
             GetPreview,
 
-            InsertPicture
+            InsertPicture,
+
+            HandleAddEvents,
+
+            Custom
         }
 
         [Icon(typeof(Resources), nameof(Resources.xarial))]
@@ -442,8 +446,6 @@ namespace SwAddInExample
                 switch (spec)
                 {
                     case Commands_e.OpenDoc:
-                        
-                        var cutLists = (Application.Documents.Active as ISwPart).Configurations.Active.CutLists.ToArray();
 
                         //(Application.Documents.Active.Model as AssemblyDoc).FileDropPreNotify += SwAddInSample_FileDropPreNotify;
                         var doc = Application.Documents.PreCreate<IXDocument>();
@@ -678,12 +680,73 @@ namespace SwAddInExample
                     case Commands_e.InsertPicture:
                         InsertPicture();
                         break;
+
+                    case Commands_e.HandleAddEvents:
+                        HandleAddEvents();
+                        break;
+
+                    case Commands_e.Custom:
+                        Custom();
+                        break;
                 }
             }
             catch 
             {
                 Debug.Assert(false);
             }
+        }
+
+        private void Custom()
+        {
+            var lastFeat = Application.Documents.Active.Features.Filter<IXSketch2D>(true).First();
+
+            var lines = Application.Documents.Active.Selections.OfType<IXSketchBase>().First().Entities.Filter<ISwSketchLine>().ToArray();
+
+            var feats1 = Application.Documents.Active.Features.Filter<IXSketch2D>(true).ToArray();
+            var feats2 = Application.Documents.Active.Features.Filter<IXSketch2D>().ToArray();
+
+            var feats3 = Application.Documents.Active.Features.Filter<IXFeature>(true).ToArray();
+            var feats4 = Application.Documents.Active.Features.Filter<IXFeature>().ToArray();
+
+            var assm = (ISwAssembly)Application.Documents.Active;
+            var editComp = assm.EditingComponent;
+
+            var cutLists = (Application.Documents.Active as ISwPart).Configurations.Active.CutLists.ToArray();
+        }
+
+        private void HandleAddEvents()
+        {
+            var doc = Application.Documents.Active;
+
+            switch (doc)
+            {
+                case IXAssembly assm:
+                    assm.ComponentInserted += OnComponentInserted;
+                    break;
+
+                case IXDrawing drw:
+                    drw.Sheets.SheetCreated += OnSheetCreated;
+                    drw.Sheets.Active.DrawingViews.ViewCreated += OnDrawingViewCreated;
+                    break;
+            }
+
+            doc.Features.FeatureCreated += OnFeatureCreated;
+        }
+
+        private void OnDrawingViewCreated(IXDrawing drawing, IXSheet sheet, IXDrawingView view)
+        {
+        }
+
+        private void OnFeatureCreated(IXDocument sender, IXFeature feature)
+        {
+        }
+
+        private void OnSheetCreated(IXDrawing sender, IXSheet sheet)
+        {
+        }
+
+        private void OnComponentInserted(IXAssembly sender, IXComponent component)
+        {
         }
 
         private void InsertPicture()

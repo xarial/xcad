@@ -15,6 +15,7 @@ using System.Text;
 using System.Threading;
 using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
+using Xarial.XCad.Documents.Delegates;
 using Xarial.XCad.Toolkit.Services;
 using Xarial.XCad.Toolkit.Utils;
 
@@ -33,10 +34,21 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         private readonly EntityCache<IXDrawingView> m_Cache;
 
+        public event DrawingViewCreatedDelegate ViewCreated
+        {
+            add => m_ViewCreatedEventsHandler.Attach(value);
+            remove => m_ViewCreatedEventsHandler.Detach(value);
+        }
+
+        private readonly DrawingViewCreatedEventsHandler m_ViewCreatedEventsHandler;
+
         internal SwDrawingViewsCollection(SwDrawing draw, SwSheet sheet)
         {
             m_Draw = draw;
             m_Sheet = sheet;
+
+            m_ViewCreatedEventsHandler = new DrawingViewCreatedEventsHandler(m_Sheet, m_Draw, m_Draw.OwnerApplication);
+
             m_Cache = new EntityCache<IXDrawingView>(sheet, this, v => v.Name);
         }
 
@@ -80,6 +92,8 @@ namespace Xarial.XCad.SolidWorks.Documents
                 return m_Cache.GetEnumerator();
             }
         }
+
+        public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters) => RepositoryHelper.FilterDefault(this, filters, reverseOrder);
 
         public void RemoveRange(IEnumerable<IXDrawingView> ents, CancellationToken cancellationToken)
         {

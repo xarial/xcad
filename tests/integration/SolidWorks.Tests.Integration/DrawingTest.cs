@@ -1153,6 +1153,109 @@ namespace SolidWorks.Tests.Integration
             Assert.AreEqual(1, view3BendLines);
             Assert.AreEqual(false, view3BendNotes);
         }
+
+        [Test]
+        public void SheetCreatedEventTest() 
+        {
+            var res1 = new List<Tuple<string, string>>();
+
+            string newSheetName;
+
+            using (var doc = OpenDataDocument("Drawing3.slddrw"))
+            {
+                var drwDoc = m_App.Documents.Active as ISwDrawing;
+
+                var sheetNames = (string[])drwDoc.Drawing.GetSheetNames();
+
+                drwDoc.Sheets.SheetCreated += (d, s) => 
+                {
+                    res1.Add(new Tuple<string, string>(d.Path, s.Name));
+                };
+
+                const int swCommands_Insert_Sheet = 857;
+
+                m_App.Sw.RunCommand(swCommands_Insert_Sheet, "");
+
+                newSheetName = ((string[])drwDoc.Drawing.GetSheetNames()).Except(sheetNames).First();
+            }
+
+            Assert.AreEqual(1, res1.Count);
+            Assert.AreEqual(GetFilePath("Drawing3.slddrw").ToLower(), res1[0].Item1.ToLower());
+            Assert.AreEqual(newSheetName, res1[0].Item2);
+        }
+
+        [Test]
+        public void DrawingViewCreatedEventTest()
+        {
+            var res1 = new List<Tuple<string, string, string>>();
+            var res2 = new List<Tuple<string, string, string>>();
+
+            string view1;
+            string view2;
+
+            using (var doc = OpenDataDocument("Drawing3.slddrw"))
+            {
+                var drwDoc = m_App.Documents.Active as ISwDrawing;
+
+                var sheet1 = drwDoc.Sheets["Sheet1"];
+                var sheet2 = drwDoc.Sheets["Sheet2"];
+
+                sheet1.DrawingViews.ViewCreated += (d, s, v) =>
+                {
+                    res1.Add(new Tuple<string, string, string>(d.Path, s.Name, v.Name));
+                };
+
+                sheet2.DrawingViews.ViewCreated += (d, s, v) =>
+                {
+                    res2.Add(new Tuple<string, string, string>(d.Path, s.Name, v.Name));
+                };
+
+                drwDoc.Drawing.ActivateSheet("Sheet1");
+                
+                view1 = drwDoc.Drawing.CreateDrawViewFromModelView3(GetFilePath("Part1.sldprt"), "*Front", 0, 0, 0).Name;
+
+                drwDoc.Drawing.ActivateSheet("Sheet2");
+
+                view2 = drwDoc.Drawing.CreateDrawViewFromModelView3(GetFilePath("Cylinder1.sldprt"), "*Front", 0, 0, 0).Name;
+            }
+
+            Assert.AreEqual(1, res1.Count);
+            Assert.AreEqual(GetFilePath("Drawing3.slddrw").ToLower(), res1[0].Item1.ToLower());
+            Assert.AreEqual("Sheet1", res1[0].Item2);
+            Assert.AreEqual(view1, res1[0].Item3);
+
+            Assert.AreEqual(1, res2.Count);
+            Assert.AreEqual(GetFilePath("Drawing3.slddrw").ToLower(), res2[0].Item1.ToLower());
+            Assert.AreEqual("Sheet2", res2[0].Item2);
+            Assert.AreEqual(view2, res2[0].Item3);
+        }
+
+        [Test]
+        public void CloneSheetTest()
+        {
+            string expectedClonedSheetName;
+            string clonedSheetName;
+            int sheetsCount;
+
+            using (var doc = OpenDataDocument("Drawing3.slddrw"))
+            {
+                var drwDoc = m_App.Documents.Active as ISwDrawing;
+                
+                var sheetNames = (string[])drwDoc.Drawing.GetSheetNames();
+
+                var cloned = drwDoc.Sheets.First().Clone();
+                clonedSheetName = cloned.Name;
+
+                var newSheetNames = (string[])drwDoc.Drawing.GetSheetNames();
+
+                expectedClonedSheetName = newSheetNames.Except(sheetNames).First();
+
+                sheetsCount = newSheetNames.Length;
+            }
+
+            Assert.AreEqual(4, sheetsCount);
+            Assert.AreEqual(expectedClonedSheetName, clonedSheetName);
+        }
     }
 }
 

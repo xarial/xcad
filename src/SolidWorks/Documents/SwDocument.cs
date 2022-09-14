@@ -390,7 +390,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
             m_Creator = new ElementCreator<IModelDoc2>(CreateDocument, CommitCache, model, created);
 
-            m_FeaturesLazy = new Lazy<SwFeatureManager>(() => new SwFeatureManager(this, app, new Context(this)));
+            m_FeaturesLazy = new Lazy<SwFeatureManager>(() => new SwDocumentFeatureManager(this, app, new Context(this)));
             m_SelectionsLazy = new Lazy<ISwSelectionCollection>(() => new SwSelectionCollection(this, app));
             m_DimensionsLazy = new Lazy<ISwDimensionsCollection>(() => new SwFeatureManagerDimensionsCollection(this.Features, new Context(this)));
             m_PropertiesLazy = new Lazy<ISwCustomPropertiesCollection>(() => new SwFileCustomPropertiesCollection(this, app));

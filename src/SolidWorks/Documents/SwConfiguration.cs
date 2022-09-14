@@ -236,7 +236,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         public virtual void Commit(CancellationToken cancellationToken) => m_Creator.Create(cancellationToken);
 
         protected virtual ISwDimensionsCollection CreateDimensions()
-            => new SwFeatureManagerDimensionsCollection(new SwFeatureManager(m_Doc, m_Doc.OwnerApplication, new Context(this)), new Context(this));
+            => new SwFeatureManagerDimensionsCollection(new SwDocumentFeatureManager(m_Doc, m_Doc.OwnerApplication, new Context(this)), new Context(this));
 
         private IConfiguration Create(CancellationToken cancellationToken) 
         {

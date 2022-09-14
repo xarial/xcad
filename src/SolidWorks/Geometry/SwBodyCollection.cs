@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using Xarial.XCad.Base;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.Toolkit.Utils;
@@ -52,6 +53,8 @@ namespace Xarial.XCad.SolidWorks.Geometry
         }
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+        public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters) => RepositoryHelper.FilterDefault(this, filters, reverseOrder);
 
         private IEnumerable<SwBody> GetBodies() 
         {

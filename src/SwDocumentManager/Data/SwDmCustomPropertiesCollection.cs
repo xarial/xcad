@@ -52,6 +52,8 @@ namespace Xarial.XCad.SwDocumentManager.Data
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
+        public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters) => RepositoryHelper.FilterDefault(this, filters, reverseOrder);
+
         public abstract int Count { get; }
         public abstract IEnumerator<IXProperty> GetEnumerator();
 

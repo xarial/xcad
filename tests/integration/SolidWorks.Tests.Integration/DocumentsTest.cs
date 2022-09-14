@@ -1430,5 +1430,69 @@ namespace SolidWorks.Tests.Integration
             Assert.AreEqual("3DSketch2", lastFeatName);
             Assert.AreEqual(28, featsCount);
         }
+
+        [Test]
+        public void CreateFeatureEventTest() 
+        {
+            var res1 = new List<Tuple<string, string>>();
+            var res2 = new List<Tuple<string, string>>();
+
+            string f1;
+            string f2;
+
+            const int swCommands_3DSketch = 89;
+
+            using (var doc = OpenDataDocument("Part1.sldprt")) 
+            {
+                var part = (ISwPart)m_App.Documents.Active;
+                
+                part.Features.FeatureCreated += (d, f) => 
+                {
+                    res1.Add(new Tuple<string, string>(d.Path, f.Name));
+                };
+
+                part.Model.ClearSelection2(true);
+
+                m_App.Sw.RunCommand(swCommands_3DSketch, "");
+
+                part.Model.SketchManager.AddToDB = true;
+
+                part.Model.SketchManager.CreateLine(0, 0, 0, 0.1, 0.1, 0.1);
+
+                f1 = ((IFeature)part.Model.SketchManager.ActiveSketch).Name;
+
+                m_App.Sw.RunCommand(swCommands_3DSketch, "");
+            }
+
+            using (var doc = OpenDataDocument("Assembly1\\TopAssem1.SLDASM"))
+            {
+                var assm = (ISwAssembly)m_App.Documents.Active;
+
+                assm.Features.FeatureCreated += (d, f) =>
+                {
+                    res2.Add(new Tuple<string, string>(d.Path, f.Name));
+                };
+
+                assm.Model.ClearSelection2(true);
+
+                m_App.Sw.RunCommand(swCommands_3DSketch, "");
+
+                assm.Model.SketchManager.AddToDB = true;
+
+                assm.Model.SketchManager.CreateLine(0, 0, 0, 0.1, 0.1, 0.1);
+
+                f2 = ((IFeature)assm.Model.SketchManager.ActiveSketch).Name;
+
+                m_App.Sw.RunCommand(swCommands_3DSketch, "");
+            }
+
+            Assert.AreEqual(1, res1.Count);
+            Assert.AreEqual(GetFilePath("Part1.sldprt").ToLower(), res1[0].Item1.ToLower());
+            Assert.AreEqual(f1, res1[0].Item2);
+
+            Assert.AreEqual(1, res2.Count);
+            Assert.AreEqual(GetFilePath("Assembly1\\TopAssem1.SLDASM").ToLower(), res2[0].Item1.ToLower());
+            Assert.AreEqual(f2, res2[0].Item2);
+        }
     }
 }

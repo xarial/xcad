@@ -24,6 +24,8 @@ using Xarial.XCad.Toolkit;
 using Xarial.XCad.SolidWorks.Graphics;
 using Xarial.XCad.Graphics;
 using System.Threading;
+using Xarial.XCad.Toolkit.Utils;
+using Xarial.XCad.Base;
 
 namespace Xarial.XCad.SolidWorks.Documents
 {
@@ -137,6 +139,8 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+        public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters) => RepositoryHelper.FilterDefault(this, filters, reverseOrder);
 
         public void Dispose()
         {

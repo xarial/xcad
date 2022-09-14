@@ -169,10 +169,22 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         private readonly SwSheetsCache m_Cache;
 
+        //NOTE: this event is not raised if sheet is added via API
+        public event SheetCreatedDelegate SheetCreated 
+        {
+            add => m_SheetCreatedEventsHandler.Attach(value);
+            remove => m_SheetCreatedEventsHandler.Detach(value);
+        }
+
+        private readonly SheetCreatedEventsHandler m_SheetCreatedEventsHandler;
+
         internal SwSheetCollection(SwDrawing doc, SwApplication app)
         {
             m_App = app;
             m_Drawing = doc;
+
+            m_SheetCreatedEventsHandler = new SheetCreatedEventsHandler(m_Drawing, app);
+
             m_SheetActivatedEventsHandler = new SheetActivatedEventsHandler(doc, app);
             m_Cache = new SwSheetsCache(doc, app, this, s => s.Name);
         }
@@ -291,6 +303,8 @@ namespace Xarial.XCad.SolidWorks.Documents
                 return m_Cache.GetEnumerator();
             }
         }
+
+        public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters) => RepositoryHelper.FilterDefault(this, filters, reverseOrder);
 
         public T PreCreate<T>() where T : IXSheet
             => RepositoryHelper.PreCreate<IXSheet, T>(this,

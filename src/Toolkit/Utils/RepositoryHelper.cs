@@ -7,6 +7,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using System.Threading;
@@ -15,6 +16,9 @@ using Xarial.XCad.Exceptions;
 
 namespace Xarial.XCad.Toolkit.Utils
 {
+    /// <summary>
+    /// Helper functions of <see cref="IXRepository"/>
+    /// </summary>
     public static class RepositoryHelper
     {
         /// <summary>
@@ -95,6 +99,68 @@ namespace Xarial.XCad.Toolkit.Utils
                     throw new OperationCanceledException();
                 }
             }
+        }
+
+        /// <summary>
+        /// Performs the default filtering of the entities
+        /// </summary>
+        /// <typeparam name="TEnt"></typeparam>
+        /// <param name="repoEnts">Repository entities to filter</param>
+        /// <param name="filters">Filters</param>
+        /// <param name="reverseOrder">True to reverse the order</param>
+        /// <returns>Filtered entities</returns>
+        /// <exception cref="EntityNotFoundException"></exception>
+        public static IEnumerable<TEnt> FilterDefault<TEnt>(IEnumerable<TEnt> repoEnts, RepositoryFilterQuery[] filters, bool reverseOrder)
+            where TEnt : IXTransaction
+        {
+            var filteredEnts = new List<TEnt>();
+
+            foreach (var ent in repoEnts)
+            {
+                if (MatchesFilters(ent, filters))
+                {
+                    if (reverseOrder)
+                    {
+                        filteredEnts.Insert(0, ent);
+                    }
+                    else
+                    {
+                        yield return ent;
+                    }
+                }
+            }
+
+            foreach (var ent in filteredEnts)
+            {
+                yield return ent;
+            }
+        }
+
+        /// <summary>
+        /// Checks if the specified entity matches the filter
+        /// </summary>
+        /// <typeparam name="TEnt">Entity type</typeparam>
+        /// <param name="ent">Entity to match</param>
+        /// <param name="filters">Filters</param>
+        /// <returns>True if entity matches the filter</returns>
+        public static bool MatchesFilters<TEnt>(TEnt ent, params RepositoryFilterQuery[] filters)
+        {
+            if (filters?.Any() == true)
+            {
+                foreach (var filter in filters)
+                {
+                    if (filter.Type == null || filter.Type.IsAssignableFrom(ent.GetType()))
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+            else 
+            {
+                return true;
+            }   
         }
     }
 }

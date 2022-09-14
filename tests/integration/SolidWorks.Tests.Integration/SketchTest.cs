@@ -305,5 +305,25 @@ namespace SolidWorks.Tests.Integration
             Assert.AreEqual("Sketch3", n7_1);
             Assert.AreEqual("Sketch3", n8_1);
         }
+
+        [Test]
+        public void FilterEntitiesTest()
+        {
+            string[] lines1;
+            string[] lines2;
+
+            using (var doc = OpenDataDocument("SketchEntities1.SLDPRT"))
+            {
+                var part = (ISwPart)m_App.Documents.Active;
+
+                var sketch = (ISwSketchBase)part.Features["Sketch1"];
+
+                lines1 = sketch.Entities.Filter<IXSketchLine>().Select(l => l.Name).ToArray();
+                lines2 = sketch.Entities.Filter<IXSketchLine>(true).Select(l => l.Name).ToArray();
+            }
+
+            CollectionAssert.AreEqual(new string[] { "Line1", "Line2" }, lines1);
+            CollectionAssert.AreEqual(new string[] { "Line2", "Line1" }, lines2);
+        }
     }
 }

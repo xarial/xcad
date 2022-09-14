@@ -20,6 +20,7 @@ using Xarial.XCad.Annotations;
 using Xarial.XCad.Base;
 using Xarial.XCad.Base.Enums;
 using Xarial.XCad.Documents;
+using Xarial.XCad.Documents.Delegates;
 using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Features;
 using Xarial.XCad.Geometry;
@@ -27,6 +28,7 @@ using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Services;
 using Xarial.XCad.SwDocumentManager.Features;
 using Xarial.XCad.SwDocumentManager.Services;
+using Xarial.XCad.Toolkit.Utils;
 
 namespace Xarial.XCad.SwDocumentManager.Documents
 {
@@ -432,6 +434,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
     internal class EmptyComponentCollection : IXComponentRepository
     {
         #region Not Supported
+        public event ComponentInsertedDelegate ComponentInserted { add => throw new NotSupportedException(); remove => throw new NotSupportedException(); }
         public void AddRange(IEnumerable<IXComponent> ents, CancellationToken cancellationToken) => throw new NotSupportedException();
         public void RemoveRange(IEnumerable<IXComponent> ents, CancellationToken cancellationToken) => throw new NotSupportedException();
         public T PreCreate<T>() where T : IXComponent => throw new NotSupportedException();
@@ -451,7 +454,8 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         public bool TryGet(string name, out IXComponent ent)
             => throw new Exception("No components");
 
-        IEnumerator IEnumerable.GetEnumerator()
-            => GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+        public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters) => RepositoryHelper.FilterDefault(this, filters, reverseOrder);
     }
 }

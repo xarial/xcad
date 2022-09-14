@@ -15,6 +15,7 @@ using SolidWorks.Interop.swdocumentmgr;
 using System.Linq;
 using System.Threading;
 using Xarial.XCad.Toolkit.Utils;
+using Xarial.XCad.Documents.Delegates;
 
 namespace Xarial.XCad.SwDocumentManager.Documents
 {
@@ -25,6 +26,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
     internal class SwDmDrawingViewsCollection : ISwDmDrawingViewsCollection
     {
         #region Not Supported
+        public event DrawingViewCreatedDelegate ViewCreated { add => throw new NotSupportedException(); remove => throw new NotSupportedException(); }
         public void AddRange(IEnumerable<IXDrawingView> ents, CancellationToken cancellationToken) => throw new NotSupportedException();
         public void RemoveRange(IEnumerable<IXDrawingView> ents, CancellationToken cancellationToken) => throw new NotSupportedException();
         public T PreCreate<T>() where T : IXDrawingView => throw new NotSupportedException();
@@ -57,7 +59,8 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             return ent != null;
         }
 
-        IEnumerator IEnumerable.GetEnumerator()
-            => GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+        public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters) => RepositoryHelper.FilterDefault(this, filters, reverseOrder);
     }
 }

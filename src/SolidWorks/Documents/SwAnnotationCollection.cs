@@ -14,6 +14,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Xarial.XCad.Annotations;
+using Xarial.XCad.Base;
 using Xarial.XCad.SolidWorks.Annotations;
 using Xarial.XCad.Toolkit.Utils;
 
@@ -41,6 +42,8 @@ namespace Xarial.XCad.SolidWorks.Documents
             => RepositoryHelper.AddRange(ents, cancellationToken);
 
         public abstract IEnumerator<IXAnnotation> GetEnumerator();
+
+        public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters) => RepositoryHelper.FilterDefault(this, filters, reverseOrder);
 
         public T PreCreate<T>() where T : IXAnnotation
             => RepositoryHelper.PreCreate<IXAnnotation, T>(this,

@@ -24,20 +24,17 @@ namespace Xarial.XCad.SolidWorks.Features
 
             while (nextFeat != null)
             {
-                if (nextFeat.GetTypeName2() != "HistoryFolder")
+                if (!processedFeats.Contains(nextFeat))
                 {
-                    if (!processedFeats.Contains(nextFeat))
+                    processedFeats.Add(nextFeat);
+
+                    yield return nextFeat;
+
+                    if (recursive && nextFeat.GetTypeName2() != "HistoryFolder")
                     {
-                        processedFeats.Add(nextFeat);
-
-                        yield return nextFeat;
-
-                        if (recursive)
+                        foreach (var subFeat in IterateSubFeatures(nextFeat, processedFeats, recursive))
                         {
-                            foreach (var subFeat in IterateSubFeatures(nextFeat, processedFeats, recursive))
-                            {
-                                yield return subFeat;
-                            }
+                            yield return subFeat;
                         }
                     }
                 }

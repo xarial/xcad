@@ -213,7 +213,7 @@ namespace SolidWorks.Tests.Integration
                 }
             }
 
-            var expected = new string[] { "Comments", "Favorites", "Selection Sets", "Sensors", "Design Binder", "Annotations",
+            var expected = new string[] { "Comments", "Favorites", "History", "Selection Sets", "Sensors", "Design Binder", "Annotations",
                 "Notes", "Notes1___EndTag___", "Surface Bodies", "Solid Bodies", "Lights, Cameras and Scene", "Ambient",
                 "Directional1", "Directional2", "Directional3", "Markups", "Equations", "Material <not specified>", "Front Plane",
                 "Top Plane", "Right Plane", "Origin", "Sketch1", "Boss-Extrude1" };
@@ -769,6 +769,33 @@ namespace SolidWorks.Tests.Integration
             Assert.AreEqual(2, bodyCount);
             Assert.AreEqual(1, vols.Length);
             Assert.That(vols[0], Is.EqualTo(0.006).Within(0.00000000001).Percent);
+        }
+
+        [Test]
+        public void InsertComponentEventTest()
+        {
+            var res = new List<Tuple<string, string>>();
+            string compName;
+
+            using (var doc = OpenDataDocument(@"Assembly1\TopAssem1.SLDASM"))
+            {
+                var assm = (ISwAssembly)m_App.Documents.Active;
+
+                assm.ComponentInserted += (a, c) => 
+                {
+                    res.Add(new Tuple<string, string>(a.Path, c.Name));
+                };
+
+                using (var partDoc = OpenDataDocument("BBox1.SLDPRT"))
+                {
+                    var part = (ISwPart)m_App.Documents.Active;
+                    compName = assm.Assembly.AddComponent5(part.Path, (int)swAddComponentConfigOptions_e.swAddComponentConfigOptions_CurrentSelectedConfig, "", false, "", 0, 0, 0).Name2;
+                }
+            }
+
+            Assert.AreEqual(1, res.Count);
+            Assert.AreEqual(GetFilePath(@"Assembly1\TopAssem1.SLDASM").ToLower(), res[0].Item1.ToLower());
+            Assert.AreEqual(compName, res[0].Item2);
         }
     }
 }

@@ -7,6 +7,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 using Xarial.XCad.Exceptions;
@@ -78,5 +79,18 @@ namespace Xarial.XCad.Base
         /// <returns>Entity template</returns>
         public static TEnt PreCreate<TEnt>(this IXRepository<TEnt> repo) where TEnt : IXTransaction
             => repo.PreCreate<TEnt>();
+
+        /// <summary>
+        /// Filters entities by type
+        /// </summary>
+        /// <typeparam name="TSpecificEnt">Entity type</typeparam>
+        /// <param name="repo">Repository</param>
+        /// <param name="reverseOrder">True to reverse order</param>
+        /// <returns>Filtered entities</returns>
+        public static IEnumerable<TSpecificEnt> Filter<TSpecificEnt>(this IXRepository repo, bool reverseOrder = false)
+            => repo.Filter(reverseOrder, new RepositoryFilterQuery()
+            {
+                Type = typeof(TSpecificEnt)
+            }).Cast<TSpecificEnt>();
     }
 }

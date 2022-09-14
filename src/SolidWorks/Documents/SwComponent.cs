@@ -36,6 +36,7 @@ using Xarial.XCad.SolidWorks.Services;
 using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.Toolkit;
 using Xarial.XCad.Toolkit.Services;
+using Xarial.XCad.Toolkit.Utils;
 
 namespace Xarial.XCad.SolidWorks.Documents
 {
@@ -740,13 +741,15 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public override void AddRange(IEnumerable<IXFeature> feats, CancellationToken cancellationToken)
         {
-            using (var editor = Component.Edit()) 
+            using (var editor = Component.Edit())
             {
-                base.AddRange(feats, cancellationToken);
+                CommitFeatures(feats, cancellationToken);
             }
         }
 
         public override IEnumerator<IXFeature> GetEnumerator() => new ComponentFeatureEnumerator(m_Assm, GetFirstFeature(), new Context(Component));
+
+        public override IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters) => RepositoryHelper.FilterDefault(this, filters, reverseOrder);
 
         protected internal override IFeature GetFirstFeature() => Component.Component.FirstFeature();
 
@@ -799,17 +802,26 @@ namespace Xarial.XCad.SolidWorks.Documents
             m_Comp = comp;
         }
 
+        public override bool TryGet(string name, out IXComponent ent)
+        {
+            var comp = IterateChildren().FirstOrDefault(c => string.Equals(GetRelativeName(c), name, StringComparison.CurrentCultureIgnoreCase));
+
+            if (comp != null)
+            {
+                ent = RootAssembly.CreateObjectFromDispatch<SwComponent>(comp);
+                return true;
+            }
+            else
+            {
+                ent = null;
+                return false;
+            }
+        }
+
         protected override IEnumerable<IComponent2> IterateChildren()
         {
-            //retrieving configuration specific component refernces (not used if the component belongs to the active configuration of the root assembly)
-            var compsMapLazy = new Lazy<Dictionary<string, IComponent2>>(() => 
-            {
-                return ((object[])m_Comp.Component.GetChildren() ?? new object[0]).Cast<IComponent2>().ToDictionary(c => 
-                {
-                    var fullName = c.Name2;
-                    return fullName.Substring(fullName.LastIndexOf('/') + 1);
-                }, StringComparer.CurrentCultureIgnoreCase);
-            });
+            //retrieving configuration specific component references (not used if the component belongs to the active configuration of the root assembly)
+            var compsMapLazy = new LazyComponentsIndexer(() => ((object[])m_Comp.Component.GetChildren() ?? new object[0]).Cast<IComponent2>().ToArray());
 
             if (m_Comp.GetSuppressionState() != swComponentSuppressionState_e.swComponentSuppressed)
             {
@@ -821,7 +833,12 @@ namespace Xarial.XCad.SolidWorks.Documents
                     if (comp == null)
                     {
                         //in this case retrieving the component from the map by name
-                        comp = compsMapLazy.Value[feat.Name];
+                        comp = compsMapLazy[feat.Name];
+                    }
+
+                    if (comp == null) 
+                    {
+                        throw new NullReferenceException($"Failed to get the pointer to component from feature: '{feat.Name}'");
                     }
 
                     yield return comp;

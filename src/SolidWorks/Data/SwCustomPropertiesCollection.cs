@@ -136,6 +136,8 @@ namespace Xarial.XCad.SolidWorks.Data
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
+        public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters) => RepositoryHelper.FilterDefault(this, filters, reverseOrder);
+
         protected abstract EventsHandler<PropertyValueChangedDelegate> CreateEventsHandler(SwCustomProperty prp);
 
         public ISwCustomProperty PreCreate() => CreatePropertyInstance(PrpMgr, "", false);

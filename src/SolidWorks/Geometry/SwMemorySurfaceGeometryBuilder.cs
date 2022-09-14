@@ -11,6 +11,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading;
+using Xarial.XCad.Base;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Primitives;
 using Xarial.XCad.SolidWorks.Geometry.Primitives;
@@ -32,6 +33,8 @@ namespace Xarial.XCad.SolidWorks.Geometry
         public void RemoveRange(IEnumerable<IXPrimitive> ents, CancellationToken cancellationToken) => throw new NotImplementedException();
 
         public IEnumerator<IXPrimitive> GetEnumerator() => throw new NotImplementedException();
+
+        public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters) => RepositoryHelper.FilterDefault(this, filters, reverseOrder);
 
         public int Count => throw new NotImplementedException();
         public IXPrimitive this[string name] => throw new NotImplementedException();

@@ -7,6 +7,7 @@
 
 using Xarial.XCad.Base;
 using Xarial.XCad.Features.CustomFeature;
+using Xarial.XCad.Features.Delegates;
 
 namespace Xarial.XCad.Features
 {
@@ -15,6 +16,11 @@ namespace Xarial.XCad.Features
     /// </summary>
     public interface IXFeatureRepository : IXRepository<IXFeature>
     {
+        /// <summary>
+        /// Raised when new feature is created
+        /// </summary>
+        event FeatureCreatedDelegate FeatureCreated;
+
         /// <summary>
         /// Creates a custom feature with built-in editor for the property page
         /// </summary>

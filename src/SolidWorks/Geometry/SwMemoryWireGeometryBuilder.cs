@@ -79,5 +79,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         IEnumerator IEnumerable.GetEnumerator()
             => throw new NotImplementedException();
+
+        public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters) => RepositoryHelper.FilterDefault(this, filters, reverseOrder);
     }
 }

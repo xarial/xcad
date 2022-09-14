@@ -73,26 +73,41 @@ namespace Xarial.XCad.SolidWorks.Sketch
         public IXCurve Merge(IXCurve[] curves)
             => throw new NotSupportedException();
 
-        protected virtual IEnumerable<ISwSketchEntity> IterateEntities() 
+        protected virtual IEnumerable<ISwSketchEntity> IterateEntities()
+            => IterateEntitiesByType(true, true, true, true);
+
+        private IEnumerable<ISwSketchEntity> IterateEntitiesByType(bool segments, bool points, bool blockInstances, bool pictures)
         {
-            foreach (ISketchSegment seg in (object[])m_Sketch.Sketch.GetSketchSegments() ?? new object[0])
+            if (segments)
             {
-                yield return m_Doc.CreateObjectFromDispatch<SwSketchSegment>(seg);
+                foreach (ISketchSegment seg in (object[])m_Sketch.Sketch.GetSketchSegments() ?? new object[0])
+                {
+                    yield return m_Doc.CreateObjectFromDispatch<SwSketchSegment>(seg);
+                }
             }
 
-            foreach (ISketchPoint pt in (object[])m_Sketch.Sketch.GetSketchPoints2() ?? new object[0])
+            if (points)
             {
-                yield return m_Doc.CreateObjectFromDispatch<SwSketchPoint>(pt);
+                foreach (ISketchPoint pt in (object[])m_Sketch.Sketch.GetSketchPoints2() ?? new object[0])
+                {
+                    yield return m_Doc.CreateObjectFromDispatch<SwSketchPoint>(pt);
+                }
             }
 
-            foreach (ISketchBlockInstance blockInst in (object[])m_Sketch.Sketch.GetSketchBlockInstances() ?? new object[0])
+            if (blockInstances)
             {
-                yield return m_Doc.CreateObjectFromDispatch<SwSketchBlockInstance>(blockInst);
+                foreach (ISketchBlockInstance blockInst in (object[])m_Sketch.Sketch.GetSketchBlockInstances() ?? new object[0])
+                {
+                    yield return m_Doc.CreateObjectFromDispatch<SwSketchBlockInstance>(blockInst);
+                }
             }
 
-            foreach (ISketchPicture skPict in (object[])m_Sketch.Sketch.GetSketchPictures() ?? new object[0])
+            if (pictures)
             {
-                yield return m_Doc.CreateObjectFromDispatch<SwSketchPicture>(skPict);
+                foreach (ISketchPicture skPict in (object[])m_Sketch.Sketch.GetSketchPictures() ?? new object[0])
+                {
+                    yield return m_Doc.CreateObjectFromDispatch<SwSketchPicture>(skPict);
+                }
             }
         }
 
@@ -165,6 +180,42 @@ namespace Xarial.XCad.SolidWorks.Sketch
             else 
             {
                 return m_Cache.GetEnumerator();
+            }
+        }
+
+        public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters)
+        {
+            bool filterSegments;
+            bool filterPoints;
+            bool filterBlockInstances;
+            bool filterPictures;
+
+            if (filters?.Any() == true)
+            {
+                filterSegments = false;
+                filterPoints = false;
+                filterBlockInstances = false;
+                filterPictures = false;
+
+                foreach (var filter in filters) 
+                {
+                    filterSegments = filter.Type == null || typeof(IXSketchSegment).IsAssignableFrom(filter.Type);
+                    filterPoints = filter.Type == null || typeof(IXSketchPoint).IsAssignableFrom(filter.Type);
+                    filterBlockInstances = filter.Type == null || typeof(IXSketchBlockInstance).IsAssignableFrom(filter.Type);
+                    filterPictures = filter.Type == null || typeof(IXSketchPicture).IsAssignableFrom(filter.Type);
+                }
+            }
+            else 
+            {
+                filterSegments = true;
+                filterPoints = true;
+                filterBlockInstances = true;
+                filterPictures = true;
+            }
+
+            foreach (var ent in RepositoryHelper.FilterDefault(IterateEntitiesByType(filterSegments, filterPoints, filterBlockInstances, filterPictures), filters, reverseOrder))
+            {
+                yield return ent;
             }
         }
     }

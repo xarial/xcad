@@ -171,6 +171,8 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         }
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+        public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters) => RepositoryHelper.FilterDefault(this, filters, reverseOrder);
     }
 
     public interface ISwDmAssemblyConfigurationCollection : ISwDmConfigurationCollection, IXAssemblyConfigurationRepository 

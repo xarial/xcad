@@ -19,6 +19,7 @@ using Xarial.XCad.Toolkit.Exceptions;
 using Xarial.XCad.Exceptions;
 using System.Threading;
 using Xarial.XCad.Toolkit.Utils;
+using Xarial.XCad.Documents.Delegates;
 
 namespace Xarial.XCad.SwDocumentManager.Documents
 {
@@ -146,6 +147,8 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             => IterateDmComponents()
             .Select(c => CreateComponentInstance(c))
             .GetEnumerator();
+
+        public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters) => RepositoryHelper.FilterDefault(this, filters, reverseOrder);
 
         protected virtual SwDmComponent CreateComponentInstance(ISwDMComponent dmComp) 
         {

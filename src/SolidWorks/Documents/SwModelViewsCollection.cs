@@ -81,6 +81,8 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
+        public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters) => RepositoryHelper.FilterDefault(this, filters, reverseOrder);
+
         public void AddRange(IEnumerable<IXModelView> ents, CancellationToken cancellationToken) => throw new NotImplementedException();
         public IEnumerator<IXModelView> GetEnumerator() => throw new NotImplementedException();
         public void RemoveRange(IEnumerable<IXModelView> ents, CancellationToken cancellationToken) => throw new NotImplementedException();

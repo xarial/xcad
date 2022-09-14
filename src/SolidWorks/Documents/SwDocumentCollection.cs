@@ -309,6 +309,8 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
+        public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters) => RepositoryHelper.FilterDefault(this, filters, reverseOrder);
+
         private int OnFileOpenPostNotify(string fileName)
         {
             if (TryFindExistingDocumentByPath(fileName, out SwDocument doc))

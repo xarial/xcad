@@ -57,6 +57,8 @@ namespace Xarial.XCad.SolidWorks.Features
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
+        public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters) => RepositoryHelper.FilterDefault(this, filters, reverseOrder);
+
         protected abstract IEnumerable<IXCutListItem> IterateCutLists();
 
         public T PreCreate<T>() where T : IXCutListItem => throw new NotImplementedException();

@@ -17,6 +17,7 @@ using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Features;
 using Xarial.XCad.Features.CustomFeature;
+using Xarial.XCad.Features.Delegates;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Features.CustomFeature;
 using Xarial.XCad.SolidWorks.Features.CustomFeature.Toolkit;
@@ -35,13 +36,15 @@ namespace Xarial.XCad.SolidWorks.Features
     }
 
     /// <inheritdoc/>
-    internal class SwFeatureManager : ISwFeatureManager
+    internal abstract class SwFeatureManager : ISwFeatureManager
     {
-        private IFeatureManager FeatMgr => Document.Model.FeatureManager;
+        //NOTE: this event is not raised when feature is added via API
+        public event FeatureCreatedDelegate FeatureCreated
+        {
+            add => m_FeatureCreatedEventsHandler.Attach(value);
+            remove => m_FeatureCreatedEventsHandler.Detach(value);
+        }
 
-        private readonly Lazy<MacroFeatureParametersParser> m_ParamsParserLazy;
-
-        private readonly SwApplication m_App;
         internal SwDocument Document { get; }
 
         public int Count
@@ -63,92 +66,41 @@ namespace Xarial.XCad.SolidWorks.Features
 
         public ISwFeature this[string name] => (ISwFeature)RepositoryHelper.Get(this, name);
 
-        public virtual bool TryGet(string name, out IXFeature ent)
-        {
-            if (Document.IsCommitted)
-            {
-                IFeature swFeat;
+        public abstract bool TryGet(string name, out IXFeature ent);
 
-                switch (Document.Model)
-                {
-                    case IPartDoc part:
-                        swFeat = part.FeatureByName(name) as IFeature;
-                        break;
+        private IFeatureManager FeatMgr => Document.Model.FeatureManager;
 
-                    case IAssemblyDoc assm:
-                        swFeat = assm.FeatureByName(name) as IFeature;
-                        break;
+        private readonly Lazy<MacroFeatureParametersParser> m_ParamsParserLazy;
 
-                    case IDrawingDoc drw:
-                        swFeat = drw.FeatureByName(name) as IFeature;
-                        break;
-
-                    default:
-                        throw new NotSupportedException();
-                }
-
-                if (swFeat != null)
-                {
-                    var feat = Document.CreateObjectFromDispatch<SwFeature>(swFeat);
-                    feat.SetContext(m_Context);
-                    ent = feat;
-                    return true;
-                }
-                else
-                {
-                    ent = null;
-                    return false;
-                }
-            }
-            else 
-            {
-                return m_Cache.TryGet(name, out ent);
-            }
-        }
+        private readonly SwApplication m_App;
 
         protected readonly Context m_Context;
 
-        private readonly EntityCache<IXFeature> m_Cache;
+        protected readonly EntityCache<IXFeature> m_Cache;
+
+        private readonly FeatureCreatedEventsHandler m_FeatureCreatedEventsHandler;
 
         internal SwFeatureManager(SwDocument doc, SwApplication app, Context context)
         {
             m_App = app;
             Document = doc;
             m_Context = context;
+
+            m_FeatureCreatedEventsHandler = new FeatureCreatedEventsHandler(doc, app);
+
             m_ParamsParserLazy = new Lazy<MacroFeatureParametersParser>(() => new MacroFeatureParametersParser(app));
             m_Cache = new EntityCache<IXFeature>(doc, this, f => f.Name);
         }
 
-        public virtual void AddRange(IEnumerable<IXFeature> feats, CancellationToken cancellationToken)
-        {
-            if (Document.IsCommitted)
-            {
-                using (var viewFreeze = new ViewFreeze(Document))
-                {
-                    RepositoryHelper.AddRange(feats, cancellationToken);
-                }
-            }
-            else 
-            {
-                m_Cache.AddRange(feats, cancellationToken);
-            }
-        }
+        public abstract void AddRange(IEnumerable<IXFeature> feats, CancellationToken cancellationToken);
 
         internal void CommitCache(CancellationToken cancellationToken) => m_Cache.Commit(cancellationToken);
 
-        public virtual IEnumerator<IXFeature> GetEnumerator()
-        {
-            if (Document.IsCommitted)
-            {
-                return new DocumentFeatureEnumerator(Document, GetFirstFeature(), new Context(Document));
-            }
-            else 
-            {
-                return m_Cache.GetEnumerator();
-            }
-        }
+        public abstract IEnumerator<IXFeature> GetEnumerator();
 
-        internal protected virtual IFeature GetFirstFeature() => Document.Model.IFirstFeature();
+        public abstract IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters);
+
+        internal protected abstract IFeature GetFirstFeature();
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
@@ -212,6 +164,146 @@ namespace Xarial.XCad.SolidWorks.Features
                     () => new SwDumbBody(null, Document, m_App, false),
                     () => new SwPlane(null, Document, m_App, false),
                     () => new SwSketchPicture(default(IFeature), Document, m_App, false));
+            }
+        }
+
+        protected void CommitFeatures(IEnumerable<IXFeature> feats, CancellationToken cancellationToken)
+        {
+            if (Document.IsCommitted)
+            {
+                using (var viewFreeze = new ViewFreeze(Document))
+                {
+                    RepositoryHelper.AddRange(feats, cancellationToken);
+                }
+            }
+            else
+            {
+                m_Cache.AddRange(feats, cancellationToken);
+            }
+        }
+    }
+
+    internal class SwDocumentFeatureManager : SwFeatureManager
+    {
+        public SwDocumentFeatureManager(SwDocument doc, SwApplication app, Context context) : base(doc, app, context)
+        {
+        }
+
+        public override void AddRange(IEnumerable<IXFeature> feats, CancellationToken cancellationToken)
+            => CommitFeatures(feats, cancellationToken);
+
+        public override IEnumerator<IXFeature> GetEnumerator()
+        {
+            if (Document.IsCommitted)
+            {
+                return new DocumentFeatureEnumerator(Document, GetFirstFeature(), new Context(Document));
+            }
+            else
+            {
+                return m_Cache.GetEnumerator();
+            }
+        }
+
+        public override IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters) 
+        {
+            if (reverseOrder)
+            {
+                foreach (var swFeat in IterateFeaturesReverse(Document.Model)) 
+                {
+                    var feat = Document.CreateObjectFromDispatch<ISwFeature>(swFeat);
+
+                    if (RepositoryHelper.MatchesFilters(feat, filters))
+                    {
+                        yield return feat;
+                    }
+                }
+            }
+            else 
+            {
+                foreach (var ent in RepositoryHelper.FilterDefault(this, filters, reverseOrder)) 
+                {
+                    yield return ent;
+                }
+            }
+        }
+
+        private IEnumerable<IFeature> IterateFeaturesReverse(IModelDoc2 model)
+        {
+            int pos = 0;
+            var processedFeats = new List<IFeature>();
+
+            IFeature feat;
+
+            do
+            {
+                feat = model.IFeatureByPositionReverse(pos++);
+
+                if (feat != null)
+                {
+                    if (feat.GetTypeName2() != "HistoryFolder")
+                    {
+                        foreach (var subFeat in FeatureEnumerator.IterateSubFeatures(feat, true).Reverse())
+                        {
+                            if (!processedFeats.Contains(subFeat))
+                            {
+                                processedFeats.Add(subFeat);
+                                yield return subFeat;
+                            }
+                        }
+                    }
+
+                    if (!processedFeats.Contains(feat)) 
+                    {
+                        processedFeats.Add(feat);
+                        yield return feat;
+                    }
+                }
+
+            } while (feat != null);
+        }
+
+        internal protected override IFeature GetFirstFeature() => Document.Model.IFirstFeature();
+
+        public override bool TryGet(string name, out IXFeature ent)
+        {
+            if (Document.IsCommitted)
+            {
+                IFeature swFeat;
+
+                switch (Document.Model)
+                {
+                    case IPartDoc part:
+                        swFeat = part.FeatureByName(name) as IFeature;
+                        break;
+
+                    case IAssemblyDoc assm:
+                        swFeat = assm.FeatureByName(name) as IFeature;
+                        break;
+
+                    case IDrawingDoc drw:
+                        swFeat = drw.FeatureByName(name) as IFeature;
+                        break;
+
+                    default:
+                        throw new NotSupportedException();
+                }
+
+                if (swFeat != null)
+                {
+                    var feat = Document.CreateObjectFromDispatch<SwFeature>(swFeat);
+                    feat.SetContext(m_Context);
+                    ent = feat;
+                    return true;
+                }
+                else
+                {
+                    ent = null;
+                    return false;
+                }
+            }
+            else
+            {
+                return m_Cache.TryGet(name, out ent);
             }
         }
     }

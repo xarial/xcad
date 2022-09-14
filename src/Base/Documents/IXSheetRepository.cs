@@ -21,6 +21,11 @@ namespace Xarial.XCad.Documents
         event SheetActivatedDelegate SheetActivated;
 
         /// <summary>
+        /// Fired when new sheet is created
+        /// </summary>
+        event SheetCreatedDelegate SheetCreated;
+
+        /// <summary>
         /// Returns or sets the active sheet in this sheets repository
         /// </summary>
         IXSheet Active { get; set; }

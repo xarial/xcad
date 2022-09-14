@@ -154,6 +154,8 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public virtual IEnumerator<IXConfiguration> GetEnumerator() => new SwConfigurationEnumerator(m_App, m_Doc);
 
+        public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters) => RepositoryHelper.FilterDefault(this, filters, reverseOrder);
+
         public void RemoveRange(IEnumerable<IXConfiguration> ents, CancellationToken cancellationToken)
         {
             foreach (var conf in ents) 

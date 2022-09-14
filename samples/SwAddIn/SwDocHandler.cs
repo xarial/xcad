@@ -21,7 +21,7 @@ using Xarial.XCad.SolidWorks.Documents;
 
 namespace SwAddInExample
 {
-    [DocumentHandlerFilter(typeof(ISwDocument3D))]
+    //[DocumentHandlerFilter(typeof(ISwDocument3D))]
     public class SwDocHandler : IDocumentHandler
     {
         public class RevData

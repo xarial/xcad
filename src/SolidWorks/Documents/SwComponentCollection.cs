@@ -16,6 +16,7 @@ using System.Text;
 using System.Threading;
 using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
+using Xarial.XCad.Documents.Delegates;
 using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.SolidWorks.Documents.Services;
@@ -41,21 +42,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public ISwComponent this[string name] => (SwComponent)RepositoryHelper.Get(this, name);
 
-        public bool TryGet(string name, out IXComponent ent)
-        {
-            var comp = IterateChildren().FirstOrDefault(c => string.Equals(GetRelativeName(c), name, StringComparison.CurrentCultureIgnoreCase));
-
-            if (comp != null)
-            {
-                ent = RootAssembly.CreateObjectFromDispatch<SwComponent>(comp);
-                return true;
-            }
-            else
-            {
-                ent = null;
-                return false;
-            }
-        }
+        public abstract bool TryGet(string name, out IXComponent ent);
 
         public int Count
         {
@@ -130,6 +117,8 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
+        public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters) => RepositoryHelper.FilterDefault(this, filters, reverseOrder);
+
         public void RemoveRange(IEnumerable<IXComponent> ents, CancellationToken cancellationToken)
             => throw new NotImplementedException();
 
@@ -148,7 +137,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-        private string GetRelativeName(IComponent2 comp)
+        protected string GetRelativeName(IComponent2 comp)
         {
             var parentComp = comp.GetParent();
 

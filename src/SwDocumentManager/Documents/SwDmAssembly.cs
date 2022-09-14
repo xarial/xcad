@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Xarial.XCad.Documents;
+using Xarial.XCad.Documents.Delegates;
 using Xarial.XCad.Geometry;
 
 namespace Xarial.XCad.SwDocumentManager.Documents
@@ -22,7 +23,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
     internal class SwDmAssembly : SwDmDocument3D, ISwDmAssembly
     {
         #region Not Supported
-        
+        public event ComponentInsertedDelegate ComponentInserted { add => throw new NotSupportedException(); remove => throw new NotSupportedException(); }
         IXAssemblyEvaluation IXAssembly.Evaluation => throw new NotSupportedException();
         IXComponent IXAssembly.EditingComponent => throw new NotSupportedException();
 

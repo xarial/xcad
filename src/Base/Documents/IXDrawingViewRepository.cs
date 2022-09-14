@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Xarial.XCad.Base;
+using Xarial.XCad.Documents.Delegates;
 
 namespace Xarial.XCad.Documents
 {
@@ -17,5 +18,9 @@ namespace Xarial.XCad.Documents
     /// </summary>
     public interface IXDrawingViewRepository : IXRepository<IXDrawingView>
     {
+        /// <summary>
+         /// Raised when new view is created
+         /// </summary>
+        event DrawingViewCreatedDelegate ViewCreated;
     }
 }

@@ -5,6 +5,7 @@
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
+using Xarial.XCad.Documents.Delegates;
 using Xarial.XCad.Geometry;
 
 namespace Xarial.XCad.Documents
@@ -14,6 +15,11 @@ namespace Xarial.XCad.Documents
     /// </summary>
     public interface IXAssembly : IXDocument3D
     {
+        /// <summary>
+        /// Raised when new component is inserted into the assembly
+        /// </summary>
+        event ComponentInsertedDelegate ComponentInserted;
+
         /// <inheritdoc/>
         new IXAssemblyConfigurationRepository Configurations { get; }
 

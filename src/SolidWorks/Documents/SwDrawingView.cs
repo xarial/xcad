@@ -16,6 +16,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using Xarial.XCad.Annotations;
+using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Documents.Structures;
@@ -28,6 +29,7 @@ using Xarial.XCad.SolidWorks.Annotations;
 using Xarial.XCad.SolidWorks.Features;
 using Xarial.XCad.SolidWorks.Geometry;
 using Xarial.XCad.SolidWorks.Utils;
+using Xarial.XCad.Toolkit.Utils;
 
 namespace Xarial.XCad.SolidWorks.Documents
 {
@@ -588,6 +590,8 @@ namespace Xarial.XCad.SolidWorks.Documents
             => throw new NotImplementedException();
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+        public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters) => RepositoryHelper.FilterDefault(this, filters, reverseOrder);
 
         private IEnumerable<IXDimension> IterateDimensions() 
         {

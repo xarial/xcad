@@ -286,24 +286,35 @@ namespace Xarial.XCad.SolidWorks.Documents
 
             var curSheets = m_Drawing.Sheets.ToArray();
 
-            if (m_Drawing.Drawing.PasteSheet((int)swInsertOptions_e.swInsertOption_MoveToEnd, (int)swRenameOptions_e.swRenameOption_No))
+            if (!TryPasteSheet()) 
             {
-                var newSheet = m_Drawing.Sheets.Last();
-
-                if (!curSheets.Contains(newSheet, new XObjectEqualityComparer<IXSheet>()))
+                //NOTE: it was observed that in some cases paste command fails on the first attempt
+                if (m_Drawing.Sheets.Count == curSheets.Count())
                 {
-                    return newSheet;
+                    if (!TryPasteSheet()) 
+                    {
+                        throw new Exception($"Failed to paste sheet");
+                    }
                 }
                 else 
                 {
-                    throw new Exception("Failed to get the cloned sheet");
+                    throw new Exception($"Paste sheet has failed, but number of sheets has changed");
                 }
             }
-            else 
+
+            var newSheet = m_Drawing.Sheets.Last();
+
+            if (!curSheets.Contains(newSheet, new XObjectEqualityComparer<IXSheet>()))
             {
-                throw new Exception($"Failed to copy sheet");
+                return newSheet;
+            }
+            else
+            {
+                throw new Exception("Failed to get the cloned sheet");
             }
         }
+
+        private bool TryPasteSheet() => m_Drawing.Drawing.PasteSheet((int)swInsertOptions_e.swInsertOption_MoveToEnd, (int)swRenameOptions_e.swRenameOption_No);
     }
 
     internal class SwSheetSketchEditor : SheetActivator, IEditor<SwSheetSketch>

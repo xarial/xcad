@@ -5,6 +5,8 @@
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
 
@@ -13,15 +15,29 @@ namespace Xarial.XCad.Base
     /// <summary>
     /// Represents the collection of elements
     /// </summary>
-    /// <typeparam name="TEnt"></typeparam>
-    public interface IXRepository<TEnt> : IEnumerable<TEnt>
-        where TEnt : IXTransaction
+    public interface IXRepository : IEnumerable
     {
         /// <summary>
         /// Number of elements in the collection
         /// </summary>
         int Count { get; }
 
+        /// <summary>
+        /// Filters the entities with the specified query
+        /// </summary>
+        /// <param name="reverseOrder">Reverse the order of results</param>
+        /// <param name="filters">Filters</param>
+        /// <returns>Filtered entities</returns>
+        IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters);
+    }
+
+    /// <summary>
+    /// Represents the collection of specific elements
+    /// </summary>
+    /// <typeparam name="TEnt"></typeparam>
+    public interface IXRepository<TEnt> : IXRepository, IEnumerable<TEnt>
+        where TEnt : IXTransaction
+    {
         /// <summary>
         /// Retrieves the element by name
         /// </summary>
@@ -59,5 +75,16 @@ namespace Xarial.XCad.Base
         /// <returns>Template object</returns>
         /// <remarks>Use <see cref="IXTransaction.Commit(CancellationToken)"/> or <see cref="IXRepository{TEnt}.AddRange(IEnumerable{TEnt}, CancellationToken)"/> to commit templates and create objects</remarks>
         T PreCreate<T>() where T : TEnt;
+    }
+
+    /// <summary>
+    /// Filter of the repository in the <see cref="IXRepository.Filter(RepositoryFilterQuery[])"/>
+    /// </summary>
+    public class RepositoryFilterQuery 
+    {
+        /// <summary>
+        /// Type of entity or null for all types
+        /// </summary>
+        public Type Type { get; set; }
     }
 }

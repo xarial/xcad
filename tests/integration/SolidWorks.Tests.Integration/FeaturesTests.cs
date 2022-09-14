@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Xarial.XCad.Base;
 using Xarial.XCad.Features;
 using Xarial.XCad.Sketch;
 using Xarial.XCad.SolidWorks.Features;
@@ -24,7 +25,7 @@ namespace SolidWorks.Tests.Integration
                 }
             }
 
-            var expected = new string[] { "Comments", "Favorites", "Selection Sets", "Sensors", "Design Binder", "Annotations", "Notes",
+            var expected = new string[] { "Comments", "Favorites", "History", "Selection Sets", "Sensors", "Design Binder", "Annotations", "Notes",
                 "Notes1___EndTag___", "Surface Bodies", "Solid Bodies", "Lights, Cameras and Scene", "Ambient", "Directional1", "Directional2", "Directional3",
                 "Markups", "Equations", "Material <not specified>", "Front Plane", "Top Plane", "Right Plane", "Origin", "Sketch1", "Boss-Extrude1", "Boss-Extrude2",
                 "Sketch1<2>" };
@@ -79,6 +80,24 @@ namespace SolidWorks.Tests.Integration
             }
 
             Assert.IsTrue(e1);
+        }
+
+        [Test]
+        public void FilterFeaturesTest()
+        {
+            string[] feats1;
+            string[] feats2;
+
+            using (var doc = OpenDataDocument("PartFeatures1.SLDPRT"))
+            {
+                var part = m_App.Documents.Active;
+
+                feats1 = part.Features.Filter<IXSketch2D>().Select(f => f.Name).ToArray();
+                feats2 = part.Features.Filter<IXSketch2D>(true).Select(f => f.Name).ToArray();
+            }
+
+            CollectionAssert.AreEqual(new string[] { "Sketch1", "Sketch2", "Sketch3", "Bend-Lines2", "Bounding-Box2" }, feats1);
+            CollectionAssert.AreEqual(new string[] { "Bounding-Box2", "Bend-Lines2", "Sketch3", "Sketch2", "Sketch1" }, feats2);
         }
     }
 }

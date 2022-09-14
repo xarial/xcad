@@ -54,6 +54,8 @@ namespace Xarial.XCad.SolidWorks.Annotations
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
+        public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters) => RepositoryHelper.FilterDefault(this, filters, reverseOrder);
+
         public void Dispose()
         {
         }

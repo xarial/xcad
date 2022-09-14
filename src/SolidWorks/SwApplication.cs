@@ -231,7 +231,7 @@ namespace Xarial.XCad.SolidWorks
             }
         }
 
-        private IXLogger m_Logger;
+        internal IXLogger Logger { get; private set; }
 
         internal IServiceProvider Services { get; private set; }
 
@@ -332,9 +332,9 @@ namespace Xarial.XCad.SolidWorks
                 m_IsInitialized = true;
 
                 Services = svcProvider;
-                m_Logger = Services.GetService<IXLogger>();
+                Logger = Services.GetService<IXLogger>();
 
-                m_Documents = new SwDocumentCollection(this, m_Logger);
+                m_Documents = new SwDocumentCollection(this, Logger);
 
                 MemoryGeometryBuilder = new SwMemoryGeometryBuilder(this,
                     Services.GetService<IMemoryGeometryBuilderDocumentProvider>(),
@@ -445,7 +445,7 @@ namespace Xarial.XCad.SolidWorks
             }
             catch (Exception ex)
             {
-                m_Logger.Log(ex);
+                Logger.Log(ex);
             }
 
             if (Sw != null)
@@ -477,7 +477,7 @@ namespace Xarial.XCad.SolidWorks
 
             using (var appStarter = new SwApplicationStarter(State, Version)) 
             {
-                var logger = m_Logger ?? new TraceLogger("xCAD.SwApplication");
+                var logger = Logger ?? new TraceLogger("xCAD.SwApplication");
 
                 var app = appStarter.Start(p => Starting?.Invoke(this, p), logger, cancellationToken);
                 WatchStartupCompleted((SldWorks)app);
