@@ -122,19 +122,6 @@ namespace Xarial.XCad.SolidWorks.Documents
         public void RemoveRange(IEnumerable<IXComponent> ents, CancellationToken cancellationToken)
             => throw new NotImplementedException();
 
-        protected IEnumerable<IFeature> IterateFeatureComponents(IFeature firstFeat) 
-        {
-            foreach (var feat in FeatureEnumerator.IterateFeatures(firstFeat, true))
-            {
-                var typeName = feat.GetTypeName2();
-
-                if (typeName == "Reference" || typeName == "ReferencePattern")
-                {
-                    yield return feat;
-                }
-            }
-        }
-
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
         protected string GetRelativeName(IComponent2 comp)

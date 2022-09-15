@@ -28,7 +28,7 @@ namespace Xarial.XCad.Base
         /// <param name="reverseOrder">Reverse the order of results</param>
         /// <param name="filters">Filters</param>
         /// <returns>Filtered entities</returns>
-        IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters);
+        IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters);//TODO: potentially replace the Filter with teh IQueryable
     }
 
     /// <summary>

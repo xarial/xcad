@@ -84,6 +84,39 @@ namespace Xarial.XCad.SolidWorks.Features
 
         public IXLoop[] Boundary => throw new NotImplementedException();
 
+        public override bool IsUserFeature 
+        {
+            get 
+            {
+                const int MAX_STANDARD_PLANES_COUNT = 3;
+
+                var nextFeat = Feature;
+
+                for (int i = 0; i < MAX_STANDARD_PLANES_COUNT; i++) 
+                {
+                    nextFeat = nextFeat.IGetNextFeature();
+
+                    if (nextFeat == null) 
+                    {
+                        break;
+                    }
+
+                    var nextFeatTypeName = nextFeat.GetTypeName2();
+
+                    if (nextFeatTypeName == "OriginProfileFeature")//this feature is standard plane
+                    {
+                        return false;
+                    }
+                    else if (nextFeatTypeName != "RefPlane") //this feature is not a standard plane
+                    {
+                        break;
+                    }
+                }
+
+                return true;
+            }
+        }
+
         protected override IFeature InsertFeature(CancellationToken cancellationToken)
         {
             if (Plane == null) 

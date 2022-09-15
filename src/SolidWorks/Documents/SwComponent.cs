@@ -17,6 +17,7 @@ using System.Text;
 using System.Threading;
 using Xarial.XCad.Annotations;
 using Xarial.XCad.Base;
+using Xarial.XCad.Base.Enums;
 using Xarial.XCad.Data;
 using Xarial.XCad.Data.Delegates;
 using Xarial.XCad.Documents;
@@ -789,8 +790,8 @@ namespace Xarial.XCad.SolidWorks.Documents
             m_Comp = comp;
         }
 
-        protected override IEnumerable<IBody2> GetSwBodies()
-            => (m_Comp.GetBodies3((int)swBodyType_e.swAllBodies, out _) as object[])?.Cast<IBody2>();
+        protected override IEnumerable<IBody2> SelectSwBodies(swBodyType_e bodyType)
+            => (m_Comp.GetBodies3((int)bodyType, out _) as object[])?.Cast<IBody2>();
     }
 
     internal class SwChildComponentsCollection : SwComponentCollection
@@ -820,27 +821,13 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         protected override IEnumerable<IComponent2> IterateChildren()
         {
-            //retrieving configuration specific component references (not used if the component belongs to the active configuration of the root assembly)
-            var compsMapLazy = new LazyComponentsIndexer(() => ((object[])m_Comp.Component.GetChildren() ?? new object[0]).Cast<IComponent2>().ToArray());
-
             if (m_Comp.GetSuppressionState() != swComponentSuppressionState_e.swComponentSuppressed)
             {
-                foreach (var feat in base.IterateFeatureComponents(m_Comp.Component.FirstFeature())) 
+                foreach (var comp in new OrderedComponentsCollection(
+                    () => ((object[])m_Comp.Component.GetChildren() ?? new object[0]).Cast<IComponent2>().ToArray(),
+                    m_Comp.Component.FirstFeature(),
+                    m_Comp.OwnerApplication.Logger)) 
                 {
-                    var comp = (IComponent2)feat.GetSpecificFeature2();
-
-                    //null will be returned if the component is in the context of inactive configuration of the root assembly
-                    if (comp == null)
-                    {
-                        //in this case retrieving the component from the map by name
-                        comp = compsMapLazy[feat.Name];
-                    }
-
-                    if (comp == null) 
-                    {
-                        throw new NullReferenceException($"Failed to get the pointer to component from feature: '{feat.Name}'");
-                    }
-
                     yield return comp;
                 }
             }

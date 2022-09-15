@@ -68,7 +68,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             m_Part = rootDoc;
         }
 
-        protected override IEnumerable<IBody2> GetSwBodies()
-            => (m_Part.Part.GetBodies2((int)swBodyType_e.swAllBodies, false) as object[])?.Cast<IBody2>();
+        protected override IEnumerable<IBody2> SelectSwBodies(swBodyType_e bodyType)
+            => (m_Part.Part.GetBodies2((int)bodyType, false) as object[])?.Cast<IBody2>();
     }
 }

@@ -86,6 +86,43 @@ namespace Xarial.XCad.SolidWorks.Features
     [DebuggerDisplay("{" + nameof(Name) + "}")]
     internal class SwFeature : SwSelObject, ISwFeature
     {
+        private static string[] m_SolderedFeatureTypes = new string[]
+        {
+            "CommentsFolder",
+            "FavoriteFolder",
+            "HistoryFolder",
+            "SelectionSetFolder",
+            "SensorFolder",
+            "DocsFolder",
+            "DetailCabinet",
+            "NotesAreaFtrFolder",
+            "SurfaceBodyFolder",
+            "SolidBodyFolder",
+            "EnvFolder",
+            "AmbientLight",
+            "DirectionLight",
+            "InkMarkupFolder",
+            "EqnFolder",
+            "MaterialFolder",
+            "OriginProfileFeature",
+            "LiveSectionFolder",
+            "MateGroup",
+            "BlockFolder",
+            "MarkupCommentFolder",
+            "DrSheet",
+            "DetailFolder",
+            "DrTemplate",
+            "GeneralTableAnchor",
+            "BomTemplate",
+            "HoleTableAnchor",
+            "WeldmentTableAnchor",
+            "RevisionTableAnchor",
+            "WeldTableAnchor",
+            "BendTableAnchor",
+            "PunchTableAnchor",
+            "EditBorderFeature"
+        };
+
         IXComponent IXFeature.Component => Component;
         IXDimensionRepository IDimensionable.Dimensions => Dimensions;
 
@@ -279,6 +316,8 @@ namespace Xarial.XCad.SolidWorks.Features
                 return state;
             }
         }
+
+        public virtual bool IsUserFeature => Array.IndexOf(m_SolderedFeatureTypes, Feature.GetTypeName2()) == -1;
 
         internal override void Select(bool append, ISelectData selData)
         {

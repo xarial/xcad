@@ -6,6 +6,7 @@
 //*********************************************************************
 
 using SolidWorks.Interop.sldworks;
+using SolidWorks.Interop.swconst;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -27,6 +28,8 @@ namespace Xarial.XCad.SolidWorks.Geometry
     {
         private readonly ISwDocument m_RootDoc;
 
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
         internal SwBodyCollection(ISwDocument rootDoc)
         {
             m_RootDoc = rootDoc;
@@ -34,44 +37,87 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         public IXBody this[string name] => RepositoryHelper.Get(this, name);
 
-        public int Count => GetBodies().Count();
+        public int Count => SelectAllBodies().Count();
 
         public void AddRange(IEnumerable<IXBody> ents, CancellationToken cancellationToken)
-            => throw new NotImplementedException();
+            => throw new NotSupportedException();
 
-        public IEnumerator<IXBody> GetEnumerator() => GetBodies().GetEnumerator();
+        public T PreCreate<T>() where T : IXBody => throw new NotSupportedException();
+
+        public IEnumerator<IXBody> GetEnumerator() => SelectAllBodies().GetEnumerator();
 
         public void RemoveRange(IEnumerable<IXBody> ents, CancellationToken cancellationToken)
-            => throw new NotImplementedException();
+            => throw new NotSupportedException();
 
         public bool TryGet(string name, out IXBody ent)
         {
-            ent = GetBodies().FirstOrDefault(
+            ent = SelectAllBodies().FirstOrDefault(
                 b => string.Equals(b.Name, name, StringComparison.CurrentCultureIgnoreCase));
 
             return ent != null;
         }
 
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-
-        public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters) => RepositoryHelper.FilterDefault(this, filters, reverseOrder);
-
-        private IEnumerable<SwBody> GetBodies() 
+        public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters)
         {
-            var bodies = GetSwBodies();
+            bool solid;
+            bool surface;
+            bool wire;
 
-            if (bodies != null)
+            if (filters?.Any() == true)
             {
-                return bodies.Select(b => m_RootDoc.CreateObjectFromDispatch<SwBody>(b));
+                solid = false;
+                surface = false;
+                wire = false;
+
+                foreach (var filter in filters)
+                {
+                    solid = filter.Type == null || typeof(IXSolidBody).IsAssignableFrom(filter.Type);
+                    surface = filter.Type == null || typeof(IXSheetBody).IsAssignableFrom(filter.Type);
+                    wire = filter.Type == null || typeof(IXWireBody).IsAssignableFrom(filter.Type);
+                }
             }
-            else 
+            else
             {
-                return Enumerable.Empty<SwBody>();
+                solid = true;
+                surface = true;
+                wire = true;
+            }
+
+            foreach (var ent in RepositoryHelper.FilterDefault(TrySelectSpecificBodies(solid, surface, wire), filters, reverseOrder))
+            {
+                yield return ent;
             }
         }
 
-        protected abstract IEnumerable<IBody2> GetSwBodies();
+        private IEnumerable<SwBody> SelectAllBodies() => TrySelectSpecificBodies(true, true, true);
 
-        public T PreCreate<T>() where T : IXBody => throw new NotImplementedException();
+        private IEnumerable<SwBody> TrySelectSpecificBodies(bool solid, bool surface, bool wire) 
+        {
+            swBodyType_e bodyType;
+
+            if (solid && !surface & !wire)
+            {
+                bodyType = swBodyType_e.swSolidBody;
+            }
+            else if (surface && !solid & !wire)
+            {
+                bodyType = swBodyType_e.swSheetBody;
+            }
+            else if (wire && !solid & !surface)
+            {
+                bodyType = swBodyType_e.swWireBody;
+            }
+            else 
+            {
+                bodyType = swBodyType_e.swAllBodies;
+            }
+
+            foreach (var swBody in SelectSwBodies(bodyType) ?? Enumerable.Empty<IBody2>()) 
+            {
+                yield return m_RootDoc.CreateObjectFromDispatch<SwBody>(swBody);
+            }
+        }
+
+        protected abstract IEnumerable<IBody2> SelectSwBodies(swBodyType_e bodyType);
     }
 }

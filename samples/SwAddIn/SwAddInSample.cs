@@ -58,6 +58,7 @@ using Xarial.XCad.Features.CustomFeature;
 using System.IO;
 using Xarial.XCad.SolidWorks.Sketch;
 using System.Drawing.Imaging;
+using System.Windows.Forms;
 
 namespace SwAddInExample
 {
@@ -698,20 +699,32 @@ namespace SwAddInExample
 
         private void Custom()
         {
-            var lastFeat = Application.Documents.Active.Features.Filter<IXSketch2D>(true).First();
+            Clipboard.SetText(string.Join(System.Environment.NewLine, Application.Documents.Active.Features.Select(f => ((ISwFeature)f).Feature.GetTypeName2())));
 
-            var lines = Application.Documents.Active.Selections.OfType<IXSketchBase>().First().Entities.Filter<ISwSketchLine>().ToArray();
+            //var lastFeat = Application.Documents.Active.Features.Filter<IXSketch2D>(true).First();
 
-            var feats1 = Application.Documents.Active.Features.Filter<IXSketch2D>(true).ToArray();
-            var feats2 = Application.Documents.Active.Features.Filter<IXSketch2D>().ToArray();
+            //var lines = Application.Documents.Active.Selections.OfType<IXSketchBase>().First().Entities.Filter<ISwSketchLine>().ToArray();
 
-            var feats3 = Application.Documents.Active.Features.Filter<IXFeature>(true).ToArray();
-            var feats4 = Application.Documents.Active.Features.Filter<IXFeature>().ToArray();
+            //var feats1 = Application.Documents.Active.Features.Filter<IXSketch2D>(true).ToArray();
+            //var feats2 = Application.Documents.Active.Features.Filter<IXSketch2D>().ToArray();
+
+            //var feats3 = Application.Documents.Active.Features.Filter<IXFeature>(true).ToArray();
+            //var feats4 = Application.Documents.Active.Features.Filter<IXFeature>().ToArray();
 
             var assm = (ISwAssembly)Application.Documents.Active;
-            var editComp = assm.EditingComponent;
+            var firstComp = ((IXAssemblyConfiguration)assm.Configurations["Default"]).Components.Flatten().First();
+            var comps1 = ((IXAssemblyConfiguration)assm.Configurations["Default"]).Components.Flatten().ToArray();
+            var comps2 = ((IXAssemblyConfiguration)assm.Configurations["Default"]).Components.ToArray();
 
-            var cutLists = (Application.Documents.Active as ISwPart).Configurations.Active.CutLists.ToArray();
+            Clipboard.SetText(string.Join(System.Environment.NewLine, comps1.Where(c=>
+            {
+                var state = c.State;
+                return !state.HasFlag(ComponentState_e.Suppressed) && !state.HasFlag(ComponentState_e.ExcludedFromBom) && !state.HasFlag(ComponentState_e.Envelope);
+            }).Select(c => c.FullName)));
+
+            //var editComp = assm.EditingComponent;
+
+            //var cutLists = (Application.Documents.Active as ISwPart).Configurations.Active.CutLists.ToArray();
         }
 
         private void HandleAddEvents()

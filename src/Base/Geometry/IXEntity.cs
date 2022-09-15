@@ -30,7 +30,7 @@ namespace Xarial.XCad.Geometry
         /// <summary>
         /// Returns all adjacent entitites of this entity
         /// </summary>
-        IEnumerable<IXEntity> AdjacentEntities { get; }
+        IXEntityRepository AdjacentEntities { get; }
 
         /// <summary>
         /// Finds the closes point on the specified face

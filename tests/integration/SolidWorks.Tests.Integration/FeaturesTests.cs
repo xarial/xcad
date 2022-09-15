@@ -34,6 +34,25 @@ namespace SolidWorks.Tests.Integration
         }
 
         [Test]
+        public void IsUserFeatureTest()
+        {
+            var userFeatsNames = new List<string>();
+
+            using (var doc = OpenDataDocument("Cylinder2.SLDPRT"))
+            {
+                foreach (var feat in m_App.Documents.Active.Features)
+                {
+                    if (feat.IsUserFeature)
+                    {
+                        userFeatsNames.Add(feat.Name);
+                    }
+                }
+            }
+
+            CollectionAssert.AreEqual(new string[] { "Plane2", "Sketch1", "Boss-Extrude1", "Plane1" }, userFeatsNames);
+        }
+
+        [Test]
         public void GetFeatureByNameTest()
         {
             IXFeature feat1;

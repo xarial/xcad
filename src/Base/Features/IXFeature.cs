@@ -42,6 +42,11 @@ namespace Xarial.XCad.Features
         IEnumerable<IXFace> Faces { get; }
 
         /// <summary>
+        /// Identifies if this feature is standard (soldered) or a user created
+        /// </summary>
+        bool IsUserFeature { get; }
+
+        /// <summary>
         /// State of this feature in the feature tree
         /// </summary>
         FeatureState_e State { get; }

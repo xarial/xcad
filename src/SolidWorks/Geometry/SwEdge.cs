@@ -26,6 +26,53 @@ namespace Xarial.XCad.SolidWorks.Geometry
         new ISwVertex EndPoint { get; }
     }
 
+    internal class SwEdgeAdjacentEntitiesRepository : SwEntityRepository
+    {
+        private readonly SwEdge m_Edge;
+
+        internal SwEdgeAdjacentEntitiesRepository(SwEdge edge)
+        {
+            m_Edge = edge;
+        }
+
+        protected override IEnumerable<ISwEntity> SelectEntities(bool faces, bool edges, bool vertices)
+        {
+            if (faces)
+            {
+                foreach (IFace2 face in (m_Edge.Edge.GetTwoAdjacentFaces2() as object[]).ValueOrEmpty())
+                {
+                    yield return m_Edge.OwnerApplication.CreateObjectFromDispatch<SwFace>(face, m_Edge.OwnerDocument);
+                }
+            }
+
+            if (edges)
+            {
+                foreach (ICoEdge coEdge in (m_Edge.Edge.GetCoEdges() as ICoEdge[]).ValueOrEmpty())
+                {
+                    var edge = coEdge.GetEdge() as IEdge;
+                    yield return m_Edge.OwnerApplication.CreateObjectFromDispatch<SwEdge>(edge, m_Edge.OwnerDocument);
+                }
+            }
+
+            if (vertices)
+            {
+                var startVertex = m_Edge.StartPoint;
+
+                if (startVertex != null)
+                {
+                    yield return startVertex;
+                }
+
+                var endVertex = m_Edge.EndPoint;
+
+                if (endVertex != null)
+                {
+                    yield return endVertex;
+                }
+            }
+        }
+    }
+
     internal class SwEdge : SwEntity, ISwEdge
     {
         IXPoint IXSegment.StartPoint => StartPoint;
@@ -40,36 +87,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         public override ISwBody Body => OwnerApplication.CreateObjectFromDispatch<SwBody>(Edge.GetBody(), OwnerDocument);
 
-        public override IEnumerable<ISwEntity> AdjacentEntities 
-        {
-            get 
-            {
-                foreach (IFace2 face in (Edge.GetTwoAdjacentFaces2() as object[]).ValueOrEmpty()) 
-                {
-                    yield return OwnerApplication.CreateObjectFromDispatch<SwFace>(face, OwnerDocument);
-                }
-
-                foreach (ICoEdge coEdge in (Edge.GetCoEdges() as ICoEdge[]).ValueOrEmpty())
-                {
-                    var edge = coEdge.GetEdge() as IEdge;
-                    yield return OwnerApplication.CreateObjectFromDispatch<SwEdge>(edge, OwnerDocument);
-                }
-
-                var startVertex =  StartPoint;
-
-                if (startVertex != null) 
-                {
-                    yield return startVertex;
-                }
-
-                var endVertex = EndPoint;
-
-                if (endVertex != null)
-                {
-                    yield return endVertex;
-                }
-            }
-        }
+        public override ISwEntityRepository AdjacentEntities { get; }
 
         public ISwCurve Definition => OwnerApplication.CreateObjectFromDispatch<SwCurve>(Edge.IGetCurve(), OwnerDocument);
 
@@ -124,6 +142,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
         internal SwEdge(IEdge edge, SwDocument doc, SwApplication app) : base((IEntity)edge, doc, app)
         {
             Edge = edge;
+            AdjacentEntities = new SwEdgeAdjacentEntitiesRepository(this);
         }
     }
 

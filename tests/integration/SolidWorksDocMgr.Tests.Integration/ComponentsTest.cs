@@ -662,5 +662,92 @@ namespace SolidWorksDocMgr.Tests.Integration
             Assert.IsTrue(isCommitted);
             Assert.That(string.Equals(refPath, GetFilePath(@"Assembly12\_Part1.sldprt"), StringComparison.CurrentCultureIgnoreCase));
         }
+
+        [Test]
+        public void SuppressedPatternsTest()
+        {
+            string[] compNames;
+            bool[] suppStates;
+
+            using (var doc = OpenDataDocument(@"SuppressedCompsPattern1.SLDASM"))
+            {
+                var assm = (ISwDmAssembly)m_App.Documents.Active;
+
+                var comps = assm.Configurations.Active.Components.Flatten().ToArray();
+
+                compNames = comps.Select(c => c.Name).ToArray();
+                suppStates = comps.Select(c => c.State.HasFlag(ComponentState_e.Suppressed)).ToArray();
+            }
+
+            CollectionAssert.AreEqual(new string[]
+            {
+                "Part1^SuppressedCompsPattern1-1",
+                "Part1^SuppressedCompsPattern1-2",
+                "Part1^SuppressedCompsPattern1-3",
+                "Part1^SuppressedCompsPattern1-4",
+                "Part1^SuppressedCompsPattern1-5",
+                "Part1^SuppressedCompsPattern1-6"
+            }, compNames);
+
+            CollectionAssert.AreEqual(new bool[]
+            {
+                false,
+                true,
+                true,
+                true,
+                true,
+                true
+            }, suppStates);
+        }
+
+        [Test]
+        public void ConfigsDifferentCountTest()
+        {
+            string[] compNamesDef;
+            string[] compNamesConf1;
+
+            using (var doc = OpenDataDocument(@"AssemPatternDiffConf1.SLDASM"))
+            {
+                var assm = (ISwDmAssembly)m_App.Documents.Active;
+
+                var compsDef = assm.Configurations["Default"].Components.Flatten().ToArray();
+                var compsConf1 = assm.Configurations["Conf1"].Components.Flatten().ToArray();
+
+                compNamesDef = compsDef.Select(c => c.Name).ToArray();
+                compNamesConf1 = compsConf1.Select(c => c.Name).ToArray();
+            }
+
+            CollectionAssert.AreEquivalent(new string[]
+            {
+                "Part1^AssemPatternDiffConf1-1",
+                "Part1^AssemPatternDiffConf1-2",
+                "Part1^AssemPatternDiffConf1-3",
+                "Part1^AssemPatternDiffConf1-4",
+                "Part1^AssemPatternDiffConf1-7",
+                "Part1^AssemPatternDiffConf1-8",
+                "Assem1^AssemPatternDiffConf1-1",
+                "Part1^Assem1_AssemPatternDiffConf1-1",
+                "Part1^Assem1_AssemPatternDiffConf1-2",
+                "Part1^Assem1_AssemPatternDiffConf1-3",
+            }, compNamesDef);
+
+            CollectionAssert.AreEquivalent(new string[]
+            {
+                "Part1^AssemPatternDiffConf1-1",
+                "Part1^AssemPatternDiffConf1-2",
+                "Part1^AssemPatternDiffConf1-3",
+                "Part1^AssemPatternDiffConf1-4",
+                "Part1^AssemPatternDiffConf1-7",
+                "Part1^AssemPatternDiffConf1-8",
+                "Assem1^AssemPatternDiffConf1-1",
+                "Part1^Assem1_AssemPatternDiffConf1-1",
+                "Part1^Assem1_AssemPatternDiffConf1-2",
+                "Part1^Assem1_AssemPatternDiffConf1-3",
+                "Part1^Assem1_AssemPatternDiffConf1-4",
+                "Part1^Assem1_AssemPatternDiffConf1-5",
+                "Part1^AssemPatternDiffConf1-5",
+                "Part1^AssemPatternDiffConf1-6"
+            }, compNamesConf1);
+        }
     }
 }

@@ -31,6 +31,52 @@ namespace Xarial.XCad.SolidWorks.Geometry
         new ISwSurface Definition { get; }
     }
 
+    internal class SwFaceAdjacentEntitiesRepository : SwEntityRepository
+    {
+        private readonly SwFace m_Face;
+
+        internal SwFaceAdjacentEntitiesRepository(SwFace face) 
+        {
+            m_Face = face;
+        }
+
+        protected override IEnumerable<ISwEntity> SelectEntities(bool faces, bool edges, bool vertices)
+        {
+            IEnumerable<IVertex> EnumerateVertices(IEdge edge)
+            {
+                var startVertex = edge.IGetStartVertex();
+
+                if (startVertex != null)
+                {
+                    yield return startVertex;
+                }
+
+                var endVertex = edge.IGetEndVertex();
+
+                if (endVertex != null)//vertex is null for the closed curves
+                {
+                    yield return endVertex;
+                }
+            }
+
+            if (edges)
+            {
+                foreach (IEdge edge in (m_Face.Face.GetEdges() as object[]).ValueOrEmpty())
+                {
+                    yield return m_Face.OwnerApplication.CreateObjectFromDispatch<ISwEdge>(edge, m_Face.OwnerDocument);
+                }
+            }
+
+            if (vertices)
+            {
+                foreach (var vertex in (m_Face.Face.GetEdges() as object[]).ValueOrEmpty().Cast<IEdge>().SelectMany(EnumerateVertices).Distinct())
+                {
+                    yield return m_Face.OwnerApplication.CreateObjectFromDispatch<ISwVertex>(vertex, m_Face.OwnerDocument);
+                }
+            }
+        }
+    }
+
     internal abstract class SwFace : SwEntity, ISwFace
     {
         IXSurface IXFace.Definition => Definition;
@@ -43,42 +89,12 @@ namespace Xarial.XCad.SolidWorks.Geometry
         {
             Face = face;
             m_MathUtils = app.Sw.IGetMathUtility();
+            AdjacentEntities = new SwFaceAdjacentEntitiesRepository(this);
         }
 
         public override ISwBody Body => OwnerApplication.CreateObjectFromDispatch<ISwBody>(Face.GetBody(), OwnerDocument);
 
-        public override IEnumerable<ISwEntity> AdjacentEntities 
-        {
-            get 
-            {
-                IEnumerable<IVertex> EnumerateVertices(IEdge edge)
-                {
-                    var startVertex = edge.IGetStartVertex();
-
-                    if (startVertex != null) 
-                    {
-                        yield return startVertex;
-                    }
-
-                    var endVertex = edge.IGetEndVertex();
-
-                    if (endVertex != null)//vertex is null for the closed curves
-                    {
-                        yield return endVertex;
-                    }
-                }
-
-                foreach (IEdge edge in (Face.GetEdges() as object[]).ValueOrEmpty())
-                {
-                    yield return OwnerApplication.CreateObjectFromDispatch<ISwEdge>(edge, OwnerDocument);
-                }
-                
-                foreach (var vertex in (Face.GetEdges() as object[]).ValueOrEmpty().Cast<IEdge>().SelectMany(EnumerateVertices).Distinct())
-                {
-                    yield return OwnerApplication.CreateObjectFromDispatch<ISwVertex>(vertex, OwnerDocument);
-                }
-            }
-        }
+        public override ISwEntityRepository AdjacentEntities { get; }
 
         public double Area => Face.GetArea();
 

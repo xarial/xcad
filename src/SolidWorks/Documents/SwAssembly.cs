@@ -148,38 +148,10 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
 
         protected override IEnumerable<IComponent2> IterateChildren()
-        {
-            var isActiveConf = IsActiveConfiguration;
-
-            var compsMapLazy = new LazyComponentsIndexer(
-                () => (m_Conf.GetRootComponent3(!isActiveConf).GetChildren() as object[] ?? new object[0])
-                    .Cast<IComponent2>().ToArray());
-
-            foreach (var feat in base.IterateFeatureComponents(m_Assm.Model.IFirstFeature())) 
-            {
-                var comp = (IComponent2)feat.GetSpecificFeature2();
-
-                if (comp == null)
-                {
-                    m_Assm.OwnerApplication.Logger.Log($"Specific feature of '{feat.Name}' failed to return the pointer to component", LoggerMessageSeverity_e.Debug);
-
-                    //fallback option
-                    comp = compsMapLazy[feat.Name];
-                }
-                else if (!isActiveConf)
-                {
-                    //components are iterated in the active configuration of the model for the inactive configuration retrieve the corresponding component by id
-                    comp = compsMapLazy[comp.GetID()];
-                }
-
-                if (comp == null)
-                {
-                    throw new NullReferenceException($"Failed to get the pointer to component from feature: '{feat.Name}'");
-                }
-
-                yield return comp;
-            }
-        }
+            => new OrderedComponentsCollection(
+                () => (m_Conf.GetRootComponent3(!IsActiveConfiguration).GetChildren() as object[] ?? new object[0]).Cast<IComponent2>().ToArray(),
+                m_Assm.Model.IFirstFeature(),
+                m_Assm.OwnerApplication.Logger);
 
         protected override int GetTotalChildrenCount() => m_Assm.Assembly.GetComponentCount(false);
         protected override int GetChildrenCount() => m_Assm.Assembly.GetComponentCount(true);
