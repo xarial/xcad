@@ -884,5 +884,33 @@ namespace SolidWorks.Tests.Integration
                 "Part1^AssemPatternDiffConf1-6"
             }, compNamesConf1);
         }
+
+        [Test]
+        public void ComponentReferenceTest()
+        {
+            string r1;
+            string r2;
+            string r3;
+            string r4;
+            string r5;
+
+            using (var doc = OpenDataDocument(@"Assembly15\Assem15.SLDASM"))
+            {
+                var assm = (ISwAssembly)m_App.Documents.Active;
+
+                r1 = assm.Configurations.Active.Components["Part1-1"].Reference;
+                r2 = assm.Configurations.Active.Components["Part1-2"].Reference;
+                r3 = assm.Configurations.Active.Components["Assem2^Assem15-1"].Reference;
+                r4 = assm.Configurations.Active.Components["Assem2^Assem15-1"].Children["Part2^Assem2_Assem15-1"].Reference;
+                assm.Configurations.Active.Components["Part1-2"].Reference = "E";
+                r5 = ((ISwComponent)assm.Configurations.Active.Components["Part1-2"]).Component.ComponentReference;
+            }
+
+            Assert.AreEqual("A", r1);
+            Assert.AreEqual("B", r2);
+            Assert.AreEqual("C", r3);
+            Assert.AreEqual("D", r4);
+            Assert.AreEqual("E", r5);
+        }
     }
 }

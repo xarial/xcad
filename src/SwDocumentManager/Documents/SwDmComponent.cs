@@ -44,7 +44,6 @@ namespace Xarial.XCad.SwDocumentManager.Documents
     internal abstract class SwDmComponent : SwDmSelObject, ISwDmComponent
     {
         #region Not Supported
-
         public IXFeatureRepository Features => throw new NotSupportedException();
         public IXBodyRepository Bodies => throw new NotSupportedException();
         TSelObject IXObjectContainer.ConvertObject<TSelObject>(TSelObject obj) => throw new NotSupportedException();
@@ -217,6 +216,22 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                 return transform;
             }
             set => throw new NotSupportedException("Transform of the component cannot be modified"); 
+        }
+
+        public string Reference 
+        {
+            get 
+            {
+                if (ParentAssembly.IsVersionNewerOrEqual(SwDmVersion_e.Sw2018))
+                {
+                    return ((ISwDMComponent10)Component).ComponentReference;
+                }
+                else 
+                {
+                    throw new NotSupportedException("This property is only supported from SOLIDWORKS 2018 or newer");
+                }
+            }
+            set => throw new NotSupportedException(); 
         }
 
         private ISwDmDocument3D m_CachedDocument;

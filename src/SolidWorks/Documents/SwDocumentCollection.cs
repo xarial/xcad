@@ -571,9 +571,38 @@ namespace Xarial.XCad.SolidWorks.Documents
 
             var model = m_App.Sw.GetOpenDocument(docName);
 
+            if (model == null)
+            {
+                //NOTE: foreign document may be imported with the file name not compatible with GetOpenDocument
+                model = FindModel(docTitle, docPath);
+            }
+
             Dispatcher.Dispatch(model);
             
             return HResult.S_OK;
+        }
+
+        private ModelDoc2 FindModel(string docTitle, string docPath)
+        {
+            foreach (ModelDoc2 model in m_App.Sw.GetDocuments() as object[] ?? new object[0])
+            {
+                if (!string.IsNullOrEmpty(docPath))
+                {
+                    if (string.Equals(model.GetPathName(), docPath, StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        return model;
+                    }
+                }
+                else if (!string.IsNullOrEmpty(docTitle))
+                {
+                    if (string.Equals(model.GetTitle(), docTitle, StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        return model;
+                    }
+                }
+            }
+
+            throw new Exception($"Failed to find the document by title and path: {docTitle} [{docPath}]");
         }
 
         private void OnDocumentDestroyed(SwDocument doc)

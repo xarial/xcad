@@ -615,6 +615,32 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
+        public string Reference
+        {
+            get
+            {
+                if (IsCommitted)
+                {
+                    return Component.ComponentReference;
+                }
+                else
+                {
+                    return m_Creator.CachedProperties.Get<string>();
+                }
+            }
+            set
+            {
+                if (IsCommitted)
+                {
+                    Component.ComponentReference = value;
+                }
+                else
+                {
+                    m_Creator.CachedProperties.Set(value);
+                }
+            }
+        }
+
         public override void Commit(CancellationToken cancellationToken) => m_Creator.Create(cancellationToken);
 
         internal override void Select(bool append, ISelectData selData)
@@ -668,7 +694,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         public abstract IEditor<IXComponent> Edit();
 
         internal IComponent2 BatchComponentBuffer { get; set; }
-
+        
         private IComponent2 CreateComponent(CancellationToken cancellationToken)
         {
             if (BatchComponentBuffer == null)
@@ -692,6 +718,13 @@ namespace Xarial.XCad.SolidWorks.Documents
             if (userColor.HasValue) 
             {
                 SetColor(comp, userColor);
+            }
+
+            var compRef = Reference;
+
+            if (!string.IsNullOrEmpty(compRef)) 
+            {
+                comp.ComponentReference = compRef;
             }
 
             return comp;
