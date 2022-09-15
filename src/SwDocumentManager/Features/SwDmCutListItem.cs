@@ -44,6 +44,7 @@ namespace Xarial.XCad.SwDocumentManager.Features
         public IXComponent Component => throw new NotSupportedException();
         public IEditor<IXFeature> Edit() => throw new NotSupportedException();
         public void Update() => throw new NotSupportedException();
+        public bool IsUserFeature => throw new NotSupportedException();
         #endregion
 
         IXPropertyRepository IPropertiesOwner.Properties => Properties;
