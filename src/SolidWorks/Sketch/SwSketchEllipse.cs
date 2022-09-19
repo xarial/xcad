@@ -16,7 +16,7 @@ using Xarial.XCad.SolidWorks.Features;
 
 namespace Xarial.XCad.SolidWorks.Sketch
 {
-    public interface ISwSketchEllipse : IXSketchEllipse
+    public interface ISwSketchEllipse : IXSketchEllipse, ISwSketchSegment
     {
         ISketchEllipse Ellipse { get; }
     }

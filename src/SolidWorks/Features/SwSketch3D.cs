@@ -28,6 +28,8 @@ namespace Xarial.XCad.SolidWorks.Features
 
     internal class SwSketch3D : SwSketchBase, ISwSketch3D
     {
+        internal const string TypeName = "3DProfileFeature";
+
         internal SwSketch3D(IFeature feat, SwDocument doc, SwApplication app, bool created) : base(feat, doc, app, created)
         {
         }

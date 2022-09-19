@@ -16,7 +16,7 @@ using Xarial.XCad.SolidWorks.Features;
 
 namespace Xarial.XCad.SolidWorks.Sketch
 {
-    public interface ISwSketchLine : IXSketchLine 
+    public interface ISwSketchLine : IXSketchLine, ISwSketchSegment
     {
         ISketchLine Line { get; }
     }

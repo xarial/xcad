@@ -177,7 +177,7 @@ namespace Xarial.XCad.SolidWorks.Sketch
 
                 var typeName = feat.GetTypeName2();
 
-                if (typeName == "ProfileFeature" || typeName == "3DProfileFeature")
+                if (typeName == SwSketch2D.TypeName || typeName == SwSketch3D.TypeName)
                 {
                     return feat.Name.Equals(sketchFeat.Name);
                     //return app.IsSame(feat, sketchFeat) == (int)swObjectEquality.swObjectSame;
@@ -195,7 +195,7 @@ namespace Xarial.XCad.SolidWorks.Sketch
 
                 var typeName = feat.GetTypeName2();
 
-                return typeName == "OriginProfileFeature";
+                return typeName == SwOrigin.TypeName;
             }
 
             return false;

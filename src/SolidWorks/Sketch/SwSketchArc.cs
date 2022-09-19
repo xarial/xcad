@@ -18,7 +18,7 @@ using Xarial.XCad.SolidWorks.Features;
 
 namespace Xarial.XCad.SolidWorks.Sketch
 {
-    public interface ISwSketchCircle : IXSketchCircle 
+    public interface ISwSketchCircle : IXSketchCircle, ISwSketchSegment
     {
         ISketchArc Arc { get; }
     }

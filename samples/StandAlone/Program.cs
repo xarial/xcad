@@ -53,7 +53,9 @@ namespace StandAlone
                                 
                 var app = SwApplicationFactory.FromProcess(Process.GetProcessesByName("SLDWORKS").First());
 
-                AnnotationColor(app);
+                StructuralMembersTest(app);
+
+                //AnnotationColor(app);
 
                 //CreateLoftFromSelection(app);
 
@@ -84,6 +86,45 @@ namespace StandAlone
             }
 
             Console.ReadLine();
+        }
+
+        private static void StructuralMembersTest(ISwApplication app)
+        {
+            var doc = app.Documents.Active;
+
+            var feat = doc.Selections.OfType<ISwStructuralMember>().First();
+
+            foreach (var grp in feat.Groups)
+            {
+                foreach (var piece in grp.Pieces)
+                {
+                    DrawPlaneOrientation(doc, piece.ProfilePlane);
+                }
+            }
+        }
+
+        private static void DrawPlaneOrientation(IXDocument doc, Plane plane) 
+        {
+            var sketch = doc.Features.PreCreate3DSketch();
+            
+            var pt = sketch.Entities.PreCreatePoint();
+            pt.Coordinate = plane.Point;
+
+            var xLine = (IXSketchLine)sketch.Entities.PreCreateLine();
+            xLine.Geometry = new Line(plane.Point, plane.Point.Move(plane.Direction, 0.1));
+            xLine.Color = System.Drawing.Color.Red;
+
+            var yLine = (IXSketchLine)sketch.Entities.PreCreateLine();
+            yLine.Geometry = new Line(plane.Point, plane.Point.Move(plane.Reference, 0.2));
+            yLine.Color = System.Drawing.Color.Green;
+
+            var zLine = (IXSketchLine)sketch.Entities.PreCreateLine();
+            zLine.Geometry = new Line(plane.Point, plane.Point.Move(plane.Normal, 0.3));
+            zLine.Color = System.Drawing.Color.Blue;
+
+            sketch.Entities.AddRange(new IXWireEntity[] { pt, xLine, yLine, zLine });
+
+            sketch.Commit();
         }
 
         private static void AnnotationColor(ISwApplication app)

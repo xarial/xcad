@@ -7,6 +7,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Xarial.XCad.Annotations;
 using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
@@ -62,5 +63,24 @@ namespace Xarial.XCad.Features
         /// </summary>
         /// <returns>Feature edtior</returns>
         IEditor<IXFeature> Edit();
+    }
+
+    public static class XFeatureExtension 
+    {
+        public static IEnumerable<IXBody> IterateBodies(this IXFeature feat)
+        {
+            var processedBodies = new List<IXBody>();
+
+            foreach (var face in feat.Faces)
+            {
+                var body = face.Body;
+
+                if (!processedBodies.Any(b => b.Equals(body)))
+                {
+                    processedBodies.Add(body);
+                    yield return body;
+                }
+            }
+        }
     }
 }

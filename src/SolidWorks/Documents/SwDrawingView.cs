@@ -1055,12 +1055,12 @@ namespace Xarial.XCad.SolidWorks.Documents
                 {
                     feat = (IFeature)sheetMetalPart.Model.FeatureByPositionReverse(pos++);
 
-                    if (feat?.GetTypeName2() == "FlatPattern")
+                    if (feat?.GetTypeName2() == SwFlatPattern.TypeName)
                     {
                         yield return sheetMetalPart.CreateObjectFromDispatch<ISwFlatPattern>(feat);
                     }
 
-                    if (feat?.GetTypeName2() == "OriginProfileFeature")
+                    if (feat?.GetTypeName2() == SwOrigin.TypeName)
                     {
                         yield break;
                     }
@@ -1290,7 +1290,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
             while (subFeat != null)
             {
-                if (subFeat.GetTypeName2() == "ProfileFeature")
+                if (subFeat.GetTypeName2() == SwSketch2D.TypeName)
                 {
                     var sketch = (ISketch)subFeat.GetSpecificFeature2();
                     var skSegs = (object[])sketch.GetSketchSegments();

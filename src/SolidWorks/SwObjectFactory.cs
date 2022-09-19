@@ -358,17 +358,19 @@ namespace Xarial.XCad.SolidWorks
                 case IFeature feat:
                     switch (feat.GetTypeName())
                     {
-                        case "ProfileFeature":
+                        case SwSketch2D.TypeName:
                             return new SwSketch2D(feat, doc, app, true);
-                        case "3DProfileFeature":
+                        case SwSketch3D.TypeName:
                             return new SwSketch3D(feat, doc, app, true);
                         case "CutListFolder":
                             return new SwCutListItem(feat, (SwDocument3D)doc, app, true);
                         case "CoordSys":
                             return new SwCoordinateSystem(feat, doc, app, true);
-                        case "RefPlane":
+                        case SwOrigin.TypeName:
+                            return new SwOrigin(feat, doc, app, true);
+                        case SwPlane.TypeName:
                             return new SwPlane(feat, doc, app, true);
-                        case "FlatPattern":
+                        case SwFlatPattern.TypeName:
                             return new SwFlatPattern(feat, doc, app, true);
                         case "SketchBlockInst":
                             return new SwSketchBlockInstance(feat, doc, app, true);
@@ -378,6 +380,8 @@ namespace Xarial.XCad.SolidWorks
                             return new SwSketchPicture(feat, doc, app, true);
                         case "BaseBody":
                             return new SwDumbBody(feat, doc, app, true);
+                        case "WeldMemberFeat":
+                            return new SwStructuralMember(feat, doc, app, true);
                         case "MacroFeature":
                             if (TryGetParameterType(feat, out Type paramType))
                             {

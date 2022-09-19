@@ -28,6 +28,8 @@ namespace Xarial.XCad.SolidWorks.Features
 
     internal class SwPlane : SwFeature, ISwPlane
     {
+        internal const string TypeName = "RefPlane";
+
         public IRefPlane RefPlane { get; private set; }
 
         private readonly IMathUtility m_MathUtils;
@@ -103,11 +105,11 @@ namespace Xarial.XCad.SolidWorks.Features
 
                     var nextFeatTypeName = nextFeat.GetTypeName2();
 
-                    if (nextFeatTypeName == "OriginProfileFeature")//this feature is standard plane
+                    if (nextFeatTypeName == SwOrigin.TypeName)//this feature is standard plane
                     {
                         return false;
                     }
-                    else if (nextFeatTypeName != "RefPlane") //this feature is not a standard plane
+                    else if (nextFeatTypeName != TypeName) //this feature is not a standard plane
                     {
                         break;
                     }

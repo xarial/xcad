@@ -16,7 +16,7 @@ using Xarial.XCad.SolidWorks.Features;
 
 namespace Xarial.XCad.SolidWorks.Sketch
 {
-    public interface ISwSketchParabola : IXSketchParabola
+    public interface ISwSketchParabola : IXSketchParabola, ISwSketchSegment
     {
         ISketchParabola Parabola { get; }
     }

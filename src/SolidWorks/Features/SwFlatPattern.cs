@@ -25,6 +25,8 @@ namespace Xarial.XCad.SolidWorks.Features
 
     internal class SwFlatPattern : SwFeature, ISwFlatPattern
     {
+        internal const string TypeName = "FlatPattern";
+
         internal SwFlatPattern(IFeature feat, SwDocument doc, SwApplication app, bool created) : base(feat, doc, app, created)
         {
         }

@@ -44,6 +44,8 @@ namespace Xarial.XCad.SolidWorks.Features
 
         private readonly ISketch m_Sketch;
 
+        private readonly ViewFreeze m_ViewFreeze;
+
         protected SwSketchEditorBase(TSketch sketch, ISketch swSketch) 
         {
             if (sketch == null)
@@ -60,6 +62,8 @@ namespace Xarial.XCad.SolidWorks.Features
             m_Sketch = swSketch;
 
             m_SketchMgr = Target.OwnerDocument.Model.SketchManager;
+
+            m_ViewFreeze = new ViewFreeze(Target.OwnerDocument);
 
             if (!Target.IsEditing)
             {
@@ -79,6 +83,8 @@ namespace Xarial.XCad.SolidWorks.Features
 
         public void Dispose()
         {
+            m_ViewFreeze?.Dispose();
+
             if (m_AddToDbOrig.HasValue)
             {
                 m_SketchMgr.AddToDB = m_AddToDbOrig.Value;

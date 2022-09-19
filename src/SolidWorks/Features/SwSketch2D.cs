@@ -34,6 +34,8 @@ namespace Xarial.XCad.SolidWorks.Features
 
     internal class SwSketch2D : SwSketchBase, ISwSketch2D
     {
+        internal const string TypeName = "ProfileFeature";
+
         IEnumerable<IXSketchRegion> IXSketch2D.Regions => Regions;
 
         internal SwSketch2D(IFeature feat, SwDocument doc, SwApplication app, bool created) 

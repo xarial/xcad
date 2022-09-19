@@ -104,7 +104,7 @@ namespace Xarial.XCad.SolidWorks.Features
             "InkMarkupFolder",
             "EqnFolder",
             "MaterialFolder",
-            "OriginProfileFeature",
+            SwOrigin.TypeName,
             "LiveSectionFolder",
             "MateGroup",
             "BlockFolder",
