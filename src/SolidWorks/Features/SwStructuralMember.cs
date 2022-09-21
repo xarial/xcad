@@ -59,14 +59,40 @@ namespace Xarial.XCad.SolidWorks.Features
 
         public bool TryGet(string name, out IXStructuralMemberGroup ent) 
         {
-            var grp = EnumerateGroups().FirstOrDefault(g => string.Equals(g.Name, name));
-
-            if (grp != null)
+            try
             {
-                ent = grp;
-                return true;
+                if (name.StartsWith(SwStructuralMemberGroup.GROUP_BASE_NAME, StringComparison.CurrentCultureIgnoreCase))
+                {
+                    if (int.TryParse(name.Substring(SwStructuralMemberGroup.GROUP_BASE_NAME.Length), out var groupUserIndex))
+                    {
+                        var groupIndex = groupUserIndex - 1;
+
+                        var groups = (object[])m_StructMembFeatData.Groups;
+
+                        if (groups.Length > groupIndex)
+                        {
+                            var group = (IStructuralMemberGroup)groups[groupIndex];
+
+                            ent = new SwStructuralMemberGroup(group, m_Parent, groupIndex);
+
+                            return true;
+                        }
+                        else
+                        {
+                            throw new IndexOutOfRangeException($"Weldment contains {groups.Length} groups, target group index is {groupIndex}");
+                        }
+                    }
+                    else 
+                    {
+                        throw new Exception("Failed to extract group index from the name");
+                    }
+                }
+                else 
+                {
+                    throw new Exception("Name of the group must start with " + SwStructuralMemberGroup.GROUP_BASE_NAME);
+                }
             }
-            else 
+            catch
             {
                 ent = null;
                 return false;
@@ -112,6 +138,8 @@ namespace Xarial.XCad.SolidWorks.Features
     [DebuggerDisplay("{" + nameof(Name) + "}")]
     internal class SwStructuralMemberGroup : ISwStructuralMemberGroup
     {
+        internal const string GROUP_BASE_NAME = "Group";
+
         public void Commit(CancellationToken cancellationToken) => throw new NotImplementedException();
         public bool IsCommitted => true;
 
@@ -133,7 +161,7 @@ namespace Xarial.XCad.SolidWorks.Features
 
         public IXSructuralMemberPieceRepository Pieces { get; }
 
-        public string Name => $"Group{Index + 1}";
+        public string Name => GROUP_BASE_NAME + (Index + 1).ToString();
     }
 
     internal class SwSructuralMemberPieceRepository : ISwSructuralMemberPieceRepository
@@ -224,6 +252,19 @@ namespace Xarial.XCad.SolidWorks.Features
                 {
                     var profilePlane = m_Group.Parent.Profile.Plane;
 
+                    var locatePoint = m_Group.StructuralMemberGroup.LocateProfilePoint;
+
+                    if(locatePoint != null)
+                    {
+                        var origCoord = GetCoordinateInGlobalSpace(
+                            m_Group.Parent.OwnerDocument.CreateObjectFromDispatch<ISwSketchPoint>(locatePoint));
+
+                        profilePlane = new Plane(
+                            origCoord,
+                            profilePlane.Normal,
+                            profilePlane.Direction);
+                    }
+
                     var segsArr = ((object[])m_Group.StructuralMemberGroup.Segments).Cast<ISketchSegment>().ToArray();
 
                     var segIndices = m_Segments.Select(s => Array.IndexOf(segsArr, s.Segment)).ToArray();
@@ -237,6 +278,11 @@ namespace Xarial.XCad.SolidWorks.Features
                         if (m_Group.StructuralMemberGroup.MergeArcSegmentBodies) 
                         {
                             throw new NotSupportedException("Merge Arc Segment Bodies option is not supported");
+                        }
+
+                        if (m_Group.StructuralMemberGroup.MiterMergeCondition)
+                        {
+                            throw new NotSupportedException("Merge Miter Bodies option is not supported");
                         }
 
                         var transform = profilePlane.GetTransformation();
