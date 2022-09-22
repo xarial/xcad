@@ -97,6 +97,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Curves
                 if (curve.GetEndParams(out double start, out double end, out _, out _))
                 {
                     var pt = curve.Evaluate2(isStart ? start : end, 1) as double[];
+
                     return new SwPoint(null, OwnerDocument, OwnerApplication)
                     {
                         Coordinate = new Point(pt[0], pt[1], pt[2])

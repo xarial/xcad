@@ -215,7 +215,7 @@ namespace Xarial.XCad.SolidWorks.Features
             
             var grpSegments = ((object[])m_Group.StructuralMemberGroup.Segments).Cast<ISketchSegment>().ToArray();
 
-            foreach (var body in m_Group.Parent.IterateBodies().OfType<ISwSolidBody>())
+            foreach (var body in m_Group.Parent.IterateBodies().OfType<SwSolidBody>())
             {
                 ISketchSegment[] segments;
 
@@ -241,7 +241,7 @@ namespace Xarial.XCad.SolidWorks.Features
     [DebuggerDisplay("{" + nameof(Body) + "." + nameof(IXBody.Name) + "}")]
     internal class SwStructuralMemberPiece : ISwSructuralMemberPiece
     {
-        public IXSolidBody Body { get; }
+        public IXSolidBody Body => m_Body;
 
         public IXSketchSegment[] Segments => m_Segments;
 
@@ -249,25 +249,27 @@ namespace Xarial.XCad.SolidWorks.Features
         {
             get
             {
-                if (m_Group.StructuralMemberGroup.MergeArcSegmentBodies)
+                var group = m_Group.StructuralMemberGroup;
+
+                if (group.MergeArcSegmentBodies)
                 {
                     throw new NotSupportedException("Merge Arc Segment Bodies option is not supported");
                 }
 
-                if (m_Group.StructuralMemberGroup.MiterMergeCondition)
+                if (group.MiterMergeCondition)
                 {
                     throw new NotSupportedException("Merge Miter Bodies option is not supported");
                 }
 
-                var segsArr = ((object[])m_Group.StructuralMemberGroup.Segments)
+                var segsArr = ((object[])group.Segments)
                     .Cast<ISketchSegment>()
                     .Select(s => m_Group.Parent.OwnerDocument.CreateObjectFromDispatch<ISwSketchSegment>(s))
                     .ToArray();
 
-                //TODO: get alignement X vector
-                var alignment = default(Vector);
+                var alignment = GetAlignment(group, out var alignAxis);
 
-                var transform = GetInitialProfileLocation((ISwSketchLine)segsArr[0], alignment, m_Group.StructuralMemberGroup.Angle);
+                var transform = GetInitialProfileLocation((ISwSketchLine)segsArr[0], alignment, alignAxis,
+                    group.Angle, group.MirrorProfile ? (swMirrorProfileOrAlignmentAxis_e?)group.MirrorProfileAxis : null);
 
                 var segIndices = m_Segments.Select(s => Array.FindIndex(segsArr, x => x.Equals(s))).ToArray();
 
@@ -340,7 +342,51 @@ namespace Xarial.XCad.SolidWorks.Features
             }
         }
 
-        private TransformMatrix GetInitialProfileLocation(ISwSketchLine line, Vector alignment, double profileAngle)
+        private Vector GetAlignment(IStructuralMemberGroup grp, out swMirrorProfileOrAlignmentAxis_e? alignAxis) 
+        {
+            var alignmentVectEnt = grp.AlignmentVector;
+
+            if (alignmentVectEnt != null)
+            {
+                var alignmentEnt = m_Body.OwnerDocument.CreateObjectFromDispatch<ISwObject>(alignmentVectEnt);
+
+                Vector alignment;
+
+                switch (alignmentEnt) 
+                {
+                    case ISwLinearEdge edge:
+                        alignment = edge.StartPoint.Coordinate - edge.EndPoint.Coordinate;
+                        break;
+
+                    case IXSketchLine line:
+                        alignment = line.StartPoint.Coordinate - line.EndPoint.Coordinate;
+                        
+                        var sketch = line.OwnerSketch;
+                        
+                        if (sketch is IXSketch2D) 
+                        {
+                            alignment *= ((IXSketch2D)sketch).Plane.GetTransformation();
+                        }
+                        break;
+
+                    default:
+                        throw new NotSupportedException("Only linear edges and sketch lines are supported as alignment entities");
+                }
+
+                alignAxis = (swMirrorProfileOrAlignmentAxis_e)grp.AlignAxis;
+
+                return alignment;
+            }
+            else 
+            {
+                alignAxis = null;
+                return null;
+            }
+        }
+
+        private TransformMatrix GetInitialProfileLocation(ISwSketchLine line, Vector alignment,
+            swMirrorProfileOrAlignmentAxis_e? alignAxis,
+            double profileAngle, swMirrorProfileOrAlignmentAxis_e? mirror)
         {
             var ownerSketch = line.OwnerSketch;
 
@@ -353,7 +399,7 @@ namespace Xarial.XCad.SolidWorks.Features
             if (ownerSketch is ISwSketch2D)
             {
                 var sketch = (ISwSketch2D)ownerSketch;
-
+                
                 var sketchTransform = sketch.Plane.GetTransformation();
 
                 dir *= sketchTransform;
@@ -368,6 +414,8 @@ namespace Xarial.XCad.SolidWorks.Features
                     {
                         alignment = new Vector(0, 1, 0) * sketchTransform;
                     }
+
+                    alignAxis = swMirrorProfileOrAlignmentAxis_e.swMirrorProfileOrAlignmentAxis_Horizontal;
                 }
             }
 
@@ -391,16 +439,51 @@ namespace Xarial.XCad.SolidWorks.Features
 
                 var alignmentAngle = curAlignmentVec.GetAngle(alignmentPlane);
 
-                if (alignmentAngle < 0) 
+                if (alignmentAngle < 0)
                 {
                     alignmentAngle += Math.PI;
                 }
-                
+
+                switch (alignAxis) 
+                {
+                    case swMirrorProfileOrAlignmentAxis_e.swMirrorProfileOrAlignmentAxis_Horizontal:
+                        //do nothing
+                        break;
+
+                    case swMirrorProfileOrAlignmentAxis_e.swMirrorProfileOrAlignmentAxis_Vertical:
+                        alignmentAngle -= Math.PI / 2;
+                        break;
+
+                    default:
+                        throw new NotSupportedException();
+                }
+
                 //aligning X axis of the profile
                 transform *= TransformMatrix.CreateFromRotationAroundAxis(dir, alignmentAngle, startCoord);
             }
 
             transform *= TransformMatrix.CreateFromRotationAroundAxis(dir, profileAngle, startCoord);
+
+            if (mirror.HasValue) 
+            {
+                Vector mirrorAxis;
+
+                switch (mirror) 
+                {
+                    case swMirrorProfileOrAlignmentAxis_e.swMirrorProfileOrAlignmentAxis_Horizontal:
+                        mirrorAxis = new Vector(1, 0, 0) * transform;
+                        break;
+
+                    case swMirrorProfileOrAlignmentAxis_e.swMirrorProfileOrAlignmentAxis_Vertical:
+                        mirrorAxis = new Vector(0, 1, 0) * transform;
+                        break;
+
+                    default:
+                        throw new NotSupportedException();
+                }
+
+                transform *= TransformMatrix.CreateFromRotationAroundAxis(mirrorAxis, Math.PI, startCoord);
+            }
 
             return transform;
         }
@@ -428,9 +511,11 @@ namespace Xarial.XCad.SolidWorks.Features
 
         private readonly ISwSketchSegment[] m_Segments;
 
-        public SwStructuralMemberPiece(IXSolidBody body, ISwSketchSegment[] segments, SwStructuralMemberGroup group)
+        private readonly SwSolidBody m_Body;
+
+        public SwStructuralMemberPiece(SwSolidBody body, ISwSketchSegment[] segments, SwStructuralMemberGroup group)
         {
-            Body = body;
+            m_Body = body;
             m_Segments = segments;
             m_Group = group;
         }
