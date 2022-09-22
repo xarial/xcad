@@ -90,5 +90,14 @@ namespace Xarial.XCad.Geometry.Structures
 
             return Math.Abs(ang) < tol || Math.PI - Math.Abs(ang) < tol;
         }
+
+        /// <summary>
+        /// Finds the angle between this vector and plane
+        /// </summary>
+        /// <param name="vec">Vector</param>
+        /// <param name="plane">Plane</param>
+        /// <returns>Angle</returns>
+        public static double GetAngle(this Vector vec, Plane plane)
+            => Math.PI / 2 - vec.GetAngle(plane.Normal);
     }
 }

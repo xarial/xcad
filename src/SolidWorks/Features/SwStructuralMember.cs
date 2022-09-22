@@ -18,6 +18,7 @@ using Xarial.XCad.Base;
 using Xarial.XCad.Features;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;
+using Xarial.XCad.Services;
 using Xarial.XCad.Sketch;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Enums;
@@ -246,120 +247,162 @@ namespace Xarial.XCad.SolidWorks.Features
 
         public Plane ProfilePlane
         {
-            get 
+            get
             {
-                if (m_Group.Index == 0)
+                if (m_Group.StructuralMemberGroup.MergeArcSegmentBodies)
                 {
-                    var profilePlane = m_Group.Parent.Profile.Plane;
+                    throw new NotSupportedException("Merge Arc Segment Bodies option is not supported");
+                }
 
-                    var locatePoint = m_Group.StructuralMemberGroup.LocateProfilePoint;
+                if (m_Group.StructuralMemberGroup.MiterMergeCondition)
+                {
+                    throw new NotSupportedException("Merge Miter Bodies option is not supported");
+                }
 
-                    if(locatePoint != null)
+                var segsArr = ((object[])m_Group.StructuralMemberGroup.Segments)
+                    .Cast<ISketchSegment>()
+                    .Select(s => m_Group.Parent.OwnerDocument.CreateObjectFromDispatch<ISwSketchSegment>(s))
+                    .ToArray();
+
+                //TODO: get alignement X vector
+                var alignment = default(Vector);
+
+                var transform = GetInitialProfileLocation((ISwSketchLine)segsArr[0], alignment, m_Group.StructuralMemberGroup.Angle);
+
+                var segIndices = m_Segments.Select(s => Array.FindIndex(segsArr, x => x.Equals(s))).ToArray();
+
+                for (int i = 0; i < segIndices[0]; i++)
+                {
+                    var prevSeg = segsArr[i];
+                    var thisSeg = segsArr[i + 1];
+
+                    if (prevSeg is ISwSketchLine && thisSeg is ISwSketchLine)
                     {
-                        var origCoord = GetCoordinateInGlobalSpace(
-                            m_Group.Parent.OwnerDocument.CreateObjectFromDispatch<ISwSketchPoint>(locatePoint));
+                        var prevLine = (ISwSketchLine)prevSeg;
+                        var thisLine = (ISwSketchLine)thisSeg;
 
-                        profilePlane = new Plane(
-                            origCoord,
-                            profilePlane.Normal,
-                            profilePlane.Direction);
+                        IXSketchPoint startPt;
+                        IXSketchPoint midPt;
+                        IXSketchPoint endPt;
+
+                        if (prevLine.StartPoint.Equals(thisLine.EndPoint))
+                        {
+                            startPt = prevLine.EndPoint;
+                            midPt = prevLine.StartPoint;
+                            endPt = thisLine.StartPoint;
+                        }
+                        else if (prevLine.StartPoint.Equals(thisLine.StartPoint))
+                        {
+                            startPt = prevLine.EndPoint;
+                            midPt = prevLine.StartPoint;
+                            endPt = thisLine.EndPoint;
+                        }
+                        else if (prevLine.EndPoint.Equals(thisLine.EndPoint))
+                        {
+                            startPt = prevLine.StartPoint;
+                            midPt = prevLine.EndPoint;
+                            endPt = thisLine.StartPoint;
+                        }
+                        else if (prevLine.EndPoint.Equals(thisLine.StartPoint))
+                        {
+                            startPt = prevLine.StartPoint;
+                            midPt = prevLine.EndPoint;
+                            endPt = thisLine.EndPoint;
+                        }
+                        else
+                        {
+                            throw new Exception("Segments are not connected");
+                        }
+
+                        var midCoord = GetCoordinateInGlobalSpace(midPt);
+
+                        var prevDir = GetCoordinateInGlobalSpace(startPt) - midCoord;
+                        var thisDir = midCoord - GetCoordinateInGlobalSpace(endPt);
+
+                        var ang = prevDir.GetAngle(thisDir);
+
+                        var axis = prevDir.Cross(thisDir);
+
+                        transform = transform
+                            .Multiply(TransformMatrix.CreateFromTranslation(prevDir))
+                            .Multiply(TransformMatrix.CreateFromRotationAroundAxis(axis, ang, midCoord));
                     }
-
-                    var segsArr = ((object[])m_Group.StructuralMemberGroup.Segments).Cast<ISketchSegment>().ToArray();
-
-                    var segIndices = m_Segments.Select(s => Array.IndexOf(segsArr, s.Segment)).ToArray();
-
-                    if (segIndices[0] == 0)
+                    else
                     {
-                        return profilePlane;
-                    }
-                    else 
-                    {
-                        if (m_Group.StructuralMemberGroup.MergeArcSegmentBodies) 
-                        {
-                            throw new NotSupportedException("Merge Arc Segment Bodies option is not supported");
-                        }
-
-                        if (m_Group.StructuralMemberGroup.MiterMergeCondition)
-                        {
-                            throw new NotSupportedException("Merge Miter Bodies option is not supported");
-                        }
-
-                        var transform = profilePlane.GetTransformation();
-
-                        for (int i = 0; i < segIndices[0]; i++) 
-                        {
-                            var prevSeg = segsArr[i];
-                            var thisSeg = segsArr[i + 1];
-
-                            if (prevSeg is ISketchLine && thisSeg is ISketchLine)
-                            {
-                                var prevLine = m_Group.Parent.OwnerDocument.CreateObjectFromDispatch<ISwSketchLine>(prevSeg);
-                                var thisLine = m_Group.Parent.OwnerDocument.CreateObjectFromDispatch<ISwSketchLine>(thisSeg);
-
-                                IXSketchPoint startPt;
-                                IXSketchPoint midPt;
-                                IXSketchPoint endPt;
-
-                                if (prevLine.StartPoint.Equals(thisLine.EndPoint))
-                                {
-                                    startPt = prevLine.EndPoint;
-                                    midPt = prevLine.StartPoint;
-                                    endPt = thisLine.StartPoint;
-                                }
-                                else if (prevLine.StartPoint.Equals(thisLine.StartPoint))
-                                {
-                                    startPt = prevLine.EndPoint;
-                                    midPt = prevLine.StartPoint;
-                                    endPt = thisLine.EndPoint;
-                                }
-                                else if (prevLine.EndPoint.Equals(thisLine.EndPoint))
-                                {
-                                    startPt = prevLine.StartPoint;
-                                    midPt = prevLine.EndPoint;
-                                    endPt = thisLine.StartPoint;
-                                }
-                                else if (prevLine.EndPoint.Equals(thisLine.StartPoint))
-                                {
-                                    startPt = prevLine.StartPoint;
-                                    midPt = prevLine.EndPoint;
-                                    endPt = thisLine.EndPoint;
-                                }
-                                else
-                                {
-                                    throw new Exception("Segments are not connected");
-                                }
-
-                                var midCoord = GetCoordinateInGlobalSpace(midPt);
-
-                                var prevDir = GetCoordinateInGlobalSpace(startPt) - midCoord;
-                                var thisDir = midCoord - GetCoordinateInGlobalSpace(endPt);
-
-                                var ang = prevDir.GetAngle(thisDir);
-
-                                var axis = prevDir.Cross(thisDir);
-
-                                transform = transform
-                                    .Multiply(TransformMatrix.CreateFromTranslation(prevDir))
-                                    .Multiply(TransformMatrix.CreateFromRotationAroundAxis(axis, ang, midCoord));
-                            }
-                            else
-                            {
-                                throw new NotSupportedException("Only linear sketch segments are supported");
-                            }
-                        }
-
-                        return new Plane(
-                            new Point(0, 0, 0).Transform(transform),
-                            new Vector(0, 0, 1).Transform(transform),
-                            new Vector(1, 0, 0).Transform(transform));
+                        throw new NotSupportedException("Only linear sketch segments are supported");
                     }
                 }
-                else 
+
+                return new Plane(
+                    new Point(0, 0, 0).Transform(transform),
+                    new Vector(0, 0, 1).Transform(transform),
+                    new Vector(1, 0, 0).Transform(transform));
+            }
+        }
+
+        private TransformMatrix GetInitialProfileLocation(ISwSketchLine line, Vector alignment, double profileAngle)
+        {
+            var ownerSketch = line.OwnerSketch;
+
+            var baselineZ = new Vector(0, 0, 1);
+
+            var dir = line.StartPoint.Coordinate - line.EndPoint.Coordinate;
+
+            var startCoord = line.StartPoint.Coordinate;
+
+            if (ownerSketch is ISwSketch2D)
+            {
+                var sketch = (ISwSketch2D)ownerSketch;
+
+                var sketchTransform = sketch.Plane.GetTransformation();
+
+                dir *= sketchTransform;
+                startCoord *= sketchTransform;
+
+                if (alignment == null) 
                 {
-                    throw new NotSupportedException("Only single group is supported");
+                    //Profiles for the segments on 2D sketch are automatically aligned with the sketch coordinate system
+                    alignment = new Vector(1, 0, 0) * sketchTransform;
+
+                    if (alignment.IsParallel(dir)) 
+                    {
+                        alignment = new Vector(0, 1, 0) * sketchTransform;
+                    }
                 }
             }
+
+            var angle = baselineZ.GetAngle(dir);
+            var rotVect = baselineZ.Cross(dir);
+
+            //finding the transform to align the direction of the line to be a z-axis
+            var transform = TransformMatrix.CreateFromRotationAroundAxis(rotVect, angle, new Point(0, 0, 0))
+                    * TransformMatrix.CreateFromTranslation(startCoord.ToVector());
+
+            if (alignment != null) 
+            {
+                if (dir.IsParallel(alignment)) 
+                {
+                    throw new Exception("Alignment cannot be parallel to direction segment");
+                }
+
+                var alignmentPlane = new Plane(startCoord, alignment.Cross(dir), alignment);
+
+                var curAlignmentVec = new Vector(1, 0, 0) * transform;
+
+                var alignmentAngle = curAlignmentVec.GetAngle(alignmentPlane);
+
+                if (alignmentAngle < 0) 
+                {
+                    alignmentAngle += Math.PI;
+                }
+                
+                //aligning X axis of the profile
+                transform *= TransformMatrix.CreateFromRotationAroundAxis(dir, alignmentAngle, startCoord);
+            }
+
+            transform *= TransformMatrix.CreateFromRotationAroundAxis(dir, profileAngle, startCoord);
+
+            return transform;
         }
 
         private Point GetCoordinateInGlobalSpace(IXSketchPoint point) 
