@@ -18,6 +18,7 @@ using Xarial.XCad.Base;
 using Xarial.XCad.Features;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;
+using Xarial.XCad.Geometry.Wires;
 using Xarial.XCad.Services;
 using Xarial.XCad.Sketch;
 using Xarial.XCad.SolidWorks.Documents;
@@ -251,20 +252,20 @@ namespace Xarial.XCad.SolidWorks.Features
             {
                 var group = m_Group.StructuralMemberGroup;
 
-                if (group.MergeArcSegmentBodies)
-                {
-                    throw new NotSupportedException("Merge Arc Segment Bodies option is not supported");
-                }
-
-                if (group.MiterMergeCondition)
-                {
-                    throw new NotSupportedException("Merge Miter Bodies option is not supported");
-                }
-
                 var segsArr = ((object[])group.Segments)
                     .Cast<ISketchSegment>()
                     .Select(s => m_Group.Parent.OwnerDocument.CreateObjectFromDispatch<ISwSketchSegment>(s))
                     .ToArray();
+
+                if (group.MergeArcSegmentBodies && segsArr.Any(s => s is IXSketchArc))
+                {
+                    throw new NotSupportedException("Merge Arc Segment Bodies option is not supported");
+                }
+
+                if (group.MiterMergeCondition && segsArr.Length > 1)
+                {
+                    throw new NotSupportedException("Merge Miter Bodies option is not supported");
+                }
 
                 var alignment = GetAlignment(group, out var alignAxis);
 
@@ -313,7 +314,17 @@ namespace Xarial.XCad.SolidWorks.Features
                         }
                         else
                         {
-                            throw new Exception("Segments are not connected");
+                            if (GetDirection(prevLine).IsParallel(GetDirection(thisLine)))
+                            {
+                                //parallel disconnected segments have the same orientation
+                                var origin = new Point(0, 0, 0).Transform(transform);
+                                transform *= TransformMatrix.CreateFromTranslation(origin - GetCoordinateInGlobalSpace(thisLine.StartPoint));
+                                continue;
+                            }
+                            else
+                            {
+                                throw new Exception("Segments are not connected and not parallel");
+                            }
                         }
 
                         var midCoord = GetCoordinateInGlobalSpace(midPt);
@@ -355,11 +366,11 @@ namespace Xarial.XCad.SolidWorks.Features
                 switch (alignmentEnt) 
                 {
                     case ISwLinearEdge edge:
-                        alignment = edge.StartPoint.Coordinate - edge.EndPoint.Coordinate;
+                        alignment = GetDirection(edge.Definition);
                         break;
 
                     case IXSketchLine line:
-                        alignment = line.StartPoint.Coordinate - line.EndPoint.Coordinate;
+                        alignment = GetDirection(line);
                         
                         var sketch = line.OwnerSketch;
                         
@@ -392,7 +403,7 @@ namespace Xarial.XCad.SolidWorks.Features
 
             var baselineZ = new Vector(0, 0, 1);
 
-            var dir = line.StartPoint.Coordinate - line.EndPoint.Coordinate;
+            var dir = GetDirection(line);
 
             var startCoord = line.StartPoint.Coordinate;
 
@@ -498,6 +509,9 @@ namespace Xarial.XCad.SolidWorks.Features
                 return coord;
             }
         }
+
+        private Vector GetDirection(IXLine line)
+            => line.StartPoint.Coordinate - line.EndPoint.Coordinate;
 
         public bool IsCommitted => true;
         public void Commit(CancellationToken cancellationToken) => throw new NotImplementedException();
