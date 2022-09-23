@@ -147,6 +147,9 @@ namespace SolidWorks.Tests.Integration
             double[] f10_g1_p2;
             double[] f10_g1_p3;
 
+            double[] f11_g1_p1;
+            double[] f12_g1_p1;
+
             using (var doc = OpenDataDocument("StructuralMemberOrientation.SLDPRT"))
             {
                 var part = m_App.Documents.Active;
@@ -161,11 +164,11 @@ namespace SolidWorks.Tests.Integration
                 f2_g1_p1 = f2_g1.Pieces["2D-Angle[1]"].ProfilePlane.GetTransformation().ToArray();
                 f2_g1_p2 = f2_g1.Pieces["2D-Angle[2]"].ProfilePlane.GetTransformation().ToArray();
 
-                //var f3 = (ISwStructuralMember)part.Features["3D-Simple-ShiftedProfile"];
-                //var f3_g1 = f3.Groups["Group1"];
-                //Assert.Throws<NotSupportedException>(() => f3_g1.Pieces["3D-Simple-ShiftedProfile[1]"].ProfilePlane.GetTransformation().ToArray());
-                //Assert.Throws<NotSupportedException>(() => f3_g1.Pieces["3D-Simple-ShiftedProfile[2]"].ProfilePlane.GetTransformation().ToArray());
-                //Assert.Throws<NotSupportedException>(() => f3_g1.Pieces["3D-Simple-ShiftedProfile[3]"].ProfilePlane.GetTransformation().ToArray());
+                var f3 = (ISwStructuralMember)part.Features["3D-Simple-ShiftedProfile"];
+                var f3_g1 = f3.Groups["Group1"];
+                Assert.Throws<NotSupportedException>(() => f3_g1.Pieces["3D-Simple-ShiftedProfile[1]"].ProfilePlane.GetTransformation().ToArray());
+                Assert.Throws<NotSupportedException>(() => f3_g1.Pieces["3D-Simple-ShiftedProfile[2]"].ProfilePlane.GetTransformation().ToArray());
+                Assert.Throws<NotSupportedException>(() => f3_g1.Pieces["3D-Simple-ShiftedProfile[3]"].ProfilePlane.GetTransformation().ToArray());
 
                 var f4 = (ISwStructuralMember)part.Features["3D-Angle-Mirror-Locate-Align"];
                 var f4_g1 = f4.Groups["Group1"];
@@ -205,6 +208,14 @@ namespace SolidWorks.Tests.Integration
                 f10_g1_p1 = f10_g1.Pieces["3D-Simple[1]"].ProfilePlane.GetTransformation().ToArray();
                 f10_g1_p2 = f10_g1.Pieces["3D-Simple[2]"].ProfilePlane.GetTransformation().ToArray();
                 f10_g1_p3 = f10_g1.Pieces["3D-Simple[3]"].ProfilePlane.GetTransformation().ToArray();
+
+                var f11 = (ISwStructuralMember)part.Features["Front-Single1"];
+                var f11_g1 = f11.Groups["Group1"];
+                f11_g1_p1 = f11_g1.Pieces["Front-Single1"].ProfilePlane.GetTransformation().ToArray();
+
+                var f12 = (ISwStructuralMember)part.Features["Front-Single2"];
+                var f12_g1 = f12.Groups["Group1"];
+                f12_g1_p1 = f12_g1.Pieces["Front-Single2"].ProfilePlane.GetTransformation().ToArray();
             }
 
             AssertCompareDoubleArray(f1_g1_p1, new double[] { -0.696982685679162, 0.717087955458368, 0, 0, 3.06027835287119E-17, 2.97447615606172E-17, 1, 0, 0.717087955458368, 0.696982685679162, -4.26764712693443E-17, 0, -0.0988237874768574, 0.00497627851723362, 0, 1 });
@@ -230,6 +241,9 @@ namespace SolidWorks.Tests.Integration
             AssertCompareDoubleArray(f10_g1_p1, new double[] { 0.466511385820849, 0.881233737101931, 0.0761198232583102, 0, 0.881233737101931, -0.455650371473257, -0.125737184514557, 0, -0.0761198232583102, 0.125737184514557, -0.989138985652409, 0, -0.250029999402821, -0.17469092074905, -0.0706925576774027, 1 });
             AssertCompareDoubleArray(f10_g1_p2, new double[] { 0.233827232692418, -0.27300219461104, 0.933163772865707, 0, 0.927995235532777, -0.223688714506309, -0.297973491826004, 0, 0.290085621980602, 0.935645852200538, 0.201040222791503, 0, -0.271928439961422, -0.138518368800866, -0.3552518269232, 1 });
             AssertCompareDoubleArray(f10_g1_p3, new double[] { 0.502278494441106, -0.0808346916728366, 0.860919314828128, 0, -0.142215261223007, -0.989785612096397, -0.00996300969748107, 0, 0.852930907809799, -0.117431659739262, -0.50864395385538, 0, -0.145539136577952, 0.269139296773361, -0.267659296355191, 1 });
+
+            //AssertCompareDoubleArray(f11_g1_p1, new double[] { }); 180 deg incorrect orientation
+            AssertCompareDoubleArray(f12_g1_p1, new double[] { -0.857785215958651, -0.514008291064231, 1.66533453693773E-16, 0, 1.30119549963726E-16, 1.06844244309736E-16, 1, 0, -0.514008291064231, 0.857785215958651, -2.47668856682643E-17, 0, -0.232127246833692, -1.89095761296899, 0, 1 });
         }
     }
 }

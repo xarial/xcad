@@ -26,6 +26,7 @@ using Xarial.XCad.SolidWorks.Enums;
 using Xarial.XCad.SolidWorks.Geometry;
 using Xarial.XCad.SolidWorks.Sketch;
 using Xarial.XCad.Toolkit.Utils;
+using Xarial.XCad.Utils;
 
 namespace Xarial.XCad.SolidWorks.Features
 {
@@ -257,14 +258,9 @@ namespace Xarial.XCad.SolidWorks.Features
                     .Select(s => m_Group.Parent.OwnerDocument.CreateObjectFromDispatch<ISwSketchSegment>(s))
                     .ToArray();
 
-                if (group.MergeArcSegmentBodies && segsArr.Any(s => s is IXSketchArc))
+                if (m_Group.Index == 0)
                 {
-                    throw new NotSupportedException("Merge Arc Segment Bodies option is not supported");
-                }
-
-                if (group.MiterMergeCondition && segsArr.Length > 1)
-                {
-                    throw new NotSupportedException("Merge Miter Bodies option is not supported");
+                    ValidateGroup(group, m_Group.Parent.Profile, segsArr);
                 }
 
                 var alignment = GetAlignment(group, out var alignAxis);
@@ -350,6 +346,34 @@ namespace Xarial.XCad.SolidWorks.Features
                     new Point(0, 0, 0).Transform(transform),
                     new Vector(0, 0, 1).Transform(transform),
                     new Vector(1, 0, 0).Transform(transform));
+            }
+        }
+
+        private void ValidateGroup(IStructuralMemberGroup group, IXSketch2D profileSketch, ISwSketchSegment[] segsArr)
+        {
+            if (group.MergeArcSegmentBodies && segsArr.Any(s => s is IXSketchArc))
+            {
+                throw new NotSupportedException("Merge Arc Segment Bodies option is not supported");
+            }
+
+            if (group.MiterMergeCondition && segsArr.Length > 1)
+            {
+                throw new NotSupportedException("Merge Miter Bodies option is not supported");
+            }
+
+            var profilePlane = profileSketch.Plane;
+
+            var firstSeg = segsArr.First();
+
+            if (!(firstSeg is IXSketchLine)) 
+            {
+                throw new NotSupportedException("First segment must be a sketch line");
+            }
+
+            if (!Numeric.Compare(profilePlane.GetDistance(GetCoordinateInGlobalSpace(((IXSketchLine)firstSeg).StartPoint)), 0)
+                && !Numeric.Compare(profilePlane.GetDistance(GetCoordinateInGlobalSpace(((IXSketchLine)firstSeg).EndPoint)), 0)) 
+            {
+                throw new NotSupportedException("Profile sketch must be located in the first segment of the structural member");
             }
         }
 
