@@ -78,6 +78,43 @@ namespace Xarial.XCad.Geometry.Structures
         }
 
         /// <summary>
+        /// Gets the full angle (360 degress) between 2 vectors on the plane
+        /// </summary>
+        /// <param name="thisVec">First vector</param>
+        /// <param name="otherVec">Second vector</param>
+        /// <param name="plane">Plane to get angle at</param>
+        /// <param name="tol">Vector tolerance</param>
+        /// <returns>Angle in radians</returns>
+        /// <exception cref="Exception">Vector must not be perpendicular to the plane</exception>
+        /// <remarks>Vectors will be projected onto the plane</remarks>
+        public static double GetAngleOnPlane(this Vector thisVec, Vector otherVec, Plane plane, double tol = Numeric.DEFAULT_NUMERIC_TOLERANCE) 
+        {
+            var thisProjVec = thisVec.Project(plane);
+
+            if (thisProjVec.GetLength() < tol) 
+            {
+                throw new Exception("Vector is perpendicular to plane and cannot be projected");
+            }
+
+            var otherProjVec = otherVec.Project(plane);
+
+            if (otherProjVec.GetLength() < tol)
+            {
+                throw new Exception("Other vector is perpendicular to plane and cannot be projected");
+            }
+
+            var invTransform = plane.GetTransformation().Inverse();
+
+            thisProjVec = thisProjVec.Transform(invTransform);
+            otherProjVec = otherProjVec.Transform(invTransform);
+
+            var dot = thisProjVec.X * otherProjVec.X + thisProjVec.Y * otherProjVec.Y;
+            var det = thisProjVec.X * otherProjVec.Y - thisProjVec.Y * otherProjVec.X;
+
+            return Math.Atan2(det, dot);
+        }
+
+        /// <summary>
         /// Checks if 2 vectors are parallel
         /// </summary>
         /// <param name="firstVec">First vector</param>
@@ -99,5 +136,22 @@ namespace Xarial.XCad.Geometry.Structures
         /// <returns>Angle</returns>
         public static double GetAngle(this Vector vec, Plane plane)
             => Math.PI / 2 - vec.GetAngle(plane.Normal);
+
+        /// <summary>
+        /// Projects vector onto the specified plane
+        /// </summary>
+        /// <param name="vec">Vector to project</param>
+        /// <param name="plane">Target plane</param>
+        /// <returns>Projected vector</returns>
+        public static Vector Project(this Vector vec, Plane plane)
+        {
+            var invDenom = 1d / plane.Normal.Dot(plane.Normal);
+            var d = plane.Normal.Dot(vec);
+
+            return new Vector(
+                vec.X - d * plane.Normal.X * invDenom,
+                vec.Y - d * plane.Normal.Y * invDenom,
+                vec.Z - d * plane.Normal.Z * invDenom);
+        }
     }
 }

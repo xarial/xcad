@@ -408,11 +408,11 @@ namespace Xarial.XCad.SolidWorks.Features
                 if (alignment == null) 
                 {
                     //Profiles for the segments on 2D sketch are automatically aligned with the sketch coordinate system
-                    alignment = new Vector(1, 0, 0) * sketchTransform;
+                    alignment = new Vector(-1, 0, 0) * sketchTransform;
 
                     if (alignment.IsParallel(dir)) 
                     {
-                        alignment = new Vector(0, 1, 0) * sketchTransform;
+                        alignment = new Vector(0, -1, 0) * sketchTransform;
                     }
 
                     alignAxis = swMirrorProfileOrAlignmentAxis_e.swMirrorProfileOrAlignmentAxis_Horizontal;
@@ -433,16 +433,11 @@ namespace Xarial.XCad.SolidWorks.Features
                     throw new Exception("Alignment cannot be parallel to direction segment");
                 }
 
-                var alignmentPlane = new Plane(startCoord, alignment.Cross(dir), alignment);
-
                 var curAlignmentVec = new Vector(1, 0, 0) * transform;
 
-                var alignmentAngle = curAlignmentVec.GetAngle(alignmentPlane);
+                var alignmentPlane = new Plane(startCoord, dir, curAlignmentVec);
 
-                if (alignmentAngle < 0)
-                {
-                    alignmentAngle += Math.PI;
-                }
+                var alignmentAngle = curAlignmentVec.GetAngleOnPlane(alignment, alignmentPlane);
 
                 switch (alignAxis) 
                 {
