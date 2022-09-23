@@ -18,12 +18,15 @@ using Xarial.XCad.Base;
 using Xarial.XCad.Features;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;
+using Xarial.XCad.Geometry.Wires;
+using Xarial.XCad.Services;
 using Xarial.XCad.Sketch;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Enums;
 using Xarial.XCad.SolidWorks.Geometry;
 using Xarial.XCad.SolidWorks.Sketch;
 using Xarial.XCad.Toolkit.Utils;
+using Xarial.XCad.Utils;
 
 namespace Xarial.XCad.SolidWorks.Features
 {
@@ -59,14 +62,40 @@ namespace Xarial.XCad.SolidWorks.Features
 
         public bool TryGet(string name, out IXStructuralMemberGroup ent) 
         {
-            var grp = EnumerateGroups().FirstOrDefault(g => string.Equals(g.Name, name));
-
-            if (grp != null)
+            try
             {
-                ent = grp;
-                return true;
+                if (name.StartsWith(SwStructuralMemberGroup.GROUP_BASE_NAME, StringComparison.CurrentCultureIgnoreCase))
+                {
+                    if (int.TryParse(name.Substring(SwStructuralMemberGroup.GROUP_BASE_NAME.Length), out var groupUserIndex))
+                    {
+                        var groupIndex = groupUserIndex - 1;
+
+                        var groups = (object[])m_StructMembFeatData.Groups;
+
+                        if (groups.Length > groupIndex)
+                        {
+                            var group = (IStructuralMemberGroup)groups[groupIndex];
+
+                            ent = new SwStructuralMemberGroup(group, m_Parent, groupIndex);
+
+                            return true;
+                        }
+                        else
+                        {
+                            throw new IndexOutOfRangeException($"Weldment contains {groups.Length} groups, target group index is {groupIndex}");
+                        }
+                    }
+                    else 
+                    {
+                        throw new Exception("Failed to extract group index from the name");
+                    }
+                }
+                else 
+                {
+                    throw new Exception("Name of the group must start with " + SwStructuralMemberGroup.GROUP_BASE_NAME);
+                }
             }
-            else 
+            catch
             {
                 ent = null;
                 return false;
@@ -112,6 +141,8 @@ namespace Xarial.XCad.SolidWorks.Features
     [DebuggerDisplay("{" + nameof(Name) + "}")]
     internal class SwStructuralMemberGroup : ISwStructuralMemberGroup
     {
+        internal const string GROUP_BASE_NAME = "Group";
+
         public void Commit(CancellationToken cancellationToken) => throw new NotImplementedException();
         public bool IsCommitted => true;
 
@@ -133,7 +164,7 @@ namespace Xarial.XCad.SolidWorks.Features
 
         public IXSructuralMemberPieceRepository Pieces { get; }
 
-        public string Name => $"Group{Index + 1}";
+        public string Name => GROUP_BASE_NAME + (Index + 1).ToString();
     }
 
     internal class SwSructuralMemberPieceRepository : ISwSructuralMemberPieceRepository
@@ -186,7 +217,7 @@ namespace Xarial.XCad.SolidWorks.Features
             
             var grpSegments = ((object[])m_Group.StructuralMemberGroup.Segments).Cast<ISketchSegment>().ToArray();
 
-            foreach (var body in m_Group.Parent.IterateBodies().OfType<ISwSolidBody>())
+            foreach (var body in m_Group.Parent.IterateBodies().OfType<SwSolidBody>())
             {
                 ISketchSegment[] segments;
 
@@ -212,108 +243,279 @@ namespace Xarial.XCad.SolidWorks.Features
     [DebuggerDisplay("{" + nameof(Body) + "." + nameof(IXBody.Name) + "}")]
     internal class SwStructuralMemberPiece : ISwSructuralMemberPiece
     {
-        public IXSolidBody Body { get; }
+        public IXSolidBody Body => m_Body;
 
         public IXSketchSegment[] Segments => m_Segments;
 
         public Plane ProfilePlane
         {
-            get 
+            get
             {
+                var group = m_Group.StructuralMemberGroup;
+
+                var segsArr = ((object[])group.Segments)
+                    .Cast<ISketchSegment>()
+                    .Select(s => m_Group.Parent.OwnerDocument.CreateObjectFromDispatch<ISwSketchSegment>(s))
+                    .ToArray();
+
                 if (m_Group.Index == 0)
                 {
-                    var profilePlane = m_Group.Parent.Profile.Plane;
+                    ValidateGroup(group, m_Group.Parent.Profile, segsArr);
+                }
 
-                    var segsArr = ((object[])m_Group.StructuralMemberGroup.Segments).Cast<ISketchSegment>().ToArray();
+                var alignment = GetAlignment(group, out var alignAxis);
 
-                    var segIndices = m_Segments.Select(s => Array.IndexOf(segsArr, s.Segment)).ToArray();
+                var transform = GetInitialProfileLocation((ISwSketchLine)segsArr[0], alignment, alignAxis,
+                    group.Angle, group.MirrorProfile ? (swMirrorProfileOrAlignmentAxis_e?)group.MirrorProfileAxis : null);
 
-                    if (segIndices[0] == 0)
+                var segIndices = m_Segments.Select(s => Array.FindIndex(segsArr, x => x.Equals(s))).ToArray();
+
+                for (int i = 0; i < segIndices[0]; i++)
+                {
+                    var prevSeg = segsArr[i];
+                    var thisSeg = segsArr[i + 1];
+
+                    if (prevSeg is ISwSketchLine && thisSeg is ISwSketchLine)
                     {
-                        return profilePlane;
-                    }
-                    else 
-                    {
-                        if (m_Group.StructuralMemberGroup.MergeArcSegmentBodies) 
+                        var prevLine = (ISwSketchLine)prevSeg;
+                        var thisLine = (ISwSketchLine)thisSeg;
+
+                        IXSketchPoint startPt;
+                        IXSketchPoint midPt;
+                        IXSketchPoint endPt;
+
+                        if (prevLine.StartPoint.Equals(thisLine.EndPoint))
                         {
-                            throw new NotSupportedException("Merge Arc Segment Bodies option is not supported");
+                            startPt = prevLine.EndPoint;
+                            midPt = prevLine.StartPoint;
+                            endPt = thisLine.StartPoint;
                         }
-
-                        var transform = profilePlane.GetTransformation();
-
-                        for (int i = 0; i < segIndices[0]; i++) 
+                        else if (prevLine.StartPoint.Equals(thisLine.StartPoint))
                         {
-                            var prevSeg = segsArr[i];
-                            var thisSeg = segsArr[i + 1];
-
-                            if (prevSeg is ISketchLine && thisSeg is ISketchLine)
+                            startPt = prevLine.EndPoint;
+                            midPt = prevLine.StartPoint;
+                            endPt = thisLine.EndPoint;
+                        }
+                        else if (prevLine.EndPoint.Equals(thisLine.EndPoint))
+                        {
+                            startPt = prevLine.StartPoint;
+                            midPt = prevLine.EndPoint;
+                            endPt = thisLine.StartPoint;
+                        }
+                        else if (prevLine.EndPoint.Equals(thisLine.StartPoint))
+                        {
+                            startPt = prevLine.StartPoint;
+                            midPt = prevLine.EndPoint;
+                            endPt = thisLine.EndPoint;
+                        }
+                        else
+                        {
+                            if (GetDirection(prevLine).IsParallel(GetDirection(thisLine)))
                             {
-                                var prevLine = m_Group.Parent.OwnerDocument.CreateObjectFromDispatch<ISwSketchLine>(prevSeg);
-                                var thisLine = m_Group.Parent.OwnerDocument.CreateObjectFromDispatch<ISwSketchLine>(thisSeg);
-
-                                IXSketchPoint startPt;
-                                IXSketchPoint midPt;
-                                IXSketchPoint endPt;
-
-                                if (prevLine.StartPoint.Equals(thisLine.EndPoint))
-                                {
-                                    startPt = prevLine.EndPoint;
-                                    midPt = prevLine.StartPoint;
-                                    endPt = thisLine.StartPoint;
-                                }
-                                else if (prevLine.StartPoint.Equals(thisLine.StartPoint))
-                                {
-                                    startPt = prevLine.EndPoint;
-                                    midPt = prevLine.StartPoint;
-                                    endPt = thisLine.EndPoint;
-                                }
-                                else if (prevLine.EndPoint.Equals(thisLine.EndPoint))
-                                {
-                                    startPt = prevLine.StartPoint;
-                                    midPt = prevLine.EndPoint;
-                                    endPt = thisLine.StartPoint;
-                                }
-                                else if (prevLine.EndPoint.Equals(thisLine.StartPoint))
-                                {
-                                    startPt = prevLine.StartPoint;
-                                    midPt = prevLine.EndPoint;
-                                    endPt = thisLine.EndPoint;
-                                }
-                                else
-                                {
-                                    throw new Exception("Segments are not connected");
-                                }
-
-                                var midCoord = GetCoordinateInGlobalSpace(midPt);
-
-                                var prevDir = GetCoordinateInGlobalSpace(startPt) - midCoord;
-                                var thisDir = midCoord - GetCoordinateInGlobalSpace(endPt);
-
-                                var ang = prevDir.GetAngle(thisDir);
-
-                                var axis = prevDir.Cross(thisDir);
-
-                                transform = transform
-                                    .Multiply(TransformMatrix.CreateFromTranslation(prevDir))
-                                    .Multiply(TransformMatrix.CreateFromRotationAroundAxis(axis, ang, midCoord));
+                                //parallel disconnected segments have the same orientation
+                                var origin = new Point(0, 0, 0).Transform(transform);
+                                transform *= TransformMatrix.CreateFromTranslation(origin - GetCoordinateInGlobalSpace(thisLine.StartPoint));
+                                continue;
                             }
                             else
                             {
-                                throw new NotSupportedException("Only linear sketch segments are supported");
+                                throw new Exception("Segments are not connected and not parallel");
                             }
                         }
 
-                        return new Plane(
-                            new Point(0, 0, 0).Transform(transform),
-                            new Vector(0, 0, 1).Transform(transform),
-                            new Vector(1, 0, 0).Transform(transform));
+                        var midCoord = GetCoordinateInGlobalSpace(midPt);
+
+                        var prevDir = GetCoordinateInGlobalSpace(startPt) - midCoord;
+                        var thisDir = midCoord - GetCoordinateInGlobalSpace(endPt);
+
+                        var ang = prevDir.GetAngle(thisDir);
+
+                        var axis = prevDir.Cross(thisDir);
+
+                        transform = transform
+                            .Multiply(TransformMatrix.CreateFromTranslation(prevDir))
+                            .Multiply(TransformMatrix.CreateFromRotationAroundAxis(axis, ang, midCoord));
+                    }
+                    else
+                    {
+                        throw new NotSupportedException("Only linear sketch segments are supported");
                     }
                 }
-                else 
+
+                return new Plane(
+                    new Point(0, 0, 0).Transform(transform),
+                    new Vector(0, 0, 1).Transform(transform),
+                    new Vector(1, 0, 0).Transform(transform));
+            }
+        }
+
+        private void ValidateGroup(IStructuralMemberGroup group, IXSketch2D profileSketch, ISwSketchSegment[] segsArr)
+        {
+            if (group.MergeArcSegmentBodies && segsArr.Any(s => s is IXSketchArc))
+            {
+                throw new NotSupportedException("Merge Arc Segment Bodies option is not supported");
+            }
+
+            if (group.MiterMergeCondition && segsArr.Length > 1)
+            {
+                throw new NotSupportedException("Merge Miter Bodies option is not supported");
+            }
+
+            var profilePlane = profileSketch.Plane;
+
+            var firstSeg = segsArr.First();
+
+            if (!(firstSeg is IXSketchLine)) 
+            {
+                throw new NotSupportedException("First segment must be a sketch line");
+            }
+
+            if (!Numeric.Compare(profilePlane.GetDistance(GetCoordinateInGlobalSpace(((IXSketchLine)firstSeg).StartPoint)), 0)
+                && !Numeric.Compare(profilePlane.GetDistance(GetCoordinateInGlobalSpace(((IXSketchLine)firstSeg).EndPoint)), 0)) 
+            {
+                throw new NotSupportedException("Profile sketch must be located in the first segment of the structural member");
+            }
+        }
+
+        private Vector GetAlignment(IStructuralMemberGroup grp, out swMirrorProfileOrAlignmentAxis_e? alignAxis) 
+        {
+            var alignmentVectEnt = grp.AlignmentVector;
+
+            if (alignmentVectEnt != null)
+            {
+                var alignmentEnt = m_Body.OwnerDocument.CreateObjectFromDispatch<ISwObject>(alignmentVectEnt);
+
+                Vector alignment;
+
+                switch (alignmentEnt) 
                 {
-                    throw new NotSupportedException("Only single group is supported");
+                    case ISwLinearEdge edge:
+                        alignment = GetDirection(edge.Definition);
+                        break;
+
+                    case IXSketchLine line:
+                        alignment = GetDirection(line);
+                        
+                        var sketch = line.OwnerSketch;
+                        
+                        if (sketch is IXSketch2D) 
+                        {
+                            alignment *= ((IXSketch2D)sketch).Plane.GetTransformation();
+                        }
+                        break;
+
+                    default:
+                        throw new NotSupportedException("Only linear edges and sketch lines are supported as alignment entities");
+                }
+
+                alignAxis = (swMirrorProfileOrAlignmentAxis_e)grp.AlignAxis;
+
+                return alignment;
+            }
+            else 
+            {
+                alignAxis = null;
+                return null;
+            }
+        }
+
+        private TransformMatrix GetInitialProfileLocation(ISwSketchLine line, Vector alignment,
+            swMirrorProfileOrAlignmentAxis_e? alignAxis,
+            double profileAngle, swMirrorProfileOrAlignmentAxis_e? mirror)
+        {
+            var ownerSketch = line.OwnerSketch;
+
+            var baselineZ = new Vector(0, 0, 1);
+
+            var dir = GetDirection(line);
+
+            var startCoord = line.StartPoint.Coordinate;
+
+            if (ownerSketch is ISwSketch2D)
+            {
+                var sketch = (ISwSketch2D)ownerSketch;
+                
+                var sketchTransform = sketch.Plane.GetTransformation();
+
+                dir *= sketchTransform;
+                startCoord *= sketchTransform;
+
+                if (alignment == null) 
+                {
+                    //Profiles for the segments on 2D sketch are automatically aligned with the sketch coordinate system
+                    alignment = new Vector(-1, 0, 0) * sketchTransform;
+
+                    if (alignment.IsParallel(dir)) 
+                    {
+                        alignment = new Vector(0, -1, 0) * sketchTransform;
+                    }
+
+                    alignAxis = swMirrorProfileOrAlignmentAxis_e.swMirrorProfileOrAlignmentAxis_Horizontal;
                 }
             }
+
+            var angle = baselineZ.GetAngle(dir);
+            var rotVect = baselineZ.Cross(dir);
+
+            //finding the transform to align the direction of the line to be a z-axis
+            var transform = TransformMatrix.CreateFromRotationAroundAxis(rotVect, angle, new Point(0, 0, 0))
+                    * TransformMatrix.CreateFromTranslation(startCoord.ToVector());
+
+            if (alignment != null) 
+            {
+                if (dir.IsParallel(alignment)) 
+                {
+                    throw new Exception("Alignment cannot be parallel to direction segment");
+                }
+
+                var curAlignmentVec = new Vector(1, 0, 0) * transform;
+
+                var alignmentPlane = new Plane(startCoord, dir, curAlignmentVec);
+
+                var alignmentAngle = curAlignmentVec.GetAngleOnPlane(alignment, alignmentPlane);
+
+                switch (alignAxis) 
+                {
+                    case swMirrorProfileOrAlignmentAxis_e.swMirrorProfileOrAlignmentAxis_Horizontal:
+                        //do nothing
+                        break;
+
+                    case swMirrorProfileOrAlignmentAxis_e.swMirrorProfileOrAlignmentAxis_Vertical:
+                        alignmentAngle -= Math.PI / 2;
+                        break;
+
+                    default:
+                        throw new NotSupportedException();
+                }
+
+                //aligning X axis of the profile
+                transform *= TransformMatrix.CreateFromRotationAroundAxis(dir, alignmentAngle, startCoord);
+            }
+
+            transform *= TransformMatrix.CreateFromRotationAroundAxis(dir, profileAngle, startCoord);
+
+            if (mirror.HasValue) 
+            {
+                Vector mirrorAxis;
+
+                switch (mirror) 
+                {
+                    case swMirrorProfileOrAlignmentAxis_e.swMirrorProfileOrAlignmentAxis_Horizontal:
+                        mirrorAxis = new Vector(1, 0, 0) * transform;
+                        break;
+
+                    case swMirrorProfileOrAlignmentAxis_e.swMirrorProfileOrAlignmentAxis_Vertical:
+                        mirrorAxis = new Vector(0, 1, 0) * transform;
+                        break;
+
+                    default:
+                        throw new NotSupportedException();
+                }
+
+                transform *= TransformMatrix.CreateFromRotationAroundAxis(mirrorAxis, Math.PI, startCoord);
+            }
+
+            return transform;
         }
 
         private Point GetCoordinateInGlobalSpace(IXSketchPoint point) 
@@ -332,6 +534,9 @@ namespace Xarial.XCad.SolidWorks.Features
             }
         }
 
+        private Vector GetDirection(IXLine line)
+            => line.StartPoint.Coordinate - line.EndPoint.Coordinate;
+
         public bool IsCommitted => true;
         public void Commit(CancellationToken cancellationToken) => throw new NotImplementedException();
         
@@ -339,9 +544,11 @@ namespace Xarial.XCad.SolidWorks.Features
 
         private readonly ISwSketchSegment[] m_Segments;
 
-        public SwStructuralMemberPiece(IXSolidBody body, ISwSketchSegment[] segments, SwStructuralMemberGroup group)
+        private readonly SwSolidBody m_Body;
+
+        public SwStructuralMemberPiece(SwSolidBody body, ISwSketchSegment[] segments, SwStructuralMemberGroup group)
         {
-            Body = body;
+            m_Body = body;
             m_Segments = segments;
             m_Group = group;
         }
