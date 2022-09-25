@@ -8,6 +8,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Text;
 
 namespace Xarial.XCad.Geometry.Structures
@@ -95,9 +96,74 @@ namespace Xarial.XCad.Geometry.Structures
         public static Point GetRightTop(this Rect2D box)
             => GetEndPoint(box, true, true);
 
+        /// <summary>
+        /// Unions twi rectangles
+        /// </summary>
+        /// <param name="rect">This rectangle</param>
+        /// <param name="otherRect">Other rectangle</param>
+        /// <returns>Union rectangle</returns>
+        public static Rect2D Union(this Rect2D rect, Rect2D otherRect)
+        {
+            var thisLeftBottom = rect.GetLeftBottom();
+            var thisRightTop = rect.GetRightTop();
+
+            var otherLeftBottom = otherRect.GetLeftBottom();
+            var otherRightTop = otherRect.GetRightTop();
+
+            //NOTE: rectangle can have custom axis which can result in the top right point to be lover than bottom left
+            //in order to consider this finding the min and max among all points
+
+            var minX = Min(thisLeftBottom.X, otherLeftBottom.X, thisRightTop.X, otherRightTop.X);
+            var maxX = Max(thisLeftBottom.X, otherLeftBottom.X, thisRightTop.X, otherRightTop.X);
+            var minY = Min(thisLeftBottom.Y, otherLeftBottom.Y, thisRightTop.Y, otherRightTop.Y);
+            var maxY = Max(thisLeftBottom.Y, otherLeftBottom.Y, thisRightTop.Y, otherRightTop.Y);
+            
+            return new Rect2D(maxX - minX, maxY - minY, new Point((minX + maxX) / 2, (minY + maxY) / 2, 0));
+        }
+
+        private static double Min(params double[] vals) 
+        {
+            if (vals?.Any() != true)
+            {
+                throw new ArgumentException(nameof(vals));
+            }
+
+            var min = double.MaxValue;
+
+            foreach (var val in vals) 
+            {
+                if (val < min) 
+                {
+                    min = val;
+                }
+            }
+
+            return min;
+        }
+
+        private static double Max(params double[] vals)
+        {
+            if (vals?.Any() != true)
+            {
+                throw new ArgumentException(nameof(vals));
+            }
+
+            var max = double.MinValue;
+
+            foreach (var val in vals)
+            {
+                if (val > max)
+                {
+                    max = val;
+                }
+            }
+
+            return max;
+        }
+
         private static Point GetEndPoint(Rect2D box, bool dirX, bool dirY)
             => box.CenterPoint
-                .Move(box.AxisX * (dirX ? 1 : -1), box.Width / 2)
-                .Move(box.AxisY * (dirY ? 1 : -1), box.Height / 2);
+            .Move(box.AxisX * (dirX ? 1 : -1), box.Width / 2)
+            .Move(box.AxisY * (dirY ? 1 : -1), box.Height / 2);
     }
 }

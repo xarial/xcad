@@ -479,6 +479,8 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public IXSketch2D Sketch => OwnerDocument.CreateObjectFromDispatch<ISwSketch2D>(DrawingView.GetSketch());
 
+        public TransformMatrix Transformation => DrawingView.ModelToViewTransform.ToTransformMatrix();
+
         TSelObject IXObjectContainer.ConvertObject<TSelObject>(TSelObject obj) => ConvertObjectBoxed(obj) as TSelObject;
 
         public TSelObject ConvertObject<TSelObject>(TSelObject obj)

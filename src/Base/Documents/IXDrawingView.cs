@@ -75,6 +75,11 @@ namespace Xarial.XCad.Documents
         Thickness Padding { get; }
 
         /// <summary>
+        /// Transformation of this component in the assembly relative to the global coordinate system
+        /// </summary>
+        TransformMatrix Transformation { get; }
+
+        /// <summary>
         /// Get the base drawing view
         /// </summary>
         /// <remarks>For the root views, base view will be null</remarks>
