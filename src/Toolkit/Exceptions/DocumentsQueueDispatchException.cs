@@ -9,7 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Xarial.XCad.SolidWorks.Documents.Exceptions
+namespace Xarial.XCad.Toolkit.Exceptions
 {
     /// <summary>
     /// Exception indicates that some documents in the queue were not dispatched

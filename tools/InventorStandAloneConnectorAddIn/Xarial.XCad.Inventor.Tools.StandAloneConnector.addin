@@ -1,0 +1,14 @@
+﻿<Addin Type="Standard">
+  <ClassId>{C1F5C04A-EA27-4ED0-A341-A32296CF9D3F}</ClassId>
+  <ClientId>{C1F5C04A-EA27-4ED0-A341-A32296CF9D3F}</ClientId>
+  <DisplayName>xCAD Stand-Alone Connector</DisplayName>
+  <Description>Add-in to register Application in the Running Object Table to be accessible from stand-alone applicatons</Description>
+  <Assembly>Xarial.XCad.Inventor.Tools.StandAloneConnector.dll</Assembly>
+  <LoadAutomatically>1</LoadAutomatically>
+  <UserUnloadable>1</UserUnloadable>
+  <Hidden>0</Hidden>
+  <SupportedSoftwareVersionGreaterThan>16..</SupportedSoftwareVersionGreaterThan>
+  <DataVersion>1</DataVersion>
+  <LoadBehavior>0</LoadBehavior>
+  <UserInterfaceVersion>1</UserInterfaceVersion>
+</Addin>
