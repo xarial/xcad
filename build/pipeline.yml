@@ -1,3 +1,5 @@
+#Install CodeSigning task from https://marketplace.visualstudio.com/items?itemName=stefankert.codesigning
+
 variables:
   ${{ if eq(variables['Build.SourceBranchName'], 'master') }}:
     versionSuffix: release
@@ -28,9 +30,11 @@ stages:
 
 - stage: 'Build'
   variables:
-    buildConfiguration: 'Release'
-    buildPlatform: 'Any CPU'
-
+    - group: build-vars
+    - name: buildConfiguration
+      value: Release
+    - name: buildPlatform
+      value: 'Any CPU'
   jobs:
   - job:
     pool:
