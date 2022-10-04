@@ -293,9 +293,9 @@ namespace Xarial.XCad.SolidWorks
             WatchStartupCompleted((SldWorks)app);
         }
 
-        /// <summary>
-        /// Remarks used for <see cref="SwApplicationFactory.PreCreate"/>
-        /// </summary>
+        /// <Remarks>
+        /// Used for <see cref="SwApplicationFactory.PreCreate"/>
+        /// </Remarks>
         internal SwApplication()
         {
             m_IsStartupNotified = false;

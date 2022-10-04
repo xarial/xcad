@@ -136,14 +136,14 @@ namespace Xarial.XCad.SolidWorks.Utils
             if (vers.HasValue)
             {
                 var progId = string.Format(SwApplicationFactory.PROG_ID_TEMPLATE, (int)vers);
-                swAppRegKey = Registry.ClassesRoot.OpenSubKey(progId);
+                swAppRegKey = Registry.ClassesRoot.OpenSubKey(progId, false);
             }
             else
             {
                 foreach (var versCand in Enum.GetValues(typeof(SwVersion_e)).Cast<int>().OrderByDescending(x => x))
                 {
                     var progId = string.Format(SwApplicationFactory.PROG_ID_TEMPLATE, versCand);
-                    swAppRegKey = Registry.ClassesRoot.OpenSubKey(progId);
+                    swAppRegKey = Registry.ClassesRoot.OpenSubKey(progId, false);
 
                     if (swAppRegKey != null)
                     {

@@ -17,6 +17,7 @@ using System.Collections.Generic;
 using Microsoft.Win32;
 using Xarial.XCad.Toolkit;
 using Xarial.XCad.Enums;
+using Xarial.XCad.Utils.Diagnostics;
 
 namespace Xarial.XCad.SolidWorks
 {
@@ -171,7 +172,7 @@ namespace Xarial.XCad.SolidWorks
         /// <param name="services">Custom serives</param>
         public static ISwApplication FromProcess(Process process, IXServiceCollection services)
         {
-            var app = RotHelper.TryGetComObjectByMonikerName<ISldWorks>(GetMonikerName(process));
+            var app = RotHelper.TryGetComObjectByMonikerName<ISldWorks>(GetMonikerName(process), new TraceLogger("xCAD.SwApplication"));
 
             if (app != null)
             {
