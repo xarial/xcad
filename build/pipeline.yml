@@ -78,12 +78,12 @@ stages:
           secureFile: xarial.snk
 
       - task: VSBuild@1
-          displayName: 'Build Tools projects'
-          inputs:
-            solution: 'tools/**/*.csproj'
-            msbuildArgs: '/p:SignAssembly=true;AssemblyOriginatorKeyFile=$(Certificate.secureFilePath);DelaySign=false;BuildNumber=.$(Build.BuildID)'
-            platform: '$(BuildPlatform)'
-            configuration: '$(BuildConfiguration)'
+        displayName: 'Build Tools projects'
+        inputs:
+          solution: 'tools/**/*.csproj'
+          msbuildArgs: '/p:SignAssembly=true;AssemblyOriginatorKeyFile=$(Certificate.secureFilePath);DelaySign=false;BuildNumber=.$(Build.BuildID)'
+          platform: '$(BuildPlatform)'
+          configuration: '$(BuildConfiguration)'
 
       - task: codesigning@2
         displayName: 'Signing xCAD Stand-Alone Connector dll file'
