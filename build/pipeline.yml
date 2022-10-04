@@ -78,6 +78,25 @@ stages:
           secureFile: xarial.snk
 
       - task: VSBuild@1
+          displayName: 'Build Tools projects'
+          inputs:
+            solution: 'tools/**/*.csproj'
+            msbuildArgs: '/p:SignAssembly=true;AssemblyOriginatorKeyFile=$(Certificate.secureFilePath);DelaySign=false;BuildNumber=.$(Build.BuildID)'
+            platform: '$(BuildPlatform)'
+            configuration: '$(BuildConfiguration)'
+
+      - task: codesigning@2
+        displayName: 'Signing xCAD Stand-Alone Connector dll file'
+        continueOnError: true 
+        inputs:
+          secureFileId: xarial-code-signing.pfx
+          signCertPassword: $(CODE_SIGN_CERT_PWD)
+          files: 'tools/_build/Xarial.XCad.Inventor.Tools.StandAloneConnector.dll'
+          timeServer: 'http://timestamp.comodoca.com'
+          hashingAlgorithm: 'SHA256'
+          description: 'xCAD Stand-Alone Connector'
+
+      - task: VSBuild@1
         displayName: 'Build projects'
         inputs:
           solution: 'src/**/*.csproj'

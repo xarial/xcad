@@ -6,6 +6,7 @@
 //*********************************************************************
 
 using SolidWorks.Interop.swconst;
+using System;
 using Xarial.XCad.Documents;
 
 namespace Xarial.XCad.SolidWorks.Documents
@@ -106,6 +107,68 @@ namespace Xarial.XCad.SolidWorks.Documents
             => m_Doc.SetUserPreferenceToggle(swUserPreferenceToggle_e.swDisplayAllAnnotations, true);
     }
 
+    internal class SwStepSaveOptions : IXStepSaveOptions
+    {
+        private readonly SwDocument m_Doc;
+
+        internal SwStepSaveOptions(SwDocument doc)
+        {
+            m_Doc = doc;
+        }
+
+        public StepFormat_e Format 
+        {
+            get 
+            {
+                switch (m_Doc.OwnerApplication.Sw.GetUserPreferenceIntegerValue((int)swUserPreferenceIntegerValue_e.swStepAP)) 
+                {
+                    case 203:
+                        return StepFormat_e.Ap203;
+                    case 214:
+                        return StepFormat_e.Ap214;
+                    default:
+                        throw new NotSupportedException();
+                }
+            }
+            set 
+            {
+                int format;
+
+                switch (value) 
+                {
+                    case StepFormat_e.Ap203:
+                        format = 203;
+                        break;
+
+                    case StepFormat_e.Ap214:
+                        format = 214;
+                        break;
+
+                    default:
+                        throw new NotSupportedException();
+                }
+
+                if (!m_Doc.OwnerApplication.Sw.SetUserPreferenceIntegerValue((int)swUserPreferenceIntegerValue_e.swStepAP, format)) 
+                {
+                    throw new Exception("Failed to set the option");
+                }
+            }
+        }
+    }
+
+    internal class SwSaveOptions : IXSaveOptions
+    {
+        private readonly SwDocument m_Doc;
+
+        internal SwSaveOptions(SwDocument doc)
+        {
+            m_Doc = doc;
+            Step = new SwStepSaveOptions(m_Doc);
+        }
+
+        public IXStepSaveOptions Step { get; }
+    }
+
     internal class SwDocumentOptions : SwOptions, ISwDocumentOptions 
     {
         protected readonly SwDocument m_Doc;
@@ -114,8 +177,11 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
             m_Doc = doc;
             ViewEntityKindVisibility = new SwViewEntityKindVisibilityOptions(doc);
+            SaveOptions = new SwSaveOptions(doc);
         }
 
         public IXViewEntityKindVisibilityOptions ViewEntityKindVisibility { get; }
+
+        public IXSaveOptions SaveOptions { get; }
     }
 }

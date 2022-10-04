@@ -7,7 +7,7 @@ using System.Runtime.InteropServices.ComTypes;
 namespace Xarial.XCad.Inventor.Tools
 {
     [Guid("C1F5C04A-EA27-4ED0-A341-A32296CF9D3F")]
-    public class InventorRotRegistrationAddIn : ApplicationAddInServer
+    public class StandAloneConnectorAddIn : ApplicationAddInServer
     {
         private const string TRACE_LOG_NAME = "xCAD.Inventor";
 

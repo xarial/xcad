@@ -1,9 +1,9 @@
 ﻿<Addin Type="Standard">
   <ClassId>{C1F5C04A-EA27-4ED0-A341-A32296CF9D3F}</ClassId>
   <ClientId>{C1F5C04A-EA27-4ED0-A341-A32296CF9D3F}</ClientId>
-  <DisplayName>ROT Registration</DisplayName>
-  <Description>Add-in to register Application in the Running Object Table</Description>
-  <Assembly>Xarial.XCad.Inventor.Tools.RotRegistrationAddIn.dll</Assembly>
+  <DisplayName>xCAD Stand-Alone Connector</DisplayName>
+  <Description>Add-in to register Application in the Running Object Table to be accessible from stand-alone applicatons</Description>
+  <Assembly>Xarial.XCad.Inventor.Tools.StandAloneConnector.dll</Assembly>
   <LoadAutomatically>1</LoadAutomatically>
   <UserUnloadable>1</UserUnloadable>
   <Hidden>0</Hidden>

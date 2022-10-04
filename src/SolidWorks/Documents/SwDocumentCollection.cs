@@ -288,7 +288,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
                 if (models.Contains(model) || models.Any(d => m_SwApp.IsSame(d, model) == (int)swObjectEquality.swObjectSame))
                 {
-                    return Dispatcher.RegisterModel(model);
+                    return Dispatcher.RegisterUnderlineDocument(model);
                 }
                 else
                 {
@@ -507,7 +507,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                 {
                     m_Logger.Log($"{model.GetTitle()} was not registered", LoggerMessageSeverity_e.Warning);
 
-                    docs.Add(Dispatcher.RegisterModel(model));
+                    docs.Add(Dispatcher.RegisterUnderlineDocument(model));
                 }
             }
 
@@ -577,6 +577,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                 model = FindModel(docTitle, docPath);
             }
 
+            //NOTE: it might not be enough to compare the pointers. When LoadNotify2 event is called from different threads pointers might not be 
             Dispatcher.Dispatch(model);
             
             return HResult.S_OK;

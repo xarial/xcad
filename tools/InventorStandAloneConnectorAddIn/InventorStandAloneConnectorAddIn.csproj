@@ -3,12 +3,12 @@
   <PropertyGroup>
     <TargetFramework>net461</TargetFramework>
     <RootNamespace>Xarial.XCad.Inventor.Tools</RootNamespace>
-    <AssemblyName>Xarial.XCad.Inventor.Tools.RotRegistrationAddIn</AssemblyName>
+    <AssemblyName>Xarial.XCad.Inventor.Tools.StandAloneConnector</AssemblyName>
     <OutDir>..\_build</OutDir>
   </PropertyGroup>
 
   <ItemGroup>
-    <None Update="Xarial.XCad.Inventor.Tools.RotRegistrationAddIn.addin">
+    <None Update="Xarial.XCad.Inventor.Tools.StandAloneConnector.addin">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>

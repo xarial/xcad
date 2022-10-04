@@ -46,7 +46,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StandAlone.Inventor", "samp
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tools", "Tools", "{687863F5-7B23-4D48-B8F0-339F3D2869A8}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InventorRotRegistrationAddIn", "tools\InventorRotRegisterAddIn\InventorRotRegistrationAddIn.csproj", "{4E3D108D-F7FB-4B6E-9ED0-A296720FC734}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InventorStandAloneConnectorAddIn", "tools\InventorStandAloneConnectorAddIn\InventorStandAloneConnectorAddIn.csproj", "{4E3D108D-F7FB-4B6E-9ED0-A296720FC734}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -5,6 +5,8 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using Xarial.XCad.Base;
+using Xarial.XCad.Documents;
 using Xarial.XCad.Enums;
 using Xarial.XCad.Inventor;
 using Xarial.XCad.Inventor.Enums;
@@ -17,22 +19,29 @@ namespace StandAlone.Ai
     {
         static void Main(string[] args)
         {
-            var apps = new List<IAiApplication>();
+            //var app = AiApplicationFactory.FromProcess(Process.GetProcessesByName("Inventor").FirstOrDefault());
+            //var doc = app.Documents.PreCreate<IXDocument>();
+            //doc.Path = @"C:\Users\artem\Desktop\Part1.ipt";
+            //doc.Commit();
+
+            //var apps = new List<IAiApplication>();
 
             //foreach (var prc in Process.GetProcessesByName("Inventor")) 
             //{
             //    apps.Add(AiApplicationFactory.FromProcess(p));
             //}
 
-            apps.Add(AiApplicationFactory.Create(AiVersion_e.Inventor2023, ApplicationState_e.Default, StartApplicationConnectStrategy_e.Default));
-            apps.Add(AiApplicationFactory.Create(AiVersion_e.Inventor2023, ApplicationState_e.Default, StartApplicationConnectStrategy_e.Default));
-            apps.Add(AiApplicationFactory.Create(AiVersion_e.Inventor2023, ApplicationState_e.Default, StartApplicationConnectStrategy_e.Default));
+            //apps.Add(AiApplicationFactory.Create(AiVersion_e.Inventor2023, ApplicationState_e.Default, StartApplicationConnectStrategy_e.Default));
+            //apps.Add(AiApplicationFactory.Create(AiVersion_e.Inventor2023, ApplicationState_e.Default, StartApplicationConnectStrategy_e.Default));
+            //apps.Add(AiApplicationFactory.Create(AiVersion_e.Inventor2023, ApplicationState_e.Default, StartApplicationConnectStrategy_e.Default));
 
-            foreach (var app in apps)
-            {
-                Console.WriteLine($"Inventor: {app.Version.DisplayName} [{app.Process.Id}] : [{app.WindowHandle.ToInt32()}]");
-                app.Close();
-            }
+            //foreach (var app in apps)
+            //{
+            //    Console.WriteLine($"Inventor: {app.Version.DisplayName} [{app.Process.Id}] : [{app.WindowHandle.ToInt32()}]");
+            //    app.Close();
+            //}
+
+            Console.ReadLine();
         }
     }
 }

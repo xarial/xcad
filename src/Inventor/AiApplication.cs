@@ -14,6 +14,7 @@ using Xarial.XCad.Delegates;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Enums;
 using Xarial.XCad.Geometry;
+using Xarial.XCad.Inventor.Documents;
 using Xarial.XCad.Inventor.Enums;
 using Xarial.XCad.Inventor.Utils;
 using Xarial.XCad.Services;
@@ -80,7 +81,16 @@ namespace Xarial.XCad.Inventor
             }
         }
         public IXApplicationOptions Options => throw new NotImplementedException();
-        public IXDocumentRepository Documents => throw new NotImplementedException();
+        
+        public IXDocumentRepository Documents
+        {
+            get
+            {
+                m_Documents.Attach();
+                return m_Documents;
+            }
+        }
+
         public IXMemoryGeometryBuilder MemoryGeometryBuilder => throw new NotImplementedException();
 
         public bool IsCommitted => m_Creator.IsCreated;
@@ -196,6 +206,8 @@ namespace Xarial.XCad.Inventor
 
         private IXServiceCollection m_CustomServices;
 
+        private AiDocumentsCollection m_Documents;
+
         internal AiApplication(Application app, IXServiceCollection customServices)
             : this(app, default(Action<AiApplication>))
         {
@@ -247,6 +259,8 @@ namespace Xarial.XCad.Inventor
 
                 Services = svcProvider;
                 Logger = Services.GetService<IXLogger>();
+
+                m_Documents = new AiDocumentsCollection(this, Logger);
             }
             else
             {
