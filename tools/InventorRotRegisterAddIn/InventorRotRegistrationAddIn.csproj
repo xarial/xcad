@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net461</TargetFramework>
+    <RootNamespace>Xarial.XCad.Inventor.Tools</RootNamespace>
+    <AssemblyName>Xarial.XCad.Inventor.Tools.RotRegistrationAddIn</AssemblyName>
+    <OutDir>..\_build</OutDir>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Update="Xarial.XCad.Inventor.Tools.RotRegistrationAddIn.addin">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>

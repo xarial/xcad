@@ -38,8 +38,15 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SwDocumentManager.Tests", "tests\SwDocumentManager.Tests\SwDocumentManager.Tests.csproj", "{4D164ACD-3CA3-4866-B184-4B2442DD5307}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Inventor", "src\Inventor\Inventor.csproj", "{68199E7F-656F-4A7F-BBC3-AF25B5DDDDBF}"
+	ProjectSection(ProjectDependencies) = postProject
+		{4E3D108D-F7FB-4B6E-9ED0-A296720FC734} = {4E3D108D-F7FB-4B6E-9ED0-A296720FC734}
+	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StandAlone.Inventor", "samples\StandAlone.Inventor\StandAlone.Inventor.csproj", "{F0EE52D1-14A2-4827-811D-4E692F185341}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StandAlone.Inventor", "samples\StandAlone.Inventor\StandAlone.Inventor.csproj", "{F0EE52D1-14A2-4827-811D-4E692F185341}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tools", "Tools", "{687863F5-7B23-4D48-B8F0-339F3D2869A8}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InventorRotRegistrationAddIn", "tools\InventorRotRegisterAddIn\InventorRotRegistrationAddIn.csproj", "{4E3D108D-F7FB-4B6E-9ED0-A296720FC734}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -107,6 +114,10 @@ Global
 		{F0EE52D1-14A2-4827-811D-4E692F185341}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F0EE52D1-14A2-4827-811D-4E692F185341}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F0EE52D1-14A2-4827-811D-4E692F185341}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4E3D108D-F7FB-4B6E-9ED0-A296720FC734}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4E3D108D-F7FB-4B6E-9ED0-A296720FC734}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4E3D108D-F7FB-4B6E-9ED0-A296720FC734}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4E3D108D-F7FB-4B6E-9ED0-A296720FC734}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -123,6 +134,7 @@ Global
 		{1F231B39-C8DB-4A70-AF1B-022DEC24E9D9} = {28BFC3E1-25EA-4934-80F5-2EFCA6E4494B}
 		{4D164ACD-3CA3-4866-B184-4B2442DD5307} = {387EFF82-0E64-4E5B-9B1D-6DCC0EC5D501}
 		{F0EE52D1-14A2-4827-811D-4E692F185341} = {19753BF5-5F8F-481B-8CC0-1422293B3F7A}
+		{4E3D108D-F7FB-4B6E-9ED0-A296720FC734} = {687863F5-7B23-4D48-B8F0-339F3D2869A8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {C1681BF6-7447-45FF-AC57-EC2B3250B843}

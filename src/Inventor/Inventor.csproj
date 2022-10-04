@@ -65,6 +65,9 @@
     <None Include="..\..\thirdpty\Autodesk.Inventor.Interop.dll" pack="true" PackagePath="lib\netcoreapp3.1" />
 
     <None Include="..\..\thirdpty\Autodesk.Inventor.Interop.dll" pack="true" PackagePath="lib\net6.0-windows7.0" Link="_Pack\Autodesk.Inventor.Interop.dll" />
+
+    <None Include="..\..\tools\_build\Xarial.XCad.Inventor.Tools.RotRegistrationAddIn.dll" pack="true" PackagePath="tools\RotRegistrationAddIn\Xarial.XCad.Inventor.Tools.RotRegistrationAddIn.dll" Link="_Pack\Xarial.XCad.Inventor.Tools.RotRegistrationAddIn.dll" />
+    <None Include="..\..\tools\_build\Xarial.XCad.Inventor.Tools.RotRegistrationAddIn.addin" pack="true" PackagePath="tools\RotRegistrationAddIn\Xarial.XCad.Inventor.Tools.RotRegistrationAddIn.addin" Link="_Pack\Xarial.XCad.Inventor.Tools.RotRegistrationAddIn.addin" />
   </ItemGroup>
 
   <ItemGroup>
