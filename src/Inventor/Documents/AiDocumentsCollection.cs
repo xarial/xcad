@@ -12,6 +12,7 @@ using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Delegates;
 using Xarial.XCad.Documents.Services;
 using Xarial.XCad.Inventor.Documents.Services;
+using Xarial.XCad.Inventor.Utils;
 using Xarial.XCad.Toolkit.Utils;
 
 namespace Xarial.XCad.Inventor.Documents
@@ -47,7 +48,7 @@ namespace Xarial.XCad.Inventor.Documents
             m_App = app;
             m_Logger = logger;
 
-            m_Documents = new Dictionary<Document, AiDocument>();
+            m_Documents = new Dictionary<Document, AiDocument>(new AiDocumentPointerEqualityComparer());
 
             m_Lock = new object();
 

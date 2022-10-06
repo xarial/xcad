@@ -101,7 +101,14 @@ namespace Xarial.XCad.Inventor
 
         public void Close() => Application.Quit();
 
-        public void Commit(CancellationToken cancellationToken) => m_Creator.Create(cancellationToken);
+        public void Commit(CancellationToken cancellationToken)
+        {
+            m_Creator.Create(cancellationToken);
+
+            var customServices = CustomServices ?? new ServiceCollection();
+            LoadServices(customServices);
+            Init(customServices.CreateProvider());
+        }
 
         public IXObjectTracker CreateObjectTracker(string name)
         {

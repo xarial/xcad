@@ -241,53 +241,46 @@ namespace Xarial.XCad.Inventor.Documents
 
             if (translator != null)
             {
-                if (translator.Activated)
+                var context = OwnerApplication.Application.TransientObjects.CreateTranslationContext();
+
+                var opts = OwnerApplication.Application.TransientObjects.CreateNameValueMap();
+
+                SetSaveOptions(translator, opts, Options.SaveOptions);
+
+                if (translator.HasSaveCopyAsOptions[Document, context, opts])
                 {
-                    var context = OwnerApplication.Application.TransientObjects.CreateTranslationContext();
+                    context.Type = IOMechanismEnum.kFileBrowseIOMechanism;
 
-                    var opts = OwnerApplication.Application.TransientObjects.CreateNameValueMap();
+                    var data = OwnerApplication.Application.TransientObjects.CreateDataMedium();
+                    data.FileName = filePath;
 
-                    SetSaveOptions(translator, opts, Options.SaveOptions);
+                    DateTime? existingFileDate = null;
 
-                    if (translator.HasSaveCopyAsOptions[Document, context, opts])
+                    if (System.IO.File.Exists(filePath))
                     {
-                        context.Type = IOMechanismEnum.kFileBrowseIOMechanism;
+                        existingFileDate = System.IO.File.GetLastWriteTimeUtc(filePath);
+                    }
 
-                        var data = OwnerApplication.Application.TransientObjects.CreateDataMedium();
-                        data.FileName = filePath;
+                    translator.SaveCopyAs(Document, context, opts, data);
 
-                        DateTime? existingFileDate = null;
-
-                        if (System.IO.File.Exists(filePath)) 
+                    if (System.IO.File.Exists(filePath))
+                    {
+                        if (existingFileDate.HasValue)
                         {
-                            existingFileDate = System.IO.File.GetLastWriteTimeUtc(filePath);
-                        }
-
-                        translator.SaveCopyAs(Document, context, opts, data);
-
-                        if (System.IO.File.Exists(filePath))
-                        {
-                            if (existingFileDate.HasValue)
+                            if (System.IO.File.GetLastWriteTimeUtc(filePath) == existingFileDate)
                             {
-                                if (System.IO.File.GetLastWriteTimeUtc(filePath) == existingFileDate) 
-                                {
-                                    throw new SaveDocumentFailedException(-1, "Failed to export file (file is not overwritten)");
-                                }
+                                throw new SaveDocumentFailedException(-1, "Failed to export file (file is not overwritten)");
                             }
-                        }
-                        else 
-                        {
-                            throw new SaveDocumentFailedException(-1, "Failed to export file (file does not exist)");
                         }
                     }
                     else
                     {
-                        throw new SaveDocumentFailedException(-1, "Invalid options");
+                        throw new SaveDocumentFailedException(-1, "Failed to export file (file does not exist)");
                     }
                 }
-                else 
+                else
                 {
-                    throw new Exception("Translator add-in is not activated");
+                    throw new SaveDocumentFailedException(-1, "Invalid options");
                 }
             }
             else
