@@ -187,7 +187,7 @@ namespace Xarial.XCad.Inventor
         public static IAiApplication Create(AiVersion_e? vers = null,
             ApplicationState_e state = ApplicationState_e.Default,
             StartApplicationConnectStrategy_e strategy = StartApplicationConnectStrategy_e.Default,
-            CancellationToken? cancellationToken = null)
+            CancellationToken cancellationToken = default)
         {
             var app = PreCreate();
 
@@ -195,14 +195,7 @@ namespace Xarial.XCad.Inventor
             app.Version = vers.HasValue ? CreateVersion(vers.Value) : null;
             app.State = state;
 
-            var token = CancellationToken.None;
-
-            if (cancellationToken.HasValue) 
-            {
-                token = cancellationToken.Value;
-            }
-
-            app.Commit(token);
+            app.Commit(cancellationToken);
 
             return app;
         }

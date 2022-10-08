@@ -24,9 +24,11 @@ namespace Xarial.XCad.SwDocumentManager.Documents
     {
         #region Not Supported
         public event ComponentInsertedDelegate ComponentInserted { add => throw new NotSupportedException(); remove => throw new NotSupportedException(); }
+        public event ComponentDeletingDelegate ComponentDeleting { add => throw new NotSupportedException(); remove => throw new NotSupportedException(); }
+        public event ComponentDeletedDelegate ComponentDeleted { add => throw new NotSupportedException(); remove => throw new NotSupportedException(); }
+
         IXAssemblyEvaluation IXAssembly.Evaluation => throw new NotSupportedException();
         IXComponent IXAssembly.EditingComponent => throw new NotSupportedException();
-
         #endregion
 
         private readonly Lazy<SwDmAssemblyConfigurationCollection> m_LazyConfigurations;

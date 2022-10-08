@@ -20,6 +20,16 @@ namespace Xarial.XCad.Documents
         /// </summary>
         event ComponentInsertedDelegate ComponentInserted;
 
+        /// <summary>
+        /// Raised when component is about to be deleted from the assembly
+        /// </summary>
+        event ComponentDeletingDelegate ComponentDeleting;
+
+        /// <summary>
+        /// Raised when component is deleted from the assembly
+        /// </summary>
+        event ComponentDeletedDelegate ComponentDeleted;
+
         /// <inheritdoc/>
         new IXAssemblyConfigurationRepository Configurations { get; }
 

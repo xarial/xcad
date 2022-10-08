@@ -7,35 +7,42 @@ using System.Text;
 using System.Threading.Tasks;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Delegates;
+using Xarial.XCad.Documents.Structures;
 using Xarial.XCad.Features.Delegates;
 using Xarial.XCad.SolidWorks.Utils;
 
 namespace Xarial.XCad.SolidWorks.Documents
 {
-    internal class ComponentInsertedEventsHandler : SwModelEventsHandler<ComponentInsertedDelegate>
+    internal class ComponentDeletingEventsHandler : SwModelEventsHandler<ComponentDeletingDelegate>
     {
         private readonly SwAssembly m_Assm;
 
-        internal ComponentInsertedEventsHandler(SwAssembly assm, ISwApplication app) : base(assm, app)
+        internal ComponentDeletingEventsHandler(SwAssembly assm, ISwApplication app) : base(assm, app)
         {
             m_Assm = assm;
         }
 
         protected override void SubscribeAssemblyEvents(AssemblyDoc assm)
         {
-            assm.AddItemNotify += OnAddItemNotify;
+            assm.DeleteItemPreNotify += OnDeleteItemPreNotify;
         }
 
         protected override void UnsubscribeAssemblyEvents(AssemblyDoc assm)
         {
-            assm.AddItemNotify -= OnAddItemNotify;
+            assm.DeleteItemPreNotify -= OnDeleteItemPreNotify;
         }
 
-        private int OnAddItemNotify(int entityType, string itemName)
+        private int OnDeleteItemPreNotify(int entityType, string itemName)
         {
             if (entityType == (int)swNotifyEntityType_e.swNotifyComponent || entityType == (int)swNotifyEntityType_e.swNotifyComponentInternal)
             {
-                Delegate?.Invoke(m_Assm, ((SwAssemblyConfiguration)m_Assm.Configurations.Active).Components[itemName]);
+                var args = new ItemDeleteArgs();
+                Delegate?.Invoke(m_Assm, ((SwAssemblyConfiguration)m_Assm.Configurations.Active).Components[itemName], args);
+
+                if (args.Cancel) 
+                {
+                    throw new NotSupportedException("Cancelling is not supported");
+                }
             }
 
             return HResult.S_OK;

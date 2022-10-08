@@ -37,6 +37,8 @@ namespace Xarial.XCad.SolidWorks.Documents
 
     internal class SwSelectionCollection : ISwSelectionCollection
     {
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
         private readonly SwDocument m_Doc;
         private IModelDoc2 Model => m_Doc.Model;
         internal ISelectionMgr SelMgr => Model.ISelectionManager;
@@ -70,7 +72,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public int Count => SelMgr.GetSelectedObjectCount2(-1);
 
-        public IXSelObject this[string name] => throw new NotSupportedException();
+        public IXSelObject this[string name] => RepositoryHelper.Get(this, name);
 
         private readonly ISwApplication m_App;
 
@@ -102,11 +104,9 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        public void Clear()
-            => Model.ClearSelection2(true);
+        public void Clear() => Model.ClearSelection2(true);
 
-        public IEnumerator<IXSelObject> GetEnumerator()
-            => new SwSelObjectEnumerator(m_Doc, SelMgr);
+        public IEnumerator<IXSelObject> GetEnumerator() => IterateSelection().GetEnumerator();
 
         public void RemoveRange(IEnumerable<IXSelObject> ents, CancellationToken cancellationToken)
         {
@@ -138,19 +138,14 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-
         public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters) => RepositoryHelper.FilterDefault(this, filters, reverseOrder);
-
-        public void Dispose()
-        {
-            m_NewSelectionEventHandler.Dispose();
-            m_ClearSelectionEventHandler.Dispose();
-        }
 
         public bool TryGet(string name, out IXSelObject ent)
         {
-            throw new NotSupportedException();
+            ent = IterateSelection().FirstOrDefault(
+                s => s is INameable && string.Equals(name, ((INameable)s).Name, StringComparison.CurrentCultureIgnoreCase));
+
+            return ent != null;
         }
 
         public IXSelCallout PreCreateCallout() 
@@ -160,43 +155,22 @@ namespace Xarial.XCad.SolidWorks.Documents
             => new SwSelCallout(m_Doc, this, new T());
 
         public T PreCreate<T>() where T : IXSelObject => throw new NotImplementedException();
-    }
 
-    internal class SwSelObjectEnumerator : IEnumerator<IXSelObject>
-    {
-        public IXSelObject Current => m_Doc.CreateObjectFromDispatch<ISwSelObject>(m_SelMgr.GetSelectedObject6(m_CurSelIndex, -1));
-
-        object IEnumerator.Current => Current;
-
-        private int m_CurSelIndex;
-
-        private readonly SwDocument m_Doc;
-        private readonly ISelectionMgr m_SelMgr;
-
-        internal SwSelObjectEnumerator(SwDocument doc, ISelectionMgr selMgr) 
+        private IEnumerable<SwSelObject> IterateSelection() 
         {
-            m_CurSelIndex = 0;
-            m_Doc = doc;
-            m_SelMgr = selMgr;
-        }
-
-        public bool MoveNext()
-        {
-            do
+            for (int i = 1; i < SelMgr.GetSelectedObjectCount2(-1); i++)
             {
-                m_CurSelIndex++;
-            } while (m_SelMgr.GetSelectedObjectType3(m_CurSelIndex, -1) == (int)swSelectType_e.swSelSELECTIONSETNODE);//selection node returns null as the object
-
-            return m_SelMgr.GetSelectedObjectCount2(-1) >= m_CurSelIndex;
-        }
-
-        public void Reset()
-        {
-            m_CurSelIndex = 1;
+                if (SelMgr.GetSelectedObjectType3(i, -1) == (int)swSelectType_e.swSelSELECTIONSETNODE) //selection node returns null as the object
+                {
+                    yield return m_Doc.CreateObjectFromDispatch<SwSelObject>(SelMgr.GetSelectedObject6(i, -1));
+                }
+            }
         }
 
         public void Dispose()
         {
+            m_NewSelectionEventHandler.Dispose();
+            m_ClearSelectionEventHandler.Dispose();
         }
     }
 }

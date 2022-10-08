@@ -193,21 +193,14 @@ namespace Xarial.XCad.SolidWorks
         /// <returns>Created application</returns>
         public static ISwApplication Create(SwVersion_e? vers = null,
             ApplicationState_e state = ApplicationState_e.Default,
-            CancellationToken? cancellationToken = null)
+            CancellationToken cancellationToken = default)
         {
             var app = PreCreate();
 
             app.Version = vers.HasValue ? CreateVersion(vers.Value) : null;
             app.State = state;
 
-            var token = CancellationToken.None;
-
-            if (cancellationToken.HasValue) 
-            {
-                token = cancellationToken.Value;
-            }
-
-            app.Commit(token);
+            app.Commit(cancellationToken);
 
             return app;
         }

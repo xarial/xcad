@@ -39,17 +39,33 @@ namespace Xarial.XCad.SolidWorks.Documents
             remove => m_ComponentInsertedEventsHandler.Detach(value);
         }
 
+        public event ComponentDeletingDelegate ComponentDeleting
+        {
+            add => m_ComponentDeletingEventsHandler.Attach(value);
+            remove => m_ComponentDeletingEventsHandler.Detach(value);
+        }
+
+        public event ComponentDeletedDelegate ComponentDeleted
+        {
+            add => m_ComponentDeletedEventsHandler.Attach(value);
+            remove => m_ComponentDeletedEventsHandler.Detach(value);
+        }
+
         public IAssemblyDoc Assembly => Model as IAssemblyDoc;
 
         private readonly Lazy<SwAssemblyConfigurationCollection> m_LazyConfigurations;
         private readonly SwAssemblyEvaluation m_Evaluation;
 
         private readonly ComponentInsertedEventsHandler m_ComponentInsertedEventsHandler;
+        private readonly ComponentDeletingEventsHandler m_ComponentDeletingEventsHandler;
+        private readonly ComponentDeletedEventsHandler m_ComponentDeletedEventsHandler;
 
         internal SwAssembly(IAssemblyDoc assembly, SwApplication app, IXLogger logger, bool isCreated)
             : base((IModelDoc2)assembly, app, logger, isCreated)
         {
             m_ComponentInsertedEventsHandler = new ComponentInsertedEventsHandler(this, app);
+            m_ComponentDeletingEventsHandler = new ComponentDeletingEventsHandler(this, app);
+            m_ComponentDeletedEventsHandler = new ComponentDeletedEventsHandler(this, app, logger);
 
             m_LazyConfigurations = new Lazy<SwAssemblyConfigurationCollection>(() => new SwAssemblyConfigurationCollection(this, app));
             m_Evaluation = new SwAssemblyEvaluation(this);

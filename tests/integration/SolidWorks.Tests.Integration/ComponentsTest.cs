@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using Xarial.XCad.Base;
@@ -796,6 +797,88 @@ namespace SolidWorks.Tests.Integration
             Assert.AreEqual(1, res.Count);
             Assert.AreEqual(GetFilePath(@"Assembly1\TopAssem1.SLDASM").ToLower(), res[0].Item1.ToLower());
             Assert.AreEqual(compName, res[0].Item2);
+        }
+
+        [Test]
+        public void InsertMultipleComponentEventTest()
+        {
+            var res = new List<Tuple<string, string>>();
+            string[] compNames;
+
+            using (var doc = OpenDataDocument(@"Assembly1\TopAssem1.SLDASM"))
+            {
+                var assm = (ISwAssembly)m_App.Documents.Active;
+
+                assm.ComponentInserted += (a, c) =>
+                {
+                    res.Add(new Tuple<string, string>(a.Path, c.Name));
+                };
+
+                compNames = ((object[])assm.Assembly.AddComponents3(
+                    Enumerable.Repeat(GetFilePath("BBox1.SLDPRT"), 3).ToArray(),
+                    Enumerable.Repeat(new double[] { 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0 }, 3).SelectMany(x => x).ToArray(),
+                    Enumerable.Repeat("", 3).ToArray())).Cast<IComponent2>().Select(c => c.Name2).ToArray();
+            }
+
+            var assmPath = GetFilePath(@"Assembly1\TopAssem1.SLDASM");
+
+            Assert.AreEqual(3, res.Count);
+            Assert.AreEqual(assmPath.ToLower(), res[0].Item1.ToLower());
+            Assert.AreEqual(assmPath.ToLower(), res[1].Item1.ToLower());
+            Assert.AreEqual(assmPath.ToLower(), res[2].Item1.ToLower());
+
+            CollectionAssert.AreEquivalent(compNames, res.Select(r => r.Item2));
+        }
+
+        [Test]
+        public void DeleteComponentEventTest()
+        {
+            IXComponent[] comps;
+            var resDeleting = new List<Tuple<string, string>>();
+            var resDeleted = new List<Tuple<string, IXComponent>>();
+
+            using (var doc = OpenDataDocument(@"Assembly1\TopAssem1.SLDASM"))
+            {
+                var assm = (ISwAssembly)m_App.Documents.Active;
+
+                comps = new IXComponent[]
+                {
+                    assm.Configurations.Active.Components["Part1-1"],
+                    assm.Configurations.Active.Components["Part1-2"],
+                    assm.Configurations.Active.Components["SubAssem1-2"]
+                };
+
+                assm.ComponentDeleting += (a, c, _) =>
+                {
+                    resDeleting.Add(new Tuple<string, string>(a.Path, c.Name));
+                };
+
+                assm.ComponentDeleted += (a, c) =>
+                {
+                    resDeleted.Add(new Tuple<string, IXComponent>(a.Path, c));
+                };
+
+                assm.Model.Extension.MultiSelect2(comps.Select(c => new DispatchWrapper(((ISwComponent)c).Component)).ToArray(), false, null);
+                assm.Model.Extension.DeleteSelection2((int)swDeleteSelectionOptions_e.swDelete_Absorbed);
+            }
+
+            var assmPath = GetFilePath(@"Assembly1\TopAssem1.SLDASM");
+
+            Assert.AreEqual(3, resDeleting.Count);
+            Assert.AreEqual(3, resDeleted.Count);
+
+            Assert.AreEqual(assmPath.ToLower(), resDeleting[0].Item1.ToLower());
+            Assert.AreEqual(assmPath.ToLower(), resDeleting[1].Item1.ToLower());
+            Assert.AreEqual(assmPath.ToLower(), resDeleting[2].Item1.ToLower());
+
+            Assert.AreEqual(assmPath.ToLower(), resDeleted[0].Item1.ToLower());
+            Assert.AreEqual(assmPath.ToLower(), resDeleted[1].Item1.ToLower());
+            Assert.AreEqual(assmPath.ToLower(), resDeleted[2].Item1.ToLower());
+
+            CollectionAssert.AreEquivalent(new string[] { "Part1-1", "Part1-2", "SubAssem1-2" }, resDeleting.Select(r => r.Item2));
+            Assert.IsTrue(comps.Any(c => c.Equals(resDeleted[0].Item2)));
+            Assert.IsTrue(comps.Any(c => c.Equals(resDeleted[1].Item2)));
+            Assert.IsTrue(comps.Any(c => c.Equals(resDeleted[2].Item2)));
         }
 
         [Test]
