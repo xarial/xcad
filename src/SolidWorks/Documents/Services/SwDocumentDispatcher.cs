@@ -40,17 +40,15 @@ namespace Xarial.XCad.SolidWorks.Documents.Services
 
             if (doc.IsCommitted)
             {
-                if (doc is SwUnknownDocument)
+                if (!(doc is SwUnknownDocument))
                 {
-                    doc = (SwDocument)(doc as SwUnknownDocument).GetSpecific();
+                    doc.AttachEvents();
                 }
-
-                doc.AttachEvents();
             }
         }
 
         //NOTE: it might not be enough to compare the pointers. When LoadNotify2 event is called from different threads pointers might not be 
-        protected override bool CompareUnderlineDocuments(IModelDoc2 firstDoc, IModelDoc2 secondDoc)
+        protected override bool CompareNativeDocuments(IModelDoc2 firstDoc, IModelDoc2 secondDoc)
             => m_App.Sw.IsSame(firstDoc, secondDoc) == (int)swObjectEquality.swObjectSame;
 
         protected override SwDocument CreateDocument(IModelDoc2 underlineDoc)

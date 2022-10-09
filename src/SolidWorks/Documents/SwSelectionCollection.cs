@@ -158,9 +158,9 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         private IEnumerable<SwSelObject> IterateSelection() 
         {
-            for (int i = 1; i < SelMgr.GetSelectedObjectCount2(-1); i++)
+            for (int i = 1; i < SelMgr.GetSelectedObjectCount2(-1) + 1; i++)
             {
-                if (SelMgr.GetSelectedObjectType3(i, -1) == (int)swSelectType_e.swSelSELECTIONSETNODE) //selection node returns null as the object
+                if (SelMgr.GetSelectedObjectType3(i, -1) != (int)swSelectType_e.swSelSELECTIONSETNODE) //selection node returns null as the object
                 {
                     yield return m_Doc.CreateObjectFromDispatch<SwSelObject>(SelMgr.GetSelectedObject6(i, -1));
                 }

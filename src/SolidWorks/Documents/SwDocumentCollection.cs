@@ -288,7 +288,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
                 if (models.Contains(model) || models.Any(d => m_SwApp.IsSame(d, model) == (int)swObjectEquality.swObjectSame))
                 {
-                    return Dispatcher.RegisterUnderlineDocument(model);
+                    return Dispatcher.RegisterNativeDocument(model);
                 }
                 else
                 {
@@ -507,7 +507,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                 {
                     m_Logger.Log($"{model.GetTitle()} was not registered", LoggerMessageSeverity_e.Warning);
 
-                    docs.Add(Dispatcher.RegisterUnderlineDocument(model));
+                    docs.Add(Dispatcher.RegisterNativeDocument(model));
                 }
             }
 

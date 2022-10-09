@@ -27,7 +27,7 @@ namespace Xarial.XCad.Inventor.Documents.Services
             }
         }
 
-        protected override bool CompareUnderlineDocuments(Document firstDoc, Document secondDoc)
+        protected override bool CompareNativeDocuments(Document firstDoc, Document secondDoc)
             => string.Equals(firstDoc.InternalName, secondDoc.InternalName);
 
         protected override AiDocument CreateDocument(Document specDoc)

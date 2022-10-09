@@ -183,7 +183,9 @@ namespace Xarial.XCad.SolidWorks.Utils
                     swInsertNewPartErrorCode_e res;
                     var lastFeat = assm.Model.Extension.GetLastFeatureAdded();
 
-                    using (var compsDisp = new AutoComponentsDispatcher(assm, virtComps))
+                    var docVirtComps = virtCompsGroup.ToArray();
+
+                    using (var compsDisp = new AutoComponentsDispatcher(assm, docVirtComps))
                     {
                         switch (virtCompsGroup.Key)
                         {
@@ -230,8 +232,6 @@ namespace Xarial.XCad.SolidWorks.Utils
                         SelectComponents(assm.Model, swVirtComp);
                         assm.Assembly.UnfixComponent();
                     }
-
-                    var docVirtComps = virtCompsGroup.ToArray();
 
                     swVirtComp.Transform2 = (MathTransform)mathUtils.ToMathTransform(docVirtComps.First().Transformation ?? TransformMatrix.Identity);
 

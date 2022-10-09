@@ -732,6 +732,14 @@ namespace SolidWorks.Tests.Integration
                     Assert.That(m_App.Documents.Contains(doc2));
                     Assert.That(m_App.Documents.Contains(doc3));
                     Assert.That(m_App.Documents.Contains(doc4));
+                    Assert.AreEqual(doc1, comp1.ReferencedDocument);
+                    Assert.AreEqual(doc1, comp2.ReferencedDocument);
+                    Assert.AreEqual(doc2, comp3.ReferencedDocument);
+                    Assert.AreEqual(doc2, comp4.ReferencedDocument);
+                    Assert.AreEqual(doc3, comp5.ReferencedDocument);
+                    Assert.AreEqual(doc4, comp6.ReferencedDocument);
+                    Assert.AreEqual(doc4, comp7.ReferencedDocument);
+                    Assert.AreEqual(doc4, comp8.ReferencedDocument);
                 }
             }
         }

@@ -14,13 +14,13 @@ namespace Xarial.XCad.Toolkit.Utils
     /// This services dispatches the model docs and creates IXDocument objects
     /// </summary>
     /// <remarks>This service is also responsible to using the objects pre-created templates where applicable instead of creating new ones.
-    public abstract class DocumentDispatcherBase<TDocument, TUnderlineDoc>
+    public abstract class DocumentDispatcherBase<TDocument, TNativeDoc>
         where TDocument : IXDocument
     {
         public event Action<TDocument> Dispatched;
 
         private readonly List<TDocument> m_DocsDispatchQueue;
-        private readonly List<TUnderlineDoc> m_UnderlineDocsDispatchQueue;
+        private readonly List<TNativeDoc> m_NativeDocsDispatchQueue;
 
         private readonly object m_Lock;
 
@@ -31,7 +31,7 @@ namespace Xarial.XCad.Toolkit.Utils
             m_Logger = logger;
 
             m_DocsDispatchQueue = new List<TDocument>();
-            m_UnderlineDocsDispatchQueue = new List<TUnderlineDoc>();
+            m_NativeDocsDispatchQueue = new List<TNativeDoc>();
 
             m_Lock = new object();
         }
@@ -45,7 +45,7 @@ namespace Xarial.XCad.Toolkit.Utils
         /// Dispatches the loaded document
         /// </summary>
         /// <param name="underlineDoc">Model to add to the queue</param>
-        public void Dispatch(TUnderlineDoc underlineDoc)
+        public void Dispatch(TNativeDoc underlineDoc)
         {
             if (underlineDoc == null)
             {
@@ -56,11 +56,11 @@ namespace Xarial.XCad.Toolkit.Utils
             {
                 m_Logger.Log($"Adding '{GetTitle(underlineDoc)}' to the dispatch queue", LoggerMessageSeverity_e.Debug);
 
-                m_UnderlineDocsDispatchQueue.Add(underlineDoc);
+                m_NativeDocsDispatchQueue.Add(underlineDoc);
 
                 if (!m_DocsDispatchQueue.Any())
                 {
-                    DispatchAllUnderlineDocuments();
+                    DispatchAllNativeDocuments();
                 }
             }
         }
@@ -91,7 +91,7 @@ namespace Xarial.XCad.Toolkit.Utils
         /// </summary>
         /// <param name="doc">Document to remove from the queue</param>
         /// <param name="underlineDoc">Actual pointer to the model. If null system will try to find the matching model</param>
-        public void EndDispatch(TDocument doc, TUnderlineDoc underlineDoc)
+        public void EndDispatch(TDocument doc, TNativeDoc underlineDoc)
         {
             if (doc == null)
             {
@@ -107,13 +107,13 @@ namespace Xarial.XCad.Toolkit.Utils
             {
                 m_DocsDispatchQueue.Remove(doc);
 
-                var index = m_UnderlineDocsDispatchQueue.FindIndex(m => CompareUnderlineDocuments(m, underlineDoc));
+                var index = m_NativeDocsDispatchQueue.FindIndex(m => CompareNativeDocuments(m, underlineDoc));
 
                 if (index != -1)
                 {
                     m_Logger.Log($"Removing '{doc.Title}' from the dispatch queue", LoggerMessageSeverity_e.Debug);
 
-                    m_UnderlineDocsDispatchQueue.RemoveAt(index);
+                    m_NativeDocsDispatchQueue.RemoveAt(index);
                 }
                 else
                 {
@@ -122,6 +122,11 @@ namespace Xarial.XCad.Toolkit.Utils
 
                 BindDocument(doc, underlineDoc);
 
+                if (doc is IXUnknownDocument)
+                {
+                    doc = (TDocument)(doc as IXUnknownDocument).GetSpecific();
+                }
+
                 if (doc.IsCommitted)
                 {
                     NotifyDispatchedSafe(doc);
@@ -129,12 +134,12 @@ namespace Xarial.XCad.Toolkit.Utils
 
                 if (!m_DocsDispatchQueue.Any())
                 {
-                    DispatchAllUnderlineDocuments();
+                    DispatchAllNativeDocuments();
                 }
             }
         }
 
-        public TDocument RegisterUnderlineDocument(TUnderlineDoc underlineDoc)
+        public TDocument RegisterNativeDocument(TNativeDoc underlineDoc)
         {
             if (underlineDoc == null)
             {
@@ -148,19 +153,19 @@ namespace Xarial.XCad.Toolkit.Utils
             return doc;
         }
 
-        private void DispatchAllUnderlineDocuments()
+        private void DispatchAllNativeDocuments()
         {
             lock (m_Lock)
             {
-                m_Logger.Log($"Dispatching all ({m_UnderlineDocsDispatchQueue.Count}) underline documents", LoggerMessageSeverity_e.Debug);
+                m_Logger.Log($"Dispatching all ({m_NativeDocsDispatchQueue.Count}) underline documents", LoggerMessageSeverity_e.Debug);
 
                 var errors = new List<Exception>();
 
-                foreach (var model in m_UnderlineDocsDispatchQueue)
+                foreach (var model in m_NativeDocsDispatchQueue)
                 {
                     try
                     {
-                        RegisterUnderlineDocument(model);
+                        RegisterNativeDocument(model);
                     }
                     catch (Exception ex)
                     {
@@ -168,7 +173,7 @@ namespace Xarial.XCad.Toolkit.Utils
                     }
                 }
 
-                m_UnderlineDocsDispatchQueue.Clear();
+                m_NativeDocsDispatchQueue.Clear();
                 m_Logger.Log($"Cleared models queue", LoggerMessageSeverity_e.Debug);
 
                 if (errors.Any())
@@ -192,9 +197,9 @@ namespace Xarial.XCad.Toolkit.Utils
             }
         }
 
-        protected abstract bool CompareUnderlineDocuments(TUnderlineDoc firstDoc, TUnderlineDoc secondDoc);
-        protected abstract TDocument CreateDocument(TUnderlineDoc specDoc);
-        protected abstract void BindDocument(TDocument doc, TUnderlineDoc underlineDoc);
-        protected abstract string GetTitle(TUnderlineDoc underlineDoc);
+        protected abstract bool CompareNativeDocuments(TNativeDoc firstDoc, TNativeDoc secondDoc);
+        protected abstract TDocument CreateDocument(TNativeDoc specDoc);
+        protected abstract void BindDocument(TDocument doc, TNativeDoc nativeDoc);
+        protected abstract string GetTitle(TNativeDoc nativeDoc);
     }
 }
