@@ -39,6 +39,11 @@ namespace Xarial.XCad.Documents
         IXAnnotationRepository Annotations { get; }
 
         /// <summary>
+        /// Visible entities from this view
+        /// </summary>
+        IXEntityRepository VisibleEntities { get; }
+
+        /// <summary>
         /// Contains the document referenced by this drawing view
         /// </summary>
         IXDocument3D ReferencedDocument { get; set; }

@@ -46,6 +46,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         public IEnumerable<IXDrawingView> DependentViews => throw new NotSupportedException();
         public IXSketch2D Sketch => throw new NotSupportedException();
         public TransformMatrix Transformation => throw new NotSupportedException();
+        public IXEntityRepository VisibleEntities => throw new NotSupportedException();
         #endregion
 
         public override SelectType_e SelectionType => SelectType_e.DrawingViews;

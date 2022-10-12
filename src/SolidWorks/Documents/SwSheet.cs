@@ -383,6 +383,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         public PaperSize PaperSize { get => throw new UnloadedDocumentPreviewOnlySheetException(); set => throw new UnloadedDocumentPreviewOnlySheetException(); }
         public IXSheet Clone() => throw new NotSupportedException();
         public IXSketch2D Sketch => throw new NotSupportedException();
+        public void Delete() => throw new UnloadedDocumentPreviewOnlySheetException();
         #endregion
 
         private readonly ISwApplication m_App;

@@ -52,6 +52,49 @@ namespace Xarial.XCad.Toolkit.Utils
         }
 
         /// <summary>
+        /// Removes the entities
+        /// </summary>
+        /// <typeparam name="TEnt">Type of entity</typeparam>
+        /// <param name="repo">Repository</param>
+        /// <param name="ents">Entities</param>
+        /// <param name="cancellationToken">Cancellation token</param>
+        /// <exception cref="Exception">Thrown if entity is not selectable</exception>
+        public static void RemoveAll<TEnt>(IXRepository<TEnt> repo, IEnumerable<TEnt> ents, CancellationToken cancellationToken)
+            where TEnt : IXTransaction
+        {
+            foreach (var ent in ents.ToArray()) 
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                if (ent is IXSelObject)
+                {
+                    ((IXSelObject)ent).Delete();
+                }
+                else 
+                {
+                    throw new Exception($"Only '{nameof(IXSelObject)}' entities can be removed");
+                }
+            }
+        }
+
+        /// <summary>
+        /// Tries to find the <see cref="INameable"/> entity in the repository
+        /// </summary>
+        /// <typeparam name="TEnt">Entity type</typeparam>
+        /// <param name="repo">Repository</param>
+        /// <param name="name">Name of the entity</param>
+        /// <param name="ent">Entity</param>
+        /// <returns>True if found</returns>
+        public static bool TryFindByName<TEnt>(IXRepository<TEnt> repo, string name, out TEnt ent)
+            where TEnt : IXTransaction
+        {
+            ent = (TEnt)repo.OfType<INameable>()
+                    .FirstOrDefault(e => string.Equals(e.Name, name, StringComparison.CurrentCultureIgnoreCase));
+
+            return ent != null;
+        }
+
+        /// <summary>
         /// Gets the entity by name
         /// </summary>
         /// <typeparam name="TEnt">Type of entity</typeparam>

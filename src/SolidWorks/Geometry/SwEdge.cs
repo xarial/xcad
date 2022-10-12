@@ -35,7 +35,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
             m_Edge = edge;
         }
 
-        protected override IEnumerable<ISwEntity> SelectEntities(bool faces, bool edges, bool vertices)
+        protected override IEnumerable<ISwEntity> IterateEntities(bool faces, bool edges, bool vertices, bool silhouetteEdges)
         {
             if (faces)
             {

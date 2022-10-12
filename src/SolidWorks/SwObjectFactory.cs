@@ -107,6 +107,9 @@ namespace Xarial.XCad.SolidWorks
                 case IVertex vertex:
                     return new SwVertex(vertex, doc, app);
 
+                case ISilhouetteEdge silhouetteEdge:
+                    return new SwSilhouetteEdge(silhouetteEdge, doc, app);
+
                 case ISketch sketch:
                     if (sketch.Is3D())
                     {

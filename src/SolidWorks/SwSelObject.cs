@@ -87,5 +87,15 @@ namespace Xarial.XCad.SolidWorks
         public virtual void Commit(CancellationToken cancellationToken)
         {
         }
+
+        public virtual void Delete()
+        {
+            Select(false);
+
+            if (!OwnerModelDoc.Extension.DeleteSelection2((int)swDeleteSelectionOptions_e.swDelete_Absorbed)) 
+            {
+                throw new Exception("Failed to delete the object");
+            }
+        }
     }
 }

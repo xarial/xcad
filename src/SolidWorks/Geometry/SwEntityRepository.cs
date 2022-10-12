@@ -42,31 +42,36 @@ namespace Xarial.XCad.SolidWorks.Geometry
         public void AddRange(IEnumerable<ISwEntity> ents, CancellationToken cancellationToken)
             => throw new NotSupportedException();
         public void RemoveRange(IEnumerable<ISwEntity> ents, CancellationToken cancellationToken)
-            => throw new NotSupportedException();
-        public bool TryGet(string name, out ISwEntity ent)
-            => throw new NotSupportedException();
+            => RepositoryHelper.RemoveAll(this, ents, cancellationToken);
+
+        public bool TryGet(string name, out ISwEntity ent) 
+            => RepositoryHelper.TryFindByName(this, name, out ent);
+        
         public T PreCreate<T>() where T : IXEntity
             => throw new NotSupportedException();
 
-        public virtual int Count => SelectAllEntities().Count();
+        public virtual int Count => IterateAllEntities().Count();
 
         public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters)
         {
             bool faces;
             bool edges;
             bool vertices;
+            bool silhouetteEdges;
 
             if (filters?.Any() == true)
             {
                 faces = false;
                 edges = false;
                 vertices = false;
+                silhouetteEdges = false;
 
                 foreach (var filter in filters)
                 {
                     faces = filter.Type == null || typeof(IXFace).IsAssignableFrom(filter.Type);
                     edges = filter.Type == null || typeof(IXEdge).IsAssignableFrom(filter.Type);
                     vertices = filter.Type == null || typeof(IXVertex).IsAssignableFrom(filter.Type);
+                    silhouetteEdges = filter.Type == null || typeof(IXSilhouetteEdge).IsAssignableFrom(filter.Type);
                 }
             }
             else
@@ -74,18 +79,19 @@ namespace Xarial.XCad.SolidWorks.Geometry
                 faces = true;
                 edges = true;
                 vertices = true;
+                silhouetteEdges = true;
             }
 
-            foreach (var ent in RepositoryHelper.FilterDefault(SelectEntities(faces, edges, vertices), filters, reverseOrder))
+            foreach (var ent in RepositoryHelper.FilterDefault(IterateEntities(faces, edges, vertices, silhouetteEdges), filters, reverseOrder))
             {
                 yield return ent;
             }
         }
 
-        public IEnumerator<ISwEntity> GetEnumerator() => SelectAllEntities().GetEnumerator();
+        public IEnumerator<ISwEntity> GetEnumerator() => IterateAllEntities().GetEnumerator();
 
-        private IEnumerable<ISwEntity> SelectAllEntities() => SelectEntities(true, true, true);
+        private IEnumerable<ISwEntity> IterateAllEntities() => IterateEntities(true, true, true, true);
 
-        protected abstract IEnumerable<ISwEntity> SelectEntities(bool faces, bool edges, bool vertices);
+        protected abstract IEnumerable<ISwEntity> IterateEntities(bool faces, bool edges, bool vertices, bool silhouetteEdges);
     }
 }

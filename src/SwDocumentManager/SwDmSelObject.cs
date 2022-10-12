@@ -20,16 +20,21 @@ namespace Xarial.XCad.SwDocumentManager
 
     internal class SwDmSelObject : SwDmObject, ISwDmSelObject
     {
+        #region Not Supported
+        
+        public void Commit(CancellationToken cancellationToken) => throw new NotSupportedException();
+        public void Delete() => throw new NotSupportedException();
+        public void Select(bool append) => throw new NotSupportedException();
+
+        #endregion
+
         public SwDmSelObject(object disp) : base(disp)
         {
         }
 
         public bool IsSelected => throw new NotSupportedException();
-        public virtual bool IsCommitted => throw new NotSupportedException();
+        public virtual bool IsCommitted => true;
 
         public virtual SelectType_e SelectionType => throw new NotSupportedException("Type of this object is unknown");
-
-        public void Commit(CancellationToken cancellationToken) => throw new NotSupportedException();
-        public void Select(bool append) => throw new NotSupportedException();
     }
 }

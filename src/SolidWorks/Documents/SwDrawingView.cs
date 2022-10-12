@@ -481,6 +481,8 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public TransformMatrix Transformation => DrawingView.ModelToViewTransform.ToTransformMatrix();
 
+        public IXEntityRepository VisibleEntities => new SwViewVisibleEntities(this);
+
         TSelObject IXObjectContainer.ConvertObject<TSelObject>(TSelObject obj) => ConvertObjectBoxed(obj) as TSelObject;
 
         public TSelObject ConvertObject<TSelObject>(TSelObject obj)
@@ -603,6 +605,62 @@ namespace Xarial.XCad.SolidWorks.Documents
             {
                 yield return m_Drw.CreateObjectFromDispatch<ISwDimension>(dispDim);
                 dispDim = dispDim.GetNext5();
+            }
+        }
+    }
+
+    internal class SwViewVisibleEntities : SwEntityRepository
+    {
+        private readonly SwDrawingView m_DrawingView;
+
+        internal SwViewVisibleEntities(SwDrawingView drwView) 
+        {
+            m_DrawingView = drwView;
+        }
+
+        protected override IEnumerable<ISwEntity> IterateEntities(bool faces, bool edges, bool vertices, bool silhouetteEdges)
+        {
+            foreach (Component2 visComp in (object[])m_DrawingView.DrawingView.GetVisibleComponents() ?? new object[0])
+            {
+                if (faces) 
+                {
+                    foreach (var face in IterateSpecificEntities(visComp, swViewEntityType_e.swViewEntityType_Face)) 
+                    {
+                        yield return face;
+                    }
+                }
+
+                if (edges)
+                {
+                    foreach (var edge in IterateSpecificEntities(visComp, swViewEntityType_e.swViewEntityType_Edge))
+                    {
+                        yield return edge;
+                    }
+                }
+
+                if (vertices)
+                {
+                    foreach (var vertex in IterateSpecificEntities(visComp, swViewEntityType_e.swViewEntityType_Vertex))
+                    {
+                        yield return vertex;
+                    }
+                }
+
+                if (silhouetteEdges)
+                {
+                    foreach (var silhouetteEdge in IterateSpecificEntities(visComp, swViewEntityType_e.swViewEntityType_SilhouetteEdge))
+                    {
+                        yield return silhouetteEdge;
+                    }
+                }
+            }
+        }
+
+        private IEnumerable<ISwEntity> IterateSpecificEntities(Component2 visComp, swViewEntityType_e type) 
+        {
+            foreach (IEntity visEnt in (object[])m_DrawingView.DrawingView.GetVisibleEntities2(visComp, (int)type) ?? new object[0])
+            {
+                yield return m_DrawingView.OwnerDocument.CreateObjectFromDispatch<ISwEntity>(visEnt);
             }
         }
     }

@@ -5,6 +5,7 @@
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
+using SolidWorks.Interop.sldworks;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -28,6 +29,28 @@ namespace Xarial.XCad.SolidWorks.Geometry.Curves
         public Point Coordinate { get; set; }
 
         public bool IsCommitted => true;
+
+        public void Commit(CancellationToken cancellationToken)
+        {
+        }
+    }
+
+    internal class SwMathPoint : SwObject, ISwPoint
+    {
+        internal IMathPoint MathPoint { get; }
+
+        internal SwMathPoint(IMathPoint mathPt, SwDocument doc, SwApplication app) : base(mathPt, doc, app)
+        {
+            MathPoint = mathPt;
+        }
+
+        public bool IsCommitted => true;
+
+        public Point Coordinate 
+        {
+            get => new Point((double[])MathPoint.ArrayData);
+            set => MathPoint.ArrayData = value.ToArray();
+        }
 
         public void Commit(CancellationToken cancellationToken)
         {
