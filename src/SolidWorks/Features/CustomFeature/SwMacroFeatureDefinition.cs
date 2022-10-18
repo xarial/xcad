@@ -274,7 +274,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             try
             {
                 var doc = (SwDocument)Application.Documents[modelDoc as IModelDoc2];
-                return OnUpdateState(Application, doc, m_MacroFeatInstFact.Invoke(this, feature as IFeature, doc, Application));
+                return (int)OnUpdateState(Application, doc, m_MacroFeatInstFact.Invoke(this, feature as IFeature, doc, Application));
             }
             catch(Exception ex) 
             {
@@ -596,8 +596,6 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 
             AlignDimensionDelegate<TParams> alignDimsDel;
             var res = OnRebuild(app, model, (ISwMacroFeature<TParams>)feature, param, out alignDimsDel);
-
-            //m_ParamsParser.SetParameters(model, feature, param, out CustomFeatureOutdateState_e _);
 
             if (dims?.Any() == true)
             {
