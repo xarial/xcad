@@ -77,18 +77,25 @@ namespace Xarial.XCad.Geometry.Structures
         /// <summary>
         /// Creates matrix from translation
         /// </summary>
-        /// <param name="translation">Translation vector</param>
-        /// <returns></returns>
-        public static TransformMatrix CreateFromTranslation(Vector translation) 
-        {   
-            var matrix = Identity;
-            
-            matrix.M41 = translation.X;
-            matrix.M42 = translation.Y;
-            matrix.M43 = translation.Z;
+        ///<param name="x">Translation in X direction</param>
+        ///<param name="y">Translation in Y direction</param>
+        ///<param name="z">Translation in Z direction</param>
+        /// <returns>Transformation matrix</returns>
+        public static TransformMatrix CreateFromTranslation(double x, double y, double z)
+            => new TransformMatrix(1.0, 0.0, 0.0, 0.0,
+                0.0, 1.0, 0.0, 0.0,
+                0.0, 0.0, 1.0, 0.0,
+                x, y, z, 1.0);
 
-            return matrix;
-        }
+
+        /// <summary>
+        /// Creates matrix from translation
+        /// </summary>
+        /// <param name="translation">Translation component</param>
+        /// <returns>Transformation matrix</returns>
+        public static TransformMatrix CreateFromTranslation(Vector translation)
+            => CreateFromTranslation(translation.X, translation.Y, translation.Z);
+
 
         /// <summary>
         /// Composes the transformation matrix from input parameters
@@ -112,18 +119,31 @@ namespace Xarial.XCad.Geometry.Structures
         }
 
         /// <summary>
+        /// Composes the transformation matrix from rotation and translation
+        /// </summary>
+        /// <param name="yaw">Counterclockwise rotation about z-axis</param>
+        /// <param name="pitch">Counterclockwise rotation about y-axis</param>
+        /// <param name="roll">Counterclockwise rotation about x-axis</param>
+        ///<param name="x">Translation in X direction</param>
+        ///<param name="y">Translation in Y direction</param>
+        ///<param name="z">Translation in Z direction</param>
+        /// <returns>Transformation matrix</returns>
+        public static TransformMatrix Compose(double yaw, double pitch, double roll, double x, double y, double z)
+            => new TransformMatrix(
+                Math.Cos(yaw) * Math.Cos(pitch), Math.Cos(yaw) * Math.Sin(pitch) * Math.Sin(roll) - Math.Sin(yaw) * Math.Cos(roll), Math.Cos(yaw) * Math.Sin(pitch) * Math.Cos(roll) + Math.Sin(yaw) * Math.Sin(roll), 0.0,
+                Math.Sin(yaw) * Math.Cos(pitch), Math.Sin(yaw) * Math.Sin(pitch) * Math.Sin(roll) + Math.Cos(yaw) * Math.Cos(roll), Math.Sin(yaw) * Math.Sin(pitch) * Math.Cos(roll) - Math.Cos(yaw) * Math.Sin(roll), 0.0,
+                -Math.Sin(pitch), Math.Cos(pitch) * Math.Sin(roll), Math.Cos(pitch) * Math.Cos(roll), 0.0,
+                x, y, z, 1.0);
+
+        /// <summary>
         /// Creates rotation matrix from rotation angles
         /// </summary>
         /// <param name="yaw">Counterclockwise rotation about z-axis</param>
         /// <param name="pitch">Counterclockwise rotation about y-axis</param>
         /// <param name="roll">Counterclockwise rotation about x-axis</param>
-        /// <returns></returns>
+        /// <returns>Transformation matrix</returns>
         public static TransformMatrix CreateFromRotation(double yaw, double pitch, double roll)
-            => new TransformMatrix(
-                Math.Cos(yaw) * Math.Cos(pitch), Math.Cos(yaw) * Math.Sin(pitch) * Math.Sin(roll) - Math.Sin(yaw) * Math.Cos(roll), Math.Cos(yaw) * Math.Sin(pitch) * Math.Cos(roll) + Math.Sin(yaw) * Math.Sin(roll), 0.0,
-                Math.Sin(yaw) * Math.Cos(pitch), Math.Sin(yaw) * Math.Sin(pitch) * Math.Sin(roll) + Math.Cos(yaw) * Math.Cos(roll), Math.Sin(yaw) * Math.Sin(pitch) * Math.Cos(roll) - Math.Cos(yaw) * Math.Sin(roll), 0.0,
-                -Math.Sin(pitch), Math.Cos(pitch) * Math.Sin(roll), Math.Cos(pitch) * Math.Cos(roll), 0.0,
-                0.0, 0.0, 0.0, 1.0);
+            => Compose(yaw, pitch, roll, 0, 0, 0);
 
         /// <summary>
         /// X-Axis Rotation (X)
@@ -269,6 +289,11 @@ namespace Xarial.XCad.Geometry.Structures
         /// Counterclockwise rotation about x-axis
         /// </summary>
         public double Roll => Math.Atan2(M32, M33);
+
+        /// <summary>
+        /// Translation component of the matrix
+        /// </summary>
+        public Vector Translation => new Vector(M41, M42, M43);
 
         /// <summary>
         /// Multiplies transformation matrix
