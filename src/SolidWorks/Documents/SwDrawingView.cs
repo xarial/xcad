@@ -491,7 +491,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
                 var viewTransform = Transformation;
 
-                var sheetScale = m_ParentSheet.Scale.AsDouble();
+                var sheetScale = Sheet.Scale.AsDouble();
 
                 var scale = viewTransform.Scale.X / sheetScale;
 
