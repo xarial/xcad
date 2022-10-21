@@ -74,8 +74,8 @@ namespace Xarial.XCad.SolidWorks.Utils
             var scaleVec = matrix.Scale;
 
             var scaleX = scaleVec.X;
-            var scaleY = scaleVec.Y;
-            var scaleZ = scaleVec.Z;
+            var scaleY = scaleVec.X; //only uniform scale is supported in SOLIDWORKS
+            var scaleZ = scaleVec.X; //only uniform scale is supported in SOLIDWORKS
 
             return new double[]
             {
