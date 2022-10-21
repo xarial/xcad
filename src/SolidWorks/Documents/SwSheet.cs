@@ -324,6 +324,9 @@ namespace Xarial.XCad.SolidWorks.Documents
         internal SwSheetSketchEditor(SwSheetSketch sheetSketch, SwSheet sheet) : base(sheet)
         {
             m_SheetSketch = sheetSketch;
+            
+            ((ISwDrawing)sheet.OwnerDocument).Drawing.ActivateView("");
+            sheet.OwnerDocument.Selections.Clear();
         }
 
         public SwSheetSketch Target => m_SheetSketch;

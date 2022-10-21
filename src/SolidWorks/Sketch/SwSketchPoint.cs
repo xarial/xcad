@@ -133,7 +133,7 @@ namespace Xarial.XCad.SolidWorks.Sketch
 
         private ISketchPoint CreatePoint(CancellationToken cancellationToken)
         {
-            using (var editor = m_OwnerSketch?.Edit())
+            using (var editor = !m_OwnerSketch.IsEditing ? m_OwnerSketch.Edit() : null)
             {
                 var pt = m_SketchMgr.CreatePoint(Coordinate.X, Coordinate.Y, Coordinate.Z);
 

@@ -18,9 +18,11 @@ using Xarial.XCad.Annotations;
 using Xarial.XCad.Base;
 using Xarial.XCad.Base.Enums;
 using Xarial.XCad.Documents;
+using Xarial.XCad.Documents.Structures;
 using Xarial.XCad.Enums;
 using Xarial.XCad.Features;
 using Xarial.XCad.Geometry;
+using Xarial.XCad.Geometry.Curves;
 using Xarial.XCad.Geometry.Primitives;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Geometry.Wires;
@@ -53,7 +55,9 @@ namespace StandAlone
                                 
                 var app = SwApplicationFactory.FromProcess(Process.GetProcessesByName("SLDWORKS").First());
 
-                StructuralMembersTest(app);
+                ParseViewPolylines(app);
+
+                //StructuralMembersTest(app);
 
                 //AnnotationColor(app);
 
@@ -88,6 +92,65 @@ namespace StandAlone
             Console.ReadLine();
         }
 
+        private static void ParseViewPolylines(ISwApplication app) 
+        {
+            var drw = (ISwDrawing)app.Documents.Active;
+
+            var view = drw.Selections.OfType<ISwDrawingView>().First();
+
+            //var view = (ISwDrawingView)drw.Sheets.Active.DrawingViews.First();
+
+            var polylinesData = view.Polylines;
+
+            //select
+            foreach (var polylineData in polylinesData)
+            {
+                view.DrawingView.SelectEntity(((ISwEntity)polylineData.Entity).Entity, true);
+            }
+            //
+
+            //create in 3D view
+            var sketch = view.ReferencedDocument.Features.PreCreate3DSketch();
+
+            var ents = new List<IXWireEntity>();
+
+            foreach (var polylineData in polylinesData)
+            {
+                for (int i = 0; i < polylineData.Points.Length - 1; i++)
+                {
+                    var line = sketch.Entities.PreCreateLine();
+                    line.Geometry = new Line(polylineData.Points[i], polylineData.Points[i + 1]);
+                    ents.Add(line);
+                }
+            }
+
+            sketch.Entities.AddRange(ents);
+
+            sketch.Commit();
+            //
+
+            //create in sheet
+            var sheetSketch = drw.Sheets.Active.Sketch;
+
+            using (var editor = sheetSketch.Edit())
+            {
+                var sheetEnts = new List<IXWireEntity>();
+
+                foreach (var polylineData in polylinesData)
+                {
+                    for (int i = 0; i < polylineData.Points.Length - 1; i++)
+                    {
+                        var line = sheetSketch.Entities.PreCreateLine();
+                        line.Geometry = new Line(polylineData.Points[i], polylineData.Points[i + 1]);
+                        sheetEnts.Add(line);
+                    }
+                }
+
+                sheetSketch.Entities.AddRange(ents);
+            }
+            //
+        }
+        
         private static void StructuralMembersTest(ISwApplication app)
         {
             var doc = app.Documents.Active;

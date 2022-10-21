@@ -296,6 +296,14 @@ namespace Xarial.XCad.Geometry.Structures
         public Vector Translation => new Vector(M41, M42, M43);
 
         /// <summary>
+        /// Scale in X, Y, Z directions
+        /// </summary>
+        public Vector Scale => new Vector(
+            new Vector(M11, M21, M31).GetLength(),
+            new Vector(M12, M22, M32).GetLength(),
+            new Vector(M13, M23, M33).GetLength());
+
+        /// <summary>
         /// Multiplies transformation matrix
         /// </summary>
         /// <param name="matrix">Matrix to multiply with</param>

@@ -483,6 +483,88 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public IXEntityRepository VisibleEntities => new SwViewVisibleEntities(this);
 
+        public ViewPolylineData[] Polylines 
+        {
+            get
+            {
+                var refDoc = (ISwDocument3D)ReferencedDocument;
+
+                var viewTransform = Transformation;
+
+                var sheetScale = m_ParentSheet.Scale.AsDouble();
+
+                var scale = viewTransform.Scale.X / sheetScale;
+
+                var transform = TransformMatrix.CreateFromTranslation(viewTransform.Translation.Scale(1 / sheetScale));
+
+                var ents = (object[])DrawingView.GetPolylines7((short)swCrossHatchFilter_e.swCrossHatchExclude, out var polylinesDataObj);
+
+                var res = new ViewPolylineData[ents.Length];
+
+                var polylinesData = (double[])polylinesDataObj;
+
+                int curEntIndex = 0;
+
+                for (int i = 0; i < polylinesData.Length;)
+                {
+                    var shift = 0;
+
+                    var type = (int)polylinesData[i + shift];
+                    var geomDataSize = (int)polylinesData[i + ++shift];
+
+                    if (geomDataSize > 0)
+                    {
+                        var geomData = polylinesData.Skip(i + shift + 1).Take(geomDataSize).ToArray();
+                        shift += geomData.Length;
+                    }
+
+                    var lineColor = polylinesData[i + ++shift];
+                    var lineStyle = polylinesData[i + ++shift];
+                    var lineFont = polylinesData[i + ++shift];
+                    var lineWeight = polylinesData[i + ++shift];
+                    var layerId = (int)polylinesData[i + ++shift];
+                    var layerOverride = (int)polylinesData[i + ++shift];
+                    var polyPointsCount = (int)polylinesData[i + ++shift];
+
+                    Point[] polyPoints;
+
+                    if (polyPointsCount > 0)
+                    {
+                        polyPoints = new Point[polyPointsCount];
+
+                        ++shift;
+
+                        for (int j = 0; j < polyPointsCount; j++)
+                        {
+                            //NOTE: coordinate of the point is neither in 3D space nor in sheet space
+                            //It represents the 3D scale coordinates but on the plane which is always XY
+                            polyPoints[j] = new Point(
+                                polylinesData[j * 3 + i + shift] * scale,
+                                polylinesData[j * 3 + i + shift + 1] * scale,
+                                0) * transform;
+                        }
+
+                        shift += polyPointsCount * 3;
+                    }
+                    else
+                    {
+                        polyPoints = new Point[0];
+                    }
+
+                    i += shift;
+
+                    //NOTE: silhouette edges may be null
+                    res[curEntIndex] = new ViewPolylineData(
+                        ents[curEntIndex] != null ? refDoc.CreateObjectFromDispatch<ISwEntity>(ents[curEntIndex]) : null,
+                        polyPoints);
+
+                    curEntIndex++;
+                }
+
+                return res;
+            }
+        }
+
         TSelObject IXObjectContainer.ConvertObject<TSelObject>(TSelObject obj) => ConvertObjectBoxed(obj) as TSelObject;
 
         public TSelObject ConvertObject<TSelObject>(TSelObject obj)
@@ -658,9 +740,11 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         private IEnumerable<ISwEntity> IterateSpecificEntities(Component2 visComp, swViewEntityType_e type) 
         {
+            var refDoc = (ISwDocument3D)m_DrawingView.ReferencedDocument;
+
             foreach (IEntity visEnt in (object[])m_DrawingView.DrawingView.GetVisibleEntities2(visComp, (int)type) ?? new object[0])
             {
-                yield return m_DrawingView.OwnerDocument.CreateObjectFromDispatch<ISwEntity>(visEnt);
+                yield return refDoc.CreateObjectFromDispatch<ISwEntity>(visEnt);
             }
         }
     }

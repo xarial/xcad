@@ -71,9 +71,11 @@ namespace Xarial.XCad.SolidWorks.Utils
             var transY = matrix.M42;
             var transZ = matrix.M43;
 
-            var scaleX = new Vector(matrix.M11, matrix.M21, matrix.M31).GetLength();
-            var scaleY = new Vector(matrix.M11, matrix.M21, matrix.M31).GetLength();
-            var scaleZ = new Vector(matrix.M11, matrix.M21, matrix.M31).GetLength();
+            var scaleVec = matrix.Scale;
+
+            var scaleX = scaleVec.X;
+            var scaleY = scaleVec.Y;
+            var scaleZ = scaleVec.Z;
 
             return new double[]
             {

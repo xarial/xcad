@@ -167,7 +167,7 @@ namespace Xarial.XCad.SolidWorks.Sketch
 
         private ISketchSegment CreateEntity(CancellationToken cancellationToken)
         {
-            using (var editor = m_OwnerSketch?.Edit())
+            using (var editor = !m_OwnerSketch.IsEditing ? m_OwnerSketch?.Edit() : null)
             {
                 //NOTE: this entity can be created even if the IsCommited set to false as these are the cached entities created
                 var seg = CreateSketchEntity();

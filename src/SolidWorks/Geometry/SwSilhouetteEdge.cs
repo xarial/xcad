@@ -27,7 +27,8 @@ namespace Xarial.XCad.SolidWorks.Geometry
     {
         public ISilhouetteEdge SilhouetteEdge { get; }
 
-        internal SwSilhouetteEdge(ISilhouetteEdge silhouetteEdge, SwDocument doc, SwApplication app) : base((IEntity)silhouetteEdge, doc, app)
+        //NOTE: ISilhouetteEdge seems to be not an entity
+        internal SwSilhouetteEdge(ISilhouetteEdge silhouetteEdge, SwDocument doc, SwApplication app) : base(silhouetteEdge as IEntity, doc, app)
         {
             SilhouetteEdge = silhouetteEdge;
         }

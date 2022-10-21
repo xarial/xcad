@@ -44,6 +44,11 @@ namespace Xarial.XCad.Documents
         IXEntityRepository VisibleEntities { get; }
 
         /// <summary>
+        /// Returns the visible polylines of the drawing view
+        /// </summary>
+        ViewPolylineData[] Polylines { get; }
+
+        /// <summary>
         /// Contains the document referenced by this drawing view
         /// </summary>
         IXDocument3D ReferencedDocument { get; set; }
