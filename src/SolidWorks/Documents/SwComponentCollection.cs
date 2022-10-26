@@ -22,6 +22,7 @@ using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.SolidWorks.Documents.Services;
 using Xarial.XCad.SolidWorks.Features;
 using Xarial.XCad.SolidWorks.Utils;
+using Xarial.XCad.Toolkit.Services;
 using Xarial.XCad.Toolkit.Utils;
 
 namespace Xarial.XCad.SolidWorks.Documents
@@ -42,7 +43,19 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public ISwComponent this[string name] => (SwComponent)RepositoryHelper.Get(this, name);
 
-        public abstract bool TryGet(string name, out IXComponent ent);
+        public bool TryGet(string name, out IXComponent ent)
+        {
+            if (RootAssembly.IsCommitted)
+            {
+                return TryGetByName(name, out ent);
+            }
+            else
+            {
+                return m_Cache.TryGet(name, out ent);
+            }
+        }
+
+        protected abstract bool TryGetByName(string name, out IXComponent ent);
 
         public int Count
         {
@@ -59,7 +72,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                 }
                 else
                 {
-                    throw new Exception("Assembly is not committed");
+                    return m_Cache.Count;
                 }
             }
         }
@@ -86,13 +99,27 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         internal SwAssembly RootAssembly { get; }
 
+        private readonly EntityCache<IXComponent> m_Cache;
+
         internal SwComponentCollection(SwAssembly assm)
         {
             RootAssembly = assm;
+            m_Cache = new EntityCache<IXComponent>(assm, this, c => c.Name);
         }
 
         public void AddRange(IEnumerable<IXComponent> ents, CancellationToken cancellationToken)
-            => BatchAdd(RootAssembly, ents.Cast<SwComponent>().ToArray(), true);
+        {
+            if (RootAssembly.IsCommitted)
+            {
+                BatchAdd(RootAssembly, ents.Cast<SwComponent>().ToArray(), true);
+            }
+            else 
+            {
+                m_Cache.AddRange(ents, cancellationToken);
+            }
+        }
+
+        internal void CommitCache(CancellationToken cancellationToken) => m_Cache.Commit(cancellationToken);
 
         protected abstract IEnumerable<IComponent2> IterateChildren();
 
@@ -113,14 +140,23 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
             else 
             {
-                throw new Exception("Assembly is not committed");
+                return m_Cache.GetEnumerator();
             }
         }
 
         public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters) => RepositoryHelper.FilterDefault(this, filters, reverseOrder);
 
         public void RemoveRange(IEnumerable<IXComponent> ents, CancellationToken cancellationToken)
-            => throw new NotImplementedException();
+        {
+            if (RootAssembly.IsCommitted)
+            {
+                RepositoryHelper.RemoveAll(this, ents, cancellationToken);
+            }
+            else 
+            {
+                m_Cache.RemoveRange(ents, cancellationToken);
+            }
+        }
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 

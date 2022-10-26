@@ -836,7 +836,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             m_Comp = comp;
         }
 
-        public override bool TryGet(string name, out IXComponent ent)
+        protected override bool TryGetByName(string name, out IXComponent ent)
         {
             var comp = IterateChildren().FirstOrDefault(c => string.Equals(GetRelativeName(c), name, StringComparison.CurrentCultureIgnoreCase));
 

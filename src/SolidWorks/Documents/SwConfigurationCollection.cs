@@ -56,11 +56,22 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         private readonly ConfigurationActivatedEventsHandler m_ConfigurationActivatedEventsHandler;
 
+        internal Lazy<ISwConfiguration> ActiveNonCommittedConfigurationLazy { get; }
+
         internal SwConfigurationCollection(SwDocument3D doc, SwApplication app)
         {
             m_App = app;
             m_Doc = doc;
             m_ConfigurationActivatedEventsHandler = new ConfigurationActivatedEventsHandler(doc, app);
+
+            ActiveNonCommittedConfigurationLazy = new Lazy<ISwConfiguration>(() => 
+            {
+                var activeConfName = m_App.Sw.GetActiveConfigurationName(m_Doc.Path);
+
+                var conf = PreCreate();
+                conf.Name = activeConfName;
+                return conf;
+            });
         }
 
         public IXConfiguration this[string name] => RepositoryHelper.Get(this, name);
@@ -125,11 +136,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                 }
                 else 
                 {
-                    var activeConfName = m_App.Sw.GetActiveConfigurationName(m_Doc.Path);
-                    return new SwConfiguration(null, m_Doc, m_App, false)
-                    {
-                        Name = activeConfName
-                    };
+                    return ActiveNonCommittedConfigurationLazy.Value;
                 }
             } 
             set 
@@ -144,7 +151,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        public ISwConfiguration PreCreate() => new SwConfiguration(null, m_Doc, m_App, false);
+        public virtual ISwConfiguration PreCreate() => new SwConfiguration(null, m_Doc, m_App, false);
 
         public void AddRange(IEnumerable<IXConfiguration> ents, CancellationToken cancellationToken) => RepositoryHelper.AddRange(ents, cancellationToken);
 
@@ -338,6 +345,8 @@ namespace Xarial.XCad.SolidWorks.Documents
         IXAssemblyConfiguration IXAssemblyConfigurationRepository.PreCreate()
             => (this as ISwAssemblyConfigurationCollection).PreCreate();
 
+        public override ISwConfiguration PreCreate() => (this as ISwAssemblyConfigurationCollection).PreCreate();
+
         public override IEnumerator<IXConfiguration> GetEnumerator() => new SwAssemblyConfigurationEnumerator(m_App, m_Assm);
     }
 
@@ -404,6 +413,9 @@ namespace Xarial.XCad.SolidWorks.Documents
             => new SwPartConfiguration(null, m_Part, m_App, false);
 
         IXPartConfiguration IXPartConfigurationRepository.PreCreate()
+            => (this as ISwPartConfigurationCollection).PreCreate();
+
+        public override ISwConfiguration PreCreate()
             => (this as ISwPartConfigurationCollection).PreCreate();
 
         public override IEnumerator<IXConfiguration> GetEnumerator() => new SwPartConfigurationEnumerator(m_App, m_Part);

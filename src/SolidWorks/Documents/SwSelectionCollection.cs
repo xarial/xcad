@@ -160,9 +160,20 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
             for (int i = 1; i < SelMgr.GetSelectedObjectCount2(-1) + 1; i++)
             {
-                if (SelMgr.GetSelectedObjectType3(i, -1) != (int)swSelectType_e.swSelSELECTIONSETNODE) //selection node returns null as the object
+                var selType = SelMgr.GetSelectedObjectType3(i, -1);
+
+                if (selType != (int)swSelectType_e.swSelSELECTIONSETNODE && selType != (int)swSelectType_e.swSelBROWSERITEM) //selection node returns null as the object
                 {
-                    yield return m_Doc.CreateObjectFromDispatch<SwSelObject>(SelMgr.GetSelectedObject6(i, -1));
+                    var disp = SelMgr.GetSelectedObject6(i, -1);
+
+                    if (disp != null)
+                    {
+                        yield return m_Doc.CreateObjectFromDispatch<SwSelObject>(disp);
+                    }
+                    else 
+                    {
+                        System.Diagnostics.Debug.Assert(false, "Object does not have dispatch. Add to the types exceptions above");
+                    }
                 }
             }
         }

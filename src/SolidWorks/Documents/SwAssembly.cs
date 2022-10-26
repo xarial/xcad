@@ -10,6 +10,7 @@ using SolidWorks.Interop.swconst;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Xarial.XCad.Base;
 using Xarial.XCad.Base.Enums;
 using Xarial.XCad.Documents;
@@ -101,6 +102,20 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
+        protected override void CommitCache(IModelDoc2 model, CancellationToken cancellationToken)
+        {
+            base.CommitCache(model, cancellationToken);
+
+            if (m_LazyConfigurations.IsValueCreated) 
+            {
+                if (m_LazyConfigurations.Value.ActiveNonCommittedConfigurationLazy.IsValueCreated) 
+                {
+                    ((SwComponentCollection)((SwAssemblyConfiguration)m_LazyConfigurations.Value.ActiveNonCommittedConfigurationLazy.Value).Components)
+                        .CommitCache(cancellationToken);
+                }
+            }
+        }
+
         protected override SwAnnotationCollection CreateAnnotations()
             => new SwDocument3DAnnotationCollection(this);
 
@@ -124,7 +139,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         protected bool IsActiveConfiguration => m_Assm.Model.GetActiveConfiguration() == m_Conf;
 
-        public override bool TryGet(string name, out IXComponent ent)
+        protected override bool TryGetByName(string name, out IXComponent ent)
         {
             var comp = RootAssembly.Assembly.GetComponentByName(name);
 
