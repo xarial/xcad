@@ -961,6 +961,9 @@ namespace SwAddInExample
             var part = (IXPart)Application.Documents.Active;
             var conf = part.Configurations.Active;
 
+            var opts = FlatPatternViewOptions_e.None;
+            var sheetMetalBody = part.Selections.OfType<IXSolidBody>().FirstOrDefault();
+
             using (var drw = Application.Documents.PreCreateDrawing())
             {
                 var sheet = drw.Sheets.First();
@@ -975,7 +978,8 @@ namespace SwAddInExample
                 flatPatternView.ReferencedDocument = part;
                 flatPatternView.ReferencedConfiguration = conf;
                 flatPatternView.Scale = new Scale(1, 1);
-                flatPatternView.Options = FlatPatternViewOptions_e.BendLines;
+                flatPatternView.Options = opts;
+                flatPatternView.SheetMetalBody = sheetMetalBody;
                 sheet.DrawingViews.Add(flatPatternView);
             }
         }

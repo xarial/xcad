@@ -44,7 +44,7 @@ namespace Xarial.XCad.SolidWorks.Features
 
         private readonly ISketch m_Sketch;
 
-        private readonly ViewFreeze m_ViewFreeze;
+        private readonly UiFreeze m_ViewFreeze;
 
         protected SwSketchEditorBase(TSketch sketch, ISketch swSketch) 
         {
@@ -63,7 +63,7 @@ namespace Xarial.XCad.SolidWorks.Features
 
             m_SketchMgr = Target.OwnerDocument.Model.SketchManager;
 
-            m_ViewFreeze = new ViewFreeze(Target.OwnerDocument);
+            m_ViewFreeze = new UiFreeze(Target.OwnerDocument);
 
             if (!Target.IsEditing)
             {

@@ -34,7 +34,8 @@ namespace Xarial.XCad.Documents
         /// Freezes all view updates
         /// </summary>
         /// <param name="freeze">True to suppress all updates</param>
-        void Freeze(bool freeze);
+        /// <returns>Freeze object, when disposed - view is restored</returns>
+        IDisposable Freeze(bool freeze);
 
         /// <summary>
         /// Transformation of this view related to the model origin

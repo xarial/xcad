@@ -192,7 +192,7 @@ namespace Xarial.XCad.SolidWorks.Features
 
         private IFeature CreateFeature(CancellationToken cancellationToken)
         {
-            using (var viewFreeze = new ViewFreeze(OwnerDocument))
+            using (var viewFreeze = new UiFreeze(OwnerDocument))
             {
                 var feat = InsertFeature(cancellationToken);
 

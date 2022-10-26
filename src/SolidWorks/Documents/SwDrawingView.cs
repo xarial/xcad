@@ -1248,8 +1248,8 @@ namespace Xarial.XCad.SolidWorks.Documents
                 }
                 else
                 {
-                    var fixedEnt = GetViewFlatPattern(DrawingView).FixedEntity;
-                    return (IXSolidBody)fixedEnt.Body;
+                    var face = GetFlatPatternFace(DrawingView);
+                    return OwnerDocument.CreateObjectFromDispatch<ISwSolidBody>(face.IGetBody());
                 }
             }
             set
@@ -1401,8 +1401,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
             if (hasBendLines != needBendLines)
             {
-                var flatPattern = GetViewFlatPattern(view);
-                var bendLinesSketch = GetBendLinesSketchOrNull(flatPattern);
+                var bendLinesSketch = GetBendLinesSketchOrNull(view);
 
                 if (bendLinesSketch != null) //bend line sketch can be null if sheet metal has no bends
                 {
@@ -1426,33 +1425,91 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        private static IFeature GetBendLinesSketchOrNull(ISwFlatPattern flatPattern)
+        private IFeature GetBendLinesSketchOrNull(IView view)
         {
-            var subFeat = flatPattern.Feature.IGetFirstSubFeature();
+            var bendLines = (object[])view.GetBendLines();
 
-            IFeature bendLinesSketch = null;
-
-            while (subFeat != null)
+            if (bendLines?.Any() == true)
             {
-                if (subFeat.GetTypeName2() == SwSketch2D.TypeName)
-                {
-                    var sketch = (ISketch)subFeat.GetSpecificFeature2();
-                    var skSegs = (object[])sketch.GetSketchSegments();
+                return (IFeature)((ISketchSegment)bendLines.First()).GetSketch();
+            }
+            else
+            {
+                var flatPattern = GetViewFlatPattern(view);
 
-                    if ((skSegs?.FirstOrDefault() as ISketchSegment)?.IsBendLine() == true)
+                var subFeat = flatPattern.Feature.IGetFirstSubFeature();
+
+                IFeature bendLinesSketch = null;
+
+                while (subFeat != null)
+                {
+                    if (subFeat.GetTypeName2() == SwSketch2D.TypeName)
                     {
-                        bendLinesSketch = subFeat;
-                        break;
+                        var sketch = (ISketch)subFeat.GetSpecificFeature2();
+                        var skSegs = (object[])sketch.GetSketchSegments();
+
+                        if ((skSegs?.FirstOrDefault() as ISketchSegment)?.IsBendLine() == true)
+                        {
+                            bendLinesSketch = subFeat;
+                            break;
+                        }
                     }
+
+                    subFeat = subFeat.IGetNextSubFeature();
                 }
 
-                subFeat = subFeat.IGetNextSubFeature();
+                return bendLinesSketch;
             }
-
-            return bendLinesSketch;
         }
 
         private ISwFlatPattern GetViewFlatPattern(IView view) 
+        {
+            if (OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2014))
+            {
+                var flatPatternFolder = (IFlatPatternFolder)view.ReferencedDocument.FeatureManager.GetFlatPatternFolder();
+                var flatPatterns = (object[])flatPatternFolder.GetFlatPatterns();
+
+                if (flatPatterns?.Any() == true)
+                {
+                    var activeFlatPatterns = flatPatterns.Cast<IFeature>().Where(f =>
+                    {
+                        var isSuppressed = ((bool[])f.IsSuppressed2((int)swInConfigurationOpts_e.swSpecifyConfiguration,
+                            new string[] { view.ReferencedConfiguration })).First();
+
+                        return !isSuppressed;
+                    }).ToArray();
+
+                    if (activeFlatPatterns.Length == 1)
+                    {
+                        return OwnerDocument.CreateObjectFromDispatch<ISwFlatPattern>(activeFlatPatterns.First());
+                    }
+                    else if (activeFlatPatterns.Length == 0)
+                    {
+                        throw new Exception("Failed to find active flat patterns");
+                    }
+                    else 
+                    {
+                        throw new Exception("More than one active flat pattern is found");
+                    }
+                }
+                else 
+                {
+                    throw new Exception("No flat patterns found");
+                }
+            }
+            else
+            {
+                //Note, in some sheet metal files (probably corrupted as the result of the upgrade)
+                //this can return the hidden sheet metal flat pattern feature, not the actual one,
+                //so only using this as a fallback function
+
+                var face = GetFlatPatternFace(view);
+
+                return OwnerDocument.CreateObjectFromDispatch<ISwFlatPattern>(face.GetFeature());
+            }
+        }
+
+        private IFace2 GetFlatPatternFace(IView view)
         {
             var comp = (Component2)((object[])view.GetVisibleComponents()).First();
 
@@ -1467,7 +1524,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                 face = (IFace2)((object[])view.GetVisibleEntities(comp, (int)swViewEntityType_e.swViewEntityType_Face)).First();
             }
 
-            return OwnerDocument.CreateObjectFromDispatch<ISwFlatPattern>(face.GetFeature());
+            return face;
         }
     }
 

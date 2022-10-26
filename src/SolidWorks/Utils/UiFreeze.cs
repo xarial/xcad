@@ -8,12 +8,15 @@ using Xarial.XCad.SolidWorks.Documents;
 
 namespace Xarial.XCad.SolidWorks.Utils
 {
-    internal class ViewFreeze : IDisposable
+    /// <summary>
+    /// Freezes feature tree and view
+    /// </summary>
+    internal class UiFreeze : IDisposable
     {
         private readonly IModelDoc2 m_Model;
         private readonly IModelView m_View;
 
-        internal ViewFreeze(ISwDocument doc)
+        internal UiFreeze(ISwDocument doc)
         {
             m_Model = doc.Model;
 

@@ -351,7 +351,7 @@ namespace Xarial.XCad.Utils.CustomFeature
         {
             if (m_IsPageActive)
             {
-                using (var viewFreezer = new ViewFreezer(CurModel))
+                using (CurModel.ModelViews.Active.Freeze(true))
                 {
                     try
                     {
@@ -362,8 +362,8 @@ namespace Xarial.XCad.Utils.CustomFeature
                         m_PreviewBodies = Definition.CreatePreviewGeometry(m_App, CurModel,
                             m_CurData, m_CurPageData, out var shouldHidePreviewEdit,
                             out var assignPreviewColor);
-                        
-                        if (assignPreviewColor == null) 
+
+                        if (assignPreviewColor == null)
                         {
                             assignPreviewColor = DefaultAssignPreviewBodyColor;
                         }

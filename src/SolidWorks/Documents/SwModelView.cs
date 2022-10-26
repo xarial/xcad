@@ -23,6 +23,26 @@ namespace Xarial.XCad.SolidWorks.Documents
         IModelView View { get; }
     }
 
+    internal class ModelViewFreezer : IDisposable
+    {
+        private readonly bool m_OrigIsGraphicsEnabled;
+        private readonly IModelView m_View;
+
+        internal ModelViewFreezer(SwModelView view, bool freeze) 
+        {
+            m_View = view.View;
+            m_OrigIsGraphicsEnabled = m_View.EnableGraphicsUpdate;
+
+            m_View.EnableGraphicsUpdate = !freeze;
+        }
+
+        public void Dispose()
+        {
+            m_View.EnableGraphicsUpdate = m_OrigIsGraphicsEnabled;
+            m_View.GraphicsRedraw(null);
+        }
+    }
+
     internal class SwModelView : SwObject, ISwModelView
     {
         private readonly IMathUtility m_MathUtils;
@@ -129,8 +149,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             m_MathUtils = app.Sw.IGetMathUtility();
         }
 
-        public void Freeze(bool freeze)
-            => View.EnableGraphicsUpdate = !freeze;
+        public IDisposable Freeze(bool freeze) => new ModelViewFreezer(this, freeze);
 
         public void Update()
             => View.GraphicsRedraw(null);

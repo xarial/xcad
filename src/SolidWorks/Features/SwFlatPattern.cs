@@ -41,19 +41,12 @@ namespace Xarial.XCad.SolidWorks.Features
             }
             set 
             {
-                if (Feature.Select2(false, -1))
+                if (!Feature.SetSuppression2(value
+                    ? (int)swFeatureSuppressionAction_e.swUnSuppressFeature
+                    : (int)swFeatureSuppressionAction_e.swSuppressFeature,
+                    (int)swInConfigurationOpts_e.swThisConfiguration, null))
                 {
-                    if (!Feature.SetSuppression2(value
-                        ? (int)swFeatureSuppressionAction_e.swUnSuppressFeature
-                        : (int)swFeatureSuppressionAction_e.swSuppressFeature,
-                        (int)swInConfigurationOpts_e.swThisConfiguration, null))
-                    {
-                        throw new Exception("Failed to change the flattened state of the feature");
-                    }
-                }
-                else 
-                {
-                    throw new Exception("Failed to select feature");
+                    throw new Exception("Failed to change the flattened state of the feature");
                 }
             }
         }

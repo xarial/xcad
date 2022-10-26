@@ -108,7 +108,7 @@ namespace Xarial.XCad.SolidWorks.Features
         {
             if (Document.IsCommitted)
             {
-                using (var viewFreeze = new ViewFreeze(Document))
+                using (var viewFreeze = new UiFreeze(Document))
                 {
                     var disps = ents.Cast<SwFeature>().Select(e => new DispatchWrapper(e.Feature)).ToArray();
 
@@ -171,7 +171,7 @@ namespace Xarial.XCad.SolidWorks.Features
         {
             if (Document.IsCommitted)
             {
-                using (var viewFreeze = new ViewFreeze(Document))
+                using (var viewFreeze = new UiFreeze(Document))
                 {
                     RepositoryHelper.AddRange(feats, cancellationToken);
                 }
