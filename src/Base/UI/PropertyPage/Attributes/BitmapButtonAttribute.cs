@@ -44,7 +44,7 @@ namespace Xarial.XCad.UI.PropertyPage.Attributes
         public BitmapButtonAttribute(Type resType, string masterResName, int width = 24, int height = 24) : this()
         {
             Icon = ResourceHelper.GetResource<IXImage>(resType, masterResName);
-            
+
             Width = width;
             Height = height;
         }
@@ -54,7 +54,7 @@ namespace Xarial.XCad.UI.PropertyPage.Attributes
             StandardIcon = standardIcon;
         }
 
-        private BitmapButtonAttribute() 
+        private BitmapButtonAttribute()
         {
             ConstructorType = typeof(IBitmapButtonConstructor);
         }

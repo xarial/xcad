@@ -227,8 +227,13 @@ namespace SwAddInExample
         [ControlOptions(backgroundColor: System.Drawing.KnownColor.Yellow, textColor: System.Drawing.KnownColor.Green)]
         public string TextBlockText => m_TextBlockText;
 
-        [BitmapButton(typeof(Resources), nameof(Resources.vertical), 96, 96)]
-        public bool CheckBox1 { get; set; }
+        [BitmapToggleButton(typeof(Resources), nameof(Resources.vertical), nameof(Resources.horizontal), 96, 96)]
+        [Description("Dynamic icon1")]
+        public bool CheckBox1 { get; set; } = true;
+
+        [BitmapToggleButton(typeof(Resources), nameof(Resources.vertical), BitmapEffect_e.Grayscale | BitmapEffect_e.Transparent, 24, 24)]
+        [Description("Dynamic icon2")]
+        public bool CheckBox2 { get; set; } = false;
 
         [BitmapButton(typeof(Resources), nameof(Resources.horizontal), 48, 48)]
         public bool CheckBox { get; set; }

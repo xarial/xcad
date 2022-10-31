@@ -239,6 +239,13 @@ namespace SwAddInExample
             Button3
         }
 
+        [Title(typeof(Resources), nameof(Resources.TabName))]
+        public enum Commands3_3 
+        {
+            [CommandItemInfo(true, true, WorkspaceTypes_e.AllDocuments, true)]
+            Command1
+        }
+
         private IXPropertyPage<PmpMacroFeatData> m_MacroFeatPage;
         private PmpMacroFeatData m_MacroFeatPmpData;
         private PmpComboBoxData m_PmpComboBoxData;
@@ -327,6 +334,8 @@ namespace SwAddInExample
                 CommandManager.AddCommandGroup<Commands_e>().CommandClick += OnCommandClick;
                 CommandManager.AddContextMenu<ContextMenuCommands_e>(Xarial.XCad.Base.Enums.SelectType_e.Faces).CommandClick += OnContextMenuCommandClick;
 
+                CommandManager.AddCommandGroup<Commands3_3>().CommandClick += OnCommands3Click;
+
                 Application.Documents.RegisterHandler<SwDocHandler>();
 
                 Application.Documents.DocumentActivated += OnDocumentActivated;
@@ -344,6 +353,10 @@ namespace SwAddInExample
             {
                 Debug.Assert(false);
             }
+        }
+
+        private void OnCommands3Click(Commands3_3 spec)
+        {
         }
 
         private void OnComboBoxPageClosed(PageCloseReasons_e reason)

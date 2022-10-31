@@ -38,5 +38,20 @@ namespace Xarial.XCad.Toolkit.Utils
 
             return Color.FromArgb(r, g, b);
         }
+
+        /// <summary>
+        /// Converts the pix to grayscale
+        /// </summary>
+        /// <param name="r">Red component of the pixel</param>
+        /// <param name="g">Green component of the pixex</param>
+        /// <param name="b">Blue component of the pixel</param>
+        public static void ConvertPixelToGrayscale(ref byte r, ref byte g, ref byte b)
+        {
+            var pixel = (byte)((r + g + b) / 3);
+
+            r = pixel;
+            g = pixel;
+            b = pixel;
+        }
     }
 }

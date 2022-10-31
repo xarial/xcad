@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using Xarial.XCad.SolidWorks.Base;
+using Xarial.XCad.Toolkit.Utils;
 using Xarial.XCad.UI;
 
 namespace Xarial.XCad.SolidWorks.Features.CustomFeature.Toolkit.Icons
@@ -46,12 +47,6 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature.Toolkit.Icons
         }
 
         protected void ConvertPixelToGrayscale(ref byte r, ref byte g, ref byte b, ref byte a)
-        {
-            var pixel = (byte)((r + g + b) / 3);
-
-            r = pixel;
-            g = pixel;
-            b = pixel;
-        }
+            => ColorUtils.ConvertPixelToGrayscale(ref r, ref g, ref b);
     }
 }

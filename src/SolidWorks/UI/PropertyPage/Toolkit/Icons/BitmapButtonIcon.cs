@@ -9,7 +9,9 @@ using System.Collections.Generic;
 using System.Drawing;
 using Xarial.XCad.SolidWorks.Base;
 using Xarial.XCad.SolidWorks.Utils;
+using Xarial.XCad.Toolkit.Utils;
 using Xarial.XCad.UI;
+using Xarial.XCad.UI.PropertyPage.Enums;
 
 namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Icons
 {
@@ -26,18 +28,25 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Icons
 
         public bool IsPermanent => false;
 
-        internal BitmapButtonIcon(IXImage icon, int width, int height)
+        internal BitmapEffect_e Effect { get; }
+
+        internal BitmapButtonIcon(IXImage icon, int width, int height, BitmapEffect_e effect = BitmapEffect_e.None)
         {
             Icon = icon;
             m_Width = width;
             m_Height = height;
+
+            Effect = effect;
         }
         
         public virtual IEnumerable<IIconSpec> GetIconSizes()
         {
-            yield return new IconSpec(Icon, new Size(m_Width, m_Height), BORDER_SIZE);
+            yield return new IconSpec(Icon, new Size(m_Width, m_Height), ApplyEffect, BORDER_SIZE);
             yield return new IconSpec(Icon, new Size(m_Width, m_Height), CreateMask, BORDER_SIZE);
         }
+
+        protected void ConvertPixelToGrayscale(ref byte r, ref byte g, ref byte b, ref byte a)
+            => ColorUtils.ConvertPixelToGrayscale(ref r, ref g, ref b);
 
         protected void CreateMask(ref byte r, ref byte g, ref byte b, ref byte a) 
         {
@@ -46,6 +55,19 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Icons
             g = mask;
             b = mask;
             a = 255;
+        }
+
+        protected void ApplyEffect(ref byte r, ref byte g, ref byte b, ref byte a)
+        {
+            if (Effect.HasFlag(BitmapEffect_e.Grayscale))
+            {
+                ColorUtils.ConvertPixelToGrayscale(ref r, ref g, ref b);
+            }
+
+            if (Effect.HasFlag(BitmapEffect_e.Transparent))
+            {
+                a = (byte)((double)a / 2);
+            }
         }
     }
 }
