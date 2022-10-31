@@ -6,6 +6,7 @@
 //*********************************************************************
 
 using SolidWorks.Interop.sldworks;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Xarial.XCad.Geometry;
@@ -27,11 +28,13 @@ namespace Xarial.XCad.SolidWorks.Geometry
     {
         public ISilhouetteEdge SilhouetteEdge { get; }
 
-        //NOTE: ISilhouetteEdge seems to be not an entity
+        //NOTE: ISilhouetteEdge is not an IEntity
         internal SwSilhouetteEdge(ISilhouetteEdge silhouetteEdge, SwDocument doc, SwApplication app) : base(silhouetteEdge as IEntity, doc, app)
         {
             SilhouetteEdge = silhouetteEdge;
         }
+
+        public override IEntity Entity => throw new NotSupportedException($"{nameof(ISilhouetteEdge)} is not an {nameof(IEntity)}");
 
         public IXFace Face => OwnerDocument.CreateObjectFromDispatch<ISwFace>(SilhouetteEdge.GetFace());
 
@@ -46,6 +49,37 @@ namespace Xarial.XCad.SolidWorks.Geometry
         public override ISwBody Body => (ISwBody)Face.Body;
 
         public override ISwEntityRepository AdjacentEntities => new EmptySwEntityRepository();
+
+        public override object Dispatch => SilhouetteEdge;
+
+        public override ISwComponent Component 
+        {
+            get 
+            {
+                var comp = (IComponent2)((IEntity)SilhouetteEdge.GetFace()).GetComponent();
+
+                if (comp != null)
+                {
+                    return OwnerDocument.CreateObjectFromDispatch<ISwComponent>(comp);
+                }
+                else
+                {
+                    return null;
+                }
+            }
+        }
+
+        internal override void Select(bool append, ISelectData selData)
+        {
+            if (OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2014))
+            {
+                SilhouetteEdge.Select2(append, (SelectData)selData);
+            }
+            else 
+            {
+                SilhouetteEdge.Select(append, (SelectData)selData);
+            }
+        }
 
         public override Point FindClosestPoint(Point point)
             => new Point(((double[])SilhouetteEdge.GetCurve().GetClosestPointOn(point.X, point.Y, point.Z)).Take(3).ToArray());

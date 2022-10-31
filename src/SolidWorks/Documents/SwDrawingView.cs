@@ -742,7 +742,8 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
             var refDoc = (ISwDocument3D)m_DrawingView.ReferencedDocument;
 
-            foreach (IEntity visEnt in (object[])m_DrawingView.DrawingView.GetVisibleEntities2(visComp, (int)type) ?? new object[0])
+            //NOTE: silhouette edge is not an IEntity so cannot cast to IEntity in the for-each
+            foreach (object visEnt in (object[])m_DrawingView.DrawingView.GetVisibleEntities2(visComp, (int)type) ?? new object[0])
             {
                 yield return refDoc.CreateObjectFromDispatch<ISwEntity>(visEnt);
             }

@@ -36,7 +36,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
         IXComponent IXEntity.Component => Component;
         IXObject IResilientibleObject.CreateResilient() => CreateResilient();
 
-        public IEntity Entity { get; }
+        public virtual IEntity Entity { get; }
 
         public override object Dispatch => Entity;
 
@@ -44,7 +44,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         public abstract ISwEntityRepository AdjacentEntities { get; }
 
-        public ISwComponent Component 
+        public virtual ISwComponent Component 
         {
             get 
             {
