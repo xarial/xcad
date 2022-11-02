@@ -308,12 +308,32 @@ namespace Xarial.XCad.SolidWorks.Documents
 
     internal class SwPartComponentConfiguration : SwComponentConfiguration, IXPartConfiguration
     {
+        private readonly SwPartComponent m_Comp;
+
         public SwPartComponentConfiguration(SwPartComponent comp, SwApplication app) : base(comp, app)
         {
+            m_Comp = comp;
             CutLists = new SwPartComponentCutListItemCollection(comp);
         }
 
         public IXCutListItemRepository CutLists { get; }
+
+        public IXMaterial Material
+        {
+            get
+            {
+                var materialName = ((SwPart)m_Comp.ReferencedDocument).Part.GetMaterialPropertyName2(Name, out var database);
+
+                if (!string.IsNullOrEmpty(materialName))
+                {
+                    return new SwMaterial(materialName, database);
+                }
+                else
+                {
+                    return null;
+                }
+            }
+        }
     }
 
     internal class SwAssemblyComponentConfiguration : SwComponentConfiguration, IXAssemblyConfiguration

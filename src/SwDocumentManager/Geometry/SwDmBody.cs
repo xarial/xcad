@@ -24,6 +24,7 @@ namespace Xarial.XCad.SwDocumentManager.Geometry
 
     internal abstract class SwDmBody : SwDmSelObject, ISwDmBody
     {
+        #region Not Supported
         public string Name => throw new NotSupportedException();
         public bool Visible { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
         public Color? Color { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
@@ -35,6 +36,8 @@ namespace Xarial.XCad.SwDocumentManager.Geometry
         public IXBody[] Substract(IXBody other) => throw new NotSupportedException();
         public IXBody Copy() => throw new NotSupportedException();
         public void Transform(TransformMatrix transform) => throw new NotSupportedException();
+        public IXMaterial Material => throw new NotSupportedException();
+        #endregion
                
         public SwDmBody() : base(null)
         {

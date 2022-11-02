@@ -154,6 +154,32 @@ namespace Xarial.XCad.SolidWorks.Geometry
             }
         }
 
+        public IXMaterial Material
+        {
+            get
+            {
+                var confName = "";
+
+                var comp = Component;
+
+                if (comp != null)
+                {
+                    confName = comp.ReferencedConfiguration.Name;
+                }
+
+                var materialName = Body.GetMaterialPropertyName(confName, out var database);
+
+                if (!string.IsNullOrEmpty(materialName))
+                {
+                    return new SwMaterial(materialName, database);
+                }
+                else
+                {
+                    return null;
+                }
+            }
+        }
+
         public bool IsResilient { get; private set; }
 
         private byte[] m_PersistId;

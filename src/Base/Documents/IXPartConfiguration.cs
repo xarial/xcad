@@ -19,5 +19,10 @@ namespace Xarial.XCad.Documents
         /// Cut-list items in this configuration (if available)
         /// </summary>
         IXCutListItemRepository CutLists { get; }
+
+        /// <summary>
+        /// Material of this part
+        /// </summary>
+        IXMaterial Material { get; }
     }
 }

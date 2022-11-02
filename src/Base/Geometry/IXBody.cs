@@ -70,6 +70,11 @@ namespace Xarial.XCad.Geometry
         IEnumerable<IXEdge> Edges { get; }
 
         /// <summary>
+        /// Material of this body
+        /// </summary>
+        IXMaterial Material { get; }
+
+        /// <summary>
         /// Creates a copy of the current body
         /// </summary>
         /// <returns>Copied body</returns>

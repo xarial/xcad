@@ -260,6 +260,10 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
     internal class SwDmPartConfiguration : SwDmConfiguration, ISwDmPartConfiguration
     {
+        #region Not Supported
+        public IXMaterial Material => throw new NotSupportedException();
+        #endregion
+
         internal SwDmPartConfiguration(ISwDMConfiguration conf, SwDmPart part) : base(conf, part)
         {
             CutLists = new SwDmCutListItemCollection(this, part);

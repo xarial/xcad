@@ -23,12 +23,32 @@ namespace Xarial.XCad.SolidWorks.Documents
 
     internal class SwPartConfiguration : SwConfiguration, ISwPartConfiguration
     {
+        private readonly SwPart m_Part;
+
         internal SwPartConfiguration(IConfiguration conf, SwPart part, SwApplication app, bool created) 
             : base(conf, part, app, created)
         {
+            m_Part = part;
             CutLists = new SwPartCutListItemCollection(this, part);
         }
 
         public IXCutListItemRepository CutLists { get; }
+
+        public IXMaterial Material 
+        {
+            get 
+            {
+                var materialName = m_Part.Part.GetMaterialPropertyName2(Name, out var database);
+
+                if (!string.IsNullOrEmpty(materialName))
+                {
+                    return new SwMaterial(materialName, database);
+                }
+                else 
+                {
+                    return null;
+                }
+            }
+        }
     }
 }
