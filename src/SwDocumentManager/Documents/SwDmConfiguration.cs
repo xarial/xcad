@@ -26,14 +26,14 @@ using Xarial.XCad.UI;
 
 namespace Xarial.XCad.SwDocumentManager.Documents
 {
-    public interface ISwDmConfiguration : IXConfiguration, ISwDmObject
+    public interface ISwDmConfiguration : IXConfiguration, ISwDmSelObject
     {
         ISwDMConfiguration Configuration { get; }
         new ISwDmCustomPropertiesCollection Properties { get; }
     }
 
     [DebuggerDisplay("{" + nameof(Name) + "}")]
-    internal abstract class SwDmConfiguration : SwDmObject, ISwDmConfiguration
+    internal abstract class SwDmConfiguration : SwDmSelObject, ISwDmConfiguration
     {
         #region Not Supported
         public IXDimensionRepository Dimensions => throw new NotSupportedException();

@@ -32,14 +32,14 @@ using Xarial.XCad.UI;
 
 namespace Xarial.XCad.SolidWorks.Documents
 {
-    public interface ISwConfiguration : ISwObject, IXConfiguration, IDisposable
+    public interface ISwConfiguration : ISwSelObject, IXConfiguration, IDisposable
     {
         IConfiguration Configuration { get; }
         new ISwCustomPropertiesCollection Properties { get; }
     }
 
     [DebuggerDisplay("{" + nameof(Name) + "}")]
-    internal class SwConfiguration : SwObject, ISwConfiguration
+    internal class SwConfiguration : SwSelObject, ISwConfiguration
     {
         internal const string QTY_PROPERTY = "UNIT_OF_MEASURE";
 

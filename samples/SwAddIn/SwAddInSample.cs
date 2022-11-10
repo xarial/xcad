@@ -971,11 +971,27 @@ namespace SwAddInExample
 
         private void CreateFlatPattern()
         {
-            var part = (IXPart)Application.Documents.Active;
-            var conf = part.Configurations.Active;
+            IXPart part;
+            IXPartConfiguration conf;
 
-            var opts = FlatPatternViewOptions_e.None;
-            var sheetMetalBody = part.Selections.OfType<IXSolidBody>().FirstOrDefault();
+            if (Application.Documents.Active is IXAssembly)
+            {
+                var comp = Application.Documents.Active.Selections.OfType<IXPartComponent>().First();
+                part = comp.ReferencedDocument;
+                conf = comp.ReferencedConfiguration;
+            }
+            else if (Application.Documents.Active is IXPart)
+            {
+                part = (IXPart)Application.Documents.Active;
+                conf = part.Configurations.Active;
+            }
+            else 
+            {
+                throw new NotSupportedException();
+            }
+                
+            var opts = FlatPatternViewOptions_e.BendLines;
+            var sheetMetalBody = Application.Documents.Active.Selections.OfType<IXSolidBody>().FirstOrDefault();
 
             using (var drw = Application.Documents.PreCreateDrawing())
             {

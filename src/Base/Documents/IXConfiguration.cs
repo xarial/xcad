@@ -18,7 +18,7 @@ namespace Xarial.XCad.Documents
     /// <summary>
     /// Represents the configiration (variant) of the document
     /// </summary>
-    public interface IXConfiguration : IXObject, IXTransaction, IPropertiesOwner, IDimensionable
+    public interface IXConfiguration : IXSelObject, IXTransaction, IPropertiesOwner, IDimensionable
     {
         /// <summary>
         /// BOM quantity value

@@ -352,6 +352,62 @@ namespace SolidWorks.Tests.Integration
         }
 
         [Test]
+        public void CreateFlatPatternMultiBodyMultiConfAssemblyTest()
+        {
+            bool view1IsFlatPattern;
+            bool view2IsFlatPattern;
+
+            string view1Conf;
+            string view2Conf;
+
+            int edgeCount1;
+            int edgeCount2;
+
+            using (var doc = OpenDataDocument(@"SheetMetalAssembly1\Assem1.SLDASM"))
+            {
+                var assmDoc = m_App.Documents.Active as IXAssembly;
+
+                var comp1 = assmDoc.Configurations.Active.Components["Part1-1"];
+                var comp2 = assmDoc.Configurations.Active.Components["Part1-2"];
+
+                var partDoc = (IXPart)assmDoc.Dependencies.First();
+
+                using (var drw = NewDocument(swDocumentTypes_e.swDocDRAWING))
+                {
+                    var drwDoc = m_App.Documents.Active as ISwDrawing;
+
+                    var drwView1 = drwDoc.Sheets.Active.DrawingViews.PreCreate<ISwFlatPatternDrawingView>();
+                    drwView1.SheetMetalBody = (IXSolidBody)comp1.Bodies["Cut-Extrude1"];
+                    drwView1.ReferencedDocument = partDoc;
+                    drwView1.ReferencedConfiguration = comp1.ReferencedConfiguration;
+                    drwView1.Commit();
+
+                    var drwView2 = drwDoc.Sheets.Active.DrawingViews.PreCreate<ISwFlatPatternDrawingView>();
+                    drwView2.SheetMetalBody = (IXSolidBody)comp2.Bodies["Edge-Flange2"];
+                    drwView2.ReferencedDocument = partDoc;
+                    drwView2.ReferencedConfiguration = comp2.ReferencedConfiguration;
+                    drwView2.Commit();
+
+                    view1IsFlatPattern = drwView1.DrawingView.IsFlatPatternView();
+                    view1Conf = drwView1.DrawingView.ReferencedConfiguration;
+                    edgeCount1 = drwView1.DrawingView.GetVisibleEntityCount2((Component2)(drwView1.DrawingView.GetVisibleComponents() as object[]).First(), (int)swViewEntityType_e.swViewEntityType_Edge);
+
+                    view2IsFlatPattern = drwView2.DrawingView.IsFlatPatternView();
+                    view2Conf = drwView2.DrawingView.ReferencedConfiguration;
+                    edgeCount2 = drwView2.DrawingView.GetVisibleEntityCount2((Component2)(drwView2.DrawingView.GetVisibleComponents() as object[]).First(), (int)swViewEntityType_e.swViewEntityType_Edge);
+                }
+            }
+
+            Assert.IsTrue(view1IsFlatPattern);
+            Assert.IsTrue(view2IsFlatPattern);
+            Assert.AreEqual(5, edgeCount1);
+            Assert.AreEqual(12, edgeCount2);
+            Assert.That(view1Conf.StartsWith("Conf1SM-FLAT-PATTERN"));
+            Assert.That(view2Conf.StartsWith("DefaultSM-FLAT-PATTERN"));
+            Assert.AreNotEqual(view1Conf, view2Conf);
+        }
+
+        [Test]
         public void CreateFlatPatternMultiConfTest()
         {
             bool view1IsFlatPattern;
