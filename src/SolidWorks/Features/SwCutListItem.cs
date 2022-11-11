@@ -68,13 +68,23 @@ namespace Xarial.XCad.SolidWorks.Features
         {
             get
             {
+                var comp = Component;
+
                 var bodies = CutListBodyFolder.GetBodies() as object[];
 
                 if (bodies != null)
                 {
                     foreach (var body in bodies.Select(b => OwnerDocument.CreateObjectFromDispatch<ISwSolidBody>(b))) 
                     {
-                        yield return body;
+                        if (comp != null && body.Component == null)
+                        {
+                            //NOTE: pointer to bodies returned in the assembly context are from part context, need to convert explicitly
+                            yield return comp.ConvertObject(body);
+                        }
+                        else
+                        {
+                            yield return body;
+                        }
                     }
                 }
             }
