@@ -1116,15 +1116,30 @@ namespace Xarial.XCad.SolidWorks.Documents
 
             bool res;
 
+            object expData = null;
+
+            var ext = System.IO.Path.GetExtension(filePath);
+
+            switch (ext.ToLower()) 
+            {
+                case ".pdf":
+                    var pdfExpData = (IExportPdfData)OwnerApplication.Sw.GetExportFileData((int)swExportDataFileType_e.swExportPdfData);
+                    pdfExpData.ExportAs3D = Options.SaveOptions.Pdf.Pdf3D;
+                    pdfExpData.ViewPdfAfterSaving = false;
+                    expData = pdfExpData;
+                    break;
+            }
+            
+
             if (OwnerApplication.IsVersionNewerOrEqual(SwVersion_e.Sw2019, 1))
             {
                 res = Model.Extension.SaveAs2(filePath, (int)swSaveAsVersion_e.swSaveAsCurrentVersion,
-                    (int)swSaveAsOptions_e.swSaveAsOptions_Silent, null, "", false, ref errs, ref warns);
+                    (int)swSaveAsOptions_e.swSaveAsOptions_Silent, expData, "", false, ref errs, ref warns);
             }
             else 
             {
                 res = Model.Extension.SaveAs(filePath, (int)swSaveAsVersion_e.swSaveAsCurrentVersion,
-                    (int)swSaveAsOptions_e.swSaveAsOptions_Silent, null, ref errs, ref warns);
+                    (int)swSaveAsOptions_e.swSaveAsOptions_Silent, expData, ref errs, ref warns);
             }
 
             if (!res)

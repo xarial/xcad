@@ -712,6 +712,8 @@ namespace SwAddInExample
 
         private void Custom()
         {
+            Application.Documents.Active.SaveAs("D:\\1.pdf");
+
             Clipboard.SetText(string.Join(System.Environment.NewLine, Application.Documents.Active.Features.Select(f => ((ISwFeature)f).Feature.GetTypeName2())));
 
             //var lastFeat = Application.Documents.Active.Features.Filter<IXSketch2D>(true).First();

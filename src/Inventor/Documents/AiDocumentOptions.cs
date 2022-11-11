@@ -12,6 +12,8 @@ namespace Xarial.XCad.Inventor.Documents
     {
         public IXStepSaveOptions Step { get; }
 
+        public IXPdfSaveOptions Pdf => throw new NotImplementedException();
+
         internal AiSaveOptions() 
         {
             Step = new AiStepSaveOptions();

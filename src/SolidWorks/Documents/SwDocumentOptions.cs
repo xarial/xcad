@@ -116,7 +116,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             m_Doc = doc;
         }
 
-        public StepFormat_e Format 
+        public StepFormat_e Format
         {
             get 
             {
@@ -156,6 +156,11 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
     }
 
+    internal class SwPdfSaveOptions : IXPdfSaveOptions
+    {
+        public bool Pdf3D { get; set; }
+    }
+
     internal class SwSaveOptions : IXSaveOptions
     {
         private readonly SwDocument m_Doc;
@@ -164,9 +169,11 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
             m_Doc = doc;
             Step = new SwStepSaveOptions(m_Doc);
+            Pdf = new SwPdfSaveOptions();
         }
 
         public IXStepSaveOptions Step { get; }
+        public IXPdfSaveOptions Pdf { get; }
     }
 
     internal class SwDocumentOptions : SwOptions, ISwDocumentOptions 

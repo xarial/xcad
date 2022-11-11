@@ -91,6 +91,11 @@ namespace Xarial.XCad.Documents
         /// Save options of step format
         /// </summary>
         IXStepSaveOptions Step { get; }
+
+        /// <summary>
+        /// Save options for PDF format
+        /// </summary>
+        IXPdfSaveOptions Pdf { get; }
     }
 
     /// <summary>
@@ -123,6 +128,17 @@ namespace Xarial.XCad.Documents
         /// Step format
         /// </summary>
         StepFormat_e Format { get; set; }
+    }
+
+    /// <summary>
+    /// Save options for PDF format
+    /// </summary>
+    public interface IXPdfSaveOptions 
+    {
+        /// <summary>
+        /// Save PDF as 3D PDF
+        /// </summary>
+        bool Pdf3D { get; set; }
     }
 
     /// <summary>
