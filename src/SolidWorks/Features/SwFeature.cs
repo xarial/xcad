@@ -24,7 +24,7 @@ using Xarial.XCad.SolidWorks.Utils;
 
 namespace Xarial.XCad.SolidWorks.Features
 {
-    public interface ISwFeature : ISwSelObject, IXFeature
+    public interface ISwFeature : ISwSelObject, IXFeature, IResilientibleObject<ISwFeature>
     {
         IFeature Feature { get; }
         new ISwDimensionsCollection Dimensions { get; }
@@ -125,14 +125,49 @@ namespace Xarial.XCad.SolidWorks.Features
 
         IXComponent IXFeature.Component => Component;
         IXDimensionRepository IDimensionable.Dimensions => Dimensions;
+        IXObject IResilientibleObject.CreateResilient() => CreateResilient();
 
         protected readonly IElementCreator<IFeature> m_Creator;
 
-        public virtual IFeature Feature => m_Creator.Element;
+        public virtual IFeature Feature 
+        {
+            get
+            {
+                var feat = m_Creator.Element;
+
+                if (IsResilient)
+                {
+                    try
+                    {
+                        var testPtrAlive = feat.Name;
+                    }
+                    catch
+                    {
+                        var restoredFeat = (IFeature)OwnerDocument.Model.Extension.GetObjectByPersistReference3(m_PersistId, out _);
+
+                        if (restoredFeat != null)
+                        {
+                            feat = restoredFeat;
+                            m_Creator.Set(feat);
+                        }
+                        else
+                        {
+                            throw new NullReferenceException("Pointer to the feature cannot be restored");
+                        }
+                    }
+                }
+
+                return feat;
+            }
+        }
 
         public override object Dispatch => Feature;
 
         public override bool IsAlive => this.CheckIsAlive(() => Feature.GetID());
+
+        public bool IsResilient { get; private set; }
+
+        private byte[] m_PersistId;
 
         private readonly Lazy<SwFeatureDimensionsCollection> m_DimensionsLazy;
         private Context m_Context;
@@ -172,6 +207,33 @@ namespace Xarial.XCad.SolidWorks.Features
         }
 
         public override void Commit(CancellationToken cancellationToken) => m_Creator.Create(cancellationToken);
+
+        public virtual ISwFeature CreateResilient()
+        {
+            if (OwnerDocument == null)
+            {
+                throw new NullReferenceException("Owner document is not set");
+            }
+
+            var id = (byte[])OwnerDocument.Model.Extension.GetPersistReference3(Feature);
+
+            if (id != null)
+            {
+                var feat = OwnerDocument.CreateObjectFromDispatch<SwFeature>(Feature);
+                feat.MakeResilient(id);
+                return feat;
+            }
+            else
+            {
+                throw new Exception("Failed to create resilient feature");
+            }
+        }
+
+        private void MakeResilient(byte[] persistId)
+        {
+            IsResilient = true;
+            m_PersistId = persistId;
+        }
 
         public ISwComponent Component
         {
