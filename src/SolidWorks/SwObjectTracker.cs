@@ -28,6 +28,8 @@ namespace Xarial.XCad.SolidWorks
 
         private readonly List<ISwObject> m_TrackedObjects;
 
+        private readonly List<IXDocument> m_TrackedDocuments;
+
         internal SwObjectTracker(ISwApplication app, string name)
         {
             m_TrackDefName = name;
@@ -41,6 +43,7 @@ namespace Xarial.XCad.SolidWorks
             }
 
             m_TrackedObjects = new List<ISwObject>();
+            m_TrackedDocuments = new List<IXDocument>();
         }
 
         public void Track(IXObject obj, int trackId)
@@ -75,6 +78,19 @@ namespace Xarial.XCad.SolidWorks
             }
 
             m_TrackedObjects.Add((ISwObject)obj);
+
+            if (obj is SwObject) 
+            {
+                var ownerDoc = ((SwObject)obj).OwnerDocument;
+
+                if (ownerDoc != null) 
+                {
+                    if (!m_TrackedDocuments.Any(d => d.Equals(ownerDoc))) 
+                    {
+                        m_TrackedDocuments.Add(ownerDoc);
+                    }
+                }
+            }
         }
 
         public void Untrack(IXObject obj)
@@ -230,6 +246,18 @@ namespace Xarial.XCad.SolidWorks
                 {
                 }
             }
+
+            m_TrackedObjects.Clear();
+
+            foreach (var trackedDoc in m_TrackedDocuments) 
+            {
+                foreach (var trackedObj in FindTrackedObjects(trackedDoc)) 
+                {
+                    Untrack(trackedObj);
+                }
+            }
+
+            m_TrackedDocuments.Clear();
         }
     }
 }

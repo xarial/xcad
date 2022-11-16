@@ -131,9 +131,9 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
                     selSet.AddRange(selection);
                 }
 
-                var feat = m_FeatMgr.InsertMacroFeature3(baseName,
+                var feat = (IFeature)m_FeatMgr.InsertMacroFeature3(baseName,
                     progId, null, paramNames, paramTypes,
-                    paramValues, dimTypes, dimValues, editBodies, icons, (int)options) as IFeature;
+                    paramValues, dimTypes, dimValues, editBodies, icons, (int)options);
 
                 return feat;
             }

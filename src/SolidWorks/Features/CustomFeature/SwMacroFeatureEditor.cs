@@ -40,8 +40,8 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 
         internal SwMacroFeatureEditor(ISwApplication app, Type defType,
             CustomFeatureParametersParser paramsParser, IServiceProvider svcProvider,
-            SwPropertyManagerPage<TPage> page) 
-            : base(app, defType, paramsParser, svcProvider, page)
+            SwPropertyManagerPage<TPage> page, CustomFeatureEditorBehavior_e behavior) 
+            : base(app, defType, paramsParser, svcProvider, page, behavior)
         {
         }
 

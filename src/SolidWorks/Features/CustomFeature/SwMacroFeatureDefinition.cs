@@ -45,6 +45,7 @@ using Xarial.XCad.Toolkit.Utils;
 using Xarial.XCad.UI;
 using Xarial.XCad.UI.PropertyPage.Base;
 using Xarial.XCad.UI.PropertyPage.Enums;
+using Xarial.XCad.Utils.CustomFeature;
 using Xarial.XCad.Utils.Diagnostics;
 using Xarial.XCad.Utils.Reflection;
 
@@ -674,7 +675,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 
                 var editor = new SwMacroFeatureEditor<TParams, TPage>(
                     Application, this.GetType(),
-                    m_ParamsParser, m_SvcProvider, page);
+                    m_ParamsParser, m_SvcProvider, page, EditorBehavior);
 
                 editor.EditingStarted += OnEditingStarted;
                 editor.EditingCompleting += OnEditingCompleting;
@@ -687,6 +688,11 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
                 return editor;
             });
         }
+
+        /// <summary>
+        /// Behavior of macro feature editor
+        /// </summary>
+        protected virtual CustomFeatureEditorBehavior_e EditorBehavior => CustomFeatureEditorBehavior_e.Default;
 
         /// <summary>
         /// Override this method to handle the exception reading the macro feature parameters on editing of the macro feature

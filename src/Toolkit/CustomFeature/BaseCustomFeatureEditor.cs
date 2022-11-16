@@ -52,6 +52,13 @@ namespace Xarial.XCad.Utils.CustomFeature
     public delegate TData HandleEditingExceptionDelegate<TData>(IXCustomFeature<TData> feat, Exception ex)
         where TData : class;
 
+    [Flags]
+    public enum CustomFeatureEditorBehavior_e 
+    {
+        Default = 0,
+        ReopenOnApply = 1
+    }
+
     public abstract class BaseCustomFeatureEditor<TData, TPage> 
         where TData : class
         where TPage : class
@@ -86,10 +93,12 @@ namespace Xarial.XCad.Utils.CustomFeature
         
         private bool m_IsPageActive;
 
+        private readonly CustomFeatureEditorBehavior_e m_Behavior;
+
         public BaseCustomFeatureEditor(IXApplication app,
             Type featDefType,
             CustomFeatureParametersParser paramsParser,
-            IServiceProvider svcProvider, IXPropertyPage<TPage> page)
+            IServiceProvider svcProvider, IXPropertyPage<TPage> page, CustomFeatureEditorBehavior_e behavior)
         {
             m_App = app;
             m_SvcProvider = svcProvider;
@@ -97,6 +106,8 @@ namespace Xarial.XCad.Utils.CustomFeature
             m_DefType = featDefType;
             m_BodiesComparer = new XObjectEqualityComparer<IXBody>();
             m_ParamsParser = paramsParser;
+
+            m_Behavior = behavior;
 
             m_DefinitionLazy = new Lazy<IXCustomFeatureDefinition<TData, TPage>>(
                 () => (IXCustomFeatureDefinition<TData, TPage>)CustomFeatureDefinitionInstanceCache.GetInstance(m_DefType));
@@ -286,18 +297,33 @@ namespace Xarial.XCad.Utils.CustomFeature
 
         private void OnPageClosed(PageCloseReasons_e reason)
         {
+            if (m_IsApplying) 
+            {
+                reason = PageCloseReasons_e.Apply;
+            }
+
             m_IsPageActive = false;
             CompleteFeature(reason);
             m_CurEditor?.Dispose();
 
             m_CurPageData = null;
-            m_CurData = null;
             m_HiddenEditBodies = null;
             m_EditingFeature = null;
             m_LastError = null;
             m_PreviewBodies = null;
             m_CurEditor = null;
-            CurModel = null;
+
+            if (!m_IsApplying)
+            {
+                m_CurData = null;
+                CurModel = null;
+            }
+            else 
+            {
+                m_IsApplying = false;
+                Insert(CurModel, m_CurData);
+                m_PmPage.IsPinned = true;
+            }
         }
 
         private void ShowEditBodies()
@@ -312,37 +338,50 @@ namespace Xarial.XCad.Utils.CustomFeature
 
         private void OnPageClosing(PageCloseReasons_e reason, PageClosingArg arg)
         {
-            if (EditingCompleting != null)
+            if (!m_IsApplying)
             {
-                try
+                if (EditingCompleting != null)
                 {
-                    EditingCompleting.Invoke(m_App, CurModel, m_EditingFeature, m_CurData, m_CurPageData, reason);
+                    try
+                    {
+                        EditingCompleting.Invoke(m_App, CurModel, m_EditingFeature, m_CurData, m_CurPageData, reason);
+                    }
+                    catch (Exception ex)
+                    {
+                        m_Logger.Log(ex);
+                        m_LastError = ex;
+                    }
                 }
-                catch (Exception ex)
+
+                if (m_LastError != null)
                 {
-                    m_Logger.Log(ex);
-                    m_LastError = ex;
+                    arg.ErrorMessage = m_LastError is IUserException ? m_LastError.Message : "Unknown error. Please see log for more details";
+                    arg.Cancel = true;
                 }
-            }
-
-            if (m_LastError != null)
-            {
-                arg.ErrorMessage = m_LastError is IUserException ? m_LastError.Message : "Unknown error. Please see log for more details";
-                arg.Cancel = true;
-            }
-            else 
-            {
-                if (reason == PageCloseReasons_e.Apply)
+                else
                 {
-                    CompleteFeature(reason);
+                    if (reason == PageCloseReasons_e.Apply)
+                    {
+                        if (m_Behavior.HasFlag(CustomFeatureEditorBehavior_e.ReopenOnApply))
+                        {
+                            m_IsApplying = true;
+                            m_PmPage.Close(true);
+                        }
+                        else
+                        {
+                            CompleteFeature(reason);
 
-                    m_CurData = Definition.ConvertPageToParams(m_App, CurModel, m_CurPageData, m_CurData);
+                            m_CurData = Definition.ConvertPageToParams(m_App, CurModel, m_CurPageData, m_CurData);
 
-                    //page stays open
-                    UpdatePreview();
+                            //page stays open
+                            UpdatePreview();
+                        }
+                    }
                 }
             }
         }
+
+        private bool m_IsApplying;
 
         private void DefaultAssignPreviewBodyColor(IXBody body, out System.Drawing.Color color)
             => color = System.Drawing.Color.Yellow;

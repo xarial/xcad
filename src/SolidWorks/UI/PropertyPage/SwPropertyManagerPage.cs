@@ -67,6 +67,13 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
         /// <inheritdoc/>
         public TModel Model { get; private set; }
 
+        /// <inheritdoc/>
+        public bool IsPinned 
+        {
+            get => m_Page.Page.Pinned;
+            set => m_Page.Page.Pinned = value;
+        }
+
         private readonly IServiceProvider m_SvcProvider;
 
         private readonly IContextProvider m_ContextProvider;

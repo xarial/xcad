@@ -31,6 +31,11 @@ namespace Xarial.XCad.UI.PropertyPage
         event PageClosedDelegate Closed;
 
         /// <summary>
+        /// Checks if page is pinned
+        /// </summary>
+        bool IsPinned { get; set; }
+
+        /// <summary>
         /// Opens the property page with the specified data model
         /// </summary>
         /// <param name="model">Pointer to an instance of the bound data model</param>

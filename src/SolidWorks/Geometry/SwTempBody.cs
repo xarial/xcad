@@ -33,8 +33,6 @@ namespace Xarial.XCad.SolidWorks.Geometry
         public override IBody2 Body => m_TempBody;
         public override object Dispatch => m_TempBody;
 
-        private readonly IMathUtility m_MathUtils;
-
         //NOTE: keeping the pointer in this class only so it can be properly disposed
         internal SwTempBody(IBody2 body, SwApplication app) : base(null, null, app)
         {
@@ -44,7 +42,6 @@ namespace Xarial.XCad.SolidWorks.Geometry
             }
 
             m_TempBody = body;
-            m_MathUtils = app.Sw.IGetMathUtility();
         }
 
         public void Preview(ISwPart part, Color color, bool selectable = false) 
