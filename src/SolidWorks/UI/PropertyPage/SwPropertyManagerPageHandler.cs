@@ -49,6 +49,8 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
         /// <inheritdoc/>
         internal event PropertyManagerPageClosingDelegate Closing;
 
+        internal event PropertyManagerPageClosedDelegate PreClosed;
+
         /// <inheritdoc/>
         internal event PropertyManagerPageClosedDelegate Closed;
 
@@ -97,7 +99,10 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         public void AfterClose()
-            => Closed?.Invoke(m_CloseReason);
+        {
+            PreClosed?.Invoke(m_CloseReason);
+            Closed?.Invoke(m_CloseReason); 
+        }
 
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]

@@ -67,7 +67,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             m_Handler.SelectionChanged += OnSelectionChanged;
 
             m_Handler.Opened += OnPageOpened;
-            m_Handler.Closed += OnPageClosed;
+            m_Handler.PreClosed += OnPageClosed;
             m_Handler.Applied += OnPageApplied;
 
             m_Handler.SubmitSelection += OnSubmitSelection;

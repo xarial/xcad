@@ -35,7 +35,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
         {
             m_Handler.CustomControlCreated += OnCustomControlCreated;
             m_Handler.Opening += OnPageOpening;
-            m_Handler.Closed += OnPageClosed;
+            m_Handler.PreClosed += OnPageClosed;
 
             m_Creator = new PropertyPageControlCreator<object>(SwSpecificControl);
         }

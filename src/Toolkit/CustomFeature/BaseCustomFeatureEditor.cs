@@ -52,10 +52,22 @@ namespace Xarial.XCad.Utils.CustomFeature
     public delegate TData HandleEditingExceptionDelegate<TData>(IXCustomFeature<TData> feat, Exception ex)
         where TData : class;
 
+    /// <summary>
+    /// Additional behaviors defined in the macro feature editor
+    /// </summary>
     [Flags]
     public enum CustomFeatureEditorBehavior_e 
     {
+        /// <summary>
+        /// Default behavior
+        /// </summary>
         Default = 0,
+
+        /// <summary>
+        /// If editor page has a pushpin button this option and it is applied,
+        /// this option will close and reopen page instead of keeping the page open
+        /// </summary>
+        /// <remarks>Some of the feature migth not be able to be created while page is open thus making pushpin not usable</remarks>
         ReopenOnApply = 1
     }
 

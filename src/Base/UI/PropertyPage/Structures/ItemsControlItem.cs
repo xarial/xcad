@@ -7,10 +7,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 
 namespace Xarial.XCad.UI.PropertyPage.Structures
 {
+    [DebuggerDisplay("{" + nameof(DisplayName) + "} [{" + nameof(Value) + "}]")]
     public class ItemsControlItem
     {
         public string DisplayName { get; set; }

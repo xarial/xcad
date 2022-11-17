@@ -39,7 +39,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
         {
             m_Handler.ComboBoxChanged += OnComboBoxChanged;
             m_Handler.Opened += OnPageOpened;
-            m_Handler.Closed += OnPageClosed;
+            m_Handler.PreClosed += OnPageClosed;
             m_IsPageOpened = false;
         }
 
