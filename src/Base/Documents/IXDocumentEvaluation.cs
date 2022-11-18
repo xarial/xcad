@@ -36,10 +36,16 @@ namespace Xarial.XCad.Documents
         IXRayIntersection PreCreateRayIntersection();
 
         /// <summary>
-        /// Pre creates a geometry tesselation
+        /// Pre creates a geometry tessellation
         /// </summary>
         /// <returns>Tesselation</returns>
         IXTessellation PreCreateTessellation();
+
+        /// <summary>
+        /// Pre creates collision detection utility
+        /// </summary>
+        /// <returns>Collision detection</returns>
+        IXCollisionDetection PreCreateCollisionDetection();
     }
 
     /// <summary>
@@ -66,9 +72,15 @@ namespace Xarial.XCad.Documents
         new IXAssemblyRayIntersection PreCreateRayIntersection();
 
         /// <summary>
-        /// Pre creates a geometry tesselation for assembly
+        /// Pre creates a geometry tessellation for assembly
         /// </summary>
         /// <returns>Tesselation</returns>
-        new IXAssemblyTessellation PreCreateTesselation();
+        new IXAssemblyTessellation PreCreateTessellation();
+
+        /// <summary>
+        /// Pre creates collision detection utility for assembly
+        /// </summary>
+        /// <returns>Collision detection</returns>
+        new IXAssemblyCollisionDetection PreCreateCollisionDetection();
     }
 }

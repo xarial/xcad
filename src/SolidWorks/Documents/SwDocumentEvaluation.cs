@@ -52,6 +52,8 @@ namespace Xarial.XCad.SolidWorks.Documents
         public abstract IXRayIntersection PreCreateRayIntersection();
 
         public abstract IXTessellation PreCreateTessellation();
+
+        public IXCollisionDetection PreCreateCollisionDetection() => throw new NotImplementedException();
     }
 
     internal class SwPartEvaluation : SwDocumentEvaluation 
@@ -127,9 +129,11 @@ namespace Xarial.XCad.SolidWorks.Documents
             => (this as IXAssemblyEvaluation).PreCreateRayIntersection();
 
         public override IXTessellation PreCreateTessellation()
-            => (this as IXAssemblyEvaluation).PreCreateTesselation();
+            => (this as IXAssemblyEvaluation).PreCreateTessellation();
 
-        IXAssemblyTessellation IXAssemblyEvaluation.PreCreateTesselation()
+        IXAssemblyTessellation IXAssemblyEvaluation.PreCreateTessellation()
             => new SwAssemblyTesselation(m_Assm);
+
+        IXAssemblyCollisionDetection IXAssemblyEvaluation.PreCreateCollisionDetection() => throw new NotImplementedException();
     }
 }
