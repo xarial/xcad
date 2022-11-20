@@ -235,87 +235,24 @@ namespace Xarial.XCad.Inventor.Documents
 
         public void Save() => Document.Save2(true);
 
-        public void SaveAs(string filePath)
+        public IXSaveOperation PreCreateSaveAsOperation(string filePath)
         {
             var translator = TryGetTranslator(filePath);
 
             if (translator != null)
             {
-                var context = OwnerApplication.Application.TransientObjects.CreateTranslationContext();
-
-                var opts = OwnerApplication.Application.TransientObjects.CreateNameValueMap();
-
-                SetSaveOptions(translator, opts, Options.SaveOptions);
-
-                if (translator.HasSaveCopyAsOptions[Document, context, opts])
+                switch (translator.ClientId)
                 {
-                    context.Type = IOMechanismEnum.kFileBrowseIOMechanism;
+                    case "{90AF7F40-0C01-11D5-8E83-0010B541CD80}":
+                        return new AiStepSaveOperation(this, translator, filePath);
 
-                    var data = OwnerApplication.Application.TransientObjects.CreateDataMedium();
-                    data.FileName = filePath;
-
-                    DateTime? existingFileDate = null;
-
-                    if (System.IO.File.Exists(filePath))
-                    {
-                        existingFileDate = System.IO.File.GetLastWriteTimeUtc(filePath);
-                    }
-
-                    translator.SaveCopyAs(Document, context, opts, data);
-
-                    if (System.IO.File.Exists(filePath))
-                    {
-                        if (existingFileDate.HasValue)
-                        {
-                            if (System.IO.File.GetLastWriteTimeUtc(filePath) == existingFileDate)
-                            {
-                                throw new SaveDocumentFailedException(-1, "Failed to export file (file is not overwritten)");
-                            }
-                        }
-                    }
-                    else
-                    {
-                        throw new SaveDocumentFailedException(-1, "Failed to export file (file does not exist)");
-                    }
-                }
-                else
-                {
-                    throw new SaveDocumentFailedException(-1, "Invalid options");
+                    default:
+                        return new AiTranslatorSaveOperation(this, translator, filePath);
                 }
             }
-            else
+            else 
             {
-                Document.SaveAs(filePath, true);
-            }
-        }
-
-        private void SetSaveOptions(TranslatorAddIn translator, NameValueMap opts, IXSaveOptions saveOpts) 
-        {
-            switch (translator.ClientId) 
-            {
-                case "{90AF7F40-0C01-11D5-8E83-0010B541CD80}":
-                    
-                    int protocolType;
-
-                    switch (saveOpts.Step.Format) 
-                    {
-                        case StepFormat_e.Ap203:
-                            protocolType = 2;
-                            break;
-
-                        case StepFormat_e.Ap214:
-                            protocolType = 3;
-                            break;
-
-                        case StepFormat_e.Ap242:
-                            protocolType = 5;
-                            break;
-
-                        default:
-                            throw new NotSupportedException();
-                    }
-                    opts.Value["ApplicationProtocolType"] = protocolType;
-                    break;
+                return new AiSaveOperation(this, filePath);
             }
         }
 
@@ -325,7 +262,7 @@ namespace Xarial.XCad.Inventor.Documents
 
             return OwnerApplication.Application.ApplicationAddIns.OfType<TranslatorAddIn>().FirstOrDefault(a =>
             {
-                var supportedExts = a.FileExtensions.Split(';').Select(e=>e.TrimStart('*')).ToArray();
+                var supportedExts = a.FileExtensions.Split(';').Select(e => e.TrimStart('*')).ToArray();
                 return supportedExts.Contains(ext, StringComparer.CurrentCultureIgnoreCase);
             });
         }

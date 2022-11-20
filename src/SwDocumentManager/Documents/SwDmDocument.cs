@@ -558,7 +558,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         }
 
         public void Save()
-            => PerformSave(DocumentSaveType_e.SaveCurrent, f =>
+            => PerformSave(DocumentSaveType_e.SaveCurrent, Path, f =>
             {
                 if (!string.Equals(f, Path))
                 {
@@ -568,14 +568,14 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                 return true;
             }, (d, f) => d.Save());
 
-        public void SaveAs(string filePath)
-            => PerformSave(DocumentSaveType_e.SaveAs, f => true, (d, f) => d.SaveAs(f));
+        public IXSaveOperation PreCreateSaveAsOperation(string filePath)
+            => new SwDmSaveOperation(this, filePath);
 
-        private void PerformSave(DocumentSaveType_e saveType, Func<string, bool> canSave,
+        internal void PerformSave(DocumentSaveType_e saveType, string path, Func<string, bool> canSave,
             Func<ISwDMDocument, string, SwDmDocumentSaveError> saveFunc) 
         {
             var saveArgs = new DocumentSaveArgs();
-            saveArgs.FileName = Path;
+            saveArgs.FileName = path;
 
             Saving?.Invoke(this, saveType, saveArgs);
 

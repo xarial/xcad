@@ -83,65 +83,6 @@ namespace Xarial.XCad.Documents
     }
 
     /// <summary>
-    /// Save options
-    /// </summary>
-    public interface IXSaveOptions 
-    {
-        /// <summary>
-        /// Save options of step format
-        /// </summary>
-        IXStepSaveOptions Step { get; }
-
-        /// <summary>
-        /// Save options for PDF format
-        /// </summary>
-        IXPdfSaveOptions Pdf { get; }
-    }
-
-    /// <summary>
-    /// Step format type
-    /// </summary>
-    public enum StepFormat_e 
-    {
-        /// <summary>
-        /// STEP AP 203
-        /// </summary>
-        Ap203,
-
-        /// <summary>
-        /// STEP AP 214
-        /// </summary>
-        Ap214,
-
-        /// <summary>
-        /// STEP AP 242
-        /// </summary>
-        Ap242
-    }
-
-    /// <summary>
-    /// Save options of step format
-    /// </summary>
-    public interface IXStepSaveOptions 
-    {
-        /// <summary>
-        /// Step format
-        /// </summary>
-        StepFormat_e Format { get; set; }
-    }
-
-    /// <summary>
-    /// Save options for PDF format
-    /// </summary>
-    public interface IXPdfSaveOptions 
-    {
-        /// <summary>
-        /// Save PDF as 3D PDF
-        /// </summary>
-        bool Pdf3D { get; set; }
-    }
-
-    /// <summary>
     /// Document specific options
     /// </summary>
     public interface IXDocumentOptions : IXOptions
@@ -150,11 +91,6 @@ namespace Xarial.XCad.Documents
         /// Visibility of the specific entity kinds
         /// </summary>
         IXViewEntityKindVisibilityOptions ViewEntityKindVisibility { get; }
-
-        /// <summary>
-        /// Save options
-        /// </summary>
-        IXSaveOptions SaveOptions { get; }
     }
 
     /// <summary>

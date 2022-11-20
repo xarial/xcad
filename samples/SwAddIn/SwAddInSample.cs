@@ -59,6 +59,7 @@ using System.IO;
 using Xarial.XCad.SolidWorks.Sketch;
 using System.Drawing.Imaging;
 using System.Windows.Forms;
+using Xarial.XCad.Documents.Extensions;
 
 namespace SwAddInExample
 {
@@ -712,7 +713,11 @@ namespace SwAddInExample
 
         private void Custom()
         {
+            Application.Documents.Active.SaveAs<IXDxfDwgSaveOperation>("D:\\2.dwg", x => x.LayersMapFilePath = "");
+
             Application.Documents.Active.SaveAs("D:\\1.pdf");
+
+            Application.Documents.Active.SaveAs<IXPdfSaveOperation>("D:\\2.pdf", x => x.Pdf3D = true);
 
             Clipboard.SetText(string.Join(System.Environment.NewLine, Application.Documents.Active.Features.Select(f => ((ISwFeature)f).Feature.GetTypeName2())));
 

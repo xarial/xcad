@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Xarial.XCad.Base;
+using Xarial.XCad.Documents;
 
 namespace Xarial.XCad.Geometry
 {
@@ -12,6 +13,26 @@ namespace Xarial.XCad.Geometry
     /// </summary>
     public interface IXCollisionResult 
     {
+        /// <summary>
+        /// Bodies that are involved in collision
+        /// </summary>
+        IXBody[] CollidedBodies { get; }
+
+        /// <summary>
+        /// Represents the geometry of the collision
+        /// </summary>
+        IXBody[] CollisionVolume { get; }
+    }
+
+    /// <summary>
+    /// Represents the result of the collision in the assembly
+    /// </summary>
+    public interface IXAssemblyCollisionResult : IXCollisionResult 
+    {
+        /// <summary>
+        /// Components which are involved in the collision
+        /// </summary>
+        IXComponent[] CollidedComponents { get; }
     }
 
     /// <summary>
@@ -30,5 +51,7 @@ namespace Xarial.XCad.Geometry
     /// </summary>
     public interface IXAssemblyCollisionDetection : IXCollisionDetection, IAssemblyEvaluation
     {
+        /// <inheritdoc/>
+        new IXAssemblyCollisionResult[] Results { get; }
     }
 }

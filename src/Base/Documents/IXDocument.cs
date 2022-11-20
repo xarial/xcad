@@ -118,11 +118,10 @@ namespace Xarial.XCad.Documents
         void Save();
 
         /// <summary>
-        /// Saves this document to a new location
+        /// Pre-creates save-as operation
         /// </summary>
         /// <param name="filePath"></param>
-        /// <exception cref="Exceptions.SaveDocumentFailedException"/>
-        void SaveAs(string filePath);
+        IXSaveOperation PreCreateSaveAsOperation(string filePath);
 
         /// <summary>
         /// Collection of annotations

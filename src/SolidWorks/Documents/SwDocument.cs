@@ -1100,7 +1100,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
                 if (!Model.Save3((int)swSaveAsOptions_e.swSaveAsOptions_Silent, ref errs, ref warns))
                 {
-                    throw new SaveDocumentFailedException(errs, ParseSaveError((swFileSaveError_e)errs));
+                    throw new SaveDocumentFailedException(errs, SwSaveOperation.ParseSaveError((swFileSaveError_e)errs));
                 }
             }
             else 
@@ -1109,115 +1109,26 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        public void SaveAs(string filePath)
+        public IXSaveOperation PreCreateSaveAsOperation(string filePath)
         {
-            int errs = -1;
-            int warns = -1;
-
-            bool res;
-
-            object expData = null;
-
             var ext = System.IO.Path.GetExtension(filePath);
 
-            switch (ext.ToLower()) 
+            switch (ext.ToLower())
             {
                 case ".pdf":
-                    var pdfExpData = (IExportPdfData)OwnerApplication.Sw.GetExportFileData((int)swExportDataFileType_e.swExportPdfData);
-                    pdfExpData.ExportAs3D = Options.SaveOptions.Pdf.Pdf3D;
-                    pdfExpData.ViewPdfAfterSaving = false;
-                    expData = pdfExpData;
-                    break;
-            }
-            
+                    return new SwPdfSaveOperation(this, filePath);
 
-            if (OwnerApplication.IsVersionNewerOrEqual(SwVersion_e.Sw2019, 1))
-            {
-                res = Model.Extension.SaveAs2(filePath, (int)swSaveAsVersion_e.swSaveAsCurrentVersion,
-                    (int)swSaveAsOptions_e.swSaveAsOptions_Silent, expData, "", false, ref errs, ref warns);
-            }
-            else 
-            {
-                res = Model.Extension.SaveAs(filePath, (int)swSaveAsVersion_e.swSaveAsCurrentVersion,
-                    (int)swSaveAsOptions_e.swSaveAsOptions_Silent, expData, ref errs, ref warns);
-            }
+                case ".step":
+                case ".stp":
+                    return new SwStepSaveOperation(this, filePath);
 
-            if (!res)
-            {
-                throw new SaveDocumentFailedException(errs, ParseSaveError((swFileSaveError_e)errs));
+                case ".dxf":
+                case ".dwg":
+                    return new SwDxfDwgSaveOperation(this, filePath);
+
+                default:
+                    return new SwSaveOperation(this, filePath);
             }
-        }
-
-        private static string ParseSaveError(swFileSaveError_e err)
-        {
-            var errors = new List<string>();
-
-            if (err.HasFlag(swFileSaveError_e.swFileLockError))
-            {
-                errors.Add("File lock error");
-            }
-
-            if (err.HasFlag(swFileSaveError_e.swFileNameContainsAtSign))
-            {
-                errors.Add("File name cannot contain the at symbol(@)");
-            }
-
-            if (err.HasFlag(swFileSaveError_e.swFileNameEmpty))
-            {
-                errors.Add("File name cannot be empty");
-            }
-
-            if (err.HasFlag(swFileSaveError_e.swFileSaveAsBadEDrawingsVersion))
-            {
-                errors.Add("Bad eDrawings data");
-            }
-
-            if (err.HasFlag(swFileSaveError_e.swFileSaveAsDoNotOverwrite))
-            {
-                errors.Add("Cannot overwrite an existing file");
-            }
-
-            if (err.HasFlag(swFileSaveError_e.swFileSaveAsInvalidFileExtension))
-            {
-                errors.Add("File name extension does not match the SOLIDWORKS document type");
-            }
-
-            if (err.HasFlag(swFileSaveError_e.swFileSaveAsNameExceedsMaxPathLength))
-            {
-                errors.Add("File name cannot exceed 255 characters");
-            }
-
-            if (err.HasFlag(swFileSaveError_e.swFileSaveAsNotSupported))
-            {
-                errors.Add("Save As operation is not supported in this environment");
-            }
-
-            if (err.HasFlag(swFileSaveError_e.swFileSaveFormatNotAvailable))
-            {
-                errors.Add("Save As file type is not valid");
-            }
-
-            if (err.HasFlag(swFileSaveError_e.swFileSaveRequiresSavingReferences))
-            {
-                errors.Add("Saving an assembly with renamed components requires saving the references");
-            }
-
-            if (err.HasFlag(swFileSaveError_e.swGenericSaveError))
-            {
-                errors.Add("Generic error");
-            }
-
-            if (err.HasFlag(swFileSaveError_e.swReadOnlySaveError))
-            {
-                errors.Add("File is readonly");
-            }
-
-            if (errors.Count == 0)
-            {
-                errors.Add("Unknown error");
-            }
-
-            return string.Join("; ", errors);
         }
 
         public TSwObj DeserializeObject<TSwObj>(Stream stream)
