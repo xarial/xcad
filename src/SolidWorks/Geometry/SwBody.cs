@@ -62,6 +62,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
                         if (body != null)
                         {
                             m_Body = body;
+                            m_IsRestored = true;
                         }
                         else 
                         {
@@ -99,7 +100,15 @@ namespace Xarial.XCad.SolidWorks.Geometry
                 }
                 else
                 {
-                    return null;
+                    if (m_IsRestored)
+                    {
+                        //NOTE: by some reasons after restoring the body from the persist reference its component is null
+                        return m_PersistComponent;
+                    }
+                    else
+                    {
+                        return null;
+                    }
                 }
             }
         }
@@ -183,6 +192,8 @@ namespace Xarial.XCad.SolidWorks.Geometry
         public bool IsResilient { get; private set; }
 
         private byte[] m_PersistId;
+        private ISwComponent m_PersistComponent;
+        private bool m_IsRestored;
 
         private IBody2 m_Body;
 
@@ -326,6 +337,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
         {
             IsResilient = true;
             m_PersistId = persistId;
+            m_PersistComponent = Component;
         }
     }
 
