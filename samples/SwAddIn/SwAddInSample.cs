@@ -713,6 +713,13 @@ namespace SwAddInExample
 
         private void Custom()
         {
+            var comp = Application.Documents.Active.Selections.OfType<IXComponent>().First();
+            var body = Application.Documents.Active.Selections.OfType<IXBody>().First();
+
+            body = comp.Bodies.First();
+
+            var parentComp = body.Component;
+
             Application.Documents.Active.SaveAs<IXDxfDwgSaveOperation>("D:\\2.dwg", x => x.LayersMapFilePath = "");
 
             Application.Documents.Active.SaveAs("D:\\1.pdf");

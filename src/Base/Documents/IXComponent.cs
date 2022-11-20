@@ -34,6 +34,11 @@ namespace Xarial.XCad.Documents
         string Reference { get; set; }
 
         /// <summary>
+        /// Parent component of this component or null if root
+        /// </summary>
+        IXComponent Parent { get; }
+
+        /// <summary>
         /// Returns the referenced configuration of this component
         /// </summary>
         /// <remarks>For unloaded or rapid components this configuration may be uncommitted</remarks>

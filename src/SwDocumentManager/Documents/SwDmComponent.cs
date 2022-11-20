@@ -55,6 +55,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         IXDocument3D IXComponent.ReferencedDocument { get => ReferencedDocument; set => ReferencedDocument = (ISwDmDocument3D)value; }
         IXConfiguration IXComponent.ReferencedConfiguration { get => ReferencedConfiguration; set => ReferencedConfiguration = (ISwDmConfiguration)value; }
+        IXComponent IXComponent.Parent => Parent;
 
         public ISwDMComponent Component { get; }
 

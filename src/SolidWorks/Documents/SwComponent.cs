@@ -694,7 +694,24 @@ namespace Xarial.XCad.SolidWorks.Documents
         public abstract IEditor<IXComponent> Edit();
 
         internal IComponent2 BatchComponentBuffer { get; set; }
-        
+
+        public IXComponent Parent 
+        {
+            get
+            {
+                var parentComp = Component.GetParent();
+
+                if (parentComp != null && !parentComp.IsRoot())
+                {
+                    return SwObjectFactory.FromDispatch<ISwComponent>(parentComp, OwnerDocument, OwnerApplication);
+                }
+                else 
+                {
+                    return null;
+                }
+            }
+        }
+
         private IComponent2 CreateComponent(CancellationToken cancellationToken)
         {
             if (BatchComponentBuffer == null)
