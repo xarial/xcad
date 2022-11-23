@@ -4,6 +4,7 @@
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
+
 using System.Drawing;
 using Xarial.XCad.Properties;
 using Xarial.XCad.Reflection;
