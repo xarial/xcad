@@ -21,7 +21,7 @@ using Xarial.XCad.Toolkit.Utils;
 
 namespace Xarial.XCad.SolidWorks.Geometry
 {
-    public interface ISwTempBody : ISwBody, IDisposable
+    public interface ISwTempBody : ISwBody, IXMemoryBody, IDisposable
     {
         void Preview(ISwPart part, Color color, bool selectable = false);
     }
@@ -72,19 +72,19 @@ namespace Xarial.XCad.SolidWorks.Geometry
             => throw new NotSupportedException("Only permanent bodies can be converter to resilient bodies");
     }
 
-    public interface ISwTempSolidBody : ISwTempBody, ISwSolidBody
+    public interface ISwTempSolidBody : ISwTempBody, ISwSolidBody, IXMemorySolidBody
     {
     }
 
-    public interface ISwTempSheetBody : ISwTempBody, ISwSheetBody 
+    public interface ISwTempSheetBody : ISwTempBody, ISwSheetBody, IXMemorySheetBody
     {
     }
 
-    public interface ISwTempPlanarSheetBody : ISwTempSheetBody, ISwPlanarSheetBody, ISwTempRegion
+    public interface ISwTempPlanarSheetBody : ISwTempSheetBody, ISwPlanarSheetBody, ISwTempRegion, IXMemoryPlanarSheetBody
     {
     }
 
-    public interface ISwTempWireBody : ISwTempBody, ISwWireBody
+    public interface ISwTempWireBody : ISwTempBody, ISwWireBody, IXMemoryWireBody
     {
     }
     

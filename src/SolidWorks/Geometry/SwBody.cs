@@ -29,17 +29,17 @@ namespace Xarial.XCad.SolidWorks.Geometry
         IBody2 Body { get; }
 
         new ISwComponent Component { get; }
-        ISwBody Add(ISwBody other);
-        ISwBody[] Substract(ISwBody other);
-        ISwBody[] Common(ISwBody other);
+        ISwTempBody Add(ISwTempBody other);
+        ISwTempBody[] Substract(ISwTempBody other);
+        ISwTempBody[] Common(ISwTempBody other);
     }
 
     [DebuggerDisplay("{" + nameof(Name) + "}")]
     internal class SwBody : SwSelObject, ISwBody
     {
-        IXBody IXBody.Add(IXBody other) => Add((ISwBody)other);
-        IXBody[] IXBody.Substract(IXBody other) => Substract((ISwBody)other);
-        IXBody[] IXBody.Common(IXBody other) => Common((ISwBody)other);
+        IXMemoryBody IXBody.Add(IXMemoryBody other) => Add((ISwTempBody)other);
+        IXMemoryBody[] IXBody.Substract(IXMemoryBody other) => Substract((ISwTempBody)other);
+        IXMemoryBody[] IXBody.Common(IXMemoryBody other) => Common((ISwTempBody)other);
         
         IXComponent IXBody.Component => Component;
 
@@ -212,7 +212,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
             }
         }
 
-        public ISwBody Add(ISwBody other)
+        public ISwTempBody Add(ISwTempBody other)
         {
             var res = PerformOperation(other, swBodyOperationType_e.SWBODYADD);
 
@@ -230,10 +230,10 @@ namespace Xarial.XCad.SolidWorks.Geometry
         }
 
         /// <remarks>Empty array can be returned if bodies are equal</remarks>
-        public ISwBody[] Substract(ISwBody other)
+        public ISwTempBody[] Substract(ISwTempBody other)
             => PerformOperation(other, swBodyOperationType_e.SWBODYCUT);
 
-        public ISwBody[] Common(ISwBody other)
+        public ISwTempBody[] Common(ISwTempBody other)
         {
             var res = PerformOperation(other, swBodyOperationType_e.SWBODYINTERSECT);
 
@@ -245,7 +245,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
             return res;
         }
         
-        private ISwBody[] PerformOperation(ISwBody other, swBodyOperationType_e op)
+        private ISwTempBody[] PerformOperation(ISwBody other, swBodyOperationType_e op)
         {
             var thisBody = Body;
             var otherBody = (other as SwBody).Body;
@@ -269,15 +269,15 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
             if (res?.Any() == true)
             {
-                return res.Select(b => OwnerApplication.CreateObjectFromDispatch<SwBody>(b as IBody2, OwnerDocument)).ToArray();
+                return res.Select(b => OwnerApplication.CreateObjectFromDispatch<SwTempBody>(b as IBody2, OwnerDocument)).ToArray();
             }
             else
             {
-                return new ISwBody[0];
+                return new ISwTempBody[0];
             }
         }
 
-        public IXBody Copy()
+        public IXMemoryBody Copy()
         {
             IBody2 copy;
 

@@ -41,7 +41,7 @@ namespace Xarial.XCad.Geometry
         /// <param name="other">Other body</param>
         /// <returns>Resulting body</returns>
         /// <exception cref="Exceptions.BodyBooleanOperationNoIntersectException"/>
-        IXBody Add(IXBody other);
+        IXMemoryBody Add(IXMemoryBody other);
 
         /// <summary>
         /// Boolean substract operation
@@ -49,7 +49,7 @@ namespace Xarial.XCad.Geometry
         /// <param name="other">Body to substract</param>
         /// <returns>Resulting bodies</returns>
         /// <exception cref="Exceptions.BodyBooleanOperationNoIntersectException"/>
-        IXBody[] Substract(IXBody other);
+        IXMemoryBody[] Substract(IXMemoryBody other);
 
         /// <summary>
         /// Boolean common operation
@@ -57,7 +57,7 @@ namespace Xarial.XCad.Geometry
         /// <param name="other">Body to get common with</param>
         /// <returns>Resulting body</returns>
         /// <exception cref="Exceptions.BodyBooleanOperationNoIntersectException"/>
-        IXBody[] Common(IXBody other);
+        IXMemoryBody[] Common(IXMemoryBody other);
 
         /// <summary>
         /// Enumerates all faces of this body
@@ -78,7 +78,7 @@ namespace Xarial.XCad.Geometry
         /// Creates a copy of the current body
         /// </summary>
         /// <returns>Copied body</returns>
-        IXBody Copy();
+        IXMemoryBody Copy();
 
         /// <summary>
         /// Moves this body with specified matrix

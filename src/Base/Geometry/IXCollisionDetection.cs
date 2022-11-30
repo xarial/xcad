@@ -28,7 +28,7 @@ namespace Xarial.XCad.Geometry
         /// <summary>
         /// Represents the geometry of the collision
         /// </summary>
-        IXBody[] CollisionVolume { get; }
+        IXMemoryBody[] CollisionVolume { get; }
     }
 
     /// <summary>
