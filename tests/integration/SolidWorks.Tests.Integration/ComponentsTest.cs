@@ -838,6 +838,7 @@ namespace SolidWorks.Tests.Integration
             CollectionAssert.AreEquivalent(compNames, res.Select(r => r.Item2));
         }
 
+        //NOTE: in SW 2022 SP0 Part1-1 cannot be seelcted by some reasons, while API returns true for selection
         [Test]
         public void DeleteComponentEventTest()
         {

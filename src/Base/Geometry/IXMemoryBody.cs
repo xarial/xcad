@@ -7,6 +7,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Geometry.Primitives;
@@ -17,8 +18,14 @@ namespace Xarial.XCad.Geometry
     /// <summary>
     /// Represents the memory (temp) body object
     /// </summary>
-    public interface IXMemoryBody : IXBody
+    public interface IXMemoryBody : IXBody, IDisposable
     {
+        /// <summary>
+        /// DIsplays the preview of the memory body
+        /// </summary>
+        /// <param name="doc">Document where preview should be displayed</param>
+        /// <param name="color">Color of the body</param>
+        void Preview(IXDocument3D doc, Color color);
     }
 
     /// <summary>

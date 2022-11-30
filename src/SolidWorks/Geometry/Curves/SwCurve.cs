@@ -19,6 +19,7 @@ using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Geometry.Wires;
 using Xarial.XCad.Services;
 using Xarial.XCad.SolidWorks.Documents;
+using Xarial.XCad.SolidWorks.Utils;
 
 namespace Xarial.XCad.SolidWorks.Geometry.Curves
 {
@@ -69,6 +70,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Curves
         protected readonly IElementCreator<ICurve[]> m_Creator;
 
         protected readonly IModeler m_Modeler;
+        private readonly IMathUtility m_MathUtils;
 
         internal SwCurve(ICurve curve, SwDocument doc, SwApplication app, bool isCreated) 
             : this(new ICurve[] { curve }, doc, app, isCreated)
@@ -78,6 +80,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Curves
         internal SwCurve(ICurve[] curves, SwDocument doc, SwApplication app, bool isCreated) : base(curves, doc, app)
         {
             m_Modeler = app.Sw.IGetModeler();
+            m_MathUtils = app.Sw.IGetMathUtility();
             m_Creator = new ElementCreator<ICurve[]>(Create, curves, isCreated);
         }
 
@@ -210,6 +213,14 @@ namespace Xarial.XCad.SolidWorks.Geometry.Curves
             }
 
             return OwnerApplication.CreateObjectFromDispatch<ISwTempWireBody>(wireBody, OwnerDocument);
+        }
+
+        public void Transform(TransformMatrix transform)
+        {
+            foreach (var curve in Curves) 
+            {
+                curve.ApplyTransform((MathTransform)TransformConverter.ToMathTransform(m_MathUtils, transform));
+            }
         }
     }
 }

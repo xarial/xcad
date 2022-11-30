@@ -10,6 +10,7 @@ using SolidWorks.Interop.swconst;
 using System;
 using System.Drawing;
 using System.Runtime.InteropServices;
+using Xarial.XCad.Documents;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Geometry.Wires;
@@ -21,9 +22,8 @@ using Xarial.XCad.Toolkit.Utils;
 
 namespace Xarial.XCad.SolidWorks.Geometry
 {
-    public interface ISwTempBody : ISwBody, IXMemoryBody, IDisposable
+    public interface ISwTempBody : ISwBody, IXMemoryBody
     {
-        void Preview(ISwPart part, Color color, bool selectable = false);
     }
 
     internal class SwTempBody : SwBody, ISwTempBody
@@ -44,12 +44,27 @@ namespace Xarial.XCad.SolidWorks.Geometry
             m_TempBody = body;
         }
 
-        public void Preview(ISwPart part, Color color, bool selectable = false) 
+        public override ISwBody CreateResilient()
+            => throw new NotSupportedException("Only permanent bodies can be converter to resilient bodies");
+
+        public void Preview(IXDocument3D doc, Color color)
         {
-            var opts = selectable 
+            if (doc is ISwPart)
+            {
+                Preview((ISwPart)doc, color, false);
+            }
+            else 
+            {
+                throw new NotSupportedException();
+            }
+        }
+
+        private void Preview(ISwPart part, Color color, bool selectable)
+        {
+            var opts = selectable
                 ? swTempBodySelectOptions_e.swTempBodySelectable
                 : swTempBodySelectOptions_e.swTempBodySelectOptionNone;
-            
+
             Body.Display3(part.Model, ColorUtils.ToColorRef(color), (int)opts);
         }
 
@@ -67,9 +82,6 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
             m_TempBody = null;
         }
-
-        public override ISwBody CreateResilient()
-            => throw new NotSupportedException("Only permanent bodies can be converter to resilient bodies");
     }
 
     public interface ISwTempSolidBody : ISwTempBody, ISwSolidBody, IXMemorySolidBody

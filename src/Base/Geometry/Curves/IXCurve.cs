@@ -60,5 +60,11 @@ namespace Xarial.XCad.Geometry.Curves
         /// </summary>
         /// <returns>Wire body</returns>
         IXWireBody CreateBody();
+
+        /// <summary>
+        /// Applies transform to this curve
+        /// </summary>
+        /// <param name="transform">Transform to apply</param>
+        void Transform(TransformMatrix transform);
     }
 }
