@@ -477,7 +477,7 @@ namespace Xarial.XCad.SolidWorks
             }
         }
 
-        public IXWorkUnit PreCreateWorkUnit() => new SwWorkUnit(Application);
+        public IXWorkUnit PreCreateWorkUnit() => new SwWorkUnit(m_Application);
     }
 
     /// <inheritdoc/>
