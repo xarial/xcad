@@ -476,6 +476,8 @@ namespace Xarial.XCad.SolidWorks
                 System.Diagnostics.Debug.Assert(false, "Disposable is not registered");
             }
         }
+
+        public IXWorkUnit PreCreateWorkUnit() => new SwWorkUnit(Application);
     }
 
     /// <inheritdoc/>

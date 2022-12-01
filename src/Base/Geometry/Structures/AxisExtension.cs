@@ -42,5 +42,20 @@ namespace Xarial.XCad.Geometry.Structures
 
             return false;
         }
+
+        /// <summary>
+        /// Projects the specified point on this axis (find closest point)
+        /// </summary>
+        /// <param name="axis">This axis</param>
+        /// <param name="pt">Point to project to</param>
+        /// <returns>Projected point</returns>
+        public static Point Project(this Axis axis, Point pt) 
+        {
+            var dir = axis.Direction.Normalize();
+            var vec = axis.Point - pt;
+            var dist = vec.Dot(dir);
+
+            return axis.Point.Move(dir, dist);
+        }
     }
 }

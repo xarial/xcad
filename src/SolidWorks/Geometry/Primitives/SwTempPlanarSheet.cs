@@ -67,6 +67,5 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
 
         protected override ISwTempBody[] CreateBodies(CancellationToken cancellationToken)
             => new ISwTempBody[] { Region.PlanarSheetBody };
-        
     }
 }

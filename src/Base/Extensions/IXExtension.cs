@@ -101,5 +101,11 @@ namespace Xarial.XCad.Extensions
         /// <param name="spec">Specification of the Task Pane</param>
         /// <returns>Custom panel</returns>
         IXTaskPane<TControl> CreateTaskPane<TControl>(TaskPaneSpec spec);
+
+        /// <summary>
+        /// Pre-creates work unit which can be run in the background
+        /// </summary>
+        /// <returns>Work unit template</returns>
+        IXWorkUnit PreCreateWorkUnit();
     }
 }
