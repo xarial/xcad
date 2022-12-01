@@ -15,6 +15,13 @@ namespace Xarial.XCad.Base
     public delegate IXWorkUnitResult WorkUnitOperationDelegate(IXProgress prg, CancellationToken cancellationToken);
 
     /// <summary>
+    /// Async operation to execute in the <see cref="IXAsyncWorkUnit"/>
+    /// </summary>
+    /// <param name="prg">Progress handler</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    public delegate Task<IXWorkUnitResult> AsyncWorkUnitOperationDelegate(IXProgress prg, CancellationToken cancellationToken);
+
+    /// <summary>
     /// Result of the work unit
     /// </summary>
     public interface IXWorkUnitResult 
@@ -53,5 +60,16 @@ namespace Xarial.XCad.Base
         /// Operation of this work unit
         /// </summary>
         WorkUnitOperationDelegate Operation { get; set; }
+    }
+
+    /// <summary>
+    /// Async <see cref="IXWorkUnit"/>
+    /// </summary>
+    public interface IXAsyncWorkUnit : IXAsyncTransaction 
+    {
+        /// <summary>
+        /// Async operation of this work unit
+        /// </summary>
+        AsyncWorkUnitOperationDelegate Operation { get; set; }
     }
 }
