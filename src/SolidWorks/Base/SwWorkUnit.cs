@@ -31,6 +31,8 @@ namespace Xarial.XCad.SolidWorks.Base
 
         public bool IsCommitted => m_Creator.IsCreated;
 
+        public IXWorkUnitResult Result => m_Creator.Element;
+
         private readonly SwApplication m_App;
         private readonly IElementCreator<IXWorkUnitResult> m_Creator;
 

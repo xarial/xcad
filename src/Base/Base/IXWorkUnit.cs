@@ -40,6 +40,13 @@ namespace Xarial.XCad.Base
     }
 
     /// <summary>
+    /// Cancelled result
+    /// </summary>
+    public interface IXWorkUnitCancelledResult : IXWorkUnitResult
+    {
+    }
+
+    /// <summary>
     /// User specific result
     /// </summary>
     /// <typeparam name="TRes">Type of result</typeparam>
@@ -57,6 +64,11 @@ namespace Xarial.XCad.Base
     public interface IXWorkUnit : IXTransaction
     {   
         /// <summary>
+        /// RWork unit result
+        /// </summary>
+        IXWorkUnitResult Result { get; }
+
+        /// <summary>
         /// Operation of this work unit
         /// </summary>
         WorkUnitOperationDelegate Operation { get; set; }
@@ -67,6 +79,11 @@ namespace Xarial.XCad.Base
     /// </summary>
     public interface IXAsyncWorkUnit : IXAsyncTransaction 
     {
+        /// <summary>
+        /// RWork unit result
+        /// </summary>
+        IXWorkUnitResult Result { get; }
+
         /// <summary>
         /// Async operation of this work unit
         /// </summary>
