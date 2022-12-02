@@ -70,6 +70,6 @@ namespace Xarial.XCad.Base
         /// <summary>
         /// Async operation of this work unit
         /// </summary>
-        AsyncWorkUnitOperationDelegate Operation { get; set; }
+        AsyncWorkUnitOperationDelegate AsyncOperation { get; set; }
     }
 }
