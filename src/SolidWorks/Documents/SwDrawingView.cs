@@ -115,15 +115,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public override bool IsCommitted => m_Creator.IsCreated;
 
-        internal override void Select(bool append, ISelectData selData)
-        {
-            const string DRW_VIEW_TYPE_NAME = "DRAWINGVIEW";
-
-            if (!OwnerModelDoc.Extension.SelectByID2(DrawingView.Name, DRW_VIEW_TYPE_NAME, 0, 0, 0, append, selData?.Mark ?? 0, selData?.Callout, 0))
-            {
-                throw new Exception("Failed to select drawing view");
-            }
-        }
+        internal override void Select(bool append, ISelectData selData) => SelectView(DrawingView, append, selData);
 
         internal void SetParentSheet(SwSheet parentSheet) 
         {
@@ -178,6 +170,24 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         protected virtual IView CreateDrawingView(CancellationToken cancellationToken)
             => throw new NotSupportedException("Creation of this drawing view is not supported");
+
+        private void SelectView(IView view, bool append, ISelectData selData)
+        {
+            const string DRW_VIEW_TYPE_NAME = "DRAWINGVIEW";
+
+            if (!OwnerModelDoc.Extension.SelectByID2(view.Name, DRW_VIEW_TYPE_NAME, 0, 0, 0, append, selData?.Mark ?? 0, selData?.Callout, 0))
+            {
+                throw new Exception("Failed to select drawing view");
+            }
+        }
+
+        protected void RefreshView(IView view) 
+        {
+            SelectView(view, false, null);
+            m_Drawing.Drawing.SuppressView();
+            SelectView(view, false, null);
+            m_Drawing.Drawing.UnsuppressView();
+        }
 
         public string Name
         {
@@ -1362,6 +1372,9 @@ namespace Xarial.XCad.SolidWorks.Documents
                 {
                     throw new Exception("Created view cannot be set to flat pattern");
                 }
+
+                //In some cases view shows invalid geometry until hidden and shown
+                RefreshView(view);
 
                 SetViewOptions(view, Options);
 
