@@ -80,7 +80,6 @@ namespace Xarial.XCad.SolidWorks.Geometry
     internal abstract class SwFace : SwEntity, ISwFace
     {
         IXSurface IXFace.Definition => Definition;
-        IXLoop[] IXRegion.Boundary => Boundary;
 
         public IFace2 Face { get; }
         private readonly IMathUtility m_MathUtils;
@@ -111,20 +110,13 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         public ISwSurface Definition => OwnerApplication.CreateObjectFromDispatch<SwSurface>(Face.IGetSurface(), OwnerDocument);
 
-        public ISwLoop[] Boundary 
+        private IEnumerable<ISwLoop> IterateLoops() 
         {
-            get 
+            var loops = (object[])Face.GetLoops();
+
+            for (int i = 0; i < loops.Length; i++)
             {
-                var loops = (object[])Face.GetLoops();
-
-                var res = new ISwLoop[loops.Length];
-
-                for (int i = 0; i < loops.Length; i++) 
-                {
-                    res[i] = OwnerApplication.CreateObjectFromDispatch<ISwLoop>((ILoop2)loops[i], OwnerDocument);
-                }
-
-                return res;
+                yield return OwnerApplication.CreateObjectFromDispatch<ISwLoop>((ILoop2)loops[i], OwnerDocument);
             }
         }
 
@@ -146,6 +138,18 @@ namespace Xarial.XCad.SolidWorks.Geometry
         }
         
         public bool Sense => Face.FaceInSurfaceSense();
+
+        public IXLoop OuterLoop
+        {
+            get => IterateLoops().First(l => l.Loop.IsOuter());
+            set => throw new NotSupportedException();
+        }
+
+        public IXLoop[] InnerLoops
+        {
+            get => IterateLoops().Where(l => !l.Loop.IsOuter()).ToArray();
+            set => throw new NotSupportedException();
+        }
 
         public override Point FindClosestPoint(Point point)
             => new Point(((double[])Face.GetClosestPointOn(point.X, point.Y, point.Z)).Take(3).ToArray());
@@ -203,6 +207,8 @@ namespace Xarial.XCad.SolidWorks.Geometry
     internal class SwPlanarFace : SwFace, ISwPlanarFace
     {
         IXPlanarSurface IXPlanarFace.Definition => Definition;
+        ISwLoop ISwRegion.OuterLoop { get => (ISwLoop)OuterLoop; set => OuterLoop = value; }
+        ISwLoop[] ISwRegion.InnerLoops { get => InnerLoops.Cast<ISwLoop>().ToArray(); set => InnerLoops = value; }
 
         public SwPlanarFace(IFace2 face, SwDocument doc, SwApplication app) : base(face, doc, app)
         {

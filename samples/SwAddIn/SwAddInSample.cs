@@ -198,6 +198,8 @@ namespace SwAddInExample
 
             HandleAddEvents,
 
+            ReplaceCompDoc,
+
             Custom
         }
 
@@ -700,6 +702,10 @@ namespace SwAddInExample
                         HandleAddEvents();
                         break;
 
+                    case Commands_e.ReplaceCompDoc:
+                        ReplaceCompDoc();
+                        break;
+
                     case Commands_e.Custom:
                         Custom();
                         break;
@@ -709,6 +715,18 @@ namespace SwAddInExample
             {
                 Debug.Assert(false);
             }
+        }
+
+        private void ReplaceCompDoc()
+        {
+            var newPath = "";
+
+            var comp = Application.Documents.Active.Selections.OfType<IXComponent>().First();
+
+            var newDoc = Application.Documents.PreCreatePart();
+            newDoc.Path = newPath;
+
+            comp.ReferencedDocument = newDoc;
         }
 
         private void Custom()

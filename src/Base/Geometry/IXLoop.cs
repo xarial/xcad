@@ -19,8 +19,8 @@ namespace Xarial.XCad.Geometry
     public interface IXLoop : IXSelObject, IXWireEntity
     {
         /// <summary>
-        /// Connected and closed curves of this loop
+        /// Connected and closed segments of this loop
         /// </summary>
-        IXCurve[] Curves { get; set; }
+        IXSegment[] Segments { get; set; }
     }
 }

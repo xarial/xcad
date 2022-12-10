@@ -53,7 +53,12 @@ namespace Xarial.XCad.SolidWorks.Geometry
                 {
                     try
                     {
-                        var testPtrAlive = m_Body.Name;
+                        var testNameAlive = m_Body.Name;
+
+                        if (string.IsNullOrEmpty(testNameAlive) && !m_Body.IsTemporaryBody()) 
+                        {
+                            throw new Exception("Permanent body is not alive");
+                        }
                     }
                     catch 
                     {
@@ -361,7 +366,9 @@ namespace Xarial.XCad.SolidWorks.Geometry
         }
 
         public Plane Plane => this.GetPlane();
-        public IXLoop[] Boundary => this.GetBoundary();
+
+        public IXLoop OuterLoop { get => this.GetOuterLoop(); set => throw new NotSupportedException(); }
+        public IXLoop[] InnerLoops { get => this.GetInnerLoops(); set => throw new NotSupportedException(); }
     }
 
     internal static class ISwPlanarSheetBodyExtension 
@@ -374,21 +381,18 @@ namespace Xarial.XCad.SolidWorks.Geometry
             return planarFace.Definition.Plane;
         }
 
-        internal static SwLoop[] GetBoundary(this ISwPlanarSheetBody body)
+        internal static SwLoop GetOuterLoop(this ISwPlanarSheetBody body) => IterateLoops((SwFace)body.Faces.First()).First(l => l.Loop.IsOuter());
+        internal static SwLoop[] GetInnerLoops(this ISwPlanarSheetBody body) => IterateLoops((SwFace)body.Faces.First()).Where(l => !l.Loop.IsOuter()).ToArray();
+
+        private static IEnumerable<SwLoop> IterateLoops(SwFace face) 
         {
-            var face = body.Body.IGetFirstFace();
-
-            var loops = (object[])face.GetLoops();
-
-            var res = new SwLoop[loops.Length];
+            var loops = (object[])face.Face.GetLoops();
 
             for (int i = 0; i < loops.Length; i++)
             {
                 var loop = (ILoop2)loops[i];
-                res[i] = ((SwObject)body).OwnerApplication.CreateObjectFromDispatch<SwLoop>(loop, ((SwObject)body).OwnerDocument);
+                yield return face.OwnerApplication.CreateObjectFromDispatch<SwLoop>(loop, face.OwnerDocument);
             }
-
-            return res;
         }
     }
 

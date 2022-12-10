@@ -52,7 +52,9 @@ namespace Xarial.XCad.Documents
         /// <summary>
         /// Document of the component
         /// </summary>
-        /// <remarks>If component is rapid, view only or suppressed document migth not be loaded into the memory. Use <see cref="IXTransaction.IsCommitted"/> to check the state and call <see cref="IXTransaction.Commit(System.Threading.CancellationToken)"/> to load document if needed</remarks>
+        /// <remarks>If component is rapid, view only or suppressed document migth not be loaded into the memory. Use <see cref="IXTransaction.IsCommitted"/> to check the state and call <see cref="IXTransaction.Commit(System.Threading.CancellationToken)"/> to load document if needed
+        /// When changing the referenced document of the committed element, document can be either replaced (if existing file is provided) or made independent if non-exisitng file is provided. Use an empty <see cref="IXDocument.Path"/> for the <see cref="ComponentState_e.Embedded"/> components
+        /// </remarks>
         IXDocument3D ReferencedDocument { get; set; }
         
         /// <summary>

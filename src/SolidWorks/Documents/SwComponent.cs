@@ -314,13 +314,103 @@ namespace Xarial.XCad.SolidWorks.Documents
             {
                 if (IsCommitted)
                 {
-                    //TODO: implement ReplaceComponent feature
-                    throw new CommitedElementReadOnlyParameterException();
+                    var newPath = value.Path;
+
+                    if (!value.IsCommitted)
+                    {
+                        ((SwDocumentCollection)OwnerApplication.Documents).Dispatcher.BeginDispatch((SwDocument)value);
+                    }
+
+                    try
+                    {
+
+                        if (string.IsNullOrEmpty(newPath))
+                        {
+                            if (Component.IsVirtual)
+                            {
+                                MakeIndependent("");
+                            }
+                            else
+                            {
+                                throw new NotSupportedException("Model without a path could only be replaced for the virtual component (make independent)");
+                            }
+                        }
+                        else
+                        {
+                            if (File.Exists(newPath))
+                            {
+                                Select(false);
+
+                                if (OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2017))
+                                {
+                                    if (!RootAssembly.Assembly.ReplaceComponents2(newPath, ReferencedConfiguration.Name, false,
+                                        (int)swReplaceComponentsConfiguration_e.swReplaceComponentsConfiguration_MatchName, true))
+                                    {
+                                        throw new Exception("Failed to replace the component");
+                                    }
+                                }
+                                else
+                                {
+                                    if (!RootAssembly.Assembly.ReplaceComponents(newPath, ReferencedConfiguration.Name, false, true))
+                                    {
+                                        throw new Exception("Failed to replace the component");
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                MakeIndependent(newPath);
+                            }
+                        }
+
+                        ((SwDocumentCollection)OwnerApplication.Documents).Dispatcher.EndDispatch((SwDocument)value, Component.IGetModelDoc());
+                    }
+                    catch 
+                    {
+                        ((SwDocumentCollection)OwnerApplication.Documents).Dispatcher.TryRemoveFromDispatchQueue((SwDocument)value);
+                        throw;
+                    }
                 }
                 else 
                 {
                     m_Creator.CachedProperties.Set(value);
                 }
+            }
+        }
+
+        private void MakeIndependent(string filePath)
+        {
+            if (OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2017))
+            {
+                Select(false);
+
+                if (!string.IsNullOrEmpty(filePath))
+                {
+                    if (!RootAssembly.Assembly.MakeIndependent(filePath))
+                    {
+                        throw new Exception("Failed to make this component independent");
+                    }
+                }
+                else
+                {
+                    //NOTE: the above method does not work for the virtual components
+
+                    var curFilePath = Component.GetPathName();
+
+                    const int swCommands_MakeVirtualCompIndependent = 3494;
+                    OwnerApplication.Sw.RunCommand(swCommands_MakeVirtualCompIndependent, "");
+
+                    var newFilePath = Component.GetPathName();
+
+                    if (string.Equals(curFilePath, newFilePath, StringComparison.CurrentCultureIgnoreCase)) 
+                    {
+                        throw new Exception("Failed to make independent virtual component");
+                    }
+                }
+            }
+            else 
+            {
+                throw new NotSupportedException("Make independent feature is availabel in SOLIDWORKS 2017 or newer");
             }
         }
 

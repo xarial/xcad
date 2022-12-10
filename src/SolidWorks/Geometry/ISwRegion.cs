@@ -10,10 +10,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using Xarial.XCad.Base;
+using Xarial.XCad.Exceptions;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Geometry.Wires;
+using Xarial.XCad.Services;
 using Xarial.XCad.SolidWorks.Geometry.Curves;
 using Xarial.XCad.SolidWorks.Sketch;
 
@@ -21,7 +24,15 @@ namespace Xarial.XCad.SolidWorks.Geometry
 {
     public interface ISwRegion : IXRegion
     {
-        new ISwLoop[] Boundary { get; }
+        /// <summary>
+        /// Boundary of this region
+        /// </summary>
+        new ISwLoop OuterLoop { get; set; }
+
+        /// <summary>
+        /// Inner loops in the region
+        /// </summary>
+        new ISwLoop[] InnerLoops { get; set; }
     }
 
     public interface ISwPlanarRegion : ISwRegion, IXPlanarRegion
@@ -31,7 +42,8 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
     internal sealed class SwPlanarRegion : ISwPlanarRegion
     {
-        IXLoop[] IXRegion.Boundary => Boundary;
+        IXLoop IXRegion.OuterLoop { get => OuterLoop; set => OuterLoop = (ISwLoop)value; }
+        IXLoop[] IXRegion.InnerLoops { get => InnerLoops; set => InnerLoops = value.Cast<ISwLoop>().ToArray(); }
 
         public Plane Plane
         {
@@ -39,9 +51,9 @@ namespace Xarial.XCad.SolidWorks.Geometry
             {
                 Plane plane = null;
 
-                var firstLoop = Boundary.First();
+                var outerLoop = OuterLoop;
 
-                var firstCurve = firstLoop.Curves.First() as SwCurve;
+                var firstCurve = outerLoop.Curves.First() as SwCurve;
 
                 if (firstCurve?.TryGetPlane(out plane) == true)
                 {
@@ -53,16 +65,14 @@ namespace Xarial.XCad.SolidWorks.Geometry
                     //TODO: check if all on the same plane
                     //TODO: fix if a single curve
 
-                    var refVec1 = firstLoop.Curves[0].EndPoint.Coordinate - firstLoop.Curves[0].StartPoint.Coordinate;
-                    var refVec2 = firstLoop.Curves[1].EndPoint.Coordinate - firstLoop.Curves[1].StartPoint.Coordinate;
+                    var refVec1 = outerLoop.Curves[0].EndPoint.Coordinate - outerLoop.Curves[0].StartPoint.Coordinate;
+                    var refVec2 = outerLoop.Curves[1].EndPoint.Coordinate - outerLoop.Curves[1].StartPoint.Coordinate;
                     var normVec = refVec1.Cross(refVec2);
 
-                    return new Plane(firstLoop.Curves[0].StartPoint.Coordinate, normVec, refVec1);
+                    return new Plane(outerLoop.Curves[0].StartPoint.Coordinate, normVec, refVec1);
                 }
             }
         }
-
-        public ISwLoop[] Boundary => m_LazyBoundary.Value;
 
         public ISwTempPlanarSheetBody PlanarSheetBody
         {
@@ -80,18 +90,14 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
                 var boundary = new List<ICurve>();
 
-                var boundaryLoops = Boundary;
+                boundary.AddRange(IterateCurves(OuterLoop));
 
                 const ICurve LOOP_SEPARATOR = null;
 
-                for (int i = 0; i < boundaryLoops.Length; i++)
+                foreach (var innerLoop in InnerLoops ?? new ISwLoop[0]) 
                 {
-                    boundary.AddRange(boundaryLoops[i].Curves.SelectMany(c => c.Curves).ToArray());
-
-                    if (i != boundaryLoops.Length - 1)
-                    {
-                        boundary.Add(LOOP_SEPARATOR);
-                    }
+                    boundary.Add(LOOP_SEPARATOR);
+                    boundary.AddRange(IterateCurves(innerLoop));
                 }
 
                 IBody2 sheetBody;
@@ -114,42 +120,83 @@ namespace Xarial.XCad.SolidWorks.Geometry
             }
         }
 
-        private readonly Lazy<ISwLoop[]> m_LazyBoundary;
+        public ISwLoop OuterLoop 
+        {
+            get => m_Creator.CachedProperties.Get<ISwLoop>();
+            set 
+            {
+                if (!IsCommitted)
+                {
+                    m_Creator.CachedProperties.Set(value);
+                }
+                else 
+                {
+                    throw new CommitedElementReadOnlyParameterException();
+                }
+            }
+        }
+
+        public ISwLoop[] InnerLoops
+        {
+            get => m_Creator.CachedProperties.Get<ISwLoop[]>();
+            set
+            {
+                if (!IsCommitted)
+                {
+                    m_Creator.CachedProperties.Set(value);
+                }
+                else
+                {
+                    throw new CommitedElementReadOnlyParameterException();
+                }
+            }
+        }
+
+        public bool IsCommitted => m_Creator.IsCreated;
+
+        private readonly IElementCreator<bool?> m_Creator;
 
         private readonly SwMemoryGeometryBuilder m_GeomBuilder;
 
-        internal SwPlanarRegion(IXSegment[] boundary, SwMemoryGeometryBuilder geomBuilder)
+        internal SwPlanarRegion(SwMemoryGeometryBuilder geomBuilder)
         {
             m_GeomBuilder = geomBuilder;
+            m_Creator = new ElementCreator<bool?>(CreateRegion, null);
+        }
 
-            m_LazyBoundary = new Lazy<ISwLoop[]>(() =>
+        private bool? CreateRegion(CancellationToken cancellationToken) => true;
+
+        private IEnumerable<ICurve> IterateCurves(IXLoop loop) 
+        {
+            foreach (var seg in loop.Segments) 
             {
-                var loop = (ISwLoop)geomBuilder.WireBuilder.PreCreateLoop();
+                ISwCurve segCurve;
 
-                var curves = new List<ISwCurve>();
-
-                foreach (var bound in boundary) 
+                switch (seg)
                 {
-                    switch (bound) 
-                    {
-                        case ISwCurve curve:
-                            curves.Add(curve);
-                            break;
+                    case ISwCurve curve:
+                        segCurve = curve;
+                        break;
 
-                        case ISwEdge edge:
-                            curves.Add(edge.Definition);
-                            break;
+                    case ISwEdge edge:
+                        segCurve = edge.Definition;
+                        break;
 
-                        case ISwSketchSegment seg:
-                            curves.Add(seg.Definition);
-                            break;
-                    }
+                    case ISwSketchSegment skSeg:
+                        segCurve = skSeg.Definition;
+                        break;
+
+                    default:
+                        throw new NotSupportedException();
                 }
 
-                loop.Curves = curves.ToArray();
-                loop.Commit();
-                return new ISwLoop[] { loop };
-            });
+                foreach (var subSegCurve in segCurve.Curves) 
+                {
+                    yield return subSegCurve;
+                }
+            }
         }
+
+        public void Commit(CancellationToken cancellationToken) => m_Creator.Create(cancellationToken);
     }
 }

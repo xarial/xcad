@@ -28,7 +28,8 @@ namespace Xarial.XCad.SolidWorks.Sketch
 
     internal class SwSketchRegion : SwSelObject, ISwSketchRegion
     {
-        IXLoop[] IXRegion.Boundary => Boundary;
+        IXLoop IXRegion.OuterLoop { get => OuterLoop; set => OuterLoop = (ISwLoop)value; }
+        IXLoop[] IXRegion.InnerLoops { get => InnerLoops; set => InnerLoops = value.Cast<ISwLoop>().ToArray(); }
 
         internal SwSketchRegion(ISketchRegion region, SwDocument doc, SwApplication app) : base(region, doc, app)
         {
@@ -51,24 +52,6 @@ namespace Xarial.XCad.SolidWorks.Sketch
             }
         }
 
-        public ISwLoop[] Boundary 
-        {
-            get 
-            {
-                var res = new List<ISwLoop>();
-
-                var loop = Region.GetFirstLoop();
-
-                while (loop != null) 
-                {
-                    res.Add(OwnerApplication.CreateObjectFromDispatch<ISwLoop>(loop, OwnerDocument));
-                    loop = loop.IGetNext();
-                }
-
-                return res.ToArray();
-            }
-        }
-
         public ISwTempPlanarSheetBody PlanarSheetBody 
         {
             get 
@@ -76,6 +59,30 @@ namespace Xarial.XCad.SolidWorks.Sketch
                 var face = Region.GetFirstLoop().IGetFace();
                 var sheetBody = face.CreateSheetBody();
                 return OwnerApplication.CreateObjectFromDispatch<SwTempPlanarSheetBody>(sheetBody, OwnerDocument);
+            }
+        }
+
+        public ISwLoop OuterLoop 
+        {
+            get => IterateLoops().First(l => l.Loop.IsOuter());
+            set => throw new NotSupportedException();
+        }
+
+        public ISwLoop[] InnerLoops 
+        {
+            get => IterateLoops().Where(l => !l.Loop.IsOuter()).ToArray();
+            set => throw new NotSupportedException();
+        }
+
+        private IEnumerable<ISwLoop> IterateLoops() 
+        {
+            var loop = Region.GetFirstLoop();
+
+            while (loop != null)
+            {
+                yield return OwnerApplication.CreateObjectFromDispatch<ISwLoop>(loop, OwnerDocument);
+
+                loop = loop.IGetNext();
             }
         }
     }

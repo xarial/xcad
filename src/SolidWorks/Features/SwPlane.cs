@@ -84,8 +84,6 @@ namespace Xarial.XCad.SolidWorks.Features
             }
         }
 
-        public IXLoop[] Boundary => throw new NotImplementedException();
-
         public override bool IsUserFeature 
         {
             get 
@@ -118,6 +116,9 @@ namespace Xarial.XCad.SolidWorks.Features
                 return true;
             }
         }
+
+        public IXLoop OuterLoop { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public IXLoop[] InnerLoops { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
         protected override IFeature InsertFeature(CancellationToken cancellationToken)
         {

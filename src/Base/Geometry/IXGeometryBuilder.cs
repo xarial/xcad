@@ -36,11 +36,10 @@ namespace Xarial.XCad.Geometry
         IXSolidGeometryBuilder SolidBuilder { get; }
 
         /// <summary>
-        /// Creates region from the specified list of segments
+        /// Pre-creates planar region
         /// </summary>
-        /// <param name="segments">Segments</param>
-        /// <returns>Created region</returns>
-        IXPlanarRegion CreateRegionFromSegments(params IXSegment[] segments);
+        /// <returns>Region template</returns>
+        IXPlanarRegion PreCreatePlanarRegion();
     }
 
     /// <summary>

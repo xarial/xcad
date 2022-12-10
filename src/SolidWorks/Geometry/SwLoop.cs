@@ -14,6 +14,7 @@ using System.Threading;
 using Xarial.XCad.Exceptions;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Curves;
+using Xarial.XCad.Geometry.Wires;
 using Xarial.XCad.Services;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Geometry.Curves;
@@ -23,12 +24,12 @@ namespace Xarial.XCad.SolidWorks.Geometry
     public interface ISwLoop : IXLoop, ISwSelObject
     {
         ILoop2 Loop { get; }
-        new ISwCurve[] Curves { get; set; }
+        ISwCurve[] Curves { get; set; }
     }
 
     internal class SwLoop : SwSelObject, ISwLoop
     {
-        IXCurve[] IXLoop.Curves
+        IXSegment[] IXLoop.Segments
         {
             get => Curves;
             set => Curves = value?.Cast<ISwCurve>().ToArray();

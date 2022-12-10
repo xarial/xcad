@@ -24,7 +24,7 @@ namespace Xarial.XCad.Geometry.Curves
         Lines,
 
         /// <summary>
-        /// Ent point of the previous line is the start point of the new line
+        /// End point of the previous line is the start point of the new line
         /// </summary>
         Strip,
 

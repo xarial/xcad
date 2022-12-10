@@ -118,7 +118,8 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
     internal class SwTempPlanarSheetBody : SwTempBody, ISwTempPlanarSheetBody
     {
-        IXLoop[] IXRegion.Boundary => Boundary;
+        IXLoop IXRegion.OuterLoop { get => OuterLoop; set => throw new NotSupportedException(); }
+        IXLoop[] IXRegion.InnerLoops { get => InnerLoops; set => throw new NotSupportedException(); }
 
         internal SwTempPlanarSheetBody(IBody2 body, SwApplication app) : base(body, app)
         {
@@ -128,7 +129,8 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         public ISwTempPlanarSheetBody PlanarSheetBody => this;
 
-        public ISwLoop[] Boundary => this.GetBoundary();
+        public ISwLoop OuterLoop { get => this.GetOuterLoop(); set => throw new NotSupportedException(); }
+        public ISwLoop[] InnerLoops { get => this.GetInnerLoops(); set => throw new NotSupportedException(); }
     }
 
     internal class SwTempWireBody : SwTempBody, ISwTempWireBody

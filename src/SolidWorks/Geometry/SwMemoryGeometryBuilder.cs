@@ -63,6 +63,6 @@ namespace Xarial.XCad.SolidWorks.Geometry
             ((SwBody)body).Body.Save(comStr);
         }
 
-        public IXPlanarRegion CreateRegionFromSegments(params IXSegment[] segments) => new SwPlanarRegion(segments, this);
+        public IXPlanarRegion PreCreatePlanarRegion() => new SwPlanarRegion(this);
     }
 }

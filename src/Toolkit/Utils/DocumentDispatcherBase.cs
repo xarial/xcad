@@ -63,7 +63,14 @@ namespace Xarial.XCad.Toolkit.Utils
             {
                 m_Logger.Log($"Adding '{GetTitle(underlineDoc)}' to the dispatch queue", LoggerMessageSeverity_e.Debug);
 
-                m_NativeDocsDispatchQueue.Add(underlineDoc);
+                if (!m_NativeDocsDispatchQueue.Contains(underlineDoc))
+                {
+                    m_NativeDocsDispatchQueue.Add(underlineDoc);
+                }
+                else 
+                {
+                    m_Logger.Log($"Adding '{GetTitle(underlineDoc)}' already in the queue", LoggerMessageSeverity_e.Debug);
+                }
 
                 if (!m_DocsDispatchQueue.Any())
                 {

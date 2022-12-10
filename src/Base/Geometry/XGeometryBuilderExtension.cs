@@ -20,6 +20,26 @@ namespace Xarial.XCad.Geometry
     public static class XGeometryBuilderExtension
     {
         /// <summary>
+        /// Creates region from the specified list of segments
+        /// </summary>
+        /// <param name="builder">Builder</param>
+        /// <param name="segments">Segments</param>
+        /// <returns>Created region</returns>
+        public static IXPlanarRegion CreateRegionFromSegments(this IXGeometryBuilder builder, params IXSegment[] segments) 
+        {
+            var region = builder.PreCreatePlanarRegion();
+
+            var loop = builder.WireBuilder.PreCreateLoop();
+            loop.Segments = segments;
+            loop.Commit();
+
+            region.OuterLoop = loop;
+            region.Commit();
+
+            return region;
+        }
+
+        /// <summary>
         /// Creates a box body from the specified parameters
         /// </summary>
         /// <param name="builder">Geometry builder</param>

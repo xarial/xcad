@@ -14,6 +14,7 @@ using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Curves;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.SolidWorks.Documents;
+using Xarial.XCad.SolidWorks.Features;
 using Xarial.XCad.SolidWorks.Geometry;
 using Xarial.XCad.SolidWorks.Geometry.Curves;
 
@@ -230,7 +231,7 @@ namespace SolidWorks.Tests.Integration
             int faceCount;
             double[] massPrps;
 
-            using (var doc = NewDocument(Interop.swconst.swDocumentTypes_e.swDocPART))
+            using (var doc = NewDocument(swDocumentTypes_e.swDocPART))
             {
                 var cyl = m_App.MemoryGeometryBuilder.CreateSolidCylinder(
                 new Point(0, 0, 0), new Vector(1, 0, 0), 0.1, 0.2);
@@ -287,6 +288,73 @@ namespace SolidWorks.Tests.Integration
         }
 
         [Test]
+        public void PlanarSheetInnerLoops()
+        {
+            var polyline = m_App.MemoryGeometryBuilder.WireBuilder.PreCreatePolyline();
+            polyline.Mode = PolylineMode_e.Loop;
+            polyline.Points = new Point[]
+            {
+                new Point(-0.1, 0.1, 0),
+                new Point(0.1, 0.1, 0),
+                new Point(0.1, -0.1, 0),
+                new Point(-0.1, -0.1, 0)
+            };
+            polyline.Commit();
+
+            var outerLoop = m_App.MemoryGeometryBuilder.WireBuilder.PreCreateLoop();
+            outerLoop.Segments = new Xarial.XCad.Geometry.Wires.IXSegment[] { polyline };
+            outerLoop.Commit();
+
+            var innerSeg1 = m_App.MemoryGeometryBuilder.WireBuilder.PreCreateCircle();
+            innerSeg1.Geometry = new Circle(new Axis(new Point(0, 0, 0), new Vector(0, 0, 1)), 0.01);
+            innerSeg1.Commit();
+
+            var innerLoop1 = m_App.MemoryGeometryBuilder.WireBuilder.PreCreateLoop();
+            innerLoop1.Segments = new Xarial.XCad.Geometry.Wires.IXSegment[]
+            {
+                innerSeg1
+            };
+
+            innerLoop1.Commit();
+
+            var innerSeg2 = m_App.MemoryGeometryBuilder.WireBuilder.PreCreateLine();
+            innerSeg2.Geometry = new Line(new Point(0.05, 0.05, 0), new Point(0.05, 0.07, 0));
+            innerSeg2.Commit();
+
+            var innerSeg3 = m_App.MemoryGeometryBuilder.WireBuilder.PreCreateLine();
+            innerSeg3.Geometry = new Line(new Point(0.05, 0.07, 0), new Point(0.07, 0.07, 0));
+            innerSeg3.Commit();
+
+            var innerSeg4 = m_App.MemoryGeometryBuilder.WireBuilder.PreCreateLine();
+            innerSeg4.Geometry = new Line(new Point(0.07, 0.07, 0), new Point(0.05, 0.05, 0));
+            innerSeg4.Commit();
+
+            var innerLoop2 = m_App.MemoryGeometryBuilder.WireBuilder.PreCreateLoop();
+            innerLoop2.Segments = new Xarial.XCad.Geometry.Wires.IXSegment[]
+            {
+                innerSeg2,
+                innerSeg3,
+                innerSeg4
+            };
+            innerLoop2.Commit();
+
+            var reg = m_App.MemoryGeometryBuilder.PreCreatePlanarRegion();
+            reg.OuterLoop = outerLoop;
+            reg.InnerLoops = new IXLoop[] { innerLoop1, innerLoop2 };
+            reg.Commit();
+
+            var planarBody = ((ISwPlanarRegion)reg).PlanarSheetBody.Body;
+
+            var face = planarBody.IGetFirstFace();
+
+            Assert.AreEqual((int)swBodyType_e.swSheetBody, planarBody.GetType());
+            Assert.AreEqual(1, planarBody.GetFaceCount());
+            Assert.That(0.039721460183660261, Is.EqualTo(face.GetArea()).Within(0.001).Percent);
+            Assert.AreEqual(8, face.GetEdgeCount());
+            Assert.AreEqual(3, face.GetLoopCount());
+        }
+
+        [Test]
         public void PlanarSheetSketchRegionTest() 
         {
             double area1;
@@ -318,6 +386,41 @@ namespace SolidWorks.Tests.Integration
         }
 
         [Test]
+        public void RegionLoopsTest()
+        {
+            Type[] faceOuterLoop;
+            Type[][] faceInnerLoops;
+            Type[] skRegOuterLoop;
+            Type[][] skRegInnerLoops;
+
+            using (var doc = OpenDataDocument("Regions.SLDPRT"))
+            {
+                var part = (ISwPart)m_App.Documents.Active;
+                var face = part.Bodies.First().Faces.First(f => ((ISwFace)f).Face.GetEdgeCount() == 8);
+
+                var skReg = ((ISwSketch2D)part.Features["Sketch1"]).Regions.First(r => r.Region.GetEdgesCount() == 8);
+
+                faceOuterLoop = face.OuterLoop.Segments.Select(x => x.GetType()).ToArray();
+                faceInnerLoops = face.InnerLoops.Select(l => l.Segments.Select(x => x.GetType()).ToArray()).ToArray();
+
+                skRegOuterLoop = skReg.OuterLoop.Segments.Select(x => x.GetType()).ToArray();
+                skRegInnerLoops = skReg.InnerLoops.Select(l => l.Segments.Select(x => x.GetType()).ToArray()).ToArray();
+            }
+
+            Assert.AreEqual(4, faceOuterLoop.Length);
+            Assert.That(faceOuterLoop.All(x => typeof(ISwLineCurve).IsAssignableFrom(x)));
+            Assert.AreEqual(2, faceInnerLoops.Length);
+            Assert.That(faceInnerLoops.Any(l => l.Length == 1) && faceInnerLoops.First(l => l.Length == 1).All(x => typeof(ISwCircleCurve).IsAssignableFrom(x)));
+            Assert.That(faceInnerLoops.Any(l => l.Length == 3) && faceInnerLoops.First(l => l.Length == 3).All(x => typeof(ISwLineCurve).IsAssignableFrom(x)));
+
+            Assert.AreEqual(4, skRegOuterLoop.Length);
+            Assert.That(skRegOuterLoop.All(x => typeof(ISwLineCurve).IsAssignableFrom(x)));
+            Assert.AreEqual(2, skRegInnerLoops.Length);
+            Assert.That(skRegInnerLoops.Any(l => l.Length == 1) && faceInnerLoops.First(l => l.Length == 1).All(x => typeof(ISwCircleCurve).IsAssignableFrom(x)));
+            Assert.That(skRegInnerLoops.Any(l => l.Length == 3) && faceInnerLoops.First(l => l.Length == 3).All(x => typeof(ISwLineCurve).IsAssignableFrom(x)));
+        }
+
+            [Test]
         public void SurfaceKnitTest()
         {
             int b1Count;

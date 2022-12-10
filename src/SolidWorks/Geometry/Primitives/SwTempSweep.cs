@@ -93,12 +93,12 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
             {
                 using (var selGrp = new SelectionGroup(m_Part, true))
                 {
-                    if (profile.Boundary.Length > 1) 
+                    if (profile.InnerLoops?.Any() == true) 
                     {
                         throw new NotSupportedException("Only single loop is supported for the profile");
                     }
 
-                    var profileCurve = GetSingleCurve(profile.Boundary.First().Curves.SelectMany(c => c.Curves).ToArray());
+                    var profileCurve = GetSingleCurve(profile.OuterLoop.Curves.SelectMany(c => c.Curves).ToArray());
                     var profileBody = profileCurve.CreateWireBody();
 
                     selData.Mark = 1;
