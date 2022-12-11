@@ -501,9 +501,9 @@ namespace Xarial.XCad.SolidWorks.Geometry
     {
         private LegacyComponentMassPropertyLazy m_ComponentMassPropertyLazy;
 
-        private readonly ISwAssembly m_Assm;
+        private readonly SwAssembly m_Assm;
 
-        internal SwAssemblyMassProperty(ISwAssembly assm, IMathUtility mathUtils) : base(assm, mathUtils)
+        internal SwAssemblyMassProperty(SwAssembly assm, IMathUtility mathUtils) : base(assm, mathUtils)
         {
             VisibleOnly = true;
             m_Assm = assm;
@@ -554,7 +554,8 @@ namespace Xarial.XCad.SolidWorks.Geometry
             if (overrides.OverrideMomentsOfInertia && scopeComps?.Length == 1)
             {
                 //WORKAROUND: overriden principal axes of inertia is not correct in sub-assemblies
-                if (scopeComps.First().ReferencedDocument is IXAssembly)//invalid values returned for the Axis if overriden
+                if (scopeComps.First().ReferencedDocument is IXAssembly 
+                    || m_Assm.OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2022, 1))//invalid values returned for the Axis if overriden or since SW 2022 SP1
                 {
                     var legacyMassPrps = m_ComponentMassPropertyLazy.Value.MassProperty;
 

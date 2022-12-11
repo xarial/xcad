@@ -5,8 +5,6 @@ variables:
     versionSuffix: release
   ${{ if eq(variables['Build.SourceBranchName'], 'dev') }}:
     versionSuffix: dev
-  ${{ if eq(variables['Build.SourceBranchName'], '!preview') }}:
-    versionSuffix: preview
   ${{ if eq(variables['Build.SourceBranchName'], '!alpha') }}:
     versionSuffix: alpha
   ${{ if eq(variables['Build.SourceBranchName'], '!beta') }}:
@@ -17,7 +15,6 @@ trigger:
     include:
     - master
     - dev
-    - '!preview'
     - '!alpha'
     - '!beta'
   paths:
@@ -108,7 +105,7 @@ stages:
           platform: '$(BuildPlatform)'
           configuration: '$(BuildConfiguration)'
 
-      - ${{ if and(or(eq(variables['Build.SourceBranch'], 'refs/heads/dev'), eq(variables['Build.SourceBranch'], 'refs/heads/!preview'), eq(variables['Build.SourceBranch'], 'refs/heads/!alpha'), eq(variables['Build.SourceBranch'], 'refs/heads/!beta')), ne(variables['Build.Reason'], 'PullRequest')) }}:
+      - ${{ if and(or(eq(variables['Build.SourceBranch'], 'refs/heads/dev'), eq(variables['Build.SourceBranch'], 'refs/heads/!alpha'), eq(variables['Build.SourceBranch'], 'refs/heads/!beta')), ne(variables['Build.Reason'], 'PullRequest')) }}:
         - task: DotNetCoreCLI@2
           displayName: 'Pack $(versionSuffix) versions'
           inputs:
@@ -170,7 +167,7 @@ stages:
 - stage: 'PublishProvisionalNuGetPackage'
   displayName: 'Publish Provisional NuGet packages to xcad-dev nuget feed'
   dependsOn: 'Build'
-  condition: and(succeeded(), or(eq(variables['Build.SourceBranch'], 'refs/heads/master'), eq(variables['Build.SourceBranch'], 'refs/heads/!preview'), eq(variables['Build.SourceBranch'], 'refs/heads/!alpha'), eq(variables['Build.SourceBranch'], 'refs/heads/!beta')), ne(variables['Build.Reason'], 'PullRequest'))
+  condition: and(succeeded(), or(eq(variables['Build.SourceBranch'], 'refs/heads/master'), eq(variables['Build.SourceBranch'], 'refs/heads/!alpha'), eq(variables['Build.SourceBranch'], 'refs/heads/!beta')), ne(variables['Build.Reason'], 'PullRequest'))
   jobs:
   - job:
     pool:
@@ -198,7 +195,7 @@ stages:
       value:
   displayName: 'Publish public NuGet packages to nuget.org'
   dependsOn: 'PublishProvisionalNuGetPackage'
-  condition: and(succeeded(), or(eq(variables['Build.SourceBranch'], 'refs/heads/master'), eq(variables['Build.SourceBranch'], 'refs/heads/!preview'), eq(variables['Build.SourceBranch'], 'refs/heads/!alpha'), eq(variables['Build.SourceBranch'], 'refs/heads/!beta')), ne(variables['Build.Reason'], 'PullRequest'))
+  condition: and(succeeded(), or(eq(variables['Build.SourceBranch'], 'refs/heads/master'), eq(variables['Build.SourceBranch'], 'refs/heads/!alpha'), eq(variables['Build.SourceBranch'], 'refs/heads/!beta')), ne(variables['Build.Reason'], 'PullRequest'))
   jobs:
   - deployment:
     pool:
