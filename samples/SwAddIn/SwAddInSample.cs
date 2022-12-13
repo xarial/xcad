@@ -723,10 +723,13 @@ namespace SwAddInExample
 
             var comp = Application.Documents.Active.Selections.OfType<IXComponent>().First();
 
-            var newDoc = Application.Documents.PreCreatePart();
-            newDoc.Path = newPath;
+            comp.MakeIndependent(newPath);
+            comp.ReplaceDocument(newPath);
 
-            comp.ReferencedDocument = newDoc;
+            //var newDoc = Application.Documents.PreCreatePart();
+            //newDoc.Path = newPath;
+
+            //comp.ReferencedDocument = newDoc;
         }
 
         private void Custom()

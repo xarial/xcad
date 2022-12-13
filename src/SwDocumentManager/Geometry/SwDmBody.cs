@@ -15,6 +15,7 @@ using Xarial.XCad.Base.Enums;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;
+using Xarial.XCad.SwDocumentManager.Documents;
 
 namespace Xarial.XCad.SwDocumentManager.Geometry
 {
@@ -39,7 +40,7 @@ namespace Xarial.XCad.SwDocumentManager.Geometry
         public IXMaterial Material => throw new NotSupportedException();
         #endregion
                
-        public SwDmBody() : base(null)
+        public SwDmBody(SwDmPart part) : base(null, part.OwnerApplication, part)
         {
         }
     }

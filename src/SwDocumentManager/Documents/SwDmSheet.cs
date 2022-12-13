@@ -106,7 +106,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         private readonly SwDmDrawing m_Drawing;
 
-        internal SwDmSheet(ISwDMSheet sheet, SwDmDrawing drw) : base(sheet)
+        internal SwDmSheet(ISwDMSheet sheet, SwDmDrawing drw) : base(sheet, drw.OwnerApplication, drw)
         {
             Sheet = sheet;
             m_Drawing = drw;

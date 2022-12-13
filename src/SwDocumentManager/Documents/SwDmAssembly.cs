@@ -33,7 +33,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         private readonly Lazy<SwDmAssemblyConfigurationCollection> m_LazyConfigurations;
 
-        public SwDmAssembly(ISwDmApplication dmApp, ISwDMDocument doc, bool isCreated,
+        public SwDmAssembly(SwDmApplication dmApp, ISwDMDocument doc, bool isCreated,
             Action<ISwDmDocument> createHandler, Action<ISwDmDocument> closeHandler, bool? isReadOnly)
             : base(dmApp, doc, isCreated, createHandler, closeHandler, isReadOnly)
         {
@@ -53,7 +53,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
     {
         private readonly SwDmDocument m_Owner;
 
-        public SwDmVirtualAssembly(ISwDmApplication dmApp, ISwDMDocument doc, SwDmDocument owner, bool isCreated,
+        public SwDmVirtualAssembly(SwDmApplication dmApp, ISwDMDocument doc, SwDmDocument owner, bool isCreated,
             Action<ISwDmDocument> createHandler, Action<ISwDmDocument> closeHandler, bool? isReadOnly) 
             : base(dmApp, doc, isCreated, createHandler, closeHandler, isReadOnly)
         {

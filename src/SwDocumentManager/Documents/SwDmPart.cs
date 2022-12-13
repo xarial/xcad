@@ -24,7 +24,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
     {
         private readonly Lazy<SwDmPartConfigurationCollection> m_LazyConfigurations;
 
-        public SwDmPart(ISwDmApplication dmApp, ISwDMDocument doc, bool isCreated,
+        internal SwDmPart(SwDmApplication dmApp, ISwDMDocument doc, bool isCreated,
             Action<ISwDmDocument> createHandler, Action<ISwDmDocument> closeHandler, bool? isReadOnly)
             : base(dmApp, doc, isCreated, createHandler, closeHandler, isReadOnly)
         {
@@ -46,7 +46,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
     {
         private readonly SwDmDocument m_Owner;
 
-        public SwDmVirtualPart(ISwDmApplication dmApp, ISwDMDocument doc, SwDmDocument owner, bool isCreated,
+        internal SwDmVirtualPart(SwDmApplication dmApp, ISwDMDocument doc, SwDmDocument owner, bool isCreated,
             Action<ISwDmDocument> createHandler, Action<ISwDmDocument> closeHandler, bool? isReadOnly) 
             : base(dmApp, doc, isCreated, createHandler, closeHandler, isReadOnly)
         {

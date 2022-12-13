@@ -12,6 +12,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Xarial.XCad.Data;
+using Xarial.XCad.Documents;
 using Xarial.XCad.Inventor.Documents;
 
 namespace Xarial.XCad.Inventor
@@ -23,6 +24,9 @@ namespace Xarial.XCad.Inventor
 
     internal class AiObject : IAiObject
     {
+        IXApplication IXObject.OwnerApplication => OwnerApplication;
+        IXDocument IXObject.OwnerDocument => OwnerDocument;
+
         public virtual object Dispatch { get; }
 
         internal virtual AiDocument OwnerDocument { get; }

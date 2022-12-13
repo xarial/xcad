@@ -405,6 +405,9 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public SelectType_e SelectionType => SelectType_e.Sheets;
 
+        public IXApplication OwnerApplication => m_App;
+        public IXDocument OwnerDocument => m_Drw;
+
         public bool Equals(IXObject other) => this == other;
     }
 }

@@ -25,7 +25,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         private readonly Lazy<SwDmSheetCollection> m_SheetsLazy;
 
-        public SwDmDrawing(ISwDmApplication dmApp, ISwDMDocument doc, bool isCreated,
+        public SwDmDrawing(SwDmApplication dmApp, ISwDMDocument doc, bool isCreated,
             Action<ISwDmDocument> createHandler, Action<ISwDmDocument> closeHandler,
             bool? isReadOnly)
             : base(dmApp, doc, isCreated, createHandler, closeHandler, isReadOnly)

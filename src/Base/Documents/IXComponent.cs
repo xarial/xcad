@@ -7,6 +7,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using Xarial.XCad.Annotations;
@@ -167,6 +168,85 @@ namespace Xarial.XCad.Documents
             {
                 yield return body;
             }
+        }
+
+        /// <summary>
+        /// Makes this component independent
+        /// </summary>
+        /// <param name="comp">Component</param>
+        /// <param name="newPath">New file path or an empty string for the embedded component</param>
+        /// <exception cref="NotSupportedException"></exception>
+        public static void MakeIndependent(this IXComponent comp, string newPath) 
+        {
+            if (!comp.IsCommitted) 
+            {
+                throw new NotSupportedException("Component is not committed");
+            }
+
+            if (comp.State.HasFlag(ComponentState_e.Embedded))
+            {
+                if (!string.IsNullOrEmpty(newPath))
+                {
+                    throw new NotSupportedException("Use empty path to make embedded component independent");
+                }
+            }
+            else
+            {
+                if (!string.IsNullOrEmpty(newPath))
+                {
+                    if (File.Exists(newPath))
+                    {
+                        throw new NotSupportedException($"File exists, use {nameof(ReplaceDocument)} function instead");
+                    }
+                }
+                else
+                {
+                    throw new NotSupportedException("Empty path is only supported for embedded components");
+                }
+            }
+
+            var newDoc = comp.OwnerApplication.Documents.PreCreate<IXDocument3D>();
+            newDoc.Path = newPath;
+
+            comp.ReferencedDocument = newDoc;
+        }
+
+        /// <summary>
+        /// Replaces the reference document of this component
+        /// </summary>
+        /// <param name="comp">Component</param>
+        /// <param name="newPath">Path to replace</param>
+        /// <exception cref="NotSupportedException"></exception>
+        public static void ReplaceDocument(this IXComponent comp, string newPath)
+        {
+            if (!comp.IsCommitted)
+            {
+                throw new NotSupportedException("Component is not committed");
+            }
+
+            if (!comp.State.HasFlag(ComponentState_e.Embedded))
+            {
+                if (!string.IsNullOrEmpty(newPath))
+                {
+                    if (!File.Exists(newPath))
+                    {
+                        throw new NotSupportedException($"File does not exists, use {nameof(MakeIndependent)} function instead");
+                    }
+                }
+                else
+                {
+                    throw new NotSupportedException("Replacement path is not specified");
+                }
+            }
+            else 
+            {
+                throw new NotSupportedException("Referenced document cannot be replaced for the embedded component");
+            }
+
+            var newDoc = comp.OwnerApplication.Documents.PreCreate<IXDocument3D>();
+            newDoc.Path = newPath;
+
+            comp.ReferencedDocument = newDoc;
         }
     }
 }
