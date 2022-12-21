@@ -7,6 +7,7 @@
 
 using System;
 using System.Drawing;
+using System.Drawing.Imaging;
 using Xarial.XCad.UI;
 
 namespace Xarial.XCad.Toolkit.Base
@@ -28,7 +29,7 @@ namespace Xarial.XCad.Toolkit.Base
         /// <summary>
         /// Base name of the icon
         /// </summary>
-        string Name { get; }
+        string BaseName { get; }
 
         /// <summary>
         /// Original image of the icon
@@ -54,8 +55,45 @@ namespace Xarial.XCad.Toolkit.Base
     /// <inheritdoc/>
     public class IconSpec : IIconSpec
     {
+        /// <summary>
+        /// Generates the file name for the icon
+        /// </summary>
+        /// <param name="baseName">Base name for the icon</param>
+        /// <param name="targetSize">Required icon size</param>
+        /// <param name="format">Format</param>
+        /// <returns>Suggested file name</returns>
+        public static string CreateFileName(string baseName, Size targetSize, IconImageFormat_e format)
+        {
+            if (string.IsNullOrEmpty(baseName))
+            {
+                baseName = Guid.NewGuid().ToString();
+            }
+
+            string ext;
+
+            switch (format)
+            {
+                case IconImageFormat_e.Bmp:
+                    ext = "bmp";
+                    break;
+
+                case IconImageFormat_e.Png:
+                    ext = "png";
+                    break;
+
+                case IconImageFormat_e.Jpeg:
+                    ext = "jpg";
+                    break;
+
+                default:
+                    throw new NotSupportedException();
+            }
+
+            return $"{baseName}_{targetSize.Width}x{targetSize.Height}.{ext}";
+        }
+
         /// <inheritdoc/>
-        public string Name { get; }
+        public string BaseName { get; }
 
         /// <inheritdoc/>
         public IXImage SourceImage { get; }
@@ -82,29 +120,13 @@ namespace Xarial.XCad.Toolkit.Base
             TargetSize = targetSize;
             Margin = margin;
 
-            Name = CreateFileName(baseName, targetSize);
+            BaseName = baseName;
         }
 
         public IconSpec(IXImage srcImage, Size targetSize, ColorMaskDelegate mask, int margin = 0, string baseName = "")
             : this(srcImage, targetSize, margin, baseName)
         {
             Mask = mask;
-        }
-
-        /// <summary>
-        /// Generates the file name for the icon
-        /// </summary>
-        /// <param name="baseName">Base name for the icon</param>
-        /// <param name="targetSize">Required icon size</param>
-        /// <returns>Suggested file name</returns>
-        public static string CreateFileName(string baseName, Size targetSize)
-        {
-            if (string.IsNullOrEmpty(baseName))
-            {
-                baseName = Guid.NewGuid().ToString();
-            }
-
-            return $"{baseName}_{targetSize.Width}x{targetSize.Height}.bmp";
         }
     }
 }

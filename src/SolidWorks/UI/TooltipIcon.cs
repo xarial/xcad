@@ -23,6 +23,8 @@ namespace Xarial.XCad.SolidWorks.UI
 
         public bool IsPermanent => false;
 
+        public IconImageFormat_e Format => IconImageFormat_e.Bmp;
+
         internal TooltipIcon(IXImage icon)
         {
             Icon = icon;

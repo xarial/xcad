@@ -24,6 +24,8 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature.Toolkit.Icons
 
         public bool IsPermanent => true;
 
+        public IconImageFormat_e Format => IconImageFormat_e.Bmp;
+
         internal MacroFeatureIcon(IXImage icon, string baseName)
         {
             m_BaseName = baseName;

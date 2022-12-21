@@ -11,6 +11,27 @@ using System.Drawing;
 namespace Xarial.XCad.Toolkit.Base
 {
     /// <summary>
+    /// Format of the image icon
+    /// </summary>
+    public enum IconImageFormat_e
+    {
+        /// <summary>
+        /// .bmp
+        /// </summary>
+        Bmp,
+
+        /// <summary>
+        /// .png
+        /// </summary>
+        Png,
+
+        /// <summary>
+        /// .jpeg
+        /// </summary>
+        Jpeg
+    }
+
+    /// <summary>
     /// Represents the specific icon descriptor
     /// </summary>
     public interface IIcon
@@ -30,5 +51,10 @@ namespace Xarial.XCad.Toolkit.Base
         /// </summary>
         /// <returns></returns>
         IIconSpec[] IconSizes { get; }
+
+        /// <summary>
+        /// Image format
+        /// </summary>
+        IconImageFormat_e Format { get; }
     }
 }

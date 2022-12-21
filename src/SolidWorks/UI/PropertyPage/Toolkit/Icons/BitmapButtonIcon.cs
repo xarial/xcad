@@ -29,6 +29,8 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Icons
 
         public bool IsPermanent => false;
 
+        public IconImageFormat_e Format => IconImageFormat_e.Bmp;
+
         internal BitmapEffect_e Effect { get; }
 
         internal BitmapButtonIcon(IXImage icon, int width, int height, BitmapEffect_e effect = BitmapEffect_e.None)

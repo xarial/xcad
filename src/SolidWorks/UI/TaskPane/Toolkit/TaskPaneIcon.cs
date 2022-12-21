@@ -21,6 +21,8 @@ namespace Xarial.XCad.SolidWorks.UI.Commands.Toolkit.Structures
 
         public bool IsPermanent => false;
 
+        public IconImageFormat_e Format => IconImageFormat_e.Bmp;
+
         internal TaskPaneIcon(IXImage icon)
         {
             m_Icon = icon;

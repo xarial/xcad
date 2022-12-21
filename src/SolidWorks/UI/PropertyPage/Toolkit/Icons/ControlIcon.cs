@@ -23,8 +23,10 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Icons
 
         public bool IsPermanent => false;
 
+        public IconImageFormat_e Format => IconImageFormat_e.Bmp;
+
         private readonly Size m_Size;
-        
+
         internal ControlIcon(IXImage icon)
             : this(icon, new Size(24, 24))
         {
