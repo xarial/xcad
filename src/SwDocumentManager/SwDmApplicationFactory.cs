@@ -74,6 +74,6 @@ namespace Xarial.XCad.SwDocumentManager
             }
         }
 
-        public static ISwDmVersion CreateVersion(SwDmVersion_e major) => new SwDmVersion(major);
+        public static ISwDmVersion CreateVersion(SwDmVersion_e major) => new SwDmVersion(new Version((int)major, 0));
     }
 }

@@ -17,6 +17,11 @@ namespace Xarial.XCad
     public interface IXVersion : IComparable<IXVersion>, IEquatable<IXVersion>
     {
         /// <summary>
+        /// Version number
+        /// </summary>
+        Version Version { get; }
+
+        /// <summary>
         /// Display name of this version
         /// </summary>
         string DisplayName { get; }

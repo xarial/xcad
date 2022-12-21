@@ -41,6 +41,7 @@ using Xarial.XCad.SolidWorks.UI.PropertyPage;
 using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.Toolkit;
 using Xarial.XCad.Toolkit.CustomFeature;
+using Xarial.XCad.Toolkit.Services;
 using Xarial.XCad.Toolkit.Utils;
 using Xarial.XCad.UI;
 using Xarial.XCad.UI.PropertyPage.Base;

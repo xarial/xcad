@@ -9,6 +9,7 @@ using System;
 using System.Drawing;
 using System.IO;
 using Xarial.XCad.SolidWorks.Base;
+using Xarial.XCad.Toolkit.Base;
 
 namespace Xarial.XCad.SolidWorks.Features.CustomFeature.Toolkit
 {

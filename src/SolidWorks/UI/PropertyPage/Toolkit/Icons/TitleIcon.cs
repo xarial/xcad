@@ -8,6 +8,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using Xarial.XCad.SolidWorks.Base;
+using Xarial.XCad.Toolkit.Base;
 using Xarial.XCad.UI;
 
 namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Icons
@@ -23,11 +24,12 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Icons
         internal TitleIcon(IXImage icon)
         {
             Icon = icon;
+            IconSizes = new IIconSpec[]
+            {
+                new IconSpec(Icon, new Size(22, 22))
+            };
         }
 
-        public IEnumerable<IIconSpec> GetIconSizes()
-        {
-            yield return new IconSpec(Icon, new Size(22, 22));
-        }
+        public IIconSpec[] IconSizes { get; }
     }
 }

@@ -10,6 +10,7 @@ using SolidWorks.Interop.swconst;
 using System;
 using Xarial.XCad.SolidWorks.Services;
 using Xarial.XCad.SolidWorks.UI.Toolkit;
+using Xarial.XCad.Toolkit.Services;
 using Xarial.XCad.UI.PropertyPage;
 using Xarial.XCad.UI.PropertyPage.Attributes;
 using Xarial.XCad.UI.PropertyPage.Base;

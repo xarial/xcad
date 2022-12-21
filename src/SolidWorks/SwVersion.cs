@@ -25,16 +25,19 @@ namespace Xarial.XCad.SolidWorks
         public string DisplayName
             => $"SOLIDWORKS {Major.ToString().Substring("Sw".Length)}";
 
-        internal SwVersion(SwVersion_e major) 
+        public Version Version { get; }
+
+        internal SwVersion(Version version) 
         {
-            Major = major;
+            Version = version;
+            Major = (SwVersion_e)version.Major;
         }
 
         public int CompareTo(IXVersion other)
         {
             if (other is ISwVersion)
             {
-                return ((int)Major).CompareTo((int)((ISwVersion)other).Major);
+                return this.Version.CompareTo(other.Version);
             }
             else 
             {

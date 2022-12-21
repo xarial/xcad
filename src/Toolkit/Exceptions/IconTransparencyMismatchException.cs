@@ -7,7 +7,7 @@
 
 using System;
 
-namespace Xarial.XCad.SolidWorks.Exceptions
+namespace Xarial.XCad.Toolkit.Exceptions
 {
     /// <summary>
     /// Exception indicates that the transparency key <see cref="Base.IIcon.TransparencyKey"/> is different for

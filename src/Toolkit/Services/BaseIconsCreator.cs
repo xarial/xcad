@@ -15,11 +15,11 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
-using Xarial.XCad.SolidWorks.Base;
-using Xarial.XCad.SolidWorks.Exceptions;
+using Xarial.XCad.Toolkit.Base;
+using Xarial.XCad.Toolkit.Exceptions;
 using Xarial.XCad.UI;
 
-namespace Xarial.XCad.SolidWorks.Services
+namespace Xarial.XCad.Toolkit.Services
 {
     public interface IImageCollection : IDisposable
     {
@@ -142,7 +142,7 @@ namespace Xarial.XCad.SolidWorks.Services
         {
             var iconsFolder = GetIconsFolder(folder);
 
-            var sizes = icon.GetIconSizes().ToArray();
+            var sizes = icon.IconSizes;
 
             var bitmapPaths = new string[sizes.Length];
 
@@ -151,7 +151,7 @@ namespace Xarial.XCad.SolidWorks.Services
                 bitmapPaths[i] = Path.Combine(iconsFolder, sizes[i].Name);
 
                 CreateBitmap(new IXImage[] { sizes[i].SourceImage },
-                    bitmapPaths[i], sizes[i].TargetSize, sizes[i].Offset, icon.TransparencyKey, sizes[i].Mask);
+                    bitmapPaths[i], sizes[i].TargetSize, sizes[i].Margin, icon.TransparencyKey, sizes[i].Mask);
             }
 
             var imgsColl = new ImageCollection(iconsFolder, bitmapPaths, icon.IsPermanent);
@@ -182,7 +182,7 @@ namespace Xarial.XCad.SolidWorks.Services
                     throw new IconTransparencyMismatchException(i);
                 }
 
-                var data = icons[i].GetIconSizes().ToArray();
+                var data = icons[i].IconSizes;
 
                 if (iconsDataGroup == null)
                 {
@@ -208,7 +208,7 @@ namespace Xarial.XCad.SolidWorks.Services
                 iconsPaths[i] = Path.Combine(iconsFolder, iconsDataGroup[i, 0].Name);
 
                 CreateBitmap(imgs, iconsPaths[i],
-                    iconsDataGroup[i, 0].TargetSize, iconsDataGroup[i, 0].Offset, transparencyKey, iconsDataGroup[i, 0].Mask);
+                    iconsDataGroup[i, 0].TargetSize, iconsDataGroup[i, 0].Margin, transparencyKey, iconsDataGroup[i, 0].Mask);
             }
 
             var imgsColl = new ImageCollection(iconsFolder, iconsPaths, icons.First().IsPermanent);
@@ -222,7 +222,7 @@ namespace Xarial.XCad.SolidWorks.Services
             => string.IsNullOrEmpty(folder) ? m_DefaultFolder : folder;
 
         private void CreateBitmap(IXImage[] sourceIcons,
-            string targetIcon, Size size, int offset, Color background, ColorMaskDelegate mask)
+            string targetIcon, Size size, int margin, Color background, ColorMaskDelegate mask)
         {
             var width = size.Width * sourceIcons.Length;
             var height = size.Height;
@@ -243,7 +243,7 @@ namespace Xarial.XCad.SolidWorks.Services
 
                     for (int i = 0; i < sourceIcons.Length; i++)
                     {
-                        var targSize = new Size(size.Width - offset * 2, size.Height - offset * 2);
+                        var targSize = new Size(size.Width - margin * 2, size.Height - margin * 2);
 
                         var sourceIcon = CreateImage(sourceIcons[i], targSize, mask, background);
 

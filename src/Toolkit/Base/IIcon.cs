@@ -8,7 +8,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 
-namespace Xarial.XCad.SolidWorks.Base
+namespace Xarial.XCad.Toolkit.Base
 {
     /// <summary>
     /// Represents the specific icon descriptor
@@ -29,6 +29,6 @@ namespace Xarial.XCad.SolidWorks.Base
         /// List of required icon sizes
         /// </summary>
         /// <returns></returns>
-        IEnumerable<IIconSpec> GetIconSizes();
+        IIconSpec[] IconSizes { get; }
     }
 }

@@ -42,16 +42,19 @@ namespace Xarial.XCad.Inventor
             }
         }
 
-        internal AiVersion(AiVersion_e major)
+        public Version Version { get; }
+
+        internal AiVersion(Version version)
         {
-            Major = major;
+            Version = version;
+            Major = (AiVersion_e)version.Major;
         }
 
         public int CompareTo(IXVersion other)
         {
             if (other is IAiVersion)
             {
-                return ((int)Major).CompareTo((int)((IAiVersion)other).Major);
+                return Version.CompareTo(other.Version);
             }
             else
             {

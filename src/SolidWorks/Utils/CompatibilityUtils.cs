@@ -46,22 +46,14 @@ namespace Xarial.XCad.SolidWorks.Utils
         /// <param name="servicePack">Version of Service Pack</param>
         /// <param name="servicePackRev">Revision of Service Pack</param>
         /// <returns>Major version of the application</returns>
-        internal static SwVersion_e GetVersion(this ISldWorks app, out int servicePack, out int servicePackRev)
+        internal static int GetVersion(this ISldWorks app, out int servicePack, out int servicePackRev)
         {
             var rev = app.RevisionNumber().Split('.');
             var majorRev = int.Parse(rev[0]);
             servicePack = int.Parse(rev[1]);
             servicePackRev = int.Parse(rev[2]);
 
-            return (SwVersion_e)majorRev;
-        }
-
-        /// <inheritdoc cref="GetVersion(ISldWorks, out int, out int)"/>
-        internal static SwVersion_e GetVersion(this ISldWorks app)
-        {
-            int sp;
-            int spRev;
-            return app.GetVersion(out sp, out spRev);
+            return majorRev;
         }
 
         /// <summary>
@@ -83,9 +75,9 @@ namespace Xarial.XCad.SolidWorks.Utils
             int curSpRev;
             var curVers = GetVersion(app, out curSp, out curSpRev);
 
-            if (curVers >= version)
+            if (curVers >= (int)version)
             {
-                if (servicePack.HasValue && curVers == version)
+                if (servicePack.HasValue && curVers == (int)version)
                 {
                     if (curSp >= servicePack.Value)
                     {

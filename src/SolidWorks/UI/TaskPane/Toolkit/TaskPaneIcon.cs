@@ -8,6 +8,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using Xarial.XCad.SolidWorks.Base;
+using Xarial.XCad.Toolkit.Base;
 using Xarial.XCad.UI;
 
 namespace Xarial.XCad.SolidWorks.UI.Commands.Toolkit.Structures
@@ -23,11 +24,12 @@ namespace Xarial.XCad.SolidWorks.UI.Commands.Toolkit.Structures
         internal TaskPaneIcon(IXImage icon)
         {
             m_Icon = icon;
+            IconSizes = new IIconSpec[]
+            {
+                new IconSpec(m_Icon, new Size(16, 18))
+            };
         }
 
-        public virtual IEnumerable<IIconSpec> GetIconSizes()
-        {
-            yield return new IconSpec(m_Icon, new Size(16, 18));
-        }
+        public virtual IIconSpec[] IconSizes { get; }
     }
 }

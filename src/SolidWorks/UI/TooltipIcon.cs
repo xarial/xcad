@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Text;
 using Xarial.XCad.SolidWorks.Base;
+using Xarial.XCad.Toolkit.Base;
 using Xarial.XCad.UI;
 
 namespace Xarial.XCad.SolidWorks.UI
@@ -25,11 +26,13 @@ namespace Xarial.XCad.SolidWorks.UI
         internal TooltipIcon(IXImage icon)
         {
             Icon = icon;
+
+            IconSizes = new IIconSpec[]
+            {
+                new IconSpec(Icon, new Size(16, 16))
+            };
         }
 
-        public IEnumerable<IIconSpec> GetIconSizes()
-        {
-            yield return new IconSpec(Icon, new Size(16, 16));
-        }
+        public IIconSpec[] IconSizes { get; }
     }
 }
