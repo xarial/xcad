@@ -1341,6 +1341,101 @@ namespace SolidWorks.Tests.Integration
         }
 
         [Test]
+        public void OpenNativeUnknownTest()
+        {
+            bool r1;
+            bool r2;
+            bool r3;
+            bool r4;
+            bool r5;
+            bool r6;
+            bool r7;
+            bool r8;
+
+            var a1 = m_App.Documents.PreCreate<IXDocument>();
+            a1.Path = GetFilePath(@"Native\Assembly.SLDASM");
+            a1.State = DocumentState_e.ReadOnly;
+            a1.Commit();
+            var a1_1 = ((IXUnknownDocument)a1).GetSpecific();
+            r1 = a1_1.IsAlive;
+            a1.Close();
+
+            var b1 = m_App.Documents.PreCreate<IXDocument>();
+            b1.Path = GetFilePath(@"Native\Block.SLDBLK");
+            b1.State = DocumentState_e.ReadOnly;
+            b1.Commit();
+            var b1_1 = ((IXUnknownDocument)b1).GetSpecific();
+            r2 = b1_1.IsAlive;
+            b1.Close();
+
+            var d1 = m_App.Documents.PreCreate<IXDocument>();
+            d1.Path = GetFilePath(@"Native\Drawing.SLDDRW");
+            d1.State = DocumentState_e.ReadOnly;
+            d1.Commit();
+            var d1_1 = ((IXUnknownDocument)d1).GetSpecific();
+            r3 = d1_1.IsAlive;
+            d1.Close();
+
+            var l1 = m_App.Documents.PreCreate<IXDocument>();
+            l1.Path = GetFilePath(@"Native\LibFeatPart.SLDLFP");
+            l1.State = DocumentState_e.ReadOnly;
+            l1.Commit();
+            var l1_1 = ((IXUnknownDocument)l1).GetSpecific();
+            r4 = l1_1.IsAlive;
+            l1.Close();
+
+            var p1 = m_App.Documents.PreCreate<IXDocument>();
+            p1.Path = GetFilePath(@"Native\Part.SLDPRT");
+            p1.State = DocumentState_e.ReadOnly;
+            p1.Commit();
+            var p1_1 = ((IXUnknownDocument)p1).GetSpecific();
+            r5 = p1_1.IsAlive;
+            p1.Close();
+
+            var at1 = m_App.Documents.PreCreate<IXDocument>();
+            at1.Path = GetFilePath(@"Native\TemplateAssembly.ASMDOT");
+            at1.State = DocumentState_e.ReadOnly;
+            at1.Commit();
+            var at1_1 = ((IXUnknownDocument)at1).GetSpecific();
+            r6 = at1_1.IsAlive;
+            at1.Close();
+
+            var dt1 = m_App.Documents.PreCreate<IXDocument>();
+            dt1.Path = GetFilePath(@"Native\TemplateDrawing.DRWDOT");
+            dt1.State = DocumentState_e.ReadOnly;
+            dt1.Commit();
+            var dt1_1 = ((IXUnknownDocument)dt1).GetSpecific();
+            r7 = dt1_1.IsAlive;
+            dt1.Close();
+
+            var pt1 = m_App.Documents.PreCreate<IXDocument>();
+            pt1.Path = GetFilePath(@"Native\TemplatePart.PRTDOT");
+            pt1.State = DocumentState_e.ReadOnly;
+            pt1.Commit();
+            var pt1_1 = ((IXUnknownDocument)pt1).GetSpecific();
+            r8 = pt1_1.IsAlive;
+            pt1.Close();
+
+            Assert.IsInstanceOf<IXAssembly>(a1_1);
+            Assert.IsInstanceOf<IXPart>(b1_1);
+            Assert.IsInstanceOf<IXDrawing>(d1_1);
+            Assert.IsInstanceOf<IXPart>(l1_1);
+            Assert.IsInstanceOf<IXPart>(p1_1);
+            Assert.IsInstanceOf<IXAssembly>(at1_1);
+            Assert.IsInstanceOf<IXDrawing>(dt1_1);
+            Assert.IsInstanceOf<IXPart>(pt1_1);
+
+            Assert.IsTrue(r1);
+            Assert.IsTrue(r2);
+            Assert.IsTrue(r3);
+            Assert.IsTrue(r4);
+            Assert.IsTrue(r5);
+            Assert.IsTrue(r6);
+            Assert.IsTrue(r7);
+            Assert.IsTrue(r8);
+        }
+
+        [Test]
         public void OpenAssemblyLightweight() 
         {
             int lightweightCompsCount1;

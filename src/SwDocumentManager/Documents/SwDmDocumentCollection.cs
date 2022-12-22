@@ -97,9 +97,9 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         private List<ISwDmDocument> m_Documents;
 
-        private readonly ISwDmApplication m_DmApp;
+        private readonly SwDmApplication m_DmApp;
 
-        internal SwDmDocumentCollection(ISwDmApplication dmApp)
+        internal SwDmDocumentCollection(SwDmApplication dmApp)
         {
             m_DmApp = dmApp;
             m_Documents = new List<ISwDmDocument>();
@@ -162,11 +162,11 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         public T PreCreate<T>() where T : IXDocument
             => RepositoryHelper.PreCreate<IXDocument, T>(this,
+                () => new SwDmUnknownDocument(m_DmApp, null, false, OnDocumentCreated, OnDocumentClosed, null),
+                () => new SwDmUnknownDocument3D(m_DmApp, null, false, OnDocumentCreated, OnDocumentClosed, null),
                 () => new SwDmPart(m_DmApp, null, false, OnDocumentCreated, OnDocumentClosed, null),
                 () => new SwDmAssembly(m_DmApp, null, false, OnDocumentCreated, OnDocumentClosed, null),
-                () => new SwDmDrawing(m_DmApp, null, false, OnDocumentCreated, OnDocumentClosed, null),
-                () => new SwDmUnknownDocument3D(m_DmApp, null, false, OnDocumentCreated, OnDocumentClosed, null),
-                () => new SwDmUnknownDocument(m_DmApp, null, false, OnDocumentCreated, OnDocumentClosed, null));
+                () => new SwDmDrawing(m_DmApp, null, false, OnDocumentCreated, OnDocumentClosed, null));
 
         internal void OnDocumentCreated(ISwDmDocument doc)
         {

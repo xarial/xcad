@@ -15,6 +15,7 @@ using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.UI;
 using Xarial.XCad.Toolkit;
 using System.Linq;
+using Xarial.XCad.Toolkit.Services;
 
 namespace Xarial.XCad.SolidWorks.UI.Toolkit
 {

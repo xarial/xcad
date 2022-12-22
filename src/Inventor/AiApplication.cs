@@ -167,7 +167,7 @@ namespace Xarial.XCad.Inventor
             {
                 if (IsCommitted)
                 {
-                    return new AiVersion((AiVersion_e)Application.SoftwareVersion.Major);
+                    return new AiVersion(new Version(Application.SoftwareVersion.Major, Application.SoftwareVersion.Minor, Application.SoftwareVersion.ServicePack));
                 }
                 else 
                 {

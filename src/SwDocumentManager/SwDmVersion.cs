@@ -52,16 +52,19 @@ namespace Xarial.XCad.SwDocumentManager
         public string DisplayName
             => $"SOLIDWORKS {Major.ToString().Substring("Sw".Length)}";
 
-        internal SwDmVersion(SwDmVersion_e major)
+        public Version Version { get; }
+
+        internal SwDmVersion(Version version)
         {
-            Major = major;
+            Version = version;
+            Major = (SwDmVersion_e)version.Major;
         }
 
         public int CompareTo(IXVersion other)
         {
             if (other is SwDmVersion)
             {
-                return ((int)Major).CompareTo((int)((SwDmVersion)other).Major);
+                return Version.CompareTo(other.Version);
             }
             else
             {

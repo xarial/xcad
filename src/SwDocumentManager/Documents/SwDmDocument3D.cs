@@ -36,7 +36,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         public abstract ISwDmConfigurationCollection Configurations { get; }
 
-        public SwDmDocument3D(ISwDmApplication dmApp, ISwDMDocument doc, bool isCreated,
+        public SwDmDocument3D(SwDmApplication dmApp, ISwDMDocument doc, bool isCreated,
             Action<ISwDmDocument> createHandler, Action<ISwDmDocument> closeHandler,
             bool? isReadOnly)
             : base(dmApp, doc, isCreated, createHandler, closeHandler, isReadOnly)

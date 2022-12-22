@@ -38,6 +38,7 @@ using Xarial.XCad.Base.Attributes;
 using Xarial.XCad.UI;
 using Xarial.XCad.SolidWorks.UI;
 using Xarial.XCad.Reflection;
+using Xarial.XCad.Toolkit.Services;
 
 namespace Xarial.XCad.SolidWorks
 {
@@ -129,7 +130,8 @@ namespace Xarial.XCad.SolidWorks
             {
                 if (IsCommitted)
                 {
-                    return new SwVersion(Sw.GetVersion());
+                    var major = Sw.GetVersion(out var sp, out var spRev);
+                    return new SwVersion(new Version(major, sp, spRev));
                 }
                 else 
                 {

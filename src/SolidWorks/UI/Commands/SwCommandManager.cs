@@ -31,6 +31,7 @@ using Xarial.XCad.Utils.Diagnostics;
 using Xarial.XCad.Toolkit;
 using Xarial.XCad.SolidWorks.Enums;
 using System.Collections.Specialized;
+using Xarial.XCad.Toolkit.Services;
 
 namespace Xarial.XCad.SolidWorks.UI.Commands
 {

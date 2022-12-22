@@ -8,9 +8,9 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using Xarial.XCad.SolidWorks.Base;
+using Xarial.XCad.Toolkit.Base;
 
-namespace Xarial.XCad.SolidWorks.Services
+namespace Xarial.XCad.Toolkit.Services
 {
     /// <summary>
     /// Creates images from icons

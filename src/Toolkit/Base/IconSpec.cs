@@ -7,9 +7,10 @@
 
 using System;
 using System.Drawing;
+using System.Drawing.Imaging;
 using Xarial.XCad.UI;
 
-namespace Xarial.XCad.SolidWorks.Base
+namespace Xarial.XCad.Toolkit.Base
 {
     /// <summary>
     /// Custom handler for the image replace function
@@ -28,7 +29,7 @@ namespace Xarial.XCad.SolidWorks.Base
         /// <summary>
         /// Base name of the icon
         /// </summary>
-        string Name { get; }
+        string BaseName { get; }
 
         /// <summary>
         /// Original image of the icon
@@ -46,16 +47,53 @@ namespace Xarial.XCad.SolidWorks.Base
         ColorMaskDelegate Mask { get; }
 
         /// <summary>
-        /// Image offset
+        /// Image margin
         /// </summary>
-        int Offset { get; }
+        int Margin { get; }
     }
 
     /// <inheritdoc/>
-    internal class IconSpec : IIconSpec
+    public class IconSpec : IIconSpec
     {
+        /// <summary>
+        /// Generates the file name for the icon
+        /// </summary>
+        /// <param name="baseName">Base name for the icon</param>
+        /// <param name="targetSize">Required icon size</param>
+        /// <param name="format">Format</param>
+        /// <returns>Suggested file name</returns>
+        public static string CreateFileName(string baseName, Size targetSize, IconImageFormat_e format)
+        {
+            if (string.IsNullOrEmpty(baseName))
+            {
+                baseName = Guid.NewGuid().ToString();
+            }
+
+            string ext;
+
+            switch (format)
+            {
+                case IconImageFormat_e.Bmp:
+                    ext = "bmp";
+                    break;
+
+                case IconImageFormat_e.Png:
+                    ext = "png";
+                    break;
+
+                case IconImageFormat_e.Jpeg:
+                    ext = "jpg";
+                    break;
+
+                default:
+                    throw new NotSupportedException();
+            }
+
+            return $"{baseName}_{targetSize.Width}x{targetSize.Height}.{ext}";
+        }
+
         /// <inheritdoc/>
-        public string Name { get; }
+        public string BaseName { get; }
 
         /// <inheritdoc/>
         public IXImage SourceImage { get; }
@@ -67,43 +105,28 @@ namespace Xarial.XCad.SolidWorks.Base
         public ColorMaskDelegate Mask { get; }
 
         /// <inheritdoc/>
-        public int Offset { get; }
+        public int Margin { get; }
 
         /// <summary>
         /// Icon size constructor with source image, target size and optional base name
         /// </summary>
         /// <param name="srcImage">Source image</param>
         /// <param name="targetSize">Target size of the image</param>
+        /// <param name="margin">Margin of the icon</param>
         /// <param name="baseName">Base name of the image</param>
-        internal IconSpec(IXImage srcImage, Size targetSize, int offset = 0, string baseName = "")
+        public IconSpec(IXImage srcImage, Size targetSize, int margin = 0, string baseName = "")
         {
             SourceImage = srcImage;
             TargetSize = targetSize;
-            Offset = offset;
+            Margin = margin;
 
-            Name = CreateFileName(baseName, targetSize);
+            BaseName = baseName;
         }
 
-        internal IconSpec(IXImage srcImage, Size targetSize, ColorMaskDelegate mask, int offset = 0, string baseName = "")
-            : this(srcImage, targetSize, offset, baseName)
+        public IconSpec(IXImage srcImage, Size targetSize, ColorMaskDelegate mask, int margin = 0, string baseName = "")
+            : this(srcImage, targetSize, margin, baseName)
         {
             Mask = mask;
-        }
-
-        /// <summary>
-        /// Generates the file name for the icon
-        /// </summary>
-        /// <param name="baseName">Base name for the icon</param>
-        /// <param name="targetSize">Required icon size</param>
-        /// <returns>Suggested file name</returns>
-        internal static string CreateFileName(string baseName, Size targetSize)
-        {
-            if (string.IsNullOrEmpty(baseName))
-            {
-                baseName = Guid.NewGuid().ToString();
-            }
-
-            return $"{baseName}_{targetSize.Width}x{targetSize.Height}.bmp";
         }
     }
 }

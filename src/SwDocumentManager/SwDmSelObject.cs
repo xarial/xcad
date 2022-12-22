@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 using Xarial.XCad.Base.Enums;
+using Xarial.XCad.SwDocumentManager.Documents;
 
 namespace Xarial.XCad.SwDocumentManager
 {
@@ -28,7 +29,7 @@ namespace Xarial.XCad.SwDocumentManager
 
         #endregion
 
-        public SwDmSelObject(object disp) : base(disp)
+        public SwDmSelObject(object disp, SwDmApplication ownerApp, SwDmDocument ownerDoc) : base(disp, ownerApp, ownerDoc)
         {
         }
 

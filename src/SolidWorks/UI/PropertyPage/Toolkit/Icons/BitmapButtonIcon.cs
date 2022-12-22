@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using Xarial.XCad.SolidWorks.Base;
 using Xarial.XCad.SolidWorks.Utils;
+using Xarial.XCad.Toolkit.Base;
 using Xarial.XCad.Toolkit.Utils;
 using Xarial.XCad.UI;
 using Xarial.XCad.UI.PropertyPage.Enums;
@@ -28,6 +29,8 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Icons
 
         public bool IsPermanent => false;
 
+        public IconImageFormat_e Format => IconImageFormat_e.Bmp;
+
         internal BitmapEffect_e Effect { get; }
 
         internal BitmapButtonIcon(IXImage icon, int width, int height, BitmapEffect_e effect = BitmapEffect_e.None)
@@ -37,13 +40,15 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Icons
             m_Height = height;
 
             Effect = effect;
+
+            IconSizes = new IIconSpec[]
+            {
+                new IconSpec(Icon, new Size(m_Width, m_Height), ApplyEffect, BORDER_SIZE),
+                new IconSpec(Icon, new Size(m_Width, m_Height), CreateMask, BORDER_SIZE)
+            };
         }
-        
-        public virtual IEnumerable<IIconSpec> GetIconSizes()
-        {
-            yield return new IconSpec(Icon, new Size(m_Width, m_Height), ApplyEffect, BORDER_SIZE);
-            yield return new IconSpec(Icon, new Size(m_Width, m_Height), CreateMask, BORDER_SIZE);
-        }
+
+        public virtual IIconSpec[] IconSizes { get; }
 
         protected void ConvertPixelToGrayscale(ref byte r, ref byte g, ref byte b, ref byte a)
             => ColorUtils.ConvertPixelToGrayscale(ref r, ref g, ref b);

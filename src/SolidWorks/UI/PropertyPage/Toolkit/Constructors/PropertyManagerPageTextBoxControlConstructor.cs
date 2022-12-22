@@ -8,6 +8,7 @@
 using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
 using Xarial.XCad.SolidWorks.Services;
+using Xarial.XCad.Toolkit.Services;
 using Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls;
 using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.UI.PropertyPage.Attributes;

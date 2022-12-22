@@ -96,7 +96,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                             {
                                 int subTotalCount = 0;
 
-                                var subAssm = m_ParentAssm.SwDmApp.SwDocMgr
+                                var subAssm = m_ParentAssm.OwnerApplication.SwDocMgr
                                     .GetDocument(path, SwDmDocumentType.swDmDocumentAssembly, true, out SwDmDocumentOpenError err);
 
                                 try

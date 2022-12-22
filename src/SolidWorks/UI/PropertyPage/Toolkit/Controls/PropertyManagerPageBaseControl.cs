@@ -13,6 +13,7 @@ using System.Drawing;
 using Xarial.XCad.SolidWorks.Enums;
 using Xarial.XCad.SolidWorks.Services;
 using Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Icons;
+using Xarial.XCad.Toolkit.Services;
 using Xarial.XCad.Toolkit.Utils;
 using Xarial.XCad.UI.PropertyPage.Attributes;
 using Xarial.XCad.UI.PropertyPage.Base;

@@ -205,6 +205,6 @@ namespace Xarial.XCad.Inventor
         /// </summary>
         /// <param name="vers">Major version</param>
         /// <returns>Version</returns>
-        public static IAiVersion CreateVersion(AiVersion_e vers) => new AiVersion(vers);
+        public static IAiVersion CreateVersion(AiVersion_e vers) => new AiVersion(new Version((int)vers, 0));
     }
 }

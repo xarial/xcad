@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using Xarial.XCad.SolidWorks.Base;
+using Xarial.XCad.Toolkit.Base;
 using Xarial.XCad.Toolkit.Utils;
 using Xarial.XCad.UI;
 
@@ -23,28 +24,33 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature.Toolkit.Icons
 
         public bool IsPermanent => true;
 
+        public IconImageFormat_e Format => IconImageFormat_e.Bmp;
+
         internal MacroFeatureIcon(IXImage icon, string baseName)
         {
             m_BaseName = baseName;
             m_Icon = icon;
+
+            IconSizes = new IIconSpec[]
+            {
+                new IconSpec(m_Icon, MacroFeatureIconInfo.Size, 0, m_BaseName)
+            };
         }
 
-        public virtual IEnumerable<IIconSpec> GetIconSizes()
-        {
-            yield return new IconSpec(m_Icon, MacroFeatureIconInfo.Size, 0, m_BaseName);
-        }
+        public virtual IIconSpec[] IconSizes { get; }
     }
 
     internal class MacroFeatureSuppressedIcon : MacroFeatureIcon
     {
         internal MacroFeatureSuppressedIcon(IXImage icon, string baseName) : base(icon, baseName)
         {
+            IconSizes = new IIconSpec[]
+            {
+                new IconSpec(m_Icon, MacroFeatureIconInfo.Size, ConvertPixelToGrayscale, 0, m_BaseName)
+            };
         }
 
-        public override IEnumerable<IIconSpec> GetIconSizes()
-        {
-            yield return new IconSpec(m_Icon, MacroFeatureIconInfo.Size, ConvertPixelToGrayscale, 0, m_BaseName);
-        }
+        public override IIconSpec[] IconSizes { get; }
 
         protected void ConvertPixelToGrayscale(ref byte r, ref byte g, ref byte b, ref byte a)
             => ColorUtils.ConvertPixelToGrayscale(ref r, ref g, ref b);

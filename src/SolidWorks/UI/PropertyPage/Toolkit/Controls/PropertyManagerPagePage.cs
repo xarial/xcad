@@ -11,6 +11,7 @@ using System;
 using Xarial.XCad.Base.Attributes;
 using Xarial.XCad.SolidWorks.Services;
 using Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Icons;
+using Xarial.XCad.Toolkit.Services;
 using Xarial.XCad.UI.PropertyPage.Attributes;
 using Xarial.XCad.UI.PropertyPage.Enums;
 using Xarial.XCad.Utils.PageBuilder.Base;

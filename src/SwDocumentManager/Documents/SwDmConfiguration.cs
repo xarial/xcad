@@ -49,7 +49,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         public ISwDmCustomPropertiesCollection Properties => m_Properties.Value;
 
-        internal SwDmConfiguration(ISwDMConfiguration conf, SwDmDocument3D doc) : base(conf)
+        internal SwDmConfiguration(ISwDMConfiguration conf, SwDmDocument3D doc) : base(conf, doc.OwnerApplication, doc)
         {
             Configuration = conf;
             Document = doc;

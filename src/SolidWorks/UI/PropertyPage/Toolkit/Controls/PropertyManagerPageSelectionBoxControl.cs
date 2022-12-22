@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
+using Xarial.XCad.Toolkit.Services;
 using Xarial.XCad.Base.Enums;
 using Xarial.XCad.Toolkit.PageBuilder.Constructors;
 using Xarial.XCad.UI.PropertyPage;
@@ -25,6 +26,7 @@ using Xarial.XCad.Base;
 using Xarial.XCad.UI.PropertyPage.Enums;
 using Xarial.XCad.Utils.PageBuilder.Base;
 using Xarial.XCad.SolidWorks.Services;
+using Xarial.XCad.Toolkit.Services;
 using Xarial.XCad.Toolkit;
 using Xarial.XCad.UI.PropertyPage.Attributes;
 

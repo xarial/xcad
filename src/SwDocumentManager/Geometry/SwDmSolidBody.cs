@@ -12,6 +12,7 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using Xarial.XCad.Geometry;
+using Xarial.XCad.SwDocumentManager.Documents;
 
 namespace Xarial.XCad.SwDocumentManager.Geometry
 {
@@ -21,6 +22,10 @@ namespace Xarial.XCad.SwDocumentManager.Geometry
 
     internal class SwDmSolidBody : SwDmBody, ISwDmSolidBody
     {
+        public SwDmSolidBody(SwDmPart part) : base(part)
+        {
+        }
+
         public double Volume => throw new NotSupportedException();
     }
 }

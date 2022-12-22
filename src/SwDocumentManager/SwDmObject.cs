@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using Xarial.XCad.Data;
+using Xarial.XCad.Documents;
 using Xarial.XCad.SwDocumentManager.Documents;
 using Xarial.XCad.SwDocumentManager.Features;
 using Xarial.XCad.Toolkit.Data;
@@ -33,13 +34,23 @@ namespace Xarial.XCad.SwDocumentManager
 
         #endregion
 
+        IXApplication IXObject.OwnerApplication => OwnerApplication;
+        IXDocument IXObject.OwnerDocument => OwnerDocument;
+
+        internal SwDmApplication OwnerApplication { get; }
+        internal SwDmDocument OwnerDocument { get; }
+
         public ITagsManager Tags => m_TagsLazy.Value;
 
         private readonly Lazy<ITagsManager> m_TagsLazy;
 
-        public SwDmObject(object disp)
+        public SwDmObject(object disp, SwDmApplication ownerApp, SwDmDocument ownerDoc)
         {
             Dispatch = disp;
+
+            OwnerApplication = ownerApp;
+            OwnerDocument = ownerDoc;
+
             m_TagsLazy = new Lazy<ITagsManager>(() => new TagsManager());
         }
 
@@ -60,13 +71,13 @@ namespace Xarial.XCad.SwDocumentManager
 
     public static class SwDmObjectFactory 
     {
-        internal static TObj FromDispatch<TObj>(object disp, ISwDmDocument doc)
+        internal static TObj FromDispatch<TObj>(object disp, SwDmDocument doc)
             where TObj : ISwDmObject
         {
-            return (TObj)FromDispatch(disp, doc);
+            return (TObj)FromDispatch(disp, doc, doc.OwnerApplication);
         }
 
-        private static ISwDmObject FromDispatch(object disp, ISwDmDocument doc)
+        private static ISwDmObject FromDispatch(object disp, SwDmDocument doc, SwDmApplication app)
         {
             switch (disp) 
             {
@@ -107,7 +118,7 @@ namespace Xarial.XCad.SwDocumentManager
                     return new SwDmDrawingView(view, (SwDmDrawing)doc);
 
                 default:
-                    return new SwDmObject(disp);
+                    return new SwDmObject(disp, app, doc);
             }
         }
     }

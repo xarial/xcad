@@ -8,8 +8,29 @@
 using System.Collections.Generic;
 using System.Drawing;
 
-namespace Xarial.XCad.SolidWorks.Base
+namespace Xarial.XCad.Toolkit.Base
 {
+    /// <summary>
+    /// Format of the image icon
+    /// </summary>
+    public enum IconImageFormat_e
+    {
+        /// <summary>
+        /// .bmp
+        /// </summary>
+        Bmp,
+
+        /// <summary>
+        /// .png
+        /// </summary>
+        Png,
+
+        /// <summary>
+        /// .jpeg
+        /// </summary>
+        Jpeg
+    }
+
     /// <summary>
     /// Represents the specific icon descriptor
     /// </summary>
@@ -29,6 +50,11 @@ namespace Xarial.XCad.SolidWorks.Base
         /// List of required icon sizes
         /// </summary>
         /// <returns></returns>
-        IEnumerable<IIconSpec> GetIconSizes();
+        IIconSpec[] IconSizes { get; }
+
+        /// <summary>
+        /// Image format
+        /// </summary>
+        IconImageFormat_e Format { get; }
     }
 }

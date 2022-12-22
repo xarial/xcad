@@ -28,6 +28,7 @@ using Xarial.XCad.SolidWorks.UI.Toolkit;
 using System.ComponentModel;
 using Xarial.XCad.Utils.PageBuilder;
 using Xarial.XCad.Utils.Reflection;
+using Xarial.XCad.Toolkit.Services;
 
 namespace Xarial.XCad.SolidWorks.UI.PropertyPage
 {

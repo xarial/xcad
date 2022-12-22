@@ -210,7 +210,7 @@ namespace Xarial.XCad.SolidWorks
         /// </summary>
         /// <param name="vers"></param>
         /// <returns></returns>
-        public static ISwVersion CreateVersion(SwVersion_e vers) => new SwVersion(vers);
+        public static ISwVersion CreateVersion(SwVersion_e vers) => new SwVersion(new Version((int)vers, 0));
 
         internal static string GetMonikerName(Process process) => $"SolidWorks_PID_{process.Id}";
 

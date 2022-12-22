@@ -11,6 +11,7 @@ using System;
 using System.IO;
 using Xarial.XCad.Base;
 using Xarial.XCad.Data;
+using Xarial.XCad.Documents;
 using Xarial.XCad.Exceptions;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.Toolkit.Data;
@@ -31,6 +32,9 @@ namespace Xarial.XCad.SolidWorks
     /// <inheritdoc/>
     internal class SwObject : ISwObject
     {
+        IXApplication IXObject.OwnerApplication => OwnerApplication;
+        IXDocument IXObject.OwnerDocument => OwnerDocument;
+
         protected IModelDoc2 OwnerModelDoc => OwnerDocument.Model;
 
         internal SwApplication OwnerApplication { get; }

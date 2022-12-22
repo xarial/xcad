@@ -13,6 +13,7 @@ using System.Drawing.Imaging;
 using Xarial.XCad.Base.Attributes;
 using Xarial.XCad.SolidWorks.Services;
 using Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Icons;
+using Xarial.XCad.Toolkit.Services;
 using Xarial.XCad.UI.PropertyPage.Base;
 using Xarial.XCad.Utils.PageBuilder.Base;
 using Xarial.XCad.Utils.PageBuilder.PageElements;

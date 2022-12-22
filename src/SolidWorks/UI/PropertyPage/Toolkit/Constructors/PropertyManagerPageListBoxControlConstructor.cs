@@ -12,6 +12,7 @@ using System.Collections;
 using System.Linq;
 using System.Reflection;
 using Xarial.XCad.SolidWorks.Services;
+using Xarial.XCad.Toolkit.Services;
 using Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls;
 using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.UI.PropertyPage.Attributes;

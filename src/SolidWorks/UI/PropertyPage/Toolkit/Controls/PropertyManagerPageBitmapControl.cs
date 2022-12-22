@@ -12,6 +12,7 @@ using System.Drawing.Imaging;
 using System.IO;
 using Xarial.XCad.Reflection;
 using Xarial.XCad.SolidWorks.Services;
+using Xarial.XCad.Toolkit.Services;
 using Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Icons;
 using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.UI;

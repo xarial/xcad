@@ -52,16 +52,16 @@ namespace Xarial.XCad.SwDocumentManager.Features
         public ISwDMCutListItem2 CutListItem { get; }
 
         private readonly Lazy<ISwDmCustomPropertiesCollection> m_Properties;
-        private readonly SwDmPart m_Doc;
+        private readonly SwDmPart m_Part;
         private readonly ISwDmPartConfiguration m_Conf;
 
-        internal SwDmCutListItem(ISwDMCutListItem2 cutListItem, SwDmPart doc) : base(cutListItem)
+        internal SwDmCutListItem(ISwDMCutListItem2 cutListItem, SwDmPart doc) : base(cutListItem, doc.OwnerApplication, doc)
         {
             CutListItem = cutListItem;
-            m_Doc = doc;
+            m_Part = doc;
             
             m_Properties = new Lazy<ISwDmCustomPropertiesCollection>(
-                () => new SwDmCutListCustomPropertiesCollection(this, m_Doc, m_Conf));
+                () => new SwDmCutListCustomPropertiesCollection(this, m_Part, m_Conf));
         }
 
         internal SwDmCutListItem(ISwDMCutListItem2 cutListItem, SwDmPart doc, ISwDmPartConfiguration conf) : this(cutListItem, doc)
@@ -75,7 +75,7 @@ namespace Xarial.XCad.SwDocumentManager.Features
             {
                 for (int i = 0; i < CutListItem.Quantity; i++) 
                 {
-                    yield return new SwDmSolidBody();
+                    yield return new SwDmSolidBody(m_Part);
                 }
             }
         }
@@ -92,7 +92,7 @@ namespace Xarial.XCad.SwDocumentManager.Features
         {
             get 
             {
-                if (m_Doc.IsVersionNewerOrEqual(SwDmVersion_e.Sw2021))
+                if (m_Part.IsVersionNewerOrEqual(SwDmVersion_e.Sw2021))
                 {
                     var cutListStatus = (CutListItem as ISwDMCutListItem4).ExcludeFromCutlist;
 
@@ -120,7 +120,7 @@ namespace Xarial.XCad.SwDocumentManager.Features
         {
             get 
             {
-                if (m_Doc.IsVersionNewerOrEqual(SwDmVersion_e.Sw2021))
+                if (m_Part.IsVersionNewerOrEqual(SwDmVersion_e.Sw2021))
                 {
                     switch (((ISwDMCutListItem4)CutListItem).CutlistType) 
                     {

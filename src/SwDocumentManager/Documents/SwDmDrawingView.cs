@@ -120,7 +120,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         private readonly SwDmDrawing m_Drw;
         private IXDocument3D m_CachedDocument;
 
-        internal SwDmDrawingView(ISwDMView view, SwDmDrawing drw) : base(view)
+        internal SwDmDrawingView(ISwDMView view, SwDmDrawing drw) : base(view, drw.OwnerApplication, drw)
         {
             DrawingView = view;
             m_Drw = drw;

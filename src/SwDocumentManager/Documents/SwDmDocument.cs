@@ -347,7 +347,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
                         ISwDmDocument3D depDoc = null;
 
-                        if (SwDmApp.Documents.TryGet(depPath, out ISwDmDocument curDoc))
+                        if (OwnerApplication.Documents.TryGet(depPath, out ISwDmDocument curDoc))
                         {
                             depDoc = (ISwDmDocument3D)curDoc;
                         }
@@ -358,11 +358,11 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                             {
                                 try
                                 {
-                                    depDoc = (ISwDmDocument3D)SwDmApp.Documents.PreCreateFromPath(depPath);
+                                    depDoc = (ISwDmDocument3D)OwnerApplication.Documents.PreCreateFromPath(depPath);
                                 }
                                 catch
                                 {
-                                    depDoc = SwDmApp.Documents.PreCreate<ISwDmDocument3D>();
+                                    depDoc = OwnerApplication.Documents.PreCreate<ISwDmDocument3D>();
                                     depDoc.Path = depPath;
                                 }
 
@@ -393,8 +393,6 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         
         protected readonly IElementCreator<ISwDMDocument> m_Creator;
 
-        internal protected ISwDmApplication SwDmApp { get; }
-
         internal ChangedReferencesCollection ChangedReferences => m_ChangedReferencesLazy.Value;
 
         protected readonly Action<ISwDmDocument> m_CreateHandler;
@@ -405,12 +403,10 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         private readonly List<ISwDmDocument3D> m_VirtualDocumentsCache;
         private readonly Lazy<ChangedReferencesCollection> m_ChangedReferencesLazy;
 
-        internal SwDmDocument(ISwDmApplication dmApp, ISwDMDocument doc, bool isCreated, 
+        internal SwDmDocument(SwDmApplication dmApp, ISwDMDocument doc, bool isCreated, 
             Action<ISwDmDocument> createHandler, Action<ISwDmDocument> closeHandler,
-            bool? isReadOnly = null) : base(doc)
+            bool? isReadOnly = null) : base(doc, dmApp, null)
         {
-            SwDmApp = dmApp;
-
             m_IsReadOnly = isReadOnly;
 
             m_CreateHandler = createHandler;
@@ -467,7 +463,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                 throw new DocumentPathIncompatibleException(this);
             }
 
-            var doc = SwDmApp.SwDocMgr.GetDocument(path, docType,
+            var doc = OwnerApplication.SwDocMgr.GetDocument(path, docType,
                 isReadOnly, out SwDmDocumentOpenError err);
 
             if (doc != null)
@@ -649,7 +645,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             string[] deps;
             object isVirtualObj;
 
-            var searchOpts = SwDmApp.SwDocMgr.GetSearchOptionObject();
+            var searchOpts = OwnerApplication.SwDocMgr.GetSearchOptionObject();
 
             searchOpts.SearchFilters = (int)(
                 SwDmSearchFilters.SwDmSearchExternalReference
@@ -709,7 +705,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
     {
         private SwDmDocument m_SpecificDoc;
 
-        public SwDmUnknownDocument(ISwDmApplication dmApp, SwDMDocument doc, bool isCreated,
+        public SwDmUnknownDocument(SwDmApplication dmApp, SwDMDocument doc, bool isCreated,
             Action<ISwDmDocument> createHandler, Action<ISwDmDocument> closeHandler, bool? isReadOnly = null) 
             : base(dmApp, doc, isCreated, createHandler, closeHandler, isReadOnly)
         {
@@ -739,15 +735,15 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             switch (GetDocumentType(Path))
             {
                 case SwDmDocumentType.swDmDocumentPart:
-                    m_SpecificDoc = new SwDmPart(SwDmApp, model, IsCommitted, m_CreateHandler, m_CloseHandler, isReadOnly);
+                    m_SpecificDoc = new SwDmPart(OwnerApplication, model, IsCommitted, m_CreateHandler, m_CloseHandler, isReadOnly);
                     break;
 
                 case SwDmDocumentType.swDmDocumentAssembly:
-                    m_SpecificDoc = new SwDmAssembly(SwDmApp, model, IsCommitted, m_CreateHandler, m_CloseHandler, isReadOnly);
+                    m_SpecificDoc = new SwDmAssembly(OwnerApplication, model, IsCommitted, m_CreateHandler, m_CloseHandler, isReadOnly);
                     break;
 
                 case SwDmDocumentType.swDmDocumentDrawing:
-                    m_SpecificDoc = new SwDmDrawing(SwDmApp, model, IsCommitted, m_CreateHandler, m_CloseHandler, isReadOnly);
+                    m_SpecificDoc = new SwDmDrawing(OwnerApplication, model, IsCommitted, m_CreateHandler, m_CloseHandler, isReadOnly);
                     break;
 
                 default:
@@ -768,7 +764,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
     internal class SwDmUnknownDocument3D : SwDmUnknownDocument, ISwDmDocument3D
     {
-        public SwDmUnknownDocument3D(ISwDmApplication dmApp, SwDMDocument doc, bool isCreated, Action<ISwDmDocument> createHandler, Action<ISwDmDocument> closeHandler, bool? isReadOnly = null)
+        public SwDmUnknownDocument3D(SwDmApplication dmApp, SwDMDocument doc, bool isCreated, Action<ISwDmDocument> createHandler, Action<ISwDmDocument> closeHandler, bool? isReadOnly = null)
             : base(dmApp, doc, isCreated, createHandler, closeHandler, isReadOnly)
         {
         }

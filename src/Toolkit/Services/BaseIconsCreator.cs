@@ -15,11 +15,11 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
-using Xarial.XCad.SolidWorks.Base;
-using Xarial.XCad.SolidWorks.Exceptions;
+using Xarial.XCad.Toolkit.Base;
+using Xarial.XCad.Toolkit.Exceptions;
 using Xarial.XCad.UI;
 
-namespace Xarial.XCad.SolidWorks.Services
+namespace Xarial.XCad.Toolkit.Services
 {
     public interface IImageCollection : IDisposable
     {
@@ -142,16 +142,16 @@ namespace Xarial.XCad.SolidWorks.Services
         {
             var iconsFolder = GetIconsFolder(folder);
 
-            var sizes = icon.GetIconSizes().ToArray();
+            var sizes = icon.IconSizes;
 
             var bitmapPaths = new string[sizes.Length];
 
             for(int i = 0; i< sizes.Length; i++)
             {
-                bitmapPaths[i] = Path.Combine(iconsFolder, sizes[i].Name);
+                bitmapPaths[i] = Path.Combine(iconsFolder, IconSpec.CreateFileName(sizes[i].BaseName, sizes[i].TargetSize, icon.Format));
 
                 CreateBitmap(new IXImage[] { sizes[i].SourceImage },
-                    bitmapPaths[i], sizes[i].TargetSize, sizes[i].Offset, icon.TransparencyKey, sizes[i].Mask);
+                    bitmapPaths[i], sizes[i].TargetSize, sizes[i].Margin, icon.TransparencyKey, sizes[i].Mask, icon.Format);
             }
 
             var imgsColl = new ImageCollection(iconsFolder, bitmapPaths, icon.IsPermanent);
@@ -172,7 +172,8 @@ namespace Xarial.XCad.SolidWorks.Services
             IIconSpec[,] iconsDataGroup = null;
 
             var transparencyKey = icons.First().TransparencyKey;
-            
+            var format = icons.First().Format;
+
             var iconsFolder = GetIconsFolder(folder);
 
             for (int i = 0; i < icons.Length; i++)
@@ -182,7 +183,7 @@ namespace Xarial.XCad.SolidWorks.Services
                     throw new IconTransparencyMismatchException(i);
                 }
 
-                var data = icons[i].GetIconSizes().ToArray();
+                var data = icons[i].IconSizes;
 
                 if (iconsDataGroup == null)
                 {
@@ -205,10 +206,10 @@ namespace Xarial.XCad.SolidWorks.Services
                     imgs[j] = iconsDataGroup[i, j].SourceImage;
                 }
 
-                iconsPaths[i] = Path.Combine(iconsFolder, iconsDataGroup[i, 0].Name);
+                iconsPaths[i] = Path.Combine(iconsFolder, IconSpec.CreateFileName(iconsDataGroup[i, 0].BaseName, iconsDataGroup[i, 0].TargetSize, format));
 
                 CreateBitmap(imgs, iconsPaths[i],
-                    iconsDataGroup[i, 0].TargetSize, iconsDataGroup[i, 0].Offset, transparencyKey, iconsDataGroup[i, 0].Mask);
+                    iconsDataGroup[i, 0].TargetSize, iconsDataGroup[i, 0].Margin, transparencyKey, iconsDataGroup[i, 0].Mask, format);
             }
 
             var imgsColl = new ImageCollection(iconsFolder, iconsPaths, icons.First().IsPermanent);
@@ -222,13 +223,14 @@ namespace Xarial.XCad.SolidWorks.Services
             => string.IsNullOrEmpty(folder) ? m_DefaultFolder : folder;
 
         private void CreateBitmap(IXImage[] sourceIcons,
-            string targetIcon, Size size, int offset, Color background, ColorMaskDelegate mask)
+            string targetIcon, Size size, int margin, Color background, ColorMaskDelegate mask, IconImageFormat_e format)
         {
             var width = size.Width * sourceIcons.Length;
             var height = size.Height;
 
-            using (var bmp = new Bitmap(width,
-                height, PixelFormat.Format24bppRgb))
+            var pixelFormat = background == Color.Transparent ? PixelFormat.Format32bppArgb : PixelFormat.Format24bppRgb;
+
+            using (var bmp = new Bitmap(width, height, pixelFormat))
             {
                 using (var graph = System.Drawing.Graphics.FromImage(bmp))
                 {
@@ -236,14 +238,17 @@ namespace Xarial.XCad.SolidWorks.Services
                     graph.SmoothingMode = SmoothingMode.HighQuality;
                     graph.PixelOffsetMode = PixelOffsetMode.HighQuality;
 
-                    using (var brush = new SolidBrush(background))
+                    if (background != Color.Transparent)
                     {
-                        graph.FillRectangle(brush, 0, 0, bmp.Width, bmp.Height);
+                        using (var brush = new SolidBrush(background))
+                        {
+                            graph.FillRectangle(brush, 0, 0, bmp.Width, bmp.Height);
+                        }
                     }
 
                     for (int i = 0; i < sourceIcons.Length; i++)
                     {
-                        var targSize = new Size(size.Width - offset * 2, size.Height - offset * 2);
+                        var targSize = new Size(size.Width - margin * 2, size.Height - margin * 2);
 
                         var sourceIcon = CreateImage(sourceIcons[i], targSize, mask, background);
 
@@ -286,7 +291,27 @@ namespace Xarial.XCad.SolidWorks.Services
                     Directory.CreateDirectory(dir);
                 }
 
-                bmp.Save(targetIcon, ImageFormat.Bmp);
+                ImageFormat imgFormat;
+
+                switch (format) 
+                {
+                    case IconImageFormat_e.Bmp:
+                        imgFormat = ImageFormat.Bmp;
+                        break;
+
+                    case IconImageFormat_e.Png:
+                        imgFormat = ImageFormat.Png;
+                        break;
+
+                    case IconImageFormat_e.Jpeg:
+                        imgFormat = ImageFormat.Jpeg;
+                        break;
+
+                    default:
+                        throw new NotSupportedException();
+                }
+
+                bmp.Save(targetIcon, imgFormat);
             }
         }
 
@@ -301,15 +326,18 @@ namespace Xarial.XCad.SolidWorks.Services
             }
             else 
             {
-                void ConflictingBackgroundPixelMask(ref byte r, ref byte g, ref byte b, ref byte a) 
+                if (background != Color.Transparent)
                 {
-                    if (r == background.R && g == background.G && b == background.B && a == background.A)
+                    void ConflictingBackgroundPixelMask(ref byte r, ref byte g, ref byte b, ref byte a)
                     {
-                        b = (byte)((b == 0) ? 1 : (b - 1));
+                        if (r == background.R && g == background.G && b == background.B && a == background.A)
+                        {
+                            b = (byte)((b == 0) ? 1 : (b - 1));
+                        }
                     }
-                }
 
-                img = ReplaceColor(img, ConflictingBackgroundPixelMask);
+                    img = ReplaceColor(img, ConflictingBackgroundPixelMask);
+                }
             }
 
             return img;
