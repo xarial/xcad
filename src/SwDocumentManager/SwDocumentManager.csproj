@@ -3,7 +3,7 @@
   <PropertyGroup>
     <AssemblyName>Xarial.XCad.SwDocumentManager</AssemblyName>
     <RootNamespace>Xarial.XCad.SwDocumentManager</RootNamespace>
-    <TargetFrameworks>net6.0-windows;netcoreapp3.1;net461</TargetFrameworks>
+    <TargetFrameworks>net7.0-windows;net6.0-windows;netcoreapp3.1;net461</TargetFrameworks>
     <PackageId>Xarial.XCad.SwDocumentManager</PackageId>
     <PackageTags>cad,solidworks,document manager</PackageTags>
     <Description>Framework for developing SOLIDWORKS applications using Document Manager</Description>
@@ -15,11 +15,11 @@
 
   <Import Project="..\..\common\common.props" />
 
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netcoreapp3.1|AnyCPU' Or '$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net6.0|AnyCPU' or '$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net6.0-windows|AnyCPU'">
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netcoreapp3.1|AnyCPU' Or '$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net6.0|AnyCPU' or '$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net6.0-windows|AnyCPU' Or '$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net7.0|AnyCPU' or '$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net7.0-windows|AnyCPU'">
     <NoWarn>1701;1702</NoWarn>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(TargetFramework)' == 'netcoreapp3.1' Or '$(TargetFramework)' == 'net6.0' Or '$(TargetFramework)' == 'net6.0-windows'">
+  <PropertyGroup Condition="'$(TargetFramework)' == 'netcoreapp3.1' Or '$(TargetFramework)' == 'net6.0' Or '$(TargetFramework)' == 'net6.0-windows' Or '$(TargetFramework)' == 'net7.0' Or '$(TargetFramework)' == 'net7.0-windows'">
     <NoWarn>CS0618</NoWarn>
     <UseWpf>true</UseWpf>
     <UseWindowsForms>true</UseWindowsForms>
@@ -53,6 +53,7 @@
     <None Include="..\..\thirdpty\SolidWorks.Interop.swdocumentmgr.dll" pack="true" PackagePath="lib\net461" />
     <None Include="..\..\thirdpty\SolidWorks.Interop.swdocumentmgr.dll" pack="true" PackagePath="lib\netcoreapp3.1" />
     <None Include="..\..\thirdpty\SolidWorks.Interop.swdocumentmgr.dll" pack="true" PackagePath="lib\net6.0-windows7.0" Link="_Pack\SolidWorks.Interop.swdocumentmgr.dll" />
+    <None Include="..\..\thirdpty\SolidWorks.Interop.swdocumentmgr.dll" pack="true" PackagePath="lib\net7.0-windows7.0" Link="_Pack\SolidWorks.Interop.swdocumentmgr.dll" />
   </ItemGroup>
 
   <ItemGroup>
