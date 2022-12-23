@@ -64,14 +64,11 @@ namespace Xarial.XCad.SolidWorks.Utils
 
     internal class SwModelPointerEqualityComparer : IEqualityComparer<IModelDoc2>
     {
-        private readonly List<IModelDoc2> m_DanglingModelPointers;
-
         private readonly ISldWorks m_App;
 
-        internal SwModelPointerEqualityComparer(ISldWorks app, List<IModelDoc2> danglingModelsPtrs) 
+        internal SwModelPointerEqualityComparer(ISldWorks app) 
         {
             m_App = app;
-            m_DanglingModelPointers = danglingModelsPtrs;
         }
 
         internal static bool AreEqual(ISldWorks app, IModelDoc2 x, IModelDoc2 y)
@@ -93,7 +90,6 @@ namespace Xarial.XCad.SolidWorks.Utils
             }
             catch
             {
-                RegisterDanglingModelPointer(x, corruptedModels);
                 return false;
             }
 
@@ -103,7 +99,6 @@ namespace Xarial.XCad.SolidWorks.Utils
             }
             catch
             {
-                RegisterDanglingModelPointer(y, corruptedModels);
                 return false;
             }
 
@@ -117,17 +112,9 @@ namespace Xarial.XCad.SolidWorks.Utils
                 return false;
             }
         }
-
-        private static void RegisterDanglingModelPointer(IModelDoc2 model, List<IModelDoc2> danglingModelPtrs)
-        {
-            if (danglingModelPtrs != null && !danglingModelPtrs.Contains(model))
-            {
-                danglingModelPtrs.Add(model);
-            }
-        }
-
+        
         public bool Equals(IModelDoc2 x, IModelDoc2 y)
-            => AreEqual(m_App, x, y, m_DanglingModelPointers);
+            => AreEqual(m_App, x, y);
 
         public int GetHashCode(IModelDoc2 obj)
         {

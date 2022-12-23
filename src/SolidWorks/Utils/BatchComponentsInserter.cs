@@ -25,7 +25,6 @@ namespace Xarial.XCad.SolidWorks.Utils
         private class AutoComponentsDispatcher : IDisposable
         {
             private readonly SwApplication m_App;
-            private readonly SwDocumentDispatcher m_Dispatcher;
             private readonly ISwDocument3D[] m_NonCommitedDocs;
             private readonly Dictionary<ISwDocument3D, IModelDoc2> m_Map;
 
@@ -37,8 +36,6 @@ namespace Xarial.XCad.SolidWorks.Utils
 
                 var docs = (SwDocumentCollection)m_App.Documents;
 
-                m_Dispatcher = docs.Dispatcher;
-
                 m_NonCommitedDocs = comps.Where(c => !c.ReferencedDocument.IsCommitted).Select(c => c.ReferencedDocument).Distinct().ToArray();
 
                 foreach (var nonCommDoc in m_NonCommitedDocs)
@@ -47,8 +44,6 @@ namespace Xarial.XCad.SolidWorks.Utils
                     {
                         throw new DocumentAlreadyOpenedException(nonCommDoc.Path);
                     }
-
-                    m_Dispatcher.BeginDispatch((SwDocument)nonCommDoc);
                 }
             }
 
@@ -73,7 +68,7 @@ namespace Xarial.XCad.SolidWorks.Utils
                         model = m_App.Sw.GetOpenDocument(nonCommDoc.Path);
                     }
 
-                    m_Dispatcher.EndDispatch((SwDocument)nonCommDoc, model);
+                    ((SwDocument)nonCommDoc).Bind(model);
                 }
             }
         }

@@ -305,73 +305,62 @@ namespace Xarial.XCad.SolidWorks.Documents
                         }
                     }
                 }
-                else 
+                else
                 {
                     return m_Creator.CachedProperties.Get<ISwDocument3D>();
                 }
             }
-            set 
+            set
             {
                 if (IsCommitted)
                 {
                     var newPath = value.Path;
 
-                    if (!value.IsCommitted)
+                    if (string.IsNullOrEmpty(newPath))
                     {
-                        ((SwDocumentCollection)OwnerApplication.Documents).Dispatcher.BeginDispatch((SwDocument)value);
-                    }
-
-                    try
-                    {
-
-                        if (string.IsNullOrEmpty(newPath))
+                        if (Component.IsVirtual)
                         {
-                            if (Component.IsVirtual)
+                            MakeIndependent("");
+                        }
+                        else
+                        {
+                            throw new NotSupportedException("Model without a path could only be replaced for the virtual component (make independent)");
+                        }
+                    }
+                    else
+                    {
+                        if (File.Exists(newPath))
+                        {
+                            Select(false);
+
+                            if (OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2017))
                             {
-                                MakeIndependent("");
+                                if (!RootAssembly.Assembly.ReplaceComponents2(newPath, ReferencedConfiguration.Name, false,
+                                    (int)swReplaceComponentsConfiguration_e.swReplaceComponentsConfiguration_MatchName, true))
+                                {
+                                    throw new Exception("Failed to replace the component");
+                                }
                             }
                             else
                             {
-                                throw new NotSupportedException("Model without a path could only be replaced for the virtual component (make independent)");
+                                if (!RootAssembly.Assembly.ReplaceComponents(newPath, ReferencedConfiguration.Name, false, true))
+                                {
+                                    throw new Exception("Failed to replace the component");
+                                }
                             }
                         }
                         else
                         {
-                            if (File.Exists(newPath))
-                            {
-                                Select(false);
-
-                                if (OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2017))
-                                {
-                                    if (!RootAssembly.Assembly.ReplaceComponents2(newPath, ReferencedConfiguration.Name, false,
-                                        (int)swReplaceComponentsConfiguration_e.swReplaceComponentsConfiguration_MatchName, true))
-                                    {
-                                        throw new Exception("Failed to replace the component");
-                                    }
-                                }
-                                else
-                                {
-                                    if (!RootAssembly.Assembly.ReplaceComponents(newPath, ReferencedConfiguration.Name, false, true))
-                                    {
-                                        throw new Exception("Failed to replace the component");
-                                    }
-                                }
-                            }
-                            else
-                            {
-                                MakeIndependent(newPath);
-                            }
+                            MakeIndependent(newPath);
                         }
-
-                        ((SwDocumentCollection)OwnerApplication.Documents).Dispatcher.EndDispatch((SwDocument)value, Component.IGetModelDoc());
                     }
-                    catch 
+
+                    if (!value.IsCommitted)
                     {
-                        ((SwDocumentCollection)OwnerApplication.Documents).Dispatcher.TryRemoveFromDispatchQueue((SwDocument)value);
-                        throw;
+                        ((SwDocument)value).Bind(Component.IGetModelDoc());
                     }
                 }
-                else 
+                else
                 {
                     m_Creator.CachedProperties.Set(value);
                 }

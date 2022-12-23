@@ -432,10 +432,6 @@ namespace Xarial.XCad.SolidWorks.Documents
                 throw new DocumentAlreadyOpenedException(Path);
             }
 
-            var dispatcher = ((SwDocumentCollection)OwnerApplication.Documents).Dispatcher;
-
-            dispatcher.BeginDispatch(this);
-
             var docType = -1;
 
             if (DocumentType.HasValue)
@@ -477,13 +473,9 @@ namespace Xarial.XCad.SolidWorks.Documents
             {
                 if (model != null)
                 {
-                    dispatcher.EndDispatch(this, model);
+                    this.Bind(model);
                 }
-                else 
-                {
-                    dispatcher.TryRemoveFromDispatchQueue(this);
-                }
-
+                
                 if (docType != -1)
                 {
                     OwnerApplication.Sw.DocumentVisible(origVisible, docType);
@@ -1335,5 +1327,21 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         internal static bool GetUserPreferenceToggle(this SwDocument doc, swUserPreferenceToggle_e option)
             => doc.Model.Extension.GetUserPreferenceToggle((int)option, (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified);
+
+        internal static void Bind(this SwDocument doc, IModelDoc2 model)
+        {
+            if (!doc.IsCommitted)
+            {
+                doc.SetModel(model);
+            }
+
+            if (doc.IsCommitted)
+            {
+                if (!(doc is SwUnknownDocument))
+                {
+                    doc.AttachEvents();
+                }
+            }
+        }
     }
 }
