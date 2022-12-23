@@ -12,7 +12,7 @@ using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Geometry.Structures;
 
-namespace Xarial.XCad.Geometry
+namespace Xarial.XCad.Geometry.Evaluation
 {
     /// <summary>
     /// Represents the bounding box of the geometrical object

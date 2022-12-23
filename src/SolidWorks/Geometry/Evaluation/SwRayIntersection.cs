@@ -16,13 +16,14 @@ using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Exceptions;
 using Xarial.XCad.Geometry;
+using Xarial.XCad.Geometry.Evaluation;
 using Xarial.XCad.Geometry.Exceptions;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Services;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.Toolkit.Exceptions;
 
-namespace Xarial.XCad.SolidWorks.Geometry
+namespace Xarial.XCad.SolidWorks.Geometry.Evaluation
 {
     public interface ISwRayIntersection : IXRayIntersection
     {
@@ -59,7 +60,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         private readonly List<RayHitResult> m_Hits;
 
-        public SwRay(Axis axis) 
+        public SwRay(Axis axis)
         {
             Axis = axis;
             IsCommitted = false;
@@ -71,7 +72,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
             IsCommitted = true;
         }
 
-        internal void RegisterHit(Point point, Vector normal, IXBody body, IXFace face, RayIntersectionType_e type) 
+        internal void RegisterHit(Point point, Vector normal, IXBody body, IXFace face, RayIntersectionType_e type)
         {
             m_Hits.Add(new RayHitResult(point, normal, body, face, type));
             IsCommitted = true;
@@ -82,7 +83,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
     {
         //TODO: implement relative to matrix
         public TransformMatrix RelativeTo { get => TransformMatrix.Identity; set => throw new NotImplementedException(); }
-        
+
         //TODO: implement handling of user units
         public bool UserUnits { get => false; set => throw new NotImplementedException(); }
 
@@ -111,7 +112,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
                 {
                     m_Creator.CachedProperties.Set(value);
                 }
-                else 
+                else
                 {
                     throw new CommittedElementPropertyChangeNotSupported();
                 }
@@ -143,17 +144,17 @@ namespace Xarial.XCad.SolidWorks.Geometry
         public void Commit(CancellationToken cancellationToken)
             => m_Creator.Create(cancellationToken);
 
-        private IReadOnlyList<IXRay> CreateRayIntersections(CancellationToken cancellationToken) 
+        private IReadOnlyList<IXRay> CreateRayIntersections(CancellationToken cancellationToken)
         {
             var bodies = Scope;
 
-            if(bodies?.Any() != true) 
+            if (bodies?.Any() != true)
             {
                 bodies = GetAllBodies();
             }
 
             //assembly bodies must be transformed to the assembly space
-            bodies = bodies.Select(b => 
+            bodies = bodies.Select(b =>
             {
                 var comp = b.Component;
 
@@ -163,12 +164,12 @@ namespace Xarial.XCad.SolidWorks.Geometry
                     copy.Transform(comp.Transformation);
                     return copy;
                 }
-                else 
+                else
                 {
                     return b;
                 }
             }).ToArray();
-            
+
             var intersectCount = m_Doc.Model.Extension.RayIntersections(bodies.Cast<ISwBody>().Select(b => b.Body).ToArray(),
                 m_RaysList.SelectMany(r => r.Axis.Point.ToArray()).ToArray(),
                 m_RaysList.SelectMany(r => r.Axis.Direction.ToArray()).ToArray(),
@@ -199,7 +200,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
                     {
                         rayType = RayIntersectionType_e.Exit;
                     }
-                    else 
+                    else
                     {
                         continue;
                     }
@@ -223,9 +224,9 @@ namespace Xarial.XCad.SolidWorks.Geometry
                 }
             }
 
-            for (int i = 0; i < m_RaysList.Count; i++) 
+            for (int i = 0; i < m_RaysList.Count; i++)
             {
-                if (!hitRayIndices.Contains(i)) 
+                if (!hitRayIndices.Contains(i))
                 {
                     m_RaysList[i].Commit();
                 }
@@ -241,7 +242,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
         internal SwRayIntersection(ISwDocument3D doc)
         {
             m_Doc = doc;
-            
+
             m_Creator = new ElementCreator<IReadOnlyList<IXRay>>(CreateRayIntersections, null, false);
 
             m_RaysList = new List<SwRay>();
@@ -255,7 +256,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
                 m_RaysList.Add(ray);
                 return ray;
             }
-            else 
+            else
             {
                 throw new CommittedElementPropertyChangeNotSupported();
             }
@@ -272,7 +273,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
     {
         private readonly ISwPart m_Part;
 
-        internal SwPartRayIntersection(ISwPart part) : base(part) 
+        internal SwPartRayIntersection(ISwPart part) : base(part)
         {
             m_Part = part;
         }
@@ -318,7 +319,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
                 {
                     m_Creator.CachedProperties.Set(value, nameof(Scope) + "_Components");
                 }
-                else 
+                else
                 {
                     throw new CommittedElementPropertyChangeNotSupported();
                 }

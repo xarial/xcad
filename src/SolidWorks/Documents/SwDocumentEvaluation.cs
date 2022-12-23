@@ -10,8 +10,9 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Xarial.XCad.Documents;
-using Xarial.XCad.Geometry;
+using Xarial.XCad.Geometry.Evaluation;
 using Xarial.XCad.SolidWorks.Geometry;
+using Xarial.XCad.SolidWorks.Geometry.Evaluation;
 
 namespace Xarial.XCad.SolidWorks.Documents
 {
@@ -54,6 +55,8 @@ namespace Xarial.XCad.SolidWorks.Documents
         public abstract IXTessellation PreCreateTessellation();
 
         public IXCollisionDetection PreCreateCollisionDetection() => throw new NotImplementedException();
+        
+        public IXMeasure PreCreateMeasure() => throw new NotImplementedException();
     }
 
     internal class SwPartEvaluation : SwDocumentEvaluation 

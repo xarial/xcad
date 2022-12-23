@@ -16,13 +16,14 @@ using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Exceptions;
 using Xarial.XCad.Geometry;
+using Xarial.XCad.Geometry.Evaluation;
 using Xarial.XCad.Geometry.Exceptions;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Services;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.Toolkit.Exceptions;
 
-namespace Xarial.XCad.SolidWorks.Geometry
+namespace Xarial.XCad.SolidWorks.Geometry.Evaluation
 {
     public interface ISwTessellation : IXTessellation
     {
@@ -32,12 +33,12 @@ namespace Xarial.XCad.SolidWorks.Geometry
     public interface ISwAssemblyTessellation : ISwTessellation, IXAssemblyTessellation
     {
     }
-    
+
     internal abstract class SwTessellation : ISwTessellation
     {
         //TODO: implement relative to matrix
         public TransformMatrix RelativeTo { get => TransformMatrix.Identity; set => throw new NotImplementedException(); }
-        
+
         //TODO: implement handling of user units
         public bool UserUnits { get => false; set => throw new NotImplementedException(); }
 
@@ -66,7 +67,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
                 {
                     m_Creator.CachedProperties.Set(value);
                 }
-                else 
+                else
                 {
                     throw new CommittedElementPropertyChangeNotSupported();
                 }
@@ -74,7 +75,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
         }
 
         public bool IsCommitted => m_Creator.IsCreated;
-        
+
         public bool Precise
         {
             get => m_Creator.CachedProperties.Get<bool>();
@@ -91,13 +92,13 @@ namespace Xarial.XCad.SolidWorks.Geometry
             }
         }
 
-        public IEnumerable<TesselationTriangle> Triangles 
+        public IEnumerable<TesselationTriangle> Triangles
         {
-            get 
+            get
             {
-                foreach (var tess in Tessellation.Values) 
+                foreach (var tess in Tessellation.Values)
                 {
-                    for (int i = 0; i < tess.GetFacetCount(); i++) 
+                    for (int i = 0; i < tess.GetFacetCount(); i++)
                     {
                         var fins = (int[])tess.GetFacetFins(i);
 
@@ -114,22 +115,22 @@ namespace Xarial.XCad.SolidWorks.Geometry
         }
 
         public IReadOnlyDictionary<IXBody, ITessellation> Tessellation => m_Creator.Element;
-        
+
         public void Commit(CancellationToken cancellationToken)
             => m_Creator.Create(cancellationToken);
 
-        private IReadOnlyDictionary<IXBody, ITessellation> CreateTesselation(CancellationToken cancellationToken) 
+        private IReadOnlyDictionary<IXBody, ITessellation> CreateTesselation(CancellationToken cancellationToken)
         {
             var bodies = Scope;
 
-            if(bodies?.Any() != true) 
+            if (bodies?.Any() != true)
             {
                 bodies = GetAllBodies();
             }
 
             var res = new Dictionary<IXBody, ITessellation>();
 
-            foreach (ISwBody body in bodies) 
+            foreach (ISwBody body in bodies)
             {
                 ISwBody tessBody;
 
@@ -152,7 +153,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
                 tess.NeedVertexNormal = true;
                 tess.ImprovedQuality = Precise;
 
-                if (!tess.Tessellate()) 
+                if (!tess.Tessellate())
                 {
                     throw new Exception($"Failed to tesselate body: '{body.Name}'");
                 }
@@ -170,7 +171,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
         internal SwTessellation(ISwDocument3D doc)
         {
             m_Doc = doc;
-            
+
             m_Creator = new ElementCreator<IReadOnlyDictionary<IXBody, ITessellation>>(CreateTesselation, null, false);
         }
 
@@ -185,7 +186,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
     {
         private readonly ISwPart m_Part;
 
-        internal SwPartTesselation(ISwPart part) : base(part) 
+        internal SwPartTesselation(ISwPart part) : base(part)
         {
             m_Part = part;
         }
@@ -231,7 +232,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
                 {
                     m_Creator.CachedProperties.Set(value, nameof(Scope) + "_Components");
                 }
-                else 
+                else
                 {
                     throw new CommittedElementPropertyChangeNotSupported();
                 }

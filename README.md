@@ -7,6 +7,7 @@
 
 [![User Guide](https://img.shields.io/badge/-Documentation-green.svg)](https://xcad.xarial.com)
 [![Examples](https://img.shields.io/badge/-Examples-blue.svg)](https://github.com/xarial/xcad-examples)
+[![Videos](https://img.shields.io/badge/-Videos-red.svg)](https://www.youtube.com/watch?v=YLFwqTX_V2I&list=PLZ8T-hyutVIEXMFgJ462Ou6Szjk26gPVo)
 
 [xCAD.NET](https://xcad.net) is a framework for building CAD agnostic applications. It allows developers to implement complex functionality with a very simple innovative approach. This brings the best user experience to the consumers of the software.
 
@@ -184,11 +185,11 @@ When building the SOLIDWORKS add-ins see the information below
 * Build the solution. Add-in will be automatically registered. Clean the solution to unregister the add-in.
 * Set the **Embed Interop** option to **True** for all SOLIDWORKS type libraries (e.g. **SolidWorks.Interop.SldWorks.tlb**, **SolidWorks.Interop.SwConst.tlb**, **SolidWorks.Interop.SwPublished.tlb**). Note this might not be required as nuget will set this flag automatically.
 
-### .NET Core/.NET6
+### .NET Core/.NET 6/.NET 7
 
 * Run Visual Studio as an Administrator
 * Install [Xarial.XCad.SolidWorks](https://www.nuget.org/packages/Xarial.XCad.SolidWorks) package from the nuget and create add-in class as shown above
-* Add the following properties into the project file
+* Add the following property into the project file (*.csproj or *.vbproj)
 ~~~ xml
 <PropertyGroup>
     <EnableComHosting>true</EnableComHosting>
@@ -214,6 +215,6 @@ public static void UnregisterFunction(Type t)
 }
 ~~~
 
-Watch the [video demonstration](https://www.youtube.com/watch?v=BuiFfv7-Qig) of xCAD in action.
+Watch the [video demonstrations YouTube playlist](https://www.youtube.com/watch?v=YLFwqTX_V2I&list=PLZ8T-hyutVIEXMFgJ462Ou6Szjk26gPVo) of xCAD in action.
 
 Visit [User Guide](https://xcad.net) page and start exploring the framework.

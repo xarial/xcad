@@ -16,6 +16,7 @@ using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Geometry;
+using Xarial.XCad.Geometry.Evaluation;
 using Xarial.XCad.Geometry.Exceptions;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Services;
@@ -25,9 +26,9 @@ using Xarial.XCad.SolidWorks.Geometry.Exceptions;
 using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.Toolkit.Exceptions;
 
-namespace Xarial.XCad.SolidWorks.Geometry
+namespace Xarial.XCad.SolidWorks.Geometry.Evaluation
 {
-    public interface ISwBoundingBox : IXBoundingBox 
+    public interface ISwBoundingBox : IXBoundingBox
     {
     }
 
@@ -37,7 +38,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
     internal abstract class SwBoundingBox : ISwBoundingBox
     {
-        internal class EditableBox3D 
+        internal class EditableBox3D
         {
             internal Box3D Box { get; set; }
         }
@@ -50,7 +51,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         private readonly SwApplication m_App;
 
-        internal SwBoundingBox(SwDocument doc, SwApplication app) 
+        internal SwBoundingBox(SwDocument doc, SwApplication app)
         {
             m_Doc = doc;
 
@@ -65,7 +66,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         public Box3D Box => m_Creator.Element.Box;
 
-        public TransformMatrix RelativeTo 
+        public TransformMatrix RelativeTo
         {
             get => m_Creator.CachedProperties.Get<TransformMatrix>();
             set
@@ -250,7 +251,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
                         fitOpts = swGlobalBoundingBoxFitOptions_e.swBoundingBoxType_BestFit;
                         refPlane = null;
                     }
-                    else 
+                    else
                     {
                         fitOpts = swGlobalBoundingBoxFitOptions_e.swBoundingBoxType_CustomPlane;
 
@@ -281,7 +282,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
                     }
                     else
                     {
-                        if (refPlane != null) 
+                        if (refPlane != null)
                         {
                             refPlane.Select(false);
                         }
@@ -422,7 +423,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
         {
             var bodies = Scope.Select(b => GetTransformedSwBody(b, out _)).ToArray();
 
-            if (!bodies.Any()) 
+            if (!bodies.Any())
             {
                 throw new EvaluationFailedException();
             }
@@ -493,7 +494,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
                     {
                         var swBody = GetTransformedSwBody(b, out bool isCopy);
 
-                        if (!isCopy) 
+                        if (!isCopy)
                         {
                             swBody = swBody.ICopy();
                         }
@@ -579,7 +580,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
                     throw new Exception("Failed to apply component's transform");
                 }
             }
-            else 
+            else
             {
                 isCopy = false;
             }
@@ -653,22 +654,22 @@ namespace Xarial.XCad.SolidWorks.Geometry
         protected override bool IsScoped
             => (this as IXAssemblyBoundingBox).Scope != null || base.Scope != null;
 
-        public override IXBody[] Scope 
+        public override IXBody[] Scope
         {
-            get 
+            get
             {
                 var comps = (this as IXAssemblyBoundingBox).Scope;
-                
+
                 if (comps == null)
                 {
                     return base.Scope;
                 }
-                else 
+                else
                 {
                     return comps.SelectMany(c => c.IterateBodies(!VisibleOnly)).ToArray();
                 }
             }
-            set => base.Scope = value; 
+            set => base.Scope = value;
         }
 
         IXComponent[] IAssemblyEvaluation.Scope
@@ -687,7 +688,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         protected override double[] ComputeScopedApproximateBoundingBox()
         {
-            if (!VisibleOnly) 
+            if (!VisibleOnly)
             {
                 throw new NotSupportedException("Only avisible components can be considered when performing approximate bounding box calculation");
             }
@@ -696,7 +697,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
             if (comps != null)
             {
-                if (!comps.Any()) 
+                if (!comps.Any())
                 {
                     throw new EvaluationFailedException();
                 }
@@ -745,7 +746,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
                 return new double[] { minX, minY, minZ, maxX, maxY, maxZ };
             }
-            else 
+            else
             {
                 return base.ComputeScopedApproximateBoundingBox();
             }

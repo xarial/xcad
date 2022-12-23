@@ -17,6 +17,7 @@ using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Geometry;
+using Xarial.XCad.Geometry.Evaluation;
 using Xarial.XCad.Geometry.Exceptions;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Services;
@@ -25,17 +26,17 @@ using Xarial.XCad.SolidWorks.Geometry.Exceptions;
 using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.Toolkit.Exceptions;
 
-namespace Xarial.XCad.SolidWorks.Geometry
+namespace Xarial.XCad.SolidWorks.Geometry.Evaluation
 {
     public interface ISwMassProperty : IXMassProperty
     {
     }
 
-    public interface ISwAssemblyMassProperty : ISwMassProperty, IXAssemblyMassProperty 
+    public interface ISwAssemblyMassProperty : ISwMassProperty, IXAssemblyMassProperty
     {
     }
 
-    internal enum PrincipalAxesOfInertia_e 
+    internal enum PrincipalAxesOfInertia_e
     {
         X = 0,
         Y = 1,
@@ -119,7 +120,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
                         new Vector((double[])MassPropertyLegacy.PrincipleAxesOfInertia[(int)PrincipalAxesOfInertia_e.Y]),
                         new Vector((double[])MassPropertyLegacy.PrincipleAxesOfInertia[(int)PrincipalAxesOfInertia_e.Z]));
                 }
-                else 
+                else
                 {
                     try
                     {
@@ -155,7 +156,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
                         return new PrincipalAxesOfInertia(ixVec, iyVec, izVec);
                     }
-                    finally 
+                    finally
                     {
                         if (RelativeTo != null)
                         {
@@ -174,7 +175,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         public PrincipalMomentOfInertia PrincipalMomentOfInertia
         {
-            get 
+            get
             {
                 ThrowIfScopeException();
 
@@ -182,7 +183,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
                 {
                     return new PrincipalMomentOfInertia((double[])MassPropertyLegacy.PrincipleMomentsOfInertia);
                 }
-                else 
+                else
                 {
                     GetRawPrincipalMomentsOfInertia(out double[] p);
 
@@ -291,7 +292,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         private Lazy<IMassProperty> m_LegacyMassPropertyLazy;
 
-        internal SwMassProperty(ISwDocument3D doc, IMathUtility mathUtils) 
+        internal SwMassProperty(ISwDocument3D doc, IMathUtility mathUtils)
         {
             m_Doc = doc;
             m_MathUtils = mathUtils;
@@ -313,12 +314,12 @@ namespace Xarial.XCad.SolidWorks.Geometry
         {
             var massPrps = (IMassProperty2)m_Doc.Model.Extension.CreateMassProperty2();
 
-            if (massPrps == null) 
+            if (massPrps == null)
             {
                 throw new EvaluationFailedException();
             }
 
-            m_LegacyMassPropertyLazy = new Lazy<IMassProperty>(() => 
+            m_LegacyMassPropertyLazy = new Lazy<IMassProperty>(() =>
             {
                 if (!(m_Doc is ISwPart))
                 {
@@ -328,7 +329,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
                 var partMassPrps = m_Doc.Model.Extension.CreateMassProperty();
                 partMassPrps.UseSystemUnits = !UserUnits;
 
-                if (RelativeTo != null) 
+                if (RelativeTo != null)
                 {
                     if (!partMassPrps.SetCoordinateSystem((MathTransform)m_MathUtils.ToMathTransform(RelativeTo)))
                     {
@@ -340,14 +341,14 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
                 return partMassPrps;
             });
-            
+
             massPrps.UseSystemUnits = !UserUnits;
 
             if (Precise)
             {
                 massPrps.AccuracyLevel = (int)swMassPropertyAccuracyLevel_e.swMassPropertyAccuracyLevel_Higher;
             }
-            else 
+            else
             {
                 massPrps.AccuracyLevel = (int)swMassPropertyAccuracyLevel_e.swMassPropertyAccuracyLevel_Lower;
             }
@@ -398,7 +399,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
                 ValidateCalculations(massPrps);
             }
-            catch (Exception ex) 
+            catch (Exception ex)
             {
                 m_CurrentScopeException = ex;
                 throw;
@@ -462,7 +463,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
                 scope = bodies.ToArray();
             }
 
-            if (!massPrps.AddBodies(scope.Cast<ISwSolidBody>().Select(b => b.Body).ToArray())) 
+            if (!massPrps.AddBodies(scope.Cast<ISwSolidBody>().Select(b => b.Body).ToArray()))
             {
                 throw new Exception("Failed to add bodies to mass property scope");
             }
@@ -490,7 +491,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         public void Dispose()
         {
-            if (m_Creator.IsCreated) 
+            if (m_Creator.IsCreated)
             {
                 m_Creator.Element.IncludeHiddenBodiesOrComponents = m_IncludeHiddenBodiesDefault;
             }
@@ -533,7 +534,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
             {
                 return scope.Select(x => new DispatchWrapper(((ISwComponent)x).Component)).ToArray();
             }
-            else 
+            else
             {
                 return null;
             }
@@ -554,7 +555,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
             if (overrides.OverrideMomentsOfInertia && scopeComps?.Length == 1)
             {
                 //WORKAROUND: overriden principal axes of inertia is not correct in sub-assemblies
-                if (scopeComps.First().ReferencedDocument is IXAssembly 
+                if (scopeComps.First().ReferencedDocument is IXAssembly
                     || m_Assm.OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2022, 1))//invalid values returned for the Axis if overriden or since SW 2022 SP1
                 {
                     var legacyMassPrps = m_ComponentMassPropertyLazy.Value.MassProperty;
@@ -579,7 +580,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
             var overrides = (IMassPropertyOverrideOptions)MassProperty.GetOverrideOptions();
 
             var scopeComps = (this as IAssemblyEvaluation).Scope;
-            
+
             if (scopeComps?.Length == 1 && !scopeComps.First().ReferencedDocument.IsCommitted)
             {
                 //WORKAROUND: wrong value is returned for overridden lightweight component. It is not possible to check if overridden option is checked if component is lightweight so considering all components overridden
@@ -607,7 +608,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
                         p[2] * confFactor
                     };
                 }
-                else 
+                else
                 {
                     base.GetRawPrincipalMomentsOfInertia(out p);
                 }

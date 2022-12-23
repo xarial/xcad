@@ -16,6 +16,7 @@ using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Geometry;
+using Xarial.XCad.Geometry.Evaluation;
 using Xarial.XCad.Geometry.Exceptions;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Services;
@@ -24,7 +25,7 @@ using Xarial.XCad.SolidWorks.Geometry.Exceptions;
 using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.Toolkit.Exceptions;
 
-namespace Xarial.XCad.SolidWorks.Geometry
+namespace Xarial.XCad.SolidWorks.Geometry.Evaluation
 {
     internal class SwLegacyMassProperty : ISwMassProperty
     {
@@ -84,7 +85,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         public virtual PrincipalMomentOfInertia PrincipalMomentOfInertia
         {
-            get 
+            get
             {
                 ThrowIfScopeException();
                 return GetPrincipalMomentOfInertia(m_Creator.Element);
@@ -320,7 +321,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
                 //IMPORTANT: if this property is not called then the values are not calculated correctly
                 var testRefreshCall = massPrps.OverrideCenterOfMass;
             }
-            catch (Exception ex) 
+            catch (Exception ex)
             {
                 m_CurrentScopeException = ex;
                 throw;
@@ -405,7 +406,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
                     var comp = m_ReferenceComponentMassPropertyLazy.Value.Component;
                     var units = m_ReferenceComponentMassPropertyLazy.Value.UserUnit;
 
-                    var cog = base.GetCenterOfGravity(compRefDocMassPrp);
+                    var cog = GetCenterOfGravity(compRefDocMassPrp);
 
                     cog = cog.Transform(comp.Transformation);
 
@@ -428,9 +429,9 @@ namespace Xarial.XCad.SolidWorks.Geometry
             }
         }
 
-        public override double Mass 
+        public override double Mass
         {
-            get 
+            get
             {
                 ThrowIfScopeException();
 
@@ -438,7 +439,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
                 {
                     var units = m_ReferenceComponentMassPropertyLazy.Value.UserUnit;
 
-                    var mass = base.GetMass(compRefDocMassPrp);
+                    var mass = GetMass(compRefDocMassPrp);
 
                     return mass * (units != null ? units.GetMassConversionFactor() : 1);
                 }
@@ -449,9 +450,9 @@ namespace Xarial.XCad.SolidWorks.Geometry
             }
         }
 
-        public override double Density 
+        public override double Density
         {
-            get 
+            get
             {
                 ThrowIfScopeException();
 
@@ -462,7 +463,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
                     //mass / cubic length 
                     var confFactor = units != null ? units.GetMassConversionFactor() / Math.Pow(units.GetLengthConversionFactor(), 3) : 1;
 
-                    var density = base.GetDensity(compRefDocMassPrp);
+                    var density = GetDensity(compRefDocMassPrp);
 
                     return density * (units != null ? confFactor : 1);
                 }
@@ -502,9 +503,9 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
                     try
                     {
-                        paoi = base.GetPrincipalAxesOfInertia(compRefDocMassPrp);
+                        paoi = GetPrincipalAxesOfInertia(compRefDocMassPrp);
                     }
-                    finally 
+                    finally
                     {
                         SetCoordinateSystem(compRefDocMassPrp, null);
                     }
@@ -587,7 +588,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
                         throw new PrincipalMomentOfInertiaOverridenException("Override Mass set for component");
                     }
 
-                    if (refDoc is IXAssembly) 
+                    if (refDoc is IXAssembly)
                     {
                         if (m.OverrideCenterOfMass && !m.OverrideMomentsOfInertia)
                         {
@@ -604,8 +605,8 @@ namespace Xarial.XCad.SolidWorks.Geometry
                     //mass *  square length 
                     var confFactor = units != null ? units.GetMassConversionFactor() * Math.Pow(units.GetLengthConversionFactor(), 2) : 1;
 
-                    var pmoi = base.GetPrincipalMomentOfInertia(compRefDocMassPrp);
-                    
+                    var pmoi = GetPrincipalMomentOfInertia(compRefDocMassPrp);
+
                     var px = pmoi.Px * confFactor;
                     var py = pmoi.Py * confFactor;
                     var pz = pmoi.Pz * confFactor;
@@ -619,23 +620,23 @@ namespace Xarial.XCad.SolidWorks.Geometry
             }
         }
 
-        public override MomentOfInertia MomentOfInertia 
+        public override MomentOfInertia MomentOfInertia
         {
-            get 
+            get
             {
                 ThrowIfScopeException();
 
-                if (NeedToReadMassPropertiesFromReferencedDocument(m => 
+                if (NeedToReadMassPropertiesFromReferencedDocument(m =>
                 {
                     var refDoc = m_ReferenceComponentMassPropertyLazy.Value.Document;
 
-                    if (refDoc is IXPart) 
+                    if (refDoc is IXPart)
                     {
                         if (m.OverrideMass || m.OverrideMomentsOfInertia)
                         {
                             throw new MomentOfInertiaOverridenException("Override Mass or Override Moments Of Intertia is set for part component");
                         }
-                        else if (m.OverrideCenterOfMass && RelativeTo != null) 
+                        else if (m.OverrideCenterOfMass && RelativeTo != null)
                         {
                             throw new MomentOfInertiaOverridenException("Override Center Of Gravity is set to part component relative to the coordinate system");
                         }
@@ -667,7 +668,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
                     {
                         SetCoordinateSystem(compRefDocMassPrp, transform);
 
-                        var moi = base.GetMomentOfInertia(compRefDocMassPrp);
+                        var moi = GetMomentOfInertia(compRefDocMassPrp);
 
                         var units = m_ReferenceComponentMassPropertyLazy.Value.UserUnit;
 
@@ -749,7 +750,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
                                     }
                                 }
                             }
-                            else 
+                            else
                             {
                                 return true;
                             }
@@ -787,7 +788,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
                 {
                     return true;
                 }
-                else if (HasOverridenMassPropertiesChildren(compMassPrp.Document)) 
+                else if (HasOverridenMassPropertiesChildren(compMassPrp.Document))
                 {
                     if (VisibleOnly && compMassPrp.Document is IXAssembly)
                     {

@@ -11,12 +11,12 @@ using System.Text;
 using Xarial.XCad.Base;
 using Xarial.XCad.Geometry.Structures;
 
-namespace Xarial.XCad.Geometry
+namespace Xarial.XCad.Geometry.Evaluation
 {
     /// <summary>
     /// Type of intersection
     /// </summary>
-    public enum RayIntersectionType_e 
+    public enum RayIntersectionType_e
     {
         /// <summary>
         /// Ray enters the body at hit point
@@ -48,7 +48,7 @@ namespace Xarial.XCad.Geometry
     /// <summary>
     /// Result of ray hit
     /// </summary>
-    public class RayHitResult 
+    public class RayHitResult
     {
         /// <summary>
         /// Hit point of this ray
@@ -83,7 +83,7 @@ namespace Xarial.XCad.Geometry
         /// <param name="body">Body</param>
         /// <param name="face">Face</param>
         /// <param name="type">Type</param>
-        public RayHitResult(Point point, Vector normal, IXBody body, IXFace face, RayIntersectionType_e type) 
+        public RayHitResult(Point point, Vector normal, IXBody body, IXFace face, RayIntersectionType_e type)
         {
             Point = point;
             Normal = normal;

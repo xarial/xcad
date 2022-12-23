@@ -11,12 +11,12 @@ using System.Text;
 using Xarial.XCad.Base;
 using Xarial.XCad.Geometry.Structures;
 
-namespace Xarial.XCad.Geometry
+namespace Xarial.XCad.Geometry.Evaluation
 {
     /// <summary>
     /// Triangle representing a tesselation
     /// </summary>
-    public class TesselationTriangle 
+    public class TesselationTriangle
     {
         /// <summary>
         /// Normal of the triangle
@@ -41,7 +41,7 @@ namespace Xarial.XCad.Geometry
         /// <summary>
         /// Default constructor
         /// </summary>
-        public TesselationTriangle(Vector normal, Point firstPoint, Point secondPoint, Point thirdPoint) 
+        public TesselationTriangle(Vector normal, Point firstPoint, Point secondPoint, Point thirdPoint)
         {
             Normal = normal;
             FirstPoint = firstPoint;

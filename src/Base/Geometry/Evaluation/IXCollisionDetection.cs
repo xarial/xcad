@@ -13,12 +13,12 @@ using System.Threading.Tasks;
 using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
 
-namespace Xarial.XCad.Geometry
+namespace Xarial.XCad.Geometry.Evaluation
 {
     /// <summary>
     /// Represents the result of the collision
     /// </summary>
-    public interface IXCollisionResult 
+    public interface IXCollisionResult
     {
         /// <summary>
         /// Bodies that are involved in collision
@@ -34,7 +34,7 @@ namespace Xarial.XCad.Geometry
     /// <summary>
     /// Represents the result of the collision in the assembly
     /// </summary>
-    public interface IXAssemblyCollisionResult : IXCollisionResult 
+    public interface IXAssemblyCollisionResult : IXCollisionResult
     {
         /// <summary>
         /// Components which are involved in the collision

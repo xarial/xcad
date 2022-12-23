@@ -5,6 +5,8 @@
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
+using Xarial.XCad.Geometry.Evaluation;
+
 namespace Xarial.XCad.Geometry.Structures
 {
     /// <summary>
