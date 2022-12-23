@@ -158,14 +158,18 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         private bool m_IsAttached;
 
+        internal IEqualityComparer<IModelDoc2> ModelEqualityComparer { get; }
+
         internal SwDocumentCollection(SwApplication app, IXLogger logger)
         {
             m_App = app;
             m_SwApp = (SldWorks)m_App.Sw;
             m_Logger = logger;
 
-            m_Documents = new Dictionary<IModelDoc2, SwDocument>(
-                new SwModelPointerEqualityComparer(m_SwApp));
+            ModelEqualityComparer = new SwModelPointerEqualityComparer(m_SwApp);
+
+            m_Documents = new Dictionary<IModelDoc2, SwDocument>(ModelEqualityComparer);
+
             m_DocsHandler = new DocumentsHandler(app, m_Logger);
 
             m_IsAttached = false;

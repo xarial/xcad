@@ -43,7 +43,7 @@ namespace SolidWorks.Tests.Integration
 
         private const int SW_PRC_ID = -1;
         private const string DATA_FOLDER = @"C:\Users\artem\OneDrive\xCAD\TestData";
-        private SwVersion_e? SW_VERSION = SwVersion_e.Sw2023;
+        private SwVersion_e? SW_VERSION = SwVersion_e.Sw2022;
 
         protected ISwApplication m_App;
         private Process m_Process;
@@ -74,7 +74,7 @@ namespace SolidWorks.Tests.Integration
 
                 m_CloseSw = true;
             }
-            else if (SW_PRC_ID == 0) 
+            else if (SW_PRC_ID == -1) 
             {
                 var prc = Process.GetProcessesByName("SLDWORKS").First();
                 m_App = SwApplicationFactory.FromProcess(prc);

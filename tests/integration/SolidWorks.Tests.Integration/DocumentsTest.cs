@@ -18,6 +18,7 @@ using Xarial.XCad.Documents.Extensions;
 using Xarial.XCad.Features;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;
+using Xarial.XCad.Services;
 using Xarial.XCad.SolidWorks;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Documents.Exceptions;
@@ -43,13 +44,13 @@ namespace SolidWorks.Tests.Integration
 
             var isReadOnly = doc.Model.IsOpenedReadOnly();
             var isPart = doc.Model is IPartDoc;
-            var isInCollection = m_App.Documents.Contains(doc);
+            var isInCollection = m_App.Documents.Contains(doc, new XObjectEqualityComparer<IXDocument>());
             var type = doc.GetType();
-            var contains1 = m_App.Documents.Contains(doc);
+            var contains1 = m_App.Documents.Contains(doc, new XObjectEqualityComparer<IXDocument>());
 
             doc.Close();
 
-            var contains2 = m_App.Documents.Contains(doc);
+            var contains2 = m_App.Documents.Contains(doc, new XObjectEqualityComparer<IXDocument>());
 
             Assert.That(isReadOnly);
             Assert.That(isPart);
@@ -67,11 +68,11 @@ namespace SolidWorks.Tests.Integration
             
             doc.Commit();
 
-            var contains1 = m_App.Documents.Contains(doc);
+            var contains1 = m_App.Documents.Contains(doc, new XObjectEqualityComparer<IXDocument>());
 
             doc.Close();
 
-            var contains2 = m_App.Documents.Contains(doc);
+            var contains2 = m_App.Documents.Contains(doc, new XObjectEqualityComparer<IXDocument>());
 
             Assert.IsTrue(contains1);
             Assert.IsFalse(contains2);
@@ -84,7 +85,7 @@ namespace SolidWorks.Tests.Integration
 
             var isViewOnly1 = doc1.Model.IsOpenedViewOnly();
             var isAssm1 = doc1.Model is IAssemblyDoc;
-            var isInCollection1 = m_App.Documents.Contains(doc1);
+            var isInCollection1 = m_App.Documents.Contains(doc1, new XObjectEqualityComparer<IXDocument>());
             var type1 = doc1.GetType();
 
             doc1.Close();
@@ -92,7 +93,7 @@ namespace SolidWorks.Tests.Integration
             var doc2 = (ISwDocument)m_App.Documents.Open(GetFilePath("Sheets1.SLDDRW"), DocumentState_e.Rapid);
 
             var isDrw2 = doc2.Model is IDrawingDoc;
-            var isInCollection2 = m_App.Documents.Contains(doc2);
+            var isInCollection2 = m_App.Documents.Contains(doc2, new XObjectEqualityComparer<IXDocument>());
             var type2 = doc2.GetType();
 
             doc2.Close();
@@ -194,7 +195,7 @@ namespace SolidWorks.Tests.Integration
             var doc = (ISwDocument)m_App.Documents.Open(GetFilePath("foreign.IGS"));
 
             var isPart = doc.Model is IPartDoc;
-            var isInCollection = m_App.Documents.Contains(doc);
+            var isInCollection = m_App.Documents.Contains(doc, new XObjectEqualityComparer<IXDocument>());
             var bodiesCount = ((doc.Model as IPartDoc).GetBodies2((int)swBodyType_e.swSolidBody, true) as object[]).Length;
             var type = doc.GetType();
 
@@ -1031,35 +1032,35 @@ namespace SolidWorks.Tests.Integration
             part1.Template = GetFilePath("Template_2020.prtdot");
             part1.Commit();
 
-            var contains1 = m_App.Documents.Contains(part1);
+            var contains1 = m_App.Documents.Contains(part1, new XObjectEqualityComparer<IXDocument>());
 
             var featName = part1.Model.Extension.GetLastFeatureAdded().Name;
 
             part1.Close();
 
-            var contains2 = m_App.Documents.Contains(part1);
+            var contains2 = m_App.Documents.Contains(part1, new XObjectEqualityComparer<IXDocument>());
 
             var part2 = m_App.Documents.PreCreate<ISwPart>();
             part2.Commit();
 
-            var contains3 = m_App.Documents.Contains(part2);
+            var contains3 = m_App.Documents.Contains(part2, new XObjectEqualityComparer<IXDocument>());
 
             var model = part2.Model;
 
             part2.Close();
 
-            var contains4 = m_App.Documents.Contains(part2);
+            var contains4 = m_App.Documents.Contains(part2, new XObjectEqualityComparer<IXDocument>());
 
             var part3unk = m_App.Documents.PreCreate<IXUnknownDocument>();
             part3unk.Template = GetFilePath("Template_2020.prtdot");
             part3unk.Commit();
             var part3 = part3unk.GetSpecific();
 
-            var contains5 = m_App.Documents.Contains(part3);
+            var contains5 = m_App.Documents.Contains(part3, new XObjectEqualityComparer<IXDocument>());
 
             part3.Close();
 
-            var contains6 = m_App.Documents.Contains(part3);
+            var contains6 = m_App.Documents.Contains(part3, new XObjectEqualityComparer<IXDocument>());
 
             Assert.AreEqual("__TemplateSketch__", featName);
             Assert.IsNotNull(model);

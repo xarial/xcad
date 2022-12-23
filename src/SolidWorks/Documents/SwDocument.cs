@@ -595,16 +595,30 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public override bool Equals(IXObject other)
         {
-            if (!object.ReferenceEquals(this, other) 
-                && other is ISwDocument 
-                && !IsCommitted && !((ISwDocument)other).IsCommitted)
+            if (object.ReferenceEquals(this, other))
             {
-                return !string.IsNullOrEmpty(Path) && !string.IsNullOrEmpty(((ISwDocument)other).Path)
-                    && string.Equals(Path, ((ISwDocument)other).Path, StringComparison.CurrentCultureIgnoreCase);
+                return true;
             }
-            else
+            
+            if(other == null)
             {
-                return base.Equals(other);
+                return false;
+            }
+
+            if (other is ISwDocument)
+            {
+                if (IsCommitted && ((ISwDocument)other).IsCommitted)
+                {
+                    return ((SwDocumentCollection)OwnerApplication.Documents).ModelEqualityComparer.Equals(Model, ((ISwDocument)other).Model);
+                }
+                else 
+                {
+                    return false;
+                }
+            }
+            else 
+            {
+                return false;
             }
         }
 
