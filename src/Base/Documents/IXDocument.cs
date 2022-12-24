@@ -66,6 +66,11 @@ namespace Xarial.XCad.Documents
         event DocumentCloseDelegate Closing;
 
         /// <summary>
+        /// Fired when document is destroyed
+        /// </summary>
+        event DocumentEventDelegate Destroyed;
+
+        /// <summary>
         /// Units assigned in this document
         /// </summary>
         IXUnits Units { get; }

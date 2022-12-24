@@ -91,7 +91,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             };
         }
 
-        internal event Action<SwDocument> Destroyed;
+        public event DocumentEventDelegate Destroyed;
         internal event Action<SwDocument> Hidden;
 
         public event DocumentCloseDelegate Closing;
@@ -289,12 +289,6 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
-        internal void SetClosed()
-        {
-            m_IsClosed = true;
-        }
-
         private DocumentState_e GetDocumentState()
         {
             var state = DocumentState_e.Default;
@@ -379,6 +373,8 @@ namespace Xarial.XCad.SolidWorks.Documents
         /// </summary>
         private string m_CachedFilePath;
 
+        private readonly IEqualityComparer<IModelDoc2> m_ModelEqualityComparer;
+
         internal SwDocument(IModelDoc2 model, SwApplication app, IXLogger logger) 
             : this(model, app, logger, true)
         {
@@ -387,6 +383,8 @@ namespace Xarial.XCad.SolidWorks.Documents
         internal SwDocument(IModelDoc2 model, SwApplication app, IXLogger logger, bool created) : base(model, null, app)
         {
             m_Logger = logger;
+
+            m_ModelEqualityComparer = new SwModelPointerEqualityComparer(app.Sw);
 
             m_Creator = new ElementCreator<IModelDoc2>(CreateDocument, CommitCache, model, created);
 
@@ -609,7 +607,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             {
                 if (IsCommitted && ((ISwDocument)other).IsCommitted)
                 {
-                    return ((SwDocumentCollection)OwnerApplication.Documents).ModelEqualityComparer.Equals(Model, ((ISwDocument)other).Model);
+                    return m_ModelEqualityComparer.Equals(Model, ((ISwDocument)other).Model);
                 }
                 else 
                 {
@@ -1058,6 +1056,8 @@ namespace Xarial.XCad.SolidWorks.Documents
 
                     Destroyed?.Invoke(this);
 
+                    m_IsClosed = true;
+
                     Dispose();
                 }
                 else if (destroyType == (int)swDestroyNotifyType_e.swDestroyNotifyHidden)
@@ -1084,7 +1084,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             {
                 m_Logger.Log(ex);
             }
-
+            
             return HResult.S_OK;
         }
 

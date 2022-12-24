@@ -58,10 +58,10 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             : base(dmApp, doc, isCreated, createHandler, closeHandler, isReadOnly)
         {
             m_Owner = owner;
-            m_Owner.Disposed += OnOwnerDisposed;
+            m_Owner.Destroyed += OnOwnerDisposed;
         }
 
-        private void OnOwnerDisposed(SwDmDocument owner)
+        private void OnOwnerDisposed(IXDocument owner)
         {
             this.Close();
         }

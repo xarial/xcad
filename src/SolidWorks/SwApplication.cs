@@ -153,14 +153,7 @@ namespace Xarial.XCad.SolidWorks
 
         private SwDocumentCollection m_Documents;
 
-        public ISwDocumentCollection Documents 
-        {
-            get 
-            {
-                m_Documents.Attach();
-                return m_Documents;
-            }
-        }
+        public ISwDocumentCollection Documents => m_Documents;
         
         public IntPtr WindowHandle => new IntPtr(Sw.IFrameObject().GetHWndx64());
 

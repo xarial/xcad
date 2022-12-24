@@ -40,7 +40,27 @@ namespace Xarial.XCad.SolidWorks.Documents
     [DebuggerDisplay("Documents: {" + nameof(Count) + "}")]
     internal class SwDocumentCollection : ISwDocumentCollection
     {
-        public event DocumentEventDelegate DocumentLoaded;
+        public event DocumentEventDelegate DocumentLoaded
+        {
+            add
+            {
+                if (m_DocumentLoaded == null)
+                {
+                    m_SwApp.DocumentLoadNotify2 += OnDocumentLoadNotify2;
+                }
+
+                m_DocumentLoaded += value;
+            }
+            remove
+            {
+                m_DocumentLoaded -= value;
+
+                if (m_DocumentLoaded == null)
+                {
+                    m_SwApp.DocumentLoadNotify2 -= OnDocumentLoadNotify2;
+                }
+            }
+        }
 
         public event DocumentEventDelegate DocumentActivated 
         {
@@ -116,10 +136,10 @@ namespace Xarial.XCad.SolidWorks.Documents
         
         private readonly SwApplication m_App;
         private readonly SldWorks m_SwApp;
-        private readonly Dictionary<IModelDoc2, SwDocument> m_Documents;
         private readonly IXLogger m_Logger;
         private readonly DocumentsHandler m_DocsHandler;
 
+        private DocumentEventDelegate m_DocumentLoaded;
         private DocumentEventDelegate m_DocumentActivated;
         private DocumentEventDelegate m_DocumentOpened;
         private DocumentEventDelegate m_NewDocumentCreated;
@@ -152,13 +172,9 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        public int Count => m_Documents.Count;
+        public int Count => m_SwApp.GetDocumentCount();
 
         public IXDocument this[string name] => RepositoryHelper.Get(this, name);
-
-        private bool m_IsAttached;
-
-        internal IEqualityComparer<IModelDoc2> ModelEqualityComparer { get; }
 
         internal SwDocumentCollection(SwApplication app, IXLogger logger)
         {
@@ -166,27 +182,9 @@ namespace Xarial.XCad.SolidWorks.Documents
             m_SwApp = (SldWorks)m_App.Sw;
             m_Logger = logger;
 
-            ModelEqualityComparer = new SwModelPointerEqualityComparer(m_SwApp);
-
-            m_Documents = new Dictionary<IModelDoc2, SwDocument>(ModelEqualityComparer);
-
             m_DocsHandler = new DocumentsHandler(app, m_Logger);
-
-            m_IsAttached = false;
         }
-
-        internal void Attach() 
-        {
-            if (!m_IsAttached)
-            {
-                m_IsAttached = true;
-
-                AttachToAllOpenedDocuments();
-
-                m_SwApp.DocumentLoadNotify2 += OnDocumentLoadNotify2;
-            }
-        }
-        
+                
         private int OnActiveModelDocChangeNotify()
         {
             var activeDoc = m_SwApp.IActiveDoc2;
@@ -203,29 +201,20 @@ namespace Xarial.XCad.SolidWorks.Documents
             return HResult.S_OK;
         }
 
-        public ISwDocument this[IModelDoc2 model]
+        public ISwDocument this[IModelDoc2 model] => CreateDocument(model);
+
+        public IEnumerator<IXDocument> GetEnumerator()
         {
-            get
+            var openDocs = m_SwApp.GetDocuments() as object[];
+
+            if (openDocs != null)
             {
-                SwDocument doc;
-
-                if (m_Documents.TryGetValue(model, out doc))
+                foreach (IModelDoc2 model in openDocs)
                 {
-                    return doc;
-                }
-                else
-                {
-                    var newDoc = RegisterDocument(model);
-
-                    ResolveDiscrapancies();
-
-                    return newDoc;
+                    yield return CreateDocument(model);
                 }
             }
         }
-
-        public IEnumerator<IXDocument> GetEnumerator()
-            => m_Documents.Values.GetEnumerator();
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
@@ -260,51 +249,11 @@ namespace Xarial.XCad.SolidWorks.Documents
             return HResult.S_OK;
         }
 
-        private void AttachToAllOpenedDocuments()
-        {
-            var openDocs = m_SwApp.GetDocuments() as object[];
-
-            if (openDocs != null)
-            {
-                foreach (IModelDoc2 model in openDocs)
-                {
-                    RegisterDocument(model);
-                }
-            }
-        }
-
-        private void ResolveDiscrapancies()
-        {
-            m_Logger.Log($"Resolving documens discrapancies", LoggerMessageSeverity_e.Warning);
-
-            var models = (m_SwApp.GetDocuments() as object[]).Cast<IModelDoc2>().ToArray();
-
-            var docs = new List<ISwDocument>();
-
-            var curDocs = m_Documents.ToDictionary(x => x.Key, x => x.Value, m_Documents.Comparer);
-
-            m_Documents.Clear();
-
-            foreach (var model in models)
-            {
-                if (curDocs.TryGetValue(model, out var doc))
-                {
-                    m_Documents.Add(model, doc);
-                }
-                else
-                {
-                    m_Logger.Log($"{model.GetTitle()} was not registered", LoggerMessageSeverity_e.Warning);
-
-                    RegisterDocument(model);
-                }
-            }
-        }
-
         private int OnDocumentLoadNotify2(string docTitle, string docPath)
         {
             try
             {
-                RegisterDocument(FindModel(docTitle, docPath));
+                m_DocumentLoaded?.Invoke(CreateDocument(FindModel(docTitle, docPath)));
             }
             catch (Exception ex)
             {
@@ -353,18 +302,6 @@ namespace Xarial.XCad.SolidWorks.Documents
             throw new Exception($"Failed to find the document by title and path: {docTitle} [{docPath}]");
         }
 
-        private void OnDocumentDestroyed(SwDocument doc)
-            => ReleaseDocument(doc);
-
-        private void ReleaseDocument(SwDocument doc)
-        {
-            doc.Destroyed -= OnDocumentDestroyed;
-            m_Documents.Remove(doc.Model);
-            m_DocsHandler.ReleaseHandlers(doc);
-            doc.SetClosed();
-            doc.Dispose();
-        }
-
         public void RegisterHandler<THandler>(Func<THandler> handlerFact) 
             where THandler : IDocumentHandler
             => m_DocsHandler.RegisterHandler(handlerFact);
@@ -393,20 +330,17 @@ namespace Xarial.XCad.SolidWorks.Documents
         public bool TryGet(string name, out IXDocument ent)
         {
             var model = m_SwApp.GetOpenDocumentByName(name) as IModelDoc2;
-            ent = null;
-
+            
             if (model != null)
             {
-                SwDocument doc;
-
-                if (m_Documents.TryGetValue(model, out doc))
-                {
-                    ent = doc;
-                    return true;
-                }
+                ent = CreateDocument(model);
+                return true;
             }
-
-            return false;
+            else 
+            {
+                ent = null;
+                return false;
+            }
         }
 
         public void AddRange(IEnumerable<IXDocument> ents, CancellationToken cancellationToken) => RepositoryHelper.AddRange(ents, cancellationToken);
@@ -432,36 +366,6 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
 
             return doc != null;
-        }
-
-        private SwDocument RegisterDocument(IModelDoc2 nativeDoc)
-        {
-            var doc = CreateDocument(nativeDoc);
-
-            if (!m_Documents.ContainsKey(doc.Model))
-            {
-                doc.Destroyed += OnDocumentDestroyed;
-
-                m_Documents.Add(doc.Model, doc);
-
-                m_DocsHandler.TryInitHandlers(doc);
-
-                try
-                {
-                    DocumentLoaded?.Invoke(doc);
-                }
-                catch (Exception ex)
-                {
-                    m_Logger.Log(ex);
-                }
-            }
-            else
-            {
-                //NOTE: this happens on activation of the document
-                m_Logger.Log($"Conflict. {doc.Model.GetTitle()} already registered", LoggerMessageSeverity_e.Debug);
-            }
-
-            return doc;
         }
 
         private SwDocument CreateDocument(IModelDoc2 nativeDoc)
@@ -491,20 +395,12 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public void Dispose()
         {
-            if (m_IsAttached)
-            {
-                m_SwApp.DocumentLoadNotify2 -= OnDocumentLoadNotify2;
-                m_SwApp.ActiveModelDocChangeNotify -= OnActiveModelDocChangeNotify;
-                m_SwApp.FileNewNotify2 -= OnFileNewNotify;
-                m_SwApp.FileOpenPostNotify -= OnFileOpenPostNotify;
+            m_SwApp.DocumentLoadNotify2 -= OnDocumentLoadNotify2;
+            m_SwApp.ActiveModelDocChangeNotify -= OnActiveModelDocChangeNotify;
+            m_SwApp.FileNewNotify2 -= OnFileNewNotify;
+            m_SwApp.FileOpenPostNotify -= OnFileOpenPostNotify;
 
-                foreach (var doc in m_Documents.Values.ToArray())
-                {
-                    ReleaseDocument(doc);
-                }
-
-                m_Documents.Clear();
-            }
+            m_DocsHandler.Dispose();
         }
     }
 

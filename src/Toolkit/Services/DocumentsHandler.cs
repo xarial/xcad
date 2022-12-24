@@ -17,13 +17,14 @@ using Xarial.XCad.Documents.Attributes;
 using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Documents.Services;
 using Xarial.XCad.Reflection;
+using Xarial.XCad.Services;
 
 namespace Xarial.XCad.Toolkit.Services
 {
     /// <summary>
     /// Handles documents lifecycle
     /// </summary>
-    public class DocumentsHandler
+    public class DocumentsHandler : IDisposable
     {
         private class DocumentHandlerInfo 
         {
@@ -52,9 +53,15 @@ namespace Xarial.XCad.Toolkit.Services
             m_Logger = logger;
 
             m_Handlers = new List<DocumentHandlerInfo>();
-            m_DocsMap = new Dictionary<IXDocument, List<IDocumentHandler>>();
+            m_DocsMap = new Dictionary<IXDocument, List<IDocumentHandler>>(new XObjectEqualityComparer<IXDocument>());
         }
 
+        /// <summary>
+        /// Registers the specified handler
+        /// </summary>
+        /// <typeparam name="THandler">Handler type</typeparam>
+        /// <param name="handlerFact">Handler instance factory</param>
+        /// <exception cref="Exception">Handler already registered</exception>
         public void RegisterHandler<THandler>(Func<THandler> handlerFact) where THandler : IDocumentHandler
         {
             var type = typeof(THandler);
@@ -70,6 +77,16 @@ namespace Xarial.XCad.Toolkit.Services
 
             var handlerInfo = new DocumentHandlerInfo(type, filters, handlerFact);
 
+            if (!m_Handlers.Any())//first handler
+            {
+                m_App.Documents.DocumentLoaded += OnDocumentLoaded;
+
+                foreach (var doc in m_App.Documents) 
+                {
+                    m_DocsMap.Add(doc, new List<IDocumentHandler>());
+                }
+            }
+
             m_Handlers.Add(handlerInfo);
 
             foreach (var map in m_DocsMap)
@@ -78,6 +95,16 @@ namespace Xarial.XCad.Toolkit.Services
             }
         }
 
+        private void OnDocumentLoaded(IXDocument doc)
+            => TryInitHandlers(doc);
+
+        /// <summary>
+        /// Retrieves the specific handle of this document
+        /// </summary>
+        /// <typeparam name="THandler">Handler type</typeparam>
+        /// <param name="doc">Document</param>
+        /// <returns>Handler</returns>
+        /// <exception cref="Exception">Handler not registered</exception>
         public THandler GetHandler<THandler>(IXDocument doc) 
             where THandler : IDocumentHandler
         {
@@ -95,7 +122,7 @@ namespace Xarial.XCad.Toolkit.Services
             }
         }
 
-        public void TryInitHandlers(IXDocument doc) 
+        private void TryInitHandlers(IXDocument doc) 
         {
             var handlers = new List<IDocumentHandler>();
 
@@ -112,12 +139,16 @@ namespace Xarial.XCad.Toolkit.Services
             }
 
             m_DocsMap.Add(doc, handlers);
+
+            doc.Destroyed += OnDocumentDestroyed;
         }
 
-        public void ReleaseHandlers(IXDocument doc)
+        private void TryReleaseHandlers(IXDocument doc)
         {
             if (m_DocsMap.TryGetValue(doc, out List<IDocumentHandler> handlers))
             {
+                doc.Destroyed -= OnDocumentDestroyed;
+
                 foreach (var handler in handlers)
                 {
                     try
@@ -165,6 +196,19 @@ namespace Xarial.XCad.Toolkit.Services
             else 
             {
                 m_Logger.Log($"Skipping creation of document handler '{handlerInfo.HandlerType.FullName}' for document type: {docType}", LoggerMessageSeverity_e.Debug);
+            }
+        }
+
+        private void OnDocumentDestroyed(IXDocument doc)
+            => TryReleaseHandlers(doc);
+
+        public void Dispose()
+        {
+            m_App.Documents.DocumentLoaded -= OnDocumentLoaded;
+
+            foreach (var doc in m_DocsMap.Keys.ToArray()) 
+            {
+                TryReleaseHandlers(doc);
             }
         }
     }

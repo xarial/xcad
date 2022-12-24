@@ -45,6 +45,7 @@ namespace Xarial.XCad.Inventor.Documents
         public event DocumentEventDelegate Rebuilt;
         public event DocumentSaveDelegate Saving;
         public event DocumentCloseDelegate Closing;
+        public event DocumentEventDelegate Destroyed;
 
         public Document Document => m_Creator.Element;
 

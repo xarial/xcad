@@ -139,8 +139,6 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         #endregion
 
-        internal event Action<SwDmDocument> Disposed;
-
         IXVersion IXDocument.Version => Version;
         IXPropertyRepository IPropertiesOwner.Properties => Properties;
 
@@ -390,7 +388,8 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         
         public event DocumentSaveDelegate Saving;
         public event DocumentCloseDelegate Closing;
-        
+        public event DocumentEventDelegate Destroyed;
+
         protected readonly IElementCreator<ISwDMDocument> m_Creator;
 
         internal ChangedReferencesCollection ChangedReferences => m_ChangedReferencesLazy.Value;
@@ -519,7 +518,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
                 m_CloseHandler.Invoke(this);
                 m_IsClosed = true;
-                Disposed?.Invoke(this);
+                Destroyed?.Invoke(this);
             }
         }
 
