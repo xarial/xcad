@@ -43,7 +43,7 @@ namespace Xarial.XCad.Inventor
             OwnerApplication = ownerApp;
         }
 
-        public bool Equals(IXObject other)
+        public virtual bool Equals(IXObject other)
         {
             throw new NotImplementedException();
         }

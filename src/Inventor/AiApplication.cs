@@ -88,15 +88,8 @@ namespace Xarial.XCad.Inventor
             }
         }
         public IXApplicationOptions Options => throw new NotImplementedException();
-        
-        public IXDocumentRepository Documents
-        {
-            get
-            {
-                m_Documents.Attach();
-                return m_Documents;
-            }
-        }
+
+        public IXDocumentRepository Documents => m_Documents;
 
         public IXMemoryGeometryBuilder MemoryGeometryBuilder => throw new NotImplementedException();
 
