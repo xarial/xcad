@@ -793,7 +793,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                 {
                     if (!string.IsNullOrEmpty(Title))
                     {
-                        //TODO: need to communicate exception if title is not set, do not throw it from heer as the doc won't be registered
+                        //TODO: need to communicate exception if title is not set, do not throw it from here as the doc won't be registered
                         doc.SetTitle2(Title);
                     }
 

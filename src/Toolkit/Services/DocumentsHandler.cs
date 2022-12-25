@@ -77,21 +77,21 @@ namespace Xarial.XCad.Toolkit.Services
 
             var handlerInfo = new DocumentHandlerInfo(type, filters, handlerFact);
 
-            if (!m_Handlers.Any())//first handler
-            {
-                m_App.Documents.DocumentLoaded += OnDocumentLoaded;
-
-                foreach (var doc in m_App.Documents) 
-                {
-                    m_DocsMap.Add(doc, new List<IDocumentHandler>());
-                }
-            }
-
             m_Handlers.Add(handlerInfo);
 
             foreach (var map in m_DocsMap)
             {
                 CreateHandler(map.Key, handlerInfo, map.Value);
+            }
+
+            if (m_Handlers.Count == 1)//first handler
+            {
+                m_App.Documents.DocumentLoaded += OnDocumentLoaded;
+
+                foreach (var doc in m_App.Documents) 
+                {
+                    TryInitHandlers(doc);
+                }
             }
         }
 
@@ -172,20 +172,10 @@ namespace Xarial.XCad.Toolkit.Services
 
         private void CreateHandler(IXDocument doc, DocumentHandlerInfo handlerInfo, List<IDocumentHandler> handlersList)
         {
-            var createHandler = false;
-
             var docType = doc.GetType();
 
-            if (handlerInfo.DocumentTypeFilters == null)
-            {
-                createHandler = true;
-            }
-            else 
-            {
-                createHandler = handlerInfo.DocumentTypeFilters.Any(t => t.IsAssignableFrom(docType));
-            }
-
-            if (createHandler)
+            if (handlerInfo.DocumentTypeFilters == null 
+                || handlerInfo.DocumentTypeFilters.Any(t => t.IsAssignableFrom(docType)))
             {
                 m_Logger.Log($"Creating document handler '{handlerInfo.HandlerType.FullName}' for document type: {docType}", LoggerMessageSeverity_e.Debug);
 

@@ -1,4 +1,5 @@
-﻿using NUnit.Framework;
+﻿using Moq;
+using NUnit.Framework;
 using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
 using System;
@@ -8,6 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
+using Xarial.XCad;
 using Xarial.XCad.Base;
 using Xarial.XCad.Data.Enums;
 using Xarial.XCad.Documents;
@@ -15,6 +17,7 @@ using Xarial.XCad.Documents.Delegates;
 using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Documents.Exceptions;
 using Xarial.XCad.Documents.Extensions;
+using Xarial.XCad.Documents.Services;
 using Xarial.XCad.Exceptions;
 using Xarial.XCad.Features;
 using Xarial.XCad.Geometry;
@@ -66,7 +69,7 @@ namespace SolidWorks.Tests.Integration
         {
             var doc = m_App.Documents.PreCreate<ISwPart>();
             doc.Path = GetFilePath("Features1.SLDPRT");
-            
+
             doc.Commit();
 
             var contains1 = m_App.Documents.Contains(doc, new XObjectEqualityComparer<IXDocument>());
@@ -125,12 +128,12 @@ namespace SolidWorks.Tests.Integration
             var doc = m_App.Documents.PreCreateFromPath(GetFilePath(@"Assembly2\TopAssem.SLDASM"));
             doc.State = DocumentState_e.Silent | DocumentState_e.ReadOnly;
             doc.Commit();
-            
+
             paths = m_App.Documents.Select(d => d.Path).ToArray();
-            
+
             var part = m_App.Documents[GetFilePath(@"Assembly2\Part1.SLDPRT")];
             part.Close();
-            
+
             r1 = part.IsAlive;
             r2 = m_App.Documents.Count;
 
@@ -139,7 +142,7 @@ namespace SolidWorks.Tests.Integration
 
             Assert.AreEqual(5, paths.Length);
 
-            CollectionAssert.AreEquivalent(new string[] 
+            CollectionAssert.AreEquivalent(new string[]
             {
                 GetFilePath(@"Assembly2\TopAssem.SLDASM"),
                 GetFilePath(@"Assembly2\Part4-1 (XYZ).SLDPRT"),
@@ -156,7 +159,7 @@ namespace SolidWorks.Tests.Integration
         [Test]
         public void OpenUserDocumentWithReferencesTest()
         {
-            if (m_App.Documents.Count > 0) 
+            if (m_App.Documents.Count > 0)
             {
                 throw new Exception("Documents already opened");
             }
@@ -175,7 +178,7 @@ namespace SolidWorks.Tests.Integration
 
             r1 = m_App.Documents.Count;
             doc.Close();
-            
+
             r2 = m_App.Documents.Count;
 
             Assert.AreEqual(2, paths.Length);
@@ -189,7 +192,7 @@ namespace SolidWorks.Tests.Integration
             Assert.AreEqual(2, r1);
             Assert.AreEqual(0, r2);
         }
-        
+
         [Test]
         public void OpenForeignDocumentTest()
         {
@@ -209,16 +212,16 @@ namespace SolidWorks.Tests.Integration
         }
 
         [Test]
-        public void UserOpenCloseDocumentTest() 
+        public void UserOpenCloseDocumentTest()
         {
             int errs = -1;
             int warns = -1;
-            
+
             var model = m_App.Sw.OpenDoc6(GetFilePath("Configs1.SLDPRT"),
-                (int)swDocumentTypes_e.swDocPART, 
-                (int)swOpenDocOptions_e.swOpenDocOptions_Silent, 
+                (int)swDocumentTypes_e.swDocPART,
+                (int)swOpenDocOptions_e.swOpenDocOptions_Silent,
                 "", ref errs, ref warns);
-            
+
             var count = m_App.Documents.Count;
             var activeDocType = m_App.Documents.Active.GetType();
             var activeDocPath = m_App.Documents.Active.Path;
@@ -234,7 +237,7 @@ namespace SolidWorks.Tests.Integration
         }
 
         [Test]
-        public void DocumentLifecycleEventsTest() 
+        public void DocumentLifecycleEventsTest()
         {
             try
             {
@@ -293,7 +296,7 @@ namespace SolidWorks.Tests.Integration
                 var activeDocTitle1 = Path.GetFileNameWithoutExtension(m_App.Documents.Active.Title).ToLower();
 
                 createdDocsTitles = createdDocs.Select(d => Path.GetFileNameWithoutExtension(d.Title).ToLower()).ToArray();
-                
+
                 m_App.Sw.CloseAllDocuments(true);
 
                 Assert.That(createdDocsTitles.OrderBy(d => d)
@@ -303,7 +306,7 @@ namespace SolidWorks.Tests.Integration
                 Assert.AreEqual(activeDocTitle, "subsubassem1");
                 Assert.AreEqual(activeDocTitle1, "foreign");
             }
-            finally 
+            finally
             {
                 m_App.Sw.CloseAllDocuments(true);
             }
@@ -324,12 +327,12 @@ namespace SolidWorks.Tests.Integration
 
             var docs = m_App.Documents;
 
-            using (var doc = OpenDataDocument(GetFilePath("Assembly1\\TopAssem1.SLDASM"))) 
+            using (var doc = OpenDataDocument(GetFilePath("Assembly1\\TopAssem1.SLDASM")))
             {
                 var assm = docs.Active;
                 assm.Closing += OnHiding;
 
-                foreach (var dep in assm.IterateDependencies()) 
+                foreach (var dep in assm.IterateDependencies())
                 {
                     dep.Closing += OnHiding;
                 }
@@ -349,7 +352,7 @@ namespace SolidWorks.Tests.Integration
         }
 
         [Test]
-        public void PartEventsTest() 
+        public void PartEventsTest()
         {
             var rebuildCount = 0;
             var saveCount = 0;
@@ -360,11 +363,11 @@ namespace SolidWorks.Tests.Integration
 
             File.Copy(GetFilePath("Configs1.SLDPRT"), tempFilePath);
 
-            using (var doc = OpenDataDocument(tempFilePath, false)) 
+            using (var doc = OpenDataDocument(tempFilePath, false))
             {
                 var part = (ISwPart)m_App.Documents.Active;
 
-                part.Configurations.ConfigurationActivated += (d, c)=> 
+                part.Configurations.ConfigurationActivated += (d, c) =>
                 {
                     confName = c.Name;
                     confActiveCount++;
@@ -383,7 +386,7 @@ namespace SolidWorks.Tests.Integration
                 {
                     saveCount++;
                 };
-                
+
                 part.Model.SetSaveFlag();
 
                 const int swCommands_Save = 2;
@@ -398,20 +401,20 @@ namespace SolidWorks.Tests.Integration
             Assert.AreEqual("Conf1", confName);
         }
 
-        public class TestData 
+        public class TestData
         {
             public string Text { get; set; }
             public int Number { get; set; }
         }
 
         [Test]
-        public void ThirdPartyStreamTest() 
+        public void ThirdPartyStreamTest()
         {
             const string STREAM_NAME = "_xCadIntegrationTestStream_";
 
             var tempFile = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString() + ".sldprt");
 
-            using (var doc = NewDocument(swDocumentTypes_e.swDocPART)) 
+            using (var doc = NewDocument(swDocumentTypes_e.swDocPART))
             {
                 var part = m_App.Documents.Active;
 
@@ -499,7 +502,7 @@ namespace SolidWorks.Tests.Integration
         }
 
         [Test]
-        public void ThirdPartyStorageTest() 
+        public void ThirdPartyStorageTest()
         {
             const string SUB_STORAGE_PATH = "_xCadIntegrationTestStorage1_\\SubStorage2";
             const string STREAM1_NAME = "_xCadIntegrationStream1_";
@@ -527,7 +530,7 @@ namespace SolidWorks.Tests.Integration
 
                             using (var str = subStorage.TryOpenStream(STREAM2_NAME, true))
                             {
-                                using (var binWriter = new BinaryWriter(str)) 
+                                using (var binWriter = new BinaryWriter(str))
                                 {
                                     binWriter.Write(25);
                                 }
@@ -587,7 +590,7 @@ namespace SolidWorks.Tests.Integration
         }
 
         [Test]
-        public void DocumentDependenciesUnloadedTest() 
+        public void DocumentDependenciesUnloadedTest()
         {
             var assm = m_App.Documents.PreCreate<ISwAssembly>();
             assm.Path = GetFilePath(@"Assembly2\TopAssem.SLDASM");
@@ -646,14 +649,14 @@ namespace SolidWorks.Tests.Integration
             string dir = "";
             Dictionary<string, bool> depsData;
 
-            using (var assm = OpenDataDocument(@"Assembly2\TopAssem.SLDASM")) 
+            using (var assm = OpenDataDocument(@"Assembly2\TopAssem.SLDASM"))
             {
                 var deps = m_App.Documents.Active.Dependencies;
                 depsData = deps.ToDictionary(d => d.Path, d => d.IsCommitted, StringComparer.CurrentCultureIgnoreCase);
 
                 dir = Path.GetDirectoryName(m_App.Documents.Active.Path);
             }
-            
+
             Assert.AreEqual(4, depsData.Count);
             Assert.IsTrue(depsData[Path.Combine(dir, "Part4-1 (XYZ).SLDPRT")]);
             Assert.IsFalse(depsData[Path.Combine(dir, "Assem1.SLDASM")]);
@@ -764,7 +767,7 @@ namespace SolidWorks.Tests.Integration
                 Assert.IsTrue(d8.IsCommitted);
             }
         }
-        
+
         [Test]
         public void DocumentAllDependenciesMovedPath()
         {
@@ -865,7 +868,7 @@ namespace SolidWorks.Tests.Integration
                 }
                 catch //folder can be locked by SW while files can be deleted
                 {
-                    foreach (var file in Directory.GetFiles(tempPath, "*.*", SearchOption.AllDirectories)) 
+                    foreach (var file in Directory.GetFiles(tempPath, "*.*", SearchOption.AllDirectories))
                     {
                         File.Delete(file);
                     }
@@ -949,13 +952,13 @@ namespace SolidWorks.Tests.Integration
         }
 
         [Test]
-        public void SaveAsTest() 
+        public void SaveAsTest()
         {
             var tempFilePath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString() + ".sldprt");
 
             var curDocFilePath = "";
 
-            using (var doc = NewDocument(swDocumentTypes_e.swDocPART)) 
+            using (var doc = NewDocument(swDocumentTypes_e.swDocPART))
             {
                 var part = m_App.Documents.Active;
                 part.SaveAs(tempFilePath);
@@ -972,7 +975,7 @@ namespace SolidWorks.Tests.Integration
         }
 
         [Test]
-        public void SaveTest() 
+        public void SaveTest()
         {
             var tempFilePath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString() + ".sldprt");
 
@@ -1030,7 +1033,7 @@ namespace SolidWorks.Tests.Integration
         }
 
         [Test]
-        public void NewDocumentTest() 
+        public void NewDocumentTest()
         {
             var part1 = m_App.Documents.PreCreate<ISwPart>();
             part1.Template = GetFilePath("Template_2020.prtdot");
@@ -1077,7 +1080,7 @@ namespace SolidWorks.Tests.Integration
         }
 
         [Test]
-        public void DocumentLoadingEventsTest() 
+        public void DocumentLoadingEventsTest()
         {
             ISwAssembly assm = null;
             ISwPart part = null;
@@ -1124,9 +1127,9 @@ namespace SolidWorks.Tests.Integration
                 Assert.That(openEvents.FindIndex(x => string.Equals(x.Item1, GetFilePath(@"Assembly1\TopAssem1.SLDASM"), StringComparison.CurrentCultureIgnoreCase) && x.Item2 == OPENED) > openEvents.FindIndex(x => string.Equals(x.Item1, GetFilePath(@"Assembly1\TopAssem1.SLDASM"), StringComparison.CurrentCultureIgnoreCase) && x.Item2 == LOADED));
                 Assert.That(openEvents.FindIndex(x => string.Equals(x.Item1, newTitle, StringComparison.CurrentCultureIgnoreCase) && x.Item2 == NEW) > openEvents.FindIndex(x => string.Equals(x.Item1, newTitle, StringComparison.CurrentCultureIgnoreCase) && x.Item2 == LOADED));
             }
-            finally 
+            finally
             {
-                if(assm?.IsCommitted == true)
+                if (assm?.IsCommitted == true)
                 {
                     assm.Close();
                 }
@@ -1143,7 +1146,7 @@ namespace SolidWorks.Tests.Integration
         }
 
         [Test]
-        public void DeadPointerTest() 
+        public void DeadPointerTest()
         {
             var isAlive1 = false;
             var isAlive2 = false;
@@ -1166,7 +1169,7 @@ namespace SolidWorks.Tests.Integration
         }
 
         [Test]
-        public void VersionTest() 
+        public void VersionTest()
         {
             var part1 = m_App.Documents.PreCreate<ISwPart>();
             part1.Path = GetFilePath("Part_2020.sldprt");
@@ -1177,13 +1180,13 @@ namespace SolidWorks.Tests.Integration
             ISwVersion v4;
             ISwVersion v5;
 
-            using (var doc = OpenDataDocument("Part_2020.sldprt")) 
+            using (var doc = OpenDataDocument("Part_2020.sldprt"))
             {
                 var part2 = m_App.Documents.Active;
                 v2 = part2.Version;
             }
 
-            using (var doc = NewDocument(swDocumentTypes_e.swDocPART)) 
+            using (var doc = NewDocument(swDocumentTypes_e.swDocPART))
             {
                 var part3 = m_App.Documents.Active;
                 v3 = part3.Version;
@@ -1207,7 +1210,7 @@ namespace SolidWorks.Tests.Integration
         }
 
         [Test]
-        public void SerializationTest() 
+        public void SerializationTest()
         {
             var isCylFace = false;
             var areEqual = false;
@@ -1221,7 +1224,7 @@ namespace SolidWorks.Tests.Integration
 
                 byte[] bytes;
 
-                using (var memStr = new MemoryStream()) 
+                using (var memStr = new MemoryStream())
                 {
                     face.Serialize(memStr);
                     bytes = memStr.ToArray();
@@ -1441,7 +1444,7 @@ namespace SolidWorks.Tests.Integration
         }
 
         [Test]
-        public void OpenAssemblyLightweight() 
+        public void OpenAssemblyLightweight()
         {
             int lightweightCompsCount1;
             int lightweightCompsCount2;
@@ -1467,7 +1470,7 @@ namespace SolidWorks.Tests.Integration
                 lightweightCompsCount2 = assm2.Assembly.GetLightWeightComponentCount();
                 assm2.Close();
             }
-            finally 
+            finally
             {
                 m_App.Sw.SetUserPreferenceToggle((int)swUserPreferenceToggle_e.swAutoLoadPartsLightweight, autoLoadLw);
             }
@@ -1494,14 +1497,14 @@ namespace SolidWorks.Tests.Integration
                 Assert.AreEqual(1, bodyCount);
                 Assert.That(vol, Is.EqualTo(0.006).Within(0.00000000001).Percent);
             }
-            finally 
+            finally
             {
                 doc.Dispose();
             }
         }
 
         [Test]
-        public void OperationGroupTest() 
+        public void OperationGroupTest()
         {
             string lastFeatName;
             int featsCount;
@@ -1510,7 +1513,7 @@ namespace SolidWorks.Tests.Integration
             {
                 var part = (ISwPart)m_App.Documents.Active;
 
-                using (var oper = part.CreateOperationGroup("_Temp", true)) 
+                using (var oper = part.CreateOperationGroup("_Temp", true))
                 {
                     var feat1 = part.Features.Last();
 
@@ -1532,7 +1535,7 @@ namespace SolidWorks.Tests.Integration
         }
 
         [Test]
-        public void CreateFeatureEventTest() 
+        public void CreateFeatureEventTest()
         {
             var res1 = new List<Tuple<string, string>>();
             var res2 = new List<Tuple<string, string>>();
@@ -1542,11 +1545,11 @@ namespace SolidWorks.Tests.Integration
 
             const int swCommands_3DSketch = 89;
 
-            using (var doc = OpenDataDocument("Part1.sldprt")) 
+            using (var doc = OpenDataDocument("Part1.sldprt"))
             {
                 var part = (ISwPart)m_App.Documents.Active;
-                
-                part.Features.FeatureCreated += (d, f) => 
+
+                part.Features.FeatureCreated += (d, f) =>
                 {
                     res1.Add(new Tuple<string, string>(d.Path, f.Name));
                 };
@@ -1593,6 +1596,76 @@ namespace SolidWorks.Tests.Integration
             Assert.AreEqual(1, res2.Count);
             Assert.AreEqual(GetFilePath("Assembly1\\TopAssem1.SLDASM").ToLower(), res2[0].Item1.ToLower());
             Assert.AreEqual(f2, res2[0].Item2);
+        }
+
+        private class DocumentHandlerMock : IDocumentHandler
+        {
+            private readonly List<string> m_InitList;
+            private readonly List<string> m_DisposeList;
+
+            private IXDocument m_Doc;
+
+            internal DocumentHandlerMock(List<string> initList, List<string> disposeList) 
+            {
+                m_InitList = initList;
+                m_DisposeList = disposeList;
+            }
+
+            public void Init(IXApplication app, IXDocument model)
+            {
+                m_InitList.Add(model.Path);
+                m_Doc = model;
+            }
+
+            public void Dispose()
+            {
+                m_DisposeList.Add(m_Doc.Path);
+            }
+        }
+
+        [Test]
+        public void DocumentHandlerTest()
+        {
+            var initList = new List<string>();
+            var disposeList = new List<string>();
+
+            int initCount1;
+            int dispCount1;
+            int dispCount2;
+
+            var part1 = m_App.Documents.Open(GetFilePath("Assembly4\\Part1.sldprt"));
+
+            m_App.Documents.RegisterHandler(() => new DocumentHandlerMock(initList, disposeList));
+
+            initCount1 = initList.Count;
+
+            var assm = m_App.Documents.Open(GetFilePath("Assembly4\\Assembly1.SLDASM"));
+
+            var part2 = m_App.Documents[GetFilePath("Assembly4\\Part2.sldprt")];
+
+            part1.Close();
+            dispCount1 = disposeList.Count;
+            part2.Close();
+            dispCount2 = disposeList.Count;
+            assm.Close();
+
+            var expRefList = new string[]
+            {
+                GetFilePath("Assembly4\\Part1.sldprt").ToLower(),
+                GetFilePath("Assembly4\\Part2.sldprt").ToLower(),
+                GetFilePath("Assembly4\\Assembly1.SLDASM").ToLower(),
+                GetFilePath("Assembly4\\SubAssem1.SLDASM").ToLower(),
+                GetFilePath("Assembly4\\SubSubAssem1.SLDASM").ToLower()
+            };
+
+            Assert.AreEqual(1, initCount1);
+            Assert.AreEqual(0, dispCount1);
+            Assert.AreEqual(0, dispCount2);
+            Assert.AreEqual(5, initList.Count);
+            Assert.AreEqual(5, disposeList.Count);
+
+            CollectionAssert.AreEquivalent(expRefList, initList.Select(x => x.ToLower()));
+            CollectionAssert.AreEquivalent(expRefList, disposeList.Select(x => x.ToLower()));
         }
     }
 }
