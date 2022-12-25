@@ -15,6 +15,7 @@ using Xarial.XCad.Documents.Delegates;
 using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Documents.Exceptions;
 using Xarial.XCad.Documents.Extensions;
+using Xarial.XCad.Exceptions;
 using Xarial.XCad.Features;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;
@@ -237,13 +238,14 @@ namespace SolidWorks.Tests.Integration
         {
             try
             {
-                var createdDocs = new List<string>();
+                var createdDocs = new List<IXDocument>();
+                string[] createdDocsTitles;
                 var d1ClosingCount = 0;
                 var d2ClosingCount = 0;
 
                 m_App.Documents.DocumentLoaded += (d) =>
                 {
-                    createdDocs.Add(Path.GetFileNameWithoutExtension(d.Title).ToLower());
+                    createdDocs.Add(d);
                 };
 
                 var doc1 = (ISwDocument)m_App.Documents.Open(GetFilePath("foreign.IGS"));
@@ -290,9 +292,11 @@ namespace SolidWorks.Tests.Integration
 
                 var activeDocTitle1 = Path.GetFileNameWithoutExtension(m_App.Documents.Active.Title).ToLower();
 
+                createdDocsTitles = createdDocs.Select(d => Path.GetFileNameWithoutExtension(d.Title).ToLower()).ToArray();
+                
                 m_App.Sw.CloseAllDocuments(true);
 
-                Assert.That(createdDocs.OrderBy(d => d)
+                Assert.That(createdDocsTitles.OrderBy(d => d)
                     .SequenceEqual(new string[] { "part1", "part3", "part4", "foreign", "subsubassem1" }.OrderBy(d => d)));
                 Assert.AreEqual(d1ClosingCount, 1);
                 Assert.AreEqual(d2ClosingCount, 1);
@@ -1154,7 +1158,7 @@ namespace SolidWorks.Tests.Integration
             part2.Commit();
             isAlive2 = part2.IsAlive;
 
-            Assert.Throws<KeyNotFoundException>(() => { var doc = m_App.Documents[part1.Model]; });
+            Assert.Throws<EntityNotFoundException>(() => { var doc = m_App.Documents[part1.Model]; });
             Assert.IsFalse(isAlive1);
             Assert.IsTrue(isAlive2);
 

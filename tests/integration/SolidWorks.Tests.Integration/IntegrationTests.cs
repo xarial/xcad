@@ -74,7 +74,7 @@ namespace SolidWorks.Tests.Integration
 
                 m_CloseSw = true;
             }
-            else if (SW_PRC_ID == -1) 
+            else if (SW_PRC_ID == 0) 
             {
                 var prc = Process.GetProcessesByName("SLDWORKS").First();
                 m_App = SwApplicationFactory.FromProcess(prc);

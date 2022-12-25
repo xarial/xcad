@@ -73,6 +73,40 @@ namespace Xarial.XCad.SolidWorks.Documents
     [DebuggerDisplay("{" + nameof(Title) + "}")]
     internal abstract class SwDocument : SwObject, ISwDocument
     {
+        private class Interconnect3DDisabler : IDisposable
+        {
+            private readonly ISldWorks m_App;
+            private readonly bool? m_Is3DInterconnectEnabled;
+
+            internal Interconnect3DDisabler(ISldWorks app) 
+            {
+                m_App = app;
+
+                if (m_App.IsVersionNewerOrEqual(SwVersion_e.Sw2020)) 
+                {
+                    var enable3DInterconnect = m_App.GetUserPreferenceToggle(
+                        (int)swUserPreferenceToggle_e.swMultiCAD_Enable3DInterconnect);
+
+                    if (enable3DInterconnect) 
+                    {
+                        m_Is3DInterconnectEnabled = enable3DInterconnect;
+
+                        m_App.SetUserPreferenceToggle(
+                            (int)swUserPreferenceToggle_e.swMultiCAD_Enable3DInterconnect, false);
+                    }
+                }
+            }
+
+            public void Dispose()
+            {
+                if (m_Is3DInterconnectEnabled.HasValue) 
+                {
+                    m_App.SetUserPreferenceToggle(
+                            (int)swUserPreferenceToggle_e.swMultiCAD_Enable3DInterconnect, m_Is3DInterconnectEnabled.Value);
+                }
+            }
+        }
+
         protected static Dictionary<string, swDocumentTypes_e> m_NativeFileExts { get; }
         private bool? m_IsClosed;
 
@@ -858,7 +892,10 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
             else
             {
-                model = OwnerApplication.Sw.LoadFile4(Path, "", null, ref errorCode);
+                using (new Interconnect3DDisabler(OwnerApplication.Sw))
+                {
+                    model = OwnerApplication.Sw.LoadFile4(Path, "", null, ref errorCode);
+                }
 
                 if (model != null) 
                 {

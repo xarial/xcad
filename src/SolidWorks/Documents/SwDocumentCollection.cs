@@ -201,7 +201,21 @@ namespace Xarial.XCad.SolidWorks.Documents
             return HResult.S_OK;
         }
 
-        public ISwDocument this[IModelDoc2 model] => CreateDocument(model);
+        public ISwDocument this[IModelDoc2 model] 
+        {
+            get 
+            {
+                try
+                {
+                    var test = model.GetTitle();
+                    return CreateDocument(model);
+                }
+                catch 
+                {
+                    throw new EntityNotFoundException("");
+                }
+            }
+        }
 
         public IEnumerator<IXDocument> GetEnumerator()
         {
