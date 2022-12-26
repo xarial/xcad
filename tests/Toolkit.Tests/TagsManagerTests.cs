@@ -11,9 +11,9 @@ namespace Toolkit.Tests
     public class TagsManagerTests
     {
         [Test]
-        public void TestPut() 
+        public void LocalTagsManagerTestPut() 
         {
-            var tagsMgr = new TagsManager();
+            var tagsMgr = new LocalTagsManager();
 
             tagsMgr.Put<string>("ABC", "Test");
             tagsMgr.Put<int>("XYZ", 10);
@@ -34,9 +34,9 @@ namespace Toolkit.Tests
         }
 
         [Test]
-        public void TestPop()
+        public void LocalTagsManagerTestPop()
         {
-            var tagsMgr = new TagsManager();
+            var tagsMgr = new LocalTagsManager();
 
             tagsMgr.Put<string>("ABC", "Test");
             tagsMgr.Put<string>("ABC", "Test2");
@@ -55,9 +55,9 @@ namespace Toolkit.Tests
         }
 
         [Test]
-        public void TestErrors() 
+        public void LocalTagsManagerTestErrors() 
         {
-            var tagsMgr = new TagsManager();
+            var tagsMgr = new LocalTagsManager();
 
             tagsMgr.Put<string>("ABC", "Test");
             tagsMgr.Put<int>("XYZ", 10);

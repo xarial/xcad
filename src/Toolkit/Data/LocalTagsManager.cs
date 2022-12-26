@@ -7,22 +7,30 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Xarial.XCad.Data;
 
 namespace Xarial.XCad.Toolkit.Data
 {
     /// <summary>
-    /// Manages tags
+    /// Manages tags locally on the object
     /// </summary>
-    public class TagsManager : ITagsManager
+    public class LocalTagsManager : ITagsManager
     {
         private readonly Dictionary<string, object> m_Tags;
 
-        public TagsManager()
+        public LocalTagsManager()
+            : this(StringComparer.CurrentCultureIgnoreCase)
         {
-            m_Tags = new Dictionary<string, object>(StringComparer.CurrentCultureIgnoreCase);
         }
+
+        public LocalTagsManager(StringComparer comparer)
+        {
+            m_Tags = new Dictionary<string, object>(comparer);
+        }
+
+        public bool IsEmpty => !m_Tags.Any();
 
         public bool Contains(string name) => m_Tags.ContainsKey(name);
 

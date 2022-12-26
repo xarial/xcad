@@ -39,6 +39,7 @@ using Xarial.XCad.UI;
 using Xarial.XCad.SolidWorks.UI;
 using Xarial.XCad.Reflection;
 using Xarial.XCad.Toolkit.Services;
+using Xarial.XCad.Toolkit.Data;
 
 namespace Xarial.XCad.SolidWorks
 {
@@ -265,6 +266,8 @@ namespace Xarial.XCad.SolidWorks
 
         private readonly Action<SwApplication> m_StartupCompletedCallback;
 
+        internal GlobalTagsRegistry TagsRegistry { get; }
+
         internal SwApplication(ISldWorks app, IXServiceCollection customServices) 
             : this(app, default(Action<SwApplication>))
         {
@@ -282,6 +285,8 @@ namespace Xarial.XCad.SolidWorks
             m_IsStartupNotified = false;
             m_StartupCompletedCallback = startupCompletedCallback;
 
+            TagsRegistry = new GlobalTagsRegistry();
+
             Options = new SwApplicationOptions(this);
 
             m_Creator = new ElementCreator<ISldWorks>(CreateInstance, app, true);
@@ -294,6 +299,8 @@ namespace Xarial.XCad.SolidWorks
         internal SwApplication()
         {
             m_IsStartupNotified = false;
+
+            TagsRegistry = new GlobalTagsRegistry();
 
             m_Creator = new ElementCreator<ISldWorks>(CreateInstance, null, false);
 
@@ -442,6 +449,8 @@ namespace Xarial.XCad.SolidWorks
             {
                 Logger.Log(ex);
             }
+
+            TagsRegistry.Dispose();
 
             if (Sw != null)
             {

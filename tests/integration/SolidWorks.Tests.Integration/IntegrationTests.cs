@@ -41,9 +41,9 @@ namespace SolidWorks.Tests.Integration
             }
         }
 
-        private const int SW_PRC_ID = 0;
+        private const int SW_PRC_ID = -1;
         private const string DATA_FOLDER = @"C:\Users\artem\OneDrive\xCAD\TestData";
-        private SwVersion_e? SW_VERSION = SwVersion_e.Sw2022;
+        private SwVersion_e? SW_VERSION = SwVersion_e.Sw2023;
 
         protected ISwApplication m_App;
         private Process m_Process;
