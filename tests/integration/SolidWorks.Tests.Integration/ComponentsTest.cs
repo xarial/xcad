@@ -14,6 +14,7 @@ using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Features;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;
+using Xarial.XCad.Services;
 using Xarial.XCad.SolidWorks;
 using Xarial.XCad.SolidWorks.Documents;
 
@@ -97,11 +98,11 @@ namespace SolidWorks.Tests.Integration
 
                 var doc1 = assm.Configurations.Active.Components["Part1-1"].ReferencedDocument;
                 doc1FileName = Path.GetFileName(doc1.Path);
-                doc1Contains = m_App.Documents.Contains(doc1);
+                doc1Contains = m_App.Documents.Contains(doc1, new XObjectEqualityComparer<IXDocument>());
 
                 var doc2 = assm.Configurations.Active.Components["SubAssem1-1"].ReferencedDocument;
                 doc2FileName = Path.GetFileName(doc2.Path);
-                doc2Contains = m_App.Documents.Contains(doc2);
+                doc2Contains = m_App.Documents.Contains(doc2, new XObjectEqualityComparer<IXDocument>());
 
                 var d = assm.Configurations.Active.Components["Part1-2"].ReferencedDocument;
 
@@ -727,19 +728,19 @@ namespace SolidWorks.Tests.Integration
                     Assert.That(comp8.ReferencedDocument.IsCommitted);
 
                     Assert.AreEqual(5, m_App.Documents.Count);
-                    Assert.That(m_App.Documents.Contains(assm));
-                    Assert.That(m_App.Documents.Contains(doc1));
-                    Assert.That(m_App.Documents.Contains(doc2));
-                    Assert.That(m_App.Documents.Contains(doc3));
-                    Assert.That(m_App.Documents.Contains(doc4));
-                    Assert.AreEqual(doc1, comp1.ReferencedDocument);
-                    Assert.AreEqual(doc1, comp2.ReferencedDocument);
-                    Assert.AreEqual(doc2, comp3.ReferencedDocument);
-                    Assert.AreEqual(doc2, comp4.ReferencedDocument);
-                    Assert.AreEqual(doc3, comp5.ReferencedDocument);
-                    Assert.AreEqual(doc4, comp6.ReferencedDocument);
-                    Assert.AreEqual(doc4, comp7.ReferencedDocument);
-                    Assert.AreEqual(doc4, comp8.ReferencedDocument);
+                    Assert.That(m_App.Documents.Contains(assm, new XObjectEqualityComparer<IXDocument>()));
+                    Assert.That(m_App.Documents.Contains(doc1, new XObjectEqualityComparer<IXDocument>()));
+                    Assert.That(m_App.Documents.Contains(doc2, new XObjectEqualityComparer<IXDocument>()));
+                    Assert.That(m_App.Documents.Contains(doc3, new XObjectEqualityComparer<IXDocument>()));
+                    Assert.That(m_App.Documents.Contains(doc4, new XObjectEqualityComparer<IXDocument>()));
+                    Assert.That(doc1.Equals(comp1.ReferencedDocument));
+                    Assert.That(doc1.Equals(comp2.ReferencedDocument));
+                    Assert.That(doc2.Equals(comp3.ReferencedDocument));
+                    Assert.That(doc2.Equals(comp4.ReferencedDocument));
+                    Assert.That(doc3.Equals(comp5.ReferencedDocument));
+                    Assert.That(doc4.Equals(comp6.ReferencedDocument));
+                    Assert.That(doc4.Equals(comp7.ReferencedDocument));
+                    Assert.That(doc4.Equals(comp8.ReferencedDocument));
                 }
             }
         }
@@ -838,7 +839,7 @@ namespace SolidWorks.Tests.Integration
             CollectionAssert.AreEquivalent(compNames, res.Select(r => r.Item2));
         }
 
-        //NOTE: in SW 2022 SP0 Part1-1 cannot be seelcted by some reasons, while API returns true for selection
+        //NOTE: in SW 2022 SP0 Part1-1 cannot be selected by some reasons, while API returns true for selection
         [Test]
         public void DeleteComponentEventTest()
         {

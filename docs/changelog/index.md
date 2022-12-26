@@ -28,6 +28,7 @@ CreatePreviewGeometry
 * &#x26A0; - Introduced Line and Circle data structures which replaced the Axis, Diameter, StartPoint, EndPoint, CenterPoint properties in geometrical entities, such as IXCircle
 * &#x26A0; - Access modifier for SwAddInEx::OnConfigureServices and SwMacroFeatureDefinition::OnConfigureServices is changed to protected
 * &#x26A0; - IXDocument::SaveAs is changed to extension in **Xarial.XCad.Documents.Extensions** namespace
+* &#x26A0; - IXDocument pointers are no longer guaranteed to be equal for the same documents. Use IXDocument::Equals to compare pointers instead
 
 ## 0.7.7 - October 26, 2021
 

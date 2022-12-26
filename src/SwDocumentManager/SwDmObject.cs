@@ -51,7 +51,7 @@ namespace Xarial.XCad.SwDocumentManager
             OwnerApplication = ownerApp;
             OwnerDocument = ownerDoc;
 
-            m_TagsLazy = new Lazy<ITagsManager>(() => new TagsManager());
+            m_TagsLazy = new Lazy<ITagsManager>(() => new LocalTagsManager());
         }
 
         public virtual object Dispatch { get; }

@@ -80,7 +80,7 @@ namespace Xarial.XCad.SolidWorks
         internal SwObject(object disp, SwDocument doc, SwApplication app) 
         {
             Dispatch = disp;
-            m_TagsLazy = new Lazy<ITagsManager>(() => new TagsManager());
+            m_TagsLazy = new Lazy<ITagsManager>(() => new GlobalTagsManager(this, app.TagsRegistry));
             OwnerDocument = doc;
             OwnerApplication = app;
         }

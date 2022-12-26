@@ -13,13 +13,14 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Controls;
 using Xarial.XCad.Base;
 using Xarial.XCad.Base.Enums;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Delegates;
 using Xarial.XCad.Documents.Services;
-using Xarial.XCad.Inventor.Documents.Services;
 using Xarial.XCad.Inventor.Utils;
+using Xarial.XCad.Toolkit.Services;
 using Xarial.XCad.Toolkit.Utils;
 
 namespace Xarial.XCad.Inventor.Documents
@@ -32,7 +33,29 @@ namespace Xarial.XCad.Inventor.Documents
     internal class AiDocumentsCollection : IAiDocumentsCollection, IDisposable
     {
         public event DocumentEventDelegate DocumentActivated;
-        public event DocumentEventDelegate DocumentLoaded;
+        
+        public event DocumentEventDelegate DocumentLoaded
+        {
+            add
+            {
+                if (m_DocumentLoaded == null)
+                {
+                    m_App.Application.ApplicationEvents.OnInitializeDocument += OnInitializeDocument;
+                }
+
+                m_DocumentLoaded += value;
+            }
+            remove
+            {
+                m_DocumentLoaded -= value;
+
+                if (m_DocumentLoaded == null)
+                {
+                    m_App.Application.ApplicationEvents.OnInitializeDocument -= OnInitializeDocument;
+                }
+            }
+        }
+
         public event DocumentEventDelegate DocumentOpened;
         public event DocumentEventDelegate NewDocumentCreated;
 
@@ -40,99 +63,23 @@ namespace Xarial.XCad.Inventor.Documents
 
         private readonly AiApplication m_App;
 
-        private readonly Dictionary<Document, AiDocument> m_Documents;
-
-        internal AiDocumentDispatcher Dispatcher { get; }
-
-        private readonly object m_Lock;
-
-        private bool m_IsAttached;
-
         private readonly IXLogger m_Logger;
+
+        private readonly DocumentsHandler m_DocsHandler;
+
+        private DocumentEventDelegate m_DocumentLoaded;
 
         internal AiDocumentsCollection(AiApplication app, IXLogger logger) 
         {
             m_App = app;
             m_Logger = logger;
 
-            m_Documents = new Dictionary<Document, AiDocument>(new AiDocumentPointerEqualityComparer());
-
-            m_Lock = new object();
-
-            Dispatcher = new AiDocumentDispatcher(app, m_Logger);
-
-            m_IsAttached = false;
-        }
-
-        internal void Attach()
-        {
-            if (!m_IsAttached)
-            {
-                m_IsAttached = true;
-                Dispatcher.Dispatched += OnDocumentDispatched;
-
-                m_App.Application.ApplicationEvents.OnCloseDocument += OnCloseDocument;
-                m_App.Application.ApplicationEvents.OnInitializeDocument += OnInitializeDocument;
-
-                AttachToAllOpenedDocuments();
-            }
-        }
-
-        private void AttachToAllOpenedDocuments()
-        {
-            foreach (Document doc in m_App.Application.Documents) 
-            {
-                Dispatcher.Dispatch(doc);
-            }
-        }
-
-        private void OnDocumentDispatched(AiDocument doc)
-        {
-            lock (m_Lock)
-            {
-                if (!m_Documents.ContainsKey(doc.Document))
-                {
-                    m_Documents.Add(doc.Document, doc);
-
-                    try
-                    {
-                        DocumentLoaded?.Invoke(doc);
-                    }
-                    catch (Exception ex)
-                    {
-                        m_Logger.Log(ex);
-                    }
-                }
-                else 
-                {
-                    m_Logger.Log($"Conflict. {doc.Document.DisplayName} already dispatched", LoggerMessageSeverity_e.Warning);
-                }
-            }
-        }
-
-        private void OnInitializeDocument(_Document DocumentObject, string FullDocumentName, EventTimingEnum BeforeOrAfter, NameValueMap Context, out HandlingCodeEnum HandlingCode)
-        {
-            if (BeforeOrAfter == EventTimingEnum.kAfter) 
-            {
-                Dispatcher.Dispatch(DocumentObject);
-            }
-
-            HandlingCode = HandlingCodeEnum.kEventHandled;
-        }
-
-        private void OnCloseDocument(_Document DocumentObject, string FullDocumentName, EventTimingEnum BeforeOrAfter, NameValueMap Context, out HandlingCodeEnum HandlingCode)
-        {
-            if (BeforeOrAfter == EventTimingEnum.kAfter)
-            {
-                ReleaseDocument(m_Documents[DocumentObject]);
-            }
-
-            HandlingCode = HandlingCodeEnum.kEventHandled;
+            m_DocsHandler = new DocumentsHandler(app, logger);
         }
 
         public IXDocument this[string name] => RepositoryHelper.Get(this, name);
 
-        public IAiDocument this[Document doc] => m_Documents[doc];
+        public IAiDocument this[Document doc] => CreateDocument(doc);
 
         public IXDocument Active 
         {
@@ -142,7 +89,7 @@ namespace Xarial.XCad.Inventor.Documents
 
                 if (activeDoc != null)
                 {
-                    return m_Documents[activeDoc];
+                    return this[activeDoc];
                 }
                 else 
                 {
@@ -160,7 +107,7 @@ namespace Xarial.XCad.Inventor.Documents
             }
         }
 
-        public int Count => m_Documents.Count;
+        public int Count => m_App.Application.Documents.Count;
 
         public void AddRange(IEnumerable<IXDocument> ents, CancellationToken cancellationToken)
             => RepositoryHelper.AddRange(ents, cancellationToken);
@@ -168,12 +115,16 @@ namespace Xarial.XCad.Inventor.Documents
         public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters)
             => RepositoryHelper.FilterDefault(this, filters, reverseOrder);
 
-        public IEnumerator<IXDocument> GetEnumerator() => m_Documents.Values.GetEnumerator();
+        public IEnumerator<IXDocument> GetEnumerator() 
+        {
+            foreach (Document doc in m_App.Application.Documents)
+            {
+                yield return CreateDocument(doc);
+            }
+        }
 
         public THandler GetHandler<THandler>(IXDocument doc) where THandler : IDocumentHandler
-        {
-            throw new NotImplementedException();
-        }
+            => m_DocsHandler.GetHandler<THandler>(doc);
 
         public T PreCreate<T>() where T : IXDocument
         {
@@ -189,9 +140,7 @@ namespace Xarial.XCad.Inventor.Documents
         }
 
         public void RegisterHandler<THandler>(Func<THandler> handlerFact) where THandler : IDocumentHandler
-        {
-            throw new NotImplementedException();
-        }
+            => m_DocsHandler.RegisterHandler<THandler>(handlerFact);
 
         public void RemoveRange(IEnumerable<IXDocument> ents, CancellationToken cancellationToken)
         {
@@ -207,7 +156,7 @@ namespace Xarial.XCad.Inventor.Documents
 
             if (doc != null)
             {
-                ent = m_Documents[doc];
+                ent = CreateDocument(doc);
                 return true;
             }
             else 
@@ -217,27 +166,30 @@ namespace Xarial.XCad.Inventor.Documents
             }
         }
 
-        private void ReleaseDocument(AiDocument doc)
+        private void OnInitializeDocument(_Document DocumentObject, string FullDocumentName,
+            EventTimingEnum BeforeOrAfter, NameValueMap Context, out HandlingCodeEnum HandlingCode)
         {
-            m_Documents.Remove(doc.Document);
+            if (BeforeOrAfter == EventTimingEnum.kAfter)
+            {
+                try
+                {
+                    m_DocumentLoaded?.Invoke(CreateDocument(DocumentObject));
+                }
+                catch (Exception ex)
+                {
+                    m_Logger.Log(ex);
+                }
+            }
 
-            doc.SetClosed();
-            doc.Dispose();
+            HandlingCode = HandlingCodeEnum.kEventHandled;
         }
+
+        private AiDocument CreateDocument(Document nativeDoc)
+            => new AiDocument(nativeDoc, m_App);
 
         public void Dispose()
         {
-            if (m_IsAttached)
-            {
-                Dispatcher.Dispatched -= OnDocumentDispatched;
-
-                foreach (var doc in m_Documents.Values.ToArray())
-                {
-                    ReleaseDocument(doc);
-                }
-
-                m_Documents.Clear();
-            }
+            m_DocsHandler.Dispose();
         }
     }
 }

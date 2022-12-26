@@ -12,7 +12,7 @@ using System.Text;
 namespace Xarial.XCad.Documents.Services
 {
     /// <summary>
-    /// Document handler to be used in <see cref="IDocumentsHandler{TDocHandler}"/> documents manager
+    /// Document handler to be used in <see cref="IXDocumentRepository.RegisterHandler{THandler}(Func{THandler})"/> documents manager
     /// </summary>
     public interface IDocumentHandler : IDisposable
     {
@@ -20,7 +20,7 @@ namespace Xarial.XCad.Documents.Services
         /// Called when model document is initialized (created)
         /// </summary>
         /// <param name="app">Pointer to application</param>
-        /// <param name="model">Pointer to this model document</param>
-        void Init(IXApplication app, IXDocument model);
+        /// <param name="doc">Pointer to this model document</param>
+        void Init(IXApplication app, IXDocument doc);
     }
 }

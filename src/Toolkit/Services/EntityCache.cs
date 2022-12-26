@@ -15,6 +15,10 @@ using Xarial.XCad.Base;
 
 namespace Xarial.XCad.Toolkit.Services
 {
+    /// <summary>
+    /// This service allows to manage the entities which are created from the uncommitted object
+    /// </summary>
+    /// <typeparam name="TEnt">Type of entity</typeparam>
     public class EntityCache<TEnt>
             where TEnt : IXTransaction
     {

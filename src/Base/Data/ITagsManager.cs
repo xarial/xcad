@@ -17,6 +17,11 @@ namespace Xarial.XCad.Data
     public interface ITagsManager
     {
         /// <summary>
+        /// Checks if the tags manager has any tags
+        /// </summary>
+        bool IsEmpty { get; }
+
+        /// <summary>
         /// Checks if the tags contains named metadata
         /// </summary>
         /// <param name="name">Name of the metadata</param>
