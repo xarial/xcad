@@ -2,7 +2,8 @@
   "$schema": "http://json.schemastore.org/template",
   "author": "Xarial",
   "classifications": [ "xCAD", "SOLIDWORKS", "Library" ],
-  "identity": "Xarial.XCad.Template.SwAddIn",
+  "identity": "Xarial.XCad.Template.SwAddIn.CSharp",
+  "groupIdentity": "Xarial.XCad.Template.SwAddIn",
   "name": "xCAD SOLIDWORKS Add-In",
   "shortName": "xcadswaddin",
   "sourceName": "__TemplateNamePlaceholder__",
@@ -14,7 +15,8 @@
   [
     "E82CC06F-81FC-4CE6-B88F-5B65023808F9",
     "1825D395-A8A2-484F-B9D6-C2D04B2AB9B3",
-    "DAAB6D2D-3D9E-46C8-85DC-B7EF77ECF10A"
+    "DAAB6D2D-3D9E-46C8-85DC-B7EF77ECF10A",
+    "4F6D68F7-65C5-42CE-9F7E-30470FE1ED4B"
   ],
   "defaultName": "XCadSwAddIn",
   "preferNameDirectory": true,
@@ -98,6 +100,12 @@
           "condition": "!(_AddPropertyPage_ || _AddCustomFeature_)",
           "exclude": [
             "BoxPropertyPage.cs"
+          ]
+        },
+        {
+          "condition": "!(_AddCustomFeature_)",
+          "exclude": [
+            "BoxMacroFeature.cs"
           ]
         }
       ]

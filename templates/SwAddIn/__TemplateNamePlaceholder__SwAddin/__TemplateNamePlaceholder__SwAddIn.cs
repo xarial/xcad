@@ -4,11 +4,13 @@ using __TemplateNamePlaceholder__SwAddin.Properties;
 #endif
 using System;
 using System.ComponentModel;
+using System.Linq;
 using System.Runtime.InteropServices;
 using Xarial.XCad.Base;
 using Xarial.XCad.Base.Attributes;
 using Xarial.XCad.Base.Enums;
 using Xarial.XCad.Features;
+using Xarial.XCad.Geometry;
 using Xarial.XCad.SolidWorks;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.UI.Commands;
@@ -16,6 +18,7 @@ using Xarial.XCad.UI.Commands.Attributes;
 using Xarial.XCad.UI.Commands.Enums;
 using Xarial.XCad.UI.PropertyPage;
 using Xarial.XCad.UI.PropertyPage.Enums;
+using Xarial.XCad.UI.PropertyPage.Structures;
 
 namespace __TemplateNamePlaceholder__.Sw.AddIn
 {
@@ -34,21 +37,22 @@ namespace __TemplateNamePlaceholder__.Sw.AddIn
             [Icon(typeof(Resources), nameof(Resources.box_icon))]
             [Title("Create Box")]
             [Description("Creates box using standard feature")]
-            [CommandItemInfo(WorkspaceTypes_e.Part | WorkspaceTypes_e.InContextPart)]
+            [CommandItemInfo(true, true, WorkspaceTypes_e.Part | WorkspaceTypes_e.InContextPart, true)]
             CreateBox,
 
 #endif
 #if _AddCustomFeature_
-            [Icon(typeof(Resources), nameof(Resources.box_icon))]
+            [Icon(typeof(Resources), nameof(Resources.parametric_box_icon))]
             [Title("Create Parametric Box")]
             [Description("Creates parametric macro feature")]
-            [CommandItemInfo(WorkspaceTypes_e.Part | WorkspaceTypes_e.InContextPart)]
+            [CommandItemInfo(true, true, WorkspaceTypes_e.Part | WorkspaceTypes_e.InContextPart, true)]
             CreateParametricBox,
 
 #endif
             [Icon(typeof(Resources), nameof(Resources.about_icon))]
             [Title("About...")]
             [Description("Shows About Box")]
+            [CommandItemInfo(true, false, WorkspaceTypes_e.All)]
             About
         }
 
@@ -60,18 +64,19 @@ namespace __TemplateNamePlaceholder__.Sw.AddIn
 #endif
         public override void OnConnect()
         {
+            System.Diagnostics.Debugger.Launch();
 #if _AddCommandManager_ || _AddPropertyPage_ || _AddCustomFeature_
             CommandManager.AddCommandGroup<Commands_e>().CommandClick += OnCommandClick;
 #if _AddPropertyPage_
             m_BoxPage = CreatePage<BoxPropertyPage>();
             m_BoxData = new BoxPropertyPage();
+            m_BoxPage.Closing += OnBoxPageClosing;
             m_BoxPage.Closed += OnBoxPageClosed;
 #endif
 #else
             Application.ShowMessageBox("Hello, __TemplateNamePlaceholder__! xCAD.NET", MessageBoxIcon_e.Info);
 #endif
         }
-
 #if _AddCommandManager_ || _AddPropertyPage_ || _AddCustomFeature_
 
         private void OnCommandClick(Commands_e spec)
@@ -83,13 +88,15 @@ namespace __TemplateNamePlaceholder__.Sw.AddIn
 #if _AddPropertyPage_
                     m_BoxPage.Show(m_BoxData);
 #else
-                    CreateBox(100, 200, 300);
+                    var frontPlane = Application.Documents.Active.Features.OfType<IXPlane>().First();
+                    CreateBox(frontPlane, 100, 200, 300);
 #endif
                     break;
 
 #endif
 #if _AddCustomFeature_
                 case Commands_e.CreateParametricBox:
+                    Application.Documents.Active.Features.CreateCustomFeature<BoxMacroFeature, BoxMacroFeatureData, BoxPropertyPage>();
                     break;
 
 #endif
@@ -100,19 +107,30 @@ namespace __TemplateNamePlaceholder__.Sw.AddIn
         }
 #endif
 #if _AddPropertyPage_
+        private void OnBoxPageClosing(PageCloseReasons_e reason, PageClosingArg arg)
+        {
+            if (reason == PageCloseReasons_e.Okay)
+            {
+                if (m_BoxData.Location.PlaneOrFace is IXPlanarRegion) 
+                {
+                    arg.Cancel = true;
+                    arg.ErrorMessage = "Specify plane or face to place box on";
+                }
+            }
+        }
+
         private void OnBoxPageClosed(PageCloseReasons_e reason)
         {
             if (reason == PageCloseReasons_e.Okay)
             {
-                CreateBox(m_BoxData.Parameters.Width, m_BoxData.Parameters.Height, m_BoxData.Parameters.Length);
+                CreateBox((IXPlanarRegion)m_BoxData.Location.PlaneOrFace,
+                    m_BoxData.Parameters.Width, m_BoxData.Parameters.Height, m_BoxData.Parameters.Length);
             }
         }
-
 #endif
-
 #if _AddCommandManager_ || _AddPropertyPage_
 
-        private void CreateBox(double width, double height, double length) 
+        private void CreateBox(IXPlanarRegion basePlane, double width, double height, double length) 
         {
             var doc = Application.Documents.Active;
 
