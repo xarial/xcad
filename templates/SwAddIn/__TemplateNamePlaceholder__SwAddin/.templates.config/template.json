@@ -12,7 +12,9 @@
   },
   "guids": 
   [
-    "E82CC06F-81FC-4CE6-B88F-5B65023808F9"
+    "E82CC06F-81FC-4CE6-B88F-5B65023808F9",
+    "1825D395-A8A2-484F-B9D6-C2D04B2AB9B3",
+    "DAAB6D2D-3D9E-46C8-85DC-B7EF77ECF10A"
   ],
   "defaultName": "XCadSwAddIn",
   "preferNameDirectory": true,
@@ -91,8 +93,20 @@
             "Resources/box-icon.png",
             "Resources/parametric-box-icon.png"
           ]
+        },
+        {
+          "condition": "!(_AddPropertyPage_ || _AddCustomFeature_)",
+          "exclude": [
+            "BoxPropertyPage.cs"
+          ]
         }
       ]
     }
-  ]
+  ],
+  "postActions": [{
+    "condition": "(!skipRestore)",
+    "description": "Restore NuGet packages required by this project.",
+    "actionId": "210D431B-A78B-4D2F-B762-4ED3E3EA9025",
+    "continueOnError": true
+  }]
 }
