@@ -396,7 +396,7 @@ namespace Xarial.XCad.Utils.CustomFeature
         private bool m_IsApplying;
 
         private void DefaultAssignPreviewBodyColor(IXBody body, out System.Drawing.Color color)
-            => color = System.Drawing.Color.Yellow;
+            => color = System.Drawing.Color.FromArgb(100, System.Drawing.Color.Yellow);
 
         private void UpdatePreview()
         {

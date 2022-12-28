@@ -231,7 +231,21 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 
                 var doc = (SwDocument)Application.Documents[modelDoc as IModelDoc2];
 
-                var macroFeatInst = m_MacroFeatInstFact.Invoke(this, feature as IFeature, doc, Application);
+                SwDocument contextDoc;
+
+                var comp = (IComponent2)(feature as IEntity).GetComponent();
+
+                if (comp != null)
+                {
+                    var assmName = comp.GetSelectByIDString().Split('@').Last() + ".sldasm";
+                    contextDoc = (SwDocument)Application.Documents[assmName];
+                }
+                else 
+                {
+                    contextDoc = doc;
+                }
+                
+                var macroFeatInst = m_MacroFeatInstFact.Invoke(this, feature as IFeature, contextDoc, Application);
 
                 var res = OnRebuild(Application, doc, macroFeatInst);
 

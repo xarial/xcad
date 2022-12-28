@@ -343,8 +343,13 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public bool TryGet(string name, out IXDocument ent)
         {
-            var model = m_SwApp.GetOpenDocumentByName(name) as IModelDoc2;
-            
+            IModelDoc2 model = m_SwApp.GetOpenDocument(name);
+
+            if (model == null)
+            {
+                model = m_SwApp.GetOpenDocumentByName(name) as IModelDoc2;
+            }
+
             if (model != null)
             {
                 ent = CreateDocument(model);

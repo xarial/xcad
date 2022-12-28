@@ -83,9 +83,39 @@ namespace @__TemplateNamePlaceholder__SwAddin.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap height_icon {
+            get {
+                object obj = ResourceManager.GetObject("height_icon", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap length_icon {
+            get {
+                object obj = ResourceManager.GetObject("length_icon", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap parametric_box_icon {
             get {
                 object obj = ResourceManager.GetObject("parametric-box-icon", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap width_icon {
+            get {
+                object obj = ResourceManager.GetObject("width_icon", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

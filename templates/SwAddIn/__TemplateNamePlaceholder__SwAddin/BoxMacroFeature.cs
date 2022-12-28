@@ -47,6 +47,7 @@ namespace __TemplateNamePlaceholder__SwAddin
     [ComVisible(true)]
     [Guid("4F6D68F7-65C5-42CE-9F7E-30470FE1ED4B")]
     [Icon(typeof(Resources), nameof(Resources.box_icon))]
+    [Title("Box")]
     public class BoxMacroFeature : SwMacroFeatureDefinition<BoxMacroFeatureData, BoxPropertyPage>
     {
         public override BoxMacroFeatureData ConvertPageToParams(IXApplication app, IXDocument doc, BoxPropertyPage page, BoxMacroFeatureData cudData)
@@ -94,27 +95,40 @@ namespace __TemplateNamePlaceholder__SwAddin
 
             var box = (ISwBody)app.MemoryGeometryBuilder.CreateSolidBox(
                 pt, dir, refDir,
-                data.Width, data.Height, data.Length).Bodies.First();
+                data.Width, data.Length, data.Height).Bodies.First();
 
-            alignDim = new AlignDimensionDelegate<BoxMacroFeatureData>((p, d) =>
+            var secondRefDir = refDir.Cross(dir);
+
+            alignDim = (n, d) =>
             {
-                if (string.Equals(p, nameof(BoxMacroFeatureData.Length)))
+                switch (n)
                 {
-                    this.AlignLinearDimension(d, pt, dir);
+                    case nameof(BoxMacroFeatureData.Width):
+                        this.AlignLinearDimension(d,
+                            pt
+                            .Move(refDir * -1, data.Width / 2)
+                            .Move(secondRefDir * -1, data.Length / 2),
+                            refDir);
+                        break;
+
+                    case nameof(BoxMacroFeatureData.Length):
+                        this.AlignLinearDimension(d,
+                            pt
+                            .Move(refDir, data.Width / 2)
+                            .Move(secondRefDir * -1, data.Length / 2),
+                            secondRefDir);
+                        break;
+
+                    case nameof(BoxMacroFeatureData.Height):
+                        this.AlignLinearDimension(d,
+                            pt
+                            .Move(refDir, data.Width / 2)
+                            .Move(secondRefDir * -1, data.Length / 2),
+                            dir);
+                        break;
                 }
-                else if (string.Equals(p, nameof(BoxMacroFeatureData.Width)))
-                {
-                    this.AlignLinearDimension(d, pt, refDir);
-                }
-                else if (string.Equals(p, nameof(BoxMacroFeatureData.Height)))
-                {
-                    this.AlignLinearDimension(d, pt, dir.Cross(refDir));
-                }
-                else 
-                {
-                    throw new NotSupportedException();
-                }
-            });
+            };
+
 
             return new ISwBody[] { box };
         }

@@ -44,7 +44,8 @@ namespace __TemplateNamePlaceholder__SwAddin
         {
             [StandardControlIcon(BitmapLabelType_e.SelectFace)]
             [Description("Face or plane to place box on")]
-            [SelectionBoxOptions(CustomFilter = typeof(PlanarRegionSelectionFilter))]
+            [SelectionBoxOptions(Filters = new SelectType_e[] { SelectType_e.Faces, SelectType_e.Planes },
+                CustomFilter = typeof(PlanarRegionSelectionFilter))]
             public IXEntity PlaneOrFace { get; set; }
         }
 
@@ -52,17 +53,17 @@ namespace __TemplateNamePlaceholder__SwAddin
         {
             [NumberBoxOptions(NumberBoxUnitType_e.Length, 0, 1000, 0.01, false, 0.02, 0.001)]
             [Description("Width of the box")]
-            [StandardControlIcon(BitmapLabelType_e.Width)]
+            [Icon(typeof(Resources), nameof(Resources.width_icon))]
             public double Width { get; set; } = 0.1;
 
             [NumberBoxOptions(NumberBoxUnitType_e.Length, 0, 1000, 0.01, false, 0.02, 0.001)]
             [Description("Height of the box")]
-            [StandardControlIcon(BitmapLabelType_e.Thickness1)]
+            [Icon(typeof(Resources), nameof(Resources.height_icon))]
             public double Height { get; set; } = 0.1;
 
             [NumberBoxOptions(NumberBoxUnitType_e.Length, 0, 1000, 0.01, false, 0.02, 0.001)]
             [Description("Length of the box")]
-            [StandardControlIcon(BitmapLabelType_e.Depth)]
+            [Icon(typeof(Resources), nameof(Resources.length_icon))]
             public double Length { get; set; } = 0.1;
         }
 

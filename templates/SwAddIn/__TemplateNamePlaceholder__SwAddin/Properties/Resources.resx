@@ -124,7 +124,16 @@
   <data name="box-icon" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\box-icon.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
+  <data name="height_icon" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\height-icon.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="length_icon" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\length-icon.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
   <data name="parametric-box-icon" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\parametric-box-icon.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="width_icon" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\width-icon.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
 </root>
