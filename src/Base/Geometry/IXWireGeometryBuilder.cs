@@ -69,5 +69,42 @@ namespace Xarial.XCad.Geometry
         /// </summary>
         /// <returns>Loop template</returns>
         public static IXLoop PreCreateLoop(this IXWireGeometryBuilder geomBuilder) => geomBuilder.PreCreate<IXLoop>();
+
+        /// <summary>
+        /// Creates rectangle in this sketch repository
+        /// </summary>
+        /// <param name="repo">Repository</param>
+        /// <param name="centerPt">Center point of the rectangle</param>
+        /// <param name="width">Width of the rectangle</param>
+        /// <param name="height">Height of the rectangle</param>
+        /// <param name="dirX">X direction</param>
+        /// <param name="dirY">Y direction</param>
+        /// <returns></returns>
+        public static IXLine[] PreCreateRectangle(this IXWireGeometryBuilder repo, Point centerPt,
+            double width, double height, Vector dirX, Vector dirY)
+        {
+            var rectLines = new IXLine[]
+            {
+                repo.PreCreateLine(),
+                repo.PreCreateLine(),
+                repo.PreCreateLine(),
+                repo.PreCreateLine()
+            };
+
+            var points = new Point[]
+            {
+                centerPt.Move(dirX * -1, width / 2).Move(dirY, height / 2),
+                centerPt.Move(dirX, width / 2).Move(dirY, height / 2),
+                centerPt.Move(dirX, width / 2).Move(dirY * -1, height / 2),
+                centerPt.Move(dirX * -1, width / 2).Move(dirY * -1, height / 2)
+            };
+
+            rectLines[0].Geometry = new Line(points[0], points[1]);
+            rectLines[1].Geometry = new Line(points[1], points[2]);
+            rectLines[2].Geometry = new Line(points[2], points[3]);
+            rectLines[3].Geometry = new Line(points[3], points[0]);
+
+            return rectLines;
+        }
     }
 }

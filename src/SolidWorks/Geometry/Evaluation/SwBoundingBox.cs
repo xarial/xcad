@@ -237,7 +237,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Evaluation
                         }
 
                         var dumbBody = tempPart.Features.PreCreate<ISwDumbBody>();
-                        dumbBody.Body = targBody;
+                        dumbBody.BaseBody = targBody;
                         return dumbBody;
                     }));
 

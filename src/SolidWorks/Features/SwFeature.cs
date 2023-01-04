@@ -24,7 +24,7 @@ using Xarial.XCad.SolidWorks.Utils;
 
 namespace Xarial.XCad.SolidWorks.Features
 {
-    public interface ISwFeature : ISwSelObject, IXFeature, IResilientibleObject<ISwFeature>
+    public interface ISwFeature : ISwSelObject, IXFeature, ISwEntity, IResilientibleObject<ISwFeature>
     {
         IFeature Feature { get; }
         new ISwDimensionsCollection Dimensions { get; }
@@ -83,6 +83,32 @@ namespace Xarial.XCad.SolidWorks.Features
         }
     }
 
+    internal class SwFeatureEntityRepository : SwEntityRepository
+    {
+        private readonly SwFeature m_Feat;
+
+        internal SwFeatureEntityRepository(SwFeature feat) 
+        {
+            m_Feat = feat;
+        }
+
+        protected override IEnumerable<ISwEntity> IterateEntities(bool faces, bool edges, bool vertices, bool silhouetteEdges)
+        {
+            if (faces)
+            {
+                var featFaces = (object[])m_Feat.Feature.GetFaces();
+
+                if (featFaces != null)
+                {
+                    foreach (var face in featFaces)
+                    {
+                        yield return m_Feat.OwnerDocument.CreateObjectFromDispatch<ISwFace>(face);
+                    }
+                }
+            }
+        }
+    }
+
     [DebuggerDisplay("{" + nameof(Name) + "}")]
     internal class SwFeature : SwSelObject, ISwFeature
     {
@@ -123,7 +149,10 @@ namespace Xarial.XCad.SolidWorks.Features
             "EditBorderFeature"
         };
 
-        IXComponent IXFeature.Component => Component;
+        IXBody IXEntity.Body => Body;
+        IXEntityRepository IXEntity.AdjacentEntities => AdjacentEntities;
+        ISwEntity IResilientibleObject<ISwEntity>.CreateResilient() => CreateResilient();
+        IXComponent IXEntity.Component => Component;
         IXDimensionRepository IDimensionable.Dimensions => Dimensions;
         IXObject IResilientibleObject.CreateResilient() => CreateResilient();
 
@@ -199,6 +228,8 @@ namespace Xarial.XCad.SolidWorks.Features
             });
 
             m_Creator = new ElementCreator<IFeature>(CreateFeature, CommitCache, feat, created);
+
+            AdjacentEntities = new SwFeatureEntityRepository(this);
         }
 
         internal void SetContext(Context context) 
@@ -346,22 +377,6 @@ namespace Xarial.XCad.SolidWorks.Features
 
         public override bool IsCommitted => m_Creator.IsCreated;
 
-        public IEnumerable<IXFace> Faces 
-        {
-            get 
-            {
-                var faces = (object[])Feature.GetFaces();
-
-                if (faces != null)
-                {
-                    foreach (var face in faces) 
-                    {
-                        yield return OwnerDocument.CreateObjectFromDispatch<ISwFace>(face);
-                    }
-                }
-            }
-        }
-
         public FeatureState_e State 
         {
             get 
@@ -381,6 +396,12 @@ namespace Xarial.XCad.SolidWorks.Features
 
         public virtual bool IsUserFeature => Array.IndexOf(m_SolderedFeatureTypes, Feature.GetTypeName2()) == -1;
 
+        public IEntity Entity => (IEntity)Feature;
+
+        public ISwEntityRepository AdjacentEntities { get; }
+
+        public ISwBody Body => throw new NotImplementedException();
+
         internal override void Select(bool append, ISelectData selData)
         {
             if (!Feature.Select2(append, selData?.Mark ?? 0))
@@ -390,5 +411,8 @@ namespace Xarial.XCad.SolidWorks.Features
         }
 
         public virtual IEditor<IXFeature> Edit() => throw new NotSupportedException();
+
+        public XCad.Geometry.Structures.Point FindClosestPoint(XCad.Geometry.Structures.Point point)
+            => throw new NotSupportedException();
     }
 }

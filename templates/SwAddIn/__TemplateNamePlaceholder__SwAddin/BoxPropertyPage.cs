@@ -11,6 +11,7 @@ using Xarial.XCad.Base.Attributes;
 using Xarial.XCad.Base.Enums;
 using Xarial.XCad.Features;
 using Xarial.XCad.Geometry;
+using Xarial.XCad.SolidWorks;
 using Xarial.XCad.SolidWorks.Geometry;
 using Xarial.XCad.SolidWorks.UI.PropertyPage;
 using Xarial.XCad.UI.PropertyPage.Attributes;

@@ -1487,7 +1487,7 @@ namespace SolidWorks.Tests.Integration
             try
             {
                 var dumbBodyFeat = doc.Features.PreCreateDumbBody();
-                dumbBodyFeat.Body = m_App.MemoryGeometryBuilder.CreateSolidBox(new Point(0, 0, 0), new Vector(1, 0, 0), new Vector(0, 1, 0), 0.1, 0.2, 0.3).Bodies.First();
+                dumbBodyFeat.BaseBody = m_App.MemoryGeometryBuilder.CreateSolidBox(new Point(0, 0, 0), new Vector(1, 0, 0), new Vector(0, 1, 0), 0.1, 0.2, 0.3).Bodies.First();
                 doc.Features.Add(dumbBodyFeat);
                 doc.Commit();
 
@@ -1519,10 +1519,10 @@ namespace SolidWorks.Tests.Integration
 
                     part.Features.Remove(feat1);
                     var feat2 = part.Features.PreCreate<IXDumbBody>();
-                    feat2.Body = m_App.MemoryGeometryBuilder.CreateSolidBox(new Point(0, 0, 0), new Vector(1, 0, 0), new Vector(0, 1, 0), 0.01, 0.01, 0.01).Bodies.First();
+                    feat2.BaseBody = m_App.MemoryGeometryBuilder.CreateSolidBox(new Point(0, 0, 0), new Vector(1, 0, 0), new Vector(0, 1, 0), 0.01, 0.01, 0.01).Bodies.First();
                     feat2.Commit();
                     var feat3 = part.Features.PreCreate<IXDumbBody>();
-                    feat3.Body = m_App.MemoryGeometryBuilder.CreateSolidBox(new Point(0.2, 0.2, 0.2), new Vector(1, 0, 0), new Vector(0, 1, 0), 0.01, 0.01, 0.01).Bodies.First();
+                    feat3.BaseBody = m_App.MemoryGeometryBuilder.CreateSolidBox(new Point(0.2, 0.2, 0.2), new Vector(1, 0, 0), new Vector(0, 1, 0), 0.01, 0.01, 0.01).Bodies.First();
                     feat3.Commit();
                 }
 

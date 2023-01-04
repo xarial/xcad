@@ -766,7 +766,7 @@ namespace SolidWorks.Tests.Integration
                     editComp2 = assm.EditingComponent?.Name;
 
                     var dumbBodyFeat = comp.Features.PreCreateDumbBody();
-                    dumbBodyFeat.Body = m_App.MemoryGeometryBuilder.CreateSolidBox(new Point(0, 0, 0), new Vector(1, 0, 0), new Vector(0, 1, 0), 0.1, 0.2, 0.3).Bodies.First();
+                    dumbBodyFeat.BaseBody = m_App.MemoryGeometryBuilder.CreateSolidBox(new Point(0, 0, 0), new Vector(1, 0, 0), new Vector(0, 1, 0), 0.1, 0.2, 0.3).Bodies.First();
                     dumbBodyFeat.Commit();
                 }
 

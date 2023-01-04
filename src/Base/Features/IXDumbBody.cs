@@ -20,6 +20,6 @@ namespace Xarial.XCad.Features
         /// <summary>
         /// Body geometry of the feature
         /// </summary>
-        IXBody Body { get; set; }
+        IXBody BaseBody { get; set; }
     }
 }

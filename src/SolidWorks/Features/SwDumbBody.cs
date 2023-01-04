@@ -29,7 +29,7 @@ namespace Xarial.XCad.SolidWorks.Features
         {
         }
 
-        public IXBody Body 
+        public IXBody BaseBody
         {
             get 
             {

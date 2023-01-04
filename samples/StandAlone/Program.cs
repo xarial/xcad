@@ -20,6 +20,7 @@ using Xarial.XCad.Annotations;
 using Xarial.XCad.Base;
 using Xarial.XCad.Base.Enums;
 using Xarial.XCad.Documents;
+using Xarial.XCad.Documents.Extensions;
 using Xarial.XCad.Documents.Structures;
 using Xarial.XCad.Enums;
 using Xarial.XCad.Features;
@@ -58,8 +59,8 @@ namespace StandAlone
 
                 var app = SwApplicationFactory.FromProcess(Process.GetProcessesByName("SLDWORKS").First());
 
-                //var dmApp = SwDmApplicationFactory.Create(
-                //    System.Environment.GetEnvironmentVariable("SW_DM_KEY", EnvironmentVariableTarget.Machine));
+                var dmApp = SwDmApplicationFactory.Create(
+                    System.Environment.GetEnvironmentVariable("SW_DM_KEY", EnvironmentVariableTarget.Machine));
 
                 RenameFiles(app);
 
@@ -102,10 +103,40 @@ namespace StandAlone
 
         private static void RenameFiles(IXApplication app)
         {
+            void CommitAllDependencies(IXDocument doc) 
+            {
+                if (!doc.IsCommitted) 
+                {
+                    doc.Commit();
+                }
+
+                foreach (var dep in doc.Dependencies) 
+                {
+                    CommitAllDependencies(dep);
+                }
+            }
+
             var assm = app.Documents.PreCreateAssembly();
             assm.Path = @"D:\Assem1\Assem1.SLDASM";
 
+            if (app is ISwDmApplication)
+            {
+                CommitAllDependencies(assm);
+            }
+
             assm.Dependencies.Rename(x => Path.Combine(Path.GetDirectoryName(x), "_" + Path.GetFileName(x)));
+
+            if (app is ISwDmApplication)
+            {
+                foreach (var dep in assm.IterateDependencies()) 
+                {
+                    dep.Save();
+                    dep.Close();
+                }
+
+                assm.Save();
+                assm.Close();
+            }
         }
 
         private static void ParseViewPolylines(ISwApplication app) 

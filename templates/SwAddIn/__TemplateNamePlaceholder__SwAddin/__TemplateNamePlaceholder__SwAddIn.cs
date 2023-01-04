@@ -1,6 +1,7 @@
 ﻿#if _AddCommandManager_ || _AddPropertyPage_ || _AddCustomFeature_
 using __TemplateNamePlaceholder__SwAddin;
 using __TemplateNamePlaceholder__SwAddin.Properties;
+using SolidWorks.Interop.swconst;
 #endif
 using System;
 using System.ComponentModel;
@@ -11,6 +12,7 @@ using Xarial.XCad.Base.Attributes;
 using Xarial.XCad.Base.Enums;
 using Xarial.XCad.Features;
 using Xarial.XCad.Geometry;
+using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.SolidWorks;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.UI.Commands;
@@ -111,7 +113,7 @@ namespace __TemplateNamePlaceholder__.Sw.AddIn
         {
             if (reason == PageCloseReasons_e.Okay)
             {
-                if (m_BoxData.Location.PlaneOrFace is IXPlanarRegion) 
+                if (!(m_BoxData.Location.PlaneOrFace is IXPlanarRegion))
                 {
                     arg.Cancel = true;
                     arg.ErrorMessage = "Specify plane or face to place box on";
@@ -130,36 +132,30 @@ namespace __TemplateNamePlaceholder__.Sw.AddIn
 #endif
 #if _AddCommandManager_ || _AddPropertyPage_
 
-        private void CreateBox(IXPlanarRegion basePlane, double width, double height, double length) 
+        private void CreateBox(IXPlanarRegion refEnt, double width, double height, double length) 
         {
             var doc = Application.Documents.Active;
 
-            ISwPart part;
-
-            switch (doc) 
+            using (doc.ModelViews.Active.Freeze(true))
             {
-                case ISwPart activePart:
-                    part = activePart;
-                    break;
+                var sketch = doc.Features.PreCreate2DSketch();
+                sketch.ReferenceEntity = refEnt;
+                var rect = sketch.Entities.PreCreateRectangle(new Point(0, 0, 0), width, length, new Vector(1, 0, 0), new Vector(0, 1, 0));
+                sketch.Entities.AddRange(rect);
+                sketch.Commit();
 
-                case ISwAssembly assm:
-                    var editingDoc = assm.EditingComponent?.ReferencedDocument;
-                    if (editingDoc is ISwPart)
-                    {
-                        part = (ISwPart)editingDoc;
-                    }
-                    else 
-                    {
-                        throw new NotSupportedException();
-                    }
-                    break;
+                sketch.Select(false);
 
-                default:
-                    throw new NotSupportedException();
+                var extrFeat = doc.Model.FeatureManager.FeatureExtrusion3(true, false, false,
+                    (int)swEndConditions_e.swEndCondBlind, (int)swEndConditions_e.swEndCondBlind, height, 0, false, false, false,
+                    false, 0, 0, false, false, false, false, true, true, true,
+                    (int)swStartConditions_e.swStartSketchPlane, 0, false);
+
+                if (extrFeat == null)
+                {
+                    throw new Exception("Failed to create extrude feature");
+                }
             }
-
-            var sketch = part.Features.PreCreate2DSketch();
-            sketch.Commit();
         }
 #endif
     }

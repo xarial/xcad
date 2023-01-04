@@ -44,6 +44,9 @@ namespace Xarial.XCad.SwDocumentManager.Features
         public IXComponent Component => throw new NotSupportedException();
         public IEditor<IXFeature> Edit() => throw new NotSupportedException();
         public void Update() => throw new NotSupportedException();
+        public IXBody Body => throw new NotSupportedException();
+        public IXEntityRepository AdjacentEntities => throw new NotSupportedException();
+        public XCad.Geometry.Structures.Point FindClosestPoint(XCad.Geometry.Structures.Point point) => throw new NotSupportedException();
         public bool IsUserFeature => throw new NotSupportedException();
         #endregion
 
