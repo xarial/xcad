@@ -66,6 +66,8 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature.Toolkit
             featData.GetParameters(out retParamNames, out paramTypes, out retParamValues);
             featData.GetSelections3(out retSelObj, out selObjType, out selMarks, out selDrViews, out compXforms);
 
+            var ownerDoc = (SwDocument)feat.OwnerDocument;
+
             //TODO: if entity is missing then the order of the retSelObj will be incorrect (null references are always at the end) which may break the indices
 
             dimensions = GetDimensions(feat);
@@ -75,7 +77,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature.Toolkit
             if (editBodiesObj != null)
             {
                 editBodies = editBodiesObj.Cast<IBody2>()
-                    .Select(b => ((SwDocument)doc).CreateObjectFromDispatch<SwBody>(b)).ToArray();
+                    .Select(ownerDoc.CreateObjectFromDispatch<SwBody>).ToArray();
             }
             else
             {
@@ -124,7 +126,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature.Toolkit
                 {
                     if (s != null)
                     {
-                        return ((SwDocument)doc).CreateObjectFromDispatch<SwSelObject>(s);
+                        return ownerDoc.CreateObjectFromDispatch<SwSelObject>(s);
                     }
                     else 
                     {
@@ -311,7 +313,8 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature.Toolkit
 
             try
             {
-                return base.GetParameters(feat, model, paramsType, out dispDims, out dispDimParams, out editBodies, out sels, out state);
+                return base.GetParameters(feat, model, paramsType, out dispDims, out dispDimParams,
+                    out editBodies, out sels, out state);
             }
             catch(Exception ex)
             {

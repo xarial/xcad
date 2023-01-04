@@ -6,6 +6,7 @@
 //*********************************************************************
 
 using System.Collections.Generic;
+using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;
 
 namespace Xarial.XCad.Features
@@ -24,5 +25,10 @@ namespace Xarial.XCad.Features
         /// Returns the plane of this sketch
         /// </summary>
         Plane Plane { get; }
+
+        /// <summary>
+        /// Entity where this sketch is based on
+        /// </summary>
+        IXPlanarRegion ReferenceEntity { get; set; }
     }
 }

@@ -5,8 +5,10 @@
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
+using System.Numerics;
 using Xarial.XCad.Base;
 using Xarial.XCad.Geometry;
+using Xarial.XCad.Geometry.Structures;
 
 namespace Xarial.XCad.Sketch
 {

@@ -200,6 +200,7 @@ namespace SwAddInExample
         public OptsFlag CustomControl { get; set; }
 
         [DependentOn(typeof(CustomControlDependantHandler), nameof(CustomControl))]
+        [Description("Any object selection")]
         public ISwSelObject AnyObject { get; set; }
 
         [SelectionBoxOptions(typeof(PlanarFaceFilter), SelectType_e.Faces)] //setting the standard filter to faces and custom filter to only filter planar faces

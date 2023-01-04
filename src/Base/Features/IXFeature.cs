@@ -35,13 +35,8 @@ namespace Xarial.XCad.Features
     /// <summary>
     /// Represents all features in the Feature Manager Design Tree
     /// </summary>
-    public interface IXFeature : IXSelObject, IXColorizable, IDimensionable, IXTransaction, INameable
+    public interface IXFeature : IXSelObject, IXEntity, IXColorizable, IDimensionable, IXTransaction, INameable
     {
-        /// <summary>
-        /// Faces of this feature
-        /// </summary>
-        IEnumerable<IXFace> Faces { get; }
-
         /// <summary>
         /// Identifies if this feature is standard (soldered) or a user created
         /// </summary>
@@ -51,12 +46,6 @@ namespace Xarial.XCad.Features
         /// State of this feature in the feature tree
         /// </summary>
         FeatureState_e State { get; }
-
-        /// <summary>
-        /// Component of this feature if it is a in-context feature of the assembly
-        /// </summary>
-        /// <remarks>Returns null if feature is top level feature</remarks>
-        IXComponent Component { get; }
 
         /// <summary>
         /// Enables feature editing mode
@@ -71,7 +60,7 @@ namespace Xarial.XCad.Features
         {
             var processedBodies = new List<IXBody>();
 
-            foreach (var face in feat.Faces)
+            foreach (var face in feat.AdjacentEntities.Filter<IXFace>())
             {
                 var body = face.Body;
 

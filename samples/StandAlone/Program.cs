@@ -10,7 +10,9 @@ using SolidWorks.Interop.swconst;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Security.Permissions;
 using System.Text;
 using System.Threading.Tasks;
 using Xarial.XCad;
@@ -18,6 +20,7 @@ using Xarial.XCad.Annotations;
 using Xarial.XCad.Base;
 using Xarial.XCad.Base.Enums;
 using Xarial.XCad.Documents;
+using Xarial.XCad.Documents.Extensions;
 using Xarial.XCad.Documents.Structures;
 using Xarial.XCad.Enums;
 using Xarial.XCad.Features;
@@ -32,6 +35,7 @@ using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Features;
 using Xarial.XCad.SolidWorks.Geometry;
 using Xarial.XCad.SolidWorks.Geometry.Curves;
+using Xarial.XCad.SwDocumentManager;
 using Xarial.XCad.Toolkit;
 using Xarial.XCad.Toolkit.Utils;
 
@@ -52,10 +56,15 @@ namespace StandAlone
             {
                 //var app = SwApplicationFactory.Create(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2021,
                 //    ApplicationState_e.Default);
-                                
+
                 var app = SwApplicationFactory.FromProcess(Process.GetProcessesByName("SLDWORKS").First());
 
-                ParseViewPolylines(app);
+                var dmApp = SwDmApplicationFactory.Create(
+                    System.Environment.GetEnvironmentVariable("SW_DM_KEY", EnvironmentVariableTarget.Machine));
+
+                RenameFiles(app);
+
+                //ParseViewPolylines(app);
 
                 //StructuralMembersTest(app);
 
@@ -90,6 +99,44 @@ namespace StandAlone
             }
 
             Console.ReadLine();
+        }
+
+        private static void RenameFiles(IXApplication app)
+        {
+            void CommitAllDependencies(IXDocument doc) 
+            {
+                if (!doc.IsCommitted) 
+                {
+                    doc.Commit();
+                }
+
+                foreach (var dep in doc.Dependencies) 
+                {
+                    CommitAllDependencies(dep);
+                }
+            }
+
+            var assm = app.Documents.PreCreateAssembly();
+            assm.Path = @"D:\Assem1\Assem1.SLDASM";
+
+            if (app is ISwDmApplication)
+            {
+                CommitAllDependencies(assm);
+            }
+
+            assm.Dependencies.Rename(x => Path.Combine(Path.GetDirectoryName(x), "_" + Path.GetFileName(x)));
+
+            if (app is ISwDmApplication)
+            {
+                foreach (var dep in assm.IterateDependencies()) 
+                {
+                    dep.Save();
+                    dep.Close();
+                }
+
+                assm.Save();
+                assm.Close();
+            }
         }
 
         private static void ParseViewPolylines(ISwApplication app) 

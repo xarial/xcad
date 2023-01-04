@@ -150,7 +150,7 @@ namespace Xarial.XCad.Inventor.Documents
 
         public IXSelectionRepository Selections => throw new NotImplementedException();
 
-        public IEnumerable<IXDocument3D> Dependencies => throw new NotImplementedException();
+        public IXDocumentDependencies Dependencies => throw new NotImplementedException();
 
         public int UpdateStamp => throw new NotImplementedException();
 
