@@ -56,7 +56,6 @@ namespace Xarial.XCad.SolidWorks.Documents
         new ISwDimensionsCollection Dimensions { get; }
         new ISwCustomPropertiesCollection Properties { get; }
         new ISwVersion Version { get; }
-        new IEnumerable<ISwDocument3D> Dependencies { get; }
         new TSwObj DeserializeObject<TSwObj>(Stream stream)
             where TSwObj : ISwObject;
         
@@ -170,7 +169,6 @@ namespace Xarial.XCad.SolidWorks.Documents
         IXSelectionRepository IXDocument.Selections => Selections;
         IXDimensionRepository IDimensionable.Dimensions => Dimensions;
         IXPropertyRepository IPropertiesOwner.Properties => Properties;
-        IEnumerable<IXDocument3D> IXDocument.Dependencies => Dependencies;
         IXVersion IXDocument.Version => Version;
         IXModelViewRepository IXDocument.ModelViews => ModelViews;
 
@@ -257,7 +255,25 @@ namespace Xarial.XCad.SolidWorks.Documents
                 }
                 else 
                 {
-                    return m_Creator.CachedProperties.Get<string>();
+                    var userTitle = m_Creator.CachedProperties.Get<string>();
+
+                    if (!string.IsNullOrEmpty(userTitle))
+                    {
+                        return userTitle;
+                    }
+                    else 
+                    {
+                        var path = Path;
+
+                        if (!string.IsNullOrEmpty(path))
+                        {
+                            return System.IO.Path.GetFileName(path);
+                        }
+                        else 
+                        {
+                            return "";
+                        }
+                    }
                 }
             }
             set 
@@ -364,6 +380,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         private readonly Lazy<ISwCustomPropertiesCollection> m_PropertiesLazy;
         private readonly Lazy<SwAnnotationCollection> m_AnnotationsLazy;
 
+        public IXDocumentDependencies Dependencies { get; }
         public ISwFeatureManager Features => m_FeaturesLazy.Value;
         public ISwSelectionCollection Selections => m_SelectionsLazy.Value;
         public ISwDimensionsCollection Dimensions => m_DimensionsLazy.Value;
@@ -434,6 +451,8 @@ namespace Xarial.XCad.SolidWorks.Documents
             Units = new SwUnits(this);
 
             Options = new SwDocumentOptions(this);
+
+            Dependencies = new SwDocumentDependencies(this, m_Logger);
 
             m_StreamReadAvailableHandler = new StreamReadAvailableEventsHandler(this, app);
             m_StreamWriteAvailableHandler = new StreamWriteAvailableEventsHandler(this, app);
@@ -526,76 +545,6 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
 
         internal protected abstract swDocumentTypes_e? DocumentType { get; }
-
-        public IEnumerable<ISwDocument3D> Dependencies
-        {
-            get
-            {
-                string[] depsData;
-
-                if (IsCommitted && !Model.IsOpenedViewOnly())
-                {
-                    depsData = Model.Extension.GetDependencies(false, true, false, true, true) as string[];
-                }
-                else
-                {
-                    if (!string.IsNullOrEmpty(Path))
-                    {
-                        depsData = OwnerApplication.Sw.GetDocumentDependencies2(Path, false, true, false) as string[];
-                    }
-                    else
-                    {
-                        throw new Exception("Dependencies can only be extracted for the document with specified path");
-                    }
-                }
-
-                if (depsData?.Any() == true)
-                {
-                    for (int i = 1; i < depsData.Length; i += 2)
-                    {
-                        ISwDocument3D refDoc;
-                        var path = depsData[i];
-
-                        path = ResolvePathIf3DInterconnect(path);
-
-                        if (!((SwDocumentCollection)OwnerApplication.Documents).TryFindExistingDocumentByPath(path, out SwDocument existingRefDoc))
-                        {
-                            try
-                            {
-                                refDoc = (SwDocument3D)((SwDocumentCollection)OwnerApplication.Documents).PreCreateFromPath(path);
-                            }
-                            catch (Exception ex)//for 3D interconnect files the PreCreateFromPath can fail
-                            {
-                                m_Logger.Log(ex);
-                                refDoc = OwnerApplication.Documents.PreCreate<ISwDocument3D>();
-                                refDoc.Path = path;
-                            }
-
-                            if (State.HasFlag(DocumentState_e.ReadOnly))
-                            {
-                                refDoc.State = DocumentState_e.ReadOnly;
-                            }
-                        }
-                        else
-                        {
-                            refDoc = (ISwDocument3D)existingRefDoc;
-                        }
-
-                        yield return refDoc;
-                    }
-                }
-            }
-        }
-
-        private static string ResolvePathIf3DInterconnect(string path)
-        {
-            if (path.Contains("|"))
-            {
-                path = path.Split('|').First();
-            }
-
-            return path;
-        }
 
         public ISwVersion Version 
         {

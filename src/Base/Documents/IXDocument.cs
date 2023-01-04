@@ -163,8 +163,8 @@ namespace Xarial.XCad.Documents
         /// Returns top level dependencies of this document
         /// </summary>
         /// <remarks>Dependencies might be uncommited if document is loaded view only or in the rapid mode. Use <see cref="IXTransaction.IsCommitted"/> to check the state and call <see cref="IXTransaction.Commit(System.Threading.CancellationToken)"/> to load document if needed.
-        /// In most CADs this method wil lwork with uncommitted documents</remarks>
-        IEnumerable<IXDocument3D> Dependencies { get; }
+        /// In most CADs this method will work with uncommitted documents</remarks>
+        IXDocumentDependencies Dependencies { get; }
 
         /// <summary>
         /// Deserializes specific object from stream

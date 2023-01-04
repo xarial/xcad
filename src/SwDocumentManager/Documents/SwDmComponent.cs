@@ -29,6 +29,7 @@ using Xarial.XCad.Services;
 using Xarial.XCad.SwDocumentManager.Features;
 using Xarial.XCad.SwDocumentManager.Services;
 using Xarial.XCad.Toolkit.Utils;
+using static Xarial.XCad.SwDocumentManager.Documents.SwDmDocument;
 
 namespace Xarial.XCad.SwDocumentManager.Documents
 {
