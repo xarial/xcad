@@ -93,7 +93,10 @@
             "Properties/Resources.Designer.cs",
             "Resources/about-icon.png",
             "Resources/box-icon.png",
-            "Resources/parametric-box-icon.png"
+            "Resources/parametric-box-icon.png",
+            "Resources/height-icon.png",
+            "Resources/length-icon.png",
+            "Resources/width-icon.png"
           ]
         },
         {
