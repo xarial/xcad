@@ -20,7 +20,7 @@ using Xarial.XCad.UI.PropertyPage.Enums;
 using Xarial.XCad.UI.PropertyPage.Services;
 using Xarial.XCad.UI.PropertyPage.Structures;
 
-namespace __TemplateNamePlaceholder__SwAddin
+namespace __TemplateNamePlaceholder__.Sw.AddIn
 {
     [ComVisible(true)]
     [Guid("1825D395-A8A2-484F-B9D6-C2D04B2AB9B3")]

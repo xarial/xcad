@@ -1,6 +1,8 @@
-﻿#if _AddCommandManager_ || _AddPropertyPage_ || _AddCustomFeature_
+﻿#if (_AddCommandManager_ || _AddPropertyPage_ || _AddCustomFeature_)
 using __TemplateNamePlaceholder__SwAddin;
 using __TemplateNamePlaceholder__SwAddin.Properties;
+#endif
+#if (_AddCommandManager_ || _AddPropertyPage_)
 using SolidWorks.Interop.swconst;
 #endif
 using System;
@@ -30,12 +32,12 @@ namespace __TemplateNamePlaceholder__.Sw.AddIn
     [Description("SOLIDWORKS add-in created with xCAD.NET")]
     public class __TemplateNamePlaceholder__SwAddIn : SwAddInEx
     {
-#if _AddCommandManager_ || _AddPropertyPage_ || _AddCustomFeature_
+#if (_AddCommandManager_ || _AddPropertyPage_ || _AddCustomFeature_)
         [Title("__TemplateNamePlaceholder__")]
         [Description("Commands of __TemplateNamePlaceholder__")]
         private enum Commands_e
         {
-#if _AddCommandManager_ || _AddPropertyPage_
+#if (_AddCommandManager_ || _AddPropertyPage_)
             [Icon(typeof(Resources), nameof(Resources.box_icon))]
             [Title("Create Box")]
             [Description("Creates box using standard feature")]
@@ -66,8 +68,7 @@ namespace __TemplateNamePlaceholder__.Sw.AddIn
 #endif
         public override void OnConnect()
         {
-            System.Diagnostics.Debugger.Launch();
-#if _AddCommandManager_ || _AddPropertyPage_ || _AddCustomFeature_
+#if (_AddCommandManager_ || _AddPropertyPage_ || _AddCustomFeature_)
             CommandManager.AddCommandGroup<Commands_e>().CommandClick += OnCommandClick;
 #if _AddPropertyPage_
             m_BoxPage = CreatePage<BoxPropertyPage>();
@@ -79,13 +80,13 @@ namespace __TemplateNamePlaceholder__.Sw.AddIn
             Application.ShowMessageBox("Hello, __TemplateNamePlaceholder__! xCAD.NET", MessageBoxIcon_e.Info);
 #endif
         }
-#if _AddCommandManager_ || _AddPropertyPage_ || _AddCustomFeature_
+#if (_AddCommandManager_ || _AddPropertyPage_ || _AddCustomFeature_)
 
         private void OnCommandClick(Commands_e spec)
         {
             switch (spec)
             {
-#if _AddCommandManager_ || _AddPropertyPage_
+#if (_AddCommandManager_ || _AddPropertyPage_)
                 case Commands_e.CreateBox:
 #if _AddPropertyPage_
                     m_BoxPage.Show(m_BoxData);
@@ -130,32 +131,32 @@ namespace __TemplateNamePlaceholder__.Sw.AddIn
             }
         }
 #endif
-#if _AddCommandManager_ || _AddPropertyPage_
+#if (_AddCommandManager_ || _AddPropertyPage_)
 
         private void CreateBox(IXPlanarRegion refEnt, double width, double height, double length) 
         {
-            var doc = Application.Documents.Active;
+            //var doc = Application.Documents.Active;
 
-            using (doc.ModelViews.Active.Freeze(true))
-            {
-                var sketch = doc.Features.PreCreate2DSketch();
-                sketch.ReferenceEntity = refEnt;
-                var rect = sketch.Entities.PreCreateRectangle(new Point(0, 0, 0), width, length, new Vector(1, 0, 0), new Vector(0, 1, 0));
-                sketch.Entities.AddRange(rect);
-                sketch.Commit();
+            //using (doc.ModelViews.Active.Freeze(true))
+            //{
+            //    var sketch = doc.Features.PreCreate2DSketch();
+            //    sketch.ReferenceEntity = refEnt;
+            //    var rect = sketch.Entities.PreCreateRectangle(new Point(0, 0, 0), width, length, new Vector(1, 0, 0), new Vector(0, 1, 0));
+            //    sketch.Entities.AddRange(rect);
+            //    sketch.Commit();
 
-                sketch.Select(false);
+            //    sketch.Select(false);
 
-                var extrFeat = doc.Model.FeatureManager.FeatureExtrusion3(true, false, false,
-                    (int)swEndConditions_e.swEndCondBlind, (int)swEndConditions_e.swEndCondBlind, height, 0, false, false, false,
-                    false, 0, 0, false, false, false, false, true, true, true,
-                    (int)swStartConditions_e.swStartSketchPlane, 0, false);
+            //    var extrFeat = doc.Model.FeatureManager.FeatureExtrusion3(true, false, false,
+            //        (int)swEndConditions_e.swEndCondBlind, (int)swEndConditions_e.swEndCondBlind, height, 0, false, false, false,
+            //        false, 0, 0, false, false, false, false, true, true, true,
+            //        (int)swStartConditions_e.swStartSketchPlane, 0, false);
 
-                if (extrFeat == null)
-                {
-                    throw new Exception("Failed to create extrude feature");
-                }
-            }
+            //    if (extrFeat == null)
+            //    {
+            //        throw new Exception("Failed to create extrude feature");
+            //    }
+            //}
         }
 #endif
     }

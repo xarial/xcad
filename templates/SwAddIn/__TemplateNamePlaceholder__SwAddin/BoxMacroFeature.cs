@@ -21,7 +21,7 @@ using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Features.CustomFeature;
 using Xarial.XCad.SolidWorks.Geometry;
 
-namespace __TemplateNamePlaceholder__SwAddin
+namespace __TemplateNamePlaceholder__.Sw.AddIn
 {
     public class UserException : Exception, IUserException
     {
@@ -80,13 +80,11 @@ namespace __TemplateNamePlaceholder__SwAddin
 
             if (face is IXPlanarRegion)
             {
-                var transform = face.GetRelativeTransform(model);
-
                 var plane = ((IXPlanarRegion)face).Plane;
 
-                pt = plane.Point.Transform(transform);
-                dir = plane.Normal.Transform(transform);
-                refDir = plane.Reference.Transform(transform);
+                pt = plane.Point;
+                dir = plane.Normal;
+                refDir = plane.Reference;
             }
             else 
             {
