@@ -33,6 +33,7 @@ namespace __TemplateNamePlaceholder__.Sw.AddIn
     public class __TemplateNamePlaceholder__SwAddIn : SwAddInEx
     {
 #if (_AddCommandManager_ || _AddPropertyPage_ || _AddCustomFeature_)
+        //command groups can be created by defining the enumeration and all its fields will be rendered as buttons
         [Title("__TemplateNamePlaceholder__")]
         [Description("Commands of __TemplateNamePlaceholder__")]
         private enum Commands_e
@@ -53,6 +54,7 @@ namespace __TemplateNamePlaceholder__.Sw.AddIn
             CreateParametricBox,
 
 #endif
+            //button can have custom attribute to define its look and feel
             [Icon(typeof(Resources), nameof(Resources.about_icon))]
             [Title("About...")]
             [Description("Shows About Box")]
@@ -66,11 +68,14 @@ namespace __TemplateNamePlaceholder__.Sw.AddIn
         private BoxPropertyPage m_BoxData;
 
 #endif
+        //function is called when add-in is loading
         public override void OnConnect()
         {
 #if (_AddCommandManager_ || _AddPropertyPage_ || _AddCustomFeature_)
+            //creating command manager based on enum
             CommandManager.AddCommandGroup<Commands_e>().CommandClick += OnCommandClick;
 #if _AddPropertyPage_
+            //property page will be created based on the data model and this model will be automatically bound (two-ways)
             m_BoxPage = CreatePage<BoxPropertyPage>();
             m_BoxData = new BoxPropertyPage();
             m_BoxPage.Closing += OnBoxPageClosing;
@@ -82,6 +87,7 @@ namespace __TemplateNamePlaceholder__.Sw.AddIn
         }
 #if (_AddCommandManager_ || _AddPropertyPage_ || _AddCustomFeature_)
 
+        //button click handler will pass the enum of the button being clicked
         private void OnCommandClick(Commands_e spec)
         {
             switch (spec)
@@ -114,6 +120,7 @@ namespace __TemplateNamePlaceholder__.Sw.AddIn
         {
             if (reason == PageCloseReasons_e.Okay)
             {
+                //forbid closing of property page if user has not provided a valid input
                 if (!(m_BoxData.Location.PlaneOrFace is IXPlanarRegion))
                 {
                     arg.Cancel = true;
@@ -126,6 +133,7 @@ namespace __TemplateNamePlaceholder__.Sw.AddIn
         {
             if (reason == PageCloseReasons_e.Okay)
             {
+                //start box creation process
                 CreateBox((IXPlanarRegion)m_BoxData.Location.PlaneOrFace,
                     m_BoxData.Parameters.Width, m_BoxData.Parameters.Height, m_BoxData.Parameters.Length);
             }
@@ -135,28 +143,32 @@ namespace __TemplateNamePlaceholder__.Sw.AddIn
 
         private void CreateBox(IXPlanarRegion refEnt, double width, double height, double length) 
         {
-            //var doc = Application.Documents.Active;
+            var doc = Application.Documents.Active;
 
-            //using (doc.ModelViews.Active.Freeze(true))
-            //{
-            //    var sketch = doc.Features.PreCreate2DSketch();
-            //    sketch.ReferenceEntity = refEnt;
-            //    var rect = sketch.Entities.PreCreateRectangle(new Point(0, 0, 0), width, length, new Vector(1, 0, 0), new Vector(0, 1, 0));
-            //    sketch.Entities.AddRange(rect);
-            //    sketch.Commit();
+            //freeze current view (optional)
+            using (doc.ModelViews.Active.Freeze(true))
+            {
+                //most of the entities in xCAD.NET are implemented as templates
+                //its parameters need to be filled then the entity to be committed to create an element
+                var sketch = doc.Features.PreCreate2DSketch();
+                sketch.ReferenceEntity = refEnt;
+                var rect = sketch.Entities.PreCreateRectangle(new Point(0, 0, 0), width, length, new Vector(1, 0, 0), new Vector(0, 1, 0));
+                sketch.Entities.AddRange(rect);
+                sketch.Commit();
 
-            //    sketch.Select(false);
+                sketch.Select(false);
 
-            //    var extrFeat = doc.Model.FeatureManager.FeatureExtrusion3(true, false, false,
-            //        (int)swEndConditions_e.swEndCondBlind, (int)swEndConditions_e.swEndCondBlind, height, 0, false, false, false,
-            //        false, 0, 0, false, false, false, false, true, true, true,
-            //        (int)swStartConditions_e.swStartSketchPlane, 0, false);
+                //it is also possible to access native objects of SOLIDWORKS and use SOLIDWORKS API directly
+                var extrFeat = doc.Model.FeatureManager.FeatureExtrusion3(true, false, false,
+                    (int)swEndConditions_e.swEndCondBlind, (int)swEndConditions_e.swEndCondBlind, height, 0, false, false, false,
+                    false, 0, 0, false, false, false, false, true, true, true,
+                    (int)swStartConditions_e.swStartSketchPlane, 0, false);
 
-            //    if (extrFeat == null)
-            //    {
-            //        throw new Exception("Failed to create extrude feature");
-            //    }
-            //}
+                if (extrFeat == null)
+                {
+                    throw new Exception("Failed to create extrude feature");
+                }
+            }
         }
 #endif
     }
