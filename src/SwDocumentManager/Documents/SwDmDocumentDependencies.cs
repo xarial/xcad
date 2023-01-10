@@ -16,7 +16,9 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         private readonly SwDmDocument m_Doc;
 
         private readonly List<SwDmDocument3D> m_VirtualDocumentsCache;
-        
+
+        public IXDocument OwnerDocument => m_Doc;
+
         internal SwDmDocumentDependencies(SwDmDocument doc) 
         {
             m_Doc = doc;

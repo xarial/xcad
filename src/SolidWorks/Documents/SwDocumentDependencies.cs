@@ -18,6 +18,8 @@ namespace Xarial.XCad.SolidWorks.Documents
         private readonly SwDocument m_Doc;
         private readonly IXLogger m_Logger;
 
+        public IXDocument OwnerDocument => m_Doc;
+
         internal SwDocumentDependencies(SwDocument doc, IXLogger logger) 
         {
             m_Doc = doc;

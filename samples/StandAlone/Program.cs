@@ -124,7 +124,17 @@ namespace StandAlone
                 CommitAllDependencies(assm);
             }
 
-            assm.Dependencies.Rename(x => Path.Combine(Path.GetDirectoryName(x), "_" + Path.GetFileName(x)));
+            assm.Dependencies.ReplaceAll(x => 
+            {
+                var newPath = Path.Combine(Path.GetDirectoryName(x), "_" + Path.GetFileName(x));
+
+                if (!File.Exists(newPath)) 
+                {
+                    File.Copy(x, newPath);
+                }
+
+                return newPath;
+            });
 
             if (app is ISwDmApplication)
             {

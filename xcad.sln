@@ -38,9 +38,6 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SwDocumentManager.Tests", "tests\SwDocumentManager.Tests\SwDocumentManager.Tests.csproj", "{4D164ACD-3CA3-4866-B184-4B2442DD5307}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Inventor", "src\Inventor\Inventor.csproj", "{68199E7F-656F-4A7F-BBC3-AF25B5DDDDBF}"
-	ProjectSection(ProjectDependencies) = postProject
-		{4E3D108D-F7FB-4B6E-9ED0-A296720FC734} = {4E3D108D-F7FB-4B6E-9ED0-A296720FC734}
-	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StandAlone.Inventor", "samples\StandAlone.Inventor\StandAlone.Inventor.csproj", "{F0EE52D1-14A2-4827-811D-4E692F185341}"
 EndProject
