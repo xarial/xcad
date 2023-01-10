@@ -50,7 +50,7 @@ namespace __TemplateNamePlaceholder__.Sw.AddIn
             [Icon(typeof(Resources), nameof(Resources.parametric_box_icon))]
             [Title("Create Parametric Box")]
             [Description("Creates parametric macro feature")]
-            [CommandItemInfo(true, true, WorkspaceTypes_e.Part | WorkspaceTypes_e.InContextPart, true)]
+            [CommandItemInfo(true, true, WorkspaceTypes_e.Part, true)]
             CreateParametricBox,
 
 #endif

@@ -54,6 +54,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "__TemplateNamePlaceholder__
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SwAddIn", "SwAddIn", "{F70EAA56-E24B-44FE-A2C5-7EC8B1BC3D50}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SwMacroFeatureAddIn", "SwMacroFeatureAddIn", "{844177A3-3F95-4E0C-BB9A-996F731A9A49}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "__TemplateNamePlaceholder__SwMacroFeatureAddIn", "templates\SwMacroFeatureAddIn\__TemplateNamePlaceholder__SwMacroFeatureAddIn\__TemplateNamePlaceholder__SwMacroFeatureAddIn.csproj", "{007ED163-7AE7-4DFA-9B67-70C0208841C3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -128,6 +132,10 @@ Global
 		{B5CC8DA7-52B1-4F32-AA1D-2636B57E86BF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B5CC8DA7-52B1-4F32-AA1D-2636B57E86BF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B5CC8DA7-52B1-4F32-AA1D-2636B57E86BF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{007ED163-7AE7-4DFA-9B67-70C0208841C3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{007ED163-7AE7-4DFA-9B67-70C0208841C3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{007ED163-7AE7-4DFA-9B67-70C0208841C3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{007ED163-7AE7-4DFA-9B67-70C0208841C3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -147,6 +155,8 @@ Global
 		{4E3D108D-F7FB-4B6E-9ED0-A296720FC734} = {687863F5-7B23-4D48-B8F0-339F3D2869A8}
 		{B5CC8DA7-52B1-4F32-AA1D-2636B57E86BF} = {F70EAA56-E24B-44FE-A2C5-7EC8B1BC3D50}
 		{F70EAA56-E24B-44FE-A2C5-7EC8B1BC3D50} = {71AEE7FC-156E-4023-BDAC-B0C106BAABCE}
+		{844177A3-3F95-4E0C-BB9A-996F731A9A49} = {71AEE7FC-156E-4023-BDAC-B0C106BAABCE}
+		{007ED163-7AE7-4DFA-9B67-70C0208841C3} = {844177A3-3F95-4E0C-BB9A-996F731A9A49}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {C1681BF6-7447-45FF-AC57-EC2B3250B843}
