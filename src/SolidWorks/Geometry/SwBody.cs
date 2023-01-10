@@ -29,20 +29,12 @@ namespace Xarial.XCad.SolidWorks.Geometry
         IBody2 Body { get; }
 
         new ISwComponent Component { get; }
-        ISwTempBody Add(ISwTempBody other);
-        ISwTempBody[] Substract(ISwTempBody other);
-        ISwTempBody[] Common(ISwTempBody other);
     }
 
     [DebuggerDisplay("{" + nameof(Name) + "}")]
     internal class SwBody : SwSelObject, ISwBody
-    {
-        IXMemoryBody IXBody.Add(IXMemoryBody other) => Add((ISwTempBody)other);
-        IXMemoryBody[] IXBody.Substract(IXMemoryBody other) => Substract((ISwTempBody)other);
-        IXMemoryBody[] IXBody.Common(IXMemoryBody other) => Common((ISwTempBody)other);
-        
+    {       
         IXComponent IXBody.Component => Component;
-
         IXObject IResilientibleObject.CreateResilient() => CreateResilient();
 
         public virtual IBody2 Body 
@@ -81,13 +73,10 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         public override object Dispatch => Body;
 
-        public bool Visible
+        public virtual bool Visible
         {
             get => Body.Visible;
-            set
-            {
-                Body.HideBody(!value);
-            }
+            set => Body.HideBody(!value);
         }
 
         public string Name => Body.Name;
@@ -203,7 +192,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
         private readonly IMathUtility m_MathUtils;
 
         internal SwBody(IBody2 body, SwDocument doc, SwApplication app)
-            : base(body, doc, app ?? ((SwDocument)doc)?.OwnerApplication)
+            : base(body, doc, app ?? doc?.OwnerApplication)
         {
             m_Body = body;
             m_MathUtils = app.Sw.IGetMathUtility();
@@ -214,71 +203,6 @@ namespace Xarial.XCad.SolidWorks.Geometry
             if (!Body.Select2(append, (SelectData)selData))
             {
                 throw new Exception("Failed to select body");
-            }
-        }
-
-        public ISwTempBody Add(ISwTempBody other)
-        {
-            var res = PerformOperation(other, swBodyOperationType_e.SWBODYADD);
-
-            if (res.Length == 0) 
-            {
-                throw new Exception("No bodies are created as the result of this operation");
-            }
-
-            if (res.Length > 1) 
-            {
-                throw new BodyBooleanOperationNoIntersectException();
-            }
-
-            return res.First();
-        }
-
-        /// <remarks>Empty array can be returned if bodies are equal</remarks>
-        public ISwTempBody[] Substract(ISwTempBody other)
-            => PerformOperation(other, swBodyOperationType_e.SWBODYCUT);
-
-        public ISwTempBody[] Common(ISwTempBody other)
-        {
-            var res = PerformOperation(other, swBodyOperationType_e.SWBODYINTERSECT);
-
-            if (!res.Any()) 
-            {
-                throw new BodyBooleanOperationNoIntersectException();
-            }
-
-            return res;
-        }
-        
-        private ISwTempBody[] PerformOperation(ISwBody other, swBodyOperationType_e op)
-        {
-            var thisBody = Body;
-            var otherBody = (other as SwBody).Body;
-
-            int errs;
-            var res = thisBody.Operations2((int)op, otherBody, out errs) as object[];
-
-            if (errs == (int)swBodyOperationError_e.swBodyOperationNonManifold)
-            {
-                //NOTE: as per the SOLIDWORKS API documentation resetting the edge tolerances and trying again
-                otherBody.ResetEdgeTolerances();
-                thisBody.ResetEdgeTolerances();
-
-                res = thisBody.Operations2((int)op, otherBody, out errs) as object[];
-            }
-
-            if (errs != (int)swBodyOperationError_e.swBodyOperationNoError)
-            {
-                throw new Exception($"Body boolean operation failed: {(swBodyOperationError_e)errs}");
-            }
-
-            if (res?.Any() == true)
-            {
-                return res.Select(b => OwnerApplication.CreateObjectFromDispatch<SwTempBody>(b as IBody2, OwnerDocument)).ToArray();
-            }
-            else
-            {
-                return new ISwTempBody[0];
             }
         }
 

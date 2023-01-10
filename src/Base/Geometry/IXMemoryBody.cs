@@ -26,6 +26,30 @@ namespace Xarial.XCad.Geometry
         /// <param name="doc">Document where preview should be displayed</param>
         /// <param name="color">Color of the body</param>
         void Preview(IXDocument3D doc, Color color);
+
+        /// <summary>
+        /// Boolean add operation on body
+        /// </summary>
+        /// <param name="other">Other body</param>
+        /// <returns>Resulting body</returns>
+        /// <exception cref="Exceptions.BodyBooleanOperationNoIntersectException"/>
+        IXMemoryBody Add(IXMemoryBody other);
+
+        /// <summary>
+        /// Boolean substract operation
+        /// </summary>
+        /// <param name="other">Body to substract</param>
+        /// <returns>Resulting bodies</returns>
+        /// <exception cref="Exceptions.BodyBooleanOperationNoIntersectException"/>
+        IXMemoryBody[] Substract(IXMemoryBody other);
+
+        /// <summary>
+        /// Boolean common operation
+        /// </summary>
+        /// <param name="other">Body to get common with</param>
+        /// <returns>Resulting body</returns>
+        /// <exception cref="Exceptions.BodyBooleanOperationNoIntersectException"/>
+        IXMemoryBody[] Common(IXMemoryBody other);
     }
 
     /// <summary>

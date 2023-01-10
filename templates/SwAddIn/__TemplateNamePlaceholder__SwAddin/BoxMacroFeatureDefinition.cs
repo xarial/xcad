@@ -11,9 +11,7 @@ using Xarial.XCad.Base.Attributes;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Exceptions;
 using Xarial.XCad.Features.CustomFeature;
-using Xarial.XCad.Features.CustomFeature.Attributes;
 using Xarial.XCad.Features.CustomFeature.Delegates;
-using Xarial.XCad.Features.CustomFeature.Enums;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.SolidWorks;
@@ -21,7 +19,7 @@ using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Features.CustomFeature;
 using Xarial.XCad.SolidWorks.Geometry;
 
-namespace __TemplateNamePlaceholder__SwAddin
+namespace __TemplateNamePlaceholder__.Sw.AddIn
 {
     public class UserException : Exception, IUserException
     {
@@ -30,26 +28,15 @@ namespace __TemplateNamePlaceholder__SwAddin
         }
     }
 
-    public class BoxMacroFeatureData
-    {
-        public IXEntity PlaneOrFace { get; set; }
-        
-        [ParameterDimension(CustomFeatureDimensionType_e.Linear)]
-        public double Width { get; set; } = 0.1;
-
-        [ParameterDimension(CustomFeatureDimensionType_e.Linear)]
-        public double Height { get; set; } = 0.1;
-
-        [ParameterDimension(CustomFeatureDimensionType_e.Linear)]
-        public double Length { get; set; } = 0.1;
-    }
-
     [ComVisible(true)]
     [Guid("4F6D68F7-65C5-42CE-9F7E-30470FE1ED4B")]
     [Icon(typeof(Resources), nameof(Resources.box_icon))]
-    [Title("Box")]
-    public class BoxMacroFeature : SwMacroFeatureDefinition<BoxMacroFeatureData, BoxPropertyPage>
+    [Title("Box")]//TitleAttribute allows to specify the default (base) name of the feature in the feature manager tree
+    public class BoxMacroFeatureDefinition : SwMacroFeatureDefinition<BoxMacroFeatureData, BoxPropertyPage>
     {
+        //converting data model from the page to feature data
+        //in some cases page and feature data can be of the same class and the conversion is not required
+        //this method will be called when user changes the parameters in the property manager page
         public override BoxMacroFeatureData ConvertPageToParams(IXApplication app, IXDocument doc, BoxPropertyPage page, BoxMacroFeatureData cudData)
             => new BoxMacroFeatureData()
             {
@@ -59,6 +46,8 @@ namespace __TemplateNamePlaceholder__SwAddin
                 PlaneOrFace = page.Location.PlaneOrFace,
             };
 
+        //converting feature data to the property page
+        //this method will be called when existing feature definiton is edited
         public override BoxPropertyPage ConvertParamsToPage(IXApplication app, IXDocument doc, BoxMacroFeatureData par)
         {
             var page = new BoxPropertyPage();
@@ -68,7 +57,11 @@ namespace __TemplateNamePlaceholder__SwAddin
             page.Location.PlaneOrFace = par.PlaneOrFace;
             return page;
         }
-
+        
+        //this method is called when feature is being inserted and user changes the parameters of the property page (preview purposes)
+        //this method will also be called when macro feature is regenerated to create a macro feature body
+        //in most cases the procedure of creating the preview body and the generated body is the same
+        //but it is also possible to provide custom preview geometry by overriding the CreatePreviewGeometry method
         public override ISwBody[] CreateGeometry(ISwApplication app, ISwDocument model, BoxMacroFeatureData data,
             out AlignDimensionDelegate<BoxMacroFeatureData> alignDim)
         {
@@ -80,25 +73,28 @@ namespace __TemplateNamePlaceholder__SwAddin
 
             if (face is IXPlanarRegion)
             {
-                var transform = face.GetRelativeTransform(model);
-
                 var plane = ((IXPlanarRegion)face).Plane;
 
-                pt = plane.Point.Transform(transform);
-                dir = plane.Normal.Transform(transform);
-                refDir = plane.Reference.Transform(transform);
+                pt = plane.Point;
+                dir = plane.Normal;
+                refDir = plane.Reference;
             }
-            else 
+            else //it is only possible to create geometry if planar face or plane is selected
             {
+                //it is required to throw the exception which implements the IUserException
+                //so this error is displayed to the user
                 throw new UserException("Select planar face or plane for the location");
             }
 
+            //creating a temp body of the box by providing the center point, direction vectors and size
             var box = (ISwBody)app.MemoryGeometryBuilder.CreateSolidBox(
                 pt, dir, refDir,
                 data.Width, data.Length, data.Height).Bodies.First();
 
             var secondRefDir = refDir.Cross(dir);
 
+            //aligning dimensions. For linear dimensions it is required to specify the origin point and the direction
+            //see https://xcad.xarial.com/custom-features/data/dimensions/
             alignDim = (n, d) =>
             {
                 switch (n)

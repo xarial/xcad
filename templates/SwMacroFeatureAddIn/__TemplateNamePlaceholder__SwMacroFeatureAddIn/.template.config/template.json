@@ -2,10 +2,10 @@
   "$schema": "http://json.schemastore.org/template",
   "author": "Xarial",
   "classifications": [ "xCAD", "SOLIDWORKS", "Library" ],
-  "identity": "Xarial.XCad.Template.SwAddIn.CSharp",
-  "groupIdentity": "Xarial.XCad.Template.SwAddIn",
-  "name": "xCAD SOLIDWORKS Add-In",
-  "shortName": "xcadswaddin",
+  "identity": "Xarial.XCad.Template.SwMacroFeatureAddIn.CSharp",
+  "groupIdentity": "Xarial.XCad.Template.SwMacroFeatureAddIn",
+  "name": "xCAD SOLIDWORKS Macro Feature Add-In",
+  "shortName": "xcadswmacrofeatureaddin",
   "sourceName": "__TemplateNamePlaceholder__",
   "tags": {
     "language": "C#",
@@ -13,12 +13,12 @@
   },
   "guids": 
   [
-    "E82CC06F-81FC-4CE6-B88F-5B65023808F9",
-    "1825D395-A8A2-484F-B9D6-C2D04B2AB9B3",
-    "DAAB6D2D-3D9E-46C8-85DC-B7EF77ECF10A",
-    "4F6D68F7-65C5-42CE-9F7E-30470FE1ED4B"
+    "04304922-1760-469A-8A2D-9A7F1055EFBC",
+    "6397DDCC-CFF8-448C-B955-4147C628BE0A",
+    "290439A2-D435-42AC-AB45-6723BD531854",
+    "4EDF005F-D48D-41C5-A1F7-B9D103043734"
   ],
-  "defaultName": "XCadSwAddIn",
+  "defaultName": "XCadSwMacroFeatureAddIn",
   "preferNameDirectory": true,
   "constraints": {
     "windows-only": {
@@ -61,24 +61,31 @@
       "defaultValue": "net472",
       "replaces": "net472"
     },
-    "_AddCommandManager_": {
+    "_AddEditor_": {
       "type": "parameter",
-      "displayName": "Add Command Manager",
-      "description": "Add commands sample into menu, toolbar and command manager (ribbon)",
+      "displayName": "Add Editor",
+      "description": "Add macro feature editor with property manager page and preview",
       "datatype": "bool",
       "defaultValue": "true"
     },
-    "_AddPropertyPage_": {
+    "_AddDimensions_": {
       "type": "parameter",
-      "displayName": "Add Property Page",
-      "description": "Add sample property page",
+      "displayName": "Add Dimensions",
+      "description": "Add the dimensions support for the macro feature",
       "datatype": "bool",
       "defaultValue": "true"
     },
-    "_AddCustomFeature_": {
+    "_SupportsInContext_": {
       "type": "parameter",
-      "displayName": "Add Custom Feature",
-      "description": "Add sample custom feature",
+      "displayName": "Supports In-Context Editing",
+      "description": "Allows macro feature to be inserted and edited in the context of the assembly",
+      "datatype": "bool",
+      "defaultValue": "false"
+    },
+    "_SupportsEditBodies_": {
+      "type": "parameter",
+      "displayName": "Supports Edit Bodies",
+      "description": "Allows macro feature results to be merged with the existing bodies",
       "datatype": "bool",
       "defaultValue": "false"
     }
@@ -87,25 +94,9 @@
     {
       "modifiers": [
         {
-          "condition": "!(_AddCommandManager_ || _AddPropertyPage_ || _AddCustomFeature_)",
+          "condition": "!(_AddEditor_)",
           "exclude": [
-            "Properties/Resources.resx",
-            "Properties/Resources.Designer.cs",
-            "Resources/about-icon.png",
-            "Resources/box-icon.png",
-            "Resources/parametric-box-icon.png"
-          ]
-        },
-        {
-          "condition": "!(_AddPropertyPage_ || _AddCustomFeature_)",
-          "exclude": [
-            "BoxPropertyPage.cs"
-          ]
-        },
-        {
-          "condition": "!(_AddCustomFeature_)",
-          "exclude": [
-            "BoxMacroFeature.cs"
+            "CylinderPropertyPage.cs"
           ]
         }
       ]

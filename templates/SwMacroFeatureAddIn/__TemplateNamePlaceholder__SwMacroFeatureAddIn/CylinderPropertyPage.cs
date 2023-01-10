@@ -1,4 +1,4 @@
-﻿using __TemplateNamePlaceholder__SwAddin.Properties;
+﻿using __TemplateNamePlaceholder__SwMacroFeatureAddIn.Properties;
 using System;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
@@ -16,10 +16,10 @@ using Xarial.XCad.UI.PropertyPage.Structures;
 namespace __TemplateNamePlaceholder__.Sw.AddIn
 {
     [ComVisible(true)]
-    [Guid("1825D395-A8A2-484F-B9D6-C2D04B2AB9B3")]
-    [Icon(typeof(Resources), nameof(Resources.box_icon))]
-    [Title("Create Box")]
-    public class BoxPropertyPage : SwPropertyManagerPageHandler
+    [Guid("6397DDCC-CFF8-448C-B955-4147C628BE0A")]
+    [Icon(typeof(Resources), nameof(Resources.cylinder_icon))]
+    [Title("Create Cylinder")]
+    public class CylinderPropertyPage : SwPropertyManagerPageHandler
     {
         private class PlanarRegionSelectionFilter : ISelectionCustomFilter
         {
@@ -36,7 +36,7 @@ namespace __TemplateNamePlaceholder__.Sw.AddIn
             }
         }
 
-        public class LocationGroup 
+        public class LocationGroup
         {
             //any selectable entity will be rendered as the selection box
             [StandardControlIcon(BitmapLabelType_e.SelectFace)]
@@ -46,32 +46,35 @@ namespace __TemplateNamePlaceholder__.Sw.AddIn
             //default filter will only allow selection of faces and planes and custom filter will additionlly
             //excluded non planar faces
             public IXEntity PlaneOrFace { get; set; }
+
+            [ControlOptions(align: ControlLeftAlign_e.Indent)]
+            [Description("Reverses the result of the cylinder")]
+            public bool Reverse { get; set; }
+
+            [Description("Options for the bodies result")]
+            [ControlOptions(align: ControlLeftAlign_e.Indent)]
+            public BooleanOptions_e BooleanOptions { get; set; }
         }
 
         public class ParametersGroup
         {
             //public property of type double will be rendered as the number box
             [NumberBoxOptions(NumberBoxUnitType_e.Length, 0, 1000, 0.01, false, 0.02, 0.001)]
-            [Description("Width of the box")]
-            [Icon(typeof(Resources), nameof(Resources.width_icon))]
-            public double Width { get; set; }
+            [Description("Radius of the cylinder")]
+            [StandardControlIcon(BitmapLabelType_e.Radius)]
+            public double Radius { get; set; }
 
             [NumberBoxOptions(NumberBoxUnitType_e.Length, 0, 1000, 0.01, false, 0.02, 0.001)]
-            [Description("Height of the box")]
+            [Description("Height of the cylinder")]
             [Icon(typeof(Resources), nameof(Resources.height_icon))]
             public double Height { get; set; }
-
-            [NumberBoxOptions(NumberBoxUnitType_e.Length, 0, 1000, 0.01, false, 0.02, 0.001)]
-            [Description("Length of the box")]
-            [Icon(typeof(Resources), nameof(Resources.length_icon))]
-            public double Length { get; set; }
         }
 
         //classes will be rendered as property manager page groups
         public LocationGroup Location { get; }
         public ParametersGroup Parameters { get; }
 
-        public BoxPropertyPage() 
+        public CylinderPropertyPage() 
         {
             Location = new LocationGroup();
             Parameters = new ParametersGroup();

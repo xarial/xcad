@@ -72,8 +72,6 @@ namespace Xarial.XCad.Utils.CustomFeature
                     out IXDimension[] dispDims, out string[] dispDimParams, out IXBody[] editBodies,
                     out IXSelObject[] sels, out CustomFeatureOutdateState_e state)
         {
-            var dispDimParamsMap = new SortedDictionary<int, string>();
-
             Dictionary<string, object> featRawParams;
             IXDimension[] featDims;
             IXSelObject[] featSels;
@@ -114,12 +112,14 @@ namespace Xarial.XCad.Utils.CustomFeature
 
             var resParams = Activator.CreateInstance(paramsType);
 
-            TraverseParametersDefinition(resParams.GetType(),
-                (prp) =>
+            var dispDimParamsMap = new SortedDictionary<int, string>();
+
+            TraverseParametersDefinition(resParams,
+                (obj, prp) =>
                 {
-                    AssignObjectsToProperty(resParams, featSels, prp, parameters);
+                    AssignObjectsToProperty(obj, featSels, prp, parameters);
                 },
-                (dimType, prp) =>
+                (dimType, obj, prp) =>
                 {
                     var dimIndices = GetObjectIndices(prp, parameters);
 
@@ -139,7 +139,7 @@ namespace Xarial.XCad.Utils.CustomFeature
 
                         if (!double.IsNaN(val))
                         {
-                            prp.SetValue(resParams, val, null);
+                            prp.SetValue(obj, val, null);
                         }
 
                         dispDimParamsMap.Add(dimInd, prp.Name);
@@ -150,11 +150,11 @@ namespace Xarial.XCad.Utils.CustomFeature
                             $"Dimension at index {dimInd} is not present in the macro feature");
                     }
                 },
-                (prp) =>
+                (obj, prp) =>
                 {
-                    AssignObjectsToProperty(resParams, featBodies, prp, parameters);
+                    AssignObjectsToProperty(obj, featBodies, prp, parameters);
                 },
-                prp =>
+                (obj, prp) =>
                 {
                     if (TryGetParameterValue(parameters, prp.Name, out object paramVal))
                     {
@@ -172,7 +172,7 @@ namespace Xarial.XCad.Utils.CustomFeature
                             }
                         }
 
-                        prp.SetValue(resParams, val, null);
+                        prp.SetValue(obj, val, null);
                     }
                 });
 
@@ -202,24 +202,24 @@ namespace Xarial.XCad.Utils.CustomFeature
             var dimsList = new List<PropertyObject<DimensionParamData>>();
             var editBodiesList = new List<PropertyObject<IXBody>>();
 
-            TraverseParametersDefinition(parameters.GetType(),
-                (prp) =>
+            TraverseParametersDefinition(parameters,
+                (obj, prp) =>
                 {
-                    ReadObjectsValueFromProperty(parameters, prp, selectionList);
+                    ReadObjectsValueFromProperty(obj, prp, selectionList);
                 },
-                (dimType, prp) =>
+                (dimType, obj, prp) =>
                 {
-                    var val = Convert.ToDouble(prp.GetValue(parameters, null));
+                    var val = Convert.ToDouble(prp.GetValue(obj, null));
                     dimsList.Add(new PropertyObject<DimensionParamData>(
                         prp.Name, new DimensionParamData(dimType, val)));
                 },
-                (prp) =>
+                (obj, prp) =>
                 {
-                    ReadObjectsValueFromProperty(parameters, prp, editBodiesList);
+                    ReadObjectsValueFromProperty(obj, prp, editBodiesList);
                 },
-                prp =>
+                (obj, prp) =>
                 {
-                    var val = prp.GetValue(parameters, null);
+                    var val = prp.GetValue(obj, null);
 
                     paramAttsList.Add(new CustomFeatureParameter()
                     {
@@ -318,11 +318,11 @@ namespace Xarial.XCad.Utils.CustomFeature
         protected abstract Version GetVersion(IXFeature featData, string name);
 
         protected abstract void SetParametersToFeature(IXCustomFeature feat,
-                                    IXSelObject[] selection, IXBody[] editBodies, IXDimension[] dims, double[] dimValues, CustomFeatureParameter[] param);
+            IXSelObject[] selection, IXBody[] editBodies, IXDimension[] dims, double[] dimValues, CustomFeatureParameter[] param);
 
         private T[] AddParametersForObjects<T>(List<PropertyObject<T>> objects,
-                    List<CustomFeatureParameter> paramList)
-                    where T : class
+            List<CustomFeatureParameter> paramList)
+            where T : class
         {
             T[] retVal = null;
 
@@ -461,7 +461,7 @@ namespace Xarial.XCad.Utils.CustomFeature
         }
 
         private void ConvertParameters(Type paramsType, Version paramVersion,
-                    Action<IParameterConverter> converter)
+            Action<IParameterConverter> converter)
         {
             IParametersVersionConverter versConv = null;
             var curParamVersion = new Version();
@@ -557,12 +557,15 @@ namespace Xarial.XCad.Utils.CustomFeature
             }
         }
 
-        private void TraverseParametersDefinition(Type paramsType,
-                    Action<PropertyInfo> selParamHandler,
-                    Action<CustomFeatureDimensionType_e, PropertyInfo> dimParamHandler,
-                    Action<PropertyInfo> editBodyHandler,
-                    Action<PropertyInfo> dataParamHandler)
+        //TODO: implement the support for the nested types
+        public void TraverseParametersDefinition(object parameters,
+                    Action<object, PropertyInfo> selParamHandler,
+                    Action<CustomFeatureDimensionType_e, object, PropertyInfo> dimParamHandler,
+                    Action<object, PropertyInfo> editBodyHandler,
+                    Action<object, PropertyInfo> dataParamHandler)
         {
+            var paramsType = parameters.GetType();
+
             foreach (var prp in paramsType.GetProperties())
             {
                 if (prp.TryGetAttribute<ParameterExcludeAttribute>() == null)
@@ -575,22 +578,22 @@ namespace Xarial.XCad.Utils.CustomFeature
                     if (dimAtt != null)
                     {
                         var dimType = dimAtt.DimensionType;
-                        dimParamHandler.Invoke(dimType, prp);
+                        dimParamHandler.Invoke(dimType, parameters, prp);
                     }
                     else if (editBodyAtt != null)
                     {
-                        editBodyHandler.Invoke(prp);
+                        editBodyHandler.Invoke(parameters, prp);
                     }
                     else if (typeof(IXSelObject).IsAssignableFrom(prpType)
                         || typeof(IEnumerable<IXSelObject>).IsAssignableFrom(prpType))
                     {
-                        selParamHandler.Invoke(prp);
+                        selParamHandler.Invoke(parameters, prp);
                     }
                     else
                     {
                         if (typeof(IConvertible).IsAssignableFrom(prpType))
                         {
-                            dataParamHandler.Invoke(prp);
+                            dataParamHandler.Invoke(parameters, prp);
                         }
                         else
                         {
