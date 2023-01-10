@@ -1,4 +1,4 @@
-﻿#if (_AddCommandManager_ || _AddPropertyPage_ || _AddCustomFeature_)
+﻿#if (_AddCommandManager_ || _AddPropertyPage_ || _AddMacroFeature_)
 using __TemplateNamePlaceholder__SwAddin;
 using __TemplateNamePlaceholder__SwAddin.Properties;
 #endif
@@ -32,7 +32,7 @@ namespace __TemplateNamePlaceholder__.Sw.AddIn
     [Description("SOLIDWORKS add-in created with xCAD.NET")]
     public class __TemplateNamePlaceholder__SwAddIn : SwAddInEx
     {
-#if (_AddCommandManager_ || _AddPropertyPage_ || _AddCustomFeature_)
+#if (_AddCommandManager_ || _AddPropertyPage_ || _AddMacroFeature_)
         //command groups can be created by defining the enumeration and all its fields will be rendered as buttons
         [Title("__TemplateNamePlaceholder__")]
         [Description("Commands of __TemplateNamePlaceholder__")]
@@ -46,7 +46,7 @@ namespace __TemplateNamePlaceholder__.Sw.AddIn
             CreateBox,
 
 #endif
-#if _AddCustomFeature_
+#if _AddMacroFeature_
             [Icon(typeof(Resources), nameof(Resources.parametric_box_icon))]
             [Title("Create Parametric Box")]
             [Description("Creates parametric macro feature")]
@@ -71,7 +71,7 @@ namespace __TemplateNamePlaceholder__.Sw.AddIn
         //function is called when add-in is loading
         public override void OnConnect()
         {
-#if (_AddCommandManager_ || _AddPropertyPage_ || _AddCustomFeature_)
+#if (_AddCommandManager_ || _AddPropertyPage_ || _AddMacroFeature_)
             //creating command manager based on enum
             CommandManager.AddCommandGroup<Commands_e>().CommandClick += OnCommandClick;
 #if _AddPropertyPage_
@@ -85,7 +85,7 @@ namespace __TemplateNamePlaceholder__.Sw.AddIn
             Application.ShowMessageBox("Hello, __TemplateNamePlaceholder__! xCAD.NET", MessageBoxIcon_e.Info);
 #endif
         }
-#if (_AddCommandManager_ || _AddPropertyPage_ || _AddCustomFeature_)
+#if (_AddCommandManager_ || _AddPropertyPage_ || _AddMacroFeature_)
 
         //button click handler will pass the enum of the button being clicked
         private void OnCommandClick(Commands_e spec)
@@ -103,9 +103,9 @@ namespace __TemplateNamePlaceholder__.Sw.AddIn
                     break;
 
 #endif
-#if _AddCustomFeature_
+#if _AddMacroFeature_
                 case Commands_e.CreateParametricBox:
-                    Application.Documents.Active.Features.CreateCustomFeature<BoxMacroFeature, BoxMacroFeatureData, BoxPropertyPage>();
+                    Application.Documents.Active.Features.CreateCustomFeature<BoxMacroFeatureDefinition, BoxMacroFeatureData, BoxPropertyPage>();
                     break;
 
 #endif

@@ -9,6 +9,7 @@ using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
 using SolidWorks.Interop.swpublished;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -49,6 +50,7 @@ using Xarial.XCad.UI.PropertyPage.Enums;
 using Xarial.XCad.Utils.CustomFeature;
 using Xarial.XCad.Utils.Diagnostics;
 using Xarial.XCad.Utils.Reflection;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.Tab;
 
 namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 {
@@ -672,6 +674,10 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         where TParams : class
         where TPage : class
     {
+        IXBody[] IXCustomFeatureDefinition<TParams, TPage>.CreateGeometry(
+            IXApplication app, IXDocument doc, TParams data, out AlignDimensionDelegate<TParams> alignDim)
+            => CreateGeometry((ISwApplication)app, (ISwDocument)doc, data, out alignDim).Cast<SwBody>().ToArray();
+
         private readonly MacroFeatureParametersParser m_ParamsParser;
 
         private readonly Lazy<SwMacroFeatureEditor<TParams, TPage>> m_Editor;
@@ -727,9 +733,14 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         /// <remarks>This method is called everytime property manager page data is changed, however this is not always require preview update</remarks>
         public virtual bool ShouldUpdatePreview(TParams oldData, TParams newData, TPage page, bool dataChanged) => true;
 
+        /// <summary>
+        /// Create custom page handler
+        /// </summary>
+        /// <returns>Page handler</returns>
         public virtual SwPropertyManagerPageHandler CreatePageHandler()
             => m_SvcProvider.GetService<IPropertyPageHandlerProvider>().CreateHandler(Application, typeof(TPage));
 
+        /// <inheritdoc/>
         public virtual TParams ConvertPageToParams(IXApplication app, IXDocument doc, TPage page, TParams curParams)
         {
             if (typeof(TParams).IsAssignableFrom(typeof(TPage)))
@@ -742,6 +753,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             }
         }
 
+        /// <inheritdoc/>
         public virtual TPage ConvertParamsToPage(IXApplication app, IXDocument doc, TParams par)
         {
             if (typeof(TPage).IsAssignableFrom(typeof(TParams)))
@@ -754,12 +766,14 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             }
         }
 
+        /// <inheritdoc/>
         public virtual ISwBody[] CreateGeometry(ISwApplication app, ISwDocument model, TParams data, out AlignDimensionDelegate<TParams> alignDim) 
         {
             alignDim = null;
             return CreateGeometry(app, model, data);
         }
 
+        /// <inheritdoc/>
         public virtual ISwBody[] CreatePreviewGeometry(ISwApplication app, ISwDocument model, TParams data, TPage page,
             out ShouldHidePreviewEditBodyDelegate<TParams, TPage> shouldHidePreviewEdit,
             out AssignPreviewBodyColorDelegate assignPreviewColor)
@@ -770,21 +784,48 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             return CreatePreviewGeometry(app, model, data, page);
         }
 
+        /// <inheritdoc/>
         public virtual ISwBody[] CreateGeometry(ISwApplication app, ISwDocument model, TParams data) => new ISwBody[0];
 
+        /// <inheritdoc/>
         public virtual ISwBody[] CreatePreviewGeometry(ISwApplication app, ISwDocument model, TParams data, TPage page)
             => CreateGeometry(app, model, data, out _);
 
-        IXBody[] IXCustomFeatureDefinition<TParams, TPage>.CreateGeometry(
-            IXApplication app, IXDocument doc, TParams data, out AlignDimensionDelegate<TParams> alignDim) 
-            => CreateGeometry((ISwApplication)app, (ISwDocument)doc, data, out alignDim).Cast<SwBody>().ToArray();
-
+        /// <inheritdoc/>
         public IXBody[] CreatePreviewGeometry(IXApplication app, IXDocument model, TParams data, TPage page,
             out ShouldHidePreviewEditBodyDelegate<TParams, TPage> shouldHidePreviewEdit,
             out AssignPreviewBodyColorDelegate assignPreviewColor)
-            => CreatePreviewGeometry((ISwApplication)app, (ISwDocument)model, data, page,
-                out shouldHidePreviewEdit, out assignPreviewColor).Cast<SwBody>().ToArray();
+        {
+            //see the description of SwMacroFeatureEditBody for the explanation
+            m_ParamsParser.TraverseParametersDefinition(data, (obj, prp) => { }, (dim, obj, prp) => { }, 
+                (obj, prp) =>
+                {
+                    var objData = prp.GetValue(obj);
 
+                    if (objData is IList)
+                    {
+                        for(int i = 0; i < ((IList)objData).Count; i++)
+                        {
+                            var body = ((IList)objData)[i];
+
+                            if (body is SwBody) 
+                            {
+                                ((IList)objData)[i] = SwMacroFeatureEditBody.CreateMacroFeatureEditBody(((SwBody)body).Body, (SwApplication)app, true);
+                            }
+                        }
+                    }
+                    else if(objData is SwBody)
+                    {
+                        prp.SetValue(obj, SwMacroFeatureEditBody.CreateMacroFeatureEditBody(((SwBody)objData).Body, (SwApplication)app, true));
+                    }
+                },
+                (obj, prp) => { });
+
+            return CreatePreviewGeometry((ISwApplication)app, (ISwDocument)model, data, page,
+                out shouldHidePreviewEdit, out assignPreviewColor).Cast<SwBody>().ToArray();
+        }
+
+        /// <inheritdoc/>
         public void Insert(IXDocument doc, TParams data)
             => m_Editor.Value.Insert(doc, data);
 

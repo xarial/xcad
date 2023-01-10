@@ -19,7 +19,7 @@
     "4F6D68F7-65C5-42CE-9F7E-30470FE1ED4B"
   ],
   "defaultName": "XCadSwAddIn",
-  "preferNameDirectory": true,
+  "preferNameDirectory": false,
   "constraints": {
     "windows-only": {
       "type": "os",
@@ -75,10 +75,10 @@
       "datatype": "bool",
       "defaultValue": "true"
     },
-    "_AddCustomFeature_": {
+    "_AddMacroFeature_": {
       "type": "parameter",
-      "displayName": "Add Custom Feature",
-      "description": "Add sample custom feature",
+      "displayName": "Add Macro Feature",
+      "description": "Add sample macro feature",
       "datatype": "bool",
       "defaultValue": "false"
     }
@@ -87,7 +87,7 @@
     {
       "modifiers": [
         {
-          "condition": "!(_AddCommandManager_ || _AddPropertyPage_ || _AddCustomFeature_)",
+          "condition": "!(_AddCommandManager_ || _AddPropertyPage_ || _AddMacroFeature_)",
           "exclude": [
             "Properties/Resources.resx",
             "Properties/Resources.Designer.cs",
@@ -100,15 +100,16 @@
           ]
         },
         {
-          "condition": "!(_AddPropertyPage_ || _AddCustomFeature_)",
+          "condition": "!(_AddPropertyPage_ || _AddMacroFeature_)",
           "exclude": [
             "BoxPropertyPage.cs"
           ]
         },
         {
-          "condition": "!(_AddCustomFeature_)",
+          "condition": "!(_AddMacroFeature_)",
           "exclude": [
-            "BoxMacroFeature.cs"
+            "BoxMacroFeatureDefinition.cs",
+            "BoxMacroFeatureData.cs"
           ]
         }
       ]

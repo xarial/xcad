@@ -77,7 +77,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature.Toolkit
             if (editBodiesObj != null)
             {
                 editBodies = editBodiesObj.Cast<IBody2>()
-                    .Select(ownerDoc.CreateObjectFromDispatch<SwBody>).ToArray();
+                    .Select(b => SwMacroFeatureEditBody.CreateMacroFeatureEditBody(b, ownerDoc.OwnerApplication, false)).ToArray();
             }
             else
             {

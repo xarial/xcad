@@ -13,9 +13,9 @@
         "longName": "prppage",
         "shortName": "pp"
       },
-      "_AddCustomFeature_": {
-        "longName": "custfeat",
-        "shortName": "cf"
+      "_AddMacroFeature_": {
+        "longName": "macrofeat",
+        "shortName": "mf"
       }
     }
 }

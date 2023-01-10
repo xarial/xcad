@@ -11,9 +11,7 @@ using Xarial.XCad.Base.Attributes;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Exceptions;
 using Xarial.XCad.Features.CustomFeature;
-using Xarial.XCad.Features.CustomFeature.Attributes;
 using Xarial.XCad.Features.CustomFeature.Delegates;
-using Xarial.XCad.Features.CustomFeature.Enums;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.SolidWorks;
@@ -30,29 +28,11 @@ namespace __TemplateNamePlaceholder__.Sw.AddIn
         }
     }
 
-    //this corresponds to the data required to generate this macro feature
-    public class BoxMacroFeatureData
-    {
-        //face or plane. This entity will be associated as the parent relation and macro feature will update
-        //when this entity changes
-        public IXEntity PlaneOrFace { get; set; }
-        
-        //marking this parameter to be served as the dimension
-        [ParameterDimension(CustomFeatureDimensionType_e.Linear)]
-        public double Width { get; set; } = 0.1;
-
-        [ParameterDimension(CustomFeatureDimensionType_e.Linear)]
-        public double Height { get; set; } = 0.1;
-
-        [ParameterDimension(CustomFeatureDimensionType_e.Linear)]
-        public double Length { get; set; } = 0.1;
-    }
-
     [ComVisible(true)]
     [Guid("4F6D68F7-65C5-42CE-9F7E-30470FE1ED4B")]
     [Icon(typeof(Resources), nameof(Resources.box_icon))]
     [Title("Box")]//TitleAttribute allows to specify the default (base) name of the feature in the feature manager tree
-    public class BoxMacroFeature : SwMacroFeatureDefinition<BoxMacroFeatureData, BoxPropertyPage>
+    public class BoxMacroFeatureDefinition : SwMacroFeatureDefinition<BoxMacroFeatureData, BoxPropertyPage>
     {
         //converting data model from the page to feature data
         //in some cases page and feature data can be of the same class and the conversion is not required
