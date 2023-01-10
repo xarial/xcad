@@ -77,7 +77,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature.Toolkit
             if (editBodiesObj != null)
             {
                 editBodies = editBodiesObj.Cast<IBody2>()
-                    .Select(b => SwMacroFeatureEditBody.CreateMacroFeatureEditBody(b, ownerDoc.OwnerApplication, false)).ToArray();
+                    .Select(b => SwMacroFeatureEditBody.CreateMacroFeatureEditBody(b, ownerDoc, ownerDoc.OwnerApplication, false)).ToArray();
             }
             else
             {
@@ -247,16 +247,25 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature.Toolkit
             {
                 var featData = ((SwMacroFeature)feat).FeatureData;
 
-                if (selection != null && selection.Any())
+                if (selection?.Any() == true)
                 {
                     var dispWraps = selection.Cast<SwSelObject>().Select(s => new DispatchWrapper(s.Dispatch)).ToArray();
-                    
+
                     featData.SetSelections2(dispWraps, new int[selection.Length], new IView[selection.Length]);
                 }
+                else 
+                {
+                    featData.SetSelections2(null, null, null);
+                }
 
-                if (editBodies != null)
+                if (editBodies?.Any() == true)
                 {
                     featData.EditBodies = editBodies.Cast<SwBody>().Select(b => b.Body).ToArray();
+                }
+                else 
+                {
+                    //TODO: this seems to be not working and old edit bodies will still be assigned
+                    featData.EditBodies = null;
                 }
 
                 if (dims != null)

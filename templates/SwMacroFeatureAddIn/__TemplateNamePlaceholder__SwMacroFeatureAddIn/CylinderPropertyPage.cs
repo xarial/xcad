@@ -46,6 +46,14 @@ namespace __TemplateNamePlaceholder__.Sw.AddIn
             //default filter will only allow selection of faces and planes and custom filter will additionlly
             //excluded non planar faces
             public IXEntity PlaneOrFace { get; set; }
+
+            [ControlOptions(align: ControlLeftAlign_e.Indent)]
+            [Description("Reverses the result of the cylinder")]
+            public bool Reverse { get; set; }
+
+            [Description("Options for the bodies result")]
+            [ControlOptions(align: ControlLeftAlign_e.Indent)]
+            public BooleanOptions_e BooleanOptions { get; set; }
         }
 
         public class ParametersGroup

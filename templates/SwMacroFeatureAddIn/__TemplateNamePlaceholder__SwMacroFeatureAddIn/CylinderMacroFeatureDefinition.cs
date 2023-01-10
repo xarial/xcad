@@ -43,6 +43,9 @@ namespace __TemplateNamePlaceholder__.Sw.AddIn
                 Height = page.Parameters.Height,
                 Radius = page.Parameters.Radius,
                 PlaneOrFace = page.Location.PlaneOrFace,
+                BooleanOptions = page.Location.BooleanOptions,
+                Reverse = page.Location.Reverse,
+                EditBody = page.Location.BooleanOptions == BooleanOptions_e.Extrude ? null : page.Location.PlaneOrFace?.Body
             };
 
         //converting feature data to the property page
@@ -53,6 +56,8 @@ namespace __TemplateNamePlaceholder__.Sw.AddIn
             page.Parameters.Height = par.Height;
             page.Parameters.Radius = par.Radius;
             page.Location.PlaneOrFace = par.PlaneOrFace;
+            page.Location.BooleanOptions = par.BooleanOptions;
+            page.Location.Reverse = par.Reverse;
             return page;
         }
         
@@ -82,9 +87,43 @@ namespace __TemplateNamePlaceholder__.Sw.AddIn
                 throw new UserException("Select planar face or plane for the location");
             }
 
+            if (data.Reverse) 
+            {
+                dir *= -1;
+            }
+
+            ISwBody[] result;
+
             //creating a temp body of the cylinder by providing the center point, direction vectors and size
-            var cylinder = (ISwBody)app.MemoryGeometryBuilder.CreateSolidCylinder(
+            var cylinder = (ISwTempBody)app.MemoryGeometryBuilder.CreateSolidCylinder(
                 pt, dir, data.Radius, data.Height).Bodies.First();
+
+            switch (data.BooleanOptions) 
+            {
+                case BooleanOptions_e.Extrude:
+                    //do nothing - return body as is
+                    result = new ISwBody[] { cylinder };
+                    break;
+
+                case BooleanOptions_e.MergeExtrudeResults:
+                    if (data.EditBody == null) 
+                    {
+                        throw new UserException("Edit body is not specified");
+                    }
+                    result = new ISwBody[] { ((ISwMacroFeatureEditBody)data.EditBody).Add(cylinder) };
+                    break;
+
+                case BooleanOptions_e.Cut:
+                    if (data.EditBody == null)
+                    {
+                        throw new UserException("Edit body is not specified");
+                    }
+                    result = ((ISwMacroFeatureEditBody)data.EditBody).Substract(cylinder);
+                    break;
+
+                default:
+                    throw new NotSupportedException();
+            }
 
             //aligning dimensions. Refer https://xcad.xarial.com/custom-features/data/dimensions/ for more information
             alignDim = (n, d) =>
@@ -101,8 +140,7 @@ namespace __TemplateNamePlaceholder__.Sw.AddIn
                 }
             };
 
-
-            return new ISwBody[] { cylinder };
+            return result;
         }
     }
 }

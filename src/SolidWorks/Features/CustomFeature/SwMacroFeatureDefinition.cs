@@ -810,13 +810,13 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 
                             if (body is SwBody) 
                             {
-                                ((IList)objData)[i] = SwMacroFeatureEditBody.CreateMacroFeatureEditBody(((SwBody)body).Body, (SwApplication)app, true);
+                                ((IList)objData)[i] = SwMacroFeatureEditBody.CreateMacroFeatureEditBody(((SwBody)body).Body, (SwDocument)model,(SwApplication)app, true);
                             }
                         }
                     }
                     else if(objData is SwBody)
                     {
-                        prp.SetValue(obj, SwMacroFeatureEditBody.CreateMacroFeatureEditBody(((SwBody)objData).Body, (SwApplication)app, true));
+                        prp.SetValue(obj, SwMacroFeatureEditBody.CreateMacroFeatureEditBody(((SwBody)objData).Body, (SwDocument)model, (SwApplication)app, true));
                     }
                 },
                 (obj, prp) => { });

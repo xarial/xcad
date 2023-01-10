@@ -31,6 +31,86 @@ namespace Xarial.XCad.SolidWorks.Geometry
         ISwTempBody[] Common(ISwTempBody other);
     }
 
+    internal static class SwTempBodyHelper 
+    {
+        internal static ISwTempBody Add(IBody2 thisBody, IBody2 otherBody,
+            SwApplication ownerApp, SwDocument ownerDoc, Func<IBody2, ISwTempBody> customInstCreator = null)
+        {
+            var res = PerformOperation(thisBody, otherBody, swBodyOperationType_e.SWBODYADD, ownerApp, ownerDoc, customInstCreator);
+
+            if (res.Length == 0)
+            {
+                throw new Exception("No bodies are created as the result of this operation");
+            }
+
+            if (res.Length > 1)
+            {
+                throw new BodyBooleanOperationNoIntersectException();
+            }
+
+            return res.First();
+        }
+
+        internal static ISwTempBody[] Substract(IBody2 thisBody, IBody2 otherBody,
+            SwApplication ownerApp, SwDocument ownerDoc, Func<IBody2, ISwTempBody> customInstCreator = null)
+            => PerformOperation(thisBody, otherBody, swBodyOperationType_e.SWBODYCUT, ownerApp, ownerDoc, customInstCreator);
+
+        internal static ISwTempBody[] Common(IBody2 thisBody, IBody2 otherBody,
+            SwApplication ownerApp, SwDocument ownerDoc, Func<IBody2, ISwTempBody> customInstCreator = null)
+        {
+            var res = PerformOperation(thisBody, otherBody, swBodyOperationType_e.SWBODYINTERSECT, ownerApp, ownerDoc, customInstCreator);
+
+            if (!res.Any())
+            {
+                throw new BodyBooleanOperationNoIntersectException();
+            }
+
+            return res;
+        }
+
+        private static ISwTempBody[] PerformOperation(IBody2 thisBody, IBody2 otherBody, swBodyOperationType_e op, 
+            SwApplication ownerApp, SwDocument ownerDoc, Func<IBody2, ISwTempBody> customInstCreator)
+        {
+            int errs;
+            var res = thisBody.Operations2((int)op, otherBody, out errs) as object[];
+
+            if (errs == (int)swBodyOperationError_e.swBodyOperationNonManifold)
+            {
+                //NOTE: as per the SOLIDWORKS API documentation resetting the edge tolerances and trying again
+                otherBody.ResetEdgeTolerances();
+                thisBody.ResetEdgeTolerances();
+
+                res = thisBody.Operations2((int)op, otherBody, out errs) as object[];
+            }
+
+            if (errs != (int)swBodyOperationError_e.swBodyOperationNoError)
+            {
+                throw new Exception($"Body boolean operation failed: {(swBodyOperationError_e)errs}");
+            }
+
+            if (res?.Any() == true)
+            {
+                return res.Select(b => 
+                {
+                    var body = (IBody2)b;
+
+                    if (customInstCreator != null)
+                    {
+                        return customInstCreator.Invoke(body);
+                    }
+                    else 
+                    {
+                        return ownerApp.CreateObjectFromDispatch<SwTempBody>(body, ownerDoc);
+                    }
+                }).ToArray();
+            }
+            else
+            {
+                return new ISwTempBody[0];
+            }
+        }
+    }
+
     internal class SwTempBody : SwBody, ISwTempBody
     {
         IXMemoryBody IXMemoryBody.Add(IXMemoryBody other) => Add((ISwTempBody)other);
@@ -106,68 +186,14 @@ namespace Xarial.XCad.SolidWorks.Geometry
         }
 
         public ISwTempBody Add(ISwTempBody other)
-        {
-            var res = PerformOperation(Body, ((SwBody)other).Body, swBodyOperationType_e.SWBODYADD);
-
-            if (res.Length == 0)
-            {
-                throw new Exception("No bodies are created as the result of this operation");
-            }
-
-            if (res.Length > 1)
-            {
-                throw new BodyBooleanOperationNoIntersectException();
-            }
-
-            return res.First();
-        }
+            => SwTempBodyHelper.Add(Body, ((SwBody)other).Body, OwnerApplication, OwnerDocument);
 
         /// <remarks>Empty array can be returned if bodies are equal</remarks>
         public ISwTempBody[] Substract(ISwTempBody other)
-            => PerformOperation(Body, ((SwBody)other).Body, swBodyOperationType_e.SWBODYCUT);
+            => SwTempBodyHelper.Substract(Body, ((SwBody)other).Body, OwnerApplication, OwnerDocument);
 
         public ISwTempBody[] Common(ISwTempBody other)
-        {
-            var res = PerformOperation(Body, ((SwBody)other).Body, swBodyOperationType_e.SWBODYINTERSECT);
-
-            if (!res.Any())
-            {
-                throw new BodyBooleanOperationNoIntersectException();
-            }
-
-            return res;
-        }
-
-        protected virtual ISwTempBody[] PerformOperation(IBody2 thisBody, IBody2 other, swBodyOperationType_e op)
-        {
-            var otherBody = (other as SwBody).Body;
-
-            int errs;
-            var res = thisBody.Operations2((int)op, otherBody, out errs) as object[];
-
-            if (errs == (int)swBodyOperationError_e.swBodyOperationNonManifold)
-            {
-                //NOTE: as per the SOLIDWORKS API documentation resetting the edge tolerances and trying again
-                otherBody.ResetEdgeTolerances();
-                thisBody.ResetEdgeTolerances();
-
-                res = thisBody.Operations2((int)op, otherBody, out errs) as object[];
-            }
-
-            if (errs != (int)swBodyOperationError_e.swBodyOperationNoError)
-            {
-                throw new Exception($"Body boolean operation failed: {(swBodyOperationError_e)errs}");
-            }
-
-            if (res?.Any() == true)
-            {
-                return res.Select(b => OwnerApplication.CreateObjectFromDispatch<SwTempBody>(b as IBody2, OwnerDocument)).ToArray();
-            }
-            else
-            {
-                return new ISwTempBody[0];
-            }
-        }
+            => SwTempBodyHelper.Common(Body, ((SwBody)other).Body, OwnerApplication, OwnerDocument);
 
         public void Dispose()
         {
