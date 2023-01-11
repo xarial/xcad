@@ -223,7 +223,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
             get 
             {
                 var sheetBody = Face.CreateSheetBody();
-                return OwnerApplication.CreateObjectFromDispatch<SwTempPlanarSheetBody>(sheetBody, OwnerDocument); ;
+                return OwnerApplication.CreateObjectFromDispatch<SwTempPlanarSheetBody>(sheetBody, OwnerDocument);
             }
         }
     }

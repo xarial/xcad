@@ -94,6 +94,11 @@ namespace __TemplateNamePlaceholder__.Sw.AddIn
                 dir *= -1;
             }
 
+            var entToTargTransform = feat.GetEntityToTargetTransformation(face);
+
+            pt *= entToTargTransform;
+            dir *= entToTargTransform;
+
             ISwBody[] result;
 
             //creating a temp body of the cylinder by providing the center point, direction vectors and size

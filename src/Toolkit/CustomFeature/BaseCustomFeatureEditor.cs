@@ -460,10 +460,6 @@ namespace Xarial.XCad.Utils.CustomFeature
 
                     FeatureInserted?.Invoke(m_App, CurrentDocument, m_CurrentFeature, m_CurPageData);
                 }
-                //else
-                //{
-                //    m_EditingFeature.Parameters = m_EditingFeature.Parameters;
-                //}
             }
             else
             {

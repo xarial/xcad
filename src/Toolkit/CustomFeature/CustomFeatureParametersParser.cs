@@ -19,6 +19,7 @@ using Xarial.XCad.Features.CustomFeature.Attributes;
 using Xarial.XCad.Features.CustomFeature.Enums;
 using Xarial.XCad.Features.CustomFeature.Services;
 using Xarial.XCad.Geometry;
+using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Reflection;
 using Xarial.XCad.Toolkit.Utils;
 using Xarial.XCad.Utils.Reflection;
@@ -68,13 +69,16 @@ namespace Xarial.XCad.Utils.CustomFeature
             m_FaultObjectFactory = new FaultObjectFactory();
         }
 
+        /// <summary>
+        /// Reads the parameters from the feature definition
+        /// </summary>
         public virtual object GetParameters(IXCustomFeature feat, IXDocument model, Type paramsType,
-                    out IXDimension[] dispDims, out string[] dispDimParams, out IXBody[] editBodies,
-                    out IXSelObject[] sels, out CustomFeatureOutdateState_e state)
+            out IXDimension[] dispDims, out string[] dispDimParams, out IXBody[] editBodies,
+            out Tuple<IXSelObject, TransformMatrix>[] sels, out CustomFeatureOutdateState_e state)
         {
             Dictionary<string, object> featRawParams;
             IXDimension[] featDims;
-            IXSelObject[] featSels;
+            Tuple<IXSelObject, TransformMatrix>[] featSels;
             IXBody[] featBodies;
 
             ExtractRawParameters(feat, model, out featRawParams, out featDims, out featSels, out featBodies);
@@ -117,7 +121,7 @@ namespace Xarial.XCad.Utils.CustomFeature
             TraverseParametersDefinition(resParams,
                 (obj, prp) =>
                 {
-                    AssignObjectsToProperty(obj, featSels, prp, parameters);
+                    AssignObjectsToProperty(obj, featSels.Select(s => s.Item1).ToArray(), prp, parameters);
                 },
                 (dimType, obj, prp) =>
                 {
@@ -187,9 +191,12 @@ namespace Xarial.XCad.Utils.CustomFeature
             return resParams;
         }
 
+        /// <summary>
+        /// Parses the custom feature data from the parameters structure
+        /// </summary>
         public void Parse(object parameters,
-                    out CustomFeatureParameter[] atts, out IXSelObject[] selection,
-                    out CustomFeatureDimensionType_e[] dimTypes, out double[] dimValues, out IXBody[] editBodies)
+            out CustomFeatureParameter[] atts, out IXSelObject[] selection,
+            out CustomFeatureDimensionType_e[] dimTypes, out double[] dimValues, out IXBody[] editBodies)
         {
             if (parameters == null) 
             {
@@ -309,7 +316,7 @@ namespace Xarial.XCad.Utils.CustomFeature
         //TODO: need to spearate to different methods
         protected abstract void ExtractRawParameters(IXCustomFeature feat, IXDocument doc,
             out Dictionary<string, object> parameters, out IXDimension[] dimensions,
-            out IXSelObject[] selection, out IXBody[] editBodies);
+            out Tuple<IXSelObject, TransformMatrix>[] selection, out IXBody[] editBodies);
 
         protected abstract IXDimension[] GetDimensions(IXCustomFeature feat);
 

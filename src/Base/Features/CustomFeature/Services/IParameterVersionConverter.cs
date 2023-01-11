@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using Xarial.XCad.Annotations;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Geometry;
+using Xarial.XCad.Geometry.Structures;
 
 namespace Xarial.XCad.Features.CustomFeature.Services
 {
@@ -55,6 +56,6 @@ namespace Xarial.XCad.Features.CustomFeature.Services
         /// <returns>Parameters for the new version</returns>
         /// <remarks>Parameters list also contains the indices for the objects in macro feature (edit bodies, selection, dimensions)</remarks>
         void Convert(IXDocument model, IXCustomFeature feat, ref Dictionary<string, object> parameters,
-            ref IXSelObject[] selection, ref IXDimension[] dispDims, ref IXBody[] editBodies);
+            ref Tuple<IXSelObject, TransformMatrix>[] selection, ref IXDimension[] dispDims, ref IXBody[] editBodies);
     }
 }

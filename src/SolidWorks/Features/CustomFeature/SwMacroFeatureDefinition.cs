@@ -14,8 +14,6 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
-using System.Windows.Controls;
-using Xarial.XCad;
 using Xarial.XCad.Annotations;
 using Xarial.XCad.Base;
 using Xarial.XCad.Base.Attributes;
@@ -44,14 +42,12 @@ using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.Toolkit;
 using Xarial.XCad.Toolkit.CustomFeature;
 using Xarial.XCad.Toolkit.Services;
-using Xarial.XCad.Toolkit.Utils;
 using Xarial.XCad.UI;
 using Xarial.XCad.UI.PropertyPage.Base;
 using Xarial.XCad.UI.PropertyPage.Enums;
 using Xarial.XCad.Utils.CustomFeature;
 using Xarial.XCad.Utils.Diagnostics;
 using Xarial.XCad.Utils.Reflection;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.Tab;
 
 namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 {
@@ -223,6 +219,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             }
         }
 
+        //TODO: regenerate method is called twice when feature edited and new parameters applied
         [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
         public object Regenerate(object app, object modelDoc, object feature)
         {
@@ -243,7 +240,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
                     var assmName = comp.GetSelectByIDString().Split('@').Last() + ".sldasm";
                     contextDoc = (SwDocument)Application.Documents[assmName];
                 }
-                else 
+                else
                 {
                     contextDoc = doc;
                 }
@@ -615,7 +612,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             string[] dimParamNames;
 
             paramsFeat.Parameters = (TParams)m_ParamsParser.GetParameters(paramsFeat, doc, typeof(TParams), out dims, out dimParamNames,
-                out IXBody[] _, out IXSelObject[] _, out CustomFeatureOutdateState_e _);
+                out var _, out var _, out var _);
 
             AlignDimensionDelegate<TParams> alignDimsDel;
             var res = OnRebuild(app, doc, paramsFeat, out alignDimsDel);

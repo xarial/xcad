@@ -11,6 +11,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Windows.Media;
 using Xarial.XCad.Annotations;
 using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
@@ -18,6 +19,8 @@ using Xarial.XCad.Features;
 using Xarial.XCad.Features.CustomFeature;
 using Xarial.XCad.Features.CustomFeature.Enums;
 using Xarial.XCad.Geometry;
+using Xarial.XCad.Geometry.Structures;
+using Xarial.XCad.Services;
 using Xarial.XCad.SolidWorks.Annotations;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Geometry;
@@ -25,6 +28,7 @@ using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.Toolkit.Utils;
 using Xarial.XCad.Utils.CustomFeature;
 using Xarial.XCad.Utils.Diagnostics;
+using TransformConverter = Xarial.XCad.SolidWorks.Utils.TransformConverter;
 
 namespace Xarial.XCad.SolidWorks.Features.CustomFeature.Toolkit
 {
@@ -50,7 +54,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature.Toolkit
 
         protected override void ExtractRawParameters(IXCustomFeature feat, IXDocument doc,
             out Dictionary<string, object> parameters,
-            out IXDimension[] dimensions, out IXSelObject[] selection, out IXBody[] editBodies)
+            out IXDimension[] dimensions, out Tuple<IXSelObject, TransformMatrix>[] selection, out IXBody[] editBodies)
         {
             object retParamNames;
             object retParamValues;
@@ -59,12 +63,12 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature.Toolkit
             object selObjType;
             object selMarks;
             object selDrViews;
-            object compXforms;
+            object retCompXforms;
 
             var featData = ((SwMacroFeature)feat).FeatureData;
 
             featData.GetParameters(out retParamNames, out paramTypes, out retParamValues);
-            featData.GetSelections3(out retSelObj, out selObjType, out selMarks, out selDrViews, out compXforms);
+            featData.GetSelections3(out retSelObj, out selObjType, out selMarks, out selDrViews, out retCompXforms);
 
             var ownerDoc = (SwDocument)feat.OwnerDocument;
 
@@ -119,14 +123,24 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature.Toolkit
             }
 
             var selObjects = retSelObj as object[];
+            var compXforms = retCompXforms as object[];
 
             if (selObjects != null)
             {
-                selection = selObjects.Select(s =>
+                selection = selObjects.Select((s, i) =>
                 {
                     if (s != null)
                     {
-                        return ownerDoc.CreateObjectFromDispatch<SwSelObject>(s);
+                        var transform = (IMathTransform)compXforms[i];
+
+                        var matrix = TransformMatrix.Identity;
+
+                        if (transform != null) 
+                        {
+                            matrix = TransformConverter.ToTransformMatrix(transform);
+                        }
+
+                        return new Tuple<IXSelObject, TransformMatrix>(ownerDoc.CreateObjectFromDispatch<SwSelObject>(s), matrix);
                     }
                     else 
                     {
@@ -316,14 +330,21 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature.Toolkit
             }
         }
 
-        public override object GetParameters(IXCustomFeature feat, IXDocument model, Type paramsType, out IXDimension[] dispDims, out string[] dispDimParams, out IXBody[] editBodies, out IXSelObject[] sels, out CustomFeatureOutdateState_e state)
+        public override object GetParameters(IXCustomFeature feat, IXDocument model, Type paramsType, 
+            out IXDimension[] dispDims, out string[] dispDimParams, out IXBody[] editBodies, 
+            out Tuple<IXSelObject, TransformMatrix>[] sels, out CustomFeatureOutdateState_e state)
         {
             dispDims = null;
 
             try
             {
-                return base.GetParameters(feat, model, paramsType, out dispDims, out dispDimParams,
+                var parameters = base.GetParameters(feat, model, paramsType, out dispDims, out dispDimParams,
                     out editBodies, out sels, out state);
+
+                ((SwMacroFeature)feat).EntitiesTransformsCache = sels.Where(s => s != null)
+                    .ToDictionary(s => s.Item1, s => s.Item2, new XObjectEqualityComparer<IXSelObject>());
+
+                return parameters;
             }
             catch(Exception ex)
             {

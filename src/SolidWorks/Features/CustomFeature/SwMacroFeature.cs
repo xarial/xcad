@@ -7,6 +7,7 @@
 
 using SolidWorks.Interop.sldworks;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
@@ -20,6 +21,7 @@ using Xarial.XCad.Features.CustomFeature;
 using Xarial.XCad.Features.CustomFeature.Attributes;
 using Xarial.XCad.Features.CustomFeature.Enums;
 using Xarial.XCad.Geometry;
+using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Reflection;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Features.CustomFeature.Exceptions;
@@ -39,17 +41,19 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 
     internal class SwMacroFeature : SwFeature, ISwMacroFeature
     {
+        IXConfiguration IXCustomFeature.Configuration => Configuration;
+
         private IMacroFeatureData m_FeatData;
 
         private Type m_DefinitionType;
 
-        public Type DefinitionType 
+        public Type DefinitionType
         {
-            get 
+            get
             {
-                if (IsCommitted) 
+                if (IsCommitted)
                 {
-                    if (m_DefinitionType == null) 
+                    if (m_DefinitionType == null)
                     {
                         var progId = FeatureData.GetProgId();
 
@@ -62,7 +66,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 
                 return m_DefinitionType;
             }
-            set 
+            set
             {
                 if (!IsCommitted)
                 {
@@ -85,11 +89,45 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             m_FeatMgr = doc.Model.FeatureManager;
         }
 
-        IXConfiguration IXCustomFeature.Configuration => Configuration;
-
         //TODO: check constant context disconnection exception
-        public ISwConfiguration Configuration 
+        public ISwConfiguration Configuration
             => OwnerDocument.CreateObjectFromDispatch<SwConfiguration>(FeatureData.CurrentConfiguration);
+
+        public TransformMatrix TargetTransformation
+        {
+            get
+            {
+                if (IsCommitted)
+                {
+                    var featTransform = FeatureData.GetEditTargetTransform();
+
+                    if (featTransform != null)
+                    {
+                        return TransformConverter.ToTransformMatrix(featTransform);
+                    }
+                    else
+                    {
+                        return TransformMatrix.Identity;
+                    }
+                }
+                else
+                {
+                    if (OwnerDocument is IXAssembly)
+                    {
+                        var editComp = ((IXAssembly)OwnerDocument).EditingComponent;
+
+                        if (editComp != null) 
+                        {
+                            return editComp.Transformation;
+                        }
+                    }
+
+                    return TransformMatrix.Identity;
+                }
+            }
+        }
+
+        internal Dictionary<IXSelObject, TransformMatrix> EntitiesTransformsCache { get; set; }
 
         protected override IFeature InsertFeature(CancellationToken cancellationToken)
             => InsertComFeatureBase(null, null, null, null, null, null, null);
@@ -237,6 +275,28 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
                 {
                     m_ParametersCache = value;
                 }
+            }
+        }
+
+        public TransformMatrix GetEntityTransformation(IXSelObject entity)
+        {
+            if (base.EntitiesTransformsCache?.TryGetValue(entity, out var transform) == true)
+            {
+                return transform;
+            }
+            else 
+            {
+                if (entity is IXEntity)
+                {
+                    var ownerComp = ((IXEntity)entity).Component;
+
+                    if (ownerComp != null)
+                    {
+                        return ownerComp.Transformation;
+                    }
+                }
+
+                return TransformMatrix.Identity;
             }
         }
 
