@@ -18,8 +18,10 @@ namespace Xarial.XCad.Documentation
         }
 
         public override CustomFeatureRebuildResult OnRebuild(ISwApplication app, ISwDocument model, 
-            ISwMacroFeature<DimensionMacroFeatureParams> feature, DimensionMacroFeatureParams parameters, out AlignDimensionDelegate<DimensionMacroFeatureParams> alignDim)
+            ISwMacroFeature<DimensionMacroFeatureParams> feature, out AlignDimensionDelegate<DimensionMacroFeatureParams> alignDim)
         {
+            var parameters = feature.Parameters;
+
             var resBodies = GetBodies(); //generating bodies
 
             alignDim = (name, dim) => 

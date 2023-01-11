@@ -171,8 +171,10 @@ namespace SwAddInExample
             };
 
         public override ISwBody[] CreateGeometry(ISwApplication app, ISwDocument model,
-            BoxMacroFeatureData data, out AlignDimensionDelegate<BoxMacroFeatureData> alignDim)
+            ISwMacroFeature<BoxMacroFeatureData> feat, out AlignDimensionDelegate<BoxMacroFeatureData> alignDim)
         {
+            var data = feat.Parameters;
+
             var face = data.BaseFace;
 
             Xarial.XCad.Geometry.Structures.Point pt;
@@ -227,13 +229,14 @@ namespace SwAddInExample
             return new BoxMacroFeatureData();
         }
 
-        public override ISwBody[] CreatePreviewGeometry(ISwApplication app, ISwDocument model, BoxMacroFeatureData data, BoxPage page,
+        public override ISwBody[] CreatePreviewGeometry(ISwApplication app, ISwDocument model, ISwMacroFeature<BoxMacroFeatureData> feat, BoxPage page,
             out ShouldHidePreviewEditBodyDelegate<BoxMacroFeatureData, BoxPage> shouldHidePreviewEdit, out AssignPreviewBodyColorDelegate assignPreviewColor)
         {
+            var date = feat.Parameters;
             shouldHidePreviewEdit = null;
             assignPreviewColor = AssignPreviewBodyColor;
             page.Parameters.UpdateSize();
-            return CreateGeometry(app, model, data, out _);
+            return CreateGeometry(app, model, feat, out _);
         }
 
         private void AssignPreviewBodyColor(IXBody body, out Color color)
@@ -243,7 +246,7 @@ namespace SwAddInExample
         { 
         }
 
-        public override void OnFeatureInserted(IXApplication app, IXDocument doc, IXCustomFeature<BoxMacroFeatureData> feat, BoxMacroFeatureData data, BoxPage page)
+        public override void OnFeatureInserted(IXApplication app, IXDocument doc, IXCustomFeature<BoxMacroFeatureData> feat, BoxPage page)
         {
             page.Parameters.Reset();
             doc.Selections.Clear();

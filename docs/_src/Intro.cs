@@ -100,8 +100,10 @@ namespace Xarial.XCad.Documentation
         [ComVisible(true)]
         public class BoxMacroFeature : SwMacroFeatureDefinition<BoxData, BoxData>
         {
-            public override ISwBody[] CreateGeometry(ISwApplication app, ISwDocument model, BoxData data)
+            public override ISwBody[] CreateGeometry(ISwApplication app, ISwDocument model, ISwMacroFeature<BoxData> feat)
             {
+                var data = feat.Parameters;
+
                 var body = (ISwBody)app.MemoryGeometryBuilder.CreateSolidBox(new Point(0, 0, 0),
                     new Vector(1, 0, 0), new Vector(0, 1, 0),
                     data.Width, data.Length, data.Height).Bodies.First();

@@ -11,6 +11,7 @@ using System.Drawing;
 using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Extensions;
+using Xarial.XCad.Features.CustomFeature;
 using Xarial.XCad.Features.CustomFeature.Delegates;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.SolidWorks.Documents;
@@ -19,6 +20,7 @@ using Xarial.XCad.SolidWorks.UI.PropertyPage;
 using Xarial.XCad.Toolkit.Utils;
 using Xarial.XCad.UI.PropertyPage;
 using Xarial.XCad.UI.PropertyPage.Delegates;
+using Xarial.XCad.UI.PropertyPage.Enums;
 using Xarial.XCad.Utils.CustomFeature;
 using Xarial.XCad.Utils.Diagnostics;
 
@@ -50,7 +52,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             foreach (var body in bodies)
             {
                 var swBody = (body as SwBody).Body;
-                var previewContext = ProvidePreviewContext?.Invoke(CurModel)?.Dispatch;
+                var previewContext = ProvidePreviewContext?.Invoke(CurrentDocument)?.Dispatch;
 
                 if (previewContext == null) 
                 {
@@ -96,6 +98,22 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
                     }
 
                     bodies[i] = null;
+                }
+            }
+        }
+
+        protected override void CompleteFeature(PageCloseReasons_e reason)
+        {
+            base.CompleteFeature(reason);
+
+            if (reason == PageCloseReasons_e.Okay || reason == PageCloseReasons_e.Apply) 
+            {
+                var curMacroFeat = (SwMacroFeature<TData>)m_CurrentFeature;
+
+                if (curMacroFeat.UseParametersCache)
+                {
+                    curMacroFeat.ApplyParametersCache();
+                    curMacroFeat.UseParametersCache = false;
                 }
             }
         }

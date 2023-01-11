@@ -18,7 +18,7 @@ namespace Xarial.XCad.Documentation
     public class PrimitiveParametersMacroFeature : SwMacroFeatureDefinition<MacroFeaturePrimitiveParams>
     {
         public override CustomFeatureRebuildResult OnRebuild(ISwApplication app, ISwDocument model,
-            ISwMacroFeature<MacroFeaturePrimitiveParams> feature, MacroFeaturePrimitiveParams parameters, out AlignDimensionDelegate<MacroFeaturePrimitiveParams> alignDim)
+            ISwMacroFeature<MacroFeaturePrimitiveParams> feature, out AlignDimensionDelegate<MacroFeaturePrimitiveParams> alignDim)
         {
             alignDim = null;
             return new CustomFeatureRebuildResult();

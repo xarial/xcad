@@ -189,12 +189,14 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 
             if (constr == null) 
             {
-                System.Diagnostics.Debug.Assert(false, "Modify the parameters above");
+                Debug.Assert(false, "Modify the parameters above");
                 throw new Exception("Failed to create instance of the macro feature - incorrect parameters");
             }
 
             return (SwMacroFeature)constr.Invoke(new object[] { feat, doc, app, paramsParser, feat != null });
         }
+
+        internal bool UseParametersCache { get; set; }
 
         //NOTE: this constructor is used in the reflection of SwObjectFactory
         internal SwMacroFeature(IFeature feat, SwDocument doc, SwApplication app, MacroFeatureParametersParser paramsParser, bool created)
@@ -209,7 +211,13 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         {
             get
             {
-                if (IsCommitted)
+                if (IsCommitted && UseParametersCache && m_ParametersCache == null) 
+                {
+                    m_ParametersCache = (TParams)m_ParamsParser.GetParameters(this, OwnerDocument, typeof(TParams),
+                            out _, out _, out _, out _, out _);
+                }
+
+                if (IsCommitted && !UseParametersCache)
                 {
                     return (TParams)m_ParamsParser.GetParameters(this, OwnerDocument, typeof(TParams),
                             out _, out _, out _, out _, out _);
@@ -221,7 +229,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             }
             set
             {
-                if (IsCommitted)
+                if (IsCommitted && !UseParametersCache)
                 {
                     m_ParamsParser.SetParameters(OwnerDocument, this, value, out _);
                 }
@@ -230,6 +238,26 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
                     m_ParametersCache = value;
                 }
             }
+        }
+
+        internal void ApplyParametersCache() 
+        {
+            if (!IsCommitted)
+            {
+                throw new Exception("Feature is not committed");
+            }
+
+            if(!UseParametersCache)
+            {
+                throw new Exception("Feature is not editing");
+            }
+
+            if (m_ParametersCache == null) 
+            {
+                throw new Exception("Feature does not have parameters cache");
+            }
+
+            m_ParamsParser.SetParameters(OwnerDocument, this, m_ParametersCache, out _);
         }
         
         protected override IFeature InsertFeature(CancellationToken cancellationToken)
@@ -240,21 +268,6 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             if (!typeof(SwMacroFeatureDefinition<TParams>).IsAssignableFrom(DefinitionType))
             {
                 throw new MacroFeatureDefinitionTypeMismatch(DefinitionType, typeof(SwMacroFeatureDefinition<TParams>));
-            }
-        }
-
-        private IComponent2 OwnerInContextComponent 
-        {
-            get
-            {
-                if (OwnerDocument is ISwAssembly)
-                {
-                    return ((ISwAssembly)OwnerDocument).EditingComponent.Component;
-                }
-                else 
-                {
-                    return null;
-                }
             }
         }
 

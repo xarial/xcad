@@ -60,11 +60,10 @@ namespace Xarial.XCad.Features.CustomFeature
         where TParams : class
     {
         /// <inheritdoc cref="IXCustomFeatureDefinition.OnRebuild(IXApplication, IXDocument, IXCustomFeature)"/>
-        /// <param name="parameters">Current parameters of the feature</param>
         /// <param name="alignDim">Handler to align dimensions. Use <see cref="AlignDimension(IXDimension, Point[], Vector, Vector)"/> helper function</param>
         /// <returns>Result of the regeneration</returns>
-        CustomFeatureRebuildResult OnRebuild(IXApplication app, IXDocument model, IXCustomFeature feature,
-            TParams parameters, out AlignDimensionDelegate<TParams> alignDim);
+        CustomFeatureRebuildResult OnRebuild(IXApplication app, IXDocument model, IXCustomFeature<TParams> feature,
+            out AlignDimensionDelegate<TParams> alignDim);
 
         /// <summary>
         /// Helper function to align the dimensions of the macro feature
@@ -98,10 +97,11 @@ namespace Xarial.XCad.Features.CustomFeature
         /// </summary>
         /// <param name="app">Application</param>
         /// <param name="doc">Current document</param>
-        /// <param name="data">Data of this custo feature</param>
+        /// <param name="feat">Custom feature</param>
         /// <param name="alignDim">Function to align dimensions</param>
         /// <returns>Geometry of this macro feature</returns>
-        IXBody[] CreateGeometry(IXApplication app, IXDocument doc, TParams data,
+        /// <remarks>Extract current parameters from the feature via <see cref="IXCustomFeature{TParams}.Parameters"/></remarks>
+        IXBody[] CreateGeometry(IXApplication app, IXDocument doc, IXCustomFeature<TParams> feat,
             out AlignDimensionDelegate<TParams> alignDim);
 
         /// <summary>
@@ -109,12 +109,13 @@ namespace Xarial.XCad.Features.CustomFeature
         /// </summary>
         /// <param name="app">Application</param>
         /// <param name="model">Current document</param>
-        /// <param name="data">Current data</param>
+        /// <param name="feat">Current feature</param>
         /// <param name="page">Current page</param>
         /// <param name="shouldHidePreviewEdit">Delegate for handling if the specific body should be hidden while preview</param>
         /// <param name="assignPreviewColor">Handler to specify the custom color for the preview body</param>
-        /// <returns></returns>
-        IXBody[] CreatePreviewGeometry(IXApplication app, IXDocument model, TParams data, TPage page,
+        /// <returns>Preview bodies</returns>
+        /// <remarks>Extract current parameters from the feature via <see cref="IXCustomFeature{TParams}.Parameters"/></remarks>
+        IXBody[] CreatePreviewGeometry(IXApplication app, IXDocument model, IXCustomFeature<TParams> feat, TPage page,
             out ShouldHidePreviewEditBodyDelegate<TParams, TPage> shouldHidePreviewEdit,
             out AssignPreviewBodyColorDelegate assignPreviewColor);
 
