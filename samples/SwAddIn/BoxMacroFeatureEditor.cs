@@ -229,14 +229,14 @@ namespace SwAddInExample
             return new BoxMacroFeatureData();
         }
 
-        public override ISwBody[] CreatePreviewGeometry(ISwApplication app, ISwDocument model, ISwMacroFeature<BoxMacroFeatureData> feat, BoxPage page,
+        public override ISwTempBody[] CreatePreviewGeometry(ISwApplication app, ISwDocument model, ISwMacroFeature<BoxMacroFeatureData> feat, BoxPage page,
             out ShouldHidePreviewEditBodyDelegate<BoxMacroFeatureData, BoxPage> shouldHidePreviewEdit, out AssignPreviewBodyColorDelegate assignPreviewColor)
         {
             var date = feat.Parameters;
             shouldHidePreviewEdit = null;
             assignPreviewColor = AssignPreviewBodyColor;
             page.Parameters.UpdateSize();
-            return CreateGeometry(app, model, feat, out _);
+            return CreateGeometry(app, model, feat, out _).Cast<ISwTempBody>().ToArray();
         }
 
         private void AssignPreviewBodyColor(IXBody body, out Color color)

@@ -777,7 +777,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         }
 
         /// <inheritdoc/>
-        public virtual ISwBody[] CreatePreviewGeometry(ISwApplication app, ISwDocument doc, ISwMacroFeature<TParams> feat, TPage page,
+        public virtual ISwTempBody[] CreatePreviewGeometry(ISwApplication app, ISwDocument doc, ISwMacroFeature<TParams> feat, TPage page,
             out ShouldHidePreviewEditBodyDelegate<TParams, TPage> shouldHidePreviewEdit,
             out AssignPreviewBodyColorDelegate assignPreviewColor)
         {
@@ -788,14 +788,14 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         }
 
         /// <inheritdoc/>
-        public virtual ISwBody[] CreateGeometry(ISwApplication app, ISwDocument doc, ISwMacroFeature<TParams> data) => new ISwBody[0];
+        public virtual ISwBody[] CreateGeometry(ISwApplication app, ISwDocument doc, ISwMacroFeature<TParams> data) => new ISwTempBody[0];
 
         /// <inheritdoc/>
-        public virtual ISwBody[] CreatePreviewGeometry(ISwApplication app, ISwDocument doc, ISwMacroFeature<TParams> feat, TPage page)
-            => CreateGeometry(app, doc, feat, out _);
+        public virtual ISwTempBody[] CreatePreviewGeometry(ISwApplication app, ISwDocument doc, ISwMacroFeature<TParams> feat, TPage page)
+            => CreateGeometry(app, doc, feat, out _).Cast<ISwTempBody>().ToArray();
 
         /// <inheritdoc/>
-        public IXBody[] CreatePreviewGeometry(IXApplication app, IXDocument doc, IXCustomFeature<TParams> feat, TPage page,
+        public IXMemoryBody[] CreatePreviewGeometry(IXApplication app, IXDocument doc, IXCustomFeature<TParams> feat, TPage page,
             out ShouldHidePreviewEditBodyDelegate<TParams, TPage> shouldHidePreviewEdit,
             out AssignPreviewBodyColorDelegate assignPreviewColor)
         {
@@ -827,7 +827,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
                 (obj, prp) => { });
 
             return CreatePreviewGeometry((ISwApplication)app, (ISwDocument)doc, (ISwMacroFeature<TParams>)feat, page,
-                out shouldHidePreviewEdit, out assignPreviewColor).Cast<SwBody>().ToArray();
+                out shouldHidePreviewEdit, out assignPreviewColor).Cast<SwTempBody>().ToArray();
         }
 
         /// <inheritdoc/>

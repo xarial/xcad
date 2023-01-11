@@ -115,7 +115,7 @@ namespace Xarial.XCad.Features.CustomFeature
         /// <param name="assignPreviewColor">Handler to specify the custom color for the preview body</param>
         /// <returns>Preview bodies</returns>
         /// <remarks>Extract current parameters from the feature via <see cref="IXCustomFeature{TParams}.Parameters"/></remarks>
-        IXBody[] CreatePreviewGeometry(IXApplication app, IXDocument model, IXCustomFeature<TParams> feat, TPage page,
+        IXMemoryBody[] CreatePreviewGeometry(IXApplication app, IXDocument model, IXCustomFeature<TParams> feat, TPage page,
             out ShouldHidePreviewEditBodyDelegate<TParams, TPage> shouldHidePreviewEdit,
             out AssignPreviewBodyColorDelegate assignPreviewColor);
 

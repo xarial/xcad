@@ -102,7 +102,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         public ISwTempBody[] Substract(ISwTempBody other) => this.PerformSubstract(other);
         public ISwTempBody[] Common(ISwTempBody other) => this.PerformCommon(other);
 
-        public void Preview(IXDocument3D doc, Color color)
+        public void Preview(IXObject context, Color color)
         {
         }
 
@@ -128,7 +128,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         public ISwTempBody[] Substract(ISwTempBody other) => this.PerformSubstract(other);
         public ISwTempBody[] Common(ISwTempBody other) => this.PerformCommon(other);
 
-        public void Preview(IXDocument3D doc, Color color)
+        public void Preview(IXObject context, Color color)
         {
         }
 
@@ -154,7 +154,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         public ISwTempBody[] Substract(ISwTempBody other) => this.PerformSubstract(other);
         public ISwTempBody[] Common(ISwTempBody other) => this.PerformCommon(other);
 
-        public void Preview(IXDocument3D doc, Color color)
+        public void Preview(IXObject context, Color color)
         {
         }
 
@@ -180,7 +180,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         public ISwTempBody[] Substract(ISwTempBody other) => this.PerformSubstract(other);
         public ISwTempBody[] Common(ISwTempBody other) => this.PerformCommon(other);
 
-        public void Preview(IXDocument3D doc, Color color)
+        public void Preview(IXObject context, Color color)
         {
         }
 

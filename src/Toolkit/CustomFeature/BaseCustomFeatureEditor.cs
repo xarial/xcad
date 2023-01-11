@@ -26,6 +26,7 @@ using System.Collections.Generic;
 using Xarial.XCad.Exceptions;
 using Xarial.XCad.Toolkit.Utils;
 using Xarial.XCad.Features;
+using System.Drawing;
 
 namespace Xarial.XCad.Utils.CustomFeature
 {
@@ -98,7 +99,7 @@ namespace Xarial.XCad.Utils.CustomFeature
         private IXBody[] m_HiddenEditBodies;
         protected IXCustomFeature<TData> m_CurrentFeature;
         private Exception m_LastError;
-        private IXBody[] m_PreviewBodies;
+        private IXMemoryBody[] m_PreviewBodies;
 
         protected IXDocument CurrentDocument { get; private set; }
         
@@ -197,9 +198,45 @@ namespace Xarial.XCad.Utils.CustomFeature
             UpdatePreview();
         }
 
-        protected abstract void DisplayPreview(IXBody[] bodies, AssignPreviewBodyColorDelegate assignPreviewBodyColorDelegateFunc);
+        protected virtual IXObject CurrentPreviewContext => CurrentDocument;
 
-        protected abstract void HidePreview(IXBody[] bodies);
+        private void DisplayPreview(IXMemoryBody[] bodies, AssignPreviewBodyColorDelegate assignPreviewBodyColorDelegateFunc)
+        {
+            var previewContext = CurrentPreviewContext;
+
+            if (previewContext == null)
+            {
+                throw new Exception("Preview context is not specified");
+            }
+
+            foreach (var body in bodies)
+            {
+                assignPreviewBodyColorDelegateFunc.Invoke(body, out Color color);
+
+                body.Preview(previewContext, color);
+            }
+        }
+
+        private void HidePreview(IXMemoryBody[] bodies)
+        {
+            if (bodies != null)
+            {
+                for (int i = 0; i < bodies.Length; i++)
+                {
+                    try
+                    {
+                        bodies[i].Visible = false;
+                        bodies[i].Dispose();
+                    }
+                    catch (Exception ex)
+                    {
+                        m_Logger.Log(ex);
+                    }
+
+                    bodies[i] = null;
+                }
+            }
+        }
 
         private void HideEditBodies(ShouldHidePreviewEditBodyDelegate<TData, TPage> shouldHidePreviewEditBodyFunc)
         {

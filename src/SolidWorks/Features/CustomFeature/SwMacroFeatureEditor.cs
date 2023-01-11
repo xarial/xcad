@@ -32,14 +32,6 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
     {
         internal event Func<IXDocument, ISwObject> ProvidePreviewContext;
 
-        private enum DisplayBodyResult_e 
-        {
-            Success = 0,
-            NotTempBody = 1,
-            InvalidComponent = 2,
-            NotPart = 3
-        }
-
         internal SwMacroFeatureEditor(ISwApplication app, Type defType,
             CustomFeatureParametersParser paramsParser, IServiceProvider svcProvider,
             SwPropertyManagerPage<TPage> page, CustomFeatureEditorBehavior_e behavior) 
@@ -47,60 +39,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         {
         }
 
-        protected override void DisplayPreview(IXBody[] bodies, AssignPreviewBodyColorDelegate assignPreviewBodyColorDelegateFunc)
-        {
-            foreach (var body in bodies)
-            {
-                var swBody = (body as SwBody).Body;
-                var previewContext = ProvidePreviewContext?.Invoke(CurrentDocument)?.Dispatch;
-
-                if (previewContext == null) 
-                {
-                    throw new Exception("Preview context is not specified");
-                }
-
-                assignPreviewBodyColorDelegateFunc.Invoke(body, out Color color);
-
-                var res = (DisplayBodyResult_e)swBody.Display3(previewContext, ColorUtils.ToColorRef(color),
-                    (int)swTempBodySelectOptions_e.swTempBodySelectOptionNone);
-
-                if (res != DisplayBodyResult_e.Success) 
-                {
-                    throw new Exception($"Failed to render preview body: {res}");
-                }
-
-                var hasAlpha = color.A < 255;
-                
-                if (hasAlpha) 
-                {
-                    //COLORREF does not encode alpha channel, so assigning the color via material properties
-                    body.Color = color;
-                }
-            }
-        }
-
-        protected override void HidePreview(IXBody[] bodies)
-        {
-            if (bodies != null)
-            {
-                for (int i = 0; i < bodies.Length; i++)
-                {
-                    if (bodies[i] is IDisposable)
-                    {
-                        try
-                        {
-                            (bodies[i] as IDisposable).Dispose();
-                        }
-                        catch (Exception ex)
-                        {
-                            m_Logger.Log(ex);
-                        }
-                    }
-
-                    bodies[i] = null;
-                }
-            }
-        }
+        protected override IXObject CurrentPreviewContext => ProvidePreviewContext?.Invoke(CurrentDocument);
 
         protected override void CompleteFeature(PageCloseReasons_e reason)
         {
