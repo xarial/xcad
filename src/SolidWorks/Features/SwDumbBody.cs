@@ -93,7 +93,7 @@ namespace Xarial.XCad.SolidWorks.Features
 
             if (part != null)
             {
-                var feat = (IFeature)part.CreateFeatureFromBody3(((ISwBody)Body).Body, false, (int)swCreateFeatureBodyOpts_e.swCreateFeatureBodySimplify);
+                var feat = (IFeature)part.CreateFeatureFromBody3(((ISwBody)BaseBody).Body, false, (int)swCreateFeatureBodyOpts_e.swCreateFeatureBodySimplify);
 
                 if (feat != null)
                 {
