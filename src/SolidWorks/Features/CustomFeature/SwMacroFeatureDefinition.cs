@@ -515,7 +515,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         where TParams : class
     {
         private static SwMacroFeature CreateMacroFeatureInstance(SwMacroFeatureDefinition sender, IFeature feat, SwDocument doc, SwApplication app)
-            => new SwMacroFeature<TParams>(feat, doc, app, ((SwMacroFeatureDefinition<TParams>)sender).m_ParamsParser, true);
+            => new SwMacroFeature<TParams>(feat, doc, app, true);
 
         [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
         protected class MacroFeatureParametersRegenerateData : MacroFeatureRegenerateData
@@ -539,8 +539,6 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             }
         }
 
-        private readonly MacroFeatureParametersParser m_ParamsParser;
-
         CustomFeatureRebuildResult IXCustomFeatureDefinition<TParams>.OnRebuild(IXApplication app, IXDocument doc, IXCustomFeature<TParams> feature, out AlignDimensionDelegate<TParams> alignDim)
             => OnRebuild((ISwApplication)app, (ISwDocument)doc, (ISwMacroFeature<TParams>)feature, out alignDim);
 
@@ -548,13 +546,11 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         public override bool OnEditDefinition(ISwApplication app, ISwDocument doc, ISwMacroFeature feature)
             => OnEditDefinition(app, doc, (ISwMacroFeature<TParams>)feature);
 
-        public SwMacroFeatureDefinition() : this(new MacroFeatureParametersParser())
-        {
-        }
+        private readonly Lazy<IMathUtility> m_MathUtilsLazy;
 
-        internal SwMacroFeatureDefinition(MacroFeatureParametersParser paramsParser) : base(CreateMacroFeatureInstance)
+        public SwMacroFeatureDefinition() : base(CreateMacroFeatureInstance)
         {
-            m_ParamsParser = paramsParser;
+            m_MathUtilsLazy = new Lazy<IMathUtility>(() => Application.Sw.IGetMathUtility());
         }
 
         public void AlignDimension(IXDimension dim, Point[] pts, Vector dir, Vector extDir)
@@ -572,17 +568,17 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
                 }
             }
 
-            var refPts = pts.Select(p => m_ParamsParser.MathUtils.CreatePoint(p.ToArray()) as IMathPoint).ToArray();
+            var refPts = pts.Select(p => m_MathUtilsLazy.Value.CreatePoint(p.ToArray()) as IMathPoint).ToArray();
 
             if (dir != null)
             {
-                var dimDirVec = m_ParamsParser.MathUtils.CreateVector(dir.ToArray()) as MathVector;
+                var dimDirVec = m_MathUtilsLazy.Value.CreateVector(dir.ToArray()) as MathVector;
                 ((SwDimension)dim).Dimension.DimensionLineDirection = dimDirVec;
             }
 
             if (extDir != null)
             {
-                var extDirVec = m_ParamsParser.MathUtils.CreateVector(extDir.ToArray()) as MathVector;
+                var extDirVec = m_MathUtilsLazy.Value.CreateVector(extDir.ToArray()) as MathVector;
                 ((SwDimension)dim).Dimension.ExtensionLineDirection = extDirVec;
             }
 
@@ -606,12 +602,12 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         public override CustomFeatureRebuildResult OnRebuild(ISwApplication app, ISwDocument doc, ISwMacroFeature feature)
         {
             var paramsFeat = (SwMacroFeature<TParams>)feature;
-            paramsFeat.UseParametersCache = true;
+            paramsFeat.UseCachedParameters = true;
 
             IXDimension[] dims;
             string[] dimParamNames;
 
-            paramsFeat.Parameters = (TParams)m_ParamsParser.GetParameters(paramsFeat, doc, typeof(TParams), out dims, out dimParamNames,
+            paramsFeat.Parameters = paramsFeat.ReadParameters(out dims, out dimParamNames,
                 out var _, out var _, out var _);
 
             AlignDimensionDelegate<TParams> alignDimsDel;
@@ -680,17 +676,13 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             IXApplication app, IXDocument doc, IXCustomFeature<TParams> feat, out AlignDimensionDelegate<TParams> alignDim)
             => CreateGeometry((ISwApplication)app, (ISwDocument)doc, (ISwMacroFeature<TParams>)feat, out alignDim).Cast<SwBody>().ToArray();
 
-        private readonly MacroFeatureParametersParser m_ParamsParser;
-
         private readonly Lazy<SwMacroFeatureEditor<TParams, TPage>> m_Editor;
 
-        public SwMacroFeatureDefinition() : this(new MacroFeatureParametersParser())
-        {
-        }
+        private readonly CustomFeatureParametersParser m_ParamsParser;
 
-        private SwMacroFeatureDefinition(MacroFeatureParametersParser parser) : base(parser)
+        public SwMacroFeatureDefinition()
         {
-            m_ParamsParser = parser;
+            m_ParamsParser = new CustomFeatureParametersParser();
 
             m_Editor = new Lazy<SwMacroFeatureEditor<TParams, TPage>>(() => 
             {
@@ -698,7 +690,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 
                 var editor = new SwMacroFeatureEditor<TParams, TPage>(
                     Application, this.GetType(),
-                    m_ParamsParser, m_SvcProvider, page, EditorBehavior);
+                    m_SvcProvider, page, EditorBehavior);
 
                 editor.EditingStarted += OnEditingStarted;
                 editor.EditingCompleting += OnEditingCompleting;
@@ -838,7 +830,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
         public override bool OnEditDefinition(ISwApplication app, ISwDocument doc, ISwMacroFeature<TParams> feature)
         {
-            ((SwMacroFeature<TParams>)feature).UseParametersCache = true;
+            ((SwMacroFeature<TParams>)feature).UseCachedParameters = true;
             m_Editor.Value.Edit(doc, feature);
             return true;
         }

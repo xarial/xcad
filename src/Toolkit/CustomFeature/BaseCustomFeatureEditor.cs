@@ -109,7 +109,6 @@ namespace Xarial.XCad.Utils.CustomFeature
 
         public BaseCustomFeatureEditor(IXApplication app,
             Type featDefType,
-            CustomFeatureParametersParser paramsParser,
             IServiceProvider svcProvider, IXPropertyPage<TPage> page, CustomFeatureEditorBehavior_e behavior)
         {
             m_App = app;
@@ -117,7 +116,7 @@ namespace Xarial.XCad.Utils.CustomFeature
             m_Logger = svcProvider.GetService<IXLogger>();
             m_DefType = featDefType;
             m_BodiesComparer = new XObjectEqualityComparer<IXBody>();
-            m_ParamsParser = paramsParser;
+            m_ParamsParser = new CustomFeatureParametersParser();
 
             m_Behavior = behavior;
 
@@ -339,8 +338,8 @@ namespace Xarial.XCad.Utils.CustomFeature
                 return true;
             }
 
-            m_ParamsParser.Parse(oldParams, out CustomFeatureParameter[] oldAtts, out IXSelObject[] oldSels, out _, out double[] oldDimVals, out IXBody[] oldEditBodies);
-            m_ParamsParser.Parse(newParams, out CustomFeatureParameter[] newAtts, out IXSelObject[] newSels, out _, out double[] newDimVals, out IXBody[] newEditBodies);
+            m_ParamsParser.Parse(oldParams, out CustomFeatureAttribute[] oldAtts, out IXSelObject[] oldSels, out _, out double[] oldDimVals, out IXBody[] oldEditBodies);
+            m_ParamsParser.Parse(newParams, out CustomFeatureAttribute[] newAtts, out IXSelObject[] newSels, out _, out double[] newDimVals, out IXBody[] newEditBodies);
 
             return !(AreArraysEqual(oldAtts, newAtts, (o, n) => string.Equals(o.Name, n.Name) && object.Equals(o.Value, n.Value) && Type.Equals(o.Type, n.Type))
                     && AreArraysEqual(oldSels, newSels, (o, n) => o.Equals(n))

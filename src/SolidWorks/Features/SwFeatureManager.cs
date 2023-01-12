@@ -70,8 +70,6 @@ namespace Xarial.XCad.SolidWorks.Features
 
         private IFeatureManager FeatMgr => Document.Model.FeatureManager;
 
-        private readonly Lazy<MacroFeatureParametersParser> m_ParamsParserLazy;
-
         private readonly SwApplication m_App;
 
         protected readonly Context m_Context;
@@ -88,7 +86,6 @@ namespace Xarial.XCad.SolidWorks.Features
 
             m_FeatureCreatedEventsHandler = new FeatureCreatedEventsHandler(doc, app);
 
-            m_ParamsParserLazy = new Lazy<MacroFeatureParametersParser>(() => new MacroFeatureParametersParser(app));
             m_Cache = new EntityCache<IXFeature>(doc, this, f => f.Name);
         }
 
@@ -152,7 +149,7 @@ namespace Xarial.XCad.SolidWorks.Features
             if (typeof(T).IsAssignableToGenericType(typeof(IXCustomFeature<>)))
             {
                 var macroFeatureParamsType = typeof(T).GetArgumentsOfGenericType(typeof(IXCustomFeature<>)).First();
-                var feat = SwMacroFeature<object>.CreateSpecificInstance(null, Document, m_App, macroFeatureParamsType, m_ParamsParserLazy.Value);
+                var feat = SwMacroFeature<object>.CreateSpecificInstance(null, Document, m_App, macroFeatureParamsType);
                 return (T)(object)feat;
             }
             else 

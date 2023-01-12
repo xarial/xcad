@@ -5,6 +5,7 @@ using Xarial.XCad.Documents;
 using Xarial.XCad.Features.CustomFeature;
 using Xarial.XCad.Features.CustomFeature.Attributes;
 using Xarial.XCad.Features.CustomFeature.Services;
+using Xarial.XCad.Features.CustomFeature.Structures;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;
 
@@ -40,7 +41,8 @@ namespace Xarial.XCad.Documentation
     {
         private class VersConv_1_0To2_0 : IParameterConverter
         {
-            public void Convert(IXDocument model, IXCustomFeature feat, ref Dictionary<string, object> parameters, ref Tuple<IXSelObject, TransformMatrix>[] selection, ref IXDimension[] dispDims, ref IXBody[] editBodies)
+            public void Convert(IXDocument model, IXCustomFeature feat, ref Dictionary<string, object> parameters, 
+                ref CustomFeatureSelectionInfo[] selection, ref IXDimension[] dispDims, ref IXBody[] editBodies)
             {
                 var paramVal = parameters["Param1"];
                 parameters.Remove("Param1");

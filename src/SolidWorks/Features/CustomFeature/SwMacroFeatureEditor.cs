@@ -33,9 +33,9 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         internal event Func<IXDocument, ISwObject> ProvidePreviewContext;
 
         internal SwMacroFeatureEditor(ISwApplication app, Type defType,
-            CustomFeatureParametersParser paramsParser, IServiceProvider svcProvider,
+            IServiceProvider svcProvider,
             SwPropertyManagerPage<TPage> page, CustomFeatureEditorBehavior_e behavior) 
-            : base(app, defType, paramsParser, svcProvider, page, behavior)
+            : base(app, defType, svcProvider, page, behavior)
         {
         }
 
@@ -49,10 +49,10 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             {
                 var curMacroFeat = (SwMacroFeature<TData>)m_CurrentFeature;
 
-                if (curMacroFeat.UseParametersCache)
+                if (curMacroFeat.UseCachedParameters)
                 {
                     curMacroFeat.ApplyParametersCache();
-                    curMacroFeat.UseParametersCache = false;
+                    curMacroFeat.UseCachedParameters = false;
                 }
             }
         }
