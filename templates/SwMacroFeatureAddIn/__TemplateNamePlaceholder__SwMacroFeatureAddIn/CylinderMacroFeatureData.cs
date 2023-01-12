@@ -9,7 +9,7 @@ namespace __TemplateNamePlaceholder__.Sw.AddIn
     {
         Extrude,
 
-        [Title("MergeExtrudeResults")]
+        [Title("Merge Extrude Results")]
         MergeExtrudeResults,
 
         Cut

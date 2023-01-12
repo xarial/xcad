@@ -34,8 +34,10 @@ namespace Xarial.XCad.Documentation
     public class MyParamsMacroFeature : SwMacroFeatureDefinition<MacroFeatureParams>
     {
         public override CustomFeatureRebuildResult OnRebuild(ISwApplication app, ISwDocument model, 
-            ISwMacroFeature<MacroFeatureParams> feature, MacroFeatureParams parameters, out AlignDimensionDelegate<MacroFeatureParams> alignDim)
+            ISwMacroFeature<MacroFeatureParams> feature, out AlignDimensionDelegate<MacroFeatureParams> alignDim)
         {
+            var parameters = feature.Parameters;
+
             var txt = parameters.TextParameter;
             var inputBody = parameters.InputBody;
 

@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2022 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -11,6 +11,7 @@ using System.Drawing;
 using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Extensions;
+using Xarial.XCad.Features.CustomFeature;
 using Xarial.XCad.Features.CustomFeature.Delegates;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.SolidWorks.Documents;
@@ -19,6 +20,7 @@ using Xarial.XCad.SolidWorks.UI.PropertyPage;
 using Xarial.XCad.Toolkit.Utils;
 using Xarial.XCad.UI.PropertyPage;
 using Xarial.XCad.UI.PropertyPage.Delegates;
+using Xarial.XCad.UI.PropertyPage.Enums;
 using Xarial.XCad.Utils.CustomFeature;
 using Xarial.XCad.Utils.Diagnostics;
 
@@ -30,72 +32,27 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
     {
         internal event Func<IXDocument, ISwObject> ProvidePreviewContext;
 
-        private enum DisplayBodyResult_e 
-        {
-            Success = 0,
-            NotTempBody = 1,
-            InvalidComponent = 2,
-            NotPart = 3
-        }
-
         internal SwMacroFeatureEditor(ISwApplication app, Type defType,
-            CustomFeatureParametersParser paramsParser, IServiceProvider svcProvider,
+            IServiceProvider svcProvider,
             SwPropertyManagerPage<TPage> page, CustomFeatureEditorBehavior_e behavior) 
-            : base(app, defType, paramsParser, svcProvider, page, behavior)
+            : base(app, defType, svcProvider, page, behavior)
         {
         }
 
-        protected override void DisplayPreview(IXBody[] bodies, AssignPreviewBodyColorDelegate assignPreviewBodyColorDelegateFunc)
+        protected override IXObject CurrentPreviewContext => ProvidePreviewContext?.Invoke(CurrentDocument);
+
+        protected override void CompleteFeature(PageCloseReasons_e reason)
         {
-            foreach (var body in bodies)
+            base.CompleteFeature(reason);
+
+            if (reason == PageCloseReasons_e.Okay || reason == PageCloseReasons_e.Apply) 
             {
-                var swBody = (body as SwBody).Body;
-                var previewContext = ProvidePreviewContext?.Invoke(CurModel)?.Dispatch;
+                var curMacroFeat = (SwMacroFeature<TData>)m_CurrentFeature;
 
-                if (previewContext == null) 
+                if (curMacroFeat.UseCachedParameters)
                 {
-                    throw new Exception("Preview context is not specified");
-                }
-
-                assignPreviewBodyColorDelegateFunc.Invoke(body, out Color color);
-
-                var res = (DisplayBodyResult_e)swBody.Display3(previewContext, ColorUtils.ToColorRef(color),
-                    (int)swTempBodySelectOptions_e.swTempBodySelectOptionNone);
-
-                if (res != DisplayBodyResult_e.Success) 
-                {
-                    throw new Exception($"Failed to render preview body: {res}");
-                }
-
-                var hasAlpha = color.A < 255;
-                
-                if (hasAlpha) 
-                {
-                    //COLORREF does not encode alpha channel, so assigning the color via material properties
-                    body.Color = color;
-                }
-            }
-        }
-
-        protected override void HidePreview(IXBody[] bodies)
-        {
-            if (bodies != null)
-            {
-                for (int i = 0; i < bodies.Length; i++)
-                {
-                    if (bodies[i] is IDisposable)
-                    {
-                        try
-                        {
-                            (bodies[i] as IDisposable).Dispose();
-                        }
-                        catch (Exception ex)
-                        {
-                            m_Logger.Log(ex);
-                        }
-                    }
-
-                    bodies[i] = null;
+                    curMacroFeat.ApplyParametersCache();
+                    curMacroFeat.UseCachedParameters = false;
                 }
             }
         }

@@ -65,9 +65,11 @@ namespace __TemplateNamePlaceholder__.Sw.AddIn
         //this method will also be called when macro feature is regenerated to create a macro feature body
         //in most cases the procedure of creating the preview body and the generated body is the same
         //but it is also possible to provide custom preview geometry by overriding the CreatePreviewGeometry method
-        public override ISwBody[] CreateGeometry(ISwApplication app, ISwDocument model, CylinderMacroFeatureData data,
+        public override ISwBody[] CreateGeometry(ISwApplication app, ISwDocument model, ISwMacroFeature<CylinderMacroFeatureData> feat,
             out AlignDimensionDelegate<CylinderMacroFeatureData> alignDim)
         {
+            var data = feat.Parameters;
+
             var face = data.PlaneOrFace;
 
             Point pt;
@@ -91,6 +93,11 @@ namespace __TemplateNamePlaceholder__.Sw.AddIn
             {
                 dir *= -1;
             }
+
+            var entToTargTransform = feat.GetEntityToTargetTransformation(face);
+
+            pt *= entToTargTransform;
+            dir *= entToTargTransform;
 
             ISwBody[] result;
 

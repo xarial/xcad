@@ -16,7 +16,7 @@ namespace Xarial.XCad.Documentation
     public class EditMacroFeatureDefinition : SwMacroFeatureDefinition<EditMacroFeatureDefinitionParameters>
     {
         public override CustomFeatureRebuildResult OnRebuild(ISwApplication app, ISwDocument model, 
-            ISwMacroFeature<EditMacroFeatureDefinitionParameters> feature, EditMacroFeatureDefinitionParameters parameters, out AlignDimensionDelegate<EditMacroFeatureDefinitionParameters> alignDim)
+            ISwMacroFeature<EditMacroFeatureDefinitionParameters> feature, out AlignDimensionDelegate<EditMacroFeatureDefinitionParameters> alignDim)
         {
             alignDim = null;
             return new CustomFeatureRebuildResult() { Result = true };

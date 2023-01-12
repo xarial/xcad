@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2022 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -21,6 +21,7 @@ using Xarial.XCad.SolidWorks.Geometry.Curves;
 using Xarial.XCad.SolidWorks.Geometry.Primitives;
 using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.Toolkit.Utils;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.Tab;
 
 namespace Xarial.XCad.SolidWorks.Geometry
 {
@@ -113,6 +114,14 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
     internal class SwTempBody : SwBody, ISwTempBody
     {
+        private enum DisplayBodyResult_e
+        {
+            Success = 0,
+            NotTempBody = 1,
+            InvalidComponent = 2,
+            NotPart = 3
+        }
+
         IXMemoryBody IXMemoryBody.Add(IXMemoryBody other) => Add((ISwTempBody)other);
         IXMemoryBody[] IXMemoryBody.Substract(IXMemoryBody other) => Substract((ISwTempBody)other);
         IXMemoryBody[] IXMemoryBody.Common(IXMemoryBody other) => Common((ISwTempBody)other);
@@ -145,7 +154,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
                 {
                     if (m_CurrentPreviewContext != null)
                     {
-                        Body.Hide(m_CurrentPreviewContext.Part);
+                        Body.Hide(m_CurrentPreviewContext);
                         m_CurrentPreviewContext = null;
                     }
                     else 
@@ -160,29 +169,47 @@ namespace Xarial.XCad.SolidWorks.Geometry
             }
         }
 
-        private ISwPart m_CurrentPreviewContext;
+        private object m_CurrentPreviewContext;
 
-        public void Preview(IXDocument3D doc, Color color)
+        public void Preview(IXObject context, Color color)
         {
-            if (doc is ISwPart)
+            switch (context) 
             {
-                Preview((ISwPart)doc, color, false);
-            }
-            else 
-            {
-                throw new NotSupportedException();
+                case ISwPart part:
+                    Preview(part.Model, color, false);
+                    break;
+
+                case ISwComponent comp:
+                    Preview(comp.Component, color, false);
+                    break;
+
+                default:
+                    throw new NotSupportedException("Only ISwPart or ISwComponent is supported as the context");
             }
         }
 
-        private void Preview(ISwPart part, Color color, bool selectable)
+        private void Preview(object context, Color color, bool selectable)
         {
             var opts = selectable
                 ? swTempBodySelectOptions_e.swTempBodySelectable
                 : swTempBodySelectOptions_e.swTempBodySelectOptionNone;
 
-            Body.Display3(part.Model, ColorUtils.ToColorRef(color), (int)opts);
+            var res = (DisplayBodyResult_e)Body.Display3(context, ColorUtils.ToColorRef(color), (int)opts);
 
-            m_CurrentPreviewContext = part;
+            if (res != DisplayBodyResult_e.Success)
+            {
+                throw new Exception($"Failed to render preview body: {res}");
+            }
+
+            var hasAlpha = color.A < 255;
+
+            if (hasAlpha)
+            {
+                //COLORREF does not encode alpha channel, so assigning the color via material properties
+                Color = color;
+            }
+
+            m_CurrentPreviewContext = context;
         }
 
         public ISwTempBody Add(ISwTempBody other)
