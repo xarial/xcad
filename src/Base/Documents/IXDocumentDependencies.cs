@@ -83,9 +83,19 @@ namespace Xarial.XCad.Documents
                 {
                     if (renameMaps.TryGetValue(docDep.Path, out var newPath))
                     {
-                        var newDoc = app.Documents.PreCreate<IXDocument3D>();
-                        newDoc.Path = newPath;
-                        targDeps.Replace(docDep, newDoc);
+                        if (!string.Equals(docDep.Path, newPath, StringComparison.CurrentCultureIgnoreCase))
+                        {
+                            var newDoc = app.Documents.PreCreate<IXDocument3D>();
+                            newDoc.Path = newPath;
+                            try
+                            {
+                                targDeps.Replace(docDep, newDoc);
+                            }
+                            catch (Exception ex)
+                            {
+                                throw new Exception($"{ex.Message} ({targDeps.OwnerDocument.Path}: {docDep.Path} => {newDoc.Path})", ex);
+                            }
+                        }
                     }
                     else
                     {
