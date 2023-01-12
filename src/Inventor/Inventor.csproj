@@ -3,7 +3,7 @@
   <PropertyGroup>
     <AssemblyName>Xarial.XCad.Inventor</AssemblyName>
     <RootNamespace>Xarial.XCad.Inventor</RootNamespace>
-    <TargetFrameworks>net6.0-windows;netcoreapp3.1;net461</TargetFrameworks>
+    <TargetFrameworks>net7.0-windows;net6.0-windows;netcoreapp3.1;net461</TargetFrameworks>
     <PackageId>Xarial.XCad.Inventor</PackageId>
     <PackageTags>cad,inventor</PackageTags>
     <Description>Framework for developing Autodesk Inventor applications</Description>
@@ -15,11 +15,11 @@
 
   <Import Project="..\..\common\common.props" />
 
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netcoreapp3.1|AnyCPU' Or '$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net6.0|AnyCPU' or '$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net6.0-windows|AnyCPU'">
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netcoreapp3.1|AnyCPU' Or '$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net6.0|AnyCPU' or '$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net6.0-windows|AnyCPU' or '$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net7.0-windows|AnyCPU' or '$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net7.0-windows|AnyCPU'">
     <NoWarn>1701;1702</NoWarn>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(TargetFramework)' == 'netcoreapp3.1' Or '$(TargetFramework)' == 'net6.0' Or '$(TargetFramework)' == 'net6.0-windows'">
+  <PropertyGroup Condition="'$(TargetFramework)' == 'netcoreapp3.1' Or '$(TargetFramework)' == 'net6.0' Or '$(TargetFramework)' == 'net6.0-windows' Or '$(TargetFramework)' == 'net7.0' Or '$(TargetFramework)' == 'net7.0-windows'">
     <NoWarn>CS0618</NoWarn>
     <UseWpf>true</UseWpf>
     <UseWindowsForms>true</UseWindowsForms>
@@ -65,6 +65,8 @@
     <None Include="..\..\thirdpty\Autodesk.Inventor.Interop.dll" pack="true" PackagePath="lib\netcoreapp3.1" />
 
     <None Include="..\..\thirdpty\Autodesk.Inventor.Interop.dll" pack="true" PackagePath="lib\net6.0-windows7.0" Link="_Pack\Autodesk.Inventor.Interop.dll" />
+
+    <None Include="..\..\thirdpty\Autodesk.Inventor.Interop.dll" pack="true" PackagePath="lib\net7.0-windows7.0" Link="_Pack\Autodesk.Inventor.Interop.dll" />
 
     <None Include="..\..\tools\_build\Xarial.XCad.Inventor.Tools.StandAloneConnector.dll" pack="true" PackagePath="tools\StandAloneConnector\Xarial.XCad.Inventor.Tools.StandAloneConnector.dll" Link="_Pack\Xarial.XCad.Inventor.Tools.StandAloneConnector.dll" />
     <None Include="..\..\tools\_build\Xarial.XCad.Inventor.Tools.StandAloneConnector.addin" pack="true" PackagePath="tools\StandAloneConnector\Xarial.XCad.Inventor.Tools.StandAloneConnector.addin" Link="_Pack\Xarial.XCad.Inventor.Tools.StandAloneConnector.addin" />

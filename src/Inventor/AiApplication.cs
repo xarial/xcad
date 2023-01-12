@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2022 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -88,15 +88,8 @@ namespace Xarial.XCad.Inventor
             }
         }
         public IXApplicationOptions Options => throw new NotImplementedException();
-        
-        public IXDocumentRepository Documents
-        {
-            get
-            {
-                m_Documents.Attach();
-                return m_Documents;
-            }
-        }
+
+        public IXDocumentRepository Documents => m_Documents;
 
         public IXMemoryGeometryBuilder MemoryGeometryBuilder => throw new NotImplementedException();
 

@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2022 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -64,6 +64,11 @@ namespace Xarial.XCad.Documents
         /// Fired when document is closing
         /// </summary>
         event DocumentCloseDelegate Closing;
+
+        /// <summary>
+        /// Fired when document is destroyed
+        /// </summary>
+        event DocumentEventDelegate Destroyed;
 
         /// <summary>
         /// Units assigned in this document
@@ -158,8 +163,8 @@ namespace Xarial.XCad.Documents
         /// Returns top level dependencies of this document
         /// </summary>
         /// <remarks>Dependencies might be uncommited if document is loaded view only or in the rapid mode. Use <see cref="IXTransaction.IsCommitted"/> to check the state and call <see cref="IXTransaction.Commit(System.Threading.CancellationToken)"/> to load document if needed.
-        /// In most CADs this method wil lwork with uncommitted documents</remarks>
-        IEnumerable<IXDocument3D> Dependencies { get; }
+        /// In most CADs this method will work with uncommitted documents</remarks>
+        IXDocumentDependencies Dependencies { get; }
 
         /// <summary>
         /// Deserializes specific object from stream

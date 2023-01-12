@@ -1,12 +1,14 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2022 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
+using System.Numerics;
 using Xarial.XCad.Base;
 using Xarial.XCad.Geometry;
+using Xarial.XCad.Geometry.Structures;
 
 namespace Xarial.XCad.Sketch
 {

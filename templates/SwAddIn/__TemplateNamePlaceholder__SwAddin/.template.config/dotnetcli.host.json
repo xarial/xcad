@@ -1,0 +1,21 @@
+{
+    "$schema": "http://json.schemastore.org/dotnetcli.host",
+    "symbolInfo": {
+      "_TargetFramework_": {
+        "longName": "framework",
+        "shortName": "f"
+      },
+      "_AddCommandManager_": {
+        "longName": "cmdmgr",
+        "shortName": "cm"
+      },
+      "_AddPropertyPage_": {
+        "longName": "prppage",
+        "shortName": "pp"
+      },
+      "_AddMacroFeature_": {
+        "longName": "macrofeat",
+        "shortName": "mf"
+      }
+    }
+}

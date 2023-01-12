@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2022 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -23,9 +23,33 @@ namespace Xarial.XCad.Geometry
         /// <summary>
         /// DIsplays the preview of the memory body
         /// </summary>
-        /// <param name="doc">Document where preview should be displayed</param>
+        /// <param name="context">Context where preview should be displayed (e.g. document or component)</param>
         /// <param name="color">Color of the body</param>
-        void Preview(IXDocument3D doc, Color color);
+        void Preview(IXObject context, Color color);
+
+        /// <summary>
+        /// Boolean add operation on body
+        /// </summary>
+        /// <param name="other">Other body</param>
+        /// <returns>Resulting body</returns>
+        /// <exception cref="Exceptions.BodyBooleanOperationNoIntersectException"/>
+        IXMemoryBody Add(IXMemoryBody other);
+
+        /// <summary>
+        /// Boolean substract operation
+        /// </summary>
+        /// <param name="other">Body to substract</param>
+        /// <returns>Resulting bodies</returns>
+        /// <exception cref="Exceptions.BodyBooleanOperationNoIntersectException"/>
+        IXMemoryBody[] Substract(IXMemoryBody other);
+
+        /// <summary>
+        /// Boolean common operation
+        /// </summary>
+        /// <param name="other">Body to get common with</param>
+        /// <returns>Resulting body</returns>
+        /// <exception cref="Exceptions.BodyBooleanOperationNoIntersectException"/>
+        IXMemoryBody[] Common(IXMemoryBody other);
     }
 
     /// <summary>

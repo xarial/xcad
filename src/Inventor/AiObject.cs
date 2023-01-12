@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2022 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -43,7 +43,7 @@ namespace Xarial.XCad.Inventor
             OwnerApplication = ownerApp;
         }
 
-        public bool Equals(IXObject other)
+        public virtual bool Equals(IXObject other)
         {
             throw new NotImplementedException();
         }

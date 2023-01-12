@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2022 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -29,7 +29,7 @@ namespace Xarial.XCad.SolidWorks.Features
         {
         }
 
-        public IXBody Body 
+        public IXBody BaseBody
         {
             get 
             {
@@ -93,7 +93,7 @@ namespace Xarial.XCad.SolidWorks.Features
 
             if (part != null)
             {
-                var feat = (IFeature)part.CreateFeatureFromBody3(((ISwBody)Body).Body, false, (int)swCreateFeatureBodyOpts_e.swCreateFeatureBodySimplify);
+                var feat = (IFeature)part.CreateFeatureFromBody3(((ISwBody)BaseBody).Body, false, (int)swCreateFeatureBodyOpts_e.swCreateFeatureBodySimplify);
 
                 if (feat != null)
                 {

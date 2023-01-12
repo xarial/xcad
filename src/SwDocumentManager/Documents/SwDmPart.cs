@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2022 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -51,10 +51,10 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             : base(dmApp, doc, isCreated, createHandler, closeHandler, isReadOnly)
         {
             m_Owner = owner;
-            m_Owner.Disposed += OnOwnerDisposed;
+            m_Owner.Destroyed += OnOwnerDisposed;
         }
 
-        private void OnOwnerDisposed(SwDmDocument owner)
+        private void OnOwnerDisposed(IXDocument owner)
         {
             this.Close();
         }

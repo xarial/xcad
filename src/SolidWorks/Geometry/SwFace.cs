@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2022 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -223,7 +223,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
             get 
             {
                 var sheetBody = Face.CreateSheetBody();
-                return OwnerApplication.CreateObjectFromDispatch<SwTempPlanarSheetBody>(sheetBody, OwnerDocument); ;
+                return OwnerApplication.CreateObjectFromDispatch<SwTempPlanarSheetBody>(sheetBody, OwnerDocument);
             }
         }
     }

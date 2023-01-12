@@ -14,6 +14,7 @@ using Xarial.XCad.SolidWorks.Geometry;
 using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.SolidWorks.Geometry.Exceptions;
 using Xarial.XCad.Geometry.Exceptions;
+using Xarial.XCad.Geometry.Evaluation;
 
 namespace SolidWorks.Tests.Integration
 {

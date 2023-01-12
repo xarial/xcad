@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2022 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -8,7 +8,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using Xarial.XCad.Geometry;
+using Xarial.XCad.Geometry.Evaluation;
 
 namespace Xarial.XCad.Documents
 {
@@ -46,6 +46,12 @@ namespace Xarial.XCad.Documents
         /// </summary>
         /// <returns>Collision detection</returns>
         IXCollisionDetection PreCreateCollisionDetection();
+
+        /// <summary>
+        /// Pre creates measure utility
+        /// </summary>
+        /// <returns>Measure utility</returns>
+        IXMeasure PreCreateMeasure();
     }
 
     /// <summary>

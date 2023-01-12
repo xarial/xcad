@@ -41,9 +41,11 @@ namespace SwAddInExample
     [MissingDefinitionErrorMessage("xCAD. Download the add-in")]
     public class SampleMacroFeature : SwMacroFeatureDefinition<PmpMacroFeatData>
     {
-        public override CustomFeatureRebuildResult OnRebuild(ISwApplication app, ISwDocument model, ISwMacroFeature<PmpMacroFeatData> feature, 
-            PmpMacroFeatData parameters, out AlignDimensionDelegate<PmpMacroFeatData> alignDim)
+        public override CustomFeatureRebuildResult OnRebuild(ISwApplication app, ISwDocument model, ISwMacroFeature<PmpMacroFeatData> feature,
+            out AlignDimensionDelegate<PmpMacroFeatData> alignDim)
         {
+            var parameters = feature.Parameters;
+
             alignDim = (n, d)=> 
             {
                 switch (n) 

@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2022 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -40,7 +40,27 @@ namespace Xarial.XCad.SolidWorks.Documents
     [DebuggerDisplay("Documents: {" + nameof(Count) + "}")]
     internal class SwDocumentCollection : ISwDocumentCollection
     {
-        public event DocumentEventDelegate DocumentLoaded;
+        public event DocumentEventDelegate DocumentLoaded
+        {
+            add
+            {
+                if (m_DocumentLoaded == null)
+                {
+                    m_SwApp.DocumentLoadNotify2 += OnDocumentLoadNotify2;
+                }
+
+                m_DocumentLoaded += value;
+            }
+            remove
+            {
+                m_DocumentLoaded -= value;
+
+                if (m_DocumentLoaded == null)
+                {
+                    m_SwApp.DocumentLoadNotify2 -= OnDocumentLoadNotify2;
+                }
+            }
+        }
 
         public event DocumentEventDelegate DocumentActivated 
         {
@@ -116,21 +136,13 @@ namespace Xarial.XCad.SolidWorks.Documents
         
         private readonly SwApplication m_App;
         private readonly SldWorks m_SwApp;
-        private readonly Dictionary<IModelDoc2, SwDocument> m_Documents;
         private readonly IXLogger m_Logger;
         private readonly DocumentsHandler m_DocsHandler;
 
-        internal SwDocumentDispatcher Dispatcher { get; }
-
+        private DocumentEventDelegate m_DocumentLoaded;
         private DocumentEventDelegate m_DocumentActivated;
         private DocumentEventDelegate m_DocumentOpened;
         private DocumentEventDelegate m_NewDocumentCreated;
-
-        private IModelDoc2 m_WaitActivateDocument;
-        private IModelDoc2 m_WaitOpenDocument;
-        private IModelDoc2 m_WaitNewDocument;
-
-        private object m_Lock;
 
         public ISwDocument Active
         {
@@ -150,7 +162,8 @@ namespace Xarial.XCad.SolidWorks.Documents
             set 
             {
                 int errors = -1;
-                var doc = m_SwApp.ActivateDoc3(value.Title, true, (int)swRebuildOnActivation_e.swDontRebuildActiveDoc, ref errors);
+                var doc = m_SwApp.ActivateDoc3(value.Title, true, (int)swRebuildOnActivation_e.swDontRebuildActiveDoc,
+                    ref errors);
 
                 if (doc == null) 
                 {
@@ -159,246 +172,52 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        public int Count
-        {
-            get
-            {
-                ClearDanglingModelPointers(false);
-                return m_Documents.Count;
-            }
-        }
+        public int Count => m_SwApp.GetDocumentCount();
 
         public IXDocument this[string name] => RepositoryHelper.Get(this, name);
 
-        private bool m_IsAttached;
-
-        private readonly List<IModelDoc2> m_DanglingModelPointers;
-
         internal SwDocumentCollection(SwApplication app, IXLogger logger)
         {
-            m_Lock = new object();
-
             m_App = app;
             m_SwApp = (SldWorks)m_App.Sw;
             m_Logger = logger;
 
-            Dispatcher = new SwDocumentDispatcher(app, logger);
-
-            m_DanglingModelPointers = new List<IModelDoc2>();
-
-            m_Documents = new Dictionary<IModelDoc2, SwDocument>(
-                new SwModelPointerEqualityComparer(m_SwApp, m_DanglingModelPointers));
             m_DocsHandler = new DocumentsHandler(app, m_Logger);
-
-            m_IsAttached = false;
         }
-
-        internal void Attach() 
-        {
-            if (!m_IsAttached)
-            {
-                m_IsAttached = true;
-
-                Dispatcher.Dispatched += OnDocumentDispatched;
-
-                AttachToAllOpenedDocuments();
-
-                m_SwApp.DocumentLoadNotify2 += OnDocumentLoadNotify2;
-            }
-        }
-        
+                
         private int OnActiveModelDocChangeNotify()
         {
             var activeDoc = m_SwApp.IActiveDoc2;
 
-            if (m_Documents.TryGetValue(activeDoc, out SwDocument doc))
+            try
             {
-                try
-                {
-                    m_DocumentActivated?.Invoke(doc);
-                }
-                catch (Exception ex)
-                {
-                    m_Logger.Log(ex);
-                }
+                m_DocumentActivated?.Invoke(CreateDocument(activeDoc));
             }
-            else //activate event can happen before the loading event, so the document is not yet registered
+            catch (Exception ex)
             {
-                m_Logger.Log($"Adding {activeDoc.GetTitle()} to the activate waiting list", LoggerMessageSeverity_e.Debug);
-
-                if (Dispatcher.HasDocumentsInDispatchQueue)
-                {
-                    m_WaitActivateDocument = activeDoc;
-                }
-                else 
-                {
-                    try
-                    {
-                        doc = CreateMissingDocument(activeDoc);
-
-                        m_DocumentActivated?.Invoke(doc);
-                    }
-                    catch (Exception ex)
-                    {
-                        m_Logger.Log(ex);
-                    }
-                }
+                m_Logger.Log(ex);
             }
 
             return HResult.S_OK;
         }
 
-        public ISwDocument this[IModelDoc2 model]
+        public ISwDocument this[IModelDoc2 model] 
         {
-            get
+            get 
             {
-                SwDocument doc;
-
-                if (m_Documents.TryGetValue(model, out doc))
-                {
-                    return doc;
-                }
-                else
-                {
-                    var newDoc = CreateMissingDocument(model);
-
-                    ResolveDiscrapancies();
-
-                    return newDoc;
-                }
-            }
-        }
-
-        private SwDocument CreateMissingDocument(IModelDoc2 model) 
-        {
-            try
-            {
-                m_Logger.Log("Restoring missing document");
-
                 try
                 {
                     var test = model.GetTitle();
+                    return CreateDocument(model);
                 }
-                catch
+                catch 
                 {
-                    throw new Exception("Pointer is not valid");
+                    throw new EntityNotFoundException("");
                 }
-
-                var models = (m_SwApp.GetDocuments() as object[]).Cast<IModelDoc2>().ToArray();
-
-                if (models.Contains(model) || models.Any(d => m_SwApp.IsSame(d, model) == (int)swObjectEquality.swObjectSame))
-                {
-                    return Dispatcher.RegisterNativeDocument(model);
-                }
-                else
-                {
-                    throw new Exception($"Model is not found: {model.GetTitle()}");
-                }
-            }
-            catch (Exception ex)
-            {
-                throw new KeyNotFoundException("Specified pointer to the model is not registered", ex);
             }
         }
 
         public IEnumerator<IXDocument> GetEnumerator()
-        {
-            ClearDanglingModelPointers(false);
-            return m_Documents.Values.GetEnumerator();
-        }
-
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-
-        public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters) => RepositoryHelper.FilterDefault(this, filters, reverseOrder);
-
-        private int OnFileOpenPostNotify(string fileName)
-        {
-            if (TryFindExistingDocumentByPath(fileName, out SwDocument doc))
-            {
-                try
-                {
-                    m_DocumentOpened?.Invoke(doc);
-                }
-                catch (Exception ex)
-                {
-                    m_Logger.Log(ex);
-                }
-            }
-            else
-            {
-                m_Logger.Log($"Adding {fileName} to the open waiting list", LoggerMessageSeverity_e.Debug);
-
-                var model = (IModelDoc2)m_SwApp.GetOpenDocumentByName(fileName);
-
-                if (model == null) 
-                {
-                    m_Logger.Log($"Failed to find the document by name '{fileName}'", LoggerMessageSeverity_e.Error);
-                }
-
-                if (Dispatcher.HasDocumentsInDispatchQueue)
-                {
-                    m_WaitOpenDocument = model;
-                }
-                else
-                {
-                    try
-                    {
-                        doc = CreateMissingDocument(model);
-
-                        m_DocumentOpened?.Invoke(doc);
-                    }
-                    catch (Exception ex)
-                    {
-                        m_Logger.Log(ex);
-                    }
-                }
-            }
-
-            return HResult.S_OK;
-        }
-
-        private int OnFileNewNotify(object newDoc, int docType, string templateName)
-        {
-            var model = (IModelDoc2)newDoc;
-
-            if (m_Documents.TryGetValue(model, out SwDocument doc))
-            {
-                try
-                {
-                    m_NewDocumentCreated?.Invoke(doc);
-                }
-                catch (Exception ex)
-                {
-                    m_Logger.Log(ex);
-                }
-            }
-            else
-            {
-                m_Logger.Log($"Adding {model.GetTitle()} to the new document waiting list", LoggerMessageSeverity_e.Debug);
-
-                if (Dispatcher.HasDocumentsInDispatchQueue)
-                {
-                    m_WaitNewDocument = model;
-                }
-                else 
-                {
-                    try
-                    {
-                        doc = CreateMissingDocument(model);
-
-                        m_NewDocumentCreated?.Invoke(doc);
-                    }
-                    catch (Exception ex)
-                    {
-                        m_Logger.Log(ex);
-                    }
-                }
-            }
-
-            return HResult.S_OK;
-        }
-
-        private void AttachToAllOpenedDocuments()
         {
             var openDocs = m_SwApp.GetDocuments() as object[];
 
@@ -406,217 +225,95 @@ namespace Xarial.XCad.SolidWorks.Documents
             {
                 foreach (IModelDoc2 model in openDocs)
                 {
-                    Dispatcher.Dispatch(model);
+                    yield return CreateDocument(model);
                 }
             }
         }
 
-        private void OnDocumentDispatched(SwDocument doc)
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+        public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters) 
+            => RepositoryHelper.FilterDefault(this, filters, reverseOrder);
+
+        private int OnFileOpenPostNotify(string fileName)
         {
-            lock (m_Lock)
+            try
             {
-                if (!m_Documents.ContainsKey(doc.Model))
-                {
-                    ClearDanglingModelPointers(true);
-
-                    doc.Destroyed += OnDocumentDestroyed;
-
-                    m_Documents.Add(doc.Model, doc);
-
-                    m_DocsHandler.TryInitHandlers(doc);
-
-                    try
-                    {
-                        DocumentLoaded?.Invoke(doc);
-                    }
-                    catch (Exception ex)
-                    {
-                        m_Logger.Log(ex);
-                    }
-
-                    if (m_WaitActivateDocument != null
-                        && SwModelPointerEqualityComparer.AreEqual(m_App.Sw, m_WaitActivateDocument, doc.Model))
-                    {
-                        try
-                        {
-                            m_Logger.Log($"Calling document activated event for the {doc.Title}", LoggerMessageSeverity_e.Debug);
-                            m_DocumentActivated?.Invoke(doc);
-                        }
-                        catch (Exception ex)
-                        {
-                            m_Logger.Log(ex);
-                        }
-
-                        m_WaitActivateDocument = null;
-                    }
-
-                    if (m_WaitNewDocument != null
-                        && SwModelPointerEqualityComparer.AreEqual(m_App.Sw, m_WaitNewDocument, doc.Model))
-                    {
-                        try
-                        {
-                            m_Logger.Log($"Calling new document created event for the {doc.Title}", LoggerMessageSeverity_e.Debug);
-                            m_NewDocumentCreated?.Invoke(doc);
-                        }
-                        catch (Exception ex)
-                        {
-                            m_Logger.Log(ex);
-                        }
-
-                        m_WaitNewDocument = null;
-                    }
-
-                    if (m_WaitOpenDocument != null
-                        && SwModelPointerEqualityComparer.AreEqual(m_App.Sw, m_WaitOpenDocument, doc.Model))
-                    {
-                        try
-                        {
-                            m_Logger.Log($"Calling document opened event for the {doc.Title}", LoggerMessageSeverity_e.Debug);
-                            m_DocumentOpened?.Invoke(doc);
-                        }
-                        catch (Exception ex)
-                        {
-                            m_Logger.Log(ex);
-                        }
-
-                        m_WaitOpenDocument = null;
-                    }
-                }
-                else 
-                {
-                    //NOTE: this happens on activation of the document
-                    m_Logger.Log($"Conflict. {doc.Model.GetTitle()} already dispatched", LoggerMessageSeverity_e.Debug);
-                }
+                m_DocumentOpened?.Invoke(CreateDocument(FindModel(fileName, fileName)));
             }
+            catch (Exception ex)
+            {
+                m_Logger.Log(ex);
+            }
+
+            return HResult.S_OK;
         }
 
-        private void ResolveDiscrapancies()
+        private int OnFileNewNotify(object newDoc, int docType, string templateName)
         {
-            var models = (m_SwApp.GetDocuments() as object[]).Cast<IModelDoc2>().ToArray();
-
-            var docs = new List<ISwDocument>();
-
-            foreach (var model in models)
+            try
             {
-                if (m_Documents.TryGetValue(model, out var doc))
-                {
-                    docs.Add(doc);
-                }
-                else
-                {
-                    m_Logger.Log($"{model.GetTitle()} was not registered", LoggerMessageSeverity_e.Warning);
-
-                    docs.Add(Dispatcher.RegisterNativeDocument(model));
-                }
+                m_NewDocumentCreated?.Invoke(CreateDocument((IModelDoc2)newDoc));
+            }
+            catch (Exception ex)
+            {
+                m_Logger.Log(ex);
             }
 
-            var danglingModels = m_Documents.Where(d => !docs.Contains(d.Value)).Select(d => d.Key).ToArray();
-
-            if (danglingModels.Any())
-            {
-                m_DanglingModelPointers.AddRange(danglingModels);
-
-                ClearDanglingModelPointers(true);
-            }
-        }
-
-        private void ClearDanglingModelPointers(bool cachedOnly)
-        {
-            lock (m_Lock)
-            {
-                void RemovePointers(IEnumerable<IModelDoc2> models) 
-                {
-                    foreach (var dangModelPtr in models)
-                    {
-                        try
-                        {
-                            m_Logger.Log("Removing dangling model from the list", LoggerMessageSeverity_e.Warning);
-                            m_Documents.Remove(dangModelPtr);
-                        }
-                        catch (Exception ex)
-                        {
-                            m_Logger.Log(ex);
-                        }
-                    }
-                }
-
-                if (m_DanglingModelPointers.Count > 0)
-                {
-                    RemovePointers(m_DanglingModelPointers);
-
-                    m_DanglingModelPointers.Clear();
-                }
-
-                if (!cachedOnly)
-                {
-                    if (m_SwApp.GetDocumentCount() != m_Documents.Count)
-                    {
-                        var dangPtrs = m_Documents.Where(d => !d.Value.IsAlive).Select(d => d.Key).ToArray();
-
-                        RemovePointers(dangPtrs);
-                    }
-                }
-            }
+            return HResult.S_OK;
         }
 
         private int OnDocumentLoadNotify2(string docTitle, string docPath)
         {
-            var docName = docPath;
-
-            if (string.IsNullOrEmpty(docName)) 
+            try
             {
-                docName = docTitle;
+                m_DocumentLoaded?.Invoke(CreateDocument(FindModel(docTitle, docPath)));
+            }
+            catch (Exception ex)
+            {
+                m_Logger.Log(ex);
             }
 
-            var model = m_App.Sw.GetOpenDocument(docName);
-
-            if (model == null)
-            {
-                //NOTE: foreign document may be imported with the file name not compatible with GetOpenDocument
-                model = FindModel(docTitle, docPath);
-            }
-
-            //NOTE: it might not be enough to compare the pointers. When LoadNotify2 event is called from different threads pointers might not be 
-            Dispatcher.Dispatch(model);
-            
             return HResult.S_OK;
         }
 
         private ModelDoc2 FindModel(string docTitle, string docPath)
         {
-            foreach (ModelDoc2 model in m_App.Sw.GetDocuments() as object[] ?? new object[0])
+            var docName = docPath;
+
+            if (string.IsNullOrEmpty(docName))
             {
-                if (!string.IsNullOrEmpty(docPath))
+                docName = docTitle;
+            }
+
+            var foundModel = m_App.Sw.GetOpenDocument(docName);
+
+            if (foundModel != null)
+            {
+                return foundModel;
+            }
+            else
+            {
+                foreach (ModelDoc2 model in m_App.Sw.GetDocuments() as object[] ?? new object[0])
                 {
-                    if (string.Equals(model.GetPathName(), docPath, StringComparison.CurrentCultureIgnoreCase))
+                    if (!string.IsNullOrEmpty(docPath))
                     {
-                        return model;
+                        if (string.Equals(model.GetPathName(), docPath, StringComparison.CurrentCultureIgnoreCase))
+                        {
+                            return model;
+                        }
                     }
-                }
-                else if (!string.IsNullOrEmpty(docTitle))
-                {
-                    if (string.Equals(model.GetTitle(), docTitle, StringComparison.CurrentCultureIgnoreCase))
+                    else if (!string.IsNullOrEmpty(docTitle))
                     {
-                        return model;
+                        if (string.Equals(model.GetTitle(), docTitle, StringComparison.CurrentCultureIgnoreCase))
+                        {
+                            return model;
+                        }
                     }
                 }
             }
 
             throw new Exception($"Failed to find the document by title and path: {docTitle} [{docPath}]");
-        }
-
-        private void OnDocumentDestroyed(SwDocument doc)
-            => ReleaseDocument(doc);
-
-        private void ReleaseDocument(SwDocument doc)
-        {
-            doc.Destroyed -= OnDocumentDestroyed;
-            m_Documents.Remove(doc.Model);
-            m_DocsHandler.ReleaseHandlers(doc);
-            doc.SetClosed();
-            doc.Dispose();
-
-            ClearDanglingModelPointers(true);
         }
 
         public void RegisterHandler<THandler>(Func<THandler> handlerFact) 
@@ -646,21 +343,23 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public bool TryGet(string name, out IXDocument ent)
         {
-            var model = m_SwApp.GetOpenDocumentByName(name) as IModelDoc2;
-            ent = null;
+            IModelDoc2 model = m_SwApp.GetOpenDocument(name);
+
+            if (model == null)
+            {
+                model = m_SwApp.GetOpenDocumentByName(name) as IModelDoc2;
+            }
 
             if (model != null)
             {
-                SwDocument doc;
-
-                if (m_Documents.TryGetValue(model, out doc))
-                {
-                    ent = doc;
-                    return true;
-                }
+                ent = CreateDocument(model);
+                return true;
             }
-
-            return false;
+            else 
+            {
+                ent = null;
+                return false;
+            }
         }
 
         public void AddRange(IEnumerable<IXDocument> ents, CancellationToken cancellationToken) => RepositoryHelper.AddRange(ents, cancellationToken);
@@ -688,23 +387,39 @@ namespace Xarial.XCad.SolidWorks.Documents
             return doc != null;
         }
 
+        private SwDocument CreateDocument(IModelDoc2 nativeDoc)
+        {
+            SwDocument doc;
+
+            switch (nativeDoc)
+            {
+                case IPartDoc part:
+                    doc = new SwPart(part, m_App, m_Logger, true);
+                    break;
+
+                case IAssemblyDoc assm:
+                    doc = new SwAssembly(assm, m_App, m_Logger, true);
+                    break;
+
+                case IDrawingDoc drw:
+                    doc = new SwDrawing(drw, m_App, m_Logger, true);
+                    break;
+
+                default:
+                    throw new NotSupportedException($"Invalid cast of '{nativeDoc.GetPathName()}' [{nativeDoc.GetTitle()}] of type '{((object)nativeDoc).GetType().FullName}'. Specific document type: {(swDocumentTypes_e)nativeDoc.GetType()}");
+            }
+
+            return doc;
+        }
+
         public void Dispose()
         {
-            if (m_IsAttached)
-            {
-                Dispatcher.Dispatched -= OnDocumentDispatched;
-                m_SwApp.DocumentLoadNotify2 -= OnDocumentLoadNotify2;
-                m_SwApp.ActiveModelDocChangeNotify -= OnActiveModelDocChangeNotify;
-                m_SwApp.FileNewNotify2 -= OnFileNewNotify;
-                m_SwApp.FileOpenPostNotify -= OnFileOpenPostNotify;
+            m_SwApp.DocumentLoadNotify2 -= OnDocumentLoadNotify2;
+            m_SwApp.ActiveModelDocChangeNotify -= OnActiveModelDocChangeNotify;
+            m_SwApp.FileNewNotify2 -= OnFileNewNotify;
+            m_SwApp.FileOpenPostNotify -= OnFileOpenPostNotify;
 
-                foreach (var doc in m_Documents.Values.ToArray())
-                {
-                    ReleaseDocument(doc);
-                }
-
-                m_Documents.Clear();
-            }
+            m_DocsHandler.Dispose();
         }
     }
 

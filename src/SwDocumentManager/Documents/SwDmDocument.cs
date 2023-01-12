@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2022 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -139,8 +139,6 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         #endregion
 
-        internal event Action<SwDmDocument> Disposed;
-
         IXVersion IXDocument.Version => Version;
         IXPropertyRepository IPropertiesOwner.Properties => Properties;
 
@@ -268,116 +266,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             }
         }
 
-        public IEnumerable<IXDocument3D> Dependencies 
-        {
-            get
-            {
-                var deps = GetRawDependencies();
-
-                if (deps.Any())
-                {
-                    var compsLazy = new Lazy<ISwDmComponent[]>(
-                        () =>
-                        {
-                            if (string.Equals(System.IO.Path.GetExtension(Path), ".sldasm", StringComparison.CurrentCultureIgnoreCase))
-                            {
-                                var activeConfName = Document.ConfigurationManager.GetActiveConfigurationName();
-                                var conf = (ISwDMConfiguration2)Document.ConfigurationManager.GetConfigurationByName(activeConfName);
-                                var comps = (object[])conf.GetComponents();
-                                if (comps != null)
-                                {
-                                    return comps.Select(c => CreateObjectFromDispatch<ISwDmComponent>(c)).ToArray();
-                                }
-                                else
-                                {
-                                    return new ISwDmComponent[0];
-                                }
-                            }
-                            else
-                            {
-                                throw new Exception("Components can only be extracted from the assembly");
-                            }
-                        });
-
-                    bool TryFindVirtualDocument(string filePath, out ISwDmDocument3D virtCompDoc)
-                    {
-                        try
-                        {
-                            var virtCompFileName = System.IO.Path.GetFileName(filePath);
-
-                            virtCompDoc = m_VirtualDocumentsCache.FirstOrDefault(d => string.Equals(d.Title,
-                                virtCompFileName, StringComparison.CurrentCultureIgnoreCase));
-
-                            if (virtCompDoc != null) 
-                            {
-                                if (virtCompDoc.IsAlive)
-                                {
-                                    return true;
-                                }
-                                else 
-                                {
-                                    m_VirtualDocumentsCache.Remove(virtCompDoc);
-                                    virtCompDoc = null;
-                                }
-                            }
-
-                            var comp = compsLazy.Value.FirstOrDefault(c => string.Equals(
-                                System.IO.Path.GetFileName(c.CachedPath), virtCompFileName,
-                                StringComparison.CurrentCultureIgnoreCase));
-
-                            if (comp != null)
-                            {
-                                virtCompDoc = comp.ReferencedDocument;
-                                m_VirtualDocumentsCache.Add(virtCompDoc);
-                                return true;
-                            }
-                        }
-                        catch
-                        {
-                        }
-
-                        virtCompDoc = null;
-                        return false;
-                    }
-
-                    for (int i = 0; i < deps.Length; i++)
-                    {
-                        var depPath = deps[i].Item1;
-                        var isVirtual = deps[i].Item2;
-
-                        ISwDmDocument3D depDoc = null;
-
-                        if (OwnerApplication.Documents.TryGet(depPath, out ISwDmDocument curDoc))
-                        {
-                            depDoc = (ISwDmDocument3D)curDoc;
-                        }
-
-                        if (depDoc == null)
-                        {
-                            if (!isVirtual || !TryFindVirtualDocument(depPath, out depDoc))
-                            {
-                                try
-                                {
-                                    depDoc = (ISwDmDocument3D)OwnerApplication.Documents.PreCreateFromPath(depPath);
-                                }
-                                catch
-                                {
-                                    depDoc = OwnerApplication.Documents.PreCreate<ISwDmDocument3D>();
-                                    depDoc.Path = depPath;
-                                }
-
-                                if (State.HasFlag(DocumentState_e.ReadOnly))
-                                {
-                                    depDoc.State = DocumentState_e.ReadOnly;
-                                }
-                            }
-                        }
-
-                        yield return depDoc;
-                    }
-                }
-            }
-        }
+        public IXDocumentDependencies Dependencies { get; }
 
         public bool IsCommitted => m_Creator.IsCreated;
 
@@ -390,7 +279,8 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         
         public event DocumentSaveDelegate Saving;
         public event DocumentCloseDelegate Closing;
-        
+        public event DocumentEventDelegate Destroyed;
+
         protected readonly IElementCreator<ISwDMDocument> m_Creator;
 
         internal ChangedReferencesCollection ChangedReferences => m_ChangedReferencesLazy.Value;
@@ -399,8 +289,6 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         protected readonly Action<ISwDmDocument> m_CloseHandler;
 
         private readonly Lazy<ISwDmCustomPropertiesCollection> m_Properties;
-
-        private readonly List<ISwDmDocument3D> m_VirtualDocumentsCache;
         private readonly Lazy<ChangedReferencesCollection> m_ChangedReferencesLazy;
 
         internal SwDmDocument(SwDmApplication dmApp, ISwDMDocument doc, bool isCreated, 
@@ -412,12 +300,11 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             m_CreateHandler = createHandler;
             m_CloseHandler = closeHandler;
 
-            m_VirtualDocumentsCache = new List<ISwDmDocument3D>();
+            Dependencies = new SwDmDocumentDependencies(this);
 
             m_Creator = new ElementCreator<ISwDMDocument>(OpenDocument, doc, isCreated);
 
             m_Properties = new Lazy<ISwDmCustomPropertiesCollection>(() => new SwDmDocumentCustomPropertiesCollection(this));
-
             m_ChangedReferencesLazy = new Lazy<ChangedReferencesCollection>(() => new ChangedReferencesCollection(Document));
         }
 
@@ -519,7 +406,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
                 m_CloseHandler.Invoke(this);
                 m_IsClosed = true;
-                Disposed?.Invoke(this);
+                Destroyed?.Invoke(this);
             }
         }
 
@@ -639,52 +526,6 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         }
 
         public IXDocumentOptions Options => throw new NotImplementedException();
-
-        private Tuple<string, bool>[] GetRawDependencies()
-        {
-            string[] deps;
-            object isVirtualObj;
-
-            var searchOpts = OwnerApplication.SwDocMgr.GetSearchOptionObject();
-
-            searchOpts.SearchFilters = (int)(
-                SwDmSearchFilters.SwDmSearchExternalReference
-                | SwDmSearchFilters.SwDmSearchRootAssemblyFolder
-                | SwDmSearchFilters.SwDmSearchSubfolders
-                | SwDmSearchFilters.SwDmSearchInContextReference);
-
-            if (this.IsVersionNewerOrEqual(SwDmVersion_e.Sw2017))
-            {
-                deps = ((ISwDMDocument21)Document).GetAllExternalReferences5(searchOpts, out _, out isVirtualObj, out _, out _) as string[];
-            }
-            else
-            {
-                deps = ((ISwDMDocument13)Document).GetAllExternalReferences4(searchOpts, out _, out isVirtualObj, out _) as string[];
-            }
-
-            if (deps != null)
-            {
-                var isVirtual = (bool[])isVirtualObj;
-
-                if (isVirtual.Length != deps.Length)
-                {
-                    throw new Exception("Invalid API. Number of virtual components information does not match references count");
-                }
-
-                var res = new Tuple<string, bool>[deps.Length];
-
-                for (int i = 0; i < res.Length; i++)
-                {
-                    res[i] = new Tuple<string, bool>(deps[i], isVirtual[i]);
-                }
-
-                return res;
-            }
-            else
-            {
-                return new Tuple<string, bool>[0];
-            }
-        }
 
         public TObj CreateObjectFromDispatch<TObj>(object disp) where TObj : ISwDmObject
             => SwDmObjectFactory.FromDispatch<TObj>(disp, this);

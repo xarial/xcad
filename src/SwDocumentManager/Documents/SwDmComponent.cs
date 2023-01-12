@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2022 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -29,6 +29,7 @@ using Xarial.XCad.Services;
 using Xarial.XCad.SwDocumentManager.Features;
 using Xarial.XCad.SwDocumentManager.Services;
 using Xarial.XCad.Toolkit.Utils;
+using static Xarial.XCad.SwDocumentManager.Documents.SwDmDocument;
 
 namespace Xarial.XCad.SwDocumentManager.Documents
 {

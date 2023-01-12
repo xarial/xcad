@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2022 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -9,9 +9,12 @@ using SolidWorks.Interop.sldworks;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Xarial.XCad.Exceptions;
 using Xarial.XCad.Features;
+using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.SolidWorks.Documents;
+using Xarial.XCad.SolidWorks.Geometry;
 using Xarial.XCad.SolidWorks.Sketch;
 using Xarial.XCad.SolidWorks.Utils;
 
@@ -78,10 +81,46 @@ namespace Xarial.XCad.SolidWorks.Features
             }
         }
 
+        public IXPlanarRegion ReferenceEntity 
+        {
+            get 
+            {
+                if (IsCommitted)
+                {
+                    int entType = -1;
+                    return (IXPlanarRegion)OwnerDocument.CreateObjectFromDispatch<ISwEntity>(Sketch.GetReferenceEntity(ref entType));
+                }
+                else 
+                {
+                    return m_Creator.CachedProperties.Get<IXPlanarRegion>();
+                }
+            }
+            set 
+            {
+                if (!IsCommitted)
+                {
+                    m_Creator.CachedProperties.Set(value);
+                }
+                else 
+                {
+                    throw new CommitedElementReadOnlyParameterException();
+                }
+            }
+        }
+
         protected override ISketch CreateSketch()
         {
-            //TODO: select the plane or face
+            var ent = (ISwEntity)ReferenceEntity;
+
+            if (ent == null) 
+            {
+                throw new Exception("Reference entity is not specified");
+            }
+
+            ent.Select(false);
+
             OwnerModelDoc.InsertSketch2(true);
+            
             return OwnerModelDoc.SketchManager.ActiveSketch;
         }
         

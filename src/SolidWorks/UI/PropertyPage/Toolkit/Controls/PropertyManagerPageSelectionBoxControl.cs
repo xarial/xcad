@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2022 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -16,17 +16,13 @@ using System.Runtime.InteropServices;
 using Xarial.XCad.Toolkit.Services;
 using Xarial.XCad.Base.Enums;
 using Xarial.XCad.Toolkit.PageBuilder.Constructors;
-using Xarial.XCad.UI.PropertyPage;
 using Xarial.XCad.UI.PropertyPage.Base;
 using Xarial.XCad.UI.PropertyPage.Services;
 using Xarial.XCad.UI.PropertyPage.Structures;
 using Xarial.XCad.Utils.PageBuilder.PageElements;
-using Xarial.XCad.Extensions;
 using Xarial.XCad.Base;
 using Xarial.XCad.UI.PropertyPage.Enums;
 using Xarial.XCad.Utils.PageBuilder.Base;
-using Xarial.XCad.SolidWorks.Services;
-using Xarial.XCad.Toolkit.Services;
 using Xarial.XCad.Toolkit;
 using Xarial.XCad.UI.PropertyPage.Attributes;
 

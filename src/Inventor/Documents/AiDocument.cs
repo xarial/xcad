@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2022 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -25,6 +25,7 @@ using Xarial.XCad.Documents.Exceptions;
 using Xarial.XCad.Documents.Services;
 using Xarial.XCad.Exceptions;
 using Xarial.XCad.Features;
+using Xarial.XCad.Inventor.Utils;
 using Xarial.XCad.Services;
 
 namespace Xarial.XCad.Inventor.Documents
@@ -45,6 +46,7 @@ namespace Xarial.XCad.Inventor.Documents
         public event DocumentEventDelegate Rebuilt;
         public event DocumentSaveDelegate Saving;
         public event DocumentCloseDelegate Closing;
+        public event DocumentEventDelegate Destroyed;
 
         public Document Document => m_Creator.Element;
 
@@ -148,7 +150,7 @@ namespace Xarial.XCad.Inventor.Documents
 
         public IXSelectionRepository Selections => throw new NotImplementedException();
 
-        public IEnumerable<IXDocument3D> Dependencies => throw new NotImplementedException();
+        public IXDocumentDependencies Dependencies => throw new NotImplementedException();
 
         public int UpdateStamp => throw new NotImplementedException();
 
@@ -163,48 +165,34 @@ namespace Xarial.XCad.Inventor.Documents
         private bool m_IsDisposed;
         private bool? m_IsClosed;
 
+        private readonly IEqualityComparer<Document> m_DocumentEqualityComparer;
+
         internal AiDocument(Document doc, AiApplication ownerApp) : base(doc, null, ownerApp)
         {
             m_Creator = new ElementCreator<Document>(CreateDocument, doc, doc != null);
 
             Options = new AiDocumentOptions();
+
+            m_DocumentEqualityComparer = new AiDocumentPointerEqualityComparer();
+
+            ownerApp.Application.ApplicationEvents.OnCloseDocument += OnCloseDocument;
         }
 
-        internal void SetModel(Document doc) => m_Creator.Set(doc);
+        private void SetModel(Document doc) => m_Creator.Set(doc);
 
         private Document CreateDocument(CancellationToken cancellationToken)
         {
-            var dispatcher = ((AiDocumentsCollection)OwnerApplication.Documents).Dispatcher;
-
-            dispatcher.BeginDispatch(this);
-
-            Document doc = null;
-
-            try
+            if (!string.IsNullOrEmpty(Path))
             {
-                if (!string.IsNullOrEmpty(Path))
-                {
-                    var nameValueMap = OwnerApplication.Application.TransientObjects.CreateNameValueMap();
-                    doc = OwnerApplication.Application.Documents.OpenWithOptions(Path, nameValueMap, !State.HasFlag(DocumentState_e.Hidden));
-                }
-                else
-                {
-                    throw new NotSupportedException();
-                }
+                var nameValueMap = OwnerApplication.Application.TransientObjects.CreateNameValueMap();
+                var doc = OwnerApplication.Application.Documents.OpenWithOptions(Path, nameValueMap, !State.HasFlag(DocumentState_e.Hidden));
+                SetModel(doc);
+                return doc;
             }
-            finally
+            else
             {
-                if (doc != null)
-                {
-                    dispatcher.EndDispatch(this, doc);
-                }
-                else
-                {
-                    dispatcher.TryRemoveFromDispatchQueue(this);
-                }
+                throw new NotSupportedException();
             }
-
-            return doc;
         }
 
         public void Close() => Document.Close(true);
@@ -288,6 +276,20 @@ namespace Xarial.XCad.Inventor.Documents
                     return false;
                 }
             }
+        }
+
+        private void OnCloseDocument(_Document DocumentObject, string FullDocumentName, EventTimingEnum BeforeOrAfter, NameValueMap Context, out HandlingCodeEnum HandlingCode)
+        {
+            if (BeforeOrAfter == EventTimingEnum.kAfter)
+            {
+                if (m_DocumentEqualityComparer.Equals(Document, DocumentObject)) 
+                {
+                    m_IsClosed = true;
+                    Destroyed?.Invoke(this);
+                }
+            }
+
+            HandlingCode = HandlingCodeEnum.kEventHandled;
         }
 
         public void Dispose()
