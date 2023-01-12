@@ -5,7 +5,7 @@
     <BuildNumber></BuildNumber>
     <VersionPrefix>0.8.0$(BuildNumber)</VersionPrefix>
     <Company>Xarial Pty Limited</Company>
-    <Copyright>Copyright © Xarial Pty Limited 2022</Copyright>
+    <Copyright>Copyright © Xarial Pty Limited 2023</Copyright>
     <Authors>Xarial</Authors>
     <PackageProjectUrl>https://xcad.net</PackageProjectUrl>
     <RepositoryUrl>https://github.com/xarial/xcad</RepositoryUrl>

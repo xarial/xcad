@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2022 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -596,9 +596,11 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             }
         }
 
+        /// <inheritdoc/>
         public abstract CustomFeatureRebuildResult OnRebuild(ISwApplication app, ISwDocument doc, ISwMacroFeature<TParams> feature,
             out AlignDimensionDelegate<TParams> alignDim);
 
+        /// <inheritdoc/>
         public override CustomFeatureRebuildResult OnRebuild(ISwApplication app, ISwDocument doc, ISwMacroFeature feature)
         {
             var paramsFeat = (SwMacroFeature<TParams>)feature;
@@ -607,7 +609,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             IXDimension[] dims;
             string[] dimParamNames;
 
-            paramsFeat.Parameters = paramsFeat.ReadParameters(out dims, out dimParamNames,
+            paramsFeat.ReadParameters(out dims, out dimParamNames,
                 out var _, out var _, out var _);
 
             AlignDimensionDelegate<TParams> alignDimsDel;
@@ -635,6 +637,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             return res;
         }
 
+        /// <inheritdoc/>
         public virtual bool OnEditDefinition(ISwApplication app, ISwDocument doc, ISwMacroFeature<TParams> feature) 
         {
             return true;
