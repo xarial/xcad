@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageType>Template</PackageType>
+    <PackageVersion>0.8</PackageVersion>
+    <PackageId>Xarial.XCad.Templates</PackageId>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <Title>xCAD.NET Templates</Title>
+    <Authors>Xarial</Authors>
+    <Company>Xarial Pty Limited</Company>
+    <Description>Templates for creating add-ins, custom feature for SOLIDWORKS</Description>
+    <PackageTags>dotnet-new;templates;xcad,solidworks,macrofeature,addin,cad</PackageTags>
+    <IncludeContentInPack>true</IncludeContentInPack>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <ContentTargetFolders>content</ContentTargetFolders>
+    <NoWarn>$(NoWarn);NU5128</NoWarn>
+    <NoDefaultExcludes>true</NoDefaultExcludes>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="**\*" Exclude="Xarial.XCad.Templates.csproj;**\bin\**;**\obj\**;**\*.user" />
+  </ItemGroup>
+
+</Project>
