@@ -1,12 +1,14 @@
-﻿using System;
+﻿//*********************************************************************
+//xCAD
+//Copyright(C) 2023 Xarial Pty Limited
+//Product URL: https://www.xcad.net
+//License: https://xcad.xarial.com/license/
+//*********************************************************************
+
+using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
-using System.Threading.Tasks;
-using Xarial.XCad.Base;
 
 namespace Xarial.XCad.Documents
 {
@@ -16,6 +18,11 @@ namespace Xarial.XCad.Documents
     public interface IXDocumentDependencies : IEnumerable<IXDocument3D>
     {
         /// <summary>
+        /// Owner of these dependencies
+        /// </summary>
+        IXDocument OwnerDocument { get; }
+
+        /// <summary>
         /// Replaces the dependency
         /// </summary>
         /// <param name="source">Source dependency to replace</param>
@@ -23,150 +30,77 @@ namespace Xarial.XCad.Documents
         void Replace(IXDocument3D source, IXDocument3D target);
     }
 
+    /// <summary>
+    /// Additional methods for <see cref="IXDocumentDependencies"/>
+    /// </summary>
     public static class XDocumentDependenciesExtension 
     {
-        private class RootDocumentReferenceInfo : DocumentReferenceInfo
-        {
-            internal override IXDocumentDependencies TargetDependencies { get; }
-
-            internal RootDocumentReferenceInfo(IXDocumentDependencies rootDeps, IReadOnlyList<DocumentReferenceInfo> children) 
-                : base(null, null, children)
-            {
-                TargetDependencies = rootDeps;
-            }
-        }
-
-        [DebuggerDisplay("{" + nameof(Source) + "} -> {" + nameof(Destination) + "}")]
-        private class DocumentReferenceInfo 
-        {
-            internal IXDocument Source { get; }
-            internal IXDocument Destination { get; set; }
-
-            internal IReadOnlyList<DocumentReferenceInfo> Children { get; }
-
-            internal virtual IXDocumentDependencies TargetDependencies => Destination.Dependencies;
-
-            internal DocumentReferenceInfo(IXDocument source, IXDocument dest, IReadOnlyList<DocumentReferenceInfo> children)
-            {
-                Source = source;
-                Destination = dest;
-                Children = children;
-            }
-        }
-
         /// <summary>
-        /// Renames all references keeping the references
+        /// Replaces all dependencies recursively
         /// </summary>
-        /// <param name="deps">Dependencies to rename</param>
-        /// <param name="replacer">File path replacer</param>
-        /// <remarks>All references will be deleted</remarks>
-        public static void Rename(this IXDocumentDependencies deps, Func<string, string> replacer)
-            => Rename(deps, replacer, File.Delete);
-
-        /// <inheritdoc/>
-        /// <param name="oldFilesHandler">Function to handle the old references</param>
-        public static void Rename(this IXDocumentDependencies deps, Func<string, string> replacer, Action<string> oldFilesHandler)
+        /// <param name="deps">Dependencies to reaplce</param>
+        /// <param name="replacementPathProvider">File path replacer</param>
+        public static void ReplaceAll(this IXDocumentDependencies deps, Func<string, string> replacementPathProvider)
         {
-            var cache = new Dictionary<string, DocumentReferenceInfo>(StringComparer.CurrentCultureIgnoreCase);
-            var children = new List<DocumentReferenceInfo>();
-            var rootRef = new RootDocumentReferenceInfo(deps, children);
-            IXApplication app = null;
-            FillChildren(deps, children, cache, ref app);
+            var app = deps.OwnerDocument.OwnerApplication;
 
-            foreach (var replRef in Flatten(rootRef))
+            var renameMaps = new Dictionary<string, string>(StringComparer.CurrentCultureIgnoreCase);
+
+            void BuildRenameMaps(IXDocumentDependencies curDeps)
             {
-                var destDoc = app.Documents.PreCreate<IXDocument3D>();
-                destDoc.Path = replacer.Invoke(replRef.Source.Path);
-                replRef.Destination = destDoc;
-            }
-
-            var processedFiles = new List<DocumentReferenceInfo>();
-
-            ReplaceReferences(rootRef, processedFiles);
-
-            foreach (var procFile in processedFiles)
-            {
-                if (!string.Equals(procFile.Source.Path, procFile.Destination.Path, StringComparison.CurrentCultureIgnoreCase))
+                foreach (var dep in curDeps)
                 {
-                    oldFilesHandler.Invoke(procFile.Source.Path);
-                }
-            }
-        }
+                    var srcDocPath = dep.Path;
 
-        private static void FillChildren(IXDocumentDependencies deps,
-            List<DocumentReferenceInfo> children,
-            Dictionary<string, DocumentReferenceInfo> cachedRefs, ref IXApplication app)
-        {
-            foreach (var dep in deps)
-            {
-                if (app == null) 
-                {
-                    app = dep.OwnerApplication;
-                }
-
-                if (!cachedRefs.TryGetValue(dep.Path, out DocumentReferenceInfo replRef))
-                {
-                    var subChildren = new List<DocumentReferenceInfo>();
-                    replRef = new DocumentReferenceInfo(dep, dep, subChildren);
-                    cachedRefs.Add(dep.Path, replRef);
-                    FillChildren(replRef.TargetDependencies, subChildren, cachedRefs, ref app);
-                }
-
-                children.Add(replRef);
-            }
-        }
-
-        private static IEnumerable<DocumentReferenceInfo> Flatten(DocumentReferenceInfo parentRefInfo)
-        {
-            var processed = new List<DocumentReferenceInfo>();
-
-            IEnumerable<DocumentReferenceInfo> FlattenChildren(DocumentReferenceInfo parent)
-            {
-                if (parent.Children != null)
-                {
-                    foreach (var child in parent.Children)
+                    if (!renameMaps.ContainsKey(srcDocPath))
                     {
-                        if (!processed.Contains(child))
+                        var destDocPath = replacementPathProvider.Invoke(srcDocPath);
+
+                        renameMaps.Add(srcDocPath, destDocPath);
+
+                        BuildRenameMaps(dep.Dependencies);
+                    }
+                }
+            }
+
+            BuildRenameMaps(deps);
+
+            var targetDependencies = renameMaps.Select(x =>
+            {
+                var doc = app.Documents.PreCreate<IXDocument>();
+                doc.Path = x.Value;
+                return doc.Dependencies;
+            }).ToList();
+
+            if (!targetDependencies.Any(d => string.Equals(d.OwnerDocument.Path, deps.OwnerDocument.Path, StringComparison.CurrentCultureIgnoreCase))) 
+            {
+                targetDependencies.Insert(0, deps);
+            }
+
+            foreach (var targDeps in targetDependencies)
+            {
+                foreach (var docDep in targDeps.ToArray())
+                {
+                    if (renameMaps.TryGetValue(docDep.Path, out var newPath))
+                    {
+                        if (!string.Equals(docDep.Path, newPath, StringComparison.CurrentCultureIgnoreCase))
                         {
-                            processed.Add(child);
-
-                            yield return child;
-
-                            foreach (var subItem in FlattenChildren(child))
+                            var newDoc = app.Documents.PreCreate<IXDocument3D>();
+                            newDoc.Path = newPath;
+                            try
                             {
-                                yield return subItem;
+                                targDeps.Replace(docDep, newDoc);
+                            }
+                            catch (Exception ex)
+                            {
+                                throw new Exception($"{ex.Message} ({targDeps.OwnerDocument.Path}: {docDep.Path} => {newDoc.Path})", ex);
                             }
                         }
                     }
-                }
-            }
-
-            foreach (var replRef in FlattenChildren(parentRefInfo))
-            {
-                yield return replRef;
-            }
-        }
-
-        private static void ReplaceReferences(DocumentReferenceInfo replRef, List<DocumentReferenceInfo> processedRefs)
-        {
-            for (int i = 0; i < replRef.Children.Count; i++)
-            {
-                var childRef = replRef.Children[i];
-
-                if (!string.Equals(childRef.Source.Path, childRef.Destination.Path, StringComparison.CurrentCultureIgnoreCase))
-                {
-                    if (!processedRefs.Contains(childRef))
+                    else
                     {
-                        File.Copy(childRef.Source.Path, childRef.Destination.Path);
+                        throw new Exception($"Failed to find the rename map of {docDep.Path}");
                     }
-
-                    replRef.TargetDependencies.Replace((IXDocument3D)childRef.Source, (IXDocument3D)childRef.Destination);
-                }
-
-                if (!processedRefs.Contains(childRef))
-                {
-                    processedRefs.Add(childRef);
-                    ReplaceReferences(childRef, processedRefs);
                 }
             }
         }

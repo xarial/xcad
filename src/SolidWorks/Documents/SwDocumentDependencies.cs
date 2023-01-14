@@ -1,4 +1,11 @@
-﻿using System;
+﻿//*********************************************************************
+//xCAD
+//Copyright(C) 2023 Xarial Pty Limited
+//Product URL: https://www.xcad.net
+//License: https://xcad.xarial.com/license/
+//*********************************************************************
+
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,6 +24,8 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         private readonly SwDocument m_Doc;
         private readonly IXLogger m_Logger;
+
+        public IXDocument OwnerDocument => m_Doc;
 
         internal SwDocumentDependencies(SwDocument doc, IXLogger logger) 
         {

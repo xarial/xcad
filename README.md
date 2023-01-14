@@ -5,11 +5,20 @@
 [![NuGet version (xCAD.NET)](https://img.shields.io/nuget/v/Xarial.XCad.svg?style=flat-square)](https://www.nuget.org/packages/Xarial.XCad/)
 [![Build status](https://dev.azure.com/xarial/xcad/_apis/build/status/xcad)](https://dev.azure.com/xarial/xcad/_build/latest?definitionId=34)
 
+[![Templates](https://img.shields.io/badge/-Templates-yellow.svg)](https://www.nuget.org/packages/???/)
 [![User Guide](https://img.shields.io/badge/-Documentation-green.svg)](https://xcad.xarial.com)
 [![Examples](https://img.shields.io/badge/-Examples-blue.svg)](https://github.com/xarial/xcad-examples)
 [![Videos](https://img.shields.io/badge/-Videos-red.svg)](https://www.youtube.com/watch?v=YLFwqTX_V2I&list=PLZ8T-hyutVIEXMFgJ462Ou6Szjk26gPVo)
 
 [xCAD.NET](https://xcad.net) is a framework for building CAD agnostic applications. It allows developers to implement complex functionality with a very simple innovative approach. This brings the best user experience to the consumers of the software.
+
+## Templates
+
+Visual Studio and Visual Studio Code templates can be installed from [NuGet](https://www.nuget.org/packages/???/)
+
+~~~
+> dotnet new install ???
+~~~
 
 ## SOLIDWORKS Add-in Applications
 
@@ -101,8 +110,10 @@ public class IntroMacroFeatureAddIn : SwAddInEx
     [ComVisible(true)]
     public class BoxMacroFeature : SwMacroFeatureDefinition<BoxData, BoxData>
     {
-        public override ISwBody[] CreateGeometry(ISwApplication app, ISwDocument model, BoxData data)
+        public override ISwBody[] CreateGeometry(ISwApplication app, ISwDocument model, ISwMacroFeature<BoxData> feat)
         {
+            var data = feat.Parameters;
+
             var body = (ISwBody)app.MemoryGeometryBuilder.CreateSolidBox(new Point(0, 0, 0),
                 new Vector(1, 0, 0), new Vector(0, 1, 0),
                 data.Width, data.Length, data.Height).Bodies.First();

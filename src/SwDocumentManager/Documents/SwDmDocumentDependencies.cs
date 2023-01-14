@@ -1,4 +1,11 @@
-﻿using SolidWorks.Interop.swdocumentmgr;
+﻿//*********************************************************************
+//xCAD
+//Copyright(C) 2023 Xarial Pty Limited
+//Product URL: https://www.xcad.net
+//License: https://xcad.xarial.com/license/
+//*********************************************************************
+
+using SolidWorks.Interop.swdocumentmgr;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -16,7 +23,9 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         private readonly SwDmDocument m_Doc;
 
         private readonly List<SwDmDocument3D> m_VirtualDocumentsCache;
-        
+
+        public IXDocument OwnerDocument => m_Doc;
+
         internal SwDmDocumentDependencies(SwDmDocument doc) 
         {
             m_Doc = doc;
