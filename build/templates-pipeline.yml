@@ -46,9 +46,12 @@ stages:
           version: '7.0.101'
 
       - ${{ if and(or(eq(variables['Build.SourceBranch'], 'refs/heads/dev'), eq(variables['Build.SourceBranch'], 'refs/heads/!alpha'), eq(variables['Build.SourceBranch'], 'refs/heads/!beta')), ne(variables['Build.Reason'], 'PullRequest')) }}:
-        - script: 'dotnet pack templates/Xarial.XCad.Templates.csproj --output $(Build.ArtifactStagingDirectory)/packages/$(versionSuffix) --no-build --version-suffix $(versionSuffix).$(Build.BuildId)'
+        - task: PowerShell@2
           displayName: 'Pack $(versionSuffix) versions'
-
+          inputs:
+            targetType: 'inline'
+            script: dotnet pack "$(Agent.BuildDirectory)/templates/Xarial.XCad.Templates.csproj" --output "$(Build.ArtifactStagingDirectory)/packages/$(versionSuffix)" --no-build --version-suffix "$(versionSuffix).$(Build.BuildId)"
+          
       - ${{ if and(eq(variables['Build.SourceBranch'], 'refs/heads/master'), ne(variables['Build.Reason'], 'PullRequest')) }}:
         - task: DotNetCoreCLI@2
           displayName: 'Pack production versions'
