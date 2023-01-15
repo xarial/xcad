@@ -26,10 +26,6 @@ stages:
 - stage: 'Build'
   variables:
     - group: build-vars
-    - name: buildConfiguration
-      value: Release
-    - name: buildPlatform
-      value: 'Any CPU'
   jobs:
   - job:
     pool:
@@ -53,12 +49,8 @@ stages:
         - task: DotNetCoreCLI@2
           displayName: 'Pack $(versionSuffix) versions'
           inputs:
-            command: pack
-            packagesToPack: 'templates/Xarial.XCad.Templates.csproj'
-            configurationToPack: $(BuildConfiguration)
-            outputDir: $(Build.ArtifactStagingDirectory)/packages/$(versionSuffix)
-            nobuild: true
-            buildProperties: 'VersionSuffix=$(versionSuffix).$(Build.BuildId)'
+            command: custom
+            custom: 'pack "templates/Xarial.XCad.Templates.csproj" --output "$(Build.ArtifactStagingDirectory)/packages/$(versionSuffix)" --no-build --version-suffix "$(versionSuffix).$(Build.BuildId)"'
 
       - ${{ if and(eq(variables['Build.SourceBranch'], 'refs/heads/master'), ne(variables['Build.Reason'], 'PullRequest')) }}:
         - task: DotNetCoreCLI@2
@@ -66,7 +58,6 @@ stages:
           inputs:
             command: pack
             packagesToPack: 'templates/Xarial.XCad.Templates.csproj'
-            configurationToPack: $(BuildConfiguration)
             outputDir: $(Build.ArtifactStagingDirectory)/packages/release
             nobuild: true
       
@@ -107,7 +98,7 @@ stages:
         publishVstsFeed: 'xcad/xcad-dev'
        
 - stage: 'PublishProvisionalNuGetPackage'
-  displayName: 'Publish Provisional NuGet packages to xcad-dev nuget feed'
+  displayName: 'Publish Provisional template packages to xcad-dev nuget feed'
   dependsOn: 'Build'
   condition: and(succeeded(), or(eq(variables['Build.SourceBranch'], 'refs/heads/master'), eq(variables['Build.SourceBranch'], 'refs/heads/!alpha'), eq(variables['Build.SourceBranch'], 'refs/heads/!beta')), ne(variables['Build.Reason'], 'PullRequest'))
   jobs:
@@ -135,7 +126,7 @@ stages:
     - group: build-vars
     - name: packagePath
       value:
-  displayName: 'Publish public NuGet packages to nuget.org'
+  displayName: 'Publish public template packages to nuget.org'
   dependsOn: 'PublishProvisionalNuGetPackage'
   condition: and(succeeded(), or(eq(variables['Build.SourceBranch'], 'refs/heads/master'), eq(variables['Build.SourceBranch'], 'refs/heads/!alpha'), eq(variables['Build.SourceBranch'], 'refs/heads/!beta')), ne(variables['Build.Reason'], 'PullRequest'))
   jobs:
