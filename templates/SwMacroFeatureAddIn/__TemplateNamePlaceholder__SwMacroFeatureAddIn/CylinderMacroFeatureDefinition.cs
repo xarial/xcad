@@ -12,6 +12,7 @@ using Xarial.XCad.Documents;
 using Xarial.XCad.Exceptions;
 using Xarial.XCad.Features.CustomFeature;
 using Xarial.XCad.Features.CustomFeature.Delegates;
+using Xarial.XCad.Features.CustomFeature.Structures;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.SolidWorks;
@@ -32,8 +33,13 @@ namespace __TemplateNamePlaceholder__.Sw.AddIn
     [Guid("4EDF005F-D48D-41C5-A1F7-B9D103043734")]
     [Icon(typeof(Resources), nameof(Resources.cylinder_icon))]
     [Title("Cylinder")]//TitleAttribute allows to specify the default (base) name of the feature in the feature manager tree
+#if _AddEditor_
     public class CylinderMacroFeatureDefinition : SwMacroFeatureDefinition<CylinderMacroFeatureData, CylinderPropertyPage>
+#else
+    public class CylinderMacroFeatureDefinition : SwMacroFeatureDefinition<CylinderMacroFeatureData>
+#endif
     {
+#if _AddEditor_
         //converting data model from the page to feature data
         //in some cases page and feature data can be of the same class and the conversion is not required
         //this method will be called when user changes the parameters in the property manager page
@@ -43,9 +49,11 @@ namespace __TemplateNamePlaceholder__.Sw.AddIn
                 Height = page.Parameters.Height,
                 Radius = page.Parameters.Radius,
                 PlaneOrFace = page.Location.PlaneOrFace,
-                BooleanOptions = page.Location.BooleanOptions,
                 Reverse = page.Location.Reverse,
+#if _SupportsEditBodies_
+                BooleanOptions = page.Location.BooleanOptions,
                 EditBody = page.Location.BooleanOptions == BooleanOptions_e.Extrude ? null : page.Location.PlaneOrFace?.Body
+#endif
             };
 
         //converting feature data to the property page
@@ -55,18 +63,30 @@ namespace __TemplateNamePlaceholder__.Sw.AddIn
             var page = new CylinderPropertyPage();
             page.Parameters.Height = par.Height;
             page.Parameters.Radius = par.Radius;
-            page.Location.PlaneOrFace = par.PlaneOrFace;
+            page.Location.Reverse = par.Reverse; page.Location.PlaneOrFace = par.PlaneOrFace;
+#if _SupportsEditBodies_
             page.Location.BooleanOptions = par.BooleanOptions;
-            page.Location.Reverse = par.Reverse;
+#endif
             return page;
         }
-        
-        //this method is called when feature is being inserted and user changes the parameters of the property page (preview purposes)
-        //this method will also be called when macro feature is regenerated to create a macro feature body
-        //in most cases the procedure of creating the preview body and the generated body is the same
-        //but it is also possible to provide custom preview geometry by overriding the CreatePreviewGeometry method
-        public override ISwBody[] CreateGeometry(ISwApplication app, ISwDocument model, ISwMacroFeature<CylinderMacroFeatureData> feat,
+
+#endif
+#if !_AddEditor_
+        public override CustomFeatureRebuildResult OnRebuild(ISwApplication app, ISwDocument doc,
+            ISwMacroFeature<CylinderMacroFeatureData> feature, out AlignDimensionDelegate<CylinderMacroFeatureData> alignDim)
+            => CustomFeatureRebuildResult.FromBodies(CreateGeometry(app, doc, feature, out alignDim));
+#endif
+#if _AddEditor_
+                //this method is called when feature is being inserted and user changes the parameters of the property page (preview purposes)
+                //this method will also be called when macro feature is regenerated to create a macro feature body
+                //in most cases the procedure of creating the preview body and the generated body is the same
+                //but it is also possible to provide custom preview geometry by overriding the CreatePreviewGeometry method
+        public override ISwBody[] CreateGeometry(ISwApplication app, ISwDocument doc, ISwMacroFeature<CylinderMacroFeatureData> feat,
             out AlignDimensionDelegate<CylinderMacroFeatureData> alignDim)
+#else
+        public ISwBody[] CreateGeometry(ISwApplication app, ISwDocument doc, ISwMacroFeature<CylinderMacroFeatureData> feat,
+            out AlignDimensionDelegate<CylinderMacroFeatureData> alignDim)
+#endif
         {
             var data = feat.Parameters;
 
@@ -93,17 +113,21 @@ namespace __TemplateNamePlaceholder__.Sw.AddIn
             {
                 dir *= -1;
             }
+#if _SupportsInContext_
 
+            //find the transformation of the entity (if used in the context of the assembly) and transform coordinate and direction
             var entToTargTransform = feat.GetEntityToTargetTransformation(face);
 
             pt *= entToTargTransform;
             dir *= entToTargTransform;
 
+#endif
             ISwBody[] result;
 
             //creating a temp body of the cylinder by providing the center point, direction vectors and size
             var cylinder = (ISwTempBody)app.MemoryGeometryBuilder.CreateSolidCylinder(
                 pt, dir, data.Radius, data.Height).Bodies.First();
+#if _SupportsEditBodies_
 
             switch (data.BooleanOptions) 
             {
@@ -132,6 +156,11 @@ namespace __TemplateNamePlaceholder__.Sw.AddIn
                     throw new NotSupportedException();
             }
 
+#else
+            result = new ISwBody[] { cylinder };
+#endif
+#if _AddDimensions_
+
             //aligning dimensions. Refer https://xcad.xarial.com/custom-features/data/dimensions/ for more information
             alignDim = (n, d) =>
             {
@@ -146,7 +175,8 @@ namespace __TemplateNamePlaceholder__.Sw.AddIn
                         break;
                 }
             };
-
+#endif
+            
             return result;
         }
     }

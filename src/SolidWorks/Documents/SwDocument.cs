@@ -124,11 +124,52 @@ namespace Xarial.XCad.SolidWorks.Documents
             };
         }
 
-        public event DocumentEventDelegate Destroyed;
-        internal event Action<SwDocument> Hidden;
+        private DocumentEventDelegate m_DestroyedDel;
+        private Action<SwDocument> m_HiddenDel;
+        private DocumentCloseDelegate m_ClosingDel;
 
-        public event DocumentCloseDelegate Closing;
-        
+        public event DocumentEventDelegate Destroyed 
+        {
+            add 
+            {
+                m_DestroyedDel += value;
+                AttachDestroyEventsIfNeeded();
+            }
+            remove 
+            {
+                m_DestroyedDel -= value;
+                DetachDestroyEventsIfNeeded();
+            }
+        }
+
+        internal event Action<SwDocument> Hidden
+        {
+            add
+            {
+                m_HiddenDel += value;
+                AttachDestroyEventsIfNeeded();
+            }
+            remove
+            {
+                m_HiddenDel -= value;
+                DetachDestroyEventsIfNeeded();
+            }
+        }
+
+        public event DocumentCloseDelegate Closing
+        {
+            add
+            {
+                m_ClosingDel += value;
+                AttachDestroyEventsIfNeeded();
+            }
+            remove
+            {
+                m_ClosingDel -= value;
+                DetachDestroyEventsIfNeeded();
+            }
+        }
+
         public event DocumentEventDelegate Rebuilt 
         {
             add => m_DocumentRebuildEventHandler.Attach(value);
@@ -412,6 +453,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         protected readonly IElementCreator<IModelDoc2> m_Creator;
 
         private bool m_AreEventsAttached;
+        private bool m_AreDestroyEventsAttached;
 
         internal override SwDocument OwnerDocument => this;
 
@@ -971,20 +1013,19 @@ namespace Xarial.XCad.SolidWorks.Documents
             {
                 m_AreEventsAttached = true;
 
+                AttachDestroyEventsIfNeeded();
+
                 switch (Model)
                 {
                     case PartDoc part:
-                        part.DestroyNotify2 += OnDestroyNotify;
                         part.FileSavePostNotify += OnFileSavePostNotify;
                         break;
 
                     case AssemblyDoc assm:
-                        assm.DestroyNotify2 += OnDestroyNotify;
                         assm.FileSavePostNotify += OnFileSavePostNotify;
                         break;
 
                     case DrawingDoc drw:
-                        drw.DestroyNotify2 += OnDestroyNotify;
                         drw.FileSavePostNotify += OnFileSavePostNotify;
                         break;
                 }
@@ -992,6 +1033,52 @@ namespace Xarial.XCad.SolidWorks.Documents
             else 
             {
                 Debug.Assert(false, "Events already attached");
+            }
+        }
+
+        private void AttachDestroyEventsIfNeeded()
+        {
+            if (!m_AreDestroyEventsAttached && (m_DestroyedDel != null || m_HiddenDel != null || m_ClosingDel != null))
+            {
+                switch (Model)
+                {
+                    case PartDoc part:
+                        part.DestroyNotify2 += OnDestroyNotify;
+                        break;
+
+                    case AssemblyDoc assm:
+                        assm.DestroyNotify2 += OnDestroyNotify;
+                        break;
+
+                    case DrawingDoc drw:
+                        drw.DestroyNotify2 += OnDestroyNotify;
+                        break;
+                }
+
+                m_AreDestroyEventsAttached = true;
+            }
+        }
+
+        private void DetachDestroyEventsIfNeeded()
+        {
+            if (m_AreDestroyEventsAttached && (m_DestroyedDel == null && m_HiddenDel == null && m_ClosingDel == null))
+            {
+                switch (Model)
+                {
+                    case PartDoc part:
+                        part.DestroyNotify2 -= OnDestroyNotify;
+                        break;
+
+                    case AssemblyDoc assm:
+                        assm.DestroyNotify2 -= OnDestroyNotify;
+                        break;
+
+                    case DrawingDoc drw:
+                        drw.DestroyNotify2 -= OnDestroyNotify;
+                        break;
+                }
+
+                m_AreDestroyEventsAttached = false;
             }
         }
 
@@ -1033,14 +1120,14 @@ namespace Xarial.XCad.SolidWorks.Documents
 
                     try
                     {
-                        Closing?.Invoke(this, DocumentCloseType_e.Destroy);
+                        m_ClosingDel?.Invoke(this, DocumentCloseType_e.Destroy);
                     }
                     catch (Exception ex)
                     {
                         m_Logger.Log(ex);
                     }
 
-                    Destroyed?.Invoke(this);
+                    m_DestroyedDel?.Invoke(this);
 
                     m_IsClosed = true;
 
@@ -1050,14 +1137,14 @@ namespace Xarial.XCad.SolidWorks.Documents
                 {
                     try
                     {
-                        Closing?.Invoke(this, DocumentCloseType_e.Hide);
+                        m_ClosingDel?.Invoke(this, DocumentCloseType_e.Hide);
                     }
                     catch (Exception ex)
                     {
                         m_Logger.Log(ex);
                     }
 
-                    Hidden?.Invoke(this);
+                    m_HiddenDel?.Invoke(this);
 
                     m_Logger.Log($"Hiding '{Model.GetTitle()}' document", XCad.Base.Enums.LoggerMessageSeverity_e.Debug);
                 }
