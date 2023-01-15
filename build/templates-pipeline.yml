@@ -45,6 +45,11 @@ stages:
           packageType: 'sdk'
           version: '7.0.101'
 
+      - task: NuGetCommand@2
+        displayName: 'Restore NuGet References'
+        inputs:
+          restoreSolution: 'templates/Xarial.XCad.Templates.csproj'
+
       - ${{ if and(or(eq(variables['Build.SourceBranch'], 'refs/heads/dev'), eq(variables['Build.SourceBranch'], 'refs/heads/!alpha'), eq(variables['Build.SourceBranch'], 'refs/heads/!beta')), ne(variables['Build.Reason'], 'PullRequest')) }}:
         - task: PowerShell@2
           displayName: 'Pack $(versionSuffix) versions'
