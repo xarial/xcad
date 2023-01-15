@@ -18,7 +18,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="**\*" Exclude="Xarial.XCad.Templates.csproj;**\bin\**;**\obj\**;**\*.user" />
+    <Content Include="**\*" Exclude="Xarial.XCad.Templates.csproj;.vs\**;**\bin\**;**\obj\**;**\*.user" />
+    <Compile Remove="**\*" />
   </ItemGroup>
 
 </Project>
