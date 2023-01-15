@@ -50,7 +50,8 @@ stages:
           displayName: 'Pack $(versionSuffix) versions'
           inputs:
             command: custom
-            custom: pack templates/Xarial.XCad.Templates.csproj --output $(Build.ArtifactStagingDirectory)/packages/$(versionSuffix) --no-build --version-suffix $(versionSuffix).$(Build.BuildId)
+            custom: nuget
+            arguments: 'pack templates/Xarial.XCad.Templates.csproj --output $(Build.ArtifactStagingDirectory)/packages/$(versionSuffix) --no-build --version-suffix $(versionSuffix).$(Build.BuildId)'
 
       - ${{ if and(eq(variables['Build.SourceBranch'], 'refs/heads/master'), ne(variables['Build.Reason'], 'PullRequest')) }}:
         - task: DotNetCoreCLI@2
