@@ -15,6 +15,30 @@ namespace Xarial.XCad.Features.CustomFeature.Structures
     public class CustomFeatureRebuildResult
     {
         /// <summary>
+        /// Creates rebuild result from bodies
+        /// </summary>
+        /// <param name="bodies">Bodies</param>
+        /// <returns>Rebuild result</returns>
+        public static CustomFeatureBodyRebuildResult FromBodies(params IXBody[] bodies)
+            => new CustomFeatureBodyRebuildResult()
+            {
+                Bodies = bodies
+            };
+
+        /// <summary>
+        /// Creates rebuild result from status
+        /// </summary>
+        /// <param name="result">Result</param>
+        /// <param name="errMsg">Error if failed or warning</param>
+        /// <returns>Rebuild result</returns>
+        public static CustomFeatureRebuildResult FromStatus(bool result, string errMsg = "")
+            => new CustomFeatureRebuildResult()
+            {
+                Result = result,
+                ErrorMessage = errMsg
+            };
+
+        /// <summary>
         /// Status result
         /// </summary>
         public bool Result { get; set; }

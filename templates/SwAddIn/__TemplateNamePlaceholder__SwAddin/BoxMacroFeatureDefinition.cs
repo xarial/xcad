@@ -57,14 +57,16 @@ namespace __TemplateNamePlaceholder__.Sw.AddIn
             page.Location.PlaneOrFace = par.PlaneOrFace;
             return page;
         }
-        
+                
         //this method is called when feature is being inserted and user changes the parameters of the property page (preview purposes)
         //this method will also be called when macro feature is regenerated to create a macro feature body
         //in most cases the procedure of creating the preview body and the generated body is the same
         //but it is also possible to provide custom preview geometry by overriding the CreatePreviewGeometry method
-        public override ISwBody[] CreateGeometry(ISwApplication app, ISwDocument model, BoxMacroFeatureData data,
+        public override ISwBody[] CreateGeometry(ISwApplication app, ISwDocument doc, ISwMacroFeature<BoxMacroFeatureData> feat,
             out AlignDimensionDelegate<BoxMacroFeatureData> alignDim)
         {
+            var data = feat.Parameters;
+
             var face = data.PlaneOrFace;
 
             Point pt;

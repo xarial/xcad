@@ -39,21 +39,23 @@ namespace __TemplateNamePlaceholder__.Sw.AddIn
         public class LocationGroup
         {
             //any selectable entity will be rendered as the selection box
-            [StandardControlIcon(BitmapLabelType_e.SelectFace)]
-            [Description("Face or plane to place box on")]
-            [SelectionBoxOptions(Filters = new SelectType_e[] { SelectType_e.Faces, SelectType_e.Planes },
-                CustomFilter = typeof(PlanarRegionSelectionFilter))]
             //default filter will only allow selection of faces and planes and custom filter will additionlly
             //excluded non planar faces
+            [SelectionBoxOptions(Filters = new SelectType_e[] { SelectType_e.Faces, SelectType_e.Planes },
+                CustomFilter = typeof(PlanarRegionSelectionFilter))]
+            [StandardControlIcon(BitmapLabelType_e.SelectFace)]
+            [Description("Face or plane to place box on")]
             public IXEntity PlaneOrFace { get; set; }
 
             [ControlOptions(align: ControlLeftAlign_e.Indent)]
             [Description("Reverses the result of the cylinder")]
             public bool Reverse { get; set; }
+#if _SupportsEditBodies_
 
             [Description("Options for the bodies result")]
             [ControlOptions(align: ControlLeftAlign_e.Indent)]
             public BooleanOptions_e BooleanOptions { get; set; }
+#endif
         }
 
         public class ParametersGroup
