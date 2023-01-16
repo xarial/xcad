@@ -4,8 +4,8 @@
     <PackageType>Template</PackageType>
     <PackageId>Xarial.XCad.Templates</PackageId>
     <Title>xCAD.NET Templates</Title>
-    <Description>Templates for creating add-ins, custom feature for SOLIDWORKS</Description>
-    <PackageTags>dotnet-new;templates;xcad,solidworks,macrofeature,addin,cad</PackageTags>
+    <Description>Templates for creating add-ins, command manager, property manager pages, macro features etc. for SOLIDWORKS via xCAD.NET</Description>
+    <PackageTags>dotnet-new;templates;xcad,solidworks,swapi,macrofeature,addin,cad</PackageTags>
 
     <Product>xCAD</Product>
     <BuildNumber></BuildNumber>
@@ -19,7 +19,7 @@
 
     <PackageIcon>icon.png</PackageIcon>
     <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
-    <PackageIconUrl>https://xcad.xarial.com/icon.png</PackageIconUrl>
+    <PackageIconUrl>https://xcad.xarial.com/icon-templates.png</PackageIconUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
 
     <TargetFramework>netstandard2.1</TargetFramework>
@@ -33,13 +33,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="..\data\icon.png" pack="true" PackagePath="" />
+    <None Include="icon.png" pack="true" PackagePath="" />
     <None Include="..\LICENSE.md" pack="true" PackagePath="" />
     <None Include="README.md" pack="true" PackagePath="" />
   </ItemGroup>
   
   <ItemGroup>
-    <Content Include="**\*" Exclude="Xarial.XCad.Templates.csproj;README.md;.vs\**;**\bin\**;**\obj\**;**\*.user" />
+    <Content Include="**\*" Exclude="Xarial.XCad.Templates.csproj;README.md;icon.png;.vs\**;**\bin\**;**\obj\**;**\*.user" />
     <Compile Remove="**\*" />
   </ItemGroup>
 

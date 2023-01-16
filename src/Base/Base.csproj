@@ -35,9 +35,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="..\..\data\icon.png" pack="true" PackagePath="" />
-    <None Include="..\..\LICENSE.md" pack="true" PackagePath="" />
-    <None Include="..\..\README.md" pack="true" PackagePath="" />
+    <None Include="icon.png" pack="true" PackagePath="" Link="_Pack\icon.png" />
+    <None Include="..\..\LICENSE.md" pack="true" PackagePath="" Link="_Pack\LICENSE.md" />
+    <None Include="..\..\README.md" pack="true" PackagePath="" Link="_Pack\README.md" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="_Pack\" />
   </ItemGroup>
 
   <ItemGroup>
