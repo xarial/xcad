@@ -7,6 +7,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 
 namespace Xarial.XCad.Geometry.Structures
@@ -14,6 +15,7 @@ namespace Xarial.XCad.Geometry.Structures
     /// <summary>
     /// Represents axis - direction through the point
     /// </summary>
+    [DebuggerDisplay("{" + nameof(Point) + "} - {" + nameof(Direction) + "}")]
     public class Axis
     {
         /// <summary>

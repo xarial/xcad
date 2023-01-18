@@ -279,20 +279,25 @@ namespace Xarial.XCad.SolidWorks.Geometry
         }
     }
 
-    public interface ISwPlanarSheetBody : ISwSheetBody, IXPlanarSheetBody
+    public interface ISwPlanarSheetBody : ISwSheetBody, IXPlanarSheetBody, ISwPlanarRegion
     {
     }
 
     internal class SwPlanarSheetBody : SwSheetBody, ISwPlanarSheetBody
     {
+        IXLoop IXRegion.OuterLoop { get => OuterLoop; set => throw new NotSupportedException(); }
+        IXLoop[] IXRegion.InnerLoops { get => InnerLoops; set => throw new NotSupportedException(); }
+
         internal SwPlanarSheetBody(IBody2 body, SwDocument doc, SwApplication app) : base(body, doc, app)
         {
         }
 
         public Plane Plane => this.GetPlane();
 
-        public IXLoop OuterLoop { get => this.GetOuterLoop(); set => throw new NotSupportedException(); }
-        public IXLoop[] InnerLoops { get => this.GetInnerLoops(); set => throw new NotSupportedException(); }
+        public virtual ISwTempPlanarSheetBody PlanarSheetBody => (ISwTempPlanarSheetBody)this.Copy();
+
+        public ISwLoop OuterLoop { get => this.GetOuterLoop(); set => throw new NotImplementedException(); }
+        public ISwLoop[] InnerLoops { get => this.GetInnerLoops(); set => throw new NotImplementedException(); }
     }
 
     internal static class ISwPlanarSheetBodyExtension 
