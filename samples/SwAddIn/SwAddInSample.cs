@@ -734,45 +734,17 @@ namespace SwAddInExample
 
         private void Custom()
         {
-            var comp = Application.Documents.Active.Selections.OfType<IXComponent>().First();
-            var body = Application.Documents.Active.Selections.OfType<IXBody>().First();
-
-            body = comp.Bodies.First();
-
-            var parentComp = body.Component;
-
-            Application.Documents.Active.SaveAs<IXDxfDwgSaveOperation>("D:\\2.dwg", x => x.LayersMapFilePath = "");
-
-            Application.Documents.Active.SaveAs("D:\\1.pdf");
-
-            Application.Documents.Active.SaveAs<IXPdfSaveOperation>("D:\\2.pdf", x => x.Pdf3D = true);
-
-            Clipboard.SetText(string.Join(System.Environment.NewLine, Application.Documents.Active.Features.Select(f => ((ISwFeature)f).Feature.GetTypeName2())));
-
-            //var lastFeat = Application.Documents.Active.Features.Filter<IXSketch2D>(true).First();
-
-            //var lines = Application.Documents.Active.Selections.OfType<IXSketchBase>().First().Entities.Filter<ISwSketchLine>().ToArray();
-
-            //var feats1 = Application.Documents.Active.Features.Filter<IXSketch2D>(true).ToArray();
-            //var feats2 = Application.Documents.Active.Features.Filter<IXSketch2D>().ToArray();
-
-            //var feats3 = Application.Documents.Active.Features.Filter<IXFeature>(true).ToArray();
-            //var feats4 = Application.Documents.Active.Features.Filter<IXFeature>().ToArray();
-
-            var assm = (ISwAssembly)Application.Documents.Active;
-            var firstComp = ((IXAssemblyConfiguration)assm.Configurations["Default"]).Components.Flatten().First();
-            var comps1 = ((IXAssemblyConfiguration)assm.Configurations["Default"]).Components.Flatten().ToArray();
-            var comps2 = ((IXAssemblyConfiguration)assm.Configurations["Default"]).Components.ToArray();
-
-            Clipboard.SetText(string.Join(System.Environment.NewLine, comps1.Where(c=>
+            var genDesc = Application.Documents.Active.Properties["Description"];
+            
+            genDesc.ValueChanged += (p, v)=> 
             {
-                var state = c.State;
-                return !state.HasFlag(ComponentState_e.Suppressed) && !state.HasFlag(ComponentState_e.ExcludedFromBom) && !state.HasFlag(ComponentState_e.Envelope);
-            }).Select(c => c.FullName)));
-
-            //var editComp = assm.EditingComponent;
-
-            //var cutLists = (Application.Documents.Active as ISwPart).Configurations.Active.CutLists.ToArray();
+            };
+            
+            var confDesc = ((IXPart)Application.Documents.Active).Configurations.Active.Properties["Description"];
+            
+            confDesc.ValueChanged += (p, v) =>
+            {
+            };
         }
 
         private void HandleAddEvents()
