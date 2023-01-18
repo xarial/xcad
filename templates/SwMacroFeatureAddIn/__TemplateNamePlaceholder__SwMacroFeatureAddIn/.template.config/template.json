@@ -2,10 +2,10 @@
   "$schema": "http://json.schemastore.org/template",
   "author": "Xarial",
   "classifications": [ "xCAD", "SOLIDWORKS", "Library" ],
-  "identity": "Xarial.XCad.Template.SwMacroFeatureAddIn.CSharp",
-  "groupIdentity": "Xarial.XCad.Template.SwMacroFeatureAddIn",
-  "name": "xCAD SOLIDWORKS Macro Feature Add-In",
-  "shortName": "xcadswmacrofeatureaddin",
+  "identity": "Xarial.XCad.Template.SwMacroFeature.CSharp",
+  "groupIdentity": "Xarial.XCad.Template.SwMacroFeature",
+  "name": "xCAD SOLIDWORKS Macro Feature",
+  "shortName": "xcadswmacrofeature",
   "sourceName": "__TemplateNamePlaceholder__",
   "tags": {
     "language": "C#",
@@ -18,7 +18,7 @@
     "290439A2-D435-42AC-AB45-6723BD531854",
     "4EDF005F-D48D-41C5-A1F7-B9D103043734"
   ],
-  "defaultName": "XCadSwMacroFeatureAddIn",
+  "defaultName": "XCadSwMacroFeature",
   "preferNameDirectory": true,
   "constraints": {
     "windows-only": {

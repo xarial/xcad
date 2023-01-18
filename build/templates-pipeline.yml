@@ -80,7 +80,7 @@ stages:
           artifact: 'packages'
 
 - stage: 'PublishDevNuGetPackage'
-  displayName: 'Publish dev NuGet Package to xcad-dev nuget feed'
+  displayName: 'Publish dev template Package to xcad-dev nuget feed'
   dependsOn: 'Build'
   condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/dev'), ne(variables['Build.Reason'], 'PullRequest'))
   jobs:

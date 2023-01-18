@@ -9,7 +9,7 @@
     <Description>Framework for developing SOLIDWORKS applications using Document Manager</Description>
     <PackageIcon>icon.png</PackageIcon>
     <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
-    <PackageIconUrl>https://xcad.xarial.com/icon.png</PackageIconUrl>
+    <PackageIconUrl>https://xcad.xarial.com/icon-swdm.png</PackageIconUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
@@ -32,7 +32,7 @@
 
   <ItemGroup>
     <None Include="..\..\build\solidworks-dm-init.ps1" pack="true" PackagePath="tools\init.ps1" Link="_Pack\solidworks-dm-init.ps1" />
-    <None Include="..\..\data\icon.png" pack="true" PackagePath="" Link="_Pack\icon.png" />
+    <None Include="icon.png" pack="true" PackagePath="" Link="_Pack\icon.png" />
     <None Include="..\..\LICENSE.md" pack="true" PackagePath="" Link="_Pack\LICENSE.md" />
     <None Include="..\..\README.md" pack="true" PackagePath="" Link="_Pack\README.md" />
   </ItemGroup>

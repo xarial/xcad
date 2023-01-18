@@ -5,7 +5,7 @@
 [![NuGet version (xCAD.NET)](https://img.shields.io/nuget/v/Xarial.XCad.svg?style=flat-square)](https://www.nuget.org/packages/Xarial.XCad/)
 [![Build status](https://dev.azure.com/xarial/xcad/_apis/build/status/xcad)](https://dev.azure.com/xarial/xcad/_build/latest?definitionId=34)
 
-[![Templates](https://img.shields.io/badge/-Templates-yellow.svg)](https://www.nuget.org/packages/???/)
+[![Templates](https://img.shields.io/badge/-Templates-yellow.svg)](https://www.nuget.org/packages/Xarial.XCad.Templates/)
 [![User Guide](https://img.shields.io/badge/-Documentation-green.svg)](https://xcad.xarial.com)
 [![Examples](https://img.shields.io/badge/-Examples-blue.svg)](https://github.com/xarial/xcad-examples)
 [![Videos](https://img.shields.io/badge/-Videos-red.svg)](https://www.youtube.com/watch?v=YLFwqTX_V2I&list=PLZ8T-hyutVIEXMFgJ462Ou6Szjk26gPVo)
@@ -14,10 +14,10 @@
 
 ## Templates
 
-Visual Studio and Visual Studio Code templates can be installed from [NuGet](https://www.nuget.org/packages/???/)
+Visual Studio and Visual Studio Code templates can be installed from [NuGet](https://www.nuget.org/packages/Xarial.XCad.Templates/)
 
 ~~~
-> dotnet new install ???
+> dotnet new install Xarial.XCad.Templates
 ~~~
 
 ## SOLIDWORKS Add-in Applications
