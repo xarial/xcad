@@ -295,20 +295,23 @@ namespace Xarial.XCad.Utils.CustomFeature
 
         private void OnDataChanged()
         {
-            var oldParams = m_CurrentFeature.Parameters;
-            var newParams = Definition.ConvertPageToParams(m_App, CurrentDocument, m_CurPageData, oldParams);
-
-            var dataChanged = AreParametersChanged(oldParams, newParams);
-
-            var needUpdatePreview = ShouldUpdatePreview.Invoke(oldParams, newParams, m_CurPageData, dataChanged);
-
-            m_CurrentFeature.Parameters = newParams;
-
-            if (needUpdatePreview)
+            if (m_IsPageActive)
             {
-                UpdatePreview();
+                var oldParams = m_CurrentFeature.Parameters;
+                var newParams = Definition.ConvertPageToParams(m_App, CurrentDocument, m_CurPageData, oldParams);
 
-                PreviewUpdated?.Invoke(m_App, CurrentDocument, m_CurrentFeature, m_CurPageData);
+                var dataChanged = AreParametersChanged(oldParams, newParams);
+
+                var needUpdatePreview = ShouldUpdatePreview.Invoke(oldParams, newParams, m_CurPageData, dataChanged);
+
+                m_CurrentFeature.Parameters = newParams;
+
+                if (needUpdatePreview)
+                {
+                    UpdatePreview();
+
+                    PreviewUpdated?.Invoke(m_App, CurrentDocument, m_CurrentFeature, m_CurPageData);
+                }
             }
         }
 
@@ -349,15 +352,20 @@ namespace Xarial.XCad.Utils.CustomFeature
 
         private void OnPageClosed(PageCloseReasons_e reason)
         {
-            if (m_IsApplying) 
+            if (m_IsApplying)
             {
                 reason = PageCloseReasons_e.Apply;
             }
 
-            var curParams = m_CurrentFeature.Parameters;
+            var cachedParams = m_CurrentFeature.Parameters;
 
             m_IsPageActive = false;
+
             CompleteFeature(reason);
+
+            var reusableParams = Definition.ConvertPageToParams(
+                m_App, CurrentDocument, m_CurPageData, cachedParams);
+
             m_CurEditor?.Dispose();
 
             m_CurPageData = null;
@@ -371,10 +379,10 @@ namespace Xarial.XCad.Utils.CustomFeature
             {
                 CurrentDocument = null;
             }
-            else 
+            else
             {
                 m_IsApplying = false;
-                Insert(CurrentDocument, curParams);
+                Insert(CurrentDocument, reusableParams);
                 m_PmPage.IsPinned = true;
             }
         }
@@ -436,8 +444,8 @@ namespace Xarial.XCad.Utils.CustomFeature
 
         private bool m_IsApplying;
 
-        private void DefaultAssignPreviewBodyColor(IXBody body, out System.Drawing.Color color)
-            => color = System.Drawing.Color.FromArgb(100, System.Drawing.Color.Yellow);
+        private void DefaultAssignPreviewBodyColor(IXBody body, out Color color)
+            => color = Color.FromArgb(100, Color.Yellow);
 
         private void UpdatePreview()
         {

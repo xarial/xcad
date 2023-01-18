@@ -183,11 +183,9 @@ namespace Xarial.XCad.SolidWorks.Data
 
         protected override EventsHandler<PropertyValueChangedDelegate> CreateEventsHandler(SwCustomProperty prp)
         {
-            var isBugPresent = true; //TODO: find version when the issue is starter
+            EventsHandler<PropertyValueChangedDelegate> evHandler;
 
-            EventsHandler<PropertyValueChangedDelegate> evHandler = null;
-
-            if (isBugPresent)
+            if (m_App.IsVersionNewerOrEqual(SwVersion_e.Sw2017) && !m_App.IsVersionNewerOrEqual(SwVersion_e.Sw2020, 5))
             {
                 evHandler = new CustomPropertyChangeEventsHandlerFromSw2017(m_EventsHelper, m_Doc.Model, prp, m_ConfName);
             }

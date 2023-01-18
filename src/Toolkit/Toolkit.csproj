@@ -6,7 +6,7 @@
     <TargetFrameworks>net7.0;net6.0;netstandard2.1;net461</TargetFrameworks>
     <PackageId>Xarial.XCad.Toolkit</PackageId>
     <PackageTags>cad,solidworks</PackageTags>
-    <Description>Framework for developing CAD applications</Description>
+    <Description>Utility classes for implementing xCAD.NET - Framework for developing CAD applications</Description>
     <PackageIcon>icon.png</PackageIcon>
     <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
     <PackageIconUrl>https://xcad.xarial.com/icon-toolkit.png</PackageIconUrl>
