@@ -35,6 +35,56 @@ namespace SolidWorks.Tests.Integration
     public class DocumentsTest : IntegrationTests
     {
         [Test]
+        public void EqualsTest()
+        {
+            bool e1, e2, e3, e4, e5, e6, e7, e8, e9;
+
+            var part1_1 = m_App.Documents.PreCreate<ISwPart>();
+            part1_1.Path = GetFilePath("Part1.sldprt");
+
+            var part1_3 = m_App.Documents.PreCreate<ISwPart>();
+            part1_3.Path = GetFilePath("Part1.sldprt");
+
+            IXDocument part1_2;
+            IXDocument part2_1;
+            IXDocument part2_2;
+
+            using (OpenDataDocument("Part1.sldprt"))
+            {
+                part1_2 = m_App.Documents.Active;
+
+                e1 = part1_1.Equals(part1_2);
+                e2 = part1_2.Equals(part1_2);
+                e3 = part1_1.Equals(part1_3);
+
+                using (OpenDataDocument("Sketch1.sldprt"))
+                {
+                    part2_1 = m_App.Documents.Active;
+                    part2_2 = m_App.Documents["Sketch1.sldprt"];
+
+                    e4 = part2_1.Equals(part2_2);
+                    e5 = part1_2.Equals(part2_1);
+                }
+
+                e6 = part2_1.Equals(part2_2);
+                e7 = part1_2.Equals(part2_1);
+            }
+
+            e8 = part1_1.Equals(part1_2);
+            e9 = part1_2.Equals(part2_1);
+
+            Assert.IsFalse(e1);
+            Assert.IsTrue(e2);
+            Assert.IsTrue(e3);
+            Assert.IsTrue(e4);
+            Assert.IsFalse(e5);
+            Assert.IsTrue(e6);
+            Assert.IsFalse(e7);
+            Assert.IsFalse(e8);
+            Assert.IsFalse(e9);
+        }
+
+        [Test]
         public void OpenDocumentPreCreateUnknownTest()
         {
             var doc = m_App.Documents.PreCreate<ISwDocument>();

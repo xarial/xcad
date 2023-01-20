@@ -356,5 +356,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
         internal SwWireBody(IBody2 body, SwDocument doc, SwApplication app) : base(body, doc, app)
         {
         }
+
+        public IXSegment[] Segments { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
     }
 }
