@@ -355,23 +355,34 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         protected override IBody2 CreateTempBody(CancellationToken cancellationToken)
         {
-            if (Segments.Length == 1)
+            var curves = Segments.SelectMany(s => 
             {
-                var seg = Segments.First();
+                return ((ISwCurve)s).Curves;
+            }).ToArray();
 
-                if (seg is ISwCurve && ((ISwCurve)seg).Curves.Length == 1)
-                {
-                    return ((ISwCurve)seg).Curves.First().CreateWireBody();
-                }
-                else 
-                {
-                    throw new NotSupportedException("Only single curve is supported");
-                }
+            if (!curves.Any())
+            {
+                throw new Exception("No curves found");
+            }
+
+            IBody2 wireBody;
+
+
+            if (curves.Length == 1)
+            {
+                wireBody = curves.First().CreateWireBody();
             }
             else 
             {
-                throw new NotSupportedException("Only single segment is supported");
+                wireBody = OwnerApplication.Sw.IGetModeler().CreateWireBody(curves, (int)swCreateWireBodyOptions_e.swCreateWireBodyByDefault);
             }
+            
+            if (wireBody == null)
+            {
+                throw new NullReferenceException($"Wire body cannot be created from the curves");
+            }
+
+            return wireBody;
         }
     }
 }

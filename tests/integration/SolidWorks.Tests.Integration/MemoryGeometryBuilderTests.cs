@@ -560,25 +560,30 @@ namespace SolidWorks.Tests.Integration
         [Test]
         public void CreateWireBodyTest()
         {
-            var body = m_App.MemoryGeometryBuilder.WireBuilder.PreCreateWireBody();
+            var line1 = (ISwLineCurve)m_App.MemoryGeometryBuilder.WireBuilder.PreCreateLine();
+            line1.Geometry = new Line(new Point(10, 10, 10), new Point(20, 20, 20));
+            
+            var line2 = (ISwLineCurve)m_App.MemoryGeometryBuilder.WireBuilder.PreCreateLine();
+            line2.Geometry = new Line(new Point(20, 20, 20), new Point(30, 40, 50));
+            line2.Commit();
 
-            var line = (ISwLineCurve)m_App.MemoryGeometryBuilder.WireBuilder.PreCreateLine();
-            line.Geometry = new Line(new Point(10, 10, 10), new Point(20, 20, 20));
-            line.Commit();
+            var body1 = line1.CreateBody();
 
-            body.Segments = new IXSegment[] { line };
-            body.Commit();
+            var body2 = m_App.MemoryGeometryBuilder.WireBuilder.PreCreateWireBody();
+            body2.Segments = new IXSegment[] { line1, line2 };
+            body2.Commit();
 
-            var curve = body.Segments.First();
+            var curve = body1.Segments.First();
 
-            var firstEdge = (IEdge)((object[])((ISwBody)body).Body.GetEdges()).First();
+            var firstEdge = (IEdge)((object[])((ISwBody)body1).Body.GetEdges()).First();
 
             var firstVert = (double[])firstEdge.IGetStartVertex().GetPoint();
             var secondVert = (double[])firstEdge.IGetEndVertex().GetPoint();
 
             Assert.IsInstanceOf<ISwLinearEdge>(curve);
-            Assert.AreEqual((int)swBodyType_e.swWireBody, ((ISwBody)body).Body.GetType());
-            Assert.AreEqual(1, ((ISwBody)body).Body.GetEdgeCount());
+            Assert.AreEqual((int)swBodyType_e.swWireBody, ((ISwBody)body1).Body.GetType());
+            Assert.AreEqual(1, ((ISwBody)body1).Body.GetEdgeCount());
+            Assert.AreEqual(2, ((ISwBody)body2).Body.GetEdgeCount());
             Assert.That(10, Is.EqualTo(firstVert[0]).Within(0.001).Percent);
             Assert.That(10, Is.EqualTo(firstVert[1]).Within(0.001).Percent);
             Assert.That(10, Is.EqualTo(firstVert[2]).Within(0.001).Percent);
