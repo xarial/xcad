@@ -38,6 +38,7 @@ using Xarial.XCad.Utils.Reflection;
 using System.Runtime.InteropServices;
 using Xarial.XCad.Exceptions;
 using Xarial.XCad.Features.CustomFeature.Structures;
+using System.Globalization;
 
 namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 {
@@ -309,7 +310,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 
                 var parameters = (TParams)m_ParamsParser.BuildParameters(typeof(TParams), ref rawParams, ref dispDims, ref editBodies, ref sels, out dispDimParams);
 
-                m_EntitiesTransformsCache = sels.Where(s => s != null)
+                m_EntitiesTransformsCache = (sels ?? new CustomFeatureSelectionInfo[0]).Where(s => s != null)
                     .ToDictionary(s => s.Selection, s => s.Transformation, new XObjectEqualityComparer<IXSelObject>());
 
                 state = GetState(dispDims);
@@ -475,7 +476,15 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
                             paramValue = int.Parse(paramValues[i]);
                             break;
                         case swMacroFeatureParamType_e.swMacroFeatureParamTypeDouble:
-                            paramValue = double.Parse(paramValues[i]);
+                            if (double.TryParse(paramValues[i], out var doubleVal))
+                            {
+                                paramValue = doubleVal;
+                            }
+                            else
+                            {
+                                //NOTE: SOLIDWORKS stores the double with . separator regardless of the culture, so it is required to use . for parsing, ignoring the current culture
+                                paramValue = double.Parse(paramValues[i], CultureInfo.GetCultureInfo("en-US"));
+                            }
                             break;
                         case swMacroFeatureParamType_e.swMacroFeatureParamTypeString:
                             paramValue = paramValues[i];

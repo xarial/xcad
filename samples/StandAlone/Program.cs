@@ -54,15 +54,15 @@ namespace StandAlone
         {
             try
             {
-                //var app = SwApplicationFactory.Create(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2021,
-                //    ApplicationState_e.Default);
+                var app = SwApplicationFactory.Create(null, ApplicationState_e.Default);
+                app.ShowMessageBox("Hello World!");
 
-                var app = SwApplicationFactory.FromProcess(Process.GetProcessesByName("SLDWORKS").First());
+                //var app = SwApplicationFactory.FromProcess(Process.GetProcessesByName("SLDWORKS").First());
 
-                var dmApp = SwDmApplicationFactory.Create(
-                    System.Environment.GetEnvironmentVariable("SW_DM_KEY", EnvironmentVariableTarget.Machine));
+                //var dmApp = SwDmApplicationFactory.Create(
+                //    System.Environment.GetEnvironmentVariable("SW_DM_KEY", EnvironmentVariableTarget.Machine));
 
-                RenameFiles(app);
+                //RenameFiles(app);
 
                 //ParseViewPolylines(app);
 
