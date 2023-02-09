@@ -90,7 +90,7 @@ namespace StandAlone
                 //TraverseSelectedFaces(app);
 
                 //CreateSweepFromSelection(app);
-                //CreateTempGeometry(app);
+                CreateTempGeometry(app);
 
                 //CreateSweepFromSelection(app);
             }
@@ -436,6 +436,9 @@ namespace StandAlone
             (app.Documents.Active as ISwPart).Part.CreateFeatureFromBody3(body, false, 0);
 
             var cyl = app.MemoryGeometryBuilder.CreateSolidCylinder(
+                new Point(0, 0, 0), new Vector(1, 0, 0), 0.1, 0.2);
+
+            cyl = app.MemoryGeometryBuilder.CreateSurfaceCylinder(
                 new Point(0, 0, 0), new Vector(1, 0, 0), 0.1, 0.2);
 
             body = (cyl.Bodies.First() as ISwBody).Body;

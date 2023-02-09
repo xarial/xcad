@@ -76,29 +76,28 @@ namespace Xarial.XCad.Geometry
         }
 
         /// <summary>
-        /// Creates cylindrical extrusion from input parameters
+        /// Creates solid cylindrical extrusion from input parameters
         /// </summary>
         /// <param name="builder">Geometry builder</param>
         /// <param name="center">Center of the cylinder base</param>
         /// <param name="axis">Direction of the cylinder</param>
         /// <param name="radius">Radius of the cylinder</param>
         /// <param name="height">Height of the cylinder</param>
-        /// <returns>Cylindrical extrusion</returns>
+        /// <returns>Cylindrical solid extrusion</returns>
         public static IXExtrusion CreateSolidCylinder(this IXGeometryBuilder builder, Point center, Vector axis,
-            double radius, double height)
-        {
-            var arc = builder.WireBuilder.PreCreateCircle();
-            arc.Geometry = new Circle(new Axis(center, axis), radius * 2);
-            arc.Commit();
+            double radius, double height) => CreateCylinder(builder, builder.SolidBuilder, center, axis, radius, height);
 
-            var extr = builder.SolidBuilder.PreCreateExtrusion();
-            extr.Depth = height;
-            extr.Direction = axis;
-            extr.Profiles = new IXPlanarRegion[] { builder.CreatePlanarSheet(builder.CreateRegionFromSegments(arc)).Bodies.First() };
-            extr.Commit();
-
-            return extr;
-        }
+        /// <summary>
+        /// Creates surface cylindrical extrusion from input parameters
+        /// </summary>
+        /// <param name="builder">Geometry builder</param>
+        /// <param name="center">Center of the cylinder base</param>
+        /// <param name="axis">Direction of the cylinder</param>
+        /// <param name="radius">Radius of the cylinder</param>
+        /// <param name="height">Height of the cylinder</param>
+        /// <returns>Cylindrical surface extrusion</returns>
+        public static IXExtrusion CreateSurfaceCylinder(this IXGeometryBuilder builder, Point center, Vector axis,
+            double radius, double height) => CreateCylinder(builder, builder.SheetBuilder, center, axis, radius, height);
 
         /// <summary>
         /// Create a conical revolve body
@@ -241,6 +240,23 @@ namespace Xarial.XCad.Geometry
             circle.Commit();
 
             return circle;
+        }
+
+        private static IXExtrusion CreateCylinder(IXGeometryBuilder builder,
+            IX3DGeometryBuilder geomBuilder, Point center, Vector axis,
+            double radius, double height)
+        {
+            var arc = builder.WireBuilder.PreCreateCircle();
+            arc.Geometry = new Circle(new Axis(center, axis), radius * 2);
+            arc.Commit();
+
+            var extr = geomBuilder.PreCreateExtrusion();
+            extr.Depth = height;
+            extr.Direction = axis;
+            extr.Profiles = new IXPlanarRegion[] { builder.CreatePlanarSheet(builder.CreateRegionFromSegments(arc)).Bodies.First() };
+            extr.Commit();
+
+            return extr;
         }
     }
 }

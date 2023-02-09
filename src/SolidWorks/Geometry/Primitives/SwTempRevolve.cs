@@ -28,9 +28,13 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
         new ISwLineCurve Axis { get; set; }
     }
 
-    internal class SwTempRevolve : SwTempPrimitive, ISwTempRevolve
+    public interface ISwTempSolidRevolve : ISwTempRevolve 
     {
-        internal SwTempRevolve(SwTempBody[] bodies, ISwApplication app, bool isCreated) 
+    }
+
+    internal class SwTempSolidRevolve : SwTempPrimitive, ISwTempSolidRevolve
+    {
+        internal SwTempSolidRevolve(SwTempBody[] bodies, ISwApplication app, bool isCreated) 
             : base(bodies, app, isCreated)
         {
         }
