@@ -7,7 +7,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Text;
+using Xarial.XCad.Base;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Geometry.Wires;
 
@@ -56,15 +58,34 @@ namespace Xarial.XCad.Geometry.Curves
         double CalculateLength(double startParamU, double endParamU);
 
         /// <summary>
-        /// Creates wire body from this curve
-        /// </summary>
-        /// <returns>Wire body</returns>
-        IXWireBody CreateBody();
-
-        /// <summary>
         /// Applies transform to this curve
         /// </summary>
         /// <param name="transform">Transform to apply</param>
         void Transform(TransformMatrix transform);
+    }
+
+    /// <summary>
+    /// Additional methods of <see cref="IXCurve"/>
+    /// </summary>
+    public static class XCurveExtension 
+    {
+        /// <summary>
+        /// Create wire body from this curve
+        /// </summary>
+        /// <param name="curve">Input curve</param>
+        /// <returns>Wire body</returns>
+        public static IXMemoryWireBody CreateBody(this IXCurve curve) 
+        {
+            var wireBody = curve.OwnerApplication.MemoryGeometryBuilder.WireBuilder.PreCreateWireBody();
+
+            if (!curve.IsCommitted) 
+            {
+                curve.Commit();
+            }
+
+            wireBody.Segments = new IXSegment[] { curve };
+            wireBody.Commit();
+            return wireBody;
+        }
     }
 }

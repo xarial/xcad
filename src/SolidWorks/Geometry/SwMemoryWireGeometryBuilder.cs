@@ -67,6 +67,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         public T PreCreate<T>() where T : IXWireEntity
             => RepositoryHelper.PreCreate<IXWireEntity, T>(this,
+                () => new SwTempWireBody(null, m_App),
                 () => new SwCircleCurve(null, null, m_App, false),
                 () => new SwArcCurve(null, null, m_App, false),
                 () => new SwLineCurve(null, null, m_App, false),

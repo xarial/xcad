@@ -198,23 +198,6 @@ namespace Xarial.XCad.SolidWorks.Geometry.Curves
             }
         }
 
-        public IXWireBody CreateBody()
-        {
-            if (!Curves.Any()) 
-            {
-                throw new Exception("No curves found");
-            }
-
-            var wireBody = m_Modeler.CreateWireBody(Curves, (int)swCreateWireBodyOptions_e.swCreateWireBodyByDefault);
-
-            if (wireBody == null) 
-            {
-                throw new NullReferenceException($"Wire body cannot be created from the curves");
-            }
-
-            return OwnerApplication.CreateObjectFromDispatch<ISwTempWireBody>(wireBody, OwnerDocument);
-        }
-
         public void Transform(TransformMatrix transform)
         {
             foreach (var curve in Curves) 

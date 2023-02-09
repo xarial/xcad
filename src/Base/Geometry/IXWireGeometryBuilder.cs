@@ -35,6 +35,12 @@ namespace Xarial.XCad.Geometry
     public static class XWireGeometryBuilderExtension 
     {
         /// <summary>
+        /// Creates a wire body template
+        /// </summary>
+        /// <returns>Wire body template</returns>
+        public static IXMemoryWireBody PreCreateWireBody(this IXWireGeometryBuilder geomBuilder) => geomBuilder.PreCreate<IXMemoryWireBody>();
+
+        /// <summary>
         /// Creates a line template
         /// </summary>
         /// <returns>Line template</returns>

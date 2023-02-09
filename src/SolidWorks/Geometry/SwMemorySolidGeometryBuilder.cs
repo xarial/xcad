@@ -60,9 +60,9 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         public T PreCreate<T>() where T : IXPrimitive
             => RepositoryHelper.PreCreate<IXPrimitive, T>(this,
-                () => new SwTempExtrusion(null, m_App, false),
-                () => new SwTempRevolve(null, m_App, false),
-                () => new SwTempSweep(null, (SwPart)m_GeomBuilderDocsProvider.ProvideDocument(typeof(SwTempSweep)), m_App, false),
+                () => new SwTempSolidExtrusion(null, m_App, false),
+                () => new SwTempSolidRevolve(null, m_App, false),
+                () => new SwTempSolidSweep(null, (SwPart)m_GeomBuilderDocsProvider.ProvideDocument(typeof(SwTempSolidSweep)), m_App, false),
                 () => new SwTempSolidKnit(null, m_App, false, m_TolProvider));
 
         public IEnumerator<IXPrimitive> GetEnumerator() => throw new NotImplementedException();

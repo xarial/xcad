@@ -28,7 +28,11 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
         new ISwTempRegion[] Profiles { get; set; }
     }
 
-    internal class SwTempSweep : SwTempPrimitive, ISwTempSweep
+    public interface ISwTempSolidSweep : ISwTempSweep, ISwTempPrimitive
+    {
+    }
+
+    internal class SwTempSolidSweep : SwTempPrimitive, ISwTempSolidSweep
     {
         IXPlanarRegion[] IXSweep.Profiles
         {
@@ -44,7 +48,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
 
         private readonly SwPart m_Part;
 
-        internal SwTempSweep(SwTempBody[] bodies, SwPart part, ISwApplication app, bool isCreated)
+        internal SwTempSolidSweep(SwTempBody[] bodies, SwPart part, ISwApplication app, bool isCreated)
             : base(bodies, app, isCreated)
         {
             m_Part = part;

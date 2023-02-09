@@ -11,6 +11,7 @@ using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Geometry.Primitives;
 using Xarial.XCad.Geometry.Structures;
+using Xarial.XCad.Geometry.Wires;
 
 namespace Xarial.XCad.Geometry
 {
@@ -91,7 +92,11 @@ namespace Xarial.XCad.Geometry
     /// <summary>
     /// Represents the wire body
     /// </summary>
-    public interface IXWireBody : IXBody 
+    public interface IXWireBody : IXBody, IXWireEntity
     {
+        /// <summary>
+        /// Content of the wire body
+        /// </summary>
+        IXSegment[] Segments { get; set; }
     }
 }

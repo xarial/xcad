@@ -101,9 +101,9 @@ namespace Xarial.XCad.Utils.CustomFeature
 
             var dispDimParamsMap = new SortedDictionary<int, string>();
 
-            var featDimsLocal = featDims;
-            var featEditBodiesLocal = featEditBodies;
-            var featSelsLocal = featSels;
+            var featDimsLocal = featDims ?? new IXDimension[0];
+            var featEditBodiesLocal = featEditBodies ?? new IXBody[0];
+            var featSelsLocal = featSels ?? new CustomFeatureSelectionInfo[0];
 
             TraverseParametersDefinition(resParams,
                 (obj, prp) =>

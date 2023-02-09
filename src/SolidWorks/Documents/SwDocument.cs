@@ -466,8 +466,6 @@ namespace Xarial.XCad.SolidWorks.Documents
         /// </summary>
         private string m_CachedFilePath;
 
-        private readonly IEqualityComparer<IModelDoc2> m_ModelEqualityComparer;
-
         internal SwDocument(IModelDoc2 model, SwApplication app, IXLogger logger) 
             : this(model, app, logger, true)
         {
@@ -476,8 +474,6 @@ namespace Xarial.XCad.SolidWorks.Documents
         internal SwDocument(IModelDoc2 model, SwApplication app, IXLogger logger, bool created) : base(model, null, app)
         {
             m_Logger = logger;
-
-            m_ModelEqualityComparer = new SwModelPointerEqualityComparer(app.Sw);
 
             m_Creator = new ElementCreator<IModelDoc2>(CreateDocument, CommitCache, model, created);
 
@@ -632,7 +628,78 @@ namespace Xarial.XCad.SolidWorks.Documents
             {
                 if (IsCommitted && ((ISwDocument)other).IsCommitted)
                 {
-                    return m_ModelEqualityComparer.Equals(Model, ((ISwDocument)other).Model);
+                    var model1 = Model;
+                    var model2 = ((ISwDocument)other).Model;
+
+                    if (object.ReferenceEquals(model1, model2))
+                    {
+                        return true;
+                    }
+
+                    bool isAlive1;
+                    bool isAlive2;
+
+                    string title1 = "";
+                    string title2 = "";
+
+                    try
+                    {
+                        title1 = model1.GetTitle();
+                        isAlive1 = true;
+                    }
+                    catch
+                    {
+                        isAlive1 = false;
+                    }
+
+                    try
+                    {
+                        title2 = model2.GetTitle();
+                        isAlive2 = true;
+                    }
+                    catch
+                    {
+                        isAlive2 = false;
+                    }
+
+                    if (isAlive1 && isAlive2)
+                    {
+                        //NOTE: in some cases drawings can have the same title so it might not be safe to only compare by titles
+                        if (string.Equals(title1, title2, StringComparison.CurrentCultureIgnoreCase))
+                        {
+                            return OwnerApplication.Sw.IsSame(model1, model2) == (int)swObjectEquality.swObjectSame;
+                        }
+                        else
+                        {
+                            return false;
+                        }
+                    }
+                    else if (!isAlive1 && !isAlive2)
+                    {
+                        if (!string.IsNullOrEmpty(m_CachedFilePath))
+                        {
+                            return string.Equals(m_CachedFilePath, ((SwDocument)other).m_CachedFilePath, StringComparison.CurrentCultureIgnoreCase);
+                        }
+                        else
+                        {
+                            return false;
+                        }
+                    }
+                    else 
+                    {
+                        return false;
+                    }
+                }
+                else if (!IsCommitted && !((ISwDocument)other).IsCommitted)
+                {
+                    if (!string.IsNullOrEmpty(Path))
+                    {
+                        return string.Equals(Path, ((ISwDocument)other).Path, StringComparison.CurrentCultureIgnoreCase);
+                    }
+                    else 
+                    {
+                        return false;
+                    }
                 }
                 else 
                 {

@@ -54,15 +54,15 @@ namespace StandAlone
         {
             try
             {
-                //var app = SwApplicationFactory.Create(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2021,
-                //    ApplicationState_e.Default);
+                var app = SwApplicationFactory.Create(null, ApplicationState_e.Default);
+                app.ShowMessageBox("Hello World!");
 
-                var app = SwApplicationFactory.FromProcess(Process.GetProcessesByName("SLDWORKS").First());
+                //var app = SwApplicationFactory.FromProcess(Process.GetProcessesByName("SLDWORKS").First());
 
-                var dmApp = SwDmApplicationFactory.Create(
-                    System.Environment.GetEnvironmentVariable("SW_DM_KEY", EnvironmentVariableTarget.Machine));
+                //var dmApp = SwDmApplicationFactory.Create(
+                //    System.Environment.GetEnvironmentVariable("SW_DM_KEY", EnvironmentVariableTarget.Machine));
 
-                RenameFiles(app);
+                //RenameFiles(app);
 
                 //ParseViewPolylines(app);
 
@@ -90,7 +90,7 @@ namespace StandAlone
                 //TraverseSelectedFaces(app);
 
                 //CreateSweepFromSelection(app);
-                //CreateTempGeometry(app);
+                CreateTempGeometry(app);
 
                 //CreateSweepFromSelection(app);
             }
@@ -436,6 +436,9 @@ namespace StandAlone
             (app.Documents.Active as ISwPart).Part.CreateFeatureFromBody3(body, false, 0);
 
             var cyl = app.MemoryGeometryBuilder.CreateSolidCylinder(
+                new Point(0, 0, 0), new Vector(1, 0, 0), 0.1, 0.2);
+
+            cyl = app.MemoryGeometryBuilder.CreateSurfaceCylinder(
                 new Point(0, 0, 0), new Vector(1, 0, 0), 0.1, 0.2);
 
             body = (cyl.Bodies.First() as ISwBody).Body;
