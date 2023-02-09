@@ -77,10 +77,10 @@ namespace __TemplateNamePlaceholder__.Sw.AddIn
             => CustomFeatureRebuildResult.FromBodies(CreateGeometry(app, doc, feature, out alignDim));
 #endif
 #if _AddEditor_
-                //this method is called when feature is being inserted and user changes the parameters of the property page (preview purposes)
-                //this method will also be called when macro feature is regenerated to create a macro feature body
-                //in most cases the procedure of creating the preview body and the generated body is the same
-                //but it is also possible to provide custom preview geometry by overriding the CreatePreviewGeometry method
+        //this method is called when feature is being inserted and user changes the parameters of the property page (preview purposes)
+        //this method will also be called when macro feature is regenerated to create a macro feature body
+        //in most cases the procedure of creating the preview body and the generated body is the same
+        //but it is also possible to provide custom preview geometry by overriding the CreatePreviewGeometry method
         public override ISwBody[] CreateGeometry(ISwApplication app, ISwDocument doc, ISwMacroFeature<CylinderMacroFeatureData> feat,
             out AlignDimensionDelegate<CylinderMacroFeatureData> alignDim)
 #else
