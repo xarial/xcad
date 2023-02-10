@@ -46,7 +46,6 @@ namespace __TemplateNamePlaceholder__.Sw.AddIn
         //function is called when add-in is loading
         public override void OnConnect()
         {
-            System.Diagnostics.Debugger.Launch();
             //creating command manager based on enum
             CommandManager.AddCommandGroup<Commands_e>().CommandClick += OnCommandClick;
         }

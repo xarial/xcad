@@ -54,17 +54,17 @@ namespace __TemplateNamePlaceholder__.Sw.AddIn
             [NumberBoxOptions(NumberBoxUnitType_e.Length, 0, 1000, 0.01, false, 0.02, 0.001)]
             [Description("Width of the box")]
             [Icon(typeof(Resources), nameof(Resources.width_icon))]
-            public double Width { get; set; }
+            public double Width { get; set; } = 0.1;
 
             [NumberBoxOptions(NumberBoxUnitType_e.Length, 0, 1000, 0.01, false, 0.02, 0.001)]
             [Description("Height of the box")]
             [Icon(typeof(Resources), nameof(Resources.height_icon))]
-            public double Height { get; set; }
+            public double Height { get; set; } = 0.1;
 
             [NumberBoxOptions(NumberBoxUnitType_e.Length, 0, 1000, 0.01, false, 0.02, 0.001)]
             [Description("Length of the box")]
             [Icon(typeof(Resources), nameof(Resources.length_icon))]
-            public double Length { get; set; }
+            public double Length { get; set; } = 0.1;
         }
 
         //classes will be rendered as property manager page groups
