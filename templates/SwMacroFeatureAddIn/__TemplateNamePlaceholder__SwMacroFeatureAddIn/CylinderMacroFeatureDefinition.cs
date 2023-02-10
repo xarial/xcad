@@ -71,11 +71,6 @@ namespace __TemplateNamePlaceholder__.Sw.AddIn
         }
 
 #endif
-#if !_AddEditor_
-        public override CustomFeatureRebuildResult OnRebuild(ISwApplication app, ISwDocument doc,
-            ISwMacroFeature<CylinderMacroFeatureData> feature, out AlignDimensionDelegate<CylinderMacroFeatureData> alignDim)
-            => CustomFeatureRebuildResult.FromBodies(CreateGeometry(app, doc, feature, out alignDim));
-#endif
 #if _AddEditor_
         //this method is called when feature is being inserted and user changes the parameters of the property page (preview purposes)
         //this method will also be called when macro feature is regenerated to create a macro feature body
@@ -84,6 +79,10 @@ namespace __TemplateNamePlaceholder__.Sw.AddIn
         public override ISwBody[] CreateGeometry(ISwApplication app, ISwDocument doc, ISwMacroFeature<CylinderMacroFeatureData> feat,
             out AlignDimensionDelegate<CylinderMacroFeatureData> alignDim)
 #else
+        public override CustomFeatureRebuildResult OnRebuild(ISwApplication app, ISwDocument doc,
+            ISwMacroFeature<CylinderMacroFeatureData> feature, out AlignDimensionDelegate<CylinderMacroFeatureData> alignDim)
+            => CustomFeatureRebuildResult.FromBodies(CreateGeometry(app, doc, feature, out alignDim));
+
         public ISwBody[] CreateGeometry(ISwApplication app, ISwDocument doc, ISwMacroFeature<CylinderMacroFeatureData> feat,
             out AlignDimensionDelegate<CylinderMacroFeatureData> alignDim)
 #endif
