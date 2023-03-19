@@ -243,15 +243,37 @@ namespace Xarial.XCad.SolidWorks
                     }
 
                 case IComponent2 comp:
-                    var ext = Path.GetExtension(comp.GetPathName());
-                    switch (ext.ToLower()) 
+                    
+                    var compRefModel = comp.GetModelDoc2();
+
+                    if (compRefModel != null)
                     {
-                        case ".sldprt":
-                            return new SwPartComponent(comp, (SwAssembly)doc, app);
-                        case ".sldasm":
-                            return new SwAssemblyComponent(comp, (SwAssembly)doc, app);
-                        default:
-                            throw new NotSupportedException();
+                        switch (compRefModel)
+                        {
+                            case IPartDoc _:
+                                return new SwPartComponent(comp, (SwAssembly)doc, app);
+
+                            case IAssemblyDoc _:
+                                return new SwAssemblyComponent(comp, (SwAssembly)doc, app);
+
+                            default:
+                                throw new NotSupportedException($"Unrecognized component type of '{comp.Name2}'");
+                        }
+                    }
+                    else
+                    {
+                        var compFilePath = comp.GetPathName();
+                        var ext = Path.GetExtension(compFilePath);
+
+                        switch (ext.ToLower())
+                        {
+                            case ".sldprt":
+                                return new SwPartComponent(comp, (SwAssembly)doc, app);
+                            case ".sldasm":
+                                return new SwAssemblyComponent(comp, (SwAssembly)doc, app);
+                            default:
+                                throw new NotSupportedException($"Component '{comp.Name2}' file '{compFilePath}' is not recognized");
+                        }
                     }
 
                 case ISheet sheet:
