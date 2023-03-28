@@ -8,8 +8,8 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Enums;
+using Xarial.XCad.Documents.Extensions;
 using Xarial.XCad.SolidWorks.Documents;
 
 namespace Xarial.XCad.SolidWorks.Services

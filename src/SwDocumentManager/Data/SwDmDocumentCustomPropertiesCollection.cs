@@ -62,19 +62,8 @@ namespace Xarial.XCad.SwDocumentManager.Data
             m_Doc.IsDirty = true;
         }
 
-        protected override object ReadValue(out string exp)
-        {
-            //TODO: parse type
-
-            var val = ((ISwDMDocument5)m_Doc.Document).GetCustomPropertyValues(Name, out SwDmCustomInfoType type, out exp);
-
-            if (string.IsNullOrEmpty(exp)) 
-            {
-                exp = val;
-            }
-
-            return val;
-        }
+        protected override string ReadRawValue(out SwDmCustomInfoType type, out string linkedTo)
+            => ((ISwDMDocument5)m_Doc.Document).GetCustomPropertyValues(Name, out type, out linkedTo);
 
         protected override void SetValue(object value)
         {

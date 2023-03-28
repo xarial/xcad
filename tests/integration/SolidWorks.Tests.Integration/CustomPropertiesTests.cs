@@ -382,6 +382,80 @@ namespace SolidWorks.Tests.Integration
         }
 
         [Test]
+        public void GetCustomPropertiesTypesTest()
+        {
+            object val1;
+            object val2;
+            object val3;
+            object val4;
+            object val5;
+            object val6;
+
+            using (var doc = OpenDataDocument("PrpTypes.SLDPRT"))
+            {
+                var part = (IXPart)m_App.Documents.Active;
+
+                val1 = part.Properties["Text"].Value;
+                val2 = part.Properties["Double"].Value;
+                val3 = part.Properties["Integer"].Value;
+                val4 = part.Properties["BoolTrue"].Value;
+                val5 = part.Properties["BoolFalse"].Value;
+                val6 = part.Properties["Date"].Value;
+            }
+
+            Assert.AreEqual("A", val1);
+            Assert.IsInstanceOf<string>(val1);
+
+            Assert.AreEqual(5.5, val2);
+            Assert.IsInstanceOf<double>(val2);
+
+            Assert.AreEqual(10, val3);
+            Assert.IsInstanceOf<double>(val3);
+
+            Assert.AreEqual(true, val4);
+            Assert.IsInstanceOf<bool>(val4);
+
+            Assert.AreEqual(false, val5);
+            Assert.IsInstanceOf<bool>(val5);
+
+            Assert.AreEqual(new DateTime(2023, 03, 28), val6);
+            Assert.IsInstanceOf<DateTime>(val6);
+        }
+
+        //[Test]
+        //public void SetCustomPropertiesTypesTest()
+        //{
+        //    using (var doc = NewDocument(swDocumentTypes_e.swDocPART))
+        //    {
+        //        var part = (IXPart)m_App.Documents.Active;
+
+        //        var prp1 = part.Properties.GetOrPreCreate("Text");
+        //        prp1.Value = "A";
+        //        prp1.Commit();
+
+        //        var prp2 = part.Properties.GetOrPreCreate("Double");
+        //        prp2.Value = 5.5;
+        //        prp2.Commit();
+
+        //        var prp3 = part.Properties.GetOrPreCreate("Integer");
+        //        prp3.Value = 10;
+        //        prp3.Commit();
+
+        //        var prp4 = part.Properties.GetOrPreCreate("BoolTrue");
+        //        prp4.Value = true;
+        //        prp4.Commit();
+
+        //        var prp5 = part.Properties.GetOrPreCreate("BoolFalse");
+        //        prp5.Value = false;
+        //        prp5.Commit();
+
+        //        var prp6 = part.Properties.GetOrPreCreate("Date");
+        //        prp6.Value = new DateTime(2023, 03, 28);
+        //        prp6.Commit();
+        //    }
+        //}
+
+        [Test]
         public void SetExpressionCustomPropertiesTest()
         {
             string val;

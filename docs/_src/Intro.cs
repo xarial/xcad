@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Enums;
+using Xarial.XCad.Documents.Extensions;
 using Xarial.XCad.Enums;
 using Xarial.XCad.Features;
 using Xarial.XCad.Features.CustomFeature.Delegates;

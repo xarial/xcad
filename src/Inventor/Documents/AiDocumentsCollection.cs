@@ -32,6 +32,24 @@ namespace Xarial.XCad.Inventor.Documents
 
     internal class AiDocumentsCollection : IAiDocumentsCollection, IDisposable
     {
+        internal static AiDocument CreateDocument(Document nativeDoc, AiApplication app)
+        {
+            switch (nativeDoc)
+            {
+                case PartDocument part:
+                    return new AiPart(part, app);
+
+                case AssemblyDocument assm:
+                    return new AiAssembly(assm, app);
+
+                case DrawingDocument drw:
+                    return new AiDrawing(drw, app);
+
+                default:
+                    return new AiDocument(nativeDoc, app);
+            }
+        }
+
         public event DocumentEventDelegate DocumentActivated;
         
         public event DocumentEventDelegate DocumentLoaded
@@ -79,7 +97,7 @@ namespace Xarial.XCad.Inventor.Documents
 
         public IXDocument this[string name] => RepositoryHelper.Get(this, name);
 
-        public IAiDocument this[Document doc] => CreateDocument(doc);
+        public IAiDocument this[Document doc] => CreateDocument(doc, m_App);
 
         public IXDocument Active 
         {
@@ -119,7 +137,7 @@ namespace Xarial.XCad.Inventor.Documents
         {
             foreach (Document doc in m_App.Application.Documents)
             {
-                yield return CreateDocument(doc);
+                yield return CreateDocument(doc, m_App);
             }
         }
 
@@ -129,6 +147,10 @@ namespace Xarial.XCad.Inventor.Documents
         public T PreCreate<T>() where T : IXDocument
         {
             var doc = RepositoryHelper.PreCreate<IXDocument, T>(this,
+                () => new AiUnknownDocument(null, m_App),
+                () => new AiPart(null, m_App),
+                () => new AiAssembly(null, m_App),
+                () => new AiDrawing(null, m_App),
                 () => new AiDocument(null, m_App));
 
             if (!(doc is AiDocument))
@@ -156,7 +178,7 @@ namespace Xarial.XCad.Inventor.Documents
 
             if (doc != null)
             {
-                ent = CreateDocument(doc);
+                ent = CreateDocument(doc, m_App);
                 return true;
             }
             else 
@@ -173,7 +195,7 @@ namespace Xarial.XCad.Inventor.Documents
             {
                 try
                 {
-                    m_DocumentLoaded?.Invoke(CreateDocument(DocumentObject));
+                    m_DocumentLoaded?.Invoke(CreateDocument(DocumentObject, m_App));
                 }
                 catch (Exception ex)
                 {
@@ -183,9 +205,6 @@ namespace Xarial.XCad.Inventor.Documents
 
             HandlingCode = HandlingCodeEnum.kEventHandled;
         }
-
-        private AiDocument CreateDocument(Document nativeDoc)
-            => new AiDocument(nativeDoc, m_App);
 
         public void Dispose()
         {

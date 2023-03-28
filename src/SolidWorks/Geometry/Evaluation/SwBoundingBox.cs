@@ -15,6 +15,7 @@ using System.Threading;
 using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Enums;
+using Xarial.XCad.Documents.Extensions;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Evaluation;
 using Xarial.XCad.Geometry.Exceptions;

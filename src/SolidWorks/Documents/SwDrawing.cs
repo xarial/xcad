@@ -133,6 +133,9 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         protected override SwAnnotationCollection CreateAnnotations() => new SwDrawingAnnotationCollection(this);
 
+        protected override SwPdfSaveOperation CreatePdfSaveOperation(string filePath)
+            => new SwDrawingPdfSaveOperation(this, filePath);
+
         protected override void GetPaperSize(out swDwgPaperSizes_e size, out double width, out double height)
         {
             if (m_SheetsLazy.IsValueCreated)
