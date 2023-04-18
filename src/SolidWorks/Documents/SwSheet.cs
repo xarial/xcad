@@ -324,7 +324,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                 }
             }
 
-            var newSheet = m_Drawing.Sheets.Last();
+            var newSheet = targetDrawing.Sheets.Last();
 
             if (!curSheets.Contains(newSheet, new XObjectEqualityComparer<IXSheet>()))
             {
