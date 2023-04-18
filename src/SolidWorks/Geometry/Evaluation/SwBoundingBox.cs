@@ -511,6 +511,11 @@ namespace Xarial.XCad.SolidWorks.Geometry.Evaluation
 
                 foreach (var body in bodies)
                 {
+                    if (body is IXWireBody) 
+                    {
+                        throw new NotSupportedException("Precise bounding box is not supported for the wire bodies");
+                    }
+
                     var swBody = GetTransformedSwBody(body, out _);
 
                     double x;

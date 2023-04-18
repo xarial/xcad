@@ -1299,7 +1299,7 @@ namespace SolidWorks.Tests.Integration
                 
                 var sheetNames = (string[])drwDoc.Drawing.GetSheetNames();
 
-                var cloned = drwDoc.Sheets.First().Clone();
+                var cloned = drwDoc.Sheets.First().Clone(drwDoc);
                 clonedSheetName = cloned.Name;
 
                 var newSheetNames = (string[])drwDoc.Drawing.GetSheetNames();

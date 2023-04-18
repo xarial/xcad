@@ -357,7 +357,17 @@ namespace Xarial.XCad.SolidWorks.Geometry
         {
             var curves = Segments.SelectMany(s => 
             {
-                return ((ISwCurve)s).Curves;
+                switch (s) 
+                {
+                    case ISwCurve curve:
+                        return curve.Curves;
+
+                    case ISwEdge edge:
+                        return edge.Definition.Curves;
+
+                    default:
+                        throw new NotSupportedException("Only edges and curves are supported for the segments");
+                }
             }).ToArray();
 
             if (!curves.Any())
@@ -366,7 +376,6 @@ namespace Xarial.XCad.SolidWorks.Geometry
             }
 
             IBody2 wireBody;
-
 
             if (curves.Length == 1)
             {

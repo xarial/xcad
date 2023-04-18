@@ -26,7 +26,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
     internal class SwDmSheet : SwDmObject, ISwDmSheet
     {
         #region Not Supported
-        public IXSheet Clone() => throw new NotSupportedException();
+        public IXSheet Clone(IXDrawing targetDrawing) => throw new NotSupportedException();
         public void Commit(CancellationToken cancellationToken) => throw new NotSupportedException();
         public IXSketch2D Sketch => throw new NotSupportedException();
         #endregion
