@@ -321,7 +321,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
                 if (!string.IsNullOrEmpty(newPath))
                 {
-                    var isFlatPattern = IsFlatPatternView();
+                    var isFlatPattern = IsFlatPatternView(DrawingView);
 
                     if (!m_Drawing.Drawing.ReplaceViewModel(newPath,
                         new IView[]
@@ -385,7 +385,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                 {
                     var confName = value.Name;
 
-                    if (IsFlatPatternView()) 
+                    if (IsFlatPatternView(DrawingView)) 
                     {
                         confName = GetFlatPatternConfigurationName(confName);
                     }
@@ -399,9 +399,9 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        protected bool IsFlatPatternView() 
+        protected bool IsFlatPatternView(IView view) 
         {
-            if (DrawingView.IsFlatPatternView())
+            if (view.IsFlatPatternView())
             {
                 return true;
             }
@@ -409,7 +409,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             {
                 //NOTE: after view replacement the above method can return incorrect value
 
-                var refConf = DrawingView.ReferencedDocument.IGetConfigurationByName(DrawingView.ReferencedConfiguration);
+                var refConf = view.ReferencedDocument.IGetConfigurationByName(DrawingView.ReferencedConfiguration);
 
                 return refConf.Type == (int)swConfigurationType_e.swConfiguration_SheetMetal;
             }
@@ -1477,7 +1477,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                     view.SetName2(viewName);
                 }
 
-                if (!IsFlatPatternView())
+                if (!IsFlatPatternView(view))
                 {
                     throw new Exception("Created view cannot be set to flat pattern");
                 }
