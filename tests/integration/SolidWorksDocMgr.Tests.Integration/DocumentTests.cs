@@ -47,19 +47,19 @@ namespace SolidWorksDocMgr.Tests.Integration
             var c1 = m_App.Documents.Count;
             var activeIsNull = m_App.Documents.Active == null;
 
-            var doc1 = m_App.Documents.Open(GetFilePath("Part_2020.sldprt"), Xarial.XCad.Documents.Enums.DocumentState_e.ReadOnly);
+            var doc1 = m_App.Documents.Open(GetFilePath("Part_2020.sldprt"), DocumentState_e.ReadOnly);
 
             var c2 = m_App.Documents.Count;
-            var activeIsDoc1 = m_App.Documents.Active == doc1;
+            var activeIsDoc1 = m_App.Documents.Active.Equals(doc1);
 
-            var doc2 = m_App.Documents.Open(GetFilePath("Part_2019.sldprt"), Xarial.XCad.Documents.Enums.DocumentState_e.ReadOnly);
+            var doc2 = m_App.Documents.Open(GetFilePath("Part_2019.sldprt"), DocumentState_e.ReadOnly);
 
             var c3 = m_App.Documents.Count;
-            var activeIsDoc2 = m_App.Documents.Active == doc2;
+            var activeIsDoc2 = m_App.Documents.Active.Equals(doc2);
 
             doc1.Close();
             var c4 = m_App.Documents.Count;
-            var activeIsDoc21 = m_App.Documents.Active == doc2;
+            var activeIsDoc21 = m_App.Documents.Active.Equals(doc2);
 
             doc2.Close();
             var c5 = m_App.Documents.Count;

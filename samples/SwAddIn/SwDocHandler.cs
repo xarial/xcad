@@ -17,7 +17,9 @@ using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Attributes;
 using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Documents.Services;
+using Xarial.XCad.Extensions;
 using Xarial.XCad.SolidWorks.Documents;
+using Xarial.XCad.UI;
 
 namespace SwAddInExample
 {
@@ -40,6 +42,15 @@ namespace SwAddInExample
         private IXApplication m_App;
         private IXDocument m_Model;
 
+        private readonly IXExtension m_Ext;
+
+        private IXCustomPanel<WpfUserControl> m_FeatMgrTab;
+
+        public SwDocHandler(IXExtension ext) 
+        {
+            m_Ext = ext;
+        }
+
         public void Init(IXApplication app, IXDocument model)
         {
             m_App = app;
@@ -49,6 +60,8 @@ namespace SwAddInExample
             m_Model.StreamWriteAvailable += SaveToStream;
             m_Model.StorageReadAvailable += LoadFromStorage;
             m_Model.StorageWriteAvailable += SaveToStorage;
+
+            m_FeatMgrTab = m_Ext.CreateFeatureManagerTab<WpfUserControl>(model);
 
             //m_App.ShowMessageBox($"Opened {model.Title}");
         }
