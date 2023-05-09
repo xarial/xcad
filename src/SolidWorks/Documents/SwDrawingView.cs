@@ -26,6 +26,7 @@ using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Services;
 using Xarial.XCad.SolidWorks.Annotations;
+using Xarial.XCad.SolidWorks.Documents.Exceptions;
 using Xarial.XCad.SolidWorks.Features;
 using Xarial.XCad.SolidWorks.Geometry;
 using Xarial.XCad.SolidWorks.Utils;
@@ -1381,7 +1382,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             {
                 if (IsCommitted)
                 {
-                    SetViewOptions(DrawingView, value);
+                    SetViewOptions(DrawingView, value, GetViewFlatPattern(DrawingView));
                 }
                 else 
                 {
@@ -1485,7 +1486,18 @@ namespace Xarial.XCad.SolidWorks.Documents
                 //In some cases view shows invalid geometry until hidden and shown
                 RefreshView(view);
 
-                SetViewOptions(view, Options);
+                ISwFlatPattern flatPattern;
+
+                try
+                {
+                    flatPattern = GetViewFlatPattern(view);
+                }
+                catch (Exception ex)
+                {
+                    throw new InvalidFlatPatternConfigurationException(ex);
+                }
+
+                SetViewOptions(view, Options, flatPattern);
 
                 if (ReferencedConfiguration != null) 
                 {
@@ -1497,7 +1509,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             return view;
         }
 
-        private void SetViewOptions(IView view, FlatPatternViewOptions_e opts) 
+        private void SetViewOptions(IView view, FlatPatternViewOptions_e opts, ISwFlatPattern flatPattern) 
         {
             var hasBendLines = view.GetBendLineCount() > 0;
 
@@ -1516,7 +1528,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
             if (hasBendLines != needBendLines)
             {
-                var bendLinesSketch = GetBendLinesSketchOrNull(view);
+                var bendLinesSketch = GetBendLinesSketchOrNull(view, flatPattern);
 
                 if (bendLinesSketch != null) //bend line sketch can be null if sheet metal has no bends
                 {
@@ -1540,7 +1552,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        private IFeature GetBendLinesSketchOrNull(IView view)
+        private IFeature GetBendLinesSketchOrNull(IView view, ISwFlatPattern flatPattern)
         {
             var bendLines = (object[])view.GetBendLines();
 
@@ -1550,8 +1562,6 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
             else
             {
-                var flatPattern = GetViewFlatPattern(view);
-
                 var subFeat = flatPattern.Feature.IGetFirstSubFeature();
 
                 IFeature bendLinesSketch = null;
