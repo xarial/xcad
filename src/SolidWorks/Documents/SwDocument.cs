@@ -1262,7 +1262,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             switch (ext.ToLower())
             {
                 case ".pdf":
-                    return new SwPdfSaveOperation(this, filePath);
+                    return CreatePdfSaveOperation(filePath);
 
                 case ".step":
                 case ".stp":
@@ -1340,6 +1340,8 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
 
         public IOperationGroup PreCreateOperationGroup() => new SwUndoObjectGroup(this);
+
+        protected abstract SwPdfSaveOperation CreatePdfSaveOperation(string filePath);
     }
 
     internal class SwUnknownDocument : SwDocument, IXUnknownDocument
@@ -1352,6 +1354,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         protected override bool IsLightweightMode => throw new NotSupportedException();
         protected override bool IsRapidMode => throw new NotSupportedException();
         protected override SwAnnotationCollection CreateAnnotations() => throw new NotSupportedException();
+        protected override SwPdfSaveOperation CreatePdfSaveOperation(string filePath) => throw new NotSupportedException();
 
         internal protected override swDocumentTypes_e? DocumentType 
         {

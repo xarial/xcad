@@ -6,11 +6,12 @@
 //*********************************************************************
 
 using System.Linq;
+using Xarial.XCad;
 using Xarial.XCad.Base;
 using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Documents.Services;
 
-namespace Xarial.XCad.Documents
+namespace Xarial.XCad.Documents.Extensions
 {
     /// <summary>
     /// Additonal methods for <see cref="IXDocumentRepository"/>
@@ -23,7 +24,7 @@ namespace Xarial.XCad.Documents
         /// <param name="repo">This repository</param>
         /// <returns>New part</returns>
         public static IXPart NewPart(this IXDocumentRepository repo)
-            => CreateAndCommitNewDocument<IXPart>(repo);
+            => repo.CreateAndCommitNewDocument<IXPart>();
 
         /// <summary>
         /// Creates new assembly document
@@ -31,7 +32,7 @@ namespace Xarial.XCad.Documents
         /// <param name="repo">This repository</param>
         /// <returns>New aseembly</returns>
         public static IXAssembly NewAssembly(this IXDocumentRepository repo)
-            => CreateAndCommitNewDocument<IXAssembly>(repo);
+            => repo.CreateAndCommitNewDocument<IXAssembly>();
 
         /// <summary>
         /// Creates new drawing document
@@ -39,7 +40,7 @@ namespace Xarial.XCad.Documents
         /// <param name="repo">This repository</param>
         /// <returns>New drawing</returns>
         public static IXDrawing NewDrawing(this IXDocumentRepository repo)
-            => CreateAndCommitNewDocument<IXDrawing>(repo);
+            => repo.CreateAndCommitNewDocument<IXDrawing>();
 
         private static TDoc CreateAndCommitNewDocument<TDoc>(this IXDocumentRepository repo)
             where TDoc : class, IXDocument
@@ -62,7 +63,7 @@ namespace Xarial.XCad.Documents
         /// <param name="path">Path to document to open</param>
         /// <param name="state">State of the document</param>
         /// <returns>Opened document</returns>
-        public static IXDocument Open(this IXDocumentRepository repo, string path, 
+        public static IXDocument Open(this IXDocumentRepository repo, string path,
             DocumentState_e state = DocumentState_e.Default)
         {
             var doc = repo.PreCreate<IXUnknownDocument>();
@@ -81,7 +82,7 @@ namespace Xarial.XCad.Documents
         /// <typeparam name="THandler">Handler type</typeparam>
         /// <param name="repo">Documents repository</param>
         public static void RegisterHandler<THandler>(this IXDocumentRepository repo)
-            where THandler : IDocumentHandler, new() => repo.RegisterHandler<THandler>(() => new THandler());
+            where THandler : IDocumentHandler, new() => repo.RegisterHandler(() => new THandler());
 
         /// <summary>
         /// Creates new part template

@@ -17,6 +17,7 @@ using Xarial.XCad.Documents;
 using Xarial.XCad.SolidWorks.Documents;
 using SolidWorks.Interop.sldworks;
 using Xarial.XCad.Data.Enums;
+using Xarial.XCad.Documents.Extensions;
 
 namespace Xarial.XCad.Documentation
 {

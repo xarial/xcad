@@ -9,6 +9,7 @@ using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 using Xarial.XCad.Documents;
 
@@ -18,6 +19,7 @@ namespace Xarial.XCad.SolidWorks.Documents
     {
     }
 
+    [DebuggerDisplay("{" + nameof(Length) + "} - {" + nameof(Mass) + "} - {" + nameof(Angle) + "} - {" + nameof(Time) + "}")]
     internal class SwUnits : ISwUnits
     {
         public Length_e Length

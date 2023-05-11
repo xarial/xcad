@@ -122,7 +122,12 @@ namespace Xarial.XCad.SolidWorks.Documents
 
             try
             {
-                if (m_Doc.OwnerApplication.IsVersionNewerOrEqual(SwVersion_e.Sw2019, 1))
+                if (m_Doc.OwnerApplication.IsVersionNewerOrEqual(SwVersion_e.Sw2020, 2))
+                {
+                    res = m_Doc.Model.Extension.SaveAs3(FilePath, (int)swSaveAsVersion_e.swSaveAsCurrentVersion,
+                        (int)swSaveAsOptions_e.swSaveAsOptions_Silent, expData, null, ref errs, ref warns);
+                }
+                else if (m_Doc.OwnerApplication.IsVersionNewerOrEqual(SwVersion_e.Sw2019, 1))
                 {
                     res = m_Doc.Model.Extension.SaveAs2(FilePath, (int)swSaveAsVersion_e.swSaveAsCurrentVersion,
                         (int)swSaveAsOptions_e.swSaveAsOptions_Silent, expData, "", false, ref errs, ref warns);
@@ -236,7 +241,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
     }
 
-    internal class SwPdfSaveOperation : SwSaveOperation, IXPdfSaveOperation
+    internal abstract class SwPdfSaveOperation : SwSaveOperation, IXPdfSaveOperation
     {
         internal SwPdfSaveOperation(SwDocument doc, string filePath) : base(doc, filePath)
         {
@@ -245,9 +250,25 @@ namespace Xarial.XCad.SolidWorks.Documents
         protected override void SetSaveOptions(out object exportData)
         {
             var pdfExpData = (IExportPdfData)m_Doc.OwnerApplication.Sw.GetExportFileData((int)swExportDataFileType_e.swExportPdfData);
-            pdfExpData.ExportAs3D = Pdf3D;
             pdfExpData.ViewPdfAfterSaving = false;
+
+            SetExportPdfData(pdfExpData);
+
             exportData = pdfExpData;
+        }
+
+        protected abstract void SetExportPdfData(IExportPdfData data);
+    }
+
+    internal class SwDocument3DPdfSaveOperation : SwPdfSaveOperation, IXDocument3DPdfSaveOperation
+    {
+        internal SwDocument3DPdfSaveOperation(SwDocument3D doc, string filePath) : base(doc, filePath)
+        {
+        }
+
+        protected override void SetExportPdfData(IExportPdfData data)
+        {
+            data.ExportAs3D = Pdf3D;
         }
 
         public bool Pdf3D 
@@ -260,6 +281,39 @@ namespace Xarial.XCad.SolidWorks.Documents
                     m_Creator.CachedProperties.Set(value);
                 }
                 else 
+                {
+                    throw new CommitedElementReadOnlyParameterException();
+                }
+            }
+        }
+    }
+
+    internal class SwDrawingPdfSaveOperation : SwPdfSaveOperation, IXDrawingPdfSaveOperation
+    {
+        internal SwDrawingPdfSaveOperation(SwDrawing doc, string filePath) : base(doc, filePath)
+        {
+        }
+
+        protected override void SetExportPdfData(IExportPdfData data)
+        {
+            var sheets = Sheets;
+
+            data.SetSheets(sheets?.Any() == true
+                ? (int)swExportDataSheetsToExport_e.swExportData_ExportSpecifiedSheets
+                : (int)swExportDataSheetsToExport_e.swExportData_ExportCurrentSheet,
+                sheets?.Select(s => s.Name)?.ToArray());
+        }
+
+        public IXSheet[] Sheets
+        {
+            get => m_Creator.CachedProperties.Get<IXSheet[]>();
+            set
+            {
+                if (!IsCommitted)
+                {
+                    m_Creator.CachedProperties.Set(value);
+                }
+                else
                 {
                     throw new CommitedElementReadOnlyParameterException();
                 }

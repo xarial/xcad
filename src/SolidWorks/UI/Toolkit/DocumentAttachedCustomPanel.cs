@@ -128,7 +128,7 @@ namespace Xarial.XCad.SolidWorks.UI.Toolkit
         {
             if (!m_IsDisposed)
             {
-                if (m_Doc == doc)
+                if (m_Doc.Equals(doc))
                 {
                     if (!IsControlCreated)
                     {

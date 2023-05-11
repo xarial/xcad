@@ -15,6 +15,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using Xarial.XCad.Annotations;
 using Xarial.XCad.Data;
 using Xarial.XCad.Data.Enums;
@@ -312,6 +313,34 @@ namespace Xarial.XCad.Inventor.Documents
 
         protected virtual void Dispose(bool disposing)
         {
+        }
+    }
+
+    internal class AiUnknownDocument : AiDocument, IXUnknownDocument
+    {
+        private IXDocument m_SpecificDoc;
+
+        internal AiUnknownDocument(Document doc, AiApplication ownerApp) : base(doc, ownerApp)
+        {
+        }
+
+        public IXDocument GetSpecific()
+        {
+            if (m_SpecificDoc != null)
+            {
+                return m_SpecificDoc;
+            }
+
+            var doc = Document;
+
+            if (doc == null)
+            {
+                throw new Exception("Document is not yet created, cannot get specific document");
+            }
+
+            m_SpecificDoc = AiDocumentsCollection.CreateDocument(doc, OwnerApplication);
+
+            return m_SpecificDoc;
         }
     }
 }

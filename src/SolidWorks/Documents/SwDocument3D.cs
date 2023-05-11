@@ -35,6 +35,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         IXModelView3DRepository IXDocument3D.ModelViews => (IXModelView3DRepository)ModelViews;
         public override ISwModelViewsCollection ModelViews => ((ISwDocument3D)this).ModelViews;
         ISwModelViews3DCollection ISwDocument3D.ModelViews => m_ModelViewsLazy.Value;
+        TSelObject IXObjectContainer.ConvertObject<TSelObject>(TSelObject obj) => ConvertObjectBoxed(obj) as TSelObject;
 
         internal SwDocument3D(IModelDoc2 model, SwApplication app, IXLogger logger, bool isCreated) : base(model, app, logger, isCreated)
         {
@@ -68,13 +69,12 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         protected abstract SwConfigurationCollection CreateConfigurations();
 
-        TSelObject IXObjectContainer.ConvertObject<TSelObject>(TSelObject obj) => ConvertObjectBoxed(obj) as TSelObject;
+        protected override SwPdfSaveOperation CreatePdfSaveOperation(string filePath)
+            => new SwDocument3DPdfSaveOperation(this, filePath);
 
         public TSelObject ConvertObject<TSelObject>(TSelObject obj)
             where TSelObject : ISwSelObject
-        {
-            return (TSelObject)ConvertObjectBoxed(obj);
-        }
+            => (TSelObject)ConvertObjectBoxed(obj);
 
         private ISwSelObject ConvertObjectBoxed(object obj)
         {

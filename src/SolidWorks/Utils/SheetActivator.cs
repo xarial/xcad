@@ -38,7 +38,7 @@ namespace Xarial.XCad.SolidWorks.Utils
             }
         }
 
-        public void Dispose()
+        public virtual void Dispose()
         {
             var activeSheet = (ISheet)m_Draw.GetCurrentSheet();
 

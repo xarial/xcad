@@ -54,7 +54,8 @@ namespace Xarial.XCad.Documents
         /// <summary>
         /// Creates a copy of this sheet
         /// </summary>
+        /// <param name="targetDrawing">Drawing where to copy sheet to</param>
         /// <returns>Cloned sheet</returns>
-        IXSheet Clone();
+        IXSheet Clone(IXDrawing targetDrawing);
     }
 }

@@ -59,10 +59,28 @@ namespace Xarial.XCad.Documents
     /// </summary>
     public interface IXPdfSaveOperation : IXSaveOperation
     {
+    }
+
+    /// <summary>
+    /// Save options for PDF format in 3D document
+    /// </summary>
+    public interface IXDocument3DPdfSaveOperation : IXPdfSaveOperation 
+    {
         /// <summary>
         /// Save PDF as 3D PDF
         /// </summary>
         bool Pdf3D { get; set; }
+    }
+
+    /// <summary>
+    /// Save options for PDF format in drawing document
+    /// </summary>
+    public interface IXDrawingPdfSaveOperation : IXPdfSaveOperation
+    {
+        /// <summary>
+        /// Sheets to export
+        /// </summary>
+        IXSheet[] Sheets { get; set; }
     }
 
     /// <summary>

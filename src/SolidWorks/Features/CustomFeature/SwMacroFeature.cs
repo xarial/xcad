@@ -473,17 +473,23 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
                     switch ((swMacroFeatureParamType_e)((int[])paramTypes)[i])
                     {
                         case swMacroFeatureParamType_e.swMacroFeatureParamTypeInteger:
-                            paramValue = int.Parse(paramValues[i]);
+                            try
+                            {
+                                paramValue = int.Parse(paramValues[i]);
+                            }
+                            catch
+                            {
+                                paramValue = int.MinValue;
+                            }
                             break;
                         case swMacroFeatureParamType_e.swMacroFeatureParamTypeDouble:
-                            if (double.TryParse(paramValues[i], out var doubleVal))
+                            try
                             {
-                                paramValue = doubleVal;
+                                paramValue = double.Parse(paramValues[i], CultureInfo.InvariantCulture);
                             }
-                            else
+                            catch
                             {
-                                //NOTE: SOLIDWORKS stores the double with . separator regardless of the culture, so it is required to use . for parsing, ignoring the current culture
-                                paramValue = double.Parse(paramValues[i], CultureInfo.GetCultureInfo("en-US"));
+                                paramValue = double.NaN;
                             }
                             break;
                         case swMacroFeatureParamType_e.swMacroFeatureParamTypeString:
@@ -601,28 +607,30 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         {
             if (param != null)
             {
-                paramNames = param.Select(p => p.Name).ToArray();
-                paramTypes = param.Select(p =>
-                {
-                    swMacroFeatureParamType_e paramType;
+                paramNames = new string[param.Length];
+                paramTypes  = new int[param.Length];
+                paramValues = new string[param.Length];
 
-                    if (p.Type == typeof(int))
+                for (int i = 0; i < param.Length; i++)
+                {
+                    paramNames[i] = param[i].Name;
+
+                    if (param[i].Type == typeof(int))
                     {
-                        paramType = swMacroFeatureParamType_e.swMacroFeatureParamTypeInteger;
+                        paramTypes[i] = (int)swMacroFeatureParamType_e.swMacroFeatureParamTypeInteger;
+                        paramValues[i] = Convert.ToString(param[i].Value);
                     }
-                    else if (p.Type == typeof(double))
+                    else if (param[i].Type == typeof(double))
                     {
-                        paramType = swMacroFeatureParamType_e.swMacroFeatureParamTypeDouble;
+                        paramTypes[i] = (int)swMacroFeatureParamType_e.swMacroFeatureParamTypeDouble;
+                        paramValues[i] = Convert.ToString(param[i].Value, CultureInfo.InvariantCulture);
                     }
                     else
                     {
-                        paramType = swMacroFeatureParamType_e.swMacroFeatureParamTypeString;
+                        paramTypes[i] = (int)swMacroFeatureParamType_e.swMacroFeatureParamTypeString;
+                        paramValues[i] = Convert.ToString(param[i].Value);
                     }
-
-                    return (int)paramType;
-                }).ToArray();
-
-                paramValues = param.Select(p => p.Value?.ToString()).ToArray();
+                }
             }
             else
             {
@@ -733,7 +741,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
                             break;
 
                         case swMacroFeatureParamType_e.swMacroFeatureParamTypeDouble:
-                            featData.SetDoubleByName(paramName, double.Parse(val));
+                            featData.SetDoubleByName(paramName, double.Parse(val, CultureInfo.InvariantCulture));
                             break;
                     }
                 }

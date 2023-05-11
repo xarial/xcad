@@ -268,7 +268,29 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         internal override void Select(bool append, ISelectData selData)
         {
-            if (!m_Drawing.Model.Extension.SelectByID2(Name, "SHEET", 0, 0, 0, false, 0, null, (int)swSelectOption_e.swSelectOptionDefault))
+            int mark;
+            Callout callout;
+            double x, y, z;
+
+            if (selData != null)
+            {
+                mark = selData.Mark;
+                callout = selData.Callout;
+                x = selData.X;
+                y = selData.Y;
+                z = selData.Z;
+            }
+            else
+            {
+                mark = 0;
+                callout = null;
+                x = 0;
+                y = 0;
+                z = 0;
+            }
+
+            if (!m_Drawing.Model.Extension.SelectByID2(Name, "SHEET", x, y, z, append, mark,
+                callout, (int)swSelectOption_e.swSelectOptionDefault))
             {
                 throw new Exception($"Failed to select sheet");
             }
@@ -278,20 +300,20 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         private void CommitCache(ISheet sheet, CancellationToken cancellationToken) => m_DrawingViews.CommitCache(cancellationToken);
 
-        public IXSheet Clone()
+        public IXSheet Clone(IXDrawing targetDrawing)
         {
             Select(false);
 
             m_Drawing.Model.EditCopy();
 
-            var curSheets = m_Drawing.Sheets.ToArray();
+            var curSheets = targetDrawing.Sheets.ToArray();
 
-            if (!TryPasteSheet()) 
+            if (!TryPasteSheet(targetDrawing)) 
             {
                 //NOTE: it was observed that in some cases paste command fails on the first attempt
                 if (m_Drawing.Sheets.Count == curSheets.Count())
                 {
-                    if (!TryPasteSheet()) 
+                    if (!TryPasteSheet(targetDrawing)) 
                     {
                         throw new Exception($"Failed to paste sheet");
                     }
@@ -302,7 +324,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                 }
             }
 
-            var newSheet = m_Drawing.Sheets.Last();
+            var newSheet = targetDrawing.Sheets.Last();
 
             if (!curSheets.Contains(newSheet, new XObjectEqualityComparer<IXSheet>()))
             {
@@ -314,24 +336,51 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        private bool TryPasteSheet() => m_Drawing.Drawing.PasteSheet((int)swInsertOptions_e.swInsertOption_MoveToEnd, (int)swRenameOptions_e.swRenameOption_No);
+        private bool TryPasteSheet(IXDrawing targetDrawing) 
+            => ((ISwDrawing)targetDrawing).Drawing.PasteSheet(
+                (int)swInsertOptions_e.swInsertOption_MoveToEnd,
+                (int)swRenameOptions_e.swRenameOption_No);
     }
 
     internal class SwSheetSketchEditor : SheetActivator, IEditor<SwSheetSketch>
     {
         private readonly SwSheetSketch m_SheetSketch;
 
+        private readonly bool? m_AddToDbOrig;
+
+        private readonly ISketchManager m_SketchMgr;
+
         internal SwSheetSketchEditor(SwSheetSketch sheetSketch, SwSheet sheet) : base(sheet)
         {
             m_SheetSketch = sheetSketch;
-            
-            ((ISwDrawing)sheet.OwnerDocument).Drawing.ActivateView("");
+
+            var drw = ((ISwDrawing)sheet.OwnerDocument).Drawing;
+
+            m_SketchMgr = ((IModelDoc2)drw).SketchManager;
+
+            drw.ActivateView("");
             sheet.OwnerDocument.Selections.Clear();
+
+            if (!m_SketchMgr.AddToDB)
+            {
+                m_AddToDbOrig = m_SketchMgr.AddToDB;
+                m_SketchMgr.AddToDB = true;
+            }
         }
 
         public SwSheetSketch Target => m_SheetSketch;
 
         public bool Cancel { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
+
+        public override void Dispose()
+        {
+            if (m_AddToDbOrig.HasValue)
+            {
+                m_SketchMgr.AddToDB = m_AddToDbOrig.Value;
+            }
+
+            base.Dispose();
+        }
     }
 
     internal class SwSheetSketch : SwSketch2D
@@ -384,7 +433,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         public bool IsAlive => throw new UnloadedDocumentPreviewOnlySheetException();
         public ITagsManager Tags => throw new UnloadedDocumentPreviewOnlySheetException();
         public PaperSize PaperSize { get => throw new UnloadedDocumentPreviewOnlySheetException(); set => throw new UnloadedDocumentPreviewOnlySheetException(); }
-        public IXSheet Clone() => throw new NotSupportedException();
+        public IXSheet Clone(IXDrawing targetDrawing) => throw new NotSupportedException();
         public IXSketch2D Sketch => throw new NotSupportedException();
         public void Delete() => throw new UnloadedDocumentPreviewOnlySheetException();
         #endregion

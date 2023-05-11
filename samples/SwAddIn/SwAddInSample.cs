@@ -60,6 +60,7 @@ using Xarial.XCad.SolidWorks.Sketch;
 using System.Drawing.Imaging;
 using System.Windows.Forms;
 using Xarial.XCad.Documents.Extensions;
+using System.Windows.Markup;
 
 namespace SwAddInExample
 {
@@ -339,7 +340,7 @@ namespace SwAddInExample
 
                 CommandManager.AddCommandGroup<Commands3_3>().CommandClick += OnCommands3Click;
 
-                Application.Documents.RegisterHandler<SwDocHandler>();
+                Application.Documents.RegisterHandler<SwDocHandler>(() => new SwDocHandler(this));
 
                 Application.Documents.DocumentActivated += OnDocumentActivated;
 
@@ -734,17 +735,51 @@ namespace SwAddInExample
 
         private void Custom()
         {
-            var genDesc = Application.Documents.Active.Properties["Description"];
-            
-            genDesc.ValueChanged += (p, v)=> 
+            var part = (IXPart)Application.Documents.Active;
+            var conf = part.Configurations.Active;
+            var cutLists = conf.CutLists
+                .Where(c => c.Type == CutListType_e.SheetMetal).ToArray();
+
+            var sheetMetalBody = cutLists.FirstOrDefault().Bodies.First();
+
+            using (var drw = Application.Documents.PreCreateDrawing())
             {
-            };
-            
-            var confDesc = ((IXPart)Application.Documents.Active).Configurations.Active.Properties["Description"];
-            
-            confDesc.ValueChanged += (p, v) =>
-            {
-            };
+                var sheet = drw.Sheets.First();
+                sheet.PaperSize = new PaperSize(0.1, 0.1);
+                sheet.Scale = new Scale(1, 1);
+                drw.Commit();
+
+                var swDraw = ((ISwDrawing)drw).Model;
+
+                swDraw.Extension.SetUserPreferenceToggle((int)swUserPreferenceToggle_e.swDisplayCosmeticThreads, (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified, false);
+                swDraw.Extension.SetUserPreferenceToggle((int)swUserPreferenceToggle_e.swDetailingAutoInsertCenterMarksForSlots, (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified, false);
+                swDraw.Extension.SetUserPreferenceToggle((int)swUserPreferenceToggle_e.swDetailingAutoInsertCenterMarksForFillets, (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified, false);
+                swDraw.Extension.SetUserPreferenceToggle((int)swUserPreferenceToggle_e.swDetailingAutoInsertCenterMarksForHoles, (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified, false);
+                swDraw.Extension.SetUserPreferenceToggle((int)swUserPreferenceToggle_e.swDetailingAutoInsertDowelSymbols, (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified, false);
+
+                var opts = FlatPatternViewOptions_e.BendLines;
+
+                sheet = drw.Sheets.First();
+                var flatPatternView = sheet.DrawingViews.PreCreate<IXFlatPatternDrawingView>();
+                flatPatternView.ReferencedDocument = part;
+                flatPatternView.ReferencedConfiguration = conf;
+                flatPatternView.SheetMetalBody = sheetMetalBody;
+                flatPatternView.Scale = new Scale(1, 1);
+                flatPatternView.Options = opts;
+                sheet.DrawingViews.Add(flatPatternView);
+            }
+
+            //var genDesc = Application.Documents.Active.Properties["Description"];
+
+            //genDesc.ValueChanged += (p, v)=> 
+            //{
+            //};
+
+            //var confDesc = ((IXPart)Application.Documents.Active).Configurations.Active.Properties["Description"];
+
+            //confDesc.ValueChanged += (p, v) =>
+            //{
+            //};
         }
 
         private void HandleAddEvents()

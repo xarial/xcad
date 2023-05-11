@@ -794,6 +794,36 @@ namespace SolidWorks.Tests.Integration
         }
 
         [Test]
+        public void SetFlatPatternViewTest()
+        {
+            string view1RefDoc;
+            string view1RefConf;
+            int view1RefConfType;
+
+            using (var doc = OpenDataDocument("FlatPatternDraw1.slddrw"))
+            {
+                var drwDoc = m_App.Documents.Active as ISwDrawing;
+
+                var sheet1 = drwDoc.Sheets["Sheet1"];
+
+                var view1 = sheet1.DrawingViews["Drawing View1"];
+
+                var part1 = (ISwPart)m_App.Documents.PreCreateFromPath(GetFilePath("FlatPattern1.SLDPRT"));
+
+                view1.ReferencedDocument = part1;
+                view1.ReferencedConfiguration = part1.Configurations["Default"];
+
+                view1RefDoc = ((ISwDrawingView)view1).DrawingView.ReferencedDocument.GetPathName();
+                view1RefConf = ((ISwDrawingView)view1).DrawingView.ReferencedConfiguration;
+                view1RefConfType = ((ISwDrawingView)view1).DrawingView.ReferencedDocument.IGetConfigurationByName(view1RefConf).Type;
+            }
+
+            Assert.That(string.Equals(view1RefDoc, GetFilePath("FlatPattern1.SLDPRT"), StringComparison.CurrentCultureIgnoreCase));
+            Assert.That(string.Equals(view1RefConf, "DefaultSM-FLAT-PATTERN", StringComparison.CurrentCultureIgnoreCase));
+            Assert.AreEqual(view1RefConfType, (int)swConfigurationType_e.swConfiguration_SheetMetal);
+        }
+
+        [Test]
         public void DrawingEventsTest()
         {
             var sheetActiveCount = 0;
@@ -1299,7 +1329,7 @@ namespace SolidWorks.Tests.Integration
                 
                 var sheetNames = (string[])drwDoc.Drawing.GetSheetNames();
 
-                var cloned = drwDoc.Sheets.First().Clone();
+                var cloned = drwDoc.Sheets.First().Clone(drwDoc);
                 clonedSheetName = cloned.Name;
 
                 var newSheetNames = (string[])drwDoc.Drawing.GetSheetNames();

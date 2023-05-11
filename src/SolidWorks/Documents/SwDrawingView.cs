@@ -26,6 +26,7 @@ using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Services;
 using Xarial.XCad.SolidWorks.Annotations;
+using Xarial.XCad.SolidWorks.Documents.Exceptions;
 using Xarial.XCad.SolidWorks.Features;
 using Xarial.XCad.SolidWorks.Geometry;
 using Xarial.XCad.SolidWorks.Utils;
@@ -293,7 +294,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                     }
                     else 
                     {
-                        ReplaceViewDocument(refDoc, value);
+                        ReplaceViewDocument(value);
                     }
                 }
                 else 
@@ -313,9 +314,47 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        private void ReplaceViewDocument(IXDocument3D oldDoc, IXDocument3D newDoc)
+        private void ReplaceViewDocument(IXDocument3D newDoc)
         {
-            throw new NotImplementedException("View replacement is not implemented");
+            if (m_Drawing.OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2014))
+            {
+                var newPath = newDoc.Path;
+
+                if (!string.IsNullOrEmpty(newPath))
+                {
+                    var isFlatPattern = IsFlatPatternView(DrawingView);
+
+                    if (!m_Drawing.Drawing.ReplaceViewModel(newPath,
+                        new IView[]
+                        {
+                            DrawingView
+                        },
+                        new IComponent2[]
+                        {
+                            DrawingView.RootDrawingComponent.Component
+                        }))
+                    {
+                        throw new Exception("Failed to replace model view");
+                    }
+
+                    //NOTE: IDrawingView::IsFlatPatternView returns false after flat pattern view is replaced and it is replcaed with non-flat pattern configuration
+                    if (isFlatPattern)
+                    {
+                        //fixing the flat pattern configuration
+                        DrawingView.ReferencedConfiguration = GetFlatPatternConfigurationName(DrawingView.ReferencedConfiguration);
+                    }
+
+                    m_Drawing.Model.EditRebuild3();
+                }
+                else 
+                {
+                    throw new Exception("Replacement document does not have a path");
+                }
+            }
+            else 
+            {
+                throw new NotSupportedException("View replacement is supported from SOLIDWORKS 2014");
+            }
         }
 
         public IXConfiguration ReferencedConfiguration
@@ -345,12 +384,35 @@ namespace Xarial.XCad.SolidWorks.Documents
             {
                 if (IsCommitted)
                 {
-                    DrawingView.ReferencedConfiguration = value.Name;
+                    var confName = value.Name;
+
+                    if (IsFlatPatternView(DrawingView)) 
+                    {
+                        confName = GetFlatPatternConfigurationName(confName);
+                    }
+
+                    DrawingView.ReferencedConfiguration = confName;
                 }
                 else 
                 {
                     m_Creator.CachedProperties.Set(value);
                 }
+            }
+        }
+
+        protected bool IsFlatPatternView(IView view) 
+        {
+            if (view.IsFlatPatternView())
+            {
+                return true;
+            }
+            else 
+            {
+                //NOTE: after view replacement the above method can return incorrect value
+
+                var refConf = view.ReferencedDocument.IGetConfigurationByName(DrawingView.ReferencedConfiguration);
+
+                return refConf.Type == (int)swConfigurationType_e.swConfiguration_SheetMetal;
             }
         }
 
@@ -609,6 +671,54 @@ namespace Xarial.XCad.SolidWorks.Documents
             else
             {
                 throw new InvalidCastException("Object is not SOLIDWORKS object");
+            }
+        }
+
+        private string GetFlatPatternConfigurationName(string baseConfName)
+        {
+            var conf = (IConfiguration)DrawingView.ReferencedDocument.GetConfigurationByName(baseConfName);
+
+            if (conf.Type != (int)swConfigurationType_e.swConfiguration_SheetMetal)
+            {
+                var childConfs = (object[])conf.GetChildren() ?? new object[0];
+
+                foreach (IConfiguration childConf in childConfs) 
+                {
+                    if (childConf.Type == (int)swConfigurationType_e.swConfiguration_SheetMetal) 
+                    {
+                        return childConf.Name;
+                    }
+                }
+
+                return CreateFlatPatternConfigurationName(baseConfName);
+            }
+            else 
+            {
+                return baseConfName;
+            }
+        }
+
+        private string CreateFlatPatternConfigurationName(string baseConfName) 
+        {
+            var tempFlatPatternView = m_Drawing.Drawing.CreateFlatPatternViewFromModelView3(
+                DrawingView.ReferencedDocument.GetPathName(), baseConfName, 0, 0, 0, true, false);
+
+            if (tempFlatPatternView != null)
+            {
+                SelectView(tempFlatPatternView, false, null);
+
+                if (m_Drawing.Model.Extension.DeleteSelection2((int)swDeleteSelectionOptions_e.swDelete_Absorbed))
+                {
+                    return tempFlatPatternView.ReferencedConfiguration;
+                }
+                else 
+                {
+                    throw new Exception($"Failed to delete temp flat pattern view '{tempFlatPatternView.Name}'");
+                }
+            }
+            else 
+            {
+                throw new Exception("Failed to create temp flat pattern view");
             }
         }
     }
@@ -1272,7 +1382,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             {
                 if (IsCommitted)
                 {
-                    SetViewOptions(DrawingView, value);
+                    SetViewOptions(DrawingView, value, GetViewFlatPattern(DrawingView));
                 }
                 else 
                 {
@@ -1368,7 +1478,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                     view.SetName2(viewName);
                 }
 
-                if (!view.IsFlatPatternView()) 
+                if (!IsFlatPatternView(view))
                 {
                     throw new Exception("Created view cannot be set to flat pattern");
                 }
@@ -1376,7 +1486,18 @@ namespace Xarial.XCad.SolidWorks.Documents
                 //In some cases view shows invalid geometry until hidden and shown
                 RefreshView(view);
 
-                SetViewOptions(view, Options);
+                ISwFlatPattern flatPattern;
+
+                try
+                {
+                    flatPattern = GetViewFlatPattern(view);
+                }
+                catch (Exception ex)
+                {
+                    throw new InvalidFlatPatternConfigurationException(ex);
+                }
+
+                SetViewOptions(view, Options, flatPattern);
 
                 if (ReferencedConfiguration != null) 
                 {
@@ -1388,7 +1509,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             return view;
         }
 
-        private void SetViewOptions(IView view, FlatPatternViewOptions_e opts) 
+        private void SetViewOptions(IView view, FlatPatternViewOptions_e opts, ISwFlatPattern flatPattern) 
         {
             var hasBendLines = view.GetBendLineCount() > 0;
 
@@ -1407,7 +1528,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
             if (hasBendLines != needBendLines)
             {
-                var bendLinesSketch = GetBendLinesSketchOrNull(view);
+                var bendLinesSketch = GetBendLinesSketchOrNull(view, flatPattern);
 
                 if (bendLinesSketch != null) //bend line sketch can be null if sheet metal has no bends
                 {
@@ -1431,7 +1552,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        private IFeature GetBendLinesSketchOrNull(IView view)
+        private IFeature GetBendLinesSketchOrNull(IView view, ISwFlatPattern flatPattern)
         {
             var bendLines = (object[])view.GetBendLines();
 
@@ -1441,8 +1562,6 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
             else
             {
-                var flatPattern = GetViewFlatPattern(view);
-
                 var subFeat = flatPattern.Feature.IGetFirstSubFeature();
 
                 IFeature bendLinesSketch = null;

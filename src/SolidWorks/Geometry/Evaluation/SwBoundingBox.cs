@@ -15,6 +15,7 @@ using System.Threading;
 using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Enums;
+using Xarial.XCad.Documents.Extensions;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Evaluation;
 using Xarial.XCad.Geometry.Exceptions;
@@ -510,6 +511,11 @@ namespace Xarial.XCad.SolidWorks.Geometry.Evaluation
 
                 foreach (var body in bodies)
                 {
+                    if (body is IXWireBody) 
+                    {
+                        throw new NotSupportedException("Precise bounding box is not supported for the wire bodies");
+                    }
+
                     var swBody = GetTransformedSwBody(body, out _);
 
                     double x;

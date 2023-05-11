@@ -179,15 +179,32 @@ namespace Xarial.XCad.SolidWorks.Data
                         break;
 
                     case swCustomInfoType_e.swCustomInfoYesOrNo:
-                        resVal = bool.Parse(resValStr);
+                        switch (resValStr.ToLower()) 
+                        {
+                            case "yes":
+                                resVal = true;
+                                break;
+
+                            case "no":
+                                resVal = false;
+                                break;
+
+                            default:
+                                if (bool.TryParse(resValStr, out var boolVal))
+                                {
+                                    resVal = boolVal;
+                                }
+                                else 
+                                {
+                                    resVal = resValStr;
+                                }
+                                break;
+                        }
                         break;
 
                     case swCustomInfoType_e.swCustomInfoDouble:
-                        resVal = double.Parse(resValStr);
-                        break;
-
                     case swCustomInfoType_e.swCustomInfoNumber:
-                        resVal = int.Parse(resValStr);
+                        resVal = double.Parse(resValStr);
                         break;
 
                     case swCustomInfoType_e.swCustomInfoDate:
