@@ -90,6 +90,10 @@ namespace Xarial.XCad.Toolkit.PageBuilder.Constructors
             {
                 filters.Add(SelectType_e.Dimensions);
             }
+            else if (IsOfType<IXDrawingView>(type))
+            {
+                filters.Add(SelectType_e.DrawingViews);
+            }
 
             if (filters.Any())
             {
