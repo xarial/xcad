@@ -1,6 +1,7 @@
 ﻿using SolidWorks.Interop.swconst;
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -14,170 +15,59 @@ namespace Xarial.XCad.SolidWorks.Utils
 {
     internal static class SwSelectionHelper
     {
-        internal static IReadOnlyList<swSelectType_e> GetSelectionType(Type type)
+        //NOTE: this should be a list so we keep the order correct (not the case for the Dictionary)
+        //this would allow to proritize the grouped selection types, like IXBody (both surface and solid),
+        //but still return the specific selection type (e.g. IXSolidBody)
+        private static readonly List<KeyValuePair<Type, swSelectType_e[]>> m_Map;
+
+        static SwSelectionHelper() 
         {
-            if (IsOfType<IXEdge>(type))
-            {
-                return new swSelectType_e[]
-                {
-                    swSelectType_e.swSelEDGES
-                };
-            }
-            else if (IsOfType<IXFace>(type))
-            {
-                return new swSelectType_e[]
-                {
-                    swSelectType_e.swSelFACES
-                };
-            }
-            else if (IsOfType<IXVertex>(type))
-            {
-                return new swSelectType_e[]
-                {
-                    swSelectType_e.swSelVERTICES
-                };
-            }
-            else if (IsOfType<IXPlane>(type)) 
-            {
-                return new swSelectType_e[]
-                {
-                    swSelectType_e.swSelDATUMPLANES
-                };
-            }
-            else if (IsOfType<IXNote>(type))
-            {
-                return new swSelectType_e[]
-                {
-                    swSelectType_e.swSelNOTES
-                };
-            }
-            else if (IsOfType<IXSheet>(type))
-            {
-                return new swSelectType_e[]
-                {
-                    swSelectType_e.swSelSHEETS
-                };
-            }
-            else if (IsOfType<IXCoordinateSystem>(type))
-            {
-                return new swSelectType_e[]
-                {
-                    swSelectType_e.swSelCOORDSYS
-                };
-            }
-            else if (IsOfType<IXSketchBase>(type))
-            {
-                return new swSelectType_e[]
-                {
-                    swSelectType_e.swSelSKETCHES
-                };
-            }
-            else if (IsOfType<IXSketchPicture>(type))
-            {
-                return new swSelectType_e[]
-                {
-                    swSelectType_e.swSelSKETCHBITMAP
-                };
-            }
-            else if (IsOfType<IXSketchRegion>(type))
-            {
-                return new swSelectType_e[]
-                {
-                    swSelectType_e.swSelSKETCHREGION
-                };
-            }
-            else if (IsOfType<IXSketchRegion>(type))
-            {
-                return new swSelectType_e[]
-                {
-                    swSelectType_e.swSelSKETCHREGION
-                };
-            }
-            else if (IsOfType<IXSketchPoint>(type))
-            {
-                return new swSelectType_e[]
-                {
-                    swSelectType_e.swSelSKETCHPOINTS,
-                    swSelectType_e.swSelEXTSKETCHPOINTS
-                };
-            }
-            else if (IsOfType<IXSketchSegment>(type))
-            {
-                return new swSelectType_e[]
-                {
-                    swSelectType_e.swSelSKETCHSEGS,
-                    swSelectType_e.swSelEXTSKETCHSEGS
-                };
-            }
-            else if (IsOfType<IXSketchBlockInstance>(type))
-            {
-                return new swSelectType_e[]
-                {
-                    swSelectType_e.swSelBLOCKINST,
-                    swSelectType_e.swSelSUBSKETCHINST
-                };
-            }
-            else if (IsOfType<IXSketchEntity>(type))
-            {
-                return new swSelectType_e[]
-                {
-                    swSelectType_e.swSelSKETCHSEGS,
-                    swSelectType_e.swSelEXTSKETCHSEGS,
-                    swSelectType_e.swSelSKETCHPOINTS,
-                    swSelectType_e.swSelEXTSKETCHPOINTS,
-                    swSelectType_e.swSelBLOCKINST,
-                    swSelectType_e.swSelSUBSKETCHINST
-                };
-            }
-            else if (IsOfType<IXComponent>(type))
-            {
-                return new swSelectType_e[]
-                {
-                    swSelectType_e.swSelCOMPONENTS
-                };
-            }
-            else if (IsOfType<IXSolidBody>(type))
-            {
-                return new swSelectType_e[]
-                {
-                    swSelectType_e.swSelSOLIDBODIES
-                };
-            }
-            else if (IsOfType<IXSheetBody>(type))
-            {
-                return new swSelectType_e[]
-                {
-                    swSelectType_e.swSelSURFACEBODIES
-                };
-            }
-            else if (IsOfType<IXBody>(type))
-            {
-                return new swSelectType_e[]
-                {
-                    swSelectType_e.swSelSOLIDBODIES,
-                    swSelectType_e.swSelSURFACEBODIES
-                };
-            }
-            else if (IsOfType<IXDimension>(type))
-            {
-                return new swSelectType_e[]
-                {
-                    swSelectType_e.swSelDIMENSIONS
-                };
-            }
-            else if (IsOfType<IXDrawingView>(type))
-            {
-                return new swSelectType_e[]
-                {
-                    swSelectType_e.swSelDRAWINGVIEWS
-                };
-            }
-            else
-            {
-                return null;
-            }
+            m_Map = new List<KeyValuePair<Type, swSelectType_e[]>>();
+
+            AddToMap<IXEdge>(swSelectType_e.swSelEDGES);
+            AddToMap<IXFace>(swSelectType_e.swSelFACES);
+            AddToMap<IXVertex>(swSelectType_e.swSelVERTICES);
+            AddToMap<IXEntity>(swSelectType_e.swSelEDGES, swSelectType_e.swSelFACES, swSelectType_e.swSelVERTICES);
+            
+            AddToMap<IXPlane>(swSelectType_e.swSelDATUMPLANES);
+            AddToMap<IXCoordinateSystem>(swSelectType_e.swSelCOORDSYS);
+            AddToMap<IXSketchBase>(swSelectType_e.swSelSKETCHES);
+            
+            AddToMap<IXSketchPicture>(swSelectType_e.swSelSKETCHBITMAP);
+            AddToMap<IXSketchRegion>(swSelectType_e.swSelSKETCHREGION);
+            AddToMap<IXSketchPoint>(swSelectType_e.swSelSKETCHPOINTS, swSelectType_e.swSelEXTSKETCHPOINTS);
+            AddToMap<IXSketchText>(swSelectType_e.swSelSKETCHTEXT, swSelectType_e.swSelEXTSKETCHTEXT);
+            AddToMap<IXSketchSegment>(swSelectType_e.swSelSKETCHSEGS, swSelectType_e.swSelEXTSKETCHSEGS);
+            AddToMap<IXSketchBlockInstance>(swSelectType_e.swSelBLOCKINST, swSelectType_e.swSelSUBSKETCHINST);
+            AddToMap<IXSketchBlockDefinition>(swSelectType_e.swSelBLOCKDEF, swSelectType_e.swSelSUBSKETCHDEF);
+            AddToMap<IXSketchEntity>(swSelectType_e.swSelSKETCHSEGS, swSelectType_e.swSelEXTSKETCHSEGS, swSelectType_e.swSelSKETCHPOINTS, swSelectType_e.swSelEXTSKETCHPOINTS, swSelectType_e.swSelBLOCKINST, swSelectType_e.swSelSUBSKETCHINST);
+
+            AddToMap<IXNote>(swSelectType_e.swSelNOTES);
+            AddToMap<IXDimension>(swSelectType_e.swSelDIMENSIONS);
+            
+            AddToMap<IXSheet>(swSelectType_e.swSelSHEETS);
+            AddToMap<IXDrawingView>(swSelectType_e.swSelDRAWINGVIEWS);
+
+            AddToMap<IXComponent>(swSelectType_e.swSelCOMPONENTS);
+            AddToMap<IXSolidBody>(swSelectType_e.swSelSOLIDBODIES);
+            AddToMap<IXSheetBody>(swSelectType_e.swSelSURFACEBODIES);
+            AddToMap<IXBody>(swSelectType_e.swSelSOLIDBODIES, swSelectType_e.swSelSURFACEBODIES);
         }
 
-        private static bool IsOfType<T>(Type t) => typeof(T).IsAssignableFrom(t);
+        private static void AddToMap<T>(params swSelectType_e[] selTypes) where T : IXSelObject 
+            => m_Map.Add(new KeyValuePair<Type, swSelectType_e[]>(typeof(T), selTypes));
+
+        internal static IReadOnlyList<swSelectType_e> GetSelectionType(Type type)
+        {
+            foreach (var map in m_Map) 
+            {
+                if(map.Key.IsAssignableFrom(type))
+                {
+                    return map.Value;
+                }
+            }
+
+            return null;
+        }
     }
 }
