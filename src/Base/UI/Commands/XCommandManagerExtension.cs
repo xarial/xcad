@@ -67,7 +67,9 @@ namespace Xarial.XCad.UI.Commands
         {
             var id = GetEnumCommandGroupId(cmdMgr, typeof(TCmdEnum), out string tabName);
 
-            var enumGrp = CreateEnumCommandGroup<TCmdEnum>(cmdMgr, GetEnumCommandGroupParent(cmdMgr, typeof(TCmdEnum)), tabName, id);
+            var enumGrp = new EnumCommandGroupSpec(typeof(TCmdEnum), id);
+
+            FillEnumCommandGroup<TCmdEnum>(enumGrp, cmdMgr, GetEnumCommandGroupParent(cmdMgr, typeof(TCmdEnum)), tabName, id);
 
             var cmdGrp = cmdMgr.AddCommandGroup(enumGrp);
 
@@ -77,16 +79,19 @@ namespace Xarial.XCad.UI.Commands
         /// <summary>
         /// Adds context menu based on the enumeration
         /// </summary>
-        /// <param name="owner">Context menu owner</param>
         ///<inheritdoc cref="AddCommandGroup{TCmdEnum}(IXCommandManager)"/>
-        public static IEnumCommandGroup<TCmdEnum> AddContextMenu<TCmdEnum>(this IXCommandManager cmdMgr, SelectType_e? owner = null)
+        public static IEnumCommandGroup<TCmdEnum> AddContextMenu<TCmdEnum>(this IXCommandManager cmdMgr)
             where TCmdEnum : Enum
         {
             var id = GetEnumCommandGroupId(cmdMgr, typeof(TCmdEnum), out string tabName);
 
-            var enumGrp = CreateEnumCommandGroup<TCmdEnum>(cmdMgr, GetEnumCommandGroupParent(cmdMgr, typeof(TCmdEnum)), tabName, id);
+            var enumGrp = new ContextMenuEnumCommandGroupSpec(typeof(TCmdEnum), id);
 
-            var cmdGrp = cmdMgr.AddContextMenu(enumGrp, owner);
+            typeof(TCmdEnum).TryGetAttribute<ContextMenuCommandItemInfoAttribute>(a => enumGrp.Owner = a.Owner);
+
+            FillEnumCommandGroup<TCmdEnum>(enumGrp, cmdMgr, GetEnumCommandGroupParent(cmdMgr, typeof(TCmdEnum)), tabName, id);
+
+            var cmdGrp = cmdMgr.AddContextMenu(enumGrp);
 
             return new EnumCommandGroup<TCmdEnum>(cmdGrp);
         }
@@ -118,11 +123,16 @@ namespace Xarial.XCad.UI.Commands
                 }
             }
 
-            return CreateEnumCommandGroup<TCmdEnum>(cmdMgr, parent, tabName, id.Value);
+            var bar = new EnumCommandGroupSpec(typeof(TCmdEnum), id.Value);
+            
+            FillEnumCommandGroup<TCmdEnum>(bar, cmdMgr, parent, tabName, id.Value);
+
+            return bar;
         }
 
         /// <param name="id">Id or -1 to automatically assign</param>
-        private static EnumCommandGroupSpec CreateEnumCommandGroup<TCmdEnum>(IXCommandManager cmdMgr, CommandGroupSpec parent, string tabName, int id)
+        private static void FillEnumCommandGroup<TCmdEnum>(CommandGroupSpec bar, IXCommandManager cmdMgr, CommandGroupSpec parent,
+            string tabName, int id)
             where TCmdEnum : Enum
         {
             var cmdGroupType = typeof(TCmdEnum);
@@ -135,7 +145,6 @@ namespace Xarial.XCad.UI.Commands
                 }
             }
 
-            var bar = new EnumCommandGroupSpec(cmdGroupType, id);
             bar.RibbonTabName = tabName;
             bar.Parent = parent;
 
@@ -158,8 +167,6 @@ namespace Xarial.XCad.UI.Commands
                     
                     return CreateEnumCommand(c, enumCmdUserId); 
                 }).ToArray();
-
-            return bar;
         }
 
         private static CommandGroupSpec GetEnumCommandGroupParent(IXCommandManager cmdMgr, Type cmdGroupType)

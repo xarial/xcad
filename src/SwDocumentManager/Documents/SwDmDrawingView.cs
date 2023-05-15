@@ -50,8 +50,6 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         public ViewPolylineData[] Polylines => throw new NotSupportedException();
         #endregion
 
-        public override SelectType_e SelectionType => SelectType_e.DrawingViews;
-
         public ISwDMView DrawingView { get; }
 
         public string Name 

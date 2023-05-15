@@ -5,6 +5,7 @@
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
+using System;
 using Xarial.XCad.UI.Structures;
 
 namespace Xarial.XCad.UI.Commands.Structures
@@ -42,6 +43,22 @@ namespace Xarial.XCad.UI.Commands.Structures
         public CommandGroupSpec(int id) 
         {
             Id = id;
+        }
+    }
+
+    /// <summary>
+    /// Represents command groups of the context menu
+    /// </summary>
+    public class ContextMenuCommandGroupSpec : CommandGroupSpec 
+    {
+        /// <summary>
+        /// Owner of the context menu
+        /// </summary>
+        public Type Owner { get; set; }
+
+        /// <inheritdoc/>
+        public ContextMenuCommandGroupSpec(int id) : base(id)
+        {
         }
     }
 }
