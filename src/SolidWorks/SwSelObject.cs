@@ -46,23 +46,6 @@ namespace Xarial.XCad.SolidWorks
             }
         }
 
-        public SelectType_e SelectionType 
-        {
-            get 
-            {
-                if (OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2015))
-                {
-                    OwnerModelDoc.ISelectionManager.GetSelectByIdSpecification(Dispatch, out _, out _, out int type);
-
-                    return (SelectType_e)type;
-                }
-                else 
-                {
-                    throw new NotSupportedException();
-                }
-            }
-        }
-
         internal SwSelObject(object disp, SwDocument doc, SwApplication app) : base(disp, doc, app)
         {
         }

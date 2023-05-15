@@ -35,7 +35,5 @@ namespace Xarial.XCad.SwDocumentManager
 
         public bool IsSelected => throw new NotSupportedException();
         public virtual bool IsCommitted => true;
-
-        public virtual SelectType_e SelectionType => throw new NotSupportedException("Type of this object is unknown");
     }
 }

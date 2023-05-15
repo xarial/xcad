@@ -23,11 +23,10 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         ISwDMSheet Sheet { get; }
     }
 
-    internal class SwDmSheet : SwDmObject, ISwDmSheet
+    internal class SwDmSheet : SwDmSelObject, ISwDmSheet
     {
         #region Not Supported
         public IXSheet Clone(IXDrawing targetDrawing) => throw new NotSupportedException();
-        public void Commit(CancellationToken cancellationToken) => throw new NotSupportedException();
         public IXSketch2D Sketch => throw new NotSupportedException();
         #endregion
 
@@ -99,7 +98,6 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             }
         }
 
-        public bool IsCommitted => true;
         public ISwDMSheet Sheet { get; }
         
         private readonly Lazy<SwDmDrawingViewsCollection> m_DrawingViewsLazy;

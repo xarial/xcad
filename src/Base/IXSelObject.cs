@@ -30,10 +30,5 @@ namespace Xarial.XCad
         /// Deletes this object
         /// </summary>
         void Delete();
-
-        /// <summary>
-        /// Type of this selection object
-        /// </summary>
-        SelectType_e SelectionType { get; }
     }
 }

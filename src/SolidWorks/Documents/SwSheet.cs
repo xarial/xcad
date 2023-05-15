@@ -452,8 +452,6 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public bool IsCommitted => false;
 
-        public SelectType_e SelectionType => SelectType_e.Sheets;
-
         public IXApplication OwnerApplication => m_App;
         public IXDocument OwnerDocument => m_Drw;
 

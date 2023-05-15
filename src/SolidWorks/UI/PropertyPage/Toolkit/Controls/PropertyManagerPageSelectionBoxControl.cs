@@ -25,6 +25,13 @@ using Xarial.XCad.UI.PropertyPage.Enums;
 using Xarial.XCad.Utils.PageBuilder.Base;
 using Xarial.XCad.Toolkit;
 using Xarial.XCad.UI.PropertyPage.Attributes;
+using Xarial.XCad.Geometry;
+using Xarial.XCad.Features;
+using Xarial.XCad.Sketch;
+using Xarial.XCad.Documents;
+using Xarial.XCad.Annotations;
+using Xarial.XCad.SolidWorks.UI.PropertyPage.Attributes;
+using Xarial.XCad.SolidWorks.Utils;
 
 namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 {
@@ -101,7 +108,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
             ctrl.Height = height;
 
-            var filters = SelectionBoxConstructorHelper.GetDefaultFilters(atts);
+            var filters = GetDefaultFilters(atts);
 
             if (atts.Has<SelectionBoxOptionsAttribute>())
             {
@@ -120,9 +127,23 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
                 ctrl.AllowMultipleSelectOfSameEntity = selAtt.AllowDuplicateEntity;
                 ctrl.AllowSelectInMultipleBoxes = selAtt.AllowSharedEntity;
 
-                if (selAtt.Filters?.Any() == true)
+                if (selAtt is SwSelectionBoxOptionsAttribute)
                 {
-                    filters = selAtt.Filters;
+                    var swSelAtt = (SwSelectionBoxOptionsAttribute)selAtt;
+
+                    if (swSelAtt.Filters?.Any() == true)
+                    {
+                        filters = swSelAtt.Filters;
+                    }
+                }
+                else 
+                {
+                    if (selAtt.Filters?.Any() == true)
+                    {
+                        filters = selAtt.Filters
+                            .SelectMany(f => SwSelectionHelper.GetSelectionType(f) ?? new swSelectType_e[0])
+                            .Distinct().ToArray();
+                    }
                 }
 
                 ctrl.Mark = selAtt.SelectionMark;
@@ -141,9 +162,9 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
                 }
             }
 
-            if (filters != null && !filters.Contains(SelectType_e.Everything))
+            if (filters != null && !filters.Contains(swSelectType_e.swSelEVERYTHING))
             {
-                ctrl.SetSelectionFilters(ConvertToSwSelFilters(filters));
+                ctrl.SetSelectionFilters(filters);
             }
             else
             {
@@ -162,6 +183,18 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
         }
 
         private SwSelObject ToSelObject(object disp) => m_App.Documents.Active.CreateObjectFromDispatch<SwSelObject>(disp);
+
+        private swSelectType_e[] GetDefaultFilters(IAttributeSet atts)
+        {
+            if (atts == null)
+            {
+                throw new ArgumentNullException(nameof(atts));
+            }
+
+            var type = SelectionBoxConstructorHelper.GetElementType(atts.ContextType);
+
+            return SwSelectionHelper.GetSelectionType(type)?.ToArray();
+        }
 
         private void OnSubmitSelection(int id, object selection, int selType, ref string itemText, ref bool res)
         {
@@ -217,31 +250,6 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
         protected override BitmapLabelType_e? GetDefaultBitmapLabel(IAttributeSet atts)
             => SelectionBoxConstructorHelper.GetDefaultBitmapLabel(atts);
-
-        private swSelectType_e[] ConvertToSwSelFilters(SelectType_e[] selFilters)
-        {
-            var swSelFilters = selFilters.Select(f => (swSelectType_e)f).ToList();
-
-            if (swSelFilters.Contains(swSelectType_e.swSelSKETCHSEGS)
-                && !swSelFilters.Contains(swSelectType_e.swSelEXTSKETCHSEGS))
-            {
-                swSelFilters.Add(swSelectType_e.swSelEXTSKETCHSEGS);
-            }
-
-            if (swSelFilters.Contains(swSelectType_e.swSelSKETCHPOINTS)
-                && !swSelFilters.Contains(swSelectType_e.swSelEXTSKETCHPOINTS))
-            {
-                swSelFilters.Add(swSelectType_e.swSelEXTSKETCHPOINTS);
-            }
-
-            if (swSelFilters.Contains(swSelectType_e.swSelBLOCKINST)
-                && !swSelFilters.Contains(swSelectType_e.swSelSUBSKETCHINST))
-            {
-                swSelFilters.Add(swSelectType_e.swSelSUBSKETCHINST);
-            }
-
-            return swSelFilters.ToArray();
-        }
 
         /// <summary>
         /// Resolves the current values based on the selection

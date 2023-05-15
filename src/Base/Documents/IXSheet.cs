@@ -19,7 +19,7 @@ namespace Xarial.XCad.Documents
     /// <summary>
     /// Represents the drawing sheet
     /// </summary>
-    public interface IXSheet : IXObject, IXTransaction
+    public interface IXSheet : IXSelObject, IXTransaction
     {
         /// <summary>
         /// Name of the sheet
