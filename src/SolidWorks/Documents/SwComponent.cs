@@ -606,7 +606,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             {
                 if (IsCommitted)
                 {
-                    return GetReferencedConfiguration();
+                    return GetReferencedConfiguration(Component.ReferencedConfiguration);
                 }
                 else 
                 {
@@ -631,7 +631,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        protected abstract IXConfiguration GetReferencedConfiguration();
+        protected internal abstract IXConfiguration GetReferencedConfiguration(string confName);
 
         public System.Drawing.Color? Color
         {
@@ -839,7 +839,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public override IEditor<IXComponent> Edit() => new SwPartComponentEditor(RootAssembly, this);
 
-        protected override IXConfiguration GetReferencedConfiguration() => new SwPartComponentConfiguration(this, OwnerApplication);
+        protected internal override IXConfiguration GetReferencedConfiguration(string confName) => new SwPartComponentConfiguration(this, OwnerApplication, confName);
     }
 
     internal class SwAssemblyComponent : SwComponent, ISwAssemblyComponent
@@ -854,7 +854,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public override IEditor<IXComponent> Edit() => new SwAssemblyComponentEditor(RootAssembly, this);
 
-        protected override IXConfiguration GetReferencedConfiguration() => new SwAssemblyComponentConfiguration(this, OwnerApplication);
+        protected internal override IXConfiguration GetReferencedConfiguration(string confName) => new SwAssemblyComponentConfiguration(this, OwnerApplication, confName);
     }
 
     internal class SwComponentFeatureManager : SwFeatureManager

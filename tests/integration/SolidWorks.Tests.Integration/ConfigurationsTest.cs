@@ -298,5 +298,81 @@ namespace SolidWorks.Tests.Integration
 
             Assert.IsTrue(mat2.All(m => m == -1));
         }
+
+        [Test]
+        public void ParentConfTest()
+        {
+            string c1, c2, c3, c4, c5, c6;
+
+            using (var doc = OpenDataDocument(@"Assembly16\Part1.SLDPRT"))
+            {
+                var part = m_App.Documents.Active as ISwDocument3D;
+
+                c1 = part.Configurations["SubConfA"].Parent?.Name;
+                c2 = part.Configurations["SubConfA"].Parent.Parent?.Name;
+
+                c3 = part.Configurations["ConfB"].Parent?.Name;
+
+                c4 = part.Configurations["SubSubConf1"].Parent?.Name;
+                c5 = part.Configurations["SubConf1"].Parent?.Name;
+                c6 = part.Configurations["SubConf1"].Parent.Parent?.Name;
+            }
+
+            Assert.AreEqual("ConfA", c1);
+            Assert.AreEqual(null, c2);
+            Assert.AreEqual(null, c3);
+            Assert.AreEqual("SubConf1", c4);
+            Assert.AreEqual("Default", c5);
+            Assert.AreEqual(null, c6);
+        }
+
+        [Test]
+        public void ParentConfComponentTest()
+        {
+            IXConfiguration conf1, conf2, conf3, conf4, conf5;
+
+            string c1, c2, c3, c4, c5, c6, c7;
+
+            using (var doc = OpenDataDocument(@"Assembly16\Assem1.SLDASM"))
+            {
+                var assm = m_App.Documents.Active as ISwAssembly;
+                var comp1 = assm.Configurations.Active.Components["Part1-1"];
+                var comp2 = assm.Configurations.Active.Components["Part1-2"];
+                var comp3 = assm.Configurations.Active.Components["SubAssem1-1"];
+                var comp4 = assm.Configurations.Active.Components["SubAssem1-2"];
+
+                conf1 = comp1.ReferencedConfiguration.Parent;
+                c1 = conf1?.Name;
+
+                conf2 = conf1.Parent;
+                c2 = conf2?.Name;
+
+                conf3 = conf2.Parent;
+                c3 = conf3?.Name;
+
+                c4 = comp2.ReferencedConfiguration.Parent?.Name;
+
+                c5 = comp3.ReferencedConfiguration.Parent?.Name;
+
+                conf4 = comp4.ReferencedConfiguration.Parent;
+                c6 = conf4?.Name;
+
+                conf5 = conf4.Parent;
+                c7 = conf5?.Name;
+            }
+
+            Assert.AreEqual("SubConf1", c1);
+            Assert.AreEqual("Default", c2);
+            Assert.AreEqual(null, c3);
+            Assert.IsInstanceOf<IXPartConfiguration>(conf1);
+            Assert.IsInstanceOf<IXPartConfiguration>(conf2);
+            Assert.IsNull(conf3);
+            Assert.AreEqual(null, c4);
+            Assert.AreEqual(null, c5);
+            Assert.AreEqual("Default", c6);
+            Assert.IsInstanceOf<IXAssemblyConfiguration>(conf4);
+            Assert.IsNull(conf5);
+            Assert.AreEqual(null, c7);
+        }
     }
 }
