@@ -147,7 +147,7 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
                 if (cmdBar is ContextMenuEnumCommandGroupSpec) 
                 {
                     var swCtxMenInfoAtt = ((ContextMenuEnumCommandGroupSpec)cmdBar)
-                        .CmdGrpEnumType.GetCustomAttribute<SwContextMenuCommandItemInfoAttribute>();
+                        .CmdGrpEnumType.GetCustomAttribute<SwContextMenuCommandGroupInfoAttribute>();
 
                     if (swCtxMenInfoAtt != null)
                     {

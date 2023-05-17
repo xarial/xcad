@@ -33,7 +33,7 @@ namespace Xarial.XCad.UI.Commands
         /// </summary>
         /// <param name="cmdBar">Specification of the context menu</param>
         /// <returns>Command group</returns>
-        /// <remarks>Use <see cref="Attributes.ContextMenuCommandItemInfoAttribute"/> attribute to assign additional parameters for the context menu</remarks>
+        /// <remarks>Use <see cref="Attributes.ContextMenuCommandGroupInfoAttribute"/> attribute to assign additional parameters for the context menu</remarks>
         IXCommandGroup AddContextMenu(ContextMenuCommandGroupSpec cmdBar);
     }
 }

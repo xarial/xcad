@@ -83,11 +83,27 @@ namespace Xarial.XCad.UI.Commands
         public static IEnumCommandGroup<TCmdEnum> AddContextMenu<TCmdEnum>(this IXCommandManager cmdMgr)
             where TCmdEnum : Enum
         {
+            Type ownerType = null;
+
+            typeof(TCmdEnum).TryGetAttribute<ContextMenuCommandGroupInfoAttribute>(a => ownerType = a.Owner);
+
+            return AddContextMenu<TCmdEnum>(cmdMgr, ownerType);
+        }
+
+        /// <typeparam name="TOwner">Type of the owner where to attach the context menu to</typeparam>
+        ///<inheritdoc cref="AddContextMenu{TCmdEnum}(IXCommandManager)"/>
+        public static IEnumCommandGroup<TCmdEnum> AddContextMenu<TCmdEnum, TOwner>(this IXCommandManager cmdMgr)
+            where TCmdEnum : Enum
+            where TOwner : IXSelObject
+            => AddContextMenu<TCmdEnum>(cmdMgr, typeof(TOwner));
+
+        private static IEnumCommandGroup<TCmdEnum> AddContextMenu<TCmdEnum>(IXCommandManager cmdMgr, Type ownerType)
+            where TCmdEnum : Enum
+        {
             var id = GetEnumCommandGroupId(cmdMgr, typeof(TCmdEnum), out string tabName);
 
             var enumGrp = new ContextMenuEnumCommandGroupSpec(typeof(TCmdEnum), id);
-
-            typeof(TCmdEnum).TryGetAttribute<ContextMenuCommandItemInfoAttribute>(a => enumGrp.Owner = a.Owner);
+            enumGrp.Owner = ownerType;
 
             FillEnumCommandGroup<TCmdEnum>(enumGrp, cmdMgr, GetEnumCommandGroupParent(cmdMgr, typeof(TCmdEnum)), tabName, id);
 

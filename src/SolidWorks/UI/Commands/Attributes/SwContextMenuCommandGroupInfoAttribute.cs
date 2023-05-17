@@ -11,7 +11,7 @@ namespace Xarial.XCad.SolidWorks.UI.Commands.Attributes
     /// <summary>
     /// SOLIDWORKS specific context command menu spec
     /// </summary>
-    public class SwContextMenuCommandItemInfoAttribute : ContextMenuCommandItemInfoAttribute
+    public class SwContextMenuCommandGroupInfoAttribute : ContextMenuCommandGroupInfoAttribute
     {
         /// <summary>
         /// Selection type of the owner for this context menu
@@ -22,7 +22,7 @@ namespace Xarial.XCad.SolidWorks.UI.Commands.Attributes
         /// Default construcotr
         /// </summary>
         /// <param name="owner">selection type of the owner for this context menu</param>
-        public SwContextMenuCommandItemInfoAttribute(swSelectType_e owner) : base(null)
+        public SwContextMenuCommandGroupInfoAttribute(int userId, swSelectType_e owner) : base(userId, null)
         {
             Owner = owner;
         }
