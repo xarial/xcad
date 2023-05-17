@@ -89,7 +89,7 @@ namespace Xarial.XCad.UI.PropertyPage.Attributes
         }
 
         /// <inheritdoc cref="SelectionBoxOptionsAttribute(int, Type, SelectionBoxStyle_e, StandardSelectionColor_e, Type[])"/>
-        public SelectionBoxOptionsAttribute(Type customFilter, Type[] filters)
+        public SelectionBoxOptionsAttribute(Type[] filters, Type customFilter)
             : this(-1, customFilter, SelectionBoxStyle_e.None, 0, filters)
         {
         }
