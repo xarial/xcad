@@ -27,8 +27,7 @@ namespace Xarial.XCad.SolidWorks.Utils
             AddToMap<IXEdge>(swSelectType_e.swSelEDGES);
             AddToMap<IXFace>(swSelectType_e.swSelFACES);
             AddToMap<IXVertex>(swSelectType_e.swSelVERTICES);
-            AddToMap<IXEntity>(swSelectType_e.swSelEDGES, swSelectType_e.swSelFACES, swSelectType_e.swSelVERTICES);
-            
+                        
             AddToMap<IXPlane>(swSelectType_e.swSelDATUMPLANES);
             AddToMap<IXCoordinateSystem>(swSelectType_e.swSelCOORDSYS);
             AddToMap<IXSketchBase>(swSelectType_e.swSelSKETCHES);

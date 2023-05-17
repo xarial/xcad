@@ -223,8 +223,8 @@ namespace SwAddInExample
         }
 
         [Title("Sample Context Menu")]
-        //[ContextMenuCommandItemInfo(typeof(IXFace))]
-        //[SwContextMenuCommandItemInfo(swSelectType_e.swSelANNOTATIONTABLES)]
+        //[ContextMenuCommandGroupInfo(25, typeof(IXSketchPicture))]
+        //[SwContextMenuCommandGroupInfo(25, swSelectType_e.swSelANNOTATIONTABLES)]
         public enum ContextMenuCommands_e 
         {
             Command1,
@@ -339,7 +339,7 @@ namespace SwAddInExample
                 });
 
                 CommandManager.AddCommandGroup<Commands_e>().CommandClick += OnCommandClick;
-                CommandManager.AddContextMenu<ContextMenuCommands_e>().CommandClick += OnContextMenuCommandClick;
+                CommandManager.AddContextMenu<ContextMenuCommands_e, IXFace>().CommandClick += OnContextMenuCommandClick;
 
                 CommandManager.AddCommandGroup<Commands3_3>().CommandClick += OnCommands3Click;
 
