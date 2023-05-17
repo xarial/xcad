@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Xarial.XCad;
 using Xarial.XCad.Annotations;
 using Xarial.XCad.Base.Enums;
@@ -16,7 +17,7 @@ public class SelectionBoxDataModel
 {
     public ISwBody Body { get; set; }
 
-    [SelectionBoxOptions(typeof(IXEdge), typeof(IXNote), typeof(IXCoordinateSystem))]
+    [SelectionBoxOptions(new Type[] { typeof(IXEdge), typeof(IXNote), typeof(IXCoordinateSystem) })]
     public ISwSelObject Dispatch { get; set; }
 }
 //---
@@ -26,7 +27,7 @@ public class SelectionBoxListDataModel
 {
     public List<ISwBody> Bodies { get; set; } = new List<ISwBody>();
 
-    [SelectionBoxOptions(typeof(IXEdge), typeof(IXNote), typeof(IXCoordinateSystem))]
+    [SelectionBoxOptions(new Type[] { typeof(IXEdge), typeof(IXNote), typeof(IXCoordinateSystem) })]
     public List<ISwSelObject> Dispatches { get; set; } = new List<ISwSelObject>();
 }
 //---
@@ -36,7 +37,7 @@ public class SelectionBoxCustomSelectionFilterDataModel
 {
     public class DataGroup
     {
-        [SelectionBoxOptions(typeof(PlanarFaceFilter), typeof(IXFace))] //setting the standard filter to faces and custom filter to only filter planar faces
+        [SelectionBoxOptions(new Type[] { typeof(PlanarFaceFilter), typeof(IXFace) })] //setting the standard filter to faces and custom filter to only filter planar faces
         public ISwFace PlanarFace { get; set; }
     }
 

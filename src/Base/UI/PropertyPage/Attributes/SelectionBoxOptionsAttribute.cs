@@ -75,7 +75,7 @@ namespace Xarial.XCad.UI.PropertyPage.Attributes
         /// Constructor for selection box options
         /// </summary>
         /// <param name="filters">Filters allowed for selection into this selection box</param>
-        public SelectionBoxOptionsAttribute(params Type[] filters)
+        public SelectionBoxOptionsAttribute(Type[] filters)
             : this(-1, filters)
         {
         }
@@ -83,13 +83,13 @@ namespace Xarial.XCad.UI.PropertyPage.Attributes
         /// <inheritdoc cref="SelectionBoxOptionsAttribute(Type[])"/>
         /// <param name="mark">Selection mark. If multiple selections box are used - use different selection marks for each of them
         /// to differentiate the selections</param>
-        public SelectionBoxOptionsAttribute(int mark, params Type[] filters)
+        public SelectionBoxOptionsAttribute(int mark, Type[] filters = null)
             : this(mark, null, SelectionBoxStyle_e.None, 0, filters)
         {
         }
 
         /// <inheritdoc cref="SelectionBoxOptionsAttribute(int, Type, SelectionBoxStyle_e, StandardSelectionColor_e, Type[])"/>
-        public SelectionBoxOptionsAttribute(Type[] filters, Type customFilter)
+        public SelectionBoxOptionsAttribute(Type customFilter, Type[] filters = null)
             : this(-1, customFilter, SelectionBoxStyle_e.None, 0, filters)
         {
         }
@@ -98,7 +98,7 @@ namespace Xarial.XCad.UI.PropertyPage.Attributes
         /// <param name="customFilter">Type of custom filter of <see cref="ISelectionCustomFilter"/> for custom logic for filtering selection objects</param>
         /// <exception cref="InvalidCastException"/>
         public SelectionBoxOptionsAttribute(int mark, Type customFilter, SelectionBoxStyle_e style,
-            StandardSelectionColor_e selColor, params Type[] filters)
+            StandardSelectionColor_e selColor, Type[] filters = null)
         {
             Style = style;
             SelectionColor = selColor;
