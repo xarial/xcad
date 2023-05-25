@@ -181,6 +181,53 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             }
         }
 
+        public virtual IXConfiguration Parent 
+        {
+            get 
+            {
+                var parentConf = GetParentConfiguration();
+
+                if (parentConf != null)
+                {
+                    return Document.CreateObjectFromDispatch<ISwDmConfiguration>(parentConf);
+                }
+                else
+                {
+                    return null;
+                }
+            }
+        }
+
+        private SwDMConfiguration GetParentConfiguration() 
+        {
+            var parentConfName = Configuration.GetParentConfigurationName();
+
+            if (!string.IsNullOrEmpty(parentConfName))
+            {
+                SwDMConfiguration parentConf;
+
+                if (Document.IsVersionNewerOrEqual(SwDmVersion_e.Sw2019))
+                {
+                    parentConf = ((ISwDMConfigurationMgr2)Document.Document.ConfigurationManager).GetConfigurationByName2(parentConfName, out var err);
+
+                    if (err != SwDMConfigurationError.SwDMConfigurationError_None)
+                    {
+                        throw new InvalidConfigurationsException(err);
+                    }
+                }
+                else
+                {
+                    parentConf = Document.Document.ConfigurationManager.GetConfigurationByName(parentConfName);
+                }
+
+                return parentConf;
+            }
+            else
+            {
+                return null;
+            }
+        }
+
         private string TryGetDocumentPropertyValue(string prpName)
         {
             try

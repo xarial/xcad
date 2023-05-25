@@ -32,6 +32,8 @@ using Xarial.XCad.Toolkit;
 using Xarial.XCad.SolidWorks.Enums;
 using System.Collections.Specialized;
 using Xarial.XCad.Toolkit.Services;
+using Xarial.XCad.SolidWorks.UI.Commands.Attributes;
+using System.Reflection;
 
 namespace Xarial.XCad.SolidWorks.UI.Commands
 {
@@ -132,13 +134,34 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
         public IXCommandGroup AddCommandGroup(CommandGroupSpec cmdBar)
             => AddCommandGroupOrContextMenu(cmdBar, false, null);
 
-        public IXCommandGroup AddContextMenu(CommandGroupSpec cmdBar, SelectType_e? owner)
+        public IXCommandGroup AddContextMenu(ContextMenuCommandGroupSpec cmdBar)
         {
-            swSelectType_e? selType = null;
-            
-            if (owner.HasValue) 
+            swSelectType_e? selType;
+
+            if (cmdBar.Owner != null)
             {
-                selType = (swSelectType_e)owner;
+                selType = SwSelectionHelper.GetSelectionType(cmdBar.Owner)?.FirstOrDefault();
+            }
+            else 
+            {
+                if (cmdBar is ContextMenuEnumCommandGroupSpec) 
+                {
+                    var swCtxMenInfoAtt = ((ContextMenuEnumCommandGroupSpec)cmdBar)
+                        .CmdGrpEnumType.GetCustomAttribute<SwContextMenuCommandGroupInfoAttribute>();
+
+                    if (swCtxMenInfoAtt != null)
+                    {
+                        selType = swCtxMenInfoAtt.Owner;
+                    }
+                    else 
+                    {
+                        selType = null;
+                    }
+                }
+                else
+                {
+                    selType = null;
+                }
             }
 
             return AddCommandGroupOrContextMenu(cmdBar, true, selType);
@@ -251,9 +274,14 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
             if (isContextMenu)
             {
                 cmdGroup = CmdMgr.AddContextMenu(groupId, title);
+                
                 if (contextMenuSelectType.HasValue)
                 {
                     cmdGroup.SelectType = (int)contextMenuSelectType;
+                }
+                else 
+                {
+                    cmdGroup.SelectType = (int)swSelectType_e.swSelEVERYTHING;
                 }
             }
             else

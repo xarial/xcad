@@ -34,4 +34,28 @@ namespace Xarial.XCad.UI.Commands.Structures
             CmdGrpEnumType = cmdGrpEnumType;
         }
     }
+
+    /// <summary>
+    /// Context menu command group spec created from the enumeration
+    /// </summary>
+    [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
+    public class ContextMenuEnumCommandGroupSpec : ContextMenuCommandGroupSpec
+    {
+        /// <summary>
+         /// Enumeration type associated with this command group
+         /// </summary>
+        [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
+        public Type CmdGrpEnumType { get; }
+
+        /// <summary>
+        /// Commands of this command group
+        /// </summary>
+        [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
+        public new EnumCommandSpec[] Commands { get => (EnumCommandSpec[])base.Commands; set => base.Commands = value; }
+
+        internal ContextMenuEnumCommandGroupSpec(Type cmdGrpEnumType, int id) : base(id)
+        {
+            CmdGrpEnumType = cmdGrpEnumType;
+        }
+    }
 }

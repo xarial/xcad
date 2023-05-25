@@ -117,9 +117,9 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public string PartNumber => GetPartNumber(Configuration);
 
-        public double Quantity 
+        public double Quantity
         {
-            get 
+            get
             {
                 var qtyPrp = GetPropertyValue(Configuration.CustomPropertyManager, QTY_PROPERTY);
 
@@ -166,7 +166,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        public BomChildrenSolving_e BomChildrenSolving 
+        public BomChildrenSolving_e BomChildrenSolving
         {
             get
             {
@@ -189,13 +189,30 @@ namespace Xarial.XCad.SolidWorks.Documents
                             throw new NotSupportedException($"Not supported BOM display option: {bomDispOpt}");
                     }
                 }
-                else 
+                else
                 {
                     return BomChildrenSolving_e.Show;
                 }
             }
         }
-        
+
+        public virtual IXConfiguration Parent 
+        {
+            get 
+            {
+                var conf = Configuration.GetParent();
+
+                if (conf != null)
+                {
+                    return OwnerDocument.CreateObjectFromDispatch<ISwConfiguration>(conf);
+                }
+                else 
+                {
+                    return null;
+                }
+            }
+        }
+
         private string GetPropertyValue(ICustomPropertyManager prpMgr, string prpName) 
         {
             string resVal;
@@ -270,13 +287,13 @@ namespace Xarial.XCad.SolidWorks.Documents
 
     internal abstract class SwComponentConfiguration : SwConfiguration
     {
-        private static IConfiguration GetConfiguration(SwComponent comp)
+        private static IConfiguration GetConfiguration(SwComponent comp, string compName)
         {
             var doc = comp.ReferencedDocument;
 
             if (doc.IsCommitted)
             {
-                return (IConfiguration)doc.Model.GetConfigurationByName(comp.Component.ReferencedConfiguration);
+                return (IConfiguration)doc.Model.GetConfigurationByName(compName);
             }
             else
             {
@@ -286,10 +303,27 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         protected readonly SwComponent m_Comp;
 
-        internal SwComponentConfiguration(SwComponent comp, SwApplication app)
-            : this(GetConfiguration(comp), (SwDocument3D)comp.ReferencedDocument, app, comp.Component.ReferencedConfiguration)
+        internal SwComponentConfiguration(SwComponent comp, SwApplication app, string confName)
+            : this(GetConfiguration(comp, confName), (SwDocument3D)comp.ReferencedDocument, app, comp.Component.ReferencedConfiguration)
         {
             m_Comp = comp;
+        }
+
+        public override IXConfiguration Parent
+        {
+            get
+            {
+                var conf = Configuration.GetParent();
+
+                if (conf != null)
+                {
+                    return m_Comp.GetReferencedConfiguration(conf.Name);
+                }
+                else
+                {
+                    return null;
+                }
+            }
         }
 
         private SwComponentConfiguration(IConfiguration conf, SwDocument3D doc, SwApplication app, string name)
@@ -308,11 +342,8 @@ namespace Xarial.XCad.SolidWorks.Documents
 
     internal class SwPartComponentConfiguration : SwComponentConfiguration, IXPartConfiguration
     {
-        private readonly SwPartComponent m_Comp;
-
-        public SwPartComponentConfiguration(SwPartComponent comp, SwApplication app) : base(comp, app)
+        public SwPartComponentConfiguration(SwPartComponent comp, SwApplication app, string confName) : base(comp, app, confName)
         {
-            m_Comp = comp;
             CutLists = new SwPartComponentCutListItemCollection(comp);
         }
 
@@ -338,7 +369,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
     internal class SwAssemblyComponentConfiguration : SwComponentConfiguration, IXAssemblyConfiguration
     {
-        public SwAssemblyComponentConfiguration(SwComponent comp, SwApplication app) : base(comp, app)
+        public SwAssemblyComponentConfiguration(SwComponent comp, SwApplication app, string confName) : base(comp, app, confName)
         {
         }
 

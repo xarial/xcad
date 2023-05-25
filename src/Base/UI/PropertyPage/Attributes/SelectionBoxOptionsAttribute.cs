@@ -33,7 +33,7 @@ namespace Xarial.XCad.UI.PropertyPage.Attributes
         /// <summary>
         /// Allowed entities filter for the selection
         /// </summary>
-        public SelectType_e[] Filters { get; set; }
+        public Type[] Filters { get; set; }
 
         /// <summary>
         /// Selection mark associated with this selection box
@@ -75,30 +75,30 @@ namespace Xarial.XCad.UI.PropertyPage.Attributes
         /// Constructor for selection box options
         /// </summary>
         /// <param name="filters">Filters allowed for selection into this selection box</param>
-        public SelectionBoxOptionsAttribute(params SelectType_e[] filters)
+        public SelectionBoxOptionsAttribute(Type[] filters)
             : this(-1, filters)
         {
         }
 
-        /// <inheritdoc cref="SelectionBoxOptionsAttribute(SelectType_e[])"/>
+        /// <inheritdoc cref="SelectionBoxOptionsAttribute(Type[])"/>
         /// <param name="mark">Selection mark. If multiple selections box are used - use different selection marks for each of them
         /// to differentiate the selections</param>
-        public SelectionBoxOptionsAttribute(int mark, params SelectType_e[] filters)
+        public SelectionBoxOptionsAttribute(int mark, Type[] filters = null)
             : this(mark, null, SelectionBoxStyle_e.None, 0, filters)
         {
         }
 
-        /// <inheritdoc cref="SelectionBoxOptionsAttribute(int, Type, SelectionBoxStyle_e, int, SelectType_e[])"/>
-        public SelectionBoxOptionsAttribute(Type customFilter, params SelectType_e[] filters)
+        /// <inheritdoc cref="SelectionBoxOptionsAttribute(int, Type, SelectionBoxStyle_e, StandardSelectionColor_e, Type[])"/>
+        public SelectionBoxOptionsAttribute(Type customFilter, Type[] filters = null)
             : this(-1, customFilter, SelectionBoxStyle_e.None, 0, filters)
         {
         }
 
-        /// <inheritdoc cref="SelectionBoxOptionsAttribute(int, SelectType_e[])"/>
+        /// <inheritdoc cref="SelectionBoxOptionsAttribute(int, Type[])"/>
         /// <param name="customFilter">Type of custom filter of <see cref="ISelectionCustomFilter"/> for custom logic for filtering selection objects</param>
         /// <exception cref="InvalidCastException"/>
         public SelectionBoxOptionsAttribute(int mark, Type customFilter, SelectionBoxStyle_e style,
-            StandardSelectionColor_e selColor, params SelectType_e[] filters)
+            StandardSelectionColor_e selColor, Type[] filters = null)
         {
             Style = style;
             SelectionColor = selColor;

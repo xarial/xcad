@@ -36,6 +36,11 @@ namespace Xarial.XCad.Documents
         string PartNumber { get; }
 
         /// <summary>
+        /// Parent configuration or null if this is a top level configuration
+        /// </summary>
+        IXConfiguration Parent { get; }
+
+        /// <summary>
         /// Options for displaying this configuration in BOM
         /// </summary>
         BomChildrenSolving_e BomChildrenSolving { get; }

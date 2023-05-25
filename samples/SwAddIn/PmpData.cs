@@ -29,6 +29,9 @@ using Xarial.XCad.UI.PropertyPage.Enums;
 using Xarial.XCad.UI.PropertyPage.Structures;
 using Xarial.XCad.Enums;
 using Xarial.XCad.Features;
+using Xarial.XCad.Geometry;
+using Xarial.XCad.SolidWorks.UI.PropertyPage.Attributes;
+using SolidWorks.Interop.swconst;
 
 namespace SwAddInExample
 {
@@ -193,6 +196,10 @@ namespace SwAddInExample
     {
         public event PropertyChangedEventHandler PropertyChanged;
 
+        //[SelectionBoxOptions(Filters = new Type[] { typeof(IXFace) })]
+        [SwSelectionBoxOptions(Filters = new swSelectType_e[] { swSelectType_e.swSelANNOTATIONTABLES })]
+        public ISwSelObject UnknownObject { get; set; }
+
         [CustomControl(typeof(WpfUserControl))]
         //[CustomControl(typeof(WinUserControl))]
         [ControlOptions(height: 200)]
@@ -203,7 +210,7 @@ namespace SwAddInExample
         [Description("Any object selection")]
         public ISwSelObject AnyObject { get; set; }
 
-        [SelectionBoxOptions(typeof(PlanarFaceFilter), SelectType_e.Faces)] //setting the standard filter to faces and custom filter to only filter planar faces
+        [SwSelectionBoxOptions(CustomFilter = typeof(PlanarFaceFilter), Filters = new swSelectType_e[] { swSelectType_e.swSelFACES })] //setting the standard filter to faces and custom filter to only filter planar faces
         [AttachMetadata(nameof(ComponentsMetadata))]
         [AttachMetadata(nameof(CircEdgeMetadata))]
         public ISwFace PlanarFace { get; set; }

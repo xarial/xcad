@@ -36,71 +36,6 @@ namespace Xarial.XCad.Toolkit.PageBuilder.Constructors
             }
         }
 
-        public static SelectType_e[] GetDefaultFilters(IAttributeSet atts)
-        {
-            var filters = new List<SelectType_e>();
-            
-            if (atts == null)
-            {
-                throw new ArgumentNullException(nameof(atts));
-            }
-
-            var type = GetElementType(atts.ContextType);
-
-            if (IsOfType<IXEdge>(type))
-            {
-                filters.Add(SelectType_e.Edges);
-            }
-            else if (IsOfType<IXFace>(type))
-            {
-                filters.Add(SelectType_e.Faces);
-            }
-            else if (IsOfType<IXSketchBase>(type))
-            {
-                filters.Add(SelectType_e.Sketches);
-            }
-            else if (IsOfType<IXSketchPoint>(type))
-            {
-                filters.Add(SelectType_e.SketchPoints);
-            }
-            else if (IsOfType<IXSketchSegment>(type))
-            {
-                filters.Add(SelectType_e.SketchSegments);
-            }
-            else if (IsOfType<IXSketchBlockInstance>(type))
-            {
-                filters.Add(SelectType_e.SketchBlockInstances);
-            }
-            else if (IsOfType<IXSketchEntity>(type)) 
-            {
-                filters.Add(SelectType_e.SketchPoints);
-                filters.Add(SelectType_e.SketchSegments);
-                filters.Add(SelectType_e.SketchBlockInstances);
-            }
-            else if (IsOfType<IXComponent>(type))
-            {
-                filters.Add(SelectType_e.Components);
-            }
-            else if (IsOfType<IXBody>(type))
-            {
-                filters.Add(SelectType_e.SolidBodies);
-                filters.Add(SelectType_e.SurfaceBodies);
-            }
-            else if (IsOfType<IXDimension>(type))
-            {
-                filters.Add(SelectType_e.Dimensions);
-            }
-
-            if (filters.Any())
-            {
-                return filters.ToArray();
-            }
-            else
-            {
-                return null;
-            }
-        }
-
         public static BitmapLabelType_e? GetDefaultBitmapLabel(IAttributeSet atts)
         {
             var type = atts.ContextType;
@@ -130,7 +65,6 @@ namespace Xarial.XCad.Toolkit.PageBuilder.Constructors
             return null;
         }
 
-        private static bool IsOfType<T>(Type t)
-            => typeof(T).IsAssignableFrom(t);
+        private static bool IsOfType<T>(Type t) => typeof(T).IsAssignableFrom(t);
     }
 }
