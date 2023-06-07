@@ -414,5 +414,27 @@ namespace Xarial.XCad.SolidWorks.Features
 
         public XCad.Geometry.Structures.Point FindClosestPoint(XCad.Geometry.Structures.Point point)
             => throw new NotSupportedException();
+
+        protected override bool IsSameDispatch(object disp)
+        {
+            if (OwnerApplication.Sw.IsSame(disp, Dispatch) == (int)swObjectEquality.swObjectSame)
+            {
+                return true;
+            }
+            else 
+            {
+                //NOTE: some of the features override the dispatch to be a specific feature (e.g. RefPlane)
+                //this results in different pointers when comparing and some of the methods (like IsSelected) may incorrectly
+                //compare the pointers and return unexpected result depending on the method feature was selected (e.g. Feature::Select selects IFeature, while SelectByID2 selected IRefPlane)
+                if (Dispatch != Feature)
+                {
+                    return OwnerApplication.Sw.IsSame(disp, Feature) == (int)swObjectEquality.swObjectSame;
+                }
+                else 
+                {
+                    return false;
+                }
+            }
+        }
     }
 }

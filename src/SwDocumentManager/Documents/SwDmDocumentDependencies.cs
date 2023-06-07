@@ -26,6 +26,18 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         public IXDocument OwnerDocument => m_Doc;
 
+        public bool Cached 
+        {
+            get => false;
+            set 
+            {
+                if (value == true)
+                {
+                    throw new NotSupportedException("Document Manager does not allow to return the cached references");
+                }
+            }
+        }
+
         internal SwDmDocumentDependencies(SwDmDocument doc) 
         {
             m_Doc = doc;
