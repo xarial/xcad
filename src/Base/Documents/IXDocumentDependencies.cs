@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Xarial.XCad.Base;
+using Xarial.XCad.Documents.Delegates;
 using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Documents.Exceptions;
 using Xarial.XCad.Exceptions;
@@ -50,8 +51,8 @@ namespace Xarial.XCad.Documents
         /// <param name="deps">Dependencies to replace</param>
         /// <param name="replacementPathProvider">File path replacer</param>
         /// <param name="conflictResolver">This function is called when target reference has a dependency not in a map. This happens when dependencies are loaded and resolved (not cached) as CAD system can automatically match new file path</param>
-        public static void ReplaceAll(this IXDocumentDependencies deps, Func<string, string> replacementPathProvider,
-            Func<string, string> conflictResolver = null)
+        public static void ReplaceAll(this IXDocumentDependencies deps, ReplaceReferencePathProviderDelegate replacementPathProvider,
+            ReplaceReferencePathMissingConflictResolverDelegate conflictResolver = null)
         {
             var app = deps.OwnerDocument.OwnerApplication;
 
@@ -104,7 +105,7 @@ namespace Xarial.XCad.Documents
                         {
                             if (conflictResolver != null)
                             {
-                                newPath = conflictResolver.Invoke(srcDocPath);
+                                newPath = conflictResolver.Invoke(targDeps.OwnerDocument.Path, srcDocPath);
                             }
                             else
                             {
