@@ -69,8 +69,23 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         protected abstract SwConfigurationCollection CreateConfigurations();
 
-        protected override SwPdfSaveOperation CreatePdfSaveOperation(string filePath)
-            => new SwDocument3DPdfSaveOperation(this, filePath);
+        public override IXSaveOperation PreCreateSaveAsOperation(string filePath)
+        {
+            var ext = System.IO.Path.GetExtension(filePath);
+
+            switch (ext.ToLower())
+            {
+                case ".pdf":
+                    return new SwDocument3DPdfSaveOperation(this, filePath);
+
+                case ".step":
+                case ".stp":
+                    return new SwStepSaveOperation(this, filePath);
+
+                default:
+                    return base.PreCreateSaveAsOperation(filePath);
+            }
+        }
 
         public TSelObject ConvertObject<TSelObject>(TSelObject obj)
             where TSelObject : ISwSelObject

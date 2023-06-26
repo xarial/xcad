@@ -55,6 +55,17 @@ namespace Xarial.XCad.Documents
     }
 
     /// <summary>
+    /// Save operation of drawing files
+    /// </summary>
+    public interface IXDrawingSaveOperation : IXSaveOperation
+    {        
+        /// <summary>
+        /// Sheets to export
+        /// </summary>
+        IXSheet[] Sheets { get; set; }
+    }
+
+    /// <summary>
     /// Save options for PDF format
     /// </summary>
     public interface IXPdfSaveOperation : IXSaveOperation
@@ -75,18 +86,15 @@ namespace Xarial.XCad.Documents
     /// <summary>
     /// Save options for PDF format in drawing document
     /// </summary>
-    public interface IXDrawingPdfSaveOperation : IXPdfSaveOperation
+    public interface IXDrawingPdfSaveOperation : IXDrawingSaveOperation
     {
-        /// <summary>
-        /// Sheets to export
-        /// </summary>
-        IXSheet[] Sheets { get; set; }
+
     }
 
     /// <summary>
     /// Save options for DXF/DWG format
     /// </summary>
-    public interface IXDxfDwgSaveOperation : IXSaveOperation
+    public interface IXDxfDwgSaveOperation : IXDrawingSaveOperation
     {   
         /// <summary>
         /// File path to a layers map file

@@ -51,7 +51,6 @@ using Xarial.XCad.SolidWorks.Graphics;
 using Xarial.XCad.Graphics;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Wires;
-using Xarial.XCad.SolidWorks.Extensions;
 using Xarial.XToolkit.Wpf.Utils;
 using System.Threading;
 using Xarial.XCad.Features.CustomFeature;
@@ -62,6 +61,7 @@ using System.Windows.Forms;
 using Xarial.XCad.Documents.Extensions;
 using System.Windows.Markup;
 using Xarial.XCad.SolidWorks.UI.Commands.Attributes;
+using Xarial.XCad.Toolkit.Extensions;
 
 namespace SwAddInExample
 {

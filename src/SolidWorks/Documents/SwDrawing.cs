@@ -133,8 +133,23 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         protected override SwAnnotationCollection CreateAnnotations() => new SwDrawingAnnotationCollection(this);
 
-        protected override SwPdfSaveOperation CreatePdfSaveOperation(string filePath)
-            => new SwDrawingPdfSaveOperation(this, filePath);
+        public override IXSaveOperation PreCreateSaveAsOperation(string filePath)
+        {
+            var ext = System.IO.Path.GetExtension(filePath);
+
+            switch (ext.ToLower())
+            {
+                case ".pdf":
+                    return new SwDrawingPdfSaveOperation(this, filePath);
+
+                case ".dxf":
+                case ".dwg":
+                    return new SwDxfDwgSaveOperation(this, filePath);
+
+                default:
+                    return base.PreCreateSaveAsOperation(filePath);
+            }
+        }
 
         protected override void GetPaperSize(out swDwgPaperSizes_e size, out double width, out double height)
         {

@@ -516,10 +516,10 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         private IModelDoc2 CreateDocument(CancellationToken cancellationToken)
         {
-            if (((SwDocumentCollection)OwnerApplication.Documents).TryFindExistingDocumentByPath(Path, out _))
-            {
-                throw new DocumentAlreadyOpenedException(Path);
-            }
+            //if (((SwDocumentCollection)OwnerApplication.Documents).TryFindExistingDocumentByPath(Path, out _))
+            //{
+            //    throw new DocumentAlreadyOpenedException(Path);
+            //}
 
             var docType = -1;
 
@@ -1255,27 +1255,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        public IXSaveOperation PreCreateSaveAsOperation(string filePath)
-        {
-            var ext = System.IO.Path.GetExtension(filePath);
-
-            switch (ext.ToLower())
-            {
-                case ".pdf":
-                    return CreatePdfSaveOperation(filePath);
-
-                case ".step":
-                case ".stp":
-                    return new SwStepSaveOperation(this, filePath);
-
-                case ".dxf":
-                case ".dwg":
-                    return new SwDxfDwgSaveOperation(this, filePath);
-
-                default:
-                    return new SwSaveOperation(this, filePath);
-            }
-        }
+        public virtual IXSaveOperation PreCreateSaveAsOperation(string filePath) => new SwSaveOperation(this, filePath);
 
         public TSwObj DeserializeObject<TSwObj>(Stream stream)
             where TSwObj : ISwObject
@@ -1340,8 +1320,6 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
 
         public IOperationGroup PreCreateOperationGroup() => new SwUndoObjectGroup(this);
-
-        protected abstract SwPdfSaveOperation CreatePdfSaveOperation(string filePath);
     }
 
     internal class SwUnknownDocument : SwDocument, IXUnknownDocument
@@ -1354,7 +1332,6 @@ namespace Xarial.XCad.SolidWorks.Documents
         protected override bool IsLightweightMode => throw new NotSupportedException();
         protected override bool IsRapidMode => throw new NotSupportedException();
         protected override SwAnnotationCollection CreateAnnotations() => throw new NotSupportedException();
-        protected override SwPdfSaveOperation CreatePdfSaveOperation(string filePath) => throw new NotSupportedException();
 
         internal protected override swDocumentTypes_e? DocumentType 
         {

@@ -18,6 +18,7 @@ using Xarial.XCad.Documents.Exceptions;
 using Xarial.XCad.Exceptions;
 using Xarial.XCad.Services;
 using Xarial.XCad.SolidWorks.Enums;
+using Xarial.XCad.SolidWorks.Utils;
 
 namespace Xarial.XCad.SolidWorks.Documents
 {
@@ -323,12 +324,34 @@ namespace Xarial.XCad.SolidWorks.Documents
 
     internal class SwDxfDwgSaveOperation : SwSaveOperation, IXDxfDwgSaveOperation
     {
+        public IXSheet[] Sheets
+        {
+            get => m_Creator.CachedProperties.Get<IXSheet[]>();
+            set
+            {
+                if (!IsCommitted)
+                {
+                    m_Creator.CachedProperties.Set(value);
+                }
+                else
+                {
+                    throw new CommitedElementReadOnlyParameterException();
+                }
+            }
+        }
+
         private bool m_OrigDxfMapping;
         private string m_OrigDxfMappingFiles;
         private int m_OrigDxfMappingFileIndex;
+        private int m_OrigDxfMultiSheetOption;
 
-        internal SwDxfDwgSaveOperation(SwDocument doc, string filePath) : base(doc, filePath)
+        private readonly SwDrawing m_Draw;
+        private SheetActivator m_SheetActivator;
+
+        internal SwDxfDwgSaveOperation(SwDrawing doc, string filePath) : base(doc, filePath)
         {
+            m_Draw = doc;
+
             var mapFilePath = "";
 
             if (m_Doc.OwnerApplication.Sw.GetUserPreferenceToggle((int)swUserPreferenceToggle_e.swDxfMapping)) 
@@ -354,6 +377,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             m_OrigDxfMapping = m_Doc.OwnerApplication.Sw.GetUserPreferenceToggle((int)swUserPreferenceToggle_e.swDxfMapping);
             m_OrigDxfMappingFiles = m_Doc.OwnerApplication.Sw.GetUserPreferenceStringListValue((int)swUserPreferenceStringListValue_e.swDxfMappingFiles);
             m_OrigDxfMappingFileIndex = m_Doc.OwnerApplication.Sw.GetUserPreferenceIntegerValue((int)swUserPreferenceIntegerValue_e.swDxfMappingFileIndex);
+            m_OrigDxfMultiSheetOption = m_Doc.OwnerApplication.Sw.GetUserPreferenceIntegerValue((int)swUserPreferenceIntegerValue_e.swDxfMultiSheetOption);
 
             m_Doc.OwnerApplication.Sw.SetUserPreferenceToggle((int)swUserPreferenceToggle_e.swDxfMapping, !string.IsNullOrEmpty(LayersMapFilePath));
 
@@ -363,13 +387,33 @@ namespace Xarial.XCad.SolidWorks.Documents
 
                 m_Doc.OwnerApplication.Sw.SetUserPreferenceIntegerValue((int)swUserPreferenceIntegerValue_e.swDxfMappingFileIndex, 0);
             }
+
+            if (Sheets?.Length == 1)
+            {
+                m_SheetActivator = new SheetActivator((SwSheet)Sheets.First());
+
+                m_Doc.OwnerApplication.Sw.SetUserPreferenceIntegerValue(
+                    (int)swUserPreferenceIntegerValue_e.swDxfMultiSheetOption, (int)swDxfMultisheet_e.swDxfActiveSheetOnly);
+            }
+            else if (Sheets == null || m_Draw.Sheets.OrderBy(s => s.Name).SequenceEqual(Sheets.OrderBy(s => s.Name), new XObjectEqualityComparer<IXSheet>()))
+            {
+                m_Doc.OwnerApplication.Sw.SetUserPreferenceIntegerValue(
+                    (int)swUserPreferenceIntegerValue_e.swDxfMultiSheetOption, (int)swDxfMultisheet_e.swDxfMultiSheet);
+            }
+            else 
+            {
+                throw new NotSupportedException("Only single or all sheets can be exported to DXF/DWG");
+            }
         }
 
         protected override void RestoreSaveOptions()
         {
-             m_Doc.OwnerApplication.Sw.SetUserPreferenceToggle((int)swUserPreferenceToggle_e.swDxfMapping, m_OrigDxfMapping);
-             m_Doc.OwnerApplication.Sw.SetUserPreferenceStringListValue((int)swUserPreferenceStringListValue_e.swDxfMappingFiles, m_OrigDxfMappingFiles);
-             m_Doc.OwnerApplication.Sw.SetUserPreferenceIntegerValue((int)swUserPreferenceIntegerValue_e.swDxfMappingFileIndex, m_OrigDxfMappingFileIndex);
+            m_Doc.OwnerApplication.Sw.SetUserPreferenceToggle((int)swUserPreferenceToggle_e.swDxfMapping, m_OrigDxfMapping);
+            m_Doc.OwnerApplication.Sw.SetUserPreferenceStringListValue((int)swUserPreferenceStringListValue_e.swDxfMappingFiles, m_OrigDxfMappingFiles);
+            m_Doc.OwnerApplication.Sw.SetUserPreferenceIntegerValue((int)swUserPreferenceIntegerValue_e.swDxfMappingFileIndex, m_OrigDxfMappingFileIndex);
+            m_Doc.OwnerApplication.Sw.SetUserPreferenceIntegerValue((int)swUserPreferenceIntegerValue_e.swDxfMultiSheetOption, m_OrigDxfMultiSheetOption);
+
+            m_SheetActivator?.Dispose();
         }
 
         public string LayersMapFilePath
