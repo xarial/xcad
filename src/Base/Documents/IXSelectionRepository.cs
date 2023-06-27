@@ -8,10 +8,12 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
 using Xarial.XCad.Base;
 using Xarial.XCad.Documents.Delegates;
 using Xarial.XCad.Graphics;
 using Xarial.XCad.UI;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace Xarial.XCad.Documents
 {
@@ -34,6 +36,13 @@ namespace Xarial.XCad.Documents
         /// Clears all current selections
         /// </summary>
         void Clear();
+
+        /// <summary>
+        /// Replaces the selection (clears previous selection)
+        /// </summary>
+        /// <param name="ents">Entities to select</param>
+        /// <param name="cancellationToken">Cancellation token</param>
+        void ReplaceRange(IEnumerable<IXSelObject> ents, CancellationToken cancellationToken);
 
         /// <summary>
         /// Pre-creates selection callout instance

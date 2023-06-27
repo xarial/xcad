@@ -218,6 +218,9 @@ namespace Xarial.XCad.SolidWorks
                 case INote note:
                     return new SwNote(note, doc, app);
 
+                case ITableAnnotation tableAnn:
+                    return new SwTable(tableAnn, doc, app);
+
                 case IAnnotation ann:
                     switch ((swAnnotationType_e)ann.GetType())
                     {
@@ -225,6 +228,8 @@ namespace Xarial.XCad.SolidWorks
                             return new SwDimension((IDisplayDimension)ann.GetSpecificAnnotation(), doc, app);
                         case swAnnotationType_e.swNote:
                             return new SwNote((INote)ann.GetSpecificAnnotation(), doc, app);
+                        case swAnnotationType_e.swTableAnnotation:
+                            return new SwTable((ITableAnnotation)ann.GetSpecificAnnotation(), doc, app);
                         default:
                             return new SwAnnotation(ann, doc, app);
                     }
