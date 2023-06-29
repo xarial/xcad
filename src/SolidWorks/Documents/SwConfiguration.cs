@@ -250,7 +250,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        public virtual void Commit(CancellationToken cancellationToken) => m_Creator.Create(cancellationToken);
+        public override void Commit(CancellationToken cancellationToken) => m_Creator.Create(cancellationToken);
 
         protected virtual ISwDimensionsCollection CreateDimensions()
             => new SwFeatureManagerDimensionsCollection(new SwDocumentFeatureManager(m_Doc, m_Doc.OwnerApplication, new Context(this)), new Context(this));
@@ -357,11 +357,22 @@ namespace Xarial.XCad.SolidWorks.Documents
 
                 if (!string.IsNullOrEmpty(materialName))
                 {
-                    return new SwMaterial(materialName, database);
+                    return new SwMaterial(materialName, OwnerApplication.MaterialDatabases[database]);
                 }
                 else
                 {
                     return null;
+                }
+            }
+            set 
+            {
+                if (value != null)
+                {
+                    ((SwPart)m_Comp.ReferencedDocument).Part.SetMaterialPropertyName2(Name, value.Database.Name, value.Name);
+                }
+                else 
+                {
+                    ((SwPart)m_Comp.ReferencedDocument).Part.SetMaterialPropertyName2(Name, "", "");
                 }
             }
         }

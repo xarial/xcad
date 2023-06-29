@@ -42,11 +42,22 @@ namespace Xarial.XCad.SolidWorks.Documents
 
                 if (!string.IsNullOrEmpty(materialName))
                 {
-                    return new SwMaterial(materialName, database);
+                    return new SwMaterial(materialName, OwnerApplication.MaterialDatabases[database]);
                 }
                 else 
                 {
                     return null;
+                }
+            }
+            set 
+            {
+                if (value != null)
+                {
+                    m_Part.Part.SetMaterialPropertyName2(Name, value.Database.Name, value.Name);
+                }
+                else 
+                {
+                    m_Part.Part.SetMaterialPropertyName2(Name, "", "");
                 }
             }
         }

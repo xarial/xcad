@@ -173,12 +173,46 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
                 if (!string.IsNullOrEmpty(materialName))
                 {
-                    return new SwMaterial(materialName, database);
+                    return new SwMaterial(materialName, OwnerApplication.MaterialDatabases[database]);
                 }
                 else
                 {
                     return null;
                 }
+            }
+            set 
+            {
+                throw new NotSupportedException();
+
+                //TODO: the below code does not work
+                //var confName = "";
+
+                //var comp = Component;
+
+                //if (comp != null)
+                //{
+                //    confName = comp.ReferencedConfiguration.Name;
+                //}
+                //else 
+                //{
+                //    confName = ((SwDocument3D)OwnerDocument).Configurations.Active.Name;
+                //}
+
+                //swBodyMaterialApplicationError_e res;
+
+                //if (value != null)
+                //{
+                //    res = (swBodyMaterialApplicationError_e)Body.SetMaterialProperty(confName, value.Database.Name, value.Name);
+                //}
+                //else 
+                //{
+                //    res = (swBodyMaterialApplicationError_e)Body.SetMaterialProperty(confName, "", "");
+                //}
+
+                //if (res != swBodyMaterialApplicationError_e.swBodyMaterialApplicationError_NoError) 
+                //{
+                //    throw new Exception($"Failed to set material. Error code: {res}");
+                //}
             }
         }
 

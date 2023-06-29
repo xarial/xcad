@@ -49,13 +49,11 @@ namespace Xarial.XCad.SwDocumentManager
         public IXMemoryGeometryBuilder MemoryGeometryBuilder => throw new NotSupportedException();
         public IXProgress CreateProgress() => throw new NotSupportedException();
         public IXMacro OpenMacro(string path) => throw new NotSupportedException();
-        public MessageBoxResult_e ShowMessageBox(string msg,
-            MessageBoxIcon_e icon = MessageBoxIcon_e.Info, MessageBoxButtons_e buttons = MessageBoxButtons_e.Ok)
-            => throw new NotSupportedException();
-        public void ShowTooltip(ITooltipSpec spec)
-            => throw new NotSupportedException();
+        public MessageBoxResult_e ShowMessageBox(string msg, MessageBoxIcon_e icon = MessageBoxIcon_e.Info, MessageBoxButtons_e buttons = MessageBoxButtons_e.Ok) => throw new NotSupportedException();
+        public void ShowTooltip(ITooltipSpec spec) => throw new NotSupportedException();
         public IXObjectTracker CreateObjectTracker(string name) => throw new NotSupportedException();
-
+        public IXApplicationOptions Options => throw new NotSupportedException();
+        public IXMaterialsDatabaseRepository MaterialDatabases => throw new NotSupportedException();
         #endregion
 
         IXDocumentRepository IXApplication.Documents => Documents;
@@ -103,7 +101,6 @@ namespace Xarial.XCad.SwDocumentManager
             }
         }
 
-        public IXApplicationOptions Options => throw new NotImplementedException();
 
         private readonly IElementCreator<ISwDMApplication> m_Creator;
 

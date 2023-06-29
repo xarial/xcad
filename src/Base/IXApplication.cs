@@ -6,6 +6,7 @@
 //*********************************************************************
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using Xarial.XCad.Base;
@@ -119,6 +120,11 @@ namespace Xarial.XCad
         /// <param name="name">Name of the tracker</param>
         /// <returns>Tracker</returns>
         IXObjectTracker CreateObjectTracker(string name);
+
+        /// <summary>
+        /// Material databases
+        /// </summary>
+        IXMaterialsDatabaseRepository MaterialDatabases { get; }
 
         /// <summary>
         /// Close current instance of the application

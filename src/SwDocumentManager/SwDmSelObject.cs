@@ -23,7 +23,7 @@ namespace Xarial.XCad.SwDocumentManager
     {
         #region Not Supported
         
-        public void Commit(CancellationToken cancellationToken) => throw new NotSupportedException();
+        public virtual void Commit(CancellationToken cancellationToken) => throw new NotSupportedException();
         public void Delete() => throw new NotSupportedException();
         public void Select(bool append) => throw new NotSupportedException();
 

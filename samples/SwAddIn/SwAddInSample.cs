@@ -739,11 +739,11 @@ namespace SwAddInExample
 
         private void Custom()
         {
-            var drw = (IXDrawing)Application.Documents.Active;
-            var newSheet = drw.Sheets.Active.Clone(drw);
+            var dbs = Application.MaterialDatabases.ToArray();
 
-            //var table = Application.Documents.Active.Selections.OfType<IXTable>().First();
-            //var dataTable = table.Read();
+            var curMat = ((IXPart)Application.Documents.Active).Configurations.Active.Material;
+
+            ((IXPart)Application.Documents.Active).Configurations.Active.Material = Application.MaterialDatabases[""]["ABS PC"];
         }
 
         private void HandleAddEvents()

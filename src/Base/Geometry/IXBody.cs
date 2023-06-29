@@ -49,7 +49,7 @@ namespace Xarial.XCad.Geometry
         /// <summary>
         /// Material of this body
         /// </summary>
-        IXMaterial Material { get; }
+        IXMaterial Material { get; set; }
 
         /// <summary>
         /// Creates a copy of the current body

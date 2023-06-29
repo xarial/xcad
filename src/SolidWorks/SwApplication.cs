@@ -88,6 +88,7 @@ namespace Xarial.XCad.SolidWorks
             get => Version;
             set => Version = (ISwVersion)value;
         }
+        IXMaterialsDatabaseRepository IXApplication.MaterialDatabases => MaterialDatabases;
 
         public event ApplicationStartingDelegate Starting;
         public event ConfigureServicesDelegate ConfigureServices;
@@ -96,7 +97,7 @@ namespace Xarial.XCad.SolidWorks
         {
             add
             {
-                if(m_IdleDelegate == null) 
+                if (m_IdleDelegate == null)
                 {
                     ((SldWorks)Sw).OnIdleNotify += OnIdleNotify;
                 }
@@ -125,27 +126,27 @@ namespace Xarial.XCad.SolidWorks
 
         public ISldWorks Sw => m_Creator.Element;
 
-        public ISwVersion Version 
+        public ISwVersion Version
         {
-            get 
+            get
             {
                 if (IsCommitted)
                 {
                     var major = Sw.GetVersion(out var sp, out var spRev);
                     return new SwVersion(new Version(major, sp, spRev));
                 }
-                else 
+                else
                 {
                     return m_Creator.CachedProperties.Get<SwVersion>();
                 }
             }
-            set 
+            set
             {
                 if (IsCommitted)
                 {
                     throw new Exception("Version cannot be changed after the application is committed");
                 }
-                else 
+                else
                 {
                     m_Creator.CachedProperties.Set(value);
                 }
@@ -155,7 +156,7 @@ namespace Xarial.XCad.SolidWorks
         private SwDocumentCollection m_Documents;
 
         public ISwDocumentCollection Documents => m_Documents;
-        
+
         public IntPtr WindowHandle => new IntPtr(Sw.IFrameObject().GetHWndx64());
 
         public Process Process => Process.GetProcessById(Sw.GetProcessID());
@@ -168,20 +169,20 @@ namespace Xarial.XCad.SolidWorks
 
         public bool IsCommitted => m_Creator.IsCreated;
 
-        public ApplicationState_e State 
+        public ApplicationState_e State
         {
-            get 
+            get
             {
                 if (IsCommitted)
                 {
                     return GetApplicationState();
                 }
-                else 
+                else
                 {
                     return m_Creator.CachedProperties.Get<ApplicationState_e>();
                 }
             }
-            set 
+            set
             {
                 if (IsCommitted)
                 {
@@ -199,28 +200,28 @@ namespace Xarial.XCad.SolidWorks
                     {
                         Sw.Visible = false;
                     }
-                    else 
+                    else
                     {
                         throw new Exception("Only visibility can changed after the application is started");
                     }
                 }
-                else 
+                else
                 {
                     m_Creator.CachedProperties.Set(value);
                 }
             }
         }
 
-        public IXServiceCollection CustomServices 
+        public IXServiceCollection CustomServices
         {
             get => m_CustomServices;
-            set 
+            set
             {
                 if (!IsCommitted)
                 {
                     m_CustomServices = value;
                 }
-                else 
+                else
                 {
                     throw new Exception("Services can only be set before committing");
                 }
@@ -231,7 +232,7 @@ namespace Xarial.XCad.SolidWorks
 
         internal IServiceProvider Services { get; private set; }
 
-        public bool IsAlive 
+        public bool IsAlive
         {
             get
             {
@@ -247,7 +248,7 @@ namespace Xarial.XCad.SolidWorks
                         return true;
                     }
                 }
-                catch 
+                catch
                 {
                     return false;
                 }
@@ -257,7 +258,7 @@ namespace Xarial.XCad.SolidWorks
         private bool m_IsInitialized;
 
         private bool m_HideOnStartup;
-        
+
         private bool m_IsStartupNotified;
 
         private readonly IElementCreator<ISldWorks> m_Creator;
@@ -267,6 +268,8 @@ namespace Xarial.XCad.SolidWorks
         private readonly Action<SwApplication> m_StartupCompletedCallback;
 
         internal GlobalTagsRegistry TagsRegistry { get; }
+
+        public SwMaterialsDatabaseRepository MaterialDatabases { get; private set; }
 
         internal SwApplication(ISldWorks app, IXServiceCollection customServices) 
             : this(app, default(Action<SwApplication>))
@@ -337,6 +340,8 @@ namespace Xarial.XCad.SolidWorks
                 Logger = Services.GetService<IXLogger>();
 
                 m_Documents = new SwDocumentCollection(this, Logger);
+
+                MaterialDatabases = new SwMaterialsDatabaseRepository(this);
 
                 MemoryGeometryBuilder = new SwMemoryGeometryBuilder(this,
                     Services.GetService<IMemoryGeometryBuilderDocumentProvider>(),
