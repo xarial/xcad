@@ -125,6 +125,31 @@ namespace SwAddInExample
         }
     }
 
+    public class MyItem1 
+    {
+        public class MyItem1Name 
+        {
+            public string Name { get; }
+
+            public MyItem1Name(string name)
+            {
+                Name = name;
+            }
+        }
+        
+        public string Value { get; }
+
+        public MyItem1Name DisplayName { get; }
+
+        public MyItem1(string val) 
+        {
+            Value = val;
+            DisplayName = new MyItem1Name("[" + val + "]");
+        }
+
+        public override string ToString() => Value;
+    }
+
     public class MyCustomItemsProvider : SwCustomItemsProvider<MyItem>
     {
         public override IEnumerable<MyItem> ProvideItems(ISwApplication app, IControl[] dependencies)
@@ -263,15 +288,15 @@ namespace SwAddInExample
         public int StaticComboBox { get; set; }
 
         [Metadata("_SRC_")]
-        public string[] Source => new string[] { "X", "Y", "Z" };
+        public MyItem1[] Source { get; } = new MyItem1[] { new MyItem1("X"), new MyItem1("Y"), new MyItem1("Z") };
 
         [ComboBox(ItemsSource = "_SRC_")]
-        public string ItemsSourceComboBox { get; set; }
+        public MyItem1 ItemsSourceComboBox { get; set; }
 
-        [ListBox(ItemsSource = "_SRC_")]
+        [ListBox(ItemsSource = "_SRC_", DisplayMemberPath = "DisplayName.Name")]
         [Label("List Box1:", ControlLeftAlign_e.LeftEdge, FontStyle_e.Bold)]
         [ControlOptions(align: ControlLeftAlign_e.Indent)]
-        public string ListBox1 { get; set; }
+        public MyItem1 ListBox1 { get; set; }
 
         [ListBox("A1", "A2", "A3")]
         public string ListBox2 { get; set; }

@@ -17,10 +17,12 @@ namespace Xarial.XCad.UI.PropertyPage.Services
     internal class CustomItemsAttributeDependencyHandler : IDependencyHandler
     {
         private readonly ICustomItemsProvider m_ItemsProvider;
+        private readonly DisplayMemberMemberPath m_DisplayMemberMemberPath;
 
-        internal CustomItemsAttributeDependencyHandler(ICustomItemsProvider itemsProvider)
+        internal CustomItemsAttributeDependencyHandler(ICustomItemsProvider itemsProvider, DisplayMemberMemberPath displayMemberMemberPath)
         {
             m_ItemsProvider = itemsProvider;
+            m_DisplayMemberMemberPath = displayMemberMemberPath;
         }
 
         public void UpdateState(IXApplication app, IControl source, IControl[] dependencies)
@@ -28,7 +30,7 @@ namespace Xarial.XCad.UI.PropertyPage.Services
             var itemsCtrl = (IItemsControl)source;
 
             itemsCtrl.Items = m_ItemsProvider.ProvideItems(app, dependencies)
-                ?.Select(i => new ItemsControlItem(i)).ToArray();
+                ?.Select(i => new ItemsControlItem(i, m_DisplayMemberMemberPath)).ToArray();
         }
     }
 }

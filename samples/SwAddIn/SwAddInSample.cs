@@ -487,7 +487,7 @@ namespace SwAddInExample
                         {
                             CoordSystem = Application.Documents.Active.Selections.OfType<IXCoordinateSystem>().FirstOrDefault()
                         };
-                        m_Data.ItemsSourceComboBox = "Y";
+                        m_Data.ItemsSourceComboBox = m_Data.Source[1];
                         m_Page.Show(m_Data);
                         m_Page.DataChanged += OnPageDataChanged;
                         break;

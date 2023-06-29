@@ -7,25 +7,37 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Text;
 
 namespace Xarial.XCad.UI.PropertyPage.Structures
 {
+    /// <summary>
+    /// Represents the item in the <see cref="Base.IItemsControl"/>
+    /// </summary>
     [DebuggerDisplay("{" + nameof(DisplayName) + "} [{" + nameof(Value) + "}]")]
     public class ItemsControlItem
     {
-        public string DisplayName { get; set; }
-        public object Value { get; set; }
+        /// <summary>
+        /// Display name of the item
+        /// </summary>
+        public string DisplayName { get; }
 
-        public ItemsControlItem() 
+        /// <summary>
+        /// Value of the item
+        /// </summary>
+        public object Value { get; }
+
+        public ItemsControlItem(object value, DisplayMemberMemberPath dispMembPath) 
+            : this(value, dispMembPath.GetDisplayName(value))
         {
         }
 
-        public ItemsControlItem(object item)
+        public ItemsControlItem(object value, string dispName)
         {
-            Value = item;
-            DisplayName = item?.ToString();
+            Value = value;
+            DisplayName = dispName;
         }
     }
 }
