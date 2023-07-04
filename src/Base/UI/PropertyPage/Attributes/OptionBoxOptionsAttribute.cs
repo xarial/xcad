@@ -16,16 +16,11 @@ namespace Xarial.XCad.UI.PropertyPage.Attributes
     /// </summary>
     public class OptionBoxOptionsAttribute : Attribute, IAttribute
     {
-        public OptionBoxStyle_e Style { get; private set; }
-
         /// <summary>
         /// Assigns additional options (such as style) for this option box control
         /// </summary>
-        /// <param name="style"></param>
-        public OptionBoxOptionsAttribute(
-            OptionBoxStyle_e style = 0)
+        public OptionBoxOptionsAttribute()
         {
-            Style = style;
         }
     }
 }

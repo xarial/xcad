@@ -42,6 +42,13 @@ namespace SwAddInExample
         Opt3
     }
 
+    public enum Opts1
+    {
+        Opt4,
+        Opt5,
+        Opt6
+    }
+
     [Flags]
     public enum OptsFlag 
     {
@@ -306,8 +313,12 @@ namespace SwAddInExample
 
         //[ListBox]
         [OptionBox]
-        [Label("Sample List Box 4:", fontStyle: FontStyle_e.Underline)]
-        public Opts ListBox4 { get; set; }
+        [Label("Sample Option Box 4:", fontStyle: FontStyle_e.Underline)]
+        public Opts OptionBox4 { get; set; }
+
+        [OptionBox]
+        [Label("Sample Option Box 5:")]
+        public Opts1 OptionBox5 { get; set; }
 
         [ListBox]
         public OptsFlag ListBox5 { get; set; } = OptsFlag.Opt1 | OptsFlag.Opt3;

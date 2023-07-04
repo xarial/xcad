@@ -258,6 +258,10 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
                 var itemName = m_ItemNames[i];
 
                 ctrls[i] = base.CreateSwControl<IPropertyManagerPageOption>(host, id + i, itemName, align, options, description, type);
+                if (i == 0)
+                {
+                    ctrls[i].Style = (int)swPropMgrPageOptionStyle_e.swPropMgrPageOptionStyle_FirstInGroup;
+                }
             }
 
             return new PropertyManagerPageOptionBox(ctrls);
@@ -268,11 +272,6 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             if (atts.Has<OptionBoxOptionsAttribute>())
             {
                 var style = atts.Get<OptionBoxOptionsAttribute>();
-
-                if (style.Style != 0)
-                {
-                    ctrl.Style = (int)style.Style;
-                }
             }
         }
 
