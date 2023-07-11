@@ -63,6 +63,7 @@ using System.Windows.Markup;
 using Xarial.XCad.SolidWorks.UI.Commands.Attributes;
 using Xarial.XCad.Toolkit.Extensions;
 using Xarial.XCad.Annotations;
+using Xarial.XCad.UI.Enums;
 
 namespace SwAddInExample
 {
@@ -550,12 +551,21 @@ namespace SwAddInExample
                         break;
 
                     case Commands_e.CreatePopup:
-                        //var winForm = this.CreatePopupWinForm<WinForm>();
-                        //winForm.Show(true);
-                        m_Window?.Close();
-                        m_Window = this.CreatePopupWpfWindow<WpfWindow>();
-                        m_Window.Closed += OnWindowClosed;
-                        m_Window.Show();
+                        var showWpf = true;
+                        var dock = PopupDock_e.Center;
+
+                        if (showWpf)
+                        {
+                            m_Window?.Close();
+                            m_Window = this.CreatePopupWpfWindow<WpfWindow>();
+                            m_Window.Closed += OnWindowClosed;
+                            m_Window.Show(dock);
+                        }
+                        else 
+                        {
+                            var winForm = this.CreatePopupWinForm<WinForm>();
+                            winForm.ShowDialog(dock);
+                        }
                         break;
 
                     case Commands_e.CreateTaskPane:

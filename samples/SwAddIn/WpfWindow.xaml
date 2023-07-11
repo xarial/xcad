@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:local="clr-namespace:SwAddInExample"
+             xmlns:local="clr-namespace:SwAddInExample" Padding="50"
              mc:Ignorable="d" WindowStartupLocation="CenterOwner"
              Height="300" Width="400">
     <Grid>

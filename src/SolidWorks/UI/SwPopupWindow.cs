@@ -9,7 +9,9 @@ using System;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Forms;
+using Xarial.XCad.Toolkit.Utils;
 using Xarial.XCad.UI;
+using Xarial.XCad.UI.Enums;
 using Xarial.XCad.UI.PopupWindow.Delegates;
 
 namespace Xarial.XCad.SolidWorks.UI
@@ -43,20 +45,8 @@ namespace Xarial.XCad.SolidWorks.UI
 
         public abstract void Dispose();
 
-        public abstract bool? ShowDialog();
-        public abstract void Show();
-    }
-
-    internal static class SwPopupWpfWindowWinAPI
-    {
-        [StructLayout(LayoutKind.Sequential)]
-        internal struct RECT
-        {
-            public int Left, Top, Right, Bottom;
-        }
-
-        [DllImport("user32.dll", SetLastError = true)]
-        internal static extern bool GetWindowRect(IntPtr hwnd, out RECT lpRect);
+        public abstract bool? ShowDialog(PopupDock_e dock = PopupDock_e.Center);
+        public abstract void Show(PopupDock_e dock = PopupDock_e.Center);
     }
 
     internal class SwPopupWpfWindow<TWindow> : SwPopupWindow<TWindow>
@@ -133,11 +123,11 @@ namespace Xarial.XCad.SolidWorks.UI
             }
         }
 
-        public override bool? ShowDialog()
+        public override bool? ShowDialog(PopupDock_e dock = PopupDock_e.Center)
         {
             var startupLoc = m_WpfWindow.WindowStartupLocation;
 
-            PositionWindow();
+            PositionWindow(dock);
 
             var res = m_WpfWindow.ShowDialog();
 
@@ -146,11 +136,11 @@ namespace Xarial.XCad.SolidWorks.UI
             return res;
         }
 
-        public override void Show()
+        public override void Show(PopupDock_e dock = PopupDock_e.Center)
         {
             var startupLoc = m_WpfWindow.WindowStartupLocation;
 
-            PositionWindow();
+            PositionWindow(dock);
 
             m_WpfWindow.Show();
             m_WpfWindow.BringIntoView();
@@ -158,41 +148,13 @@ namespace Xarial.XCad.SolidWorks.UI
             m_WpfWindow.WindowStartupLocation = startupLoc;
         }
 
-        /// <remarks>
-        /// CenterOwner does not properly position the WPF on the Win32 parent
-        /// Instead calculating and setting the position manually
-        /// </remarks>
-        private void PositionWindow() 
+        private void PositionWindow(PopupDock_e dock) 
         {
-            if (m_WpfWindow.WindowStartupLocation == WindowStartupLocation.CenterOwner)
-            {
-                if (m_ParentWnd != IntPtr.Zero)
-                {
-                    SwPopupWpfWindowWinAPI.GetWindowRect(m_ParentWnd, out var rect);
-
-                    Point pos;
-
-                    using (var graphics = System.Drawing.Graphics.FromHwnd(IntPtr.Zero))
-                    {
-                        const int DPI = 96;
-
-                        var scaleX = graphics.DpiX / DPI;
-                        var scaleY = graphics.DpiY / DPI;
-
-                        var left = rect.Left / scaleX;
-                        var top = rect.Top / scaleY;
-
-                        var wndWidth = (rect.Right - rect.Left) / scaleX;
-                        var wndHeight = (rect.Bottom - rect.Top) / scaleY;
-
-                        pos = new Point(left + wndWidth / 2 - m_WpfWindow.Width / 2, top + wndHeight / 2 - m_WpfWindow.Height / 2);
-                    }
-
-                    m_WpfWindow.WindowStartupLocation = WindowStartupLocation.Manual;
-                    m_WpfWindow.Left = pos.X;
-                    m_WpfWindow.Top = pos.Y;
-                }
-            }
+            var pos = PopupHelper.CalculateLocation(m_ParentWnd, dock, true, m_WpfWindow.Width, m_WpfWindow.Height,
+                new XCad.Geometry.Structures.Thickness(m_WpfWindow.Padding.Left, m_WpfWindow.Padding.Right, m_WpfWindow.Padding.Top, m_WpfWindow.Padding.Bottom));
+            m_WpfWindow.WindowStartupLocation = WindowStartupLocation.Manual;
+            m_WpfWindow.Left = pos.X;
+            m_WpfWindow.Top = pos.Y;
         }
     }
 
@@ -262,9 +224,13 @@ namespace Xarial.XCad.SolidWorks.UI
             }
         }
 
-        public override bool? ShowDialog()
+        public override bool? ShowDialog(PopupDock_e dock = PopupDock_e.Center)
         {
+            var startupLoc = m_Form.StartPosition;
+            PositionWindow(dock);
             var res = m_Form.ShowDialog(m_Owner);
+
+            m_Form.StartPosition = startupLoc;
 
             switch (res) 
             {
@@ -279,10 +245,21 @@ namespace Xarial.XCad.SolidWorks.UI
             }
         }
 
-        public override void Show()
+        public override void Show(PopupDock_e dock = PopupDock_e.Center)
         {
+            var startupLoc = m_Form.StartPosition;
+            PositionWindow(dock);
             m_Form.Show(m_Owner);
             m_Form.BringToFront();
+            m_Form.StartPosition = startupLoc;
+        }
+
+        private void PositionWindow(PopupDock_e dock)
+        {
+            var pos = PopupHelper.CalculateLocation(m_Owner.Handle, dock, false, m_Form.Width, m_Form.Height,
+                new XCad.Geometry.Structures.Thickness(m_Form.Padding.Left, m_Form.Padding.Right, m_Form.Padding.Top, m_Form.Padding.Bottom));
+            m_Form.StartPosition = FormStartPosition.Manual;
+            m_Form.DesktopLocation = new System.Drawing.Point((int)pos.X, (int)pos.Y);
         }
     }
 }
