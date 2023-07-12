@@ -749,6 +749,9 @@ namespace SwAddInExample
 
         private void Custom()
         {
+            var appVers = Application.Version;
+            var docVers = Application.Documents.Active.Version;
+
             var dbs = Application.MaterialDatabases.ToArray();
 
             var curMat = ((IXPart)Application.Documents.Active).Configurations.Active.Material;

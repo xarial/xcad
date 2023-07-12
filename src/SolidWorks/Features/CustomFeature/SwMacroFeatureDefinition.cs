@@ -698,7 +698,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
                 editor.EditingStarted += OnEditingStarted;
                 editor.EditingCompleting += OnEditingCompleting;
                 editor.EditingCompleted += OnEditingCompleted;
-                editor.FeatureInserted += OnFeatureInserted;
+                editor.FeatureInserting += OnFeatureInserting;
                 editor.PreviewUpdated += OnPreviewUpdated;
                 editor.ShouldUpdatePreview += ShouldUpdatePreview;
                 editor.ProvidePreviewContext += ProvidePreviewContext;
@@ -826,8 +826,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         }
 
         /// <inheritdoc/>
-        public void Insert(IXDocument doc, TParams data)
-            => m_Editor.Value.Insert(doc, data);
+        public void Insert(IXDocument doc, TParams data) => m_Editor.Value.Insert(doc, data);
 
         /// <inheritdoc/>
         [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
@@ -883,14 +882,16 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         }
 
         /// <summary>
-        /// Called when macro feature is created
+        /// Called when macro feature is being created
         /// </summary>
         /// <param name="app">Application</param>
         /// <param name="doc">Document</param>
-        /// <param name="feat">Feature which is created</param>
+        /// <param name="feat">Feature which is being created (this feature is in not-committed state)</param>
         /// <param name="page">Page data</param>
-        public virtual void OnFeatureInserted(IXApplication app, IXDocument doc, IXCustomFeature<TParams> feat, TPage page)
+        /// <remarks>Call <see cref="IXTransaction.Commit(System.Threading.CancellationToken)"/> on the feature to insert it into the tree</remarks>
+        public virtual void OnFeatureInserting(IXApplication app, IXDocument doc, IXCustomFeature<TParams> feat, TPage page)
         {
+            feat.Commit();
         }
 
         /// <summary>

@@ -11,7 +11,7 @@ namespace Base.Tests
     public class Rect2DTest
     {
         [Test]
-        public void IntersectTest() 
+        public void IntersectsTest() 
         {
             var r1 = new Rect2D(10, 10, new Point(5, 5, 0));
             var r2 = new Rect2D(5, 5, new Point(5, 5, 0));
@@ -22,13 +22,13 @@ namespace Base.Tests
             var r7 = new Rect2D(10, 10, new Point(15, 5, 0));
             var r8 = new Rect2D(10, 10, new Point(5, 15, 0));
 
-            var i1 = r1.Intersect(r2);
-            var i2 = r1.Intersect(r3);
-            var i3 = r1.Intersect(r4);
-            var i4 = r1.Intersect(r5);
-            var i5 = r1.Intersect(r6);
-            var i6 = r1.Intersect(r7);
-            var i7 = r1.Intersect(r8);
+            var i1 = r1.Intersects(r2);
+            var i2 = r1.Intersects(r3);
+            var i3 = r1.Intersects(r4);
+            var i4 = r1.Intersects(r5);
+            var i5 = r1.Intersects(r6);
+            var i6 = r1.Intersects(r7);
+            var i7 = r1.Intersects(r8);
 
             Assert.IsTrue(i1);
             Assert.IsTrue(i2);

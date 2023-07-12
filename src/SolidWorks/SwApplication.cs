@@ -133,7 +133,9 @@ namespace Xarial.XCad.SolidWorks
                 if (IsCommitted)
                 {
                     var major = Sw.GetVersion(out var sp, out var spRev);
-                    return new SwVersion(new Version(major, sp, spRev));
+                    var minor = sp > 0 ? sp : 0;//pre-release versiosn will have a negative SP
+                    var build = spRev > 0 ? spRev : 0;
+                    return new SwVersion(new Version(major, minor, build), sp, spRev);
                 }
                 else
                 {

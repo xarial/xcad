@@ -127,7 +127,7 @@ namespace Xarial.XCad.Geometry.Structures
         /// <param name="thisRect"></param>
         /// <param name="otherRect"></param>
         /// <returns>True if rectangles overlap</returns>
-        public static bool Intersect(this Rect2D thisRect, Rect2D otherRect)
+        public static bool Intersects(this Rect2D thisRect, Rect2D otherRect)
         {
             var thisBottomLeft = thisRect.GetLeftBottom();
             var thisTopRight = thisRect.GetRightTop();

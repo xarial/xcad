@@ -47,12 +47,15 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 
             if (reason == PageCloseReasons_e.Okay || reason == PageCloseReasons_e.Apply) 
             {
-                var curMacroFeat = (SwMacroFeature<TData>)m_CurrentFeature;
-
-                if (curMacroFeat.UseCachedParameters)
+                if (m_CurrentFeature.IsCommitted)
                 {
-                    curMacroFeat.ApplyParametersCache();
-                    curMacroFeat.UseCachedParameters = false;
+                    var curMacroFeat = (SwMacroFeature<TData>)m_CurrentFeature;
+
+                    if (curMacroFeat.UseCachedParameters)
+                    {
+                        curMacroFeat.ApplyParametersCache();
+                        curMacroFeat.UseCachedParameters = false;
+                    }
                 }
             }
         }

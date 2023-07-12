@@ -602,7 +602,14 @@ namespace Xarial.XCad.SolidWorks.Documents
                     }
                     else
                     {
-                        throw new Exception("Path is not specified");
+                        if (!string.IsNullOrEmpty(Path))
+                        {
+                            versHistory = OwnerApplication.Sw.VersionHistory(Path) as string[];
+                        }
+                        else
+                        {
+                            throw new Exception("Path is not specified");
+                        }
                     }
                 }
 
@@ -805,6 +812,8 @@ namespace Xarial.XCad.SolidWorks.Documents
                         return SwVersion_e.Sw2022;
                     case 16000:
                         return SwVersion_e.Sw2023;
+                    case 17000:
+                        return SwVersion_e.Sw2024;
                     default:
                         throw new NotSupportedException($"'{latestVers}' version is not recognized");
                 }

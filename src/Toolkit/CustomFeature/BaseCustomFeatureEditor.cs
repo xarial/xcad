@@ -79,7 +79,7 @@ namespace Xarial.XCad.Utils.CustomFeature
         public event CustomFeatureStateChangedDelegate<TData, TPage> EditingStarted;
         public event CustomFeatureEditingCompletedDelegate<TData, TPage> EditingCompleting;
         public event CustomFeatureEditingCompletedDelegate<TData, TPage> EditingCompleted;
-        public event CustomFeatureInsertedDelegate<TData, TPage> FeatureInserted;
+        public event CustomFeatureInsertedDelegate<TData, TPage> FeatureInserting;
         public event CustomFeaturePageParametersChangedDelegate<TData, TPage> PreviewUpdated;
         public event ShouldUpdatePreviewDelegate<TData, TPage> ShouldUpdatePreview;
         public event HandleEditingExceptionDelegate<TData> HandleEditingException;
@@ -500,9 +500,7 @@ namespace Xarial.XCad.Utils.CustomFeature
             {
                 if (!m_CurrentFeature.IsCommitted)
                 {
-                    m_CurrentFeature.Commit();
-
-                    FeatureInserted?.Invoke(m_App, CurrentDocument, m_CurrentFeature, m_CurPageData);
+                    FeatureInserting?.Invoke(m_App, CurrentDocument, m_CurrentFeature, m_CurPageData);
                 }
             }
             else
