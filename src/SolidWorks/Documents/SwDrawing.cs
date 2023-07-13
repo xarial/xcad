@@ -147,7 +147,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                     return new SwDxfDwgSaveOperation(this, filePath);
 
                 default:
-                    return base.PreCreateSaveAsOperation(filePath);
+                    return new SwDrawingSaveOperation(this, filePath);
             }
         }
 

@@ -50,4 +50,18 @@ namespace Xarial.XCad.Documents
         /// <returns>Instance of the selection callout</returns>
         IXSelCallout PreCreateCallout();
     }
+
+    /// <summary>
+    /// Additional methods for <see cref="IXSelectionRepository"/>
+    /// </summary>
+    public static class XSelectionRepositoryExtension 
+    {
+        /// <summary>
+        /// Replaces the selection (clears previous selection)
+        /// </summary>
+        /// <param name="selRepo">Selection repository</param>
+        /// <param name="ents">Entities to select</param>
+        public static void ReplaceRange(this IXSelectionRepository selRepo, IEnumerable<IXSelObject> ents)
+            => selRepo.ReplaceRange(ents, default);
+    }
 }

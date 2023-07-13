@@ -6,6 +6,7 @@
 //*********************************************************************
 
 using Xarial.XCad.Base;
+using Xarial.XCad.Geometry;
 
 namespace Xarial.XCad.Documents
 {
@@ -20,6 +21,30 @@ namespace Xarial.XCad.Documents
         /// Output file path
         /// </summary>
         string FilePath { get; }
+    }
+
+    /// <summary>
+    /// Save operation of <see cref="IXDrawing"/> files
+    /// </summary>
+    public interface IXDrawingSaveOperation : IXSaveOperation
+    {
+        /// <summary>
+        /// Sheets to export
+        /// </summary>
+        /// <remarks>If not specified all sheets are exported</remarks>
+        IXSheet[] Sheets { get; set; }
+    }
+
+    /// <summary>
+    /// Save operation of <see cref="IXDocument3D"/> files
+    /// </summary>
+    public interface IXDocument3DSaveOperation : IXSaveOperation 
+    {
+        /// <summary>
+        /// Bodies to export
+        /// </summary>
+        /// <remarks>If not specified all bodies are exported</remarks>
+        IXBody[] Bodies { get; set; }
     }
 
     /// <summary>
@@ -46,23 +71,12 @@ namespace Xarial.XCad.Documents
     /// <summary>
     /// Save options of step format
     /// </summary>
-    public interface IXStepSaveOperation : IXSaveOperation
+    public interface IXStepSaveOperation : IXDocument3DSaveOperation
     {
         /// <summary>
         /// Step format
         /// </summary>
         StepFormat_e Format { get; set; }
-    }
-
-    /// <summary>
-    /// Save operation of drawing files
-    /// </summary>
-    public interface IXDrawingSaveOperation : IXSaveOperation
-    {        
-        /// <summary>
-        /// Sheets to export
-        /// </summary>
-        IXSheet[] Sheets { get; set; }
     }
 
     /// <summary>
@@ -75,7 +89,7 @@ namespace Xarial.XCad.Documents
     /// <summary>
     /// Save options for PDF format in 3D document
     /// </summary>
-    public interface IXDocument3DPdfSaveOperation : IXPdfSaveOperation 
+    public interface IXDocument3DPdfSaveOperation : IXDocument3DSaveOperation, IXPdfSaveOperation
     {
         /// <summary>
         /// Save PDF as 3D PDF
@@ -86,7 +100,7 @@ namespace Xarial.XCad.Documents
     /// <summary>
     /// Save options for PDF format in drawing document
     /// </summary>
-    public interface IXDrawingPdfSaveOperation : IXDrawingSaveOperation
+    public interface IXDrawingPdfSaveOperation : IXPdfSaveOperation, IXDrawingSaveOperation
     {
 
     }

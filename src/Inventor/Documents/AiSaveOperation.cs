@@ -15,6 +15,7 @@ using System.Threading.Tasks;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Exceptions;
 using Xarial.XCad.Exceptions;
+using Xarial.XCad.Geometry;
 using Xarial.XCad.Services;
 
 namespace Xarial.XCad.Inventor.Documents
@@ -129,6 +130,8 @@ namespace Xarial.XCad.Inventor.Documents
                 }
             }
         }
+
+        public IXBody[] Bodies { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
 
         protected override void SetSaveOptions(TranslatorAddIn translator, NameValueMap opts)
         {

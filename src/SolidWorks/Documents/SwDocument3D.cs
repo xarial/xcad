@@ -83,7 +83,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                     return new SwStepSaveOperation(this, filePath);
 
                 default:
-                    return base.PreCreateSaveAsOperation(filePath);
+                    return new SwDocument3DSaveOperation(this, filePath);
             }
         }
 
