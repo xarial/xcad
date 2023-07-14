@@ -1160,8 +1160,11 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         private int OnFileSavePostNotify(int saveType, string fileName)
         {
-            m_CachedFilePath = fileName;
-
+            if (saveType == (int)swFileSaveTypes_e.swFileSaveAs)
+            {
+                m_CachedFilePath = fileName;
+            }
+            
             return HResult.S_OK;
         }
 
