@@ -1267,8 +1267,6 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        public virtual IXSaveOperation PreCreateSaveAsOperation(string filePath) => new SwSaveOperation(this, filePath);
-
         public TSwObj DeserializeObject<TSwObj>(Stream stream)
             where TSwObj : ISwObject
             => DeserializeBaseObject<TSwObj>(stream);
@@ -1332,6 +1330,8 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
 
         public IOperationGroup PreCreateOperationGroup() => new SwUndoObjectGroup(this);
+
+        public abstract IXSaveOperation PreCreateSaveAsOperation(string filePath);
     }
 
     internal class SwUnknownDocument : SwDocument, IXUnknownDocument
@@ -1438,6 +1438,8 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
 
         protected override bool IsDocumentTypeCompatible(swDocumentTypes_e docType) => true;
+
+        public override IXSaveOperation PreCreateSaveAsOperation(string filePath) => throw new NotSupportedException();
     }
 
     internal class SwUnknownDocument3D : SwUnknownDocument, ISwDocument3D
@@ -1456,6 +1458,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         IXModelView3DRepository IXDocument3D.ModelViews => throw new NotImplementedException();
         TSelObject IXObjectContainer.ConvertObject<TSelObject>(TSelObject obj) => throw new NotImplementedException();
         TSelObject ISwDocument3D.ConvertObject<TSelObject>(TSelObject obj) => throw new NotImplementedException();
+        IXDocument3DSaveOperation IXDocument3D.PreCreateSaveAsOperation(string filePath) => throw new NotImplementedException();
     }
 
     internal static class SwDocumentExtension 

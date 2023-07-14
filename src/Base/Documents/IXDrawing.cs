@@ -21,5 +21,10 @@ namespace Xarial.XCad.Documents
         /// Drawing specific options
         /// </summary>
         new IXDrawingOptions Options { get; }
+
+        /// <summary>
+        /// <see cref="IXDrawing"/> specific save as operation
+        /// </summary>
+        new IXDrawingSaveOperation PreCreateSaveAsOperation(string filePath);
     }
 }

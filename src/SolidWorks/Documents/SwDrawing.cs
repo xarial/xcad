@@ -133,7 +133,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         protected override SwAnnotationCollection CreateAnnotations() => new SwDrawingAnnotationCollection(this);
 
-        public override IXSaveOperation PreCreateSaveAsOperation(string filePath)
+        IXDrawingSaveOperation IXDrawing.PreCreateSaveAsOperation(string filePath)
         {
             var ext = System.IO.Path.GetExtension(filePath);
 
@@ -162,5 +162,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                 PaperSizeHelper.ParsePaperSize(null, out size, out _, out width, out height);
             }
         }
+
+        public override IXSaveOperation PreCreateSaveAsOperation(string filePath) => ((IXDrawing)this).PreCreateSaveAsOperation(filePath);
     }
 }

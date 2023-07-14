@@ -20,7 +20,7 @@ using Xarial.XCad.Services;
 
 namespace Xarial.XCad.Inventor.Documents
 {
-    internal class AiSaveOperation : IXSaveOperation
+    internal abstract class AiSaveOperation : IXSaveOperation
     {
         public string FilePath { get; }
 
@@ -48,7 +48,16 @@ namespace Xarial.XCad.Inventor.Documents
         public void Commit(CancellationToken cancellationToken) => m_Creator.Create(cancellationToken);
     }
 
-    internal class AiTranslatorSaveOperation : AiSaveOperation
+    internal class AiDocument3DSaveOperation : AiSaveOperation, IXDocument3DSaveOperation
+    {
+        public AiDocument3DSaveOperation(AiDocument doc, string filePath) : base(doc, filePath)
+        {
+        }
+
+        public IXBody[] Bodies { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+    }
+
+    internal abstract class AiTranslatorSaveOperation : AiSaveOperation
     {
         private readonly TranslatorAddIn m_Translator;
 
@@ -109,7 +118,34 @@ namespace Xarial.XCad.Inventor.Documents
         }
     }
 
-    internal class AiStepSaveOperation : AiTranslatorSaveOperation, IXStepSaveOperation
+    internal class AiDocument3DTranslatorSaveOperation : AiTranslatorSaveOperation, IXDocument3DSaveOperation
+    {
+        public AiDocument3DTranslatorSaveOperation(AiDocument doc, TranslatorAddIn translator, string filePath) : base(doc, translator, filePath)
+        {
+        }
+
+        public IXBody[] Bodies { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+    }
+
+    internal class AiDrawingSaveOperation : AiSaveOperation, IXDrawingSaveOperation
+    {
+        public AiDrawingSaveOperation(AiDocument doc, string filePath) : base(doc, filePath)
+        {
+        }
+
+        public IXSheet[] Sheets { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+    }
+
+    internal class AiDrawingTranslatorSaveOperation : AiTranslatorSaveOperation, IXDrawingSaveOperation
+    {
+        public AiDrawingTranslatorSaveOperation(AiDocument doc, TranslatorAddIn translator, string filePath) : base(doc, translator, filePath)
+        {
+        }
+
+        public IXSheet[] Sheets { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+    }
+
+    internal class AiStepSaveOperation : AiDocument3DTranslatorSaveOperation, IXStepSaveOperation
     {
         internal AiStepSaveOperation(AiDocument doc, TranslatorAddIn translator, string filePath) : base(doc, translator, filePath)
         {
@@ -130,8 +166,6 @@ namespace Xarial.XCad.Inventor.Documents
                 }
             }
         }
-
-        public IXBody[] Bodies { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
 
         protected override void SetSaveOptions(TranslatorAddIn translator, NameValueMap opts)
         {

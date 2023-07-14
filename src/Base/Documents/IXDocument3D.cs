@@ -36,5 +36,10 @@ namespace Xarial.XCad.Documents
         /// Returns configurations of this document
         /// </summary>
         IXConfigurationRepository Configurations { get; }
+
+        /// <summary>
+        /// <see cref="IXDocument3D"/> specific save as operation
+        /// </summary>
+        new IXDocument3DSaveOperation PreCreateSaveAsOperation(string filePath);
     }
 }

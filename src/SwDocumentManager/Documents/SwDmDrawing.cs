@@ -21,6 +21,13 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
     internal class SwDmDrawing : SwDmDocument, ISwDmDrawing
     {
+        #region Not Supported
+        
+        IXDrawingOptions IXDrawing.Options => throw new NotSupportedException();
+        IXDrawingSaveOperation IXDrawing.PreCreateSaveAsOperation(string filePath) => throw new NotSupportedException();
+        
+        #endregion
+
         IXSheetRepository IXDrawing.Sheets => Sheets;
 
         private readonly Lazy<SwDmSheetCollection> m_SheetsLazy;
@@ -35,8 +42,6 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         public ISwDmSheetCollection Sheets => m_SheetsLazy.Value;
 
-        IXDrawingOptions IXDrawing.Options => throw new NotImplementedException();
-
-        protected override bool IsDocumentTypeCompatible(SwDmDocumentType docType) => docType == SwDmDocumentType.swDmDocumentDrawing;
+        protected override bool IsDocumentTypeCompatible(SwDmDocumentType docType) => docType == SwDmDocumentType.swDmDocumentDrawing;        
     }
 }

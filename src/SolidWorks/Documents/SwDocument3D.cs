@@ -69,7 +69,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         protected abstract SwConfigurationCollection CreateConfigurations();
 
-        public override IXSaveOperation PreCreateSaveAsOperation(string filePath)
+        IXDocument3DSaveOperation IXDocument3D.PreCreateSaveAsOperation(string filePath)
         {
             var ext = System.IO.Path.GetExtension(filePath);
 
@@ -112,5 +112,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                 throw new InvalidCastException("Object is not SOLIDWORKS object");
             }
         }
+
+        public override IXSaveOperation PreCreateSaveAsOperation(string filePath) => ((IXDocument3D)this).PreCreateSaveAsOperation(filePath);
     }
 }

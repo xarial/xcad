@@ -20,11 +20,12 @@ using Xarial.XCad.Exceptions;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Services;
 using Xarial.XCad.SolidWorks.Enums;
+using Xarial.XCad.SolidWorks.Geometry;
 using Xarial.XCad.SolidWorks.Utils;
 
 namespace Xarial.XCad.SolidWorks.Documents
 {
-    internal class SwSaveOperation : IXSaveOperation
+    internal abstract class SwSaveOperation : IXSaveOperation
     {
         internal static string ParseSaveError(swFileSaveError_e err)
         {
@@ -168,6 +169,8 @@ namespace Xarial.XCad.SolidWorks.Documents
 
     internal class SwDocument3DSaveOperation : SwSaveOperation, IXDocument3DSaveOperation
     {
+        private SelectionGroup m_SelGroup;
+
         internal SwDocument3DSaveOperation(SwDocument3D doc, string filePath) : base(doc, filePath)
         {
         }
@@ -176,14 +179,24 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
             base.SetSaveOptions(out exportData);
 
+            m_SelGroup = new SelectionGroup(m_Doc, true);
+
             if (Bodies?.Any() == true)
             {
-                m_Doc.Selections.ReplaceRange(Bodies);
+                m_SelGroup.AddRange(Bodies.Cast<ISwBody>().Select(b => b.Body).ToArray());
+                //m_Doc.Selections.ReplaceRange(Bodies);
             }
-            else 
-            {
-                m_Doc.Selections.Clear();
-            }
+            //else 
+            //{
+            //    m_Doc.Selections.Clear();
+            //}
+        }
+
+        protected override void RestoreSaveOptions()
+        {
+            base.RestoreSaveOptions();
+
+            m_SelGroup.Dispose();
         }
 
         public IXBody[] Bodies
@@ -286,6 +299,8 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         protected override void RestoreSaveOptions()
         {
+            base.RestoreSaveOptions();
+
             m_Doc.OwnerApplication.Sw.SetUserPreferenceIntegerValue((int)swUserPreferenceIntegerValue_e.swStepAP, m_OriginalFormat);
         }
 

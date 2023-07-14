@@ -37,7 +37,7 @@ namespace Xarial.XCad.Inventor.Documents
     }
 
     [DebuggerDisplay("{" + nameof(Title) + "}")]
-    internal class AiDocument : AiObject, IAiDocument
+    internal abstract class AiDocument : AiObject, IAiDocument
     {
         public event DataStoreAvailableDelegate StreamReadAvailable;
 
@@ -231,28 +231,7 @@ namespace Xarial.XCad.Inventor.Documents
 
         public void Save() => Document.Save2(true);
 
-        public IXSaveOperation PreCreateSaveAsOperation(string filePath)
-        {
-            var translator = TryGetTranslator(filePath);
-
-            if (translator != null)
-            {
-                switch (translator.ClientId)
-                {
-                    case "{90AF7F40-0C01-11D5-8E83-0010B541CD80}":
-                        return new AiStepSaveOperation(this, translator, filePath);
-
-                    default:
-                        return new AiTranslatorSaveOperation(this, translator, filePath);
-                }
-            }
-            else 
-            {
-                return new AiSaveOperation(this, filePath);
-            }
-        }
-
-        private TranslatorAddIn TryGetTranslator(string filePath)
+        protected TranslatorAddIn TryGetTranslator(string filePath)
         {
             var ext = System.IO.Path.GetExtension(filePath);
 
@@ -314,6 +293,8 @@ namespace Xarial.XCad.Inventor.Documents
         protected virtual void Dispose(bool disposing)
         {
         }
+
+        public abstract IXSaveOperation PreCreateSaveAsOperation(string filePath);
     }
 
     internal class AiUnknownDocument : AiDocument, IXUnknownDocument
@@ -342,5 +323,7 @@ namespace Xarial.XCad.Inventor.Documents
 
             return m_SpecificDoc;
         }
+
+        public override IXSaveOperation PreCreateSaveAsOperation(string filePath) => throw new NotSupportedException();
     }
 }
