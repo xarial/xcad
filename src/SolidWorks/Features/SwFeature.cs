@@ -154,7 +154,7 @@ namespace Xarial.XCad.SolidWorks.Features
         ISwEntity IResilientibleObject<ISwEntity>.CreateResilient() => CreateResilient();
         IXComponent IXEntity.Component => Component;
         IXDimensionRepository IDimensionable.Dimensions => Dimensions;
-        IXObject IResilientibleObject.CreateResilient() => CreateResilient();
+        IXObject ISupportsResilience.CreateResilient() => CreateResilient();
 
         protected readonly IElementCreator<IFeature> m_Creator;
 

@@ -11,6 +11,7 @@ using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Documents.Structures;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;
+using Xarial.XCad.SolidWorks.Annotations;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Geometry;
 
@@ -668,8 +669,11 @@ namespace SolidWorks.Tests.Integration
                 var srcView = sheet.DrawingViews.First();
 
                 var v1 = sheet.DrawingViews.PreCreate<ISwSectionDrawingView>();
+                var sectionLine = v1.Annotations.PreCreate<ISwSectionLine>();
+                sectionLine.Definition = new Line(new Point(0, -0.1, -0.065), new Point(0, 0.3, -0.065));
+
                 v1.BaseView = srcView;
-                v1.SectionLine = new Line(new Point(0, -0.1, -0.065), new Point(0, 0.3, -0.065));
+                v1.SectionLine = sectionLine;
                 v1.Commit();
 
                 t1 = v1.DrawingView.Type;
@@ -692,8 +696,10 @@ namespace SolidWorks.Tests.Integration
                 var srcView = sheet.DrawingViews.First();
 
                 var v1 = sheet.DrawingViews.PreCreate<ISwDetailDrawingView>();
+                var detCircle = v1.Annotations.PreCreate<ISwDetailCircle>();
+                detCircle.Definition = new Circle(new Axis(new Point(0.15, 0.035, -0.06), new Vector(0, 0, 1)), 0.1);
                 v1.BaseView = srcView;
-                v1.DetailCircle = new Circle(new Axis(new Point(0.15, 0.035, -0.06), new Vector(0, 0, 1)), 0.1);
+                v1.DetailCircle = detCircle;
                 v1.Commit();
 
                 t1 = v1.DrawingView.Type;

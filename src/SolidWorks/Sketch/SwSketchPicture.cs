@@ -13,6 +13,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using Xarial.XCad.Documents;
 using Xarial.XCad.Exceptions;
 using Xarial.XCad.Features;
 using Xarial.XCad.Geometry;
@@ -20,6 +21,7 @@ using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Sketch;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Features;
+using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.UI;
 
 namespace Xarial.XCad.SolidWorks.Sketch
@@ -58,6 +60,12 @@ namespace Xarial.XCad.SolidWorks.Sketch
         }
 
         public override object Dispatch => SketchPicture;
+
+        public IXLayer Layer
+        {
+            get => throw new NotSupportedException();
+            set => throw new NotSupportedException();
+        }
 
         public IXImage Image 
         {

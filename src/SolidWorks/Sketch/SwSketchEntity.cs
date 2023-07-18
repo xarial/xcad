@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
+using Xarial.XCad.Documents;
 using Xarial.XCad.Features;
 using Xarial.XCad.Services;
 using Xarial.XCad.Sketch;
@@ -77,6 +78,7 @@ namespace Xarial.XCad.SolidWorks.Sketch
             get => GetFullName();
             set => throw new NotSupportedException();
         }
+        public abstract IXLayer Layer { get; set; }
 
         internal SwSketchEntity(object ent, SwDocument doc, SwApplication app) : base(ent, doc, app)
         {

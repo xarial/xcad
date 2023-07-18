@@ -5,6 +5,8 @@
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
+using Xarial.XCad.Documents.Structures;
+
 namespace Xarial.XCad.Documents
 {
     /// <summary>
@@ -16,6 +18,11 @@ namespace Xarial.XCad.Documents
         /// Sheets on this drawing
         /// </summary>
         IXSheetRepository Sheets { get; }
+
+        /// <summary>
+        /// Drawing layers
+        /// </summary>
+        IXLayerRepository Layers { get; }
 
         /// <summary>
         /// Drawing specific options

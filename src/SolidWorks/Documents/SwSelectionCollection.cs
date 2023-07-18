@@ -158,7 +158,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         public bool TryGet(string name, out IXSelObject ent)
         {
             ent = IterateSelection().FirstOrDefault(
-                s => s is INameable && string.Equals(name, ((INameable)s).Name, StringComparison.CurrentCultureIgnoreCase));
+                s => s is IHasName && string.Equals(name, ((IHasName)s).Name, StringComparison.CurrentCultureIgnoreCase));
 
             return ent != null;
         }

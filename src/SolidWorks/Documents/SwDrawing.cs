@@ -12,6 +12,7 @@ using System.Linq;
 using System.Threading;
 using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
+using Xarial.XCad.Documents.Structures;
 using Xarial.XCad.Utils.Diagnostics;
 
 namespace Xarial.XCad.SolidWorks.Documents
@@ -110,6 +111,8 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public override IXDocumentOptions Options => m_Options;
 
+        public IXLayerRepository Layers { get; }
+
         private SwDrawingOptions m_Options;
 
         internal SwDrawing(IDrawingDoc drawing, SwApplication app, IXLogger logger, bool isCreated)
@@ -117,6 +120,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
             m_SheetsLazy = new Lazy<SwSheetCollection>(() => new SwSheetCollection(this, OwnerApplication));
             m_Options = new SwDrawingOptions(this);
+            Layers = new SwLayersCollection(this, app);
         }
 
         protected override void CommitCache(IModelDoc2 model, CancellationToken cancellationToken)

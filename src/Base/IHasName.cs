@@ -7,19 +7,18 @@
 
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Text;
 
 namespace Xarial.XCad
 {
     /// <summary>
-    /// Identifies the visual object which can have color
+    /// Indicates that object has name
     /// </summary>
-    public interface IXColorizable
+    public interface IHasName : IXObject
     {
         /// <summary>
-        /// Color of visual object
+        /// Name of this element
         /// </summary>
-        Color? Color { get; set; }
+        string Name { get; set; }
     }
 }

@@ -385,6 +385,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         private string m_OrigDxfMappingFiles;
         private int m_OrigDxfMappingFileIndex;
         private int m_OrigDxfMultiSheetOption;
+        private bool m_OrigExportHiddenLayers;
 
         private readonly SwDrawing m_Draw;
         private SheetActivator m_SheetActivator;
@@ -431,6 +432,9 @@ namespace Xarial.XCad.SolidWorks.Documents
                 m_Doc.OwnerApplication.Sw.SetUserPreferenceIntegerValue((int)swUserPreferenceIntegerValue_e.swDxfMappingFileIndex, 0);
             }
 
+            m_OrigExportHiddenLayers = m_Doc.OwnerApplication.Sw.GetUserPreferenceToggle((int)swUserPreferenceToggle_e.swDXFExportHiddenLayersOn);
+            m_Doc.OwnerApplication.Sw.SetUserPreferenceToggle((int)swUserPreferenceToggle_e.swDXFExportHiddenLayersOn, ExportHiddentLayers);
+
             if (Sheets?.Length == 1)
             {
                 m_SheetActivator = new SheetActivator((SwSheet)Sheets.First());
@@ -456,12 +460,30 @@ namespace Xarial.XCad.SolidWorks.Documents
             m_Doc.OwnerApplication.Sw.SetUserPreferenceIntegerValue((int)swUserPreferenceIntegerValue_e.swDxfMappingFileIndex, m_OrigDxfMappingFileIndex);
             m_Doc.OwnerApplication.Sw.SetUserPreferenceIntegerValue((int)swUserPreferenceIntegerValue_e.swDxfMultiSheetOption, m_OrigDxfMultiSheetOption);
 
+            m_Doc.OwnerApplication.Sw.SetUserPreferenceToggle((int)swUserPreferenceToggle_e.swDXFExportHiddenLayersOn, m_OrigExportHiddenLayers);
+
             m_SheetActivator?.Dispose();
         }
 
         public string LayersMapFilePath
         {
             get => m_Creator.CachedProperties.Get<string>();
+            set
+            {
+                if (!IsCommitted)
+                {
+                    m_Creator.CachedProperties.Set(value);
+                }
+                else
+                {
+                    throw new CommitedElementReadOnlyParameterException();
+                }
+            }
+        }
+
+        public bool ExportHiddentLayers
+        {
+            get => m_Creator.CachedProperties.Get<bool>();
             set
             {
                 if (!IsCommitted)

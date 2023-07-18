@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Xarial.XCad.Documents;
+using Xarial.XCad.Documents.Structures;
 using Xarial.XCad.Geometry.Structures;
 
 namespace Xarial.XCad.SwDocumentManager.Documents
@@ -25,7 +26,8 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         
         IXDrawingOptions IXDrawing.Options => throw new NotSupportedException();
         IXDrawingSaveOperation IXDrawing.PreCreateSaveAsOperation(string filePath) => throw new NotSupportedException();
-        
+        public IXLayerRepository Layers => throw new NotSupportedException();
+
         #endregion
 
         IXSheetRepository IXDrawing.Sheets => Sheets;

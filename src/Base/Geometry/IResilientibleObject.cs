@@ -14,7 +14,7 @@ namespace Xarial.XCad.Geometry
     /// <summary>
     /// Indicates that this object can be resilient to the regeneration operations
     /// </summary>
-    public interface IResilientibleObject
+    public interface ISupportsResilience : IXObject
     {
         /// <summary>
         /// Is object resilient to regeneration
@@ -30,7 +30,7 @@ namespace Xarial.XCad.Geometry
 
     /// <inheritdoc/>
     /// <typeparam name="T">Specific object type</typeparam>
-    public interface IResilientibleObject<T> : IResilientibleObject
+    public interface IResilientibleObject<T> : ISupportsResilience
         where T : IXObject
     {
         /// <summary>

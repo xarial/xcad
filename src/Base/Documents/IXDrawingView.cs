@@ -138,7 +138,7 @@ namespace Xarial.XCad.Documents
         /// <summary>
         /// Section of this drawing view
         /// </summary>
-        Line SectionLine { get; set; }
+        IXSectionLine SectionLine { get; set; }
     }
 
     /// <summary>
@@ -149,7 +149,7 @@ namespace Xarial.XCad.Documents
         /// <summary>
         /// Circle of this detailed view
         /// </summary>
-        Circle DetailCircle { get; set; }
+        IXDetailCircle DetailCircle { get; set; }
     }
 
     /// <summary>

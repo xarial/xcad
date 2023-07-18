@@ -114,5 +114,10 @@ namespace Xarial.XCad.Documents
         /// File path to a layers map file
         /// </summary>
         string LayersMapFilePath { get; set; }
+
+        /// <summary>
+        /// True to include hidden layers, False to only export visible layers
+        /// </summary>
+        bool ExportHiddentLayers { get; set; }
     }
 }

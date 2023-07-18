@@ -1107,17 +1107,26 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
         }
 
-        public Line SectionLine
+        public IXSectionLine SectionLine
         {
             get
             {
                 if (!IsCommitted)
                 {
-                    return m_Creator.CachedProperties.Get<Line>();
+                    return m_Creator.CachedProperties.Get<IXSectionLine>();
                 }
                 else
                 {
-                    throw new NotSupportedException();
+                    var section = DrawingView.IGetSection();
+
+                    if (section != null) 
+                    {
+                        return m_Drawing.CreateObjectFromDispatch<ISwSectionLine>(section);
+                    }
+                    else
+                    {
+                        throw new NullReferenceException("Section is not available");
+                    }
                 }
             }
             set
@@ -1145,10 +1154,12 @@ namespace Xarial.XCad.SolidWorks.Documents
             {
                 var transform = srcView.ModelToViewTransform.IMultiply(srcView.IGetSketch().ModelToSketchTransform);
 
-                var startPt = (IMathPoint)mathUtils.CreatePoint(new double[] { SectionLine.StartPoint.X, SectionLine.StartPoint.Y, SectionLine.StartPoint.Z });
+                var sectionLineDef = SectionLine.Definition;
+
+                var startPt = (IMathPoint)mathUtils.CreatePoint(new double[] { sectionLineDef.StartPoint.X, sectionLineDef.StartPoint.Y, sectionLineDef.StartPoint.Z });
                 startPt = startPt.IMultiplyTransform(transform);
 
-                var endPt = (IMathPoint)mathUtils.CreatePoint(new double[] { SectionLine.EndPoint.X, SectionLine.EndPoint.Y, SectionLine.EndPoint.Z });
+                var endPt = (IMathPoint)mathUtils.CreatePoint(new double[] { sectionLineDef.EndPoint.X, sectionLineDef.EndPoint.Y, sectionLineDef.EndPoint.Z });
                 endPt = endPt.IMultiplyTransform(transform);
 
                 var startCoord = (double[])startPt.ArrayData;
@@ -1193,17 +1204,26 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
         }
 
-        public Circle DetailCircle
+        public IXDetailCircle DetailCircle
         {
             get
             {
                 if (!IsCommitted)
                 {
-                    return m_Creator.CachedProperties.Get<Circle>();
+                    return m_Creator.CachedProperties.Get<IXDetailCircle>();
                 }
                 else
                 {
-                    throw new NotSupportedException();
+                    var detail = DrawingView.IGetDetail();
+
+                    if (detail != null)
+                    {
+                        return m_Drawing.CreateObjectFromDispatch<ISwDetailCircle>(detail);
+                    }
+                    else
+                    {
+                        throw new NullReferenceException("Detail circle is not available");
+                    }
                 }
             }
             set
@@ -1231,12 +1251,14 @@ namespace Xarial.XCad.SolidWorks.Documents
             {
                 var transform = srcView.ModelToViewTransform.IMultiply(srcView.IGetSketch().ModelToSketchTransform);
 
-                var centerMathPt = (IMathPoint)mathUtils.CreatePoint(new double[] { DetailCircle.CenterAxis.Point.X, DetailCircle.CenterAxis.Point.Y, DetailCircle.CenterAxis.Point.Z });
+                var detCircleDef = DetailCircle.Definition;
+
+                var centerMathPt = (IMathPoint)mathUtils.CreatePoint(new double[] { detCircleDef.CenterAxis.Point.X, detCircleDef.CenterAxis.Point.Y, detCircleDef.CenterAxis.Point.Z });
                 centerMathPt = centerMathPt.IMultiplyTransform(transform);
 
                 var centerCoord = (double[])centerMathPt.ArrayData;
 
-                var circle = skMgr.CreateCircleByRadius(centerCoord[0], centerCoord[1], centerCoord[2], DetailCircle.Diameter / 2);
+                var circle = skMgr.CreateCircleByRadius(centerCoord[0], centerCoord[1], centerCoord[2], detCircleDef.Diameter / 2);
 
                 using (var selGrp = new SelectionGroup(m_Drawing, false))
                 {

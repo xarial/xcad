@@ -14,7 +14,7 @@ namespace Xarial.XCad.Sketch
     /// <summary>
     /// Represents generic sketch entity (e.g. line, point, arc, etc.)
     /// </summary>
-    public interface IXSketchEntity : IXSelObject, IXColorizable, IXTransaction, INameable, IXWireEntity
+    public interface IXSketchEntity : IXSelObject, IHasColor, IXTransaction, IHasName, IXWireEntity, IHasLayer
     {
         /// <summary>
         /// Owner sketch of this sketch entity

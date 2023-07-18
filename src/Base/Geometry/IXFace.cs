@@ -17,7 +17,7 @@ namespace Xarial.XCad.Geometry
     /// <summary>
     /// Represents face entity
     /// </summary>
-    public interface IXFace : IXEntity, IXColorizable, IXRegion
+    public interface IXFace : IXEntity, IHasColor, IXRegion
     {
         /// <summary>
         /// True if the direction of the face conicides with the direction of its surface definition, False if the directions are opposite

@@ -35,7 +35,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
     internal class SwBody : SwSelObject, ISwBody
     {       
         IXComponent IXBody.Component => Component;
-        IXObject IResilientibleObject.CreateResilient() => CreateResilient();
+        IXObject ISupportsResilience.CreateResilient() => CreateResilient();
 
         public virtual IBody2 Body 
         {

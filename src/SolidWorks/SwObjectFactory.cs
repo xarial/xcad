@@ -218,6 +218,12 @@ namespace Xarial.XCad.SolidWorks
                 case INote note:
                     return new SwNote(note, doc, app);
 
+                case IDrSection section:
+                    return new SwSectionLine(section, doc, app);
+
+                case IDetailCircle detailCircle:
+                    return new SwDetailCircle(detailCircle, doc, app);
+
                 case ITableAnnotation tableAnn:
                     return new SwTable(tableAnn, doc, app);
 
@@ -233,6 +239,9 @@ namespace Xarial.XCad.SolidWorks
                         default:
                             return new SwAnnotation(ann, doc, app);
                     }
+
+                case ILayer layer:
+                    return new SwLayer(layer, doc, app);
 
                 case IConfiguration conf:
                     switch (doc)
