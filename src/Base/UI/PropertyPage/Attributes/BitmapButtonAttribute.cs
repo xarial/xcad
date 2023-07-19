@@ -32,9 +32,19 @@ namespace Xarial.XCad.UI.PropertyPage.Attributes
         /// </summary>
         public IXImage Icon { get; }
 
+        /// <summary>
+        /// Width of the button
+        /// </summary>
         public int Width { get; }
+
+        /// <summary>
+        /// Hight of the button
+        /// </summary>
         public int Height { get; }
 
+        /// <summary>
+        /// Standard icon or null if use custom icon
+        /// </summary>
         public BitmapButtonLabelType_e? StandardIcon { get; }
 
         /// <param name="resType">Type of the static class (usually Resources)</param>

@@ -120,6 +120,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit
                   new PropertyManagerPageListBoxControlConstructor(app, iconsConv),
                   new PropertyManagerPageSelectionBoxControlConstructor(app, iconsConv),
                   new PropertyManagerPageOptionBoxConstructor(app, iconsConv),
+                  new PropertyManagerPageCheckBoxListConstructor(app, iconsConv),
                   new PropertyManagerPageButtonControlConstructor(app, iconsConv),
                   new PropertyManagerPageBitmapControlConstructor(app, iconsConv),
                   new PropertyManagerPageTextBlockControlConstructor(app, iconsConv),

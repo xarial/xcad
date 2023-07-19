@@ -58,6 +58,23 @@ namespace SwAddInExample
         Opt4 = 8
     }
 
+    [Flags]
+    public enum OptsFlag2
+    {
+        None = 0,
+
+        [Title("Option #1")]
+        [Description("First Option")]
+        Opt1 = 1,
+        Opt2 = 2,
+
+        [Title("Opt1 + Opt2")]
+        Opt1_2 = Opt1 | Opt2,
+
+        Opt3 = 4,
+        Opt4 = 8
+    }
+
     public class CustomControlDataContext : INotifyPropertyChanged
     {
         public event Action<CustomControlDataContext, OptsFlag> ValueChanged;
@@ -323,6 +340,11 @@ namespace SwAddInExample
         [ListBox]
         public OptsFlag ListBox5 { get; set; } = OptsFlag.Opt1 | OptsFlag.Opt3;
 
+        [CheckBoxList]
+        [CheckBoxListOptions]
+        [ControlOptions(align: ControlLeftAlign_e.Indent)]
+        public OptsFlag2 FlagEnumCheckBoxes { get; set; }
+
         [ControlTag(nameof(Visible))]
         public bool Visible { get; set; }
 
@@ -355,6 +377,8 @@ namespace SwAddInExample
                 this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(TextBlockText)));
             };
             CustomControl = OptsFlag.Opt3 | OptsFlag.Opt4;
+
+            FlagEnumCheckBoxes = OptsFlag2.Opt3 | OptsFlag2.Opt4;
         }
     }
 

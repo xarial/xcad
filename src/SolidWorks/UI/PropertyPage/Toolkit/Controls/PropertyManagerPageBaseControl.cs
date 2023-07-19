@@ -227,7 +227,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             }
         }
 
-        private int ConvertColor(KnownColor knownColor)
+        protected int ConvertColor(KnownColor knownColor)
         {
             var color = Color.FromKnownColor(knownColor);
 
