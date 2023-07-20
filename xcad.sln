@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.29613.14
+# Visual Studio Version 17
+VisualStudioVersion = 17.2.32616.157
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Base", "src\Base\Base.csproj", "{2683A66E-3F60-4794-A34B-D79A66676407}"
 EndProject
@@ -36,6 +36,24 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SolidWorksDocMgr.Tests.Integration", "tests\integration\SolidWorksDocMgr.Tests.Integration\SolidWorksDocMgr.Tests.Integration.csproj", "{1F231B39-C8DB-4A70-AF1B-022DEC24E9D9}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SwDocumentManager.Tests", "tests\SwDocumentManager.Tests\SwDocumentManager.Tests.csproj", "{4D164ACD-3CA3-4866-B184-4B2442DD5307}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Inventor", "src\Inventor\Inventor.csproj", "{68199E7F-656F-4A7F-BBC3-AF25B5DDDDBF}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StandAlone.Inventor", "samples\StandAlone.Inventor\StandAlone.Inventor.csproj", "{F0EE52D1-14A2-4827-811D-4E692F185341}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tools", "Tools", "{687863F5-7B23-4D48-B8F0-339F3D2869A8}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InventorStandAloneConnectorAddIn", "tools\InventorStandAloneConnectorAddIn\InventorStandAloneConnectorAddIn.csproj", "{4E3D108D-F7FB-4B6E-9ED0-A296720FC734}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Templates", "Templates", "{71AEE7FC-156E-4023-BDAC-B0C106BAABCE}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "__TemplateNamePlaceholder__SwAddin", "templates\SwAddIn\__TemplateNamePlaceholder__SwAddin\__TemplateNamePlaceholder__SwAddin.csproj", "{B5CC8DA7-52B1-4F32-AA1D-2636B57E86BF}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SwAddIn", "SwAddIn", "{F70EAA56-E24B-44FE-A2C5-7EC8B1BC3D50}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SwMacroFeatureAddIn", "SwMacroFeatureAddIn", "{844177A3-3F95-4E0C-BB9A-996F731A9A49}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "__TemplateNamePlaceholder__SwMacroFeatureAddIn", "templates\SwMacroFeatureAddIn\__TemplateNamePlaceholder__SwMacroFeatureAddIn\__TemplateNamePlaceholder__SwMacroFeatureAddIn.csproj", "{007ED163-7AE7-4DFA-9B67-70C0208841C3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -95,6 +113,26 @@ Global
 		{4D164ACD-3CA3-4866-B184-4B2442DD5307}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4D164ACD-3CA3-4866-B184-4B2442DD5307}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4D164ACD-3CA3-4866-B184-4B2442DD5307}.Release|Any CPU.Build.0 = Release|Any CPU
+		{68199E7F-656F-4A7F-BBC3-AF25B5DDDDBF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{68199E7F-656F-4A7F-BBC3-AF25B5DDDDBF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{68199E7F-656F-4A7F-BBC3-AF25B5DDDDBF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{68199E7F-656F-4A7F-BBC3-AF25B5DDDDBF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F0EE52D1-14A2-4827-811D-4E692F185341}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F0EE52D1-14A2-4827-811D-4E692F185341}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F0EE52D1-14A2-4827-811D-4E692F185341}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F0EE52D1-14A2-4827-811D-4E692F185341}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4E3D108D-F7FB-4B6E-9ED0-A296720FC734}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4E3D108D-F7FB-4B6E-9ED0-A296720FC734}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4E3D108D-F7FB-4B6E-9ED0-A296720FC734}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4E3D108D-F7FB-4B6E-9ED0-A296720FC734}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B5CC8DA7-52B1-4F32-AA1D-2636B57E86BF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B5CC8DA7-52B1-4F32-AA1D-2636B57E86BF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B5CC8DA7-52B1-4F32-AA1D-2636B57E86BF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B5CC8DA7-52B1-4F32-AA1D-2636B57E86BF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{007ED163-7AE7-4DFA-9B67-70C0208841C3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{007ED163-7AE7-4DFA-9B67-70C0208841C3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{007ED163-7AE7-4DFA-9B67-70C0208841C3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{007ED163-7AE7-4DFA-9B67-70C0208841C3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -110,6 +148,12 @@ Global
 		{9FA56430-CFCD-4975-AAA9-2C18999DE264} = {6D2A43FF-9E49-46B4-BF9C-A9BA87330735}
 		{1F231B39-C8DB-4A70-AF1B-022DEC24E9D9} = {28BFC3E1-25EA-4934-80F5-2EFCA6E4494B}
 		{4D164ACD-3CA3-4866-B184-4B2442DD5307} = {387EFF82-0E64-4E5B-9B1D-6DCC0EC5D501}
+		{F0EE52D1-14A2-4827-811D-4E692F185341} = {19753BF5-5F8F-481B-8CC0-1422293B3F7A}
+		{4E3D108D-F7FB-4B6E-9ED0-A296720FC734} = {687863F5-7B23-4D48-B8F0-339F3D2869A8}
+		{B5CC8DA7-52B1-4F32-AA1D-2636B57E86BF} = {F70EAA56-E24B-44FE-A2C5-7EC8B1BC3D50}
+		{F70EAA56-E24B-44FE-A2C5-7EC8B1BC3D50} = {71AEE7FC-156E-4023-BDAC-B0C106BAABCE}
+		{844177A3-3F95-4E0C-BB9A-996F731A9A49} = {71AEE7FC-156E-4023-BDAC-B0C106BAABCE}
+		{007ED163-7AE7-4DFA-9B67-70C0208841C3} = {844177A3-3F95-4E0C-BB9A-996F731A9A49}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {C1681BF6-7447-45FF-AC57-EC2B3250B843}

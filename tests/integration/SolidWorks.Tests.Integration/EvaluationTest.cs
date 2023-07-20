@@ -14,11 +14,20 @@ using Xarial.XCad.SolidWorks.Geometry;
 using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.SolidWorks.Geometry.Exceptions;
 using Xarial.XCad.Geometry.Exceptions;
+using Xarial.XCad.Geometry.Evaluation;
 
 namespace SolidWorks.Tests.Integration
 {
     public class EvaluationTest : IntegrationTests
     {
+        public class DoubleComparer : IEqualityComparer<double>
+        {
+            public bool Equals(double x, double y)
+                => Math.Abs(x - y) < 1E-10;
+
+            public int GetHashCode(double obj) => 0;
+        }
+
         [Test]
         public void BodyVolumeTest()
         {
@@ -35,6 +44,32 @@ namespace SolidWorks.Tests.Integration
         }
 
         [Test]
+        public void BoundingBoxBestFitTest()
+        {
+            Box3D b1;
+
+            using (var doc = OpenDataDocument("Part1.SLDPRT"))
+            {
+                var part = (IXPart)m_App.Documents.Active;
+
+                var bbox = part.Evaluation.PreCreateBoundingBox();
+                bbox.BestFit = true;
+                bbox.Commit();
+
+                b1 = bbox.Box;
+            }
+
+            var sizes = new double[] { b1.Width, b1.Height, b1.Length }.OrderBy(x => x).ToArray();
+
+            Assert.That(sizes[0], Is.EqualTo(0.01).Within(0.00000000001).Percent);
+            Assert.That(sizes[1], Is.EqualTo(0.035).Within(0.00000000001).Percent);
+            Assert.That(sizes[2], Is.EqualTo(0.075).Within(0.00000000001).Percent);
+            AssertCompareDoubles(b1.CenterPoint.X, 0.00980748828, 10);
+            AssertCompareDoubles(b1.CenterPoint.Y, -0.11052982533, 10);
+            AssertCompareDoubles(b1.CenterPoint.Z, -0.03862083082, 10);
+        }
+
+        [Test]
         public void BoundingBoxUserUnitTest()
         {
             Box3D b1;
@@ -44,13 +79,13 @@ namespace SolidWorks.Tests.Integration
             {
                 var part = (IXPart)m_App.Documents.Active;
 
-                var bbox = part.PreCreateBoundingBox();
+                var bbox = part.Evaluation.PreCreateBoundingBox();
                 bbox.Precise = true;
                 bbox.UserUnits = true;
                 bbox.Commit();
                 b1 = bbox.Box;
 
-                bbox = part.PreCreateBoundingBox();
+                bbox = part.Evaluation.PreCreateBoundingBox();
                 bbox.Precise = false;
                 bbox.UserUnits = true;
                 bbox.Commit();
@@ -102,13 +137,13 @@ namespace SolidWorks.Tests.Integration
 
                 var body = (IXSolidBody)part.Bodies["Boss-Extrude1"];
 
-                var bbox = part.PreCreateBoundingBox();
+                var bbox = part.Evaluation.PreCreateBoundingBox();
                 bbox.Precise = true;
                 bbox.Scope = new IXBody[] { body };
                 bbox.Commit();
                 b1 = bbox.Box;
 
-                bbox = part.PreCreateBoundingBox();
+                bbox = part.Evaluation.PreCreateBoundingBox();
                 bbox.Precise = false;
                 bbox.Scope = new IXBody[] { body };
                 bbox.Commit();
@@ -163,14 +198,14 @@ namespace SolidWorks.Tests.Integration
                 var matrix = TransformConverter.ToTransformMatrix(
                     part.Model.Extension.GetCoordinateSystemTransformByName("Coordinate System1"));
 
-                var bbox = part.PreCreateBoundingBox();
+                var bbox = part.Evaluation.PreCreateBoundingBox();
                 bbox.Precise = true;
                 bbox.RelativeTo = matrix;
                 bbox.Scope = new IXBody[] { body };
                 bbox.Commit();
                 b1 = bbox.Box;
 
-                bbox = part.PreCreateBoundingBox();
+                bbox = part.Evaluation.PreCreateBoundingBox();
                 bbox.Precise = false;
                 bbox.RelativeTo = matrix;
                 bbox.Scope = new IXBody[] { body };
@@ -223,7 +258,7 @@ namespace SolidWorks.Tests.Integration
             {
                 var part = (IXPart)m_App.Documents.Active;
 
-                var bbox = part.PreCreateBoundingBox();
+                var bbox = part.Evaluation.PreCreateBoundingBox();
                 bbox.Precise = false;
                 bbox.Commit();
                 b1 = bbox.Box;
@@ -255,7 +290,7 @@ namespace SolidWorks.Tests.Integration
             {
                 var assm = (IXAssembly)m_App.Documents.Active;
 
-                var bbox = assm.PreCreateBoundingBox();
+                var bbox = assm.Evaluation.PreCreateBoundingBox();
                 bbox.Precise = true;
                 bbox.Scope = new IXComponent[]
                 {
@@ -299,14 +334,14 @@ namespace SolidWorks.Tests.Integration
                 var matrix = TransformConverter.ToTransformMatrix(
                     assm.Model.Extension.GetCoordinateSystemTransformByName("Coordinate System1"));
 
-                var bbox = assm.PreCreateBoundingBox();
+                var bbox = assm.Evaluation.PreCreateBoundingBox();
                 bbox.Precise = true;
                 bbox.RelativeTo = matrix;
                 bbox.Scope = comps;
                 bbox.Commit();
                 b1 = bbox.Box;
 
-                bbox = assm.PreCreateBoundingBox();
+                bbox = assm.Evaluation.PreCreateBoundingBox();
                 bbox.Precise = false;
                 bbox.RelativeTo = matrix;
                 bbox.Scope = comps;
@@ -360,14 +395,14 @@ namespace SolidWorks.Tests.Integration
             {
                 var assm = (IXAssembly)m_App.Documents.Active;
 
-                var bbox = assm.PreCreateBoundingBox();
+                var bbox = assm.Evaluation.PreCreateBoundingBox();
                 bbox.Precise = false;
                 bbox.Commit();
                 b1 = bbox.Box;
 
                 try
                 {
-                    bbox = assm.PreCreateBoundingBox();
+                    bbox = assm.Evaluation.PreCreateBoundingBox();
                     bbox.VisibleOnly = false;
                     bbox.Commit();
                 }
@@ -412,7 +447,7 @@ namespace SolidWorks.Tests.Integration
                     assm.Configurations.Active.Components["SubAssem1-2"]
                 };
 
-                var bbox = assm.PreCreateBoundingBox();
+                var bbox = assm.Evaluation.PreCreateBoundingBox();
                 bbox.Scope = comps;
                 bbox.Precise = false;
                 bbox.Commit();
@@ -420,7 +455,7 @@ namespace SolidWorks.Tests.Integration
 
                 try
                 {
-                    bbox = assm.PreCreateBoundingBox();
+                    bbox = assm.Evaluation.PreCreateBoundingBox();
                     bbox.VisibleOnly = false;
                     bbox.Scope = comps;
                     bbox.Commit();
@@ -459,7 +494,7 @@ namespace SolidWorks.Tests.Integration
             {
                 var assm = (ISwAssembly)m_App.Documents.Active;
 
-                var bbox = assm.PreCreateBoundingBox();
+                var bbox = assm.Evaluation.PreCreateBoundingBox();
                 bbox.Precise = true;
                 var swBody = (assm.Configurations.Active.Components["SubAssem1-2"].Children["SubSubAssem1-1"].Children["Part1-1"]
                     .Bodies.First() as ISwBody).Body.ICopy();
@@ -495,7 +530,7 @@ namespace SolidWorks.Tests.Integration
             {
                 var assm = (ISwAssembly)m_App.Documents.Active;
 
-                using (var bbox = assm.PreCreateBoundingBox())
+                using (var bbox = assm.Evaluation.PreCreateBoundingBox())
                 {
                     bbox.UserUnits = false;
                     bbox.VisibleOnly = false;
@@ -524,7 +559,7 @@ namespace SolidWorks.Tests.Integration
             {
                 var assm = (ISwAssembly)m_App.Documents.Active;
 
-                using (var bbox = assm.PreCreateBoundingBox())
+                using (var bbox = assm.Evaluation.PreCreateBoundingBox())
                 {
                     bbox.UserUnits = false;
                     bbox.VisibleOnly = true;
@@ -548,7 +583,7 @@ namespace SolidWorks.Tests.Integration
             {
                 var part = (ISwPart)m_App.Documents.Active;
 
-                using (var bbox = part.PreCreateBoundingBox())
+                using (var bbox = part.Evaluation.PreCreateBoundingBox())
                 {
                     bbox.UserUnits = false;
                     bbox.VisibleOnly = false;
@@ -581,7 +616,7 @@ namespace SolidWorks.Tests.Integration
             {
                 var part = (ISwPart)m_App.Documents.Active;
                 
-                using (var massPrps = part.PreCreateMassProperty())
+                using (var massPrps = part.Evaluation.PreCreateMassProperty())
                 {
                     massPrps.Scope = new IXBody[] { part.Bodies["Sweep1"] };
                     massPrps.UserUnits = false;
@@ -644,7 +679,7 @@ namespace SolidWorks.Tests.Integration
             {
                 var part = (ISwPart)m_App.Documents.Active;
                 
-                using (var massPrps = part.PreCreateMassProperty())
+                using (var massPrps = part.Evaluation.PreCreateMassProperty())
                 {
                     massPrps.UserUnits = false;
                     massPrps.VisibleOnly = true;
@@ -707,7 +742,7 @@ namespace SolidWorks.Tests.Integration
             {
                 var part = (ISwPart)m_App.Documents.Active;
 
-                using (var massPrps = part.PreCreateMassProperty())
+                using (var massPrps = part.Evaluation.PreCreateMassProperty())
                 {
                     massPrps.UserUnits = true;
                     massPrps.VisibleOnly = true;
@@ -770,7 +805,7 @@ namespace SolidWorks.Tests.Integration
             {
                 var part = (ISwPart)m_App.Documents.Active;
 
-                using (var massPrps = part.PreCreateMassProperty())
+                using (var massPrps = part.Evaluation.PreCreateMassProperty())
                 {
                     massPrps.Scope = new IXBody[] { part.Bodies["Sweep1"] };
                     massPrps.UserUnits = true;
@@ -835,7 +870,7 @@ namespace SolidWorks.Tests.Integration
             {
                 var assm = (ISwAssembly)m_App.Documents.Active;
 
-                using (var massPrps = assm.PreCreateMassProperty())
+                using (var massPrps = assm.Evaluation.PreCreateMassProperty())
                 {
                     massPrps.Scope = new IXComponent[] { assm.Configurations.Active.Components["Part1-1"] };
                     massPrps.UserUnits = false;
@@ -898,7 +933,7 @@ namespace SolidWorks.Tests.Integration
             {
                 var assm = (ISwAssembly)m_App.Documents.Active;
 
-                using (var massPrps = assm.PreCreateMassProperty())
+                using (var massPrps = assm.Evaluation.PreCreateMassProperty())
                 {
                     massPrps.UserUnits = false;
                     massPrps.VisibleOnly = true;
@@ -961,7 +996,7 @@ namespace SolidWorks.Tests.Integration
             {
                 var assm = (ISwAssembly)m_App.Documents.Active;
 
-                using (var massPrps = assm.PreCreateMassProperty())
+                using (var massPrps = assm.Evaluation.PreCreateMassProperty())
                 {
                     massPrps.Scope = new IXComponent[] { assm.Configurations.Active.Components["SubAssem1-1"].Children["Part2-1"] };
                     massPrps.UserUnits = true;
@@ -1025,7 +1060,7 @@ namespace SolidWorks.Tests.Integration
             {
                 var assm = (ISwAssembly)m_App.Documents.Active;
 
-                using (var massPrps = assm.PreCreateMassProperty())
+                using (var massPrps = assm.Evaluation.PreCreateMassProperty())
                 {
                     massPrps.UserUnits = false;
                     massPrps.VisibleOnly = false;
@@ -1088,7 +1123,7 @@ namespace SolidWorks.Tests.Integration
             {
                 var assm = (ISwAssembly)m_App.Documents.Active;
 
-                using (var massPrps = assm.PreCreateMassProperty())
+                using (var massPrps = assm.Evaluation.PreCreateMassProperty())
                 {
                     massPrps.Scope = new IXComponent[] { assm.Configurations.Active.Components["Part1-1"] };
                     massPrps.UserUnits = false;
@@ -1157,7 +1192,7 @@ namespace SolidWorks.Tests.Integration
             {
                 var assm = (ISwAssembly)m_App.Documents.Active;
 
-                using (var massPrps = assm.PreCreateMassProperty())
+                using (var massPrps = assm.Evaluation.PreCreateMassProperty())
                 {
                     massPrps.UserUnits = false;
                     massPrps.VisibleOnly = false;
@@ -1217,7 +1252,7 @@ namespace SolidWorks.Tests.Integration
             {
                 var assm = (ISwAssembly)m_App.Documents.Active;
 
-                using (var massPrps = assm.PreCreateMassProperty())
+                using (var massPrps = assm.Evaluation.PreCreateMassProperty())
                 {
                     massPrps.UserUnits = false;
                     massPrps.VisibleOnly = false;
@@ -1298,7 +1333,7 @@ namespace SolidWorks.Tests.Integration
             {
                 var assm = (ISwAssembly)m_App.Documents.Active;
 
-                using (var massPrps = assm.PreCreateMassProperty())
+                using (var massPrps = assm.Evaluation.PreCreateMassProperty())
                 {
                     massPrps.UserUnits = true;
                     massPrps.VisibleOnly = false;
@@ -1316,7 +1351,7 @@ namespace SolidWorks.Tests.Integration
                     pai1 = massPrps.PrincipalAxesOfInertia;
                 }
 
-                using (var massPrps = assm.PreCreateMassProperty())
+                using (var massPrps = assm.Evaluation.PreCreateMassProperty())
                 {
                     massPrps.UserUnits = false;
                     massPrps.VisibleOnly = false;
@@ -1409,7 +1444,7 @@ namespace SolidWorks.Tests.Integration
             {
                 var assm = (ISwAssembly)m_App.Documents.Active;
 
-                using (var massPrps = assm.PreCreateMassProperty())
+                using (var massPrps = assm.Evaluation.PreCreateMassProperty())
                 {
                     massPrps.UserUnits = true;
                     massPrps.VisibleOnly = true;
@@ -1480,7 +1515,7 @@ namespace SolidWorks.Tests.Integration
             {
                 var part = (ISwPart)m_App.Documents.Active;
 
-                using (var massPrps = part.PreCreateMassProperty())
+                using (var massPrps = part.Evaluation.PreCreateMassProperty())
                 {
                     massPrps.UserUnits = false;
                     massPrps.VisibleOnly = false;
@@ -1524,7 +1559,7 @@ namespace SolidWorks.Tests.Integration
             {
                 var part = (ISwPart)m_App.Documents.Active;
 
-                using (var massPrps = part.PreCreateMassProperty())
+                using (var massPrps = part.Evaluation.PreCreateMassProperty())
                 {
                     massPrps.UserUnits = true;
                     massPrps.VisibleOnly = true;
@@ -1572,7 +1607,7 @@ namespace SolidWorks.Tests.Integration
             {
                 var assm = (ISwAssembly)m_App.Documents.Active;
 
-                using (var massPrps = assm.PreCreateMassProperty())
+                using (var massPrps = assm.Evaluation.PreCreateMassProperty())
                 {
                     massPrps.UserUnits = true;
                     massPrps.Scope = new IXComponent[] { assm.Configurations.Active.Components["SubSubAssem1-1"] };
@@ -1626,21 +1661,21 @@ namespace SolidWorks.Tests.Integration
             {
                 var assm = (ISwAssembly)m_App.Documents.Active;
 
-                using (var massPrps = assm.PreCreateMassProperty())
+                using (var massPrps = assm.Evaluation.PreCreateMassProperty())
                 {
                     massPrps.UserUnits = false;
                     massPrps.VisibleOnly = false;
 
                     massPrps.Scope = new IXComponent[] { assm.Configurations.Active.Components["Empty-1"] };
-                    Assert.Throws<EvaluationFailedException>(() => massPrps.Commit());
+                    Assert.That(() => massPrps.Commit(), Throws.InstanceOf<EvaluationFailedException>());
                     Assert.DoesNotThrow(() =>
                     {
                         massPrps.Scope = new IXComponent[] { assm.Configurations.Active.Components["Part1-1"] };
                         massPrps.Commit();
                     });
-                    Assert.Throws<EvaluationFailedException>(() => massPrps.Scope = new IXComponent[] { assm.Configurations.Active.Components["Sketch-1"] });
+                    Assert.That(() => massPrps.Scope = new IXComponent[] { assm.Configurations.Active.Components["Sketch-1"] }, Throws.InstanceOf<EvaluationFailedException>());
                     Assert.DoesNotThrow(() => massPrps.Scope = new IXComponent[] { assm.Configurations.Active.Components["Part1-1"] });
-                    Assert.Throws<EvaluationFailedException>(() => massPrps.Scope = new IXComponent[] { assm.Configurations.Active.Components["Surface-1"] });
+                    Assert.That(() => massPrps.Scope = new IXComponent[] { assm.Configurations.Active.Components["Surface-1"] }, Throws.InstanceOf<EvaluationFailedException>());
                     Assert.DoesNotThrow(() => massPrps.Scope = new IXComponent[] { assm.Configurations.Active.Components["SubAssem1-1"] });
                     Assert.DoesNotThrow(() => massPrps.Scope = new IXComponent[] { assm.Configurations.Active.Components["Part2-1"] });
                 }
@@ -1654,7 +1689,7 @@ namespace SolidWorks.Tests.Integration
             {
                 var assm = (ISwAssembly)m_App.Documents.Active;
 
-                using (var massPrps = assm.PreCreateMassProperty())
+                using (var massPrps = assm.Evaluation.PreCreateMassProperty())
                 {
                     massPrps.UserUnits = false;
                     massPrps.VisibleOnly = false;
@@ -1677,7 +1712,7 @@ namespace SolidWorks.Tests.Integration
             {
                 var part = (ISwPart)m_App.Documents.Active;
 
-                using (var massPrps = part.PreCreateMassProperty())
+                using (var massPrps = part.Evaluation.PreCreateMassProperty())
                 {
                     massPrps.UserUnits = false;
                     massPrps.VisibleOnly = false;
@@ -1700,21 +1735,21 @@ namespace SolidWorks.Tests.Integration
             {
                 var assm = (ISwAssembly)m_App.Documents.Active;
 
-                using (var massPrps = assm.PreCreateMassProperty())
+                using (var massPrps = assm.Evaluation.PreCreateMassProperty())
                 {
                     massPrps.VisibleOnly = true;
 
-                    Assert.Throws<EvaluationFailedException>(() =>
+                    Assert.That(() =>
                     {
                         massPrps.Scope = new IXComponent[] { assm.Configurations.Active.Components["SubAssem1-1"] };
                         massPrps.Commit();
-                    });
+                    }, Throws.InstanceOf<EvaluationFailedException>());
 
-                    Assert.Throws<EvaluationFailedException>(() =>
+                    Assert.That(() =>
                     {
                         massPrps.Scope = new IXComponent[] { assm.Configurations.Active.Components["Part2-1"] };
                         massPrps.Commit();
-                    });
+                    }, Throws.InstanceOf<EvaluationFailedException>());
                 }
             }
         }
@@ -1811,25 +1846,25 @@ namespace SolidWorks.Tests.Integration
             {
                 var assm = (ISwAssembly)m_App.Documents.Active;
 
-                GetMassPropertyArrayData(assm, "COG_Overridden-1", true, false, out moi1, out mass1, out cog1, out pmoi1, out paoi1);
-                GetMassPropertyArrayData(assm, "Mass_Overridden-2", true, false, out moi2, out mass2, out cog2, out pmoi2, out paoi2);
-                GetMassPropertyArrayData(assm, "PMOI_Overridden-1", true, false, out moi3, out mass3, out cog3, out pmoi3, out paoi3);
-                GetMassPropertyArrayData(assm, "None_Overridden-1", true, false, out moi4, out mass4, out cog4, out pmoi4, out paoi4);
+                GetMassPropertyArrayData(assm, "COG_Overridden-1", true, false, true, out moi1, out mass1, out cog1, out pmoi1, out paoi1, out _, out _, out _);
+                GetMassPropertyArrayData(assm, "Mass_Overridden-2", true, false, true, out moi2, out mass2, out cog2, out pmoi2, out paoi2, out _, out _, out _);
+                GetMassPropertyArrayData(assm, "PMOI_Overridden-1", true, false, true, out moi3, out mass3, out cog3, out pmoi3, out paoi3, out _, out _, out _);
+                GetMassPropertyArrayData(assm, "None_Overridden-1", true, false, true, out moi4, out mass4, out cog4, out pmoi4, out paoi4, out _, out _, out _);
 
-                GetMassPropertyArrayData(assm, "COG_Overridden-1", false, false, out moi5, out mass5, out cog5, out pmoi5, out paoi5);
-                GetMassPropertyArrayData(assm, "Mass_Overridden-2", false, false, out moi6, out mass6, out cog6, out pmoi6, out paoi6);
-                GetMassPropertyArrayData(assm, "PMOI_Overridden-1", false, false, out moi7, out mass7, out cog7, out pmoi7, out paoi7);
-                GetMassPropertyArrayData(assm, "None_Overridden-1", false, false, out moi8, out mass8, out cog8, out pmoi8, out paoi8);
+                GetMassPropertyArrayData(assm, "COG_Overridden-1", false, false, true, out moi5, out mass5, out cog5, out pmoi5, out paoi5, out _, out _, out _);
+                GetMassPropertyArrayData(assm, "Mass_Overridden-2", false, false, true, out moi6, out mass6, out cog6, out pmoi6, out paoi6, out _, out _, out _);
+                GetMassPropertyArrayData(assm, "PMOI_Overridden-1", false, false, true, out moi7, out mass7, out cog7, out pmoi7, out paoi7, out _, out _, out _);
+                GetMassPropertyArrayData(assm, "None_Overridden-1", false, false, true, out moi8, out mass8, out cog8, out pmoi8, out paoi8, out _, out _, out _);
 
-                GetMassPropertyArrayData(assm, "COG_Overridden-1", false, true, out moi9, out mass9, out cog9, out pmoi9, out paoi9);
-                GetMassPropertyArrayData(assm, "Mass_Overridden-2", false, true, out moi10, out mass10, out cog10, out pmoi10, out paoi10);
-                GetMassPropertyArrayData(assm, "PMOI_Overridden-1", false, true, out moi11, out mass11, out cog11, out pmoi11, out paoi11);
-                GetMassPropertyArrayData(assm, "None_Overridden-1", false, true, out moi12, out mass12, out cog12, out pmoi12, out paoi12);
+                GetMassPropertyArrayData(assm, "COG_Overridden-1", false, true, true, out moi9, out mass9, out cog9, out pmoi9, out paoi9, out _, out _, out _);
+                GetMassPropertyArrayData(assm, "Mass_Overridden-2", false, true, true, out moi10, out mass10, out cog10, out pmoi10, out paoi10, out _, out _, out _);
+                GetMassPropertyArrayData(assm, "PMOI_Overridden-1", false, true, true, out moi11, out mass11, out cog11, out pmoi11, out paoi11, out _, out _, out _);
+                GetMassPropertyArrayData(assm, "None_Overridden-1", false, true, true, out moi12, out mass12, out cog12, out pmoi12, out paoi12, out _, out _, out _);
 
-                GetMassPropertyArrayData(assm, "COG_Overridden-1", true, true, out moi13, out mass13, out cog13, out pmoi13, out paoi13);
-                GetMassPropertyArrayData(assm, "Mass_Overridden-2", true, true, out moi14, out mass14, out cog14, out pmoi14, out paoi14);
-                GetMassPropertyArrayData(assm, "PMOI_Overridden-1", true, true, out moi15, out mass15, out cog15, out pmoi15, out paoi15);
-                GetMassPropertyArrayData(assm, "None_Overridden-1", true, true, out moi16, out mass16, out cog16, out pmoi16, out paoi16);
+                GetMassPropertyArrayData(assm, "COG_Overridden-1", true, true, true, out moi13, out mass13, out cog13, out pmoi13, out paoi13, out _, out _, out _);
+                GetMassPropertyArrayData(assm, "Mass_Overridden-2", true, true, true, out moi14, out mass14, out cog14, out pmoi14, out paoi14, out _, out _, out _);
+                GetMassPropertyArrayData(assm, "PMOI_Overridden-1", true, true, true, out moi15, out mass15, out cog15, out pmoi15, out paoi15, out _, out _, out _);
+                GetMassPropertyArrayData(assm, "None_Overridden-1", true, true, true, out moi16, out mass16, out cog16, out pmoi16, out paoi16, out _, out _, out _);
             }
 
             AssertCompareDoubleArray((double[])moi1, new double[] { 732771.57070537, 207033.34471190, 284753.25397601, 207033.34471190, 1016744.10068294, 283072.44302186, 284753.25397601, 283072.44302186, 1170200.96290798 });
@@ -2075,25 +2110,25 @@ namespace SolidWorks.Tests.Integration
             {
                 var assm = (ISwAssembly)m_App.Documents.Active;
 
-                GetMassPropertyArrayData(assm, "COG_Overridden_Assm-1", true, false, out moi1, out mass1, out cog1, out pmoi1, out paoi1);
-                GetMassPropertyArrayData(assm, "Mass_Overridden_Assm-2", true, false, out moi2, out mass2, out cog2, out pmoi2, out paoi2);
-                GetMassPropertyArrayData(assm, "PMOI_Overridden_Assm-1", true, false, out moi3, out mass3, out cog3, out pmoi3, out paoi3);
-                GetMassPropertyArrayData(assm, "None_Overridden_Assm-2", true, false, out moi4, out mass4, out cog4, out pmoi4, out paoi4);
+                GetMassPropertyArrayData(assm, "COG_Overridden_Assm-1", true, false, true, out moi1, out mass1, out cog1, out pmoi1, out paoi1, out _, out _, out _);
+                GetMassPropertyArrayData(assm, "Mass_Overridden_Assm-2", true, false, true, out moi2, out mass2, out cog2, out pmoi2, out paoi2, out _, out _, out _);
+                GetMassPropertyArrayData(assm, "PMOI_Overridden_Assm-1", true, false, true, out moi3, out mass3, out cog3, out pmoi3, out paoi3, out _, out _, out _);
+                GetMassPropertyArrayData(assm, "None_Overridden_Assm-2", true, false, true, out moi4, out mass4, out cog4, out pmoi4, out paoi4, out _, out _, out _);
 
-                GetMassPropertyArrayData(assm, "COG_Overridden_Assm-1", false, false, out moi5, out mass5, out cog5, out pmoi5, out paoi5);
-                GetMassPropertyArrayData(assm, "Mass_Overridden_Assm-2", false, false, out moi6, out mass6, out cog6, out pmoi6, out paoi6);
-                GetMassPropertyArrayData(assm, "PMOI_Overridden_Assm-1", false, false, out moi7, out mass7, out cog7, out pmoi7, out paoi7);
-                GetMassPropertyArrayData(assm, "None_Overridden_Assm-2", false, false, out moi8, out mass8, out cog8, out pmoi8, out paoi8);
+                GetMassPropertyArrayData(assm, "COG_Overridden_Assm-1", false, false, true, out moi5, out mass5, out cog5, out pmoi5, out paoi5, out _, out _, out _);
+                GetMassPropertyArrayData(assm, "Mass_Overridden_Assm-2", false, false, true, out moi6, out mass6, out cog6, out pmoi6, out paoi6, out _, out _, out _);
+                GetMassPropertyArrayData(assm, "PMOI_Overridden_Assm-1", false, false, true, out moi7, out mass7, out cog7, out pmoi7, out paoi7, out _, out _, out _);
+                GetMassPropertyArrayData(assm, "None_Overridden_Assm-2", false, false, true, out moi8, out mass8, out cog8, out pmoi8, out paoi8, out _, out _, out _);
 
-                GetMassPropertyArrayData(assm, "COG_Overridden_Assm-1", false, true, out moi9, out mass9, out cog9, out pmoi9, out paoi9);
-                GetMassPropertyArrayData(assm, "Mass_Overridden_Assm-2", false, true, out moi10, out mass10, out cog10, out pmoi10, out paoi10);
-                GetMassPropertyArrayData(assm, "PMOI_Overridden_Assm-1", false, true, out moi11, out mass11, out cog11, out pmoi11, out paoi11);
-                GetMassPropertyArrayData(assm, "None_Overridden_Assm-2", false, true, out moi12, out mass12, out cog12, out pmoi12, out paoi12);
+                GetMassPropertyArrayData(assm, "COG_Overridden_Assm-1", false, true, true, out moi9, out mass9, out cog9, out pmoi9, out paoi9, out _, out _, out _);
+                GetMassPropertyArrayData(assm, "Mass_Overridden_Assm-2", false, true, true, out moi10, out mass10, out cog10, out pmoi10, out paoi10, out _, out _, out _);
+                GetMassPropertyArrayData(assm, "PMOI_Overridden_Assm-1", false, true, true, out moi11, out mass11, out cog11, out pmoi11, out paoi11, out _, out _, out _);
+                GetMassPropertyArrayData(assm, "None_Overridden_Assm-2", false, true, true, out moi12, out mass12, out cog12, out pmoi12, out paoi12, out _, out _, out _);
 
-                GetMassPropertyArrayData(assm, "COG_Overridden_Assm-1", true, true, out moi13, out mass13, out cog13, out pmoi13, out paoi13);
-                GetMassPropertyArrayData(assm, "Mass_Overridden_Assm-2", true, true, out moi14, out mass14, out cog14, out pmoi14, out paoi14);
-                GetMassPropertyArrayData(assm, "PMOI_Overridden_Assm-1", true, true, out moi15, out mass15, out cog15, out pmoi15, out paoi15);
-                GetMassPropertyArrayData(assm, "None_Overridden_Assm-2", true, true, out moi16, out mass16, out cog16, out pmoi16, out paoi16);
+                GetMassPropertyArrayData(assm, "COG_Overridden_Assm-1", true, true, true, out moi13, out mass13, out cog13, out pmoi13, out paoi13, out _, out _, out _);
+                GetMassPropertyArrayData(assm, "Mass_Overridden_Assm-2", true, true, true, out moi14, out mass14, out cog14, out pmoi14, out paoi14, out _, out _, out _);
+                GetMassPropertyArrayData(assm, "PMOI_Overridden_Assm-1", true, true, true, out moi15, out mass15, out cog15, out pmoi15, out paoi15, out _, out _, out _);
+                GetMassPropertyArrayData(assm, "None_Overridden_Assm-2", true, true, true, out moi16, out mass16, out cog16, out pmoi16, out paoi16, out _, out _, out _);
             }
 
             AssertCompareDoubleArray((double[])moi1, new double[] { 732771.57070537, 207033.34471190, 284753.25397601, 207033.34471190, 1016744.10068294, 283072.44302186, 284753.25397601, 283072.44302186, 1170200.96290798 });
@@ -2364,25 +2399,25 @@ namespace SolidWorks.Tests.Integration
             {
                 var assm = (ISwAssembly)m_App.Documents.Active;
 
-                GetMassPropertyArrayData(assm, "COG_Overridden_Assm-1", true, false, out moi1, out mass1, out cog1, out pmoi1, out paoi1);
-                GetMassPropertyArrayData(assm, "Mass_Overridden_Assm-2", true, false, out moi2, out mass2, out cog2, out pmoi2, out paoi2);
-                GetMassPropertyArrayData(assm, "PMOI_Overridden_Assm-1", true, false, out moi3, out mass3, out cog3, out pmoi3, out paoi3);
-                GetMassPropertyArrayData(assm, "None_Overridden_Assm-2", true, false, out moi4, out mass4, out cog4, out pmoi4, out paoi4);
+                GetMassPropertyArrayData(assm, "COG_Overridden_Assm-1", true, false, true, out moi1, out mass1, out cog1, out pmoi1, out paoi1, out _, out _, out _);
+                GetMassPropertyArrayData(assm, "Mass_Overridden_Assm-2", true, false, true, out moi2, out mass2, out cog2, out pmoi2, out paoi2, out _, out _, out _);
+                GetMassPropertyArrayData(assm, "PMOI_Overridden_Assm-1", true, false, true, out moi3, out mass3, out cog3, out pmoi3, out paoi3, out _, out _, out _);
+                GetMassPropertyArrayData(assm, "None_Overridden_Assm-2", true, false, true, out moi4, out mass4, out cog4, out pmoi4, out paoi4, out _, out _, out _);
 
-                GetMassPropertyArrayData(assm, "COG_Overridden_Assm-1", false, false, out moi5, out mass5, out cog5, out pmoi5, out paoi5);
-                GetMassPropertyArrayData(assm, "Mass_Overridden_Assm-2", false, false, out moi6, out mass6, out cog6, out pmoi6, out paoi6);
-                GetMassPropertyArrayData(assm, "PMOI_Overridden_Assm-1", false, false, out moi7, out mass7, out cog7, out pmoi7, out paoi7);
-                GetMassPropertyArrayData(assm, "None_Overridden_Assm-2", false, false, out moi8, out mass8, out cog8, out pmoi8, out paoi8);
+                GetMassPropertyArrayData(assm, "COG_Overridden_Assm-1", false, false, true, out moi5, out mass5, out cog5, out pmoi5, out paoi5, out _, out _, out _);
+                GetMassPropertyArrayData(assm, "Mass_Overridden_Assm-2", false, false, true, out moi6, out mass6, out cog6, out pmoi6, out paoi6, out _, out _, out _);
+                GetMassPropertyArrayData(assm, "PMOI_Overridden_Assm-1", false, false, true, out moi7, out mass7, out cog7, out pmoi7, out paoi7, out _, out _, out _);
+                GetMassPropertyArrayData(assm, "None_Overridden_Assm-2", false, false, true, out moi8, out mass8, out cog8, out pmoi8, out paoi8, out _, out _, out _);
 
-                GetMassPropertyArrayData(assm, "COG_Overridden_Assm-1", false, true, out moi9, out mass9, out cog9, out pmoi9, out paoi9);
-                GetMassPropertyArrayData(assm, "Mass_Overridden_Assm-2", false, true, out moi10, out mass10, out cog10, out pmoi10, out paoi10);
-                GetMassPropertyArrayData(assm, "PMOI_Overridden_Assm-1", false, true, out moi11, out mass11, out cog11, out pmoi11, out paoi11);
-                GetMassPropertyArrayData(assm, "None_Overridden_Assm-2", false, true, out moi12, out mass12, out cog12, out pmoi12, out paoi12);
+                GetMassPropertyArrayData(assm, "COG_Overridden_Assm-1", false, true, true, out moi9, out mass9, out cog9, out pmoi9, out paoi9, out _, out _, out _);
+                GetMassPropertyArrayData(assm, "Mass_Overridden_Assm-2", false, true, true, out moi10, out mass10, out cog10, out pmoi10, out paoi10, out _, out _, out _);
+                GetMassPropertyArrayData(assm, "PMOI_Overridden_Assm-1", false, true, true, out moi11, out mass11, out cog11, out pmoi11, out paoi11, out _, out _, out _);
+                GetMassPropertyArrayData(assm, "None_Overridden_Assm-2", false, true, true, out moi12, out mass12, out cog12, out pmoi12, out paoi12, out _, out _, out _);
 
-                GetMassPropertyArrayData(assm, "COG_Overridden_Assm-1", true, true, out moi13, out mass13, out cog13, out pmoi13, out paoi13);
-                GetMassPropertyArrayData(assm, "Mass_Overridden_Assm-2", true, true, out moi14, out mass14, out cog14, out pmoi14, out paoi14);
-                GetMassPropertyArrayData(assm, "PMOI_Overridden_Assm-1", true, true, out moi15, out mass15, out cog15, out pmoi15, out paoi15);
-                GetMassPropertyArrayData(assm, "None_Overridden_Assm-2", true, true, out moi16, out mass16, out cog16, out pmoi16, out paoi16);
+                GetMassPropertyArrayData(assm, "COG_Overridden_Assm-1", true, true, true, out moi13, out mass13, out cog13, out pmoi13, out paoi13, out _, out _, out _);
+                GetMassPropertyArrayData(assm, "Mass_Overridden_Assm-2", true, true, true, out moi14, out mass14, out cog14, out pmoi14, out paoi14, out _, out _, out _);
+                GetMassPropertyArrayData(assm, "PMOI_Overridden_Assm-1", true, true, true, out moi15, out mass15, out cog15, out pmoi15, out paoi15, out _, out _, out _);
+                GetMassPropertyArrayData(assm, "None_Overridden_Assm-2", true, true, true, out moi16, out mass16, out cog16, out pmoi16, out paoi16, out _, out _, out _);
             }
 
             if (m_App.IsVersionNewerOrEqual(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020))
@@ -2598,13 +2633,145 @@ namespace SolidWorks.Tests.Integration
             AssertCompareDoubleArray((double[])paoi16, new double[] { 0.37354142, 0.70668500, -0.60088528, -0.83011915, -0.03441769, -0.55652280, -0.41396740, 0.70669069, 0.57377631 });
         }
 
-        private void GetMassPropertyArrayData(ISwAssembly assm, string compName, bool includeHidden,
-            bool relToCoord, out object moi, out object mass, out object cog, out object pmoi, out object paoi)
+        [Test]
+        public void MassPropertyAssemblyLightweightTest()
         {
-            using (var massPrps = assm.PreCreateMassProperty())
+            object cog1;
+            object mass1;
+            object moi1;
+            object pai1;
+            object pmoi1;
+            object density1;
+            object area1;
+            object volume1;
+
+            object cog2;
+            object mass2;
+            object moi2;
+            object pai2;
+            object pmoi2;
+            object density2;
+            object area2;
+            object volume2;
+
+            using (var doc = OpenDataDocument(@"MassPrpsAssembly1\Assem1.SLDASM", true, s =>
+            {
+                s.LightWeight = true;
+                s.UseLightWeightDefault = false;
+            }))
+            {
+                var assm = (ISwAssembly)m_App.Documents.Active;
+
+                GetMassPropertyArrayData(assm, "Part1-1", false, false, false, out moi1, out mass1, out cog1, out pmoi1, out pai1, out density1, out area1, out volume1);
+                GetMassPropertyArrayData(assm, "SubAssem1-1", false, false, false, out moi2, out mass2, out cog2, out pmoi2, out pai2, out density2, out area2, out volume2);
+            }
+
+            if (m_App.IsVersionNewerOrEqual(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020))
+            {
+                AssertCompareDoubles((double)density1, 7300.00000000);
+                AssertCompareDoubleArray((double[])cog1, new double[] { 0.03260240, 0.06212415, 0.00000000 });
+                AssertCompareDoubleArray((double[])moi1, new double[] { 0.00328186, 0.00358474, 0.00000000, 0.00358474, 0.00613822, 0.00000000, 0.00000000, 0.00000000, 0.00793613 });
+                //AssertCompareDoubleArray((double[])pai1, new double[] { 0.82768156, 0.56119804, 0.00000000, 0.00000000, 0.00000000, -1.00000000, -0.56119804, 0.82768156, 0.00000000 });
+                Assert.IsAssignableFrom<PrincipalAxesOfInertiaOverridenLightweightComponentException>(pai1);
+                //AssertCompareDoubleArray((double[])pmoi1, new double[] { 0.00085128, 0.00793613, 0.00856881 });
+                Assert.IsAssignableFrom<PrincipalMomentsOfInertiaOverridenLightweightComponentException>(pmoi1);
+                AssertCompareDoubles((double)mass1, 2.25609306);
+            }
+            else
+            {
+                Assert.IsAssignableFrom<NotLoadedMassPropertyComponentException>(density1);
+                Assert.IsAssignableFrom<NotLoadedMassPropertyComponentException>(cog1);
+                Assert.IsAssignableFrom<NotLoadedMassPropertyComponentException>(moi1);
+                Assert.IsAssignableFrom<NotLoadedMassPropertyComponentException>(pai1);
+                Assert.IsAssignableFrom<NotLoadedMassPropertyComponentException>(pmoi1);
+                Assert.IsAssignableFrom<NotLoadedMassPropertyComponentException>(mass1);
+            }
+
+            AssertCompareDoubles((double)area1, 0.03850408);
+            AssertCompareDoubles((double)volume1, 0.00030905);
+
+            if (m_App.IsVersionNewerOrEqual(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020))
+            {
+                AssertCompareDoubles((double)density2, 4553.1112368995864);
+                AssertCompareDoubleArray((double[])cog2, new double[] { -0.00177216, 0.01832142, 0.04575921 });
+                AssertCompareDoubleArray((double[])moi2, new double[] { 0.00476278, 0.00099353, -0.00189405, 0.00099353, 0.00647799, -0.00072354, -0.00189405, -0.00072354, 0.00361526 }, 6);
+                //AssertCompareDoubleArray((double[])pai2, new double[] { -0.59405952, -0.25013380, 0.76454324, 0.65591383, 0.39959869, 0.64038889, -0.46569339, 0.88190360, -0.07331919 });
+                Assert.IsAssignableFrom<PrincipalAxesOfInertiaOverridenLightweightComponentException>(pai2);
+                //AssertCompareDoubleArray((double[])pmoi2, new double[] { 0.00190684, 0.00600671, 0.00694247 });
+                Assert.IsAssignableFrom<PrincipalMomentsOfInertiaOverridenLightweightComponentException>(pmoi2);
+                AssertCompareDoubles((double)mass2, 2.27447091);
+            }
+            else
+            {
+                Assert.IsAssignableFrom<MassPropertiesHiddenComponentBodiesNotSupported>(density2);
+                Assert.IsAssignableFrom<MassPropertiesHiddenComponentBodiesNotSupported>(cog2);
+                Assert.IsAssignableFrom<MassPropertiesHiddenComponentBodiesNotSupported>(moi2);
+                Assert.IsAssignableFrom<MassPropertiesHiddenComponentBodiesNotSupported>(pai2);
+                Assert.IsAssignableFrom<MassPropertiesHiddenComponentBodiesNotSupported>(pmoi2);
+                Assert.IsAssignableFrom<MassPropertiesHiddenComponentBodiesNotSupported>(mass2);
+            }
+
+            AssertCompareDoubles((double)area2, 0.04697909);
+            AssertCompareDoubles((double)volume2, 0.00049954);
+        }
+
+        [Test]
+        public void RayIntersectionAssemblyTest()
+        {
+            IXRay[] rays;
+
+            using (var doc = OpenDataDocument("RayIntersectionAssem1.SLDASM")) 
+            {
+                var assm = (IXAssembly)m_App.Documents.Active;
+
+                var rayInters = assm.Evaluation.PreCreateRayIntersection();
+                
+                rayInters.AddRay(new Axis(new Point(0.03857029, 0.00533597, 0.02540296), new Vector(0, 0, -1)));
+                rayInters.AddRay(new Axis(new Point(-0.12615451, -0.02638223, 0), new Vector(0, 0, -1)));
+                rayInters.AddRay(new Axis(new Point(-0.06410509, 0.05318389, 0.00603193), new Vector(0, -1, 0)));
+
+                rayInters.Commit();
+
+                rays = rayInters.Rays;
+            }
+
+            var h0_1 = rays[0].Hits.FirstOrDefault(h => h.Point.IsSame(new Point(0.03857029, 0.00533597, 0.01)));
+            var h0_2 = rays[0].Hits.FirstOrDefault(h => h.Point.IsSame(new Point(0.03857029, 0.00533597, 0)));
+            var h0_3 = rays[0].Hits.FirstOrDefault(h => h.Point.IsSame(new Point(0.03857029, 0.00533597, -0.0385135112493299)));
+            var h0_4 = rays[0].Hits.FirstOrDefault(h => h.Point.IsSame(new Point(0.03857029, 0.00533597, -0.0485135112493299)));
+
+            var h2_1 = rays[2].Hits.FirstOrDefault(h => h.Point.IsSame(new Point(-0.06410509, 0.0344190476955077, 0.00603193)));
+            var h2_2 = rays[2].Hits.FirstOrDefault(h => h.Point.IsSame(new Point(-0.06410509, -0.0858369122642557, 0.00603193)));
+
+            Assert.AreEqual(3, rays.Length);
+
+            Assert.AreEqual(4, rays[0].Hits.Length);
+            Assert.IsNotNull(h0_1);
+            Assert.IsNotNull(h0_2);
+            Assert.IsNotNull(h0_3);
+            Assert.IsNotNull(h0_4);
+            Assert.AreEqual(RayIntersectionType_e.Enter, h0_1.Type);
+            Assert.AreEqual(RayIntersectionType_e.Exit, h0_2.Type);
+            Assert.AreEqual(RayIntersectionType_e.Enter, h0_3.Type);
+            Assert.AreEqual(RayIntersectionType_e.Exit, h0_4.Type);
+
+            Assert.AreEqual(0, rays[1].Hits.Length);
+
+            Assert.AreEqual(2, rays[2].Hits.Length);
+            Assert.IsNotNull(h2_1);
+            Assert.IsNotNull(h2_2);
+            Assert.AreEqual(RayIntersectionType_e.Enter, h2_1.Type);
+            Assert.AreEqual(RayIntersectionType_e.Exit, h2_2.Type);
+        }
+
+        private void GetMassPropertyArrayData(ISwAssembly assm, string compName, bool includeHidden,
+            bool relToCoord, bool userUnits, out object moi, out object mass, out object cog, out object pmoi, out object paoi,
+            out object density, out object area, out object volume)
+        {
+            using (var massPrps = assm.Evaluation.PreCreateMassProperty())
             {
                 massPrps.Scope = new IXComponent[] { assm.Configurations.Active.Components[compName] };
-                massPrps.UserUnits = true;
+                massPrps.UserUnits = userUnits;
                 massPrps.VisibleOnly = !includeHidden;
 
                 if (relToCoord)
@@ -2674,7 +2841,120 @@ namespace SolidWorks.Tests.Integration
                 {
                     moi = ex;
                 }
+
+                try
+                {
+                    density = massPrps.Density;
+                }
+                catch (Exception ex)
+                {
+                    density = ex;
+                }
+
+                try
+                {
+                    area = massPrps.SurfaceArea;
+                }
+                catch (Exception ex)
+                {
+                    area = ex;
+                }
+
+                try
+                {
+                    volume = massPrps.Volume;
+                }
+                catch (Exception ex)
+                {
+                    volume = ex;
+                }
             }
+        }
+
+        [Test]
+        public void TessellatePartTest()
+        {
+            TesselationTriangle[] triangs;
+
+            using (var doc = OpenDataDocument("TessPart1.SLDPRT"))
+            {
+                var part = (IXPart)m_App.Documents.Active;
+                var tess = part.Evaluation.PreCreateTessellation();
+                tess.Commit();
+                triangs = tess.Triangles.ToArray();
+            }
+
+            var side1 = triangs.Where(t => t.Normal.ToArray().SequenceEqual(new double[] { 1, 0, 0 }, new DoubleComparer())).ToArray();
+            var side2 = triangs.Where(t => t.Normal.ToArray().SequenceEqual(new double[] { -1, 0, 0 }, new DoubleComparer())).ToArray();
+            var side3 = triangs.Where(t => t.Normal.ToArray().SequenceEqual(new double[] { 0, 1, 0 }, new DoubleComparer())).ToArray();
+            var side4 = triangs.Where(t => t.Normal.ToArray().SequenceEqual(new double[] { 0, -1, 0 }, new DoubleComparer())).ToArray();
+            var side5 = triangs.Where(t => t.Normal.ToArray().SequenceEqual(new double[] { 0, 0, 1 }, new DoubleComparer())).ToArray();
+            var side6 = triangs.Where(t => t.Normal.ToArray().SequenceEqual(new double[] { 0, 0, -1 }, new DoubleComparer())).ToArray();
+
+            var side1Pts = new Point[]
+            {
+                side1[0].FirstPoint,
+                side1[0].SecondPoint,
+                side1[0].ThirdPoint,
+                side1[1].FirstPoint,
+                side1[1].SecondPoint,
+                side1[1].ThirdPoint
+            };
+            
+            Assert.AreEqual(12, triangs.Length);
+            Assert.AreEqual(2, side1.Length);
+            Assert.AreEqual(2, side2.Length);
+            Assert.AreEqual(2, side3.Length);
+            Assert.AreEqual(2, side4.Length);
+            Assert.AreEqual(2, side5.Length);
+            Assert.AreEqual(2, side6.Length);
+            Assert.That(side1Pts.Any(p => p.ToArray().SequenceEqual(new double[] { 0.025, 0.0125, -0.005 }, new DoubleComparer())));
+            Assert.That(side1Pts.Any(p => p.ToArray().SequenceEqual(new double[] { 0.025, -0.0125, -0.005 }, new DoubleComparer())));
+            Assert.That(side1Pts.Any(p => p.ToArray().SequenceEqual(new double[] { 0.025, 0.0125, 0.005 }, new DoubleComparer())));
+            Assert.That(side1Pts.Any(p => p.ToArray().SequenceEqual(new double[] { 0.025, -0.0125, 0.005 }, new DoubleComparer())));
+        }
+
+        [Test]
+        public void TessellateAssemblyTest()
+        {
+            TesselationTriangle[] triangs;
+
+            using (var doc = OpenDataDocument("TessAssm1.SLDASM"))
+            {
+                var assm = (IXAssembly)m_App.Documents.Active;
+                var tess = assm.Evaluation.PreCreateTessellation();
+                tess.Commit();
+                triangs = tess.Triangles.ToArray();
+            }
+
+            var side1 = triangs.Where(t => t.Normal.ToArray().SequenceEqual(new double[] { 1, 0, 0 }, new DoubleComparer())).ToArray();
+            var side2 = triangs.Where(t => t.Normal.ToArray().SequenceEqual(new double[] { -1, 0, 0 }, new DoubleComparer())).ToArray();
+            var side3 = triangs.Where(t => t.Normal.ToArray().SequenceEqual(new double[] { 0, 1, 0 }, new DoubleComparer())).ToArray();
+            var side4 = triangs.Where(t => t.Normal.ToArray().SequenceEqual(new double[] { 0, -1, 0 }, new DoubleComparer())).ToArray();
+            var side5 = triangs.Where(t => t.Normal.ToArray().SequenceEqual(new double[] { 0, 0, 1 }, new DoubleComparer())).ToArray();
+            var side6 = triangs.Where(t => t.Normal.ToArray().SequenceEqual(new double[] { 0, 0, -1 }, new DoubleComparer())).ToArray();
+
+            var side1Pts = new Point[]
+            {
+                side1[0].FirstPoint,
+                side1[0].SecondPoint,
+                side1[0].ThirdPoint,
+                side1[1].FirstPoint,
+                side1[1].SecondPoint,
+                side1[1].ThirdPoint
+            };
+
+            Assert.AreEqual(12, triangs.Length);
+            Assert.AreEqual(2, side1.Length);
+            Assert.AreEqual(2, side2.Length);
+            Assert.AreEqual(2, side3.Length);
+            Assert.AreEqual(2, side4.Length);
+            Assert.AreEqual(2, side5.Length);
+            Assert.AreEqual(2, side6.Length);
+            Assert.That(side1Pts.Any(p => p.ToArray().SequenceEqual(new double[] { 0.025, 0.0125, -0.005 }, new DoubleComparer())));
+            Assert.That(side1Pts.Any(p => p.ToArray().SequenceEqual(new double[] { 0.025, -0.0125, -0.005 }, new DoubleComparer())));
+            Assert.That(side1Pts.Any(p => p.ToArray().SequenceEqual(new double[] { 0.025, 0.0125, 0.005 }, new DoubleComparer())));
+            Assert.That(side1Pts.Any(p => p.ToArray().SequenceEqual(new double[] { 0.025, -0.0125, 0.005 }, new DoubleComparer())));
         }
     }
 }

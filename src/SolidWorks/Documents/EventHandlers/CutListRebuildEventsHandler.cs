@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -10,7 +10,9 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Xarial.XCad.Documents.Delegates;
+using Xarial.XCad.Features.Delegates;
 using Xarial.XCad.SolidWorks.Documents;
+using Xarial.XCad.SolidWorks.Features;
 using Xarial.XCad.SolidWorks.Utils;
 
 namespace Xarial.XCad.SolidWorks.Documents.EventHandlers
@@ -18,10 +20,12 @@ namespace Xarial.XCad.SolidWorks.Documents.EventHandlers
     internal class CutListRebuildEventsHandler : SwModelEventsHandler<CutListRebuildDelegate>
     {
         private readonly ISwPart m_Part;
+        private readonly SwCutListItemCollection m_CutLists;
 
-        internal CutListRebuildEventsHandler(SwPart part, ISwApplication app) : base(part, app)
+        internal CutListRebuildEventsHandler(SwPart part, SwCutListItemCollection cutLists) : base(part, part.OwnerApplication)
         {
             m_Part = part;
+            m_CutLists = cutLists;
         }
         
         protected override void SubscribePartEvents(PartDoc part)
@@ -36,8 +40,8 @@ namespace Xarial.XCad.SolidWorks.Documents.EventHandlers
 
         private int OnWeldmentCutListUpdatePostNotify()
         {
-            Delegate?.Invoke(m_Part);
-            return S_OK;
+            Delegate?.Invoke(m_CutLists);
+            return HResult.S_OK;
         }
     }
 }

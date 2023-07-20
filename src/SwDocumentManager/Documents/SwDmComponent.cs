@@ -1,10 +1,11 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
+using Microsoft.VisualBasic;
 using SolidWorks.Interop.swdocumentmgr;
 using System;
 using System.Collections;
@@ -20,12 +21,16 @@ using Xarial.XCad.Annotations;
 using Xarial.XCad.Base;
 using Xarial.XCad.Base.Enums;
 using Xarial.XCad.Documents;
+using Xarial.XCad.Documents.Delegates;
 using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Features;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Services;
+using Xarial.XCad.SwDocumentManager.Features;
 using Xarial.XCad.SwDocumentManager.Services;
+using Xarial.XCad.Toolkit.Utils;
+using static Xarial.XCad.SwDocumentManager.Documents.SwDmDocument;
 
 namespace Xarial.XCad.SwDocumentManager.Documents
 {
@@ -38,68 +43,106 @@ namespace Xarial.XCad.SwDocumentManager.Documents
     }
 
     [DebuggerDisplay("{" + nameof(Name) + "}")]
-    internal class SwDmComponent : SwDmSelObject, ISwDmComponent
+    internal abstract class SwDmComponent : SwDmSelObject, ISwDmComponent
     {
         #region Not Supported
-
         public IXFeatureRepository Features => throw new NotSupportedException();
         public IXBodyRepository Bodies => throw new NotSupportedException();
         TSelObject IXObjectContainer.ConvertObject<TSelObject>(TSelObject obj) => throw new NotSupportedException();
         public Color? Color { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
         public IXDimensionRepository Dimensions => throw new NotSupportedException();
+        public IEditor<IXComponent> Edit() => throw new NotSupportedException();
 
         #endregion
 
-        IXDocument3D IXComponent.ReferencedDocument => ReferencedDocument;
-        IXConfiguration IXComponent.ReferencedConfiguration => ReferencedConfiguration;
+        IXDocument3D IXComponent.ReferencedDocument { get => ReferencedDocument; set => ReferencedDocument = (ISwDmDocument3D)value; }
+        IXConfiguration IXComponent.ReferencedConfiguration { get => ReferencedConfiguration; set => ReferencedConfiguration = (ISwDmConfiguration)value; }
+        IXComponent IXComponent.Parent => Parent;
 
         public ISwDMComponent Component { get; }
 
-        public override SelectType_e Type => SelectType_e.Components;
-
-        private SwDmAssembly m_ParentAssm;
+        internal SwDmAssembly ParentAssembly { get; }
 
         private IFilePathResolver m_FilePathResolver;
 
         private readonly Lazy<string> m_PathLazy;
-
-        internal SwDmComponent(SwDmAssembly parentAssm, ISwDMComponent comp) : base(comp)
+        private readonly Lazy<IXComponentRepository> m_ChildrenLazy;
+                
+        internal SwDmComponent(SwDmAssembly parentAssm, ISwDMComponent comp) : base(comp, parentAssm.OwnerApplication, parentAssm)
         {
             Component = comp;
-            m_ParentAssm = parentAssm;
+            ParentAssembly = parentAssm;
             m_FilePathResolver = new SwDmFilePathResolver();
 
             m_PathLazy = new Lazy<string>(() => 
             {
-                var rootDir = System.IO.Path.GetDirectoryName(OwnerAssembly.Path);
+                var rootDir = Path.GetDirectoryName(ParentAssembly.Path);
 
-                return m_FilePathResolver.ResolvePath(rootDir, CachedPath);
+                var cachedPath = CachedPath;
+
+                var changedPath = ParentAssembly.ChangedReferences.EnumerateByFileName(cachedPath).LastOrDefault();
+
+                if (!string.IsNullOrEmpty(changedPath))
+                {
+                    cachedPath = changedPath;
+                }
+
+                return m_FilePathResolver.ResolvePath(rootDir, cachedPath);
+            });
+
+            m_ChildrenLazy = new Lazy<IXComponentRepository>(() => 
+            {
+                if (!Component.IsSuppressed() && ReferencedDocument is SwDmAssembly)
+                {
+                    var refConf = ReferencedConfiguration;
+
+                    if (!refConf.IsCommitted)
+                    {
+                        refConf.Commit();
+                    }
+
+                    return new SwDmSubComponentCollection(this, (SwDmAssembly)ReferencedDocument, refConf);
+                }
+                else
+                {
+                    return new EmptyComponentCollection();
+                }
             });
         }
 
         public string Name
         {
+            get => ((ISwDMComponent7)Component).Name2;
+            set => throw new NotSupportedException();
+        }
+
+        public string FullName
+        {
             get
             {
-                var fullName = new StringBuilder(((ISwDMComponent7)Component).Name2);
-
-                var curParent = Parent;
-
-                while (curParent != null) 
+                if (Parent != null)
                 {
-                    fullName.Insert(0, curParent.Name + "/");
-                    curParent = curParent.Parent;
+                    return Parent.FullName + "/" + Name;
                 }
-
-                return fullName.ToString();
+                else 
+                {
+                    return Name;
+                }   
             }
         }
 
         public string CachedPath => ((ISwDMComponent6)Component).PathName;
 
-        public string Path => m_PathLazy.Value;
+        private string GetPath() => m_PathLazy.Value;
 
-        public ISwDmConfiguration ReferencedConfiguration => new SwDmComponentConfiguration(this);
+        public ISwDmConfiguration ReferencedConfiguration 
+        {
+            get => GetReferencedConfiguration(Component.ConfigurationName);
+            set => throw new NotSupportedException();
+        }
+
+        protected internal abstract ISwDmConfiguration GetReferencedConfiguration(string confName);
+        protected abstract ISwDmDocument3D GetReferencedDocument();
 
         public ComponentState_e State
         {
@@ -139,8 +182,13 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             }
             set 
             {
-                if (((ISwDMComponent5)Component).ExcludeFromBOM == (int)swDmExcludeFromBOMResult.swDmExcludeFromBOM_TRUE
-                    && !value.HasFlag(ComponentState_e.ExcludedFromBom))
+                var isExcludedFromBom = ((ISwDMComponent5)Component).ExcludeFromBOM == (int)swDmExcludeFromBOMResult.swDmExcludeFromBOM_TRUE;
+
+                if (isExcludedFromBom && !value.HasFlag(ComponentState_e.ExcludedFromBom))
+                {
+                    ((ISwDMComponent5)Component).ExcludeFromBOM = (int)swDmExcludeFromBOMResult.swDmExcludeFromBOM_FALSE;
+                }
+                else if (!isExcludedFromBom && value.HasFlag(ComponentState_e.ExcludedFromBom))
                 {
                     ((ISwDMComponent5)Component).ExcludeFromBOM = (int)swDmExcludeFromBOMResult.swDmExcludeFromBOM_TRUE;
                 }
@@ -171,146 +219,200 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             set => throw new NotSupportedException("Transform of the component cannot be modified"); 
         }
 
-        private ISwDmDocument3D m_CachedDocument;
-
-        public ISwDmDocument3D ReferencedDocument
+        public string Reference 
         {
-            get
+            get 
             {
-                if (m_CachedDocument == null || (m_CachedDocument.IsCommitted && !m_CachedDocument.IsAlive))
+                if (ParentAssembly.IsVersionNewerOrEqual(SwDmVersion_e.Sw2018))
                 {
-                    var isReadOnly = m_ParentAssm.State.HasFlag(DocumentState_e.ReadOnly);
+                    return ((ISwDMComponent10)Component).ComponentReference;
+                }
+                else 
+                {
+                    throw new NotSupportedException("This property is only supported from SOLIDWORKS 2018 or newer");
+                }
+            }
+            set => throw new NotSupportedException(); 
+        }
 
-                    var docsColl = (SwDmDocumentCollection)m_ParentAssm.SwDmApp.Documents;
+        private ISwDmDocument3D m_CachedDocument;
+        
+        public IXComponentRepository Children => m_ChildrenLazy.Value;
 
-                    try
+        protected TDocument GetSpecificReferencedDocument<TDocument>()
+            where TDocument : ISwDmDocument3D
+        {
+            if (m_CachedDocument == null)
+            {
+                var isReadOnly = ParentAssembly.State.HasFlag(DocumentState_e.ReadOnly);
+
+                var docsColl = (SwDmDocumentCollection)ParentAssembly.OwnerApplication.Documents;
+
+                try
+                {
+                    ISwDmDocument3D doc;
+
+                    var isVirtual = ((ISwDMComponent3)Component).IsVirtual;
+
+                    //NOTE: Do not use ISwDMComponent4::GetDocument2 to get the document as it will firstly load the file from the cached path which may result in the wrong file loaded if assembly is copied
+                    if (isVirtual)
                     {
-                        var searchOpts = m_ParentAssm.SwDmApp.SwDocMgr.GetSearchOptionObject();
-                        searchOpts.SearchFilters = (int)(
-                            SwDmSearchFilters.SwDmSearchExternalReference
+                        var searchOpts = ParentAssembly.OwnerApplication.SwDocMgr.GetSearchOptionObject();
+
+                        searchOpts.AddSearchPath(System.IO.Path.GetDirectoryName(ParentAssembly.Path));
+
+                        searchOpts.SearchFilters = (int)(SwDmSearchFilters.SwDmSearchForAssembly
+                            | SwDmSearchFilters.SwDmSearchForPart
                             | SwDmSearchFilters.SwDmSearchRootAssemblyFolder
                             | SwDmSearchFilters.SwDmSearchSubfolders
+                            | SwDmSearchFilters.SwDmSearchExternalReference
                             | SwDmSearchFilters.SwDmSearchInContextReference);
 
                         var dmDoc = ((ISwDMComponent4)Component).GetDocument2(isReadOnly, searchOpts, out SwDmDocumentOpenError err);
 
-                        ISwDmDocument3D doc;
-
-                        if (dmDoc != null)
+                        if (dmDoc == null)
                         {
-                            doc = (ISwDmDocument3D)m_ParentAssm.SwDmApp.Documents
-                                    .FirstOrDefault(d => ((ISwDmDocument)d).Document == d);
-
-                            if (doc == null)
-                            {
-                                var docType = ((ISwDMComponent2)Component).DocumentType;
-                                var isVirtual = ((ISwDMComponent3)Component).IsVirtual;
-
-                                switch (docType)
-                                {
-                                    case SwDmDocumentType.swDmDocumentPart:
-                                        if (!isVirtual)
-                                        {
-                                            doc = new SwDmPart(m_ParentAssm.SwDmApp, dmDoc, true,
-                                                docsColl.OnDocumentCreated,
-                                                docsColl.OnDocumentClosed, isReadOnly);
-                                        }
-                                        else 
-                                        {
-                                            doc = new SwDmVirtualPart(m_ParentAssm.SwDmApp, dmDoc, m_ParentAssm, true,
-                                                docsColl.OnDocumentCreated,
-                                                docsColl.OnDocumentClosed, isReadOnly);
-                                        }
-                                        break;
-                                    case SwDmDocumentType.swDmDocumentAssembly:
-                                        if (!isVirtual)
-                                        {
-                                            doc = new SwDmAssembly(m_ParentAssm.SwDmApp, dmDoc, true,
-                                                docsColl.OnDocumentCreated,
-                                                docsColl.OnDocumentClosed, isReadOnly);
-                                        }
-                                        else 
-                                        {
-                                            doc = new SwDmVirtualAssembly(m_ParentAssm.SwDmApp, dmDoc, m_ParentAssm, true,
-                                                docsColl.OnDocumentCreated,
-                                                docsColl.OnDocumentClosed, isReadOnly);
-                                        }
-                                        break;
-                                    default:
-                                        throw new NotSupportedException($"Document type '{docType}' of the component is not supported");
-                                }
-
-                                docsColl.OnDocumentCreated(doc);
-                            }
+                            throw new NullReferenceException("Failed to load virtual component document");
                         }
-                        else 
-                        {
-                            doc = (ISwDmDocument3D)m_ParentAssm.SwDmApp.Documents.PreCreateFromPath(Path);
-                            doc.State = isReadOnly ? DocumentState_e.ReadOnly : DocumentState_e.Default;
 
+                        doc = (ISwDmDocument3D)ParentAssembly.OwnerApplication.Documents
+                                .FirstOrDefault(d => ((ISwDmDocument)d).Document == d);
+
+                        if (doc == null)
+                        {
+                            var docType = ((ISwDMComponent2)Component).DocumentType;
+
+                            switch (docType)
+                            {
+                                case SwDmDocumentType.swDmDocumentPart:
+                                    doc = new SwDmVirtualPart(ParentAssembly.OwnerApplication, dmDoc, ParentAssembly, true,
+                                        docsColl.OnDocumentCreated,
+                                        docsColl.OnDocumentClosed, isReadOnly);
+                                    break;
+                                case SwDmDocumentType.swDmDocumentAssembly:
+                                    doc = new SwDmVirtualAssembly(ParentAssembly.OwnerApplication, dmDoc, ParentAssembly, true,
+                                        docsColl.OnDocumentCreated,
+                                        docsColl.OnDocumentClosed, isReadOnly);
+                                    break;
+                                default:
+                                    throw new NotSupportedException($"Document type '{docType}' of the component is not supported");
+                            }
+
+                            docsColl.OnDocumentCreated(doc);
+                        }
+                    }
+                    else
+                    {
+                        var path = GetPath();
+
+                        if (ParentAssembly.OwnerApplication.Documents.TryGet(path, out ISwDmDocument curDoc))
+                        {
+                            doc = (ISwDmDocument3D)curDoc;
+                        }
+                        else
+                        {
+                            doc = (ISwDmDocument3D)ParentAssembly.OwnerApplication.Documents.PreCreateFromPath(path);
+                            doc.State = isReadOnly ? DocumentState_e.ReadOnly : DocumentState_e.Default;
+                        }
+
+                        if (!doc.IsCommitted)
+                        {
                             doc.Commit();
                         }
-
-                        m_CachedDocument = doc;
-                    }
-                    catch 
-                    {
-                        var unknownDoc = new SwDmUnknownDocument(m_ParentAssm.SwDmApp, null,
-                                false,
-                                docsColl.OnDocumentCreated,
-                                docsColl.OnDocumentClosed, isReadOnly);
-
-                        unknownDoc.Path = CachedPath;
-
-                        m_CachedDocument = (ISwDmDocument3D)unknownDoc.GetSpecific();
                     }
 
-                    return m_CachedDocument;
+                    m_CachedDocument = doc;
                 }
-
-                return m_CachedDocument;
-            }
-        }
-        
-        public IXComponentRepository Children
-        {
-            get
-            {
-                if (!Component.IsSuppressed() && ReferencedDocument is SwDmAssembly)
+                catch
                 {
-                    var refConf = ReferencedConfiguration;
+                    var unknownDoc = new SwDmUnknownDocument(ParentAssembly.OwnerApplication, null,
+                            false,
+                            docsColl.OnDocumentCreated,
+                            docsColl.OnDocumentClosed, isReadOnly);
 
-                    if (!refConf.IsCommitted)
-                    {
-                        refConf.Commit(default);
-                    }
+                    unknownDoc.Path = CachedPath;
 
-                    return new SwDmSubComponentCollection(this, ReferencedDocument as SwDmAssembly, refConf);
+                    m_CachedDocument = (ISwDmDocument3D)unknownDoc.GetSpecific();
                 }
-                else 
-                {
-                    return new EmptyComponentCollection();
-                }
+
+                return (TDocument)m_CachedDocument;
             }
+
+            return (TDocument)m_CachedDocument;
         }
 
         internal SwDmComponent Parent { get; set; }
-        internal ISwDmAssembly OwnerAssembly { get; set; }
+
+        public ISwDmDocument3D ReferencedDocument 
+        {
+            get => GetReferencedDocument();
+            set => throw new NotSupportedException();
+        }
     }
 
-    internal class SwDmComponentConfiguration : SwDmConfiguration
+    internal class SwDmPartComponent : SwDmComponent, IXPartComponent
     {
-        private readonly ISwDmComponent m_Comp;
+        IXPart IXPartComponent.ReferencedDocument { get => (IXPart)base.ReferencedDocument; set => base.ReferencedDocument = (ISwDmDocument3D)value; }
+        IXPartConfiguration IXPartComponent.ReferencedConfiguration { get => (IXPartConfiguration)base.ReferencedConfiguration; set => base.ReferencedConfiguration = (ISwDmConfiguration)value; }
 
-        internal SwDmComponentConfiguration(ISwDmComponent comp) : base(null, null)
+        public SwDmPartComponent(SwDmAssembly parentAssm, ISwDMComponent comp) : base(parentAssm, comp)
+        {
+        }
+
+        protected internal override ISwDmConfiguration GetReferencedConfiguration(string confName) => new SwDmPartComponentConfiguration(this, confName);
+        protected override ISwDmDocument3D GetReferencedDocument() => GetSpecificReferencedDocument<ISwDmPart>();
+    }
+
+    internal class SwDmAssemblyComponent : SwDmComponent, IXAssemblyComponent
+    {
+        IXAssembly IXAssemblyComponent.ReferencedDocument { get => (IXAssembly)base.ReferencedDocument; set => base.ReferencedDocument = (ISwDmDocument3D)value; }
+        IXAssemblyConfiguration IXAssemblyComponent.ReferencedConfiguration { get => (IXAssemblyConfiguration)base.ReferencedConfiguration; set => base.ReferencedConfiguration = (ISwDmConfiguration)value; }
+
+        public SwDmAssemblyComponent(SwDmAssembly parentAssm, ISwDMComponent comp) : base(parentAssm, comp)
+        {
+        }
+
+        protected internal override ISwDmConfiguration GetReferencedConfiguration(string confName) => new SwDmAssemblyComponentConfiguration(this, confName);
+        protected override ISwDmDocument3D GetReferencedDocument() => GetSpecificReferencedDocument<ISwDmAssembly>();
+    }
+
+    internal abstract class SwDmComponentConfiguration : SwDmConfiguration
+    {
+        #region Not Supported
+        public IXMaterial Material { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
+        #endregion
+
+        protected readonly SwDmComponent m_Comp;
+
+        private readonly string m_ConfName;
+
+        internal SwDmComponentConfiguration(SwDmComponent comp, string confName) : base(null, (SwDmDocument3D)comp.OwnerDocument)
         {
             m_Comp = comp;
+            m_ConfName = confName;
         }
         
         public override string Name 
         {
-            get => m_Comp.Component.ConfigurationName;
+            get => m_ConfName;
             set => throw new NotSupportedException();
+        }
+
+        public override IXConfiguration Parent
+        {
+            get
+            {
+                var parentConfName = Configuration.GetParentConfigurationName();
+
+                if (!string.IsNullOrEmpty(parentConfName))
+                {
+                    return m_Comp.GetReferencedConfiguration(parentConfName);
+                }
+                else 
+                {
+                    return null;
+                }
+            }
         }
 
         internal protected override SwDmDocument3D Document => (SwDmDocument3D)m_Comp.ReferencedDocument;
@@ -322,13 +424,35 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         public override bool IsCommitted => Document.IsCommitted;
     }
 
+    internal class SwDmPartComponentConfiguration : SwDmComponentConfiguration, ISwDmPartConfiguration
+    {
+        private readonly Lazy<IXCutListItemRepository> m_CutListsLazy;
+
+        public SwDmPartComponentConfiguration(SwDmComponent comp, string confName) : base(comp, confName)
+        {
+            m_CutListsLazy = new Lazy<IXCutListItemRepository>(
+                () => new SwDmCutListItemCollection(this, (SwDmPart)Document));
+        }
+
+        public IXCutListItemRepository CutLists => m_CutListsLazy.Value;
+    }
+
+    internal class SwDmAssemblyComponentConfiguration : SwDmComponentConfiguration, ISwDmAssemblyConfiguration
+    {
+        public SwDmAssemblyComponentConfiguration(SwDmComponent comp, string confName) : base(comp, confName)
+        {
+        }
+
+        public IXComponentRepository Components => m_Comp.Children;
+    }
+
     internal class SwDmSubComponentCollection : SwDmComponentCollection
     {
         private readonly SwDmComponent m_ParentComp;
 
         internal SwDmSubComponentCollection(SwDmComponent parentComp,
-            SwDmAssembly ownerAssm, ISwDmConfiguration conf) 
-            : base(ownerAssm, conf)
+            SwDmAssembly rootAssm, ISwDmConfiguration conf) 
+            : base(rootAssm, conf)
         {
             m_ParentComp = parentComp;
         }
@@ -344,13 +468,10 @@ namespace Xarial.XCad.SwDocumentManager.Documents
     internal class EmptyComponentCollection : IXComponentRepository
     {
         #region Not Supported
-        
-        public void AddRange(IEnumerable<IXComponent> ents)
-            => throw new NotSupportedException();
-
-        public void RemoveRange(IEnumerable<IXComponent> ents)
-            => throw new NotSupportedException();
-
+        public event ComponentInsertedDelegate ComponentInserted { add => throw new NotSupportedException(); remove => throw new NotSupportedException(); }
+        public void AddRange(IEnumerable<IXComponent> ents, CancellationToken cancellationToken) => throw new NotSupportedException();
+        public void RemoveRange(IEnumerable<IXComponent> ents, CancellationToken cancellationToken) => throw new NotSupportedException();
+        public T PreCreate<T>() where T : IXComponent => throw new NotSupportedException();
         #endregion
 
         public IXComponent this[string name] => throw new Exception("No components");
@@ -367,7 +488,8 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         public bool TryGet(string name, out IXComponent ent)
             => throw new Exception("No components");
 
-        IEnumerator IEnumerable.GetEnumerator()
-            => GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+        public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters) => RepositoryHelper.FilterDefault(this, filters, reverseOrder);
     }
 }

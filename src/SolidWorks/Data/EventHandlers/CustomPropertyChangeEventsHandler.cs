@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -12,6 +12,7 @@ using System.Linq;
 using System.Text;
 using Xarial.XCad.Data.Delegates;
 using Xarial.XCad.SolidWorks.Data.Helpers;
+using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.Toolkit.Services;
 
 namespace Xarial.XCad.SolidWorks.Data.EventHandlers
@@ -69,7 +70,7 @@ namespace Xarial.XCad.SolidWorks.Data.EventHandlers
         {
             Filter(propName, Configuration, NewValue);
 
-            return S_OK;
+            return HResult.S_OK;
         }
 
         protected void Filter(string prpName, string confName, string newValue)

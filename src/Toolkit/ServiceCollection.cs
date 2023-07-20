@@ -1,36 +1,67 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace Xarial.XCad.Toolkit
 {
     public class ServiceCollection : IXServiceCollection
     {
-        private readonly Dictionary<Type, Func<object>> m_Services;
-
-        public IReadOnlyDictionary<Type, Func<object>> Services => m_Services;
-
-        public ServiceCollection() 
+        internal class ServiceInfo 
         {
-            m_Services = new Dictionary<Type, Func<object>>();
+            internal Func<object> Factory { get; }
+            internal ServiceLifetimeScope_e Lifetime { get; }
+
+            internal ServiceInfo(Func<object> factory, ServiceLifetimeScope_e lifetime)
+            {
+                Factory = factory;
+                Lifetime = lifetime;
+            }
         }
-        
-        public void AddOrReplace(Type svcType, Func<object> svcFactory)
+
+        private readonly Dictionary<Type, ServiceInfo> m_Services;
+
+        private bool m_IsProviderCreated;
+
+        public ServiceCollection() : this(new Dictionary<Type, ServiceInfo>()) 
         {
-            m_Services[svcType] = svcFactory;
+        }
+
+        private ServiceCollection(Dictionary<Type, ServiceInfo> svcs)
+        {
+            m_Services = svcs;
+            m_IsProviderCreated = false;
+        }
+
+        public void Add(Type svcType, Func<object> svcFactory, ServiceLifetimeScope_e lifetime = ServiceLifetimeScope_e.Singleton, bool replace = true)
+        {
+            if (replace || !m_Services.ContainsKey(svcType))
+            {
+                m_Services[svcType] = new ServiceInfo(svcFactory, lifetime);
+            }
         }
 
         public IServiceProvider CreateProvider()
         {
-            var provider = new ServiceProvider(m_Services);
-            return provider;
+            if (!m_IsProviderCreated)
+            {
+                m_IsProviderCreated = true;
+                return new ServiceProvider(m_Services);
+            }
+            else 
+            {
+                throw new Exception("Provider is already created");
+            }
         }
+
+        public IXServiceCollection Clone()
+            => new ServiceCollection(m_Services.ToDictionary(x => x.Key, x => new ServiceInfo(x.Value.Factory, x.Value.Lifetime)));
     }
 }

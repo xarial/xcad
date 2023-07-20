@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -13,6 +13,9 @@ using Xarial.XCad.Documents;
 using Xarial.XCad.Base;
 using SolidWorks.Interop.swdocumentmgr;
 using System.Linq;
+using System.Threading;
+using Xarial.XCad.Toolkit.Utils;
+using Xarial.XCad.Documents.Delegates;
 
 namespace Xarial.XCad.SwDocumentManager.Documents
 {
@@ -23,17 +26,13 @@ namespace Xarial.XCad.SwDocumentManager.Documents
     internal class SwDmDrawingViewsCollection : ISwDmDrawingViewsCollection
     {
         #region Not Supported
-
-        public void AddRange(IEnumerable<IXDrawingView> ents)
-            => throw new NotSupportedException();
-        TDrawingView IXDrawingViewRepository.PreCreate<TDrawingView>()
-            => throw new NotSupportedException();
-        public void RemoveRange(IEnumerable<IXDrawingView> ents)
-            => throw new NotSupportedException();
-
+        public event DrawingViewCreatedDelegate ViewCreated { add => throw new NotSupportedException(); remove => throw new NotSupportedException(); }
+        public void AddRange(IEnumerable<IXDrawingView> ents, CancellationToken cancellationToken) => throw new NotSupportedException();
+        public void RemoveRange(IEnumerable<IXDrawingView> ents, CancellationToken cancellationToken) => throw new NotSupportedException();
+        public T PreCreate<T>() where T : IXDrawingView => throw new NotSupportedException();
         #endregion
 
-        public IXDrawingView this[string name] => this.Get(name);
+        public IXDrawingView this[string name] => RepositoryHelper.Get(this, name);
 
         public int Count => (((ISwDMSheet4)m_Sheet.Sheet).GetViews() as object[] ?? new object[0]).Length;
 
@@ -60,7 +59,8 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             return ent != null;
         }
 
-        IEnumerator IEnumerable.GetEnumerator()
-            => GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+        public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters) => RepositoryHelper.FilterDefault(this, filters, reverseOrder);
     }
 }

@@ -1,41 +1,24 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.1;net461</TargetFrameworks>
     <AssemblyName>Xarial.XCad</AssemblyName>
     <RootNamespace>Xarial.XCad</RootNamespace>
-    <SignAssembly>false</SignAssembly>
-    <PublishRepositoryUrl>true</PublishRepositoryUrl>
-    <EmbedUntrackedSources>true</EmbedUntrackedSources>
-    <IncludeSymbols>true</IncludeSymbols>
-    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <TargetFrameworks>net7.0;net6.0;netstandard2.1;net461</TargetFrameworks>
     <PackageId>Xarial.XCad</PackageId>
-    <VersionPrefix>0.7.7</VersionPrefix>
-    <Authors>Xarial</Authors>
-    <Product>xCAD</Product>
-    <Copyright>© 2021 Xarial Pty Limited</Copyright>
-    <PackageProjectUrl>https://xcad.net</PackageProjectUrl>
-    <AssemblyOriginatorKeyFile></AssemblyOriginatorKeyFile>
-    <Company>Xarial Pty Limited</Company>
-    <RepositoryUrl>https://github.com/xarial/xcad</RepositoryUrl>
     <PackageTags>cad,solidworks</PackageTags>
-    <Description>Framework for developing CAD applications</Description>
-    <RepositoryType>git</RepositoryType>
+    <Description>Base interfaces of xCAD.NET - Framework for developing CAD applications</Description>
     <PackageIcon>icon.png</PackageIcon>
-    <PackageIconUrl>https://xcad.xarial.com/icon.png</PackageIconUrl>
     <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <PackageIconUrl>https://xcad.xarial.com/icon.png</PackageIconUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(TF_BUILD)' == 'true'">
-    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
-  </PropertyGroup>
-
+  <Import Project="..\..\common\common.props" />
+  
   <PropertyGroup Condition="'$(Configuration)'=='Release'">
     <DocumentationFile>Xarial.XCad.xml</DocumentationFile>
   </PropertyGroup>
-
+  
   <ItemGroup>
     <Compile Update="Properties\Resources.Designer.cs">
       <DesignTime>True</DesignTime>
@@ -52,18 +35,21 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="..\..\data\icon.png">
-      <Pack>True</Pack>
-      <PackagePath></PackagePath>
-    </None>
-    <None Include="..\..\LICENSE.md">
-      <Pack>True</Pack>
-      <PackagePath></PackagePath>
-    </None>
+    <None Include="icon.png" pack="true" PackagePath="" Link="_Pack\icon.png" />
+    <None Include="..\..\LICENSE.md" pack="true" PackagePath="" Link="_Pack\LICENSE.md" />
+    <None Include="..\..\README.md" pack="true" PackagePath="" Link="_Pack\README.md" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
+    <Folder Include="_Pack\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.1' Or '$(TargetFramework)' == 'net6.0' Or '$(TargetFramework)' == 'net7.0'">
+    <PackageReference Include="System.Drawing.Common" Version="7.0.0" />
   </ItemGroup>
 
 </Project>

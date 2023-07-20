@@ -23,7 +23,6 @@ using Xarial.XCad.SolidWorks.Geometry.Primitives;
 using Xarial.XCad.Geometry.Primitives;
 using Xarial.XCad.SolidWorks.Geometry;
 using Xarial.XCad.Base;
-using Xarial.XCad.SolidWorks.Features.CustomFeature.Attributes;
 
 namespace SwAddInExample
 {
@@ -40,12 +39,13 @@ namespace SwAddInExample
     [ComVisible(true)]
     [Icon(typeof(Resources), nameof(Resources.xarial))]
     [MissingDefinitionErrorMessage("xCAD. Download the add-in")]
-    [HandlePostRebuild]
     public class SampleMacroFeature : SwMacroFeatureDefinition<PmpMacroFeatData>
     {
-        public override CustomFeatureRebuildResult OnRebuild(ISwApplication app, ISwDocument model, ISwMacroFeature<PmpMacroFeatData> feature, 
-            PmpMacroFeatData parameters, out AlignDimensionDelegate<PmpMacroFeatData> alignDim)
+        public override CustomFeatureRebuildResult OnRebuild(ISwApplication app, ISwDocument model, ISwMacroFeature<PmpMacroFeatData> feature,
+            out AlignDimensionDelegate<PmpMacroFeatData> alignDim)
         {
+            var parameters = feature.Parameters;
+
             alignDim = (n, d)=> 
             {
                 switch (n) 
@@ -61,14 +61,11 @@ namespace SwAddInExample
             };
 
             var sweepArc = app.MemoryGeometryBuilder.WireBuilder.PreCreateCircle();
-            sweepArc.Center = new Point(0, 0, 0);
-            sweepArc.Axis = new Vector(0, 0, 1);
-            sweepArc.Diameter = 0.01;
+            sweepArc.Geometry = new Circle(new Axis(new Point(0, 0, 0), new Vector(0, 0, 1)), 0.01);
             sweepArc.Commit();
 
             var sweepLine = app.MemoryGeometryBuilder.WireBuilder.PreCreateLine();
-            sweepLine.StartCoordinate = new Point(0, 0, 0);
-            sweepLine.EndCoordinate = new Point(1, 1, 1);
+            sweepLine.Geometry = new Line(new Point(0, 0, 0), new Point(1, 1, 1));
             sweepLine.Commit();
 
             var sweep = (ISwTempSweep)app.MemoryGeometryBuilder.SolidBuilder.PreCreateSweep();
@@ -79,11 +76,6 @@ namespace SwAddInExample
 
             parameters.Number = parameters.Number + 1;
             return new CustomFeatureBodyRebuildResult() { Bodies = sweep.Bodies };
-        }
-
-        public override void OnPostRebuild(ISwApplication app, ISwDocument model, ISwMacroFeature<PmpMacroFeatData> feature, PmpMacroFeatData parameters)
-        {
-            base.OnPostRebuild(app, model, feature, parameters);
         }
     }
 }

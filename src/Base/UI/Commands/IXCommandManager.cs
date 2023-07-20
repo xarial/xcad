@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -32,8 +32,8 @@ namespace Xarial.XCad.UI.Commands
         /// Adds new context menu
         /// </summary>
         /// <param name="cmdBar">Specification of the context menu</param>
-        /// <param name="owner">Type where context menu is attached to</param>
         /// <returns>Command group</returns>
-        IXCommandGroup AddContextMenu(CommandGroupSpec cmdBar, SelectType_e? owner);
+        /// <remarks>Use <see cref="Attributes.ContextMenuCommandGroupInfoAttribute"/> attribute to assign additional parameters for the context menu</remarks>
+        IXCommandGroup AddContextMenu(ContextMenuCommandGroupSpec cmdBar);
     }
 }

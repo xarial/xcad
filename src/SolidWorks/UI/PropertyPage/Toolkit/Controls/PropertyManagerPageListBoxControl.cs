@@ -1,17 +1,24 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
 using SolidWorks.Interop.sldworks;
+using SolidWorks.Interop.swconst;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+using Xarial.XCad.SolidWorks.Services;
+using Xarial.XCad.Toolkit.Services;
+using Xarial.XCad.UI.PropertyPage.Attributes;
 using Xarial.XCad.UI.PropertyPage.Base;
+using Xarial.XCad.UI.PropertyPage.Enums;
 using Xarial.XCad.UI.PropertyPage.Structures;
+using Xarial.XCad.Utils.PageBuilder.Base;
 using Xarial.XCad.Utils.PageBuilder.PageElements;
 
 namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
@@ -20,17 +27,73 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
     {
         protected override event ControlValueChangedDelegate<object> ValueChanged;
 
-        private readonly Type m_TargetType;
-        private readonly bool m_IsMultiSelect;
+        private Type m_TargetType;
+        private bool m_IsMultiSelect;
 
-        public PropertyManagerPageListBoxControl(int id, object tag,
-            IPropertyManagerPageListbox listBox, Type targetType, bool isMultiSel,
-            SwPropertyManagerPageHandler handler, IMetadata srcMetadata, IPropertyManagerPageLabel label, Type specificItemType, IMetadata[] metadata)
-            : base(id, tag, listBox, handler, srcMetadata, label, specificItemType, metadata)
+        public PropertyManagerPageListBoxControl(SwApplication app, IGroup parentGroup, IIconsCreator iconConv,
+            IAttributeSet atts, IMetadata[] metadata, ref int numberOfUsedIds)
+            : base(app, parentGroup, iconConv, atts, metadata, swPropertyManagerPageControlType_e.swControlType_Listbox, ref numberOfUsedIds)
         {
-            m_IsMultiSelect = isMultiSel;
-            m_TargetType = targetType;
             m_Handler.ListBoxChanged += OnListBoxChanged;
+        }
+
+        protected override void InitData(IControlOptionsAttribute opts, IAttributeSet atts)
+        {
+            m_TargetType = atts.ContextType;
+            m_IsMultiSelect = (atts.ContextType.IsEnum
+                && atts.ContextType.GetCustomAttribute<FlagsAttribute>() != null)
+                || typeof(IList).IsAssignableFrom(atts.ContextType);
+        }
+
+        protected override void SetOptions(IPropertyManagerPageListbox ctrl, IControlOptionsAttribute opts, IAttributeSet atts)
+        {
+            var height = opts.Height;
+
+            if (height <= 0)
+            {
+                height = 50;
+            }
+
+            ctrl.Height = height;
+
+            int style = 0;
+
+            if (atts.Has<ListBoxOptionsAttribute>())
+            {
+                var lstOpts = atts.Get<ListBoxOptionsAttribute>();
+
+                if (lstOpts.Style != 0)
+                {
+                    style = (int)lstOpts.Style;
+
+                    if (lstOpts.Style.HasFlag(ListBoxStyle_e.Sorted))
+                    {
+                        style -= (int)ListBoxStyle_e.Sorted;
+                    }
+                }
+            }
+
+            if (m_IsMultiSelect)
+            {
+                style = style + (int)swPropMgrPageListBoxStyle_e.swPropMgrPageListBoxStyle_MultipleItemSelect;
+            }
+
+            ctrl.Style = style;
+        }
+
+        protected override void SetStaticItems(IAttributeSet atts, bool isStatic, ItemsControlItem[] staticItems)
+        {
+            if (isStatic)
+            {
+                var sortItems = atts.Has<ListBoxOptionsAttribute>() && atts.Get<ListBoxOptionsAttribute>().Style.HasFlag(ListBoxStyle_e.Sorted);
+                
+                if (sortItems)
+                {
+                    staticItems = staticItems.OrderBy(i => i.DisplayName).ToArray();
+                }
+
+                Items = staticItems;
+            }
         }
 
         private void OnListBoxChanged(int id, int selIndex)

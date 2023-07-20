@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -17,31 +17,31 @@ using Xarial.XCad.SolidWorks.Geometry.Exceptions;
 
 namespace Xarial.XCad.SolidWorks.Geometry.Curves
 {
-    public interface ISwLineCurve : IXLineCurve
+    public interface ISwLineCurve : IXLineCurve, ISwCurve
     {
     }
 
     internal class SwLineCurve : SwCurve, ISwLineCurve
     {
-        internal SwLineCurve(ICurve curve, ISwDocument doc, ISwApplication app, bool isCreated) 
+        internal SwLineCurve(ICurve curve, SwDocument doc, SwApplication app, bool isCreated) 
             : base(curve, doc, app, isCreated)
         {
         }
 
-        public Point StartCoordinate 
+        public Line Geometry
         {
-            get 
+            get
             {
                 if (IsCommitted)
                 {
-                    return StartPoint.Coordinate;
+                    return new Line(StartPoint.Coordinate, EndPoint.Coordinate);
                 }
-                else 
+                else
                 {
-                    return m_Creator.CachedProperties.Get<Point>();
+                    return m_Creator.CachedProperties.Get<Line>();
                 }
             }
-            set 
+            set
             {
                 if (IsCommitted)
                 {
@@ -54,36 +54,12 @@ namespace Xarial.XCad.SolidWorks.Geometry.Curves
             }
         }
 
-        public Point EndCoordinate 
-        {
-            get
-            {
-                if (IsCommitted)
-                {
-                    return EndPoint.Coordinate;
-                }
-                else
-                {
-                    return m_Creator.CachedProperties.Get<Point>();
-                }
-            }
-            set
-            {
-                if (IsCommitted)
-                {
-                    throw new Exception("Coordinate cannot be modified after entity is committed");
-                }
-                else
-                {
-                    m_Creator.CachedProperties.Set(value);
-                }
-            }
-        }
-
         protected override ICurve[] Create(CancellationToken cancellationToken)
         {
-            var line = m_Modeler.CreateLine(StartCoordinate.ToArray(), (StartCoordinate - EndCoordinate).ToArray()) as ICurve;
-            line = line.CreateTrimmedCurve2(StartCoordinate.X, StartCoordinate.Y, StartCoordinate.Z, EndCoordinate.X, EndCoordinate.Y, EndCoordinate.Z);
+            var geom = Geometry;
+
+            var line = m_Modeler.CreateLine(geom.StartPoint.ToArray(), (geom.StartPoint - geom.EndPoint).ToArray()) as ICurve;
+            line = line.CreateTrimmedCurve2(geom.StartPoint.X, geom.StartPoint.Y, geom.StartPoint.Z, geom.EndPoint.X, geom.EndPoint.Y, geom.EndPoint.Z);
 
             if (line == null)
             {

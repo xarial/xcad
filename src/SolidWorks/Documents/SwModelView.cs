@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -11,8 +11,10 @@ using System;
 using System.Drawing;
 using System.Threading;
 using Xarial.XCad.Documents;
+using Xarial.XCad.Documents.Delegates;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.SolidWorks.Utils;
+using Xarial.XCad.Toolkit.Graphics;
 
 namespace Xarial.XCad.SolidWorks.Documents
 {
@@ -21,9 +23,57 @@ namespace Xarial.XCad.SolidWorks.Documents
         IModelView View { get; }
     }
 
+    internal class ModelViewFreezer : IDisposable
+    {
+        private readonly bool m_OrigIsGraphicsEnabled;
+        private readonly IModelView m_View;
+
+        internal ModelViewFreezer(SwModelView view, bool freeze) 
+        {
+            m_View = view.View;
+            m_OrigIsGraphicsEnabled = m_View.EnableGraphicsUpdate;
+
+            m_View.EnableGraphicsUpdate = !freeze;
+        }
+
+        public void Dispose()
+        {
+            m_View.EnableGraphicsUpdate = m_OrigIsGraphicsEnabled;
+            m_View.GraphicsRedraw(null);
+        }
+    }
+
     internal class SwModelView : SwObject, ISwModelView
     {
         private readonly IMathUtility m_MathUtils;
+
+        public event RenderCustomGraphicsDelegate RenderCustomGraphics 
+        {
+            add 
+            {
+                if (m_RenderCustomGraphicsDelegate == null)
+                {
+                    m_GraphicsContext = new OglGraphicsContext();
+                    ((ModelView)View).BufferSwapNotify += OnBufferSwapNotify;
+                }
+
+                m_RenderCustomGraphicsDelegate += value;
+            }
+            remove 
+            {
+                m_RenderCustomGraphicsDelegate -= value;
+
+                if (m_RenderCustomGraphicsDelegate == null)
+                {
+                    m_GraphicsContext?.Dispose();
+                    m_GraphicsContext = null;
+                    ((ModelView)View).BufferSwapNotify -= OnBufferSwapNotify;
+                }
+            }
+        }
+
+        private OglGraphicsContext m_GraphicsContext;
+        private RenderCustomGraphicsDelegate m_RenderCustomGraphicsDelegate;
 
         internal IModelDoc2 Owner { get; }
 
@@ -92,22 +142,17 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public override object Dispatch => View;
 
-        internal SwModelView(IModelView view, ISwDocument doc, ISwApplication app) : base(view, doc, app)
+        internal SwModelView(IModelView view, SwDocument doc, SwApplication app) : base(view, doc, app)
         {
             View = view;
             Owner = doc.Model;
             m_MathUtils = app.Sw.IGetMathUtility();
         }
 
-        public void Freeze(bool freeze)
-        {
-            View.EnableGraphicsUpdate = !freeze;
-        }
+        public IDisposable Freeze(bool freeze) => new ModelViewFreezer(this, freeze);
 
         public void Update()
-        {
-            View.GraphicsRedraw(null);
-        }
+            => View.GraphicsRedraw(null);
 
         /// <inheritdoc/>
         public void ZoomToBox(Box3D box)
@@ -122,9 +167,24 @@ namespace Xarial.XCad.SolidWorks.Documents
             Owner.ViewZoomTo2(pt1[0], pt1[1], pt1[2], pt2[0], pt2[1], pt2[2]);
         }
 
+        /// <inheritdoc/>
+        public void ZoomToFit() => Owner.ViewZoomtofit2();
+
         public void Commit(CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
+        }
+
+        private int OnBufferSwapNotify()
+        {
+            if (m_RenderCustomGraphicsDelegate?.Invoke(this, m_GraphicsContext) == true)
+            {
+                return HResult.S_OK;
+            }
+            else
+            {
+                return HResult.S_FALSE;
+            }
         }
     }
 
@@ -138,7 +198,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public string Name { get; }
 
-        internal SwNamedView(IModelView view, ISwDocument doc, ISwApplication app, string name)
+        internal SwNamedView(IModelView view, SwDocument doc, SwApplication app, string name)
             : base(view, doc, app)
         {
             Name = name;
@@ -195,7 +255,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        internal SwStandardView(IModelView view, ISwDocument doc, ISwApplication app, StandardViewType_e type) 
+        internal SwStandardView(IModelView view, SwDocument doc, SwApplication app, StandardViewType_e type) 
             : base(view, doc, app, GetStandardViewName(doc.Model, type))
         {
             Type = type;

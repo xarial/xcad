@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -20,7 +20,7 @@ namespace Xarial.XCad.Utils.PageBuilder.Base
     public interface IDataModelBinder
     {
         void Bind<TDataModel>(CreateBindingPageDelegate pageCreator,
-            CreateBindingControlDelegate ctrlCreator, CreateDynamicControlsDelegate dynCtrlDescCreator,
+            CreateBindingControlDelegate ctrlCreator, CreateDynamicControlsDelegate dynCtrlDescCreator, IContextProvider modelSetter,
             out IEnumerable<IBinding> bindings, out IRawDependencyGroup dependencies, out IMetadata[] metadata);
     }
 }

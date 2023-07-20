@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -16,6 +16,11 @@ namespace Xarial.XCad
     /// </summary>
     public interface IXVersion : IComparable<IXVersion>, IEquatable<IXVersion>
     {
+        /// <summary>
+        /// Version number
+        /// </summary>
+        Version Version { get; }
+
         /// <summary>
         /// Display name of this version
         /// </summary>
@@ -46,7 +51,7 @@ namespace Xarial.XCad
     /// <summary>
     /// Additional methods for version
     /// </summary>
-    public static class IXVersionExtension 
+    public static class XVersionExtension 
     {
         /// <summary>
         /// Compares two versions

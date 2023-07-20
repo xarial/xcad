@@ -13,18 +13,18 @@ namespace SolidWorks.Tests
 {
     public class MockSwFilePathResolverBase : SwFilePathResolverBase
     {
-        private readonly string[] m_searchFolders;
+        private readonly string[] m_SearchFolders;
         private readonly Predicate<string> m_RefExistsPred;
         private readonly Func<string> m_MatchingLoadedDocPath;
 
         public MockSwFilePathResolverBase(string[] searchFolders, Predicate<string> refExistsPred, Func<string> matchingLoadedDocPath) 
         {
-            m_searchFolders = searchFolders;
+            m_SearchFolders = searchFolders;
             m_RefExistsPred = refExistsPred;
             m_MatchingLoadedDocPath = matchingLoadedDocPath;
         }
 
-        protected override string[] GetSearchFolders() => m_searchFolders;
+        protected override string[] GetSearchFolders() => m_SearchFolders;
 
         protected override bool IsReferenceExists(string path) => m_RefExistsPred.Invoke(path);
 

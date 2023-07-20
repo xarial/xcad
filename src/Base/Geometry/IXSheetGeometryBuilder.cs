@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -13,11 +13,18 @@ namespace Xarial.XCad.Geometry
     /// Provides methods to buld sheet geometry
     /// </summary>
     public interface IXSheetGeometryBuilder : IX3DGeometryBuilder
+    {   
+    }
+
+    /// <summary>
+    /// Additional methods for <see cref="IXSheetGeometryBuilder"/>
+    /// </summary>
+    public static class XSheetGeometryBuilderExtension 
     {
         /// <summary>
         /// Creates new instance of planar sheet
         /// </summary>
         /// <returns>Planar sheet template</returns>
-        IXPlanarSheet PreCreatePlanarSheet();
+        public static IXPlanarSheet PreCreatePlanarSheet(this IXSheetGeometryBuilder geomBuilder) => geomBuilder.PreCreate<IXPlanarSheet>();
     }
 }

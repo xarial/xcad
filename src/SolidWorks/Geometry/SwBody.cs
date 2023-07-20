@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -9,9 +9,12 @@ using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
+using Xarial.XCad.Documents;
 using Xarial.XCad.Geometry;
+using Xarial.XCad.Geometry.Exceptions;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Geometry.Wires;
 using Xarial.XCad.SolidWorks.Documents;
@@ -21,23 +24,18 @@ using Xarial.XCad.SolidWorks.Utils;
 
 namespace Xarial.XCad.SolidWorks.Geometry
 {
-
     public interface ISwBody : ISwSelObject, IXBody, IResilientibleObject<ISwBody>
     {
         IBody2 Body { get; }
 
-        ISwBody Add(ISwBody other);
-        ISwBody[] Substract(ISwBody other);
-        ISwBody[] Common(ISwBody other);
+        new ISwComponent Component { get; }
     }
 
+    [DebuggerDisplay("{" + nameof(Name) + "}")]
     internal class SwBody : SwSelObject, ISwBody
-    {
-        IXBody IXBody.Add(IXBody other) => Add((ISwBody)other);
-        IXBody[] IXBody.Substract(IXBody other) => Substract((ISwBody)other);
-        IXBody[] IXBody.Common(IXBody other) => Common((ISwBody)other);
-
-        ISwObject IResilientibleObject.CreateResilient() => CreateResilient();
+    {       
+        IXComponent IXBody.Component => Component;
+        IXObject ISupportsResilience.CreateResilient() => CreateResilient();
 
         public virtual IBody2 Body 
         {
@@ -47,7 +45,12 @@ namespace Xarial.XCad.SolidWorks.Geometry
                 {
                     try
                     {
-                        var testPtrAlive = m_Body.Name;
+                        var testNameAlive = m_Body.Name;
+
+                        if (string.IsNullOrEmpty(testNameAlive) && !m_Body.IsTemporaryBody()) 
+                        {
+                            throw new Exception("Permanent body is not alive");
+                        }
                     }
                     catch 
                     {
@@ -70,18 +73,38 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         public override object Dispatch => Body;
 
-        public bool Visible
+        public virtual bool Visible
         {
             get => Body.Visible;
-            set
-            {
-                Body.HideBody(!value);
-            }
+            set => Body.HideBody(!value);
         }
 
         public string Name => Body.Name;
 
-        private IComponent2 Component => (Body.IGetFirstFace() as IEntity)?.GetComponent() as IComponent2;
+        public ISwComponent Component 
+        {
+            get
+            {
+                var comp = (Body.IGetFirstFace() as IEntity)?.GetComponent() as IComponent2;
+
+                if (comp != null)
+                {
+                    return OwnerDocument.CreateObjectFromDispatch<ISwComponent>(comp);
+                }
+                else
+                {
+                    if (IsResilient)
+                    {
+                        //NOTE: in some cases component reference may be lost
+                        return m_PersistComponent;
+                    }
+                    else
+                    {
+                        return null;
+                    }
+                }
+            }
+        }
 
         public Color? Color
         {
@@ -95,7 +118,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
                 }
                 else 
                 {
-                    SwColorHelper.GetColorScope(Component, 
+                    SwColorHelper.GetColorScope(Component?.Component, 
                         out swInConfigurationOpts_e confOpts, out string[] confs);
 
                     Body.RemoveMaterialProperty((int)confOpts, confs);
@@ -133,63 +156,122 @@ namespace Xarial.XCad.SolidWorks.Geometry
             }
         }
 
+        public IXMaterial Material
+        {
+            get
+            {
+                var confName = "";
+
+                var comp = Component;
+
+                if (comp != null)
+                {
+                    confName = comp.ReferencedConfiguration.Name;
+                }
+
+                var materialName = Body.GetMaterialPropertyName(confName, out var database);
+
+                if (!string.IsNullOrEmpty(materialName))
+                {
+                    return new SwMaterial(materialName, OwnerApplication.MaterialDatabases[database]);
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            set 
+            {
+                throw new NotSupportedException();
+
+                //TODO: the below code does not work
+                //var confName = "";
+
+                //var comp = Component;
+
+                //if (comp != null)
+                //{
+                //    confName = comp.ReferencedConfiguration.Name;
+                //}
+                //else 
+                //{
+                //    confName = ((SwDocument3D)OwnerDocument).Configurations.Active.Name;
+                //}
+
+                //swBodyMaterialApplicationError_e res;
+
+                //if (value != null)
+                //{
+                //    res = (swBodyMaterialApplicationError_e)Body.SetMaterialProperty(confName, value.Database.Name, value.Name);
+                //}
+                //else 
+                //{
+                //    res = (swBodyMaterialApplicationError_e)Body.SetMaterialProperty(confName, "", "");
+                //}
+
+                //if (res != swBodyMaterialApplicationError_e.swBodyMaterialApplicationError_NoError) 
+                //{
+                //    throw new Exception($"Failed to set material. Error code: {res}");
+                //}
+            }
+        }
+
         public bool IsResilient { get; private set; }
 
         private byte[] m_PersistId;
+        private ISwComponent m_PersistComponent;
 
         private IBody2 m_Body;
 
-        internal SwBody(IBody2 body, ISwDocument doc, ISwApplication app) 
-            : base(body, doc, app ?? ((SwDocument)doc)?.OwnerApplication)
+        private readonly IMathUtility m_MathUtils;
+
+        internal SwBody(IBody2 body, SwDocument doc, SwApplication app)
+            : base(body, doc, app ?? doc?.OwnerApplication)
         {
             m_Body = body;
+            m_MathUtils = app.Sw.IGetMathUtility();
         }
 
-        public override void Select(bool append)
+        internal override void Select(bool append, ISelectData selData)
         {
-            if (!Body.Select2(append, null))
+            if (!Body.Select2(append, (SelectData)selData))
             {
                 throw new Exception("Failed to select body");
             }
         }
 
-        public ISwBody Add(ISwBody other)
-            => PerformOperation(other, swBodyOperationType_e.SWBODYADD).FirstOrDefault();
-
-        public ISwBody[] Substract(ISwBody other)
-            => PerformOperation(other, swBodyOperationType_e.SWBODYCUT);
-
-        public ISwBody[] Common(ISwBody other)=>
-            PerformOperation(other, swBodyOperationType_e.SWBODYINTERSECT);
-
-        private ISwBody[] PerformOperation(ISwBody other, swBodyOperationType_e op)
+        public IXMemoryBody Copy()
         {
-            var thisBody = Body;
-            var otherBody = (other as SwBody).Body;
+            IBody2 copy;
 
-            int errs;
-            var res = thisBody.Operations2((int)op, otherBody, out errs) as object[];
-
-            if (errs != (int)swBodyOperationError_e.swBodyOperationNoError)
+            if (OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2019))
             {
-                throw new Exception($"Body boolean operation failed: {(swBodyOperationError_e)errs}");
+                copy = (IBody2)Body.Copy2(true);
+            }
+            else 
+            {
+                copy = (IBody2)Body.Copy();
             }
 
-            if (res?.Any() == true)
-            {
-                return res.Select(b => OwnerApplication.CreateObjectFromDispatch<SwBody>(b as IBody2, OwnerDocument)).ToArray();
-            }
-            else
-            {
-                return new ISwBody[0];
-            }
+            return OwnerApplication.CreateObjectFromDispatch<SwTempBody>(copy, OwnerDocument);
         }
 
-        public IXBody Copy()
-            => OwnerApplication.CreateObjectFromDispatch<SwTempBody>(Body.ICopy(), OwnerDocument);
+        public void Transform(TransformMatrix transform)
+        {
+            var mathTransform = (MathTransform)m_MathUtils.ToMathTransform(transform);
 
-        public virtual void Transform(TransformMatrix transform)
-            => throw new NotSupportedException($"Only temp bodies are supported. Use {nameof(Copy)} method");
+            if (!Body.ApplyTransform(mathTransform))
+            {
+                if (!Body.IsTemporaryBody())
+                {
+                    throw new NotSupportedException($"Only temp bodies or bodies within the context of macro feature regeneration are supported. Use {nameof(Copy)} method");
+                }
+                else 
+                {
+                    throw new Exception("Failed to apply transform to the body"); 
+                }
+            }
+        }
 
         public virtual ISwBody CreateResilient()
         {
@@ -216,6 +298,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
         {
             IsResilient = true;
             m_PersistId = persistId;
+            m_PersistComponent = Component;
         }
     }
 
@@ -225,23 +308,30 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
     internal class SwSheetBody : SwBody, ISwSheetBody
     {
-        internal SwSheetBody(IBody2 body, ISwDocument doc, ISwApplication app) : base(body, doc, app)
+        internal SwSheetBody(IBody2 body, SwDocument doc, SwApplication app) : base(body, doc, app)
         {
         }
     }
 
-    public interface ISwPlanarSheetBody : ISwSheetBody, IXPlanarSheetBody
+    public interface ISwPlanarSheetBody : ISwSheetBody, IXPlanarSheetBody, ISwPlanarRegion
     {
     }
 
     internal class SwPlanarSheetBody : SwSheetBody, ISwPlanarSheetBody
     {
-        internal SwPlanarSheetBody(IBody2 body, ISwDocument doc, ISwApplication app) : base(body, doc, app)
+        IXLoop IXRegion.OuterLoop { get => OuterLoop; set => throw new NotSupportedException(); }
+        IXLoop[] IXRegion.InnerLoops { get => InnerLoops; set => throw new NotSupportedException(); }
+
+        internal SwPlanarSheetBody(IBody2 body, SwDocument doc, SwApplication app) : base(body, doc, app)
         {
         }
 
         public Plane Plane => this.GetPlane();
-        public IXSegment[] Boundary => this.GetBoundary();
+
+        public virtual ISwTempPlanarSheetBody PlanarSheetBody => (ISwTempPlanarSheetBody)this.Copy();
+
+        public ISwLoop OuterLoop { get => this.GetOuterLoop(); set => throw new NotImplementedException(); }
+        public ISwLoop[] InnerLoops { get => this.GetInnerLoops(); set => throw new NotImplementedException(); }
     }
 
     internal static class ISwPlanarSheetBodyExtension 
@@ -254,19 +344,18 @@ namespace Xarial.XCad.SolidWorks.Geometry
             return planarFace.Definition.Plane;
         }
 
-        internal static SwCurve[] GetBoundary(this ISwPlanarSheetBody body)
+        internal static SwLoop GetOuterLoop(this ISwPlanarSheetBody body) => IterateLoops((SwFace)body.Faces.First()).First(l => l.Loop.IsOuter());
+        internal static SwLoop[] GetInnerLoops(this ISwPlanarSheetBody body) => IterateLoops((SwFace)body.Faces.First()).Where(l => !l.Loop.IsOuter()).ToArray();
+
+        private static IEnumerable<SwLoop> IterateLoops(SwFace face) 
         {
-            var face = body.Body.IGetFirstFace();
-            var edges = face.GetEdges() as object[];
-            var segs = new SwCurve[edges.Length];
+            var loops = (object[])face.Face.GetLoops();
 
-            for (int i = 0; i < segs.Length; i++)
+            for (int i = 0; i < loops.Length; i++)
             {
-                var curve = ((IEdge)edges[i]).IGetCurve();
-                segs[i] = ((SwObject)body).OwnerApplication.CreateObjectFromDispatch<SwCurve>(curve, ((SwObject)body).OwnerDocument);
+                var loop = (ILoop2)loops[i];
+                yield return face.OwnerApplication.CreateObjectFromDispatch<SwLoop>(loop, face.OwnerDocument);
             }
-
-            return segs;
         }
     }
 
@@ -276,7 +365,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
     internal class SwSolidBody : SwBody, ISwBody, ISwSolidBody
     {
-        internal SwSolidBody(IBody2 body, ISwDocument doc, ISwApplication app) : base(body, doc, app)
+        internal SwSolidBody(IBody2 body, SwDocument doc, SwApplication app) : base(body, doc, app)
         {
         }
 
@@ -290,5 +379,18 @@ namespace Xarial.XCad.SolidWorks.Geometry
             var massPrps = body.Body.GetMassProperties(0) as double[];
             return massPrps[3];
         }
+    }
+
+    public interface ISwWireBody : ISwBody, IXWireBody 
+    {
+    }
+
+    internal class SwWireBody : SwBody, ISwWireBody
+    {
+        internal SwWireBody(IBody2 body, SwDocument doc, SwApplication app) : base(body, doc, app)
+        {
+        }
+
+        public IXSegment[] Segments { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
     }
 }

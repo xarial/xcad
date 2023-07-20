@@ -1,0 +1,176 @@
+variables:
+  ${{ if eq(variables['Build.SourceBranchName'], 'master') }}:
+    versionSuffix: release
+  ${{ if eq(variables['Build.SourceBranchName'], 'dev') }}:
+    versionSuffix: dev
+  ${{ if eq(variables['Build.SourceBranchName'], '!alpha') }}:
+    versionSuffix: alpha
+  ${{ if eq(variables['Build.SourceBranchName'], '!beta') }}:
+    versionSuffix: beta
+
+trigger:
+  branches:
+    include:
+    - master
+    - dev
+    - '!alpha'
+    - '!beta'
+  paths:
+    include:
+    - templates/*
+
+name: '$(Date:yyyyMMdd).$(Rev:r)[$(BuildID)]'
+
+stages:
+
+- stage: 'Build'
+  variables:
+    - group: build-vars
+  jobs:
+  - job:
+    pool:
+      name: 'Azure Pipelines'
+      vmImage: windows-latest
+      demands:
+        - msbuild
+        - visualstudio
+
+    steps:
+      - task: NuGetToolInstaller@1
+        displayName: 'Install NuGet'
+
+      - task: UseDotNet@2
+        displayName: 'Install .NET SDK'
+        inputs:
+          packageType: 'sdk'
+          version: '7.0.101'
+
+      - task: NuGetCommand@2
+        displayName: 'Restore NuGet References'
+        inputs:
+          restoreSolution: 'templates/Xarial.XCad.Templates.csproj'
+
+      - ${{ if and(or(eq(variables['Build.SourceBranch'], 'refs/heads/dev'), eq(variables['Build.SourceBranch'], 'refs/heads/!alpha'), eq(variables['Build.SourceBranch'], 'refs/heads/!beta')), ne(variables['Build.Reason'], 'PullRequest')) }}:
+        - task: PowerShell@2
+          displayName: 'Pack $(versionSuffix) versions'
+          inputs:
+            targetType: 'inline'
+            script: dotnet pack "$(Build.SourcesDirectory)/templates/Xarial.XCad.Templates.csproj" --output "$(Build.ArtifactStagingDirectory)/packages/$(versionSuffix)" --no-build --version-suffix "$(versionSuffix).$(Build.BuildId)"
+          
+      - ${{ if and(eq(variables['Build.SourceBranch'], 'refs/heads/master'), ne(variables['Build.Reason'], 'PullRequest')) }}:
+        - task: DotNetCoreCLI@2
+          displayName: 'Pack production versions'
+          inputs:
+            command: pack
+            packagesToPack: 'templates/Xarial.XCad.Templates.csproj'
+            outputDir: $(Build.ArtifactStagingDirectory)/packages/release
+            nobuild: true
+      
+      - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
+        - task: CopyFiles@2
+          displayName: 'Copy NuGet packages to artifacts folder'
+          inputs:
+            SourceFolder: '$(system.defaultworkingdirectory)/build'
+            Contents: '**\*.nupkg'
+            TargetFolder: '$(Build.ArtifactStagingDirectory)/packages'
+      
+      - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
+        - publish: '$(Build.ArtifactStagingDirectory)/packages'
+          displayName: 'Publish packages artifact'
+          artifact: 'packages'
+
+- stage: 'PublishDevNuGetPackage'
+  displayName: 'Publish dev template Package to xcad-dev nuget feed'
+  dependsOn: 'Build'
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/dev'), ne(variables['Build.Reason'], 'PullRequest'))
+  jobs:
+  - job:
+    pool:
+      vmImage: 'ubuntu-latest'
+
+    steps:
+    - checkout: none
+
+    - download: current
+      artifact: 'packages'
+
+    - task: NuGetCommand@2
+      displayName: 'Push NuGet Packages'
+      inputs:
+        command: 'push'
+        packagesToPush: '$(Pipeline.Workspace)/packages/dev/*.nupkg'
+        nuGetFeedType: 'internal'
+        publishVstsFeed: 'xcad/xcad-dev'
+       
+- stage: 'PublishProvisionalNuGetPackage'
+  displayName: 'Publish Provisional template packages to xcad-dev nuget feed'
+  dependsOn: 'Build'
+  condition: and(succeeded(), or(eq(variables['Build.SourceBranch'], 'refs/heads/master'), eq(variables['Build.SourceBranch'], 'refs/heads/!alpha'), eq(variables['Build.SourceBranch'], 'refs/heads/!beta')), ne(variables['Build.Reason'], 'PullRequest'))
+  jobs:
+  - job:
+    pool:
+      vmImage: 'windows-latest'
+
+    steps:
+    - checkout: none
+
+    - download: current
+      artifact: 'packages'
+
+    - task: NuGetCommand@2
+      displayName: 'Push NuGet Packages'
+      inputs:
+        command: 'push'
+        packagesToPush: '$(Pipeline.Workspace)/packages/$(versionSuffix)/*.nupkg'
+        allowPackageConflicts: true
+        nuGetFeedType: 'internal'
+        publishVstsFeed: 'xcad/xcad-dev'
+
+- stage: 'PublishPublicPackage'
+  variables:
+    - group: build-vars
+    - name: packagePath
+      value:
+  displayName: 'Publish public template packages to nuget.org'
+  dependsOn: 'PublishProvisionalNuGetPackage'
+  condition: and(succeeded(), or(eq(variables['Build.SourceBranch'], 'refs/heads/master'), eq(variables['Build.SourceBranch'], 'refs/heads/!alpha'), eq(variables['Build.SourceBranch'], 'refs/heads/!beta')), ne(variables['Build.Reason'], 'PullRequest'))
+  jobs:
+  - deployment:
+    pool:
+      vmImage: 'windows-latest'
+    environment: 'nuget-org'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - checkout: none
+
+          - download: current
+            artifact: 'packages'
+
+          - task: DownloadSecureFile@1
+            name: Certificate
+            displayName: 'Download code signing certificate'
+            inputs:
+              secureFile: xarial-code-signing.pfx
+
+          - task: PowerShell@2
+            displayName: 'Write the paths to nuget package into variable'
+            inputs:
+              targetType: 'inline'
+              script: |
+                $packagePath = (Get-ChildItem -Path "$(Pipeline.Workspace)/packages/$(versionSuffix)" -Filter "*.nupkg" | Select-Object  @{Name='QuotedFullPath';Expression={"""$($_.FullName)"""}} | Select-Object -ExpandProperty QuotedFullPath )
+                Write-Host $packagePath
+                Write-Host "##vso[task.setvariable variable=packagePath;]$packagePath"
+
+          - script: |
+              dotnet nuget sign $(PackagePath) --certificate-path "$(Certificate.secureFilePath)" --certificate-password "$(CODE_SIGN_CERT_PWD)" --timestamper http://timestamp.comodoca.com
+            displayName: Sign NuGet Packages
+
+          - task: NuGetCommand@2
+            displayName: 'Push NuGet Packages'
+            inputs:
+              command: 'push'
+              packagesToPush: '$(Pipeline.Workspace)/packages/$(versionSuffix)/*.nupkg'
+              nuGetFeedType: 'external'
+              publishFeedCredentials: 'Nuget.org'

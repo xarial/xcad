@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -24,6 +24,7 @@ using Xarial.XCad.Extensions.Attributes;
 using Xarial.XCad.Extensions.Delegates;
 using Xarial.XCad.Features.CustomFeature;
 using Xarial.XCad.Features.CustomFeature.Delegates;
+using Xarial.XCad.SolidWorks.Attributes;
 using Xarial.XCad.SolidWorks.Base;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Features.CustomFeature;
@@ -32,11 +33,13 @@ using Xarial.XCad.SolidWorks.Services;
 using Xarial.XCad.SolidWorks.UI;
 using Xarial.XCad.SolidWorks.UI.Commands;
 using Xarial.XCad.SolidWorks.UI.Commands.Exceptions;
+using Xarial.XCad.SolidWorks.UI.Commands.Toolkit.Enums;
 using Xarial.XCad.SolidWorks.UI.Commands.Toolkit.Structures;
 using Xarial.XCad.SolidWorks.UI.PropertyPage;
 using Xarial.XCad.SolidWorks.UI.Toolkit;
 using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.Toolkit;
+using Xarial.XCad.Toolkit.Services;
 using Xarial.XCad.UI;
 using Xarial.XCad.UI.Commands;
 using Xarial.XCad.UI.PropertyPage;
@@ -59,7 +62,7 @@ namespace Xarial.XCad.SolidWorks
         
         ISwModelViewTab<TControl> CreateDocumentTab<TControl>(ISwDocument doc);
         
-        new ISwPopupWindow<TWindow> CreatePopupWindow<TWindow>();
+        new ISwPopupWindow<TWindow> CreatePopupWindow<TWindow>(TWindow window);
         
         ISwTaskPane<TControl> CreateTaskPane<TControl>();
         
@@ -118,8 +121,8 @@ namespace Xarial.XCad.SolidWorks
         IXCommandManager IXExtension.CommandManager => CommandManager;
         IXCustomPanel<TControl> IXExtension.CreateDocumentTab<TControl>(IXDocument doc)
             => CreateDocumentTab<TControl>((SwDocument)doc);
-        IXPopupWindow<TWindow> IXExtension.CreatePopupWindow<TWindow>()
-            => CreatePopupWindow<TWindow>();
+        IXPopupWindow<TWindow> IXExtension.CreatePopupWindow<TWindow>(TWindow window)
+            => CreatePopupWindow<TWindow>(window);
         IXTaskPane<TControl> IXExtension.CreateTaskPane<TControl>(TaskPaneSpec spec)
             => CreateTaskPane<TControl>(spec);
         IXCustomPanel<TControl> IXExtension.CreateFeatureManagerTab<TControl>(IXDocument doc) 
@@ -142,7 +145,7 @@ namespace Xarial.XCad.SolidWorks
 
         private readonly List<IDisposable> m_Disposables;
 
-        private IServiceProvider m_SvcProvider;
+        protected IServiceProvider m_SvcProvider;
         
         public SwAddInEx()
         {   
@@ -157,6 +160,8 @@ namespace Xarial.XCad.SolidWorks
 
             try
             {
+                Validate();
+
                 var app = ThisSW as ISldWorks;
                 AddInId = cookie;
 
@@ -171,16 +176,15 @@ namespace Xarial.XCad.SolidWorks
 
                 m_Application = new SwApplication(app, OnStartupCompleted);
 
-                var svcCollection = GetServicesCollection();
+                var svcCollection = GetServiceCollection(m_Application);
 
-                ConfigureServices?.Invoke(this, svcCollection);
                 OnConfigureServices(svcCollection);
 
                 m_SvcProvider = svcCollection.CreateProvider();
 
-                Logger = m_SvcProvider.GetService<IXLogger>();
+                m_Application.Init(m_SvcProvider);
 
-                m_Application.Init(svcCollection);
+                Logger = m_SvcProvider.GetService<IXLogger>();
 
                 Logger.Log("Loading add-in", XCad.Base.Enums.LoggerMessageSeverity_e.Debug);
 
@@ -188,7 +192,6 @@ namespace Xarial.XCad.SolidWorks
 
                 m_CommandManager = new SwCommandManager(Application, AddInId, m_SvcProvider);
 
-                Connect?.Invoke(this);
                 OnConnect();
 
                 m_CommandManager.TryBuildCommandTabs();
@@ -197,9 +200,23 @@ namespace Xarial.XCad.SolidWorks
             }
             catch (Exception ex)
             {
-                Logger.Log(ex);
+                HandleException(ex);
                 return false;
             }
+        }
+
+        protected virtual void Validate()
+        {
+            if (this.GetType().TryGetAttribute<PartnerProductAttribute>(out _))
+            {
+                throw new Exception($"'{nameof(PartnerProductAttribute)}' must be used with {nameof(SwPartnerAddInEx)}");
+            }
+        }
+
+        protected virtual void HandleException(Exception ex) 
+        {
+            var logger = Logger ?? CreateDefaultLogger();
+            logger.Log(ex);
         }
 
         private void OnStartupCompleted(SwApplication app)
@@ -214,23 +231,34 @@ namespace Xarial.XCad.SolidWorks
             }
         }
 
-        private IXServiceCollection GetServicesCollection()
+        private IXServiceCollection GetServiceCollection(SwApplication app)
         {
-            var svcCollection = new ServiceCollection();
+            var svcCollection = CreateServiceCollection();
 
-            var addInType = this.GetType();
-            var title = GetRegistrationHelper(addInType).GetTitle(addInType);
+            app.LoadServices(svcCollection);
 
-            svcCollection.AddOrReplace<IXLogger>(() => new TraceLogger($"XCad.AddIn.{title}"));
-            svcCollection.AddOrReplace<IIconsCreator, BaseIconsCreator>();
-            svcCollection.AddOrReplace<IPropertyPageHandlerProvider, PropertyPageHandlerProvider>();
-            svcCollection.AddOrReplace<IFeatureManagerTabControlProvider, FeatureManagerTabControlProvider>();
-            svcCollection.AddOrReplace<ITaskPaneControlProvider, TaskPaneControlProvider>();
-            svcCollection.AddOrReplace<IModelViewControlProvider, ModelViewControlProvider>();
-            svcCollection.AddOrReplace<ICommandGroupTabConfigurer, DefaultCommandGroupTabConfigurer>();
+            svcCollection.Add<IXLogger>(CreateDefaultLogger, ServiceLifetimeScope_e.Singleton);
+            svcCollection.Add<IIconsCreator, BaseIconsCreator>(ServiceLifetimeScope_e.Singleton);
+            svcCollection.Add<IPropertyPageHandlerProvider, DataModelPropertyPageHandlerProvider>(ServiceLifetimeScope_e.Singleton);
+            svcCollection.Add<IDragArrowHandlerProvider, NotSetDragArrowHandlerProvider>(ServiceLifetimeScope_e.Singleton);
+            svcCollection.Add<ICalloutHandlerProvider, NotSetCalloutHandlerProvider>(ServiceLifetimeScope_e.Singleton);
+            svcCollection.Add<ITriadHandlerProvider, NotSetTriadHandlerProvider>(ServiceLifetimeScope_e.Singleton);
+            svcCollection.Add<IFeatureManagerTabControlProvider, FeatureManagerTabControlProvider>(ServiceLifetimeScope_e.Singleton);
+            svcCollection.Add<ITaskPaneControlProvider, TaskPaneControlProvider>(ServiceLifetimeScope_e.Singleton);
+            svcCollection.Add<IModelViewControlProvider, ModelViewControlProvider>(ServiceLifetimeScope_e.Singleton);
+            svcCollection.Add<ICommandGroupTabConfigurer, DefaultCommandGroupTabConfigurer>(ServiceLifetimeScope_e.Singleton);
 
             return svcCollection;
         }
+
+        protected IXLogger CreateDefaultLogger() 
+        {
+            var addInType = this.GetType();
+            var title = GetRegistrationHelper(addInType).GetTitle(addInType);
+            return new TraceLogger($"XCad.AddIn.{title}");
+        }
+
+        protected virtual IXServiceCollection CreateServiceCollection() => new ServiceCollection();
 
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]
@@ -240,7 +268,6 @@ namespace Xarial.XCad.SolidWorks
 
             try
             {
-                Disconnect?.Invoke(this);
                 OnDisconnect();
                 Dispose();
                 return true;
@@ -271,22 +298,39 @@ namespace Xarial.XCad.SolidWorks
         [EditorBrowsable(EditorBrowsableState.Never)]
         public void OnCommandClick(string cmdId)
         {
-            m_CommandManager.HandleCommandClick(cmdId);
+            try
+            {
+                m_CommandManager.HandleCommandClick(cmdId);
+            }
+            catch (Exception ex)
+            {
+                HandleException(ex);
+            }
         }
 
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         public int OnCommandEnable(string cmdId)
         {
-            return m_CommandManager.HandleCommandEnable(cmdId);
+            try
+            {
+                return m_CommandManager.HandleCommandEnable(cmdId);
+            }
+            catch(Exception ex)
+            {
+                HandleException(ex);
+                return (int)CommandItemEnableState_e.DeselectDisable;
+            }
         }
 
         public virtual void OnConnect()
         {
+            Connect?.Invoke(this);
         }
 
         public virtual void OnDisconnect()
         {
+            Disconnect?.Invoke(this);
         }
 
         protected virtual void Dispose(bool disposing)
@@ -344,9 +388,9 @@ namespace Xarial.XCad.SolidWorks
         private ISwPropertyManagerPage<TData> CreatePropertyManagerPage<TData>(Type handlerType, 
             CreateDynamicControlsDelegate createDynCtrlHandler)
         {
-            var handler = m_SvcProvider.GetService<IPropertyPageHandlerProvider>().CreateHandler(Application.Sw, handlerType);
+            var handler = m_SvcProvider.GetService<IPropertyPageHandlerProvider>().CreateHandler(Application, handlerType);
 
-            var page = new SwPropertyManagerPage<TData>(Application, m_SvcProvider, handler, createDynCtrlHandler);
+            var page = new SwPropertyManagerPage<TData>(m_Application, m_SvcProvider, handler, createDynCtrlHandler);
             page.Disposed += OnItemDisposed;
             m_Disposables.Add(page);
             return page;
@@ -367,17 +411,17 @@ namespace Xarial.XCad.SolidWorks
             return tab;
         }
         
-        public ISwPopupWindow<TWindow> CreatePopupWindow<TWindow>() 
+        public ISwPopupWindow<TWindow> CreatePopupWindow<TWindow>(TWindow window) 
         {
             var parent = (IntPtr)Application.Sw.IFrameObject().GetHWnd();
 
             if (typeof(System.Windows.Window).IsAssignableFrom(typeof(TWindow)))
             {
-                return new SwPopupWpfWindow<TWindow>((TWindow)Activator.CreateInstance(typeof(TWindow)), parent);
+                return new SwPopupWpfWindow<TWindow>(window, parent);
             }
             else if (typeof(Form).IsAssignableFrom(typeof(TWindow)))
             {
-                return new SwPopupWinForm<TWindow>((TWindow)Activator.CreateInstance(typeof(TWindow)), parent);
+                return new SwPopupWinForm<TWindow>(window, parent);
             }
             else
             {
@@ -415,8 +459,9 @@ namespace Xarial.XCad.SolidWorks
             return tab;
         }
         
-        public virtual void OnConfigureServices(IXServiceCollection collection)
+        protected virtual void OnConfigureServices(IXServiceCollection svcCollection)
         {
+            ConfigureServices?.Invoke(this, svcCollection);
         }
 
         private void OnItemDisposed(IAutoDisposable item)
@@ -432,6 +477,43 @@ namespace Xarial.XCad.SolidWorks
                 System.Diagnostics.Debug.Assert(false, "Disposable is not registered");
             }
         }
+
+        public IXWorkUnit PreCreateWorkUnit() => new SwWorkUnit(m_Application);
+    }
+
+    /// <inheritdoc/>
+    [ComVisible(true)]
+    public abstract class SwPartnerAddInEx : SwAddInEx, ISwPEManager
+    {
+        [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
+        public void IdentifyToSW(object classFactory)
+        {
+            if (this.GetType().TryGetAttribute<PartnerProductAttribute>(out var att))
+            {
+                try
+                {
+                    var res = (swPartnerEntitlementStatus_e)((ISwPEClassFactory)classFactory).SetPartnerKey(att.PartnerKey, out _);
+
+                    if (res != swPartnerEntitlementStatus_e.swPESuccess)
+                    {
+                        throw new Exception($"Failed to register partner product: {res}");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    var logger = Logger ?? CreateDefaultLogger();
+                    logger.Log(ex);
+                }
+            }
+            else
+            {
+                throw new Exception($"Decorate the add-in class with '{typeof(PartnerProductAttribute).FullName}' to specify partner key");
+            }
+        }
+
+        protected override void Validate()
+        {
+        }
     }
 
     public static class SwAddInExExtension 
@@ -443,10 +525,10 @@ namespace Xarial.XCad.SolidWorks
             where TControl : System.Windows.UIElement => addIn.CreateDocumentTab<TControl>(doc);
 
         public static ISwPopupWindow<TWindow> CreatePopupWpfWindow<TWindow>(this ISwAddInEx addIn)
-            where TWindow : System.Windows.Window => (SwPopupWpfWindow<TWindow>)addIn.CreatePopupWindow<TWindow>();
+            where TWindow : System.Windows.Window => (SwPopupWpfWindow<TWindow>)addIn.CreatePopupWindow<TWindow>((TWindow)Activator.CreateInstance(typeof(TWindow)));
 
         public static ISwPopupWindow<TWindow> CreatePopupWinForm<TWindow>(this ISwAddInEx addIn)
-            where TWindow : Form => (SwPopupWinForm<TWindow>)addIn.CreatePopupWindow<TWindow>();
+            where TWindow : Form => (SwPopupWinForm<TWindow>)addIn.CreatePopupWindow<TWindow>((TWindow)Activator.CreateInstance(typeof(TWindow)));
 
         public static ISwTaskPane<TControl> CreateTaskPaneWinForm<TControl>(this ISwAddInEx addIn, TaskPaneSpec spec = null)
             where TControl : Control => addIn.CreateTaskPane<TControl>(spec);

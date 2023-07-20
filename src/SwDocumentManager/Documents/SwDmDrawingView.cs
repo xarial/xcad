@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -13,10 +13,14 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using Xarial.XCad.Annotations;
 using Xarial.XCad.Base;
 using Xarial.XCad.Base.Enums;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Enums;
+using Xarial.XCad.Documents.Structures;
+using Xarial.XCad.Features;
+using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;
 
 namespace Xarial.XCad.SwDocumentManager.Documents
@@ -29,19 +33,22 @@ namespace Xarial.XCad.SwDocumentManager.Documents
     internal class SwDmDrawingView : SwDmSelObject, ISwDmDrawingView
     {
         #region Not Supported
-
         public Point Location { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
-        public void Commit(CancellationToken cancellationToken)
-            => throw new NotSupportedException();
-        public void Select(bool append)
-            => throw new NotSupportedException();
         TSelObject IXObjectContainer.ConvertObject<TSelObject>(TSelObject obj)
             => throw new NotSupportedException();
-        public bool IsSelected => throw new NotSupportedException();
-
+        public Scale Scale { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
+        public Rect2D Boundary => throw new NotSupportedException();
+        public IXBody[] Bodies { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
+        public Thickness Padding => throw new NotSupportedException();
+        public IXDimensionRepository Dimensions => throw new NotSupportedException();
+        public IXAnnotationRepository Annotations => throw new NotSupportedException();
+        public IXDrawingView BaseView { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
+        public IEnumerable<IXDrawingView> DependentViews => throw new NotSupportedException();
+        public IXSketch2D Sketch => throw new NotSupportedException();
+        public TransformMatrix Transformation => throw new NotSupportedException();
+        public IXEntityRepository VisibleEntities => throw new NotSupportedException();
+        public ViewPolylineData[] Polylines => throw new NotSupportedException();
         #endregion
-
-        public override SelectType_e Type => SelectType_e.DrawingViews;
 
         public ISwDMView DrawingView { get; }
 
@@ -79,6 +86,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
                 return m_CachedDocument;
             }
+            set => throw new NotSupportedException();
         }
 
         public IXConfiguration ReferencedConfiguration 
@@ -102,6 +110,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                     return null;
                 }
             }
+            set => throw new NotSupportedException();
         }
 
         public override bool IsCommitted => true;
@@ -109,7 +118,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         private readonly SwDmDrawing m_Drw;
         private IXDocument3D m_CachedDocument;
 
-        internal SwDmDrawingView(ISwDMView view, SwDmDrawing drw) : base(view)
+        internal SwDmDrawingView(ISwDMView view, SwDmDrawing drw) : base(view, drw.OwnerApplication, drw)
         {
             DrawingView = view;
             m_Drw = drw;

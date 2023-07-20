@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -12,6 +12,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using Xarial.XCad.Base;
 using Xarial.XCad.Data;
 using Xarial.XCad.Data.Delegates;
@@ -20,20 +21,20 @@ using Xarial.XCad.SolidWorks.Data.EventHandlers;
 using Xarial.XCad.SolidWorks.Data.Exceptions;
 using Xarial.XCad.SolidWorks.Data.Helpers;
 using Xarial.XCad.SolidWorks.Documents;
+using Xarial.XCad.SolidWorks.Enums;
 using Xarial.XCad.Toolkit.Services;
+using Xarial.XCad.Toolkit.Utils;
 
 namespace Xarial.XCad.SolidWorks.Data
 {
     public interface ISwCustomPropertiesCollection : IXPropertyRepository, IDisposable
     {
         new ISwCustomProperty this[string name] { get; }
-        new ISwCustomProperty PreCreate();
+        ISwCustomProperty PreCreate();
     }
 
     internal abstract class SwCustomPropertiesCollection : ISwCustomPropertiesCollection
     {
-        IXProperty IXPropertyRepository.PreCreate() => PreCreate();
-
         IXProperty IXRepository<IXProperty>.this[string name] => this[name];
 
         public ISwCustomProperty this[string name]
@@ -42,7 +43,7 @@ namespace Xarial.XCad.SolidWorks.Data
             {
                 try
                 {
-                    return (SwCustomProperty)this.Get(name);
+                    return (SwCustomProperty)RepositoryHelper.Get(this, name);
                 }
                 catch (EntityNotFoundException)
                 {
@@ -83,11 +84,13 @@ namespace Xarial.XCad.SolidWorks.Data
 
         private bool Exists(string name) 
         {
-            //TODO: for older that SW2014 - get all properties
-            if (m_App.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2014))
+            if (m_App.IsVersionNewerOrEqual(SwVersion_e.Sw2018))
             {
-                return PrpMgr.Get5(name, true, out _, out _, out _)
-                    != (int)swCustomInfoGetResult_e.swCustomInfoGetResult_NotPresent;
+                return PrpMgr.Get6(name, true, out _, out _, out _, out _) != (int)swCustomInfoGetResult_e.swCustomInfoGetResult_NotPresent;
+            }
+            else if (m_App.IsVersionNewerOrEqual(SwVersion_e.Sw2014))
+            {
+                return PrpMgr.Get5(name, true, out _, out _, out _) != (int)swCustomInfoGetResult_e.swCustomInfoGetResult_NotPresent;
             }
             else 
             {
@@ -96,18 +99,12 @@ namespace Xarial.XCad.SolidWorks.Data
             }
         }
 
-        public void AddRange(IEnumerable<IXProperty> ents)
-        {
-            foreach (var prp in ents)
-            {
-                prp.Commit();
-            }
-        }
+        public void AddRange(IEnumerable<IXProperty> ents, CancellationToken cancellationToken) => RepositoryHelper.AddRange(ents, cancellationToken);
 
         public IEnumerator<IXProperty> GetEnumerator()
             => new SwCustomPropertyEnumerator(PrpMgr, CreatePropertyInstance);
 
-        public void RemoveRange(IEnumerable<IXProperty> ents)
+        public void RemoveRange(IEnumerable<IXProperty> ents, CancellationToken cancellationToken)
         {
             foreach (var prp in ents)
             {
@@ -139,6 +136,8 @@ namespace Xarial.XCad.SolidWorks.Data
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
+        public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters) => RepositoryHelper.FilterDefault(this, filters, reverseOrder);
+
         protected abstract EventsHandler<PropertyValueChangedDelegate> CreateEventsHandler(SwCustomProperty prp);
 
         public ISwCustomProperty PreCreate() => CreatePropertyInstance(PrpMgr, "", false);
@@ -153,6 +152,8 @@ namespace Xarial.XCad.SolidWorks.Data
         public virtual void Dispose()
         {
         }
+
+        public T PreCreate<T>() where T : IXProperty => (T)PreCreate();
     }
 
     internal class SwConfigurationCustomPropertiesCollection : SwCustomPropertiesCollection
@@ -182,11 +183,9 @@ namespace Xarial.XCad.SolidWorks.Data
 
         protected override EventsHandler<PropertyValueChangedDelegate> CreateEventsHandler(SwCustomProperty prp)
         {
-            var isBugPresent = true; //TODO: find version when the issue is starter
+            EventsHandler<PropertyValueChangedDelegate> evHandler;
 
-            EventsHandler<PropertyValueChangedDelegate> evHandler = null;
-
-            if (isBugPresent)
+            if (m_App.IsVersionNewerOrEqual(SwVersion_e.Sw2017) && !m_App.IsVersionNewerOrEqual(SwVersion_e.Sw2020, 5))
             {
                 evHandler = new CustomPropertyChangeEventsHandlerFromSw2017(m_EventsHelper, m_Doc.Model, prp, m_ConfName);
             }

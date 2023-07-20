@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -15,6 +15,7 @@ using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.UI;
 using Xarial.XCad.Toolkit;
 using System.Linq;
+using Xarial.XCad.Toolkit.Services;
 
 namespace Xarial.XCad.SolidWorks.UI.Toolkit
 {
@@ -34,11 +35,9 @@ namespace Xarial.XCad.SolidWorks.UI.Toolkit
         protected override Tuple<IFeatMgrView, string> HostComControl(string progId, string title, IXImage image,
             out TControl specCtrl)
         {
-            using (var iconsConv = m_SvcProvider.GetService<IIconsCreator>())
+            using (var img = m_SvcProvider.GetService<IIconsCreator>().ConvertIcon(new FeatMgrViewIcon(image)))
             {
-                var imgPath = iconsConv.ConvertIcon(new FeatMgrViewIcon(image)).First();
-
-                var featMgrView = m_TabProvider.ProvideComControl(m_ModelViewMgr, imgPath, progId, title);
+                var featMgrView = m_TabProvider.ProvideComControl(m_ModelViewMgr, img.FilePaths.First(), progId, title);
 
                 specCtrl = default;
 
@@ -59,12 +58,10 @@ namespace Xarial.XCad.SolidWorks.UI.Toolkit
         protected override Tuple<IFeatMgrView, string> HostNetControl(Control winCtrlHost, TControl ctrl,
             string title, IXImage image)
         {
-            using (var iconsConv = m_SvcProvider.GetService<IIconsCreator>())
+            using (var img = m_SvcProvider.GetService<IIconsCreator>().ConvertIcon(new FeatMgrViewIcon(image)))
             {
-                var imgPath = iconsConv.ConvertIcon(new FeatMgrViewIcon(image)).First();
+                var featMgrView = m_TabProvider.ProvideNetControl(m_ModelViewMgr, winCtrlHost, img.FilePaths.First(), title);
 
-                var featMgrView = m_TabProvider.ProvideNetControl(m_ModelViewMgr, winCtrlHost, imgPath, title);
-                
                 if (featMgrView != null)
                 {
                     return new Tuple<IFeatMgrView, string>(featMgrView, title);

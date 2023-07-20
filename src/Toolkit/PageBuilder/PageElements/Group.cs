@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -32,6 +32,10 @@ namespace Xarial.XCad.Utils.PageBuilder.PageElements
     public abstract class Group : Group<object>
     {
         protected Group(int id, object tag, IMetadata[] metadata) : base(id, tag, metadata)
+        {
+        }
+
+        public override void Focus()
         {
         }
     }

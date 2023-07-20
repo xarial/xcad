@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -19,14 +19,9 @@ namespace Xarial.XCad.Geometry.Surfaces
     public interface IXCylindricalSurface : IXSurface
     {
         /// <summary>
-        /// Origin of the cylindrical face
+        /// Axis of this cylindrical face
         /// </summary>
-        Point Origin { get; }
-
-        /// <summary>
-        /// Cylinder axis
-        /// </summary>
-        Vector Axis { get; }
+        Axis Axis { get; }
 
         /// <summary>
         /// Radius of cylindrical face

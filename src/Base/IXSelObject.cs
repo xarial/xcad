@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -27,8 +27,8 @@ namespace Xarial.XCad
         void Select(bool append);
 
         /// <summary>
-        /// Type of this selection object
+        /// Deletes this object
         /// </summary>
-        SelectType_e Type { get; }
+        void Delete();
     }
 }

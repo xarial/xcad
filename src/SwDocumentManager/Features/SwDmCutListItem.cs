@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -17,6 +17,7 @@ using System.Threading;
 using Xarial.XCad.Annotations;
 using Xarial.XCad.Base.Enums;
 using Xarial.XCad.Data;
+using Xarial.XCad.Documents;
 using Xarial.XCad.Enums;
 using Xarial.XCad.Features;
 using Xarial.XCad.Geometry;
@@ -36,17 +37,17 @@ namespace Xarial.XCad.SwDocumentManager.Features
     internal class SwDmCutListItem : SwDmSelObject, ISwDmCutListItem
     {
         #region Not Supported
-        
         public IXDimensionRepository Dimensions => throw new NotSupportedException();
-
-        public Color? Color
-        {
-            get => throw new NotSupportedException();
-            set => throw new NotSupportedException();
-        }
-
+        public Color? Color { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
         public IEnumerable<IXFace> Faces => throw new NotSupportedException();
-
+        FeatureState_e IXFeature.State => throw new NotSupportedException();
+        public IXComponent Component => throw new NotSupportedException();
+        public IEditor<IXFeature> Edit() => throw new NotSupportedException();
+        public void Update() => throw new NotSupportedException();
+        public IXBody Body => throw new NotSupportedException();
+        public IXEntityRepository AdjacentEntities => throw new NotSupportedException();
+        public XCad.Geometry.Structures.Point FindClosestPoint(XCad.Geometry.Structures.Point point) => throw new NotSupportedException();
+        public bool IsUserFeature => throw new NotSupportedException();
         #endregion
 
         IXPropertyRepository IPropertiesOwner.Properties => Properties;
@@ -54,19 +55,19 @@ namespace Xarial.XCad.SwDocumentManager.Features
         public ISwDMCutListItem2 CutListItem { get; }
 
         private readonly Lazy<ISwDmCustomPropertiesCollection> m_Properties;
-        private readonly SwDmDocument3D m_Doc;
-        private readonly SwDmConfiguration m_Conf;
+        private readonly SwDmPart m_Part;
+        private readonly ISwDmPartConfiguration m_Conf;
 
-        internal SwDmCutListItem(ISwDMCutListItem2 cutListItem, SwDmDocument3D doc) : base(cutListItem)
+        internal SwDmCutListItem(ISwDMCutListItem2 cutListItem, SwDmPart doc) : base(cutListItem, doc.OwnerApplication, doc)
         {
             CutListItem = cutListItem;
-            m_Doc = doc;
+            m_Part = doc;
             
             m_Properties = new Lazy<ISwDmCustomPropertiesCollection>(
-                () => new SwDmCutListCustomPropertiesCollection(this, m_Doc, m_Conf));
+                () => new SwDmCutListCustomPropertiesCollection(this, m_Part, m_Conf));
         }
 
-        internal SwDmCutListItem(ISwDMCutListItem2 cutListItem, SwDmDocument3D doc, SwDmConfiguration conf) : this(cutListItem, doc)
+        internal SwDmCutListItem(ISwDMCutListItem2 cutListItem, SwDmPart doc, ISwDmPartConfiguration conf) : this(cutListItem, doc)
         {
             m_Conf = conf;
         }
@@ -77,7 +78,7 @@ namespace Xarial.XCad.SwDocumentManager.Features
             {
                 for (int i = 0; i < CutListItem.Quantity; i++) 
                 {
-                    yield return new SwDmSolidBody();
+                    yield return new SwDmSolidBody(m_Part);
                 }
             }
         }
@@ -90,17 +91,17 @@ namespace Xarial.XCad.SwDocumentManager.Features
 
         public ISwDmCustomPropertiesCollection Properties => m_Properties.Value;
 
-        public CutListState_e State 
+        public CutListStatus_e Status
         {
             get 
             {
-                if (m_Doc.SwDmApp.IsVersionNewerOrEqual(SwDmVersion_e.Sw2021))
+                if (m_Part.IsVersionNewerOrEqual(SwDmVersion_e.Sw2021))
                 {
                     var cutListStatus = (CutListItem as ISwDMCutListItem4).ExcludeFromCutlist;
 
                     if (cutListStatus == swDMCutListExclusionStatus_e.swDMCutListStatus_Excluded)
                     {
-                        return CutListState_e.ExcludeFromBom;
+                        return CutListStatus_e.ExcludeFromBom;
                     }
                     else if (cutListStatus == swDMCutListExclusionStatus_e.swDMCutListStatus_Included)
                     {
@@ -114,6 +115,34 @@ namespace Xarial.XCad.SwDocumentManager.Features
                 else 
                 {
                     throw new NotSupportedException("This API is available in SW 2021 or newer");
+                }
+            }
+        }
+
+        public CutListType_e Type 
+        {
+            get 
+            {
+                if (m_Part.IsVersionNewerOrEqual(SwDmVersion_e.Sw2021))
+                {
+                    switch (((ISwDMCutListItem4)CutListItem).CutlistType) 
+                    {
+                        case swDMCutListType_e.swDMCutListType_SolidBody:
+                            return CutListType_e.SolidBody;
+
+                        case swDMCutListType_e.swDMCutListType_Sheetmetal:
+                            return CutListType_e.SheetMetal;
+
+                        case swDMCutListType_e.swDMCutListType_Weldment:
+                            return CutListType_e.Weldment;
+
+                        default:
+                            throw new NotSupportedException("Unrecognized cut-list item type");
+                    }
+                }
+                else 
+                {
+                    throw new NotSupportedException("This propery is only supported in SOLIDWORKS 2021 or newer");
                 }
             }
         }

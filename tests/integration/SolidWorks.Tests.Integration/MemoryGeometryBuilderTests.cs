@@ -8,10 +8,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Xarial.XCad.Base;
+using Xarial.XCad.Documents;
+using Xarial.XCad.Features;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Curves;
 using Xarial.XCad.Geometry.Structures;
+using Xarial.XCad.Geometry.Wires;
 using Xarial.XCad.SolidWorks.Documents;
+using Xarial.XCad.SolidWorks.Features;
 using Xarial.XCad.SolidWorks.Geometry;
 using Xarial.XCad.SolidWorks.Geometry.Curves;
 
@@ -28,18 +32,15 @@ namespace SolidWorks.Tests.Integration
             using (var doc = NewDocument(swDocumentTypes_e.swDocPART))
             {
                 var sweepCircle = m_App.MemoryGeometryBuilder.WireBuilder.PreCreateCircle();
-                sweepCircle.Center = new Point(0, 0, 0);
-                sweepCircle.Axis = new Vector(0, 0, 1);
-                sweepCircle.Diameter = 0.01;
+                sweepCircle.Geometry = new Circle(new Axis(new Point(0, 0, 0), new Vector(0, 0, 1)), 0.01);
                 sweepCircle.Commit();
 
                 var sweepLine = m_App.MemoryGeometryBuilder.WireBuilder.PreCreateLine();
-                sweepLine.StartCoordinate = new Point(0, 0, 0);
-                sweepLine.EndCoordinate = new Point(1, 1, 1);
+                sweepLine.Geometry = new Line(new Point(0, 0, 0), new Point(1, 1, 1));
                 sweepLine.Commit();
 
                 var sweep = m_App.MemoryGeometryBuilder.SolidBuilder.PreCreateSweep();
-                sweep.Profiles = new IXRegion[] { m_App.MemoryGeometryBuilder.CreatePlanarSheet(
+                sweep.Profiles = new IXPlanarRegion[] { m_App.MemoryGeometryBuilder.CreatePlanarSheet(
                     m_App.MemoryGeometryBuilder.CreateRegionFromSegments(sweepCircle)).Bodies.First() };
                 sweep.Path = sweepLine;
                 sweep.Commit();
@@ -98,20 +99,17 @@ namespace SolidWorks.Tests.Integration
             using (var doc = NewDocument(Interop.swconst.swDocumentTypes_e.swDocPART))
             {
                 var circle = m_App.MemoryGeometryBuilder.WireBuilder.PreCreateCircle();
-                circle.Center = new Point(-0.1, 0, 0);
-                circle.Axis = new Vector(0, 0, 1);
-                circle.Diameter = 0.01;
+                circle.Geometry = new Circle(new Axis(new Point(-0.1, 0, 0), new Vector(0, 0, 1)), 0.01);
                 circle.Commit();
 
                 var axis = m_App.MemoryGeometryBuilder.WireBuilder.PreCreateLine();
-                axis.StartCoordinate = new Point(0, 0, 0);
-                axis.EndCoordinate = new Point(0, 1, 0);
+                axis.Geometry = new Line(new Point(0, 0, 0), new Point(0, 1, 0));
                 axis.Commit();
 
                 var rev = m_App.MemoryGeometryBuilder.SolidBuilder.PreCreateRevolve();
                 rev.Angle = Math.PI * 2;
                 rev.Axis = axis;
-                rev.Profiles = new IXRegion[] { m_App.MemoryGeometryBuilder.CreatePlanarSheet(
+                rev.Profiles = new IXPlanarRegion[] { m_App.MemoryGeometryBuilder.CreatePlanarSheet(
                     m_App.MemoryGeometryBuilder.CreateRegionFromSegments(circle)).Bodies.First() };
                 rev.Commit();
 
@@ -137,7 +135,7 @@ namespace SolidWorks.Tests.Integration
             int faceCount;
             double[] massPrps;
 
-            using (var doc = NewDocument(Interop.swconst.swDocumentTypes_e.swDocPART))
+            using (var doc = NewDocument(swDocumentTypes_e.swDocPART))
             {
                 var box = m_App.MemoryGeometryBuilder.CreateSolidBox(
                     new Point(0, 0, 0),
@@ -162,7 +160,7 @@ namespace SolidWorks.Tests.Integration
         }
 
         [Test]
-        public void ExtrusionTest() 
+        public void ExtrusionTest()
         {
             int faceCount;
             double[] massPrps;
@@ -182,7 +180,7 @@ namespace SolidWorks.Tests.Integration
                 var extr = m_App.MemoryGeometryBuilder.SolidBuilder.PreCreateExtrusion();
                 extr.Depth = 0.5;
                 extr.Direction = new Vector(1, 1, 1);
-                extr.Profiles = new IXRegion[] { m_App.MemoryGeometryBuilder.CreatePlanarSheet(
+                extr.Profiles = new IXPlanarRegion[] { m_App.MemoryGeometryBuilder.CreatePlanarSheet(
                     m_App.MemoryGeometryBuilder.CreateRegionFromSegments(polyline)).Bodies.First() };
                 extr.Commit();
 
@@ -203,12 +201,38 @@ namespace SolidWorks.Tests.Integration
         }
 
         [Test]
-        public void CylinderTest() 
+        public void ExtrusionPolylineTest()
+        {
+            var profile = m_App.MemoryGeometryBuilder.WireBuilder.PreCreatePolyline();
+
+            profile.Points = new Point[]
+            {
+                new Point(0, 0, 0),
+                new Point(0.1, 0, 0),
+                new Point(0.1, 0.1, 0),
+                new Point(0, 0.1, 0),
+                new Point(0, 0, 0),
+            };
+
+            profile.Commit();
+
+            var profileReg = m_App.MemoryGeometryBuilder.CreateRegionFromSegments(profile);
+
+            var ext = m_App.MemoryGeometryBuilder.CreateSolidExtrusion(0.1, new Vector(0, 0, 1), profileReg);
+
+            var body = (IXSolidBody)ext.Bodies.First();
+
+            var vol = body.Volume;
+            Assert.That(0.001, Is.EqualTo(vol).Within(0.001).Percent);
+        }
+
+        [Test]
+        public void CylinderTest()
         {
             int faceCount;
             double[] massPrps;
 
-            using (var doc = NewDocument(Interop.swconst.swDocumentTypes_e.swDocPART))
+            using (var doc = NewDocument(swDocumentTypes_e.swDocPART))
             {
                 var cyl = m_App.MemoryGeometryBuilder.CreateSolidCylinder(
                 new Point(0, 0, 0), new Vector(1, 0, 0), 0.1, 0.2);
@@ -230,7 +254,7 @@ namespace SolidWorks.Tests.Integration
         }
 
         [Test]
-        public void PlanarSheetTest() 
+        public void PlanarSheetTest()
         {
             bool isPlanar;
             bool isCircular;
@@ -238,12 +262,10 @@ namespace SolidWorks.Tests.Integration
             double[] normal;
             double[] circleParams;
 
-            using (var doc = NewDocument(Interop.swconst.swDocumentTypes_e.swDocPART))
+            using (var doc = NewDocument(swDocumentTypes_e.swDocPART))
             {
                 var arc = m_App.MemoryGeometryBuilder.WireBuilder.PreCreateCircle();
-                arc.Center = new Point(0.75, 0.5, 0.15);
-                arc.Axis = new Vector(Math.Round(1E-16d, 15), 0, 1);
-                arc.Diameter = 2.5;
+                arc.Geometry = new Circle(new Axis(new Point(0.75, 0.5, 0.15), new Vector(1E-16d, 0, 1)), 2.5);
                 arc.Commit();
                 var face = m_App.MemoryGeometryBuilder.CreatePlanarSheet(
                     m_App.MemoryGeometryBuilder.CreateRegionFromSegments(arc)).Bodies.First().Faces.First();
@@ -257,13 +279,146 @@ namespace SolidWorks.Tests.Integration
             Assert.AreEqual(true, isPlanar);
             Assert.AreEqual(true, isCircular);
             Assert.AreEqual(1, edgeCount);
-            Assert.That(0, Is.EqualTo(normal[0]).Within(0.001).Percent);
-            Assert.That(0, Is.EqualTo(normal[1]).Within(0.001).Percent);
-            Assert.That(1, Is.EqualTo(normal[2]).Within(0.001).Percent);
+            AssertCompareDoubles(0, normal[0]);
+            AssertCompareDoubles(0, normal[1]);
+            AssertCompareDoubles(1, normal[2]);
             Assert.That(0.75, Is.EqualTo(circleParams[0]).Within(0.001).Percent);
             Assert.That(0.5, Is.EqualTo(circleParams[1]).Within(0.001).Percent);
             Assert.That(0.15, Is.EqualTo(circleParams[2]).Within(0.001).Percent);
             Assert.That(1.25, Is.EqualTo(circleParams[6]).Within(0.001).Percent);
+        }
+
+        [Test]
+        public void PlanarSheetInnerLoops()
+        {
+            var polyline = m_App.MemoryGeometryBuilder.WireBuilder.PreCreatePolyline();
+            polyline.Mode = PolylineMode_e.Loop;
+            polyline.Points = new Point[]
+            {
+                new Point(-0.1, 0.1, 0),
+                new Point(0.1, 0.1, 0),
+                new Point(0.1, -0.1, 0),
+                new Point(-0.1, -0.1, 0)
+            };
+            polyline.Commit();
+
+            var outerLoop = m_App.MemoryGeometryBuilder.WireBuilder.PreCreateLoop();
+            outerLoop.Segments = new Xarial.XCad.Geometry.Wires.IXSegment[] { polyline };
+            outerLoop.Commit();
+
+            var innerSeg1 = m_App.MemoryGeometryBuilder.WireBuilder.PreCreateCircle();
+            innerSeg1.Geometry = new Circle(new Axis(new Point(0, 0, 0), new Vector(0, 0, 1)), 0.01);
+            innerSeg1.Commit();
+
+            var innerLoop1 = m_App.MemoryGeometryBuilder.WireBuilder.PreCreateLoop();
+            innerLoop1.Segments = new Xarial.XCad.Geometry.Wires.IXSegment[]
+            {
+                innerSeg1
+            };
+
+            innerLoop1.Commit();
+
+            var innerSeg2 = m_App.MemoryGeometryBuilder.WireBuilder.PreCreateLine();
+            innerSeg2.Geometry = new Line(new Point(0.05, 0.05, 0), new Point(0.05, 0.07, 0));
+            innerSeg2.Commit();
+
+            var innerSeg3 = m_App.MemoryGeometryBuilder.WireBuilder.PreCreateLine();
+            innerSeg3.Geometry = new Line(new Point(0.05, 0.07, 0), new Point(0.07, 0.07, 0));
+            innerSeg3.Commit();
+
+            var innerSeg4 = m_App.MemoryGeometryBuilder.WireBuilder.PreCreateLine();
+            innerSeg4.Geometry = new Line(new Point(0.07, 0.07, 0), new Point(0.05, 0.05, 0));
+            innerSeg4.Commit();
+
+            var innerLoop2 = m_App.MemoryGeometryBuilder.WireBuilder.PreCreateLoop();
+            innerLoop2.Segments = new Xarial.XCad.Geometry.Wires.IXSegment[]
+            {
+                innerSeg2,
+                innerSeg3,
+                innerSeg4
+            };
+            innerLoop2.Commit();
+
+            var reg = m_App.MemoryGeometryBuilder.PreCreatePlanarRegion();
+            reg.OuterLoop = outerLoop;
+            reg.InnerLoops = new IXLoop[] { innerLoop1, innerLoop2 };
+            reg.Commit();
+
+            var planarBody = ((ISwPlanarRegion)reg).PlanarSheetBody.Body;
+
+            var face = planarBody.IGetFirstFace();
+
+            Assert.AreEqual((int)swBodyType_e.swSheetBody, planarBody.GetType());
+            Assert.AreEqual(1, planarBody.GetFaceCount());
+            Assert.That(0.039721460183660261, Is.EqualTo(face.GetArea()).Within(0.001).Percent);
+            Assert.AreEqual(8, face.GetEdgeCount());
+            Assert.AreEqual(3, face.GetLoopCount());
+        }
+
+        [Test]
+        public void PlanarSheetSketchRegionTest()
+        {
+            double area1;
+            double area2;
+
+            using (var doc = OpenDataDocument("SketchRegion1.SLDPRT"))
+            {
+                var part = (IXPart)m_App.Documents.Active;
+
+                var sketch1 = (IXSketch2D)part.Features["Sketch1"];
+
+                var reg1 = sketch1.Regions.First();
+
+                var surf1 = m_App.MemoryGeometryBuilder.CreatePlanarSheet(reg1);
+
+                area1 = surf1.Bodies.First().Faces.First().Area;
+
+                var sketch2 = (IXSketch2D)part.Features["Sketch2"];
+
+                var reg2 = sketch2.Regions.First();
+
+                var surf2 = m_App.MemoryGeometryBuilder.CreatePlanarSheet(reg2);
+
+                area2 = surf2.Bodies.First().Faces.First().Area;
+            }
+
+            Assert.That(0.00105942, Is.EqualTo(area1).Within(0.001).Percent);
+            Assert.That(0.0017281361716421462, Is.EqualTo(area2).Within(0.001).Percent);
+        }
+
+        [Test]
+        public void RegionLoopsTest()
+        {
+            Type[] faceOuterLoop;
+            Type[][] faceInnerLoops;
+            Type[] skRegOuterLoop;
+            Type[][] skRegInnerLoops;
+
+            using (var doc = OpenDataDocument("Regions.SLDPRT"))
+            {
+                var part = (ISwPart)m_App.Documents.Active;
+                var face = part.Bodies.First().Faces.First(f => ((ISwFace)f).Face.GetEdgeCount() == 8);
+
+                var skReg = ((ISwSketch2D)part.Features["Sketch1"]).Regions.First(r => r.Region.GetEdgesCount() == 8);
+
+                faceOuterLoop = face.OuterLoop.Segments.Select(x => x.GetType()).ToArray();
+                faceInnerLoops = face.InnerLoops.Select(l => l.Segments.Select(x => x.GetType()).ToArray()).ToArray();
+
+                skRegOuterLoop = skReg.OuterLoop.Segments.Select(x => x.GetType()).ToArray();
+                skRegInnerLoops = skReg.InnerLoops.Select(l => l.Segments.Select(x => x.GetType()).ToArray()).ToArray();
+            }
+
+            Assert.AreEqual(4, faceOuterLoop.Length);
+            Assert.That(faceOuterLoop.All(x => typeof(ISwLineCurve).IsAssignableFrom(x)));
+            Assert.AreEqual(2, faceInnerLoops.Length);
+            Assert.That(faceInnerLoops.Any(l => l.Length == 1) && faceInnerLoops.First(l => l.Length == 1).All(x => typeof(ISwCircleCurve).IsAssignableFrom(x)));
+            Assert.That(faceInnerLoops.Any(l => l.Length == 3) && faceInnerLoops.First(l => l.Length == 3).All(x => typeof(ISwLineCurve).IsAssignableFrom(x)));
+
+            Assert.AreEqual(4, skRegOuterLoop.Length);
+            Assert.That(skRegOuterLoop.All(x => typeof(ISwLineCurve).IsAssignableFrom(x)));
+            Assert.AreEqual(2, skRegInnerLoops.Length);
+            Assert.That(skRegInnerLoops.Any(l => l.Length == 1) && faceInnerLoops.First(l => l.Length == 1).All(x => typeof(ISwCircleCurve).IsAssignableFrom(x)));
+            Assert.That(skRegInnerLoops.Any(l => l.Length == 3) && faceInnerLoops.First(l => l.Length == 3).All(x => typeof(ISwLineCurve).IsAssignableFrom(x)));
         }
 
         [Test]
@@ -289,7 +444,7 @@ namespace SolidWorks.Tests.Integration
                 var face4 = part.CreateObjectFromDispatch<ISwFace>(part.Part.GetEntityByName("FACE4", (int)swSelectType_e.swSelFACES));//0.01463892
 
                 var knit1 = m_App.MemoryGeometryBuilder.SheetBuilder.PreCreateKnit();
-                knit1.Faces = new IXFace[] { face2, face3 };
+                knit1.Regions = new IXRegion[] { face2, face3 };
                 knit1.Commit();
 
                 b1Count = knit1.Bodies.Length;
@@ -297,7 +452,7 @@ namespace SolidWorks.Tests.Integration
                 a1 = knit1.Bodies[0].Faces.Sum(f => f.Area);
 
                 var knit2 = m_App.MemoryGeometryBuilder.SheetBuilder.PreCreateKnit();
-                knit2.Faces = new IXFace[] { face1, face3, face4 };
+                knit2.Regions = new IXRegion[] { face1, face3, face4 };
                 knit2.Commit();
 
                 b2Count = knit2.Bodies.Length;
@@ -323,13 +478,13 @@ namespace SolidWorks.Tests.Integration
         {
             double mass;
 
-            using (var doc = OpenDataDocument("Features1.SLDPRT")) 
+            using (var doc = OpenDataDocument("Features1.SLDPRT"))
             {
                 var part = (ISwPart)m_App.Documents.Active;
 
                 byte[] buffer;
 
-                using (var memStr = new MemoryStream()) 
+                using (var memStr = new MemoryStream())
                 {
                     var body = part.Bodies.First();
                     m_App.MemoryGeometryBuilder.SerializeBody(body, memStr);
@@ -362,9 +517,7 @@ namespace SolidWorks.Tests.Integration
                 curve1Length = curve1.Length;
 
                 var arc2 = m_App.MemoryGeometryBuilder.WireBuilder.PreCreateArc();
-                arc2.Center = new Point(0, 0, 0);
-                arc2.Axis = new Vector(0, 0, -1);
-                arc2.Diameter = 0.01;
+                arc2.Geometry = new Circle(new Axis(new Point(0, 0, 0), new Vector(0, 0, -1)), 0.01);
                 arc2.Start = new Point(-0.005, 0, 0);
                 arc2.End = new Point(0, 0.005, 0);
                 arc2.Commit();
@@ -393,9 +546,7 @@ namespace SolidWorks.Tests.Integration
                 curve1Length = curve1.Length;
 
                 var circle2 = m_App.MemoryGeometryBuilder.WireBuilder.PreCreateCircle();
-                circle2.Center = new Point(0, 0, 0);
-                circle2.Axis = new Vector(0, 0, -1);
-                circle2.Diameter = 0.01;
+                circle2.Geometry = new Circle(new Axis(new Point(0, 0, 0), new Vector(0, 0, -1)), 0.01);
                 circle2.Commit();
 
                 curve2Length = circle2.Length;
@@ -404,6 +555,41 @@ namespace SolidWorks.Tests.Integration
             Assert.That(typeof(ISwCircleCurve).IsAssignableFrom(curve1Type) && !typeof(ISwArcCurve).IsAssignableFrom(curve1Type));
             Assert.That(0.12214774689, Is.EqualTo(curve1Length).Within(0.001).Percent);
             Assert.That(Math.PI * 0.01, Is.EqualTo(curve2Length).Within(0.001).Percent);
+        }
+
+        [Test]
+        public void CreateWireBodyTest()
+        {
+            var line1 = (ISwLineCurve)m_App.MemoryGeometryBuilder.WireBuilder.PreCreateLine();
+            line1.Geometry = new Line(new Point(10, 10, 10), new Point(20, 20, 20));
+            
+            var line2 = (ISwLineCurve)m_App.MemoryGeometryBuilder.WireBuilder.PreCreateLine();
+            line2.Geometry = new Line(new Point(20, 20, 20), new Point(30, 40, 50));
+            line2.Commit();
+
+            var body1 = line1.CreateBody();
+
+            var body2 = m_App.MemoryGeometryBuilder.WireBuilder.PreCreateWireBody();
+            body2.Segments = new IXSegment[] { line1, line2 };
+            body2.Commit();
+
+            var curve = body1.Segments.First();
+
+            var firstEdge = (IEdge)((object[])((ISwBody)body1).Body.GetEdges()).First();
+
+            var firstVert = (double[])firstEdge.IGetStartVertex().GetPoint();
+            var secondVert = (double[])firstEdge.IGetEndVertex().GetPoint();
+
+            Assert.IsInstanceOf<ISwLinearEdge>(curve);
+            Assert.AreEqual((int)swBodyType_e.swWireBody, ((ISwBody)body1).Body.GetType());
+            Assert.AreEqual(1, ((ISwBody)body1).Body.GetEdgeCount());
+            Assert.AreEqual(2, ((ISwBody)body2).Body.GetEdgeCount());
+            Assert.That(10, Is.EqualTo(firstVert[0]).Within(0.001).Percent);
+            Assert.That(10, Is.EqualTo(firstVert[1]).Within(0.001).Percent);
+            Assert.That(10, Is.EqualTo(firstVert[2]).Within(0.001).Percent);
+            Assert.That(20, Is.EqualTo(secondVert[0]).Within(0.001).Percent);
+            Assert.That(20, Is.EqualTo(secondVert[1]).Within(0.001).Percent);
+            Assert.That(20, Is.EqualTo(secondVert[2]).Within(0.001).Percent);
         }
     }
 }

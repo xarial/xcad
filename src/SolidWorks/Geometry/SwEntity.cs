@@ -1,17 +1,22 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
 using SolidWorks.Interop.sldworks;
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.SolidWorks.Documents;
+using Xarial.XCad.Toolkit.Utils;
 
 namespace Xarial.XCad.SolidWorks.Geometry
 {
@@ -20,26 +25,26 @@ namespace Xarial.XCad.SolidWorks.Geometry
         IEntity Entity { get; }
 
         new ISwComponent Component { get; }
-        new IEnumerable<ISwEntity> AdjacentEntities { get; }
+        new ISwEntityRepository AdjacentEntities { get; }
         new ISwBody Body { get; }
     }
 
     internal abstract class SwEntity : SwSelObject, ISwEntity
     {
         IXBody IXEntity.Body => Body;
-        IEnumerable<IXEntity> IXEntity.AdjacentEntities => AdjacentEntities;
+        IXEntityRepository IXEntity.AdjacentEntities => AdjacentEntities;
         IXComponent IXEntity.Component => Component;
-        ISwObject IResilientibleObject.CreateResilient() => CreateResilient();
+        IXObject ISupportsResilience.CreateResilient() => CreateResilient();
 
-        public IEntity Entity { get; }
+        public virtual IEntity Entity { get; }
 
         public override object Dispatch => Entity;
 
         public abstract ISwBody Body { get; }
 
-        public abstract IEnumerable<ISwEntity> AdjacentEntities { get; }
+        public abstract ISwEntityRepository AdjacentEntities { get; }
 
-        public ISwComponent Component 
+        public virtual ISwComponent Component 
         {
             get 
             {
@@ -56,16 +61,18 @@ namespace Xarial.XCad.SolidWorks.Geometry
             }
         }
 
+        public override bool IsAlive => this.CheckIsAlive(() => { var test = Entity.IsSafe; });
+
         public bool IsResilient => Entity.IsSafe;
 
-        internal SwEntity(IEntity entity, ISwDocument doc, ISwApplication app) : base(entity, doc, app)
+        internal SwEntity(IEntity entity, SwDocument doc, SwApplication app) : base(entity, doc, app)
         {
             Entity = entity;
         }
 
-        public override void Select(bool append)
+        internal override void Select(bool append, ISelectData selData)
         {
-            if (!Entity.Select4(append, null))
+            if (!Entity.Select4(append, (SelectData)selData))
             {
                 throw new Exception("Failed to select entity");
             }

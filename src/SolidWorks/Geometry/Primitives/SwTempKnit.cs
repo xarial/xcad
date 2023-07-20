@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -14,37 +14,36 @@ using System.Text;
 using System.Threading;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Primitives;
+using Xarial.XCad.SolidWorks.Services;
 
 namespace Xarial.XCad.SolidWorks.Geometry.Primitives
 {
     public interface ISwTempKnit : IXKnit, ISwTempPrimitive
     {
-        new ISwFace[] Faces { get; set; }
     }
 
     public interface ISwTempSurfaceKnit : ISwTempKnit, ISwTempPrimitive
     {
-        new ISwFace[] Faces { get; set; }
         new ISwTempSheetBody[] Bodies { get; }
     }
 
     public interface ISwTempSolidKnit : ISwTempKnit, ISwTempPrimitive
     {
-        new ISwFace[] Faces { get; set; }
         new ISwTempSolidBody[] Bodies { get; }
     }
 
     internal abstract class SwTempKnit : SwTempPrimitive, ISwTempKnit 
     {
-        IXFace[] IXKnit.Faces { get => Faces; set => Faces = value.Cast<ISwFace>().ToArray(); }
+        private readonly IMemoryGeometryBuilderToleranceProvider m_TolProvider;
 
-        internal SwTempKnit(SwTempBody[] bodies, ISwApplication app, bool isCreated) : base(bodies, app, isCreated)
+        internal SwTempKnit(SwTempBody[] bodies, ISwApplication app, bool isCreated, IMemoryGeometryBuilderToleranceProvider tolProvider) : base(bodies, app, isCreated)
         {
+            m_TolProvider = tolProvider;
         }
 
-        public ISwFace[] Faces
+        public IXRegion[] Regions
         {
-            get => m_Creator.CachedProperties.Get<ISwFace[]>();
+            get => m_Creator.CachedProperties.Get<IXRegion[]>();
             set
             {
                 if (IsCommitted)
@@ -60,19 +59,35 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
 
         protected override ISwTempBody[] CreateBodies(CancellationToken cancellationToken)
         {
-            if (Faces?.Length > 0)
+            if (Regions?.Length > 0)
             {
-                var sheetBodies = Faces.Select(f => f.Face.ICreateSheetBody()).ToArray();
+                var sheetBodies = Regions.Select(f =>
+                {
+                    switch (f) 
+                    {
+                        case ISwPlanarRegion planarReg:
+                            return planarReg.PlanarSheetBody.Body;
 
-                var tol = 1E-16;
+                        case ISwFace face:
+                            return face.Face.ICreateSheetBody();
 
+                        default:
+                            throw new Exception("Not supported region for the knit: specify planar region or face");
+                    }
+                    
+                }).ToArray();
+                
                 int errs = -1;
 
-                var bodies = (object[])m_Modeler.CreateBodiesFromSheets2(sheetBodies, (int)SewingType, tol, ref errs);
+                var bodies = (object[])m_Modeler.CreateBodiesFromSheets2(sheetBodies, (int)SewingType, m_TolProvider.Knitting, ref errs);
 
-                if (bodies != null)
+                if (bodies?.Any() == true)
                 {
-                    return bodies.Select(b => m_App.CreateObjectFromDispatch<ISwTempBody>((IBody2)b, null)).ToArray();
+                    var swBodies = bodies.Cast<IBody2>().ToArray();
+
+                    ValidateBodies(swBodies);
+
+                    return swBodies.Select(b => m_App.CreateObjectFromDispatch<ISwTempBody>(b, null)).ToArray();
                 }
                 else
                 {
@@ -85,6 +100,8 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
             }
         }
 
+        protected abstract void ValidateBodies(IBody2[] bodies);
+
         protected abstract swSheetSewingOption_e SewingType { get; }
     }
 
@@ -94,8 +111,16 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
 
         protected override swSheetSewingOption_e SewingType => swSheetSewingOption_e.swSewToSheets;
 
-        internal SwTempSurfaceKnit(SwTempBody[] bodies, ISwApplication app, bool isCreated) : base(bodies, app, isCreated)
+        internal SwTempSurfaceKnit(SwTempBody[] bodies, ISwApplication app, bool isCreated, IMemoryGeometryBuilderToleranceProvider tolProvider) : base(bodies, app, isCreated, tolProvider)
         {
+        }
+
+        protected override void ValidateBodies(IBody2[] bodies)
+        {
+            if (bodies.Any(b => b.GetType() != (int)swBodyType_e.swSheetBody)) 
+            {
+                throw new Exception("Result of the knit operation contains non-sheet bodies");
+            }
         }
     }
 
@@ -105,8 +130,16 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
 
         protected override swSheetSewingOption_e SewingType => swSheetSewingOption_e.swSewToSolid;
 
-        internal SwTempSolidKnit(SwTempBody[] bodies, ISwApplication app, bool isCreated) : base(bodies, app, isCreated)
+        internal SwTempSolidKnit(SwTempBody[] bodies, ISwApplication app, bool isCreated, IMemoryGeometryBuilderToleranceProvider tolProvider) : base(bodies, app, isCreated, tolProvider)
         {
+        }
+
+        protected override void ValidateBodies(IBody2[] bodies)
+        {
+            if (bodies.Any(b => b.GetType() != (int)swBodyType_e.swSolidBody))
+            {
+                throw new Exception("Result of the knit operation contains non-solid bodies");
+            }
         }
     }
 }

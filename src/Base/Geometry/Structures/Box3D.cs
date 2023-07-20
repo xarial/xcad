@@ -1,15 +1,18 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
+
+using System.Diagnostics;
 
 namespace Xarial.XCad.Geometry.Structures
 {
     /// <summary>
     /// Represents the 3D bounding box
     /// </summary>
+    [DebuggerDisplay("{" + nameof(Width) + "} x {" + nameof(Height) + "} x {" + nameof(Length) + "}")]
     public class Box3D
     {
         /// <summary>
@@ -18,12 +21,12 @@ namespace Xarial.XCad.Geometry.Structures
         public double Width { get; }
 
         /// <summary>
-        /// Width of the bounding box relative to Y axis
+        /// Height of the bounding box relative to Y axis
         /// </summary>
         public double Height { get; }
 
         /// <summary>
-        /// Width of the bounding box relative to Z axis
+        /// Length of the bounding box relative to Z axis
         /// </summary>
         public double Length { get; }
 
@@ -61,6 +64,22 @@ namespace Xarial.XCad.Geometry.Structures
             AxisX = axisX;
             AxisY = axisY;
             AxisZ = axisZ;
+        }
+
+        /// <summary>
+        /// Constructor based onend points of diagonal
+        /// </summary>
+        public Box3D(double minX, double minY, double minZ, double maxX, double maxY, double maxZ) 
+        {
+            Width = maxX - minX;
+            Height = maxY - minY;
+            Length = maxZ - minZ;
+
+            CenterPoint = new Point((maxX + minX) / 2, (maxY + minY) / 2, (maxZ + minZ) / 2);
+
+            AxisX = new Vector(1, 0, 0);
+            AxisY = new Vector(0, 1, 0);
+            AxisZ = new Vector(0, 0, 1);
         }
     }
 

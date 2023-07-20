@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -12,19 +12,34 @@ using Xarial.XCad.UI.PropertyPage.Enums;
 
 namespace Xarial.XCad.UI.PropertyPage.Attributes
 {
-    /// <summary>
-    /// Generic options for all controls
-    /// </summary>
-    public class ControlOptionsAttribute : Attribute, IAttribute
+    /// <inheritdoc/>
+    public class ControlOptionsAttribute : Attribute, IControlOptionsAttribute
     {
+        /// <inheritdoc/>
         public AddControlOptions_e Options { get; }
+
+        /// <inheritdoc/>
         public ControlLeftAlign_e Align { get; }
+
+        /// <inheritdoc/>
         public KnownColor BackgroundColor { get; }
+
+        /// <inheritdoc/>
         public KnownColor TextColor { get; }
+
+        /// <inheritdoc/>
         public short Left { get; }
+
+        /// <inheritdoc/>
         public short Top { get; }
+
+        /// <inheritdoc/>
         public short Width { get; }
+
+        /// <inheritdoc/>
         public short Height { get; }
+
+        /// <inheritdoc/>
         public ControlOnResizeOptions_e ResizeOptions { get; }
 
         /// <summary>

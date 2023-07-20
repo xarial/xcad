@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -17,6 +17,6 @@ namespace Xarial.XCad.Geometry.Primitives
         /// <summary>
         /// Profiles of this loft
         /// </summary>
-        IXRegion[] Profiles { get; set; }
+        IXPlanarRegion[] Profiles { get; set; }
     }
 }

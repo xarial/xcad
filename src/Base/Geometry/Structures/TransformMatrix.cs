@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -77,18 +77,25 @@ namespace Xarial.XCad.Geometry.Structures
         /// <summary>
         /// Creates matrix from translation
         /// </summary>
-        /// <param name="translation">Translation vector</param>
-        /// <returns></returns>
-        public static TransformMatrix CreateFromTranslation(Vector translation) 
-        {   
-            var matrix = Identity;
-            
-            matrix.M41 = translation.X;
-            matrix.M42 = translation.Y;
-            matrix.M43 = translation.Z;
+        ///<param name="x">Translation in X direction</param>
+        ///<param name="y">Translation in Y direction</param>
+        ///<param name="z">Translation in Z direction</param>
+        /// <returns>Transformation matrix</returns>
+        public static TransformMatrix CreateFromTranslation(double x, double y, double z)
+            => new TransformMatrix(1.0, 0.0, 0.0, 0.0,
+                0.0, 1.0, 0.0, 0.0,
+                0.0, 0.0, 1.0, 0.0,
+                x, y, z, 1.0);
 
-            return matrix;
-        }
+
+        /// <summary>
+        /// Creates matrix from translation
+        /// </summary>
+        /// <param name="translation">Translation component</param>
+        /// <returns>Transformation matrix</returns>
+        public static TransformMatrix CreateFromTranslation(Vector translation)
+            => CreateFromTranslation(translation.X, translation.Y, translation.Z);
+
 
         /// <summary>
         /// Composes the transformation matrix from input parameters
@@ -112,6 +119,33 @@ namespace Xarial.XCad.Geometry.Structures
         }
 
         /// <summary>
+        /// Composes the transformation matrix from rotation and translation
+        /// </summary>
+        /// <param name="yaw">Counterclockwise rotation about z-axis</param>
+        /// <param name="pitch">Counterclockwise rotation about y-axis</param>
+        /// <param name="roll">Counterclockwise rotation about x-axis</param>
+        ///<param name="x">Translation in X direction</param>
+        ///<param name="y">Translation in Y direction</param>
+        ///<param name="z">Translation in Z direction</param>
+        /// <returns>Transformation matrix</returns>
+        public static TransformMatrix Compose(double yaw, double pitch, double roll, double x, double y, double z)
+            => new TransformMatrix(
+                Math.Cos(yaw) * Math.Cos(pitch), Math.Cos(yaw) * Math.Sin(pitch) * Math.Sin(roll) - Math.Sin(yaw) * Math.Cos(roll), Math.Cos(yaw) * Math.Sin(pitch) * Math.Cos(roll) + Math.Sin(yaw) * Math.Sin(roll), 0.0,
+                Math.Sin(yaw) * Math.Cos(pitch), Math.Sin(yaw) * Math.Sin(pitch) * Math.Sin(roll) + Math.Cos(yaw) * Math.Cos(roll), Math.Sin(yaw) * Math.Sin(pitch) * Math.Cos(roll) - Math.Cos(yaw) * Math.Sin(roll), 0.0,
+                -Math.Sin(pitch), Math.Cos(pitch) * Math.Sin(roll), Math.Cos(pitch) * Math.Cos(roll), 0.0,
+                x, y, z, 1.0);
+
+        /// <summary>
+        /// Creates rotation matrix from rotation angles
+        /// </summary>
+        /// <param name="yaw">Counterclockwise rotation about z-axis</param>
+        /// <param name="pitch">Counterclockwise rotation about y-axis</param>
+        /// <param name="roll">Counterclockwise rotation about x-axis</param>
+        /// <returns>Transformation matrix</returns>
+        public static TransformMatrix CreateFromRotation(double yaw, double pitch, double roll)
+            => Compose(yaw, pitch, roll, 0, 0, 0);
+
+        /// <summary>
         /// X-Axis Rotation (X)
         /// </summary>
         public double M11 { get; set; }
@@ -127,7 +161,7 @@ namespace Xarial.XCad.Geometry.Structures
         public double M13 { get; set; }
 
         /// <summary>
-        /// Not Used
+        /// 0 - Not Used
         /// </summary>
         public double M14 { get; set; }
 
@@ -147,7 +181,7 @@ namespace Xarial.XCad.Geometry.Structures
         public double M23 { get; set; }
 
         /// <summary>
-        /// Not Used
+        /// 0 - Not Used
         /// </summary>
         public double M24 { get; set; }
 
@@ -167,7 +201,7 @@ namespace Xarial.XCad.Geometry.Structures
         public double M33 { get; set; }
 
         /// <summary>
-        /// Not Used
+        /// 0 - Not Used
         /// </summary>
         public double M34 { get; set; }
 
@@ -206,38 +240,28 @@ namespace Xarial.XCad.Geometry.Structures
             double m21, double m22, double m23, double m24,
             double m31, double m32, double m33, double m34,
             double m41, double m42, double m43, double m44)
-        {
-            M11 = m11;
-            M12 = m12;
-            M13 = m13;
-            M14 = m14;
-
-            M21 = m21;
-            M22 = m22;
-            M23 = m23;
-            M24 = m24;
-
-            M31 = m31;
-            M32 = m32;
-            M33 = m33;
-            M34 = m34;
-
-            M41 = m41;
-            M42 = m42;
-            M43 = m43;
-            M44 = m44;
-        }
+            => Set(m11, m12, m13, m14, m21, m22, m23, m24, m31, m32, m33, m34, m41, m42, m43, m44);
 
         /// <summary>
-        /// Creates transform matrox from array
+        /// Creates transform matrix from an array
         /// </summary>
         /// <param name="matrix">Array of 16 elements</param>
-        protected TransformMatrix(double[] matrix) :
-            this(matrix[0], matrix[1], matrix[2], matrix[3],
+        public TransformMatrix(double[] matrix)
+        {
+            if (matrix == null) 
+            {
+                throw new ArgumentNullException(nameof(matrix));
+            }
+
+            if (matrix.Length != 16) 
+            {
+                throw new ArgumentException("Invalid matrix format. Array must have 16 elements for 4x4 matrix");
+            }
+
+            Set(matrix[0], matrix[1], matrix[2], matrix[3],
                 matrix[4], matrix[5], matrix[6], matrix[7],
                 matrix[8], matrix[9], matrix[10], matrix[11],
-                matrix[12], matrix[13], matrix[14], matrix[15])
-        {
+                matrix[12], matrix[13], matrix[14], matrix[15]);
         }
 
         /// <summary>
@@ -250,6 +274,34 @@ namespace Xarial.XCad.Geometry.Structures
                + M13 * M24 * M31 * M42 - M13 * M24 * M32 * M41 + M13 * M21 * M32 * M44 - M13 * M21 * M34 * M42
                + M13 * M22 * M34 * M41 - M13 * M22 * M31 * M44 - M14 * M21 * M32 * M43 + M14 * M21 * M33 * M42
                - M14 * M22 * M33 * M41 + M14 * M22 * M31 * M43 - M14 * M23 * M31 * M42 + M14 * M23 * M32 * M41;
+
+        /// <summary>
+        /// Counterclockwise rotation about z-axis
+        /// </summary>
+        public double Yaw => Math.Atan2(M21, M11);
+
+        /// <summary>
+        /// Counterclockwise rotation about y-axis
+        /// </summary>
+        public double Pitch => Math.Atan2(-M31, Math.Sqrt(Math.Pow(M32, 2) + Math.Pow(M33, 2)));
+
+        /// <summary>
+        /// Counterclockwise rotation about x-axis
+        /// </summary>
+        public double Roll => Math.Atan2(M32, M33);
+
+        /// <summary>
+        /// Translation component of the matrix
+        /// </summary>
+        public Vector Translation => new Vector(M41, M42, M43);
+
+        /// <summary>
+        /// Scale in X, Y, Z directions
+        /// </summary>
+        public Vector Scale => new Vector(
+            new Vector(M11, M21, M31).GetLength(),
+            new Vector(M12, M22, M32).GetLength(),
+            new Vector(M13, M23, M33).GetLength());
 
         /// <summary>
         /// Multiplies transformation matrix
@@ -274,6 +326,30 @@ namespace Xarial.XCad.Geometry.Structures
                 (M41 * matrix.M12) + (M42 * matrix.M22) + (M43 * matrix.M32) + (M44 * matrix.M42),
                 (M41 * matrix.M13) + (M42 * matrix.M23) + (M43 * matrix.M33) + (M44 * matrix.M43),
                 (M41 * matrix.M14) + (M42 * matrix.M24) + (M43 * matrix.M34) + (M44 * matrix.M44));
+
+        /// <summary>
+        /// Adds matrix
+        /// </summary>
+        /// <param name="matrix">Matrix to add</param>
+        /// <returns>Added matrix</returns>
+        public TransformMatrix Add(TransformMatrix matrix)
+            => new TransformMatrix(
+                M11 + matrix.M11, M12 + matrix.M12, M13 + matrix.M13, M14 + matrix.M14,
+                M21 + matrix.M21, M22 + matrix.M22, M23 + matrix.M23, M24 + matrix.M24,
+                M31 + matrix.M31, M32 + matrix.M32, M33 + matrix.M33, M34 + matrix.M34,
+                M41 + matrix.M41, M42 + matrix.M42, M43 + matrix.M43, M44 + matrix.M44);
+
+        /// <summary>
+        /// Subtracts matrix
+        /// </summary>
+        /// <param name="matrix">Matrix to subtract</param>
+        /// <returns>Subtracted matrix</returns>
+        public TransformMatrix Subtract(TransformMatrix matrix)
+            => new TransformMatrix(
+                M11 - matrix.M11, M12 - matrix.M12, M13 - matrix.M13, M14 - matrix.M14,
+                M21 - matrix.M21, M22 - matrix.M22, M23 - matrix.M23, M24 - matrix.M24,
+                M31 - matrix.M31, M32 - matrix.M32, M33 - matrix.M33, M34 - matrix.M34,
+                M41 - matrix.M41, M42 - matrix.M42, M43 - matrix.M43, M44 - matrix.M44);
 
         /// <summary>
         /// Inverses this matrix
@@ -348,6 +424,59 @@ namespace Xarial.XCad.Geometry.Structures
                 M31, M32, M33, M34,
                 M41, M42, M43, M44
             };
+
+        /// <summary>
+        /// Multiplies two matrices
+        /// </summary>
+        /// <param name="srcMatrix">Source matrix</param>
+        /// <param name="other">Other matrix</param>
+        /// <returns>Transformed matrix</returns>
+        public static TransformMatrix operator *(TransformMatrix srcMatrix, TransformMatrix other)
+            => srcMatrix.Multiply(other);
+
+        /// <summary>
+        /// Adds two matrices
+        /// </summary>
+        /// <param name="srcMatrix">Source matrix</param>
+        /// <param name="other">Other matrix</param>
+        /// <returns>Transformed matrix</returns>
+        public static TransformMatrix operator +(TransformMatrix srcMatrix, TransformMatrix other)
+            => srcMatrix.Add(other);
+
+        /// <summary>
+        /// Subtracts two matrices
+        /// </summary>
+        /// <param name="srcMatrix">Source matrix</param>
+        /// <param name="other">Other matrix</param>
+        /// <returns>Transformed matrix</returns>
+        public static TransformMatrix operator -(TransformMatrix srcMatrix, TransformMatrix other)
+            => srcMatrix.Subtract(other);
+
+        private void Set(double m11, double m12, double m13, double m14,
+            double m21, double m22, double m23, double m24,
+            double m31, double m32, double m33, double m34,
+            double m41, double m42, double m43, double m44)
+        {
+            M11 = m11;
+            M12 = m12;
+            M13 = m13;
+            M14 = m14;
+
+            M21 = m21;
+            M22 = m22;
+            M23 = m23;
+            M24 = m24;
+
+            M31 = m31;
+            M32 = m32;
+            M33 = m33;
+            M34 = m34;
+
+            M41 = m41;
+            M42 = m42;
+            M43 = m43;
+            M44 = m44;
+        }
 
         /// <summary>
         /// Converts to string

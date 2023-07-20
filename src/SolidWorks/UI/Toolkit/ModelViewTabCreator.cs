@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -35,38 +35,28 @@ namespace Xarial.XCad.SolidWorks.UI.Toolkit
         protected override string HostComControl(string progId, string title, IXImage image,
             out TControl specCtrl)
         {
-            using (var iconsConv = m_SvcProvider.GetService<IIconsCreator>())
+            specCtrl = (TControl)m_CtrlProvider.ProvideComControl(m_ModelViewMgr, progId, title);
+
+            if (specCtrl != null)
             {
-                var imgPath = iconsConv.ConvertIcon(new FeatMgrViewIcon(image)).First();
-
-                specCtrl = (TControl)m_CtrlProvider.ProvideComControl(m_ModelViewMgr, progId, title);
-
-                if (specCtrl != null)
-                {
-                    return title;
-                }
-                else 
-                {
-                    throw new ComControlHostException(progId);
-                }
+                return title;
+            }
+            else
+            {
+                throw new ComControlHostException(progId);
             }
         }
 
         protected override string HostNetControl(Control winCtrlHost, TControl ctrl,
             string title, IXImage image)
         {
-            using (var iconsConv = m_SvcProvider.GetService<IIconsCreator>())
+            if (m_CtrlProvider.ProvideNetControl(m_ModelViewMgr, winCtrlHost, title))
             {
-                var imgPath = iconsConv.ConvertIcon(new FeatMgrViewIcon(image)).First();
-
-                if (m_CtrlProvider.ProvideNetControl(m_ModelViewMgr, winCtrlHost, title))
-                {
-                    return title;
-                }
-                else
-                {
-                    throw new NetControlHostException(winCtrlHost.Handle);
-                }
+                return title;
+            }
+            else
+            {
+                throw new NetControlHostException(winCtrlHost.Handle);
             }
         }
     }

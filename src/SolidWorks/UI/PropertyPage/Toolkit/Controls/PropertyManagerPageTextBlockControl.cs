@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -8,9 +8,14 @@
 using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
 using System.Drawing;
+using Xarial.XCad.Enums;
+using Xarial.XCad.SolidWorks.Services;
+using Xarial.XCad.Toolkit.Services;
 using Xarial.XCad.Toolkit.Utils;
+using Xarial.XCad.UI.PropertyPage.Attributes;
 using Xarial.XCad.UI.PropertyPage.Base;
 using Xarial.XCad.UI.PropertyPage.Enums;
+using Xarial.XCad.Utils.PageBuilder.Base;
 using Xarial.XCad.Utils.PageBuilder.PageElements;
 
 namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
@@ -46,30 +51,68 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
         }
     }
 
-    internal class PropertyManagerPageTextBlockControl : PropertyManagerPageBaseControl<string, IPropertyManagerPageLabel>
+    internal class PropertyManagerPageTextBlockControl : PropertyManagerPageBaseControl<object, IPropertyManagerPageLabel>
     {
-        protected override event ControlValueChangedDelegate<string> ValueChanged;
+        protected override event ControlValueChangedDelegate<object> ValueChanged;
 
-        private readonly FontStyle_e m_FontStyle;
-        private readonly string m_Font;
-        private readonly KnownColor? m_TextColor;
+        private FontStyle_e m_FontStyle;
+        private string m_Font;
+        private KnownColor? m_TextColor;
+        private string m_Format;
 
-        internal PropertyManagerPageTextBlockControl(int id, object tag,
-            IPropertyManagerPageLabel textBlock, FontStyle_e fontStyle, string font, KnownColor? textColor,
-            SwPropertyManagerPageHandler handler, IPropertyManagerPageLabel label, IMetadata[] metadata)
-            : base(textBlock, id, tag, handler, label, metadata)
+        internal PropertyManagerPageTextBlockControl(SwApplication app, IGroup parentGroup, IIconsCreator iconConv,
+            IAttributeSet atts, IMetadata[] metadata, ref int numberOfUsedIds)
+            : base(app, parentGroup, iconConv, atts, metadata, swPropertyManagerPageControlType_e.swControlType_Label, ref numberOfUsedIds)
         {
-            m_FontStyle = fontStyle;
-            m_Font = font;
-            m_TextColor = textColor;
         }
 
-        protected override string GetSpecificValue()
-            => SwSpecificControl.Caption;
-
-        protected override void SetSpecificValue(string value)
+        protected override void InitData(IControlOptionsAttribute opts, IAttributeSet atts)
         {
-            SwSpecificControl.Caption = value;
+            if (atts.Has<ControlOptionsAttribute>())
+            {
+                m_TextColor = atts.Get<ControlOptionsAttribute>().TextColor;
+            }
+
+            if (atts.Has<TextBlockOptionsAttribute>())
+            {
+                var style = atts.Get<TextBlockOptionsAttribute>();
+                
+                m_FontStyle = style.FontStyle;
+
+                m_Font = style.Font;
+
+                m_Format = style.Format;
+            }
+        }
+
+        protected override void SetOptions(IPropertyManagerPageLabel ctrl, IControlOptionsAttribute opts, IAttributeSet atts)
+        {
+            if (atts.Has<TextBlockOptionsAttribute>())
+            {
+                var style = atts.Get<TextBlockOptionsAttribute>();
+
+                ctrl.Style = (int)style.TextAlignment;
+
+                ctrl.SetLabelOptions(m_FontStyle, m_Font, m_TextColor);
+            }
+        }
+
+        protected override object GetSpecificValue() => null;
+
+        protected override void SetSpecificValue(object value)
+        {
+            string caption;
+
+            if (string.IsNullOrEmpty(m_Format))
+            {
+                caption = value?.ToString();
+            }
+            else 
+            {
+                caption = string.Format(m_Format, value);
+            }
+
+            SwSpecificControl.Caption = caption;
             SwSpecificControl.SetLabelOptions(m_FontStyle, m_Font, m_TextColor);
         }
 

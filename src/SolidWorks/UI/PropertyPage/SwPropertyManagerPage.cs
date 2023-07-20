@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -26,6 +26,9 @@ using Xarial.XCad.UI.PropertyPage.Base;
 using Xarial.XCad.UI.Exceptions;
 using Xarial.XCad.SolidWorks.UI.Toolkit;
 using System.ComponentModel;
+using Xarial.XCad.Utils.PageBuilder;
+using Xarial.XCad.Utils.Reflection;
+using Xarial.XCad.Toolkit.Services;
 
 namespace Xarial.XCad.SolidWorks.UI.PropertyPage
 {
@@ -65,17 +68,26 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
         /// <inheritdoc/>
         public TModel Model { get; private set; }
 
+        /// <inheritdoc/>
+        public bool IsPinned 
+        {
+            get => m_Page.Page.Pinned;
+            set => m_Page.Page.Pinned = value;
+        }
+
         private readonly IServiceProvider m_SvcProvider;
+
+        private readonly IContextProvider m_ContextProvider;
 
         /// <summary>Creates instance of property manager page</summary>
         /// <param name="app">Pointer to session of SOLIDWORKS where the property manager page to be created</param>
-        internal SwPropertyManagerPage(ISwApplication app, IServiceProvider svcProvider, SwPropertyManagerPageHandler handler,
+        internal SwPropertyManagerPage(SwApplication app, IServiceProvider svcProvider, SwPropertyManagerPageHandler handler,
             CreateDynamicControlsDelegate createDynCtrlHandler)
             : this(app, null, svcProvider, handler, createDynCtrlHandler)
         {
         }
 
-        internal SwPropertyManagerPage(ISwApplication app, IPageSpec pageSpec, IServiceProvider svcProvider, SwPropertyManagerPageHandler handler,
+        internal SwPropertyManagerPage(SwApplication app, IPageSpec pageSpec, IServiceProvider svcProvider, SwPropertyManagerPageHandler handler,
             CreateDynamicControlsDelegate createDynCtrlHandler)
         {
             m_App = app;
@@ -88,14 +100,17 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
 
             m_IconsConv = m_SvcProvider.GetService<IIconsCreator>();
 
-            //TODO: validate that handler is COM visible
             Handler = handler;
+
+            ValidateHandler(Handler);            
 
             Handler.Closed += OnClosed;
             Handler.Closing += OnClosing;
             m_PmpBuilder = new PropertyManagerPageBuilder(app, m_IconsConv, Handler, pageSpec, m_Logger);
 
-            m_Page = m_PmpBuilder.CreatePage<TModel>(createDynCtrlHandler);
+            m_ContextProvider = new BaseContextProvider();
+
+            m_Page = m_PmpBuilder.CreatePage<TModel>(createDynCtrlHandler, m_ContextProvider);
 
             var ctrls = new List<IPropertyManagerPageElementEx>();
 
@@ -118,8 +133,33 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
             Controls = ctrls.ToArray();
         }
 
+        private void ValidateHandler(SwPropertyManagerPageHandler handler)
+        {
+            if (handler == null) 
+            {
+                throw new NullReferenceException("Handler is null");
+            }
+
+            var type = handler.GetType();
+
+            if (!type.IsComVisible()) 
+            {
+                throw new Exception($"Handler type '{type.FullName}' must be COM visible");
+            }
+
+            if (!(type.IsPublic || type.IsNestedPublic)) 
+            {
+                throw new Exception($"Handler type '{type.FullName}' must be a public class");
+            }
+        }
+
         private void OnBindingValueChanged(IBinding binding)
-            => DataChanged?.Invoke();
+        {
+            if (!binding.Silent) 
+            {
+                DataChanged?.Invoke();
+            }
+        }
 
         public void Dispose()
         {
@@ -139,7 +179,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
                     }
                 }
 
-                m_IconsConv.Dispose();
+                m_Page.Dispose();
 
                 m_IsDisposed = true;
 
@@ -153,19 +193,9 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
             Model = model;
             m_Logger.Log("Opening page", XCad.Base.Enums.LoggerMessageSeverity_e.Debug);
 
-            const int OPTS_DEFAULT = 0;
-
             m_App.Sw.IActiveDoc2.ClearSelection2(true);
 
-            foreach (var binding in m_Page.Binding.Bindings ?? Enumerable.Empty<IBinding>())
-            {
-                binding.Model = model;
-            }
-
-            foreach (var md in m_Page.Binding.Metadata ?? Enumerable.Empty<IMetadata>())
-            {
-                md.Model = model;
-            }
+            m_ContextProvider.NotifyContextChanged(model);
 
             Handler.InvokeOpening();
 
@@ -175,7 +205,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
                 binding.UpdateControl();
             }
 
-            m_Page.Page.Show2(OPTS_DEFAULT);
+            m_Page.Show();
 
             //updating control states
             m_Page.Binding.Dependency.UpdateAll();

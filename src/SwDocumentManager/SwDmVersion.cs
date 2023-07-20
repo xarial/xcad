@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -35,7 +35,10 @@ namespace Xarial.XCad.SwDocumentManager
         Sw2018 = 11000,
         Sw2019 = 12000,
         Sw2020 = 13000,
-        Sw2021 = 14000
+        Sw2021 = 14000,
+        Sw2022 = 15000,
+        Sw2023 = 16000,
+        Sw2024 = 17000
     }
 
     public interface ISwDmVersion : IXVersion
@@ -50,16 +53,19 @@ namespace Xarial.XCad.SwDocumentManager
         public string DisplayName
             => $"SOLIDWORKS {Major.ToString().Substring("Sw".Length)}";
 
-        internal SwDmVersion(SwDmVersion_e major)
+        public Version Version { get; }
+
+        internal SwDmVersion(Version version)
         {
-            Major = major;
+            Version = version;
+            Major = (SwDmVersion_e)version.Major;
         }
 
         public int CompareTo(IXVersion other)
         {
             if (other is SwDmVersion)
             {
-                return ((int)Major).CompareTo((int)((SwDmVersion)other).Major);
+                return Version.CompareTo(other.Version);
             }
             else
             {
@@ -92,5 +98,11 @@ namespace Xarial.XCad.SwDocumentManager
             => !version1.Equals(version2);
 
         public override string ToString() => DisplayName;
+    }
+
+    public static class SwDmVersionExtension 
+    {
+        public static bool IsVersionNewerOrEqual(this ISwDmVersion vers, SwDmVersion_e version)
+            => vers.Major >= version;
     }
 }

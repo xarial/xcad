@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -9,6 +9,7 @@ using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -27,6 +28,7 @@ namespace Xarial.XCad.SolidWorks.Data
     {
     }
 
+    [DebuggerDisplay("{" +nameof(Name) + "} = {" + nameof(Value) + "} ({" + nameof(Expression) + "})")]
     internal class SwCustomProperty : ISwCustomProperty
     {
         private string m_Name;
@@ -177,15 +179,32 @@ namespace Xarial.XCad.SolidWorks.Data
                         break;
 
                     case swCustomInfoType_e.swCustomInfoYesOrNo:
-                        resVal = bool.Parse(resValStr);
+                        switch (resValStr.ToLower()) 
+                        {
+                            case "yes":
+                                resVal = true;
+                                break;
+
+                            case "no":
+                                resVal = false;
+                                break;
+
+                            default:
+                                if (bool.TryParse(resValStr, out var boolVal))
+                                {
+                                    resVal = boolVal;
+                                }
+                                else 
+                                {
+                                    resVal = resValStr;
+                                }
+                                break;
+                        }
                         break;
 
                     case swCustomInfoType_e.swCustomInfoDouble:
-                        resVal = double.Parse(resValStr);
-                        break;
-
                     case swCustomInfoType_e.swCustomInfoNumber:
-                        resVal = int.Parse(resValStr);
+                        resVal = double.Parse(resValStr);
                         break;
 
                     case swCustomInfoType_e.swCustomInfoDate:

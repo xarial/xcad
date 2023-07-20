@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -48,6 +48,37 @@ namespace Xarial.XCad.Utils.Reflection
                 });
 
             return values;
+        }
+
+        public static Enum[] GetEnumFlags(this Type enumType)
+        {
+            if (!enumType.IsEnum)
+            {
+                throw new Exception("Only flag enums are supported");
+            }
+
+            var flags = new List<Enum>();
+
+            var flag = 0x1;
+
+            foreach (Enum value in Enum.GetValues(enumType))
+            {
+                var bits = Convert.ToInt32(value);
+
+                if (bits != 0)
+                {
+                    while (flag < bits)
+                    {
+                        flag <<= 1;
+                    }
+                    if (flag == bits)
+                    {
+                        flags.Add(value);
+                    }
+                }
+            }
+
+            return flags.ToArray();
         }
 
         /// <summary>

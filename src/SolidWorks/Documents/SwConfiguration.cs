@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -15,12 +15,14 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using Xarial.XCad.Annotations;
 using Xarial.XCad.Data;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Features;
 using Xarial.XCad.Reflection;
 using Xarial.XCad.Services;
+using Xarial.XCad.SolidWorks.Annotations;
 using Xarial.XCad.SolidWorks.Data;
 using Xarial.XCad.SolidWorks.Documents.Exceptions;
 using Xarial.XCad.SolidWorks.Enums;
@@ -30,14 +32,14 @@ using Xarial.XCad.UI;
 
 namespace Xarial.XCad.SolidWorks.Documents
 {
-    public interface ISwConfiguration : ISwObject, IXConfiguration, IDisposable
+    public interface ISwConfiguration : ISwSelObject, IXConfiguration, IDisposable
     {
         IConfiguration Configuration { get; }
         new ISwCustomPropertiesCollection Properties { get; }
     }
 
     [DebuggerDisplay("{" + nameof(Name) + "}")]
-    internal class SwConfiguration : SwObject, ISwConfiguration
+    internal class SwConfiguration : SwSelObject, ISwConfiguration
     {
         internal const string QTY_PROPERTY = "UNIT_OF_MEASURE";
 
@@ -72,36 +74,19 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
 
         IXPropertyRepository IPropertiesOwner.Properties => Properties;
+        IXDimensionRepository IDimensionable.Dimensions => Dimensions;
 
         public virtual ISwCustomPropertiesCollection Properties => m_PropertiesLazy.Value;
+        public ISwDimensionsCollection Dimensions => m_DimensionsLazy.Value;
 
         private readonly Lazy<ISwCustomPropertiesCollection> m_PropertiesLazy;
+        private readonly Lazy<ISwDimensionsCollection> m_DimensionsLazy;
 
         public bool IsCommitted => m_Creator.IsCreated;
 
-        public virtual IEnumerable<IXCutListItem> CutLists
-        {
-            get
-            {
-                var activeConf = m_Doc.Configurations.Active;
+        private readonly IElementCreator<IConfiguration> m_Creator;
 
-                var cutLists = ((SwFeatureManager)m_Doc.Features).EnumerateCutLists();
-
-                if (cutLists.Any())
-                {
-                    if (activeConf.Configuration != this.Configuration)
-                    {
-                        throw new ConfigurationSpecificCutListNotSupportedException();
-                    };
-                }
-
-                return cutLists;
-            }
-        }
-
-        private readonly ElementCreator<IConfiguration> m_Creator;
-
-        internal SwConfiguration(IConfiguration conf, SwDocument3D doc, ISwApplication app, bool created) : base(conf, doc, app)
+        internal SwConfiguration(IConfiguration conf, SwDocument3D doc, SwApplication app, bool created) : base(conf, doc, app)
         {
             m_Doc = doc;
 
@@ -109,18 +94,32 @@ namespace Xarial.XCad.SolidWorks.Documents
 
             m_PropertiesLazy = new Lazy<ISwCustomPropertiesCollection>(
                 () => new SwConfigurationCustomPropertiesCollection(Name, m_Doc, OwnerApplication));
+
+            m_DimensionsLazy = new Lazy<ISwDimensionsCollection>(CreateDimensions);
         }
 
         public override object Dispatch => Configuration;
 
         public IXImage Preview
-            => PictureDispUtils.PictureDispToXImage(OwnerApplication.Sw.GetPreviewBitmap(m_Doc.Path, Name));
+        {
+            get
+            {
+                if (OwnerApplication.IsInProcess())
+                {
+                    return PictureDispUtils.PictureDispToXImage(OwnerApplication.Sw.GetPreviewBitmap(m_Doc.Path, Name));
+                }
+                else
+                {
+                    return new XDrawingImage(m_Doc.GetThumbnailImage());
+                }
+            }
+        }
 
         public string PartNumber => GetPartNumber(Configuration);
 
-        public double Quantity 
+        public double Quantity
         {
-            get 
+            get
             {
                 var qtyPrp = GetPropertyValue(Configuration.CustomPropertyManager, QTY_PROPERTY);
 
@@ -167,7 +166,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        public BomChildrenSolving_e BomChildrenSolving 
+        public BomChildrenSolving_e BomChildrenSolving
         {
             get
             {
@@ -190,9 +189,26 @@ namespace Xarial.XCad.SolidWorks.Documents
                             throw new NotSupportedException($"Not supported BOM display option: {bomDispOpt}");
                     }
                 }
-                else 
+                else
                 {
                     return BomChildrenSolving_e.Show;
+                }
+            }
+        }
+
+        public virtual IXConfiguration Parent 
+        {
+            get 
+            {
+                var conf = Configuration.GetParent();
+
+                if (conf != null)
+                {
+                    return OwnerDocument.CreateObjectFromDispatch<ISwConfiguration>(conf);
+                }
+                else 
+                {
+                    return null;
                 }
             }
         }
@@ -234,7 +250,10 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        public virtual void Commit(CancellationToken cancellationToken) => m_Creator.Create(cancellationToken);
+        public override void Commit(CancellationToken cancellationToken) => m_Creator.Create(cancellationToken);
+
+        protected virtual ISwDimensionsCollection CreateDimensions()
+            => new SwFeatureManagerDimensionsCollection(new SwDocumentFeatureManager(m_Doc, m_Doc.OwnerApplication, new Context(this)), new Context(this));
 
         private IConfiguration Create(CancellationToken cancellationToken) 
         {
@@ -266,15 +285,15 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
     }
 
-    internal class SwComponentConfiguration : SwConfiguration
+    internal abstract class SwComponentConfiguration : SwConfiguration
     {
-        private static IConfiguration GetConfiguration(SwComponent comp) 
+        private static IConfiguration GetConfiguration(SwComponent comp, string compName)
         {
             var doc = comp.ReferencedDocument;
 
             if (doc.IsCommitted)
             {
-                return (IConfiguration)doc.Model.GetConfigurationByName(comp.Component.ReferencedConfiguration);
+                return (IConfiguration)doc.Model.GetConfigurationByName(compName);
             }
             else
             {
@@ -282,24 +301,90 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        private readonly SwComponent m_Comp;
+        protected readonly SwComponent m_Comp;
 
-        internal SwComponentConfiguration(SwComponent comp, ISwApplication app) 
-            : this(GetConfiguration(comp), (SwDocument3D)comp.ReferencedDocument, app, comp.Component.ReferencedConfiguration)
+        internal SwComponentConfiguration(SwComponent comp, SwApplication app, string confName)
+            : this(GetConfiguration(comp, confName), (SwDocument3D)comp.ReferencedDocument, app, comp.Component.ReferencedConfiguration)
         {
             m_Comp = comp;
         }
 
-        private SwComponentConfiguration(IConfiguration conf, SwDocument3D doc, ISwApplication app, string name) 
+        public override IXConfiguration Parent
+        {
+            get
+            {
+                var conf = Configuration.GetParent();
+
+                if (conf != null)
+                {
+                    return m_Comp.GetReferencedConfiguration(conf.Name);
+                }
+                else
+                {
+                    return null;
+                }
+            }
+        }
+
+        private SwComponentConfiguration(IConfiguration conf, SwDocument3D doc, SwApplication app, string name)
             : base(conf, doc, app, conf != null)
         {
-            if (conf == null) 
+            if (conf == null)
             {
                 Name = name;
             }
         }
 
-        public override IEnumerable<IXCutListItem> CutLists => ((SwComponentFeatureManager)m_Comp.Features).EnumerateCutLists();
+        protected override ISwDimensionsCollection CreateDimensions()
+            => new SwFeatureManagerDimensionsCollection(
+                new SwComponentFeatureManager(m_Comp, m_Comp.RootAssembly, OwnerApplication, new Context(this)), new Context(this));
+    }
+
+    internal class SwPartComponentConfiguration : SwComponentConfiguration, IXPartConfiguration
+    {
+        public SwPartComponentConfiguration(SwPartComponent comp, SwApplication app, string confName) : base(comp, app, confName)
+        {
+            CutLists = new SwPartComponentCutListItemCollection(comp);
+        }
+
+        public IXCutListItemRepository CutLists { get; }
+
+        public IXMaterial Material
+        {
+            get
+            {
+                var materialName = ((SwPart)m_Comp.ReferencedDocument).Part.GetMaterialPropertyName2(Name, out var database);
+
+                if (!string.IsNullOrEmpty(materialName))
+                {
+                    return new SwMaterial(materialName, OwnerApplication.MaterialDatabases[database]);
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            set 
+            {
+                if (value != null)
+                {
+                    ((SwPart)m_Comp.ReferencedDocument).Part.SetMaterialPropertyName2(Name, value.Database.Name, value.Name);
+                }
+                else 
+                {
+                    ((SwPart)m_Comp.ReferencedDocument).Part.SetMaterialPropertyName2(Name, "", "");
+                }
+            }
+        }
+    }
+
+    internal class SwAssemblyComponentConfiguration : SwComponentConfiguration, IXAssemblyConfiguration
+    {
+        public SwAssemblyComponentConfiguration(SwComponent comp, SwApplication app, string confName) : base(comp, app, confName)
+        {
+        }
+
+        public IXComponentRepository Components => m_Comp.Children;
     }
 
     internal class SwViewOnlyUnloadedConfiguration : SwConfiguration
@@ -312,19 +397,18 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         private string m_ViewOnlyConfName;
 
-        internal SwViewOnlyUnloadedConfiguration(string confName, SwDocument3D doc, ISwApplication app)
+        internal SwViewOnlyUnloadedConfiguration(string confName, SwDocument3D doc, SwApplication app)
             : base(null, doc, app, false)
         {
             m_ViewOnlyConfName = confName;
         }
 
-        public override void Commit(CancellationToken cancellationToken) => throw new InactiveLdrConfgurationNotSupportedException();
-        public override IEnumerable<IXCutListItem> CutLists => throw new InactiveLdrConfgurationNotSupportedException();
-        public override object Dispatch => throw new InactiveLdrConfgurationNotSupportedException();
-        public override ISwCustomPropertiesCollection Properties => throw new InactiveLdrConfgurationNotSupportedException();
+        public override void Commit(CancellationToken cancellationToken) => throw new InactiveLdrConfigurationNotSupportedException();
+        public override object Dispatch => throw new InactiveLdrConfigurationNotSupportedException();
+        public override ISwCustomPropertiesCollection Properties => throw new InactiveLdrConfigurationNotSupportedException();
     }
 
-    internal class SwLdrUnloadedConfiguration : SwAssemblyConfiguration
+    internal class SwLdrAssemblyUnloadedConfiguration : SwAssemblyConfiguration
     {
         public override string Name 
         {
@@ -334,15 +418,35 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         private string m_LdrConfName;
 
-        internal SwLdrUnloadedConfiguration(SwAssembly assm, ISwApplication app, string confName) 
+        internal SwLdrAssemblyUnloadedConfiguration(SwAssembly assm, SwApplication app, string confName) 
             : base(null, assm, app, false)
         {
             m_LdrConfName = confName;
         }
 
-        public override void Commit(CancellationToken cancellationToken) => throw new InactiveLdrConfgurationNotSupportedException();
-        public override IEnumerable<IXCutListItem> CutLists => throw new InactiveLdrConfgurationNotSupportedException();
-        public override object Dispatch => throw new InactiveLdrConfgurationNotSupportedException();
-        public override ISwCustomPropertiesCollection Properties => throw new InactiveLdrConfgurationNotSupportedException();
+        public override void Commit(CancellationToken cancellationToken) => throw new InactiveLdrConfigurationNotSupportedException();
+        public override object Dispatch => throw new InactiveLdrConfigurationNotSupportedException();
+        public override ISwCustomPropertiesCollection Properties => throw new InactiveLdrConfigurationNotSupportedException();
+    }
+
+    internal class SwLdrPartUnloadedConfiguration : SwPartConfiguration
+    {
+        public override string Name
+        {
+            get => m_LdrConfName;
+            set => throw new NotSupportedException("Name of inactive LDR configuration cannot be changed");
+        }
+
+        private string m_LdrConfName;
+
+        internal SwLdrPartUnloadedConfiguration(SwPart part, SwApplication app, string confName)
+            : base(null, part, app, false)
+        {
+            m_LdrConfName = confName;
+        }
+
+        public override void Commit(CancellationToken cancellationToken) => throw new InactiveLdrConfigurationNotSupportedException();
+        public override object Dispatch => throw new InactiveLdrConfigurationNotSupportedException();
+        public override ISwCustomPropertiesCollection Properties => throw new InactiveLdrConfigurationNotSupportedException();
     }
 }

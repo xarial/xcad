@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -11,17 +11,22 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Text;
 using System.Threading;
+using Xarial.XCad.Documents;
+using Xarial.XCad.Features;
 using Xarial.XCad.Geometry.Curves;
+using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Geometry.Wires;
 using Xarial.XCad.Services;
 using Xarial.XCad.Sketch;
 using Xarial.XCad.SolidWorks.Documents;
+using Xarial.XCad.SolidWorks.Features;
 using Xarial.XCad.SolidWorks.Geometry.Curves;
+using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.Toolkit.Utils;
 
 namespace Xarial.XCad.SolidWorks.Sketch
 {
-    public interface ISwSketchSegment : IXSketchSegment, ISwSelObject
+    public interface ISwSketchSegment : IXSketchSegment, ISwSelObject, ISwSketchEntity
     {
         ISketchSegment Segment { get; }
         new ISwCurve Definition { get; }
@@ -33,7 +38,7 @@ namespace Xarial.XCad.SolidWorks.Sketch
         IXPoint IXSegment.StartPoint => StartPoint;
         IXPoint IXSegment.EndPoint => EndPoint;
 
-        protected readonly ElementCreator<ISketchSegment> m_Creator;
+        protected readonly IElementCreator<ISketchSegment> m_Creator;
 
         protected readonly ISketchManager m_SketchMgr;
 
@@ -43,7 +48,13 @@ namespace Xarial.XCad.SolidWorks.Sketch
 
         public override object Dispatch => Segment;
 
-        protected SwSketchSegment(ISketchSegment seg, ISwDocument doc, ISwApplication app, bool created) : base(seg, doc, app)
+        public override bool IsAlive => this.CheckIsAlive(() => Segment.GetID());
+
+        private readonly IMathUtility m_MathUtils;
+
+        private SwSketchBase m_OwnerSketch;
+
+        protected SwSketchSegment(ISketchSegment seg, SwDocument doc, SwApplication app, bool created) : base(seg, doc, app)
         {
             if (doc == null)
             {
@@ -52,9 +63,27 @@ namespace Xarial.XCad.SolidWorks.Sketch
 
             m_SketchMgr = doc.Model.SketchManager;
             m_Creator = new ElementCreator<ISketchSegment>(CreateEntity, seg, created);
+
+            m_MathUtils = app.Sw.IGetMathUtility();
+
+            if (seg != null)
+            {
+                SetOwnerSketch(seg);
+            }
+        }
+
+        protected SwSketchSegment(SwSketchBase ownerSketch, SwDocument doc, SwApplication app) : this(null, doc, app, false)
+        {
+            m_OwnerSketch = ownerSketch;
         }
 
         public override void Commit(CancellationToken cancellationToken) => m_Creator.Create(cancellationToken);
+
+        public override IXLayer Layer
+        {
+            get => SwLayerHelper.GetLayer(this, x => x.Segment.Layer);
+            set => SwLayerHelper.SetLayer(this, value, (x, y) => x.Segment.Layer = y);
+        }
         
         public override Color? Color
         {
@@ -90,6 +119,20 @@ namespace Xarial.XCad.SolidWorks.Sketch
                 var startPt = StartPoint.Coordinate;
                 var endPt = EndPoint.Coordinate;
 
+                var blockTransform = OwnerBlock?.GetTotalTransform();
+
+                if (blockTransform != null)
+                {
+                    startPt = startPt.Transform(blockTransform);
+                    endPt = endPt.Transform(blockTransform);
+                }
+                
+                if (AssignedOwnerBlock != null) 
+                {
+                    //NOTE: if block is assigned and this sketch entity is extracted form the definition block, it is required transform the curve to the sketch block instance space
+                    curve.ApplyTransform((MathTransform)m_MathUtils.ToMathTransform(blockTransform));
+                }
+
                 curve = curve.CreateTrimmedCurve2(startPt.X, startPt.Y, startPt.Z, 
                     endPt.X, endPt.Y, endPt.Z) as Curve;
 
@@ -106,15 +149,14 @@ namespace Xarial.XCad.SolidWorks.Sketch
             }
         }
 
-        public double Length
-        {
-            get => Definition.Length;
-        }
+        public double Length => Definition.Length;
 
         public abstract IXSketchPoint StartPoint { get; }
         public abstract IXSketchPoint EndPoint { get; }
 
         public bool IsConstruction => Segment.ConstructionGeometry;
+
+        public override IXSketchBase OwnerSketch => m_OwnerSketch;
 
         private void SetColor(ISketchSegment seg, Color? color)
         {
@@ -132,16 +174,32 @@ namespace Xarial.XCad.SolidWorks.Sketch
 
         private ISketchSegment CreateEntity(CancellationToken cancellationToken)
         {
-            var ent = CreateSketchEntity();
+            using (var editor = !m_OwnerSketch.IsEditing ? m_OwnerSketch?.Edit() : null)
+            {
+                //NOTE: this entity can be created even if the IsCommited set to false as these are the cached entities created
+                var seg = CreateSketchEntity();
 
-            SetColor(ent, m_Creator.CachedProperties.Get<Color?>(nameof(Color)));
+                if (seg == null)
+                {
+                    throw new Exception("Failed to create sketch segment");
+                }
 
-            return ent;
+                SetColor(seg, m_Creator.CachedProperties.Get<Color?>(nameof(Color)));
+
+                SetOwnerSketch(seg);
+
+                return seg;
+            }
         }
 
         protected virtual ISketchSegment CreateSketchEntity() 
+            => throw new NotSupportedException();
+
+        protected override string GetFullName() => this.Segment.GetName();
+
+        private void SetOwnerSketch(ISketchSegment seg) 
         {
-            throw new NotSupportedException();
+            m_OwnerSketch = OwnerDocument.CreateObjectFromDispatch<SwSketchBase>(seg.GetSketch());
         }
     }
 }

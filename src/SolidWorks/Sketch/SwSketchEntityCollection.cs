@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -10,6 +10,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Xarial.XCad.Base;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Curves;
@@ -19,6 +20,8 @@ using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Features;
 using Xarial.XCad.SolidWorks.Geometry;
 using Xarial.XCad.SolidWorks.Geometry.Curves;
+using Xarial.XCad.Toolkit.Services;
+using Xarial.XCad.Toolkit.Utils;
 
 namespace Xarial.XCad.SolidWorks.Sketch
 {
@@ -28,148 +31,191 @@ namespace Xarial.XCad.SolidWorks.Sketch
 
     internal class SwSketchEntityCollection : ISwSketchEntityCollection
     {
-        public int Count => m_Sketch.IsCommitted ? 0 : m_Cache.Count;
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-        public IXSketchEntity this[string name] => throw new NotImplementedException();
+        public int Count 
+        {
+            get 
+            {
+                if (m_Sketch.IsCommitted)
+                {
+                    return ((object[])m_Sketch.Sketch.GetSketchSegments() ?? new object[0]).Length 
+                        + m_Sketch.Sketch.GetSketchPointsCount2() 
+                        + m_Sketch.Sketch.GetSketchBlockInstanceCount()
+                        + m_Sketch.Sketch.GetSketchPictureCount();
+                }
+                else 
+                {
+                    return m_Cache.Count;
+                }
+            }
+        }
 
-        public bool TryGet(string name, out IXSketchEntity ent) => throw new NotImplementedException();
+        public IXWireEntity this[string name] => RepositoryHelper.Get(this, name);
 
-        private readonly ISwSketchBase m_Sketch;
+        private readonly SwSketchBase m_Sketch;
 
-        private readonly List<IXSketchEntity> m_Cache;
+        private readonly EntityCache<IXWireEntity> m_Cache;
 
-        private readonly ISwApplication m_App;
-        private readonly ISwDocument m_Doc;
-        private readonly ISketchManager m_SkMgr;
+        private readonly SwApplication m_App;
+        private readonly SwDocument m_Doc;
 
-        internal SwSketchEntityCollection(ISwSketchBase sketch, ISwDocument doc, ISwApplication app)
+        internal SwSketchEntityCollection(SwSketchBase sketch, SwDocument doc, SwApplication app)
         {
             m_Doc = doc;
             m_App = app;
             m_Sketch = sketch;
-            m_SkMgr = doc.Model.SketchManager;
-            m_Cache = new List<IXSketchEntity>();
+            m_Cache = new EntityCache<IXWireEntity>(sketch, this, s => ((IXSketchEntity)s).Name);
         }
 
-        public void AddRange(IEnumerable<IXSketchEntity> segments)
+        internal void CommitCache(CancellationToken cancellationToken) => m_Cache.Commit(cancellationToken);
+
+        public IXCurve Merge(IXCurve[] curves)
+            => throw new NotSupportedException();
+
+        protected virtual IEnumerable<ISwSketchEntity> IterateEntities()
+            => IterateEntitiesByType(true, true, true, true);
+
+        private IEnumerable<ISwSketchEntity> IterateEntitiesByType(bool segments, bool points, bool blockInstances, bool pictures)
+        {
+            if (segments)
+            {
+                foreach (ISketchSegment seg in (object[])m_Sketch.Sketch.GetSketchSegments() ?? new object[0])
+                {
+                    yield return m_Doc.CreateObjectFromDispatch<SwSketchSegment>(seg);
+                }
+            }
+
+            if (points)
+            {
+                foreach (ISketchPoint pt in (object[])m_Sketch.Sketch.GetSketchPoints2() ?? new object[0])
+                {
+                    yield return m_Doc.CreateObjectFromDispatch<SwSketchPoint>(pt);
+                }
+            }
+
+            if (blockInstances)
+            {
+                foreach (ISketchBlockInstance blockInst in (object[])m_Sketch.Sketch.GetSketchBlockInstances() ?? new object[0])
+                {
+                    yield return m_Doc.CreateObjectFromDispatch<SwSketchBlockInstance>(blockInst);
+                }
+            }
+
+            if (pictures)
+            {
+                foreach (ISketchPicture skPict in (object[])m_Sketch.Sketch.GetSketchPictures() ?? new object[0])
+                {
+                    yield return m_Doc.CreateObjectFromDispatch<SwSketchPicture>(skPict);
+                }
+            }
+        }
+
+        public bool TryGet(string name, out IXWireEntity ent)
         {
             if (m_Sketch.IsCommitted)
             {
-                CreateSegments(segments, m_Sketch.Sketch);
+                foreach (var curEnt in IterateEntities())
+                {
+                    if (string.Equals(curEnt.Name, name, StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        ent = curEnt;
+                        return true;
+                    }
+                }
+
+                ent = null;
+                return false;
             }
-            else
+            else 
             {
-                m_Cache.AddRange(segments);
+                return m_Cache.TryGet(name, out ent);
             }
         }
 
-        internal void CommitCache(ISketch sketch)
-        {
-            CreateSegments(m_Cache, sketch);
-
-            m_Cache.Clear();
-        }
-
-        private void CreateSegments(IEnumerable<IXSketchEntity> segments, ISketch sketch)
-        {
-            var addToDbOrig = m_SkMgr.AddToDB;
-
-            m_Sketch.SetEditMode(sketch, true);
-
-            m_SkMgr.AddToDB = true;
-
-            foreach (SwSketchEntity seg in segments)
-            {
-                seg.Commit();
-            }
-
-            m_SkMgr.AddToDB = addToDbOrig;
-
-            m_Sketch.SetEditMode(sketch, false);
-        }
-
-        public IEnumerator<IXSketchEntity> GetEnumerator()
+        public void AddRange(IEnumerable<IXWireEntity> ents, CancellationToken cancellationToken)
         {
             if (m_Sketch.IsCommitted)
             {
-                return new SwSketchEntitiesEnumerator(m_Doc, m_Sketch);
+                using (var editor = m_Sketch.CreateSketchEditor(m_Sketch.Sketch))
+                {
+                    RepositoryHelper.AddRange(ents, cancellationToken);
+                }
             }
             else
+            {
+                m_Cache.AddRange(ents, cancellationToken);
+            }
+        }
+
+        public void RemoveRange(IEnumerable<IXWireEntity> ents, CancellationToken cancellationToken)
+        {
+            if (m_Sketch.IsCommitted)
+            {
+                throw new NotImplementedException();
+            }
+            else 
+            {
+                m_Cache.RemoveRange(ents, cancellationToken);
+            }
+        }
+
+        public T PreCreate<T>() where T : IXWireEntity
+            => RepositoryHelper.PreCreate<IXWireEntity, T>(this,
+                () => new SwSketchLine(m_Sketch, m_Doc, m_App),
+                () => new SwSketchPoint(m_Sketch, m_Doc, m_App),
+                () => new SwSketchCircle(m_Sketch, m_Doc, m_App),
+                () => new SwSketchArc(m_Sketch, m_Doc, m_App),
+                () => new SwSketchEllipse(m_Sketch, m_Doc, m_App),
+                () => new SwSketchSpline(m_Sketch, m_Doc, m_App),
+                () => new SwSketchText(m_Sketch, m_Doc, m_App),
+                () => new SwSketchPicture(m_Sketch, m_Doc, m_App));
+
+        public IEnumerator<IXWireEntity> GetEnumerator()
+        {
+            if (m_Sketch.IsCommitted)
+            {
+                return IterateEntities().GetEnumerator();
+            }
+            else 
             {
                 return m_Cache.GetEnumerator();
             }
         }
 
-        public IXLine PreCreateLine() => new SwSketchLine(null, m_Doc, m_App, false);
-        public IXPoint PreCreatePoint() => new SwSketchPoint(null, m_Doc, m_App, false);
-
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-
-        public void RemoveRange(IEnumerable<IXSketchEntity> ents)
+        public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters)
         {
-            //TODO: implement removing of entities
-        }
+            bool filterSegments;
+            bool filterPoints;
+            bool filterBlockInstances;
+            bool filterPictures;
 
-        public IXCircle PreCreateCircle() => new SwSketchCircle(null, m_Doc, m_App, false);
-
-        public IXPolylineCurve PreCreatePolyline()
-            => throw new NotSupportedException();
-
-        public IXCurve Merge(IXCurve[] curves)
-            => throw new NotSupportedException();
-
-        public IXArc PreCreateArc() => new SwSketchArc(null, m_Doc, m_App, false);
-    }
-
-    internal class SwSketchEntitiesEnumerator : IEnumerator<ISwSketchEntity>
-    {
-        public ISwSketchEntity Current => m_Doc.CreateObjectFromDispatch<SwSketchEntity>(m_Entities[m_CurIndex]);
-
-        object IEnumerator.Current => Current;
-
-        private readonly ISwDocument m_Doc;
-        private readonly ISwSketchBase m_Sketch;
-
-        private List<object> m_Entities;
-        private int m_CurIndex;
-
-        internal SwSketchEntitiesEnumerator(ISwDocument doc, ISwSketchBase sketch) 
-        {
-            m_Doc = doc;
-            m_Sketch = sketch;
-            m_Entities = new List<object>();
-
-            Reset();
-        }
-
-        public void Dispose()
-        {
-        }
-
-        public bool MoveNext()
-        {
-            m_CurIndex++;
-            return m_CurIndex < m_Entities.Count;
-        }
-
-        public void Reset()
-        {
-            m_CurIndex = -1;
-            
-            m_Entities.Clear();
-
-            var segs = m_Sketch.Sketch.GetSketchSegments() as object[];
-
-            if (segs != null) 
+            if (filters?.Any() == true)
             {
-                m_Entities.AddRange(segs);
+                filterSegments = false;
+                filterPoints = false;
+                filterBlockInstances = false;
+                filterPictures = false;
+
+                foreach (var filter in filters) 
+                {
+                    filterSegments = filter.Type == null || typeof(IXSketchSegment).IsAssignableFrom(filter.Type);
+                    filterPoints = filter.Type == null || typeof(IXSketchPoint).IsAssignableFrom(filter.Type);
+                    filterBlockInstances = filter.Type == null || typeof(IXSketchBlockInstance).IsAssignableFrom(filter.Type);
+                    filterPictures = filter.Type == null || typeof(IXSketchPicture).IsAssignableFrom(filter.Type);
+                }
+            }
+            else 
+            {
+                filterSegments = true;
+                filterPoints = true;
+                filterBlockInstances = true;
+                filterPictures = true;
             }
 
-            var pts = m_Sketch.Sketch.GetSketchPoints2() as object[];
-
-            if (pts != null) 
+            foreach (var ent in RepositoryHelper.FilterDefault(IterateEntitiesByType(filterSegments, filterPoints, filterBlockInstances, filterPictures), filters, reverseOrder))
             {
-                m_Entities.AddRange(pts);
+                yield return ent;
             }
         }
     }

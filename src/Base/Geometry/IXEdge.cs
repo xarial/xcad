@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -16,6 +16,11 @@ namespace Xarial.XCad.Geometry
     /// </summary>
     public interface IXEdge : IXEntity, IXSegment
     {
+        /// <summary>
+        /// True if the direction of the edge conicides with the direction of its curve definition, False if the directions are opposite
+        /// </summary>
+        bool Sense { get; }
+
         /// <summary>
         /// Start vertex
         /// </summary>

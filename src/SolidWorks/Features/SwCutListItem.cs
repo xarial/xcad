@@ -1,11 +1,12 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
 using SolidWorks.Interop.sldworks;
+using SolidWorks.Interop.swconst;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -40,7 +41,7 @@ namespace Xarial.XCad.SolidWorks.Features
         private ISwDocument3D m_ParentDoc;
         private ISwConfiguration m_ParentConf;
         
-        internal SwCutListItem(IFeature feat, ISwDocument3D doc, ISwApplication app, bool created) : base(feat, doc, app, created)
+        internal SwCutListItem(IFeature feat, SwDocument3D doc, SwApplication app, bool created) : base(feat, doc, app, created)
         {
             if (feat.GetTypeName2() != "CutListFolder") 
             {
@@ -61,17 +62,29 @@ namespace Xarial.XCad.SolidWorks.Features
 
         public IBodyFolder CutListBodyFolder { get; }
 
+        public override object Dispatch => CutListBodyFolder;
+
         public IEnumerable<IXSolidBody> Bodies 
         {
             get
             {
+                var comp = Component;
+
                 var bodies = CutListBodyFolder.GetBodies() as object[];
 
                 if (bodies != null)
                 {
                     foreach (var body in bodies.Select(b => OwnerDocument.CreateObjectFromDispatch<ISwSolidBody>(b))) 
                     {
-                        yield return body;
+                        if (comp != null && body.Component == null)
+                        {
+                            //NOTE: pointer to bodies returned in the assembly context are from part context, need to convert explicitly
+                            yield return comp.ConvertObject(body);
+                        }
+                        else
+                        {
+                            yield return body;
+                        }
                     }
                 }
             }
@@ -79,17 +92,38 @@ namespace Xarial.XCad.SolidWorks.Features
 
         public ISwCustomPropertiesCollection Properties => m_Properties.Value;
 
-        public CutListState_e State 
+        public CutListStatus_e Status 
         {
             get 
             {
                 if (Feature.ExcludeFromCutList)
                 {
-                    return CutListState_e.ExcludeFromBom;
+                    return CutListStatus_e.ExcludeFromBom;
                 }
                 else 
                 {
                     return 0;
+                }
+            }
+        }
+
+        public CutListType_e Type 
+        {
+            get 
+            {
+                switch ((swCutListType_e)CutListBodyFolder.GetCutListType())
+                {
+                    case swCutListType_e.swSolidBodyCutList:
+                        return CutListType_e.SolidBody;
+
+                    case swCutListType_e.swSheetmetalCutlist:
+                        return CutListType_e.SheetMetal;
+
+                    case swCutListType_e.swWeldmentCutlist:
+                        return CutListType_e.Weldment;
+
+                    default:
+                        throw new NotSupportedException();
                 }
             }
         }
@@ -105,6 +139,14 @@ namespace Xarial.XCad.SolidWorks.Features
             if (m_Properties.IsValueCreated) 
             {
                 m_Properties.Value.Dispose();
+            }
+        }
+
+        public void Update()
+        {
+            if (!CutListBodyFolder.UpdateCutList()) 
+            {
+                throw new Exception("Failed to update cut-list folder");
             }
         }
     }

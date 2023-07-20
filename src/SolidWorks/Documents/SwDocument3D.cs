@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -13,7 +13,10 @@ using Xarial.XCad.Documents;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.SolidWorks.Geometry;
+using Xarial.XCad.SolidWorks.Services;
+using Xarial.XCad.SolidWorks.UI;
 using Xarial.XCad.SolidWorks.Utils;
+using Xarial.XCad.UI;
 using Xarial.XCad.Utils.Diagnostics;
 
 namespace Xarial.XCad.SolidWorks.Documents
@@ -21,30 +24,35 @@ namespace Xarial.XCad.SolidWorks.Documents
     public interface ISwDocument3D : ISwDocument, IXDocument3D
     {
         new ISwConfigurationCollection Configurations { get; }
-        new ISwModelViewsCollection ModelViews { get; }
+        new ISwModelViews3DCollection ModelViews { get; }
         new TSelObject ConvertObject<TSelObject>(TSelObject obj)
             where TSelObject : ISwSelObject;
     }
 
     internal abstract class SwDocument3D : SwDocument, ISwDocument3D
     {
-        protected readonly IMathUtility m_MathUtils;
-
         IXConfigurationRepository IXDocument3D.Configurations => Configurations;
-        IXModelViewRepository IXDocument3D.ModelViews => ModelViews;
+        IXModelView3DRepository IXDocument3D.ModelViews => (IXModelView3DRepository)ModelViews;
+        public override ISwModelViewsCollection ModelViews => ((ISwDocument3D)this).ModelViews;
+        ISwModelViews3DCollection ISwDocument3D.ModelViews => m_ModelViewsLazy.Value;
+        TSelObject IXObjectContainer.ConvertObject<TSelObject>(TSelObject obj) => ConvertObjectBoxed(obj) as TSelObject;
 
-        internal SwDocument3D(IModelDoc2 model, ISwApplication app, IXLogger logger, bool isCreated) : base(model, app, logger, isCreated)
+        internal SwDocument3D(IModelDoc2 model, SwApplication app, IXLogger logger, bool isCreated) : base(model, app, logger, isCreated)
         {
-            m_MathUtils = app.Sw.IGetMathUtility();
-            m_Configurations = new Lazy<ISwConfigurationCollection>(() => new SwConfigurationCollection(this, app));
-            m_ModelViews = new Lazy<ISwModelViewsCollection>(() => new SwModelViewsCollection(this, app));
+            m_Configurations = new Lazy<ISwConfigurationCollection>(CreateConfigurations);
+            m_ModelViewsLazy = new Lazy<ISwModelViews3DCollection>(() => new SwModelViews3DCollection(this, app));
+
+            Graphics = new SwDocumentGraphics(this);
         }
 
         private Lazy<ISwConfigurationCollection> m_Configurations;
-        private Lazy<ISwModelViewsCollection> m_ModelViews;
+        private Lazy<ISwModelViews3DCollection> m_ModelViewsLazy;
 
         public ISwConfigurationCollection Configurations => m_Configurations.Value;
-        public ISwModelViewsCollection ModelViews => m_ModelViews.Value;
+
+        public abstract IXDocumentEvaluation Evaluation { get; }
+
+        public IXDocumentGraphics Graphics { get; }
 
         protected override void Dispose(bool disposing)
         {
@@ -59,13 +67,29 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        TSelObject IXObjectContainer.ConvertObject<TSelObject>(TSelObject obj) => ConvertObjectBoxed(obj) as TSelObject;
+        protected abstract SwConfigurationCollection CreateConfigurations();
+
+        IXDocument3DSaveOperation IXDocument3D.PreCreateSaveAsOperation(string filePath)
+        {
+            var ext = System.IO.Path.GetExtension(filePath);
+
+            switch (ext.ToLower())
+            {
+                case ".pdf":
+                    return new SwDocument3DPdfSaveOperation(this, filePath);
+
+                case ".step":
+                case ".stp":
+                    return new SwStepSaveOperation(this, filePath);
+
+                default:
+                    return new SwDocument3DSaveOperation(this, filePath);
+            }
+        }
 
         public TSelObject ConvertObject<TSelObject>(TSelObject obj)
             where TSelObject : ISwSelObject
-        {
-            return (TSelObject)ConvertObjectBoxed(obj);
-        }
+            => (TSelObject)ConvertObjectBoxed(obj);
 
         private ISwSelObject ConvertObjectBoxed(object obj)
         {
@@ -89,18 +113,6 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        public abstract IXBoundingBox PreCreateBoundingBox();
-
-        public virtual IXMassProperty PreCreateMassProperty()
-        {
-            if (OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2020))
-            {
-                return new SwMassProperty(this, m_MathUtils);
-            }
-            else
-            {
-                return new SwLegacyMassProperty(this, m_MathUtils);
-            }
-        }
+        public override IXSaveOperation PreCreateSaveAsOperation(string filePath) => ((IXDocument3D)this).PreCreateSaveAsOperation(filePath);
     }
 }

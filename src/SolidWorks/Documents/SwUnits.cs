@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -9,6 +9,7 @@ using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 using Xarial.XCad.Documents;
 
@@ -18,6 +19,7 @@ namespace Xarial.XCad.SolidWorks.Documents
     {
     }
 
+    [DebuggerDisplay("{" + nameof(Length) + "} - {" + nameof(Mass) + "} - {" + nameof(Angle) + "} - {" + nameof(Time) + "}")]
     internal class SwUnits : ISwUnits
     {
         public Length_e Length
@@ -206,6 +208,38 @@ namespace Xarial.XCad.SolidWorks.Documents
                         throw new Exception($"Units are not supported: {units}");
                 }
             }
+            set => throw new NotImplementedException();
+        }
+
+        public int LengthDecimalPlaces
+        {
+            get => m_Document.Model.Extension.GetUserPreferenceInteger(
+                (int)swUserPreferenceIntegerValue_e.swUnitsLinearDecimalPlaces,
+                (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified);
+            set => throw new NotImplementedException(); 
+        }
+
+        public int MassDecimalPlaces
+        {
+            get => m_Document.Model.Extension.GetUserPreferenceInteger(
+                (int)swUserPreferenceIntegerValue_e.swUnitsMassPropDecimalPlaces,
+                (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified);
+            set => throw new NotImplementedException();
+        }
+
+        public int AngleDecimalPlaces
+        {
+            get => m_Document.Model.Extension.GetUserPreferenceInteger(
+                (int)swUserPreferenceIntegerValue_e.swUnitsAngularDecimalPlaces,
+                (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified);
+            set => throw new NotImplementedException();
+        }
+
+        public int TimeDecimalPlaces
+        {
+            get => m_Document.Model.Extension.GetUserPreferenceInteger(
+                (int)swUserPreferenceIntegerValue_e.swUnitsTimeDecimalPlaces,
+                (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified);
             set => throw new NotImplementedException();
         }
 

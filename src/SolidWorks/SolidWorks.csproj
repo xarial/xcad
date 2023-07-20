@@ -1,41 +1,25 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
 
   <PropertyGroup>
-    <TargetFrameworks>netcoreapp3.1;net461</TargetFrameworks>
-    <RootNamespace>Xarial.XCad.SolidWorks</RootNamespace>
     <AssemblyName>Xarial.XCad.SolidWorks</AssemblyName>
-    <SignAssembly>false</SignAssembly>
-    <PublishRepositoryUrl>true</PublishRepositoryUrl>
-    <EmbedUntrackedSources>true</EmbedUntrackedSources>
-    <IncludeSymbols>true</IncludeSymbols>
-    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <RootNamespace>Xarial.XCad.SolidWorks</RootNamespace>
+    <TargetFrameworks>net7.0-windows;net6.0-windows;netcoreapp3.1;net461</TargetFrameworks>
     <PackageId>Xarial.XCad.SolidWorks</PackageId>
-    <VersionPrefix>0.7.7</VersionPrefix>
-    <Authors>Xarial</Authors>
-    <Product>xCAD</Product>
-    <Copyright>© 2021 Xarial Pty Limited</Copyright>
-    <PackageProjectUrl>https://xcad.net</PackageProjectUrl>
-    <AssemblyOriginatorKeyFile></AssemblyOriginatorKeyFile>
-    <Company>Xarial Pty Limited</Company>
-    <RepositoryUrl>https://github.com/xarial/xcad</RepositoryUrl>
     <PackageTags>cad,solidworks</PackageTags>
-    <Description>Framework for developing SOLIDWORKS applications</Description>
-    <RepositoryType>git</RepositoryType>
+    <Description>Framework for developing SOLIDWORKS applications based on xCAD.NET</Description>
     <PackageIcon>icon.png</PackageIcon>
     <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
-    <PackageIconUrl>https://xcad.xarial.com/icon.png</PackageIconUrl>
+    <PackageIconUrl>https://xcad.xarial.com/icon-sw.png</PackageIconUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(TF_BUILD)' == 'true'">
-    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
-  </PropertyGroup>
-  
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netcoreapp3.1|AnyCPU'">
+  <Import Project="..\..\common\common.props" />
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netcoreapp3.1|AnyCPU' Or '$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net6.0|AnyCPU' or '$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net6.0-windows|AnyCPU' Or '$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net7.0|AnyCPU' or '$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net7.0-windows|AnyCPU'">
     <NoWarn>1701;1702</NoWarn>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(TargetFramework)' == 'netcoreapp3.1'">
+  <PropertyGroup Condition="'$(TargetFramework)' == 'netcoreapp3.1' Or '$(TargetFramework)' == 'net6.0' Or '$(TargetFramework)' == 'net6.0-windows'Or '$(TargetFramework)' == 'net7.0' Or '$(TargetFramework)' == 'net7.0-windows'">
     <NoWarn>CS0618</NoWarn>
     <UseWpf>true</UseWpf>
     <UseWindowsForms>true</UseWindowsForms>
@@ -54,18 +38,15 @@
   </ItemGroup>
     
   <ItemGroup>
-    <None Include="..\..\build\solidworks-readme.txt" Link="solidworks-readme.txt" pack="true" PackagePath="readme.txt" />
-  </ItemGroup>
-  
-  <ItemGroup>
-    <PackageReference Include="Xarial.XCad.SolidWorks.Interops" Version="0.3.0" />
+    <None Include="..\..\build\solidworks-readme.txt" Link="_Pack\solidworks-readme.txt" pack="true" PackagePath="readme.txt" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="..\..\build\Xarial.XCad.SolidWorks.targets" pack="true" PackagePath="build" />
-    <None Include="..\..\build\solidworks-init.ps1" pack="true" PackagePath="tools\init.ps1" />
-    <None Include="..\..\data\icon.png" pack="true" PackagePath="" />
-    <None Include="..\..\LICENSE.md" pack="true" PackagePath="" />
+    <None Include="..\..\build\Xarial.XCad.SolidWorks.targets" pack="true" PackagePath="build" Link="_Pack\Xarial.XCad.SolidWorks.targets" />
+    <None Include="..\..\build\solidworks-init.ps1" pack="true" PackagePath="tools\init.ps1" Link="_Pack\solidworks-init.ps1" />
+    <None Include="icon.png" pack="true" PackagePath="" Link="_Pack\icon.png" />
+    <None Include="..\..\LICENSE.md" pack="true" PackagePath="" Link="_Pack\LICENSE.md" />
+    <None Include="..\..\README.md" pack="true" PackagePath="" Link="_Pack\README.md" />
   </ItemGroup>
 
   <ItemGroup>
@@ -74,7 +55,44 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="SolidWorks.Interop.sldworks">
+      <HintPath>..\..\thirdpty\SolidWorks.Interop.sldworks.dll</HintPath>
+      <EmbedInteropTypes>false</EmbedInteropTypes>
+    </Reference>
+    <Reference Include="SolidWorks.Interop.swconst">
+      <HintPath>..\..\thirdpty\SolidWorks.Interop.swconst.dll</HintPath>
+      <EmbedInteropTypes>false</EmbedInteropTypes>
+    </Reference>
+    <Reference Include="SolidWorks.Interop.swpublished">
+      <HintPath>..\..\thirdpty\SolidWorks.Interop.swpublished.dll</HintPath>
+      <EmbedInteropTypes>false</EmbedInteropTypes>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\thirdpty\SolidWorks.Interop.sldworks.dll" pack="true" PackagePath="lib\net461" />
+    <None Include="..\..\thirdpty\SolidWorks.Interop.swconst.dll" pack="true" PackagePath="lib\net461" />
+    <None Include="..\..\thirdpty\SolidWorks.Interop.swpublished.dll" pack="true" PackagePath="lib\net461" />
+
+    <None Include="..\..\thirdpty\SolidWorks.Interop.sldworks.dll" pack="true" PackagePath="lib\netcoreapp3.1" />
+    <None Include="..\..\thirdpty\SolidWorks.Interop.swconst.dll" pack="true" PackagePath="lib\netcoreapp3.1" />
+    <None Include="..\..\thirdpty\SolidWorks.Interop.swpublished.dll" pack="true" PackagePath="lib\netcoreapp3.1" />
+
+    <None Include="..\..\thirdpty\SolidWorks.Interop.sldworks.dll" pack="true" PackagePath="lib\net6.0-windows7.0" Link="_Pack\SolidWorks.Interop.sldworks.dll" />
+    <None Include="..\..\thirdpty\SolidWorks.Interop.swconst.dll" pack="true" PackagePath="lib\net6.0-windows7.0" Link="_Pack\SolidWorks.Interop.swconst.dll" />
+    <None Include="..\..\thirdpty\SolidWorks.Interop.swpublished.dll" pack="true" PackagePath="lib\net6.0-windows7.0" Link="_Pack\SolidWorks.Interop.swpublished.dll" />
+
+    <None Include="..\..\thirdpty\SolidWorks.Interop.sldworks.dll" pack="true" PackagePath="lib\net7.0-windows7.0" Link="_Pack\SolidWorks.Interop.sldworks.dll" />
+    <None Include="..\..\thirdpty\SolidWorks.Interop.swconst.dll" pack="true" PackagePath="lib\net7.0-windows7.0" Link="_Pack\SolidWorks.Interop.swconst.dll" />
+    <None Include="..\..\thirdpty\SolidWorks.Interop.swpublished.dll" pack="true" PackagePath="lib\net7.0-windows7.0" Link="_Pack\SolidWorks.Interop.swpublished.dll" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="_Pack\" />
   </ItemGroup>
   
 </Project>

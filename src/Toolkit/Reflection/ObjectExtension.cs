@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -11,30 +11,24 @@ namespace Xarial.XCad.Utils.Reflection
 {
     internal static class ObjectExtension
     {
-        internal static TVal Cast<TVal>(this object obj)
-        {
-            if (obj != null)
-            {
-                return (TVal)obj.Cast(typeof(TVal));
-            }
-            else 
-            {
-                return default;
-            }
-        }
-
         internal static object Cast(this object value, Type type)
         {
             object destVal = null;
 
             if (value != null)
             {
-                if (!type.IsAssignableFrom(value.GetType())
-                    && typeof(IConvertible).IsAssignableFrom(type))
+                if (!type.IsAssignableFrom(value.GetType()))
                 {
                     try
                     {
-                        destVal = Convert.ChangeType(value, type);
+                        if (typeof(IConvertible).IsAssignableFrom(type))
+                        {
+                            destVal = Convert.ChangeType(value, type);
+                        }
+                        else if (type.IsEnum) 
+                        {
+                            destVal = Enum.Parse(type, value?.ToString());
+                        }
                     }
                     catch
                     {
@@ -46,6 +40,13 @@ namespace Xarial.XCad.Utils.Reflection
                 {
                     //TODO: change this - validate that cast is possible otherwise throw exception
                     destVal = value;
+                }
+            }
+            else 
+            {
+                if (type.IsValueType)
+                {
+                    return Activator.CreateInstance(type);
                 }
             }
 

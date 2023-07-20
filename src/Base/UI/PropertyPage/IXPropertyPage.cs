@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -29,6 +29,11 @@ namespace Xarial.XCad.UI.PropertyPage
         /// Fired when property manager page is closed
         /// </summary>
         event PageClosedDelegate Closed;
+
+        /// <summary>
+        /// Checks if page is pinned
+        /// </summary>
+        bool IsPinned { get; set; }
 
         /// <summary>
         /// Opens the property page with the specified data model

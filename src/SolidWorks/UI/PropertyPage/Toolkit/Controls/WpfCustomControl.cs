@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -48,6 +48,42 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             m_KeystrokePropagator.Dispose();
             
             m_Host.Dispose();
+        }
+    }
+
+    internal class WpfCustomControlWrapper : IXCustomControl, IDisposable
+    {
+        public event CustomControlValueChangedDelegate ValueChanged 
+        {
+            add 
+            {
+                m_CustomWpfControl.ValueChanged += value;
+            }
+            remove 
+            {
+                m_CustomWpfControl.ValueChanged -= value;
+            }
+        }
+
+        private readonly IXCustomControl m_CustomWpfControl;
+
+        private readonly WpfControlKeystrokePropagator m_KeystrokePropagator;
+
+        internal WpfCustomControlWrapper(IXCustomControl customWpfControl)
+        {
+            m_CustomWpfControl = customWpfControl;
+            m_KeystrokePropagator = new WpfControlKeystrokePropagator((FrameworkElement)customWpfControl);
+        }
+
+        public object Value
+        {
+            get => m_CustomWpfControl.Value;
+            set => m_CustomWpfControl.Value = value;
+        }
+        
+        public void Dispose()
+        {
+            m_KeystrokePropagator.Dispose();
         }
     }
 }

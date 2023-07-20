@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -16,6 +16,9 @@ namespace Xarial.XCad.UI.PropertyPage.Attributes
     {
     }
 
+    /// <summary>
+    /// Indicates that this propery should be rendered as a custom control
+    /// </summary>
     public class CustomControlAttribute : Attribute, ISpecificConstructorAttribute
     {
         public Type ConstructorType { get; }

@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -49,12 +49,11 @@ namespace Xarial.XCad.SwDocumentManager
         public IXMemoryGeometryBuilder MemoryGeometryBuilder => throw new NotSupportedException();
         public IXProgress CreateProgress() => throw new NotSupportedException();
         public IXMacro OpenMacro(string path) => throw new NotSupportedException();
-        public MessageBoxResult_e ShowMessageBox(string msg,
-            MessageBoxIcon_e icon = MessageBoxIcon_e.Info, MessageBoxButtons_e buttons = MessageBoxButtons_e.Ok)
-            => throw new NotSupportedException();
-        public void ShowTooltip(ITooltipSpec spec)
-            => throw new NotSupportedException();
-
+        public MessageBoxResult_e ShowMessageBox(string msg, MessageBoxIcon_e icon = MessageBoxIcon_e.Info, MessageBoxButtons_e buttons = MessageBoxButtons_e.Ok) => throw new NotSupportedException();
+        public void ShowTooltip(ITooltipSpec spec) => throw new NotSupportedException();
+        public IXObjectTracker CreateObjectTracker(string name) => throw new NotSupportedException();
+        public IXApplicationOptions Options => throw new NotSupportedException();
+        public IXMaterialsDatabaseRepository MaterialDatabases => throw new NotSupportedException();
         #endregion
 
         IXDocumentRepository IXApplication.Documents => Documents;
@@ -102,7 +101,8 @@ namespace Xarial.XCad.SwDocumentManager
             }
         }
 
-        private ElementCreator<ISwDMApplication> m_Creator;
+
+        private readonly IElementCreator<ISwDMApplication> m_Creator;
 
         internal SwDmApplication(ISwDMApplication dmApp, bool isCreated) 
         {
@@ -138,7 +138,7 @@ namespace Xarial.XCad.SwDocumentManager
 
     public static class SwDmApplicationExtension
     {
-        public static bool IsVersionNewerOrEqual(this ISwDmApplication app, SwDmVersion_e version)
-            => app.Version.Major >= version;
+        public static bool IsVersionNewerOrEqual(this ISwDmApplication app, SwDmVersion_e version) 
+            => app.Version.IsVersionNewerOrEqual(version);
     }
 }

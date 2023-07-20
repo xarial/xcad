@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -20,80 +20,111 @@ using Xarial.XCad.Documents.Delegates;
 using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Features;
 using Xarial.XCad.SolidWorks.Documents.EventHandlers;
+using Xarial.XCad.Toolkit.Utils;
 using Xarial.XCad.UI;
 
 namespace Xarial.XCad.SolidWorks.Documents
 {
     public interface ISwConfigurationCollection : IXConfigurationRepository, IDisposable
     {
-        new ISwConfiguration PreCreate();
+        ISwConfiguration PreCreate();
         new ISwConfiguration Active { get; set; }
     }
 
     internal class SwConfigurationCollection : ISwConfigurationCollection
     {
-        public event ConfigurationActivatedDelegate ConfigurationActivated 
+        public event ConfigurationActivatedDelegate ConfigurationActivated
         {
-            add 
+            add
             {
                 m_ConfigurationActivatedEventsHandler.Attach(value);
             }
-            remove 
+            remove
             {
                 m_ConfigurationActivatedEventsHandler.Detach(value);
             }
         }
 
-        IXConfiguration IXConfigurationRepository.Active 
+        IXConfiguration IXConfigurationRepository.Active
         {
             get => Active;
             set => Active = (ISwConfiguration)value;
         }
 
-        IXConfiguration IXConfigurationRepository.PreCreate() => PreCreate();
-
-        protected readonly ISwApplication m_App;
+        protected readonly SwApplication m_App;
         private readonly SwDocument3D m_Doc;
 
         private readonly ConfigurationActivatedEventsHandler m_ConfigurationActivatedEventsHandler;
 
-        internal SwConfigurationCollection(SwDocument3D doc, ISwApplication app) 
+        internal Lazy<ISwConfiguration> ActiveNonCommittedConfigurationLazy { get; }
+
+        internal SwConfigurationCollection(SwDocument3D doc, SwApplication app)
         {
             m_App = app;
             m_Doc = doc;
             m_ConfigurationActivatedEventsHandler = new ConfigurationActivatedEventsHandler(doc, app);
+
+            ActiveNonCommittedConfigurationLazy = new Lazy<ISwConfiguration>(() => 
+            {
+                var activeConfName = m_App.Sw.GetActiveConfigurationName(m_Doc.Path);
+
+                var conf = PreCreate();
+                conf.Name = activeConfName;
+                return conf;
+            });
         }
 
-        public IXConfiguration this[string name] => this.Get(name);
+        public IXConfiguration this[string name] => RepositoryHelper.Get(this, name);
 
         public bool TryGet(string name, out IXConfiguration ent)
         {
-            var conf = m_Doc.Model.GetConfigurationByName(name);
+            if (m_Doc.IsCommitted)
+            {
+                var conf = m_Doc.Model.GetConfigurationByName(name);
 
-            if (conf != null)
-            {
-                ent = m_Doc.CreateObjectFromDispatch<SwConfiguration>((IConfiguration)conf);
-                return true;
-            }
-            else 
-            {
-                if (m_Doc.Model.IsOpenedViewOnly())
+                if (conf != null)
                 {
-                    ent = CreateViewOnlyConfiguration(name);
+                    ent = m_Doc.CreateObjectFromDispatch<SwConfiguration>((IConfiguration)conf);
                     return true;
                 }
                 else
                 {
-                    ent = null;
-                    return false;
+                    if (m_Doc.Model.IsOpenedViewOnly())
+                    {
+                        ent = CreateViewOnlyConfiguration(name);
+                        return true;
+                    }
+                    else
+                    {
+                        ent = null;
+                        return false;
+                    }
                 }
+            }
+            else
+            {
+                ent = this.FirstOrDefault(x => string.Equals(x.Name, name, StringComparison.CurrentCultureIgnoreCase));
+                return ent != null;
             }
         }
 
         protected virtual ISwConfiguration CreateViewOnlyConfiguration(string name)
             => new SwViewOnlyUnloadedConfiguration(name, m_Doc, m_App);
 
-        public int Count => m_Doc.Model.GetConfigurationCount();
+        public int Count
+        {
+            get
+            {
+                if (m_Doc.IsCommitted)
+                {
+                    return m_Doc.Model.GetConfigurationCount();
+                }
+                else 
+                {
+                    return this.Count();
+                }
+            }
+        }
 
         public ISwConfiguration Active
         {
@@ -105,11 +136,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                 }
                 else 
                 {
-                    var activeConfName = m_App.Sw.GetActiveConfigurationName(m_Doc.Path);
-                    return new SwConfiguration(null, m_Doc, m_App, false)
-                    {
-                        Name = activeConfName
-                    };
+                    return ActiveNonCommittedConfigurationLazy.Value;
                 }
             } 
             set 
@@ -124,23 +151,19 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        public ISwConfiguration PreCreate() => new SwConfiguration(null, m_Doc, m_App, false);
+        public virtual ISwConfiguration PreCreate() => new SwConfiguration(null, m_Doc, m_App, false);
 
-        public void AddRange(IEnumerable<IXConfiguration> ents)
-        {
-            foreach (var conf in ents) 
-            {
-                conf.Commit();
-            }
-        }
-        
+        public void AddRange(IEnumerable<IXConfiguration> ents, CancellationToken cancellationToken) => RepositoryHelper.AddRange(ents, cancellationToken);
+
         public void Dispose()
         {
         }
 
-        public IEnumerator<IXConfiguration> GetEnumerator() => new SwConfigurationEnumerator(m_App, m_Doc);
+        public virtual IEnumerator<IXConfiguration> GetEnumerator() => new SwConfigurationEnumerator(m_App, m_Doc);
 
-        public void RemoveRange(IEnumerable<IXConfiguration> ents)
+        public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters) => RepositoryHelper.FilterDefault(this, filters, reverseOrder);
+
+        public void RemoveRange(IEnumerable<IXConfiguration> ents, CancellationToken cancellationToken)
         {
             foreach (var conf in ents) 
             {
@@ -169,11 +192,13 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+        public T PreCreate<T>() where T : IXConfiguration => (T)PreCreate();
     }
 
     internal class SwConfigurationEnumerator : SwConfigurationEnumeratorBase<SwConfiguration>
     {
-        public SwConfigurationEnumerator(ISwApplication app, SwDocument3D doc) : base(app, doc)
+        public SwConfigurationEnumerator(SwApplication app, SwDocument3D doc) : base(app, doc)
         {
         }
 
@@ -227,12 +252,12 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         private int m_CurConfIndex;
 
-        protected readonly ISwApplication m_App;
+        protected readonly SwApplication m_App;
         protected readonly SwDocument3D m_Doc;
 
         private string[] m_ConfNames;
 
-        internal SwConfigurationEnumeratorBase(ISwApplication app, SwDocument3D doc)
+        internal SwConfigurationEnumeratorBase(SwApplication app, SwDocument3D doc)
         {
             m_App = app;
             m_Doc = doc;
@@ -279,13 +304,11 @@ namespace Xarial.XCad.SolidWorks.Documents
     {
         private readonly SwAssembly m_Assm;
 
-        internal SwAssemblyConfigurationCollection(SwAssembly assm, ISwApplication app) : base(assm, app)
+        internal SwAssemblyConfigurationCollection(SwAssembly assm, SwApplication app) : base(assm, app)
         {
             m_Assm = assm;
         }
-
-        IXAssemblyConfiguration IXRepository<IXAssemblyConfiguration>.this[string name] => (this as ISwAssemblyConfigurationCollection)[name];
-
+        
         ISwAssemblyConfiguration ISwAssemblyConfigurationCollection.this[string name] => (ISwAssemblyConfiguration)base[name];
 
         ISwAssemblyConfiguration ISwAssemblyConfigurationCollection.Active 
@@ -300,11 +323,11 @@ namespace Xarial.XCad.SolidWorks.Documents
             set => this.Active = (ISwAssemblyConfiguration)value;
         }
 
-        public void AddRange(IEnumerable<IXAssemblyConfiguration> ents)
-            => base.AddRange(ents);
+        public void AddRange(IEnumerable<IXAssemblyConfiguration> ents, CancellationToken cancellationToken)
+            => base.AddRange(ents, cancellationToken);
 
-        public void RemoveRange(IEnumerable<IXAssemblyConfiguration> ents)
-            => base.RemoveRange(ents);
+        public void RemoveRange(IEnumerable<IXAssemblyConfiguration> ents, CancellationToken cancellationToken)
+            => base.RemoveRange(ents, cancellationToken);
 
         public bool TryGet(string name, out IXAssemblyConfiguration ent)
         {
@@ -314,31 +337,103 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
 
         protected override ISwConfiguration CreateViewOnlyConfiguration(string name)
-            => new SwLdrUnloadedConfiguration(m_Assm, m_App, name);
-
-        IEnumerator<IXAssemblyConfiguration> IEnumerable<IXAssemblyConfiguration>.GetEnumerator()
-            => new SwAssemblyConfigurationEnumerator(m_App, m_Assm);
+            => new SwLdrAssemblyUnloadedConfiguration(m_Assm, m_App, name);
 
         ISwAssemblyConfiguration ISwAssemblyConfigurationCollection.PreCreate()
             => new SwAssemblyConfiguration(null, m_Assm, m_App, false);
 
         IXAssemblyConfiguration IXAssemblyConfigurationRepository.PreCreate()
             => (this as ISwAssemblyConfigurationCollection).PreCreate();
+
+        public override ISwConfiguration PreCreate() => (this as ISwAssemblyConfigurationCollection).PreCreate();
+
+        public override IEnumerator<IXConfiguration> GetEnumerator() => new SwAssemblyConfigurationEnumerator(m_App, m_Assm);
     }
 
     internal class SwAssemblyConfigurationEnumerator : SwConfigurationEnumeratorBase<SwAssemblyConfiguration>
     {
         private readonly SwAssembly m_Assm;
 
-        public SwAssemblyConfigurationEnumerator(ISwApplication app, SwAssembly assm) : base(app, assm)
+        public SwAssemblyConfigurationEnumerator(SwApplication app, SwAssembly assm) : base(app, assm)
         {
             m_Assm = assm;
         }
 
         protected override SwAssemblyConfiguration CreateViewOnlyConfiguration(string confName)
-            => new SwLdrUnloadedConfiguration(m_Assm, m_App, confName);
+            => new SwLdrAssemblyUnloadedConfiguration(m_Assm, m_App, confName);
 
         protected override SwAssemblyConfiguration PreCreateNewConfiguration()
             => new SwAssemblyConfiguration(null, m_Assm, m_App, false);
+    }
+
+    public interface ISwPartConfigurationCollection : ISwConfigurationCollection, IXPartConfigurationRepository
+    {
+        new ISwPartConfiguration this[string name] { get; }
+        new ISwPartConfiguration PreCreate();
+        new ISwPartConfiguration Active { get; set; }
+    }
+
+    internal class SwPartConfigurationCollection : SwConfigurationCollection, ISwPartConfigurationCollection
+    {
+        private readonly SwPart m_Part;
+
+        internal SwPartConfigurationCollection(SwPart part, SwApplication app) : base(part, app)
+        {
+            m_Part = part;
+        }
+        
+        ISwPartConfiguration ISwPartConfigurationCollection.this[string name] => (ISwPartConfiguration)base[name];
+
+        ISwPartConfiguration ISwPartConfigurationCollection.Active
+        {
+            get => (ISwPartConfiguration)base.Active;
+            set => base.Active = value;
+        }
+
+        IXPartConfiguration IXPartConfigurationRepository.Active
+        {
+            get => (this as ISwPartConfigurationCollection).Active;
+            set => this.Active = (ISwPartConfiguration)value;
+        }
+
+        public void AddRange(IEnumerable<IXPartConfiguration> ents, CancellationToken cancellationToken)
+            => base.AddRange(ents, cancellationToken);
+
+        public void RemoveRange(IEnumerable<IXPartConfiguration> ents, CancellationToken cancellationToken)
+            => base.RemoveRange(ents, cancellationToken);
+
+        public bool TryGet(string name, out IXPartConfiguration ent)
+        {
+            var res = base.TryGet(name, out IXConfiguration conf);
+            ent = (IXPartConfiguration)conf;
+            return res;
+        }
+
+        ISwPartConfiguration ISwPartConfigurationCollection.PreCreate()
+            => new SwPartConfiguration(null, m_Part, m_App, false);
+
+        IXPartConfiguration IXPartConfigurationRepository.PreCreate()
+            => (this as ISwPartConfigurationCollection).PreCreate();
+
+        public override ISwConfiguration PreCreate()
+            => (this as ISwPartConfigurationCollection).PreCreate();
+
+        public override IEnumerator<IXConfiguration> GetEnumerator() => new SwPartConfigurationEnumerator(m_App, m_Part);
+    }
+
+    internal class SwPartConfigurationEnumerator : SwConfigurationEnumeratorBase<SwPartConfiguration>
+    {
+        private readonly SwPart m_Part;
+
+        public SwPartConfigurationEnumerator(SwApplication app, SwPart part) : base(app, part)
+        {
+            m_Part = part;
+        }
+
+        protected override SwPartConfiguration CreateViewOnlyConfiguration(string confName)
+            => new SwLdrPartUnloadedConfiguration(m_Part, m_App, confName);
+
+        protected override SwPartConfiguration PreCreateNewConfiguration()
+            => new SwPartConfiguration(null, m_Part, m_App, false);
     }
 }

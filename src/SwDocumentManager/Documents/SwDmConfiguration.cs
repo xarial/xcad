@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -13,6 +13,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using Xarial.XCad.Annotations;
 using Xarial.XCad.Data;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Enums;
@@ -25,28 +26,30 @@ using Xarial.XCad.UI;
 
 namespace Xarial.XCad.SwDocumentManager.Documents
 {
-    public interface ISwDmConfiguration : IXConfiguration, ISwDmObject
+    public interface ISwDmConfiguration : IXConfiguration, ISwDmSelObject
     {
         ISwDMConfiguration Configuration { get; }
         new ISwDmCustomPropertiesCollection Properties { get; }
-        new IEnumerable<ISwDmCutListItem> CutLists { get; }
     }
 
     [DebuggerDisplay("{" + nameof(Name) + "}")]
-    internal class SwDmConfiguration : SwDmObject, ISwDmConfiguration
+    internal abstract class SwDmConfiguration : SwDmSelObject, ISwDmConfiguration
     {
+        #region Not Supported
+        public IXDimensionRepository Dimensions => throw new NotSupportedException();
+        #endregion
+
         internal const string QTY_PROPERTY = "UNIT_OF_MEASURE";
 
         IXPropertyRepository IPropertiesOwner.Properties => Properties;
-        IEnumerable<IXCutListItem> IXConfiguration.CutLists => CutLists;
-
+        
         private readonly Lazy<ISwDmCustomPropertiesCollection> m_Properties;
 
         public virtual ISwDMConfiguration Configuration { get; }
 
         public ISwDmCustomPropertiesCollection Properties => m_Properties.Value;
 
-        internal SwDmConfiguration(ISwDMConfiguration conf, SwDmDocument3D doc) : base(conf)
+        internal SwDmConfiguration(ISwDMConfiguration conf, SwDmDocument3D doc) : base(conf, doc.OwnerApplication, doc)
         {
             Configuration = conf;
             Document = doc;
@@ -65,41 +68,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             }
         }
 
-        public IEnumerable<ISwDmCutListItem> CutLists
-        {
-            get
-            {
-                object[] cutListItems = null;
-
-                if (Document.SwDmApp.IsVersionNewerOrEqual(SwDmVersion_e.Sw2019)
-                    && Document.Version.Major >= SwDmVersion_e.Sw2019)
-                {
-                    cutListItems = ((ISwDMConfiguration16)Configuration).GetCutListItems() as object[];
-                }
-                else
-                {
-                    if (Configuration == Document.Configurations.Active.Configuration)
-                    {
-                        cutListItems = ((ISwDMDocument13)Document.Document).GetCutListItems2() as object[];
-                    }
-                    else
-                    {
-                        throw new ConfigurationCutListIsNotSupported();
-                    }
-                }
-
-                if (cutListItems != null)
-                {
-                    foreach (var cutList in cutListItems.Cast<ISwDMCutListItem2>()
-                        .Select(c => new SwDmCutListItem(c, Document, this))) 
-                    {
-                        yield return cutList;
-                    }
-                }
-            }
-        }
-
-        public virtual bool IsCommitted => true;
+        public override bool IsCommitted => true;
 
         public string PartNumber => GetPartNumber(this);
 
@@ -181,7 +150,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                 {
                     swDmShowChildComponentsInBOMResult childBomShowType;
 
-                    if (Document.SwDmApp.IsVersionNewerOrEqual(SwDmVersion_e.Sw2018))
+                    if (Document.IsVersionNewerOrEqual(SwDmVersion_e.Sw2018))
                     {
                         childBomShowType = (swDmShowChildComponentsInBOMResult)((ISwDMConfiguration15)Configuration).ShowChildComponentsInBOM2;
                     }
@@ -212,6 +181,53 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             }
         }
 
+        public virtual IXConfiguration Parent 
+        {
+            get 
+            {
+                var parentConf = GetParentConfiguration();
+
+                if (parentConf != null)
+                {
+                    return Document.CreateObjectFromDispatch<ISwDmConfiguration>(parentConf);
+                }
+                else
+                {
+                    return null;
+                }
+            }
+        }
+
+        private SwDMConfiguration GetParentConfiguration() 
+        {
+            var parentConfName = Configuration.GetParentConfigurationName();
+
+            if (!string.IsNullOrEmpty(parentConfName))
+            {
+                SwDMConfiguration parentConf;
+
+                if (Document.IsVersionNewerOrEqual(SwDmVersion_e.Sw2019))
+                {
+                    parentConf = ((ISwDMConfigurationMgr2)Document.Document.ConfigurationManager).GetConfigurationByName2(parentConfName, out var err);
+
+                    if (err != SwDMConfigurationError.SwDMConfigurationError_None)
+                    {
+                        throw new InvalidConfigurationsException(err);
+                    }
+                }
+                else
+                {
+                    parentConf = Document.Document.ConfigurationManager.GetConfigurationByName(parentConfName);
+                }
+
+                return parentConf;
+            }
+            else
+            {
+                return null;
+            }
+        }
+
         private string TryGetDocumentPropertyValue(string prpName)
         {
             try
@@ -226,10 +242,24 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         private string TryGetConfigurationPropertyValue(string prpName)
         {
+            ISwDMConfiguration5 conf;
+
             try
             {
-                return ((ISwDMConfiguration5)Configuration)
-                    .GetCustomPropertyValues(prpName, out _, out _);
+                conf = (ISwDMConfiguration5)Configuration;
+            }
+            catch (InvalidConfigurationsException) 
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidConfigurationsException($"Failed to access configuration '{Name}' to extract quantity value", ex);
+            }
+
+            try
+            {
+                return conf.GetCustomPropertyValues(prpName, out _, out _);
             }
             catch 
             {
@@ -254,7 +284,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             }
         }
 
-        public virtual void Commit(CancellationToken cancellationToken) => throw new NotSupportedException();
+        public override void Commit(CancellationToken cancellationToken) => throw new NotSupportedException();
     }
 
     public interface ISwDmAssemblyConfiguration : ISwDmConfiguration, IXAssemblyConfiguration
@@ -269,5 +299,23 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         }
 
         public IXComponentRepository Components { get; }
+    }
+
+    public interface ISwDmPartConfiguration : ISwDmConfiguration, IXPartConfiguration
+    {
+    }
+
+    internal class SwDmPartConfiguration : SwDmConfiguration, ISwDmPartConfiguration
+    {
+        #region Not Supported
+        public IXMaterial Material { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
+        #endregion
+
+        internal SwDmPartConfiguration(ISwDMConfiguration conf, SwDmPart part) : base(conf, part)
+        {
+            CutLists = new SwDmCutListItemCollection(this, part);
+        }
+
+        public IXCutListItemRepository CutLists { get; }
     }
 }

@@ -1,0 +1,94 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+
+  <PropertyGroup>
+    <AssemblyName>Xarial.XCad.Inventor</AssemblyName>
+    <RootNamespace>Xarial.XCad.Inventor</RootNamespace>
+    <TargetFrameworks>net7.0-windows;net6.0-windows;netcoreapp3.1;net461</TargetFrameworks>
+    <PackageId>Xarial.XCad.Inventor</PackageId>
+    <PackageTags>cad,inventor</PackageTags>
+    <Description>Framework for developing Autodesk Inventor applications based on xCAD.NET</Description>
+    <PackageIcon>icon.png</PackageIcon>
+    <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
+    <PackageIconUrl>https://xcad.xarial.com/icon-ai.png</PackageIconUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+
+  <Import Project="..\..\common\common.props" />
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netcoreapp3.1|AnyCPU' Or '$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net6.0|AnyCPU' or '$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net6.0-windows|AnyCPU' or '$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net7.0-windows|AnyCPU' or '$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net7.0-windows|AnyCPU'">
+    <NoWarn>1701;1702</NoWarn>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TargetFramework)' == 'netcoreapp3.1' Or '$(TargetFramework)' == 'net6.0' Or '$(TargetFramework)' == 'net6.0-windows' Or '$(TargetFramework)' == 'net7.0' Or '$(TargetFramework)' == 'net7.0-windows'">
+    <NoWarn>CS0618</NoWarn>
+    <UseWpf>true</UseWpf>
+    <UseWindowsForms>true</UseWindowsForms>
+  </PropertyGroup>
+  
+  <PropertyGroup Condition="'$(Configuration)'=='Release'">
+    <DocumentationFile>Xarial.XCad.Inventor.xml</DocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net461'">
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="PresentationFramework" />
+    <Reference Include="PresentationCore" />
+    <Reference Include="WindowsFormsIntegration" />
+    <Reference Include="WindowsBase" />
+  </ItemGroup>
+    
+  <ItemGroup>
+    <None Include="icon.png" pack="true" PackagePath="" Link="_Pack\icon.png" />
+    <None Include="..\..\LICENSE.md" pack="true" PackagePath="" Link="_Pack\LICENSE.md" />
+    <None Include="..\..\README.md" pack="true" PackagePath="" Link="_Pack\README.md" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Base\Base.csproj" />
+    <ProjectReference Include="..\Toolkit\Toolkit.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="SolidWorks.Interop.sldworks">
+      <HintPath>..\..\thirdpty\Autodesk.Inventor.Interop.dll</HintPath>
+      <EmbedInteropTypes>false</EmbedInteropTypes>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\thirdpty\Autodesk.Inventor.Interop.dll" pack="true" PackagePath="lib\net461" />
+    
+    <None Include="..\..\thirdpty\Autodesk.Inventor.Interop.dll" pack="true" PackagePath="lib\netcoreapp3.1" />
+
+    <None Include="..\..\thirdpty\Autodesk.Inventor.Interop.dll" pack="true" PackagePath="lib\net6.0-windows7.0" Link="_Pack\Autodesk.Inventor.Interop.dll" />
+
+    <None Include="..\..\thirdpty\Autodesk.Inventor.Interop.dll" pack="true" PackagePath="lib\net7.0-windows7.0" Link="_Pack\Autodesk.Inventor.Interop.dll" />
+
+    <None Include="..\..\tools\_build\Xarial.XCad.Inventor.Tools.StandAloneConnector.dll" pack="true" PackagePath="tools\StandAloneConnector\Xarial.XCad.Inventor.Tools.StandAloneConnector.dll" Link="_Pack\Xarial.XCad.Inventor.Tools.StandAloneConnector.dll" />
+    <None Include="..\..\tools\_build\Xarial.XCad.Inventor.Tools.StandAloneConnector.addin" pack="true" PackagePath="tools\StandAloneConnector\Xarial.XCad.Inventor.Tools.StandAloneConnector.addin" Link="_Pack\Xarial.XCad.Inventor.Tools.StandAloneConnector.addin" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="_Pack\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Properties\Resources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+  
+</Project>

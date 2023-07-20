@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -28,9 +28,13 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
         new ISwTempRegion[] Profiles { get; set; }
     }
 
-    internal class SwTempSweep : SwTempPrimitive, ISwTempSweep
+    public interface ISwTempSolidSweep : ISwTempSweep, ISwTempPrimitive
     {
-        IXRegion[] IXSweep.Profiles
+    }
+
+    internal class SwTempSolidSweep : SwTempPrimitive, ISwTempSolidSweep
+    {
+        IXPlanarRegion[] IXSweep.Profiles
         {
             get => Profiles;
             set => Profiles = value.Cast<ISwTempRegion>().ToArray();
@@ -44,7 +48,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
 
         private readonly SwPart m_Part;
 
-        internal SwTempSweep(SwTempBody[] bodies, SwPart part, ISwApplication app, bool isCreated)
+        internal SwTempSolidSweep(SwTempBody[] bodies, SwPart part, ISwApplication app, bool isCreated)
             : base(bodies, app, isCreated)
         {
             m_Part = part;
@@ -91,9 +95,14 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
 
             foreach (var profile in Profiles)
             {
-                using (var selGrp = new SelectionGroup(selMgr))
+                using (var selGrp = new SelectionGroup(m_Part, true))
                 {
-                    var profileCurve = GetSingleCurve(profile.Boundary.SelectMany(c => c.Curves).ToArray());
+                    if (profile.InnerLoops?.Any() == true) 
+                    {
+                        throw new NotSupportedException("Only single loop is supported for the profile");
+                    }
+
+                    var profileCurve = GetSingleCurve(profile.OuterLoop.Curves.SelectMany(c => c.Curves).ToArray());
                     var profileBody = profileCurve.CreateWireBody();
 
                     selData.Mark = 1;

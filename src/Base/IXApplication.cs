@@ -1,11 +1,12 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using Xarial.XCad.Base;
@@ -17,6 +18,13 @@ using Xarial.XCad.Geometry;
 
 namespace Xarial.XCad
 {
+    /// <summary>
+    /// Application level options
+    /// </summary>
+    public interface IXApplicationOptions : IXOptions 
+    {
+    }
+
     /// <summary>
     /// Top level object in the class hierarchy
     /// </summary>
@@ -63,6 +71,11 @@ namespace Xarial.XCad
         Process Process { get; }
 
         /// <summary>
+        /// Application level options
+        /// </summary>
+        IXApplicationOptions Options { get; }
+
+        /// <summary>
         /// Accesses the documents repository
         /// </summary>
         IXDocumentRepository Documents { get; }
@@ -100,6 +113,18 @@ namespace Xarial.XCad
         /// </summary>
         /// <returns>Pointer to progress manager</returns>
         IXProgress CreateProgress();
+
+        /// <summary>
+        /// Creates an object tracker to track objects across operations
+        /// </summary>
+        /// <param name="name">Name of the tracker</param>
+        /// <returns>Tracker</returns>
+        IXObjectTracker CreateObjectTracker(string name);
+
+        /// <summary>
+        /// Material databases
+        /// </summary>
+        IXMaterialsDatabaseRepository MaterialDatabases { get; }
 
         /// <summary>
         /// Close current instance of the application

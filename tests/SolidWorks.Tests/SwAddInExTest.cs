@@ -22,7 +22,7 @@ namespace SolidWorks.Tests
         [Test]
         public void TestConnectToSW()
         {
-            var addInExMock1 = new Mock<SwAddInEx>();
+            var addInExMock1 = new Mock<SwAddInEx>() { CallBase = true };
 
             bool connectCalled = false;
             addInExMock1.Setup(a => a.OnConnect()).Callback(
@@ -31,7 +31,7 @@ namespace SolidWorks.Tests
                     connectCalled = true;
                 });
 
-            var addInExMock2 = new Mock<SwAddInEx>();
+            var addInExMock2 = new Mock<SwAddInEx>() { CallBase = true };
             addInExMock2.Setup(a => a.OnConnect())
                 .Callback(() => throw new Exception());
 
@@ -53,7 +53,7 @@ namespace SolidWorks.Tests
         [Test]
         public void DisconnectFromSWTest()
         {
-            var addInExMock1 = new Mock<SwAddInEx>();
+            var addInExMock1 = new Mock<SwAddInEx>() { CallBase = true };
             bool disconnectCalled = false;
             addInExMock1.Setup(a => a.OnDisconnect()).Callback(
                 () =>
@@ -61,7 +61,7 @@ namespace SolidWorks.Tests
                     disconnectCalled = true;
                 });
 
-            var addInExMock2 = new Mock<SwAddInEx>();
+            var addInExMock2 = new Mock<SwAddInEx>() { CallBase = true };
             addInExMock2.Setup(a => a.OnDisconnect())
                 .Callback(() => throw new Exception());
 

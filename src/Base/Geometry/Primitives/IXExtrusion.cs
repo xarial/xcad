@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -11,10 +11,24 @@ using Xarial.XCad.Geometry.Wires;
 
 namespace Xarial.XCad.Geometry.Primitives
 {
+    /// <summary>
+    /// Represents the extruded geometry
+    /// </summary>
     public interface IXExtrusion : IXPrimitive
     {
-        IXRegion[] Profiles { get; set; }
+        /// <summary>
+        /// Profiles used to create this extrusion geometry
+        /// </summary>
+        IXPlanarRegion[] Profiles { get; set; }
+
+        /// <summary>
+        /// Depth of the extrusion
+        /// </summary>
         double Depth { get; set; }
+
+        /// <summary>
+        /// Direction of the extrusion
+        /// </summary>
         Vector Direction { get; set; }
     }
 }

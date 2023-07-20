@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -36,11 +36,10 @@ namespace Xarial.XCad.Geometry
         IXSolidGeometryBuilder SolidBuilder { get; }
 
         /// <summary>
-        /// Creates region from the specified list of segments
+        /// Pre-creates planar region
         /// </summary>
-        /// <param name="segments">Segments</param>
-        /// <returns>Created region</returns>
-        IXRegion CreateRegionFromSegments(params IXSegment[] segments);
+        /// <returns>Region template</returns>
+        IXPlanarRegion PreCreatePlanarRegion();
     }
 
     /// <summary>

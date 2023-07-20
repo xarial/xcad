@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -8,7 +8,7 @@
 using System;
 using System.ComponentModel;
 using Xarial.XCad.UI.Commands.Delegates;
-using static Xarial.XCad.UI.Commands.IXCommandManagerExtension;
+using static Xarial.XCad.UI.Commands.XCommandManagerExtension;
 
 namespace Xarial.XCad.UI.Commands.Structures
 {
@@ -31,50 +31,26 @@ namespace Xarial.XCad.UI.Commands.Structures
     {
         event CommandClickDelegate IXCommandGroup.CommandClick
         {
-            add
-            {
-                m_CmdBar.CommandClick += value;
-            }
-            remove
-            {
-                m_CmdBar.CommandClick -= value;
-            }
+            add => m_CmdBar.CommandClick += value;
+            remove => m_CmdBar.CommandClick -= value;
         }
 
         event CommandEnumClickDelegate<TCmdEnum> IEnumCommandGroup<TCmdEnum>.CommandClick
         {
-            add
-            {
-                m_CommandClick += value;
-            }
-            remove
-            {
-                m_CommandClick -= value;
-            }
+            add => m_CommandClick += value;
+            remove => m_CommandClick -= value;
         }
 
         event CommandStateDelegate IXCommandGroup.CommandStateResolve
         {
-            add
-            {
-                m_CmdBar.CommandStateResolve += value;
-            }
-            remove
-            {
-                m_CmdBar.CommandStateResolve -= value;
-            }
+            add => m_CmdBar.CommandStateResolve += value;
+            remove => m_CmdBar.CommandStateResolve -= value;
         }
 
         event CommandEnumStateDelegate<TCmdEnum> IEnumCommandGroup<TCmdEnum>.CommandStateResolve
         {
-            add
-            {
-                m_CommandState += value;
-            }
-            remove
-            {
-                m_CommandState -= value;
-            }
+            add => m_CommandState += value;
+            remove => m_CommandState -= value;
         }
 
         private readonly IXCommandGroup m_CmdBar;

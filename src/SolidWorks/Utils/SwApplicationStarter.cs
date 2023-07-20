@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -14,6 +14,8 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
+using Xarial.XCad.Base;
+using Xarial.XCad.Base.Enums;
 using Xarial.XCad.Enums;
 using Xarial.XCad.SolidWorks.Enums;
 using Xarial.XCad.SolidWorks.Exceptions;
@@ -32,7 +34,7 @@ namespace Xarial.XCad.SolidWorks.Utils
             m_Version = version;
         }
 
-        internal ISldWorks Start(Action<Process> startHandler, CancellationToken cancellationToken) 
+        internal ISldWorks Start(Action<Process> startHandler, IXLogger logger, CancellationToken cancellationToken) 
         {
             SwVersion_e? vers = null;
 
@@ -60,7 +62,9 @@ namespace Xarial.XCad.SolidWorks.Utils
 
             var swPath = FindSwAppPath(vers);
 
-            var prcInfo = new ProcessStartInfo(swPath, string.Join(" ", args));
+            var startArgs = string.Join(" ", args);
+
+            var prcInfo = new ProcessStartInfo(swPath, startArgs);
 
             if (m_State.HasFlag(ApplicationState_e.Hidden))
             {
@@ -68,6 +72,8 @@ namespace Xarial.XCad.SolidWorks.Utils
                 prcInfo.CreateNoWindow = true;
                 prcInfo.WindowStyle = ProcessWindowStyle.Hidden;
             }
+
+            logger.Log($"Starting SOLIDWORKS application from '{swPath}' with arguments: '{startArgs}'", LoggerMessageSeverity_e.Debug);
 
             var prc = Process.Start(prcInfo);
 
@@ -83,28 +89,39 @@ namespace Xarial.XCad.SolidWorks.Utils
                         throw new AppStartCancelledByUserException();
                     }
 
-                    app = RotHelper.TryGetComObjectByMonikerName<ISldWorks>(SwApplicationFactory.GetMonikerName(prc));
+                    if (prc.HasExited) 
+                    {
+                        logger.Log("SOLIDWORKS process has exited before moniker was found", LoggerMessageSeverity_e.Debug);
+
+                        throw new Exception($"SOLIDWORKS process has exited");
+                    }
+
+                    app = RotHelper.TryGetComObjectByMonikerName<ISldWorks>(SwApplicationFactory.GetMonikerName(prc), logger);
                     Thread.Sleep(100);
                 }
                 while (app == null);
 
                 if (m_State.HasFlag(ApplicationState_e.Hidden)) 
                 {
+                    logger.Log($"Hiding SOLIDWORKS application {prc.Id}", LoggerMessageSeverity_e.Debug);
                     app.Visible = false;
                 }
 
                 return app;
             }
-            catch
+            catch(Exception ex)
             {
+                logger.Log(ex);
+
                 if (prc != null)
                 {
                     try
                     {
                         prc.Kill();
                     }
-                    catch
+                    catch(Exception prcEx)
                     {
+                        logger.Log(prcEx);
                     }
                 }
 
@@ -119,14 +136,14 @@ namespace Xarial.XCad.SolidWorks.Utils
             if (vers.HasValue)
             {
                 var progId = string.Format(SwApplicationFactory.PROG_ID_TEMPLATE, (int)vers);
-                swAppRegKey = Registry.ClassesRoot.OpenSubKey(progId);
+                swAppRegKey = Registry.ClassesRoot.OpenSubKey(progId, false);
             }
             else
             {
                 foreach (var versCand in Enum.GetValues(typeof(SwVersion_e)).Cast<int>().OrderByDescending(x => x))
                 {
                     var progId = string.Format(SwApplicationFactory.PROG_ID_TEMPLATE, versCand);
-                    swAppRegKey = Registry.ClassesRoot.OpenSubKey(progId);
+                    swAppRegKey = Registry.ClassesRoot.OpenSubKey(progId, false);
 
                     if (swAppRegKey != null)
                     {

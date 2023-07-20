@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -8,6 +8,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Xarial.XCad.Enums;
 using Xarial.XCad.UI.PropertyPage.Base;
 using Xarial.XCad.UI.PropertyPage.Enums;
 
@@ -39,7 +40,7 @@ namespace Xarial.XCad.UI.PropertyPage.Attributes
         /// <param name="caption">Label caption</param>
         /// <param name="align">Label alignment</param>
         /// <param name="fontStyle">Font style</param>
-        public LabelAttribute(string caption, ControlLeftAlign_e align = ControlLeftAlign_e.LeftEdge, FontStyle_e fontStyle = FontStyle_e.Default) 
+        public LabelAttribute(string caption, ControlLeftAlign_e align = ControlLeftAlign_e.LeftEdge, FontStyle_e fontStyle = FontStyle_e.Regular) 
         {
             Caption = caption;
             Align = align;

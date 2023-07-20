@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -45,6 +45,16 @@ namespace Xarial.XCad.SwDocumentManager.Exceptions
             : base(GetError(err))
         {
             Error = err;
+        }
+
+        internal InvalidConfigurationsException(string err) : base(err)   
+        {
+            Error = SwDMConfigurationError.SwDMConfigurationError_Unknown;
+        }
+
+        internal InvalidConfigurationsException(string err, Exception ex) : base(err, ex)
+        {
+            Error = SwDMConfigurationError.SwDMConfigurationError_Unknown;
         }
     }
 }

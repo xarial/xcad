@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -16,16 +16,11 @@ namespace Xarial.XCad.UI.PropertyPage.Attributes
     /// </summary>
     public class OptionBoxOptionsAttribute : Attribute, IAttribute
     {
-        public OptionBoxStyle_e Style { get; private set; }
-
         /// <summary>
         /// Assigns additional options (such as style) for this option box control
         /// </summary>
-        /// <param name="style"></param>
-        public OptionBoxOptionsAttribute(
-            OptionBoxStyle_e style = 0)
+        public OptionBoxOptionsAttribute()
         {
-            Style = style;
         }
     }
 }

@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -21,6 +21,14 @@ namespace Xarial.XCad.Geometry.Exceptions
         /// Default constructor
         /// </summary>
         public EvaluationFailedException() : base("Cannot perform the evaluation for this model. Make sure that model contains the valid geometry")
+        {
+        }
+
+        /// <summary>
+        /// Specific evaluation exception
+        /// </summary>
+        /// <param name="error">Error description</param>
+        public EvaluationFailedException(string error) : base(error)
         {
         }
     }

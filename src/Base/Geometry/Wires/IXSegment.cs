@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -12,7 +12,8 @@ namespace Xarial.XCad.Geometry.Wires
     /// <summary>
     /// Segment represents the definition of any wire body
     /// </summary>
-    public interface IXSegment : IXTransaction, IXObject
+    /// <remarks>This is a based interface for all geometrical primitives (either curves, sketch segments or edges)</remarks>
+    public interface IXSegment : IXWireEntity
     {
         /// <summary>
         /// Start point of this sketch segment

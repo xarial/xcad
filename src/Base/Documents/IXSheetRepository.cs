@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -21,8 +21,13 @@ namespace Xarial.XCad.Documents
         event SheetActivatedDelegate SheetActivated;
 
         /// <summary>
-        /// Returns an active sheet in this sheets repository
+        /// Fired when new sheet is created
         /// </summary>
-        IXSheet Active { get; }
+        event SheetCreatedDelegate SheetCreated;
+
+        /// <summary>
+        /// Returns or sets the active sheet in this sheets repository
+        /// </summary>
+        IXSheet Active { get; set; }
     }
 }

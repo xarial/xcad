@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -8,7 +8,9 @@
 using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
 using System;
+using System.IO;
 using System.Linq;
+using Xarial.XCad.Geometry.Surfaces;
 using Xarial.XCad.SolidWorks.Annotations;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Features;
@@ -26,7 +28,7 @@ namespace Xarial.XCad.SolidWorks
     /// </summary>
     internal static class SwObjectFactory 
     {
-        internal static TObj FromDispatch<TObj>(object disp, ISwDocument doc, ISwApplication app)
+        internal static TObj FromDispatch<TObj>(object disp, SwDocument doc, SwApplication app)
             where TObj : IXObject
         {
             if (typeof(ISwSelObject).IsAssignableFrom(typeof(TObj))) 
@@ -39,7 +41,7 @@ namespace Xarial.XCad.SolidWorks
             }
         }
 
-        private static ISwObject FromDispatch(object disp, ISwDocument doc, ISwApplication app, Func<object, ISwObject> defaultHandler)
+        private static ISwObject FromDispatch(object disp, SwDocument doc, SwApplication app, Func<object, ISwObject> defaultHandler)
         {
             if (disp == null) 
             {
@@ -65,46 +67,57 @@ namespace Xarial.XCad.SolidWorks
 
                 case IFace2 face:
                     var faceSurf = face.IGetSurface();
-                    if (faceSurf.IsPlane())
+                    var faceSurfIdentity = (swSurfaceTypes_e)faceSurf.Identity();
+                    switch (faceSurfIdentity)
                     {
-                        return new SwPlanarFace(face, doc, app);
-                    }
-                    else if (faceSurf.IsCylinder())
-                    {
-                        return new SwCylindricalFace(face, doc, app);
-                    }
-                    else
-                    {
-                        return new SwFace(face, doc, app);
+                        case swSurfaceTypes_e.PLANE_TYPE:
+                            return new SwPlanarFace(face, doc, app);
+
+                        case swSurfaceTypes_e.CYLINDER_TYPE:
+                            return new SwCylindricalFace(face, doc, app);
+
+                        case swSurfaceTypes_e.CONE_TYPE:
+                            return new SwConicalFace(face, doc, app);
+
+                        case swSurfaceTypes_e.SPHERE_TYPE:
+                            return new SwSphericalFace(face, doc, app);
+
+                        case swSurfaceTypes_e.TORUS_TYPE:
+                            return new SwToroidalFace(face, doc, app);
+
+                        case swSurfaceTypes_e.BSURF_TYPE:
+                            return new SwBFace(face, doc, app);
+
+                        case swSurfaceTypes_e.BLEND_TYPE:
+                            return new SwBlendFace(face, doc, app);
+
+                        case swSurfaceTypes_e.OFFSET_TYPE:
+                            return new SwOffsetFace(face, doc, app);
+
+                        case swSurfaceTypes_e.EXTRU_TYPE:
+                            return new SwExtrudedFace(face, doc, app);
+
+                        case swSurfaceTypes_e.SREV_TYPE:
+                            return new SwRevolvedFace(face, doc, app);
+
+                        default:
+                            throw new NotSupportedException($"Not supported face type: {faceSurfIdentity}");
                     }
 
                 case IVertex vertex:
                     return new SwVertex(vertex, doc, app);
 
-                case IFeature feat:
-                    switch (feat.GetTypeName())
+                case ISilhouetteEdge silhouetteEdge:
+                    return new SwSilhouetteEdge(silhouetteEdge, doc, app);
+
+                case ISketch sketch:
+                    if (sketch.Is3D())
                     {
-                        case "ProfileFeature":
-                            return new SwSketch2D(feat, doc, app, true);
-                        case "3DProfileFeature":
-                            return new SwSketch3D(feat, doc, app, true);
-                        case "CutListFolder":
-                            return new SwCutListItem(feat, (ISwDocument3D)doc, app, true);
-                        case "CoordSys":
-                            return new SwCoordinateSystem(feat, doc, app, true);
-                        case "RefPlane":
-                            return new SwPlane(feat, doc, app, true);
-                        case "MacroFeature":
-                            if (TryGetParameterType(feat, out Type paramType))
-                            {
-                                return SwMacroFeature<object>.CreateSpecificInstance(feat, (SwDocument)doc, app, paramType);
-                            }
-                            else
-                            {
-                                return new SwMacroFeature(feat, (SwDocument)doc, app, true);
-                            }
-                        default:
-                            return new SwFeature(feat, doc, app, true);
+                        return new SwSketch3D(sketch, doc, app, true);
+                    }
+                    else
+                    {
+                        return new SwSketch2D(sketch, doc, app, true);
                     }
 
                 case IBody2 body:
@@ -148,6 +161,16 @@ namespace Xarial.XCad.SolidWorks
                                 return new SwTempSolidBody(body, app);
                             }
 
+                        case swBodyType_e.swWireBody:
+                            if (!isTemp)
+                            {
+                                return new SwWireBody(body, doc, app);
+                            }
+                            else
+                            {
+                                return new SwTempWireBody(body, app);
+                            }
+
                         default:
                             throw new NotSupportedException();
                     }
@@ -186,11 +209,23 @@ namespace Xarial.XCad.SolidWorks
                 case ISketchPoint skPt:
                     return new SwSketchPoint(skPt, doc, app, true);
 
+                case ISketchPicture skPict:
+                    return new SwSketchPicture(skPict, doc, app, true);
+
                 case IDisplayDimension dispDim:
                     return new SwDimension(dispDim, doc, app);
 
                 case INote note:
                     return new SwNote(note, doc, app);
+
+                case IDrSection section:
+                    return new SwSectionLine(section, doc, app);
+
+                case IDetailCircle detailCircle:
+                    return new SwDetailCircle(detailCircle, doc, app);
+
+                case ITableAnnotation tableAnn:
+                    return new SwTable(tableAnn, doc, app);
 
                 case IAnnotation ann:
                     switch ((swAnnotationType_e)ann.GetType())
@@ -199,9 +234,14 @@ namespace Xarial.XCad.SolidWorks
                             return new SwDimension((IDisplayDimension)ann.GetSpecificAnnotation(), doc, app);
                         case swAnnotationType_e.swNote:
                             return new SwNote((INote)ann.GetSpecificAnnotation(), doc, app);
+                        case swAnnotationType_e.swTableAnnotation:
+                            return new SwTable((ITableAnnotation)ann.GetSpecificAnnotation(), doc, app);
                         default:
-                            return defaultHandler.Invoke(ann);
+                            return new SwAnnotation(ann, doc, app);
                     }
+
+                case ILayer layer:
+                    return new SwLayer(layer, doc, app);
 
                 case IConfiguration conf:
                     switch (doc)
@@ -209,22 +249,76 @@ namespace Xarial.XCad.SolidWorks
                         case SwAssembly assm:
                             return new SwAssemblyConfiguration(conf, assm, app, true);
 
-                        case SwDocument3D doc3D:
-                            return new SwConfiguration(conf, doc3D, app, true);
+                        case SwPart part:
+                            return new SwPartConfiguration(conf, part, app, true);
 
                         default:
                             throw new Exception("Owner document must be 3D document or assembly");
                     }
 
                 case IComponent2 comp:
-                    return new SwComponent(comp, (SwAssembly)doc, app);
+                    
+                    var compRefModel = comp.GetModelDoc2();
+
+                    if (compRefModel != null)
+                    {
+                        switch (compRefModel)
+                        {
+                            case IPartDoc _:
+                                return new SwPartComponent(comp, (SwAssembly)doc, app);
+
+                            case IAssemblyDoc _:
+                                return new SwAssemblyComponent(comp, (SwAssembly)doc, app);
+
+                            default:
+                                throw new NotSupportedException($"Unrecognized component type of '{comp.Name2}'");
+                        }
+                    }
+                    else
+                    {
+                        var compFilePath = comp.GetPathName();
+                        var ext = Path.GetExtension(compFilePath);
+
+                        switch (ext.ToLower())
+                        {
+                            case ".sldprt":
+                                return new SwPartComponent(comp, (SwAssembly)doc, app);
+                            case ".sldasm":
+                                return new SwAssemblyComponent(comp, (SwAssembly)doc, app);
+                            default:
+                                throw new NotSupportedException($"Component '{comp.Name2}' file '{compFilePath}' is not recognized");
+                        }
+                    }
 
                 case ISheet sheet:
                     return new SwSheet(sheet, (SwDrawing)doc, app);
 
                 case IView view:
-                    return new SwDrawingView(view, (SwDrawing)doc);
-
+                    if (view.IsFlatPatternView())
+                    {
+                        return new SwFlatPatternDrawingView(view, (SwDrawing)doc);
+                    }
+                    else
+                    {
+                        switch ((swDrawingViewTypes_e)view.Type)
+                        {
+                            case swDrawingViewTypes_e.swDrawingProjectedView:
+                                return new SwProjectedDrawingView(view, (SwDrawing)doc);
+                            case swDrawingViewTypes_e.swDrawingNamedView:
+                                return new SwModelBasedDrawingView(view, (SwDrawing)doc);
+                            case swDrawingViewTypes_e.swDrawingAuxiliaryView:
+                                return new SwAuxiliaryDrawingView(view, (SwDrawing)doc);
+                            case swDrawingViewTypes_e.swDrawingSectionView:
+                                return new SwSectionDrawingView(view, (SwDrawing)doc);
+                            case swDrawingViewTypes_e.swDrawingDetailView:
+                                return new SwDetailDrawingView(view, (SwDrawing)doc);
+                            case swDrawingViewTypes_e.swDrawingRelativeView:
+                                return new SwRelativeView(view, (SwDrawing)doc);
+                            default:
+                                return new SwDrawingView(view, (SwDrawing)doc);
+                        }
+                    }
+                    
                 case ICurve curve:
                     switch ((swCurveTypes_e)curve.Identity())
                     {
@@ -250,8 +344,12 @@ namespace Xarial.XCad.SolidWorks
                             return new SwCurve(curve, doc, app, true);
                     }
 
+                case ILoop2 loop:
+                    return new SwLoop(loop, doc, app);
+
                 case ISurface surf:
-                    switch ((swSurfaceTypes_e)surf.Identity())
+                    var surfIdentity = (swSurfaceTypes_e)surf.Identity();
+                    switch (surfIdentity)
                     {
                         case swSurfaceTypes_e.PLANE_TYPE:
                             return new SwPlanarSurface(surf, doc, app);
@@ -259,12 +357,82 @@ namespace Xarial.XCad.SolidWorks
                         case swSurfaceTypes_e.CYLINDER_TYPE:
                             return new SwCylindricalSurface(surf, doc, app);
 
+                        case swSurfaceTypes_e.CONE_TYPE:
+                            return new SwConicalSurface(surf, doc, app);
+
+                        case swSurfaceTypes_e.SPHERE_TYPE:
+                            return new SwSphericalSurface(surf, doc, app);
+
+                        case swSurfaceTypes_e.TORUS_TYPE:
+                            return new SwToroidalSurface(surf, doc, app);
+
+                        case swSurfaceTypes_e.BSURF_TYPE:
+                            return new SwBSurface(surf, doc, app);
+
+                        case swSurfaceTypes_e.BLEND_TYPE:
+                            return new SwBlendXSurface(surf, doc, app);
+
+                        case swSurfaceTypes_e.OFFSET_TYPE:
+                            return new SwOffsetSurface(surf, doc, app);
+
+                        case swSurfaceTypes_e.EXTRU_TYPE:
+                            return new SwExtrudedSurface(surf, doc, app);
+
+                        case swSurfaceTypes_e.SREV_TYPE:
+                            return new SwRevolvedSurface(surf, doc, app);
+
                         default:
-                            return new SwSurface(surf, doc, app);
+                            throw new NotSupportedException($"Not supported surface type: {surfIdentity}");
                     }
 
                 case IModelView modelView:
                     return new SwModelView(modelView, doc, app);
+
+                case ISketchBlockInstance skBlockInst:
+                    return new SwSketchBlockInstance((IFeature)skBlockInst, doc, app, true);
+
+                case ISketchBlockDefinition skBlockDef:
+                    return new SwSketchBlockDefinition((IFeature)skBlockDef, doc, app, true);
+
+                case IFeature feat:
+                    switch (feat.GetTypeName())
+                    {
+                        case SwSketch2D.TypeName:
+                            return new SwSketch2D(feat, doc, app, true);
+                        case SwSketch3D.TypeName:
+                            return new SwSketch3D(feat, doc, app, true);
+                        case "CutListFolder":
+                            return new SwCutListItem(feat, (SwDocument3D)doc, app, true);
+                        case "CoordSys":
+                            return new SwCoordinateSystem(feat, doc, app, true);
+                        case SwOrigin.TypeName:
+                            return new SwOrigin(feat, doc, app, true);
+                        case SwPlane.TypeName:
+                            return new SwPlane(feat, doc, app, true);
+                        case SwFlatPattern.TypeName:
+                            return new SwFlatPattern(feat, doc, app, true);
+                        case "SketchBlockInst":
+                            return new SwSketchBlockInstance(feat, doc, app, true);
+                        case "SketchBlockDef":
+                            return new SwSketchBlockDefinition(feat, doc, app, true);
+                        case "SketchBitmap":
+                            return new SwSketchPicture(feat, doc, app, true);
+                        case "BaseBody":
+                            return new SwDumbBody(feat, doc, app, true);
+                        case "WeldMemberFeat":
+                            return new SwStructuralMember(feat, doc, app, true);
+                        case "MacroFeature":
+                            if (TryGetParameterType(feat, out Type paramType))
+                            {
+                                return SwMacroFeature<object>.CreateSpecificInstance(feat, doc, app, paramType);
+                            }
+                            else
+                            {
+                                return new SwMacroFeature(feat, doc, app, true);
+                            }
+                        default:
+                            return new SwFeature(feat, doc, app, true);
+                    }
 
                 default:
                     return defaultHandler.Invoke(disp);

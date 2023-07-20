@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -13,9 +13,12 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
+using Xarial.XCad.SolidWorks.Services;
+using Xarial.XCad.Toolkit.Services;
 using Xarial.XCad.UI.PropertyPage.Attributes;
 using Xarial.XCad.UI.PropertyPage.Base;
 using Xarial.XCad.UI.PropertyPage.Structures;
+using Xarial.XCad.Utils.PageBuilder.Base;
 using Xarial.XCad.Utils.PageBuilder.PageElements;
 
 namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
@@ -24,26 +27,45 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
     {
         protected override event ControlValueChangedDelegate<TVal> ValueChanged;
 
-        private readonly bool m_IsStatic;
-        private readonly ItemsControlItem[] m_StaticItems;
+        private bool m_IsStatic;
+        private ItemsControlItem[] m_StaticItems;
         private ItemsControlItem[] m_DynamicItems;
 
         private TVal m_CurrentValueCached;
         private bool m_IsPageOpened;
 
-        public PropertyManagerPageComboBoxControl(int id, object tag,
-            IPropertyManagerPageCombobox comboBox,
-            SwPropertyManagerPageHandler handler, IMetadata srcMetadata, IPropertyManagerPageLabel label,
-            Type specificItemType, bool isStatic, ItemsControlItem[] staticItems, IMetadata[] metadata)
-            : base(id, tag, comboBox, handler, srcMetadata, label, specificItemType, metadata)
+        public PropertyManagerPageComboBoxControl(SwApplication app, IGroup parentGroup, IIconsCreator iconConv,
+            IAttributeSet atts, IMetadata[] metadata, ref int numberOfUsedIds)
+            : base(app, parentGroup, iconConv, atts, metadata, swPropertyManagerPageControlType_e.swControlType_Combobox, ref numberOfUsedIds)
+        {
+            m_Handler.ComboBoxChanged += OnComboBoxChanged;
+            m_Handler.Opened += OnPageOpened;
+            m_Handler.PreClosed += OnPageClosed;
+            m_IsPageOpened = false;
+        }
+
+        protected override void SetOptions(IPropertyManagerPageCombobox ctrl, IControlOptionsAttribute opts, IAttributeSet atts)
+        {
+            if (opts.Height != -1)
+            {
+                SwSpecificControl.Height = opts.Height;
+            }
+
+            if (atts.Has<ComboBoxOptionsAttribute>())
+            {
+                var cmbOpts = atts.Get<ComboBoxOptionsAttribute>();
+
+                if (cmbOpts.Style != 0)
+                {
+                    SwSpecificControl.Style = (int)cmbOpts.Style;
+                }
+            }
+        }
+
+        protected override void SetStaticItems(IAttributeSet atts, bool isStatic, ItemsControlItem[] staticItems)
         {
             m_IsStatic = isStatic;
             m_StaticItems = staticItems;
-
-            m_Handler.ComboBoxChanged += OnComboBoxChanged;
-            m_Handler.Opened += OnPageOpened;
-            m_Handler.Closed += OnPageClosed;
-            m_IsPageOpened = false;
         }
 
         public override ItemsControlItem[] Items

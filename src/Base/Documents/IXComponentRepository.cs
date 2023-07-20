@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Xarial.XCad.Base;
+using Xarial.XCad.Documents.Delegates;
 using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Geometry;
 
@@ -29,7 +30,7 @@ namespace Xarial.XCad.Documents
     /// <summary>
     /// Additonal methods of <see cref="IXComponentRepository"/>
     /// </summary>
-    public static class IXComponentRepositoryExtension 
+    public static class XComponentRepositoryExtension 
     {
         /// <summary>
         /// Returns all components, including children
@@ -40,14 +41,19 @@ namespace Xarial.XCad.Documents
         {
             foreach (var comp in repo) 
             {
+                yield return comp;
+
                 IXComponentRepository children = null;
 
-                try
+                var state = comp.State;
+
+                if (!comp.State.HasFlag(ComponentState_e.Suppressed) && !comp.State.HasFlag(ComponentState_e.SuppressedIdMismatch))
                 {
                     children = comp.Children;
                 }
-                catch 
+                else
                 {
+                    children = null;
                 }
 
                 if (children != null)
@@ -57,9 +63,19 @@ namespace Xarial.XCad.Documents
                         yield return subComp;
                     }
                 }
-
-                yield return comp;
             }
         }
+
+        /// <summary>
+        /// Creates a template for part component
+        /// </summary>
+        /// <returns>Part component template</returns>
+        public static IXPartComponent PreCreatePartComponent(this IXComponentRepository repo) => repo.PreCreate<IXPartComponent>();
+
+        /// <summary>
+        /// Creates a template for assembly component
+        /// </summary>
+        /// <returns>Assembly component template</returns>
+        public static IXAssemblyComponent PreCreateAssemblyComponent(this IXComponentRepository repo) => repo.PreCreate<IXAssemblyComponent>();
     }
 }

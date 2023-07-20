@@ -1,17 +1,20 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
 using System;
+using System.Diagnostics;
+using Xarial.XCad.Utils;
 
 namespace Xarial.XCad.Geometry.Structures
 {
     /// <summary>
     /// Structure representing 3D point
     /// </summary>
+    [DebuggerDisplay("{" + nameof(X) + "};{" + nameof(Y) + "};{" + nameof(Z) + "}")]
     public class Point
     {
         /// <summary>
@@ -70,24 +73,23 @@ namespace Xarial.XCad.Geometry.Structures
         /// </summary>
         /// <returns>Array of coordinates</returns>
         public double[] ToArray()
-        {
-            return new double[] { X, Y, Z };
-        }
+            => new double[] { X, Y, Z };
 
         /// <summary>
         /// Compares two points coordinates by exact values
         /// </summary>
         /// <param name="pt">Point to compare</param>
+        /// <param name="tol">Comparison tolerance</param>
         /// <returns>Result of comparison</returns>
         /// <exception cref="ArgumentNullException"/>
-        public bool IsSame(Point pt)
+        public bool IsSame(Point pt, double tol = Numeric.DEFAULT_NUMERIC_TOLERANCE)
         {
             if (pt == null)
             {
                 throw new ArgumentNullException(nameof(pt));
             }
 
-            return IsSame(pt.X, pt.Y, pt.Z);
+            return IsSame(pt.X, pt.Y, pt.Z, tol);
         }
 
         /// <summary>
@@ -96,11 +98,10 @@ namespace Xarial.XCad.Geometry.Structures
         /// <param name="x">X coordinate</param>
         /// <param name="y">Y coordinate</param>
         /// <param name="z">Z coordinate</param>
+        /// <param name="tol">Comparison tolerance</param>
         /// <returns>True if coordinates are equal</returns>
-        public bool IsSame(double x, double y, double z)
-        {
-            return X == x && Y == y && Z == z;
-        }
+        public bool IsSame(double x, double y, double z, double tol = Numeric.DEFAULT_NUMERIC_TOLERANCE)
+            => Numeric.Compare(X, x, tol) && Numeric.Compare(Y, y, tol) && Numeric.Compare(Z, z, tol);
 
         /// <summary>
         /// Deducts one point of another resulting in vector
@@ -109,9 +110,7 @@ namespace Xarial.XCad.Geometry.Structures
         /// <param name="pt2">Second point</param>
         /// <returns>Vector</returns>
         public static Vector operator -(Point pt1, Point pt2)
-        {
-            return new Vector(pt2.X - pt1.X, pt2.Y - pt1.Y, pt2.Z - pt1.Z);
-        }
+            => new Vector(pt2.X - pt1.X, pt2.Y - pt1.Y, pt2.Z - pt1.Z);
 
         /// <summary>
         /// Moves point along the vector
@@ -120,9 +119,16 @@ namespace Xarial.XCad.Geometry.Structures
         /// <param name="vec">Direction of move</param>
         /// <returns>New point</returns>
         public static Point operator +(Point pt, Vector vec)
-        {
-            return new Point(pt.X + vec.X, pt.Y + vec.Y, pt.Z + vec.Z);
-        }
+            => new Point(pt.X + vec.X, pt.Y + vec.Y, pt.Z + vec.Z);
+
+        /// <summary>
+        /// Applies the transformation to the point
+        /// </summary>
+        /// <param name="pt">Source point</param>
+        /// <param name="matrix">Matrix</param>
+        /// <returns>Transformed point</returns>
+        public static Point operator *(Point pt, TransformMatrix matrix)
+            => pt.Transform(matrix);
 
         /// <summary>
         /// Moves the point along the vector by specified distance
@@ -131,22 +137,15 @@ namespace Xarial.XCad.Geometry.Structures
         /// <param name="dist">Distance</param>
         /// <returns>New point</returns>
         public Point Move(Vector dir, double dist)
-        {
-            var moveVec = dir.Normalize();
-            moveVec.Scale(dist);
-            return this + moveVec;
-        }
+            => this + dir.Normalize().Scale(dist);
 
         /// <summary>
         /// Scales the position
         /// </summary>
         /// <param name="scalar">Scalar value</param>
-        public void Scale(double scalar)
-        {
-            X *= scalar;
-            Y *= scalar;
-            Z *= scalar;
-        }
+        /// <returns>Scaled point</returns>
+        public Point Scale(double scalar) 
+            => new Point(X * scalar, Y * scalar, Z * scalar);
 
         /// <summary>
         /// Converts this point to vector

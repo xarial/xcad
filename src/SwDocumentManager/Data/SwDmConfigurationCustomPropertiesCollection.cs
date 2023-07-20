@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -64,20 +64,8 @@ namespace Xarial.XCad.SwDocumentManager.Data
             m_Conf.Document.IsDirty = true;
         }
 
-        protected override object ReadValue(out string exp)
-        {
-            //TODO: parse type
-
-            var val = ((ISwDMConfiguration5)m_Conf.Configuration)
-                .GetCustomPropertyValues(Name, out SwDmCustomInfoType type, out exp);
-
-            if (string.IsNullOrEmpty(exp)) 
-            {
-                exp = val;
-            }
-
-            return val;
-        }
+        protected override string ReadRawValue(out SwDmCustomInfoType type, out string linkedTo)
+            => ((ISwDMConfiguration5)m_Conf.Configuration).GetCustomPropertyValues(Name, out type, out linkedTo);
 
         protected override void SetValue(object value)
         {

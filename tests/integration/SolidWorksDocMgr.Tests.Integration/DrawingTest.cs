@@ -5,6 +5,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Xarial.XCad.Documents;
+using Xarial.XCad.Documents.Enums;
+using Xarial.XCad.Documents.Structures;
 using Xarial.XCad.SwDocumentManager.Documents;
 
 namespace SolidWorksDocMgr.Tests.Integration
@@ -38,6 +40,52 @@ namespace SolidWorksDocMgr.Tests.Integration
             {
                 "Sheet1", "Sheet2", "MySheet", "Sheet3"
             });
+        }
+
+        [Test]
+        public void SheetPropertiesTest()
+        {
+            Scale scale1;
+            Scale scale2;
+            Scale scale3;
+
+            PaperSize paperSize1;
+            PaperSize paperSize2;
+            PaperSize paperSize3;
+
+            using (var doc = OpenDataDocument("Drawing1.SLDDRW"))
+            {
+                var sheets = (m_App.Documents.Active as ISwDmDrawing).Sheets;
+
+                var sheet1 = sheets["Sheet1"];
+                var sheet2 = sheets["Sheet2"];
+                var sheet3 = sheets["Sheet3"];
+
+                scale1 = sheet1.Scale;
+                paperSize1 = sheet1.PaperSize;
+
+                scale2 = sheet2.Scale;
+                paperSize2 = sheet2.PaperSize;
+
+                scale3 = sheet3.Scale;
+                paperSize3 = sheet3.PaperSize;
+            }
+
+            Assert.AreEqual(2, scale1.Numerator);
+            Assert.AreEqual(5, scale1.Denominator);
+            Assert.That(paperSize1.StandardPaperSize.HasValue);
+            Assert.AreEqual(StandardPaperSize_e.A2Landscape, paperSize1.StandardPaperSize.Value);
+
+            Assert.AreEqual(3, scale2.Numerator);
+            Assert.AreEqual(1, scale2.Denominator);
+            Assert.That(paperSize2.StandardPaperSize.HasValue);
+            Assert.AreEqual(StandardPaperSize_e.A4Portrait, paperSize2.StandardPaperSize.Value);
+
+            Assert.AreEqual(1, scale3.Numerator);
+            Assert.AreEqual(1, scale3.Denominator);
+            Assert.That(!paperSize3.StandardPaperSize.HasValue);
+            Assert.AreEqual(0.25, paperSize3.Width.Value);
+            Assert.AreEqual(0.15, paperSize3.Height.Value);
         }
 
         [Test]

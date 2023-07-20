@@ -15,6 +15,7 @@ using System.Threading.Tasks;
 using Xarial.XCad;
 using Xarial.XCad.Base;
 using Xarial.XCad.UI.PropertyPage.Base;
+using Xarial.XCad.Utils.PageBuilder;
 using Xarial.XCad.Utils.PageBuilder.Attributes;
 using Xarial.XCad.Utils.PageBuilder.Base;
 using Xarial.XCad.Utils.PageBuilder.Binders;
@@ -37,7 +38,7 @@ namespace Toolkit.Tests
             protected override event ControlValueChangedDelegate<object> ValueChanged;
 #pragma warning restore
 
-            public ControlMock(int id, object tag) : base(id, tag)
+            public ControlMock(int id, object tag) : base(id, tag, null)
             {
             }
 
@@ -49,16 +50,28 @@ namespace Toolkit.Tests
             protected override void SetSpecificValue(object value)
             {
             }
+
+            public override void ShowTooltip(string title, string msg)
+            {
+            }
+
+            public override void Focus()
+            {
+            }
         }
 
         public class GroupMock : Group
         {
-            public GroupMock(int id, object tag) : base(id, tag)
+            public GroupMock(int id, object tag) : base(id, tag, null)
             {
             }
 
             public override bool Enabled { get; set; }
             public override bool Visible { get; set; }
+
+            public override void ShowTooltip(string title, string msg)
+            {
+            }
         }
 
         public class PageMock : Page
@@ -67,6 +80,10 @@ namespace Toolkit.Tests
 
             public override bool Enabled { get; set; }
             public override bool Visible { get; set; }
+
+            public override void ShowTooltip(string title, string msg)
+            {
+            }
         }
 
         [DefaultType(typeof(SpecialTypes.AnyType))]
@@ -79,36 +96,26 @@ namespace Toolkit.Tests
                 m_IdRangeSelector = idRangeSelector;
             }
 
-            private ControlMock Create(PageMock page, IAttributeSet atts, IMetadata metadata)
-            {
-                var ctrl = new ControlMock(atts.Id, atts.Tag);
-                page.Controls.Add(ctrl);
-                return ctrl;
-            }
-
-            private ControlMock Create(GroupMock group, IAttributeSet atts, IMetadata metadata)
-            {
-                return new ControlMock(atts.Id, atts.Tag);
-            }
-
-            protected override ControlMock Create(PageMock page, IAttributeSet atts, IMetadata metadata, ref int numberOfUsedIds)
+            protected override ControlMock Create(IGroup parentGroup, IAttributeSet atts, IMetadata[] metadata, ref int numberOfUsedIds)
             {
                 if (m_IdRangeSelector != null)
                 {
                     numberOfUsedIds = m_IdRangeSelector.Invoke();
                 }
 
-                return Create(page, atts, metadata);
-            }
-
-            protected override ControlMock Create(GroupMock group, IAttributeSet atts, IMetadata metadata, ref int numberOfUsedIds)
-            {
-                if (m_IdRangeSelector != null)
+                switch (parentGroup) 
                 {
-                    numberOfUsedIds = m_IdRangeSelector.Invoke();
-                }
+                    case PageMock page:
+                        var ctrl = new ControlMock(atts.Id, atts.Tag);
+                        page.Controls.Add(ctrl);
+                        return ctrl;
 
-                return Create(group, atts, metadata);
+                    case GroupMock grp:
+                        return new ControlMock(atts.Id, atts.Tag);
+
+                    default:
+                        throw new NotSupportedException();
+                }
             }
         }
 
@@ -144,7 +151,7 @@ namespace Toolkit.Tests
         public void CreatePageIdsTest()
         {
             var builder = new PageBuilderMock();
-            var page = builder.CreatePage<DataModel1>(x => null);
+            var page = builder.CreatePage<DataModel1>(x => null, new Mock<IContextProvider>().Object);
 
             Assert.AreEqual(3, page.Controls.Count);
             Assert.AreEqual(0, page.Controls[0].Id);
@@ -168,7 +175,7 @@ namespace Toolkit.Tests
                 ctrlIndex++;
                 return idRange;
             });
-            var page = builder.CreatePage<DataModel1>(x => null);
+            var page = builder.CreatePage<DataModel1>(x => null, new Mock<IContextProvider>().Object);
 
             Assert.AreEqual(3, page.Controls.Count);
             Assert.AreEqual(0, page.Controls[0].Id);

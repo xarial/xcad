@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -9,6 +9,7 @@ using System;
 using System.Drawing;
 using System.IO;
 using Xarial.XCad.SolidWorks.Base;
+using Xarial.XCad.Toolkit.Base;
 
 namespace Xarial.XCad.SolidWorks.Features.CustomFeature.Toolkit
 {
@@ -19,10 +20,11 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature.Toolkit
         internal const string SuppressedName = "Suppressed";
         internal const string HighlightedName = "Highlighted";
 
-        internal static Size Size { get; private set; } = new Size(16, 18);
-        internal static Size SizeHighResSmall { get; private set; } = new Size(20, 20);
-        internal static Size SizeHighResMedium { get; private set; } = new Size(32, 32);
-        internal static Size SizeHighResLarge { get; private set; } = new Size(40, 40);
+        internal static IconImageFormat_e Format { get; } = IconImageFormat_e.Bmp;
+        internal static Size Size { get; } = new Size(16, 18);
+        internal static Size SizeHighResSmall { get; } = new Size(20, 20);
+        internal static Size SizeHighResMedium { get; } = new Size(32, 32);
+        internal static Size SizeHighResLarge { get; } = new Size(40, 40);
 
         internal static string GetLocation(Type macroFeatType)
         {
@@ -47,24 +49,24 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature.Toolkit
             {
                 return new string[]
                 {
-                    Path.Combine(loc, IconSpec.CreateFileName(RegularName, SizeHighResSmall)),
-                    Path.Combine(loc, IconSpec.CreateFileName(SuppressedName, SizeHighResSmall)),
-                    Path.Combine(loc, IconSpec.CreateFileName(HighlightedName, SizeHighResSmall)),
-                    Path.Combine(loc, IconSpec.CreateFileName(RegularName, SizeHighResMedium)),
-                    Path.Combine(loc, IconSpec.CreateFileName(SuppressedName, SizeHighResMedium)),
-                    Path.Combine(loc, IconSpec.CreateFileName(HighlightedName, SizeHighResMedium)),
-                    Path.Combine(loc, IconSpec.CreateFileName(RegularName, SizeHighResLarge)),
-                    Path.Combine(loc, IconSpec.CreateFileName(SuppressedName, SizeHighResLarge)),
-                    Path.Combine(loc, IconSpec.CreateFileName(HighlightedName, SizeHighResLarge))
+                    Path.Combine(loc, IconSpec.CreateFileName(RegularName, SizeHighResSmall, Format)),
+                    Path.Combine(loc, IconSpec.CreateFileName(SuppressedName, SizeHighResSmall, Format)),
+                    Path.Combine(loc, IconSpec.CreateFileName(HighlightedName, SizeHighResSmall, Format)),
+                    Path.Combine(loc, IconSpec.CreateFileName(RegularName, SizeHighResMedium, Format)),
+                    Path.Combine(loc, IconSpec.CreateFileName(SuppressedName, SizeHighResMedium, Format)),
+                    Path.Combine(loc, IconSpec.CreateFileName(HighlightedName, SizeHighResMedium, Format)),
+                    Path.Combine(loc, IconSpec.CreateFileName(RegularName, SizeHighResLarge, Format)),
+                    Path.Combine(loc, IconSpec.CreateFileName(SuppressedName, SizeHighResLarge, Format)),
+                    Path.Combine(loc, IconSpec.CreateFileName(HighlightedName, SizeHighResLarge, Format))
                 };
             }
             else
             {
                 return new string[]
                 {
-                    Path.Combine(loc, IconSpec.CreateFileName(RegularName, Size)),
-                    Path.Combine(loc, IconSpec.CreateFileName(SuppressedName, Size)),
-                    Path.Combine(loc, IconSpec.CreateFileName(HighlightedName, Size))
+                    Path.Combine(loc, IconSpec.CreateFileName(RegularName, Size, Format)),
+                    Path.Combine(loc, IconSpec.CreateFileName(SuppressedName, Size, Format)),
+                    Path.Combine(loc, IconSpec.CreateFileName(HighlightedName, Size, Format))
                 };
             }
         }

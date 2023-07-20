@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -128,7 +128,7 @@ namespace Xarial.XCad.SolidWorks.UI.Toolkit
         {
             if (!m_IsDisposed)
             {
-                if (m_Doc == doc)
+                if (m_Doc.Equals(doc))
                 {
                     if (!IsControlCreated)
                     {

@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -8,33 +8,13 @@
 using System;
 using System.Drawing;
 using Xarial.XCad.Base.Enums;
+using Xarial.XCad.Enums;
 using Xarial.XCad.UI.PropertyPage.Base;
 using Xarial.XCad.UI.PropertyPage.Enums;
 using Xarial.XCad.UI.PropertyPage.Services;
 
 namespace Xarial.XCad.UI.PropertyPage.Attributes
 {
-    /// <summary>
-    /// Represents the standard selection colors
-    /// </summary>
-    public enum StandardSelectionColor_e 
-    {
-        /// <summary>
-        /// Primary standard selection color
-        /// </summary>
-        Primary = 104,
-
-        /// <summary>
-        /// Secondary standard selection color
-        /// </summary>
-        Secondary = 105,
-
-        /// <summary>
-        /// Tertiary standard selection color
-        /// </summary>
-        Tertiary = 106,
-    }
-
     /// <summary>
     /// Additional options for selection box control
     /// </summary>
@@ -53,7 +33,7 @@ namespace Xarial.XCad.UI.PropertyPage.Attributes
         /// <summary>
         /// Allowed entities filter for the selection
         /// </summary>
-        public SelectType_e[] Filters { get; set; }
+        public Type[] Filters { get; set; }
 
         /// <summary>
         /// Selection mark associated with this selection box
@@ -66,9 +46,19 @@ namespace Xarial.XCad.UI.PropertyPage.Attributes
         public Type CustomFilter { get; set; }
 
         /// <summary>
-        /// Sets teh current selection box as default focus
+        /// Sets the current selection box as default focus
         /// </summary>
         public bool Focused { get; set; }
+
+        /// <summary>
+        /// Indicates that entity can be selected more then once in the same box
+        /// </summary>
+        public bool AllowDuplicateEntity { get; set; }
+
+        /// <summary>
+        /// indicates that entity can be selected in the different selection box
+        /// </summary>
+        public bool AllowSharedEntity { get; set; }
 
         /// <summary>
         /// Constructor for selection box options
@@ -85,30 +75,30 @@ namespace Xarial.XCad.UI.PropertyPage.Attributes
         /// Constructor for selection box options
         /// </summary>
         /// <param name="filters">Filters allowed for selection into this selection box</param>
-        public SelectionBoxOptionsAttribute(params SelectType_e[] filters)
+        public SelectionBoxOptionsAttribute(Type[] filters)
             : this(-1, filters)
         {
         }
 
-        /// <inheritdoc cref="SelectionBoxOptionsAttribute(SelectType_e[])"/>
+        /// <inheritdoc cref="SelectionBoxOptionsAttribute(Type[])"/>
         /// <param name="mark">Selection mark. If multiple selections box are used - use different selection marks for each of them
         /// to differentiate the selections</param>
-        public SelectionBoxOptionsAttribute(int mark, params SelectType_e[] filters)
+        public SelectionBoxOptionsAttribute(int mark, Type[] filters = null)
             : this(mark, null, SelectionBoxStyle_e.None, 0, filters)
         {
         }
 
-        /// <inheritdoc cref="SelectionBoxOptionsAttribute(int, Type, SelectionBoxStyle_e, int, SelectType_e[])"/>
-        public SelectionBoxOptionsAttribute(Type customFilter, params SelectType_e[] filters)
+        /// <inheritdoc cref="SelectionBoxOptionsAttribute(int, Type, SelectionBoxStyle_e, StandardSelectionColor_e, Type[])"/>
+        public SelectionBoxOptionsAttribute(Type customFilter, Type[] filters = null)
             : this(-1, customFilter, SelectionBoxStyle_e.None, 0, filters)
         {
         }
 
-        /// <inheritdoc cref="SelectionBoxOptionsAttribute(int, SelectType_e[])"/>
+        /// <inheritdoc cref="SelectionBoxOptionsAttribute(int, Type[])"/>
         /// <param name="customFilter">Type of custom filter of <see cref="ISelectionCustomFilter"/> for custom logic for filtering selection objects</param>
         /// <exception cref="InvalidCastException"/>
         public SelectionBoxOptionsAttribute(int mark, Type customFilter, SelectionBoxStyle_e style,
-            StandardSelectionColor_e selColor, params SelectType_e[] filters)
+            StandardSelectionColor_e selColor, Type[] filters = null)
         {
             Style = style;
             SelectionColor = selColor;

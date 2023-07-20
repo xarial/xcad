@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -34,6 +34,7 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
 
         public void Bind<TDataModel>(CreateBindingPageDelegate pageCreator,
             CreateBindingControlDelegate ctrlCreator, CreateDynamicControlsDelegate dynCtrlDescCreator,
+            IContextProvider contextProvider,
             out IEnumerable<IBinding> bindings, out IRawDependencyGroup dependencies, out IMetadata[] metadata)
         {
             var type = typeof(TDataModel);
@@ -52,10 +53,10 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
             dependencies = new RawDependencyGroup();
 
             var metadataMap = new Dictionary<object, PropertyInfoMetadata>();
-            CollectMetadata(type, metadataMap, new PropertyInfo[0], new List<Type>());
+            CollectMetadata(type, metadataMap, new PropertyInfo[0], new List<Type>(), contextProvider);
 
             TraverseType<TDataModel>(type, new List<IControlDescriptor>(),
-                ctrlCreator, dynCtrlDescCreator, page, metadataMap, bindingsList, dependencies, ref firstCtrlId);
+                ctrlCreator, dynCtrlDescCreator, page, metadataMap, bindingsList, dependencies, contextProvider, ref firstCtrlId);
 
             metadata = metadataMap.Values.ToArray();
 
@@ -131,7 +132,7 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
         private void TraverseType<TDataModel>(Type type, List<IControlDescriptor> parents,
                     CreateBindingControlDelegate ctrlCreator, CreateDynamicControlsDelegate dynCtrlDescCreator,
                     IGroup parentCtrl, IReadOnlyDictionary<object, PropertyInfoMetadata> metadata,
-                    List<IBinding> bindings, IRawDependencyGroup dependencies, ref int nextCtrlId)
+                    List<IBinding> bindings, IRawDependencyGroup dependencies, IContextProvider contextProvider, ref int nextCtrlId)
         {
             foreach (var prp in type.GetProperties().OrderBy(p => 
             {
@@ -180,7 +181,7 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
 
                     if (!atts.Has<IIgnoreBindingAttribute>() && !atts.Has<IMetadataAttribute>())
                     {
-                        var prpMetadata = new List<PropertyInfoMetadata>();
+                        var prpMetadata = new List<IMetadata>();
 
                         if (atts.Has<IHasMetadataAttribute>())
                         {
@@ -190,20 +191,31 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
                             {
                                 if (metadataTagAtts.HasMetadata)
                                 {
-                                    var metadataTag = metadataTagAtts.MetadataTag;
+                                    var metadataTag = metadataTagAtts.LinkedMetadataTag;
 
-                                    if (metadataTag == null) 
+                                    if (metadataTag != null)
                                     {
-                                        throw new NullReferenceException($"Metadata tag is not set for {ctrlDesc.Name}");
+                                        if (metadata.TryGetValue(metadataTag, out PropertyInfoMetadata md))
+                                        {
+                                            prpMetadata.Add(md);
+                                        }
+                                        else
+                                        {
+                                            throw new MissingMetadataException(metadataTag, ctrlDesc);
+                                        }
                                     }
+                                    else 
+                                    {
+                                        var staticMetadataVal = metadataTagAtts.StaticValue;
 
-                                    if (metadata.TryGetValue(metadataTag, out PropertyInfoMetadata md))
-                                    {
-                                        prpMetadata.Add(md);
-                                    }
-                                    else
-                                    {
-                                        throw new MissingMetadataException(metadataTag, ctrlDesc);
+                                        if (staticMetadataVal != null)
+                                        {
+                                            prpMetadata.Add(new StaticMetadata(staticMetadataVal));
+                                        }
+                                        else 
+                                        {
+                                            throw new NullReferenceException($"Neither metadata tag nor static value is not set for {ctrlDesc.Name}");
+                                        }
                                     }
                                 }
                             }
@@ -215,7 +227,7 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
                         var ctrl = ctrlCreator.Invoke(prpType, atts, parentCtrl, prpMetadataArr, out numberOfUsedIds);
                         nextCtrlId += numberOfUsedIds;
 
-                        var binding = new PropertyInfoBinding<TDataModel>(ctrl, ctrlDesc, parents, prpMetadataArr);
+                        var binding = new PropertyInfoBinding<TDataModel>(ctrl, ctrlDesc, parents, prpMetadataArr, contextProvider, atts.Has<ISilentBindingAttribute>());
                         bindings.Add(binding);
 
                         if (atts.Has<IControlTagAttribute>())
@@ -260,7 +272,7 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
                             var grpParents = new List<IControlDescriptor>(parents);
                             grpParents.Add(ctrlDesc);
                             TraverseType<TDataModel>(prpType, grpParents, ctrlCreator, dynCtrlDescCreator,
-                                ctrl as IGroup, metadata, bindings, dependencies, ref nextCtrlId);
+                                ctrl as IGroup, metadata, bindings, dependencies, contextProvider, ref nextCtrlId);
                         }
                     }
                 }
@@ -268,7 +280,7 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
         }
 
         private void CollectMetadata(Type type, Dictionary<object, PropertyInfoMetadata> metadata,
-            PropertyInfo[] parents, List<Type> processedTypes)
+            PropertyInfo[] parents, List<Type> processedTypes, IContextProvider contextProvider)
         {
             foreach (var prp in type.GetProperties())
             {
@@ -278,7 +290,7 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
                 {
                     if (!metadata.ContainsKey(metadataAtt.Tag))
                     {
-                        metadata.Add(metadataAtt.Tag, new PropertyInfoMetadata(prp, parents, metadataAtt.Tag));
+                        metadata.Add(metadataAtt.Tag, new PropertyInfoMetadata(prp, parents, metadataAtt.Tag, contextProvider));
                     }
                     else
                     {
@@ -298,7 +310,7 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
                         && !typeof(IXObject).IsAssignableFrom(prpType))
                     {
                         processedTypes.Add(prpType);
-                        CollectMetadata(prpType, metadata, parents.Union(new PropertyInfo[] { prp }).ToArray(), processedTypes);
+                        CollectMetadata(prpType, metadata, parents.Union(new PropertyInfo[] { prp }).ToArray(), processedTypes, contextProvider);
                     }
                 }
                 else

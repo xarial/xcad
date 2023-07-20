@@ -3,7 +3,7 @@ using System;
 using System.Runtime.InteropServices;
 using Xarial.XCad;
 using Xarial.XCad.Base.Attributes;
-using Xarial.XCad.Documents;
+using Xarial.XCad.Documents.Extensions;
 using Xarial.XCad.Documents.Services;
 using Xarial.XCad.SolidWorks;
 using Xarial.XCad.SolidWorks.Documents;

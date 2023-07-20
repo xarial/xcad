@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -31,6 +31,9 @@ using Xarial.XCad.Utils.Diagnostics;
 using Xarial.XCad.Toolkit;
 using Xarial.XCad.SolidWorks.Enums;
 using System.Collections.Specialized;
+using Xarial.XCad.Toolkit.Services;
+using Xarial.XCad.SolidWorks.UI.Commands.Attributes;
+using System.Reflection;
 
 namespace Xarial.XCad.SolidWorks.UI.Commands
 {
@@ -131,13 +134,34 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
         public IXCommandGroup AddCommandGroup(CommandGroupSpec cmdBar)
             => AddCommandGroupOrContextMenu(cmdBar, false, null);
 
-        public IXCommandGroup AddContextMenu(CommandGroupSpec cmdBar, SelectType_e? owner)
+        public IXCommandGroup AddContextMenu(ContextMenuCommandGroupSpec cmdBar)
         {
-            swSelectType_e? selType = null;
-            
-            if (owner.HasValue) 
+            swSelectType_e? selType;
+
+            if (cmdBar.Owner != null)
             {
-                selType = (swSelectType_e)owner;
+                selType = SwSelectionHelper.GetSelectionType(cmdBar.Owner)?.FirstOrDefault();
+            }
+            else 
+            {
+                if (cmdBar is ContextMenuEnumCommandGroupSpec) 
+                {
+                    var swCtxMenInfoAtt = ((ContextMenuEnumCommandGroupSpec)cmdBar)
+                        .CmdGrpEnumType.GetCustomAttribute<SwContextMenuCommandGroupInfoAttribute>();
+
+                    if (swCtxMenInfoAtt != null)
+                    {
+                        selType = swCtxMenInfoAtt.Owner;
+                    }
+                    else 
+                    {
+                        selType = null;
+                    }
+                }
+                else
+                {
+                    selType = null;
+                }
             }
 
             return AddCommandGroupOrContextMenu(cmdBar, true, selType);
@@ -159,17 +183,22 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
                 cmdBar.Commands.Select(c => c.UserId).ToArray(), isContextMenu,
                 contextMenuSelectType);
 
-            using (var iconsConv = m_SvcProvider.GetService<IIconsCreator>())
+            var iconsConv = m_SvcProvider.GetService<IIconsCreator>();
+
+            using (var mainIcon = CreateMainIcon(cmdBar, iconsConv))
             {
-                CreateIcons(cmdGroup, cmdBar, iconsConv);
+                using (var toolbarIcons = CreateToolbarIcons(cmdBar, iconsConv))
+                {
+                    SetCommandGroupIcons(cmdGroup, mainIcon, toolbarIcons);
+                    
+                    var bar = new SwCommandGroup(m_App, cmdBar, cmdGroup, isContextMenu);
 
-                var bar = new SwCommandGroup(m_App, cmdBar, cmdGroup, isContextMenu);
+                    CreateCommandItems(bar);
 
-                CreateCommandItems(bar);
+                    m_CommandBars.Add(bar);
 
-                m_CommandBars.Add(bar);
-
-                return bar;
+                    return bar;
+                }
             }
         }
 
@@ -245,9 +274,14 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
             if (isContextMenu)
             {
                 cmdGroup = CmdMgr.AddContextMenu(groupId, title);
+                
                 if (contextMenuSelectType.HasValue)
                 {
                     cmdGroup.SelectType = (int)contextMenuSelectType;
+                }
+                else 
+                {
+                    cmdGroup.SelectType = (int)swSelectType_e.swSelEVERYTHING;
                 }
             }
             else
@@ -339,16 +373,28 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
                 m_Commands.Add(createdCmd.Item3, cmdInfo);
             }   
         }
-        
-        private void CreateIcons(CommandGroup cmdGroup, CommandGroupSpec cmdBar, IIconsCreator iconsConv)
+
+        private IImageCollection CreateMainIcon(CommandGroupSpec cmdBar, IIconsCreator iconsConv)
         {
             var mainIcon = cmdBar.Icon;
 
-            if (mainIcon == null) 
+            if (mainIcon == null)
             {
                 mainIcon = Defaults.Icon;
             }
 
+            if (CompatibilityUtils.SupportsHighResIcons(m_App.Sw, CompatibilityUtils.HighResIconsScope_e.CommandManager))
+            {
+                return iconsConv.ConvertIcon(new CommandGroupHighResIcon(mainIcon));
+            }
+            else
+            {
+                return iconsConv.ConvertIcon(new CommandGroupIcon(mainIcon));
+            }
+        }
+
+        private IImageCollection CreateToolbarIcons(CommandGroupSpec cmdBar, IIconsCreator iconsConv)
+        {
             IXImage[] iconList = null;
 
             if (cmdBar.Commands != null)
@@ -356,26 +402,41 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
                 iconList = cmdBar.Commands.Select(c => c.Icon ?? Defaults.Icon).ToArray();
             }
 
-            //NOTE: if commands are not used, main icon will fail if toolbar commands image list is not specified, so it is required to specify it explicitly
-
             if (CompatibilityUtils.SupportsHighResIcons(m_App.Sw, CompatibilityUtils.HighResIconsScope_e.CommandManager))
-            {
-                var iconsList = iconsConv.ConvertIcon(new CommandGroupHighResIcon(mainIcon));
-                cmdGroup.MainIconList = iconsList;
-
+            {   
                 if (iconList != null && iconList.Any())
                 {
-                    cmdGroup.IconList = iconsConv.ConvertIconsGroup(
-                        iconList.Select(i => new CommandGroupHighResIcon(i)).ToArray());
+                    return iconsConv.ConvertIconsGroup(iconList.Select(i => new CommandGroupHighResIcon(i)).ToArray());
                 }
                 else
                 {
-                    cmdGroup.IconList = iconsList;
+                    return null;
                 }
             }
             else
             {
-                var mainIconPath = iconsConv.ConvertIcon(new CommandGroupIcon(mainIcon));
+                if (iconList != null && iconList.Any())
+                {
+                    return iconsConv.ConvertIconsGroup(iconList.Select(i => new CommandGroupIcon(i)).ToArray());
+                }
+                else
+                {
+                    return null;
+                }
+            }
+        }
+
+        private void SetCommandGroupIcons(CommandGroup cmdGroup, IImageCollection mainIcon, IImageCollection toolbarIcons)
+        {
+            //NOTE: if commands are not used, main icon will fail if toolbar commands image list is not specified, so it is required to specify it explicitly
+            if (CompatibilityUtils.SupportsHighResIcons(m_App.Sw, CompatibilityUtils.HighResIconsScope_e.CommandManager))
+            {
+                cmdGroup.MainIconList = mainIcon.FilePaths;
+                cmdGroup.IconList = toolbarIcons?.FilePaths;
+            }
+            else
+            {
+                var mainIconPath = mainIcon?.FilePaths ?? new string[] { null, null };
 
                 var smallIcon = mainIconPath[0];
                 var largeIcon = mainIconPath[1];
@@ -383,20 +444,12 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
                 cmdGroup.SmallMainIcon = smallIcon;
                 cmdGroup.LargeMainIcon = largeIcon;
 
-                if (iconList != null && iconList.Any())
-                {
-                    var iconListPath = iconsConv.ConvertIconsGroup(iconList.Select(i => new CommandGroupIcon(i)).ToArray());
-                    var smallIconList = iconListPath[0];
-                    var largeIconList = iconListPath[1];
+                var iconListPath = toolbarIcons?.FilePaths ?? new string[] { null, null };
+                var smallIconList = iconListPath[0];
+                var largeIconList = iconListPath[1];
 
-                    cmdGroup.SmallIconList = smallIconList;
-                    cmdGroup.LargeIconList = largeIconList;
-                }
-                else
-                {
-                    cmdGroup.SmallIconList = smallIcon;
-                    cmdGroup.LargeIconList = largeIcon;
-                }
+                cmdGroup.SmallIconList = smallIconList;
+                cmdGroup.LargeIconList = largeIconList;
             }
         }
 

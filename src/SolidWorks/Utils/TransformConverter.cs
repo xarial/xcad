@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -71,9 +71,11 @@ namespace Xarial.XCad.SolidWorks.Utils
             var transY = matrix.M42;
             var transZ = matrix.M43;
 
-            var scaleX = new Vector(matrix.M11, matrix.M21, matrix.M31).GetLength();
-            var scaleY = new Vector(matrix.M11, matrix.M21, matrix.M31).GetLength();
-            var scaleZ = new Vector(matrix.M11, matrix.M21, matrix.M31).GetLength();
+            var scaleVec = matrix.Scale;
+
+            var scaleX = scaleVec.X;
+            var scaleY = scaleVec.X; //only uniform scale is supported in SOLIDWORKS
+            var scaleZ = scaleVec.X; //only uniform scale is supported in SOLIDWORKS
 
             return new double[]
             {

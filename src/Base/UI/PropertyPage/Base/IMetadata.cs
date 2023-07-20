@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -30,10 +30,5 @@ namespace Xarial.XCad.UI.PropertyPage.Base
         /// Notifies when metadata is changed
         /// </summary>
         event Action<IMetadata, object> Changed;
-
-        /// <summary>
-        /// Model associated with this metadata
-        /// </summary>
-        object Model { get; set; }
     }
 }

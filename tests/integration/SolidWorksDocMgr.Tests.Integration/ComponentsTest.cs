@@ -10,6 +10,8 @@ using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Documents.Extensions;
 using Xarial.XCad.Geometry.Structures;
+using Xarial.XCad.SolidWorks;
+using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SwDocumentManager.Documents;
 
 namespace SolidWorksDocMgr.Tests.Integration
@@ -26,8 +28,7 @@ namespace SolidWorksDocMgr.Tests.Integration
                 compNames = ((ISwDmAssembly)m_App.Documents.Active).Configurations.Active.Components.Select(c => c.Name).ToArray();
             }
 
-            Assert.That(compNames.OrderBy(c => c).SequenceEqual(
-                new string[] { "Part1-1", "Part1-2", "SubAssem1-1", "SubAssem1-2", "SubAssem2-1", "Part1-3" }.OrderBy(c => c)));
+            CollectionAssert.AreEquivalent(new string[] { "Part1-1", "Part1-2", "SubAssem1-1", "SubAssem1-2", "SubAssem2-1", "Part1-3" }, compNames);
         }
 
         [Test]
@@ -39,11 +40,44 @@ namespace SolidWorksDocMgr.Tests.Integration
             {
                 var assm = (ISwDmAssembly)m_App.Documents.Active;
                 var comp = assm.Configurations.Active.Components["SubAssem1-1"];
-                compNames = comp.Children.Select(c => c.Name).ToArray();
+                compNames = comp.Children.Select(c => c.FullName).ToArray();
             }
 
-            Assert.That(compNames.OrderBy(c => c).SequenceEqual(
-                new string[] { "SubAssem1-1/Part2-1", "SubAssem1-1/SubSubAssem1-1" }.OrderBy(c => c)));
+            CollectionAssert.AreEquivalent(new string[] { "SubAssem1-1/Part2-1", "SubAssem1-1/SubSubAssem1-1" }, compNames);
+        }
+
+        [Test]
+        public void IterateComponentsOrderTest()
+        {
+            string[] rootCompNames;
+            string[] subCompNames;
+
+            using (var doc = OpenDataDocument(@"Assembly13\Assem13.SLDASM"))
+            {
+                var assm = (ISwDmAssembly)m_App.Documents.Active;
+                rootCompNames = ((ISwDmAssembly)m_App.Documents.Active).Configurations.Active.Components.Select(c => c.Name).ToArray();
+                subCompNames = assm.Configurations.Active.Components["SubAssem1-1"].Children.Select(c => c.FullName).ToArray();
+            }
+
+            CollectionAssert.AreEqual(new string[] { "Part1-2", "Part1-3", "Part5-1", "Part2-2", "SubAssem1-1", "Part4-1", "Part2-3", "Part3-1" }, rootCompNames);
+            CollectionAssert.AreEqual(new string[] { "SubAssem1-1/Part5-1", "SubAssem1-1/Part6-1", "SubAssem1-1/Part8-1", "SubAssem1-1/Part6-2" }, subCompNames);
+        }
+
+        [Test]
+        public void IterateComponentsPatternsTest()
+        {
+            string[] rootCompNames;
+            string[] subCompNames;
+
+            using (var doc = OpenDataDocument(@"Assembly14\Assem14.SLDASM"))
+            {
+                var assm = (ISwDmAssembly)m_App.Documents.Active;
+                rootCompNames = ((ISwDmAssembly)m_App.Documents.Active).Configurations.Active.Components.Select(c => c.Name).ToArray();
+                subCompNames = assm.Configurations.Active.Components["SubAssem1-1"].Children.Select(c => c.FullName).ToArray();
+            }
+
+            CollectionAssert.AreEqual(new string[] { "Part1-1", "Part1-3", "Part1-4", "Part1-5", "Part1-6", "Part1-7", "Part1-8", "Part1-9", "Part1-10", "Part1-11", "Part1-12", "Part1-13", "SubAssem1-1" }, rootCompNames);
+            CollectionAssert.AreEqual(new string[] { "SubAssem1-1/Part2-1", "SubAssem1-1/Part2-2", "SubAssem1-1/Part2-3", "SubAssem1-1/Part2-4" }, subCompNames);
         }
 
         [Test]
@@ -132,8 +166,7 @@ namespace SolidWorksDocMgr.Tests.Integration
                 isVirtual = comps.Select(c => c.State.HasFlag(ComponentState_e.Embedded)).ToArray();
             }
 
-            Assert.That(compNames.OrderBy(c => c).SequenceEqual(
-                new string[] { "Part1^VirtAssem1-1", "Assem2^VirtAssem1-1" }.OrderBy(c => c)));
+            CollectionAssert.AreEquivalent(compNames, new string[] { "Part1^VirtAssem1-1", "Assem2^VirtAssem1-1" });
             Assert.That(isCommitted.All(x => x == true));
             Assert.That(isAlive.All(x => x == true));
             Assert.That(isVirtual.All(x => x == true));
@@ -154,7 +187,7 @@ namespace SolidWorksDocMgr.Tests.Integration
 
                 using (var wrp = OpenDataDocument(Path.Combine(tempDir, "Assem1.sldasm"), false))
                 {
-                    var deps = wrp.Document.IterateDependencies().ToArray();
+                    var deps = wrp.Document.Dependencies.TryIterateAll().ToArray();
                     
                     var d1 = deps.FirstOrDefault(d => string.Equals(Path.GetFileNameWithoutExtension(d.Title),
                         "Part1^Assem1", StringComparison.CurrentCultureIgnoreCase));
@@ -178,7 +211,7 @@ namespace SolidWorksDocMgr.Tests.Integration
 
                 using (var wrp = OpenDataDocument(Path.Combine(tempDir, "Assem1.sldasm"), false))
                 {
-                    var deps = wrp.Document.IterateDependencies().ToArray();
+                    var deps = wrp.Document.Dependencies.TryIterateAll().ToArray();
 
                     var d1 = deps.FirstOrDefault(d => string.Equals(Path.GetFileNameWithoutExtension(d.Title),
                         "Part1^Assem1", StringComparison.CurrentCultureIgnoreCase));
@@ -216,7 +249,7 @@ namespace SolidWorksDocMgr.Tests.Integration
             using (var doc = OpenDataDocument(@"MovedNonOpenedAssembly1\TopAssembly.SLDASM"))
             {
                 var comps = ((ISwDmAssembly)m_App.Documents.Active).Configurations.Active.Components.Flatten().ToArray();
-                paths = comps.Select(c => c.Path).ToArray();
+                paths = comps.Select(c => c.ReferencedDocument.Path).ToArray();
                 isCommitted = comps.Select(c => c.ReferencedDocument.IsCommitted).ToArray();
             }
 
@@ -237,7 +270,7 @@ namespace SolidWorksDocMgr.Tests.Integration
             using (var doc = OpenDataDocument(@"Assembly3\Assemblies\Assem1.SLDASM"))
             {
                 var comps = ((ISwDmAssembly)m_App.Documents.Active).Configurations.Active.Components.Flatten().ToArray();
-                paths = comps.Select(c => c.Path).ToArray();
+                paths = comps.Select(c => c.ReferencedDocument.Path).ToArray();
                 isCommitted = comps.Select(c => c.ReferencedDocument.IsCommitted).ToArray();
             }
 
@@ -267,6 +300,42 @@ namespace SolidWorksDocMgr.Tests.Integration
         }
 
         [Test]
+        public void ComponentNameTest()
+        {
+            string fn1;
+            string fn2;
+            string fn3;
+
+            string n1;
+            string n2;
+            string n3;
+
+            using (var doc = OpenDataDocument(@"Assembly10\Assem1.SLDASM"))
+            {
+                var assm = (ISwDmAssembly)m_App.Documents.Active;
+
+                var c1 = assm.Configurations.Active.Components.First();
+                var c2 = c1.Children.First();
+                var c3 = c2.Children.First();
+
+                n1 = c1.Name;
+                n2 = c2.Name;
+                n3 = c3.Name;
+
+                fn1 = c1.FullName;
+                fn2 = c2.FullName;
+                fn3 = c3.FullName;
+            }
+
+            Assert.AreEqual("SubAssem1-1", fn1);
+            Assert.AreEqual("SubAssem1-1/SubSubAssem1-1", fn2);
+            Assert.AreEqual("SubAssem1-1/SubSubAssem1-1/Part1-1", fn3);
+            Assert.AreEqual("SubAssem1-1", n1);
+            Assert.AreEqual("SubSubAssem1-1", n2);
+            Assert.AreEqual("Part1-1", n3);
+        }
+
+        [Test]
         public void ComponentsMultiConfigsTest()
         {
             string c1_def;
@@ -277,6 +346,18 @@ namespace SolidWorksDocMgr.Tests.Integration
             bool s3_def;
             string c4_def;
             bool s4_def;
+            string c5_def;
+            bool s5_def;
+            string c6_def;
+            ComponentState_e s6_def;
+            string c7_def;
+            ComponentState_e s7_def;
+            string c8_def;
+            ComponentState_e s8_def;
+            string c9_def;
+            ComponentState_e s9_def;
+            string c10_def;
+            ComponentState_e s10_def;
 
             string c1_conf1;
             bool s1_conf1;
@@ -286,6 +367,18 @@ namespace SolidWorksDocMgr.Tests.Integration
             bool s3_conf1;
             string c4_conf1;
             bool s4_conf1;
+            string c5_conf1;
+            bool s5_conf1;
+            string c6_conf1;
+            ComponentState_e s6_conf1;
+            string c7_conf1;
+            ComponentState_e s7_conf1;
+            string c8_conf1;
+            ComponentState_e s8_conf1;
+            string c9_conf1;
+            ComponentState_e s9_conf1;
+            string c10_conf1;
+            ComponentState_e s10_conf1;
 
             using (var doc = OpenDataDocument(@"Assembly4\Assembly1.SLDASM"))
             {
@@ -298,6 +391,18 @@ namespace SolidWorksDocMgr.Tests.Integration
                 s3_def = assm.Configurations["Default"].Components["SubAssem1-1"].Children["Part1-1"].State.HasFlag(ComponentState_e.Suppressed);
                 c4_def = assm.Configurations["Default"].Components["SubAssem1-1"].Children["Part1-2"].ReferencedConfiguration.Name;
                 s4_def = assm.Configurations["Default"].Components["SubAssem1-1"].Children["Part1-2"].State.HasFlag(ComponentState_e.Suppressed);
+                c5_def = assm.Configurations["Default"].Components["SubAssem1-1"].Children["SubSubAssem1-1"].ReferencedConfiguration.Name;
+                s5_def = assm.Configurations["Default"].Components["SubAssem1-1"].Children["SubSubAssem1-1"].State.HasFlag(ComponentState_e.Suppressed);
+                c6_def = assm.Configurations["Default"].Components["SubAssem1-1"].Children["SubSubAssem1-1"].Children["Part2-1"].ReferencedConfiguration.Name;
+                s6_def = assm.Configurations["Default"].Components["SubAssem1-1"].Children["SubSubAssem1-1"].Children["Part2-1"].State;
+                c7_def = assm.Configurations["Default"].Components["SubAssem1-1"].Children["SubSubAssem1-1"].Children["Part2-2"].ReferencedConfiguration.Name;
+                s7_def = assm.Configurations["Default"].Components["SubAssem1-1"].Children["SubSubAssem1-1"].Children["Part2-2"].State;
+                c8_def = assm.Configurations["Default"].Components["SubAssem1-1"].Children["SubSubAssem1-1"].Children["Part2-3"].ReferencedConfiguration.Name;
+                s8_def = assm.Configurations["Default"].Components["SubAssem1-1"].Children["SubSubAssem1-1"].Children["Part2-3"].State;
+                c9_def = assm.Configurations["Default"].Components["SubAssem1-1"].Children["SubSubAssem1-1"].Children["Part2-4"].ReferencedConfiguration.Name;
+                s9_def = assm.Configurations["Default"].Components["SubAssem1-1"].Children["SubSubAssem1-1"].Children["Part2-4"].State;
+                c10_def = assm.Configurations["Default"].Components["SubAssem1-1"].Children["SubSubAssem1-1"].Children["Part2-5"].ReferencedConfiguration.Name;
+                s10_def = assm.Configurations["Default"].Components["SubAssem1-1"].Children["SubSubAssem1-1"].Children["Part2-5"].State;
 
                 c1_conf1 = assm.Configurations["Conf1"].Components["SubAssem1-1"].ReferencedConfiguration.Name;
                 s1_conf1 = assm.Configurations["Conf1"].Components["SubAssem1-1"].State.HasFlag(ComponentState_e.Suppressed);
@@ -307,6 +412,18 @@ namespace SolidWorksDocMgr.Tests.Integration
                 s3_conf1 = assm.Configurations["Conf1"].Components["SubAssem1-1"].Children["Part1-1"].State.HasFlag(ComponentState_e.Suppressed);
                 c4_conf1 = assm.Configurations["Conf1"].Components["SubAssem1-1"].Children["Part1-2"].ReferencedConfiguration.Name;
                 s4_conf1 = assm.Configurations["Conf1"].Components["SubAssem1-1"].Children["Part1-2"].State.HasFlag(ComponentState_e.Suppressed);
+                c5_conf1 = assm.Configurations["Conf1"].Components["SubAssem1-1"].Children["SubSubAssem1-1"].ReferencedConfiguration.Name;
+                s5_conf1 = assm.Configurations["Conf1"].Components["SubAssem1-1"].Children["SubSubAssem1-1"].State.HasFlag(ComponentState_e.Suppressed);
+                c6_conf1 = assm.Configurations["Conf1"].Components["SubAssem1-1"].Children["SubSubAssem1-1"].Children["Part2-1"].ReferencedConfiguration.Name;
+                s6_conf1 = assm.Configurations["Conf1"].Components["SubAssem1-1"].Children["SubSubAssem1-1"].Children["Part2-1"].State;
+                c7_conf1 = assm.Configurations["Conf1"].Components["SubAssem1-1"].Children["SubSubAssem1-1"].Children["Part2-2"].ReferencedConfiguration.Name;
+                s7_conf1 = assm.Configurations["Conf1"].Components["SubAssem1-1"].Children["SubSubAssem1-1"].Children["Part2-2"].State;
+                c8_conf1 = assm.Configurations["Conf1"].Components["SubAssem1-1"].Children["SubSubAssem1-1"].Children["Part2-3"].ReferencedConfiguration.Name;
+                s8_conf1 = assm.Configurations["Conf1"].Components["SubAssem1-1"].Children["SubSubAssem1-1"].Children["Part2-3"].State;
+                c9_conf1 = assm.Configurations["Conf1"].Components["SubAssem1-1"].Children["SubSubAssem1-1"].Children["Part2-4"].ReferencedConfiguration.Name;
+                s9_conf1 = assm.Configurations["Conf1"].Components["SubAssem1-1"].Children["SubSubAssem1-1"].Children["Part2-4"].State;
+                c10_conf1 = assm.Configurations["Conf1"].Components["SubAssem1-1"].Children["SubSubAssem1-1"].Children["Part2-5"].ReferencedConfiguration.Name;
+                s10_conf1 = assm.Configurations["Conf1"].Components["SubAssem1-1"].Children["SubSubAssem1-1"].Children["Part2-5"].State;
             }
 
             Assert.AreEqual("Default", c1_def);
@@ -317,6 +434,18 @@ namespace SolidWorksDocMgr.Tests.Integration
             Assert.IsFalse(s3_def);
             Assert.AreEqual("Default", c4_def);
             Assert.IsFalse(s4_def);
+            Assert.AreEqual("Default", c5_def);
+            Assert.IsFalse(s5_def);
+            Assert.AreEqual("Default", c6_def);
+            Assert.AreEqual(ComponentState_e.Default, s6_def);
+            Assert.AreEqual("Default", c7_def);
+            Assert.AreEqual(ComponentState_e.Default, s7_def);
+            Assert.AreEqual("Default", c8_def);
+            Assert.AreEqual(ComponentState_e.Default, s8_def);
+            Assert.AreEqual("Default", c9_def);
+            Assert.AreEqual(ComponentState_e.Default, s9_def);
+            Assert.AreEqual("Conf1", c10_def);
+            Assert.AreEqual(ComponentState_e.Default, s10_def);
 
             Assert.AreEqual("Conf1", c1_conf1);
             Assert.IsFalse(s1_conf1);
@@ -326,6 +455,18 @@ namespace SolidWorksDocMgr.Tests.Integration
             Assert.IsFalse(s3_conf1);
             Assert.AreEqual("Conf1", c4_conf1);
             Assert.IsTrue(s4_conf1);
+            Assert.AreEqual("Conf1", c5_conf1);
+            Assert.IsFalse(s5_conf1);
+            Assert.AreEqual("Conf1", c6_conf1);
+            Assert.AreEqual(ComponentState_e.Envelope, s6_conf1);
+            Assert.AreEqual("Conf1", c7_conf1);
+            Assert.AreEqual(ComponentState_e.Suppressed, s7_conf1);
+            Assert.AreEqual("Default", c8_conf1);
+            Assert.AreEqual(ComponentState_e.ExcludedFromBom, s8_conf1);
+            Assert.AreEqual("Default", c9_conf1);
+            //Assert.AreEqual(ComponentState_e.Fixed, s9_conf1);
+            Assert.AreEqual("Conf1", c10_conf1);
+            Assert.AreEqual(ComponentState_e.Hidden, s10_conf1);
         }
 
         [Test]
@@ -423,6 +564,214 @@ namespace SolidWorksDocMgr.Tests.Integration
             Assert.That(m3.M42, Is.EqualTo(6.52374740041025E-02).Within(0.00000000001).Percent);
             Assert.That(m3.M43, Is.EqualTo(0.673600359515548).Within(0.00000000001).Percent);
             Assert.That(m3.M44, Is.EqualTo(1).Within(0.00000000001).Percent);
+        }
+
+        [Test]
+        public void PathsTest()
+        {
+            var tempPath = Path.Combine(Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString()));
+            
+            Dictionary<string, Tuple<string, bool>> refs;
+
+            var destPath = Path.Combine(tempPath, "_Assembly11");
+            var tempSrcAssmPath = Path.Combine(tempPath, "Assembly11");
+
+            try
+            {
+                var srcPath = GetFilePath("Assembly11");
+
+                CopyDirectory(srcPath, tempSrcAssmPath);
+                UpdateSwReferences(tempSrcAssmPath, "TopLevel\\Assem1.sldasm", "SubAssemblies\\Assem3.SLDASM", "SubAssemblies\\A\\Assem2.SLDASM");
+
+                CopyDirectory(tempSrcAssmPath, destPath);
+
+                File.Delete(Path.Combine(destPath, "Parts\\Part4.sldprt"));
+                File.Delete(Path.Combine(destPath, "SubAssemblies\\Part2.sldprt"));
+                File.Delete(Path.Combine(tempSrcAssmPath, "Parts\\Part4.sldprt"));
+
+                using (var doc = OpenDataDocument(Path.Combine(destPath, "TopLevel\\Assem1.sldasm")))
+                {
+                    var assm = (ISwDmAssembly)doc.Document;
+                    refs = assm.Configurations.Active.Components.Flatten()
+                        .ToDictionary(x => x.FullName, x => new Tuple<string, bool>(x.ReferencedDocument.Path.ToLower(), x.ReferencedDocument.IsCommitted), StringComparer.CurrentCultureIgnoreCase);
+
+                    foreach (var comp in assm.Configurations.Active.Components.Flatten().ToArray()) 
+                    {
+                        var refDoc = comp.ReferencedDocument;
+
+                        if (refDoc.IsCommitted && refDoc.IsAlive)
+                        {
+                            refDoc.Close();
+                        }
+                    }
+                }
+            }
+            finally
+            {
+                try
+                {
+                    Directory.Delete(tempPath, true);
+                }
+                catch //folder can be locked by SW while files can be deleted
+                {
+                    foreach (var file in Directory.GetFiles(tempPath, "*.*", SearchOption.AllDirectories))
+                    {
+                        File.Delete(file);
+                    }
+                }
+            }
+
+            Assert.AreEqual(13, refs.Count);
+
+            Assert.AreEqual(refs["Assem2-1"], new Tuple<string, bool>(Path.Combine(destPath, @"SubAssemblies\A\Assem2.SLDASM").ToLower(), true));
+            Assert.AreEqual(refs["Part1-1"], new Tuple<string, bool>(Path.Combine(destPath, @"Parts\Part1.SLDPRT").ToLower(), true));
+            Assert.AreEqual(refs["Assem3-1"], new Tuple<string, bool>(Path.Combine(destPath, @"SubAssemblies\Assem3.SLDASM").ToLower(), true));
+            Assert.That(refs["Part6^Assem1-1"].Item1.EndsWith("Part6^Assem1.sldprt", StringComparison.CurrentCultureIgnoreCase));
+            Assert.AreEqual(refs["Part6^Assem1-1"].Item2, true);
+
+            Assert.AreEqual(refs["Assem2-1/Part3-1"], new Tuple<string, bool>(Path.Combine(destPath, @"SubAssemblies\A\Part3.SLDPRT").ToLower(), true));
+            Assert.AreEqual(refs["Assem2-1/Part1-1"], new Tuple<string, bool>(Path.Combine(destPath, @"Parts\Part1.SLDPRT").ToLower(), true));
+            Assert.AreEqual(refs["Assem2-1/Part4-1"], new Tuple<string, bool>(Path.Combine(tempSrcAssmPath, @"Parts\Part4.SLDPRT").ToLower(), false));
+
+            Assert.AreEqual(refs["Assem3-1/Assem2-1"], new Tuple<string, bool>(Path.Combine(destPath, @"SubAssemblies\A\Assem2.SLDASM").ToLower(), true));
+            Assert.AreEqual(refs["Assem3-1/Part2-1"], new Tuple<string, bool>(Path.Combine(tempSrcAssmPath, @"SubAssemblies\Part2.SLDPRT").ToLower(), true));
+            Assert.AreEqual(refs["Assem3-1/Part5-1"], new Tuple<string, bool>(Path.Combine(destPath, @"SubAssemblies\Part5.SLDPRT").ToLower(), true));
+            Assert.AreEqual(refs["Assem3-1/Assem2-1/Part3-1"], new Tuple<string, bool>(Path.Combine(destPath, @"SubAssemblies\A\Part3.SLDPRT").ToLower(), true));
+            Assert.AreEqual(refs["Assem3-1/Assem2-1/Part1-1"], new Tuple<string, bool>(Path.Combine(destPath, @"Parts\Part1.SLDPRT").ToLower(), true));
+            Assert.AreEqual(refs["Assem3-1/Assem2-1/Part4-1"], new Tuple<string, bool>(Path.Combine(tempSrcAssmPath, @"Parts\Part4.SLDPRT").ToLower(), false));
+        }
+
+        [Test]
+        public void ChangedReferencesTest()
+        {
+            int count;
+            string refPath;
+            bool isCommitted;
+
+            using (var doc = OpenDataDocument(@"Assembly12\Assem1.SLDASM"))
+            {
+                var assm = (ISwDmAssembly)m_App.Documents.Active;
+
+                var refDocs = assm.Configurations.Active.Components.Select(c => c.ReferencedDocument).ToArray();
+                isCommitted = refDocs[0].IsCommitted;
+                count = refDocs.Length;
+                refPath = refDocs[0].Path;
+            }
+
+            Assert.AreEqual(1, count);
+            Assert.IsTrue(isCommitted);
+            Assert.That(string.Equals(refPath, GetFilePath(@"Assembly12\_Part1.sldprt"), StringComparison.CurrentCultureIgnoreCase));
+        }
+
+        [Test]
+        public void SuppressedPatternsTest()
+        {
+            string[] compNames;
+            bool[] suppStates;
+
+            using (var doc = OpenDataDocument(@"SuppressedCompsPattern1.SLDASM"))
+            {
+                var assm = (ISwDmAssembly)m_App.Documents.Active;
+
+                var comps = assm.Configurations.Active.Components.Flatten().ToArray();
+
+                compNames = comps.Select(c => c.Name).ToArray();
+                suppStates = comps.Select(c => c.State.HasFlag(ComponentState_e.Suppressed)).ToArray();
+            }
+
+            CollectionAssert.AreEqual(new string[]
+            {
+                "Part1^SuppressedCompsPattern1-1",
+                "Part1^SuppressedCompsPattern1-2",
+                "Part1^SuppressedCompsPattern1-3",
+                "Part1^SuppressedCompsPattern1-4",
+                "Part1^SuppressedCompsPattern1-5",
+                "Part1^SuppressedCompsPattern1-6"
+            }, compNames);
+
+            CollectionAssert.AreEqual(new bool[]
+            {
+                false,
+                true,
+                true,
+                true,
+                true,
+                true
+            }, suppStates);
+        }
+
+        [Test]
+        public void ConfigsDifferentCountTest()
+        {
+            string[] compNamesDef;
+            string[] compNamesConf1;
+
+            using (var doc = OpenDataDocument(@"AssemPatternDiffConf1.SLDASM"))
+            {
+                var assm = (ISwDmAssembly)m_App.Documents.Active;
+
+                var compsDef = assm.Configurations["Default"].Components.Flatten().ToArray();
+                var compsConf1 = assm.Configurations["Conf1"].Components.Flatten().ToArray();
+
+                compNamesDef = compsDef.Select(c => c.Name).ToArray();
+                compNamesConf1 = compsConf1.Select(c => c.Name).ToArray();
+            }
+
+            CollectionAssert.AreEquivalent(new string[]
+            {
+                "Part1^AssemPatternDiffConf1-1",
+                "Part1^AssemPatternDiffConf1-2",
+                "Part1^AssemPatternDiffConf1-3",
+                "Part1^AssemPatternDiffConf1-4",
+                "Part1^AssemPatternDiffConf1-7",
+                "Part1^AssemPatternDiffConf1-8",
+                "Assem1^AssemPatternDiffConf1-1",
+                "Part1^Assem1_AssemPatternDiffConf1-1",
+                "Part1^Assem1_AssemPatternDiffConf1-2",
+                "Part1^Assem1_AssemPatternDiffConf1-3",
+            }, compNamesDef);
+
+            CollectionAssert.AreEquivalent(new string[]
+            {
+                "Part1^AssemPatternDiffConf1-1",
+                "Part1^AssemPatternDiffConf1-2",
+                "Part1^AssemPatternDiffConf1-3",
+                "Part1^AssemPatternDiffConf1-4",
+                "Part1^AssemPatternDiffConf1-7",
+                "Part1^AssemPatternDiffConf1-8",
+                "Assem1^AssemPatternDiffConf1-1",
+                "Part1^Assem1_AssemPatternDiffConf1-1",
+                "Part1^Assem1_AssemPatternDiffConf1-2",
+                "Part1^Assem1_AssemPatternDiffConf1-3",
+                "Part1^Assem1_AssemPatternDiffConf1-4",
+                "Part1^Assem1_AssemPatternDiffConf1-5",
+                "Part1^AssemPatternDiffConf1-5",
+                "Part1^AssemPatternDiffConf1-6"
+            }, compNamesConf1);
+        }
+
+        [Test]
+        public void ComponentReferenceTest()
+        {
+            string r1;
+            string r2;
+            string r3;
+            string r4;
+
+            using (var doc = OpenDataDocument(@"Assembly15\Assem15.SLDASM"))
+            {
+                var assm = (ISwDmAssembly)m_App.Documents.Active;
+
+                r1 = assm.Configurations.Active.Components["Part1-1"].Reference;
+                r2 = assm.Configurations.Active.Components["Part1-2"].Reference;
+                r3 = assm.Configurations.Active.Components["Assem2^Assem15-1"].Reference;
+                r4 = assm.Configurations.Active.Components["Assem2^Assem15-1"].Children["Part2^Assem2_Assem15-1"].Reference;
+            }
+
+            Assert.AreEqual("A", r1);
+            Assert.AreEqual("B", r2);
+            Assert.AreEqual("C", r3);
+            Assert.AreEqual("D", r4);
         }
     }
 }

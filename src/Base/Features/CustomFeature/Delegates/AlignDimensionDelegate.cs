@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -16,5 +16,5 @@ namespace Xarial.XCad.Features.CustomFeature.Delegates
     /// <param name="paramName">Name of the parameter in the data model which corresponds to this dimension</param>
     /// <param name="dim">Dimension to align</param>
     public delegate void AlignDimensionDelegate<TData>(string paramName, IXDimension dim)
-        where TData : class, new();
+        where TData : class;
 }

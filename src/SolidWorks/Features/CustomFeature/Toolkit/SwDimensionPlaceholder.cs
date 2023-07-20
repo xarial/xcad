@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -20,9 +20,10 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature.Toolkit
         {            
         }
 
-        public override double GetValue(string confName = "")
+        public override double Value
         {
-            return double.NaN;
+            get => double.NaN;
+            set => base.Value = value;
         }
     }
 }

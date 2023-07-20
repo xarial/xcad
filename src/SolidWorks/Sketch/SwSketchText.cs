@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -12,6 +12,7 @@ using System.Text;
 using Xarial.XCad.Geometry.Wires;
 using Xarial.XCad.Sketch;
 using Xarial.XCad.SolidWorks.Documents;
+using Xarial.XCad.SolidWorks.Features;
 
 namespace Xarial.XCad.SolidWorks.Sketch
 {
@@ -27,8 +28,12 @@ namespace Xarial.XCad.SolidWorks.Sketch
         public override IXSketchPoint StartPoint => throw new NotSupportedException();
         public override IXSketchPoint EndPoint => throw new NotSupportedException();
 
-        internal SwSketchText(ISketchText textSeg, ISwDocument doc, ISwApplication app, bool created)
+        internal SwSketchText(ISketchText textSeg, SwDocument doc, SwApplication app, bool created)
             : base((ISketchSegment)textSeg, doc, app, created)
+        {
+        }
+
+        internal SwSketchText(SwSketchBase ownerSketch, SwDocument doc, SwApplication app) : base(ownerSketch, doc, app)
         {
         }
 

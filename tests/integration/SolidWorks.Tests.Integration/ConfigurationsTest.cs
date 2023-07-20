@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Xarial.XCad;
 using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Enums;
@@ -127,9 +128,9 @@ namespace SolidWorks.Tests.Integration
         [Test]
         public void IterateConfsUnloadedTest()
         {
-            var part = m_App.Documents.PreCreate<IXPart>();
+            var part = m_App.Documents.PreCreate<ISwPart>();
             part.Path = GetFilePath("Configs1.SLDPRT");
-            var confNames = part.Configurations.Select(x => x.Name).ToArray();
+            var confNames = ((IEnumerable<IXConfiguration>)part.Configurations).Select(x => x.Name).ToArray();
 
             Assert.That(confNames.SequenceEqual(new string[]
             {
@@ -190,7 +191,7 @@ namespace SolidWorks.Tests.Integration
                 r1 = confs["Default"].IsCommitted;
                 r2 = confs["Conf1"].IsCommitted;
                 r3 = confs["Conf2"].IsCommitted;
-                Assert.Throws<InactiveLdrConfgurationNotSupportedException>(() => { var p1 = confs["Conf1"].Properties; });
+                Assert.Throws<InactiveLdrConfigurationNotSupportedException>(() => { var p1 = confs["Conf1"].Properties; });
                 var p2 = confs["Default"].Properties;
                 var p3 = confs.First().Properties;
             }
@@ -297,6 +298,243 @@ namespace SolidWorks.Tests.Integration
             Assert.AreEqual(100, (int)((1f - mat1[7]) * 255));
 
             Assert.IsTrue(mat2.All(m => m == -1));
+        }
+
+        [Test]
+        public void ParentConfTest()
+        {
+            string c1, c2, c3, c4, c5, c6;
+
+            using (var doc = OpenDataDocument(@"Assembly16\Part1.SLDPRT"))
+            {
+                var part = m_App.Documents.Active as ISwDocument3D;
+
+                c1 = part.Configurations["SubConfA"].Parent?.Name;
+                c2 = part.Configurations["SubConfA"].Parent.Parent?.Name;
+
+                c3 = part.Configurations["ConfB"].Parent?.Name;
+
+                c4 = part.Configurations["SubSubConf1"].Parent?.Name;
+                c5 = part.Configurations["SubConf1"].Parent?.Name;
+                c6 = part.Configurations["SubConf1"].Parent.Parent?.Name;
+            }
+
+            Assert.AreEqual("ConfA", c1);
+            Assert.AreEqual(null, c2);
+            Assert.AreEqual(null, c3);
+            Assert.AreEqual("SubConf1", c4);
+            Assert.AreEqual("Default", c5);
+            Assert.AreEqual(null, c6);
+        }
+
+        [Test]
+        public void ParentConfComponentTest()
+        {
+            IXConfiguration conf1, conf2, conf3, conf4, conf5;
+
+            string c1, c2, c3, c4, c5, c6, c7;
+
+            using (var doc = OpenDataDocument(@"Assembly16\Assem1.SLDASM"))
+            {
+                var assm = m_App.Documents.Active as ISwAssembly;
+                var comp1 = assm.Configurations.Active.Components["Part1-1"];
+                var comp2 = assm.Configurations.Active.Components["Part1-2"];
+                var comp3 = assm.Configurations.Active.Components["SubAssem1-1"];
+                var comp4 = assm.Configurations.Active.Components["SubAssem1-2"];
+
+                conf1 = comp1.ReferencedConfiguration.Parent;
+                c1 = conf1?.Name;
+
+                conf2 = conf1.Parent;
+                c2 = conf2?.Name;
+
+                conf3 = conf2.Parent;
+                c3 = conf3?.Name;
+
+                c4 = comp2.ReferencedConfiguration.Parent?.Name;
+
+                c5 = comp3.ReferencedConfiguration.Parent?.Name;
+
+                conf4 = comp4.ReferencedConfiguration.Parent;
+                c6 = conf4?.Name;
+
+                conf5 = conf4.Parent;
+                c7 = conf5?.Name;
+            }
+
+            Assert.AreEqual("SubConf1", c1);
+            Assert.AreEqual("Default", c2);
+            Assert.AreEqual(null, c3);
+            Assert.IsInstanceOf<IXPartConfiguration>(conf1);
+            Assert.IsInstanceOf<IXPartConfiguration>(conf2);
+            Assert.IsNull(conf3);
+            Assert.AreEqual(null, c4);
+            Assert.AreEqual(null, c5);
+            Assert.AreEqual("Default", c6);
+            Assert.IsInstanceOf<IXAssemblyConfiguration>(conf4);
+            Assert.IsNull(conf5);
+            Assert.AreEqual(null, c7);
+        }
+
+        [Test]
+        public void GetMaterialTest()
+        {
+            string matName1;
+            string dbName1;
+
+            string matName2;
+            string dbName2;
+
+            IXMaterial mat3;
+
+            using (var doc = OpenDataDocument(@"Material1.SLDPRT"))
+            {
+                var part = (IXPart)m_App.Documents.Active;
+                
+                var mat1 = ((IXPartConfiguration)part.Configurations["Default"]).Material;
+                matName1 = mat1.Name;
+                dbName1 = mat1.Database.Name;
+
+                var mat2 = ((IXPartConfiguration)part.Configurations["Conf1"]).Material;
+                matName2 = mat2.Name;
+                dbName2 = mat2.Database.Name;
+
+                mat3 = ((IXPartConfiguration)part.Configurations["Conf2"]).Material;
+            }
+
+            Assert.AreEqual("1060 Alloy", matName1);
+            Assert.AreEqual("", dbName1);
+
+            Assert.AreEqual("Brass", matName2);
+            Assert.AreEqual("", dbName2);
+
+            Assert.IsNull(mat3);
+        }
+
+        [Test]
+        public void GetMaterialBodyTest()
+        {
+            string matName1;
+            string dbName1;
+
+            string matName2;
+            string dbName2;
+
+            IXMaterial mat3;
+
+            using (var doc = OpenDataDocument(@"Material2.SLDPRT"))
+            {
+                var part = (IXPart)m_App.Documents.Active;
+
+                part.Configurations.Active = (IXPartConfiguration)part.Configurations["Default"];
+                var mat1 = part.Bodies["Boss-Extrude1"].Material;
+                matName1 = mat1.Name;
+                dbName1 = mat1.Database.Name;
+
+                part.Configurations.Active = (IXPartConfiguration)part.Configurations["Conf1"];
+                var mat2 = part.Bodies["Boss-Extrude1"].Material;
+                matName2 = mat2.Name;
+                dbName2 = mat2.Database.Name;
+
+                mat3 = part.Bodies["Boss-Extrude2"].Material;
+            }
+
+            Assert.AreEqual("1060 Alloy", matName1);
+            Assert.AreEqual("", dbName1);
+
+            Assert.AreEqual("Brass", matName2);
+            Assert.AreEqual("", dbName2);
+
+            Assert.IsNull(mat3);
+        }
+
+        //[Test]
+        //public void SetBodyMaterialTest()
+        //{
+        //    string mat1;
+        //    string db1;
+
+        //    string mat2;
+        //    string db2;
+
+        //    string mat3;
+        //    string db3;
+
+        //    string mat4;
+        //    string db4;
+
+        //    using (var doc = OpenDataDocument(@"Material2.SLDPRT", false))
+        //    {
+        //        var part = (ISwPart)m_App.Documents.Active;
+
+        //        var mat = m_App.MaterialDatabases[""]["ABS PC"];
+
+        //        part.Configurations.Active = part.Configurations["Default"];
+        //        part.Bodies["Boss-Extrude1"].Material = mat;
+
+        //        mat1 = ((ISwBody)part.Bodies["Boss-Extrude1"]).Body.GetMaterialPropertyName("Default", out db1);
+        //        mat2 = ((ISwBody)part.Bodies["Boss-Extrude1"]).Body.GetMaterialPropertyName("Conf1", out db2);
+
+        //        part.Configurations.Active = part.Configurations["Conf1"];
+        //        part.Bodies["Boss-Extrude2"].Material = mat;
+
+        //        mat3 = ((ISwBody)part.Bodies["Boss-Extrude2"]).Body.GetMaterialPropertyName("Conf1", out db3);
+
+        //        part.Bodies["Boss-Extrude1"].Material = null;
+        //        mat4 = ((ISwBody)part.Bodies["Boss-Extrude1"]).Body.GetMaterialPropertyName("Default", out db4);
+        //    }
+
+        //    Assert.AreEqual("ABS PC", mat1);
+        //    Assert.AreEqual("SOLIDWORKS Materials", db1);
+        //    Assert.AreEqual("Brass", mat2);
+        //    Assert.AreEqual("SOLIDWORKS Materials", db2);
+        //    Assert.AreEqual("ABS PC", mat3);
+        //    Assert.AreEqual("SOLIDWORKS Materials", db3);
+        //    Assert.AreEqual("", mat4);
+        //    Assert.AreEqual("", db4);
+        //}
+
+        [Test]
+        public void SetMaterialTest()
+        {
+            string mat1;
+            string db1;
+
+            string mat2;
+            string db2;
+
+            string mat3;
+            string db3;
+
+            string mat4;
+            string db4;
+
+            using (var doc = OpenDataDocument(@"Material2.SLDPRT"))
+            {
+                var part = (ISwPart)m_App.Documents.Active;
+
+                var mat = m_App.MaterialDatabases[""]["ABS PC"];
+
+                part.Configurations["Default"].Material = mat;
+
+                mat1 = part.Part.GetMaterialPropertyName2("Default", out db1);
+                mat2 = part.Part.GetMaterialPropertyName2("Conf1", out db2);
+
+                part.Configurations["Conf1"].Material = mat;
+                mat3 = part.Part.GetMaterialPropertyName2("Conf1", out db3);
+
+                part.Configurations["Default"].Material = null;
+                mat4 = part.Part.GetMaterialPropertyName2("Default", out db4);
+            }
+
+            Assert.AreEqual("ABS PC", mat1);
+            Assert.AreEqual("SOLIDWORKS Materials", db1);
+            Assert.AreEqual("Brass", mat2);
+            Assert.AreEqual("SOLIDWORKS Materials", db2);
+            Assert.AreEqual("ABS PC", mat3);
+            Assert.AreEqual("SOLIDWORKS Materials", db3);
+            Assert.AreEqual("", mat4);
+            Assert.AreEqual("", db4);
         }
     }
 }

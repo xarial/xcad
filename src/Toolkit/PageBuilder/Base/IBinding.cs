@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -12,6 +12,7 @@ namespace Xarial.XCad.Utils.PageBuilder.Base
 {
     public interface IBinding
     {
+        bool Silent { get; }
         IMetadata[] Metadata { get; }
         event Action<IBinding> Changed;
 
@@ -19,7 +20,6 @@ namespace Xarial.XCad.Utils.PageBuilder.Base
         event Action<IBinding> ControlUpdated;
 
         IControl Control { get; }
-        object Model { get; set; }
 
         void UpdateControl();
 

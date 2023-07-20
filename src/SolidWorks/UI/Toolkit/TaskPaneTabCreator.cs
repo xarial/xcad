@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -18,6 +18,7 @@ using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.UI;
 using Xarial.XCad.UI.TaskPane;
 using Xarial.XCad.Toolkit;
+using Xarial.XCad.Toolkit.Services;
 
 namespace Xarial.XCad.SolidWorks.UI.Toolkit
 {
@@ -42,9 +43,9 @@ namespace Xarial.XCad.SolidWorks.UI.Toolkit
         protected override ITaskpaneView HostComControl(string progId, string title, 
             IXImage image, out TControl specCtrl)
         {
-            using (var iconsConv = m_SvcProvider.GetService<IIconsCreator>())
+            using (var icon = CreateTaskPaneIcon(m_SvcProvider.GetService<IIconsCreator>(), image))
             {
-                var taskPaneView = CreateTaskPaneView(iconsConv, image, title);
+                var taskPaneView = CreateTaskPaneView(title, icon);
 
                 specCtrl = (TControl)m_ControlProvider.ProvideComControl(taskPaneView, progId);
 
@@ -59,9 +60,9 @@ namespace Xarial.XCad.SolidWorks.UI.Toolkit
 
         protected override ITaskpaneView HostNetControl(Control winCtrlHost, TControl ctrl, string title, IXImage image)
         {
-            using (var iconsConv = m_SvcProvider.GetService<IIconsCreator>())
+            using (var icon = CreateTaskPaneIcon(m_SvcProvider.GetService<IIconsCreator>(), image))
             {
-                var taskPaneView = CreateTaskPaneView(iconsConv, image, title);
+                var taskPaneView = CreateTaskPaneView(title, icon);
 
                 if (!m_ControlProvider.ProvideNetControl(taskPaneView, winCtrlHost))
                 {
@@ -72,17 +73,8 @@ namespace Xarial.XCad.SolidWorks.UI.Toolkit
             }
         }
 
-        private ITaskpaneView CreateTaskPaneView(IIconsCreator iconConv, IXImage icon,
-            string title)
+        private ITaskpaneView CreateTaskPaneView(string title, IImageCollection icon)
         {
-            if (icon == null)
-            {
-                if (Spec.Icon != null)
-                {
-                    icon = Spec.Icon;
-                }
-            }
-
             if (string.IsNullOrEmpty(title))
             {
                 title = Spec.Title;
@@ -92,23 +84,13 @@ namespace Xarial.XCad.SolidWorks.UI.Toolkit
 
             if (m_App.Sw.SupportsHighResIcons(CompatibilityUtils.HighResIconsScope_e.TaskPane))
             {
-                string[] taskPaneIconImages = null;
-
-                if (icon != null)
-                {
-                    taskPaneIconImages = iconConv.ConvertIcon(new TaskPaneHighResIcon(icon));
-                }
+                var taskPaneIconImages = icon?.FilePaths;
 
                 taskPaneView = m_App.Sw.CreateTaskpaneView3(taskPaneIconImages, title);
             }
             else
             {
-                var taskPaneIconImage = "";
-
-                if (icon != null)
-                {
-                    taskPaneIconImage = iconConv.ConvertIcon(new TaskPaneIcon(icon)).First();
-                }
+                var taskPaneIconImage = icon?.FilePaths.First();
 
                 taskPaneView = m_App.Sw.CreateTaskpaneView2(taskPaneIconImage, title);
             }
@@ -118,50 +100,80 @@ namespace Xarial.XCad.SolidWorks.UI.Toolkit
             return taskPaneView;
         }
 
+        private IImageCollection CreateTaskPaneIcon(IIconsCreator iconConv, IXImage icon) 
+        {
+            if (icon == null)
+            {
+                if (Spec.Icon != null)
+                {
+                    icon = Spec.Icon;
+                }
+            }
+
+            if (icon != null)
+            {
+                if (m_App.Sw.SupportsHighResIcons(CompatibilityUtils.HighResIconsScope_e.TaskPane))
+                {
+                    return iconConv.ConvertIcon(new TaskPaneHighResIcon(icon));
+                }
+                else
+                {
+                    return iconConv.ConvertIcon(new TaskPaneIcon(icon));
+                }
+            }
+            else
+            {
+                return null;
+            }
+        }
+
         private void LoadButtons(ITaskpaneView taskPaneView, ISldWorks app)
         {
             if (Spec.Buttons?.Any() == true)
             {
-                using (var iconsConv = m_SvcProvider.GetService<IIconsCreator>())
+                var iconsConv = m_SvcProvider.GetService<IIconsCreator>();
+
+                foreach (var btn in Spec.Buttons)
                 {
-                    foreach (var btn in Spec.Buttons)
+                    var tooltip = btn.Tooltip;
+
+                    if (string.IsNullOrEmpty(tooltip))
                     {
-                        var tooltip = btn.Tooltip;
+                        tooltip = btn.Title;
+                    }
 
-                        if (string.IsNullOrEmpty(tooltip))
+                    if (btn.StandardIcon.HasValue)
+                    {
+                        if (!taskPaneView.AddStandardButton((int)btn.StandardIcon, tooltip))
                         {
-                            tooltip = btn.Title;
+                            throw new InvalidOperationException($"Failed to add standard button for '{tooltip}'");
+                        }
+                    }
+                    else
+                    {
+                        var icon = btn.Icon;
+
+                        if (icon == null)
+                        {
+                            icon = Defaults.Icon;
                         }
 
-                        if (btn.StandardIcon.HasValue)
+                        //NOTE: unlike task pane icon, command icons must have the same transparency key as command manager commands
+                        if (app.SupportsHighResIcons(CompatibilityUtils.HighResIconsScope_e.TaskPane))
                         {
-                            if (!taskPaneView.AddStandardButton((int)btn.StandardIcon, tooltip))
+                            using (var imageList = iconsConv.ConvertIcon(new CommandGroupHighResIcon(icon)))
                             {
-                                throw new InvalidOperationException($"Failed to add standard button for '{tooltip}'");
-                            }
-                        }
-                        else
-                        {
-                            var icon = btn.Icon;
-
-                            if (icon == null)
-                            {
-                                icon = Defaults.Icon;
-                            }
-
-                            //NOTE: unlike task pane icon, command icons must have the same transparency key as command manager commands
-                            if (app.SupportsHighResIcons(CompatibilityUtils.HighResIconsScope_e.TaskPane))
-                            {
-                                var imageList = iconsConv.ConvertIcon(new CommandGroupHighResIcon(icon));
-                                if (!taskPaneView.AddCustomButton2(imageList, tooltip))
+                                if (!taskPaneView.AddCustomButton2(imageList.FilePaths, tooltip))
                                 {
                                     throw new InvalidOperationException($"Failed to create task pane button for '{tooltip}' with highres icon");
                                 }
                             }
-                            else
+                        }
+                        else
+                        {
+                            using (var image = iconsConv.ConvertIcon(new CommandGroupIcon(icon)))
                             {
-                                var imagePath = iconsConv.ConvertIcon(new CommandGroupIcon(icon)).First();
-                                if (!taskPaneView.AddCustomButton(imagePath, tooltip))
+                                if (!taskPaneView.AddCustomButton(image.FilePaths.First(), tooltip))
                                 {
                                     throw new InvalidOperationException($"Failed to create task pane button for {tooltip}");
                                 }
