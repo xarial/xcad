@@ -111,6 +111,17 @@ namespace SwAddInExample
 
     public class MyItem 
     {
+        [Title("Custom Item C")]
+        [Description("Item C [ID = 3]")]
+        private class MyCustomItem : MyItem
+        {
+            internal MyCustomItem() 
+            {
+                Name = "C";
+                Id = 3;
+            }
+        }
+
         public static MyItem[] All { get; } = new MyItem[]
         {
             new MyItem()
@@ -122,16 +133,14 @@ namespace SwAddInExample
             {
                 Name = "B",
                 Id = 2
-            }
+            },
+            new MyCustomItem()
         };
 
         public string Name { get; set; }
         public int Id { get; set; }
 
-        public override string ToString()
-        {
-            return Name;
-        }
+        public override string ToString() => Name;
 
         public override bool Equals(object obj)
         {
@@ -337,6 +346,12 @@ namespace SwAddInExample
         [Label("Sample Option Box 5:")]
         public Opts1 OptionBox5 { get; set; }
 
+        [OptionBox(1, 2, 3, 4)]
+        public int OptionBox6 { get; set; }
+
+        [OptionBox(typeof(MyCustomItemsProvider))]
+        public MyItem OptionBox7 { get; set; }
+
         [ListBox]
         public OptsFlag ListBox5 { get; set; } = OptsFlag.Opt1 | OptsFlag.Opt3;
 
@@ -344,6 +359,12 @@ namespace SwAddInExample
         [CheckBoxListOptions]
         [ControlOptions(align: ControlLeftAlign_e.Indent)]
         public OptsFlag2 FlagEnumCheckBoxes { get; set; }
+
+        [CheckBoxList(1, 2, 3, 4)]
+        public List<int> CheckBoxList2 { get; set; }
+
+        [CheckBoxList(typeof(MyCustomItemsProvider))]
+        public List<MyItem> CheckBoxList3 { get; set; }
 
         [ControlTag(nameof(Visible))]
         public bool Visible { get; set; }
@@ -379,6 +400,13 @@ namespace SwAddInExample
             CustomControl = OptsFlag.Opt3 | OptsFlag.Opt4;
 
             FlagEnumCheckBoxes = OptsFlag2.Opt3 | OptsFlag2.Opt4;
+
+            CheckBoxList3 = new List<MyItem>()
+            {
+                MyItem.All[0]
+            };
+
+            OptionBox6 = 3;
         }
     }
 

@@ -17,9 +17,9 @@ namespace Xarial.XCad.UI.PropertyPage.Services
     internal class CustomItemsAttributeDependencyHandler : IDependencyHandler
     {
         private readonly ICustomItemsProvider m_ItemsProvider;
-        private readonly DisplayMemberMemberPath m_DisplayMemberMemberPath;
+        private readonly string m_DisplayMemberMemberPath;
 
-        internal CustomItemsAttributeDependencyHandler(ICustomItemsProvider itemsProvider, DisplayMemberMemberPath displayMemberMemberPath)
+        internal CustomItemsAttributeDependencyHandler(ICustomItemsProvider itemsProvider, string displayMemberMemberPath)
         {
             m_ItemsProvider = itemsProvider;
             m_DisplayMemberMemberPath = displayMemberMemberPath;

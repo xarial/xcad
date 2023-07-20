@@ -16,6 +16,7 @@ using Xarial.XCad.Toolkit.Services;
 using Xarial.XCad.UI.PropertyPage.Attributes;
 using Xarial.XCad.UI.PropertyPage.Base;
 using Xarial.XCad.UI.PropertyPage.Enums;
+using Xarial.XCad.UI.PropertyPage.Structures;
 using Xarial.XCad.Utils.PageBuilder.Base;
 using Xarial.XCad.Utils.PageBuilder.PageElements;
 using Xarial.XCad.Utils.Reflection;
@@ -28,10 +29,41 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
     /// <remarks>All set properties will be applied to all controls in the group, while get will return the value of first control</remarks>
     public class PropertyManagerPageOptionBox : PropertyManagerPageControlList<IPropertyManagerPageOption>, IPropertyManagerPageOption
     {
-        public PropertyManagerPageOptionBox(IPropertyManagerPageOption[] ctrls) : base(ctrls)
+        private IPropertyManagerPageOption[] m_Controls;
+
+        private readonly Func<ItemsControlItem, IPropertyManagerPageOption> m_OptionBoxCreator;
+
+        private bool m_IsCreated;
+
+        private Action m_ControlsAttributesAssinger;
+
+        public PropertyManagerPageOptionBox(Func<ItemsControlItem, IPropertyManagerPageOption> optionBoxCreator) : base()
         {
+            m_OptionBoxCreator = optionBoxCreator;
+            m_IsCreated = false;
         }
-        
+
+        internal void CreateControls(ItemsControlItem[] items)
+        {
+            if (!m_IsCreated)
+            {
+                m_IsCreated = true;
+                m_Controls = items.Select(i => m_OptionBoxCreator.Invoke(i)).ToArray();
+                m_ControlsAttributesAssinger.Invoke();
+            }
+            else
+            {
+                throw new NotSupportedException("Controls cannot be recreated");
+            }
+        }
+
+        internal void DelayAssignControlAttributes(Action assigner)
+        {
+            m_ControlsAttributesAssinger = assigner;
+        }
+
+        public override IPropertyManagerPageOption[] Controls => m_Controls;
+
         public bool Checked
         {
             get => Controls.First().Checked;
@@ -51,48 +83,40 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
         }
     }
 
-    internal class PropertyManagerPageOptionBoxControl : PropertyManagerPageBaseControl<Enum, PropertyManagerPageOptionBox>
+    internal class PropertyManagerPageOptionBoxControl : PropertyManagerPageItemsSourceControl<object, PropertyManagerPageOptionBox>
     {
         private delegate IPropertyManagerPageOption ControlCreatorDelegate(int id, short controlType, string caption, short leftAlign, int options, string tip);
 
-        protected override event ControlValueChangedDelegate<Enum> ValueChanged;
-
-        private Enum[] m_Values;
-        private string[] m_ItemNames;
+        protected override event ControlValueChangedDelegate<object> ValueChanged;
 
         public PropertyManagerPageOptionBoxControl(SwApplication app, IGroup parentGroup, IIconsCreator iconConv,
             IAttributeSet atts, IMetadata[] metadata, ref int numberOfUsedIds)
             : base(app, parentGroup, iconConv, atts, metadata, swPropertyManagerPageControlType_e.swControlType_Option, ref numberOfUsedIds)
         {
             m_Handler.OptionChecked += OnOptionChecked;
-            numberOfUsedIds = m_Values.Length;
-        }
-
-        protected override void InitData(IControlOptionsAttribute opts, IAttributeSet atts)
-        {
-            var items = EnumExtension.GetEnumFields(atts.ContextType);
-            m_Values = items.Keys.ToArray();
-            m_ItemNames = items.Values.ToArray();
+            numberOfUsedIds = Items.Length;
         }
 
         protected override PropertyManagerPageOptionBox Create(IGroup host, int id, string name, ControlLeftAlign_e align,
             AddControlOptions_e options, string description, swPropertyManagerPageControlType_e type)
-        {
-            var ctrls = new IPropertyManagerPageOption[m_ItemNames.Length];
-
-            for (int i = 0; i < m_ItemNames.Length; i++)
+            => new PropertyManagerPageOptionBox(i =>
             {
-                var itemName = m_ItemNames[i];
+                var index = Array.IndexOf(Items, i);
 
-                ctrls[i] = base.CreateSwControl<IPropertyManagerPageOption>(host, id + i, itemName, align, options, description, type);
-                
-                if (i == 0)
+                var optBox = CreateSwControl<IPropertyManagerPageOption>(host, id + index, i.DisplayName, 
+                    align, options, string.IsNullOrEmpty(i.Description) ? description : i.Description, type);
+
+                if (index == 0)
                 {
-                    ctrls[i].Style = (int)swPropMgrPageOptionStyle_e.swPropMgrPageOptionStyle_FirstInGroup;
+                    optBox.Style = (int)swPropMgrPageOptionStyle_e.swPropMgrPageOptionStyle_FirstInGroup;
                 }
-            }
 
-            return new PropertyManagerPageOptionBox(ctrls);
+                return optBox;
+            });
+
+        protected override void AssignControlAttributes(PropertyManagerPageOptionBox ctrl, IControlOptionsAttribute opts, IAttributeSet atts)
+        {
+            ctrl.DelayAssignControlAttributes(() => base.AssignControlAttributes(ctrl, opts, atts));
         }
 
         protected override void SetOptions(PropertyManagerPageOptionBox ctrl, IControlOptionsAttribute opts, IAttributeSet atts)
@@ -107,19 +131,19 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
         private void OnOptionChecked(int id)
         {
-            if (id >= Id && id < (Id + m_Values.Length))
+            if (id >= Id && id < (Id + Items.Length))
             {
-                ValueChanged?.Invoke(this, m_Values[GetIndex(id)]);
+                ValueChanged?.Invoke(this, Items[GetIndex(id)].Value);
             }
         }
 
-        protected override Enum GetSpecificValue()
+        protected override object GetSpecificValue()
         {
             for (int i = 0; i < SwSpecificControl.Controls.Length; i++)
             {
                 if (SwSpecificControl.Controls[i].Checked)
                 {
-                    return m_Values[i];
+                    return Items[i].Value;
                 }
             }
 
@@ -127,13 +151,48 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             return null;
         }
 
-        protected override void SetSpecificValue(Enum value)
+        protected override void SetSpecificValue(object value)
         {
-            var index = Array.IndexOf(m_Values, value);
+            var index = -1;
 
-            for (int i = 0; i < SwSpecificControl.Controls.Length; i++) 
+            for (int i = 0; i < Items.Length; i++) 
             {
-                SwSpecificControl.Controls[i].Checked = i == index;
+                var item = Items[i];
+
+                if (object.Equals(item.Value, value)) 
+                {
+                    index = i;
+                    break;
+                }
+            }
+
+            if (index != -1)
+            {
+                for (int i = 0; i < SwSpecificControl.Controls.Length; i++)
+                {
+                    SwSpecificControl.Controls[i].Checked = i == index;
+                }
+            }
+            else 
+            {
+                throw new Exception("Value is not in the source");
+            }
+        }
+
+        protected override void LoadItemsIntoControl(ItemsControlItem[] newItems)
+        {
+            SwSpecificControl.CreateControls(newItems);
+        }
+
+        protected override void SetStaticItems(IAttributeSet atts, bool isStatic, ItemsControlItem[] staticItems)
+        {
+            if (isStatic)
+            {
+                Items = staticItems;
+            }
+            else
+            {
+                throw new Exception("Dynamic items are not supported");
             }
         }
 

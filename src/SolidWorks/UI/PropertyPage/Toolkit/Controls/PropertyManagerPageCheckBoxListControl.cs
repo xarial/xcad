@@ -8,18 +8,21 @@
 using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Drawing;
 using System.Linq;
 using System.Reflection;
+using System.Windows.Controls.Primitives;
 using Xarial.XCad.Reflection;
 using Xarial.XCad.SolidWorks.Services;
 using Xarial.XCad.Toolkit.Services;
 using Xarial.XCad.UI.PropertyPage.Attributes;
 using Xarial.XCad.UI.PropertyPage.Base;
 using Xarial.XCad.UI.PropertyPage.Enums;
+using Xarial.XCad.UI.PropertyPage.Structures;
 using Xarial.XCad.Utils.PageBuilder.Base;
 using Xarial.XCad.Utils.PageBuilder.PageElements;
 using Xarial.XCad.Utils.Reflection;
@@ -32,9 +35,40 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
     /// <remarks>All set properties will be applied to all controls in the group, while get will return the value of first control</remarks>
     public class PropertyManagerPageCheckBoxList : PropertyManagerPageControlList<IPropertyManagerPageCheckbox>, IPropertyManagerPageCheckbox
     {
-        public PropertyManagerPageCheckBoxList(IPropertyManagerPageCheckbox[] ctrls) : base(ctrls)
+        private IPropertyManagerPageCheckbox[] m_Controls;
+
+        private readonly Func<ItemsControlItem, IPropertyManagerPageCheckbox> m_CheckBoxCreator;
+
+        private bool m_IsCreated;
+
+        private Action m_ControlsAttributesAssinger;
+
+        public PropertyManagerPageCheckBoxList(Func<ItemsControlItem, IPropertyManagerPageCheckbox> checkBoxCreator) : base()
         {
+            m_CheckBoxCreator = checkBoxCreator;
+            m_IsCreated = false;
         }
+
+        internal void CreateControls(ItemsControlItem[] items) 
+        {
+            if (!m_IsCreated)
+            {
+                m_IsCreated = true;
+                m_Controls = items.Select(i => m_CheckBoxCreator.Invoke(i)).ToArray();
+                m_ControlsAttributesAssinger.Invoke();
+            }
+            else 
+            {
+                throw new NotSupportedException("Controls cannot be recreated");
+            }
+        }
+
+        internal void DelayAssignControlAttributes(Action assigner)
+        {
+            m_ControlsAttributesAssinger = assigner;
+        }
+
+        public override IPropertyManagerPageCheckbox[] Controls => m_Controls;
 
         public bool Checked
         {
@@ -55,7 +89,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
         }
     }
 
-    internal class PropertyManagerPageCheckBoxListControl : PropertyManagerPageBaseControl<Enum, PropertyManagerPageCheckBoxList>
+    internal class PropertyManagerPageCheckBoxListControl : PropertyManagerPageItemsSourceControl<object, PropertyManagerPageCheckBoxList>
     {
         private enum EnumItemType_e
         {
@@ -64,18 +98,15 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             None
         }
 
-        private class FlagEnumItem 
+        private class FlagEnumItem : ItemsControlItem
         {
-            internal Enum Value { get; }
-            internal string Name { get; }
-            internal string Description { get; }
+            internal new Enum Value => (Enum)base.Value;
+            
             internal Enum[] AffectedFlags { get; }
             internal EnumItemType_e Type { get; }
-            internal FlagEnumItem(Enum value, string name, string description, Enum[] affectedFlags)
+            
+            internal FlagEnumItem(Enum value, string dispName, string description, Enum[] affectedFlags) : base(value, dispName, description)
             {
-                Value = value;
-                Name = name;
-                Description = description;
                 AffectedFlags = affectedFlags;
 
                 if (AffectedFlags.Length > 1)
@@ -95,12 +126,12 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
         private delegate PropertyManagerPageCheckBoxList ControlCreatorDelegate(int id, short controlType, string caption, short leftAlign, int options, string tip);
 
-        protected override event ControlValueChangedDelegate<Enum> ValueChanged;
+        protected override event ControlValueChangedDelegate<object> ValueChanged;
 
-        private IReadOnlyList<FlagEnumItem> m_Items;
         private IReadOnlyList<Enum> m_HiddenFlags;
 
-        private Enum m_Value;
+        private Type m_TargetType;
+        private object m_Value;
         private bool m_IsSettingValues;
 
         public PropertyManagerPageCheckBoxListControl(SwApplication app, IGroup parentGroup, IIconsCreator iconConv,
@@ -108,67 +139,79 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             : base(app, parentGroup, iconConv, atts, metadata, swPropertyManagerPageControlType_e.swControlType_Checkbox, ref numberOfUsedIds)
         {
             m_Handler.CheckChanged += OnCheckChanged;
-            numberOfUsedIds = m_Items.Count;
+            numberOfUsedIds = Items.Length;
+        }
+
+        protected override ItemsControlItem[] CreateEnumItems(Type enumType)
+        {
+            if (enumType.IsEnum
+                && enumType.GetCustomAttribute<FlagsAttribute>() != null)
+            {
+                var flags = GetEnumFlags(enumType);
+
+                var items = GetEnumValueOrderAsDefined(enumType);
+
+                var itemsList = new List<FlagEnumItem>();
+                var hiddenFlagsList = new List<Enum>();
+
+                foreach (Enum item in items)
+                {
+                    var visible = true;
+                    Reflection.EnumExtension.TryGetAttribute<BrowsableAttribute>(item, a => visible = a.Browsable);
+
+                    if (visible)
+                    {
+                        var affectedFlags = flags.Where(item.HasFlag).ToArray();
+
+                        var name = "";
+
+                        item.TryGetAttribute<DisplayNameAttribute>(a => name = a.DisplayName);
+
+                        if (string.IsNullOrEmpty(name))
+                        {
+                            name = item.ToString();
+                        }
+
+                        var desc = "";
+
+                        item.TryGetAttribute<DescriptionAttribute>(a => desc = a.Description);
+
+                        itemsList.Add(new FlagEnumItem(item, name, desc, affectedFlags));
+                    }
+                    else
+                    {
+                        hiddenFlagsList.Add(item);
+                    }
+                }
+
+                m_HiddenFlags = hiddenFlagsList;
+                return itemsList.ToArray();
+            }
+            else 
+            {
+                throw new NotSupportedException("Only flag enums are supported");
+            }
         }
 
         protected override void InitData(IControlOptionsAttribute opts, IAttributeSet atts)
         {
-            var flags = XCad.Utils.Reflection.EnumExtension.GetEnumFlags(atts.ContextType);
+            m_TargetType = atts.ContextType;
 
-            var items = GetEnumValueOrderAsDefined(atts.ContextType);
-
-            var itemsList = new List<FlagEnumItem>();
-            var hiddenFlagsList = new List<Enum>();
-
-            foreach (Enum item in items)
+            if (!(m_TargetType.IsEnum && m_TargetType.GetCustomAttribute<FlagsAttribute>() != null)
+                && !typeof(IList).IsAssignableFrom(m_TargetType))
             {
-                var visible = true;
-                Reflection.EnumExtension.TryGetAttribute<BrowsableAttribute>(item, a => visible = a.Browsable);
-
-                if (visible)
-                {
-                    var affectedFlags = flags.Where(item.HasFlag).ToArray();
-
-                    var name = "";
-
-                    item.TryGetAttribute<DisplayNameAttribute>(a => name = a.DisplayName);
-
-                    if (string.IsNullOrEmpty(name))
-                    {
-                        name = item.ToString();
-                    }
-
-                    var desc = "";
-
-                    item.TryGetAttribute<DescriptionAttribute>(a => desc = a.Description);
-
-                    itemsList.Add(new FlagEnumItem(item, name, desc, affectedFlags));
-                }
-                else
-                {
-                    hiddenFlagsList.Add(item);
-                }
+                throw new NotSupportedException($"Context type '{atts.ContextType.FullName}' must be either flag enum or list");
             }
-
-            m_Items = itemsList;
-            m_HiddenFlags = hiddenFlagsList;
         }
 
         protected override PropertyManagerPageCheckBoxList Create(IGroup host, int id, string name, ControlLeftAlign_e align,
             AddControlOptions_e options, string description, swPropertyManagerPageControlType_e type)
+            => new PropertyManagerPageCheckBoxList(i => CreateSwControl<IPropertyManagerPageCheckbox>(host, id + Array.IndexOf(Items, i), i.DisplayName,
+                align, options, string.IsNullOrEmpty(i.Description) ? description : i.Description, type));
+
+        protected override void AssignControlAttributes(PropertyManagerPageCheckBoxList ctrl, IControlOptionsAttribute opts, IAttributeSet atts)
         {
-            var ctrls = new IPropertyManagerPageCheckbox[m_Items.Count];
-
-            for (int i = 0; i < m_Items.Count; i++)
-            {
-                var item = m_Items[i];
-
-                ctrls[i] = base.CreateSwControl<IPropertyManagerPageCheckbox>(host, id + i, item.Name,
-                    align, options, string.IsNullOrEmpty(item.Description) ? description : item.Description,
-                    type);
-            }
-
-            return new PropertyManagerPageCheckBoxList(ctrls);
+            ctrl.DelayAssignControlAttributes(() => base.AssignControlAttributes(ctrl, opts, atts));
         }
 
         protected override void SetOptions(PropertyManagerPageCheckBoxList ctrl, IControlOptionsAttribute opts, IAttributeSet atts)
@@ -177,38 +220,72 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             {
                 var style = atts.Get<CheckBoxListOptionsAttribute>();
 
-                for (int i = 0; i < m_Items.Count; i++)
+                for (int i = 0; i < Items.Length; i++)
                 {
-                    var item = m_Items[i];
+                    var item = Items[i];
 
-                    var checkBox = ctrl.Controls[i];
-
-                    KnownColor color;
-
-                    switch (item.Type)
+                    if (item is FlagEnumItem)
                     {
-                        case EnumItemType_e.None:
-                            color = style.NoneItemColor;
-                            break;
+                        var checkBox = ctrl.Controls[i];
 
-                        case EnumItemType_e.Combined:
-                            color = style.CombinedItemColor;
-                            break;
+                        KnownColor color;
 
-                        case EnumItemType_e.Default:
-                            color = 0;
-                            break;
+                        switch (((FlagEnumItem)item).Type)
+                        {
+                            case EnumItemType_e.None:
+                                color = style.NoneItemColor;
+                                break;
 
-                        default:
-                            throw new NotSupportedException();
-                    }
+                            case EnumItemType_e.Combined:
+                                color = style.CombinedItemColor;
+                                break;
 
-                    if (color != 0)
-                    {
-                        ((IPropertyManagerPageControl)checkBox).TextColor = ConvertColor(color);
+                            case EnumItemType_e.Default:
+                                color = 0;
+                                break;
+
+                            default:
+                                throw new NotSupportedException();
+                        }
+
+                        if (color != 0)
+                        {
+                            ((IPropertyManagerPageControl)checkBox).TextColor = ConvertColor(color);
+                        }
                     }
                 }
             }
+        }
+
+        private Enum[] GetEnumFlags(Type enumType)
+        {
+            if (!enumType.IsEnum)
+            {
+                throw new Exception("Only flag enums are supported");
+            }
+
+            var flags = new List<Enum>();
+
+            var flag = 0x1;
+
+            foreach (Enum value in Enum.GetValues(enumType))
+            {
+                var bits = Convert.ToInt32(value);
+
+                if (bits != 0)
+                {
+                    while (flag < bits)
+                    {
+                        flag <<= 1;
+                    }
+                    if (flag == bits)
+                    {
+                        flags.Add(value);
+                    }
+                }
+            }
+
+            return flags.ToArray();
         }
 
         private int GetIndex(int id) => id - Id;
@@ -217,55 +294,81 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
         {
             if (!m_IsSettingValues)
             {
-                if (id >= Id && id < (Id + m_Items.Count))
+                if (id >= Id && id < (Id + Items.Length))
                 {
-                    var checkedItem = m_Items[GetIndex(id)];
+                    var checkedItem = Items[GetIndex(id)];
 
-                    if (checkedItem.Type == EnumItemType_e.None)
+                    if (checkedItem is FlagEnumItem)
                     {
-                        m_Value = (Enum)Enum.ToObject(checkedItem.Value.GetType(), 0);
-                    }
-                    else
-                    {
-                        int val = Convert.ToInt32(m_Value);
+                        var checkedEnumItem = (FlagEnumItem)checkedItem;
 
-                        if (value)
+                        if (checkedEnumItem.Type == EnumItemType_e.None)
                         {
-                            foreach (var flag in checkedItem.AffectedFlags)
-                            {
-                                if (!m_Value.HasFlag(flag))
-                                {
-                                    val += Convert.ToInt32(flag);
-                                }
-                            }
+                            m_Value = (Enum)Enum.ToObject(checkedItem.Value.GetType(), 0);
                         }
                         else
                         {
-                            foreach (var flag in checkedItem.AffectedFlags)
+                            int val = Convert.ToInt32(m_Value);
+
+                            if (value)
                             {
-                                if (m_Value.HasFlag(flag))
+                                foreach (var flag in checkedEnumItem.AffectedFlags)
                                 {
-                                    val -= Convert.ToInt32(flag);
+                                    if (!((Enum)m_Value).HasFlag(flag))
+                                    {
+                                        val += Convert.ToInt32(flag);
+                                    }
                                 }
                             }
+                            else
+                            {
+                                foreach (var flag in checkedEnumItem.AffectedFlags)
+                                {
+                                    if (((Enum)m_Value).HasFlag(flag))
+                                    {
+                                        val -= Convert.ToInt32(flag);
+                                    }
+                                }
+                            }
+
+                            var enumVal = (Enum)Enum.ToObject(checkedItem.Value.GetType(), val);
+                            enumVal = RemoveDanglingHiddentEnumValues(enumVal);
+
+                            m_Value = enumVal;
                         }
 
-                        var enumVal = (Enum)Enum.ToObject(checkedItem.Value.GetType(), val);
-                        enumVal = RemoveDanglingHiddentEnumValues(enumVal);
-
-                        m_Value = enumVal;
+                        //enum value migth have groups which affect otehr enums, need to resolve other checkboxes as well
+                        SetSpecificValue(m_Value);
                     }
+                    else 
+                    {
+                        var list = (IList)m_Value;
 
-                    SetSpecificValue(m_Value);
+                        if (list == null) 
+                        {
+                            list = (IList)Activator.CreateInstance(m_TargetType);
+                        }
+
+                        if (value)
+                        {
+                            list.Add(checkedItem.Value);
+                        }
+                        else 
+                        {
+                            list.Remove(checkedItem.Value);
+                        }
+
+                        m_Value = list;
+                    }
 
                     ValueChanged?.Invoke(this, m_Value);
                 }
             }
         }
 
-        protected override Enum GetSpecificValue() => m_Value;
+        protected override object GetSpecificValue() => m_Value;
 
-        protected override void SetSpecificValue(Enum value)
+        protected override void SetSpecificValue(object value)
         {
             m_Value = value;
 
@@ -273,18 +376,29 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             {
                 m_IsSettingValues = true;
 
-                for (int i = 0; i < m_Items.Count; i++) 
+                for (int i = 0; i < Items.Length; i++) 
                 {
-                    var item = m_Items[i];
+                    var item = Items[i];
                     var checkBox = SwSpecificControl.Controls[i];
-                    
-                    if (item.Type == EnumItemType_e.None)
+
+                    if (item is FlagEnumItem)
                     {
-                        checkBox.Checked = IsNone(value);
+                        var enumItem = (FlagEnumItem)item;
+
+                        if (enumItem.Type == EnumItemType_e.None)
+                        {
+                            checkBox.Checked = IsNone((Enum)value);
+                        }
+                        else
+                        {
+                            checkBox.Checked = ((Enum)value).HasFlag(enumItem.Value);
+                        }
                     }
-                    else
+                    else 
                     {
-                        checkBox.Checked = value.HasFlag(item.Value);
+                        var list = (IList)m_Value;
+
+                        checkBox.Checked = list?.Contains(item.Value) == true;
                     }
                 }
             }
@@ -300,7 +414,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
         {
             foreach (var hiddenItem in m_HiddenFlags)
             {
-                var hiddenItemsGroup = m_Items.Where(i => i.Value.HasFlag(hiddenItem));
+                var hiddenItemsGroup = Items.Cast<FlagEnumItem>().Where(i => i.Value.HasFlag(hiddenItem));
 
                 if (enumVal.HasFlag(hiddenItem) && !hiddenItemsGroup.Any(g => enumVal.HasFlag(g.Value)))
                 {
@@ -317,6 +431,23 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
         {
             var fields = enumType.GetFields(BindingFlags.Static | BindingFlags.Public);
             return Array.ConvertAll(fields, x => (Enum)x.GetValue(null));
+        }
+
+        protected override void LoadItemsIntoControl(ItemsControlItem[] newItems)
+        {
+            SwSpecificControl.CreateControls(newItems);
+        }
+
+        protected override void SetStaticItems(IAttributeSet atts, bool isStatic, ItemsControlItem[] staticItems)
+        {
+            if (isStatic)
+            {
+                Items = staticItems;
+            }
+            else 
+            {
+                throw new Exception("Dynamic items are not supported");
+            }
         }
 
         protected override void Dispose(bool disposing)
