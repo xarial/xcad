@@ -16,7 +16,11 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
         /// <summary>
         /// Array of controls in the current controls list
         /// </summary>
-        public T[] Controls { get; }
+        public virtual T[] Controls { get; }
+
+        protected PropertyManagerPageControlList()
+        {
+        }
 
         protected PropertyManagerPageControlList(T[] ctrls)
         {

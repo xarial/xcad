@@ -18,69 +18,6 @@ namespace Xarial.XCad.Utils.Reflection
     /// </summary>
     public static class EnumExtension
     {
-        public static Dictionary<Enum, string> GetEnumFields(Type enumType)
-        {
-            if (!enumType.IsEnum)
-            {
-                throw new InvalidCastException($"{enumType.FullName} must be an enum");
-            }
-
-            var enumValues = new List<Enum>();
-
-            foreach (Enum en in Enum.GetValues(enumType))
-            {
-                enumValues.Add(en);
-            }
-
-            var values = enumValues.ToDictionary(e => e,
-                e =>
-                {
-                    var text = "";
-
-                    e.TryGetAttribute<DisplayNameAttribute>(a => text = a.DisplayName);
-
-                    if (string.IsNullOrEmpty(text))
-                    {
-                        text = e.ToString();
-                    }
-
-                    return text;
-                });
-
-            return values;
-        }
-
-        public static Enum[] GetEnumFlags(this Type enumType)
-        {
-            if (!enumType.IsEnum)
-            {
-                throw new Exception("Only flag enums are supported");
-            }
-
-            var flags = new List<Enum>();
-
-            var flag = 0x1;
-
-            foreach (Enum value in Enum.GetValues(enumType))
-            {
-                var bits = Convert.ToInt32(value);
-
-                if (bits != 0)
-                {
-                    while (flag < bits)
-                    {
-                        flag <<= 1;
-                    }
-                    if (flag == bits)
-                    {
-                        flags.Add(value);
-                    }
-                }
-            }
-
-            return flags.ToArray();
-        }
-
         /// <summary>
         /// Get the specified attribute from the enumerator field
         /// </summary>

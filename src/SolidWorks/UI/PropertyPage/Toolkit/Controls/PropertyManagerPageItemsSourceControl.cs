@@ -20,6 +20,8 @@ using Xarial.XCad.UI.PropertyPage.Structures;
 using Xarial.XCad.Utils.PageBuilder.Base;
 using Xarial.XCad.Utils.PageBuilder.PageElements;
 using Xarial.XCad.Utils.Reflection;
+using System.ComponentModel;
+using Xarial.XCad.Reflection;
 
 namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 {
@@ -45,7 +47,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
         private readonly IMetadata m_SrcMetadata;
         private readonly Type m_SpecificItemType;
 
-        private readonly DisplayMemberMemberPath m_DispMembPath;
+        private readonly string m_DispMembPath;
 
         public PropertyManagerPageItemsSourceControl(SwApplication app, IGroup parentGroup, IIconsCreator iconConv,
             IAttributeSet atts, IMetadata[] metadata, swPropertyManagerPageControlType_e type, ref int numberOfUsedIds)
@@ -103,26 +105,25 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
         private void ParseItems(IXApplication app, IAttributeSet atts, IMetadata[] metadata,
             out bool isStatic, out ItemsControlItem[] staticItems, out IMetadata itemsSourceMetadata,
-            out DisplayMemberMemberPath dispMembPath)
+            out string dispMembPath)
         {
             if (atts.ContextType.IsEnum)
             {
-                var items = EnumExtension.GetEnumFields(atts.ContextType);
-                staticItems = items.Select(i => new ItemsControlItem(i.Key, i.Value)).ToArray();
+                staticItems = CreateEnumItems(atts.ContextType);
 
                 isStatic = true;
                 itemsSourceMetadata = null;
-                dispMembPath = new DisplayMemberMemberPath("");
+                dispMembPath = "";
             }
             else
             {
                 var customItemsAtt = atts.Get<ItemsSourceControlAttribute>();
-                dispMembPath = new DisplayMemberMemberPath(customItemsAtt.DisplayMemberPath);
+                dispMembPath = customItemsAtt.DisplayMemberPath;
 
                 if (customItemsAtt.StaticItems?.Any() == true)
                 {
                     staticItems = customItemsAtt
-                        .StaticItems.Select(i => new ItemsControlItem(i, new DisplayMemberMemberPath(customItemsAtt.DisplayMemberPath))).ToArray();
+                        .StaticItems.Select(i => new ItemsControlItem(i, customItemsAtt.DisplayMemberPath)).ToArray();
 
                     isStatic = true;
                     itemsSourceMetadata = null;
@@ -134,7 +135,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
                     if (customItemsAtt.Dependencies?.Any() != true)
                     {
                         var provider = customItemsAtt.CustomItemsProvider;
-                        staticItems = provider.ProvideItems(app, new IControl[0]).Select(i => new ItemsControlItem(i, new DisplayMemberMemberPath(customItemsAtt.DisplayMemberPath))).ToArray();
+                        staticItems = provider.ProvideItems(app, new IControl[0]).Select(i => new ItemsControlItem(i, customItemsAtt.DisplayMemberPath)).ToArray();
                         isStatic = true;
                     }
                     else
@@ -159,6 +160,36 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
                     throw new NotSupportedException("Items source is not specified");
                 }
             }
+        }
+
+        protected virtual ItemsControlItem[] CreateEnumItems(Type enumType)
+        {
+            if (!enumType.IsEnum)
+            {
+                throw new InvalidCastException($"{enumType.FullName} must be an enum");
+            }
+
+            var items = new List<ItemsControlItem>();
+
+            foreach (Enum en in Enum.GetValues(enumType))
+            {
+                var dispName = "";
+
+                en.TryGetAttribute<DisplayNameAttribute>(a => dispName = a.DisplayName);
+
+                if (string.IsNullOrEmpty(dispName))
+                {
+                    dispName = en.ToString();
+                }
+
+                var desc = "";
+
+                en.TryGetAttribute<DescriptionAttribute>(a => desc = a.Description);
+
+                items.Add(new ItemsControlItem(en, dispName, desc));
+            }
+
+            return items.ToArray();
         }
 
         protected virtual TVal GetItem(int index) 

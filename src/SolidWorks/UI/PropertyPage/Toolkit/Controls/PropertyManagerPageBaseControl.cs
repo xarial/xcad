@@ -62,7 +62,6 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             CreateLabelIfNeeded(parentGroup, atts, ref numberOfUsedIds, out m_Label);
             SwSpecificControl = Create(parentGroup, atts.Id, atts.Name, opts.Align, opts.Options, atts.Description, type);
             AssignControlAttributes(SwSpecificControl, opts, atts);
-            SetOptions(SwSpecificControl, opts, atts);
         }
 
         protected virtual void InitData(IControlOptionsAttribute opts, IAttributeSet atts) 
@@ -152,7 +151,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
         protected virtual BitmapLabelType_e? GetDefaultBitmapLabel(IAttributeSet atts) => null;
 
-        private void AssignControlAttributes(TSwControl ctrl, IControlOptionsAttribute opts, IAttributeSet atts)
+        protected virtual void AssignControlAttributes(TSwControl ctrl, IControlOptionsAttribute opts, IAttributeSet atts)
         {
             var swCtrl = ctrl as IPropertyManagerPageControl;
 
@@ -225,6 +224,8 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
                     swCtrl.SetStandardPictureLabel((int)defIcon.Value);
                 }
             }
+
+            SetOptions(ctrl, opts, atts);
         }
 
         protected int ConvertColor(KnownColor knownColor)
