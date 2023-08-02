@@ -30,7 +30,7 @@ namespace Xarial.XCad.Geometry
 
     /// <inheritdoc/>
     /// <typeparam name="T">Specific object type</typeparam>
-    public interface IResilientibleObject<T> : ISupportsResilience
+    public interface ISupportsResilience<T> : ISupportsResilience
         where T : IXObject
     {
         /// <summary>

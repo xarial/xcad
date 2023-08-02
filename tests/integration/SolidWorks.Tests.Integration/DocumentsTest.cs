@@ -989,7 +989,7 @@ namespace SolidWorks.Tests.Integration
                 var p1 = m_App.Documents.PreCreate<ISwPart>();
                 p1.Path = filePath;
 
-                Assert.Throws<DocumentAlreadyOpenedException>(() => p1.Commit());
+                p1.Commit();
 
                 var p2 = m_App.Documents.PreCreate<IXUnknownDocument>();
                 p2.Path = filePath;
@@ -997,6 +997,8 @@ namespace SolidWorks.Tests.Integration
 
                 var p3 = p2.GetSpecific();
 
+                Assert.IsTrue(p1.IsCommitted);
+                Assert.That(string.Equals(p1.Path, filePath, StringComparison.CurrentCultureIgnoreCase));
                 Assert.AreEqual(p0, p3);
             }
         }

@@ -8,6 +8,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Xarial.XCad.Geometry.Structures;
 
 namespace Xarial.XCad.Geometry.Surfaces
 {
@@ -16,5 +17,19 @@ namespace Xarial.XCad.Geometry.Surfaces
     /// </summary>
     public interface IXToroidalSurface : IXSurface
     {
+        /// <summary>
+        /// Axis of toroidal surface
+        /// </summary>
+        Axis Axis { get; }
+
+        /// <summary>
+        /// Major radius
+        /// </summary>
+        double MajorRadius { get; }
+        
+        /// <summary>
+        /// Minor radius
+        /// </summary>
+        double MinorRadius { get; }
     }
 }

@@ -509,7 +509,7 @@ namespace SolidWorks.Tests.Integration
             string mat4;
             string db4;
 
-            using (var doc = OpenDataDocument(@"Material2.SLDPRT"))
+            using (var doc = OpenDataDocument(@"Material1.SLDPRT"))
             {
                 var part = (ISwPart)m_App.Documents.Active;
 

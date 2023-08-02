@@ -24,7 +24,7 @@ using Xarial.XCad.SolidWorks.Utils;
 
 namespace Xarial.XCad.SolidWorks.Features
 {
-    public interface ISwFeature : ISwSelObject, IXFeature, ISwEntity, IResilientibleObject<ISwFeature>
+    public interface ISwFeature : ISwSelObject, IXFeature, ISwEntity, ISupportsResilience<ISwFeature>
     {
         IFeature Feature { get; }
         new ISwDimensionsCollection Dimensions { get; }
@@ -151,7 +151,7 @@ namespace Xarial.XCad.SolidWorks.Features
 
         IXBody IXEntity.Body => Body;
         IXEntityRepository IXEntity.AdjacentEntities => AdjacentEntities;
-        ISwEntity IResilientibleObject<ISwEntity>.CreateResilient() => CreateResilient();
+        ISwEntity ISupportsResilience<ISwEntity>.CreateResilient() => CreateResilient();
         IXComponent IXEntity.Component => Component;
         IXDimensionRepository IDimensionable.Dimensions => Dimensions;
         IXObject ISupportsResilience.CreateResilient() => CreateResilient();

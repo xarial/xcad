@@ -254,6 +254,8 @@ namespace Xarial.XCad.SolidWorks.Geometry
         public SwBlendFace(IFace2 face, SwDocument doc, SwApplication app) : base(face, doc, app)
         {
         }
+
+        IXBlendSurface IXBlendXFace.Definition => (IXBlendSurface)base.Definition;
     }
 
     public interface ISwBFace : ISwFace, IXBFace
@@ -265,6 +267,8 @@ namespace Xarial.XCad.SolidWorks.Geometry
         public SwBFace(IFace2 face, SwDocument doc, SwApplication app) : base(face, doc, app)
         {
         }
+
+        IXBSurface IXBFace.Definition => (IXBSurface)base.Definition;
     }
 
     public interface ISwConicalFace : ISwFace, IXConicalFace
@@ -276,6 +280,8 @@ namespace Xarial.XCad.SolidWorks.Geometry
         public SwConicalFace(IFace2 face, SwDocument doc, SwApplication app) : base(face, doc, app)
         {
         }
+
+        IXConicalSurface IXConicalFace.Definition => (IXConicalSurface)base.Definition;
     }
 
     public interface ISwExtrudedFace : ISwFace, IXExtrudedFace
@@ -287,6 +293,8 @@ namespace Xarial.XCad.SolidWorks.Geometry
         public SwExtrudedFace(IFace2 face, SwDocument doc, SwApplication app) : base(face, doc, app)
         {
         }
+
+        IXExtrudedSurface IXExtrudedFace.Definition => (IXExtrudedSurface)base.Definition;
     }
 
     public interface ISwOffsetFace : ISwFace, IXOffsetFace
@@ -298,6 +306,8 @@ namespace Xarial.XCad.SolidWorks.Geometry
         public SwOffsetFace(IFace2 face, SwDocument doc, SwApplication app) : base(face, doc, app)
         {
         }
+
+        IXOffsetSurface IXOffsetFace.Definition => (IXOffsetSurface)base.Definition;
     }
 
     public interface ISwRevolvedFace : ISwFace, IXRevolvedFace
@@ -309,6 +319,8 @@ namespace Xarial.XCad.SolidWorks.Geometry
         public SwRevolvedFace(IFace2 face, SwDocument doc, SwApplication app) : base(face, doc, app)
         {
         }
+
+        IXRevolvedSurface IXRevolvedFace.Definition => (IXRevolvedSurface)base.Definition;
     }
 
     public interface ISwSphericalFace : ISwFace, IXSphericalFace
@@ -320,6 +332,8 @@ namespace Xarial.XCad.SolidWorks.Geometry
         public SwSphericalFace(IFace2 face, SwDocument doc, SwApplication app) : base(face, doc, app)
         {
         }
+
+        IXSphericalSurface IXSphericalFace.Definition => (IXSphericalSurface)base.Definition;
     }
 
     public interface ISwToroidalFace : ISwFace, IXToroidalFace
@@ -331,5 +345,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
         public SwToroidalFace(IFace2 face, SwDocument doc, SwApplication app) : base(face, doc, app)
         {
         }
+
+        IXToroidalSurface IXToroidalFace.Definition => (IXToroidalSurface)base.Definition;
     }
 }

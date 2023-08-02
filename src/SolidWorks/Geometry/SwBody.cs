@@ -24,7 +24,7 @@ using Xarial.XCad.SolidWorks.Utils;
 
 namespace Xarial.XCad.SolidWorks.Geometry
 {
-    public interface ISwBody : ISwSelObject, IXBody, IResilientibleObject<ISwBody>
+    public interface ISwBody : ISwSelObject, IXBody, ISupportsResilience<ISwBody>
     {
         IBody2 Body { get; }
 
