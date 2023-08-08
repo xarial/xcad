@@ -320,6 +320,10 @@ namespace Xarial.XCad.SolidWorks.Documents
             where THandler : IDocumentHandler
             => m_DocsHandler.RegisterHandler(handlerFact);
 
+        public void UnregisterHandler<THandler>()
+            where THandler : IDocumentHandler
+            => m_DocsHandler.UnregisterHandler<THandler>();
+
         public THandler GetHandler<THandler>(IXDocument doc) 
             where THandler : IDocumentHandler
             => m_DocsHandler.GetHandler<THandler>(doc);

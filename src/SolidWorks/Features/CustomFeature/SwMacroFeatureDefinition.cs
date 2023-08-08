@@ -617,15 +617,15 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 
             if (dims?.Any() == true)
             {
-                if (alignDimsDel != null)
+                for (int i = 0; i < dims.Length; i++)
                 {
-                    for (int i = 0; i < dims.Length; i++)
+                    if (alignDimsDel != null)
                     {
                         alignDimsDel.Invoke(dimParamNames[i], dims[i]);
-
-                        //IMPORTANT: need to dispose otherwise SW will crash once the document is closed
-                        ((IDisposable)dims[i]).Dispose();
                     }
+
+                    //IMPORTANT: need to dispose otherwise SW will crash once the document is closed
+                    ((IDisposable)dims[i]).Dispose();
                 }
             }
 

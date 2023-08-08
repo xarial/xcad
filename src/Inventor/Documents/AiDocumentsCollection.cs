@@ -163,6 +163,10 @@ namespace Xarial.XCad.Inventor.Documents
         public void RegisterHandler<THandler>(Func<THandler> handlerFact) where THandler : IDocumentHandler
             => m_DocsHandler.RegisterHandler<THandler>(handlerFact);
 
+        public void UnregisterHandler<THandler>()
+            where THandler : IDocumentHandler
+            => m_DocsHandler.UnregisterHandler<THandler>();
+
         public void RemoveRange(IEnumerable<IXDocument> ents, CancellationToken cancellationToken)
         {
             foreach (var doc in ents.Cast<IAiDocument>().ToArray()) 

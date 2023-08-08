@@ -59,6 +59,12 @@ namespace Xarial.XCad.Documents
             where THandler : IDocumentHandler;
 
         /// <summary>
+        /// Unregisters document handler
+        /// </summary>
+        /// <typeparam name="THandler"></typeparam>
+        void UnregisterHandler<THandler>() where THandler : IDocumentHandler;
+
+        /// <summary>
         /// Returns the handler for this document
         /// </summary>
         /// <typeparam name="THandler">Handler type</typeparam>
