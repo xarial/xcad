@@ -64,6 +64,7 @@ using Xarial.XCad.SolidWorks.UI.Commands.Attributes;
 using Xarial.XCad.Toolkit.Extensions;
 using Xarial.XCad.Annotations;
 using Xarial.XCad.UI.Enums;
+using Xarial.XToolkit;
 
 namespace SwAddInExample
 {
@@ -484,6 +485,7 @@ namespace SwAddInExample
                         }
                         m_Page = this.CreatePage<PmpData>(OnCreateDynamicControls);
                         m_Page.Closed += OnPageClosed;
+                        m_Page.KeystrokeHook += OnPageKeystrokeHook;
                         m_Data = new PmpData()
                         {
                             CoordSystem = Application.Documents.Active.Selections.OfType<IXCoordinateSystem>().FirstOrDefault()
@@ -732,6 +734,11 @@ namespace SwAddInExample
             }
         }
 
+        private void OnPageKeystrokeHook(IControl ctrl, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
+        {
+            
+        }
+
         private void ReplaceCompDoc()
         {
             var newPath = "";
@@ -749,14 +756,65 @@ namespace SwAddInExample
 
         private void Custom()
         {
-            var appVers = Application.Version;
-            var docVers = Application.Documents.Active.Version;
+            var x = GetGeometryBoundary(Application.Documents.Active.Selections.OfType<IXDrawingView>().First());
 
-            var dbs = Application.MaterialDatabases.ToArray();
+            //var doc = Application.Documents.Active;
 
-            var curMat = ((IXPart)Application.Documents.Active).Configurations.Active.Material;
+            //if (doc is IXDrawing)
+            //{
+            //    ((IXDrawing)doc).Sheets.SheetActivated += OnSheetActivated;
+            //    ((IXDrawing)doc).Sheets.SheetCreated += OnSheetCreated;
+            //}
+            //else if(doc is IXDocument3D)
+            //{
+            //    ((IXDocument3D)doc).Configurations.ConfigurationActivated += OnConfigurationActivated;
+            //}
+        }
 
-            ((IXPart)Application.Documents.Active).Configurations.Active.Material = Application.MaterialDatabases[""]["ABS PC"];
+        public Rect2D GetGeometryBoundary(IXDrawingView view)
+        {
+            var bbox = view.ReferencedDocument.Evaluation.PreCreateBoundingBox();
+
+            var viewTransform = view.Transformation;
+
+            bbox.Scope = GetActualViewBodies(view);
+            bbox.Precise = true;
+            bbox.BestFit = false;
+            bbox.RelativeTo = viewTransform.Inverse();
+
+            bbox.Commit();
+
+            var pt1 = bbox.Box.GetLeftBottomBack() * viewTransform;
+            var pt2 = bbox.Box.GetRightTopFront() * viewTransform;
+
+            return new Rect2D(Math.Abs(pt2.X - pt1.X), Math.Abs(pt2.Y - pt1.Y), new Xarial.XCad.Geometry.Structures.Point((pt1.X + pt2.X) / 2, (pt1.Y + pt2.Y) / 2, 0));
+        }
+
+        public IXBody[] GetActualViewBodies(IXDrawingView view)
+        {
+            var bodies = new List<IXBody>();
+
+            foreach (var ent in view.VisibleEntities)
+            {
+                var body = ent.Body;
+
+                if (!bodies.Any(b => b.Equals(body)))
+                {
+                    bodies.Add(body);
+                }
+            }
+
+            var e = bodies[0].Equals(bodies[1]);
+
+            return bodies.ToArray();
+        }
+
+        private void OnConfigurationActivated(IXDocument3D doc, IXConfiguration newConf)
+        {
+        }
+
+        private void OnSheetActivated(IXDrawing drw, IXSheet newSheet)
+        {
         }
 
         private void HandleAddEvents()
@@ -863,7 +921,7 @@ namespace SwAddInExample
         {
             var inProcess = true;
 
-            if (FileSystemBrowser.BrowseFileSave(out var filePath, "Select file path", FileSystemBrowser.BuildFilterString(FileFilter.ImageFiles)))
+            if (FileSystemBrowser.BrowseFileSave(out var filePath, "Select file path", FileFilter.BuildFilterString(FileFilter.ImageFiles)))
             {
                 if (inProcess)
                 {

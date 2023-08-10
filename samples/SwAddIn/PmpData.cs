@@ -250,6 +250,7 @@ namespace SwAddInExample
 
     [ComVisible(true)]
     [Help("https://xcad.net/")]
+    //[PageOptions(PageOptions_e.OkayButton | PageOptions_e.CancelButton | PageOptions_e.HandleKeystrokes)]
     public class PmpData : SwPropertyManagerPageHandler, INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler PropertyChanged;
@@ -260,7 +261,7 @@ namespace SwAddInExample
 
         [CustomControl(typeof(WpfUserControl))]
         //[CustomControl(typeof(WinUserControl))]
-        [ControlOptions(height: 200)]
+        [ControlOptions(height: 300)]
         [ControlTag(nameof(CustomControl))]
         public OptsFlag CustomControl { get; set; }
 

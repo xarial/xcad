@@ -14,6 +14,7 @@ using System.ComponentModel;
 using System.Runtime.InteropServices;
 using Xarial.XCad.Exceptions;
 using Xarial.XCad.SolidWorks.Utils;
+using Xarial.XCad.UI.PropertyPage.Base;
 using Xarial.XCad.UI.PropertyPage.Structures;
 
 namespace Xarial.XCad.SolidWorks.UI.PropertyPage
@@ -45,6 +46,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
         internal event Action WhatsNewRequested;
         internal event Action<int, bool> CustomControlCreated;
         internal event Action<int, bool> GroupChecked;
+        internal event Func<int, int, int, int, bool> Keystroke;
 
         /// <inheritdoc/>
         internal event PropertyManagerPageClosingDelegate Closing;
@@ -209,9 +211,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         public bool OnKeystroke(int Wparam, int Message, int Lparam, int Id)
-        {
-            return true;
-        }
+            => Keystroke?.Invoke(Wparam, Message, Lparam, Id) ?? false;
 
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]

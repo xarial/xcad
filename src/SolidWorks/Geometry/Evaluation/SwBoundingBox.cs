@@ -183,7 +183,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Evaluation
 
                     if (bodies?.Any() != true)
                     {
-                        throw new EvaluationFailedException();
+                        throw new EvaluationFailedException("No bodies found");
                     }
 
                     return ComputePreciseBoundingBox(bodies);

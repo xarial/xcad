@@ -50,7 +50,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             m_App = app;
 
             Handler = handler;
-            
+
             int err = -1;
 
             swPropertyManagerPageOptions_e opts;
@@ -58,6 +58,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             TitleIcon titleIcon = null;
 
             IconAttribute commIconAtt;
+
             if (atts.ContextType.TryGetAttribute(out commIconAtt))
             {
                 if (commIconAtt.Icon != null)
@@ -138,8 +139,8 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
         {
             SwApp.HideBubbleTooltip();
             SwApp.ShowBubbleTooltipAt2(0, 0, (int)swArrowPosition.swArrowLeftTop,
-                        title, msg, (int)swBitMaps.swBitMapNone,
-                        "", "", 0, (int)swLinkString.swLinkStringNone, "", "");
+                title, msg, (int)swBitMaps.swBitMapNone,
+                "", "", 0, (int)swLinkString.swLinkStringNone, "", "");
         }
 
         private void OnWhatsNewRequested()
