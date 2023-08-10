@@ -756,65 +756,6 @@ namespace SwAddInExample
 
         private void Custom()
         {
-            var x = GetGeometryBoundary(Application.Documents.Active.Selections.OfType<IXDrawingView>().First());
-
-            //var doc = Application.Documents.Active;
-
-            //if (doc is IXDrawing)
-            //{
-            //    ((IXDrawing)doc).Sheets.SheetActivated += OnSheetActivated;
-            //    ((IXDrawing)doc).Sheets.SheetCreated += OnSheetCreated;
-            //}
-            //else if(doc is IXDocument3D)
-            //{
-            //    ((IXDocument3D)doc).Configurations.ConfigurationActivated += OnConfigurationActivated;
-            //}
-        }
-
-        public Rect2D GetGeometryBoundary(IXDrawingView view)
-        {
-            var bbox = view.ReferencedDocument.Evaluation.PreCreateBoundingBox();
-
-            var viewTransform = view.Transformation;
-
-            bbox.Scope = GetActualViewBodies(view);
-            bbox.Precise = true;
-            bbox.BestFit = false;
-            bbox.RelativeTo = viewTransform.Inverse();
-
-            bbox.Commit();
-
-            var pt1 = bbox.Box.GetLeftBottomBack() * viewTransform;
-            var pt2 = bbox.Box.GetRightTopFront() * viewTransform;
-
-            return new Rect2D(Math.Abs(pt2.X - pt1.X), Math.Abs(pt2.Y - pt1.Y), new Xarial.XCad.Geometry.Structures.Point((pt1.X + pt2.X) / 2, (pt1.Y + pt2.Y) / 2, 0));
-        }
-
-        public IXBody[] GetActualViewBodies(IXDrawingView view)
-        {
-            var bodies = new List<IXBody>();
-
-            foreach (var ent in view.VisibleEntities)
-            {
-                var body = ent.Body;
-
-                if (!bodies.Any(b => b.Equals(body)))
-                {
-                    bodies.Add(body);
-                }
-            }
-
-            var e = bodies[0].Equals(bodies[1]);
-
-            return bodies.ToArray();
-        }
-
-        private void OnConfigurationActivated(IXDocument3D doc, IXConfiguration newConf)
-        {
-        }
-
-        private void OnSheetActivated(IXDrawing drw, IXSheet newSheet)
-        {
         }
 
         private void HandleAddEvents()

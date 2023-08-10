@@ -523,7 +523,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        public IXBody[] Bodies 
+        public virtual IXBody[] Bodies 
         {
             get 
             {
@@ -1344,8 +1344,24 @@ namespace Xarial.XCad.SolidWorks.Documents
         internal SwFlatPatternDrawingView(SwDrawing drw, SwSheet sheet)
             : base(null, drw, sheet)
         {
-            m_Creator.CachedProperties.Set<FlatPatternViewOptions_e>(
+            m_Creator.CachedProperties.Set(
                 FlatPatternViewOptions_e.BendLines | FlatPatternViewOptions_e.BendNotes, nameof(Options));
+        }
+
+        public override IXBody[] Bodies 
+        {
+            get => new IXBody[] { SheetMetalBody };
+            set 
+            {
+                if (value?.Length == 1)
+                {
+                    SheetMetalBody = (IXSolidBody)value[0];
+                }
+                else 
+                {
+                    throw new Exception("Only single body is supported");
+                }
+            }
         }
 
         public IXSolidBody SheetMetalBody
