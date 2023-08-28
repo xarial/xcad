@@ -287,6 +287,19 @@ namespace SwAddInExample
             Cmd8
         }
 
+        [Title("Main Menu")]
+        public enum MainCommands1_e 
+        {
+        }
+
+        [CommandGroupInfo(2)]
+        [CommandGroupParent(typeof(MainCommands1_e))]
+        public enum Commands3_e
+        {
+            Cmd9,
+            Cmd10
+        }
+
         private readonly Xarial.XToolkit.Helpers.AssemblyResolver m_AssmResolver;
 
         public SwAddInSample() 
@@ -300,9 +313,12 @@ namespace SwAddInExample
 
         public override void OnConnect()
         {
+            CommandManager.AddCommandGroup<MainCommands1_e>();
+            CommandManager.AddCommandGroup<Commands3_e>().CommandClick += OnCommandClick;
+
             //CommandManager.AddCommandGroup<Commands1_e>();
             //CommandManager.AddCommandGroup<Commands2_e>();
-            //return;
+            return;
 
             try
             {
@@ -363,6 +379,10 @@ namespace SwAddInExample
             {
                 Debug.Assert(false);
             }
+        }
+
+        private void OnCommandClick(Commands3_e spec)
+        {
         }
 
         private void OnCommands3Click(Commands3_3 spec)
