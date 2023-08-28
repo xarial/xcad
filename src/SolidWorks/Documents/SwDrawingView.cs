@@ -160,9 +160,12 @@ namespace Xarial.XCad.SolidWorks.Documents
                     drwView.ScaleRatio = new double[] { scale.Numerator, scale.Denominator };
                 }
 
-                if (Bodies != null) 
+                if (!drwView.IsFlatPatternView())
                 {
-                    drwView.Bodies = Bodies.Cast<ISwBody>().Select(b => b.Body).ToArray();
+                    if (Bodies != null)
+                    {
+                        drwView.Bodies = Bodies.Cast<ISwBody>().Select(b => b.Body).ToArray();
+                    }
                 }
 
                 return drwView;
