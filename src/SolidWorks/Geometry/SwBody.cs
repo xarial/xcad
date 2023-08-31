@@ -242,16 +242,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         public IXMemoryBody Copy()
         {
-            IBody2 copy;
-
-            if (OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2019))
-            {
-                copy = (IBody2)Body.Copy2(true);
-            }
-            else 
-            {
-                copy = (IBody2)Body.Copy();
-            }
+            var copy = Body.CreateCopy(OwnerApplication);
 
             return OwnerApplication.CreateObjectFromDispatch<SwTempBody>(copy, OwnerDocument);
         }

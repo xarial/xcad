@@ -14,6 +14,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Windows.Controls;
 using Xarial.XCad.Annotations;
 using Xarial.XCad.Base;
 using Xarial.XCad.Base.Attributes;
@@ -48,6 +49,7 @@ using Xarial.XCad.UI.PropertyPage.Enums;
 using Xarial.XCad.Utils.CustomFeature;
 using Xarial.XCad.Utils.Diagnostics;
 using Xarial.XCad.Utils.Reflection;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel;
 
 namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 {
@@ -66,6 +68,35 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             internal ISwApplication Application { get; set; }
             internal ISwDocument Document { get; set; }
             internal ISwMacroFeature Feature { get; set; }
+        }
+
+        [Browsable(false)]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public static IXMemoryBody CreateEditBody(IBody2 body, ISwDocument doc, ISwApplication app, bool isPreview)
+        {
+            var bodyType = (swBodyType_e)body.GetType();
+
+            switch (bodyType)
+            {
+                case swBodyType_e.swSheetBody:
+                    if (body.GetFaceCount() == 1 && body.IGetFirstFace().IGetSurface().IsPlane())
+                    {
+                        return new SwPlanarSheetMacroFeatureEditBody(body, (SwDocument)doc, (SwApplication)app, isPreview);
+                    }
+                    else
+                    {
+                        return new SwSheetMacroFeatureEditBody(body, (SwDocument)doc, (SwApplication)app, isPreview);
+                    }
+
+                case swBodyType_e.swSolidBody:
+                    return new SwSolidMacroFeatureEditBody(body, (SwDocument)doc, (SwApplication)app, isPreview);
+
+                case swBodyType_e.swWireBody:
+                    return new SwWireMacroFeatureEditBody(body, (SwDocument)doc, (SwApplication)app, isPreview);
+
+                default:
+                    throw new NotSupportedException();
+            }
         }
 
         private static SwMacroFeature CreateMacroFeatureInstance(SwMacroFeatureDefinition sender, IFeature feat, SwDocument doc, SwApplication app)
@@ -810,13 +841,13 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 
                             if (body is SwBody) 
                             {
-                                ((IList)objData)[i] = SwMacroFeatureEditBody.CreateMacroFeatureEditBody(((SwBody)body).Body, (SwDocument)doc, (SwApplication)app, true);
+                                ((IList)objData)[i] = CreateEditBody(((SwBody)body).Body, (SwDocument)doc, (SwApplication)app, true);
                             }
                         }
                     }
                     else if(objData is SwBody)
                     {
-                        prp.SetValue(obj, SwMacroFeatureEditBody.CreateMacroFeatureEditBody(((SwBody)objData).Body, (SwDocument)doc, (SwApplication)app, true));
+                        prp.SetValue(obj, CreateEditBody(((SwBody)objData).Body, (SwDocument)doc, (SwApplication)app, true));
                     }
                 },
                 (obj, prp) => { });

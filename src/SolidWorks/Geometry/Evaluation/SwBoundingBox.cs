@@ -497,7 +497,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Evaluation
 
                         if (!isCopy)
                         {
-                            swBody = swBody.ICopy();
+                            swBody = swBody.CreateCopy(m_App);
                         }
 
                         if (!swBody.ApplyTransform(mathTransform.IInverse()))
@@ -577,7 +577,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Evaluation
 
             if (comp != null)
             {
-                swBody = swBody.ICopy();
+                swBody = swBody.CreateCopy(m_App);
 
                 isCopy = true;
 
