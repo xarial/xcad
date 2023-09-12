@@ -432,8 +432,8 @@ namespace Xarial.XCad.SolidWorks.Documents
 
             dwgPaperSize = paperSize.StandardPaperSize.HasValue ? (swDwgPaperSizes_e)paperSize.StandardPaperSize.Value : swDwgPaperSizes_e.swDwgPapersUserDefined;
             dwgTemplate = paperSize.StandardPaperSize.HasValue ? (swDwgTemplates_e)paperSize.StandardPaperSize.Value : swDwgTemplates_e.swDwgTemplateNone;
-            dwpPaperWidth = paperSize.Width.HasValue ? paperSize.Width.Value : 0;
-            dwpPaperHeight = paperSize.Height.HasValue ? paperSize.Height.Value : 0;
+            dwpPaperWidth = !paperSize.StandardPaperSize.HasValue ? paperSize.Width : 0;
+            dwpPaperHeight = !paperSize.StandardPaperSize.HasValue ? paperSize.Height : 0;
         }
     }
 

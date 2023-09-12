@@ -1630,48 +1630,62 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         private ISwFlatPattern GetViewFlatPattern(IView view) 
         {
+            //Note, in some sheet metal files (probably corrupted as the result of the upgrade)
+            //this can return the hidden sheet metal flat pattern feature, not the actual one,
+            //so only using this as a fallback function
+
+            ISwFlatPattern GetFlatPatternFromFace()
+            {
+                var face = GetFlatPatternFace(view);
+
+                return OwnerDocument.CreateObjectFromDispatch<ISwFlatPattern>(face.GetFeature());
+            }
+
             if (OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2014))
             {
                 var flatPatternFolder = (IFlatPatternFolder)view.ReferencedDocument.FeatureManager.GetFlatPatternFolder();
-                var flatPatterns = (object[])flatPatternFolder.GetFlatPatterns();
 
-                if (flatPatterns?.Any() == true)
+                if (flatPatternFolder != null)
                 {
-                    var activeFlatPatterns = flatPatterns.Cast<IFeature>().Where(f =>
-                    {
-                        var isSuppressed = ((bool[])f.IsSuppressed2((int)swInConfigurationOpts_e.swSpecifyConfiguration,
-                            new string[] { view.ReferencedConfiguration })).First();
+                    var flatPatterns = (object[])flatPatternFolder.GetFlatPatterns();
 
-                        return !isSuppressed;
-                    }).ToArray();
+                    if (flatPatterns?.Any() == true)
+                    {
+                        var activeFlatPatterns = flatPatterns.Cast<IFeature>().Where(f =>
+                        {
+                            var isSuppressed = ((bool[])f.IsSuppressed2((int)swInConfigurationOpts_e.swSpecifyConfiguration,
+                                new string[] { view.ReferencedConfiguration })).First();
 
-                    if (activeFlatPatterns.Length == 1)
-                    {
-                        return OwnerDocument.CreateObjectFromDispatch<ISwFlatPattern>(activeFlatPatterns.First());
+                            return !isSuppressed;
+                        }).ToArray();
+
+                        if (activeFlatPatterns.Length == 1)
+                        {
+                            return OwnerDocument.CreateObjectFromDispatch<ISwFlatPattern>(activeFlatPatterns.First());
+                        }
+                        else if (activeFlatPatterns.Length == 0)
+                        {
+                            throw new Exception("Failed to find active flat patterns");
+                        }
+                        else
+                        {
+                            throw new Exception("More than one active flat pattern is found");
+                        }
                     }
-                    else if (activeFlatPatterns.Length == 0)
+                    else
                     {
-                        throw new Exception("Failed to find active flat patterns");
-                    }
-                    else 
-                    {
-                        throw new Exception("More than one active flat pattern is found");
+                        throw new Exception("No flat patterns found");
                     }
                 }
                 else 
                 {
-                    throw new Exception("No flat patterns found");
+                    //NOTE: legacy sheet metal flat patterns are not placed in the sheet metal folders
+                    return GetFlatPatternFromFace();
                 }
             }
             else
             {
-                //Note, in some sheet metal files (probably corrupted as the result of the upgrade)
-                //this can return the hidden sheet metal flat pattern feature, not the actual one,
-                //so only using this as a fallback function
-
-                var face = GetFlatPatternFace(view);
-
-                return OwnerDocument.CreateObjectFromDispatch<ISwFlatPattern>(face.GetFeature());
+                return GetFlatPatternFromFace();
             }
         }
 

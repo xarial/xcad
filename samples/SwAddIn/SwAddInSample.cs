@@ -313,12 +313,11 @@ namespace SwAddInExample
 
         public override void OnConnect()
         {
-            CommandManager.AddCommandGroup<MainCommands1_e>();
-            CommandManager.AddCommandGroup<Commands3_e>().CommandClick += OnCommandClick;
+            //CommandManager.AddCommandGroup<MainCommands1_e>();
+            //CommandManager.AddCommandGroup<Commands3_e>().CommandClick += OnCommandClick;
 
             //CommandManager.AddCommandGroup<Commands1_e>();
             //CommandManager.AddCommandGroup<Commands2_e>();
-            return;
 
             try
             {
@@ -776,6 +775,8 @@ namespace SwAddInExample
 
         private void Custom()
         {
+            var drw = (IXDrawing)Application.Documents.Active;
+            var sheet = drw.Sheets.First().Clone(drw);
         }
 
         private void HandleAddEvents()
