@@ -567,13 +567,22 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
                         m_Logger.Log($"Failed to add commands to commands tab box {tabName} for document type {workspace}", LoggerMessageSeverity_e.Error);
                     }
 
+                    var curTabBox = tabBox;
+
                     foreach (var spacerCmd in tabGroup.Commands.Where(c => c.HasSpacer)) 
                     {
-                        var splitCmdBox = cmdTab.AddSeparator(tabBox, spacerCmd.CommandId);
-
-                        if (splitCmdBox == null) 
+                        if (tabGroup.Commands.IndexOf(spacerCmd) != 0)
                         {
-                            m_Logger.Log($"Failed to add separator to tab box {tabName} after {spacerCmd.CommandId} for document type {workspace}", LoggerMessageSeverity_e.Error);
+                            var splitTabBox = cmdTab.AddSeparator(curTabBox, spacerCmd.CommandId);
+
+                            if (splitTabBox != null)
+                            {
+                                curTabBox = splitTabBox;
+                            }
+                            else 
+                            {
+                                m_Logger.Log($"Failed to add separator to tab box {tabName} before {spacerCmd.CommandId} for document type {workspace}", LoggerMessageSeverity_e.Error);
+                            }
                         }
                     }
                 }
