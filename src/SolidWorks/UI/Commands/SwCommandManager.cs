@@ -52,11 +52,13 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
         {
             internal int CommandId { get; }
             internal RibbonTabTextDisplay_e TextStyle { get; }
+            internal bool HasSpacer { get; }
 
-            internal TabCommandInfo(int commandId, RibbonTabTextDisplay_e textStyle)
+            internal TabCommandInfo(int commandId, RibbonTabTextDisplay_e textStyle, bool hasSpacer)
             {
                 CommandId = commandId;
                 TextStyle = textStyle;
+                HasSpacer = hasSpacer;
             }
         }
 
@@ -564,6 +566,16 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
                     {
                         m_Logger.Log($"Failed to add commands to commands tab box {tabName} for document type {workspace}", LoggerMessageSeverity_e.Error);
                     }
+
+                    foreach (var spacerCmd in tabGroup.Commands.Where(c => c.HasSpacer)) 
+                    {
+                        var splitCmdBox = cmdTab.AddSeparator(tabBox, spacerCmd.CommandId);
+
+                        if (splitCmdBox == null) 
+                        {
+                            m_Logger.Log($"Failed to add separator to tab box {tabName} after {spacerCmd.CommandId} for document type {workspace}", LoggerMessageSeverity_e.Error);
+                        }
+                    }
                 }
             }
         }
@@ -706,7 +718,7 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
                                         tabCmdGrps.Add(tabCmdGrp);
                                     }
 
-                                    tabCmdGrp.Commands.Add(new TabCommandInfo(cmdId, cmd.RibbonTextStyle));
+                                    tabCmdGrp.Commands.Add(new TabCommandInfo(cmdId, cmd.RibbonTextStyle, cmd.HasSpacer));
                                 }
                             }
                         }
