@@ -442,7 +442,9 @@ namespace Xarial.XCad.SolidWorks
         private static bool TryGetParameterType(IFeature feat, out Type paramType)
         {
             var featData = feat.GetDefinition() as IMacroFeatureData;
-            var progId = featData.GetProgId();
+
+            //NOTE: definition of rolled back macro feature is null
+            var progId = featData?.GetProgId();
 
             if (!string.IsNullOrEmpty(progId))
             {

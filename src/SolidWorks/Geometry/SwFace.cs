@@ -108,6 +108,22 @@ namespace Xarial.XCad.SolidWorks.Geometry
                 (o, c) => Face.RemoveMaterialProperty2((int)o, c));
         }
 
+        public override bool IsAlive
+        {
+            get
+            {
+                if (base.IsAlive)
+                {
+                    //some of the faces may be broken and have negative area. Working with these faces may resut in the SOLIDWORKS crash
+                    return Face.GetArea() > 0;
+                }
+                else 
+                {
+                    return false;
+                }
+            }
+        }
+
         public ISwSurface Definition => OwnerApplication.CreateObjectFromDispatch<SwSurface>(Face.IGetSurface(), OwnerDocument);
 
         private IEnumerable<ISwLoop> IterateLoops() 
