@@ -139,6 +139,6 @@ namespace Xarial.XCad.Documents
         /// <summary>
         /// Options to export splines
         /// </summary>
-        SplineExportOptions_e SplineExportOptions { get; }
+        SplineExportOptions_e SplineExportOptions { get; set; }
     }
 }
