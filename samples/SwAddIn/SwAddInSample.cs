@@ -775,8 +775,11 @@ namespace SwAddInExample
 
         private void Custom()
         {
-            var drw = (IXDrawing)Application.Documents.Active;
-            var sheet = drw.Sheets.First().Clone(drw);
+            var bodies = ((IXPart)Application.Documents.Active).Bodies.Where(b => b.Visible).ToArray();
+            Application.Documents.Active.ModelViews.Active.ZoomToObjects(bodies);
+
+            //var drw = (IXDrawing)Application.Documents.Active;
+            //var sheet = drw.Sheets.First().Clone(drw);
         }
 
         private void HandleAddEvents()

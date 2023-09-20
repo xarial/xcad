@@ -386,6 +386,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         private int m_OrigDxfMappingFileIndex;
         private int m_OrigDxfMultiSheetOption;
         private bool m_OrigExportHiddenLayers;
+        private bool m_OrigDxfExportSplinesAsSplines;
 
         private readonly SwDrawing m_Draw;
         private SheetActivator m_SheetActivator;
@@ -422,6 +423,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             m_OrigDxfMappingFiles = m_Doc.OwnerApplication.Sw.GetUserPreferenceStringListValue((int)swUserPreferenceStringListValue_e.swDxfMappingFiles);
             m_OrigDxfMappingFileIndex = m_Doc.OwnerApplication.Sw.GetUserPreferenceIntegerValue((int)swUserPreferenceIntegerValue_e.swDxfMappingFileIndex);
             m_OrigDxfMultiSheetOption = m_Doc.OwnerApplication.Sw.GetUserPreferenceIntegerValue((int)swUserPreferenceIntegerValue_e.swDxfMultiSheetOption);
+            m_OrigDxfExportSplinesAsSplines = m_Doc.OwnerApplication.Sw.GetUserPreferenceToggle((int)swUserPreferenceToggle_e.swDxfExportSplinesAsSplines);
 
             m_Doc.OwnerApplication.Sw.SetUserPreferenceToggle((int)swUserPreferenceToggle_e.swDxfMapping, !string.IsNullOrEmpty(LayersMapFilePath));
 
@@ -431,6 +433,24 @@ namespace Xarial.XCad.SolidWorks.Documents
 
                 m_Doc.OwnerApplication.Sw.SetUserPreferenceIntegerValue((int)swUserPreferenceIntegerValue_e.swDxfMappingFileIndex, 0);
             }
+
+            bool exportSplinesAsSplines;
+
+            switch (SplineExportOptions) 
+            {
+                case SplineExportOptions_e.Splines:
+                    exportSplinesAsSplines = true;
+                    break;
+
+                case SplineExportOptions_e.Polylines:
+                    exportSplinesAsSplines = false;
+                    break;
+
+                default:
+                    throw new NotSupportedException($"Only {nameof(SplineExportOptions_e.Splines)} and {nameof(SplineExportOptions_e.Polylines)} are supported in {nameof(SplineExportOptions)}");
+            }
+
+            m_Doc.OwnerApplication.Sw.SetUserPreferenceToggle((int)swUserPreferenceToggle_e.swDxfExportSplinesAsSplines, exportSplinesAsSplines);
 
             m_OrigExportHiddenLayers = m_Doc.OwnerApplication.Sw.GetUserPreferenceToggle((int)swUserPreferenceToggle_e.swDXFExportHiddenLayersOn);
             m_Doc.OwnerApplication.Sw.SetUserPreferenceToggle((int)swUserPreferenceToggle_e.swDXFExportHiddenLayersOn, ExportHiddentLayers);
@@ -460,6 +480,8 @@ namespace Xarial.XCad.SolidWorks.Documents
             m_Doc.OwnerApplication.Sw.SetUserPreferenceIntegerValue((int)swUserPreferenceIntegerValue_e.swDxfMappingFileIndex, m_OrigDxfMappingFileIndex);
             m_Doc.OwnerApplication.Sw.SetUserPreferenceIntegerValue((int)swUserPreferenceIntegerValue_e.swDxfMultiSheetOption, m_OrigDxfMultiSheetOption);
 
+            m_Doc.OwnerApplication.Sw.SetUserPreferenceToggle((int)swUserPreferenceToggle_e.swDxfExportSplinesAsSplines, m_OrigDxfExportSplinesAsSplines);
+
             m_Doc.OwnerApplication.Sw.SetUserPreferenceToggle((int)swUserPreferenceToggle_e.swDXFExportHiddenLayersOn, m_OrigExportHiddenLayers);
 
             m_SheetActivator?.Dispose();
@@ -484,6 +506,22 @@ namespace Xarial.XCad.SolidWorks.Documents
         public bool ExportHiddentLayers
         {
             get => m_Creator.CachedProperties.Get<bool>();
+            set
+            {
+                if (!IsCommitted)
+                {
+                    m_Creator.CachedProperties.Set(value);
+                }
+                else
+                {
+                    throw new CommitedElementReadOnlyParameterException();
+                }
+            }
+        }
+
+        public SplineExportOptions_e SplineExportOptions
+        {
+            get => m_Creator.CachedProperties.Get<SplineExportOptions_e>();
             set
             {
                 if (!IsCommitted)

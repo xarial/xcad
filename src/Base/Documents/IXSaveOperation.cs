@@ -106,6 +106,22 @@ namespace Xarial.XCad.Documents
     }
 
     /// <summary>
+    /// Options to export splines in <see cref="IXDxfDwgSaveOperation.SplineExportOptions"/>
+    /// </summary>
+    public enum SplineExportOptions_e 
+    {
+        /// <summary>
+        /// Exports splines as splines
+        /// </summary>
+        Splines,
+
+        /// <summary>
+        /// Exports splines as polylines
+        /// </summary>
+        Polylines
+    }
+
+    /// <summary>
     /// Save options for DXF/DWG format
     /// </summary>
     public interface IXDxfDwgSaveOperation : IXDrawingSaveOperation
@@ -119,5 +135,10 @@ namespace Xarial.XCad.Documents
         /// True to include hidden layers, False to only export visible layers
         /// </summary>
         bool ExportHiddentLayers { get; set; }
+
+        /// <summary>
+        /// Options to export splines
+        /// </summary>
+        SplineExportOptions_e SplineExportOptions { get; }
     }
 }
