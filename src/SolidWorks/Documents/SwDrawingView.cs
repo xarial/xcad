@@ -1638,7 +1638,39 @@ namespace Xarial.XCad.SolidWorks.Documents
             {
                 var face = GetFlatPatternFace(view);
 
-                return OwnerDocument.CreateObjectFromDispatch<ISwFlatPattern>(face.GetFeature());
+                IFeature flatPatternFeat = null;
+
+                var feat = (IFeature)face.GetFeature();
+
+                if (feat.GetTypeName2() == SwFlatPattern.TypeName)
+                {
+                    flatPatternFeat = feat;
+                }
+                else 
+                {
+                    var childrenFeats = (object[])feat.GetChildren();
+
+                    if (childrenFeats != null) 
+                    {
+                        foreach (IFeature childFeat in childrenFeats) 
+                        {
+                            if (childFeat.GetTypeName2() == SwFlatPattern.TypeName)
+                            {
+                                flatPatternFeat = childFeat;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                if (flatPatternFeat != null)
+                {
+                    return OwnerDocument.CreateObjectFromDispatch<ISwFlatPattern>(flatPatternFeat);
+                }
+                else 
+                {
+                    throw new Exception("Failed to find the flat pattern feature from the face");
+                }
             }
 
             if (OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2014))
