@@ -134,7 +134,7 @@ namespace Xarial.XCad.SolidWorks.Sketch
                 }
 
                 curve = curve.CreateTrimmedCurve2(startPt.X, startPt.Y, startPt.Z, 
-                    endPt.X, endPt.Y, endPt.Z) as Curve;
+                    endPt.X, endPt.Y, endPt.Z);
 
                 if (curve == null) 
                 {

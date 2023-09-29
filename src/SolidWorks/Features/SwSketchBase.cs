@@ -169,17 +169,20 @@ namespace Xarial.XCad.SolidWorks.Features
             }
             set 
             {
-                using (var selGrp = new SelectionGroup(OwnerDocument, true)) 
+                if (IsBlank != value)
                 {
-                    selGrp.Add(Feature);
+                    using (var selGrp = new SelectionGroup(OwnerDocument, true))
+                    {
+                        selGrp.Add(Feature);
 
-                    if (value)
-                    {
-                        OwnerDocument.Model.BlankSketch();
-                    }
-                    else 
-                    {
-                        OwnerDocument.Model.UnblankSketch();
+                        if (value)
+                        {
+                            OwnerDocument.Model.BlankSketch();
+                        }
+                        else
+                        {
+                            OwnerDocument.Model.UnblankSketch();
+                        }
                     }
                 }
             }

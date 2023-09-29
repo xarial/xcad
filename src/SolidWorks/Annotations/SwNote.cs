@@ -6,12 +6,14 @@
 //*********************************************************************
 
 using SolidWorks.Interop.sldworks;
+using SolidWorks.Interop.swconst;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
 using System.Threading;
 using Xarial.XCad.Annotations;
+using Xarial.XCad.Enums;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Utils;
@@ -101,6 +103,48 @@ namespace Xarial.XCad.SolidWorks.Annotations
             }
         }
 
+        public TextJustification_e TextJustification
+        {
+            get
+            {
+                if (IsCommitted)
+                {
+                    switch ((swTextJustification_e)Note.GetTextJustification()) 
+                    {
+                        case swTextJustification_e.swTextJustificationNone:
+                            return TextJustification_e.None;
+
+                        case swTextJustification_e.swTextJustificationLeft:
+                            return TextJustification_e.Left;
+
+                        case swTextJustification_e.swTextJustificationRight:
+                            return TextJustification_e.Right;
+
+                        case swTextJustification_e.swTextJustificationCenter:
+                            return TextJustification_e.Center;
+
+                        default:
+                            throw new NotSupportedException();
+                    }
+                }
+                else
+                {
+                    return m_Creator.CachedProperties.Get<TextJustification_e>();
+                }
+            }
+            set
+            {
+                if (IsCommitted)
+                {
+                    SetTextJustification(m_Note, value);
+                }
+                else
+                {
+                    m_Creator.CachedProperties.Set(value);
+                }
+            }
+        }
+
         protected override IAnnotation CreateAnnotation(CancellationToken arg)
         {
             m_Note = (INote)OwnerDocument.Model.InsertNote(Text);
@@ -122,6 +166,11 @@ namespace Xarial.XCad.SolidWorks.Annotations
                 m_Note.Angle = Angle;
             }
 
+            if (m_Creator.CachedProperties.Has<TextJustification_e>(nameof(TextJustification)))
+            {
+                SetTextJustification(m_Note, TextJustification);
+            }
+
             if (Font != null) 
             {
                 var textFormat = (ITextFormat)ann.GetTextFormat(0);
@@ -132,6 +181,35 @@ namespace Xarial.XCad.SolidWorks.Annotations
             }
 
             return ann;
+        }
+
+        private void SetTextJustification(INote note, TextJustification_e textJust)
+        {
+            swTextJustification_e textJustSw;
+
+            switch (textJust)
+            {
+                case TextJustification_e.None:
+                    textJustSw = swTextJustification_e.swTextJustificationNone;
+                    break;
+
+                case TextJustification_e.Left:
+                    textJustSw = swTextJustification_e.swTextJustificationLeft;
+                    break;
+
+                case TextJustification_e.Right:
+                    textJustSw = swTextJustification_e.swTextJustificationRight;
+                    break;
+
+                case TextJustification_e.Center:
+                    textJustSw = swTextJustification_e.swTextJustificationCenter;
+                    break;
+
+                default:
+                    throw new NotSupportedException();
+            }
+
+            note.SetTextJustification((int)textJustSw);
         }
     }
 }

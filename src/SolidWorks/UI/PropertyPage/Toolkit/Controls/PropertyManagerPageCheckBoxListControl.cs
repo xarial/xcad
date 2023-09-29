@@ -16,6 +16,7 @@ using System.Drawing;
 using System.Linq;
 using System.Reflection;
 using System.Windows.Controls.Primitives;
+using System.Windows.Documents;
 using Xarial.XCad.Reflection;
 using Xarial.XCad.SolidWorks.Services;
 using Xarial.XCad.Toolkit.Services;
@@ -366,7 +367,57 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             }
         }
 
-        protected override object GetSpecificValue() => m_Value;
+        protected override object GetSpecificValue() => ComposeValueFromCheckBoxes();
+
+        private object ComposeValueFromCheckBoxes() 
+        {
+            if (m_TargetType.IsEnum && m_TargetType.GetCustomAttribute<FlagsAttribute>() != null)
+            {
+                int val = 0;
+
+                for (int i = 0; i < Items.Length; i++)
+                {
+                    var item = Items[i];
+                    var checkBox = SwSpecificControl.Controls[i];
+
+                    if (checkBox.Checked) 
+                    {
+                        val += Convert.ToInt32(item.Value);
+                    }
+                }
+
+                m_Value = val;
+            }
+            else if (typeof(IList).IsAssignableFrom(m_TargetType))
+            {
+                var list = (IList)m_Value;
+
+                if (list == null)
+                {
+                    list = (IList)Activator.CreateInstance(m_TargetType);
+                }
+
+                for (int i = 0; i < Items.Length; i++)
+                {
+                    var item = Items[i];
+                    var checkBox = SwSpecificControl.Controls[i];
+
+                    if (checkBox.Checked)
+                    {
+                        list.Add(item.Value);
+                    }
+                }
+
+                m_Value = list;
+            }
+            else 
+            {
+                throw new NotSupportedException();
+
+            }
+
+            return m_Value;
+        }
 
         protected override void SetSpecificValue(object value)
         {

@@ -1510,7 +1510,15 @@ namespace Xarial.XCad.SolidWorks.Documents
                 confName = refConf.Name;
             }
 
-            var view = m_Drawing.Drawing.CreateFlatPatternViewFromModelView3(sheetMetalPart.Path, confName, 0, 0, 0, false, false);
+            var loc = Location;
+
+            if (loc == null) 
+            {
+                loc = new Point(0, 0, 0);
+            }
+
+            var view = m_Drawing.Drawing.CreateFlatPatternViewFromModelView3(sheetMetalPart.Path, confName, loc.X, loc.Y, loc.Z, 
+                !Options.HasFlag(FlatPatternViewOptions_e.BendLines), false);
 
             if (view != null) 
             {

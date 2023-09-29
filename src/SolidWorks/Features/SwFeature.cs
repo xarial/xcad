@@ -21,6 +21,7 @@ using Xarial.XCad.SolidWorks.Annotations;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Geometry;
 using Xarial.XCad.SolidWorks.Utils;
+using System.Linq;
 
 namespace Xarial.XCad.SolidWorks.Features
 {
@@ -392,6 +393,24 @@ namespace Xarial.XCad.SolidWorks.Features
 
                 return state;
             }
+            set 
+            {
+                swFeatureSuppressionAction_e action;
+
+                if (value.HasFlag(FeatureState_e.Suppressed))
+                {
+                    action = swFeatureSuppressionAction_e.swSuppressFeature;
+                }
+                else 
+                {
+                    action = swFeatureSuppressionAction_e.swUnSuppressFeature;
+                }
+
+                if (!Feature.SetSuppression2((int)action, (int)swInConfigurationOpts_e.swThisConfiguration, null)) 
+                {
+                    throw new Exception("Failed to change the suppresion of the feature");
+                }
+            }
         }
 
         public virtual bool IsUserFeature => Array.IndexOf(m_SolderedFeatureTypes, Feature.GetTypeName2()) == -1;
@@ -400,7 +419,26 @@ namespace Xarial.XCad.SolidWorks.Features
 
         public ISwEntityRepository AdjacentEntities { get; }
 
-        public ISwBody Body => throw new NotImplementedException();
+        public virtual ISwBody Body 
+        {
+            get 
+            {
+                var bodies = AdjacentEntities.Cast<ISwEntity>().Select(e => e.Body).Distinct(new XObjectEqualityComparer<ISwBody>()).ToArray();
+
+                if (bodies.Length == 1)
+                {
+                    return bodies.First();
+                }
+                else if (bodies.Length == 0)
+                {
+                    throw new Exception("This feature does not have bodies");
+                }
+                else
+                {
+                    throw new Exception("This feature has multiple bodies");
+                }
+            }
+        }
 
         internal override void Select(bool append, ISelectData selData)
         {

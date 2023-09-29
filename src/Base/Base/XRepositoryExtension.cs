@@ -92,5 +92,15 @@ namespace Xarial.XCad.Base
             {
                 Type = typeof(TSpecificEnt)
             }).Cast<TSpecificEnt>();
+
+        /// <summary>
+        /// Checks if the specified entity exists
+        /// </summary>
+        /// <typeparam name="TEnt">Type of entity</typeparam>
+        /// <param name="repo">Target repository</param>
+        /// <param name="name">Name of the entity</param>
+        /// <returns>True if entity exists, False if not</returns>
+        public static bool Exists<TEnt>(this IXRepository<TEnt> repo, string name) where TEnt : IXTransaction
+            => repo.TryGet(name, out _);
     }
 }

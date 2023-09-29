@@ -404,7 +404,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
                 var index = m_Doc.OwnerApplication.Sw.GetUserPreferenceIntegerValue((int)swUserPreferenceIntegerValue_e.swDxfMappingFileIndex);
 
-                if (index < mapFiles.Length) 
+                if (index != -1 && index < mapFiles.Length) 
                 {
                     mapFilePath = mapFiles[index];
                 }

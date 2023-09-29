@@ -45,7 +45,7 @@ namespace Xarial.XCad.Features
         /// <summary>
         /// State of this feature in the feature tree
         /// </summary>
-        FeatureState_e State { get; }
+        FeatureState_e State { get; set; }
 
         /// <summary>
         /// Enables feature editing mode
@@ -54,8 +54,16 @@ namespace Xarial.XCad.Features
         IEditor<IXFeature> Edit();
     }
 
+    /// <summary>
+    /// Additional method of the <see cref="IXFeature"/>
+    /// </summary>
     public static class XFeatureExtension 
     {
+        /// <summary>
+        /// Iterates all bodies produced by this feature
+        /// </summary>
+        /// <param name="feat">Feature to iterate bodies</param>
+        /// <returns>Bodies of the feture</returns>
         public static IEnumerable<IXBody> IterateBodies(this IXFeature feat)
         {
             var processedBodies = new List<IXBody>();

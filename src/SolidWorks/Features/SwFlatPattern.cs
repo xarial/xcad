@@ -60,5 +60,7 @@ namespace Xarial.XCad.SolidWorks.Features
                 return OwnerDocument.CreateObjectFromDispatch<ISwEntity>(featData.FixedFace2);
             }
         }
+
+        public override ISwBody Body => (ISwBody)FixedEntity.Body;
     }
 }
