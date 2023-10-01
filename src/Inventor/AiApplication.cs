@@ -43,6 +43,8 @@ namespace Xarial.XCad.Inventor
 
     internal class AiApplication : IAiApplication, IXServiceConsumer
     {
+        public IXMaterialsDatabaseRepository MaterialDatabases => throw new NotSupportedException();
+
         IXVersion IXApplication.Version
         {
             get => Version;

@@ -37,7 +37,8 @@ namespace Xarial.XCad.SwDocumentManager
         Sw2020 = 13000,
         Sw2021 = 14000,
         Sw2022 = 15000,
-        Sw2023 = 16000
+        Sw2023 = 16000,
+        Sw2024 = 17000
     }
 
     public interface ISwDmVersion : IXVersion

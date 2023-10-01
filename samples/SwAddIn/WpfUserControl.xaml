@@ -12,10 +12,11 @@
             <RowDefinition Height="*"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="100"/>
+            <RowDefinition Height="100"/>
         </Grid.RowDefinitions>
         <TextBlock FontSize="25" Text="Hello World" Margin="2"/>
         <xctrls:FlagEnumComboBox Grid.Row="1" Margin="2" Value="{Binding Path=Value, UpdateSourceTrigger=PropertyChanged}"/>
-        <!--<TextBox Grid.Row="1" Margin="2" Text="{Binding Path=Value, UpdateSourceTrigger=PropertyChanged}"/>-->
-        <DataGrid Grid.Row="2" Margin="2" ItemsSource="{Binding Path=Items}" CanUserAddRows="True" AutoGenerateColumns="True"/>
+        <xctrls:ExpressionBox Grid.Row="2" SingleLine="False"/>
+        <DataGrid Grid.Row="3" Margin="2" ItemsSource="{Binding Path=Items}" CanUserAddRows="True" AutoGenerateColumns="True"/>
     </Grid>
 </UserControl>

@@ -46,7 +46,7 @@ namespace Xarial.XCad.Inventor.Documents
                     return new AiDrawing(drw, app);
 
                 default:
-                    return new AiDocument(nativeDoc, app);
+                    throw new NotSupportedException();
             }
         }
 
@@ -150,8 +150,7 @@ namespace Xarial.XCad.Inventor.Documents
                 () => new AiUnknownDocument(null, m_App),
                 () => new AiPart(null, m_App),
                 () => new AiAssembly(null, m_App),
-                () => new AiDrawing(null, m_App),
-                () => new AiDocument(null, m_App));
+                () => new AiDrawing(null, m_App));
 
             if (!(doc is AiDocument))
             {
@@ -163,6 +162,10 @@ namespace Xarial.XCad.Inventor.Documents
 
         public void RegisterHandler<THandler>(Func<THandler> handlerFact) where THandler : IDocumentHandler
             => m_DocsHandler.RegisterHandler<THandler>(handlerFact);
+
+        public void UnregisterHandler<THandler>()
+            where THandler : IDocumentHandler
+            => m_DocsHandler.UnregisterHandler<THandler>();
 
         public void RemoveRange(IEnumerable<IXDocument> ents, CancellationToken cancellationToken)
         {

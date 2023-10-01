@@ -234,6 +234,11 @@ namespace Xarial.XCad.SolidWorks.Data
 
         protected virtual void AddProperty(ICustomPropertyManager prpMgr, string name, object value)
         {
+            if (string.IsNullOrEmpty(name)) 
+            {
+                throw new Exception("Custom property name is not specified");
+            }
+
             if (m_App.IsVersionNewerOrEqual(SwVersion_e.Sw2014))
             {
                 var res = (swCustomInfoAddResult_e)prpMgr.Add3(name, (int)swCustomInfoType_e.swCustomInfoText, 

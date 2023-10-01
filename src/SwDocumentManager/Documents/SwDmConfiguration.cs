@@ -68,7 +68,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             }
         }
 
-        public virtual bool IsCommitted => true;
+        public override bool IsCommitted => true;
 
         public string PartNumber => GetPartNumber(this);
 
@@ -284,7 +284,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             }
         }
 
-        public virtual void Commit(CancellationToken cancellationToken) => throw new NotSupportedException();
+        public override void Commit(CancellationToken cancellationToken) => throw new NotSupportedException();
     }
 
     public interface ISwDmAssemblyConfiguration : ISwDmConfiguration, IXAssemblyConfiguration
@@ -308,7 +308,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
     internal class SwDmPartConfiguration : SwDmConfiguration, ISwDmPartConfiguration
     {
         #region Not Supported
-        public IXMaterial Material => throw new NotSupportedException();
+        public IXMaterial Material { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
         #endregion
 
         internal SwDmPartConfiguration(ISwDMConfiguration conf, SwDmPart part) : base(conf, part)

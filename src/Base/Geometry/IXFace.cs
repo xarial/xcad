@@ -17,7 +17,7 @@ namespace Xarial.XCad.Geometry
     /// <summary>
     /// Represents face entity
     /// </summary>
-    public interface IXFace : IXEntity, IXColorizable, IXRegion
+    public interface IXFace : IXEntity, IHasColor, IXRegion
     {
         /// <summary>
         /// True if the direction of the face conicides with the direction of its surface definition, False if the directions are opposite
@@ -103,6 +103,8 @@ namespace Xarial.XCad.Geometry
     /// </summary>
     public interface IXBlendXFace : IXFace 
     {
+        /// <inheritdoc/>
+        new IXBlendSurface Definition { get; }
     }
 
     /// <summary>
@@ -110,6 +112,8 @@ namespace Xarial.XCad.Geometry
     /// </summary>
     public interface IXBFace : IXFace
     {
+        /// <inheritdoc/>
+        new IXBSurface Definition { get; }
     }
 
     /// <summary>
@@ -117,6 +121,8 @@ namespace Xarial.XCad.Geometry
     /// </summary>
     public interface IXConicalFace : IXFace
     {
+        /// <inheritdoc/>
+        new IXConicalSurface Definition { get; }
     }
 
     /// <summary>
@@ -124,6 +130,8 @@ namespace Xarial.XCad.Geometry
     /// </summary>
     public interface IXExtrudedFace : IXFace
     {
+        /// <inheritdoc/>
+        new IXExtrudedSurface Definition { get; }
     }
 
     /// <summary>
@@ -131,6 +139,8 @@ namespace Xarial.XCad.Geometry
     /// </summary>
     public interface IXOffsetFace : IXFace
     {
+        /// <inheritdoc/>
+        new IXOffsetSurface Definition { get; }
     }
 
     /// <summary>
@@ -138,6 +148,8 @@ namespace Xarial.XCad.Geometry
     /// </summary>
     public interface IXRevolvedFace : IXFace
     {
+        /// <inheritdoc/>
+        new IXRevolvedSurface Definition { get; }
     }
 
     /// <summary>
@@ -145,6 +157,8 @@ namespace Xarial.XCad.Geometry
     /// </summary>
     public interface IXSphericalFace : IXFace
     {
+        /// <inheritdoc/>
+        new IXSphericalSurface Definition { get; }
     }
 
     /// <summary>
@@ -152,5 +166,7 @@ namespace Xarial.XCad.Geometry
     /// </summary>
     public interface IXToroidalFace : IXFace
     {
+        /// <inheritdoc/>
+        new IXToroidalSurface Definition { get; }
     }
 }

@@ -304,42 +304,64 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
             Select(false);
 
-            m_Drawing.Model.EditCopy();
-
-            var curSheets = targetDrawing.Sheets.ToArray();
-
-            if (!TryPasteSheet(targetDrawing)) 
+            if (OwnerDocument.Selections.Count == 1 && OwnerDocument.Selections.First().Equals(this))
             {
-                //NOTE: it was observed that in some cases paste command fails on the first attempt
-                if (m_Drawing.Sheets.Count == curSheets.Count())
+                m_Drawing.Model.EditCopy();
+
+                var curSheets = targetDrawing.Sheets.ToArray();
+
+                PasteSheet(targetDrawing);
+
+                var newSheet = targetDrawing.Sheets.Last();
+
+                if (!curSheets.Contains(newSheet, new XObjectEqualityComparer<IXSheet>()))
                 {
-                    if (!TryPasteSheet(targetDrawing)) 
+                    return newSheet;
+                }
+                else
+                {
+                    throw new Exception("Failed to get the cloned sheet");
+                }
+            }
+            else 
+            {
+                throw new Exception("Failed to select the sheet for cloning");
+            }
+        }
+
+        private void PasteSheet(IXDrawing targetDrawing)
+        {
+            const int MAX_ATTEMPTS = 3;
+
+            var curSheetsCount = targetDrawing.Sheets.Count;
+
+            for (int i = 0; i < MAX_ATTEMPTS; i++) 
+            {
+                if (((ISwDrawing)targetDrawing).Drawing.PasteSheet(
+                    (int)swInsertOptions_e.swInsertOption_MoveToEnd,
+                    (int)swRenameOptions_e.swRenameOption_Yes))
+                {
+                    if (targetDrawing.Sheets.Count == curSheetsCount + 1)
                     {
-                        throw new Exception($"Failed to paste sheet");
+                        return;
+                    }
+                    else 
+                    {
+                        throw new Exception($"Paste sheet has succeeded, but number of sheets has not changed");
                     }
                 }
                 else 
                 {
-                    throw new Exception($"Paste sheet has failed, but number of sheets has changed");
+                    //NOTE: it was observed that in some cases paste command fails on the first attempt
+                    if (targetDrawing.Sheets.Count != curSheetsCount)
+                    {
+                        throw new Exception($"Paste sheet has failed, but number of sheets has changed");
+                    }
                 }
             }
 
-            var newSheet = targetDrawing.Sheets.Last();
-
-            if (!curSheets.Contains(newSheet, new XObjectEqualityComparer<IXSheet>()))
-            {
-                return newSheet;
-            }
-            else
-            {
-                throw new Exception("Failed to get the cloned sheet");
-            }
+            throw new Exception($"Failed to paste sheet");
         }
-
-        private bool TryPasteSheet(IXDrawing targetDrawing) 
-            => ((ISwDrawing)targetDrawing).Drawing.PasteSheet(
-                (int)swInsertOptions_e.swInsertOption_MoveToEnd,
-                (int)swRenameOptions_e.swRenameOption_No);
     }
 
     internal class SwSheetSketchEditor : SheetActivator, IEditor<SwSheetSketch>
@@ -410,8 +432,8 @@ namespace Xarial.XCad.SolidWorks.Documents
 
             dwgPaperSize = paperSize.StandardPaperSize.HasValue ? (swDwgPaperSizes_e)paperSize.StandardPaperSize.Value : swDwgPaperSizes_e.swDwgPapersUserDefined;
             dwgTemplate = paperSize.StandardPaperSize.HasValue ? (swDwgTemplates_e)paperSize.StandardPaperSize.Value : swDwgTemplates_e.swDwgTemplateNone;
-            dwpPaperWidth = paperSize.Width.HasValue ? paperSize.Width.Value : 0;
-            dwpPaperHeight = paperSize.Height.HasValue ? paperSize.Height.Value : 0;
+            dwpPaperWidth = !paperSize.StandardPaperSize.HasValue ? paperSize.Width : 0;
+            dwpPaperHeight = !paperSize.StandardPaperSize.HasValue ? paperSize.Height : 0;
         }
     }
 

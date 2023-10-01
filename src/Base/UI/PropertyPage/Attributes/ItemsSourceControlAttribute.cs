@@ -10,6 +10,7 @@ using System.Collections;
 using System.ComponentModel;
 using Xarial.XCad.UI.PropertyPage.Base;
 using Xarial.XCad.UI.PropertyPage.Services;
+using Xarial.XCad.UI.PropertyPage.Structures;
 
 namespace Xarial.XCad.UI.PropertyPage.Attributes
 {
@@ -40,6 +41,11 @@ namespace Xarial.XCad.UI.PropertyPage.Attributes
         /// <remarks>Target property must be <see cref="IEnumerable"/> </remarks>
         public object ItemsSource { get; set; }
 
+        /// <summary>
+        /// Property path of the item name to display in the source control
+        /// </summary>
+        public string DisplayMemberPath { get; set; }
+
         public bool HasMetadata => ItemsSource != null;
 
         /// <summary>
@@ -57,7 +63,7 @@ namespace Xarial.XCad.UI.PropertyPage.Attributes
             Dependencies = dependencies;
 
             CustomItemsProvider = (ICustomItemsProvider)Activator.CreateInstance(customItemsProviderType);
-            DependencyHandler = new CustomItemsAttributeDependencyHandler(CustomItemsProvider);
+            DependencyHandler = new CustomItemsAttributeDependencyHandler(CustomItemsProvider, DisplayMemberPath);
         }
 
         /// <summary>

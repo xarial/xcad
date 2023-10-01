@@ -5,10 +5,14 @@
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
-namespace Xarial.XCad.UI.PropertyPage.Enums
+using Xarial.XCad.Base;
+
+namespace Xarial.XCad
 {
-    public enum OptionBoxStyle_e
+    /// <summary>
+    /// Represents the materials database library
+    /// </summary>
+    public interface IXMaterialsDatabaseRepository : IXRepository<IXMaterialsDatabase> 
     {
-        FirstInGroup = 1
     }
 }

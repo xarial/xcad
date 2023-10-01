@@ -23,6 +23,6 @@ namespace Xarial.XCad.Documents
         /// <summary>
         /// Material of this part
         /// </summary>
-        IXMaterial Material { get; }
+        IXMaterial Material { get; set; }
     }
 }

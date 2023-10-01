@@ -51,7 +51,6 @@ using Xarial.XCad.SolidWorks.Graphics;
 using Xarial.XCad.Graphics;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Wires;
-using Xarial.XCad.SolidWorks.Extensions;
 using Xarial.XToolkit.Wpf.Utils;
 using System.Threading;
 using Xarial.XCad.Features.CustomFeature;
@@ -62,6 +61,10 @@ using System.Windows.Forms;
 using Xarial.XCad.Documents.Extensions;
 using System.Windows.Markup;
 using Xarial.XCad.SolidWorks.UI.Commands.Attributes;
+using Xarial.XCad.Toolkit.Extensions;
+using Xarial.XCad.Annotations;
+using Xarial.XCad.UI.Enums;
+using Xarial.XToolkit;
 
 namespace SwAddInExample
 {
@@ -284,6 +287,19 @@ namespace SwAddInExample
             Cmd8
         }
 
+        [Title("Main Menu")]
+        public enum MainCommands1_e 
+        {
+        }
+
+        [CommandGroupInfo(2)]
+        [CommandGroupParent(typeof(MainCommands1_e))]
+        public enum Commands3_e
+        {
+            Cmd9,
+            Cmd10
+        }
+
         private readonly Xarial.XToolkit.Helpers.AssemblyResolver m_AssmResolver;
 
         public SwAddInSample() 
@@ -297,9 +313,11 @@ namespace SwAddInExample
 
         public override void OnConnect()
         {
+            //CommandManager.AddCommandGroup<MainCommands1_e>();
+            //CommandManager.AddCommandGroup<Commands3_e>().CommandClick += OnCommandClick;
+
             //CommandManager.AddCommandGroup<Commands1_e>();
             //CommandManager.AddCommandGroup<Commands2_e>();
-            //return;
 
             try
             {
@@ -360,6 +378,10 @@ namespace SwAddInExample
             {
                 Debug.Assert(false);
             }
+        }
+
+        private void OnCommandClick(Commands3_e spec)
+        {
         }
 
         private void OnCommands3Click(Commands3_3 spec)
@@ -482,11 +504,12 @@ namespace SwAddInExample
                         }
                         m_Page = this.CreatePage<PmpData>(OnCreateDynamicControls);
                         m_Page.Closed += OnPageClosed;
+                        m_Page.KeystrokeHook += OnPageKeystrokeHook;
                         m_Data = new PmpData()
                         {
                             CoordSystem = Application.Documents.Active.Selections.OfType<IXCoordinateSystem>().FirstOrDefault()
                         };
-                        m_Data.ItemsSourceComboBox = "Y";
+                        m_Data.ItemsSourceComboBox = m_Data.Source[1];
                         m_Page.Show(m_Data);
                         m_Page.DataChanged += OnPageDataChanged;
                         break;
@@ -549,12 +572,21 @@ namespace SwAddInExample
                         break;
 
                     case Commands_e.CreatePopup:
-                        //var winForm = this.CreatePopupWinForm<WinForm>();
-                        //winForm.Show(true);
-                        m_Window?.Close();
-                        m_Window = this.CreatePopupWpfWindow<WpfWindow>();
-                        m_Window.Closed += OnWindowClosed;
-                        m_Window.Show();
+                        var showWpf = true;
+                        var dock = PopupDock_e.Center;
+
+                        if (showWpf)
+                        {
+                            m_Window?.Close();
+                            m_Window = this.CreatePopupWpfWindow<WpfWindow>();
+                            m_Window.Closed += OnWindowClosed;
+                            m_Window.Show(dock);
+                        }
+                        else 
+                        {
+                            var winForm = this.CreatePopupWinForm<WinForm>();
+                            winForm.ShowDialog(dock);
+                        }
                         break;
 
                     case Commands_e.CreateTaskPane:
@@ -721,6 +753,11 @@ namespace SwAddInExample
             }
         }
 
+        private void OnPageKeystrokeHook(IControl ctrl, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
+        {
+            
+        }
+
         private void ReplaceCompDoc()
         {
             var newPath = "";
@@ -738,51 +775,11 @@ namespace SwAddInExample
 
         private void Custom()
         {
-            var part = (IXPart)Application.Documents.Active;
-            var conf = part.Configurations.Active;
-            var cutLists = conf.CutLists
-                .Where(c => c.Type == CutListType_e.SheetMetal).ToArray();
+            var bodies = ((IXPart)Application.Documents.Active).Bodies.Where(b => b.Visible).ToArray();
+            Application.Documents.Active.ModelViews.Active.ZoomToObjects(bodies);
 
-            var sheetMetalBody = cutLists.FirstOrDefault().Bodies.First();
-
-            using (var drw = Application.Documents.PreCreateDrawing())
-            {
-                var sheet = drw.Sheets.First();
-                sheet.PaperSize = new PaperSize(0.1, 0.1);
-                sheet.Scale = new Scale(1, 1);
-                drw.Commit();
-
-                var swDraw = ((ISwDrawing)drw).Model;
-
-                swDraw.Extension.SetUserPreferenceToggle((int)swUserPreferenceToggle_e.swDisplayCosmeticThreads, (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified, false);
-                swDraw.Extension.SetUserPreferenceToggle((int)swUserPreferenceToggle_e.swDetailingAutoInsertCenterMarksForSlots, (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified, false);
-                swDraw.Extension.SetUserPreferenceToggle((int)swUserPreferenceToggle_e.swDetailingAutoInsertCenterMarksForFillets, (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified, false);
-                swDraw.Extension.SetUserPreferenceToggle((int)swUserPreferenceToggle_e.swDetailingAutoInsertCenterMarksForHoles, (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified, false);
-                swDraw.Extension.SetUserPreferenceToggle((int)swUserPreferenceToggle_e.swDetailingAutoInsertDowelSymbols, (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified, false);
-
-                var opts = FlatPatternViewOptions_e.BendLines;
-
-                sheet = drw.Sheets.First();
-                var flatPatternView = sheet.DrawingViews.PreCreate<IXFlatPatternDrawingView>();
-                flatPatternView.ReferencedDocument = part;
-                flatPatternView.ReferencedConfiguration = conf;
-                flatPatternView.SheetMetalBody = sheetMetalBody;
-                flatPatternView.Scale = new Scale(1, 1);
-                flatPatternView.Options = opts;
-                sheet.DrawingViews.Add(flatPatternView);
-            }
-
-            //var genDesc = Application.Documents.Active.Properties["Description"];
-
-            //genDesc.ValueChanged += (p, v)=> 
-            //{
-            //};
-
-            //var confDesc = ((IXPart)Application.Documents.Active).Configurations.Active.Properties["Description"];
-
-            //confDesc.ValueChanged += (p, v) =>
-            //{
-            //};
+            //var drw = (IXDrawing)Application.Documents.Active;
+            //var sheet = drw.Sheets.First().Clone(drw);
         }
 
         private void HandleAddEvents()
@@ -889,7 +886,7 @@ namespace SwAddInExample
         {
             var inProcess = true;
 
-            if (FileSystemBrowser.BrowseFileSave(out var filePath, "Select file path", FileSystemBrowser.BuildFilterString(FileFilter.ImageFiles)))
+            if (FileSystemBrowser.BrowseFileSave(out var filePath, "Select file path", FileFilter.BuildFilterString(FileFilter.ImageFiles)))
             {
                 if (inProcess)
                 {

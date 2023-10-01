@@ -8,6 +8,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Xarial.XCad.Enums;
 using Xarial.XCad.Geometry.Structures;
 
 namespace Xarial.XCad.Annotations
@@ -31,5 +32,10 @@ namespace Xarial.XCad.Annotations
         /// Angle of this note in radians
         /// </summary>
         double Angle { get; set; }
+
+        /// <summary>
+        /// Text justification of the note
+        /// </summary>
+        TextJustification_e TextJustification { get; set; }
     }
 }

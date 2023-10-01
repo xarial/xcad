@@ -69,8 +69,23 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         protected abstract SwConfigurationCollection CreateConfigurations();
 
-        protected override SwPdfSaveOperation CreatePdfSaveOperation(string filePath)
-            => new SwDocument3DPdfSaveOperation(this, filePath);
+        IXDocument3DSaveOperation IXDocument3D.PreCreateSaveAsOperation(string filePath)
+        {
+            var ext = System.IO.Path.GetExtension(filePath);
+
+            switch (ext.ToLower())
+            {
+                case ".pdf":
+                    return new SwDocument3DPdfSaveOperation(this, filePath);
+
+                case ".step":
+                case ".stp":
+                    return new SwStepSaveOperation(this, filePath);
+
+                default:
+                    return new SwDocument3DSaveOperation(this, filePath);
+            }
+        }
 
         public TSelObject ConvertObject<TSelObject>(TSelObject obj)
             where TSelObject : ISwSelObject
@@ -97,5 +112,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                 throw new InvalidCastException("Object is not SOLIDWORKS object");
             }
         }
+
+        public override IXSaveOperation PreCreateSaveAsOperation(string filePath) => ((IXDocument3D)this).PreCreateSaveAsOperation(filePath);
     }
 }

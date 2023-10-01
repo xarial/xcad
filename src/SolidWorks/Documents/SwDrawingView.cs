@@ -160,9 +160,12 @@ namespace Xarial.XCad.SolidWorks.Documents
                     drwView.ScaleRatio = new double[] { scale.Numerator, scale.Denominator };
                 }
 
-                if (Bodies != null) 
+                if (!drwView.IsFlatPatternView())
                 {
-                    drwView.Bodies = Bodies.Cast<ISwBody>().Select(b => b.Body).ToArray();
+                    if (Bodies != null)
+                    {
+                        drwView.Bodies = Bodies.Cast<ISwBody>().Select(b => b.Body).ToArray();
+                    }
                 }
 
                 return drwView;
@@ -523,7 +526,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        public IXBody[] Bodies 
+        public virtual IXBody[] Bodies 
         {
             get 
             {
@@ -1107,17 +1110,26 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
         }
 
-        public Line SectionLine
+        public IXSectionLine SectionLine
         {
             get
             {
                 if (!IsCommitted)
                 {
-                    return m_Creator.CachedProperties.Get<Line>();
+                    return m_Creator.CachedProperties.Get<IXSectionLine>();
                 }
                 else
                 {
-                    throw new NotSupportedException();
+                    var section = DrawingView.IGetSection();
+
+                    if (section != null) 
+                    {
+                        return m_Drawing.CreateObjectFromDispatch<ISwSectionLine>(section);
+                    }
+                    else
+                    {
+                        throw new NullReferenceException("Section is not available");
+                    }
                 }
             }
             set
@@ -1145,10 +1157,12 @@ namespace Xarial.XCad.SolidWorks.Documents
             {
                 var transform = srcView.ModelToViewTransform.IMultiply(srcView.IGetSketch().ModelToSketchTransform);
 
-                var startPt = (IMathPoint)mathUtils.CreatePoint(new double[] { SectionLine.StartPoint.X, SectionLine.StartPoint.Y, SectionLine.StartPoint.Z });
+                var sectionLineDef = SectionLine.Definition;
+
+                var startPt = (IMathPoint)mathUtils.CreatePoint(new double[] { sectionLineDef.StartPoint.X, sectionLineDef.StartPoint.Y, sectionLineDef.StartPoint.Z });
                 startPt = startPt.IMultiplyTransform(transform);
 
-                var endPt = (IMathPoint)mathUtils.CreatePoint(new double[] { SectionLine.EndPoint.X, SectionLine.EndPoint.Y, SectionLine.EndPoint.Z });
+                var endPt = (IMathPoint)mathUtils.CreatePoint(new double[] { sectionLineDef.EndPoint.X, sectionLineDef.EndPoint.Y, sectionLineDef.EndPoint.Z });
                 endPt = endPt.IMultiplyTransform(transform);
 
                 var startCoord = (double[])startPt.ArrayData;
@@ -1193,17 +1207,26 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
         }
 
-        public Circle DetailCircle
+        public IXDetailCircle DetailCircle
         {
             get
             {
                 if (!IsCommitted)
                 {
-                    return m_Creator.CachedProperties.Get<Circle>();
+                    return m_Creator.CachedProperties.Get<IXDetailCircle>();
                 }
                 else
                 {
-                    throw new NotSupportedException();
+                    var detail = DrawingView.IGetDetail();
+
+                    if (detail != null)
+                    {
+                        return m_Drawing.CreateObjectFromDispatch<ISwDetailCircle>(detail);
+                    }
+                    else
+                    {
+                        throw new NullReferenceException("Detail circle is not available");
+                    }
                 }
             }
             set
@@ -1231,12 +1254,14 @@ namespace Xarial.XCad.SolidWorks.Documents
             {
                 var transform = srcView.ModelToViewTransform.IMultiply(srcView.IGetSketch().ModelToSketchTransform);
 
-                var centerMathPt = (IMathPoint)mathUtils.CreatePoint(new double[] { DetailCircle.CenterAxis.Point.X, DetailCircle.CenterAxis.Point.Y, DetailCircle.CenterAxis.Point.Z });
+                var detCircleDef = DetailCircle.Definition;
+
+                var centerMathPt = (IMathPoint)mathUtils.CreatePoint(new double[] { detCircleDef.CenterAxis.Point.X, detCircleDef.CenterAxis.Point.Y, detCircleDef.CenterAxis.Point.Z });
                 centerMathPt = centerMathPt.IMultiplyTransform(transform);
 
                 var centerCoord = (double[])centerMathPt.ArrayData;
 
-                var circle = skMgr.CreateCircleByRadius(centerCoord[0], centerCoord[1], centerCoord[2], DetailCircle.Diameter / 2);
+                var circle = skMgr.CreateCircleByRadius(centerCoord[0], centerCoord[1], centerCoord[2], detCircleDef.Diameter / 2);
 
                 using (var selGrp = new SelectionGroup(m_Drawing, false))
                 {
@@ -1322,8 +1347,24 @@ namespace Xarial.XCad.SolidWorks.Documents
         internal SwFlatPatternDrawingView(SwDrawing drw, SwSheet sheet)
             : base(null, drw, sheet)
         {
-            m_Creator.CachedProperties.Set<FlatPatternViewOptions_e>(
+            m_Creator.CachedProperties.Set(
                 FlatPatternViewOptions_e.BendLines | FlatPatternViewOptions_e.BendNotes, nameof(Options));
+        }
+
+        public override IXBody[] Bodies 
+        {
+            get => new IXBody[] { SheetMetalBody };
+            set 
+            {
+                if (value?.Length == 1)
+                {
+                    SheetMetalBody = (IXSolidBody)value[0];
+                }
+                else 
+                {
+                    throw new Exception("Only single body is supported");
+                }
+            }
         }
 
         public IXSolidBody SheetMetalBody
@@ -1469,7 +1510,15 @@ namespace Xarial.XCad.SolidWorks.Documents
                 confName = refConf.Name;
             }
 
-            var view = m_Drawing.Drawing.CreateFlatPatternViewFromModelView3(sheetMetalPart.Path, confName, 0, 0, 0, false, false);
+            var loc = Location;
+
+            if (loc == null) 
+            {
+                loc = new Point(0, 0, 0);
+            }
+
+            var view = m_Drawing.Drawing.CreateFlatPatternViewFromModelView3(sheetMetalPart.Path, confName, loc.X, loc.Y, loc.Z, 
+                !Options.HasFlag(FlatPatternViewOptions_e.BendLines), false);
 
             if (view != null) 
             {
@@ -1589,48 +1638,94 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         private ISwFlatPattern GetViewFlatPattern(IView view) 
         {
+            //Note, in some sheet metal files (probably corrupted as the result of the upgrade)
+            //this can return the hidden sheet metal flat pattern feature, not the actual one,
+            //so only using this as a fallback function
+
+            ISwFlatPattern GetFlatPatternFromFace()
+            {
+                var face = GetFlatPatternFace(view);
+
+                IFeature flatPatternFeat = null;
+
+                var feat = (IFeature)face.GetFeature();
+
+                if (feat.GetTypeName2() == SwFlatPattern.TypeName)
+                {
+                    flatPatternFeat = feat;
+                }
+                else 
+                {
+                    var childrenFeats = (object[])feat.GetChildren();
+
+                    if (childrenFeats != null) 
+                    {
+                        foreach (IFeature childFeat in childrenFeats) 
+                        {
+                            if (childFeat.GetTypeName2() == SwFlatPattern.TypeName)
+                            {
+                                flatPatternFeat = childFeat;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                if (flatPatternFeat != null)
+                {
+                    return OwnerDocument.CreateObjectFromDispatch<ISwFlatPattern>(flatPatternFeat);
+                }
+                else 
+                {
+                    throw new Exception("Failed to find the flat pattern feature from the face");
+                }
+            }
+
             if (OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2014))
             {
                 var flatPatternFolder = (IFlatPatternFolder)view.ReferencedDocument.FeatureManager.GetFlatPatternFolder();
-                var flatPatterns = (object[])flatPatternFolder.GetFlatPatterns();
 
-                if (flatPatterns?.Any() == true)
+                if (flatPatternFolder != null)
                 {
-                    var activeFlatPatterns = flatPatterns.Cast<IFeature>().Where(f =>
-                    {
-                        var isSuppressed = ((bool[])f.IsSuppressed2((int)swInConfigurationOpts_e.swSpecifyConfiguration,
-                            new string[] { view.ReferencedConfiguration })).First();
+                    var flatPatterns = (object[])flatPatternFolder.GetFlatPatterns();
 
-                        return !isSuppressed;
-                    }).ToArray();
+                    if (flatPatterns?.Any() == true)
+                    {
+                        var activeFlatPatterns = flatPatterns.Cast<IFeature>().Where(f =>
+                        {
+                            var isSuppressed = ((bool[])f.IsSuppressed2((int)swInConfigurationOpts_e.swSpecifyConfiguration,
+                                new string[] { view.ReferencedConfiguration })).First();
 
-                    if (activeFlatPatterns.Length == 1)
-                    {
-                        return OwnerDocument.CreateObjectFromDispatch<ISwFlatPattern>(activeFlatPatterns.First());
+                            return !isSuppressed;
+                        }).ToArray();
+
+                        if (activeFlatPatterns.Length == 1)
+                        {
+                            return OwnerDocument.CreateObjectFromDispatch<ISwFlatPattern>(activeFlatPatterns.First());
+                        }
+                        else if (activeFlatPatterns.Length == 0)
+                        {
+                            throw new Exception("Failed to find active flat patterns");
+                        }
+                        else
+                        {
+                            throw new Exception("More than one active flat pattern is found");
+                        }
                     }
-                    else if (activeFlatPatterns.Length == 0)
+                    else
                     {
-                        throw new Exception("Failed to find active flat patterns");
-                    }
-                    else 
-                    {
-                        throw new Exception("More than one active flat pattern is found");
+                        throw new Exception("No flat patterns found");
                     }
                 }
                 else 
                 {
-                    throw new Exception("No flat patterns found");
+                    //NOTE: legacy sheet metal flat patterns are not placed in the sheet metal folders
+                    return GetFlatPatternFromFace();
                 }
             }
             else
             {
-                //Note, in some sheet metal files (probably corrupted as the result of the upgrade)
-                //this can return the hidden sheet metal flat pattern feature, not the actual one,
-                //so only using this as a fallback function
-
-                var face = GetFlatPatternFace(view);
-
-                return OwnerDocument.CreateObjectFromDispatch<ISwFlatPattern>(face.GetFeature());
+                return GetFlatPatternFromFace();
             }
         }
 

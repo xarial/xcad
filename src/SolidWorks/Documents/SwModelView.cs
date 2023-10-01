@@ -9,6 +9,7 @@ using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
 using System;
 using System.Drawing;
+using System.Linq;
 using System.Threading;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Delegates;
@@ -184,6 +185,16 @@ namespace Xarial.XCad.SolidWorks.Documents
             else
             {
                 return HResult.S_FALSE;
+            }
+        }
+
+        public void ZoomToObjects(IXSelObject[] objects)
+        {
+            using (var selGrp = new SelectionGroup(OwnerDocument, true)) 
+            {
+                selGrp.AddRange(objects.Cast<ISwSelObject>().Select(s => s.Dispatch).ToArray());
+
+                Owner.ViewZoomToSelection();
             }
         }
     }

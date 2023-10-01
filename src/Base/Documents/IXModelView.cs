@@ -64,6 +64,12 @@ namespace Xarial.XCad.Documents
         void ZoomToFit();
 
         /// <summary>
+        /// Zooms to the specified objects
+        /// </summary>
+        /// <param name="objects">Objects to zoom to</param>
+        void ZoomToObjects(IXSelObject[] objects);
+
+        /// <summary>
         /// Refreshes the view
         /// </summary>
         void Update();

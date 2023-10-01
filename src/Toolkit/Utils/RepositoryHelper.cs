@@ -78,7 +78,7 @@ namespace Xarial.XCad.Toolkit.Utils
         }
 
         /// <summary>
-        /// Tries to find the <see cref="INameable"/> entity in the repository
+        /// Tries to find the <see cref="IHasName"/> entity in the repository
         /// </summary>
         /// <typeparam name="TEnt">Entity type</typeparam>
         /// <param name="repo">Repository</param>
@@ -88,7 +88,7 @@ namespace Xarial.XCad.Toolkit.Utils
         public static bool TryFindByName<TEnt>(IXRepository<TEnt> repo, string name, out TEnt ent)
             where TEnt : IXTransaction
         {
-            ent = (TEnt)repo.OfType<INameable>()
+            ent = (TEnt)repo.OfType<IHasName>()
                     .FirstOrDefault(e => string.Equals(e.Name, name, StringComparison.CurrentCultureIgnoreCase));
 
             return ent != null;

@@ -175,6 +175,8 @@ namespace SwAddInExample
 
             System.Diagnostics.Debug.Print($"Closed {m_Model.Title}");
 
+            m_FeatMgrTab.Close();
+
             //m_App.ShowMessageBox($"Closed {m_Model.Title}");
         }
     }

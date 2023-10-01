@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Xarial.XCad.Documents;
+using Xarial.XCad.Documents.Structures;
 using Xarial.XCad.Geometry;
 
 namespace Xarial.XCad.Inventor.Documents
@@ -26,5 +27,23 @@ namespace Xarial.XCad.Inventor.Documents
         public IXSheetRepository Sheets => throw new NotImplementedException();
 
         IXDrawingOptions IXDrawing.Options => throw new NotImplementedException();
+
+        public IXLayerRepository Layers => throw new NotImplementedException();
+
+        IXDrawingSaveOperation IXDrawing.PreCreateSaveAsOperation(string filePath)
+        {
+            var translator = TryGetTranslator(filePath);
+
+            if (translator != null)
+            {
+                return new AiDrawingTranslatorSaveOperation(this, translator, filePath);
+            }
+            else
+            {
+                return new AiDrawingSaveOperation(this, filePath);
+            }
+        }
+
+        public override IXSaveOperation PreCreateSaveAsOperation(string filePath) => ((IXDrawing)this).PreCreateSaveAsOperation(filePath);
     }
 }

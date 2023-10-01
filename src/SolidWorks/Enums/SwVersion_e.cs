@@ -33,6 +33,7 @@ namespace Xarial.XCad.SolidWorks.Enums
         Sw2020 = 28,
         Sw2021 = 29,
         Sw2022 = 30,
-        Sw2023 = 31
+        Sw2023 = 31,
+        Sw2024 = 32
     }
 }

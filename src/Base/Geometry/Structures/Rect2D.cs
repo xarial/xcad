@@ -97,7 +97,7 @@ namespace Xarial.XCad.Geometry.Structures
             => GetEndPoint(box, true, true);
 
         /// <summary>
-        /// Unions twi rectangles
+        /// Unions two rectangles
         /// </summary>
         /// <param name="rect">This rectangle</param>
         /// <param name="otherRect">Other rectangle</param>
@@ -119,6 +119,26 @@ namespace Xarial.XCad.Geometry.Structures
             var maxY = Max(thisLeftBottom.Y, otherLeftBottom.Y, thisRightTop.Y, otherRightTop.Y);
             
             return new Rect2D(maxX - minX, maxY - minY, new Point((minX + maxX) / 2, (minY + maxY) / 2, 0));
+        }
+
+        /// <summary>
+        /// Checks if 2 rectangles overlap
+        /// </summary>
+        /// <param name="thisRect"></param>
+        /// <param name="otherRect"></param>
+        /// <returns>True if rectangles overlap</returns>
+        public static bool Intersects(this Rect2D thisRect, Rect2D otherRect)
+        {
+            var thisBottomLeft = thisRect.GetLeftBottom();
+            var thisTopRight = thisRect.GetRightTop();
+
+            var otherBottomLeft = otherRect.GetLeftBottom();
+            var otherTopRight = otherRect.GetRightTop();
+
+            return thisBottomLeft.X <= otherTopRight.X
+                && thisTopRight.X >= otherBottomLeft.X
+                && thisBottomLeft.Y <= otherTopRight.Y
+                && thisTopRight.Y >= otherBottomLeft.Y;
         }
 
         private static double Min(params double[] vals) 

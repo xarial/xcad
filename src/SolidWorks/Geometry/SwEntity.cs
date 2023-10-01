@@ -20,7 +20,7 @@ using Xarial.XCad.Toolkit.Utils;
 
 namespace Xarial.XCad.SolidWorks.Geometry
 {
-    public interface ISwEntity : ISwSelObject, IXEntity, IResilientibleObject<ISwEntity>
+    public interface ISwEntity : ISwSelObject, IXEntity, ISupportsResilience<ISwEntity>
     {
         IEntity Entity { get; }
 
@@ -34,7 +34,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
         IXBody IXEntity.Body => Body;
         IXEntityRepository IXEntity.AdjacentEntities => AdjacentEntities;
         IXComponent IXEntity.Component => Component;
-        IXObject IResilientibleObject.CreateResilient() => CreateResilient();
+        IXObject ISupportsResilience.CreateResilient() => CreateResilient();
 
         public virtual IEntity Entity { get; }
 

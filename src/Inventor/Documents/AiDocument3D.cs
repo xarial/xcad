@@ -28,9 +28,32 @@ namespace Xarial.XCad.Inventor.Documents
 
         IXModelView3DRepository IXDocument3D.ModelViews => throw new NotImplementedException();
 
+        IXDocument3DSaveOperation IXDocument3D.PreCreateSaveAsOperation(string filePath)
+        {
+            var translator = TryGetTranslator(filePath);
+
+            if (translator != null)
+            {
+                switch (translator.ClientId)
+                {
+                    case "{90AF7F40-0C01-11D5-8E83-0010B541CD80}":
+                        return new AiStepSaveOperation(this, translator, filePath);
+
+                    default:
+                        return new AiDocument3DTranslatorSaveOperation(this, translator, filePath);
+                }
+            }
+            else
+            {
+                return new AiDocument3DSaveOperation(this, filePath);
+            }
+        }
+
         TSelObject IXObjectContainer.ConvertObject<TSelObject>(TSelObject obj)
         {
             throw new NotImplementedException();
         }
+
+        public override IXSaveOperation PreCreateSaveAsOperation(string filePath) => ((IXDocument3D)this).PreCreateSaveAsOperation(filePath);
     }
 }

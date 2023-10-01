@@ -6,6 +6,7 @@
 //*********************************************************************
 
 using Xarial.XCad.Base;
+using Xarial.XCad.Geometry;
 
 namespace Xarial.XCad.Documents
 {
@@ -20,6 +21,30 @@ namespace Xarial.XCad.Documents
         /// Output file path
         /// </summary>
         string FilePath { get; }
+    }
+
+    /// <summary>
+    /// Save operation of <see cref="IXDrawing"/> files
+    /// </summary>
+    public interface IXDrawingSaveOperation : IXSaveOperation
+    {
+        /// <summary>
+        /// Sheets to export
+        /// </summary>
+        /// <remarks>If not specified all sheets are exported</remarks>
+        IXSheet[] Sheets { get; set; }
+    }
+
+    /// <summary>
+    /// Save operation of <see cref="IXDocument3D"/> files
+    /// </summary>
+    public interface IXDocument3DSaveOperation : IXSaveOperation 
+    {
+        /// <summary>
+        /// Bodies to export
+        /// </summary>
+        /// <remarks>If not specified all bodies are exported</remarks>
+        IXBody[] Bodies { get; set; }
     }
 
     /// <summary>
@@ -46,7 +71,7 @@ namespace Xarial.XCad.Documents
     /// <summary>
     /// Save options of step format
     /// </summary>
-    public interface IXStepSaveOperation : IXSaveOperation
+    public interface IXStepSaveOperation : IXDocument3DSaveOperation
     {
         /// <summary>
         /// Step format
@@ -64,7 +89,7 @@ namespace Xarial.XCad.Documents
     /// <summary>
     /// Save options for PDF format in 3D document
     /// </summary>
-    public interface IXDocument3DPdfSaveOperation : IXPdfSaveOperation 
+    public interface IXDocument3DPdfSaveOperation : IXDocument3DSaveOperation, IXPdfSaveOperation
     {
         /// <summary>
         /// Save PDF as 3D PDF
@@ -75,22 +100,45 @@ namespace Xarial.XCad.Documents
     /// <summary>
     /// Save options for PDF format in drawing document
     /// </summary>
-    public interface IXDrawingPdfSaveOperation : IXPdfSaveOperation
+    public interface IXDrawingPdfSaveOperation : IXPdfSaveOperation, IXDrawingSaveOperation
+    {
+
+    }
+
+    /// <summary>
+    /// Options to export splines in <see cref="IXDxfDwgSaveOperation.SplineExportOptions"/>
+    /// </summary>
+    public enum SplineExportOptions_e 
     {
         /// <summary>
-        /// Sheets to export
+        /// Exports splines as splines
         /// </summary>
-        IXSheet[] Sheets { get; set; }
+        Splines,
+
+        /// <summary>
+        /// Exports splines as polylines
+        /// </summary>
+        Polylines
     }
 
     /// <summary>
     /// Save options for DXF/DWG format
     /// </summary>
-    public interface IXDxfDwgSaveOperation : IXSaveOperation
+    public interface IXDxfDwgSaveOperation : IXDrawingSaveOperation
     {   
         /// <summary>
         /// File path to a layers map file
         /// </summary>
         string LayersMapFilePath { get; set; }
+
+        /// <summary>
+        /// True to include hidden layers, False to only export visible layers
+        /// </summary>
+        bool ExportHiddentLayers { get; set; }
+
+        /// <summary>
+        /// Options to export splines
+        /// </summary>
+        SplineExportOptions_e SplineExportOptions { get; set; }
     }
 }

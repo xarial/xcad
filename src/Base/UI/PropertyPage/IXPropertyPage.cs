@@ -31,6 +31,11 @@ namespace Xarial.XCad.UI.PropertyPage
         event PageClosedDelegate Closed;
 
         /// <summary>
+        /// Keystroke handler if page created with option <see cref="Enums.PageOptions_e.HandleKeystrokes"/>
+        /// </summary>
+        event KeystrokeHookDelegate KeystrokeHook;
+
+        /// <summary>
         /// Checks if page is pinned
         /// </summary>
         bool IsPinned { get; set; }

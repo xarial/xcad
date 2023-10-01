@@ -382,7 +382,7 @@ namespace SolidWorks.Tests.Integration
                 var assm = docs.Active;
                 assm.Closing += OnHiding;
 
-                foreach (var dep in assm.IterateDependencies())
+                foreach (var dep in assm.Dependencies.TryIterateAll())
                 {
                     dep.Closing += OnHiding;
                 }
@@ -664,7 +664,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var assm = OpenDataDocument(@"Assembly9\Assem1.SLDASM"))
             {
-                var deps = m_App.Documents.Active.IterateDependencies().ToArray();
+                var deps = m_App.Documents.Active.Dependencies.TryIterateAll().ToArray();
                 r1 = deps.ToDictionary(d => Path.GetFileName(d.Path), d => d.IsCommitted, StringComparer.CurrentCultureIgnoreCase);
             }
 
@@ -683,7 +683,7 @@ namespace SolidWorks.Tests.Integration
             var assm = m_App.Documents.PreCreate<ISwAssembly>();
             assm.Path = GetFilePath(@"Assembly9\Assem1.SLDASM");
 
-            var deps = assm.IterateDependencies().ToArray();
+            var deps = assm.Dependencies.TryIterateAll().ToArray();
             r1 = deps.ToDictionary(d => Path.GetFileName(d.Path), d => d.IsCommitted, StringComparer.CurrentCultureIgnoreCase);
 
             Assert.AreEqual(2, r1.Count);
@@ -778,7 +778,7 @@ namespace SolidWorks.Tests.Integration
             {
                 var assm = m_App.Documents.Active;
 
-                var deps = assm.IterateDependencies().ToArray();
+                var deps = assm.Dependencies.TryIterateAll().ToArray();
 
                 var dir = Path.GetDirectoryName(assm.Path);
 
@@ -836,7 +836,7 @@ namespace SolidWorks.Tests.Integration
             {
                 var assm = m_App.Documents.Active;
 
-                var deps = assm.IterateDependencies().ToArray();
+                var deps = assm.Dependencies.TryIterateAll().ToArray();
 
                 var d1 = deps.FirstOrDefault(d => string.Equals(Path.GetFileName(d.Path), "Part1^Assem1.sldprt",
                     StringComparison.CurrentCultureIgnoreCase));
@@ -898,11 +898,11 @@ namespace SolidWorks.Tests.Integration
                 var assm = m_App.Documents.PreCreate<ISwAssembly>();
                 assm.Path = Path.Combine(destPath, "TopLevel\\Assem1.sldasm");
 
-                var deps = assm.IterateDependencies().ToArray();
+                var deps = assm.Dependencies.TryIterateAll().ToArray();
 
                 refs = deps.ToDictionary(x => x.Path, x => x.IsCommitted, StringComparer.CurrentCultureIgnoreCase);
 
-                foreach (var refDoc in assm.IterateDependencies().ToArray())
+                foreach (var refDoc in assm.Dependencies.TryIterateAll().ToArray())
                 {
                     if (refDoc.IsCommitted && refDoc.IsAlive)
                     {
@@ -989,7 +989,7 @@ namespace SolidWorks.Tests.Integration
                 var p1 = m_App.Documents.PreCreate<ISwPart>();
                 p1.Path = filePath;
 
-                Assert.Throws<DocumentAlreadyOpenedException>(() => p1.Commit());
+                p1.Commit();
 
                 var p2 = m_App.Documents.PreCreate<IXUnknownDocument>();
                 p2.Path = filePath;
@@ -997,6 +997,8 @@ namespace SolidWorks.Tests.Integration
 
                 var p3 = p2.GetSpecific();
 
+                Assert.IsTrue(p1.IsCommitted);
+                Assert.That(string.Equals(p1.Path, filePath, StringComparison.CurrentCultureIgnoreCase));
                 Assert.AreEqual(p0, p3);
             }
         }

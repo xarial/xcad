@@ -13,6 +13,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 using Xarial.XCad.Annotations;
 using Xarial.XCad.Base;
 using Xarial.XCad.SolidWorks.Annotations;
@@ -37,17 +38,64 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public IXAnnotation this[string name] => RepositoryHelper.Get(this, name);
 
-        public abstract int Count { get; }
-                public void AddRange(IEnumerable<IXAnnotation> ents, CancellationToken cancellationToken)
+        public virtual int Count => IterateAllAnnotations().Count();
+
+        public void AddRange(IEnumerable<IXAnnotation> ents, CancellationToken cancellationToken)
             => RepositoryHelper.AddRange(ents, cancellationToken);
 
-        public abstract IEnumerator<IXAnnotation> GetEnumerator();
+        public IEnumerator<IXAnnotation> GetEnumerator() => IterateAllAnnotations().GetEnumerator();
 
-        public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters) => RepositoryHelper.FilterDefault(this, filters, reverseOrder);
+        public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters)
+        {
+            bool notes;
+            bool dimensions;
+            bool all;
+
+            if (filters?.Any() == true)
+            {
+                notes = false;
+                dimensions = false;
+                all = false;
+
+                foreach (var filter in filters)
+                {
+                    if (typeof(IXNote).IsAssignableFrom(filter.Type)) 
+                    {
+                        notes = true;
+                    }
+                    else if (typeof(IXDimension).IsAssignableFrom(filter.Type)) 
+                    {
+                        dimensions = true;
+                    }
+                    else if (filter.Type == null || typeof(IXAnnotation).IsAssignableFrom(filter.Type))
+                    {
+                        all = true;
+                        break;
+                    }
+                }
+            }
+            else
+            {
+                notes = true;
+                dimensions = true;
+                all = true;
+            }
+
+            foreach (var ent in RepositoryHelper.FilterDefault(IterateAnnotations(notes, dimensions, all), filters, reverseOrder))
+            {
+                yield return ent;
+            }
+        }
+
+        private IEnumerable<ISwAnnotation> IterateAllAnnotations() => IterateAnnotations(true, true, true);
+
+        protected abstract IEnumerable<ISwAnnotation> IterateAnnotations(bool notes, bool dimensions, bool other);
 
         public T PreCreate<T>() where T : IXAnnotation
             => RepositoryHelper.PreCreate<IXAnnotation, T>(this,
-                () => new SwNote(null, m_Doc, m_Doc.OwnerApplication));
+                () => new SwNote(null, m_Doc, m_Doc.OwnerApplication),
+                () => new SwSectionLine(null, m_Doc, m_Doc.OwnerApplication),
+                () => new SwDetailCircle(null, m_Doc, m_Doc.OwnerApplication));
 
         public void RemoveRange(IEnumerable<IXAnnotation> ents, CancellationToken cancellationToken)
             => throw new NotImplementedException();
@@ -64,7 +112,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public override int Count => m_Doc.Model.Extension.GetAnnotationCount();
 
-        public override IEnumerator<IXAnnotation> GetEnumerator()
+        protected override IEnumerable<ISwAnnotation> IterateAnnotations(bool notes, bool dimensions, bool all)
         {
             var ann = m_Doc.Model.IGetFirstAnnotation2();
 
@@ -88,13 +136,13 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public override int Count => m_Drw.Sheets.Sum(s => s.DrawingViews.Sum(v => ((ISwDrawingView)v).DrawingView.GetAnnotationCount()));
 
-        public override IEnumerator<IXAnnotation> GetEnumerator()
+        protected override IEnumerable<ISwAnnotation> IterateAnnotations(bool notes, bool dimensions, bool all)
         {
             foreach (var sheet in m_Drw.Sheets)
             {
                 foreach (var view in sheet.DrawingViews)
                 {
-                    foreach (var ann in view.Annotations) 
+                    foreach (ISwAnnotation ann in view.Annotations)
                     {
                         yield return ann;
                     }
@@ -112,17 +160,69 @@ namespace Xarial.XCad.SolidWorks.Documents
             m_DrwView = drwView;
         }
 
-        public override int Count => m_DrwView.DrawingView.GetAnnotationCount();
+        public override int Count => m_DrwView.DrawingView.GetAnnotationCount() 
+            + m_DrwView.DrawingView.GetDimensionCount4() 
+            + m_DrwView.DrawingView.GetDetailCircleCount2(out _)
+            + m_DrwView.DrawingView.GetSectionLineCount2(out _);
 
-        public override IEnumerator<IXAnnotation> GetEnumerator()
+        protected override IEnumerable<ISwAnnotation> IterateAnnotations(bool notes, bool dimensions, bool all)
         {
-            var ann = m_DrwView.DrawingView.IGetFirstAnnotation2();
-
-            while (ann != null)
+            if (all)
             {
-                yield return m_Doc.CreateObjectFromDispatch<ISwAnnotation>(ann);
+                var ann = m_DrwView.DrawingView.IGetFirstAnnotation2();
+                
+                while (ann != null)
+                {
+                    yield return m_Doc.CreateObjectFromDispatch<ISwAnnotation>(ann);
 
-                ann = ann.IGetNext2();
+                    ann = ann.IGetNext2();
+                }
+
+                var detailCircles = (object[])m_DrwView.DrawingView.GetDetailCircles();
+
+                if (detailCircles != null) 
+                {
+                    foreach(IDetailCircle detCircle in detailCircles) 
+                    {
+                        yield return m_Doc.CreateObjectFromDispatch<ISwDetailCircle>(detCircle);
+                    }
+                }
+
+                var sectionLines = (object[])m_DrwView.DrawingView.GetSectionLines();
+
+                if (sectionLines != null)
+                {
+                    foreach (IDrSection sectionLine in sectionLines)
+                    {
+                        yield return m_Doc.CreateObjectFromDispatch<ISwSectionLine>(sectionLine);
+                    }
+                }
+            }
+            else 
+            {
+                if (notes)
+                {
+                    var note = m_DrwView.DrawingView.IGetFirstNote();
+
+                    while (note != null)
+                    {
+                        yield return m_Doc.CreateObjectFromDispatch<ISwNote>(note);
+
+                        note = note.IGetNext();
+                    }
+                }
+
+                if (dimensions)
+                {
+                    var dispDim = m_DrwView.DrawingView.GetFirstDisplayDimension5();
+
+                    while (dispDim != null)
+                    {
+                        yield return m_Doc.CreateObjectFromDispatch<ISwDimension>(dispDim);
+
+                        dispDim = dispDim.GetNext5();
+                    }
+                }
             }
         }
     }

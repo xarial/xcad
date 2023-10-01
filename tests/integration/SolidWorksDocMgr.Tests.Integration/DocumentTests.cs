@@ -124,7 +124,7 @@ namespace SolidWorksDocMgr.Tests.Integration
             {
                 var assm = m_App.Documents.Active;
 
-                var deps = assm.IterateDependencies().ToArray();
+                var deps = assm.Dependencies.TryIterateAll().ToArray();
 
                 var dir = Path.GetDirectoryName(assm.Path);
 
@@ -145,7 +145,7 @@ namespace SolidWorksDocMgr.Tests.Integration
             {
                 var assm = m_App.Documents.Active;
 
-                var deps = assm.IterateDependencies().ToArray();
+                var deps = assm.Dependencies.TryIterateAll().ToArray();
 
                 var dir = Path.GetDirectoryName(assm.Path);
 
@@ -193,7 +193,7 @@ namespace SolidWorksDocMgr.Tests.Integration
             {
                 var assm = m_App.Documents.Active;
 
-                titles = assm.IterateDependencies().Select(d => Path.GetFileNameWithoutExtension(d.Title)).ToArray();
+                titles = assm.Dependencies.TryIterateAll().Select(d => Path.GetFileNameWithoutExtension(d.Title)).ToArray();
             }
 
             Assert.AreEqual(7, titles.Length);
@@ -217,7 +217,7 @@ namespace SolidWorksDocMgr.Tests.Integration
 
             using (var assm = OpenDataDocument(@"Assembly9\Assem1.SLDASM"))
             {
-                var deps = m_App.Documents.Active.IterateDependencies().ToArray();
+                var deps = m_App.Documents.Active.Dependencies.TryIterateAll().ToArray();
                 r1 = deps.ToDictionary(d => Path.GetFileName(d.Path), d => d.IsCommitted, StringComparer.CurrentCultureIgnoreCase);
             }
 
@@ -242,7 +242,7 @@ namespace SolidWorksDocMgr.Tests.Integration
             {
                 var assm = m_App.Documents.Active;
 
-                var deps = assm.IterateDependencies().ToArray();
+                var deps = assm.Dependencies.TryIterateAll().ToArray();
 
                 Assert.AreEqual(8, deps.Length);
                 Assert.That(deps.All(d => !d.State.HasFlag(DocumentState_e.ReadOnly)));
@@ -262,7 +262,7 @@ namespace SolidWorksDocMgr.Tests.Integration
             {
                 var assm = m_App.Documents.Active;
 
-                var deps = assm.IterateDependencies().ToArray();
+                var deps = assm.Dependencies.TryIterateAll().ToArray();
 
                 Assert.AreEqual(8, deps.Length);
                 Assert.That(deps.All(d => d.State.HasFlag(DocumentState_e.ReadOnly)));
@@ -295,7 +295,7 @@ namespace SolidWorksDocMgr.Tests.Integration
             {
                 var assm = m_App.Documents.Active;
 
-                var deps = assm.IterateDependencies().ToArray();
+                var deps = assm.Dependencies.TryIterateAll().ToArray();
 
                 var d1 = deps.FirstOrDefault(d => string.Equals(Path.GetFileName(d.Path), "_temp_Part1^Assem1.sldprt",
                     StringComparison.CurrentCultureIgnoreCase));
@@ -399,11 +399,11 @@ namespace SolidWorksDocMgr.Tests.Integration
                 {
                     var assm = (ISwDmAssembly)doc.Document;
 
-                    var deps = assm.IterateDependencies().ToArray();
+                    var deps = assm.Dependencies.TryIterateAll().ToArray();
 
                     refs = deps.ToDictionary(x => x.Path, x => x.IsCommitted, StringComparer.CurrentCultureIgnoreCase);
 
-                    foreach (var refDoc in assm.IterateDependencies().ToArray())
+                    foreach (var refDoc in assm.Dependencies.TryIterateAll().ToArray())
                     {
                         if (refDoc.IsCommitted && refDoc.IsAlive)
                         {

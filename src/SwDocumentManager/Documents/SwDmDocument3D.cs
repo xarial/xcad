@@ -27,6 +27,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         public new IXModelView3DRepository ModelViews => throw new NotSupportedException();
         TSelObject IXObjectContainer.ConvertObject<TSelObject>(TSelObject obj) => throw new NotSupportedException();
+        IXDocument3DSaveOperation IXDocument3D.PreCreateSaveAsOperation(string filePath) => throw new NotSupportedException();
         public IXDocumentEvaluation Evaluation => throw new NotSupportedException();
         public IXDocumentGraphics Graphics => throw new NotSupportedException();
 

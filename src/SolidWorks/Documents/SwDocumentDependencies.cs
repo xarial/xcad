@@ -27,10 +27,13 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public IXDocument OwnerDocument => m_Doc;
 
+        public bool Cached { get; set; }
+
         internal SwDocumentDependencies(SwDocument doc, IXLogger logger) 
         {
             m_Doc = doc;
             m_Logger = logger;
+            Cached = false;
         }
 
         public IEnumerator<IXDocument3D> GetEnumerator() 
@@ -50,13 +53,13 @@ namespace Xarial.XCad.SolidWorks.Documents
 
             if (m_Doc.IsCommitted && !m_Doc.Model.IsOpenedViewOnly())
             {
-                depsData = m_Doc.Model.Extension.GetDependencies(false, true, false, true, true) as string[];
+                depsData = m_Doc.Model.Extension.GetDependencies(false, !Cached, false, true, true) as string[];
             }
             else
             {
                 if (!string.IsNullOrEmpty(m_Doc.Path))
                 {
-                    depsData = m_Doc.OwnerApplication.Sw.GetDocumentDependencies2(m_Doc.Path, false, true, false) as string[];
+                    depsData = m_Doc.OwnerApplication.Sw.GetDocumentDependencies2(m_Doc.Path, false, !Cached, false) as string[];
                 }
                 else
                 {

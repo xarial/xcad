@@ -246,8 +246,10 @@ namespace SwAddInExample
         { 
         }
 
-        public override void OnFeatureInserted(IXApplication app, IXDocument doc, IXCustomFeature<BoxMacroFeatureData> feat, BoxPage page)
+        public override void OnFeatureInserting(IXApplication app, IXDocument doc, IXCustomFeature<BoxMacroFeatureData> feat, BoxPage page)
         {
+            base.OnFeatureInserting(app, doc, feat, page);
+            
             page.Parameters.Reset();
             doc.Selections.Clear();
         }

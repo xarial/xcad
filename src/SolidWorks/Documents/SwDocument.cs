@@ -516,10 +516,10 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         private IModelDoc2 CreateDocument(CancellationToken cancellationToken)
         {
-            if (((SwDocumentCollection)OwnerApplication.Documents).TryFindExistingDocumentByPath(Path, out _))
-            {
-                throw new DocumentAlreadyOpenedException(Path);
-            }
+            //if (((SwDocumentCollection)OwnerApplication.Documents).TryFindExistingDocumentByPath(Path, out _))
+            //{
+            //    throw new DocumentAlreadyOpenedException(Path);
+            //}
 
             var docType = -1;
 
@@ -602,7 +602,14 @@ namespace Xarial.XCad.SolidWorks.Documents
                     }
                     else
                     {
-                        throw new Exception("Path is not specified");
+                        if (!string.IsNullOrEmpty(Path))
+                        {
+                            versHistory = OwnerApplication.Sw.VersionHistory(Path) as string[];
+                        }
+                        else
+                        {
+                            throw new Exception("Path is not specified");
+                        }
                     }
                 }
 
@@ -805,6 +812,8 @@ namespace Xarial.XCad.SolidWorks.Documents
                         return SwVersion_e.Sw2022;
                     case 16000:
                         return SwVersion_e.Sw2023;
+                    case 17000:
+                        return SwVersion_e.Sw2024;
                     default:
                         throw new NotSupportedException($"'{latestVers}' version is not recognized");
                 }
@@ -1151,8 +1160,11 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         private int OnFileSavePostNotify(int saveType, string fileName)
         {
-            m_CachedFilePath = fileName;
-
+            if (saveType == (int)swFileSaveTypes_e.swFileSaveAs)
+            {
+                m_CachedFilePath = fileName;
+            }
+            
             return HResult.S_OK;
         }
 
@@ -1255,28 +1267,6 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        public IXSaveOperation PreCreateSaveAsOperation(string filePath)
-        {
-            var ext = System.IO.Path.GetExtension(filePath);
-
-            switch (ext.ToLower())
-            {
-                case ".pdf":
-                    return CreatePdfSaveOperation(filePath);
-
-                case ".step":
-                case ".stp":
-                    return new SwStepSaveOperation(this, filePath);
-
-                case ".dxf":
-                case ".dwg":
-                    return new SwDxfDwgSaveOperation(this, filePath);
-
-                default:
-                    return new SwSaveOperation(this, filePath);
-            }
-        }
-
         public TSwObj DeserializeObject<TSwObj>(Stream stream)
             where TSwObj : ISwObject
             => DeserializeBaseObject<TSwObj>(stream);
@@ -1341,7 +1331,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public IOperationGroup PreCreateOperationGroup() => new SwUndoObjectGroup(this);
 
-        protected abstract SwPdfSaveOperation CreatePdfSaveOperation(string filePath);
+        public abstract IXSaveOperation PreCreateSaveAsOperation(string filePath);
     }
 
     internal class SwUnknownDocument : SwDocument, IXUnknownDocument
@@ -1354,7 +1344,6 @@ namespace Xarial.XCad.SolidWorks.Documents
         protected override bool IsLightweightMode => throw new NotSupportedException();
         protected override bool IsRapidMode => throw new NotSupportedException();
         protected override SwAnnotationCollection CreateAnnotations() => throw new NotSupportedException();
-        protected override SwPdfSaveOperation CreatePdfSaveOperation(string filePath) => throw new NotSupportedException();
 
         internal protected override swDocumentTypes_e? DocumentType 
         {
@@ -1449,6 +1438,8 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
 
         protected override bool IsDocumentTypeCompatible(swDocumentTypes_e docType) => true;
+
+        public override IXSaveOperation PreCreateSaveAsOperation(string filePath) => throw new NotSupportedException();
     }
 
     internal class SwUnknownDocument3D : SwUnknownDocument, ISwDocument3D
@@ -1467,6 +1458,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         IXModelView3DRepository IXDocument3D.ModelViews => throw new NotImplementedException();
         TSelObject IXObjectContainer.ConvertObject<TSelObject>(TSelObject obj) => throw new NotImplementedException();
         TSelObject ISwDocument3D.ConvertObject<TSelObject>(TSelObject obj) => throw new NotImplementedException();
+        IXDocument3DSaveOperation IXDocument3D.PreCreateSaveAsOperation(string filePath) => throw new NotImplementedException();
     }
 
     internal static class SwDocumentExtension 

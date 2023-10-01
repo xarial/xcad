@@ -614,10 +614,9 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         public ISwDmConfigurationCollection Configurations => throw new NotSupportedException();
         public IXDocumentEvaluation Evaluation => throw new NotSupportedException();
         public IXDocumentGraphics Graphics => throw new NotSupportedException();
-
         IXConfigurationRepository IXDocument3D.Configurations => throw new NotSupportedException();
-
         TSelObject IXObjectContainer.ConvertObject<TSelObject>(TSelObject obj) => throw new NotSupportedException();
+        IXDocument3DSaveOperation IXDocument3D.PreCreateSaveAsOperation(string filePath) => throw new NotSupportedException();
     }
 
     public static class SwDmDocumentExtension 

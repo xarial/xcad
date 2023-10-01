@@ -218,6 +218,15 @@ namespace Xarial.XCad.SolidWorks
                 case INote note:
                     return new SwNote(note, doc, app);
 
+                case IDrSection section:
+                    return new SwSectionLine(section, doc, app);
+
+                case IDetailCircle detailCircle:
+                    return new SwDetailCircle(detailCircle, doc, app);
+
+                case ITableAnnotation tableAnn:
+                    return new SwTable(tableAnn, doc, app);
+
                 case IAnnotation ann:
                     switch ((swAnnotationType_e)ann.GetType())
                     {
@@ -225,9 +234,14 @@ namespace Xarial.XCad.SolidWorks
                             return new SwDimension((IDisplayDimension)ann.GetSpecificAnnotation(), doc, app);
                         case swAnnotationType_e.swNote:
                             return new SwNote((INote)ann.GetSpecificAnnotation(), doc, app);
+                        case swAnnotationType_e.swTableAnnotation:
+                            return new SwTable((ITableAnnotation)ann.GetSpecificAnnotation(), doc, app);
                         default:
                             return new SwAnnotation(ann, doc, app);
                     }
+
+                case ILayer layer:
+                    return new SwLayer(layer, doc, app);
 
                 case IConfiguration conf:
                     switch (doc)
@@ -428,7 +442,9 @@ namespace Xarial.XCad.SolidWorks
         private static bool TryGetParameterType(IFeature feat, out Type paramType)
         {
             var featData = feat.GetDefinition() as IMacroFeatureData;
-            var progId = featData.GetProgId();
+
+            //NOTE: definition of rolled back macro feature is null
+            var progId = featData?.GetProgId();
 
             if (!string.IsNullOrEmpty(progId))
             {

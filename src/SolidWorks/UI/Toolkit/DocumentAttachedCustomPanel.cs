@@ -167,8 +167,7 @@ namespace Xarial.XCad.SolidWorks.UI.Toolkit
             }
         }
 
-        public void Dispose()
-            => Close();
+        public void Dispose() => Close();
 
         public virtual void Close()
         {

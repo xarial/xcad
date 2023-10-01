@@ -78,7 +78,7 @@ namespace Xarial.XCad.Base
     }
 
     /// <summary>
-    /// Filter of the repository in the <see cref="IXRepository.Filter(RepositoryFilterQuery[])"/>
+    /// Filter of the repository in the <see cref="IXRepository.Filter(bool, RepositoryFilterQuery[])"/>
     /// </summary>
     public class RepositoryFilterQuery 
     {

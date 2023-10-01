@@ -379,7 +379,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
     internal abstract class SwDmComponentConfiguration : SwDmConfiguration
     {
         #region Not Supported
-        public IXMaterial Material => throw new NotSupportedException();
+        public IXMaterial Material { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
         #endregion
 
         protected readonly SwDmComponent m_Comp;

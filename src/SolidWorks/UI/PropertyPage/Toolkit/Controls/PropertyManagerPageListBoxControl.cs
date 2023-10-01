@@ -181,14 +181,6 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             }
         }
 
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                m_Handler.ListBoxChanged -= OnListBoxChanged;
-            }
-        }
-
         protected override void LoadItemsIntoControl(ItemsControlItem[] newItems)
         {
             SwSpecificControl.Clear();
@@ -196,6 +188,14 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             if (newItems?.Any() == true)
             {
                 SwSpecificControl.AddItems(newItems.Select(i => i.DisplayName).ToArray());
+            }
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                m_Handler.ListBoxChanged -= OnListBoxChanged;
             }
         }
     }

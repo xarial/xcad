@@ -42,11 +42,35 @@ namespace SwAddInExample
         Opt3
     }
 
+    public enum Opts1
+    {
+        Opt4,
+        Opt5,
+        Opt6
+    }
+
     [Flags]
     public enum OptsFlag 
     {
         Opt1 = 1,
         Opt2 = 2,
+        Opt3 = 4,
+        Opt4 = 8
+    }
+
+    [Flags]
+    public enum OptsFlag2
+    {
+        None = 0,
+
+        [Title("Option #1")]
+        [Description("First Option")]
+        Opt1 = 1,
+        Opt2 = 2,
+
+        [Title("Opt1 + Opt2")]
+        Opt1_2 = Opt1 | Opt2,
+
         Opt3 = 4,
         Opt4 = 8
     }
@@ -87,6 +111,17 @@ namespace SwAddInExample
 
     public class MyItem 
     {
+        [Title("Custom Item C")]
+        [Description("Item C [ID = 3]")]
+        private class MyCustomItem : MyItem
+        {
+            internal MyCustomItem() 
+            {
+                Name = "C";
+                Id = 3;
+            }
+        }
+
         public static MyItem[] All { get; } = new MyItem[]
         {
             new MyItem()
@@ -98,16 +133,14 @@ namespace SwAddInExample
             {
                 Name = "B",
                 Id = 2
-            }
+            },
+            new MyCustomItem()
         };
 
         public string Name { get; set; }
         public int Id { get; set; }
 
-        public override string ToString()
-        {
-            return Name;
-        }
+        public override string ToString() => Name;
 
         public override bool Equals(object obj)
         {
@@ -123,6 +156,31 @@ namespace SwAddInExample
         {
             return 0;
         }
+    }
+
+    public class MyItem1 
+    {
+        public class MyItem1Name 
+        {
+            public string Name { get; }
+
+            public MyItem1Name(string name)
+            {
+                Name = name;
+            }
+        }
+        
+        public string Value { get; }
+
+        public MyItem1Name DisplayName { get; }
+
+        public MyItem1(string val) 
+        {
+            Value = val;
+            DisplayName = new MyItem1Name("[" + val + "]");
+        }
+
+        public override string ToString() => Value;
     }
 
     public class MyCustomItemsProvider : SwCustomItemsProvider<MyItem>
@@ -192,6 +250,7 @@ namespace SwAddInExample
 
     [ComVisible(true)]
     [Help("https://xcad.net/")]
+    //[PageOptions(PageOptions_e.OkayButton | PageOptions_e.CancelButton | PageOptions_e.HandleKeystrokes)]
     public class PmpData : SwPropertyManagerPageHandler, INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler PropertyChanged;
@@ -202,7 +261,7 @@ namespace SwAddInExample
 
         [CustomControl(typeof(WpfUserControl))]
         //[CustomControl(typeof(WinUserControl))]
-        [ControlOptions(height: 200)]
+        [ControlOptions(height: 300)]
         [ControlTag(nameof(CustomControl))]
         public OptsFlag CustomControl { get; set; }
 
@@ -263,15 +322,15 @@ namespace SwAddInExample
         public int StaticComboBox { get; set; }
 
         [Metadata("_SRC_")]
-        public string[] Source => new string[] { "X", "Y", "Z" };
+        public MyItem1[] Source { get; } = new MyItem1[] { new MyItem1("X"), new MyItem1("Y"), new MyItem1("Z") };
 
         [ComboBox(ItemsSource = "_SRC_")]
-        public string ItemsSourceComboBox { get; set; }
+        public MyItem1 ItemsSourceComboBox { get; set; }
 
-        [ListBox(ItemsSource = "_SRC_")]
+        [ListBox(ItemsSource = "_SRC_", DisplayMemberPath = "DisplayName.Name")]
         [Label("List Box1:", ControlLeftAlign_e.LeftEdge, FontStyle_e.Bold)]
         [ControlOptions(align: ControlLeftAlign_e.Indent)]
-        public string ListBox1 { get; set; }
+        public MyItem1 ListBox1 { get; set; }
 
         [ListBox("A1", "A2", "A3")]
         public string ListBox2 { get; set; }
@@ -281,11 +340,32 @@ namespace SwAddInExample
 
         //[ListBox]
         [OptionBox]
-        [Label("Sample List Box 4:", fontStyle: FontStyle_e.Underline)]
-        public Opts ListBox4 { get; set; }
+        [Label("Sample Option Box 4:", fontStyle: FontStyle_e.Underline)]
+        public Opts OptionBox4 { get; set; }
+
+        [OptionBox]
+        [Label("Sample Option Box 5:")]
+        public Opts1 OptionBox5 { get; set; }
+
+        [OptionBox(1, 2, 3, 4)]
+        public int OptionBox6 { get; set; }
+
+        [OptionBox(typeof(MyCustomItemsProvider))]
+        public MyItem OptionBox7 { get; set; }
 
         [ListBox]
         public OptsFlag ListBox5 { get; set; } = OptsFlag.Opt1 | OptsFlag.Opt3;
+
+        [CheckBoxList]
+        [CheckBoxListOptions]
+        [ControlOptions(align: ControlLeftAlign_e.Indent)]
+        public OptsFlag2 FlagEnumCheckBoxes { get; set; }
+
+        [CheckBoxList(1, 2, 3, 4)]
+        public List<int> CheckBoxList2 { get; set; }
+
+        [CheckBoxList(typeof(MyCustomItemsProvider))]
+        public List<MyItem> CheckBoxList3 { get; set; }
 
         [ControlTag(nameof(Visible))]
         public bool Visible { get; set; }
@@ -319,6 +399,15 @@ namespace SwAddInExample
                 this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(TextBlockText)));
             };
             CustomControl = OptsFlag.Opt3 | OptsFlag.Opt4;
+
+            FlagEnumCheckBoxes = OptsFlag2.Opt3 | OptsFlag2.Opt4;
+
+            CheckBoxList3 = new List<MyItem>()
+            {
+                MyItem.All[0]
+            };
+
+            OptionBox6 = 3;
         }
     }
 

@@ -58,7 +58,7 @@ namespace Xarial.XCad.SolidWorks.Features
         }
 
         protected virtual SwCutListCustomPropertiesCollection CreatePropertiesCollection()
-            => new SwCutListCustomPropertiesCollection(Feature.CustomPropertyManager, m_ParentDoc, m_ParentConf, OwnerApplication);
+            => new SwCutListCustomPropertiesCollection(this, m_ParentDoc, m_ParentConf, OwnerApplication);
 
         public IBodyFolder CutListBodyFolder { get; }
 
@@ -156,17 +156,19 @@ namespace Xarial.XCad.SolidWorks.Features
         private readonly ISwDocument3D m_ParentDoc;
         private readonly ISwConfiguration m_ParentConf;
 
-        internal SwCutListCustomPropertiesCollection(CustomPropertyManager prpsMgr,
+        private readonly SwCutListItem m_CutListItem;
+
+        internal SwCutListCustomPropertiesCollection(SwCutListItem cutListItem,
             ISwDocument3D parentDoc, ISwConfiguration parentConf, ISwApplication app) 
             : base((SwDocument)parentDoc, app)
         {
-            PrpMgr = prpsMgr;
+            m_CutListItem = cutListItem;
 
             m_ParentDoc = parentDoc;
             m_ParentConf = parentConf;
         }
 
-        protected override CustomPropertyManager PrpMgr { get; }
+        protected override CustomPropertyManager PrpMgr => m_CutListItem.Feature.CustomPropertyManager;
 
         protected override EventsHandler<PropertyValueChangedDelegate> CreateEventsHandler(SwCustomProperty prp)
             => new CutListCustomPropertyChangeEventsHandler();

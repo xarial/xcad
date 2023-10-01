@@ -24,7 +24,7 @@ using Xarial.XCad.SolidWorks.Utils;
 
 namespace Xarial.XCad.SolidWorks.Geometry
 {
-    public interface ISwBody : ISwSelObject, IXBody, IResilientibleObject<ISwBody>
+    public interface ISwBody : ISwSelObject, IXBody, ISupportsResilience<ISwBody>
     {
         IBody2 Body { get; }
 
@@ -35,7 +35,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
     internal class SwBody : SwSelObject, ISwBody
     {       
         IXComponent IXBody.Component => Component;
-        IXObject IResilientibleObject.CreateResilient() => CreateResilient();
+        IXObject ISupportsResilience.CreateResilient() => CreateResilient();
 
         public virtual IBody2 Body 
         {
@@ -173,12 +173,46 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
                 if (!string.IsNullOrEmpty(materialName))
                 {
-                    return new SwMaterial(materialName, database);
+                    return new SwMaterial(materialName, OwnerApplication.MaterialDatabases[database]);
                 }
                 else
                 {
                     return null;
                 }
+            }
+            set 
+            {
+                throw new NotSupportedException();
+
+                //TODO: the below code does not work
+                //var confName = "";
+
+                //var comp = Component;
+
+                //if (comp != null)
+                //{
+                //    confName = comp.ReferencedConfiguration.Name;
+                //}
+                //else 
+                //{
+                //    confName = ((SwDocument3D)OwnerDocument).Configurations.Active.Name;
+                //}
+
+                //swBodyMaterialApplicationError_e res;
+
+                //if (value != null)
+                //{
+                //    res = (swBodyMaterialApplicationError_e)Body.SetMaterialProperty(confName, value.Database.Name, value.Name);
+                //}
+                //else 
+                //{
+                //    res = (swBodyMaterialApplicationError_e)Body.SetMaterialProperty(confName, "", "");
+                //}
+
+                //if (res != swBodyMaterialApplicationError_e.swBodyMaterialApplicationError_NoError) 
+                //{
+                //    throw new Exception($"Failed to set material. Error code: {res}");
+                //}
             }
         }
 
@@ -208,16 +242,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         public IXMemoryBody Copy()
         {
-            IBody2 copy;
-
-            if (OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2019))
-            {
-                copy = (IBody2)Body.Copy2(true);
-            }
-            else 
-            {
-                copy = (IBody2)Body.Copy();
-            }
+            var copy = Body.CreateCopy(OwnerApplication);
 
             return OwnerApplication.CreateObjectFromDispatch<SwTempBody>(copy, OwnerDocument);
         }

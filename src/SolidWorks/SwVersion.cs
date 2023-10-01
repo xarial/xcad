@@ -16,6 +16,8 @@ namespace Xarial.XCad.SolidWorks
     public interface ISwVersion : IXVersion
     {
         SwVersion_e Major { get; }
+        int ServicePack { get; }
+        int ServicePackRevision { get; }
     }
 
     internal class SwVersion : ISwVersion
@@ -27,17 +29,39 @@ namespace Xarial.XCad.SolidWorks
 
         public Version Version { get; }
 
-        internal SwVersion(Version version) 
+        public int ServicePack { get; }
+        public int ServicePackRevision { get; }
+
+        internal SwVersion(Version version, int sp, int spRev) 
         {
             Version = version;
             Major = (SwVersion_e)version.Major;
+
+            ServicePack = sp;
+            ServicePackRevision = spRev;
         }
 
         public int CompareTo(IXVersion other)
         {
+            const int EQUAL = 0;
+
             if (other is ISwVersion)
             {
-                return this.Version.CompareTo(other.Version);
+                //NOTE: cannot compare Version as for the pre-release SP and SP Rev can be negative which is not supported for the Version
+
+                var res = Major.CompareTo(((ISwVersion)other).Major);
+
+                if (res == EQUAL)
+                {
+                    res = ServicePack.CompareTo(((ISwVersion)other).ServicePack);
+
+                    if (res == EQUAL)
+                    {
+                        res = ServicePack.CompareTo(((ISwVersion)other).ServicePackRevision);
+                    }
+                }
+
+                return res;
             }
             else 
             {
@@ -45,10 +69,7 @@ namespace Xarial.XCad.SolidWorks
             }
         }
 
-        public override int GetHashCode()
-        {
-            return (int)Major;
-        }
+        public override int GetHashCode() => (int)Major;
 
         public override bool Equals(object obj)
         {

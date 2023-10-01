@@ -5,6 +5,8 @@
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
+using Xarial.XCad.Documents.Structures;
+
 namespace Xarial.XCad.Documents
 {
     /// <summary>
@@ -18,8 +20,18 @@ namespace Xarial.XCad.Documents
         IXSheetRepository Sheets { get; }
 
         /// <summary>
+        /// Drawing layers
+        /// </summary>
+        IXLayerRepository Layers { get; }
+
+        /// <summary>
         /// Drawing specific options
         /// </summary>
         new IXDrawingOptions Options { get; }
+
+        /// <summary>
+        /// <see cref="IXDrawing"/> specific save as operation
+        /// </summary>
+        new IXDrawingSaveOperation PreCreateSaveAsOperation(string filePath);
     }
 }

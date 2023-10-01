@@ -101,7 +101,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
         //NOTE: ComboBox in SOLIDWORKS Property Manager page behaves differently depending when the values are added to the control
         //if values are added before the page is opened than ComboBox cannot have empty value, if after - then it can be empty
-        //as ComboBox can load items dynamically after page is opened for hte consistency all items will be added after page is displayed
+        //as ComboBox can load items dynamically after page is opened for tte consistency all items will be added after page is displayed
         private void OnPageOpened()
         {
             m_IsPageOpened = true;

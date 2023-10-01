@@ -22,7 +22,7 @@ namespace Xarial.XCad.Documents
     /// <summary>
     /// Represents components in the <see cref="IXAssembly"/>
     /// </summary>
-    public interface IXComponent : IXSelObject, IXObjectContainer, IXTransaction, IXColorizable, IDimensionable, INameable
+    public interface IXComponent : IXSelObject, IXObjectContainer, IXTransaction, IHasColor, IDimensionable, IHasName
     {
         /// <summary>
         /// Full name of the component including the hierarchical path

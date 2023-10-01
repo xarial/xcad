@@ -14,7 +14,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Xarial.XCad.UI;
 
-namespace Xarial.XCad.SolidWorks.Extensions
+namespace Xarial.XCad.Toolkit.Extensions
 {
     /// <summary>
     /// Additional methods for <see cref="IXImage"/>

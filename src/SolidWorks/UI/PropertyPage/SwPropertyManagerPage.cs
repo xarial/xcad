@@ -48,6 +48,9 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
         /// <inheritdoc/>
         public event PageDataChangedDelegate DataChanged;
 
+        /// <inheritdoc/>
+        public event KeystrokeHookDelegate KeystrokeHook;
+
         [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
         public event Action<IAutoDisposable> Disposed;
 
@@ -56,10 +59,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
         private readonly PropertyManagerPagePage m_Page;
         private readonly PropertyManagerPageBuilder m_PmpBuilder;
 
-        /// <inheritdoc/>
-        public IEnumerable<IPropertyManagerPageElementEx> Controls { get; private set; }
-
-        internal SwPropertyManagerPageHandler Handler { get; private set; }
+        internal SwPropertyManagerPageHandler Handler { get; }
 
         private readonly IXLogger m_Logger;
 
@@ -78,6 +78,8 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
         private readonly IServiceProvider m_SvcProvider;
 
         private readonly IContextProvider m_ContextProvider;
+
+        private readonly IReadOnlyDictionary<int, IControl> m_Controls;
 
         /// <summary>Creates instance of property manager page</summary>
         /// <param name="app">Pointer to session of SOLIDWORKS where the property manager page to be created</param>
@@ -102,8 +104,9 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
 
             Handler = handler;
 
-            ValidateHandler(Handler);            
+            ValidateHandler(Handler);
 
+            Handler.Keystroke += OnKeystroke;
             Handler.Closed += OnClosed;
             Handler.Closing += OnClosing;
             m_PmpBuilder = new PropertyManagerPageBuilder(app, m_IconsConv, Handler, pageSpec, m_Logger);
@@ -112,7 +115,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
 
             m_Page = m_PmpBuilder.CreatePage<TModel>(createDynCtrlHandler, m_ContextProvider);
 
-            var ctrls = new List<IPropertyManagerPageElementEx>();
+            var ctrls = new Dictionary<int, IControl>();
 
             foreach (var binding in m_Page.Binding.Bindings) 
             {
@@ -120,17 +123,10 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
                 
                 var ctrl = binding.Control;
 
-                if (ctrl is IPropertyManagerPageElementEx)
-                {
-                    ctrls.Add((IPropertyManagerPageElementEx)ctrl);
-                }
-                else 
-                {
-                    m_Logger.Log($"Unrecognized control type: {ctrl?.GetType().FullName}", XCad.Base.Enums.LoggerMessageSeverity_e.Error);
-                }
+                ctrls.Add(ctrl.Id, ctrl);
             }
 
-            Controls = ctrls.ToArray();
+            m_Controls = ctrls;
         }
 
         private void ValidateHandler(SwPropertyManagerPageHandler handler)
@@ -180,6 +176,10 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
                 }
 
                 m_Page.Dispose();
+
+                Handler.Keystroke -= OnKeystroke;
+                Handler.Closed -= OnClosed;
+                Handler.Closing -= OnClosing;
 
                 m_IsDisposed = true;
 
@@ -236,6 +236,17 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
 
         private void OnClosing(swPropertyManagerPageCloseReasons_e reason, PageClosingArg arg)
             => Closing?.Invoke(ConvertReason(reason), arg);
+
+        private bool OnKeystroke(int wParam, int message, int lParam, int id)
+        {
+            var handled = false;
+
+            m_Controls.TryGetValue(id, out var ctrl);
+
+            KeystrokeHook?.Invoke(ctrl, message, new IntPtr(wParam), new IntPtr(lParam), ref handled);
+
+            return handled;
+        }
 
         public void Close(bool cancel) => m_Page.Page.Close(!cancel);
     }

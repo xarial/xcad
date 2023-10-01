@@ -16,7 +16,7 @@ namespace Xarial.XCad.Sketch
     /// <summary>
     /// Represents an instance of <see cref="IXSketchBlockDefinition"/>
     /// </summary>
-    public interface IXSketchBlockInstance : IXSketchEntity, IXFeature
+    public interface IXSketchBlockInstance : IXSketchEntity, IXFeature, IHasLayer
     {
         /// <summary>
         /// Definition of this sketch block instance
