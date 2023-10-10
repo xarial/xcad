@@ -13,6 +13,7 @@ using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.SolidWorks;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SwDocumentManager.Documents;
+using Xarial.XCad.SwDocumentManager.Exceptions;
 
 namespace SolidWorksDocMgr.Tests.Integration
 {
@@ -78,6 +79,22 @@ namespace SolidWorksDocMgr.Tests.Integration
 
             CollectionAssert.AreEqual(new string[] { "Part1-1", "Part1-3", "Part1-4", "Part1-5", "Part1-6", "Part1-7", "Part1-8", "Part1-9", "Part1-10", "Part1-11", "Part1-12", "Part1-13", "SubAssem1-1" }, rootCompNames);
             CollectionAssert.AreEqual(new string[] { "SubAssem1-1/Part2-1", "SubAssem1-1/Part2-2", "SubAssem1-1/Part2-3", "SubAssem1-1/Part2-4" }, subCompNames);
+        }
+
+        [Test]
+        public void IterateComponentsSpeedPakTest()
+        {
+            string[] flattenCompNames;
+
+            using (var doc = OpenDataDocument(@"Assembly17\Assem17.SLDASM"))
+            {
+                var assm = (IXAssembly)m_App.Documents.Active;
+                flattenCompNames = assm.Configurations.Active.Components.TryFlatten().Select(c => c.FullName).ToArray();
+
+                Assert.Throws<SpeedPakConfigurationComponentsException>(() => assm.Configurations.Active.Components["SubAssem1-1"].Children.ToArray());
+            }
+
+            CollectionAssert.AreEquivalent(new string[] { "SubAssem1-2/Part1-1", "SubAssem1-1", "SubAssem1-2" }, flattenCompNames);
         }
 
         [Test]
@@ -248,7 +265,7 @@ namespace SolidWorksDocMgr.Tests.Integration
 
             using (var doc = OpenDataDocument(@"MovedNonOpenedAssembly1\TopAssembly.SLDASM"))
             {
-                var comps = ((ISwDmAssembly)m_App.Documents.Active).Configurations.Active.Components.Flatten().ToArray();
+                var comps = ((ISwDmAssembly)m_App.Documents.Active).Configurations.Active.Components.TryFlatten().ToArray();
                 paths = comps.Select(c => c.ReferencedDocument.Path).ToArray();
                 isCommitted = comps.Select(c => c.ReferencedDocument.IsCommitted).ToArray();
             }
@@ -269,7 +286,7 @@ namespace SolidWorksDocMgr.Tests.Integration
 
             using (var doc = OpenDataDocument(@"Assembly3\Assemblies\Assem1.SLDASM"))
             {
-                var comps = ((ISwDmAssembly)m_App.Documents.Active).Configurations.Active.Components.Flatten().ToArray();
+                var comps = ((ISwDmAssembly)m_App.Documents.Active).Configurations.Active.Components.TryFlatten().ToArray();
                 paths = comps.Select(c => c.ReferencedDocument.Path).ToArray();
                 isCommitted = comps.Select(c => c.ReferencedDocument.IsCommitted).ToArray();
             }
@@ -592,10 +609,10 @@ namespace SolidWorksDocMgr.Tests.Integration
                 using (var doc = OpenDataDocument(Path.Combine(destPath, "TopLevel\\Assem1.sldasm")))
                 {
                     var assm = (ISwDmAssembly)doc.Document;
-                    refs = assm.Configurations.Active.Components.Flatten()
+                    refs = assm.Configurations.Active.Components.TryFlatten()
                         .ToDictionary(x => x.FullName, x => new Tuple<string, bool>(x.ReferencedDocument.Path.ToLower(), x.ReferencedDocument.IsCommitted), StringComparer.CurrentCultureIgnoreCase);
 
-                    foreach (var comp in assm.Configurations.Active.Components.Flatten().ToArray()) 
+                    foreach (var comp in assm.Configurations.Active.Components.TryFlatten().ToArray()) 
                     {
                         var refDoc = comp.ReferencedDocument;
 
@@ -673,7 +690,7 @@ namespace SolidWorksDocMgr.Tests.Integration
             {
                 var assm = (ISwDmAssembly)m_App.Documents.Active;
 
-                var comps = assm.Configurations.Active.Components.Flatten().ToArray();
+                var comps = assm.Configurations.Active.Components.TryFlatten().ToArray();
 
                 compNames = comps.Select(c => c.Name).ToArray();
                 suppStates = comps.Select(c => c.State.HasFlag(ComponentState_e.Suppressed)).ToArray();
@@ -710,8 +727,8 @@ namespace SolidWorksDocMgr.Tests.Integration
             {
                 var assm = (ISwDmAssembly)m_App.Documents.Active;
 
-                var compsDef = assm.Configurations["Default"].Components.Flatten().ToArray();
-                var compsConf1 = assm.Configurations["Conf1"].Components.Flatten().ToArray();
+                var compsDef = assm.Configurations["Default"].Components.TryFlatten().ToArray();
+                var compsConf1 = assm.Configurations["Conf1"].Components.TryFlatten().ToArray();
 
                 compNamesDef = compsDef.Select(c => c.Name).ToArray();
                 compNamesConf1 = compsConf1.Select(c => c.Name).ToArray();

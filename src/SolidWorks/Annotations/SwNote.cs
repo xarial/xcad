@@ -210,6 +210,9 @@ namespace Xarial.XCad.SolidWorks.Annotations
             }
 
             note.SetTextJustification((int)textJustSw);
+
+            //NOTE: boundary of the note does not update until note is refreshed (e.g. hidden/shown, selected)
+            base.Refresh();
         }
     }
 }

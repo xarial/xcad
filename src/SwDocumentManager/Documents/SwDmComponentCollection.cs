@@ -20,6 +20,7 @@ using Xarial.XCad.Exceptions;
 using System.Threading;
 using Xarial.XCad.Toolkit.Utils;
 using Xarial.XCad.Documents.Delegates;
+using Xarial.XCad.SwDocumentManager.Exceptions;
 
 namespace Xarial.XCad.SwDocumentManager.Documents
 {
@@ -42,7 +43,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         private readonly Dictionary<string, SwDmComponent> m_ComponentsCache;
 
-        internal SwDmComponentCollection(SwDmAssembly parentAssm, ISwDmConfiguration conf) 
+        internal SwDmComponentCollection(SwDmAssembly parentAssm, ISwDmConfiguration conf)
         {
             m_ParentAssm = parentAssm;
             m_Conf = conf;
@@ -53,13 +54,21 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         public IXComponent this[string name] => RepositoryHelper.Get(this, name);
 
-        public int Count 
-            => (((ISwDMConfiguration2)m_Conf.Configuration).GetComponents() as object[])?.Length ?? 0;
+        public int Count
+        {
+            get
+            {
+                ValidateSpeedPak(m_Conf.Configuration);
+                return GetComponents(m_Conf.Configuration).Length;
+            }
+        }
 
         public int TotalCount 
         {
             get 
             {
+                ValidateSpeedPak(m_Conf.Configuration);
+
                 var totalCount = 0;
 
                 var cachedCount = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
@@ -69,10 +78,24 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                 return totalCount;
             }
         }
+
+        private object[] GetComponents(ISwDMConfiguration conf) 
+        {
+            ValidateSpeedPak(conf);
+            return ((ISwDMConfiguration2)conf).GetComponents() as object[] ?? new object[0];
+        }
+
+        private void ValidateSpeedPak(ISwDMConfiguration conf) 
+        {
+            if (((ISwDMConfiguration11)conf).IsSpeedPak())
+            {
+                throw new SpeedPakConfigurationComponentsException();
+            }
+        }
         
         private void CountComponents(ISwDMConfiguration conf, Dictionary<string, int> cachedCount, ref int totalCount) 
         {
-            foreach (ISwDMComponent6 comp in ((ISwDMConfiguration2)conf).GetComponents() as object[] ?? new object[0])
+            foreach (ISwDMComponent6 comp in GetComponents(conf))
             {
                 totalCount++;
 
@@ -132,10 +155,8 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         {
             if (m_Conf.IsCommitted)
             {
-                //if the parent documetn was closed calling the below method will open the document into the memory
-                return (((ISwDMConfiguration2)m_Conf.Configuration)
-                    .GetComponents() as object[] ?? new object[0])
-                    .Cast<ISwDMComponent>();
+                //if the parent document was closed calling the below method will open the document into the memory
+                return GetComponents(m_Conf.Configuration).Cast<ISwDMComponent>();
             }
             else
             {
@@ -145,7 +166,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         public IEnumerator<IXComponent> GetEnumerator()
             => IterateDmComponents()
-            .Select(c => CreateComponentInstance(c))
+            .Select(CreateComponentInstance)
             .GetEnumerator();
 
         public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters) => RepositoryHelper.FilterDefault(this, filters, reverseOrder);

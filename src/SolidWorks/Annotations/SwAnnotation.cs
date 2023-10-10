@@ -11,6 +11,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading;
+using System.Windows.Documents;
 using Xarial.XCad.Annotations;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Geometry.Structures;
@@ -179,6 +180,18 @@ namespace Xarial.XCad.SolidWorks.Annotations
                 }
 
                 ann.LayerOverride = (int)layerOverride;
+            }
+        }
+
+        protected void Refresh() 
+        {
+            var origVisible = Annotation.Visible;
+
+            if (origVisible != (int)swAnnotationVisibilityState_e.swAnnotationHidden)
+            {
+                Annotation.Visible = (int)swAnnotationVisibilityState_e.swAnnotationHidden;
+
+                Annotation.Visible = origVisible;
             }
         }
     }
