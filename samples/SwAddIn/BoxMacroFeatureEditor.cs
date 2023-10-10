@@ -236,7 +236,7 @@ namespace SwAddInExample
             shouldHidePreviewEdit = null;
             assignPreviewColor = AssignPreviewBodyColor;
             page.Parameters.UpdateSize();
-            return CreateGeometry(app, model, feat, out _).Cast<ISwTempBody>().ToArray();
+            return CreateGeometry(app, model, feat, out _)?.Cast<ISwTempBody>().ToArray();
         }
 
         private void AssignPreviewBodyColor(IXBody body, out Color color)

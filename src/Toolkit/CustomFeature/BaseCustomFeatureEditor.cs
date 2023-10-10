@@ -201,18 +201,21 @@ namespace Xarial.XCad.Utils.CustomFeature
 
         private void DisplayPreview(IXMemoryBody[] bodies, AssignPreviewBodyColorDelegate assignPreviewBodyColorDelegateFunc)
         {
-            var previewContext = CurrentPreviewContext;
-
-            if (previewContext == null)
+            if (bodies?.Any() == true)
             {
-                throw new Exception("Preview context is not specified");
-            }
+                var previewContext = CurrentPreviewContext;
 
-            foreach (var body in bodies)
-            {
-                assignPreviewBodyColorDelegateFunc.Invoke(body, out Color color);
+                if (previewContext == null)
+                {
+                    throw new Exception("Preview context is not specified");
+                }
 
-                body.Preview(previewContext, color);
+                foreach (var body in bodies)
+                {
+                    assignPreviewBodyColorDelegateFunc.Invoke(body, out Color color);
+
+                    body.Preview(previewContext, color);
+                }
             }
         }
 
@@ -470,7 +473,7 @@ namespace Xarial.XCad.Utils.CustomFeature
 
                         HideEditBodies(shouldHidePreviewEdit);
 
-                        if (m_PreviewBodies != null)
+                        if (m_PreviewBodies?.Any() == true)
                         {
                             DisplayPreview(m_PreviewBodies, assignPreviewColor);
                         }

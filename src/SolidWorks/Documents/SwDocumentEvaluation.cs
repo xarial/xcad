@@ -28,12 +28,12 @@ namespace Xarial.XCad.SolidWorks.Documents
     internal abstract class SwDocumentEvaluation : ISwDocumentEvaluation
     {
         private readonly SwDocument3D m_Doc;
-        protected readonly IMathUtility m_MathUtils;
+        protected readonly Lazy<IMathUtility> m_MathUtilsLazy;
 
         internal SwDocumentEvaluation(SwDocument3D doc) 
         {
             m_Doc = doc;
-            m_MathUtils = m_Doc.OwnerApplication.Sw.IGetMathUtility();
+            m_MathUtilsLazy = new Lazy<IMathUtility>(() => m_Doc.OwnerApplication.Sw.IGetMathUtility());
         }
 
         public abstract IXBoundingBox PreCreateBoundingBox();
@@ -42,11 +42,11 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
             if (m_Doc.OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2020))
             {
-                return new SwMassProperty(m_Doc, m_MathUtils);
+                return new SwMassProperty(m_Doc, m_MathUtilsLazy.Value);
             }
             else
             {
-                return new SwLegacyMassProperty(m_Doc, m_MathUtils);
+                return new SwLegacyMassProperty(m_Doc, m_MathUtilsLazy.Value);
             }
         }
 
@@ -108,11 +108,11 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
             if (m_Assm.OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2020))
             {
-                return new SwAssemblyMassProperty(m_Assm, m_MathUtils);
+                return new SwAssemblyMassProperty(m_Assm, m_MathUtilsLazy.Value);
             }
             else
             {
-                return new SwAssemblyLegacyMassProperty(m_Assm, m_MathUtils);
+                return new SwAssemblyLegacyMassProperty(m_Assm, m_MathUtilsLazy.Value);
             }
         }
 
