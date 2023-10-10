@@ -403,6 +403,13 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         protected virtual void DispatchPostBuildData(MacroFeatureRegenerateData data)
             => m_PostRebuild?.Invoke(data.Application, data.Document, data.Feature);
 
+        /// <summary>
+        /// This handle is called everytime macro feature needs to update the state
+        /// </summary>
+        /// <param name="app">Application</param>
+        /// <param name="model">Document</param>
+        /// <param name="feature">Feature to update state</param>
+        /// <returns></returns>
         public virtual CustomFeatureState_e OnUpdateState(ISwApplication app, ISwDocument model, ISwMacroFeature feature)
             => CustomFeatureState_e.Default;
 
@@ -411,9 +418,33 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             switch (res)
             {
                 case CustomFeatureBodyRebuildResult bodyRes:
-                    //TODO: validate if any non SwBody in the array
+                    
                     //TODO: get updateEntityIds from the parameters
-                    return GetBodyResult(app, model, bodyRes.Bodies?.OfType<SwBody>().Select(b => b.Body), featData, true);
+                    var bodiesSw = new List<IBody2>();
+
+                    if (bodyRes.Bodies != null) 
+                    {
+                        foreach (var body in bodyRes.Bodies) 
+                        {
+                            if (body is ISwBody)
+                            {
+                                bodiesSw.Add(((ISwBody)body).Body);
+                            }
+                            else 
+                            {
+                                throw new InvalidCastException($"Only bodies of type '{nameof(ISwBody)}' are supported");
+                            }
+                        }
+                    }
+
+                    if (bodiesSw.Any())
+                    {
+                        return GetBodyResult(app, model, bodiesSw.ToArray(), featData, true);
+                    }
+                    else 
+                    {
+                        return GetStatusResult(true, "");
+                    }
 
                 default:
                     return GetStatusResult(res.Result, res.ErrorMessage);
@@ -708,12 +739,15 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
     {
         IXBody[] IXCustomFeatureDefinition<TParams, TPage>.CreateGeometry(
             IXApplication app, IXDocument doc, IXCustomFeature<TParams> feat, out AlignDimensionDelegate<TParams> alignDim)
-            => CreateGeometry((ISwApplication)app, (ISwDocument)doc, (ISwMacroFeature<TParams>)feat, out alignDim).Cast<SwBody>().ToArray();
+            => CreateGeometry((ISwApplication)app, (ISwDocument)doc, (ISwMacroFeature<TParams>)feat, out alignDim)?.Cast<SwBody>().ToArray();
 
         private readonly Lazy<SwMacroFeatureEditor<TParams, TPage>> m_Editor;
 
         private readonly CustomFeatureParametersParser m_ParamsParser;
 
+        /// <summary>
+        /// Default constructor
+        /// </summary>
         public SwMacroFeatureDefinition()
         {
             m_ParamsParser = new CustomFeatureParametersParser();
@@ -818,7 +852,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 
         /// <inheritdoc/>
         public virtual ISwTempBody[] CreatePreviewGeometry(ISwApplication app, ISwDocument doc, ISwMacroFeature<TParams> feat, TPage page)
-            => CreateGeometry(app, doc, feat, out _).Cast<ISwTempBody>().ToArray();
+            => CreateGeometry(app, doc, feat, out _)?.Cast<ISwTempBody>().ToArray();
 
         /// <inheritdoc/>
         public IXMemoryBody[] CreatePreviewGeometry(IXApplication app, IXDocument doc, IXCustomFeature<TParams> feat, TPage page,
@@ -853,7 +887,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
                 (obj, prp) => { });
 
             return CreatePreviewGeometry((ISwApplication)app, (ISwDocument)doc, (ISwMacroFeature<TParams>)feat, page,
-                out shouldHidePreviewEdit, out assignPreviewColor).Cast<SwTempBody>().ToArray();
+                out shouldHidePreviewEdit, out assignPreviewColor)?.Cast<SwTempBody>().ToArray();
         }
 
         /// <inheritdoc/>
@@ -874,7 +908,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             ISwMacroFeature<TParams> feature, out AlignDimensionDelegate<TParams> alignDim)
             => new CustomFeatureBodyRebuildResult()
             {
-                Bodies = CreateGeometry(app, doc, feature, out alignDim).ToArray()
+                Bodies = CreateGeometry(app, doc, feature, out alignDim)?.ToArray()
             };
 
         /// <summary>
