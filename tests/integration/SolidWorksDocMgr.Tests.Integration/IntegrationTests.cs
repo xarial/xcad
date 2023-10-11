@@ -45,7 +45,7 @@ namespace SolidWorksDocMgr.Tests.Integration
     public abstract class IntegrationTests
     {
         private const string DATA_FOLDER = @"C:\Users\artem\OneDrive\xCAD\TestData";
-        private SwVersion_e? SW_VERSION = SwVersion_e.Sw2022;
+        private SwVersion_e? SW_VERSION = SwVersion_e.Sw2023;
 
         protected ISwDmApplication m_App;
 
