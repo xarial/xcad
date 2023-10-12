@@ -189,9 +189,9 @@ namespace Xarial.XCad.SolidWorks.Annotations
 
             if (origVisible != (int)swAnnotationVisibilityState_e.swAnnotationHidden)
             {
-                Annotation.Visible = (int)swAnnotationVisibilityState_e.swAnnotationHidden;
+                ann.Visible = (int)swAnnotationVisibilityState_e.swAnnotationHidden;
 
-                Annotation.Visible = origVisible;
+                ann.Visible = origVisible;
             }
         }
     }
