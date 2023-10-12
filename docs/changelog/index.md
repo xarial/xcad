@@ -10,6 +10,7 @@ Breaking change is marked with &#x26A0; symbol
 
 ## 0.8.0
 
+* &#x26A0; - XComponentRepositoryExtension::Flatten is renamed to XComponentRepositoryExtension::TryFlatten
 * &#x26A0; - Removed **OptionBoxStyle_e** and **OptionBoxOptionsAttribute::Style**
 * &#x26A0; - SelectType_e enumeration is removed. Use Type to specify the selection filter for the SelectionBoxOptionsAttribute::Filters or use SwSelectionBoxOptionsAttribute::Filters to specify SOLIDWORKS specific filters via swSelectionType_e. Use ContextMenuCommandItemInfoAttribute::Owner to set the Type of the owner entity or use SwContextMenuCommandItemInfoAttribute::Owner to set the SOLIDWORKS specific owner via swSelectionType_e
 * &#x26A0; - Point::Scale/Vector::Scale are not do not modify the values of the original object rather return new scaled result
