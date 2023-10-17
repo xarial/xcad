@@ -136,7 +136,7 @@ namespace Xarial.XCad.SolidWorks.Annotations
             {
                 if (IsCommitted)
                 {
-                    SetTextJustification(m_Note, value);
+                    SetTextJustification(Note, Annotation, value);
                 }
                 else
                 {
@@ -168,7 +168,7 @@ namespace Xarial.XCad.SolidWorks.Annotations
 
             if (m_Creator.CachedProperties.Has<TextJustification_e>(nameof(TextJustification)))
             {
-                SetTextJustification(m_Note, TextJustification);
+                SetTextJustification(m_Note, ann, TextJustification);
             }
 
             if (Font != null) 
@@ -183,7 +183,7 @@ namespace Xarial.XCad.SolidWorks.Annotations
             return ann;
         }
 
-        private void SetTextJustification(INote note, TextJustification_e textJust)
+        private void SetTextJustification(INote note, IAnnotation ann, TextJustification_e textJust)
         {
             swTextJustification_e textJustSw;
 
@@ -210,6 +210,9 @@ namespace Xarial.XCad.SolidWorks.Annotations
             }
 
             note.SetTextJustification((int)textJustSw);
+
+            //NOTE: boundary of the note does not update until note is refreshed (e.g. hidden/shown, selected)
+            base.Refresh(ann);
         }
     }
 }

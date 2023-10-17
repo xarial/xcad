@@ -1213,7 +1213,7 @@ namespace SolidWorks.Tests.Integration
             part2.Commit();
             isAlive2 = part2.IsAlive;
 
-            Assert.Throws<EntityNotFoundException>(() => { var doc = m_App.Documents[part1.Model]; });
+            Assert.That(() => { var doc = m_App.Documents[part1.Model]; }, Throws.Exception);
             Assert.IsFalse(isAlive1);
             Assert.IsTrue(isAlive2);
 

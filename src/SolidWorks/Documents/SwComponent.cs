@@ -30,6 +30,7 @@ using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Services;
 using Xarial.XCad.SolidWorks.Annotations;
 using Xarial.XCad.SolidWorks.Data;
+using Xarial.XCad.SolidWorks.Documents.Exceptions;
 using Xarial.XCad.SolidWorks.Documents.Services;
 using Xarial.XCad.SolidWorks.Features;
 using Xarial.XCad.SolidWorks.Geometry;
@@ -952,10 +953,12 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
             if (m_Comp.GetSuppressionState() != swComponentSuppressionState_e.swComponentSuppressed)
             {
+                ValidateSpeedPak();
+
                 foreach (var comp in new OrderedComponentsCollection(
                     () => ((object[])m_Comp.Component.GetChildren() ?? new object[0]).Cast<IComponent2>().ToArray(),
                     m_Comp.Component.FirstFeature(),
-                    m_Comp.OwnerApplication.Logger)) 
+                    m_Comp.OwnerApplication.Logger))
                 {
                     yield return comp;
                 }
@@ -987,6 +990,25 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        protected override int GetChildrenCount() => m_Comp.Component.IGetChildrenCount();
+        protected override int GetChildrenCount()
+        {
+            ValidateSpeedPak();
+            return m_Comp.Component.IGetChildrenCount();
+        }
+
+        private void ValidateSpeedPak() 
+        {
+            var isSpeedpak = false;
+
+            if (RootAssembly.OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2017))
+            {
+                isSpeedpak = m_Comp.Component.IsSpeedPak;
+            }
+
+            if (isSpeedpak)
+            {
+                throw new SpeedPakConfigurationComponentsException();
+            }
+        }
     }
 }

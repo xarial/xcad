@@ -144,6 +144,12 @@ namespace Xarial.XCad.SolidWorks.Documents
         private DocumentEventDelegate m_DocumentOpened;
         private DocumentEventDelegate m_NewDocumentCreated;
 
+        //NOTE: Creation of SwDocument has some additional API calls (e.g. subscribing the save event, caching the path)
+        //this may have a performance effect when called very often (e.g. within the IXCommandGroup.CommandStateResolve)
+        //cahcing of the document allows to reuse the instance and improves the performance
+        private IModelDoc2 m_CachedNativeDoc;
+        private SwDocument m_CachedDoc;
+
         public ISwDocument Active
         {
             get
@@ -379,27 +385,38 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         private SwDocument CreateDocument(IModelDoc2 nativeDoc)
         {
-            SwDocument doc;
-
-            switch (nativeDoc)
+            //NOTE: see the description of the m_CachedNativeDoc field
+            if (nativeDoc != null && m_CachedNativeDoc == nativeDoc)
             {
-                case IPartDoc part:
-                    doc = new SwPart(part, m_App, m_Logger, true);
-                    break;
-
-                case IAssemblyDoc assm:
-                    doc = new SwAssembly(assm, m_App, m_Logger, true);
-                    break;
-
-                case IDrawingDoc drw:
-                    doc = new SwDrawing(drw, m_App, m_Logger, true);
-                    break;
-
-                default:
-                    throw new NotSupportedException($"Invalid cast of '{nativeDoc.GetPathName()}' [{nativeDoc.GetTitle()}] of type '{((object)nativeDoc).GetType().FullName}'. Specific document type: {(swDocumentTypes_e)nativeDoc.GetType()}");
+                return m_CachedDoc;
             }
+            else
+            {
+                SwDocument doc;
 
-            return doc;
+                switch (nativeDoc)
+                {
+                    case IPartDoc part:
+                        doc = new SwPart(part, m_App, m_Logger, true);
+                        break;
+
+                    case IAssemblyDoc assm:
+                        doc = new SwAssembly(assm, m_App, m_Logger, true);
+                        break;
+
+                    case IDrawingDoc drw:
+                        doc = new SwDrawing(drw, m_App, m_Logger, true);
+                        break;
+
+                    default:
+                        throw new NotSupportedException($"Invalid cast of '{nativeDoc.GetPathName()}' [{nativeDoc.GetTitle()}] of type '{((object)nativeDoc).GetType().FullName}'. Specific document type: {(swDocumentTypes_e)nativeDoc.GetType()}");
+                }
+
+                m_CachedNativeDoc = nativeDoc;
+                m_CachedDoc = doc;
+
+                return doc;
+            }
         }
 
         public void Dispose()

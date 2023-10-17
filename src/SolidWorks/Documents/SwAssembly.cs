@@ -17,6 +17,7 @@ using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Delegates;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;
+using Xarial.XCad.SolidWorks.Documents.Exceptions;
 using Xarial.XCad.SolidWorks.Documents.Services;
 using Xarial.XCad.SolidWorks.Features;
 using Xarial.XCad.SolidWorks.Geometry;
@@ -179,12 +180,33 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
 
         protected override IEnumerable<IComponent2> IterateChildren()
-            => new OrderedComponentsCollection(
-                () => (m_Conf.GetRootComponent3(!IsActiveConfiguration).GetChildren() as object[] ?? new object[0]).Cast<IComponent2>().ToArray(),
-                m_Assm.Model.IFirstFeature(),
-                m_Assm.OwnerApplication.Logger);
+        {
+            ValidateSpeedPak();
 
-        protected override int GetTotalChildrenCount() => m_Assm.Assembly.GetComponentCount(false);
-        protected override int GetChildrenCount() => m_Assm.Assembly.GetComponentCount(true);
+            return new OrderedComponentsCollection(
+                    () => (m_Conf.GetRootComponent3(!IsActiveConfiguration).GetChildren() as object[] ?? new object[0]).Cast<IComponent2>().ToArray(),
+                    m_Assm.Model.IFirstFeature(),
+                    m_Assm.OwnerApplication.Logger);
+        }
+
+        protected override int GetTotalChildrenCount()
+        {
+            ValidateSpeedPak();
+            return m_Assm.Assembly.GetComponentCount(false);
+        }
+        
+        protected override int GetChildrenCount()
+        {
+            ValidateSpeedPak();
+            return m_Assm.Assembly.GetComponentCount(true);
+        }
+
+        private void ValidateSpeedPak() 
+        {
+            if (m_Conf.IsSpeedPak())
+            {
+                throw new SpeedPakConfigurationComponentsException();
+            }
+        }
     }
 }

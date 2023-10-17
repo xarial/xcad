@@ -1303,7 +1303,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
                 if (sheetMetalBody.Component != null) 
                 {
-                    sheetMetalBody = sheetMetalPart.ConvertObject<SwSolidBody>(sheetMetalBody);
+                    sheetMetalBody = sheetMetalPart.ConvertObject(sheetMetalBody);
                 }
 
                 //creating a temp view to generate a sheet metal configuration
@@ -1475,7 +1475,9 @@ namespace Xarial.XCad.SolidWorks.Documents
                 sheetMetalPart.Commit(cancellationToken);
             }
 
-            var sheetMetalBodiesCount = sheetMetalPart.Bodies.Count(b => ((ISwBody)b).Body.IsSheetMetal());
+            var bodies = sheetMetalPart.Bodies.ToArray();
+
+            var sheetMetalBodiesCount = bodies.Count(b => ((ISwBody)b).Body.IsSheetMetal());
 
             if (sheetMetalBodiesCount > 0)
             {
@@ -1487,10 +1489,9 @@ namespace Xarial.XCad.SolidWorks.Documents
                 var refConf = (ISwConfiguration)ReferencedConfiguration;
                 var viewName = "";
 
-                using (var multiBodyFlatPatternActivator = 
-                    sheetMetalBodiesCount > 1 
-                    ? new MultiBodyFlatPatternActivator(m_Drawing, sheetMetalBody, sheetMetalPart, ref refConf, ref viewName) 
-                    : null)
+                var isMultiBody = bodies.Length > 1;
+
+                using (isMultiBody ? new MultiBodyFlatPatternActivator(m_Drawing, sheetMetalBody, sheetMetalPart, ref refConf, ref viewName) : null)
                 {
                     return CreateFlatPatternView(sheetMetalPart, refConf, viewName);
                 }
