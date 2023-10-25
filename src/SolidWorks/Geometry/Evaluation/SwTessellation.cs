@@ -211,13 +211,20 @@ namespace Xarial.XCad.SolidWorks.Geometry.Evaluation
             {
                 var comps = (this as IXAssemblyTessellation).Scope;
 
-                if (comps == null)
+                if (comps?.Any() != true)
                 {
                     return base.Scope;
                 }
                 else
                 {
-                    return comps.SelectMany(c => c.IterateBodies(!VisibleOnly)).ToArray();
+                    var bodies = comps.SelectMany(c => c.IterateBodies(!VisibleOnly)).ToArray();
+
+                    if (bodies?.Any() != true)
+                    {
+                        throw new EvaluationFailedException("No bodies found in the component");
+                    }
+
+                    return bodies;
                 }
             }
             set => base.Scope = value;
