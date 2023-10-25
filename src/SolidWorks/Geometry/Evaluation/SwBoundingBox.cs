@@ -153,7 +153,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Evaluation
 
                 if (bodies?.Any() != true)
                 {
-                    throw new EvaluationFailedException();
+                    throw new EvaluationFailedException("No bodies found");
                 }
 
                 return ComputeBestFitBoundingBox(bodies, cancellationToken);
@@ -162,15 +162,9 @@ namespace Xarial.XCad.SolidWorks.Geometry.Evaluation
             {
                 if (Precise)
                 {
-                    IXBody[] bodies;
+                    var bodies = Scope;
 
-                    var scope = Scope;
-
-                    if (scope != null)
-                    {
-                        bodies = scope;
-                    }
-                    else
+                    if (bodies?.Any() != true)
                     {
                         bodies = GetAllBodies();
                     }
