@@ -174,8 +174,10 @@ namespace __TemplateNamePlaceholder__.Sw.AddIn
                         break;
                 }
             };
+#else
+            alignDim = null;
 #endif
-            
+
             return result;
         }
     }

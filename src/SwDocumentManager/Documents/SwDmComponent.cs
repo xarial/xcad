@@ -77,7 +77,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             m_PathLazy = new Lazy<string>(() => 
             {
                 var rootDir = Path.GetDirectoryName(ParentAssembly.Path);
-
+                
                 var cachedPath = CachedPath;
 
                 var changedPath = ParentAssembly.ChangedReferences.EnumerateByFileName(cachedPath).LastOrDefault();
@@ -86,8 +86,26 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                 {
                     cachedPath = changedPath;
                 }
+                
+                try
+                {
+                    return m_FilePathResolver.ResolvePath(rootDir, cachedPath);
+                }
+                catch
+                {
+                    //if component is inserted into the virtual sub-assembly it needs to be searched in the first non-virtual parent path
+                    //as it won't be present in the virtual temp directory
+                    var nonVirtRootDir = GetFirstNonVirtualParentDirectry();
 
-                return m_FilePathResolver.ResolvePath(rootDir, cachedPath);
+                    if (!string.Equals(rootDir, nonVirtRootDir, StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        return m_FilePathResolver.ResolvePath(nonVirtRootDir, cachedPath);
+                    }
+                    else 
+                    {
+                        throw;
+                    }
+                }
             });
 
             m_ChildrenLazy = new Lazy<IXComponentRepository>(() => 
@@ -108,6 +126,25 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                     return new EmptyComponentCollection();
                 }
             });
+        }
+
+        private string GetFirstNonVirtualParentDirectry() 
+        {
+            var comp = this;
+
+            while (comp != null)
+            {
+                var parentComp = comp.Parent;
+
+                if (parentComp == null || !((ISwDMComponent3)parentComp.Component).IsVirtual) 
+                {
+                    return Path.GetDirectoryName(comp.ParentAssembly.Path);
+                }
+
+                comp = parentComp;
+            }
+
+            throw new Exception("Failed to find the non-virtual component parent directory");
         }
 
         public string Name

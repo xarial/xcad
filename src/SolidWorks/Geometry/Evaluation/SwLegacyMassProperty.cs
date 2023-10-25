@@ -288,7 +288,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Evaluation
 
                 var scope = Scope;
 
-                if (scope == null)
+                if (scope?.Any() != true)
                 {
                     if (VisibleOnly)
                     {
@@ -296,16 +296,9 @@ namespace Xarial.XCad.SolidWorks.Geometry.Evaluation
                     }
                 }
 
-                if (scope == null)
+                if (scope?.Any() != true)
                 {
                     if (!IterateRootSolidBodies(!VisibleOnly).Any())
-                    {
-                        throw new EvaluationFailedException();
-                    }
-                }
-                else
-                {
-                    if (!scope.Any())
                     {
                         throw new EvaluationFailedException();
                     }

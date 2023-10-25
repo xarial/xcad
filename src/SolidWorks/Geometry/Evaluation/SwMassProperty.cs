@@ -378,7 +378,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Evaluation
 
                 var scope = GetSpecificSelectionScope();
 
-                if (scope != null)
+                if (scope?.Any() == true)
                 {
                     massPrps.SelectedItems = scope;
                 }

@@ -144,15 +144,9 @@ namespace Xarial.XCad.SolidWorks.Geometry.Evaluation
         {
             if (BestFit)
             {
-                IXBody[] bodies;
+                var bodies = Scope;
 
-                var scope = Scope;
-
-                if (scope != null)
-                {
-                    bodies = scope;
-                }
-                else
+                if (bodies?.Any() != true)
                 {
                     bodies = GetAllBodies();
                 }
