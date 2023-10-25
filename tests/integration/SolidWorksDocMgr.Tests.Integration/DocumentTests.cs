@@ -317,14 +317,28 @@ namespace SolidWorksDocMgr.Tests.Integration
                 Assert.AreEqual(8, deps.Length);
 
                 Assert.IsNotNull(d1);
+                Assert.IsNotNull(d2);
+                Assert.IsNotNull(d3);
                 Assert.IsNotNull(d4);
+                Assert.IsNotNull(d5);
                 Assert.IsNotNull(d6);
+                Assert.IsNotNull(d7);
                 Assert.IsNotNull(d8);
-                Assert.That(string.Equals(d2.Path, Path.Combine(srcPath, "Part2.SLDPRT"), StringComparison.CurrentCultureIgnoreCase));
-                Assert.That(string.Equals(d3.Path, Path.Combine(srcPath, "Assem2.sldasm"), StringComparison.CurrentCultureIgnoreCase));
+
+                Assert.IsTrue(d1.IsCommitted);
+                Assert.IsFalse(d2.IsCommitted);
+                Assert.IsFalse(d3.IsCommitted);
+                Assert.IsTrue(d4.IsCommitted);
+                Assert.IsTrue(d5.IsCommitted);
+                Assert.IsTrue(d6.IsCommitted);
+                Assert.IsTrue(d7.IsCommitted);
+                Assert.IsTrue(d8.IsCommitted);
+
+                Assert.That(string.Equals(Path.GetFileName(d2.Path), "Part2.SLDPRT", StringComparison.CurrentCultureIgnoreCase));
+                Assert.That(string.Equals(Path.GetFileName(d3.Path), "Assem2.sldasm", StringComparison.CurrentCultureIgnoreCase));
                 Assert.Throws<OpenDocumentFailedException>(() => d2.Commit());
                 Assert.Throws<OpenDocumentFailedException>(() => d3.Commit());
-                //Assert.That(string.Equals(d5.Path, Path.Combine(destPath, "Part4.SLDPRT"), StringComparison.CurrentCultureIgnoreCase)); - SOLIDWORKS does not follow the path resolution for the components of virtual component
+                //Assert.That(string.Equals(d5.Path, Path.Combine(destPath, "Part4.SLDPRT"), StringComparison.CurrentCultureIgnoreCase));//NOTE: SOLIDWORKS does not follow the path resolution for the components of virtual component
                 Assert.That(string.Equals(d7.Path, Path.Combine(destPath, "Assem4.sldasm"), StringComparison.CurrentCultureIgnoreCase));
 
                 d1.Close();

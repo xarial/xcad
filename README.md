@@ -185,7 +185,7 @@ private static void IterateComponentsRecursively(IXComponentRepository compsRepo
 
 ## Target Frameworks
 
-xCAD.NET is compatible with multiple target frameworks: .NET Framework 4.6.1, .NET Core 3.1 and .NET 6.0 and number of additional computed target frameworks (e.g. .NET Framework 4.8)
+xCAD.NET is compatible with multiple target frameworks: .NET Framework 4.6.1, .NET Core 3.1, .NET 6.0, .NET 7.0 and number of additional computed target frameworks (e.g. .NET Framework 4.8)
 
 When building the SOLIDWORKS add-ins see the information below
 
@@ -229,3 +229,15 @@ public static void UnregisterFunction(Type t)
 Watch the [video demonstrations YouTube playlist](https://www.youtube.com/watch?v=YLFwqTX_V2I&list=PLZ8T-hyutVIEXMFgJ462Ou6Szjk26gPVo) of xCAD in action.
 
 Visit [User Guide](https://xcad.net) page and start exploring the framework.
+
+## Unit Tests
+
+Solution contains unit and integration tests
+
+To execute integration tests
+
+* Download the [Test Data](https://1drv.ms/u/s!AjSRTGmPuUunpFTsZGgl4gfyjLRg?e=kZuO5c)
+* Unzip into the folder
+* Create an environment variable **XCAD_TEST_DATA** and set its value to the path of the folder above
+* To test SOLIDWORKS Document Manager, add an environment variable **SW_DM_KEY** and set its value to your [Document Manager Key](https://www.codestack.net/solidworks-document-manager-api/getting-started/create-connection#activating-document-manager)
+* Run tests
