@@ -82,6 +82,28 @@ namespace Xarial.XCad.SolidWorks.Documents
             set => m_Doc.SetUserPreferenceToggle(swUserPreferenceToggle_e.swDisplaySketches, value);
         }
 
+        public bool BendLines
+        {
+            get
+            {
+                if (m_Doc.OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2022))
+                {
+                    return m_Doc.GetUserPreferenceToggle(swUserPreferenceToggle_e.swDisplayBendLines);
+                }
+                else 
+                {
+                    return Sketches;
+                }
+            }
+            set
+            {
+                if (m_Doc.OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2022))
+                {
+                    m_Doc.SetUserPreferenceToggle(swUserPreferenceToggle_e.swDisplayBendLines, value);
+                }
+            }
+        }
+
         public bool SketchDimensions
         {
             get => m_Doc.GetUserPreferenceToggle(swUserPreferenceToggle_e.swHideShowSketchDimensions);

@@ -1042,7 +1042,8 @@ namespace SwAddInExample
                 sheet.Scale = new Scale(1, 1);
                 drw.Commit();
 
-                var swDraw = ((ISwDrawing)drw).Model;
+                var showBendLines = drw.Options.ViewEntityKindVisibility.BendLines;
+                drw.Options.ViewEntityKindVisibility.BendLines = true;
 
                 sheet = drw.Sheets.First();
                 var flatPatternView = sheet.DrawingViews.PreCreate<IXFlatPatternDrawingView>();
