@@ -657,6 +657,7 @@ namespace SolidWorks.Tests.Integration
             Assert.That(deps.Any(d => string.Equals(d.Path, Path.Combine(dir, "Part1.SLDPRT"))));
         }
 
+        //NOTE: SW 2024 - 3D interconnect files are not listed in the dependencies (including Find References from the UI)
         [Test]
         public void DocumentDependencies3DInterconnect()
         {

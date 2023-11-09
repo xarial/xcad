@@ -193,6 +193,7 @@ namespace SolidWorks.Tests.Integration
             }
         }
 
+        //NOTE: SW 2024 the selected component is always a root component
         [Test]
         public void GetDocumentLdrTest()
         {
@@ -218,6 +219,7 @@ namespace SolidWorks.Tests.Integration
             Assert.IsFalse(doc1IsCommitted);
         }
 
+        //NOTE: SW 2024, 'Lights, Cameras and Themes' feature is renamed to 'Lights and Cameras' (index 11)
         [Test]
         public void IterateFeaturesTest()
         {

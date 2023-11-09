@@ -13,6 +13,7 @@ namespace SolidWorks.Tests.Integration
 {
     public class FeaturesTests : IntegrationTests
     {
+        //NOTE: SW 2024, 'Lights, Cameras and Themes' feature is renamed to 'Lights and Cameras' (index 11)
         [Test]
         public void IterateFeaturesTest()
         {

@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 using Xarial.XCad;
 using Xarial.XCad.Base.Attributes;
 using Xarial.XCad.Base.Enums;
+using Xarial.XCad.Features;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.SolidWorks.UI.PropertyPage;
 using Xarial.XCad.UI.PropertyPage.Attributes;
@@ -41,7 +42,7 @@ namespace __TemplateNamePlaceholder__.Sw.AddIn
             //any selectable entity will be rendered as the selection box
             //default filter will only allow selection of faces and planes and custom filter will additionally
             //excluded non planar faces
-            [SelectionBoxOptions(Filters = new SelectType_e[] { SelectType_e.Faces, SelectType_e.Planes },
+            [SelectionBoxOptions(Filters = new Type[] { typeof(IXFace), typeof(IXPlane) },
                 CustomFilter = typeof(PlanarRegionSelectionFilter))]
             [StandardControlIcon(BitmapLabelType_e.SelectFace)]
             [Description("Face or plane to place cylinder on")]
