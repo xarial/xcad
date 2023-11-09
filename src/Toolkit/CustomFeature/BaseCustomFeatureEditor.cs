@@ -366,8 +366,17 @@ namespace Xarial.XCad.Utils.CustomFeature
 
             CompleteFeature(reason);
 
-            var reusableParams = Definition.ConvertPageToParams(
-                m_App, CurrentDocument, m_CurPageData, cachedParams);
+            TData reusableParams;
+
+            if (m_IsApplying)
+            {
+                reusableParams = Definition.ConvertPageToParams(
+                    m_App, CurrentDocument, m_CurPageData, cachedParams);
+            }
+            else 
+            {
+                reusableParams = default;
+            }
 
             m_CurEditor?.Dispose();
 

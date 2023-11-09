@@ -140,7 +140,7 @@ namespace __TemplateNamePlaceholder__.Sw.AddIn
                     {
                         throw new UserException("Edit body is not specified");
                     }
-                    result = new ISwBody[] { ((ISwMacroFeatureEditBody)data.EditBody).Add(cylinder) };
+                    result = new ISwBody[] { ((ISwTempBody)data.EditBody).Add(cylinder) };
                     break;
 
                 case BooleanOptions_e.Cut:
@@ -148,7 +148,7 @@ namespace __TemplateNamePlaceholder__.Sw.AddIn
                     {
                         throw new UserException("Edit body is not specified");
                     }
-                    result = ((ISwMacroFeatureEditBody)data.EditBody).Substract(cylinder);
+                    result = ((ISwTempBody)data.EditBody).Substract(cylinder);
                     break;
 
                 default:
