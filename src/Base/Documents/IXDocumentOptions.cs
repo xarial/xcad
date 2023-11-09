@@ -64,6 +64,11 @@ namespace Xarial.XCad.Documents
         bool Sketches { get; set; }
 
         /// <summary>
+        /// Sheet Metal Bend Lines
+        /// </summary>
+        bool BendLines { get; set; }
+
+        /// <summary>
         /// Sketch Dimensions
         /// </summary>
         bool SketchDimensions { get; set; }
