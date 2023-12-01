@@ -31,6 +31,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
     internal class SwModelViewsCollection : ISwModelViewsCollection
     {
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
         IXModelView IXRepository<IXModelView>.this[string name] => this[name];
         IXModelView IXModelViewRepository.Active => Active;
 
@@ -43,7 +44,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             m_App = app;
         }
 
-        public int Count => throw new NotImplementedException();
+        public int Count => m_Doc.Model.GetModelViewCount() - 1;
 
         public ISwModelView Active
         {
@@ -55,7 +56,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                 {
                     return m_Doc.CreateObjectFromDispatch<ISwModelView>(activeView);
                 }
-                else 
+                else
                 {
                     return null;
                 }
@@ -66,28 +67,79 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public bool TryGet(string name, out IXModelView ent)
         {
-            var viewNames = m_Doc.Model.GetModelViewNames() as string[];
+            var view = IterateModelViews().OfType<SwNamedView>()
+                .FirstOrDefault(v => string.Equals(name, v.Name, StringComparison.CurrentCultureIgnoreCase));
 
-            if (viewNames.Contains(name, StringComparer.CurrentCultureIgnoreCase))
-            {
-                //TODO: move the view creation to SwObject.FromDispatch
-                ent = new SwNamedView(null, m_Doc, m_App, name);
-                return true;
-            }
-            else
-            {
-                ent = null;
-                return false;
-            }
+            ent = view;
+            return view != null;
         }
 
         public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters) => RepositoryHelper.FilterDefault(this, filters, reverseOrder);
 
         public void AddRange(IEnumerable<IXModelView> ents, CancellationToken cancellationToken) => throw new NotImplementedException();
-        public IEnumerator<IXModelView> GetEnumerator() => throw new NotImplementedException();
+
+        public IEnumerator<IXModelView> GetEnumerator() => IterateModelViews().GetEnumerator();
+
         public void RemoveRange(IEnumerable<IXModelView> ents, CancellationToken cancellationToken) => throw new NotImplementedException();
-        IEnumerator IEnumerable.GetEnumerator() => throw new NotImplementedException();
+        
         public T PreCreate<T>() where T : IXModelView => throw new NotImplementedException();
+
+        private IEnumerable<SwModelView> IterateModelViews() 
+        {
+            var viewNames = (string[])m_Doc.Model.GetModelViewNames();
+
+            for (int i = 1; i < viewNames.Length; i++)
+            {
+                var viewName = viewNames[i];
+
+                switch (i)
+                {
+                    case 0:
+                        //Normal To
+                        break;
+
+                    case 1:
+                        yield return new SwStandardView(null, m_Doc, m_App, StandardViewType_e.Front, viewName);
+                        break;
+
+                    case 2:
+                        yield return new SwStandardView(null, m_Doc, m_App, StandardViewType_e.Back, viewName);
+                        break;
+
+                    case 3:
+                        yield return new SwStandardView(null, m_Doc, m_App, StandardViewType_e.Left, viewName);
+                        break;
+
+                    case 4:
+                        yield return new SwStandardView(null, m_Doc, m_App, StandardViewType_e.Right, viewName);
+                        break;
+
+                    case 5:
+                        yield return new SwStandardView(null, m_Doc, m_App, StandardViewType_e.Top, viewName);
+                        break;
+
+                    case 6:
+                        yield return new SwStandardView(null, m_Doc, m_App, StandardViewType_e.Bottom, viewName);
+                        break;
+
+                    case 7:
+                        yield return new SwStandardView(null, m_Doc, m_App, StandardViewType_e.Isometric, viewName);
+                        break;
+
+                    case 8:
+                        yield return new SwStandardView(null, m_Doc, m_App, StandardViewType_e.Trimetric, viewName);
+                        break;
+
+                    case 9:
+                        yield return new SwStandardView(null, m_Doc, m_App, StandardViewType_e.Dimetric, viewName);
+                        break;
+
+                    default:
+                        yield return new SwNamedView(null, m_Doc, m_App, viewName);
+                        break;
+                }
+            }
+        }
     }
 
     internal class SwModelViews3DCollection : SwModelViewsCollection, ISwModelViews3DCollection

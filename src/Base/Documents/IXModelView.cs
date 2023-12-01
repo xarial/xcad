@@ -9,6 +9,7 @@ using System;
 using System.Drawing;
 using Xarial.XCad.Base;
 using Xarial.XCad.Documents.Delegates;
+using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Geometry.Structures;
 
 namespace Xarial.XCad.Documents
@@ -25,6 +26,11 @@ namespace Xarial.XCad.Documents
     /// </summary>
     public interface IXModelView : IXTransaction
     {
+        /// <summary>
+        /// Display mode of the view
+        /// </summary>
+        ViewDisplayMode_e DisplayMode { get; set; }
+
         /// <summary>
         /// Fired when custom graphics can be drawn in the model
         /// </summary>
