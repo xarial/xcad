@@ -36,6 +36,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         public Point Location { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
         TSelObject IXObjectContainer.ConvertObject<TSelObject>(TSelObject obj)
             => throw new NotSupportedException();
+        public void Update() => throw new NotSupportedException();
         public Scale Scale { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
         public Rect2D Boundary => throw new NotSupportedException();
         public IXBody[] Bodies { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
@@ -48,6 +49,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         public TransformMatrix Transformation => throw new NotSupportedException();
         public IXEntityRepository VisibleEntities => throw new NotSupportedException();
         public ViewPolylineData[] Polylines => throw new NotSupportedException();
+        public ViewDisplayMode_e? DisplayMode { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
         #endregion
 
         public ISwDMView DrawingView { get; }

@@ -177,7 +177,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
             m_MathUtils = app.Sw.IGetMathUtility();
 
-            Bodies = new SwComponentBodyCollection(comp, rootAssembly);
+            Bodies = new SwComponentBodyCollection(this, rootAssembly);
 
             m_FilePathResolver = OwnerApplication.Services.GetService<IFilePathResolver>();
 
@@ -191,13 +191,13 @@ namespace Xarial.XCad.SolidWorks.Documents
 
                     if (parentComp == null)
                     {
-                        feat = RootAssembly.Assembly.IFeatureByName(comp.Name2);
+                        feat = RootAssembly.Assembly.IFeatureByName(Component.Name2);
                     }
                     else
                     {
-                        if (comp.Name2.StartsWith(parentComp.Name2, StringComparison.CurrentCultureIgnoreCase))
+                        if (Component.Name2.StartsWith(parentComp.Name2, StringComparison.CurrentCultureIgnoreCase))
                         {
-                            feat = parentComp.FeatureByName(comp.Name2.Substring(parentComp.Name2.Length + 1));
+                            feat = parentComp.FeatureByName(Component.Name2.Substring(parentComp.Name2.Length + 1));
                         }
                         else
                         {
@@ -913,15 +913,15 @@ namespace Xarial.XCad.SolidWorks.Documents
 
     internal class SwComponentBodyCollection : SwBodyCollection
     {
-        private readonly IComponent2 m_Comp;
+        private readonly SwComponent m_Comp;
 
-        public SwComponentBodyCollection(IComponent2 comp, ISwDocument rootDoc) : base(rootDoc)
+        public SwComponentBodyCollection(SwComponent comp, ISwDocument rootDoc) : base(rootDoc)
         {
             m_Comp = comp;
         }
 
         protected override IEnumerable<IBody2> SelectSwBodies(swBodyType_e bodyType)
-            => (m_Comp.GetBodies3((int)bodyType, out _) as object[])?.Cast<IBody2>();
+            => (m_Comp.Component.GetBodies3((int)bodyType, out _) as object[])?.Cast<IBody2>();
     }
 
     internal class SwChildComponentsCollection : SwComponentCollection

@@ -160,6 +160,11 @@ namespace Xarial.XCad.SolidWorks.Documents
                     drwView.ScaleRatio = new double[] { scale.Numerator, scale.Denominator };
                 }
 
+                if (m_Creator.CachedProperties.Has<ViewDisplayMode_e>(nameof(DisplayMode)))
+                {
+                    SetDisplayMode(drwView, DisplayMode);
+                }
+
                 if (!drwView.IsFlatPatternView())
                 {
                     if (Bodies != null)
@@ -640,6 +645,135 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
+        public ViewDisplayMode_e? DisplayMode
+        {
+            get
+            {
+                if (IsCommitted)
+                {
+                    if (DrawingView.GetUseParentDisplayMode())
+                    {
+                        return null;
+                    }
+                    else 
+                    {
+                        var dispMode = (swDisplayMode_e)DrawingView.GetDisplayMode2();
+                        
+                        switch (dispMode) 
+                        {
+                            case swDisplayMode_e.swWIREFRAME:
+                                return ViewDisplayMode_e.Wireframe;
+
+                            case swDisplayMode_e.swHIDDEN_GREYED:
+                                return ViewDisplayMode_e.HiddenLinesVisible;
+
+                            case swDisplayMode_e.swHIDDEN:
+                                return ViewDisplayMode_e.HiddenLinesRemoved;
+
+                            case swDisplayMode_e.swSHADED:
+
+                                var faceted = DrawingView.GetFacettedHlrDisplay();
+                                bool dispEdges = DrawingView.GetDisplayEdgesInShadedMode();
+
+                                if (!faceted && dispEdges)
+                                {
+                                    return ViewDisplayMode_e.ShadedWithEdges;
+                                }
+                                else if (faceted && !dispEdges)
+                                {
+                                    return ViewDisplayMode_e.Shaded;
+                                }
+                                else 
+                                {
+                                    throw new NotSupportedException();
+                                }
+
+                            default:
+                                throw new NotSupportedException();
+                        }
+                    }
+                }
+                else
+                {
+                    return m_Creator.CachedProperties.Get<ViewDisplayMode_e>();
+                }
+            }
+            set
+            {
+                if (IsCommitted)
+                {
+                    SetDisplayMode(DrawingView, value);
+                }
+                else
+                {
+                    m_Creator.CachedProperties.Set(value);
+                }
+            }
+        }
+
+        private void SetDisplayMode(IView viewSw, ViewDisplayMode_e? dispModeType) 
+        {
+            swDisplayMode_e dispMode;
+            bool faceted;
+            bool dispEdges;
+            bool useParent;
+
+            if (dispModeType.HasValue)
+            {
+                useParent = false;
+
+                switch (dispModeType.Value)
+                {
+                    case ViewDisplayMode_e.Wireframe:
+                        dispMode = swDisplayMode_e.swWIREFRAME;
+                        faceted = false;
+                        dispEdges = true;
+                        break;
+                    case ViewDisplayMode_e.HiddenLinesVisible:
+                        dispMode = swDisplayMode_e.swHIDDEN_GREYED;
+                        faceted = false;
+                        dispEdges = true;
+                        break;
+                    case ViewDisplayMode_e.HiddenLinesRemoved:
+                        dispMode = swDisplayMode_e.swHIDDEN;
+                        faceted = false;
+                        dispEdges = true;
+                        break;
+                    case ViewDisplayMode_e.ShadedWithEdges:
+                        dispMode = swDisplayMode_e.swSHADED;
+                        faceted = false;
+                        dispEdges = true;
+                        break;
+                    case ViewDisplayMode_e.Shaded:
+                        dispMode = swDisplayMode_e.swSHADED;
+                        faceted = true;
+                        dispEdges = false;
+                        break;
+
+                    default:
+                        throw new NotSupportedException();
+                }
+            }
+            else 
+            {
+                useParent = true;
+                dispMode = swDisplayMode_e.swDisplayModeDEFAULT;
+                faceted = false;
+                dispEdges = false;
+            }
+
+            if (OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2021))
+            {
+                viewSw.SetDisplayMode4(useParent, (int)dispMode,
+                    faceted, dispEdges,
+                    viewSw.GetCThreadQuality());
+            }
+            else 
+            {
+                viewSw.SetDisplayMode3(useParent, (int)dispMode, faceted, dispEdges);
+            }
+        }
+
         TSelObject IXObjectContainer.ConvertObject<TSelObject>(TSelObject obj) => ConvertObjectBoxed(obj) as TSelObject;
 
         public TSelObject ConvertObject<TSelObject>(TSelObject obj)
@@ -724,6 +858,8 @@ namespace Xarial.XCad.SolidWorks.Documents
                 throw new Exception("Failed to create temp flat pattern view");
             }
         }
+
+        public void Update() => RefreshView(DrawingView);
     }
 
     internal static class SwDrawingViewExtension 
@@ -906,24 +1042,61 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
             get 
             {
-                if (!IsCommitted)
+                if (IsCommitted)
                 {
-                    return m_Creator.CachedProperties.Get<IXModelView>();
+                    var refDoc = ReferencedDocument;
+
+                    var viewOrientationName = DrawingView.GetOrientationName();
+
+                    if (refDoc != null)
+                    {
+                        return refDoc.ModelViews[viewOrientationName];
+                    }
+                    else
+                    {
+                        return new SwNamedView(null, (SwDocument)refDoc, OwnerApplication, viewOrientationName);
+                    }
                 }
                 else 
                 {
-                    throw new NotSupportedException();
+                    return m_Creator.CachedProperties.Get<IXModelView>();
                 }
             }
             set 
             {
-                if (!IsCommitted)
+                if (IsCommitted)
+                {
+                    string viewName;
+                    int viewId;
+
+                    switch (value)
+                    {
+                        case SwStandardView standardView:
+                            viewName = standardView.Name;
+                            viewId = (int)standardView.SwViewType;
+                            break;
+
+                        case SwNamedView namedView:
+                            viewName = namedView.Name;
+                            viewId = -1;
+                            break;
+
+                        default:
+                            throw new NotSupportedException();
+                    }
+
+                    Select(false);
+
+                    OwnerModelDoc.ShowNamedView2(viewName, viewId);
+
+                    if (!string.Equals(DrawingView.GetOrientationName(), viewName, StringComparison.CurrentCultureIgnoreCase)) 
+                    {
+                        throw new Exception("Failed to change view orientation");
+                    }
+                }
+                else 
                 {
                     m_Creator.CachedProperties.Set(value);
-                }
-                else
-                {
-                    throw new CommitedElementReadOnlyParameterException();
                 }
             }
         }

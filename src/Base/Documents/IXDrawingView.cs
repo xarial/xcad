@@ -24,6 +24,12 @@ namespace Xarial.XCad.Documents
     public interface IXDrawingView : IXSelObject, IXObjectContainer, IDimensionable, IXTransaction
     {
         /// <summary>
+        /// Display mode of the view
+        /// </summary>
+        /// <remarks>null means that display data is inherited from the base view</remarks>
+        ViewDisplayMode_e? DisplayMode { get; set; }
+
+        /// <summary>
         /// Bodies scope of this view
         /// </summary>
         IXBody[] Bodies { get; set; }
@@ -99,6 +105,11 @@ namespace Xarial.XCad.Documents
         /// Gets all views depending on this view
         /// </summary>
         IEnumerable<IXDrawingView> DependentViews { get; }
+
+        /// <summary>
+        /// Updates this drawing view
+        /// </summary>
+        void Update();
     }
 
     /// <summary>

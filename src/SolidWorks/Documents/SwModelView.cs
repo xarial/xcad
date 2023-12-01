@@ -13,6 +13,7 @@ using System.Linq;
 using System.Threading;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Delegates;
+using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.Toolkit.Graphics;
@@ -143,6 +144,79 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public override object Dispatch => View;
 
+        public ViewDisplayMode_e DisplayMode 
+        {
+            get
+            {
+                if (IsCommitted)
+                {
+                    switch ((swViewDisplayMode_e)View.DisplayMode)
+                    {
+                        case swViewDisplayMode_e.swViewDisplayMode_Wireframe:
+                            return ViewDisplayMode_e.Wireframe;
+
+                        case swViewDisplayMode_e.swViewDisplayMode_HiddenLinesGrayed:
+                            return ViewDisplayMode_e.HiddenLinesVisible;
+
+                        case swViewDisplayMode_e.swViewDisplayMode_HiddenLinesRemoved:
+                            return ViewDisplayMode_e.HiddenLinesRemoved;
+
+                        case swViewDisplayMode_e.swViewDisplayMode_ShadedWithEdges:
+                            return ViewDisplayMode_e.ShadedWithEdges;
+
+                        case swViewDisplayMode_e.swViewDisplayMode_Shaded:
+                            return ViewDisplayMode_e.Shaded;
+
+                        default:
+                            throw new NotSupportedException();
+                    }
+                }
+                else
+                {
+                    throw new NotSupportedException();
+                }
+            }
+            set 
+            {
+                if (IsCommitted)
+                {
+                    swViewDisplayMode_e dispMode;
+
+                    switch (value)
+                    {
+                        case ViewDisplayMode_e.Wireframe:
+                            dispMode = swViewDisplayMode_e.swViewDisplayMode_Wireframe;
+                            break;
+
+                        case ViewDisplayMode_e.HiddenLinesVisible:
+                            dispMode = swViewDisplayMode_e.swViewDisplayMode_HiddenLinesGrayed;
+                            break;
+
+                        case ViewDisplayMode_e.HiddenLinesRemoved:
+                            dispMode = swViewDisplayMode_e.swViewDisplayMode_HiddenLinesRemoved;
+                            break;
+
+                        case ViewDisplayMode_e.ShadedWithEdges:
+                            dispMode = swViewDisplayMode_e.swViewDisplayMode_ShadedWithEdges;
+                            break;
+
+                        case ViewDisplayMode_e.Shaded:
+                            dispMode = swViewDisplayMode_e.swViewDisplayMode_Shaded;
+                            break;
+
+                        default:
+                            throw new NotSupportedException();
+                    }
+
+                    View.DisplayMode = (int)dispMode;
+                }
+                else 
+                {
+                    throw new NotSupportedException();
+                }
+            }
+        }
+
         internal SwModelView(IModelView view, SwDocument doc, SwApplication app) : base(view, doc, app)
         {
             View = view;
@@ -267,7 +341,13 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
 
         internal SwStandardView(IModelView view, SwDocument doc, SwApplication app, StandardViewType_e type) 
-            : base(view, doc, app, GetStandardViewName(doc.Model, type))
+            : this(view, doc, app, type, GetStandardViewName(doc.Model, type))
+
+        {
+        }
+
+        internal SwStandardView(IModelView view, SwDocument doc, SwApplication app, StandardViewType_e type, string name) 
+            : base(view, doc, app, name)
         {
             Type = type;
 
