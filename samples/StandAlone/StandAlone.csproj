@@ -80,7 +80,7 @@
     </ProjectReference>
     <ProjectReference Include="..\..\src\SwDocumentManager\SwDocumentManager.csproj">
       <Project>{2545B9A8-C1B9-45D3-8CF7-80DDC9A78B4D}</Project>
-      <Name>Toolkit</Name>
+      <Name>SwDocumentManager</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\src\Toolkit\Toolkit.csproj">
       <Project>{8edff821-4d1b-4ac1-bd32-5da87e693f46}</Project>

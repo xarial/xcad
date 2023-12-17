@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
-  <!--#if (_TargetFramework_ == "net7.0-windows")-->
+  <!--#if (_TargetFramework_ == "net6.0-windows" || _TargetFramework_ == "net7.0-windows")-->
     <EnableComHosting>true</EnableComHosting>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
   <!--#endif-->

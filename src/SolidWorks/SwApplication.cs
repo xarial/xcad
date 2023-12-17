@@ -257,6 +257,9 @@ namespace Xarial.XCad.SolidWorks
             }
         }
 
+        private bool m_IsDisposed;
+        private bool m_IsClosed;
+
         private bool m_IsInitialized;
 
         private bool m_HideOnStartup;
@@ -443,34 +446,49 @@ namespace Xarial.XCad.SolidWorks
 
         public void Dispose()
         {
-            if (Services is IDisposable) 
+            if (!m_IsDisposed)
             {
-                ((IDisposable)Services).Dispose();
-            }
+                m_IsDisposed = true;
 
-            try
-            {
-                m_Documents.Dispose();
-            }
-            catch (Exception ex)
-            {
-                Logger.Log(ex);
-            }
-
-            TagsRegistry.Dispose();
-
-            if (Sw != null)
-            {
-                if (Marshal.IsComObject(Sw))
+                if (Services is IDisposable)
                 {
-                    Marshal.ReleaseComObject(Sw);
+                    ((IDisposable)Services).Dispose();
+                }
+
+                try
+                {
+                    m_Documents.Dispose();
+                }
+                catch (Exception ex)
+                {
+                    Logger.Log(ex);
+                }
+
+                TagsRegistry.Dispose();
+
+                if (!m_IsClosed) 
+                {
+                    Close();
+                }
+
+                if (Sw != null)
+                {
+                    if (Marshal.IsComObject(Sw))
+                    {
+                        Marshal.ReleaseComObject(Sw);
+                    }
                 }
             }
         }
 
         public void Close()
         {
-            Sw.ExitApp();
+            if (!m_IsClosed)
+            {
+                m_IsClosed = true;
+                Sw.ExitApp();
+                Dispose();
+            }
         }
         
         public void Commit(CancellationToken cancellationToken)
