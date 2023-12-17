@@ -34,7 +34,7 @@ namespace Xarial.XCad.SwDocumentManager
         new ISwDmVersion Version { get; }
     }
 
-    internal class SwDmApplication : ISwDmApplication
+    internal class SwDmApplication : ISwDmApplication, IDisposable
     {
         #region Not Supported        
 
@@ -101,6 +101,8 @@ namespace Xarial.XCad.SwDocumentManager
             }
         }
 
+        private bool m_IsDisposed;
+        private bool m_IsClosed;
 
         private readonly IElementCreator<ISwDMApplication> m_Creator;
 
@@ -117,19 +119,43 @@ namespace Xarial.XCad.SwDocumentManager
             return SwDmApplicationFactory.ConnectToDm(licKey);
         }
 
-        public void Close() 
+        public void Close()
         {
-            foreach (var doc in Documents.ToArray()) 
+            if (!m_IsClosed)
             {
-                if (doc.IsCommitted && doc.IsAlive) 
-                {
-                    doc.Close();
-                }
-            }
+                m_IsClosed = true;
 
-            Marshal.ReleaseComObject(m_Creator.Element);
-            GC.Collect();
-            GC.WaitForPendingFinalizers();
+                foreach (var doc in Documents.ToArray())
+                {
+                    if (doc.IsCommitted && doc.IsAlive)
+                    {
+                        doc.Close();
+                    }
+                }
+
+                Dispose();
+            }
+        }
+
+        public void Dispose()
+        {
+            if (!m_IsDisposed)
+            {
+                m_IsDisposed = true;
+
+                if (!m_IsClosed)
+                {
+                    Close();
+                }
+
+                if (Marshal.IsComObject(SwDocMgr))
+                {
+                    Marshal.ReleaseComObject(SwDocMgr);
+                }
+
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+            }
         }
 
         public void Commit(CancellationToken cancellationToken) 

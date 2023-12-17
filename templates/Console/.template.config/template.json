@@ -1,31 +1,18 @@
 {
   "$schema": "http://json.schemastore.org/template",
   "author": "Xarial",
-  "classifications": [ "xCAD", "SOLIDWORKS", "Library" ],
-  "identity": "Xarial.XCad.Template.SwMacroFeature.CSharp",
-  "groupIdentity": "Xarial.XCad.Template.SwMacroFeature",
-  "name": "xCAD SOLIDWORKS Macro Feature",
-  "shortName": "xcadswmacrofeature",
+  "classifications": [ "xCAD", "SOLIDWORKS", "Inventor", "Console" ],
+  "identity": "Xarial.XCad.Template.Console.CSharp",
+  "groupIdentity": "Xarial.XCad.Template.Console",
+  "name": "xCAD Console",
+  "shortName": "xcadconsole",
   "sourceName": "__TemplateNamePlaceholder__",
   "tags": {
     "language": "C#",
     "type": "project"
   },
-  "guids": 
-  [
-    "04304922-1760-469A-8A2D-9A7F1055EFBC",
-    "6397DDCC-CFF8-448C-B955-4147C628BE0A",
-    "290439A2-D435-42AC-AB45-6723BD531854",
-    "4EDF005F-D48D-41C5-A1F7-B9D103043734"
-  ],
   "defaultName": "XCadSample",
   "preferNameDirectory": true,
-  "constraints": {
-    "windows-only": {
-      "type": "os",
-      "args": "Windows"
-    }
-  },
   "symbols": {
     "_TargetFramework_": {
       "type": "parameter",
@@ -61,31 +48,24 @@
       "defaultValue": "net472",
       "replaces": "net472"
     },
-    "_AddEditor_": {
+    "_SolidWorks_": {
       "type": "parameter",
-      "displayName": "Add Editor",
-      "description": "Add macro feature editor with property manager page and preview",
+      "displayName": "SOLIDWORKS",
+      "description": "Adds the SOLIDWORKS implementation1",
       "datatype": "bool",
       "defaultValue": "true"
     },
-    "_AddDimensions_": {
+    "_SwDocumentManager_": {
       "type": "parameter",
-      "displayName": "Add Dimensions",
-      "description": "Add the dimensions support for the macro feature",
+      "displayName": "SOLIDWORKS Document Manager",
+      "description": "Adds the SOLIDWORKS implementation",
       "datatype": "bool",
       "defaultValue": "true"
     },
-    "_SupportsInContext_": {
+    "_Inventor_": {
       "type": "parameter",
-      "displayName": "Supports In-Context Editing",
-      "description": "Allows macro feature to be inserted and edited in the context of the assembly",
-      "datatype": "bool",
-      "defaultValue": "false"
-    },
-    "_SupportsEditBodies_": {
-      "type": "parameter",
-      "displayName": "Supports Edit Bodies",
-      "description": "Allows macro feature results to be merged with the existing bodies",
+      "displayName": "Autodesk Inventor",
+      "description": "Adds the Autodesk Inventor implementation",
       "datatype": "bool",
       "defaultValue": "false"
     }
@@ -94,9 +74,21 @@
     {
       "modifiers": [
         {
-          "condition": "!(_AddEditor_)",
+          "condition": "!(_SolidWorks_)",
           "exclude": [
-            "CylinderPropertyPage.cs"
+            "__TemplateNamePlaceholder__Console.Sw/**"
+          ]
+        },
+        {
+          "condition": "!(_SwDocumentManager_)",
+          "exclude": [
+            "__TemplateNamePlaceholder__Console.SwDm/**"
+          ]
+        },
+        {
+          "condition": "!(_Inventor_)",
+          "exclude": [
+            "__TemplateNamePlaceholder__Console.Ai/**"
           ]
         }
       ]

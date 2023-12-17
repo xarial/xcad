@@ -18,7 +18,7 @@
     "DAAB6D2D-3D9E-46C8-85DC-B7EF77ECF10A",
     "4F6D68F7-65C5-42CE-9F7E-30470FE1ED4B"
   ],
-  "defaultName": "XCadSwAddIn",
+  "defaultName": "XCadSample",
   "preferNameDirectory": true,
   "constraints": {
     "windows-only": {
