@@ -41,7 +41,7 @@ namespace Xarial.XCad.Inventor
         IXServiceCollection CustomServices { get; set; }
     }
 
-    internal class AiApplication : IAiApplication, IXServiceConsumer, IDisposable
+    internal class AiApplication : IAiApplication, IXServiceConsumer
     {
         public IXMaterialsDatabaseRepository MaterialDatabases => throw new NotSupportedException();
 
