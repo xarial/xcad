@@ -360,7 +360,7 @@ namespace Xarial.XCad.SolidWorks
 
                 try
                 {
-                    Application.Dispose();
+                    m_Application.Release(false);
                 }
                 catch (Exception ex)
                 {

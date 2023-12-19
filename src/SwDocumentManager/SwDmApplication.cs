@@ -34,7 +34,7 @@ namespace Xarial.XCad.SwDocumentManager
         new ISwDmVersion Version { get; }
     }
 
-    internal class SwDmApplication : ISwDmApplication, IDisposable
+    internal class SwDmApplication : ISwDmApplication
     {
         #region Not Supported        
 

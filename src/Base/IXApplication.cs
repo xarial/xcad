@@ -28,7 +28,7 @@ namespace Xarial.XCad
     /// <summary>
     /// Top level object in the class hierarchy
     /// </summary>
-    public interface IXApplication : IXTransaction
+    public interface IXApplication : IXTransaction, IDisposable
     {
         /// <summary>
         /// Fires when application is starting

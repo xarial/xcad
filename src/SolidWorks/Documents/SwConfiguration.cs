@@ -82,7 +82,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         private readonly Lazy<ISwCustomPropertiesCollection> m_PropertiesLazy;
         private readonly Lazy<ISwDimensionsCollection> m_DimensionsLazy;
 
-        public bool IsCommitted => m_Creator.IsCreated;
+        public override bool IsCommitted => m_Creator.IsCreated;
 
         private readonly IElementCreator<IConfiguration> m_Creator;
 

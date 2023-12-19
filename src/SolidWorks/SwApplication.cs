@@ -444,53 +444,6 @@ namespace Xarial.XCad.SolidWorks
             }
         }
 
-        public void Dispose()
-        {
-            if (!m_IsDisposed)
-            {
-                m_IsDisposed = true;
-
-                if (Services is IDisposable)
-                {
-                    ((IDisposable)Services).Dispose();
-                }
-
-                try
-                {
-                    m_Documents.Dispose();
-                }
-                catch (Exception ex)
-                {
-                    Logger.Log(ex);
-                }
-
-                TagsRegistry.Dispose();
-
-                if (!m_IsClosed) 
-                {
-                    Close();
-                }
-
-                if (Sw != null)
-                {
-                    if (Marshal.IsComObject(Sw))
-                    {
-                        Marshal.ReleaseComObject(Sw);
-                    }
-                }
-            }
-        }
-
-        public void Close()
-        {
-            if (!m_IsClosed)
-            {
-                m_IsClosed = true;
-                Sw.ExitApp();
-                Dispose();
-            }
-        }
-        
         public void Commit(CancellationToken cancellationToken)
         {
             m_Creator.Create(cancellationToken);
@@ -609,6 +562,58 @@ namespace Xarial.XCad.SolidWorks
 
         public IXObjectTracker CreateObjectTracker(string name) 
             => new SwObjectTracker(this, name);
+
+        internal void Release(bool close)
+        {
+            if (!m_IsDisposed)
+            {
+                m_IsDisposed = true;
+
+                if (Services is IDisposable)
+                {
+                    ((IDisposable)Services).Dispose();
+                }
+
+                try
+                {
+                    m_Documents.Dispose();
+                }
+                catch (Exception ex)
+                {
+                    Logger.Log(ex);
+                }
+
+                TagsRegistry.Dispose();
+
+                if (close)
+                {
+                    if (!m_IsClosed)
+                    {
+                        Close();
+                    }
+                }
+
+                if (Sw != null)
+                {
+                    if (Marshal.IsComObject(Sw))
+                    {
+                        Marshal.ReleaseComObject(Sw);
+                    }
+                }
+            }
+        }
+
+        public void Dispose() => Release(true);
+
+        public void Close()
+        {
+            if (!m_IsClosed)
+            {
+                m_IsClosed = true;
+                Sw.ExitApp();
+                Dispose();
+            }
+        }
     }
 
     /// <summary>
