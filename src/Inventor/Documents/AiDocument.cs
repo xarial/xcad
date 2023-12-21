@@ -157,7 +157,7 @@ namespace Xarial.XCad.Inventor.Documents
 
         public bool IsCommitted => m_Creator.IsCreated;
 
-        public IXPropertyRepository Properties => throw new NotImplementedException();
+        public IXPropertyRepository Properties { get; }
 
         public IXDimensionRepository Dimensions => throw new NotImplementedException();
 
@@ -168,8 +168,14 @@ namespace Xarial.XCad.Inventor.Documents
 
         private readonly IEqualityComparer<Document> m_DocumentEqualityComparer;
 
+        private string m_Id;
+
         internal AiDocument(Document doc, AiApplication ownerApp) : base(doc, null, ownerApp)
         {
+            m_Id = doc?.InternalName;
+
+            Properties = new AiDocumentPropertySet(this);
+
             m_Creator = new ElementCreator<Document>(CreateDocument, doc, doc != null);
 
             Options = new AiDocumentOptions();
@@ -179,7 +185,11 @@ namespace Xarial.XCad.Inventor.Documents
             ownerApp.Application.ApplicationEvents.OnCloseDocument += OnCloseDocument;
         }
 
-        private void SetModel(Document doc) => m_Creator.Set(doc);
+        private void SetModel(Document doc)
+        {
+            m_Creator.Set(doc);
+            m_Id = doc?.InternalName;
+        }
 
         private Document CreateDocument(CancellationToken cancellationToken)
         {
@@ -262,7 +272,8 @@ namespace Xarial.XCad.Inventor.Documents
         {
             if (BeforeOrAfter == EventTimingEnum.kAfter)
             {
-                if (m_DocumentEqualityComparer.Equals(Document, DocumentObject)) 
+                //NOTE: event is raised in different thread and API cannot be accessed and getting the id throws an exception, have to use cached value
+                if (string.Equals(m_Id, DocumentObject.InternalName)) 
                 {
                     m_IsClosed = true;
                     Destroyed?.Invoke(this);
