@@ -1,5 +1,13 @@
-﻿using Inventor;
+﻿//*********************************************************************
+//xCAD
+//Copyright(C) 2023 Xarial Pty Limited
+//Product URL: https://www.xcad.net
+//License: https://xcad.xarial.com/license/
+//*********************************************************************
+
+using Inventor;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -8,10 +16,13 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Xarial.XCad.Annotations;
+using Xarial.XCad.Base;
 using Xarial.XCad.Data;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Features;
+using Xarial.XCad.Features.Delegates;
+using Xarial.XCad.Toolkit.Utils;
 using Xarial.XCad.UI;
 
 namespace Xarial.XCad.Inventor.Documents
@@ -81,12 +92,13 @@ namespace Xarial.XCad.Inventor.Documents
         {
             m_Row = row;
             Properties = new AiPartRowPropertySet(this);
+            CutLists = new AiCutLists();
         }
 
         public iPartTableRow Row => m_Row;
         public override IXPropertyRepository Properties { get; }
 
-        public IXCutListItemRepository CutLists => throw new NotSupportedException();
+        public IXCutListItemRepository CutLists { get; }
         public IXMaterial Material { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
         
         public override string Name 
