@@ -9,9 +9,13 @@ namespace __TemplateNamePlaceholder__Console.Sw
     {
         static void Main(string[] args)
         {
-            var app = SwApplicationFactory.Create(SwVersion_e.Sw2023);
-            var controller = new Controller(app);
-            controller.PrintProperties("");
+            using (var reader = new PropertiesReader(SwApplicationFactory.Create(SwVersion_e.Sw2023), Console.Out))
+            {
+                foreach (var filePath in args)
+                {
+                    reader.PrintProperties(filePath);
+                }
+            }
         }
     }
 }

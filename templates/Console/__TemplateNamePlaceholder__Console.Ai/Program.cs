@@ -9,9 +9,13 @@ namespace __TemplateNamePlaceholder__Console.Sw
     {
         static void Main(string[] args)
         {
-            var app = AiApplicationFactory.Create(AiVersion_e.Inventor2023);
-            var controller = new Controller(app);
-            controller.PrintProperties("");
+            using (var reader = new PropertiesReader(AiApplicationFactory.Create(AiVersion_e.Inventor2023), Console.Out)) 
+            {
+                foreach (var filePath in args) 
+                {
+                    reader.PrintProperties(filePath);
+                }
+            }
         }
     }
 }

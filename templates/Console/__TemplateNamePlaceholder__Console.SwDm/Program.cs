@@ -1,4 +1,5 @@
 ﻿using __TemplateNamePlaceholder__Console.Base;
+using System;
 using Xarial.XCad.SwDocumentManager;
 
 namespace __TemplateNamePlaceholder__Console.Sw
@@ -7,9 +8,13 @@ namespace __TemplateNamePlaceholder__Console.Sw
     {
         static void Main(string[] args)
         {
-            var app = SwDmApplicationFactory.Create("");
-            var controller = new Controller(app);
-            controller.PrintProperties("");
+            using (var reader = new PropertiesReader(SwDmApplicationFactory.Create("DOC_LIC_KEY"), Console.Out))
+            {
+                foreach (var filePath in args)
+                {
+                    reader.PrintProperties(filePath);
+                }
+            }
         }
     }
 }

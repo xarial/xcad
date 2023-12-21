@@ -22,7 +22,8 @@ namespace StandAlone.Ai
         {
             //using (var app = AiApplicationFactory.Create(AiVersion_e.Inventor2023)) 
             //{
-            var app = AiApplicationFactory.FromProcess(Process.GetProcessesByName("Inventor").FirstOrDefault());
+            var app = AiApplicationFactory.Create(AiVersion_e.Inventor2023);
+            //var app = AiApplicationFactory.FromProcess(Process.GetProcessesByName("Inventor").FirstOrDefault());
             
             using (var doc = app.Documents.Open(@"C:\Users\artem\Desktop\Inventor\C001.ipt"))
             {

@@ -1,7 +1,11 @@
 {
   "$schema": "http://json.schemastore.org/template",
   "author": "Xarial",
-  "classifications": [ "xCAD", "SOLIDWORKS", "Library" ],
+  "classifications": [
+    "xCAD",
+    "SOLIDWORKS",
+    "Library"
+  ],
   "identity": "Xarial.XCad.Template.SwMacroFeature.CSharp",
   "groupIdentity": "Xarial.XCad.Template.SwMacroFeature",
   "name": "xCAD SOLIDWORKS Macro Feature",
@@ -11,8 +15,7 @@
     "language": "C#",
     "type": "project"
   },
-  "guids": 
-  [
+  "guids": [
     "04304922-1760-469A-8A2D-9A7F1055EFBC",
     "6397DDCC-CFF8-448C-B955-4147C628BE0A",
     "290439A2-D435-42AC-AB45-6723BD531854",
@@ -103,9 +106,15 @@
     }
   ],
   "postActions": [{
-    "condition": "(!skipRestore)",
-    "description": "Restore NuGet packages required by this project.",
-    "actionId": "210D431B-A78B-4D2F-B762-4ED3E3EA9025",
-    "continueOnError": true
-  }]
+      "condition": "(!skipRestore)",
+      "description": "Restore NuGet packages required by this project.",
+      "actionId": "210D431B-A78B-4D2F-B762-4ED3E3EA9025",
+      "continueOnError": true,
+      "manualInstructions": [
+        {
+          "text": "Select solution and click 'Restore NuGet Packages' command from the context menu"
+        }
+      ]
+    }
+  ]
 }
