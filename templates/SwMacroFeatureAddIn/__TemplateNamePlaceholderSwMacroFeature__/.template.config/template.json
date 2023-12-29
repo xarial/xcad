@@ -1,0 +1,121 @@
+{
+  "$schema": "http://json.schemastore.org/template",
+  "author": "Xarial",
+  "classifications": [
+    "xCAD",
+    "SOLIDWORKS",
+    "Library"
+  ],
+  "identity": "Xarial.XCad.Template.SwMacroFeature.CSharp",
+  "groupIdentity": "Xarial.XCad.Template.SwMacroFeature",
+  "name": "xCAD SOLIDWORKS Macro Feature",
+  "description": "SOLIDWORKS macro feature add-in based on xCAD.NET Framework (C#)",
+  "shortName": "xcadswmacrofeature",
+  "sourceName": "__TemplateNamePlaceholderSwMacroFeature__",
+  "tags": {
+    "language": "C#",
+    "type": "project"
+  },
+  "guids": [
+    "04304922-1760-469A-8A2D-9A7F1055EFBC",
+    "6397DDCC-CFF8-448C-B955-4147C628BE0A",
+    "290439A2-D435-42AC-AB45-6723BD531854",
+    "4EDF005F-D48D-41C5-A1F7-B9D103043734"
+  ],
+  "defaultName": "XCadSwMacroFeature",
+  "preferNameDirectory": true,
+  "constraints": {
+    "windows-only": {
+      "type": "os",
+      "args": "Windows"
+    }
+  },
+  "symbols": {
+    "_TargetFramework_": {
+      "type": "parameter",
+      "displayName": "Target Framework",
+      "description": "Project target framework",
+      "datatype": "choice",
+      "choices": [
+        {
+          "choice": "net461",
+          "displayName": ".NET Framework 4.6.1"
+        },
+        {
+          "choice": "net472",
+          "displayName": ".NET Framework 4.7.2"
+        },
+        {
+          "choice": "net48",
+          "displayName": ".NET Framework 4.8"
+        },
+        {
+          "choice": "netcoreapp3.1",
+          "displayName": ".NET Core 3.1"
+        },
+        {
+          "choice": "net6.0-windows",
+          "displayName": ".NET 6"
+        },
+        {
+          "choice": "net7.0-windows",
+          "displayName": ".NET 7"
+        }
+      ],
+      "defaultValue": "net472",
+      "replaces": "net472"
+    },
+    "_AddEditor_": {
+      "type": "parameter",
+      "displayName": "Add Editor",
+      "description": "Add macro feature editor with property manager page and preview",
+      "datatype": "bool",
+      "defaultValue": "true"
+    },
+    "_AddDimensions_": {
+      "type": "parameter",
+      "displayName": "Add Dimensions",
+      "description": "Add the dimensions support for the macro feature",
+      "datatype": "bool",
+      "defaultValue": "true"
+    },
+    "_SupportsInContext_": {
+      "type": "parameter",
+      "displayName": "Supports In-Context Editing",
+      "description": "Allows macro feature to be inserted and edited in the context of the assembly",
+      "datatype": "bool",
+      "defaultValue": "false"
+    },
+    "_SupportsEditBodies_": {
+      "type": "parameter",
+      "displayName": "Supports Edit Bodies",
+      "description": "Allows macro feature results to be merged with the existing bodies",
+      "datatype": "bool",
+      "defaultValue": "false"
+    }
+  },
+  "sources": [
+    {
+      "modifiers": [
+        {
+          "condition": "!(_AddEditor_)",
+          "exclude": [
+            "CylinderPropertyPage.cs"
+          ]
+        }
+      ]
+    }
+  ],
+  "postActions": [{
+      "condition": "(!skipRestore)",
+      "description": "Restore NuGet packages required by this project.",
+      "actionId": "210D431B-A78B-4D2F-B762-4ED3E3EA9025",
+      "continueOnError": true,
+      "manualInstructions": [
+        {
+          "text": "Select solution and click 'Restore NuGet Packages' command from the context menu"
+        }
+      ]
+    }
+  ]
+}

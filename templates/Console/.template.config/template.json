@@ -5,13 +5,14 @@
   "identity": "Xarial.XCad.Template.Console.CSharp",
   "groupIdentity": "Xarial.XCad.Template.Console",
   "name": "xCAD Console",
+  "description": "Cross-CAD console application based on xCAD.NET Framework (C#)",
   "shortName": "xcadconsole",
-  "sourceName": "__TemplateNamePlaceholder__",
+  "sourceName": "__TemplateNamePlaceholderConsole__",
   "tags": {
     "language": "C#",
     "type": "project"
   },
-  "defaultName": "XCadSample",
+  "defaultName": "XCadConsole",
   "preferNameDirectory": true,
   "symbols": {
     "_TargetFramework_": {
