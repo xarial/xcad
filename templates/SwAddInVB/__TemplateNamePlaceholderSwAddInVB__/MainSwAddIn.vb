@@ -1,5 +1,5 @@
 ﻿#If (_AddCommandManager_ Or _AddPropertyPage_ Or _AddMacroFeature_) Then
-Imports __TemplateNamePlaceholderSwAddInVB__.Sw.Properties
+Imports __TemplateNamePlaceholderSwAddInVB__.Sw.My.Resources
 #End If
 #If (_AddCommandManager_ Or _AddPropertyPage_) Then
 Imports SolidWorks.Interop.swconst
@@ -34,7 +34,7 @@ Namespace __TemplateNamePlaceholderSwAddInVB__.Sw
         <Description("Commands of __TemplateNamePlaceholderSwAddInVB__")>
         Private Enum Commands_e
 #If (_AddCommandManager_ Or _AddPropertyPage_)
-            <Attributes.IconAttribute(GetType(Sw.Properties.Resources), NameOf(Sw.Properties.Resources.box_icon))>
+            <Icon(GetType(Resources), NameOf(Resources.box_icon))>
             <Title("Create Box")>
             <Description("Creates box using standard feature")>
             <CommandItemInfo(True, True, WorkspaceTypes_e.Part Or WorkspaceTypes_e.InContextPart, True)>
@@ -42,7 +42,7 @@ Namespace __TemplateNamePlaceholderSwAddInVB__.Sw
 
 #End If
 #If _AddMacroFeature_
-            <Attributes.IconAttribute(GetType(Sw.Properties.Resources), NameOf(Sw.Properties.Resources.parametric_box_icon))>
+            <Icon(GetType(Resources), NameOf(Resources.parametric_box_icon))>
             <Title("Create Parametric Box")>
             <Description("Creates parametric macro feature")>
             <CommandItemInfo(True, True, WorkspaceTypes_e.Part, True)>
@@ -50,7 +50,7 @@ Namespace __TemplateNamePlaceholderSwAddInVB__.Sw
 
 #End If
             'button can have custom attribute to define its look and feel
-            <Attributes.IconAttribute(GetType(Sw.Properties.Resources), NameOf(Sw.Properties.Resources.about_icon))>
+            <Icon(GetType(Resources), NameOf(Resources.about_icon))>
             <Title("About...")>
             <Description("Shows About Box")>
             <CommandItemInfo(True, False, WorkspaceTypes_e.All)>
@@ -59,19 +59,19 @@ Namespace __TemplateNamePlaceholderSwAddInVB__.Sw
 
 #End If
 #If _AddPropertyPage_ Then
-        Private m_BoxPage As IXPropertyPage(Of Sw.BoxPropertyPage)
-        Private m_BoxData As Sw.BoxPropertyPage
+        Dim m_BoxPage As IXPropertyPage(Of BoxPropertyPage)
+        Dim m_BoxData As BoxPropertyPage
 
 #End If
         'function is called when add-in is loading
         Public Overrides Sub OnConnect()
 #If (_AddCommandManager_ Or _AddPropertyPage_ Or _AddMacroFeature_) Then
             'creating command manager based on enum
-            AddHandler CommandManager.AddCommandGroup(Of Commands_e)().CommandClick, AddressOf OnCommandClick
+            AddHandler CommandManager.AddCommandGroup(Of Commands_e)().CommandClick, AddressOf OnButtonClick
 #If _AddPropertyPage_
             'property page will be created based on the data model and this model will be automatically bound (two-ways)
             m_BoxPage = CreatePage(Of BoxPropertyPage)()
-            m_BoxData = New Sw.BoxPropertyPage()
+            m_BoxData = New BoxPropertyPage()
             AddHandler m_BoxPage.Closing, AddressOf OnBoxPageClosing
             AddHandler m_BoxPage.Closed, AddressOf OnBoxPageClosed
 #End If
@@ -82,7 +82,7 @@ Namespace __TemplateNamePlaceholderSwAddInVB__.Sw
 #If (_AddCommandManager_ Or _AddPropertyPage_ Or _AddMacroFeature_) Then
 
         'button click handler will pass the enum of the button being clicked
-        Private Sub OnCommandClick(ByVal spec As Commands_e)
+        Private Sub OnButtonClick(ByVal spec As Commands_e)
             Select Case spec
 #If (_AddCommandManager_ Or _AddPropertyPage_)
                 Case Commands_e.CreateBox
@@ -118,7 +118,7 @@ Namespace __TemplateNamePlaceholderSwAddInVB__.Sw
         Private Sub OnBoxPageClosed(ByVal reason As PageCloseReasons_e)
             If reason = PageCloseReasons_e.Okay Then
                 'start box creation process
-                Me.CreateBox(CType(m_BoxData.Location.PlaneOrFace, IXPlanarRegion), m_BoxData.Parameters.Width, m_BoxData.Parameters.Height, m_BoxData.Parameters.Length)
+                CreateBox(CType(m_BoxData.Location.PlaneOrFace, IXPlanarRegion), m_BoxData.Parameters.Width, m_BoxData.Parameters.Height, m_BoxData.Parameters.Length)
             End If
         End Sub
 #End If

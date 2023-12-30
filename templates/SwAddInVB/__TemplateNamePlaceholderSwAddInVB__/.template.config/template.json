@@ -9,7 +9,7 @@
   "description": "SOLIDWORKS add-in based on xCAD.NET Framework (VB.NET)",
   "sourceName": "__TemplateNamePlaceholderSwAddInVB__",
   "tags": {
-    "language": "Visual Basic",
+    "language": "VB",
     "type": "project"
   },
   "guids": 
@@ -91,7 +91,7 @@
           "condition": "!(_AddCommandManager_ || _AddPropertyPage_ || _AddMacroFeature_)",
           "exclude": [
             "Properties/Resources.resx",
-            "Properties/Resources.Designer.cs",
+            "Properties/Resources.Designer.vb",
             "Resources/about-icon.png",
             "Resources/box-icon.png",
             "Resources/parametric-box-icon.png",
@@ -103,14 +103,14 @@
         {
           "condition": "!(_AddPropertyPage_ || _AddMacroFeature_)",
           "exclude": [
-            "BoxPropertyPage.cs"
+            "BoxPropertyPage.vb"
           ]
         },
         {
           "condition": "!(_AddMacroFeature_)",
           "exclude": [
-            "BoxMacroFeatureDefinition.cs",
-            "BoxMacroFeatureData.cs"
+            "BoxMacroFeatureDefinition.vb",
+            "BoxMacroFeatureData.vb"
           ]
         }
       ]

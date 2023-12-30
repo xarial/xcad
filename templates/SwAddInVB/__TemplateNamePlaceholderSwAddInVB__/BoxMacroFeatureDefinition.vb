@@ -87,13 +87,13 @@ Namespace __TemplateNamePlaceholderSwAddInVB__.Sw
             alignDim = Sub(n, d)
                            Select Case n
                                Case NameOf(BoxMacroFeatureData.Width)
-                                   Me.AlignLinearDimension(d, pt.Move(CType(refDir * -1, Vector), data.Width / 2).Move(secondRefDir * -1, data.Length / 2), refDir)
+                                   AlignLinearDimension(d, pt.Move(CType(refDir * -1, Vector), data.Width / 2).Move(secondRefDir * -1, data.Length / 2), refDir)
 
                                Case NameOf(BoxMacroFeatureData.Length)
-                                   Me.AlignLinearDimension(d, pt.Move(CType(refDir, Vector), data.Width / 2).Move(secondRefDir * -1, data.Length / 2), secondRefDir)
+                                   AlignLinearDimension(d, pt.Move(CType(refDir, Vector), data.Width / 2).Move(secondRefDir * -1, data.Length / 2), secondRefDir)
 
                                Case NameOf(BoxMacroFeatureData.Height)
-                                   Me.AlignLinearDimension(d, pt.Move(CType(refDir, Vector), data.Width / 2).Move(secondRefDir * -1, data.Length / 2), dir)
+                                   AlignLinearDimension(d, pt.Move(CType(refDir, Vector), data.Width / 2).Move(secondRefDir * -1, data.Length / 2), dir)
                            End Select
                        End Sub
 
