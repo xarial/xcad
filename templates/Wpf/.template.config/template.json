@@ -1,18 +1,18 @@
 {
   "$schema": "http://json.schemastore.org/template",
   "author": "Xarial",
-  "classifications": [ "xCAD", "SOLIDWORKS", "Inventor", "Console" ],
-  "identity": "Xarial.XCad.Template.Console.CSharp",
-  "groupIdentity": "Xarial.XCad.Template.Console",
-  "name": "xCAD Console",
-  "description": "Cross-CAD console application based on xCAD.NET Framework (C#)",
-  "shortName": "xcadconsole",
-  "sourceName": "__TemplateNamePlaceholderConsole__",
+  "classifications": [ "xCAD", "SOLIDWORKS", "Inventor", "Desktop" ],
+  "identity": "Xarial.XCad.Template.Wpf.CSharp",
+  "groupIdentity": "Xarial.XCad.Template.Wpf",
+  "name": "xCAD WPF",
+  "description": "Cross-CAD WPF application based on xCAD.NET Framework (C#)",
+  "shortName": "xcadwpf",
+  "sourceName": "__TemplateNamePlaceholderWpf__",
   "tags": {
     "language": "C#",
     "type": "project"
   },
-  "defaultName": "XCadConsole",
+  "defaultName": "XCadWpf",
   "preferNameDirectory": true,
   "symbols": {
     "_TargetFramework_": {
@@ -112,19 +112,19 @@
         {
           "condition": "!(_SolidWorks_)",
           "exclude": [
-            "__TemplateNamePlaceholderConsole__.Sw/**"
+            "__TemplateNamePlaceholderWpf__.Sw/**"
           ]
         },
         {
           "condition": "!(_SwDocumentManager_)",
           "exclude": [
-            "__TemplateNamePlaceholderConsole__.SwDm/**"
+            "__TemplateNamePlaceholderWpf__.SwDm/**"
           ]
         },
         {
           "condition": "!(_Inventor_)",
           "exclude": [
-            "__TemplateNamePlaceholderConsole__.Ai/**"
+            "__TemplateNamePlaceholderWpf__.Ai/**"
           ]
         }
       ]

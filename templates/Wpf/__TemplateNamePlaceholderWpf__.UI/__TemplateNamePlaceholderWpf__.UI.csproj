@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Xarial.XCad" Version="0.8.0-dev.4939" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\__TemplateNamePlaceholderWpf__.Base\__TemplateNamePlaceholderWpf__.Base.csproj" />
+  </ItemGroup>
+
+</Project>
