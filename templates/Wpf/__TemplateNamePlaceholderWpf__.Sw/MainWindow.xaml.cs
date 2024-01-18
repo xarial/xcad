@@ -13,6 +13,7 @@ namespace __TemplateNamePlaceholderWpf__.Sw
         public MainWindow()
         {
             InitializeComponent();
+
             m_Model = new PropertiesLoaderModel(() => SwApplicationFactory.PreCreate());
 
             this.DataContext = new PropertiesLoaderVM(

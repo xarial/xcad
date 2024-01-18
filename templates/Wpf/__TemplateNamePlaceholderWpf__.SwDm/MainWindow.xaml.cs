@@ -13,10 +13,11 @@ namespace __TemplateNamePlaceholderWpf__.SwDm
         public MainWindow()
         {
             InitializeComponent();
-            m_Model = new PropertiesLoaderModel(() => SwDmApplicationFactory.PreCreate());
+            
+            m_Model = new PropertiesLoaderModel(() => SwDmApplicationFactory.Create("YOUR DOCUMENT MANAGER LICENSE KEY"));
 
             this.DataContext = new PropertiesLoaderVM(
-                m_Model, null /*SwDmApplicationFactory.GetInstalledVersions().ToArray()*/);
+                m_Model, SwDmApplicationFactory.GetInstalledVersions().ToArray());
         }
 
         protected override void OnClosing(CancelEventArgs e)

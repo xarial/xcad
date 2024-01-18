@@ -28,8 +28,12 @@ namespace __TemplateNamePlaceholderWpf__.UI
             if (m_PrpsReader == null) 
             {
                 var app = m_AppTemplateProvider.Invoke();
-                app.Version = version;
-                app.Commit();
+                
+                if (!app.IsCommitted)
+                {
+                    app.Version = version;
+                    app.Commit();
+                }
 
                 m_PrpsReader = new PropertiesReader(app);
             }
