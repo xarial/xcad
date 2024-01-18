@@ -25,17 +25,22 @@ namespace Xarial.XCad.Inventor.Documents
     {
         public PartDocument Part { get; }
 
+        private readonly AiPartTable m_iPartTable;
+
         internal AiPart(PartDocument part, AiApplication ownerApp) : base((Document)part, ownerApp)
         {
             Part = part;
+            m_iPartTable = new AiPartTable(this);
         }
 
         public IXBodyRepository Bodies => throw new NotImplementedException();
 
         IXModelView3DRepository IXDocument3D.ModelViews => throw new NotImplementedException();
 
-        IXConfigurationRepository IXDocument3D.Configurations => throw new NotImplementedException();
+        IXConfigurationRepository IXDocument3D.Configurations => m_iPartTable;
 
-        IXPartConfigurationRepository IXPart.Configurations => throw new NotImplementedException();
+        IXPartConfigurationRepository IXPart.Configurations => m_iPartTable;
+
+        public override IXConfigurationRepository Configurations => m_iPartTable;
     }
 }

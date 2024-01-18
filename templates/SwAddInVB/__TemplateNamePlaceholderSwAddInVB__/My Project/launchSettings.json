@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Run SOLIDWORKS": {
+      "commandName": "Executable",
+      "executablePath": "C:\\Program Files\\SOLIDWORKS Corp\\SOLIDWORKS\\sldworks.exe"
+    }
+  }
+}

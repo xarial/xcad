@@ -5,13 +5,14 @@
   "identity": "Xarial.XCad.Template.Console.CSharp",
   "groupIdentity": "Xarial.XCad.Template.Console",
   "name": "xCAD Console",
+  "description": "Cross-CAD console application based on xCAD.NET Framework (C#)",
   "shortName": "xcadconsole",
-  "sourceName": "__TemplateNamePlaceholder__",
+  "sourceName": "__TemplateNamePlaceholderConsole__",
   "tags": {
     "language": "C#",
     "type": "project"
   },
-  "defaultName": "XCadSample",
+  "defaultName": "XCadConsole",
   "preferNameDirectory": true,
   "symbols": {
     "_TargetFramework_": {
@@ -45,20 +46,55 @@
           "displayName": ".NET 7"
         }
       ],
-      "defaultValue": "net472",
-      "replaces": "net472"
+      "defaultValue": "net6.0-windows",
+      "replaces": "net6.0-windows"
+    },
+    "_TargetFrameworkBase_": {
+      "type": "generated",
+      "generator": "switch",
+      "replaces": "net6.0",
+      "parameters": {
+        "evaluator": "C++",
+        "datatype": "string",
+        "cases": [
+          {
+            "condition": "(_TargetFramework_ == 'net461')",
+            "value": "net461"
+          },
+          {
+            "condition": "(_TargetFramework_ == 'net472')",
+            "value": "net472"
+          },
+          {
+            "condition": "(_TargetFramework_ == 'net48')",
+            "value": "net48"
+          },
+          {
+            "condition": "(_TargetFramework_ == 'netcoreapp3.1')",
+            "value": "netstandard2.1"
+          },
+          {
+            "condition": "(_TargetFramework_ == 'net6.0-windows')",
+            "value": "net6.0"
+          },
+          {
+            "condition": "(_TargetFramework_ == 'net7.0-windows')",
+            "value": "net7.0"
+          }
+        ]
+      }
     },
     "_SolidWorks_": {
       "type": "parameter",
       "displayName": "SOLIDWORKS",
-      "description": "Adds the SOLIDWORKS implementation1",
+      "description": "Adds the SOLIDWORKS implementation",
       "datatype": "bool",
       "defaultValue": "true"
     },
     "_SwDocumentManager_": {
       "type": "parameter",
       "displayName": "SOLIDWORKS Document Manager",
-      "description": "Adds the SOLIDWORKS implementation",
+      "description": "Adds the SOLIDWORKS Document Manager implementation",
       "datatype": "bool",
       "defaultValue": "true"
     },
@@ -76,19 +112,19 @@
         {
           "condition": "!(_SolidWorks_)",
           "exclude": [
-            "__TemplateNamePlaceholder__Console.Sw/**"
+            "__TemplateNamePlaceholderConsole__.Sw/**"
           ]
         },
         {
           "condition": "!(_SwDocumentManager_)",
           "exclude": [
-            "__TemplateNamePlaceholder__Console.SwDm/**"
+            "__TemplateNamePlaceholderConsole__.SwDm/**"
           ]
         },
         {
           "condition": "!(_Inventor_)",
           "exclude": [
-            "__TemplateNamePlaceholder__Console.Ai/**"
+            "__TemplateNamePlaceholderConsole__.Ai/**"
           ]
         }
       ]

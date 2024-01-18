@@ -118,7 +118,7 @@ namespace Xarial.XCad.SolidWorks
         /// <summary>
         /// Returns all installed SOLIDWORKS versions
         /// </summary>
-        /// <returns></returns>
+        /// <returns>Enumerates versions</returns>
         public static IEnumerable<ISwVersion> GetInstalledVersions()
         {
             foreach (var versCand in Enum.GetValues(typeof(SwVersion_e)).Cast<SwVersion_e>())

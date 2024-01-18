@@ -7,10 +7,13 @@
 
 using Inventor;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
+using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Delegates;
 using Xarial.XCad.Geometry;
@@ -31,7 +34,7 @@ namespace Xarial.XCad.Inventor.Documents
 
         public IXDocumentGraphics Graphics => throw new NotImplementedException();
 
-        public IXConfigurationRepository Configurations => throw new NotImplementedException();
+        public abstract IXConfigurationRepository Configurations { get; }
 
         IXModelView3DRepository IXDocument3D.ModelViews => throw new NotImplementedException();
 

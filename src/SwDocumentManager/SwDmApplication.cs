@@ -64,10 +64,7 @@ namespace Xarial.XCad.SwDocumentManager
             set => throw new Exception("This property is read-only"); 
         }
 
-        public ISwDmVersion Version
-        {
-            get => SwDmApplicationFactory.CreateVersion((SwDmVersion_e)SwDocMgr.GetLatestSupportedFileVersion());
-        }
+        public ISwDmVersion Version => SwDmApplicationFactory.CreateVersion((SwDmVersion_e)SwDocMgr.GetLatestSupportedFileVersion());
 
         public ISwDmDocumentCollection Documents { get; }
 

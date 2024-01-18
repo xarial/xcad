@@ -5,9 +5,13 @@
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
+using Microsoft.Win32;
 using SolidWorks.Interop.swdocumentmgr;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
 using System.Net;
 using System.Security;
 using System.Text;
@@ -21,8 +25,65 @@ namespace Xarial.XCad.SwDocumentManager
     /// </summary>
     public static class SwDmApplicationFactory
     {
+        private const string DM_CLASS_FACT_PROG_ID = "SwDocumentMgr.SwDMClassFactory";
+
+        /// <summary>
+        /// Pre-creates application
+        /// </summary>
+        /// <returns>xCAD application</returns>
         public static ISwDmApplication PreCreate() => new SwDmApplication(null, false);
 
+        /// <summary>
+        /// Returns all installed SOLIDWORKS Document Manager versions
+        /// </summary>
+        /// <returns>Enumerates versions</returns>
+        /// <remarks>Latest supported file version of the application also depends on the version of the Document Manager license key</remarks>
+        public static IEnumerable<ISwDmVersion> GetInstalledVersions()
+        {
+            var swDmAppRegKey = Registry.ClassesRoot.OpenSubKey($"{DM_CLASS_FACT_PROG_ID}\\CLSID");
+
+            if (swDmAppRegKey != null)
+            {
+                var clsid = (string)swDmAppRegKey.GetValue("");
+
+                var swDmAppClsidRegKey = Registry.ClassesRoot.OpenSubKey($"CLSID\\{clsid}\\InprocServer32");
+
+                if (swDmAppClsidRegKey != null) 
+                {
+                    var dmDllPath = (string)swDmAppClsidRegKey.GetValue("");
+
+                    if (File.Exists(dmDllPath))
+                    {
+                        var majorVers = FileVersionInfo.GetVersionInfo(dmDllPath).FileMajorPart;
+
+                        //only support SW 2000 or newer
+                        if (majorVers >= 8) 
+                        {
+                            var dmVersList = ((SwDmVersion_e[])Enum.GetValues(typeof(SwDmVersion_e))).ToList();
+
+                            var dmVersInd = dmVersList.IndexOf(SwDmVersion_e.Sw2000) + (majorVers - 8);
+
+                            if (dmVersInd < dmVersList.Count)
+                            {
+                                var dmVers = dmVersList[dmVersInd];
+
+                                yield return CreateVersion(dmVers);
+                            }
+                            else 
+                            {
+                                throw new NotSupportedException($"File versions {majorVers} cannot be converted to Document Manager version");
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Creates an instance of the application from the Document Manager key
+        /// </summary>
+        /// <param name="dmKey">Document manager key</param>
+        /// <returns>xCAD application</returns>
         public static ISwDmApplication Create(string dmKey) 
         {
             var app = PreCreate();
@@ -32,13 +93,18 @@ namespace Xarial.XCad.SwDocumentManager
             return app;
         }
 
+        /// <summary>
+        /// Creates instance of the application from the COM pointer
+        /// </summary>
+        /// <param name="app">Pointer to the application</param>
+        /// <returns>xCAD application</returns>
         public static ISwDmApplication FromPointer(ISwDMApplication app) => new SwDmApplication(app, true);
 
         internal static ISwDMApplication ConnectToDm(SecureString dmKeySecure) 
         {
             ISwDMClassFactory classFactory = null;
 
-            var classFactoryType = Type.GetTypeFromProgID("SwDocumentMgr.SwDMClassFactory");
+            var classFactoryType = Type.GetTypeFromProgID(DM_CLASS_FACT_PROG_ID);
 
             if (classFactoryType != null)
             {
@@ -60,7 +126,7 @@ namespace Xarial.XCad.SwDocumentManager
                     }
                     else 
                     {
-                        throw new Exception("Application is null");
+                        throw new NullReferenceException("Application is null");
                     }
                 }
                 catch (Exception ex)
@@ -74,6 +140,11 @@ namespace Xarial.XCad.SwDocumentManager
             }
         }
 
+        /// <summary>
+        /// Creates a version of the application
+        /// </summary>
+        /// <param name="major">Major version</param>
+        /// <returns>Version</returns>
         public static ISwDmVersion CreateVersion(SwDmVersion_e major) => new SwDmVersion(new Version((int)major, 0));
     }
 }

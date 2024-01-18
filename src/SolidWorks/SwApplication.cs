@@ -69,6 +69,25 @@ namespace Xarial.XCad.SolidWorks
         internal SwApplicationOptions(SwApplication app) 
         {
             m_App = app;
+            Drawings = new SwDrawingsApplicationOptions(app);
+        }
+
+        public IXDrawingsApplicationOptions Drawings { get; }
+    }
+
+    internal class SwDrawingsApplicationOptions : IXDrawingsApplicationOptions
+    {
+        private readonly SwApplication m_App;
+
+        public SwDrawingsApplicationOptions(SwApplication app)
+        {
+            m_App = app;
+        }
+
+        public bool AutomaticallyScaleNewDrawingViews
+        {
+            get => m_App.Sw.GetUserPreferenceToggle((int)swUserPreferenceToggle_e.swAutomaticScaling3ViewDrawings);
+            set => m_App.Sw.SetUserPreferenceToggle((int)swUserPreferenceToggle_e.swAutomaticScaling3ViewDrawings, value);
         }
     }
 

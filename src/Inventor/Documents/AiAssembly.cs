@@ -30,9 +30,12 @@ namespace Xarial.XCad.Inventor.Documents
 
         public AssemblyDocument Assembly { get; }
 
+        private readonly IAiAssemblyTable m_iAssmTable;
+
         internal AiAssembly(AssemblyDocument assm, AiApplication ownerApp) : base((Document)assm, ownerApp)
         {
             Assembly = assm;
+            m_iAssmTable = new AiAssemblyTable(this);
         }
 
         public IXComponent EditingComponent => throw new NotImplementedException();
@@ -41,10 +44,12 @@ namespace Xarial.XCad.Inventor.Documents
 
         IXModelView3DRepository IXDocument3D.ModelViews => throw new NotImplementedException();
 
-        IXConfigurationRepository IXDocument3D.Configurations => throw new NotImplementedException();
+        IXConfigurationRepository IXDocument3D.Configurations => m_iAssmTable;
 
-        IXAssemblyConfigurationRepository IXAssembly.Configurations => throw new NotImplementedException();
+        IXAssemblyConfigurationRepository IXAssembly.Configurations => m_iAssmTable;
 
         IXAssemblyEvaluation IXAssembly.Evaluation => throw new NotImplementedException();
+
+        public override IXConfigurationRepository Configurations => m_iAssmTable;
     }
 }

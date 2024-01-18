@@ -73,10 +73,7 @@ namespace Xarial.XCad.SwDocumentManager
             }
         }
 
-        public override int GetHashCode()
-        {
-            return (int)Major;
-        }
+        public override int GetHashCode() => (int)Major;
 
         public override bool Equals(object obj)
         {
