@@ -23,6 +23,21 @@ namespace Xarial.XCad
     /// </summary>
     public interface IXApplicationOptions : IXOptions 
     {
+        /// <summary>
+        /// Application level options for drawings
+        /// </summary>
+        IXDrawingsApplicationOptions Drawings { get; }
+    }
+
+    /// <summary>
+    /// Application level options for drawings
+    /// </summary>
+    public interface IXDrawingsApplicationOptions
+    {
+        /// <summary>
+        /// Specifies whether new views are scaled to fit drawing sheet
+        /// </summary>
+        bool AutomaticallyScaleNewDrawingViews { get; set; }
     }
 
     /// <summary>
