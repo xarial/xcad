@@ -13,7 +13,10 @@ namespace __TemplateNamePlaceholderWpf__.Ai
 
             this.MainWindow = new PropertiesLoaderWindow(
                 () => AiApplicationFactory.PreCreate(),
-                AiApplicationFactory.GetInstalledVersions().ToArray());
+                AiApplicationFactory.GetInstalledVersions().ToArray())
+            {
+                Title = "Autodesk Inventor Properties Reader"
+            };
 
             this.MainWindow.Show();
         }
