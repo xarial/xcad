@@ -13,7 +13,10 @@ namespace __TemplateNamePlaceholderWpf__.Sw
 
             this.MainWindow = new PropertiesLoaderWindow(
                 () => SwApplicationFactory.PreCreate(),
-                SwApplicationFactory.GetInstalledVersions().ToArray());
+                SwApplicationFactory.GetInstalledVersions().ToArray())
+            {
+                Title = "SOLIDWORKS Properties Reader"
+            };
 
             this.MainWindow.Show();
         }

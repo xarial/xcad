@@ -12,8 +12,11 @@ namespace __TemplateNamePlaceholderWpf__.SwDm
             base.OnStartup(e);
 
             this.MainWindow = new PropertiesLoaderWindow(
-                () => SwDmApplicationFactory.Create("YOUR DOCUMENT MANAGER LICENSE KEY"),
-                SwDmApplicationFactory.GetInstalledVersions().ToArray());
+                () => SwDmApplicationFactory.Create("<YOUR DOCUMENT MANAGER LICENSE KEY>"),
+                SwDmApplicationFactory.GetInstalledVersions().ToArray())
+            {
+                Title = "SOLIDWORKS Document Manager Properties Reader"
+            };
 
             this.MainWindow.Show();
         }
