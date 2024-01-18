@@ -1,22 +1,22 @@
-﻿using __TemplateNamePlaceholderWpf__.UI;
-using Xarial.XCad.SolidWorks;
-using System.Windows;
+﻿using System.Windows;
 using System.Linq;
 using System.ComponentModel;
+using Xarial.XCad;
+using System;
 
-namespace __TemplateNamePlaceholderWpf__.Sw
+namespace __TemplateNamePlaceholderWpf__.UI
 {
-    public partial class MainWindow : Window
+    public partial class PropertiesLoaderWindow : Window
     {
         private readonly PropertiesLoaderModel m_Model;
 
-        public MainWindow()
+        public PropertiesLoaderWindow(Func<IXApplication> appTemplateProvider, IXVersion[] versions)
         {
             InitializeComponent();
-            m_Model = new PropertiesLoaderModel(() => SwApplicationFactory.PreCreate());
 
-            this.DataContext = new PropertiesLoaderVM(
-                m_Model, SwApplicationFactory.GetInstalledVersions().ToArray());
+            m_Model = new PropertiesLoaderModel(appTemplateProvider);
+
+            this.DataContext = new PropertiesLoaderVM(m_Model, versions);
         }
 
         protected override void OnClosing(CancelEventArgs e)
