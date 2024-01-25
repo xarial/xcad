@@ -43,5 +43,6 @@ namespace Xarial.XCad.Inventor.Enums
         Inventor2021 = 25,
         Inventor2022 = 26,
         Inventor2023 = 27,
+        Inventor2024 = 28
     }
 }
