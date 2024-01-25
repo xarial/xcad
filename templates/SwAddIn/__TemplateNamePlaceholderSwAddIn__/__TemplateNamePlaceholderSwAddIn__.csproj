@@ -10,7 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Xarial.XCad.SolidWorks" Version="0.8.0-beta.4948" />
+    <PackageReference Include="Xarial.XCad.SolidWorks" Version="0.8.0-beta.4956" />
   </ItemGroup>
   <!--#if (_AddCommandManager_ || _AddPropertyPage_ || _AddMacroFeature_)-->
 
