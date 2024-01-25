@@ -63,7 +63,7 @@ namespace Xarial.XCad.SwDocumentManager
 
         public int CompareTo(IXVersion other)
         {
-            if (other is SwDmVersion)
+            if (other is ISwDmVersion)
             {
                 return Version.CompareTo(other.Version);
             }
@@ -78,21 +78,22 @@ namespace Xarial.XCad.SwDocumentManager
         public override bool Equals(object obj)
         {
             if (!(obj is ISwDmVersion))
+            {
                 return false;
+            }
 
-            return Equals((ISwDmVersion)obj);
+            return IsSame((ISwDmVersion)obj);
         }
 
-        public bool Equals(ISwDmVersion other)
-            => Major == other.Major;
+        private bool IsSame(ISwDmVersion other) => Major == other.Major;
 
         public bool Equals(IXVersion other) => Equals((object)other);
 
         public static bool operator ==(SwDmVersion version1, SwDmVersion version2)
-            => version1.Equals(version2);
+            => version1.IsSame(version2);
 
         public static bool operator !=(SwDmVersion version1, SwDmVersion version2)
-            => !version1.Equals(version2);
+            => !version1.IsSame(version2);
 
         public override string ToString() => DisplayName;
     }
