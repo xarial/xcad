@@ -74,21 +74,22 @@ namespace Xarial.XCad.SolidWorks
         public override bool Equals(object obj)
         {
             if (!(obj is ISwVersion))
+            {
                 return false;
+            }
 
-            return Equals((SwVersion)obj);
+            return IsSame((ISwVersion)obj);
         }
 
-        public bool Equals(SwVersion other)
-            => Major == other.Major;
+        private bool IsSame(ISwVersion other) => Major == other.Major;
 
         public bool Equals(IXVersion other) => Equals((object)other);
 
         public static bool operator ==(SwVersion version1, SwVersion version2)
-            => version1.Equals(version2);
+            => version1.IsSame(version2);
 
         public static bool operator !=(SwVersion version1, SwVersion version2)
-            => !version1.Equals(version2);
+            => !version1.IsSame(version2);
 
         public override string ToString() => DisplayName;
     }
