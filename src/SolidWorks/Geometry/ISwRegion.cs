@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -192,7 +192,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
                 foreach (var subSegCurve in segCurve.Curves) 
                 {
-                    yield return subSegCurve;
+                    yield return subSegCurve.ICopy();
                 }
             }
         }

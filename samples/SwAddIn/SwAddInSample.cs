@@ -42,7 +42,6 @@ using Xarial.XCad.Reflection;
 using Xarial.XCad.UI.PropertyPage.Attributes;
 using Xarial.XCad.Extensions;
 using Xarial.XCad.Enums;
-using System.Drawing;
 using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.SolidWorks.Features;
 using System.Diagnostics;
@@ -65,6 +64,7 @@ using Xarial.XCad.Toolkit.Extensions;
 using Xarial.XCad.Annotations;
 using Xarial.XCad.UI.Enums;
 using Xarial.XToolkit;
+using Xarial.XCad.SolidWorks.Geometry.Primitives;
 
 namespace SwAddInExample
 {
@@ -775,11 +775,6 @@ namespace SwAddInExample
 
         private void Custom()
         {
-            var bodies = ((IXPart)Application.Documents.Active).Bodies.Where(b => b.Visible).ToArray();
-            Application.Documents.Active.ModelViews.Active.ZoomToObjects(bodies);
-
-            //var drw = (IXDrawing)Application.Documents.Active;
-            //var sheet = drw.Sheets.First().Clone(drw);
         }
 
         private void HandleAddEvents()
@@ -839,11 +834,11 @@ namespace SwAddInExample
                 }
                 else
                 {
-                    var bmp = new Bitmap(50, 50);
+                    var bmp = new System.Drawing.Bitmap(50, 50);
                     
-                    using (var graph = Graphics.FromImage(bmp))
+                    using (var graph = System.Drawing.Graphics.FromImage(bmp))
                     {
-                        graph.FillRectangle(Brushes.Red, new RectangleF(0f, 0f, 50f, 50f));
+                        graph.FillRectangle(System.Drawing.Brushes.Red, new System.Drawing.RectangleF(0f, 0f, 50f, 50f));
                     }
 
                     if (doc is IXDrawing)
@@ -855,7 +850,7 @@ namespace SwAddInExample
                         pict = doc.Features.PreCreate<IXSketchPicture>();
                     }
 
-                    pict.Boundary = new Rect2D(0.05, 0.05, new Xarial.XCad.Geometry.Structures.Point(0.1, 0.1, 0));
+                    pict.Boundary = new Rect2D(0.05, 0.05, new Point(0.1, 0.1, 0));
                     pict.Image = new XDrawingImage(bmp, ImageFormat.Bmp);
                     pict.Commit();
 
@@ -950,7 +945,7 @@ namespace SwAddInExample
             
             var centerPt = (IXSketchPoint)bboxSketch.Entities.PreCreatePoint();
             centerPt.Coordinate = box.CenterPoint;
-            centerPt.Color = Color.Yellow;
+            centerPt.Color = System.Drawing.Color.Yellow;
 
             var lines = new IXLine[12];
 
@@ -994,15 +989,15 @@ namespace SwAddInExample
             
             axes[0] = (IXSketchLine)bboxSketch.Entities.PreCreateLine();
             axes[0].Geometry = new Line(box.CenterPoint, box.CenterPoint.Move(box.AxisX, 0.1));
-            axes[0].Color = Color.Red;
+            axes[0].Color = System.Drawing.Color.Red;
 
             axes[1] = (IXSketchLine)bboxSketch.Entities.PreCreateLine();
             axes[1].Geometry = new Line(box.CenterPoint, box.CenterPoint.Move(box.AxisY, 0.1));
-            axes[1].Color = Color.Green;
+            axes[1].Color = System.Drawing.Color.Green;
 
             axes[2] = (IXSketchLine)bboxSketch.Entities.PreCreateLine();
             axes[2].Geometry = new Line(box.CenterPoint, box.CenterPoint.Move(box.AxisZ, 0.1));
-            axes[2].Color = Color.Blue;
+            axes[2].Color = System.Drawing.Color.Blue;
 
             bboxSketch.Entities.Add(centerPt);
             bboxSketch.Entities.AddRange(lines);
