@@ -62,7 +62,7 @@ stages:
           displayName: 'Pack production versions'
           inputs:
             targetType: 'inline'
-            script: dotnet pack "$(Build.SourcesDirectory)/templates/Xarial.XCad.Templates.csproj" --output "$(Build.ArtifactStagingDirectory)/packages/release" --no-build --version-suffix ""
+            script: dotnet pack "$(Build.SourcesDirectory)/templates/Xarial.XCad.Templates.csproj" --output "$(Build.ArtifactStagingDirectory)/packages/release" --no-build /p:VersionSuffix=
       
       - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
         - task: CopyFiles@2
