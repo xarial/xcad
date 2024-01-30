@@ -7,7 +7,7 @@ using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Documents.Extensions;
 
-namespace __TemplateNamePlaceholderConsole__.Base
+namespace __TemplateNamePlaceholderWpf__.Base
 {
     /// <summary>
     /// Properties reader service

@@ -1,4 +1,4 @@
-﻿using __TemplateNamePlaceholderConsole__.Base;
+﻿using __TemplateNamePlaceholderWpf__.Base;
 using System;
 using System.Data;
 using Xarial.XCad;

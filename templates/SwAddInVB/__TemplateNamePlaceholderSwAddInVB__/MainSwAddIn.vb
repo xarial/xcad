@@ -88,8 +88,8 @@ Namespace __TemplateNamePlaceholderSwAddInVB__.Sw
                 Case Commands_e.CreateBox
 #If _AddPropertyPage_
 #Else
-                    var frontPlane = Application.Documents.Active.Features.OfType<IXPlane>().First();
-                    CreateBox(frontPlane, 100, 200, 300);
+                    Dim frontPlane = Application.Documents.Active.Features.OfType(Of IXPlane)().First()
+                    CreateBox(frontPlane, 100, 200, 300)
 #End If
                     m_BoxPage.Show(m_BoxData)
 
@@ -105,7 +105,7 @@ Namespace __TemplateNamePlaceholderSwAddInVB__.Sw
         End Sub
 #End If
 #If _AddPropertyPage_ Then
-        Private Sub OnBoxPageClosing(ByVal reason As PageCloseReasons_e, ByVal arg As PageClosingArg)
+        Private Sub OnBoxPageClosing(reason As PageCloseReasons_e, arg As PageClosingArg)
             If reason = PageCloseReasons_e.Okay Then
                 'forbid closing of property page if user has not provided a valid input
                 If Not (TypeOf m_BoxData.Location.PlaneOrFace Is IXPlanarRegion) Then
@@ -115,7 +115,7 @@ Namespace __TemplateNamePlaceholderSwAddInVB__.Sw
             End If
         End Sub
 
-        Private Sub OnBoxPageClosed(ByVal reason As PageCloseReasons_e)
+        Private Sub OnBoxPageClosed(reason As PageCloseReasons_e)
             If reason = PageCloseReasons_e.Okay Then
                 'start box creation process
                 CreateBox(CType(m_BoxData.Location.PlaneOrFace, IXPlanarRegion), m_BoxData.Parameters.Width, m_BoxData.Parameters.Height, m_BoxData.Parameters.Length)
@@ -124,7 +124,7 @@ Namespace __TemplateNamePlaceholderSwAddInVB__.Sw
 #End If
 #If (_AddCommandManager_ Or _AddPropertyPage_) Then
 
-        Private Sub CreateBox(ByVal refEnt As IXPlanarRegion, ByVal width As Double, ByVal height As Double, ByVal length As Double)
+        Private Sub CreateBox(refEnt As IXPlanarRegion, width As Double, height As Double, length As Double)
             Dim doc = Application.Documents.Active
 
             'freeze current view (optional)
