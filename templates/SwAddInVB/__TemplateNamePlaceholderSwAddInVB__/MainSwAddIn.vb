@@ -87,11 +87,11 @@ Namespace __TemplateNamePlaceholderSwAddInVB__.Sw
 #If (_AddCommandManager_ Or _AddPropertyPage_)
                 Case Commands_e.CreateBox
 #If _AddPropertyPage_
+                    m_BoxPage.Show(m_BoxData)
 #Else
                     Dim frontPlane = Application.Documents.Active.Features.OfType(Of IXPlane)().First()
                     CreateBox(frontPlane, 100, 200, 300)
 #End If
-                    m_BoxPage.Show(m_BoxData)
 
 #End If
 #If _AddMacroFeature_
