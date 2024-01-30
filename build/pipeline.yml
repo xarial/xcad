@@ -125,6 +125,7 @@ stages:
             configurationToPack: $(BuildConfiguration)
             outputDir: $(Build.ArtifactStagingDirectory)/packages/release
             nobuild: true
+            buildProperties: 'VersionSuffix='
       
       - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
         - task: CopyFiles@2
