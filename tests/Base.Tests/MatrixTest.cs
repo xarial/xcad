@@ -69,6 +69,20 @@ namespace Base.Tests
             CollectionAssert.AreEqual(expMatrix, inversedMatrix.ToArray(), new DoubleComparer());            
         }
 
+        [Test]
+        public void AngleTest() 
+        {
+            var matrix1 = TransformMatrix.CreateFromRotation(20 * Math.PI / 180, -15 * Math.PI / 180, 60 * Math.PI / 180);
+            
+            var yaw1 = matrix1.Yaw;
+            var pitch1 = matrix1.Pitch;
+            var roll1 = matrix1.Roll;
+
+            Assert.That(yaw1, Is.EqualTo(20 * Math.PI / 180).Within(0.00000000001).Percent);
+            Assert.That(pitch1, Is.EqualTo(-15 * Math.PI / 180).Within(0.00000000001).Percent);
+            Assert.That(roll1, Is.EqualTo(60 * Math.PI / 180).Within(0.00000000001).Percent);
+        }
+
         public class DoubleComparer : IComparer
         {
             public int Compare(object x, object y)

@@ -1,0 +1,5 @@
+defaultdocumentation -j "%~dp0ApiReferenceDocumentationConfiguration.json" --AssemblyFilePath "..\_build\net461\Xarial.XCad.dll" --OutputDirectoryPath "..\_build\docs\api-reference\Xarial.XCad"
+defaultdocumentation -j "%~dp0ApiReferenceDocumentationConfiguration.json" --AssemblyFilePath "..\_build\net461\Xarial.XCad.SolidWorks.dll" --OutputDirectoryPath "..\_build\docs\api-reference\Xarial.XCad.SolidWorks"
+defaultdocumentation -j "%~dp0ApiReferenceDocumentationConfiguration.json" --AssemblyFilePath "..\_build\net461\Xarial.XCad.SwDocumentManager.dll" --OutputDirectoryPath "..\_build\docs\api-reference\Xarial.XCad.SwDocumentManager"
+defaultdocumentation -j "%~dp0ApiReferenceDocumentationConfiguration.json" --AssemblyFilePath "..\_build\net461\Xarial.XCad.Toolkit.dll" --OutputDirectoryPath "..\_build\docs\api-reference\Xarial.XCad.Toolkit"
+pause

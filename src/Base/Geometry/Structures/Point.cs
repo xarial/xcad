@@ -1,17 +1,20 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
 using System;
+using System.Diagnostics;
+using Xarial.XCad.Utils;
 
 namespace Xarial.XCad.Geometry.Structures
 {
     /// <summary>
     /// Structure representing 3D point
     /// </summary>
+    [DebuggerDisplay("{" + nameof(X) + "};{" + nameof(Y) + "};{" + nameof(Z) + "}")]
     public class Point
     {
         /// <summary>
@@ -76,16 +79,17 @@ namespace Xarial.XCad.Geometry.Structures
         /// Compares two points coordinates by exact values
         /// </summary>
         /// <param name="pt">Point to compare</param>
+        /// <param name="tol">Comparison tolerance</param>
         /// <returns>Result of comparison</returns>
         /// <exception cref="ArgumentNullException"/>
-        public bool IsSame(Point pt)
+        public bool IsSame(Point pt, double tol = Numeric.DEFAULT_NUMERIC_TOLERANCE)
         {
             if (pt == null)
             {
                 throw new ArgumentNullException(nameof(pt));
             }
 
-            return IsSame(pt.X, pt.Y, pt.Z);
+            return IsSame(pt.X, pt.Y, pt.Z, tol);
         }
 
         /// <summary>
@@ -94,9 +98,10 @@ namespace Xarial.XCad.Geometry.Structures
         /// <param name="x">X coordinate</param>
         /// <param name="y">Y coordinate</param>
         /// <param name="z">Z coordinate</param>
+        /// <param name="tol">Comparison tolerance</param>
         /// <returns>True if coordinates are equal</returns>
-        public bool IsSame(double x, double y, double z)
-            => X == x && Y == y && Z == z;
+        public bool IsSame(double x, double y, double z, double tol = Numeric.DEFAULT_NUMERIC_TOLERANCE)
+            => Numeric.Compare(X, x, tol) && Numeric.Compare(Y, y, tol) && Numeric.Compare(Z, z, tol);
 
         /// <summary>
         /// Deducts one point of another resulting in vector
@@ -132,22 +137,15 @@ namespace Xarial.XCad.Geometry.Structures
         /// <param name="dist">Distance</param>
         /// <returns>New point</returns>
         public Point Move(Vector dir, double dist)
-        {
-            var moveVec = dir.Normalize();
-            moveVec.Scale(dist);
-            return this + moveVec;
-        }
+            => this + dir.Normalize().Scale(dist);
 
         /// <summary>
         /// Scales the position
         /// </summary>
         /// <param name="scalar">Scalar value</param>
-        public void Scale(double scalar)
-        {
-            X *= scalar;
-            Y *= scalar;
-            Z *= scalar;
-        }
+        /// <returns>Scaled point</returns>
+        public Point Scale(double scalar) 
+            => new Point(X * scalar, Y * scalar, Z * scalar);
 
         /// <summary>
         /// Converts this point to vector

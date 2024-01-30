@@ -14,11 +14,20 @@ using Xarial.XCad.SolidWorks.Geometry;
 using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.SolidWorks.Geometry.Exceptions;
 using Xarial.XCad.Geometry.Exceptions;
+using Xarial.XCad.Geometry.Evaluation;
 
 namespace SolidWorks.Tests.Integration
 {
     public class EvaluationTest : IntegrationTests
     {
+        public class DoubleComparer : IEqualityComparer<double>
+        {
+            public bool Equals(double x, double y)
+                => Math.Abs(x - y) < 1E-10;
+
+            public int GetHashCode(double obj) => 0;
+        }
+
         [Test]
         public void BodyVolumeTest()
         {
@@ -35,6 +44,32 @@ namespace SolidWorks.Tests.Integration
         }
 
         [Test]
+        public void BoundingBoxBestFitTest()
+        {
+            Box3D b1;
+
+            using (var doc = OpenDataDocument("Part1.SLDPRT"))
+            {
+                var part = (IXPart)m_App.Documents.Active;
+
+                var bbox = part.Evaluation.PreCreateBoundingBox();
+                bbox.BestFit = true;
+                bbox.Commit();
+
+                b1 = bbox.Box;
+            }
+
+            var sizes = new double[] { b1.Width, b1.Height, b1.Length }.OrderBy(x => x).ToArray();
+
+            Assert.That(sizes[0], Is.EqualTo(0.01).Within(0.00000000001).Percent);
+            Assert.That(sizes[1], Is.EqualTo(0.035).Within(0.00000000001).Percent);
+            Assert.That(sizes[2], Is.EqualTo(0.075).Within(0.00000000001).Percent);
+            AssertCompareDoubles(b1.CenterPoint.X, 0.00980748828, 10);
+            AssertCompareDoubles(b1.CenterPoint.Y, -0.11052982533, 10);
+            AssertCompareDoubles(b1.CenterPoint.Z, -0.03862083082, 10);
+        }
+
+        [Test]
         public void BoundingBoxUserUnitTest()
         {
             Box3D b1;
@@ -44,13 +79,13 @@ namespace SolidWorks.Tests.Integration
             {
                 var part = (IXPart)m_App.Documents.Active;
 
-                var bbox = part.PreCreateBoundingBox();
+                var bbox = part.Evaluation.PreCreateBoundingBox();
                 bbox.Precise = true;
                 bbox.UserUnits = true;
                 bbox.Commit();
                 b1 = bbox.Box;
 
-                bbox = part.PreCreateBoundingBox();
+                bbox = part.Evaluation.PreCreateBoundingBox();
                 bbox.Precise = false;
                 bbox.UserUnits = true;
                 bbox.Commit();
@@ -102,13 +137,13 @@ namespace SolidWorks.Tests.Integration
 
                 var body = (IXSolidBody)part.Bodies["Boss-Extrude1"];
 
-                var bbox = part.PreCreateBoundingBox();
+                var bbox = part.Evaluation.PreCreateBoundingBox();
                 bbox.Precise = true;
                 bbox.Scope = new IXBody[] { body };
                 bbox.Commit();
                 b1 = bbox.Box;
 
-                bbox = part.PreCreateBoundingBox();
+                bbox = part.Evaluation.PreCreateBoundingBox();
                 bbox.Precise = false;
                 bbox.Scope = new IXBody[] { body };
                 bbox.Commit();
@@ -163,14 +198,14 @@ namespace SolidWorks.Tests.Integration
                 var matrix = TransformConverter.ToTransformMatrix(
                     part.Model.Extension.GetCoordinateSystemTransformByName("Coordinate System1"));
 
-                var bbox = part.PreCreateBoundingBox();
+                var bbox = part.Evaluation.PreCreateBoundingBox();
                 bbox.Precise = true;
                 bbox.RelativeTo = matrix;
                 bbox.Scope = new IXBody[] { body };
                 bbox.Commit();
                 b1 = bbox.Box;
 
-                bbox = part.PreCreateBoundingBox();
+                bbox = part.Evaluation.PreCreateBoundingBox();
                 bbox.Precise = false;
                 bbox.RelativeTo = matrix;
                 bbox.Scope = new IXBody[] { body };
@@ -223,7 +258,7 @@ namespace SolidWorks.Tests.Integration
             {
                 var part = (IXPart)m_App.Documents.Active;
 
-                var bbox = part.PreCreateBoundingBox();
+                var bbox = part.Evaluation.PreCreateBoundingBox();
                 bbox.Precise = false;
                 bbox.Commit();
                 b1 = bbox.Box;
@@ -255,7 +290,7 @@ namespace SolidWorks.Tests.Integration
             {
                 var assm = (IXAssembly)m_App.Documents.Active;
 
-                var bbox = assm.PreCreateBoundingBox();
+                var bbox = assm.Evaluation.PreCreateBoundingBox();
                 bbox.Precise = true;
                 bbox.Scope = new IXComponent[]
                 {
@@ -299,14 +334,14 @@ namespace SolidWorks.Tests.Integration
                 var matrix = TransformConverter.ToTransformMatrix(
                     assm.Model.Extension.GetCoordinateSystemTransformByName("Coordinate System1"));
 
-                var bbox = assm.PreCreateBoundingBox();
+                var bbox = assm.Evaluation.PreCreateBoundingBox();
                 bbox.Precise = true;
                 bbox.RelativeTo = matrix;
                 bbox.Scope = comps;
                 bbox.Commit();
                 b1 = bbox.Box;
 
-                bbox = assm.PreCreateBoundingBox();
+                bbox = assm.Evaluation.PreCreateBoundingBox();
                 bbox.Precise = false;
                 bbox.RelativeTo = matrix;
                 bbox.Scope = comps;
@@ -360,14 +395,14 @@ namespace SolidWorks.Tests.Integration
             {
                 var assm = (IXAssembly)m_App.Documents.Active;
 
-                var bbox = assm.PreCreateBoundingBox();
+                var bbox = assm.Evaluation.PreCreateBoundingBox();
                 bbox.Precise = false;
                 bbox.Commit();
                 b1 = bbox.Box;
 
                 try
                 {
-                    bbox = assm.PreCreateBoundingBox();
+                    bbox = assm.Evaluation.PreCreateBoundingBox();
                     bbox.VisibleOnly = false;
                     bbox.Commit();
                 }
@@ -412,7 +447,7 @@ namespace SolidWorks.Tests.Integration
                     assm.Configurations.Active.Components["SubAssem1-2"]
                 };
 
-                var bbox = assm.PreCreateBoundingBox();
+                var bbox = assm.Evaluation.PreCreateBoundingBox();
                 bbox.Scope = comps;
                 bbox.Precise = false;
                 bbox.Commit();
@@ -420,7 +455,7 @@ namespace SolidWorks.Tests.Integration
 
                 try
                 {
-                    bbox = assm.PreCreateBoundingBox();
+                    bbox = assm.Evaluation.PreCreateBoundingBox();
                     bbox.VisibleOnly = false;
                     bbox.Scope = comps;
                     bbox.Commit();
@@ -459,7 +494,7 @@ namespace SolidWorks.Tests.Integration
             {
                 var assm = (ISwAssembly)m_App.Documents.Active;
 
-                var bbox = assm.PreCreateBoundingBox();
+                var bbox = assm.Evaluation.PreCreateBoundingBox();
                 bbox.Precise = true;
                 var swBody = (assm.Configurations.Active.Components["SubAssem1-2"].Children["SubSubAssem1-1"].Children["Part1-1"]
                     .Bodies.First() as ISwBody).Body.ICopy();
@@ -495,7 +530,7 @@ namespace SolidWorks.Tests.Integration
             {
                 var assm = (ISwAssembly)m_App.Documents.Active;
 
-                using (var bbox = assm.PreCreateBoundingBox())
+                using (var bbox = assm.Evaluation.PreCreateBoundingBox())
                 {
                     bbox.UserUnits = false;
                     bbox.VisibleOnly = false;
@@ -524,7 +559,7 @@ namespace SolidWorks.Tests.Integration
             {
                 var assm = (ISwAssembly)m_App.Documents.Active;
 
-                using (var bbox = assm.PreCreateBoundingBox())
+                using (var bbox = assm.Evaluation.PreCreateBoundingBox())
                 {
                     bbox.UserUnits = false;
                     bbox.VisibleOnly = true;
@@ -548,7 +583,7 @@ namespace SolidWorks.Tests.Integration
             {
                 var part = (ISwPart)m_App.Documents.Active;
 
-                using (var bbox = part.PreCreateBoundingBox())
+                using (var bbox = part.Evaluation.PreCreateBoundingBox())
                 {
                     bbox.UserUnits = false;
                     bbox.VisibleOnly = false;
@@ -581,7 +616,7 @@ namespace SolidWorks.Tests.Integration
             {
                 var part = (ISwPart)m_App.Documents.Active;
                 
-                using (var massPrps = part.PreCreateMassProperty())
+                using (var massPrps = part.Evaluation.PreCreateMassProperty())
                 {
                     massPrps.Scope = new IXBody[] { part.Bodies["Sweep1"] };
                     massPrps.UserUnits = false;
@@ -644,7 +679,7 @@ namespace SolidWorks.Tests.Integration
             {
                 var part = (ISwPart)m_App.Documents.Active;
                 
-                using (var massPrps = part.PreCreateMassProperty())
+                using (var massPrps = part.Evaluation.PreCreateMassProperty())
                 {
                     massPrps.UserUnits = false;
                     massPrps.VisibleOnly = true;
@@ -707,7 +742,7 @@ namespace SolidWorks.Tests.Integration
             {
                 var part = (ISwPart)m_App.Documents.Active;
 
-                using (var massPrps = part.PreCreateMassProperty())
+                using (var massPrps = part.Evaluation.PreCreateMassProperty())
                 {
                     massPrps.UserUnits = true;
                     massPrps.VisibleOnly = true;
@@ -770,7 +805,7 @@ namespace SolidWorks.Tests.Integration
             {
                 var part = (ISwPart)m_App.Documents.Active;
 
-                using (var massPrps = part.PreCreateMassProperty())
+                using (var massPrps = part.Evaluation.PreCreateMassProperty())
                 {
                     massPrps.Scope = new IXBody[] { part.Bodies["Sweep1"] };
                     massPrps.UserUnits = true;
@@ -835,7 +870,7 @@ namespace SolidWorks.Tests.Integration
             {
                 var assm = (ISwAssembly)m_App.Documents.Active;
 
-                using (var massPrps = assm.PreCreateMassProperty())
+                using (var massPrps = assm.Evaluation.PreCreateMassProperty())
                 {
                     massPrps.Scope = new IXComponent[] { assm.Configurations.Active.Components["Part1-1"] };
                     massPrps.UserUnits = false;
@@ -898,7 +933,7 @@ namespace SolidWorks.Tests.Integration
             {
                 var assm = (ISwAssembly)m_App.Documents.Active;
 
-                using (var massPrps = assm.PreCreateMassProperty())
+                using (var massPrps = assm.Evaluation.PreCreateMassProperty())
                 {
                     massPrps.UserUnits = false;
                     massPrps.VisibleOnly = true;
@@ -961,7 +996,7 @@ namespace SolidWorks.Tests.Integration
             {
                 var assm = (ISwAssembly)m_App.Documents.Active;
 
-                using (var massPrps = assm.PreCreateMassProperty())
+                using (var massPrps = assm.Evaluation.PreCreateMassProperty())
                 {
                     massPrps.Scope = new IXComponent[] { assm.Configurations.Active.Components["SubAssem1-1"].Children["Part2-1"] };
                     massPrps.UserUnits = true;
@@ -1025,7 +1060,7 @@ namespace SolidWorks.Tests.Integration
             {
                 var assm = (ISwAssembly)m_App.Documents.Active;
 
-                using (var massPrps = assm.PreCreateMassProperty())
+                using (var massPrps = assm.Evaluation.PreCreateMassProperty())
                 {
                     massPrps.UserUnits = false;
                     massPrps.VisibleOnly = false;
@@ -1088,7 +1123,7 @@ namespace SolidWorks.Tests.Integration
             {
                 var assm = (ISwAssembly)m_App.Documents.Active;
 
-                using (var massPrps = assm.PreCreateMassProperty())
+                using (var massPrps = assm.Evaluation.PreCreateMassProperty())
                 {
                     massPrps.Scope = new IXComponent[] { assm.Configurations.Active.Components["Part1-1"] };
                     massPrps.UserUnits = false;
@@ -1157,7 +1192,7 @@ namespace SolidWorks.Tests.Integration
             {
                 var assm = (ISwAssembly)m_App.Documents.Active;
 
-                using (var massPrps = assm.PreCreateMassProperty())
+                using (var massPrps = assm.Evaluation.PreCreateMassProperty())
                 {
                     massPrps.UserUnits = false;
                     massPrps.VisibleOnly = false;
@@ -1217,7 +1252,7 @@ namespace SolidWorks.Tests.Integration
             {
                 var assm = (ISwAssembly)m_App.Documents.Active;
 
-                using (var massPrps = assm.PreCreateMassProperty())
+                using (var massPrps = assm.Evaluation.PreCreateMassProperty())
                 {
                     massPrps.UserUnits = false;
                     massPrps.VisibleOnly = false;
@@ -1298,7 +1333,7 @@ namespace SolidWorks.Tests.Integration
             {
                 var assm = (ISwAssembly)m_App.Documents.Active;
 
-                using (var massPrps = assm.PreCreateMassProperty())
+                using (var massPrps = assm.Evaluation.PreCreateMassProperty())
                 {
                     massPrps.UserUnits = true;
                     massPrps.VisibleOnly = false;
@@ -1316,7 +1351,7 @@ namespace SolidWorks.Tests.Integration
                     pai1 = massPrps.PrincipalAxesOfInertia;
                 }
 
-                using (var massPrps = assm.PreCreateMassProperty())
+                using (var massPrps = assm.Evaluation.PreCreateMassProperty())
                 {
                     massPrps.UserUnits = false;
                     massPrps.VisibleOnly = false;
@@ -1409,7 +1444,7 @@ namespace SolidWorks.Tests.Integration
             {
                 var assm = (ISwAssembly)m_App.Documents.Active;
 
-                using (var massPrps = assm.PreCreateMassProperty())
+                using (var massPrps = assm.Evaluation.PreCreateMassProperty())
                 {
                     massPrps.UserUnits = true;
                     massPrps.VisibleOnly = true;
@@ -1480,7 +1515,7 @@ namespace SolidWorks.Tests.Integration
             {
                 var part = (ISwPart)m_App.Documents.Active;
 
-                using (var massPrps = part.PreCreateMassProperty())
+                using (var massPrps = part.Evaluation.PreCreateMassProperty())
                 {
                     massPrps.UserUnits = false;
                     massPrps.VisibleOnly = false;
@@ -1524,7 +1559,7 @@ namespace SolidWorks.Tests.Integration
             {
                 var part = (ISwPart)m_App.Documents.Active;
 
-                using (var massPrps = part.PreCreateMassProperty())
+                using (var massPrps = part.Evaluation.PreCreateMassProperty())
                 {
                     massPrps.UserUnits = true;
                     massPrps.VisibleOnly = true;
@@ -1572,7 +1607,7 @@ namespace SolidWorks.Tests.Integration
             {
                 var assm = (ISwAssembly)m_App.Documents.Active;
 
-                using (var massPrps = assm.PreCreateMassProperty())
+                using (var massPrps = assm.Evaluation.PreCreateMassProperty())
                 {
                     massPrps.UserUnits = true;
                     massPrps.Scope = new IXComponent[] { assm.Configurations.Active.Components["SubSubAssem1-1"] };
@@ -1626,7 +1661,7 @@ namespace SolidWorks.Tests.Integration
             {
                 var assm = (ISwAssembly)m_App.Documents.Active;
 
-                using (var massPrps = assm.PreCreateMassProperty())
+                using (var massPrps = assm.Evaluation.PreCreateMassProperty())
                 {
                     massPrps.UserUnits = false;
                     massPrps.VisibleOnly = false;
@@ -1654,7 +1689,7 @@ namespace SolidWorks.Tests.Integration
             {
                 var assm = (ISwAssembly)m_App.Documents.Active;
 
-                using (var massPrps = assm.PreCreateMassProperty())
+                using (var massPrps = assm.Evaluation.PreCreateMassProperty())
                 {
                     massPrps.UserUnits = false;
                     massPrps.VisibleOnly = false;
@@ -1677,7 +1712,7 @@ namespace SolidWorks.Tests.Integration
             {
                 var part = (ISwPart)m_App.Documents.Active;
 
-                using (var massPrps = part.PreCreateMassProperty())
+                using (var massPrps = part.Evaluation.PreCreateMassProperty())
                 {
                     massPrps.UserUnits = false;
                     massPrps.VisibleOnly = false;
@@ -1700,7 +1735,7 @@ namespace SolidWorks.Tests.Integration
             {
                 var assm = (ISwAssembly)m_App.Documents.Active;
 
-                using (var massPrps = assm.PreCreateMassProperty())
+                using (var massPrps = assm.Evaluation.PreCreateMassProperty())
                 {
                     massPrps.VisibleOnly = true;
 
@@ -2680,11 +2715,60 @@ namespace SolidWorks.Tests.Integration
             AssertCompareDoubles((double)volume2, 0.00049954);
         }
 
+        [Test]
+        public void RayIntersectionAssemblyTest()
+        {
+            IXRay[] rays;
+
+            using (var doc = OpenDataDocument("RayIntersectionAssem1.SLDASM")) 
+            {
+                var assm = (IXAssembly)m_App.Documents.Active;
+
+                var rayInters = assm.Evaluation.PreCreateRayIntersection();
+                
+                rayInters.AddRay(new Axis(new Point(0.03857029, 0.00533597, 0.02540296), new Vector(0, 0, -1)));
+                rayInters.AddRay(new Axis(new Point(-0.12615451, -0.02638223, 0), new Vector(0, 0, -1)));
+                rayInters.AddRay(new Axis(new Point(-0.06410509, 0.05318389, 0.00603193), new Vector(0, -1, 0)));
+
+                rayInters.Commit();
+
+                rays = rayInters.Rays;
+            }
+
+            var h0_1 = rays[0].Hits.FirstOrDefault(h => h.Point.IsSame(new Point(0.03857029, 0.00533597, 0.01)));
+            var h0_2 = rays[0].Hits.FirstOrDefault(h => h.Point.IsSame(new Point(0.03857029, 0.00533597, 0)));
+            var h0_3 = rays[0].Hits.FirstOrDefault(h => h.Point.IsSame(new Point(0.03857029, 0.00533597, -0.0385135112493299)));
+            var h0_4 = rays[0].Hits.FirstOrDefault(h => h.Point.IsSame(new Point(0.03857029, 0.00533597, -0.0485135112493299)));
+
+            var h2_1 = rays[2].Hits.FirstOrDefault(h => h.Point.IsSame(new Point(-0.06410509, 0.0344190476955077, 0.00603193)));
+            var h2_2 = rays[2].Hits.FirstOrDefault(h => h.Point.IsSame(new Point(-0.06410509, -0.0858369122642557, 0.00603193)));
+
+            Assert.AreEqual(3, rays.Length);
+
+            Assert.AreEqual(4, rays[0].Hits.Length);
+            Assert.IsNotNull(h0_1);
+            Assert.IsNotNull(h0_2);
+            Assert.IsNotNull(h0_3);
+            Assert.IsNotNull(h0_4);
+            Assert.AreEqual(RayIntersectionType_e.Enter, h0_1.Type);
+            Assert.AreEqual(RayIntersectionType_e.Exit, h0_2.Type);
+            Assert.AreEqual(RayIntersectionType_e.Enter, h0_3.Type);
+            Assert.AreEqual(RayIntersectionType_e.Exit, h0_4.Type);
+
+            Assert.AreEqual(0, rays[1].Hits.Length);
+
+            Assert.AreEqual(2, rays[2].Hits.Length);
+            Assert.IsNotNull(h2_1);
+            Assert.IsNotNull(h2_2);
+            Assert.AreEqual(RayIntersectionType_e.Enter, h2_1.Type);
+            Assert.AreEqual(RayIntersectionType_e.Exit, h2_2.Type);
+        }
+
         private void GetMassPropertyArrayData(ISwAssembly assm, string compName, bool includeHidden,
             bool relToCoord, bool userUnits, out object moi, out object mass, out object cog, out object pmoi, out object paoi,
             out object density, out object area, out object volume)
         {
-            using (var massPrps = assm.PreCreateMassProperty())
+            using (var massPrps = assm.Evaluation.PreCreateMassProperty())
             {
                 massPrps.Scope = new IXComponent[] { assm.Configurations.Active.Components[compName] };
                 massPrps.UserUnits = userUnits;
@@ -2785,6 +2869,92 @@ namespace SolidWorks.Tests.Integration
                     volume = ex;
                 }
             }
+        }
+
+        [Test]
+        public void TessellatePartTest()
+        {
+            TesselationTriangle[] triangs;
+
+            using (var doc = OpenDataDocument("TessPart1.SLDPRT"))
+            {
+                var part = (IXPart)m_App.Documents.Active;
+                var tess = part.Evaluation.PreCreateTessellation();
+                tess.Commit();
+                triangs = tess.Triangles.ToArray();
+            }
+
+            var side1 = triangs.Where(t => t.Normal.ToArray().SequenceEqual(new double[] { 1, 0, 0 }, new DoubleComparer())).ToArray();
+            var side2 = triangs.Where(t => t.Normal.ToArray().SequenceEqual(new double[] { -1, 0, 0 }, new DoubleComparer())).ToArray();
+            var side3 = triangs.Where(t => t.Normal.ToArray().SequenceEqual(new double[] { 0, 1, 0 }, new DoubleComparer())).ToArray();
+            var side4 = triangs.Where(t => t.Normal.ToArray().SequenceEqual(new double[] { 0, -1, 0 }, new DoubleComparer())).ToArray();
+            var side5 = triangs.Where(t => t.Normal.ToArray().SequenceEqual(new double[] { 0, 0, 1 }, new DoubleComparer())).ToArray();
+            var side6 = triangs.Where(t => t.Normal.ToArray().SequenceEqual(new double[] { 0, 0, -1 }, new DoubleComparer())).ToArray();
+
+            var side1Pts = new Point[]
+            {
+                side1[0].FirstPoint,
+                side1[0].SecondPoint,
+                side1[0].ThirdPoint,
+                side1[1].FirstPoint,
+                side1[1].SecondPoint,
+                side1[1].ThirdPoint
+            };
+            
+            Assert.AreEqual(12, triangs.Length);
+            Assert.AreEqual(2, side1.Length);
+            Assert.AreEqual(2, side2.Length);
+            Assert.AreEqual(2, side3.Length);
+            Assert.AreEqual(2, side4.Length);
+            Assert.AreEqual(2, side5.Length);
+            Assert.AreEqual(2, side6.Length);
+            Assert.That(side1Pts.Any(p => p.ToArray().SequenceEqual(new double[] { 0.025, 0.0125, -0.005 }, new DoubleComparer())));
+            Assert.That(side1Pts.Any(p => p.ToArray().SequenceEqual(new double[] { 0.025, -0.0125, -0.005 }, new DoubleComparer())));
+            Assert.That(side1Pts.Any(p => p.ToArray().SequenceEqual(new double[] { 0.025, 0.0125, 0.005 }, new DoubleComparer())));
+            Assert.That(side1Pts.Any(p => p.ToArray().SequenceEqual(new double[] { 0.025, -0.0125, 0.005 }, new DoubleComparer())));
+        }
+
+        [Test]
+        public void TessellateAssemblyTest()
+        {
+            TesselationTriangle[] triangs;
+
+            using (var doc = OpenDataDocument("TessAssm1.SLDASM"))
+            {
+                var assm = (IXAssembly)m_App.Documents.Active;
+                var tess = assm.Evaluation.PreCreateTessellation();
+                tess.Commit();
+                triangs = tess.Triangles.ToArray();
+            }
+
+            var side1 = triangs.Where(t => t.Normal.ToArray().SequenceEqual(new double[] { 1, 0, 0 }, new DoubleComparer())).ToArray();
+            var side2 = triangs.Where(t => t.Normal.ToArray().SequenceEqual(new double[] { -1, 0, 0 }, new DoubleComparer())).ToArray();
+            var side3 = triangs.Where(t => t.Normal.ToArray().SequenceEqual(new double[] { 0, 1, 0 }, new DoubleComparer())).ToArray();
+            var side4 = triangs.Where(t => t.Normal.ToArray().SequenceEqual(new double[] { 0, -1, 0 }, new DoubleComparer())).ToArray();
+            var side5 = triangs.Where(t => t.Normal.ToArray().SequenceEqual(new double[] { 0, 0, 1 }, new DoubleComparer())).ToArray();
+            var side6 = triangs.Where(t => t.Normal.ToArray().SequenceEqual(new double[] { 0, 0, -1 }, new DoubleComparer())).ToArray();
+
+            var side1Pts = new Point[]
+            {
+                side1[0].FirstPoint,
+                side1[0].SecondPoint,
+                side1[0].ThirdPoint,
+                side1[1].FirstPoint,
+                side1[1].SecondPoint,
+                side1[1].ThirdPoint
+            };
+
+            Assert.AreEqual(12, triangs.Length);
+            Assert.AreEqual(2, side1.Length);
+            Assert.AreEqual(2, side2.Length);
+            Assert.AreEqual(2, side3.Length);
+            Assert.AreEqual(2, side4.Length);
+            Assert.AreEqual(2, side5.Length);
+            Assert.AreEqual(2, side6.Length);
+            Assert.That(side1Pts.Any(p => p.ToArray().SequenceEqual(new double[] { 0.025, 0.0125, -0.005 }, new DoubleComparer())));
+            Assert.That(side1Pts.Any(p => p.ToArray().SequenceEqual(new double[] { 0.025, -0.0125, -0.005 }, new DoubleComparer())));
+            Assert.That(side1Pts.Any(p => p.ToArray().SequenceEqual(new double[] { 0.025, 0.0125, 0.005 }, new DoubleComparer())));
+            Assert.That(side1Pts.Any(p => p.ToArray().SequenceEqual(new double[] { 0.025, -0.0125, 0.005 }, new DoubleComparer())));
         }
     }
 }

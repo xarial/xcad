@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -9,8 +9,10 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
 using Xarial.XCad.Base;
 using Xarial.XCad.Data;
+using Xarial.XCad.Toolkit.Utils;
 
 namespace Xarial.XCad.SwDocumentManager.Data
 {
@@ -20,19 +22,13 @@ namespace Xarial.XCad.SwDocumentManager.Data
 
     internal abstract class SwDmCustomPropertiesCollection : ISwDmCustomPropertiesCollection
     {
-        public IXProperty this[string name] => this.Get(name);
+        public IXProperty this[string name] => RepositoryHelper.Get(this, name);
 
-        public void AddRange(IEnumerable<IXProperty> ents)
-        {
-            foreach (var prp in ents) 
-            {
-                prp.Commit();
-            }
-        }
+        public void AddRange(IEnumerable<IXProperty> ents, CancellationToken cancellationToken) => RepositoryHelper.AddRange(ents, cancellationToken);
 
-        public IXProperty PreCreate() => CreatePropertyInstance("", false);
+        public T PreCreate<T>() where T : IXProperty => (T)CreatePropertyInstance("", false);
 
-        public void RemoveRange(IEnumerable<IXProperty> ents)
+        public void RemoveRange(IEnumerable<IXProperty> ents, CancellationToken cancellationToken)
         {
             foreach (SwDmCustomProperty prp in ents) 
             {
@@ -55,6 +51,8 @@ namespace Xarial.XCad.SwDocumentManager.Data
         }
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+        public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters) => RepositoryHelper.FilterDefault(this, filters, reverseOrder);
 
         public abstract int Count { get; }
         public abstract IEnumerator<IXProperty> GetEnumerator();

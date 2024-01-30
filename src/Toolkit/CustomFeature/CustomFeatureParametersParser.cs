@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -18,20 +18,19 @@ using Xarial.XCad.Features.CustomFeature;
 using Xarial.XCad.Features.CustomFeature.Attributes;
 using Xarial.XCad.Features.CustomFeature.Enums;
 using Xarial.XCad.Features.CustomFeature.Services;
+using Xarial.XCad.Features.CustomFeature.Structures;
 using Xarial.XCad.Geometry;
+using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Reflection;
+using Xarial.XCad.Toolkit.Utils;
 using Xarial.XCad.Utils.Reflection;
 
 namespace Xarial.XCad.Utils.CustomFeature
 {
-    public class CustomFeatureParameter
-    {
-        public string Name { get; set; }
-        public Type Type { get; set; }
-        public object Value { get; set; }
-    }
-
-    public abstract class CustomFeatureParametersParser
+    /// <summary>
+    /// Helper utility allowsing to parse and convert parameters of the custom feature to the class
+    /// </summary>
+    public class CustomFeatureParametersParser
     {
         private class DimensionParamData
         {
@@ -57,67 +56,61 @@ namespace Xarial.XCad.Utils.CustomFeature
             }
         }
 
-        protected const string VERSION_DIMENSIONS_NAME = "__dimsVersion";
-        protected const string VERSION_PARAMETERS_NAME = "__paramsVersion";
+        /// <summary>
+        /// Name of the attribute which is holding version of dimensions
+        /// </summary>
+        public const string VERSION_DIMENSIONS_NAME = "__dimsVersion";
 
-        public virtual object GetParameters(IXCustomFeature feat, IXDocument model, Type paramsType,
-                    out IXDimension[] dispDims, out string[] dispDimParams, out IXBody[] editBodies,
-                    out IXSelObject[] sels, out CustomFeatureOutdateState_e state)
+        /// <summary>
+        /// Name of the attribute which is holding version of parameters
+        /// </summary>
+        public const string VERSION_PARAMETERS_NAME = "__paramsVersion";
+
+        private readonly FaultObjectFactory m_FaultObjectFactory;
+
+        public CustomFeatureParametersParser() 
         {
-            var dispDimParamsMap = new SortedDictionary<int, string>();
+            m_FaultObjectFactory = new FaultObjectFactory();
+        }
 
-            Dictionary<string, object> featRawParams;
-            IXDimension[] featDims;
-            IXSelObject[] featSels;
-            IXBody[] featBodies;
+        /// <summary>
+        /// Reads the parameters from the feature definition
+        /// </summary>
+        public object BuildParameters(Type paramsType,
+            ref Dictionary<string, object> featPrps,
+            ref IXDimension[] featDims, ref IXBody[] featEditBodies,
+            ref CustomFeatureSelectionInfo[] featSels, out string[] dispDimParams)
+        {
+            var parameters = new Dictionary<string, object>();
 
-            ExtractRawParameters(feat, model, out featRawParams, out featDims, out featSels, out featBodies);
-
-            var parameters = new Dictionary<string, string>();
-
-            var paramsVersion = new Version();
-            var dimsVersion = new Version();
-
-            if (featRawParams?.Any() == true)
+            if (featPrps?.Any() == true)
             {
-                foreach (var featRawParam in featRawParams)
+                foreach (var featRawParam in featPrps)
                 {
                     var paramName = featRawParam.Key;
 
-                    //TODO: think about conversion
-                    var paramVal = featRawParam.Value?.ToString();
-
-                    if (paramName == VERSION_PARAMETERS_NAME)
+                    if (paramName != VERSION_PARAMETERS_NAME && paramName != VERSION_DIMENSIONS_NAME)
                     {
-                        paramsVersion = new Version(paramVal);
-                    }
-                    else if (paramName == VERSION_DIMENSIONS_NAME)
-                    {
-                        paramsVersion = new Version(paramVal);
-                    }
-                    else
-                    {
+                        var paramVal = featRawParam.Value;
                         parameters.Add(paramName, paramVal);
                     }
                 }
             }
 
-            ConvertParameters(paramsType, paramsVersion, conv =>
-            {
-                parameters = conv.ConvertParameters(model, feat, parameters);
-                featBodies = conv.ConvertEditBodies(model, feat, featBodies);
-                featSels = conv.ConvertSelections(model, feat, featSels);
-                featDims = conv.ConvertDisplayDimensions(model, feat, featDims);
-            });
-
             var resParams = Activator.CreateInstance(paramsType);
 
-            TraverseParametersDefinition(resParams.GetType(),
-                (prp) =>
+            var dispDimParamsMap = new SortedDictionary<int, string>();
+
+            var featDimsLocal = featDims ?? new IXDimension[0];
+            var featEditBodiesLocal = featEditBodies ?? new IXBody[0];
+            var featSelsLocal = featSels ?? new CustomFeatureSelectionInfo[0];
+
+            TraverseParametersDefinition(resParams,
+                (obj, prp) =>
                 {
-                    AssignObjectsToProperty(resParams, featSels, prp, parameters);
+                    AssignObjectsToProperty(obj, featSelsLocal.Select(s => s.Selection).ToArray(), prp, parameters);
                 },
-                (dimType, prp) =>
+                (dimType, obj, prp) =>
                 {
                     var dimIndices = GetObjectIndices(prp, parameters);
 
@@ -129,16 +122,15 @@ namespace Xarial.XCad.Utils.CustomFeature
 
                     var dimInd = dimIndices.First();
 
-                    if (featDims.Length > dimInd)
+                    if (featDimsLocal.Length > dimInd)
                     {
-                        var dispDim = featDims[dimInd];
+                        var dispDim = featDimsLocal[dimInd];
 
-                        //TODO: work with current configuration when assembly is supported
-                        var val = dispDim.GetValue();
+                        var val = dispDim.Value;
 
                         if (!double.IsNaN(val))
                         {
-                            prp.SetValue(resParams, val, null);
+                            prp.SetValue(obj, val, null);
                         }
 
                         dispDimParamsMap.Add(dimInd, prp.Name);
@@ -146,80 +138,78 @@ namespace Xarial.XCad.Utils.CustomFeature
                     else
                     {
                         throw new IndexOutOfRangeException(
-                            $"Dimension at index {dimInd} id not present in the macro feature");
+                            $"Dimension at index {dimInd} is not present in the macro feature");
                     }
                 },
-                (prp) =>
+                (obj, prp) =>
                 {
-                    AssignObjectsToProperty(resParams, featBodies, prp, parameters);
+                    AssignObjectsToProperty(obj, featEditBodiesLocal, prp, parameters);
                 },
-                prp =>
+                (obj, prp) =>
                 {
-                    var paramVal = GetParameterValue(parameters, prp.Name);
-                    
-                    object val = null;
-
-                    if (paramVal != null)
+                    if (TryGetParameterValue(parameters, prp.Name, out object paramVal))
                     {
-                        if (prp.PropertyType.IsEnum)
+                        object val = null;
+
+                        if (paramVal != null)
                         {
-                            val = Enum.Parse(prp.PropertyType, paramVal);
+                            if (prp.PropertyType.IsEnum)
+                            {
+                                val = Enum.Parse(prp.PropertyType, paramVal.ToString());
+                            }
+                            else
+                            {
+                                val = Convert.ChangeType(paramVal, prp.PropertyType);
+                            }
                         }
-                        else
-                        {
-                            val = Convert.ChangeType(paramVal, prp.PropertyType);
-                        }
+
+                        prp.SetValue(obj, val, null);
                     }
-                    
-                    prp.SetValue(resParams, val, null);
                 });
-
-            dispDims = featDims;
-            editBodies = featBodies;
-            sels = featSels;
-
-            state = GetState(feat, featDims);
 
             dispDimParams = dispDimParamsMap.Values.ToArray();
 
             return resParams;
         }
 
+        /// <summary>
+        /// Parses the custom feature data from the parameters structure
+        /// </summary>
         public void Parse(object parameters,
-                    out CustomFeatureParameter[] atts, out IXSelObject[] selection,
-                    out CustomFeatureDimensionType_e[] dimTypes, out double[] dimValues, out IXBody[] editBodies)
+            out CustomFeatureAttribute[] atts, out IXSelObject[] selection,
+            out CustomFeatureDimensionType_e[] dimTypes, out double[] dimValues, out IXBody[] editBodies)
         {
-            var paramAttsList = new List<CustomFeatureParameter>();
+            if (parameters == null) 
+            {
+                throw new ArgumentNullException(nameof(parameters));
+            }
+
+            var paramAttsList = new List<CustomFeatureAttribute>();
 
             var selectionList = new List<PropertyObject<IXSelObject>>();
             var dimsList = new List<PropertyObject<DimensionParamData>>();
             var editBodiesList = new List<PropertyObject<IXBody>>();
 
-            TraverseParametersDefinition(parameters.GetType(),
-                (prp) =>
+            TraverseParametersDefinition(parameters,
+                (obj, prp) =>
                 {
-                    ReadObjectsValueFromProperty(parameters, prp, selectionList);
+                    ReadObjectsValueFromProperty(obj, prp, selectionList);
                 },
-                (dimType, prp) =>
+                (dimType, obj, prp) =>
                 {
-                    var val = Convert.ToDouble(prp.GetValue(parameters, null));
+                    var val = Convert.ToDouble(prp.GetValue(obj, null));
                     dimsList.Add(new PropertyObject<DimensionParamData>(
                         prp.Name, new DimensionParamData(dimType, val)));
                 },
-                (prp) =>
+                (obj, prp) =>
                 {
-                    ReadObjectsValueFromProperty(parameters, prp, editBodiesList);
+                    ReadObjectsValueFromProperty(obj, prp, editBodiesList);
                 },
-                prp =>
+                (obj, prp) =>
                 {
-                    var val = prp.GetValue(parameters, null);
+                    var val = prp.GetValue(obj, null);
 
-                    paramAttsList.Add(new CustomFeatureParameter()
-                    {
-                        Name = prp.Name,
-                        Type = prp.PropertyType,
-                        Value = Convert.ToString(val)
-                    });
+                    paramAttsList.Add(new CustomFeatureAttribute(prp.Name, prp.PropertyType, val));
                 });
 
             parameters.GetType().TryGetAttribute<ParametersVersionAttribute>(a =>
@@ -230,16 +220,13 @@ namespace Xarial.XCad.Utils.CustomFeature
 
                     if (versParamIndex == -1)
                     {
-                        paramAttsList.Add(new CustomFeatureParameter()
-                        {
-                            Name = n,
-                            Type = typeof(string),
-                            Value = v.ToString()
-                        });
+                        paramAttsList.Add(new CustomFeatureAttribute(n, typeof(string), v.ToString()));
                     }
                     else
                     {
-                        paramAttsList[versParamIndex].Value = v.ToString();
+                        var curParam = paramAttsList[versParamIndex];
+
+                        paramAttsList[versParamIndex] = new CustomFeatureAttribute(curParam.Name, curParam.Type, v.ToString());
                     }
                 });
 
@@ -265,58 +252,129 @@ namespace Xarial.XCad.Utils.CustomFeature
             }
         }
 
-        public virtual void SetParameters(IXDocument model, IXCustomFeature feat,
-                    object parameters, out CustomFeatureOutdateState_e state)
+        /// <summary>
+        /// Converts the parameters using the assigned converters
+        /// </summary>
+        public void ConvertParameters(Type paramsType, IXDocument doc, IXCustomFeature feat, ref Dictionary<string, object> parameters,
+            ref CustomFeatureSelectionInfo[] selection, ref IXDimension[] dispDims, ref IXBody[] editBodies)
         {
-            CustomFeatureParameter[] param;
-            IXSelObject[] selection;
-            CustomFeatureDimensionType_e[] dimTypes;
-            double[] dimValues;
-            IXBody[] bodies;
+            var paramsVersion = new Version();
+            var dimsVersion = new Version();
 
-            Parse(parameters,
-                out param,
-                out selection, out dimTypes, out dimValues, out bodies);
-
-            var dispDims = GetDimensions(feat);
-
-            var dimsVersion = GetDimensionsVersion(feat);
-
-            ConvertParameters(parameters.GetType(), dimsVersion, conv =>
+            if (parameters?.Any() == true)
             {
-                dispDims = conv.ConvertDisplayDimensions(model, feat, dispDims);
-            });
-
-            if (dispDims != null)
-            {
-                if (dispDims.Length != dimValues.Length)
+                foreach (var featRawParam in parameters)
                 {
-                    throw new ParametersMismatchException("Dimensions mismatch");
+                    var paramName = featRawParam.Key;
+
+                    var paramVal = featRawParam.Value;
+
+                    if (paramName == VERSION_PARAMETERS_NAME)
+                    {
+                        paramsVersion = new Version(paramVal.ToString());
+                    }
+                    else if (paramName == VERSION_DIMENSIONS_NAME)
+                    {
+                        dimsVersion = new Version(paramVal.ToString());
+                    }
                 }
             }
 
-            state = GetState(feat, dispDims);
+            IParametersVersionConverter versConv = null;
+            var curParamVersion = new Version();
 
-            SetParametersToFeature(feat, selection, bodies, dispDims, dimValues, param);
+            paramsType.TryGetAttribute<ParametersVersionAttribute>(a =>
+            {
+                versConv = a.VersionConverter;
+                curParamVersion = a.Version;
+            });
+
+            if (curParamVersion != paramsVersion)
+            {
+                if (curParamVersion > paramsVersion)
+                {
+                    if (versConv != null)
+                    {
+                        if (versConv.ContainsKey(curParamVersion))
+                        {
+                            foreach (var conv in versConv.Where(
+                                v => v.Key > paramsVersion && v.Key <= curParamVersion)
+                                .OrderBy(v => v.Key))
+                            {
+                                conv.Value.Convert(doc, feat, ref parameters, ref selection, ref dispDims, ref editBodies);
+                            }
+                        }
+                        else
+                        {
+                            throw new NullReferenceException($"{curParamVersion} version of parameters {paramsType.FullName} is not registered");
+                        }
+                    }
+                    else
+                    {
+                        throw new NullReferenceException("Version converter is not set");
+                    }
+                }
+                else
+                {
+                    throw new FutureVersionParametersException(paramsType, curParamVersion, paramsVersion);
+                }
+            }
         }
 
-        //TODO: need to spearate to different methods
-        protected abstract void ExtractRawParameters(IXCustomFeature feat, IXDocument doc,
-            out Dictionary<string, object> parameters, out IXDimension[] dimensions,
-            out IXSelObject[] selection, out IXBody[] editBodies);
+        /// <summary>
+        /// Traverses the definiton of the parameters class with custom handler for each parameter group
+        /// </summary>
+        //TODO: implement the support for the nested types
+        public void TraverseParametersDefinition(object parameters,
+                    Action<object, PropertyInfo> selParamHandler,
+                    Action<CustomFeatureDimensionType_e, object, PropertyInfo> dimParamHandler,
+                    Action<object, PropertyInfo> editBodyHandler,
+                    Action<object, PropertyInfo> dataParamHandler)
+        {
+            var paramsType = parameters.GetType();
 
-        protected abstract IXDimension[] GetDimensions(IXCustomFeature feat);
+            foreach (var prp in paramsType.GetProperties())
+            {
+                if (prp.TryGetAttribute<ParameterExcludeAttribute>() == null)
+                {
+                    var prpType = prp.PropertyType;
 
-        protected abstract CustomFeatureOutdateState_e GetState(IXCustomFeature featData, IXDimension[] dispDims);
+                    var dimAtt = prp.TryGetAttribute<ParameterDimensionAttribute>();
+                    var editBodyAtt = prp.TryGetAttribute<ParameterEditBodyAttribute>();
 
-        protected abstract Version GetVersion(IXFeature featData, string name);
-
-        protected abstract void SetParametersToFeature(IXCustomFeature feat,
-                                    IXSelObject[] selection, IXBody[] editBodies, IXDimension[] dims, double[] dimValues, CustomFeatureParameter[] param);
+                    if (dimAtt != null)
+                    {
+                        var dimType = dimAtt.DimensionType;
+                        dimParamHandler.Invoke(dimType, parameters, prp);
+                    }
+                    else if (editBodyAtt != null)
+                    {
+                        editBodyHandler.Invoke(parameters, prp);
+                    }
+                    else if (typeof(IXSelObject).IsAssignableFrom(prpType)
+                        || typeof(IEnumerable<IXSelObject>).IsAssignableFrom(prpType))
+                    {
+                        selParamHandler.Invoke(parameters, prp);
+                    }
+                    else
+                    {
+                        if (typeof(IConvertible).IsAssignableFrom(prpType))
+                        {
+                            dataParamHandler.Invoke(parameters, prp);
+                        }
+                        else
+                        {
+                            throw new NotSupportedException(
+                                $"{prp.Name} is not supported as the parameter of macro feature. Currently only types implementing IConvertible are supported (e.g. primitive types, string, DateTime, decimal)");
+                        }
+                    }
+                }
+            }
+        }
 
         private T[] AddParametersForObjects<T>(List<PropertyObject<T>> objects,
-                    List<CustomFeatureParameter> paramList)
-                    where T : class
+            List<CustomFeatureAttribute> paramList)
+            where T : class
         {
             T[] retVal = null;
 
@@ -337,12 +395,7 @@ namespace Xarial.XCad.Utils.CustomFeature
                             }).ToArray());
                     });
 
-                paramList.AddRange(paramsGroup.Select(g => new CustomFeatureParameter()
-                {
-                    Name = g.Key,
-                    Value = g.Value,
-                    Type = typeof(string)
-                }));
+                paramList.AddRange(paramsGroup.Select(g => new CustomFeatureAttribute(g.Key, typeof(string), g.Value)));
 
                 retVal = allObjects.ToArray();
             }
@@ -351,7 +404,7 @@ namespace Xarial.XCad.Utils.CustomFeature
         }
 
         private void AssignObjectsToProperty(object resParams, Array availableObjects,
-                                                    PropertyInfo prp, Dictionary<string, string> parameters)
+            PropertyInfo prp, Dictionary<string, object> parameters)
         {
             var indices = GetObjectIndices(prp, parameters);
 
@@ -370,15 +423,15 @@ namespace Xarial.XCad.Utils.CustomFeature
                     {
                         //TODO: potential issues with IList as IEnumerable can come here as well and it will fail
 
-                        var lst = prp.GetValue(resParams, null) as IList;
-
+                        var lst = (IList)prp.GetValue(resParams, null);
+                        
                         if (lst != null)
                         {
                             lst.Clear();
                         }
                         else
                         {
-                            lst = Activator.CreateInstance(prp.PropertyType) as IList;
+                            lst = (IList)Activator.CreateInstance(prp.PropertyType);
                         }
 
                         val = lst;
@@ -391,14 +444,25 @@ namespace Xarial.XCad.Utils.CustomFeature
                         {
                             foreach (var obj in indices.Select(i =>
                             {
-                                if (i != -1)
+                                object elem;
+
+                                if (i == -1)
                                 {
-                                    return availableObjects.GetValue(i);
+                                    elem = null;
                                 }
                                 else
                                 {
-                                    return null;
+                                    elem = availableObjects.GetValue(i);
+
+                                    if (elem == null)
+                                    {
+                                        var elemType = prp.PropertyType.GetArgumentsOfGenericType(typeof(IList<>))[0];
+
+                                        elem = m_FaultObjectFactory.CreateFaultObject(elemType);
+                                    }
                                 }
+
+                                return elem;
                             }))
                             {
                                 lst.Add(obj);
@@ -421,13 +485,18 @@ namespace Xarial.XCad.Utils.CustomFeature
                         else
                         {
                             val = availableObjects.GetValue(index);
+
+                            if (val == null)
+                            {
+                                val = m_FaultObjectFactory.CreateFaultObject(prp.PropertyType);
+                            }
                         }
                     }
                 }
                 else
                 {
-                    throw new NullReferenceException(
-                        $"Referenced entity is missing for {prp.Name}");
+                    throw new IndexOutOfRangeException(
+                        $"Some of the referenced entity indices ({string.Join(", ", indices)}) are out of range for '{prp.Name}' (max size: {availableObjects.Length})");
                 }
 
                 prp.SetValue(resParams, val, null);
@@ -438,85 +507,30 @@ namespace Xarial.XCad.Utils.CustomFeature
             }
         }
 
-        private void ConvertParameters(Type paramsType, Version paramVersion,
-                    Action<IParameterConverter> converter)
-        {
-            IParametersVersionConverter versConv = null;
-            var curParamVersion = new Version();
-
-            paramsType.TryGetAttribute<ParametersVersionAttribute>(a =>
-            {
-                versConv = a.VersionConverter;
-                curParamVersion = a.Version;
-            });
-
-            if (curParamVersion != paramVersion)
-            {
-                if (curParamVersion > paramVersion)
-                {
-                    if (versConv != null)
-                    {
-                        if (versConv.ContainsKey(curParamVersion))
-                        {
-                            foreach (var conv in versConv.Where(
-                                v => v.Key > paramVersion && v.Key <= curParamVersion)
-                                .OrderBy(v => v.Key))
-                            {
-                                converter.Invoke(conv.Value);
-                            }
-                        }
-                        else
-                        {
-                            throw new NullReferenceException($"{curParamVersion} version of parameters {paramsType.FullName} is not registered");
-                        }
-                    }
-                    else
-                    {
-                        throw new NullReferenceException("Version converter is not set");
-                    }
-                }
-                else
-                {
-                    throw new FutureVersionParametersException(paramsType, curParamVersion, paramVersion);
-                }
-            }
-        }
-
-        private Version GetDimensionsVersion(IXFeature featData)
-        {
-            return GetVersion(featData, VERSION_DIMENSIONS_NAME);
-        }
-
-        private int[] GetObjectIndices(PropertyInfo prp, Dictionary<string, string> parameters)
+        private int[] GetObjectIndices(PropertyInfo prp, Dictionary<string, object> parameters)
         {
             int[] indices = null;
 
-            string indValues;
+            object indValues;
 
             if (parameters.TryGetValue(prp.Name, out indValues))
             {
-                indices = indValues.Split(',').Select(i => int.Parse(i)).ToArray();
+                indices = indValues.ToString().Split(',').Select(i => int.Parse(i)).ToArray();
             }
 
             return indices;
         }
 
-        private string GetParameterValue(Dictionary<string, string> parameters, string name)
+        private bool TryGetParameterValue(Dictionary<string, object> parameters, string name, out object value)
         {
             if (parameters == null)
             {
                 throw new ArgumentNullException(nameof(parameters));
             }
 
-            string value;
-
-            if (!parameters.TryGetValue(name, out value))
-            {
-                throw new IndexOutOfRangeException($"Failed to read parameter {name}");
-            }
-
-            return value;
+            return parameters.TryGetValue(name, out value);
         }
+
         private void ReadObjectsValueFromProperty<T>(object parameters,
                     PropertyInfo prp, List<PropertyObject<T>> list)
                     where T : class
@@ -540,51 +554,6 @@ namespace Xarial.XCad.Utils.CustomFeature
             else
             {
                 list.Add(new PropertyObject<T>(prp.Name, val as T));
-            }
-        }
-
-        private void TraverseParametersDefinition(Type paramsType,
-                    Action<PropertyInfo> selParamHandler,
-                    Action<CustomFeatureDimensionType_e, PropertyInfo> dimParamHandler,
-                    Action<PropertyInfo> editBodyHandler,
-                    Action<PropertyInfo> dataParamHandler)
-        {
-            foreach (var prp in paramsType.GetProperties())
-            {
-                if (prp.TryGetAttribute<ParameterExcludeAttribute>() == null)
-                {
-                    var prpType = prp.PropertyType;
-
-                    var dimAtt = prp.TryGetAttribute<ParameterDimensionAttribute>();
-                    var editBodyAtt = prp.TryGetAttribute<ParameterEditBodyAttribute>();
-
-                    if (dimAtt != null)
-                    {
-                        var dimType = dimAtt.DimensionType;
-                        dimParamHandler.Invoke(dimType, prp);
-                    }
-                    else if (editBodyAtt != null)
-                    {
-                        editBodyHandler.Invoke(prp);
-                    }
-                    else if (typeof(IXSelObject).IsAssignableFrom(prpType)
-                        || typeof(IEnumerable<IXSelObject>).IsAssignableFrom(prpType))
-                    {
-                        selParamHandler.Invoke(prp);
-                    }
-                    else
-                    {
-                        if (typeof(IConvertible).IsAssignableFrom(prpType))
-                        {
-                            dataParamHandler.Invoke(prp);
-                        }
-                        else
-                        {
-                            throw new NotSupportedException(
-                                $"{prp.Name} is not supported as the parameter of macro feature. Currently only types implementing IConvertible are supported (e.g. primitive types, string, DateTime, decimal)");
-                        }
-                    }
-                }
             }
         }
     }

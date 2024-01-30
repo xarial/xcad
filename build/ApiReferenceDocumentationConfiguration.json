@@ -1,0 +1,23 @@
+{
+    "GeneratedAccessModifiers": "Public, Protected",
+    "GeneratedPages": "Types",
+    "FileNameFactory": "Name",
+    "Markdown.RemoveFileExtensionFromUrl": true,
+    "Markdown.TableOfContentsModes": "Grouped, IncludeSummary",
+    "IncludeUndocumentedItems": false,
+    "UrlFactories": [
+      "DocItem",
+      "DotnetApi"
+    ],
+    "Sections": [
+      "Header",
+      "Default"
+    ],
+    "NamespaceDocItem": {
+        "Sections": [
+            "Title",
+            "summary",
+            "TableOfContents"
+        ]
+    }
+  }

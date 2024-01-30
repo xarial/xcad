@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -29,16 +29,7 @@ namespace Xarial.XCad.SolidWorks.Utils
            
             var bmp = getPictureFromIPictureFunc.Invoke(null, new object[] { pictDisp }) as Bitmap;
 
-            return new BaseImage(BitmapToByteArray(bmp));
-        }
-
-        private static byte[] BitmapToByteArray(Bitmap bmp)
-        {
-            using (var ms = new MemoryStream())
-            {
-                bmp.Save(ms, ImageFormat.Png);
-                return ms.ToArray();
-            }
+            return new XDrawingImage(bmp);
         }
     }
 }

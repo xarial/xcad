@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -74,5 +74,16 @@ namespace Xarial.XCad.UI.PropertyPage.Base
         /// Updated this control
         /// </summary>
         void Update();
+
+        /// <summary>
+        /// Sets the focus to the current control
+        /// </summary>
+        void Focus();
+
+        /// <summary>
+        /// Specific type of the value for this control
+        /// </summary>
+        /// <remarks>This is a type of the property this control value is bound to</remarks>
+        Type ValueType { get; }
     }
 }

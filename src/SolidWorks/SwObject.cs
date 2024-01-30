@@ -1,15 +1,17 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
 using SolidWorks.Interop.sldworks;
+using SolidWorks.Interop.swconst;
 using System;
 using System.IO;
 using Xarial.XCad.Base;
 using Xarial.XCad.Data;
+using Xarial.XCad.Documents;
 using Xarial.XCad.Exceptions;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.Toolkit.Data;
@@ -30,10 +32,13 @@ namespace Xarial.XCad.SolidWorks
     /// <inheritdoc/>
     internal class SwObject : ISwObject
     {
+        IXApplication IXObject.OwnerApplication => OwnerApplication;
+        IXDocument IXObject.OwnerDocument => OwnerDocument;
+
         protected IModelDoc2 OwnerModelDoc => OwnerDocument.Model;
 
-        internal ISwApplication OwnerApplication { get; }
-        internal virtual ISwDocument OwnerDocument { get; }
+        internal SwApplication OwnerApplication { get; }
+        internal virtual SwDocument OwnerDocument { get; }
 
         public virtual object Dispatch { get; }
 
@@ -45,8 +50,17 @@ namespace Xarial.XCad.SolidWorks
                 {
                     if (Dispatch != null)
                     {
-                        if (OwnerModelDoc.Extension.GetPersistReference3(Dispatch) != null)
+                        if (OwnerDocument != null)
                         {
+                            if (OwnerModelDoc.Extension.GetPersistReference3(Dispatch) != null)
+                            {
+                                return true;
+                            }
+                        }
+                        else 
+                        {
+                            //this is an assumption as memory object can still be destroyed
+                            //TODO: find how to capture the object has been disconnected from its client exception
                             return true;
                         }
                     }
@@ -63,10 +77,10 @@ namespace Xarial.XCad.SolidWorks
 
         private readonly Lazy<ITagsManager> m_TagsLazy;
         
-        internal SwObject(object disp, ISwDocument doc, ISwApplication app) 
+        internal SwObject(object disp, SwDocument doc, SwApplication app) 
         {
             Dispatch = disp;
-            m_TagsLazy = new Lazy<ITagsManager>(() => new TagsManager());
+            m_TagsLazy = new Lazy<ITagsManager>(() => new GlobalTagsManager(this, app.TagsRegistry));
             OwnerDocument = doc;
             OwnerApplication = app;
         }
@@ -90,7 +104,14 @@ namespace Xarial.XCad.SolidWorks
                     return false;
                 }
 
-                return Dispatch == (other as ISwObject).Dispatch;
+                if (Dispatch == (other as ISwObject).Dispatch)
+                {
+                    return true;
+                }
+                else
+                {
+                    return OwnerApplication.Sw.IsSame(Dispatch, (other as ISwObject).Dispatch) == (int)swObjectEquality.swObjectSame;
+                }
             }
             else
             {
@@ -102,7 +123,7 @@ namespace Xarial.XCad.SolidWorks
         {
             if (OwnerModelDoc != null)
             {
-                var disp = Dispatch;
+                var disp = GetSerializationDispatch();
 
                 if (disp != null)
                 {
@@ -116,10 +137,36 @@ namespace Xarial.XCad.SolidWorks
                     stream.Write(persRef, 0, persRef.Length);
                     return;
                 }
+                else 
+                {
+                    throw new ObjectSerializationException("Dispatch is null", -1);
+                }
             }
             else 
             {
                 throw new ObjectSerializationException("Model is not set for this object", -1);
+            }
+        }
+
+        /// <summary>
+        /// In some instances it is required to serialize different dispatch (e.g. specific or base feature)
+        /// </summary>
+        /// <returns></returns>
+        protected virtual object GetSerializationDispatch() => Dispatch;
+    }
+
+    internal static class SwObjectExtension
+    {
+        internal static bool CheckIsAlive(this SwObject obj, Action checker)
+        {
+            try
+            {
+                checker.Invoke();
+                return true;
+            }
+            catch
+            {
+                return false;
             }
         }
     }

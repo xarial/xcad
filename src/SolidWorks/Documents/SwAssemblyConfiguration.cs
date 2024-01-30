@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -17,7 +17,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
     internal class SwAssemblyConfiguration : SwConfiguration, ISwAssemblyConfiguration
     {
-        internal SwAssemblyConfiguration(IConfiguration conf, SwAssembly assm, ISwApplication app, bool created) 
+        internal SwAssemblyConfiguration(IConfiguration conf, SwAssembly assm, SwApplication app, bool created) 
             : base(conf, assm, app, created)
         {
             Components = new SwAssemblyComponentCollection(assm, conf);

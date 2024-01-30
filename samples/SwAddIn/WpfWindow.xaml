@@ -3,9 +3,9 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:local="clr-namespace:SwAddInExample"
-             mc:Ignorable="d" 
-             d:DesignHeight="300" d:DesignWidth="400">
+             xmlns:local="clr-namespace:SwAddInExample" Padding="50"
+             mc:Ignorable="d" WindowStartupLocation="CenterOwner"
+             Height="300" Width="400">
     <Grid>
         <Button Content="OK" HorizontalAlignment="Left" Margin="105,174,0,0" VerticalAlignment="Top" Width="75" Click="OnOk"/>
         <Button Content="Cancel" HorizontalAlignment="Left" Margin="220,174,0,0" VerticalAlignment="Top" Width="75" IsCancel="True" Click="OnCancel"/>

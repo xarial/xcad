@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -15,19 +15,9 @@ namespace Xarial.XCad.Geometry.Wires
     public interface IXCircle : IXSegment
     {
         /// <summary>
-        /// Diameter of the arc
+        /// Geometry of this circle
         /// </summary>
-        double Diameter { get; set; }
-
-        /// <summary>
-        /// Center point of the arc
-        /// </summary>
-        Point Center { get; set; }
-
-        /// <summary>
-        /// Axis perpendicular to the arc's plane
-        /// </summary>
-        Vector Axis { get; set; }
+        Circle Geometry { get; set; }
     }
 
     /// <summary>

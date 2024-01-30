@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -8,6 +8,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Xarial.XCad.UI.Enums;
 using Xarial.XCad.UI.PopupWindow.Delegates;
 
 namespace Xarial.XCad.UI
@@ -26,12 +27,14 @@ namespace Xarial.XCad.UI
         /// <summary>
         /// Shows window in modal state
         /// </summary>
-        /// <returns></returns>
-        bool? ShowDialog();
+        /// <param name="dock">Dock of hte window</param>
+        /// <returns>True if user clicks Yes, False if user clicks No, Null for Cancel</returns>
+        bool? ShowDialog(PopupDock_e dock = PopupDock_e.Center);
 
         /// <summary>
         /// Shows window in modeless state
         /// </summary>
-        void Show();
+        /// <param name="dock">Dock of the window</param>
+        void Show(PopupDock_e dock = PopupDock_e.Center);
     }
 }

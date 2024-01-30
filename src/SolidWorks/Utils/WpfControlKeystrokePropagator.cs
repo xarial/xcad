@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -53,11 +53,12 @@ namespace Xarial.XCad.SolidWorks.Utils
 
         private IntPtr OnChildHwndSourceHook(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
         {
+            const uint WM_GETDLGCODE = 0x0087;
+            
             const uint DLGC_WANTARROWS = 0x0001;
             const uint DLGC_HASSETSEL = 0x0008;
             const uint DLGC_WANTCHARS = 0x0080;
-            const uint WM_GETDLGCODE = 0x0087;
-
+            
             if (msg == WM_GETDLGCODE)
             {
                 handled = true;

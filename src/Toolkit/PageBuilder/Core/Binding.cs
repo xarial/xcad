@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -21,10 +21,13 @@ namespace Xarial.XCad.Utils.PageBuilder.Core
 
         public abstract IMetadata[] Metadata { get; }
 
-        public Binding(IControl control)
+        public bool Silent { get; }
+
+        public Binding(IControl control, bool silent)
         {
             Control = control;
             Control.ValueChanged += OnControlValueChanged;
+            Silent = silent;
         }
 
         public void UpdateControl()
@@ -49,7 +52,11 @@ namespace Xarial.XCad.Utils.PageBuilder.Core
 
         private void OnControlValueChanged(IControl sender, object newValue)
         {
-            SetDataModelValue(newValue);
+            if (!(sender is IGroup))
+            {
+                SetDataModelValue(newValue);
+            }
+
             ModelUpdated?.Invoke(this);
             RaiseChangedEvent();
         }

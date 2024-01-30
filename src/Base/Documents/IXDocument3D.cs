@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -8,6 +8,7 @@
 using Xarial.XCad.Base;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;
+using Xarial.XCad.UI;
 
 namespace Xarial.XCad.Documents
 {
@@ -17,25 +18,28 @@ namespace Xarial.XCad.Documents
     public interface IXDocument3D : IXDocument, IXObjectContainer
     {
         /// <summary>
-        /// Pre creates the 3D bounding box of the document
+        /// Access to the document's evaluation features
         /// </summary>
-        /// <returns>Bounding box</returns>
-        IXBoundingBox PreCreateBoundingBox();
+        IXDocumentEvaluation Evaluation { get; }
 
         /// <summary>
-        /// Pre creates the mass property evaluator for the document
+        /// Access the document's graphics features
         /// </summary>
-        /// <returns>Mass property</returns>
-        IXMassProperty PreCreateMassProperty();
+        IXDocumentGraphics Graphics { get; }
 
         /// <summary>
-        /// Returns views collection
+        /// Returns 3D views collection
         /// </summary>
-        IXModelViewRepository ModelViews { get; }
+        new IXModelView3DRepository ModelViews { get; }
 
         /// <summary>
         /// Returns configurations of this document
         /// </summary>
         IXConfigurationRepository Configurations { get; }
+
+        /// <summary>
+        /// <see cref="IXDocument3D"/> specific save as operation
+        /// </summary>
+        new IXDocument3DSaveOperation PreCreateSaveAsOperation(string filePath);
     }
 }

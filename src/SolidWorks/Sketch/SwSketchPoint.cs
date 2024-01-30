@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -8,24 +8,26 @@
 using SolidWorks.Interop.sldworks;
 using System;
 using System.Threading;
+using Xarial.XCad.Documents;
 using Xarial.XCad.Features;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Services;
 using Xarial.XCad.Sketch;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Features;
+using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.Toolkit.Utils;
 
 namespace Xarial.XCad.SolidWorks.Sketch
 {
-    public interface ISwSketchPoint : IXSketchPoint
+    public interface ISwSketchPoint : IXSketchPoint, ISwSketchEntity
     {
         ISketchPoint Point { get; }
     }
 
     internal class SwSketchPoint : SwSketchEntity, ISwSketchPoint
     {
-        protected readonly ElementCreator<ISketchPoint> m_Creator;
+        protected readonly IElementCreator<ISketchPoint> m_Creator;
 
         protected readonly ISketchManager m_SketchMgr;
         
@@ -33,17 +35,38 @@ namespace Xarial.XCad.SolidWorks.Sketch
 
         public ISketchPoint Point => m_Creator.Element;
 
+        public override bool IsAlive => this.CheckIsAlive(() => Point.GetID());
+
         public override object Dispatch => Point;
 
-        public override IXSketchBase OwnerSketch => OwnerDocument.CreateObjectFromDispatch<ISwSketchBase>(Point.GetSketch());
+        public override IXSketchBase OwnerSketch => m_OwnerSketch;
 
-        internal SwSketchPoint(ISketchPoint pt, ISwDocument doc, ISwApplication app, bool created) : base(pt, doc, app)
+        private SwSketchBase m_OwnerSketch;
+
+        internal SwSketchPoint(ISketchPoint pt, SwDocument doc, SwApplication app, bool created) : base(pt, doc, app)
         {
             m_SketchMgr = doc.Model.SketchManager;
+
             m_Creator = new ElementCreator<ISketchPoint>(CreatePoint, pt, created);
+
+            if (pt != null) 
+            {
+                SetOwnerSketch(pt);
+            }
+        }
+
+        internal SwSketchPoint(SwSketchBase ownerSketch, SwDocument doc, SwApplication app) : this(null, doc, app, false)
+        {
+            m_OwnerSketch = ownerSketch;
         }
 
         public override void Commit(CancellationToken cancellationToken) => m_Creator.Create(cancellationToken);
+
+        public override IXLayer Layer
+        {
+            get => SwLayerHelper.GetLayer(this, x => x.Point.Layer);
+            set => SwLayerHelper.SetLayer(this, value, (x, y) => x.Point.Layer = y);
+        }
 
         public override System.Drawing.Color? Color
         {
@@ -118,11 +141,40 @@ namespace Xarial.XCad.SolidWorks.Sketch
 
         private ISketchPoint CreatePoint(CancellationToken cancellationToken)
         {
-            var pt = m_SketchMgr.CreatePoint(Coordinate.X, Coordinate.Y, Coordinate.Z);
+            using (var editor = !m_OwnerSketch.IsEditing ? m_OwnerSketch.Edit() : null)
+            {
+                var pt = m_SketchMgr.CreatePoint(Coordinate.X, Coordinate.Y, Coordinate.Z);
 
-            SetColor(pt, m_Creator.CachedProperties.Get<System.Drawing.Color?>(nameof(Color)));
+                SetColor(pt, m_Creator.CachedProperties.Get<System.Drawing.Color?>(nameof(Color)));
 
-            return pt;
+                SetOwnerSketch(pt);
+
+                return pt;
+            }
+        }
+
+        protected override string GetFullName() 
+        {
+            if (OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2015)) 
+            {
+                if (OwnerModelDoc.ISelectionManager.GetSelectByIdSpecification(Point, out string name, out _, out _))
+                {
+                    return name;
+                }
+                else 
+                {
+                    throw new Exception("Failed to get the selection specification of the point");
+                }
+            }
+            else 
+            {
+                throw new NotSupportedException("Point name extraction is supported in SOLIDWORKS 2015 or newer");
+            }
+        }
+
+        private void SetOwnerSketch(ISketchPoint pt)
+        {
+            m_OwnerSketch = OwnerDocument.CreateObjectFromDispatch<SwSketchBase>(pt.GetSketch());
         }
     }
 }

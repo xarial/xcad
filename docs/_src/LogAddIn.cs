@@ -16,7 +16,7 @@ namespace Xarial.XCad.Documentation
             {
                 Logger.Log("Loading add-in...");
 
-                //TODO: implement connection
+                //implement connection
             }
             catch (Exception ex)
             {

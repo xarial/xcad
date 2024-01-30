@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -12,11 +12,18 @@ using Xarial.XCad.Features.CustomFeature;
 
 namespace Xarial.XCad.Toolkit.CustomFeature
 {
+    /// <summary>
+    /// Manages the cache of custom feature servers
+    /// </summary>
     public static class CustomFeatureDefinitionInstanceCache
     {
         private static Dictionary<Type, IXCustomFeatureDefinition> m_Instances
             = new Dictionary<Type, IXCustomFeatureDefinition>();
 
+        /// <summary>
+        /// Registers instance of the custom feature server
+        /// </summary>
+        /// <param name="inst">Instance to register</param>
         public static void RegisterInstance(IXCustomFeatureDefinition inst)
         {
             var type = inst.GetType();
@@ -27,6 +34,11 @@ namespace Xarial.XCad.Toolkit.CustomFeature
             }
         }
 
+        /// <summary>
+        /// Returns the instance of custom feature server
+        /// </summary>
+        /// <param name="defType">Type of custom feature definition</param>
+        /// <returns>Instance of the custom feature server</returns>
         public static IXCustomFeatureDefinition GetInstance(Type defType)
         {
             if (!typeof(IXCustomFeatureDefinition).IsAssignableFrom(defType)) 

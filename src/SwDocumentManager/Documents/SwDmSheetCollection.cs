@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -14,6 +14,8 @@ using System.Text;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Delegates;
 using Xarial.XCad.Base;
+using System.Threading;
+using Xarial.XCad.Toolkit.Utils;
 
 namespace Xarial.XCad.SwDocumentManager.Documents
 {
@@ -24,15 +26,11 @@ namespace Xarial.XCad.SwDocumentManager.Documents
     internal class SwDmSheetCollection : ISwDmSheetCollection
     {
         #region Not Supported
-
-        public event SheetActivatedDelegate SheetActivated;
-
-        public void AddRange(IEnumerable<IXSheet> ents)
-            => throw new NotSupportedException();
-
-        public void RemoveRange(IEnumerable<IXSheet> ents)
-            => throw new NotSupportedException();
-
+        public event SheetActivatedDelegate SheetActivated { add => throw new NotSupportedException(); remove => throw new NotSupportedException(); }
+        public event SheetCreatedDelegate SheetCreated { add => throw new NotSupportedException(); remove => throw new NotSupportedException(); }
+        public void AddRange(IEnumerable<IXSheet> ents, CancellationToken cancellationToken) => throw new NotSupportedException();
+        public void RemoveRange(IEnumerable<IXSheet> ents, CancellationToken cancellationToken) => throw new NotSupportedException();
+        public T PreCreate<T>() where T : IXSheet => throw new NotSupportedException();
         #endregion
 
         private readonly SwDmDrawing m_Drw;
@@ -42,8 +40,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             m_Drw = drw;
         }
 
-        public IXSheet this[string name] 
-            => this.Get(name);
+        public IXSheet this[string name]  => RepositoryHelper.Get(this, name);
 
         public IXSheet Active 
         {
@@ -52,12 +49,14 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                 var activeSheetName = (m_Drw.Document as ISwDMDocument10).GetActiveSheetName();
                 return this[activeSheetName];
             }
+            set => throw new NotSupportedException();
         }
 
         public int Count => (m_Drw.Document as ISwDMDocument10).GetSheetCount();
 
-        public IEnumerator<IXSheet> GetEnumerator()
-            => new SwDmSheetEnumerator(m_Drw);
+        public IEnumerator<IXSheet> GetEnumerator() => new SwDmSheetEnumerator(m_Drw);
+
+        public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters) => RepositoryHelper.FilterDefault(this, filters, reverseOrder);
 
         public bool TryGet(string name, out IXSheet ent)
         {

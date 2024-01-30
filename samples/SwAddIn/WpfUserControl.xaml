@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:SwAddInExample"
+             xmlns:xctrls="clr-namespace:Xarial.XToolkit.Wpf.Controls;assembly=Xarial.XToolkit.Wpf"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <Grid VerticalAlignment="Center" HorizontalAlignment="Center">
@@ -11,9 +12,11 @@
             <RowDefinition Height="*"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="100"/>
+            <RowDefinition Height="100"/>
         </Grid.RowDefinitions>
         <TextBlock FontSize="25" Text="Hello World" Margin="2"/>
-        <TextBox Grid.Row="1" Margin="2" Text="{Binding Path=Value, UpdateSourceTrigger=PropertyChanged}"/>
-        <DataGrid Grid.Row="2" Margin="2" ItemsSource="{Binding Path=Items}" CanUserAddRows="True" AutoGenerateColumns="True"/>
+        <xctrls:FlagEnumComboBox Grid.Row="1" Margin="2" Value="{Binding Path=Value, UpdateSourceTrigger=PropertyChanged}"/>
+        <xctrls:ExpressionBox Grid.Row="2" SingleLine="False"/>
+        <DataGrid Grid.Row="3" Margin="2" ItemsSource="{Binding Path=Items}" CanUserAddRows="True" AutoGenerateColumns="True"/>
     </Grid>
 </UserControl>

@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -26,15 +26,15 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
 
         public IControlDescriptor ControlDescriptor { get; }
 
-        private readonly PropertyInfoMetadata[] m_Metadata;
+        private readonly IMetadata[] m_Metadata;
 
         private object m_CurrentDataModelContext;
 
         private readonly IContextProvider m_ContextProvider;
 
         internal PropertyInfoBinding(IControl control,
-            IControlDescriptor ctrlDesc, IList<IControlDescriptor> parents, PropertyInfoMetadata[] metadata, IContextProvider contextProvider)
-            : base(control)
+            IControlDescriptor ctrlDesc, IList<IControlDescriptor> parents, IMetadata[] metadata, IContextProvider contextProvider, bool silent)
+            : base(control, silent)
         {
             ControlDescriptor = ctrlDesc;
             m_Parents = parents;

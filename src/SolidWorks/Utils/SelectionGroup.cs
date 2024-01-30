@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -9,23 +9,42 @@ using SolidWorks.Interop.sldworks;
 using System;
 using System.Linq;
 using System.Runtime.InteropServices;
+using Xarial.XCad.SolidWorks.Documents;
 
 namespace Xarial.XCad.SolidWorks.Utils
 {
     internal class SelectionGroup : IDisposable
     {
-        private ISelectionMgr m_SelMgr;
+        private readonly IModelDoc2 m_Model;
+        private readonly ISelectionMgr m_SelMgr;
 
-        internal SelectionGroup(ISelectionMgr selMgr)
+        private readonly bool m_IsSystemSelection;
+
+        private readonly SwApplication m_App;
+
+        internal SelectionGroup(SwDocument doc, bool systemSel)
         {
-            if (selMgr == null)
+            if (doc == null)
             {
-                throw new ArgumentNullException(nameof(selMgr));
+                throw new ArgumentNullException(nameof(doc));
             }
 
-            m_SelMgr = selMgr;
+            m_IsSystemSelection = systemSel;
 
-            m_SelMgr.SuspendSelectionList();
+            m_App = doc.OwnerApplication;
+
+            m_Model = doc.Model;
+
+            m_SelMgr = m_Model.ISelectionManager;
+
+            if (m_IsSystemSelection)
+            {
+                m_SelMgr.SuspendSelectionList();
+            }
+            else 
+            {
+                m_Model.ClearSelection2(true);
+            }
         }
 
         /// <summary>
@@ -41,10 +60,9 @@ namespace Xarial.XCad.SolidWorks.Utils
                 throw new ArgumentNullException(nameof(disp));
             }
 
-            if (!m_SelMgr.AddSelectionListObject(new DispatchWrapper(disp), selData)) 
-            {
-                throw new Exception("Failed to add object to selection list");
-            }
+            //NOTE: ISelectionMgr::AddSelectionListObject fails, use the AddSelectionListObjects for system selection
+
+            AddRange(new object[] { disp }, selData);
         }
 
         /// <summary>
@@ -62,15 +80,41 @@ namespace Xarial.XCad.SolidWorks.Utils
 
             var dispWrappers = disps.Select(d => new DispatchWrapper(d)).ToArray();
 
-            if (m_SelMgr.AddSelectionListObjects(dispWrappers, selData) != disps.Length) 
+            if (m_IsSystemSelection)
             {
-                throw new Exception("Failed to add objects to selection list");
+                if (m_SelMgr.AddSelectionListObjects(dispWrappers, selData) != disps.Length)
+                {
+                    throw new Exception("Failed to add objects to selection list");
+                }
+            }
+            else 
+            {
+                var cusrSelCount = m_SelMgr.GetSelectedObjectCount2(-1);
+
+                if (m_Model.Extension.MultiSelect2(dispWrappers, true, null) - cusrSelCount != disps.Length) 
+                {
+                    throw new Exception("Failed to select objects");
+                }
             }
         }
 
         public void Dispose()
         {
-            m_SelMgr.ResumeSelectionList();
+            if (m_IsSystemSelection)
+            {
+                if (m_App.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2020))
+                {
+                    m_SelMgr.ResumeSelectionList2(false);
+                }
+                else 
+                {
+                    m_SelMgr.ResumeSelectionList();
+                }
+            }
+            else 
+            {
+                m_Model.ClearSelection2(true);
+            }
         }
     }
 }

@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -9,10 +9,14 @@ using SolidWorks.Interop.sldworks;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Xarial.XCad.Exceptions;
 using Xarial.XCad.Features;
+using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.SolidWorks.Documents;
+using Xarial.XCad.SolidWorks.Geometry;
 using Xarial.XCad.SolidWorks.Sketch;
+using Xarial.XCad.SolidWorks.Utils;
 
 namespace Xarial.XCad.SolidWorks.Features
 {
@@ -21,17 +25,30 @@ namespace Xarial.XCad.SolidWorks.Features
         new IEnumerable<ISwSketchRegion> Regions { get; }
     }
 
+    internal class SwSketch2DEditor : SwSketchEditorBase<SwSketch2D>
+    {
+        public SwSketch2DEditor(SwSketch2D sketch, ISketch swSketch) : base(sketch, swSketch)
+        {
+        }
+
+        protected override void StartEdit() => Target.OwnerDocument.Model.SketchManager.InsertSketch(true);
+        protected override void EndEdit(bool cancel) => Target.OwnerDocument.Model.SketchManager.InsertSketch(!cancel);
+    }
+
     internal class SwSketch2D : SwSketchBase, ISwSketch2D
     {
+        internal const string TypeName = "ProfileFeature";
+
         IEnumerable<IXSketchRegion> IXSketch2D.Regions => Regions;
 
-        internal SwSketch2D(IFeature feat, ISwDocument doc, ISwApplication app, bool created) 
+        internal SwSketch2D(IFeature feat, SwDocument doc, SwApplication app, bool created) 
             : base(feat, doc, app, created)
         {
-            if (doc == null) 
-            {
-                throw new ArgumentNullException(nameof(doc));
-            }
+        }
+
+        internal SwSketch2D(ISketch sketch, SwDocument doc, SwApplication app, bool created)
+            : base(sketch, doc, app, created)
+        {
         }
 
         public IEnumerable<ISwSketchRegion> Regions 
@@ -54,34 +71,59 @@ namespace Xarial.XCad.SolidWorks.Features
         {
             get
             {
-                var mathUtils = OwnerApplication.Sw.IGetMathUtility();
+                var transform = Sketch.ModelToSketchTransform.IInverse().ToTransformMatrix();
 
-                var transform = Sketch.ModelToSketchTransform.IInverse();
+                var x = new Vector(1, 0, 0).Transform(transform);
+                var z = new Vector(0, 0, 1).Transform(transform);
+                var origin = new Point(0, 0, 0).Transform(transform);
+                
+                return new Plane(origin, z, x);
+            }
+        }
 
-                var x = (IMathVector)mathUtils.CreateVector(new double[] { 1, 0, 0 });
-                var z = (IMathVector)mathUtils.CreateVector(new double[] { 0, 0, 1 });
-                var origin = (IMathPoint)mathUtils.CreatePoint(new double[] { 0, 0, 0 });
-
-                x = (IMathVector)x.MultiplyTransform(transform);
-                z = (IMathVector)z.MultiplyTransform(transform);
-                origin = (IMathPoint)origin.MultiplyTransform(transform);
-
-                return new Plane(new Point((double[])origin.ArrayData),
-                    new Vector((double[])z.ArrayData),
-                    new Vector((double[])x.ArrayData));
+        public IXPlanarRegion ReferenceEntity 
+        {
+            get 
+            {
+                if (IsCommitted)
+                {
+                    int entType = -1;
+                    return (IXPlanarRegion)OwnerDocument.CreateObjectFromDispatch<ISwEntity>(Sketch.GetReferenceEntity(ref entType));
+                }
+                else 
+                {
+                    return m_Creator.CachedProperties.Get<IXPlanarRegion>();
+                }
+            }
+            set 
+            {
+                if (!IsCommitted)
+                {
+                    m_Creator.CachedProperties.Set(value);
+                }
+                else 
+                {
+                    throw new CommitedElementReadOnlyParameterException();
+                }
             }
         }
 
         protected override ISketch CreateSketch()
         {
-            //TODO: select the plane or face
+            var ent = (ISwEntity)ReferenceEntity;
+
+            if (ent == null) 
+            {
+                throw new Exception("Reference entity is not specified");
+            }
+
+            ent.Select(false);
+
             OwnerModelDoc.InsertSketch2(true);
+            
             return OwnerModelDoc.SketchManager.ActiveSketch;
         }
-
-        protected override void ToggleEditSketch()
-        {
-            OwnerModelDoc.InsertSketch2(true);
-        }
+        
+        protected internal override IEditor<IXSketchBase> CreateSketchEditor(ISketch sketch) => new SwSketch2DEditor(this, sketch);
     }
 }

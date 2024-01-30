@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -12,10 +12,11 @@ using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Geometry.Wires;
 using Xarial.XCad.Sketch;
 using Xarial.XCad.SolidWorks.Documents;
+using Xarial.XCad.SolidWorks.Features;
 
 namespace Xarial.XCad.SolidWorks.Sketch
 {
-    public interface ISwSketchLine : IXSketchLine 
+    public interface ISwSketchLine : IXSketchLine, ISwSketchSegment
     {
         ISketchLine Line { get; }
     }
@@ -27,50 +28,25 @@ namespace Xarial.XCad.SolidWorks.Sketch
         public override IXSketchPoint StartPoint => OwnerDocument.CreateObjectFromDispatch<SwSketchPoint>(Line.IGetStartPoint2());
         public override IXSketchPoint EndPoint => OwnerDocument.CreateObjectFromDispatch<SwSketchPoint>(Line.IGetEndPoint2());
 
-        public Point StartCoordinate 
-        {
-            get 
-            {
-                if (IsCommitted)
-                {
-                    return StartPoint.Coordinate;
-                }
-                else 
-                {
-                    return m_Creator.CachedProperties.Get<Point>();
-                }
-            }
-            set 
-            {
-                if (IsCommitted)
-                {
-                    StartPoint.Coordinate = value;
-                }
-                else 
-                {
-                    m_Creator.CachedProperties.Set(value);
-                }
-            }
-        }
-        
-        public Point EndCoordinate 
+        public Line Geometry
         {
             get
             {
                 if (IsCommitted)
                 {
-                    return EndPoint.Coordinate;
+                    return new Line(StartPoint.Coordinate, EndPoint.Coordinate);
                 }
                 else
                 {
-                    return m_Creator.CachedProperties.Get<Point>();
+                    return m_Creator.CachedProperties.Get<Line>();
                 }
             }
             set
             {
                 if (IsCommitted)
                 {
-                    EndPoint.Coordinate = value;
+                    StartPoint.Coordinate = value.StartPoint;
+                    EndPoint.Coordinate = value.EndPoint;
                 }
                 else
                 {
@@ -79,20 +55,26 @@ namespace Xarial.XCad.SolidWorks.Sketch
             }
         }
 
-        internal SwSketchLine(ISketchLine line, ISwDocument doc, ISwApplication app, bool created) 
+        internal SwSketchLine(ISketchLine line, SwDocument doc, SwApplication app, bool created) 
             : base((ISketchSegment)line, doc, app, created)
+        {
+        }
+
+        internal SwSketchLine(SwSketchBase ownerSketch, SwDocument doc, SwApplication app) : base(ownerSketch, doc, app)
         {
         }
 
         protected override ISketchSegment CreateSketchEntity()
         {
+            var geom = Geometry;
+
             var line = (ISketchLine)m_SketchMgr.CreateLine(
-                StartCoordinate.X,
-                StartCoordinate.Y,
-                StartCoordinate.Z,
-                EndCoordinate.X,
-                EndCoordinate.Y,
-                EndCoordinate.Z);
+                geom.StartPoint.X,
+                geom.StartPoint.Y,
+                geom.StartPoint.Z,
+                geom.EndPoint.X,
+                geom.EndPoint.Y,
+                geom.EndPoint.Z);
             
             return (ISketchSegment)line;
         }

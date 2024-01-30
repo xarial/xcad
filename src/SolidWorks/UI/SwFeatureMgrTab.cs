@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -83,6 +83,8 @@ namespace Xarial.XCad.SolidWorks.UI
         private string m_Title;
         private int m_TabIndex;
 
+        private bool m_IsClosed;
+
         internal SwFeatureMgrTab(FeatureManagerTabCreator<TControl> ctrlCreator, SwDocument doc, ISwApplication app, IXLogger logger)
             : base(doc, app, logger)
         {
@@ -92,8 +94,13 @@ namespace Xarial.XCad.SolidWorks.UI
 
         public override void Close()
         {
-            base.Close();
-            UnsubscribeTabActivateEvent();
+            if (!m_IsClosed)
+            {
+                m_IsClosed = true;
+
+                base.Close();
+                UnsubscribeTabActivateEvent();
+            }
         }
 
         protected override bool GetIsActive() => m_ModelViewMgr.ActiveFeatureManagerTabIndex == m_TabIndex;

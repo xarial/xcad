@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -17,13 +17,13 @@ using Xarial.XCad.SolidWorks.Geometry.Curves;
 
 namespace Xarial.XCad.SolidWorks.Geometry.Curves
 {
-    public interface ISwBCurve : IXBCurve
+    public interface ISwBCurve : IXBCurve, ISwCurve
     {
     }
 
     internal class SwBCurve : SwCurve, ISwBCurve
     {
-        internal SwBCurve(ICurve curve, ISwDocument doc, ISwApplication app, bool isCreated) 
+        internal SwBCurve(ICurve curve, SwDocument doc, SwApplication app, bool isCreated) 
             : base(curve, doc, app, isCreated)
         {
         }

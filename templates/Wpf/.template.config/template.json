@@ -1,0 +1,139 @@
+{
+  "$schema": "http://json.schemastore.org/template",
+  "author": "Xarial",
+  "classifications": [ "xCAD", "SOLIDWORKS", "Inventor", "Desktop" ],
+  "identity": "Xarial.XCad.Template.Wpf.CSharp",
+  "groupIdentity": "Xarial.XCad.Template.Wpf",
+  "name": "xCAD WPF",
+  "description": "Cross-CAD WPF application based on xCAD.NET Framework (C#)",
+  "shortName": "xcadwpf",
+  "sourceName": "__TemplateNamePlaceholderWpf__",
+  "tags": {
+    "language": "C#",
+    "type": "project"
+  },
+  "defaultName": "XCadWpf",
+  "preferNameDirectory": true,
+  "symbols": {
+    "_TargetFramework_": {
+      "type": "parameter",
+      "displayName": "Target Framework",
+      "description": "Project target framework",
+      "datatype": "choice",
+      "choices": [
+        {
+          "choice": "net461",
+          "displayName": ".NET Framework 4.6.1"
+        },
+        {
+          "choice": "net472",
+          "displayName": ".NET Framework 4.7.2"
+        },
+        {
+          "choice": "net48",
+          "displayName": ".NET Framework 4.8"
+        },
+        {
+          "choice": "netcoreapp3.1",
+          "displayName": ".NET Core 3.1"
+        },
+        {
+          "choice": "net6.0-windows",
+          "displayName": ".NET 6"
+        },
+        {
+          "choice": "net7.0-windows",
+          "displayName": ".NET 7"
+        }
+      ],
+      "defaultValue": "net6.0-windows",
+      "replaces": "net6.0-windows"
+    },
+    "_TargetFrameworkBase_": {
+      "type": "generated",
+      "generator": "switch",
+      "replaces": "net6.0",
+      "parameters": {
+        "evaluator": "C++",
+        "datatype": "string",
+        "cases": [
+          {
+            "condition": "(_TargetFramework_ == 'net461')",
+            "value": "net461"
+          },
+          {
+            "condition": "(_TargetFramework_ == 'net472')",
+            "value": "net472"
+          },
+          {
+            "condition": "(_TargetFramework_ == 'net48')",
+            "value": "net48"
+          },
+          {
+            "condition": "(_TargetFramework_ == 'netcoreapp3.1')",
+            "value": "netstandard2.1"
+          },
+          {
+            "condition": "(_TargetFramework_ == 'net6.0-windows')",
+            "value": "net6.0"
+          },
+          {
+            "condition": "(_TargetFramework_ == 'net7.0-windows')",
+            "value": "net7.0"
+          }
+        ]
+      }
+    },
+    "_SolidWorks_": {
+      "type": "parameter",
+      "displayName": "SOLIDWORKS",
+      "description": "Adds the SOLIDWORKS implementation",
+      "datatype": "bool",
+      "defaultValue": "true"
+    },
+    "_SwDocumentManager_": {
+      "type": "parameter",
+      "displayName": "SOLIDWORKS Document Manager",
+      "description": "Adds the SOLIDWORKS Document Manager implementation",
+      "datatype": "bool",
+      "defaultValue": "true"
+    },
+    "_Inventor_": {
+      "type": "parameter",
+      "displayName": "Autodesk Inventor",
+      "description": "Adds the Autodesk Inventor implementation",
+      "datatype": "bool",
+      "defaultValue": "false"
+    }
+  },
+  "sources": [
+    {
+      "modifiers": [
+        {
+          "condition": "!(_SolidWorks_)",
+          "exclude": [
+            "__TemplateNamePlaceholderWpf__.Sw/**"
+          ]
+        },
+        {
+          "condition": "!(_SwDocumentManager_)",
+          "exclude": [
+            "__TemplateNamePlaceholderWpf__.SwDm/**"
+          ]
+        },
+        {
+          "condition": "!(_Inventor_)",
+          "exclude": [
+            "__TemplateNamePlaceholderWpf__.Ai/**"
+          ]
+        }
+      ]
+    }
+  ],
+  "postActions": [{
+    "condition": "(!skipRestore)",
+    "description": "Restore NuGet packages required by this project.",
+    "actionId": "210D431B-A78B-4D2F-B762-4ED3E3EA9025",
+    "continueOnError": true
+  }]
+}

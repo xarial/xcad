@@ -9,14 +9,14 @@ namespace Xarial.XCad.Documentation
 {
     public class EditMacroFeatureDefinitionParameters
     {
-        //TODO: add properties
+        //add properties
     }
 
     [ComVisible(true)]
     public class EditMacroFeatureDefinition : SwMacroFeatureDefinition<EditMacroFeatureDefinitionParameters>
     {
         public override CustomFeatureRebuildResult OnRebuild(ISwApplication app, ISwDocument model, 
-            ISwMacroFeature<EditMacroFeatureDefinitionParameters> feature, EditMacroFeatureDefinitionParameters parameters, out AlignDimensionDelegate<EditMacroFeatureDefinitionParameters> alignDim)
+            ISwMacroFeature<EditMacroFeatureDefinitionParameters> feature, out AlignDimensionDelegate<EditMacroFeatureDefinitionParameters> alignDim)
         {
             alignDim = null;
             return new CustomFeatureRebuildResult() { Result = true };
@@ -24,21 +24,24 @@ namespace Xarial.XCad.Documentation
 
         public override bool OnEditDefinition(ISwApplication app, ISwDocument model, ISwMacroFeature<EditMacroFeatureDefinitionParameters> feature)
         {
-            if (ShowPage(feature.Parameters, out EditMacroFeatureDefinitionParameters newParams))
+            using (var editor = feature.Edit())
             {
-                feature.Parameters = newParams;
-                return true;
-            }
-            else 
-            {
-                feature.Parameters = null;
-                return false;
+                if (ShowPage(feature.Parameters, out EditMacroFeatureDefinitionParameters newParams))
+                {
+                    feature.Parameters = newParams;
+                    return true;
+                }
+                else
+                {
+                    editor.Cancel = true;
+                    return false;
+                }
             }
         }
 
         private bool ShowPage(EditMacroFeatureDefinitionParameters parameters, out EditMacroFeatureDefinitionParameters newParameters)
         {
-            //TODO: Show property page or any other user interface
+            //Show property page or any other user interface
 
             newParameters = null;
             return true;

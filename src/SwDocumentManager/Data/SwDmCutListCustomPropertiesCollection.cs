@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -23,9 +23,9 @@ namespace Xarial.XCad.SwDocumentManager.Data
 
         private readonly ISwDmCutListItem m_CutList;
         private readonly SwDmDocument3D m_Doc;
-        private readonly SwDmConfiguration m_Conf;
+        private readonly ISwDmPartConfiguration m_Conf;
 
-        internal SwDmCutListCustomPropertiesCollection(ISwDmCutListItem cutList, SwDmDocument3D doc, SwDmConfiguration conf)
+        internal SwDmCutListCustomPropertiesCollection(ISwDmCutListItem cutList, SwDmDocument3D doc, ISwDmPartConfiguration conf)
         {
             m_CutList = cutList;
             m_Doc = doc;
@@ -51,9 +51,9 @@ namespace Xarial.XCad.SwDocumentManager.Data
     {
         private readonly ISwDmCutListItem m_CutList;
         private readonly SwDmDocument3D m_Doc;
-        private readonly SwDmConfiguration m_Conf;
+        private readonly ISwDmConfiguration m_Conf;
 
-        public SwDmCutListCustomProperty(ISwDmCutListItem cutList, SwDmDocument3D doc, SwDmConfiguration conf, string name, bool isCreated) 
+        public SwDmCutListCustomProperty(ISwDmCutListItem cutList, SwDmDocument3D doc, ISwDmConfiguration conf, string name, bool isCreated) 
             : base(name, isCreated)
         {
             m_CutList = cutList;
@@ -77,22 +77,11 @@ namespace Xarial.XCad.SwDocumentManager.Data
                 throw new ConfigurationSpecificCutListPropertiesWriteNotSupportedException();
             }
 
-            m_Conf.Document.IsDirty = true;
+            m_Doc.IsDirty = true;
         }
 
-        protected override object ReadValue(out string exp)
-        {
-            //TODO: parse type
-
-            var val = m_CutList.CutListItem.GetCustomPropertyValue2(Name, out SwDmCustomInfoType type, out exp);
-
-            if (string.IsNullOrEmpty(exp)) 
-            {
-                exp = val;
-            }
-
-            return val;
-        }
+        protected override string ReadRawValue(out SwDmCustomInfoType type, out string linkedTo)
+            => m_CutList.CutListItem.GetCustomPropertyValue2(Name, out type, out linkedTo);
 
         protected override void SetValue(object value)
         {
@@ -105,7 +94,7 @@ namespace Xarial.XCad.SwDocumentManager.Data
                 throw new ConfigurationSpecificCutListPropertiesWriteNotSupportedException();
             }
 
-            m_Conf.Document.IsDirty = true;
+            m_Doc.IsDirty = true;
         }
 
         internal override void Delete()
@@ -122,7 +111,7 @@ namespace Xarial.XCad.SwDocumentManager.Data
                 throw new ConfigurationSpecificCutListPropertiesWriteNotSupportedException();
             }
 
-            m_Conf.Document.IsDirty = true;
+            m_Doc.IsDirty = true;
         }
     }
 }

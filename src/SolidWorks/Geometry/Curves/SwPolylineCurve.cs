@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -24,9 +24,26 @@ namespace Xarial.XCad.SolidWorks.Geometry.Curves
 
     internal class SwPolylineCurve : SwCurve, ISwPolylineCurve
     {
-        internal SwPolylineCurve(ICurve[] curves, ISwDocument doc, ISwApplication app, bool isCreated) 
+        internal SwPolylineCurve(ICurve[] curves, SwDocument doc, SwApplication app, bool isCreated) 
             : base(curves, doc, app, isCreated)
         {
+            m_Creator.CachedProperties.Set(PolylineMode_e.Strip, nameof(Mode));
+        }
+
+        public PolylineMode_e Mode
+        {
+            get => m_Creator.CachedProperties.Get<PolylineMode_e>();
+            set
+            {
+                if (!IsCommitted)
+                {
+                    m_Creator.CachedProperties.Set(value);
+                }
+                else
+                {
+                    throw new CommitedSegmentReadOnlyParameterException();
+                }
+            }
         }
 
         public Point[] Points
@@ -65,11 +82,55 @@ namespace Xarial.XCad.SolidWorks.Geometry.Curves
 
         protected override ICurve[] Create(CancellationToken cancellationToken)
         {
-            var retVal = new ICurve[Points.Length - 1];
-
-            for (int i = 1; i < Points.Length; i++) 
+            if (Points.Length < 2) 
             {
-                retVal[i - 1] = CreateLine(Points[i - 1], Points[i]);
+                throw new Exception("it must be 2 or more points defined in the polyline");
+            }
+
+            ICurve[] retVal;
+
+            switch (Mode)
+            {
+                case PolylineMode_e.Lines:
+                    if (Points.Length % 2 != 0) 
+                    {
+                        throw new Exception("Number of points must be even in the Lines mode of polyline curve");
+                    }
+
+                    retVal = new ICurve[(int)(Points.Length / 2)];
+
+                    for (int i = 0; i < retVal.Length; i++) 
+                    {
+                        retVal[i] = CreateLine(Points[i * 2], Points[i * 2 + 1]);
+                    }
+                    break;
+
+                case PolylineMode_e.Strip:
+                    retVal = new ICurve[Points.Length - 1];
+
+                    for (int i = 1; i < Points.Length; i++)
+                    {
+                        retVal[i - 1] = CreateLine(Points[i - 1], Points[i]);
+                    }
+                    break;
+
+                case PolylineMode_e.Loop:
+                    retVal = new ICurve[Points.Length > 2 ? Points.Length : Points.Length - 1];
+
+                    for (int i = 1; i < Points.Length; i++)
+                    {
+                        retVal[i - 1] = CreateLine(Points[i - 1], Points[i]);
+                    }
+
+                    if (Points.Length > 2) 
+                    {
+                        retVal[retVal.Length - 1] = CreateLine(Points[Points.Length - 1], Points[0]);
+                    }
+
+                    break;
+
+                default:
+                    throw new NotSupportedException("Not supported mode of the polyline");
             }
 
             return retVal;

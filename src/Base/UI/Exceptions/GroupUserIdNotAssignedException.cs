@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -14,7 +14,7 @@ using Xarial.XCad.UI.Commands.Attributes;
 namespace Xarial.XCad.UI.Exceptions
 {
     /// <summary>
-    /// Indicates that no user id assigned in <see cref="IXCommandManagerExtension.CreateSpecFromEnum"/>
+    /// Indicates that no user id assigned in <see cref="XCommandManagerExtension.CreateSpecFromEnum"/>
     /// </summary>
     public class GroupUserIdNotAssignedException : Exception
     {

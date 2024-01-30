@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -38,6 +38,11 @@ namespace Xarial.XCad.Base
         /// Bodies to include into the evaluation
         /// </summary>
         IXBody[] Scope { get; set; }
+
+        /// <summary>
+        /// True to calculate precise data, false to calculate approximate data
+        /// </summary>
+        bool Precise { get; set; }
     }
 
     /// <summary>

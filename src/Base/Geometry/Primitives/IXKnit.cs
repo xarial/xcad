@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -19,6 +19,6 @@ namespace Xarial.XCad.Geometry.Primitives
         /// <summary>
         /// Faces representing this knit
         /// </summary>
-        IXFace[] Faces { get; set; }
+        IXRegion[] Regions { get; set; }
     }
 }

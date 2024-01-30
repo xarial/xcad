@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -13,37 +13,25 @@ using Xarial.XCad.SolidWorks.UI.Commands.Exceptions;
 using Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls;
 using Xarial.XCad.SolidWorks.UI.Toolkit;
 using Xarial.XCad.SolidWorks.Utils;
+using Xarial.XCad.Toolkit.Services;
 using Xarial.XCad.UI.PropertyPage;
 using Xarial.XCad.UI.PropertyPage.Attributes;
 using Xarial.XCad.UI.PropertyPage.Base;
 using Xarial.XCad.Utils.PageBuilder.Attributes;
 using Xarial.XCad.Utils.PageBuilder.Base;
+using Xarial.XCad.Utils.PageBuilder.PageElements;
 
 namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
 {
     internal class PropertyManagerPageCustomControlConstructor
         : PropertyManagerPageBaseControlConstructor<PropertyManagerPageCustomControl, IPropertyManagerPageWindowFromHandle>, ICustomControlConstructor
     {
-        public PropertyManagerPageCustomControlConstructor(ISldWorks app, IIconsCreator iconsConv)
-            : base(app, swPropertyManagerPageControlType_e.swControlType_WindowFromHandle, iconsConv)
+        public PropertyManagerPageCustomControlConstructor(SwApplication app, IIconsCreator iconsConv)
+            : base(app, iconsConv)
         {
         }
 
-        protected override PropertyManagerPageCustomControl CreateControl(
-            IPropertyManagerPageWindowFromHandle swCtrl, IAttributeSet atts, IMetadata[] metadata, 
-            SwPropertyManagerPageHandler handler, short height, IPropertyManagerPageLabel label)
-        {
-            if (height <= 0)
-            {
-                height = 50;
-            }
-
-            swCtrl.Height = height;
-
-            var ctrlType = atts.Get<CustomControlAttribute>().ControlType;
-
-            return new PropertyManagerPageCustomControl(ctrlType, atts.Id, atts.Tag,
-                swCtrl, handler, new PropertyPageControlCreator<object>(swCtrl), label, metadata);
-        }
+        protected override PropertyManagerPageCustomControl Create(IGroup parentGroup, IAttributeSet atts, IMetadata[] metadata, ref int numberOfUsedIds)
+            => new PropertyManagerPageCustomControl(m_App, parentGroup, m_IconConv, atts, metadata, ref numberOfUsedIds);
     }
 }

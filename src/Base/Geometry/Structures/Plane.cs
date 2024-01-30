@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -62,5 +62,14 @@ namespace Xarial.XCad.Geometry.Structures
         /// <returns>Transformation matrix</returns>
         public static TransformMatrix GetTransformation(this Plane plane)
             => TransformMatrix.Compose(plane.Direction, plane.Reference, plane.Normal, plane.Point);
+
+        /// <summary>
+        /// Finds the distance between plane and the point
+        /// </summary>
+        /// <param name="plane">Plane</param>
+        /// <param name="point">Point coordinate</param>
+        /// <returns>Shortest distance</returns>
+        public static double GetDistance(this Plane plane, Point point) 
+            => Math.Abs(plane.Normal.Normalize().Dot(point.ToVector()) - plane.Normal.Normalize().Dot(plane.Point.ToVector()));
     }
 }

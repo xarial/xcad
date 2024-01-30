@@ -1,35 +1,83 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using Xarial.XCad.Annotations;
 using Xarial.XCad.Base;
+using Xarial.XCad.Documents;
 using Xarial.XCad.Geometry;
 
 namespace Xarial.XCad.Features
 {
     /// <summary>
-    /// Represents all features in the Feature Manager Design Tree
+    /// Specifies the state of the feature
     /// </summary>
-    public interface IXFeature : IXSelObject, IXColorizable, IXTransaction
+    [Flags]
+    public enum FeatureState_e 
     {
         /// <summary>
-        /// Name of the feature
+        /// Default state
         /// </summary>
-        string Name { get; set; }
+        Default = 0,
 
         /// <summary>
-        /// Dimensions associated with the feature
+        /// Feature is suppressed
         /// </summary>
-        IXDimensionRepository Dimensions { get; }
+        Suppressed = 1
+    }
+
+    /// <summary>
+    /// Represents all features in the Feature Manager Design Tree
+    /// </summary>
+    public interface IXFeature : IXSelObject, IXEntity, IHasColor, IDimensionable, IXTransaction, IHasName
+    {
+        /// <summary>
+        /// Identifies if this feature is standard (soldered) or a user created
+        /// </summary>
+        bool IsUserFeature { get; }
 
         /// <summary>
-        /// Faces of this feature
+        /// State of this feature in the feature tree
         /// </summary>
-        IEnumerable<IXFace> Faces { get; }
+        FeatureState_e State { get; set; }
+
+        /// <summary>
+        /// Enables feature editing mode
+        /// </summary>
+        /// <returns>Feature edtior</returns>
+        IEditor<IXFeature> Edit();
+    }
+
+    /// <summary>
+    /// Additional method of the <see cref="IXFeature"/>
+    /// </summary>
+    public static class XFeatureExtension 
+    {
+        /// <summary>
+        /// Iterates all bodies produced by this feature
+        /// </summary>
+        /// <param name="feat">Feature to iterate bodies</param>
+        /// <returns>Bodies of the feture</returns>
+        public static IEnumerable<IXBody> IterateBodies(this IXFeature feat)
+        {
+            var processedBodies = new List<IXBody>();
+
+            foreach (var face in feat.AdjacentEntities.Filter<IXFace>())
+            {
+                var body = face.Body;
+
+                if (!processedBodies.Any(b => b.Equals(body)))
+                {
+                    processedBodies.Add(body);
+                    yield return body;
+                }
+            }
+        }
     }
 }

@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -10,6 +10,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Xarial.XCad.Features;
 using Xarial.XCad.SolidWorks.Documents;
+using Xarial.XCad.SolidWorks.Utils;
 
 namespace Xarial.XCad.SolidWorks.Features
 {
@@ -23,20 +24,17 @@ namespace Xarial.XCad.SolidWorks.Features
 
             while (nextFeat != null)
             {
-                if (nextFeat.GetTypeName2() != "HistoryFolder")
+                if (!processedFeats.Contains(nextFeat))
                 {
-                    if (!processedFeats.Contains(nextFeat))
+                    processedFeats.Add(nextFeat);
+
+                    yield return nextFeat;
+
+                    if (recursive && nextFeat.GetTypeName2() != "HistoryFolder")
                     {
-                        processedFeats.Add(nextFeat);
-
-                        yield return nextFeat;
-
-                        if (recursive)
+                        foreach (var subFeat in IterateSubFeatures(nextFeat, processedFeats, recursive))
                         {
-                            foreach (var subFeat in IterateSubFeatures(nextFeat, processedFeats, recursive))
-                            {
-                                yield return subFeat;
-                            }
+                            yield return subFeat;
                         }
                     }
                 }
@@ -73,7 +71,15 @@ namespace Xarial.XCad.SolidWorks.Features
             }
         }
 
-        public IXFeature Current => m_RootDoc.CreateObjectFromDispatch<SwFeature>(m_Features.Current);
+        public IXFeature Current
+        {
+            get
+            {
+                var feat = m_RootDoc.CreateObjectFromDispatch<SwFeature>(m_Features.Current);
+                feat.SetContext(m_Context);
+                return feat;
+            }
+        }
 
         object IEnumerator.Current => Current;
 
@@ -81,10 +87,13 @@ namespace Xarial.XCad.SolidWorks.Features
 
         private readonly IFeature m_FirstFeat;
 
-        internal FeatureEnumerator(ISwDocument rootDoc, IFeature firstFeat)
+        private readonly Context m_Context;
+
+        internal FeatureEnumerator(ISwDocument rootDoc, IFeature firstFeat, Context context)
         {
             m_RootDoc = rootDoc;
             m_FirstFeat = firstFeat;
+            m_Context = context;
         }
 
         public bool MoveNext() => m_Features.MoveNext();

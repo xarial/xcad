@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -11,9 +11,11 @@ using System;
 using Xarial.XCad.SolidWorks.Services;
 using Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls;
 using Xarial.XCad.SolidWorks.Utils;
+using Xarial.XCad.Toolkit.Services;
 using Xarial.XCad.UI.PropertyPage.Base;
 using Xarial.XCad.Utils.PageBuilder.Attributes;
 using Xarial.XCad.Utils.PageBuilder.Base;
+using Xarial.XCad.Utils.PageBuilder.PageElements;
 
 namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
 {
@@ -21,18 +23,12 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
     internal class PropertyManagerPageButtonControlConstructor
         : PropertyManagerPageBaseControlConstructor<PropertyManagerPageButtonControl, IPropertyManagerPageButton>
     {
-        public PropertyManagerPageButtonControlConstructor(ISldWorks app, IIconsCreator iconsConv)
-            : base(app, swPropertyManagerPageControlType_e.swControlType_Button, iconsConv)
+        public PropertyManagerPageButtonControlConstructor(SwApplication app, IIconsCreator iconsConv)
+            : base(app, iconsConv)
         {
         }
 
-        protected override PropertyManagerPageButtonControl CreateControl(
-            IPropertyManagerPageButton swCtrl, IAttributeSet atts, IMetadata[] metadata, 
-            SwPropertyManagerPageHandler handler, short height, IPropertyManagerPageLabel label)
-        {
-            swCtrl.Caption = atts.Name;
-
-            return new PropertyManagerPageButtonControl(atts.Id, atts.Tag, swCtrl, handler, label, metadata);
-        }
+        protected override PropertyManagerPageButtonControl Create(IGroup parentGroup, IAttributeSet atts, IMetadata[] metadata, ref int numberOfUsedIds)
+            => new PropertyManagerPageButtonControl(m_App, parentGroup, m_IconConv, atts, metadata, ref numberOfUsedIds);
     }
 }

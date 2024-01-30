@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -20,7 +20,6 @@ namespace Xarial.XCad.Reflection
     /// <remarks>Use this method in attributes to provide the reference to the data from the resources (i.e. text and image)</remarks>
     public static class ResourceHelper
     {
-        private static MethodInfo m_ImageSaveMethod;
         private static object m_ImageFormatPng;
 
         /// <summary>
@@ -54,36 +53,12 @@ namespace Xarial.XCad.Reflection
                         val = ImageFromBytes(memStr.ToArray());
                     }
                 }
-                else if (val.GetType().FullName == "System.Drawing.Bitmap") //need some better way to handle this case
+                else if (val is Bitmap)
                 {
                     using (var stream = new MemoryStream())
                     {
-                        if (m_ImageSaveMethod == null)
-                        {
-                            m_ImageSaveMethod = val.GetType().GetMethods().First(m =>
-                            {
-                                if (m.Name == "Save")
-                                {
-                                    var parameters = m.GetParameters();
-
-                                    if (parameters.Length == 2)
-                                    {
-                                        return parameters[0].ParameterType == typeof(Stream)
-                                            && parameters[1].ParameterType.FullName == "System.Drawing.Imaging.ImageFormat";
-                                    }
-                                }
-
-                                return false;
-                            });
-
-                            var imageFormatType = m_ImageSaveMethod.GetParameters()[1].ParameterType;
-
-                            var pngPrp = imageFormatType.GetProperty("Png", BindingFlags.Public | BindingFlags.Static);
-                            m_ImageFormatPng = pngPrp.GetValue(null, null);
-                        }
-
-                        //img.Save(stream, System.Drawing.Imaging.ImageFormat.Png);
-                        m_ImageSaveMethod.Invoke(val, new object[] { stream, m_ImageFormatPng });
+                        var img = (Bitmap)val;
+                        img.Save(stream, System.Drawing.Imaging.ImageFormat.Png);
 
                         stream.Seek(0, SeekOrigin.Begin);
                         val = ImageFromBytes(stream.ToArray());

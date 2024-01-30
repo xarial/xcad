@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -16,6 +16,11 @@ namespace Xarial.XCad.Data
     /// </summary>
     public interface ITagsManager
     {
+        /// <summary>
+        /// Checks if the tags manager has any tags
+        /// </summary>
+        bool IsEmpty { get; }
+
         /// <summary>
         /// Checks if the tags contains named metadata
         /// </summary>

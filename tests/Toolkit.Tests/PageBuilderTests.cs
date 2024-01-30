@@ -54,6 +54,10 @@ namespace Toolkit.Tests
             public override void ShowTooltip(string title, string msg)
             {
             }
+
+            public override void Focus()
+            {
+            }
         }
 
         public class GroupMock : Group
@@ -92,36 +96,26 @@ namespace Toolkit.Tests
                 m_IdRangeSelector = idRangeSelector;
             }
 
-            private ControlMock Create(PageMock page, IAttributeSet atts, IMetadata[] metadata)
-            {
-                var ctrl = new ControlMock(atts.Id, atts.Tag);
-                page.Controls.Add(ctrl);
-                return ctrl;
-            }
-
-            private ControlMock Create(GroupMock group, IAttributeSet atts, IMetadata[] metadata)
-            {
-                return new ControlMock(atts.Id, atts.Tag);
-            }
-
-            protected override ControlMock Create(PageMock page, IAttributeSet atts, IMetadata[] metadata, ref int numberOfUsedIds)
+            protected override ControlMock Create(IGroup parentGroup, IAttributeSet atts, IMetadata[] metadata, ref int numberOfUsedIds)
             {
                 if (m_IdRangeSelector != null)
                 {
                     numberOfUsedIds = m_IdRangeSelector.Invoke();
                 }
 
-                return Create(page, atts, metadata);
-            }
-
-            protected override ControlMock Create(GroupMock group, IAttributeSet atts, IMetadata[] metadata, ref int numberOfUsedIds)
-            {
-                if (m_IdRangeSelector != null)
+                switch (parentGroup) 
                 {
-                    numberOfUsedIds = m_IdRangeSelector.Invoke();
-                }
+                    case PageMock page:
+                        var ctrl = new ControlMock(atts.Id, atts.Tag);
+                        page.Controls.Add(ctrl);
+                        return ctrl;
 
-                return Create(group, atts, metadata);
+                    case GroupMock grp:
+                        return new ControlMock(atts.Id, atts.Tag);
+
+                    default:
+                        throw new NotSupportedException();
+                }
             }
         }
 

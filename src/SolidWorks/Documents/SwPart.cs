@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -24,34 +24,22 @@ namespace Xarial.XCad.SolidWorks.Documents
     public interface ISwPart : ISwDocument3D, IXPart 
     {
         IPartDoc Part { get; }
+        new ISwPartConfigurationCollection Configurations { get; }
     }
 
     internal class SwPart : SwDocument3D, ISwPart
     {
+        IXPartConfigurationRepository IXPart.Configurations => (IXPartConfigurationRepository)Configurations;
+
         public IPartDoc Part => Model as IPartDoc;
 
         public IXBodyRepository Bodies { get; }
 
-        private readonly CutListRebuildEventsHandler m_CutListRebuild;
-
-        public event CutListRebuildDelegate CutListRebuild 
-        {
-            add
-            {
-                m_CutListRebuild.Attach(value);
-            }
-            remove
-            {
-                m_CutListRebuild.Detach(value);
-            }
-        }
-
-        internal SwPart(IPartDoc part, ISwApplication app, IXLogger logger, bool isCreated)
+        internal SwPart(IPartDoc part, SwApplication app, IXLogger logger, bool isCreated)
             : base((IModelDoc2)part, app, logger, isCreated)
         {
-            m_CutListRebuild = new CutListRebuildEventsHandler(this, app);
-
             Bodies = new SwPartBodyCollection(this);
+            Evaluation = new SwPartEvaluation(this);
         }
 
         internal protected override swDocumentTypes_e? DocumentType => swDocumentTypes_e.swDocPART;
@@ -59,8 +47,16 @@ namespace Xarial.XCad.SolidWorks.Documents
         protected override bool IsLightweightMode => false;
         protected override bool IsRapidMode => false;
 
-        public override IXBoundingBox PreCreateBoundingBox()
-            => new SwPartBoundingBox(this, OwnerApplication);
+        protected override SwAnnotationCollection CreateAnnotations() => new SwDocument3DAnnotationCollection(this);
+
+        ISwPartConfigurationCollection ISwPart.Configurations => (ISwPartConfigurationCollection)Configurations;
+
+        public override IXDocumentEvaluation Evaluation { get; }
+
+        protected override SwConfigurationCollection CreateConfigurations()
+            => new SwPartConfigurationCollection(this, OwnerApplication);
+
+        protected override bool IsDocumentTypeCompatible(swDocumentTypes_e docType) => docType == swDocumentTypes_e.swDocPART;
     }
 
     internal class SwPartBodyCollection : SwBodyCollection
@@ -72,7 +68,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             m_Part = rootDoc;
         }
 
-        protected override IEnumerable<IBody2> GetSwBodies()
-            => (m_Part.Part.GetBodies2((int)swBodyType_e.swAllBodies, false) as object[])?.Cast<IBody2>();
+        protected override IEnumerable<IBody2> SelectSwBodies(swBodyType_e bodyType)
+            => (m_Part.Part.GetBodies2((int)bodyType, false) as object[])?.Cast<IBody2>();
     }
 }

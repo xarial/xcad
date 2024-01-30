@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -21,7 +21,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Surfaces
 
     internal class SwPlanarSurface : SwSurface, ISwPlanarSurface
     {
-        internal SwPlanarSurface(ISurface surface, ISwDocument doc, ISwApplication app) : base(surface, doc, app)
+        internal SwPlanarSurface(ISurface surface, SwDocument doc, SwApplication app) : base(surface, doc, app)
         {
         }
 

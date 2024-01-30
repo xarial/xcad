@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -18,18 +18,19 @@ namespace Xarial.XCad.SolidWorks.Features
 {
     public interface ISwCoordinateSystem : IXCoordinateSystem, ISwFeature
     {
+        ICoordinateSystemFeatureData CoordSys { get; }
     }
 
     internal class SwCoordinateSystem : SwFeature, ISwCoordinateSystem
     {
-        private readonly ICoordinateSystemFeatureData m_CoordSys;
+        public ICoordinateSystemFeatureData CoordSys { get; }
 
-        internal SwCoordinateSystem(IFeature feat, ISwDocument doc, ISwApplication app, bool created) : base(feat, doc, app, created)
+        internal SwCoordinateSystem(IFeature feat, SwDocument doc, SwApplication app, bool created) : base(feat, doc, app, created)
         {
-            m_CoordSys = feat.GetDefinition() as ICoordinateSystemFeatureData;
+            CoordSys = feat.GetDefinition() as ICoordinateSystemFeatureData;
         }
 
         public TransformMatrix Transform
-            => m_CoordSys.Transform.ToTransformMatrix();
+            => CoordSys.Transform.ToTransformMatrix();
     }
 }

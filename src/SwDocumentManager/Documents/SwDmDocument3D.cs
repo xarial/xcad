@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -12,6 +12,7 @@ using System.Text;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;
+using Xarial.XCad.UI;
 
 namespace Xarial.XCad.SwDocumentManager.Documents
 {
@@ -20,29 +21,27 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         new ISwDmConfigurationCollection Configurations { get; }
     }
 
-    internal class SwDmDocument3D : SwDmDocument, ISwDmDocument3D
+    internal abstract class SwDmDocument3D : SwDmDocument, ISwDmDocument3D
     {
         #region Not Supported
 
-        public IXModelViewRepository ModelViews => throw new NotSupportedException();
-        public IXBoundingBox PreCreateBoundingBox() => throw new NotSupportedException();
+        public new IXModelView3DRepository ModelViews => throw new NotSupportedException();
         TSelObject IXObjectContainer.ConvertObject<TSelObject>(TSelObject obj) => throw new NotSupportedException();
-        public IXMassProperty PreCreateMassProperty() => throw new NotSupportedException();
+        IXDocument3DSaveOperation IXDocument3D.PreCreateSaveAsOperation(string filePath) => throw new NotSupportedException();
+        public IXDocumentEvaluation Evaluation => throw new NotSupportedException();
+        public IXDocumentGraphics Graphics => throw new NotSupportedException();
 
         #endregion
 
         IXConfigurationRepository IXDocument3D.Configurations => Configurations;
 
-        public ISwDmConfigurationCollection Configurations => m_Configurations.Value;
+        public abstract ISwDmConfigurationCollection Configurations { get; }
 
-        private readonly Lazy<ISwDmConfigurationCollection> m_Configurations;
-
-        public SwDmDocument3D(ISwDmApplication dmApp, ISwDMDocument doc, bool isCreated,
+        public SwDmDocument3D(SwDmApplication dmApp, ISwDMDocument doc, bool isCreated,
             Action<ISwDmDocument> createHandler, Action<ISwDmDocument> closeHandler,
             bool? isReadOnly)
             : base(dmApp, doc, isCreated, createHandler, closeHandler, isReadOnly)
         {
-            m_Configurations = new Lazy<ISwDmConfigurationCollection>(() => new SwDmConfigurationCollection(this));
         }
     }
 

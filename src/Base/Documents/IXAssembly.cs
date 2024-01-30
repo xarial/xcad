@@ -1,10 +1,11 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
+using Xarial.XCad.Documents.Delegates;
 using Xarial.XCad.Geometry;
 
 namespace Xarial.XCad.Documents
@@ -14,19 +15,30 @@ namespace Xarial.XCad.Documents
     /// </summary>
     public interface IXAssembly : IXDocument3D
     {
+        /// <summary>
+        /// Raised when new component is inserted into the assembly
+        /// </summary>
+        event ComponentInsertedDelegate ComponentInserted;
+
+        /// <summary>
+        /// Raised when component is about to be deleted from the assembly
+        /// </summary>
+        event ComponentDeletingDelegate ComponentDeleting;
+
+        /// <summary>
+        /// Raised when component is deleted from the assembly
+        /// </summary>
+        event ComponentDeletedDelegate ComponentDeleted;
+
         /// <inheritdoc/>
         new IXAssemblyConfigurationRepository Configurations { get; }
 
-        /// <summary>
-        /// Pre creates the 3D bounding box of the assembly
-        /// </summary>
-        /// <returns>Bounding box</returns>
-        new IXAssemblyBoundingBox PreCreateBoundingBox();
+        /// <inheritdoc/>
+        new IXAssemblyEvaluation Evaluation { get; }
 
         /// <summary>
-        /// Pre creates mass properties of the assembly
+        /// Returns the component which is currently being editied in-context or null
         /// </summary>
-        /// <returns>Mass property</returns>
-        new IXAssemblyMassProperty PreCreateMassProperty();
+        IXComponent EditingComponent { get; }
     }
 }

@@ -54,7 +54,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("UnloadedConfPart.SLDPRT"))
             {
-                var part = (IXPart)m_App.Documents.Active;
+                var part = (ISwPart)m_App.Documents.Active;
                 
                 var prp1 = part.Configurations["Default"].Properties.PreCreate();
                 prp1.Name = "Test1";
@@ -223,14 +223,14 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("CutListConfs1.SLDPRT")) 
             {
-                var part = (ISwDocument3D)m_App.Documents.Active;
+                var part = (ISwPart)m_App.Documents.Active;
 
-                conf1Prps = part.Configurations.First(c => c.Name.StartsWith("Conf1")).CutLists
+                conf1Prps = ((IXPartConfiguration)part.Configurations.First(c => c.Name.StartsWith("Conf1"))).CutLists
                     .First(c => c.Name == "Cut-List-Item1").Properties
                     .ToDictionary(p => p.Name, p => p.Value);
 
                 Assert.Throws<ConfigurationSpecificCutListNotSupportedException>(
-                    () => { var cl = part.Configurations.First(c => c.Name.StartsWith("Default")).CutLists.ToArray(); });
+                    () => { var cl = ((IXPartConfiguration)part.Configurations.First(c => c.Name.StartsWith("Default"))).CutLists.ToArray(); });
             }
 
             Assert.AreEqual(4, conf1Prps.Count);
@@ -249,11 +249,11 @@ namespace SolidWorks.Tests.Integration
             {
                 var assm = (ISwAssembly)m_App.Documents.Active;
 
-                conf1Prps = assm.Configurations.Active.Components["CutListConfs1-2"].ReferencedConfiguration.CutLists
+                conf1Prps = ((ISwPartComponent)assm.Configurations.Active.Components["CutListConfs1-2"]).ReferencedConfiguration.CutLists
                     .First(c => c.Name == "Cut-List-Item1").Properties
                     .ToDictionary(p => p.Name, p => p.Value);
 
-                defPrps = assm.Configurations.Active.Components["CutListConfs1-1"].ReferencedConfiguration.CutLists
+                defPrps = ((ISwPartComponent)assm.Configurations.Active.Components["CutListConfs1-1"]).ReferencedConfiguration.CutLists
                     .First(c => c.Name == "Cut-List-Item1").Properties
                     .ToDictionary(p => p.Name, p => p.Value);
             }
@@ -308,17 +308,17 @@ namespace SolidWorks.Tests.Integration
             {
                 var assm = (ISwAssembly)m_App.Documents.Active;
 
-                var prp1 = assm.Configurations.Active.Components["CutListConfs1-2"].ReferencedConfiguration.CutLists
+                var prp1 = ((ISwPartComponent)assm.Configurations.Active.Components["CutListConfs1-2"]).ReferencedConfiguration.CutLists
                     .First(c => c.Name == "Cut-List-Item1").Properties.GetOrPreCreate("Prp3");
                 prp1.Value = "NewValueConf1";
                 prp1.Commit();
 
-                var prp2 = assm.Configurations.Active.Components["CutListConfs1-1"].ReferencedConfiguration.CutLists
+                var prp2 = ((ISwPartComponent)assm.Configurations.Active.Components["CutListConfs1-1"]).ReferencedConfiguration.CutLists
                     .First(c => c.Name == "Cut-List-Item1").Properties.GetOrPreCreate("Prp1");
                 Assert.Throws<ConfigurationSpecificCutListPropertiesWriteNotSupportedException>(
                     () => { prp2.Value = "NewValue1Def1"; });
 
-                var prp3 = assm.Configurations.Active.Components["CutListConfs1-1"].ReferencedConfiguration.CutLists
+                var prp3 = ((ISwPartComponent)assm.Configurations.Active.Components["CutListConfs1-1"]).ReferencedConfiguration.CutLists
                     .First(c => c.Name == "Cut-List-Item1").Properties.GetOrPreCreate("Prp4");
                 prp3.Value = "NewValue1Def1";
                 Assert.Throws<ConfigurationSpecificCutListPropertiesWriteNotSupportedException>(
@@ -382,6 +382,80 @@ namespace SolidWorks.Tests.Integration
         }
 
         [Test]
+        public void GetCustomPropertiesTypesTest()
+        {
+            object val1;
+            object val2;
+            object val3;
+            object val4;
+            object val5;
+            object val6;
+
+            using (var doc = OpenDataDocument("PrpTypes.SLDPRT"))
+            {
+                var part = (IXPart)m_App.Documents.Active;
+
+                val1 = part.Properties["Text"].Value;
+                val2 = part.Properties["Double"].Value;
+                val3 = part.Properties["Integer"].Value;
+                val4 = part.Properties["BoolTrue"].Value;
+                val5 = part.Properties["BoolFalse"].Value;
+                val6 = part.Properties["Date"].Value;
+            }
+
+            Assert.AreEqual("A", val1);
+            Assert.IsInstanceOf<string>(val1);
+
+            Assert.AreEqual(5.5, val2);
+            Assert.IsInstanceOf<double>(val2);
+
+            Assert.AreEqual(10, val3);
+            Assert.IsInstanceOf<double>(val3);
+
+            Assert.AreEqual(true, val4);
+            Assert.IsInstanceOf<bool>(val4);
+
+            Assert.AreEqual(false, val5);
+            Assert.IsInstanceOf<bool>(val5);
+
+            Assert.AreEqual(new DateTime(2023, 03, 28), val6);
+            Assert.IsInstanceOf<DateTime>(val6);
+        }
+
+        //[Test]
+        //public void SetCustomPropertiesTypesTest()
+        //{
+        //    using (var doc = NewDocument(swDocumentTypes_e.swDocPART))
+        //    {
+        //        var part = (IXPart)m_App.Documents.Active;
+
+        //        var prp1 = part.Properties.GetOrPreCreate("Text");
+        //        prp1.Value = "A";
+        //        prp1.Commit();
+
+        //        var prp2 = part.Properties.GetOrPreCreate("Double");
+        //        prp2.Value = 5.5;
+        //        prp2.Commit();
+
+        //        var prp3 = part.Properties.GetOrPreCreate("Integer");
+        //        prp3.Value = 10;
+        //        prp3.Commit();
+
+        //        var prp4 = part.Properties.GetOrPreCreate("BoolTrue");
+        //        prp4.Value = true;
+        //        prp4.Commit();
+
+        //        var prp5 = part.Properties.GetOrPreCreate("BoolFalse");
+        //        prp5.Value = false;
+        //        prp5.Commit();
+
+        //        var prp6 = part.Properties.GetOrPreCreate("Date");
+        //        prp6.Value = new DateTime(2023, 03, 28);
+        //        prp6.Commit();
+        //    }
+        //}
+
+        [Test]
         public void SetExpressionCustomPropertiesTest()
         {
             string val;
@@ -421,7 +495,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("MultiConfNotUpdatePartPrps.SLDPRT"))
             {
-                var part = (IXPart)m_App.Documents.Active;
+                var part = (ISwPart)m_App.Documents.Active;
 
                 var x = m_App.Sw.IActiveDoc2.Extension.CustomPropertyManager["Conf1"].Get6("Prp1", true, out string val, out string resVal, out _, out _);
 

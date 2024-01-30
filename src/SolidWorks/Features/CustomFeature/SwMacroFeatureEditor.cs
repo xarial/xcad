@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -9,7 +9,9 @@ using SolidWorks.Interop.swconst;
 using System;
 using System.Drawing;
 using Xarial.XCad.Base;
+using Xarial.XCad.Documents;
 using Xarial.XCad.Extensions;
+using Xarial.XCad.Features.CustomFeature;
 using Xarial.XCad.Features.CustomFeature.Delegates;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.SolidWorks.Documents;
@@ -18,72 +20,44 @@ using Xarial.XCad.SolidWorks.UI.PropertyPage;
 using Xarial.XCad.Toolkit.Utils;
 using Xarial.XCad.UI.PropertyPage;
 using Xarial.XCad.UI.PropertyPage.Delegates;
+using Xarial.XCad.UI.PropertyPage.Enums;
 using Xarial.XCad.Utils.CustomFeature;
 using Xarial.XCad.Utils.Diagnostics;
 
 namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 {
     internal class SwMacroFeatureEditor<TData, TPage> : BaseCustomFeatureEditor<TData, TPage>
-        where TData : class, new()
-        where TPage : class, new()
+        where TData : class
+        where TPage : class
     {
-        internal delegate void AssignPreviewBodyColorDelegate(IXBody body, out Color color);
+        internal event Func<IXDocument, ISwObject> ProvidePreviewContext;
 
-        private readonly SwPropertyManagerPageHandler m_Handler;
-        private readonly AssignPreviewBodyColorDelegate m_AssignBodyColorFunc;
-
-        internal SwMacroFeatureEditor(ISwApplication app, Type defType, SwPropertyManagerPageHandler handler,
-            CustomFeatureParametersParser paramsParser, IServiceProvider svcProvider,
-            CreateDynamicControlsDelegate createDynCtrlHandler, AssignPreviewBodyColorDelegate assignPreviewBodyColorDelegateFunc) 
-            : base(app, defType, paramsParser, svcProvider)
+        internal SwMacroFeatureEditor(ISwApplication app, Type defType,
+            IServiceProvider svcProvider,
+            SwPropertyManagerPage<TPage> page, CustomFeatureEditorBehavior_e behavior) 
+            : base(app, defType, svcProvider, page, behavior)
         {
-            m_Handler = handler;
-            m_AssignBodyColorFunc = assignPreviewBodyColorDelegateFunc;
-
-            InitPage(createDynCtrlHandler);
         }
 
-        protected override void DisplayPreview(IXBody[] bodies)
+        protected override IXObject CurrentPreviewContext => ProvidePreviewContext?.Invoke(CurrentDocument);
+
+        protected override void CompleteFeature(PageCloseReasons_e reason)
         {
-            foreach (var body in bodies)
+            base.CompleteFeature(reason);
+
+            if (reason == PageCloseReasons_e.Okay || reason == PageCloseReasons_e.Apply) 
             {
-                var swBody = (body as SwBody).Body;
-                var model = (CurModel as SwDocument).Model;
-
-                m_AssignBodyColorFunc.Invoke(body, out Color color);
-
-                swBody.Display3(model, ColorUtils.ToColorRef(color),
-                    (int)swTempBodySelectOptions_e.swTempBodySelectOptionNone);
-            }
-        }
-
-        protected override void HidePreview(IXBody[] bodies)
-        {
-            if (bodies != null)
-            {
-                for (int i = 0; i < bodies.Length; i++)
+                if (m_CurrentFeature.IsCommitted)
                 {
-                    if (bodies[i] is IDisposable)
-                    {
-                        try
-                        {
-                            (bodies[i] as IDisposable).Dispose();
-                        }
-                        catch (Exception ex)
-                        {
-                            m_Logger.Log(ex);
-                        }
-                    }
+                    var curMacroFeat = (SwMacroFeature<TData>)m_CurrentFeature;
 
-                    bodies[i] = null;
+                    if (curMacroFeat.UseCachedParameters)
+                    {
+                        curMacroFeat.ApplyParametersCache();
+                        curMacroFeat.UseCachedParameters = false;
+                    }
                 }
             }
-        }
-
-        protected override IXPropertyPage<TPage> CreatePage(CreateDynamicControlsDelegate createDynCtrlHandler)
-        {
-            //TODO: add support for other options
-            return new SwPropertyManagerPage<TPage>((ISwApplication)m_App, m_SvcProvider, m_Handler, createDynCtrlHandler);
         }
     }
 }

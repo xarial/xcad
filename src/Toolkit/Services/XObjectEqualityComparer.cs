@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -9,6 +9,10 @@ using System.Collections.Generic;
 
 namespace Xarial.XCad.Services
 {
+    /// <summary>
+    /// Represents the generic equality of the <see cref="IXObject"/>
+    /// </summary>
+    /// <typeparam name="TObj">Specific type of <see cref="IXObject"/></typeparam>
     public class XObjectEqualityComparer<TObj> : IEqualityComparer<TObj>
         where TObj : IXObject
     {
@@ -27,9 +31,6 @@ namespace Xarial.XCad.Services
             return x.Equals(y);
         }
 
-        public int GetHashCode(TObj obj)
-        {
-            return 0;
-        }
+        public int GetHashCode(TObj obj) => 0;
     }
 }

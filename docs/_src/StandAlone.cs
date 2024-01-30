@@ -1,7 +1,7 @@
 ﻿using SolidWorks.Interop.sldworks;
 using System;
 using System.Threading.Tasks;
-using Xarial.XCad.Documents;
+using Xarial.XCad.Documents.Extensions;
 using Xarial.XCad.Documents.Structures;
 using Xarial.XCad.Enums;
 using Xarial.XCad.SolidWorks;

@@ -1,26 +1,43 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
+using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Threading;
 
 namespace Xarial.XCad.Base
 {
     /// <summary>
     /// Represents the collection of elements
     /// </summary>
-    /// <typeparam name="TEnt"></typeparam>
-    public interface IXRepository<TEnt> : IEnumerable<TEnt>
-        where TEnt : IXTransaction
+    public interface IXRepository : IEnumerable
     {
         /// <summary>
         /// Number of elements in the collection
         /// </summary>
         int Count { get; }
 
+        /// <summary>
+        /// Filters the entities with the specified query
+        /// </summary>
+        /// <param name="reverseOrder">Reverse the order of results</param>
+        /// <param name="filters">Filters</param>
+        /// <returns>Filtered entities</returns>
+        IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters);//TODO: potentially replace the Filter with the IQueryable
+    }
+
+    /// <summary>
+    /// Represents the collection of specific elements
+    /// </summary>
+    /// <typeparam name="TEnt"></typeparam>
+    public interface IXRepository<TEnt> : IXRepository, IEnumerable<TEnt>
+        where TEnt : IXTransaction
+    {
         /// <summary>
         /// Retrieves the element by name
         /// </summary>
@@ -41,14 +58,33 @@ namespace Xarial.XCad.Base
         /// Commits entities
         /// </summary>
         /// <param name="ents"></param>
-        void AddRange(IEnumerable<TEnt> ents);
+        /// <param name="cancellationToken">Cancellation token</param>
+        void AddRange(IEnumerable<TEnt> ents, CancellationToken cancellationToken);
 
         /// <summary>
         /// Removes specified enitites
         /// </summary>
         /// <param name="ents">Entities to remove</param>
-        void RemoveRange(IEnumerable<TEnt> ents);
+        /// <param name="cancellationToken">Cancellation token</param>
+        void RemoveRange(IEnumerable<TEnt> ents, CancellationToken cancellationToken);
 
-        //TODO: make a T PreCreate<T>() function a part of this interface so it is unified across all repositories
+        /// <summary>
+        /// Pre-creates template object
+        /// </summary>
+        /// <typeparam name="T">Specific type of the template object</typeparam>
+        /// <returns>Template object</returns>
+        /// <remarks>Use <see cref="IXTransaction.Commit(CancellationToken)"/> or <see cref="IXRepository{TEnt}.AddRange(IEnumerable{TEnt}, CancellationToken)"/> to commit templates and create objects</remarks>
+        T PreCreate<T>() where T : TEnt;
+    }
+
+    /// <summary>
+    /// Filter of the repository in the <see cref="IXRepository.Filter(bool, RepositoryFilterQuery[])"/>
+    /// </summary>
+    public class RepositoryFilterQuery 
+    {
+        /// <summary>
+        /// Type of entity or null for all types
+        /// </summary>
+        public Type Type { get; set; }
     }
 }

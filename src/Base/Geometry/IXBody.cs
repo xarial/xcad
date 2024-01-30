@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -11,13 +11,14 @@ using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Geometry.Primitives;
 using Xarial.XCad.Geometry.Structures;
+using Xarial.XCad.Geometry.Wires;
 
 namespace Xarial.XCad.Geometry
 {
     /// <summary>
     /// Represents the body object
     /// </summary>
-    public interface IXBody : IXSelObject, IXColorizable, IXTransaction
+    public interface IXBody : IXSelObject, IHasColor, IXTransaction
     {
         /// <summary>
         /// Name of the body
@@ -30,25 +31,10 @@ namespace Xarial.XCad.Geometry
         bool Visible { get; set; }
 
         /// <summary>
-        /// Boolean add operation on body
+        /// parent component of this body if within assembly
         /// </summary>
-        /// <param name="other">Other body</param>
-        /// <returns>Resulting body</returns>
-        IXBody Add(IXBody other);
-
-        /// <summary>
-        /// Boolean substract operation
-        /// </summary>
-        /// <param name="other">Body to substract</param>
-        /// <returns>Resulting bodies</returns>
-        IXBody[] Substract(IXBody other);
-
-        /// <summary>
-        /// Boolean common operation
-        /// </summary>
-        /// <param name="other">Body to get common with</param>
-        /// <returns>Resulting body</returns>
-        IXBody[] Common(IXBody other);
+        /// <remarks>Null is returned for the body in the part</remarks>
+        IXComponent Component { get; }
 
         /// <summary>
         /// Enumerates all faces of this body
@@ -61,10 +47,15 @@ namespace Xarial.XCad.Geometry
         IEnumerable<IXEdge> Edges { get; }
 
         /// <summary>
+        /// Material of this body
+        /// </summary>
+        IXMaterial Material { get; set; }
+
+        /// <summary>
         /// Creates a copy of the current body
         /// </summary>
         /// <returns>Copied body</returns>
-        IXBody Copy();
+        IXMemoryBody Copy();
 
         /// <summary>
         /// Moves this body with specified matrix
@@ -83,7 +74,7 @@ namespace Xarial.XCad.Geometry
     /// <summary>
     /// Subtype of <see cref="IXSheetBody"/> which is planar
     /// </summary>
-    public interface IXPlanarSheetBody : IXSheetBody, IXRegion 
+    public interface IXPlanarSheetBody : IXSheetBody, IXPlanarRegion 
     {
     }
 
@@ -96,5 +87,16 @@ namespace Xarial.XCad.Geometry
         /// Volume of this solid body
         /// </summary>
         double Volume { get; }
+    }
+
+    /// <summary>
+    /// Represents the wire body
+    /// </summary>
+    public interface IXWireBody : IXBody, IXWireEntity
+    {
+        /// <summary>
+        /// Content of the wire body
+        /// </summary>
+        IXSegment[] Segments { get; set; }
     }
 }

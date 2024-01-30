@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -59,18 +59,17 @@ namespace Xarial.XCad.Documents
             where THandler : IDocumentHandler;
 
         /// <summary>
+        /// Unregisters document handler
+        /// </summary>
+        /// <typeparam name="THandler"></typeparam>
+        void UnregisterHandler<THandler>() where THandler : IDocumentHandler;
+
+        /// <summary>
         /// Returns the handler for this document
         /// </summary>
         /// <typeparam name="THandler">Handler type</typeparam>
         /// <param name="doc">Document to get handler from</param>
         /// <returns>Instance of the handler</returns>
         THandler GetHandler<THandler>(IXDocument doc) where THandler : IDocumentHandler;
-
-        /// <summary>
-        /// Pre-creates a document template
-        /// </summary>
-        /// <typeparam name="TDocument">Document type to pre-create</typeparam>
-        /// <returns>Document template</returns>
-        TDocument PreCreate<TDocument>() where TDocument : class, IXDocument;
     }
 }

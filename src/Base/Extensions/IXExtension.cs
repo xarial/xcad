@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -23,11 +23,13 @@ namespace Xarial.XCad.Extensions
         /// <summary>
         /// Event for <see cref="OnConnect"/>
         /// </summary>
+        /// <remarks>If <see cref="OnConnect"/> is overridden this event will not be raised</remarks>
         event ExtensionConnectDelegate Connect;
 
         /// <summary>
         /// Event for <see cref="OnDisconnect"/>
         /// </summary>
+        /// <remarks>If <see cref="OnDisconnect"/> is overridden this event will not be raised</remarks>
         event ExtensionDisconnectDelegate Disconnect;
 
         /// <summary>
@@ -88,8 +90,9 @@ namespace Xarial.XCad.Extensions
         /// Creates the popup window in the context of current application
         /// </summary>
         /// <typeparam name="TWindow">Window to show</typeparam>
+        /// <param name="window">Instance of the window</param>
         /// <returns>Custom popup window</returns>
-        IXPopupWindow<TWindow> CreatePopupWindow<TWindow>();
+        IXPopupWindow<TWindow> CreatePopupWindow<TWindow>(TWindow window);
         
         /// <summary>
         /// Hosts the control in the task pane
@@ -98,5 +101,11 @@ namespace Xarial.XCad.Extensions
         /// <param name="spec">Specification of the Task Pane</param>
         /// <returns>Custom panel</returns>
         IXTaskPane<TControl> CreateTaskPane<TControl>(TaskPaneSpec spec);
+
+        /// <summary>
+        /// Pre-creates work unit which can be run in the background
+        /// </summary>
+        /// <returns>Work unit template</returns>
+        IXWorkUnit PreCreateWorkUnit();
     }
 }

@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -12,6 +12,7 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.Linq;
 using Xarial.XCad.Base.Attributes;
+using Xarial.XCad.Toolkit.Services;
 using Xarial.XCad.SolidWorks.Services;
 using Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls;
 using Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Icons;
@@ -20,26 +21,23 @@ using Xarial.XCad.UI.PropertyPage.Attributes;
 using Xarial.XCad.UI.PropertyPage.Base;
 using Xarial.XCad.Utils.PageBuilder.Base;
 using Xarial.XCad.Utils.PageBuilder.Constructors;
+using Xarial.XCad.Utils.PageBuilder.PageElements;
 using Xarial.XCad.Utils.Reflection;
 
 namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
 {
     internal class PropertyManagerPageTabConstructor
-        : GroupConstructor<PropertyManagerPageGroupBase, PropertyManagerPagePage>,
+        : GroupConstructor<PropertyManagerPageTabControl, PropertyManagerPagePage>,
         IPropertyManagerPageElementConstructor, ITabConstructor
     {
-        public Type ControlType
-        {
-            get
-            {
-                return typeof(PropertyManagerPageGroupBase);
-            }
-        }
+        public Type ControlType => typeof(PropertyManagerPageTabControl);
 
+        private readonly SwApplication m_App;
         private readonly IIconsCreator m_IconsConv;
 
-        public PropertyManagerPageTabConstructor(IIconsCreator iconsConv)
+        public PropertyManagerPageTabConstructor(SwApplication app, IIconsCreator iconsConv)
         {
+            m_App = app;
             m_IconsConv = iconsConv;
         }
 
@@ -48,59 +46,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors
             //TODO: not used
         }
 
-        protected override PropertyManagerPageGroupBase Create(PropertyManagerPageGroupBase group, IAttributeSet atts, IMetadata[] metadata, ref int numberOfUsedIds)
-        {
-            //NOTE: nested tabs are not supported in SOLIDWORKS, creating the group in page instead
-            return Create(group.ParentPage, atts, metadata, ref numberOfUsedIds);
-        }
-
-        protected override PropertyManagerPageGroupBase Create(PropertyManagerPagePage page, IAttributeSet atts, IMetadata[] metadata, ref int numberOfUsedIds)
-        {
-            const int OPTIONS_NOT_USED = 0;
-
-            var icon = atts.ControlDescriptor?.Icon;
-
-            if (icon == null)
-            {
-                icon = atts.ContextType?.TryGetAttribute<IconAttribute>()?.Icon;
-            }
-
-            string iconPath = "";
-
-            if (icon != null)
-            {
-                iconPath = m_IconsConv.ConvertIcon(new TabIcon(icon)).First();
-
-                //NOTE: tab icon must be in 256 color bitmap, otherwise it is not displayed
-                TryConvertIconTo8bit(iconPath);
-            }
-
-            var tab = page.Page.AddTab(atts.Id, atts.Name,
-                iconPath, OPTIONS_NOT_USED) as IPropertyManagerPageTab;
-            
-            return new PropertyManagerPageTabControl(atts.Id, atts.Tag,
-                page.Handler, tab, page.App, page, metadata);
-        }
-
-        private void TryConvertIconTo8bit(string path)
-        {
-            try
-            {
-                using (var img = Image.FromFile(path))
-                {
-                    using (var srcBmp = new Bitmap(img))
-                    {
-                        using (var destBmp = srcBmp.Clone(new Rectangle(new Point(0, 0), srcBmp.Size), PixelFormat.Format8bppIndexed))
-                        {
-                            img.Dispose();
-                            destBmp.Save(path, ImageFormat.Bmp);
-                        }
-                    }
-                }
-            }
-            catch
-            {
-            }
-        }
+        protected override PropertyManagerPageTabControl Create(IGroup parentGroup, IAttributeSet atts, IMetadata[] metadata, ref int numberOfUsedIds)
+            => new PropertyManagerPageTabControl(m_App, parentGroup, atts, metadata, m_IconsConv, ref numberOfUsedIds);
     }
 }

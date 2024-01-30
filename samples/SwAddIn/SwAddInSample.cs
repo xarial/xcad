@@ -42,17 +42,80 @@ using Xarial.XCad.Reflection;
 using Xarial.XCad.UI.PropertyPage.Attributes;
 using Xarial.XCad.Extensions;
 using Xarial.XCad.Enums;
-using System.Drawing;
 using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.SolidWorks.Features;
 using System.Diagnostics;
+using Xarial.XCad.Sketch;
+using Xarial.XCad.SolidWorks.Graphics;
+using Xarial.XCad.Graphics;
+using Xarial.XCad.Geometry;
+using Xarial.XCad.Geometry.Wires;
+using Xarial.XToolkit.Wpf.Utils;
+using System.Threading;
+using Xarial.XCad.Features.CustomFeature;
+using System.IO;
+using Xarial.XCad.SolidWorks.Sketch;
+using System.Drawing.Imaging;
+using System.Windows.Forms;
+using Xarial.XCad.Documents.Extensions;
+using System.Windows.Markup;
+using Xarial.XCad.SolidWorks.UI.Commands.Attributes;
+using Xarial.XCad.Toolkit.Extensions;
+using Xarial.XCad.Annotations;
+using Xarial.XCad.UI.Enums;
+using Xarial.XToolkit;
+using Xarial.XCad.SolidWorks.Geometry.Primitives;
 
 namespace SwAddInExample
 {
     [ComVisible(true)]
+    public class SwDefaultCalloutBaseHandler : SwCalloutBaseHandler
+    {
+    }
+
+    [ComVisible(true)]
+    public class SwDefaultTriadHandler : SwTriadHandler
+    {
+    }
+
+    [ComVisible(true)]
+    public class SwDefaultDragArrowHandler : SwDragArrowHandler
+    {
+    }
+
+    [ComVisible(true)]
+    public class SwDefaultPropertyManagerPageHandler : SwPropertyManagerPageHandler 
+    {
+    }
+
+    [ComVisible(true)]
     [Guid("3078E7EF-780E-4A70-9359-172D90FAAED2")]
     public class SwAddInSample : SwAddInEx
     {
+        public class DefaultCalloutHandlerProvider : ICalloutHandlerProvider
+        {
+            public SwCalloutBaseHandler CreateHandler(ISwApplication app)
+                => new SwDefaultCalloutBaseHandler();
+        }
+
+        public class DefaultPropertyPageHandlerProvider : IPropertyPageHandlerProvider
+        {
+            public SwPropertyManagerPageHandler CreateHandler(ISwApplication app, Type handlerType)
+                => new SwDefaultPropertyManagerPageHandler();
+        }
+
+        public class DefaultTriadHandlerProvider : ITriadHandlerProvider
+        {
+            public SwTriadHandler CreateHandler(ISwApplication app)
+                => new SwDefaultTriadHandler();
+        }
+
+        public class DefaultDragArrowHandlerProvider : IDragArrowHandlerProvider
+        {
+            public SwDragArrowHandler CreateHandler(ISwApplication app)
+                => new SwDefaultDragArrowHandler();
+        }
+
         public class DictionaryControl : IControlDescriptor
         {
             public string DisplayName { get; set; }
@@ -120,7 +183,29 @@ namespace SwAddInExample
 
             ShowPmpComboBox,
 
-            GetMassPrps
+            GetMassPrps,
+
+            GetBoundingBox,
+
+            CreateCallout,
+
+            CreateTriad,
+
+            CreateDragArrow,
+
+            CreateFlatPattern,
+
+            CreateDrawing,
+
+            GetPreview,
+
+            InsertPicture,
+
+            HandleAddEvents,
+
+            ReplaceCompDoc,
+
+            Custom
         }
 
         [Icon(typeof(Resources), nameof(Resources.xarial))]
@@ -141,6 +226,8 @@ namespace SwAddInExample
         }
 
         [Title("Sample Context Menu")]
+        //[ContextMenuCommandGroupInfo(25, typeof(IXSketchPicture))]
+        //[SwContextMenuCommandGroupInfo(25, swSelectType_e.swSelANNOTATIONTABLES)]
         public enum ContextMenuCommands_e 
         {
             Command1,
@@ -162,6 +249,13 @@ namespace SwAddInExample
             Button3
         }
 
+        [Title(typeof(Resources), nameof(Resources.TabName))]
+        public enum Commands3_3 
+        {
+            [CommandItemInfo(true, true, WorkspaceTypes_e.AllDocuments, true)]
+            Command1
+        }
+
         private IXPropertyPage<PmpMacroFeatData> m_MacroFeatPage;
         private PmpMacroFeatData m_MacroFeatPmpData;
         private PmpComboBoxData m_PmpComboBoxData;
@@ -172,6 +266,8 @@ namespace SwAddInExample
         private ToggleGroupPmpData m_TogglePageData;
 
         private PmpData m_Data;
+
+        private IXCalloutBase m_Callout;
 
         [CommandGroupInfo(1)]
         public enum Commands1_e 
@@ -191,11 +287,37 @@ namespace SwAddInExample
             Cmd8
         }
 
+        [Title("Main Menu")]
+        public enum MainCommands1_e 
+        {
+        }
+
+        [CommandGroupInfo(2)]
+        [CommandGroupParent(typeof(MainCommands1_e))]
+        public enum Commands3_e
+        {
+            Cmd9,
+            Cmd10
+        }
+
+        private readonly Xarial.XToolkit.Helpers.AssemblyResolver m_AssmResolver;
+
+        public SwAddInSample() 
+        {
+            m_AssmResolver = new Xarial.XToolkit.Helpers.AssemblyResolver(AppDomain.CurrentDomain, "xCAD.NET");
+            m_AssmResolver.RegisterAssemblyReferenceResolver(
+                new Xarial.XToolkit.Reflection.LocalFolderReferencesResolver(System.IO.Path.GetDirectoryName(typeof(SwAddInSample).Assembly.Location),
+                Xarial.XToolkit.Reflection.AssemblyMatchFilter_e.Culture | Xarial.XToolkit.Reflection.AssemblyMatchFilter_e.PublicKeyToken | Xarial.XToolkit.Reflection.AssemblyMatchFilter_e.Version,
+                "xCAD.NET Local Folder"));
+        }
+
         public override void OnConnect()
         {
+            //CommandManager.AddCommandGroup<MainCommands1_e>();
+            //CommandManager.AddCommandGroup<Commands3_e>().CommandClick += OnCommandClick;
+
             //CommandManager.AddCommandGroup<Commands1_e>();
             //CommandManager.AddCommandGroup<Commands2_e>();
-            //return;
 
             try
             {
@@ -235,14 +357,13 @@ namespace SwAddInExample
                 });
 
                 CommandManager.AddCommandGroup<Commands_e>().CommandClick += OnCommandClick;
-                CommandManager.AddContextMenu<ContextMenuCommands_e>(Xarial.XCad.Base.Enums.SelectType_e.Faces).CommandClick += OnContextMenuCommandClick;
+                CommandManager.AddContextMenu<ContextMenuCommands_e, IXFace>().CommandClick += OnContextMenuCommandClick;
 
-                Application.Documents.RegisterHandler<SwDocHandler>();
+                CommandManager.AddCommandGroup<Commands3_3>().CommandClick += OnCommands3Click;
+
+                Application.Documents.RegisterHandler<SwDocHandler>(() => new SwDocHandler(this));
 
                 Application.Documents.DocumentActivated += OnDocumentActivated;
-
-                m_Page = this.CreatePage<PmpData>(OnCreateDynamicControls);
-                m_Page.Closed += OnPage1Closed;
 
                 m_ToggleGroupPage = this.CreatePage<ToggleGroupPmpData>();
                 m_ToggleGroupPage.Closed += OnToggleGroupPageClosed;
@@ -259,9 +380,16 @@ namespace SwAddInExample
             }
         }
 
+        private void OnCommandClick(Commands3_e spec)
+        {
+        }
+
+        private void OnCommands3Click(Commands3_3 spec)
+        {
+        }
+
         private void OnComboBoxPageClosed(PageCloseReasons_e reason)
         {
-            var x = m_PmpComboBoxData;
         }
 
         private void OnDocumentActivated(IXDocument doc)
@@ -300,7 +428,7 @@ namespace SwAddInExample
             };
         }
 
-        private void OnPage1Closed(PageCloseReasons_e reason)
+        private void OnPageClosed(PageCloseReasons_e reason)
         {
         }
 
@@ -312,8 +440,10 @@ namespace SwAddInExample
         {
             if (reason == PageCloseReasons_e.Okay) 
             {
-                //var feat = Application.Documents.Active.Features.CreateCustomFeature<SimpleMacroFeature>();
-                var feat = Application.Documents.Active.Features.CreateCustomFeature<SampleMacroFeature, PmpMacroFeatData>(m_MacroFeatPmpData);
+                var feat = Application.Documents.Active.Features.CreateCustomFeature<SimpleMacroFeature>();
+                //var feat = Application.Documents.Active.Features.CreateCustomFeature<SampleMacroFeature, PmpMacroFeatData>(m_MacroFeatPmpData);
+                var lastFeat = (IXCustomFeature)Application.Documents.Active.Features.Last();
+                var defType = lastFeat.DefinitionType;
             }
         }
 
@@ -360,8 +490,6 @@ namespace SwAddInExample
                 {
                     case Commands_e.OpenDoc:
 
-                        var cutLists = (Application.Documents.Active as ISwPart).Configurations.Active.CutLists.ToArray();
-
                         //(Application.Documents.Active.Model as AssemblyDoc).FileDropPreNotify += SwAddInSample_FileDropPreNotify;
                         var doc = Application.Documents.PreCreate<IXDocument>();
                         doc.Path = @"C:\Users\artem\OneDrive\xCAD\TestData\Assembly2\TopAssem.SLDASM";
@@ -370,8 +498,18 @@ namespace SwAddInExample
                         break;
 
                     case Commands_e.ShowPmPage:
-                        m_Data = new PmpData();
-                        m_Data.ItemsSourceComboBox = "Y";
+                        if (m_Page != null) 
+                        {
+                            m_Page.Closed -= OnPageClosed;
+                        }
+                        m_Page = this.CreatePage<PmpData>(OnCreateDynamicControls);
+                        m_Page.Closed += OnPageClosed;
+                        m_Page.KeystrokeHook += OnPageKeystrokeHook;
+                        m_Data = new PmpData()
+                        {
+                            CoordSystem = Application.Documents.Active.Selections.OfType<IXCoordinateSystem>().FirstOrDefault()
+                        };
+                        m_Data.ItemsSourceComboBox = m_Data.Source[1];
                         m_Page.Show(m_Data);
                         m_Page.DataChanged += OnPageDataChanged;
                         break;
@@ -403,7 +541,7 @@ namespace SwAddInExample
                         break;
 
                     case Commands_e.CreateBox:
-                        Application.Documents.Active.Features.CreateCustomFeature<BoxMacroFeatureEditor, BoxMacroFeatureData, BoxData>();
+                        Application.Documents.Active.Features.CreateCustomFeature<BoxMacroFeatureEditor, BoxMacroFeatureData, BoxPage>();
                         break;
 
                     case Commands_e.WatchDimension:
@@ -434,12 +572,21 @@ namespace SwAddInExample
                         break;
 
                     case Commands_e.CreatePopup:
-                        //var winForm = this.CreatePopupWinForm<WinForm>();
-                        //winForm.Show(true);
-                        m_Window?.Close();
-                        m_Window = this.CreatePopupWpfWindow<WpfWindow>();
-                        m_Window.Closed += OnWindowClosed;
-                        m_Window.Show();
+                        var showWpf = true;
+                        var dock = PopupDock_e.Center;
+
+                        if (showWpf)
+                        {
+                            m_Window?.Close();
+                            m_Window = this.CreatePopupWpfWindow<WpfWindow>();
+                            m_Window.Closed += OnWindowClosed;
+                            m_Window.Show(dock);
+                        }
+                        else 
+                        {
+                            var winForm = this.CreatePopupWinForm<WinForm>();
+                            winForm.ShowDialog(dock);
+                        }
                         break;
 
                     case Commands_e.CreateTaskPane:
@@ -471,7 +618,7 @@ namespace SwAddInExample
                         var relToCoordSys = "Coordinate System1";
                         var userUnits = true;
 
-                        var massPrps = ((ISwAssembly)Application.Documents.Active).PreCreateMassProperty();
+                        var massPrps = ((ISwAssembly)Application.Documents.Active).Evaluation.PreCreateMassProperty();
                         massPrps.Scope = Application.Documents.Active.Selections.OfType<IXComponent>().ToArray();
                         massPrps.VisibleOnly = visOnly;
                         massPrps.UserUnits = userUnits;
@@ -489,6 +636,115 @@ namespace SwAddInExample
                         var surfArea = massPrps.SurfaceArea;
                         var volume = massPrps.Volume;
                         break;
+
+                    case Commands_e.GetBoundingBox:
+                        GetBoundingBox();
+                        break;
+
+                    case Commands_e.CreateCallout:
+                        if (m_Callout == null)
+                        {
+                            var doc1 = (ISwDocument3D)Application.Documents.Active;
+
+                            if (doc1.Selections.Any())
+                            {
+                                var selCallout = doc1.Selections.PreCreateCallout();
+                                selCallout.Owner = doc1.Selections.First();
+                                m_Callout = selCallout;
+                            }
+                            else
+                            {
+                                var callout = doc1.Graphics.PreCreateCallout();
+                                callout.Location = new Xarial.XCad.Geometry.Structures.Point(0.1, 0.1, 0.1);
+                                callout.Anchor = new Xarial.XCad.Geometry.Structures.Point(0, 0, 0);
+                                m_Callout = callout;
+                            }
+                            var row1 = m_Callout.AddRow();
+                            row1.Name = "First Row";
+                            row1.Value = "Value1";
+                            row1.IsReadOnly = false;
+                            row1.ValueChanged += Row1ValueChanged;
+                            var row2 = m_Callout.AddRow();
+                            row2.Name = "Second Row";
+                            row2.Value = "Value2";
+                            row2.IsReadOnly = true;
+                            m_Callout.Background = StandardSelectionColor_e.Tertiary;
+                            m_Callout.Foreground = StandardSelectionColor_e.Primary;
+                            m_Callout.Commit();
+                        }
+                        else 
+                        {
+                            m_Callout.Visible = false;
+                            m_Callout.Dispose();
+                            m_Callout = null;
+                        }
+                        break;
+
+                    case Commands_e.CreateTriad:
+                        if (m_Triad == null)
+                        {
+                            m_Triad = ((IXDocument3D)Application.Documents.Active).Graphics.PreCreateTriad();
+                            var y = new Vector(1, 1, 1);
+                            var x = y.CreateAnyPerpendicular();
+                            var z = y.Cross(x);
+                            m_Triad.Transform = TransformMatrix.Compose(x, y, z, new Xarial.XCad.Geometry.Structures.Point(0.1, 0.1, 0.1));
+                            m_Triad.Commit();
+                        }
+                        else 
+                        {
+                            m_Triad.Visible = false;
+                            m_Triad.Dispose();
+                            m_Triad = null;
+                        }
+                        break;
+
+                    case Commands_e.CreateDragArrow:
+                        if (m_DragArrow == null)
+                        {
+                            m_DragArrow = ((IXDocument3D)Application.Documents.Active).Graphics.PreCreateDragArrow();
+                            m_DragArrow.Origin = new Xarial.XCad.Geometry.Structures.Point(0, 0, 0);
+                            m_DragArrow.Length = 0.1;
+                            m_DragArrow.Direction = new Vector(1, 0, 0);
+                            m_DragArrow.CanFlip = true;
+                            m_DragArrow.Flipped += OnDragArrowFlipped;
+                            m_DragArrow.Selected += OnDragArrowSelected;
+                            m_DragArrow.Commit();
+                        }
+                        else
+                        {
+                            m_DragArrow.Visible = false;
+                            m_DragArrow.Dispose();
+                            m_DragArrow = null;
+                        }
+                        break;
+
+                    case Commands_e.CreateFlatPattern:
+                        CreateFlatPattern();
+                        break;
+
+                    case Commands_e.CreateDrawing:
+                        CreateDrawing();
+                        break;
+
+                    case Commands_e.GetPreview:
+                        GetPreview();
+                        break;
+
+                    case Commands_e.InsertPicture:
+                        InsertPicture();
+                        break;
+
+                    case Commands_e.HandleAddEvents:
+                        HandleAddEvents();
+                        break;
+
+                    case Commands_e.ReplaceCompDoc:
+                        ReplaceCompDoc();
+                        break;
+
+                    case Commands_e.Custom:
+                        Custom();
+                        break;
                 }
             }
             catch 
@@ -497,23 +753,332 @@ namespace SwAddInExample
             }
         }
 
-        private int SwAddInSample_FileDropPreNotify(string FileName)
+        private void OnPageKeystrokeHook(IControl ctrl, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
         {
-            var res = 0;
-            var fileName = @"D:\Temp\Part1.SLDPRT";
-            var x = (Application.Documents.Active.Model as IAssemblyDoc).SetDroppedFileName(fileName);
-
-            return res;
+            
         }
+
+        private void ReplaceCompDoc()
+        {
+            var newPath = "";
+
+            var comp = Application.Documents.Active.Selections.OfType<IXComponent>().First();
+
+            comp.MakeIndependent(newPath);
+            comp.ReplaceDocument(newPath);
+
+            //var newDoc = Application.Documents.PreCreatePart();
+            //newDoc.Path = newPath;
+
+            //comp.ReferencedDocument = newDoc;
+        }
+
+        private void Custom()
+        {
+        }
+
+        private void HandleAddEvents()
+        {
+            var doc = Application.Documents.Active;
+
+            switch (doc)
+            {
+                case IXAssembly assm:
+                    assm.ComponentInserted += OnComponentInserted;
+                    break;
+
+                case IXDrawing drw:
+                    drw.Sheets.SheetCreated += OnSheetCreated;
+                    drw.Sheets.Active.DrawingViews.ViewCreated += OnDrawingViewCreated;
+                    break;
+            }
+
+            doc.Features.FeatureCreated += OnFeatureCreated;
+        }
+
+        private void OnDrawingViewCreated(IXDrawing drawing, IXSheet sheet, IXDrawingView view)
+        {
+        }
+
+        private void OnFeatureCreated(IXDocument sender, IXFeature feature)
+        {
+        }
+
+        private void OnSheetCreated(IXDrawing sender, IXSheet sheet)
+        {
+        }
+
+        private void OnComponentInserted(IXAssembly sender, IXComponent component)
+        {
+        }
+
+        private void InsertPicture()
+        {
+            var serialize = false;
+
+            var doc = Application.Documents.Active;
+
+            var pict = doc.Selections.OfType<IXSketchPicture>().FirstOrDefault();
+
+            if (pict == null)
+            {
+                if (serialize)
+                {
+                    var id = "";
+                    var buffer = Convert.FromBase64String(id);
+
+                    using (var stream = new MemoryStream(buffer))
+                    {
+                        pict = doc.DeserializeObject<ISwSketchPicture>(stream);
+                    }
+                }
+                else
+                {
+                    var bmp = new System.Drawing.Bitmap(50, 50);
+                    
+                    using (var graph = System.Drawing.Graphics.FromImage(bmp))
+                    {
+                        graph.FillRectangle(System.Drawing.Brushes.Red, new System.Drawing.RectangleF(0f, 0f, 50f, 50f));
+                    }
+
+                    if (doc is IXDrawing)
+                    {
+                        pict = ((IXDrawing)doc).Sheets.Last().Sketch.Entities.PreCreate<IXSketchPicture>();
+                    }
+                    else 
+                    {
+                        pict = doc.Features.PreCreate<IXSketchPicture>();
+                    }
+
+                    pict.Boundary = new Rect2D(0.05, 0.05, new Point(0.1, 0.1, 0));
+                    pict.Image = new XDrawingImage(bmp, ImageFormat.Bmp);
+                    pict.Commit();
+
+                    var sketch = pict.OwnerSketch;
+                }
+            }
+            else 
+            {
+                if (serialize)
+                {
+                    using (var stream = new MemoryStream()) 
+                    {
+                        pict.Serialize(stream);
+
+                        stream.Seek(0, SeekOrigin.Begin);
+
+                        var id = Convert.ToBase64String(stream.GetBuffer());
+                    }
+                }
+                else 
+                {
+                    doc.Features.Remove(pict);
+                }
+            }
+        }
+
+        private void GetPreview()
+        {
+            var inProcess = true;
+
+            if (FileSystemBrowser.BrowseFileSave(out var filePath, "Select file path", FileFilter.BuildFilterString(FileFilter.ImageFiles)))
+            {
+                if (inProcess)
+                {
+                    SaveImage(filePath);
+                }
+                else 
+                {
+                    var thread = new Thread(() => SaveImage(filePath));
+                    thread.SetApartmentState(ApartmentState.STA);
+                    thread.Start();
+                }
+            }
+        }
+
+        private void SaveImage(string filePath)
+        {
+            var preview = ((IXDocument3D)Application.Documents.Active).Configurations.Active.Preview;
+            var img = preview.ToImage();
+            img.Save(filePath);
+        }
+
+        private void CreateDrawing()
+        {
+            var drw = Application.Documents.PreCreateDrawing();
+            
+            var sheet = drw.Sheets.First();
+            sheet.PaperSize = new PaperSize(0.1, 0.1);
+            sheet.Scale = new Scale(1, 1);
+
+            var view = sheet.DrawingViews.PreCreate<IXRelativeDrawingView>();
+            
+            view.Orientation = new RelativeDrawingViewOrientation(
+                (IXPlanarFace)Application.Documents.Active.Selections.ElementAt(0), StandardViewType_e.Front,
+                (IXPlanarFace)Application.Documents.Active.Selections.ElementAt(1), StandardViewType_e.Bottom);
+            
+            view.Bodies = new IXBody[] { ((IXPlanarFace)Application.Documents.Active.Selections.First()).Body };
+
+            sheet.DrawingViews.Add(view);
+
+            drw.Commit();
+        }
+
+        private void GetBoundingBox()
+        {
+            var relativeTo = ((ISwDocument3D)Application.Documents.Active).Selections.OfType<IXPlanarRegion>().FirstOrDefault()?.Plane.GetTransformation();
+
+            var bestFit = true;
+            var bbox = ((ISwDocument3D)Application.Documents.Active).Evaluation.PreCreateBoundingBox();
+            bbox.Scope = Application.Documents.Active.Selections.OfType<IXBody>().ToArray();
+            if (!bbox.Scope.Any()) 
+            {
+                bbox.Scope = null;
+            }
+            bbox.BestFit = bestFit;
+            bbox.RelativeTo = relativeTo;
+            bbox.Commit();
+            
+            var box = bbox.Box;
+            
+            var bboxSketch = Application.Documents.Active.Features.PreCreate3DSketch();
+            
+            var centerPt = (IXSketchPoint)bboxSketch.Entities.PreCreatePoint();
+            centerPt.Coordinate = box.CenterPoint;
+            centerPt.Color = System.Drawing.Color.Yellow;
+
+            var lines = new IXLine[12];
+
+            lines[0] = bboxSketch.Entities.PreCreateLine();
+            lines[0].Geometry = new Line(box.GetLeftTopBack(), box.GetLeftTopFront());
+
+            lines[1] = bboxSketch.Entities.PreCreateLine();
+            lines[1].Geometry = new Line(box.GetLeftTopFront(), box.GetLeftBottomFront());
+
+            lines[2] = bboxSketch.Entities.PreCreateLine();
+            lines[2].Geometry = new Line(box.GetLeftBottomFront(), box.GetLeftBottomBack());
+
+            lines[3] = bboxSketch.Entities.PreCreateLine();
+            lines[3].Geometry = new Line(box.GetLeftBottomBack(), box.GetLeftTopBack());
+
+            lines[4] = bboxSketch.Entities.PreCreateLine();
+            lines[4].Geometry = new Line(box.GetRightTopBack(), box.GetRightTopFront());
+
+            lines[5] = bboxSketch.Entities.PreCreateLine();
+            lines[5].Geometry = new Line(box.GetRightTopFront(), box.GetRightBottomFront());
+
+            lines[6] = bboxSketch.Entities.PreCreateLine();
+            lines[6].Geometry = new Line(box.GetRightBottomFront(), box.GetRightBottomBack());
+
+            lines[7] = bboxSketch.Entities.PreCreateLine();
+            lines[7].Geometry = new Line(box.GetRightBottomBack(), box.GetRightTopBack());
+
+            lines[8] = bboxSketch.Entities.PreCreateLine();
+            lines[8].Geometry = new Line(box.GetLeftTopBack(), box.GetRightTopBack());
+
+            lines[9] = bboxSketch.Entities.PreCreateLine();
+            lines[9].Geometry = new Line(box.GetLeftTopFront(), box.GetRightTopFront());
+
+            lines[10] = bboxSketch.Entities.PreCreateLine();
+            lines[10].Geometry = new Line(box.GetLeftBottomFront(), box.GetRightBottomFront());
+
+            lines[11] = bboxSketch.Entities.PreCreateLine();
+            lines[11].Geometry = new Line(box.GetLeftBottomBack(), box.GetRightBottomBack());
+
+            var axes = new IXSketchLine[3];
+            
+            axes[0] = (IXSketchLine)bboxSketch.Entities.PreCreateLine();
+            axes[0].Geometry = new Line(box.CenterPoint, box.CenterPoint.Move(box.AxisX, 0.1));
+            axes[0].Color = System.Drawing.Color.Red;
+
+            axes[1] = (IXSketchLine)bboxSketch.Entities.PreCreateLine();
+            axes[1].Geometry = new Line(box.CenterPoint, box.CenterPoint.Move(box.AxisY, 0.1));
+            axes[1].Color = System.Drawing.Color.Green;
+
+            axes[2] = (IXSketchLine)bboxSketch.Entities.PreCreateLine();
+            axes[2].Geometry = new Line(box.CenterPoint, box.CenterPoint.Move(box.AxisZ, 0.1));
+            axes[2].Color = System.Drawing.Color.Blue;
+
+            bboxSketch.Entities.Add(centerPt);
+            bboxSketch.Entities.AddRange(lines);
+            bboxSketch.Entities.AddRange(axes);
+
+            bboxSketch.Commit();
+        }
+
+        private void CreateFlatPattern()
+        {
+            IXPart part;
+            IXPartConfiguration conf;
+
+            if (Application.Documents.Active is IXAssembly)
+            {
+                var comp = Application.Documents.Active.Selections.OfType<IXPartComponent>().First();
+                part = comp.ReferencedDocument;
+                conf = comp.ReferencedConfiguration;
+            }
+            else if (Application.Documents.Active is IXPart)
+            {
+                part = (IXPart)Application.Documents.Active;
+                conf = part.Configurations.Active;
+            }
+            else 
+            {
+                throw new NotSupportedException();
+            }
+                
+            var opts = FlatPatternViewOptions_e.BendLines;
+            var sheetMetalBody = Application.Documents.Active.Selections.OfType<IXSolidBody>().FirstOrDefault();
+
+            using (var drw = Application.Documents.PreCreateDrawing())
+            {
+                var sheet = drw.Sheets.First();
+                sheet.PaperSize = new PaperSize(0.1, 0.1);
+                sheet.Scale = new Scale(1, 1);
+                drw.Commit();
+
+                var showBendLines = drw.Options.ViewEntityKindVisibility.BendLines;
+                drw.Options.ViewEntityKindVisibility.BendLines = true;
+
+                sheet = drw.Sheets.First();
+                var flatPatternView = sheet.DrawingViews.PreCreate<IXFlatPatternDrawingView>();
+                flatPatternView.ReferencedDocument = part;
+                flatPatternView.ReferencedConfiguration = conf;
+                flatPatternView.Scale = new Scale(1, 1);
+                flatPatternView.Options = opts;
+                flatPatternView.SheetMetalBody = sheetMetalBody;
+                sheet.DrawingViews.Add(flatPatternView);
+            }
+        }
+
+        private void OnDragArrowSelected(IXDragArrow sender)
+        {
+            sender.Direction *= -1;
+        }
+
+        private void OnDragArrowFlipped(IXDragArrow sender, Vector direction)
+        {
+        }
+
+        private IXTriad m_Triad;
+        private IXDragArrow m_DragArrow;
+
+        private bool Row1ValueChanged(IXCalloutBase callout, IXCalloutRow row, string newValue)
+            => !string.IsNullOrEmpty(newValue);
 
         private void OnFeatureManagerTabActivated(IXCustomPanel<WpfUserControl> sender)
         {
         }
 
-        public override void OnConfigureServices(IXServiceCollection collection)
+        protected override void OnConfigureServices(IXServiceCollection collection)
         {
-            collection.AddOrReplace<IMemoryGeometryBuilderDocumentProvider>(
-                () => new LazyNewDocumentGeometryBuilderDocumentProvider(Application));
+            collection.Add<IMemoryGeometryBuilderDocumentProvider>(
+                () => new LazyNewDocumentGeometryBuilderDocumentProvider(Application), ServiceLifetimeScope_e.Singleton);
+
+            collection.Add<IPropertyPageHandlerProvider, DefaultPropertyPageHandlerProvider>(ServiceLifetimeScope_e.Singleton);
+            collection.Add<ICalloutHandlerProvider, DefaultCalloutHandlerProvider>(ServiceLifetimeScope_e.Singleton);
+            collection.Add<ITriadHandlerProvider, DefaultTriadHandlerProvider>(ServiceLifetimeScope_e.Singleton);
+            collection.Add<IDragArrowHandlerProvider, DefaultDragArrowHandlerProvider>(ServiceLifetimeScope_e.Singleton);
         }
 
         private void OnPageDataChanged()

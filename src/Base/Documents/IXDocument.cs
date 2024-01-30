@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -15,6 +15,7 @@ using Xarial.XCad.Data;
 using Xarial.XCad.Data.Enums;
 using Xarial.XCad.Documents.Delegates;
 using Xarial.XCad.Documents.Enums;
+using Xarial.XCad.Documents.Services;
 using Xarial.XCad.Features;
 
 namespace Xarial.XCad.Documents
@@ -22,7 +23,7 @@ namespace Xarial.XCad.Documents
     /// <summary>
     /// Represents the base interface of all document types
     /// </summary>
-    public interface IXDocument : IXObject, IXTransaction, IPropertiesOwner, IDisposable
+    public interface IXDocument : IXObject, IXTransaction, IPropertiesOwner, IDimensionable, IDisposable
     {
         /// <summary>
         /// Current version of the document
@@ -65,9 +66,19 @@ namespace Xarial.XCad.Documents
         event DocumentCloseDelegate Closing;
 
         /// <summary>
+        /// Fired when document is destroyed
+        /// </summary>
+        event DocumentEventDelegate Destroyed;
+
+        /// <summary>
         /// Units assigned in this document
         /// </summary>
         IXUnits Units { get; }
+
+        /// <summary>
+        /// Document specific options
+        /// </summary>
+        IXDocumentOptions Options { get; }
 
         /// <summary>
         /// Changes the title of this document
@@ -95,6 +106,11 @@ namespace Xarial.XCad.Documents
         DocumentState_e State { get; set; }
 
         /// <summary>
+        /// Returns views collection
+        /// </summary>
+        IXModelViewRepository ModelViews { get; }
+
+        /// <summary>
         /// Closes this document
         /// </summary>
         void Close();
@@ -102,13 +118,20 @@ namespace Xarial.XCad.Documents
         /// <summary>
         /// Saves this document
         /// </summary>
+        /// <exception cref="Exceptions.SaveNeverSavedDocumentException"/>
+        /// <exception cref="Exceptions.SaveDocumentFailedException"/>
         void Save();
 
         /// <summary>
-        /// Saves this document to a new location
+        /// Pre-creates save-as operation
         /// </summary>
         /// <param name="filePath"></param>
-        void SaveAs(string filePath);
+        IXSaveOperation PreCreateSaveAsOperation(string filePath);
+
+        /// <summary>
+        /// Collection of annotations
+        /// </summary>
+        IXAnnotationRepository Annotations { get; }
 
         /// <summary>
         /// Collection of features of this document
@@ -119,11 +142,6 @@ namespace Xarial.XCad.Documents
         /// Collection of selections of this document
         /// </summary>
         IXSelectionRepository Selections { get; }
-
-        /// <summary>
-        /// Collection of dimensions of this document
-        /// </summary>
-        IXDimensionRepository Dimensions { get; }
         
         /// <summary>
         /// Opens the user data stream from this document
@@ -145,8 +163,8 @@ namespace Xarial.XCad.Documents
         /// Returns top level dependencies of this document
         /// </summary>
         /// <remarks>Dependencies might be uncommited if document is loaded view only or in the rapid mode. Use <see cref="IXTransaction.IsCommitted"/> to check the state and call <see cref="IXTransaction.Commit(System.Threading.CancellationToken)"/> to load document if needed.
-        /// In most CADs this method wil lwork with uncommitted documents</remarks>
-        IEnumerable<IXDocument3D> Dependencies { get; }
+        /// In most CADs this method will work with uncommitted documents</remarks>
+        IXDocumentDependencies Dependencies { get; }
 
         /// <summary>
         /// Deserializes specific object from stream
@@ -162,6 +180,12 @@ namespace Xarial.XCad.Documents
         void Rebuild();
 
         /// <summary>
+        /// Starts the group of opertions
+        /// </summary>
+        /// <returns>Operation group template</returns>
+        IOperationGroup PreCreateOperationGroup();
+
+        /// <summary>
         /// Returns the time stamp of the change of the current model
         /// </summary>
         int UpdateStamp { get; }
@@ -170,7 +194,9 @@ namespace Xarial.XCad.Documents
     /// <summary>
     /// Represents the unknown document type
     /// </summary>
-    public interface IXUnknownDocument : IXDocument 
+    /// <remarks>This interface provides an access to the document whose specific type cannot be determined in advance
+    /// (e.g. imported document types might be both parts and assemblies and it is not known until the document is opened)</remarks>
+    public interface IXUnknownDocument : IXDocument
     {
         /// <summary>
         /// Retrieves the specific document from the unknown document

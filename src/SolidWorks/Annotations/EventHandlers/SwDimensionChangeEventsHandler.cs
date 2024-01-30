@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -64,7 +64,7 @@ namespace Xarial.XCad.SolidWorks.Annotations.EventHandlers
         {
             if (m_Dim.DisplayDimension == displayDim)
             {
-                Delegate.Invoke(m_Dim, m_Dim.GetValue());
+                Delegate.Invoke(m_Dim, m_Dim.Value);
             }
 
             return HResult.S_OK;

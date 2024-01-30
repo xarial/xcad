@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -44,8 +44,7 @@ namespace Xarial.XCad.Utils.PageBuilder
 
         public PageBuilderBase(IXApplication app, IDataModelBinder dataBinder,
             IPageConstructor<TPage> pageConstr,
-            params IPageElementConstructor<TGroup, TPage>[]
-            ctrlsContstrs)
+            params IPageElementConstructor[] ctrlsContstrs)
         {
             m_App = app;
 

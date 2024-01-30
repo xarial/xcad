@@ -1,18 +1,29 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
 using SolidWorks.Interop.sldworks;
+using SolidWorks.Interop.swconst;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
+using Xarial.XCad.Documents.Delegates;
+using Xarial.XCad.Documents.Enums;
+using Xarial.XCad.Geometry.Structures;
+using Xarial.XCad.SolidWorks.Documents.Services;
+using Xarial.XCad.SolidWorks.Features;
+using Xarial.XCad.SolidWorks.Utils;
+using Xarial.XCad.Toolkit.Services;
+using Xarial.XCad.Toolkit.Utils;
 
 namespace Xarial.XCad.SolidWorks.Documents
 {
@@ -23,33 +34,36 @@ namespace Xarial.XCad.SolidWorks.Documents
 
     internal abstract class SwComponentCollection : ISwComponentCollection
     {
+        private static readonly BatchComponentsInserter m_BatchCompsInserter = new BatchComponentsInserter();
+
+        internal static void BatchAdd(SwAssembly assm, SwComponent[] comps, bool commitComps)
+            => m_BatchCompsInserter.BatchAdd(assm, comps, commitComps);
+
         IXComponent IXRepository<IXComponent>.this[string name] => this[name];
 
-        public ISwComponent this[string name] => (SwComponent)this.Get(name);
+        public ISwComponent this[string name] => (SwComponent)RepositoryHelper.Get(this, name);
 
         public bool TryGet(string name, out IXComponent ent)
         {
-            var comp = GetChildren().FirstOrDefault(c => string.Equals(GetRelativeName(c), name, StringComparison.CurrentCultureIgnoreCase));
-
-            if (comp != null)
+            if (RootAssembly.IsCommitted)
             {
-                ent = m_Assm.CreateObjectFromDispatch<SwComponent>(comp);
-                return true;
+                return TryGetByName(name, out ent);
             }
             else
             {
-                ent = null;
-                return false;
+                return m_Cache.TryGet(name, out ent);
             }
         }
+
+        protected abstract bool TryGetByName(string name, out IXComponent ent);
 
         public int Count
         {
             get 
             {
-                if (m_Assm.IsCommitted)
+                if (RootAssembly.IsCommitted)
                 {
-                    if (m_Assm.Model.IsOpenedViewOnly())
+                    if (RootAssembly.Model.IsOpenedViewOnly())
                     {
                         throw new Exception("Components count is inaccurate in Large Design Review assembly");
                     }
@@ -58,7 +72,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                 }
                 else
                 {
-                    throw new Exception("Assembly is not committed");
+                    return m_Cache.Count;
                 }
             }
         }
@@ -67,9 +81,9 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
             get 
             {
-                if (m_Assm.IsCommitted)
+                if (RootAssembly.IsCommitted)
                 {
-                    if (m_Assm.Model.IsOpenedViewOnly())
+                    if (RootAssembly.Model.IsOpenedViewOnly())
                     {
                         throw new Exception("Total components count is inaccurate in Large Design Review assembly");
                     }
@@ -83,48 +97,70 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        private readonly ISwAssembly m_Assm;
+        internal SwAssembly RootAssembly { get; }
 
-        internal SwComponentCollection(ISwAssembly assm)
+        private readonly EntityCache<IXComponent> m_Cache;
+
+        internal SwComponentCollection(SwAssembly assm)
         {
-            m_Assm = assm;
+            RootAssembly = assm;
+            m_Cache = new EntityCache<IXComponent>(assm, this, c => c.Name);
         }
 
-        public void AddRange(IEnumerable<IXComponent> ents)
+        public void AddRange(IEnumerable<IXComponent> ents, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            if (RootAssembly.IsCommitted)
+            {
+                BatchAdd(RootAssembly, ents.Cast<SwComponent>().ToArray(), true);
+            }
+            else 
+            {
+                m_Cache.AddRange(ents, cancellationToken);
+            }
         }
 
-        protected abstract IEnumerable<IComponent2> GetChildren();
+        internal void CommitCache(CancellationToken cancellationToken) => m_Cache.Commit(cancellationToken);
+
+        protected abstract IEnumerable<IComponent2> IterateChildren();
+
         protected abstract int GetChildrenCount();
         protected abstract int GetTotalChildrenCount();
 
         public IEnumerator<IXComponent> GetEnumerator()
         {
-            if (m_Assm.IsCommitted)
+            if (RootAssembly.IsCommitted)
             {
-                if (m_Assm.Model.IsOpenedViewOnly())
+                if (RootAssembly.Model.IsOpenedViewOnly())
                 {
                     throw new Exception("Components cannot be extracted for the Large Design Review assembly");
                 }
 
-                return (GetChildren() ?? new IComponent2[0])
-                    .Select(c => m_Assm.CreateObjectFromDispatch<SwComponent>(c)).GetEnumerator();
+                return (IterateChildren() ?? new IComponent2[0])
+                    .Select(c => RootAssembly.CreateObjectFromDispatch<SwComponent>(c)).GetEnumerator();
             }
             else 
             {
-                throw new Exception("Assembly is not committed");
+                return m_Cache.GetEnumerator();
             }
         }
 
-        public void RemoveRange(IEnumerable<IXComponent> ents)
+        public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters) => RepositoryHelper.FilterDefault(this, filters, reverseOrder);
+
+        public void RemoveRange(IEnumerable<IXComponent> ents, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            if (RootAssembly.IsCommitted)
+            {
+                RepositoryHelper.RemoveAll(this, ents, cancellationToken);
+            }
+            else 
+            {
+                m_Cache.RemoveRange(ents, cancellationToken);
+            }
         }
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-        private string GetRelativeName(IComponent2 comp)
+        protected string GetRelativeName(IComponent2 comp)
         {
             var parentComp = comp.GetParent();
 
@@ -143,6 +179,48 @@ namespace Xarial.XCad.SolidWorks.Documents
                     throw new Exception("Invalid component name");
                 }
             }
+        }
+
+        public T PreCreate<T>() where T : IXComponent
+            => RepositoryHelper.PreCreate<IXComponent, T>(this,
+                () => new SwPartComponent(null, RootAssembly, RootAssembly.OwnerApplication),
+                () => new SwAssemblyComponent(null, RootAssembly, RootAssembly.OwnerApplication));
+    }
+
+    public static class SwComponentCollectionExtension
+    {
+        /// <summary>
+        /// Pre creates new component from path
+        /// </summary>
+        /// <param name="docsColl">Documents collection</param>
+        /// <param name="path"></param>
+        /// <returns>Pre-created document</returns>
+        public static ISwComponent PreCreateFromPath(this ISwComponentCollection compsColl, string path)
+        {
+            var ext = Path.GetExtension(path);
+
+            ISwComponent comp;
+
+            switch (ext.ToLower())
+            {
+                case ".sldprt":
+                    comp = compsColl.PreCreate<ISwPartComponent>();
+                    
+                    break;
+
+                case ".sldasm":
+                    comp = compsColl.PreCreate<ISwAssemblyComponent>();
+                    break;
+                    
+                default:
+                    throw new NotSupportedException("Only parts and assemblies are supported");
+            }
+
+            var app = ((SwComponentCollection)compsColl).RootAssembly.OwnerApplication;
+
+            comp.ReferencedDocument = (ISwDocument3D)app.Documents.PreCreateFromPath(path);
+
+            return comp;
         }
     }
 }

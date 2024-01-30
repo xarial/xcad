@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -11,6 +11,7 @@ using System.Linq;
 using System.Text;
 using Xarial.XCad.Data;
 using Xarial.XCad.Enums;
+using Xarial.XCad.Features.Delegates;
 using Xarial.XCad.Geometry;
 
 namespace Xarial.XCad.Features
@@ -21,20 +22,30 @@ namespace Xarial.XCad.Features
     public interface IXCutListItem : IXFeature, IPropertiesOwner
     {
         /// <summary>
-        /// State of this cut-list item
+        /// Status of this cut-list item
         /// </summary>
-        CutListState_e State { get; }
+        CutListStatus_e Status { get; }
+
+        /// <summary>
+        /// Type of the cut-list
+        /// </summary>
+        CutListType_e Type { get; }
 
         /// <summary>
         /// Bodies of this cut-list item
         /// </summary>
         IEnumerable<IXSolidBody> Bodies { get; }
+
+        /// <summary>
+        /// Updates cut-lists folder
+        /// </summary>
+        void Update();
     }
 
     /// <summary>
     /// Additional methods of <see cref="IXCutListItem"/>
     /// </summary>
-    public static class IXCutListItemExtension 
+    public static class XCutListItemExtension 
     {
         /// <summary>
         /// Gets the quantity of this cut-list-item

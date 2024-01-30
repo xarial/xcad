@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -12,8 +12,10 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using Xarial.XCad.Base.Enums;
+using Xarial.XCad.Documents;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;
+using Xarial.XCad.SwDocumentManager.Documents;
 
 namespace Xarial.XCad.SwDocumentManager.Geometry
 {
@@ -23,18 +25,22 @@ namespace Xarial.XCad.SwDocumentManager.Geometry
 
     internal abstract class SwDmBody : SwDmSelObject, ISwDmBody
     {
+        #region Not Supported
         public string Name => throw new NotSupportedException();
         public bool Visible { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
         public Color? Color { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
         public IEnumerable<IXFace> Faces => throw new NotSupportedException();
         public IEnumerable<IXEdge> Edges => throw new NotSupportedException();
-        public IXBody Add(IXBody other) => throw new NotSupportedException();
-        public IXBody[] Common(IXBody other) => throw new NotSupportedException();
-        public IXBody[] Substract(IXBody other) => throw new NotSupportedException();
-        public IXBody Copy() => throw new NotSupportedException();
+        public IXComponent Component => throw new NotSupportedException();
+        public IXMemoryBody Add(IXMemoryBody other) => throw new NotSupportedException();
+        public IXMemoryBody[] Common(IXMemoryBody other) => throw new NotSupportedException();
+        public IXMemoryBody[] Substract(IXMemoryBody other) => throw new NotSupportedException();
+        public IXMemoryBody Copy() => throw new NotSupportedException();
         public void Transform(TransformMatrix transform) => throw new NotSupportedException();
-               
-        public SwDmBody() : base(null)
+        public IXMaterial Material { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
+        #endregion
+
+        public SwDmBody(SwDmPart part) : base(null, part.OwnerApplication, part)
         {
         }
     }

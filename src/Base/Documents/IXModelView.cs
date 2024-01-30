@@ -1,26 +1,47 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
+using System;
 using System.Drawing;
 using Xarial.XCad.Base;
+using Xarial.XCad.Documents.Delegates;
+using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Geometry.Structures;
 
 namespace Xarial.XCad.Documents
 {
+    /// <summary>
+    /// Context to draw the custom graphics
+    /// </summary>
+    public interface IXCustomGraphicsContext : IDisposable
+    {
+    }
+
     /// <summary>
     /// Represents the model view
     /// </summary>
     public interface IXModelView : IXTransaction
     {
         /// <summary>
+        /// Display mode of the view
+        /// </summary>
+        ViewDisplayMode_e DisplayMode { get; set; }
+
+        /// <summary>
+        /// Fired when custom graphics can be drawn in the model
+        /// </summary>
+        event RenderCustomGraphicsDelegate RenderCustomGraphics;
+
+        /// <summary>
         /// Freezes all view updates
         /// </summary>
         /// <param name="freeze">True to suppress all updates</param>
-        void Freeze(bool freeze);
+        /// <returns>Freeze object, when disposed - view is restored</returns>
+        IDisposable Freeze(bool freeze);
 
         /// <summary>
         /// Transformation of this view related to the model origin
@@ -42,6 +63,17 @@ namespace Xarial.XCad.Documents
         /// </summary>
         /// <param name="box">Box to zoom to</param>
         void ZoomToBox(Box3D box);
+
+        /// <summary>
+        /// Zooms view to fit the model
+        /// </summary>
+        void ZoomToFit();
+
+        /// <summary>
+        /// Zooms to the specified objects
+        /// </summary>
+        /// <param name="objects">Objects to zoom to</param>
+        void ZoomToObjects(IXSelObject[] objects);
 
         /// <summary>
         /// Refreshes the view

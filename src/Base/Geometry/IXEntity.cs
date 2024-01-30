@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -30,7 +30,7 @@ namespace Xarial.XCad.Geometry
         /// <summary>
         /// Returns all adjacent entitites of this entity
         /// </summary>
-        IEnumerable<IXEntity> AdjacentEntities { get; }
+        IXEntityRepository AdjacentEntities { get; }
 
         /// <summary>
         /// Finds the closes point on the specified face
@@ -38,5 +38,46 @@ namespace Xarial.XCad.Geometry
         /// <param name="point">Input point</param>
         /// <returns>Closest point</returns>
         Point FindClosestPoint(Point point);
+    }
+
+    /// <summary>
+    /// Additional methods of <see cref="IXEntity"/>
+    /// </summary>
+    public static class XEntityExtension 
+    {
+        /// <summary>
+        /// Returns the total transformation of this entity in the current context
+        /// </summary>
+        /// <param name="ent">Entity to get transformation for</param>
+        /// <param name="context">Context document</param>
+        /// <returns>Transformation</returns>
+        /// <remarks>For the entity in the assembly context the transformation of the component is returned relatively to currently editing target</remarks>
+        public static TransformMatrix GetRelativeTransform(this IXEntity ent, IXDocument context) 
+        {
+            var comp = ent.Component;
+
+            TransformMatrix transform;
+
+            if (comp != null)
+            {
+                transform = comp.Transformation;
+            }
+            else 
+            {
+                transform = TransformMatrix.Identity;
+            }
+
+            if (context is IXAssembly) 
+            {
+                var editComp = ((IXAssembly)context).EditingComponent;
+
+                if (editComp != null)
+                {
+                    transform = transform.Multiply(editComp.Transformation.Inverse());
+                }
+            }
+
+            return transform;
+        }
     }
 }

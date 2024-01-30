@@ -72,10 +72,10 @@ namespace Xarial.XCad.Documentation.Extension.Panels
             //---
 
             //--- Popup
-            var winFormPopupWnd = CreatePopupWindow<WinForm>();
+            var winFormPopupWnd = this.CreatePopupWindow<WinForm>();
             winFormPopupWnd.ShowDialog();
 
-            var wpfPopupWnd = CreatePopupWindow<WpfWindow>();
+            var wpfPopupWnd = this.CreatePopupWindow<WpfWindow>();
             wpfPopupWnd.ShowDialog();
             //---
         }
@@ -86,7 +86,7 @@ namespace Xarial.XCad.Documentation.Extension.Panels
             switch (spec) 
             {
                 case TaskPaneCommands_e.Command:
-                    //TODO: handle command
+                    //handle command
                     break;
 
                 case TaskPaneCommands_e.Close:

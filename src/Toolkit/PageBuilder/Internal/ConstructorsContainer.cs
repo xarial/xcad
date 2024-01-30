@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -23,23 +23,23 @@ namespace Xarial.XCad.Utils.PageBuilder.Internal
         /// <summary>
         /// Constructors for the default data types (i.e. int, double, bool etc.)
         /// </summary>
-        private readonly Dictionary<Type, IPageElementConstructor<TGroup, TPage>> m_DefaultConstructors;
+        private readonly Dictionary<Type, IPageElementConstructor> m_DefaultConstructors;
 
         /// <summary>
         /// Constructors for the special types (i.e. complex, enums, etc.)
         /// </summary>
-        private readonly Dictionary<Type, IPageElementConstructor<TGroup, TPage>> m_SpecialTypeConstructors;
+        private readonly Dictionary<Type, IPageElementConstructor> m_SpecialTypeConstructors;
 
         /// <summary>
         /// Specific constructor for specific data types
         /// </summary>
-        private readonly Dictionary<Type, IPageElementConstructor<TGroup, TPage>> m_SpecificConstructors;
+        private readonly Dictionary<Type, IPageElementConstructor> m_SpecificConstructors;
 
-        internal ConstructorsContainer(params IPageElementConstructor<TGroup, TPage>[] constructors)
+        internal ConstructorsContainer(params IPageElementConstructor[] constructors)
         {
-            m_DefaultConstructors = new Dictionary<Type, IPageElementConstructor<TGroup, TPage>>();
-            m_SpecificConstructors = new Dictionary<Type, IPageElementConstructor<TGroup, TPage>>();
-            m_SpecialTypeConstructors = new Dictionary<Type, IPageElementConstructor<TGroup, TPage>>();
+            m_DefaultConstructors = new Dictionary<Type, IPageElementConstructor>();
+            m_SpecificConstructors = new Dictionary<Type, IPageElementConstructor>();
+            m_SpecialTypeConstructors = new Dictionary<Type, IPageElementConstructor>();
 
             foreach (var constr in constructors)
             {
@@ -111,30 +111,17 @@ namespace Xarial.XCad.Utils.PageBuilder.Internal
 
             var constr = FindConstructor(type, atts);
 
-            //TODO: check if attributes set is compatible with the constructor
-
-            if (parent is TPage)
-            {
-                return constr.Create((TPage)parent, atts, metadata, ref numberOfUsedIds);
-            }
-            else if (parent is TGroup)
-            {
-                return constr.Create((TGroup)parent, atts, metadata, ref numberOfUsedIds);
-            }
-            else
-            {
-                throw new InvalidParentControlException(parent.GetType(), typeof(TPage), typeof(TGroup));
-            }
+            return constr.Create(parent, atts, metadata, ref numberOfUsedIds);
         }
 
-        private IPageElementConstructor<TGroup, TPage> FindConstructor(Type type, IAttributeSet atts)
+        private IPageElementConstructor FindConstructor(Type type, IAttributeSet atts)
         {
             if (atts == null)
             {
                 throw new ArgumentNullException(nameof(atts));
             }
 
-            IPageElementConstructor<TGroup, TPage> constr = null;
+            IPageElementConstructor constr = null;
 
             if (atts.Has<ISpecificConstructorAttribute>())
             {

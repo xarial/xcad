@@ -15,22 +15,48 @@ namespace SolidWorks.Tests.Integration
         [Test]
         public void SheetMetalCutListsTest()
         {
-            Dictionary<string, string[]> cutListData;
+            Dictionary<string, Tuple<CutListType_e, string[]>> cutListData;
 
             using (var doc = OpenDataDocument("SheetMetal1.SLDPRT"))
             {
-                var part = (ISwDocument3D)m_App.Documents.Active;
+                var part = (ISwPart)m_App.Documents.Active;
                 var cutLists = part.Configurations.Active.CutLists;
-                cutListData = cutLists.ToDictionary(c => c.Name, c => c.Bodies.Select(b => b.Name).ToArray());
+                cutListData = cutLists.ToDictionary(c => c.Name, c => new Tuple<CutListType_e, string[]>(c.Type, c.Bodies.Select(b => b.Name).ToArray()));
             }
 
             Assert.AreEqual(2, cutListData.Count);
             Assert.That(cutListData.ContainsKey("Sheet<1>"));
-            Assert.AreEqual(1, cutListData["Sheet<1>"].Length);
-            Assert.AreEqual("Edge-Flange1", cutListData["Sheet<1>"][0]);
+            Assert.AreEqual(1, cutListData["Sheet<1>"].Item2.Length);
+            Assert.AreEqual(CutListType_e.SheetMetal, cutListData["Sheet<1>"].Item1);
+            Assert.AreEqual("Edge-Flange1", cutListData["Sheet<1>"].Item2[0]);
             Assert.That(cutListData.ContainsKey("Sheet<2>"));
-            Assert.AreEqual(1, cutListData["Sheet<2>"].Length);
-            Assert.AreEqual("Hem1", cutListData["Sheet<2>"][0]);
+            Assert.AreEqual(CutListType_e.SheetMetal, cutListData["Sheet<2>"].Item1);
+            Assert.AreEqual(1, cutListData["Sheet<2>"].Item2.Length);
+            Assert.AreEqual("Hem1", cutListData["Sheet<2>"].Item2[0]);
+        }
+
+        [Test]
+        public void CutListsTypes()
+        {
+            Dictionary<string, CutListType_e> cutListData;
+
+            using (var doc = OpenDataDocument("CutListTypes_2021.SLDPRT"))
+            {
+                var part = (ISwPart)m_App.Documents.Active;
+                var cutLists = part.Configurations.Active.CutLists;
+                cutListData = cutLists.ToDictionary(c => c.Name, c => c.Type);
+            }
+
+            Assert.AreEqual(3, cutListData.Count);
+            
+            Assert.That(cutListData.ContainsKey("S 76.20 X 5.7<1>"));
+            Assert.AreEqual(CutListType_e.Weldment, cutListData["S 76.20 X 5.7<1>"]);
+
+            Assert.That(cutListData.ContainsKey("Sheet<1>"));
+            Assert.AreEqual(CutListType_e.SheetMetal, cutListData["Sheet<1>"]);
+
+            Assert.That(cutListData.ContainsKey("Cut-List-Item3"));
+            Assert.AreEqual(CutListType_e.SolidBody, cutListData["Cut-List-Item3"]);
         }
 
         [Test]
@@ -40,7 +66,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("Weldment1.SLDPRT"))
             {
-                var part = (ISwDocument3D)m_App.Documents.Active;
+                var part = (ISwPart)m_App.Documents.Active;
                 var cutLists = part.Configurations.Active.CutLists;
                 cutListData = cutLists.ToDictionary(c => c.Name, c => c.Bodies.Select(b => b.Name).ToArray());
             }
@@ -60,7 +86,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("CutListsOutdated.SLDPRT"))
             {
-                var part = (ISwDocument3D)m_App.Documents.Active;
+                var part = (ISwPart)m_App.Documents.Active;
                 var cutLists = part.Configurations.Active.CutLists;
                 cutListData = cutLists.ToDictionary(c => c.Name, c => c.Bodies.Select(b => b.Name).ToArray());
             }
@@ -80,17 +106,17 @@ namespace SolidWorks.Tests.Integration
         [Test]
         public void ExcludeFromBomTest()
         {
-            Dictionary<string, CutListState_e> cutListData;
+            Dictionary<string, CutListStatus_e> cutListData;
 
             using (var doc = OpenDataDocument("CutListExcludeBom.SLDPRT"))
             {
-                var part = (ISwDocument3D)m_App.Documents.Active;
+                var part = (ISwPart)m_App.Documents.Active;
                 var cutLists = part.Configurations.Active.CutLists;
-                cutListData = cutLists.ToDictionary(c => c.Name, c => c.State);
+                cutListData = cutLists.ToDictionary(c => c.Name, c => c.Status);
             }
             
-            Assert.AreEqual((CutListState_e)0, cutListData["C CHANNEL 80.00 X 8<1>"]);
-            Assert.AreEqual(CutListState_e.ExcludeFromBom, cutListData["PIPE, SCH 40, 25.40 DIA.<1>"]);
+            Assert.AreEqual((CutListStatus_e)0, cutListData["C CHANNEL 80.00 X 8<1>"]);
+            Assert.AreEqual(CutListStatus_e.ExcludeFromBom, cutListData["PIPE, SCH 40, 25.40 DIA.<1>"]);
         }
 
         [Test]
@@ -102,8 +128,8 @@ namespace SolidWorks.Tests.Integration
             using (var doc = OpenDataDocument(@"CutListsAssembly1\Assem1.SLDASM"))
             {
                 var assm = (ISwAssembly)m_App.Documents.Active;
-                cutListData1 = assm.Configurations.Active.Components["Part1-1"].ReferencedConfiguration.CutLists.ToDictionary(c => c.Name, c => c.Bodies.Count());
-                cutListData2 = assm.Configurations.Active.Components["Part1-2"].ReferencedConfiguration.CutLists.ToDictionary(c => c.Name, c => c.Bodies.Count());
+                cutListData1 = ((ISwPartComponent)assm.Configurations.Active.Components["Part1-1"]).ReferencedConfiguration.CutLists.ToDictionary(c => c.Name, c => c.Bodies.Count());
+                cutListData2 = ((ISwPartComponent)assm.Configurations.Active.Components["Part1-2"]).ReferencedConfiguration.CutLists.ToDictionary(c => c.Name, c => c.Bodies.Count());
             }
 
             Assert.AreEqual(1, cutListData1.Count);
@@ -122,7 +148,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument(@"Weldment2.SLDPRT"))
             {
-                var part = (IXDocument3D)m_App.Documents.Active;
+                var part = (ISwPart)m_App.Documents.Active;
                 var cutLists = part.Configurations.Active.CutLists;
                 cutListData = cutLists.ToDictionary(c => c.Name, c => c.Bodies.Count());
             }

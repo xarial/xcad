@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -38,6 +38,8 @@ using Xarial.XCad.Base.Attributes;
 using Xarial.XCad.UI;
 using Xarial.XCad.SolidWorks.UI;
 using Xarial.XCad.Reflection;
+using Xarial.XCad.Toolkit.Services;
+using Xarial.XCad.Toolkit.Data;
 
 namespace Xarial.XCad.SolidWorks
 {
@@ -56,6 +58,39 @@ namespace Xarial.XCad.SolidWorks
             where TObj : ISwObject;
     }
 
+    public interface ISwApplicationOptions : ISwOptions, IXApplicationOptions 
+    {
+    }
+
+    internal class SwApplicationOptions : SwOptions, ISwApplicationOptions 
+    {
+        private readonly SwApplication m_App;
+
+        internal SwApplicationOptions(SwApplication app) 
+        {
+            m_App = app;
+            Drawings = new SwDrawingsApplicationOptions(app);
+        }
+
+        public IXDrawingsApplicationOptions Drawings { get; }
+    }
+
+    internal class SwDrawingsApplicationOptions : IXDrawingsApplicationOptions
+    {
+        private readonly SwApplication m_App;
+
+        public SwDrawingsApplicationOptions(SwApplication app)
+        {
+            m_App = app;
+        }
+
+        public bool AutomaticallyScaleNewDrawingViews
+        {
+            get => m_App.Sw.GetUserPreferenceToggle((int)swUserPreferenceToggle_e.swAutomaticScaling3ViewDrawings);
+            set => m_App.Sw.SetUserPreferenceToggle((int)swUserPreferenceToggle_e.swAutomaticScaling3ViewDrawings, value);
+        }
+    }
+
     /// <inheritdoc/>
     internal class SwApplication : ISwApplication, IXServiceConsumer
     {
@@ -72,6 +107,7 @@ namespace Xarial.XCad.SolidWorks
             get => Version;
             set => Version = (ISwVersion)value;
         }
+        IXMaterialsDatabaseRepository IXApplication.MaterialDatabases => MaterialDatabases;
 
         public event ApplicationStartingDelegate Starting;
         public event ConfigureServicesDelegate ConfigureServices;
@@ -80,7 +116,7 @@ namespace Xarial.XCad.SolidWorks
         {
             add
             {
-                if(m_IdleDelegate == null) 
+                if (m_IdleDelegate == null)
                 {
                     ((SldWorks)Sw).OnIdleNotify += OnIdleNotify;
                 }
@@ -109,26 +145,29 @@ namespace Xarial.XCad.SolidWorks
 
         public ISldWorks Sw => m_Creator.Element;
 
-        public ISwVersion Version 
+        public ISwVersion Version
         {
-            get 
+            get
             {
                 if (IsCommitted)
                 {
-                    return new SwVersion(Sw.GetVersion());
+                    var major = Sw.GetVersion(out var sp, out var spRev);
+                    var minor = sp > 0 ? sp : 0;//pre-release versiosn will have a negative SP
+                    var build = spRev > 0 ? spRev : 0;
+                    return new SwVersion(new Version(major, minor, build), sp, spRev);
                 }
-                else 
+                else
                 {
                     return m_Creator.CachedProperties.Get<SwVersion>();
                 }
             }
-            set 
+            set
             {
                 if (IsCommitted)
                 {
                     throw new Exception("Version cannot be changed after the application is committed");
                 }
-                else 
+                else
                 {
                     m_Creator.CachedProperties.Set(value);
                 }
@@ -137,15 +176,8 @@ namespace Xarial.XCad.SolidWorks
 
         private SwDocumentCollection m_Documents;
 
-        public ISwDocumentCollection Documents 
-        {
-            get 
-            {
-                m_Documents.Attach();
-                return m_Documents;
-            }
-        }
-        
+        public ISwDocumentCollection Documents => m_Documents;
+
         public IntPtr WindowHandle => new IntPtr(Sw.IFrameObject().GetHWndx64());
 
         public Process Process => Process.GetProcessById(Sw.GetProcessID());
@@ -154,22 +186,24 @@ namespace Xarial.XCad.SolidWorks
 
         public ISwMemoryGeometryBuilder MemoryGeometryBuilder { get; private set; }
 
+        public IXApplicationOptions Options { get; }
+
         public bool IsCommitted => m_Creator.IsCreated;
 
-        public ApplicationState_e State 
+        public ApplicationState_e State
         {
-            get 
+            get
             {
                 if (IsCommitted)
                 {
                     return GetApplicationState();
                 }
-                else 
+                else
                 {
                     return m_Creator.CachedProperties.Get<ApplicationState_e>();
                 }
             }
-            set 
+            set
             {
                 if (IsCommitted)
                 {
@@ -187,39 +221,39 @@ namespace Xarial.XCad.SolidWorks
                     {
                         Sw.Visible = false;
                     }
-                    else 
+                    else
                     {
                         throw new Exception("Only visibility can changed after the application is started");
                     }
                 }
-                else 
+                else
                 {
                     m_Creator.CachedProperties.Set(value);
                 }
             }
         }
 
-        public IXServiceCollection CustomServices 
+        public IXServiceCollection CustomServices
         {
             get => m_CustomServices;
-            set 
+            set
             {
                 if (!IsCommitted)
                 {
                     m_CustomServices = value;
                 }
-                else 
+                else
                 {
                     throw new Exception("Services can only be set before committing");
                 }
             }
         }
 
-        private IXLogger m_Logger;
+        internal IXLogger Logger { get; private set; }
 
         internal IServiceProvider Services { get; private set; }
 
-        public bool IsAlive 
+        public bool IsAlive
         {
             get
             {
@@ -235,29 +269,39 @@ namespace Xarial.XCad.SolidWorks
                         return true;
                     }
                 }
-                catch 
+                catch
                 {
                     return false;
                 }
             }
         }
 
+        private bool m_IsDisposed;
+        private bool m_IsClosed;
+
         private bool m_IsInitialized;
 
         private bool m_HideOnStartup;
-        
+
         private bool m_IsStartupNotified;
 
-        private ElementCreator<ISldWorks> m_Creator;
+        private readonly IElementCreator<ISldWorks> m_Creator;
 
         private ApplicationIdleDelegate m_IdleDelegate;
 
         private readonly Action<SwApplication> m_StartupCompletedCallback;
 
+        internal GlobalTagsRegistry TagsRegistry { get; }
+
+        public SwMaterialsDatabaseRepository MaterialDatabases { get; private set; }
+
         internal SwApplication(ISldWorks app, IXServiceCollection customServices) 
             : this(app, default(Action<SwApplication>))
         {
-            Init(customServices);
+            customServices = customServices ?? new ServiceCollection();
+
+            LoadServices(customServices);
+            Init(customServices.CreateProvider());
         }
 
         /// <summary>
@@ -268,48 +312,64 @@ namespace Xarial.XCad.SolidWorks
             m_IsStartupNotified = false;
             m_StartupCompletedCallback = startupCompletedCallback;
 
+            TagsRegistry = new GlobalTagsRegistry();
+
+            Options = new SwApplicationOptions(this);
+
             m_Creator = new ElementCreator<ISldWorks>(CreateInstance, app, true);
             WatchStartupCompleted((SldWorks)app);
         }
 
-        /// <summary>
-        /// Remarks used for <see cref="SwApplicationFactory.PreCreate"/>
-        /// </summary>
+        /// <Remarks>
+        /// Used for <see cref="SwApplicationFactory.PreCreate"/>
+        /// </Remarks>
         internal SwApplication()
         {
             m_IsStartupNotified = false;
+
+            TagsRegistry = new GlobalTagsRegistry();
 
             m_Creator = new ElementCreator<ISldWorks>(CreateInstance, null, false);
 
             m_Creator.CachedProperties.Set(new ServiceCollection(), nameof(CustomServices));
         }
-        
-        internal void Init(IXServiceCollection customServices)
+
+        internal void LoadServices(IXServiceCollection customServices)
         {
             if (!m_IsInitialized)
             {
                 m_CustomServices = customServices;
 
+                customServices.Add<IXLogger>(() => new TraceLogger("xCAD.SwApplication"), ServiceLifetimeScope_e.Singleton, false);
+                customServices.Add<IMemoryGeometryBuilderDocumentProvider>(() => new DefaultMemoryGeometryBuilderDocumentProvider(this), ServiceLifetimeScope_e.Singleton, false);
+                customServices.Add<IFilePathResolver>(() => new SwFilePathResolverNoSearchFolders(this), ServiceLifetimeScope_e.Singleton, false);//TODO: there is some issue with recursive search of folders in search locations - do a test to validate
+                customServices.Add<IMemoryGeometryBuilderToleranceProvider, DefaultMemoryGeometryBuilderToleranceProvider>(ServiceLifetimeScope_e.Singleton, false);
+                customServices.Add<IIconsCreator, BaseIconsCreator>(ServiceLifetimeScope_e.Singleton, false);
+
+                ConfigureServices?.Invoke(this, customServices);
+            }
+            else
+            {
+                Debug.Assert(false, "App has been already initialized. Must be only once");
+            }
+        }
+
+        internal void Init(IServiceProvider svcProvider)
+        {
+            if (!m_IsInitialized)
+            {
                 m_IsInitialized = true;
 
-                var services = new ServiceCollection();
+                Services = svcProvider;
+                Logger = Services.GetService<IXLogger>();
 
-                ConfigureServices?.Invoke(this, services);
-                OnConfigureServices(services);
+                m_Documents = new SwDocumentCollection(this, Logger);
 
-                if (customServices != null)
-                {
-                    services.Merge(customServices);
-                }
+                MaterialDatabases = new SwMaterialsDatabaseRepository(this);
 
-                Services = services.CreateProvider();
-                m_Logger = Services.GetService<IXLogger>();
-
-                m_Documents = new SwDocumentCollection(this, m_Logger);
-
-                var geomBuilderDocsProvider = Services.GetService<IMemoryGeometryBuilderDocumentProvider>();
-
-                MemoryGeometryBuilder = new SwMemoryGeometryBuilder(this, geomBuilderDocsProvider);
+                MemoryGeometryBuilder = new SwMemoryGeometryBuilder(this,
+                    Services.GetService<IMemoryGeometryBuilderDocumentProvider>(),
+                    Services.GetService<IMemoryGeometryBuilderToleranceProvider>());
             }
             else 
             {
@@ -403,35 +463,13 @@ namespace Xarial.XCad.SolidWorks
             }
         }
 
-        public void Dispose()
-        {
-            try
-            {
-                m_Documents.Dispose();
-            }
-            catch (Exception ex)
-            {
-                m_Logger.Log(ex);
-            }
-
-            if (Sw != null)
-            {
-                if (Marshal.IsComObject(Sw))
-                {
-                    Marshal.ReleaseComObject(Sw);
-                }
-            }
-        }
-
-        public void Close()
-        {
-            Sw.ExitApp();
-        }
-        
         public void Commit(CancellationToken cancellationToken)
         {
             m_Creator.Create(cancellationToken);
-            Init(CustomServices);
+
+            var customServices = CustomServices ?? new ServiceCollection();
+            LoadServices(customServices);
+            Init(customServices.CreateProvider());
         }
 
         private ISldWorks CreateInstance(CancellationToken cancellationToken)
@@ -440,7 +478,9 @@ namespace Xarial.XCad.SolidWorks
 
             using (var appStarter = new SwApplicationStarter(State, Version)) 
             {
-                var app = appStarter.Start(p => Starting?.Invoke(this, p), cancellationToken);
+                var logger = Logger ?? new TraceLogger("xCAD.SwApplication");
+
+                var app = appStarter.Start(p => Starting?.Invoke(this, p), logger, cancellationToken);
                 WatchStartupCompleted((SldWorks)app);
                 return app;
             }
@@ -491,13 +531,6 @@ namespace Xarial.XCad.SolidWorks
             return ApplicationState_e.Default;
         }
 
-        public void OnConfigureServices(IXServiceCollection collection)
-        {
-            collection.AddOrReplace((Func<IXLogger>)(() => new TraceLogger("xCAD.SwApplication")));
-            collection.AddOrReplace((Func<IMemoryGeometryBuilderDocumentProvider>)(() => new DefaultMemoryGeometryBuilderDocumentProvider(this)));
-            collection.AddOrReplace((Func<IFilePathResolver>)(() => new SwFilePathResolverNoSearchFolders(this)));//TODO: there is some issue with recursive search of folders in search locations - do a test to validate
-        }
-
         public IXProgress CreateProgress()
         {
             if (Sw.GetUserProgressBar(out UserProgressBar prgBar))
@@ -512,42 +545,132 @@ namespace Xarial.XCad.SolidWorks
 
         public void ShowTooltip(ITooltipSpec spec)
         {
-            var bmp = "";
             IXImage icon = null;
 
             spec.GetType().TryGetAttribute<IconAttribute>(a => icon = a.Icon);
 
             var bmpType = icon != null ? swBitMaps.swBitMapUserDefined : swBitMaps.swBitMapNone;
 
-            IIconsCreator iconsCreator = null;
+            using (var bmp = CreateTooltipIcon(icon)) 
+            {
+                Sw.HideBubbleTooltip();
 
+                Sw.ShowBubbleTooltipAt2(spec.Position.X, spec.Position.Y, (int)spec.ArrowPosition,
+                            spec.Title, spec.Message, (int)bmpType,
+                            bmp?.FilePaths.First(), "", 0, (int)swLinkString.swLinkStringNone, "", "");
+            }
+        }
+
+        private IImageCollection CreateTooltipIcon(IXImage icon) 
+        {
             if (icon != null)
             {
-                iconsCreator = Services.GetService<IIconsCreator>();
+                var iconsCreator = Services.GetService<IIconsCreator>();
 
-                bmp = iconsCreator.ConvertIcon(new TooltipIcon(icon)).First();
+                return iconsCreator.ConvertIcon(new TooltipIcon(icon));
             }
-
-            Sw.HideBubbleTooltip();
-
-            Sw.ShowBubbleTooltipAt2(spec.Position.X, spec.Position.Y, (int)spec.ArrowPosition,
-                        spec.Title, spec.Message, (int)bmpType,
-                        bmp, "", 0, (int)swLinkString.swLinkStringNone, "", "");
-
-            iconsCreator?.Dispose();
+            else 
+            {
+                return null;
+            }
         }
 
         public TObj CreateObjectFromDispatch<TObj>(object disp, ISwDocument doc)
             where TObj : ISwObject
-            => SwObjectFactory.FromDispatch<TObj>(disp, doc, this);
+            => SwObjectFactory.FromDispatch<TObj>(disp, (SwDocument)doc, this);
+
+        public IXObjectTracker CreateObjectTracker(string name) 
+            => new SwObjectTracker(this, name);
+
+        internal void Release(bool close)
+        {
+            if (!m_IsDisposed)
+            {
+                m_IsDisposed = true;
+
+                if (Services is IDisposable)
+                {
+                    ((IDisposable)Services).Dispose();
+                }
+
+                try
+                {
+                    m_Documents.Dispose();
+                }
+                catch (Exception ex)
+                {
+                    Logger.Log(ex);
+                }
+
+                TagsRegistry.Dispose();
+
+                if (close)
+                {
+                    if (!m_IsClosed)
+                    {
+                        Close();
+                    }
+                }
+
+                if (Sw != null)
+                {
+                    if (Marshal.IsComObject(Sw))
+                    {
+                        Marshal.ReleaseComObject(Sw);
+                    }
+                }
+            }
+        }
+
+        public void Dispose() => Release(true);
+
+        public void Close()
+        {
+            if (!m_IsClosed)
+            {
+                m_IsClosed = true;
+                Sw.ExitApp();
+                Dispose();
+            }
+        }
     }
 
+    /// <summary>
+    /// Additional methods of <see cref="ISwApplication"/>
+    /// </summary>
     public static class SwApplicationExtension 
     {
+        /// <summary>
+        /// Checks if the current version of the SOLIDWORKS applicating equals or newver than the specified version
+        /// </summary>
+        /// <param name="app">Application</param>
+        /// <param name="version">Major version</param>
+        /// <param name="servicePack">Service pack</param>
+        /// <param name="servicePackRev">Revision</param>
+        /// <returns>True if current version is newer or equal</returns>
+        /// <remarks>Use this method for forward compatibility</remarks>
         public static bool IsVersionNewerOrEqual(this ISwApplication app, SwVersion_e version, 
             int? servicePack = null, int? servicePackRev = null) 
         {
             return app.Sw.IsVersionNewerOrEqual(version, servicePack, servicePackRev);
+        }
+
+        /// <summary>
+        /// Checks if currently running application is in-process application
+        /// </summary>
+        /// <param name="app">Application</param>
+        /// <returns>True if in process</returns>
+        /// <remarks>This method also checks the UI thread</remarks>
+        public static bool IsInProcess(this ISwApplication app) 
+        {
+            if (Process.GetCurrentProcess().Id == app.Process.Id)
+            {
+                return Thread.CurrentThread.ManagedThreadId == 1;
+            }
+            else 
+            {
+                return false;
+            }
         }
     }
 }

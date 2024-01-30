@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -8,6 +8,7 @@
 using System;
 using System.IO;
 using Xarial.XCad.Data;
+using Xarial.XCad.Documents;
 
 namespace Xarial.XCad
 {
@@ -16,6 +17,17 @@ namespace Xarial.XCad
     /// </summary>
     public interface IXObject : IEquatable<IXObject>
     {
+        /// <summary>
+        /// Application which owns this object
+        /// </summary>
+        IXApplication OwnerApplication { get; }
+
+        /// <summary>
+        /// Document which owns this object
+        /// </summary>
+        /// <remarks>This can be null for the application level objects</remarks>
+        IXDocument OwnerDocument { get; }
+
         /// <summary>
         /// Identifies if current object is valid
         /// </summary>

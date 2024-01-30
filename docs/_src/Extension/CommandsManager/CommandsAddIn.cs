@@ -19,35 +19,35 @@ public class CommandsAddIn : SwAddInEx
         //---
         //--- ContextMenu
         this.CommandManager.AddContextMenu<CommandsD_e>().CommandClick += OnCommandsDContextMenuClick;
-        this.CommandManager.AddContextMenu<CommandsE_e>(SelectType_e.Faces).CommandClick+= OnCommandsEContextMenuClick;
+        this.CommandManager.AddContextMenu<CommandsE_e>().CommandClick+= OnCommandsEContextMenuClick;
         //---
     }
 
     //--- CommandGroup
     private void OnCommandsAButtonClick(CommandsA_e cmd)
     {
-        //TODO: handle the button click
+        //handle the button click
     }
 
     private void OnCommandsBButtonClick(CommandsB_e cmd)
     {
-        //TODO: handle the button click
+        //handle the button click
     }
 
     private void OnCommandsCButtonClick(CommandsC_e cmd)
     {
-        //TODO: handle the button click
+        //handle the button click
     }
     //---
     //--- ContextMenu
     private void OnCommandsDContextMenuClick(CommandsD_e cmd)
     {
-        //TODO: handle the context menu click
+        //handle the context menu click
     }
 
     private void OnCommandsEContextMenuClick(CommandsE_e cmd)
     {
-        //TODO: handle the context menu click
+        //handle the context menu click
     }
     //---
     //---

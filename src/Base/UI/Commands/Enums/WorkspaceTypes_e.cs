@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -34,6 +34,11 @@ namespace Xarial.XCad.UI.Commands.Enums
         /// Drawing document
         /// </summary>
         Drawing = 2 << 2,
+
+        /// <summary>
+        /// Part document edited in the context of the assembly
+        /// </summary>
+        InContextPart = 2 << 3,
 
         /// <summary>
         /// All SOLIDWORKS documents

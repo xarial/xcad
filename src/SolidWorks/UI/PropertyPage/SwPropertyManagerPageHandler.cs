@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -13,6 +13,8 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
 using Xarial.XCad.Exceptions;
+using Xarial.XCad.SolidWorks.Utils;
+using Xarial.XCad.UI.PropertyPage.Base;
 using Xarial.XCad.UI.PropertyPage.Structures;
 
 namespace Xarial.XCad.SolidWorks.UI.PropertyPage
@@ -25,9 +27,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
     public abstract class SwPropertyManagerPageHandler : IPropertyManagerPage2Handler9
     {
         internal delegate void SubmitSelectionDelegate(int id, object selection, int selType, ref string itemText, ref bool res);
-
         internal delegate void PropertyManagerPageClosingDelegate(swPropertyManagerPageCloseReasons_e reason, PageClosingArg arg);
-
         internal delegate void PropertyManagerPageClosedDelegate(swPropertyManagerPageCloseReasons_e reason);
 
         internal event Action Opening;
@@ -46,12 +46,17 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
         internal event Action WhatsNewRequested;
         internal event Action<int, bool> CustomControlCreated;
         internal event Action<int, bool> GroupChecked;
+        internal event Func<int, int, int, int, bool> Keystroke;
 
         /// <inheritdoc/>
         internal event PropertyManagerPageClosingDelegate Closing;
 
+        internal event PropertyManagerPageClosedDelegate PreClosed;
+
         /// <inheritdoc/>
         internal event PropertyManagerPageClosedDelegate Closed;
+
+        internal event Action Applied;
 
         private swPropertyManagerPageCloseReasons_e m_CloseReason;
 
@@ -96,7 +101,10 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         public void AfterClose()
-            => Closed?.Invoke(m_CloseReason);
+        {
+            PreClosed?.Invoke(m_CloseReason);
+            Closed?.Invoke(m_CloseReason); 
+        }
 
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]
@@ -123,7 +131,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
             m_CloseReason = (swPropertyManagerPageCloseReasons_e)Reason;
 
             var arg = new PageClosingArg();
-            
+
             try
             {
                 Closing?.Invoke(m_CloseReason, arg);
@@ -134,7 +142,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
                 arg.ErrorMessage = ex.Message;
             }
 
-            if (arg.Cancel)
+            if (m_CloseReason != swPropertyManagerPageCloseReasons_e.swPropertyManagerPageClose_Cancel && arg.Cancel)
             {
                 if (!string.IsNullOrEmpty(arg.ErrorTitle) || !string.IsNullOrEmpty(arg.ErrorMessage))
                 {
@@ -147,8 +155,14 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
                         "", "", 0, (int)swLinkString.swLinkStringNone, "", "");
                 }
 
-                const int S_FALSE = 1;
-                throw new COMException(arg.ErrorMessage, S_FALSE);
+                if (m_CloseReason == swPropertyManagerPageCloseReasons_e.swPropertyManagerPageClose_Okay)
+                {
+                    throw new COMException(arg.ErrorMessage, HResult.S_FALSE);
+                }
+            }
+            else if (m_CloseReason == swPropertyManagerPageCloseReasons_e.swPropertyManagerPageClose_Apply && !arg.Cancel)
+            {
+                Applied?.Invoke();
             }
         }
 
@@ -197,9 +211,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         public bool OnKeystroke(int Wparam, int Message, int Lparam, int Id)
-        {
-            return true;
-        }
+            => Keystroke?.Invoke(Wparam, Message, Lparam, Id) ?? false;
 
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]

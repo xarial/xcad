@@ -8,6 +8,31 @@ This page contains list of the most notable changes in the releases of xCAD.NET.
 
 Breaking change is marked with &#x26A0; symbol
 
+## 0.8.0 - January 30, 2024
+
+* &#x26A0; XComponentRepositoryExtension::Flatten is renamed to XComponentRepositoryExtension::TryFlatten
+* &#x26A0; Removed **OptionBoxStyle_e** and **OptionBoxOptionsAttribute::Style**
+* &#x26A0; SelectType_e enumeration is removed. Use Type to specify the selection filter for the SelectionBoxOptionsAttribute::Filters or use SwSelectionBoxOptionsAttribute::Filters to specify SOLIDWORKS specific filters via swSelectionType_e. Use ContextMenuCommandItemInfoAttribute::Owner to set the Type of the owner entity or use SwContextMenuCommandItemInfoAttribute::Owner to set the SOLIDWORKS specific owner via swSelectionType_e
+* &#x26A0; Point::Scale/Vector::Scale are not do not modify the values of the original object rather return new scaled result
+* &#x26A0; IXCustomFeatureDefinition\<TParams, TPage\>::OnPageParametersChanged renamed to IXCustomFeatureDefinition\<TParams, TPage\>::OnPreviewUpdated
+* &#x26A0; IXCustomFeatureDefinition\<TParams, TPage\>::CreateGeometry is split to IXCustomFeatureDefinition\<TParams, TPage\>.CreatePreviewGeometry.
+* &#x26A0; ISwMacroFeatureDefinition::ShouldUpdatePreview changed the signature (added the pointer to TPage)
+* &#x26A0; ISwMacroFeatureDefinition::ShouldHidePreviewEditBody, ISwMacroFeatureDefinition::AssignPreviewBodyColor replaced with the delegates of IXCustomFeatureDefinition\<TParams, TPage\>.
+CreatePreviewGeometry
+* &#x26A0; ISwMacroFeatureDefinition::ConvertParamsToPage added additional parameter for current data
+* &#x26A0; IXDocument3D::PreCreateBoundingBox, IXDocument3D::PreCreateMassProperty moved to IXDocumentEvaluation
+* &#x26A0; IXFace::Edges is deprecated and replaced with IXFace::AdjacentEntities
+* &#x26A0; HandlePostRebuildAttribute is deprecated and replaced with SwMacroFeatureDefinition::PostRebuild event
+* &#x26A0; IParameterConverter::ConvertEditBodies, IParameterConverter::ConvertDisplayDimensions, IParameterConverter::ConvertParameters, IParameterConverter::ConvertSelections is replaced with IParameterConverter::Convert. ParameterConverter implementation is deprecated
+* &#x26A0; ISwMacroFeature::CachedParameters is deprecated. use IXCustomFeature::Parameter without IXFeature::Edit to get cached parameters
+* &#x26A0; IXCutList::State is renamed to IXCutList::Status  and CutListState_e is renamed to CutListStatus_e
+* &#x26A0; IXRegion::Boundary type is changed from IXSegment[] to IXLoop[]
+* &#x26A0; IXServiceCollection::AddOrReplace is renamed to IXServiceCollection::Add
+* &#x26A0; Introduced Line and Circle data structures which replaced the Axis, Diameter, StartPoint, EndPoint, CenterPoint properties in geometrical entities, such as IXCircle
+* &#x26A0; Access modifier for SwAddInEx::OnConfigureServices and SwMacroFeatureDefinition::OnConfigureServices is changed to protected
+* &#x26A0; IXDocument::SaveAs is changed to extension in **Xarial.XCad.Documents.Extensions** namespace
+* &#x26A0; IXDocument pointers are no longer guaranteed to be equal for the same documents. Use IXDocument::Equals to compare pointers instead
+
 ## 0.7.7 - October 26, 2021
 
 * &#x26A0; - IEntity is not automatically converted to safe entity. Instead use ISwEntity::CreateResilient to create safe entity

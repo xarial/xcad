@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -28,14 +28,18 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
         new ISwLineCurve Axis { get; set; }
     }
 
-    internal class SwTempRevolve : SwTempPrimitive, ISwTempRevolve
+    public interface ISwTempSolidRevolve : ISwTempRevolve 
     {
-        internal SwTempRevolve(SwTempBody[] bodies, ISwApplication app, bool isCreated) 
+    }
+
+    internal class SwTempSolidRevolve : SwTempPrimitive, ISwTempSolidRevolve
+    {
+        internal SwTempSolidRevolve(SwTempBody[] bodies, ISwApplication app, bool isCreated) 
             : base(bodies, app, isCreated)
         {
         }
 
-        IXRegion[] IXRevolve.Profiles 
+        IXPlanarRegion[] IXRevolve.Profiles 
         {
             get => Profiles;
             set => Profiles = value.Cast<ISwTempRegion>().ToArray();
@@ -105,8 +109,10 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
 
                 var profileLoop = sheetBody.Body.IGetFirstFace().IGetFirstLoop();
 
-                var axisPt = Axis.StartCoordinate;
-                var axisDir = Axis.EndCoordinate - Axis.StartCoordinate;
+                var line = Axis.Geometry;
+
+                var axisPt = line.StartPoint;
+                var axisDir = line.EndPoint - line.StartPoint;
 
                 var body = profileLoop.RevolvePlanarLoop(
                     axisPt.X, axisPt.Y, axisPt.Z,

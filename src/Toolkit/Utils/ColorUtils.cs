@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -23,9 +23,7 @@ namespace Xarial.XCad.Toolkit.Utils
         /// <param name="color">Input color</param>
         /// <returns>Wind32 color</returns>
         public static int ToColorRef(Color color)
-        {
-            return (color.R << 0) | (color.G << 8) | (color.B << 16);
-        }
+            => (color.R << 0) | (color.G << 8) | (color.B << 16);
 
         /// <summary>
         /// Converts Win32 color to .NET color
@@ -39,6 +37,21 @@ namespace Xarial.XCad.Toolkit.Utils
             int b = (colorRef & 0x00FF0000) >> 16;
 
             return Color.FromArgb(r, g, b);
+        }
+
+        /// <summary>
+        /// Converts the pix to grayscale
+        /// </summary>
+        /// <param name="r">Red component of the pixel</param>
+        /// <param name="g">Green component of the pixex</param>
+        /// <param name="b">Blue component of the pixel</param>
+        public static void ConvertPixelToGrayscale(ref byte r, ref byte g, ref byte b)
+        {
+            var pixel = (byte)((r + g + b) / 3);
+
+            r = pixel;
+            g = pixel;
+            b = pixel;
         }
     }
 }

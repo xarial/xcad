@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -9,6 +9,9 @@ using System;
 
 namespace Xarial.XCad.Features.CustomFeature.Enums
 {
+    /// <summary>
+    /// State of the <see cref="IXCustomFeature"/> within the <see cref="IXCustomFeatureDefinition.OnUpdateState(IXApplication, Documents.IXDocument, IXCustomFeature)"/>
+    /// </summary>
     [Flags]
     public enum CustomFeatureState_e
     {

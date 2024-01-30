@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -24,11 +24,5 @@ namespace Xarial.XCad.Documents
         /// Returns the currently active configuration or activates the specific configuration
         /// </summary>
         IXConfiguration Active { get; set; }
-
-        /// <summary>
-        /// Creates new template configuration
-        /// </summary>
-        /// <returns>Pre-created configuration</returns>
-        IXConfiguration PreCreate();
     }
 }
