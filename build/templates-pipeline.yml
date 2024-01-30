@@ -58,13 +58,11 @@ stages:
             script: dotnet pack "$(Build.SourcesDirectory)/templates/Xarial.XCad.Templates.csproj" --output "$(Build.ArtifactStagingDirectory)/packages/$(versionSuffix)" --no-build --version-suffix "$(versionSuffix).$(Build.BuildId)"
           
       - ${{ if and(eq(variables['Build.SourceBranch'], 'refs/heads/master'), ne(variables['Build.Reason'], 'PullRequest')) }}:
-        - task: DotNetCoreCLI@2
+        - task: PowerShell@2
           displayName: 'Pack production versions'
           inputs:
-            command: pack
-            packagesToPack: 'templates/Xarial.XCad.Templates.csproj'
-            outputDir: $(Build.ArtifactStagingDirectory)/packages/release
-            nobuild: true
+            targetType: 'inline'
+            script: dotnet pack "$(Build.SourcesDirectory)/templates/Xarial.XCad.Templates.csproj" --output "$(Build.ArtifactStagingDirectory)/packages/release" --no-build --version-suffix ""
       
       - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
         - task: CopyFiles@2
