@@ -100,37 +100,13 @@ stages:
         nuGetFeedType: 'internal'
         publishVstsFeed: 'xcad/xcad-dev'
        
-- stage: 'PublishProvisionalNuGetPackage'
-  displayName: 'Publish Provisional template packages to xcad-dev nuget feed'
-  dependsOn: 'Build'
-  condition: and(succeeded(), or(eq(variables['Build.SourceBranch'], 'refs/heads/master'), eq(variables['Build.SourceBranch'], 'refs/heads/!alpha'), eq(variables['Build.SourceBranch'], 'refs/heads/!beta')), ne(variables['Build.Reason'], 'PullRequest'))
-  jobs:
-  - job:
-    pool:
-      vmImage: 'windows-latest'
-
-    steps:
-    - checkout: none
-
-    - download: current
-      artifact: 'packages'
-
-    - task: NuGetCommand@2
-      displayName: 'Push NuGet Packages'
-      inputs:
-        command: 'push'
-        packagesToPush: '$(Pipeline.Workspace)/packages/$(versionSuffix)/*.nupkg'
-        allowPackageConflicts: true
-        nuGetFeedType: 'internal'
-        publishVstsFeed: 'xcad/xcad-dev'
-
 - stage: 'PublishPublicPackage'
   variables:
     - group: build-vars
     - name: packagePath
       value:
   displayName: 'Publish public template packages to nuget.org'
-  dependsOn: 'PublishProvisionalNuGetPackage'
+  dependsOn: 'Build'
   condition: and(succeeded(), or(eq(variables['Build.SourceBranch'], 'refs/heads/master'), eq(variables['Build.SourceBranch'], 'refs/heads/!alpha'), eq(variables['Build.SourceBranch'], 'refs/heads/!beta')), ne(variables['Build.Reason'], 'PullRequest'))
   jobs:
   - deployment:
