@@ -245,7 +245,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Curves
 
                 foreach (var otherCurve in ((SwCurve)curve).Curves)
                 {
-                    GetEndPoints(thisCurve, out var otherStartPt, out var otherEndPt);
+                    GetEndPoints(otherCurve, out var otherStartPt, out var otherEndPt);
 
                     var intersectPts = (double[])thisCurve.IntersectCurve(otherCurve, thisStartPt, thisEndPt, otherStartPt, otherEndPt);
 
