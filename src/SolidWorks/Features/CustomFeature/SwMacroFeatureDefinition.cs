@@ -803,7 +803,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             => m_SvcProvider.GetService<IPropertyPageHandlerProvider>().CreateHandler(Application, typeof(TPage));
 
         /// <inheritdoc/>
-        public virtual TParams ConvertPageToParams(IXApplication app, IXDocument doc, TPage page, TParams curParams)
+        public virtual TParams CreateParameters(IXApplication app, IXDocument doc, TPage page, TParams curParams)
         {
             if (typeof(TParams).IsAssignableFrom(typeof(TPage)))
             {
@@ -811,20 +811,20 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             }
             else
             {
-                throw new Exception($"Override {nameof(ConvertPageToParams)} to provide the converter from TPage to TParams");
+                throw new Exception($"Override {nameof(CreateParameters)} to provide the converter from TPage to TParams");
             }
         }
 
         /// <inheritdoc/>
-        public virtual TPage ConvertParamsToPage(IXApplication app, IXDocument doc, TParams par)
+        public virtual TPage CreatePropertyPage(IXApplication app, IXDocument doc, IXCustomFeature<TParams> feat)
         {
             if (typeof(TPage).IsAssignableFrom(typeof(TParams)))
             {
-                return (TPage)(object)par;
+                return (TPage)(object)feat.Parameters;
             }
             else
             {
-                throw new Exception($"Override {nameof(ConvertParamsToPage)} to provide the converter from TParams to TPage");
+                throw new Exception($"Override {nameof(CreatePropertyPage)} to provide the converter from TParams to TPage");
             }
         }
 

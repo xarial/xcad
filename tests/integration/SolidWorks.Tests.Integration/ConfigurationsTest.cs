@@ -448,51 +448,51 @@ namespace SolidWorks.Tests.Integration
             Assert.IsNull(mat3);
         }
 
-        //[Test]
-        //public void SetBodyMaterialTest()
-        //{
-        //    string mat1;
-        //    string db1;
+        [Test]
+        public void SetBodyMaterialTest()
+        {
+            string mat1;
+            string db1;
 
-        //    string mat2;
-        //    string db2;
+            string mat2;
+            string db2;
 
-        //    string mat3;
-        //    string db3;
+            string mat3;
+            string db3;
 
-        //    string mat4;
-        //    string db4;
+            string mat4;
+            string db4;
 
-        //    using (var doc = OpenDataDocument(@"Material2.SLDPRT", false))
-        //    {
-        //        var part = (ISwPart)m_App.Documents.Active;
+            using (var doc = OpenDataDocument(@"Material2.SLDPRT", false))
+            {
+                var part = (ISwPart)m_App.Documents.Active;
 
-        //        var mat = m_App.MaterialDatabases[""]["ABS PC"];
+                var mat = m_App.MaterialDatabases[""]["ABS PC"];
 
-        //        part.Configurations.Active = part.Configurations["Default"];
-        //        part.Bodies["Boss-Extrude1"].Material = mat;
+                part.Configurations.Active = part.Configurations["Default"];
+                part.Bodies["Boss-Extrude1"].Material = mat;
 
-        //        mat1 = ((ISwBody)part.Bodies["Boss-Extrude1"]).Body.GetMaterialPropertyName("Default", out db1);
-        //        mat2 = ((ISwBody)part.Bodies["Boss-Extrude1"]).Body.GetMaterialPropertyName("Conf1", out db2);
+                mat1 = ((ISwBody)part.Bodies["Boss-Extrude1"]).Body.GetMaterialPropertyName("Default", out db1);
+                
+                part.Configurations.Active = part.Configurations["Conf1"];
+                mat2 = ((ISwBody)part.Bodies["Boss-Extrude1"]).Body.GetMaterialPropertyName("Conf1", out db2);
+                part.Bodies["Boss-Extrude2"].Material = mat;
 
-        //        part.Configurations.Active = part.Configurations["Conf1"];
-        //        part.Bodies["Boss-Extrude2"].Material = mat;
+                mat3 = ((ISwBody)part.Bodies["Boss-Extrude2"]).Body.GetMaterialPropertyName("Conf1", out db3);
 
-        //        mat3 = ((ISwBody)part.Bodies["Boss-Extrude2"]).Body.GetMaterialPropertyName("Conf1", out db3);
+                part.Bodies["Boss-Extrude1"].Material = null;
+                mat4 = ((ISwBody)part.Bodies["Boss-Extrude1"]).Body.GetMaterialPropertyName("Default", out db4);
+            }
 
-        //        part.Bodies["Boss-Extrude1"].Material = null;
-        //        mat4 = ((ISwBody)part.Bodies["Boss-Extrude1"]).Body.GetMaterialPropertyName("Default", out db4);
-        //    }
-
-        //    Assert.AreEqual("ABS PC", mat1);
-        //    Assert.AreEqual("SOLIDWORKS Materials", db1);
-        //    Assert.AreEqual("Brass", mat2);
-        //    Assert.AreEqual("SOLIDWORKS Materials", db2);
-        //    Assert.AreEqual("ABS PC", mat3);
-        //    Assert.AreEqual("SOLIDWORKS Materials", db3);
-        //    Assert.AreEqual("", mat4);
-        //    Assert.AreEqual("", db4);
-        //}
+            Assert.AreEqual("ABS PC", mat1);
+            Assert.AreEqual("SOLIDWORKS Materials", db1);
+            Assert.AreEqual("Brass", mat2);
+            Assert.AreEqual("SOLIDWORKS Materials", db2);
+            Assert.AreEqual("ABS PC", mat3);
+            Assert.AreEqual("SOLIDWORKS Materials", db3);
+            Assert.AreEqual("", mat4);
+            Assert.AreEqual("", db4);
+        }
 
         [Test]
         public void SetMaterialTest()

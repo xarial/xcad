@@ -136,6 +136,17 @@ namespace Xarial.XCad.SolidWorks.Geometry.Curves
             return retVal;
         }
 
+        public override IXCurve Copy()
+        {
+            var copies = Curves.Select(c => c.ICopy()).ToArray();
+            var polyCurve = new SwPolylineCurve(copies, OwnerDocument, OwnerApplication, true);
+
+            polyCurve.m_Creator.CachedProperties.Set(Mode);
+            polyCurve.m_Creator.CachedProperties.Set(Points);
+
+            return polyCurve;
+        }
+
         private ICurve CreateLine(Point startPt, Point endPt)
         {
             var line = m_Modeler.CreateLine(startPt.ToArray(), (startPt - endPt).ToArray()) as ICurve;

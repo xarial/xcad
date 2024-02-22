@@ -147,7 +147,7 @@ namespace SwAddInExample
             this.PostRebuild += OnPostRebuild;
         }
 
-        public override BoxMacroFeatureData ConvertPageToParams(IXApplication app, IXDocument doc, BoxPage page, BoxMacroFeatureData cudData)
+        public override BoxMacroFeatureData CreateParameters(IXApplication app, IXDocument doc, BoxPage page, BoxMacroFeatureData cudData)
             => new BoxMacroFeatureData()
             {
                 Height = page.Parameters.Height,
@@ -157,16 +157,16 @@ namespace SwAddInExample
                 TestFaces = page.Parameters.TestFaces
             };
 
-        public override BoxPage ConvertParamsToPage(IXApplication app, IXDocument doc, BoxMacroFeatureData par)
+        public override BoxPage CreatePropertyPage(IXApplication app, IXDocument doc, IXCustomFeature<BoxMacroFeatureData> feat)
             => new BoxPage("")
             {
                 Parameters = new BoxParametersPage()
                 {
-                    Height = par.Height,
-                    Length = par.Length,
-                    Width = par.Width,
-                    BaseFace = par.BaseFace,
-                    TestFaces = par.TestFaces
+                    Height = feat.Parameters.Height,
+                    Length = feat.Parameters.Length,
+                    Width = feat.Parameters.Width,
+                    BaseFace = feat.Parameters.BaseFace,
+                    TestFaces = feat.Parameters.TestFaces
                 }
             };
 

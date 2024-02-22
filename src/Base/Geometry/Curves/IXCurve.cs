@@ -50,6 +50,31 @@ namespace Xarial.XCad.Geometry.Curves
         Point CalculateLocation(double uParam, out Vector tangent);
 
         /// <summary>
+        /// Intersects this curve with other curve
+        /// </summary>
+        /// <param name="curve">Other curve</param>
+        /// <returns>Intersection points</returns>
+        Point[] Intersect(IXCurve curve);
+
+        /// <summary>
+        /// Checks if the current curve is trimmed
+        /// </summary>
+        bool IsTrimmed { get; }
+
+        /// <summary>
+        /// Trims curve
+        /// </summary>
+        /// <param name="start">Start point</param>
+        /// <param name="end">End point</param>
+        IXCurve Trim(Point start, Point end);
+
+        /// <summary>
+        /// Creates a clone of this curve
+        /// </summary>
+        /// <returns>Cloned curve</returns>
+        IXCurve Copy();
+
+        /// <summary>
         /// Calculates the length of the curve
         /// </summary>
         /// <param name="startParamU">Start U-parameter</param>

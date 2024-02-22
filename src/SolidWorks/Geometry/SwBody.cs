@@ -182,37 +182,40 @@ namespace Xarial.XCad.SolidWorks.Geometry
             }
             set 
             {
-                throw new NotSupportedException();
+                string confName;
 
-                //TODO: the below code does not work
-                //var confName = "";
+                var comp = Component;
 
-                //var comp = Component;
+                if (comp != null)
+                {
+                    confName = comp.ReferencedConfiguration.Name;
+                }
+                else
+                {
+                    confName = ((SwDocument3D)OwnerDocument).Configurations.Active.Name;
+                }
 
-                //if (comp != null)
-                //{
-                //    confName = comp.ReferencedConfiguration.Name;
-                //}
-                //else 
-                //{
-                //    confName = ((SwDocument3D)OwnerDocument).Configurations.Active.Name;
-                //}
+                swBodyMaterialApplicationError_e res;
 
-                //swBodyMaterialApplicationError_e res;
+                using (var sel = new SelectionGroup(OwnerDocument, true))
+                {
+                    //NOTE: API only works if body is selected, otherwise returned result is correct, but material is not set
+                    sel.Add(Body);
 
-                //if (value != null)
-                //{
-                //    res = (swBodyMaterialApplicationError_e)Body.SetMaterialProperty(confName, value.Database.Name, value.Name);
-                //}
-                //else 
-                //{
-                //    res = (swBodyMaterialApplicationError_e)Body.SetMaterialProperty(confName, "", "");
-                //}
+                    if (value != null)
+                    {
+                        res = (swBodyMaterialApplicationError_e)Body.SetMaterialProperty(confName, value.Database.Name, value.Name);
+                    }
+                    else
+                    {
+                        res = (swBodyMaterialApplicationError_e)Body.SetMaterialProperty(confName, "", "");
+                    }
+                }
 
-                //if (res != swBodyMaterialApplicationError_e.swBodyMaterialApplicationError_NoError) 
-                //{
-                //    throw new Exception($"Failed to set material. Error code: {res}");
-                //}
+                if (res != swBodyMaterialApplicationError_e.swBodyMaterialApplicationError_NoError)
+                {
+                    throw new Exception($"Failed to set material. Error code: {res}");
+                }
             }
         }
 

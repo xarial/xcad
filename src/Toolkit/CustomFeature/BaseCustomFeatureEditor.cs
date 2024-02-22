@@ -161,7 +161,7 @@ namespace Xarial.XCad.Utils.CustomFeature
                     m_CurrentFeature.Parameters = featData;
                 }
 
-                m_CurPageData = Definition.ConvertParamsToPage(m_App, model, featData);
+                m_CurPageData = Definition.CreatePropertyPage(m_App, model, m_CurrentFeature);
 
                 EditingStarted?.Invoke(m_App, model, feature, m_CurPageData);
 
@@ -188,7 +188,7 @@ namespace Xarial.XCad.Utils.CustomFeature
             m_CurrentFeature.DefinitionType = m_DefType;
             m_CurrentFeature.Parameters = data;
 
-            m_CurPageData = Definition.ConvertParamsToPage(m_App, doc, data);
+            m_CurPageData = Definition.CreatePropertyPage(m_App, doc, m_CurrentFeature);
 
             EditingStarted?.Invoke(m_App, doc, m_CurrentFeature, m_CurPageData);
 
@@ -301,7 +301,7 @@ namespace Xarial.XCad.Utils.CustomFeature
             if (m_IsPageActive)
             {
                 var oldParams = m_CurrentFeature.Parameters;
-                var newParams = Definition.ConvertPageToParams(m_App, CurrentDocument, m_CurPageData, oldParams);
+                var newParams = Definition.CreateParameters(m_App, CurrentDocument, m_CurPageData, oldParams);
 
                 var dataChanged = AreParametersChanged(oldParams, newParams);
 
@@ -370,7 +370,7 @@ namespace Xarial.XCad.Utils.CustomFeature
 
             if (m_IsApplying)
             {
-                reusableParams = Definition.ConvertPageToParams(
+                reusableParams = Definition.CreateParameters(
                     m_App, CurrentDocument, m_CurPageData, cachedParams);
             }
             else 
@@ -444,7 +444,7 @@ namespace Xarial.XCad.Utils.CustomFeature
                         {
                             CompleteFeature(reason);
 
-                            m_CurrentFeature.Parameters = Definition.ConvertPageToParams(m_App, CurrentDocument, m_CurPageData, m_CurrentFeature.Parameters);
+                            m_CurrentFeature.Parameters = Definition.CreateParameters(m_App, CurrentDocument, m_CurPageData, m_CurrentFeature.Parameters);
 
                             //page stays open
                             UpdatePreview();
