@@ -72,14 +72,35 @@ namespace Xarial.XCad.Utils.CustomFeature
         ReopenOnApply = 1
     }
 
+    /// <summary>
+    /// Helper class for the custom feature editor
+    /// </summary>
+    /// <typeparam name="TData">Data of the custom feature</typeparam>
+    /// <typeparam name="TPage">Page of the custom feature</typeparam>
     public abstract class BaseCustomFeatureEditor<TData, TPage> 
         where TData : class
         where TPage : class
     {
+        /// <summary>
+        /// Raised when editing the macro feature definition and opening property manager page
+        /// </summary>
         public event CustomFeatureStateChangedDelegate<TData, TPage> EditingStarted;
+
+        /// <summary>
+        /// Raised when feature property manager page is closing
+        /// </summary>
         public event CustomFeatureEditingCompletedDelegate<TData, TPage> EditingCompleting;
+        
+        /// <summary>
+        /// Raised when the feature editing is completed (all changes applied or cancelled)
+        /// </summary>
         public event CustomFeatureEditingCompletedDelegate<TData, TPage> EditingCompleted;
+        
+        /// <summary>
+        /// Raised when new feature is about to be inserted
+        /// </summary>
         public event CustomFeatureInsertedDelegate<TData, TPage> FeatureInserting;
+        
         public event CustomFeaturePageParametersChangedDelegate<TData, TPage> PreviewUpdated;
         public event ShouldUpdatePreviewDelegate<TData, TPage> ShouldUpdatePreview;
         public event HandleEditingExceptionDelegate<TData> HandleEditingException;
@@ -140,7 +161,7 @@ namespace Xarial.XCad.Utils.CustomFeature
             {
                 throw new ArgumentNullException(nameof(feature));
             }
-
+            
             m_IsPageActive = true;
 
             CurrentDocument = model;
@@ -380,6 +401,8 @@ namespace Xarial.XCad.Utils.CustomFeature
 
             m_CurEditor?.Dispose();
 
+            EditingCompleted?.Invoke(m_App, CurrentDocument, m_CurrentFeature, m_CurPageData, reason);
+
             m_CurPageData = null;
             m_HiddenEditBodies = null;
             m_CurrentFeature = null;
@@ -500,8 +523,6 @@ namespace Xarial.XCad.Utils.CustomFeature
 
         protected virtual void CompleteFeature(PageCloseReasons_e reason)
         {
-            EditingCompleted?.Invoke(m_App, CurrentDocument, m_CurrentFeature, m_CurPageData, reason);
-
             ShowEditBodies();
 
             HidePreviewBodies();

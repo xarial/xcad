@@ -942,6 +942,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         /// <param name="feat">Feature being edited</param>
         /// <param name="page">Page data</param>
         /// <param name="reason">Closing reason</param>
+        /// <remarks>All the changes to the feature are applied or cancelled dependin gon the close reason</remarks>
         public virtual void OnEditingCompleted(IXApplication app, IXDocument doc, IXCustomFeature<TParams> feat, TPage page, PageCloseReasons_e reason)
         {
         }
