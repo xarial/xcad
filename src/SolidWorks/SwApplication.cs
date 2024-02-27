@@ -296,8 +296,16 @@ namespace Xarial.XCad.SolidWorks
         public SwMaterialsDatabaseRepository MaterialDatabases { get; private set; }
 
         internal SwApplication(ISldWorks app, IXServiceCollection customServices) 
-            : this(app, default(Action<SwApplication>))
+            : this(default)
         {
+            if (app == null) 
+            {
+                throw new ArgumentNullException(nameof(app));
+            }
+
+            m_Creator = new ElementCreator<ISldWorks>(CreateInstance, app, true);
+            WatchStartupCompleted((SldWorks)app);
+
             customServices = customServices ?? new ServiceCollection();
 
             LoadServices(customServices);
@@ -307,7 +315,28 @@ namespace Xarial.XCad.SolidWorks
         /// <summary>
         /// Only to be used within SwAddInEx
         /// </summary>
-        internal SwApplication(ISldWorks app, Action<SwApplication> startupCompletedCallback)
+        internal SwApplication(Action<SwApplication> startupCompletedCallback, Func<ISldWorks> swProvider,
+            IXServiceCollection customServices) 
+            : this(startupCompletedCallback)
+        {
+            m_CustomServices = customServices ?? new ServiceCollection();
+
+            m_Creator = new ElementCreator<ISldWorks>(
+                c => swProvider.Invoke(),
+                (s, c) => WatchStartupCompleted((SldWorks)s),
+                null, false);
+        }
+
+        /// <Remarks>
+        /// Used for <see cref="SwApplicationFactory.PreCreate"/>
+        /// </Remarks>
+        internal SwApplication() : this(default)
+        {
+            m_Creator = new ElementCreator<ISldWorks>(CreateInstance, null, false);
+            m_Creator.CachedProperties.Set(new ServiceCollection(), nameof(CustomServices));
+        }
+
+        private SwApplication(Action<SwApplication> startupCompletedCallback)
         {
             m_IsStartupNotified = false;
             m_StartupCompletedCallback = startupCompletedCallback;
@@ -315,26 +344,9 @@ namespace Xarial.XCad.SolidWorks
             TagsRegistry = new GlobalTagsRegistry();
 
             Options = new SwApplicationOptions(this);
-
-            m_Creator = new ElementCreator<ISldWorks>(CreateInstance, app, true);
-            WatchStartupCompleted((SldWorks)app);
         }
 
-        /// <Remarks>
-        /// Used for <see cref="SwApplicationFactory.PreCreate"/>
-        /// </Remarks>
-        internal SwApplication()
-        {
-            m_IsStartupNotified = false;
-
-            TagsRegistry = new GlobalTagsRegistry();
-
-            m_Creator = new ElementCreator<ISldWorks>(CreateInstance, null, false);
-
-            m_Creator.CachedProperties.Set(new ServiceCollection(), nameof(CustomServices));
-        }
-
-        internal void LoadServices(IXServiceCollection customServices)
+        private void LoadServices(IXServiceCollection customServices)
         {
             if (!m_IsInitialized)
             {
@@ -354,7 +366,7 @@ namespace Xarial.XCad.SolidWorks
             }
         }
 
-        internal void Init(IServiceProvider svcProvider)
+        private void Init(IServiceProvider svcProvider)
         {
             if (!m_IsInitialized)
             {

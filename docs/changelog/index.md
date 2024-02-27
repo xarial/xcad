@@ -11,7 +11,7 @@ Breaking change is marked with &#x26A0; symbol
 ## 0.8.1 -
 
 * &#x26A0; IXCustomFeatureDefinition\<TParams, TPage\>::ConvertParamsToPage renamed to IXCustomFeatureDefinition\<TParams, TPage\>::CreatePropertyPage and **TParams par** parameter is replaced with **IXCustomFeature<TParams> feat**
-* &#x26A0; IXCustomFeatureDefinition\<TParams, TPage\>::ConvertPageToParams renamed to IXCustomFeatureDefinition\<TParams, TPage\>::CreateParametersFromPropertyPage
+* &#x26A0; IXCustomFeatureDefinition\<TParams, TPage\>::ConvertPageToParams renamed to IXCustomFeatureDefinition\<TParams, TPage\>::CreateParameters
 
 ## 0.8.0 - January 30, 2024
 
