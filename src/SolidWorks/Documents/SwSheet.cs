@@ -168,9 +168,11 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        public IXSketch2D Sketch 
+        public IXSketch2D Sketch => new SwSheetSketch(this, SheetView.IGetSketch(), m_Drawing, OwnerApplication, true);
+        
+        internal IView SheetView 
         {
-            get 
+            get
             {
                 foreach (object[] sheet in m_Drawing.Drawing.GetViews() as object[])
                 {
@@ -178,7 +180,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
                     if (string.Equals(sheetView.Name, Sheet.GetName(), StringComparison.CurrentCultureIgnoreCase))
                     {
-                        return new SwSheetSketch(this, sheetView.IGetSketch(), m_Drawing, OwnerApplication, true);
+                        return sheetView;
                     }
                 }
 

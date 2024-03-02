@@ -138,15 +138,26 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         protected override IEnumerable<ISwAnnotation> IterateAnnotations(bool notes, bool dimensions, bool all)
         {
-            foreach (var sheet in m_Drw.Sheets)
-            {
-                foreach (var view in sheet.DrawingViews)
+            foreach (SwSheet sheet in m_Drw.Sheets)
+            {   
+                foreach (var view in IterateAllSheetViews(sheet))
                 {
-                    foreach (ISwAnnotation ann in view.Annotations)
+                    foreach (var ann in new SwDrawingViewAnnotationCollection(view)
+                        .Iterate(notes, dimensions, all))
                     {
                         yield return ann;
                     }
                 }
+            }
+        }
+
+        private IEnumerable<SwDrawingView> IterateAllSheetViews(SwSheet sheet)
+        {
+            yield return m_Drw.CreateObjectFromDispatch<SwDrawingView>(sheet.SheetView);
+
+            foreach (SwDrawingView view in sheet.DrawingViews)
+            {
+                yield return view;
             }
         }
     }
@@ -164,6 +175,8 @@ namespace Xarial.XCad.SolidWorks.Documents
             + m_DrwView.DrawingView.GetDimensionCount4() 
             + m_DrwView.DrawingView.GetDetailCircleCount2(out _)
             + m_DrwView.DrawingView.GetSectionLineCount2(out _);
+
+        internal IEnumerable<ISwAnnotation> Iterate(bool notes, bool dimensions, bool all) => IterateAnnotations(notes, dimensions, all);
 
         protected override IEnumerable<ISwAnnotation> IterateAnnotations(bool notes, bool dimensions, bool all)
         {
