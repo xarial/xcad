@@ -11,6 +11,7 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Text;
+using Xarial.XCad.Toolkit.Graphics;
 using Xarial.XCad.UI;
 
 namespace Xarial.XCad.SolidWorks.Utils

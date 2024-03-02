@@ -6,6 +6,7 @@
 //*********************************************************************
 
 using SolidWorks.Interop.sldworks;
+using SolidWorks.Interop.swconst;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -98,7 +99,14 @@ namespace Xarial.XCad.SolidWorks.Documents
                 () => new SwDetailCircle(null, m_Doc, m_Doc.OwnerApplication));
 
         public void RemoveRange(IEnumerable<IXAnnotation> ents, CancellationToken cancellationToken)
-            => throw new NotImplementedException();
+        {
+            m_Doc.Selections.ReplaceRange(ents, cancellationToken);
+            
+            if (!m_Doc.Model.Extension.DeleteSelection2((int)swDeleteSelectionOptions_e.swDelete_Absorbed))
+            {
+                throw new Exception("Failed to delete annotations");
+            }
+        }
 
         public bool TryGet(string name, out IXAnnotation ent)
             => throw new NotSupportedException();

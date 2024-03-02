@@ -27,6 +27,7 @@ using Xarial.XCad.SolidWorks.Documents.Exceptions;
 using Xarial.XCad.SolidWorks.Features;
 using Xarial.XCad.SolidWorks.Sketch;
 using Xarial.XCad.SolidWorks.Utils;
+using Xarial.XCad.Toolkit.Graphics;
 using Xarial.XCad.UI;
 
 namespace Xarial.XCad.SolidWorks.Documents

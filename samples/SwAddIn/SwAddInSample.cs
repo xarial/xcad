@@ -65,6 +65,7 @@ using Xarial.XCad.Annotations;
 using Xarial.XCad.UI.Enums;
 using Xarial.XToolkit;
 using Xarial.XCad.SolidWorks.Geometry.Primitives;
+using Xarial.XCad.Toolkit.Graphics;
 
 namespace SwAddInExample
 {
