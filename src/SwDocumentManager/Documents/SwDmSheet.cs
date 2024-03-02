@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading;
+using Xarial.XCad.Annotations;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Documents.Structures;
@@ -28,6 +29,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         #region Not Supported
         public IXSheet Clone(IXDrawing targetDrawing) => throw new NotSupportedException();
         public IXSketch2D Sketch => throw new NotSupportedException();
+        public IXAnnotationRepository Annotations => throw new NotSupportedException();
         #endregion
 
         public string Name

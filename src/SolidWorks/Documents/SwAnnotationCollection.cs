@@ -140,41 +140,39 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
             foreach (SwSheet sheet in m_Drw.Sheets)
             {   
-                foreach (var view in IterateAllSheetViews(sheet))
+                foreach (var ann in sheet.Annotations.Iterate(notes, dimensions, all))
                 {
-                    foreach (var ann in new SwDrawingViewAnnotationCollection(view)
-                        .Iterate(notes, dimensions, all))
+                    yield return ann;
+                }
+
+                foreach (SwDrawingView view in sheet.DrawingViews)
+                {
+                    foreach (var ann in view.Annotations.Iterate(notes, dimensions, all))
                     {
                         yield return ann;
                     }
                 }
             }
         }
-
-        private IEnumerable<SwDrawingView> IterateAllSheetViews(SwSheet sheet)
-        {
-            yield return m_Drw.CreateObjectFromDispatch<SwDrawingView>(sheet.SheetView);
-
-            foreach (SwDrawingView view in sheet.DrawingViews)
-            {
-                yield return view;
-            }
-        }
     }
 
     internal class SwDrawingViewAnnotationCollection : SwAnnotationCollection
     {
-        private readonly SwDrawingView m_DrwView;
+        protected virtual SwDrawingView DrawingView { get; }
 
-        public SwDrawingViewAnnotationCollection(SwDrawingView drwView) : base(drwView.OwnerDocument)
+        public SwDrawingViewAnnotationCollection(SwDrawingView drwView) : this(drwView.OwnerDocument)
         {
-            m_DrwView = drwView;
+            DrawingView = drwView;
         }
 
-        public override int Count => m_DrwView.DrawingView.GetAnnotationCount() 
-            + m_DrwView.DrawingView.GetDimensionCount4() 
-            + m_DrwView.DrawingView.GetDetailCircleCount2(out _)
-            + m_DrwView.DrawingView.GetSectionLineCount2(out _);
+        protected SwDrawingViewAnnotationCollection(SwDocument doc) : base(doc)
+        {
+        }
+
+        public override int Count => DrawingView.DrawingView.GetAnnotationCount() 
+            + DrawingView.DrawingView.GetDimensionCount4() 
+            + DrawingView.DrawingView.GetDetailCircleCount2(out _)
+            + DrawingView.DrawingView.GetSectionLineCount2(out _);
 
         internal IEnumerable<ISwAnnotation> Iterate(bool notes, bool dimensions, bool all) => IterateAnnotations(notes, dimensions, all);
 
@@ -182,7 +180,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
             if (all)
             {
-                var ann = m_DrwView.DrawingView.IGetFirstAnnotation2();
+                var ann = DrawingView.DrawingView.IGetFirstAnnotation2();
                 
                 while (ann != null)
                 {
@@ -191,7 +189,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                     ann = ann.IGetNext2();
                 }
 
-                var detailCircles = (object[])m_DrwView.DrawingView.GetDetailCircles();
+                var detailCircles = (object[])DrawingView.DrawingView.GetDetailCircles();
 
                 if (detailCircles != null) 
                 {
@@ -201,7 +199,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                     }
                 }
 
-                var sectionLines = (object[])m_DrwView.DrawingView.GetSectionLines();
+                var sectionLines = (object[])DrawingView.DrawingView.GetSectionLines();
 
                 if (sectionLines != null)
                 {
@@ -215,7 +213,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             {
                 if (notes)
                 {
-                    var note = m_DrwView.DrawingView.IGetFirstNote();
+                    var note = DrawingView.DrawingView.IGetFirstNote();
 
                     while (note != null)
                     {
@@ -227,7 +225,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
                 if (dimensions)
                 {
-                    var dispDim = m_DrwView.DrawingView.GetFirstDisplayDimension5();
+                    var dispDim = DrawingView.DrawingView.GetFirstDisplayDimension5();
 
                     while (dispDim != null)
                     {
@@ -237,6 +235,17 @@ namespace Xarial.XCad.SolidWorks.Documents
                     }
                 }
             }
+        }
+    }
+
+    internal class SwSheetAnnotationCollection : SwDrawingViewAnnotationCollection
+    {
+        private readonly SwSheet m_Sheet;
+
+        protected override SwDrawingView DrawingView => m_Sheet.SheetView;
+
+        public SwSheetAnnotationCollection(SwSheet sheet) : base(sheet.OwnerDocument)
+        {
         }
     }
 }

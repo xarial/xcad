@@ -8,6 +8,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Xarial.XCad.Annotations;
 using Xarial.XCad.Base;
 using Xarial.XCad.Documents.Delegates;
 using Xarial.XCad.Documents.Structures;
@@ -30,6 +31,11 @@ namespace Xarial.XCad.Documents
         /// Drawings views on this sheet
         /// </summary>
         IXDrawingViewRepository DrawingViews { get; }
+
+        /// <summary>
+        /// Collection of annotations
+        /// </summary>
+        IXAnnotationRepository Annotations { get; }
 
         /// <summary>
         /// Sketch space of this sheet

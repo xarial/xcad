@@ -70,6 +70,9 @@ namespace Xarial.XCad.SolidWorks.Documents
     [DebuggerDisplay("{" + nameof(Name) + "}")]
     internal class SwDrawingView : SwSelObject, ISwDrawingView
     {
+        TSelObject IXObjectContainer.ConvertObject<TSelObject>(TSelObject obj) => ConvertObjectBoxed(obj) as TSelObject;
+        IXAnnotationRepository IXDrawingView.Annotations => Annotations;
+
         protected readonly SwDrawing m_Drawing;
 
         public IView DrawingView => m_Creator.Element;
@@ -484,7 +487,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public IXDimensionRepository Dimensions { get; }
         
-        public IXAnnotationRepository Annotations { get; }
+        public SwDrawingViewAnnotationCollection Annotations { get; }
 
         public IXDrawingView BaseView
         {
@@ -773,8 +776,6 @@ namespace Xarial.XCad.SolidWorks.Documents
                 viewSw.SetDisplayMode3(useParent, (int)dispMode, faceted, dispEdges);
             }
         }
-
-        TSelObject IXObjectContainer.ConvertObject<TSelObject>(TSelObject obj) => ConvertObjectBoxed(obj) as TSelObject;
 
         public TSelObject ConvertObject<TSelObject>(TSelObject obj)
             where TSelObject : ISwSelObject

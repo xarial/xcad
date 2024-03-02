@@ -15,6 +15,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using Xarial.XCad.Annotations;
 using Xarial.XCad.Base.Enums;
 using Xarial.XCad.Data;
 using Xarial.XCad.Documents;
@@ -38,6 +39,8 @@ namespace Xarial.XCad.SolidWorks.Documents
     [DebuggerDisplay("{" + nameof(Name) + "}")]
     internal class SwSheet : SwSelObject, ISwSheet
     {
+        IXAnnotationRepository IXSheet.Annotations => Annotations;
+
         private readonly SwDrawing m_Drawing;
 
         public ISheet Sheet => m_Creator.Element;
@@ -168,9 +171,9 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        public IXSketch2D Sketch => new SwSheetSketch(this, SheetView.IGetSketch(), m_Drawing, OwnerApplication, true);
+        public IXSketch2D Sketch => new SwSheetSketch(this, SheetView.DrawingView.IGetSketch(), m_Drawing, OwnerApplication, true);
         
-        internal IView SheetView 
+        internal SwDrawingView SheetView 
         {
             get
             {
@@ -180,13 +183,15 @@ namespace Xarial.XCad.SolidWorks.Documents
 
                     if (string.Equals(sheetView.Name, Sheet.GetName(), StringComparison.CurrentCultureIgnoreCase))
                     {
-                        return sheetView;
+                        return m_Drawing.CreateObjectFromDispatch<SwDrawingView>(sheetView);
                     }
                 }
 
                 throw new Exception("Failed to find the view of the sheet");
             }
         }
+
+        internal SwSheetAnnotationCollection Annotations { get; }
 
         private readonly ElementCreator<ISheet> m_Creator;
 
@@ -203,6 +208,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             m_Drawing = draw;
             m_DrawingViews = new SwDrawingViewsCollection(draw, this);
             m_Creator = new ElementCreator<ISheet>(CreateSheet, CommitCache, sheet, sheet != null);
+            Annotations = new SwSheetAnnotationCollection(this);
         }
 
         private ISheet CreateSheet(CancellationToken arg)
@@ -460,6 +466,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         public IXSheet Clone(IXDrawing targetDrawing) => throw new NotSupportedException();
         public IXSketch2D Sketch => throw new NotSupportedException();
         public void Delete() => throw new UnloadedDocumentPreviewOnlySheetException();
+        public IXAnnotationRepository Annotations => throw new UnloadedDocumentPreviewOnlySheetException();
         #endregion
 
         private readonly ISwApplication m_App;
