@@ -172,8 +172,10 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        public IXSketch2D Sketch => new SwSheetSketch(this, SheetView.DrawingView.IGetSketch(), m_Drawing, OwnerApplication, true);
-        
+        public IXSketch2D Sketch => new SwSheetSketch(this, SheetView.DrawingView.IGetSketch(), m_Drawing, OwnerApplication, false);
+
+        public IXSketch2D FormatSketch => new SwSheetSketch(this, SheetView.DrawingView.IGetSketch(), m_Drawing, OwnerApplication, true);
+
         internal SwDrawingView SheetView 
         {
             get
@@ -381,15 +383,28 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         private readonly ISketchManager m_SketchMgr;
 
-        internal SwSheetSketchEditor(SwSheetSketch sheetSketch, SwSheet sheet) : base(sheet)
+        private readonly IDrawingDoc m_Drw;
+
+        private readonly bool m_SheetFormat;
+
+        private readonly bool m_OrigSheetFormat;
+
+        internal SwSheetSketchEditor(SwSheetSketch sheetSketch, SwSheet sheet, bool sheetFormat) : base(sheet)
         {
             m_SheetSketch = sheetSketch;
 
-            var drw = ((ISwDrawing)sheet.OwnerDocument).Drawing;
+            m_SheetFormat = sheetFormat;
 
-            m_SketchMgr = ((IModelDoc2)drw).SketchManager;
+            m_Drw = ((ISwDrawing)sheet.OwnerDocument).Drawing;
 
-            drw.ActivateView("");
+            m_OrigSheetFormat = !m_Drw.GetEditSheet();
+
+            m_SketchMgr = ((IModelDoc2)m_Drw).SketchManager;
+
+            m_Drw.ActivateView("");
+            
+            SetEditTarget(m_SheetFormat);
+
             sheet.OwnerDocument.Selections.Clear();
 
             if (!m_SketchMgr.AddToDB)
@@ -403,12 +418,29 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public bool Cancel { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
 
+        private void SetEditTarget(bool sheetFormat)
+        {
+            if (m_Drw.GetEditSheet() != !sheetFormat)
+            {
+                if (sheetFormat)
+                {
+                    m_Drw.EditTemplate();
+                }
+                else
+                {
+                    m_Drw.EditSheet();
+                }
+            }
+        }
+
         public override void Dispose()
         {
             if (m_AddToDbOrig.HasValue)
             {
                 m_SketchMgr.AddToDB = m_AddToDbOrig.Value;
             }
+
+            SetEditTarget(m_OrigSheetFormat);
 
             base.Dispose();
         }
@@ -419,15 +451,18 @@ namespace Xarial.XCad.SolidWorks.Documents
         private readonly SwSheet m_Sheet;
         private readonly SwDrawing m_Draw;
 
-        internal SwSheetSketch(SwSheet sheet, ISketch sketch, SwDrawing drw, SwApplication app, bool created) : base(sketch, drw, app, created)
+        private readonly bool m_SheetFormat;
+
+        internal SwSheetSketch(SwSheet sheet, ISketch sketch, SwDrawing drw, SwApplication app, bool sheetFormat) : base(sketch, drw, app, true)
         {
             m_Draw = drw;
             m_Sheet = sheet;
+            m_SheetFormat = sheetFormat;
         }
 
         protected internal override bool IsEditing => m_Draw.Sheets.Active.Equals(m_Sheet);
 
-        protected internal override IEditor<IXSketchBase> CreateSketchEditor(ISketch sketch) => new SwSheetSketchEditor(this, m_Sheet);
+        protected internal override IEditor<IXSketchBase> CreateSketchEditor(ISketch sketch) => new SwSheetSketchEditor(this, m_Sheet, m_SheetFormat);
     }
 
     internal static class PaperSizeHelper 
@@ -466,6 +501,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         public PaperSize PaperSize { get => throw new UnloadedDocumentPreviewOnlySheetException(); set => throw new UnloadedDocumentPreviewOnlySheetException(); }
         public IXSheet Clone(IXDrawing targetDrawing) => throw new NotSupportedException();
         public IXSketch2D Sketch => throw new NotSupportedException();
+        public IXSketch2D FormatSketch => throw new NotSupportedException();
         public void Delete() => throw new UnloadedDocumentPreviewOnlySheetException();
         public IXAnnotationRepository Annotations => throw new UnloadedDocumentPreviewOnlySheetException();
         #endregion

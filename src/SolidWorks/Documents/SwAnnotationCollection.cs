@@ -254,6 +254,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public SwSheetAnnotationCollection(SwSheet sheet) : base(sheet.OwnerDocument)
         {
+            m_Sheet = sheet;
         }
     }
 }

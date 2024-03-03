@@ -43,6 +43,11 @@ namespace Xarial.XCad.Documents
         IXSketch2D Sketch { get; }
 
         /// <summary>
+        /// Sketch space of this sheet format
+        /// </summary>
+        IXSketch2D FormatSketch { get; }
+
+        /// <summary>
         /// Preview of this drawing sheet
         /// </summary>
         IXImage Preview { get; }

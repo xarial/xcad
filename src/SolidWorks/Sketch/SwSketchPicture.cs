@@ -153,7 +153,7 @@ namespace Xarial.XCad.SolidWorks.Sketch
 
                         if (OwnerApplication.Sw.IsSame(sheetSketch, ownerSketch) == (int)swObjectEquality.swObjectSame) 
                         {
-                            return new SwSheetSketch((SwSheet)draw.Sheets[sheetView.Name], ownerSketch, draw, OwnerApplication, true);
+                            return new SwSheetSketch((SwSheet)draw.Sheets[sheetView.Name], ownerSketch, draw, OwnerApplication, false);
                         }
                     }
 
