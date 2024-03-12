@@ -128,14 +128,18 @@ namespace Xarial.XCad.SolidWorks.Features
             }
         }
 
-        /// <inheritdoc/>
-        public void CreateCustomFeature<TDef, TParams, TPage>(TParams data)
-            where TParams : class
-            where TPage : class
-            where TDef : class, IXCustomFeatureDefinition<TParams, TPage>, new()
+        public void InsertCustomFeature(Type featDefType, object data)
         {
-            var inst = (TDef)CustomFeatureDefinitionInstanceCache.GetInstance(typeof(TDef));
-            inst.Insert(Document, data);
+            var inst = CustomFeatureDefinitionInstanceCache.GetInstance(featDefType);
+
+            if (inst is IXCustomFeatureEditorDefinition)
+            {
+                ((IXCustomFeatureEditorDefinition)inst).Insert(Document, data);
+            }
+            else 
+            {
+                throw new Exception("Feature definition is not an editor feature");
+            }
         }
 
         public void Enable(bool enable)

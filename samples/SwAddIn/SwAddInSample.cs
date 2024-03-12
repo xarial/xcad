@@ -542,7 +542,8 @@ namespace SwAddInExample
                         break;
 
                     case Commands_e.CreateBox:
-                        Application.Documents.Active.Features.CreateCustomFeature<BoxMacroFeatureEditor, BoxMacroFeatureData, BoxPage>();
+                        Application.Documents.Active.Features.InsertCustomFeature<BoxMacroFeatureEditor, BoxMacroFeatureData, BoxPage>();
+                        //Application.Documents.Active.Features.InsertCustomFeature(typeof(BoxMacroFeatureEditor), null);
                         break;
 
                     case Commands_e.WatchDimension:

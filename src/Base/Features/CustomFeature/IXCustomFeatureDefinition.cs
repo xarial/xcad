@@ -77,11 +77,24 @@ namespace Xarial.XCad.Features.CustomFeature
     }
 
     /// <summary>
+    /// Custom feature which is managed by property manager page 
+    /// </summary>
+    public interface IXCustomFeatureEditorDefinition : IXCustomFeatureDefinition
+    {
+        /// <summary>
+        /// Starts insertion of the custom feature
+        /// </summary>
+        /// <param name="doc">Document</param>
+        /// <param name="data">Feature data</param>
+        void Insert(IXDocument doc, object data);
+    }
+
+    /// <summary>
     /// Represents custom feature with a built-in custom page editor
     /// </summary>
     /// <typeparam name="TParams">Parameters of this custom feature</typeparam>
     /// <typeparam name="TPage">Page editor of this custom feature</typeparam>
-    public interface IXCustomFeatureDefinition<TParams, TPage> : IXCustomFeatureDefinition<TParams>
+    public interface IXCustomFeatureDefinition<TParams, TPage> : IXCustomFeatureEditorDefinition, IXCustomFeatureDefinition<TParams>
         where TParams : class
         where TPage : class
     {

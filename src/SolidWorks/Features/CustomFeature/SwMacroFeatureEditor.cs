@@ -47,9 +47,9 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 
             if (reason == PageCloseReasons_e.Okay || reason == PageCloseReasons_e.Apply) 
             {
-                if (m_CurrentFeature.IsCommitted)
+                if (CurrentFeature.IsCommitted)
                 {
-                    var curMacroFeat = (SwMacroFeature<TData>)m_CurrentFeature;
+                    var curMacroFeat = (SwMacroFeature<TData>)CurrentFeature;
 
                     if (curMacroFeat.UseCachedParameters)
                     {

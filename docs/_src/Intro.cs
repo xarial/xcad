@@ -129,7 +129,7 @@ namespace Xarial.XCad.Documentation
             switch (cmd) 
             {
                 case Commands_e.InsertMacroFeature:
-                    Application.Documents.Active.Features.CreateCustomFeature<BoxMacroFeature, BoxData, BoxData>();
+                    Application.Documents.Active.Features.InsertCustomFeature<BoxMacroFeature, BoxData, BoxData>();
                     break;
             }
         }

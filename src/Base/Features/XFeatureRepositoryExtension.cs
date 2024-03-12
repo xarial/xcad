@@ -57,12 +57,20 @@ namespace Xarial.XCad.Features
         /// <typeparam name="TDef">Defintion</typeparam>
         /// <typeparam name="TParams">Parameters</typeparam>
         /// <typeparam name="TPage">Page</typeparam>
+        /// <param name="data">Default feature parameters</param>
         /// <param name="feats">Feature repository</param>
-        public static void CreateCustomFeature<TDef, TParams, TPage>(this IXFeatureRepository feats)
+        public static void InsertCustomFeature<TDef, TParams, TPage>(this IXFeatureRepository feats, TParams data)
+            where TParams : class
+            where TPage : class
+            where TDef : class, IXCustomFeatureDefinition<TParams, TPage>
+            => feats.InsertCustomFeature(typeof(TDef), data);
+
+        /// <inheritdoc cref="InsertCustomFeature{TDef, TParams, TPage}(IXFeatureRepository, TParams)"/>
+        public static void InsertCustomFeature<TDef, TParams, TPage>(this IXFeatureRepository feats)
             where TParams : class, new()
             where TPage : class
             where TDef : class, IXCustomFeatureDefinition<TParams, TPage>, new()
-            => feats.CreateCustomFeature<TDef, TParams, TPage>(new TParams());
+            => InsertCustomFeature<TDef, TParams, TPage>(feats, new TParams());
 
         /// <summary>
         /// Creates a template for 2D sketch

@@ -741,6 +741,9 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             IXApplication app, IXDocument doc, IXCustomFeature<TParams> feat, out AlignDimensionDelegate<TParams> alignDim)
             => CreateGeometry((ISwApplication)app, (ISwDocument)doc, (ISwMacroFeature<TParams>)feat, out alignDim)?.Cast<SwBody>().ToArray();
 
+        /// <inheritdoc/>
+        void IXCustomFeatureEditorDefinition.Insert(IXDocument doc, object data) => this.Insert(doc, (TParams)data);
+
         private readonly Lazy<SwMacroFeatureEditor<TParams, TPage>> m_Editor;
 
         private readonly CustomFeatureParametersParser m_ParamsParser;
