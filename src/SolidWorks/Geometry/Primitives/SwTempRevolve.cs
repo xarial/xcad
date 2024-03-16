@@ -24,7 +24,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
 {
     public interface ISwTempRevolve : IXRevolve, ISwTempPrimitive
     {
-        new ISwTempRegion[] Profiles { get; set; }
+        new ISwPlanarRegion[] Profiles { get; set; }
         new ISwLineCurve Axis { get; set; }
     }
 
@@ -42,7 +42,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
         IXPlanarRegion[] IXRevolve.Profiles 
         {
             get => Profiles;
-            set => Profiles = value.Cast<ISwTempRegion>().ToArray();
+            set => Profiles = value.Cast<ISwPlanarRegion>().ToArray();
         }
 
         IXLine IXRevolve.Axis
@@ -67,9 +67,9 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
             }
         }
 
-        public ISwTempRegion[] Profiles
+        public ISwPlanarRegion[] Profiles
         {
-            get => m_Creator.CachedProperties.Get<ISwTempRegion[]>();
+            get => m_Creator.CachedProperties.Get<ISwPlanarRegion[]>();
             set
             {
                 if (IsCommitted)
