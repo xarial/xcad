@@ -179,7 +179,14 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
                     progId, null, paramNames, paramTypes,
                     paramValues, dimTypes, dimValues, editBodies, icons, (int)options);
 
-                return feat;
+                if (feat != null)
+                {
+                    return feat;
+                }
+                else 
+                {
+                    throw new Exception($"Failed to insert COM feature of type '{progId}'");
+                }
             }
         }
 

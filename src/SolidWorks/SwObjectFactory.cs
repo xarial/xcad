@@ -18,7 +18,9 @@ using Xarial.XCad.SolidWorks.Features.CustomFeature;
 using Xarial.XCad.SolidWorks.Geometry;
 using Xarial.XCad.SolidWorks.Geometry.Curves;
 using Xarial.XCad.SolidWorks.Geometry.Surfaces;
+using Xarial.XCad.SolidWorks.Services;
 using Xarial.XCad.SolidWorks.Sketch;
+using Xarial.XCad.Toolkit;
 using Xarial.XCad.Utils.Reflection;
 
 namespace Xarial.XCad.SolidWorks
@@ -422,7 +424,7 @@ namespace Xarial.XCad.SolidWorks
                         case "WeldMemberFeat":
                             return new SwStructuralMember(feat, doc, app, true);
                         case "MacroFeature":
-                            if (TryGetParameterType(feat, out Type paramType))
+                            if (TryGetParameterType(feat, app, out Type paramType))
                             {
                                 return SwMacroFeature<object>.CreateSpecificInstance(feat, doc, app, paramType);
                             }
@@ -439,24 +441,19 @@ namespace Xarial.XCad.SolidWorks
             }
         }
 
-        private static bool TryGetParameterType(IFeature feat, out Type paramType)
+        private static bool TryGetParameterType(IFeature feat, SwApplication app, out Type paramType)
         {
             var featData = feat.GetDefinition() as IMacroFeatureData;
 
-            //NOTE: definition of rolled back macro feature is null
-            var progId = featData?.GetProgId();
+            var macroFeatTypeProvider = app.Services.GetService<IMacroFeatureTypeProvider>();
+            var type = macroFeatTypeProvider.ProvideType(featData);
 
-            if (!string.IsNullOrEmpty(progId))
+            if (type != null)
             {
-                var type = Type.GetTypeFromProgID(progId);
-
-                if (type != null)
+                if (type.IsAssignableToGenericType(typeof(SwMacroFeatureDefinition<>)))
                 {
-                    if (type.IsAssignableToGenericType(typeof(SwMacroFeatureDefinition<>)))
-                    {
-                        paramType = type.GetArgumentsOfGenericType(typeof(SwMacroFeatureDefinition<>)).First();
-                        return true;
-                    }
+                    paramType = type.GetArgumentsOfGenericType(typeof(SwMacroFeatureDefinition<>)).First();
+                    return true;
                 }
             }
 

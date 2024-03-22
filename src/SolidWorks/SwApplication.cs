@@ -357,6 +357,7 @@ namespace Xarial.XCad.SolidWorks
                 customServices.Add<IFilePathResolver>(() => new SwFilePathResolverNoSearchFolders(this), ServiceLifetimeScope_e.Singleton, false);//TODO: there is some issue with recursive search of folders in search locations - do a test to validate
                 customServices.Add<IMemoryGeometryBuilderToleranceProvider, DefaultMemoryGeometryBuilderToleranceProvider>(ServiceLifetimeScope_e.Singleton, false);
                 customServices.Add<IIconsCreator, BaseIconsCreator>(ServiceLifetimeScope_e.Singleton, false);
+                customServices.Add<IMacroFeatureTypeProvider, ComMacroFeatureTypeProvider>(ServiceLifetimeScope_e.Singleton);
 
                 ConfigureServices?.Invoke(this, customServices);
             }
