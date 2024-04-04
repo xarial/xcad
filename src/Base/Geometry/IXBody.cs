@@ -23,7 +23,7 @@ namespace Xarial.XCad.Geometry
         /// <summary>
         /// Name of the body
         /// </summary>
-        string Name { get; }
+        string Name { get; set; }
 
         /// <summary>
         /// Is body visible

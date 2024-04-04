@@ -79,7 +79,11 @@ namespace Xarial.XCad.SolidWorks.Geometry
             set => Body.HideBody(!value);
         }
 
-        public string Name => Body.Name;
+        public virtual string Name
+        {
+            get => Body.Name;
+            set => Body.Name = value;
+        }
 
         public ISwComponent Component 
         {

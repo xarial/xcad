@@ -26,7 +26,7 @@ namespace Xarial.XCad.SwDocumentManager.Geometry
     internal abstract class SwDmBody : SwDmSelObject, ISwDmBody
     {
         #region Not Supported
-        public string Name => throw new NotSupportedException();
+        public string Name { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
         public bool Visible { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
         public Color? Color { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
         public IEnumerable<IXFace> Faces => throw new NotSupportedException();

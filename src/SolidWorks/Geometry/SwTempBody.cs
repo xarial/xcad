@@ -195,6 +195,12 @@ namespace Xarial.XCad.SolidWorks.Geometry
             }
         }
 
+        public override string Name 
+        {
+            get => throw new NotSupportedException("Temp body does not support name"); 
+            set => throw new NotSupportedException("Temp body does not support name");
+        }
+
         public void Preview(IXObject context, Color color)
         {
             switch (context) 
