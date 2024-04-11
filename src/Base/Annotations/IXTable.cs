@@ -23,7 +23,7 @@ namespace Xarial.XCad.Annotations
         /// <summary>
         /// Returns the table data reader
         /// </summary>
-        IDataReader CreateReader();
+        IDataReader ExecuteReader();
     }
 
     /// <summary>
@@ -39,7 +39,7 @@ namespace Xarial.XCad.Annotations
         public static DataTable Read(this IXTable table) 
         {
             var dataTable = new DataTable();
-            dataTable.Load(table.CreateReader());
+            dataTable.Load(table.ExecuteReader());
             return dataTable;
         }
     }

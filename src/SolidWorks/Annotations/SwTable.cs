@@ -18,7 +18,7 @@ using Xarial.XCad.SolidWorks.Documents;
 
 namespace Xarial.XCad.SolidWorks.Annotations
 {
-    public interface ISwTable : IXTable 
+    public interface ISwTable : IXTable, ISwAnnotation
     {
         ITableAnnotation TableAnnotation { get; }
     }
@@ -195,6 +195,6 @@ namespace Xarial.XCad.SolidWorks.Annotations
             TableAnnotation = tableAnn;
         }
 
-        public IDataReader CreateReader() => new TableAnnotationReader(TableAnnotation);
+        public IDataReader ExecuteReader() => new TableAnnotationReader(TableAnnotation);
     }
 }
