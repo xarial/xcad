@@ -38,7 +38,7 @@ namespace Xarial.XCad.Inventor.Documents
             m_iAssmTable = new AiAssemblyTable(this);
         }
 
-        public IXComponent EditingComponent => throw new NotImplementedException();
+        public IXComponent EditingComponent { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
         IXDocumentEvaluation IXDocument3D.Evaluation => throw new NotImplementedException();
 

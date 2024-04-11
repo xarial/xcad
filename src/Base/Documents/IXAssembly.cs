@@ -39,6 +39,7 @@ namespace Xarial.XCad.Documents
         /// <summary>
         /// Returns the component which is currently being editied in-context or null
         /// </summary>
-        IXComponent EditingComponent { get; }
+        /// <remarks>Set this property to null to exit the editing </remarks>
+        IXComponent EditingComponent { get; set; }
     }
 }

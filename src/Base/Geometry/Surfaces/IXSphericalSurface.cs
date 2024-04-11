@@ -8,6 +8,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Xarial.XCad.Geometry.Structures;
 
 namespace Xarial.XCad.Geometry.Surfaces
 {
@@ -16,5 +17,14 @@ namespace Xarial.XCad.Geometry.Surfaces
     /// </summary>
     public interface IXSphericalSurface : IXSurface
     {
+        /// <summary>
+        /// Radius of the surface
+        /// </summary>
+        double Radius { get; }
+
+        /// <summary>
+        /// Center point of the surface
+        /// </summary>
+        Point Origin { get; }
     }
 }

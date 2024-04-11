@@ -75,7 +75,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         ISwAssemblyConfigurationCollection ISwAssembly.Configurations => m_LazyConfigurations.Value;
         IXAssemblyConfigurationRepository IXAssembly.Configurations => (this as ISwAssembly).Configurations;
-        IXComponent IXAssembly.EditingComponent => EditingComponent;
+        IXComponent IXAssembly.EditingComponent { get => EditingComponent; set => EditingComponent = (ISwComponent)value; }
         IXAssemblyEvaluation IXAssembly.Evaluation => m_Evaluation;
 
         internal protected override swDocumentTypes_e? DocumentType => swDocumentTypes_e.swDocASSEMBLY;
@@ -99,6 +99,18 @@ namespace Xarial.XCad.SolidWorks.Documents
                 else
                 {
                     return null;
+                }
+            }
+            set 
+            {
+                if (value != null)
+                {
+                    value.Edit();
+                }
+                else 
+                {
+                    Model.ClearSelection2(true);
+                    Assembly.EditAssembly();
                 }
             }
         }
