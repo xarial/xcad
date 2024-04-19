@@ -81,7 +81,7 @@ namespace Xarial.XCad.SolidWorks.Annotations
 
                 if (srcIndex != targIndex)
                 {
-                    if (!m_Table.TableAnnotation.MoveRow(srcIndex, (int)GetPosition(targIndex), targIndex))
+                    if (!m_Table.TableAnnotation.MoveRow(srcIndex, (int)swTableItemInsertPosition_e.swTableItemMovePosition_Relative, targIndex - srcIndex))
                     {
                         throw new TableRowOperationException($"Failed to move the row {Index} to {to}");
                     }
@@ -95,37 +95,31 @@ namespace Xarial.XCad.SolidWorks.Annotations
             }
         }
 
-        private swTableItemInsertPosition_e GetPosition(int index) 
-        {
-            if (index == m_Table.Rows.RowIndexOffset)
-            {
-                return swTableItemInsertPosition_e.swTableItemInsertPosition_First;
-            }
-            else if (index == m_Table.TableAnnotation.RowCount)
-            {
-                return swTableItemInsertPosition_e.swTableItemInsertPosition_Last;
-            }
-            else
-            {
-                return swTableItemInsertPosition_e.swTableItemInsertPosition_After;
-            }
-        }
-
         protected override void CreateElement(int index, CancellationToken cancellationToken)
         {
             var targIndex = GetVisibleIndex(index) + m_Table.Rows.RowIndexOffset;
 
-            var pos = GetPosition(targIndex);
+            swTableItemInsertPosition_e pos;
 
-            if (pos == swTableItemInsertPosition_e.swTableItemInsertPosition_After)
+            if (targIndex == m_Table.Rows.RowIndexOffset)
             {
+                pos = swTableItemInsertPosition_e.swTableItemInsertPosition_First;
+            }
+            else if (targIndex == m_Table.TableAnnotation.RowCount)
+            {
+                pos = swTableItemInsertPosition_e.swTableItemInsertPosition_Last;
+            }
+            else
+            {
+                pos = swTableItemInsertPosition_e.swTableItemInsertPosition_Before;
+
                 if (!m_Table.Rows[index].Visible)
                 {
                     throw new TableRowOperationException("Cannot create row at the hidden position");
                 }
             }
 
-            m_Table.TableAnnotation.InsertRow((int)pos, targIndex - 1);
+            m_Table.TableAnnotation.InsertRow((int)pos, targIndex);
 
             m_ChangeTracker.Insert(index);
         }

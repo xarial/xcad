@@ -38,7 +38,7 @@ namespace Xarial.XCad.Annotations
         /// <summary>
         /// Gets or sets an item number of BOM row
         /// </summary>
-        /// <remarks>Null if row does not have an item number</remarks>
+        /// <remarks>Use <see cref="BomItemNumber"/> for available values</remarks>
         int? ItemNumber { get; set; }
     }
 
@@ -55,6 +55,6 @@ namespace Xarial.XCad.Annotations
         /// <summary>
         /// No item number in the row
         /// </summary>
-        public static int? NoNumber { get; } = null;
+        public static int? None { get; } = null;
     }
 }

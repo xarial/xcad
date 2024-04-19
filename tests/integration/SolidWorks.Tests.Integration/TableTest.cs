@@ -140,9 +140,9 @@ namespace SolidWorks.Tests.Integration
                 var drw = (IXDrawing)m_App.Documents.Active;
                 var bomTable = drw.Sheets.Active.Annotations.OfType<IXBomTable>().First();
 
-                bomTable.Rows[0].ItemNumber = BomItemNumber.NoNumber;
+                bomTable.Rows[0].ItemNumber = BomItemNumber.None;
                 Assert.Throws<TableRowOperationException>(() => bomTable.Rows[2].ItemNumber = BomItemNumber.Auto);
-                bomTable.Rows[3].ItemNumber = BomItemNumber.NoNumber;
+                bomTable.Rows[3].ItemNumber = BomItemNumber.None;
                 bomTable.Rows[5].ItemNumber = BomItemNumber.Auto;
                 Assert.Throws<TableRowOperationException>(() => bomTable.Rows[6].ItemNumber = 5);
 
