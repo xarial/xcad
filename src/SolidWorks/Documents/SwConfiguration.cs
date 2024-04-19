@@ -341,7 +341,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                 new SwComponentFeatureManager(m_Comp, m_Comp.RootAssembly, OwnerApplication, new Context(this)), new Context(this));
     }
 
-    internal class SwPartComponentConfiguration : SwComponentConfiguration, IXPartConfiguration
+    internal class SwPartComponentConfiguration : SwComponentConfiguration, ISwPartConfiguration
     {
         public SwPartComponentConfiguration(SwPartComponent comp, SwApplication app, string confName) : base(comp, app, confName)
         {
@@ -379,7 +379,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
     }
 
-    internal class SwAssemblyComponentConfiguration : SwComponentConfiguration, IXAssemblyConfiguration
+    internal class SwAssemblyComponentConfiguration : SwComponentConfiguration, ISwAssemblyConfiguration
     {
         public SwAssemblyComponentConfiguration(SwComponent comp, SwApplication app, string confName) : base(comp, app, confName)
         {

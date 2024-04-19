@@ -777,6 +777,9 @@ namespace SwAddInExample
 
         private void Custom()
         {
+            var table = Application.Documents.Active.Selections.OfType<IXTable>().First();
+
+            var content = table.Read();
         }
 
         private void HandleAddEvents()
