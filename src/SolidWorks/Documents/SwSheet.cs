@@ -307,20 +307,55 @@ namespace Xarial.XCad.SolidWorks.Documents
                 template = swDwgTemplates_e.swDwgTemplateCustom;
             }
 
-            if (OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2015))
+            bool? useDiffSheetFormatForNewSheets = null;
+            bool? showSheetFormatDlgForNewSheets = null;
+
+            try
             {
-                if (!m_Drawing.Drawing.NewSheet4(Name, (int)paperSize, (int)template, scale.Numerator, scale.Denominator, angle,
-                    Template, paperWidth, paperHeight, "", 0, 0, 0, 0, 0, 0))
+                //NOTE: if this option is set dialog box is displayed to select sheet format
+                if (ChangeToggleIfNeeded(swUserPreferenceToggle_e.swDrawingSheetsUseDifferentSheetFormat, false, false))
                 {
-                    throw new Exception("Failed to create new sheet");
+                    useDiffSheetFormatForNewSheets = true;
+                }
+
+                //NOTE: if this option is set document requires rebuild and sheet format template is not visible until reload
+                if (ChangeToggleIfNeeded(swUserPreferenceToggle_e.swDrawingShowSheetFormatDialog, false, true)) 
+                {
+                    showSheetFormatDlgForNewSheets = true;
+                }
+
+                if (OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2015))
+                {
+                    if (!m_Drawing.Drawing.NewSheet4(Name, (int)paperSize, (int)template, scale.Numerator, scale.Denominator, angle,
+                        Template, paperWidth, paperHeight, "", 0, 0, 0, 0, 0, 0))
+                    {
+                        throw new Exception("Failed to create new sheet");
+                    }
+                }
+                else
+                {
+                    if (!m_Drawing.Drawing.NewSheet3(Name, (int)paperSize, (int)template, scale.Numerator, scale.Denominator, angle,
+                        Template, paperWidth, paperHeight, ""))
+                    {
+                        throw new Exception("Failed to create new sheet");
+                    }
                 }
             }
-            else 
+            finally 
             {
-                if (!m_Drawing.Drawing.NewSheet3(Name, (int)paperSize, (int)template, scale.Numerator, scale.Denominator, angle,
-                    Template, paperWidth, paperHeight, ""))
+                try
                 {
-                    throw new Exception("Failed to create new sheet");
+                    if (useDiffSheetFormatForNewSheets.HasValue)
+                    {
+                        ChangeToggle(swUserPreferenceToggle_e.swDrawingSheetsUseDifferentSheetFormat, useDiffSheetFormatForNewSheets.Value, false);
+                    }
+                }
+                finally
+                {
+                    if (showSheetFormatDlgForNewSheets.HasValue)
+                    {
+                        ChangeToggle(swUserPreferenceToggle_e.swDrawingShowSheetFormatDialog, showSheetFormatDlgForNewSheets.Value, true);
+                    }
                 }
             }
 
@@ -468,6 +503,53 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
 
             throw new Exception($"Failed to paste sheet");
+        }
+
+        private bool ChangeToggleIfNeeded(swUserPreferenceToggle_e toggle, bool value, bool sysOpt)
+        {
+            bool val;
+
+            if (sysOpt)
+            {
+                val = OwnerApplication.Sw.GetUserPreferenceToggle((int)toggle);
+            }
+            else 
+            {
+                val = OwnerModelDoc.Extension.GetUserPreferenceToggle(
+                    (int)toggle, (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified);
+            }
+
+            if (val != value)
+            {
+                ChangeToggle(toggle, value, sysOpt);
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        private void ChangeToggle(swUserPreferenceToggle_e toggle, bool value, bool sysOpt)
+        {
+            bool res;
+
+            if (sysOpt)
+            {
+                OwnerApplication.Sw.SetUserPreferenceToggle((int)toggle, value);
+                res = OwnerApplication.Sw.GetUserPreferenceToggle((int)toggle) == value;
+            }
+            else
+            {
+                res = OwnerModelDoc.Extension.SetUserPreferenceToggle(
+                    (int)toggle,
+                    (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified, value);
+            }
+
+            if (!res)
+            {
+                throw new Exception($"Failed to set the '{toggle}' option to '{value}'");
+            }
         }
     }
 
