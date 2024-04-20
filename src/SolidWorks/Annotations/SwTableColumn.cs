@@ -77,6 +77,7 @@ namespace Xarial.XCad.SolidWorks.Annotations
 
         protected override void CreateElement(int index, CancellationToken cancellationToken)
         {
+            m_ChangeTracker.Insert(index);
             throw new NotImplementedException();
         }
     }

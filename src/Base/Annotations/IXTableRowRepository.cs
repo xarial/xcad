@@ -10,9 +10,16 @@ using Xarial.XCad.Base;
 namespace Xarial.XCad.Annotations
 {
     /// <summary>
+    /// Represents rows repository (base interface)
+    /// </summary>
+    public interface IXTableRowRepositoryBase
+    {
+    }
+
+    /// <summary>
     /// Represents the collection of rows in the <see cref="IXTable"/>
     /// </summary>
-    public interface IXTableRowRepository : IXRepository<IXTableRow>
+    public interface IXTableRowRepository : IXTableRowRepositoryBase, IXRepository<IXTableRow>
     {
         /// <summary>
         /// Returns the row by index
@@ -25,14 +32,14 @@ namespace Xarial.XCad.Annotations
     /// <summary>
     /// Represents rows of <see cref="IXBomTable"/>
     /// </summary>
-    public interface IXBomTableRowRepository : IXTableRowRepository, IXRepository<IXBomTableRow>
+    public interface IXBomTableRowRepository : IXTableRowRepositoryBase, IXRepository<IXBomTableRow>
     {
         /// <summary>
         /// Returns the BOM row by index
         /// </summary>
         /// <param name="index">Index of the row</param>
         /// <returns>Table row</returns>
-        new IXBomTableRow this[int index] { get; }
+        IXBomTableRow this[int index] { get; }
     }
 
     /// <summary>

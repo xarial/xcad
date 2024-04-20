@@ -119,9 +119,14 @@ namespace Xarial.XCad.SolidWorks.Annotations
                 }
             }
 
-            m_Table.TableAnnotation.InsertRow((int)pos, targIndex);
-
-            m_ChangeTracker.Insert(index);
+            if (m_Table.TableAnnotation.InsertRow((int)pos, targIndex))
+            {
+                m_ChangeTracker.Insert(index);
+            }
+            else
+            {
+                throw new Exception("Failed to insert row");
+            }
         }
     }
 

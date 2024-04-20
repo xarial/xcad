@@ -13,7 +13,6 @@ using System.Threading;
 using Xarial.XCad.Annotations;
 using Xarial.XCad.Base;
 using Xarial.XCad.Toolkit.Utils;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace Xarial.XCad.SolidWorks.Annotations
 {
