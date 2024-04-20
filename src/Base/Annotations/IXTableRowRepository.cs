@@ -53,7 +53,8 @@ namespace Xarial.XCad.Annotations
         /// <param name="tableRows">Table rows</param>
         /// <param name="index">Index to insert row to</param>
         /// <returns>New row</returns>
-        public static IXTableRow Insert(this IXTableRowRepository tableRows, int index)
+        public static T Insert<T>(this IXRepository<T> tableRows, int index)
+            where T : IXTableRow
         {
             var row = tableRows.PreCreate();
             row.Index = index;
