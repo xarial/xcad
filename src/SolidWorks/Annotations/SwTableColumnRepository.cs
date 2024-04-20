@@ -67,7 +67,7 @@ namespace Xarial.XCad.SolidWorks.Annotations
 
         public IEnumerator<SwTableColumn> GetEnumerator()
         {
-            for (var i = 0; i < m_Table.Columns.Count; i++) 
+            for (var i = 0; i < Count; i++) 
             {
                 yield return new SwTableColumn(m_Table, i, m_ChangeTracker);
             }

@@ -46,21 +46,13 @@ namespace Xarial.XCad.SolidWorks.Annotations
 
         public ITableAnnotation TableAnnotation { get; }
 
-        public SwTableColumnRepository Columns { get; }
+        public SwTableColumnRepository Columns => new SwTableColumnRepository(this, new ChangeTracker());
 
-        public SwTableRowRepository Rows { get; }
-
-        private readonly ChangeTracker m_RowChangeTracker;
-        private readonly ChangeTracker m_ColumnChangeTracker;
+        public SwTableRowRepository Rows => CreateRows(new ChangeTracker());
 
         internal SwTable(ITableAnnotation tableAnn, SwDocument doc, SwApplication app) : base(tableAnn?.GetAnnotation(), doc, app)
         {
             TableAnnotation = tableAnn;
-
-            m_RowChangeTracker = new ChangeTracker();
-            m_ColumnChangeTracker = new ChangeTracker();
-            Rows = CreateRows(m_RowChangeTracker);
-            Columns = new SwTableColumnRepository(this, m_ColumnChangeTracker);
         }
 
         protected virtual SwTableRowRepository CreateRows(ChangeTracker changeTracker)

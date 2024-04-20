@@ -21,11 +21,14 @@ namespace Xarial.XCad.SolidWorks.Annotations
 
         private readonly SwTable m_Table;
 
-        internal SwTableCell(SwTable table, SwTableRow row, SwTableColumn column)
+        private readonly SwTableRowRepository m_Rows;
+
+        internal SwTableCell(SwTable table, SwTableRow row, SwTableColumn column, SwTableRowRepository rows)
         {
             m_Table = table;
             Row = row;
             Column = column;
+            m_Rows = rows;
         }
 
         public string Value 
@@ -34,11 +37,11 @@ namespace Xarial.XCad.SolidWorks.Annotations
             {
                 if (m_Table.OwnerApplication.IsVersionNewerOrEqual(SwVersion_e.Sw2018))
                 {
-                    return m_Table.TableAnnotation.Text2[Row.Index + m_Table.Rows.RowIndexOffset, Column.Index, true];
+                    return m_Table.TableAnnotation.Text2[Row.Index + m_Rows.RowIndexOffset, Column.Index, true];
                 }
                 else 
                 {
-                    return m_Table.TableAnnotation.Text[Row.Index + m_Table.Rows.RowIndexOffset, Column.Index];
+                    return m_Table.TableAnnotation.Text[Row.Index + m_Rows.RowIndexOffset, Column.Index];
                 }
             }
             set
@@ -47,11 +50,11 @@ namespace Xarial.XCad.SolidWorks.Annotations
                 {
                     if (m_Table.OwnerApplication.IsVersionNewerOrEqual(SwVersion_e.Sw2018))
                     {
-                        m_Table.TableAnnotation.Text2[Row.Index + m_Table.Rows.RowIndexOffset, Column.Index, true] = value;
+                        m_Table.TableAnnotation.Text2[Row.Index + m_Rows.RowIndexOffset, Column.Index, true] = value;
                     }
                     else
                     {
-                        m_Table.TableAnnotation.Text[Row.Index + m_Table.Rows.RowIndexOffset, Column.Index] = value;
+                        m_Table.TableAnnotation.Text[Row.Index + m_Rows.RowIndexOffset, Column.Index] = value;
                     }
                 }
                 else 

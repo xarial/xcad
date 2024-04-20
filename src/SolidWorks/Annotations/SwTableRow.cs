@@ -27,12 +27,12 @@ namespace Xarial.XCad.SolidWorks.Annotations
             get
             {
                 CheckDeleted();
-                return !m_Table.TableAnnotation.RowHidden[Index + m_Table.Rows.RowIndexOffset];
+                return !m_Table.TableAnnotation.RowHidden[Index + m_Rows.RowIndexOffset];
             }
             set
             {
                 CheckDeleted();
-                m_Table.TableAnnotation.RowHidden[Index + m_Table.Rows.RowIndexOffset] = !value;
+                m_Table.TableAnnotation.RowHidden[Index + m_Rows.RowIndexOffset] = !value;
             }
         }
 
@@ -44,7 +44,7 @@ namespace Xarial.XCad.SolidWorks.Annotations
 
             for (int i = 0; i < index; i++)
             {
-                if (!m_Table.Rows[i].Visible)
+                if (!m_Rows[i].Visible)
                 {
                     prevHiddenRowsCount++;
                 }
@@ -65,19 +65,21 @@ namespace Xarial.XCad.SolidWorks.Annotations
         protected readonly SwTable m_Table;
         private readonly SwTableCells m_Cells;
 
-        internal SwTableRow(SwTable table, int? index, ChangeTracker changeTracker) : base(index, changeTracker)
+        protected readonly SwTableRowRepository m_Rows;
+
+        internal SwTableRow(SwTable table, int? index, SwTableRowRepository rows, SwTableColumnRepository columns, ChangeTracker changeTracker) : base(index, changeTracker)
         {
             m_Table = table;
-
-            m_Cells = new SwTableCells(table, this);
+            m_Rows = rows;
+            m_Cells = new SwTableCells(table, this, rows, columns);
         }
 
         protected override void Move(int to)
         {
-            if (Visible && m_Table.Rows[to].Visible)
+            if (Visible && m_Rows[to].Visible)
             {
-                var srcIndex = VisibleIndex + m_Table.Rows.RowIndexOffset;
-                var targIndex = GetVisibleIndex(to) + m_Table.Rows.RowIndexOffset;
+                var srcIndex = VisibleIndex + m_Rows.RowIndexOffset;
+                var targIndex = GetVisibleIndex(to) + m_Rows.RowIndexOffset;
 
                 if (srcIndex != targIndex)
                 {
@@ -97,11 +99,11 @@ namespace Xarial.XCad.SolidWorks.Annotations
 
         protected override void CreateElement(int index, CancellationToken cancellationToken)
         {
-            var targIndex = GetVisibleIndex(index) + m_Table.Rows.RowIndexOffset;
+            var targIndex = GetVisibleIndex(index) + m_Rows.RowIndexOffset;
 
             swTableItemInsertPosition_e pos;
 
-            if (targIndex == m_Table.Rows.RowIndexOffset)
+            if (targIndex == m_Rows.RowIndexOffset)
             {
                 pos = swTableItemInsertPosition_e.swTableItemInsertPosition_First;
             }
@@ -113,7 +115,7 @@ namespace Xarial.XCad.SolidWorks.Annotations
             {
                 pos = swTableItemInsertPosition_e.swTableItemInsertPosition_Before;
 
-                if (!m_Table.Rows[index].Visible)
+                if (!m_Rows[index].Visible)
                 {
                     throw new TableRowOperationException("Cannot create row at the hidden position");
                 }
@@ -135,8 +137,12 @@ namespace Xarial.XCad.SolidWorks.Annotations
         [DllImport("user32.dll")]
         private static extern IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wParam, IntPtr lParam);
 
-        internal SwBomTableRow(SwTable table, int? index, ChangeTracker changeTracker) : base(table, index, changeTracker)
+        private readonly SwTableColumnRepository m_Columns;
+
+        internal SwBomTableRow(SwTable table, int? index, SwTableRowRepository rows, SwTableColumnRepository columns, ChangeTracker changeTracker) 
+            : base(table, index, rows, columns, changeTracker)
         {
+            m_Columns = columns;
         }
 
         public int? ItemNumber
@@ -167,7 +173,7 @@ namespace Xarial.XCad.SolidWorks.Annotations
                     {
                         var selData = m_Table.OwnerDocument.Model.ISelectionManager.CreateSelectData();
 
-                        var visIndex = VisibleIndex + m_Table.Rows.RowIndexOffset;
+                        var visIndex = VisibleIndex + m_Rows.RowIndexOffset;
 
                         selData.SetCellRange(visIndex, visIndex, 0, 0);
 
@@ -200,7 +206,7 @@ namespace Xarial.XCad.SolidWorks.Annotations
 
         private bool TryGetItemNumer(out int? itemNumber)
         {
-            var itemNumberTxt = Cells[m_Table.Columns.ItemNumberColumn.Index].Value;
+            var itemNumberTxt = Cells[m_Columns.ItemNumberColumn.Index].Value;
             
             if (!string.IsNullOrEmpty(itemNumberTxt))
             {

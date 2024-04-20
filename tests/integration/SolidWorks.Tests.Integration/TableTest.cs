@@ -76,7 +76,9 @@ namespace SolidWorks.Tests.Integration
                 var drw = (IXDrawing)m_App.Documents.Active;
                 var table = drw.Sheets.Active.Annotations.OfType<IXTable>().First();
 
-                var rows = table.Rows.ToArray();
+                var rowsRepo = table.Rows.ToArray();
+
+                var rows = rowsRepo.ToArray();
 
                 rows[4].Index = 0;
                 rows[1].Index = 7;
@@ -116,10 +118,12 @@ namespace SolidWorks.Tests.Integration
                 var drw = (IXDrawing)m_App.Documents.Active;
                 var bomTable = drw.Sheets.Active.Annotations.OfType<IXBomTable>().First();
 
-                i1 = bomTable.Rows[0].ItemNumber;
-                i2 = bomTable.Rows[2].ItemNumber;
-                i3 = bomTable.Rows[3].ItemNumber;
-                i4 = bomTable.Rows[6].ItemNumber;
+                var rowsRepo = bomTable.Rows;
+
+                i1 = rowsRepo[0].ItemNumber;
+                i2 = rowsRepo[2].ItemNumber;
+                i3 = rowsRepo[3].ItemNumber;
+                i4 = rowsRepo[6].ItemNumber;
             }
 
             Assert.AreEqual(1, i1);
@@ -140,11 +144,13 @@ namespace SolidWorks.Tests.Integration
                 var drw = (IXDrawing)m_App.Documents.Active;
                 var bomTable = drw.Sheets.Active.Annotations.OfType<IXBomTable>().First();
 
-                bomTable.Rows[0].ItemNumber = BomItemNumber.None;
-                Assert.Throws<TableRowOperationException>(() => bomTable.Rows[2].ItemNumber = BomItemNumber.Auto);
-                bomTable.Rows[3].ItemNumber = BomItemNumber.None;
-                bomTable.Rows[5].ItemNumber = BomItemNumber.Auto;
-                Assert.Throws<TableRowOperationException>(() => bomTable.Rows[6].ItemNumber = 5);
+                var rowsRepo = bomTable.Rows;
+
+                rowsRepo[0].ItemNumber = BomItemNumber.None;
+                Assert.Throws<TableRowOperationException>(() => rowsRepo[2].ItemNumber = BomItemNumber.Auto);
+                rowsRepo[3].ItemNumber = BomItemNumber.None;
+                rowsRepo[5].ItemNumber = BomItemNumber.Auto;
+                Assert.Throws<TableRowOperationException>(() => rowsRepo[6].ItemNumber = 5);
 
                 i1 = ((ISwTable)bomTable).TableAnnotation.Text2[1, 0, true];
                 i2 = ((ISwTable)bomTable).TableAnnotation.Text2[4, 0, true];
@@ -168,21 +174,23 @@ namespace SolidWorks.Tests.Integration
                 var drw = (IXDrawing)m_App.Documents.Active;
                 var table = drw.Sheets.Active.Annotations.OfType<IXTable>().First();
 
-                var rows = table.Rows.ToArray();
+                var rowsRepo = table.Rows;
 
-                var r1 = table.Rows.Insert(0);
+                var rows = rowsRepo.ToArray();
+
+                var r1 = rowsRepo.Insert(0);
                 r1.Cells[1].Value = "A1";
                 r1.Cells[3].Value = "A3";
 
-                var r2 = table.Rows.Insert(9);
+                var r2 = rowsRepo.Insert(9);
                 r2.Cells[1].Value = "B1";
                 r2.Cells[3].Value = "B3";
 
-                var r3 = table.Rows.Insert(5);
+                var r3 = rowsRepo.Insert(5);
                 r3.Cells[1].Value = "C1";
                 r3.Cells[3].Value = "C3";
 
-                Assert.Throws<TableRowOperationException>(() => table.Rows.Insert(3));
+                Assert.Throws<TableRowOperationException>(() => rowsRepo.Insert(3));
 
                 indices = rows.Select(r => r.Index).ToArray();
 

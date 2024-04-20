@@ -80,7 +80,7 @@ namespace Xarial.XCad.Annotations
 
                 if (visibleOnly)
                 {
-                    m_ColumnsPositionMap = table.Columns.Where(c => c.Visible).Select(c => c.Index).ToArray();
+                    m_ColumnsPositionMap = m_Columns.Where(c => c.Visible).Select(c => c.Index).ToArray();
                 }
                 else
                 {

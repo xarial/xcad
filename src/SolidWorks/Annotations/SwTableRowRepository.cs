@@ -34,9 +34,12 @@ namespace Xarial.XCad.SolidWorks.Annotations
 
         protected readonly ChangeTracker m_ChangeTracker;
 
+        protected Lazy<SwTableColumnRepository> m_ColumnsLazy;
+
         internal SwTableRowRepository(SwTable table, ChangeTracker changeTracker) 
         {
             m_Table = table;
+            m_ColumnsLazy = new Lazy<SwTableColumnRepository>(() => table.Columns);
 
             m_ChangeTracker = changeTracker;
 
@@ -67,14 +70,14 @@ namespace Xarial.XCad.SolidWorks.Annotations
         protected IEnumerable<T> IterateRows<T>()
             where T : SwTableRow
         {
-            for (var i = 0; i < m_Table.Rows.Count; i++)
+            for (var i = 0; i < Count; i++)
             {
                 yield return (T)CreateRow(i);
             }
         }
 
         protected virtual SwTableRow CreateRow(int? index) 
-            => new SwTableRow(m_Table, index, m_ChangeTracker);
+            => new SwTableRow(m_Table, index, this, m_ColumnsLazy.Value, m_ChangeTracker);
     }
 
     internal class SwBomTableRowRepository : SwTableRowRepository, IXBomTableRowRepository
@@ -113,6 +116,6 @@ namespace Xarial.XCad.SolidWorks.Annotations
             => base.IterateRows<SwBomTableRow>().GetEnumerator();
 
         protected override SwTableRow CreateRow(int? index)
-            => new SwBomTableRow(m_Table, index, m_ChangeTracker);
+            => new SwBomTableRow(m_Table, index, this, m_ColumnsLazy.Value, m_ChangeTracker);
     }
 }
