@@ -45,16 +45,9 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         {
             get 
             {
-                if (((ISwDMDocument13)m_Drawing.Document).GetSheetProperties(Name, out object prps) == (int)swSheetPropertiesResult.swSheetProperties_TRUE)
-                {
-                    var prpsArr = (double[])prps;
+                var prps = GetSheetProperties();
 
-                    return new Scale(prpsArr[3], prpsArr[4]);
-                }
-                else 
-                {
-                    throw new Exception("Failed to read sheet properties");
-                }
+                return new Scale(prps[3], prps[4]);
             }
             set => throw new NotSupportedException(); 
         }
@@ -63,22 +56,15 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         {
             get
             {
-                if (((ISwDMDocument13)m_Drawing.Document).GetSheetProperties(Name, out object prps) == (int)swSheetPropertiesResult.swSheetProperties_TRUE)
-                {
-                    var prpsArr = (double[])prps;
+                var prps = GetSheetProperties();
 
-                    const int swDwgPapersUserDefined = 12;
+                const int swDwgPapersUserDefined = 12;
 
-                    var paperSize = Convert.ToInt32(prpsArr[0]);
+                var paperSize = Convert.ToInt32(prps[0]);
 
-                    var standardPaperSize = paperSize == swDwgPapersUserDefined ? default(StandardPaperSize_e?) : (StandardPaperSize_e)paperSize;
+                var standardPaperSize = paperSize == swDwgPapersUserDefined ? default(StandardPaperSize_e?) : (StandardPaperSize_e)paperSize;
 
-                    return new PaperSize(standardPaperSize, prpsArr[1], prpsArr[2]);
-                }
-                else
-                {
-                    throw new Exception("Failed to read sheet properties");
-                }
+                return new PaperSize(standardPaperSize, prps[1], prps[2]);
             }
             set => throw new NotSupportedException(); 
         }
@@ -102,7 +88,46 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         }
 
         public ISwDMSheet Sheet { get; }
-        
+
+        public string Template 
+        {
+            get 
+            {
+                var res = ((ISwDMDocument13)m_Drawing.Document).GetSheetFormatPath(Name, out var sheetFormatPath);
+
+                if (res == (int)swSheetFormatPathResult.swSheetFormatPath_TRUE)
+                {
+                    return sheetFormatPath;
+                }
+                else 
+                {
+                    throw new Exception($"Failed to read sheet format: {res}");
+                }
+            }
+            set => throw new NotSupportedException();
+        }
+
+        public ViewsProjectionType_e ViewsProjectionType
+        {
+            get
+            {
+                var prps = GetSheetProperties();
+
+                var isFirstAngle = Convert.ToBoolean(prps[5]);
+
+                if (isFirstAngle)
+                {
+                    return ViewsProjectionType_e.FirstAngle;
+                }
+                else
+                {
+                    return ViewsProjectionType_e.ThirdAngle;
+                }
+            }
+            set => throw new NotSupportedException();
+        }
+
+
         private readonly Lazy<SwDmDrawingViewsCollection> m_DrawingViewsLazy;
 
         private readonly SwDmDrawing m_Drawing;
@@ -113,6 +138,20 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             m_Drawing = drw;
 
             m_DrawingViewsLazy = new Lazy<SwDmDrawingViewsCollection>(() => new SwDmDrawingViewsCollection(this, drw));
+        }
+
+        private double[] GetSheetProperties()
+        {
+            var res = ((ISwDMDocument13)m_Drawing.Document).GetSheetProperties(Name, out object prps);
+
+            if (res == (int)swSheetPropertiesResult.swSheetProperties_TRUE)
+            {
+                return (double[])prps;
+            }
+            else
+            {
+                throw new Exception($"Failed to read sheet properties: {res}");
+            }
         }
     }
 }

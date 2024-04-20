@@ -11,6 +11,7 @@ using System.Text;
 using Xarial.XCad.Annotations;
 using Xarial.XCad.Base;
 using Xarial.XCad.Documents.Delegates;
+using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Documents.Structures;
 using Xarial.XCad.Features;
 using Xarial.XCad.UI;
@@ -61,6 +62,16 @@ namespace Xarial.XCad.Documents
         /// Represents paper of this sheet
         /// </summary>
         PaperSize PaperSize { get; set; }
+
+        /// <summary>
+        /// Template of this sheet format
+        /// </summary>
+        string Template { get; set; }
+
+        /// <summary>
+        /// Types of the projection of drawing views in this sheet
+        /// </summary>
+        ViewsProjectionType_e ViewsProjectionType { get; set; }
 
         /// <summary>
         /// Creates a copy of this sheet

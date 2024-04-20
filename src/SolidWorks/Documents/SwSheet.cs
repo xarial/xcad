@@ -11,6 +11,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Drawing.Drawing2D;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -163,7 +164,86 @@ namespace Xarial.XCad.SolidWorks.Documents
                 if (IsCommitted)
                 {
                     //NOTE: ISheet::SetSize does not work correctly and removes the template and breaks drawing
-                    SetupSheet(Sheet, Name, value, Scale);
+                    SetupSheet(Sheet, Name, value, Scale, Template, ViewsProjectionType);
+                }
+                else
+                {
+                    m_Creator.CachedProperties.Set(value);
+                }
+            }
+        }
+
+        public string Template 
+        {
+            get
+            {
+                if (IsCommitted)
+                {
+                    return Sheet.GetTemplateName();
+                }
+                else
+                {
+                    return m_Creator.CachedProperties.Get<string>();
+                }
+            }
+            set 
+            {
+                if (IsCommitted)
+                {
+                    SetupSheet(Sheet, Name, PaperSize, Scale, value, ViewsProjectionType);
+
+                    var res = Sheet.ReloadTemplate(false);
+                    
+                    if (res != (int)swReloadTemplateResult_e.swReloadTemplate_Success) 
+                    {
+                        throw new Exception($"Failed to reload template: {res}");
+                    }
+                }
+                else
+                {
+                    m_Creator.CachedProperties.Set(value);
+                }
+            }
+        }
+
+        public ViewsProjectionType_e ViewsProjectionType
+        {
+            get
+            {
+                if (IsCommitted)
+                {
+                    double[] sheetPrps;
+
+                    if (OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2016))
+                    {
+                        sheetPrps = (double[])Sheet.GetProperties();
+                    }
+                    else 
+                    {
+                        sheetPrps = (double[])Sheet.GetProperties2();
+                    }
+
+                    var isFirstAngle = Convert.ToBoolean(sheetPrps[4]);
+
+                    if (isFirstAngle)
+                    {
+                        return ViewsProjectionType_e.FirstAngle;
+                    }
+                    else 
+                    {
+                        return ViewsProjectionType_e.ThirdAngle;
+                    }
+                }
+                else
+                {
+                    return m_Creator.CachedProperties.Get<ViewsProjectionType_e>();
+                }
+            }
+            set
+            {
+                if (IsCommitted)
+                {
+                    SetupSheet(Sheet, Name, PaperSize, Scale, Template, value);
                 }
                 else
                 {
@@ -220,18 +300,25 @@ namespace Xarial.XCad.SolidWorks.Documents
 
             var scale = Scale ?? new Scale(1, 1);
 
+            var angle = ViewsProjectionType == ViewsProjectionType_e.FirstAngle;
+
+            if (!string.IsNullOrEmpty(Template)) 
+            {
+                template = swDwgTemplates_e.swDwgTemplateCustom;
+            }
+
             if (OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2015))
             {
-                if (!m_Drawing.Drawing.NewSheet4(Name, (int)paperSize, (int)template, scale.Numerator, scale.Denominator, true,
-                    "", paperWidth, paperHeight, "", 0, 0, 0, 0, 0, 0))
+                if (!m_Drawing.Drawing.NewSheet4(Name, (int)paperSize, (int)template, scale.Numerator, scale.Denominator, angle,
+                    Template, paperWidth, paperHeight, "", 0, 0, 0, 0, 0, 0))
                 {
                     throw new Exception("Failed to create new sheet");
                 }
             }
             else 
             {
-                if (!m_Drawing.Drawing.NewSheet3(Name, (int)paperSize, (int)paperSize, scale.Numerator, scale.Denominator, true,
-                    "", paperWidth, paperHeight, ""))
+                if (!m_Drawing.Drawing.NewSheet3(Name, (int)paperSize, (int)template, scale.Numerator, scale.Denominator, angle,
+                    Template, paperWidth, paperHeight, ""))
                 {
                     throw new Exception("Failed to create new sheet");
                 }
@@ -241,9 +328,9 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
 
         internal void SetupSheet(IXSheet template)
-            => SetupSheet(Sheet, template.Name, template.PaperSize, template.Scale);
+            => SetupSheet(Sheet, template.Name, template.PaperSize, template.Scale, template.Template, template.ViewsProjectionType);
 
-        internal void SetupSheet(ISheet sheet, string name, PaperSize size, Scale scale)
+        internal void SetupSheet(ISheet sheet, string name, PaperSize size, Scale scale, string templateName, ViewsProjectionType_e prjType)
         {
             PaperSizeHelper.ParsePaperSize(size, out var paperSize, out var paperTemplate, out var paperWidth, out var paperHeight);
 
@@ -259,18 +346,27 @@ namespace Xarial.XCad.SolidWorks.Documents
                 }
             }
 
+            var angle = prjType == ViewsProjectionType_e.FirstAngle;
+
+            var custPrpView = sheet.CustomPropertyView;
+
+            if (!string.IsNullOrEmpty(templateName)) 
+            {
+                paperTemplate = swDwgTemplates_e.swDwgTemplateCustom;
+            }
+
             if (OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2015))
             {
-                if (!m_Drawing.Drawing.SetupSheet6(sheet.GetName(), (int)paperSize, (int)paperTemplate, scale.Numerator, scale.Denominator, true,
-                    "", paperWidth, paperHeight, "", true, 0, 0, 0, 0, 0, 0))
+                if (!m_Drawing.Drawing.SetupSheet6(sheet.GetName(), (int)paperSize, (int)paperTemplate, scale.Numerator, scale.Denominator, angle,
+                    templateName, paperWidth, paperHeight, custPrpView, true, 0, 0, 0, 0, 0, 0))
                 {
                     throw new Exception("Failed to setup sheet");
                 }
             }
             else
             {
-                if (!m_Drawing.Drawing.SetupSheet5(sheet.GetName(), (int)paperSize, (int)paperSize, scale.Numerator, scale.Denominator, true,
-                    "", paperWidth, paperHeight, "", true))
+                if (!m_Drawing.Drawing.SetupSheet5(sheet.GetName(), (int)paperSize, (int)paperTemplate, scale.Numerator, scale.Denominator, angle,
+                    templateName, paperWidth, paperHeight, custPrpView, true))
                 {
                     throw new Exception("Failed to setup sheet");
                 }
@@ -499,6 +595,8 @@ namespace Xarial.XCad.SolidWorks.Documents
         public bool IsAlive => throw new UnloadedDocumentPreviewOnlySheetException();
         public ITagsManager Tags => throw new UnloadedDocumentPreviewOnlySheetException();
         public PaperSize PaperSize { get => throw new UnloadedDocumentPreviewOnlySheetException(); set => throw new UnloadedDocumentPreviewOnlySheetException(); }
+        public string Template { get => throw new UnloadedDocumentPreviewOnlySheetException(); set => throw new UnloadedDocumentPreviewOnlySheetException(); }
+        public ViewsProjectionType_e ViewsProjectionType { get => throw new UnloadedDocumentPreviewOnlySheetException(); set => throw new UnloadedDocumentPreviewOnlySheetException(); }
         public IXSheet Clone(IXDrawing targetDrawing) => throw new NotSupportedException();
         public IXSketch2D Sketch => throw new NotSupportedException();
         public IXSketch2D FormatSketch => throw new NotSupportedException();
