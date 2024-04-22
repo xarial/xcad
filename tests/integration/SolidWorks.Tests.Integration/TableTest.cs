@@ -1,4 +1,5 @@
-﻿using NUnit.Framework;
+﻿using Microsoft.SqlServer.Server;
+using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -6,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Xarial.XCad.Annotations;
+using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Exceptions;
 using Xarial.XCad.SolidWorks.Annotations;
@@ -83,7 +85,7 @@ namespace SolidWorks.Tests.Integration
                 rows[4].Index = 0;
                 rows[1].Index = 7;
                 rows[3].Index = 1;
-                Assert.Throws<TableRowOperationException>(() => rows[6].Index = 7);
+                Assert.Throws<TableElementOperationException>(() => rows[6].Index = 7);
                 
                 indices = rows.Select(r => r.Index).ToArray();
 
@@ -147,10 +149,10 @@ namespace SolidWorks.Tests.Integration
                 var rowsRepo = bomTable.Rows;
 
                 rowsRepo[0].ItemNumber = BomItemNumber.None;
-                Assert.Throws<TableRowOperationException>(() => rowsRepo[2].ItemNumber = BomItemNumber.Auto);
+                Assert.Throws<TableElementOperationException>(() => rowsRepo[2].ItemNumber = BomItemNumber.Auto);
                 rowsRepo[3].ItemNumber = BomItemNumber.None;
                 rowsRepo[5].ItemNumber = BomItemNumber.Auto;
-                Assert.Throws<TableRowOperationException>(() => rowsRepo[6].ItemNumber = 5);
+                Assert.Throws<TableElementOperationException>(() => rowsRepo[6].ItemNumber = 5);
 
                 i1 = ((ISwTable)bomTable).TableAnnotation.Text2[1, 0, true];
                 i2 = ((ISwTable)bomTable).TableAnnotation.Text2[4, 0, true];
@@ -190,7 +192,7 @@ namespace SolidWorks.Tests.Integration
                 r3.Cells[1].Value = "C1";
                 r3.Cells[3].Value = "C3";
 
-                Assert.Throws<TableRowOperationException>(() => rowsRepo.Insert(3));
+                Assert.Throws<TableElementOperationException>(() => rowsRepo.Insert(3));
 
                 indices = rows.Select(r => r.Index).ToArray();
 
@@ -214,6 +216,108 @@ namespace SolidWorks.Tests.Integration
             CollectionAssert.AreEqual(new string[] { "7", "", "", "Desc3", "6", "" }, data.Rows[8].ItemArray.Select(i => i?.ToString()));
             CollectionAssert.AreEqual(new string[] { "8", "", "", "Desc4", "7", "" }, data.Rows[9].ItemArray.Select(i => i?.ToString()));
             CollectionAssert.AreEqual(new string[] { "9", "B1", "", "B3", "", "" }, data.Rows[10].ItemArray.Select(i => i?.ToString()));
+        }
+
+        [Test]
+        public void BomComponentsTest()
+        {
+            string refDocPath;
+            string refConf;
+            bool refDocComm;
+            string[] c0;
+            string[] c1;
+            string[] c2;
+            string[] c3;
+            string[] c4;
+            string[] c5;
+            string[] c6;
+            string[] c7;
+
+            using (var doc = OpenDataDocument(@"Assembly18\Draw18.slddrw"))
+            {
+                var drw = (IXDrawing)m_App.Documents.Active;
+                var bomTable = drw.Sheets.Active.Annotations.OfType<IXBomTable>().First();
+
+                var refDoc = bomTable.ReferencedDocument;
+
+                refDocPath = refDoc.Path;
+                refDocComm = refDoc.IsCommitted;
+                refConf = bomTable.ReferencedConfiguration?.Name;
+
+                var rowsRepo = bomTable.Rows;
+
+                c0 = rowsRepo[0].Components?.Select(c => c.Name).ToArray();
+                c1 = rowsRepo[1].Components?.Select(c => c.Name).ToArray();
+                c2 = rowsRepo[2].Components?.Select(c => c.Name).ToArray();
+                c3 = rowsRepo[3].Components?.Select(c => c.Name).ToArray();
+                c4 = rowsRepo[4].Components?.Select(c => c.Name).ToArray();
+                c5 = rowsRepo[5].Components?.Select(c => c.Name).ToArray();
+                c6 = rowsRepo[6].Components?.Select(c => c.Name).ToArray();
+                c7 = rowsRepo[7].Components?.Select(c => c.Name).ToArray();
+            }
+
+            Assert.That(string.Equals(refDocPath, GetFilePath("Assembly18\\Assem18.sldasm"), StringComparison.CurrentCultureIgnoreCase));
+            Assert.That(string.Equals(refConf, "Default", StringComparison.CurrentCultureIgnoreCase));
+            Assert.IsTrue(refDocComm);
+            Assert.IsNull(c0);
+            CollectionAssert.AreEqual(new string[] { "Part1-1" }, c1);
+            Assert.IsNull(c2);
+            Assert.IsNull(c3);
+            CollectionAssert.AreEqual(new string[] { "Part2-1" }, c4);
+            Assert.IsNull(c5);
+            Assert.IsNull(c6);
+            Assert.IsNull(c7);
+        }
+
+        [Test]
+        public void DeleteRowsTest()
+        {
+            DataTable data;
+
+            int i1;
+            int i2;
+            int i3;
+            int i4;
+            int i7;
+
+            using (var doc = OpenDataDocument(@"Assembly18\Draw18.slddrw"))
+            {
+                var drw = (IXDrawing)m_App.Documents.Active;
+                var table = drw.Sheets.Active.Annotations.OfType<IXTable>().First();
+                
+                var rowsRepo = table.Rows;
+
+                var rows = rowsRepo.ToArray();
+
+                rowsRepo.RemoveRange(new IXTableRow[] { rows[0], rows[5], rows[6] });
+
+                Assert.Throws<TableElementOperationException>(() => rowsRepo.RemoveRange(new IXTableRow[] { rows[1] }));
+
+                Assert.Throws<TableElementDeletedException>(() => { var x = rows[0].Index; });
+                i1 = rows[1].Index;
+                i2 = rows[2].Index;
+                i3 = rows[3].Index;
+                i4 = rows[4].Index;
+                Assert.Throws<TableElementDeletedException>(() => { var x = rows[5].Index; });
+                Assert.Throws<TableElementDeletedException>(() => { var x = rows[6].Index; });
+                i7 = rows[7].Index;
+
+                data = table.Read(false);
+            }
+
+            Assert.AreEqual(0, i1);
+            Assert.AreEqual(1, i2);
+            Assert.AreEqual(2, i3);
+            Assert.AreEqual(3, i4);
+            Assert.AreEqual(4, i7);
+
+            Assert.AreEqual(6, data.Columns.Count);
+            Assert.AreEqual(5, data.Rows.Count);
+            CollectionAssert.AreEqual(new string[] { "1", "Part1", "", "Desc1", "1", "1" }, data.Rows[0].ItemArray.Select(i => i?.ToString()));
+            CollectionAssert.AreEqual(new string[] { "", "", "", "Desc2", "2", "" }, data.Rows[1].ItemArray.Select(i => i?.ToString()));
+            CollectionAssert.AreEqual(new string[] { "2", "", "", "", "3", "" }, data.Rows[2].ItemArray.Select(i => i?.ToString()));
+            CollectionAssert.AreEqual(new string[] { "3", "Part2", "", "", "4", "1" }, data.Rows[3].ItemArray.Select(i => i?.ToString()));
+            CollectionAssert.AreEqual(new string[] { "4", "", "", "Desc4", "7", "" }, data.Rows[4].ItemArray.Select(i => i?.ToString()));
         }
     }
 }

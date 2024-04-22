@@ -14,6 +14,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using Xarial.XCad.Base;
+using Xarial.XCad.Documents;
 
 namespace Xarial.XCad.Annotations
 {
@@ -38,6 +39,16 @@ namespace Xarial.XCad.Annotations
     /// </summary>
     public interface IXBomTable : IXTable 
     {
+        /// <summary>
+        /// Referenced document of this BOM feature
+        /// </summary>
+        IXDocument3D ReferencedDocument { get; }
+
+        /// <summary>
+        /// Referenced configuration of this BOM feature
+        /// </summary>
+        IXConfiguration ReferencedConfiguration { get; }
+
         /// <summary>
         /// BOM rows which belong to this table
         /// </summary>

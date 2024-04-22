@@ -61,7 +61,10 @@ namespace Xarial.XCad.SolidWorks.Annotations
 
         public void RemoveRange(IEnumerable<IXTableRow> ents, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            foreach (SwTableRow row in ents.ToArray()) 
+            {
+                row.Delete();
+            }
         }
 
         public bool TryGet(string name, out IXTableRow ent)
@@ -84,8 +87,11 @@ namespace Xarial.XCad.SolidWorks.Annotations
     {
         IXBomTableRow IXRepository<IXBomTableRow>.PreCreate<IXBomTableRow>() => (IXBomTableRow)base.PreCreate<IXTableRow>();
 
+        private readonly SwBomTable m_BomTable;
+
         internal SwBomTableRowRepository(SwBomTable table, ChangeTracker changeTracker) : base(table, changeTracker)
         {
+            m_BomTable = table;
         }
 
         IXBomTableRow IXBomTableRowRepository.this[int index] => (IXBomTableRow)base[index];
@@ -116,6 +122,6 @@ namespace Xarial.XCad.SolidWorks.Annotations
             => base.IterateRows<SwBomTableRow>().GetEnumerator();
 
         protected override SwTableRow CreateRow(int? index)
-            => new SwBomTableRow(m_Table, index, this, m_ColumnsLazy.Value, m_ChangeTracker);
+            => new SwBomTableRow(m_BomTable, index, this, m_ColumnsLazy.Value, m_ChangeTracker);
     }
 }

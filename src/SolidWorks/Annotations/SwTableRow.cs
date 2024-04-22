@@ -13,7 +13,10 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows.Documents;
 using Xarial.XCad.Annotations;
+using Xarial.XCad.Documents;
 using Xarial.XCad.Exceptions;
+using Xarial.XCad.SolidWorks.Documents;
+using Xarial.XCad.SolidWorks.Enums;
 using Xarial.XCad.Toolkit.Data;
 using Xarial.XCad.Toolkit.Utils;
 
@@ -85,7 +88,7 @@ namespace Xarial.XCad.SolidWorks.Annotations
                 {
                     if (!m_Table.TableAnnotation.MoveRow(srcIndex, (int)swTableItemInsertPosition_e.swTableItemMovePosition_Relative, targIndex - srcIndex))
                     {
-                        throw new TableRowOperationException($"Failed to move the row {Index} to {to}");
+                        throw new TableElementOperationException($"Failed to move the row {Index} to {to}");
                     }
 
                     m_ChangeTracker.Move(Index, to);
@@ -93,7 +96,7 @@ namespace Xarial.XCad.SolidWorks.Annotations
             }
             else 
             {
-                throw new TableRowOperationException("Only visible rows can be moved");
+                throw new TableElementOperationException("Only visible rows can be moved");
             }
         }
 
@@ -117,7 +120,7 @@ namespace Xarial.XCad.SolidWorks.Annotations
 
                 if (!m_Rows[index].Visible)
                 {
-                    throw new TableRowOperationException("Cannot create row at the hidden position");
+                    throw new TableElementOperationException("Cannot create row at the hidden position");
                 }
             }
 
@@ -127,8 +130,62 @@ namespace Xarial.XCad.SolidWorks.Annotations
             }
             else
             {
-                throw new Exception("Failed to insert row");
+                throw new TableElementOperationException("Failed to insert row");
             }
+        }
+
+        internal void Delete()
+        {
+            CheckDeleted();
+
+            ValidateCanDelete();
+
+            if (m_Table.OwnerApplication.IsVersionNewerOrEqual(SwVersion_e.Sw2018))
+            {
+                var totalRowsCount = m_Table.TableAnnotation.TotalRowCount;
+
+                if (m_Table.TableAnnotation.DeleteRow2(Index + m_Rows.RowIndexOffset, true))
+                {
+                    if (m_Table.TableAnnotation.TotalRowCount != totalRowsCount - 1) 
+                    {
+                        throw new TableElementOperationException("Row is deleted but total number of table rows is not changed");
+                    }
+                }
+                else 
+                {
+                    throw new TableElementOperationException("Failed to delete row");
+                }
+            }
+            else
+            {
+                var visible = Visible;
+
+                if (!visible) 
+                {
+                    Visible = true;
+                }
+
+                try
+                {
+                    if (!m_Table.TableAnnotation.DeleteRow(VisibleIndex + m_Rows.RowIndexOffset))
+                    {
+                        throw new TableElementOperationException("Failed to delete row");
+                    }
+                }
+                finally 
+                {
+                    if (!visible) 
+                    {
+                        Visible = false;
+                    }
+                }
+            }
+
+            m_ChangeTracker.Delete(Index);
+        }
+
+        protected virtual void ValidateCanDelete() 
+        {
         }
     }
 
@@ -139,9 +196,12 @@ namespace Xarial.XCad.SolidWorks.Annotations
 
         private readonly SwTableColumnRepository m_Columns;
 
-        internal SwBomTableRow(SwTable table, int? index, SwTableRowRepository rows, SwTableColumnRepository columns, ChangeTracker changeTracker) 
+        private readonly SwBomTable m_BomTable;
+
+        internal SwBomTableRow(SwBomTable table, int? index, SwTableRowRepository rows, SwTableColumnRepository columns, ChangeTracker changeTracker) 
             : base(table, index, rows, columns, changeTracker)
         {
+            m_BomTable = table;
             m_Columns = columns;
         }
 
@@ -163,7 +223,7 @@ namespace Xarial.XCad.SolidWorks.Annotations
                 {
                     if (value != BomItemNumber.Auto)
                     {
-                        throw new TableRowOperationException($"Only automatic item number is supported. Use {nameof(BomItemNumber)}.{nameof(BomItemNumber.Auto)}");
+                        throw new TableElementOperationException($"Only automatic item number is supported. Use {nameof(BomItemNumber)}.{nameof(BomItemNumber.Auto)}");
                     }
                 }
 
@@ -188,19 +248,65 @@ namespace Xarial.XCad.SolidWorks.Annotations
 
                             if (TryGetItemNumer(out _) != hasItemNumber)
                             {
-                                throw new TableRowOperationException($"Failed to set has item number");
+                                throw new TableElementOperationException($"Failed to set has item number");
                             }
                         }
                         else
                         {
-                            throw new TableRowOperationException($"Failed to select row to hide item number");
+                            throw new TableElementOperationException($"Failed to select row to hide item number");
                         }
                     }
                     else
                     {
-                        throw new TableRowOperationException("Cannot set item number on the invisible row");
+                        throw new TableElementOperationException("Cannot set item number on the invisible row");
                     }
                 }
+            }
+        }
+
+        public IXComponent[] Components 
+        {
+            get 
+            {
+                var visible = Visible;
+
+                if (!visible) 
+                {
+                    Visible = true;
+                }
+
+                try
+                {
+                    var confName = m_BomTable.ReferencedConfiguration?.Name;
+
+                    var comps = (object[])m_BomTable.BomTableAnnotation.GetComponents2(VisibleIndex + m_Rows.RowIndexOffset, confName);
+
+                    if (comps != null)
+                    {
+                        var refDoc = (ISwDocument)m_BomTable.ReferencedDocument;
+
+                        return comps.Select(c => m_BomTable.OwnerApplication.CreateObjectFromDispatch<ISwComponent>(c, refDoc)).ToArray();
+                    }
+                    else
+                    {
+                        return null;
+                    }
+                }
+                finally 
+                {
+                    if (!visible) 
+                    {
+                        Visible = false;
+                    }
+                }
+            }
+        }
+
+        protected override void ValidateCanDelete()
+        {
+            if (Components?.Any() == true) 
+            {
+                throw new TableElementOperationException("BOM row with the components cannnot be deleted from API");
             }
         }
 

@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Xarial.XCad.Base;
+using Xarial.XCad.Exceptions;
 using Xarial.XCad.Services;
 using Xarial.XCad.Toolkit.Utils;
 
@@ -49,7 +50,7 @@ namespace Xarial.XCad.Toolkit.Data
         {
             if (m_IsDeleted)
             {
-                throw new InvalidOperationException("Element is deleted");
+                throw new TableElementDeletedException();
             }
         }
 

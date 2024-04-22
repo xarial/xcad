@@ -6,6 +6,7 @@
 //*********************************************************************
 
 using Xarial.XCad.Base;
+using Xarial.XCad.Documents;
 
 namespace Xarial.XCad.Annotations
 {
@@ -40,6 +41,11 @@ namespace Xarial.XCad.Annotations
         /// </summary>
         /// <remarks>Use <see cref="BomItemNumber"/> for available values</remarks>
         int? ItemNumber { get; set; }
+
+        /// <summary>
+        /// Components of this BOM row
+        /// </summary>
+        IXComponent[] Components { get; }
     }
 
     /// <summary>

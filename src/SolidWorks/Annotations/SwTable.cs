@@ -20,6 +20,7 @@ using System.Threading.Tasks;
 using System.Windows.Documents;
 using Xarial.XCad.Annotations;
 using Xarial.XCad.Base;
+using Xarial.XCad.Documents;
 using Xarial.XCad.Services;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Enums;
@@ -46,12 +47,17 @@ namespace Xarial.XCad.SolidWorks.Annotations
 
         public ITableAnnotation TableAnnotation { get; }
 
-        public SwTableColumnRepository Columns => new SwTableColumnRepository(this, new ChangeTracker());
+        public SwTableColumnRepository Columns => new SwTableColumnRepository(this, m_ColumnsChangeTracker);
 
-        public SwTableRowRepository Rows => CreateRows(new ChangeTracker());
+        public SwTableRowRepository Rows => CreateRows(m_RowsChangeTracker);
+
+        private readonly ChangeTracker m_ColumnsChangeTracker;
+        private readonly ChangeTracker m_RowsChangeTracker;
 
         internal SwTable(ITableAnnotation tableAnn, SwDocument doc, SwApplication app) : base(tableAnn?.GetAnnotation(), doc, app)
         {
+            m_ColumnsChangeTracker = new ChangeTracker();
+            m_RowsChangeTracker = new ChangeTracker();
             TableAnnotation = tableAnn;
         }
 
@@ -64,11 +70,89 @@ namespace Xarial.XCad.SolidWorks.Annotations
     /// </summary>
     public interface ISwBomTable : ISwTable, IXBomTable 
     {
+        /// <summary>
+        /// Specific BOM table annotation
+        /// </summary>
+        IBomTableAnnotation BomTableAnnotation { get; }
+        
+        /// <summary>
+        /// Pointer to the BOM feature
+        /// </summary>
+        IBomFeature BomFeature { get; }
     }
 
     internal class SwBomTable : SwTable, ISwBomTable
     {
         IXBomTableRowRepository IXBomTable.Rows => (IXBomTableRowRepository)base.Rows;
+
+        public IBomTableAnnotation BomTableAnnotation => (IBomTableAnnotation)TableAnnotation;
+
+        public IBomFeature BomFeature => BomTableAnnotation.BomFeature;
+
+        public IXDocument3D ReferencedDocument 
+        {
+            get
+            {
+                var docPath = BomFeature.GetReferencedModelName();
+                
+                if (!OwnerApplication.Documents.TryGet(docPath, out var doc)) 
+                {
+                    doc = OwnerApplication.Documents.PreCreateFromPath(docPath);
+                }
+
+                return (IXDocument3D)doc;
+            }
+        }
+
+        public IXConfiguration ReferencedConfiguration 
+        {
+            get 
+            {
+                object vis = null;
+                var confName = ((string[])BomFeature.GetConfigurations(true, ref vis))?.FirstOrDefault();
+
+                if (!string.IsNullOrEmpty(confName))
+                {
+                    var refDoc = ReferencedDocument;
+
+                    IXConfiguration conf = null;
+
+                    if (refDoc.IsCommitted)
+                    {
+                        refDoc.Configurations.TryGet(confName, out conf);
+                    }
+
+                    if (conf == null)
+                    {
+                        switch (refDoc)
+                        {
+                            case SwPart part:
+                                conf = new SwPartConfiguration(null, part, OwnerApplication, false)
+                                {
+                                    Name = confName
+                                };
+                                break;
+
+                            case SwAssembly assm:
+                                conf = new SwAssemblyConfiguration(null, assm, OwnerApplication, false)
+                                {
+                                    Name = confName
+                                };
+                                break;
+
+                            default:
+                                throw new NotSupportedException();
+                        }
+                    }
+
+                    return conf;
+                }
+                else
+                {
+                    return null;
+                }
+            }
+        }
 
         internal SwBomTable(ITableAnnotation tableAnn, SwDocument doc, SwApplication app) : base(tableAnn, doc, app)
         {

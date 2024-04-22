@@ -54,7 +54,7 @@ namespace Xarial.XCad.Toolkit.Utils
             {
                 throw new Exception("Element is deleted");
             }
-            else if (index < from)
+            else if (index > from)
             {
                 index--;
             }
