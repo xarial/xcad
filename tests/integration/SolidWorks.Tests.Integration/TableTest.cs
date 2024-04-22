@@ -72,27 +72,32 @@ namespace SolidWorks.Tests.Integration
             DataTable data;
 
             int[] indices;
+            bool[] v1;
 
             using (var doc = OpenDataDocument(@"Assembly18\Draw18.slddrw"))
             {
                 var drw = (IXDrawing)m_App.Documents.Active;
                 var table = drw.Sheets.Active.Annotations.OfType<IXTable>().First();
 
-                var rowsRepo = table.Rows.ToArray();
+                var rowsRepo = table.Rows;
 
                 var rows = rowsRepo.ToArray();
 
                 rows[4].Index = 0;
                 rows[1].Index = 7;
                 rows[3].Index = 1;
-                Assert.Throws<TableElementOperationException>(() => rows[6].Index = 7);
-                
+                rows[2].Index = 5;
+
                 indices = rows.Select(r => r.Index).ToArray();
 
                 data = table.Read(false);
+
+                v1 = rowsRepo.Select(r => r.Visible).ToArray();
             }
 
-            CollectionAssert.AreEqual(new int[] { 2, 7, 3, 1, 0, 4, 5, 6 }, indices);
+            CollectionAssert.AreEqual(new int[] { 2, 7, 5, 1, 0, 3, 4, 6 }, indices);
+
+            CollectionAssert.AreEqual(new bool[] { true, true, true, true, false, false, true, true }, v1);
 
             Assert.AreEqual(6, data.Columns.Count);
             Assert.AreEqual(8, data.Rows.Count);
@@ -100,9 +105,9 @@ namespace SolidWorks.Tests.Integration
             CollectionAssert.AreEqual(new string[] { "1", "Part2", "", "", "4", "1" }, data.Rows[0].ItemArray.Select(i => i?.ToString()));
             CollectionAssert.AreEqual(new string[] { "2", "", "", "", "3", "" }, data.Rows[1].ItemArray.Select(i => i?.ToString()));
             CollectionAssert.AreEqual(new string[] { "3", "Test1", "Test2", "", "0", "" }, data.Rows[2].ItemArray.Select(i => i?.ToString()));
-            CollectionAssert.AreEqual(new string[] { "", "", "", "Desc2", "2", "" }, data.Rows[3].ItemArray.Select(i => i?.ToString()));
-            CollectionAssert.AreEqual(new string[] { "", "", "", "", "5", "" }, data.Rows[4].ItemArray.Select(i => i?.ToString()));
-            CollectionAssert.AreEqual(new string[] { "4", "", "", "Desc3", "6", "" }, data.Rows[5].ItemArray.Select(i => i?.ToString()));
+            CollectionAssert.AreEqual(new string[] { "", "", "", "", "5", "" }, data.Rows[3].ItemArray.Select(i => i?.ToString()));
+            CollectionAssert.AreEqual(new string[] { "4", "", "", "Desc3", "6", "" }, data.Rows[4].ItemArray.Select(i => i?.ToString()));
+            CollectionAssert.AreEqual(new string[] { "", "", "", "Desc2", "2", "" }, data.Rows[5].ItemArray.Select(i => i?.ToString()));
             CollectionAssert.AreEqual(new string[] { "5", "", "", "Desc4", "7", "" }, data.Rows[6].ItemArray.Select(i => i?.ToString()));
             CollectionAssert.AreEqual(new string[] { "6", "Part1", "", "Desc1", "1", "1" }, data.Rows[7].ItemArray.Select(i => i?.ToString()));
         }
@@ -138,8 +143,11 @@ namespace SolidWorks.Tests.Integration
         public void BomSetItemNumberTest()
         {
             string i1;
-            string i2;
             string i3;
+            string i4;
+            string i6;
+
+            bool[] v1;
 
             using (var doc = OpenDataDocument(@"Assembly18\Draw18.slddrw"))
             {
@@ -149,25 +157,32 @@ namespace SolidWorks.Tests.Integration
                 var rowsRepo = bomTable.Rows;
 
                 rowsRepo[0].ItemNumber = BomItemNumber.None;
-                Assert.Throws<TableElementOperationException>(() => rowsRepo[2].ItemNumber = BomItemNumber.Auto);
+                rowsRepo[2].ItemNumber = BomItemNumber.Auto;
                 rowsRepo[3].ItemNumber = BomItemNumber.None;
                 rowsRepo[5].ItemNumber = BomItemNumber.Auto;
                 Assert.Throws<TableElementOperationException>(() => rowsRepo[6].ItemNumber = 5);
 
                 i1 = ((ISwTable)bomTable).TableAnnotation.Text2[1, 0, true];
-                i2 = ((ISwTable)bomTable).TableAnnotation.Text2[4, 0, true];
-                i3 = ((ISwTable)bomTable).TableAnnotation.Text2[6, 0, true];
+                i3 = ((ISwTable)bomTable).TableAnnotation.Text2[3, 0, true];
+                i4 = ((ISwTable)bomTable).TableAnnotation.Text2[4, 0, true];
+                i6 = ((ISwTable)bomTable).TableAnnotation.Text2[6, 0, true];
+
+                v1 = rowsRepo.Select(r => r.Visible).ToArray();
             }
 
+            CollectionAssert.AreEqual(new bool[] { true, true, false, true, true, true, false, true }, v1);
+
             Assert.AreEqual("", i1);
-            Assert.AreEqual("", i2);
-            Assert.AreEqual("3", i3);
+            Assert.AreEqual("2", i3);
+            Assert.AreEqual("", i4);
+            Assert.AreEqual("4", i6);
         }
 
         [Test]
         public void AddRowTest()
         {
             int[] indices;
+            bool[] v1;
 
             DataTable data;
 
@@ -192,30 +207,37 @@ namespace SolidWorks.Tests.Integration
                 r3.Cells[1].Value = "C1";
                 r3.Cells[3].Value = "C3";
 
-                Assert.Throws<TableElementOperationException>(() => rowsRepo.Insert(3));
+                var r4 = rowsRepo.Insert(3);
+                r4.Cells[1].Value = "D1";
+                r4.Cells[3].Value = "D3";
 
                 indices = rows.Select(r => r.Index).ToArray();
 
                 data = table.Read(false);
+
+                v1 = rowsRepo.Select(r => r.Visible).ToArray();
             }
 
-            CollectionAssert.AreEqual(new int[] { 1, 2, 3, 4, 6, 7, 8, 9 }, indices);
+            CollectionAssert.AreEqual(new int[] { 1, 2, 4, 5, 7, 8, 9, 10 }, indices);
+
+            CollectionAssert.AreEqual(new bool[] { true, true, true, true, false, true, true, true, true, false, true, true }, v1);
 
             Assert.AreEqual(6, data.Columns.Count);
-            Assert.AreEqual(11, data.Rows.Count);
+            Assert.AreEqual(12, data.Rows.Count);
 
             CollectionAssert.AreEqual(new string[] { "ITEM NO.", "PART NUMBER", "SW-Title(Title)", "DESCRIPTION", "INDEX", "QTY." }, data.Columns.Cast<DataColumn>().Select(c => c.ColumnName).ToArray());
             CollectionAssert.AreEqual(new string[] { "1", "A1", "", "A3", "", "" }, data.Rows[0].ItemArray.Select(i => i?.ToString()));
             CollectionAssert.AreEqual(new string[] { "2", "Test1", "Test2", "", "0", "" }, data.Rows[1].ItemArray.Select(i => i?.ToString()));
             CollectionAssert.AreEqual(new string[] { "3", "Part1", "", "Desc1", "1", "1" }, data.Rows[2].ItemArray.Select(i => i?.ToString()));
-            CollectionAssert.AreEqual(new string[] { "", "", "", "Desc2", "2", "" }, data.Rows[3].ItemArray.Select(i => i?.ToString()));
-            CollectionAssert.AreEqual(new string[] { "4", "", "", "", "3", "" }, data.Rows[4].ItemArray.Select(i => i?.ToString()));
-            CollectionAssert.AreEqual(new string[] { "5", "C1", "", "C3", "", "" }, data.Rows[5].ItemArray.Select(i => i?.ToString()));
-            CollectionAssert.AreEqual(new string[] { "6", "Part2", "", "", "4", "1" }, data.Rows[6].ItemArray.Select(i => i?.ToString()));
-            CollectionAssert.AreEqual(new string[] { "", "", "", "", "5", "" }, data.Rows[7].ItemArray.Select(i => i?.ToString()));
-            CollectionAssert.AreEqual(new string[] { "7", "", "", "Desc3", "6", "" }, data.Rows[8].ItemArray.Select(i => i?.ToString()));
-            CollectionAssert.AreEqual(new string[] { "8", "", "", "Desc4", "7", "" }, data.Rows[9].ItemArray.Select(i => i?.ToString()));
-            CollectionAssert.AreEqual(new string[] { "9", "B1", "", "B3", "", "" }, data.Rows[10].ItemArray.Select(i => i?.ToString()));
+            CollectionAssert.AreEqual(new string[] { "4", "D1", "", "D3", "", "" }, data.Rows[3].ItemArray.Select(i => i?.ToString()));
+            CollectionAssert.AreEqual(new string[] { "", "", "", "Desc2", "2", "" }, data.Rows[4].ItemArray.Select(i => i?.ToString()));
+            CollectionAssert.AreEqual(new string[] { "5", "", "", "", "3", "" }, data.Rows[5].ItemArray.Select(i => i?.ToString()));
+            CollectionAssert.AreEqual(new string[] { "6", "C1", "", "C3", "", "" }, data.Rows[6].ItemArray.Select(i => i?.ToString()));
+            CollectionAssert.AreEqual(new string[] { "7", "Part2", "", "", "4", "1" }, data.Rows[7].ItemArray.Select(i => i?.ToString()));
+            CollectionAssert.AreEqual(new string[] { "", "", "", "", "5", "" }, data.Rows[8].ItemArray.Select(i => i?.ToString()));
+            CollectionAssert.AreEqual(new string[] { "8", "", "", "Desc3", "6", "" }, data.Rows[9].ItemArray.Select(i => i?.ToString()));
+            CollectionAssert.AreEqual(new string[] { "9", "", "", "Desc4", "7", "" }, data.Rows[10].ItemArray.Select(i => i?.ToString()));
+            CollectionAssert.AreEqual(new string[] { "10", "B1", "", "B3", "", "" }, data.Rows[11].ItemArray.Select(i => i?.ToString()));
         }
 
         [Test]
@@ -274,6 +296,9 @@ namespace SolidWorks.Tests.Integration
         {
             DataTable data;
 
+            bool[] v1;
+            bool[] v2;
+            bool[] v3;
             int i1;
             int i2;
             int i3;
@@ -289,6 +314,8 @@ namespace SolidWorks.Tests.Integration
 
                 var rows = rowsRepo.ToArray();
 
+                v1 = rows.Select(r => r.Visible).ToArray();
+
                 rowsRepo.RemoveRange(new IXTableRow[] { rows[0], rows[5], rows[6] });
 
                 Assert.Throws<TableElementOperationException>(() => rowsRepo.RemoveRange(new IXTableRow[] { rows[1] }));
@@ -302,6 +329,9 @@ namespace SolidWorks.Tests.Integration
                 Assert.Throws<TableElementDeletedException>(() => { var x = rows[6].Index; });
                 i7 = rows[7].Index;
 
+                v2 = rows.Except(new IXTableRow[] { rows[0], rows[5], rows[6] }).Select(r => r.Visible).ToArray();
+                v3 = rowsRepo.Select(r => r.Visible).ToArray();
+
                 data = table.Read(false);
             }
 
@@ -313,11 +343,44 @@ namespace SolidWorks.Tests.Integration
 
             Assert.AreEqual(6, data.Columns.Count);
             Assert.AreEqual(5, data.Rows.Count);
+
+            CollectionAssert.AreEqual(new bool[] { true, true, false, true, true, true, false, true }, v1);
+            CollectionAssert.AreEqual(new bool[] { true, false, true, true, true }, v2);
+            CollectionAssert.AreEqual(new bool[] { true, false, true, true, true }, v3);
+
             CollectionAssert.AreEqual(new string[] { "1", "Part1", "", "Desc1", "1", "1" }, data.Rows[0].ItemArray.Select(i => i?.ToString()));
             CollectionAssert.AreEqual(new string[] { "", "", "", "Desc2", "2", "" }, data.Rows[1].ItemArray.Select(i => i?.ToString()));
             CollectionAssert.AreEqual(new string[] { "2", "", "", "", "3", "" }, data.Rows[2].ItemArray.Select(i => i?.ToString()));
             CollectionAssert.AreEqual(new string[] { "3", "Part2", "", "", "4", "1" }, data.Rows[3].ItemArray.Select(i => i?.ToString()));
             CollectionAssert.AreEqual(new string[] { "4", "", "", "Desc4", "7", "" }, data.Rows[4].ItemArray.Select(i => i?.ToString()));
+        }
+
+        [Test]
+        public void VisibleRowsTest()
+        {
+            bool[] v1;
+            bool[] v2;
+
+            using (var doc = OpenDataDocument(@"Assembly18\Draw18.slddrw"))
+            {
+                var drw = (IXDrawing)m_App.Documents.Active;
+                var table = drw.Sheets.Active.Annotations.OfType<IXTable>().First();
+
+                var rowsRepo = table.Rows;
+
+                var rows = rowsRepo.ToArray();
+
+                v1 = rows.Select(r => r.Visible).ToArray();
+
+                rows[1].Visible = false;
+                rows[2].Visible = true;
+                rows[3].Visible = true;
+
+                v2 = rows.Select(r => r.Visible).ToArray();
+            }
+
+            CollectionAssert.AreEqual(new bool[] { true, true, false, true, true, true, false, true }, v1);
+            CollectionAssert.AreEqual(new bool[] { true, false, true, true, true, true, false, true }, v2);
         }
     }
 }

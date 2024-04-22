@@ -5,6 +5,7 @@
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
+using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
 using System;
 using System.Diagnostics;
@@ -25,6 +26,32 @@ namespace Xarial.XCad.SolidWorks.Annotations
     [DebuggerDisplay("[{" + nameof(Index) + "}]")]
     internal class SwTableRow : TableElement, IXTableRow
     {
+        protected class SwTableVisibleRow : IDisposable 
+        {
+            private readonly bool m_IsVisible;
+
+            private readonly IXTableRow m_Row;
+
+            internal SwTableVisibleRow(IXTableRow row) 
+            {
+                m_Row = row;
+                m_IsVisible = m_Row.Visible;
+
+                if (!m_IsVisible)
+                {
+                    m_Row.Visible = true;
+                }
+            }
+
+            public void Dispose()
+            {
+                if (!m_IsVisible)
+                {
+                    m_Row.Visible = false;
+                }
+            }
+        }
+
         public bool Visible 
         {
             get
@@ -79,24 +106,23 @@ namespace Xarial.XCad.SolidWorks.Annotations
 
         protected override void Move(int to)
         {
-            if (Visible && m_Rows[to].Visible)
+            using (new SwTableVisibleRow(this)) 
             {
-                var srcIndex = VisibleIndex + m_Rows.RowIndexOffset;
-                var targIndex = GetVisibleIndex(to) + m_Rows.RowIndexOffset;
-
-                if (srcIndex != targIndex)
+                using (new SwTableVisibleRow(m_Rows[to])) 
                 {
-                    if (!m_Table.TableAnnotation.MoveRow(srcIndex, (int)swTableItemInsertPosition_e.swTableItemMovePosition_Relative, targIndex - srcIndex))
-                    {
-                        throw new TableElementOperationException($"Failed to move the row {Index} to {to}");
-                    }
+                    var srcIndex = VisibleIndex + m_Rows.RowIndexOffset;
+                    var targIndex = GetVisibleIndex(to) + m_Rows.RowIndexOffset;
 
-                    m_ChangeTracker.Move(Index, to);
+                    if (srcIndex != targIndex)
+                    {
+                        if (!m_Table.TableAnnotation.MoveRow(srcIndex, (int)swTableItemInsertPosition_e.swTableItemMovePosition_Relative, targIndex - srcIndex))
+                        {
+                            throw new TableElementOperationException($"Failed to move the row {Index} to {to}");
+                        }
+
+                        m_ChangeTracker.Move(Index, to);
+                    }
                 }
-            }
-            else 
-            {
-                throw new TableElementOperationException("Only visible rows can be moved");
             }
         }
 
@@ -117,20 +143,18 @@ namespace Xarial.XCad.SolidWorks.Annotations
             else
             {
                 pos = swTableItemInsertPosition_e.swTableItemInsertPosition_Before;
+            }
 
-                if (!m_Rows[index].Visible)
+            using (pos == swTableItemInsertPosition_e.swTableItemInsertPosition_Before ? new SwTableVisibleRow(m_Rows[index]): null) 
+            {
+                if (m_Table.TableAnnotation.InsertRow((int)pos, targIndex))
                 {
-                    throw new TableElementOperationException("Cannot create row at the hidden position");
+                    m_ChangeTracker.Insert(index);
                 }
-            }
-
-            if (m_Table.TableAnnotation.InsertRow((int)pos, targIndex))
-            {
-                m_ChangeTracker.Insert(index);
-            }
-            else
-            {
-                throw new TableElementOperationException("Failed to insert row");
+                else
+                {
+                    throw new TableElementOperationException("Failed to insert row");
+                }
             }
         }
 
@@ -158,25 +182,11 @@ namespace Xarial.XCad.SolidWorks.Annotations
             }
             else
             {
-                var visible = Visible;
-
-                if (!visible) 
-                {
-                    Visible = true;
-                }
-
-                try
+                using (new SwTableVisibleRow(this)) 
                 {
                     if (!m_Table.TableAnnotation.DeleteRow(VisibleIndex + m_Rows.RowIndexOffset))
                     {
                         throw new TableElementOperationException("Failed to delete row");
-                    }
-                }
-                finally 
-                {
-                    if (!visible) 
-                    {
-                        Visible = false;
                     }
                 }
             }
@@ -229,7 +239,7 @@ namespace Xarial.XCad.SolidWorks.Annotations
 
                 if (TryGetItemNumer(out _) != hasItemNumber)
                 {
-                    if (Visible)
+                    using(new SwTableVisibleRow(this))
                     {
                         var selData = m_Table.OwnerDocument.Model.ISelectionManager.CreateSelectData();
 
@@ -255,10 +265,6 @@ namespace Xarial.XCad.SolidWorks.Annotations
                         {
                             throw new TableElementOperationException($"Failed to select row to hide item number");
                         }
-                    }
-                    else
-                    {
-                        throw new TableElementOperationException("Cannot set item number on the invisible row");
                     }
                 }
             }
