@@ -295,6 +295,7 @@ namespace SolidWorks.Tests.Integration
         public void DeleteRowsTest()
         {
             DataTable data;
+            DataTable data1;
 
             bool[] v1;
             bool[] v2;
@@ -333,6 +334,7 @@ namespace SolidWorks.Tests.Integration
                 v3 = rowsRepo.Select(r => r.Visible).ToArray();
 
                 data = table.Read(false);
+                data1 = table.Read(true);
             }
 
             Assert.AreEqual(0, i1);
@@ -344,15 +346,23 @@ namespace SolidWorks.Tests.Integration
             Assert.AreEqual(6, data.Columns.Count);
             Assert.AreEqual(5, data.Rows.Count);
 
-            CollectionAssert.AreEqual(new bool[] { true, true, false, true, true, true, false, true }, v1);
-            CollectionAssert.AreEqual(new bool[] { true, false, true, true, true }, v2);
-            CollectionAssert.AreEqual(new bool[] { true, false, true, true, true }, v3);
+            Assert.AreEqual(5, data1.Columns.Count);
+            Assert.AreEqual(4, data1.Rows.Count);
 
             CollectionAssert.AreEqual(new string[] { "1", "Part1", "", "Desc1", "1", "1" }, data.Rows[0].ItemArray.Select(i => i?.ToString()));
             CollectionAssert.AreEqual(new string[] { "", "", "", "Desc2", "2", "" }, data.Rows[1].ItemArray.Select(i => i?.ToString()));
             CollectionAssert.AreEqual(new string[] { "2", "", "", "", "3", "" }, data.Rows[2].ItemArray.Select(i => i?.ToString()));
             CollectionAssert.AreEqual(new string[] { "3", "Part2", "", "", "4", "1" }, data.Rows[3].ItemArray.Select(i => i?.ToString()));
             CollectionAssert.AreEqual(new string[] { "4", "", "", "Desc4", "7", "" }, data.Rows[4].ItemArray.Select(i => i?.ToString()));
+
+            CollectionAssert.AreEqual(new string[] { "1", "Part1", "Desc1", "1", "1" }, data1.Rows[0].ItemArray.Select(i => i?.ToString()));
+            CollectionAssert.AreEqual(new string[] { "2", "", "", "3", "" }, data1.Rows[1].ItemArray.Select(i => i?.ToString()));
+            CollectionAssert.AreEqual(new string[] { "3", "Part2", "", "4", "1" }, data1.Rows[2].ItemArray.Select(i => i?.ToString()));
+            CollectionAssert.AreEqual(new string[] { "4", "", "Desc4", "7", "" }, data1.Rows[3].ItemArray.Select(i => i?.ToString()));
+
+            CollectionAssert.AreEqual(new bool[] { true, true, false, true, true, true, false, true }, v1);
+            CollectionAssert.AreEqual(new bool[] { true, false, true, true, true }, v2);
+            CollectionAssert.AreEqual(new bool[] { true, false, true, true, true }, v3);
         }
 
         [Test]

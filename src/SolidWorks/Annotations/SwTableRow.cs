@@ -132,20 +132,25 @@ namespace Xarial.XCad.SolidWorks.Annotations
 
             swTableItemInsertPosition_e pos;
 
+            IXTableRow targRow;
+
             if (targIndex == m_Rows.RowIndexOffset)
             {
                 pos = swTableItemInsertPosition_e.swTableItemInsertPosition_First;
+                targRow = m_Rows.FirstOrDefault();
             }
             else if (targIndex == m_Table.TableAnnotation.RowCount)
             {
                 pos = swTableItemInsertPosition_e.swTableItemInsertPosition_Last;
+                targRow = m_Rows.LastOrDefault(); 
             }
             else
             {
                 pos = swTableItemInsertPosition_e.swTableItemInsertPosition_Before;
+                targRow = m_Rows[index];
             }
 
-            using (pos == swTableItemInsertPosition_e.swTableItemInsertPosition_Before ? new SwTableVisibleRow(m_Rows[index]): null) 
+            using (targRow != null ? new SwTableVisibleRow(targRow) : null) 
             {
                 if (m_Table.TableAnnotation.InsertRow((int)pos, targIndex))
                 {
@@ -158,6 +163,9 @@ namespace Xarial.XCad.SolidWorks.Annotations
             }
         }
 
+        /// <remarks>
+        /// NOTE: due to current bug in SOLIDWORKS removing rows (both from API or UI) will break the indices of visible rows
+        /// </remarks>
         internal void Delete()
         {
             CheckDeleted();

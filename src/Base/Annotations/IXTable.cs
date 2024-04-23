@@ -14,10 +14,12 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using Xarial.XCad.Base;
+using Xarial.XCad.Data;
 using Xarial.XCad.Documents;
 
 namespace Xarial.XCad.Annotations
 {
+
     /// <summary>
     /// Represents the table annotation
     /// </summary>
@@ -283,7 +285,16 @@ namespace Xarial.XCad.Annotations
         /// <param name="visibleOnly">Only read visible data</param>
         /// <returns>Data reader</returns>
         public static IDataReader ExecuteReader(this IXTable table, bool visibleOnly = true)
-            => new TableDataReader(table, visibleOnly);
+        {
+            if (table is IReadable)
+            {
+                return ((IReadable)table).ExecuteReader(visibleOnly);
+            }
+            else 
+            {
+                return new TableDataReader(table, visibleOnly);
+            }
+        }
 
         /// <summary>
         /// Reads the content of the table

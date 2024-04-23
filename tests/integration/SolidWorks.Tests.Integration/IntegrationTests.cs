@@ -42,7 +42,7 @@ namespace SolidWorks.Tests.Integration
             }
         }
 
-        private const int SW_PRC_ID = 0;
+        private const int SW_PRC_ID = -1;
 
         private readonly string m_DataFolder;
         private SwVersion_e? SW_VERSION = SwVersion_e.Sw2023;
