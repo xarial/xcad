@@ -91,7 +91,7 @@ namespace Xarial.XCad.SolidWorks.Utils
             {
                 var cusrSelCount = m_SelMgr.GetSelectedObjectCount2(-1);
 
-                if (m_Model.Extension.MultiSelect2(dispWrappers, true, null) - cusrSelCount != disps.Length) 
+                if (m_Model.Extension.MultiSelect2(dispWrappers, true, selData) - cusrSelCount != disps.Length) 
                 {
                     throw new Exception("Failed to select objects");
                 }

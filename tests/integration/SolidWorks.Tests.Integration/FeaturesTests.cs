@@ -7,13 +7,13 @@ using Xarial.XCad.Base;
 using Xarial.XCad.Features;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Sketch;
+using Xarial.XCad.SolidWorks;
 using Xarial.XCad.SolidWorks.Features;
 
 namespace SolidWorks.Tests.Integration
 {
     public class FeaturesTests : IntegrationTests
     {
-        //NOTE: SW 2024, 'Lights, Cameras and Themes' feature is renamed to 'Lights and Cameras' (index 11)
         [Test]
         public void IterateFeaturesTest()
         {
@@ -28,9 +28,21 @@ namespace SolidWorks.Tests.Integration
             }
 
             var expected = new string[] { "Comments", "Favorites", "History", "Selection Sets", "Sensors", "Design Binder", "Annotations", "Notes",
-                "Notes1___EndTag___", "Surface Bodies", "Solid Bodies", "Lights, Cameras and Scene", "Ambient", "Directional1", "Directional2", "Directional3",
+                "Notes1___EndTag___", "Surface Bodies", "Solid Bodies", "-", "Ambient", "Directional1", "Directional2", "Directional3",
                 "Markups", "Equations", "Material <not specified>", "Front Plane", "Top Plane", "Right Plane", "Origin", "Sketch1", "Boss-Extrude1", "Boss-Extrude2",
                 "Sketch1<2>" };
+
+            //NOTE: SW 2024, 'Lights, Cameras and Scene' feature is renamed to 'Lights and Cameras' (index 11)
+            if (m_App.IsVersionNewerOrEqual(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2024))
+            {
+                Assert.AreEqual("Lights and Cameras", featNames[11]);
+            }
+            else 
+            {
+                Assert.AreEqual("Lights, Cameras and Scene", featNames[11]);
+            }
+
+            featNames[11] = "-";
 
             CollectionAssert.AreEqual(expected, featNames);
         }
@@ -245,6 +257,21 @@ namespace SolidWorks.Tests.Integration
 
             //AssertCompareDoubleArray(f11_g1_p1, new double[] { }); 180 deg incorrect orientation
             AssertCompareDoubleArray(f12_g1_p1, new double[] { -0.857785215958651, -0.514008291064231, 1.66533453693773E-16, 0, 1.30119549963726E-16, 1.06844244309736E-16, 1, 0, -0.514008291064231, 0.857785215958651, -2.47668856682643E-17, 0, -0.232127246833692, -1.89095761296899, 0, 1 });
+        }
+
+        [Test]
+        public void DeleteFeaturesTest()
+        {
+            string[] feats1;
+
+            using (var doc = OpenDataDocument("Features1.SLDPRT"))
+            {
+                m_App.Documents.Active.Features.RemoveRange(new IXFeature[] { m_App.Documents.Active.Features["Boss-Extrude1"] , m_App.Documents.Active.Features["Boss-Extrude2"] });
+
+                feats1 = m_App.Documents.Active.Features.Skip(23).Select(f => f.Name).ToArray();
+            }
+
+            CollectionAssert.AreEqual(new string[] { "Sketch1"}, feats1);
         }
     }
 }

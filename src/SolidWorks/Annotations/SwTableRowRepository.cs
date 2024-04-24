@@ -59,6 +59,9 @@ namespace Xarial.XCad.SolidWorks.Annotations
             => RepositoryHelper.PreCreate<IXTableRow, T>(this, 
                 () => CreateRow(null));
 
+        /// <remarks>
+        /// Due to current bug in SOLIDWORKS removing rows (both from API or UI) will break the indices of visible rows
+        /// </remarks>
         public void RemoveRange(IEnumerable<IXTableRow> ents, CancellationToken cancellationToken)
         {
             foreach (SwTableRow row in ents.ToArray()) 

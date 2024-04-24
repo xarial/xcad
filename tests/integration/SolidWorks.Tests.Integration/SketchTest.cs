@@ -49,6 +49,39 @@ namespace SolidWorks.Tests.Integration
         }
 
         [Test]
+        public void DeleteSketchEntitiesTest()
+        {
+            int skSegsCount;
+            bool isLine;
+            int[] skSegId1;
+            int[] skSegId2;
+
+            using (var doc = OpenDataDocument("Sketch1.SLDPRT"))
+            {
+                var part = (ISwPart)m_App.Documents.Active;
+
+                var sketch = part.CreateObjectFromDispatch<ISwSketch2D>(
+                    part.Features["Sketch1"].Feature.GetSpecificFeature2() as ISketch);
+
+                var allEnts = sketch.Entities.ToArray();
+
+                var line = allEnts.OfType<ISwSketchLine>().First();
+                skSegId1 = (int[])line.Segment.GetID();
+
+                sketch.Entities.RemoveRange(allEnts.Except(new IXSketchEntity[] { line, allEnts.OfType<IXSketchPicture>().First() }));
+
+                var skSegs = (object[])sketch.Sketch.GetSketchSegments();
+                skSegsCount = skSegs.Length;
+                isLine = skSegs[0] is ISketchLine;
+                skSegId2 = (int[])((ISketchSegment)skSegs[0]).GetID();
+            }
+
+            Assert.AreEqual(1, skSegsCount);
+            Assert.IsTrue(isLine);
+            CollectionAssert.AreEqual(skSegId1, skSegId2);
+        }
+
+        [Test]
         public void CreateLineTest() 
         {
             var x1 = -1d;

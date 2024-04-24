@@ -46,6 +46,8 @@ namespace Xarial.XCad.SolidWorks.Features
 
         private readonly UiFreeze m_ViewFreeze;
 
+        private bool m_WasEditing;
+
         protected SwSketchEditorBase(TSketch sketch, ISketch swSketch) 
         {
             if (sketch == null)
@@ -70,11 +72,16 @@ namespace Xarial.XCad.SolidWorks.Features
                 if (((IFeature)m_Sketch).Select2(false, 0))
                 {
                     StartEdit();
+                    m_WasEditing = false;
                 }
-                else 
+                else
                 {
                     throw new Exception("Failed to select sketch for editing");
                 }
+            }
+            else 
+            {
+                m_WasEditing = true;
             }
 
             m_AddToDbOrig = m_SketchMgr.AddToDB;
@@ -90,11 +97,14 @@ namespace Xarial.XCad.SolidWorks.Features
                 m_SketchMgr.AddToDB = m_AddToDbOrig.Value;
             }
 
-            if (Target.IsEditing)
+            if (!m_WasEditing)
             {
-                m_SketchMgr.Document.ClearSelection2(true);
-                
-                EndEdit(Cancel);
+                if (Target.IsEditing)
+                {
+                    m_SketchMgr.Document.ClearSelection2(true);
+
+                    EndEdit(Cancel);
+                }
             }
         }
     }

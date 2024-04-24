@@ -163,9 +163,6 @@ namespace Xarial.XCad.SolidWorks.Annotations
             }
         }
 
-        /// <remarks>
-        /// NOTE: due to current bug in SOLIDWORKS removing rows (both from API or UI) will break the indices of visible rows
-        /// </remarks>
         internal void Delete()
         {
             CheckDeleted();

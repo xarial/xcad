@@ -107,18 +107,14 @@ namespace Xarial.XCad.SolidWorks.Features
             {
                 using (var viewFreeze = new UiFreeze(Document))
                 {
-                    var disps = ents.Cast<SwFeature>().Select(e => new DispatchWrapper(e.Feature)).ToArray();
-
-                    if (Document.Model.Extension.MultiSelect2(disps, false, null) == disps.Length)
+                    using (var sel = new SelectionGroup(Document, true))
                     {
-                        if (!Document.Model.Extension.DeleteSelection2((int)swDeleteSelectionOptions_e.swDelete_Absorbed))
+                        sel.AddRange(ents.Cast<SwFeature>().Select(e => e.Feature).ToArray());
+
+                        if (!Document.Model.Extension.DeleteSelection2((int)swDeleteSelectionOptions_e.swDelete_Children))
                         {
                             throw new Exception("Failed to delete features");
                         }
-                    }
-                    else
-                    {
-                        throw new Exception("Failed to select features for deletion");
                     }
                 }
             }
