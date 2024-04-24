@@ -47,5 +47,11 @@ namespace Xarial.XCad.SolidWorks.Features
             OwnerModelDoc.Insert3DSketch2(true);
             return OwnerModelDoc.SketchManager.ActiveSketch;
         }
+
+        protected override void CloseSketch()
+        {
+            OwnerModelDoc.ClearSelection2(true);
+            OwnerModelDoc.Insert3DSketch2(true);
+        }
     }
 }

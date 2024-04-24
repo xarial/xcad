@@ -123,7 +123,13 @@ namespace Xarial.XCad.SolidWorks.Features
             
             return OwnerModelDoc.SketchManager.ActiveSketch;
         }
-        
+
+        protected override void CloseSketch()
+        {
+            OwnerModelDoc.ClearSelection2(true);
+            OwnerModelDoc.InsertSketch2(true);
+        }
+
         protected internal override IEditor<IXSketchBase> CreateSketchEditor(ISketch sketch) => new SwSketch2DEditor(this, sketch);
     }
 }

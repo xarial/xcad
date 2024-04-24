@@ -92,7 +92,7 @@ namespace SolidWorks.Tests.Integration
             var y2 = -1d;
             var z2 = -1d;
 
-            using (var doc = NewDocument(Interop.swconst.swDocumentTypes_e.swDocPART))
+            using (var doc = NewDocument(swDocumentTypes_e.swDocPART))
             {
                 var part = m_App.Documents.Active;
 

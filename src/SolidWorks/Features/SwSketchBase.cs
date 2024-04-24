@@ -141,6 +141,11 @@ namespace Xarial.XCad.SolidWorks.Features
 
         protected override IFeature InsertFeature(CancellationToken cancellationToken)
         {
+            if (m_SwEntsColl.Count == 0) 
+            {
+                throw new Exception("Failed to create sketch with no entitites");
+            }
+
             var sketch = CreateSketch();
 
             Sketch = sketch;
@@ -151,8 +156,14 @@ namespace Xarial.XCad.SolidWorks.Features
         protected override void CommitCache(IFeature feat, CancellationToken cancellationToken)
         {
             m_SwEntsColl.CommitCache(cancellationToken);
+
+            if (IsEditing) 
+            {
+                CloseSketch();
+            }
         }
 
+        protected abstract void CloseSketch();
         protected abstract ISketch CreateSketch();
 
         public override IEditor<IXFeature> Edit() => CreateSketchEditor(Sketch);
