@@ -54,7 +54,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public abstract IXTessellation PreCreateTessellation();
 
-        public IXCollisionDetection PreCreateCollisionDetection() => throw new NotImplementedException();
+        public virtual IXCollisionDetection PreCreateCollisionDetection() => new SwCollisionDetection(m_Doc, m_Doc.OwnerApplication);
         
         public IXMeasure PreCreateMeasure() => throw new NotImplementedException();
     }
@@ -137,6 +137,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         IXAssemblyTessellation IXAssemblyEvaluation.PreCreateTessellation()
             => new SwAssemblyTesselation(m_Assm);
 
-        IXAssemblyCollisionDetection IXAssemblyEvaluation.PreCreateCollisionDetection() => throw new NotImplementedException();
+        IXAssemblyCollisionDetection IXAssemblyEvaluation.PreCreateCollisionDetection() 
+            => new SwAssemblyCollisionDetection(m_Assm, m_Assm.OwnerApplication);
     }
 }

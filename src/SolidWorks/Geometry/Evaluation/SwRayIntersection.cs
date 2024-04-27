@@ -25,6 +25,9 @@ using Xarial.XCad.Toolkit.Exceptions;
 
 namespace Xarial.XCad.SolidWorks.Geometry.Evaluation
 {
+    /// <summary>
+    /// Represents SOLIDWORKS specific <see cref="IXRayIntersection"/>
+    /// </summary>
     public interface ISwRayIntersection : IXRayIntersection
     {
     }

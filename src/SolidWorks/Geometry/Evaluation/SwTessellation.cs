@@ -25,11 +25,20 @@ using Xarial.XCad.Toolkit.Exceptions;
 
 namespace Xarial.XCad.SolidWorks.Geometry.Evaluation
 {
+    /// <summary>
+    /// Represents SOLIDWORKS specific <see cref="IXTessellation"/>
+    /// </summary>
     public interface ISwTessellation : IXTessellation
     {
+        /// <summary>
+        /// Tesselation of each body in the scope
+        /// </summary>
         IReadOnlyDictionary<IXBody, ITessellation> Tessellation { get; }
     }
 
+    /// <summary>
+    /// Represents <see cref="IXAssembly"/> specific <see cref="IXTessellation"/>
+    /// </summary>
     public interface ISwAssemblyTessellation : ISwTessellation, IXAssemblyTessellation
     {
     }

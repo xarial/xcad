@@ -2956,5 +2956,68 @@ namespace SolidWorks.Tests.Integration
             Assert.That(side1Pts.Any(p => p.ToArray().SequenceEqual(new double[] { 0.025, 0.0125, 0.005 }, new DoubleComparer())));
             Assert.That(side1Pts.Any(p => p.ToArray().SequenceEqual(new double[] { 0.025, -0.0125, 0.005 }, new DoubleComparer())));
         }
+
+        [Test]
+        public void CollisionPartTest()
+        {
+            Tuple<string[], double[]>[] res1;
+            Tuple<string[], double[]>[] res2;
+
+            using (var doc = OpenDataDocument("CollisionPart1.SLDPRT"))
+            {
+                var part = (IXPart)m_App.Documents.Active;
+                var collDet1 = part.Evaluation.PreCreateCollisionDetection();
+                collDet1.Scope = new IXBody[]
+                {
+                    part.Bodies["SolidBody1"],
+                    part.Bodies["SolidBody2"],
+                    part.Bodies["SolidBody3"],
+                    part.Bodies["SolidBody4"]
+                };
+
+                collDet1.Commit();
+
+                res1 = collDet1.Results?.Select(r => new Tuple<string[], double[]>(
+                    r.CollidedBodies?.Select(b => b.Name).ToArray(),
+                    r.CollisionVolume?.Cast<IXSolidBody>().Select(v => v.Volume).ToArray())).ToArray();
+
+                var collDet2 = part.Evaluation.PreCreateCollisionDetection();
+                collDet2.Scope = new IXBody[]
+                {
+                    part.Bodies["SurfaceBody1"],
+                    part.Bodies["SurfaceBody2"]
+                };
+
+                collDet2.Commit();
+
+                res2 = collDet2.Results?.Select(r => new Tuple<string[], double[]>(
+                    r.CollidedBodies?.Select(b => b.Name).ToArray(),
+                    r.CollisionVolume?.Cast<IXPlanarSheetBody>().Select(v => v.Faces.OfType<IXPlanarFace>().First().Area).ToArray())).ToArray();
+            }
+
+            var p1 = res1.FirstOrDefault(x => x.Item1.OrderBy(y => y).SequenceEqual(new string[] { "SolidBody1", "SolidBody3" }.OrderBy(y => y)));
+            var p2 = res1.FirstOrDefault(x => x.Item1.OrderBy(y => y).SequenceEqual(new string[] { "SolidBody1", "SolidBody4" }.OrderBy(y => y)));
+            var p3 = res1.FirstOrDefault(x => x.Item1.OrderBy(y => y).SequenceEqual(new string[] { "SolidBody3", "SolidBody4" }.OrderBy(y => y)));
+
+            Assert.AreEqual(3, res1.Length);
+            
+            Assert.IsNotNull(p1);
+            Assert.AreEqual(1, p1.Item2.Length);
+            Assert.That(p1.Item2[0], Is.EqualTo(2.7977145502e-6).Within(0.1).Percent);
+
+            Assert.IsNotNull(p2);
+            Assert.AreEqual(1, p2.Item2.Length);
+            Assert.That(p2.Item2[0], Is.EqualTo(1.25550373565e-6).Within(0.1).Percent);
+
+            Assert.IsNotNull(p3);
+            Assert.AreEqual(2, p3.Item2.Length);
+            Assert.That(Math.Min(p3.Item2[0], p3.Item2[1]), Is.EqualTo(1.17637617523e-6).Within(0.1).Percent);
+            Assert.That(Math.Max(p3.Item2[0], p3.Item2[1]), Is.EqualTo(1.84299832024e-6).Within(0.1).Percent);
+
+            Assert.AreEqual(1, res2.Length);
+            CollectionAssert.AreEquivalent(new string[] { "SurfaceBody1", "SurfaceBody2" }, res2[0].Item1);
+            Assert.AreEqual(1, res2[0].Item2.Length);
+            Assert.That(res2[0].Item2[0], Is.EqualTo(0.00012132755196).Within(0.1).Percent);
+        }
     }
 }
