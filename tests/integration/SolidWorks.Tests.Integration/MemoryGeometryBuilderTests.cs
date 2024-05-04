@@ -591,5 +591,54 @@ namespace SolidWorks.Tests.Integration
             Assert.That(20, Is.EqualTo(secondVert[1]).Within(0.001).Percent);
             Assert.That(20, Is.EqualTo(secondVert[2]).Within(0.001).Percent);
         }
+
+        [Test]
+        public void CreateSurfaceLoftTest()
+        {
+            int faceCount1;
+            double faceArea1;
+            
+            int faceCount2;
+            double faceArea2;
+
+            var line1 = m_App.MemoryGeometryBuilder.CreateLine(new Point(-0.1, 0.01, 0.1), new Point(0.1, 0, 0.2));
+            var arc1 = m_App.MemoryGeometryBuilder.WireBuilder.PreCreateArc();
+            arc1.Start = new Point(-0.1, 0, 0);
+            arc1.End = new Point(0, 0.1, 0);
+            arc1.Geometry = new Circle(new Axis(new Point(0, 0, 0), new Vector(0, 0, -1)), 0.2);
+            arc1.Commit();
+
+            var loft1 = m_App.MemoryGeometryBuilder.SheetBuilder.PreCreateLoft();
+            loft1.Profiles = new IXPlanarRegion[]
+            {
+                m_App.MemoryGeometryBuilder.CreateRegionFromSegments(line1),
+                m_App.MemoryGeometryBuilder.CreateRegionFromSegments(arc1)
+            };
+            loft1.Commit();
+
+            var body1 = ((ISwBody)loft1.Bodies.First()).Body;
+            faceCount1 = body1.GetFaceCount();
+            faceArea1 = body1.IGetFirstFace().GetArea();
+
+            var circle2_1 = m_App.MemoryGeometryBuilder.CreateCircle(new Point(0, 0, 0), new Vector(0, 1, 0), 0.1);
+            var circle2_2 = m_App.MemoryGeometryBuilder.CreateCircle(new Point(0.1, 0.2, 0), new Vector(0, 1, 0), 0.05);
+
+            var loft2 = m_App.MemoryGeometryBuilder.SheetBuilder.PreCreateLoft();
+            loft2.Profiles = new IXPlanarRegion[]
+            {
+                m_App.MemoryGeometryBuilder.CreateRegionFromSegments(circle2_1),
+                m_App.MemoryGeometryBuilder.CreateRegionFromSegments(circle2_2)
+            };
+            loft2.Commit();
+            var body2 = ((ISwBody)loft2.Bodies.First()).Body;
+            faceCount2 = body2.GetFaceCount();
+            faceArea2 = body2.IGetFirstFace().GetArea();
+
+            Assert.AreEqual(1, faceCount1);
+            Assert.That(faceArea1, Is.EqualTo(0.026002760841539675).Within(0.001).Percent);
+
+            Assert.AreEqual(1, faceCount2);
+            Assert.That(faceArea2, Is.EqualTo(0.050252475535647226).Within(0.001).Percent);
+        }
     }
 }

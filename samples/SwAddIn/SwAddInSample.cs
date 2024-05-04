@@ -66,6 +66,7 @@ using Xarial.XCad.UI.Enums;
 using Xarial.XToolkit;
 using Xarial.XCad.SolidWorks.Geometry.Primitives;
 using Xarial.XCad.Toolkit.Graphics;
+using Xarial.XCad.SolidWorks.Geometry;
 
 namespace SwAddInExample
 {
@@ -777,9 +778,6 @@ namespace SwAddInExample
 
         private void Custom()
         {
-            var table = Application.Documents.Active.Selections.OfType<IXTable>().First();
-
-            var content = table.Read();
         }
 
         private void HandleAddEvents()

@@ -587,6 +587,15 @@ namespace SolidWorks.Tests.Integration
             double[] t7;
             double[] t8;
 
+            double[] o1;
+            double[] o2;
+            double[] o3;
+            double[] o4;
+            double[] o5;
+            double[] o6;
+            double[] o7;
+            double[] o8;
+
             using (var doc = OpenDataDocument("Drawing4\\Drawing4.slddrw"))
             {
                 var drwDoc = m_App.Documents.Active as ISwDrawing;
@@ -643,6 +652,15 @@ namespace SolidWorks.Tests.Integration
                 t6 = (double[])v6.DrawingView.ModelToViewTransform.ArrayData;
                 t7 = (double[])v7.DrawingView.ModelToViewTransform.ArrayData;
                 t8 = (double[])v8.DrawingView.ModelToViewTransform.ArrayData;
+
+                o1 = (double[])v1.DrawingView.GetOutline();
+                o2 = (double[])v2.DrawingView.GetOutline();
+                o3 = (double[])v3.DrawingView.GetOutline();
+                o4 = (double[])v4.DrawingView.GetOutline();
+                o5 = (double[])v5.DrawingView.GetOutline();
+                o6 = (double[])v6.DrawingView.GetOutline();
+                o7 = (double[])v7.DrawingView.GetOutline();
+                o8 = (double[])v8.DrawingView.GetOutline();
             }
 
             AssertCompareDoubleArray(t1, new double[] { 1, 0, 0, 0, 0, -1, 0, 1, 0, 0.587737905405405, 0.323514932432432, 0, 1, 0, 0, 0 }, 8, 5);
@@ -653,6 +671,122 @@ namespace SolidWorks.Tests.Integration
             AssertCompareDoubleArray(t6, new double[] { 0, 0, -1, 0, 1, 0, 1, 0, 0, 0.424097905405405, 0.487154932432432, 0, 1, 0, 0, 0 }, 8, 5);
             AssertCompareDoubleArray(t7, new double[] { 0, 0, 1, 0, 1, 0, -1, 0, 0, 0.751377905405406, 0.487154932432432, 0, 1, 0, 0, 0 }, 8, 5);
             AssertCompareDoubleArray(t8, new double[] { 1, 0, 0, 0, 0, 1, 0, -1, 0, 0.587737905405405, 0.650794932432433, 0, 1, 0, 0, 0 }, 8, 5);
+
+            AssertCompareDoubleArray(o1, new double[] { 0.510917905405405, 0.239874932432432, 0.664557905405405, 0.393514932432432 }, 8, 5);
+            AssertCompareDoubleArray(o2, new double[] { 0.288917941265718, 0.175210846612623, 0.492263568750489, 0.404804717457638 }, 8, 5);
+            AssertCompareDoubleArray(o3, new double[] { 0.683212242060321, 0.175210846612623, 0.886557869545093, 0.404804717457638 }, 8, 5);
+            AssertCompareDoubleArray(o4, new double[] { 0.288917941265718, 0.569505147407226, 0.492263568750489, 0.799099018252241 }, 8, 5);
+            AssertCompareDoubleArray(o5, new double[] { 0.683212242060321, 0.569505147407226, 0.886557869545093, 0.799099018252241 }, 8, 5);
+            AssertCompareDoubleArray(o6, new double[] { 0.340457905405405, 0.410334932432432, 0.494097905405405, 0.563974932432432 }, 8, 5);
+            AssertCompareDoubleArray(o7, new double[] { 0.681377905405405, 0.410334932432432, 0.835017905405406, 0.563974932432432 }, 8, 5);
+            AssertCompareDoubleArray(o8, new double[] { 0.510917905405405, 0.580794932432432, 0.664557905405405, 0.734434932432433 }, 8, 5);
+        }
+
+        [Test]
+        public void CreateProjectedViewHiddenBodiesTest()
+        {
+            double[] t1;
+            double[] t2;
+            double[] t3;
+            double[] t4;
+            double[] t5;
+            double[] t6;
+            double[] t7;
+            double[] t8;
+
+            double[] o1;
+            double[] o2;
+            double[] o3;
+            double[] o4;
+            double[] o5;
+            double[] o6;
+            double[] o7;
+            double[] o8;
+
+            using (var doc = OpenDataDocument("Drawing7\\Drawing7.slddrw"))
+            {
+                var drwDoc = m_App.Documents.Active as ISwDrawing;
+
+                var sheet = drwDoc.Sheets["Sheet1"];
+
+                var srcView = sheet.DrawingViews.First();
+
+                var v1 = sheet.DrawingViews.PreCreate<ISwProjectedDrawingView>();
+                v1.BaseView = srcView;
+                v1.Direction = ProjectedViewDirection_e.Bottom;
+                v1.Commit();
+
+                var v2 = sheet.DrawingViews.PreCreate<ISwProjectedDrawingView>();
+                v2.BaseView = srcView;
+                v2.Direction = ProjectedViewDirection_e.IsoBottomLeft;
+                v2.Commit();
+
+                var v3 = sheet.DrawingViews.PreCreate<ISwProjectedDrawingView>();
+                v3.BaseView = srcView;
+                v3.Direction = ProjectedViewDirection_e.IsoBottomRight;
+                v3.Commit();
+
+                var v4 = sheet.DrawingViews.PreCreate<ISwProjectedDrawingView>();
+                v4.BaseView = srcView;
+                v4.Direction = ProjectedViewDirection_e.IsoTopLeft;
+                v4.Commit();
+
+                var v5 = sheet.DrawingViews.PreCreate<ISwProjectedDrawingView>();
+                v5.BaseView = srcView;
+                v5.Direction = ProjectedViewDirection_e.IsoTopRight;
+                v5.Commit();
+
+                var v6 = sheet.DrawingViews.PreCreate<ISwProjectedDrawingView>();
+                v6.BaseView = srcView;
+                v6.Direction = ProjectedViewDirection_e.Left;
+                v6.Commit();
+
+                var v7 = sheet.DrawingViews.PreCreate<ISwProjectedDrawingView>();
+                v7.BaseView = srcView;
+                v7.Direction = ProjectedViewDirection_e.Right;
+                v7.Commit();
+
+                var v8 = sheet.DrawingViews.PreCreate<ISwProjectedDrawingView>();
+                v8.BaseView = srcView;
+                v8.Direction = ProjectedViewDirection_e.Top;
+                v8.Commit();
+
+                t1 = (double[])v1.DrawingView.ModelToViewTransform.ArrayData;
+                t2 = (double[])v2.DrawingView.ModelToViewTransform.ArrayData;
+                t3 = (double[])v3.DrawingView.ModelToViewTransform.ArrayData;
+                t4 = (double[])v4.DrawingView.ModelToViewTransform.ArrayData;
+                t5 = (double[])v5.DrawingView.ModelToViewTransform.ArrayData;
+                t6 = (double[])v6.DrawingView.ModelToViewTransform.ArrayData;
+                t7 = (double[])v7.DrawingView.ModelToViewTransform.ArrayData;
+                t8 = (double[])v8.DrawingView.ModelToViewTransform.ArrayData;
+
+                o1 = (double[])v1.DrawingView.GetOutline();
+                o2 = (double[])v2.DrawingView.GetOutline();
+                o3 = (double[])v3.DrawingView.GetOutline();
+                o4 = (double[])v4.DrawingView.GetOutline();
+                o5 = (double[])v5.DrawingView.GetOutline();
+                o6 = (double[])v6.DrawingView.GetOutline();
+                o7 = (double[])v7.DrawingView.GetOutline();
+                o8 = (double[])v8.DrawingView.GetOutline();
+            }
+
+            AssertCompareDoubleArray(t1, new double[] { -0.743556290714679, -2.3346605064371E-15, -0.668673345168347, 0, 1, -3.49148133884313E-15, 0.668673345168347, -2.59611291340972E-15, -0.743556290714679, 0.0547408008947171, 0.0564476828938053, 0.0133648726402715, 0.2, 0, 0, 0 }, 8, 5);
+            AssertCompareDoubleArray(t2, new double[] { -0.525773695358265, 0.849521769818257, 0.0432987745111885, 0.707106781186549, 0.408204055911354, 0.577381545199982, 0.47282345676723, 0.334188885725388, -0.815325559140832, -0.0075554844322618, 0.0558347994283769, 0.0621268921683018, 0.2, 0, 0, 0 }, 8, 5);
+            AssertCompareDoubleArray(t3, new double[] { -0.525773695358265, 0.242476382481988, -0.815332585640831, -0.707106781186549, 0.408204055911354, 0.577381545199982, 0.47282345676723, 0.880099228880454, -0.0431662606061474, 0.170832787129413, -0.0196943200236168, -0.0466961386706678, 0.2, 0, 0, 0 }, 8, 5);
+            AssertCompareDoubleArray(t4, new double[] { -0.525773695358265, 0.242476382481988, 0.815332585640831, 0.707106781186549, -0.408204055911354, 0.577381545199982, 0.47282345676723, 0.880099228880454, 0.0431662606061474, -0.00614760627092219, 0.157286073376719, 0.0466961386706678, 0.2, 0, 0, 0 }, 8, 5);
+            AssertCompareDoubleArray(t5, new double[] { -0.525773695358265, 0.849521769818257, -0.0432987745111885, -0.707106781186549, -0.408204055911354, 0.577381545199982, 0.47282345676723, 0.334188885725388, 0.815325559140832, 0.172240665290753, 0.235630949151392, -0.0621268921683018, 0.2, 0, 0, 0 }, 8, 5);
+            AssertCompareDoubleArray(t6, new double[] { 2.59611291340972E-15, 0.668673345168347, 0.743556290714679, 1, 0, -3.49148133884313E-15, -2.3346605064371E-15, 0.743556290714679, -0.668673345168347, 0.0871286778020237, 0.104812466799383, 0.0942384041745543, 0.2, 0, 0, 0 }, 8, 5);
+            AssertCompareDoubleArray(t7, new double[] { 2.59611291340972E-15, 0.668673345168347, -0.743556290714679, -1, 0, -3.49148133884313E-15, -2.3346605064371E-15, 0.743556290714679, 0.668673345168347, 0.21082973233652, 0.104812466799383, -0.0942384041745543, 0.2, 0, 0, 0 }, 8, 5);
+            AssertCompareDoubleArray(t8, new double[] { -0.743556290714679, -2.3346605064371E-15, 0.668673345168347, 0, -1, -3.49148133884313E-15, 0.668673345168347, -2.59611291340972E-15, 0.743556290714679, 0.0547408008947171, 0.179906995985504, -0.0133648726402715, 0.2, 0, 0, 0 }, 8, 5);
+
+            AssertCompareDoubleArray(o1, new double[] { 0.102869343262963, 0.0450250174328657, 0.19508906687558, 0.0678703483547448 }, 8, 5);
+            AssertCompareDoubleArray(o2, new double[] { 0.0201880642006202, -0.014333479501821, 0.097974196214908, 0.0708920086581153 }, 8, 5);
+            AssertCompareDoubleArray(o3, new double[] { 0.198576335762295, -0.0101885494797548, 0.276362467776583, 0.0695628349587284 }, 8, 5);
+            AssertCompareDoubleArray(o4, new double[] { 0.0215959423619598, 0.166791843920581, 0.0993820743762476, 0.246543228359064 }, 8, 5);
+            AssertCompareDoubleArray(o5, new double[] { 0.199984213923635, 0.165462670221194, 0.277770345937923, 0.25068815838113 }, 8, 5);
+            AssertCompareDoubleArray(o6, new double[] { 0.0757060123410838, 0.0721883483547448, 0.0985513432629629, 0.164166330524564 }, 8, 5);
+            AssertCompareDoubleArray(o7, new double[] { 0.19940706687558, 0.0721883483547448, 0.222252397797459, 0.164166330524564 }, 8, 5);
+            AssertCompareDoubleArray(o8, new double[] { 0.102869343262963, 0.168484330524564, 0.19508906687558, 0.191329661446443 }, 8, 5);
         }
 
         [Test]

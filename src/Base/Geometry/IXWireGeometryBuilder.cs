@@ -80,12 +80,21 @@ namespace Xarial.XCad.Geometry
         /// Creates rectangle in this sketch repository
         /// </summary>
         /// <param name="repo">Repository</param>
+        /// <param name="rect">Geometry of the rectangle</param>
+        /// <returns>Rectangle lines</returns>
+        public static IXLine[] PreCreateRectangle(this IXWireGeometryBuilder repo, Rect2D rect)
+            => PreCreateRectangle(repo, rect.CenterPoint, rect.Width, rect.Height, rect.AxisX, rect.AxisY);
+
+        /// <summary>
+        /// Creates rectangle in this sketch repository
+        /// </summary>
+        /// <param name="repo">Repository</param>
         /// <param name="centerPt">Center point of the rectangle</param>
         /// <param name="width">Width of the rectangle</param>
         /// <param name="height">Height of the rectangle</param>
         /// <param name="dirX">X direction</param>
         /// <param name="dirY">Y direction</param>
-        /// <returns></returns>
+        /// <returns>Rectangle lines</returns>
         public static IXLine[] PreCreateRectangle(this IXWireGeometryBuilder repo, Point centerPt,
             double width, double height, Vector dirX, Vector dirY)
         {

@@ -69,7 +69,7 @@ namespace SwAddInExample
             sweepLine.Commit();
 
             var sweep = (ISwTempSweep)app.MemoryGeometryBuilder.SolidBuilder.PreCreateSweep();
-            sweep.Profiles = new ISwTempRegion[] { app.MemoryGeometryBuilder.CreatePlanarSheet(
+            sweep.Profiles = new ISwPlanarRegion[] { app.MemoryGeometryBuilder.CreatePlanarSheet(
                 app.MemoryGeometryBuilder.CreateRegionFromSegments(sweepArc)).Bodies.OfType<ISwTempPlanarSheetBody>().First() };
             sweep.Path = sweepLine;
             sweep.Commit();

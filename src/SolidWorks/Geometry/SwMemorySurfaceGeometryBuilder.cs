@@ -61,6 +61,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
             => RepositoryHelper.PreCreate<IXPrimitive, T>(this, 
                 () => new SwTempPlanarSheet(null, m_App, false, m_TolProvider),
                 () => new SwTempSurfaceKnit(null, m_App, false, m_TolProvider),
-                () => new SwTempSurfaceExtrusion(null, m_App, false));
+                () => new SwTempSurfaceExtrusion(null, m_App, false),
+                () => new SwTempSurfaceLoft(null, m_App, false));
     }
 }

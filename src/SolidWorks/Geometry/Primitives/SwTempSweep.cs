@@ -25,7 +25,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
 {
     public interface ISwTempSweep : IXSweep, ISwTempPrimitive
     {
-        new ISwTempRegion[] Profiles { get; set; }
+        new ISwPlanarRegion[] Profiles { get; set; }
     }
 
     public interface ISwTempSolidSweep : ISwTempSweep, ISwTempPrimitive
@@ -37,7 +37,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
         IXPlanarRegion[] IXSweep.Profiles
         {
             get => Profiles;
-            set => Profiles = value.Cast<ISwTempRegion>().ToArray();
+            set => Profiles = value.Cast<ISwPlanarRegion>().ToArray();
         }
 
         IXSegment IXSweep.Path
@@ -54,9 +54,9 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
             m_Part = part;
         }
 
-        public ISwTempRegion[] Profiles
+        public ISwPlanarRegion[] Profiles
         {
-            get => m_Creator.CachedProperties.Get<ISwTempRegion[]>();
+            get => m_Creator.CachedProperties.Get<ISwPlanarRegion[]>();
             set
             {
                 if (IsCommitted)
@@ -130,27 +130,6 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
             }
 
             return bodies.ToArray();
-        }
-
-        private ICurve GetSingleCurve(ICurve[] curves)
-        {
-            ICurve curve;
-
-            if (curves.Length == 1)
-            {
-                curve = curves.First();
-            }
-            else
-            {
-                curve = m_Modeler.MergeCurves(curves);
-
-                if (curve == null)
-                {
-                    throw new Exception("Failed to merge curves");
-                }
-            }
-
-            return curve;
         }
     }
 }

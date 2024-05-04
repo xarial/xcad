@@ -279,7 +279,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
     {
     }
 
-    public interface ISwTempPlanarSheetBody : ISwTempSheetBody, ISwPlanarSheetBody, ISwTempRegion, IXMemoryPlanarSheetBody
+    public interface ISwTempPlanarSheetBody : ISwTempSheetBody, ISwPlanarSheetBody, ISwPlanarRegion, IXMemoryPlanarSheetBody
     {
     }
 
