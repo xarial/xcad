@@ -99,9 +99,9 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         private IComponent2 GetSwComponent() => (Face as IEntity).GetComponent() as IComponent2;
 
-        public System.Drawing.Color? Color 
+        public System.Drawing.Color? Color
         {
-            get => SwColorHelper.GetColor(GetSwComponent(), 
+            get => SwColorHelper.GetColor(GetSwComponent(),
                 (o, c) => Face.GetMaterialPropertyValues2((int)o, c) as double[]);
             set => SwColorHelper.SetColor(value, GetSwComponent(),
                 (m, o, c) => Face.SetMaterialPropertyValues2(m, (int)o, c),
@@ -117,7 +117,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
                     //some of the faces may be broken and have negative area. Working with these faces may resut in the SOLIDWORKS crash
                     return Face.GetArea() > 0;
                 }
-                else 
+                else
                 {
                     return false;
                 }
@@ -126,7 +126,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         public ISwSurface Definition => OwnerApplication.CreateObjectFromDispatch<SwSurface>(Face.IGetSurface(), OwnerDocument);
 
-        private IEnumerable<ISwLoop> IterateLoops() 
+        private IEnumerable<ISwLoop> IterateLoops()
         {
             var loops = (object[])Face.GetLoops();
 
@@ -136,9 +136,9 @@ namespace Xarial.XCad.SolidWorks.Geometry
             }
         }
 
-        public IXFeature Feature 
+        public IXFeature Feature
         {
-            get 
+            get
             {
                 var feat = Face.IGetFeature();
 
@@ -146,13 +146,13 @@ namespace Xarial.XCad.SolidWorks.Geometry
                 {
                     return OwnerDocument.CreateObjectFromDispatch<ISwFeature>(feat);
                 }
-                else 
+                else
                 {
                     return null;
                 }
             }
         }
-        
+
         public bool Sense => Face.FaceInSurfaceSense();
 
         public IXLoop OuterLoop
@@ -165,6 +165,16 @@ namespace Xarial.XCad.SolidWorks.Geometry
         {
             get => IterateLoops().Where(l => !l.Loop.IsOuter()).ToArray();
             set => throw new NotSupportedException();
+        }
+
+        public Box3D Box
+        {
+            get
+            {
+                var box = (double[])Face.GetBox();
+
+                return new Box3D(box[0], box[1], box[2], box[3], box[4], box[5]);
+            }
         }
 
         public override Point FindClosestPoint(Point point)

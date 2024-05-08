@@ -46,6 +46,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         public IXDrawingView BaseView { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
         public IEnumerable<IXDrawingView> DependentViews => throw new NotSupportedException();
         public IXSketch2D Sketch => throw new NotSupportedException();
+        public IXSheet Sheet => throw new NotSupportedException();
         public TransformMatrix Transformation => throw new NotSupportedException();
         public IXEntityRepository VisibleEntities => throw new NotSupportedException();
         public ViewPolylineData[] Polylines => throw new NotSupportedException();

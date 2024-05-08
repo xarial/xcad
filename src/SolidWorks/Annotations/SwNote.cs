@@ -179,7 +179,7 @@ namespace Xarial.XCad.SolidWorks.Annotations
 
                 ann.SetTextFormat(0, false, textFormat);
             }
-
+            
             return ann;
         }
 

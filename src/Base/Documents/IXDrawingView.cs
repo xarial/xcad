@@ -24,6 +24,11 @@ namespace Xarial.XCad.Documents
     public interface IXDrawingView : IXSelObject, IXObjectContainer, IDimensionable, IXTransaction
     {
         /// <summary>
+        /// Parent sheet of this drawing view
+        /// </summary>
+        IXSheet Sheet { get; }
+
+        /// <summary>
         /// Display mode of the view
         /// </summary>
         /// <remarks>null means that display data is inherited from the base view</remarks>

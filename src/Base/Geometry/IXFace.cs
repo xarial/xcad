@@ -30,6 +30,11 @@ namespace Xarial.XCad.Geometry
         double Area { get; }
 
         /// <summary>
+        /// Gets bounding box of this face
+        /// </summary>
+        Box3D Box { get; }
+
+        /// <summary>
         /// Underlying definition for this face
         /// </summary>
         IXSurface Definition { get; }

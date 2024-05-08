@@ -72,6 +72,7 @@ namespace Xarial.XCad.SolidWorks.Documents
     {
         TSelObject IXObjectContainer.ConvertObject<TSelObject>(TSelObject obj) => ConvertObjectBoxed(obj) as TSelObject;
         IXAnnotationRepository IXDrawingView.Annotations => Annotations;
+        IXSheet IXDrawingView.Sheet => Sheet;
 
         protected readonly SwDrawing m_Drawing;
 
@@ -79,7 +80,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         protected readonly IElementCreator<IView> m_Creator;
 
-        protected SwSheet Sheet 
+        public SwSheet Sheet 
         {
             get 
             {
