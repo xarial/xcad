@@ -137,6 +137,8 @@ namespace SwAddInExample
 
         [ParameterDimension(CustomFeatureDimensionType_e.Linear)]
         public double Length { get; set; } = 0.3;
+
+        public int Increment { get; set; }
     }
 
     [ComVisible(true)]
@@ -220,6 +222,9 @@ namespace SwAddInExample
                     this.AlignLinearDimension(d, pt, dir);
                 }
             });
+
+            data.Increment++;
+            //feat.Parameters = data;
 
             return new ISwBody[] { box };
         }

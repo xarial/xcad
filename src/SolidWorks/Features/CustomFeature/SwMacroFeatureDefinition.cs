@@ -674,6 +674,8 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             paramsFeat.ReadParameters(out dims, out dimParamNames,
                 out var _, out var _, out var _);
 
+            var cachedParamsUpdateState = paramsFeat.CachedParametersUpdateState;
+
             AlignDimensionDelegate<TParams> alignDimsDel;
             var res = OnRebuild(app, doc, paramsFeat, out alignDimsDel);
 
@@ -689,6 +691,11 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
                     //IMPORTANT: need to dispose otherwise SW will crash once the document is closed
                     ((IDisposable)dims[i]).Dispose();
                 }
+            }
+
+            if (cachedParamsUpdateState != paramsFeat.CachedParametersUpdateState) 
+            {
+                paramsFeat.WriteParameters(paramsFeat.Parameters, out _);
             }
 
             if (m_HandlePostRebuild)

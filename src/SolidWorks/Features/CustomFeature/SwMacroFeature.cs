@@ -249,6 +249,11 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         /// and macro feature definition is not changed during this time (e.g. while regenerating)</remarks>
         internal bool UseCachedParameters { get; set; }
 
+        /// <summary>
+        /// Update state of changes to the cached parameters
+        /// </summary>
+        internal int CachedParametersUpdateState { get; set; }
+
         private Dictionary<IXSelObject, TransformMatrix> m_EntitiesTransformsCache;
 
         //NOTE: this constructor is used in the reflection of SwObjectFactory
@@ -267,6 +272,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
                 if (IsCommitted && (!UseCachedParameters || m_ParametersCache == null))
                 {
                     m_ParametersCache = ReadParameters(out _, out _, out _, out _, out _);
+                    CachedParametersUpdateState = 0;
                 }
 
                 return m_ParametersCache;
@@ -278,6 +284,10 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
                 if (IsCommitted && !UseCachedParameters)
                 {
                     WriteParameters(value, out _);
+                }
+                else 
+                {
+                    CachedParametersUpdateState++;
                 }
             }
         }
@@ -400,8 +410,10 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
                 editBodies?.Cast<SwBody>()?.Select(b => b.Body)?.ToArray());
         }
 
-        private void WriteParameters(object parameters, out CustomFeatureOutdateState_e state)
+        internal void WriteParameters(TParams parameters, out CustomFeatureOutdateState_e state)
         {
+            CachedParametersUpdateState = 0;
+
             CustomFeatureAttribute[] param;
             IXSelObject[] selection;
             double[] dimValues;

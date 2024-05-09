@@ -8,6 +8,7 @@
 using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
 using System;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -115,6 +116,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
         }
     }
 
+    [DebuggerDisplay("<Temp Body>")]
     internal class SwTempBody : SwBody, ISwTempBody
     {
         private enum DisplayBodyResult_e
