@@ -64,8 +64,9 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
             {
                 var profiles = Profiles.Select(p => GetSingleCurve(p.OuterLoop.Curves.SelectMany(c => c.Curves).ToArray()).MakeBsplineCurve2()).ToArray();
 
-                var surf = (ISurface)m_Modeler.CreateLoftSurface(profiles, false, false, new ICurve[0], 0, 0,
-                    null, null, null, null, false, false, null, null, -1, -1, -1, -1);
+                var guides = new ICurve[] { };
+                var surf = (ISurface)m_Modeler.CreateLoftSurface(profiles, false, false, guides, 0, 0,
+                    null, null, guides, guides, false, false, null, null, -1, -1, -1, -1);
 
                 var surfParams = surf.Parameterization2();
                 var uvRange = new double[] { surfParams.UMin, surfParams.UMax, surfParams.VMin, surfParams.VMax };
