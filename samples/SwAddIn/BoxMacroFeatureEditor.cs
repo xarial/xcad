@@ -224,7 +224,7 @@ namespace SwAddInExample
             });
 
             data.Increment++;
-            //feat.Parameters = data;
+            feat.Parameters = data;
 
             return new ISwBody[] { box };
         }
@@ -253,6 +253,7 @@ namespace SwAddInExample
 
         public override void OnFeatureInserting(IXApplication app, IXDocument doc, IXCustomFeature<BoxMacroFeatureData> feat, BoxPage page)
         {
+            feat.Parameters.Increment++;
             base.OnFeatureInserting(app, doc, feat, page);
             
             page.Parameters.Reset();

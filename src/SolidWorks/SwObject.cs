@@ -23,6 +23,12 @@ namespace Xarial.XCad.SolidWorks
     /// </summary>
     public interface ISwObject : IXObject
     {
+        /// <inheritdoc/>
+        ISwApplication OwnerApplication { get; }
+
+        /// <inheritdoc/>
+        ISwDocument OwnerDocument { get; }
+
         /// <summary>
         /// SOLIDWORKS specific dispatch
         /// </summary>
@@ -34,6 +40,8 @@ namespace Xarial.XCad.SolidWorks
     {
         IXApplication IXObject.OwnerApplication => OwnerApplication;
         IXDocument IXObject.OwnerDocument => OwnerDocument;
+        ISwApplication ISwObject.OwnerApplication => OwnerApplication;
+        ISwDocument ISwObject.OwnerDocument => OwnerDocument;
 
         protected IModelDoc2 OwnerModelDoc => OwnerDocument.Model;
 

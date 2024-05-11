@@ -20,6 +20,8 @@ using Xarial.XCad.SolidWorks.Documents.EventHandlers;
 using Xarial.XCad.Features.Delegates;
 using System.Threading;
 using Xarial.XCad.Toolkit.Utils;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.TextBox;
+using Xarial.XCad.SolidWorks.Enums;
 
 namespace Xarial.XCad.SolidWorks.Features
 {
@@ -66,8 +68,8 @@ namespace Xarial.XCad.SolidWorks.Features
 
     internal class SwPartCutListItemCollection : SwCutListItemCollection
     {
-        private readonly ISwPartConfiguration m_Conf;
-        private readonly ISwPart m_Part;
+        private readonly SwPartConfiguration m_Conf;
+        private readonly SwPart m_Part;
         private readonly CutListRebuildEventsHandler m_CutListRebuild;
 
         public override event CutListRebuildDelegate CutListRebuild
@@ -82,7 +84,7 @@ namespace Xarial.XCad.SolidWorks.Features
             }
         }
 
-        internal SwPartCutListItemCollection(ISwPartConfiguration conf, SwPart part) 
+        internal SwPartCutListItemCollection(SwPartConfiguration conf, SwPart part) 
         {
             m_Conf = conf;
             m_Part = part;
@@ -92,31 +94,48 @@ namespace Xarial.XCad.SolidWorks.Features
 
         protected override IEnumerable<IXCutListItem> IterateCutLists()
         {
-            var part = m_Part.Part;
-
-            IEnumerable<IBody2> IterateBodies() =>
-                (part.GetBodies2((int)swBodyType_e.swSolidBody, false) as object[] ?? new object[0]).Cast<IBody2>();
-
-            if (part.IsWeldment()
-                || IterateBodies().Any(b => b.IsSheetMetal()))
+            if (m_Part.OwnerApplication.IsVersionNewerOrEqual(SwVersion_e.Sw2024))
             {
-                var activeConf = m_Part.Configurations.Active;
+                var cutListItems = (object[])m_Conf.Configuration.GetCutListItems();
 
-                var checkedConfigsConflict = false;
-
-                foreach (var cutList in ((SwFeatureManager)m_Part.Features).IterateCutLists(m_Part, activeConf))
+                if (cutListItems != null)
                 {
-                    if (!checkedConfigsConflict)
+                    foreach (ICutListItem cutListItem in cutListItems)
                     {
-                        if (activeConf.Name != m_Conf.Configuration.Name)
+                        var cutList = m_Part.CreateObjectFromDispatch<SwCutListItem>(cutListItem);
+                        cutList.SetParent(m_Part, m_Conf);
+                        yield return cutList;
+                    }
+                }
+            }
+            else
+            {
+                var part = m_Part.Part;
+
+                IEnumerable<IBody2> IterateBodies() =>
+                    (part.GetBodies2((int)swBodyType_e.swSolidBody, false) as object[] ?? new object[0]).Cast<IBody2>();
+
+                if (part.IsWeldment()
+                    || IterateBodies().Any(b => b.IsSheetMetal()))
+                {
+                    var activeConf = m_Part.Configurations.Active;
+
+                    var checkedConfigsConflict = false;
+
+                    foreach (var cutList in ((SwFeatureManager)m_Part.Features).IterateCutListFeatures(m_Part, activeConf))
+                    {
+                        if (!checkedConfigsConflict)
                         {
-                            throw new ConfigurationSpecificCutListNotSupportedException();
+                            if (activeConf.Name != m_Conf.Configuration.Name)
+                            {
+                                throw new ConfigurationSpecificCutListNotSupportedException();
+                            }
+
+                            checkedConfigsConflict = true;
                         }
 
-                        checkedConfigsConflict = true;
+                        yield return cutList;
                     }
-
-                    yield return cutList;
                 }
             }
         }
@@ -153,14 +172,39 @@ namespace Xarial.XCad.SolidWorks.Features
 
             if (refDoc is ISwPart)
             {
-                IEnumerable<IBody2> IterateBodies() =>
-                    (m_Comp.Component.GetBodies3((int)swBodyType_e.swSolidBody, out _) as object[] ?? new object[0]).Cast<IBody2>();
-
-                if ((refDoc.IsCommitted && (refDoc.Model as IPartDoc).IsWeldment()) || IterateBodies().Any(b => b.IsSheetMetal()))
+                if (refDoc.OwnerApplication.IsVersionNewerOrEqual(SwVersion_e.Sw2024) && refConf.IsCommitted)
                 {
-                    foreach (var cutList in ((SwFeatureManager)m_Comp.Features).IterateCutLists(refDoc, refConf))
+                    var cutListItems = (object[])refConf.Configuration.GetCutListItems();
+
+                    if (cutListItems != null)
                     {
-                        yield return cutList;
+                        foreach (ICutListItem cutListItem in cutListItems)
+                        {
+                            var compCutListItem = m_Comp.Component.GetCorresponding(cutListItem);
+                            if (compCutListItem != null)
+                            {
+                                var cutList = refDoc.CreateObjectFromDispatch<SwCutListItem>(cutListItem);
+                                cutList.SetParent(refDoc, refConf);
+                                yield return cutList;
+                            }
+                            else 
+                            {
+                                throw new Exception("Failed to get corresponding cut list item");
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    IEnumerable<IBody2> IterateBodies() =>
+                        (m_Comp.Component.GetBodies3((int)swBodyType_e.swSolidBody, out _) as object[] ?? new object[0]).Cast<IBody2>();
+
+                    if ((refDoc.IsCommitted && (refDoc.Model as IPartDoc).IsWeldment()) || IterateBodies().Any(b => b.IsSheetMetal()))
+                    {
+                        foreach (var cutList in ((SwFeatureManager)m_Comp.Features).IterateCutListFeatures(refDoc, refConf))
+                        {
+                            yield return cutList;
+                        }
                     }
                 }
             }

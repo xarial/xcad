@@ -402,6 +402,9 @@ namespace Xarial.XCad.SolidWorks
                 case ISketchBlockDefinition skBlockDef:
                     return new SwSketchBlockDefinition((IFeature)skBlockDef, doc, app, true);
 
+                case ICutListItem cutListItem:
+                    return new SwCutListItem(cutListItem, (SwDocument3D)doc, app, true);
+
                 case IFeature feat:
                     switch (feat.GetTypeName())
                     {

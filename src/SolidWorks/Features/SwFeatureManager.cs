@@ -13,12 +13,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.Windows;
 using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Features;
 using Xarial.XCad.Features.CustomFeature;
 using Xarial.XCad.Features.Delegates;
 using Xarial.XCad.SolidWorks.Documents;
+using Xarial.XCad.SolidWorks.Enums;
 using Xarial.XCad.SolidWorks.Features.CustomFeature;
 using Xarial.XCad.SolidWorks.Features.CustomFeature.Toolkit;
 using Xarial.XCad.SolidWorks.Sketch;
@@ -315,15 +317,15 @@ namespace Xarial.XCad.SolidWorks.Features
 
     internal static class SwFeatureManagerExtension 
     {
-        internal static IEnumerable<SwCutListItem> IterateCutLists(this SwFeatureManager featMgr, ISwDocument3D parent, ISwConfiguration refConf)
+        internal static IEnumerable<SwCutListItem> IterateCutListFeatures(this SwFeatureManager featMgr, ISwDocument3D parent, ISwConfiguration refConf)
         {
-            foreach (var feat in FeatureEnumerator.IterateFeatures(featMgr.GetFirstFeature(), false)) 
+            foreach (var feat in FeatureEnumerator.IterateFeatures(featMgr.GetFirstFeature(), false))
             {
-                if (feat.GetTypeName2() == "SolidBodyFolder") 
+                if (feat.GetTypeName2() == "SolidBodyFolder")
                 {
-                    foreach (var subFeat in FeatureEnumerator.IterateSubFeatures(feat, true)) 
+                    foreach (var subFeat in FeatureEnumerator.IterateSubFeatures(feat, true))
                     {
-                        if (subFeat.GetTypeName2() == "CutListFolder") 
+                        if (subFeat.GetTypeName2() == "CutListFolder")
                         {
                             var cutListFolder = (IBodyFolder)subFeat.GetSpecificFeature2();
 
@@ -343,8 +345,6 @@ namespace Xarial.XCad.SolidWorks.Features
                     break;
                 }
             }
-
-            yield break;
         }
     }
 }

@@ -661,6 +661,9 @@ namespace Xarial.XCad.SolidWorks.Documents
 
     internal class UncommittedPreviewOnlySheet : ISwSelObject, ISwSheet 
     {
+        ISwApplication ISwObject.OwnerApplication => m_App;
+        ISwDocument ISwObject.OwnerDocument => m_Drw;
+
         #region Not Supported
         public string Name { get => throw new UnloadedDocumentPreviewOnlySheetException(); set => throw new UnloadedDocumentPreviewOnlySheetException(); }
         public IXDrawingViewRepository DrawingViews => throw new UnloadedDocumentPreviewOnlySheetException();
