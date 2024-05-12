@@ -484,20 +484,25 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             return Array.ConvertAll(fields, x => (Enum)x.GetValue(null));
         }
 
-        protected override void LoadItemsIntoControl(ItemsControlItem[] newItems)
+        protected override ItemsControlItem[] LoadInitialItems(IAttributeSet atts, bool isStatic, ItemsControlItem[] items)
         {
-            SwSpecificControl.CreateControls(newItems);
+            SwSpecificControl.CreateControls(items);
+            return items;
         }
 
-        protected override void SetStaticItems(IAttributeSet atts, bool isStatic, ItemsControlItem[] staticItems)
+        protected override void LoadItemsIntoControl(ItemsControlItem[] newItems)
         {
-            if (isStatic)
+            if (Items != newItems)
             {
-                Items = staticItems;
+                throw new Exception("Cannot create the control for changed items. CheckBoxList control does not allow dynamic changing of the items. For the dynamic items use the static items source property");
             }
-            else 
+        }
+
+        protected override void SetItemDisplayName(ItemsControlItem item, int index, string newDispName)
+        {
+            if (index != -1 && SwSpecificControl.Controls.Length > index)
             {
-                throw new Exception("Dynamic items are not supported");
+                SwSpecificControl.Controls[index].Caption = newDispName;
             }
         }
 

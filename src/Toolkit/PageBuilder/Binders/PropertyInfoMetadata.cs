@@ -8,6 +8,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 using Xarial.XCad.UI.PropertyPage.Base;
@@ -29,14 +30,23 @@ namespace Xarial.XCad.Toolkit.PageBuilder.Binders
         public object Value 
         {
             get => GetValue();
-            set => m_PrpInfo.SetValue(m_CurrentContext, value);
+            set
+            {
+                if (m_CurrentContext != null || m_IsStaticPrp.Value)
+                {
+                    m_PrpInfo.SetValue(m_CurrentContext, value);
+                }
+            }
         }
 
         private readonly IContextProvider m_ContextProvider;
 
+        private readonly Lazy<bool> m_IsStaticPrp;
+
         public PropertyInfoMetadata(PropertyInfo prpInfo, PropertyInfo[] parents, object tag, IContextProvider contextProvider)
         {
             m_PrpInfo = prpInfo;
+            m_IsStaticPrp = new Lazy<bool>(() => prpInfo.GetAccessors().Any(x => x.IsStatic));
             m_Parents = parents;
             Tag = tag;
             m_ContextProvider = contextProvider;
@@ -99,7 +109,23 @@ namespace Xarial.XCad.Toolkit.PageBuilder.Binders
             }
         }
 
-        private object GetValue() 
-            => m_PrpInfo.GetValue(m_CurrentContext, null);
+        private object GetValue()
+        {
+            if (m_CurrentContext != null || m_IsStaticPrp.Value)
+            {
+                return m_PrpInfo.GetValue(m_CurrentContext, null);
+            }
+            else 
+            {
+                if (m_PrpInfo.PropertyType.IsValueType)
+                {
+                    return Activator.CreateInstance(m_PrpInfo.PropertyType);
+                }
+                else
+                {
+                    return null;
+                }
+            }
+        }
     }
 }

@@ -32,13 +32,30 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
         private ItemsControlItem[] m_Items;
 
-        public virtual ItemsControlItem[] Items
+        public ItemsControlItem[] Items
         {
             get => m_Items;
             set
-            {
-                m_Items = value;
+            {            
+                if(m_Items != null) 
+                {
+                    foreach (var item in m_Items)
+                    {
+                        item.DisplayNameChanged -= OnItemDisplayNameChanged;
+                    }
+                }
+
                 LoadItemsIntoControl(value);
+
+                m_Items = value;
+
+                if (m_Items != null)
+                {
+                    foreach (var item in m_Items)
+                    {
+                        item.DisplayNameChanged += OnItemDisplayNameChanged;
+                    }
+                }
             }
         }
 
@@ -49,38 +66,69 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
         private readonly string m_DispMembPath;
 
+        private object m_CurMetadataValue;
+
         public PropertyManagerPageItemsSourceControl(SwApplication app, IGroup parentGroup, IIconsCreator iconConv,
             IAttributeSet atts, IMetadata[] metadata, swPropertyManagerPageControlType_e type, ref int numberOfUsedIds)
             : base(app, parentGroup, iconConv, atts, metadata, type, ref numberOfUsedIds)
         {
             m_SpecificItemType = atts.ContextType;
 
-            ParseItems(app, atts, metadata, out bool isStatic, out ItemsControlItem[] staticItems, out m_SrcMetadata, out m_DispMembPath);
+            ParseItems(app, atts, metadata, out bool isStatic, out ItemsControlItem[] staticItems,
+                out m_SrcMetadata, out m_DispMembPath);
 
-            if (m_SrcMetadata != null)
+            if (isStatic)
             {
-                m_SrcMetadata.Changed += OnMetadataChanged;
+                m_Items = staticItems;
+            }
+            else
+            {
+                if (m_SrcMetadata != null)
+                {
+                    m_SrcMetadata.Changed += OnMetadataChanged;
+                    m_CurMetadataValue = m_SrcMetadata.Value;
+                    m_Items = LoadItemsFromSource(m_CurMetadataValue);
+                }
             }
 
-            SetStaticItems(atts, isStatic, staticItems);
+            Items = LoadInitialItems(atts, isStatic, m_Items);
         }
 
-        protected abstract void SetStaticItems(IAttributeSet atts, bool isStatic, ItemsControlItem[] staticItems);
+        private void OnItemDisplayNameChanged(ItemsControlItem item, string newDispName)
+        {
+            SetItemDisplayName(item, Array.IndexOf(Items, item), newDispName);
+        }
+
+        protected virtual void SetItemDisplayName(ItemsControlItem item, int index, string newDispName) 
+        {
+        }
+
+        protected virtual ItemsControlItem[] LoadInitialItems(IAttributeSet atts, bool isStatic, ItemsControlItem[] items) 
+        {
+            return items;
+        }
 
         public override void Update()
         {
             if (m_SrcMetadata != null) 
             {
-                LoadItemsFromSource(m_SrcMetadata.Value);
+                var thisMetadataVal = m_SrcMetadata.Value;
+
+                if (m_CurMetadataValue != thisMetadataVal)
+                {
+                    m_CurMetadataValue = thisMetadataVal;
+
+                    Items = LoadItemsFromSource(m_CurMetadataValue);
+                }
             }
         }
 
         private void OnMetadataChanged(IMetadata metadata, object value)
         {
-            LoadItemsFromSource(value);
+            Items = LoadItemsFromSource(value);
         }
 
-        private void LoadItemsFromSource(object value)
+        private ItemsControlItem[] LoadItemsFromSource(object value)
         {
             var items = new List<ItemsControlItem>();
 
@@ -100,7 +148,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
                 throw new NotSupportedException("Source property must be enumerable");
             }
 
-            Items = items.ToArray();
+            return items.ToArray();
         }
 
         private void ParseItems(IXApplication app, IAttributeSet atts, IMetadata[] metadata,
