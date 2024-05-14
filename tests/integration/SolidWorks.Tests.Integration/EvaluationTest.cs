@@ -3019,5 +3019,39 @@ namespace SolidWorks.Tests.Integration
             Assert.AreEqual(1, res2[0].Item2.Length);
             Assert.That(res2[0].Item2[0], Is.EqualTo(0.00012132755196).Within(0.1).Percent);
         }
+
+        [Test]
+        public void CollisionAssemblyTest()
+        {
+            Tuple<string[], string[], double[]>[] res1;
+
+            using (var doc = OpenDataDocument("CollisionAssm1\\Assem1.SLDASM"))
+            {
+                var assm = (IXAssembly)m_App.Documents.Active;
+                var collDet1 = assm.Evaluation.PreCreateCollisionDetection();
+                collDet1.Scope = new IXComponent[]
+                {
+                    assm.Configurations.Active.Components["Part1-1"],
+                    assm.Configurations.Active.Components["Part1-2"]
+                };
+
+                collDet1.Commit();
+
+                res1 = collDet1.Results?.Select(r => new Tuple<string[], string[], double[]>(
+                    r.CollidedBodies?.Select(b => b.Name).ToArray(),
+                    r.CollidedComponents.Select(c => c.Name).ToArray(),
+                    r.CollisionVolume?.Cast<IXSolidBody>().Select(v => v.Volume).ToArray())).ToArray();
+            }
+
+            var p1 = res1.First();
+
+            Assert.AreEqual(1, res1.Length);
+
+            Assert.IsNotNull(p1);
+            Assert.AreEqual(1, p1.Item3.Length);
+            Assert.That(p1.Item3[0], Is.EqualTo(4.620647859030001e-6).Within(0.1).Percent);
+            CollectionAssert.AreEquivalent(new string[] { "Fillet1", "Fillet1" }, p1.Item1);
+            CollectionAssert.AreEquivalent(new string[] { "Part1-1", "Part1-2" }, p1.Item2);
+        }
     }
 }

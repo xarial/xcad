@@ -104,8 +104,8 @@ namespace Xarial.XCad.SolidWorks.Geometry.Evaluation
             {
                 for (var j = i + 1; j < bodies.Length; j++) 
                 {
-                    var firstBody = bodies[i].Copy();
-                    var secondBody = bodies[j].Copy();
+                    var firstBody = CreateCollisionBody(bodies[i]);
+                    var secondBody = CreateCollisionBody(bodies[j]);
 
                     try
                     {
@@ -124,6 +124,8 @@ namespace Xarial.XCad.SolidWorks.Geometry.Evaluation
 
             return results.ToArray();
         }
+
+        protected virtual IXMemoryBody CreateCollisionBody(IXBody body) => body.Copy();
 
         public void Dispose()
         {
@@ -185,13 +187,15 @@ namespace Xarial.XCad.SolidWorks.Geometry.Evaluation
         }
 
         IXAssemblyCollisionResult[] IXAssemblyCollisionDetection.Results
-            => base.Results?.Select(r => new SwAssemblyCollisionResult(null, r.CollidedBodies, r.CollisionVolume)).ToArray();
+            => base.Results?.Select(r => new SwAssemblyCollisionResult(
+                r.CollidedBodies?.Select(b => b.Component).Distinct(new XObjectEqualityComparer<IXComponent>()).ToArray(), 
+                r.CollidedBodies, r.CollisionVolume)).ToArray();
 
         public override IXBody[] Scope
         {
             get
             {
-                var comps = (this as IXAssemblyBoundingBox).Scope;
+                var comps = (this as IXAssemblyCollisionDetection).Scope;
 
                 if (comps?.Any() != true)
                 {
@@ -215,5 +219,30 @@ namespace Xarial.XCad.SolidWorks.Geometry.Evaluation
         //TODO: Use ICollisionDetectionManager to implement actual collision check
         protected override IXCollisionResult[] CalculateCollision(CancellationToken arg)
             => base.CalculateCollision(arg);
+
+        protected override IXMemoryBody CreateCollisionBody(IXBody body)
+        {
+            if (!(body is IXMemoryBody))
+            {
+                var comp = body.Component;
+
+                if (comp != null)
+                {
+                    var copy = body.Copy();
+
+                    copy.Transform(comp.Transformation);
+
+                    return copy;
+                }
+                else 
+                {
+                    throw new Exception("Body does not have parent component");
+                }
+            }
+            else 
+            {
+                return body.Copy();
+            }
+        }
     }
 }

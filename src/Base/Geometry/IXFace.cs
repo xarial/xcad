@@ -8,6 +8,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Xarial.XCad.Enums;
 using Xarial.XCad.Features;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Geometry.Surfaces;
@@ -28,6 +29,11 @@ namespace Xarial.XCad.Geometry
         /// Area of the face
         /// </summary>
         double Area { get; }
+
+        /// <summary>
+        /// Shell type of the face
+        /// </summary>
+        FaceShellType_e ShellType { get; }
 
         /// <summary>
         /// Gets bounding box of this face

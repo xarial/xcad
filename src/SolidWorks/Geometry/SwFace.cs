@@ -11,6 +11,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Xarial.XCad.Enums;
 using Xarial.XCad.Features;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;
@@ -174,6 +175,29 @@ namespace Xarial.XCad.SolidWorks.Geometry
                 var box = (double[])Face.GetBox();
 
                 return new Box3D(box[0], box[1], box[2], box[3], box[4], box[5]);
+            }
+        }
+
+        public FaceShellType_e ShellType 
+        {
+            get 
+            {
+                var shellType = Face.GetShellType();
+
+                switch (shellType) 
+                {
+                    case 0:
+                        return FaceShellType_e.Open;
+
+                    case 1:
+                        return FaceShellType_e.Internal;
+
+                    case 2:
+                        return FaceShellType_e.External;
+
+                    default:
+                        throw new NotSupportedException();
+                }
             }
         }
 
