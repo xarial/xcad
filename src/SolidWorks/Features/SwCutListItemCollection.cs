@@ -110,32 +110,23 @@ namespace Xarial.XCad.SolidWorks.Features
             }
             else
             {
-                var part = m_Part.Part;
+                var activeConf = m_Part.Configurations.Active;
 
-                IEnumerable<IBody2> IterateBodies() =>
-                    (part.GetBodies2((int)swBodyType_e.swSolidBody, false) as object[] ?? new object[0]).Cast<IBody2>();
+                var checkedConfigsConflict = false;
 
-                if (part.IsWeldment()
-                    || IterateBodies().Any(b => b.IsSheetMetal()))
+                foreach (var cutList in ((SwFeatureManager)m_Part.Features).IterateCutListFeatures(m_Part, activeConf))
                 {
-                    var activeConf = m_Part.Configurations.Active;
-
-                    var checkedConfigsConflict = false;
-
-                    foreach (var cutList in ((SwFeatureManager)m_Part.Features).IterateCutListFeatures(m_Part, activeConf))
+                    if (!checkedConfigsConflict)
                     {
-                        if (!checkedConfigsConflict)
+                        if (activeConf.Name != m_Conf.Configuration.Name)
                         {
-                            if (activeConf.Name != m_Conf.Configuration.Name)
-                            {
-                                throw new ConfigurationSpecificCutListNotSupportedException();
-                            }
-
-                            checkedConfigsConflict = true;
+                            throw new ConfigurationSpecificCutListNotSupportedException();
                         }
 
-                        yield return cutList;
+                        checkedConfigsConflict = true;
                     }
+
+                    yield return cutList;
                 }
             }
         }
@@ -196,10 +187,7 @@ namespace Xarial.XCad.SolidWorks.Features
                 }
                 else
                 {
-                    IEnumerable<IBody2> IterateBodies() =>
-                        (m_Comp.Component.GetBodies3((int)swBodyType_e.swSolidBody, out _) as object[] ?? new object[0]).Cast<IBody2>();
-
-                    if ((refDoc.IsCommitted && (refDoc.Model as IPartDoc).IsWeldment()) || IterateBodies().Any(b => b.IsSheetMetal()))
+                    if (refDoc.IsCommitted)
                     {
                         foreach (var cutList in ((SwFeatureManager)m_Comp.Features).IterateCutListFeatures(refDoc, refConf))
                         {
