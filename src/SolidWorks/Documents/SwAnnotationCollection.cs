@@ -51,11 +51,17 @@ namespace Xarial.XCad.SolidWorks.Documents
             bool notes;
             bool dimensions;
             bool all;
+            bool detailCircles;
+            bool sectionLines;
+            bool breakLines;
 
             if (filters?.Any() == true)
             {
                 notes = false;
                 dimensions = false;
+                detailCircles = false;
+                sectionLines = false;
+                breakLines = false;
                 all = false;
 
                 foreach (var filter in filters)
@@ -68,6 +74,18 @@ namespace Xarial.XCad.SolidWorks.Documents
                     {
                         dimensions = true;
                     }
+                    else if (typeof(IXDetailCircle).IsAssignableFrom(filter.Type))
+                    {
+                        detailCircles = true;
+                    }
+                    else if (typeof(IXSectionLine).IsAssignableFrom(filter.Type))
+                    {
+                        sectionLines = true;
+                    }
+                    else if (typeof(IXBreakLine).IsAssignableFrom(filter.Type))
+                    {
+                        breakLines = true;
+                    }
                     else if (filter.Type == null || typeof(IXAnnotation).IsAssignableFrom(filter.Type))
                     {
                         all = true;
@@ -79,23 +97,28 @@ namespace Xarial.XCad.SolidWorks.Documents
             {
                 notes = true;
                 dimensions = true;
+                detailCircles = true;
+                sectionLines = true;
+                breakLines = true;
                 all = true;
             }
 
-            foreach (var ent in RepositoryHelper.FilterDefault(IterateAnnotations(notes, dimensions, all), filters, reverseOrder))
+            foreach (var ent in RepositoryHelper.FilterDefault(IterateAnnotations(notes, dimensions, detailCircles, sectionLines, breakLines, all), filters, reverseOrder))
             {
                 yield return ent;
             }
         }
 
-        private IEnumerable<ISwAnnotation> IterateAllAnnotations() => IterateAnnotations(true, true, true);
+        private IEnumerable<ISwAnnotation> IterateAllAnnotations() => IterateAnnotations(true, true, true, true, true, true);
 
-        protected abstract IEnumerable<ISwAnnotation> IterateAnnotations(bool notes, bool dimensions, bool other);
+        protected abstract IEnumerable<ISwAnnotation> IterateAnnotations(bool notes, bool dimensions, bool detailCircles,
+            bool sectionLines, bool breakLines, bool other);
 
         public T PreCreate<T>() where T : IXAnnotation
             => RepositoryHelper.PreCreate<IXAnnotation, T>(this,
                 () => new SwNote(null, m_Doc, m_Doc.OwnerApplication),
                 () => new SwSectionLine(null, m_Doc, m_Doc.OwnerApplication),
+                () => new SwBreakLine(null, m_Doc, m_Doc.OwnerApplication),
                 () => new SwDetailCircle(null, m_Doc, m_Doc.OwnerApplication));
 
         public void RemoveRange(IEnumerable<IXAnnotation> ents, CancellationToken cancellationToken)
@@ -120,7 +143,8 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public override int Count => m_Doc.Model.Extension.GetAnnotationCount();
 
-        protected override IEnumerable<ISwAnnotation> IterateAnnotations(bool notes, bool dimensions, bool all)
+        protected override IEnumerable<ISwAnnotation> IterateAnnotations(bool notes, bool dimensions,
+            bool detailCircles, bool sectionLines, bool breakLines, bool all)
         {
             var ann = m_Doc.Model.IGetFirstAnnotation2();
 
@@ -144,18 +168,19 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public override int Count => m_Drw.Sheets.Sum(s => s.DrawingViews.Sum(v => ((ISwDrawingView)v).DrawingView.GetAnnotationCount()));
 
-        protected override IEnumerable<ISwAnnotation> IterateAnnotations(bool notes, bool dimensions, bool all)
+        protected override IEnumerable<ISwAnnotation> IterateAnnotations(bool notes, bool dimensions, bool detailCircles,
+            bool sectionLines, bool breakLines, bool all)
         {
             foreach (SwSheet sheet in m_Drw.Sheets)
             {   
-                foreach (var ann in sheet.Annotations.Iterate(notes, dimensions, all))
+                foreach (var ann in sheet.Annotations.Iterate(notes, dimensions, detailCircles, sectionLines, breakLines, all))
                 {
                     yield return ann;
                 }
 
                 foreach (SwDrawingView view in sheet.DrawingViews)
                 {
-                    foreach (var ann in view.Annotations.Iterate(notes, dimensions, all))
+                    foreach (var ann in view.Annotations.Iterate(notes, dimensions, detailCircles, sectionLines, breakLines, all))
                     {
                         yield return ann;
                     }
@@ -180,11 +205,15 @@ namespace Xarial.XCad.SolidWorks.Documents
         public override int Count => DrawingView.DrawingView.GetAnnotationCount() 
             + DrawingView.DrawingView.GetDimensionCount4() 
             + DrawingView.DrawingView.GetDetailCircleCount2(out _)
-            + DrawingView.DrawingView.GetSectionLineCount2(out _);
+            + DrawingView.DrawingView.GetSectionLineCount2(out _)
+            + DrawingView.DrawingView.GetBreakLineCount2(out _);
 
-        internal IEnumerable<ISwAnnotation> Iterate(bool notes, bool dimensions, bool all) => IterateAnnotations(notes, dimensions, all);
+        internal IEnumerable<ISwAnnotation> Iterate(bool notes, bool dimensions, bool detailCircles,
+            bool sectionLines, bool breakLines, bool all)
+            => IterateAnnotations(notes, dimensions, detailCircles, sectionLines, breakLines, all);
 
-        protected override IEnumerable<ISwAnnotation> IterateAnnotations(bool notes, bool dimensions, bool all)
+        protected override IEnumerable<ISwAnnotation> IterateAnnotations(bool notes, bool dimensions, bool detailCircles, 
+            bool sectionLines, bool breakLines, bool all)
         {
             if (all)
             {
@@ -197,24 +226,19 @@ namespace Xarial.XCad.SolidWorks.Documents
                     ann = ann.IGetNext2();
                 }
 
-                var detailCircles = (object[])DrawingView.DrawingView.GetDetailCircles();
-
-                if (detailCircles != null) 
+                foreach(var detCircle in IterateDetailCircles())
                 {
-                    foreach(IDetailCircle detCircle in detailCircles) 
-                    {
-                        yield return m_Doc.CreateObjectFromDispatch<ISwDetailCircle>(detCircle);
-                    }
+                    yield return detCircle;
                 }
 
-                var sectionLines = (object[])DrawingView.DrawingView.GetSectionLines();
-
-                if (sectionLines != null)
+                foreach (var sectLine in IterateSectionLines())
                 {
-                    foreach (IDrSection sectionLine in sectionLines)
-                    {
-                        yield return m_Doc.CreateObjectFromDispatch<ISwSectionLine>(sectionLine);
-                    }
+                    yield return sectLine;
+                }
+
+                foreach (var breakLine in IterateBreakLines())
+                {
+                    yield return breakLine;
                 }
             }
             else 
@@ -241,6 +265,69 @@ namespace Xarial.XCad.SolidWorks.Documents
 
                         dispDim = dispDim.GetNext5();
                     }
+                }
+
+                if (detailCircles)
+                {
+                    foreach (var detCircle in IterateDetailCircles())
+                    {
+                        yield return detCircle;
+                    }
+                }
+
+                if (sectionLines)
+                {
+                    foreach (var sectLine in IterateSectionLines())
+                    {
+                        yield return sectLine;
+                    }
+                }
+
+                if (breakLines)
+                {
+                    foreach (var breakLine in IterateBreakLines())
+                    {
+                        yield return breakLine;
+                    }
+                }
+            }
+        }
+
+        private IEnumerable<ISwDetailCircle> IterateDetailCircles()
+        {
+            var detailCircles = (object[])DrawingView.DrawingView.GetDetailCircles();
+
+            if (detailCircles != null)
+            {
+                foreach (IDetailCircle detCircle in detailCircles)
+                {
+                    yield return m_Doc.CreateObjectFromDispatch<ISwDetailCircle>(detCircle);
+                }
+            }
+        }
+
+        private IEnumerable<ISwSectionLine> IterateSectionLines()
+        {
+            var sectionLines = (object[])DrawingView.DrawingView.GetSectionLines();
+
+            if (sectionLines != null)
+            {
+                foreach (IDrSection sectionLine in sectionLines)
+                {
+                    yield return m_Doc.CreateObjectFromDispatch<ISwSectionLine>(sectionLine);
+                }
+            }
+        }
+
+        private IEnumerable<ISwBreakLine> IterateBreakLines()
+        {
+            var breakLines = (object[])DrawingView.DrawingView.GetBreakLines();
+
+            if (breakLines != null)
+            {
+                foreach (IBreakLine breakLine in breakLines)
+                {
+                    yield return m_Doc.CreateObjectFromDispatch<ISwBreakLine>(breakLine);
                 }
             }
         }

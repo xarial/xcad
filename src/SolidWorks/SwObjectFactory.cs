@@ -223,6 +223,9 @@ namespace Xarial.XCad.SolidWorks
                 case IDrSection section:
                     return new SwSectionLine(section, doc, app);
 
+                case IBreakLine breakLine:
+                    return new SwBreakLine(breakLine, doc, app);
+
                 case IDetailCircle detailCircle:
                     return new SwDetailCircle(detailCircle, doc, app);
 

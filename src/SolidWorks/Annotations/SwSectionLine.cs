@@ -41,7 +41,7 @@ namespace Xarial.XCad.SolidWorks.Annotations
 
         public override IAnnotation Annotation => throw new NotSupportedException();
 
-        public virtual IXLayer Layer
+        public override IXLayer Layer
         {
             get => SwLayerHelper.GetLayer(this, x => x.Section.Layer);
             set => SwLayerHelper.SetLayer(this, value, (x, y) => x.Section.Layer = y);

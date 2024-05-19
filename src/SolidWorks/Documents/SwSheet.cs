@@ -41,6 +41,8 @@ namespace Xarial.XCad.SolidWorks.Documents
     [DebuggerDisplay("{" + nameof(Name) + "}")]
     internal class SwSheet : SwSelObject, ISwSheet
     {
+        private const string CUSTOM_LAYOUT_TEMPLATE = "*.drt";
+
         IXAnnotationRepository IXSheet.Annotations => Annotations;
 
         private readonly SwDrawing m_Drawing;
@@ -179,7 +181,14 @@ namespace Xarial.XCad.SolidWorks.Documents
             {
                 if (IsCommitted)
                 {
-                    return Sheet.GetTemplateName();
+                    var templateName = Sheet.GetTemplateName();
+
+                    if (string.Equals(templateName, CUSTOM_LAYOUT_TEMPLATE, StringComparison.CurrentCultureIgnoreCase)) 
+                    {
+                        templateName = "";
+                    }
+
+                    return templateName;
                 }
                 else
                 {
