@@ -13,7 +13,7 @@ using Xarial.XCad.UI.PropertyPage.Base;
 namespace Xarial.XCad.UI.PropertyPage.Attributes
 {
     /// <summary>
-    /// Indicates that metadata should be attached to the control
+    /// Indicates that existing metadata should be attached to the control
     /// </summary>
     [AttributeUsage(AttributeTargets.Property | AttributeTargets.Class, AllowMultiple = true)]
     public class AttachMetadataAttribute : Attribute, IHasMetadataAttribute
@@ -25,14 +25,7 @@ namespace Xarial.XCad.UI.PropertyPage.Attributes
         public object LinkedMetadataTag { get; set; }
 
         /// <inheritdoc/>
-        public object StaticValue { get; set; }
-
-        /// <summary>
-        /// Default constructor
-        /// </summary>
-        public AttachMetadataAttribute() 
-        {
-        }
+        public string Name { get; }
 
         /// <summary>
         /// Constructor setting the link to metadata

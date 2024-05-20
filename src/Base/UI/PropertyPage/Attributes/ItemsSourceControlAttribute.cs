@@ -14,6 +14,9 @@ using Xarial.XCad.UI.PropertyPage.Structures;
 
 namespace Xarial.XCad.UI.PropertyPage.Attributes
 {
+    /// <summary>
+    /// Represents the control which has items source
+    /// </summary>
     [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
     public abstract class ItemsSourceControlAttribute : Attribute, IDependentOnAttribute, IHasMetadataAttribute
     {
@@ -32,9 +35,6 @@ namespace Xarial.XCad.UI.PropertyPage.Attributes
         /// <inheritdoc/>
         public object LinkedMetadataTag => ItemsSource;
 
-        /// <inheritdoc/>
-        public object StaticValue => throw new NotSupportedException();
-
         /// <summary>
         /// Tag of the metadata property (decorated with <see cref="MetadataAttribute"/>) which contains the items source for this combo box
         /// </summary>
@@ -47,6 +47,8 @@ namespace Xarial.XCad.UI.PropertyPage.Attributes
         public string DisplayMemberPath { get; set; }
 
         public bool HasMetadata => ItemsSource != null;
+
+        public object Parameter { get; set; }
 
         /// <summary>
         /// Creates a combo box with custom items provider

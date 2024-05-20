@@ -16,18 +16,18 @@ namespace Xarial.XCad.Utils.PageBuilder.Core
     public class RawDependencyGroup : IRawDependencyGroup
     {
         public IReadOnlyDictionary<object, IBinding> TaggedBindings => m_TaggedBindings;
-        public IReadOnlyDictionary<IBinding, Tuple<object[], IDependencyHandler>> DependenciesTags => m_DependenciesTags;
-        public IReadOnlyDictionary<IControl, Tuple<IMetadata[], IMetadataDependencyHandler>> MetadataDependencies => m_MetadataDependencies;
+        public IReadOnlyDictionary<IBinding, DependencyInfo> DependenciesTags => m_DependenciesTags;
+        public IReadOnlyDictionary<IControl, MetadataDependencyInfo> MetadataDependencies => m_MetadataDependencies;
 
         private readonly Dictionary<object, IBinding> m_TaggedBindings;
-        private readonly Dictionary<IBinding, Tuple<object[], IDependencyHandler>> m_DependenciesTags;
-        private readonly Dictionary<IControl, Tuple<IMetadata[], IMetadataDependencyHandler>> m_MetadataDependencies;
+        private readonly Dictionary<IBinding, DependencyInfo> m_DependenciesTags;
+        private readonly Dictionary<IControl, MetadataDependencyInfo> m_MetadataDependencies;
 
         public RawDependencyGroup()
         {
             m_TaggedBindings = new Dictionary<object, IBinding>();
-            m_DependenciesTags = new Dictionary<IBinding, Tuple<object[], IDependencyHandler>>();
-            m_MetadataDependencies = new Dictionary<IControl, Tuple<IMetadata[], IMetadataDependencyHandler>>();
+            m_DependenciesTags = new Dictionary<IBinding, DependencyInfo>();
+            m_MetadataDependencies = new Dictionary<IControl, MetadataDependencyInfo>();
         }
 
         public void RegisterBindingTag(IBinding binding, object tag)
@@ -42,14 +42,10 @@ namespace Xarial.XCad.Utils.PageBuilder.Core
             }
         }
 
-        public void RegisterDependency(IBinding binding, object[] dependentOnTags, IDependencyHandler dependencyHandler)
-        {
-            m_DependenciesTags.Add(binding, new Tuple<object[], IDependencyHandler>(dependentOnTags, dependencyHandler));
-        }
+        public void RegisterDependency(IBinding binding, DependencyInfo info)
+            => m_DependenciesTags.Add(binding, info);
 
-        public void RegisterMetadataDependency(IControl ctrl, IMetadata[] metadata, IMetadataDependencyHandler dependencyHandler)
-        {
-            m_MetadataDependencies.Add(ctrl, new Tuple<IMetadata[], IMetadataDependencyHandler>(metadata, dependencyHandler));
-        }
+        public void RegisterMetadataDependency(IControl ctrl, MetadataDependencyInfo info)
+            => m_MetadataDependencies.Add(ctrl, info);
     }
 }

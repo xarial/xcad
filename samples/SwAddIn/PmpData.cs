@@ -232,7 +232,7 @@ namespace SwAddInExample
 
     public class VisibilityHandler : IDependencyHandler
     {
-        public void UpdateState(IXApplication app, IControl source, IControl[] dependencies)
+        public void UpdateState(IXApplication app, IControl source, IControl[] dependencies, object parameter)
         {
             source.Visible = (bool)dependencies.First().GetValue();
         }
@@ -240,7 +240,7 @@ namespace SwAddInExample
 
     public class CustomControlDependantHandler : IDependencyHandler
     {
-        public void UpdateState(IXApplication app, IControl source, IControl[] dependencies)
+        public void UpdateState(IXApplication app, IControl source, IControl[] dependencies, object parameter)
         {
             var val = (OptsFlag)dependencies.First().GetValue();
 
@@ -528,7 +528,7 @@ namespace SwAddInExample
     {
         public class IsCheckedDepHandler : IMetadataDependencyHandler
         {
-            public void UpdateState(IXApplication app, IControl source, IMetadata[] metadata)
+            public void UpdateState(IXApplication app, IControl source, IMetadata[] metadata, object parameter)
             {
                 source.Enabled = !(bool)metadata.First().Value;
             }

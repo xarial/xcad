@@ -5,25 +5,21 @@
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
-using System;
-using System.Collections.Generic;
-using System.Text;
-
 namespace Xarial.XCad.UI.PropertyPage.Base
 {
     /// <summary>
-    /// Indicates that this binding uses metadata
+    /// Indicates that this binding has a static metadata
     /// </summary>
-    public interface IHasMetadataAttribute : IAttribute
+    public interface IStaticMetadataAttribute : IAttribute 
     {
         /// <summary>
-        /// True if the referenced property has metadata
+        /// Static metadata name
         /// </summary>
-        bool HasMetadata { get; }
+        string Name { get; }
 
         /// <summary>
-        /// Tag of metadata linked to <see cref="IMetadataAttribute.Tag"/>
+        /// Static value of the metadata
         /// </summary>
-        object LinkedMetadataTag { get; }
+        object StaticValue { get; }
     }
 }

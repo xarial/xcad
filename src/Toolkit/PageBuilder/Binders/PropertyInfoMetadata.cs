@@ -16,8 +16,12 @@ using Xarial.XCad.Utils.PageBuilder;
 
 namespace Xarial.XCad.Toolkit.PageBuilder.Binders
 {
+    /// <summary>
+    /// Metadata attached to a property
+    /// </summary>
     public class PropertyInfoMetadata : IMetadata
     {
+        /// <inheritdoc/>
         public event Action<IMetadata, object> Changed;
 
         private readonly PropertyInfo m_PrpInfo;
@@ -25,8 +29,10 @@ namespace Xarial.XCad.Toolkit.PageBuilder.Binders
 
         private object m_CurrentContext;
 
+        /// <inheritdoc/>
         public object Tag { get; }
 
+        /// <inheritdoc/>
         public object Value 
         {
             get => GetValue();
@@ -39,16 +45,20 @@ namespace Xarial.XCad.Toolkit.PageBuilder.Binders
             }
         }
 
+        /// <inheritdoc/>
+        public string Name { get; }
+
         private readonly IContextProvider m_ContextProvider;
 
         private readonly Lazy<bool> m_IsStaticPrp;
 
-        public PropertyInfoMetadata(PropertyInfo prpInfo, PropertyInfo[] parents, object tag, IContextProvider contextProvider)
+        public PropertyInfoMetadata(PropertyInfo prpInfo, PropertyInfo[] parents, object tag, string name, IContextProvider contextProvider)
         {
             m_PrpInfo = prpInfo;
             m_IsStaticPrp = new Lazy<bool>(() => prpInfo.GetAccessors().Any(x => x.IsStatic));
             m_Parents = parents;
             Tag = tag;
+            Name = name;
             m_ContextProvider = contextProvider;
             m_ContextProvider.ContextChanged += OnContextChanged;
         }

@@ -10,6 +10,12 @@ Breaking change is marked with &#x26A0; symbol
 
 ## 0.8.1 -
 
+* &#x26A0; IDependencyHandler::UpdateState and IMetadataDependencyHandler::UpdateState signature is changed (added the **object parameter**)
+* &#x26A0; **AttachMetadataAttribute** is now only used to attach to other metadata, to create metadata with static values, use **StaticMetadataAttribute**
+* Implemented temp loft
+* Implemented collision detection
+* Implemented tables
+* &#x26A0; **ISwTempRegion** removed as redundant
 * &#x26A0; IXTable::CreateReader is renamed to IXTable::ExecuteReader
 * &#x26A0; IXCustomFeatureDefinition\<TParams, TPage\>::ConvertParamsToPage renamed to IXCustomFeatureDefinition\<TParams, TPage\>::CreatePropertyPage and **TParams par** parameter is replaced with **IXCustomFeature\<TParams\> feat**
 * &#x26A0; IXCustomFeatureDefinition\<TParams, TPage\>::ConvertPageToParams renamed to IXCustomFeatureDefinition\<TParams, TPage\>::CreateParameters

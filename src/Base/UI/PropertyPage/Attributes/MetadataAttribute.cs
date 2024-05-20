@@ -17,6 +17,9 @@ namespace Xarial.XCad.UI.PropertyPage.Attributes
         /// <inheritdoc/>
         public object Tag { get; }
 
+        /// <inheritdoc/>
+        public string Name { get; }
+
         /// <summary>
         /// Marks this property as metadata
         /// </summary>
@@ -24,6 +27,16 @@ namespace Xarial.XCad.UI.PropertyPage.Attributes
         public MetadataAttribute(object tag)
         {
             Tag = tag;
+        }
+
+        /// <summary>
+        /// Marks this property as metadata with custom user name
+        /// </summary>
+        /// <inheritdoc/>
+        /// <param name="name">User name of the metadata</param>
+        public MetadataAttribute(object tag, string name) : this(tag)
+        {
+            Name = name;
         }
     }
 }

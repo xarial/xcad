@@ -206,18 +206,21 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
                                     }
                                     else 
                                     {
-                                        var staticMetadataVal = metadataTagAtts.StaticValue;
-
-                                        if (staticMetadataVal != null)
-                                        {
-                                            prpMetadata.Add(new StaticMetadata(staticMetadataVal));
-                                        }
-                                        else 
-                                        {
-                                            throw new NullReferenceException($"Neither metadata tag nor static value is not set for {ctrlDesc.Name}");
-                                        }
+                                        throw new Exception("Metadata tag is not specified");
                                     }
                                 }
+                            }
+                        }
+
+                        if (atts.Has<IStaticMetadataAttribute>()) 
+                        {
+                            var staticMetadataAtts = atts.GetAll<IStaticMetadataAttribute>();
+
+                            foreach (var staticMetadataAtt in staticMetadataAtts)
+                            {
+                                var staticMetadataVal = staticMetadataAtt.StaticValue;
+
+                                prpMetadata.Add(new StaticMetadata(staticMetadataVal, staticMetadataAtt.Name));
                             }
                         }
 
@@ -250,8 +253,8 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
                             {
                                 if (depAtt.Dependencies?.Any() == true)
                                 {
-                                    dependencies.RegisterDependency(binding,
-                                        depAtt.Dependencies, depAtt.DependencyHandler);
+                                    dependencies.RegisterDependency(binding, 
+                                        new DependencyInfo(depAtt.Dependencies, depAtt.Parameter, depAtt.DependencyHandler));
                                 }
                             }
                         }
@@ -270,7 +273,8 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
                                 return md;
                             }).ToArray();
 
-                            dependencies.RegisterMetadataDependency(ctrl, depMds, depAtt.DependencyHandler);
+                            dependencies.RegisterMetadataDependency(ctrl, 
+                                new MetadataDependencyInfo(depMds, depAtt.Parameter, depAtt.DependencyHandler));
                         }
 
                         var isGroup = ctrl is IGroup;
@@ -298,7 +302,7 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
                 {
                     if (!metadata.ContainsKey(metadataAtt.Tag))
                     {
-                        metadata.Add(metadataAtt.Tag, new PropertyInfoMetadata(prp, parents, metadataAtt.Tag, contextProvider));
+                        metadata.Add(metadataAtt.Tag, new PropertyInfoMetadata(prp, parents, metadataAtt.Tag, metadataAtt.Name, contextProvider));
                     }
                     else
                     {

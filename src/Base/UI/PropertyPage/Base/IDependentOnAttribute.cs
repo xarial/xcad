@@ -24,5 +24,10 @@ namespace Xarial.XCad.UI.PropertyPage.Base
         /// List of control tags this control dependent on
         /// </summary>
         object[] Dependencies { get; }
+
+        /// <summary>
+        /// Parameter to pass to the <see cref="IDependencyHandler"/>
+        /// </summary>
+        object Parameter { get; }
     }
 }

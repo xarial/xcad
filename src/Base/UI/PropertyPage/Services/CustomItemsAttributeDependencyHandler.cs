@@ -25,7 +25,7 @@ namespace Xarial.XCad.UI.PropertyPage.Services
             m_DisplayMemberMemberPath = displayMemberMemberPath;
         }
 
-        public void UpdateState(IXApplication app, IControl source, IControl[] dependencies)
+        public void UpdateState(IXApplication app, IControl source, IControl[] dependencies, object parameter)
         {
             var itemsCtrl = (IItemsControl)source;
 

@@ -20,6 +20,15 @@ namespace Xarial.XCad.UI.PropertyPage.Attributes
         /// <inheritdoc/>
         public IDependencyHandler DependencyHandler { get; }
 
+        /// <inheritdoc/>
+        public object Parameter { get; set; }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="dependencyHandler">Type of dependency handle of type<see cref="IDependencyHandler"/></param>
+        /// <param name="dependencies">Values of <see cref="ControlTagAttribute"/> of the dependencies controls</param>
+        /// <exception cref="InvalidCastException">Dependency handler type is invalid</exception>
         public DependentOnAttribute(Type dependencyHandler, params object[] dependencies)
         {
             if (!typeof(IDependencyHandler).IsAssignableFrom(dependencyHandler)) 

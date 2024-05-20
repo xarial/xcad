@@ -35,9 +35,6 @@ namespace Xarial.XCad.UI.PropertyPage.Attributes
         /// <inheritdoc/>
         public bool HasMetadata => true;
 
-        /// <inheritdoc/>
-        public object StaticValue => throw new NotSupportedException();
-
         /// <summary>
         /// Default constructor
         /// </summary>

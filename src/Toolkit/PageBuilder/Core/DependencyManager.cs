@@ -21,20 +21,22 @@ namespace Xarial.XCad.Utils.PageBuilder.Core
         {
             private readonly IBinding m_Source;
             private readonly IBinding[] m_Dependencies;
+            private readonly object m_Parameter;
             private readonly IDependencyHandler m_Handler;
             private readonly IXApplication m_App;
 
-            internal ControlUpdateStateData(IXApplication app, IBinding src, IBinding[] deps, IDependencyHandler handler)
+            internal ControlUpdateStateData(IXApplication app, IBinding src, IBinding[] deps, object parameter, IDependencyHandler handler)
             {
                 m_App = app;
                 m_Source = src;
                 m_Dependencies = deps;
+                m_Parameter = parameter;
                 m_Handler = handler;
             }
 
             internal void Update()
             {
-                m_Handler.UpdateState(m_App, m_Source.Control, m_Dependencies.Select(d => d.Control).ToArray());
+                m_Handler.UpdateState(m_App, m_Source.Control, m_Dependencies.Select(d => d.Control).ToArray(), m_Parameter);
             }
         }
 
@@ -44,18 +46,20 @@ namespace Xarial.XCad.Utils.PageBuilder.Core
             private readonly IMetadata[] m_Dependencies;
             private readonly IMetadataDependencyHandler m_Handler;
             private readonly IXApplication m_App;
+            private readonly object m_Parameter;
 
-            internal MetadataUpdateStateData(IXApplication app, IControl ctrl, IMetadata[] deps, IMetadataDependencyHandler handler)
+            internal MetadataUpdateStateData(IXApplication app, IControl ctrl, IMetadata[] deps, object parameter, IMetadataDependencyHandler handler)
             {
                 m_App = app;
                 m_Ctrl = ctrl;
                 m_Dependencies = deps;
+                m_Parameter = parameter;
                 m_Handler = handler;
             }
 
             internal void Update()
             {
-                m_Handler.UpdateState(m_App, m_Ctrl, m_Dependencies);
+                m_Handler.UpdateState(m_App, m_Ctrl, m_Dependencies, m_Parameter);
             }
         }
 
@@ -75,14 +79,13 @@ namespace Xarial.XCad.Utils.PageBuilder.Core
             foreach (var data in depGroup.DependenciesTags)
             {
                 var srcBnd = data.Key;
-                var dependOnTags = data.Value.Item1;
-                var handler = data.Value.Item2;
+                var depInfo = data.Value;
 
-                var dependOnBindings = new IBinding[dependOnTags.Length];
+                var dependOnBindings = new IBinding[depInfo.DependentOnTags.Length];
 
-                for (int i = 0; i < dependOnTags.Length; i++)
+                for (int i = 0; i < depInfo.DependentOnTags.Length; i++)
                 {
-                    var dependOnTag = dependOnTags[i];
+                    var dependOnTag = depInfo.DependentOnTags[i];
 
                     IBinding dependOnBinding;
                     if (!depGroup.TaggedBindings.TryGetValue(dependOnTag, out dependOnBinding))
@@ -104,15 +107,17 @@ namespace Xarial.XCad.Utils.PageBuilder.Core
                         m_ControlDependencies.Add(dependOnBinding, updates);
                     }
 
-                    updates.Add(new ControlUpdateStateData(m_App, srcBnd, dependOnBindings, handler));
+                    updates.Add(new ControlUpdateStateData(m_App, srcBnd, dependOnBindings, depInfo.Parameter, depInfo.DependencyHandler));
                 }
             }
 
             foreach (var data in depGroup.MetadataDependencies) 
             {
-                var state = new MetadataUpdateStateData(m_App, data.Key, data.Value.Item1, data.Value.Item2);
+                var metDepInfo = data.Value;
 
-                foreach (var md in data.Value.Item1) 
+                var state = new MetadataUpdateStateData(m_App, data.Key, metDepInfo.Metadata, metDepInfo.Parameter, metDepInfo.DependencyHandler);
+
+                foreach (var md in metDepInfo.Metadata) 
                 {
                     if (!m_MetadataDependencies.TryGetValue(md, out List<MetadataUpdateStateData> states))
                     {

@@ -27,6 +27,11 @@ namespace Xarial.XCad.UI.PropertyPage.Attributes
         /// Dependency handler resolving the control state
         /// </summary>
         IMetadataDependencyHandler DependencyHandler { get; }
+
+        /// <summary>
+        /// Parameter to pass to the <see cref="IMetadataDependencyHandler"/>
+        /// </summary>
+        object Parameter { get; }
     }
 
     /// <inheritdoc/>
@@ -37,6 +42,9 @@ namespace Xarial.XCad.UI.PropertyPage.Attributes
 
         /// <inheritdoc/>
         public IMetadataDependencyHandler DependencyHandler { get; }
+
+        /// <inheritdoc/>
+        public object Parameter { get; set; }
 
         /// <summary>
         /// Default constructor
