@@ -227,7 +227,7 @@ namespace SolidWorks.Tests.Integration
                 var part = (ISwPart)m_App.Documents.Active;
 
                 conf1Prps = ((IXPartConfiguration)part.Configurations.First(c => c.Name.StartsWith("Conf1"))).CutLists
-                    .First(c => c.Name == "Cut-List-Item1").Properties
+                    ["Cut-List-Item1"].Properties
                     .ToDictionary(p => p.Name, p => p.Value);
 
                 if (m_App.IsVersionNewerOrEqual(SwVersion_e.Sw2024))
@@ -238,7 +238,7 @@ namespace SolidWorks.Tests.Integration
                     part.Model.ShowConfiguration2(activeConf);
 
                     confDefPrps = ((IXPartConfiguration)part.Configurations.First(c => c.Name.StartsWith("Default"))).CutLists
-                        .First(c => c.Name == "Cut-List-Item1").Properties
+                        ["Cut-List-Item1"].Properties
                         .ToDictionary(p => p.Name, p => p.Value);
                 }
                 else
@@ -316,8 +316,7 @@ namespace SolidWorks.Tests.Integration
                     part.Model.ShowConfiguration2("Default<As Machined>");
                     part.Model.ShowConfiguration2(activeConf);
 
-                    var prp2 = part.Configurations["Default<As Machined>"].CutLists
-                        .First(c => c.Name == "Cut-List-Item1").Properties.GetOrPreCreate("Prp3");
+                    var prp2 = part.Configurations["Default<As Machined>"].CutLists["Cut-List-Item1"].Properties.GetOrPreCreate("Prp3");
                     
                     Assert.Throws<ConfigurationSpecificCutListPropertiesWriteNotSupportedException>(() =>
                     {

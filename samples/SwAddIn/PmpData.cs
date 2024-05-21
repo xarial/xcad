@@ -238,6 +238,14 @@ namespace SwAddInExample
         }
     }
 
+    public class EnableHandler : IDependencyHandler
+    {
+        public void UpdateState(IXApplication app, IControl source, IControl[] dependencies, object parameter)
+        {
+            source.Enabled = (bool)dependencies.First().GetValue();
+        }
+    }
+
     public class CustomControlDependantHandler : IDependencyHandler
     {
         public void UpdateState(IXApplication app, IControl source, IControl[] dependencies, object parameter)
@@ -370,7 +378,11 @@ namespace SwAddInExample
         [ControlTag(nameof(Visible))]
         public bool Visible { get; set; }
 
+        [ControlTag(nameof(Enabled))]
+        public bool Enabled { get; set; }
+
         [DependentOn(typeof(VisibilityHandler), nameof(Visible))]
+        [DependentOn(typeof(EnableHandler), nameof(Enabled))]
         [Label("Numeric Control")]
         public double Number { get; set; }
 

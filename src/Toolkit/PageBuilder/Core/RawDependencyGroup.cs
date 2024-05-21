@@ -13,23 +13,33 @@ using Xarial.XCad.Utils.PageBuilder.Base;
 
 namespace Xarial.XCad.Utils.PageBuilder.Core
 {
+    /// <inheritdoc/>
     public class RawDependencyGroup : IRawDependencyGroup
     {
+        /// <inheritdoc/>
         public IReadOnlyDictionary<object, IBinding> TaggedBindings => m_TaggedBindings;
-        public IReadOnlyDictionary<IBinding, DependencyInfo> DependenciesTags => m_DependenciesTags;
-        public IReadOnlyDictionary<IControl, MetadataDependencyInfo> MetadataDependencies => m_MetadataDependencies;
+
+        /// <inheritdoc/>
+        public IReadOnlyList<DependencyInfo> DependenciesTags => m_DependenciesTags;
+
+        /// <inheritdoc/>
+        public IReadOnlyList<MetadataDependencyInfo> MetadataDependencies => m_MetadataDependencies;
 
         private readonly Dictionary<object, IBinding> m_TaggedBindings;
-        private readonly Dictionary<IBinding, DependencyInfo> m_DependenciesTags;
-        private readonly Dictionary<IControl, MetadataDependencyInfo> m_MetadataDependencies;
+        private readonly List<DependencyInfo> m_DependenciesTags;
+        private readonly List<MetadataDependencyInfo> m_MetadataDependencies;
 
+        /// <summary>
+        /// Default constructor
+        /// </summary>
         public RawDependencyGroup()
         {
             m_TaggedBindings = new Dictionary<object, IBinding>();
-            m_DependenciesTags = new Dictionary<IBinding, DependencyInfo>();
-            m_MetadataDependencies = new Dictionary<IControl, MetadataDependencyInfo>();
+            m_DependenciesTags = new List<DependencyInfo>();
+            m_MetadataDependencies = new List<MetadataDependencyInfo>();
         }
 
+        /// <inheritdoc/>
         public void RegisterBindingTag(IBinding binding, object tag)
         {
             if (!TaggedBindings.ContainsKey(tag))
@@ -42,10 +52,12 @@ namespace Xarial.XCad.Utils.PageBuilder.Core
             }
         }
 
-        public void RegisterDependency(IBinding binding, DependencyInfo info)
-            => m_DependenciesTags.Add(binding, info);
+        /// <inheritdoc/>
+        public void RegisterDependency(DependencyInfo info)
+            => m_DependenciesTags.Add(info);
 
-        public void RegisterMetadataDependency(IControl ctrl, MetadataDependencyInfo info)
-            => m_MetadataDependencies.Add(ctrl, info);
+        /// <inheritdoc/>
+        public void RegisterMetadataDependency(MetadataDependencyInfo info)
+            => m_MetadataDependencies.Add(info);
     }
 }

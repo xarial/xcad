@@ -154,5 +154,27 @@ namespace SolidWorksDocMgr.Tests.Integration
             Assert.That(cutListData.ContainsKey("Cut-List-Item6"));
             Assert.AreEqual(1, cutListData["Cut-List-Item6"]);
         }
+
+        [Test]
+        public void CutListsOrderTest()
+        {
+            string[] cutListNames1;
+
+            var expectedCutListNames = new string[]
+            {
+                "Sheet<1>", "ABC1", "L 20.00 X 20.00 X 3.000<1>", "SB BEAM 80.00 X 6<1>", "CL1",
+                "XYZ", "Sheet<2>", "C CHANNEL 80.00 X 8<1>", "Test1", "Test2"
+            };
+
+            using (var doc = OpenDataDocument("CutListReordered1.SLDPRT"))
+            {
+                var part = (ISwDmPart)m_App.Documents.Active;
+                cutListNames1 = part.Configurations.Active.CutLists.Select(c => c.Name).ToArray();
+            }
+
+            //NOTE: Document Manager does not support cut-list items in the feature tree order
+            //CollectionAssert.AreEqual(expectedCutListNames, cutListNames1);
+            CollectionAssert.AreEquivalent(expectedCutListNames, cutListNames1);
+        }
     }
 }

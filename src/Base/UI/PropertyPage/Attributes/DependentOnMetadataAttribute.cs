@@ -35,6 +35,7 @@ namespace Xarial.XCad.UI.PropertyPage.Attributes
     }
 
     /// <inheritdoc/>
+    [AttributeUsage(AttributeTargets.Property, AllowMultiple = true)]
     public class DependentOnMetadataAttribute : Attribute, IDependentOnMetadataAttribute
     {
         /// <inheritdoc/>

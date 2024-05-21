@@ -15,6 +15,7 @@ using Xarial.XCad.Utils.PageBuilder.Base;
 
 namespace Xarial.XCad.Utils.PageBuilder.Core
 {
+    /// <inheritdoc/>
     public class DependencyManager : IDependencyManager
     {
         private class ControlUpdateStateData
@@ -68,19 +69,15 @@ namespace Xarial.XCad.Utils.PageBuilder.Core
 
         private IXApplication m_App;
 
-        public ReadOnlyDictionary<IControl, IControl[]> Map { get; private set; }
-        
+        /// <inheritdoc/>
         public void Init(IXApplication app, IRawDependencyGroup depGroup)
         {
             m_App = app;
             m_ControlDependencies = new Dictionary<IBinding, List<ControlUpdateStateData>>();
             m_MetadataDependencies = new Dictionary<IMetadata, List<MetadataUpdateStateData>>();
 
-            foreach (var data in depGroup.DependenciesTags)
+            foreach (var depInfo in depGroup.DependenciesTags)
             {
-                var srcBnd = data.Key;
-                var depInfo = data.Value;
-
                 var dependOnBindings = new IBinding[depInfo.DependentOnTags.Length];
 
                 for (int i = 0; i < depInfo.DependentOnTags.Length; i++)
@@ -107,15 +104,14 @@ namespace Xarial.XCad.Utils.PageBuilder.Core
                         m_ControlDependencies.Add(dependOnBinding, updates);
                     }
 
-                    updates.Add(new ControlUpdateStateData(m_App, srcBnd, dependOnBindings, depInfo.Parameter, depInfo.DependencyHandler));
+                    updates.Add(new ControlUpdateStateData(m_App, depInfo.Binding, dependOnBindings, depInfo.Parameter, depInfo.DependencyHandler));
                 }
             }
 
-            foreach (var data in depGroup.MetadataDependencies) 
+            foreach (var metDepInfo in depGroup.MetadataDependencies) 
             {
-                var metDepInfo = data.Value;
-
-                var state = new MetadataUpdateStateData(m_App, data.Key, metDepInfo.Metadata, metDepInfo.Parameter, metDepInfo.DependencyHandler);
+                var state = new MetadataUpdateStateData(m_App, metDepInfo.Control,
+                    metDepInfo.Metadata, metDepInfo.Parameter, metDepInfo.DependencyHandler);
 
                 foreach (var md in metDepInfo.Metadata) 
                 {
@@ -131,6 +127,7 @@ namespace Xarial.XCad.Utils.PageBuilder.Core
             }
         }
 
+        /// <inheritdoc/>
         public void UpdateAll()
         {
             foreach (var state in m_ControlDependencies.SelectMany(b => b.Value))

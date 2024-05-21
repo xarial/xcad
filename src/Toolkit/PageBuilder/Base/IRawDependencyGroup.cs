@@ -18,6 +18,11 @@ namespace Xarial.XCad.Utils.PageBuilder.Base
     public class DependencyInfo
     {
         /// <summary>
+        /// Binding
+        /// </summary>
+        public IBinding Binding { get; }
+
+        /// <summary>
         /// Tags of dependencies
         /// </summary>
         public object[] DependentOnTags { get; }
@@ -32,11 +37,13 @@ namespace Xarial.XCad.Utils.PageBuilder.Base
         /// </summary>
         public IDependencyHandler DependencyHandler { get; }
 
+        /// <param name="binding">Source binding</param>
         /// <param name="dependentOnTags">Tags of dependencies</param>
         /// <param name="parameter">User parameter</param>
         /// <param name="dependencyHandler">Handler to resolve dependency</param>
-        public DependencyInfo(object[] dependentOnTags, object parameter, IDependencyHandler dependencyHandler)
+        public DependencyInfo(IBinding binding, object[] dependentOnTags, object parameter, IDependencyHandler dependencyHandler)
         {
+            Binding = binding;
             DependentOnTags = dependentOnTags;
             Parameter = parameter;
             DependencyHandler = dependencyHandler;
@@ -48,6 +55,11 @@ namespace Xarial.XCad.Utils.PageBuilder.Base
     /// </summary>
     public class MetadataDependencyInfo
     {
+        /// <summary>
+        /// Source control
+        /// </summary>
+        public IControl Control { get; }
+
         /// <summary>
         /// Metadata
         /// </summary>
@@ -63,11 +75,13 @@ namespace Xarial.XCad.Utils.PageBuilder.Base
         /// </summary>
         public IMetadataDependencyHandler DependencyHandler { get; }
 
+        /// <param name="control">Source control</param>
         /// <param name="metadata">Metadata</param>
         /// <param name="parameter">User parameter</param>
         /// <param name="dependencyHandler">Handler to resolve dependency</param>
-        public MetadataDependencyInfo(IMetadata[] metadata, object parameter, IMetadataDependencyHandler dependencyHandler) 
+        public MetadataDependencyInfo(IControl control, IMetadata[] metadata, object parameter, IMetadataDependencyHandler dependencyHandler) 
         {
+            Control = control;
             Metadata = metadata;
             Parameter = parameter;
             DependencyHandler = dependencyHandler;
@@ -87,12 +101,12 @@ namespace Xarial.XCad.Utils.PageBuilder.Base
         /// <summary>
         /// Dependencies of controls
         /// </summary>
-        IReadOnlyDictionary<IBinding, DependencyInfo> DependenciesTags { get; }
+        IReadOnlyList<DependencyInfo> DependenciesTags { get; }
 
         /// <summary>
         /// Dependencies of metadata
         /// </summary>
-        IReadOnlyDictionary<IControl, MetadataDependencyInfo> MetadataDependencies { get; }
+        IReadOnlyList<MetadataDependencyInfo> MetadataDependencies { get; }
 
         /// <summary>
         /// Registers binding with a tag
@@ -104,15 +118,13 @@ namespace Xarial.XCad.Utils.PageBuilder.Base
         /// <summary>
         /// Registers dependency of control
         /// </summary>
-        /// <param name="binding">Binding</param>
         /// <param name="info">Dependency info</param>
-        void RegisterDependency(IBinding binding, DependencyInfo info);
+        void RegisterDependency(DependencyInfo info);
 
         /// <summary>
         /// Registers dependency of metadata
         /// </summary>
-        /// <param name="ctrl">Source control</param>
         /// <param name="info">Metadata dependency info</param>
-        void RegisterMetadataDependency(IControl ctrl, MetadataDependencyInfo info);
+        void RegisterMetadataDependency(MetadataDependencyInfo info);
     }
 }
