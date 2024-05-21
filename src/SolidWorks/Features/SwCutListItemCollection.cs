@@ -20,31 +20,64 @@ using Xarial.XCad.SolidWorks.Documents.EventHandlers;
 using Xarial.XCad.Features.Delegates;
 using System.Threading;
 using Xarial.XCad.Toolkit.Utils;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.TextBox;
 using Xarial.XCad.SolidWorks.Enums;
 
 namespace Xarial.XCad.SolidWorks.Features
 {
-    internal abstract class SwCutListItemCollection : IXCutListItemRepository
+    /// <summary>
+    /// SOLIDWORKS specific cut-list items collection
+    /// </summary>
+    public interface ISwCutListItemCollection : IXCutListItemRepository
+    {
+        /// <summary>
+        /// Returns cut-lists in the unordered order
+        /// </summary>
+        /// <remarks>This method may have better performance benefits</remarks>
+        IEnumerable<ISwCutListItem> Unordered { get; }
+    }
+
+    internal abstract class SwCutListItemCollection : ISwCutListItemCollection
     {
         public abstract event CutListRebuildDelegate CutListRebuild;
 
         public IXCutListItem this[string name] => RepositoryHelper.Get(this, name);
 
-        public int Count => IterateCutLists().Count();
+        public int Count => IterateCutLists(false).Count();
+
+        public IEnumerable<ISwCutListItem> Unordered => IterateCutLists(false);
+
+        public bool AutomaticCutList 
+        {
+            get => OwnerPart.Model.Extension.GetUserPreferenceToggle(
+                (int)swUserPreferenceToggle_e.swWeldmentEnableAutomaticCutList,
+                (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified);
+            set => OwnerPart.Model.Extension.SetUserPreferenceToggle(
+                (int)swUserPreferenceToggle_e.swWeldmentEnableAutomaticCutList,
+                (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified, value);
+        }
+
+        public bool AutomaticUpdate
+        {
+            get => OwnerPart.Model.Extension.GetUserPreferenceToggle(
+                (int)swUserPreferenceToggle_e.swWeldmentEnableAutomaticUpdate,
+                (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified);
+            set => OwnerPart.Model.Extension.SetUserPreferenceToggle(
+                (int)swUserPreferenceToggle_e.swWeldmentEnableAutomaticUpdate,
+                (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified, value);
+        }
 
         public void AddRange(IEnumerable<IXCutListItem> ents, CancellationToken cancellationToken)
             => throw new NotImplementedException();
 
         public IEnumerator<IXCutListItem> GetEnumerator()
-            => IterateCutLists().GetEnumerator();
+            => IterateCutLists(true).GetEnumerator();
 
         public void RemoveRange(IEnumerable<IXCutListItem> ents, CancellationToken cancellationToken)
             => throw new NotImplementedException();
 
         public bool TryGet(string name, out IXCutListItem ent)
         {
-            foreach (var cutList in IterateCutLists())
+            foreach (var cutList in IterateCutLists(false))
             {
                 if (string.Equals(cutList.Name, name, StringComparison.CurrentCultureIgnoreCase)) 
                 {
@@ -59,11 +92,28 @@ namespace Xarial.XCad.SolidWorks.Features
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-        public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters) => RepositoryHelper.FilterDefault(this, filters, reverseOrder);
+        public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters) 
+            => RepositoryHelper.FilterDefault(this, filters, reverseOrder);
 
-        protected abstract IEnumerable<IXCutListItem> IterateCutLists();
+        protected abstract IEnumerable<ISwCutListItem> IterateCutLists(bool ordered);
 
         public T PreCreate<T>() where T : IXCutListItem => throw new NotImplementedException();
+
+        public bool Update()
+        {
+            if (FeatureManager.TryGetSolidBodyFeature(out var solidBodyFeat))
+            {
+                var solidBodyFolder = (IBodyFolder)solidBodyFeat.GetSpecificFeature2();
+                return solidBodyFolder.UpdateCutList();
+            }
+            else 
+            {
+                throw new Exception("No solid body folder found");
+            }
+        }
+
+        protected abstract SwFeatureManager FeatureManager { get; }
+        protected abstract SwPart OwnerPart { get; }
     }
 
     internal class SwPartCutListItemCollection : SwCutListItemCollection
@@ -71,6 +121,10 @@ namespace Xarial.XCad.SolidWorks.Features
         private readonly SwPartConfiguration m_Conf;
         private readonly SwPart m_Part;
         private readonly CutListRebuildEventsHandler m_CutListRebuild;
+
+        protected override SwFeatureManager FeatureManager => (SwFeatureManager)m_Part.Features;
+
+        protected override SwPart OwnerPart => m_Part;
 
         public override event CutListRebuildDelegate CutListRebuild
         {
@@ -92,9 +146,9 @@ namespace Xarial.XCad.SolidWorks.Features
             m_CutListRebuild = new CutListRebuildEventsHandler(part, this);
         }
 
-        protected override IEnumerable<IXCutListItem> IterateCutLists()
+        protected override IEnumerable<ISwCutListItem> IterateCutLists(bool ordered)
         {
-            if (m_Part.OwnerApplication.IsVersionNewerOrEqual(SwVersion_e.Sw2024))
+            if (m_Part.OwnerApplication.IsVersionNewerOrEqual(SwVersion_e.Sw2024) && !ordered)
             {
                 var cutListItems = (object[])m_Conf.Configuration.GetCutListItems();
 
@@ -114,7 +168,7 @@ namespace Xarial.XCad.SolidWorks.Features
 
                 var checkedConfigsConflict = false;
 
-                foreach (var cutList in ((SwFeatureManager)m_Part.Features).IterateCutListFeatures(m_Part, activeConf))
+                foreach (var cutList in FeatureManager.IterateCutListFeatures(m_Part, activeConf))
                 {
                     if (!checkedConfigsConflict)
                     {
@@ -134,9 +188,13 @@ namespace Xarial.XCad.SolidWorks.Features
 
     internal class SwPartComponentCutListItemCollection : SwCutListItemCollection
     {
-        private readonly SwComponent m_Comp;
+        private readonly SwPartComponent m_Comp;
 
         private readonly Lazy<CutListRebuildEventsHandler> m_CutListRebuildLazy;
+
+        protected override SwFeatureManager FeatureManager => (SwFeatureManager)m_Comp.Features;
+
+        protected override SwPart OwnerPart => (SwPart)m_Comp.ReferencedDocument;
 
         public override event CutListRebuildDelegate CutListRebuild
         {
@@ -153,17 +211,17 @@ namespace Xarial.XCad.SolidWorks.Features
         internal SwPartComponentCutListItemCollection(SwPartComponent comp) 
         {
             m_Comp = comp;
-            m_CutListRebuildLazy = new Lazy<CutListRebuildEventsHandler>(() => new CutListRebuildEventsHandler((SwPart)comp.ReferencedDocument, this));
+            m_CutListRebuildLazy = new Lazy<CutListRebuildEventsHandler>(() => new CutListRebuildEventsHandler(OwnerPart, this));
         }
 
-        protected override IEnumerable<IXCutListItem> IterateCutLists()
+        protected override IEnumerable<ISwCutListItem> IterateCutLists(bool ordered)
         {
             var refConf = (ISwConfiguration)m_Comp.ReferencedConfiguration;
             var refDoc = m_Comp.ReferencedDocument;
 
             if (refDoc is ISwPart)
             {
-                if (refDoc.OwnerApplication.IsVersionNewerOrEqual(SwVersion_e.Sw2024) && refConf.IsCommitted)
+                if (refDoc.OwnerApplication.IsVersionNewerOrEqual(SwVersion_e.Sw2024) && refConf.IsCommitted && !ordered)
                 {
                     var cutListItems = (object[])refConf.Configuration.GetCutListItems();
 
@@ -189,7 +247,7 @@ namespace Xarial.XCad.SolidWorks.Features
                 {
                     if (refDoc.IsCommitted)
                     {
-                        foreach (var cutList in ((SwFeatureManager)m_Comp.Features).IterateCutListFeatures(refDoc, refConf))
+                        foreach (var cutList in FeatureManager.IterateCutListFeatures(refDoc, refConf))
                         {
                             yield return cutList;
                         }

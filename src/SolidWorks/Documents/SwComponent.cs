@@ -935,7 +935,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         protected override bool TryGetByName(string name, out IXComponent ent)
         {
-            var comp = IterateChildren().FirstOrDefault(c => string.Equals(GetRelativeName(c), name, StringComparison.CurrentCultureIgnoreCase));
+            var comp = IterateChildren(false).FirstOrDefault(c => string.Equals(GetRelativeName(c), name, StringComparison.CurrentCultureIgnoreCase));
 
             if (comp != null)
             {
@@ -949,7 +949,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        protected override IEnumerable<IComponent2> IterateChildren()
+        protected override IEnumerable<IComponent2> IterateChildren(bool ordered)
         {
             if (m_Comp.GetSuppressionState() != swComponentSuppressionState_e.swComponentSuppressed)
             {

@@ -191,15 +191,25 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        protected override IEnumerable<IComponent2> IterateChildren()
+        protected override IEnumerable<IComponent2> IterateChildren(bool ordered)
         {
             ValidateSpeedPak();
 
-            return new OrderedComponentsCollection(
-                    () => (m_Conf.GetRootComponent3(!IsActiveConfiguration).GetChildren() as object[] ?? new object[0]).Cast<IComponent2>().ToArray(),
-                    m_Assm.Model.IFirstFeature(),
-                    m_Assm.OwnerApplication.Logger);
+            if (ordered)
+            {
+                return new OrderedComponentsCollection(
+                        () => IterateUnorderedComponents().ToArray(),
+                        m_Assm.Model.IFirstFeature(),
+                        m_Assm.OwnerApplication.Logger);
+            }
+            else 
+            {
+                return IterateUnorderedComponents();
+            }
         }
+
+        private IEnumerable<IComponent2> IterateUnorderedComponents()
+            => (m_Conf.GetRootComponent3(!IsActiveConfiguration).GetChildren() as object[] ?? new object[0]).Cast<IComponent2>();
 
         protected override int GetTotalChildrenCount()
         {

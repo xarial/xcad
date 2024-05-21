@@ -317,32 +317,43 @@ namespace Xarial.XCad.SolidWorks.Features
 
     internal static class SwFeatureManagerExtension 
     {
-        internal static IEnumerable<SwCutListItem> IterateCutListFeatures(this SwFeatureManager featMgr, ISwDocument3D parent, ISwConfiguration refConf)
+        internal static bool TryGetSolidBodyFeature(this SwFeatureManager featMgr, out IFeature solidBodyFeat)
         {
             foreach (var feat in FeatureEnumerator.IterateFeatures(featMgr.GetFirstFeature(), false))
             {
                 if (feat.GetTypeName2() == "SolidBodyFolder")
                 {
-                    foreach (var subFeat in FeatureEnumerator.IterateSubFeatures(feat, true))
-                    {
-                        if (subFeat.GetTypeName2() == "CutListFolder")
-                        {
-                            var cutListFolder = (IBodyFolder)subFeat.GetSpecificFeature2();
-
-                            if (cutListFolder.GetBodyCount() > 0)//no bodies for hidden cut-lists (not available in the specific configuration)
-                            {
-                                var cutList = featMgr.Document.CreateObjectFromDispatch<SwCutListItem>(subFeat);
-                                cutList.SetParent(parent, refConf);
-                                yield return cutList;
-                            }
-                        }
-                    }
-
-                    break;
+                    solidBodyFeat = feat;
+                    return true;
                 }
-                else if (feat.GetTypeName2() == "RefPlane")
+                else if (feat.GetTypeName2() == SwPlane.TypeName)
                 {
                     break;
+                }
+            }
+
+            solidBodyFeat = null;
+            return false;
+        }
+
+        internal static IEnumerable<SwCutListItem> IterateCutListFeatures(this SwFeatureManager featMgr,
+            ISwDocument3D parent, ISwConfiguration refConf)
+        {
+            if (TryGetSolidBodyFeature(featMgr, out var solidBodyFeat))
+            {
+                foreach (var subFeat in FeatureEnumerator.IterateSubFeatures(solidBodyFeat, true))
+                {
+                    if (subFeat.GetTypeName2() == "CutListFolder")
+                    {
+                        var cutListFolder = (IBodyFolder)subFeat.GetSpecificFeature2();
+
+                        if (cutListFolder.GetBodyCount() > 0)//no bodies for hidden cut-lists (not available in the specific configuration)
+                        {
+                            var cutList = featMgr.Document.CreateObjectFromDispatch<SwCutListItem>(subFeat);
+                            cutList.SetParent(parent, refConf);
+                            yield return cutList;
+                        }
+                    }
                 }
             }
         }

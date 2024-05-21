@@ -29,6 +29,13 @@ namespace Xarial.XCad.SolidWorks.Documents
 {
     public interface ISwComponentCollection : IXComponentRepository
     {
+        /// <summary>
+        /// Returns components in the unordered order
+        /// </summary>
+        /// <remarks>This method can have better perfromance benefits</remarks>
+        IEnumerable<ISwComponent> Unordered { get; }
+
+        /// <inheritdoc/>
         new ISwComponent this[string name] { get; }
     }
 
@@ -99,6 +106,9 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         internal SwAssembly RootAssembly { get; }
 
+        public IEnumerable<ISwComponent> Unordered => IterateChildren(false)
+            .Select(c => RootAssembly.CreateObjectFromDispatch<SwComponent>(c));
+
         private readonly EntityCache<IXComponent> m_Cache;
 
         internal SwComponentCollection(SwAssembly assm)
@@ -121,7 +131,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         internal void CommitCache(CancellationToken cancellationToken) => m_Cache.Commit(cancellationToken);
 
-        protected abstract IEnumerable<IComponent2> IterateChildren();
+        protected abstract IEnumerable<IComponent2> IterateChildren(bool ordered);
 
         protected abstract int GetChildrenCount();
         protected abstract int GetTotalChildrenCount();
@@ -135,7 +145,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                     throw new Exception("Components cannot be extracted for the Large Design Review assembly");
                 }
 
-                return (IterateChildren() ?? new IComponent2[0])
+                return (IterateChildren(true) ?? new IComponent2[0])
                     .Select(c => RootAssembly.CreateObjectFromDispatch<SwComponent>(c)).GetEnumerator();
             }
             else 

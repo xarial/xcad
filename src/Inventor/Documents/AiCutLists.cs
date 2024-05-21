@@ -25,6 +25,9 @@ namespace Xarial.XCad.Inventor.Documents
 
         public int Count => EnumerateCutLists().Count();
 
+        public bool AutomaticCutList { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public bool AutomaticUpdate { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
         public event CutListRebuildDelegate CutListRebuild;
 
         public void AddRange(IEnumerable<IXCutListItem> ents, CancellationToken cancellationToken)
@@ -52,6 +55,11 @@ namespace Xarial.XCad.Inventor.Documents
         private IEnumerable<IXCutListItem> EnumerateCutLists() 
         {
             yield break;
+        }
+
+        public bool Update()
+        {
+            throw new NotImplementedException();
         }
     }
 }

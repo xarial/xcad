@@ -12,6 +12,7 @@ using Xarial.XCad.Base;
 using Xarial.XCad.Documents.Delegates;
 using Xarial.XCad.Features;
 using Xarial.XCad.Features.Delegates;
+using Xarial.XCad.UI.PropertyPage.Attributes;
 
 namespace Xarial.XCad.Features
 {
@@ -24,5 +25,21 @@ namespace Xarial.XCad.Features
         /// Fired when cut list is regenerated
         /// </summary>
         event CutListRebuildDelegate CutListRebuild;
+
+        /// <summary>
+        /// Option to automatically generate cut-lists
+        /// </summary>
+        bool AutomaticCutList { get; set; }
+        
+        /// <summary>
+        /// Option to automatically update cut-lists folder
+        /// </summary>
+        bool AutomaticUpdate { get; set; }
+        
+        /// <summary>
+        /// Updates cut-lists folder
+        /// </summary>
+        /// <returns></returns>
+        bool Update();
     }
 }
