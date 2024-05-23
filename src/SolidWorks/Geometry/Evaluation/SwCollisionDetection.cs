@@ -19,6 +19,7 @@ using Xarial.XCad.Documents.Enums;
 using SolidWorks.Interop.swconst;
 using SolidWorks.Interop.sldworks;
 using Xarial.XCad.SolidWorks.Utils;
+using System.Runtime.InteropServices;
 
 namespace Xarial.XCad.SolidWorks.Geometry.Evaluation
 {
@@ -236,57 +237,57 @@ namespace Xarial.XCad.SolidWorks.Geometry.Evaluation
             }
             else
             {
-                var comps = (this as IXAssemblyCollisionDetection).Scope;
-
-                var interfDetectMgr = m_Assm.Assembly.InterferenceDetectionManager;
-                interfDetectMgr.TreatCoincidenceAsInterference = true;
-                interfDetectMgr.UseTransform = true;
-                interfDetectMgr.MakeInterferingPartsTransparent = false;
-                interfDetectMgr.NonInterferingComponentDisplay = (int)swNonInterferingComponentDisplay_e.swNonInterferingComponentDisplay_Current;
-                interfDetectMgr.ShowIgnoredInterferences = false;
-                interfDetectMgr.TreatSubAssembliesAsComponents = false;
-                interfDetectMgr.IgnoreHiddenBodies = VisibleOnly;
-
-                if (comps?.Any() == true)
+                using (new UiFreeze(m_Assm))
                 {
-                    var swComps = comps.Cast<ISwComponent>().Select(c => c.Component).ToArray();
-
-                    var transforms = swComps.Select(c => c.Transform2).ToArray();
-
-                    var res = (swSetComponentsAndTransformsStatus_e)interfDetectMgr.SetComponentsAndTransforms(
-                        swComps, transforms);
-
-                    if (res != swSetComponentsAndTransformsStatus_e.swSetComponentsAndTransforms_Succeeded)
+                    using (var selGrp = new SelectionGroup(m_Assm, false))
                     {
-                        throw new Exception($"Failed to set interference detection components: {res}");
+                        var comps = (this as IXAssemblyCollisionDetection).Scope;
+
+                        var interfDetectMgr = m_Assm.Assembly.InterferenceDetectionManager;
+                        interfDetectMgr.TreatCoincidenceAsInterference = true;
+                        interfDetectMgr.UseTransform = false;
+                        interfDetectMgr.IncludeMultibodyPartInterferences = true;
+                        interfDetectMgr.MakeInterferingPartsTransparent = false;
+                        interfDetectMgr.NonInterferingComponentDisplay = (int)swNonInterferingComponentDisplay_e.swNonInterferingComponentDisplay_Current;
+                        interfDetectMgr.ShowIgnoredInterferences = false;
+                        interfDetectMgr.TreatSubAssembliesAsComponents = false;
+                        interfDetectMgr.IgnoreHiddenBodies = VisibleOnly;
+
+                        if (comps?.Any() == true)
+                        {
+                            var swComps = comps.Cast<ISwComponent>().Select(c => c.Component).ToArray();
+
+                            //NOTE: IInterferenceDetectionManager::SetComponentsAndTransforms corrupts the original assembly and its transforms are changed, but seelcting components works correctly
+                            selGrp.AddRange(swComps);
+                        }
+
+                        var collisions = new List<IXAssemblyCollisionResult>();
+
+                        foreach (var interf in ((object[])interfDetectMgr.GetInterferences() ?? Array.Empty<object>()).Cast<IInterference>().ToArray())
+                        {
+                            var collidedComps = ((object[])interf.Components ?? Array.Empty<object>())
+                                    .Select(c => m_Assm.CreateObjectFromDispatch<ISwComponent>(c)).ToArray();
+
+                            IXMemoryBody[] collisionVolume;
+
+                            var interVolume = interf.GetInterferenceBody();
+                            if (interVolume != null)
+                            {
+                                collisionVolume = new IXMemoryBody[] { m_Assm.CreateObjectFromDispatch<ISwTempBody>(interVolume).Copy() };
+                            }
+                            else
+                            {
+                                collisionVolume = Array.Empty<IXMemoryBody>();
+                            }
+
+                            collisions.Add(new SwAssemblyCollisionResult(interf, collidedComps, null, collisionVolume));
+                        }
+
+                        interfDetectMgr.Done();
+
+                        m_Results = collisions.ToArray();
                     }
                 }
-
-                var collisions = new List<IXAssemblyCollisionResult>();
-
-                foreach (var interf in ((object[])interfDetectMgr.GetInterferences() ?? Array.Empty<object>()).Cast<IInterference>().ToArray())
-                {
-                    var collidedComps = ((object[])interf.Components ?? Array.Empty<object>())
-                            .Select(c => m_Assm.CreateObjectFromDispatch<ISwComponent>(c)).ToArray();
-
-                    IXMemoryBody[] collisionVolume;
-
-                    var interVolume = interf.GetInterferenceBody();
-                    if (interVolume != null)
-                    {
-                        collisionVolume = new IXMemoryBody[] { m_Assm.CreateObjectFromDispatch<ISwTempBody>(interVolume).Copy() };
-                    }
-                    else
-                    {
-                        collisionVolume = Array.Empty<IXMemoryBody>();
-                    }
-
-                    collisions.Add(new SwAssemblyCollisionResult(interf, collidedComps, null, collisionVolume));
-                }
-
-                interfDetectMgr.Done();
-
-                m_Results = collisions.ToArray();
 
                 return m_Results;
             }
