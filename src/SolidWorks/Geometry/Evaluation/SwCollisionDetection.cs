@@ -15,6 +15,13 @@ using Xarial.XCad.Documents;
 using Xarial.XCad.Base;
 using Xarial.XCad.Geometry.Exceptions;
 using System.Configuration;
+using Xarial.XCad.Documents.Enums;
+using SolidWorks.Interop.swconst;
+using SolidWorks.Interop.sldworks;
+using Xarial.XCad.SolidWorks.Utils;
+using System.Runtime.InteropServices;
+using Xarial.XCad.SolidWorks.Services;
+using Xarial.XCad.Toolkit;
 
 namespace Xarial.XCad.SolidWorks.Geometry.Evaluation
 {
@@ -134,7 +141,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Evaluation
 
     internal class SwCollisionResult : IXCollisionResult
     {
-        public IXBody[] CollidedBodies { get; }
+        public virtual IXBody[] CollidedBodies { get; }
         public IXMemoryBody[] CollisionVolume { get; }
 
         internal SwCollisionResult(IXBody[] collidedBodies, IXMemoryBody[] collisionVolume)
@@ -148,10 +155,91 @@ namespace Xarial.XCad.SolidWorks.Geometry.Evaluation
     {
         public IXComponent[] CollidedComponents { get; }
 
-        internal SwAssemblyCollisionResult(IXComponent[] collidedComps, IXBody[] collidedBodies, IXMemoryBody[] collisionVolume) 
-            : base(collidedBodies, collisionVolume)
+        public override IXBody[] CollidedBodies => m_CollidedBodiesLazy.Value;
+
+        public IInterference Interference { get; }
+
+        private readonly Lazy<IXBody[]> m_CollidedBodiesLazy;
+
+        internal SwAssemblyCollisionResult(IXComponent[] collidedComps,
+            IXBody[] collidedBodies, IXMemoryBody[] collisionVolume)
+            : this(null, collidedComps, new Lazy<IXBody[]>(() => collidedBodies), collisionVolume)
         {
+        }
+
+        internal SwAssemblyCollisionResult(IInterference interference,
+            IXComponent[] collidedComps,
+            IXMemoryBody[] collisionVolume)
+            : this(interference, collidedComps,
+                  new Lazy<IXBody[]>(() => GetCollidedBodiesByVolume(collidedComps, collisionVolume)), collisionVolume)
+        {
+        }
+
+        private SwAssemblyCollisionResult(IInterference interference, IXComponent[] collidedComps,
+            Lazy<IXBody[]> collidedBodiesLazy, IXMemoryBody[] collisionVolume)
+            : base(null, collisionVolume)
+        {
+            Interference = interference;
+            
+            m_CollidedBodiesLazy = collidedBodiesLazy;
             CollidedComponents = collidedComps;
+        }
+
+        private static IXBody[] GetCollidedBodiesByVolume(IXComponent[] collidedComps,
+            IXMemoryBody[] collisionVolume)
+        {
+            var collidedBodies = new List<IXBody>();
+
+            foreach (var collidedComp in collidedComps) 
+            {
+                var collidedCompBodies = collidedComp.Bodies.ToArray();
+
+                if (collidedCompBodies.Length == 1)
+                {
+                    collidedBodies.Add(collidedCompBodies.First());
+                }
+                else 
+                {
+                    var compTransform = collidedComp.Transformation;
+
+                    foreach (var collidedCompBody in collidedCompBodies) 
+                    {
+                        if (collisionVolume.Any(v => IsAbsorbed(collidedCompBody, compTransform, v))) 
+                        {
+                            collidedBodies.Add(collidedCompBody);
+                        }
+                    }
+                }
+            }
+
+            return collidedBodies.ToArray();
+        }
+
+        private static bool IsAbsorbed(IXBody mainBody, TransformMatrix mainBodyTransform, IXBody toolBody)
+        {
+            IXMemoryBody PrepareBody(IXBody body, TransformMatrix transform) 
+            {
+                var copyBody = body.Copy();
+
+                if (transform != null)
+                {
+                    copyBody.Transform(transform);
+                }
+
+                return copyBody;
+            }
+
+            try
+            {
+                var subsBodies = PrepareBody(toolBody, null).Substract(PrepareBody(mainBody, mainBodyTransform));
+
+                return subsBodies?.Any() != true;
+            }
+            catch 
+            {
+            }
+
+            return false;
         }
     }
 
@@ -181,15 +269,15 @@ namespace Xarial.XCad.SolidWorks.Geometry.Evaluation
         }
 
         private readonly SwAssembly m_Assm;
+        private readonly IInterferencesProvider m_InterferencesProvider;
 
         public SwAssemblyCollisionDetection(SwAssembly assm, SwApplication app) : base(assm, app)
         {
+            m_Assm = assm;
+            m_InterferencesProvider = app.Services.GetService<IInterferencesProvider>();
         }
 
-        IXAssemblyCollisionResult[] IXAssemblyCollisionDetection.Results
-            => base.Results?.Select(r => new SwAssemblyCollisionResult(
-                r.CollidedBodies?.Select(b => b.Component).Distinct(new XObjectEqualityComparer<IXComponent>()).ToArray(), 
-                r.CollidedBodies, r.CollisionVolume)).ToArray();
+        IXAssemblyCollisionResult[] IXAssemblyCollisionDetection.Results => m_Results;
 
         public override IXBody[] Scope
         {
@@ -216,9 +304,51 @@ namespace Xarial.XCad.SolidWorks.Geometry.Evaluation
             set => base.Scope = value;
         }
 
-        //TODO: Use ICollisionDetectionManager to implement actual collision check
+        private IXAssemblyCollisionResult[] m_Results;
+
         protected override IXCollisionResult[] CalculateCollision(CancellationToken arg)
-            => base.CalculateCollision(arg);
+        {
+            if (base.Scope != null)
+            {
+                //if bodies are specified through the parent interface, calculate using bodies
+                m_Results = base.CalculateCollision(arg)?.Select(r => new SwAssemblyCollisionResult(
+                    r.CollidedBodies?.Select(b => b.Component).Distinct(new XObjectEqualityComparer<IXComponent>()).ToArray(),
+                    r.CollidedBodies, r.CollisionVolume)).ToArray();
+
+                return m_Results;
+            }
+            else
+            {
+                var collisions = new List<IXAssemblyCollisionResult>();
+
+                using (var interferences = m_InterferencesProvider.GetInterferences(m_Assm, (this as IXAssemblyCollisionDetection).Scope, VisibleOnly))
+                {
+                    foreach (var interference in interferences) 
+                    {
+                        var collidedComps = ((object[])interference.Components ?? Array.Empty<object>())
+                                .Select(m_Assm.CreateObjectFromDispatch<ISwComponent>).ToArray();
+
+                        IXMemoryBody[] collisionVolume;
+
+                        var interVolume = interference.GetInterferenceBody();
+                        if (interVolume != null)
+                        {
+                            collisionVolume = new IXMemoryBody[] { m_Assm.CreateObjectFromDispatch<ISwTempBody>(interVolume).Copy() };
+                        }
+                        else
+                        {
+                            collisionVolume = Array.Empty<IXMemoryBody>();
+                        }
+
+                        collisions.Add(new SwAssemblyCollisionResult(interference, collidedComps, collisionVolume));
+                    }
+                }
+
+                m_Results = collisions.ToArray();
+                
+                return m_Results;
+            }
+        }
 
         protected override IXMemoryBody CreateCollisionBody(IXBody body)
         {

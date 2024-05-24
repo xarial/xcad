@@ -114,9 +114,11 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
             foreach (var swBody in SelectSwBodies(bodyType) ?? Enumerable.Empty<IBody2>()) 
             {
-                yield return m_RootDoc.CreateObjectFromDispatch<SwBody>(swBody);
+                yield return CreateBody(swBody);
             }
         }
+
+        protected virtual SwBody CreateBody(IBody2 swBody) => m_RootDoc.CreateObjectFromDispatch<SwBody>(swBody);
 
         protected abstract IEnumerable<IBody2> SelectSwBodies(swBodyType_e bodyType);
     }

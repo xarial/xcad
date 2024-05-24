@@ -104,7 +104,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
                     }
                     else
                     {
-                        return null;
+                        return m_ContextComponent;
                     }
                 }
             }
@@ -227,6 +227,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         private byte[] m_PersistId;
         private ISwComponent m_PersistComponent;
+        private ISwComponent m_ContextComponent;
 
         private IBody2 m_Body;
 
@@ -245,6 +246,15 @@ namespace Xarial.XCad.SolidWorks.Geometry
             {
                 throw new Exception("Failed to select body");
             }
+        }
+
+        /// <summary>
+        /// Bodies returned from the IComponent2 are not in the component's context. This method assigns this explicitly
+        /// </summary>
+        /// <param name="comp">context component</param>
+        internal void SetContextComponent(ISwComponent comp) 
+        {
+            m_ContextComponent = comp;
         }
 
         public IXMemoryBody Copy()

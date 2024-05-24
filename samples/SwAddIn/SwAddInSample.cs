@@ -690,7 +690,7 @@ namespace SwAddInExample
                             var y = new Vector(1, 1, 1);
                             var x = y.CreateAnyPerpendicular();
                             var z = y.Cross(x);
-                            m_Triad.Transform = TransformMatrix.Compose(x, y, z, new Xarial.XCad.Geometry.Structures.Point(0.1, 0.1, 0.1));
+                            m_Triad.Transform = TransformMatrix.Compose(x, y, z, new Point(0.1, 0.1, 0.1));
                             m_Triad.Commit();
                         }
                         else 
@@ -705,7 +705,7 @@ namespace SwAddInExample
                         if (m_DragArrow == null)
                         {
                             m_DragArrow = ((IXDocument3D)Application.Documents.Active).Graphics.PreCreateDragArrow();
-                            m_DragArrow.Origin = new Xarial.XCad.Geometry.Structures.Point(0, 0, 0);
+                            m_DragArrow.Origin = new Point(0, 0, 0);
                             m_DragArrow.Length = 0.1;
                             m_DragArrow.Direction = new Vector(1, 0, 0);
                             m_DragArrow.CanFlip = true;
@@ -778,6 +778,41 @@ namespace SwAddInExample
 
         private void Custom()
         {
+            var assm = (IXAssembly)Application.Documents.Active;
+
+            var collDet = assm.Evaluation.PreCreateCollisionDetection();
+
+            var selComps = assm.Selections.OfType<IXComponent>().ToArray();
+            collDet.Scope = selComps.ToArray();
+
+            assm.Selections.Clear();
+
+            collDet.VisibleOnly = true;
+            collDet.Commit();
+
+            var newPart = Application.Documents.PreCreatePart();
+            newPart.Commit();
+
+            foreach (var res in collDet.Results)
+            {
+                //var collBodies = res.CollidedBodies.ToArray();
+
+                if (res.CollisionVolume != null)
+                {
+                    foreach (var colBody in res.CollisionVolume)
+                    {
+                        try
+                        {
+                            var dumbBodyFeat = newPart.Features.PreCreate<IXDumbBody>();
+                            dumbBodyFeat.BaseBody = colBody;
+                            dumbBodyFeat.Commit();
+                        }
+                        catch
+                        {
+                        }
+                    }
+                }
+            }
         }
 
         private void HandleAddEvents()
