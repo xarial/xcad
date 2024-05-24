@@ -922,6 +922,15 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         protected override IEnumerable<IBody2> SelectSwBodies(swBodyType_e bodyType)
             => (m_Comp.Component.GetBodies3((int)bodyType, out _) as object[])?.Cast<IBody2>();
+
+        protected override SwBody CreateBody(IBody2 swBody)
+        {
+            var body = base.CreateBody(swBody);
+
+            body.SetContextComponent(m_Comp);
+
+            return body;
+        }
     }
 
     internal class SwChildComponentsCollection : SwComponentCollection

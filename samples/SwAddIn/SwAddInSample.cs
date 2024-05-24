@@ -781,15 +781,22 @@ namespace SwAddInExample
             var assm = (IXAssembly)Application.Documents.Active;
 
             var collDet = assm.Evaluation.PreCreateCollisionDetection();
-            collDet.Scope = null;
+
+            var selComps = assm.Selections.OfType<IXComponent>().ToArray();
+            collDet.Scope = selComps.ToArray();
+
+            assm.Selections.Clear();
+
             collDet.VisibleOnly = true;
             collDet.Commit();
 
             var newPart = Application.Documents.PreCreatePart();
             newPart.Commit();
 
-            foreach (var res in collDet.Results) 
+            foreach (var res in collDet.Results)
             {
+                //var collBodies = res.CollidedBodies.ToArray();
+
                 if (res.CollisionVolume != null)
                 {
                     foreach (var colBody in res.CollisionVolume)
@@ -800,7 +807,7 @@ namespace SwAddInExample
                             dumbBodyFeat.BaseBody = colBody;
                             dumbBodyFeat.Commit();
                         }
-                        catch 
+                        catch
                         {
                         }
                     }
