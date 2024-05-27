@@ -11,10 +11,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices.ComTypes;
 using System.Text;
-using Xarial.XCad.Data.Enums;
-using Xarial.XCad.SolidWorks.Data.Helpers;
 using Xarial.XCad.Toolkit.Data;
-using Xarial.XCad.Toolkit.Utils;
 
 namespace Xarial.XCad.SolidWorks.Data
 {
@@ -22,45 +19,49 @@ namespace Xarial.XCad.SolidWorks.Data
     {
         private readonly IModelDoc2 m_Model;
         private readonly string m_Name;
-        private readonly bool m_IsActive;
+        
+        internal bool Exists { get; }
 
-        internal Sw3rdPartyStream(IModelDoc2 model, string name, AccessType_e access) 
-            : base(AccessTypeHelper.GetIsWriting(access), false)
+        internal Sw3rdPartyStream(IModelDoc2 model, string name, bool write) 
+            : base(write, false)
         {
             m_Model = model;
             m_Name = name;
-            m_IsActive = false;
+            Exists = false;
 
             try
             {
-                var stream = model.IGet3rdPartyStorage(name, AccessTypeHelper.GetIsWriting(access)) as IStream;
+                var stream = (IStream)model.IGet3rdPartyStorage(name, write);
 
                 if (stream != null)
                 {
                     Load(stream);
-                    m_IsActive = true;
+                    Seek(0, SeekOrigin.Begin);
+
+                    Exists = true;
                 }
                 else 
                 {
-                    throw new Exception("Stream doesn't exist");
+                    Release();
                 }
             }
-            catch 
+            catch
             {
-                m_Model.IRelease3rdPartyStorage(m_Name);
+                Release();
                 throw;
             }
-
-            Seek(0, SeekOrigin.Begin);
         }
+
+        private void Release()
+            => m_Model.IRelease3rdPartyStorage(m_Name);
 
         protected override void Dispose(bool disposing)
         {
             base.Dispose(disposing);
 
-            if (m_IsActive)
+            if (Exists)
             {
-                m_Model.IRelease3rdPartyStorage(m_Name);
+                Release();
             }
         }
     }

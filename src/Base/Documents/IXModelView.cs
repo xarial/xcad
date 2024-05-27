@@ -6,6 +6,7 @@
 //*********************************************************************
 
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using Xarial.XCad.Base;
 using Xarial.XCad.Documents.Delegates;
@@ -17,8 +18,31 @@ namespace Xarial.XCad.Documents
     /// <summary>
     /// Context to draw the custom graphics
     /// </summary>
-    public interface IXCustomGraphicsContext : IDisposable
+    public interface IXCustomGraphicsContext : IDisposable, IEnumerable<IXCustomGraphicsRenderer>
     {
+        /// <summary>
+        /// Registers specific renderer
+        /// </summary>
+        /// <param name="renderer">Renderer</param>
+        void RegisterRenderer(IXCustomGraphicsRenderer renderer);
+
+        /// <summary>
+        /// Unregisters renderer
+        /// </summary>
+        /// <param name="renderer">Renderer</param>
+        void UnregisterRenderer(IXCustomGraphicsRenderer renderer);
+    }
+
+    /// <summary>
+    /// Custom rendered
+    /// </summary>
+    /// <remarks>Use <see cref="IXCustomGraphicsContext.RegisterRenderer(IXCustomGraphicsRenderer)"/> to register render</remarks>
+    public interface IXCustomGraphicsRenderer : IDisposable 
+    {
+        /// <summary>
+        /// Renders the custom graphics
+        /// </summary>
+        void Render();
     }
 
     /// <summary>
@@ -32,9 +56,9 @@ namespace Xarial.XCad.Documents
         ViewDisplayMode_e DisplayMode { get; set; }
 
         /// <summary>
-        /// Fired when custom graphics can be drawn in the model
+        /// Provides access to custom graphics of this view
         /// </summary>
-        event RenderCustomGraphicsDelegate RenderCustomGraphics;
+        IXCustomGraphicsContext CustomGraphicsContext { get; }
 
         /// <summary>
         /// Freezes all view updates

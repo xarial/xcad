@@ -11,7 +11,6 @@ using System.Threading.Tasks;
 using System.Xml.Serialization;
 using Xarial.XCad;
 using Xarial.XCad.Base;
-using Xarial.XCad.Data.Enums;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Delegates;
 using Xarial.XCad.Documents.Enums;
@@ -470,7 +469,7 @@ namespace SolidWorks.Tests.Integration
 
                 part.StreamWriteAvailable += (d) =>
                     {
-                        using (var stream = d.OpenStream(STREAM_NAME, AccessType_e.Write))
+                        using (var stream = d.OpenStream(STREAM_NAME, true))
                         {
                             var xmlSer = new XmlSerializer(typeof(TestData));
 
@@ -497,7 +496,7 @@ namespace SolidWorks.Tests.Integration
             {
                 var part = m_App.Documents.Active;
 
-                using (var stream = part.OpenStream(STREAM_NAME, AccessType_e.Read))
+                using (var stream = part.OpenStream(STREAM_NAME, false))
                 {
                     var xmlSer = new XmlSerializer(typeof(TestData));
                     result = xmlSer.Deserialize(stream) as TestData;
@@ -568,17 +567,17 @@ namespace SolidWorks.Tests.Integration
                 {
                     var path = SUB_STORAGE_PATH.Split('\\');
 
-                    using (var storage = part.OpenStorage(path[0], AccessType_e.Write))
+                    using (var storage = part.OpenStorage(path[0], true))
                     {
-                        using (var subStorage = storage.TryOpenStorage(path[1], true))
+                        using (var subStorage = storage.OpenStorage(path[1], true))
                         {
-                            using (var str = subStorage.TryOpenStream(STREAM1_NAME, true))
+                            using (var str = subStorage.OpenStream(STREAM1_NAME, true))
                             {
                                 var buffer = Encoding.UTF8.GetBytes("Test2");
                                 str.Write(buffer, 0, buffer.Length);
                             }
 
-                            using (var str = subStorage.TryOpenStream(STREAM2_NAME, true))
+                            using (var str = subStorage.OpenStream(STREAM2_NAME, true))
                             {
                                 using (var binWriter = new BinaryWriter(str))
                                 {
@@ -606,13 +605,13 @@ namespace SolidWorks.Tests.Integration
 
                 var path = SUB_STORAGE_PATH.Split('\\');
 
-                using (var storage = part.TryOpenStorage(path[0], AccessType_e.Read))
+                using (var storage = part.OpenStorage(path[0], false))
                 {
-                    using (var subStorage = storage.TryOpenStorage(path[1], false))
+                    using (var subStorage = storage.OpenStorage(path[1], false))
                     {
-                        subStreamsCount = subStorage.GetSubStreamNames().Length;
+                        subStreamsCount = subStorage.SubStreamNames.Count();
 
-                        using (var str = subStorage.TryOpenStream(STREAM1_NAME, false))
+                        using (var str = subStorage.OpenStream(STREAM1_NAME, false))
                         {
                             var buffer = new byte[str.Length];
 
@@ -621,7 +620,7 @@ namespace SolidWorks.Tests.Integration
                             txt = Encoding.UTF8.GetString(buffer);
                         }
 
-                        using (var str = subStorage.TryOpenStream(STREAM2_NAME, false))
+                        using (var str = subStorage.OpenStream(STREAM2_NAME, false))
                         {
                             using (var binReader = new BinaryReader(str))
                             {

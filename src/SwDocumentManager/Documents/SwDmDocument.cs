@@ -16,7 +16,6 @@ using System.Threading;
 using Xarial.XCad.Annotations;
 using Xarial.XCad.Base;
 using Xarial.XCad.Data;
-using Xarial.XCad.Data.Enums;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Delegates;
 using Xarial.XCad.Documents.Enums;
@@ -416,11 +415,20 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             m_CreateHandler.Invoke(this);
         }
 
-        public IStorage OpenStorage(string name, AccessType_e access)
+        public IStorage OpenStorage(string name, bool write)
         {
             if (this.IsVersionNewerOrEqual(SwDmVersion_e.Sw2015)) 
             {
-                return new SwDm3rdPartyStorage((ISwDMDocument19)Document, name, access);
+                var storage = new SwDm3rdPartyStorage((ISwDMDocument19)Document, name, write);
+
+                if (storage.Exists)
+                {
+                    return storage;
+                }
+                else 
+                {
+                    return Storage.Null;
+                }
             }
             else 
             {
@@ -428,11 +436,20 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             }
         }
 
-        public Stream OpenStream(string name, AccessType_e access)
+        public Stream OpenStream(string name, bool write)
         {
             if (this.IsVersionNewerOrEqual(SwDmVersion_e.Sw2015))
             {
-                return new SwDm3rdPartyStream((ISwDMDocument19)Document, name, access);
+                var stream = new SwDm3rdPartyStream((ISwDMDocument19)Document, name, write);
+
+                if (stream.Exists)
+                {
+                    return stream;
+                }
+                else 
+                {
+                    return Stream.Null;
+                }
             }
             else
             {

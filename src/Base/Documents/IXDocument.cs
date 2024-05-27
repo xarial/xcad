@@ -12,7 +12,6 @@ using System.IO;
 using Xarial.XCad.Annotations;
 using Xarial.XCad.Base;
 using Xarial.XCad.Data;
-using Xarial.XCad.Data.Enums;
 using Xarial.XCad.Documents.Delegates;
 using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Documents.Services;
@@ -142,22 +141,22 @@ namespace Xarial.XCad.Documents
         /// Collection of selections of this document
         /// </summary>
         IXSelectionRepository Selections { get; }
-        
+
         /// <summary>
         /// Opens the user data stream from this document
         /// </summary>
         /// <param name="name">Name of the stream</param>
-        /// <param name="access">Access type</param>
-        /// <returns>Pointer to stream</returns>
-        Stream OpenStream(string name, AccessType_e access);
-        
+        /// <param name="write">True to open for writing, False to open for reading</param>
+        /// <returns>Pointer to stream or <see cref="Stream.Null"/> if stream does not exist</returns>
+        Stream OpenStream(string name, bool write);
+
         /// <summary>
         /// Opens the user data storage from this document
         /// </summary>
         /// <param name="name">Name of the storage</param>
-        /// <param name="access">Access type</param>
-        /// <returns>Pointer to the storage</returns>
-        IStorage OpenStorage(string name, AccessType_e access);
+        /// <param name="write">True to open for writing, False to open for reading</param>
+        /// <returns>Pointer to the storage or <see cref="Storage.Null"/></returns>
+        IStorage OpenStorage(string name, bool write);
 
         /// <summary>
         /// Returns top level dependencies of this document

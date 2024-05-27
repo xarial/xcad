@@ -11,7 +11,6 @@ using System.IO;
 using System.Text;
 using Xarial.XCad.Base;
 using Xarial.XCad.Data;
-using Xarial.XCad.Data.Enums;
 using Xarial.XCad.Documents.Services;
 
 namespace Xarial.XCad.Documents
@@ -21,44 +20,6 @@ namespace Xarial.XCad.Documents
     /// </summary>
     public static class XDocumentExtension
     {
-        /// <summary>
-        /// Tries to open stream from the document
-        /// </summary>
-        /// <param name="doc">Document to open stream from</param>
-        /// <param name="name">Name of the stream</param>
-        /// <param name="access">Type of the access</param>
-        /// <returns>Stream or null</returns>
-        public static Stream TryOpenStream(this IXDocument doc, string name, AccessType_e access) 
-        {
-            try
-            {
-                return doc.OpenStream(name, access);
-            }
-            catch 
-            {
-                return null;
-            }
-        }
-
-        /// <summary>
-        /// Tries to open storage from the document
-        /// </summary>
-        /// <param name="doc">Document to open storage from</param>
-        /// <param name="name">Name of the storage</param>
-        /// <param name="access">Type of the access</param>
-        /// <returns>Storage or null</returns>
-        public static IStorage TryOpenStorage(this IXDocument doc, string name, AccessType_e access)
-        {
-            try
-            {
-                return doc.OpenStorage(name, access);
-            }
-            catch
-            {
-                return null;
-            }
-        }
-
         /// <summary>
         /// Creates operations group
         /// </summary>

@@ -21,7 +21,6 @@ using System.Threading;
 using Xarial.XCad.Annotations;
 using Xarial.XCad.Base;
 using Xarial.XCad.Data;
-using Xarial.XCad.Data.Enums;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Delegates;
 using Xarial.XCad.Documents.Enums;
@@ -1240,11 +1239,33 @@ namespace Xarial.XCad.SolidWorks.Documents
             return HResult.S_OK;
         }
 
-        public Stream OpenStream(string name, AccessType_e access)
-            => new Sw3rdPartyStream(Model, name, access);
+        public Stream OpenStream(string name, bool write)
+        {
+            var stream = new Sw3rdPartyStream(Model, name, write);
 
-        public IStorage OpenStorage(string name, AccessType_e access)
-            => new Sw3rdPartyStorage(Model, name, access);
+            if (stream.Exists)
+            {
+                return stream;
+            }
+            else 
+            {
+                return Stream.Null;
+            }
+        }
+
+        public IStorage OpenStorage(string name, bool write)
+        {
+            var storage = new Sw3rdPartyStorage(Model, name, write);
+
+            if (storage.Exists)
+            {
+                return storage;
+            }
+            else 
+            {
+                return Storage.Null;
+            }
+        }
 
         public virtual void Commit(CancellationToken cancellationToken)
             => m_Creator.Create(cancellationToken);

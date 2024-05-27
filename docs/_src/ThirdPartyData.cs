@@ -1,8 +1,9 @@
 ﻿using System;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Xml.Serialization;
-using Xarial.XCad.Data.Enums;
+using Xarial.XCad.Data;
 using Xarial.XCad.Documents;
 using Xarial.XCad.SolidWorks;
 using Xarial.XCad.SolidWorks.Documents;
@@ -26,9 +27,9 @@ namespace Xarial.XCad.Documentation
         //--- StreamLoad
         private void LoadFromStream(ISwDocument model)
         {
-            using (var str = model.TryOpenStream(STREAM_NAME, AccessType_e.Read))
+            using (var str = model.OpenStream(STREAM_NAME, false))
             {
-                if (str != null)
+                if (str != Stream.Null)
                 {
                     var xmlSer = new XmlSerializer(typeof(StreamData));
                     m_StreamData = xmlSer.Deserialize(str) as StreamData;
@@ -39,7 +40,7 @@ namespace Xarial.XCad.Documentation
         //--- StreamSave
         private void SaveToStream(ISwDocument model)
         {
-            using (var str = model.OpenStream(STREAM_NAME, AccessType_e.Write))
+            using (var str = model.OpenStream(STREAM_NAME, true))
             {
                 var xmlSer = new XmlSerializer(typeof(StreamData));
                 xmlSer.Serialize(str, m_StreamData);
@@ -64,24 +65,24 @@ namespace Xarial.XCad.Documentation
         //--- StorageLoad
         private void LoadFromStorageStore(ISwDocument model)
         {
-            using (var storage = model.TryOpenStorage(STORAGE_NAME, AccessType_e.Read))
+            using (var storage = model.OpenStorage(STORAGE_NAME, false))
             {
-                if (storage != null)
+                if (storage != Storage.Null)
                 {
-                    using (var str = storage.TryOpenStream(STREAM1_NAME, false))
+                    using (var str = storage.OpenStream(STREAM1_NAME, false))
                     {
-                        if (str != null)
+                        if (str != Stream.Null)
                         {
                             var xmlSer = new XmlSerializer(typeof(StorageStreamData));
                             m_StorageData = xmlSer.Deserialize(str) as StorageStreamData;
                         }
                     }
 
-                    using (var subStorage = storage.TryOpenStorage(SUB_STORAGE_NAME, false))
+                    using (var subStorage = storage.OpenStorage(SUB_STORAGE_NAME, false))
                     {
-                        if (subStorage != null)
+                        if (subStorage != Storage.Null)
                         {
-                            using (var str = subStorage.TryOpenStream(STREAM2_NAME, false))
+                            using (var str = subStorage.OpenStream(STREAM2_NAME, false))
                             {
                                 if (str != null)
                                 {
@@ -100,18 +101,18 @@ namespace Xarial.XCad.Documentation
         //--- StorageSave
         private void SaveToStorageStore(ISwDocument model)
         {
-            using (var storage = model.OpenStorage(STORAGE_NAME, AccessType_e.Write))
+            using (var storage = model.OpenStorage(STORAGE_NAME, true))
             {
-                using (var str = storage.TryOpenStream(STREAM1_NAME, true))
+                using (var str = storage.OpenStream(STREAM1_NAME, true))
                 {
                     var xmlSer = new XmlSerializer(typeof(StorageStreamData));
 
                     xmlSer.Serialize(str, m_StorageData);
                 }
 
-                using (var subStorage = storage.TryOpenStorage(SUB_STORAGE_NAME, true))
+                using (var subStorage = storage.OpenStorage(SUB_STORAGE_NAME, true))
                 {
-                    using (var str = subStorage.TryOpenStream(STREAM2_NAME, true))
+                    using (var str = subStorage.OpenStream(STREAM2_NAME, true))
                     {
                         var buffer = Encoding.UTF8.GetBytes(DateTime.Now.ToString("yyyy-MM-dd-hh-mm-ss"));
                         str.Write(buffer, 0, buffer.Length);

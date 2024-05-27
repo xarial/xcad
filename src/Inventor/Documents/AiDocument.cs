@@ -18,7 +18,6 @@ using System.Threading.Tasks;
 using System.Xml.Linq;
 using Xarial.XCad.Annotations;
 using Xarial.XCad.Data;
-using Xarial.XCad.Data.Enums;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Delegates;
 using Xarial.XCad.Documents.Enums;
@@ -216,12 +215,12 @@ namespace Xarial.XCad.Inventor.Documents
             throw new NotImplementedException();
         }
 
-        public IStorage OpenStorage(string name, AccessType_e access)
+        public IStorage OpenStorage(string name, bool write)
         {
             throw new NotImplementedException();
         }
 
-        public Stream OpenStream(string name, AccessType_e access)
+        public Stream OpenStream(string name, bool write)
         {
             throw new NotImplementedException();
         }

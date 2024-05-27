@@ -90,6 +90,23 @@ namespace SwAddInExample
     {
     }
 
+    public class CustomGraphicsToggle
+    {
+        public event Action<bool> EnabledChanged;
+
+        public bool Enabled
+        {
+            get => m_Enabled;
+            set
+            {
+                m_Enabled = value;
+                EnabledChanged?.Invoke(value);
+            }
+        }
+
+        private bool m_Enabled;
+    }
+
     [ComVisible(true)]
     [Guid("3078E7EF-780E-4A70-9359-172D90FAAED2")]
     public class SwAddInSample : SwAddInEx
@@ -207,6 +224,8 @@ namespace SwAddInExample
 
             ReplaceCompDoc,
 
+            ToggleCustomGraphics,
+
             Custom
         }
 
@@ -271,6 +290,8 @@ namespace SwAddInExample
 
         private IXCalloutBase m_Callout;
 
+        private readonly CustomGraphicsToggle m_CustomGraphicsToggle;
+
         [CommandGroupInfo(1)]
         public enum Commands1_e 
         {
@@ -306,6 +327,8 @@ namespace SwAddInExample
 
         public SwAddInSample() 
         {
+            m_CustomGraphicsToggle = new CustomGraphicsToggle();
+
             m_AssmResolver = new Xarial.XToolkit.Helpers.AssemblyResolver(AppDomain.CurrentDomain, "xCAD.NET");
             m_AssmResolver.RegisterAssemblyReferenceResolver(
                 new Xarial.XToolkit.Reflection.LocalFolderReferencesResolver(System.IO.Path.GetDirectoryName(typeof(SwAddInSample).Assembly.Location),
@@ -358,12 +381,16 @@ namespace SwAddInExample
                     }
                 });
 
-                CommandManager.AddCommandGroup<Commands_e>().CommandClick += OnCommandClick;
+                var cmdsGroup = CommandManager.AddCommandGroup<Commands_e>();
+
+                cmdsGroup.CommandClick += OnCommandClick;
+                cmdsGroup.CommandStateResolve += OnCommandStateResolve;
+
                 CommandManager.AddContextMenu<ContextMenuCommands_e, IXFace>().CommandClick += OnContextMenuCommandClick;
 
                 CommandManager.AddCommandGroup<Commands3_3>().CommandClick += OnCommands3Click;
 
-                Application.Documents.RegisterHandler<SwDocHandler>(() => new SwDocHandler(this));
+                Application.Documents.RegisterHandler<SwDocHandler>(() => new SwDocHandler(this, m_CustomGraphicsToggle));
 
                 Application.Documents.DocumentActivated += OnDocumentActivated;
 
@@ -466,7 +493,7 @@ namespace SwAddInExample
             }
         }
 
-        private void OnDimValueChanged(Xarial.XCad.Annotations.IXDimension dim, double newVal)
+        private void OnDimValueChanged(IXDimension dim, double newVal)
         {
         }
 
@@ -658,8 +685,8 @@ namespace SwAddInExample
                             else
                             {
                                 var callout = doc1.Graphics.PreCreateCallout();
-                                callout.Location = new Xarial.XCad.Geometry.Structures.Point(0.1, 0.1, 0.1);
-                                callout.Anchor = new Xarial.XCad.Geometry.Structures.Point(0, 0, 0);
+                                callout.Location = new Point(0.1, 0.1, 0.1);
+                                callout.Anchor = new Point(0, 0, 0);
                                 m_Callout = callout;
                             }
                             var row1 = m_Callout.AddRow();
@@ -745,6 +772,10 @@ namespace SwAddInExample
                         ReplaceCompDoc();
                         break;
 
+                    case Commands_e.ToggleCustomGraphics:
+                        m_CustomGraphicsToggle.Enabled = !m_CustomGraphicsToggle.Enabled;
+                        break;
+
                     case Commands_e.Custom:
                         Custom();
                         break;
@@ -753,6 +784,14 @@ namespace SwAddInExample
             catch 
             {
                 Debug.Assert(false);
+            }
+        }
+
+        private void OnCommandStateResolve(Commands_e spec, CommandState state)
+        {
+            if (spec == Commands_e.ToggleCustomGraphics) 
+            {
+                state.Checked = m_CustomGraphicsToggle.Enabled;
             }
         }
 

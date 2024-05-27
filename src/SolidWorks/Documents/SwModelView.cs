@@ -12,16 +12,22 @@ using System.Drawing;
 using System.Linq;
 using System.Threading;
 using Xarial.XCad.Documents;
-using Xarial.XCad.Documents.Delegates;
 using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Geometry.Structures;
+using Xarial.XCad.SolidWorks.Services;
 using Xarial.XCad.SolidWorks.Utils;
-using Xarial.XCad.Toolkit.Graphics;
+using Xarial.XCad.Toolkit;
 
 namespace Xarial.XCad.SolidWorks.Documents
 {
+    /// <summary>
+    /// SOLIDWORKS specific model view
+    /// </summary>
     public interface ISwModelView : IXModelView, ISwObject
     {
+        /// <summary>
+        /// Pointer to SOLIDWORKS model view
+        /// </summary>
         IModelView View { get; }
     }
 
@@ -48,34 +54,6 @@ namespace Xarial.XCad.SolidWorks.Documents
     internal class SwModelView : SwObject, ISwModelView
     {
         private readonly IMathUtility m_MathUtils;
-
-        public event RenderCustomGraphicsDelegate RenderCustomGraphics 
-        {
-            add 
-            {
-                if (m_RenderCustomGraphicsDelegate == null)
-                {
-                    m_GraphicsContext = new OglGraphicsContext();
-                    ((ModelView)View).BufferSwapNotify += OnBufferSwapNotify;
-                }
-
-                m_RenderCustomGraphicsDelegate += value;
-            }
-            remove 
-            {
-                m_RenderCustomGraphicsDelegate -= value;
-
-                if (m_RenderCustomGraphicsDelegate == null)
-                {
-                    m_GraphicsContext?.Dispose();
-                    m_GraphicsContext = null;
-                    ((ModelView)View).BufferSwapNotify -= OnBufferSwapNotify;
-                }
-            }
-        }
-
-        private OglGraphicsContext m_GraphicsContext;
-        private RenderCustomGraphicsDelegate m_RenderCustomGraphicsDelegate;
 
         internal IModelDoc2 Owner { get; }
 
@@ -217,11 +195,18 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
+        public IXCustomGraphicsContext CustomGraphicsContext => m_CustomGraphicsContextLazy.Value;
+
+        private readonly Lazy<IXCustomGraphicsContext> m_CustomGraphicsContextLazy;
+
         internal SwModelView(IModelView view, SwDocument doc, SwApplication app) : base(view, doc, app)
         {
             View = view;
             Owner = doc.Model;
             m_MathUtils = app.Sw.IGetMathUtility();
+
+            m_CustomGraphicsContextLazy = new Lazy<IXCustomGraphicsContext>(
+                () => app.Services.GetService<ICustomGraphicsContextProvider>().ProvideContext(this));
         }
 
         public IDisposable Freeze(bool freeze) => new ModelViewFreezer(this, freeze);
@@ -248,18 +233,6 @@ namespace Xarial.XCad.SolidWorks.Documents
         public void Commit(CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
-        }
-
-        private int OnBufferSwapNotify()
-        {
-            if (m_RenderCustomGraphicsDelegate?.Invoke(this, m_GraphicsContext) == true)
-            {
-                return HResult.S_OK;
-            }
-            else
-            {
-                return HResult.S_FALSE;
-            }
         }
 
         public void ZoomToObjects(IXSelObject[] objects)

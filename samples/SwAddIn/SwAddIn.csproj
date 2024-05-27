@@ -81,6 +81,7 @@
     <Compile Include="ComUserControl.Designer.cs">
       <DependentUpon>ComUserControl.cs</DependentUpon>
     </Compile>
+    <Compile Include="OglRectangeRenderer.cs" />
     <Compile Include="PmpData.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>

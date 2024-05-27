@@ -359,7 +359,8 @@ namespace Xarial.XCad.SolidWorks
                 customServices.Add<IIconsCreator, BaseIconsCreator>(ServiceLifetimeScope_e.Singleton, false);
                 customServices.Add<IMacroFeatureTypeProvider, ComMacroFeatureTypeProvider>(ServiceLifetimeScope_e.Singleton);
                 customServices.Add<IInterferencesProvider, InterferencesProvider>(ServiceLifetimeScope_e.Singleton);
-                
+                customServices.Add<ICustomGraphicsContextProvider, OglCustomGraphicsContextProvider>(ServiceLifetimeScope_e.Singleton);
+
                 ConfigureServices?.Invoke(this, customServices);
             }
             else
