@@ -378,7 +378,7 @@ namespace Xarial.XCad.SolidWorks.Features
 
         public override bool IsCommitted => m_Creator.IsCreated;
 
-        public FeatureState_e State 
+        public virtual FeatureState_e State 
         {
             get 
             {

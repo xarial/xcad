@@ -15,6 +15,9 @@ using Xarial.XCad.Documents;
 
 namespace Xarial.XCad.SolidWorks.Documents
 {
+    /// <summary>
+    /// SOLIDWORKS specific units
+    /// </summary>
     public interface ISwUnits : IXUnits
     {
     }
@@ -22,6 +25,74 @@ namespace Xarial.XCad.SolidWorks.Documents
     [DebuggerDisplay("{" + nameof(Length) + "} - {" + nameof(Mass) + "} - {" + nameof(Angle) + "} - {" + nameof(Time) + "}")]
     internal class SwUnits : ISwUnits
     {
+        public UnitSystem_e System 
+        {
+            get
+            {
+                var system = (swUnitSystem_e)m_Document.Model.Extension.GetUserPreferenceInteger(
+                    (int)swUserPreferenceIntegerValue_e.swUnitSystem,
+                    (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified);
+
+                switch (system)
+                {
+                    case swUnitSystem_e.swUnitSystem_CGS:
+                        return UnitSystem_e.CGS;
+
+                    case swUnitSystem_e.swUnitSystem_IPS:
+                        return UnitSystem_e.IPS;
+
+                    case swUnitSystem_e.swUnitSystem_MKS:
+                        return UnitSystem_e.MKS;
+
+                    case swUnitSystem_e.swUnitSystem_MMGS:
+                        return UnitSystem_e.MMGS;
+
+                    case swUnitSystem_e.swUnitSystem_Custom:
+                        return UnitSystem_e.Custom;
+
+                    default:
+                        throw new NotSupportedException();
+                }
+            }
+            set 
+            {
+                swUnitSystem_e system;
+
+                switch (value) 
+                {
+                    case UnitSystem_e.MKS:
+                        system = swUnitSystem_e.swUnitSystem_MKS;
+                        break;
+
+                    case UnitSystem_e.CGS:
+                        system = swUnitSystem_e.swUnitSystem_CGS;
+                        break;
+
+                    case UnitSystem_e.MMGS:
+                        system = swUnitSystem_e.swUnitSystem_MMGS;
+                        break;
+
+                    case UnitSystem_e.IPS:
+                        system = swUnitSystem_e.swUnitSystem_IPS;
+                        break;
+
+                    case UnitSystem_e.Custom:
+                        system = swUnitSystem_e.swUnitSystem_Custom;
+                        break;
+
+                    default:
+                        throw new NotSupportedException();
+                }
+
+                if (!m_Document.Model.Extension.SetUserPreferenceInteger(
+                    (int)swUserPreferenceIntegerValue_e.swUnitSystem,
+                    (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified, (int)system)) 
+                {
+                    throw new Exception("Failed to change unit system");
+                }
+            }
+        }
+
         public Length_e Length
         {
             get
@@ -56,8 +127,9 @@ namespace Xarial.XCad.SolidWorks.Documents
                             case swLengthUnit_e.swCM:
                                 return Length_e.Centimeters;
                             case swLengthUnit_e.swFEET:
-                            case swLengthUnit_e.swFEETINCHES:
                                 return Length_e.Feet;
+                            case swLengthUnit_e.swFEETINCHES:
+                                return Length_e.FeetInches;
                             case swLengthUnit_e.swINCHES:
                                 return Length_e.Inches;
                             case swLengthUnit_e.swMETER:
@@ -80,7 +152,63 @@ namespace Xarial.XCad.SolidWorks.Documents
                         throw new Exception($"Units are not supported: {units}");
                 }
             }
-            set => throw new NotImplementedException();
+            set 
+            {
+                if (System == UnitSystem_e.Custom)
+                {
+                    swLengthUnit_e lengthUnit;
+
+                    switch (value) 
+                    {
+                        case Length_e.Angstroms:
+                            lengthUnit = swLengthUnit_e.swANGSTROM;
+                            break;
+                        case Length_e.Centimeters:
+                            lengthUnit = swLengthUnit_e.swCM;
+                            break;
+                        case Length_e.Feet:
+                            lengthUnit = swLengthUnit_e.swFEET;
+                            break;
+                        case Length_e.FeetInches:
+                            lengthUnit = swLengthUnit_e.swFEETINCHES;
+                            break;
+                        case Length_e.Inches:
+                            lengthUnit = swLengthUnit_e.swINCHES;
+                            break;
+                        case Length_e.Meters:
+                            lengthUnit = swLengthUnit_e.swMETER;
+                            break;
+                        case Length_e.Microns:
+                            lengthUnit = swLengthUnit_e.swMICRON;
+                            break;
+                        case Length_e.Mils:
+                            lengthUnit = swLengthUnit_e.swMIL;
+                            break;
+                        case Length_e.Millimeters:
+                            lengthUnit = swLengthUnit_e.swMM;
+                            break;
+                        case Length_e.Nanometers:
+                            lengthUnit = swLengthUnit_e.swNANOMETER;
+                            break;
+                        case Length_e.Microinches:
+                            lengthUnit = swLengthUnit_e.swUIN;
+                            break;
+                        default:
+                            throw new NotSupportedException();
+                    }
+
+                    if (!m_Document.Model.Extension.SetUserPreferenceInteger(
+                           (int)swUserPreferenceIntegerValue_e.swUnitsLinear,
+                           (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified, (int)lengthUnit)) 
+                    {
+                        throw new Exception("Failed to change length units");
+                    }
+                }
+                else 
+                {
+                    throw new NotSupportedException("Units can only be changed in Custom units system");
+                }
+            }
         }
 
         public Mass_e Mass
@@ -132,7 +260,46 @@ namespace Xarial.XCad.SolidWorks.Documents
                         throw new Exception($"Units are not supported: {units}");
                 }
             }
-            set => throw new NotImplementedException();
+            set
+            {
+                if (System == UnitSystem_e.Custom)
+                {
+                    swUnitsMassPropMass_e massUnit;
+
+                    switch (value)
+                    {
+                        case Mass_e.Grams:
+                            massUnit = swUnitsMassPropMass_e.swUnitsMassPropMass_Grams;
+                            break;
+
+                        case Mass_e.Kilograms:
+                            massUnit = swUnitsMassPropMass_e.swUnitsMassPropMass_Kilograms;
+                            break;
+
+                        case Mass_e.Milligrams:
+                            massUnit = swUnitsMassPropMass_e.swUnitsMassPropMass_Milligrams;
+                            break;
+
+                        case Mass_e.Pounds:
+                            massUnit = swUnitsMassPropMass_e.swUnitsMassPropMass_Pounds;
+                            break;
+
+                        default:
+                            throw new NotSupportedException();
+                    }
+
+                    if (!m_Document.Model.Extension.SetUserPreferenceInteger(
+                           (int)swUserPreferenceIntegerValue_e.swUnitsMassPropMass,
+                           (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified, (int)massUnit)) 
+                    {
+                        throw new Exception("Failed to change mass units");
+                    }
+                }
+                else
+                {
+                    throw new NotSupportedException("Units can only be changed in Custom units system");
+                }
+            }
         }
 
         public Angle_e Angle
@@ -145,9 +312,13 @@ namespace Xarial.XCad.SolidWorks.Documents
                 switch (angularUnits)
                 {
                     case swAngleUnit_e.swDEGREES:
-                    case swAngleUnit_e.swDEG_MIN:
-                    case swAngleUnit_e.swDEG_MIN_SEC:
                         return Angle_e.Degrees;
+                    
+                    case swAngleUnit_e.swDEG_MIN:
+                        return Angle_e.DegreesMinutes;
+
+                    case swAngleUnit_e.swDEG_MIN_SEC:
+                        return Angle_e.DegreesMinutesSeconds;
 
                     case swAngleUnit_e.swRADIANS:
                         return Angle_e.Radians;
@@ -156,7 +327,39 @@ namespace Xarial.XCad.SolidWorks.Documents
                         throw new Exception($"Specified custom angular unit is not supported: {angularUnits}");
                 }
             }
-            set => throw new NotImplementedException();
+            set
+            {
+                swAngleUnit_e angularUnits;
+
+                switch (value)
+                {
+                    case Angle_e.Degrees:
+                        angularUnits = swAngleUnit_e.swDEGREES;
+                        break;
+
+                    case Angle_e.DegreesMinutes:
+                        angularUnits = swAngleUnit_e.swDEG_MIN;
+                        break;
+
+                    case Angle_e.DegreesMinutesSeconds:
+                        angularUnits = swAngleUnit_e.swDEG_MIN_SEC;
+                        break;
+
+                    case Angle_e.Radians:
+                        angularUnits = swAngleUnit_e.swRADIANS;
+                        break;
+
+                    default:
+                        throw new NotSupportedException();
+                }
+
+                if (!m_Document.Model.Extension.SetUserPreferenceInteger(
+                       (int)swUserPreferenceIntegerValue_e.swUnitsAngular,
+                       (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified, (int)angularUnits)) 
+                {
+                    throw new Exception("Failed to change angle units");
+                }
+            }
         }
 
         public Time_e Time
@@ -208,7 +411,54 @@ namespace Xarial.XCad.SolidWorks.Documents
                         throw new Exception($"Units are not supported: {units}");
                 }
             }
-            set => throw new NotImplementedException();
+            set
+            {
+                if (System == UnitSystem_e.Custom)
+                {
+                    swUnitsTimeUnit_e timeUnit;
+
+                    switch (value)
+                    {
+                        case Time_e.Hours:
+                            timeUnit = swUnitsTimeUnit_e.swUnitsTimeUnit_Hour;
+                            break;
+
+                        case Time_e.Microseconds:
+                            timeUnit = swUnitsTimeUnit_e.swUnitsTimeUnit_Microsecond;
+                            break;
+
+                        case Time_e.Milliseconds:
+                            timeUnit = swUnitsTimeUnit_e.swUnitsTimeUnit_Millisecond;
+                            break;
+
+                        case Time_e.Minutes:
+                            timeUnit = swUnitsTimeUnit_e.swUnitsTimeUnit_Minute;
+                            break;
+
+                        case Time_e.Nanoseconds:
+                            timeUnit = swUnitsTimeUnit_e.swUnitsTimeUnit_Nanosecond;
+                            break;
+
+                        case Time_e.Seconds:
+                            timeUnit = swUnitsTimeUnit_e.swUnitsTimeUnit_Second;
+                            break;
+
+                        default:
+                            throw new NotSupportedException();
+                    }
+
+                    if (!m_Document.Model.Extension.SetUserPreferenceInteger(
+                           (int)swUserPreferenceIntegerValue_e.swUnitsTimeUnits,
+                           (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified, (int)timeUnit)) 
+                    {
+                        throw new Exception("Failed to change angle units");
+                    }
+                }
+                else
+                {
+                    throw new NotSupportedException("Units can only be changed in Custom units system");
+                }
+            }
         }
 
         public int LengthDecimalPlaces
@@ -216,7 +466,15 @@ namespace Xarial.XCad.SolidWorks.Documents
             get => m_Document.Model.Extension.GetUserPreferenceInteger(
                 (int)swUserPreferenceIntegerValue_e.swUnitsLinearDecimalPlaces,
                 (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified);
-            set => throw new NotImplementedException(); 
+            set 
+            {
+                if (!m_Document.Model.Extension.SetUserPreferenceInteger(
+                    (int)swUserPreferenceIntegerValue_e.swUnitsLinearDecimalPlaces,
+                    (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified, value)) 
+                {
+                    throw new Exception("Failed to change linear decimal places");
+                }
+            }
         }
 
         public int MassDecimalPlaces
@@ -224,7 +482,15 @@ namespace Xarial.XCad.SolidWorks.Documents
             get => m_Document.Model.Extension.GetUserPreferenceInteger(
                 (int)swUserPreferenceIntegerValue_e.swUnitsMassPropDecimalPlaces,
                 (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified);
-            set => throw new NotImplementedException();
+            set 
+            {
+                if (m_Document.Model.Extension.SetUserPreferenceInteger(
+                    (int)swUserPreferenceIntegerValue_e.swUnitsMassPropDecimalPlaces,
+                    (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified, value)) 
+                {
+                    throw new Exception("Failed to change mass decimal places");
+                }
+            }
         }
 
         public int AngleDecimalPlaces
@@ -232,7 +498,15 @@ namespace Xarial.XCad.SolidWorks.Documents
             get => m_Document.Model.Extension.GetUserPreferenceInteger(
                 (int)swUserPreferenceIntegerValue_e.swUnitsAngularDecimalPlaces,
                 (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified);
-            set => throw new NotImplementedException();
+            set 
+            {
+                if (!m_Document.Model.Extension.SetUserPreferenceInteger(
+                    (int)swUserPreferenceIntegerValue_e.swUnitsAngularDecimalPlaces,
+                    (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified, value)) 
+                {
+                    throw new Exception("Failed to change angle decimal places");
+                }
+            }
         }
 
         public int TimeDecimalPlaces
@@ -240,9 +514,17 @@ namespace Xarial.XCad.SolidWorks.Documents
             get => m_Document.Model.Extension.GetUserPreferenceInteger(
                 (int)swUserPreferenceIntegerValue_e.swUnitsTimeDecimalPlaces,
                 (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified);
-            set => throw new NotImplementedException();
+            set 
+            {
+                if (!m_Document.Model.Extension.SetUserPreferenceInteger(
+                    (int)swUserPreferenceIntegerValue_e.swUnitsTimeDecimalPlaces,
+                    (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified, value)) 
+                {
+                    throw new Exception("Failed to change time decimal places");
+                }
+            }
         }
-
+        
         private readonly ISwDocument m_Document;
 
         internal SwUnits(ISwDocument document) 

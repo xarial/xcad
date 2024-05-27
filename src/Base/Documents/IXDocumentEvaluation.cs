@@ -52,6 +52,12 @@ namespace Xarial.XCad.Documents
         /// </summary>
         /// <returns>Measure utility</returns>
         IXMeasure PreCreateMeasure();
+
+        /// <summary>
+        /// Pre creates tessellation for faces
+        /// </summary>
+        /// <returns>Face tesselation</returns>
+        IXFaceTesselation PreCreateFaceTessellation();
     }
 
     /// <summary>

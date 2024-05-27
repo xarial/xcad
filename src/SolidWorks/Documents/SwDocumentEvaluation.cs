@@ -33,7 +33,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         internal SwDocumentEvaluation(SwDocument3D doc) 
         {
             m_Doc = doc;
-            m_MathUtilsLazy = new Lazy<IMathUtility>(() => m_Doc.OwnerApplication.Sw.IGetMathUtility());
+            m_MathUtilsLazy = new Lazy<IMathUtility>(m_Doc.OwnerApplication.Sw.IGetMathUtility);
         }
 
         public abstract IXBoundingBox PreCreateBoundingBox();
@@ -57,6 +57,8 @@ namespace Xarial.XCad.SolidWorks.Documents
         public virtual IXCollisionDetection PreCreateCollisionDetection() => new SwCollisionDetection(m_Doc, m_Doc.OwnerApplication);
         
         public IXMeasure PreCreateMeasure() => throw new NotImplementedException();
+
+        public IXFaceTesselation PreCreateFaceTessellation() => new SwFaceTesselation();
     }
 
     internal class SwPartEvaluation : SwDocumentEvaluation 

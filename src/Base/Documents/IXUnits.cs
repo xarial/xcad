@@ -12,6 +12,37 @@ using System.Text;
 namespace Xarial.XCad.Documents
 {
     /// <summary>
+    /// Document unit system
+    /// </summary>
+    public enum UnitSystem_e 
+    {
+        /// <summary>
+        /// Meter, kilogram, second
+        /// </summary>
+        MKS,
+
+        /// <summary>
+        /// Centimeter, gram, second
+        /// </summary>
+        CGS,
+
+        /// <summary>
+        /// Millimeter, gram, second
+        /// </summary>
+        MMGS,
+
+        /// <summary>
+        /// Inch, pound, second
+        /// </summary>
+        IPS,
+
+        /// <summary>
+        /// Custom units
+        /// </summary>
+        Custom
+    }
+
+    /// <summary>
     /// Represents length unit
     /// </summary>
     public enum Length_e 
@@ -64,7 +95,12 @@ namespace Xarial.XCad.Documents
         /// <summary>
         /// ft
         /// </summary>
-        Feet 
+        Feet,
+
+        /// <summary>
+        /// ft "
+        /// </summary>
+        FeetInches
     }
 
     /// <summary>
@@ -106,7 +142,17 @@ namespace Xarial.XCad.Documents
         /// <summary>
         /// rad
         /// </summary>
-        Radians
+        Radians,
+
+        /// <summary>
+        /// ° '
+        /// </summary>
+        DegreesMinutes,
+
+        /// <summary>
+        /// ° ' "
+        /// </summary>
+        DegreesMinutesSeconds,
     }
 
     /// <summary>
@@ -150,6 +196,11 @@ namespace Xarial.XCad.Documents
     /// </summary>
     public interface IXUnits
     {
+        /// <summary>
+        /// Units system
+        /// </summary>
+        UnitSystem_e System { get; set; }
+
         /// <summary>
         /// Acessing length units
         /// </summary>
@@ -210,7 +261,8 @@ namespace Xarial.XCad.Documents
             { Length_e.Microinches, 39370078.740157485 },
             { Length_e.Mils, 39370.078740157 },
             { Length_e.Inches, 39.3700787402 },
-            { Length_e.Feet, 3.280839895 }
+            { Length_e.Feet, 3.280839895 },
+            { Length_e.FeetInches, 3.280839895 }
         };
 
         /// <summary>
@@ -230,6 +282,8 @@ namespace Xarial.XCad.Documents
         public static Dictionary<Angle_e, double> AngleConversionFactor { get; } = new Dictionary<Angle_e, double>()
         {
             { Angle_e.Degrees, 180 / Math.PI },
+            { Angle_e.DegreesMinutes, 180 / Math.PI },
+            { Angle_e.DegreesMinutesSeconds, 180 / Math.PI },
             { Angle_e.Radians, 1 }
         };
 
@@ -260,7 +314,8 @@ namespace Xarial.XCad.Documents
             { Length_e.Microinches, "µin" },
             { Length_e.Mils, "mil" },
             { Length_e.Inches, "in" },
-            { Length_e.Feet, "ft" }
+            { Length_e.Feet, "ft" },
+            { Length_e.FeetInches, "ft in" }
         };
 
         /// <summary>
@@ -280,6 +335,8 @@ namespace Xarial.XCad.Documents
         public static Dictionary<Angle_e, string> AngleAbbreviation { get; } = new Dictionary<Angle_e, string>
         {
             { Angle_e.Degrees, "°" },
+            { Angle_e.DegreesMinutes, "° '" },
+            { Angle_e.DegreesMinutesSeconds, "° ' \"" },
             { Angle_e.Radians, "rad" }
         };
 

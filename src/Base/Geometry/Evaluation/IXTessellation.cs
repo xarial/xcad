@@ -67,4 +67,15 @@ namespace Xarial.XCad.Geometry.Evaluation
     public interface IXAssemblyTessellation : IXTessellation, IAssemblyEvaluation
     {
     }
+
+    /// <summary>
+    /// Face-specific tesselation
+    /// </summary>
+    public interface IXFaceTesselation : IXTessellation 
+    {
+        /// <summary>
+        /// Faces to get tesselation for
+        /// </summary>
+        new IXFace[] Scope { get; set;}
+    }
 }

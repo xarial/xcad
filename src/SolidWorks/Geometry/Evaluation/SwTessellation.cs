@@ -258,4 +258,103 @@ namespace Xarial.XCad.SolidWorks.Geometry.Evaluation
         protected override IXBody[] GetAllBodies()
             => m_Assm.Configurations.Active.Components.SelectMany(c => c.IterateBodies(!VisibleOnly)).ToArray();
     }
+
+    internal class SwFaceTesselation : IXFaceTesselation
+    {
+        IXBody[] IEvaluation.Scope { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
+
+        public IXFace[] Scope
+        {
+            get => m_Creator.CachedProperties.Get<IXFace[]>();
+            set
+            {
+                if (!IsCommitted)
+                {
+                    m_Creator.CachedProperties.Set(value);
+                }
+                else
+                {
+                    throw new CommittedElementPropertyChangeNotSupported();
+                }
+            }
+        }
+
+        //TODO: implement relative to matrix
+        public TransformMatrix RelativeTo { get => TransformMatrix.Identity; set => throw new NotImplementedException(); }
+        
+        public bool UserUnits
+        {
+            get => m_Creator.CachedProperties.Get<bool>();
+            set
+            {
+                if (!IsCommitted)
+                {
+                    m_Creator.CachedProperties.Set(value);
+                }
+                else
+                {
+                    throw new CommittedElementPropertyChangeNotSupported();
+                }
+            }
+        }
+
+        public bool VisibleOnly { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public bool Precise { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
+        public bool IsCommitted => m_Creator.IsCreated;
+
+        public IEnumerable<TesselationTriangle> Triangles => m_Creator.Element;
+
+        private readonly IElementCreator<TesselationTriangle[]> m_Creator;
+
+        public SwFaceTesselation() 
+        {
+            m_Creator = new ElementCreator<TesselationTriangle[]>(CreateTesselation, null, false);
+        }
+
+        private TesselationTriangle[] CreateTesselation(CancellationToken cancellationToken)
+        {
+            if (Scope?.Any() == true)
+            {
+                //TODO: consider components transformation
+                //TODO: for the precise change the triangles document options
+
+                var triangs = new List<TesselationTriangle>();
+
+                foreach (ISwFace face in Scope) 
+                {
+                    var tessTriangs = (double[])face.Face.GetTessTriangles(!UserUnits);
+                    var tessNorms = (double[])face.Face.GetTessNorms();
+
+                    if (tessTriangs.Length == tessNorms.Length)
+                    {
+                        for (int i = 0; i < tessTriangs.Length; i += 9)
+                        {
+                            triangs.Add(new TesselationTriangle(
+                                new Vector(tessNorms[i], tessNorms[i + 1], tessNorms[i + 2]),
+                                new Point(tessTriangs[i], tessTriangs[i + 1], tessTriangs[i + 2]),
+                                new Point(tessTriangs[i + 3], tessTriangs[i + 4], tessTriangs[i + 5]),
+                                new Point(tessTriangs[i + 6], tessTriangs[i + 7], tessTriangs[i + 8])));
+                        }
+                    }
+                    else 
+                    {
+                        throw new Exception("Size of triangles mismatch");
+                    }
+                }
+
+                return triangs.ToArray();
+            }
+            else 
+            {
+                throw new Exception("No faces are specified in the scope");
+            }
+        }
+
+        public void Commit(CancellationToken cancellationToken) => m_Creator.Create(cancellationToken);
+
+        public void Dispose()
+        {
+        }
+    }
 }

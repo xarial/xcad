@@ -36,10 +36,29 @@ namespace Xarial.XCad.SolidWorks.Sketch
 
     internal class SwSketchPicture : SwFeature, ISwSketchPicture
     {
-        public ISketchPicture SketchPicture { get; private set; }
+        private class PictureTransparency
+        {
+            internal int Style { get; }
+            internal double Transparency { get; }
+            internal int MatchingColor { get; }
+            internal double MatchingTolerance { get; }
 
-        
+            internal PictureTransparency(int style, double transparency, int matchingColor, double matchingTolerance)
+            {
+                Style = style;
+                Transparency = transparency;
+                MatchingColor = matchingColor;
+                MatchingTolerance = matchingTolerance;
+            }
+        }
+
+        private const int TRANSPARENT = 1;
+
+        public ISketchPicture SketchPicture { get; private set; }
+                
         private SwSketchBase m_OwnerSketch;
+
+        private PictureTransparency m_PictTrans;
 
         internal SwSketchPicture(IFeature feat, SwDocument doc, SwApplication app, bool created) : base(feat, doc, app, created)
         {
@@ -170,6 +189,57 @@ namespace Xarial.XCad.SolidWorks.Sketch
         /// Sketch picture in SOLIDWORKS cannot be added into the block
         /// </remarks>
         public IXSketchBlockInstance OwnerBlock => null;
+
+        public override FeatureState_e State 
+        {
+            get
+            {
+                var trans = GetTransparency();
+
+                if (trans.Transparency == TRANSPARENT)
+                {
+                    return FeatureState_e.Suppressed;
+                }
+                else 
+                {
+                    return FeatureState_e.Default;
+                }
+            }
+            set 
+            {
+                const int OPAQUE = 0;
+                const int COLOR_IGNORE = 0;
+                const int COLOR_EXACT_MATCH = 0;
+
+                if (value.HasFlag(FeatureState_e.Suppressed))
+                {
+                    m_PictTrans = GetTransparency();
+                    SketchPicture.SetTransparency((int)swSketchPictureTransparencyStyle_e.swSketchPictureTransparencyFullImage,
+                        TRANSPARENT, COLOR_IGNORE, COLOR_EXACT_MATCH);
+                }
+                else
+                {
+                    var style = m_PictTrans?.Style ?? (int)swSketchPictureTransparencyStyle_e.swSketchPictureTransparencyFullImage;
+                    var trans = m_PictTrans?.Transparency ?? OPAQUE;
+                    int matchColor = m_PictTrans?.MatchingColor ?? COLOR_IGNORE;
+                    double matchTol = m_PictTrans?.MatchingTolerance ?? COLOR_EXACT_MATCH;
+
+                    SketchPicture.SetTransparency(style, trans, matchColor, matchTol);
+                }
+            }
+        }
+
+        private PictureTransparency GetTransparency() 
+        {
+            int style = -1;
+            double trans = -1;
+            int matchColor = -1;
+            double matchTol = -1;
+
+            SketchPicture.GetTransparency(ref style, ref trans, ref matchColor, ref matchTol);
+
+            return new PictureTransparency(style, trans, matchColor, matchTol);
+        }
 
         protected override IFeature InsertFeature(CancellationToken cancellationToken)
         {
