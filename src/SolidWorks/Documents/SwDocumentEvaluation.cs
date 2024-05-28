@@ -58,7 +58,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         
         public IXMeasure PreCreateMeasure() => throw new NotImplementedException();
 
-        public IXFaceTesselation PreCreateFaceTessellation() => new SwFaceTesselation();
+        public IXFaceTesselation PreCreateFaceTessellation() => new SwFaceTesselation(m_Doc);
     }
 
     internal class SwPartEvaluation : SwDocumentEvaluation 

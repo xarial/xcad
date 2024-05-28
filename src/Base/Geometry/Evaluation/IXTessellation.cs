@@ -7,6 +7,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 using Xarial.XCad.Base;
 using Xarial.XCad.Geometry.Structures;
@@ -16,6 +17,8 @@ namespace Xarial.XCad.Geometry.Evaluation
     /// <summary>
     /// Triangle representing a tesselation
     /// </summary>
+
+    [DebuggerDisplay("{" + nameof(FirstPoint) + "} - {" + nameof(SecondPoint) + "} - {" + nameof(ThirdPoint) + "} [{" +nameof(Normal) + "}]")]
     public class TesselationTriangle
     {
         /// <summary>

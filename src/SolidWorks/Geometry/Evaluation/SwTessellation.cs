@@ -261,6 +261,62 @@ namespace Xarial.XCad.SolidWorks.Geometry.Evaluation
 
     internal class SwFaceTesselation : IXFaceTesselation
     {
+        private class ImageQualitySetter : IDisposable 
+        {
+            private const int MAX_IMAGE_QUALITY_WIREFRAME_VALUE = 100;
+
+            private IModelDocExtension m_DocExt;
+
+            private double? m_ImageQualityShadedDeviation;
+            private int? m_ImageQualityWireframeValue;
+
+            internal ImageQualitySetter(SwDocument doc, bool precise) 
+            {
+                m_DocExt = doc.Model.Extension;
+
+                if (precise) 
+                {
+                    var curVal = double.NaN;
+                    var minVal = double.NaN;
+                    var maxVal = double.NaN;
+
+                    m_DocExt.GetUserPreferenceDoubleValueRange((int)swUserPreferenceDoubleValue_e.swImageQualityShadedDeviation,
+                        ref curVal, ref minVal, ref maxVal);
+
+                    m_ImageQualityShadedDeviation = m_DocExt.GetUserPreferenceDouble(
+                        (int)swUserPreferenceDoubleValue_e.swImageQualityShadedDeviation,
+                        (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified);
+
+                    m_ImageQualityWireframeValue = m_DocExt.GetUserPreferenceInteger(
+                        (int)swUserPreferenceIntegerValue_e.swImageQualityWireframeValue, 
+                        (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified);
+
+                    m_DocExt.SetUserPreferenceDouble((int)swUserPreferenceDoubleValue_e.swImageQualityShadedDeviation, 
+                        (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified, minVal);
+
+                    m_DocExt.SetUserPreferenceInteger(
+                        (int)swUserPreferenceIntegerValue_e.swImageQualityWireframeValue,
+                        (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified, MAX_IMAGE_QUALITY_WIREFRAME_VALUE);
+                }
+            }
+
+            public void Dispose()
+            {
+                if (m_ImageQualityShadedDeviation.HasValue)
+                {
+                    m_DocExt.SetUserPreferenceDouble((int)swUserPreferenceDoubleValue_e.swImageQualityShadedDeviation,
+                            (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified, m_ImageQualityShadedDeviation.Value);
+                }
+
+                if (m_ImageQualityWireframeValue.HasValue)
+                {
+                    m_DocExt.SetUserPreferenceInteger(
+                        (int)swUserPreferenceIntegerValue_e.swImageQualityWireframeValue,
+                        (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified, m_ImageQualityWireframeValue.Value);
+                }
+            }
+        }
+
         IXBody[] IEvaluation.Scope { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
 
         public IXFace[] Scope
@@ -299,7 +355,22 @@ namespace Xarial.XCad.SolidWorks.Geometry.Evaluation
         }
 
         public bool VisibleOnly { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-        public bool Precise { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        
+        public bool Precise
+        {
+            get => m_Creator.CachedProperties.Get<bool>();
+            set
+            {
+                if (!IsCommitted)
+                {
+                    m_Creator.CachedProperties.Set(value);
+                }
+                else
+                {
+                    throw new CommittedElementPropertyChangeNotSupported();
+                }
+            }
+        }
 
         public bool IsCommitted => m_Creator.IsCreated;
 
@@ -307,8 +378,11 @@ namespace Xarial.XCad.SolidWorks.Geometry.Evaluation
 
         private readonly IElementCreator<TesselationTriangle[]> m_Creator;
 
-        public SwFaceTesselation() 
+        private readonly SwDocument3D m_Doc;
+
+        public SwFaceTesselation(SwDocument3D doc) 
         {
+            m_Doc = doc;
             m_Creator = new ElementCreator<TesselationTriangle[]>(CreateTesselation, null, false);
         }
 
@@ -317,33 +391,48 @@ namespace Xarial.XCad.SolidWorks.Geometry.Evaluation
             if (Scope?.Any() == true)
             {
                 //TODO: consider components transformation
-                //TODO: for the precise change the triangles document options
 
-                var triangs = new List<TesselationTriangle>();
-
-                foreach (ISwFace face in Scope) 
+                using (new ImageQualitySetter(m_Doc, Precise))
                 {
-                    var tessTriangs = (double[])face.Face.GetTessTriangles(!UserUnits);
-                    var tessNorms = (double[])face.Face.GetTessNorms();
+                    var triangs = new List<TesselationTriangle>();
 
-                    if (tessTriangs.Length == tessNorms.Length)
+                    foreach (ISwFace face in Scope)
                     {
-                        for (int i = 0; i < tessTriangs.Length; i += 9)
+                        TransformMatrix transform;
+
+                        var comp = face.Component;
+
+                        if (comp != null)
                         {
-                            triangs.Add(new TesselationTriangle(
-                                new Vector(tessNorms[i], tessNorms[i + 1], tessNorms[i + 2]),
-                                new Point(tessTriangs[i], tessTriangs[i + 1], tessTriangs[i + 2]),
-                                new Point(tessTriangs[i + 3], tessTriangs[i + 4], tessTriangs[i + 5]),
-                                new Point(tessTriangs[i + 6], tessTriangs[i + 7], tessTriangs[i + 8])));
+                            transform = comp.Transformation;
+                        }
+                        else 
+                        {
+                            transform = TransformMatrix.Identity;
+                        }
+
+                        var tessTriangs = (float[])face.Face.GetTessTriangles(!UserUnits);
+                        var tessNorms = (float[])face.Face.GetTessNorms();
+
+                        if (tessTriangs.Length == tessNorms.Length)
+                        {
+                            for (int i = 0; i < tessTriangs.Length; i += 9)
+                            {
+                                triangs.Add(new TesselationTriangle(
+                                    new Vector(tessNorms[i], tessNorms[i + 1], tessNorms[i + 2]) * transform,
+                                    new Point(tessTriangs[i], tessTriangs[i + 1], tessTriangs[i + 2]) * transform,
+                                    new Point(tessTriangs[i + 3], tessTriangs[i + 4], tessTriangs[i + 5]) * transform,
+                                    new Point(tessTriangs[i + 6], tessTriangs[i + 7], tessTriangs[i + 8]) * transform));
+                            }
+                        }
+                        else
+                        {
+                            throw new Exception("Size of triangles mismatch");
                         }
                     }
-                    else 
-                    {
-                        throw new Exception("Size of triangles mismatch");
-                    }
-                }
 
-                return triangs.ToArray();
+                    return triangs.ToArray();
+                }
             }
             else 
             {

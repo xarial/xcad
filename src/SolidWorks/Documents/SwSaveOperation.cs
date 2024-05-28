@@ -184,12 +184,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             if (Bodies?.Any() == true)
             {
                 m_SelGroup.AddRange(Bodies.Cast<ISwBody>().Select(b => b.Body).ToArray());
-                //m_Doc.Selections.ReplaceRange(Bodies);
             }
-            //else 
-            //{
-            //    m_Doc.Selections.Clear();
-            //}
         }
 
         protected override void RestoreSaveOptions()
