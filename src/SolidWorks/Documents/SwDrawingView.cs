@@ -1520,6 +1520,12 @@ namespace Xarial.XCad.SolidWorks.Documents
                 m_SheetMetalPart = sheetMetalPart;
                 m_OrigConf = m_SheetMetalPart.Configurations.Active;
 
+                if (conf != null)
+                {
+                    //need to activate configuration to get the pointer to the body (as it can be different or non existent in different configuration)
+                    m_SheetMetalPart.Configurations.Active = conf;
+                }
+
                 if (sheetMetalBody.Component != null) 
                 {
                     sheetMetalBody = sheetMetalPart.ConvertObject(sheetMetalBody);
@@ -1539,6 +1545,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                 {
                     conf = (ISwConfiguration)tempView.ReferencedConfiguration;
 
+                    //need to set active configuration to flat pattern configuration, otherwise flat pattern view will not be created
                     m_SheetMetalPart.Configurations.Active = conf;
 
                     //remembering view name, it is important as the temp view will be deleted and flat pattern view
