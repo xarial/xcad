@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Xarial.XCad.Annotations;
 using Xarial.XCad.Base;
 
 namespace Xarial.XCad
@@ -28,6 +29,11 @@ namespace Xarial.XCad
         /// Category of the material
         /// </summary>
         string Category { get; }
+
+        /// <summary>
+        /// Material cross hatch
+        /// </summary>
+        IXCrossHatch CrossHatch { get; }
 
         /// <summary>
         /// Elastic modulus
