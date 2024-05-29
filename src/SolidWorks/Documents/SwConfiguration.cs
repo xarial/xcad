@@ -352,30 +352,8 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public IXMaterial Material
         {
-            get
-            {
-                var materialName = ((SwPart)m_Comp.ReferencedDocument).Part.GetMaterialPropertyName2(Name, out var database);
-
-                if (!string.IsNullOrEmpty(materialName))
-                {
-                    return new SwMaterial(materialName, OwnerApplication.MaterialDatabases[database]);
-                }
-                else
-                {
-                    return null;
-                }
-            }
-            set 
-            {
-                if (value != null)
-                {
-                    ((SwPart)m_Comp.ReferencedDocument).Part.SetMaterialPropertyName2(Name, value.Database.Name, value.Name);
-                }
-                else 
-                {
-                    ((SwPart)m_Comp.ReferencedDocument).Part.SetMaterialPropertyName2(Name, "", "");
-                }
-            }
+            get => ((SwPart)m_Comp.ReferencedDocument).GetMaterial(Name);
+            set => ((SwPart)m_Comp.ReferencedDocument).SetMaterial(value, Name);
         }
     }
 

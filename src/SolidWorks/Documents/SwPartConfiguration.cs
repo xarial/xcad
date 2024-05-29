@@ -34,37 +34,10 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public IXCutListItemRepository CutLists { get; }
 
-        public IXMaterial Material 
+        public IXMaterial Material
         {
-            get 
-            {
-                var materialName = m_Part.Part.GetMaterialPropertyName2(Name, out var database);
-
-                if (!string.IsNullOrEmpty(materialName))
-                {
-                    if (!OwnerApplication.MaterialDatabases.TryGet(database, out var db))
-                    {
-                        db = null;
-                    }
-
-                    return new SwMaterial(materialName, (SwMaterialsDatabase)db);
-                }
-                else 
-                {
-                    return null;
-                }
-            }
-            set 
-            {
-                if (value != null)
-                {
-                    m_Part.Part.SetMaterialPropertyName2(Name, value.Database.Name, value.Name);
-                }
-                else 
-                {
-                    m_Part.Part.SetMaterialPropertyName2(Name, "", "");
-                }
-            }
+            get => m_Part.GetMaterial(Name);
+            set => m_Part.SetMaterial(value, Name);
         }
     }
 }
