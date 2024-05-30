@@ -16,7 +16,6 @@ using Xarial.XCad.SolidWorks;
 using Xarial.XCad.SolidWorks.Geometry;
 using System;
 using Xarial.XCad;
-using Xarial.XCad.SolidWorks.UI.PropertyPage.Services;
 using Xarial.XCad.SolidWorks.Documents;
 using System.Collections.ObjectModel;
 using Xarial.XCad.UI.PropertyPage.Base;
@@ -183,15 +182,15 @@ namespace SwAddInExample
         public override string ToString() => Value;
     }
 
-    public class MyCustomItemsProvider : SwCustomItemsProvider<MyItem>
+    public class MyCustomItemsProvider : ICustomItemsProvider
     {
-        public override IEnumerable<MyItem> ProvideItems(ISwApplication app, IControl[] dependencies)
+        public IEnumerable<object> ProvideItems(IXApplication app, IControl ctrl, IControl[] dependencies, object parameter)
             => MyItem.All;
     }
 
-    public class MyCustomItems1Provider : SwCustomItemsProvider<string>
+    public class MyCustomItems1Provider : ICustomItemsProvider
     {
-        public override IEnumerable<string> ProvideItems(ISwApplication app, IControl[] dependencies) 
+        public IEnumerable<object> ProvideItems(IXApplication app, IControl ctrl, IControl[] dependencies, object parameter)
         {
             var item = dependencies.First()?.GetValue() as MyItem;
 
@@ -505,7 +504,7 @@ namespace SwAddInExample
         [ComboBox(typeof(MyCustomItemsProvider), nameof(Option4Default))]
         public MyItem Option5Set { get; set; }
 
-        [ComboBox(typeof(MyCustomItems1Provider), nameof(Option3Set))]
+        [ComboBox(typeof(MyCustomItems1Provider), nameof(Option3Set), Parameter = "TestParam")]
         public string Option6 { get; set; }
 
         public Action Button { get; }

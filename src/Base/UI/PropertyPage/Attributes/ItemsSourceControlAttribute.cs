@@ -46,8 +46,10 @@ namespace Xarial.XCad.UI.PropertyPage.Attributes
         /// </summary>
         public string DisplayMemberPath { get; set; }
 
+        /// <inheritdoc/>
         public bool HasMetadata => ItemsSource != null;
 
+        /// <inheritdoc/>
         public object Parameter { get; set; }
 
         /// <summary>

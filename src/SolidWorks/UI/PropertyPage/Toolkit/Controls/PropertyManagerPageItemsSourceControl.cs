@@ -183,7 +183,8 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
                     if (customItemsAtt.Dependencies?.Any() != true)
                     {
                         var provider = customItemsAtt.CustomItemsProvider;
-                        staticItems = provider.ProvideItems(app, new IControl[0]).Select(i => new ItemsControlItem(i, customItemsAtt.DisplayMemberPath)).ToArray();
+                        staticItems = provider.ProvideItems(app, this, new IControl[0], customItemsAtt.Parameter)
+                            .Select(i => new ItemsControlItem(i, customItemsAtt.DisplayMemberPath)).ToArray();
                         isStatic = true;
                     }
                     else

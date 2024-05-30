@@ -10,6 +10,8 @@ Breaking change is marked with &#x26A0; symbol
 
 ## 0.8.1 -
 
+* &#x26A0; ICustomItemsProvider::ProvideItems changed signature (added **IControl ctrl** and **object parameter**)
+* &#x26A0; Removed **SwCustomItemsProvider<TItem>**
 * &#x26A0; IStorage::GetSubStreamNames method is replaced with IStorage::SubStreamNames property, IStorage::GetSubStorageNames method is replaced with IStorage::SubStorageNames property
 * &#x26A0; IXModelView::RenderCustomGraphics event is removed. Custom graphics rendering is replaced with IXModelView::CustomGraphicsContext->IXCustomGraphicsContext::RegisterRenderer
 * &#x26A0; IXDocumentExtension::TryOpenStorage and IXDocumentExtension::TryOpenStream (IXDocument::OpenStream and IXDocument::OpenStorage now return Stream.Null and Storage.Null for non-existent streams). IXDocument::OpenStream and IXDocument::OpenStorage access parameter is changed to boolean instead of AccessType_e. 

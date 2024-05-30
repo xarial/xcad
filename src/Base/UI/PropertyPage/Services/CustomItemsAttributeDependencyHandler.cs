@@ -29,7 +29,7 @@ namespace Xarial.XCad.UI.PropertyPage.Services
         {
             var itemsCtrl = (IItemsControl)source;
 
-            itemsCtrl.Items = m_ItemsProvider.ProvideItems(app, dependencies)
+            itemsCtrl.Items = m_ItemsProvider.ProvideItems(app, source, dependencies, parameter)
                 ?.Select(i => new ItemsControlItem(i, m_DisplayMemberMemberPath)).ToArray();
         }
     }
