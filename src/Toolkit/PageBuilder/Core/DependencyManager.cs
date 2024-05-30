@@ -21,7 +21,7 @@ namespace Xarial.XCad.Utils.PageBuilder.Core
         private class ControlUpdateStateData
         {
             private readonly IBinding m_Source;
-            private readonly IBinding[] m_Dependencies;
+            private readonly IControl[] m_Controls;
             private readonly object m_Parameter;
             private readonly IDependencyHandler m_Handler;
             private readonly IXApplication m_App;
@@ -30,14 +30,14 @@ namespace Xarial.XCad.Utils.PageBuilder.Core
             {
                 m_App = app;
                 m_Source = src;
-                m_Dependencies = deps;
+                m_Controls = deps.Select(d => d.Control).ToArray();
                 m_Parameter = parameter;
                 m_Handler = handler;
             }
 
             internal void Update()
             {
-                m_Handler.UpdateState(m_App, m_Source.Control, m_Dependencies.Select(d => d.Control).ToArray(), m_Parameter);
+                m_Handler.UpdateState(m_App, m_Source.Control, m_Controls, m_Parameter);
             }
         }
 

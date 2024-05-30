@@ -67,7 +67,7 @@ namespace Xarial.XCad.UI.PropertyPage.Attributes
             Dependencies = dependencies;
 
             CustomItemsProvider = (ICustomItemsProvider)Activator.CreateInstance(customItemsProviderType);
-            DependencyHandler = new CustomItemsAttributeDependencyHandler(CustomItemsProvider, DisplayMemberPath);
+            DependencyHandler = new CustomItemsAttributeDependencyHandler(CustomItemsProvider, () => DisplayMemberPath);
         }
 
         /// <summary>

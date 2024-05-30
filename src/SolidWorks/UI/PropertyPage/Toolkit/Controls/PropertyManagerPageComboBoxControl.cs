@@ -7,13 +7,7 @@
 
 using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.Linq;
-using Xarial.XCad.SolidWorks.Services;
 using Xarial.XCad.Toolkit.Services;
 using Xarial.XCad.UI.PropertyPage.Attributes;
 using Xarial.XCad.UI.PropertyPage.Base;
@@ -128,21 +122,21 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
                 if (newItems?.Any() == true)
                 {
                     SwSpecificControl.AddItems(newItems.Select(x => x.DisplayName).ToArray());
-
-                    if (!newItems.Any(i => object.Equals(i.Value, m_CurrentValueCached)))
-                    {
-                        //if items source changed dynamically previously cached value might not fit new source
-                        var defVal = GetDefaultItemValue();
-
-                        if (!object.Equals(m_CurrentValueCached, defVal))
-                        {
-                            m_CurrentValueCached = defVal;
-                            ValueChanged?.Invoke(this, m_CurrentValueCached);
-                        }
-                    }
-
-                    SetSpecificValue(m_CurrentValueCached);
                 }
+
+                if (newItems?.Any(i => object.Equals(i.Value, m_CurrentValueCached)) != true)
+                {
+                    //if items source changed dynamically previously cached value might not fit new source
+                    var defVal = GetDefaultItemValue();
+
+                    if (!object.Equals(m_CurrentValueCached, defVal))
+                    {
+                        m_CurrentValueCached = defVal;
+                        ValueChanged?.Invoke(this, m_CurrentValueCached);
+                    }
+                }
+
+                SetSpecificValue(m_CurrentValueCached);
             }
         }
 

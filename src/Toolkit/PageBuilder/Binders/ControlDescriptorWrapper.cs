@@ -17,7 +17,7 @@ namespace Xarial.XCad.Toolkit.PageBuilder.Binders
     /// <summary>
     /// Wrapper is used to transform context of the dynamic control to be equal to property value resolved in runtime
     /// </summary>
-    public class ControlDescriptorWrapper : IControlDescriptor
+    internal class ControlDescriptorWrapper : IControlDescriptor
     {
         public string DisplayName => m_BaseCtrlDesc.DisplayName;
         public string Description => m_BaseCtrlDesc.Description;
@@ -35,7 +35,7 @@ namespace Xarial.XCad.Toolkit.PageBuilder.Binders
         private readonly IControlDescriptor m_BaseCtrlDesc;
         private readonly PropertyInfo m_PrpInfo;
 
-        public ControlDescriptorWrapper(IControlDescriptor baseCtrlDesc, PropertyInfo prpInfo) 
+        internal ControlDescriptorWrapper(IControlDescriptor baseCtrlDesc, PropertyInfo prpInfo) 
         {
             m_BaseCtrlDesc = baseCtrlDesc;
             m_PrpInfo = prpInfo;

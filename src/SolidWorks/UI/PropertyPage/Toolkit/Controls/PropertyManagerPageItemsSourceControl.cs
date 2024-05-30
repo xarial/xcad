@@ -45,9 +45,9 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
                     }
                 }
 
-                LoadItemsIntoControl(value);
-
                 m_Items = value;
+
+                LoadItemsIntoControl(value);
 
                 if (m_Items != null)
                 {

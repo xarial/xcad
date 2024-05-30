@@ -123,6 +123,11 @@ namespace Xarial.XCad.UI.PropertyPage.Structures
         private readonly INotifyPropertyChanged m_DisplayNamePrpOwner;
         private readonly string m_DisplayNamePrpName;
 
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="value">Item value</param>
+        /// <param name="dispMembPath">Display member path of the item</param>
         public ItemsControlItem(object value, string dispMembPath) 
             : this(value, GetDisplayName(value, dispMembPath, out var prpOwner, out var prpName), GetDescription(value))
         {
@@ -135,19 +140,25 @@ namespace Xarial.XCad.UI.PropertyPage.Structures
             }
         }
 
-        private void OnDisplayNamePropertyChanged(object sender, PropertyChangedEventArgs e)
-        {
-            if (e.PropertyName == m_DisplayNamePrpName) 
-            {
-                DisplayNameChanged?.Invoke(this, GetPropertyValue(m_DisplayNamePrpOwner, m_DisplayNamePrpName)?.ToString());
-            }
-        }
-
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="value">Item value</param>
+        /// <param name="dispName">Item display name</param>
+        /// <param name="desc">Item description</param>
         public ItemsControlItem(object value, string dispName, string desc)
         {
             Value = value;
             DisplayName = dispName;
             Description = desc;
+        }
+
+        private void OnDisplayNamePropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == m_DisplayNamePrpName)
+            {
+                DisplayNameChanged?.Invoke(this, GetPropertyValue(m_DisplayNamePrpOwner, m_DisplayNamePrpName)?.ToString());
+            }
         }
     }
 }

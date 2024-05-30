@@ -20,10 +20,17 @@ using Xarial.XCad.Utils.Reflection;
 
 namespace Xarial.XCad.Utils.PageBuilder.Binders
 {
+    /// <summary>
+    /// Binding based on proeprty info
+    /// </summary>
+    /// <typeparam name="TDataModel">Data model type</typeparam>
     public class PropertyInfoBinding<TDataModel> : Binding<TDataModel>
     {
         private readonly IList<IControlDescriptor> m_Parents;
 
+        /// <summary>
+        /// Descriptor of the control
+        /// </summary>
         public IControlDescriptor ControlDescriptor { get; }
 
         private readonly IMetadata[] m_Metadata;
