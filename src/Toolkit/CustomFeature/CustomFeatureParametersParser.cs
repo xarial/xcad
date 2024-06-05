@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Xarial.XCad.Annotations;
+using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Exceptions;
 using Xarial.XCad.Features;
@@ -66,8 +67,16 @@ namespace Xarial.XCad.Utils.CustomFeature
         /// </summary>
         public const string VERSION_PARAMETERS_NAME = "__paramsVersion";
 
+        /// <summary>
+        /// Used to mark the index of the object in the list as not set (e.g. null)
+        /// </summary>
+        private const int LIST_INDEX_NOT_SET = -1;
+
         private readonly FaultObjectFactory m_FaultObjectFactory;
 
+        /// <summary>
+        /// Constructor
+        /// </summary>
         public CustomFeatureParametersParser() 
         {
             m_FaultObjectFactory = new FaultObjectFactory();
@@ -408,7 +417,7 @@ namespace Xarial.XCad.Utils.CustomFeature
         {
             var indices = GetObjectIndices(prp, parameters);
 
-            if (indices != null && indices.Any())
+            if (indices?.Any() == true)
             {
                 if (availableObjects == null)
                 {
@@ -421,32 +430,31 @@ namespace Xarial.XCad.Utils.CustomFeature
                 {
                     if (typeof(IList).IsAssignableFrom(prp.PropertyType))
                     {
-                        //TODO: potential issues with IList as IEnumerable can come here as well and it will fail
-
-                        var lst = (IList)prp.GetValue(resParams, null);
-                        
-                        if (lst != null)
-                        {
-                            lst.Clear();
-                        }
-                        else
-                        {
-                            lst = (IList)Activator.CreateInstance(prp.PropertyType);
-                        }
-
-                        val = lst;
-
-                        if (indices.Length == 1 && indices.First() == -1)
+                        if (indices.Length == 1 && indices.First() == LIST_INDEX_NOT_SET)
                         {
                             val = null; //no entities in the list
                         }
                         else
                         {
+                            //TODO: potential issues with IList as IEnumerable can come here as well and it will fail
+                            var lst = (IList)prp.GetValue(resParams, null);
+
+                            if (lst != null)
+                            {
+                                lst.Clear();
+                            }
+                            else
+                            {
+                                lst = (IList)Activator.CreateInstance(prp.PropertyType);
+                            }
+
+                            val = lst;
+
                             foreach (var obj in indices.Select(i =>
                             {
                                 object elem;
 
-                                if (i == -1)
+                                if (i == LIST_INDEX_NOT_SET)
                                 {
                                     elem = null;
                                 }
@@ -478,7 +486,7 @@ namespace Xarial.XCad.Utils.CustomFeature
 
                         var index = indices.First();
 
-                        if (index == -1)
+                        if (index == LIST_INDEX_NOT_SET)
                         {
                             val = null;
                         }

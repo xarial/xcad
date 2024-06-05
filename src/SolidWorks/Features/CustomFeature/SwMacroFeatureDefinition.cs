@@ -49,7 +49,6 @@ using Xarial.XCad.UI.PropertyPage.Enums;
 using Xarial.XCad.Utils.CustomFeature;
 using Xarial.XCad.Utils.Diagnostics;
 using Xarial.XCad.Utils.Reflection;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel;
 
 namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 {
@@ -72,7 +71,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public static IXMemoryBody CreateEditBody(IBody2 body, ISwDocument doc, ISwApplication app, bool isPreview)
+        public static ISwTempBody CreateEditBody(IBody2 body, ISwDocument doc, ISwApplication app, bool isPreview)
         {
             var bodyType = (swBodyType_e)body.GetType();
 
@@ -897,7 +896,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
                 (obj, prp) => { });
 
             return CreatePreviewGeometry((ISwApplication)app, (ISwDocument)doc, (ISwMacroFeature<TParams>)feat, page,
-                out shouldHidePreviewEdit, out assignPreviewColor)?.Cast<SwTempBody>().ToArray();
+                out shouldHidePreviewEdit, out assignPreviewColor)?.Cast<ISwTempBody>().ToArray();
         }
 
         /// <inheritdoc/>

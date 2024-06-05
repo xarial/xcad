@@ -50,6 +50,12 @@ namespace Xarial.XCad.Geometry
         /// <returns>Resulting body</returns>
         /// <exception cref="Exceptions.BodyBooleanOperationNoIntersectException"/>
         IXMemoryBody[] Common(IXMemoryBody other);
+
+        /// <summary>
+        /// Moves this body with specified matrix
+        /// </summary>
+        /// <param name="transform">Transformation matrix</param>
+        void Transform(TransformMatrix transform);
     }
 
     /// <summary>

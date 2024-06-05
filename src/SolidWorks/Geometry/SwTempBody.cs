@@ -25,10 +25,12 @@ using Xarial.XCad.SolidWorks.Geometry.Curves;
 using Xarial.XCad.SolidWorks.Geometry.Primitives;
 using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.Toolkit.Utils;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.Tab;
 
 namespace Xarial.XCad.SolidWorks.Geometry
 {
+    /// <summary>
+    /// Represents SOLIDWORKS specific memory body
+    /// </summary>
     public interface ISwTempBody : ISwBody, IXMemoryBody
     {
         ISwTempBody Add(ISwTempBody other);
@@ -36,12 +38,74 @@ namespace Xarial.XCad.SolidWorks.Geometry
         ISwTempBody[] Common(ISwTempBody other);
     }
 
-    internal static class SwTempBodyHelper 
+    /// <summary>
+    /// Utility class to perform operations related to temp bodies
+    /// </summary>
+    /// <remarks>This is implemented as a separate class as bodies used in macro feature can perform the operations of temp body,
+    /// while remain the non temp bodies</remarks>
+    internal class SwTempBodyContainer : IDisposable
     {
-        internal static ISwTempBody Add(IBody2 thisBody, IBody2 otherBody,
-            SwApplication ownerApp, SwDocument ownerDoc, Func<IBody2, ISwTempBody> customInstCreator = null)
+        private enum DisplayBodyResult_e
         {
-            var res = PerformOperation(thisBody, otherBody, swBodyOperationType_e.SWBODYADD, ownerApp, ownerDoc, customInstCreator);
+            Success = 0,
+            NotTempBody = 1,
+            InvalidComponent = 2,
+            NotPart = 3
+        }
+
+        private object m_CurrentPreviewContext;
+
+        internal IBody2 Body => m_Body;
+
+        //NOTE: keeping the pointer in this class only so it can be properly disposed
+        private IBody2 m_Body;
+
+        private readonly IMathUtility m_MathUtils;
+
+        protected readonly SwDocument m_Doc;
+        protected readonly SwApplication m_App;
+
+        internal SwTempBodyContainer(IBody2 body, SwDocument doc, SwApplication app)
+        {
+            m_Doc = doc;
+            m_App = app;
+            m_Body = body;
+            m_MathUtils = app.Sw.IGetMathUtility();
+        }
+
+        internal virtual void Preview(IXObject context, Color color)
+        {
+            switch (context)
+            {
+                case ISwPart part:
+                    Display(Body, part.Model, color, false);
+                    break;
+
+                case ISwComponent comp:
+                    Display(Body, comp.Component, color, false);
+                    break;
+
+                default:
+                    throw new NotSupportedException("Only ISwPart or ISwComponent is supported as the context");
+            }
+        }
+
+        internal void HidePreview() 
+        {
+            if (m_CurrentPreviewContext != null)
+            {
+                Body.Hide(m_CurrentPreviewContext);
+                m_CurrentPreviewContext = null;
+            }
+            else
+            {
+                throw new NotSupportedException("Body was not previewed");
+            }
+        }
+
+        internal virtual ISwTempBody Add(ISwTempBody other)
+        {
+            var res = PerformOperation(other, swBodyOperationType_e.SWBODYADD);
 
             if (res.Length == 0)
             {
@@ -56,14 +120,13 @@ namespace Xarial.XCad.SolidWorks.Geometry
             return res.First();
         }
 
-        internal static ISwTempBody[] Substract(IBody2 thisBody, IBody2 otherBody,
-            SwApplication ownerApp, SwDocument ownerDoc, Func<IBody2, ISwTempBody> customInstCreator = null)
-            => PerformOperation(thisBody, otherBody, swBodyOperationType_e.SWBODYCUT, ownerApp, ownerDoc, customInstCreator);
+        /// <remarks>Empty array can be returned if bodies are equal</remarks>
+        internal virtual ISwTempBody[] Substract(ISwTempBody other)
+            => PerformOperation(other, swBodyOperationType_e.SWBODYCUT);
 
-        internal static ISwTempBody[] Common(IBody2 thisBody, IBody2 otherBody,
-            SwApplication ownerApp, SwDocument ownerDoc, Func<IBody2, ISwTempBody> customInstCreator = null)
+        internal virtual ISwTempBody[] Common(ISwTempBody other)
         {
-            var res = PerformOperation(thisBody, otherBody, swBodyOperationType_e.SWBODYINTERSECT, ownerApp, ownerDoc, customInstCreator);
+            var res = PerformOperation(other, swBodyOperationType_e.SWBODYINTERSECT);
 
             if (!res.Any())
             {
@@ -73,9 +136,53 @@ namespace Xarial.XCad.SolidWorks.Geometry
             return res;
         }
 
-        private static ISwTempBody[] PerformOperation(IBody2 thisBody, IBody2 otherBody, swBodyOperationType_e op, 
-            SwApplication ownerApp, SwDocument ownerDoc, Func<IBody2, ISwTempBody> customInstCreator)
+        internal virtual void Transform(TransformMatrix transform)
         {
+            var mathTransform = (MathTransform)m_MathUtils.ToMathTransform(transform);
+
+            if (!Body.ApplyTransform(mathTransform))
+            {
+                if (!Body.IsTemporaryBody())
+                {
+                    throw new NotSupportedException($"Only temp bodies or bodies within the context of macro feature regeneration are supported. Use {nameof(IXBody.Copy)} method");
+                }
+                else
+                {
+                    throw new Exception("Failed to apply transform to the body");
+                }
+            }
+        }
+
+        private void Display(IBody2 body, object context, Color color, bool selectable)
+        {
+            var opts = selectable
+                ? swTempBodySelectOptions_e.swTempBodySelectable
+                : swTempBodySelectOptions_e.swTempBodySelectOptionNone;
+
+            var res = (DisplayBodyResult_e)body.Display3(context, ColorUtils.ToColorRef(color), (int)opts);
+
+            if (res != DisplayBodyResult_e.Success)
+            {
+                throw new Exception($"Failed to render preview body: {res}");
+            }
+
+            var hasAlpha = color.A < 255;
+
+            if (hasAlpha)
+            {
+                //COLORREF does not encode alpha channel, so assigning the color via material properties
+                var matPrps = SwColorHelper.ToMaterialProperties(color);
+                Body.MaterialPropertyValues2 = matPrps;
+            }
+
+            m_CurrentPreviewContext = context;
+        }
+
+        private ISwTempBody[] PerformOperation(ISwTempBody other, swBodyOperationType_e op)
+        {
+            var thisBody = Body;
+            var otherBody = other.Body;
+
             int errs;
             var res = thisBody.Operations2((int)op, otherBody, out errs) as object[];
 
@@ -95,77 +202,64 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
             if (res?.Any() == true)
             {
-                return res.Select(b => 
+                return res.Select(b =>
                 {
                     var body = (IBody2)b;
 
-                    if (customInstCreator != null)
-                    {
-                        return customInstCreator.Invoke(body);
-                    }
-                    else 
-                    {
-                        return ownerApp.CreateObjectFromDispatch<SwTempBody>(body, ownerDoc);
-                    }
+                    return CreateBodyInstance(body);
+
                 }).ToArray();
             }
             else
             {
-                return new ISwTempBody[0];
+                return Array.Empty<ISwTempBody>();
             }
+        }
+
+        protected virtual ISwTempBody CreateBodyInstance(IBody2 body) 
+            => m_App.CreateObjectFromDispatch<SwTempBody>(body, m_Doc);
+
+        public virtual void Dispose()
+        {
+            if (m_Body != null)
+            {
+                Marshal.FinalReleaseComObject(m_Body);
+            }
+
+            m_Body = null;
         }
     }
 
     [DebuggerDisplay("<Temp Body>")]
     internal class SwTempBody : SwBody, ISwTempBody
     {
-        private enum DisplayBodyResult_e
-        {
-            Success = 0,
-            NotTempBody = 1,
-            InvalidComponent = 2,
-            NotPart = 3
-        }
-
         IXMemoryBody IXMemoryBody.Add(IXMemoryBody other) => Add((ISwTempBody)other);
         IXMemoryBody[] IXMemoryBody.Substract(IXMemoryBody other) => Substract((ISwTempBody)other);
         IXMemoryBody[] IXMemoryBody.Common(IXMemoryBody other) => Common((ISwTempBody)other);
 
-        private IBody2 m_TempBody;
+        public override IBody2 Body => m_Creator.Element.Body;
+        public override object Dispatch => Body;
 
-        public override IBody2 Body => m_TempBody;
-        public override object Dispatch => m_TempBody;
-
-        protected readonly ElementCreator<IBody2> m_Creator;
+        protected readonly ElementCreator<SwTempBodyContainer> m_Creator;
 
         public override bool IsCommitted => m_Creator.IsCreated;
 
-        private object m_CurrentPreviewContext;
-
-        //NOTE: keeping the pointer in this class only so it can be properly disposed
         internal SwTempBody(IBody2 body, SwApplication app) : base(null, null, app)
         {
-            //see the comment in the constructor of why null is passed
-            m_Creator = new ElementCreator<IBody2>(CreateBody, null, body != null);
+            m_Creator = new ElementCreator<SwTempBodyContainer>(CreateBodyContainer, 
+                body != null ? new SwTempBodyContainer(body, null, app) : null, body != null);
 
             if (body != null && !body.IsTemporaryBody()) 
             {
                 throw new ArgumentException("Body is not temp");
             }
-
-            m_TempBody = body;
         }
 
         public override void Commit(CancellationToken cancellationToken)
             => m_Creator.Create(cancellationToken);
 
-        private IBody2 CreateBody(CancellationToken cancellationToken) 
-        {
-            m_TempBody = CreateTempBody(cancellationToken);
-
-            //see the comment in the constructor of why null is returned
-            return null;
-        }
+        private SwTempBodyContainer CreateBodyContainer(CancellationToken cancellationToken)
+            => new SwTempBodyContainer(CreateTempBody(cancellationToken), null, OwnerApplication);
 
         protected virtual IBody2 CreateTempBody(CancellationToken cancellationToken)
             => throw new NotImplementedException();
@@ -180,15 +274,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
             {
                 if (!value)
                 {
-                    if (m_CurrentPreviewContext != null)
-                    {
-                        Body.Hide(m_CurrentPreviewContext);
-                        m_CurrentPreviewContext = null;
-                    }
-                    else 
-                    {
-                        throw new NotSupportedException("Body was not previewed");
-                    }
+                    m_Creator.Element.HidePreview();
                 }
                 else 
                 {
@@ -203,56 +289,16 @@ namespace Xarial.XCad.SolidWorks.Geometry
             set => throw new NotSupportedException("Temp body does not support name");
         }
 
-        public void Preview(IXObject context, Color color)
-        {
-            switch (context) 
-            {
-                case ISwPart part:
-                    Preview(part.Model, color, false);
-                    break;
+        public void Preview(IXObject context, Color color) => m_Creator.Element.Preview(context, color);
 
-                case ISwComponent comp:
-                    Preview(comp.Component, color, false);
-                    break;
-
-                default:
-                    throw new NotSupportedException("Only ISwPart or ISwComponent is supported as the context");
-            }
-        }
-
-        private void Preview(object context, Color color, bool selectable)
-        {
-            var opts = selectable
-                ? swTempBodySelectOptions_e.swTempBodySelectable
-                : swTempBodySelectOptions_e.swTempBodySelectOptionNone;
-
-            var res = (DisplayBodyResult_e)Body.Display3(context, ColorUtils.ToColorRef(color), (int)opts);
-
-            if (res != DisplayBodyResult_e.Success)
-            {
-                throw new Exception($"Failed to render preview body: {res}");
-            }
-
-            var hasAlpha = color.A < 255;
-
-            if (hasAlpha)
-            {
-                //COLORREF does not encode alpha channel, so assigning the color via material properties
-                Color = color;
-            }
-
-            m_CurrentPreviewContext = context;
-        }
-
-        public ISwTempBody Add(ISwTempBody other)
-            => SwTempBodyHelper.Add(Body, ((SwBody)other).Body, OwnerApplication, OwnerDocument);
+        public ISwTempBody Add(ISwTempBody other) => m_Creator.Element.Add(other);
 
         /// <remarks>Empty array can be returned if bodies are equal</remarks>
-        public ISwTempBody[] Substract(ISwTempBody other)
-            => SwTempBodyHelper.Substract(Body, ((SwBody)other).Body, OwnerApplication, OwnerDocument);
+        public ISwTempBody[] Substract(ISwTempBody other) => m_Creator.Element.Substract(other);
 
-        public ISwTempBody[] Common(ISwTempBody other)
-            => SwTempBodyHelper.Common(Body, ((SwBody)other).Body, OwnerApplication, OwnerDocument);
+        public ISwTempBody[] Common(ISwTempBody other) => m_Creator.Element.Common(other);
+
+        public void Transform(TransformMatrix transform) => m_Creator.Element.Transform(transform);
 
         public void Dispose()
         {
@@ -263,13 +309,11 @@ namespace Xarial.XCad.SolidWorks.Geometry
         {
             if (disposing)
             {
-                if (m_TempBody != null)
+                if (m_Creator.IsCreated)
                 {
-                    Marshal.FinalReleaseComObject(m_TempBody);
+                    m_Creator.Element.Dispose();
                 }
             }
-
-            m_TempBody = null;
         }
     }
 

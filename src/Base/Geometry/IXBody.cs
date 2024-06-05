@@ -56,12 +56,6 @@ namespace Xarial.XCad.Geometry
         /// </summary>
         /// <returns>Copied body</returns>
         IXMemoryBody Copy();
-
-        /// <summary>
-        /// Moves this body with specified matrix
-        /// </summary>
-        /// <param name="transform">Transformation matrix</param>
-        void Transform(TransformMatrix transform);
     }
 
     /// <summary>
