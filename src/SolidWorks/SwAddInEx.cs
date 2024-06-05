@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -130,7 +130,7 @@ namespace Xarial.XCad.SolidWorks
 
         public ISwApplication Application => m_Application;
 
-        private SwApplication m_Application;
+        private readonly SwApplication m_Application;
 
         public ISwCommandManager CommandManager => m_CommandManager;
 
@@ -146,10 +146,26 @@ namespace Xarial.XCad.SolidWorks
         private readonly List<IDisposable> m_Disposables;
 
         protected IServiceProvider m_SvcProvider;
-        
+
+        private ISldWorks m_Sw;
+
         public SwAddInEx()
         {   
             m_Disposables = new List<IDisposable>();
+            
+            m_Application = new SwApplication(OnStartupCompleted, () =>
+            {
+                if (m_Sw != null)
+                {
+                    return m_Sw;
+                }
+                else 
+                {
+                    throw new Exception("SOLIDWORKS instance cannot be initialized manually. It will be initialized during the loading of the add-in");
+                }
+            }, CreateServiceCollection());
+
+            m_Application.ConfigureServices += OnConfigureApplicationServices;
         }
 
         [Browsable(false)]
@@ -162,27 +178,21 @@ namespace Xarial.XCad.SolidWorks
             {
                 Validate();
 
-                var app = ThisSW as ISldWorks;
+                m_Sw = ThisSW as ISldWorks;
                 AddInId = cookie;
 
-                if (app.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2015))
+                if (m_Sw.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2015))
                 {
-                    app.SetAddinCallbackInfo2(0, this, AddInId);
+                    m_Sw.SetAddinCallbackInfo2(0, this, AddInId);
                 }
                 else
                 {
-                    app.SetAddinCallbackInfo(0, this, AddInId);
+                    m_Sw.SetAddinCallbackInfo(0, this, AddInId);
                 }
 
-                m_Application = new SwApplication(app, OnStartupCompleted);
+                m_Application.Commit();
 
-                var svcCollection = GetServiceCollection(m_Application);
-
-                OnConfigureServices(svcCollection);
-
-                m_SvcProvider = svcCollection.CreateProvider();
-
-                m_Application.Init(m_SvcProvider);
+                m_SvcProvider = m_Application.Services;
 
                 Logger = m_SvcProvider.GetService<IXLogger>();
 
@@ -203,6 +213,12 @@ namespace Xarial.XCad.SolidWorks
                 HandleException(ex);
                 return false;
             }
+        }
+
+        private void OnConfigureApplicationServices(IXServiceConsumer sender, IXServiceCollection collection)
+        {
+            LoadServices(collection);
+            OnConfigureServices(collection);
         }
 
         protected virtual void Validate()
@@ -231,12 +247,8 @@ namespace Xarial.XCad.SolidWorks
             }
         }
 
-        private IXServiceCollection GetServiceCollection(SwApplication app)
+        private void LoadServices(IXServiceCollection svcCollection)
         {
-            var svcCollection = CreateServiceCollection();
-
-            app.LoadServices(svcCollection);
-
             svcCollection.Add<IXLogger>(CreateDefaultLogger, ServiceLifetimeScope_e.Singleton);
             svcCollection.Add<IIconsCreator, BaseIconsCreator>(ServiceLifetimeScope_e.Singleton);
             svcCollection.Add<IPropertyPageHandlerProvider, DataModelPropertyPageHandlerProvider>(ServiceLifetimeScope_e.Singleton);
@@ -247,11 +259,9 @@ namespace Xarial.XCad.SolidWorks
             svcCollection.Add<ITaskPaneControlProvider, TaskPaneControlProvider>(ServiceLifetimeScope_e.Singleton);
             svcCollection.Add<IModelViewControlProvider, ModelViewControlProvider>(ServiceLifetimeScope_e.Singleton);
             svcCollection.Add<ICommandGroupTabConfigurer, DefaultCommandGroupTabConfigurer>(ServiceLifetimeScope_e.Singleton);
-
-            return svcCollection;
         }
 
-        protected IXLogger CreateDefaultLogger() 
+        internal IXLogger CreateDefaultLogger() 
         {
             var addInType = this.GetType();
             var title = GetRegistrationHelper(addInType).GetTitle(addInType);
@@ -360,7 +370,7 @@ namespace Xarial.XCad.SolidWorks
 
                 try
                 {
-                    Application.Dispose();
+                    m_Application.Release(false);
                 }
                 catch (Exception ex)
                 {

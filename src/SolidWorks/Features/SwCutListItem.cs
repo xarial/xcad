@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -21,13 +21,25 @@ using Xarial.XCad.SolidWorks.Data;
 using Xarial.XCad.SolidWorks.Data.EventHandlers;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Documents.Exceptions;
+using Xarial.XCad.SolidWorks.Enums;
 using Xarial.XCad.SolidWorks.Geometry;
 using Xarial.XCad.Toolkit.Services;
 
 namespace Xarial.XCad.SolidWorks.Features
 {
+    /// <summary>
+    /// SOLIDWORKS specific cut-list item
+    /// </summary>
     public interface ISwCutListItem : IXCutListItem, ISwFeature, IDisposable
     {
+        /// <summary>
+        /// Native SOLIDWORKS cut-list item
+        /// </summary>
+        ICutListItem CutListItem { get; }
+
+        /// <summary>
+        /// Pointer to cut-list folder
+        /// </summary>
         IBodyFolder CutListBodyFolder { get; }
     }
 
@@ -40,8 +52,11 @@ namespace Xarial.XCad.SolidWorks.Features
 
         private ISwDocument3D m_ParentDoc;
         private ISwConfiguration m_ParentConf;
-        
-        internal SwCutListItem(IFeature feat, SwDocument3D doc, SwApplication app, bool created) : base(feat, doc, app, created)
+
+        private readonly Lazy<ICutListItem> m_CutListItemLazy;
+
+        internal SwCutListItem(IFeature feat, SwDocument3D doc, SwApplication app, bool created) 
+            : base(feat, doc, app, created)
         {
             if (feat.GetTypeName2() != "CutListFolder") 
             {
@@ -55,10 +70,43 @@ namespace Xarial.XCad.SolidWorks.Features
 
             m_Properties = new Lazy<ISwCustomPropertiesCollection>(
                 () => CreatePropertiesCollection());
+
+            if (OwnerApplication.IsVersionNewerOrEqual(SwVersion_e.Sw2024))
+            {
+                m_CutListItemLazy = new Lazy<ICutListItem>(() =>
+                {
+                    if (m_ParentConf.IsCommitted)
+                    {
+                        var cutLists = (object[])m_ParentConf.Configuration.GetCutListItems();
+                        if (cutLists != null)
+                        {
+                            var cutList = (ICutListItem)cutLists.FirstOrDefault(c => string.Equals(((IFeature)c).Name, feat.Name,
+                                StringComparison.CurrentCultureIgnoreCase));
+
+                            if (cutList != null)
+                            {
+                                return cutList;
+                            }
+                            else
+                            {
+                                throw new Exception("Failed to find cut list item by name");
+                            }
+                        }
+                    }
+
+                    return null;
+                });
+            }
         }
 
-        protected virtual SwCutListCustomPropertiesCollection CreatePropertiesCollection()
-            => new SwCutListCustomPropertiesCollection(Feature.CustomPropertyManager, m_ParentDoc, m_ParentConf, OwnerApplication);
+        internal SwCutListItem(ICutListItem cutListItem, SwDocument3D doc, SwApplication app, bool created) 
+            : this((IFeature)cutListItem, doc, app, created)
+        {
+            m_CutListItemLazy = new Lazy<ICutListItem>(() => cutListItem);
+        }
+
+        private SwCutListCustomPropertiesCollection CreatePropertiesCollection()
+            => new SwCutListCustomPropertiesCollection(this, m_ParentDoc, m_ParentConf, OwnerApplication);
 
         public IBodyFolder CutListBodyFolder { get; }
 
@@ -128,6 +176,21 @@ namespace Xarial.XCad.SolidWorks.Features
             }
         }
 
+        public ICutListItem CutListItem 
+        {
+            get 
+            {
+                if (OwnerApplication.IsVersionNewerOrEqual(SwVersion_e.Sw2024))
+                {
+                    return m_CutListItemLazy.Value;
+                }
+                else 
+                {
+                    throw new NotSupportedException("Native cut-list item is available in SOLIDWORKS 2024 and newer");
+                }
+            }
+        }
+
         internal void SetParent(ISwDocument3D doc, ISwConfiguration conf) 
         {
             m_ParentDoc = doc;
@@ -156,17 +219,33 @@ namespace Xarial.XCad.SolidWorks.Features
         private readonly ISwDocument3D m_ParentDoc;
         private readonly ISwConfiguration m_ParentConf;
 
-        internal SwCutListCustomPropertiesCollection(CustomPropertyManager prpsMgr,
+        private readonly SwCutListItem m_CutListItem;
+
+        internal SwCutListCustomPropertiesCollection(SwCutListItem cutListItem,
             ISwDocument3D parentDoc, ISwConfiguration parentConf, ISwApplication app) 
             : base((SwDocument)parentDoc, app)
         {
-            PrpMgr = prpsMgr;
+            m_CutListItem = cutListItem;
 
             m_ParentDoc = parentDoc;
             m_ParentConf = parentConf;
         }
 
-        protected override CustomPropertyManager PrpMgr { get; }
+        protected override CustomPropertyManager PrpMgr
+        {
+            get
+            {
+                //NOTE: CutListItem can be null in the lightweight component
+                if (m_ParentDoc.OwnerApplication.IsVersionNewerOrEqual(SwVersion_e.Sw2024) && m_CutListItem.CutListItem != null)
+                {
+                    return m_CutListItem.CutListItem.CustomPropertyManager;
+                }
+                else
+                {
+                    return m_CutListItem.Feature.CustomPropertyManager;
+                }
+            }
+        }
 
         protected override EventsHandler<PropertyValueChangedDelegate> CreateEventsHandler(SwCustomProperty prp)
             => new CutListCustomPropertyChangeEventsHandler();

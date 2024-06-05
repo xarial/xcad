@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -20,10 +20,17 @@ using Xarial.XCad.Utils.Reflection;
 
 namespace Xarial.XCad.Utils.PageBuilder.Binders
 {
+    /// <summary>
+    /// Binding based on proeprty info
+    /// </summary>
+    /// <typeparam name="TDataModel">Data model type</typeparam>
     public class PropertyInfoBinding<TDataModel> : Binding<TDataModel>
     {
         private readonly IList<IControlDescriptor> m_Parents;
 
+        /// <summary>
+        /// Descriptor of the control
+        /// </summary>
         public IControlDescriptor ControlDescriptor { get; }
 
         private readonly IMetadata[] m_Metadata;

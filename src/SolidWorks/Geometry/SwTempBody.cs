@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -8,14 +8,18 @@
 using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
 using System;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading;
 using Xarial.XCad.Documents;
+using Xarial.XCad.Exceptions;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Exceptions;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Geometry.Wires;
+using Xarial.XCad.Services;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Geometry.Curves;
 using Xarial.XCad.SolidWorks.Geometry.Primitives;
@@ -112,6 +116,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
         }
     }
 
+    [DebuggerDisplay("<Temp Body>")]
     internal class SwTempBody : SwBody, ISwTempBody
     {
         private enum DisplayBodyResult_e
@@ -131,16 +136,39 @@ namespace Xarial.XCad.SolidWorks.Geometry
         public override IBody2 Body => m_TempBody;
         public override object Dispatch => m_TempBody;
 
+        protected readonly ElementCreator<IBody2> m_Creator;
+
+        public override bool IsCommitted => m_Creator.IsCreated;
+
+        private object m_CurrentPreviewContext;
+
         //NOTE: keeping the pointer in this class only so it can be properly disposed
         internal SwTempBody(IBody2 body, SwApplication app) : base(null, null, app)
         {
-            if (!body.IsTemporaryBody()) 
+            //see the comment in the constructor of why null is passed
+            m_Creator = new ElementCreator<IBody2>(CreateBody, null, body != null);
+
+            if (body != null && !body.IsTemporaryBody()) 
             {
                 throw new ArgumentException("Body is not temp");
             }
 
             m_TempBody = body;
         }
+
+        public override void Commit(CancellationToken cancellationToken)
+            => m_Creator.Create(cancellationToken);
+
+        private IBody2 CreateBody(CancellationToken cancellationToken) 
+        {
+            m_TempBody = CreateTempBody(cancellationToken);
+
+            //see the comment in the constructor of why null is returned
+            return null;
+        }
+
+        protected virtual IBody2 CreateTempBody(CancellationToken cancellationToken)
+            => throw new NotImplementedException();
 
         public override ISwBody CreateResilient()
             => throw new NotSupportedException("Only permanent bodies can be converter to resilient bodies");
@@ -169,7 +197,11 @@ namespace Xarial.XCad.SolidWorks.Geometry
             }
         }
 
-        private object m_CurrentPreviewContext;
+        public override string Name 
+        {
+            get => throw new NotSupportedException("Temp body does not support name"); 
+            set => throw new NotSupportedException("Temp body does not support name");
+        }
 
         public void Preview(IXObject context, Color color)
         {
@@ -231,7 +263,10 @@ namespace Xarial.XCad.SolidWorks.Geometry
         {
             if (disposing)
             {
-                Marshal.FinalReleaseComObject(m_TempBody);
+                if (m_TempBody != null)
+                {
+                    Marshal.FinalReleaseComObject(m_TempBody);
+                }
             }
 
             m_TempBody = null;
@@ -246,7 +281,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
     {
     }
 
-    public interface ISwTempPlanarSheetBody : ISwTempSheetBody, ISwPlanarSheetBody, ISwTempRegion, IXMemoryPlanarSheetBody
+    public interface ISwTempPlanarSheetBody : ISwTempSheetBody, ISwPlanarSheetBody, ISwPlanarRegion, IXMemoryPlanarSheetBody
     {
     }
 
@@ -289,8 +324,82 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
     internal class SwTempWireBody : SwTempBody, ISwTempWireBody
     {
+        public IXSegment[] Segments 
+        {
+            get 
+            {
+                if (IsCommitted)
+                {
+                    return Edges.ToArray();
+                }
+                else 
+                {
+                    return m_Creator.CachedProperties.Get<IXSegment[]>();
+                }
+            }
+            set 
+            {
+                if (!IsCommitted)
+                {
+                    m_Creator.CachedProperties.Set(value);
+                }
+                else
+                {
+                    throw new CommitedElementReadOnlyParameterException();
+                }
+            }
+        }
+
         internal SwTempWireBody(IBody2 body, SwApplication app) : base(body, app)
         {
+            if (body != null) 
+            {
+                if (body.GetType() != (int)swBodyType_e.swWireBody) 
+                {
+                    throw new Exception("Specified body is not a wire body");
+                }
+            }
+        }
+
+        protected override IBody2 CreateTempBody(CancellationToken cancellationToken)
+        {
+            var curves = Segments.SelectMany(s => 
+            {
+                switch (s) 
+                {
+                    case ISwCurve curve:
+                        return curve.Curves;
+
+                    case ISwEdge edge:
+                        return edge.Definition.Curves;
+
+                    default:
+                        throw new NotSupportedException("Only edges and curves are supported for the segments");
+                }
+            }).ToArray();
+
+            if (!curves.Any())
+            {
+                throw new Exception("No curves found");
+            }
+
+            IBody2 wireBody;
+
+            if (curves.Length == 1)
+            {
+                wireBody = curves.First().CreateWireBody();
+            }
+            else 
+            {
+                wireBody = OwnerApplication.Sw.IGetModeler().CreateWireBody(curves, (int)swCreateWireBodyOptions_e.swCreateWireBodyByDefault);
+            }
+            
+            if (wireBody == null)
+            {
+                throw new NullReferenceException($"Wire body cannot be created from the curves");
+            }
+
+            return wireBody;
         }
     }
 }

@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -8,12 +8,14 @@
 using SolidWorks.Interop.sldworks;
 using System;
 using System.Threading;
+using Xarial.XCad.Documents;
 using Xarial.XCad.Features;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Services;
 using Xarial.XCad.Sketch;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Features;
+using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.Toolkit.Utils;
 
 namespace Xarial.XCad.SolidWorks.Sketch
@@ -59,6 +61,12 @@ namespace Xarial.XCad.SolidWorks.Sketch
         }
 
         public override void Commit(CancellationToken cancellationToken) => m_Creator.Create(cancellationToken);
+
+        public override IXLayer Layer
+        {
+            get => SwLayerHelper.GetLayer(this, x => x.Point.Layer);
+            set => SwLayerHelper.SetLayer(this, value, (x, y) => x.Point.Layer = y);
+        }
 
         public override System.Drawing.Color? Color
         {

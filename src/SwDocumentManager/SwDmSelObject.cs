@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -23,7 +23,7 @@ namespace Xarial.XCad.SwDocumentManager
     {
         #region Not Supported
         
-        public void Commit(CancellationToken cancellationToken) => throw new NotSupportedException();
+        public virtual void Commit(CancellationToken cancellationToken) => throw new NotSupportedException();
         public void Delete() => throw new NotSupportedException();
         public void Select(bool append) => throw new NotSupportedException();
 
@@ -35,7 +35,5 @@ namespace Xarial.XCad.SwDocumentManager
 
         public bool IsSelected => throw new NotSupportedException();
         public virtual bool IsCommitted => true;
-
-        public virtual SelectType_e SelectionType => throw new NotSupportedException("Type of this object is unknown");
     }
 }

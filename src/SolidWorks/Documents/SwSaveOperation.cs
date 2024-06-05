@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -13,15 +13,19 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Markup;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Exceptions;
 using Xarial.XCad.Exceptions;
+using Xarial.XCad.Geometry;
 using Xarial.XCad.Services;
 using Xarial.XCad.SolidWorks.Enums;
+using Xarial.XCad.SolidWorks.Geometry;
+using Xarial.XCad.SolidWorks.Utils;
 
 namespace Xarial.XCad.SolidWorks.Documents
 {
-    internal class SwSaveOperation : IXSaveOperation
+    internal abstract class SwSaveOperation : IXSaveOperation
     {
         internal static string ParseSaveError(swFileSaveError_e err)
         {
@@ -122,7 +126,12 @@ namespace Xarial.XCad.SolidWorks.Documents
 
             try
             {
-                if (m_Doc.OwnerApplication.IsVersionNewerOrEqual(SwVersion_e.Sw2019, 1))
+                if (m_Doc.OwnerApplication.IsVersionNewerOrEqual(SwVersion_e.Sw2020, 2))
+                {
+                    res = m_Doc.Model.Extension.SaveAs3(FilePath, (int)swSaveAsVersion_e.swSaveAsCurrentVersion,
+                        (int)swSaveAsOptions_e.swSaveAsOptions_Silent, expData, null, ref errs, ref warns);
+                }
+                else if (m_Doc.OwnerApplication.IsVersionNewerOrEqual(SwVersion_e.Sw2019, 1))
                 {
                     res = m_Doc.Model.Extension.SaveAs2(FilePath, (int)swSaveAsVersion_e.swSaveAsCurrentVersion,
                         (int)swSaveAsOptions_e.swSaveAsOptions_Silent, expData, "", false, ref errs, ref warns);
@@ -158,11 +167,78 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
     }
 
-    internal class SwStepSaveOperation : SwSaveOperation, IXStepSaveOperation
+    internal class SwDocument3DSaveOperation : SwSaveOperation, IXDocument3DSaveOperation
+    {
+        private SelectionGroup m_SelGroup;
+
+        internal SwDocument3DSaveOperation(SwDocument3D doc, string filePath) : base(doc, filePath)
+        {
+        }
+
+        protected override void SetSaveOptions(out object exportData)
+        {
+            base.SetSaveOptions(out exportData);
+
+            m_SelGroup = new SelectionGroup(m_Doc, true);
+
+            if (Bodies?.Any() == true)
+            {
+                m_SelGroup.AddRange(Bodies.Cast<ISwBody>().Select(b => b.Body).ToArray());
+            }
+        }
+
+        protected override void RestoreSaveOptions()
+        {
+            base.RestoreSaveOptions();
+
+            m_SelGroup.Dispose();
+        }
+
+        public IXBody[] Bodies
+        {
+            get => m_Creator.CachedProperties.Get<IXBody[]>();
+            set
+            {
+                if (!IsCommitted)
+                {
+                    m_Creator.CachedProperties.Set(value);
+                }
+                else
+                {
+                    throw new CommitedElementReadOnlyParameterException();
+                }
+            }
+        }
+    }
+
+    internal class SwDrawingSaveOperation : SwSaveOperation, IXDrawingSaveOperation
+    {
+        public IXSheet[] Sheets
+        {
+            get => m_Creator.CachedProperties.Get<IXSheet[]>();
+            set
+            {
+                if (!IsCommitted)
+                {
+                    m_Creator.CachedProperties.Set(value);
+                }
+                else
+                {
+                    throw new CommitedElementReadOnlyParameterException();
+                }
+            }
+        }
+
+        internal SwDrawingSaveOperation(SwDrawing drw, string filePath) : base(drw, filePath)
+        {
+        }
+    }
+
+    internal class SwStepSaveOperation : SwDocument3DSaveOperation, IXStepSaveOperation
     {
         private int m_OriginalFormat;
 
-        internal SwStepSaveOperation(SwDocument doc, string filePath) : base(doc, filePath)
+        internal SwStepSaveOperation(SwDocument3D doc, string filePath) : base(doc, filePath)
         {
             var format = m_Doc.OwnerApplication.Sw.GetUserPreferenceIntegerValue((int)swUserPreferenceIntegerValue_e.swStepAP);
 
@@ -188,6 +264,8 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         protected override void SetSaveOptions(out object exportData)
         {
+            base.SetSaveOptions(out exportData);
+
             m_OriginalFormat = m_Doc.OwnerApplication.Sw.GetUserPreferenceIntegerValue((int)swUserPreferenceIntegerValue_e.swStepAP);
 
             exportData = null;
@@ -216,6 +294,8 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         protected override void RestoreSaveOptions()
         {
+            base.RestoreSaveOptions();
+
             m_Doc.OwnerApplication.Sw.SetUserPreferenceIntegerValue((int)swUserPreferenceIntegerValue_e.swStepAP, m_OriginalFormat);
         }
 
@@ -236,17 +316,20 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
     }
 
-    internal class SwPdfSaveOperation : SwSaveOperation, IXPdfSaveOperation
+    internal class SwDocument3DPdfSaveOperation : SwDocument3DSaveOperation, IXDocument3DPdfSaveOperation
     {
-        internal SwPdfSaveOperation(SwDocument doc, string filePath) : base(doc, filePath)
+        internal SwDocument3DPdfSaveOperation(SwDocument3D doc, string filePath) : base(doc, filePath)
         {
         }
 
         protected override void SetSaveOptions(out object exportData)
         {
+            base.SetSaveOptions(out exportData);
+
             var pdfExpData = (IExportPdfData)m_Doc.OwnerApplication.Sw.GetExportFileData((int)swExportDataFileType_e.swExportPdfData);
-            pdfExpData.ExportAs3D = Pdf3D;
             pdfExpData.ViewPdfAfterSaving = false;
+            pdfExpData.ExportAs3D = Pdf3D;
+
             exportData = pdfExpData;
         }
 
@@ -267,14 +350,46 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
     }
 
-    internal class SwDxfDwgSaveOperation : SwSaveOperation, IXDxfDwgSaveOperation
+    internal class SwDrawingPdfSaveOperation : SwDrawingSaveOperation, IXDrawingPdfSaveOperation
+    {
+        internal SwDrawingPdfSaveOperation(SwDrawing doc, string filePath) : base(doc, filePath)
+        {
+        }
+
+        protected override void SetSaveOptions(out object exportData)
+        {
+            base.SetSaveOptions(out exportData);
+
+            var pdfExpData = (IExportPdfData)m_Doc.OwnerApplication.Sw.GetExportFileData((int)swExportDataFileType_e.swExportPdfData);
+            pdfExpData.ViewPdfAfterSaving = false;
+
+            var sheets = Sheets;
+
+            pdfExpData.SetSheets(sheets?.Any() == true
+                ? (int)swExportDataSheetsToExport_e.swExportData_ExportSpecifiedSheets
+                : (int)swExportDataSheetsToExport_e.swExportData_ExportAllSheets,
+                sheets?.Select(s => s.Name)?.ToArray());
+
+            exportData = pdfExpData;
+        }
+    }
+
+    internal class SwDxfDwgSaveOperation : SwDrawingSaveOperation, IXDxfDwgSaveOperation
     {
         private bool m_OrigDxfMapping;
         private string m_OrigDxfMappingFiles;
         private int m_OrigDxfMappingFileIndex;
+        private int m_OrigDxfMultiSheetOption;
+        private bool m_OrigExportHiddenLayers;
+        private bool m_OrigDxfExportSplinesAsSplines;
 
-        internal SwDxfDwgSaveOperation(SwDocument doc, string filePath) : base(doc, filePath)
+        private readonly SwDrawing m_Draw;
+        private SheetActivator m_SheetActivator;
+
+        internal SwDxfDwgSaveOperation(SwDrawing doc, string filePath) : base(doc, filePath)
         {
+            m_Draw = doc;
+
             var mapFilePath = "";
 
             if (m_Doc.OwnerApplication.Sw.GetUserPreferenceToggle((int)swUserPreferenceToggle_e.swDxfMapping)) 
@@ -284,7 +399,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
                 var index = m_Doc.OwnerApplication.Sw.GetUserPreferenceIntegerValue((int)swUserPreferenceIntegerValue_e.swDxfMappingFileIndex);
 
-                if (index < mapFiles.Length) 
+                if (index != -1 && index < mapFiles.Length) 
                 {
                     mapFilePath = mapFiles[index];
                 }
@@ -295,11 +410,15 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         protected override void SetSaveOptions(out object exportData)
         {
+            base.SetSaveOptions(out exportData);
+
             exportData = null;
 
             m_OrigDxfMapping = m_Doc.OwnerApplication.Sw.GetUserPreferenceToggle((int)swUserPreferenceToggle_e.swDxfMapping);
             m_OrigDxfMappingFiles = m_Doc.OwnerApplication.Sw.GetUserPreferenceStringListValue((int)swUserPreferenceStringListValue_e.swDxfMappingFiles);
             m_OrigDxfMappingFileIndex = m_Doc.OwnerApplication.Sw.GetUserPreferenceIntegerValue((int)swUserPreferenceIntegerValue_e.swDxfMappingFileIndex);
+            m_OrigDxfMultiSheetOption = m_Doc.OwnerApplication.Sw.GetUserPreferenceIntegerValue((int)swUserPreferenceIntegerValue_e.swDxfMultiSheetOption);
+            m_OrigDxfExportSplinesAsSplines = m_Doc.OwnerApplication.Sw.GetUserPreferenceToggle((int)swUserPreferenceToggle_e.swDxfExportSplinesAsSplines);
 
             m_Doc.OwnerApplication.Sw.SetUserPreferenceToggle((int)swUserPreferenceToggle_e.swDxfMapping, !string.IsNullOrEmpty(LayersMapFilePath));
 
@@ -309,18 +428,95 @@ namespace Xarial.XCad.SolidWorks.Documents
 
                 m_Doc.OwnerApplication.Sw.SetUserPreferenceIntegerValue((int)swUserPreferenceIntegerValue_e.swDxfMappingFileIndex, 0);
             }
+
+            bool exportSplinesAsSplines;
+
+            switch (SplineExportOptions) 
+            {
+                case SplineExportOptions_e.Splines:
+                    exportSplinesAsSplines = true;
+                    break;
+
+                case SplineExportOptions_e.Polylines:
+                    exportSplinesAsSplines = false;
+                    break;
+
+                default:
+                    throw new NotSupportedException($"Only {nameof(SplineExportOptions_e.Splines)} and {nameof(SplineExportOptions_e.Polylines)} are supported in {nameof(SplineExportOptions)}");
+            }
+
+            m_Doc.OwnerApplication.Sw.SetUserPreferenceToggle((int)swUserPreferenceToggle_e.swDxfExportSplinesAsSplines, exportSplinesAsSplines);
+
+            m_OrigExportHiddenLayers = m_Doc.OwnerApplication.Sw.GetUserPreferenceToggle((int)swUserPreferenceToggle_e.swDXFExportHiddenLayersOn);
+            m_Doc.OwnerApplication.Sw.SetUserPreferenceToggle((int)swUserPreferenceToggle_e.swDXFExportHiddenLayersOn, ExportHiddentLayers);
+
+            if (Sheets?.Length == 1)
+            {
+                m_SheetActivator = new SheetActivator((SwSheet)Sheets.First());
+
+                m_Doc.OwnerApplication.Sw.SetUserPreferenceIntegerValue(
+                    (int)swUserPreferenceIntegerValue_e.swDxfMultiSheetOption, (int)swDxfMultisheet_e.swDxfActiveSheetOnly);
+            }
+            else if (Sheets == null || m_Draw.Sheets.OrderBy(s => s.Name).SequenceEqual(Sheets.OrderBy(s => s.Name), new XObjectEqualityComparer<IXSheet>()))
+            {
+                m_Doc.OwnerApplication.Sw.SetUserPreferenceIntegerValue(
+                    (int)swUserPreferenceIntegerValue_e.swDxfMultiSheetOption, (int)swDxfMultisheet_e.swDxfMultiSheet);
+            }
+            else 
+            {
+                throw new NotSupportedException("Only single or all sheets can be exported to DXF/DWG");
+            }
         }
 
         protected override void RestoreSaveOptions()
         {
-             m_Doc.OwnerApplication.Sw.SetUserPreferenceToggle((int)swUserPreferenceToggle_e.swDxfMapping, m_OrigDxfMapping);
-             m_Doc.OwnerApplication.Sw.SetUserPreferenceStringListValue((int)swUserPreferenceStringListValue_e.swDxfMappingFiles, m_OrigDxfMappingFiles);
-             m_Doc.OwnerApplication.Sw.SetUserPreferenceIntegerValue((int)swUserPreferenceIntegerValue_e.swDxfMappingFileIndex, m_OrigDxfMappingFileIndex);
+            m_Doc.OwnerApplication.Sw.SetUserPreferenceToggle((int)swUserPreferenceToggle_e.swDxfMapping, m_OrigDxfMapping);
+            m_Doc.OwnerApplication.Sw.SetUserPreferenceStringListValue((int)swUserPreferenceStringListValue_e.swDxfMappingFiles, m_OrigDxfMappingFiles);
+            m_Doc.OwnerApplication.Sw.SetUserPreferenceIntegerValue((int)swUserPreferenceIntegerValue_e.swDxfMappingFileIndex, m_OrigDxfMappingFileIndex);
+            m_Doc.OwnerApplication.Sw.SetUserPreferenceIntegerValue((int)swUserPreferenceIntegerValue_e.swDxfMultiSheetOption, m_OrigDxfMultiSheetOption);
+
+            m_Doc.OwnerApplication.Sw.SetUserPreferenceToggle((int)swUserPreferenceToggle_e.swDxfExportSplinesAsSplines, m_OrigDxfExportSplinesAsSplines);
+
+            m_Doc.OwnerApplication.Sw.SetUserPreferenceToggle((int)swUserPreferenceToggle_e.swDXFExportHiddenLayersOn, m_OrigExportHiddenLayers);
+
+            m_SheetActivator?.Dispose();
         }
 
         public string LayersMapFilePath
         {
             get => m_Creator.CachedProperties.Get<string>();
+            set
+            {
+                if (!IsCommitted)
+                {
+                    m_Creator.CachedProperties.Set(value);
+                }
+                else
+                {
+                    throw new CommitedElementReadOnlyParameterException();
+                }
+            }
+        }
+
+        public bool ExportHiddentLayers
+        {
+            get => m_Creator.CachedProperties.Get<bool>();
+            set
+            {
+                if (!IsCommitted)
+                {
+                    m_Creator.CachedProperties.Set(value);
+                }
+                else
+                {
+                    throw new CommitedElementReadOnlyParameterException();
+                }
+            }
+        }
+
+        public SplineExportOptions_e SplineExportOptions
+        {
+            get => m_Creator.CachedProperties.Get<SplineExportOptions_e>();
             set
             {
                 if (!IsCommitted)

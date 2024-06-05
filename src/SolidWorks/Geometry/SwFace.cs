@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -11,6 +11,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Xarial.XCad.Enums;
 using Xarial.XCad.Features;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;
@@ -99,18 +100,34 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         private IComponent2 GetSwComponent() => (Face as IEntity).GetComponent() as IComponent2;
 
-        public System.Drawing.Color? Color 
+        public System.Drawing.Color? Color
         {
-            get => SwColorHelper.GetColor(GetSwComponent(), 
+            get => SwColorHelper.GetColor(GetSwComponent(),
                 (o, c) => Face.GetMaterialPropertyValues2((int)o, c) as double[]);
             set => SwColorHelper.SetColor(value, GetSwComponent(),
                 (m, o, c) => Face.SetMaterialPropertyValues2(m, (int)o, c),
                 (o, c) => Face.RemoveMaterialProperty2((int)o, c));
         }
 
+        public override bool IsAlive
+        {
+            get
+            {
+                if (base.IsAlive)
+                {
+                    //some of the faces may be broken and have negative area. Working with these faces may resut in the SOLIDWORKS crash
+                    return Face.GetArea() > 0;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+        }
+
         public ISwSurface Definition => OwnerApplication.CreateObjectFromDispatch<SwSurface>(Face.IGetSurface(), OwnerDocument);
 
-        private IEnumerable<ISwLoop> IterateLoops() 
+        private IEnumerable<ISwLoop> IterateLoops()
         {
             var loops = (object[])Face.GetLoops();
 
@@ -120,9 +137,9 @@ namespace Xarial.XCad.SolidWorks.Geometry
             }
         }
 
-        public IXFeature Feature 
+        public IXFeature Feature
         {
-            get 
+            get
             {
                 var feat = Face.IGetFeature();
 
@@ -130,13 +147,13 @@ namespace Xarial.XCad.SolidWorks.Geometry
                 {
                     return OwnerDocument.CreateObjectFromDispatch<ISwFeature>(feat);
                 }
-                else 
+                else
                 {
                     return null;
                 }
             }
         }
-        
+
         public bool Sense => Face.FaceInSurfaceSense();
 
         public IXLoop OuterLoop
@@ -149,6 +166,39 @@ namespace Xarial.XCad.SolidWorks.Geometry
         {
             get => IterateLoops().Where(l => !l.Loop.IsOuter()).ToArray();
             set => throw new NotSupportedException();
+        }
+
+        public Box3D Box
+        {
+            get
+            {
+                var box = (double[])Face.GetBox();
+
+                return new Box3D(box[0], box[1], box[2], box[3], box[4], box[5]);
+            }
+        }
+
+        public FaceShellType_e ShellType 
+        {
+            get 
+            {
+                var shellType = Face.GetShellType();
+
+                switch (shellType) 
+                {
+                    case 0:
+                        return FaceShellType_e.Open;
+
+                    case 1:
+                        return FaceShellType_e.Internal;
+
+                    case 2:
+                        return FaceShellType_e.External;
+
+                    default:
+                        throw new NotSupportedException();
+                }
+            }
         }
 
         public override Point FindClosestPoint(Point point)
@@ -254,6 +304,8 @@ namespace Xarial.XCad.SolidWorks.Geometry
         public SwBlendFace(IFace2 face, SwDocument doc, SwApplication app) : base(face, doc, app)
         {
         }
+
+        IXBlendSurface IXBlendXFace.Definition => (IXBlendSurface)base.Definition;
     }
 
     public interface ISwBFace : ISwFace, IXBFace
@@ -265,6 +317,8 @@ namespace Xarial.XCad.SolidWorks.Geometry
         public SwBFace(IFace2 face, SwDocument doc, SwApplication app) : base(face, doc, app)
         {
         }
+
+        IXBSurface IXBFace.Definition => (IXBSurface)base.Definition;
     }
 
     public interface ISwConicalFace : ISwFace, IXConicalFace
@@ -276,6 +330,8 @@ namespace Xarial.XCad.SolidWorks.Geometry
         public SwConicalFace(IFace2 face, SwDocument doc, SwApplication app) : base(face, doc, app)
         {
         }
+
+        IXConicalSurface IXConicalFace.Definition => (IXConicalSurface)base.Definition;
     }
 
     public interface ISwExtrudedFace : ISwFace, IXExtrudedFace
@@ -287,6 +343,8 @@ namespace Xarial.XCad.SolidWorks.Geometry
         public SwExtrudedFace(IFace2 face, SwDocument doc, SwApplication app) : base(face, doc, app)
         {
         }
+
+        IXExtrudedSurface IXExtrudedFace.Definition => (IXExtrudedSurface)base.Definition;
     }
 
     public interface ISwOffsetFace : ISwFace, IXOffsetFace
@@ -298,6 +356,8 @@ namespace Xarial.XCad.SolidWorks.Geometry
         public SwOffsetFace(IFace2 face, SwDocument doc, SwApplication app) : base(face, doc, app)
         {
         }
+
+        IXOffsetSurface IXOffsetFace.Definition => (IXOffsetSurface)base.Definition;
     }
 
     public interface ISwRevolvedFace : ISwFace, IXRevolvedFace
@@ -309,6 +369,8 @@ namespace Xarial.XCad.SolidWorks.Geometry
         public SwRevolvedFace(IFace2 face, SwDocument doc, SwApplication app) : base(face, doc, app)
         {
         }
+
+        IXRevolvedSurface IXRevolvedFace.Definition => (IXRevolvedSurface)base.Definition;
     }
 
     public interface ISwSphericalFace : ISwFace, IXSphericalFace
@@ -320,6 +382,8 @@ namespace Xarial.XCad.SolidWorks.Geometry
         public SwSphericalFace(IFace2 face, SwDocument doc, SwApplication app) : base(face, doc, app)
         {
         }
+
+        IXSphericalSurface IXSphericalFace.Definition => (IXSphericalSurface)base.Definition;
     }
 
     public interface ISwToroidalFace : ISwFace, IXToroidalFace
@@ -331,5 +395,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
         public SwToroidalFace(IFace2 face, SwDocument doc, SwApplication app) : base(face, doc, app)
         {
         }
+
+        IXToroidalSurface IXToroidalFace.Definition => (IXToroidalSurface)base.Definition;
     }
 }

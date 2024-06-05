@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -206,18 +206,21 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
                                     }
                                     else 
                                     {
-                                        var staticMetadataVal = metadataTagAtts.StaticValue;
-
-                                        if (staticMetadataVal != null)
-                                        {
-                                            prpMetadata.Add(new StaticMetadata(staticMetadataVal));
-                                        }
-                                        else 
-                                        {
-                                            throw new NullReferenceException($"Neither metadata tag nor static value is not set for {ctrlDesc.Name}");
-                                        }
+                                        throw new Exception("Metadata tag is not specified");
                                     }
                                 }
+                            }
+                        }
+
+                        if (atts.Has<IStaticMetadataAttribute>()) 
+                        {
+                            var staticMetadataAtts = atts.GetAll<IStaticMetadataAttribute>();
+
+                            foreach (var staticMetadataAtt in staticMetadataAtts)
+                            {
+                                var staticMetadataVal = staticMetadataAtt.StaticValue;
+
+                                prpMetadata.Add(new StaticMetadata(staticMetadataVal, staticMetadataAtt.Name));
                             }
                         }
 
@@ -225,7 +228,15 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
 
                         int numberOfUsedIds;
                         var ctrl = ctrlCreator.Invoke(prpType, atts, parentCtrl, prpMetadataArr, out numberOfUsedIds);
-                        nextCtrlId += numberOfUsedIds;
+                        
+                        if (numberOfUsedIds > 0)
+                        {
+                            nextCtrlId += numberOfUsedIds;
+                        }
+                        else 
+                        {
+                            nextCtrlId++;
+                        }
 
                         var binding = new PropertyInfoBinding<TDataModel>(ctrl, ctrlDesc, parents, prpMetadataArr, contextProvider, atts.Has<ISilentBindingAttribute>());
                         bindings.Add(binding);
@@ -242,8 +253,8 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
                             {
                                 if (depAtt.Dependencies?.Any() == true)
                                 {
-                                    dependencies.RegisterDependency(binding,
-                                        depAtt.Dependencies, depAtt.DependencyHandler);
+                                    dependencies.RegisterDependency( 
+                                        new DependencyInfo(binding, depAtt.Dependencies, depAtt.Parameter, depAtt.DependencyHandler));
                                 }
                             }
                         }
@@ -262,7 +273,8 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
                                 return md;
                             }).ToArray();
 
-                            dependencies.RegisterMetadataDependency(ctrl, depMds, depAtt.DependencyHandler);
+                            dependencies.RegisterMetadataDependency(
+                                new MetadataDependencyInfo(ctrl, depMds, depAtt.Parameter, depAtt.DependencyHandler));
                         }
 
                         var isGroup = ctrl is IGroup;
@@ -290,7 +302,7 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
                 {
                     if (!metadata.ContainsKey(metadataAtt.Tag))
                     {
-                        metadata.Add(metadataAtt.Tag, new PropertyInfoMetadata(prp, parents, metadataAtt.Tag, contextProvider));
+                        metadata.Add(metadataAtt.Tag, new PropertyInfoMetadata(prp, parents, metadataAtt.Tag, metadataAtt.Name, contextProvider));
                     }
                     else
                     {

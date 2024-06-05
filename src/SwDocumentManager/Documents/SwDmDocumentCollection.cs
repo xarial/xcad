@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -109,15 +109,11 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         public IEnumerator<IXDocument> GetEnumerator() => m_Documents.GetEnumerator();
 
-        public THandler GetHandler<THandler>(IXDocument doc) where THandler : IDocumentHandler
-        {
-            throw new NotImplementedException();
-        }
+        public THandler GetHandler<THandler>(IXDocument doc) where THandler : IDocumentHandler => throw new NotImplementedException();
 
-        public void RegisterHandler<THandler>(Func<THandler> handlerFact) where THandler : IDocumentHandler
-        {
-            throw new NotImplementedException();
-        }
+        public void RegisterHandler<THandler>(Func<THandler> handlerFact) where THandler : IDocumentHandler => throw new NotImplementedException();
+
+        public void UnregisterHandler<THandler>() where THandler : IDocumentHandler => throw new NotImplementedException();
 
         public void RemoveRange(IEnumerable<IXDocument> ents, CancellationToken cancellationToken)
         {

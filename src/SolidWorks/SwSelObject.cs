@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -36,30 +36,13 @@ namespace Xarial.XCad.SolidWorks
 
                 for (int i = 1; i < selMgr.GetSelectedObjectCount2(-1) + 1; i++)
                 {
-                    if (OwnerApplication.Sw.IsSame(selMgr.GetSelectedObject6(i, -1), Dispatch) == (int)swObjectEquality.swObjectSame)
+                    if (IsSameDispatch(selMgr.GetSelectedObject6(i, -1)))
                     {
                         return i;
                     }
                 }
 
                 return -1;
-            }
-        }
-
-        public SelectType_e SelectionType 
-        {
-            get 
-            {
-                if (OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2015))
-                {
-                    OwnerModelDoc.ISelectionManager.GetSelectByIdSpecification(Dispatch, out _, out _, out int type);
-
-                    return (SelectType_e)type;
-                }
-                else 
-                {
-                    throw new NotSupportedException();
-                }
             }
         }
 
@@ -97,5 +80,8 @@ namespace Xarial.XCad.SolidWorks
                 throw new Exception("Failed to delete the object");
             }
         }
+
+        protected virtual bool IsSameDispatch(object disp)
+            => OwnerApplication.Sw.IsSame(disp, Dispatch) == (int)swObjectEquality.swObjectSame;
     }
 }

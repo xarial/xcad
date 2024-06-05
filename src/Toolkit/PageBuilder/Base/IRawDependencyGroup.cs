@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -12,16 +12,119 @@ using Xarial.XCad.UI.PropertyPage.Services;
 
 namespace Xarial.XCad.Utils.PageBuilder.Base
 {
+    /// <summary>
+    /// Dependency of control
+    /// </summary>
+    public class DependencyInfo
+    {
+        /// <summary>
+        /// Binding
+        /// </summary>
+        public IBinding Binding { get; }
+
+        /// <summary>
+        /// Tags of dependencies
+        /// </summary>
+        public object[] DependentOnTags { get; }
+
+        /// <summary>
+        /// User parameter
+        /// </summary>
+        public object Parameter { get; }
+
+        /// <summary>
+        /// Handler to resolve dependency
+        /// </summary>
+        public IDependencyHandler DependencyHandler { get; }
+
+        /// <param name="binding">Source binding</param>
+        /// <param name="dependentOnTags">Tags of dependencies</param>
+        /// <param name="parameter">User parameter</param>
+        /// <param name="dependencyHandler">Handler to resolve dependency</param>
+        public DependencyInfo(IBinding binding, object[] dependentOnTags, object parameter, IDependencyHandler dependencyHandler)
+        {
+            Binding = binding;
+            DependentOnTags = dependentOnTags;
+            Parameter = parameter;
+            DependencyHandler = dependencyHandler;
+        }
+    }
+
+    /// <summary>
+    /// Dependency of metadata
+    /// </summary>
+    public class MetadataDependencyInfo
+    {
+        /// <summary>
+        /// Source control
+        /// </summary>
+        public IControl Control { get; }
+
+        /// <summary>
+        /// Metadata
+        /// </summary>
+        public IMetadata[] Metadata { get; }
+
+        /// <summary>
+        /// User parameter
+        /// </summary>
+        public object Parameter { get; }
+
+        /// <summary>
+        /// Handler to resolve dependency
+        /// </summary>
+        public IMetadataDependencyHandler DependencyHandler { get; }
+
+        /// <param name="control">Source control</param>
+        /// <param name="metadata">Metadata</param>
+        /// <param name="parameter">User parameter</param>
+        /// <param name="dependencyHandler">Handler to resolve dependency</param>
+        public MetadataDependencyInfo(IControl control, IMetadata[] metadata, object parameter, IMetadataDependencyHandler dependencyHandler) 
+        {
+            Control = control;
+            Metadata = metadata;
+            Parameter = parameter;
+            DependencyHandler = dependencyHandler;
+        }
+    }
+
+    /// <summary>
+    /// Manages dependencies
+    /// </summary>
     public interface IRawDependencyGroup
     {
+        /// <summary>
+        /// Binding which have contorl tags
+        /// </summary>
         IReadOnlyDictionary<object, IBinding> TaggedBindings { get; }
-        IReadOnlyDictionary<IBinding, Tuple<object[], IDependencyHandler>> DependenciesTags { get; }
-        IReadOnlyDictionary<IControl, Tuple<IMetadata[], IMetadataDependencyHandler>> MetadataDependencies { get; }
 
+        /// <summary>
+        /// Dependencies of controls
+        /// </summary>
+        IReadOnlyList<DependencyInfo> DependenciesTags { get; }
+
+        /// <summary>
+        /// Dependencies of metadata
+        /// </summary>
+        IReadOnlyList<MetadataDependencyInfo> MetadataDependencies { get; }
+
+        /// <summary>
+        /// Registers binding with a tag
+        /// </summary>
+        /// <param name="binding">Binding</param>
+        /// <param name="tag">Tag of this binding</param>
         void RegisterBindingTag(IBinding binding, object tag);
 
-        void RegisterDependency(IBinding binding, object[] dependentOnTags, IDependencyHandler dependencyHandler);
+        /// <summary>
+        /// Registers dependency of control
+        /// </summary>
+        /// <param name="info">Dependency info</param>
+        void RegisterDependency(DependencyInfo info);
 
-        void RegisterMetadataDependency(IControl ctrl, IMetadata[] metadata, IMetadataDependencyHandler dependencyHandler);
+        /// <summary>
+        /// Registers dependency of metadata
+        /// </summary>
+        /// <param name="info">Metadata dependency info</param>
+        void RegisterMetadataDependency(MetadataDependencyInfo info);
     }
 }

@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -11,7 +11,9 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading;
+using System.Windows.Documents;
 using Xarial.XCad.Annotations;
+using Xarial.XCad.Documents;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Services;
 using Xarial.XCad.SolidWorks.Documents;
@@ -27,7 +29,7 @@ namespace Xarial.XCad.SolidWorks.Annotations
 
     internal class SwAnnotation : SwSelObject, ISwAnnotation
     {
-        public IAnnotation Annotation => m_Creator.Element;
+        public virtual IAnnotation Annotation => m_Creator.Element;
 
         public override bool IsCommitted => m_Creator.IsCreated;
 
@@ -62,6 +64,12 @@ namespace Xarial.XCad.SolidWorks.Annotations
                     m_Creator.CachedProperties.Set(value);
                 }
             }
+        }
+
+        public virtual IXLayer Layer
+        {
+            get => SwLayerHelper.GetLayer(this, x => x.Annotation.Layer);
+            set => SwLayerHelper.SetLayer(this, value, (x, y) => x.Annotation.Layer = y);
         }
 
         public System.Drawing.Color? Color 
@@ -172,6 +180,18 @@ namespace Xarial.XCad.SolidWorks.Annotations
                 }
 
                 ann.LayerOverride = (int)layerOverride;
+            }
+        }
+
+        protected void Refresh(IAnnotation ann) 
+        {
+            var origVisible = ann.Visible;
+
+            if (origVisible != (int)swAnnotationVisibilityState_e.swAnnotationHidden)
+            {
+                ann.Visible = (int)swAnnotationVisibilityState_e.swAnnotationHidden;
+
+                ann.Visible = origVisible;
             }
         }
     }

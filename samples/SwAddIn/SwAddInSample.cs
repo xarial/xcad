@@ -42,7 +42,6 @@ using Xarial.XCad.Reflection;
 using Xarial.XCad.UI.PropertyPage.Attributes;
 using Xarial.XCad.Extensions;
 using Xarial.XCad.Enums;
-using System.Drawing;
 using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.SolidWorks.Features;
 using System.Diagnostics;
@@ -51,7 +50,6 @@ using Xarial.XCad.SolidWorks.Graphics;
 using Xarial.XCad.Graphics;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Wires;
-using Xarial.XCad.SolidWorks.Extensions;
 using Xarial.XToolkit.Wpf.Utils;
 using System.Threading;
 using Xarial.XCad.Features.CustomFeature;
@@ -60,6 +58,15 @@ using Xarial.XCad.SolidWorks.Sketch;
 using System.Drawing.Imaging;
 using System.Windows.Forms;
 using Xarial.XCad.Documents.Extensions;
+using System.Windows.Markup;
+using Xarial.XCad.SolidWorks.UI.Commands.Attributes;
+using Xarial.XCad.Toolkit.Extensions;
+using Xarial.XCad.Annotations;
+using Xarial.XCad.UI.Enums;
+using Xarial.XToolkit;
+using Xarial.XCad.SolidWorks.Geometry.Primitives;
+using Xarial.XCad.Toolkit.Graphics;
+using Xarial.XCad.SolidWorks.Geometry;
 
 namespace SwAddInExample
 {
@@ -81,6 +88,23 @@ namespace SwAddInExample
     [ComVisible(true)]
     public class SwDefaultPropertyManagerPageHandler : SwPropertyManagerPageHandler 
     {
+    }
+
+    public class CustomGraphicsToggle
+    {
+        public event Action<bool> EnabledChanged;
+
+        public bool Enabled
+        {
+            get => m_Enabled;
+            set
+            {
+                m_Enabled = value;
+                EnabledChanged?.Invoke(value);
+            }
+        }
+
+        private bool m_Enabled;
     }
 
     [ComVisible(true)]
@@ -200,6 +224,8 @@ namespace SwAddInExample
 
             ReplaceCompDoc,
 
+            ToggleCustomGraphics,
+
             Custom
         }
 
@@ -221,6 +247,8 @@ namespace SwAddInExample
         }
 
         [Title("Sample Context Menu")]
+        //[ContextMenuCommandGroupInfo(25, typeof(IXSketchPicture))]
+        //[SwContextMenuCommandGroupInfo(25, swSelectType_e.swSelANNOTATIONTABLES)]
         public enum ContextMenuCommands_e 
         {
             Command1,
@@ -262,6 +290,8 @@ namespace SwAddInExample
 
         private IXCalloutBase m_Callout;
 
+        private readonly CustomGraphicsToggle m_CustomGraphicsToggle;
+
         [CommandGroupInfo(1)]
         public enum Commands1_e 
         {
@@ -280,10 +310,25 @@ namespace SwAddInExample
             Cmd8
         }
 
+        [Title("Main Menu")]
+        public enum MainCommands1_e 
+        {
+        }
+
+        [CommandGroupInfo(2)]
+        [CommandGroupParent(typeof(MainCommands1_e))]
+        public enum Commands3_e
+        {
+            Cmd9,
+            Cmd10
+        }
+
         private readonly Xarial.XToolkit.Helpers.AssemblyResolver m_AssmResolver;
 
         public SwAddInSample() 
         {
+            m_CustomGraphicsToggle = new CustomGraphicsToggle();
+
             m_AssmResolver = new Xarial.XToolkit.Helpers.AssemblyResolver(AppDomain.CurrentDomain, "xCAD.NET");
             m_AssmResolver.RegisterAssemblyReferenceResolver(
                 new Xarial.XToolkit.Reflection.LocalFolderReferencesResolver(System.IO.Path.GetDirectoryName(typeof(SwAddInSample).Assembly.Location),
@@ -293,9 +338,11 @@ namespace SwAddInExample
 
         public override void OnConnect()
         {
+            //CommandManager.AddCommandGroup<MainCommands1_e>();
+            //CommandManager.AddCommandGroup<Commands3_e>().CommandClick += OnCommandClick;
+
             //CommandManager.AddCommandGroup<Commands1_e>();
             //CommandManager.AddCommandGroup<Commands2_e>();
-            //return;
 
             try
             {
@@ -334,12 +381,16 @@ namespace SwAddInExample
                     }
                 });
 
-                CommandManager.AddCommandGroup<Commands_e>().CommandClick += OnCommandClick;
-                CommandManager.AddContextMenu<ContextMenuCommands_e>(Xarial.XCad.Base.Enums.SelectType_e.Faces).CommandClick += OnContextMenuCommandClick;
+                var cmdsGroup = CommandManager.AddCommandGroup<Commands_e>();
+
+                cmdsGroup.CommandClick += OnCommandClick;
+                cmdsGroup.CommandStateResolve += OnCommandStateResolve;
+
+                CommandManager.AddContextMenu<ContextMenuCommands_e, IXFace>().CommandClick += OnContextMenuCommandClick;
 
                 CommandManager.AddCommandGroup<Commands3_3>().CommandClick += OnCommands3Click;
 
-                Application.Documents.RegisterHandler<SwDocHandler>();
+                Application.Documents.RegisterHandler<SwDocHandler>(() => new SwDocHandler(this, m_CustomGraphicsToggle));
 
                 Application.Documents.DocumentActivated += OnDocumentActivated;
 
@@ -356,6 +407,10 @@ namespace SwAddInExample
             {
                 Debug.Assert(false);
             }
+        }
+
+        private void OnCommandClick(Commands3_e spec)
+        {
         }
 
         private void OnCommands3Click(Commands3_3 spec)
@@ -438,7 +493,7 @@ namespace SwAddInExample
             }
         }
 
-        private void OnDimValueChanged(Xarial.XCad.Annotations.IXDimension dim, double newVal)
+        private void OnDimValueChanged(IXDimension dim, double newVal)
         {
         }
 
@@ -478,11 +533,12 @@ namespace SwAddInExample
                         }
                         m_Page = this.CreatePage<PmpData>(OnCreateDynamicControls);
                         m_Page.Closed += OnPageClosed;
+                        m_Page.KeystrokeHook += OnPageKeystrokeHook;
                         m_Data = new PmpData()
                         {
                             CoordSystem = Application.Documents.Active.Selections.OfType<IXCoordinateSystem>().FirstOrDefault()
                         };
-                        m_Data.ItemsSourceComboBox = "Y";
+                        m_Data.ItemsSourceComboBox = m_Data.Source[1];
                         m_Page.Show(m_Data);
                         m_Page.DataChanged += OnPageDataChanged;
                         break;
@@ -514,7 +570,8 @@ namespace SwAddInExample
                         break;
 
                     case Commands_e.CreateBox:
-                        Application.Documents.Active.Features.CreateCustomFeature<BoxMacroFeatureEditor, BoxMacroFeatureData, BoxPage>();
+                        Application.Documents.Active.Features.InsertCustomFeature<BoxMacroFeatureEditor, BoxMacroFeatureData, BoxPage>();
+                        //Application.Documents.Active.Features.InsertCustomFeature(typeof(BoxMacroFeatureEditor), null);
                         break;
 
                     case Commands_e.WatchDimension:
@@ -545,12 +602,21 @@ namespace SwAddInExample
                         break;
 
                     case Commands_e.CreatePopup:
-                        //var winForm = this.CreatePopupWinForm<WinForm>();
-                        //winForm.Show(true);
-                        m_Window?.Close();
-                        m_Window = this.CreatePopupWpfWindow<WpfWindow>();
-                        m_Window.Closed += OnWindowClosed;
-                        m_Window.Show();
+                        var showWpf = true;
+                        var dock = PopupDock_e.Center;
+
+                        if (showWpf)
+                        {
+                            m_Window?.Close();
+                            m_Window = this.CreatePopupWpfWindow<WpfWindow>();
+                            m_Window.Closed += OnWindowClosed;
+                            m_Window.Show(dock);
+                        }
+                        else 
+                        {
+                            var winForm = this.CreatePopupWinForm<WinForm>();
+                            winForm.ShowDialog(dock);
+                        }
                         break;
 
                     case Commands_e.CreateTaskPane:
@@ -619,8 +685,8 @@ namespace SwAddInExample
                             else
                             {
                                 var callout = doc1.Graphics.PreCreateCallout();
-                                callout.Location = new Xarial.XCad.Geometry.Structures.Point(0.1, 0.1, 0.1);
-                                callout.Anchor = new Xarial.XCad.Geometry.Structures.Point(0, 0, 0);
+                                callout.Location = new Point(0.1, 0.1, 0.1);
+                                callout.Anchor = new Point(0, 0, 0);
                                 m_Callout = callout;
                             }
                             var row1 = m_Callout.AddRow();
@@ -651,7 +717,7 @@ namespace SwAddInExample
                             var y = new Vector(1, 1, 1);
                             var x = y.CreateAnyPerpendicular();
                             var z = y.Cross(x);
-                            m_Triad.Transform = TransformMatrix.Compose(x, y, z, new Xarial.XCad.Geometry.Structures.Point(0.1, 0.1, 0.1));
+                            m_Triad.Transform = TransformMatrix.Compose(x, y, z, new Point(0.1, 0.1, 0.1));
                             m_Triad.Commit();
                         }
                         else 
@@ -666,7 +732,7 @@ namespace SwAddInExample
                         if (m_DragArrow == null)
                         {
                             m_DragArrow = ((IXDocument3D)Application.Documents.Active).Graphics.PreCreateDragArrow();
-                            m_DragArrow.Origin = new Xarial.XCad.Geometry.Structures.Point(0, 0, 0);
+                            m_DragArrow.Origin = new Point(0, 0, 0);
                             m_DragArrow.Length = 0.1;
                             m_DragArrow.Direction = new Vector(1, 0, 0);
                             m_DragArrow.CanFlip = true;
@@ -706,6 +772,10 @@ namespace SwAddInExample
                         ReplaceCompDoc();
                         break;
 
+                    case Commands_e.ToggleCustomGraphics:
+                        m_CustomGraphicsToggle.Enabled = !m_CustomGraphicsToggle.Enabled;
+                        break;
+
                     case Commands_e.Custom:
                         Custom();
                         break;
@@ -715,6 +785,19 @@ namespace SwAddInExample
             {
                 Debug.Assert(false);
             }
+        }
+
+        private void OnCommandStateResolve(Commands_e spec, CommandState state)
+        {
+            if (spec == Commands_e.ToggleCustomGraphics) 
+            {
+                state.Checked = m_CustomGraphicsToggle.Enabled;
+            }
+        }
+
+        private void OnPageKeystrokeHook(IControl ctrl, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
+        {
+            
         }
 
         private void ReplaceCompDoc()
@@ -734,45 +817,41 @@ namespace SwAddInExample
 
         private void Custom()
         {
-            var comp = Application.Documents.Active.Selections.OfType<IXComponent>().First();
-            var body = Application.Documents.Active.Selections.OfType<IXBody>().First();
+            var assm = (IXAssembly)Application.Documents.Active;
 
-            body = comp.Bodies.First();
+            var collDet = assm.Evaluation.PreCreateCollisionDetection();
 
-            var parentComp = body.Component;
+            var selComps = assm.Selections.OfType<IXComponent>().ToArray();
+            collDet.Scope = selComps.ToArray();
 
-            Application.Documents.Active.SaveAs<IXDxfDwgSaveOperation>("D:\\2.dwg", x => x.LayersMapFilePath = "");
+            assm.Selections.Clear();
 
-            Application.Documents.Active.SaveAs("D:\\1.pdf");
+            collDet.VisibleOnly = true;
+            collDet.Commit();
 
-            Application.Documents.Active.SaveAs<IXPdfSaveOperation>("D:\\2.pdf", x => x.Pdf3D = true);
+            var newPart = Application.Documents.PreCreatePart();
+            newPart.Commit();
 
-            Clipboard.SetText(string.Join(System.Environment.NewLine, Application.Documents.Active.Features.Select(f => ((ISwFeature)f).Feature.GetTypeName2())));
-
-            //var lastFeat = Application.Documents.Active.Features.Filter<IXSketch2D>(true).First();
-
-            //var lines = Application.Documents.Active.Selections.OfType<IXSketchBase>().First().Entities.Filter<ISwSketchLine>().ToArray();
-
-            //var feats1 = Application.Documents.Active.Features.Filter<IXSketch2D>(true).ToArray();
-            //var feats2 = Application.Documents.Active.Features.Filter<IXSketch2D>().ToArray();
-
-            //var feats3 = Application.Documents.Active.Features.Filter<IXFeature>(true).ToArray();
-            //var feats4 = Application.Documents.Active.Features.Filter<IXFeature>().ToArray();
-
-            var assm = (ISwAssembly)Application.Documents.Active;
-            var firstComp = ((IXAssemblyConfiguration)assm.Configurations["Default"]).Components.Flatten().First();
-            var comps1 = ((IXAssemblyConfiguration)assm.Configurations["Default"]).Components.Flatten().ToArray();
-            var comps2 = ((IXAssemblyConfiguration)assm.Configurations["Default"]).Components.ToArray();
-
-            Clipboard.SetText(string.Join(System.Environment.NewLine, comps1.Where(c=>
+            foreach (var res in collDet.Results)
             {
-                var state = c.State;
-                return !state.HasFlag(ComponentState_e.Suppressed) && !state.HasFlag(ComponentState_e.ExcludedFromBom) && !state.HasFlag(ComponentState_e.Envelope);
-            }).Select(c => c.FullName)));
+                //var collBodies = res.CollidedBodies.ToArray();
 
-            //var editComp = assm.EditingComponent;
-
-            //var cutLists = (Application.Documents.Active as ISwPart).Configurations.Active.CutLists.ToArray();
+                if (res.CollisionVolume != null)
+                {
+                    foreach (var colBody in res.CollisionVolume)
+                    {
+                        try
+                        {
+                            var dumbBodyFeat = newPart.Features.PreCreate<IXDumbBody>();
+                            dumbBodyFeat.BaseBody = colBody;
+                            dumbBodyFeat.Commit();
+                        }
+                        catch
+                        {
+                        }
+                    }
+                }
+            }
         }
 
         private void HandleAddEvents()
@@ -832,11 +911,11 @@ namespace SwAddInExample
                 }
                 else
                 {
-                    var bmp = new Bitmap(50, 50);
+                    var bmp = new System.Drawing.Bitmap(50, 50);
                     
-                    using (var graph = Graphics.FromImage(bmp))
+                    using (var graph = System.Drawing.Graphics.FromImage(bmp))
                     {
-                        graph.FillRectangle(Brushes.Red, new RectangleF(0f, 0f, 50f, 50f));
+                        graph.FillRectangle(System.Drawing.Brushes.Red, new System.Drawing.RectangleF(0f, 0f, 50f, 50f));
                     }
 
                     if (doc is IXDrawing)
@@ -848,7 +927,7 @@ namespace SwAddInExample
                         pict = doc.Features.PreCreate<IXSketchPicture>();
                     }
 
-                    pict.Boundary = new Rect2D(0.05, 0.05, new Xarial.XCad.Geometry.Structures.Point(0.1, 0.1, 0));
+                    pict.Boundary = new Rect2D(0.05, 0.05, new Point(0.1, 0.1, 0));
                     pict.Image = new XDrawingImage(bmp, ImageFormat.Bmp);
                     pict.Commit();
 
@@ -879,7 +958,7 @@ namespace SwAddInExample
         {
             var inProcess = true;
 
-            if (FileSystemBrowser.BrowseFileSave(out var filePath, "Select file path", FileSystemBrowser.BuildFilterString(FileFilter.ImageFiles)))
+            if (FileSystemBrowser.BrowseFileSave(out var filePath, "Select file path", FileFilter.BuildFilterString(FileFilter.ImageFiles)))
             {
                 if (inProcess)
                 {
@@ -943,7 +1022,7 @@ namespace SwAddInExample
             
             var centerPt = (IXSketchPoint)bboxSketch.Entities.PreCreatePoint();
             centerPt.Coordinate = box.CenterPoint;
-            centerPt.Color = Color.Yellow;
+            centerPt.Color = System.Drawing.Color.Yellow;
 
             var lines = new IXLine[12];
 
@@ -987,15 +1066,15 @@ namespace SwAddInExample
             
             axes[0] = (IXSketchLine)bboxSketch.Entities.PreCreateLine();
             axes[0].Geometry = new Line(box.CenterPoint, box.CenterPoint.Move(box.AxisX, 0.1));
-            axes[0].Color = Color.Red;
+            axes[0].Color = System.Drawing.Color.Red;
 
             axes[1] = (IXSketchLine)bboxSketch.Entities.PreCreateLine();
             axes[1].Geometry = new Line(box.CenterPoint, box.CenterPoint.Move(box.AxisY, 0.1));
-            axes[1].Color = Color.Green;
+            axes[1].Color = System.Drawing.Color.Green;
 
             axes[2] = (IXSketchLine)bboxSketch.Entities.PreCreateLine();
             axes[2].Geometry = new Line(box.CenterPoint, box.CenterPoint.Move(box.AxisZ, 0.1));
-            axes[2].Color = Color.Blue;
+            axes[2].Color = System.Drawing.Color.Blue;
 
             bboxSketch.Entities.Add(centerPt);
             bboxSketch.Entities.AddRange(lines);
@@ -1035,7 +1114,8 @@ namespace SwAddInExample
                 sheet.Scale = new Scale(1, 1);
                 drw.Commit();
 
-                var swDraw = ((ISwDrawing)drw).Model;
+                var showBendLines = drw.Options.ViewEntityKindVisibility.BendLines;
+                drw.Options.ViewEntityKindVisibility.BendLines = true;
 
                 sheet = drw.Sheets.First();
                 var flatPatternView = sheet.DrawingViews.PreCreate<IXFlatPatternDrawingView>();

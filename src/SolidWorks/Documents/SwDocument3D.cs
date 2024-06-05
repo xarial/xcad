@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -35,6 +35,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         IXModelView3DRepository IXDocument3D.ModelViews => (IXModelView3DRepository)ModelViews;
         public override ISwModelViewsCollection ModelViews => ((ISwDocument3D)this).ModelViews;
         ISwModelViews3DCollection ISwDocument3D.ModelViews => m_ModelViewsLazy.Value;
+        TSelObject IXObjectContainer.ConvertObject<TSelObject>(TSelObject obj) => ConvertObjectBoxed(obj) as TSelObject;
 
         internal SwDocument3D(IModelDoc2 model, SwApplication app, IXLogger logger, bool isCreated) : base(model, app, logger, isCreated)
         {
@@ -68,13 +69,27 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         protected abstract SwConfigurationCollection CreateConfigurations();
 
-        TSelObject IXObjectContainer.ConvertObject<TSelObject>(TSelObject obj) => ConvertObjectBoxed(obj) as TSelObject;
+        IXDocument3DSaveOperation IXDocument3D.PreCreateSaveAsOperation(string filePath)
+        {
+            var ext = System.IO.Path.GetExtension(filePath);
+
+            switch (ext.ToLower())
+            {
+                case ".pdf":
+                    return new SwDocument3DPdfSaveOperation(this, filePath);
+
+                case ".step":
+                case ".stp":
+                    return new SwStepSaveOperation(this, filePath);
+
+                default:
+                    return new SwDocument3DSaveOperation(this, filePath);
+            }
+        }
 
         public TSelObject ConvertObject<TSelObject>(TSelObject obj)
             where TSelObject : ISwSelObject
-        {
-            return (TSelObject)ConvertObjectBoxed(obj);
-        }
+            => (TSelObject)ConvertObjectBoxed(obj);
 
         private ISwSelObject ConvertObjectBoxed(object obj)
         {
@@ -97,5 +112,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                 throw new InvalidCastException("Object is not SOLIDWORKS object");
             }
         }
+
+        public override IXSaveOperation PreCreateSaveAsOperation(string filePath) => ((IXDocument3D)this).PreCreateSaveAsOperation(filePath);
     }
 }

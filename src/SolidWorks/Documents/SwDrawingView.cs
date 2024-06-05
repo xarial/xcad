@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -26,6 +26,7 @@ using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Services;
 using Xarial.XCad.SolidWorks.Annotations;
+using Xarial.XCad.SolidWorks.Documents.Exceptions;
 using Xarial.XCad.SolidWorks.Features;
 using Xarial.XCad.SolidWorks.Geometry;
 using Xarial.XCad.SolidWorks.Utils;
@@ -69,13 +70,17 @@ namespace Xarial.XCad.SolidWorks.Documents
     [DebuggerDisplay("{" + nameof(Name) + "}")]
     internal class SwDrawingView : SwSelObject, ISwDrawingView
     {
+        TSelObject IXObjectContainer.ConvertObject<TSelObject>(TSelObject obj) => ConvertObjectBoxed(obj) as TSelObject;
+        IXAnnotationRepository IXDrawingView.Annotations => Annotations;
+        IXSheet IXDrawingView.Sheet => Sheet;
+
         protected readonly SwDrawing m_Drawing;
 
         public IView DrawingView => m_Creator.Element;
 
         protected readonly IElementCreator<IView> m_Creator;
 
-        protected SwSheet Sheet 
+        public SwSheet Sheet 
         {
             get 
             {
@@ -159,9 +164,17 @@ namespace Xarial.XCad.SolidWorks.Documents
                     drwView.ScaleRatio = new double[] { scale.Numerator, scale.Denominator };
                 }
 
-                if (Bodies != null) 
+                if (m_Creator.CachedProperties.Has<ViewDisplayMode_e>(nameof(DisplayMode)))
                 {
-                    drwView.Bodies = Bodies.Cast<ISwBody>().Select(b => b.Body).ToArray();
+                    SetDisplayMode(drwView, DisplayMode);
+                }
+
+                if (!drwView.IsFlatPatternView())
+                {
+                    if (Bodies != null)
+                    {
+                        drwView.Bodies = Bodies.Cast<ISwBody>().Select(b => b.Body).ToArray();
+                    }
                 }
 
                 return drwView;
@@ -221,9 +234,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             {
                 if (IsCommitted)
                 {
-                    var pos = DrawingView.Position as double[];
-
-                    return new Point(pos[0], pos[1], 0);
+                    return GetPosition(DrawingView);
                 }
                 else
                 {
@@ -234,7 +245,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             {
                 if (IsCommitted)
                 {
-                    DrawingView.Position = new double[] { value.X, value.Y };
+                    SetPosition(DrawingView, value);
                 }
                 else
                 {
@@ -293,7 +304,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                     }
                     else 
                     {
-                        ReplaceViewDocument(refDoc, value);
+                        ReplaceViewDocument(value);
                     }
                 }
                 else 
@@ -313,9 +324,47 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        private void ReplaceViewDocument(IXDocument3D oldDoc, IXDocument3D newDoc)
+        private void ReplaceViewDocument(IXDocument3D newDoc)
         {
-            throw new NotImplementedException("View replacement is not implemented");
+            if (m_Drawing.OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2014))
+            {
+                var newPath = newDoc.Path;
+
+                if (!string.IsNullOrEmpty(newPath))
+                {
+                    var isFlatPattern = IsFlatPatternView(DrawingView);
+
+                    if (!m_Drawing.Drawing.ReplaceViewModel(newPath,
+                        new IView[]
+                        {
+                            DrawingView
+                        },
+                        new IComponent2[]
+                        {
+                            DrawingView.RootDrawingComponent.Component
+                        }))
+                    {
+                        throw new Exception("Failed to replace model view");
+                    }
+
+                    //NOTE: IDrawingView::IsFlatPatternView returns false after flat pattern view is replaced and it is replcaed with non-flat pattern configuration
+                    if (isFlatPattern)
+                    {
+                        //fixing the flat pattern configuration
+                        DrawingView.ReferencedConfiguration = GetFlatPatternConfigurationName(DrawingView.ReferencedConfiguration);
+                    }
+
+                    m_Drawing.Model.EditRebuild3();
+                }
+                else 
+                {
+                    throw new Exception("Replacement document does not have a path");
+                }
+            }
+            else 
+            {
+                throw new NotSupportedException("View replacement is supported from SOLIDWORKS 2014");
+            }
         }
 
         public IXConfiguration ReferencedConfiguration
@@ -345,12 +394,35 @@ namespace Xarial.XCad.SolidWorks.Documents
             {
                 if (IsCommitted)
                 {
-                    DrawingView.ReferencedConfiguration = value.Name;
+                    var confName = value.Name;
+
+                    if (IsFlatPatternView(DrawingView)) 
+                    {
+                        confName = GetFlatPatternConfigurationName(confName);
+                    }
+
+                    DrawingView.ReferencedConfiguration = confName;
                 }
                 else 
                 {
                     m_Creator.CachedProperties.Set(value);
                 }
+            }
+        }
+
+        protected bool IsFlatPatternView(IView view) 
+        {
+            if (view.IsFlatPatternView())
+            {
+                return true;
+            }
+            else 
+            {
+                //NOTE: after view replacement the above method can return incorrect value
+
+                var refConf = view.ReferencedDocument.IGetConfigurationByName(DrawingView.ReferencedConfiguration);
+
+                return refConf.Type == (int)swConfigurationType_e.swConfiguration_SheetMetal;
             }
         }
 
@@ -381,40 +453,13 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        public Rect2D Boundary
-        {
-            get
-            {
-                var outline = (double[])DrawingView.GetOutline();
-                var width = outline[2] - outline[0];
-                var height = outline[3] - outline[1];
+        public Rect2D Boundary => GetBoundary(DrawingView);
 
-                var centerPt = new Point((outline[0] + outline[2]) / 2, (outline[1] + outline[3]) / 2, 0);
-
-                return new Rect2D(width, height, centerPt);
-            }
-        }
-
-        public Thickness Padding
-        {
-            get
-            {
-                const double VIEW_BORDER_RATIO = 0.02;
-
-                var width = -1d;
-                var height = -1d;
-
-                DrawingView.Sheet.GetSize(ref width, ref height);
-
-                var minSize = Math.Min(width, height);
-
-                return new Thickness(minSize * VIEW_BORDER_RATIO);
-            }
-        }
+        public Thickness Padding => new Thickness(GetViewPadding(DrawingView));
 
         public IXDimensionRepository Dimensions { get; }
         
-        public IXAnnotationRepository Annotations { get; }
+        public SwDrawingViewAnnotationCollection Annotations { get; }
 
         public IXDrawingView BaseView
         {
@@ -461,7 +506,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        public IXBody[] Bodies 
+        public virtual IXBody[] Bodies 
         {
             get 
             {
@@ -575,7 +620,171 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        TSelObject IXObjectContainer.ConvertObject<TSelObject>(TSelObject obj) => ConvertObjectBoxed(obj) as TSelObject;
+        public ViewDisplayMode_e? DisplayMode
+        {
+            get
+            {
+                if (IsCommitted)
+                {
+                    if (DrawingView.GetUseParentDisplayMode())
+                    {
+                        return null;
+                    }
+                    else 
+                    {
+                        var dispMode = (swDisplayMode_e)DrawingView.GetDisplayMode2();
+                        
+                        switch (dispMode) 
+                        {
+                            case swDisplayMode_e.swWIREFRAME:
+                                return ViewDisplayMode_e.Wireframe;
+
+                            case swDisplayMode_e.swHIDDEN_GREYED:
+                                return ViewDisplayMode_e.HiddenLinesVisible;
+
+                            case swDisplayMode_e.swHIDDEN:
+                                return ViewDisplayMode_e.HiddenLinesRemoved;
+
+                            case swDisplayMode_e.swSHADED:
+
+                                var faceted = DrawingView.GetFacettedHlrDisplay();
+                                bool dispEdges = DrawingView.GetDisplayEdgesInShadedMode();
+
+                                if (!faceted && dispEdges)
+                                {
+                                    return ViewDisplayMode_e.ShadedWithEdges;
+                                }
+                                else if (faceted && !dispEdges)
+                                {
+                                    return ViewDisplayMode_e.Shaded;
+                                }
+                                else 
+                                {
+                                    throw new NotSupportedException();
+                                }
+
+                            default:
+                                throw new NotSupportedException();
+                        }
+                    }
+                }
+                else
+                {
+                    return m_Creator.CachedProperties.Get<ViewDisplayMode_e>();
+                }
+            }
+            set
+            {
+                if (IsCommitted)
+                {
+                    SetDisplayMode(DrawingView, value);
+                }
+                else
+                {
+                    m_Creator.CachedProperties.Set(value);
+                }
+            }
+        }
+
+        private void SetDisplayMode(IView viewSw, ViewDisplayMode_e? dispModeType) 
+        {
+            swDisplayMode_e dispMode;
+            bool faceted;
+            bool dispEdges;
+            bool useParent;
+
+            if (dispModeType.HasValue)
+            {
+                useParent = false;
+
+                switch (dispModeType.Value)
+                {
+                    case ViewDisplayMode_e.Wireframe:
+                        dispMode = swDisplayMode_e.swWIREFRAME;
+                        faceted = false;
+                        dispEdges = true;
+                        break;
+                    case ViewDisplayMode_e.HiddenLinesVisible:
+                        dispMode = swDisplayMode_e.swHIDDEN_GREYED;
+                        faceted = false;
+                        dispEdges = true;
+                        break;
+                    case ViewDisplayMode_e.HiddenLinesRemoved:
+                        dispMode = swDisplayMode_e.swHIDDEN;
+                        faceted = false;
+                        dispEdges = true;
+                        break;
+                    case ViewDisplayMode_e.ShadedWithEdges:
+                        dispMode = swDisplayMode_e.swSHADED;
+                        faceted = false;
+                        dispEdges = true;
+                        break;
+                    case ViewDisplayMode_e.Shaded:
+                        dispMode = swDisplayMode_e.swSHADED;
+                        faceted = true;
+                        dispEdges = false;
+                        break;
+
+                    default:
+                        throw new NotSupportedException();
+                }
+            }
+            else 
+            {
+                useParent = true;
+                dispMode = swDisplayMode_e.swDisplayModeDEFAULT;
+                faceted = false;
+                dispEdges = false;
+            }
+
+            if (OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2021))
+            {
+                viewSw.SetDisplayMode4(useParent, (int)dispMode,
+                    faceted, dispEdges,
+                    viewSw.GetCThreadQuality());
+            }
+            else 
+            {
+                viewSw.SetDisplayMode3(useParent, (int)dispMode, faceted, dispEdges);
+            }
+        }
+
+        protected Rect2D GetBoundary(IView view)
+        {
+            var outline = (double[])view.GetOutline();
+            var width = outline[2] - outline[0];
+            var height = outline[3] - outline[1];
+
+            var centerPt = new Point((outline[0] + outline[2]) / 2, (outline[1] + outline[3]) / 2, 0);
+
+            return new Rect2D(width, height, centerPt);
+        }
+
+        protected Point GetPosition(IView view)
+        {
+            var pos = (double[])view.Position;
+
+            return new Point(pos[0], pos[1], 0);
+        }
+
+        protected void SetPosition(IView view, Point pos)
+        {
+            view.Position = new double[] { pos.X, pos.Y };
+        }
+
+        protected double GetViewPadding(IView view)
+        {
+            const double VIEW_BORDER_RATIO = 0.02;
+
+            var width = -1d;
+            var height = -1d;
+
+            view.Sheet.GetSize(ref width, ref height);
+
+            var minSize = Math.Min(width, height);
+
+            return minSize * VIEW_BORDER_RATIO;
+        }
 
         public TSelObject ConvertObject<TSelObject>(TSelObject obj)
             where TSelObject : ISwSelObject
@@ -611,6 +820,56 @@ namespace Xarial.XCad.SolidWorks.Documents
                 throw new InvalidCastException("Object is not SOLIDWORKS object");
             }
         }
+
+        private string GetFlatPatternConfigurationName(string baseConfName)
+        {
+            var conf = (IConfiguration)DrawingView.ReferencedDocument.GetConfigurationByName(baseConfName);
+
+            if (conf.Type != (int)swConfigurationType_e.swConfiguration_SheetMetal)
+            {
+                var childConfs = (object[])conf.GetChildren() ?? new object[0];
+
+                foreach (IConfiguration childConf in childConfs) 
+                {
+                    if (childConf.Type == (int)swConfigurationType_e.swConfiguration_SheetMetal) 
+                    {
+                        return childConf.Name;
+                    }
+                }
+
+                return CreateFlatPatternConfigurationName(baseConfName);
+            }
+            else 
+            {
+                return baseConfName;
+            }
+        }
+
+        private string CreateFlatPatternConfigurationName(string baseConfName) 
+        {
+            var tempFlatPatternView = m_Drawing.Drawing.CreateFlatPatternViewFromModelView3(
+                DrawingView.ReferencedDocument.GetPathName(), baseConfName, 0, 0, 0, true, false);
+
+            if (tempFlatPatternView != null)
+            {
+                SelectView(tempFlatPatternView, false, null);
+
+                if (m_Drawing.Model.Extension.DeleteSelection2((int)swDeleteSelectionOptions_e.swDelete_Absorbed))
+                {
+                    return tempFlatPatternView.ReferencedConfiguration;
+                }
+                else 
+                {
+                    throw new Exception($"Failed to delete temp flat pattern view '{tempFlatPatternView.Name}'");
+                }
+            }
+            else 
+            {
+                throw new Exception("Failed to create temp flat pattern view");
+            }
+        }
+
+        public void Update() => RefreshView(DrawingView);
     }
 
     internal static class SwDrawingViewExtension 
@@ -793,24 +1052,61 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
             get 
             {
-                if (!IsCommitted)
+                if (IsCommitted)
                 {
-                    return m_Creator.CachedProperties.Get<IXModelView>();
+                    var refDoc = ReferencedDocument;
+
+                    var viewOrientationName = DrawingView.GetOrientationName();
+
+                    if (refDoc != null)
+                    {
+                        return refDoc.ModelViews[viewOrientationName];
+                    }
+                    else
+                    {
+                        return new SwNamedView(null, (SwDocument)refDoc, OwnerApplication, viewOrientationName);
+                    }
                 }
                 else 
                 {
-                    throw new NotSupportedException();
+                    return m_Creator.CachedProperties.Get<IXModelView>();
                 }
             }
             set 
             {
-                if (!IsCommitted)
+                if (IsCommitted)
+                {
+                    string viewName;
+                    int viewId;
+
+                    switch (value)
+                    {
+                        case SwStandardView standardView:
+                            viewName = standardView.Name;
+                            viewId = (int)standardView.SwViewType;
+                            break;
+
+                        case SwNamedView namedView:
+                            viewName = namedView.Name;
+                            viewId = -1;
+                            break;
+
+                        default:
+                            throw new NotSupportedException();
+                    }
+
+                    Select(false);
+
+                    OwnerModelDoc.ShowNamedView2(viewName, viewId);
+
+                    if (!string.Equals(DrawingView.GetOrientationName(), viewName, StringComparison.CurrentCultureIgnoreCase)) 
+                    {
+                        throw new Exception("Failed to change view orientation");
+                    }
+                }
+                else 
                 {
                     m_Creator.CachedProperties.Set(value);
-                }
-                else
-                {
-                    throw new CommitedElementReadOnlyParameterException();
                 }
             }
         }
@@ -857,69 +1153,105 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
             const double DEFAULT_OFFSET = 0.1;
 
-            var offsetDir = CalculateViewOffsetDirection(Direction);
+            var baseSwView = ((ISwDrawingView)BaseView).DrawingView;
+
+            var offsetVec = GetViewOffsetVector(Direction);
 
             BaseView.Select(false);
 
-            var srcPos = (double[])((ISwDrawingView)BaseView).DrawingView.Position;
+            var baseViewOutline = GetBoundary(baseSwView);
 
+            var centerPt = baseViewOutline.CenterPoint;
+
+            //NOTE: it is required to insert view into the correct orientation
+            //For the base views with the hidden bodies, position may be incorrect, instead using hte center point of the boundary
             var view = m_Drawing.Drawing.CreateUnfoldedViewAt3(
-                            srcPos[0] + offsetDir.X * DEFAULT_OFFSET,
-                            srcPos[1] + offsetDir.Y * DEFAULT_OFFSET,
-                            0, false);
+                centerPt.X + offsetVec.X * DEFAULT_OFFSET,
+                centerPt.Y + offsetVec.Y * DEFAULT_OFFSET,
+                0, false);
 
             if (view != null)
             {
-                var srcViewOutline = (double[])((ISwDrawingView)BaseView).DrawingView.GetOutline();
-
-                var srcWidth = srcViewOutline[2] - srcViewOutline[0];
-                var srcHeight = srcViewOutline[3] - srcViewOutline[1];
-
-                var destViewOutline = (double[])view.GetOutline();
-
-                var destWidth = destViewOutline[2] - destViewOutline[0];
-                var destHeight = destViewOutline[3] - destViewOutline[1];
-
-                var offset = Math.Max(srcWidth, srcHeight) * 0.1;
-
-                double margin;
+                swAlignViewTypes_e alignType;
 
                 switch (Direction)
                 {
                     case ProjectedViewDirection_e.Left:
                     case ProjectedViewDirection_e.Right:
-                        margin = srcWidth / 2 + destWidth / 2 + offset;
+                        alignType = swAlignViewTypes_e.swAlignViewHorizontalOrigin;
                         break;
 
                     case ProjectedViewDirection_e.Top:
                     case ProjectedViewDirection_e.Bottom:
-                        margin = srcHeight / 2 + destHeight / 2 + offset;
+                        alignType = swAlignViewTypes_e.swAlignViewVerticalOrigin;
                         break;
 
                     case ProjectedViewDirection_e.IsoBottomLeft:
                     case ProjectedViewDirection_e.IsoBottomRight:
                     case ProjectedViewDirection_e.IsoTopLeft:
                     case ProjectedViewDirection_e.IsoTopRight:
-                        margin = Math.Max(srcHeight, srcWidth) / 2 + Math.Max(destHeight, destWidth) / 2 + offset;
+                        alignType = swAlignViewTypes_e.swDefaultViewAlignment;
                         break;
 
                     default:
                         throw new NotSupportedException();
                 }
 
-                var newPos = new double[]
-                {
-                    srcPos[0] + offsetDir.X * margin,
-                    srcPos[1] + offsetDir.Y * margin
-                };
+                //NOTE: for the base views with hiddent bodies, projected views may not be aligned (SOLIDWORKS bug)
+                //resetting alignment to restore correct position
+                view.RemoveAlignment();
 
-                view.Position = newPos;
+                if (view.AlignWithView((int)alignType, (View)baseSwView))
+                {
+                    var destViewOutline = GetBoundary(view);
+
+                    var margin = GetViewPadding(baseSwView);
+
+                    double offset;
+
+                    switch (Direction)
+                    {
+                        case ProjectedViewDirection_e.Left:
+                        case ProjectedViewDirection_e.Right:
+                            offset = (destViewOutline.Width + baseViewOutline.Width) / 2 + margin;
+                            break;
+
+                        case ProjectedViewDirection_e.Top:
+                        case ProjectedViewDirection_e.Bottom:
+                            offset = (destViewOutline.Height + baseViewOutline.Height) / 2 + margin;
+                            break;
+
+                        case ProjectedViewDirection_e.IsoBottomLeft:
+                        case ProjectedViewDirection_e.IsoBottomRight:
+                        case ProjectedViewDirection_e.IsoTopLeft:
+                        case ProjectedViewDirection_e.IsoTopRight:
+                            offset = Math.Sqrt(Math.Pow(destViewOutline.Width, 2) + Math.Pow(destViewOutline.Height, 2)) / 2
+                                    + Math.Sqrt(Math.Pow(baseViewOutline.Width, 2) + Math.Pow(baseViewOutline.Height, 2)) / 2
+                                    + margin;
+                            break;
+
+                        default:
+                            throw new NotSupportedException();
+                    }
+
+                    var srcPos = GetPosition(view);
+
+                    var posDiff = destViewOutline.CenterPoint - baseViewOutline.CenterPoint;
+
+                    var newPos = srcPos.Move(posDiff.Normalize(), posDiff.GetLength()).Move(offsetVec, offset);
+
+                    SetPosition(view, newPos);
+                }
+                else 
+                {
+                    throw new Exception("Failed to align view");
+                }
             }
 
             return view;
         }
 
-        private Vector CalculateViewOffsetDirection(ProjectedViewDirection_e projection)
+        private Vector GetViewOffsetVector(ProjectedViewDirection_e projection)
         {
             double dirX;
             double dirY;
@@ -997,17 +1329,26 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
         }
 
-        public Line SectionLine
+        public IXSectionLine SectionLine
         {
             get
             {
                 if (!IsCommitted)
                 {
-                    return m_Creator.CachedProperties.Get<Line>();
+                    return m_Creator.CachedProperties.Get<IXSectionLine>();
                 }
                 else
                 {
-                    throw new NotSupportedException();
+                    var section = DrawingView.IGetSection();
+
+                    if (section != null) 
+                    {
+                        return m_Drawing.CreateObjectFromDispatch<ISwSectionLine>(section);
+                    }
+                    else
+                    {
+                        throw new NullReferenceException("Section is not available");
+                    }
                 }
             }
             set
@@ -1035,10 +1376,12 @@ namespace Xarial.XCad.SolidWorks.Documents
             {
                 var transform = srcView.ModelToViewTransform.IMultiply(srcView.IGetSketch().ModelToSketchTransform);
 
-                var startPt = (IMathPoint)mathUtils.CreatePoint(new double[] { SectionLine.StartPoint.X, SectionLine.StartPoint.Y, SectionLine.StartPoint.Z });
+                var sectionLineDef = SectionLine.Definition;
+
+                var startPt = (IMathPoint)mathUtils.CreatePoint(new double[] { sectionLineDef.StartPoint.X, sectionLineDef.StartPoint.Y, sectionLineDef.StartPoint.Z });
                 startPt = startPt.IMultiplyTransform(transform);
 
-                var endPt = (IMathPoint)mathUtils.CreatePoint(new double[] { SectionLine.EndPoint.X, SectionLine.EndPoint.Y, SectionLine.EndPoint.Z });
+                var endPt = (IMathPoint)mathUtils.CreatePoint(new double[] { sectionLineDef.EndPoint.X, sectionLineDef.EndPoint.Y, sectionLineDef.EndPoint.Z });
                 endPt = endPt.IMultiplyTransform(transform);
 
                 var startCoord = (double[])startPt.ArrayData;
@@ -1083,17 +1426,26 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
         }
 
-        public Circle DetailCircle
+        public IXDetailCircle DetailCircle
         {
             get
             {
                 if (!IsCommitted)
                 {
-                    return m_Creator.CachedProperties.Get<Circle>();
+                    return m_Creator.CachedProperties.Get<IXDetailCircle>();
                 }
                 else
                 {
-                    throw new NotSupportedException();
+                    var detail = DrawingView.IGetDetail();
+
+                    if (detail != null)
+                    {
+                        return m_Drawing.CreateObjectFromDispatch<ISwDetailCircle>(detail);
+                    }
+                    else
+                    {
+                        throw new NullReferenceException("Detail circle is not available");
+                    }
                 }
             }
             set
@@ -1121,12 +1473,14 @@ namespace Xarial.XCad.SolidWorks.Documents
             {
                 var transform = srcView.ModelToViewTransform.IMultiply(srcView.IGetSketch().ModelToSketchTransform);
 
-                var centerMathPt = (IMathPoint)mathUtils.CreatePoint(new double[] { DetailCircle.CenterAxis.Point.X, DetailCircle.CenterAxis.Point.Y, DetailCircle.CenterAxis.Point.Z });
+                var detCircleDef = DetailCircle.Definition;
+
+                var centerMathPt = (IMathPoint)mathUtils.CreatePoint(new double[] { detCircleDef.CenterAxis.Point.X, detCircleDef.CenterAxis.Point.Y, detCircleDef.CenterAxis.Point.Z });
                 centerMathPt = centerMathPt.IMultiplyTransform(transform);
 
                 var centerCoord = (double[])centerMathPt.ArrayData;
 
-                var circle = skMgr.CreateCircleByRadius(centerCoord[0], centerCoord[1], centerCoord[2], DetailCircle.Diameter / 2);
+                var circle = skMgr.CreateCircleByRadius(centerCoord[0], centerCoord[1], centerCoord[2], detCircleDef.Diameter / 2);
 
                 using (var selGrp = new SelectionGroup(m_Drawing, false))
                 {
@@ -1166,9 +1520,15 @@ namespace Xarial.XCad.SolidWorks.Documents
                 m_SheetMetalPart = sheetMetalPart;
                 m_OrigConf = m_SheetMetalPart.Configurations.Active;
 
+                if (conf != null)
+                {
+                    //need to activate configuration to get the pointer to the body (as it can be different or non existent in different configuration)
+                    m_SheetMetalPart.Configurations.Active = conf;
+                }
+
                 if (sheetMetalBody.Component != null) 
                 {
-                    sheetMetalBody = sheetMetalPart.ConvertObject<SwSolidBody>(sheetMetalBody);
+                    sheetMetalBody = sheetMetalPart.ConvertObject(sheetMetalBody);
                 }
 
                 //creating a temp view to generate a sheet metal configuration
@@ -1185,6 +1545,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                 {
                     conf = (ISwConfiguration)tempView.ReferencedConfiguration;
 
+                    //need to set active configuration to flat pattern configuration, otherwise flat pattern view will not be created
                     m_SheetMetalPart.Configurations.Active = conf;
 
                     //remembering view name, it is important as the temp view will be deleted and flat pattern view
@@ -1212,8 +1573,24 @@ namespace Xarial.XCad.SolidWorks.Documents
         internal SwFlatPatternDrawingView(SwDrawing drw, SwSheet sheet)
             : base(null, drw, sheet)
         {
-            m_Creator.CachedProperties.Set<FlatPatternViewOptions_e>(
+            m_Creator.CachedProperties.Set(
                 FlatPatternViewOptions_e.BendLines | FlatPatternViewOptions_e.BendNotes, nameof(Options));
+        }
+
+        public override IXBody[] Bodies 
+        {
+            get => new IXBody[] { SheetMetalBody };
+            set 
+            {
+                if (value?.Length == 1)
+                {
+                    SheetMetalBody = (IXSolidBody)value[0];
+                }
+                else 
+                {
+                    throw new Exception("Only single body is supported");
+                }
+            }
         }
 
         public IXSolidBody SheetMetalBody
@@ -1272,7 +1649,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             {
                 if (IsCommitted)
                 {
-                    SetViewOptions(DrawingView, value);
+                    SetViewOptions(DrawingView, value, GetViewFlatPattern(DrawingView));
                 }
                 else 
                 {
@@ -1324,7 +1701,9 @@ namespace Xarial.XCad.SolidWorks.Documents
                 sheetMetalPart.Commit(cancellationToken);
             }
 
-            var sheetMetalBodiesCount = sheetMetalPart.Bodies.Count(b => ((ISwBody)b).Body.IsSheetMetal());
+            var bodies = sheetMetalPart.Bodies.ToArray();
+
+            var sheetMetalBodiesCount = bodies.Count(b => ((ISwBody)b).Body.IsSheetMetal());
 
             if (sheetMetalBodiesCount > 0)
             {
@@ -1336,10 +1715,9 @@ namespace Xarial.XCad.SolidWorks.Documents
                 var refConf = (ISwConfiguration)ReferencedConfiguration;
                 var viewName = "";
 
-                using (var multiBodyFlatPatternActivator = 
-                    sheetMetalBodiesCount > 1 
-                    ? new MultiBodyFlatPatternActivator(m_Drawing, sheetMetalBody, sheetMetalPart, ref refConf, ref viewName) 
-                    : null)
+                var isMultiBody = bodies.Length > 1;
+
+                using (isMultiBody ? new MultiBodyFlatPatternActivator(m_Drawing, sheetMetalBody, sheetMetalPart, ref refConf, ref viewName) : null)
                 {
                     return CreateFlatPatternView(sheetMetalPart, refConf, viewName);
                 }
@@ -1359,7 +1737,15 @@ namespace Xarial.XCad.SolidWorks.Documents
                 confName = refConf.Name;
             }
 
-            var view = m_Drawing.Drawing.CreateFlatPatternViewFromModelView3(sheetMetalPart.Path, confName, 0, 0, 0, false, false);
+            var loc = Location;
+
+            if (loc == null) 
+            {
+                loc = new Point(0, 0, 0);
+            }
+
+            var view = m_Drawing.Drawing.CreateFlatPatternViewFromModelView3(sheetMetalPart.Path, confName, loc.X, loc.Y, loc.Z, 
+                !Options.HasFlag(FlatPatternViewOptions_e.BendLines), false);
 
             if (view != null) 
             {
@@ -1368,7 +1754,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                     view.SetName2(viewName);
                 }
 
-                if (!view.IsFlatPatternView()) 
+                if (!IsFlatPatternView(view))
                 {
                     throw new Exception("Created view cannot be set to flat pattern");
                 }
@@ -1376,7 +1762,18 @@ namespace Xarial.XCad.SolidWorks.Documents
                 //In some cases view shows invalid geometry until hidden and shown
                 RefreshView(view);
 
-                SetViewOptions(view, Options);
+                ISwFlatPattern flatPattern;
+
+                try
+                {
+                    flatPattern = GetViewFlatPattern(view);
+                }
+                catch (Exception ex)
+                {
+                    throw new InvalidFlatPatternConfigurationException(ex);
+                }
+
+                SetViewOptions(view, Options, flatPattern);
 
                 if (ReferencedConfiguration != null) 
                 {
@@ -1388,7 +1785,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             return view;
         }
 
-        private void SetViewOptions(IView view, FlatPatternViewOptions_e opts) 
+        private void SetViewOptions(IView view, FlatPatternViewOptions_e opts, ISwFlatPattern flatPattern) 
         {
             var hasBendLines = view.GetBendLineCount() > 0;
 
@@ -1407,7 +1804,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
             if (hasBendLines != needBendLines)
             {
-                var bendLinesSketch = GetBendLinesSketchOrNull(view);
+                var bendLinesSketch = GetBendLinesSketchOrNull(view, flatPattern);
 
                 if (bendLinesSketch != null) //bend line sketch can be null if sheet metal has no bends
                 {
@@ -1431,7 +1828,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        private IFeature GetBendLinesSketchOrNull(IView view)
+        private IFeature GetBendLinesSketchOrNull(IView view, ISwFlatPattern flatPattern)
         {
             var bendLines = (object[])view.GetBendLines();
 
@@ -1441,8 +1838,6 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
             else
             {
-                var flatPattern = GetViewFlatPattern(view);
-
                 var subFeat = flatPattern.Feature.IGetFirstSubFeature();
 
                 IFeature bendLinesSketch = null;
@@ -1470,48 +1865,94 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         private ISwFlatPattern GetViewFlatPattern(IView view) 
         {
+            //Note, in some sheet metal files (probably corrupted as the result of the upgrade)
+            //this can return the hidden sheet metal flat pattern feature, not the actual one,
+            //so only using this as a fallback function
+
+            ISwFlatPattern GetFlatPatternFromFace()
+            {
+                var face = GetFlatPatternFace(view);
+
+                IFeature flatPatternFeat = null;
+
+                var feat = (IFeature)face.GetFeature();
+
+                if (feat.GetTypeName2() == SwFlatPattern.TypeName)
+                {
+                    flatPatternFeat = feat;
+                }
+                else 
+                {
+                    var childrenFeats = (object[])feat.GetChildren();
+
+                    if (childrenFeats != null) 
+                    {
+                        foreach (IFeature childFeat in childrenFeats) 
+                        {
+                            if (childFeat.GetTypeName2() == SwFlatPattern.TypeName)
+                            {
+                                flatPatternFeat = childFeat;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                if (flatPatternFeat != null)
+                {
+                    return OwnerDocument.CreateObjectFromDispatch<ISwFlatPattern>(flatPatternFeat);
+                }
+                else 
+                {
+                    throw new Exception("Failed to find the flat pattern feature from the face");
+                }
+            }
+
             if (OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2014))
             {
                 var flatPatternFolder = (IFlatPatternFolder)view.ReferencedDocument.FeatureManager.GetFlatPatternFolder();
-                var flatPatterns = (object[])flatPatternFolder.GetFlatPatterns();
 
-                if (flatPatterns?.Any() == true)
+                if (flatPatternFolder != null)
                 {
-                    var activeFlatPatterns = flatPatterns.Cast<IFeature>().Where(f =>
-                    {
-                        var isSuppressed = ((bool[])f.IsSuppressed2((int)swInConfigurationOpts_e.swSpecifyConfiguration,
-                            new string[] { view.ReferencedConfiguration })).First();
+                    var flatPatterns = (object[])flatPatternFolder.GetFlatPatterns();
 
-                        return !isSuppressed;
-                    }).ToArray();
+                    if (flatPatterns?.Any() == true)
+                    {
+                        var activeFlatPatterns = flatPatterns.Cast<IFeature>().Where(f =>
+                        {
+                            var isSuppressed = ((bool[])f.IsSuppressed2((int)swInConfigurationOpts_e.swSpecifyConfiguration,
+                                new string[] { view.ReferencedConfiguration })).First();
 
-                    if (activeFlatPatterns.Length == 1)
-                    {
-                        return OwnerDocument.CreateObjectFromDispatch<ISwFlatPattern>(activeFlatPatterns.First());
+                            return !isSuppressed;
+                        }).ToArray();
+
+                        if (activeFlatPatterns.Length == 1)
+                        {
+                            return OwnerDocument.CreateObjectFromDispatch<ISwFlatPattern>(activeFlatPatterns.First());
+                        }
+                        else if (activeFlatPatterns.Length == 0)
+                        {
+                            throw new Exception("Failed to find active flat patterns");
+                        }
+                        else
+                        {
+                            throw new Exception("More than one active flat pattern is found");
+                        }
                     }
-                    else if (activeFlatPatterns.Length == 0)
+                    else
                     {
-                        throw new Exception("Failed to find active flat patterns");
-                    }
-                    else 
-                    {
-                        throw new Exception("More than one active flat pattern is found");
+                        throw new Exception("No flat patterns found");
                     }
                 }
                 else 
                 {
-                    throw new Exception("No flat patterns found");
+                    //NOTE: legacy sheet metal flat patterns are not placed in the sheet metal folders
+                    return GetFlatPatternFromFace();
                 }
             }
             else
             {
-                //Note, in some sheet metal files (probably corrupted as the result of the upgrade)
-                //this can return the hidden sheet metal flat pattern feature, not the actual one,
-                //so only using this as a fallback function
-
-                var face = GetFlatPatternFace(view);
-
-                return OwnerDocument.CreateObjectFromDispatch<ISwFlatPattern>(face.GetFeature());
+                return GetFlatPatternFromFace();
             }
         }
 

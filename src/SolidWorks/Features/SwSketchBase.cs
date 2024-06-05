@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -46,6 +46,8 @@ namespace Xarial.XCad.SolidWorks.Features
 
         private readonly UiFreeze m_ViewFreeze;
 
+        private bool m_WasEditing;
+
         protected SwSketchEditorBase(TSketch sketch, ISketch swSketch) 
         {
             if (sketch == null)
@@ -70,11 +72,16 @@ namespace Xarial.XCad.SolidWorks.Features
                 if (((IFeature)m_Sketch).Select2(false, 0))
                 {
                     StartEdit();
+                    m_WasEditing = false;
                 }
-                else 
+                else
                 {
                     throw new Exception("Failed to select sketch for editing");
                 }
+            }
+            else 
+            {
+                m_WasEditing = true;
             }
 
             m_AddToDbOrig = m_SketchMgr.AddToDB;
@@ -90,11 +97,14 @@ namespace Xarial.XCad.SolidWorks.Features
                 m_SketchMgr.AddToDB = m_AddToDbOrig.Value;
             }
 
-            if (Target.IsEditing)
+            if (!m_WasEditing)
             {
-                m_SketchMgr.Document.ClearSelection2(true);
-                
-                EndEdit(Cancel);
+                if (Target.IsEditing)
+                {
+                    m_SketchMgr.Document.ClearSelection2(true);
+
+                    EndEdit(Cancel);
+                }
             }
         }
     }
@@ -131,6 +141,11 @@ namespace Xarial.XCad.SolidWorks.Features
 
         protected override IFeature InsertFeature(CancellationToken cancellationToken)
         {
+            if (m_SwEntsColl.Count == 0) 
+            {
+                throw new Exception("Failed to create sketch with no entitites");
+            }
+
             var sketch = CreateSketch();
 
             Sketch = sketch;
@@ -141,8 +156,14 @@ namespace Xarial.XCad.SolidWorks.Features
         protected override void CommitCache(IFeature feat, CancellationToken cancellationToken)
         {
             m_SwEntsColl.CommitCache(cancellationToken);
+
+            if (IsEditing) 
+            {
+                CloseSketch();
+            }
         }
 
+        protected abstract void CloseSketch();
         protected abstract ISketch CreateSketch();
 
         public override IEditor<IXFeature> Edit() => CreateSketchEditor(Sketch);
@@ -169,17 +190,20 @@ namespace Xarial.XCad.SolidWorks.Features
             }
             set 
             {
-                using (var selGrp = new SelectionGroup(OwnerDocument, true)) 
+                if (IsBlank != value)
                 {
-                    selGrp.Add(Feature);
+                    using (var selGrp = new SelectionGroup(OwnerDocument, true))
+                    {
+                        selGrp.Add(Feature);
 
-                    if (value)
-                    {
-                        OwnerDocument.Model.BlankSketch();
-                    }
-                    else 
-                    {
-                        OwnerDocument.Model.UnblankSketch();
+                        if (value)
+                        {
+                            OwnerDocument.Model.BlankSketch();
+                        }
+                        else
+                        {
+                            OwnerDocument.Model.UnblankSketch();
+                        }
                     }
                 }
             }

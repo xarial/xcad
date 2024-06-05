@@ -7,6 +7,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
+using Xarial.XCad.Documents.Extensions;
 using Xarial.XCad.Enums;
 using Xarial.XCad.Inventor;
 using Xarial.XCad.Inventor.Enums;
@@ -19,27 +20,33 @@ namespace StandAlone.Ai
     {
         static void Main(string[] args)
         {
+            //using (var app = AiApplicationFactory.Create(AiVersion_e.Inventor2023)) 
+            //{
+            var app = AiApplicationFactory.Create(AiVersion_e.Inventor2023);
             //var app = AiApplicationFactory.FromProcess(Process.GetProcessesByName("Inventor").FirstOrDefault());
-            //var doc = app.Documents.PreCreate<IXDocument>();
-            //doc.Path = @"C:\Users\artem\Desktop\Part1.ipt";
-            //doc.Commit();
+            
+            using (var doc = app.Documents.Open(@"C:\Users\artem\Desktop\Inventor\C001.ipt"))
+            {
+                if (doc is IXDocument3D) 
+                {
+                    var doc3D = (IXDocument3D)doc;
 
-            //var apps = new List<IAiApplication>();
+                    foreach (var conf in doc3D.Configurations) 
+                    {
+                        foreach (var prp in conf.Properties)
+                        {
+                        }
+                    }
 
-            //foreach (var prc in Process.GetProcessesByName("Inventor")) 
-            //{
-            //    apps.Add(AiApplicationFactory.FromProcess(p));
-            //}
+                    //var active = doc3D.Configurations.Active;
 
-            //apps.Add(AiApplicationFactory.Create(AiVersion_e.Inventor2023, ApplicationState_e.Default, StartApplicationConnectStrategy_e.Default));
-            //apps.Add(AiApplicationFactory.Create(AiVersion_e.Inventor2023, ApplicationState_e.Default, StartApplicationConnectStrategy_e.Default));
-            //apps.Add(AiApplicationFactory.Create(AiVersion_e.Inventor2023, ApplicationState_e.Default, StartApplicationConnectStrategy_e.Default));
+                    //doc3D.Configurations.Active = doc3D.Configurations.Last();
+                }
 
-            //foreach (var app in apps)
-            //{
-            //    Console.WriteLine($"Inventor: {app.Version.DisplayName} [{app.Process.Id}] : [{app.WindowHandle.ToInt32()}]");
-            //    app.Close();
-            //}
+                foreach (var prp in doc.Properties)
+                {
+                }
+            }
 
             Console.ReadLine();
         }

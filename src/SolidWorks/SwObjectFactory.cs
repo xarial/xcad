@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -18,7 +18,9 @@ using Xarial.XCad.SolidWorks.Features.CustomFeature;
 using Xarial.XCad.SolidWorks.Geometry;
 using Xarial.XCad.SolidWorks.Geometry.Curves;
 using Xarial.XCad.SolidWorks.Geometry.Surfaces;
+using Xarial.XCad.SolidWorks.Services;
 using Xarial.XCad.SolidWorks.Sketch;
+using Xarial.XCad.Toolkit;
 using Xarial.XCad.Utils.Reflection;
 
 namespace Xarial.XCad.SolidWorks
@@ -218,6 +220,24 @@ namespace Xarial.XCad.SolidWorks
                 case INote note:
                     return new SwNote(note, doc, app);
 
+                case IDrSection section:
+                    return new SwSectionLine(section, doc, app);
+
+                case IBreakLine breakLine:
+                    return new SwBreakLine(breakLine, doc, app);
+
+                case IDetailCircle detailCircle:
+                    return new SwDetailCircle(detailCircle, doc, app);
+
+                case ITableAnnotation tableAnn:
+                    switch ((swTableAnnotationType_e)tableAnn.Type) 
+                    {
+                        case swTableAnnotationType_e.swTableAnnotation_BillOfMaterials:
+                            return new SwBomTable(tableAnn, doc, app);
+                        default:
+                            return new SwTable(tableAnn, doc, app);
+                    }
+
                 case IAnnotation ann:
                     switch ((swAnnotationType_e)ann.GetType())
                     {
@@ -225,9 +245,14 @@ namespace Xarial.XCad.SolidWorks
                             return new SwDimension((IDisplayDimension)ann.GetSpecificAnnotation(), doc, app);
                         case swAnnotationType_e.swNote:
                             return new SwNote((INote)ann.GetSpecificAnnotation(), doc, app);
+                        case swAnnotationType_e.swTableAnnotation:
+                            return FromDispatch((ITableAnnotation)ann.GetSpecificAnnotation(), doc, app, defaultHandler);
                         default:
                             return new SwAnnotation(ann, doc, app);
                     }
+
+                case ILayer layer:
+                    return new SwLayer(layer, doc, app);
 
                 case IConfiguration conf:
                     switch (doc)
@@ -243,15 +268,37 @@ namespace Xarial.XCad.SolidWorks
                     }
 
                 case IComponent2 comp:
-                    var ext = Path.GetExtension(comp.GetPathName());
-                    switch (ext.ToLower()) 
+                    
+                    var compRefModel = comp.GetModelDoc2();
+
+                    if (compRefModel != null)
                     {
-                        case ".sldprt":
-                            return new SwPartComponent(comp, (SwAssembly)doc, app);
-                        case ".sldasm":
-                            return new SwAssemblyComponent(comp, (SwAssembly)doc, app);
-                        default:
-                            throw new NotSupportedException();
+                        switch (compRefModel)
+                        {
+                            case IPartDoc _:
+                                return new SwPartComponent(comp, (SwAssembly)doc, app);
+
+                            case IAssemblyDoc _:
+                                return new SwAssemblyComponent(comp, (SwAssembly)doc, app);
+
+                            default:
+                                throw new NotSupportedException($"Unrecognized component type of '{comp.Name2}'");
+                        }
+                    }
+                    else
+                    {
+                        var compFilePath = comp.GetPathName();
+                        var ext = Path.GetExtension(compFilePath);
+
+                        switch (ext.ToLower())
+                        {
+                            case ".sldprt":
+                                return new SwPartComponent(comp, (SwAssembly)doc, app);
+                            case ".sldasm":
+                                return new SwAssemblyComponent(comp, (SwAssembly)doc, app);
+                            default:
+                                throw new NotSupportedException($"Component '{comp.Name2}' file '{compFilePath}' is not recognized");
+                        }
                     }
 
                 case ISheet sheet:
@@ -358,6 +405,9 @@ namespace Xarial.XCad.SolidWorks
                 case ISketchBlockDefinition skBlockDef:
                     return new SwSketchBlockDefinition((IFeature)skBlockDef, doc, app, true);
 
+                case ICutListItem cutListItem:
+                    return new SwCutListItem(cutListItem, (SwDocument3D)doc, app, true);
+
                 case IFeature feat:
                     switch (feat.GetTypeName())
                     {
@@ -386,7 +436,7 @@ namespace Xarial.XCad.SolidWorks
                         case "WeldMemberFeat":
                             return new SwStructuralMember(feat, doc, app, true);
                         case "MacroFeature":
-                            if (TryGetParameterType(feat, out Type paramType))
+                            if (TryGetParameterType(feat, app, out Type paramType))
                             {
                                 return SwMacroFeature<object>.CreateSpecificInstance(feat, doc, app, paramType);
                             }
@@ -403,22 +453,19 @@ namespace Xarial.XCad.SolidWorks
             }
         }
 
-        private static bool TryGetParameterType(IFeature feat, out Type paramType)
+        private static bool TryGetParameterType(IFeature feat, SwApplication app, out Type paramType)
         {
             var featData = feat.GetDefinition() as IMacroFeatureData;
-            var progId = featData.GetProgId();
 
-            if (!string.IsNullOrEmpty(progId))
+            var macroFeatTypeProvider = app.Services.GetService<IMacroFeatureTypeProvider>();
+            var type = macroFeatTypeProvider.ProvideType(featData);
+
+            if (type != null)
             {
-                var type = Type.GetTypeFromProgID(progId);
-
-                if (type != null)
+                if (type.IsAssignableToGenericType(typeof(SwMacroFeatureDefinition<>)))
                 {
-                    if (type.IsAssignableToGenericType(typeof(SwMacroFeatureDefinition<>)))
-                    {
-                        paramType = type.GetArgumentsOfGenericType(typeof(SwMacroFeatureDefinition<>)).First();
-                        return true;
-                    }
+                    paramType = type.GetArgumentsOfGenericType(typeof(SwMacroFeatureDefinition<>)).First();
+                    return true;
                 }
             }
 

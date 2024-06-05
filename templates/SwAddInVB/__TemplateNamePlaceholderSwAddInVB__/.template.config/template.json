@@ -1,0 +1,125 @@
+{
+  "$schema": "http://json.schemastore.org/template",
+  "author": "Xarial",
+  "classifications": [ "xCAD", "SOLIDWORKS", "Library" ],
+  "identity": "Xarial.XCad.Template.SwAddIn.VB",
+  "groupIdentity": "Xarial.XCad.Template.SwAddIn",
+  "name": "xCAD SOLIDWORKS Add-In",
+  "shortName": "xcadswaddin",
+  "description": "SOLIDWORKS add-in based on xCAD.NET Framework (VB.NET)",
+  "sourceName": "__TemplateNamePlaceholderSwAddInVB__",
+  "tags": {
+    "language": "VB",
+    "type": "project"
+  },
+  "guids": 
+  [
+    "C472AA4E-58F6-4D7B-8458-834033016A77",
+    "938981F5-32AB-4971-B799-1DEEAEBE6188",
+    "243A9415-A8A6-460F-8D35-D068C130B095",
+    "871F36E7-B4B7-4026-A341-0A19BBC2BF60"
+  ],
+  "defaultName": "XCadSwAddIn",
+  "preferNameDirectory": true,
+  "constraints": {
+    "windows-only": {
+      "type": "os",
+      "args": "Windows"
+    }
+  },
+  "symbols": {
+    "_TargetFramework_": {
+      "type": "parameter",
+      "displayName": "Target Framework",
+      "description": "Project target framework",
+      "datatype": "choice",
+      "choices": [
+        {
+          "choice": "net461",
+          "displayName": ".NET Framework 4.6.1"
+        },
+        {
+          "choice": "net472",
+          "displayName": ".NET Framework 4.7.2"
+        },
+        {
+          "choice": "net48",
+          "displayName": ".NET Framework 4.8"
+        },
+        {
+          "choice": "netcoreapp3.1",
+          "displayName": ".NET Core 3.1"
+        },
+        {
+          "choice": "net6.0-windows",
+          "displayName": ".NET 6"
+        },
+        {
+          "choice": "net7.0-windows",
+          "displayName": ".NET 7"
+        }
+      ],
+      "defaultValue": "net472",
+      "replaces": "net472"
+    },
+    "_AddCommandManager_": {
+      "type": "parameter",
+      "displayName": "Add Command Manager",
+      "description": "Add commands sample into menu, toolbar and command manager (ribbon)",
+      "datatype": "bool",
+      "defaultValue": "true"
+    },
+    "_AddPropertyPage_": {
+      "type": "parameter",
+      "displayName": "Add Property Page",
+      "description": "Add sample property page",
+      "datatype": "bool",
+      "defaultValue": "true"
+    },
+    "_AddMacroFeature_": {
+      "type": "parameter",
+      "displayName": "Add Macro Feature",
+      "description": "Add sample macro feature",
+      "datatype": "bool",
+      "defaultValue": "false"
+    }
+  },
+  "sources": [
+    {
+      "modifiers": [
+        {
+          "condition": "!(_AddCommandManager_ || _AddPropertyPage_ || _AddMacroFeature_)",
+          "exclude": [
+            "My Project/Resources.resx",
+            "My Project/Resources.Designer.vb",
+            "Resources/about-icon.png",
+            "Resources/box-icon.png",
+            "Resources/parametric-box-icon.png",
+            "Resources/height-icon.png",
+            "Resources/length-icon.png",
+            "Resources/width-icon.png"
+          ]
+        },
+        {
+          "condition": "!(_AddPropertyPage_ || _AddMacroFeature_)",
+          "exclude": [
+            "BoxPropertyPage.vb"
+          ]
+        },
+        {
+          "condition": "!(_AddMacroFeature_)",
+          "exclude": [
+            "BoxMacroFeatureDefinition.vb",
+            "BoxMacroFeatureData.vb"
+          ]
+        }
+      ]
+    }
+  ],
+  "postActions": [{
+    "condition": "(!skipRestore)",
+    "description": "Restore NuGet packages required by this project.",
+    "actionId": "210D431B-A78B-4D2F-B762-4ED3E3EA9025",
+    "continueOnError": true
+  }]
+}

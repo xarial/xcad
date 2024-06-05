@@ -11,12 +11,10 @@ using Xarial.XCad.UI.Commands.Enums;
 using Xarial.XCad.UI.Commands;
 using Xarial.XCad.Extensions;
 using Xarial.XCad.SolidWorks.Documents.Services;
-using Xarial.XCad.Documents.Services;
 using Xarial.XCad;
 using Xarial.XCad.Documents;
-using Xarial.XCad.SolidWorks.Documents;
 using SolidWorks.Interop.sldworks;
-using Xarial.XCad.Data.Enums;
+using Xarial.XCad.Documents.Extensions;
 
 namespace Xarial.XCad.Documentation
 {
@@ -129,7 +127,7 @@ namespace Xarial.XCad.Documentation
         {
             const string STREAM_NAME = "CodeStackStream";
 
-            using (var str = doc.OpenStream(STREAM_NAME, AccessType_e.Write))
+            using (var str = doc.OpenStream(STREAM_NAME, true))
             {
                 var xmlSer = new XmlSerializer(typeof(string[]));
 

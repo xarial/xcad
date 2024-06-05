@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -34,21 +34,10 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public IXCutListItemRepository CutLists { get; }
 
-        public IXMaterial Material 
+        public IXMaterial Material
         {
-            get 
-            {
-                var materialName = m_Part.Part.GetMaterialPropertyName2(Name, out var database);
-
-                if (!string.IsNullOrEmpty(materialName))
-                {
-                    return new SwMaterial(materialName, database);
-                }
-                else 
-                {
-                    return null;
-                }
-            }
+            get => m_Part.GetMaterial(Name);
+            set => m_Part.SetMaterial(value, Name);
         }
     }
 }

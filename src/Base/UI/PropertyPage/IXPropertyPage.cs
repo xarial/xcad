@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -29,6 +29,11 @@ namespace Xarial.XCad.UI.PropertyPage
         /// Fired when property manager page is closed
         /// </summary>
         event PageClosedDelegate Closed;
+
+        /// <summary>
+        /// Keystroke handler if page created with option <see cref="Enums.PageOptions_e.HandleKeystrokes"/>
+        /// </summary>
+        event KeystrokeHookDelegate KeystrokeHook;
 
         /// <summary>
         /// Checks if page is pinned

@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -29,6 +29,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
         private Type m_TargetType;
         private bool m_IsMultiSelect;
+        private bool m_SuspendHandlingChanged;
 
         public PropertyManagerPageListBoxControl(SwApplication app, IGroup parentGroup, IIconsCreator iconConv,
             IAttributeSet atts, IMetadata[] metadata, ref int numberOfUsedIds)
@@ -81,7 +82,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             ctrl.Style = style;
         }
 
-        protected override void SetStaticItems(IAttributeSet atts, bool isStatic, ItemsControlItem[] staticItems)
+        protected override ItemsControlItem[] LoadInitialItems(IAttributeSet atts, bool isStatic, ItemsControlItem[] items)
         {
             if (isStatic)
             {
@@ -89,18 +90,21 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
                 
                 if (sortItems)
                 {
-                    staticItems = staticItems.OrderBy(i => i.DisplayName).ToArray();
+                    items = items.OrderBy(i => i.DisplayName).ToArray();
                 }
-
-                Items = staticItems;
             }
+
+            return items;
         }
 
         private void OnListBoxChanged(int id, int selIndex)
         {
             if (Id == id)
             {
-                ValueChanged?.Invoke(this, GetSpecificValue());
+                if (!m_SuspendHandlingChanged)
+                {
+                    ValueChanged?.Invoke(this, GetSpecificValue());
+                }
             }
         }
 
@@ -181,14 +185,6 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             }
         }
 
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                m_Handler.ListBoxChanged -= OnListBoxChanged;
-            }
-        }
-
         protected override void LoadItemsIntoControl(ItemsControlItem[] newItems)
         {
             SwSpecificControl.Clear();
@@ -196,6 +192,42 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             if (newItems?.Any() == true)
             {
                 SwSpecificControl.AddItems(newItems.Select(i => i.DisplayName).ToArray());
+            }
+        }
+
+        protected override void SetItemDisplayName(ItemsControlItem item, int index, string newDispName)
+        {
+            if (index != -1 && SwSpecificControl.ItemCount > index)
+            {
+                m_SuspendHandlingChanged = true;
+
+                try
+                {
+                    var selItems = (short[])SwSpecificControl.GetSelectedItems();
+
+                    SwSpecificControl.DeleteItem((short)index);
+                    SwSpecificControl.InsertItem((short)index, newDispName);
+
+                    if (selItems != null)
+                    {
+                        for (short i = 0; i < SwSpecificControl.ItemCount; i++)
+                        {
+                            SwSpecificControl.SetSelectedItem(i, selItems.Contains(i));
+                        }
+                    }
+                }
+                finally
+                {
+                    m_SuspendHandlingChanged = false;
+                }
+            }
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                m_Handler.ListBoxChanged -= OnListBoxChanged;
             }
         }
     }

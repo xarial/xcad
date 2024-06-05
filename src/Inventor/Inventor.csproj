@@ -6,10 +6,10 @@
     <TargetFrameworks>net7.0-windows;net6.0-windows;netcoreapp3.1;net461</TargetFrameworks>
     <PackageId>Xarial.XCad.Inventor</PackageId>
     <PackageTags>cad,inventor</PackageTags>
-    <Description>Framework for developing Autodesk Inventor applications</Description>
+    <Description>Framework for developing Autodesk Inventor applications based on xCAD.NET</Description>
     <PackageIcon>icon.png</PackageIcon>
     <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
-    <PackageIconUrl>https://xcad.xarial.com/icon.png</PackageIconUrl>
+    <PackageIconUrl>https://xcad.xarial.com/icon-ai.png</PackageIconUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
@@ -38,7 +38,7 @@
   </ItemGroup>
     
   <ItemGroup>
-    <None Include="..\..\data\icon.png" pack="true" PackagePath="" Link="_Pack\icon.png" />
+    <None Include="icon.png" pack="true" PackagePath="" Link="_Pack\icon.png" />
     <None Include="..\..\LICENSE.md" pack="true" PackagePath="" Link="_Pack\LICENSE.md" />
     <None Include="..\..\README.md" pack="true" PackagePath="" Link="_Pack\README.md" />
   </ItemGroup>
@@ -53,7 +53,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="SolidWorks.Interop.sldworks">
+    <Reference Include="Autodesk.Inventor.Interop">
       <HintPath>..\..\thirdpty\Autodesk.Inventor.Interop.dll</HintPath>
       <EmbedInteropTypes>false</EmbedInteropTypes>
     </Reference>

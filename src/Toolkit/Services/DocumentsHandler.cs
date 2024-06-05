@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -92,6 +92,59 @@ namespace Xarial.XCad.Toolkit.Services
                 {
                     TryInitHandlers(doc);
                 }
+            }
+        }
+
+        /// <summary>
+        /// Unregisters the specific handler
+        /// </summary>
+        /// <typeparam name="THandler">Handler type</typeparam>
+        public void UnregisterHandler<THandler>() where THandler : IDocumentHandler
+        {
+            var type = typeof(THandler);
+
+            var handlerInfo = m_Handlers.FirstOrDefault(h => h.HandlerType == type);
+
+            if (handlerInfo != null)
+            {
+                m_Handlers.Remove(handlerInfo);
+
+                foreach (var docMapKey in m_DocsMap) 
+                {
+                    var handlers = docMapKey.Value;
+
+                    var handler = handlers.FirstOrDefault(h => h.GetType() == type);
+
+                    if (handler != null) 
+                    {
+                        handlers.Remove(handler);
+
+                        try
+                        {
+                            handler.Dispose();
+                        }
+                        catch (Exception ex)
+                        {
+                            m_Logger.Log(ex);
+                        }
+                    }
+                }
+
+                if (m_Handlers.Count == 0)//last handler
+                {
+                    m_App.Documents.DocumentLoaded -= OnDocumentLoaded;
+
+                    foreach (var doc in m_DocsMap.Keys)
+                    {
+                        doc.Destroyed -= OnDocumentDestroyed;
+                    }
+
+                    m_DocsMap.Clear();
+                }
+            }
+            else 
+            {
+                throw new Exception("Handler for this type is not registered");
             }
         }
 

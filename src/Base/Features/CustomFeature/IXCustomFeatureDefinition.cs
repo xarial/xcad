@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -77,11 +77,24 @@ namespace Xarial.XCad.Features.CustomFeature
     }
 
     /// <summary>
+    /// Custom feature which is managed by property manager page 
+    /// </summary>
+    public interface IXCustomFeatureEditorDefinition : IXCustomFeatureDefinition
+    {
+        /// <summary>
+        /// Starts insertion of the custom feature
+        /// </summary>
+        /// <param name="doc">Document</param>
+        /// <param name="data">Feature data</param>
+        void Insert(IXDocument doc, object data);
+    }
+
+    /// <summary>
     /// Represents custom feature with a built-in custom page editor
     /// </summary>
     /// <typeparam name="TParams">Parameters of this custom feature</typeparam>
     /// <typeparam name="TPage">Page editor of this custom feature</typeparam>
-    public interface IXCustomFeatureDefinition<TParams, TPage> : IXCustomFeatureDefinition<TParams>
+    public interface IXCustomFeatureDefinition<TParams, TPage> : IXCustomFeatureEditorDefinition, IXCustomFeatureDefinition<TParams>
         where TParams : class
         where TPage : class
     {
@@ -120,14 +133,14 @@ namespace Xarial.XCad.Features.CustomFeature
             out AssignPreviewBodyColorDelegate assignPreviewColor);
 
         /// <summary>
-        /// Converter between custom feature parameters and page editor
+        /// Creates property page for the feature
         /// </summary>
         /// <param name="app">Application</param>
         /// <param name="doc">Current document</param>
-        /// <param name="par">Custom feature parameter</param>
+        /// <param name="feat">Custom feature. Use <see cref="IXCustomFeature{TParams}.Parameters"/> to read current parameters</param>
         /// <returns>Corresponding page</returns>
         /// <remarks>This method is called once when editing of the feature is started or new feature is being inserted</remarks>
-        TPage ConvertParamsToPage(IXApplication app, IXDocument doc, TParams par);
+        TPage CreatePropertyPage(IXApplication app, IXDocument doc, IXCustomFeature<TParams> feat);
 
         /// <summary>
         /// Converts from page to custom feature parameters
@@ -138,6 +151,6 @@ namespace Xarial.XCad.Features.CustomFeature
         /// <param name="curParams">Current parameters</param>
         /// <returns>Corresponding custom feature parameters</returns>
         /// <remarks>This method is called everytime page data is changed</remarks>
-        TParams ConvertPageToParams(IXApplication app, IXDocument doc, TPage page, TParams curParams);
+        TParams CreateParameters(IXApplication app, IXDocument doc, TPage page, TParams curParams);
     }
 }

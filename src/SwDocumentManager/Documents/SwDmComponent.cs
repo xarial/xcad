@@ -1,10 +1,11 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
+using Microsoft.VisualBasic;
 using SolidWorks.Interop.swdocumentmgr;
 using System;
 using System.Collections;
@@ -60,8 +61,6 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         public ISwDMComponent Component { get; }
 
-        public override SelectType_e SelectionType => SelectType_e.Components;
-
         internal SwDmAssembly ParentAssembly { get; }
 
         private IFilePathResolver m_FilePathResolver;
@@ -78,7 +77,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             m_PathLazy = new Lazy<string>(() => 
             {
                 var rootDir = Path.GetDirectoryName(ParentAssembly.Path);
-
+                
                 var cachedPath = CachedPath;
 
                 var changedPath = ParentAssembly.ChangedReferences.EnumerateByFileName(cachedPath).LastOrDefault();
@@ -87,8 +86,26 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                 {
                     cachedPath = changedPath;
                 }
+                
+                try
+                {
+                    return m_FilePathResolver.ResolvePath(rootDir, cachedPath);
+                }
+                catch
+                {
+                    //if component is inserted into the virtual sub-assembly it needs to be searched in the first non-virtual parent path
+                    //as it won't be present in the virtual temp directory
+                    var nonVirtRootDir = GetFirstNonVirtualParentDirectry();
 
-                return m_FilePathResolver.ResolvePath(rootDir, cachedPath);
+                    if (!string.Equals(rootDir, nonVirtRootDir, StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        return m_FilePathResolver.ResolvePath(nonVirtRootDir, cachedPath);
+                    }
+                    else 
+                    {
+                        throw;
+                    }
+                }
             });
 
             m_ChildrenLazy = new Lazy<IXComponentRepository>(() => 
@@ -109,6 +126,25 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                     return new EmptyComponentCollection();
                 }
             });
+        }
+
+        private string GetFirstNonVirtualParentDirectry() 
+        {
+            var comp = this;
+
+            while (comp != null)
+            {
+                var parentComp = comp.Parent;
+
+                if (parentComp == null || !((ISwDMComponent3)parentComp.Component).IsVirtual) 
+                {
+                    return Path.GetDirectoryName(comp.ParentAssembly.Path);
+                }
+
+                comp = parentComp;
+            }
+
+            throw new Exception("Failed to find the non-virtual component parent directory");
         }
 
         public string Name
@@ -138,11 +174,11 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         public ISwDmConfiguration ReferencedConfiguration 
         {
-            get => GetReferencedConfiguration();
+            get => GetReferencedConfiguration(Component.ConfigurationName);
             set => throw new NotSupportedException();
         }
 
-        protected abstract ISwDmConfiguration GetReferencedConfiguration();
+        protected internal abstract ISwDmConfiguration GetReferencedConfiguration(string confName);
         protected abstract ISwDmDocument3D GetReferencedDocument();
 
         public ComponentState_e State
@@ -356,14 +392,11 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         IXPart IXPartComponent.ReferencedDocument { get => (IXPart)base.ReferencedDocument; set => base.ReferencedDocument = (ISwDmDocument3D)value; }
         IXPartConfiguration IXPartComponent.ReferencedConfiguration { get => (IXPartConfiguration)base.ReferencedConfiguration; set => base.ReferencedConfiguration = (ISwDmConfiguration)value; }
 
-        private readonly Lazy<ISwDmPartConfiguration> m_ReferencedConfigurationLazy;
-
         public SwDmPartComponent(SwDmAssembly parentAssm, ISwDMComponent comp) : base(parentAssm, comp)
         {
-            m_ReferencedConfigurationLazy = new Lazy<ISwDmPartConfiguration>(() => new SwDmPartComponentConfiguration(this));
         }
 
-        protected override ISwDmConfiguration GetReferencedConfiguration() => m_ReferencedConfigurationLazy.Value;
+        protected internal override ISwDmConfiguration GetReferencedConfiguration(string confName) => new SwDmPartComponentConfiguration(this, confName);
         protected override ISwDmDocument3D GetReferencedDocument() => GetSpecificReferencedDocument<ISwDmPart>();
     }
 
@@ -372,34 +405,51 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         IXAssembly IXAssemblyComponent.ReferencedDocument { get => (IXAssembly)base.ReferencedDocument; set => base.ReferencedDocument = (ISwDmDocument3D)value; }
         IXAssemblyConfiguration IXAssemblyComponent.ReferencedConfiguration { get => (IXAssemblyConfiguration)base.ReferencedConfiguration; set => base.ReferencedConfiguration = (ISwDmConfiguration)value; }
 
-        private readonly Lazy<ISwDmAssemblyConfiguration> m_ReferencedConfigurationLazy;
-
         public SwDmAssemblyComponent(SwDmAssembly parentAssm, ISwDMComponent comp) : base(parentAssm, comp)
         {
-            m_ReferencedConfigurationLazy = new Lazy<ISwDmAssemblyConfiguration>(() => new SwDmAssemblyComponentConfiguration(this));
         }
 
-        protected override ISwDmConfiguration GetReferencedConfiguration() => m_ReferencedConfigurationLazy.Value;
+        protected internal override ISwDmConfiguration GetReferencedConfiguration(string confName) => new SwDmAssemblyComponentConfiguration(this, confName);
         protected override ISwDmDocument3D GetReferencedDocument() => GetSpecificReferencedDocument<ISwDmAssembly>();
     }
 
     internal abstract class SwDmComponentConfiguration : SwDmConfiguration
     {
         #region Not Supported
-        public IXMaterial Material => throw new NotSupportedException();
+        public IXMaterial Material { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
         #endregion
 
-        protected readonly ISwDmComponent m_Comp;
+        protected readonly SwDmComponent m_Comp;
 
-        internal SwDmComponentConfiguration(SwDmComponent comp) : base(null, (SwDmDocument3D)comp.OwnerDocument)
+        private readonly string m_ConfName;
+
+        internal SwDmComponentConfiguration(SwDmComponent comp, string confName) : base(null, (SwDmDocument3D)comp.OwnerDocument)
         {
             m_Comp = comp;
+            m_ConfName = confName;
         }
         
         public override string Name 
         {
-            get => m_Comp.Component.ConfigurationName;
+            get => m_ConfName;
             set => throw new NotSupportedException();
+        }
+
+        public override IXConfiguration Parent
+        {
+            get
+            {
+                var parentConfName = Configuration.GetParentConfigurationName();
+
+                if (!string.IsNullOrEmpty(parentConfName))
+                {
+                    return m_Comp.GetReferencedConfiguration(parentConfName);
+                }
+                else 
+                {
+                    return null;
+                }
+            }
         }
 
         internal protected override SwDmDocument3D Document => (SwDmDocument3D)m_Comp.ReferencedDocument;
@@ -415,7 +465,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
     {
         private readonly Lazy<IXCutListItemRepository> m_CutListsLazy;
 
-        public SwDmPartComponentConfiguration(SwDmComponent comp) : base(comp)
+        public SwDmPartComponentConfiguration(SwDmComponent comp, string confName) : base(comp, confName)
         {
             m_CutListsLazy = new Lazy<IXCutListItemRepository>(
                 () => new SwDmCutListItemCollection(this, (SwDmPart)Document));
@@ -426,7 +476,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
     internal class SwDmAssemblyComponentConfiguration : SwDmComponentConfiguration, ISwDmAssemblyConfiguration
     {
-        public SwDmAssemblyComponentConfiguration(SwDmComponent comp) : base(comp)
+        public SwDmAssemblyComponentConfiguration(SwDmComponent comp, string confName) : base(comp, confName)
         {
         }
 

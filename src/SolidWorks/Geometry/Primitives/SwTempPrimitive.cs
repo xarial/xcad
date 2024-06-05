@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -8,6 +8,7 @@
 using SolidWorks.Interop.sldworks;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using Xarial.XCad.Geometry;
@@ -48,8 +49,27 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
         }
 
         protected virtual ISwTempBody[] CreateBodies(CancellationToken cancellationToken) 
+            => throw new NotSupportedException();
+
+        protected ICurve GetSingleCurve(ICurve[] curves)
         {
-            throw new NotSupportedException();
+            ICurve curve;
+
+            if (curves.Length == 1)
+            {
+                curve = curves.First();
+            }
+            else
+            {
+                curve = m_Modeler.MergeCurves(curves);
+
+                if (curve == null)
+                {
+                    throw new Exception("Failed to merge curves");
+                }
+            }
+
+            return curve;
         }
 
         public void Commit(CancellationToken cancellationToken) => m_Creator.Create(cancellationToken);

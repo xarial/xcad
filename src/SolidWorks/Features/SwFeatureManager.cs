@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -13,12 +13,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.Windows;
 using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Features;
 using Xarial.XCad.Features.CustomFeature;
 using Xarial.XCad.Features.Delegates;
 using Xarial.XCad.SolidWorks.Documents;
+using Xarial.XCad.SolidWorks.Enums;
 using Xarial.XCad.SolidWorks.Features.CustomFeature;
 using Xarial.XCad.SolidWorks.Features.CustomFeature.Toolkit;
 using Xarial.XCad.SolidWorks.Sketch;
@@ -107,18 +109,14 @@ namespace Xarial.XCad.SolidWorks.Features
             {
                 using (var viewFreeze = new UiFreeze(Document))
                 {
-                    var disps = ents.Cast<SwFeature>().Select(e => new DispatchWrapper(e.Feature)).ToArray();
-
-                    if (Document.Model.Extension.MultiSelect2(disps, false, null) == disps.Length)
+                    using (var sel = new SelectionGroup(Document, true))
                     {
-                        if (!Document.Model.Extension.DeleteSelection2((int)swDeleteSelectionOptions_e.swDelete_Absorbed))
+                        sel.AddRange(ents.Cast<SwFeature>().Select(e => e.Feature).ToArray());
+
+                        if (!Document.Model.Extension.DeleteSelection2((int)swDeleteSelectionOptions_e.swDelete_Children))
                         {
                             throw new Exception("Failed to delete features");
                         }
-                    }
-                    else
-                    {
-                        throw new Exception("Failed to select features for deletion");
                     }
                 }
             }
@@ -128,14 +126,18 @@ namespace Xarial.XCad.SolidWorks.Features
             }
         }
 
-        /// <inheritdoc/>
-        public void CreateCustomFeature<TDef, TParams, TPage>(TParams data)
-            where TParams : class
-            where TPage : class
-            where TDef : class, IXCustomFeatureDefinition<TParams, TPage>, new()
+        public void InsertCustomFeature(Type featDefType, object data)
         {
-            var inst = (TDef)CustomFeatureDefinitionInstanceCache.GetInstance(typeof(TDef));
-            inst.Insert(Document, data);
+            var inst = CustomFeatureDefinitionInstanceCache.GetInstance(featDefType);
+
+            if (inst is IXCustomFeatureEditorDefinition)
+            {
+                ((IXCustomFeatureEditorDefinition)inst).Insert(Document, data);
+            }
+            else 
+            {
+                throw new Exception("Feature definition is not an editor feature");
+            }
         }
 
         public void Enable(bool enable)
@@ -315,36 +317,45 @@ namespace Xarial.XCad.SolidWorks.Features
 
     internal static class SwFeatureManagerExtension 
     {
-        internal static IEnumerable<SwCutListItem> IterateCutLists(this SwFeatureManager featMgr, ISwDocument3D parent, ISwConfiguration refConf)
+        internal static bool TryGetSolidBodyFeature(this SwFeatureManager featMgr, out IFeature solidBodyFeat)
         {
-            foreach (var feat in FeatureEnumerator.IterateFeatures(featMgr.GetFirstFeature(), false)) 
+            foreach (var feat in FeatureEnumerator.IterateFeatures(featMgr.GetFirstFeature(), false))
             {
-                if (feat.GetTypeName2() == "SolidBodyFolder") 
+                if (feat.GetTypeName2() == "SolidBodyFolder")
                 {
-                    foreach (var subFeat in FeatureEnumerator.IterateSubFeatures(feat, true)) 
-                    {
-                        if (subFeat.GetTypeName2() == "CutListFolder") 
-                        {
-                            var cutListFolder = (IBodyFolder)subFeat.GetSpecificFeature2();
-
-                            if (cutListFolder.GetBodyCount() > 0)//no bodies for hidden cut-lists (not available in the specific configuration)
-                            {
-                                var cutList = featMgr.Document.CreateObjectFromDispatch<SwCutListItem>(subFeat);
-                                cutList.SetParent(parent, refConf);
-                                yield return cutList;
-                            }
-                        }
-                    }
-
-                    break;
+                    solidBodyFeat = feat;
+                    return true;
                 }
-                else if (feat.GetTypeName2() == "RefPlane")
+                else if (feat.GetTypeName2() == SwPlane.TypeName)
                 {
                     break;
                 }
             }
 
-            yield break;
+            solidBodyFeat = null;
+            return false;
+        }
+
+        internal static IEnumerable<SwCutListItem> IterateCutListFeatures(this SwFeatureManager featMgr,
+            ISwDocument3D parent, ISwConfiguration refConf)
+        {
+            if (TryGetSolidBodyFeature(featMgr, out var solidBodyFeat))
+            {
+                foreach (var subFeat in FeatureEnumerator.IterateSubFeatures(solidBodyFeat, true))
+                {
+                    if (subFeat.GetTypeName2() == "CutListFolder")
+                    {
+                        var cutListFolder = (IBodyFolder)subFeat.GetSpecificFeature2();
+
+                        if (cutListFolder.GetBodyCount() > 0)//no bodies for hidden cut-lists (not available in the specific configuration)
+                        {
+                            var cutList = featMgr.Document.CreateObjectFromDispatch<SwCutListItem>(subFeat);
+                            cutList.SetParent(parent, refConf);
+                            yield return cutList;
+                        }
+                    }
+                }
+            }
         }
     }
 }

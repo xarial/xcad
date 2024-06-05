@@ -84,8 +84,8 @@ namespace SolidWorksDocMgr.Tests.Integration
             Assert.AreEqual(1, scale3.Numerator);
             Assert.AreEqual(1, scale3.Denominator);
             Assert.That(!paperSize3.StandardPaperSize.HasValue);
-            Assert.AreEqual(0.25, paperSize3.Width.Value);
-            Assert.AreEqual(0.15, paperSize3.Height.Value);
+            Assert.AreEqual(0.25, paperSize3.Width);
+            Assert.AreEqual(0.15, paperSize3.Height);
         }
 
         [Test]

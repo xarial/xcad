@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -25,15 +25,19 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
 {
     public interface ISwTempSweep : IXSweep, ISwTempPrimitive
     {
-        new ISwTempRegion[] Profiles { get; set; }
+        new ISwPlanarRegion[] Profiles { get; set; }
     }
 
-    internal class SwTempSweep : SwTempPrimitive, ISwTempSweep
+    public interface ISwTempSolidSweep : ISwTempSweep, ISwTempPrimitive
+    {
+    }
+
+    internal class SwTempSolidSweep : SwTempPrimitive, ISwTempSolidSweep
     {
         IXPlanarRegion[] IXSweep.Profiles
         {
             get => Profiles;
-            set => Profiles = value.Cast<ISwTempRegion>().ToArray();
+            set => Profiles = value.Cast<ISwPlanarRegion>().ToArray();
         }
 
         IXSegment IXSweep.Path
@@ -44,15 +48,15 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
 
         private readonly SwPart m_Part;
 
-        internal SwTempSweep(SwTempBody[] bodies, SwPart part, ISwApplication app, bool isCreated)
+        internal SwTempSolidSweep(SwTempBody[] bodies, SwPart part, ISwApplication app, bool isCreated)
             : base(bodies, app, isCreated)
         {
             m_Part = part;
         }
 
-        public ISwTempRegion[] Profiles
+        public ISwPlanarRegion[] Profiles
         {
-            get => m_Creator.CachedProperties.Get<ISwTempRegion[]>();
+            get => m_Creator.CachedProperties.Get<ISwPlanarRegion[]>();
             set
             {
                 if (IsCommitted)
@@ -126,27 +130,6 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
             }
 
             return bodies.ToArray();
-        }
-
-        private ICurve GetSingleCurve(ICurve[] curves)
-        {
-            ICurve curve;
-
-            if (curves.Length == 1)
-            {
-                curve = curves.First();
-            }
-            else
-            {
-                curve = m_Modeler.MergeCurves(curves);
-
-                if (curve == null)
-                {
-                    throw new Exception("Failed to merge curves");
-                }
-            }
-
-            return curve;
         }
     }
 }

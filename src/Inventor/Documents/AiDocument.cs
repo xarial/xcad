@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -15,9 +15,9 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using Xarial.XCad.Annotations;
 using Xarial.XCad.Data;
-using Xarial.XCad.Data.Enums;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Delegates;
 using Xarial.XCad.Documents.Enums;
@@ -36,7 +36,7 @@ namespace Xarial.XCad.Inventor.Documents
     }
 
     [DebuggerDisplay("{" + nameof(Title) + "}")]
-    internal class AiDocument : AiObject, IAiDocument
+    internal abstract class AiDocument : AiObject, IAiDocument
     {
         public event DataStoreAvailableDelegate StreamReadAvailable;
 
@@ -156,7 +156,7 @@ namespace Xarial.XCad.Inventor.Documents
 
         public bool IsCommitted => m_Creator.IsCreated;
 
-        public IXPropertyRepository Properties => throw new NotImplementedException();
+        public IXPropertyRepository Properties { get; }
 
         public IXDimensionRepository Dimensions => throw new NotImplementedException();
 
@@ -167,8 +167,14 @@ namespace Xarial.XCad.Inventor.Documents
 
         private readonly IEqualityComparer<Document> m_DocumentEqualityComparer;
 
+        private string m_Id;
+
         internal AiDocument(Document doc, AiApplication ownerApp) : base(doc, null, ownerApp)
         {
+            m_Id = doc?.InternalName;
+
+            Properties = new AiDocumentPropertySet(this);
+
             m_Creator = new ElementCreator<Document>(CreateDocument, doc, doc != null);
 
             Options = new AiDocumentOptions();
@@ -178,7 +184,11 @@ namespace Xarial.XCad.Inventor.Documents
             ownerApp.Application.ApplicationEvents.OnCloseDocument += OnCloseDocument;
         }
 
-        private void SetModel(Document doc) => m_Creator.Set(doc);
+        private void SetModel(Document doc)
+        {
+            m_Creator.Set(doc);
+            m_Id = doc?.InternalName;
+        }
 
         private Document CreateDocument(CancellationToken cancellationToken)
         {
@@ -205,12 +215,12 @@ namespace Xarial.XCad.Inventor.Documents
             throw new NotImplementedException();
         }
 
-        public IStorage OpenStorage(string name, AccessType_e access)
+        public IStorage OpenStorage(string name, bool write)
         {
             throw new NotImplementedException();
         }
 
-        public Stream OpenStream(string name, AccessType_e access)
+        public Stream OpenStream(string name, bool write)
         {
             throw new NotImplementedException();
         }
@@ -230,28 +240,7 @@ namespace Xarial.XCad.Inventor.Documents
 
         public void Save() => Document.Save2(true);
 
-        public IXSaveOperation PreCreateSaveAsOperation(string filePath)
-        {
-            var translator = TryGetTranslator(filePath);
-
-            if (translator != null)
-            {
-                switch (translator.ClientId)
-                {
-                    case "{90AF7F40-0C01-11D5-8E83-0010B541CD80}":
-                        return new AiStepSaveOperation(this, translator, filePath);
-
-                    default:
-                        return new AiTranslatorSaveOperation(this, translator, filePath);
-                }
-            }
-            else 
-            {
-                return new AiSaveOperation(this, filePath);
-            }
-        }
-
-        private TranslatorAddIn TryGetTranslator(string filePath)
+        protected TranslatorAddIn TryGetTranslator(string filePath)
         {
             var ext = System.IO.Path.GetExtension(filePath);
 
@@ -282,7 +271,8 @@ namespace Xarial.XCad.Inventor.Documents
         {
             if (BeforeOrAfter == EventTimingEnum.kAfter)
             {
-                if (m_DocumentEqualityComparer.Equals(Document, DocumentObject)) 
+                //NOTE: event is raised in different thread and API cannot be accessed and getting the id throws an exception, have to use cached value
+                if (string.Equals(m_Id, DocumentObject.InternalName)) 
                 {
                     m_IsClosed = true;
                     Destroyed?.Invoke(this);
@@ -313,5 +303,37 @@ namespace Xarial.XCad.Inventor.Documents
         protected virtual void Dispose(bool disposing)
         {
         }
+
+        public abstract IXSaveOperation PreCreateSaveAsOperation(string filePath);
+    }
+
+    internal class AiUnknownDocument : AiDocument, IXUnknownDocument
+    {
+        private IXDocument m_SpecificDoc;
+
+        internal AiUnknownDocument(Document doc, AiApplication ownerApp) : base(doc, ownerApp)
+        {
+        }
+
+        public IXDocument GetSpecific()
+        {
+            if (m_SpecificDoc != null)
+            {
+                return m_SpecificDoc;
+            }
+
+            var doc = Document;
+
+            if (doc == null)
+            {
+                throw new Exception("Document is not yet created, cannot get specific document");
+            }
+
+            m_SpecificDoc = AiDocumentsCollection.CreateDocument(doc, OwnerApplication);
+
+            return m_SpecificDoc;
+        }
+
+        public override IXSaveOperation PreCreateSaveAsOperation(string filePath) => throw new NotSupportedException();
     }
 }

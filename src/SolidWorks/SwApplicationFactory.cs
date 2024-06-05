@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -118,7 +118,7 @@ namespace Xarial.XCad.SolidWorks
         /// <summary>
         /// Returns all installed SOLIDWORKS versions
         /// </summary>
-        /// <returns></returns>
+        /// <returns>Enumerates versions</returns>
         public static IEnumerable<ISwVersion> GetInstalledVersions()
         {
             foreach (var versCand in Enum.GetValues(typeof(SwVersion_e)).Cast<SwVersion_e>())
@@ -210,7 +210,7 @@ namespace Xarial.XCad.SolidWorks
         /// </summary>
         /// <param name="vers"></param>
         /// <returns></returns>
-        public static ISwVersion CreateVersion(SwVersion_e vers) => new SwVersion(new Version((int)vers, 0));
+        public static ISwVersion CreateVersion(SwVersion_e vers) => new SwVersion(new Version((int)vers, 0), 0, 0);
 
         internal static string GetMonikerName(Process process) => $"SolidWorks_PID_{process.Id}";
 

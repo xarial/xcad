@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -11,18 +11,19 @@ using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Geometry.Primitives;
 using Xarial.XCad.Geometry.Structures;
+using Xarial.XCad.Geometry.Wires;
 
 namespace Xarial.XCad.Geometry
 {
     /// <summary>
     /// Represents the body object
     /// </summary>
-    public interface IXBody : IXSelObject, IXColorizable, IXTransaction
+    public interface IXBody : IXSelObject, IHasColor, IXTransaction
     {
         /// <summary>
         /// Name of the body
         /// </summary>
-        string Name { get; }
+        string Name { get; set; }
 
         /// <summary>
         /// Is body visible
@@ -48,7 +49,7 @@ namespace Xarial.XCad.Geometry
         /// <summary>
         /// Material of this body
         /// </summary>
-        IXMaterial Material { get; }
+        IXMaterial Material { get; set; }
 
         /// <summary>
         /// Creates a copy of the current body
@@ -91,7 +92,11 @@ namespace Xarial.XCad.Geometry
     /// <summary>
     /// Represents the wire body
     /// </summary>
-    public interface IXWireBody : IXBody 
+    public interface IXWireBody : IXBody, IXWireEntity
     {
+        /// <summary>
+        /// Content of the wire body
+        /// </summary>
+        IXSegment[] Segments { get; set; }
     }
 }

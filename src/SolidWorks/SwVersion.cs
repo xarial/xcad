@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -16,6 +16,8 @@ namespace Xarial.XCad.SolidWorks
     public interface ISwVersion : IXVersion
     {
         SwVersion_e Major { get; }
+        int ServicePack { get; }
+        int ServicePackRevision { get; }
     }
 
     internal class SwVersion : ISwVersion
@@ -27,17 +29,39 @@ namespace Xarial.XCad.SolidWorks
 
         public Version Version { get; }
 
-        internal SwVersion(Version version) 
+        public int ServicePack { get; }
+        public int ServicePackRevision { get; }
+
+        internal SwVersion(Version version, int sp, int spRev) 
         {
             Version = version;
             Major = (SwVersion_e)version.Major;
+
+            ServicePack = sp;
+            ServicePackRevision = spRev;
         }
 
         public int CompareTo(IXVersion other)
         {
+            const int EQUAL = 0;
+
             if (other is ISwVersion)
             {
-                return this.Version.CompareTo(other.Version);
+                //NOTE: cannot compare Version as for the pre-release SP and SP Rev can be negative which is not supported for the Version
+
+                var res = Major.CompareTo(((ISwVersion)other).Major);
+
+                if (res == EQUAL)
+                {
+                    res = ServicePack.CompareTo(((ISwVersion)other).ServicePack);
+
+                    if (res == EQUAL)
+                    {
+                        res = ServicePack.CompareTo(((ISwVersion)other).ServicePackRevision);
+                    }
+                }
+
+                return res;
             }
             else 
             {
@@ -45,29 +69,27 @@ namespace Xarial.XCad.SolidWorks
             }
         }
 
-        public override int GetHashCode()
-        {
-            return (int)Major;
-        }
+        public override int GetHashCode() => (int)Major;
 
         public override bool Equals(object obj)
         {
             if (!(obj is ISwVersion))
+            {
                 return false;
+            }
 
-            return Equals((SwVersion)obj);
+            return IsSame((ISwVersion)obj);
         }
 
-        public bool Equals(SwVersion other)
-            => Major == other.Major;
+        private bool IsSame(ISwVersion other) => Major == other.Major;
 
         public bool Equals(IXVersion other) => Equals((object)other);
 
         public static bool operator ==(SwVersion version1, SwVersion version2)
-            => version1.Equals(version2);
+            => version1.IsSame(version2);
 
         public static bool operator !=(SwVersion version1, SwVersion version2)
-            => !version1.Equals(version2);
+            => !version1.IsSame(version2);
 
         public override string ToString() => DisplayName;
     }

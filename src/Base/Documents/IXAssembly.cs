@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -39,6 +39,7 @@ namespace Xarial.XCad.Documents
         /// <summary>
         /// Returns the component which is currently being editied in-context or null
         /// </summary>
-        IXComponent EditingComponent { get; }
+        /// <remarks>Set this property to null to exit the editing </remarks>
+        IXComponent EditingComponent { get; set; }
     }
 }

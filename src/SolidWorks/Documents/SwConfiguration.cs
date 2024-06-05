@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -28,6 +28,7 @@ using Xarial.XCad.SolidWorks.Documents.Exceptions;
 using Xarial.XCad.SolidWorks.Enums;
 using Xarial.XCad.SolidWorks.Features;
 using Xarial.XCad.SolidWorks.Utils;
+using Xarial.XCad.Toolkit.Graphics;
 using Xarial.XCad.UI;
 
 namespace Xarial.XCad.SolidWorks.Documents
@@ -82,7 +83,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         private readonly Lazy<ISwCustomPropertiesCollection> m_PropertiesLazy;
         private readonly Lazy<ISwDimensionsCollection> m_DimensionsLazy;
 
-        public bool IsCommitted => m_Creator.IsCreated;
+        public override bool IsCommitted => m_Creator.IsCreated;
 
         private readonly IElementCreator<IConfiguration> m_Creator;
 
@@ -117,9 +118,9 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public string PartNumber => GetPartNumber(Configuration);
 
-        public double Quantity 
+        public double Quantity
         {
-            get 
+            get
             {
                 var qtyPrp = GetPropertyValue(Configuration.CustomPropertyManager, QTY_PROPERTY);
 
@@ -166,7 +167,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        public BomChildrenSolving_e BomChildrenSolving 
+        public BomChildrenSolving_e BomChildrenSolving
         {
             get
             {
@@ -189,13 +190,30 @@ namespace Xarial.XCad.SolidWorks.Documents
                             throw new NotSupportedException($"Not supported BOM display option: {bomDispOpt}");
                     }
                 }
-                else 
+                else
                 {
                     return BomChildrenSolving_e.Show;
                 }
             }
         }
-        
+
+        public virtual IXConfiguration Parent 
+        {
+            get 
+            {
+                var conf = Configuration.GetParent();
+
+                if (conf != null)
+                {
+                    return OwnerDocument.CreateObjectFromDispatch<ISwConfiguration>(conf);
+                }
+                else 
+                {
+                    return null;
+                }
+            }
+        }
+
         private string GetPropertyValue(ICustomPropertyManager prpMgr, string prpName) 
         {
             string resVal;
@@ -233,7 +251,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        public virtual void Commit(CancellationToken cancellationToken) => m_Creator.Create(cancellationToken);
+        public override void Commit(CancellationToken cancellationToken) => m_Creator.Create(cancellationToken);
 
         protected virtual ISwDimensionsCollection CreateDimensions()
             => new SwFeatureManagerDimensionsCollection(new SwDocumentFeatureManager(m_Doc, m_Doc.OwnerApplication, new Context(this)), new Context(this));
@@ -270,13 +288,13 @@ namespace Xarial.XCad.SolidWorks.Documents
 
     internal abstract class SwComponentConfiguration : SwConfiguration
     {
-        private static IConfiguration GetConfiguration(SwComponent comp)
+        private static IConfiguration GetConfiguration(SwComponent comp, string compName)
         {
             var doc = comp.ReferencedDocument;
 
             if (doc.IsCommitted)
             {
-                return (IConfiguration)doc.Model.GetConfigurationByName(comp.Component.ReferencedConfiguration);
+                return (IConfiguration)doc.Model.GetConfigurationByName(compName);
             }
             else
             {
@@ -286,10 +304,27 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         protected readonly SwComponent m_Comp;
 
-        internal SwComponentConfiguration(SwComponent comp, SwApplication app)
-            : this(GetConfiguration(comp), (SwDocument3D)comp.ReferencedDocument, app, comp.Component.ReferencedConfiguration)
+        internal SwComponentConfiguration(SwComponent comp, SwApplication app, string confName)
+            : this(GetConfiguration(comp, confName), (SwDocument3D)comp.ReferencedDocument, app, comp.Component.ReferencedConfiguration)
         {
             m_Comp = comp;
+        }
+
+        public override IXConfiguration Parent
+        {
+            get
+            {
+                var conf = Configuration.GetParent();
+
+                if (conf != null)
+                {
+                    return m_Comp.GetReferencedConfiguration(conf.Name);
+                }
+                else
+                {
+                    return null;
+                }
+            }
         }
 
         private SwComponentConfiguration(IConfiguration conf, SwDocument3D doc, SwApplication app, string name)
@@ -306,13 +341,10 @@ namespace Xarial.XCad.SolidWorks.Documents
                 new SwComponentFeatureManager(m_Comp, m_Comp.RootAssembly, OwnerApplication, new Context(this)), new Context(this));
     }
 
-    internal class SwPartComponentConfiguration : SwComponentConfiguration, IXPartConfiguration
+    internal class SwPartComponentConfiguration : SwComponentConfiguration, ISwPartConfiguration
     {
-        private readonly SwPartComponent m_Comp;
-
-        public SwPartComponentConfiguration(SwPartComponent comp, SwApplication app) : base(comp, app)
+        public SwPartComponentConfiguration(SwPartComponent comp, SwApplication app, string confName) : base(comp, app, confName)
         {
-            m_Comp = comp;
             CutLists = new SwPartComponentCutListItemCollection(comp);
         }
 
@@ -320,25 +352,14 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public IXMaterial Material
         {
-            get
-            {
-                var materialName = ((SwPart)m_Comp.ReferencedDocument).Part.GetMaterialPropertyName2(Name, out var database);
-
-                if (!string.IsNullOrEmpty(materialName))
-                {
-                    return new SwMaterial(materialName, database);
-                }
-                else
-                {
-                    return null;
-                }
-            }
+            get => ((SwPart)m_Comp.ReferencedDocument).GetMaterial(Name);
+            set => ((SwPart)m_Comp.ReferencedDocument).SetMaterial(value, Name);
         }
     }
 
-    internal class SwAssemblyComponentConfiguration : SwComponentConfiguration, IXAssemblyConfiguration
+    internal class SwAssemblyComponentConfiguration : SwComponentConfiguration, ISwAssemblyConfiguration
     {
-        public SwAssemblyComponentConfiguration(SwComponent comp, SwApplication app) : base(comp, app)
+        public SwAssemblyComponentConfiguration(SwComponent comp, SwApplication app, string confName) : base(comp, app, confName)
         {
         }
 

@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -27,6 +27,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         public new IXModelView3DRepository ModelViews => throw new NotSupportedException();
         TSelObject IXObjectContainer.ConvertObject<TSelObject>(TSelObject obj) => throw new NotSupportedException();
+        IXDocument3DSaveOperation IXDocument3D.PreCreateSaveAsOperation(string filePath) => throw new NotSupportedException();
         public IXDocumentEvaluation Evaluation => throw new NotSupportedException();
         public IXDocumentGraphics Graphics => throw new NotSupportedException();
 

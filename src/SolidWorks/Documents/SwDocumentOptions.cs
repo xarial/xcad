@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -80,6 +80,28 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
             get => m_Doc.GetUserPreferenceToggle(swUserPreferenceToggle_e.swDisplaySketches);
             set => m_Doc.SetUserPreferenceToggle(swUserPreferenceToggle_e.swDisplaySketches, value);
+        }
+
+        public bool BendLines
+        {
+            get
+            {
+                if (m_Doc.OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2022))
+                {
+                    return m_Doc.GetUserPreferenceToggle(swUserPreferenceToggle_e.swDisplayBendLines);
+                }
+                else 
+                {
+                    return Sketches;
+                }
+            }
+            set
+            {
+                if (m_Doc.OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2022))
+                {
+                    m_Doc.SetUserPreferenceToggle(swUserPreferenceToggle_e.swDisplayBendLines, value);
+                }
+            }
         }
 
         public bool SketchDimensions

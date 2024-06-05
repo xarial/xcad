@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -24,13 +24,17 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
 {
     public interface ISwTempRevolve : IXRevolve, ISwTempPrimitive
     {
-        new ISwTempRegion[] Profiles { get; set; }
+        new ISwPlanarRegion[] Profiles { get; set; }
         new ISwLineCurve Axis { get; set; }
     }
 
-    internal class SwTempRevolve : SwTempPrimitive, ISwTempRevolve
+    public interface ISwTempSolidRevolve : ISwTempRevolve 
     {
-        internal SwTempRevolve(SwTempBody[] bodies, ISwApplication app, bool isCreated) 
+    }
+
+    internal class SwTempSolidRevolve : SwTempPrimitive, ISwTempSolidRevolve
+    {
+        internal SwTempSolidRevolve(SwTempBody[] bodies, ISwApplication app, bool isCreated) 
             : base(bodies, app, isCreated)
         {
         }
@@ -38,7 +42,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
         IXPlanarRegion[] IXRevolve.Profiles 
         {
             get => Profiles;
-            set => Profiles = value.Cast<ISwTempRegion>().ToArray();
+            set => Profiles = value.Cast<ISwPlanarRegion>().ToArray();
         }
 
         IXLine IXRevolve.Axis
@@ -63,9 +67,9 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
             }
         }
 
-        public ISwTempRegion[] Profiles
+        public ISwPlanarRegion[] Profiles
         {
-            get => m_Creator.CachedProperties.Get<ISwTempRegion[]>();
+            get => m_Creator.CachedProperties.Get<ISwPlanarRegion[]>();
             set
             {
                 if (IsCommitted)

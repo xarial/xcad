@@ -1,11 +1,12 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using Xarial.XCad.Base;
@@ -22,12 +23,27 @@ namespace Xarial.XCad
     /// </summary>
     public interface IXApplicationOptions : IXOptions 
     {
+        /// <summary>
+        /// Application level options for drawings
+        /// </summary>
+        IXDrawingsApplicationOptions Drawings { get; }
+    }
+
+    /// <summary>
+    /// Application level options for drawings
+    /// </summary>
+    public interface IXDrawingsApplicationOptions
+    {
+        /// <summary>
+        /// Specifies whether new views are scaled to fit drawing sheet
+        /// </summary>
+        bool AutomaticallyScaleNewDrawingViews { get; set; }
     }
 
     /// <summary>
     /// Top level object in the class hierarchy
     /// </summary>
-    public interface IXApplication : IXTransaction
+    public interface IXApplication : IXTransaction, IDisposable
     {
         /// <summary>
         /// Fires when application is starting
@@ -119,6 +135,11 @@ namespace Xarial.XCad
         /// <param name="name">Name of the tracker</param>
         /// <returns>Tracker</returns>
         IXObjectTracker CreateObjectTracker(string name);
+
+        /// <summary>
+        /// Material databases
+        /// </summary>
+        IXMaterialsDatabaseRepository MaterialDatabases { get; }
 
         /// <summary>
         /// Close current instance of the application

@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -34,6 +34,11 @@ namespace Xarial.XCad.Documents
         /// Returns part number of this configuration
         /// </summary>
         string PartNumber { get; }
+
+        /// <summary>
+        /// Parent configuration or null if this is a top level configuration
+        /// </summary>
+        IXConfiguration Parent { get; }
 
         /// <summary>
         /// Options for displaying this configuration in BOM

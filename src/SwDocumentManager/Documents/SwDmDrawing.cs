@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Xarial.XCad.Documents;
+using Xarial.XCad.Documents.Structures;
 using Xarial.XCad.Geometry.Structures;
 
 namespace Xarial.XCad.SwDocumentManager.Documents
@@ -21,6 +22,14 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
     internal class SwDmDrawing : SwDmDocument, ISwDmDrawing
     {
+        #region Not Supported
+        
+        IXDrawingOptions IXDrawing.Options => throw new NotSupportedException();
+        IXDrawingSaveOperation IXDrawing.PreCreateSaveAsOperation(string filePath) => throw new NotSupportedException();
+        public IXLayerRepository Layers => throw new NotSupportedException();
+
+        #endregion
+
         IXSheetRepository IXDrawing.Sheets => Sheets;
 
         private readonly Lazy<SwDmSheetCollection> m_SheetsLazy;
@@ -35,8 +44,6 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         public ISwDmSheetCollection Sheets => m_SheetsLazy.Value;
 
-        IXDrawingOptions IXDrawing.Options => throw new NotImplementedException();
-
-        protected override bool IsDocumentTypeCompatible(SwDmDocumentType docType) => docType == SwDmDocumentType.swDmDocumentDrawing;
+        protected override bool IsDocumentTypeCompatible(SwDmDocumentType docType) => docType == SwDmDocumentType.swDmDocumentDrawing;        
     }
 }

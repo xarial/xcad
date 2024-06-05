@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -11,6 +11,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Xarial.XCad.Documents;
 using Xarial.XCad.Features;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Sketch;
@@ -72,6 +73,12 @@ namespace Xarial.XCad.SolidWorks.Sketch
         }
 
         internal SwSketchBlockInstance AssignedOwnerBlock { get; set; }
+
+        public IXLayer Layer
+        {
+            get => SwLayerHelper.GetLayer(this, x => x.SketchBlockInstance.Layer);
+            set => SwLayerHelper.SetLayer(this, value, (x, y) => x.SketchBlockInstance.Layer = y);
+        }
 
         public TransformMatrix Transform => SketchBlockInstance.BlockToSketchTransform.ToTransformMatrix();
 

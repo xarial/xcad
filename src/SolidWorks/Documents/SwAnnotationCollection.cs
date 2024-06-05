@@ -1,11 +1,12 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
 using SolidWorks.Interop.sldworks;
+using SolidWorks.Interop.swconst;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -13,6 +14,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 using Xarial.XCad.Annotations;
 using Xarial.XCad.Base;
 using Xarial.XCad.SolidWorks.Annotations;
@@ -37,20 +39,97 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public IXAnnotation this[string name] => RepositoryHelper.Get(this, name);
 
-        public abstract int Count { get; }
-                public void AddRange(IEnumerable<IXAnnotation> ents, CancellationToken cancellationToken)
+        public virtual int Count => IterateAllAnnotations().Count();
+
+        public void AddRange(IEnumerable<IXAnnotation> ents, CancellationToken cancellationToken)
             => RepositoryHelper.AddRange(ents, cancellationToken);
 
-        public abstract IEnumerator<IXAnnotation> GetEnumerator();
+        public IEnumerator<IXAnnotation> GetEnumerator() => IterateAllAnnotations().GetEnumerator();
 
-        public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters) => RepositoryHelper.FilterDefault(this, filters, reverseOrder);
+        public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters)
+        {
+            bool notes;
+            bool dimensions;
+            bool all;
+            bool detailCircles;
+            bool sectionLines;
+            bool breakLines;
+
+            if (filters?.Any() == true)
+            {
+                notes = false;
+                dimensions = false;
+                detailCircles = false;
+                sectionLines = false;
+                breakLines = false;
+                all = false;
+
+                foreach (var filter in filters)
+                {
+                    if (typeof(IXNote).IsAssignableFrom(filter.Type)) 
+                    {
+                        notes = true;
+                    }
+                    else if (typeof(IXDimension).IsAssignableFrom(filter.Type)) 
+                    {
+                        dimensions = true;
+                    }
+                    else if (typeof(IXDetailCircle).IsAssignableFrom(filter.Type))
+                    {
+                        detailCircles = true;
+                    }
+                    else if (typeof(IXSectionLine).IsAssignableFrom(filter.Type))
+                    {
+                        sectionLines = true;
+                    }
+                    else if (typeof(IXBreakLine).IsAssignableFrom(filter.Type))
+                    {
+                        breakLines = true;
+                    }
+                    else if (filter.Type == null || typeof(IXAnnotation).IsAssignableFrom(filter.Type))
+                    {
+                        all = true;
+                        break;
+                    }
+                }
+            }
+            else
+            {
+                notes = true;
+                dimensions = true;
+                detailCircles = true;
+                sectionLines = true;
+                breakLines = true;
+                all = true;
+            }
+
+            foreach (var ent in RepositoryHelper.FilterDefault(IterateAnnotations(notes, dimensions, detailCircles, sectionLines, breakLines, all), filters, reverseOrder))
+            {
+                yield return ent;
+            }
+        }
+
+        private IEnumerable<ISwAnnotation> IterateAllAnnotations() => IterateAnnotations(true, true, true, true, true, true);
+
+        protected abstract IEnumerable<ISwAnnotation> IterateAnnotations(bool notes, bool dimensions, bool detailCircles,
+            bool sectionLines, bool breakLines, bool other);
 
         public T PreCreate<T>() where T : IXAnnotation
             => RepositoryHelper.PreCreate<IXAnnotation, T>(this,
-                () => new SwNote(null, m_Doc, m_Doc.OwnerApplication));
+                () => new SwNote(null, m_Doc, m_Doc.OwnerApplication),
+                () => new SwSectionLine(null, m_Doc, m_Doc.OwnerApplication),
+                () => new SwBreakLine(null, m_Doc, m_Doc.OwnerApplication),
+                () => new SwDetailCircle(null, m_Doc, m_Doc.OwnerApplication));
 
         public void RemoveRange(IEnumerable<IXAnnotation> ents, CancellationToken cancellationToken)
-            => throw new NotImplementedException();
+        {
+            m_Doc.Selections.ReplaceRange(ents, cancellationToken);
+            
+            if (!m_Doc.Model.Extension.DeleteSelection2((int)swDeleteSelectionOptions_e.swDelete_Absorbed))
+            {
+                throw new Exception("Failed to delete annotations");
+            }
+        }
 
         public bool TryGet(string name, out IXAnnotation ent)
             => throw new NotSupportedException();
@@ -64,7 +143,8 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public override int Count => m_Doc.Model.Extension.GetAnnotationCount();
 
-        public override IEnumerator<IXAnnotation> GetEnumerator()
+        protected override IEnumerable<ISwAnnotation> IterateAnnotations(bool notes, bool dimensions,
+            bool detailCircles, bool sectionLines, bool breakLines, bool all)
         {
             var ann = m_Doc.Model.IGetFirstAnnotation2();
 
@@ -88,13 +168,19 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public override int Count => m_Drw.Sheets.Sum(s => s.DrawingViews.Sum(v => ((ISwDrawingView)v).DrawingView.GetAnnotationCount()));
 
-        public override IEnumerator<IXAnnotation> GetEnumerator()
+        protected override IEnumerable<ISwAnnotation> IterateAnnotations(bool notes, bool dimensions, bool detailCircles,
+            bool sectionLines, bool breakLines, bool all)
         {
-            foreach (var sheet in m_Drw.Sheets)
-            {
-                foreach (var view in sheet.DrawingViews)
+            foreach (SwSheet sheet in m_Drw.Sheets)
+            {   
+                foreach (var ann in sheet.Annotations.Iterate(notes, dimensions, detailCircles, sectionLines, breakLines, all))
                 {
-                    foreach (var ann in view.Annotations) 
+                    yield return ann;
+                }
+
+                foreach (SwDrawingView view in sheet.DrawingViews)
+                {
+                    foreach (var ann in view.Annotations.Iterate(notes, dimensions, detailCircles, sectionLines, breakLines, all))
                     {
                         yield return ann;
                     }
@@ -105,25 +191,157 @@ namespace Xarial.XCad.SolidWorks.Documents
 
     internal class SwDrawingViewAnnotationCollection : SwAnnotationCollection
     {
-        private readonly SwDrawingView m_DrwView;
+        protected virtual SwDrawingView DrawingView { get; }
 
-        public SwDrawingViewAnnotationCollection(SwDrawingView drwView) : base(drwView.OwnerDocument)
+        public SwDrawingViewAnnotationCollection(SwDrawingView drwView) : this(drwView.OwnerDocument)
         {
-            m_DrwView = drwView;
+            DrawingView = drwView;
         }
 
-        public override int Count => m_DrwView.DrawingView.GetAnnotationCount();
-
-        public override IEnumerator<IXAnnotation> GetEnumerator()
+        protected SwDrawingViewAnnotationCollection(SwDocument doc) : base(doc)
         {
-            var ann = m_DrwView.DrawingView.IGetFirstAnnotation2();
+        }
 
-            while (ann != null)
+        public override int Count => DrawingView.DrawingView.GetAnnotationCount() 
+            + DrawingView.DrawingView.GetDimensionCount4() 
+            + DrawingView.DrawingView.GetDetailCircleCount2(out _)
+            + DrawingView.DrawingView.GetSectionLineCount2(out _)
+            + DrawingView.DrawingView.GetBreakLineCount2(out _);
+
+        internal IEnumerable<ISwAnnotation> Iterate(bool notes, bool dimensions, bool detailCircles,
+            bool sectionLines, bool breakLines, bool all)
+            => IterateAnnotations(notes, dimensions, detailCircles, sectionLines, breakLines, all);
+
+        protected override IEnumerable<ISwAnnotation> IterateAnnotations(bool notes, bool dimensions, bool detailCircles, 
+            bool sectionLines, bool breakLines, bool all)
+        {
+            if (all)
             {
-                yield return m_Doc.CreateObjectFromDispatch<ISwAnnotation>(ann);
+                var ann = DrawingView.DrawingView.IGetFirstAnnotation2();
+                
+                while (ann != null)
+                {
+                    yield return m_Doc.CreateObjectFromDispatch<ISwAnnotation>(ann);
 
-                ann = ann.IGetNext2();
+                    ann = ann.IGetNext2();
+                }
+
+                foreach(var detCircle in IterateDetailCircles())
+                {
+                    yield return detCircle;
+                }
+
+                foreach (var sectLine in IterateSectionLines())
+                {
+                    yield return sectLine;
+                }
+
+                foreach (var breakLine in IterateBreakLines())
+                {
+                    yield return breakLine;
+                }
             }
+            else 
+            {
+                if (notes)
+                {
+                    var note = DrawingView.DrawingView.IGetFirstNote();
+
+                    while (note != null)
+                    {
+                        yield return m_Doc.CreateObjectFromDispatch<ISwNote>(note);
+
+                        note = note.IGetNext();
+                    }
+                }
+
+                if (dimensions)
+                {
+                    var dispDim = DrawingView.DrawingView.GetFirstDisplayDimension5();
+
+                    while (dispDim != null)
+                    {
+                        yield return m_Doc.CreateObjectFromDispatch<ISwDimension>(dispDim);
+
+                        dispDim = dispDim.GetNext5();
+                    }
+                }
+
+                if (detailCircles)
+                {
+                    foreach (var detCircle in IterateDetailCircles())
+                    {
+                        yield return detCircle;
+                    }
+                }
+
+                if (sectionLines)
+                {
+                    foreach (var sectLine in IterateSectionLines())
+                    {
+                        yield return sectLine;
+                    }
+                }
+
+                if (breakLines)
+                {
+                    foreach (var breakLine in IterateBreakLines())
+                    {
+                        yield return breakLine;
+                    }
+                }
+            }
+        }
+
+        private IEnumerable<ISwDetailCircle> IterateDetailCircles()
+        {
+            var detailCircles = (object[])DrawingView.DrawingView.GetDetailCircles();
+
+            if (detailCircles != null)
+            {
+                foreach (IDetailCircle detCircle in detailCircles)
+                {
+                    yield return m_Doc.CreateObjectFromDispatch<ISwDetailCircle>(detCircle);
+                }
+            }
+        }
+
+        private IEnumerable<ISwSectionLine> IterateSectionLines()
+        {
+            var sectionLines = (object[])DrawingView.DrawingView.GetSectionLines();
+
+            if (sectionLines != null)
+            {
+                foreach (IDrSection sectionLine in sectionLines)
+                {
+                    yield return m_Doc.CreateObjectFromDispatch<ISwSectionLine>(sectionLine);
+                }
+            }
+        }
+
+        private IEnumerable<ISwBreakLine> IterateBreakLines()
+        {
+            var breakLines = (object[])DrawingView.DrawingView.GetBreakLines();
+
+            if (breakLines != null)
+            {
+                foreach (IBreakLine breakLine in breakLines)
+                {
+                    yield return m_Doc.CreateObjectFromDispatch<ISwBreakLine>(breakLine);
+                }
+            }
+        }
+    }
+
+    internal class SwSheetAnnotationCollection : SwDrawingViewAnnotationCollection
+    {
+        private readonly SwSheet m_Sheet;
+
+        protected override SwDrawingView DrawingView => m_Sheet.SheetView;
+
+        public SwSheetAnnotationCollection(SwSheet sheet) : base(sheet.OwnerDocument)
+        {
+            m_Sheet = sheet;
         }
     }
 }

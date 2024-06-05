@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -14,6 +14,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Windows.Controls;
 using Xarial.XCad.Annotations;
 using Xarial.XCad.Base;
 using Xarial.XCad.Base.Attributes;
@@ -48,6 +49,7 @@ using Xarial.XCad.UI.PropertyPage.Enums;
 using Xarial.XCad.Utils.CustomFeature;
 using Xarial.XCad.Utils.Diagnostics;
 using Xarial.XCad.Utils.Reflection;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel;
 
 namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 {
@@ -66,6 +68,35 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             internal ISwApplication Application { get; set; }
             internal ISwDocument Document { get; set; }
             internal ISwMacroFeature Feature { get; set; }
+        }
+
+        [Browsable(false)]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public static IXMemoryBody CreateEditBody(IBody2 body, ISwDocument doc, ISwApplication app, bool isPreview)
+        {
+            var bodyType = (swBodyType_e)body.GetType();
+
+            switch (bodyType)
+            {
+                case swBodyType_e.swSheetBody:
+                    if (body.GetFaceCount() == 1 && body.IGetFirstFace().IGetSurface().IsPlane())
+                    {
+                        return new SwPlanarSheetMacroFeatureEditBody(body, (SwDocument)doc, (SwApplication)app, isPreview);
+                    }
+                    else
+                    {
+                        return new SwSheetMacroFeatureEditBody(body, (SwDocument)doc, (SwApplication)app, isPreview);
+                    }
+
+                case swBodyType_e.swSolidBody:
+                    return new SwSolidMacroFeatureEditBody(body, (SwDocument)doc, (SwApplication)app, isPreview);
+
+                case swBodyType_e.swWireBody:
+                    return new SwWireMacroFeatureEditBody(body, (SwDocument)doc, (SwApplication)app, isPreview);
+
+                default:
+                    throw new NotSupportedException();
+            }
         }
 
         private static SwMacroFeature CreateMacroFeatureInstance(SwMacroFeatureDefinition sender, IFeature feat, SwDocument doc, SwApplication app)
@@ -372,6 +403,13 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         protected virtual void DispatchPostBuildData(MacroFeatureRegenerateData data)
             => m_PostRebuild?.Invoke(data.Application, data.Document, data.Feature);
 
+        /// <summary>
+        /// This handle is called everytime macro feature needs to update the state
+        /// </summary>
+        /// <param name="app">Application</param>
+        /// <param name="model">Document</param>
+        /// <param name="feature">Feature to update state</param>
+        /// <returns></returns>
         public virtual CustomFeatureState_e OnUpdateState(ISwApplication app, ISwDocument model, ISwMacroFeature feature)
             => CustomFeatureState_e.Default;
 
@@ -380,9 +418,33 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             switch (res)
             {
                 case CustomFeatureBodyRebuildResult bodyRes:
-                    //TODO: validate if any non SwBody in the array
+                    
                     //TODO: get updateEntityIds from the parameters
-                    return GetBodyResult(app, model, bodyRes.Bodies?.OfType<SwBody>().Select(b => b.Body), featData, true);
+                    var bodiesSw = new List<IBody2>();
+
+                    if (bodyRes.Bodies != null) 
+                    {
+                        foreach (var body in bodyRes.Bodies) 
+                        {
+                            if (body is ISwBody)
+                            {
+                                bodiesSw.Add(((ISwBody)body).Body);
+                            }
+                            else 
+                            {
+                                throw new InvalidCastException($"Only bodies of type '{nameof(ISwBody)}' are supported");
+                            }
+                        }
+                    }
+
+                    if (bodiesSw.Any())
+                    {
+                        return GetBodyResult(app, model, bodiesSw.ToArray(), featData, true);
+                    }
+                    else 
+                    {
+                        return GetStatusResult(true, "");
+                    }
 
                 default:
                     return GetStatusResult(res.Result, res.ErrorMessage);
@@ -612,21 +674,28 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             paramsFeat.ReadParameters(out dims, out dimParamNames,
                 out var _, out var _, out var _);
 
+            var cachedParamsUpdateState = paramsFeat.CachedParametersUpdateState;
+
             AlignDimensionDelegate<TParams> alignDimsDel;
             var res = OnRebuild(app, doc, paramsFeat, out alignDimsDel);
 
             if (dims?.Any() == true)
             {
-                if (alignDimsDel != null)
+                for (int i = 0; i < dims.Length; i++)
                 {
-                    for (int i = 0; i < dims.Length; i++)
+                    if (alignDimsDel != null)
                     {
                         alignDimsDel.Invoke(dimParamNames[i], dims[i]);
-
-                        //IMPORTANT: need to dispose otherwise SW will crash once the document is closed
-                        ((IDisposable)dims[i]).Dispose();
                     }
+
+                    //IMPORTANT: need to dispose otherwise SW will crash once the document is closed
+                    ((IDisposable)dims[i]).Dispose();
                 }
+            }
+
+            if (cachedParamsUpdateState != paramsFeat.CachedParametersUpdateState) 
+            {
+                paramsFeat.WriteParameters(paramsFeat.Parameters, out _);
             }
 
             if (m_HandlePostRebuild)
@@ -677,12 +746,18 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
     {
         IXBody[] IXCustomFeatureDefinition<TParams, TPage>.CreateGeometry(
             IXApplication app, IXDocument doc, IXCustomFeature<TParams> feat, out AlignDimensionDelegate<TParams> alignDim)
-            => CreateGeometry((ISwApplication)app, (ISwDocument)doc, (ISwMacroFeature<TParams>)feat, out alignDim).Cast<SwBody>().ToArray();
+            => CreateGeometry((ISwApplication)app, (ISwDocument)doc, (ISwMacroFeature<TParams>)feat, out alignDim)?.Cast<SwBody>().ToArray();
+
+        /// <inheritdoc/>
+        void IXCustomFeatureEditorDefinition.Insert(IXDocument doc, object data) => this.Insert(doc, (TParams)data);
 
         private readonly Lazy<SwMacroFeatureEditor<TParams, TPage>> m_Editor;
 
         private readonly CustomFeatureParametersParser m_ParamsParser;
 
+        /// <summary>
+        /// Default constructor
+        /// </summary>
         public SwMacroFeatureDefinition()
         {
             m_ParamsParser = new CustomFeatureParametersParser();
@@ -698,7 +773,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
                 editor.EditingStarted += OnEditingStarted;
                 editor.EditingCompleting += OnEditingCompleting;
                 editor.EditingCompleted += OnEditingCompleted;
-                editor.FeatureInserted += OnFeatureInserted;
+                editor.FeatureInserting += OnFeatureInserting;
                 editor.PreviewUpdated += OnPreviewUpdated;
                 editor.ShouldUpdatePreview += ShouldUpdatePreview;
                 editor.ProvidePreviewContext += ProvidePreviewContext;
@@ -738,7 +813,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             => m_SvcProvider.GetService<IPropertyPageHandlerProvider>().CreateHandler(Application, typeof(TPage));
 
         /// <inheritdoc/>
-        public virtual TParams ConvertPageToParams(IXApplication app, IXDocument doc, TPage page, TParams curParams)
+        public virtual TParams CreateParameters(IXApplication app, IXDocument doc, TPage page, TParams curParams)
         {
             if (typeof(TParams).IsAssignableFrom(typeof(TPage)))
             {
@@ -746,20 +821,20 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             }
             else
             {
-                throw new Exception($"Override {nameof(ConvertPageToParams)} to provide the converter from TPage to TParams");
+                throw new Exception($"Override {nameof(CreateParameters)} to provide the converter from TPage to TParams");
             }
         }
 
         /// <inheritdoc/>
-        public virtual TPage ConvertParamsToPage(IXApplication app, IXDocument doc, TParams par)
+        public virtual TPage CreatePropertyPage(IXApplication app, IXDocument doc, IXCustomFeature<TParams> feat)
         {
             if (typeof(TPage).IsAssignableFrom(typeof(TParams)))
             {
-                return (TPage)(object)par;
+                return (TPage)(object)feat.Parameters;
             }
             else
             {
-                throw new Exception($"Override {nameof(ConvertParamsToPage)} to provide the converter from TParams to TPage");
+                throw new Exception($"Override {nameof(CreatePropertyPage)} to provide the converter from TParams to TPage");
             }
         }
 
@@ -783,11 +858,11 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         }
 
         /// <inheritdoc/>
-        public virtual ISwBody[] CreateGeometry(ISwApplication app, ISwDocument doc, ISwMacroFeature<TParams> data) => new ISwTempBody[0];
+        public virtual ISwBody[] CreateGeometry(ISwApplication app, ISwDocument doc, ISwMacroFeature<TParams> feat) => new ISwTempBody[0];
 
         /// <inheritdoc/>
         public virtual ISwTempBody[] CreatePreviewGeometry(ISwApplication app, ISwDocument doc, ISwMacroFeature<TParams> feat, TPage page)
-            => CreateGeometry(app, doc, feat, out _).Cast<ISwTempBody>().ToArray();
+            => CreateGeometry(app, doc, feat, out _)?.Cast<ISwTempBody>().ToArray();
 
         /// <inheritdoc/>
         public IXMemoryBody[] CreatePreviewGeometry(IXApplication app, IXDocument doc, IXCustomFeature<TParams> feat, TPage page,
@@ -810,24 +885,23 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 
                             if (body is SwBody) 
                             {
-                                ((IList)objData)[i] = SwMacroFeatureEditBody.CreateMacroFeatureEditBody(((SwBody)body).Body, (SwDocument)doc, (SwApplication)app, true);
+                                ((IList)objData)[i] = CreateEditBody(((SwBody)body).Body, (SwDocument)doc, (SwApplication)app, true);
                             }
                         }
                     }
                     else if(objData is SwBody)
                     {
-                        prp.SetValue(obj, SwMacroFeatureEditBody.CreateMacroFeatureEditBody(((SwBody)objData).Body, (SwDocument)doc, (SwApplication)app, true));
+                        prp.SetValue(obj, CreateEditBody(((SwBody)objData).Body, (SwDocument)doc, (SwApplication)app, true));
                     }
                 },
                 (obj, prp) => { });
 
             return CreatePreviewGeometry((ISwApplication)app, (ISwDocument)doc, (ISwMacroFeature<TParams>)feat, page,
-                out shouldHidePreviewEdit, out assignPreviewColor).Cast<SwTempBody>().ToArray();
+                out shouldHidePreviewEdit, out assignPreviewColor)?.Cast<SwTempBody>().ToArray();
         }
 
         /// <inheritdoc/>
-        public void Insert(IXDocument doc, TParams data)
-            => m_Editor.Value.Insert(doc, data);
+        public void Insert(IXDocument doc, TParams data) => m_Editor.Value.Insert(doc, data);
 
         /// <inheritdoc/>
         [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
@@ -844,7 +918,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             ISwMacroFeature<TParams> feature, out AlignDimensionDelegate<TParams> alignDim)
             => new CustomFeatureBodyRebuildResult()
             {
-                Bodies = CreateGeometry(app, doc, feature, out alignDim).ToArray()
+                Bodies = CreateGeometry(app, doc, feature, out alignDim)?.ToArray()
             };
 
         /// <summary>
@@ -878,19 +952,22 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         /// <param name="feat">Feature being edited</param>
         /// <param name="page">Page data</param>
         /// <param name="reason">Closing reason</param>
+        /// <remarks>All the changes to the feature are applied or cancelled dependin gon the close reason</remarks>
         public virtual void OnEditingCompleted(IXApplication app, IXDocument doc, IXCustomFeature<TParams> feat, TPage page, PageCloseReasons_e reason)
         {
         }
 
         /// <summary>
-        /// Called when macro feature is created
+        /// Called when macro feature is being created
         /// </summary>
         /// <param name="app">Application</param>
         /// <param name="doc">Document</param>
-        /// <param name="feat">Feature which is created</param>
+        /// <param name="feat">Feature which is being created (this feature is in not-committed state)</param>
         /// <param name="page">Page data</param>
-        public virtual void OnFeatureInserted(IXApplication app, IXDocument doc, IXCustomFeature<TParams> feat, TPage page)
+        /// <remarks>Call <see cref="IXTransaction.Commit(System.Threading.CancellationToken)"/> on the feature to insert it into the tree</remarks>
+        public virtual void OnFeatureInserting(IXApplication app, IXDocument doc, IXCustomFeature<TParams> feat, TPage page)
         {
+            feat.Commit();
         }
 
         /// <summary>

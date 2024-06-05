@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -28,7 +28,7 @@ namespace Xarial.XCad.Base
         /// <param name="reverseOrder">Reverse the order of results</param>
         /// <param name="filters">Filters</param>
         /// <returns>Filtered entities</returns>
-        IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters);//TODO: potentially replace the Filter with teh IQueryable
+        IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters);//TODO: potentially replace the Filter with the IQueryable
     }
 
     /// <summary>
@@ -78,7 +78,7 @@ namespace Xarial.XCad.Base
     }
 
     /// <summary>
-    /// Filter of the repository in the <see cref="IXRepository.Filter(RepositoryFilterQuery[])"/>
+    /// Filter of the repository in the <see cref="IXRepository.Filter(bool, RepositoryFilterQuery[])"/>
     /// </summary>
     public class RepositoryFilterQuery 
     {

@@ -1,10 +1,11 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
+using System;
 using Xarial.XCad.Base;
 using Xarial.XCad.Features.CustomFeature;
 using Xarial.XCad.Features.Delegates;
@@ -22,16 +23,11 @@ namespace Xarial.XCad.Features
         event FeatureCreatedDelegate FeatureCreated;
 
         /// <summary>
-        /// Creates a custom feature with built-in editor for the property page
+        /// Starts a custom feature insertion process with built-in editor for the property page
         /// </summary>
-        /// <param name="data">Feature data</param>
-        /// <typeparam name="TDef">Definition of the custom feature</typeparam>
-        /// <typeparam name="TParams">Type which defines the data structure of the custom feature</typeparam>
-        /// <typeparam name="TPage">Type which defines the data model for the property page</typeparam>
-        void CreateCustomFeature<TDef, TParams, TPage>(TParams data)
-            where TParams : class
-            where TPage : class
-            where TDef : class, IXCustomFeatureDefinition<TParams, TPage>, new();
+        ///<param name="featDefType">Definition of the custom feature</param>
+        ///<param name="data">Feature data</param>
+        void InsertCustomFeature(Type featDefType, object data);
 
         /// <summary>
         /// Enables or disables feature tree

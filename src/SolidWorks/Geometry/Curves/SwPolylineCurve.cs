@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -134,6 +134,17 @@ namespace Xarial.XCad.SolidWorks.Geometry.Curves
             }
 
             return retVal;
+        }
+
+        public override IXCurve Copy()
+        {
+            var copies = Curves.Select(c => c.ICopy()).ToArray();
+            var polyCurve = new SwPolylineCurve(copies, OwnerDocument, OwnerApplication, true);
+
+            polyCurve.m_Creator.CachedProperties.Set(Mode);
+            polyCurve.m_Creator.CachedProperties.Set(Points);
+
+            return polyCurve;
         }
 
         private ICurve CreateLine(Point startPt, Point endPt)

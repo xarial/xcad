@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -24,5 +24,10 @@ namespace Xarial.XCad.UI.PropertyPage.Base
         /// List of control tags this control dependent on
         /// </summary>
         object[] Dependencies { get; }
+
+        /// <summary>
+        /// Parameter to pass to the <see cref="IDependencyHandler"/>
+        /// </summary>
+        object Parameter { get; }
     }
 }

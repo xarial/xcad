@@ -7,17 +7,21 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Xml.Serialization;
 using Xarial.XCad;
-using Xarial.XCad.Data.Enums;
+using Xarial.XCad.Data;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Attributes;
 using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Documents.Services;
+using Xarial.XCad.Extensions;
 using Xarial.XCad.SolidWorks.Documents;
+using Xarial.XCad.UI;
 
 namespace SwAddInExample
 {
@@ -40,6 +44,40 @@ namespace SwAddInExample
         private IXApplication m_App;
         private IXDocument m_Model;
 
+        private readonly IXExtension m_Ext;
+
+        private IXCustomPanel<WpfUserControl> m_FeatMgrTab;
+
+        private readonly CustomGraphicsToggle m_CustomGraphicsToggle;
+
+        private IXCustomGraphicsRenderer m_RedRectRenderer;
+        private IXCustomGraphicsRenderer m_GreenRectRenderer;
+
+        private IXModelView m_ModelView;
+
+        public SwDocHandler(IXExtension ext, CustomGraphicsToggle customGraphicsToggle) 
+        {
+            m_Ext = ext;
+            m_CustomGraphicsToggle = customGraphicsToggle;
+            m_CustomGraphicsToggle.EnabledChanged += OnCustomGraphicsToggleEnabledChanged;
+        }
+
+        private void OnCustomGraphicsToggleEnabledChanged(bool enabled)
+        {
+            if (m_ModelView != null)
+            {
+                if (enabled)
+                {
+                    AddRenderers();
+                }
+                else
+                {
+                    m_ModelView.CustomGraphicsContext.UnregisterRenderer(m_RedRectRenderer);
+                    m_ModelView.CustomGraphicsContext.UnregisterRenderer(m_GreenRectRenderer);
+                }
+            }
+        }
+
         public void Init(IXApplication app, IXDocument model)
         {
             m_App = app;
@@ -50,12 +88,38 @@ namespace SwAddInExample
             m_Model.StorageReadAvailable += LoadFromStorage;
             m_Model.StorageWriteAvailable += SaveToStorage;
 
+            m_FeatMgrTab = m_Ext.CreateFeatureManagerTab<WpfUserControl>(model);
+
+            m_ModelView = model.ModelViews.Active;
+
+            if (m_CustomGraphicsToggle.Enabled)
+            {
+                AddRenderers();
+            }
+
             //m_App.ShowMessageBox($"Opened {model.Title}");
+        }
+
+        private void AddRenderers()
+        {
+            if (!m_Model.State.HasFlag(DocumentState_e.Hidden))
+            {
+                m_RedRectRenderer = new OglRectangeRenderer(
+                    new Xarial.XCad.Geometry.Structures.Rect2D(0.1, 0.5, new Xarial.XCad.Geometry.Structures.Point(0, 0, 0)),
+                    System.Drawing.Color.Red);
+
+                m_GreenRectRenderer = new OglRectangeRenderer(
+                    new Xarial.XCad.Geometry.Structures.Rect2D(0.25, 0.25, new Xarial.XCad.Geometry.Structures.Point(0.5, 0.5, 0)),
+                    System.Drawing.Color.Green);
+
+                m_ModelView.CustomGraphicsContext.RegisterRenderer(m_RedRectRenderer);
+                m_ModelView.CustomGraphicsContext.RegisterRenderer(m_GreenRectRenderer);
+            }
         }
 
         private void SaveToStream(IXDocument doc)
         {
-            using (var stream = doc.OpenStream(STREAM_NAME, AccessType_e.Write))
+            using (var stream = doc.OpenStream(STREAM_NAME, true))
             {
                 var xmlSer = new XmlSerializer(typeof(RevData));
 
@@ -73,9 +137,9 @@ namespace SwAddInExample
 
         private void LoadFromStream(IXDocument doc)
         {
-            using (var stream = doc.TryOpenStream(STREAM_NAME, AccessType_e.Read))
+            using (var stream = doc.OpenStream(STREAM_NAME, false))
             {
-                if (stream != null)
+                if (stream != Stream.Null)
                 {
                     var xmlSer = new XmlSerializer(typeof(RevData));
                     m_RevData = xmlSer.Deserialize(stream) as RevData;
@@ -92,25 +156,25 @@ namespace SwAddInExample
         {
             var path = SUB_STORAGE_PATH.Split('\\');
 
-            using (var storage = doc.TryOpenStorage(path[0], AccessType_e.Read))
+            using (var storage = doc.OpenStorage(path[0], false))
             {
-                if (storage != null)
+                if (storage != Storage.Null)
                 {
-                    using (var subStorage = storage.TryOpenStorage(path[1], false))
+                    using (var subStorage = storage.OpenStorage(path[1], false))
                     {
-                        if (subStorage != null)
+                        if (subStorage != Storage.Null)
                         {
-                            foreach (var subStreamName in subStorage.GetSubStreamNames())
+                            foreach (var subStreamName in subStorage.SubStreamNames)
                             {
-                                using (var str = subStorage.TryOpenStream(subStreamName, false))
+                                using (var str = subStorage.OpenStream(subStreamName, false))
                                 {
-                                    if (str != null)
+                                    if (str != Stream.Null)
                                     {
                                         var buffer = new byte[str.Length];
 
                                         str.Read(buffer, 0, buffer.Length);
 
-                                        var timeStamp = Encoding.UTF8.GetString(buffer);
+                                        var data = Encoding.UTF8.GetString(buffer);
 
                                         //m_App.ShowMessageBox($"Metadata stamp in {subStreamName} of {doc.Title}: {timeStamp}");
                                     }
@@ -134,17 +198,17 @@ namespace SwAddInExample
         {
             var path = SUB_STORAGE_PATH.Split('\\');
 
-            using (var storage = doc.OpenStorage(path[0], AccessType_e.Write))
+            using (var storage = doc.OpenStorage(path[0], true))
             {
-                using (var subStorage = storage.TryOpenStorage(path[1], true))
+                using (var subStorage = storage.OpenStorage(path[1], true))
                 {
-                    using (var str = subStorage.TryOpenStream(TIME_STAMP_STREAM_NAME, true))
+                    using (var str = subStorage.OpenStream(TIME_STAMP_STREAM_NAME, true))
                     {
                         var buffer = Encoding.UTF8.GetBytes(DateTime.Now.ToString("yyyy-MM-dd-hh-mm-ss"));
                         str.Write(buffer, 0, buffer.Length);
                     }
 
-                    using (var str = subStorage.TryOpenStream(USER_NAME_STREAM_NAME, true))
+                    using (var str = subStorage.OpenStream(USER_NAME_STREAM_NAME, true))
                     {
                         var buffer = Encoding.UTF8.GetBytes(System.Environment.UserName);
                         str.Write(buffer, 0, buffer.Length);
@@ -160,7 +224,11 @@ namespace SwAddInExample
             m_Model.StorageReadAvailable -= LoadFromStorage;
             m_Model.StorageWriteAvailable -= SaveToStorage;
 
+            m_CustomGraphicsToggle.EnabledChanged -= OnCustomGraphicsToggleEnabledChanged;
+
             System.Diagnostics.Debug.Print($"Closed {m_Model.Title}");
+
+            m_FeatMgrTab.Close();
 
             //m_App.ShowMessageBox($"Closed {m_Model.Title}");
         }

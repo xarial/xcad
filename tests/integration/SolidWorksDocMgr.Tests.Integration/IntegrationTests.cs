@@ -7,7 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Xarial.XCad.Documents;
+using Xarial.XCad.Documents.Extensions;
 using Xarial.XCad.SolidWorks;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Enums;
@@ -44,17 +44,32 @@ namespace SolidWorksDocMgr.Tests.Integration
     [RequiresThread(System.Threading.ApartmentState.STA)]
     public abstract class IntegrationTests
     {
-        private const string DATA_FOLDER = @"C:\Users\artem\OneDrive\xCAD\TestData";
-        private SwVersion_e? SW_VERSION = SwVersion_e.Sw2022;
+        private readonly string m_DataFolder;
+        private SwVersion_e? SW_VERSION = SwVersion_e.Sw2023;
 
         protected ISwDmApplication m_App;
 
         private List<IDisposable> m_Disposables;
 
+        public IntegrationTests() 
+        {
+            m_DataFolder = Environment.GetEnvironmentVariable("XCAD_TEST_DATA", EnvironmentVariableTarget.User);
+
+            if (string.IsNullOrEmpty(m_DataFolder))
+            {
+                m_DataFolder = Environment.GetEnvironmentVariable("XCAD_TEST_DATA", EnvironmentVariableTarget.Machine);
+            }
+        }
+
         [OneTimeSetUp]
         public void Setup()
         {
-            var dmKey = Environment.GetEnvironmentVariable("SW_DM_KEY", EnvironmentVariableTarget.Machine);
+            var dmKey = Environment.GetEnvironmentVariable("SW_DM_KEY", EnvironmentVariableTarget.User);
+
+            if (string.IsNullOrEmpty(dmKey))
+            {
+                dmKey = Environment.GetEnvironmentVariable("SW_DM_KEY", EnvironmentVariableTarget.Machine);
+            }
 
             m_App = SwDmApplicationFactory.Create(dmKey);
 
@@ -71,7 +86,7 @@ namespace SolidWorksDocMgr.Tests.Integration
             }
             else
             {
-                filePath = Path.Combine(DATA_FOLDER, name);
+                filePath = Path.Combine(m_DataFolder, name);
             }
 
             return filePath;

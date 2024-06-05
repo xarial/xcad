@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -15,6 +15,7 @@ using System.Threading;
 using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Enums;
+using Xarial.XCad.Documents.Extensions;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Evaluation;
 using Xarial.XCad.Geometry.Exceptions;
@@ -143,22 +144,16 @@ namespace Xarial.XCad.SolidWorks.Geometry.Evaluation
         {
             if (BestFit)
             {
-                IXBody[] bodies;
+                var bodies = Scope;
 
-                var scope = Scope;
-
-                if (scope != null)
-                {
-                    bodies = scope;
-                }
-                else
+                if (bodies?.Any() != true)
                 {
                     bodies = GetAllBodies();
                 }
 
                 if (bodies?.Any() != true)
                 {
-                    throw new EvaluationFailedException();
+                    throw new EvaluationFailedException("No bodies found");
                 }
 
                 return ComputeBestFitBoundingBox(bodies, cancellationToken);
@@ -167,22 +162,16 @@ namespace Xarial.XCad.SolidWorks.Geometry.Evaluation
             {
                 if (Precise)
                 {
-                    IXBody[] bodies;
+                    var bodies = Scope;
 
-                    var scope = Scope;
-
-                    if (scope != null)
-                    {
-                        bodies = scope;
-                    }
-                    else
+                    if (bodies?.Any() != true)
                     {
                         bodies = GetAllBodies();
                     }
 
                     if (bodies?.Any() != true)
                     {
-                        throw new EvaluationFailedException();
+                        throw new EvaluationFailedException("No bodies found");
                     }
 
                     return ComputePreciseBoundingBox(bodies);
@@ -496,7 +485,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Evaluation
 
                         if (!isCopy)
                         {
-                            swBody = swBody.ICopy();
+                            swBody = swBody.CreateCopy(m_App);
                         }
 
                         if (!swBody.ApplyTransform(mathTransform.IInverse()))
@@ -510,6 +499,11 @@ namespace Xarial.XCad.SolidWorks.Geometry.Evaluation
 
                 foreach (var body in bodies)
                 {
+                    if (body is IXWireBody) 
+                    {
+                        throw new NotSupportedException("Precise bounding box is not supported for the wire bodies");
+                    }
+
                     var swBody = GetTransformedSwBody(body, out _);
 
                     double x;
@@ -571,7 +565,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Evaluation
 
             if (comp != null)
             {
-                swBody = swBody.ICopy();
+                swBody = swBody.CreateCopy(m_App);
 
                 isCopy = true;
 
@@ -660,13 +654,20 @@ namespace Xarial.XCad.SolidWorks.Geometry.Evaluation
             {
                 var comps = (this as IXAssemblyBoundingBox).Scope;
 
-                if (comps == null)
+                if (comps?.Any() != true)
                 {
                     return base.Scope;
                 }
                 else
                 {
-                    return comps.SelectMany(c => c.IterateBodies(!VisibleOnly)).ToArray();
+                    var bodies = comps.SelectMany(c => c.IterateBodies(!VisibleOnly)).ToArray();
+
+                    if (bodies?.Any() != true)
+                    {
+                        throw new EvaluationFailedException("No bodies found in the component");
+                    }
+
+                    return bodies;
                 }
             }
             set => base.Scope = value;

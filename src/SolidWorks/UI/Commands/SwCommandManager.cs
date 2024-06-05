@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -32,6 +32,8 @@ using Xarial.XCad.Toolkit;
 using Xarial.XCad.SolidWorks.Enums;
 using System.Collections.Specialized;
 using Xarial.XCad.Toolkit.Services;
+using Xarial.XCad.SolidWorks.UI.Commands.Attributes;
+using System.Reflection;
 
 namespace Xarial.XCad.SolidWorks.UI.Commands
 {
@@ -50,11 +52,13 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
         {
             internal int CommandId { get; }
             internal RibbonTabTextDisplay_e TextStyle { get; }
+            internal bool HasSpacer { get; }
 
-            internal TabCommandInfo(int commandId, RibbonTabTextDisplay_e textStyle)
+            internal TabCommandInfo(int commandId, RibbonTabTextDisplay_e textStyle, bool hasSpacer)
             {
                 CommandId = commandId;
                 TextStyle = textStyle;
+                HasSpacer = hasSpacer;
             }
         }
 
@@ -132,13 +136,34 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
         public IXCommandGroup AddCommandGroup(CommandGroupSpec cmdBar)
             => AddCommandGroupOrContextMenu(cmdBar, false, null);
 
-        public IXCommandGroup AddContextMenu(CommandGroupSpec cmdBar, SelectType_e? owner)
+        public IXCommandGroup AddContextMenu(ContextMenuCommandGroupSpec cmdBar)
         {
-            swSelectType_e? selType = null;
-            
-            if (owner.HasValue) 
+            swSelectType_e? selType;
+
+            if (cmdBar.Owner != null)
             {
-                selType = (swSelectType_e)owner;
+                selType = SwSelectionHelper.GetSelectionType(cmdBar.Owner)?.FirstOrDefault();
+            }
+            else 
+            {
+                if (cmdBar is ContextMenuEnumCommandGroupSpec) 
+                {
+                    var swCtxMenInfoAtt = ((ContextMenuEnumCommandGroupSpec)cmdBar)
+                        .CmdGrpEnumType.GetCustomAttribute<SwContextMenuCommandGroupInfoAttribute>();
+
+                    if (swCtxMenInfoAtt != null)
+                    {
+                        selType = swCtxMenInfoAtt.Owner;
+                    }
+                    else 
+                    {
+                        selType = null;
+                    }
+                }
+                else
+                {
+                    selType = null;
+                }
             }
 
             return AddCommandGroupOrContextMenu(cmdBar, true, selType);
@@ -251,9 +276,14 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
             if (isContextMenu)
             {
                 cmdGroup = CmdMgr.AddContextMenu(groupId, title);
+                
                 if (contextMenuSelectType.HasValue)
                 {
                     cmdGroup.SelectType = (int)contextMenuSelectType;
+                }
+                else 
+                {
+                    cmdGroup.SelectType = (int)swSelectType_e.swSelEVERYTHING;
                 }
             }
             else
@@ -269,10 +299,10 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
             return cmdGroup;
         }
 
-        private void CreateCommandItems(SwCommandGroup parentGroup)
+        private void CreateCommandItems(SwCommandGroup commandGroup)
         {
-            var cmdGrpSpec = parentGroup.Spec;
-            var cmdGrp = parentGroup.CommandGroup;
+            var cmdGrpSpec = commandGroup.Spec;
+            var swCmdGrp = commandGroup.CommandGroup;
             int groupId = cmdGrpSpec.Id;
             var cmds = cmdGrpSpec.Commands;
 
@@ -316,10 +346,10 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
 
                 if (cmd.HasSpacer)
                 {
-                    cmdGrp.AddSpacer2(-1, (int)menuToolbarOpts);
+                    swCmdGrp.AddSpacer2(-1, (int)menuToolbarOpts);
                 }
 
-                var cmdIndex = cmdGrp.AddCommandItem2(cmd.Title, -1, cmd.Tooltip,
+                var cmdIndex = swCmdGrp.AddCommandItem2(cmd.Title, -1, cmd.Tooltip,
                     cmd.Title, i, callbackFunc, enableFunc, cmd.UserId,
                     (int)menuToolbarOpts);
 
@@ -328,20 +358,20 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
                 m_Logger.Log($"Created command {cmd.Title}:{cmdIndex} for {cmd.UserId}", LoggerMessageSeverity_e.Debug);
             }
 
-            cmdGrp.HasToolbar = cmds.Any(c => c.HasToolbar);
-            cmdGrp.HasMenu = cmds.Any(c => c.HasMenu);
+            swCmdGrp.HasToolbar = cmds.Any(c => c.HasToolbar);
+            swCmdGrp.HasMenu = !cmds.Any() || cmds.Any(c => c.HasMenu); //Need to create a menu for item with no commands as it is a placeholder for sub-menu
 
-            if (!cmdGrp.Activate()) 
+            if (!swCmdGrp.Activate()) 
             {
                 m_Logger.Log("Command group activation failed", LoggerMessageSeverity_e.Error);
             }
 
-            m_Logger.Log($"Command group-{groupId} Id: {(cmdGrp.HasToolbar ? cmdGrp.ToolbarId.ToString() : "No Toolbar")}", LoggerMessageSeverity_e.Debug);
+            m_Logger.Log($"Command group-{groupId} Id: {(swCmdGrp.HasToolbar ? swCmdGrp.ToolbarId.ToString() : "No Toolbar")}", LoggerMessageSeverity_e.Debug);
 
             foreach (var createdCmd in createdCmds) 
             {
-                var cmdId = cmdGrp.CommandID[createdCmd.Item2];
-                var cmdInfo = new CommandInfo(createdCmd.Item1, parentGroup, cmdId);
+                var cmdId = swCmdGrp.CommandID[createdCmd.Item2];
+                var cmdInfo = new CommandInfo(createdCmd.Item1, commandGroup, cmdId);
                 m_Commands.Add(createdCmd.Item3, cmdInfo);
             }   
         }
@@ -536,6 +566,25 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
                     {
                         m_Logger.Log($"Failed to add commands to commands tab box {tabName} for document type {workspace}", LoggerMessageSeverity_e.Error);
                     }
+
+                    var curTabBox = tabBox;
+
+                    foreach (var spacerCmd in tabGroup.Commands.Where(c => c.HasSpacer)) 
+                    {
+                        if (tabGroup.Commands.IndexOf(spacerCmd) != 0)
+                        {
+                            var splitTabBox = cmdTab.AddSeparator(curTabBox, spacerCmd.CommandId);
+
+                            if (splitTabBox != null)
+                            {
+                                curTabBox = splitTabBox;
+                            }
+                            else 
+                            {
+                                m_Logger.Log($"Failed to add separator to tab box {tabName} before {spacerCmd.CommandId} for document type {workspace}", LoggerMessageSeverity_e.Error);
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -678,7 +727,7 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
                                         tabCmdGrps.Add(tabCmdGrp);
                                     }
 
-                                    tabCmdGrp.Commands.Add(new TabCommandInfo(cmdId, cmd.RibbonTextStyle));
+                                    tabCmdGrp.Commands.Add(new TabCommandInfo(cmdId, cmd.RibbonTextStyle, cmd.HasSpacer));
                                 }
                             }
                         }

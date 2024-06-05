@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -15,7 +15,7 @@ namespace Xarial.XCad.Annotations
     /// <summary>
     /// Represents the base interface of annotation (e.g.<see cref="IXDimension"/>, <see cref="IXNote"/> etc.)
     /// </summary>
-    public interface IXAnnotation : IXSelObject, IXColorizable
+    public interface IXAnnotation : IXSelObject, IHasColor, IHasLayer
     {
         /// <summary>
         /// Position of this annotation

@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -8,6 +8,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Xarial.XCad.Enums;
 using Xarial.XCad.Geometry.Structures;
 
 namespace Xarial.XCad.Annotations
@@ -31,5 +32,10 @@ namespace Xarial.XCad.Annotations
         /// Angle of this note in radians
         /// </summary>
         double Angle { get; set; }
+
+        /// <summary>
+        /// Text justification of the note
+        /// </summary>
+        TextJustification_e TextJustification { get; set; }
     }
 }

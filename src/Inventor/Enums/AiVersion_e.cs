@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -43,5 +43,6 @@ namespace Xarial.XCad.Inventor.Enums
         Inventor2021 = 25,
         Inventor2022 = 26,
         Inventor2023 = 27,
+        Inventor2024 = 28
     }
 }

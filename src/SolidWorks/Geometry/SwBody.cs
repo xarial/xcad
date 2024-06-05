@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -24,7 +24,7 @@ using Xarial.XCad.SolidWorks.Utils;
 
 namespace Xarial.XCad.SolidWorks.Geometry
 {
-    public interface ISwBody : ISwSelObject, IXBody, IResilientibleObject<ISwBody>
+    public interface ISwBody : ISwSelObject, IXBody, ISupportsResilience<ISwBody>
     {
         IBody2 Body { get; }
 
@@ -35,7 +35,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
     internal class SwBody : SwSelObject, ISwBody
     {       
         IXComponent IXBody.Component => Component;
-        IXObject IResilientibleObject.CreateResilient() => CreateResilient();
+        IXObject ISupportsResilience.CreateResilient() => CreateResilient();
 
         public virtual IBody2 Body 
         {
@@ -79,7 +79,11 @@ namespace Xarial.XCad.SolidWorks.Geometry
             set => Body.HideBody(!value);
         }
 
-        public string Name => Body.Name;
+        public virtual string Name
+        {
+            get => Body.Name;
+            set => Body.Name = value;
+        }
 
         public ISwComponent Component 
         {
@@ -100,7 +104,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
                     }
                     else
                     {
-                        return null;
+                        return m_ContextComponent;
                     }
                 }
             }
@@ -173,11 +177,48 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
                 if (!string.IsNullOrEmpty(materialName))
                 {
-                    return new SwMaterial(materialName, database);
+                    return new SwMaterial(materialName, OwnerApplication.MaterialDatabases[database]);
                 }
                 else
                 {
                     return null;
+                }
+            }
+            set 
+            {
+                string confName;
+
+                var comp = Component;
+
+                if (comp != null)
+                {
+                    confName = comp.ReferencedConfiguration.Name;
+                }
+                else
+                {
+                    confName = ((SwDocument3D)OwnerDocument).Configurations.Active.Name;
+                }
+
+                swBodyMaterialApplicationError_e res;
+
+                using (var sel = new SelectionGroup(OwnerDocument, true))
+                {
+                    //NOTE: API only works if body is selected, otherwise returned result is correct, but material is not set
+                    sel.Add(Body);
+
+                    if (value != null)
+                    {
+                        res = (swBodyMaterialApplicationError_e)Body.SetMaterialProperty(confName, value.Database.Name, value.Name);
+                    }
+                    else
+                    {
+                        res = (swBodyMaterialApplicationError_e)Body.SetMaterialProperty(confName, "", "");
+                    }
+                }
+
+                if (res != swBodyMaterialApplicationError_e.swBodyMaterialApplicationError_NoError)
+                {
+                    throw new Exception($"Failed to set material. Error code: {res}");
                 }
             }
         }
@@ -186,6 +227,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         private byte[] m_PersistId;
         private ISwComponent m_PersistComponent;
+        private ISwComponent m_ContextComponent;
 
         private IBody2 m_Body;
 
@@ -206,18 +248,18 @@ namespace Xarial.XCad.SolidWorks.Geometry
             }
         }
 
+        /// <summary>
+        /// Bodies returned from the IComponent2 are not in the component's context. This method assigns this explicitly
+        /// </summary>
+        /// <param name="comp">context component</param>
+        internal void SetContextComponent(ISwComponent comp) 
+        {
+            m_ContextComponent = comp;
+        }
+
         public IXMemoryBody Copy()
         {
-            IBody2 copy;
-
-            if (OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2019))
-            {
-                copy = (IBody2)Body.Copy2(true);
-            }
-            else 
-            {
-                copy = (IBody2)Body.Copy();
-            }
+            var copy = Body.CreateCopy(OwnerApplication);
 
             return OwnerApplication.CreateObjectFromDispatch<SwTempBody>(copy, OwnerDocument);
         }
@@ -279,20 +321,25 @@ namespace Xarial.XCad.SolidWorks.Geometry
         }
     }
 
-    public interface ISwPlanarSheetBody : ISwSheetBody, IXPlanarSheetBody
+    public interface ISwPlanarSheetBody : ISwSheetBody, IXPlanarSheetBody, ISwPlanarRegion
     {
     }
 
     internal class SwPlanarSheetBody : SwSheetBody, ISwPlanarSheetBody
     {
+        IXLoop IXRegion.OuterLoop { get => OuterLoop; set => throw new NotSupportedException(); }
+        IXLoop[] IXRegion.InnerLoops { get => InnerLoops; set => throw new NotSupportedException(); }
+
         internal SwPlanarSheetBody(IBody2 body, SwDocument doc, SwApplication app) : base(body, doc, app)
         {
         }
 
         public Plane Plane => this.GetPlane();
 
-        public IXLoop OuterLoop { get => this.GetOuterLoop(); set => throw new NotSupportedException(); }
-        public IXLoop[] InnerLoops { get => this.GetInnerLoops(); set => throw new NotSupportedException(); }
+        public virtual ISwTempPlanarSheetBody PlanarSheetBody => (ISwTempPlanarSheetBody)this.Copy();
+
+        public ISwLoop OuterLoop { get => this.GetOuterLoop(); set => throw new NotImplementedException(); }
+        public ISwLoop[] InnerLoops { get => this.GetInnerLoops(); set => throw new NotImplementedException(); }
     }
 
     internal static class ISwPlanarSheetBodyExtension 
@@ -351,5 +398,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
         internal SwWireBody(IBody2 body, SwDocument doc, SwApplication app) : base(body, doc, app)
         {
         }
+
+        public IXSegment[] Segments { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
     }
 }

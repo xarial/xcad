@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -16,7 +16,7 @@ namespace Xarial.XCad.Sketch
     /// <summary>
     /// Represents an instance of <see cref="IXSketchBlockDefinition"/>
     /// </summary>
-    public interface IXSketchBlockInstance : IXSketchEntity, IXFeature
+    public interface IXSketchBlockInstance : IXSketchEntity, IXFeature, IHasLayer
     {
         /// <summary>
         /// Definition of this sketch block instance

@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -30,6 +30,7 @@ using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Services;
 using Xarial.XCad.SolidWorks.Annotations;
 using Xarial.XCad.SolidWorks.Data;
+using Xarial.XCad.SolidWorks.Documents.Exceptions;
 using Xarial.XCad.SolidWorks.Documents.Services;
 using Xarial.XCad.SolidWorks.Features;
 using Xarial.XCad.SolidWorks.Geometry;
@@ -176,7 +177,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
             m_MathUtils = app.Sw.IGetMathUtility();
 
-            Bodies = new SwComponentBodyCollection(comp, rootAssembly);
+            Bodies = new SwComponentBodyCollection(this, rootAssembly);
 
             m_FilePathResolver = OwnerApplication.Services.GetService<IFilePathResolver>();
 
@@ -190,13 +191,13 @@ namespace Xarial.XCad.SolidWorks.Documents
 
                     if (parentComp == null)
                     {
-                        feat = RootAssembly.Assembly.IFeatureByName(comp.Name2);
+                        feat = RootAssembly.Assembly.IFeatureByName(Component.Name2);
                     }
                     else
                     {
-                        if (comp.Name2.StartsWith(parentComp.Name2, StringComparison.CurrentCultureIgnoreCase))
+                        if (Component.Name2.StartsWith(parentComp.Name2, StringComparison.CurrentCultureIgnoreCase))
                         {
-                            feat = parentComp.FeatureByName(comp.Name2.Substring(parentComp.Name2.Length + 1));
+                            feat = parentComp.FeatureByName(Component.Name2.Substring(parentComp.Name2.Length + 1));
                         }
                         else
                         {
@@ -606,7 +607,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             {
                 if (IsCommitted)
                 {
-                    return GetReferencedConfiguration();
+                    return GetReferencedConfiguration(Component.ReferencedConfiguration);
                 }
                 else 
                 {
@@ -631,7 +632,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        protected abstract IXConfiguration GetReferencedConfiguration();
+        protected internal abstract IXConfiguration GetReferencedConfiguration(string confName);
 
         public System.Drawing.Color? Color
         {
@@ -839,7 +840,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public override IEditor<IXComponent> Edit() => new SwPartComponentEditor(RootAssembly, this);
 
-        protected override IXConfiguration GetReferencedConfiguration() => new SwPartComponentConfiguration(this, OwnerApplication);
+        protected internal override IXConfiguration GetReferencedConfiguration(string confName) => new SwPartComponentConfiguration(this, OwnerApplication, confName);
     }
 
     internal class SwAssemblyComponent : SwComponent, ISwAssemblyComponent
@@ -854,7 +855,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public override IEditor<IXComponent> Edit() => new SwAssemblyComponentEditor(RootAssembly, this);
 
-        protected override IXConfiguration GetReferencedConfiguration() => new SwAssemblyComponentConfiguration(this, OwnerApplication);
+        protected internal override IXConfiguration GetReferencedConfiguration(string confName) => new SwAssemblyComponentConfiguration(this, OwnerApplication, confName);
     }
 
     internal class SwComponentFeatureManager : SwFeatureManager
@@ -912,15 +913,24 @@ namespace Xarial.XCad.SolidWorks.Documents
 
     internal class SwComponentBodyCollection : SwBodyCollection
     {
-        private readonly IComponent2 m_Comp;
+        private readonly SwComponent m_Comp;
 
-        public SwComponentBodyCollection(IComponent2 comp, ISwDocument rootDoc) : base(rootDoc)
+        public SwComponentBodyCollection(SwComponent comp, ISwDocument rootDoc) : base(rootDoc)
         {
             m_Comp = comp;
         }
 
         protected override IEnumerable<IBody2> SelectSwBodies(swBodyType_e bodyType)
-            => (m_Comp.GetBodies3((int)bodyType, out _) as object[])?.Cast<IBody2>();
+            => (m_Comp.Component.GetBodies3((int)bodyType, out _) as object[])?.Cast<IBody2>();
+
+        protected override SwBody CreateBody(IBody2 swBody)
+        {
+            var body = base.CreateBody(swBody);
+
+            body.SetContextComponent(m_Comp);
+
+            return body;
+        }
     }
 
     internal class SwChildComponentsCollection : SwComponentCollection
@@ -934,7 +944,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         protected override bool TryGetByName(string name, out IXComponent ent)
         {
-            var comp = IterateChildren().FirstOrDefault(c => string.Equals(GetRelativeName(c), name, StringComparison.CurrentCultureIgnoreCase));
+            var comp = IterateChildren(false).FirstOrDefault(c => string.Equals(GetRelativeName(c), name, StringComparison.CurrentCultureIgnoreCase));
 
             if (comp != null)
             {
@@ -948,14 +958,16 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        protected override IEnumerable<IComponent2> IterateChildren()
+        protected override IEnumerable<IComponent2> IterateChildren(bool ordered)
         {
             if (m_Comp.GetSuppressionState() != swComponentSuppressionState_e.swComponentSuppressed)
             {
+                ValidateSpeedPak();
+
                 foreach (var comp in new OrderedComponentsCollection(
                     () => ((object[])m_Comp.Component.GetChildren() ?? new object[0]).Cast<IComponent2>().ToArray(),
                     m_Comp.Component.FirstFeature(),
-                    m_Comp.OwnerApplication.Logger)) 
+                    m_Comp.OwnerApplication.Logger))
                 {
                     yield return comp;
                 }
@@ -987,6 +999,25 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        protected override int GetChildrenCount() => m_Comp.Component.IGetChildrenCount();
+        protected override int GetChildrenCount()
+        {
+            ValidateSpeedPak();
+            return m_Comp.Component.IGetChildrenCount();
+        }
+
+        private void ValidateSpeedPak() 
+        {
+            var isSpeedpak = false;
+
+            if (RootAssembly.OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2017))
+            {
+                isSpeedpak = m_Comp.Component.IsSpeedPak;
+            }
+
+            if (isSpeedpak)
+            {
+                throw new SpeedPakConfigurationComponentsException();
+            }
+        }
     }
 }

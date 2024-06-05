@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -16,6 +16,7 @@ using Xarial.XCad.Toolkit.Services;
 using Xarial.XCad.UI.PropertyPage.Attributes;
 using Xarial.XCad.UI.PropertyPage.Base;
 using Xarial.XCad.UI.PropertyPage.Enums;
+using Xarial.XCad.UI.PropertyPage.Structures;
 using Xarial.XCad.Utils.PageBuilder.Base;
 using Xarial.XCad.Utils.PageBuilder.PageElements;
 using Xarial.XCad.Utils.Reflection;
@@ -26,241 +27,96 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
     /// Wrapper class around the group of <see href="http://help.solidworks.com/2016/english/api/sldworksapi/solidworks.interop.sldworks~solidworks.interop.sldworks.ipropertymanagerpageoption.html">IPropertyManagerPageOption </see> controls
     /// </summary>
     /// <remarks>All set properties will be applied to all controls in the group, while get will return the value of first control</remarks>
-    public class PropertyManagerPageOptionBox : IPropertyManagerPageControl, IPropertyManagerPageOption
+    public class PropertyManagerPageOptionBox : PropertyManagerPageControlList<IPropertyManagerPageOption>, IPropertyManagerPageOption
     {
-        public PropertyManagerPageOptionBox(IPropertyManagerPageOption[] ctrls)
-        {
-            if (ctrls == null || !ctrls.Any())
-            {
-                throw new NullReferenceException("No controls");
-            }
+        private IPropertyManagerPageOption[] m_Controls;
 
-            Controls = ctrls;
+        private readonly Func<ItemsControlItem, IPropertyManagerPageOption> m_OptionBoxCreator;
+
+        private bool m_IsCreated;
+
+        private Action m_ControlsAttributesAssinger;
+
+        public PropertyManagerPageOptionBox(Func<ItemsControlItem, IPropertyManagerPageOption> optionBoxCreator) : base()
+        {
+            m_OptionBoxCreator = optionBoxCreator;
+            m_IsCreated = false;
         }
 
-        /// <summary>
-        /// Array of controls in the current option group
-        /// </summary>
-        public IPropertyManagerPageOption[] Controls { get; private set; }
-
-        public int BackgroundColor
+        internal void CreateControls(ItemsControlItem[] items)
         {
-            get
+            if (!m_IsCreated)
             {
-                return (Controls.First() as IPropertyManagerPageControl).BackgroundColor;
+                m_IsCreated = true;
+                m_Controls = items.Select(i => m_OptionBoxCreator.Invoke(i)).ToArray();
+                m_ControlsAttributesAssinger.Invoke();
             }
-            set
+            else
             {
-                ForEach<IPropertyManagerPageControl>(c => c.BackgroundColor = value);
-            }
-        }
-
-        public bool Enabled
-        {
-            get
-            {
-                return (Controls.First() as IPropertyManagerPageControl).Enabled;
-            }
-            set
-            {
-                ForEach<IPropertyManagerPageControl>(c => c.Enabled = value);
+                throw new NotSupportedException("Controls cannot be recreated");
             }
         }
 
-        public short Left
+        internal void DelayAssignControlAttributes(Action assigner)
         {
-            get
-            {
-                return (Controls.First() as IPropertyManagerPageControl).Left;
-            }
-            set
-            {
-                ForEach<IPropertyManagerPageControl>(c => c.Left = value);
-            }
+            m_ControlsAttributesAssinger = assigner;
         }
 
-        public int OptionsForResize
-        {
-            get
-            {
-                return (Controls.First() as IPropertyManagerPageControl).OptionsForResize;
-            }
-            set
-            {
-                ForEach<IPropertyManagerPageControl>(c => c.OptionsForResize = value);
-            }
-        }
-
-        public int TextColor
-        {
-            get
-            {
-                return (Controls.First() as IPropertyManagerPageControl).TextColor;
-            }
-            set
-            {
-                ForEach<IPropertyManagerPageControl>(c => c.TextColor = value);
-            }
-        }
-
-        public string Tip
-        {
-            get
-            {
-                return (Controls.First() as IPropertyManagerPageControl).Tip;
-            }
-            set
-            {
-                ForEach<IPropertyManagerPageControl>(c => c.Tip = value);
-            }
-        }
-
-        public short Top
-        {
-            get
-            {
-                return (Controls.First() as IPropertyManagerPageControl).Top;
-            }
-            set
-            {
-                ForEach<IPropertyManagerPageControl>(c => c.Top = value);
-            }
-        }
-
-        public bool Visible
-        {
-            get
-            {
-                return (Controls.First() as IPropertyManagerPageControl).Visible;
-            }
-            set
-            {
-                ForEach<IPropertyManagerPageControl>(c => c.Visible = value);
-            }
-        }
-
-        public short Width
-        {
-            get
-            {
-                return (Controls.First() as IPropertyManagerPageControl).Width;
-            }
-            set
-            {
-                ForEach<IPropertyManagerPageControl>(c => c.Width = value);
-            }
-        }
+        public override IPropertyManagerPageOption[] Controls => m_Controls;
 
         public bool Checked
         {
-            get
-            {
-                return Controls.First().Checked;
-            }
-            set
-            {
-                ForEach<IPropertyManagerPageOption>(c => c.Checked = value);
-            }
+            get => Controls.First().Checked;
+            set => ForEach(c => c.Checked = value);
         }
 
         public string Caption
         {
-            get
-            {
-                return Controls.First().Caption;
-            }
-            set
-            {
-                ForEach<IPropertyManagerPageOption>(c => c.Caption = value);
-            }
+            get => Controls.First().Caption;
+            set => ForEach(c => c.Caption = value);
         }
 
         public int Style
         {
-            get
-            {
-                return Controls.First().Style;
-            }
-            set
-            {
-                ForEach<IPropertyManagerPageOption>(c => c.Style = value);
-            }
-        }
-
-        public PropertyManagerPageGroup GetGroupBox()
-        {
-            return (Controls.First() as IPropertyManagerPageControl).GetGroupBox();
-        }
-
-        public bool SetPictureLabelByName(string ColorBitmap, string MaskBitmap)
-        {
-            var result = true;
-
-            ForEach<IPropertyManagerPageControl>(c => result &= c.SetPictureLabelByName(ColorBitmap, MaskBitmap));
-
-            return result;
-        }
-
-        public bool SetStandardPictureLabel(int Bitmap)
-        {
-            var result = true;
-
-            ForEach<IPropertyManagerPageControl>(c => result &= c.SetStandardPictureLabel(Bitmap));
-
-            return result;
-        }
-
-        public void ShowBubbleTooltip(string Title, string Message, string BmpFile)
-        {
-            ForEach<IPropertyManagerPageControl>(c => c.ShowBubbleTooltip(Title, Message, BmpFile));
-        }
-
-        private void ForEach<TType>(Action<TType> action)
-        {
-            foreach (TType ctrl in Controls)
-            {
-                action.Invoke(ctrl);
-            }
+            get => Controls.First().Style; 
+            set => ForEach(c => c.Style = value);
         }
     }
 
-    internal class PropertyManagerPageOptionBoxControl : PropertyManagerPageBaseControl<Enum, PropertyManagerPageOptionBox>
+    internal class PropertyManagerPageOptionBoxControl : PropertyManagerPageItemsSourceControl<object, PropertyManagerPageOptionBox>
     {
         private delegate IPropertyManagerPageOption ControlCreatorDelegate(int id, short controlType, string caption, short leftAlign, int options, string tip);
 
-        protected override event ControlValueChangedDelegate<Enum> ValueChanged;
-
-        private Enum[] m_Values;
-        private string[] m_ItemNames;
+        protected override event ControlValueChangedDelegate<object> ValueChanged;
 
         public PropertyManagerPageOptionBoxControl(SwApplication app, IGroup parentGroup, IIconsCreator iconConv,
             IAttributeSet atts, IMetadata[] metadata, ref int numberOfUsedIds)
             : base(app, parentGroup, iconConv, atts, metadata, swPropertyManagerPageControlType_e.swControlType_Option, ref numberOfUsedIds)
         {
             m_Handler.OptionChecked += OnOptionChecked;
-            numberOfUsedIds = m_Values.Length;
-        }
-
-        protected override void InitData(IControlOptionsAttribute opts, IAttributeSet atts)
-        {
-            var items = EnumExtension.GetEnumFields(atts.ContextType);
-            m_Values = items.Keys.ToArray();
-            m_ItemNames = items.Values.ToArray();
+            numberOfUsedIds = Items.Length;
         }
 
         protected override PropertyManagerPageOptionBox Create(IGroup host, int id, string name, ControlLeftAlign_e align,
             AddControlOptions_e options, string description, swPropertyManagerPageControlType_e type)
-        {
-            var ctrls = new IPropertyManagerPageOption[m_ItemNames.Length];
-
-            for (int i = 0; i < m_ItemNames.Length; i++)
+            => new PropertyManagerPageOptionBox(i =>
             {
-                var itemName = m_ItemNames[i];
+                var index = Array.IndexOf(Items, i);
 
-                ctrls[i] = base.CreateSwControl<IPropertyManagerPageOption>(host, id + i, itemName, align, options, description, type);
-            }
+                var optBox = CreateSwControl<IPropertyManagerPageOption>(host, id + index, i.DisplayName, 
+                    align, options, string.IsNullOrEmpty(i.Description) ? description : i.Description, type);
 
-            return new PropertyManagerPageOptionBox(ctrls);
+                if (index == 0)
+                {
+                    optBox.Style = (int)swPropMgrPageOptionStyle_e.swPropMgrPageOptionStyle_FirstInGroup;
+                }
+
+                return optBox;
+            });
+
+        protected override void AssignControlAttributes(PropertyManagerPageOptionBox ctrl, IControlOptionsAttribute opts, IAttributeSet atts)
+        {
+            ctrl.DelayAssignControlAttributes(() => base.AssignControlAttributes(ctrl, opts, atts));
         }
 
         protected override void SetOptions(PropertyManagerPageOptionBox ctrl, IControlOptionsAttribute opts, IAttributeSet atts)
@@ -268,11 +124,6 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             if (atts.Has<OptionBoxOptionsAttribute>())
             {
                 var style = atts.Get<OptionBoxOptionsAttribute>();
-
-                if (style.Style != 0)
-                {
-                    ctrl.Style = (int)style.Style;
-                }
             }
         }
 
@@ -280,19 +131,19 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
         private void OnOptionChecked(int id)
         {
-            if (id >= Id && id < (Id + m_Values.Length))
+            if (id >= Id && id < (Id + Items.Length))
             {
-                ValueChanged?.Invoke(this, m_Values[GetIndex(id)]);
+                ValueChanged?.Invoke(this, Items[GetIndex(id)].Value);
             }
         }
 
-        protected override Enum GetSpecificValue()
+        protected override object GetSpecificValue()
         {
             for (int i = 0; i < SwSpecificControl.Controls.Length; i++)
             {
                 if (SwSpecificControl.Controls[i].Checked)
                 {
-                    return m_Values[i];
+                    return Items[i].Value;
                 }
             }
 
@@ -300,13 +151,53 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             return null;
         }
 
-        protected override void SetSpecificValue(Enum value)
+        protected override void SetSpecificValue(object value)
         {
-            var index = Array.IndexOf(m_Values, value);
+            var index = -1;
 
-            for (int i = 0; i < SwSpecificControl.Controls.Length; i++) 
+            for (int i = 0; i < Items.Length; i++) 
             {
-                SwSpecificControl.Controls[i].Checked = i == index;
+                var item = Items[i];
+
+                if (object.Equals(item.Value, value)) 
+                {
+                    index = i;
+                    break;
+                }
+            }
+
+            if (index != -1)
+            {
+                for (int i = 0; i < SwSpecificControl.Controls.Length; i++)
+                {
+                    SwSpecificControl.Controls[i].Checked = i == index;
+                }
+            }
+            else 
+            {
+                throw new Exception("Value is not in the source");
+            }
+        }
+
+        protected override ItemsControlItem[] LoadInitialItems(IAttributeSet atts, bool isStatic, ItemsControlItem[] items)
+        {
+            SwSpecificControl.CreateControls(items);
+            return items;
+        }
+
+        protected override void LoadItemsIntoControl(ItemsControlItem[] newItems)
+        {
+            if (Items != newItems) 
+            {
+                throw new Exception("Cannot create the control for changed items. OptionBox control does not allow dynamic changing of the items. For the dynamic items use the static items source property");
+            }
+        }
+
+        protected override void SetItemDisplayName(ItemsControlItem item, int index, string newDispName)
+        {
+            if (index != -1 && SwSpecificControl.Controls.Length > index)
+            {
+                SwSpecificControl.Controls[index].Caption = newDispName;
             }
         }
 

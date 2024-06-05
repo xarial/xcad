@@ -11,12 +11,14 @@ using System.Threading.Tasks;
 using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Enums;
+using Xarial.XCad.Documents.Extensions;
 using Xarial.XCad.Features;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Services;
 using Xarial.XCad.SolidWorks;
 using Xarial.XCad.SolidWorks.Documents;
+using Xarial.XCad.SolidWorks.Documents.Exceptions;
 
 namespace SolidWorks.Tests.Integration
 {
@@ -82,6 +84,22 @@ namespace SolidWorks.Tests.Integration
 
             CollectionAssert.AreEqual(new string[] { "Part1-1", "Part1-3", "Part1-4", "Part1-5", "Part1-6", "Part1-7", "Part1-8", "Part1-9", "Part1-10", "Part1-11", "Part1-12", "Part1-13", "SubAssem1-1" }, rootCompNames);
             CollectionAssert.AreEqual(new string[] { "SubAssem1-1/Part2-1", "SubAssem1-1/Part2-2", "SubAssem1-1/Part2-3", "SubAssem1-1/Part2-4" }, subCompNames);
+        }
+
+        [Test]
+        public void IterateComponentsSpeedPakTest()
+        {
+            string[] flattenCompNames;
+
+            using (var doc = OpenDataDocument(@"Assembly17\Assem17.SLDASM"))
+            {
+                var assm = (ISwAssembly)m_App.Documents.Active;
+                flattenCompNames = assm.Configurations.Active.Components.TryFlatten().Select(c => c.FullName).ToArray();
+
+                Assert.Throws<SpeedPakConfigurationComponentsException>(() => assm.Configurations.Active.Components["SubAssem1-1"].Children.ToArray());                
+            }
+
+            CollectionAssert.AreEquivalent(new string[] { "SubAssem1-2/Part1-1", "SubAssem1-1", "SubAssem1-2" }, flattenCompNames);
         }
 
         [Test]
@@ -175,6 +193,7 @@ namespace SolidWorks.Tests.Integration
             }
         }
 
+        //NOTE: SW 2024 the selected component is always a root component
         [Test]
         public void GetDocumentLdrTest()
         {
@@ -200,6 +219,7 @@ namespace SolidWorks.Tests.Integration
             Assert.IsFalse(doc1IsCommitted);
         }
 
+        //NOTE: SW 2024, 'Lights, Cameras and Themes' feature is renamed to 'Lights and Cameras' (index 11)
         [Test]
         public void IterateFeaturesTest()
         {
@@ -901,7 +921,7 @@ namespace SolidWorks.Tests.Integration
             {
                 var assm = (ISwAssembly)m_App.Documents.Active;
 
-                var comps = assm.Configurations.Active.Components.Flatten().ToArray();
+                var comps = assm.Configurations.Active.Components.TryFlatten().ToArray();
 
                 compNames = comps.Select(c => c.Name).ToArray();
                 suppStates = comps.Select(c => c.State.HasFlag(ComponentState_e.Suppressed)).ToArray();
@@ -938,8 +958,8 @@ namespace SolidWorks.Tests.Integration
             {
                 var assm = (ISwAssembly)m_App.Documents.Active;
 
-                var compsDef = assm.Configurations["Default"].Components.Flatten().ToArray();
-                var compsConf1 = assm.Configurations["Conf1"].Components.Flatten().ToArray();
+                var compsDef = assm.Configurations["Default"].Components.TryFlatten().ToArray();
+                var compsConf1 = assm.Configurations["Conf1"].Components.TryFlatten().ToArray();
 
                 compNamesDef = compsDef.Select(c => c.Name).ToArray();
                 compNamesConf1 = compsConf1.Select(c => c.Name).ToArray();

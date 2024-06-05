@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -27,9 +27,15 @@ namespace Xarial.XCad.UI.PropertyPage.Attributes
         /// Dependency handler resolving the control state
         /// </summary>
         IMetadataDependencyHandler DependencyHandler { get; }
+
+        /// <summary>
+        /// Parameter to pass to the <see cref="IMetadataDependencyHandler"/>
+        /// </summary>
+        object Parameter { get; }
     }
 
     /// <inheritdoc/>
+    [AttributeUsage(AttributeTargets.Property, AllowMultiple = true)]
     public class DependentOnMetadataAttribute : Attribute, IDependentOnMetadataAttribute
     {
         /// <inheritdoc/>
@@ -37,6 +43,9 @@ namespace Xarial.XCad.UI.PropertyPage.Attributes
 
         /// <inheritdoc/>
         public IMetadataDependencyHandler DependencyHandler { get; }
+
+        /// <inheritdoc/>
+        public object Parameter { get; set; }
 
         /// <summary>
         /// Default constructor

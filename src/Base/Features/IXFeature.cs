@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -35,7 +35,7 @@ namespace Xarial.XCad.Features
     /// <summary>
     /// Represents all features in the Feature Manager Design Tree
     /// </summary>
-    public interface IXFeature : IXSelObject, IXEntity, IXColorizable, IDimensionable, IXTransaction, INameable
+    public interface IXFeature : IXSelObject, IXEntity, IHasColor, IDimensionable, IXTransaction, IHasName
     {
         /// <summary>
         /// Identifies if this feature is standard (soldered) or a user created
@@ -45,7 +45,7 @@ namespace Xarial.XCad.Features
         /// <summary>
         /// State of this feature in the feature tree
         /// </summary>
-        FeatureState_e State { get; }
+        FeatureState_e State { get; set; }
 
         /// <summary>
         /// Enables feature editing mode
@@ -54,8 +54,16 @@ namespace Xarial.XCad.Features
         IEditor<IXFeature> Edit();
     }
 
+    /// <summary>
+    /// Additional method of the <see cref="IXFeature"/>
+    /// </summary>
     public static class XFeatureExtension 
     {
+        /// <summary>
+        /// Iterates all bodies produced by this feature
+        /// </summary>
+        /// <param name="feat">Feature to iterate bodies</param>
+        /// <returns>Bodies of the feture</returns>
         public static IEnumerable<IXBody> IterateBodies(this IXFeature feat)
         {
             var processedBodies = new List<IXBody>();

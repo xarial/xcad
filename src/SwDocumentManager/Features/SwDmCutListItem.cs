@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -40,7 +40,7 @@ namespace Xarial.XCad.SwDocumentManager.Features
         public IXDimensionRepository Dimensions => throw new NotSupportedException();
         public Color? Color { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
         public IEnumerable<IXFace> Faces => throw new NotSupportedException();
-        FeatureState_e IXFeature.State => throw new NotSupportedException();
+        FeatureState_e IXFeature.State { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
         public IXComponent Component => throw new NotSupportedException();
         public IEditor<IXFeature> Edit() => throw new NotSupportedException();
         public void Update() => throw new NotSupportedException();

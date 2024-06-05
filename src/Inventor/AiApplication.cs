@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -43,6 +43,8 @@ namespace Xarial.XCad.Inventor
 
     internal class AiApplication : IAiApplication, IXServiceConsumer
     {
+        public IXMaterialsDatabaseRepository MaterialDatabases => throw new NotSupportedException();
+
         IXVersion IXApplication.Version
         {
             get => Version;
@@ -98,8 +100,6 @@ namespace Xarial.XCad.Inventor
         public event ApplicationStartingDelegate Starting;
         public event ApplicationIdleDelegate Idle;
         public event ConfigureServicesDelegate ConfigureServices;
-
-        public void Close() => Application.Quit();
 
         public void Commit(CancellationToken cancellationToken)
         {
@@ -210,6 +210,8 @@ namespace Xarial.XCad.Inventor
         private readonly Action<AiApplication> m_StartupCompletedCallback;
 
         private bool m_IsInitialized;
+        private bool m_IsDisposed;
+        private bool m_IsClosed;
 
         private IXServiceCollection m_CustomServices;
 
@@ -272,6 +274,51 @@ namespace Xarial.XCad.Inventor
             else
             {
                 Debug.Assert(false, "App has been already initialized. Must be only once");
+            }
+        }
+
+        public void Close()
+        {
+            if (!m_IsClosed)
+            {
+                m_IsClosed = true;
+                Application.Quit();
+                Dispose();
+            }
+        }
+
+        public void Dispose()
+        {
+            if (!m_IsDisposed)
+            {
+                m_IsDisposed = true;
+
+                if (Services is IDisposable)
+                {
+                    ((IDisposable)Services).Dispose();
+                }
+
+                try
+                {
+                    m_Documents.Dispose();
+                }
+                catch (Exception ex)
+                {
+                    Logger.Log(ex);
+                }
+
+                if (!m_IsClosed)
+                {
+                    Close();
+                }
+
+                if (Application != null)
+                {
+                    if (Marshal.IsComObject(Application))
+                    {
+                        Marshal.ReleaseComObject(Application);
+                    }
+                }
             }
         }
 

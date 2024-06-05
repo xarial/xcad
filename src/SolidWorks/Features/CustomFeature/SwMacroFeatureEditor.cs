@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -47,12 +47,15 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 
             if (reason == PageCloseReasons_e.Okay || reason == PageCloseReasons_e.Apply) 
             {
-                var curMacroFeat = (SwMacroFeature<TData>)m_CurrentFeature;
-
-                if (curMacroFeat.UseCachedParameters)
+                if (CurrentFeature.IsCommitted)
                 {
-                    curMacroFeat.ApplyParametersCache();
-                    curMacroFeat.UseCachedParameters = false;
+                    var curMacroFeat = (SwMacroFeature<TData>)CurrentFeature;
+
+                    if (curMacroFeat.UseCachedParameters)
+                    {
+                        curMacroFeat.ApplyParametersCache();
+                        curMacroFeat.UseCachedParameters = false;
+                    }
                 }
             }
         }

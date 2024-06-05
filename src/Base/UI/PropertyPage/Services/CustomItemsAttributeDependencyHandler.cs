@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -17,18 +17,22 @@ namespace Xarial.XCad.UI.PropertyPage.Services
     internal class CustomItemsAttributeDependencyHandler : IDependencyHandler
     {
         private readonly ICustomItemsProvider m_ItemsProvider;
+        private readonly Func<string> m_DisplayMemberMemberPathFunc;
 
-        internal CustomItemsAttributeDependencyHandler(ICustomItemsProvider itemsProvider)
+        internal CustomItemsAttributeDependencyHandler(ICustomItemsProvider itemsProvider, Func<string> displayMemberMemberPathFunc)
         {
             m_ItemsProvider = itemsProvider;
+            m_DisplayMemberMemberPathFunc = displayMemberMemberPathFunc;
         }
 
-        public void UpdateState(IXApplication app, IControl source, IControl[] dependencies)
+        public void UpdateState(IXApplication app, IControl source, IControl[] dependencies, object parameter)
         {
             var itemsCtrl = (IItemsControl)source;
 
-            itemsCtrl.Items = m_ItemsProvider.ProvideItems(app, dependencies)
-                ?.Select(i => new ItemsControlItem(i)).ToArray();
+            var dispMembPath = m_DisplayMemberMemberPathFunc.Invoke();
+
+            itemsCtrl.Items = m_ItemsProvider.ProvideItems(app, source, dependencies, parameter)
+                ?.Select(i => new ItemsControlItem(i, dispMembPath)).ToArray();
         }
     }
 }

@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -13,23 +13,33 @@ using Xarial.XCad.Utils.PageBuilder.Base;
 
 namespace Xarial.XCad.Utils.PageBuilder.Core
 {
+    /// <inheritdoc/>
     public class RawDependencyGroup : IRawDependencyGroup
     {
+        /// <inheritdoc/>
         public IReadOnlyDictionary<object, IBinding> TaggedBindings => m_TaggedBindings;
-        public IReadOnlyDictionary<IBinding, Tuple<object[], IDependencyHandler>> DependenciesTags => m_DependenciesTags;
-        public IReadOnlyDictionary<IControl, Tuple<IMetadata[], IMetadataDependencyHandler>> MetadataDependencies => m_MetadataDependencies;
+
+        /// <inheritdoc/>
+        public IReadOnlyList<DependencyInfo> DependenciesTags => m_DependenciesTags;
+
+        /// <inheritdoc/>
+        public IReadOnlyList<MetadataDependencyInfo> MetadataDependencies => m_MetadataDependencies;
 
         private readonly Dictionary<object, IBinding> m_TaggedBindings;
-        private readonly Dictionary<IBinding, Tuple<object[], IDependencyHandler>> m_DependenciesTags;
-        private readonly Dictionary<IControl, Tuple<IMetadata[], IMetadataDependencyHandler>> m_MetadataDependencies;
+        private readonly List<DependencyInfo> m_DependenciesTags;
+        private readonly List<MetadataDependencyInfo> m_MetadataDependencies;
 
+        /// <summary>
+        /// Default constructor
+        /// </summary>
         public RawDependencyGroup()
         {
             m_TaggedBindings = new Dictionary<object, IBinding>();
-            m_DependenciesTags = new Dictionary<IBinding, Tuple<object[], IDependencyHandler>>();
-            m_MetadataDependencies = new Dictionary<IControl, Tuple<IMetadata[], IMetadataDependencyHandler>>();
+            m_DependenciesTags = new List<DependencyInfo>();
+            m_MetadataDependencies = new List<MetadataDependencyInfo>();
         }
 
+        /// <inheritdoc/>
         public void RegisterBindingTag(IBinding binding, object tag)
         {
             if (!TaggedBindings.ContainsKey(tag))
@@ -42,14 +52,12 @@ namespace Xarial.XCad.Utils.PageBuilder.Core
             }
         }
 
-        public void RegisterDependency(IBinding binding, object[] dependentOnTags, IDependencyHandler dependencyHandler)
-        {
-            m_DependenciesTags.Add(binding, new Tuple<object[], IDependencyHandler>(dependentOnTags, dependencyHandler));
-        }
+        /// <inheritdoc/>
+        public void RegisterDependency(DependencyInfo info)
+            => m_DependenciesTags.Add(info);
 
-        public void RegisterMetadataDependency(IControl ctrl, IMetadata[] metadata, IMetadataDependencyHandler dependencyHandler)
-        {
-            m_MetadataDependencies.Add(ctrl, new Tuple<IMetadata[], IMetadataDependencyHandler>(metadata, dependencyHandler));
-        }
+        /// <inheritdoc/>
+        public void RegisterMetadataDependency(MetadataDependencyInfo info)
+            => m_MetadataDependencies.Add(info);
     }
 }

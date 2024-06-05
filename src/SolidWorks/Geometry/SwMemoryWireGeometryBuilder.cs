@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -67,6 +67,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         public T PreCreate<T>() where T : IXWireEntity
             => RepositoryHelper.PreCreate<IXWireEntity, T>(this,
+                () => new SwTempWireBody(null, m_App),
                 () => new SwCircleCurve(null, null, m_App, false),
                 () => new SwArcCurve(null, null, m_App, false),
                 () => new SwLineCurve(null, null, m_App, false),

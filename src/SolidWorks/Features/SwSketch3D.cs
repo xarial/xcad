@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -46,6 +46,12 @@ namespace Xarial.XCad.SolidWorks.Features
             OwnerModelDoc.ClearSelection2(true);
             OwnerModelDoc.Insert3DSketch2(true);
             return OwnerModelDoc.SketchManager.ActiveSketch;
+        }
+
+        protected override void CloseSketch()
+        {
+            OwnerModelDoc.ClearSelection2(true);
+            OwnerModelDoc.Insert3DSketch2(true);
         }
     }
 }

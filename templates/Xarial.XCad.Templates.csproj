@@ -1,0 +1,52 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageType>Template</PackageType>
+    <PackageId>Xarial.XCad.Templates</PackageId>
+    <Title>xCAD.NET Templates</Title>
+    <Description>Templates for creating stand-alone application and add-ins, command manager, property manager pages, macro features etc. for SOLIDWORKS via xCAD.NET</Description>
+    <PackageTags>dotnet-new;templates;xcad,solidworks,swapi,macrofeature,addin,cad</PackageTags>
+
+    <GenerateResourceUsePreserializedResources>true</GenerateResourceUsePreserializedResources>
+
+    <Product>xCAD</Product>
+    <BuildNumber></BuildNumber>
+    <VersionPrefix>1.0.1$(BuildNumber)</VersionPrefix>
+    <Company>Xarial Pty Limited</Company>
+    <Copyright>Copyright © Xarial Pty Limited 2024</Copyright>
+    <Authors>Xarial</Authors>
+    <PackageProjectUrl>https://xcad.net</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/xarial/xcad</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+
+    <PackageIcon>icon.png</PackageIcon>
+    <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
+    <PackageIconUrl>https://xcad.xarial.com/icon-templates.png</PackageIconUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+
+    <TargetFramework>netstandard2.1</TargetFramework>
+    
+    <IncludeContentInPack>true</IncludeContentInPack>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <ContentTargetFolders>content</ContentTargetFolders>
+    <NoWarn>$(NoWarn);NU5128</NoWarn>
+    <NoDefaultExcludes>true</NoDefaultExcludes>
+    
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="icon.png" pack="true" PackagePath="" />
+    <None Include="..\LICENSE.md" pack="true" PackagePath="" />
+    <None Include="README.md" pack="true" PackagePath="" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <Content Include="**\*" Exclude="Xarial.XCad.Templates.csproj;README.md;icon.png;.vs\**;**\bin\**;**\obj\**;**\*.user" />
+    <Compile Remove="**\*" />
+  </ItemGroup>
+
+  <ItemGroup>
+	  <PackageReference Include="System.Resources.Extensions" Version="4.6.0" />
+	</ItemGroup>
+
+</Project>

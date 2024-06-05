@@ -16,7 +16,6 @@ using Xarial.XCad.SolidWorks;
 using Xarial.XCad.SolidWorks.Geometry;
 using System;
 using Xarial.XCad;
-using Xarial.XCad.SolidWorks.UI.PropertyPage.Services;
 using Xarial.XCad.SolidWorks.Documents;
 using System.Collections.ObjectModel;
 using Xarial.XCad.UI.PropertyPage.Base;
@@ -29,6 +28,9 @@ using Xarial.XCad.UI.PropertyPage.Enums;
 using Xarial.XCad.UI.PropertyPage.Structures;
 using Xarial.XCad.Enums;
 using Xarial.XCad.Features;
+using Xarial.XCad.Geometry;
+using Xarial.XCad.SolidWorks.UI.PropertyPage.Attributes;
+using SolidWorks.Interop.swconst;
 
 namespace SwAddInExample
 {
@@ -39,11 +41,35 @@ namespace SwAddInExample
         Opt3
     }
 
+    public enum Opts1
+    {
+        Opt4,
+        Opt5,
+        Opt6
+    }
+
     [Flags]
     public enum OptsFlag 
     {
         Opt1 = 1,
         Opt2 = 2,
+        Opt3 = 4,
+        Opt4 = 8
+    }
+
+    [Flags]
+    public enum OptsFlag2
+    {
+        None = 0,
+
+        [Title("Option #1")]
+        [Description("First Option")]
+        Opt1 = 1,
+        Opt2 = 2,
+
+        [Title("Opt1 + Opt2")]
+        Opt1_2 = Opt1 | Opt2,
+
         Opt3 = 4,
         Opt4 = 8
     }
@@ -84,6 +110,17 @@ namespace SwAddInExample
 
     public class MyItem 
     {
+        [Title("Custom Item C")]
+        [Description("Item C [ID = 3]")]
+        private class MyCustomItem : MyItem
+        {
+            internal MyCustomItem() 
+            {
+                Name = "C";
+                Id = 3;
+            }
+        }
+
         public static MyItem[] All { get; } = new MyItem[]
         {
             new MyItem()
@@ -95,16 +132,14 @@ namespace SwAddInExample
             {
                 Name = "B",
                 Id = 2
-            }
+            },
+            new MyCustomItem()
         };
 
         public string Name { get; set; }
         public int Id { get; set; }
 
-        public override string ToString()
-        {
-            return Name;
-        }
+        public override string ToString() => Name;
 
         public override bool Equals(object obj)
         {
@@ -122,15 +157,40 @@ namespace SwAddInExample
         }
     }
 
-    public class MyCustomItemsProvider : SwCustomItemsProvider<MyItem>
+    public class MyItem1 
     {
-        public override IEnumerable<MyItem> ProvideItems(ISwApplication app, IControl[] dependencies)
+        public class MyItem1Name 
+        {
+            public string Name { get; }
+
+            public MyItem1Name(string name)
+            {
+                Name = name;
+            }
+        }
+        
+        public string Value { get; }
+
+        public MyItem1Name DisplayName { get; }
+
+        public MyItem1(string val) 
+        {
+            Value = val;
+            DisplayName = new MyItem1Name("[" + val + "]");
+        }
+
+        public override string ToString() => Value;
+    }
+
+    public class MyCustomItemsProvider : ICustomItemsProvider
+    {
+        public IEnumerable<object> ProvideItems(IXApplication app, IControl ctrl, IControl[] dependencies, object parameter)
             => MyItem.All;
     }
 
-    public class MyCustomItems1Provider : SwCustomItemsProvider<string>
+    public class MyCustomItems1Provider : ICustomItemsProvider
     {
-        public override IEnumerable<string> ProvideItems(ISwApplication app, IControl[] dependencies) 
+        public IEnumerable<object> ProvideItems(IXApplication app, IControl ctrl, IControl[] dependencies, object parameter)
         {
             var item = dependencies.First()?.GetValue() as MyItem;
 
@@ -171,15 +231,23 @@ namespace SwAddInExample
 
     public class VisibilityHandler : IDependencyHandler
     {
-        public void UpdateState(IXApplication app, IControl source, IControl[] dependencies)
+        public void UpdateState(IXApplication app, IControl source, IControl[] dependencies, object parameter)
         {
             source.Visible = (bool)dependencies.First().GetValue();
         }
     }
 
+    public class EnableHandler : IDependencyHandler
+    {
+        public void UpdateState(IXApplication app, IControl source, IControl[] dependencies, object parameter)
+        {
+            source.Enabled = (bool)dependencies.First().GetValue();
+        }
+    }
+
     public class CustomControlDependantHandler : IDependencyHandler
     {
-        public void UpdateState(IXApplication app, IControl source, IControl[] dependencies)
+        public void UpdateState(IXApplication app, IControl source, IControl[] dependencies, object parameter)
         {
             var val = (OptsFlag)dependencies.First().GetValue();
 
@@ -189,13 +257,18 @@ namespace SwAddInExample
 
     [ComVisible(true)]
     [Help("https://xcad.net/")]
+    //[PageOptions(PageOptions_e.OkayButton | PageOptions_e.CancelButton | PageOptions_e.HandleKeystrokes)]
     public class PmpData : SwPropertyManagerPageHandler, INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler PropertyChanged;
 
+        //[SelectionBoxOptions(Filters = new Type[] { typeof(IXFace) })]
+        [SwSelectionBoxOptions(Filters = new swSelectType_e[] { swSelectType_e.swSelANNOTATIONTABLES })]
+        public ISwSelObject UnknownObject { get; set; }
+
         [CustomControl(typeof(WpfUserControl))]
         //[CustomControl(typeof(WinUserControl))]
-        [ControlOptions(height: 200)]
+        [ControlOptions(height: 300)]
         [ControlTag(nameof(CustomControl))]
         public OptsFlag CustomControl { get; set; }
 
@@ -203,7 +276,7 @@ namespace SwAddInExample
         [Description("Any object selection")]
         public ISwSelObject AnyObject { get; set; }
 
-        [SelectionBoxOptions(typeof(PlanarFaceFilter), SelectType_e.Faces)] //setting the standard filter to faces and custom filter to only filter planar faces
+        [SwSelectionBoxOptions(CustomFilter = typeof(PlanarFaceFilter), Filters = new swSelectType_e[] { swSelectType_e.swSelFACES })] //setting the standard filter to faces and custom filter to only filter planar faces
         [AttachMetadata(nameof(ComponentsMetadata))]
         [AttachMetadata(nameof(CircEdgeMetadata))]
         public ISwFace PlanarFace { get; set; }
@@ -256,15 +329,15 @@ namespace SwAddInExample
         public int StaticComboBox { get; set; }
 
         [Metadata("_SRC_")]
-        public string[] Source => new string[] { "X", "Y", "Z" };
+        public MyItem1[] Source { get; } = new MyItem1[] { new MyItem1("X"), new MyItem1("Y"), new MyItem1("Z") };
 
         [ComboBox(ItemsSource = "_SRC_")]
-        public string ItemsSourceComboBox { get; set; }
+        public MyItem1 ItemsSourceComboBox { get; set; }
 
-        [ListBox(ItemsSource = "_SRC_")]
+        [ListBox(ItemsSource = "_SRC_", DisplayMemberPath = "DisplayName.Name")]
         [Label("List Box1:", ControlLeftAlign_e.LeftEdge, FontStyle_e.Bold)]
         [ControlOptions(align: ControlLeftAlign_e.Indent)]
-        public string ListBox1 { get; set; }
+        public MyItem1 ListBox1 { get; set; }
 
         [ListBox("A1", "A2", "A3")]
         public string ListBox2 { get; set; }
@@ -274,16 +347,41 @@ namespace SwAddInExample
 
         //[ListBox]
         [OptionBox]
-        [Label("Sample List Box 4:", fontStyle: FontStyle_e.Underline)]
-        public Opts ListBox4 { get; set; }
+        [Label("Sample Option Box 4:", fontStyle: FontStyle_e.Underline)]
+        public Opts OptionBox4 { get; set; }
+
+        [OptionBox]
+        [Label("Sample Option Box 5:")]
+        public Opts1 OptionBox5 { get; set; }
+
+        [OptionBox(1, 2, 3, 4)]
+        public int OptionBox6 { get; set; }
+
+        [OptionBox(typeof(MyCustomItemsProvider))]
+        public MyItem OptionBox7 { get; set; }
 
         [ListBox]
         public OptsFlag ListBox5 { get; set; } = OptsFlag.Opt1 | OptsFlag.Opt3;
 
+        [CheckBoxList]
+        [CheckBoxListOptions]
+        [ControlOptions(align: ControlLeftAlign_e.Indent)]
+        public OptsFlag2 FlagEnumCheckBoxes { get; set; }
+
+        [CheckBoxList(1, 2, 3, 4)]
+        public List<int> CheckBoxList2 { get; set; }
+
+        [CheckBoxList(typeof(MyCustomItemsProvider))]
+        public List<MyItem> CheckBoxList3 { get; set; }
+
         [ControlTag(nameof(Visible))]
         public bool Visible { get; set; }
 
+        [ControlTag(nameof(Enabled))]
+        public bool Enabled { get; set; }
+
         [DependentOn(typeof(VisibilityHandler), nameof(Visible))]
+        [DependentOn(typeof(EnableHandler), nameof(Enabled))]
         [Label("Numeric Control")]
         public double Number { get; set; }
 
@@ -312,6 +410,15 @@ namespace SwAddInExample
                 this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(TextBlockText)));
             };
             CustomControl = OptsFlag.Opt3 | OptsFlag.Opt4;
+
+            FlagEnumCheckBoxes = OptsFlag2.Opt3 | OptsFlag2.Opt4;
+
+            CheckBoxList3 = new List<MyItem>()
+            {
+                MyItem.All[0]
+            };
+
+            OptionBox6 = 3;
         }
     }
 
@@ -397,7 +504,7 @@ namespace SwAddInExample
         [ComboBox(typeof(MyCustomItemsProvider), nameof(Option4Default))]
         public MyItem Option5Set { get; set; }
 
-        [ComboBox(typeof(MyCustomItems1Provider), nameof(Option3Set))]
+        [ComboBox(typeof(MyCustomItems1Provider), nameof(Option3Set), Parameter = "TestParam")]
         public string Option6 { get; set; }
 
         public Action Button { get; }
@@ -432,7 +539,7 @@ namespace SwAddInExample
     {
         public class IsCheckedDepHandler : IMetadataDependencyHandler
         {
-            public void UpdateState(IXApplication app, IControl source, IMetadata[] metadata)
+            public void UpdateState(IXApplication app, IControl source, IMetadata[] metadata, object parameter)
             {
                 source.Enabled = !(bool)metadata.First().Value;
             }

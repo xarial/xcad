@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -10,8 +10,9 @@ using Xarial.XCad.UI.PropertyPage.Base;
 using Xarial.XCad.UI.PropertyPage.Services;
 
 namespace Xarial.XCad.UI.PropertyPage.Attributes
-{   
+{
     /// <inheritdoc/>
+    [AttributeUsage(AttributeTargets.Property, AllowMultiple = true)]
     public class DependentOnAttribute : Attribute, IDependentOnAttribute
     {
         /// <inheritdoc/>
@@ -20,6 +21,15 @@ namespace Xarial.XCad.UI.PropertyPage.Attributes
         /// <inheritdoc/>
         public IDependencyHandler DependencyHandler { get; }
 
+        /// <inheritdoc/>
+        public object Parameter { get; set; }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="dependencyHandler">Type of dependency handle of type<see cref="IDependencyHandler"/></param>
+        /// <param name="dependencies">Values of <see cref="ControlTagAttribute"/> of the dependencies controls</param>
+        /// <exception cref="InvalidCastException">Dependency handler type is invalid</exception>
         public DependentOnAttribute(Type dependencyHandler, params object[] dependencies)
         {
             if (!typeof(IDependencyHandler).IsAssignableFrom(dependencyHandler)) 

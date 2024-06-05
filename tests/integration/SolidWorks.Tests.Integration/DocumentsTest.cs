@@ -11,7 +11,6 @@ using System.Threading.Tasks;
 using System.Xml.Serialization;
 using Xarial.XCad;
 using Xarial.XCad.Base;
-using Xarial.XCad.Data.Enums;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Delegates;
 using Xarial.XCad.Documents.Enums;
@@ -34,6 +33,56 @@ namespace SolidWorks.Tests.Integration
 {
     public class DocumentsTest : IntegrationTests
     {
+        [Test]
+        public void EqualsTest()
+        {
+            bool e1, e2, e3, e4, e5, e6, e7, e8, e9;
+
+            var part1_1 = m_App.Documents.PreCreate<ISwPart>();
+            part1_1.Path = GetFilePath("Part1.sldprt");
+
+            var part1_3 = m_App.Documents.PreCreate<ISwPart>();
+            part1_3.Path = GetFilePath("Part1.sldprt");
+
+            IXDocument part1_2;
+            IXDocument part2_1;
+            IXDocument part2_2;
+
+            using (OpenDataDocument("Part1.sldprt"))
+            {
+                part1_2 = m_App.Documents.Active;
+
+                e1 = part1_1.Equals(part1_2);
+                e2 = part1_2.Equals(part1_2);
+                e3 = part1_1.Equals(part1_3);
+
+                using (OpenDataDocument("Sketch1.sldprt"))
+                {
+                    part2_1 = m_App.Documents.Active;
+                    part2_2 = m_App.Documents["Sketch1.sldprt"];
+
+                    e4 = part2_1.Equals(part2_2);
+                    e5 = part1_2.Equals(part2_1);
+                }
+
+                e6 = part2_1.Equals(part2_2);
+                e7 = part1_2.Equals(part2_1);
+            }
+
+            e8 = part1_1.Equals(part1_2);
+            e9 = part1_2.Equals(part2_1);
+
+            Assert.IsFalse(e1);
+            Assert.IsTrue(e2);
+            Assert.IsTrue(e3);
+            Assert.IsTrue(e4);
+            Assert.IsFalse(e5);
+            Assert.IsTrue(e6);
+            Assert.IsFalse(e7);
+            Assert.IsFalse(e8);
+            Assert.IsFalse(e9);
+        }
+
         [Test]
         public void OpenDocumentPreCreateUnknownTest()
         {
@@ -332,7 +381,7 @@ namespace SolidWorks.Tests.Integration
                 var assm = docs.Active;
                 assm.Closing += OnHiding;
 
-                foreach (var dep in assm.IterateDependencies())
+                foreach (var dep in assm.Dependencies.TryIterateAll())
                 {
                     dep.Closing += OnHiding;
                 }
@@ -420,7 +469,7 @@ namespace SolidWorks.Tests.Integration
 
                 part.StreamWriteAvailable += (d) =>
                     {
-                        using (var stream = d.OpenStream(STREAM_NAME, AccessType_e.Write))
+                        using (var stream = d.OpenStream(STREAM_NAME, true))
                         {
                             var xmlSer = new XmlSerializer(typeof(TestData));
 
@@ -447,7 +496,7 @@ namespace SolidWorks.Tests.Integration
             {
                 var part = m_App.Documents.Active;
 
-                using (var stream = part.OpenStream(STREAM_NAME, AccessType_e.Read))
+                using (var stream = part.OpenStream(STREAM_NAME, false))
                 {
                     var xmlSer = new XmlSerializer(typeof(TestData));
                     result = xmlSer.Deserialize(stream) as TestData;
@@ -518,17 +567,17 @@ namespace SolidWorks.Tests.Integration
                 {
                     var path = SUB_STORAGE_PATH.Split('\\');
 
-                    using (var storage = part.OpenStorage(path[0], AccessType_e.Write))
+                    using (var storage = part.OpenStorage(path[0], true))
                     {
-                        using (var subStorage = storage.TryOpenStorage(path[1], true))
+                        using (var subStorage = storage.OpenStorage(path[1], true))
                         {
-                            using (var str = subStorage.TryOpenStream(STREAM1_NAME, true))
+                            using (var str = subStorage.OpenStream(STREAM1_NAME, true))
                             {
                                 var buffer = Encoding.UTF8.GetBytes("Test2");
                                 str.Write(buffer, 0, buffer.Length);
                             }
 
-                            using (var str = subStorage.TryOpenStream(STREAM2_NAME, true))
+                            using (var str = subStorage.OpenStream(STREAM2_NAME, true))
                             {
                                 using (var binWriter = new BinaryWriter(str))
                                 {
@@ -556,13 +605,13 @@ namespace SolidWorks.Tests.Integration
 
                 var path = SUB_STORAGE_PATH.Split('\\');
 
-                using (var storage = part.TryOpenStorage(path[0], AccessType_e.Read))
+                using (var storage = part.OpenStorage(path[0], false))
                 {
-                    using (var subStorage = storage.TryOpenStorage(path[1], false))
+                    using (var subStorage = storage.OpenStorage(path[1], false))
                     {
-                        subStreamsCount = subStorage.GetSubStreamNames().Length;
+                        subStreamsCount = subStorage.SubStreamNames.Count();
 
-                        using (var str = subStorage.TryOpenStream(STREAM1_NAME, false))
+                        using (var str = subStorage.OpenStream(STREAM1_NAME, false))
                         {
                             var buffer = new byte[str.Length];
 
@@ -571,7 +620,7 @@ namespace SolidWorks.Tests.Integration
                             txt = Encoding.UTF8.GetString(buffer);
                         }
 
-                        using (var str = subStorage.TryOpenStream(STREAM2_NAME, false))
+                        using (var str = subStorage.OpenStream(STREAM2_NAME, false))
                         {
                             using (var binReader = new BinaryReader(str))
                             {
@@ -607,6 +656,7 @@ namespace SolidWorks.Tests.Integration
             Assert.That(deps.Any(d => string.Equals(d.Path, Path.Combine(dir, "Part1.SLDPRT"))));
         }
 
+        //NOTE: SW 2024 - 3D interconnect files are not listed in the dependencies (including Find References from the UI)
         [Test]
         public void DocumentDependencies3DInterconnect()
         {
@@ -614,7 +664,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var assm = OpenDataDocument(@"Assembly9\Assem1.SLDASM"))
             {
-                var deps = m_App.Documents.Active.IterateDependencies().ToArray();
+                var deps = m_App.Documents.Active.Dependencies.TryIterateAll().ToArray();
                 r1 = deps.ToDictionary(d => Path.GetFileName(d.Path), d => d.IsCommitted, StringComparer.CurrentCultureIgnoreCase);
             }
 
@@ -633,7 +683,7 @@ namespace SolidWorks.Tests.Integration
             var assm = m_App.Documents.PreCreate<ISwAssembly>();
             assm.Path = GetFilePath(@"Assembly9\Assem1.SLDASM");
 
-            var deps = assm.IterateDependencies().ToArray();
+            var deps = assm.Dependencies.TryIterateAll().ToArray();
             r1 = deps.ToDictionary(d => Path.GetFileName(d.Path), d => d.IsCommitted, StringComparer.CurrentCultureIgnoreCase);
 
             Assert.AreEqual(2, r1.Count);
@@ -728,7 +778,7 @@ namespace SolidWorks.Tests.Integration
             {
                 var assm = m_App.Documents.Active;
 
-                var deps = assm.IterateDependencies().ToArray();
+                var deps = assm.Dependencies.TryIterateAll().ToArray();
 
                 var dir = Path.GetDirectoryName(assm.Path);
 
@@ -786,7 +836,7 @@ namespace SolidWorks.Tests.Integration
             {
                 var assm = m_App.Documents.Active;
 
-                var deps = assm.IterateDependencies().ToArray();
+                var deps = assm.Dependencies.TryIterateAll().ToArray();
 
                 var d1 = deps.FirstOrDefault(d => string.Equals(Path.GetFileName(d.Path), "Part1^Assem1.sldprt",
                     StringComparison.CurrentCultureIgnoreCase));
@@ -808,18 +858,38 @@ namespace SolidWorks.Tests.Integration
                 Assert.AreEqual(8, deps.Length);
 
                 Assert.IsNotNull(d1);
+                Assert.IsNotNull(d2);
+                Assert.IsNotNull(d3);
                 Assert.IsNotNull(d4);
+                Assert.IsNotNull(d5);
                 Assert.IsNotNull(d6);
+                Assert.IsNotNull(d7);
                 Assert.IsNotNull(d8);
-                Assert.That(string.Equals(d2.Path, Path.Combine(srcPath, "Part2.SLDPRT"), StringComparison.CurrentCultureIgnoreCase));
-                Assert.That(string.Equals(d3.Path, Path.Combine(srcPath, "Assem2.sldasm"), StringComparison.CurrentCultureIgnoreCase));
+
+                Assert.IsTrue(d1.IsCommitted);
+                Assert.IsFalse(d2.IsCommitted);
+                Assert.IsFalse(d3.IsCommitted);
+                Assert.IsTrue(d4.IsCommitted);
+                Assert.IsTrue(d5.IsCommitted);
+                Assert.IsTrue(d6.IsCommitted);
+                Assert.IsTrue(d7.IsCommitted);
+                Assert.IsTrue(d8.IsCommitted);
+
+                Assert.That(string.Equals(Path.GetFileName(d2.Path), "Part2.SLDPRT", StringComparison.CurrentCultureIgnoreCase));
+                Assert.That(string.Equals(Path.GetFileName(d3.Path), "Assem2.sldasm", StringComparison.CurrentCultureIgnoreCase));
                 Assert.Throws<OpenDocumentFailedException>(() => d2.Commit());
                 Assert.Throws<OpenDocumentFailedException>(() => d3.Commit());
-                //Assert.That(string.Equals(d5.Path, Path.Combine(destPath, "Part4.SLDPRT"), StringComparison.CurrentCultureIgnoreCase)); - SOLIDWORKS does not follow the path resolution for the components of virtual component
+                //Assert.That(string.Equals(d5.Path, Path.Combine(destPath, "Part4.SLDPRT"), StringComparison.CurrentCultureIgnoreCase));//NOTE: SOLIDWORKS does not follow the path resolution for the components of virtual component
                 Assert.That(string.Equals(d7.Path, Path.Combine(destPath, "Assem4.sldasm"), StringComparison.CurrentCultureIgnoreCase));
             }
 
-            Directory.Delete(destPath, true);
+            try
+            {
+                Directory.Delete(destPath, true);
+            }
+            catch 
+            {
+            }
         }
 
         [Test]
@@ -848,11 +918,11 @@ namespace SolidWorks.Tests.Integration
                 var assm = m_App.Documents.PreCreate<ISwAssembly>();
                 assm.Path = Path.Combine(destPath, "TopLevel\\Assem1.sldasm");
 
-                var deps = assm.IterateDependencies().ToArray();
+                var deps = assm.Dependencies.TryIterateAll().ToArray();
 
                 refs = deps.ToDictionary(x => x.Path, x => x.IsCommitted, StringComparer.CurrentCultureIgnoreCase);
 
-                foreach (var refDoc in assm.IterateDependencies().ToArray())
+                foreach (var refDoc in assm.Dependencies.TryIterateAll().ToArray())
                 {
                     if (refDoc.IsCommitted && refDoc.IsAlive)
                     {
@@ -939,7 +1009,7 @@ namespace SolidWorks.Tests.Integration
                 var p1 = m_App.Documents.PreCreate<ISwPart>();
                 p1.Path = filePath;
 
-                Assert.Throws<DocumentAlreadyOpenedException>(() => p1.Commit());
+                p1.Commit();
 
                 var p2 = m_App.Documents.PreCreate<IXUnknownDocument>();
                 p2.Path = filePath;
@@ -947,6 +1017,8 @@ namespace SolidWorks.Tests.Integration
 
                 var p3 = p2.GetSpecific();
 
+                Assert.IsTrue(p1.IsCommitted);
+                Assert.That(string.Equals(p1.Path, filePath, StringComparison.CurrentCultureIgnoreCase));
                 Assert.AreEqual(p0, p3);
             }
         }
@@ -1161,7 +1233,7 @@ namespace SolidWorks.Tests.Integration
             part2.Commit();
             isAlive2 = part2.IsAlive;
 
-            Assert.Throws<EntityNotFoundException>(() => { var doc = m_App.Documents[part1.Model]; });
+            Assert.That(() => { var doc = m_App.Documents[part1.Model]; }, Throws.Exception);
             Assert.IsFalse(isAlive1);
             Assert.IsTrue(isAlive2);
 

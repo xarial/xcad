@@ -220,23 +220,48 @@ namespace SolidWorks.Tests.Integration
         public void GetWeldmentCutListPropertiesTest() 
         {
             Dictionary<string, object> conf1Prps;
+            Dictionary<string, object> confDefPrps;
 
             using (var doc = OpenDataDocument("CutListConfs1.SLDPRT")) 
             {
                 var part = (ISwPart)m_App.Documents.Active;
 
                 conf1Prps = ((IXPartConfiguration)part.Configurations.First(c => c.Name.StartsWith("Conf1"))).CutLists
-                    .First(c => c.Name == "Cut-List-Item1").Properties
+                    ["Cut-List-Item1"].Properties
                     .ToDictionary(p => p.Name, p => p.Value);
 
-                Assert.Throws<ConfigurationSpecificCutListNotSupportedException>(
-                    () => { var cl = ((IXPartConfiguration)part.Configurations.First(c => c.Name.StartsWith("Default"))).CutLists.ToArray(); });
+                if (m_App.IsVersionNewerOrEqual(SwVersion_e.Sw2024))
+                {
+                    //need to refresh configurations to update cut-lists
+                    var activeConf = part.Model.ConfigurationManager.ActiveConfiguration.Name;
+                    part.Model.ShowConfiguration2("Default<As Machined>");
+                    part.Model.ShowConfiguration2(activeConf);
+
+                    confDefPrps = ((IXPartConfiguration)part.Configurations.First(c => c.Name.StartsWith("Default"))).CutLists
+                        ["Cut-List-Item1"].Properties
+                        .ToDictionary(p => p.Name, p => p.Value);
+                }
+                else
+                {
+                    Assert.Throws<ConfigurationSpecificCutListNotSupportedException>(
+                        () => { var cl = ((IXPartConfiguration)part.Configurations.First(c => c.Name.StartsWith("Default"))).CutLists.ToArray(); });
+                    
+                    confDefPrps = null;
+                }
             }
 
             Assert.AreEqual(4, conf1Prps.Count);
             Assert.That(conf1Prps.ContainsKey("Prp1"));
             Assert.AreEqual("Conf1Val", conf1Prps["Prp1"]);
             Assert.AreEqual("Gen1Val", conf1Prps["Prp2"]);
+
+            if (m_App.IsVersionNewerOrEqual(SwVersion_e.Sw2024))
+            {
+                Assert.AreEqual(4, confDefPrps.Count);
+                Assert.That(confDefPrps.ContainsKey("Prp1"));
+                Assert.AreEqual("ConfDefVal", confDefPrps["Prp1"]);
+                Assert.AreEqual("Gen1Val", confDefPrps["Prp2"]);
+            }
         }
 
         [Test]
@@ -284,9 +309,30 @@ namespace SolidWorks.Tests.Integration
                 prp1.Value = "NewValueConf1";
                 prp1.Commit();
 
-                Assert.Throws<ConfigurationSpecificCutListNotSupportedException>(
-                    () => { var cl = part.Configurations["Default<As Machined>"].CutLists.ToArray(); });
-                
+                if (m_App.IsVersionNewerOrEqual(SwVersion_e.Sw2024))
+                {
+                    //need to refresh configurations to update cut-lists
+                    var activeConf = part.Model.ConfigurationManager.ActiveConfiguration.Name;
+                    part.Model.ShowConfiguration2("Default<As Machined>");
+                    part.Model.ShowConfiguration2(activeConf);
+
+                    var prp2 = part.Configurations["Default<As Machined>"].CutLists["Cut-List-Item1"].Properties.GetOrPreCreate("Prp3");
+                    
+                    Assert.Throws<ConfigurationSpecificCutListPropertiesWriteNotSupportedException>(() =>
+                    {
+                        prp2.Value = "NewValueDefault";
+                        if (!prp2.IsCommitted)
+                        {
+                            prp2.Commit();
+                        }
+                    });
+                }
+                else
+                {
+                    Assert.Throws<ConfigurationSpecificCutListNotSupportedException>(
+                        () => { var cl = part.Configurations["Default<As Machined>"].CutLists.ToArray(); });
+                }
+
                 part.Model.ShowConfiguration2("Conf1<As Machined>");
                 part.Part.IFeatureByName("Cut-List-Item1").CustomPropertyManager.Get5("Prp3", false, out _, out conf1Val, out _);
 
@@ -380,6 +426,80 @@ namespace SolidWorks.Tests.Integration
             Assert.AreEqual("1", val3);
             Assert.AreEqual("IJK", exp6);
         }
+
+        [Test]
+        public void GetCustomPropertiesTypesTest()
+        {
+            object val1;
+            object val2;
+            object val3;
+            object val4;
+            object val5;
+            object val6;
+
+            using (var doc = OpenDataDocument("PrpTypes.SLDPRT"))
+            {
+                var part = (IXPart)m_App.Documents.Active;
+
+                val1 = part.Properties["Text"].Value;
+                val2 = part.Properties["Double"].Value;
+                val3 = part.Properties["Integer"].Value;
+                val4 = part.Properties["BoolTrue"].Value;
+                val5 = part.Properties["BoolFalse"].Value;
+                val6 = part.Properties["Date"].Value;
+            }
+
+            Assert.AreEqual("A", val1);
+            Assert.IsInstanceOf<string>(val1);
+
+            Assert.AreEqual(5.5, val2);
+            Assert.IsInstanceOf<double>(val2);
+
+            Assert.AreEqual(10, val3);
+            Assert.IsInstanceOf<double>(val3);
+
+            Assert.AreEqual(true, val4);
+            Assert.IsInstanceOf<bool>(val4);
+
+            Assert.AreEqual(false, val5);
+            Assert.IsInstanceOf<bool>(val5);
+
+            Assert.AreEqual(new DateTime(2023, 03, 28), val6);
+            Assert.IsInstanceOf<DateTime>(val6);
+        }
+
+        //[Test]
+        //public void SetCustomPropertiesTypesTest()
+        //{
+        //    using (var doc = NewDocument(swDocumentTypes_e.swDocPART))
+        //    {
+        //        var part = (IXPart)m_App.Documents.Active;
+
+        //        var prp1 = part.Properties.GetOrPreCreate("Text");
+        //        prp1.Value = "A";
+        //        prp1.Commit();
+
+        //        var prp2 = part.Properties.GetOrPreCreate("Double");
+        //        prp2.Value = 5.5;
+        //        prp2.Commit();
+
+        //        var prp3 = part.Properties.GetOrPreCreate("Integer");
+        //        prp3.Value = 10;
+        //        prp3.Commit();
+
+        //        var prp4 = part.Properties.GetOrPreCreate("BoolTrue");
+        //        prp4.Value = true;
+        //        prp4.Commit();
+
+        //        var prp5 = part.Properties.GetOrPreCreate("BoolFalse");
+        //        prp5.Value = false;
+        //        prp5.Commit();
+
+        //        var prp6 = part.Properties.GetOrPreCreate("Date");
+        //        prp6.Value = new DateTime(2023, 03, 28);
+        //        prp6.Commit();
+        //    }
+        //}
 
         [Test]
         public void SetExpressionCustomPropertiesTest()

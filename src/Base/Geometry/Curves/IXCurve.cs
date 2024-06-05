@@ -1,13 +1,15 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Text;
+using Xarial.XCad.Base;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Geometry.Wires;
 
@@ -48,6 +50,31 @@ namespace Xarial.XCad.Geometry.Curves
         Point CalculateLocation(double uParam, out Vector tangent);
 
         /// <summary>
+        /// Intersects this curve with other curve
+        /// </summary>
+        /// <param name="curve">Other curve</param>
+        /// <returns>Intersection points</returns>
+        Point[] Intersect(IXCurve curve);
+
+        /// <summary>
+        /// Checks if the current curve is trimmed
+        /// </summary>
+        bool IsTrimmed { get; }
+
+        /// <summary>
+        /// Trims curve
+        /// </summary>
+        /// <param name="start">Start point</param>
+        /// <param name="end">End point</param>
+        IXCurve Trim(Point start, Point end);
+
+        /// <summary>
+        /// Creates a clone of this curve
+        /// </summary>
+        /// <returns>Cloned curve</returns>
+        IXCurve Copy();
+
+        /// <summary>
         /// Calculates the length of the curve
         /// </summary>
         /// <param name="startParamU">Start U-parameter</param>
@@ -56,15 +83,34 @@ namespace Xarial.XCad.Geometry.Curves
         double CalculateLength(double startParamU, double endParamU);
 
         /// <summary>
-        /// Creates wire body from this curve
-        /// </summary>
-        /// <returns>Wire body</returns>
-        IXWireBody CreateBody();
-
-        /// <summary>
         /// Applies transform to this curve
         /// </summary>
         /// <param name="transform">Transform to apply</param>
         void Transform(TransformMatrix transform);
+    }
+
+    /// <summary>
+    /// Additional methods of <see cref="IXCurve"/>
+    /// </summary>
+    public static class XCurveExtension 
+    {
+        /// <summary>
+        /// Create wire body from this curve
+        /// </summary>
+        /// <param name="curve">Input curve</param>
+        /// <returns>Wire body</returns>
+        public static IXMemoryWireBody CreateBody(this IXCurve curve) 
+        {
+            var wireBody = curve.OwnerApplication.MemoryGeometryBuilder.WireBuilder.PreCreateWireBody();
+
+            if (!curve.IsCommitted) 
+            {
+                curve.Commit();
+            }
+
+            wireBody.Segments = new IXSegment[] { curve };
+            wireBody.Commit();
+            return wireBody;
+        }
     }
 }

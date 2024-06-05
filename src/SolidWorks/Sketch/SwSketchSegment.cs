@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Text;
 using System.Threading;
+using Xarial.XCad.Documents;
 using Xarial.XCad.Features;
 using Xarial.XCad.Geometry.Curves;
 using Xarial.XCad.Geometry.Structures;
@@ -77,6 +78,12 @@ namespace Xarial.XCad.SolidWorks.Sketch
         }
 
         public override void Commit(CancellationToken cancellationToken) => m_Creator.Create(cancellationToken);
+
+        public override IXLayer Layer
+        {
+            get => SwLayerHelper.GetLayer(this, x => x.Segment.Layer);
+            set => SwLayerHelper.SetLayer(this, value, (x, y) => x.Segment.Layer = y);
+        }
         
         public override Color? Color
         {
@@ -127,7 +134,7 @@ namespace Xarial.XCad.SolidWorks.Sketch
                 }
 
                 curve = curve.CreateTrimmedCurve2(startPt.X, startPt.Y, startPt.Z, 
-                    endPt.X, endPt.Y, endPt.Z) as Curve;
+                    endPt.X, endPt.Y, endPt.Z);
 
                 if (curve == null) 
                 {

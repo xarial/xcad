@@ -1,18 +1,15 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Runtime.InteropServices.ComTypes;
-using System.Text;
 using Xarial.XCad.Data;
 
 namespace Xarial.XCad.Toolkit.Data
@@ -75,8 +72,8 @@ namespace Xarial.XCad.Toolkit.Data
     [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
     public interface IComStorage
     {
-        void CreateStream(string pwcsName, uint grfMode, uint reserved1, uint reserved2, out IStream ppstm);
-        void OpenStream(string pwcsName, IntPtr reserved1, uint grfMode, uint reserved2, out IStream ppstm);
+        void CreateStream(string pwcsName, uint grfMode, uint reserved1, uint reserved2, out System.Runtime.InteropServices.ComTypes.IStream ppstm);
+        void OpenStream(string pwcsName, IntPtr reserved1, uint grfMode, uint reserved2, out System.Runtime.InteropServices.ComTypes.IStream ppstm);
         void CreateStorage(string pwcsName, uint grfMode, uint reserved1, uint reserved2, out IComStorage ppstg);
         void OpenStorage(string pwcsName, IComStorage pstgPriority, uint grfMode, IntPtr snbExclude, uint reserved, out IComStorage ppstg);
         void CopyTo(uint ciidExclude, Guid rgiidExclude, IntPtr snbExclude, IComStorage pstgDest);
@@ -101,18 +98,35 @@ namespace Xarial.XCad.Toolkit.Data
     {
         private bool m_IsWritable;
 
+        /// <summary>
+        /// Pointer to the underlying COM storage
+        /// </summary>
         public IComStorage Storage { get; private set; }
 
+        /// <summary>
+        /// Constructor for storage from the existing storage
+        /// </summary>
+        /// <param name="storage">COM storage</param>
+        /// <param name="writable">Is storage writable</param>
         public ComStorage(IComStorage storage, bool writable) : this(writable)
         {
             Load(storage);
         }
 
+        /// <summary>
+        /// Constructor for an empty storage
+        /// </summary>
+        /// <param name="writable">Is writable storage</param>
         protected ComStorage(bool writable) 
         {
             m_IsWritable = writable;
         }
 
+        /// <summary>
+        /// Loads storage content
+        /// </summary>
+        /// <param name="storage">Storage to load</param>
+        /// <exception cref="ArgumentNullException"/>
         protected void Load(IComStorage storage) 
         {
             if (storage == null)
@@ -123,95 +137,79 @@ namespace Xarial.XCad.Toolkit.Data
             Storage = storage;
         }
 
-        public IStorage TryOpenStorage(string storageName, bool createIfNotExist)
+        /// <inheritdoc/>
+        public IStorage OpenStorage(string storageName, bool createIfNotExist)
         {
-            try
+            if (SubStorageNames.Contains(storageName, StringComparer.CurrentCultureIgnoreCase))
             {
-                IComStorage storage;
-
                 Storage.OpenStorage(storageName, null,
-                    (uint)Mode, IntPtr.Zero, 0, out storage);
+                    (uint)Mode, IntPtr.Zero, 0, out var storage);
 
                 return new ComStorage(storage, m_IsWritable);
             }
-            catch
+            else if (createIfNotExist)
             {
-                if (createIfNotExist)
-                {
-                    return CreateStorage(storageName);
-                }
-                else
-                {
-                    return null;
-                }
+                return CreateStorage(storageName);
+            }
+            else
+            {
+                return XCad.Data.Storage.Null;
             }
         }
 
-        public Stream TryOpenStream(string streamName, bool createIfNotExist)
+        /// <inheritdoc/>
+        public Stream OpenStream(string streamName, bool createIfNotExist)
         {
-            try
+            if (SubStreamNames.Contains(streamName, StringComparer.CurrentCultureIgnoreCase))
             {
-                IStream stream = null;
-
                 Storage.OpenStream(streamName,
-                    IntPtr.Zero, (uint)Mode, 0, out stream);
+                    IntPtr.Zero, (uint)Mode, 0, out var stream);
 
                 return new ComStream(stream, m_IsWritable);
             }
-            catch
+            else if (createIfNotExist)
             {
-                if (createIfNotExist)
-                {
-                    return CreateStream(streamName);
-                }
-                else
-                {
-                    return null;
-                }
+                return CreateStream(streamName);
+            }
+            else
+            {
+                return Stream.Null;
             }
         }
 
-        public string[] GetSubStreamNames()
-        {
-            return EnumElements()
-                .Where(e => e.type == (int)STGTY.STREAM)
-                .Select(e => e.pwcsName).ToArray();
-        }
+        /// <inheritdoc/>
+        public IEnumerable<string> SubStreamNames
+            => EnumElements().Where(e => e.type == (int)STGTY.STREAM)
+            .Select(e => e.pwcsName);
 
-        public string[] GetSubStorageNames()
-        {
-            return EnumElements()
-                .Where(e => e.type == (int)STGTY.STORAGE)
-                .Select(e => e.pwcsName).ToArray();
-        }
+        /// <inheritdoc/>
+        public IEnumerable<string> SubStorageNames
+            => EnumElements().Where(e => e.type == (int)STGTY.STORAGE)
+            .Select(e => e.pwcsName);
 
+        /// <inheritdoc/>
         private ComStream CreateStream(string streamName)
         {
-            IStream stream = null;
-
             Storage.CreateStream(streamName,
                 (uint)STGM.CREATE | (uint)STGM.SHARE_EXCLUSIVE | (uint)STGM.WRITE,
-                0, 0, out stream);
+                0, 0, out var stream);
 
             return new ComStream(stream, m_IsWritable);
         }
 
+        /// <inheritdoc/>
         private IStorage CreateStorage(string storageName)
         {
-            IComStorage storage = null;
-
             Storage.CreateStorage(storageName,
-                (uint)STGM.CREATE | (uint)STGM.SHARE_EXCLUSIVE | (uint)STGM.WRITE,
-                0, 0, out storage);
+                (uint)STGM.CREATE | (uint)STGM.SHARE_EXCLUSIVE | (uint)STGM.READWRITE,
+                0, 0, out var storage);
 
             return new ComStorage(storage, m_IsWritable);
         }
 
         private IEnumerable<System.Runtime.InteropServices.ComTypes.STATSTG> EnumElements()
         {
-            IEnumSTATSTG ssenum = null;
-
-            Storage.EnumElements(0, IntPtr.Zero, 0, out ssenum);
+            Storage.EnumElements(0, IntPtr.Zero, 0, out var ssenum);
 
             var ssstruct = new System.Runtime.InteropServices.ComTypes.STATSTG[1];
 
@@ -228,6 +226,7 @@ namespace Xarial.XCad.Toolkit.Data
             } while (numReturned > 0);
         }
 
+        /// <inheritdoc/>
         public void Close()
         {
             if (Storage != null)
@@ -258,11 +257,11 @@ namespace Xarial.XCad.Toolkit.Data
             }
         }
 
+        /// <inheritdoc/>
         public void RemoveSubElement(string name)
-        {
-            Storage.DestroyElement(name);
-        }
+            => Storage.DestroyElement(name);
 
+        /// <inheritdoc/>
         public virtual void Dispose()
         {
             Close();

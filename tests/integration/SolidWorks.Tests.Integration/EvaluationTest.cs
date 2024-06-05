@@ -15,6 +15,7 @@ using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.SolidWorks.Geometry.Exceptions;
 using Xarial.XCad.Geometry.Exceptions;
 using Xarial.XCad.Geometry.Evaluation;
+using Xarial.XCad.Documents.Exceptions;
 
 namespace SolidWorks.Tests.Integration
 {
@@ -2955,6 +2956,233 @@ namespace SolidWorks.Tests.Integration
             Assert.That(side1Pts.Any(p => p.ToArray().SequenceEqual(new double[] { 0.025, -0.0125, -0.005 }, new DoubleComparer())));
             Assert.That(side1Pts.Any(p => p.ToArray().SequenceEqual(new double[] { 0.025, 0.0125, 0.005 }, new DoubleComparer())));
             Assert.That(side1Pts.Any(p => p.ToArray().SequenceEqual(new double[] { 0.025, -0.0125, 0.005 }, new DoubleComparer())));
+        }
+
+        [Test]
+        public void CollisionPartTest()
+        {
+            Tuple<string[], double[]>[] res1;
+            Tuple<string[], double[]>[] res2;
+
+            using (var doc = OpenDataDocument("CollisionPart1.SLDPRT"))
+            {
+                var part = (IXPart)m_App.Documents.Active;
+                var collDet1 = part.Evaluation.PreCreateCollisionDetection();
+                collDet1.Scope = new IXBody[]
+                {
+                    part.Bodies["SolidBody1"],
+                    part.Bodies["SolidBody2"],
+                    part.Bodies["SolidBody3"],
+                    part.Bodies["SolidBody4"]
+                };
+
+                collDet1.Commit();
+
+                res1 = collDet1.Results?.Select(r => new Tuple<string[], double[]>(
+                    r.CollidedBodies?.Select(b => b.Name).ToArray(),
+                    r.CollisionVolume?.Cast<IXSolidBody>().Select(v => v.Volume).ToArray())).ToArray();
+
+                var collDet2 = part.Evaluation.PreCreateCollisionDetection();
+                collDet2.Scope = new IXBody[]
+                {
+                    part.Bodies["SurfaceBody1"],
+                    part.Bodies["SurfaceBody2"]
+                };
+
+                collDet2.Commit();
+
+                res2 = collDet2.Results?.Select(r => new Tuple<string[], double[]>(
+                    r.CollidedBodies?.Select(b => b.Name).ToArray(),
+                    r.CollisionVolume?.Cast<IXPlanarSheetBody>().Select(v => v.Faces.OfType<IXPlanarFace>().First().Area).ToArray())).ToArray();
+            }
+
+            var p1 = res1.FirstOrDefault(x => x.Item1.OrderBy(y => y).SequenceEqual(new string[] { "SolidBody1", "SolidBody3" }.OrderBy(y => y)));
+            var p2 = res1.FirstOrDefault(x => x.Item1.OrderBy(y => y).SequenceEqual(new string[] { "SolidBody1", "SolidBody4" }.OrderBy(y => y)));
+            var p3 = res1.FirstOrDefault(x => x.Item1.OrderBy(y => y).SequenceEqual(new string[] { "SolidBody3", "SolidBody4" }.OrderBy(y => y)));
+
+            Assert.AreEqual(3, res1.Length);
+            
+            Assert.IsNotNull(p1);
+            Assert.AreEqual(1, p1.Item2.Length);
+            Assert.That(p1.Item2[0], Is.EqualTo(2.7977145502e-6).Within(0.1).Percent);
+
+            Assert.IsNotNull(p2);
+            Assert.AreEqual(1, p2.Item2.Length);
+            Assert.That(p2.Item2[0], Is.EqualTo(1.25550373565e-6).Within(0.1).Percent);
+
+            Assert.IsNotNull(p3);
+            Assert.AreEqual(2, p3.Item2.Length);
+            Assert.That(Math.Min(p3.Item2[0], p3.Item2[1]), Is.EqualTo(1.17637617523e-6).Within(0.1).Percent);
+            Assert.That(Math.Max(p3.Item2[0], p3.Item2[1]), Is.EqualTo(1.84299832024e-6).Within(0.1).Percent);
+
+            Assert.AreEqual(1, res2.Length);
+            CollectionAssert.AreEquivalent(new string[] { "SurfaceBody1", "SurfaceBody2" }, res2[0].Item1);
+            Assert.AreEqual(1, res2[0].Item2.Length);
+            Assert.That(res2[0].Item2[0], Is.EqualTo(0.00012132755196).Within(0.1).Percent);
+        }
+
+        [Test]
+        public void CollisionAssemblyBodiesScopeTest()
+        {
+            Tuple<string[], string[], double[]>[] res1;
+
+            using (var doc = OpenDataDocument("CollisionAssm1\\Assem1.SLDASM"))
+            {
+                var assm = (IXAssembly)m_App.Documents.Active;
+                var collDet1 = (IXCollisionDetection)assm.Evaluation.PreCreateCollisionDetection();
+                collDet1.Scope = new IXBody[]
+                {
+                    assm.Configurations.Active.Components["Part1-1"].Bodies["Fillet1"],
+                    assm.Configurations.Active.Components["Part1-2"].Bodies["Fillet1"]
+                };
+
+                collDet1.Commit();
+
+                res1 = collDet1.Results.Cast<IXAssemblyCollisionResult>()?.Select(r => new Tuple<string[], string[], double[]>(
+                    r.CollidedBodies?.Select(b => b.Name).ToArray(),
+                    r.CollidedComponents.Select(c => c.Name).ToArray(),
+                    r.CollisionVolume?.Cast<IXSolidBody>().Select(v => v.Volume).ToArray())).ToArray();
+            }
+
+            var p1 = res1.First();
+
+            Assert.AreEqual(1, res1.Length);
+
+            Assert.IsNotNull(p1);
+            Assert.AreEqual(1, p1.Item3.Length);
+            Assert.That(p1.Item3[0], Is.EqualTo(4.620647859030001e-6).Within(0.1).Percent);
+            CollectionAssert.AreEquivalent(new string[] { "Fillet1", "Fillet1" }, p1.Item1);
+            CollectionAssert.AreEquivalent(new string[] { "Part1-1", "Part1-2" }, p1.Item2);
+        }
+
+        [Test]
+        public void CollisionAssemblySelectedScopeTest()
+        {
+            Tuple<string[], string[], double[]>[] res1;
+
+            using (var doc = OpenDataDocument("CollisionAssm2\\Assem1.SLDASM"))
+            {
+                var assm = (IXAssembly)m_App.Documents.Active;
+                var collDet1 = assm.Evaluation.PreCreateCollisionDetection();
+                collDet1.Scope = new IXComponent[]
+                {
+                    assm.Configurations.Active.Components["Part1-1"],
+                    assm.Configurations.Active.Components["Part1-2"]
+                };
+
+                collDet1.Commit();
+
+                res1 = collDet1.Results?.Select(r => new Tuple<string[], string[], double[]>(
+                    r.CollidedBodies?.Select(b => b.Name).ToArray(),
+                    r.CollidedComponents.Select(c => c.Name).ToArray(),
+                    r.CollisionVolume?.Cast<IXSolidBody>().Select(v => v.Volume).ToArray())).ToArray();
+            }
+
+            var p1 = res1.First();
+
+            Assert.AreEqual(1, res1.Length);
+
+            Assert.IsNotNull(p1);
+            Assert.AreEqual(1, p1.Item3.Length);
+            Assert.That(p1.Item3[0], Is.EqualTo(2.64343168649e-6).Within(0.1).Percent);
+            CollectionAssert.AreEquivalent(new string[] { "Body1", "Body1" }, p1.Item1);
+            CollectionAssert.AreEquivalent(new string[] { "Part1-1", "Part1-2" }, p1.Item2);
+        }
+
+        [Test]
+        public void CollisionAssemblyTest()
+        {
+            Tuple<string[], string[], Tuple<bool, double>[]>[] res1;
+
+            using (var doc = OpenDataDocument("CollisionAssm2\\Assem1.SLDASM"))
+            {
+                var assm = (IXAssembly)m_App.Documents.Active;
+                var collDet1 = assm.Evaluation.PreCreateCollisionDetection();
+                collDet1.VisibleOnly = true;
+
+                collDet1.Commit();
+
+                res1 = collDet1.Results?.Select(r => new Tuple<string[], string[], Tuple<bool, double>[]>(
+                    r.CollidedBodies?.Select(b => b.Name).ToArray(),
+                    r.CollidedComponents.Select(c => c.FullName).ToArray(),
+                    r.CollisionVolume?.Select(b =>
+                    {
+                        if (b is IXSolidBody)
+                        {
+                            return new Tuple<bool, double>(true, ((IXSolidBody)b).Volume);
+                        }
+                        else if (b is IXSheetBody)
+                        {
+                            return new Tuple<bool, double>(false, ((IXSheetBody)b).Faces.Sum(f => f.Area));
+                        }
+                        else
+                        {
+                            throw new NotSupportedException();
+                        }
+                    }).ToArray())).ToArray();
+            }
+
+            double[] TryFindVolumeOrArea(string[] compNames, string[] bodyNames, bool volume)
+            {
+                var matches = res1.Where(r => r.Item1.OrderBy(x => x, StringComparer.CurrentCultureIgnoreCase)
+                    .SequenceEqual(bodyNames.OrderBy(x => x, StringComparer.CurrentCultureIgnoreCase))
+                    && r.Item2.OrderBy(x => x, StringComparer.CurrentCultureIgnoreCase)
+                    .SequenceEqual(compNames.OrderBy(x => x, StringComparer.CurrentCultureIgnoreCase))).ToArray();
+
+                var index = Array.FindIndex(matches, m => m.Item3.All(x => x.Item1 == volume));
+
+                if (index != -1)
+                {
+                    return matches[index].Item3.Select(x => x.Item2).ToArray();
+                }
+                else 
+                {
+                    return null;
+                }
+            }
+
+            var p1 = TryFindVolumeOrArea(new string[] { "Part1-1", "Part1-2" }, new string[] { "Body1", "Body1" }, true);
+            var p2 = TryFindVolumeOrArea(new string[] { "Part1-1", "SubAssem1-2/Part3-1" }, new string[] { "Body1", "Body4" }, true);
+            var p3 = TryFindVolumeOrArea(new string[] { "SubAssem1-2/Part2-1", "Part1-5" }, new string[] { "Body3", "Body2" }, true);
+            var p4 = TryFindVolumeOrArea(new string[] { "SubAssem1-2/Part2-1", "Part1-1" }, new string[] { "Body3", "Body1" }, true);
+            var p5 = TryFindVolumeOrArea(new string[] { "SubAssem1-2/Part2-1", "Part1-2" }, new string[] { "Body3", "Body2" }, true);
+            var p6 = TryFindVolumeOrArea(new string[] { "Part1-2", "Part1-5" }, new string[] { "Body1", "Body1" }, true);
+            var p7 = TryFindVolumeOrArea(new string[] { "Part1-1", "Part1-5" }, new string[] { "Body1", "Body1" }, false);
+            var p8 = TryFindVolumeOrArea(new string[] { "Part1-1", "Part1-5" }, new string[] { "Body1", "Body2" }, false);
+
+            Assert.AreEqual(8, res1.Length);
+
+            Assert.IsNotNull(p1);
+            Assert.AreEqual(1, p1.Length);
+            Assert.That(p1[0], Is.EqualTo(2.64343168649e-6).Within(0.1).Percent);
+
+            Assert.IsNotNull(p2);
+            Assert.AreEqual(1, p2.Length);
+            Assert.That(p2[0], Is.EqualTo(1.98010293555e-6).Within(0.1).Percent);
+
+            Assert.IsNotNull(p3);
+            Assert.AreEqual(1, p3.Length);
+            Assert.That(p3[0], Is.EqualTo(1.02673134119e-6).Within(0.1).Percent);
+
+            Assert.IsNotNull(p4);
+            Assert.AreEqual(1, p4.Length);
+            Assert.That(p4[0], Is.EqualTo(7.3100770734e-7).Within(0.1).Percent);
+
+            Assert.IsNotNull(p5);
+            Assert.AreEqual(1, p5.Length);
+            Assert.That(p5[0], Is.EqualTo(5.2365798943e-7).Within(0.1).Percent);
+
+            Assert.IsNotNull(p6);
+            Assert.AreEqual(1, p6.Length);
+            Assert.That(p6[0], Is.EqualTo(4.026984032e-8).Within(0.1).Percent);
+
+            Assert.IsNotNull(p7);
+            Assert.AreEqual(1, p7.Length);
+            Assert.That(p7[0], Is.EqualTo(0.00323864421754).Within(0.1).Percent);
+
+            Assert.IsNotNull(p8);
+            Assert.AreEqual(1, p8.Length);
+            Assert.That(p8[0], Is.EqualTo(0.00134274996873).Within(0.1).Percent);
         }
     }
 }

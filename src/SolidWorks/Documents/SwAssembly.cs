@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -17,6 +17,7 @@ using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Delegates;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;
+using Xarial.XCad.SolidWorks.Documents.Exceptions;
 using Xarial.XCad.SolidWorks.Documents.Services;
 using Xarial.XCad.SolidWorks.Features;
 using Xarial.XCad.SolidWorks.Geometry;
@@ -74,7 +75,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         ISwAssemblyConfigurationCollection ISwAssembly.Configurations => m_LazyConfigurations.Value;
         IXAssemblyConfigurationRepository IXAssembly.Configurations => (this as ISwAssembly).Configurations;
-        IXComponent IXAssembly.EditingComponent => EditingComponent;
+        IXComponent IXAssembly.EditingComponent { get => EditingComponent; set => EditingComponent = (ISwComponent)value; }
         IXAssemblyEvaluation IXAssembly.Evaluation => m_Evaluation;
 
         internal protected override swDocumentTypes_e? DocumentType => swDocumentTypes_e.swDocASSEMBLY;
@@ -98,6 +99,18 @@ namespace Xarial.XCad.SolidWorks.Documents
                 else
                 {
                     return null;
+                }
+            }
+            set 
+            {
+                if (value != null)
+                {
+                    value.Edit();
+                }
+                else 
+                {
+                    Model.ClearSelection2(true);
+                    Assembly.EditAssembly();
                 }
             }
         }
@@ -178,13 +191,44 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        protected override IEnumerable<IComponent2> IterateChildren()
-            => new OrderedComponentsCollection(
-                () => (m_Conf.GetRootComponent3(!IsActiveConfiguration).GetChildren() as object[] ?? new object[0]).Cast<IComponent2>().ToArray(),
-                m_Assm.Model.IFirstFeature(),
-                m_Assm.OwnerApplication.Logger);
+        protected override IEnumerable<IComponent2> IterateChildren(bool ordered)
+        {
+            ValidateSpeedPak();
 
-        protected override int GetTotalChildrenCount() => m_Assm.Assembly.GetComponentCount(false);
-        protected override int GetChildrenCount() => m_Assm.Assembly.GetComponentCount(true);
+            if (ordered)
+            {
+                return new OrderedComponentsCollection(
+                        () => IterateUnorderedComponents().ToArray(),
+                        m_Assm.Model.IFirstFeature(),
+                        m_Assm.OwnerApplication.Logger);
+            }
+            else 
+            {
+                return IterateUnorderedComponents();
+            }
+        }
+
+        private IEnumerable<IComponent2> IterateUnorderedComponents()
+            => (m_Conf.GetRootComponent3(!IsActiveConfiguration).GetChildren() as object[] ?? new object[0]).Cast<IComponent2>();
+
+        protected override int GetTotalChildrenCount()
+        {
+            ValidateSpeedPak();
+            return m_Assm.Assembly.GetComponentCount(false);
+        }
+        
+        protected override int GetChildrenCount()
+        {
+            ValidateSpeedPak();
+            return m_Assm.Assembly.GetComponentCount(true);
+        }
+
+        private void ValidateSpeedPak() 
+        {
+            if (m_Conf.IsSpeedPak())
+            {
+                throw new SpeedPakConfigurationComponentsException();
+            }
+        }
     }
 }

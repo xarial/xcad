@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -25,6 +25,18 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         private readonly List<SwDmDocument3D> m_VirtualDocumentsCache;
 
         public IXDocument OwnerDocument => m_Doc;
+
+        public bool Cached 
+        {
+            get => false;
+            set 
+            {
+                if (value == true)
+                {
+                    throw new NotSupportedException("Document Manager does not allow to return the cached references");
+                }
+            }
+        }
 
         internal SwDmDocumentDependencies(SwDmDocument doc) 
         {

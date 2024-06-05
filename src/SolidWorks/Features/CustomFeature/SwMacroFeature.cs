@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -38,6 +38,7 @@ using Xarial.XCad.Utils.Reflection;
 using System.Runtime.InteropServices;
 using Xarial.XCad.Exceptions;
 using Xarial.XCad.Features.CustomFeature.Structures;
+using System.Globalization;
 
 namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 {
@@ -178,7 +179,14 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
                     progId, null, paramNames, paramTypes,
                     paramValues, dimTypes, dimValues, editBodies, icons, (int)options);
 
-                return feat;
+                if (feat != null)
+                {
+                    return feat;
+                }
+                else 
+                {
+                    throw new Exception($"Failed to insert COM feature of type '{progId}'");
+                }
             }
         }
 
@@ -241,6 +249,11 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         /// and macro feature definition is not changed during this time (e.g. while regenerating)</remarks>
         internal bool UseCachedParameters { get; set; }
 
+        /// <summary>
+        /// Update state of changes to the cached parameters
+        /// </summary>
+        internal int CachedParametersUpdateState { get; set; }
+
         private Dictionary<IXSelObject, TransformMatrix> m_EntitiesTransformsCache;
 
         //NOTE: this constructor is used in the reflection of SwObjectFactory
@@ -259,6 +272,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
                 if (IsCommitted && (!UseCachedParameters || m_ParametersCache == null))
                 {
                     m_ParametersCache = ReadParameters(out _, out _, out _, out _, out _);
+                    CachedParametersUpdateState = 0;
                 }
 
                 return m_ParametersCache;
@@ -270,6 +284,10 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
                 if (IsCommitted && !UseCachedParameters)
                 {
                     WriteParameters(value, out _);
+                }
+                else 
+                {
+                    CachedParametersUpdateState++;
                 }
             }
         }
@@ -309,7 +327,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 
                 var parameters = (TParams)m_ParamsParser.BuildParameters(typeof(TParams), ref rawParams, ref dispDims, ref editBodies, ref sels, out dispDimParams);
 
-                m_EntitiesTransformsCache = sels.Where(s => s != null)
+                m_EntitiesTransformsCache = (sels ?? new CustomFeatureSelectionInfo[0]).Where(s => s != null)
                     .ToDictionary(s => s.Selection, s => s.Transformation, new XObjectEqualityComparer<IXSelObject>());
 
                 state = GetState(dispDims);
@@ -392,8 +410,10 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
                 editBodies?.Cast<SwBody>()?.Select(b => b.Body)?.ToArray());
         }
 
-        private void WriteParameters(object parameters, out CustomFeatureOutdateState_e state)
+        internal void WriteParameters(TParams parameters, out CustomFeatureOutdateState_e state)
         {
+            CachedParametersUpdateState = 0;
+
             CustomFeatureAttribute[] param;
             IXSelObject[] selection;
             double[] dimValues;
@@ -451,7 +471,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             if (editBodiesObj != null)
             {
                 editBodies = editBodiesObj.Cast<IBody2>()
-                    .Select(b => SwMacroFeatureEditBody.CreateMacroFeatureEditBody(b, OwnerDocument, OwnerApplication, false)).ToArray();
+                    .Select(b => SwMacroFeatureDefinition.CreateEditBody(b, OwnerDocument, OwnerApplication, false)).ToArray();
             }
             else
             {
@@ -472,10 +492,24 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
                     switch ((swMacroFeatureParamType_e)((int[])paramTypes)[i])
                     {
                         case swMacroFeatureParamType_e.swMacroFeatureParamTypeInteger:
-                            paramValue = int.Parse(paramValues[i]);
+                            try
+                            {
+                                paramValue = int.Parse(paramValues[i]);
+                            }
+                            catch
+                            {
+                                paramValue = int.MinValue;
+                            }
                             break;
                         case swMacroFeatureParamType_e.swMacroFeatureParamTypeDouble:
-                            paramValue = double.Parse(paramValues[i]);
+                            try
+                            {
+                                paramValue = double.Parse(paramValues[i], CultureInfo.InvariantCulture);
+                            }
+                            catch
+                            {
+                                paramValue = double.NaN;
+                            }
                             break;
                         case swMacroFeatureParamType_e.swMacroFeatureParamTypeString:
                             paramValue = paramValues[i];
@@ -592,28 +626,30 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         {
             if (param != null)
             {
-                paramNames = param.Select(p => p.Name).ToArray();
-                paramTypes = param.Select(p =>
-                {
-                    swMacroFeatureParamType_e paramType;
+                paramNames = new string[param.Length];
+                paramTypes  = new int[param.Length];
+                paramValues = new string[param.Length];
 
-                    if (p.Type == typeof(int))
+                for (int i = 0; i < param.Length; i++)
+                {
+                    paramNames[i] = param[i].Name;
+
+                    if (param[i].Type == typeof(int))
                     {
-                        paramType = swMacroFeatureParamType_e.swMacroFeatureParamTypeInteger;
+                        paramTypes[i] = (int)swMacroFeatureParamType_e.swMacroFeatureParamTypeInteger;
+                        paramValues[i] = Convert.ToString(param[i].Value);
                     }
-                    else if (p.Type == typeof(double))
+                    else if (param[i].Type == typeof(double))
                     {
-                        paramType = swMacroFeatureParamType_e.swMacroFeatureParamTypeDouble;
+                        paramTypes[i] = (int)swMacroFeatureParamType_e.swMacroFeatureParamTypeDouble;
+                        paramValues[i] = Convert.ToString(param[i].Value, CultureInfo.InvariantCulture);
                     }
                     else
                     {
-                        paramType = swMacroFeatureParamType_e.swMacroFeatureParamTypeString;
+                        paramTypes[i] = (int)swMacroFeatureParamType_e.swMacroFeatureParamTypeString;
+                        paramValues[i] = Convert.ToString(param[i].Value);
                     }
-
-                    return (int)paramType;
-                }).ToArray();
-
-                paramValues = param.Select(p => p.Value?.ToString()).ToArray();
+                }
             }
             else
             {
@@ -724,7 +760,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
                             break;
 
                         case swMacroFeatureParamType_e.swMacroFeatureParamTypeDouble:
-                            featData.SetDoubleByName(paramName, double.Parse(val));
+                            featData.SetDoubleByName(paramName, double.Parse(val, CultureInfo.InvariantCulture));
                             break;
                     }
                 }

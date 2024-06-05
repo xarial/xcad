@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -37,19 +37,53 @@ namespace Xarial.XCad.Documents
         /// </summary>
         /// <param name="repo">Components repository</param>
         /// <returns>All components</returns>
-        public static IEnumerable<IXComponent> Flatten(this IXComponentRepository repo) 
+        public static IEnumerable<IXComponent> TryFlatten(this IXComponentRepository repo) 
         {
-            foreach (var comp in repo) 
+            IEnumerator<IXComponent> enumer;
+
+            try
             {
+                enumer = repo.GetEnumerator();
+            }
+            catch 
+            {
+                yield break;
+            }
+
+            while (true) 
+            {
+                IXComponent comp;
+
+                try
+                {
+                    if (!enumer.MoveNext())
+                    {
+                        break;
+                    }
+
+                    comp = enumer.Current;
+                }
+                catch 
+                {
+                    break;
+                }
+
                 yield return comp;
 
-                IXComponentRepository children = null;
+                IXComponentRepository children;
 
                 var state = comp.State;
 
-                if (!comp.State.HasFlag(ComponentState_e.Suppressed) && !comp.State.HasFlag(ComponentState_e.SuppressedIdMismatch))
+                if (!state.HasFlag(ComponentState_e.Suppressed) && !state.HasFlag(ComponentState_e.SuppressedIdMismatch))
                 {
-                    children = comp.Children;
+                    try
+                    {
+                        children = comp.Children;
+                    }
+                    catch 
+                    {
+                        children = null;
+                    }
                 }
                 else
                 {
@@ -58,7 +92,7 @@ namespace Xarial.XCad.Documents
 
                 if (children != null)
                 {
-                    foreach (var subComp in Flatten(children))
+                    foreach (var subComp in TryFlatten(children))
                     {
                         yield return subComp;
                     }

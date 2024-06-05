@@ -10,6 +10,7 @@ using System.Text;
 using Xarial.XCad.Enums;
 using Xarial.XCad.SolidWorks;
 using Xarial.XCad.SolidWorks.Enums;
+using Environment = System.Environment;
 
 namespace SolidWorks.Tests.Integration
 {
@@ -42,8 +43,9 @@ namespace SolidWorks.Tests.Integration
         }
 
         private const int SW_PRC_ID = -1;
-        private const string DATA_FOLDER = @"C:\Users\artem\OneDrive\xCAD\TestData";
-        private SwVersion_e? SW_VERSION = SwVersion_e.Sw2022;
+
+        private readonly string m_DataFolder;
+        private SwVersion_e? SW_VERSION = SwVersion_e.Sw2023;
 
         protected ISwApplication m_App;
         private Process m_Process;
@@ -52,6 +54,16 @@ namespace SolidWorks.Tests.Integration
         private List<IDisposable> m_Disposables;
 
         private bool m_CloseSw;
+
+        public IntegrationTests() 
+        {
+            m_DataFolder = Environment.GetEnvironmentVariable("XCAD_TEST_DATA", EnvironmentVariableTarget.User);
+
+            if (string.IsNullOrEmpty(m_DataFolder))
+            {
+                m_DataFolder = Environment.GetEnvironmentVariable("XCAD_TEST_DATA", EnvironmentVariableTarget.Machine);
+            }
+        }
 
         [OneTimeSetUp]
         public void Setup()
@@ -100,7 +112,7 @@ namespace SolidWorks.Tests.Integration
             }
             else 
             {
-                filePath = Path.Combine(DATA_FOLDER, name);
+                filePath = Path.Combine(m_DataFolder, name);
             }
 
             return filePath;

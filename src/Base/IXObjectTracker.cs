@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -47,7 +47,7 @@ namespace Xarial.XCad
         /// <param name="searchFilter">Optional filters of the objects to find, null to find all</param>
         /// <param name="searchTrackIds">Optional ids to find, null to find all ids</param>
         /// <returns>Tracked object or empty if no objects found</returns>
-        IXObject[] FindTrackedObjects(IXDocument doc, IXBody searchBody = null, SelectType_e[] searchFilter = null, int[] searchTrackIds = null);
+        IXObject[] FindTrackedObjects(IXDocument doc, IXBody searchBody = null, Type[] searchFilter = null, int[] searchTrackIds = null);
 
         /// <summary>
         /// Finds the tracking id of the specified object

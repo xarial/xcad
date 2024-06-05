@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -21,10 +21,11 @@ using Xarial.XCad.SolidWorks.Annotations;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Geometry;
 using Xarial.XCad.SolidWorks.Utils;
+using System.Linq;
 
 namespace Xarial.XCad.SolidWorks.Features
 {
-    public interface ISwFeature : ISwSelObject, IXFeature, ISwEntity, IResilientibleObject<ISwFeature>
+    public interface ISwFeature : ISwSelObject, IXFeature, ISwEntity, ISupportsResilience<ISwFeature>
     {
         IFeature Feature { get; }
         new ISwDimensionsCollection Dimensions { get; }
@@ -151,10 +152,10 @@ namespace Xarial.XCad.SolidWorks.Features
 
         IXBody IXEntity.Body => Body;
         IXEntityRepository IXEntity.AdjacentEntities => AdjacentEntities;
-        ISwEntity IResilientibleObject<ISwEntity>.CreateResilient() => CreateResilient();
+        ISwEntity ISupportsResilience<ISwEntity>.CreateResilient() => CreateResilient();
         IXComponent IXEntity.Component => Component;
         IXDimensionRepository IDimensionable.Dimensions => Dimensions;
-        IXObject IResilientibleObject.CreateResilient() => CreateResilient();
+        IXObject ISupportsResilience.CreateResilient() => CreateResilient();
 
         protected readonly IElementCreator<IFeature> m_Creator;
 
@@ -377,7 +378,7 @@ namespace Xarial.XCad.SolidWorks.Features
 
         public override bool IsCommitted => m_Creator.IsCreated;
 
-        public FeatureState_e State 
+        public virtual FeatureState_e State 
         {
             get 
             {
@@ -392,6 +393,24 @@ namespace Xarial.XCad.SolidWorks.Features
 
                 return state;
             }
+            set 
+            {
+                swFeatureSuppressionAction_e action;
+
+                if (value.HasFlag(FeatureState_e.Suppressed))
+                {
+                    action = swFeatureSuppressionAction_e.swSuppressFeature;
+                }
+                else 
+                {
+                    action = swFeatureSuppressionAction_e.swUnSuppressFeature;
+                }
+
+                if (!Feature.SetSuppression2((int)action, (int)swInConfigurationOpts_e.swThisConfiguration, null)) 
+                {
+                    throw new Exception("Failed to change the suppresion of the feature");
+                }
+            }
         }
 
         public virtual bool IsUserFeature => Array.IndexOf(m_SolderedFeatureTypes, Feature.GetTypeName2()) == -1;
@@ -400,7 +419,26 @@ namespace Xarial.XCad.SolidWorks.Features
 
         public ISwEntityRepository AdjacentEntities { get; }
 
-        public ISwBody Body => throw new NotImplementedException();
+        public virtual ISwBody Body 
+        {
+            get 
+            {
+                var bodies = AdjacentEntities.Cast<ISwEntity>().Select(e => e.Body).Distinct(new XObjectEqualityComparer<ISwBody>()).ToArray();
+
+                if (bodies.Length == 1)
+                {
+                    return bodies.First();
+                }
+                else if (bodies.Length == 0)
+                {
+                    throw new Exception("This feature does not have bodies");
+                }
+                else
+                {
+                    throw new Exception("This feature has multiple bodies");
+                }
+            }
+        }
 
         internal override void Select(bool append, ISelectData selData)
         {
@@ -414,5 +452,27 @@ namespace Xarial.XCad.SolidWorks.Features
 
         public XCad.Geometry.Structures.Point FindClosestPoint(XCad.Geometry.Structures.Point point)
             => throw new NotSupportedException();
+
+        protected override bool IsSameDispatch(object disp)
+        {
+            if (OwnerApplication.Sw.IsSame(disp, Dispatch) == (int)swObjectEquality.swObjectSame)
+            {
+                return true;
+            }
+            else 
+            {
+                //NOTE: some of the features override the dispatch to be a specific feature (e.g. RefPlane)
+                //this results in different pointers when comparing and some of the methods (like IsSelected) may incorrectly
+                //compare the pointers and return unexpected result depending on the method feature was selected (e.g. Feature::Select selects IFeature, while SelectByID2 selected IRefPlane)
+                if (Dispatch != Feature)
+                {
+                    return OwnerApplication.Sw.IsSame(disp, Feature) == (int)swObjectEquality.swObjectSame;
+                }
+                else 
+                {
+                    return false;
+                }
+            }
+        }
     }
 }

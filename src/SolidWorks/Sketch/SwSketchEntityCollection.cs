@@ -1,11 +1,12 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
 using SolidWorks.Interop.sldworks;
+using SolidWorks.Interop.swconst;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -20,6 +21,7 @@ using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Features;
 using Xarial.XCad.SolidWorks.Geometry;
 using Xarial.XCad.SolidWorks.Geometry.Curves;
+using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.Toolkit.Services;
 using Xarial.XCad.Toolkit.Utils;
 
@@ -152,7 +154,28 @@ namespace Xarial.XCad.SolidWorks.Sketch
         {
             if (m_Sketch.IsCommitted)
             {
-                throw new NotImplementedException();
+                var disps = ents.Cast<ISwSketchEntity>()
+                    .Where(e=> !(e is ISwSketchPoint) || ((ISwSketchPoint)e).Point.Type == (int)swSketchPointType_e.swSketchPointType_User).Select(e => e.Dispatch)
+                    .ToArray();
+
+                if (disps.Any())
+                {
+                    using (var viewFreeze = new UiFreeze(m_Doc))
+                    {
+                        using (var editor = m_Sketch.CreateSketchEditor(m_Sketch.Sketch))
+                        {
+                            using (var sel = new SelectionGroup(m_Doc, true))
+                            {
+                                sel.AddRange(disps);
+
+                                if (!m_Doc.Model.Extension.DeleteSelection2((int)swDeleteSelectionOptions_e.swDelete_Absorbed))
+                                {
+                                    throw new Exception("Failed to delete sketch entitities");
+                                }
+                            }
+                        }
+                    }
+                }
             }
             else 
             {

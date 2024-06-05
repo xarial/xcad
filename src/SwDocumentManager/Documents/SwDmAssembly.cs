@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -28,7 +28,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         public event ComponentDeletedDelegate ComponentDeleted { add => throw new NotSupportedException(); remove => throw new NotSupportedException(); }
 
         IXAssemblyEvaluation IXAssembly.Evaluation => throw new NotSupportedException();
-        IXComponent IXAssembly.EditingComponent => throw new NotSupportedException();
+        IXComponent IXAssembly.EditingComponent { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
         #endregion
 
         private readonly Lazy<SwDmAssemblyConfigurationCollection> m_LazyConfigurations;

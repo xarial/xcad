@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -62,6 +62,11 @@ namespace Xarial.XCad.Documents
         /// Sketches
         /// </summary>
         bool Sketches { get; set; }
+
+        /// <summary>
+        /// Sheet Metal Bend Lines
+        /// </summary>
+        bool BendLines { get; set; }
 
         /// <summary>
         /// Sketch Dimensions

@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -11,10 +11,12 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Drawing.Drawing2D;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using Xarial.XCad.Annotations;
 using Xarial.XCad.Base.Enums;
 using Xarial.XCad.Data;
 using Xarial.XCad.Documents;
@@ -26,6 +28,7 @@ using Xarial.XCad.SolidWorks.Documents.Exceptions;
 using Xarial.XCad.SolidWorks.Features;
 using Xarial.XCad.SolidWorks.Sketch;
 using Xarial.XCad.SolidWorks.Utils;
+using Xarial.XCad.Toolkit.Graphics;
 using Xarial.XCad.UI;
 
 namespace Xarial.XCad.SolidWorks.Documents
@@ -38,6 +41,10 @@ namespace Xarial.XCad.SolidWorks.Documents
     [DebuggerDisplay("{" + nameof(Name) + "}")]
     internal class SwSheet : SwSelObject, ISwSheet
     {
+        private const string CUSTOM_LAYOUT_TEMPLATE = "*.drt";
+
+        IXAnnotationRepository IXSheet.Annotations => Annotations;
+
         private readonly SwDrawing m_Drawing;
 
         public ISheet Sheet => m_Creator.Element;
@@ -159,7 +166,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                 if (IsCommitted)
                 {
                     //NOTE: ISheet::SetSize does not work correctly and removes the template and breaks drawing
-                    SetupSheet(Sheet, Name, value, Scale);
+                    SetupSheet(Sheet, Name, value, Scale, Template, ViewsProjectionType);
                 }
                 else
                 {
@@ -168,9 +175,99 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        public IXSketch2D Sketch 
+        public string Template 
         {
-            get 
+            get
+            {
+                if (IsCommitted)
+                {
+                    var templateName = Sheet.GetTemplateName();
+
+                    if (string.Equals(templateName, CUSTOM_LAYOUT_TEMPLATE, StringComparison.CurrentCultureIgnoreCase)) 
+                    {
+                        templateName = "";
+                    }
+
+                    return templateName;
+                }
+                else
+                {
+                    return m_Creator.CachedProperties.Get<string>();
+                }
+            }
+            set 
+            {
+                if (IsCommitted)
+                {
+                    SetupSheet(Sheet, Name, PaperSize, Scale, value, ViewsProjectionType);
+
+                    var res = Sheet.ReloadTemplate(false);
+                    
+                    if (res != (int)swReloadTemplateResult_e.swReloadTemplate_Success) 
+                    {
+                        throw new Exception($"Failed to reload template: {res}");
+                    }
+                }
+                else
+                {
+                    m_Creator.CachedProperties.Set(value);
+                }
+            }
+        }
+
+        public ViewsProjectionType_e ViewsProjectionType
+        {
+            get
+            {
+                if (IsCommitted)
+                {
+                    double[] sheetPrps;
+
+                    if (OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2016))
+                    {
+                        sheetPrps = (double[])Sheet.GetProperties();
+                    }
+                    else 
+                    {
+                        sheetPrps = (double[])Sheet.GetProperties2();
+                    }
+
+                    var isFirstAngle = Convert.ToBoolean(sheetPrps[4]);
+
+                    if (isFirstAngle)
+                    {
+                        return ViewsProjectionType_e.FirstAngle;
+                    }
+                    else 
+                    {
+                        return ViewsProjectionType_e.ThirdAngle;
+                    }
+                }
+                else
+                {
+                    return m_Creator.CachedProperties.Get<ViewsProjectionType_e>();
+                }
+            }
+            set
+            {
+                if (IsCommitted)
+                {
+                    SetupSheet(Sheet, Name, PaperSize, Scale, Template, value);
+                }
+                else
+                {
+                    m_Creator.CachedProperties.Set(value);
+                }
+            }
+        }
+
+        public IXSketch2D Sketch => new SwSheetSketch(this, SheetView.DrawingView.IGetSketch(), m_Drawing, OwnerApplication, false);
+
+        public IXSketch2D FormatSketch => new SwSheetSketch(this, SheetView.DrawingView.IGetSketch(), m_Drawing, OwnerApplication, true);
+
+        internal SwDrawingView SheetView 
+        {
+            get
             {
                 foreach (object[] sheet in m_Drawing.Drawing.GetViews() as object[])
                 {
@@ -178,13 +275,15 @@ namespace Xarial.XCad.SolidWorks.Documents
 
                     if (string.Equals(sheetView.Name, Sheet.GetName(), StringComparison.CurrentCultureIgnoreCase))
                     {
-                        return new SwSheetSketch(this, sheetView.IGetSketch(), m_Drawing, OwnerApplication, true);
+                        return m_Drawing.CreateObjectFromDispatch<SwDrawingView>(sheetView);
                     }
                 }
 
                 throw new Exception("Failed to find the view of the sheet");
             }
         }
+
+        internal SwSheetAnnotationCollection Annotations { get; }
 
         private readonly ElementCreator<ISheet> m_Creator;
 
@@ -201,6 +300,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             m_Drawing = draw;
             m_DrawingViews = new SwDrawingViewsCollection(draw, this);
             m_Creator = new ElementCreator<ISheet>(CreateSheet, CommitCache, sheet, sheet != null);
+            Annotations = new SwSheetAnnotationCollection(this);
         }
 
         private ISheet CreateSheet(CancellationToken arg)
@@ -209,20 +309,62 @@ namespace Xarial.XCad.SolidWorks.Documents
 
             var scale = Scale ?? new Scale(1, 1);
 
-            if (OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2015))
+            var angle = ViewsProjectionType == ViewsProjectionType_e.FirstAngle;
+
+            if (!string.IsNullOrEmpty(Template)) 
             {
-                if (!m_Drawing.Drawing.NewSheet4(Name, (int)paperSize, (int)template, scale.Numerator, scale.Denominator, true,
-                    "", paperWidth, paperHeight, "", 0, 0, 0, 0, 0, 0))
+                template = swDwgTemplates_e.swDwgTemplateCustom;
+            }
+
+            bool? useDiffSheetFormatForNewSheets = null;
+            bool? showSheetFormatDlgForNewSheets = null;
+
+            try
+            {
+                //NOTE: if this option is set dialog box is displayed to select sheet format
+                if (ChangeToggleIfNeeded(swUserPreferenceToggle_e.swDrawingSheetsUseDifferentSheetFormat, false, false))
                 {
-                    throw new Exception("Failed to create new sheet");
+                    useDiffSheetFormatForNewSheets = true;
+                }
+
+                //NOTE: if this option is set document requires rebuild and sheet format template is not visible until reload
+                if (ChangeToggleIfNeeded(swUserPreferenceToggle_e.swDrawingShowSheetFormatDialog, false, true)) 
+                {
+                    showSheetFormatDlgForNewSheets = true;
+                }
+
+                if (OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2015))
+                {
+                    if (!m_Drawing.Drawing.NewSheet4(Name, (int)paperSize, (int)template, scale.Numerator, scale.Denominator, angle,
+                        Template, paperWidth, paperHeight, "", 0, 0, 0, 0, 0, 0))
+                    {
+                        throw new Exception("Failed to create new sheet");
+                    }
+                }
+                else
+                {
+                    if (!m_Drawing.Drawing.NewSheet3(Name, (int)paperSize, (int)template, scale.Numerator, scale.Denominator, angle,
+                        Template, paperWidth, paperHeight, ""))
+                    {
+                        throw new Exception("Failed to create new sheet");
+                    }
                 }
             }
-            else 
+            finally 
             {
-                if (!m_Drawing.Drawing.NewSheet3(Name, (int)paperSize, (int)paperSize, scale.Numerator, scale.Denominator, true,
-                    "", paperWidth, paperHeight, ""))
+                try
                 {
-                    throw new Exception("Failed to create new sheet");
+                    if (useDiffSheetFormatForNewSheets.HasValue)
+                    {
+                        ChangeToggle(swUserPreferenceToggle_e.swDrawingSheetsUseDifferentSheetFormat, useDiffSheetFormatForNewSheets.Value, false);
+                    }
+                }
+                finally
+                {
+                    if (showSheetFormatDlgForNewSheets.HasValue)
+                    {
+                        ChangeToggle(swUserPreferenceToggle_e.swDrawingShowSheetFormatDialog, showSheetFormatDlgForNewSheets.Value, true);
+                    }
                 }
             }
 
@@ -230,9 +372,9 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
 
         internal void SetupSheet(IXSheet template)
-            => SetupSheet(Sheet, template.Name, template.PaperSize, template.Scale);
+            => SetupSheet(Sheet, template.Name, template.PaperSize, template.Scale, template.Template, template.ViewsProjectionType);
 
-        internal void SetupSheet(ISheet sheet, string name, PaperSize size, Scale scale)
+        internal void SetupSheet(ISheet sheet, string name, PaperSize size, Scale scale, string templateName, ViewsProjectionType_e prjType)
         {
             PaperSizeHelper.ParsePaperSize(size, out var paperSize, out var paperTemplate, out var paperWidth, out var paperHeight);
 
@@ -248,18 +390,27 @@ namespace Xarial.XCad.SolidWorks.Documents
                 }
             }
 
+            var angle = prjType == ViewsProjectionType_e.FirstAngle;
+
+            var custPrpView = sheet.CustomPropertyView;
+
+            if (!string.IsNullOrEmpty(templateName)) 
+            {
+                paperTemplate = swDwgTemplates_e.swDwgTemplateCustom;
+            }
+
             if (OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2015))
             {
-                if (!m_Drawing.Drawing.SetupSheet6(sheet.GetName(), (int)paperSize, (int)paperTemplate, scale.Numerator, scale.Denominator, true,
-                    "", paperWidth, paperHeight, "", true, 0, 0, 0, 0, 0, 0))
+                if (!m_Drawing.Drawing.SetupSheet6(sheet.GetName(), (int)paperSize, (int)paperTemplate, scale.Numerator, scale.Denominator, angle,
+                    templateName, paperWidth, paperHeight, custPrpView, true, 0, 0, 0, 0, 0, 0))
                 {
                     throw new Exception("Failed to setup sheet");
                 }
             }
             else
             {
-                if (!m_Drawing.Drawing.SetupSheet5(sheet.GetName(), (int)paperSize, (int)paperSize, scale.Numerator, scale.Denominator, true,
-                    "", paperWidth, paperHeight, "", true))
+                if (!m_Drawing.Drawing.SetupSheet5(sheet.GetName(), (int)paperSize, (int)paperTemplate, scale.Numerator, scale.Denominator, angle,
+                    templateName, paperWidth, paperHeight, custPrpView, true))
                 {
                     throw new Exception("Failed to setup sheet");
                 }
@@ -268,7 +419,29 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         internal override void Select(bool append, ISelectData selData)
         {
-            if (!m_Drawing.Model.Extension.SelectByID2(Name, "SHEET", 0, 0, 0, false, 0, null, (int)swSelectOption_e.swSelectOptionDefault))
+            int mark;
+            Callout callout;
+            double x, y, z;
+
+            if (selData != null)
+            {
+                mark = selData.Mark;
+                callout = selData.Callout;
+                x = selData.X;
+                y = selData.Y;
+                z = selData.Z;
+            }
+            else
+            {
+                mark = 0;
+                callout = null;
+                x = 0;
+                y = 0;
+                z = 0;
+            }
+
+            if (!m_Drawing.Model.Extension.SelectByID2(Name, "SHEET", x, y, z, append, mark,
+                callout, (int)swSelectOption_e.swSelectOptionDefault))
             {
                 throw new Exception($"Failed to select sheet");
             }
@@ -278,60 +451,186 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         private void CommitCache(ISheet sheet, CancellationToken cancellationToken) => m_DrawingViews.CommitCache(cancellationToken);
 
-        public IXSheet Clone()
+        public IXSheet Clone(IXDrawing targetDrawing)
         {
             Select(false);
 
-            m_Drawing.Model.EditCopy();
-
-            var curSheets = m_Drawing.Sheets.ToArray();
-
-            if (!TryPasteSheet()) 
+            if (OwnerDocument.Selections.Count == 1 && OwnerDocument.Selections.First().Equals(this))
             {
-                //NOTE: it was observed that in some cases paste command fails on the first attempt
-                if (m_Drawing.Sheets.Count == curSheets.Count())
+                m_Drawing.Model.EditCopy();
+
+                var curSheets = targetDrawing.Sheets.ToArray();
+
+                PasteSheet(targetDrawing);
+
+                var newSheet = targetDrawing.Sheets.Last();
+
+                if (!curSheets.Contains(newSheet, new XObjectEqualityComparer<IXSheet>()))
                 {
-                    if (!TryPasteSheet()) 
+                    return newSheet;
+                }
+                else
+                {
+                    throw new Exception("Failed to get the cloned sheet");
+                }
+            }
+            else 
+            {
+                throw new Exception("Failed to select the sheet for cloning");
+            }
+        }
+
+        private void PasteSheet(IXDrawing targetDrawing)
+        {
+            const int MAX_ATTEMPTS = 3;
+
+            var curSheetsCount = targetDrawing.Sheets.Count;
+
+            for (int i = 0; i < MAX_ATTEMPTS; i++) 
+            {
+                if (((ISwDrawing)targetDrawing).Drawing.PasteSheet(
+                    (int)swInsertOptions_e.swInsertOption_MoveToEnd,
+                    (int)swRenameOptions_e.swRenameOption_Yes))
+                {
+                    if (targetDrawing.Sheets.Count == curSheetsCount + 1)
                     {
-                        throw new Exception($"Failed to paste sheet");
+                        return;
+                    }
+                    else 
+                    {
+                        throw new Exception($"Paste sheet has succeeded, but number of sheets has not changed");
                     }
                 }
                 else 
                 {
-                    throw new Exception($"Paste sheet has failed, but number of sheets has changed");
+                    //NOTE: it was observed that in some cases paste command fails on the first attempt
+                    if (targetDrawing.Sheets.Count != curSheetsCount)
+                    {
+                        throw new Exception($"Paste sheet has failed, but number of sheets has changed");
+                    }
                 }
             }
 
-            var newSheet = m_Drawing.Sheets.Last();
+            throw new Exception($"Failed to paste sheet");
+        }
 
-            if (!curSheets.Contains(newSheet, new XObjectEqualityComparer<IXSheet>()))
+        private bool ChangeToggleIfNeeded(swUserPreferenceToggle_e toggle, bool value, bool sysOpt)
+        {
+            bool val;
+
+            if (sysOpt)
             {
-                return newSheet;
+                val = OwnerApplication.Sw.GetUserPreferenceToggle((int)toggle);
+            }
+            else 
+            {
+                val = OwnerModelDoc.Extension.GetUserPreferenceToggle(
+                    (int)toggle, (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified);
+            }
+
+            if (val != value)
+            {
+                ChangeToggle(toggle, value, sysOpt);
+                return true;
             }
             else
             {
-                throw new Exception("Failed to get the cloned sheet");
+                return false;
             }
         }
 
-        private bool TryPasteSheet() => m_Drawing.Drawing.PasteSheet((int)swInsertOptions_e.swInsertOption_MoveToEnd, (int)swRenameOptions_e.swRenameOption_No);
+        private void ChangeToggle(swUserPreferenceToggle_e toggle, bool value, bool sysOpt)
+        {
+            bool res;
+
+            if (sysOpt)
+            {
+                OwnerApplication.Sw.SetUserPreferenceToggle((int)toggle, value);
+                res = OwnerApplication.Sw.GetUserPreferenceToggle((int)toggle) == value;
+            }
+            else
+            {
+                res = OwnerModelDoc.Extension.SetUserPreferenceToggle(
+                    (int)toggle,
+                    (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified, value);
+            }
+
+            if (!res)
+            {
+                throw new Exception($"Failed to set the '{toggle}' option to '{value}'");
+            }
+        }
     }
 
     internal class SwSheetSketchEditor : SheetActivator, IEditor<SwSheetSketch>
     {
         private readonly SwSheetSketch m_SheetSketch;
 
-        internal SwSheetSketchEditor(SwSheetSketch sheetSketch, SwSheet sheet) : base(sheet)
+        private readonly bool? m_AddToDbOrig;
+
+        private readonly ISketchManager m_SketchMgr;
+
+        private readonly IDrawingDoc m_Drw;
+
+        private readonly bool m_SheetFormat;
+
+        private readonly bool m_OrigSheetFormat;
+
+        internal SwSheetSketchEditor(SwSheetSketch sheetSketch, SwSheet sheet, bool sheetFormat) : base(sheet)
         {
             m_SheetSketch = sheetSketch;
+
+            m_SheetFormat = sheetFormat;
+
+            m_Drw = ((ISwDrawing)sheet.OwnerDocument).Drawing;
+
+            m_OrigSheetFormat = !m_Drw.GetEditSheet();
+
+            m_SketchMgr = ((IModelDoc2)m_Drw).SketchManager;
+
+            m_Drw.ActivateView("");
             
-            ((ISwDrawing)sheet.OwnerDocument).Drawing.ActivateView("");
+            SetEditTarget(m_SheetFormat);
+
             sheet.OwnerDocument.Selections.Clear();
+
+            if (!m_SketchMgr.AddToDB)
+            {
+                m_AddToDbOrig = m_SketchMgr.AddToDB;
+                m_SketchMgr.AddToDB = true;
+            }
         }
 
         public SwSheetSketch Target => m_SheetSketch;
 
         public bool Cancel { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
+
+        private void SetEditTarget(bool sheetFormat)
+        {
+            if (m_Drw.GetEditSheet() != !sheetFormat)
+            {
+                if (sheetFormat)
+                {
+                    m_Drw.EditTemplate();
+                }
+                else
+                {
+                    m_Drw.EditSheet();
+                }
+            }
+        }
+
+        public override void Dispose()
+        {
+            if (m_AddToDbOrig.HasValue)
+            {
+                m_SketchMgr.AddToDB = m_AddToDbOrig.Value;
+            }
+
+            SetEditTarget(m_OrigSheetFormat);
+
+            base.Dispose();
+        }
     }
 
     internal class SwSheetSketch : SwSketch2D
@@ -339,15 +638,18 @@ namespace Xarial.XCad.SolidWorks.Documents
         private readonly SwSheet m_Sheet;
         private readonly SwDrawing m_Draw;
 
-        internal SwSheetSketch(SwSheet sheet, ISketch sketch, SwDrawing drw, SwApplication app, bool created) : base(sketch, drw, app, created)
+        private readonly bool m_SheetFormat;
+
+        internal SwSheetSketch(SwSheet sheet, ISketch sketch, SwDrawing drw, SwApplication app, bool sheetFormat) : base(sketch, drw, app, true)
         {
             m_Draw = drw;
             m_Sheet = sheet;
+            m_SheetFormat = sheetFormat;
         }
 
         protected internal override bool IsEditing => m_Draw.Sheets.Active.Equals(m_Sheet);
 
-        protected internal override IEditor<IXSketchBase> CreateSketchEditor(ISketch sketch) => new SwSheetSketchEditor(this, m_Sheet);
+        protected internal override IEditor<IXSketchBase> CreateSketchEditor(ISketch sketch) => new SwSheetSketchEditor(this, m_Sheet, m_SheetFormat);
     }
 
     internal static class PaperSizeHelper 
@@ -361,13 +663,16 @@ namespace Xarial.XCad.SolidWorks.Documents
 
             dwgPaperSize = paperSize.StandardPaperSize.HasValue ? (swDwgPaperSizes_e)paperSize.StandardPaperSize.Value : swDwgPaperSizes_e.swDwgPapersUserDefined;
             dwgTemplate = paperSize.StandardPaperSize.HasValue ? (swDwgTemplates_e)paperSize.StandardPaperSize.Value : swDwgTemplates_e.swDwgTemplateNone;
-            dwpPaperWidth = paperSize.Width.HasValue ? paperSize.Width.Value : 0;
-            dwpPaperHeight = paperSize.Height.HasValue ? paperSize.Height.Value : 0;
+            dwpPaperWidth = !paperSize.StandardPaperSize.HasValue ? paperSize.Width : 0;
+            dwpPaperHeight = !paperSize.StandardPaperSize.HasValue ? paperSize.Height : 0;
         }
     }
 
     internal class UncommittedPreviewOnlySheet : ISwSelObject, ISwSheet 
     {
+        ISwApplication ISwObject.OwnerApplication => m_App;
+        ISwDocument ISwObject.OwnerDocument => m_Drw;
+
         #region Not Supported
         public string Name { get => throw new UnloadedDocumentPreviewOnlySheetException(); set => throw new UnloadedDocumentPreviewOnlySheetException(); }
         public IXDrawingViewRepository DrawingViews => throw new UnloadedDocumentPreviewOnlySheetException();
@@ -384,9 +689,13 @@ namespace Xarial.XCad.SolidWorks.Documents
         public bool IsAlive => throw new UnloadedDocumentPreviewOnlySheetException();
         public ITagsManager Tags => throw new UnloadedDocumentPreviewOnlySheetException();
         public PaperSize PaperSize { get => throw new UnloadedDocumentPreviewOnlySheetException(); set => throw new UnloadedDocumentPreviewOnlySheetException(); }
-        public IXSheet Clone() => throw new NotSupportedException();
+        public string Template { get => throw new UnloadedDocumentPreviewOnlySheetException(); set => throw new UnloadedDocumentPreviewOnlySheetException(); }
+        public ViewsProjectionType_e ViewsProjectionType { get => throw new UnloadedDocumentPreviewOnlySheetException(); set => throw new UnloadedDocumentPreviewOnlySheetException(); }
+        public IXSheet Clone(IXDrawing targetDrawing) => throw new NotSupportedException();
         public IXSketch2D Sketch => throw new NotSupportedException();
+        public IXSketch2D FormatSketch => throw new NotSupportedException();
         public void Delete() => throw new UnloadedDocumentPreviewOnlySheetException();
+        public IXAnnotationRepository Annotations => throw new UnloadedDocumentPreviewOnlySheetException();
         #endregion
 
         private readonly ISwApplication m_App;
@@ -402,8 +711,6 @@ namespace Xarial.XCad.SolidWorks.Documents
             => PictureDispUtils.PictureDispToXImage(m_App.Sw.GetPreviewBitmap(m_Drw.Path, ""));
 
         public bool IsCommitted => false;
-
-        public SelectType_e SelectionType => SelectType_e.Sheets;
 
         public IXApplication OwnerApplication => m_App;
         public IXDocument OwnerDocument => m_Drw;

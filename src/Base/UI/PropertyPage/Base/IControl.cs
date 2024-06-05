@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -22,7 +22,7 @@ namespace Xarial.XCad.UI.PropertyPage.Base
     public interface IControl : IDisposable
     {
         /// <summary>
-        /// Fired when the value of the control has been changed
+        /// Fired when the value of the control has been changed by the user
         /// </summary>
         event ControlObjectValueChangedDelegate ValueChanged;
 
@@ -60,7 +60,8 @@ namespace Xarial.XCad.UI.PropertyPage.Base
         /// <summary>
         /// Sets the value to this control
         /// </summary>
-        /// <param name="value"></param>
+        /// <param name="value">Value to set</param>
+        /// <remarks>This method should not raise the <see cref="ValueChanged"/> event, but only set the vaue to the control</remarks>
         void SetValue(object value);
 
         /// <summary>

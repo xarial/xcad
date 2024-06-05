@@ -1,13 +1,13 @@
 ﻿using SolidWorks.Interop.swconst;
 using System.Collections.Generic;
 using System.Linq;
+using Xarial.XCad;
 using Xarial.XCad.Base.Attributes;
 using Xarial.XCad.Documentation.Properties;
-using Xarial.XCad.SolidWorks;
-using Xarial.XCad.SolidWorks.UI.PropertyPage.Services;
 using Xarial.XCad.UI.PropertyPage.Attributes;
 using Xarial.XCad.UI.PropertyPage.Base;
 using Xarial.XCad.UI.PropertyPage.Enums;
+using Xarial.XCad.UI.PropertyPage.Services;
 
 public class ComboBoxDataModel
 {
@@ -35,16 +35,16 @@ public class ComboBoxDataModel
     public OptionsCustomized_e Options2 { get; set; }
     //---
     //--- CustomItemsProvider
-    public class CustomStringItemsProvider : SwCustomItemsProvider<string>
+    public class CustomStringItemsProvider : ICustomItemsProvider
     {
-        public override IEnumerable<string> ProvideItems(ISwApplication app, IControl[] dependencies)
+        public IEnumerable<object> ProvideItems(IXApplication app, IControl ctrl, IControl[] dependencies, object parameter)
             => new string[] { "A", "B", "C" };
     }
 
-    public class CustomIntItemsProvider : SwCustomItemsProvider<int>
+    public class CustomIntItemsProvider : ICustomItemsProvider
     {
-        public override IEnumerable<int> ProvideItems(ISwApplication app, IControl[] dependencies)
-            => new int[] { 1, 2, 3 };
+        public IEnumerable<object> ProvideItems(IXApplication app, IControl ctrl, IControl[] dependencies, object parameter)
+            => new object[] { 1, 2, 3 };
     }
 
     [ComboBox(typeof(CustomStringItemsProvider))]
@@ -70,10 +70,9 @@ public class ComboBoxDataModel
         public override string ToString() => $"Item-{BaseName}-{Name}";
     }
 
-    public class CustomDependencyProvider : SwCustomItemsProvider<CustomComboBoxItem>
+    public class CustomDependencyProvider : ICustomItemsProvider
     {
-        public override IEnumerable<CustomComboBoxItem> ProvideItems(ISwApplication app,
-            IControl[] dependencies)
+        public IEnumerable<object> ProvideItems(IXApplication app, IControl ctrl, IControl[] dependencies, object parameter)
         {
             return new CustomComboBoxItem[]
             {

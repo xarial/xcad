@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -36,5 +36,10 @@ namespace Xarial.XCad.Documents
         /// Returns configurations of this document
         /// </summary>
         IXConfigurationRepository Configurations { get; }
+
+        /// <summary>
+        /// <see cref="IXDocument3D"/> specific save as operation
+        /// </summary>
+        new IXDocument3DSaveOperation PreCreateSaveAsOperation(string filePath);
     }
 }

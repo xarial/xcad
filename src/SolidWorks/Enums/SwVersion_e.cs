@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -33,6 +33,7 @@ namespace Xarial.XCad.SolidWorks.Enums
         Sw2020 = 28,
         Sw2021 = 29,
         Sw2022 = 30,
-        Sw2023 = 31
+        Sw2023 = 31,
+        Sw2024 = 32
     }
 }

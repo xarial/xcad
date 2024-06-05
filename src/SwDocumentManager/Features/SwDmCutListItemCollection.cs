@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -31,6 +31,9 @@ namespace Xarial.XCad.SwDocumentManager.Features
             remove => throw new NotSupportedException();
         }
         public T PreCreate<T>() where T : IXCutListItem => throw new NotSupportedException();
+        public bool AutomaticCutList { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
+        public bool AutomaticUpdate { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
+        public bool Update() => throw new NotSupportedException();
         #endregion
 
         private readonly ISwDmPartConfiguration m_Conf;

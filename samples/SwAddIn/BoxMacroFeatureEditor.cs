@@ -137,6 +137,8 @@ namespace SwAddInExample
 
         [ParameterDimension(CustomFeatureDimensionType_e.Linear)]
         public double Length { get; set; } = 0.3;
+
+        public int Increment { get; set; }
     }
 
     [ComVisible(true)]
@@ -147,7 +149,7 @@ namespace SwAddInExample
             this.PostRebuild += OnPostRebuild;
         }
 
-        public override BoxMacroFeatureData ConvertPageToParams(IXApplication app, IXDocument doc, BoxPage page, BoxMacroFeatureData cudData)
+        public override BoxMacroFeatureData CreateParameters(IXApplication app, IXDocument doc, BoxPage page, BoxMacroFeatureData cudData)
             => new BoxMacroFeatureData()
             {
                 Height = page.Parameters.Height,
@@ -157,16 +159,16 @@ namespace SwAddInExample
                 TestFaces = page.Parameters.TestFaces
             };
 
-        public override BoxPage ConvertParamsToPage(IXApplication app, IXDocument doc, BoxMacroFeatureData par)
+        public override BoxPage CreatePropertyPage(IXApplication app, IXDocument doc, IXCustomFeature<BoxMacroFeatureData> feat)
             => new BoxPage("")
             {
                 Parameters = new BoxParametersPage()
                 {
-                    Height = par.Height,
-                    Length = par.Length,
-                    Width = par.Width,
-                    BaseFace = par.BaseFace,
-                    TestFaces = par.TestFaces
+                    Height = feat.Parameters.Height,
+                    Length = feat.Parameters.Length,
+                    Width = feat.Parameters.Width,
+                    BaseFace = feat.Parameters.BaseFace,
+                    TestFaces = feat.Parameters.TestFaces
                 }
             };
 
@@ -221,6 +223,9 @@ namespace SwAddInExample
                 }
             });
 
+            data.Increment++;
+            feat.Parameters = data;
+
             return new ISwBody[] { box };
         }
 
@@ -236,7 +241,7 @@ namespace SwAddInExample
             shouldHidePreviewEdit = null;
             assignPreviewColor = AssignPreviewBodyColor;
             page.Parameters.UpdateSize();
-            return CreateGeometry(app, model, feat, out _).Cast<ISwTempBody>().ToArray();
+            return CreateGeometry(app, model, feat, out _)?.Cast<ISwTempBody>().ToArray();
         }
 
         private void AssignPreviewBodyColor(IXBody body, out Color color)
@@ -246,8 +251,11 @@ namespace SwAddInExample
         { 
         }
 
-        public override void OnFeatureInserted(IXApplication app, IXDocument doc, IXCustomFeature<BoxMacroFeatureData> feat, BoxPage page)
+        public override void OnFeatureInserting(IXApplication app, IXDocument doc, IXCustomFeature<BoxMacroFeatureData> feat, BoxPage page)
         {
+            feat.Parameters.Increment++;
+            base.OnFeatureInserting(app, doc, feat, page);
+            
             page.Parameters.Reset();
             doc.Selections.Clear();
         }

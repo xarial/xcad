@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -144,7 +144,7 @@ namespace Xarial.XCad.SolidWorks
             }
         }
 
-        public IXObject[] FindTrackedObjects(IXDocument doc, IXBody searchBody = null, SelectType_e[] searchFilter = null, int[] searchTrackIds = null)
+        public IXObject[] FindTrackedObjects(IXDocument doc, IXBody searchBody = null, Type[] searchFilter = null, int[] searchTrackIds = null)
         {
             if (doc == null)
             {
@@ -159,19 +159,19 @@ namespace Xarial.XCad.SolidWorks
 
                 foreach (var filter in searchFilter)
                 {
-                    if (filter == SelectType_e.Faces)
+                    if (IsOfType<IXFace>(filter))
                     {
                         filters.Add((int)swTopoEntity_e.swTopoFace);
                     }
-                    else if (filter == SelectType_e.Edges)
+                    else if (IsOfType<IXEdge>(filter))
                     {
                         filters.Add((int)swTopoEntity_e.swTopoEdge);
                     }
-                    else if (filter == SelectType_e.Vertices)
+                    else if (IsOfType<IXVertex>(filter))
                     {
                         filters.Add((int)swTopoEntity_e.swTopoVertex);
                     }
-                    else if (filter == SelectType_e.SolidBodies || filter == SelectType_e.SurfaceBodies)
+                    else if (IsOfType<IXBody>(filter))
                     {
                         filters.Add((int)swTopoEntity_e.swTopoBody);
                     }
@@ -193,6 +193,9 @@ namespace Xarial.XCad.SolidWorks
 
             return res.ToArray();
         }
+
+        private bool IsOfType<T>(Type t)
+            => typeof(T).IsAssignableFrom(t);
 
         public int GetTrackingId(IXObject obj)
         {

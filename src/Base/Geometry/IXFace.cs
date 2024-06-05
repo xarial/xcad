@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -8,6 +8,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Xarial.XCad.Enums;
 using Xarial.XCad.Features;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Geometry.Surfaces;
@@ -17,7 +18,7 @@ namespace Xarial.XCad.Geometry
     /// <summary>
     /// Represents face entity
     /// </summary>
-    public interface IXFace : IXEntity, IXColorizable, IXRegion
+    public interface IXFace : IXEntity, IHasColor, IXRegion
     {
         /// <summary>
         /// True if the direction of the face conicides with the direction of its surface definition, False if the directions are opposite
@@ -28,6 +29,16 @@ namespace Xarial.XCad.Geometry
         /// Area of the face
         /// </summary>
         double Area { get; }
+
+        /// <summary>
+        /// Shell type of the face
+        /// </summary>
+        FaceShellType_e ShellType { get; }
+
+        /// <summary>
+        /// Gets bounding box of this face
+        /// </summary>
+        Box3D Box { get; }
 
         /// <summary>
         /// Underlying definition for this face
@@ -103,6 +114,8 @@ namespace Xarial.XCad.Geometry
     /// </summary>
     public interface IXBlendXFace : IXFace 
     {
+        /// <inheritdoc/>
+        new IXBlendSurface Definition { get; }
     }
 
     /// <summary>
@@ -110,6 +123,8 @@ namespace Xarial.XCad.Geometry
     /// </summary>
     public interface IXBFace : IXFace
     {
+        /// <inheritdoc/>
+        new IXBSurface Definition { get; }
     }
 
     /// <summary>
@@ -117,6 +132,8 @@ namespace Xarial.XCad.Geometry
     /// </summary>
     public interface IXConicalFace : IXFace
     {
+        /// <inheritdoc/>
+        new IXConicalSurface Definition { get; }
     }
 
     /// <summary>
@@ -124,6 +141,8 @@ namespace Xarial.XCad.Geometry
     /// </summary>
     public interface IXExtrudedFace : IXFace
     {
+        /// <inheritdoc/>
+        new IXExtrudedSurface Definition { get; }
     }
 
     /// <summary>
@@ -131,6 +150,8 @@ namespace Xarial.XCad.Geometry
     /// </summary>
     public interface IXOffsetFace : IXFace
     {
+        /// <inheritdoc/>
+        new IXOffsetSurface Definition { get; }
     }
 
     /// <summary>
@@ -138,6 +159,8 @@ namespace Xarial.XCad.Geometry
     /// </summary>
     public interface IXRevolvedFace : IXFace
     {
+        /// <inheritdoc/>
+        new IXRevolvedSurface Definition { get; }
     }
 
     /// <summary>
@@ -145,6 +168,8 @@ namespace Xarial.XCad.Geometry
     /// </summary>
     public interface IXSphericalFace : IXFace
     {
+        /// <inheritdoc/>
+        new IXSphericalSurface Definition { get; }
     }
 
     /// <summary>
@@ -152,5 +177,7 @@ namespace Xarial.XCad.Geometry
     /// </summary>
     public interface IXToroidalFace : IXFace
     {
+        /// <inheritdoc/>
+        new IXToroidalSurface Definition { get; }
     }
 }

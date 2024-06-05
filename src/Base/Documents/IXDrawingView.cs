@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -23,6 +23,17 @@ namespace Xarial.XCad.Documents
     /// </summary>
     public interface IXDrawingView : IXSelObject, IXObjectContainer, IDimensionable, IXTransaction
     {
+        /// <summary>
+        /// Parent sheet of this drawing view
+        /// </summary>
+        IXSheet Sheet { get; }
+
+        /// <summary>
+        /// Display mode of the view
+        /// </summary>
+        /// <remarks>null means that display data is inherited from the base view</remarks>
+        ViewDisplayMode_e? DisplayMode { get; set; }
+
         /// <summary>
         /// Bodies scope of this view
         /// </summary>
@@ -85,7 +96,7 @@ namespace Xarial.XCad.Documents
         Thickness Padding { get; }
 
         /// <summary>
-        /// Transformation of this component in the assembly relative to the global coordinate system
+        /// Transformation of the drawing view in the drawing space relative to the 3D model orientation
         /// </summary>
         TransformMatrix Transformation { get; }
 
@@ -99,6 +110,11 @@ namespace Xarial.XCad.Documents
         /// Gets all views depending on this view
         /// </summary>
         IEnumerable<IXDrawingView> DependentViews { get; }
+
+        /// <summary>
+        /// Updates this drawing view
+        /// </summary>
+        void Update();
     }
 
     /// <summary>
@@ -138,7 +154,7 @@ namespace Xarial.XCad.Documents
         /// <summary>
         /// Section of this drawing view
         /// </summary>
-        Line SectionLine { get; set; }
+        IXSectionLine SectionLine { get; set; }
     }
 
     /// <summary>
@@ -149,7 +165,7 @@ namespace Xarial.XCad.Documents
         /// <summary>
         /// Circle of this detailed view
         /// </summary>
-        Circle DetailCircle { get; set; }
+        IXDetailCircle DetailCircle { get; set; }
     }
 
     /// <summary>

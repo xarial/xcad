@@ -7,7 +7,6 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 using Xarial.XCad.Base;
-using Xarial.XCad.Data.Enums;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Documents.Exceptions;
@@ -47,19 +46,19 @@ namespace SolidWorksDocMgr.Tests.Integration
             var c1 = m_App.Documents.Count;
             var activeIsNull = m_App.Documents.Active == null;
 
-            var doc1 = m_App.Documents.Open(GetFilePath("Part_2020.sldprt"), Xarial.XCad.Documents.Enums.DocumentState_e.ReadOnly);
+            var doc1 = m_App.Documents.Open(GetFilePath("Part_2020.sldprt"), DocumentState_e.ReadOnly);
 
             var c2 = m_App.Documents.Count;
-            var activeIsDoc1 = m_App.Documents.Active == doc1;
+            var activeIsDoc1 = m_App.Documents.Active.Equals(doc1);
 
-            var doc2 = m_App.Documents.Open(GetFilePath("Part_2019.sldprt"), Xarial.XCad.Documents.Enums.DocumentState_e.ReadOnly);
+            var doc2 = m_App.Documents.Open(GetFilePath("Part_2019.sldprt"), DocumentState_e.ReadOnly);
 
             var c3 = m_App.Documents.Count;
-            var activeIsDoc2 = m_App.Documents.Active == doc2;
+            var activeIsDoc2 = m_App.Documents.Active.Equals(doc2);
 
             doc1.Close();
             var c4 = m_App.Documents.Count;
-            var activeIsDoc21 = m_App.Documents.Active == doc2;
+            var activeIsDoc21 = m_App.Documents.Active.Equals(doc2);
 
             doc2.Close();
             var c5 = m_App.Documents.Count;
@@ -124,7 +123,7 @@ namespace SolidWorksDocMgr.Tests.Integration
             {
                 var assm = m_App.Documents.Active;
 
-                var deps = assm.IterateDependencies().ToArray();
+                var deps = assm.Dependencies.TryIterateAll().ToArray();
 
                 var dir = Path.GetDirectoryName(assm.Path);
 
@@ -145,7 +144,7 @@ namespace SolidWorksDocMgr.Tests.Integration
             {
                 var assm = m_App.Documents.Active;
 
-                var deps = assm.IterateDependencies().ToArray();
+                var deps = assm.Dependencies.TryIterateAll().ToArray();
 
                 var dir = Path.GetDirectoryName(assm.Path);
 
@@ -193,7 +192,7 @@ namespace SolidWorksDocMgr.Tests.Integration
             {
                 var assm = m_App.Documents.Active;
 
-                titles = assm.IterateDependencies().Select(d => Path.GetFileNameWithoutExtension(d.Title)).ToArray();
+                titles = assm.Dependencies.TryIterateAll().Select(d => Path.GetFileNameWithoutExtension(d.Title)).ToArray();
             }
 
             Assert.AreEqual(7, titles.Length);
@@ -217,7 +216,7 @@ namespace SolidWorksDocMgr.Tests.Integration
 
             using (var assm = OpenDataDocument(@"Assembly9\Assem1.SLDASM"))
             {
-                var deps = m_App.Documents.Active.IterateDependencies().ToArray();
+                var deps = m_App.Documents.Active.Dependencies.TryIterateAll().ToArray();
                 r1 = deps.ToDictionary(d => Path.GetFileName(d.Path), d => d.IsCommitted, StringComparer.CurrentCultureIgnoreCase);
             }
 
@@ -242,7 +241,7 @@ namespace SolidWorksDocMgr.Tests.Integration
             {
                 var assm = m_App.Documents.Active;
 
-                var deps = assm.IterateDependencies().ToArray();
+                var deps = assm.Dependencies.TryIterateAll().ToArray();
 
                 Assert.AreEqual(8, deps.Length);
                 Assert.That(deps.All(d => !d.State.HasFlag(DocumentState_e.ReadOnly)));
@@ -262,7 +261,7 @@ namespace SolidWorksDocMgr.Tests.Integration
             {
                 var assm = m_App.Documents.Active;
 
-                var deps = assm.IterateDependencies().ToArray();
+                var deps = assm.Dependencies.TryIterateAll().ToArray();
 
                 Assert.AreEqual(8, deps.Length);
                 Assert.That(deps.All(d => d.State.HasFlag(DocumentState_e.ReadOnly)));
@@ -295,7 +294,7 @@ namespace SolidWorksDocMgr.Tests.Integration
             {
                 var assm = m_App.Documents.Active;
 
-                var deps = assm.IterateDependencies().ToArray();
+                var deps = assm.Dependencies.TryIterateAll().ToArray();
 
                 var d1 = deps.FirstOrDefault(d => string.Equals(Path.GetFileName(d.Path), "_temp_Part1^Assem1.sldprt",
                     StringComparison.CurrentCultureIgnoreCase));
@@ -317,14 +316,28 @@ namespace SolidWorksDocMgr.Tests.Integration
                 Assert.AreEqual(8, deps.Length);
 
                 Assert.IsNotNull(d1);
+                Assert.IsNotNull(d2);
+                Assert.IsNotNull(d3);
                 Assert.IsNotNull(d4);
+                Assert.IsNotNull(d5);
                 Assert.IsNotNull(d6);
+                Assert.IsNotNull(d7);
                 Assert.IsNotNull(d8);
-                Assert.That(string.Equals(d2.Path, Path.Combine(srcPath, "Part2.SLDPRT"), StringComparison.CurrentCultureIgnoreCase));
-                Assert.That(string.Equals(d3.Path, Path.Combine(srcPath, "Assem2.sldasm"), StringComparison.CurrentCultureIgnoreCase));
+
+                Assert.IsTrue(d1.IsCommitted);
+                Assert.IsFalse(d2.IsCommitted);
+                Assert.IsFalse(d3.IsCommitted);
+                Assert.IsTrue(d4.IsCommitted);
+                Assert.IsTrue(d5.IsCommitted);
+                Assert.IsTrue(d6.IsCommitted);
+                Assert.IsTrue(d7.IsCommitted);
+                Assert.IsTrue(d8.IsCommitted);
+
+                Assert.That(string.Equals(Path.GetFileName(d2.Path), "Part2.SLDPRT", StringComparison.CurrentCultureIgnoreCase));
+                Assert.That(string.Equals(Path.GetFileName(d3.Path), "Assem2.sldasm", StringComparison.CurrentCultureIgnoreCase));
                 Assert.Throws<OpenDocumentFailedException>(() => d2.Commit());
                 Assert.Throws<OpenDocumentFailedException>(() => d3.Commit());
-                //Assert.That(string.Equals(d5.Path, Path.Combine(destPath, "Part4.SLDPRT"), StringComparison.CurrentCultureIgnoreCase)); - SOLIDWORKS does not follow the path resolution for the components of virtual component
+                //Assert.That(string.Equals(d5.Path, Path.Combine(destPath, "Part4.SLDPRT"), StringComparison.CurrentCultureIgnoreCase));//NOTE: SOLIDWORKS does not follow the path resolution for the components of virtual component
                 Assert.That(string.Equals(d7.Path, Path.Combine(destPath, "Assem4.sldasm"), StringComparison.CurrentCultureIgnoreCase));
 
                 d1.Close();
@@ -399,11 +412,11 @@ namespace SolidWorksDocMgr.Tests.Integration
                 {
                     var assm = (ISwDmAssembly)doc.Document;
 
-                    var deps = assm.IterateDependencies().ToArray();
+                    var deps = assm.Dependencies.TryIterateAll().ToArray();
 
                     refs = deps.ToDictionary(x => x.Path, x => x.IsCommitted, StringComparer.CurrentCultureIgnoreCase);
 
-                    foreach (var refDoc in assm.IterateDependencies().ToArray())
+                    foreach (var refDoc in assm.Dependencies.TryIterateAll().ToArray())
                     {
                         if (refDoc.IsCommitted && refDoc.IsAlive)
                         {
@@ -463,7 +476,7 @@ namespace SolidWorksDocMgr.Tests.Integration
 
                 part.StreamWriteAvailable += (d) =>
                 {
-                    using (var stream = d.OpenStream(STREAM_NAME, AccessType_e.Write))
+                    using (var stream = d.OpenStream(STREAM_NAME, true))
                     {
                         var xmlSer = new XmlSerializer(typeof(TestData));
 
@@ -486,7 +499,7 @@ namespace SolidWorksDocMgr.Tests.Integration
             {
                 var part = m_App.Documents.Active;
 
-                using (var stream = part.OpenStream(STREAM_NAME, AccessType_e.Read))
+                using (var stream = part.OpenStream(STREAM_NAME, false))
                 {
                     var xmlSer = new XmlSerializer(typeof(TestData));
                     result = xmlSer.Deserialize(stream) as TestData;
@@ -519,17 +532,17 @@ namespace SolidWorksDocMgr.Tests.Integration
                 {
                     var path = SUB_STORAGE_PATH.Split('\\');
 
-                    using (var storage = part.OpenStorage(path[0], AccessType_e.Write))
+                    using (var storage = part.OpenStorage(path[0], true))
                     {
-                        using (var subStorage = storage.TryOpenStorage(path[1], true))
+                        using (var subStorage = storage.OpenStorage(path[1], true))
                         {
-                            using (var str = subStorage.TryOpenStream(STREAM1_NAME, true))
+                            using (var str = subStorage.OpenStream(STREAM1_NAME, true))
                             {
                                 var buffer = Encoding.UTF8.GetBytes("Test2");
                                 str.Write(buffer, 0, buffer.Length);
                             }
 
-                            using (var str = subStorage.TryOpenStream(STREAM2_NAME, true))
+                            using (var str = subStorage.OpenStream(STREAM2_NAME, true))
                             {
                                 using (var binWriter = new BinaryWriter(str))
                                 {
@@ -553,13 +566,13 @@ namespace SolidWorksDocMgr.Tests.Integration
 
                 var path = SUB_STORAGE_PATH.Split('\\');
 
-                using (var storage = part.TryOpenStorage(path[0], AccessType_e.Read))
+                using (var storage = part.OpenStorage(path[0], false))
                 {
-                    using (var subStorage = storage.TryOpenStorage(path[1], false))
+                    using (var subStorage = storage.OpenStorage(path[1], false))
                     {
-                        subStreamsCount = subStorage.GetSubStreamNames().Length;
+                        subStreamsCount = subStorage.SubStreamNames.Count();
 
-                        using (var str = subStorage.TryOpenStream(STREAM1_NAME, false))
+                        using (var str = subStorage.OpenStream(STREAM1_NAME, false))
                         {
                             var buffer = new byte[str.Length];
 
@@ -568,7 +581,7 @@ namespace SolidWorksDocMgr.Tests.Integration
                             txt = Encoding.UTF8.GetString(buffer);
                         }
 
-                        using (var str = subStorage.TryOpenStream(STREAM2_NAME, false))
+                        using (var str = subStorage.OpenStream(STREAM2_NAME, false))
                         {
                             using (var binReader = new BinaryReader(str))
                             {

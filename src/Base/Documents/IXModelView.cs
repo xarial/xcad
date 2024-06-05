@@ -1,14 +1,16 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using Xarial.XCad.Base;
 using Xarial.XCad.Documents.Delegates;
+using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Geometry.Structures;
 
 namespace Xarial.XCad.Documents
@@ -16,8 +18,31 @@ namespace Xarial.XCad.Documents
     /// <summary>
     /// Context to draw the custom graphics
     /// </summary>
-    public interface IXCustomGraphicsContext : IDisposable
+    public interface IXCustomGraphicsContext : IDisposable, IEnumerable<IXCustomGraphicsRenderer>
     {
+        /// <summary>
+        /// Registers specific renderer
+        /// </summary>
+        /// <param name="renderer">Renderer</param>
+        void RegisterRenderer(IXCustomGraphicsRenderer renderer);
+
+        /// <summary>
+        /// Unregisters renderer
+        /// </summary>
+        /// <param name="renderer">Renderer</param>
+        void UnregisterRenderer(IXCustomGraphicsRenderer renderer);
+    }
+
+    /// <summary>
+    /// Custom rendered
+    /// </summary>
+    /// <remarks>Use <see cref="IXCustomGraphicsContext.RegisterRenderer(IXCustomGraphicsRenderer)"/> to register render</remarks>
+    public interface IXCustomGraphicsRenderer : IDisposable 
+    {
+        /// <summary>
+        /// Renders the custom graphics
+        /// </summary>
+        void Render();
     }
 
     /// <summary>
@@ -26,9 +51,14 @@ namespace Xarial.XCad.Documents
     public interface IXModelView : IXTransaction
     {
         /// <summary>
-        /// Fired when custom graphics can be drawn in the model
+        /// Display mode of the view
         /// </summary>
-        event RenderCustomGraphicsDelegate RenderCustomGraphics;
+        ViewDisplayMode_e DisplayMode { get; set; }
+
+        /// <summary>
+        /// Provides access to custom graphics of this view
+        /// </summary>
+        IXCustomGraphicsContext CustomGraphicsContext { get; }
 
         /// <summary>
         /// Freezes all view updates
@@ -62,6 +92,12 @@ namespace Xarial.XCad.Documents
         /// Zooms view to fit the model
         /// </summary>
         void ZoomToFit();
+
+        /// <summary>
+        /// Zooms to the specified objects
+        /// </summary>
+        /// <param name="objects">Objects to zoom to</param>
+        void ZoomToObjects(IXSelObject[] objects);
 
         /// <summary>
         /// Refreshes the view

@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -8,6 +8,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 using Xarial.XCad.UI.PropertyPage.Base;
@@ -15,8 +16,12 @@ using Xarial.XCad.Utils.PageBuilder;
 
 namespace Xarial.XCad.Toolkit.PageBuilder.Binders
 {
+    /// <summary>
+    /// Metadata attached to a property
+    /// </summary>
     public class PropertyInfoMetadata : IMetadata
     {
+        /// <inheritdoc/>
         public event Action<IMetadata, object> Changed;
 
         private readonly PropertyInfo m_PrpInfo;
@@ -24,21 +29,36 @@ namespace Xarial.XCad.Toolkit.PageBuilder.Binders
 
         private object m_CurrentContext;
 
+        /// <inheritdoc/>
         public object Tag { get; }
 
+        /// <inheritdoc/>
         public object Value 
         {
             get => GetValue();
-            set => m_PrpInfo.SetValue(m_CurrentContext, value);
+            set
+            {
+                if (m_CurrentContext != null || m_IsStaticPrp.Value)
+                {
+                    m_PrpInfo.SetValue(m_CurrentContext, value);
+                }
+            }
         }
+
+        /// <inheritdoc/>
+        public string Name { get; }
 
         private readonly IContextProvider m_ContextProvider;
 
-        public PropertyInfoMetadata(PropertyInfo prpInfo, PropertyInfo[] parents, object tag, IContextProvider contextProvider)
+        private readonly Lazy<bool> m_IsStaticPrp;
+
+        public PropertyInfoMetadata(PropertyInfo prpInfo, PropertyInfo[] parents, object tag, string name, IContextProvider contextProvider)
         {
             m_PrpInfo = prpInfo;
+            m_IsStaticPrp = new Lazy<bool>(() => prpInfo.GetAccessors().Any(x => x.IsStatic));
             m_Parents = parents;
             Tag = tag;
+            Name = name;
             m_ContextProvider = contextProvider;
             m_ContextProvider.ContextChanged += OnContextChanged;
         }
@@ -99,7 +119,23 @@ namespace Xarial.XCad.Toolkit.PageBuilder.Binders
             }
         }
 
-        private object GetValue() 
-            => m_PrpInfo.GetValue(m_CurrentContext, null);
+        private object GetValue()
+        {
+            if (m_CurrentContext != null || m_IsStaticPrp.Value)
+            {
+                return m_PrpInfo.GetValue(m_CurrentContext, null);
+            }
+            else 
+            {
+                if (m_PrpInfo.PropertyType.IsValueType)
+                {
+                    return Activator.CreateInstance(m_PrpInfo.PropertyType);
+                }
+                else
+                {
+                    return null;
+                }
+            }
+        }
     }
 }

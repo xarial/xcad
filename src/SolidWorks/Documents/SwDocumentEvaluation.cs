@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -28,12 +28,12 @@ namespace Xarial.XCad.SolidWorks.Documents
     internal abstract class SwDocumentEvaluation : ISwDocumentEvaluation
     {
         private readonly SwDocument3D m_Doc;
-        protected readonly IMathUtility m_MathUtils;
+        protected readonly Lazy<IMathUtility> m_MathUtilsLazy;
 
         internal SwDocumentEvaluation(SwDocument3D doc) 
         {
             m_Doc = doc;
-            m_MathUtils = m_Doc.OwnerApplication.Sw.IGetMathUtility();
+            m_MathUtilsLazy = new Lazy<IMathUtility>(m_Doc.OwnerApplication.Sw.IGetMathUtility);
         }
 
         public abstract IXBoundingBox PreCreateBoundingBox();
@@ -42,11 +42,11 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
             if (m_Doc.OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2020))
             {
-                return new SwMassProperty(m_Doc, m_MathUtils);
+                return new SwMassProperty(m_Doc, m_MathUtilsLazy.Value);
             }
             else
             {
-                return new SwLegacyMassProperty(m_Doc, m_MathUtils);
+                return new SwLegacyMassProperty(m_Doc, m_MathUtilsLazy.Value);
             }
         }
 
@@ -54,9 +54,11 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public abstract IXTessellation PreCreateTessellation();
 
-        public IXCollisionDetection PreCreateCollisionDetection() => throw new NotImplementedException();
+        public virtual IXCollisionDetection PreCreateCollisionDetection() => new SwCollisionDetection(m_Doc, m_Doc.OwnerApplication);
         
         public IXMeasure PreCreateMeasure() => throw new NotImplementedException();
+
+        public IXFaceTesselation PreCreateFaceTessellation() => new SwFaceTesselation(m_Doc);
     }
 
     internal class SwPartEvaluation : SwDocumentEvaluation 
@@ -108,11 +110,11 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
             if (m_Assm.OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2020))
             {
-                return new SwAssemblyMassProperty(m_Assm, m_MathUtils);
+                return new SwAssemblyMassProperty(m_Assm, m_MathUtilsLazy.Value);
             }
             else
             {
-                return new SwAssemblyLegacyMassProperty(m_Assm, m_MathUtils);
+                return new SwAssemblyLegacyMassProperty(m_Assm, m_MathUtilsLazy.Value);
             }
         }
 
@@ -137,6 +139,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         IXAssemblyTessellation IXAssemblyEvaluation.PreCreateTessellation()
             => new SwAssemblyTesselation(m_Assm);
 
-        IXAssemblyCollisionDetection IXAssemblyEvaluation.PreCreateCollisionDetection() => throw new NotImplementedException();
+        IXAssemblyCollisionDetection IXAssemblyEvaluation.PreCreateCollisionDetection() 
+            => new SwAssemblyCollisionDetection(m_Assm, m_Assm.OwnerApplication);
     }
 }

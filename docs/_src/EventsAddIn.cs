@@ -5,6 +5,7 @@ using Xarial.XCad.Annotations;
 using Xarial.XCad.Data;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Delegates;
+using Xarial.XCad.Documents.Extensions;
 using Xarial.XCad.Documents.Services;
 using Xarial.XCad.SolidWorks;
 

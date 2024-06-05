@@ -1,12 +1,13 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 using Xarial.XCad.Base;
 using Xarial.XCad.Geometry.Structures;
@@ -16,6 +17,8 @@ namespace Xarial.XCad.Geometry.Evaluation
     /// <summary>
     /// Triangle representing a tesselation
     /// </summary>
+
+    [DebuggerDisplay("{" + nameof(FirstPoint) + "} - {" + nameof(SecondPoint) + "} - {" + nameof(ThirdPoint) + "} [{" +nameof(Normal) + "}]")]
     public class TesselationTriangle
     {
         /// <summary>
@@ -66,5 +69,16 @@ namespace Xarial.XCad.Geometry.Evaluation
     /// </summary>
     public interface IXAssemblyTessellation : IXTessellation, IAssemblyEvaluation
     {
+    }
+
+    /// <summary>
+    /// Face-specific tesselation
+    /// </summary>
+    public interface IXFaceTesselation : IXTessellation 
+    {
+        /// <summary>
+        /// Faces to get tesselation for
+        /// </summary>
+        new IXFace[] Scope { get; set;}
     }
 }

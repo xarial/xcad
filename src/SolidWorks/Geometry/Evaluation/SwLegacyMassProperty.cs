@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -288,7 +288,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Evaluation
 
                 var scope = Scope;
 
-                if (scope == null)
+                if (scope?.Any() != true)
                 {
                     if (VisibleOnly)
                     {
@@ -296,16 +296,9 @@ namespace Xarial.XCad.SolidWorks.Geometry.Evaluation
                     }
                 }
 
-                if (scope == null)
+                if (scope?.Any() != true)
                 {
                     if (!IterateRootSolidBodies(!VisibleOnly).Any())
-                    {
-                        throw new EvaluationFailedException();
-                    }
-                }
-                else
-                {
-                    if (!scope.Any())
                     {
                         throw new EvaluationFailedException();
                     }
@@ -706,13 +699,20 @@ namespace Xarial.XCad.SolidWorks.Geometry.Evaluation
             {
                 var comps = (this as IXAssemblyMassProperty).Scope;
 
-                if (comps == null)
+                if (comps?.Any() != true)
                 {
                     return base.Scope;
                 }
                 else
                 {
-                    return comps.SelectMany(c => c.IterateBodies(!VisibleOnly)).OfType<ISwSolidBody>().ToArray();
+                    var bodies = comps.SelectMany(c => c.IterateBodies(!VisibleOnly)).OfType<ISwSolidBody>().ToArray();
+
+                    if (bodies?.Any() != true)
+                    {
+                        throw new EvaluationFailedException("No bodies found in the component");
+                    }
+
+                    return bodies;
                 }
             }
             set => base.Scope = value;

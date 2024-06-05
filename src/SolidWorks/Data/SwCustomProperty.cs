@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -179,15 +179,32 @@ namespace Xarial.XCad.SolidWorks.Data
                         break;
 
                     case swCustomInfoType_e.swCustomInfoYesOrNo:
-                        resVal = bool.Parse(resValStr);
+                        switch (resValStr.ToLower()) 
+                        {
+                            case "yes":
+                                resVal = true;
+                                break;
+
+                            case "no":
+                                resVal = false;
+                                break;
+
+                            default:
+                                if (bool.TryParse(resValStr, out var boolVal))
+                                {
+                                    resVal = boolVal;
+                                }
+                                else 
+                                {
+                                    resVal = resValStr;
+                                }
+                                break;
+                        }
                         break;
 
                     case swCustomInfoType_e.swCustomInfoDouble:
-                        resVal = double.Parse(resValStr);
-                        break;
-
                     case swCustomInfoType_e.swCustomInfoNumber:
-                        resVal = int.Parse(resValStr);
+                        resVal = double.Parse(resValStr);
                         break;
 
                     case swCustomInfoType_e.swCustomInfoDate:
@@ -217,6 +234,11 @@ namespace Xarial.XCad.SolidWorks.Data
 
         protected virtual void AddProperty(ICustomPropertyManager prpMgr, string name, object value)
         {
+            if (string.IsNullOrEmpty(name)) 
+            {
+                throw new Exception("Custom property name is not specified");
+            }
+
             if (m_App.IsVersionNewerOrEqual(SwVersion_e.Sw2014))
             {
                 var res = (swCustomInfoAddResult_e)prpMgr.Add3(name, (int)swCustomInfoType_e.swCustomInfoText, 

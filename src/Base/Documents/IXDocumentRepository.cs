@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -57,6 +57,12 @@ namespace Xarial.XCad.Documents
         /// <typeparam name="THandler"></typeparam>
         void RegisterHandler<THandler>(Func<THandler> handlerFact)
             where THandler : IDocumentHandler;
+
+        /// <summary>
+        /// Unregisters document handler
+        /// </summary>
+        /// <typeparam name="THandler"></typeparam>
+        void UnregisterHandler<THandler>() where THandler : IDocumentHandler;
 
         /// <summary>
         /// Returns the handler for this document

@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -85,20 +85,35 @@ namespace Xarial.XCad.SolidWorks.Documents
             m_ClearSelectionEventHandler = new ClearSelectionEventHandler(doc, app);
         }
 
+        public void ReplaceRange(IEnumerable<IXSelObject> ents, CancellationToken cancellationToken)
+            => MultiSelect(ents, cancellationToken, false);
+
         public void AddRange(IEnumerable<IXSelObject> ents, CancellationToken cancellationToken)
+            => MultiSelect(ents, cancellationToken, true);
+
+        private void MultiSelect(IEnumerable<IXSelObject> ents, CancellationToken cancellationToken, bool append) 
         {
-            if (ents == null) 
+            if (ents == null)
             {
                 throw new ArgumentNullException(nameof(ents));
             }
 
             var disps = ents.Cast<SwSelObject>().Select(e => new DispatchWrapper(e.Dispatch)).ToArray();
 
-            var curSelCount = SelMgr.GetSelectedObjectCount2(-1);
+            int curSelCount;
 
-            var selCount = Model.Extension.MultiSelect2(disps, true, null) - curSelCount;
+            if (append)
+            {
+                curSelCount = SelMgr.GetSelectedObjectCount2(-1);
+            }
+            else 
+            {
+                curSelCount = 0;
+            }
 
-            if (selCount != disps.Length) 
+            var selCount = Model.Extension.MultiSelect2(disps, append, null) - curSelCount;
+
+            if (selCount != disps.Length)
             {
                 throw new Exception("Selection failed");
             }
@@ -143,7 +158,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         public bool TryGet(string name, out IXSelObject ent)
         {
             ent = IterateSelection().FirstOrDefault(
-                s => s is INameable && string.Equals(name, ((INameable)s).Name, StringComparison.CurrentCultureIgnoreCase));
+                s => s is IHasName && string.Equals(name, ((IHasName)s).Name, StringComparison.CurrentCultureIgnoreCase));
 
             return ent != null;
         }

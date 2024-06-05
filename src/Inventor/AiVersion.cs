@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -70,21 +70,22 @@ namespace Xarial.XCad.Inventor
         public override bool Equals(object obj)
         {
             if (!(obj is IAiVersion))
+            {
                 return false;
+            }
 
-            return Equals((IAiVersion)obj);
+            return IsSame((IAiVersion)obj);
         }
 
-        public bool Equals(AiVersion other)
-            => Major == other.Major;
+        private bool IsSame(IAiVersion other) => Major == other.Major;
 
         public bool Equals(IXVersion other) => Equals((object)other);
 
         public static bool operator ==(AiVersion version1, AiVersion version2)
-            => version1.Equals(version2);
+            => version1.IsSame(version2);
 
         public static bool operator !=(AiVersion version1, AiVersion version2)
-            => !version1.Equals(version2);
+            => !version1.IsSame(version2);
 
         public override string ToString() => DisplayName;
     }

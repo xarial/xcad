@@ -19,7 +19,7 @@ public class CommandsAddIn : SwAddInEx
         //---
         //--- ContextMenu
         this.CommandManager.AddContextMenu<CommandsD_e>().CommandClick += OnCommandsDContextMenuClick;
-        this.CommandManager.AddContextMenu<CommandsE_e>(SelectType_e.Faces).CommandClick+= OnCommandsEContextMenuClick;
+        this.CommandManager.AddContextMenu<CommandsE_e>().CommandClick+= OnCommandsEContextMenuClick;
         //---
     }
 

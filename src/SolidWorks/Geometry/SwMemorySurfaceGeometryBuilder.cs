@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -34,7 +34,8 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         public IEnumerator<IXPrimitive> GetEnumerator() => throw new NotImplementedException();
 
-        public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters) => RepositoryHelper.FilterDefault(this, filters, reverseOrder);
+        public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters) 
+            => RepositoryHelper.FilterDefault(this, filters, reverseOrder);
 
         public int Count => throw new NotImplementedException();
         public IXPrimitive this[string name] => throw new NotImplementedException();
@@ -59,6 +60,8 @@ namespace Xarial.XCad.SolidWorks.Geometry
         public T PreCreate<T>() where T : IXPrimitive
             => RepositoryHelper.PreCreate<IXPrimitive, T>(this, 
                 () => new SwTempPlanarSheet(null, m_App, false, m_TolProvider),
-                () => new SwTempSurfaceKnit(null, m_App, false, m_TolProvider));
+                () => new SwTempSurfaceKnit(null, m_App, false, m_TolProvider),
+                () => new SwTempSurfaceExtrusion(null, m_App, false),
+                () => new SwTempSurfaceLoft(null, m_App, false));
     }
 }

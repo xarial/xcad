@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -12,6 +12,7 @@ using System.Linq;
 using System.Threading;
 using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
+using Xarial.XCad.Documents.Structures;
 using Xarial.XCad.Utils.Diagnostics;
 
 namespace Xarial.XCad.SolidWorks.Documents
@@ -110,6 +111,8 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public override IXDocumentOptions Options => m_Options;
 
+        public IXLayerRepository Layers { get; }
+
         private SwDrawingOptions m_Options;
 
         internal SwDrawing(IDrawingDoc drawing, SwApplication app, IXLogger logger, bool isCreated)
@@ -117,6 +120,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
             m_SheetsLazy = new Lazy<SwSheetCollection>(() => new SwSheetCollection(this, OwnerApplication));
             m_Options = new SwDrawingOptions(this);
+            Layers = new SwLayersCollection(this, app);
         }
 
         protected override void CommitCache(IModelDoc2 model, CancellationToken cancellationToken)
@@ -133,6 +137,24 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         protected override SwAnnotationCollection CreateAnnotations() => new SwDrawingAnnotationCollection(this);
 
+        IXDrawingSaveOperation IXDrawing.PreCreateSaveAsOperation(string filePath)
+        {
+            var ext = System.IO.Path.GetExtension(filePath);
+
+            switch (ext.ToLower())
+            {
+                case ".pdf":
+                    return new SwDrawingPdfSaveOperation(this, filePath);
+
+                case ".dxf":
+                case ".dwg":
+                    return new SwDxfDwgSaveOperation(this, filePath);
+
+                default:
+                    return new SwDrawingSaveOperation(this, filePath);
+            }
+        }
+
         protected override void GetPaperSize(out swDwgPaperSizes_e size, out double width, out double height)
         {
             if (m_SheetsLazy.IsValueCreated)
@@ -144,5 +166,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                 PaperSizeHelper.ParsePaperSize(null, out size, out _, out width, out height);
             }
         }
+
+        public override IXSaveOperation PreCreateSaveAsOperation(string filePath) => ((IXDrawing)this).PreCreateSaveAsOperation(filePath);
     }
 }

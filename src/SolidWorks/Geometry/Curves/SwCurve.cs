@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -34,7 +34,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Curves
 
         public IXPoint StartPoint => GetPoint(true);
         public IXPoint EndPoint => GetPoint(false);
-        
+
         public bool IsCommitted => m_Creator.IsCreated;
 
         public double Length
@@ -58,7 +58,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Curves
                         }
                     });
                 }
-                else 
+                else
                 {
                     return double.NaN;
                 }
@@ -66,6 +66,38 @@ namespace Xarial.XCad.SolidWorks.Geometry.Curves
         }
 
         public override object Dispatch => Curves;
+
+        public bool IsTrimmed
+        {
+            get 
+            {
+                if (Curves.Any())
+                {
+                    bool isTrimmed = false;
+
+                    for (int i = 0; i < Curves.Length; i++) 
+                    {
+                        if (i == 0)
+                        {
+                            isTrimmed = Curves[i].IsTrimmedCurve();
+                        }
+                        else 
+                        {
+                            if (isTrimmed != Curves[i].IsTrimmedCurve()) 
+                            {
+                                throw new Exception("Ambiguous curves group");
+                            }
+                        }
+                    }
+
+                    return isTrimmed;
+                }
+                else 
+                {
+                    throw new Exception("No curves");
+                }
+            }
+        }
 
         protected readonly IElementCreator<ICurve[]> m_Creator;
 
@@ -86,10 +118,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Curves
 
         public void Commit(CancellationToken cancellationToken) => m_Creator.Create(cancellationToken);
 
-        protected virtual ICurve[] Create(CancellationToken cancellationToken) 
-        {
-            throw new NotSupportedException();
-        }
+        protected virtual ICurve[] Create(CancellationToken cancellationToken) => throw new NotSupportedException();
 
         protected virtual IXPoint GetPoint(bool isStart)
         {
@@ -198,28 +227,83 @@ namespace Xarial.XCad.SolidWorks.Geometry.Curves
             }
         }
 
-        public IXWireBody CreateBody()
-        {
-            if (!Curves.Any()) 
-            {
-                throw new Exception("No curves found");
-            }
-
-            var wireBody = m_Modeler.CreateWireBody(Curves, (int)swCreateWireBodyOptions_e.swCreateWireBodyByDefault);
-
-            if (wireBody == null) 
-            {
-                throw new NullReferenceException($"Wire body cannot be created from the curves");
-            }
-
-            return OwnerApplication.CreateObjectFromDispatch<ISwTempWireBody>(wireBody, OwnerDocument);
-        }
-
         public void Transform(TransformMatrix transform)
         {
             foreach (var curve in Curves) 
             {
                 curve.ApplyTransform((MathTransform)TransformConverter.ToMathTransform(m_MathUtils, transform));
+            }
+        }
+
+        public Point[] Intersect(IXCurve curve)
+        {
+            var pts = new List<Point>();
+
+            foreach (var thisCurve in Curves)
+            {
+                GetEndPoints(thisCurve, out var thisStartPt, out var thisEndPt);
+
+                foreach (var otherCurve in ((SwCurve)curve).Curves)
+                {
+                    GetEndPoints(otherCurve, out var otherStartPt, out var otherEndPt);
+
+                    var intersectPts = (double[])thisCurve.IntersectCurve(otherCurve, thisStartPt, thisEndPt, otherStartPt, otherEndPt);
+
+                    for (int i = 0; i < intersectPts.Length; i += 4) 
+                    {
+                        pts.Add(new Point(intersectPts[i], intersectPts[i + 1], intersectPts[i + 2]));
+                    }
+                }
+            }
+
+            return pts.ToArray();
+        }
+
+        private void GetEndPoints(ICurve curve, out double[] startPt, out double[] endPt)
+        {
+            if (curve.IsTrimmedCurve())
+            {
+                if (curve.GetEndParams(out var start, out var end, out _, out _))
+                {
+                    var startData = (double[])curve.Evaluate2(start, 0);
+                    var endData = (double[])curve.Evaluate2(end, 0);
+
+                    startPt = new double[] { startData[0], startData[1], startData[2] };
+                    endPt = new double[] { endData[0], endData[1], endData[2] };
+                }
+                else
+                {
+                    throw new Exception("Failed to find the end parameters of the curve");
+                }
+            }
+            else
+            {
+                throw new NotSupportedException("Only trimmed curves are supported");
+            }
+        }
+
+        public IXCurve Trim(Point start, Point end)
+        {
+            if (Curves.Length == 1)
+            {
+                var trimmedCurve = Curves.First().CreateTrimmedCurve2(start.X, start.Y, start.Z, end.X, end.Y, end.Z);
+                return OwnerApplication.CreateObjectFromDispatch<ISwCurve>(trimmedCurve, OwnerDocument);
+            }
+            else 
+            {
+                throw new NotSupportedException("Only single element curve groups are supported");
+            }
+        }
+
+        public virtual IXCurve Copy()
+        {
+            if (Curves.Length == 1)
+            {
+                return OwnerApplication.CreateObjectFromDispatch<ISwCurve>(Curves.First().Copy(), OwnerDocument);
+            }
+            else
+            {
+                throw new NotSupportedException("Only single element curve groups are supported");
             }
         }
     }

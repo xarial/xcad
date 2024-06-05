@@ -1,19 +1,13 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
 using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.Linq;
-using Xarial.XCad.SolidWorks.Services;
 using Xarial.XCad.Toolkit.Services;
 using Xarial.XCad.UI.PropertyPage.Attributes;
 using Xarial.XCad.UI.PropertyPage.Base;
@@ -27,12 +21,9 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
     {
         protected override event ControlValueChangedDelegate<TVal> ValueChanged;
 
-        private bool m_IsStatic;
-        private ItemsControlItem[] m_StaticItems;
-        private ItemsControlItem[] m_DynamicItems;
-
         private TVal m_CurrentValueCached;
         private bool m_IsPageOpened;
+        private bool m_SuspendHandlingChanged;
 
         public PropertyManagerPageComboBoxControl(SwApplication app, IGroup parentGroup, IIconsCreator iconConv,
             IAttributeSet atts, IMetadata[] metadata, ref int numberOfUsedIds)
@@ -62,58 +53,14 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             }
         }
 
-        protected override void SetStaticItems(IAttributeSet atts, bool isStatic, ItemsControlItem[] staticItems)
-        {
-            m_IsStatic = isStatic;
-            m_StaticItems = staticItems;
-        }
-
-        public override ItemsControlItem[] Items
-        {
-            get
-            {
-                if (!m_IsStatic)
-                {
-                    return m_DynamicItems;
-                }
-                else
-                {
-                    return m_StaticItems;
-                }
-            }
-            set
-            {
-                if (!m_IsStatic)
-                {
-                    m_DynamicItems = value;
-
-                    if (m_IsPageOpened)
-                    {
-                        LoadItemsIntoControl(value);
-                    }
-                }
-                else 
-                {
-                    Debug.Assert(false, "Static items cannot be changed");
-                }
-            }
-        }
-
         //NOTE: ComboBox in SOLIDWORKS Property Manager page behaves differently depending when the values are added to the control
         //if values are added before the page is opened than ComboBox cannot have empty value, if after - then it can be empty
-        //as ComboBox can load items dynamically after page is opened for hte consistency all items will be added after page is displayed
+        //as ComboBox can load items dynamically after page is opened for the consistency all items will be added after page is displayed
         private void OnPageOpened()
         {
             m_IsPageOpened = true;
 
-            if (m_IsStatic)
-            {
-                LoadItemsIntoControl(m_StaticItems);
-            }
-            else 
-            {
-                LoadItemsIntoControl(m_DynamicItems);
-            }
+            LoadItemsIntoControl(Items);
         }
 
         private void OnPageClosed(swPropertyManagerPageCloseReasons_e reason)
@@ -122,16 +69,18 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             SwSpecificControl.Clear();
             SwSpecificControl.CurrentSelection = -1;
             m_CurrentValueCached = GetDefaultItemValue();
-            m_DynamicItems = null;
         }
 
         private void OnComboBoxChanged(int id, int selIndex)
         {
             if (Id == id)
             {
-                var val = GetItem(selIndex);
-                m_CurrentValueCached = val;
-                ValueChanged?.Invoke(this, val);
+                if (!m_SuspendHandlingChanged)
+                {
+                    var val = GetItem(selIndex);
+                    m_CurrentValueCached = val;
+                    ValueChanged?.Invoke(this, val);
+                }
             }
         }
 
@@ -166,13 +115,16 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
         protected override void LoadItemsIntoControl(ItemsControlItem[] newItems)
         {
-            SwSpecificControl.Clear();
-
-            if (newItems?.Any() == true)
+            if (m_IsPageOpened)
             {
-                SwSpecificControl.AddItems(newItems.Select(x => x.DisplayName).ToArray());
+                SwSpecificControl.Clear();
 
-                if (!newItems.Any(i => object.Equals(i.Value, m_CurrentValueCached)))
+                if (newItems?.Any() == true)
+                {
+                    SwSpecificControl.AddItems(newItems.Select(x => x.DisplayName).ToArray());
+                }
+
+                if (newItems?.Any(i => object.Equals(i.Value, m_CurrentValueCached)) != true)
                 {
                     //if items source changed dynamically previously cached value might not fit new source
                     var defVal = GetDefaultItemValue();
@@ -185,6 +137,28 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
                 }
 
                 SetSpecificValue(m_CurrentValueCached);
+            }
+        }
+
+        protected override void SetItemDisplayName(ItemsControlItem item, int index, string newDispName)
+        {
+            if (index != -1)
+            {
+                m_SuspendHandlingChanged = true;
+
+                try
+                {
+                    var curSel = SwSpecificControl.CurrentSelection;
+
+                    SwSpecificControl.DeleteItem((short)index);
+                    SwSpecificControl.InsertItem((short)index, newDispName);
+
+                    SwSpecificControl.CurrentSelection = curSel;
+                }
+                finally
+                {
+                    m_SuspendHandlingChanged = false;
+                }
             }
         }
     }

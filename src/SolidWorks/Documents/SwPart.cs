@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -10,6 +10,7 @@ using SolidWorks.Interop.swconst;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Xml.Linq;
 using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Delegates;
@@ -40,6 +41,37 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
             Bodies = new SwPartBodyCollection(this);
             Evaluation = new SwPartEvaluation(this);
+        }
+
+        internal IXMaterial GetMaterial(string confName) 
+        {
+            var materialName = Part.GetMaterialPropertyName2(confName, out var database);
+
+            if (!string.IsNullOrEmpty(materialName))
+            {
+                if (!OwnerApplication.MaterialDatabases.TryGet(database, out var db))
+                {
+                    db = null;
+                }
+
+                return new SwMaterial(materialName, (SwMaterialsDatabase)db);
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        internal void SetMaterial(IXMaterial material, string confName) 
+        {
+            if (material != null)
+            {
+                Part.SetMaterialPropertyName2(confName, material.Database.Name, material.Name);
+            }
+            else
+            {
+                Part.SetMaterialPropertyName2(confName, "", "");
+            }
         }
 
         internal protected override swDocumentTypes_e? DocumentType => swDocumentTypes_e.swDocPART;

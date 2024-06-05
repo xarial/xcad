@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -136,8 +136,65 @@ namespace Xarial.XCad.SwDocumentManager.Data
             return type;
         }
 
+        protected object ReadValue(out string expression)
+        {
+            var val = ReadRawValue(out SwDmCustomInfoType type, out expression);
+
+            object resVal;
+
+            switch (type)
+            {
+                case SwDmCustomInfoType.swDmCustomInfoText:
+                    resVal = val;
+                    break;
+
+                case SwDmCustomInfoType.swDmCustomInfoYesOrNo:
+                    switch (val.ToLower())
+                    {
+                        case "yes":
+                            resVal = true;
+                            break;
+
+                        case "no":
+                            resVal = false;
+                            break;
+
+                        default:
+                            if (bool.TryParse(val, out var boolVal))
+                            {
+                                resVal = boolVal;
+                            }
+                            else
+                            {
+                                resVal = val;
+                            }
+                            break;
+                    }
+                    break;
+
+                case SwDmCustomInfoType.swDmCustomInfoNumber:
+                    resVal = double.Parse(val);
+                    break;
+
+                case SwDmCustomInfoType.swDmCustomInfoDate:
+                    resVal = DateTime.Parse(val);
+                    break;
+
+                default:
+                    resVal = val;
+                    break;
+            }
+
+            if (string.IsNullOrEmpty(expression))
+            {
+                expression = val;
+            }
+
+            return resVal;
+        }
+
         internal abstract void Delete();
-        protected abstract object ReadValue(out string expression);
+        protected abstract string ReadRawValue(out SwDmCustomInfoType type, out string linkedTo);
         protected abstract void AddValue(object value);
         protected abstract void SetValue(object value);
     }

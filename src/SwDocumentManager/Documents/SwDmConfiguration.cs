@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -68,7 +68,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             }
         }
 
-        public virtual bool IsCommitted => true;
+        public override bool IsCommitted => true;
 
         public string PartNumber => GetPartNumber(this);
 
@@ -181,6 +181,53 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             }
         }
 
+        public virtual IXConfiguration Parent 
+        {
+            get 
+            {
+                var parentConf = GetParentConfiguration();
+
+                if (parentConf != null)
+                {
+                    return Document.CreateObjectFromDispatch<ISwDmConfiguration>(parentConf);
+                }
+                else
+                {
+                    return null;
+                }
+            }
+        }
+
+        private SwDMConfiguration GetParentConfiguration() 
+        {
+            var parentConfName = Configuration.GetParentConfigurationName();
+
+            if (!string.IsNullOrEmpty(parentConfName))
+            {
+                SwDMConfiguration parentConf;
+
+                if (Document.IsVersionNewerOrEqual(SwDmVersion_e.Sw2019))
+                {
+                    parentConf = ((ISwDMConfigurationMgr2)Document.Document.ConfigurationManager).GetConfigurationByName2(parentConfName, out var err);
+
+                    if (err != SwDMConfigurationError.SwDMConfigurationError_None)
+                    {
+                        throw new InvalidConfigurationsException(err);
+                    }
+                }
+                else
+                {
+                    parentConf = Document.Document.ConfigurationManager.GetConfigurationByName(parentConfName);
+                }
+
+                return parentConf;
+            }
+            else
+            {
+                return null;
+            }
+        }
+
         private string TryGetDocumentPropertyValue(string prpName)
         {
             try
@@ -237,7 +284,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             }
         }
 
-        public virtual void Commit(CancellationToken cancellationToken) => throw new NotSupportedException();
+        public override void Commit(CancellationToken cancellationToken) => throw new NotSupportedException();
     }
 
     public interface ISwDmAssemblyConfiguration : ISwDmConfiguration, IXAssemblyConfiguration
@@ -261,7 +308,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
     internal class SwDmPartConfiguration : SwDmConfiguration, ISwDmPartConfiguration
     {
         #region Not Supported
-        public IXMaterial Material => throw new NotSupportedException();
+        public IXMaterial Material { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
         #endregion
 
         internal SwDmPartConfiguration(ISwDMConfiguration conf, SwDmPart part) : base(conf, part)
