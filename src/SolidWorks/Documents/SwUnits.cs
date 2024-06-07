@@ -119,34 +119,8 @@ namespace Xarial.XCad.SolidWorks.Documents
 
                         var lengthUnits = (swLengthUnit_e)m_Document.Model.Extension.GetUserPreferenceInteger(
                             (int)swUserPreferenceIntegerValue_e.swUnitsLinear, (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified);
-
-                        switch (lengthUnits)
-                        {
-                            case swLengthUnit_e.swANGSTROM:
-                                return Length_e.Angstroms;
-                            case swLengthUnit_e.swCM:
-                                return Length_e.Centimeters;
-                            case swLengthUnit_e.swFEET:
-                                return Length_e.Feet;
-                            case swLengthUnit_e.swFEETINCHES:
-                                return Length_e.FeetInches;
-                            case swLengthUnit_e.swINCHES:
-                                return Length_e.Inches;
-                            case swLengthUnit_e.swMETER:
-                                return Length_e.Meters;
-                            case swLengthUnit_e.swMICRON:
-                                return Length_e.Microns;
-                            case swLengthUnit_e.swMIL:
-                                return Length_e.Mils;
-                            case swLengthUnit_e.swMM:
-                                return Length_e.Millimeters;
-                            case swLengthUnit_e.swNANOMETER:
-                                return Length_e.Nanometers;
-                            case swLengthUnit_e.swUIN:
-                                return Length_e.Microinches;
-                            default:
-                                throw new Exception($"Specified custom length unit is not supported: {lengthUnits}");
-                        }
+                        
+                        return ConvertLengthUnits(lengthUnits);
 
                     default:
                         throw new Exception($"Units are not supported: {units}");
@@ -156,50 +130,11 @@ namespace Xarial.XCad.SolidWorks.Documents
             {
                 if (System == UnitSystem_e.Custom)
                 {
-                    swLengthUnit_e lengthUnit;
-
-                    switch (value) 
-                    {
-                        case Length_e.Angstroms:
-                            lengthUnit = swLengthUnit_e.swANGSTROM;
-                            break;
-                        case Length_e.Centimeters:
-                            lengthUnit = swLengthUnit_e.swCM;
-                            break;
-                        case Length_e.Feet:
-                            lengthUnit = swLengthUnit_e.swFEET;
-                            break;
-                        case Length_e.FeetInches:
-                            lengthUnit = swLengthUnit_e.swFEETINCHES;
-                            break;
-                        case Length_e.Inches:
-                            lengthUnit = swLengthUnit_e.swINCHES;
-                            break;
-                        case Length_e.Meters:
-                            lengthUnit = swLengthUnit_e.swMETER;
-                            break;
-                        case Length_e.Microns:
-                            lengthUnit = swLengthUnit_e.swMICRON;
-                            break;
-                        case Length_e.Mils:
-                            lengthUnit = swLengthUnit_e.swMIL;
-                            break;
-                        case Length_e.Millimeters:
-                            lengthUnit = swLengthUnit_e.swMM;
-                            break;
-                        case Length_e.Nanometers:
-                            lengthUnit = swLengthUnit_e.swNANOMETER;
-                            break;
-                        case Length_e.Microinches:
-                            lengthUnit = swLengthUnit_e.swUIN;
-                            break;
-                        default:
-                            throw new NotSupportedException();
-                    }
+                    var lengthUnit = ConvertToLengthUnit(value);
 
                     if (!m_Document.Model.Extension.SetUserPreferenceInteger(
                            (int)swUserPreferenceIntegerValue_e.swUnitsLinear,
-                           (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified, (int)lengthUnit)) 
+                           (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified, (int)lengthUnit))
                     {
                         throw new Exception("Failed to change length units");
                     }
@@ -207,6 +142,28 @@ namespace Xarial.XCad.SolidWorks.Documents
                 else 
                 {
                     throw new NotSupportedException("Units can only be changed in Custom units system");
+                }
+            }
+        }
+
+        public Length_e DualDimensionLength 
+        {
+            get 
+            {
+                var lengthUnits = (swLengthUnit_e)m_Document.Model.Extension.GetUserPreferenceInteger(
+                            (int)swUserPreferenceIntegerValue_e.swUnitsDualLinear, (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified);
+
+                return ConvertLengthUnits(lengthUnits);
+            }
+            set 
+            {
+                var lengthUnit = ConvertToLengthUnit(value);
+
+                if (!m_Document.Model.Extension.SetUserPreferenceInteger(
+                       (int)swUserPreferenceIntegerValue_e.swUnitsDualLinear,
+                       (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified, (int)lengthUnit))
+                {
+                    throw new Exception("Failed to change dual dimension length units");
                 }
             }
         }
@@ -477,6 +434,22 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
+        public int DualDimensionLengthDecimalPlaces
+        {
+            get => m_Document.Model.Extension.GetUserPreferenceInteger(
+                (int)swUserPreferenceIntegerValue_e.swUnitsDualLinearDecimalPlaces,
+                (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified);
+            set
+            {
+                if (!m_Document.Model.Extension.SetUserPreferenceInteger(
+                    (int)swUserPreferenceIntegerValue_e.swUnitsDualLinearDecimalPlaces,
+                    (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified, value))
+                {
+                    throw new Exception("Failed to change dual dimension linear decimal places");
+                }
+            }
+        }
+
         public int MassDecimalPlaces
         {
             get => m_Document.Model.Extension.GetUserPreferenceInteger(
@@ -524,12 +497,107 @@ namespace Xarial.XCad.SolidWorks.Documents
                 }
             }
         }
-        
+
+        public int LengthFractions
+        {
+            get => m_Document.Model.Extension.GetUserPreferenceInteger(
+                (int)swUserPreferenceIntegerValue_e.swUnitsLinearFractionDenominator,
+                (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified);
+            set
+            {
+                if (!m_Document.Model.Extension.SetUserPreferenceInteger(
+                    (int)swUserPreferenceIntegerValue_e.swUnitsLinearFractionDenominator,
+                    (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified, value))
+                {
+                    throw new Exception("Failed to change length fractions");
+                }
+            }
+        }
+
+        public int DualDimensionLengthFractions
+        {
+            get => m_Document.Model.Extension.GetUserPreferenceInteger(
+                (int)swUserPreferenceIntegerValue_e.swUnitsDualLinearFractionDenominator,
+                (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified);
+            set
+            {
+                if (!m_Document.Model.Extension.SetUserPreferenceInteger(
+                    (int)swUserPreferenceIntegerValue_e.swUnitsDualLinearFractionDenominator,
+                    (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified, value))
+                {
+                    throw new Exception("Failed to change dual dimension length fractions");
+                }
+            }
+        }
+
+
         private readonly ISwDocument m_Document;
 
         internal SwUnits(ISwDocument document) 
         {
             m_Document = document;
+        }
+
+        private swLengthUnit_e ConvertToLengthUnit(Length_e value)
+        {
+            switch (value)
+            {
+                case Length_e.Angstroms:
+                    return swLengthUnit_e.swANGSTROM;
+                case Length_e.Centimeters:
+                    return swLengthUnit_e.swCM;
+                case Length_e.Feet:
+                    return swLengthUnit_e.swFEET;
+                case Length_e.FeetInches:
+                    return swLengthUnit_e.swFEETINCHES;
+                case Length_e.Inches:
+                    return swLengthUnit_e.swINCHES;
+                case Length_e.Meters:
+                    return swLengthUnit_e.swMETER;
+                case Length_e.Microns:
+                    return swLengthUnit_e.swMICRON;
+                case Length_e.Mils:
+                    return swLengthUnit_e.swMIL;
+                case Length_e.Millimeters:
+                    return swLengthUnit_e.swMM;
+                case Length_e.Nanometers:
+                    return swLengthUnit_e.swNANOMETER;
+                case Length_e.Microinches:
+                    return swLengthUnit_e.swUIN;
+                default:
+                    throw new NotSupportedException();
+            }
+        }
+
+        private Length_e ConvertLengthUnits(swLengthUnit_e lengthUnits)
+        {
+            switch (lengthUnits)
+            {
+                case swLengthUnit_e.swANGSTROM:
+                    return Length_e.Angstroms;
+                case swLengthUnit_e.swCM:
+                    return Length_e.Centimeters;
+                case swLengthUnit_e.swFEET:
+                    return Length_e.Feet;
+                case swLengthUnit_e.swFEETINCHES:
+                    return Length_e.FeetInches;
+                case swLengthUnit_e.swINCHES:
+                    return Length_e.Inches;
+                case swLengthUnit_e.swMETER:
+                    return Length_e.Meters;
+                case swLengthUnit_e.swMICRON:
+                    return Length_e.Microns;
+                case swLengthUnit_e.swMIL:
+                    return Length_e.Mils;
+                case swLengthUnit_e.swMM:
+                    return Length_e.Millimeters;
+                case swLengthUnit_e.swNANOMETER:
+                    return Length_e.Nanometers;
+                case swLengthUnit_e.swUIN:
+                    return Length_e.Microinches;
+                default:
+                    throw new Exception($"Specified custom length unit is not supported: {lengthUnits}");
+            }
         }
     }
 }
