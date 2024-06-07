@@ -202,9 +202,14 @@ namespace Xarial.XCad.Documents
         UnitSystem_e System { get; set; }
 
         /// <summary>
-        /// Acessing length units
+        /// Accessing length units
         /// </summary>
         Length_e Length { get; set; }
+
+        /// <summary>
+        /// Accessing dual dimension length units
+        /// </summary>
+        Length_e DualDimensionLength { get; set; }
 
         /// <summary>
         /// Acessing mass units
@@ -227,6 +232,11 @@ namespace Xarial.XCad.Documents
         int LengthDecimalPlaces { get; set; }
 
         /// <summary>
+        /// Decimal places of the dual dimension length
+        /// </summary>
+        int DualDimensionLengthDecimalPlaces { get; set; }
+
+        /// <summary>
         /// Decimal places of the mass
         /// </summary>
         int MassDecimalPlaces { get; set; }
@@ -240,6 +250,16 @@ namespace Xarial.XCad.Documents
         /// Decimal places of the time
         /// </summary>
         int TimeDecimalPlaces { get; set; }
+
+        /// <summary>
+        /// Fractions of the length
+        /// </summary>
+        int LengthFractions { get; set; }
+
+        /// <summary>
+        /// Fractions of the dual dimension length
+        /// </summary>
+        int DualDimensionLengthFractions { get; set; }
     }
 
     /// <summary>

@@ -272,8 +272,7 @@ namespace Xarial.XCad.Utils.CustomFeature
                 {
                     try
                     {
-                        bodies[i].Visible = false;
-                        bodies[i].Dispose();
+                        HidePreviewBody(bodies[i]);
                     }
                     catch (Exception ex)
                     {
@@ -283,6 +282,16 @@ namespace Xarial.XCad.Utils.CustomFeature
                     bodies[i] = null;
                 }
             }
+        }
+
+        /// <summary>
+        /// Function to hide preview body
+        /// </summary>
+        /// <param name="body">Body to hide</param>
+        protected virtual void HidePreviewBody(IXMemoryBody body) 
+        {
+            body.Visible = false;
+            body.Dispose();
         }
 
         private void HideEditBodies(ShouldHidePreviewEditBodyDelegate<TData, TPage> shouldHidePreviewEditBodyFunc)

@@ -41,6 +41,18 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 
         protected override IXObject CurrentPreviewContext => ProvidePreviewContext?.Invoke(CurrentDocument);
 
+        protected override void HidePreviewBody(IXMemoryBody body)
+        {
+            if (body is ISwMacroFeatureEditBody)
+            {
+                base.HidePreviewBody(((ISwMacroFeatureEditBody)body).PreviewBody);
+            }
+            else 
+            {
+                base.HidePreviewBody(body);
+            }
+        }
+
         protected override void CompleteFeature(PageCloseReasons_e reason)
         {
             base.CompleteFeature(reason);

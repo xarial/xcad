@@ -16,6 +16,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Geometry;
+using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Geometry;
 using Xarial.XCad.SolidWorks.Utils;
@@ -30,65 +31,95 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
     /// For the cosistent access in the preview <see cref="ISwMacroFeatureEditBody"/> is added which represents both temp body (in preview mode) and permanent body in the regeneration</remarks>
     internal interface ISwMacroFeatureEditBody : ISwTempBody
     {
-        IBody2 PreviewBody { get; }
+        ISwTempBody PreviewBody { get; }
         bool IsPreviewMode { get; }
     }
 
-    internal static class SwMacroFeatureEditBody
+    internal class SwMacroFeatureBodyContainer : SwTempBodyContainer
     {
-        internal static ISwTempBody PerformAdd(this ISwMacroFeatureEditBody editBody, ISwTempBody other)
-            => SwTempBodyHelper.Add(ProvideBooleanOperationBody(editBody), ((SwBody)other).Body, (SwApplication)editBody.OwnerApplication, (SwDocument)editBody.OwnerDocument,
-                b => CreateTempBodyBooleanOperationResult(b, (SwDocument)editBody.OwnerDocument, (SwApplication)editBody.OwnerApplication, editBody.IsPreviewMode));
+        private readonly bool m_IsPreview;
 
-        internal static ISwTempBody[] PerformSubstract(this ISwMacroFeatureEditBody editBody, ISwTempBody other)
-            => SwTempBodyHelper.Substract(ProvideBooleanOperationBody(editBody), ((SwBody)other).Body, (SwApplication)editBody.OwnerApplication, (SwDocument)editBody.OwnerDocument,
-                b => CreateTempBodyBooleanOperationResult(b, (SwDocument)editBody.OwnerDocument, (SwApplication)editBody.OwnerApplication, editBody.IsPreviewMode));
+        internal Lazy<ISwTempBody> PreviewBody { get; }
 
-        internal static ISwTempBody[] PerformCommon(this ISwMacroFeatureEditBody editBody, ISwTempBody other)
-            => SwTempBodyHelper.Common(ProvideBooleanOperationBody(editBody), ((SwBody)other).Body, (SwApplication)editBody.OwnerApplication, (SwDocument)editBody.OwnerDocument,
-                b => CreateTempBodyBooleanOperationResult(b, (SwDocument)editBody.OwnerDocument, (SwApplication)editBody.OwnerApplication, editBody.IsPreviewMode));
-
-        private static ISwTempBody CreateTempBodyBooleanOperationResult(IBody2 body, SwDocument doc, SwApplication app, bool isPreview) 
+        internal SwMacroFeatureBodyContainer(IBody2 body, SwDocument doc, SwApplication app, bool isPreview)
+            : base(body, doc, app)
         {
-            if (body.IsTemporaryBody())
+            m_IsPreview = isPreview;
+
+            PreviewBody = new Lazy<ISwTempBody>(() => app.CreateObjectFromDispatch<ISwTempBody>(body.CreateCopy(app), null));
+        }
+
+        internal override ISwTempBody Add(ISwTempBody other)
+        {
+            if (m_IsPreview)
             {
-                return doc.CreateObjectFromDispatch<ISwTempBody>(body);
+                return PreviewBody.Value.Add(other);
             }
-            else 
+            else
             {
-                return (ISwTempBody)SwMacroFeatureDefinition.CreateEditBody(body, doc, app, isPreview);
+                return base.Add(other);
             }
         }
 
-        private static IBody2 ProvideBooleanOperationBody(ISwMacroFeatureEditBody editBody) 
+        internal override ISwTempBody[] Common(ISwTempBody other)
         {
-            if (editBody.IsPreviewMode)
+            if (m_IsPreview)
             {
-                return editBody.PreviewBody;
+                return PreviewBody.Value.Common(other);
             }
-            else 
+            else
             {
-                return editBody.Body;
+                return base.Common(other);
             }
         }
-    }
 
-    internal class LazyMacroFeaturePreviewBody : Lazy<IBody2> 
-    {
-        internal LazyMacroFeaturePreviewBody(IBody2 body, bool isPreview, SwApplication app) 
-            : base(() => 
-            {
-                if (isPreview)
-                {
-                    return body.CreateCopy(app);
-                }
-                else 
-                {
-                    throw new Exception("Macro feature body is not in a preview state");
-                }
-            })
+        internal override ISwTempBody[] Substract(ISwTempBody other)
         {
+            if (m_IsPreview)
+            {
+                return PreviewBody.Value.Substract(other);
+            }
+            else
+            {
+                return base.Substract(other);
+            }
+        }
 
+        internal override void Transform(TransformMatrix transform)
+        {
+            if (m_IsPreview)
+            {
+                PreviewBody.Value.Transform(transform);
+            }
+            else
+            {
+                base.Transform(transform);
+            }
+        }
+
+        internal override void Preview(IXObject context, Color color)
+        {
+            if (m_IsPreview)
+            {
+                PreviewBody.Value.Preview(context, color);
+            }
+            else
+            {
+                throw new Exception("Preview is only supported in the preview mode");
+            }
+        }
+
+        protected override ISwTempBody CreateBodyInstance(IBody2 body)
+            => SwMacroFeatureDefinition.CreateEditBody(body, m_Doc, m_App, m_IsPreview);
+
+        public override void Dispose()
+        {
+            //do not dispose macro feature body as it is not a temp body, only dispose preview body
+
+            if (PreviewBody.IsValueCreated)
+            {
+                PreviewBody.Value.Dispose();
+            }
         }
     }
 
@@ -100,27 +131,22 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 
         public bool IsPreviewMode { get; }
 
-        public IBody2 PreviewBody => m_PreviewBodyLazy.Value;
+        public ISwTempBody PreviewBody => m_MacroFeatureBodyContainer.PreviewBody.Value;
 
-        private Lazy<IBody2> m_PreviewBodyLazy;
+        private readonly SwMacroFeatureBodyContainer m_MacroFeatureBodyContainer;
 
         internal SwPlanarSheetMacroFeatureEditBody(IBody2 body, SwDocument doc, SwApplication app, bool isPreview) : base(body, doc, app)
         {
             IsPreviewMode = isPreview;
-            m_PreviewBodyLazy = new LazyMacroFeaturePreviewBody(body, isPreview, app);
+            m_MacroFeatureBodyContainer = new SwMacroFeatureBodyContainer(body, doc, app, isPreview);
         }
 
-        public ISwTempBody Add(ISwTempBody other) => this.PerformAdd(other);
-        public ISwTempBody[] Substract(ISwTempBody other) => this.PerformSubstract(other);
-        public ISwTempBody[] Common(ISwTempBody other) => this.PerformCommon(other);
-
-        public void Preview(IXObject context, Color color)
-        {
-        }
-
-        public void Dispose()
-        {
-        }
+        public void Preview(IXObject context, Color color) => m_MacroFeatureBodyContainer.Preview(context, color);
+        public ISwTempBody Add(ISwTempBody other) => m_MacroFeatureBodyContainer.Add(other);
+        public ISwTempBody[] Substract(ISwTempBody other) => m_MacroFeatureBodyContainer.Substract(other);
+        public ISwTempBody[] Common(ISwTempBody other) => m_MacroFeatureBodyContainer.Common(other);
+        public void Transform(TransformMatrix transform) => m_MacroFeatureBodyContainer.Transform(transform);
+        public void Dispose() => m_MacroFeatureBodyContainer.Dispose();
     }
 
     internal class SwSheetMacroFeatureEditBody : SwSheetBody, ISwMacroFeatureEditBody, ISwTempSheetBody
@@ -131,27 +157,22 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 
         public bool IsPreviewMode { get; }
 
-        public IBody2 PreviewBody => m_PreviewBodyLazy.Value;
+        public ISwTempBody PreviewBody => m_MacroFeatureBodyContainer.PreviewBody.Value;
 
-        private Lazy<IBody2> m_PreviewBodyLazy;
+        private readonly SwMacroFeatureBodyContainer m_MacroFeatureBodyContainer;
 
         internal SwSheetMacroFeatureEditBody(IBody2 body, SwDocument doc, SwApplication app, bool isPreview) : base(body, doc, app)
         {
             IsPreviewMode = isPreview;
-            m_PreviewBodyLazy = new LazyMacroFeaturePreviewBody(body, isPreview, app);
+            m_MacroFeatureBodyContainer = new SwMacroFeatureBodyContainer(body, doc, app, isPreview);
         }
 
-        public ISwTempBody Add(ISwTempBody other) => this.PerformAdd(other);
-        public ISwTempBody[] Substract(ISwTempBody other) => this.PerformSubstract(other);
-        public ISwTempBody[] Common(ISwTempBody other) => this.PerformCommon(other);
-
-        public void Preview(IXObject context, Color color)
-        {
-        }
-
-        public void Dispose()
-        {
-        }
+        public void Preview(IXObject context, Color color) => m_MacroFeatureBodyContainer.Preview(context, color);
+        public ISwTempBody Add(ISwTempBody other) => m_MacroFeatureBodyContainer.Add(other);
+        public ISwTempBody[] Substract(ISwTempBody other) => m_MacroFeatureBodyContainer.Substract(other);
+        public ISwTempBody[] Common(ISwTempBody other) => m_MacroFeatureBodyContainer.Common(other);
+        public void Transform(TransformMatrix transform) => m_MacroFeatureBodyContainer.Transform(transform);
+        public void Dispose() => m_MacroFeatureBodyContainer.Dispose();
     }
 
     internal class SwSolidMacroFeatureEditBody : SwSolidBody, ISwMacroFeatureEditBody, ISwTempSolidBody
@@ -162,27 +183,22 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 
         public bool IsPreviewMode { get; }
 
-        public IBody2 PreviewBody => m_PreviewBodyLazy.Value;
+        public ISwTempBody PreviewBody => m_MacroFeatureBodyContainer.PreviewBody.Value;
 
-        private Lazy<IBody2> m_PreviewBodyLazy;
+        private readonly SwMacroFeatureBodyContainer m_MacroFeatureBodyContainer;
 
         internal SwSolidMacroFeatureEditBody(IBody2 body, SwDocument doc, SwApplication app, bool isPreview) : base(body, doc, app)
         {
             IsPreviewMode = isPreview;
-            m_PreviewBodyLazy = new LazyMacroFeaturePreviewBody(body, isPreview, app);
+            m_MacroFeatureBodyContainer = new SwMacroFeatureBodyContainer(body, doc, app, isPreview);
         }
 
-        public ISwTempBody Add(ISwTempBody other) => this.PerformAdd(other);
-        public ISwTempBody[] Substract(ISwTempBody other) => this.PerformSubstract(other);
-        public ISwTempBody[] Common(ISwTempBody other) => this.PerformCommon(other);
-
-        public void Preview(IXObject context, Color color)
-        {
-        }
-
-        public void Dispose()
-        {
-        }
+        public void Preview(IXObject context, Color color) => m_MacroFeatureBodyContainer.Preview(context, color);
+        public ISwTempBody Add(ISwTempBody other) => m_MacroFeatureBodyContainer.Add(other);
+        public ISwTempBody[] Substract(ISwTempBody other) => m_MacroFeatureBodyContainer.Substract(other);
+        public ISwTempBody[] Common(ISwTempBody other) => m_MacroFeatureBodyContainer.Common(other);
+        public void Transform(TransformMatrix transform) => m_MacroFeatureBodyContainer.Transform(transform);
+        public void Dispose() => m_MacroFeatureBodyContainer.Dispose();
     }
 
     internal class SwWireMacroFeatureEditBody : SwWireBody, ISwMacroFeatureEditBody, ISwTempWireBody
@@ -193,26 +209,21 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 
         public bool IsPreviewMode { get; }
 
-        public IBody2 PreviewBody => m_PreviewBodyLazy.Value;
+        public ISwTempBody PreviewBody => m_MacroFeatureBodyContainer.PreviewBody.Value;
 
-        private Lazy<IBody2> m_PreviewBodyLazy;
+        private readonly SwMacroFeatureBodyContainer m_MacroFeatureBodyContainer;
 
         internal SwWireMacroFeatureEditBody(IBody2 body, SwDocument doc, SwApplication app, bool isPreview) : base(body, doc, app)
         {
             IsPreviewMode = isPreview;
-            m_PreviewBodyLazy = new LazyMacroFeaturePreviewBody(body, isPreview, app);
+            m_MacroFeatureBodyContainer = new SwMacroFeatureBodyContainer(body, doc, app, isPreview);
         }
 
-        public ISwTempBody Add(ISwTempBody other) => this.PerformAdd(other);
-        public ISwTempBody[] Substract(ISwTempBody other) => this.PerformSubstract(other);
-        public ISwTempBody[] Common(ISwTempBody other) => this.PerformCommon(other);
-
-        public void Preview(IXObject context, Color color)
-        {
-        }
-
-        public void Dispose()
-        {
-        }
+        public void Preview(IXObject context, Color color) => m_MacroFeatureBodyContainer.Preview(context, color);
+        public ISwTempBody Add(ISwTempBody other) => m_MacroFeatureBodyContainer.Add(other);
+        public ISwTempBody[] Substract(ISwTempBody other) => m_MacroFeatureBodyContainer.Substract(other);
+        public ISwTempBody[] Common(ISwTempBody other) => m_MacroFeatureBodyContainer.Common(other);
+        public void Transform(TransformMatrix transform) => m_MacroFeatureBodyContainer.Transform(transform);
+        public void Dispose() => m_MacroFeatureBodyContainer.Dispose();
     }
 }

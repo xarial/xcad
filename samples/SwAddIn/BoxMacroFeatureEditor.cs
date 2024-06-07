@@ -61,8 +61,13 @@ namespace SwAddInExample
         
         public IXFace BaseFace { get; set; }
 
+        [ControlOptions(align: ControlLeftAlign_e.Indent)]
+        public bool Merge { get; set; }
+
         [SelectionBoxOptions(typeof(SampleSelectionFilter))]
         public List<IXFace> TestFaces { get; set; }
+
+        public List<IXSolidBody> EditBodies { get; set; }
 
         private string m_Size;
         private double m_Volume;
@@ -132,6 +137,14 @@ namespace SwAddInExample
         //[ParameterExclude]
         public List<IXFace> TestFaces { get; set; }
 
+        [ParameterEditBody]
+        public IXBody EditBody { get; set; }
+
+        [ParameterEditBody]
+        public List<IXSolidBody> EditBodies { get; set; }
+
+        public bool Merge { get; set; }
+
         public double Width { get; set; } = 0.1;
         public double Height { get; set; } = 0.2;
 
@@ -156,7 +169,10 @@ namespace SwAddInExample
                 Length = page.Parameters.Length,
                 Width = page.Parameters.Width,
                 BaseFace = page.Parameters.BaseFace,
-                TestFaces = page.Parameters.TestFaces
+                TestFaces = page.Parameters.TestFaces,
+                Merge = page.Parameters.Merge,
+                EditBody = page.Parameters.Merge ? page.Parameters.BaseFace?.Body : null,
+                EditBodies = page.Parameters.EditBodies
             };
 
         public override BoxPage CreatePropertyPage(IXApplication app, IXDocument doc, IXCustomFeature<BoxMacroFeatureData> feat)
@@ -168,7 +184,9 @@ namespace SwAddInExample
                     Length = feat.Parameters.Length,
                     Width = feat.Parameters.Width,
                     BaseFace = feat.Parameters.BaseFace,
-                    TestFaces = feat.Parameters.TestFaces
+                    Merge = feat.Parameters.Merge,
+                    TestFaces = feat.Parameters.TestFaces,
+                    EditBodies = feat.Parameters.EditBodies
                 }
             };
 
@@ -211,9 +229,31 @@ namespace SwAddInExample
                 throw new NotSupportedException();
             }
 
-            var box = (ISwBody)app.MemoryGeometryBuilder.CreateSolidBox(
+            var box = (ISwTempBody)app.MemoryGeometryBuilder.CreateSolidBox(
                 pt, dir, refDir,
                 data.Width, data.Height, data.Length).Bodies.First();
+
+            if (data.Merge)
+            {
+                if (data.EditBody != null) 
+                {
+                    box = (ISwTempBody)((IXMemoryBody)data.EditBody).Add(box);
+                }
+            }
+
+            var res = new List<ISwBody>()
+            {
+                box
+            };
+
+            if (data.EditBodies?.Any() == true) 
+            {
+                foreach (var body in data.EditBodies) 
+                {
+                    ((IXMemoryBody)body).Transform(TransformMatrix.CreateFromTranslation(0.1, 0.2, 0.3));
+                    res.Add((ISwBody)body);
+                }
+            }
 
             alignDim = new AlignDimensionDelegate<BoxMacroFeatureData>((p, d) => 
             {
@@ -226,7 +266,7 @@ namespace SwAddInExample
             data.Increment++;
             feat.Parameters = data;
 
-            return new ISwBody[] { box };
+            return res.ToArray();
         }
 
         protected override BoxMacroFeatureData HandleEditingException(IXCustomFeature<BoxMacroFeatureData> feat, Exception ex)
