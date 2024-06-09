@@ -96,6 +96,58 @@ namespace Xarial.XCad.Geometry.Structures
         public static TransformMatrix CreateFromTranslation(Vector translation)
             => CreateFromTranslation(translation.X, translation.Y, translation.Z);
 
+        /// <summary>
+        /// Creates matrix from scale vector
+        /// </summary>
+        /// <param name="scale">X, Y, Z directions scale</param>
+        /// <returns>Transformation matrix</returns>
+        public static TransformMatrix CreateFromScale(Vector scale)
+            => new TransformMatrix(
+                scale.X, 0, 0, 0,
+                0, scale.Y, 0, 0,
+                0, 0, scale.Z, 0,
+                0, 0, 0, 1);
+
+        /// <summary>
+        /// Creates transformation from the reflection
+        /// </summary>
+        /// <param name="plane">Reflection plane</param>
+        /// <returns>Transformation matrix</returns>
+        public static TransformMatrix CreateFromReflection(Plane plane) 
+        {
+            var planeNormal = plane.Normal.Normalize();
+
+            var planeDist = plane.GetDistance(new Point(0, 0, 0));
+
+            var a = planeNormal.X;
+            var b = planeNormal.Y;
+            var c = planeNormal.Z;
+
+            var fa = -2.0d * a;
+            var fb = -2.0d * b;
+            var fc = -2.0d * c;
+
+            return new TransformMatrix(
+                fa * a + 1.0,
+                fb * a,
+                fc * a,
+                0.0,
+
+                fa * b,
+                fb * b + 1.0,
+                fc * b,
+                0.0,
+
+                fa * c,
+                fb * c,
+                fc * c + 1.0,
+                0.0,
+
+                fa * planeDist,
+                fb * planeDist,
+                fc * planeDist,
+                1.0f);
+        }
 
         /// <summary>
         /// Composes the transformation matrix from input parameters
