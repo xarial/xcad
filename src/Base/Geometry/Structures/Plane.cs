@@ -41,7 +41,7 @@ namespace Xarial.XCad.Geometry.Structures
         /// </summary>
         /// <param name="point">Origin point</param>
         /// <param name="normal">Plane normal</param>
-        /// <param name="direction">Plane reference direction</param>
+        /// <param name="direction">Plane reference direction (X axis)</param>
         public Plane(Point point, Vector normal, Vector direction) 
         {
             Point = point;

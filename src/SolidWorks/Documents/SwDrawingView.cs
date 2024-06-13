@@ -1865,7 +1865,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         private ISwFlatPattern GetViewFlatPattern(IView view) 
         {
-            //Note, in some sheet metal files (probably corrupted as the result of the upgrade)
+            //NOTE, in some sheet metal files (probably corrupted as the result of the upgrade)
             //this can return the hidden sheet metal flat pattern feature, not the actual one,
             //so only using this as a fallback function
 

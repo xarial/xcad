@@ -15,6 +15,7 @@ using Xarial.XCad.Geometry.Curves;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Geometry.Exceptions;
+using Xarial.XCad.SolidWorks.Geometry.Extensions;
 
 namespace Xarial.XCad.SolidWorks.Geometry.Curves
 {
@@ -101,7 +102,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Curves
 
                     for (int i = 0; i < retVal.Length; i++) 
                     {
-                        retVal[i] = CreateLine(Points[i * 2], Points[i * 2 + 1]);
+                        retVal[i] = m_Modeler.CreateTrimmedLine(Points[i * 2], Points[i * 2 + 1]);
                     }
                     break;
 
@@ -110,7 +111,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Curves
 
                     for (int i = 1; i < Points.Length; i++)
                     {
-                        retVal[i - 1] = CreateLine(Points[i - 1], Points[i]);
+                        retVal[i - 1] = m_Modeler.CreateTrimmedLine(Points[i - 1], Points[i]);
                     }
                     break;
 
@@ -119,12 +120,12 @@ namespace Xarial.XCad.SolidWorks.Geometry.Curves
 
                     for (int i = 1; i < Points.Length; i++)
                     {
-                        retVal[i - 1] = CreateLine(Points[i - 1], Points[i]);
+                        retVal[i - 1] = m_Modeler.CreateTrimmedLine(Points[i - 1], Points[i]);
                     }
 
                     if (Points.Length > 2) 
                     {
-                        retVal[retVal.Length - 1] = CreateLine(Points[Points.Length - 1], Points[0]);
+                        retVal[retVal.Length - 1] = m_Modeler.CreateTrimmedLine(Points[Points.Length - 1], Points[0]);
                     }
 
                     break;
@@ -145,19 +146,6 @@ namespace Xarial.XCad.SolidWorks.Geometry.Curves
             polyCurve.m_Creator.CachedProperties.Set(Points);
 
             return polyCurve;
-        }
-
-        private ICurve CreateLine(Point startPt, Point endPt)
-        {
-            var line = m_Modeler.CreateLine(startPt.ToArray(), (startPt - endPt).ToArray()) as ICurve;
-            line = line.CreateTrimmedCurve2(startPt.X, startPt.Y, startPt.Z, endPt.X, endPt.Y, endPt.Z);
-
-            if (line == null)
-            {
-                throw new NullReferenceException("Failed to create line");
-            }
-
-            return line;
         }
     }
 }

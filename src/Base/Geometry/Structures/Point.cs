@@ -136,8 +136,16 @@ namespace Xarial.XCad.Geometry.Structures
         /// <param name="dir">Direction of move</param>
         /// <param name="dist">Distance</param>
         /// <returns>New point</returns>
+        /// <remarks>Vector will be normalized and its length is not considered</remarks>
         public Point Move(Vector dir, double dist)
-            => this + dir.Normalize().Scale(dist);
+            => Move(dir.Normalize().Scale(dist));
+
+        /// <summary>
+        /// Moves the point along the vector length
+        /// </summary>
+        /// <param name="moveVec">Direction and length</param>
+        /// <returns>New point</returns>
+        public Point Move(Vector moveVec) => this + moveVec;
 
         /// <summary>
         /// Scales the position

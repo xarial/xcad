@@ -54,7 +54,7 @@ namespace Xarial.XCad.SolidWorks.Sketch
             Entities = new SwSketchEntityCollection(doc.CreateObjectFromDispatch<SwSketchBase>(SketchBlockDefinition.GetSketch()), doc, app);
         }
 
-        //Note: retrieving the pointer to the feature from the feature tree for the consistency as IFeature retrieved from ISketchBlockDefinition has a different pointer to IFeature in the tree
+        //NOTE: retrieving the pointer to the feature from the feature tree for the consistency as IFeature retrieved from ISketchBlockDefinition has a different pointer to IFeature in the tree
         private static IFeature GetSketchBlockDefinitionFeature(IModelDoc2 model, string name) 
         {
             switch (model) 

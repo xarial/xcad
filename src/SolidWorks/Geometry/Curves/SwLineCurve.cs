@@ -14,6 +14,7 @@ using Xarial.XCad.Geometry.Curves;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Geometry.Exceptions;
+using Xarial.XCad.SolidWorks.Geometry.Extensions;
 
 namespace Xarial.XCad.SolidWorks.Geometry.Curves
 {
@@ -58,13 +59,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Curves
         {
             var geom = Geometry;
 
-            var line = m_Modeler.CreateLine(geom.StartPoint.ToArray(), (geom.StartPoint - geom.EndPoint).ToArray()) as ICurve;
-            line = line.CreateTrimmedCurve2(geom.StartPoint.X, geom.StartPoint.Y, geom.StartPoint.Z, geom.EndPoint.X, geom.EndPoint.Y, geom.EndPoint.Z);
-
-            if (line == null)
-            {
-                throw new NullReferenceException("Failed to create line");
-            }
+            var line = m_Modeler.CreateTrimmedLine(geom.StartPoint, geom.EndPoint);
 
             return new ICurve[] { line };
         }

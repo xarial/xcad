@@ -241,12 +241,12 @@ namespace Xarial.XCad.SolidWorks.Geometry.Evaluation
 
         IXComponent[] IAssemblyEvaluation.Scope
         {
-            get => m_Creator.CachedProperties.Get<IXComponent[]>(nameof(Scope) + "_Components");
+            get => m_Creator.CachedProperties.Get<IXComponent[]>(nameof(Scope) + "%Components");
             set
             {
                 if (!IsCommitted)
                 {
-                    m_Creator.CachedProperties.Set(value, nameof(Scope) + "_Components");
+                    m_Creator.CachedProperties.Set(value, nameof(Scope) + "%Components");
                 }
                 else
                 {

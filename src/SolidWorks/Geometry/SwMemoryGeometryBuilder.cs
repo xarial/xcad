@@ -57,7 +57,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
             return Application.CreateObjectFromDispatch<ISwTempBody>(body, null);
         }
 
-        public void SerializeBody(IXMemoryBody body, Stream stream)
+        public void SerializeBody(IXBody body, Stream stream)
         {
             var comStr = new StreamWrapper(stream);
             ((SwBody)body).Body.Save(comStr);

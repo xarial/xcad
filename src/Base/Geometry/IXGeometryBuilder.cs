@@ -59,6 +59,6 @@ namespace Xarial.XCad.Geometry
         /// </summary>
         /// <param name="body">Body to store</param>
         /// <param name="stream">Stream to store to</param>
-        void SerializeBody(IXMemoryBody body, Stream stream);
+        void SerializeBody(IXBody body, Stream stream);
     }
 }

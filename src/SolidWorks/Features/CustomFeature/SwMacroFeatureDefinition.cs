@@ -249,7 +249,6 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             }
         }
 
-        //TODO: regenerate method is called twice when feature edited and new parameters applied
         [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
         public object Regenerate(object app, object modelDoc, object feature)
         {
