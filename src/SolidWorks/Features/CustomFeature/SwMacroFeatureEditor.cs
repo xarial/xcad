@@ -30,7 +30,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         where TData : class
         where TPage : class
     {
-        internal event Func<IXDocument, ISwObject> ProvidePreviewContext;
+        internal event Func<IXDocument, IXCustomFeature<TData>, ISwObject> ProvidePreviewContext;
 
         internal SwMacroFeatureEditor(ISwApplication app, Type defType,
             IServiceProvider svcProvider,
@@ -38,8 +38,8 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             : base(app, defType, svcProvider, page, behavior)
         {
         }
-
-        protected override IXObject CurrentPreviewContext => ProvidePreviewContext?.Invoke(CurrentDocument);
+        
+        protected override IXObject CurrentPreviewContext => ProvidePreviewContext?.Invoke(CurrentDocument, CurrentFeature);
 
         protected override void HidePreviewBody(IXMemoryBody body)
         {

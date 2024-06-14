@@ -15,12 +15,13 @@ using Xarial.XCad.Services;
 using Xarial.XCad.Sketch;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Features;
+using Xarial.XCad.SolidWorks.Geometry.Curves;
 using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.Toolkit.Utils;
 
 namespace Xarial.XCad.SolidWorks.Sketch
 {
-    public interface ISwSketchPoint : IXSketchPoint, ISwSketchEntity
+    public interface ISwSketchPoint : IXSketchPoint, ISwSketchEntity, ISwPoint
     {
         ISketchPoint Point { get; }
     }

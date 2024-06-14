@@ -987,8 +987,9 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         /// Context for the preview of this document
         /// </summary>
         /// <param name="doc">Current document</param>
+        /// <param name="feat">Feature being edited</param>
         /// <returns>Either <see cref="IXPart"/> or <see cref="IXComponent"/></returns>
-        protected virtual ISwObject ProvidePreviewContext(IXDocument doc)
+        protected virtual ISwObject ProvidePreviewContext(IXDocument doc, IXCustomFeature<TParams> feat)
         {
             switch (doc)
             {

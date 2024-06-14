@@ -153,13 +153,15 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
     internal class SwCircularEdge : SwEdge, ISwCircularEdge
     {
-        IXCircle IXCircularEdge.Definition => Definition;
+        IXCircleCurve IXCircularEdge.Definition => Definition;
 
         internal SwCircularEdge(IEdge edge, SwDocument doc, SwApplication app) : base(edge, doc, app)
         {
         }
 
         public new ISwCircleCurve Definition => OwnerApplication.CreateObjectFromDispatch<SwCircleCurve>(Edge.IGetCurve(), OwnerDocument);
+
+        public Circle Geometry { get => Definition.Geometry; set => throw new System.NotImplementedException(); }
     }
 
     public interface ISwLinearEdge : ISwEdge, IXLinearEdge
@@ -169,12 +171,14 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
     internal class SwLinearEdge : SwEdge, ISwLinearEdge
     {
-        IXLine IXLinearEdge.Definition => Definition;
+        IXLineCurve IXLinearEdge.Definition => Definition;
 
         internal SwLinearEdge(IEdge edge, SwDocument doc, SwApplication app) : base(edge, doc, app)
         {
         }
 
         public new ISwLineCurve Definition => OwnerApplication.CreateObjectFromDispatch<SwLineCurve>(Edge.IGetCurve(), OwnerDocument);
+
+        public Line Geometry { get => Definition.Geometry; set => throw new System.NotImplementedException(); }
     }
 }

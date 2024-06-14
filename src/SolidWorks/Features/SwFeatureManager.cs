@@ -162,6 +162,7 @@ namespace Xarial.XCad.SolidWorks.Features
                     () => new SwMacroFeature(null, Document, m_App, false),
                     () => new SwDumbBody(null, Document, m_App, false),
                     () => new SwPlane(null, Document, m_App, false),
+                    () => new SwCoordinateSystem(null, Document, m_App, false),
                     () => new SwSketchPicture(default(IFeature), Document, m_App, false));
             }
         }

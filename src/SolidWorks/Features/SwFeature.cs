@@ -290,21 +290,28 @@ namespace Xarial.XCad.SolidWorks.Features
             {
                 var feat = InsertFeature(cancellationToken);
 
-                var userName = Name;
-
-                if (!string.IsNullOrEmpty(userName))
+                if (feat != null)
                 {
-                    feat.Name = userName;
+                    var userName = Name;
+
+                    if (!string.IsNullOrEmpty(userName))
+                    {
+                        feat.Name = userName;
+                    }
+
+                    var userColor = Color;
+
+                    if (userColor.HasValue)
+                    {
+                        SetColor(feat, userColor);
+                    }
+
+                    return feat;
                 }
-
-                var userColor = Color;
-
-                if (userColor.HasValue)
+                else 
                 {
-                    SetColor(feat, userColor);
+                    throw new Exception("Failed to insert feature");
                 }
-
-                return feat;
             }
         }
 
