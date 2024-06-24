@@ -60,6 +60,11 @@ namespace Xarial.XCad.Documents
         event DocumentSaveDelegate Saving;
 
         /// <summary>
+        /// Fired when document is saved
+        /// </summary>
+        event DocumentSavedDelegate Saved;
+
+        /// <summary>
         /// Fired when document is closing
         /// </summary>
         event DocumentCloseDelegate Closing;

@@ -5,24 +5,13 @@
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
-using SolidWorks.Interop.swconst;
 using System;
-using System.Drawing;
-using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
-using Xarial.XCad.Extensions;
 using Xarial.XCad.Features.CustomFeature;
-using Xarial.XCad.Features.CustomFeature.Delegates;
 using Xarial.XCad.Geometry;
-using Xarial.XCad.SolidWorks.Documents;
-using Xarial.XCad.SolidWorks.Geometry;
 using Xarial.XCad.SolidWorks.UI.PropertyPage;
-using Xarial.XCad.Toolkit.Utils;
-using Xarial.XCad.UI.PropertyPage;
-using Xarial.XCad.UI.PropertyPage.Delegates;
 using Xarial.XCad.UI.PropertyPage.Enums;
 using Xarial.XCad.Utils.CustomFeature;
-using Xarial.XCad.Utils.Diagnostics;
 
 namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 {

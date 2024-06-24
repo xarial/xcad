@@ -23,7 +23,6 @@ using Xarial.XCad.Extensions;
 using Xarial.XCad.Extensions.Attributes;
 using Xarial.XCad.Extensions.Delegates;
 using Xarial.XCad.Features.CustomFeature;
-using Xarial.XCad.Features.CustomFeature.Delegates;
 using Xarial.XCad.SolidWorks.Attributes;
 using Xarial.XCad.SolidWorks.Base;
 using Xarial.XCad.SolidWorks.Documents;

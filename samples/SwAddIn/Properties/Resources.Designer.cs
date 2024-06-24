@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace SwAddInExample.Properties {
+namespace SwAddIn.Properties {
     using System;
     
     
@@ -39,7 +39,7 @@ namespace SwAddInExample.Properties {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("SwAddInExample.Properties.Resources", typeof(Resources).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("SwAddIn.Properties.Resources", typeof(Resources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -71,7 +71,7 @@ namespace SwAddInExample.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to TestTab1.
+        ///   Looks up a localized string similar to Sample Tab.
         /// </summary>
         internal static string TabName {
             get {

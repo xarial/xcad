@@ -7,12 +7,10 @@
 
 using System.Runtime.InteropServices;
 using Xarial.XCad;
-using SwAddInExample.Properties;
 using Xarial.XCad.Base.Attributes;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Features.CustomFeature.Structures;
 using Xarial.XCad.Features.CustomFeature;
-using Xarial.XCad.Features.CustomFeature.Delegates;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.SolidWorks.Features.CustomFeature;
 using Xarial.XCad.SolidWorks;
@@ -23,6 +21,8 @@ using Xarial.XCad.SolidWorks.Geometry.Primitives;
 using Xarial.XCad.Geometry.Primitives;
 using Xarial.XCad.SolidWorks.Geometry;
 using Xarial.XCad.Base;
+using Xarial.XCad.Annotations;
+using SwAddIn.Properties;
 
 namespace SwAddInExample
 {
@@ -41,24 +41,9 @@ namespace SwAddInExample
     [MissingDefinitionErrorMessage("xCAD. Download the add-in")]
     public class SampleMacroFeature : SwMacroFeatureDefinition<PmpMacroFeatData>
     {
-        public override CustomFeatureRebuildResult OnRebuild(ISwApplication app, ISwDocument model, ISwMacroFeature<PmpMacroFeatData> feature,
-            out AlignDimensionDelegate<PmpMacroFeatData> alignDim)
+        public override CustomFeatureRebuildResult OnRebuild(ISwApplication app, ISwDocument model, ISwMacroFeature<PmpMacroFeatData> feature)
         {
             var parameters = feature.Parameters;
-
-            alignDim = (n, d)=> 
-            {
-                switch (n) 
-                {
-                    case nameof(PmpMacroFeatData.Number):
-                        this.AlignLinearDimension(d, new Point(0, 0, 0), new Vector(0, 1, 0));
-                        break;
-
-                    case nameof(PmpMacroFeatData.Angle):
-                        this.AlignAngularDimension(d, new Point(0, 0, 0), new Point(-0.1, 0, 0), new Vector(0, 1, 0));
-                        break;
-                }
-            };
 
             var sweepArc = app.MemoryGeometryBuilder.WireBuilder.PreCreateCircle();
             sweepArc.Geometry = new Circle(new Axis(new Point(0, 0, 0), new Vector(0, 0, 1)), 0.01);
@@ -76,6 +61,20 @@ namespace SwAddInExample
 
             parameters.Number = parameters.Number + 1;
             return new CustomFeatureBodyRebuildResult() { Bodies = sweep.Bodies };
+        }
+
+        public override void OnAlignDimension(IXCustomFeature<PmpMacroFeatData> feat, string paramName, IXDimension dim)
+        {
+            switch (paramName)
+            {
+                case nameof(PmpMacroFeatData.Number):
+                    this.AlignLinearDimension(dim, new Point(0, 0, 0), new Vector(0, 1, 0));
+                    break;
+
+                case nameof(PmpMacroFeatData.Angle):
+                    this.AlignAngularDimension(dim, new Point(0, 0, 0), new Point(-0.1, 0, 0), new Vector(0, 1, 0));
+                    break;
+            }
         }
     }
 }

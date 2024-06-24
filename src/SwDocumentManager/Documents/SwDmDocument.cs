@@ -279,6 +279,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         public event DocumentSaveDelegate Saving;
         public event DocumentCloseDelegate Closing;
         public event DocumentEventDelegate Destroyed;
+        public event DocumentSavedDelegate Saved;
 
         protected readonly IElementCreator<ISwDMDocument> m_Creator;
 
@@ -491,8 +492,13 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                     if (ProcessSaveResult(res))
                     {
                         IsDirty = false;
+                        Saved?.Invoke(this, saveType, false);
                     }
                 }
+            }
+            else 
+            {
+                Saved?.Invoke(this, saveType, true);
             }
         }
 

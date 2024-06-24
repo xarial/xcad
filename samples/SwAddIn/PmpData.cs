@@ -20,7 +20,6 @@ using Xarial.XCad.SolidWorks.Documents;
 using System.Collections.ObjectModel;
 using Xarial.XCad.UI.PropertyPage.Base;
 using Xarial.XCad.Base.Attributes;
-using SwAddInExample.Properties;
 using System.Linq;
 using System.ComponentModel;
 using Xarial.XCad.UI.PropertyPage.Services;
@@ -31,6 +30,7 @@ using Xarial.XCad.Features;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.SolidWorks.UI.PropertyPage.Attributes;
 using SolidWorks.Interop.swconst;
+using SwAddIn.Properties;
 
 namespace SwAddInExample
 {

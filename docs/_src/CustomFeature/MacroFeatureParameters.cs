@@ -1,6 +1,5 @@
 ﻿using System.Runtime.InteropServices;
 using Xarial.XCad.Features.CustomFeature.Attributes;
-using Xarial.XCad.Features.CustomFeature.Delegates;
 using Xarial.XCad.Features.CustomFeature.Enums;
 using Xarial.XCad.Features.CustomFeature.Structures;
 using Xarial.XCad.Geometry;
@@ -34,14 +33,13 @@ namespace Xarial.XCad.Documentation
     public class MyParamsMacroFeature : SwMacroFeatureDefinition<MacroFeatureParams>
     {
         public override CustomFeatureRebuildResult OnRebuild(ISwApplication app, ISwDocument model, 
-            ISwMacroFeature<MacroFeatureParams> feature, out AlignDimensionDelegate<MacroFeatureParams> alignDim)
+            ISwMacroFeature<MacroFeatureParams> feature)
         {
             var parameters = feature.Parameters;
 
             var txt = parameters.TextParameter;
             var inputBody = parameters.InputBody;
 
-            alignDim = null;
             return new CustomFeatureRebuildResult();
         }
     }

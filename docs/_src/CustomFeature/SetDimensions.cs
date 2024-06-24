@@ -1,5 +1,6 @@
-﻿using Xarial.XCad.Features.CustomFeature;
-using Xarial.XCad.Features.CustomFeature.Delegates;
+﻿using System.Xml.Linq;
+using Xarial.XCad.Annotations;
+using Xarial.XCad.Features.CustomFeature;
 using Xarial.XCad.Features.CustomFeature.Structures;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;
@@ -18,27 +19,27 @@ namespace Xarial.XCad.Documentation
         }
 
         public override CustomFeatureRebuildResult OnRebuild(ISwApplication app, ISwDocument model, 
-            ISwMacroFeature<DimensionMacroFeatureParams> feature, out AlignDimensionDelegate<DimensionMacroFeatureParams> alignDim)
+            ISwMacroFeature<DimensionMacroFeatureParams> feature)
         {
             var parameters = feature.Parameters;
 
             var resBodies = GetBodies(); //generating bodies
 
-            alignDim = (name, dim) => 
-            {
-                switch (name) 
-                {
-                    case nameof(DimensionMacroFeatureParams.FirstDimension):
-                        this.AlignLinearDimension(dim, new Point(0, 0, 0), new Vector(1, 0, 0));
-                        break;
-
-                    case nameof(DimensionMacroFeatureParams.SecondDimension):
-                        this.AlignRadialDimension(dim, new Point(0, 0, 0), new Vector(0, 0, 1));
-                        break;
-                }
-            };
-
             return new CustomFeatureBodyRebuildResult() { Bodies = resBodies }; //returning custom rebuild result
+        }
+
+        public override void OnAlignDimension(IXCustomFeature<DimensionMacroFeatureParams> feat, string paramName, IXDimension dim)
+        {
+            switch (paramName)
+            {
+                case nameof(DimensionMacroFeatureParams.FirstDimension):
+                    this.AlignLinearDimension(dim, new Point(0, 0, 0), new Vector(1, 0, 0));
+                    break;
+
+                case nameof(DimensionMacroFeatureParams.SecondDimension):
+                    this.AlignRadialDimension(dim, new Point(0, 0, 0), new Vector(0, 0, 1));
+                    break;
+            }
         }
     }
 }

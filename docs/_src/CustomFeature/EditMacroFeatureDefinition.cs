@@ -1,5 +1,4 @@
 ﻿using System.Runtime.InteropServices;
-using Xarial.XCad.Features.CustomFeature.Delegates;
 using Xarial.XCad.Features.CustomFeature.Structures;
 using Xarial.XCad.SolidWorks;
 using Xarial.XCad.SolidWorks.Documents;
@@ -16,11 +15,8 @@ namespace Xarial.XCad.Documentation
     public class EditMacroFeatureDefinition : SwMacroFeatureDefinition<EditMacroFeatureDefinitionParameters>
     {
         public override CustomFeatureRebuildResult OnRebuild(ISwApplication app, ISwDocument model, 
-            ISwMacroFeature<EditMacroFeatureDefinitionParameters> feature, out AlignDimensionDelegate<EditMacroFeatureDefinitionParameters> alignDim)
-        {
-            alignDim = null;
-            return new CustomFeatureRebuildResult() { Result = true };
-        }
+            ISwMacroFeature<EditMacroFeatureDefinitionParameters> feature)
+            => new CustomFeatureRebuildResult() { Result = true };
 
         public override bool OnEditDefinition(ISwApplication app, ISwDocument model, ISwMacroFeature<EditMacroFeatureDefinitionParameters> feature)
         {

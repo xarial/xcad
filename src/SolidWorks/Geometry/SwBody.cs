@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
+using System.Windows.Media.Media3D;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Exceptions;
@@ -213,6 +214,56 @@ namespace Xarial.XCad.SolidWorks.Geometry
                     else
                     {
                         res = (swBodyMaterialApplicationError_e)Body.SetMaterialProperty(confName, "", "");
+                    }
+
+                    //NOTE: external reference body (e.g. from the inserted part) cannot be assigned using the above API, but still can be assigned with an old method
+                    if (res == swBodyMaterialApplicationError_e.swBodyMaterialApplicationError_ExternalReference) 
+                    {
+                        if (OwnerDocument is IXPart)
+                        {
+                            var part = ((ISwPart)OwnerDocument).Part;
+
+                            if (value != null)
+                            {
+                                part.SetMaterialPropertyName2(confName, value.Database.Name, value.Name);
+                            }
+                            else
+                            {
+                                part.SetMaterialPropertyName2(confName, "", "");
+                            }
+
+                            var materialName = Body.GetMaterialPropertyName(confName, out var database);
+
+                            if (string.Equals(database, SwMaterialsDatabase.SYSTEM_DB_NAME, StringComparison.CurrentCultureIgnoreCase))
+                            {
+                                database = "";
+                            }
+
+                            if (value != null)
+                            {
+                                if (string.Equals(value.Name, materialName, StringComparison.CurrentCultureIgnoreCase)
+                                    && (string.Equals(value.Database.Name, database, StringComparison.CurrentCultureIgnoreCase)
+                                        || string.Equals(System.IO.Path.GetFileNameWithoutExtension(value.Database.Name), System.IO.Path.GetFileNameWithoutExtension(database), StringComparison.CurrentCultureIgnoreCase)))
+                                {
+                                    return;
+                                }
+                                else
+                                {
+                                    throw new Exception("Failed to change the material of the external reference body");
+                                }
+                            }
+                            else 
+                            {
+                                if (string.IsNullOrEmpty(materialName) && string.IsNullOrEmpty(database))
+                                {
+                                    return;
+                                }
+                                else 
+                                {
+                                    throw new Exception("Failed to remove the material of the external reference body");
+                                }
+                            }
+                        }
                     }
                 }
 

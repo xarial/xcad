@@ -32,8 +32,12 @@ using Xarial.XCad.Utils.Reflection;
 
 namespace Xarial.XCad.SolidWorks.Features
 {
+    /// <summary>
+    /// SOLIDWORKS specific feature manager
+    /// </summary>
     public interface ISwFeatureManager : IXFeatureRepository
     {
+        /// <inheritdoc/>
         new ISwFeature this[string name] { get; }
     }
 

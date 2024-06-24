@@ -10,7 +10,6 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
-using SwAddInExample.Properties;
 using SolidWorks.Interop.swconst;
 using System.Numerics;
 using SolidWorks.Interop.sldworks;
@@ -67,6 +66,7 @@ using Xarial.XToolkit;
 using Xarial.XCad.SolidWorks.Geometry.Primitives;
 using Xarial.XCad.Toolkit.Graphics;
 using Xarial.XCad.SolidWorks.Geometry;
+using SwAddIn.Properties;
 
 namespace SwAddInExample
 {
@@ -215,6 +215,8 @@ namespace SwAddInExample
             CreateFlatPattern,
 
             CreateDrawing,
+
+            CreateCoordinateSystem,
 
             GetPreview,
 
@@ -756,6 +758,10 @@ namespace SwAddInExample
                         CreateDrawing();
                         break;
 
+                    case Commands_e.CreateCoordinateSystem:
+                        CreateCoordinateSystem();
+                        break;
+
                     case Commands_e.GetPreview:
                         GetPreview();
                         break;
@@ -785,6 +791,44 @@ namespace SwAddInExample
             {
                 Debug.Assert(false);
             }
+        }
+
+        private void CreateCoordinateSystem()
+        {
+            var doc = Application.Documents.Active;
+
+            var dirX = new Vector(1, 1, 1);
+            var dirY = dirX.CreateAnyPerpendicular();
+            var dirZ = dirX.Cross(dirY);
+            var orig = new Point(0.1, 0.2, 0.3);
+
+            var sketch = doc.Features.PreCreate3DSketch();
+
+            var origPt = sketch.Entities.PreCreatePoint();
+            origPt.Coordinate = orig;
+            sketch.Entities.Add(origPt);
+
+            var lineX = sketch.Entities.PreCreateLine();
+            lineX.Geometry = new Line(orig, orig.Move(dirX, 0.1));
+            sketch.Entities.Add(lineX);
+
+            var lineY = sketch.Entities.PreCreateLine();
+            lineY.Geometry = new Line(orig, orig.Move(dirY, 0.1));
+            sketch.Entities.Add(lineY);
+
+            var lineZ = sketch.Entities.PreCreateLine();
+            lineZ.Geometry = new Line(orig, orig.Move(dirZ, 0.1));
+            sketch.Entities.Add(lineZ);
+
+            sketch.Commit();
+
+            var coordSys = doc.Features.PreCreateCoordinateSystem();
+            coordSys.Origin = origPt;
+            coordSys.AxisX = lineX;
+            coordSys.AxisY = lineY;
+            coordSys.AxisZ = lineZ;
+
+            coordSys.Commit();
         }
 
         private void OnCommandStateResolve(Commands_e spec, CommandState state)
