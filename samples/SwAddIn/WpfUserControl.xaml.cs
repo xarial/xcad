@@ -5,7 +5,7 @@
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
-using SwAddInExample.Properties;
+using SwAddIn.Properties;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,7 +27,7 @@ using Xarial.XCad.UI.PropertyPage;
 namespace SwAddInExample
 {
     [Title("WPF User Control")]
-    [Icon(typeof(Resources), nameof(Properties.Resources.xarial))]
+    [Icon(typeof(Resources), nameof(SwAddIn.Properties.Resources.xarial))]
     public partial class WpfUserControl : UserControl, IDisposable, IXCustomControl
     {
         public event CustomControlValueChangedDelegate ValueChanged;

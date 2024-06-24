@@ -32,8 +32,12 @@ using Xarial.XCad.Utils.Reflection;
 
 namespace Xarial.XCad.SolidWorks.Features
 {
+    /// <summary>
+    /// SOLIDWORKS specific feature manager
+    /// </summary>
     public interface ISwFeatureManager : IXFeatureRepository
     {
+        /// <inheritdoc/>
         new ISwFeature this[string name] { get; }
     }
 
@@ -162,6 +166,7 @@ namespace Xarial.XCad.SolidWorks.Features
                     () => new SwMacroFeature(null, Document, m_App, false),
                     () => new SwDumbBody(null, Document, m_App, false),
                     () => new SwPlane(null, Document, m_App, false),
+                    () => new SwCoordinateSystem(null, Document, m_App, false),
                     () => new SwSketchPicture(default(IFeature), Document, m_App, false));
             }
         }

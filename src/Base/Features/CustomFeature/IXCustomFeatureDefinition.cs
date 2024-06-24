@@ -24,46 +24,32 @@ namespace Xarial.XCad.Features.CustomFeature
         /// Called when the Edit feature menu is clicked from the feature manager tree
         /// </summary>
         /// <param name="app">Pointer to the application</param>
-        /// <param name="model">Pointer to the current model where the feature resided</param>
+        /// <param name="doc">Pointer to the current model where the feature resided</param>
         /// <param name="feature">Pointer to the feature being edited</param>
         /// <returns>Result of the editing</returns>
         /// <remarks>Use this handler to display property manager page or any other user interface to edit feature.
         /// </remarks>
-        bool OnEditDefinition(IXApplication app, IXDocument model, IXCustomFeature feature);
+        bool OnEditDefinition(IXApplication app, IXDocument doc, IXCustomFeature feature);
 
         /// <summary>
         /// Called when macro feature is rebuilding
         /// </summary>
         /// <param name="app">Pointer to the SOLIDWORKS application</param>
-        /// <param name="model">Pointer to the document where the macro feature being rebuild</param>
+        /// <param name="doc">Pointer to the document where the macro feature being rebuild</param>
         /// <param name="feature">Pointer to the feature</param>
         /// <returns>Result of the operation. Use static methods of <see cref="Structures.CustomFeatureRebuildResult"/>
         /// class to generate results</returns>
-        CustomFeatureRebuildResult OnRebuild(IXApplication app, IXDocument model, IXCustomFeature feature);
+        CustomFeatureRebuildResult OnRebuild(IXApplication app, IXDocument doc, IXCustomFeature feature);
 
         /// <summary>
         /// Called when state of the feature is changed (i.e. feature is selected, moved, updated etc.)
         /// Use this method to provide additional dynamic security options on your feature (i.e. do not allow dragging, editing etc.)
         /// </summary>
         /// <param name="app">Pointer to the application</param>
-        /// <param name="model">Pointer to the model where the feature resides</param>
+        /// <param name="doc">Pointer to the model where the feature resides</param>
         /// <param name="feature">Pointer to the feature to updated state</param>
         /// <returns>State of feature</returns>
-        CustomFeatureState_e OnUpdateState(IXApplication app, IXDocument model, IXCustomFeature feature);
-    }
-
-    /// <summary>
-    /// Represents the custom feature definition bound to the parameters data model
-    /// </summary>
-    /// <typeparam name="TParams"></typeparam>
-    public interface IXCustomFeatureDefinition<TParams> : IXCustomFeatureDefinition
-        where TParams : class
-    {
-        /// <inheritdoc cref="IXCustomFeatureDefinition.OnRebuild(IXApplication, IXDocument, IXCustomFeature)"/>
-        /// <param name="alignDim">Handler to align dimensions. Use <see cref="AlignDimension(IXDimension, Point[], Vector, Vector)"/> helper function</param>
-        /// <returns>Result of the regeneration</returns>
-        CustomFeatureRebuildResult OnRebuild(IXApplication app, IXDocument model, IXCustomFeature<TParams> feature,
-            out AlignDimensionDelegate<TParams> alignDim);
+        CustomFeatureState_e OnUpdateState(IXApplication app, IXDocument doc, IXCustomFeature feature);
 
         /// <summary>
         /// Helper function to align the dimensions of the macro feature
@@ -74,6 +60,20 @@ namespace Xarial.XCad.Features.CustomFeature
         /// <param name="extDir">Dimension extension line</param>
         /// <remarks>Use <see cref="XCustomFeatureDefinitionExtension"/> extension methods for more helper functions to align specific types of dimensions</remarks>
         void AlignDimension(IXDimension dim, Point[] pts, Vector dir, Vector extDir);
+    }
+
+    /// <summary>
+    /// Represents the custom feature definition bound to the parameters data model
+    /// </summary>
+    /// <typeparam name="TParams"></typeparam>
+    public interface IXCustomFeatureDefinition<TParams> : IXCustomFeatureDefinition
+        where TParams : class
+    {
+        /// <inheritdoc cref="IXCustomFeatureDefinition.OnRebuild(IXApplication, IXDocument, IXCustomFeature)"/>
+        /// <param name="alignDim">Handler to align dimensions. Use <see cref="IXCustomFeatureDefinition.AlignDimension(IXDimension, Point[], Vector, Vector)"/> helper function</param>
+        /// <returns>Result of the regeneration</returns>
+        CustomFeatureRebuildResult OnRebuild(IXApplication app, IXDocument doc, IXCustomFeature<TParams> feature,
+            out AlignDimensionDelegate<TParams> alignDim);
     }
 
     /// <summary>

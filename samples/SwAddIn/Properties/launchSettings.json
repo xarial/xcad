@@ -1,0 +1,16 @@
+{
+  "profiles": {
+    "Attach To SOLIDWORKS 2024": {
+      "commandName": "Executable",
+      "executablePath": "C:\\Program Files\\SOLIDWORKS Corp\\SOLIDWORKS (5)\\sldworks.exe"
+    },
+    "Attach To SOLIDWORKS 2023": {
+      "commandName": "Executable",
+      "executablePath": "C:\\Program Files\\SOLIDWORKS Corp\\SOLIDWORKS\\sldworks.exe"
+    },
+    "Attach To SOLIDWORKS 2019": {
+      "commandName": "Executable",
+      "executablePath": "C:\\Program Files\\SOLIDWORKS Corp\\SOLIDWORKS (2)\\sldworks.exe"
+    }
+  }
+}

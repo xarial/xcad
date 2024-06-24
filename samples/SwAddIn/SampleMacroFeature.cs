@@ -7,7 +7,6 @@
 
 using System.Runtime.InteropServices;
 using Xarial.XCad;
-using SwAddInExample.Properties;
 using Xarial.XCad.Base.Attributes;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Features.CustomFeature.Structures;
@@ -23,6 +22,7 @@ using Xarial.XCad.SolidWorks.Geometry.Primitives;
 using Xarial.XCad.Geometry.Primitives;
 using Xarial.XCad.SolidWorks.Geometry;
 using Xarial.XCad.Base;
+using SwAddIn.Properties;
 
 namespace SwAddInExample
 {

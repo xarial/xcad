@@ -8,13 +8,13 @@
 using SolidWorks.Interop.sldworks;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Windows.Media;
 using Xarial.XCad.Base;
 using Xarial.XCad.Geometry;
+using Xarial.XCad.Geometry.Curves;
 using Xarial.XCad.Geometry.Primitives;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Geometry.Wires;
@@ -22,6 +22,7 @@ using Xarial.XCad.Services;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Geometry.Curves;
 using Xarial.XCad.SolidWorks.Geometry.Exceptions;
+using Xarial.XCad.SolidWorks.Geometry.Extensions;
 using Xarial.XCad.SolidWorks.Utils;
 
 namespace Xarial.XCad.SolidWorks.Geometry.Primitives
@@ -35,8 +36,9 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
     {
     }
 
-    public interface ISwTempSurfaceExtrusion : ISwTempExtrusion
+    public interface ISwTempSurfaceExtrusion : ISwTempExtrusion, IXSheetExtrusion
     {
+        new ISwCurve[] Profiles { get; set; }
     }
 
     internal abstract class SwTempExtrusion : SwTempPrimitive, ISwTempExtrusion
@@ -147,73 +149,170 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
         {
         }
 
+        ISwCurve[] ISwTempSurfaceExtrusion.Profiles
+        {
+            get => m_Creator.CachedProperties.Get<ISwCurve[]>(nameof(Profiles) + "%Curve");
+            set
+            {
+                if (IsCommitted)
+                {
+                    throw new CommitedSegmentReadOnlyParameterException();
+                }
+                else
+                {
+                    m_Creator.CachedProperties.Set(value, nameof(Profiles) + "%Curve");
+                }
+            }
+        }
+
+        IXCurve[] IXSheetExtrusion.Profiles
+        {
+            get => ((ISwTempSurfaceExtrusion)this).Profiles;
+            set => ((ISwTempSurfaceExtrusion)this).Profiles = value?.Cast<ISwCurve>().ToArray();
+        }
+
         protected override ISwTempBody[] CreateBodies(CancellationToken cancellationToken)
         {
             var bodies = new List<ISwTempBody>();
 
-            var axisDir = Direction.ToArray();
+            var length = Depth;
 
-            foreach (var profile in Profiles)
+            if (length > 0)
             {
-                var length = Depth;
+                var curveProfiles = ((ISwTempSurfaceExtrusion)this).Profiles;
 
-                if (length == 0)
+                if (curveProfiles != null)
                 {
-                    throw new Exception("Cannot create extrusion of 0 length");
+                    foreach (var curveProfile in curveProfiles)
+                    {
+                        bodies.Add(CreateExtrusionFromCurves(new ISwCurve[] { curveProfile }, Direction, length));
+                    }
                 }
 
-                foreach (var loop in new ISwLoop[] { profile.OuterLoop }.Union(profile.InnerLoops ?? new ISwLoop[0])) 
+                var sheetProfiles = Profiles;
+
+                if (sheetProfiles != null)
                 {
-                    foreach (var curve in loop.Curves) 
+                    foreach (var sheetProfile in sheetProfiles)
                     {
-                        foreach (var swCurve in curve.Curves)
+                        foreach (var loop in new ISwLoop[] { sheetProfile.OuterLoop }.Union(sheetProfile.InnerLoops ?? new ISwLoop[0]))
                         {
-                            var surf = (ISurface)m_Modeler.CreateExtrusionSurface(swCurve.ICopy(), axisDir);
+                            bodies.Add(CreateExtrusionFromCurves(loop.Curves, Direction, length));
+                        }
+                    }
+                }
 
-                            if (surf != null)
+                if (bodies.Any())
+                {
+                    return bodies.ToArray();
+                }
+                else
+                {
+                    throw new Exception("No profiles specified");
+                }
+            }
+            else
+            {
+                throw new Exception("Extrusion length must be more than 0");
+            }
+        }
+
+        private ISwTempBody CreateExtrusionFromCurves(ISwCurve[] curves, Vector dir, double length)
+        {
+            if (curves.Any())
+            {
+                var axisDir = dir.ToArray();
+
+                ISwTempBody extrBody = null;
+
+                foreach (var curve in curves)
+                {
+                    foreach (var swCurve in curve.Curves)
+                    {
+                        var surf = (ISurface)m_Modeler.CreateExtrusionSurface(swCurve.ICopy(), axisDir);
+
+                        if (surf != null)
+                        {
+                            Curve[] trimCurves;
+
+                            var transform = TransformMatrix.CreateFromTranslation(Direction.Normalize().Scale(length));
+
+                            swCurve.GetEndParams(out var startParam, out var endParam, out var isClosed, out _);
+
+                            var baseTrimCurve = swCurve.ICopy();
+                            var oppositeTrimCurve = swCurve.ICopy();
+                            oppositeTrimCurve.ApplyTransform((MathTransform)m_MathUtils.ToMathTransform(transform));
+
+                            if (isClosed)
                             {
-                                var trimCurves = new ICurve[]
+                                trimCurves = new Curve[]
                                 {
-                                    swCurve.ICopy(),
+                                    baseTrimCurve,
                                     null,
-                                    swCurve.ICopy()
+                                    oppositeTrimCurve
                                 };
+                            }
+                            else
+                            {
+                                var startCoord = (double[])swCurve.Evaluate2(startParam, 0);
+                                var endCoord = (double[])swCurve.Evaluate2(endParam, 0);
 
-                                var transform = TransformMatrix.CreateFromTranslation(Direction.Normalize().Scale(length));
+                                var startPt = new Point(startCoord[0], startCoord[1], startCoord[2]);
+                                var endPt = new Point(endCoord[0], endCoord[1], endCoord[2]);
 
-                                trimCurves[2].ApplyTransform((MathTransform)m_MathUtils.ToMathTransform(transform));
-
-                                IBody2 sheetBody;
-
-                                if (m_App.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2017, 4))
+                                trimCurves = new Curve[]
                                 {
-                                    sheetBody = surf.CreateTrimmedSheet5(trimCurves, true,
-                                        ((SwMemoryGeometryBuilder)m_App.MemoryGeometryBuilder).TolProvider.Trimming) as Body2;
-                                }
-                                else
-                                {
-                                    sheetBody = surf.CreateTrimmedSheet4(trimCurves, true) as Body2;
-                                }
+                                    baseTrimCurve,
+                                    m_Modeler.CreateTrimmedLine(startPt, startPt.Move(dir, length)),
+                                    oppositeTrimCurve,
+                                    m_Modeler.CreateTrimmedLine(endPt.Move(dir, length), endPt)
+                                };
+                            }
 
-                                if (sheetBody != null)
+                            IBody2 sheetBody;
+
+                            if (m_App.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2017, 4))
+                            {
+                                sheetBody = surf.CreateTrimmedSheet5(trimCurves, true,
+                                    ((SwMemoryGeometryBuilder)m_App.MemoryGeometryBuilder).TolProvider.Trimming) as Body2;
+                            }
+                            else
+                            {
+                                sheetBody = surf.CreateTrimmedSheet4(trimCurves, true) as Body2;
+                            }
+
+                            if (sheetBody != null)
+                            {
+                                var body = m_App.CreateObjectFromDispatch<SwTempBody>(sheetBody, null);
+
+                                if (extrBody == null)
                                 {
-                                    bodies.Add(m_App.CreateObjectFromDispatch<SwTempBody>(sheetBody, null));
+                                    extrBody = body;
                                 }
                                 else 
                                 {
-                                    throw new Exception("Failed to create profile sheet body");
+                                    //TODO: implement cheking the connection between bodies to ensure bodies can be joined in the correct order
+                                    extrBody = extrBody.Add(body);
                                 }
                             }
                             else
                             {
-                                throw new Exception("Failed to create surface");
+                                throw new Exception("Failed to create profile sheet body");
                             }
+                        }
+                        else
+                        {
+                            throw new Exception("Failed to create surface");
                         }
                     }
                 }
-            }
 
-            return bodies.ToArray();
+                return extrBody;
+            }
+            else 
+            {
+                throw new Exception("No curves in the extrusion profile");
+            }
         }
     }
 }

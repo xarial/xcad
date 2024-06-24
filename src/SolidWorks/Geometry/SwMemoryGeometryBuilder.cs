@@ -50,7 +50,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
             SolidBuilder = new SwMemorySolidGeometryBuilder(app, geomBuilderDocsProvider, TolProvider);
         }
 
-        public IXBody DeserializeBody(Stream stream)
+        public IXMemoryBody DeserializeBody(Stream stream)
         {
             var comStr = new StreamWrapper(stream);
             var body = (IBody2)Modeler.Restore(comStr);

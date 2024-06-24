@@ -52,7 +52,7 @@ namespace Xarial.XCad.Geometry
         /// </summary>
         /// <param name="stream">Stream to deserialize body from</param>
         /// <returns>Deserialized body</returns>
-        IXBody DeserializeBody(Stream stream);
+        IXMemoryBody DeserializeBody(Stream stream);
 
         /// <summary>
         /// Serializes body into the stream

@@ -229,12 +229,14 @@ namespace Xarial.XCad.Documents
         /// <summary>
         /// Decimal places of the length
         /// </summary>
-        int LengthDecimalPlaces { get; set; }
+        /// <remarks>Null if fraction units display</remarks>
+        int? LengthDecimalPlaces { get; set; }
 
         /// <summary>
         /// Decimal places of the dual dimension length
         /// </summary>
-        int DualDimensionLengthDecimalPlaces { get; set; }
+        /// <remarks>Null if fraction units display</remarks>
+        int? DualDimensionLengthDecimalPlaces { get; set; }
 
         /// <summary>
         /// Decimal places of the mass
@@ -252,14 +254,16 @@ namespace Xarial.XCad.Documents
         int TimeDecimalPlaces { get; set; }
 
         /// <summary>
-        /// Fractions of the length
+        /// Fractions of the length (for the Inch units)
         /// </summary>
-        int LengthFractions { get; set; }
+        /// <remarks>Null if decimal units display</remarks>
+        int? LengthFractions { get; set; }
 
         /// <summary>
-        /// Fractions of the dual dimension length
+        /// Fractions of the dual dimension length (for the Inch units)
         /// </summary>
-        int DualDimensionLengthFractions { get; set; }
+        /// <remarks>Null if decimal units display</remarks>
+        int? DualDimensionLengthFractions { get; set; }
     }
 
     /// <summary>

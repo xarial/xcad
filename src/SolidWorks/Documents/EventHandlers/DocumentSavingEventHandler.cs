@@ -75,7 +75,7 @@ namespace Xarial.XCad.SolidWorks.Documents.EventHandlers
 
             Delegate?.Invoke(m_Doc, type, args);
 
-            if (args.FileName != fileName) 
+            if (!args.Cancel && args.FileName != fileName) 
             {
                 if (type == DocumentSaveType_e.SaveAs)
                 {

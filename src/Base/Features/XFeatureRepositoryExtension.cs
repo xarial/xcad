@@ -79,6 +79,12 @@ namespace Xarial.XCad.Features
         public static IXSketch2D PreCreate2DSketch(this IXFeatureRepository feats) => feats.PreCreate<IXSketch2D>();
 
         /// <summary>
+        /// Creates a template for the coordinate system
+        /// </summary>
+        /// <returns>Coordinate system template</returns>
+        public static IXCoordinateSystem PreCreateCoordinateSystem(this IXFeatureRepository feats) => feats.PreCreate<IXCoordinateSystem>();
+
+        /// <summary>
         /// Creates a template for 3D sketch
         /// </summary>
         /// <returns>2D sketch template</returns>

@@ -52,17 +52,11 @@ using Xarial.XCad.Utils.Reflection;
 
 namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 {
-    public class MacroFeatureEntityId 
-    {
-        public int FirstId { get; set; }
-        public int SecondId { get; set; }
-    }
-
     /// <inheritdoc/>
     public abstract class SwMacroFeatureDefinition : IXCustomFeatureDefinition, ISwComFeature, IXServiceConsumer
     {
         [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
-        protected class MacroFeatureRegenerateData 
+        internal class MacroFeatureRegenerateData 
         {
             internal ISwApplication Application { get; set; }
             internal ISwDocument Document { get; set; }
@@ -98,9 +92,6 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             }
         }
 
-        private static SwMacroFeature CreateMacroFeatureInstance(SwMacroFeatureDefinition sender, IFeature feat, SwDocument doc, SwApplication app)
-            => new SwMacroFeature(feat, doc, app, true);
-
         public event ConfigureServicesDelegate ConfigureServices;
 
         /// <summary>
@@ -108,16 +99,8 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         /// </summary>
         public event PostRebuildMacroFeatureDelegate PostRebuild 
         {
-            add 
-            {
-                m_PostRebuild += value;
-                m_HandlePostRebuild = m_PostRebuild != null;
-            }
-            remove 
-            {
-                m_PostRebuild -= value;
-                m_HandlePostRebuild = m_PostRebuild != null;
-            }
+            add => m_PostRebuild += value;
+            remove => m_PostRebuild -= value;
         }
 
         private static SwApplication m_Application;
@@ -144,28 +127,25 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         #region Initiation
 
         private readonly string m_Provider;
-        protected readonly IXLogger m_Logger;
 
-        public IXLogger Logger
-        {
-            get
-            {
-                return m_Logger;
-            }
-        }
+        /// <summary>
+        /// Logger
+        /// </summary>
+        public IXLogger Logger { get; }
 
+        /// <summary>
+        /// DI services
+        /// </summary>
         protected readonly IServiceProvider m_SvcProvider;
 
-        protected readonly List<MacroFeatureRegenerateData> m_RebuildFeaturesQueue;
+        internal readonly List<MacroFeatureRegenerateData> m_RebuildFeaturesQueue;
 
         private bool m_IsSubscribedToIdle;
 
-        private readonly Func<SwMacroFeatureDefinition, IFeature, SwDocument, SwApplication, SwMacroFeature> m_MacroFeatInstFact;
+        private readonly Lazy<IMathUtility> m_MathUtilsLazy;
 
-        internal SwMacroFeatureDefinition(Func<SwMacroFeatureDefinition, IFeature, SwDocument, SwApplication, SwMacroFeature> macroFeatInstFact) 
+        public SwMacroFeatureDefinition() 
         {
-            m_MacroFeatInstFact = macroFeatInstFact;
-
             string provider = "";
             this.GetType().TryGetAttribute<MissingDefinitionErrorMessage>(a =>
             {
@@ -173,6 +153,8 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             });
 
             m_Provider = provider;
+
+            m_MathUtilsLazy = new Lazy<IMathUtility>(Application.Sw.IGetMathUtility);
 
             m_RebuildFeaturesQueue = new List<MacroFeatureRegenerateData>();
 
@@ -187,15 +169,11 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 
             m_SvcProvider = svcColl.CreateProvider();
 
-            m_Logger = m_SvcProvider.GetService<IXLogger>();
+            Logger = m_SvcProvider.GetService<IXLogger>();
 
             CustomFeatureDefinitionInstanceCache.RegisterInstance(this);
 
             TryCreateIcons(m_SvcProvider.GetService<IIconsCreator>(), MacroFeatureIconInfo.GetLocation(this.GetType()));
-        }
-
-        public SwMacroFeatureDefinition() : this(CreateMacroFeatureInstance)
-        {
         }
 
         private void TryCreateIcons(IIconsCreator iconsConverter, string folder)
@@ -237,25 +215,24 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         {
             try
             {
-                LogOperation("Editing feature", app as ISldWorks, modelDoc as IModelDoc2, feature as IFeature);
+                LogOperation("Editing feature", (ISldWorks)app, (IModelDoc2)modelDoc, (IFeature)feature);
 
                 var doc = (SwDocument)Application.Documents[modelDoc as IModelDoc2];
-                return OnEditDefinition(Application, doc, m_MacroFeatInstFact.Invoke(this, feature as IFeature, doc, Application));
+                return OnEditDefinition(Application, doc, CreateMacroFeatureInstance((IFeature)feature, doc, Application));
             }
             catch(Exception ex) 
             {
-                m_Logger.Log(ex);
+                Logger.Log(ex);
                 return HandleEditException(ex);
             }
         }
 
-        //TODO: regenerate method is called twice when feature edited and new parameters applied
         [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
         public object Regenerate(object app, object modelDoc, object feature)
         {
             try
             {
-                LogOperation("Regenerating feature", app as ISldWorks, modelDoc as IModelDoc2, feature as IFeature);
+                LogOperation("Regenerating feature", (ISldWorks)app, (IModelDoc2)modelDoc, (IFeature)feature);
 
                 SetProvider(app as ISldWorks, feature as IFeature);
 
@@ -275,11 +252,13 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
                     contextDoc = doc;
                 }
                 
-                var macroFeatInst = m_MacroFeatInstFact.Invoke(this, feature as IFeature, contextDoc, Application);
+                var macroFeatInst = CreateMacroFeatureInstance((IFeature)feature, contextDoc, Application);
 
-                var res = OnRebuild(Application, doc, macroFeatInst);
+                var userIdsMgr = CreateUserIdsManager(Application, doc, macroFeatInst);
 
-                if (m_HandlePostRebuild)
+                var res = OnRebuild(Application, doc, macroFeatInst, userIdsMgr);
+
+                if (HandlePostRebuild)
                 {
                     AddDataToRebuildQueue(Application, doc, macroFeatInst);
 
@@ -292,7 +271,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 
                 if (res != null)
                 {
-                    return ParseMacroFeatureResult(res, app as ISldWorks, modelDoc as IModelDoc2, macroFeatInst.FeatureData);
+                    return ParseMacroFeatureResult(res, (ISldWorks)app, (IModelDoc2)modelDoc, macroFeatInst.FeatureData, userIdsMgr);
                 }
                 else
                 {
@@ -301,7 +280,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             }
             catch (Exception ex)
             {
-                m_Logger.Log(ex);
+                Logger.Log(ex);
 
                 if (ex is IUserException)
                 {
@@ -320,20 +299,30 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             try
             {
                 var doc = (SwDocument)Application.Documents[modelDoc as IModelDoc2];
-                return (int)OnUpdateState(Application, doc, m_MacroFeatInstFact.Invoke(this, feature as IFeature, doc, Application));
+                return (int)OnUpdateState(Application, doc, CreateMacroFeatureInstance((IFeature)feature, doc, Application));
             }
             catch(Exception ex) 
             {
-                m_Logger.Log(ex);
+                Logger.Log(ex);
                 return HandleStateException(ex);
             }
         }
 
+        /// <summary>
+        /// Handles the exception raised while editing feature
+        /// </summary>
+        /// <param name="ex">Raised exception</param>
+        /// <returns>Value to return</returns>
         protected virtual object HandleEditException(Exception ex) => throw ex;
 
+        /// <summary>
+        /// Handles the exception raised while feature update state
+        /// </summary>
+        /// <param name="ex">Raised exception</param>
+        /// <returns>Value to return</returns>
         protected virtual object HandleStateException(Exception ex) => throw ex;
 
-        protected virtual void AddDataToRebuildQueue(ISwApplication app, ISwDocument doc, ISwMacroFeature macroFeatInst)
+        internal virtual void AddDataToRebuildQueue(ISwApplication app, ISwDocument doc, ISwMacroFeature macroFeatInst)
         {
             m_RebuildFeaturesQueue.Add(new MacroFeatureRegenerateData()
             {
@@ -379,241 +368,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 
         #endregion Overrides
 
-        bool IXCustomFeatureDefinition.OnEditDefinition(IXApplication app, IXDocument model, IXCustomFeature feature)
-            => OnEditDefinition((ISwApplication)app, (ISwDocument)model, (SwMacroFeature)feature);
-
-        CustomFeatureRebuildResult IXCustomFeatureDefinition.OnRebuild(IXApplication app, IXDocument model, IXCustomFeature feature)
-            => OnRebuild((ISwApplication) app, (ISwDocument) model, (ISwMacroFeature)feature);
-
-        CustomFeatureState_e IXCustomFeatureDefinition.OnUpdateState(IXApplication app, IXDocument model, IXCustomFeature feature) 
-            => OnUpdateState((ISwApplication)app, (ISwDocument)model, (SwMacroFeature)feature);
-
-        public virtual bool OnEditDefinition(ISwApplication app, ISwDocument model, ISwMacroFeature feature)
-        {
-            return true;
-        }
-
-        public virtual CustomFeatureRebuildResult OnRebuild(ISwApplication app, ISwDocument model, ISwMacroFeature feature)
-        {
-            return null;
-        }
-
-        [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
-        protected virtual void DispatchPostBuildData(MacroFeatureRegenerateData data)
-            => m_PostRebuild?.Invoke(data.Application, data.Document, data.Feature);
-
-        /// <summary>
-        /// This handle is called everytime macro feature needs to update the state
-        /// </summary>
-        /// <param name="app">Application</param>
-        /// <param name="model">Document</param>
-        /// <param name="feature">Feature to update state</param>
-        /// <returns></returns>
-        public virtual CustomFeatureState_e OnUpdateState(ISwApplication app, ISwDocument model, ISwMacroFeature feature)
-            => CustomFeatureState_e.Default;
-
-        private object ParseMacroFeatureResult(CustomFeatureRebuildResult res, ISldWorks app, IModelDoc2 model, IMacroFeatureData featData)
-        {
-            switch (res)
-            {
-                case CustomFeatureBodyRebuildResult bodyRes:
-                    
-                    //TODO: get updateEntityIds from the parameters
-                    var bodiesSw = new List<IBody2>();
-
-                    if (bodyRes.Bodies != null) 
-                    {
-                        foreach (var body in bodyRes.Bodies) 
-                        {
-                            if (body is ISwBody)
-                            {
-                                bodiesSw.Add(((ISwBody)body).Body);
-                            }
-                            else 
-                            {
-                                throw new InvalidCastException($"Only bodies of type '{nameof(ISwBody)}' are supported");
-                            }
-                        }
-                    }
-
-                    if (bodiesSw.Any())
-                    {
-                        return GetBodyResult(app, model, bodiesSw.ToArray(), featData, true);
-                    }
-                    else 
-                    {
-                        return GetStatusResult(true, "");
-                    }
-
-                default:
-                    return GetStatusResult(res.Result, res.ErrorMessage);
-            }
-        }
-
-        private object GetStatusResult(bool status, string error = "")
-        {
-            if (status)
-            {
-                return status;
-            }
-            else
-            {
-                if (!string.IsNullOrEmpty(error))
-                {
-                    return error;
-                }
-                else
-                {
-                    return status;
-                }
-            }
-        }
-
-        private object GetBodyResult(ISldWorks app, IModelDoc2 model, IEnumerable<IBody2> bodies,
-            IMacroFeatureData featData, bool updateEntityIds)
-        {
-            if (bodies != null)
-            {
-                if (CompatibilityUtils.IsVersionNewerOrEqual(app, SwVersion_e.Sw2013, 5))
-                {
-                    featData.EnableMultiBodyConsume = true;
-                }
-
-                if (updateEntityIds)
-                {
-                    if (featData == null)
-                    {
-                        throw new ArgumentNullException(nameof(featData));
-                    }
-
-                    foreach (var body in bodies)
-                    {
-                        object faces;
-                        object edges;
-                        featData.GetEntitiesNeedUserId(body, out faces, out edges);
-
-                        if (faces is object[])
-                        {
-                            var faceIds = (faces as object[]).ToDictionary(x => (Face2)x, x => new MacroFeatureEntityId());
-                            
-                            AssignFaceIds(app, model, faceIds);
-
-                            foreach (var faceId in faceIds)
-                            {
-                                featData.SetFaceUserId(faceId.Key, faceId.Value.FirstId, faceId.Value.SecondId);
-                            }
-                        }
-
-                        if (edges is object[])
-                        {
-                            var edgeIds = (edges as object[]).ToDictionary(x => (Edge)x, x => new MacroFeatureEntityId());
-
-                            AssignEdgeIds(app, model, edgeIds);
-
-                            foreach (var edgeId in edgeIds)
-                            {
-                                featData.SetEdgeUserId(edgeId.Key, edgeId.Value.FirstId, edgeId.Value.SecondId);
-                            }
-                        }
-                    }
-                }
-
-                if (bodies.Count() == 1)
-                {
-                    return bodies.First();
-                }
-                else
-                {
-                    return bodies.ToArray();
-                }
-            }
-            else
-            {
-                throw new ArgumentNullException(nameof(bodies));
-            }
-        }
-
-        protected bool m_HandlePostRebuild;
-
-        public virtual void AssignFaceIds(ISldWorks app, IModelDoc2 model, IReadOnlyDictionary<Face2, MacroFeatureEntityId> faces) 
-        {
-            int nextId = 0;
-
-            foreach (var face in faces)
-            {
-                face.Value.FirstId = nextId++;
-                face.Value.SecondId = 0;
-            }
-        }
-
-        public virtual void AssignEdgeIds(ISldWorks app, IModelDoc2 model, IReadOnlyDictionary<Edge, MacroFeatureEntityId> edges)
-        {
-            int nextId = 0;
-
-            foreach (var edge in edges)
-            {
-                edge.Value.FirstId = nextId++;
-                edge.Value.SecondId = 0;
-            }
-        }
-
-        /// <summary>
-        /// Register Dependency Injection services
-        /// </summary>
-        /// <param name="svcColl">Services collection</param>
-        /// <remarks>Typically add-in is loaded before the instance of the macro feature definition service is created
-        /// In this case macro feature services will inherit services configured within the <see cref="ISwApplication"/> and <see cref="SwAddInEx"/> and overriding of this method or handling the <see cref="ConfigureServices"/> event is not required
-        /// However macro feature definition is independent COM server which means it can be loaded without the add-in. In this case add-in services will not be automatically inherited
-        /// It is recommended to haev independent helper class which registers all services and shares between the <see cref="ISwApplication"/>, <see cref="SwAddInEx"/> and <see cref="SwMacroFeatureDefinition"/></remarks>
-        protected virtual void OnConfigureServices(IXServiceCollection svcColl)
-        {
-            ConfigureServices?.Invoke(this, svcColl);
-        }
-    }
-
-    /// <inheritdoc/>
-    public abstract class SwMacroFeatureDefinition<TParams> : SwMacroFeatureDefinition, IXCustomFeatureDefinition<TParams>
-        where TParams : class
-    {
-        private static SwMacroFeature CreateMacroFeatureInstance(SwMacroFeatureDefinition sender, IFeature feat, SwDocument doc, SwApplication app)
-            => new SwMacroFeature<TParams>(feat, doc, app, true);
-
-        [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
-        protected class MacroFeatureParametersRegenerateData : MacroFeatureRegenerateData
-        {
-            internal TParams Parameters { get; set; }
-        }
-
-        private PostRebuildMacroFeatureDelegate<TParams> m_PostRebuild;
-
-        public new event PostRebuildMacroFeatureDelegate<TParams> PostRebuild
-        {
-            add
-            {
-                m_PostRebuild += value;
-                m_HandlePostRebuild = m_PostRebuild != null;
-            }
-            remove
-            {
-                m_PostRebuild -= value;
-                m_HandlePostRebuild = m_PostRebuild != null;
-            }
-        }
-
-        CustomFeatureRebuildResult IXCustomFeatureDefinition<TParams>.OnRebuild(IXApplication app, IXDocument doc, IXCustomFeature<TParams> feature, out AlignDimensionDelegate<TParams> alignDim)
-            => OnRebuild((ISwApplication)app, (ISwDocument)doc, (ISwMacroFeature<TParams>)feature, out alignDim);
-
-        [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
-        public override bool OnEditDefinition(ISwApplication app, ISwDocument doc, ISwMacroFeature feature)
-            => OnEditDefinition(app, doc, (ISwMacroFeature<TParams>)feature);
-
-        private readonly Lazy<IMathUtility> m_MathUtilsLazy;
-
-        public SwMacroFeatureDefinition() : base(CreateMacroFeatureInstance)
-        {
-            m_MathUtilsLazy = new Lazy<IMathUtility>(() => Application.Sw.IGetMathUtility());
-        }
-
+        /// <inheritdoc/>
         public void AlignDimension(IXDimension dim, Point[] pts, Vector dir, Vector extDir)
         {
             if (pts != null)
@@ -648,7 +403,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             swDim.ReferencePoints = refPts;
 
             var swDispDim = ((SwDimension)dim).DisplayDimension;
-            if (swDispDim.Type2 == (int)swDimensionType_e.swAngularDimension) 
+            if (swDispDim.Type2 == (int)swDimensionType_e.swAngularDimension)
             {
                 swDispDim.IGetAnnotation().SetPosition2(
                     (pts[1].X + pts[0].X) / 2,
@@ -657,12 +412,167 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             }
         }
 
+        bool IXCustomFeatureDefinition.OnEditDefinition(IXApplication app, IXDocument doc, IXCustomFeature feature)
+            => OnEditDefinition((ISwApplication)app, (ISwDocument)doc, (SwMacroFeature)feature);
+
+        CustomFeatureRebuildResult IXCustomFeatureDefinition.OnRebuild(IXApplication app, IXDocument doc, IXCustomFeature feature)
+            => OnRebuild((ISwApplication) app, (ISwDocument) doc, (ISwMacroFeature)feature);
+
+        CustomFeatureState_e IXCustomFeatureDefinition.OnUpdateState(IXApplication app, IXDocument doc, IXCustomFeature feature) 
+            => OnUpdateState((ISwApplication)app, (ISwDocument)doc, (SwMacroFeature)feature);
+
+        public virtual bool OnEditDefinition(ISwApplication app, ISwDocument model, ISwMacroFeature feature) => true;
+
+        public virtual CustomFeatureRebuildResult OnRebuild(ISwApplication app, ISwDocument doc, ISwMacroFeature feature)
+            => null;
+
+        public virtual CustomFeatureRebuildResult OnRebuild(ISwApplication app, ISwDocument doc, ISwMacroFeature feature, IUserIdsManager userIdsMgr) 
+            => OnRebuild(app, doc, feature);
+
+        protected virtual IUserIdsManager CreateUserIdsManager(ISwApplication app, ISwDocument doc, ISwMacroFeature feature) 
+            => new UserIdsManager((SwMacroFeature)feature);
+
+        [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
+        internal virtual SwMacroFeature CreateMacroFeatureInstance(IFeature feat, SwDocument doc, SwApplication app)
+            => new SwMacroFeature(feat, doc, app, feat != null);
+
+        [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
+        internal virtual void DispatchPostBuildData(MacroFeatureRegenerateData data)
+            => m_PostRebuild?.Invoke(data.Application, data.Document, data.Feature);
+
+        /// <summary>
+        /// This handle is called everytime macro feature needs to update the state
+        /// </summary>
+        /// <param name="app">Application</param>
+        /// <param name="doc">Document</param>
+        /// <param name="feature">Feature to update state</param>
+        /// <returns></returns>
+        public virtual CustomFeatureState_e OnUpdateState(ISwApplication app, ISwDocument doc, ISwMacroFeature feature)
+            => CustomFeatureState_e.Default;
+
+        private object ParseMacroFeatureResult(CustomFeatureRebuildResult res, ISldWorks app, IModelDoc2 model,
+            IMacroFeatureData featData, IUserIdsManager userIdsMgr)
+        {
+            switch (res)
+            {
+                case CustomFeatureBodyRebuildResult bodyRes:
+                    
+                    if (bodyRes.Bodies?.Any() == true)
+                    {
+                        return GetBodyResult(app, model, bodyRes.Bodies, featData, userIdsMgr);
+                    }
+                    else 
+                    {
+                        return GetStatusResult(true, "");
+                    }
+
+                default:
+                    return GetStatusResult(res.Result, res.ErrorMessage);
+            }
+        }
+
+        private object GetStatusResult(bool status, string error = "")
+        {
+            if (status)
+            {
+                return status;
+            }
+            else
+            {
+                if (!string.IsNullOrEmpty(error))
+                {
+                    return error;
+                }
+                else
+                {
+                    return status;
+                }
+            }
+        }
+
+        private object GetBodyResult(ISldWorks app, IModelDoc2 model, IReadOnlyList<IXBody> bodies,
+            IMacroFeatureData featData, IUserIdsManager userIdsMgr)
+        {
+            if (bodies != null)
+            {
+                if (CompatibilityUtils.IsVersionNewerOrEqual(app, SwVersion_e.Sw2013, 5))
+                {
+                    featData.EnableMultiBodyConsume = true;
+                }
+
+                foreach(var body in bodies) 
+                {
+                    userIdsMgr.AssignUserIds(body);
+                }
+                
+                if (bodies.Count == 1)
+                {
+                    return bodies.Cast<ISwBody>().First().Body;
+                }
+                else
+                {
+                    return bodies.Cast<ISwBody>().Select(b => b.Body).ToArray();
+                }
+            }
+            else
+            {
+                throw new ArgumentNullException(nameof(bodies));
+            }
+        }
+
+        internal virtual bool HandlePostRebuild => m_PostRebuild != null;
+
+        /// <summary>
+        /// Register Dependency Injection services
+        /// </summary>
+        /// <param name="svcColl">Services collection</param>
+        /// <remarks>Typically add-in is loaded before the instance of the macro feature definition service is created
+        /// In this case macro feature services will inherit services configured within the <see cref="ISwApplication"/> and <see cref="SwAddInEx"/> and overriding of this method or handling the <see cref="ConfigureServices"/> event is not required
+        /// However macro feature definition is independent COM server which means it can be loaded without the add-in. In this case add-in services will not be automatically inherited
+        /// It is recommended to haev independent helper class which registers all services and shares between the <see cref="ISwApplication"/>, <see cref="SwAddInEx"/> and <see cref="SwMacroFeatureDefinition"/></remarks>
+        protected virtual void OnConfigureServices(IXServiceCollection svcColl)
+        {
+            ConfigureServices?.Invoke(this, svcColl);
+        }
+    }
+
+    /// <inheritdoc/>
+    public abstract class SwMacroFeatureDefinition<TParams> : SwMacroFeatureDefinition, IXCustomFeatureDefinition<TParams>
+        where TParams : class
+    {
+        [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
+        internal class MacroFeatureParametersRegenerateData : MacroFeatureRegenerateData
+        {
+            internal TParams Parameters { get; set; }
+        }
+
+        private PostRebuildMacroFeatureDelegate<TParams> m_PostRebuild;
+
+        public new event PostRebuildMacroFeatureDelegate<TParams> PostRebuild
+        {
+            add => m_PostRebuild += value;
+            remove => m_PostRebuild -= value;
+        }
+
+        internal override bool HandlePostRebuild => m_PostRebuild != null;
+
+        CustomFeatureRebuildResult IXCustomFeatureDefinition<TParams>.OnRebuild(IXApplication app, IXDocument doc, IXCustomFeature<TParams> feature, out AlignDimensionDelegate<TParams> alignDim)
+            => OnRebuild((ISwApplication)app, (ISwDocument)doc, (ISwMacroFeature<TParams>)feature, out alignDim);
+
+        [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
+        public override bool OnEditDefinition(ISwApplication app, ISwDocument doc, ISwMacroFeature feature)
+            => OnEditDefinition(app, doc, (ISwMacroFeature<TParams>)feature);
+
         /// <inheritdoc/>
+        public virtual CustomFeatureRebuildResult OnRebuild(ISwApplication app, ISwDocument doc, ISwMacroFeature<TParams> feature,
+            IUserIdsManager userIdsMgr, out AlignDimensionDelegate<TParams> alignDim) 
+            => OnRebuild(app, doc, feature, out alignDim);
+
         public abstract CustomFeatureRebuildResult OnRebuild(ISwApplication app, ISwDocument doc, ISwMacroFeature<TParams> feature,
             out AlignDimensionDelegate<TParams> alignDim);
 
         /// <inheritdoc/>
-        public override CustomFeatureRebuildResult OnRebuild(ISwApplication app, ISwDocument doc, ISwMacroFeature feature)
+        public override CustomFeatureRebuildResult OnRebuild(ISwApplication app, ISwDocument doc, ISwMacroFeature feature, IUserIdsManager userIdsMgr)
         {
             var paramsFeat = (SwMacroFeature<TParams>)feature;
             paramsFeat.UseCachedParameters = true;
@@ -676,7 +586,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             var cachedParamsUpdateState = paramsFeat.CachedParametersUpdateState;
 
             AlignDimensionDelegate<TParams> alignDimsDel;
-            var res = OnRebuild(app, doc, paramsFeat, out alignDimsDel);
+            var res = OnRebuild(app, doc, paramsFeat, userIdsMgr, out alignDimsDel);
 
             if (dims?.Any() == true)
             {
@@ -697,7 +607,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
                 paramsFeat.WriteParameters(paramsFeat.Parameters, out _);
             }
 
-            if (m_HandlePostRebuild)
+            if (HandlePostRebuild)
             {
                 AddDataToRebuildQueue(app, doc, (ISwMacroFeature<TParams>)feature, paramsFeat.Parameters);
             }
@@ -706,19 +616,20 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         }
 
         /// <inheritdoc/>
-        public virtual bool OnEditDefinition(ISwApplication app, ISwDocument doc, ISwMacroFeature<TParams> feature) 
-        {
-            return true;
-        }
+        public virtual bool OnEditDefinition(ISwApplication app, ISwDocument doc, ISwMacroFeature<TParams> feature) => true;
 
         [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
-        protected override void AddDataToRebuildQueue(ISwApplication app, ISwDocument doc, ISwMacroFeature macroFeatInst)
+        internal override SwMacroFeature CreateMacroFeatureInstance(IFeature feat, SwDocument doc, SwApplication app)
+            => new SwMacroFeature<TParams>(feat, doc, app, feat != null);
+
+        [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
+        internal override void AddDataToRebuildQueue(ISwApplication app, ISwDocument doc, ISwMacroFeature macroFeatInst)
         {
             //Do nothing, this method is overriden
         }
 
         [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
-        protected virtual void AddDataToRebuildQueue(ISwApplication app, ISwDocument doc, ISwMacroFeature<TParams> macroFeatInst, TParams parameters)
+        internal virtual void AddDataToRebuildQueue(ISwApplication app, ISwDocument doc, ISwMacroFeature<TParams> macroFeatInst, TParams parameters)
         {
             m_RebuildFeaturesQueue.Add(new MacroFeatureParametersRegenerateData()
             {
@@ -730,7 +641,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         }
 
         [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
-        protected override void DispatchPostBuildData(MacroFeatureRegenerateData data)
+        internal override void DispatchPostBuildData(MacroFeatureRegenerateData data)
         {
             var paramData = (MacroFeatureParametersRegenerateData)data;
 
@@ -837,12 +748,24 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             }
         }
 
+        public override CustomFeatureRebuildResult OnRebuild(ISwApplication app, ISwDocument doc,
+            ISwMacroFeature<TParams> feature, out AlignDimensionDelegate<TParams> alignDim)
+            => OnRebuild(app, doc, feature, CreateUserIdsManager(app, doc, feature), out alignDim);
+
         /// <inheritdoc/>
-        public virtual ISwBody[] CreateGeometry(ISwApplication app, ISwDocument doc, ISwMacroFeature<TParams> feat, 
-            out AlignDimensionDelegate<TParams> alignDim) 
+        public virtual ISwBody[] CreateGeometry(ISwApplication app, ISwDocument doc, ISwMacroFeature<TParams> feat,
+            out AlignDimensionDelegate<TParams> alignDim)
         {
             alignDim = null;
-            return CreateGeometry(app, doc, feat);
+            return new ISwTempBody[0];
+        }
+
+        /// <inheritdoc/>
+        public virtual ISwBody[] CreateGeometry(ISwApplication app, ISwDocument doc, ISwMacroFeature<TParams> feat,
+            IUserIdsManager userIdsMgr, out AlignDimensionDelegate<TParams> alignDim)
+        {
+            alignDim = null;
+            return CreateGeometry(app, doc, feat, userIdsMgr);
         }
 
         /// <inheritdoc/>
@@ -857,11 +780,18 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         }
 
         /// <inheritdoc/>
-        public virtual ISwBody[] CreateGeometry(ISwApplication app, ISwDocument doc, ISwMacroFeature<TParams> feat) => new ISwTempBody[0];
+        public virtual ISwBody[] CreateGeometry(ISwApplication app, ISwDocument doc, ISwMacroFeature<TParams> feat,
+            IUserIdsManager userIdsMgr) => CreateGeometry(app, doc, feat);
+
+        /// <inheritdoc/>
+        public virtual ISwBody[] CreateGeometry(ISwApplication app, ISwDocument doc, ISwMacroFeature<TParams> feat)
+            => CreateGeometry(app, doc, feat, out _);
 
         /// <inheritdoc/>
         public virtual ISwTempBody[] CreatePreviewGeometry(ISwApplication app, ISwDocument doc, ISwMacroFeature<TParams> feat, TPage page)
-            => CreateGeometry(app, doc, feat, out _)?.Cast<ISwTempBody>().ToArray();
+            => CreateGeometry(app, doc, feat, CreateEmptyUserIdsManager(), out _)?.Cast<ISwTempBody>().ToArray();
+
+        protected IUserIdsManager CreateEmptyUserIdsManager() => new EmptyUserIdsManager();
 
         /// <inheritdoc/>
         public IXMemoryBody[] CreatePreviewGeometry(IXApplication app, IXDocument doc, IXCustomFeature<TParams> feat, TPage page,
@@ -914,10 +844,10 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         /// <inheritdoc/>
         [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
         public override CustomFeatureRebuildResult OnRebuild(ISwApplication app, ISwDocument doc,
-            ISwMacroFeature<TParams> feature, out AlignDimensionDelegate<TParams> alignDim)
+            ISwMacroFeature<TParams> feature, IUserIdsManager userIdsMgr, out AlignDimensionDelegate<TParams> alignDim)
             => new CustomFeatureBodyRebuildResult()
             {
-                Bodies = CreateGeometry(app, doc, feature, out alignDim)?.ToArray()
+                Bodies = CreateGeometry(app, doc, feature, userIdsMgr, out alignDim)?.ToArray()
             };
 
         /// <summary>
@@ -965,9 +895,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         /// <param name="page">Page data</param>
         /// <remarks>Call <see cref="IXTransaction.Commit(System.Threading.CancellationToken)"/> on the feature to insert it into the tree</remarks>
         public virtual void OnFeatureInserting(IXApplication app, IXDocument doc, IXCustomFeature<TParams> feat, TPage page)
-        {
-            feat.Commit();
-        }
+            => feat.Commit();
 
         /// <summary>
         /// Called when the preview of the macro feature updated
@@ -988,8 +916,9 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         /// Context for the preview of this document
         /// </summary>
         /// <param name="doc">Current document</param>
+        /// <param name="feat">Feature being edited</param>
         /// <returns>Either <see cref="IXPart"/> or <see cref="IXComponent"/></returns>
-        protected virtual ISwObject ProvidePreviewContext(IXDocument doc)
+        protected virtual ISwObject ProvidePreviewContext(IXDocument doc, IXCustomFeature<TParams> feat)
         {
             switch (doc)
             {

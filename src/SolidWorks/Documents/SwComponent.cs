@@ -278,7 +278,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                 {
                     var compModel = Component.IGetModelDoc();
 
-                    //Note: for LDR assembly IGetModelDoc returns the pointer to root assembly
+                    //NOTE: for LDR assembly IGetModelDoc returns the pointer to root assembly
                     if (compModel != null && !RootAssembly.Model.IsOpenedViewOnly())
                     {
                         return (ISwDocument3D)OwnerApplication.Documents[compModel];

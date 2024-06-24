@@ -181,6 +181,12 @@ namespace Xarial.XCad.SolidWorks.Documents
             remove => m_DocumentSavingEventHandler.Detach(value);
         }
 
+        public event DocumentSavedDelegate Saved
+        {
+            add => m_DocumentSavedEventHandler.Attach(value);
+            remove => m_DocumentSavedEventHandler.Detach(value);
+        }
+
         public event DataStoreAvailableDelegate StreamReadAvailable 
         {
             add => m_StreamReadAvailableHandler.Attach(value);
@@ -223,7 +229,8 @@ namespace Xarial.XCad.SolidWorks.Documents
         private readonly StorageWriteAvailableEventsHandler m_StorageWriteAvailableHandler;
         private readonly DocumentRebuildEventsHandler m_DocumentRebuildEventHandler;
         private readonly DocumentSavingEventHandler m_DocumentSavingEventHandler;
-        
+        private readonly DocumentSavedEventHandler m_DocumentSavedEventHandler;
+
         public IModelDoc2 Model => m_Creator.Element;
 
         public string Path

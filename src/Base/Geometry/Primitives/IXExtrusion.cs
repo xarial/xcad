@@ -6,6 +6,7 @@
 //*********************************************************************
 
 using System.Collections.Generic;
+using Xarial.XCad.Geometry.Curves;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Geometry.Wires;
 
@@ -30,5 +31,16 @@ namespace Xarial.XCad.Geometry.Primitives
         /// Direction of the extrusion
         /// </summary>
         Vector Direction { get; set; }
+    }
+
+    /// <summary>
+    /// Represents the extruded geometry of the sheet
+    /// </summary>
+    public interface IXSheetExtrusion : IXExtrusion 
+    {
+        /// <summary>
+        /// Profiles of the extrusion
+        /// </summary>
+        new IXCurve[] Profiles { get; set; }
     }
 }

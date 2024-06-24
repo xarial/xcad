@@ -42,8 +42,14 @@ using System.Globalization;
 
 namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 {
+    /// <summary>
+    /// SOLIDWORKS specific custom feature (macro feature)
+    /// </summary>
     public interface ISwMacroFeature : ISwFeature, IXCustomFeature
     {
+        /// <summary>
+        /// Configuration of macro feature
+        /// </summary>
         new ISwConfiguration Configuration { get; }
     }
 

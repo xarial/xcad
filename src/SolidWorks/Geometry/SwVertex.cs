@@ -14,11 +14,12 @@ using System.Text;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.SolidWorks.Documents;
+using Xarial.XCad.SolidWorks.Geometry.Curves;
 using Xarial.XCad.Utils.Reflection;
 
 namespace Xarial.XCad.SolidWorks.Geometry
 {
-    public interface ISwVertex : ISwEntity, IXVertex
+    public interface ISwVertex : ISwEntity, IXVertex, ISwPoint
     {
         IVertex Vertex { get; }
     }

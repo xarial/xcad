@@ -71,7 +71,7 @@ namespace SwAddInExample.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to TestTab1.
+        ///   Looks up a localized string similar to Sample Tab.
         /// </summary>
         internal static string TabName {
             get {

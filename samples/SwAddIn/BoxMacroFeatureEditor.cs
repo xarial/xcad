@@ -5,7 +5,7 @@
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
-using SwAddInExample.Properties;
+using SwAddIn.Properties;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;

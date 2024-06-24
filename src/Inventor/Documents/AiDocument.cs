@@ -45,6 +45,7 @@ namespace Xarial.XCad.Inventor.Documents
         public event DataStoreAvailableDelegate StorageWriteAvailable;
         public event DocumentEventDelegate Rebuilt;
         public event DocumentSaveDelegate Saving;
+        public event DocumentSavedDelegate Saved;
         public event DocumentCloseDelegate Closing;
         public event DocumentEventDelegate Destroyed;
 

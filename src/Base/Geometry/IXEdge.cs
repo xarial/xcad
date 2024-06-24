@@ -40,18 +40,18 @@ namespace Xarial.XCad.Geometry
     /// <summary>
     /// Represents specific circular edge
     /// </summary>
-    public interface IXCircularEdge : IXEdge 
+    public interface IXCircularEdge : IXEdge, IXCircle
     {
         /// <inheritdoc/>
-        new IXCircle Definition { get; }
+        new IXCircleCurve Definition { get; }
     }
 
     /// <summary>
     /// Represents specific linear edge
     /// </summary>
-    public interface IXLinearEdge : IXEdge
+    public interface IXLinearEdge : IXEdge, IXLine
     {
         /// <inheritdoc/>
-        new IXLine Definition { get; }
+        new IXLineCurve Definition { get; }
     }
 }

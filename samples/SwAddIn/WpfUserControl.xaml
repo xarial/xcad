@@ -16,7 +16,7 @@
         </Grid.RowDefinitions>
         <TextBlock FontSize="25" Text="Hello World" Margin="2"/>
         <xctrls:FlagEnumComboBox Grid.Row="1" Margin="2" Value="{Binding Path=Value, UpdateSourceTrigger=PropertyChanged}"/>
-        <xctrls:ExpressionBox Grid.Row="2" SingleLine="False"/>
+        <xctrls:ExpressionBox Grid.Row="2" WrapText="True"/>
         <DataGrid Grid.Row="3" Margin="2" ItemsSource="{Binding Path=Items}" CanUserAddRows="True" AutoGenerateColumns="True"/>
     </Grid>
 </UserControl>

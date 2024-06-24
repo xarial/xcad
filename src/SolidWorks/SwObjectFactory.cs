@@ -10,6 +10,7 @@ using SolidWorks.Interop.swconst;
 using System;
 using System.IO;
 using System.Linq;
+using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Geometry.Surfaces;
 using Xarial.XCad.SolidWorks.Annotations;
 using Xarial.XCad.SolidWorks.Documents;
@@ -130,7 +131,8 @@ namespace Xarial.XCad.SolidWorks
                     switch (bodyType)
                     {
                         case swBodyType_e.swSheetBody:
-                            if (body.GetFaceCount() == 1 && body.IGetFirstFace().IGetSurface().IsPlane())
+                            
+                            if (IsPlanarSheetBody(body))
                             {
                                 if (!isTemp)
                                 {
@@ -451,6 +453,43 @@ namespace Xarial.XCad.SolidWorks
                 default:
                     return defaultHandler.Invoke(disp);
             }
+        }
+
+        private static bool IsPlanarSheetBody(IBody2 body) 
+        {
+            var face = body.IGetFirstFace();
+
+            Vector normal = null;
+
+            while (face != null) 
+            {
+                if (!face.IGetSurface().IsPlane()) 
+                {
+                    return false;
+                }
+
+                if(normal != null)
+                {
+                    if (!normal.IsParallel(new Vector((double[])face.Normal)))
+                    {
+                        return false;
+                    }
+                }
+
+                var nextFace = face.IGetNextFace();
+
+                if (nextFace != null) 
+                {
+                    if (normal == null)
+                    {
+                        normal = new Vector((double[])face.Normal);
+                    }
+                }
+
+                face = nextFace;
+            }
+
+            return true;
         }
 
         private static bool TryGetParameterType(IFeature feat, SwApplication app, out Type paramType)

@@ -418,38 +418,104 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        public int LengthDecimalPlaces
+        public int? LengthDecimalPlaces
         {
-            get => m_Document.Model.Extension.GetUserPreferenceInteger(
-                (int)swUserPreferenceIntegerValue_e.swUnitsLinearDecimalPlaces,
-                (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified);
-            set 
+            get
             {
-                if (!m_Document.Model.Extension.SetUserPreferenceInteger(
-                    (int)swUserPreferenceIntegerValue_e.swUnitsLinearDecimalPlaces,
-                    (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified, value)) 
+                if (m_Document.Model.Extension.GetUserPreferenceInteger(
+                    (int)swUserPreferenceIntegerValue_e.swUnitsLinearDecimalDisplay,
+                    (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified) == (int)swFractionDisplay_e.swDECIMAL)
                 {
-                    throw new Exception("Failed to change linear decimal places");
+                    return m_Document.Model.Extension.GetUserPreferenceInteger(
+                        (int)swUserPreferenceIntegerValue_e.swUnitsLinearDecimalPlaces,
+                        (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified);
+                }
+                else
+                {
+                    return null;
                 }
             }
-        }
-
-        public int DualDimensionLengthDecimalPlaces
-        {
-            get => m_Document.Model.Extension.GetUserPreferenceInteger(
-                (int)swUserPreferenceIntegerValue_e.swUnitsDualLinearDecimalPlaces,
-                (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified);
             set
             {
-                if (!m_Document.Model.Extension.SetUserPreferenceInteger(
-                    (int)swUserPreferenceIntegerValue_e.swUnitsDualLinearDecimalPlaces,
-                    (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified, value))
+                if (value.HasValue)
                 {
-                    throw new Exception("Failed to change dual dimension linear decimal places");
+                    if (m_Document.Model.Extension.SetUserPreferenceInteger(
+                        (int)swUserPreferenceIntegerValue_e.swUnitsLinearDecimalDisplay,
+                        (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified, (int)swFractionDisplay_e.swDECIMAL))
+                    {
+                        if (!m_Document.Model.Extension.SetUserPreferenceInteger(
+                            (int)swUserPreferenceIntegerValue_e.swUnitsLinearDecimalPlaces,
+                            (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified, value.Value))
+                        {
+                            throw new Exception("Failed to change length decimal places");
+                        }
+                    }
+                    else
+                    {
+                        throw new Exception("Failed to change length display");
+                    }
+                }
+                else
+                {
+                    if (m_Document.Model.Extension.SetUserPreferenceInteger(
+                        (int)swUserPreferenceIntegerValue_e.swUnitsLinearDecimalDisplay,
+                        (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified, (int)swFractionDisplay_e.swNONE))
+                    {
+                        throw new Exception("Failed to set length display to none");
+                    }
                 }
             }
         }
 
+        public int? DualDimensionLengthDecimalPlaces
+        {
+            get
+            {
+                if (m_Document.Model.Extension.GetUserPreferenceInteger(
+                    (int)swUserPreferenceIntegerValue_e.swUnitsDualLinearDecimalDisplay,
+                    (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified) == (int)swFractionDisplay_e.swDECIMAL)
+                {
+                    return m_Document.Model.Extension.GetUserPreferenceInteger(
+                        (int)swUserPreferenceIntegerValue_e.swUnitsDualLinearDecimalPlaces,
+                        (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified);
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            set
+            {
+                if (value.HasValue)
+                {
+                    if (m_Document.Model.Extension.SetUserPreferenceInteger(
+                        (int)swUserPreferenceIntegerValue_e.swUnitsDualLinearDecimalDisplay,
+                        (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified, (int)swFractionDisplay_e.swDECIMAL))
+                    {
+                        if (!m_Document.Model.Extension.SetUserPreferenceInteger(
+                            (int)swUserPreferenceIntegerValue_e.swUnitsDualLinearDecimalPlaces,
+                            (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified, value.Value))
+                        {
+                            throw new Exception("Failed to change dual dimension length decimal places");
+                        }
+                    }
+                    else
+                    {
+                        throw new Exception("Failed to change dual dimension length display");
+                    }
+                }
+                else
+                {
+                    if (m_Document.Model.Extension.SetUserPreferenceInteger(
+                        (int)swUserPreferenceIntegerValue_e.swUnitsDualLinearDecimalDisplay,
+                        (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified, (int)swFractionDisplay_e.swNONE))
+                    {
+                        throw new Exception("Failed to set dual dimension length display to none");
+                    }
+                }
+            }
+        }
+        
         public int MassDecimalPlaces
         {
             get => m_Document.Model.Extension.GetUserPreferenceInteger(
@@ -498,34 +564,100 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        public int LengthFractions
+        public int? LengthFractions
         {
-            get => m_Document.Model.Extension.GetUserPreferenceInteger(
-                (int)swUserPreferenceIntegerValue_e.swUnitsLinearFractionDenominator,
-                (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified);
+            get
+            {
+                if (m_Document.Model.Extension.GetUserPreferenceInteger(
+                    (int)swUserPreferenceIntegerValue_e.swUnitsLinearDecimalDisplay,
+                    (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified) == (int)swFractionDisplay_e.swFRACTION)
+                {
+                    return m_Document.Model.Extension.GetUserPreferenceInteger(
+                    (int)swUserPreferenceIntegerValue_e.swUnitsLinearFractionDenominator,
+                    (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified);
+                }
+                else
+                {
+                    return null;
+                }
+            }
             set
             {
-                if (!m_Document.Model.Extension.SetUserPreferenceInteger(
-                    (int)swUserPreferenceIntegerValue_e.swUnitsLinearFractionDenominator,
-                    (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified, value))
+                if (value.HasValue)
                 {
-                    throw new Exception("Failed to change length fractions");
+                    if (m_Document.Model.Extension.SetUserPreferenceInteger(
+                        (int)swUserPreferenceIntegerValue_e.swUnitsLinearDecimalDisplay,
+                        (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified, (int)swFractionDisplay_e.swFRACTION))
+                    {
+                        if (!m_Document.Model.Extension.SetUserPreferenceInteger(
+                            (int)swUserPreferenceIntegerValue_e.swUnitsLinearFractionDenominator,
+                            (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified, value.Value))
+                        {
+                            throw new Exception("Failed to change length fractions");
+                        }
+                    }
+                    else
+                    {
+                        throw new Exception("Failed to change length display");
+                    }
+                }
+                else
+                {
+                    if (m_Document.Model.Extension.SetUserPreferenceInteger(
+                        (int)swUserPreferenceIntegerValue_e.swUnitsLinearDecimalDisplay,
+                        (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified, (int)swFractionDisplay_e.swNONE))
+                    {
+                        throw new Exception("Failed to set length display to none");
+                    }
                 }
             }
         }
 
-        public int DualDimensionLengthFractions
+        public int? DualDimensionLengthFractions
         {
-            get => m_Document.Model.Extension.GetUserPreferenceInteger(
-                (int)swUserPreferenceIntegerValue_e.swUnitsDualLinearFractionDenominator,
-                (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified);
+            get
+            {
+                if (m_Document.Model.Extension.GetUserPreferenceInteger(
+                    (int)swUserPreferenceIntegerValue_e.swUnitsDualLinearDecimalDisplay,
+                    (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified) == (int)swFractionDisplay_e.swFRACTION)
+                {
+                    return m_Document.Model.Extension.GetUserPreferenceInteger(
+                        (int)swUserPreferenceIntegerValue_e.swUnitsDualLinearFractionDenominator,
+                        (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified);
+                }
+                else 
+                {
+                    return null;
+                }
+            }
             set
             {
-                if (!m_Document.Model.Extension.SetUserPreferenceInteger(
-                    (int)swUserPreferenceIntegerValue_e.swUnitsDualLinearFractionDenominator,
-                    (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified, value))
+                if (value.HasValue)
                 {
-                    throw new Exception("Failed to change dual dimension length fractions");
+                    if (m_Document.Model.Extension.SetUserPreferenceInteger(
+                        (int)swUserPreferenceIntegerValue_e.swUnitsDualLinearDecimalDisplay,
+                        (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified, (int)swFractionDisplay_e.swFRACTION))
+                    {
+                        if (!m_Document.Model.Extension.SetUserPreferenceInteger(
+                            (int)swUserPreferenceIntegerValue_e.swUnitsDualLinearFractionDenominator,
+                            (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified, value.Value))
+                        {
+                            throw new Exception("Failed to change dual dimension length fractions");
+                        }
+                    }
+                    else
+                    {
+                        throw new Exception("Failed to change dual dimension length display");
+                    }
+                }
+                else 
+                {
+                    if (m_Document.Model.Extension.SetUserPreferenceInteger(
+                        (int)swUserPreferenceIntegerValue_e.swUnitsDualLinearDecimalDisplay,
+                        (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified, (int)swFractionDisplay_e.swNONE))
+                    {
+                        throw new Exception("Failed to set dual dimension length display to none");
+                    }
                 }
             }
         }
